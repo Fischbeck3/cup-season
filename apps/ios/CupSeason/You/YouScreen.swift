@@ -134,7 +134,7 @@ struct YouScreen: View {
           }
           .csRedacted(!model.loaded)
 
-          // ── the two doors that are not the golf. They sit at the page's
+          // ── the doors that are not the golf. They sit at the page's
           // foot in one rule-bounded block (§D-8): a golfer with low vision
           // gets a weight step and a position, not only a hairline.
           doors.padding(.top, CSTokens.Space.s5)
@@ -379,6 +379,21 @@ struct YouScreen: View {
         CSRule()
         door(BagCopy.yours, bag.isEmpty ? BagCopy.emptySub : BagCopy.summary(bag), open)
       }
+      CSRule()
+      // **SETTINGS IS REACHABLE FROM THE FOOT, NOT ONLY FROM THE CORNER.**
+      // §1 puts one tertiary link at `topBarTrailing` and that link is correct
+      // and stays — but it is one word, set small, in the corner of a page
+      // whose first object is a photograph, and the owner could not get into
+      // settings from it on a real phone. A word in a corner is a poor target
+      // and a worse signpost.
+      //
+      // This costs nothing to add and matches what is already true of this
+      // block: these are the doors that are NOT the golf, a golfer's card and
+      // their account is exactly that, and `door` is a full-measure 56pt row
+      // whose whole surface taps. Two ways in, one of them unmissable.
+      door("Card & settings",
+           "Your name, your marker, your photo — and how the app behaves",
+           links.openSettings)
       CSRule()
     }
     .padding(.horizontal, -CSTokens.Space.gutter)

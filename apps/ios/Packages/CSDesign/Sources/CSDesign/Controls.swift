@@ -135,6 +135,23 @@ public struct CSTertiaryStyle: ButtonStyle {
     .foregroundStyle(enabled ? cs.ink : cs.mut)
     .a11yHitSlop()
     .frame(minHeight: 44)
+    // **THE FRAME IS NOT THE TARGET UNTIL SOMETHING SHAPES IT**, and this one
+    // line is why `Settings` could not be tapped on the You page.
+    //
+    // `a11yHitSlop` pads, sets `contentShape`, then pads back NEGATIVE — so the
+    // shape it installs is the size of the words, and the layout bounds shrink
+    // to the words too. `.frame(minHeight: 44)` then draws a 44pt row around a
+    // ~20pt hit region: a link that measures as a legal target, reports as one
+    // to every audit that greps for `44`, and misses the thumb. Every one of
+    // the product's tertiary links had it, so the shared idiom for "go here"
+    // was the least reliable control in the app.
+    //
+    // Shaping AFTER the frame makes the whole 44pt row the target. The slop
+    // above still earns its keep at the horizontal edges and at AX sizes, where
+    // the words can be shorter than the row. `CSTertiaryTargetTests` pins the
+    // order; if anyone reorders these two lines the test fails rather than the
+    // golfer.
+    .contentShape(Rectangle())
     .csBudget(ember: placement == .live && enabled ? 1 : 0)
     .csAnimation(CSMotion.snap, value: configuration.isPressed)
   }
