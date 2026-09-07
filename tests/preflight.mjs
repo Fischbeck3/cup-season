@@ -2374,9 +2374,13 @@ const lint = (id, name, hits, note = '') => {
        'Close, a toolbar tertiary at topBarTrailing, never ember');
 
   /* LINT-28 · the pennant is reserved to the tab band and the app icon. Nine
-     flags carrying seven meanings, on the product's core symbol, is ICO-12. */
+     flags carrying seven meanings, on the product's core symbol, is ICO-12.
+     `MainTabView` joins the skip in Wave 1: the band is the product's own now
+     (§12.1) and its five glyphs are DECLARED there, so the one site that names
+     the flag legitimately is the tab band's own item list. The check's job is
+     unchanged — a pennant anywhere else is still a failure. */
   lint('LINT-28', 'the pennant is reserved',
-       scan(/\.pennant\b/, { skip: /CSDesign\/(Chrome)\.swift|Dev\// }),
+       scan(/\.pennant\b/, { skip: /CSDesign\/(Chrome)\.swift|Dev\/|Main\/MainTabView\.swift/ }),
        'the tab band and the app icon, and nowhere else');
 
   /* LINT-29 · `dim` is a hairline/dot tier, never a word. IOS-013 already

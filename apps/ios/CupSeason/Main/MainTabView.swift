@@ -261,10 +261,6 @@ struct MainTabView: View {
   @State private var competePath = NavigationPath()
   @State private var golfersPath = NavigationPath()
   @State private var youPath = NavigationPath()
-  /// What the floating bar covers that the system does not already reserve —
-  /// measured from the live bar (`CSTabBarProbe`), never guessed. 0 until the
-  /// bar exists, which is exactly the behaviour the app had before.
-  @State private var barRoom: CGFloat = 0
   /// D241 / D253 · a pending `?p=` or `?plan=` token, drained once the golfer
   /// has a name on them. Bumped by `onOpenURL` so a link tapped while the app
   /// is already open lands at once.
@@ -272,9 +268,8 @@ struct MainTabView: View {
   #if DEBUG
   @State private var devOpened = false
   #endif
-  /// D222 · five slots. The order is the bar's order and the ⊕ is the middle
-  /// of the five, which is what keeps `CSTabBarLongPress.plusIndex(of:)`
-  /// pointing at it without a constant to forget.
+  /// D222 · five slots. The order is the band's order and the ⊕ is the middle
+  /// of the five — a verb, not a place.
   enum Tab: Hashable {
     case home, compete, play, golfers, you
     /// The Kit's slot for this tab. One vocabulary, so `NavSlot` can decide
@@ -300,6 +295,22 @@ struct MainTabView: View {
       // item is the live round and cleared the moment it is not.
       LiveNowBar(presented: presenter.showLive || (tab == .home && HomeLeadFlag.shared.liveIsLead)) { presenter.showLive = true }
       tabs
+      // §12.1 · THE TAB BAND IS THE PRODUCT'S OWN, AND IT SITS ON THE PAGE'S
+      // OWN GROUND WITH A 1px RULE ON TOP. The system bar was a floating
+      // translucent pill: it had to be measured (`CSTabBarProbe`), its ⊕ had
+      // to be a tinted `UIImage` because a `tabItem` cannot be coloured, its
+      // long press had to be bolted onto a live `UITabBar` by walking
+      // subviews for a class name, and it guillotined whatever scrolled under
+      // it. A band the product draws needs none of that: there is nothing to
+      // float over, so there is nothing to guillotine, and the ⊕ is a drawn
+      // ember glyph with no fill and no disc rather than the loudest object
+      // on every signed-in screen (D269).
+      CSTabBand(bandItems, selection: $tab, onPlay: { openPlay() }, onPlayHold: {
+        // D227 · a LONG PRESS opens the composer with the score focused — the
+        // 90% case in one gesture, without spending L-40's clause.
+        presenter.postOnComposer = true
+        presenter.showPost = true
+      })
     }
     // D175 · the doorbell rings wherever you are. Advertising has followed the
     // app since D168/D170, but the alert that answers it lived only on the tee
@@ -320,7 +331,7 @@ struct MainTabView: View {
             }
           }
       }
-      .csTabBarEdge()
+      .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.home.label, systemImage: "house") }
       .tag(Tab.home)
 
@@ -333,13 +344,13 @@ struct MainTabView: View {
                       openGolfers: { openGolfers() })
           .navigationDestination(for: CompeteRoute.self) { r in competeDestination(r) }
       }
-      .csTabBarEdge()
+      .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.compete.label, systemImage: "flag") }
       .tag(Tab.compete)
 
       // ---- 3 · ⊕ PLAY. A verb, not a place (D82's one surviving rule). ----
       Color.clear
-        .tabItem { Label { Text(NavSlot.play.label) } icon: { Image(uiImage: emberPlus) } }
+        .tabItem { Label(NavSlot.play.label, systemImage: "plus.circle") }
         .tag(Tab.play)
 
       // ---- 4 · GOLFERS. The COMMUNITY destination (D222). ----
@@ -350,7 +361,7 @@ struct MainTabView: View {
                       openRound: { presenter.scheduledRound = $0 })
           .navigationDestination(for: GolfersRoute.self) { r in golfersDestination(r) }
       }
-      .csTabBarEdge()
+      .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.golfers.label, systemImage: "person.2") }
       .tag(Tab.golfers)
 
@@ -367,34 +378,20 @@ struct MainTabView: View {
             }
           }
       }
-      .csTabBarEdge()
+      .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.you.label, systemImage: "person.text.rectangle") }
       .tag(Tab.you)
     }
-    // Room at the foot for the floating bar, answered in ONE place. Applied to
-    // the TabView, so every tab and every screen pushed inside one — Card &
-    // settings and People included, which paint their own ground and would
-    // otherwise each have to know the number — leaves the bar its space.
-    // `barRoom` is the measured SHORTFALL, so a screen the system already
-    // clears gets nothing added and cannot be inset twice. (The other half —
-    // the page not reading THROUGH the pill — is `.csTabBarEdge()`, per stack,
-    // so the full-screen covers below never inherit it.)
-    .csTabBarRoom(barRoom)
+    // No room is reserved at the foot any more and nothing is measured: the
+    // band is a sibling in the stack above, so it takes its own height and a
+    // page simply ends where it ends. `csTabBarRoom` / `csTabBarEdge` /
+    // `CSTabBarProbe` / `CSTabBarLongPress` are the machinery a floating pill
+    // needed, and Wave 8 deletes the declarations with the rest of the shims.
     .tint(cs.brand)
     .environment(\.presenter, presenter)
     .environment(\.openCompetition, { id, pane in openCompetition(id, pane: pane) })
     .environment(\.openGolfers, { openGolfers() })
     .environment(\.openPerson, { openPerson($0) })
-    // Measure the bar once it exists, and dress it on the way past. The bar is
-    // built after the first layout, so this polls briefly and then stops; a
-    // shell that never finds one leaves `barRoom` at 0.
-    .task(id: scenePhase) {
-      guard scenePhase == .active, barRoom == 0 else { return }
-      for _ in 0..<25 {
-        if let room = CSTabBarProbe.dressAndMeasure(), room > 0 { barRoom = room; return }
-        do { try await Task.sleep(for: .milliseconds(120)) } catch { return }
-      }
-    }
     // D155 · tapping the Dynamic Island or the lock-screen card opens the round
     .onReceive(NotificationCenter.default.publisher(for: .csOpenLiveRound)) { _ in
       presenter.showLive = true
@@ -580,31 +577,13 @@ struct MainTabView: View {
     }
     .sheet(item: $ask.presented) { PushPromptSheet(reason: $0) }
     .onChange(of: tab) { old, new in
-      // the ⊕ is a verb, not a place: it presents, and the selection snaps back (IOS-022 item 3: with a haptic)
+      // The band never SELECTS the ⊕ — it calls `onPlay` — so this is now the
+      // backstop for a route that lands on `.play`: it presents and the
+      // selection snaps back, exactly as it did.
       if new == .play {
-        CSHaptic.present()
         tab = old == .play ? .home : old
-        // D227 · with a round live, the ⊕ OPENS THE ROUND. It used to offer
-        // the cover, whose first row is the same door `LiveNowBar` is already
-        // offering two rows above it — the same act, twice, on one screen.
-        if LiveRoundStore.shared.state.active {
-          presenter.showLive = true
-        } else {
-          presenter.postOnComposer = false
-          presenter.showPost = true
-        }
+        openPlay()
       }
-    }
-    // D227 · a LONG-PRESS on the ⊕ opens the composer with the score focused.
-    // The system tab bar has no gesture of its own, so the recogniser is
-    // attached to the live `UITabBar` and answers only for the ⊕'s own item.
-    // The 90 % case in one gesture, without spending L-40's clause.
-    .task(id: barRoom) {
-      CSTabBarLongPress.install(onPlus: {
-        CSHaptic.present()
-        presenter.postOnComposer = true
-        presenter.showPost = true
-      })
     }
     .sheet(item: $presenter.tourCard) { TourCardSheet(profileId: $0, links: youLinks) }
     .sheet(item: $presenter.courseCard) { CourseCardSheet(courseId: $0.id, label: $0.label) }
@@ -707,14 +686,29 @@ struct MainTabView: View {
     .fullScreenCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
   }
 
-  /// The ⊕ wears the live metal whether or not it is selected (IOS-003: ember = the ⊕).
-  /// An original-rendering UIImage is the one way to colour a tab glyph without a custom bar.
-  /// IOS-025: under a personal look the halo tints to the look's accent (100%); ember when none.
-  private var emberPlus: UIImage {
-    let cfg = UIImage.SymbolConfiguration(pointSize: 24, weight: .semibold)
-    let tint = looks.personalLook()?.accent(scheme == .light ? .light : .dark) ?? cs.brand
-    return UIImage(systemName: "plus.circle.fill", withConfiguration: cfg)?
-      .withTintColor(UIColor(tint), renderingMode: .alwaysOriginal) ?? UIImage()
+  /// The band's five slots. The glyphs are the product's own drawn family at
+  /// the markers' stroke weight — put one beside a marker and they are one
+  /// hand, which is the test the filled SF symbols failed by 40pt.
+  private var bandItems: [CSTabBand<Tab>.Item] {
+    [.init(id: .home, glyph: .home, label: NavSlot.home.label),
+     .init(id: .compete, glyph: .pennant, label: NavSlot.compete.label),
+     .init(id: .play, glyph: .play, label: NavSlot.play.label, isPlay: true),
+     .init(id: .golfers, glyph: .people, label: NavSlot.golfers.label),
+     .init(id: .you, glyph: .card, label: NavSlot.you.label)]
+  }
+
+  /// The ⊕ is a verb, not a place: it presents and nothing is selected.
+  ///
+  /// D227 · with a round live, the ⊕ OPENS THE ROUND. It used to offer the
+  /// cover, whose first row is the same door `LiveNowBar` is already offering
+  /// two rows above it — the same act, twice, on one screen.
+  private func openPlay() {
+    if LiveRoundStore.shared.state.active {
+      presenter.showLive = true
+    } else {
+      presenter.postOnComposer = false
+      presenter.showPost = true
+    }
   }
 
   // MARK: push (D104)

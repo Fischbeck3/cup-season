@@ -117,6 +117,7 @@ public struct CSFigure: View {
     switch over {
     case .page: metal == .earned ? cs.gold : cs.ink
     case .leaf: cs.leafInk
+    case .panel: metal == .earned ? CSTokens.light.gold : cs.panelInk
     case .ceremony: CSTokens.dark.ceremonyInk
     }
   }
@@ -125,6 +126,7 @@ public struct CSFigure: View {
     switch over {
     case .page: cs.mut
     case .leaf: cs.leafMut
+    case .panel: cs.panelMut
     case .ceremony: CSTokens.dark.ceremonyMut
     }
   }
@@ -196,14 +198,26 @@ public struct CSFigureRun: View {
 public struct CSMovement: View {
   @Environment(\.cs) private var cs
   public enum State: Equatable, Sendable { case up(Int), down(Int), held }
+  /// **A movement mark inside a panel is on BONE, in both themes.**
+  ///
+  /// The panel is the opposite of the page by construction, so the page's own
+  /// `ink` numeral would be near-white on bone in charcoal — invisible — and
+  /// the dark theme's `pos` is a bright green cut for a dark ground. Both take
+  /// the panel's own values, and the triangle takes the LIGHT green for the
+  /// same reason `CSRule` gives an earned rule on a leaf the light gold: a
+  /// bone tile is a light surface whichever room it is standing in.
+  public enum Ground: Sendable { case page, panel }
   let state: State
-  public init(_ state: State) { self.state = state }
+  let over: Ground
+  public init(_ state: State, over: Ground = .page) { self.state = state; self.over = over }
+
+  private var numeralInk: Color { over == .panel ? cs.panelInk : cs.ink }
 
   public var body: some View {
     HStack(spacing: CSTokens.Space.s1) {
       mark
-      if case .up(let n) = state { Text("\(n)").csType(.figureS).foregroundStyle(cs.ink) }
-      if case .down(let n) = state { Text("\(n)").csType(.figureS).foregroundStyle(cs.ink) }
+      if case .up(let n) = state { Text("\(n)").csType(.figureS).foregroundStyle(numeralInk) }
+      if case .down(let n) = state { Text("\(n)").csType(.figureS).foregroundStyle(numeralInk) }
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(spoken)
@@ -211,11 +225,16 @@ public struct CSMovement: View {
 
   @ViewBuilder private var mark: some View {
     switch state {
-    case .up: CSTriangle(up: true).fill(cs.pos).frame(width: 9, height: 7)
-    case .down: CSTriangle(up: false).fill(cs.cool).frame(width: 9, height: 7)
+    case .up:
+      CSTriangle(up: true)
+        .fill(over == .panel ? CSTokens.light.pos : cs.pos).frame(width: 9, height: 7)
+    case .down:
+      CSTriangle(up: false)
+        .fill(over == .panel ? CSTokens.light.cool : cs.cool).frame(width: 9, height: 7)
     // `mut`, never `rule`: at 2pt and 2.30:1 in light a `rule` bar is neither
     // a shape nor visible, and "held" becomes indistinguishable from "no data".
-    case .held: Rectangle().fill(cs.mut).frame(width: 9, height: 2)
+    case .held:
+      Rectangle().fill(over == .panel ? cs.panelMut : cs.mut).frame(width: 9, height: 2)
     }
   }
 

@@ -240,7 +240,17 @@ public enum CSType {
       // D268 · New York, reached through `design: .serif` and NEVER by
       // PostScript string — which is what retires Charter and what keeps
       // `LINT-01` at four names.
-      return Font.system(size: role.size, weight: role == .lead ? .bold : .regular, design: .serif)
+      //
+      // **AND IT IS SCALED BY HAND, BECAUSE `Font.system(size:weight:design:)`
+      // DOES NOT SCALE.** `relativeTo:` exists on `Font.custom` and on the
+      // text-style initialiser, and on neither of the two that take a point
+      // size AND a design. So `lead` and `story` stood still at every content
+      // size: Wave 1's AX3 shot has the product's one serif sentence — the
+      // thing the screen slows a golfer down for — rendering SMALLER than the
+      // sans standfirst under it. The metric is the same one the capped roles
+      // use, read against the ENVIRONMENT's size so the capture hatch and the
+      // roles agree; the serif is uncapped, because it is read for meaning.
+      return Font.system(size: pt, weight: role == .lead ? .bold : .regular, design: .serif)
     }
   }
 

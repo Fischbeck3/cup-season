@@ -86,8 +86,13 @@ struct CSBudgetTick: ViewModifier {
   }
 }
 
-extension View {
+public extension View {
   /// Count this view against the viewport's budgets.
+  ///
+  /// **Public, because a SURFACE can spend a metal too.** Home's floor paints
+  /// its own 2px `brand` rule under the one lit door — that is an ember mark
+  /// on the viewport, and a budget that only counted the marks `CSDesign`
+  /// happens to draw would report a screen carrying two as carrying one.
   func csBudget(display: Int = 0, agateCaps: Int = 0, gold: Int = 0, ember: Int = 0, nested: Int = 0) -> some View {
     modifier(CSBudgetTick(display: display, agateCaps: agateCaps, gold: gold, ember: ember, nested: nested))
   }

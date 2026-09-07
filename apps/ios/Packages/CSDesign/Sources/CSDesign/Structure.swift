@@ -91,7 +91,13 @@ public struct CSRule: View {
   /// the page's — the two grounds do not turn over together.
   let over: Ground
 
-  public enum Ground: Sendable { case page, leaf, ceremony }
+  /// Which ground a rule — or a figure, or a slot — is standing on. **The
+  /// grounds do not turn over together**: paper is paper in both rooms, a
+  /// ceremony is a physical object in both rooms, and the panel is the
+  /// opposite of the page by construction. A mark that reads the page's `ink`
+  /// while sitting on one of the other three is invisible in one theme and
+  /// nobody notices until the screenshot.
+  public enum Ground: Sendable { case page, leaf, ceremony, panel }
 
   public init(_ weight: Weight = .hair, metal: Metal = .ink, inset: CGFloat = 0, over: Ground = .page) {
     self.weight = weight; self.metal = metal; self.inset = inset; self.over = over
@@ -111,6 +117,7 @@ public struct CSRule: View {
       switch over {
       case .page: return cs.rule
       case .leaf: return cs.leafMut
+      case .panel: return cs.panelMut
       case .ceremony: return CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a16)
       }
     }
@@ -119,6 +126,7 @@ public struct CSRule: View {
       switch over {
       case .page: return cs.ink
       case .leaf: return cs.leafInk
+      case .panel: return cs.panelInk
       case .ceremony: return CSTokens.dark.ceremonyInk
       }
     case .live: return over == .ceremony ? CSTokens.dark.ceremonyBrand : cs.brand
@@ -128,7 +136,9 @@ public struct CSRule: View {
     case .earned:
       switch over {
       case .page: return cs.gold
-      case .leaf: return CSTokens.light.gold
+      // a bone panel is a light surface whichever room it is standing in, and
+      // gold ink on bone is 1.68:1 — so both read the LIGHT gold, the bronze
+      case .leaf, .panel: return CSTokens.light.gold
       case .ceremony: return CSTokens.dark.ceremonyGold
       }
     }
@@ -152,11 +162,19 @@ public struct CSPanel<Content: View>: View {
   /// The agate label under the figure, in `panelMut`. One word or one unit.
   let unit: String?
   let width: CGFloat?
+  /// A panel with a STATED height, for the one place the design fixes both
+  /// dimensions: Home's lead chip is 84 × 90, because the chip carries the
+  /// figure, the ordinal and the movement in one block (§16A.4) and a chip
+  /// that changed height between "held" and "up two" would move the headline
+  /// beside it. Ignored at the accessibility sizes, where the tile grows with
+  /// the numeral rather than cropping it.
+  let height: CGFloat?
   let content: Content
 
   public init(_ ground: Ground = .page, unit: String? = nil, width: CGFloat? = nil,
-              @ViewBuilder content: () -> Content) {
-    self.ground = ground; self.unit = unit; self.width = width; self.content = content()
+              height: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+    self.ground = ground; self.unit = unit; self.width = width
+    self.height = height; self.content = content()
   }
 
   /// Over a photograph the panel is ALWAYS the bone panel, in both themes: a
@@ -179,11 +197,24 @@ public struct CSPanel<Content: View>: View {
     }
     .padding(.horizontal, CSTokens.Space.s3)
     .padding(.vertical, CSTokens.Space.s2)
-    .frame(minWidth: width, maxWidth: width, minHeight: 38)
+    // **A STATED WIDTH IS NOT A CAGE AT AX3.** Pinning `minWidth`/`maxWidth`
+    // here as well as below kept the CONTENT at 84 while the tile's ground
+    // grew, so the chip's unit wrapped by character and printed
+    // `OF / EIG / HT` under a 4TH. A panel that crops or breaks its one label
+    // has stopped being a panel; at the accessibility sizes it takes the
+    // measure and the label sets on one line.
+    .frame(minWidth: typeSize.isA11y ? nil : width, maxWidth: typeSize.isA11y ? nil : width,
+           minHeight: typeSize.isA11y ? 38 : (height ?? 38))
     // ≤96×96 is the law; at the accessibility sizes the tile grows with the
     // numeral rather than clipping it, because a panel that crops its one
     // figure has stopped being a panel.
-    .frame(maxWidth: typeSize.isA11y ? .infinity : 96, alignment: .center)
+    //
+    // **A STATED WIDTH IS A WIDTH.** `.frame(maxWidth:)` EXPANDS into whatever
+    // it is offered, so a panel asked for 84 and then handed a 96 ceiling drew
+    // at 96 — the chip was 14% wider than the design in the first screenshot,
+    // and nothing in the code said so.
+    .frame(maxWidth: width != nil && !typeSize.isA11y ? width : (typeSize.isA11y ? .infinity : 96),
+           alignment: .center)
     .background(fill, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
     .environment(\.csInContainer, true)
     .csBudget(nested: nested ? 1 : 0)

@@ -391,39 +391,42 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    3.5-px spine does the state signalling: ember for a clock, gold for
    something earned, a mut hairline for quiet-and-true. Gold never touches the
    verb - a verb is a control (L-25). */
-.dcard{
-  position:relative; text-align:left; background:var(--bg1);
-  border:1px solid var(--rule); border-radius:14px;
-  padding:15px 16px 14px 19px; margin:0 0 12px; overflow:hidden;
+/* HOME'S LEAD, weight 1 (IOS-046, `surfaces/home.md` §1.2). **NOT A CARD: a
+   block on the ground.** The r14 box, its 1px border and its 3.5px spine are
+   deleted — 13 of 20 card sites drew a border and a spine 2px apart, and on
+   the shipped ground that border sat 1.443:1 above the page, which is not a
+   weak value but an absent one (D266). What is left is an eyebrow, the one
+   serif sentence the viewport allows, a standfirst and one door.
+
+   THE DECK IS DELETED AS A VISUAL OBJECT. Ranked items 2-5 were four smaller
+   copies of the lead — audit H-01, "rank 1 and rank 4 are the same weight" —
+   and they are quiet wire lines now, at the weight their kind earns. */
+.csedn{display:block; text-align:left; margin:0 0 22px;}
+.csedn .eb{display:flex; align-items:baseline; gap:8px; color:var(--mut); margin-bottom:11px;}
+.csedn.ember .eb{color:var(--brand);}
+.csedn .dot{width:7px; height:7px; border-radius:50%; background:var(--brand); flex:none;}
+.csedn .hl{color:var(--ink); margin:0;}
+.csedn .sf{color:var(--mut); margin-top:11px;}
+/* the door: a 2px rule under the words, and the rule is the affordance. It is
+   `brand` only while the block IS live (D269 -- ember has exactly two jobs),
+   and `mut` otherwise; `rule` at 2.66 / 2.30 would stop it being a control. */
+.csedn .act{
+  display:inline-block; margin-top:15px; background:none; border:0; padding:0 0 4px; cursor:pointer;
+  color:var(--ink); border-bottom:2px solid var(--mut);
 }
-.dcard::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--rule);}
-.dcard.ember::before{background:var(--brand);}
-.dcard.gold::before{background:var(--gold);}
-.dcard.lead{padding:19px 20px 17px 23px;}
-/* LV-17 · 11px is the floor (L-29). CSFont.label's own comment names this
-   file as the place that went to 8.5, and the redesign's new chrome may not
-   extend the habit. The six rules this wave added are at the floor; the
-   ninety-two that predate it are grandfathered by preflight check 36, and
-   that list may only shrink. */
-.dcard .eb{
-  display:block; font-family:var(--mono); font-size:11px; letter-spacing:.13em;
-  text-transform:uppercase; color:var(--mut); margin-bottom:7px;
-}
-.dcard.ember .eb{color:var(--brand);}
-.dcard.gold .eb{color:var(--gold);}
-.dcard .hl{font-family:var(--serif); font-size:17px; line-height:1.34; color:var(--ink); font-weight:600;}
-.dcard.lead .hl{font-size:20px;}
-.dcard .sf{font-size:13px; line-height:1.5; color:var(--mut); margin-top:5px;}
-.dcard .act{
-  display:inline-flex; align-items:center; gap:6px; margin-top:10px;
-  background:none; border:0; padding:0; cursor:pointer;
-  font-family:var(--sans); font-size:13px; font-weight:700; color:var(--brand);
-}
-.dcard .act:focus-visible{outline:2px solid var(--brand); outline-offset:3px; border-radius:4px;}
-.dcard .more{
-  display:block; margin-top:8px; background:none; border:0; padding:0; cursor:pointer;
-  font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut);
-}
+.csedn.ember .act{border-bottom-color:var(--brand);}
+.csedn .act:focus-visible{outline:2px solid var(--brand); outline-offset:4px;}
+/* Weight 5 -- minor activity: one 44pt row, a day marker in the leading
+   column, one line of prose, a rule on top. The marker is `mut` and never
+   `dim`: `dim` is 3.15 / 2.89 and may not carry a word. */
+.cswire{display:flex; align-items:baseline; gap:14px; width:100%; text-align:left;
+        background:none; border:0; border-top:1px solid var(--rule);
+        padding:11px 0; min-height:44px; cursor:pointer;}
+.cswire:first-child{border-top:0;}
+.cswire .mk{flex:none; width:34px; color:var(--mut); text-transform:none; letter-spacing:.02em;}
+.cswire .ln{flex:1; min-width:0; color:var(--mut);}
+.cswire .cv{flex:none; color:var(--mut);}
+.cswire:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 /* the sidebar is the desk's home for it; #homeMe covers the narrow widths */
 .homeme{display:block; margin:0 0 18px; padding:0 0 14px; border-top:0; border-bottom:1px solid var(--rule);}
 .homeme .mefacts{gap:12px 20px;}
@@ -14585,15 +14588,40 @@ async function loadHomeDispatch(){
 }
 window.loadHomeDispatch = loadHomeDispatch;
 
-function csDispatchCard(it, lead, cut){
-  const spine = it.spine === 'ember' ? ' ember' : it.spine === 'gold' ? ' gold' : '';
-  return `<div class="dcard${lead?' lead':''}${spine}" data-dkey="${esc(it.key)}"${it.rank_reason?` data-why="${esc(it.rank_reason)}"`:''}>
-    ${it.eyebrow?`<span class="eb">${esc(it.eyebrow)}</span>`:''}
-    <div class="hl">${esc(it.headline)}</div>
-    ${it.standfirst?`<div class="sf">${esc(it.standfirst)}</div>`:''}
-    ${it.action?`<button type="button" class="act" data-dgo="${esc(it.key)}">${esc(it.action)} <span>→</span></button>`:''}
-    ${cut>0?`<button type="button" class="more" data-dgo="__more">${cut} more →</button>`:''}
+/* THE LEAD, weight 1. The chip that carries the rank, the ordinal and the
+   movement (`home.md` §1.2, §16A.4) is the phone's for now and is named as
+   owed rather than faked: the desk's membership payload carries no `standing`
+   at all, and §1.2's own rule is that **a chip is never invented to fill the
+   column** -- with no figure the right column is absent and the sentence takes
+   the full measure, which is exactly what this renders. */
+function csLeadBlock(it){
+  const live = it.spine === 'ember';
+  return `<div class="csedn${live?' ember':''}" data-dkey="${esc(it.key)}"${it.rank_reason?` data-why="${esc(it.rank_reason)}"`:''}>
+    ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${esc(it.eyebrow)}</span></div>`:''}
+    <div class="hl cs-lead">${esc(it.headline)}</div>
+    ${it.standfirst?`<div class="sf cs-body">${esc(it.standfirst)}</div>`:''}
+    ${it.action?`<button type="button" class="act cs-name-s" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`:''}
   </div>`;
+}
+/* `Today` - `Mon` - `Aug 21`. The phone's `HomeWireCopy.dayMarker`, in the
+   desk's idiom; both read the item's own `at` and neither parses prose. */
+function csDayMarker(iso){
+  if(!iso) return '';
+  const d = localDate(String(iso).slice(0,10)); if(!d || isNaN(d)) return '';
+  const n = Math.round((d - new Date().setHours(0,0,0,0)) / 864e5);
+  if(n === 0) return 'Today';
+  if(Math.abs(n) <= 6) return DOW[d.getDay()];
+  return MOS[d.getMonth()] + ' ' + d.getDate();
+}
+/* WEIGHT 5 -- a ranked item that is not the lead. One quiet line, a day
+   marker, a chevron because it knows where it goes. Never a second card. */
+function csWireLine(it){
+  const mk = csDayMarker(it.at);
+  return `<button type="button" class="cswire" data-dgo="${esc(it.key)}">
+    <span class="mk cs-agate-s is-phrase">${esc(mk)}</span>
+    <span class="ln cs-body-s">${esc(it.headline)}</span>
+    <span class="cv" aria-hidden="true">&rsaquo;</span>
+  </button>`;
 }
 /* The dispatch, rendered: the lead into #homeLead and the deck into #homeDeck.
    The old four-faced D176 card is gone — its ladder is a written desk rule on
@@ -14612,8 +14640,9 @@ function renderHomeDispatch(){
     stripSuppress: window.__meSuppress ? [...window.__meSuppress] : [],
     leadSuppress: (window.homeDispatch && window.homeDispatch.lead_suppress) || [],
     useServerRank: !!served });
-  if(leadBox) leadBox.innerHTML = r.lead ? csDispatchCard(r.lead, true, 0) : '';
-  if(deckBox) deckBox.innerHTML = r.deck.map((it,i)=>csDispatchCard(it, false, i===r.deck.length-1 ? r.cut : 0)).join('');
+  if(leadBox) leadBox.innerHTML = r.lead ? csLeadBlock(r.lead) : '';
+  /* the deck is deleted: items 2-5 run in the wire at weight 5, in date order */
+  if(deckBox) deckBox.innerHTML = r.deck.map(csWireLine).join('');
   /* L-34 · the lead's set is UNIONED onto the strip's, never swapped for it —
      `renderMeStrip` runs first and everything below reads the union. */
   window.__meSuppress = r.suppress;

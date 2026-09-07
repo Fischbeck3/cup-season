@@ -108,23 +108,33 @@ public struct CSGlyph: View {
 // MARK: - The masthead
 
 /// Home only, and it is the reason Home reads as an edition of something
-/// rather than a screen: **the 22pt pennant · `s2` · the wordmark · the
-/// dateline in agate flush right · a 2pt `ink` rule beneath, full measure.**
-/// No ember tick — the masthead is not live — no sky wash, no second ground.
+/// rather than a screen: **the wordmark · the dateline in agate flush right ·
+/// a 2pt `ink` rule beneath, full measure.** No ember tick — the masthead is
+/// not live — no sky wash, no second ground, and no pennant: `LINT-28` reserves
+/// the flag to the tab band and the app icon, and `surfaces/home.md` §1.1 draws
+/// the wordmark alone.
 ///
-/// **The wordmark keeps the canon setting** — IBM Plex Mono 600, tracked
-/// 0.32em, always caps, at 30pt. `brand/README.md` states that as a rule and
-/// the two lockups plus the og-image are all GENERATED from it, so re-cutting
-/// it here would ship two different wordmarks: one on Home, one in every email
-/// and link preview. Re-cutting a wordmark is a brand decision the canon
-/// reserves to the owner.
+/// **THE WORDMARK IS SET IN `display`, WHICH IS A CHANGE OF FACE.** Wave 0b cut
+/// it in Plex Mono 600 at 0.32em, the setting `brand/README.md` states and the
+/// two lockups and the og-image are generated from. The design decided
+/// otherwise: `home.md` §1.1 and all five artboards set it in the board face,
+/// tight, because a 0.32em mono lockup on the page reads as a *logo pasted onto
+/// a screen* where the board cut reads as a masthead. The generated lockups are
+/// untouched, so the trade is real and stated: the wordmark on Home is now set
+/// differently from the wordmark in an email. That is a brand decision the
+/// canon reserves to the owner, and it is recorded in IOS-046 rather than made
+/// quietly.
 public struct CSMasthead: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
   let date: Date
   let calendar: Calendar
-  public init(date: Date = Date(), calendar: Calendar = .current) {
-    self.date = date; self.calendar = calendar
+  /// **Stale rewrites the dateline IN PLACE** (§13.3) — `AS OF FRI 6:12 PM ·
+  /// OFFLINE` — and nothing else on the page changes and no action is
+  /// disabled. It is the one place the product says the read did not land.
+  let asOf: Date?
+  public init(date: Date = Date(), calendar: Calendar = .current, asOf: Date? = nil) {
+    self.date = date; self.calendar = calendar; self.asOf = asOf
   }
 
   /// `SUN · SEP 6`.
@@ -134,22 +144,27 @@ public struct CSMasthead: View {
     return f.string(from: d).uppercased()
   }
 
+  private var line: String {
+    asOf.map { CSStale.line($0, calendar: calendar) } ?? Self.dateline(date, calendar: calendar)
+  }
+
   public var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      // At the default size `CUP SEASON` at 30pt measures 169pt and the
-      // dateline 65pt — 234 of the 362 measure. At AX3 a capped wordmark is
-      // 271pt and even a capped dateline is 141: 412 into 362, so the single
-      // row fails at AX2. From AX1 up the dateline takes its own line and the
-      // wordmark WRAPS rather than truncating — it is the product's name, and
-      // the tail-ellipsis policy must never reach it.
+      // At the default size `CUP SEASON` measures ~187pt and the dateline 65 —
+      // 252 of the 362 measure. At AX3 a capped wordmark is 300pt and even a
+      // capped dateline is 141, so the single row fails at AX2. From AX1 up the
+      // dateline takes its own line and the wordmark WRAPS rather than
+      // truncating — it is the product's name, and the tail-ellipsis policy
+      // must never reach it.
       if typeSize.isA11y {
-        wordmarkRow
-        Text(Self.dateline(date, calendar: calendar)).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        wordmark
+        Text(line).csType(.agate, caps: true).foregroundStyle(cs.mut)
       } else {
         HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
-          wordmarkRow
+          wordmark
           Spacer(minLength: CSTokens.Space.s2)
-          Text(Self.dateline(date, calendar: calendar)).csType(.agate, caps: true).foregroundStyle(cs.mut)
+          Text(line).csType(.agate, caps: true).foregroundStyle(cs.mut)
+            .lineLimit(1).fixedSize()
         }
       }
       CSRule(.heavy)
@@ -158,17 +173,12 @@ public struct CSMasthead: View {
     .accessibilityAddTraits(.isHeader)
   }
 
-  private var wordmarkRow: some View {
-    HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
-      CSGlyph(.pennant, size: .tab).foregroundStyle(cs.ink).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 2 }
-      Text("Cup Season")
-        .font(.custom(CSType.monoMedium, size: 30, relativeTo: .largeTitle))
-        .tracking(30 * 0.32)
-        .textCase(.uppercase)
-        .foregroundStyle(cs.ink)
-        .lineLimit(2)
-        .fixedSize(horizontal: false, vertical: true)
-    }
+  private var wordmark: some View {
+    Text("Cup Season")
+      .csType(.display)
+      .foregroundStyle(cs.ink)
+      .lineLimit(2)
+      .fixedSize(horizontal: false, vertical: true)
   }
 }
 
@@ -182,6 +192,7 @@ public struct CSMasthead: View {
 /// mid-scroll stops being a mitigation and becomes a non-event.
 public struct CSTabBand<T: Hashable>: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   public struct Item: Identifiable {
     public let id: T
     public let glyph: CSGlyph.Name
@@ -198,8 +209,14 @@ public struct CSTabBand<T: Hashable>: View {
   let items: [Item]
   @Binding var selection: T
   let onPlay: () -> Void
-  public init(_ items: [Item], selection: Binding<T>, onPlay: @escaping () -> Void = {}) {
-    self.items = items; _selection = selection; self.onPlay = onPlay
+  /// D227 · a LONG PRESS on the ⊕ opens the composer with the score focused.
+  /// The system tab bar had no gesture of its own and the recogniser had to be
+  /// bolted onto a live `UITabBar`; a band the product draws simply takes one.
+  let onPlayHold: () -> Void
+  public init(_ items: [Item], selection: Binding<T>,
+              onPlay: @escaping () -> Void = {}, onPlayHold: @escaping () -> Void = {}) {
+    self.items = items; _selection = selection
+    self.onPlay = onPlay; self.onPlayHold = onPlayHold
   }
 
   public var body: some View {
@@ -213,8 +230,18 @@ public struct CSTabBand<T: Hashable>: View {
             else { selection = item.id; CSHaptic.selection() }
           } label: {
             VStack(spacing: CSTokens.Space.s1) {
-              CSGlyph(item.glyph, size: .tab)
-              Text(item.label).csType(.agateS, caps: true)
+              // §16.3 · AT AX3 THE LABELS DROP AND THE GLYPHS GROW TO 28.
+              // Five capped agate labels across 402pt is 72pt a slot, and
+              // `COMPETE` and `GOLFERS` broke in half and printed `COMP/ETE`
+              // and `GOLFE/RS` under their own glyphs — which is the chrome
+              // shearing, and it is why the band draws itself rather than
+              // asking UIKit to.
+              CSGlyph(item.glyph, points: typeSize.isA11y ? 28 : CSGlyph.Size.tab.rawValue,
+                      labelled: typeSize.isA11y)
+              if !typeSize.isA11y {
+                Text(item.label).csType(.agateS, caps: true)
+                  .lineLimit(1).fixedSize()
+              }
               Rectangle()
                 .fill(on && !item.isPlay ? cs.ink : Color.clear)
                 .frame(width: 26, height: 2)
@@ -224,12 +251,28 @@ public struct CSTabBand<T: Hashable>: View {
             .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
+          .modifier(CSPlayHold(on: item.isPlay, act: onPlayHold))
           .accessibilityLabel(item.label)
           .accessibilityAddTraits(on ? [.isSelected] : [])
         }
       }
     }
     .background(cs.bg0)
+  }
+}
+
+/// The ⊕'s long press, and only the ⊕'s.
+struct CSPlayHold: ViewModifier {
+  let on: Bool
+  let act: () -> Void
+  func body(content: Content) -> some View {
+    if on {
+      content.simultaneousGesture(LongPressGesture(minimumDuration: 0.35).onEnded { _ in
+        CSHaptic.present(); act()
+      })
+    } else {
+      content
+    }
   }
 }
 
@@ -280,35 +323,131 @@ public struct CSStakeLine: View {
 public struct CSFactStrip: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
-  public struct Cell: Identifiable, Sendable {
-    public let id = UUID()
+
+  /// **The rail holds THREE seats, and cells fill it from the left.**
+  ///
+  /// `justify-content: space-between` reads correctly at three and badly at
+  /// two: two facts pushed to opposite screen edges look like a layout that
+  /// lost its middle. So the strip is always three columns of the measure —
+  /// three cells take leading · centre · trailing, and one or two take the
+  /// left seats and leave the rest of the rule empty, which is what a strip
+  /// with a fact missing should look like.
+  public static let seats = 3
+
+  public struct Cell: Identifiable {
+    public let id: String
     public let value: String
     public let label: String
     public let ordinal: String?
-    public init(value: String, label: String, ordinal: String? = nil) {
-      self.value = value; self.label = label; self.ordinal = ordinal
+    /// Every figure taps to its receipt (L-01) — a number a golfer cannot
+    /// check is a number they have to take on trust.
+    public let spoken: String?
+    public let door: (() -> Void)?
+    public init(id: String = UUID().uuidString, value: String, label: String,
+                ordinal: String? = nil, spoken: String? = nil, door: (() -> Void)? = nil) {
+      self.id = id; self.value = value; self.label = label
+      self.ordinal = ordinal; self.spoken = spoken; self.door = door
     }
   }
   let cells: [Cell]
   /// The standing line, and it names the rival.
   let standing: String?
-  public init(_ cells: [Cell], standing: String? = nil) { self.cells = cells; self.standing = standing }
+  /// The standing line's case: caps for `THE FELLAS · 26 WEEKS · 4 TO PLAY`,
+  /// sentence for a gloss a person could read aloud (§1.3).
+  let standingCaps: Bool
+  public init(_ cells: [Cell], standing: String? = nil, standingCaps: Bool = true) {
+    self.cells = cells; self.standing = standing; self.standingCaps = standingCaps
+  }
+
+  private func alignment(_ i: Int) -> Alignment {
+    guard cells.count >= Self.seats else { return .leading }
+    if i == 0 { return .leading }
+    return i == cells.count - 1 ? .trailing : .center
+  }
+
+  private func textAlignment(_ i: Int) -> HorizontalAlignment {
+    guard cells.count >= Self.seats else { return .leading }
+    if i == 0 { return .leading }
+    return i == cells.count - 1 ? .trailing : .center
+  }
 
   public var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      A11yStack(spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s3) {
-        ForEach(cells) { c in
-          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            CSFigure(c.value, size: .m, label: nil, ordinal: c.ordinal)
+      if typeSize.isA11y {
+        // §2's AX3 form: a stacked list, the label leading and the figure
+        // trailing, and nothing scrolls sideways.
+        VStack(alignment: .leading, spacing: 0) {
+          ForEach(Array(cells.enumerated()), id: \.element.id) { _, c in
+            cellButton(c) {
+              HStack(alignment: .firstTextBaseline) {
+                Text(c.label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                Spacer(minLength: CSTokens.Space.s3)
+                CSFigure(c.value, size: .m, label: nil, ordinal: c.ordinal)
+              }
+              .frame(minHeight: 44)
+            }
             CSRule(.heavy)
-            Text(c.label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           }
-          .frame(maxWidth: typeSize.isA11y ? .infinity : nil, alignment: .leading)
         }
+      } else {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          row { i, c in
+            CSFigure(c.value, size: .m, label: nil, ordinal: c.ordinal)
+              .frame(maxWidth: .infinity, alignment: alignment(i))
+          }
+          // ONE rule, the full measure, under all of them — the device the
+          // whole strip is: a line of type on the page's own ground.
+          CSRule(.heavy)
+          row { i, c in
+            Text(c.label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              .lineLimit(1).minimumScaleFactor(0.8)
+              .frame(maxWidth: .infinity, alignment: alignment(i))
+          }
+        }
+        .overlay { targets }
       }
       if let standing {
-        Text(standing).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        Text(standing).csType(standingCaps ? .agate : .agateS, caps: standingCaps)
+          .foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityLabel(standing)
       }
+    }
+  }
+
+  @ViewBuilder private func row<V: View>(@ViewBuilder _ cell: @escaping (Int, Cell) -> V) -> some View {
+    HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+      ForEach(Array(cells.enumerated()), id: \.element.id) { i, c in cell(i, c) }
+      ForEach(cells.count..<max(cells.count, Self.seats), id: \.self) { _ in
+        Color.clear.frame(maxWidth: .infinity, maxHeight: 0)
+      }
+    }
+  }
+
+  /// The 44pt targets, laid over the two rows rather than inside them, so the
+  /// figures and their labels stay on **one** rule and each pair is still one
+  /// button and one VoiceOver element.
+  private var targets: some View {
+    HStack(spacing: CSTokens.Space.s2) {
+      ForEach(Array(cells.enumerated()), id: \.element.id) { _, c in
+        cellButton(c) { Color.clear.contentShape(Rectangle()) }
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+      }
+      ForEach(cells.count..<max(cells.count, Self.seats), id: \.self) { _ in
+        Color.clear.frame(maxWidth: .infinity)
+      }
+    }
+  }
+
+  @ViewBuilder private func cellButton<V: View>(_ c: Cell, @ViewBuilder _ label: () -> V) -> some View {
+    if let door = c.door {
+      Button { CSHaptic.selection(); door() } label: { label() }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(c.spoken ?? "\(c.label), \(c.value)")
+        .accessibilityAddTraits(.isButton)
+    } else {
+      label().accessibilityElement(children: .ignore).accessibilityLabel(c.spoken ?? "\(c.label), \(c.value)")
     }
   }
 }
@@ -424,40 +563,109 @@ public struct CSQuote: View {
 
 // MARK: - The lead
 
-/// Home's lead — **not a card**: a block on the ground. A plate, an eyebrow, a
-/// headline, a standfirst and one door, with nothing drawn around them.
-public struct CSStoryCard<Plate: View>: View {
+/// Home's lead, weight 1 — **not a card**: a block on the ground. An eyebrow
+/// with an optional live dot, a league tag flush right on its baseline, the
+/// one serif sentence the viewport allows, a standfirst, one door — and an
+/// **aside**, the 84pt trailing column that carries the rank chip.
+///
+/// **The door sits in the LEFT column, under the standfirst**, because the
+/// door belongs to the sentence and not to the figure. **The aside is
+/// optional and is never invented to fill the column**: an invitation, a
+/// buddy request and a first round have no figure, so the sentence takes the
+/// full measure and the block is type alone.
+///
+/// At the accessibility sizes the aside goes **full width above the eyebrow**
+/// (§2), so the chip and the headline never fight over a 362pt measure.
+public struct CSStoryCard<Aside: View>: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let eyebrow: String
   let live: Bool
+  /// `THE FELLAS` — the league, flush right on the eyebrow's baseline. Never a
+  /// second sentence and never a count (§16A.2).
+  let tag: String?
+  /// The gold slot and the name beside it — `CHAMPION · MIKE FENNER`. The
+  /// viewport's **one** gold object when it is present.
+  let credit: (slot: String, name: String)?
   let headline: String
   let standfirst: String?
   let door: CSDoor.Kind?
-  let plate: Plate
+  let aside: Aside
 
-  public init(eyebrow: String, live: Bool = false, headline: String, standfirst: String? = nil,
-              door: CSDoor.Kind? = nil, @ViewBuilder plate: () -> Plate) {
-    self.eyebrow = eyebrow; self.live = live; self.headline = headline
-    self.standfirst = standfirst; self.door = door; self.plate = plate()
+  public init(eyebrow: String, live: Bool = false, tag: String? = nil,
+              credit: (slot: String, name: String)? = nil,
+              headline: String, standfirst: String? = nil,
+              door: CSDoor.Kind? = nil, @ViewBuilder aside: () -> Aside) {
+    self.eyebrow = eyebrow; self.live = live; self.tag = tag; self.credit = credit
+    self.headline = headline; self.standfirst = standfirst
+    self.door = door; self.aside = aside()
   }
 
   public var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      plate
-      HStack(spacing: CSTokens.Space.s2) {
-        if live {
-          CSGlyph(.dot, size: .inline).foregroundStyle(cs.brand)
+      if typeSize.isA11y { aside.frame(maxWidth: .infinity, alignment: .leading) }
+      eyebrowRow
+      if typeSize.isA11y {
+        column
+      } else {
+        HStack(alignment: .top, spacing: CSTokens.Space.s4) {
+          column
+          aside
         }
-        Text(eyebrow).csType(.agate, caps: true).foregroundStyle(live ? cs.brand : cs.mut)
       }
-      .csBudget(ember: live ? 1 : 0)
+    }
+    .accessibilityElement(children: .contain)
+  }
+
+  private var eyebrowRow: some View {
+    HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+      if live {
+        // §1.2 · a 7pt disc, and the glyph family's dot is 0.3 of its box —
+        // so the box is 23 and the disc is 6.9. Named here rather than drawn
+        // as a bare `Circle()`, which is a container shape (`LINT-10`).
+        CSGlyph(.dot, points: 23).foregroundStyle(cs.brand)
+          .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 8 }
+          .accessibilityLabel("Live")
+      }
+      Text(eyebrow).csType(.agate, caps: true).foregroundStyle(live ? cs.brand : cs.mut)
+        .lineLimit(1).truncationMode(.tail)
+      if let tag {
+        Spacer(minLength: CSTokens.Space.s2)
+        Text(tag).csType(.agate, caps: true).foregroundStyle(cs.mut)
+          .lineLimit(1).fixedSize()
+      }
+    }
+    .csBudget(ember: live ? 1 : 0)
+  }
+
+  private var column: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      if let credit {
+        HStack(spacing: CSTokens.Space.s2) {
+          CSSlot(credit.slot)
+          Text(credit.name).csType(.agate, caps: true).foregroundStyle(cs.mut)
+            .lineLimit(1).truncationMode(.tail)
+        }
+        .accessibilityElement(children: .combine)
+      }
+      // AX3 · the serif headline WRAPS. It never truncates and never shrinks
+      // below the role's own floor — it is the one sentence the screen slows
+      // a golfer down for.
       Text(headline).csType(.lead).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
-      if let standfirst {
+      if let standfirst, !standfirst.isEmpty {
         Text(standfirst).csType(.body).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
-      if let door { CSDoor(door) }
+      // The tertiary's rule IS the affordance, so it must be as wide as the
+      // words and no wider: a `VStack` handed a column draws a rule the whole
+      // column, which reads as a divider under a paragraph rather than as an
+      // underline under a link. The `Spacer` gives the door its ideal width
+      // and keeps the two-line AX3 behaviour intact.
+      if let door {
+        HStack(spacing: 0) { CSDoor(door); Spacer(minLength: 0) }
+      }
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 }

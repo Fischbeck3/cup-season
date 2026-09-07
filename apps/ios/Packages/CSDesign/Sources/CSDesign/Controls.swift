@@ -97,6 +97,7 @@ public struct CSSecondaryStyle: ButtonStyle {
 public struct CSTertiaryStyle: ButtonStyle {
   @Environment(\.cs) private var cs
   @Environment(\.isEnabled) private var enabled
+  @Environment(\.dynamicTypeSize) private var typeSize
   public enum Placement: Sendable {
     case live       // 2px brand — only when the link IS the screen's one live action
     case content    // 2px mut
@@ -122,6 +123,14 @@ public struct CSTertiaryStyle: ButtonStyle {
       configuration.label.csType(.nameS).lineLimit(2)
       Rectangle().fill(rule(pressed)).frame(height: placement.weight)
     }
+    // **THE RULE MUST BE AS WIDE AS THE WORDS AND NO WIDER.** A `VStack` in a
+    // column proposes the column to its `Rectangle`, so the underline ran the
+    // full measure and read as a divider under a paragraph rather than as an
+    // underline under a link — visible in Wave 1's first screenshot and in no
+    // unit test. It hugs at the reading sizes and keeps Wave 0b's two-line
+    // wrap at the accessibility ones, where a hugged 300pt label would shear
+    // the page's left edge.
+    .fixedSize(horizontal: !typeSize.isA11y, vertical: false)
     .opacity(pressed ? 0.92 : 1)
     .foregroundStyle(enabled ? cs.ink : cs.mut)
     .a11yHitSlop()
@@ -414,6 +423,11 @@ public struct CSDoor: View {
     case primary(String, () -> Void)
     case secondary(String, () -> Void)
     case link(String, () -> Void)
+    /// The tertiary at `.live`: a 2px `brand` rule, and it is the screen's ONE
+    /// live act. Home's lead uses it while a clock is running and drops to
+    /// `.link` the moment nothing is (§1.5's one-ember rule) — the tier is the
+    /// door's, so the page never hand-paints an underline to say "now".
+    case liveLink(String, () -> Void)
   }
   let kind: Kind
   public init(_ kind: Kind) { self.kind = kind }
@@ -422,6 +436,7 @@ public struct CSDoor: View {
     case .primary(let t, let a): Button(t, action: a).buttonStyle(.csPrimary)
     case .secondary(let t, let a): Button(t, action: a).buttonStyle(.csSecondary)
     case .link(let t, let a): Button(t, action: a).buttonStyle(.csTertiary(.content))
+    case .liveLink(let t, let a): Button(t, action: a).buttonStyle(.csTertiary(.live))
     }
   }
 }
