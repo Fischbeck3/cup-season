@@ -426,6 +426,112 @@ public struct CSCredential<Plate: View>: View {
   /// left of its own numeral in the first screenshot of this card.
   private var column: CGFloat { (cardWidth - CSTokens.Space.s4 * 2) / 3 }
 
+  // MARK: the copy band, which may not reach the slot
+
+  /// The plate's inner measure — the room the name and the identity line set
+  /// in.
+  private var bandMeasure: CGFloat { max(1, cardWidth - CSTokens.Space.s4 * 2) }
+
+  /// **The plate's HEAD BAND is reserved, and the copy band may not enter
+  /// it.** The gold slot and the credit sit at `s4` from the plate's top in a
+  /// 24pt field; the band beneath needs `s2` of air under them or the name
+  /// prints through the slot.
+  private var plateHeadBand: CGFloat { PlateBand.head }
+
+  /// **The plate's copy arithmetic, as a free function so a test can read
+  /// it.** Everything below is this, bound to the card's own state.
+  public enum PlateBand {
+    /// The head band the slot occupies: `s4` down, a 24pt gold field, `s2` of
+    /// air. Nothing in the copy band may enter it.
+    public static var head: CGFloat { CSTokens.Space.s4 + 24 + CSTokens.Space.s2 }
+
+    /// How tall a name + identity band wants to be.
+    public static func height(name: String, role: CSType.Role, identityClauses: Int,
+                              measure: CGFloat, size: DynamicTypeSize) -> CGFloat {
+      let m = max(1, measure)
+      let lines = min(2, max(1, ceil(CSAdvance.width(name, role, size) / m)))
+      var h = CSType.renderedSize(role, size) * role.leading * lines
+      if identityClauses > 0 {
+        h += CSTokens.Space.s1
+           + CSType.renderedSize(.agateS, size) * CSType.Role.agateS.leading * CGFloat(identityClauses)
+      }
+      return h
+    }
+
+    /// The room under the head band.
+    public static func room(plateHeight: CGFloat) -> CGFloat {
+      plateHeight - head - CSTokens.Space.s3
+    }
+
+    /// The name's role: `display`, or `displayS` when the name will not set on
+    /// one line.
+    public static func nameRole(_ name: String, measure: CGFloat, size: DynamicTypeSize) -> CSType.Role {
+      CSAdvance.fits(name, in: measure, .display, size) ? .display : .displayS
+    }
+
+    /// **Does the identity belong on the photograph?** The whole question, in
+    /// one place: name + identity, at the role the name will actually take,
+    /// against the room under the slot.
+    public static func ridesThePlate(name: String, identityClauses: Int,
+                                     measure: CGFloat, plateHeight: CGFloat,
+                                     size: DynamicTypeSize) -> Bool {
+      guard !size.isA11y else { return false }
+      let role = nameRole(name, measure: measure, size: size)
+      return height(name: name, role: role, identityClauses: identityClauses,
+                    measure: measure, size: size) <= room(plateHeight: plateHeight)
+    }
+  }
+
+  /// How tall the identity block wants to be at a given name role.
+  ///
+  /// **This is the arithmetic that was missing.** `head` laid `identityBlock`
+  /// `.bottomLeading` inside a plate of FIXED height (58% of the card) while
+  /// the block itself GROWS: a two-line name at `display` 34 over a three-clause
+  /// identity is ~72% of a 180pt plate, so its top reached the slot at the
+  /// plate's head and `JER` of `JERECHO` printed behind `FOUNDER` — on the
+  /// flagship object of the design, at the DEFAULT reading size, on every
+  /// device photographed. The `riding` comment guarded the AX3 case only.
+  private func bandHeight(_ role: CSType.Role) -> CGFloat {
+    // `CSClauseLine` breaks on its separators, so the worst case is one line
+    // per clause — which is the case that has to fit.
+    PlateBand.height(name: golfer.name, role: role, identityClauses: identityClauses,
+                     measure: bandMeasure, size: typeSize)
+  }
+
+  /// **The clauses, not the characters.** `CSCredentialGolfer.identity` is a
+  /// `·`-joined String produced by `CredentialCopy.identity`, and
+  /// `CSClauseLine` breaks it on those separators — so the worst case is one
+  /// line per clause. (`identity.count` is 51 for a golfer with a handle, a
+  /// city and a home course, which is what this asked for first and is why the
+  /// identity walked off the photograph on a card that fits it easily.)
+  private var identityClauses: Int {
+    golfer.identity.isEmpty ? 0
+      : golfer.identity.components(separatedBy: "\u{00B7}").count
+  }
+
+  /// The room the copy band actually has, under the reserved head band.
+  private var bandRoom: CGFloat { PlateBand.room(plateHeight: plateHeight) }
+
+  /// **The name drops a size before the card gives up its composition.** A
+  /// name that will not set on one line at `display` is set at `displayS` —
+  /// `player-card-photo.png` bottom-anchors a ONE-line name with clear air
+  /// above the identity and clear air below the slot, and the size is the
+  /// cheapest of the three things that could give (the size, the plate's
+  /// height, or the photograph itself).
+  var nameRole: CSType.Role {
+    typeSize.isA11y ? .display : PlateBand.nameRole(golfer.name, measure: bandMeasure, size: typeSize)
+  }
+
+  /// **And when even that does not fit, the identity leaves the photograph.**
+  /// §6.7/§6.8's own path, which the AX branch has always taken: the name
+  /// stays on the plate and the identity line sets on the card's own ground.
+  /// A long name over a three-clause identity on a small measure is the case
+  /// that reaches here.
+  var identityRidesThePlate: Bool {
+    PlateBand.ridesThePlate(name: golfer.name, identityClauses: identityClauses,
+                            measure: bandMeasure, plateHeight: plateHeight, size: typeSize)
+  }
+
   /// **WAVE 10 · THE THREE COLUMNS ARE MEASURED, NOT ASSUMED EQUAL.**
   ///
   /// Equal thirds were the fix for a real bug (`frame(maxWidth: .infinity)`
@@ -456,7 +562,28 @@ public struct CSCredential<Plate: View>: View {
     // never wider than the card; never narrower than what a two-digit figure
     // and its rule need to stay a column
     let scale = min(1, inner / total)
-    return need.map { max(CSTokens.Space.rail, $0 * scale) }
+    var widths = need.map { max(CSTokens.Space.rail, $0 * scale) }
+    // **AND THE SURPLUS IS DISTRIBUTED, NOT DROPPED.** The measured cells fixed
+    // `HANDICAP IND…`, and they left the rule spanning only the sum of the
+    // cells — 55pt short of the card's inner edge on a three-figure card, with
+    // the folio's own longer hairline stacked directly beneath it, so the
+    // object carried two rules of two different lengths and read unfinished.
+    // Every artboard printing spans the rule across the card with the last
+    // column flush right. The cells scale UP to fill the measure when they
+    // under-fill it, which keeps each label under its own numeral and puts the
+    // rule where the artboard draws it.
+    //
+    // **The two-cell exception survives**: a two-cell strip under a full-width
+    // rule "reads as a missing value" (blind-3), so a strip of fewer than
+    // three keeps its short rule and says so.
+    if n >= 3 {
+      let sum = widths.reduce(0, +)
+      if sum > 0, sum < inner {
+        let up = inner / sum
+        widths = widths.map { $0 * up }
+      }
+    }
+    return widths
   }
 
   public var body: some View {
@@ -542,9 +669,14 @@ public struct CSCredential<Plate: View>: View {
       // line and the gold slot. The identity block drops off the photograph
       // onto the card's own ground instead (§6.7, §6.8).
       if !typeSize.isA11y {
-        identityBlock
+        identityBlock(identity: identityRidesThePlate)
           .padding(.horizontal, CSTokens.Space.s4)
           .padding(.bottom, CSTokens.Space.s3)
+          // **The head band is reserved, whatever the copy does.** With the
+          // block bottom-anchored in a fixed plate this is what stops it
+          // growing up into the slot: it can only use the room under the
+          // slot's own row.
+          .padding(.top, plateHeadBand)
           .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
@@ -579,14 +711,16 @@ public struct CSCredential<Plate: View>: View {
   /// notched at the plate's lower right, above the display line's own top.
   private var plateMedallionDrop: CGFloat { CSTokens.Space.s6 + CSTokens.Space.s4 }
 
-  var identityBlock: some View {
+  var identityBlock: some View { identityBlock(identity: true) }
+
+  @ViewBuilder func identityBlock(identity: Bool) -> some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
       Text(golfer.name)
-        .csType(.display)
+        .csType(nameRole)
         .foregroundStyle(CSTokens.dark.ceremonyInk)
         .lineLimit(2)
         .fixedSize(horizontal: false, vertical: true)
-      if !golfer.identity.isEmpty {
+      if identity, !golfer.identity.isEmpty {
         // **WAVE 10 · A LINE OF CLAUSES BREAKS ON ITS SEPARATORS; IT DOES NOT
         // TRUNCATE** (§16.3, the `agate` row). `@JERECHO · PHOENIX, AZ ·
         // LOOKOUT MOUNTAIN GOL…` was the shipped result on a 402 measure, and
@@ -649,7 +783,14 @@ public struct CSCredential<Plate: View>: View {
 
   private var foot: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      if typeSize.isA11y { identityBlock }
+      if typeSize.isA11y {
+        identityBlock
+      } else if !identityRidesThePlate, !golfer.identity.isEmpty {
+        // §6.7 · the identity on the card's own ground, because the plate
+        // could not hold it without printing through the slot.
+        CSClauseLine(golfer.identity, role: .agateS, caps: true,
+                     colour: CSTokens.dark.ceremonyMut)
+      }
       figureStrip
       CSFolio(club: golfer.club, serial: golfer.serial)
     }
@@ -665,6 +806,19 @@ public struct CSCredential<Plate: View>: View {
   /// The rule is `ceremonyInk` and never `ink`, which is **1.11:1 on
   /// `ceremony` in light** — the rule that binds the card's three figures is
   /// the last thing that may vanish in one printing.
+  /// **The rule's own width, and it finally matches the paragraph above it.**
+  /// Three figures fill the card's inner measure, so the rule reaches the
+  /// edge the way every artboard printing draws it. Fewer than three keep the
+  /// short rule — a two-cell strip under a full-width rule "reads as a missing
+  /// value" (blind-3) — at the **66% / 33%** the doc comment has always
+  /// claimed, rather than at whatever the measured cells happened to sum to.
+  private func ruleWidth(_ widths: [CGFloat]) -> CGFloat {
+    let sum = widths.reduce(0, +)
+    guard widths.count < 3 else { return sum }
+    let inner = cardWidth - CSTokens.Space.s4 * 2
+    return max(sum, inner * CGFloat(widths.count) / 3)
+  }
+
   @ViewBuilder private var figureStrip: some View {
     // (the AX3 branch keeps its own row-per-figure geometry)
     if typeSize.isA11y {
@@ -704,7 +858,7 @@ public struct CSCredential<Plate: View>: View {
         // rule "reads as a missing value", so the rule spans the sum of the
         // cells that carry a figure and stops there.
         CSRule(.heavy, over: .ceremony)
-          .frame(width: widths.reduce(0, +))
+          .frame(width: ruleWidth(widths))
           .offset(y: CSType.renderedSize(.figureM, typeSize) + CSTokens.Space.s1)
           .allowsHitTesting(false)
       }
@@ -743,7 +897,12 @@ public struct CSCrestPlate: View {
       CSTokens.dark.ceremony
       CSContour(seed: seed, levels: 6, lineWidth: 1.2,
                 tint: CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a24),
-                mark: hasCourse ? CSTokens.dark.ceremonyBrand : nil)
+                mark: hasCourse ? CSTokens.dark.ceremonyBrand : nil,
+                // **The credential's plate carries COPY.** The name sets
+                // bottom-left, the slot top-left, the medallion bottom-right;
+                // the upper right is the quadrant nothing else uses, and it is
+                // where `player-card-marker.png` draws the mark.
+                markSafe: CGRect(x: 0.58, y: 0.10, width: 0.30, height: 0.26))
       CSMarkerView(key: marker, size: 190, lineWidth: 1.5, optical: true)
         .foregroundStyle(CSTokens.dark.crest)
         .offset(x: 46, y: 6)

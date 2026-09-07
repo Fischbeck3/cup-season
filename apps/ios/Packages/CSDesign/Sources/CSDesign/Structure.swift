@@ -498,6 +498,27 @@ public struct CSObject<Content: View>: View {
   public var body: some View {
     VStack(spacing: 0) { content }
       .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
+      // **THE OBJECT'S OWN EDGE, BECAUSE A SHADOW ON NEAR-BLACK IS NOT ONE.**
+      //
+      // Both objects stand on the pinned `ceremony` ground. In the LIGHT
+      // printing that is a 15:1 step off `bg0` and the card reads as a card
+      // for free; in the DARK printing `ceremony` #0A0E0C against `bg0`
+      // #0F1A15 is a ~1.05:1 step and `shadow-lift` is invisible over it — so
+      // a golfer with no photograph (which is most golfers, for some time)
+      // saw type and a contour floating on a flat screen rather than
+      // something they would keep.
+      //
+      // This is the edge of a physical artefact drawn as a 1px rule at the
+      // SAME alpha and the same ink the folio inside it already uses — not a
+      // border token, not a container chrome, and not a second radius: the
+      // one shape the object already has, made visible.
+      .overlay(
+        RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous)
+          .strokeBorder(CSOpaque.tint(CSTokens.dark.ceremonyInk, CSTokens.Alpha.a16,
+                                      over: CSTokens.dark.ceremony, reduce: true),
+                        lineWidth: CSTokens.Space.hair)
+          .allowsHitTesting(false)
+      )
       .shadow(color: CSTokens.shadowLift.color,
               radius: CSTokens.shadowLift.radius, x: CSTokens.shadowLift.x, y: CSTokens.shadowLift.y)
   }

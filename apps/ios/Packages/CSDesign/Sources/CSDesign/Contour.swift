@@ -42,14 +42,27 @@ public struct CSContour: View {
   /// The hardest hole by stroke index, placed deterministically in the field.
   /// `nil` when there is no card to read a stroke index from.
   let mark: Color?
+  /// **Where the mark is allowed to land, in unit coordinates of the drawn
+  /// box.** The dot is placed in the FIELD's own coordinate space, which knows
+  /// nothing about the copy on top of it — so on the credential's crest it
+  /// landed inside the line of `GALEN MARR`, over the name's letterforms,
+  /// where at 7pt on a display-weight name it reads as a dust speck and spends
+  /// the card's only ember mark on nothing a golfer can interpret.
+  ///
+  /// `nil` is the whole box, which is right on the course page: §7 gives the
+  /// dot its meaning there, because there is a hole to point at and the plate
+  /// is the plate. A caller with copy on the plate passes the quadrant the
+  /// copy does not occupy.
+  let markSafe: CGRect?
 
   public init(seed: String, levels: Int = 6, lineWidth: CGFloat = 1.2,
-              tint: Color, mark: Color? = nil) {
+              tint: Color, mark: Color? = nil, markSafe: CGRect? = nil) {
     self.seed = seed
     self.levels = min(7, max(5, levels))
     self.lineWidth = lineWidth
     self.tint = tint
     self.mark = mark
+    self.markSafe = markSafe
   }
 
   /// The stroke actually laid down: the tint as given, or flattened over the
@@ -90,7 +103,13 @@ public struct CSContour: View {
         // the hardest hole: seeded from the same field, so it lands ON the
         // plot rather than floating over it
         let p = Self.hardestHole(seed: seed)
-        let at = CGPoint(x: originX + p.x * side, y: originY + p.y * side)
+        var at = CGPoint(x: originX + p.x * side, y: originY + p.y * side)
+        if let safe = markSafe {
+          // the seeded variation survives; it is only kept out of the band the
+          // caller says carries copy
+          at.x = min(max(at.x, safe.minX * size.width), safe.maxX * size.width)
+          at.y = min(max(at.y, safe.minY * size.height), safe.maxY * size.height)
+        }
         ctx.fill(Path(ellipseIn: CGRect(x: at.x - 4, y: at.y - 4, width: 8, height: 8)),
                  with: .color(mark))
       }

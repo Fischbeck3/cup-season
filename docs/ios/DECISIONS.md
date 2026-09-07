@@ -885,3 +885,21 @@ Three reviewers went over the finished overhaul. This is the first of the repair
 **Reversibility.** MEDIUM. `Board.swift` gains two parameters and one static; `FriendsBoard`'s ordering changes and its rank becomes a position; `StandingsTableView` reads `ClimbMath` for K; `LeagueRoomModel` gains `myCountingPoints`, derived from rows already on the device. No RPC, no migration, no mechanic.
 
 **Gate:** `build-tokens` clean · preflight PASS · sunningdale PASS · 980 tests / 161 suites, four new assertions.
+
+## IOS-056 · The repair pass — the card is an object again — **BUILT 2026-09-07 (D282; owner-authorised "build it", 2026-09-06)**
+
+The second repair commit, and it is the credential — the object the whole design is judged on.
+
+**THE NAME PRINTED THROUGH THE SLOT.** `head` bottom-anchors the identity block in a plate of FIXED height while the block GROWS, so `JERECHO FISCHBECK` at `display` 34 on two lines over a three-clause identity reached the gold `FOUNDER` slot at the plate's head. `CSCredential.PlateBand` is the arithmetic that was missing: the head band is reserved (`s4` + the 24pt field + `s2`), the copy band is measured against what is left, the name drops to `displayS` when it will not set on one line, and only an impossible band sends the identity off the photograph onto the card's own ground. `CredentialBandTests` pins the photographed case in both directions.
+
+**THE RULE REACHES THE CARD'S EDGE.** Wave 10's measured columns fixed `HANDICAP IND…` and left the rule 55pt short of the card with the folio's own longer hairline directly beneath it — two rules, two lengths, on one object. Three cells now scale up to fill the inner measure; fewer keep the short rule at the 66%/33% the doc comment already claimed.
+
+**AN OBJECT HAS AN EDGE.** `ceremony` #0A0E0C against `bg0` #0F1A15 is a 1.05:1 step, so in the dark printing the crest card had no boundary and `shadow-lift` had nothing to fall on. `CSObject` draws its own edge as a 1px rule at the `a16` `ceremonyInk` the folio inside it already uses.
+
+**AND THE EMBER DOT IS NOT A DUST SPECK.** `CSContour`'s mark is placed in the field's own space; on the crest it landed inside the line of `GALEN MARR`. It takes a `markSafe` region now, and the credential passes the upper-right quadrant — where `player-card-marker.png` draws it, and the one quadrant the slot, the name and the medallion all leave alone. The course page passes nothing and keeps the free placement §7 gives it.
+
+**THE BUILDING STATE IS ON YOUR OWN PAGE.** `YouScreen` printed `CredentialCopy.mine` unconditionally and never called `CredentialCopy.status` — the producer written for this — so a buddy's card said *One more round sets their number* and your own said nothing.
+
+**Reversibility.** MEDIUM. `Person.swift`, `Structure.swift`, `Contour.swift`, `YouScreen.swift`. No producer changes its words; `CSContour` gains an optional argument that defaults to today's behaviour.
+
+**Gate:** `build-tokens` clean · preflight PASS · sunningdale PASS · 980 tests / 161 suites plus a four-test `CredentialBandTests`.

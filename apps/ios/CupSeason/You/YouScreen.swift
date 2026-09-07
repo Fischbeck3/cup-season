@@ -112,8 +112,7 @@ struct YouScreen: View {
 
           credential(me, p).padding(.top, CSTokens.Space.s2)
 
-          Text(CredentialCopy.mine).csType(.body).foregroundStyle(cs.mut)
-            .padding(.top, CSTokens.Space.s4)
+          statusSentence(p)
 
           // Y-17 · one quiet line when a block did not load; the rest of the
           // page is whole, and this is the way to ask again.
@@ -212,6 +211,36 @@ struct YouScreen: View {
       }
     } else {
       CSCredential(golfer, hasPhoto: false) { crest(p) }
+    }
+  }
+
+  /// **THE BUILDING STATE, ON THE FIRST SURFACE A NEW GOLFER OPENS.**
+  ///
+  /// This printed `CredentialCopy.mine` unconditionally — *"This is how your
+  /// buddies see you."* — and never called `CredentialCopy.status`, the
+  /// producer written for exactly this: its own doc comment says it exists to
+  /// move the denominator "out of two competing rails and into English". The
+  /// person page passes `roundsToEstablish` (`PersonPage.statusSentence`), so
+  /// a BUDDY's card said *"One more round sets their number"* and your own
+  /// card said nothing at all. D3's *building, not broken* was invisible on
+  /// the one page a brand-new golfer opens to look at themselves.
+  ///
+  /// §9.9's rule is untouched: the index SLOT is still absent until there is
+  /// an index. The denominator is a sentence, which is where it belongs.
+  @ViewBuilder private func statusSentence(_ p: Me.Profile) -> some View {
+    let rounds = model.data.career?.rounds ?? model.card?.career.rounds ?? p.rounds_count ?? 0
+    let toEstablish = (p.index_current == nil && rounds < 3) ? 3 - rounds : nil
+    if let r = model.card?.recent.first,
+       let line = CredentialCopy.status(gross: r.gross, course: r.courseLabel,
+                                        playedOn: r.playedOn,
+                                        roundsToEstablish: toEstablish, isMe: true) {
+      CSFigureRun(line, role: .body)
+        .foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, CSTokens.Space.s4)
+    } else {
+      Text(CredentialCopy.mine).csType(.body).foregroundStyle(cs.mut)
+        .padding(.top, CSTokens.Space.s4)
     }
   }
 
