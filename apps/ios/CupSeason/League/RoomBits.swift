@@ -262,3 +262,21 @@ func roomError(_ e: Error, _ prefix: String? = nil) -> String {
   let m = AuthRules.human(e, fallback: "Something went wrong — please try again.")
   return prefix.map { "\($0) \(m)" } ?? m
 }
+
+/// **THE GUTTER, AND IT IS NOT `.padding(.horizontal, 20)` ON ITS OWN.**
+///
+/// A block whose content contains a `Spacer` or a full-measure rule already
+/// claims the whole proposed width; padding it afterwards makes it **screen +
+/// 40** wide. A vertical `ScrollView` then CENTRES its oversized content, so
+/// every block on the page shifts twenty points to the left and the widest one
+/// runs off the right — which is exactly what the season page did at AX3, and
+/// only at AX3, because at the reading sizes nothing was wide enough to show
+/// it. The `.frame` after the padding re-clamps the block to the measure.
+///
+/// Slats and bands are FULL-BLEED and never take this; only wrapped content does.
+extension View {
+  func csGutter(_ alignment: Alignment = .leading) -> some View {
+    padding(.horizontal, CSTokens.Space.gutter)
+      .frame(maxWidth: .infinity, alignment: alignment)
+  }
+}

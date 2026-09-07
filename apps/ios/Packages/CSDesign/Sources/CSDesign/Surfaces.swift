@@ -205,29 +205,48 @@ public struct CSSectionHead: View {
   let count: String?
   let trailing: String?
   let action: (() -> Void)?
+  @Environment(\.dynamicTypeSize) private var typeSize
   public init(_ title: String, count: String? = nil, trailing: String? = nil, action: (() -> Void)? = nil) {
     self.title = title; self.count = count; self.trailing = trailing; self.action = action
   }
+  /// **THE RULE RUNS BETWEEN THE LABEL AND THE COUNT** (§18's own anatomy:
+  /// "agate label + rule + optional count", and §16A.2's *right-of-rule* slot).
+  /// Wave 0b shipped the rule as a full-measure hairline UNDER the row, which
+  /// put the count above a line it was supposed to sit beside and cost the
+  /// head a line of vertical space on every surface in the product. One line,
+  /// three parts.
+  ///
+  /// At the accessibility sizes the rule is dropped rather than squeezed: a
+  /// 6pt sliver between two wrapped agate blocks is noise, and the count then
+  /// takes its own line under the label.
   public var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HStack(alignment: .firstTextBaseline) {
+    A11yStack(rowAlignment: .center, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+      HStack(spacing: CSTokens.Space.s3) {
         // Y-33: the trait rides the title, not the row, so the trailing link
         // stays its own element and never reads as part of the heading
+        // **the label never wraps; the rule gives way.** `THIS WEEK · THE
+        // CLASH` broke over two lines with a 300pt rule floating beside it
+        // the first time this shipped — a head is one line of type with a
+        // rule filling what is left, and the flexible part is the rule.
         Text(title).csEyebrow(la.eyebrow).accessibilityAddTraits(.isHeader)
-        Spacer()
-        if let count {
-          Text(count).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-        }
-        if let trailing {
-          if let action {
-            // accessibility: the eyebrow link keeps its look and gains a 44pt hit area
-            Button(action: action) { Text(trailing).csEyebrow(cs.ink).a11yHitSlop() }.buttonStyle(.plain)
-          } else {
-            Text(trailing).csEyebrow(cs.ink)
-          }
+          .fixedSize(horizontal: true, vertical: false).layoutPriority(1)
+        if !typeSize.isA11y {
+          Rectangle().fill(cs.rule).frame(height: CSTokens.Space.hair).frame(maxWidth: .infinity)
         }
       }
-      CSHairline()
+      if !typeSize.isA11y { Spacer(minLength: 0) }
+      if let count {
+        Text(count).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      if let trailing {
+        if let action {
+          // accessibility: the eyebrow link keeps its look and gains a 44pt hit area
+          Button(action: action) { Text(trailing).csEyebrow(cs.ink).a11yHitSlop() }.buttonStyle(.plain)
+        } else {
+          Text(trailing).csEyebrow(cs.ink)
+        }
+      }
     }
     .padding(.top, 10)
   }

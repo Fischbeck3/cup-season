@@ -35,14 +35,22 @@ public struct CSRankRail: View {
   public enum Field: Sendable { case earned, mine, none }
   let rank: Int
   let field: Field
-  public init(_ rank: Int, field: Field) { self.rank = rank; self.field = field }
+  /// **The rail paints its field and stands its numeral down.** A surface that
+  /// animates the rank (`RankFlipText`, the split-flap) draws its own numeral
+  /// over the rail; without this the rail's static numeral stays underneath and
+  /// the two align invisibly at the reading sizes and **stack visibly at AX3**,
+  /// which is how `02 / 02` reached a screenshot.
+  let hidesNumeral: Bool
+  public init(_ rank: Int, field: Field, hidesNumeral: Bool = false) {
+    self.rank = rank; self.field = field; self.hidesNumeral = hidesNumeral
+  }
 
   /// Two digits with a leading zero, and **no ordinal**: the rail prints `01`,
   /// not `1ST`, so the one ordinal form in the product is never needed here.
   var text: String { rank < 10 ? "0\(rank)" : "\(rank)" }
 
   public var body: some View {
-    Text(text)
+    Text(hidesNumeral ? "" : text)
       .csType(.figureM)
       // Unpainted is a FIELD state, not an ink state: the numeral stays `ink`
       // so a rank reads as a figure. `mut` made every row but the leader's and
@@ -112,15 +120,28 @@ public struct CSSlat<Trailing: View>: View {
   let squad: (Color, String)?
   let movement: CSMovement.State?
   let gap: String?
+  /// **D-5 · the board's ONE second geometry, used once per table and only on
+  /// rank 1.** 74pt against 50, a 38pt face against 30, and the caller sets the
+  /// total at `figure` 40. It is not a card: no radius, no border, no fill,
+  /// same rail, same columns — the leader's row is a beat taller and one metal
+  /// apart, which is what "the current leader should visually matter" asks for
+  /// without a container.
+  let emphasis: Bool
+  /// The rank is being animated over the rail by the surface; the rail paints
+  /// its field and draws no numeral of its own.
+  let railHidesNumeral: Bool
   let trailing: Trailing
 
   public init(rank: Int, field: CSRankRail.Field, face: CSFace.Model?,
               name: String, sub: String, squad: (Color, String)? = nil,
-              movement: CSMovement.State?, gap: String?,
+              movement: CSMovement.State?, gap: String?, emphasis: Bool = false,
+              railHidesNumeral: Bool = false,
               @ViewBuilder trailing: () -> Trailing) {
     self.rank = rank; self.field = field; self.face = face
     self.name = name; self.sub = sub; self.squad = squad
-    self.movement = movement; self.gap = gap; self.trailing = trailing()
+    self.movement = movement; self.gap = gap; self.emphasis = emphasis
+    self.railHidesNumeral = railHidesNumeral
+    self.trailing = trailing()
   }
 
   public var body: some View {
@@ -128,22 +149,36 @@ public struct CSSlat<Trailing: View>: View {
       CSRule()
       A11yStack(spacing: 0, columnSpacing: CSTokens.Space.s2) {
         HStack(spacing: 0) {
-          CSRankRail(rank, field: field)
-          if let face { CSFace(face, size: .slat).padding(.leading, CSSlatMetrics.railGap) }
+          CSRankRail(rank, field: field, hidesNumeral: railHidesNumeral)
+          // the leader's wider face is absorbed by the flexible name column,
+          // never by the change or points columns, which stay on their grid
+          if let face { CSFace(face, size: emphasis ? .list : .slat).padding(.leading, CSSlatMetrics.railGap) }
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
             Text(name).csType(.name).foregroundStyle(cs.ink)
               .lineLimit(1).truncationMode(.tail)
             HStack(spacing: CSTokens.Space.s2) {
               if let squad {
-                Rectangle().fill(squad.0).frame(width: 4, height: 14)
-                Text(squad.1).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                // **A squad's OWN row takes the 6 × 30 bar; a golfer's row in a
+                // squads season takes the 4 × 14 swatch and the squad's name.**
+                // An empty name is the tell: the row is already called by the
+                // squad, so the bar stands alone and stands taller.
+                Rectangle().fill(squad.0)
+                  .frame(width: squad.1.isEmpty ? 6 : 4, height: squad.1.isEmpty ? 30 : 14)
+                if !squad.1.isEmpty {
+                  // sentence case and a middot, because `Mudsharks · held four
+                  // weeks` is one phrase and not a label beside a phrase — and
+                  // the name never shrinks to `MUDS`, which is what a flexible
+                  // label did the first time this shipped.
+                  Text(squad.1 + " ·").csType(.agateS, caps: false).foregroundStyle(cs.mut)
+                    .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+                }
               }
               Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
                 .lineLimit(1).truncationMode(.tail)
             }
           }
-          .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
           .padding(.leading, CSSlatMetrics.railGap)
+          .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
         }
         // **A cell with nothing in it is not reserved.** D245 clause 5 puts no
         // movement and no gap on the friends board at all, and holding 58pt
@@ -159,14 +194,29 @@ public struct CSSlat<Trailing: View>: View {
       if typeSize.isA11y {
         HStack(spacing: CSTokens.Space.s3) {
           if hasChange { change }
-          Spacer(minLength: 0)
           trailing
+          Spacer(minLength: 0)
         }
+        // and the same trap on the accessibility branch, which is the one
+        // that actually shipped it: a `Spacer` claims the whole proposed
+        // width and the 56pt rail inset is then added to it, so the row
+        // measured screen + 56 and the ScrollView centred the whole page
+        // twenty-eight points to the left. This is AX3-only by construction,
+        // which is why it took the capture hatch to find.
         .padding(.leading, CSTokens.Space.rail + CSSlatMetrics.railGap)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, CSTokens.Space.s2)
       }
     }
+    // **PADDING AROUND A FULL-MEASURE CHILD WIDENS THE ROW.** The slat's own
+    // `CSRule` claims the whole proposed width and the gutter is then ADDED to
+    // it, so the row measures screen + 20. A vertical `ScrollView` CENTRES
+    // content wider than itself, which shifts every block on the page left by
+    // ten and runs the widest one off the right edge — invisible at the
+    // reading sizes and unmissable at AX3. The frame re-clamps to the measure.
     .padding(.trailing, CSTokens.Space.gutter)
-    .frame(minHeight: 50)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .frame(minHeight: emphasis ? 74 : 50)
     .fixedSize(horizontal: false, vertical: true)
     // ONE VoiceOver element per row.
     .accessibilityElement(children: .ignore)
@@ -179,12 +229,21 @@ public struct CSSlat<Trailing: View>: View {
   private var hasChange: Bool { movement != nil || (gap?.isEmpty == false) }
 
   @ViewBuilder private var change: some View {
-    HStack(spacing: CSTokens.Space.s2) {
-      Spacer(minLength: 0)
-      if let gap, !gap.isEmpty { Text(gap).csType(.columnM).foregroundStyle(cs.ink) }
+    // **The gap never wraps.** `+12` beside a movement mark measured 58.4 in a
+    // 58pt cell and broke as `+1 / 2` — a two-digit gap printed as two numbers,
+    // which is the one thing a change column may never do. The mark and the
+    // figure keep their own widths; the SPACING gives way.
+    HStack(spacing: CSTokens.Space.s1) {
+      // the cell is right-flush in a COLUMN; at the accessibility sizes there
+      // is no column and the line reads from the margin like everything else
+      if !typeSize.isA11y { Spacer(minLength: 0) }
+      if let gap, !gap.isEmpty {
+        Text(gap).csType(.columnM).foregroundStyle(cs.ink)
+          .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+      }
       if let movement { CSMovement(movement) }
     }
-    .frame(width: typeSize.isA11y ? nil : CSSlatMetrics.changeWidth, alignment: .trailing)
+    .frame(width: typeSize.isA11y ? nil : CSSlatMetrics.changeWidth, alignment: typeSize.isA11y ? .leading : .trailing)
   }
 
   var spoken: String {
@@ -218,6 +277,7 @@ public enum CSOrdinal {
 /// A column-head row + N slats + an optional cut.
 public struct CSStandingsBoard<Row: View>: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let count: Int
   let cut: String?
   let cutAfter: Int?
@@ -235,7 +295,11 @@ public struct CSStandingsBoard<Row: View>: View {
 
   public var body: some View {
     VStack(spacing: 0) {
-      head
+      // §3.1 · the heads name COLUMNS, and at the accessibility sizes there are
+      // no columns — each row speaks its own facts instead. `POS` wrapping to
+      // `PO / S` over a stacked row is a head describing a layout that is no
+      // longer on screen.
+      if !typeSize.isA11y { head }
       ForEach(0..<count, id: \.self) { i in
         rows(i, abbreviateNames)
         if let cut, let cutAfter, i == cutAfter - 1 { CSCut(cut) }
@@ -257,22 +321,40 @@ public struct CSStandingsBoard<Row: View>: View {
     .foregroundStyle(cs.mut)
     .padding(.trailing, CSTokens.Space.gutter)
     .padding(.bottom, CSTokens.Space.s2)
+    .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityHidden(true)
   }
 }
 
-/// The field's cut line inside a board: `CUT · TOP TWO PLAY THE CUP FINAL`.
+/// The field's cut line inside a board: `CUT · TOP TWO PLAY THE CUP FINAL`,
+/// then a **2pt `ink` heavy rule** running to the margin.
+///
+/// **Never gold.** The shipped board drew a gold "Cut line · top 2 advance"
+/// band, which spent the surface's one earned metal on a thing nobody has won
+/// yet. And **never *advance***: the line says who plays.
+///
+/// The label is fixed and the RULE gives way, the same way a section head
+/// works — a cut whose label wraps to two lines with a rule floating beside it
+/// reads as a rendering error rather than as a line drawn across a field.
 public struct CSCut: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let label: String
   public init(_ label: String) { self.label = label }
   public var body: some View {
-    HStack(spacing: CSTokens.Space.s2) {
-      Text(label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-      Rectangle().fill(cs.rule).frame(height: CSTokens.Space.hair)
+    HStack(spacing: CSTokens.Space.s3) {
+      Text(label).csType(.agateS, caps: true).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: !typeSize.isA11y, vertical: true).layoutPriority(1)
+      if !typeSize.isA11y {
+        Rectangle().fill(cs.ink).frame(height: 2).frame(maxWidth: .infinity)
+      }
     }
+    .frame(minHeight: 26)
     .padding(.leading, CSTokens.Space.rail)
-    .padding(.vertical, CSTokens.Space.s2)
+    .padding(.trailing, CSTokens.Space.gutter)
+    .padding(.top, CSTokens.Space.s2).padding(.bottom, CSTokens.Space.s2 - 2)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityAddTraits(.isHeader)
   }
 }
 
@@ -456,32 +538,126 @@ public struct CSTape: View {
 /// sight.) Supersedes `CSTickRow`.
 public struct CSSeasonCalendar: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
+
+  /// One calendar month's share of the season: its label, how many of the
+  /// season's weeks it counts, and — on the live month only — the days it has
+  /// left. **The note is part of the object and costs no agate budget**: it is
+  /// the graphic's own axis label, not a caption beside it (§1.2).
+  public struct Month: Identifiable, Sendable, Equatable {
+    public let label: String
+    public let weeks: Int
+    public let note: String?
+    public let live: Bool
+    public var id: String { label }
+    public init(label: String, weeks: Int, note: String? = nil, live: Bool = false) {
+      self.label = label; self.weeks = weeks; self.note = note; self.live = live
+    }
+  }
+
   let weeks: Int
   let played: Int
+  /// Zero-based index of the live week. **Negative means nothing is live** —
+  /// a complete season's ticks are all `mut`, because nothing is running.
   let now: Int
-  let months: [String]
-  public init(weeks: Int, played: Int, now: Int, months: [String]) {
+  let months: [Month]
+
+  public init(weeks: Int, played: Int, now: Int, months: [Month]) {
     self.weeks = weeks; self.played = played; self.now = now; self.months = months
   }
+
+  /// The legacy call (a bare list of month names, evenly divided) — kept so the
+  /// developer harness and any surface that has not been re-cut still compiles.
+  public init(weeks: Int, played: Int, now: Int, months: [String]) {
+    self.init(weeks: weeks, played: played, now: now,
+              months: CSSeasonCalendar.spread(months, over: weeks))
+  }
+
+  /// Divide `weeks` as evenly as possible across named months, remainder to the
+  /// earliest — the same shape `PotMath.splitCents` gives money.
+  static func spread(_ names: [String], over weeks: Int) -> [Month] {
+    guard !names.isEmpty, weeks > 0 else { return [] }
+    let base = weeks / names.count
+    var rem = weeks - base * names.count
+    return names.map { n in
+      let w = base + (rem > 0 ? 1 : 0)
+      if rem > 0 { rem -= 1 }
+      return Month(label: n, weeks: max(1, w))
+    }
+  }
+
+  /// The first week index each month group starts at.
+  var starts: [Int] {
+    var out: [Int] = []; var k = 0
+    for m in months { out.append(k); k += m.weeks }
+    return out
+  }
+
   public var body: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      HStack(spacing: 3) {
-        ForEach(0..<weeks, id: \.self) { i in
-          Rectangle()
-            .fill(i == now ? cs.brand : (i < played ? cs.ink : cs.mut))
-            .frame(maxWidth: .infinity, minHeight: 8)
+    // §3.1 · at the accessibility sizes ONE GROUP PER ROW, each a slat: the
+    // month label leading, its ticks trailing. Thirteen ticks and three
+    // wrapped labels on one row is a graphic nobody can read.
+    if typeSize.isA11y {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        ForEach(Array(months.enumerated()), id: \.element.id) { i, m in
+          HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
+            // **the label WRAPS here and the ticks keep their width.** At AX3
+            // `SEP · 25 DAYS` is ~300pt of agate; held to one line beside its
+            // ticks the row measured screen + 34, and a vertical `ScrollView`
+            // CENTRES content wider than itself — so the whole season page
+            // slid twenty points left and lost its gutter. The month clock was
+            // the only block wide enough to do it, and only at AX3.
+            label(m, wraps: true)
+            Spacer(minLength: CSTokens.Space.s2)
+            ticks(from: starts[i], count: m.weeks).layoutPriority(1)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
-      HStack(spacing: 0) {
-        ForEach(Array(months.enumerated()), id: \.offset) { _, m in
-          Text(m).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-            .frame(maxWidth: .infinity, alignment: .leading)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(spoken)
+    } else {
+      HStack(alignment: .bottom, spacing: 14) {
+        ForEach(Array(months.enumerated()), id: \.element.id) { i, m in
+          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+            ticks(from: starts[i], count: m.weeks)
+            label(m)
+          }
         }
+      }
+      .csBudget(ember: now >= 0 ? 1 : 0)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(spoken)
+    }
+  }
+
+  /// The ticks of one month. **Played `mut` · now `brand` and 12pt tall ·
+  /// ahead `rule`** — the live cell grows UPWARD from a shared baseline, so
+  /// the row reads as a clock rather than as a bar with a bite out of it.
+  private func ticks(from first: Int, count: Int) -> some View {
+    HStack(alignment: .bottom, spacing: CSTokens.Space.s1) {
+      ForEach(0..<max(0, count), id: \.self) { k in
+        let i = first + k
+        Rectangle()
+          .fill(i == now ? cs.brand : (i < played ? cs.mut : cs.rule))
+          .frame(maxWidth: 20)
+          .frame(height: i == now ? 12 : 8)
       }
     }
-    .csBudget(ember: 1)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("Week \(now + 1) of \(weeks)")
+  }
+
+  @ViewBuilder private func label(_ m: Month, wraps: Bool = false) -> some View {
+    let text = m.note.map { "\(m.label) · \($0)" } ?? m.label
+    Text(text).csType(.agateS, caps: true)
+      .foregroundStyle(m.live ? cs.brand : cs.mut)
+      .lineLimit(wraps ? nil : 1)
+      .fixedSize(horizontal: false, vertical: true)
+  }
+
+  var spoken: String {
+    guard now >= 0 else { return "\(weeks) weeks, all played" }
+    return "Week \(now + 1) of \(weeks), the live week"
   }
 }
 

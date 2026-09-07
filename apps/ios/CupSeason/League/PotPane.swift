@@ -1,7 +1,28 @@
-// Cup Season — the Pot pane (`#room-pot` 3497–3525, `renderPot` 6973–7050):
-// the purse, the payout trio, the fine print, the buy-ins the Pro ticks as
-// money moves (D39 — a ledger, never a wallet), and the D64 forfeit ledger:
-// pride, on the books — never dollars.
+// Cup Season — THE POT (Wave 5, `surfaces/season.md` §1.6).
+//
+// The money surface of a product about money between friends had no ledger
+// character: a gold-spined card, a serif payout trio in gold, a tick list whose
+// paid state was a `✓` at 50% opacity, a handshake emoji in a stroked circle
+// and an `✕` used as a button label. All of that is §2.7 of the audit's "what
+// feels cheap", and all of it is gone.
+//
+// WHAT IS HERE INSTEAD: the pot as a rule-and-figure in gold (the surface's
+// second and last gold object), the split as three figures in INK on one 2pt
+// ink rule, and the buy-ins as a **printed leaf** — a grid with faces, the sign
+// as a WORD, the amount right-flush, and a collected total. **No colour
+// anywhere on the leaf**: no `pos`, no `neg`, and no gold, because gold ink on
+// bone is 1.68:1.
+//
+// D273 · MONEY IS `ink`; the pot and anything won are `gold`; the sign is a
+// word in agate; `pos` and `neg` never touch money. **The ledger line renders
+// verbatim from `MoneyCopy.ledger`, ONCE per client, at the foot of this
+// surface, under a hairline** (§16A.1 — it appeared on eight of thirty-four
+// renders, twice on one screen 250pt apart).
+//
+// CONSUMED UNCHANGED: `PotMath.trioCents` (the settlement's own split, to the
+// cent), `SeasonFacts.owe` (the Pro's payment words — built, tested, and called
+// from nowhere in the shipped UI until now), `PotPassCard` and
+// `PricingPotFinePrint`, which move below the ledger.
 
 import SwiftUI
 import UIKit
@@ -14,75 +35,151 @@ struct PotPane: View {
   @Environment(\.toast) private var toast
   @Environment(\.cs) private var cs
   @Environment(SessionStore.self) private var store
+  @Environment(\.dynamicTypeSize) private var typeSize
   @State private var busy: UUID?
   /// D56 / IOS-021: the Pro's season-pass card + the fine print; hidden until the flag says otherwise
   @State private var pricing = PricingFlags.hidden
 
   var body: some View {
     let b = model.bylaws
-    let free = b.stake == 0
     // M1 · the pane shows what the settlement will pay, to the cent.
     let trio = PotMath.trioCents(potCents: model.potTotal * 100, payout: b.payout)
     let mine = store.me?.memberships.first { $0.league_id == model.leagueId }
-    VStack(alignment: .leading, spacing: 14) {
-      CSSectionHead("Season stakes")
-      // QB-04 · **THE PRO'S PAYMENT WORDS, AT THE HEAD OF THE POT.**
-      //
-      // A member who owes arrived here from the red figure on Home and found
-      // the purse, the split, the ledger line and a tick list — and no answer
-      // to the one question he came with. `SeasonFacts.owe` had the answer,
-      // built from `buy_in.note` and `buy_in.due_on`, and was called from a
-      // test and nothing else: *"the one concrete task I arrived with — pay my
-      // $50 — is the one thing the app confirms it will not help me with,
-      // using words it already has on the device."*
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+      // **The pot names itself ONCE**: the head carries the count, the figure
+      // carries the rule and its own caption (§16A.2).
+      CSSectionHead("The pot", count: SeasonBoardCopy.potIn(model.potPlayers))
+        .csGutter()
+      VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+        CSFigure(PotMath.dollars(model.potTotal), size: .l, metal: .earned,
+                 label: SeasonBoardCopy.potCaption(stake: b.stake, trio: trio))
+          .contentTransition(.numericText())   // the web's odometer (csOdo, 7000)
+          .csAnimation(CSMotion.roll, value: model.potTotal)
+        // the split: three figures in INK on one shared 2pt ink heavy rule.
+        // The shipped gold serif trio is re-inked — gold is the pot, once.
+        split(trio)
+      }
+      .csGutter()
+
+      CSSectionHead("Who is in", count: SeasonBoardCopy.paid(model.paidCount, of: model.potPlayers))
+        .csGutter()
+      ledger
+        .csGutter()
+
+      // QB-04 · **THE PRO'S PAYMENT WORDS.** A member who owes arrived here
+      // from the red figure on Home and found the purse, the split and a tick
+      // list — and no answer to the one question he came with.
       if let m = mine, let owe = SeasonFacts.owe(m) {
-        Text(owe).font(CSFont.sentenceBold).foregroundStyle(cs.ink)
+        Text(owe).csType(.body).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
-          .frame(maxWidth: .infinity, alignment: .leading)
+          .csGutter()
           .accessibilityLabel(owe)
       }
-      // the purse: gold is the pot's own metal (earned); a free league wears no spine
-      CSCard(spine: free ? nil : cs.gold, padding: 18) {
-        VStack(alignment: .leading, spacing: 6) {
-          Text("The pot").csEyebrow(free ? nil : cs.gold)
-          Text(free ? "None" : PotMath.dollars(model.potTotal)).font(CSFont.hero).csTabular().foregroundStyle(free ? cs.ink : cs.gold)
-            .contentTransition(.numericText())   // the web's odometer (csOdo, 7000)
-            .csAnimation(CSMotion.roll, value: model.potTotal)
-          // D106: two numbers, never blended — the pot is what the roster owes, collected is the cash
-          Text(free ? "Bragging rights · no money in play"
-               : "\(model.potPlayers) × \(PotMath.dollars(b.stake)) · \(collected) collected"
-                 + (model.collectedShort && model.stillOweCount > 0 ? " · \(model.stillOweCount) still owe" : ""))
-            .font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText)
-        }
+
+      // §16A.1 · THE LEDGER LINE, ONCE, AT THE FOOT OF THE MONEY SURFACE,
+      // UNDER A HAIRLINE, VERBATIM FROM ONE CONSTANT. A retyped copy is a
+      // defect the day it is written.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSRule()
+        Text(MoneyCopy.ledger).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
       }
-      // the payout trio as one band on ground — hairline above and below
-      VStack(spacing: 0) {
-        CSHairline()
-        // three across; stacked at the accessibility sizes so a figure is never squeezed
-        A11yStack(rowAlignment: .top, spacing: 10, columnSpacing: 8) {
-          trioTile(free ? "—" : PotMath.money(trio.champ), "Cup champs")
-          trioTile(free ? "—" : PotMath.money(trio.runner), "Runner-up")
-          trioTile(free ? "—" : PotMath.money(trio.king), "Points king")
-        }
-        .padding(.vertical, 10)
-        CSHairline()
-      }
+      .csGutter()
+
       if let m = mine {
         PotPassCard(flags: pricing, league: m, isPro: model.isPro, yearStartsOn: model.season?.starts_on, roster: model.potPlayers)
+          .csGutter()
       }
       PricingPotFinePrint(flags: pricing)
+        .csGutter()
         .task { pricing = await PricingFlags.load() }
+      ForfeitLedgerView()
+        .csGutter()
+    }
+  }
 
-      CSSectionHead("Buy-ins · \(free ? "Bragging rights" : "\(model.paidCount)/\(model.potPlayers)") in")
-      if free {
-        RoomFine("No buy-ins — this league plays for bragging rights.")
+  /// `$288 · $120 · $72` on ONE 2pt ink rule, three agate labels beneath.
+  ///
+  /// §3.1 · **at the accessibility sizes it becomes a stacked list, label
+  /// leading and figure trailing** — the same reflow the story page's
+  /// three-figures rule takes. Three bare dollar amounts down the left margin
+  /// with their labels dropped is a split nobody can read: the reader cannot
+  /// tell the champion's share from the points king's.
+  @ViewBuilder private func split(_ trio: (champ: Int, runner: Int, king: Int)) -> some View {
+    let rows = [("Cup champ", PotMath.money(trio.champ)),
+                ("Runner-up", PotMath.money(trio.runner)),
+                ("Points king", PotMath.money(trio.king))]
+    Group {
+      if typeSize.isA11y {
+        VStack(alignment: .leading, spacing: 0) {
+          ForEach(rows, id: \.0) { r in
+            HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+              Text(r.0).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                .fixedSize(horizontal: false, vertical: true)
+              Spacer(minLength: CSTokens.Space.s2)
+              Text(r.1).csType(.figureM).csTabular().foregroundStyle(cs.ink)
+            }
+            .padding(.vertical, CSTokens.Space.s2)
+            .overlay(alignment: .bottom) { CSRule() }
+          }
+        }
       } else {
-        VStack(spacing: 0) {
-          ForEach(model.members) { m in payer(m) }
-          if model.members.isEmpty { payerRow(name: model.viewer?.displayName ?? "You", paid: false, busy: false) {} }
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+            ForEach(rows, id: \.0) { r in
+              Text(r.1).csType(.figureM).csTabular().foregroundStyle(cs.ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+          }
+          CSRule(.heavy)
+          HStack(spacing: CSTokens.Space.s3) {
+            ForEach(rows, id: \.0) { r in
+              Text(r.0).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+          }
         }
       }
-      ForfeitLedgerView()
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("The split. Cup champ \(PotMath.money(trio.champ)), runner-up \(PotMath.money(trio.runner)), points king \(PotMath.money(trio.king)).")
+  }
+
+  // MARK: - the leaf
+
+  /// **A printed ledger**: column heads in `leafMut`, a hairline, one 29pt row
+  /// per member — a 24pt face, the name in `social` (title case; a person in a
+  /// row is not the board), the sign as a WORD, the amount right-flush — a
+  /// closing hairline and a `COLLECTED` total.
+  ///
+  /// D-4 · the leaf's licence names "a receipt". A pot ledger is a receipt of
+  /// who has paid, it is a grid, and it passes the leaf's own test.
+  private var ledger: some View {
+    CSLeaf {
+      VStack(spacing: 0) {
+        if !typeSize.isA11y {
+          HStack(spacing: CSTokens.Space.s3) {
+            Text("Golfer").frame(maxWidth: .infinity, alignment: .leading)
+            Text("In").frame(width: 80, alignment: .leading)
+            Text("Amount").frame(width: 64, alignment: .trailing)
+          }
+          .csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
+          .padding(.bottom, CSTokens.Space.s2)
+          .accessibilityHidden(true)
+          CSRule(over: .leaf)
+        }
+        ForEach(model.members) { m in payer(m) }
+        if model.members.isEmpty { payerRow(m: nil, name: model.viewer?.displayName ?? "You", paid: false, mine: true, busy: false) {} }
+        CSRule(over: .leaf)
+        HStack(spacing: CSTokens.Space.s3) {
+          Text("Collected").csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
+            .frame(maxWidth: .infinity, alignment: .leading)
+          Text(collected).csType(.columnM).csTabular().foregroundStyle(cs.leafInk)
+            .frame(width: 64, alignment: .trailing)
+        }
+        .padding(.top, CSTokens.Space.s3)
+        .accessibilityElement(children: .combine)
+      }
     }
   }
 
@@ -91,31 +188,18 @@ struct PotPane: View {
     return c == c.rounded() ? "$\(Int(c))" : String(format: "$%.2f", c)
   }
 
-  private func trioTile(_ b: String, _ sub: String) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(b).font(CSFont.sentenceBold).csTabular().foregroundStyle(b == "—" ? cs.ink : cs.gold)
-      Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .accessibilityElement(children: .combine)
-  }
-
   /// `.payer` — the Pro taps a name as money moves; anyone else hears why not.
   private func payer(_ m: LeagueRoom.Member) -> some View {
     let paid = model.buyIns[m.id]?.paid ?? false
-    return payerRow(name: m.name, paid: paid, busy: busy == m.id) {
+    let mine = m.profile_id == (model.viewer?.id ?? store.me?.profile?.id)
+    return payerRow(m: m, name: m.name, paid: paid, mine: mine, busy: busy == m.id) {
       if !model.isPro {
-        // QB-04 · **A TAP ON YOUR OWN ROW ANSWERS, INSTEAD OF EXPLAINING WHY
-        // NOTHING HAPPENED.** It used to raise "The Pro marks buy-ins as the
-        // money moves between friends" — true, and not the thing the golfer
-        // asked. On your OWN unpaid row it now hands you the Pro's words and
-        // puts them on the clipboard, which is the act a golfer performs next
-        // (they are about to paste a handle into another app). On somebody
-        // else's row the old sentence is still exactly right.
-        if m.profile_id == store.me?.profile?.id,
-           let mine = store.me?.memberships.first(where: { $0.league_id == model.leagueId }),
-           let owe = SeasonFacts.owe(mine) {
-          if let note = mine.buy_in?.note?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
+        // QB-04 · a tap on your OWN unpaid row hands you the Pro's words and
+        // puts them on the clipboard, which is the act a golfer performs next.
+        if mine,
+           let mem = store.me?.memberships.first(where: { $0.league_id == model.leagueId }),
+           let owe = SeasonFacts.owe(mem) {
+          if let note = mem.buy_in?.note?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
             UIPasteboard.general.string = note
             CSHaptic.selection()
             toast.show("\(owe) \u{00B7} copied")
@@ -135,24 +219,37 @@ struct PotPane: View {
     }
   }
 
-  private func payerRow(name: String, paid: Bool, busy: Bool, action: @escaping () -> Void) -> some View {
-    Button(action: action) {
-      HStack {
-        Text(name).font(CSFont.subhead).foregroundStyle(cs.ink)
-        Spacer()
-        if busy { ProgressView().tint(cs.mut) } else {
-          // the unpaid tick is a disabled glyph — `dim` is allowed there (IOS-003 §2.2); the row's label carries the state
-          Text("✓").font(CSFont.monoMediumBody).foregroundStyle(paid ? cs.pos : cs.dim).opacity(paid ? 1 : 0.5).accessibilityHidden(true)
+  private func payerRow(m: LeagueRoom.Member?, name: String, paid: Bool, mine: Bool,
+                        busy: Bool, action: @escaping () -> Void) -> some View {
+    let amount = m.flatMap { model.buyIns[$0.id]?.amount_cents }
+      .map { PotMath.money($0) } ?? PotMath.dollars(model.bylaws.stake)
+    return Button(action: action) {
+      A11yStack(rowAlignment: .center, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s1) {
+        HStack(spacing: CSTokens.Space.s2) {
+          if let m {
+            CSFace(.init(id: m.profile_id, marker: m.mk, photoURL: model.avatarURL[m.profile_id],
+                         isViewer: mine), size: .inline)
+          }
+          Text(mine ? "You" : name).csType(.nameS, caps: false).foregroundStyle(cs.leafInk)
+            .lineLimit(1).truncationMode(.tail)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        // **THE SIGN IS A WORD** — never a tick, never opacity, never a hue.
+        Text(SeasonBoardCopy.sign(paid: paid, mine: mine))
+          .csType(.agateS, caps: true)
+          .foregroundStyle(paid ? cs.leafMut : cs.leafInk)
+          .frame(width: typeSize.isA11y ? nil : 80, alignment: .leading)
+        Text(amount).csType(.columnM).csTabular().foregroundStyle(cs.leafInk)
+          .frame(width: typeSize.isA11y ? nil : 64, alignment: .trailing)
       }
-      .padding(.horizontal, 4).frame(minHeight: 48)
+      .frame(minHeight: 29)
+      .padding(.vertical, CSTokens.Space.s1)
       .contentShape(Rectangle())
-      // a row, not a card: the hairline warms to `pos` once the money is in
-      .overlay(alignment: .bottom) { Rectangle().fill(paid ? cs.pos.opacity(0.45) : cs.rule).frame(height: 1) }
+      .opacity(busy ? 0.5 : 1)
     }
     .buttonStyle(.plain)
     .disabled(busy)
-    .accessibilityLabel("\(name), \(paid ? "buy-in in" : "buy-in not in")")
+    .accessibilityLabel("\(mine ? "You" : name), \(SeasonBoardCopy.sign(paid: paid, mine: mine)), \(amount)")
     .accessibilityHint(model.isPro ? "Marks the buy-in \(paid ? "not in" : "in")" : "The Pro marks buy-ins")
   }
 }

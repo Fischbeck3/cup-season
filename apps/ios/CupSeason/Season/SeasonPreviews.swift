@@ -37,55 +37,121 @@ enum LeagueRoomSample {
     return m
   }
 
+  /// §3 · a season with the money in and nobody on the table yet.
+  static func empty() -> LeagueRoomModel {
+    let m = LeagueRoomModel(leagueId: league)
+    m.seed(viewer: RoomViewer(id: p1, displayName: "Jerecho", marker: "saguaro", indexCurrent: 12.4, roundsCount: 0),
+           league: .init(id: league, name: "PIGL", code: "PIGL", phase: "season", commissioner_id: p1),
+           settings: .init(league_id: league, preset: "standard", counting_cap: 4, participation_floor: 2, buyin_cents: 7500,
+                           structure: "solo", draft_type: "random", payout_champ: 60, payout_runnerup: 25, payout_king: 15, finish: "cup_final"),
+           season: .init(id: season, starts_on: "2026-05-03", ends_on: "2026-09-26", status: "active"),
+           members: [.init(id: m1, role: "commissioner", profile_id: p1, profile: .init(display_name: "Jerecho", marker: "saguaro"))],
+           today: "2026-06-01")
+    return m
+  }
+
+  /// §3 · a free league (`stake == 0`): the pot section is ABSENT entirely,
+  /// not a `$0` (L-10).
+  static func free() -> LeagueRoomModel {
+    let m = LeagueRoomModel(leagueId: league)
+    m.seed(viewer: RoomViewer(id: p1, displayName: "Jerecho", marker: "saguaro", indexCurrent: 12.4, roundsCount: 5),
+           league: .init(id: league, name: "PIGL", code: "PIGL", phase: "season", commissioner_id: p1),
+           settings: .init(league_id: league, preset: "standard", counting_cap: 4, participation_floor: 2, buyin_cents: 0,
+                           structure: "solo", draft_type: "random", payout_champ: 60, payout_runnerup: 25, payout_king: 15, finish: "points_table"),
+           season: .init(id: season, starts_on: "2026-05-03", ends_on: "2026-09-26", status: "active"),
+           members: [.init(id: m1, role: "commissioner", profile_id: p1, profile: .init(display_name: "Jerecho", marker: "saguaro")),
+                     .init(id: m2, role: "player", profile_id: p2, profile: .init(display_name: "Sandy Wedge", marker: "shark"))],
+           indiv: [.init(member_id: m1, points: 30, rounds_posted: 3), .init(member_id: m2, points: 18, rounds_posted: 2)],
+           today: "2026-06-01")
+    return m
+  }
+
   static let links = LeagueRoomLinks(openBoard: {}, openSchedule: {}, openWizard: {}, openDraft: {}, openReceipt: { _ in }, openTourCard: { _ in }, addGolfers: {},
                                      openAlbum: {}, openRecord: {}, runItBack: {})
 }
 
-#Preview("The table · live week") {
+#Preview("The board · live week") {
   ScrollView {
-    VStack(alignment: .leading, spacing: 14) {
-      SeasonDateline(loading: false)
-      SeasonStoryLead(model: LeagueRoomSample.model())
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+      SeasonHead()
+      MonthClock()
+      ClashRows()
+      CSSectionHead("The table", count: SeasonBoardCopy.field(2)).padding(.horizontal, CSTokens.Space.gutter)
       StandingsTableView()
-      SeasonEndgameFoot()
       SeasonDoors()
     }
-    .padding(20)
+    .padding(.vertical, CSTokens.Space.s3)
   }
   .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
   .csTheme()
 }
 
 /// IOS-022 item 9: nothing clips at the accessibility sizes.
-#Preview("The table · accessibility3") {
+#Preview("The board · accessibility3") {
   ScrollView {
-    VStack(alignment: .leading, spacing: 14) {
-      SeasonDateline(loading: false)
-      StandingsTableView()
-      SeasonEndgameFoot()
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+      SeasonHead(); MonthClock(); StandingsTableView()
     }
-    .padding(20)
+    .padding(.vertical, CSTokens.Space.s3)
   }
   .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
   .environment(\.dynamicTypeSize, .accessibility3)
   .csTheme()
 }
 
-#Preview("Pot") {
-  ScrollView { PotPane().padding(20) }
-    .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
-    .csTheme()
-}
-
-#Preview("The Pro's verbs") {
-  ScrollView { ProVerbRow().padding(20) }
-    .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
-    .csTheme()
-}
-
-#Preview("Wrapped · gold hero") {
+#Preview("The board · light") {
   ScrollView {
-    VStack(alignment: .leading, spacing: 14) { SeasonDateline(loading: false); SeasonWrappedHero(); StandingsTableView() }.padding(20)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+      SeasonHead(); MonthClock(); StandingsTableView()
+    }
+    .padding(.vertical, CSTokens.Space.s3)
+  }
+  .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
+  .environment(\.colorScheme, .light)
+  .csTheme()
+}
+
+#Preview("The board · loading") {
+  ScrollView { SeasonLoading().padding(.vertical, CSTokens.Space.s3) }
+    .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
+    .csTheme()
+}
+
+#Preview("The board · empty") {
+  ScrollView { StandingsTableView().padding(.vertical, CSTokens.Space.s3) }
+    .environment(LeagueRoomSample.empty()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
+    .csTheme()
+}
+
+#Preview("The pot") {
+  ScrollView { PotPane().padding(.vertical, CSTokens.Space.s3) }
+    .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
+    .csTheme()
+}
+
+#Preview("The pot · free league") {
+  ScrollView {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+      SeasonHead()
+      CSSectionHead("The table", count: SeasonBoardCopy.field(2)).padding(.horizontal, CSTokens.Space.gutter)
+      StandingsTableView()
+    }
+    .padding(.vertical, CSTokens.Space.s3)
+  }
+  .environment(LeagueRoomSample.free()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
+  .csTheme()
+}
+
+#Preview("The story") {
+  SeasonStoryPane(model: LeagueRoomSample.model(), links: LeagueRoomSample.links)
+    .environment(LeagueRoomSample.model()).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
+    .csTheme()
+}
+
+#Preview("Wrapped · the champion") {
+  ScrollView {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) { SeasonHead(); SeasonWrappedHero(); StandingsTableView() }
+      .padding(.vertical, CSTokens.Space.s3)
   }
   .environment(LeagueRoomSample.model(status: "complete", today: "2026-10-01")).environment(RoomRouter()).environment(\.roomLinks, LeagueRoomSample.links)
   .csTheme()

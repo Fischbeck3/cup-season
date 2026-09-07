@@ -1,27 +1,166 @@
-// Cup Season — the season page's phase pieces (D223, IOS-031).
+// Cup Season — the season page's phase pieces (Wave 5, `surfaces/season.md`).
 //
-// This file WAS `StandingsPane` — the six-segment room's standings pane, which
-// dispatched on phase and then rendered a four-figure season strip, a press
-// meter, a next-up card, an "on the line" door, the climb, the table and the
-// individual race, one under the other. The page took its sections
-// (`SeasonPage.swift`); what stays here are the pieces that page composes:
+// WHAT THIS FILE HELD AND WHAT HAPPENED TO IT:
 //
-//   the three PHASE screens — setup, the draw, wrapped
-//   `ClashCard`   THIS WEEK's spotlight pairing (D108)
-//   `NextCard`    the month's floor sentence (D14)
-//   `PressMeter`  the month burning down (D76)
+//   `PressMeter`  DELETED. A 6pt three-stop gradient capsule with no head,
+//                 which the audit read as a warning bar and §4 of the brief
+//                 names as a generic sports gradient (CS-12). `MonthClock`
+//                 below replaces it: countable ticks grouped by the calendar
+//                 month that does the counting, one live cell, and the same
+//                 numbers it always drew — `LeagueCopy.pressMeter`'s facts and
+//                 `nextUp`'s sentence, which live on.
+//   `ClashCard`   → `ClashRows`. Loses the `CSCard`, the spine and the `W`
+//                 gold letter; keeps `ClashMath.window` / `.bestSoFar`, the
+//                 named bands and the receipt tap. Two rows on the page's own
+//                 ground, and **the side that is ahead takes a panel**.
+//   `NextCard`    → the counting sentence and the tertiary link inside
+//                 `MonthClock`. Loses the `CSCard`, the spine and `RoomMini`.
 //
-// WHAT WENT, AND WHY. `RoomSeasonStrip`'s four figures are all somewhere else
-// on the redesigned page and every one of them was a second render of one fact
-// (L-34): the week is the dateline's, the pot is THE POT's, the index is the ME
-// strip's on Home, and the counting figure is the table's own clause. The
-// "On the line" door pointed at a pane one scroll below it. D3's fill meter
-// retires with the strip; the figure it drew survives as the table's clause
-// ("2 of 3 counting this month"), which is the same count with its unit said.
+// The three phase screens (setup, the draw, wrapped) are re-clothed to bands
+// and rules and keep every behaviour they had.
 
 import SwiftUI
 import CSDesign
 import CupSeasonKit
+
+// MARK: - The month clock (§1.2)
+
+/// **The tick row, given months.** One object answers "how far into the
+/// season", "which month am I in" and "how long have I got" — and then says
+/// what the golfer owes it, and gives him the one door that pays it.
+///
+/// The door is a **tertiary link**, not a primary: this surface is a board and
+/// its live action belongs to the ⊕ (D-3). A primary appears only in the
+/// states where the page genuinely owns one.
+struct MonthClock: View {
+  @Environment(LeagueRoomModel.self) private var model
+  @Environment(\.roomLinks) private var links
+  @Environment(\.cs) private var cs
+
+  var body: some View {
+    let c = model.clock
+    let months = SeasonCalendarMath.months(startsOn: c.startsOn, weeks: c.totalWeeks, today: c.today)
+    let now = c.done || c.atStarter ? -1 : max(0, c.currentWeek - 1)
+    let n = model.myMonth?.credits ?? 0
+    let next = LeagueCopy.nextUp(c, b: model.bylaws, credits: n, partial: model.partialMonth)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      if !months.isEmpty {
+        CSSeasonCalendar(weeks: c.totalWeeks,
+                         played: max(0, now < 0 ? c.totalWeeks : now),
+                         now: now,
+                         months: months.map { .init(label: $0.label, weeks: $0.weeks, note: $0.note, live: $0.live) })
+      }
+      Text(next.text).csType(.bodyS).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+      if let go = links.openRecord {
+        CSDoor(.link("Add my round", go))
+      }
+    }
+    .csGutter()
+  }
+}
+
+// MARK: - The clash (§1.3)
+
+/// D108: the week's matchup — two rows on the page's own ground. **No card, no
+/// spine, no border.** Hidden without a row: deploy skew, pre-season, a field
+/// too small to pair and a settled week where both sides were idle all render
+/// nothing at all, head included, because a door with nothing behind it is
+/// worse than no door.
+struct ClashRows: View {
+  @Environment(LeagueRoomModel.self) private var model
+  @Environment(\.roomLinks) private var links
+  @Environment(\.cs) private var cs
+
+  var body: some View {
+    if let wc = model.weekClash, let s = model.season,
+       !(wc.settled && wc.a_best == nil && wc.b_best == nil) {
+      let win = ClashMath.window(startsOn: s.starts_on, week: wc.week_no)
+      let aB = wc.settled ? wc.a_best : ClashMath.bestSoFar(model.rankedRounds, member: wc.a_member, window: win, capN: model.bylaws.capN)
+      let bB = wc.settled ? wc.b_best : ClashMath.bestSoFar(model.rankedRounds, member: wc.b_member, window: win, capN: model.bylaws.capN)
+      let ahead = leader(aB, bB)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        CSSectionHead("This week · the clash", count: through(wc, weekEnd: win.end))
+        side(wc.a_member, best: aB, ahead: ahead == 0)
+        side(wc.b_member, best: bB, ahead: ahead == 1)
+      }
+      .csGutter()
+    }
+  }
+
+  /// 0 = the a side, 1 = the b side, nil = level or both idle. **Only one
+  /// panel per clash**, which is what makes it the emphasis §13 asks for.
+  private func leader(_ a: LeagueRoom.WeekClash.Best?, _ b: LeagueRoom.WeekClash.Best?) -> Int? {
+    let pa = a?.points, pb = b?.points
+    switch (pa, pb) {
+    case let (x?, y?): return x == y ? nil : (x > y ? 0 : 1)
+    case (_?, nil): return 0
+    case (nil, _?): return 1
+    default: return nil
+    }
+  }
+
+  private func through(_ wc: LeagueRoom.WeekClash, weekEnd: String) -> String {
+    wc.settled ? "settled" : "through \(ClashMath.dowShort(weekEnd))"
+  }
+
+  @ViewBuilder private func side(_ id: UUID, best: LeagueRoom.WeekClash.Best?, ahead: Bool) -> some View {
+    let mine = model.myMember?.id == id
+    let m = model.member(id)
+    let sub: String = {
+      guard let b = best else { return "No round yet" }
+      // named bands, never raw differential (D1/D2); they/them for anyone else
+      let band = b.band ?? b.pvi.map(CSBands.bandName) ?? ""
+      let voiced = mine ? band : CSBands.theirs(band)
+      let day = b.played_on.map { ClashMath.dowShort($0) } ?? ""
+      return day.isEmpty ? voiced : "\(voiced) · \(day)"
+    }()
+    Button {
+      if let rid = best?.round_id { links.openReceipt(rid) }
+    } label: {
+      // §3.1 · **at AX3 the figure drops BELOW the row and the row goes full
+      // width.** Held on one line, a 38pt face beside a 44pt name, a 24pt
+      // clause and a panel measured screen + 40 — and a vertical `ScrollView`
+      // CENTRES content wider than itself, so the whole season page slid left
+      // and lost its gutter. Every fixed-width row on this surface reflows
+      // rather than overflowing; the clash was the last one that did not.
+      A11yStack(rowAlignment: .center, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+        HStack(spacing: CSTokens.Space.s3) {
+          if let m {
+            CSFace(.init(id: m.profile_id, marker: m.mk, photoURL: model.avatarURL[m.profile_id],
+                         isViewer: model.viewer?.id == m.profile_id), size: .list)
+          }
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            Text(mine ? "You" : (m?.name ?? "—")).csType(.name).foregroundStyle(cs.ink)
+              .lineLimit(1).truncationMode(.tail)
+            Text(sub).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              .lineLimit(1).truncationMode(.tail)
+          }
+          .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+        if ahead, let p = best?.points {
+          CSPanel(unit: "pts") { Text(CSCopy.points(p)).csType(.figureM) }
+        } else if let p = best?.points {
+          Text(CSCopy.points(p)).csType(.figureM).foregroundStyle(cs.mut)
+        } else {
+          // idle: an em dash in `mut`, and it is the ONE place on this surface
+          // a dash stands for a value nobody has posted yet
+          Text("\u{2014}").csType(.figureS).foregroundStyle(cs.mut)
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .frame(minHeight: 52)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .disabled(best?.round_id == nil)
+    .accessibilityElement(children: .combine)
+    .accessibilityHint(best?.round_id == nil ? "" : "Opens the round")
+  }
+}
+
+// MARK: - The phases
 
 /// `#homeSetup` — the three steps to first tee, for a season that has not
 /// locked its bylaws yet. The Pro gets the verb; a member reads the state.
@@ -34,21 +173,23 @@ struct SeasonSetupChecklist: View {
     VStack(alignment: .leading, spacing: 0) {
       CSSectionHead("Three steps to first tee")
       RoomCheckRow("Season settings", sub: "The stakes, the rules, the format") { num("1") } trail: {
-        if model.isPro { RoomMini("Continue") { links.openWizard() } } else { Text("THE PRO").csEyebrow(cs.gold) }
+        // §3 · setup is one of the four states where this page owns a primary
+        if model.isPro { CSDoor(.primary("Continue", links.openWizard)) } else { Text("The Pro").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
       }
       RoomCheckRow("Invite the crew", sub: "One link fills the season — it opens the moment you lock") { num("2") } trail: {
-        Text("At lock").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
+        Text("At lock").csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
       RoomCheckRow("Squad formation", sub: "Unlocks when settings lock") { num("3") } trail: {
-        Text("Locked").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
+        Text("Locked").csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
       Text(LeagueCopy.seatFill(code: model.league?.code, members: model.members.count,
                                min: model.bylaws.structMin, locked: model.clock.phase != .setup))
-        .font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText).padding(.top, 10)
+        .csType(.agateS, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s3)
     }
+    .csGutter()
   }
 
-  private func num(_ s: String) -> some View { Text(s).font(CSFont.monoMediumBody).foregroundStyle(cs.ink) }
+  private func num(_ s: String) -> some View { Text(s).csType(.columnM).foregroundStyle(cs.ink) }
 }
 
 /// `#homeDraft` — the draw. S3-04: a member's tap opens a read-only view, and
@@ -59,22 +200,27 @@ struct SeasonDraftHero: View {
   @Environment(\.cs) private var cs
 
   var body: some View {
-    PhaseHero(k: "Squads are forming", n: "It’s random — nobody picks.",
-              m: LeagueCopy.draftPoolSub(pool: model.pool.count, members: model.members.count, min: model.bylaws.structMin)) {
-      VStack(spacing: 10) {
-        CSButton(model.isPro ? "Form the squads" : "See the squads") { links.openDraft() }
-        if let url = model.inviteURL {
-          ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
-            Text("Share the invite link").font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
-              .foregroundStyle(cs.ink).background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
-          }
-          .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: model.league?.code, league: model.league?.id) })
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      CSSectionHead("Squads are forming")
+      Text("It’s random — nobody picks.").csType(.story).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
+      Text(LeagueCopy.draftPoolSub(pool: model.pool.count, members: model.members.count, min: model.bylaws.structMin))
+        .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+      CSDoor(.primary(model.isPro ? "Form the squads" : "See the squads", links.openDraft))
+      if let url = model.inviteURL {
+        ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
+          Text("Share the invite link")
         }
-        if joinsQuiet { RoomFine("Joins have gone quiet — a nudge in the group chat usually does it.") }
+        .buttonStyle(.csSecondary)
+        .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: model.league?.code, league: model.league?.id) })
       }
-      .padding(.top, 8)
+      if joinsQuiet {
+        Text("Joins have gone quiet — a nudge in the group chat usually does it.")
+          .csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
+      }
     }
+    .csGutter()
   }
 
   /// 48h since the last join, still short, pre-draw.
@@ -85,7 +231,9 @@ struct SeasonDraftHero: View {
   }
 }
 
-/// The Trophy Room (D66): the stored result, never re-derived.
+/// The Trophy Room (D66): the stored result, never re-derived. **No card** —
+/// the champion's name is the object, and the one gold on the viewport is the
+/// leader's rail below it.
 struct SeasonWrappedHero: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(RoomRouter.self) private var router
@@ -94,149 +242,21 @@ struct SeasonWrappedHero: View {
 
   var body: some View {
     let st = model.settlement
-    CSCard(spine: cs.gold, padding: 20) {
-      VStack(alignment: .leading, spacing: 8) {
-        Text("Season wrapped").csEyebrow(cs.gold)
-        Text(st?.champName ?? "The champion").font(CSFont.heroSmall).foregroundStyle(cs.ink)
-        Text(model.bylaws.finish == "cup_final" ? "took the Cup Final" : "took the Cup").font(CSFont.sentence).foregroundStyle(cs.mut)
-        if let s1 = st?.s1, let s2 = st?.s2 {
-          Text("\(PotMath.score(s1))–\(PotMath.score(s2))").font(CSFont.stat).csTabular().foregroundStyle(cs.gold)
-        }
-        RoomMini("See how it ended") { router.open(.ceremony) }.padding(.top, 6)
-        // D243 · role-gated. The Pro runs it back; a member ASKS. The card
-        // behind this button has two seats, so the button must too — a member
-        // reading "Run it back" and then meeting "Ask Galen" is the same
-        // door-that-does-not-open L-32 forbids.
-        if let rb = links.runItBack {
-          // LV-21 · L-25 is explicit: gold on a button is a defect. Gold is
-          // EARNED and a control is an act, so ember (the primary) carries it
-          // and the earned facts on the same card keep the metal.
-          CSButton(RunItBack.title(isPro: model.isPro, proFirstName: model.proName == "—" ? nil : model.proName),
-                   style: .primary) { rb() }.padding(.top, 4)
-        }
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      CSSectionHead("Season wrapped")
+      Text(st?.champName ?? "The champion").csType(.displayS).foregroundStyle(cs.ink)
+      Text(model.bylaws.finish == "cup_final" ? "took the Cup Final" : "took the Cup")
+        .csType(.story).foregroundStyle(cs.mut)
+      if let s1 = st?.s1, let s2 = st?.s2 {
+        Text("\(PotMath.score(s1))–\(PotMath.score(s2))").csType(.figureM).csTabular().foregroundStyle(cs.ink)
+      }
+      // §3 · complete is one of the four states where this page owns a primary
+      CSDoor(.primary("See how it ended") { router.open(.ceremony) })
+      // D243 · role-gated. The Pro runs it back; a member ASKS.
+      if let rb = links.runItBack {
+        CSDoor(.link(RunItBack.title(isPro: model.isPro, proFirstName: model.proName == "—" ? nil : model.proName), rb))
       }
     }
-  }
-}
-
-/// `#pressMeter` (D76): the month burning down under your number.
-struct PressMeter: View {
-  @Environment(LeagueRoomModel.self) private var model
-  @Environment(\.cs) private var cs
-  var body: some View {
-    let pm = LeagueCopy.pressMeter(today: model.clock.today)
-    VStack(alignment: .leading, spacing: 6) {
-      GeometryReader { g in
-        ZStack(alignment: .leading) {
-          Capsule().fill(cs.bg2)
-          Capsule().fill(LinearGradient(colors: [cs.brand, cs.brand, cs.brand], startPoint: .leading, endPoint: .trailing))
-            .frame(width: max(6, g.size.width * pm.fill))
-        }
-      }
-      .frame(height: 6)
-      Text(pm.legend).font(CSFont.label).tracking(1.0).foregroundStyle(pm.hot ? cs.brand : cs.mut)
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(pm.legend)
-  }
-}
-
-/// `.nextcard` — "Next up · this month" + Live round. The live spine (the
-/// room's look, ember when none — D103b), no wash — the hero has the wash.
-struct NextCard: View {
-  @Environment(LeagueRoomModel.self) private var model
-  @Environment(\.roomLinks) private var links
-  @Environment(\.cs) private var cs
-  @Environment(\.csLookAccent) private var la
-  var body: some View {
-    let n = LeagueCopy.nextUp(model.clock, b: model.bylaws, credits: model.myMonth?.credits ?? 0, partial: model.partialMonth)
-    CSCard(spine: la.spine(earned: false)) {
-      A11yStack(spacing: 12, columnSpacing: 8) {
-        VStack(alignment: .leading, spacing: 4) {
-          Text(n.k).csEyebrow(la.accent)
-          Text(n.text).font(CSFont.subhead).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
-        }
-        Spacer(minLength: 0)
-        // F-9 · a control is FUNCTION-FIRST (L-33). "Live round" is a noun;
-        // every other door on this page says what the tap does.
-        if let go = links.openRecord { RoomMini("Add my round") { go() } }
-      }
-    }
-  }
-}
-
-/// D108: the weekly clash — the spotlight pairing as a compact card over the
-/// table, mirroring the web chip (`renderClash`): "THE CLASH · YOU v MARCUS ·
-/// THROUGH SAT" with each side's best counting round so far mid-week (the
-/// same pick `settle_week_clash` makes — the BAND decides, D2), the result
-/// once settled. Receipts tap through (§16). Hidden without a row — deploy
-/// skew, pre-season, and a quiet settled week (both idle) all render nothing.
-struct ClashCard: View {
-  @Environment(LeagueRoomModel.self) private var model
-  @Environment(\.roomLinks) private var links
-  @Environment(\.cs) private var cs
-  @Environment(\.csLookAccent) private var la
-
-  var body: some View {
-    if let wc = model.weekClash, let s = model.season,
-       !(wc.settled && wc.a_best == nil && wc.b_best == nil) {   // both idle settles quiet (D52)
-      let win = ClashMath.window(startsOn: s.starts_on, week: wc.week_no)
-      let aB = wc.settled ? wc.a_best : ClashMath.bestSoFar(model.rankedRounds, member: wc.a_member, window: win, capN: model.bylaws.capN)
-      let bB = wc.settled ? wc.b_best : ClashMath.bestSoFar(model.rankedRounds, member: wc.b_member, window: win, capN: model.bylaws.capN)
-      CSCard(spine: la.spine(earned: false)) {
-        VStack(alignment: .leading, spacing: 4) {
-          Text(headline(wc, weekEnd: win.end)).csEyebrow(la.accent)
-          sideRow(wc.a_member, best: aB, won: wc.settled && wc.winner_member == wc.a_member, settled: wc.settled)
-          sideRow(wc.b_member, best: bB, won: wc.settled && wc.winner_member == wc.b_member, settled: wc.settled)
-        }
-      }
-    }
-  }
-
-  /// First names in the chip (D77); "you" when the viewer is in the spotlight.
-  private func first(_ id: UUID) -> String {
-    if model.myMember?.id == id { return "you" }
-    let n = model.memName(id)
-    return n.split(separator: " ").first.map(String.init) ?? n
-  }
-
-  private func headline(_ wc: LeagueRoom.WeekClash, weekEnd: String) -> String {
-    if wc.settled {
-      if let w = wc.winner_member { return "The clash · \(first(w)) took the week" }
-      return "The clash · \(first(wc.a_member)) v \(first(wc.b_member)) · all square"
-    }
-    return "The clash · \(first(wc.a_member)) v \(first(wc.b_member)) · through \(ClashMath.dowShort(weekEnd))"
-  }
-
-  @ViewBuilder
-  private func sideRow(_ id: UUID, best: LeagueRoom.WeekClash.Best?, won: Bool, settled: Bool) -> some View {
-    let mine = model.myMember?.id == id
-    let sub: String = {
-      guard let b = best else { return settled ? "Idle — no round" : "No round yet" }
-      // named bands, never raw differential (D1/D2); they/them for anyone else
-      let band = b.band ?? b.pvi.map(CSBands.bandName) ?? ""
-      let voiced = mine ? band : CSBands.theirs(band)
-      let day = b.played_on.map { ClashMath.dowShort($0) } ?? ""
-      return day.isEmpty ? voiced : "\(voiced) · \(day)"
-    }()
-    Button {
-      if let rid = best?.round_id { links.openReceipt(rid) }
-    } label: {
-      HStack(spacing: 10) {
-        Text(won ? "W" : "").font(CSFont.monoSmall).csTabular().foregroundStyle(cs.gold).frame(width: 14, alignment: .leading)
-        VStack(alignment: .leading, spacing: 1) {
-          Text(first(id)).font(CSFont.subhead.weight(won ? .semibold : .regular)).foregroundStyle(cs.ink)
-          Text(sub.uppercased()).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        Text(best?.points.map { CSCopy.points($0) } ?? "—").font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
-      }
-      .padding(.vertical, 6)
-      .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .disabled(best?.round_id == nil)
-    .accessibilityElement(children: .combine)
-    .accessibilityHint(best?.round_id == nil ? "" : "Opens the round")
+    .csGutter()
   }
 }

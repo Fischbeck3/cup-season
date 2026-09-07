@@ -1,8 +1,25 @@
-// Cup Season — the standings table (`renderStandings`, index.html 4513–4600):
-// the serif story over it, rank · squad · Δ Wk · Pts (the sparkline column
-// stays on the squad receipt — IOS-003 §2.3), the ▲/▼ chip vs the last
-// Sunday snapshot on the heat axis, the split-flap rank flip on a fresh load
-// (SF-6), the cut row, the D24 scenario line under it.
+// Cup Season — THE BOARD (Wave 5, `surfaces/season.md` §1.4).
+//
+// One standings object, not three. The shipped page rendered a table, then the
+// climb, then the individual race — three tables for a field of two (CS-21, a
+// P0) — under column heads sitting 140–200px left of the columns they named
+// (CS-18). All of that is one `CSStandingsBoard` of `CSSlat`s now:
+//
+//   │ 01 │ ◍ GALEN MARR          │  —  │  19 │
+//   │gold│   Held since week three│     │     │
+//     44  12  38/30    flex        58    50
+//
+// WHAT SURVIVES VERBATIM, because the audit calls it a real ceremony:
+// `RankFlipText`, its deterministic decoys, the `freshStandings` replay gate
+// and the `iClimbed` rank-up haptic. What went: `header(solo:)` and its
+// swallowed alignment, `moveChip`'s tinted field, the squad `RoundedRectangle`
+// as identity (CS-11), the gold "Cut line · top 2 advance" band (nothing there
+// is won yet) and the trend column's red/green float.
+//
+// THE CLIMB'S WINDOW SURVIVES AS A BEHAVIOUR. Over ten in the field, the board
+// renders the leader, the cut neighbours and you ±1 with `ClimbMath`'s
+// ellipsis rung between, and a tertiary link opens the whole field. The climb
+// as a SECOND TABLE is gone.
 
 import SwiftUI
 import CSDesign
@@ -11,209 +28,243 @@ import CupSeasonKit
 struct StandingsTableView: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(RoomRouter.self) private var router
+  @Environment(\.roomLinks) private var links
   @Environment(\.cs) private var cs
-  @Environment(\.dynamicTypeSize) private var typeSize
   @State private var flipOnce = false
+  /// The window opens on demand; the door is a tertiary link, not a push, so
+  /// the golfer never loses the page he was reading.
+  @State private var wholeField = false
+
+  /// nil = the whole board; a set = the window's rows plus where the ellipsis
+  /// goes. **Per BOARD, not per row** — one grammar down the column.
+  private var window: (rows: [Int], hidden: [Int: Int])? {
+    let n = model.teams.count
+    guard n > 10, !wholeField else { return nil }
+    let mine = model.myTeamId.flatMap { id in model.teams.firstIndex { $0.id == id } }
+    var keep = Set([0, 1, 2])
+    if let m = mine { for i in (m - 1)...(m + 1) where i >= 0 && i < n { keep.insert(i) } }
+    keep.insert(n - 1)
+    let rows = keep.sorted()
+    var hidden: [Int: Int] = [:]
+    for (k, i) in rows.enumerated() where k > 0 {
+      let gap = i - rows[k - 1] - 1
+      if gap > 0 { hidden[i] = gap }
+    }
+    return (rows, hidden)
+  }
 
   var body: some View {
     let teams = model.teams
-    let solo = teams.first?.solo ?? false
-    VStack(alignment: .leading, spacing: 10) {
-      StoryLine(story: model.story, viewer: model.myTeamId)
-      if model.isComplete { RoomMini("See how it ended") { router.open(.ceremony) } }
+    if teams.isEmpty {
+      empty
+    } else {
+      let indices = window?.rows ?? Array(teams.indices)
+      let hidden = window?.hidden ?? [:]
       VStack(spacing: 0) {
-        // the column heads mean nothing once the columns stack (accessibility sizes) — each row says its own
-        if !typeSize.isA11y { header(solo: solo) }
-        if teams.isEmpty {
-          let e = LeagueCopy.standingsEmpty(solo: model.solo)
-          VStack(alignment: .leading, spacing: 6) {
-            Text(e.line1).font(CSFont.label).tracking(1.0).foregroundStyle(cs.mut)
-            Text(e.line2).font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText)
-          }
-          .padding(.vertical, 18).padding(.horizontal, 6).frame(maxWidth: .infinity, alignment: .leading)
+        CSStandingsBoard(count: indices.count, cut: cutLabel, cutAfter: cutAfter(in: indices)) { k, abbreviate in
+          let i = indices[k]
+          if let n = hidden[i] { ellipsis(n) }
+          row(i, teams[i], abbreviate: abbreviate)
         }
-        ForEach(Array(teams.enumerated()), id: \.element.id) { i, t in
-          row(i, t, solo: solo)
-          // #12: the cut line is a Cup-Final concept — meaningless for a points table or a field of two
-          if i == 1 && model.bylaws.finish == "cup_final" && teams.count > 2 {
-            Text("Cut line · top 2 advance").font(CSFont.label).tracking(1.2).foregroundStyle(cs.gold)
-              .frame(maxWidth: .infinity).padding(.vertical, 6)
-              .overlay(alignment: .bottom) { Rectangle().fill(cs.gold.opacity(0.4)).frame(height: 1) }
+        if window != nil {
+          HStack {
+            CSDoor(.link("Every golfer") { wholeField = true })
+            Spacer()
           }
-        }
-        .csAnimation(CSMotion.settle, value: teams.map(\.id))
-      }
-      ScenarioLineView(parts: ScenarioLine.parts(model.scenarios)).padding(.top, 4)
-    }
-    .onAppear {
-      // SF-6: rank flips only on a FRESH data load, consumed here so a re-render stays static
-      if model.freshStandings {
-        flipOnce = true
-        model.freshStandings = false
-        if let my = model.myTeamId, let i = teams.firstIndex(where: { $0.id == my }), let pr = model.priorRank[my], pr > i {
-          CSHaptic.impact(.light)   // rank moved up on open — once
+          .csGutter()
+          .padding(.top, CSTokens.Space.s3)
         }
       }
+      .onAppear(perform: armTheFlip)
     }
   }
 
-  private func header(solo: Bool) -> some View {
-    HStack(spacing: 10) {
-      Text("").frame(width: 58)
-      Text(solo ? "Golfer" : "Squad")   // LV-10.frame(maxWidth: .infinity, alignment: .leading)
-      Text("Δ Wk").frame(width: 48, alignment: .trailing)
-      Text("Pts").frame(width: 44, alignment: .trailing)
-    }
-    .font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText)
-    .padding(.horizontal, 4).padding(.vertical, 8)
-    .overlay(alignment: .bottom) { CSHairline() }
+  // MARK: the cut
+
+  /// A Cup-Final concept, meaningless for a points table or a field of two.
+  private var cutLabel: String? {
+    model.bylaws.finish == "cup_final" && model.teams.count > 2 ? SeasonBoardCopy.cut : nil
+  }
+  /// The cut draws after the SECOND ROW OF THE BOARD, wherever the window put
+  /// it — a cut drawn after a hidden row is a cut drawn nowhere.
+  private func cutAfter(in indices: [Int]) -> Int? {
+    guard cutLabel != nil, let k = indices.firstIndex(of: 1) else { return nil }
+    return k + 1
   }
 
-  private func row(_ i: Int, _ t: Team, solo: Bool) -> some View {
-    let arr = model.series[t.id] ?? []
-    let dwk: Double = arr.count > 1 ? arr[arr.count - 1] - arr[arr.count - 2] : 0
+  // MARK: a row
+
+  @ViewBuilder private func row(_ i: Int, _ t: Team, abbreviate: Bool) -> some View {
+    let solo = t.solo
+    let mine = model.myTeamId == t.id
+    let leader = i == 0
     let pr = model.priorRank[t.id]
-    // A-4 · the label carries its own clock, or there is no label. A bare "–"
-    // over a Sunday snapshot is a claim about time made without one.
-    let mv = StandingsMath.movement(delta: pr.map { $0 - i }, since: model.priorSince)
     let flips = flipOnce && pr != nil && pr != i
-    let ax = typeSize.isA11y
-    return Button {
-      if solo, let row = model.indRow(t.id) { router.open(.member(row)) } else { router.open(.squad(t)) }
+    Button {
+      if solo, let r = model.indRow(t.id) { router.open(.member(r)) } else { router.open(.squad(t)) }
     } label: {
-      // four columns at reading sizes; at the accessibility sizes the rank+name line sits over a "Δ wk · pts" line
-      A11yStack(spacing: 10, columnSpacing: 4) {
-        // rank + move beside the name; at the accessibility sizes the rank block takes its own line too
-        A11yStack(spacing: 10, columnSpacing: 2) {
-          // D258 · four points between a two-digit rank and its movement chip
-          // is a hairline at the reading sizes and nothing at all at AX3,
-          // where the row read `01HELD SINCE SUN` — two facts printed as one
-          // word. The gap scales with the type it separates.
-          HStack(alignment: .firstTextBaseline, spacing: ax ? 12 : 4) {
-            RankFlipText(text: String(format: "%02d", i + 1), flip: flips, tone: i == 0 ? cs.gold : cs.mut)
-            if let mv { moveChip(mv) }
-          }
-          .frame(minWidth: ax ? nil : 58, alignment: .leading)
-          HStack(spacing: 8) {
-            RoundedRectangle(cornerRadius: 3).fill(cs.squad(t.ci)).frame(width: 10, height: 10)
-            VStack(alignment: .leading, spacing: 1) {
-              // D258 · `Jerecho Fisch…` at the DEFAULT type size, in the one
-              // column a golfer reads to find himself. A name wraps; it is
-              // never cut, and it is never shrunk below the 11pt floor either.
-              // DEF-3 · the table is where a golfer looks to find HIMSELF, and
-              // it was the one surface still calling him by his full name while
-              // the clash card directly above said `you`. The row marks the
-              // viewer the way the climb always has — `You · <name>` — so the
-              // name is still there for anyone reading over his shoulder.
-              Text(StandingsStory.rowName(t, viewer: model.myTeamId))
-                .font(CSFont.subhead.weight(i == 0 ? .semibold : .regular)).foregroundStyle(cs.ink)
-                .lineLimit(ax ? nil : 2).fixedSize(horizontal: false, vertical: true)
-              Text((model.seedOf(t.id).map { "SEED \($0) · " } ?? "") + (solo ? "\(t.sub) ROUND\(t.sub == 1 ? "" : "S")" : "CAPT. \(t.cap.uppercased())"))
-                .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
-                .lineLimit(ax ? nil : 2).fixedSize(horizontal: false, vertical: true)
-            }
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        HStack(spacing: 10) {
-          if ax { Text("Δ WK").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
-          Group {
-            if arr.count > 1 {
-              Text((dwk > 0 ? "+" : "") + CSCopy.points(dwk)).foregroundStyle(dwk >= 12 ? cs.pos : dwk < 0 ? cs.neg : cs.mut)
-            } else {
-              Text("WK 1").foregroundStyle(cs.dimText)
-            }
-          }
-          .font(CSFont.monoSmall).csTabular().frame(minWidth: ax ? nil : 48, alignment: .trailing)
-          if ax { Text("· PTS").font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText) }
-          Text(CSCopy.points(t.pts)).font(CSFont.monoMediumBody).csTabular().foregroundStyle(i == 0 && t.pts > 0 ? cs.gold : cs.ink)
-            .frame(minWidth: ax ? nil : 44, alignment: .trailing)
-        }
-        .padding(.leading, ax ? 22 : 0)
+      CSSlat(rank: i + 1,
+             field: leader ? .earned : (mine ? .mine : .none),
+             face: face(t),
+             name: name(t, mine: mine, abbreviate: abbreviate),
+             sub: clause(i, t, mine: mine),
+             squad: squad(t),
+             movement: movement(t, at: i),
+             gap: SeasonBoardCopy.gap(leader: model.teams.first?.pts ?? t.pts, row: t.pts),
+             emphasis: leader, railHidesNumeral: flips) {
+        // the trailing column repeats down the table, so it carries no rule
+        // and no label — position is already the hierarchy (§9.2). The
+        // LEADER's total is `figure` 40 (D-5), and it is INK: the leader's
+        // gold is the rail's field, and the surface's second gold is the pot.
+        CSFigure(CSCopy.points(t.pts), size: leader ? .l : .m, label: nil)
       }
-      .padding(.horizontal, 4).padding(.vertical, 10)
-      .frame(minHeight: 52)
       .contentShape(Rectangle())
-      // IOS-003 §2.10: the leader's rank hairline is gold — the one earned rule in the table
-      .overlay(alignment: .bottom) { Rectangle().fill(i == 0 && t.pts > 0 ? cs.gold.opacity(0.55) : cs.rule).frame(height: 1) }
+      // SF-6 · the rank slots on a fresh load, over the rail's own numeral
+      .overlay(alignment: .leading) {
+        if flips {
+          RankFlipText(text: String(format: "%02d", i + 1), flip: true,
+                       tone: leader || mine ? cs.panelInk : cs.ink)
+            .frame(width: CSTokens.Space.rail)
+            .frame(maxHeight: .infinity)
+            .allowsHitTesting(false)
+        }
+      }
     }
     .buttonStyle(.plain)
-    // "1st, Galen, 27 points, up 1 this week" — the row in one breath
-    .accessibilityLabel("\(CSCopy.ordinal(i + 1)), \(StandingsStory.rowName(t, viewer: model.myTeamId)), \(CSCopy.points(t.pts)) points" + (mv.map { ", \($0.long)" } ?? ""))
     .accessibilityHint(solo ? "Opens their rounds" : "Opens the squad receipt")
   }
 
-  /// `.rkmove` — D76 heat, kept: climbing warm, climbing 2+ hot, falling cools
-  /// to slate, holding is quiet. The words are `StandingsMath.movement`'s, so
-  /// the phone and the web say the same thing about the same Sunday.
-  private func moveChip(_ mv: Movement) -> some View {
-    let tone: Color = switch mv.tone {
-    case .held: cs.mut
-    case .up: cs.brand
-    case .up2: cs.brand
-    case .down: cs.cool
+  /// The viewer's own row reads **`YOU` alone**, product-wide: at the 375pt
+  /// measure the fixed columns leave 141pt and `YOU · SAM RIDLEY` measures 143.
+  private func name(_ t: Team, mine: Bool, abbreviate: Bool) -> String {
+    // **`YOU` is a person's row, never a squad's.** The viewer's own squad
+    // keeps its name and says "yours" with the rail's field — a table whose
+    // top row reads `YOU / 3 golfers` has stopped naming the side that is
+    // winning.
+    if mine, t.solo { return "You" }
+    guard abbreviate, t.solo else { return t.name }
+    let parts = t.name.split(separator: " ")
+    guard parts.count > 1, let first = parts.first?.first else { return t.name }
+    return "\(first). " + parts.dropFirst().joined(separator: " ")
+  }
+
+  private func face(_ t: Team) -> CSFace.Model? {
+    guard t.solo, let m = model.member(t.id) else { return nil }
+    return CSFace.Model(id: m.profile_id, marker: m.mk,
+                        photoURL: model.avatarURL[m.profile_id],
+                        initials: "", isViewer: model.viewer?.id == m.profile_id)
+  }
+
+  /// **The swatch is CONDITIONED, not deleted** (CS-11 recorded a squad swatch
+  /// in a two-golfer SOLO season). In a squads season an individual row leads
+  /// its clause with a 4 × 14 bar and the squad's NAME — colour never carries
+  /// the squad alone, because the four marks are 1.58:1 apart at best.
+  private func squad(_ t: Team) -> (Color, String)? {
+    // a SQUAD's own row carries the bar and no name — the name is the row's.
+    if !t.solo { return (cs.squad(t.ci), "") }
+    guard !model.bylaws.solo, let r = model.indRow(t.id), !r.sq.isEmpty else { return nil }
+    return (cs.squad(r.ci), squadName(t.id) ?? r.sq)
+  }
+
+  /// **The squad's NAME, not `IndRow.sq`.** `StandingsMath.sqOf` returns the
+  /// first four letters upper — a web-era abbreviation for a 60pt column — and
+  /// §1.4a is explicit that colour never carries the squad alone, so the swatch
+  /// is followed by a NAME. `MUDS` is not a name. The producer is untouched
+  /// (a test pins it); the row resolves the full one from the roster it holds.
+  private func squadName(_ memberId: UUID) -> String? {
+    model.squads.first { $0.seats(memberId) }?.name
+  }
+
+  private func clause(_ i: Int, _ t: Team, mine: Bool) -> String {
+    let story = model.seasonStory
+    let row = story?.table.first { $0.id == t.id.uuidString.lowercased() || $0.id == t.id.uuidString }
+    let run = story?.facts?.leader?.run_weeks
+    let sinceWeek = run.flatMap { r -> Int? in
+      guard let w = story?.facts?.week_no, r > 1 else { return nil }
+      return max(1, w - r + 1)
     }
-    // D258 · `CSFont.label` IS the 11pt floor (L-29), so a 0.8 scale factor
-    // rendered "HELD SINCE SUN" at 8.8pt on any phone narrow enough to ask —
-    // the exact sin `CSFont.label`'s own comment names the web for. It wraps
-    // instead: two lines at 11pt beat one line at 8.8.
-    return Text(mv.text).font(CSFont.label).tracking(0.6).csTabular().foregroundStyle(tone)
-      .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-      .accessibilityLabel(mv.long)
+    let arr = model.series[t.id] ?? []
+    let cooled = arr.count > 1 && arr[arr.count - 1] < arr[arr.count - 2]
+    if !t.solo { return squadClause(t) }
+    return SeasonBoardCopy.clause(isLeader: i == 0, runSince: sinceWeek, runWeeks: run,
+                                  isMe: mine, counted: row?.counted, cap: model.bylaws.cap,
+                                  rounds: t.solo ? t.sub : 0, solo: t.solo,
+                                  left: row?.left == true, cooled: cooled)
+  }
+
+  /// `3 golfers · 3 counting` — a squad's row states its roster, because a
+  /// squad has no rounds of its own and its points are the seats' sum.
+  private func squadClause(_ t: Team) -> String {
+    let seats = model.squads.first { $0.id == t.id }?.squad_members.count ?? 0
+    guard seats > 0 else { return "" }
+    let seatIds = Set(model.squads.first { $0.id == t.id }?.squad_members.map(\.member_id) ?? [])
+    let counting = model.indRows.filter { seatIds.contains($0.mid) && $0.r > 0 }.count
+    return "\(seats) golfer\(seats == 1 ? "" : "s")" + (counting > 0 ? " · \(counting) counting" : "")
+  }
+
+  /// `CSMovement` on the page's own ground — no chip, no fill, no tint.
+  /// `▼` means *you fell* and nothing else.
+  private func movement(_ t: Team, at i: Int) -> CSMovement.State? {
+    guard let pr = model.priorRank[t.id] else { return nil }
+    let d = pr - i
+    if d > 0 { return .up(d) }
+    if d < 0 { return .down(-d) }
+    return .held
+  }
+
+  private func ellipsis(_ hidden: Int) -> some View {
+    Text("\(hidden) more between").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.leading, CSTokens.Space.rail + CSSlatMetrics.railGap)
+      .padding(.vertical, min(16, 3 + Double(hidden) * 1.5))   // distance looks like distance
+      .accessibilityLabel("\(hidden) more between")
+  }
+
+  // MARK: the empty table
+
+  /// §3 · **a fact about the world, never the golfer's omission**, and the door
+  /// is required rather than optional.
+  private var empty: some View {
+    CSEmpty(glyph: .emptyRail,
+            eyebrow: "The first card",
+            headline: "The season starts with the first posted round.",
+            fact: LeagueCopy.standingsEmpty(solo: model.solo).line2.capitalizedFirst,
+            number: nil,
+            door: links.openRecord.map { go in .primary("Add my round", go) } ?? .elsewhere("The season fills as rounds land."))
+      .csGutter()
+  }
+
+  // MARK: the flip's replay gate
+
+  /// SF-6 · rank flips on a FRESH data load only, consumed here so a re-render
+  /// stays static. R-11 · the rank-up haptic, once, and only if YOUR row moved.
+  private func armTheFlip() {
+    guard model.freshStandings else { return }
+    flipOnce = true
+    model.freshStandings = false
+    if let my = model.myTeamId, let i = model.teams.firstIndex(where: { $0.id == my }),
+       let pr = model.priorRank[my], pr > i {
+      CSHaptic.impact(.light)
+    }
   }
 }
 
-/// `#standingsStory` — the honor-voice sentence with the squad names in their colours.
-struct StoryLine: View {
-  @Environment(\.cs) private var cs
-  let story: StandingsStory
-  /// DEF-3 · the viewer's own rung, so the sentence says `You` where the clash
-  /// card above it already does. nil outside a room the viewer sits in.
-  var viewer: UUID? = nil
-  var body: some View {
-    if case .none = story { EmptyView() } else {
-      text.font(CSFont.sentence).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
-        .accessibilityLabel(story.text(viewer: viewer))
-    }
-  }
-  /// F-9 · a SOLO row's name is a person, and a story line is not live. The
-  /// squad palette dresses a squad; a golfer's name in a sentence takes the
-  /// sentence's ink and only the weight changes (L-25: ember means live).
-  private func name(_ t: Team) -> Text {
-    Text(StandingsStory.displayName(t, viewer: viewer))
-      .font(CSFont.sentenceBold).foregroundStyle(t.solo ? cs.ink : cs.squad(t.ci))
-  }
-  /// The copula the second person needs and the third person elides.
-  private func be(_ t: Team) -> String { StandingsStory.isYou(t, viewer) ? "are " : "" }
-  private var text: Text {
-    switch story {
-    case .none: Text("")
-    case .outFront(let a): name(a) + Text(" \(be(a))out front — waiting on a challenger.")
-    case .deadHeat(let a, let b, let pts): Text("Dead heat — ") + name(a) + Text(" and ") + name(b) + Text(" level at \(CSCopy.points(pts)).")
-    case .lead(let a, let b, let m, let back):
-      name(a) + Text(" \(StandingsStory.leads(a, viewer: viewer)) by ") + Text(CSCopy.points(m)).font(CSFont.sentenceBold)
-        + Text(". ") + name(b) + Text(" \(be(b))\(back).")
-    }
-  }
+private extension String {
+  var capitalizedFirst: String { isEmpty ? self : prefix(1).uppercased() + dropFirst().lowercased() }
 }
 
-/// `#scenarioLine` (D24) — clinch / eliminated, never invented.
+/// `#scenarioLine` (D24) — clinch / eliminated, never invented. **One `agateS`
+/// line**, not a 13–14pt mono console message (CS-20), and the clinch keeps no
+/// metal of its own: the surface's gold is the leader's rail and the pot.
 struct ScenarioLineView: View {
   @Environment(\.cs) private var cs
   let parts: [ScenarioPart]
   var body: some View {
     if parts.isEmpty { EmptyView() } else {
-      parts.reduce(Text("")) { acc, p in
-        switch p {
-        case .clinch(let s): acc + Text(s).foregroundStyle(cs.gold).font(CSFont.monoMediumBody)
-        case .bold(let s): acc + Text(s).foregroundStyle(cs.ink).font(CSFont.monoMediumBody)
-        case .text(let s): acc + Text(s).foregroundStyle(cs.mut)
-        case .out(let s): acc + Text(s).foregroundStyle(cs.cool)
-        }
-      }
-      .font(CSFont.monoSmall)
-      .fixedSize(horizontal: false, vertical: true)
-      .accessibilityLabel(parts.map(\.text).joined())
+      Text(parts.map(\.text).joined())
+        .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityLabel(parts.map(\.text).joined())
     }
   }
 }
@@ -231,7 +282,7 @@ struct RankFlipText: View {
         FlipChar(final: ch, decoys: Self.decoys(ch, i), delay: Double(i) * 0.08, flip: flip, tone: tone)
       }
     }
-    .font(CSFont.monoMediumBody)
+    .csType(.figureM)
     .accessibilityLabel(text)
   }
 
@@ -280,5 +331,67 @@ private struct FlipChar: View {
       }
       shown = final; angle = 0
     }
+  }
+}
+
+
+/// **EVERY GOLFER** — the individual table beneath the squad table in a squads
+/// season (§1.4a). One component, one geometry: the same slat, the same rail,
+/// the same merged change cell.
+///
+/// **DEGRADE, stated.** `indRows` carries no prior rank — `standings_snapshots`
+/// snapshots SQUADS, not golfers — so an individual row in a squads season has
+/// a gap and no movement mark. The alternative was a triangle derived from
+/// nothing, which is the invention D-7 forbids.
+struct GolferTableView: View {
+  @Environment(LeagueRoomModel.self) private var model
+  @Environment(RoomRouter.self) private var router
+  @Environment(\.cs) private var cs
+
+  var body: some View {
+    let rows = model.indRows
+    CSStandingsBoard(count: rows.count) { i, abbreviate in
+      let p = rows[i]
+      Button { router.open(.member(p)) } label: {
+        CSSlat(rank: i + 1,
+               field: i == 0 ? .earned : (p.me ? .mine : .none),
+               face: face(p),
+               name: p.me ? "You" : abbreviated(p.n, abbreviate),
+               sub: clause(p),
+               squad: p.sq.isEmpty ? nil : (cs.squad(p.ci), squadName(p.mid) ?? p.sq),
+               movement: nil,
+               gap: SeasonBoardCopy.gap(leader: rows.first?.pts ?? p.pts, row: p.pts),
+               emphasis: i == 0) {
+          CSFigure(CSCopy.points(p.pts), size: i == 0 ? .l : .m, label: nil)
+        }
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityHint("Opens their rounds")
+    }
+  }
+
+  private func squadName(_ memberId: UUID) -> String? {
+    model.squads.first { $0.seats(memberId) }?.name
+  }
+
+  private func face(_ p: IndRow) -> CSFace.Model? {
+    guard let m = model.member(p.mid) else { return nil }
+    return CSFace.Model(id: m.profile_id, marker: m.mk, photoURL: model.avatarURL[m.profile_id],
+                        isViewer: model.viewer?.id == m.profile_id)
+  }
+
+  private func clause(_ p: IndRow) -> String {
+    SeasonBoardCopy.clause(isLeader: false, runSince: nil, runWeeks: nil,
+                           isMe: p.me, counted: model.myMonth.map { Int($0.counting) },
+                           cap: p.me ? model.bylaws.cap : nil,
+                           rounds: p.r, solo: true, left: false)
+  }
+
+  private func abbreviated(_ name: String, _ on: Bool) -> String {
+    guard on else { return name }
+    let parts = name.split(separator: " ")
+    guard parts.count > 1, let f = parts.first?.first else { return name }
+    return "\(f). " + parts.dropFirst().joined(separator: " ")
   }
 }

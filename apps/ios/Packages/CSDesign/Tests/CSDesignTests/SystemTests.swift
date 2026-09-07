@@ -307,3 +307,44 @@ import SwiftUI
     #expect(b.breaches.isEmpty, "ten agate lines, one display, one gold object and two ember marks are the budgets, not the breaches")
   }
 }
+
+// MARK: - The season board (Wave 5, `surfaces/season.md` §1.2, §1.4)
+
+/// **`@MainActor`, and it is load-bearing.** `CSSeasonCalendar` is a `View`, so
+/// its nested `Month` and its static `spread` inherit main-actor isolation, and
+/// reaching them from a non-isolated test hits `_swift_task_checkIsolatedSwift`
+/// and SIGTRAPs — which in the log reads as the whole bundle crashing with
+/// "signal trap" and names two unrelated suites as the failures. Wave 3 met
+/// this on `CSRecordLeaf` and left the note; this is the same trap.
+@MainActor
+@Suite struct SeasonBoardComponentTests {
+  /// The legacy call spreads bare month names as evenly as it can, remainder
+  /// to the earliest — the same shape `PotMath.splitCents` gives money — and
+  /// the weeks always sum to the season.
+  @Test func theCalendarSpreadsWeeksAndNeverLosesOne() {
+    let m = CSSeasonCalendar.spread(["Aug", "Sep", "Oct"], over: 13)
+    #expect(m.map(\.weeks) == [5, 4, 4])
+    #expect(m.reduce(0) { $0 + $1.weeks } == 13)
+    #expect(CSSeasonCalendar.spread([], over: 13).isEmpty)
+  }
+
+  /// The ticks are laid out from each group's own first week, so the live cell
+  /// lands on the week the season says it is — the bug this replaces drew
+  /// every month at an equal share of the row.
+  @Test func eachMonthGroupStartsWhereTheLastOneEnded() {
+    let c = CSSeasonCalendar(weeks: 13, played: 4, now: 4,
+                             months: [.init(label: "Aug", weeks: 4),
+                                      .init(label: "Sep", weeks: 5, note: "25 days", live: true),
+                                      .init(label: "Oct", weeks: 4)])
+    #expect(c.starts == [0, 4, 9])
+  }
+
+  /// A complete season passes `now: -1`: **nothing is live, so nothing is
+  /// ember**, and the calendar says so rather than pointing at a week.
+  @Test func aCompleteSeasonHasNoLiveCell() {
+    let c = CSSeasonCalendar(weeks: 13, played: 13, now: -1, months: [.init(label: "Aug", weeks: 13)])
+    #expect(c.spoken == "13 weeks, all played")
+    let live = CSSeasonCalendar(weeks: 13, played: 4, now: 4, months: [.init(label: "Aug", weeks: 13)])
+    #expect(live.spoken == "Week 5 of 13, the live week")
+  }
+}

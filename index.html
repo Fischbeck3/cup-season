@@ -616,8 +616,6 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .scenLine b{color:var(--ink); font-weight:600;}
 /* A-4: the label carries its own clock, so it is a line under the rank
    rather than a glyph beside it - the rank column keeps its width. */
-.rkmove{display:block; font-family:var(--mono); font-size:11px; margin:2px 0 0; letter-spacing:.04em; white-space:nowrap;}   /* LV-17 · 11px floor */
-.rkmove.up{color:var(--brand);} .rkmove.up2{color:var(--brand);} .rkmove.dn{color:var(--cool);} .rkmove.fl{color:var(--dim);}  /* D76 heat */
 .rivrec{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.02em; flex:none;}
 .rivrec.up{color:var(--pos);} .rivrec.dn{color:var(--dim);} .rivrec.ev{color:var(--mut);}
 #youRivals .prow.tap{cursor:pointer;}
@@ -639,22 +637,48 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 }
 .tbl th.num, .tbl td.num{text-align:right;}
 .tbl td{padding:11px 8px; border-top:1px solid var(--rule); vertical-align:middle;}
-.tbl .rk{font-family:var(--mono); font-size:12px; color:var(--dim); width:26px;}
-.tbl tr.lead .rk{color:var(--gold);}
-/* Batch B: the leader carries a hairline champagne underline — gold earned */
-.tbl tr.lead td{box-shadow:inset 0 -2px 0 -1px rgba(216,178,90,.55);}
-.tbl tr.lead .pts{color:var(--gold);}
-.tbl .sw{width:9px; height:20px; border-radius:3px; display:inline-block;}
-.tbl .tn{font-size:13.5px; font-weight:600; line-height:1.2;}
-.tbl .tc{font-family:var(--mono); font-size:11.5px; color:var(--dim); margin-top:2px;}
-.tbl .spark{display:block;}
-.tbl .pts{font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums;}
-.tbl .dw{font-family:var(--mono); font-size:12.5px; font-variant-numeric:tabular-nums;}
+/* THE RANK RAIL (Wave 5, UI_SYSTEM 9.1). 44px, radius 0, a two-digit tabular
+   numeral with a leading zero, and a FIELD: `gold` when the position was
+   earned, `panel` when the row is yours, unpainted otherwise. Numerals take
+   `panelInk` on both painted states (9.43:1 dark / 5.64:1 light). It is half
+   the product's signature and the desk draws the same object as the phone. */
+.tbl .rk{font-family:var(--board); font-size:22px; font-weight:700; line-height:1;
+  font-variant-numeric:tabular-nums; color:var(--ink); width:44px; text-align:center;
+  padding:0; vertical-align:middle;}
+.tbl tr.lead .rk{background:var(--gold); color:var(--panelInk);}
+.tbl tr.mine .rk{background:var(--panel); color:var(--panelInk);}
+.tbl .sw{width:4px; height:14px; border-radius:0; display:inline-block; vertical-align:-2px;}
+.tbl .sw.side{width:6px; height:30px;}
+.tbl .tn{font-family:var(--board); font-size:15px; font-weight:600; line-height:1.16;
+  letter-spacing:.035em; text-transform:uppercase;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbl .tc{font-family:var(--board); font-size:11px; letter-spacing:.08em; color:var(--mut); margin-top:3px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.tbl .pts{font-family:var(--board); font-size:22px; font-weight:700; font-variant-numeric:tabular-nums;
+  line-height:.96;}
+.tbl tr.lead .pts{font-size:30px;}
+/* THE MERGED CHANGE CELL. The gap and the movement are both change metrics and
+   both half-empty at any field size; separately they ate the ~130px the name
+   column needs, and one reviewer called the unlabelled `+4 / +9 / +12` column
+   "the single most confusing element in the set". One cell, one head. */
+.tbl .chg{font-family:var(--mono); font-size:13px; font-variant-numeric:tabular-nums;
+  white-space:nowrap; color:var(--ink);}
+.tbl .chg .mv{font-family:var(--board); font-weight:700; font-size:15px; margin-left:5px;}
+.tbl .chg .tri{display:inline-block; width:0; height:0; margin-right:3px;
+  border-left:4.5px solid transparent; border-right:4.5px solid transparent;}
+.tbl .chg .tri.up{border-bottom:7px solid var(--pos);}
+.tbl .chg .tri.dn{border-top:7px solid var(--cool);}
+.tbl .chg .held{display:inline-block; width:9px; height:2px; background:var(--mut); vertical-align:3px;}
+/* THE CUT, and it is NEVER GOLD: nothing here is won yet. The shipped band
+   spent the surface's one earned metal on a thing nobody has earned. */
 tr.cutrow td{
-  padding:7px 8px; border-top:1px dashed var(--gold); border-bottom:1px dashed var(--gold);
-  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--gold); text-align:center; background:rgba(233,190,98,.04);
+  padding:6px 8px 4px 44px; border:0;
+  font-family:var(--board); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink); text-align:left; background:none;
 }
+tr.cutrow td span{display:inline-block; vertical-align:middle;}
+tr.cutrow td i{display:inline-block; vertical-align:middle; height:2px; background:var(--ink);
+  width:calc(100% - 16px); margin-left:12px;}
 /* F14 2.3: standings go full-bleed — the table owns the column's horizontal
    edges instead of sitting in a card gutter. Row separators/padding are
    untouched (.tbl td keeps its own inset); only the outer frame drops. A
@@ -2640,16 +2664,21 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .heatwarm{color:var(--brand);} .heathot{color:var(--brand);} .heatcool{color:var(--cool);}
 .streaktag{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; display:inline-block;
   border:1px solid currentColor; border-radius:4px; padding:1px 5px;}
-.pressmeter{margin:10px 2px 0;}
-.pressmeter .track{height:4px; border-radius:2px; background:color-mix(in srgb, var(--ink) 8%, transparent);}
-.pressmeter .fill{position:relative; height:100%; border-radius:2px;
-  background:linear-gradient(90deg, var(--brand), var(--brand) 70%, var(--brand));}
-.pressmeter .fill::after{  /* the tip — this screen's one pulse */
-  content:""; position:absolute; right:-2px; top:50%; width:6px; height:6px; margin-top:-3px;
-  border-radius:50%; background:var(--brand); box-shadow:0 0 6px 1px rgba(255,59,26,.4);
-  animation:heatPulse 2s ease-in-out infinite;}
-.pressmeter .legend{font-family:var(--mono); font-size:10px; letter-spacing:.06em;
-  text-align:right; margin-top:4px; color:var(--mut);}
+/* THE MONTH CLOCK (Wave 5, season.md 1.2) — it replaces the press meter, a
+   6px three-stop gradient capsule with no head that the audit read as a
+   warning bar and the brief names as a generic sports gradient. This is
+   countable, it is unmistakably a scorecard rather than a health bar, and it
+   answers three questions with one object: how far into the season, which
+   month am I in, and how long have I got. */
+.mclock{margin:12px 0 0; display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap;}
+.mclock .mg{display:flex; flex-direction:column; gap:8px;}
+.mclock .ticks{display:flex; align-items:flex-end; gap:4px; height:12px;}
+.mclock .t{width:20px; height:8px; background:var(--rule);}
+.mclock .t.played{background:var(--mut);}
+.mclock .t.now{background:var(--brand); height:12px;}   /* the one live cell */
+.mclock .ml{font-family:var(--board); font-size:11px; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--mut); white-space:nowrap;}
+.mclock .ml.live{color:var(--brand);}
 .carryhot{  /* skins, 2+ riding — the play screen's one pulse */
   background:linear-gradient(90deg, var(--brand), var(--brand)); color:#1C1208;
   border-radius:6px; padding:2px 8px; animation:heatPulse 2s ease-in-out infinite;}
@@ -2657,7 +2686,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
   0%,100%{opacity:1; box-shadow:0 0 6px 1px rgba(255,59,26,.40);}
   50%{opacity:.75; box-shadow:0 0 12px 3px rgba(255,59,26,.22);}
 }
-@media(prefers-reduced-motion:reduce){ .pressmeter .fill::after, .carryhot{animation:none;} }
+@media(prefers-reduced-motion:reduce){ .carryhot{animation:none;} }
 
 /* D76/SF-6 — split-flap: ONE-SHOT departure-board flip. 3 decoys then the real
    glyph; steps(3) snaps card-to-card. Decoys live in data-d (::before), never
@@ -4416,11 +4445,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="stat"><div class="k">Counting rounds</div><div class="v" id="statCount">3 <small>/ 4</small></div><div class="d fl" id="statCountD">This month · best 4 count</div></div>
         </div>
 
-        <!-- D76: month pressure — the month burning down under your number -->
-        <div class="pressmeter" id="pressMeter" style="display:none">
-          <div class="track"><div class="fill" id="pmFill" style="width:0%"></div></div>
-          <div class="legend" id="pmLegend"></div>
-        </div>
+        <!-- THE MONTH CLOCK (Wave 5) — the season's weeks, grouped by the
+             calendar month that counts them, with one live cell. -->
+        <div class="mclock" id="monthClock" style="display:none"></div>
 
         <div class="nextcard">
           <div class="nx">
@@ -4509,7 +4536,6 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <div class="p"><b id="pay2">$300</b><span>Runner-up</span></div>
               <div class="p"><b id="pay3">$180</b><span>Points king</span></div>
             </div>
-            <p class="fine" data-ledger></p>
           </div>
           <div>
             <!-- D129: how to pay comes BEFORE the ledger of who has -->
@@ -4521,6 +4547,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         </div>
         <!-- D64: the forfeit ledger — stakes past money, pot-grade rigor.
              NEVER renders as dollars; prose voice; archive keeps settled ones. -->
+        <!-- 16A.1 · THE LEDGER LINE, ONCE PER CLIENT, AT THE FOOT OF THE
+             MONEY SURFACE, UNDER A HAIRLINE, VERBATIM FROM ONE CONSTANT. It
+             appeared on eight of thirty-four renders, twice on one screen
+             250pt apart; a reviewer called it "a legal line being used as a
+             layout element". `data-ledger` is painted from CS_LEDGER and is
+             never retyped. -->
+        <hr style="border:0; border-top:1px solid var(--rule); margin:18px 0 8px">
+        <p class="fine" data-ledger style="padding:0"></p>
         <div class="league-only" id="stakesWrap" style="margin-top:18px">
           <div class="eyebrow" style="display:flex; align-items:center">Bets for pride · on the record
             <button class="mini" id="stakeAdd" style="margin-left:auto">Post a forfeit</button></div>
@@ -6365,6 +6399,49 @@ function renderClash(){
       openRoundReceipt({ id:b.round_id, round_id:b.round_id, played_on:b.played_on, points:Number(b.points), pvi:Number(b.pvi) });
   }));
 }
+/* THE MONTH CLOCK (Wave 5, season.md 1.2). One 20x8 bar per season week,
+   grouped by the calendar month that HOLDS MOST OF THE WEEK — its median day,
+   the fourth of the seven. Grouping by the week's first day put the live tick
+   at the end of August while the live month label read September, so the ember
+   bar and the ember month name pointed at two different places on the same
+   graphic. Played `mut`, now `brand` and 12px tall, ahead `rule`.
+
+   `SeasonCalendarMath.months` is the phone's twin; the two clients group the
+   same weeks into the same months by the same rule. */
+function renderMonthClock(hide){
+  const el = document.getElementById('monthClock');
+  if(!el) return;
+  const start = state.seasonStart || (window.CS && window.CS.season && window.CS.season.starts_on);
+  const weeks = Number(totalWeeks()) || 0;
+  if(hide || !start || !weeks){ el.style.display='none'; return; }
+  el.style.display='';
+  const t0=new Date(); t0.setHours(0,0,0,0);
+  const liveKey = t0.getFullYear()+'-'+String(t0.getMonth()+1).padStart(2,'0');
+  const left = Math.round((new Date(t0.getFullYear(), t0.getMonth()+1, 1) - t0)/864e5);
+  const MOS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const nowWk = Math.max(0, (Number(currentWeek()) || 1) - 1);
+  const played = nowWk;
+  const order=[], byKey={};
+  for(let w=0; w<weeks; w++){
+    const d = localDate(start); d.setDate(d.getDate() + w*7 + 3);   /* the median day */
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    if(!byKey[key]){ order.push(key); byKey[key]={ label: MOS[d.getMonth()], first: w, n: 0 }; }
+    byKey[key].n++;
+  }
+  el.innerHTML = order.map(key=>{
+    const g = byKey[key], live = key===liveKey;
+    let ticks='';
+    for(let k=0; k<g.n; k++){
+      const i = g.first + k;
+      ticks += `<i class="t ${i===nowWk?'now':(i<played?'played':'')}"></i>`;
+    }
+    const note = live && left>0 ? ' \u00b7 '+left+' day'+(left===1?'':'s') : '';
+    return `<div class="mg"><div class="ticks">${ticks}</div><div class="ml${live?' live':''}">${g.label}${note}</div></div>`;
+  }).join('');
+  el.setAttribute('aria-label', 'Week '+(nowWk+1)+' of '+weeks+', the live week');
+}
+window.renderMonthClock = renderMonthClock;
+
 function renderStandings(){
   renderClash();               /* D108: the clash chip rides the standings column */
   const el=$('#standings');
@@ -6423,33 +6500,56 @@ function renderStandings(){
     }
     story.innerHTML=txt;
   }
-  let html=`<tr><th></th><th>${solo?'Golfer':'Squad'}</th><th>Trend</th><th class="num">Δ Wk</th><th class="num">Pts</th></tr>`;
+  /* THE HEADER SHIPS AT EVERY FIELD SIZE (blind review 5): `POS · GOLFER ·
+     GAP · PTS`, exactly as it heads the leaderboard, so the two surfaces are
+     one component with one geometry. */
+  let html=`<tr><th class="rk">Pos</th><th>Golfer</th><th class="num">Gap</th><th class="num">Pts</th></tr>`;
+  const leadPts = teams[0] ? teams[0].pts : 0;
   teams.forEach((t,i)=>{
     const ti=teams.indexOf(t);
     const arr=series[ti]||[];
     const dwk=arr.length>1 ? arr[arr.length-1]-arr[arr.length-2] : 0;
     const pr=priorRank[t.id];
-    /* A-4 - the honest movement label. D76's heat is kept (climbing runs warm,
-       climbing 2+ hot, falling cools) and the LIE is removed: the clause now
-       names the day it is measured from, and with no snapshot date there is no
-       label at all rather than a bare arrow. */
+    /* A-4 - the honest movement label. The CLAUSE is kept, as the cell's own
+       title: the movement is now a DRAWN MARK on the page's own ground —
+       triangle up in `pos`, triangle down in `cool`, a 9x2 bar for held — so
+       `.rkmove`'s tinted text chip is gone and the mark carries the fact.
+       Colour is never the only channel: the shape says which way. */
     const mvL=csMovement(pr!=null ? pr-i : null, priorSince);
-    const mv = mvL ? `<span class="rkmove ${mvL.tone}" title="${esc(mvL.long)}">${mvL.text}</span>` : '';
     /* SF-6: the climb — a rank that moved since the last snapshot flips in */
     const rk0=String(i+1).padStart(2,'0');
     const rkH=(sfFresh && pr!=null && pr!==i) ? sfWrap(rk0) : rk0;
-    html+=`<tr class="${i===0?'lead':''} tap" data-squad="${esc(t.name)}">
-      <td class="rk mono">${rkH}${mv}</td>
-      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[t.ci]}"></span><div><div class="tn">${isYou(t) ? 'You \u00b7 ' + esc(t.name) : esc(t.name)}</div><div class="tc">${seedOf(t.id)?'SEED '+seedOf(t.id)+' \u00b7 ':''}${solo ? (t.sub||0)+' ROUND'+(t.sub===1?'':'S') : 'CAPT. '+esc(t.cap).toUpperCase()}</div></div></div></td>
-      <td>${arr.length>1?sparkline(arr,t.ci):'<span class="fine" style="padding:0;color:var(--dim)">WK 1</span>'}</td>
-      <td class="num"><span class="dw" style="color:${dwk>=12?'var(--pos)':dwk<0?'var(--neg)':'var(--mut)'}">${dwk>0?'+':''}${dwk}</span></td>
+    /* THE MERGED CHANGE CELL, and the LEADER'S CELL IS EMPTY — not `0`, and
+       not an em dash either: a dash reads as a value, which is the thing
+       "empty" was protecting against. A held row prints ONE mark; `— —`
+       reads as a rendering error. */
+    const gap = (leadPts - t.pts) > 0 ? '+' + (leadPts - t.pts) : '';
+    const d = pr!=null ? pr-i : null;
+    const mvH = d==null ? ''
+      : d>0 ? `<span class="mv"><i class="tri up"></i>${d}</span>`
+      : d<0 ? `<span class="mv"><i class="tri dn"></i>${-d}</span>`
+      : '<span class="held"></span>';
+    /* THE SWATCH IS CONDITIONED, NOT DELETED: a SQUAD's own row takes the
+       6x30 bar; a golfer's row in a squads season takes the 4x14 swatch and
+       the squad's NAME. In a solo season neither renders — the defect CS-11
+       recorded was a swatch where there are no squads. */
+    const bar = solo
+      ? (state.structure==='solo' ? '' : `<span class="sw" style="background:${SQHEX[t.ci]}"></span> `)
+      : `<span class="sw side" style="background:${SQHEX[t.ci]}"></span>`;
+    const clause = solo
+      ? ((t.sub||0)===0 ? 'No rounds yet' : (t.sub||0)+' round'+(t.sub===1?'':'s'))
+      : 'Capt. '+esc(t.cap);
+    html+=`<tr class="${i===0?'lead':''}${isYou(t)?' mine':''} tap" data-squad="${esc(t.name)}">
+      <td class="rk">${rkH}</td>
+      <td><div style="display:flex;align-items:center;gap:10px">${solo?'':bar}<div style="min-width:0"><div class="tn">${isYou(t) ? 'You' : esc(t.name)}</div><div class="tc">${solo?bar:''}${seedOf(t.id)?'Seed '+seedOf(t.id)+' \u00b7 ':''}${clause}</div></div></div></td>
+      <td class="num chg"${mvL?` title="${esc(mvL.long)}"`:''}>${gap}${mvH}</td>
       <td class="num pts">${t.pts}</td>
     </tr>`;
-    /* #12 (audit): the cut line is a Cup-Final concept — "top 2 advance" is
-       meaningless for a points-table league (one race, no advancing) or a
-       field of 2 or fewer. Guard it. */
+    /* The cut is a Cup-Final concept — meaningless for a points table or a
+       field of two. `top two PLAY the Cup Final`, never `advance`, and never
+       gold. */
     if(i===1 && (state.finish||'cup_final')==='cup_final' && teams.length>2)
-      html+=`<tr class="cutrow"><td colspan="5">Cut line · top 2 advance</td></tr>`;
+      html+=`<tr class="cutrow"><td colspan="4"><span>Cut \u00b7 top two play the Cup Final</span><i></i></td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
   sfGo(el);   /* SF-6: arm any freshly wrapped ranks — no-op on a static render */
@@ -7655,7 +7755,7 @@ async function openBuyInTerms(){
     <input class="f" id="biNote" maxlength="140" placeholder="Venmo @casey" value="${esc(cur)}">
     <label class="f" for="biDue" style="margin-top:10px">In by (optional)</label>
     <input class="f" id="biDue" type="date" value="${esc(due)}">
-    <p class="fine" style="padding:8px 0 0">Every member sees this on the Pot tab. ${CS_LEDGER}</p>
+    <p class="fine" style="padding:8px 0 0">Every member sees this on the Pot tab.</p>
     <button class="btn" id="biSave" style="margin-top:10px">Save</button>`);
   document.getElementById('biSave')?.addEventListener('click', async () => {
     const note = document.getElementById('biNote').value.trim();
@@ -13098,20 +13198,7 @@ function renderStats(){
   /* D76: month pressure — the meter burns down under your number; its tip is
      this screen's one pulse. Device-local month math, same construction as the
      deadline strip above — never new Date('YYYY-MM-DD') (UTC-midnight landmine). */
-  const pm=$('#pressMeter');
-  if(pm){
-    const hideMeter = done || atStarter() || isCupFinal();
-    pm.style.display = hideMeter ? 'none' : '';
-    if(!hideMeter){
-      const t0=new Date(); t0.setHours(0,0,0,0);
-      const dim=new Date(t0.getFullYear(), t0.getMonth()+1, 0).getDate();
-      const left=Math.round((new Date(t0.getFullYear(), t0.getMonth()+1, 1)-t0)/864e5);
-      const fl=$('#pmFill'); if(fl) fl.style.width=Math.min(100, Math.max(0, (dim-left)/dim*100)).toFixed(1)+'%';
-      const lg=$('#pmLegend');
-      if(lg){ lg.textContent=`${left} day${left===1?'':'s'} left in ${curMonth()}`;
-        lg.style.color = left<=7 ? 'var(--brand)' : 'var(--mut)'; }
-    }
-  }
+  renderMonthClock(done || atStarter());
   const nk=$('#nextK');
   if(atStarter()){
     if(nk) nk.textContent='Next up · kickoff';
@@ -16260,7 +16347,7 @@ function renderCareerRecord(){
     <div class="recmoney">
       <div><b>${csMoney(cents)}</b><small>Settled across ${done} season${done===1?'':'s'}</small></div>
     </div>
-    <p class="fine" style="margin:8px 0 0">What your friends settled with you. ${CS_LEDGER}</p>` : '';
+    <p class="fine" style="margin:8px 0 0">What your friends settled with you.</p>` : '';
   el.style.display = (titles || money) ? '' : 'none';
   el.innerHTML = titles + money;
 }
@@ -16854,7 +16941,6 @@ function openSeasonCeremony(force){
       ${st.collectedCents<st.potCents ? `<div class="cerpay"><div class="who">Still owed to the pot
         <span class="why">${esc(st.owing.join(', '))}</span></div>
         <div class="amt">${csMoney(st.potCents-st.collectedCents)}</div></div>` : ''}
-      <p class="fine" style="margin:10px 0 0">${CS_LEDGER}</p>
     </div>` : '';
   const mineHtml = (st.mine && st.potCents>0) ? `
     <div class="ceryou"><b>You're owed ${csMoney(st.mine.cents)}</b>

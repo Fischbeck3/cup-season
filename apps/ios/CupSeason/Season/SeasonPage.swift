@@ -1,30 +1,25 @@
-// Cup Season — THE SEASON PAGE (D223, D230, D235, IOS-031).
+// Cup Season — THE SEASON PAGE (D223, D230, D235, IOS-031; rebuilt Wave 5).
 //
-// It replaces the league room. `LeagueRoomScreen`'s six-segment strip
-// (STANDINGS · BOARD · SCHEDULE · POT · ALBUM · LEAGUE, two of which were
-// doors) is one scrolling page with a story spine, and the segments become
-// sections and doors inside it:
+// **A season is a story with a leaderboard, not a spreadsheet.** One scrolling
+// page: a sentence, a clock, a matchup, a board, a pot. The board is the hero
+// and it begins inside the first viewport — the card stack, the press meter and
+// the second serif sentence that pushed the table 74% down the screen (CS-06, a
+// P0) are gone, and the section head now lands around 61% with the leader, you
+// and two more above the fold.
 //
-//   the dateline          FELLAS · WEEK 7 OF 26 · SEASON LIVE
-//   the story line        one sentence about a person, in the serif voice,
-//                         chosen by the seven-rung ladder (SeasonStoryCopy)
-//   THIS WEEK             the clash, or the phase this season is actually in
-//   THE TABLE             every rung, with the endgame PERMANENTLY beneath it
-//   THE POT               the pot's two numbers and the ledger
-//   the doors             the board · the schedule · the album · the rules
-//   the Pro's verb row    a row at the foot, never a mode
+// GOLD APPEARS EXACTLY TWICE — the leader's rail field and the pot — and that
+// pair is `LINT-17`'s one sanctioned exception, whitelisted by name (D-6:
+// `SeasonPage.leaderRail`, `SeasonPage.potFigure`). Ember appears twice and
+// they are one clock: the live eyebrow's dot and the current week's tick.
 //
-// D93's "one authoritative surface per question" is UPHELD: standings, board,
-// pot, schedule and rules each keep exactly one home. What is retired is the
-// CONTAINER — the segmented control that mixed panes with doors, and the
-// four-figure season strip whose every figure was already on the page or in
-// the ME strip (L-34: the week is in the dateline, the pot is in THE POT, the
-// index is the ME strip's, the counting figure is the table's own clause).
-//
-// D230 · every league door lands HERE. `openCompetition(id, pane:)` opens the
-// page and scrolls to the section a door was named for; a door named for the
-// board or the album pushes that surface ON TOP of the page, so back lands on
-// the season rather than on the tab root.
+// WHAT SURVIVES VERBATIM: `SeasonPane` routing, `RoomRouter`, the `.task`
+// loads, every `navigationDestination`, the rank-up haptic and the ceremony
+// announcement. What went: the `.padding(.horizontal, 20)` on the whole
+// `VStack` — slats and bands are FULL-BLEED and only wrapped content takes the
+// gutter — the `CSCard(spine:)` on the error and the vote banner, the second
+// standings table, the third, and the Pro's seven-capsule verb row (CS-38),
+// which is one secondary door to the rules page where his controls already
+// live.
 
 import SwiftUI
 import CSDesign
@@ -65,12 +60,7 @@ enum SeasonSubRoute: Hashable { case story(UUID), rules(UUID) }
 struct SeasonPage: View {
   @Environment(SessionStore.self) private var store
   /// R-10 · IOS-025: "the room wears its league's look — phase ≻ the Pro's
-  /// choice ≻ the person's dial". The deleted `ClubhouseView` set it; this page
-  /// did not, and it is pushed by `competeDestination` — OUTSIDE the
-  /// `.environment(\.csLook, …)` on `CompeteScreen`'s own ScrollView, which
-  /// sits deeper than the navigationDestination and cannot reach a push. So a
-  /// season's colour dressed its Compete row and vanished the moment you
-  /// opened it. No entry retires IOS-025 for this surface.
+  /// choice ≻ the person's dial".
   @Environment(LookStore.self) private var looks
   @Environment(\.cs) private var cs
   @State private var model: LeagueRoomModel
@@ -90,7 +80,9 @@ struct SeasonPage: View {
   var body: some View {
     ScrollViewReader { proxy in
       page(proxy)
-        .navigationTitle(model.league?.name ?? "Season")
+        // LINT-24 · the season's name is printed ONCE, in `display` 34 (CS-07:
+        // it was set three times in 50pt of vertical space).
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: model.loaded) {
           // the door that named a section lands on it, once the section exists
@@ -111,8 +103,6 @@ struct SeasonPage: View {
   }
 
   /// R-10 · the membership's own look, resolved the way `CompeteScreen` does.
-  /// nil while the session has not answered — the page then wears the personal
-  /// look, which is what it wore before.
   private var seasonLook: CSLookSpec? {
     guard let m = store.me?.memberships.first(where: { $0.league_id == model.leagueId }) else { return nil }
     return looks.look(for: m)
@@ -120,37 +110,46 @@ struct SeasonPage: View {
 
   private func page(_ proxy: ScrollViewProxy) -> some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 16) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
         if let err = model.error, !model.loaded {
-          // L-32 · a failed read is never an empty one, and it ends in a move
-          CSCard(spine: cs.neg) {
-            VStack(alignment: .leading, spacing: 10) {
-              Text("The season did not load").csEyebrow(cs.neg)
-              Text(err).font(CSFont.body).foregroundStyle(cs.ink)
-              CSButton("Try again", style: .quiet) { Task { await model.refresh() } }
-            }
+          // L-32 · a failed read is never an empty one, and it ends in a move.
+          // §3 · "one lead line, one body line, and Try again as the surface's
+          // primary" — type on the ground, no spine, no card.
+          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+            Text("The season did not load").csType(.lead).foregroundStyle(cs.ink)
+              .fixedSize(horizontal: false, vertical: true)
+            Text(err).csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+            CSDoor(.primary("Try again") { Task { await model.refresh() } })
           }
+          .csGutter()
         } else if !model.loaded {
-          SeasonDateline(loading: true)
+          // §3 · loading is THE DESTINATION'S OWN GEOMETRY, redacted — the
+          // head's lines, the ticks and six slats with their rails and rules
+          // present. No spinner; `ProgressView` is banned in content.
+          SeasonLoading()
         } else {
-          SeasonDateline(loading: false)
+          SeasonHead()
           SeasonVoteBanner()
-          SeasonStoryLead(model: model)
           thisWeek
           table
           pot
           SeasonDoors()
-          if model.isPro && !model.isComplete {
-            ProVerbRow(scrollTo: { a in CSMotion.run { proxy.scrollTo(a, anchor: .top) } })
-          }
         }
       }
-      .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 40)
+      .padding(.top, CSTokens.Space.s2).padding(.bottom, CSTokens.Space.s6)
+      // **THE PAGE IS THE WIDTH OF THE PAGE.** A vertical `ScrollView` sizes
+      // its content box to its widest child and then CENTRES a box wider than
+      // itself — so one row that overflows by forty points does not clip, it
+      // slides the whole page twenty points to the left and takes the gutter
+      // with it. That is what the season page did at AX3, and it is invisible
+      // at every reading size, which is exactly the class of defect the
+      // capture hatch exists to find. Pinning the content to the container
+      // makes an overflowing row a LOCAL failure — one row clipped, named,
+      // and fixable — instead of a page-wide one.
+      .containerRelativeFrame(.horizontal)
     }
     .environment(\.csLook, seasonLook)   // R-10 · before csLookGround, which reads it
-    // R-11 · the keep list's own line: "the rank-up haptic, once, for the room
-    // in hand". It went out with ClubhouseView and nothing replaced it. One
-    // page, one rung, so the "only the room on screen" guard is the page.
     .csFeedback(.rankUp, trigger: climbs)
     .task(id: model.loaded) { if model.loaded && model.iClimbed { climbs += 1 } }
     .csLookGround()
@@ -159,6 +158,15 @@ struct SeasonPage: View {
     .environment(\.roomLinks, links)
     .refreshable { await model.refresh() }
     .task(id: model.leagueId) {
+      #if DEBUG
+      // `-cs_dev_season_fixture [squads]` — the cut, the pot and the squad
+      // table need a field, a stake and a structure the signed-in account does
+      // not have. DEBUG only, never written, and the shot is a fixture.
+      if let kind = SeasonFixture.kind, !model.loaded {
+        SeasonFixture.apply(model, squads: kind == "squads")
+        return
+      }
+      #endif
       guard !model.loaded, let me = store.me, let v = RoomViewer(me) else { return }
       await model.load(viewer: v)
       // D66: a finished season announces itself ONCE per member, after the data is in
@@ -196,7 +204,7 @@ struct SeasonPage: View {
     }
   }
 
-  // MARK: THIS WEEK — what is actually in front of this season right now
+  // MARK: THIS WEEK — the clock and the matchup
 
   @ViewBuilder private var thisWeek: some View {
     let c = model.clock
@@ -207,44 +215,83 @@ struct SeasonPage: View {
       if model.isComplete {
         SeasonWrappedHero()
       } else {
-        VStack(alignment: .leading, spacing: 10) {
-          if c.atStarter {
-            let k = LeagueCopy.kickoff(c)
-            PhaseHero(k: "Before first tee", n: k.tee, m: k.count) { EmptyView() }
-          } else {
-            CSSectionHead("This week")
-            if c.isCupFinal {
-              PhaseHero(k: "Cup Final", n: "Four weeks, scored fresh.",
-                        m: "FRESH SLATE · \(c.daysLeft) DAY\(c.daysLeft == 1 ? "" : "S") LEFT · WHOEVER'S HOTTEST TAKES THE CUP") { EmptyView() }
-            }
-            ClashCard()
-            NextCard()
-            PressMeter()
-          }
-        }
+        MonthClock()
+        // §3 · pre-season, a field too small to pair and a settled quiet week
+        // all render NOTHING here, head included.
+        ClashRows()
       }
     }
   }
 
-  // MARK: THE TABLE — and the endgame, permanently beneath it (D235)
+  // MARK: THE TABLE — and what it is running toward, permanently beneath it
 
   @ViewBuilder private var table: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
       if model.clock.isCupFinal && !model.isComplete && (model.cupRace?.isLive ?? false) {
-        // D105: the race leads while its window is open; the season table is the seed beneath it
-        CSSectionHead("The Cup Final").id(SeasonPane.table.anchor)
+        // D105: the race leads while its window is open; the season table is
+        // the seed beneath it, under its own head.
+        CSSectionHead("The Cup Final", count: "two seats")
+          .csGutter()
+          .id(SeasonPane.table.anchor)
         CupFinalRaceView()
-        CSSectionHead("The weeks before the Final")
+        CSSectionHead("The weeks before the Final", count: fieldCount)
+          .csGutter()
       } else {
-        CSSectionHead("The table").id(SeasonPane.table.anchor)
+        // 1.4a · in a squads season the SQUAD table comes first (it is what
+        // `model.teams` already IS when the structure is not solo), and the
+        // individual table prints beneath it under EVERY GOLFER. In a solo
+        // season neither the squad layer nor the swatch renders at all and the
+        // head stays THE TABLE — which is what CS-11 actually asked for.
+        CSSectionHead(model.bylaws.solo ? "The table" : "The squads",
+                      count: model.bylaws.solo ? fieldCount : SeasonBoardCopy.sides(model.teams.count))
+          .csGutter()
+          .id(SeasonPane.table.anchor)
       }
       StandingsTableView()
-      SeasonEndgameFoot()
-      CSSectionHead("The climb")
-      ClimbView()
-      CSSectionHead("Every golfer")   // LV-10 · row 121 rules the phrase
-      IndividualRaceView()
+      if !model.bylaws.solo && !model.indRows.isEmpty {
+        CSSectionHead("Every golfer", count: SeasonBoardCopy.field(model.indRows.count))
+          .csGutter()
+          .padding(.top, CSTokens.Space.s4)
+        GolferTableView()
+      }
+      endgame
     }
+  }
+
+  private var fieldCount: String? {
+    let n = model.bylaws.solo ? model.teams.count : model.indRows.count
+    return n > 0 ? SeasonBoardCopy.field(n) : nil
+  }
+
+  /// §1.5 · what the board is running toward: the countdown as a rule-and-
+  /// figure in ember, the endgame sentence verbatim, and the scenario line as
+  /// ONE agate line (CS-20 — it was a 13–14pt mono console message).
+  @ViewBuilder private var endgame: some View {
+    let b = model.bylaws
+    let f = model.seasonStory?.facts
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      CSRule()
+      if !model.isComplete,
+         let cd = SeasonBoardCopy.countdown(finish: b.finish, inWeeks: f?.final?.in_weeks,
+                                            weeksLeft: f?.weeks_left ?? weeksLeftFallback) {
+        // a clock that is running is ember (§2.6). Rule, not a fill.
+        CSFigure(cd.figure, size: .l, metal: .live, label: cd.label)
+          .padding(.top, CSTokens.Space.s3)
+      }
+      Text(LeagueCopy.endgame(finish: b.finish, structure: b.structure,
+                              startsOn: model.clock.startsOn, endsOn: model.clock.endsOn))
+        .csType(.bodyS).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+      ScenarioLineView(parts: ScenarioLine.parts(model.scenarios))
+    }
+    .csGutter()
+    .padding(.top, CSTokens.Space.s4)
+  }
+
+  private var weeksLeftFallback: Int? {
+    let c = model.clock
+    guard c.hasSeason else { return nil }
+    return max(0, c.totalWeeks - c.currentWeek)
   }
 
   // MARK: THE POT — one home for the money (D93), nothing at all at $0 (L-10)
@@ -256,79 +303,107 @@ struct SeasonPage: View {
   }
 }
 
-/// The dateline: the season's name, its week and its stage, on one row and in
-/// one vocabulary (D120, D246). Nothing below it prints the week again (L-34).
-struct SeasonDateline: View {
+// MARK: - The head (§1.1)
+
+/// The eyebrow, the season's name in `display`, the dateline, and **the chapter
+/// line in the serif** — the audit's "best line on the phone", finally at lead
+/// size instead of body size (CS-08). One `display` and one serif appearance
+/// per viewport, which is what §1.4 budgets.
+struct SeasonHead: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.cs) private var cs
-  let loading: Bool
+  @Environment(\.csLookAccent) private var la
 
   var body: some View {
     let stage = LeagueCopy.stage(model.clock)
-    VStack(alignment: .leading, spacing: 6) {
-      Text(loading ? "LOADING THE SEASON…"
-                   : SeasonStoryCopy.dateline(name: model.league?.name, stage: stage,
-                                              week: model.seasonStory?.facts?.week_no ?? model.clock.currentWeek,
-                                              weeks: model.seasonStory?.facts?.weeks_total ?? model.clock.totalWeeks))
-        .font(CSFont.label).tracking(1.2).foregroundStyle(model.isComplete ? cs.gold : cs.dimText)
-        .fixedSize(horizontal: false, vertical: true)
-      if !loading {
-        Text("\(model.clock.spanText) · THE PRO · \(model.proName.uppercased())")
-          .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
+    let complete = model.isComplete
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      HStack(spacing: CSTokens.Space.s1) {
+        // **The dot IS the ember**, and LINT-18 counts it and its own eyebrow
+        // as ONE mark: both are the same clock and the eyebrow names it.
+        if !complete {
+          Circle().fill(la.accent ?? cs.brand).frame(width: 7, height: 7)
+        }
+        Text(SeasonBoardCopy.eyebrow(stage: stage,
+                                     week: model.seasonStory?.facts?.week_no ?? model.clock.currentWeek,
+                                     weeks: model.seasonStory?.facts?.weeks_total ?? model.clock.totalWeeks))
+          .csType(.agate, caps: true)
+          .foregroundStyle(complete ? cs.gold : (la.accent ?? cs.brand))
           .fixedSize(horizontal: false, vertical: true)
       }
+      .csBudget(gold: complete ? 1 : 0, ember: complete ? 0 : 1)
+      Text(model.league?.name ?? "The season").csType(.display)
+        .foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
+      Text(SeasonBoardCopy.dateline(number: model.season?.number,
+                                    span: SeasonBoardCopy.span(startsOn: model.clock.startsOn,
+                                                               endsOn: model.clock.endsOn) ?? model.clock.spanText,
+                                    pro: model.proName,
+                                    squads: model.bylaws.solo ? nil : model.squads.count))
+        .csType(.agate, caps: true).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+      if let line = model.storyLine {
+        Text(line.text).csType(.lead).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+          .padding(.top, CSTokens.Space.s2)
+          .id(SeasonPane.story.anchor)
+      }
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .accessibilityElement(children: .combine)
+    // **PAD FIRST, THEN TAKE THE MEASURE.** `.frame(maxWidth: .infinity)`
+    // followed by `.padding(.horizontal, 20)` is a block the width of the
+    // screen with twenty points added to each side — it overflows by forty, and
+    // at the reading sizes nothing is wide enough to show it. At AX3 the whole
+    // head sheared to the left edge and the month clock's ticks ran off the
+    // right. The padding goes inside the frame.
+    .csGutter()
   }
 }
 
-/// The story line — the page's own lead. One sentence about a person, in the
-/// serif voice, with the arc one tap behind it. A payload that cannot say
-/// anything renders NOTHING here rather than a placeholder (L-44).
-struct SeasonStoryLead: View {
-  @Environment(\.cs) private var cs
-  let model: LeagueRoomModel
+// MARK: - Loading (§3)
 
+/// The destination's own geometry, redacted. The head's three lines, the
+/// ticks, the section heads, and **six slats with their rails and rules
+/// present**. The shipped `"LOADING THE SEASON…"` string is deleted.
+struct SeasonLoading: View {
+  @Environment(\.cs) private var cs
   var body: some View {
-    if let line = model.storyLine {
-      VStack(alignment: .leading, spacing: 8) {
-        Text(line.text).font(CSFont.sentence).foregroundStyle(cs.ink)
-          .fixedSize(horizontal: false, vertical: true)
-          .id(SeasonPane.story.anchor)
-        if let id = model.league?.id {
-          NavigationLink(value: SeasonSubRoute.story(id)) {
-            Text("The season's story →").font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
-              .frame(minHeight: 44).contentShape(Rectangle())
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        Text("Season live · week 5 of 13").csType(.agate, caps: true).foregroundStyle(cs.mut)
+        Text("The season").csType(.display).foregroundStyle(cs.ink)
+        Text("Season one · the dates · the Pro").csType(.agate, caps: true).foregroundStyle(cs.mut)
+      }
+      .csGutter()
+      CSSeasonCalendar(weeks: 13, played: 0, now: -1,
+                       months: [.init(label: "One", weeks: 4), .init(label: "Two", weeks: 5),
+                                .init(label: "Three", weeks: 4)])
+        .csGutter()
+      CSSectionHead("The table").csGutter()
+      VStack(spacing: 0) {
+        ForEach(0..<6, id: \.self) { i in
+          CSSlat(rank: i + 1, field: .none, face: nil, name: "Golfer name",
+                 sub: "A clause of why", movement: .held, gap: "+0") {
+            CSFigure("00", size: .m, label: nil)
           }
-          .buttonStyle(.plain)
         }
       }
-      .frame(maxWidth: .infinity, alignment: .leading)
     }
+    .csRedacted(true)
+    .accessibilityLabel("Loading the season")
   }
 }
 
-/// D235 · the endgame, whole, permanently under the table. The ME strip's
-/// clause is the same fact at the other grain; both are produced from the same
-/// finish, structure and dates, so they can never say different things.
-struct SeasonEndgameFoot: View {
-  @Environment(LeagueRoomModel.self) private var model
-  @Environment(\.cs) private var cs
+// MARK: - The doors (§1.7)
 
-  var body: some View {
-    let b = model.bylaws
-    Text(LeagueCopy.endgame(finish: b.finish, structure: b.structure,
-                            startsOn: model.clock.startsOn, endsOn: model.clock.endsOn))
-      .font(CSFont.footnote).foregroundStyle(cs.dimText)
-      .fixedSize(horizontal: false, vertical: true)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.top, 2)
-  }
-}
-
-/// The four doors, as rows rather than segments: each says where it goes
-/// (D218) and each has exactly one home (D93).
+/// Each door says where it goes (D218) and each has exactly one home (D93).
+/// **No capsules, no icon circles, no system disclosure indicator**, and no
+/// section head over them: the blind review filed a two-item nav menu bolted
+/// to the end of a content page, and what it was objecting to was the HEAD
+/// that framed four content-free rows as a section of the season.
+///
+/// The Pro's verb row (up to seven equally weighted capsules, one of them red,
+/// under a gold eyebrow — CS-38) is one secondary door, `Season settings`,
+/// which pushes the rules page where his controls already live.
 struct SeasonDoors: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.roomLinks) private var links
@@ -336,19 +411,32 @@ struct SeasonDoors: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      CSSectionHead("The rest of the season")
+      CSRule()
+      // the story is a pushed screen, so its door lives with the other pushed
+      // screens rather than 60pt into the first viewport (§1.1 draws four
+      // elements in the head and this was a fifth)
+      if let id = model.league?.id {
+        NavigationLink(value: SeasonSubRoute.story(id)) {
+          rowLabel("The season's story", sub: "Week by week, and every season before it")
+        }
+        .buttonStyle(.plain)
+      }
       door("The board", sub: "Every round, every notice, in one thread") { links.openBoard() }
       door("The schedule", sub: "Who is playing, and when") { links.openSchedule() }
-      // a door with nothing behind it is worse than no door (L-32): the album
-      // row renders only where the shell has somewhere to send it.
+      // a door with nothing behind it is worse than no door (L-32)
       if let album = links.openAlbum {
         door("The album", sub: "Every round photo this season") { album() }
       }
       if let id = model.league?.id {
-        NavigationLink(value: SeasonSubRoute.rules(id)) { rowLabel("The rules", sub: "How this season scores, and how it ends") }
-          .buttonStyle(.plain)
+        NavigationLink(value: SeasonSubRoute.rules(id)) {
+          rowLabel(model.isPro ? "Season settings" : "The rules",
+                   sub: model.isPro ? "The stakes, the dial, and everything you run"
+                                    : "How this season scores, and how it ends")
+        }
+        .buttonStyle(.plain)
       }
     }
+    .padding(.top, CSTokens.Space.s4)
   }
 
   @ViewBuilder private func door(_ title: String, sub: String, action: @escaping () -> Void) -> some View {
@@ -356,25 +444,30 @@ struct SeasonDoors: View {
   }
 
   private func rowLabel(_ title: String, sub: String) -> some View {
-    A11yStack(rowAlignment: .firstTextBaseline, spacing: 12, columnSpacing: 4) {
-      VStack(alignment: .leading, spacing: 2) {
-        Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        Text(sub).font(CSFont.footnote).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
+    A11yStack(rowAlignment: .center, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s1) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        Text(title).csType(.social).foregroundStyle(cs.ink)
+        Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      Text("→").font(CSFont.mono).foregroundStyle(cs.mut).accessibilityHidden(true)
+      CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut).accessibilityHidden(true)
     }
-    .padding(.vertical, 12)
-    .frame(minHeight: 56)
+    .csGutter()
+    .padding(.vertical, CSTokens.Space.s3)
+    .frame(minHeight: 52)
     .contentShape(Rectangle())
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
+    .overlay(alignment: .bottom) { CSRule() }
     .accessibilityElement(children: .combine)
   }
 }
 
-/// D71 · the cancellation vote. IA §7.5: while a vote is open the season says
-/// so at the top of the page, in one sentence, with the two facts that decide
-/// whether a member should agree — the money comes back, the rounds stay.
+// MARK: - The cancellation vote (§3)
+
+/// D71 · IA §7.5: while a vote is open the season says so at the top of the
+/// page, in one sentence, with the two facts that decide whether a member
+/// should agree — the money comes back, the rounds stay. **One `body` sentence
+/// and two tertiary links on the ground**: no `CSCard`, no `neg` spine.
 struct SeasonVoteBanner: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.roomLinks) private var links
@@ -385,25 +478,26 @@ struct SeasonVoteBanner: View {
   var body: some View {
     if let cr = model.cancel, cr.open == true {
       let v = SeasonVote.item(cr, league: model.league?.name, pro: model.proName)
-      CSCard(spine: cs.neg) {
-        VStack(alignment: .leading, spacing: 6) {
-          Text(v.eyebrow).csEyebrow(cs.neg)
-          Text(v.headline).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: false, vertical: true)
-          RoomFine(v.standfirst)
-          FlowRow(spacing: 8) {
-            switch v.act {
-            case .withdraw: RoomMini("Call it off", busy: busy) { run { try await model.withdrawCancel(); toast.show("Cancellation called off.") } }
-            case .vote:
-              RoomMini("Agree", busy: busy) { vote(true) }
-              RoomMini("Decline", busy: busy) { vote(false) }
-            case .wait: EmptyView()
-            }
-            Text(v.tally).font(CSFont.footnote).foregroundStyle(cs.dimText)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        Text(v.headline).csType(.body).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        Text(v.standfirst).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: CSTokens.Space.s4) {
+          switch v.act {
+          case .withdraw:
+            CSDoor(.link("Call it off") { run { try await model.withdrawCancel(); toast.show("Cancellation called off.") } })
+          case .vote:
+            CSDoor(.link("Agree") { vote(true) })
+            CSDoor(.link("Decline") { vote(false) })
+          case .wait: EmptyView()
           }
-          .padding(.top, 4)
+          Spacer(minLength: 0)
         }
+        Text(v.tally).csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
+      .csGutter()
+      .disabled(busy)
     }
   }
 
