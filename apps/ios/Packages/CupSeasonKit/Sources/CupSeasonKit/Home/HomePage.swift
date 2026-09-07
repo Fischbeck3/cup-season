@@ -195,6 +195,20 @@ public struct HomePage {
 
   public var wireTitle: String { firstRound ? HomeFirstRound.eyebrow : "The wire" }
 
+  /// **Does the wire run under datelines?** (D287.) True only on the branch
+  /// that emits `COMING UP` / `TODAY` / `THIS WEEK` / `EARLIER` — every other
+  /// state (the first-round rows, the redacted skeleton, a failed read, the
+  /// wire's empty block, the roster empty) draws no head of its own and needs
+  /// the block NAMED. Where a dateline opens the block, the block name is a
+  /// second header for one thing and the quieter of the two, so it yields.
+  ///
+  /// It is decided here rather than in the view because it is the same set of
+  /// branches `HomeView.wire` switches on, and a rule stated twice drifts.
+  public var wireHasDatelines: Bool {
+    guard !firstRound, !redacted, failed == nil, wireEmptyItem == nil, !wireEmpty else { return false }
+    return rows.contains { $0.period != nil }
+  }
+
   // MARK: - The weight map
 
   static func family(_ key: String) -> String {
@@ -263,8 +277,31 @@ public struct HomePage {
     let mine = Set((me?.memberships ?? []).map(\.member_id))
     let myName = me?.profile?.display_name
 
+    // **A ROUND IS ON THE FRONT PAGE ONCE** (D287). `HomeDigest`'s QUIET frame
+    // resurfaces the best recent round so that an open never reveals nothing
+    // (D27), and that file's own comment already rules that *the digest
+    // yields* when something else on the page is telling the story. It was
+    // handed `spent:` = the ranked deck's rounds and nobody handed it THE
+    // WIRE's — so the owner's Home opened `Fri, Sep 4 — You posted 89 at UNM
+    // Championship` above the first dateline and drew the same round three
+    // rows below as the wire's 68pt slat, gross and all. It also put a date
+    // back at the HEAD of a sentence, which is the leading column D285 deleted.
+    //
+    // Narrow on purpose: `.since` is a real summary of what changed and is
+    // never dropped, and a quiet frame whose round the wire is NOT drawing
+    // still renders, because that is the day the frame exists for.
+    let wireRounds: Set<UUID> = Set(buckets.flatMap(\.items).compactMap {
+      if case .round(let r, _) = $0 { return r.round_id }
+      return nil
+    })
+    let framed: HomeDigest? = {
+      guard let d = digest else { return nil }
+      guard d.kind == .quiet, let id = d.roundId else { return d }
+      return wireRounds.contains(id) ? nil : d
+    }()
+
     var rows: [(sort: Int, row: HomeWireRow)] = []
-    if let d = digest, !brandNew {
+    if let d = framed, !brandNew {
       // period nil · the digest is a sentence ABOUT the groups, so it sits
       // above the first dateline rather than inside one.
       rows.append((sort: -1, row: HomeWireRow(id: "digest", body: .digest(d))))

@@ -572,3 +572,82 @@ rivalries in it yet — the course page still scores 5.7 for exactly the reason 
 Phase 1. **Mean 5.06 → 6.84 against a design target of 7.63. Six surfaces move from redesign to
 polish; none reaches the brief's 8.** And what remains is one `supabase db push` you have to think
 about before you type it, one `git push`, one browser session, and one thumb.
+
+---
+
+## 9 · THE OWNER USED IT, 2026-09-07
+
+He installed the overhaul on his own phone, opened it, and filed three things:
+
+> *"Things look text heavy, sections arent differentiated, I also cant click into settings"*
+
+The settings half was a routing defect and was fixed first (`0b4217b`). The other two are one
+complaint and this section is the record of what was done about it and what is still open. His
+screenshots showed **Home scrolled to the wire** — ten consecutive rows at one type size behind a
+34pt leading date column, four of them `N league notes` counts, one of them addressing him as
+*"Jerecho"* — and **Compete**, where `YOUR SEASONS` and `YOUR MOMENTS` were 12pt mono labels over
+17pt caps rows, so the two heads carried less weight than the rows beneath them.
+
+### 9.1 What was changed in response
+
+| # | His words | What was built | Where |
+|---|---|---|---|
+| 1 | *sections aren't differentiated* | **The wire runs under datelines.** `Coming up · Today · This week · Earlier`, each set as `displayS` 24 in `ink` over rows at 15–17 — a 1.6× size step and a full contrast step, with no rule and no box (§32). The 34pt leading date column is deleted; a date is now a trailing stamp, a row under `TODAY` prints none, and a rundown says a date once. | D285 / IOS-061 |
+| 2 | *text heavy* | **Every league note on the page is one line.** Eight rows across three periods fold into a single `bodyS` line at the foot of the wire that opens the board. Past two leagues it counts them rather than naming them. | D285 / IOS-061 |
+| 3 | *don't make every feed item equal* (§7) | **The ranked items take weight 3**, the weight the design specified and no producer ever filled: `body` 17 in `ink` on a 56pt row with its own **clock** (`Tomorrow`, `6 days`) where the shipped row printed the weekday the golfer already knew. | D285 / IOS-061 |
+| 4 | — | **DEF-3 reaches the wire.** *"Jerecho set a personal best"* now reads *"You set a personal best."* The post's `member_id` is the authority, and second person takes its copula. | D285 / IOS-061 |
+| 5 | *sections aren't differentiated* | **One section head in the product, at two weights.** `CSSectionHead(weight:)` — `.label` (the shipped agate-plus-rule, still the default, so nine surfaces did not move) and `.display`. Compete's three heads take `.display`; the page's flat `spacing: 14` becomes per-section air. | D286 / IOS-062 |
+| 6 | *text heavy* | **The standing is a figure.** `2ND / OF 2` as the rule-and-figure the leaderboard already uses, and the sentence stops printing the rank. A row with no honest standing draws none. | D286 / IOS-062 |
+| 7 | — | **A round is on the front page once.** Home opened with `Fri, Sep 4 — You posted 89 at UNM Championship` and drew *that same round* three rows below as the wire's 68pt slat. The quiet frame now yields to the wire, and with it goes the last leading date on the page. | D287 / IOS-063 |
+| 8 | *sections aren't differentiated* | **The wire's block name yields to its first dateline.** `THE WIRE` (agate 11, `mut`) sat directly on `COMING UP` (`displayS` 24, `ink`) — two headers for one block, the outer one quieter. It is now drawn only on the branches that have no dateline under them. | D287 / IOS-063 |
+
+**Where it landed.** Home's first screen is now masthead 34 → the live lead in serif with its ember
+door → the ME strip's figures → `COMING UP` 24 → three rows. Four distinct weights on the wire (the
+round's slat, the ranked item at 17 `ink`, the quiet line at 15 `mut`, the dateline at 24) where
+there was one. Ten flat rows become seven under three datelines. Compete answers *where do I stand*
+from across the room. Gate: preflight PASS 0/0, sunningdale 27, **1,172 tests in 207 suites** from a
+1,150 / 204 baseline.
+
+### 9.2 What is still open, ranked
+
+**1 · Home's floor is four identical rows, and at the bottom of the page it is louder than the news.**
+`ADD MY ROUND` · `START SOMETHING` · `JOIN WITH A CODE` · `FIND GOLFERS` — one size, one weight, one
+colour, four rules, four glosses, and **no primary among them**. On the owner's account the wire
+above it is 15pt grey and the menu below it is 17pt caps white, so the loudest block on the bottom
+half of Home is a navigation menu. At AX3 it is four two-line blocks filling the entire screen.
+`BRIEF` §18 names this exactly (*avoid five equally prominent buttons*) and §8 wants a tier. **This
+is his complaint, moved 400pt down the page, and it is the biggest thing left.** It was not fixed
+here because it is a ruling and not a defect: L-25 puts all four doors on every Home and the collapse
+to one `SOMETHING ELSE` row fires only when the page carries its own ember primary, which a live lead
+does not set. *The decision to make: does a page whose lead is already lit show one door and a
+`Something else`, or four?*
+
+**2 · At the accessibility sizes the section step collapses to nothing.** `displayS` is capped at
+1.8× (43.2pt); `name` and `body` are **uncapped**. At AX3 `YOUR SEASONS` and `WHO'S THE BITCH?`
+render at the same size — the 1.6× step this whole wave is built on becomes about 1.05×, exactly
+where a reader most needs it. IOS-062's `SystemTests` assert the step at the **default** size only,
+so it is a test that passes while the thing it guards fails. The fix is a growth cap on `name`,
+which changes every row title in the product: it belongs to a typography pass with its own
+photographs, not to a review.
+
+**3 · Compete's masthead runs the dateline and the door together.** `MON · SEP 7` and
+`START SOMETHING` are the same face at the same size with the same tracking on one baseline, 8pt
+apart, separated only by colour — so the eye reads one string, `MON · SEP 7 START SOMETHING`. The
+arrow that used to end it was correctly deleted (LINT-13); what is left needs a separator, a size
+step, or the door moved.
+
+**4 · `1ST OF 2` is now the loudest object on Compete, and it is a two-man league.** The figure is
+right and the data is honest, but 27pt board type over `OF 2` reads as a trophy for beating one
+person. Worth a rule: **a figure needs a field.** Below some `of`, the standing is a sentence.
+
+**5 · Compete still ends in a screen of nothing.** The foot — a heavy rule and two quiet doors — now
+floats with roughly a third of the viewport empty beneath it. That is honest for a golfer with two
+seasons and §27 forbids filling it decoratively, but the foot reads as having been left there rather
+than placed. It wants either the page's own bottom edge or a reason.
+
+**6 · The tab bar shears at AX3** — five labels run edge to edge with `HOME`'s H and `YOU`'s U
+clipped by the screen. Pre-existing, on every tab, and not this wave's.
+
+**7 · The desk owes both halves** (D234). The web's Home feed still has no fold, no datelines and one
+row per post; `csYouVoice` shipped, so DEF-3 is answered on both, but the layout half of D285 and
+all of D286 are phone-only. Named in each entry's tradeoffs and still true.

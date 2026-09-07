@@ -189,9 +189,18 @@ struct HomeView: View {
 
   @ViewBuilder private func wire(_ page: HomePage, me: Me, strip: MeStripCopy.Strip) -> some View {
     VStack(alignment: .leading, spacing: 0) {
-      HomeSectionRule(page.wireTitle)
-        .padding(.horizontal, CSTokens.Space.gutter)
-        .padding(.bottom, CSTokens.Space.s3)
+      // **THE BLOCK NAME GIVES WAY TO THE FIRST DATELINE** (D287). `THE WIRE`
+      // is `agate` 11 caps in `mut` with a hairline; `COMING UP` is `displayS`
+      // 24 in `ink`. Stacked 24pt apart they are two headers for one block and
+      // the OUTER one is the quieter — §27's repetitive header, and §8's
+      // hierarchy upside down, on the page the owner was reading. Every other
+      // branch below carries no dateline and every one of them needs the block
+      // named, so the head is drawn there and only there.
+      if !page.wireHasDatelines {
+        HomeSectionRule(page.wireTitle)
+          .padding(.horizontal, CSTokens.Space.gutter)
+          .padding(.bottom, CSTokens.Space.s3)
+      }
 
       if page.firstRound {
         // The three rows a first round turns on — three facts about the

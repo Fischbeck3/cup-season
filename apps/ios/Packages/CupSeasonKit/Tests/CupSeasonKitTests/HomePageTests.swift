@@ -353,6 +353,91 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
       #expect(!r.gloss.contains("—"))
     }
   }
+  // MARK: - D287 · a round is on the front page once
+
+  @Test("D287 · the QUIET frame yields the round THE WIRE is already drawing")
+  func theQuietFrameYieldsToTheWire() {
+    let mine = HomeFeedRow.plain(golfer: "You", gross: 89, course: "UNM Championship")
+    let other = HomeFeedRow.plain(golfer: "Galen", gross: 79, course: "Lone Tree")
+    func quiet(_ id: UUID?) -> HomeDigest {
+      HomeDigest(kind: .quiet, label: "Quiet since your last visit",
+                 body: "Fri, Sep 4 — You posted 89 at UNM Championship",
+                 roundId: id, photoURL: nil)
+    }
+    func hasDigest(_ page: HomePage) -> Bool {
+      page.rows.contains { if case .digest = $0.body { return true } else { return false } }
+    }
+
+    // the wire is drawing that very round as its slat — the frame yields
+    let drawn = HomePage.make(me: me(rounds: 9), strip: emptyStrip, ranked: HomeRank.arrange([]),
+                              buckets: [HomeFeedBucket(label: "This week",
+                                                       items: [.round(mine, photoURL: nil)])],
+                              digest: quiet(mine.round_id), today: "2026-09-06")
+    #expect(!hasDigest(drawn))
+    // and the round is still on the page — ONCE, as the slat
+    #expect(drawn.rows.contains { if case .round = $0.body { return true } else { return false } })
+
+    // a quiet frame reaching for a round the wire is NOT drawing still renders:
+    // that is the day the frame exists for
+    let elsewhere = HomePage.make(me: me(rounds: 9), strip: emptyStrip, ranked: HomeRank.arrange([]),
+                                  buckets: [HomeFeedBucket(label: "This week",
+                                                           items: [.round(other, photoURL: nil)])],
+                                  digest: quiet(mine.round_id), today: "2026-09-06")
+    #expect(hasDigest(elsewhere))
+  }
+
+  @Test("The SINCE frame is a summary of what changed, and is never dropped")
+  func theSinceFrameSurvives() {
+    let mine = HomeFeedRow.plain(golfer: "You", gross: 89, course: "UNM Championship")
+    let since = HomeDigest(kind: .since, label: "Since you were here",
+                           body: "2 rounds and a personal best from Galen.",
+                           roundId: mine.round_id, photoURL: nil)
+    let page = HomePage.make(me: me(rounds: 9), strip: emptyStrip, ranked: HomeRank.arrange([]),
+                             buckets: [HomeFeedBucket(label: "This week",
+                                                      items: [.round(mine, photoURL: nil)])],
+                             digest: since, today: "2026-09-06")
+    #expect(page.rows.contains { if case .digest = $0.body { return true } else { return false } })
+  }
+
+  @Test("D287 · the block name yields ONLY where a dateline opens the wire")
+  func theBlockNameYieldsToTheDateline() {
+    let r = HomeFeedRow.plain(golfer: "Galen", gross: 79, course: "Lone Tree")
+    let filed = HomePage.make(me: me(rounds: 9), strip: emptyStrip,
+                              ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1)]),
+                              buckets: [HomeFeedBucket(label: "This week",
+                                                       items: [.round(r, photoURL: nil)])],
+                              today: "2026-09-06")
+    #expect(filed.rows.contains { $0.period != nil })
+    #expect(filed.wireHasDatelines)
+
+    // every state that draws NO dateline still needs the block NAMED
+    let brandNew = HomePage.make(me: me(rounds: 0), strip: emptyStrip,
+                                 ranked: HomeRank.arrange([item("first_round", .opportunity, rank: 1, spine: .ember)]),
+                                 buckets: [])
+    #expect(brandNew.firstRound)
+    #expect(!brandNew.wireHasDatelines)
+
+    // no feed at all: the highest-ranked survivor is the wire's own empty BLOCK
+    let block = HomePage.make(me: me(rounds: 9), strip: emptyStrip,
+                              ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1),
+                                                        item("clash:2", .closing, rank: 2)]),
+                              buckets: [HomeFeedBucket(label: "Today", items: [])])
+    #expect(block.wireEmptyItem != nil)
+    #expect(!block.wireHasDatelines)
+
+    // nothing ranked and nothing in the feed: the roster empty
+    let roster = HomePage.make(me: me(rounds: 9), strip: emptyStrip, ranked: HomeRank.arrange([]),
+                               buckets: [HomeFeedBucket(label: "Today", items: [])])
+    #expect(roster.wireEmpty)
+    #expect(!roster.wireHasDatelines)
+
+    // and a read that failed is never an empty one, nor a headed one
+    let failed = HomePage.make(me: me(rounds: 9), strip: emptyStrip, ranked: HomeRank.arrange([]),
+                               buckets: [HomeFeedBucket(label: "Today", items: [])], feedFailed: true)
+    #expect(failed.failed != nil)
+    #expect(!failed.wireHasDatelines)
+  }
+
 }
 
 // MARK: - fixtures
