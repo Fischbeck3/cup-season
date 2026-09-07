@@ -35,6 +35,7 @@
   --leaf:#EFEADD;  /* the leaf: a sheet of scorecard paper, and it must hold a grid */
   --leaf-ink:#1A1B14;  /* scorecard ink — the same in both printings, and it has no colour */
   --leaf-mut:#57605A;  /* the leaf column heads */
+  --leaf-gold:#795912;  /* gold ON PAPER — the light theme's gold, pinned in BOTH printings, because the leaf does not invert and dark gold at 2pt on bone is a pale smear (profile.md D-6). It is a RULE only; gold ink on a leaf is 1.68:1 and stays forbidden. */
   --ceremony:#0A0E0C;  /* the honour room — pinned in both themes */
   --ceremony-ink:#F1F4EF;
   --ceremony-mut:#9BA69D;
@@ -136,6 +137,7 @@ html[data-theme="light"]{
   --leaf:#FFFDF7;
   --leaf-ink:#1A1B14;
   --leaf-mut:#5A625A;
+  --leaf-gold:#795912;
   --ceremony:#0A0E0C;
   --ceremony-ink:#F1F4EF;
   --ceremony-mut:#9BA69D;

@@ -1466,6 +1466,52 @@
       [1, true, 2]);
   })();
 
+  /* ── Wave 3 · the profile's own producers ───────────────────────────── */
+  (function(){
+    /* UI_SYSTEM §5.2 · two achievements may never share a glyph. This map drew
+       🏆 for four kinds of hardware, 🎯 twice and 📈 twice. */
+    t('§5.2: the hardware marks are four things, not one',
+      [trophyGlyph('league','winner'), trophyGlyph('ryder','winner'),
+       trophyGlyph('bracket','winner'), trophyGlyph('league','runner_up')],
+      ['cup','duel','bracket','runnerUp']);
+    t('§5.2: no two milestones share a mark', (function(){
+      const seen = new Set();
+      for(const k in ACH_META){ const m = ACH_META[k]; seen.add(m.glyph + '|' + (m.numeral||'')); }
+      return seen.size === Object.keys(ACH_META).length;
+    })(), true);
+    t('LINT-28: no mark is the pennant',
+      Object.keys(ACH_META).some(k => ACH_META[k].glyph === 'pennant'), false);
+    t('the mark is drawn, never an emoji',
+      /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(csTrophyMark('cup', null, 28)), false);
+    t('a parametric mark carries its numeral',
+      csTrophyMark('threshold', '80', 28).includes('80'), true);
+
+    /* profile.md §7 / D-5 · a WIN takes the gold rule; a podium takes ink. */
+    const leaf = csRecordLeaf([
+      { year:'2026', name:'Desert Mountain Cup', qualifier:null, finish:1, won:true },
+      { year:'2026', name:'The Fellas', qualifier:'SEASON ONE', finish:2, won:false },
+      { year:'2026', name:'Dew Sweepers', qualifier:'SPRING', finish:5, won:false },
+    ]);
+    t('§7: a win takes the gold rule', (leaf.match(/mark won/g)||[]).length, 1);
+    t('§7: a podium takes an ink rule, and 5th takes none', (leaf.match(/mark pod/g)||[]).length, 1);
+    t('§9.8: a win reads WON, not 1ST', leaf.includes('>WON<'), true);
+    t('§1.7: one ordinal, uppercase, on the baseline', leaf.includes('>ND<'), true);
+    t('§14.2: the money column is dropped, not zeroed', /MONEY/.test(leaf), false);
+    t('L-44: an empty record draws no leaf', csRecordLeaf([]), '');
+
+    /* §9.10 · the meeting tape — no legend, one key line, halves on the rule */
+    const tape = csTapeHtml([{ won:true },{ won:false },{ won:null }],
+                            { first:'JUN 14', last:'SEP 21', spoken:'Eleven meetings.' });
+    t('§9.10: the tape is one element with one sentence',
+      tape.includes('aria-label="Eleven meetings."'), true);
+    t('§9.10: the key line is four words', tape.includes('One square is one win.'), true);
+    t('§9.10: yours filled, theirs outlined, a half on the rule',
+      [/class="me"/.test(tape), /class="them"/.test(tape), /class="half"/.test(tape)],
+      [true, true, true]);
+    t('§9.10: no legend on a chart', /LEGEND|KEY:/i.test(tape), false);
+    t('L-44: no meetings, no tape', csTapeHtml([], {}), '');
+  })();
+
   const fails = R.filter(r => !r.ok);
   console.log(`\n${fails.length ? 'FAIL' : 'PASS'} — ${R.length} tests, ${fails.length} failure(s)`);
   return { total: R.length, failures: fails.map(f => f.name) };

@@ -86,6 +86,10 @@ public extension CSPalette {
               sq0: sq0, sq1: sq1, sq2: sq2, sq3: sq3,
               panel: panel, panelInk: panelInk, panelMut: panelInk.opacity(CSTokens.Alpha.a88),
               leaf: leaf, leafInk: leafInk, leafMut: leafInk.opacity(CSTokens.Alpha.a88),
+              // gold on paper is already the darkest gold the system owns —
+              // it does not step up, and stepping it toward ink would make the
+              // earned rule and the podium rule the same mark
+              leafGold: leafGold,
               ceremony: ceremony, ceremonyInk: ceremonyInk,
               ceremonyMut: ceremonyInk.opacity(CSTokens.Alpha.a88),
               ceremonyBrand: ceremonyBrand, ceremonyGold: ceremonyGold,

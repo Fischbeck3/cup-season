@@ -32,33 +32,59 @@ public struct Achievement: AchievementFields, Decodable, Sendable, Equatable {
 }
 
 public struct AchMeta: Sendable, Equatable {
-  public let icon: String
+  /// The DRAWN mark's key (`CSTrophyMark.Mark`), never an emoji. The Kit sits
+  /// below `CSDesign`, so it names the mark and the view draws it — the same
+  /// contract the marker table already uses.
+  public let glyph: String
+  /// The value the mark carries when the mark is parametric: `80` inside the
+  /// crossed threshold, `4` for a run of four weeks. nil for a pure drawing.
+  public let numeral: String?
   public let title: String
-  public init(icon: String, title: String) { self.icon = icon; self.title = title }
+  public init(glyph: String, numeral: String? = nil, title: String) {
+    self.glyph = glyph; self.numeral = numeral; self.title = title
+  }
 }
 
 public enum TrophyMeta {
-  /// `trophyIcon(kind)`.
-  public static func trophyIcon(_ kind: String?) -> String {
-    kind == "ryder" ? "⚔️" : kind == "bracket" ? "🥊" : "🏆"
+  /// **The hardware's drawn mark.** A Cup, a major and an event are
+  /// silverware and take the cup; a points crown is a season won on the
+  /// TABLE and takes the filled disc on a rail, which ladders to the rank
+  /// rail rather than inventing a second trophy; second place takes the open
+  /// disc one notch down. §5.2: **two achievements may never share a glyph**,
+  /// and the shipped case drew 🏆 for all four of these.
+  public static func trophyGlyph(kind: String?, placement: String?) -> String {
+    if placement == "runner_up" { return "runnerUp" }
+    switch kind {
+    case "ryder":   return "duel"
+    case "bracket": return "bracket"
+    case "points_king", "crown": return "crown"
+    default:
+      return placement == "points_king" ? "crown" : "cup"
+    }
   }
 
-  /// `ACH_META` — career milestones (achievements table) → tile icon + title.
+  /// `ACH_META` — career milestones → the drawn mark, its numeral, and the
+  /// title. **`sub_100` and `sub_90` no longer share 🎯 and `streak_4` and
+  /// `streak_8` no longer share 📈**: the mark is the same shape and the
+  /// NUMERAL inside it is the difference, which is the whole of §5.2.
   public static let ach: [String: AchMeta] = [
-    "first_round": AchMeta(icon: "⛳", title: "First round"),
-    "sub_100": AchMeta(icon: "🎯", title: "Broke 100"),
-    "sub_90": AchMeta(icon: "🎯", title: "Broke 90"),
-    "sub_80": AchMeta(icon: "🔥", title: "Broke 80"),
-    "personal_best": AchMeta(icon: "📉", title: "Personal best"),
-    "streak_4": AchMeta(icon: "📈", title: "4-week streak"),
-    "streak_8": AchMeta(icon: "📈", title: "8-week streak"),
-    "streak_12": AchMeta(icon: "💪", title: "Iron Man"),
+    "first_round": AchMeta(glyph: "firstCard", title: "First round"),
+    "sub_100": AchMeta(glyph: "threshold", numeral: "100", title: "Broke 100"),
+    "sub_90": AchMeta(glyph: "threshold", numeral: "90", title: "Broke 90"),
+    "sub_80": AchMeta(glyph: "threshold", numeral: "80", title: "Broke 80"),
+    "personal_best": AchMeta(glyph: "personalBest", title: "Personal best"),
+    "streak_4": AchMeta(glyph: "streak", numeral: "4", title: "4-week streak"),
+    "streak_8": AchMeta(glyph: "streak", numeral: "8", title: "8-week streak"),
+    "streak_12": AchMeta(glyph: "ironman", title: "Iron Man"),
+    "low_round": AchMeta(glyph: "lowRound", title: "Low round of the season"),
+    "most_improved": AchMeta(glyph: "improved", title: "Most improved"),
   ]
 
-  /// `ACH_META[a.kind] || {icon:'🏅', title:a.label||'Milestone'}`
+  /// A kind this build has no mark for draws the medal — a real mark rather
+  /// than a hole in the case.
   public static func meta(kind: String?, label: String?) -> AchMeta {
     if let kind, let m = ach[kind] { return m }
-    return AchMeta(icon: "🏅", title: (label ?? "").isEmpty ? "Milestone" : label!)
+    return AchMeta(glyph: "medal", title: (label ?? "").isEmpty ? "Milestone" : label!)
   }
 
   /// `achSubtitle(a)`. D210 · the personal best is the engine's lowest
@@ -86,40 +112,9 @@ public enum TrophyMeta {
     return " · '" + String(e[s..<t])
   }
 
-  /// How many engraved chips a credential shows before "+N more". The You hero
-  /// showed 3 and the Tour Card 4, for no reason either surface could name —
-  /// ONE constant now, so the phone and the web twin (`#youTros`, `trosLines`)
-  /// can be held to the same number in one place.
-  public static let credentialChips = 3
-  /// What follows "+N" on your own credential — the hero says where the rest
-  /// are. Someone else's Tour Card passes its own suffix; there is no case of
-  /// theirs to open from it.
-  public static let moreInCase = " more in the case"
-  /// The other half of "+N more in the case" — the row folds back the same way
-  /// it opened, so the expansion is not a one-way door.
-  public static let showFewer = "Show fewer"
-
-  /// The credential's engraved lines (`#youTros`, Tour Card `trosLines`):
-  /// "🔥 Broke 80 · '26", then "+N more in the case" / "+N more".
-  public static func credLines<A: AchievementFields>(_ achievements: [A], max: Int = TrophyMeta.credentialChips,
-                                                     moreSuffix: String = TrophyMeta.moreInCase) -> [String] {
-    var lines = credChips(achievements.prefix(max))
-    if achievements.count > max { lines.append(moreLine(achievements.count - max, suffix: moreSuffix)) }
-    return lines
-  }
-  /// Every engraved line, no "+N more" — the hero expands to these in place.
-  public static func credChips<S: Sequence>(_ achievements: S) -> [String] where S.Element: AchievementFields {
-    achievements.map { a in
-      let m = meta(kind: a.kind, label: a.label)
-      return "\(m.icon) \(m.title)\(yearTag(earnedOn: a.earned_on))"
-    }
-  }
-  /// "+2 more in the case"
-  public static func moreLine(_ n: Int, suffix: String) -> String { "+\(n)\(suffix)" }
-
-  /// Y-33 · an engraved line as VoiceOver should HEAR it: the leading icon is
-  /// decoration ("fire", "chart increasing" is not a milestone), so it is
-  /// dropped. The visible line keeps it — this is the spoken twin only.
+  /// Y-33 · an engraved line as VoiceOver should HEAR it. Kept for the one
+  /// caller that still speaks a produced line; the emoji-prefixed credential
+  /// chips it was written for are deleted with the hero (YRS-03).
   public static func spoken(_ line: String) -> String {
     guard let first = line.first, !first.isLetter, !first.isNumber, first != "+" else { return line }
     return String(line.dropFirst()).trimmingCharacters(in: .whitespaces)
@@ -129,13 +124,17 @@ public enum TrophyMeta {
 /// One tile in the case.
 public struct TrophyTile: Sendable, Identifiable, Equatable {
   public let id: String
-  public let icon: String
+  /// The DRAWN mark's key — `CSTrophyMark.Mark`'s raw value, never an emoji.
+  public let glyph: String
+  /// The value inside a parametric mark (`80`, `4`), nil for a pure drawing.
+  public let numeral: String?
   public let title: String
   public let sub: String
   /// Y-20 · the round the milestone was earned on — a door to its receipt when set
   public let roundId: UUID?
-  public init(id: String, icon: String, title: String, sub: String, roundId: UUID? = nil) {
-    self.id = id; self.icon = icon; self.title = title; self.sub = sub; self.roundId = roundId
+  public init(id: String, glyph: String, numeral: String? = nil, title: String, sub: String, roundId: UUID? = nil) {
+    self.id = id; self.glyph = glyph; self.numeral = numeral
+    self.title = title; self.sub = sub; self.roundId = roundId
   }
 }
 
@@ -145,13 +144,18 @@ public enum TrophyCase {
     var out: [TrophyTile] = []
     for t in trophies {
       let key = t.id?.uuidString ?? "\(t.title ?? t.kind ?? "")|\(t.season_year.map(String.init) ?? t.earned_on ?? "")"
-      out.append(TrophyTile(id: "t" + key, icon: TrophyMeta.trophyIcon(t.kind), title: t.title ?? "—",
+      out.append(TrophyTile(id: "t" + key,
+                            glyph: TrophyMeta.trophyGlyph(kind: t.kind, placement: t.placement),
+                            title: t.title ?? "—",
                             sub: (t.subtitle ?? t.kind ?? "") + TrophyMeta.yearTag(seasonYear: t.season_year)))
     }
     for a in achievements {
       let key = "\(a.label ?? a.kind ?? "")|\(a.earned_on ?? "")"
       let m = TrophyMeta.meta(kind: a.kind, label: a.label)
-      out.append(TrophyTile(id: "a" + key, icon: m.icon, title: m.title,
+      // `low_round` carries its gross INSIDE the mark — the numeral is the
+      // achievement, and a rule under it is the product's own signature.
+      let numeral = m.glyph == "lowRound" ? (a.meta?["gross"]?.int).map(String.init) : m.numeral
+      out.append(TrophyTile(id: "a" + key, glyph: m.glyph, numeral: numeral, title: m.title,
                             sub: TrophyMeta.achSubtitle(kind: a.kind, label: a.label, meta: a.meta) + TrophyMeta.yearTag(earnedOn: a.earned_on),
                             roundId: a.round_id))
     }

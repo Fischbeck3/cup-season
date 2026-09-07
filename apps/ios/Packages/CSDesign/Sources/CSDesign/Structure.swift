@@ -138,7 +138,11 @@ public struct CSRule: View {
       case .page: return cs.gold
       // a bone panel is a light surface whichever room it is standing in, and
       // gold ink on bone is 1.68:1 — so both read the LIGHT gold, the bronze
-      case .leaf, .panel: return CSTokens.light.gold
+      // **Gold on paper is its own token.** It reads the LIGHT theme's gold
+      // in both printings, because the leaf does not invert — and it is a
+      // token rather than a reach into the other palette, so preflight 15 and
+      // the single-source check both cover it.
+      case .leaf, .panel: return cs.leafGold
       case .ceremony: return CSTokens.dark.ceremonyGold
       }
     }
@@ -261,9 +265,176 @@ public struct CSLeaf<Content: View>: View {
       .csBudget(nested: nested ? 1 : 0)
   }
 
-  /// The 2pt rule under an EARNED figure on a leaf. Reads `CSTokens.light.gold`
-  /// — the bronze — in BOTH themes, because gold ink on bone is 1.68:1.
-  public static func earnedRule() -> some View { CSRule(.heavy, metal: .earned, over: .leaf) }
+}
+
+/// The 2pt rule under an EARNED figure on a leaf. Reads `CSTokens.light.gold`
+/// — the bronze — in BOTH themes, because gold ink on bone is 1.68:1 and dark
+/// gold on bone at 2pt is a pale smear (D-6).
+///
+/// **It is not a static on `CSLeaf`**, which is generic over its content: a
+/// static member of a generic type cannot be named without its argument, so
+/// `CSLeaf.earnedRule()` does not compile in the one place the design asks
+/// for it. Same lesson as `CSCredentialGolfer` in Wave 2, one file over.
+public enum CSLeafRule {
+  public static func earned() -> some View { CSRule(.heavy, metal: .earned, over: .leaf) }
+}
+
+// MARK: - The record, printed
+
+/// **The archive, as a printed table on a leaf** (§9.8, `profile.md` §7).
+/// `year · competition · finish · money`, one row per season, newest first —
+/// and it is the one place §3.3's leaf licence applies on the profile,
+/// because a leaf must contain a grid and this is one.
+///
+/// **The earned mark, tightened** (§7 / D-5): **a WIN takes the gold rule; a
+/// podium takes a 2pt `ink` rule.** §9.8 gave gold to both, and 2nd of 8 is
+/// not silverware — the tightening keeps the viewport's gold budget honest
+/// without losing the podium's mark. The gold is `CSLeaf.earnedRule`, which
+/// reads the LIGHT theme's gold in both printings: the leaf does not invert,
+/// and dark gold on bone at 2pt is a pale smear (D-6).
+///
+/// **Gold ink on a leaf stays forbidden** — 1.68:1. The finish is `leafInk`
+/// whatever it was; the rule under it is what says it was won.
+///
+/// **The money column is optional and it is dropped when nothing produces
+/// it.** `CareerRecord.earningsCents` is a career total and `season_payouts`
+/// holds no rows in prod, so a per-season net does not exist — and the table
+/// runs three columns rather than four zeroes (`profile.md` §14.2's own
+/// degrade). A table is still a table.
+public struct CSRecordLeaf: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
+
+  public struct Row: Identifiable, Sendable {
+    public let id: String
+    /// `2026`. Absent rather than guessed.
+    public let year: String?
+    /// `The Fellas`
+    public let competition: String
+    /// `Season one` — the qualifier, in agate beside the name.
+    public let qualifier: String?
+    /// The place, as a FIGURE: `2` with the `ND` rider. nil where the season
+    /// has no ranked table, and `line` prints instead.
+    public let finish: Int?
+    /// The pre-formatted line the row falls back to (`FIRST TEE SAT AUG 30`,
+    /// `FORMING`) — §14.1's degrade, printed in `column` rather than as a
+    /// figure, so it is never mistaken for a place.
+    public let line: String?
+    public let won: Bool
+    /// `$40` / `−$20`. nil drops the whole column.
+    public let money: String?
+    public let spoken: String
+    public let open: (@MainActor @Sendable () -> Void)?
+
+    public init(id: String, year: String?, competition: String, qualifier: String?,
+                finish: Int?, line: String?, won: Bool, money: String? = nil,
+                spoken: String = "", open: (@MainActor @Sendable () -> Void)? = nil) {
+      self.id = id; self.year = year; self.competition = competition; self.qualifier = qualifier
+      self.finish = finish; self.line = line; self.won = won; self.money = money
+      self.spoken = spoken.isEmpty ? competition : spoken
+      self.open = open
+    }
+
+    /// The podium, and it is a podium only in a field that HAS one. Third of
+    /// three is last place, and an ink rule under it would read as a mark.
+    var podium: Bool { !won && (finish ?? 99) <= 3 }
+  }
+
+  let rows: [Row]
+  public init(_ rows: [Row]) { self.rows = rows }
+
+  /// The money column is DROPPED when nothing produces it — three columns
+  /// rather than four zeroes (`profile.md` §14.2). A table is still a table.
+  static func showsMoney(_ rows: [Row]) -> Bool { rows.contains { $0.money != nil } }
+  private var showsMoney: Bool { Self.showsMoney(rows) }
+
+  public var body: some View {
+    CSLeaf {
+      // §16A.3 · an unlabelled number column is a defect, not a minimalism.
+      // At the accessibility sizes the heads go and each row speaks its own
+      // facts instead (§16.3), because a four-column head at AX3 is four
+      // words stacked over one row.
+      if !typeSize.isA11y {
+        HStack(spacing: CSTokens.Space.s3) {
+          Text("Year").csType(.columnS, caps: true).foregroundStyle(cs.leafMut)
+            .frame(width: 42, alignment: .leading)
+          Text("Competition").csType(.columnS, caps: true).foregroundStyle(cs.leafMut)
+            .frame(maxWidth: .infinity, alignment: .leading)
+          Text("Finish").csType(.columnS, caps: true).foregroundStyle(cs.leafMut)
+            .frame(width: 52, alignment: .trailing)
+          if showsMoney {
+            Text("Money").csType(.columnS, caps: true).foregroundStyle(cs.leafMut)
+              .frame(width: 56, alignment: .trailing)
+          }
+        }
+        .accessibilityHidden(true)
+      }
+      ForEach(Array(rows.enumerated()), id: \.element.id) { i, r in
+        if i > 0 { CSRule(over: .leaf) }
+        row(r)
+      }
+    }
+  }
+
+  @ViewBuilder private func row(_ r: Row) -> some View {
+    let content = HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+      Text(r.year ?? "").csType(.columnS).foregroundStyle(cs.leafMut)
+        .frame(width: typeSize.isA11y ? nil : 42, alignment: .leading)
+      VStack(alignment: .leading, spacing: 2) {
+        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+          Text(r.competition).csType(.social).foregroundStyle(cs.leafInk)
+            .lineLimit(typeSize.isA11y ? 3 : 1).truncationMode(.tail)
+          if let q = r.qualifier, !typeSize.isA11y {
+            Text(q).csType(.agateS, caps: true).foregroundStyle(cs.leafMut).lineLimit(1)
+          }
+        }
+        if let q = r.qualifier, typeSize.isA11y {
+          Text(q).csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
+        }
+      }
+      .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+      finishCell(r)
+      if showsMoney {
+        // §9.5 · money is INK on a leaf too, and the sign is a word in the
+        // column head — never red and green.
+        Text(r.money ?? "").csType(.column).foregroundStyle(cs.leafInk)
+          .frame(width: typeSize.isA11y ? nil : 56, alignment: .trailing)
+      }
+    }
+    .frame(minHeight: 44)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(r.spoken)
+
+    if let open = r.open {
+      Button(action: open) { content.contentShape(Rectangle()) }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens the season")
+    } else {
+      content
+    }
+  }
+
+  @ViewBuilder private func finishCell(_ r: Row) -> some View {
+    VStack(alignment: .trailing, spacing: 3) {
+      if r.won {
+        Text("Won").csType(.nameS, caps: true).foregroundStyle(cs.leafInk)
+      } else if let f = r.finish {
+        // §1.7's one ordinal — uppercase, 0.46 em, ON THE BASELINE — and it is
+        // the figure's own rider, so the profile cannot cut a second form.
+        CSFigure(String(f), size: .s, label: nil, ordinal: CSOrdinal.suffix(f), over: .leaf)
+      } else if let line = r.line, !line.isEmpty {
+        Text(line).csType(.columnS, caps: true).foregroundStyle(cs.leafMut)
+          .lineLimit(2).multilineTextAlignment(.trailing)
+      }
+      // the mark: gold for a win, ink for a podium, nothing otherwise
+      if r.won {
+        CSLeafRule.earned()
+      } else if r.podium {
+        CSRule(.heavy, over: .leaf)
+      }
+    }
+    .frame(width: typeSize.isA11y ? nil : 52, alignment: .trailing)
+  }
 }
 
 // MARK: - The plate

@@ -54,7 +54,15 @@ import SwiftUI
     // reaches the web and is silently absent from the phone. That is how
     // `space`, `alpha` and `track` came to be cited by every spec and present
     // in neither client. If this number moves, say why in the same commit.
-    #expect(CSTokens.tokenNames.count == 80)
+    //
+    // **81 since Wave 3**: `object.leaf-gold` — gold ON PAPER, the light
+    // theme's gold pinned in BOTH printings, because the leaf does not invert
+    // and dark gold at 2pt on bone is a pale smear (`profile.md` D-6). It
+    // exists so `CSRule(.heavy, metal: .earned, over: .leaf)` and the web's
+    // `.csleaf .mark.won` read the same token rather than one of them reaching
+    // into the other palette and the other hard-coding a hex.
+    #expect(CSTokens.tokenNames.count == 81)
+    #expect(CSTokens.dark.leafGold == CSTokens.light.leafGold, "gold on paper does not turn over")
     #expect(CSTokens.defaultTheme == .dark)
     #expect(CSTokens.Radius.r == 16 && CSTokens.Radius.rc == 10 && CSTokens.Radius.rs == 24)
     #expect(CSTokens.Radius.p == 3 && CSTokens.Radius.rx == 28, "D266 · the panel's corner and the object's")

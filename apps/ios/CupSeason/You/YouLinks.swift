@@ -30,6 +30,11 @@ struct YouLinks {
   /// hidden when nil.
   var stageRound: ((_ playOn: String, _ tag: UUID) -> Void)? = nil
 
+  /// Wave 3 · a rival slat on the You root opens the head-to-head, which is
+  /// the whole point of putting rivals on the page: a name here is a record
+  /// there. nil falls back to the person page, which still holds the record.
+  var openHeadToHead: ((UUID) -> Void)? = nil
+
   /// The bag door, added after the rest — the initialiser already takes
   /// twelve arguments and a thirteenth positional one is how a call site ends
   /// up wiring the wrong closure.
@@ -38,6 +43,19 @@ struct YouLinks {
     copy.openBag = open
     return copy
   }
+
+  /// Same reason as `withBag`: a named builder rather than a fourteenth
+  /// positional closure.
+  func withHeadToHead(_ open: @escaping (UUID) -> Void) -> YouLinks {
+    var copy = self
+    copy.openHeadToHead = open
+    return copy
+  }
+
+  /// Where a rival's row goes — the head-to-head when the host wired one,
+  /// their card otherwise. A door that cannot open is never rendered, and
+  /// this one always can.
+  func rival(_ id: UUID) { (openHeadToHead ?? openTourCard)(id) }
 
   @MainActor static let none = YouLinks(openBuddies: {}, openSettings: {}, openFeedback: {}, openFounderDesk: {}, postRound: {},
                              openTourCard: { _ in }, openReceipt: { _ in })

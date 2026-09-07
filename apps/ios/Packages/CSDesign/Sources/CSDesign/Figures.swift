@@ -117,7 +117,7 @@ public struct CSFigure: View {
     switch over {
     case .page: metal == .earned ? cs.gold : cs.ink
     case .leaf: cs.leafInk
-    case .panel: metal == .earned ? CSTokens.light.gold : cs.panelInk
+    case .panel: metal == .earned ? cs.leafGold : cs.panelInk
     case .ceremony: CSTokens.dark.ceremonyInk
     }
   }
@@ -170,7 +170,16 @@ public struct CSFigureRun: View {
   }
 
   public var body: some View {
+    let pt = CSType.renderedSize(role, typeSize)
+    // **The run carries its OWN role.** It did not, and that was invisible on
+    // the two surfaces that shipped it first — a `.body` sentence inherits a
+    // system font that happens to look close. On the Record page's `lead`,
+    // where the role is New York at 28, the same omission printed the
+    // product's one serif sentence in SF Pro. The base font is set here, on
+    // the whole string, and the marked runs override it.
     Text(attributed)
+      .tracking(pt * role.track)
+      .lineSpacing(max(0, pt * (role.leading - 1)))
   }
 
   /// The board face at the SENTENCE's own size, so the run sits on the
@@ -178,6 +187,7 @@ public struct CSFigureRun: View {
   var attributed: AttributedString {
     var s = AttributedString(text)
     let pt = CSType.renderedSize(role, typeSize)
+    s.font = CSType.font(role, typeSize)
     for r in runs {
       guard let lower = AttributedString.Index(r.lowerBound, within: s),
             let upper = AttributedString.Index(r.upperBound, within: s) else { continue }

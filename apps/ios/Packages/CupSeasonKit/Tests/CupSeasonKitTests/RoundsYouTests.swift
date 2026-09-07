@@ -283,12 +283,33 @@ import Foundation
     let a = Achievement(kind: "sub_80", label: "Broke 80", earned_on: "2026-06-14", meta: .object(["gross": .number(79)]))
     let pb = Achievement(kind: "personal_best", label: nil, earned_on: "2026-06-14", meta: .object(["diff": .number(7.8)]))
     let tiles = TrophyCase.tiles(trophies: [t], achievements: [a, pb])
-    #expect(tiles[0].icon == "⚔️" && tiles[0].title == "The Grudge" && tiles[0].sub == "The Ryder · '26")
-    #expect(tiles[1].icon == "🔥" && tiles[1].title == "Broke 80" && tiles[1].sub == "79 gross · '26")
+    #expect(tiles[0].glyph == "duel" && tiles[0].title == "The Grudge" && tiles[0].sub == "The Ryder · '26")
+    #expect(tiles[1].glyph == "threshold" && tiles[1].numeral == "80"
+            && tiles[1].title == "Broke 80" && tiles[1].sub == "79 gross · '26")
     // D210 · the banned word is off the tile; the figure is named for what it is
-    #expect(tiles[2].icon == "📉" && tiles[2].title == "Personal best" && tiles[2].sub == "7.8 vs course · '26")
-    #expect(TrophyMeta.trophyIcon("bracket") == "🥊" && TrophyMeta.trophyIcon("league") == "🏆")
+    #expect(tiles[2].glyph == "personalBest" && tiles[2].title == "Personal best" && tiles[2].sub == "7.8 vs course · '26")
+    #expect(TrophyMeta.trophyGlyph(kind: "bracket", placement: "winner") == "bracket")
+    #expect(TrophyMeta.trophyGlyph(kind: "league", placement: "winner") == "cup")
+    #expect(TrophyMeta.trophyGlyph(kind: "league", placement: "runner_up") == "runnerUp")
     #expect(TrophyMeta.meta(kind: "mystery", label: nil).title == "Milestone")
+    #expect(TrophyMeta.meta(kind: "mystery", label: nil).glyph == "medal")
+  }
+
+  /// §5.2 · **two achievements may never share a glyph.** The shipped case
+  /// drew 🎯 for both `sub_100` and `sub_90` and 📈 for both `streak_4` and
+  /// `streak_8` — four things, two marks, each pair under a subtitle that
+  /// differs by one word. The mark plus its numeral is the identity now, and
+  /// this asserts that the pair is unique across every kind the case knows.
+  @Test func noTwoAchievementsShareAMark() {
+    var seen = Set<String>()
+    for (kind, m) in TrophyMeta.ach {
+      let mark = m.glyph + "|" + (m.numeral ?? "")
+      #expect(!seen.contains(mark), "\(kind) reuses \(mark)")
+      seen.insert(mark)
+    }
+    #expect(seen.count == TrophyMeta.ach.count)
+    // and none of them is the pennant (LINT-28)
+    #expect(!TrophyMeta.ach.values.contains { $0.glyph == "pennant" })
   }
 
   /// Y-20 · `round_id` is the door to the receipt, and it is skew-safe: the
@@ -313,18 +334,21 @@ import Foundation
     #expect(CareerRecord.parse(.object([:])).items.isEmpty)
   }
 
-  @Test func credentialLines() {
+  /// The credential's emoji chips are DELETED with the hero (YRS-03, §5.3).
+  /// What replaced them is the trophy slat, so the test that held the chip
+  /// count now holds the thing that took its place: a milestone reaches the
+  /// case as a drawn mark, a title and a dated sub-line, and the year tag it
+  /// used to carry into the chip is still on the row.
+  @Test func aMilestoneReachesTheCaseAsADrawnMark() {
     let ach = (1...5).map { Achievement(kind: "sub_90", label: nil, earned_on: "2026-0\($0)-01", meta: nil) }
-    // P3 · one constant for both credentials (the hero and the Tour Card)
-    let lines = TrophyMeta.credLines(ach)
-    #expect(TrophyMeta.credentialChips == 3)
-    #expect(lines.count == 4 && lines[0] == "🎯 Broke 90 · '26" && lines[3] == "+2 more in the case")
-    // the hero engraves them all and expands to the rest in place
-    #expect(TrophyMeta.credChips(ach).count == 5)
-    #expect(TrophyMeta.moreLine(2, suffix: TrophyMeta.moreInCase) == "+2 more in the case")
+    let tiles = TrophyCase.tiles(trophies: [], achievements: ach)
+    #expect(tiles.count == 5)
+    #expect(tiles[0].glyph == "threshold" && tiles[0].numeral == "90")
+    #expect(tiles[0].title == "Broke 90" && tiles[0].sub.hasSuffix("'26"))
   }
   @Test func onlyArrivalsEngrave() {
-    let tiles = [TrophyTile(id: "a1", icon: "⛳", title: "First round", sub: "Posted"), TrophyTile(id: "t2", icon: "🏆", title: "Cup", sub: "")]
+    let tiles = [TrophyTile(id: "a1", glyph: "firstCard", title: "First round", sub: "Posted"),
+                 TrophyTile(id: "t2", glyph: "cup", title: "Cup", sub: "")]
     #expect(TrophySeenStore.fresh(tiles, seen: nil).isEmpty)           // first paint is a boot render
     #expect(TrophySeenStore.fresh(tiles, seen: ["a1"]) == ["t2"])
   }
@@ -473,5 +497,61 @@ import Foundation
     #expect(w.sub == "4 rounds shared · one tap stages a Saturday")
     #expect(LastRoundWith.nextSaturday(from: CSDate.local("2026-08-27", calendar: cal)!, calendar: cal) == "2026-08-29")   // Thu → Sat
     #expect(LastRoundWith.nextSaturday(from: CSDate.local("2026-08-29", calendar: cal)!, calendar: cal) == "2026-09-05")   // Sat → next Sat
+  }
+}
+
+// MARK: - Wave 3 · the record's own fields
+
+/// `profile.md` §14.1 · the finish as FIELDS, not as prose. `LeagueRecordRow`
+/// carried one pre-formatted string, and the leaf cannot set a figure with an
+/// ordinal rider or hang an earned rule off `"2ND OF 12 · 41 PTS"`. Nothing
+/// new is READ for these — the rank was already computed off the same
+/// standings and thrown away into that string.
+@Suite struct RecordFieldsTests {
+  private func season(_ status: String) -> Me.Season {
+    Me.Season(id: UUID(), number: 2, starts_on: "2026-03-14", ends_on: "2026-09-30",
+              status: status, timezone: nil, grace_hours: nil, champion_squad_id: nil,
+              champion_member_id: nil, points_king_member_id: nil, tiebreak_rung: nil)
+  }
+
+  @Test func aWinIsAFinishedSeasonAndNothingElse() {
+    let s = season("active")
+    let me = UUID(), them = UUID()
+    let rows = [IndividualStanding(season_id: s.id, member_id: me, points: 41, rounds_posted: 9),
+                IndividualStanding(season_id: s.id, member_id: them, points: 20, rounds_posted: 8)]
+    // leading in week nine is not a title
+    let live = LeagueRecord.finish(phase: "season", season: s, standings: rows, myMemberId: me)
+    #expect(live?.finish == 1 && live?.of == 2 && live?.won == false)
+    // the same table, once the season is complete
+    let done = LeagueRecord.finish(phase: "season", season: season("complete"), standings: [], myMemberId: me)
+    #expect(done == nil)                                     // no ranked rows → no finish, no guess
+  }
+
+  /// A season with no ranked table yet has no finish. The leaf then prints
+  /// `line` and hangs no rule off it (§14.1's own degrade), rather than
+  /// inventing a place.
+  @Test func anUnrankedSeasonHasNoFinish() {
+    let s = season("active")
+    #expect(LeagueRecord.finish(phase: "setup", season: s, standings: [], myMemberId: UUID()) == nil)
+    #expect(LeagueRecord.finish(phase: "draft", season: s, standings: [], myMemberId: UUID()) == nil)
+    #expect(LeagueRecord.finish(phase: "season", season: nil, standings: [], myMemberId: UUID()) == nil)
+  }
+
+  @Test func theYearAndTheQualifierComeOffTheSeason() {
+    #expect(LeagueRecord.year("2026-03-14") == 2026)
+    #expect(LeagueRecord.year("not a date") == nil)
+    #expect(LeagueRecord.year(nil) == nil)
+    #expect(LeagueRecord.spelledSeason(1) == "Season one")
+    #expect(LeagueRecord.spelledSeason(13) == "Season 13")   // past twelve it is a numeral (L-33)
+    #expect(LeagueRecord.spelledSeason(0) == nil)
+  }
+
+  /// L-33 · one producer for "the voice writes small numbers as words". It was
+  /// written four times in this repo and the four disagreed about the ceiling.
+  @Test func theVoiceSpellsSmallNumbersOnce() {
+    #expect(CSCopy.spelled(3) == "three")
+    #expect(CSCopy.spelled(12) == "twelve")
+    #expect(CSCopy.spelled(13) == "13")
+    #expect(CSCopy.spelled(0) == "zero")
   }
 }

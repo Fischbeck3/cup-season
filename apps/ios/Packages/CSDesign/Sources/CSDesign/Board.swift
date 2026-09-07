@@ -96,7 +96,11 @@ public struct CSSlat<Trailing: View>: View {
 
   let rank: Int
   let field: CSRankRail.Field
-  let face: CSFace.Model
+  /// **nil draws no disc**, and that is not a degrade — the season slat on a
+  /// profile is a LEAGUE's row, not a person's, and a face there would seat
+  /// the golfer beside their own position twice. Every row about a PERSON
+  /// passes one; `CSFace` is still the only legal way to draw one (§6).
+  let face: CSFace.Model?
   let name: String
   /// The sub-line is agate **in sentence case** and in the product's voice —
   /// "3 rounds · held", "1 of 4 counting · one short" — never *floor*, which is
@@ -110,7 +114,7 @@ public struct CSSlat<Trailing: View>: View {
   let gap: String?
   let trailing: Trailing
 
-  public init(rank: Int, field: CSRankRail.Field, face: CSFace.Model,
+  public init(rank: Int, field: CSRankRail.Field, face: CSFace.Model?,
               name: String, sub: String, squad: (Color, String)? = nil,
               movement: CSMovement.State?, gap: String?,
               @ViewBuilder trailing: () -> Trailing) {
@@ -125,7 +129,7 @@ public struct CSSlat<Trailing: View>: View {
       A11yStack(spacing: 0, columnSpacing: CSTokens.Space.s2) {
         HStack(spacing: 0) {
           CSRankRail(rank, field: field)
-          CSFace(face, size: .slat).padding(.leading, CSSlatMetrics.railGap)
+          if let face { CSFace(face, size: .slat).padding(.leading, CSSlatMetrics.railGap) }
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
             Text(name).csType(.name).foregroundStyle(cs.ink)
               .lineLimit(1).truncationMode(.tail)
@@ -314,36 +318,130 @@ public struct CSHoleStrip: View {
 
 // MARK: - The meeting tape
 
-/// Ticks above and below one rule — **the viewer filled, the rival outlined**,
-/// and one key line rather than a legend.
+/// **Chart 5 (§9.10), and the head-to-head's signature.** One 2pt `ink` rule
+/// across the measure; every meeting is a tick — **above the rule if the
+/// viewer won it, below if the rival did** — in chronological order, oldest
+/// first, **the viewer's filled `ink` and the rival's outlined 1.7pt `mut`**.
+/// A halved meeting is a flat `mut` bar centred on the rule, because a half
+/// belongs to neither side and drawing it above or below would be a lie in
+/// the one channel the graphic uses.
+///
+/// **NO LEGEND.** §9.10 bans a legend on a chart in the same breath as it
+/// bans an axis, so the two row labels ride the tape's own right margin as
+/// part of the graphic (they name the two rows, which is what an axis label
+/// is — not a key mapping colour to meaning) and the section head carries the
+/// order. Under it, one line: *"One square is one win."* — four words, filed
+/// by the blind review, which is what turns an original graphic into an
+/// unambiguous one.
+///
+/// **Countable, and colour-independent**: position and fill are the channels,
+/// and neither is a hue. It is a *tally*, not a chart — no axis, no gridline,
+/// no library.
 public struct CSTape: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
+
   public struct Meeting: Identifiable, Sendable {
     public let id: Int
-    /// true when the viewer won it.
-    public let viewer: Bool
-    public init(id: Int, viewer: Bool) { self.id = id; self.viewer = viewer }
+    /// true = the viewer won it · false = the rival did · **nil = halved**,
+    /// which is neither and is drawn as neither.
+    public let viewer: Bool?
+    public init(id: Int, viewer: Bool?) { self.id = id; self.viewer = viewer }
   }
+
   let meetings: [Meeting]
+  /// The one key line. `"One square is one win."` — sentence case, `agateS`.
   let key: String
-  public init(meetings: [Meeting], key: String) { self.meetings = meetings; self.key = key }
+  /// The two row labels, which are the graphic's own axis labels rather than
+  /// a legend. Pass `nil` to draw the tape bare.
+  let rows: (mine: String, theirs: String)?
+  /// The first and last dates, `agateS`, under the two ends of the rule.
+  let dates: (first: String, last: String)?
+  /// What VoiceOver says — **one element for the whole tape**, in the
+  /// product's voice.
+  let spoken: String
+
+  public init(meetings: [Meeting], key: String,
+              rows: (mine: String, theirs: String)? = nil,
+              dates: (first: String, last: String)? = nil,
+              spoken: String = "") {
+    self.meetings = meetings; self.key = key; self.rows = rows
+    self.dates = dates
+    self.spoken = spoken.isEmpty ? key : spoken
+  }
+
+  /// **Every meeting gets an equal slot across the whole measure**, and the
+  /// tick sits centred in it. Laying the ticks out at a fixed width with a
+  /// fixed gap instead packs eleven meetings into the left two thirds and
+  /// leaves the rule running on alone — which reads as a tape that stopped
+  /// rather than a rivalry that is still going.
+  ///
+  /// 17 × 16 is the design's tick; it shrinks inside a crowded slot, never
+  /// below 6, so a long rivalry stays ONE row. Two rows would be two
+  /// chronologies on one page.
+  func tickWidth(_ slot: CGFloat) -> CGFloat {
+    max(6, min(17, slot - CSTokens.Space.s1))
+  }
+
+  /// One meeting's share of the measure — the tests' window onto the two
+  /// lines of arithmetic that decide whether a long rivalry stays one row.
+  func slotWidth(_ measure: CGFloat) -> CGFloat {
+    meetings.isEmpty ? measure : measure / CGFloat(meetings.count)
+  }
+  func tick(_ measure: CGFloat) -> CGFloat { tickWidth(slotWidth(measure)) }
+  /// What VoiceOver hears — one element for the whole tape.
+  var spokenLabel: String { spoken }
 
   public var body: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-      ZStack {
-        Rectangle().fill(cs.rule).frame(height: CSTokens.Space.hair)
-        HStack(spacing: CSTokens.Space.s1) {
-          ForEach(meetings) { m in
-            Rectangle()
-              .fill(m.viewer ? cs.ink : Color.clear)
-              .frame(width: 6, height: 14)
-              .overlay(Rectangle().stroke(cs.ink, lineWidth: m.viewer ? 0 : 1.2))
-              .offset(y: m.viewer ? -8 : 8)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+        GeometryReader { g in
+          ZStack(alignment: .leading) {
+            Rectangle().fill(cs.ink).frame(height: 2)
+            let slot = meetings.isEmpty ? g.size.width : g.size.width / CGFloat(meetings.count)
+            HStack(alignment: .center, spacing: 0) {
+              ForEach(meetings) { m in
+                tick(m, width: tickWidth(slot)).frame(width: slot, alignment: .leading)
+              }
+            }
           }
+          .frame(height: 46, alignment: .center)
+        }
+        .frame(height: 46)
+        if let rows, !typeSize.isA11y {
+          VStack(alignment: .trailing, spacing: 14) {
+            Text(rows.mine).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            Text(rows.theirs).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          }
+          .fixedSize()
         }
       }
-      .frame(height: 34)
+      if let dates {
+        HStack {
+          Text(dates.first).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          Spacer(minLength: CSTokens.Space.s3)
+          Text(dates.last).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
+      }
       Text(key).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+    }
+    // ONE element. Eleven ticks read one at a time is a golfer counting
+    // squares out loud; the sentence is what the graphic means.
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(spoken)
+  }
+
+  @ViewBuilder private func tick(_ m: Meeting, width: CGFloat) -> some View {
+    switch m.viewer {
+    case .some(true):
+      Rectangle().fill(cs.ink).frame(width: width, height: 16).offset(y: -12)
+    case .some(false):
+      Rectangle().fill(Color.clear).frame(width: width, height: 16)
+        .overlay(Rectangle().stroke(cs.mut, lineWidth: 1.7))
+        .offset(y: 12)
+    case .none:
+      // halved — centred on the rule, and it belongs to neither row
+      Rectangle().fill(cs.mut).frame(width: width, height: 2)
     }
   }
 }

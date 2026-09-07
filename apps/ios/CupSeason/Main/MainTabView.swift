@@ -113,6 +113,21 @@ enum CSDevHatch {
     #endif
     return nil
   }
+  /// `-cs_dev_h2h_fixture` substitutes a FIXTURE record for the head-to-head's
+  /// read, so **the meeting tape can be photographed** (Wave 3). The signed-in
+  /// account's buddies have no head-to-head record at all — `-cs_dev_open h2h`
+  /// takes the first buddy it can find and that buddy's record is empty — so
+  /// the surface's signature graphic could not otherwise be seen on any device
+  /// this repo has. Same posture as `-cs_dev_home_state`: DEBUG only, never
+  /// written to the server, and the screen it draws is a fixture rather than
+  /// anybody's real rivalry.
+  static var h2hFixture: Bool {
+    #if DEBUG
+    return ProcessInfo.processInfo.arguments.contains("-cs_dev_h2h_fixture")
+    #else
+    return false
+    #endif
+  }
   /// True while Home is showing a FIXTURE. The three sub-views that make their
   /// own server reads — the invites banner, the buddy requests, the Up Next
   /// chips and the Coming-up section — stand down under it, because a
@@ -373,8 +388,13 @@ struct MainTabView: View {
             case .settings: CardAndSettingsScreen()
             case .addGhin: CardAndSettingsScreen(focus: .ghin)
             // D232 · the record is a DESTINATION, not a section
+            // Wave 3 · a name on the record IS a record: the row opens the
+            // head-to-head, not the card the golfer just came from.
             case .record: RecordPage(links: youLinks,
-                                     openHeadToHead: { openPerson($0) })
+                                     openHeadToHead: { id in
+                                       tab = .golfers
+                                       golfersPath.append(GolfersRoute.headToHead(id))
+                                     })
             }
           }
       }
@@ -1027,6 +1047,9 @@ struct MainTabView: View {
       stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) }
     )
     .withBag { presenter.showBag = true }
+    // Wave 3 · a rival slat on You opens the head-to-head — the whole point of
+    // putting rivals on the page: a name here is a record there.
+    .withHeadToHead { id in tab = .golfers; golfersPath.append(GolfersRoute.headToHead(id)) }
   }
 }
 

@@ -590,10 +590,15 @@ public struct CSCredential<Plate: View>: View {
         ForEach(Array(golfer.figures.enumerated()), id: \.offset) { _, f in
           VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
             CSFigure(f.value, size: .m, label: nil, ordinal: f.ordinal, over: .ceremony)
+            // **A label truncates before it touches the next one.** The
+            // columns are equal thirds, so `HANDICAP INDEX` at agateS fills
+            // 118 of its 120 and ran straight into `ROUNDS` with a 2pt gap —
+            // one label, read as two words of a third. The gutter is inside
+            // the cell, so truncation starts a word earlier.
             Text(f.label).csType(.agateS, caps: true)
               .foregroundStyle(CSTokens.dark.ceremonyMut)
               .lineLimit(1).truncationMode(.tail)
-              .frame(width: column, alignment: .leading)
+              .frame(width: max(0, column - CSTokens.Space.s2), alignment: .leading)
           }
           .frame(width: column, alignment: .leading)
         }

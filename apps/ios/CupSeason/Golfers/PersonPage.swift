@@ -95,9 +95,12 @@ struct PersonPage: View {
     // rather than by the screen.
     action(p)
 
-    formBlock(c)
+    // §D-2's order, and the spec argues for it by name: `UI_SYSTEM` §15.2
+    // leaves COMPETITION out of the profile entirely and `BRIEF` §10 names it
+    // as the second tier. The materials are unchanged; only the order is.
     leagueBlock(p)
     rivalryBlock(c, name: p.displayName)
+    formBlock(c)
     coursesBlock(c, isMe: p.isMe)
     bagBlock(isMe: p.isMe)
 
@@ -274,7 +277,7 @@ struct PersonPage: View {
 
   /// `s5` 32 between sections — `CSSectionHead` carries 10 of it itself.
   private func sectionHead(_ title: String, count: String?) -> some View {
-    CSSectionHead(title, count: count).padding(.top, CSTokens.Space.s5 - 10)
+    ProfileHead(title, count: count)
   }
 
   // MARK: - FORM
@@ -285,38 +288,8 @@ struct PersonPage: View {
       firstCard(c)
     } else {
       sectionHead("Form", count: CredentialCopy.formCount(rounds.count))
-      // oldest → newest, left to right, which is how a form line is read.
-      let shown = Array(rounds.reversed())
-      let best = shown.compactMap(\.gross).min()
-      // **Fewer than five rounds → only the rounds that exist, left-flush, on
-      // a rule spanning only them.** No blank slots and no em dash: three
-      // empty slots make a two-round golfer's row read as a five-round row
-      // with failures in it, and the head's count is the honest statement.
-      HStack(alignment: .top, spacing: CSTokens.Space.s3) {
-        ForEach(Array(shown.enumerated()), id: \.offset) { i, r in
-          formColumn(r, best: best != nil && r.gross == best
-                             && shown.firstIndex(where: { $0.gross == best }) == i)
-        }
-        if shown.count < 5 {
-          ForEach(shown.count..<5, id: \.self) { _ in Color.clear.frame(height: 1) }
-        }
-      }
-      .padding(.top, CSTokens.Space.s3)
+      ProfileFormRow(rounds: rounds)
     }
-  }
-
-  private func formColumn(_ r: TourCard.Recent, best: Bool) -> some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-      CSFigure(r.gross.map(String.init) ?? "—", size: .s,
-               metal: best ? .earned : .ink, label: nil)
-      CSRule(.heavy, metal: best ? .earned : .ink)
-      Text(RivalryCopy.monthDay(r.playedOn)).csType(.agateS, caps: true)
-        .foregroundStyle(best ? cs.gold : cs.mut)
-        .padding(.top, CSTokens.Space.s1)
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("\(r.gross.map(String.init) ?? "no round"), \(RivalryCopy.monthDaySpoken(r.playedOn))\(best ? ", their best" : "")")
   }
 
   /// §6.2 · a golfer with no rounds. **A fact about the world, never the
@@ -351,42 +324,10 @@ struct PersonPage: View {
   /// golfer being viewed, so on somebody else's card the whole block is absent
   /// (§6.3) rather than carrying a rank nobody computed.
   @ViewBuilder private func leagueBlock(_ p: TourCard.Profile) -> some View {
-    if p.isMe, let m = standing, let st = m.standing {
-      sectionHead(m.name, count: weekCount(m))
-      CSSlat(rank: st.rank,
-             field: .mine,
-             face: face(p, photo: nil),
-             name: "You",
-             sub: countingSub(m),
-             movement: movement(st),
-             gap: st.gap_to_leader.map { $0 > 0 ? "+\(Int($0))" : "" } ?? "") {
-        // the trailing column repeats down a table, so it carries no rule and
-        // no label — column position is already the hierarchy (§9.2)
-        if let pts = st.points { CSFigure(String(Int(pts)), size: .m, label: nil) }
-      }
-      .padding(.horizontal, -CSTokens.Space.gutter)
-      .padding(.top, CSTokens.Space.s3)
-      CSDoor(.link("\(m.name) table", { openCompetition(m.league_id, .table) }))
-        .padding(.top, CSTokens.Space.s3)
+    if p.isMe, let m = standing {
+      ProfileSeasonBlock(membership: m,
+                         openTable: { openCompetition(m.league_id, .table) })
     }
-  }
-
-  private func weekCount(_ m: Me.Membership) -> String? {
-    guard let s = m.season, let w = s.week_no, let total = s.weeks_total else { return nil }
-    return "Week \(w) of \(total)"
-  }
-
-  private func countingSub(_ m: Me.Membership) -> String {
-    let cap = m.settings?.counting_cap ?? 0
-    guard cap > 0 else {
-      return m.standing?.points.map { "\(Int($0)) points" } ?? ""
-    }
-    return "Best \(cap) count"
-  }
-
-  private func movement(_ st: Me.Standing) -> CSMovement.State? {
-    guard let prev = st.prev_rank, prev != st.rank else { return nil }
-    return prev > st.rank ? .up(prev - st.rank) : .down(st.rank - prev)
   }
 
   /// The head-to-head, as an overlapping pair rather than as a chip: **no
@@ -459,51 +400,15 @@ struct PersonPage: View {
   /// margin, which is what the system says a course with none of the three
   /// legal images does. Fake bars as ornament are less premium than nothing.
   @ViewBuilder private func coursesBlock(_ c: TourCard, isMe: Bool) -> some View {
-    if !c.courses.isEmpty {
-      sectionHead("Courses", count: CredentialCopy.coursesCount(c.courses.count))
-      VStack(spacing: 0) {
-        ForEach(Array(c.courses.prefix(3).enumerated()), id: \.offset) { _, course in
-          VStack(spacing: 0) {
-            CSRule()
-            HStack(alignment: .center, spacing: CSTokens.Space.s3) {
-              VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-                Text(RoundCopy.course(course.name)).csType(.social).foregroundStyle(cs.ink)
-                  .lineLimit(1).truncationMode(.tail)
-                let sub = CredentialCopy.courseSub(
-                  city: nil,
-                  isHome: c.profile.homeCourse.map { RoundCopy.course($0) == RoundCopy.course(course.name) } ?? false,
-                  lastPlayed: course.lastPlayed, isMe: isMe)
-                if !sub.isEmpty {
-                  Text(sub).csType(.agateS, caps: true).foregroundStyle(cs.mut).lineLimit(1)
-                }
-              }
-              .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-              Text("\(course.rounds) round\(course.rounds == 1 ? "" : "s")")
-                .csType(.agateS, caps: true).foregroundStyle(cs.mut)
-            }
-            .frame(minHeight: 52)
-          }
-          .accessibilityElement(children: .combine)
-        }
-      }
-      .padding(.top, CSTokens.Space.s3)
-      if c.courses.count > 3 {
-        CSDoor(.link("All \(c.courses.count) courses", { model.showAllCourses.toggle() }))
-          .padding(.top, CSTokens.Space.s3)
-      }
-      if model.showAllCourses {
-        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          ForEach(Array(c.courses.dropFirst(3).enumerated()), id: \.offset) { _, course in
-            HStack {
-              Text(RoundCopy.course(course.name)).csType(.body).foregroundStyle(cs.ink)
-              Spacer()
-              Text("\(course.rounds)").csType(.column).foregroundStyle(cs.mut)
-            }
-          }
-        }
-        .padding(.top, CSTokens.Space.s3)
-      }
-    }
+    // §6 · on your own page this is "courses kept"; on somebody else's it
+    // becomes COURSES YOU BOTH KEEP, which is the social fact and the better
+    // one. The shared list carries no round count of its own — `shared_courses`
+    // returns `{name, mine, theirs}` — so the not-me block draws the courses
+    // they keep and the overlap sentence beneath says which you share.
+    ProfileCoursesBlock(courses: c.courses,
+                        homeCourse: c.profile.homeCourse,
+                        isMe: isMe,
+                        head: isMe ? "Courses kept" : "Courses")
   }
 
   /// D262 · R-O · the bag. Drawn only when the read answered AND there is
@@ -648,7 +553,6 @@ final class PersonModel {
   var isMe = false
   var name: String?
   var marker: String?
-  var showAllCourses = false
 
   private let repo = TourCardRepository()
   private let people = PeopleService()

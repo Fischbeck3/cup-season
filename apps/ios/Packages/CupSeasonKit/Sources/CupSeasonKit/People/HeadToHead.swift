@@ -335,7 +335,7 @@ public enum HeadToHeadCopy {
   // MARK: bits
 
   /// "March" from "2026-03-14" — by parts, never through an ISO parser (L-07).
-  static func monthYear(_ iso: String) -> String? {
+  public static func monthYear(_ iso: String) -> String? {
     let parts = iso.split(separator: "-").compactMap { Int($0) }
     let mos = ["January", "February", "March", "April", "May", "June",
                "July", "August", "September", "October", "November", "December"]
@@ -343,11 +343,7 @@ public enum HeadToHeadCopy {
     return mos[parts[1] - 1]
   }
 
-  /// The voice writes small numbers as words (L-33). Anything past twelve is
-  /// a figure, because "seventeen" reads as a stumble in a scoreline.
-  static func spelled(_ n: Int) -> String {
-    let w = ["zero", "one", "two", "three", "four", "five", "six",
-             "seven", "eight", "nine", "ten", "eleven", "twelve"]
-    return (0...12).contains(n) ? w[n] : String(n)
-  }
+  /// The voice writes small numbers as words (L-33) — `CSCopy.spelled` is
+  /// the one place that rule lives now.
+  static func spelled(_ n: Int) -> String { CSCopy.spelled(n) }
 }

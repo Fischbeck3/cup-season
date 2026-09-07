@@ -1,39 +1,16 @@
-// Cup Season — the You tab's rows (IOS-019 rule 2): a section is an eyebrow
-// over a hairline, and what sits under it is rows separated by hairlines —
-// never a card inside a card, never a grid of tiles.
+// Cup Season — the settings-list row.
+//
+// **RETIRED (Wave 3). Removed in Wave 8.** `YouStatRow` is deleted here with
+// the You tab's stat sections — a golf number set label-left / value-right in
+// a settings list is YRS-01 and YRS-02, and the figures now live on rules.
+// `YouDoorRow` survives ONLY because three surfaces this wave does not own
+// still draw it: `Settings/CardAndSettingsScreen`, `Golfers/FriendsBoard` and
+// `You/GuideSheets`. Wave 8 takes those three and this file goes with them.
+// Nothing new may be written against it — `LINT-30` counts the sites.
 
 import SwiftUI
 import CSDesign
 import CupSeasonKit
-
-/// A stat as a row: label + sub on the left, the mono figure on the right.
-/// Vertical rhythm belongs to `CSRow` (Y-35) — this never adds its own.
-struct YouStatRow: View {
-  @Environment(\.cs) private var cs
-  let label: String
-  let value: String
-  var sub: String? = nil
-  var tone: Color? = nil
-  /// Y-33 · an em dash is a glyph, not a sentence: VoiceOver reads the row's
-  /// value as "not yet" so a golfer is told the figure is missing, not shown
-  /// a pause. The sub beside it says why.
-  private var spokenValue: String { value == "—" ? YouCopy.notYet : value }
-  var body: some View {
-    // label + sub beside the figure; the figure drops under them at the accessibility sizes
-    A11yStack(rowAlignment: .firstTextBaseline, spacing: 12, columnSpacing: 2) {
-      VStack(alignment: .leading, spacing: 2) {
-        Text(label).font(CSFont.subhead).foregroundStyle(cs.ink)
-        if let sub { Text(sub).font(CSFont.label).tracking(0.8).textCase(.uppercase).foregroundStyle(cs.dimText) }
-      }
-      Spacer(minLength: 8)
-      Text(value).font(CSFont.stat).csTabular().foregroundStyle(tone ?? cs.ink)
-    }
-    .frame(minHeight: 32)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel([label, sub].compactMap { $0 }.joined(separator: ", "))
-    .accessibilityValue(spokenValue)
-  }
-}
 
 /// A `.check` row without the card: a glyph cell, a bold title, a mono sub,
 /// and a `→` when it is a door. The whole row is the 44pt target.

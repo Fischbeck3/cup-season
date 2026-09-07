@@ -37,6 +37,7 @@ public struct CSPalette: Sendable {
   public let leaf: Color  // object · the leaf: a sheet of scorecard paper, and it must hold a grid
   public let leafInk: Color  // object · scorecard ink — the same in both printings, and it has no colour
   public let leafMut: Color  // object · the leaf column heads
+  public let leafGold: Color  // object · gold ON PAPER — the light theme's gold, pinned in BOTH printings, because the leaf does not invert and dark gold at 2pt on bone is a pale smear (profile.md D-6). It is a RULE only; gold ink on a leaf is 1.68:1 and stays forbidden.
   public let ceremony: Color  // object · the honour room — pinned in both themes
   public let ceremonyInk: Color  // object
   public let ceremonyMut: Color  // object
@@ -86,6 +87,7 @@ public enum CSTokens {
     leaf: Color(hex: 0xEFEADD),
     leafInk: Color(hex: 0x1A1B14),
     leafMut: Color(hex: 0x57605A),
+    leafGold: Color(hex: 0x795912),
     ceremony: Color(hex: 0x0A0E0C),
     ceremonyInk: Color(hex: 0xF1F4EF),
     ceremonyMut: Color(hex: 0x9BA69D),
@@ -132,6 +134,7 @@ public enum CSTokens {
     leaf: Color(hex: 0xFFFDF7),
     leafInk: Color(hex: 0x1A1B14),
     leafMut: Color(hex: 0x5A625A),
+    leafGold: Color(hex: 0x795912),
     ceremony: Color(hex: 0x0A0E0C),
     ceremonyInk: Color(hex: 0xF1F4EF),
     ceremonyMut: Color(hex: 0x9BA69D),
@@ -237,7 +240,7 @@ public enum CSTokens {
   public static let leafShade = Shadow(color: Color(red: 0/255, green: 0/255, blue: 0/255, opacity: 0.22), x: 0, y: 1, blur: 0)
   public static let shadowLift = Shadow(color: Color(red: 0/255, green: 0/255, blue: 0/255, opacity: 0.55), x: 0, y: 18, blur: 44)
 
-  public static let tokenNames: [String] = ["bg0", "bg1", "bg2", "rule", "ink", "mut", "dim", "pos", "neg", "cool", "gold", "brand", "sq0", "sq1", "sq2", "sq3", "panel", "panel-ink", "panel-mut", "leaf", "leaf-ink", "leaf-mut", "ceremony", "ceremony-ink", "ceremony-mut", "ceremony-brand", "ceremony-gold", "ceremony-pos", "ceremony-cool", "ceremony-sq0", "ceremony-sq1", "ceremony-sq2", "ceremony-sq3", "crest", "folio-rule", "scrim-ink", "scrim-mut", "pig0", "pig1", "pig2", "pig3", "pig4", "pig5", "r", "rc", "rs", "p", "rx", "s1", "s2", "s3", "s4", "s5", "s6", "gutter", "gutter-desk", "rail", "hair", "a08", "a16", "a24", "a56", "a88", "flat", "tight", "d1", "d2", "caps", "caps2", "agate-s", "agate", "ord", "board", "sans", "mono", "serif", "roll", "snap", "leaf-shade", "shadow-lift"]
+  public static let tokenNames: [String] = ["bg0", "bg1", "bg2", "rule", "ink", "mut", "dim", "pos", "neg", "cool", "gold", "brand", "sq0", "sq1", "sq2", "sq3", "panel", "panel-ink", "panel-mut", "leaf", "leaf-ink", "leaf-mut", "leaf-gold", "ceremony", "ceremony-ink", "ceremony-mut", "ceremony-brand", "ceremony-gold", "ceremony-pos", "ceremony-cool", "ceremony-sq0", "ceremony-sq1", "ceremony-sq2", "ceremony-sq3", "crest", "folio-rule", "scrim-ink", "scrim-mut", "pig0", "pig1", "pig2", "pig3", "pig4", "pig5", "r", "rc", "rs", "p", "rx", "s1", "s2", "s3", "s4", "s5", "s6", "gutter", "gutter-desk", "rail", "hair", "a08", "a16", "a24", "a56", "a88", "flat", "tight", "d1", "d2", "caps", "caps2", "agate-s", "agate", "ord", "board", "sans", "mono", "serif", "roll", "snap", "leaf-shade", "shadow-lift"]
 }
 
 public extension Color {

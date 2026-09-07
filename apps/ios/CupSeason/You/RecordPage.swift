@@ -1,21 +1,26 @@
-// Cup Season — YOUR RECORD, a destination (D232, IA §12).
+// Cup Season — THE RECORD, the almanac (Wave 3, `surfaces/profile.md` §9;
+// D232, IOS-047).
 //
-// You had two group heads, "Your golf" and "Your seasons", and the second was
-// a SECTION where a destination belongs: the career, the trophies, the
-// head-to-heads, the side games, the books and the courses are six things
-// behind one head, and the thing a golfer comes back for in February should
-// not be something they scroll past their trophy case to reach.
+// **The densest surface in the product and the quietest.** No ember at all —
+// there is nothing live on a page about the past, and a page about the past
+// with an ember pill on it is the product shouting at a golfer reading. Gold
+// only under a season that was won. `column` for every figure. A leaf carrying
+// the table.
 //
-// So You keeps two heads and the second one is a door. This is what it opens.
+// THE SHAPE: the header · the one serif sentence · the career on one rule ·
+// SEASONS as the leaf · TROPHIES as slats · HEAD TO HEAD.
 //
-// EVERY ROW WAITS FOR ITS FACT (L-44). SEASONS renders `seasons_played` only
-// where R12 has landed — the shipped `career_record` returns `seasons_done`,
-// which counts *paid* seasons, holds 0 rows for every profile in prod, and
-// therefore told a golfer who has finished a season that they have finished
-// none. THE BOOKS renders only what was actually settled, never a $0 figure
-// dressed as a stat. And the "since" clause needs `first_round_on`; there is
-// no fallback, because an account's creation date is not when somebody started
-// playing golf.
+// THE HEADLINE READS THE FIELD THE RAIL READS. The blind review's first
+// finding was that *"the best of them an 80, at Papago"* sat 200pt above
+// `74 BEST` and a trophy reading `74 at Troon North` — three numbers for one
+// fact, and on the page whose promise is that every number shows its work,
+// that costs more credibility than any spacing error. `RecordModel.headline`
+// is built from `bestRound`, which is the SAME value the career rule reads.
+//
+// **`SINCE MARCH 2026`, not today's date** (YRS-12). A today-dateline on a
+// page about the past is the defect, and `CareerRecord.firstRoundOn` is the
+// producer — with no fallback, because an account's creation date is not when
+// somebody started playing golf.
 //
 // EVERY SEASON ROW OPENS ITS STORY PAGE, not a dead table (D223/D232).
 
@@ -34,124 +39,222 @@ struct RecordPage: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 14) {
-        CSPageHeader("Your record", eyebrow: CSHeaderDate.today()) { EmptyView() }
+      VStack(alignment: .leading, spacing: 0) {
+        CSPageHeader("The record", eyebrow: model.since)
 
+        // §1.4 · the page's ONE serif appearance, and it is the voice the
+        // audit called the surface's best asset — promoted out of grey body
+        // copy into the page's own sentence (YRS-11).
         if let line = model.headline {
-          Text(line).font(CSFont.title).foregroundStyle(cs.ink)
+          CSFigureRun(line, role: .lead).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
-        }
-        if let sub = model.subline {
-          Text(sub).font(CSFont.sentence).foregroundStyle(cs.mut)
-            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, CSTokens.Space.s4)
         }
 
-        // ── SEASONS. Every row opens the season's story page.
-        if !model.seasons.isEmpty { seasonsSection }
+        career.padding(.top, CSTokens.Space.s5)
 
-        // ── TROPHIES. The counts and the objects, one subject, one place.
-        if model.record?.items.isEmpty == false || !TrophyCase.tiles(trophies: model.trophies, achievements: model.achievements).isEmpty {
-          CSSectionHead("Trophies")
-          CareerRecordView(record: model.record)
-          TrophyCaseView(trophies: model.trophies, achievements: model.achievements,
-                         userId: store.session?.user.id, openReceipt: links.openReceipt)
-        }
-
-        // ── HEAD TO HEAD. Each row opens the head-to-head page, which is the
-        // whole point of promoting the record: a name here is a record there.
-        // D232 names this section HEAD TO HEAD on the record: here it is the
-        // list of records, and each row opens one. On Golfers the same
-        // component keeps its own head, because there it answers "who am I up
-        // against" rather than "what have I done".
-        RivalriesSection(rivalries: model.rivalries, openTourCard: openHeadToHead,
-                         head: "Head to head")
-
-        // ── SIDE GAMES (R17). The game's OWN settled sentence, not a verdict
-        // this client derived from a side index and two name strings.
-        if !model.sideGames.isEmpty {
-          CSSectionHead("Side games")
-          VStack(spacing: 0) {
-            ForEach(Array(model.sideGames.enumerated()), id: \.element.id) { i, g in
-              CSRow(last: i == model.sideGames.count - 1) {
-                VStack(alignment: .leading, spacing: 3) {
-                  Text(g.title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-                  if let s = g.story {
-                    Text(s).font(CSFont.footnote).foregroundStyle(cs.dimText)
-                      .fixedSize(horizontal: false, vertical: true)
-                  }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityElement(children: .combine)
-              }
-            }
-          }
-        }
-
-        // ── THE BOOKS. D39's posture, verbatim: a record of what friends
-        // settled between themselves. Nothing owed to or by the app.
-        if let money = model.record?.moneyLine {
-          CSSectionHead("The books")
-          CSRow(last: true) {
-            VStack(alignment: .leading, spacing: 6) {
-              YouStatRow(label: money.sub, value: money.amount)
-              Fine(CareerRecord.moneyNote)
-            }
-          }
-        }
-
-        // ── COURSES. `tour_card(me).courses`, returned since D150.
-        if !model.courses.isEmpty {
-          CSSectionHead("Courses · \(model.courses.count)")
-          VStack(spacing: 0) {
-            ForEach(Array(model.courses.prefix(8).enumerated()), id: \.element.id) { i, c in
-              CSRow(last: i == min(model.courses.count, 8) - 1) {
-                MathRow(label: RoundCopy.course(c.name),
-                        value: "\(c.rounds)")
-              }
-            }
-          }
-        }
+        seasons
+        trophies
+        rivals
 
         if model.loaded && model.isBare {
-          EmptyRootView(root: RecordModel.emptyRoot) { _ in links.postRound() }
+          CSEmpty(glyph: .rack,
+                  eyebrow: "Nothing on it yet",
+                  headline: "A record starts with one round.",
+                  fact: RecordModel.emptyFact,
+                  door: .primary("Add my round", links.postRound))
+            .padding(.top, CSTokens.Space.s5)
         }
       }
-      .padding(20)
-      .redacted(reason: model.loaded ? [] : .placeholder)
+      .padding(.horizontal, CSTokens.Space.gutter)
+      .padding(.bottom, CSTokens.Space.s6)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .csRedacted(!model.loaded)
     }
     .background(cs.bg0)
-    // The bar STAYS: this is a pushed page and the bar is the way back. The
-    // first simulator shot of it was a record with no exit.
-    .navigationTitle("Your record")
+    .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
+    // §12.2 · the system bar carries the back chevron and nothing else; the
+    // page names itself once, in `CSPageHeader`.
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .refreshable { await model.load(me: store.me, uid: store.session?.user.id) }
     .task { await model.load(me: store.me, uid: store.session?.user.id) }
     .sliceToastHost()
   }
 
-  /// Every season row opens the season's STORY page, not a dead table
-  /// (D223/D232) — the record is what a golfer comes back for in February and
-  /// a table with no narrative is a spreadsheet.
-  @ViewBuilder private var seasonsSection: some View {
-    CSSectionHead(seasonsHead)
-    VStack(spacing: 0) {
-      ForEach(Array(model.seasons.enumerated()), id: \.element.id) { i, r in
-        CSRow(last: i == model.seasons.count - 1) {
-          YouDoorRow(glyph: Text(Image(systemName: "flag")), title: r.name, sub: r.sub,
-                     action: { openCompetition(r.id, .story) })
-            .accessibilityLabel("\(r.name), \(r.spoken)")
-            .accessibilityHint("Opens the season")
+  // MARK: - the career
+
+  /// §9 · four figures on ONE shared 2pt `ink` rule with their labels beneath:
+  /// `18 ROUNDS · 3 SEASONS · 74 BEST · $80 MONEY`. **Money in ink** (§9.5) —
+  /// the pot is gold, what a golfer settled with their friends is ink, and
+  /// `pos`/`neg` never touch money.
+  @ViewBuilder private var career: some View {
+    let cells = model.careerCells
+    if !cells.isEmpty {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        HStack(alignment: .lastTextBaseline, spacing: CSTokens.Space.s3) {
+          ForEach(Array(cells.enumerated()), id: \.offset) { _, c in
+            Text(c.value).csType(.figureM).csTabular().foregroundStyle(cs.ink)
+              .frame(maxWidth: .infinity, alignment: c.trailing ? .trailing : .leading)
+              .lineLimit(1).minimumScaleFactor(0.6)
+          }
         }
+        CSRule(.heavy)
+        HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+          ForEach(Array(cells.enumerated()), id: \.offset) { _, c in
+            Text(c.label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              .frame(maxWidth: .infinity, alignment: c.trailing ? .trailing : .leading)
+          }
+        }
+      }
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(cells.map { "\($0.value) \($0.label)" }.joined(separator: ", "))
+    }
+  }
+
+  // MARK: - the leaf
+
+  @ViewBuilder private var seasons: some View {
+    let rows = model.recordRows { openCompetition($0, .story) }
+    if !rows.isEmpty {
+      ProfileHead("Seasons", count: model.seasonsCount)
+      CSRecordLeaf(rows).padding(.top, CSTokens.Space.s3)
+      // §9.5 · the ledger line renders beneath the leaf on any viewport that
+      // shows a money figure, verbatim, from one constant (LINT-23).
+      if model.showsMoney {
+        Text(MoneyCopy.ledger).csType(.body).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .padding(.top, CSTokens.Space.s3)
       }
     }
   }
 
-  /// "Seasons" · "Seasons · 3 played". The count renders only where R12 has
-  /// landed — `seasons_done` is the MONEY denominator and reads 0 for
-  /// everybody, so printing it here would be the defect this entry names.
-  private var seasonsHead: String {
-    guard let line = model.record?.seasonsLine else { return "Seasons" }
-    return "Seasons · \(line)"
+  // MARK: - the trophies
+
+  /// 44pt slats, top `rule`, **a drawn glyph at 28pt in `ink`**. No tiles, no
+  /// card-in-a-card (YRS-07), no emoji (YRS-03), and **none of them is the
+  /// pennant** (§5.1, LINT-28) — the Tracer's flag is the tab band and the
+  /// app icon, and a flag on LOW ROUND OF THE SEASON with the Compete tab's
+  /// identical flag 400pt below it is ICO-12 reopened on the core symbol.
+  ///
+  /// The engraver ceremony survives verbatim onto the slat: it is the one
+  /// real ceremony on this surface and the audit calls it a "what works".
+  @ViewBuilder private var trophies: some View {
+    let tiles = model.tiles
+    if !tiles.isEmpty {
+      ProfileHead("Trophies", count: CSCopy.spelled(tiles.count))
+      TrophySlats(tiles: tiles, userId: store.session?.user.id, openReceipt: links.openReceipt)
+        .padding(.horizontal, -CSTokens.Space.gutter)
+        .padding(.top, CSTokens.Space.s3)
+    }
+  }
+
+  // MARK: - head to head
+
+  /// §9 · the rivals list, below the trophies — **reachable, not clipped.**
+  /// It is cut by the tab bar on the shipped page. Same component as Golfers,
+  /// same slat: a name here is a record there.
+  @ViewBuilder private var rivals: some View {
+    RivalriesSection(rivalries: model.rivalries, openTourCard: openHeadToHead,
+                     head: "Head to head")
+  }
+}
+
+// MARK: - the trophy slats
+
+/// The display case, as slats. `TrophyCaseView`'s grid of dusk-ground tiles is
+/// gone — a card inside a card inside a page (YRS-07) — and what survives is
+/// the thing that was worth keeping: the engraver.
+struct TrophySlats: View {
+  @Environment(\.cs) private var cs
+  let tiles: [TrophyTile]
+  let userId: UUID?
+  var openReceipt: ((UUID) -> Void)? = nil
+
+  @State private var fresh: Set<String> = []
+  @State private var stamped = false
+
+  var body: some View {
+    VStack(spacing: 0) {
+      ForEach(tiles) { t in
+        if let rid = t.roundId, let openReceipt {
+          Button { openReceipt(rid) } label: { slat(t).contentShape(Rectangle()) }
+            .buttonStyle(.plain)
+            .accessibilityHint("Opens the round")
+        } else {
+          slat(t)
+        }
+      }
+    }
+    .onChange(of: tiles.map(\.id), initial: true) { _, ids in stamp(ids) }
+  }
+
+  private func slat(_ t: TrophyTile) -> some View {
+    VStack(spacing: 0) {
+      CSRule()
+      HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+        CSTrophyMark(t.glyph, numeral: t.numeral, size: 28)
+          .frame(width: CSTokens.Space.rail - CSTokens.Space.s3, alignment: .center)
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          EngravedName(t.title, engrave: fresh.contains(t.id))
+          if !t.sub.isEmpty {
+            Text(t.sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+              .lineLimit(2).multilineTextAlignment(.leading)
+          }
+        }
+        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+      }
+      .padding(.leading, CSTokens.Space.gutter)
+      .padding(.trailing, CSTokens.Space.gutter)
+      .frame(minHeight: 50)
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("\(t.title). \(t.sub)")
+  }
+
+  /// Decide once per set of ids which tiles are arrivals, then remember them.
+  private func stamp(_ ids: [String]) {
+    guard let userId, !ids.isEmpty else { return }
+    let store = TrophySeenStore(userId: userId)
+    if !stamped {
+      fresh = TrophySeenStore.fresh(tiles, seen: store.load())
+      stamped = true
+    }
+    store.save(Set(ids).union(store.load() ?? []))
+  }
+}
+
+/// C4's engraver, kept: **a 2pt gold needle sliding a cover off a fresh
+/// trophy's name over 1.1s**, once, on arrival. It is the one real ceremony on
+/// this surface and the only place gold moves in the product.
+struct EngravedName: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  let title: String
+  let engrave: Bool
+  @State private var coverGone = false
+
+  init(_ title: String, engrave: Bool) { self.title = title; self.engrave = engrave }
+
+  var body: some View {
+    Text(title).csType(.name).foregroundStyle(cs.ink)
+      .lineLimit(2).multilineTextAlignment(.leading)
+      .overlay {
+        if engrave && !reduceMotion {
+          GeometryReader { g in
+            Rectangle().fill(cs.bg0)
+              .overlay(alignment: .leading) { Rectangle().fill(cs.gold).frame(width: 2) }
+              .offset(x: coverGone ? g.size.width * 1.05 : 0)
+          }
+          .clipped()
+          .allowsHitTesting(false)
+        }
+      }
+      .clipped()
+      .onAppear {
+        guard engrave, !reduceMotion else { return }
+        CSMotion.run(.timingCurve(0.16, 0.84, 0.36, 1, duration: 1.1)) { coverGone = true }
+      }
   }
 }
 
@@ -166,76 +269,97 @@ final class RecordModel {
   var seasons: [LeagueRecordRow] = []
   var rivalries: [RivalryLine] = []
   var courses: [TourCard.Course] = []
-  var sideGames: [SideGame] = []
   var rounds: Int = 0
   var bestRound: TourCard.BestRound?
   var loaded = false
 
-  struct SideGame: Identifiable, Sendable {
-    let id: UUID
-    let title: String
-    let story: String?
-  }
-
-  /// The R17 row, hand-declared while the migration waits on the owner's push.
-  struct SideGameRow: Decodable, Sendable {
-    let live_round_id: UUID?
-    let played_on: String?
-    let game: String?
-    let course_label: String?
-    let players: [String]?
-    let story: String?
-    let status: String?
-  }
-  struct SideGamesCall: RpcCall {
-    static let name = "my_side_games"
-    static let optionalArgs: [String] = ["p_limit"]
-    typealias Returns = [SideGameRow]
-    var p_limit: Int?
-  }
-
-  static let emptyRoot = EmptyRoot(
-    head: "Nothing on the record yet.",
-    fact: nil,
-    sub: "Add a round you already played and it starts here — the courses, the numbers, and every season you go on to play.",
-    doors: [.addMyRound])
+  static let emptyFact =
+    "Add a round you already played and it starts here — the courses, the numbers, and every season you go on to play."
 
   /// True only once every read has ANSWERED and each one answered with
   /// nothing. A page that is still loading is not a bare record (L-32).
   var isBare: Bool {
     loaded && rounds == 0 && seasons.isEmpty && rivalries.isEmpty
-      && sideGames.isEmpty && courses.isEmpty && (record?.items.isEmpty ?? true)
+      && courses.isEmpty && tiles.isEmpty && (record?.items.isEmpty ?? true)
   }
 
-  /// "212 rounds" — the headline, and nothing when there is no round to count.
+  var tiles: [TrophyTile] { TrophyCase.tiles(trophies: trophies, achievements: achievements) }
+
+  /// §9 · `SINCE MARCH 2026` — **not today's date.** nil until `first_round_on`
+  /// arrives, because an account's creation date is not when somebody started
+  /// playing golf, and the slot is then empty rather than wrong.
+  var since: String? {
+    guard let c = record?.sinceClause else { return nil }
+    return c.uppercased()
+  }
+
+  /// The one serif sentence, with its numeral marked as a figure run — braces
+  /// from the producer, never a regex over prose. **The number it names is
+  /// the same `bestRound` the career rule reads**, which is the blind
+  /// review's first finding answered.
   var headline: String? {
     guard rounds > 0 else { return nil }
-    return "\(rounds) round\(rounds == 1 ? "" : "s")"
+    var s = "\(CSCopy.spelled(rounds).capitalizedFirst) round\(rounds == 1 ? "" : "s")"
+    if let m = record?.firstRoundOn, let month = HeadToHeadCopy.monthYear(m) {
+      s += " since \(month)"
+    }
+    s += "."
+    if let b = bestRound {
+      s += " The best of them a {\(b.gross)}"
+      if let c = b.courseLabel, !c.isEmpty { s += ", at \(RoundCopy.course(c))" }
+      s += "."
+    }
+    return s
   }
 
-  /// "Best 74 at Troon North · since March 2026" — each clause dropped rather
-  /// than guessed, which is what makes the "since" clause honest (R12).
-  var subline: String? {
-    var bits: [String] = []
-    if let b = bestRound { bits.append("Best " + b.line) }
-    if let s = record?.sinceClause, let f = s.first {
-      bits.append(String(f).uppercased() + s.dropFirst())
+  struct Cell { let value: String; let label: String; var trailing = false }
+
+  /// Four figures, and **a cell with no fact is absent rather than a dash**.
+  var careerCells: [Cell] {
+    var out: [Cell] = []
+    if rounds > 0 { out.append(Cell(value: String(rounds), label: "Rounds")) }
+    if let n = record?.seasonsPlayed, n > 0 { out.append(Cell(value: String(n), label: "Seasons")) }
+    if let b = bestRound { out.append(Cell(value: String(b.gross), label: "Best")) }
+    if let cents = record?.earningsCents, cents > 0 {
+      out.append(Cell(value: CSCopy.dollars(cents: cents), label: "Money", trailing: true))
     }
-    return bits.isEmpty ? nil : bits.joined(separator: " · ")
+    return out
+  }
+
+  var showsMoney: Bool { (record?.earningsCents ?? 0) > 0 }
+
+  /// §16A.2 · the slot carries a COUNT. `SINCE 2026` was a date in a count's
+  /// seat while the header two lines above already carried the join date.
+  var seasonsCount: String? {
+    guard !seasons.isEmpty else { return nil }
+    return "\(CSCopy.spelled(seasons.count)) season\(seasons.count == 1 ? "" : "s")"
+  }
+
+  /// Newest first — an archive reads from the present backwards.
+  func recordRows(open: @escaping (UUID) -> Void) -> [CSRecordLeaf.Row] {
+    seasons.reversed().map { r in
+      CSRecordLeaf.Row(id: r.id.uuidString,
+                       year: r.year.map(String.init),
+                       competition: r.name,
+                       qualifier: r.qualifier,
+                       finish: r.finish,
+                       line: r.line,
+                       won: r.won,
+                       spoken: "\(r.name), \(r.spoken)",
+                       open: { open(r.id) })
+    }
   }
 
   /// ONE load, not a second copy of You's. `YouRepository.load` already reads
   /// the record, the trophies, the rivalries and the season-by-season list and
-  /// already names which of them failed; the record page adds exactly two
-  /// reads of its own — the card (for the courses and R21's best round) and
-  /// R17's side games.
+  /// already names which of them failed; the record page adds exactly one read
+  /// of its own — the card, for the courses and R21's best round.
   func load(me: Me?, uid: UUID?) async {
     guard let me, let uid else { loaded = true; return }
     let svc = SupabaseService.shared
     async let you = YouRepository().load(me: me, userId: uid, leagueId: nil)
     async let cardJSON = try? svc.call(Rpc.tour_card(p_profile: uid))
-    async let side: [SideGameRow] = (try? await svc.call(SideGamesCall(p_limit: 8))) ?? []
-    let (d, card, sg) = await (you, cardJSON, side)
+    let (d, card) = await (you, cardJSON)
 
     record = d.careerRecord
     trophies = d.trophies
@@ -248,19 +372,6 @@ final class RecordModel {
       if tc.career.rounds > 0 { rounds = tc.career.rounds }
       bestRound = tc.bestRound
       courses = tc.courses
-    }
-    sideGames = sg.compactMap { r in
-      guard let id = r.live_round_id else { return nil }
-      let game = r.game.flatMap { g -> String? in
-        guard let f = g.first else { return nil }
-        return String(f).uppercased() + g.dropFirst()
-      }
-      let head = [game, r.course_label.map(RoundCopy.course)]
-        .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
-      let day = r.played_on.map(RivalryCopy.monthDaySpoken) ?? ""
-      return SideGame(id: id,
-                      title: head.isEmpty ? (day.isEmpty ? "A live round" : day) : head,
-                      story: r.story)
     }
     loaded = true
   }

@@ -95,6 +95,7 @@
   --leaf:#EFEADD;                 /* the leaf: a sheet of scorecard paper, and it must hold a grid */
   --leaf-ink:#1A1B14;             /* scorecard ink — the same in both printings, and it has no colour */
   --leaf-mut:#57605A;             /* the leaf column heads */
+  --leaf-gold:#795912;            /* gold ON PAPER — the light theme's gold, pinned in BOTH printings: the leaf does not invert and dark gold at 2pt on bone is a pale smear (profile.md D-6). A RULE only; gold ink on a leaf is 1.68:1 */
   --ceremony:#0A0E0C;             /* the honour room — pinned in both themes */
   --ceremony-ink:#F1F4EF;
   --ceremony-mut:#9BA69D;
@@ -277,7 +278,7 @@ html[data-theme="light"]{
   --sq3:#8B88A8;
   /* object */
   --panel:#141A16; --panel-ink:#F4F1E9; --panel-mut:#A6AEA5;
-  --leaf:#FFFDF7; --leaf-ink:#1A1B14; --leaf-mut:#5A625A;
+  --leaf:#FFFDF7; --leaf-ink:#1A1B14; --leaf-mut:#5A625A; --leaf-gold:#795912;
   --ceremony:#0A0E0C; --ceremony-ink:#F1F4EF; --ceremony-mut:#9BA69D;
   --ceremony-brand:#E8622C; --ceremony-gold:#D8B25A; --ceremony-pos:#4EC584;
   --ceremony-cool:#7F8C95; --ceremony-sq0:#366F87; --ceremony-sq1:#B27E7C;
@@ -2882,11 +2883,50 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    edge is a gold needle. Pure translateX - no clip-path. Plays ONCE, when a
    trophy ARRIVES in the case, never on revisit. */
 @keyframes csEngrave{from{transform:translateX(0);} to{transform:translateX(103%);}}
-.tcell{position:relative;}
-.tcell .tmint{position:relative; display:inline-block; overflow:hidden; max-width:100%; vertical-align:bottom;}
-.tcell .tmint .tcover{position:absolute; inset:0; background:var(--bg2); border-left:2px solid var(--gold); box-shadow:-2px 0 10px rgba(216,178,90,.5);}
-.tcell.mintin{animation:csUp .5s var(--roll) both;}
-.tcell.mintin .tcover{animation:csEngrave 1.1s var(--roll) .5s forwards;}
+/* The display case is SLATS (Wave 3): a 28pt drawn mark, the name, the dated
+   sub-line, one `rule` on the top edge — and NO tile, because a card inside a
+   card inside a page is YRS-07. The engraver survives verbatim; it is the one
+   real ceremony on the surface and the audit calls it a "what works". */
+.tslat{position:relative; display:flex; align-items:center; gap:var(--s3);
+  padding:var(--s2) 0; min-height:50px; border-top:1px solid var(--rule);}
+.tslat[role="button"]{cursor:pointer;}
+.tslatx{display:flex; flex-direction:column; gap:2px; min-width:0;}
+.tslatx b{color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.tslatx small{color:var(--mut);}
+.tslat .tmint{position:relative; display:inline-block; overflow:hidden; max-width:100%; vertical-align:bottom;}
+.tslat .tmint .tcover{position:absolute; inset:0; background:var(--bg0); border-left:2px solid var(--gold);}
+.tslat.mintin{animation:csUp .5s var(--roll) both;}
+.tslat.mintin .tcover{animation:csEngrave 1.1s var(--roll) .5s forwards;}
+/* THE RECORD, printed on a leaf — `year · competition · finish`. The money
+   column is DROPPED rather than zeroed: `season_payouts` holds no rows in
+   prod, and four zeroes is not a table (profile.md §14.2). A WIN takes the
+   gold rule; a PODIUM takes an ink rule; nothing else takes a mark. */
+.csleaf{background:var(--leaf); color:var(--leaf-ink); border-radius:var(--p);
+  padding:var(--s3); box-shadow:var(--leaf-shade);}
+.csleaf table{width:100%; border-collapse:collapse;}
+.csleaf th{color:var(--leaf-mut); text-align:left; padding:0 0 var(--s2); font-weight:400;}
+.csleaf th.r,.csleaf td.r{text-align:right;}
+.csleaf td{padding:var(--s3) 0; border-top:1px solid var(--leaf-mut); color:var(--leaf-ink);}
+.csleaf tr:first-child td{border-top:0;}
+.csleaf .qual{color:var(--leaf-mut); margin-left:6px;}
+.csleaf .mark{display:block; height:2px; margin-top:3px;}
+.csleaf .mark.won{background:var(--leaf-gold);}
+.csleaf .mark.pod{background:var(--leaf-ink);}
+@media print{ .csleaf{box-shadow:none; break-inside:avoid;} }
+/* THE MEETING TAPE — chart 5. Every meeting is a tick above the rule if the
+   viewer won it and below if the rival did, oldest first, the viewer's filled
+   and the rival's outlined. NO LEGEND (§9.10): the two row names ride the
+   graphic's own right margin and one line under it carries the key. */
+.cstape{display:flex; align-items:center; gap:var(--s3);}
+.cstape .rail{position:relative; flex:1; height:46px; display:flex; align-items:center;}
+.cstape .rail::before{content:''; position:absolute; left:0; right:0; top:50%;
+  height:2px; margin-top:-1px; background:var(--ink);}
+.cstape .ticks{position:relative; display:flex; width:100%;}
+.cstape .ticks i{display:block; height:16px; max-width:17px;}
+.cstape .ticks i.me{background:var(--ink); transform:translateY(-12px);}
+.cstape .ticks i.them{border:1.7px solid var(--mut); transform:translateY(12px);}
+.cstape .ticks i.half{height:2px; background:var(--mut);}
+.cstape .rows{display:flex; flex-direction:column; gap:14px; flex:none; color:var(--mut);}
 /* C6/C9 - the odometer: digit strips roll like gauges absorbing an entry;
    built by csOdo() (right-to-left stagger, always rolling upward). Tabular
    digits so nothing reflows. Reduced motion swaps instantly (csOdo checks). */
@@ -2908,8 +2948,8 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 @media(prefers-reduced-motion:reduce){
   .check.sealin > .tt > b{animation:none; transform:none;}
   .check.sealed > .tt > b{transform:rotate(-1.4deg);}   /* the cant is information */
-  .tcell.mintin{animation:none;}
-  .tcell .tmint .tcover{display:none;}
+  .tslat.mintin{animation:none;}
+  .tslat .tmint .tcover{display:none;}
   .odo .odostrip{transition:none;}
   .mintring{display:none;}
   .evduel .pv.pvrise{animation:none;}
@@ -13030,20 +13070,66 @@ const PLAYERS=[
 /* D4: the You tab's league record — one line per membership: league, season,
    where you sit. Real rows come from window.leagueRecord (module); the demo
    derives its single row from the diorama so the arithmetic reconciles. */
+/* THE RECORD, printed on a leaf (Wave 3, profile.md §7 / UI_SYSTEM §9.8).
+   `year · competition · finish`, newest first, one row per season. It was
+   five `.check` rows with a flag glyph and a mono line — the settings-list
+   grammar the audit names — and a season's finish cannot be set as a figure
+   with an ordinal rider, or take an earned rule, from the string
+   "SEASON II · 3RD OF 12 · 41 PTS".
+
+   THE MONEY COLUMN IS DROPPED, not zeroed: `season_payouts` holds no rows in
+   prod, so a per-season net does not exist, and four zeroes is not a table
+   (§14.2's own degrade). The phone's twin is `CSRecordLeaf`. */
+function csRecordLeaf(rows){
+  if(!rows || !rows.length) return '';
+  const ord = n => { const s=['TH','ST','ND','RD'], v=n%100; return s[(v-20)%10]||s[v]||s[0]; };
+  const body = rows.map(r => {
+    const mark = r.won ? '<span class="mark won"></span>'
+               : (r.finish && r.finish<=3 ? '<span class="mark pod"></span>' : '');
+    const finish = r.won ? '<b class="cs-name-s">WON</b>'
+                 : (r.finish ? `<b class="cs-fig-s">${r.finish}<span class="cs-agate-s">${ord(r.finish)}</span></b>`
+                             : `<span class="cs-col-s">${esc(r.line||'')}</span>`);
+    return `<tr${r.id?` data-season="${esc(r.id)}" role="button" tabindex="0" style="cursor:pointer"`:''}>
+      <td class="cs-col-s" style="width:42px">${esc(r.year||'')}</td>
+      <td><span class="cs-social">${esc(r.name)}</span>${r.qualifier?`<span class="qual cs-agate-s">${esc(r.qualifier)}</span>`:''}</td>
+      <td class="r" style="width:64px">${finish}${mark}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="csleaf"><table>
+    <thead><tr><th class="cs-col-s">YEAR</th><th class="cs-col-s">COMPETITION</th><th class="cs-col-s r">FINISH</th></tr></thead>
+    <tbody>${body}</tbody></table></div>`;
+}
+window.csRecordLeaf = csRecordLeaf;
+
 function renderLeagueRecord(){
   const hd=$('#lgRecHead'), el=$('#lgRec'); if(!hd||!el) return;
-  const ord=n=>{const s=['TH','ST','ND','RD'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);};
+  const ordU=n=>{const s=['TH','ST','ND','RD'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);};
   let rows;
   if(state.demo){
     const rk=[...PLAYERS].sort((a,b)=>b.pts-a.pts);
     const i=rk.findIndex(p=>p.me);
-    rows=[{name:'The Sunday Cup', number:1,
-           line:`WK ${currentWeek()} / ${totalWeeks()} · ${i>=0?ord(i+1)+' OF '+rk.length+' · '+rk[i].pts+' PTS':'—'}`}];
+    rows=[{name:'The Sunday Cup', number:1, year:new Date().getFullYear(),
+           finish:i>=0?i+1:null, of:rk.length, won:false,
+           line:`WK ${currentWeek()} / ${totalWeeks()} · ${i>=0?ordU(i+1)+' OF '+rk.length+' · '+rk[i].pts+' PTS':'—'}`}];
   } else rows=window.leagueRecord||[];
   if(!rows.length){ hd.style.display='none'; el.style.display='none'; return; }
   hd.style.display=''; el.style.display='';
-  el.innerHTML=rows.map(r=>`<div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span>
-    <div class="tt"><b>${esc(r.name)}</b><small>SEASON ${ROMAN[r.number]||r.number} · ${r.line}</small></div></div>`).join('');
+  /* newest first — an archive reads from the present backwards */
+  const leafRows = rows.slice().reverse().map(r => ({
+    id: r.id || r.league_id || null,
+    year: r.year || null,
+    name: r.name,
+    qualifier: 'SEASON ' + (ROMAN[r.number]||r.number),
+    finish: r.finish != null ? Number(r.finish) : null,
+    won: !!r.won,
+    line: r.line,
+  }));
+  el.innerHTML = csRecordLeaf(leafRows);
+  el.querySelectorAll('[data-season]').forEach(tr=>{
+    const go = () => window.enterLeagueById?.(tr.dataset.season);
+    tr.addEventListener('click', go);
+    tr.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+  });
 }
 /* ---------- Home = the hub: your groups + what's coming up ----------
    Cross-group landing. Groups switch via window.enterLeagueById / openEvent
@@ -15862,18 +15948,69 @@ function openStakeCreate(){
 }
 document.getElementById('stakeAdd')?.addEventListener('click', openStakeCreate);
 
-function trophyIcon(k){ return k==='ryder'?'⚔️':k==='bracket'?'🥊':'🏆'; }
-/* career milestones (achievements table) → tile icon + title */
+/* UI_SYSTEM §5.2 · **two achievements may never share a glyph.** This map
+   drew 🏆 for four different pieces of hardware, 🎯 for both `sub_100` and
+   `sub_90` and 📈 for both `streak_4` and `streak_8` — eight things, four
+   marks, each pair under a subtitle that differs by one word. The marks are
+   DRAWN now, in the family every other glyph in the product is drawn in, and
+   where two are the same shape at different values the NUMERAL inside the
+   mark is the difference. The phone's twin is `TrophyMeta.glyph` +
+   `CSTrophyMark`; the keys are the same strings on both clients. */
+function trophyGlyph(kind, placement){
+  if(placement==='runner_up') return 'runnerUp';
+  if(kind==='ryder') return 'duel';
+  if(kind==='bracket') return 'bracket';
+  if(kind==='points_king' || kind==='crown' || placement==='points_king') return 'crown';
+  return 'cup';
+}
 const ACH_META = {
-  first_round:  {icon:'⛳', title:'First round'},
-  sub_100:      {icon:'🎯', title:'Broke 100'},
-  sub_90:       {icon:'🎯', title:'Broke 90'},
-  sub_80:       {icon:'🔥', title:'Broke 80'},
-  personal_best:{icon:'📉', title:'Personal best'},
-  streak_4:     {icon:'📈', title:'4-week streak'},
-  streak_8:     {icon:'📈', title:'8-week streak'},
-  streak_12:    {icon:'💪', title:'Iron Man'},
+  first_round:  {glyph:'firstCard',    title:'First round'},
+  sub_100:      {glyph:'threshold',    numeral:'100', title:'Broke 100'},
+  sub_90:       {glyph:'threshold',    numeral:'90',  title:'Broke 90'},
+  sub_80:       {glyph:'threshold',    numeral:'80',  title:'Broke 80'},
+  personal_best:{glyph:'personalBest', title:'Personal best'},
+  streak_4:     {glyph:'streak',       numeral:'4',   title:'4-week streak'},
+  streak_8:     {glyph:'streak',       numeral:'8',   title:'8-week streak'},
+  streak_12:    {glyph:'ironman',      title:'Iron Man'},
+  low_round:    {glyph:'lowRound',     title:'Low round of the season'},
+  most_improved:{glyph:'improved',     title:'Most improved'},
 };
+/* The mark itself — 1.7pt on a 24 × 24 box, round caps, no fill, `ink` in both
+   themes. `lowRound`, `threshold` and `streak` carry a value; the rest are
+   pure drawings. **None of them is the pennant** (LINT-28). */
+const CS_TROPHY_PATH = {
+  bracket:   'M3.5 5.5h5v13h-5M20.5 5.5h-5v13h5M8.5 12h7',
+  firstCard: 'M12 4.4a2.6 2.6 0 100 5.2 2.6 2.6 0 000-5.2M12 10.4v6M9.6 20.4l2.4-4 2.4 4',
+  medal:     'M12 3.4a5.2 5.2 0 100 10.4 5.2 5.2 0 000-10.4M8.6 13.2L7 21l5-2.4 5 2.4-1.6-7.8',
+  cup:       'M7 4h10v4.2a5 5 0 01-10 0zM7 5.6H4.4v1.8a3.4 3.4 0 003.2 3.4M17 5.6h2.6v1.8a3.4 3.4 0 01-3.2 3.4M12 13.2v4.4M8.4 20.4h7.2M9.6 17.6h4.8v2.8H9.6z',
+  crown:     'M12 3.4a2.6 2.6 0 100 5.2 2.6 2.6 0 000-5.2M2.6 12.4h18.8M2.6 15.4h18.8',
+  runnerUp:  'M12 3.9a2.3 2.3 0 100 4.6 2.3 2.3 0 000-4.6M2.6 11.4h18.8M2.6 14.6h18.8',
+  duel:      'M6.4 8.6a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6M17.6 8.6a2.8 2.8 0 100 5.6 2.8 2.8 0 000-5.6M9.4 11.4h5.2',
+  personalBest: 'M2.6 8.6h18.8M15.4 13.4h5.2v5.2h-5.2z',
+  improved:  'M4 20.4V14h4v6.4M10 20.4V10.4h4v10M16 20.4V6.4h4v14',
+};
+function csTrophyMark(glyph, numeral, size){
+  const px = size || 28;
+  const box = `width:${px}px; height:${px}px; flex:none; color:var(--ink)`;
+  if(glyph==='lowRound' || glyph==='threshold'){
+    const through = glyph==='threshold';
+    return `<span aria-hidden="true" style="${box}; display:flex; flex-direction:column; justify-content:center; position:relative">
+      <span class="cs-fig-s" style="font-size:${Math.round(px*0.62)}px; line-height:1; text-align:center">${esc(numeral||'—')}</span>
+      <span style="position:${through?'absolute':'static'}; left:0; right:0; top:50%; height:2px; background:currentColor; margin-top:${through?'-1px':'2px'}"></span>
+      ${through?'':`<span style="height:1px; background:currentColor; opacity:.56; margin-top:2px"></span>`}
+    </span>`;
+  }
+  if(glyph==='streak' || glyph==='ironman'){
+    const n = glyph==='ironman' ? 6 : Math.max(2, Math.min(8, Number(numeral||4)));
+    const run = `<span style="display:flex; gap:2px">${Array.from({length:n},()=>
+      `<span style="flex:1; height:${Math.round(px*0.3)}px; background:currentColor"></span>`).join('')}</span>`;
+    return `<span aria-hidden="true" style="${box}; display:flex; flex-direction:column; justify-content:center; gap:${Math.round(px*0.16)}px">${run}${glyph==='ironman'?run:''}</span>`;
+  }
+  const d = CS_TROPHY_PATH[glyph] || CS_TROPHY_PATH.medal;
+  return `<svg aria-hidden="true" viewBox="0 0 24 24" style="${box}" fill="none" stroke="currentColor"
+    stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+}
+window.csTrophyMark = csTrophyMark; window.trophyGlyph = trophyGlyph;
 /* P3 · how many credential chips a card engraves. It was 3 on You and 4 on the
    Tour Card, on both clients; one number, read by every surface (the phone's
    `TrophyMeta.credentialChips`). */
@@ -15897,33 +16034,40 @@ function renderTrophyCase(){
      not a boot render) takes its name behind a sliding gold-needle cover. */
   const keyOf = x => String(x.id ?? ((x.title||x.kind||'')+'|'+(x.season_year||x.earned_on||'')));
   const fresh = id => _trophySeen!==null && !_trophySeen.has(id);
-  const cell = (icon,title,sub,mint,rid) =>
-    `<div class="tcell${mint?' mintin':''}"${rid?` data-achr="${esc(rid)}" role="button" tabindex="0" style="cursor:pointer;`:' style="'}border:0.5px solid var(--rule); background:var(--bg2); border-radius:12px; padding:12px 6px 10px; text-align:center;">
-      <div style="font-size:26px; line-height:1">${esc(icon)}</div>
-      <div style="font-size:12px; font-weight:600; color:var(--ink); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${mint?`<span class="tmint">${esc(title)}<span class="tcover" aria-hidden="true"></span></span>`:esc(title)}</div>
-      <div style="font-size:11.5px; color:var(--mut); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">${esc(sub)}</div>
+  /* The case is SLATS now, not a grid of dusk tiles: a card inside a card
+     inside a page is YRS-07, and the thing worth keeping was never the tile —
+     it was the engraver. A 28pt drawn mark, the name in `name` caps, the
+     dated sub-line in agate, one `rule` on the top edge. */
+  const cell = (glyph,numeral,title,sub,mint,rid) =>
+    `<div class="tslat${mint?' mintin':''}"${rid?` data-achr="${esc(rid)}" role="button" tabindex="0"`:''}>
+      ${csTrophyMark(glyph, numeral, 28)}
+      <span class="tslatx">
+        <b class="cs-name">${mint?`<span class="tmint">${esc(title)}<span class="tcover" aria-hidden="true"></span></span>`:esc(title)}</b>
+        <small class="cs-agate-s is-phrase">${esc(sub)}</small>
+      </span>
     </div>`;
   const tiles = [], ids = [];
   hw.forEach(t=>{
     const yr = t.season_year ? " · '"+String(t.season_year).slice(2) : '';
     const id='t'+keyOf(t); ids.push(id);
-    tiles.push(cell(trophyIcon(t.kind), t.title||'—', (t.subtitle||t.kind||'')+yr, fresh(id)));
+    tiles.push(cell(trophyGlyph(t.kind, t.placement), null, t.title||'—', (t.subtitle||t.kind||'')+yr, fresh(id)));
   });
   ach.forEach(a=>{
-    const m = ACH_META[a.kind] || {icon:'🏅', title:a.label||'Milestone'};
+    const m = ACH_META[a.kind] || {glyph:'medal', title:a.label||'Milestone'};
     const yr = a.earned_on ? " · '"+String(a.earned_on).slice(2,4) : '';
     const id='a'+keyOf(a); ids.push(id);
     /* Y-20 · my_achievements gains `round_id` with its migration; until that is
        pushed the key is simply absent and the tile stays a tile. Never break
        on absence (CLAUDE.md: neither deploy order breaks a live user). */
-    tiles.push(cell(m.icon, m.title, achSubtitle(a)+yr, fresh(id), a.round_id||null));
+    const numeral = m.glyph==='lowRound' ? ((a.meta||{}).gross!=null ? String((a.meta||{}).gross) : null) : (m.numeral||null);
+    tiles.push(cell(m.glyph, numeral, m.title, achSubtitle(a)+yr, fresh(id), a.round_id||null));
   });
   _trophySeen = new Set(ids);
   if(!tiles.length){
     box.innerHTML = '<div class="card" style="text-align:left"><div class="fine" style="padding:0">Nothing in the case yet. Break 80, post your first round, or win a Cup Final — milestones and trophies land here.</div></div>';
     return;
   }
-  box.innerHTML = `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px">${tiles.join('')}</div>`;
+  box.innerHTML = tiles.join('');
   box.querySelectorAll('[data-achr]').forEach(el=>{
     const open = () => { const rid=el.dataset.achr; openRoundReceipt((window.roundCache||{})[rid] || { id: rid }); };
     el.addEventListener('click', open);
@@ -18962,7 +19106,6 @@ async function renderRivalries(){
   window.RIVALS = data;   /* M3: the rivalry sheet reads the christened name from here */
   if(head) head.style.display='';
   box.innerHTML=data.map(r=>{
-    const cls=r.lead==='up'?'up':r.lead==='down'?'dn':'ev';
     const rec=`${r.wins}–${r.losses}${r.ties?'–'+r.ties:''}`;
     /* the faceted record (batch-3 #18): clashes and Ryder clashes side by side,
        never one blended number */
@@ -18972,22 +19115,50 @@ async function renderRivalries(){
       dTot?`Ryder clashes ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
     ].filter(Boolean).join(' · ');
     /* M3: a christened rivalry wears its name in gold, above the opponent */
-    const named=r.rivalry_name?`<span class="eyebrow" style="color:var(--gold); display:block; margin-bottom:2px">${esc(r.rivalry_name.toUpperCase())}</span>`:'';
+    const named=r.rivalry_name?`<span class="cs-agate-s" style="color:var(--gold); display:block; margin-bottom:2px">${esc(r.rivalry_name)}</span>`:'';
+    /* DD-17 · **a losing record is set in the same ink as a winning one.**
+       The `.rivrec` tiers rendered a trailing record in the dim tier and a
+       leading one in mint — the app greying out your losses, with colour as
+       the only channel. The VERDICT is a word, which is a second channel and
+       survives colour blindness (§16.4). And the `→` is gone with every other
+       typed arrow: a row whose whole surface is the target carries no chevron
+       (§D-8, LINT-13). */
     return `<div class="prow" data-tc="${r.opponent}">
       <span class="pmk">${mkr(r.marker||'saguaro')}</span>
-      <span class="pmeta">${named}<b>${esc(r.display_name||'—')}</b><small>${facets}</small></span>
-      <!-- Y-08 · "1-0" in green said nothing about WHOSE record it was, and the
-           colour was the only thing carrying the verdict. Y-16 · the row opens
-           their card and never said so; same arrow every other door wears. -->
-      <span style="display:flex; align-items:center; gap:10px; flex:none;">
-        <span style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
-          <span class="rivrec ${cls}">${rec}</span>
-          <span class="eyebrow" style="color:var(--mut)">${csLeadFor(r.lead)}</span>
-        </span>
-        <span style="color:var(--dim)" aria-hidden="true">→</span>
+      <span class="pmeta">${named}<b class="cs-name">${esc(r.display_name||'—')}</b><small class="cs-agate-s is-phrase">${facets}</small></span>
+      <span style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex:none;">
+        <span class="cs-fig-s" style="color:var(--ink)">${rec}</span>
+        <span class="cs-agate-s" style="color:var(--mut)">${csLeadFor(r.lead)}</span>
       </span></div>`;
   }).join('');
 }
+/* THE MEETING TAPE — chart 5 (§9.10), and the head-to-head's signature. One
+   2pt `ink` rule across the measure; every meeting is a tick, above the rule
+   if the viewer won it and below if the rival did, oldest first, the viewer's
+   filled and the rival's outlined. A halved meeting is a flat bar centred on
+   the rule, because a half belongs to neither side.
+
+   NO LEGEND — §9.10 bans a legend on a chart in the same breath as it bans an
+   axis. The two row names ride the graphic's own right margin (they name the
+   rows, which is what an axis label is) and one line under it carries the
+   key: **One square is one win.** The phone's twin is `CSTape`. */
+function csTapeHtml(meetings, opts){
+  const o = opts || {};
+  if(!meetings || !meetings.length) return '';
+  const ticks = meetings.map(m => {
+    const cls = m.won === true ? 'me' : m.won === false ? 'them' : 'half';
+    return `<i class="${cls}" style="width:${(100/meetings.length).toFixed(3)}%"></i>`;
+  }).join('');
+  const rows = o.rows === false ? '' :
+    `<span class="rows cs-agate-s"><span>YOURS</span><span>THEIRS</span></span>`;
+  const dates = (o.first && o.last)
+    ? `<div style="display:flex; justify-content:space-between" class="cs-agate-s"><span>${esc(o.first)}</span><span>${esc(o.last)}</span></div>` : '';
+  return `<div role="img" aria-label="${esc(o.spoken||'One square is one win.')}">
+    <div class="cstape"><span class="rail"><span class="ticks">${ticks}</span></span>${rows}</div>
+    ${dates}
+    <p class="cs-agate-s is-phrase" style="color:var(--mut); margin:6px 0 0">One square is one win.</p></div>`;
+}
+window.csTapeHtml = csTapeHtml;
 window.renderRivalries = renderRivalries;
 
 async function openRivalrySheet(oppId, name, rec){
@@ -19961,20 +20132,33 @@ async function openHeadToHead(profileId, fallbackName){
     if(main) main.innerHTML = `<p class="fine" style="padding:0">Nothing between you and ${esc(name)} yet. The moment you both post a round the same week, or one of you tags the other on a card, this fills in.</p>`;
     return;
   }
-  const dots = h.lastFive.slice().reverse()
-    .map(m => `<i class="${m.won === true ? 'on' : ''}"></i>`).join('');
-  const mine = h.lastFive.filter(m => m.won === true).length;
+  /* THE MEETING TAPE replaces the five dots. Five ember dots with
+     "3 OF 5 TO YOU · OLDEST FIRST" under them needed a legend to be read at
+     all, and the legend was the sentence; the tape needs four words and it
+     shows every meeting rather than the last five. DEGRADE, stated:
+     `head_to_head` returns `last_five`, so until §14.5's `meetings[]` lands
+     the tape draws five ticks and its head says LAST FIVE. */
+  const ms = h.lastFive.slice().reverse();
+  const spanAll = ms.length >= (h.total || ms.length);
+  const md = iso => { const p = String(iso||'').split('-').map(Number);
+    const mo = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    return (p.length===3 && p[1]>=1 && p[1]<=12) ? mo[p[1]-1]+' '+p[2] : ''; };
+  const tapeSpoken = `${h.total || ms.length} meetings. You won ${h.wins}, ${name} won ${h.losses}.`;
   if(main) main.innerHTML = `
-    ${h.rivalryName ? `<div class="eyebrow" style="color:var(--gold)">“${esc(String(h.rivalryName).toUpperCase())}”</div>` : ''}
-    ${csH2HHeadline(h) ? `<h3 style="margin:2px 0 6px; font-size:20px">${esc(csH2HHeadline(h))}</h3>` : ''}
-    ${csH2HStandfirst(h) ? `<p style="color:var(--mut); margin:0 0 14px">${esc(csH2HStandfirst(h))}</p>` : ''}
-    ${h.lastFive.length ? `<div class="eyebrow">Last five</div>
-      <div class="h2hdots" role="img" aria-label="Last ${h.lastFive.length} meetings, oldest first, ${mine} to you">${dots}
-        <small>${mine} OF ${h.lastFive.length} TO YOU · OLDEST FIRST</small></div>` : ''}
-    <div class="eyebrow" style="margin-top:16px">How it adds up</div>
-    ${h.facets.map(f => `
-      <div class="mathrow"><span>${esc(f.head)}</span><b>${esc(f.record || (f.meetings + ' SO FAR'))}</b></div>
-      ${csH2HFacetSub(f) ? `<p class="fine" style="padding:0 0 8px">${esc(csH2HFacetSub(f))}</p>` : ''}`).join('')}
+    ${h.rivalryName ? `<div class="cs-agate" style="color:var(--gold)">${esc(h.rivalryName)}</div>` : ''}
+    <h3 class="cs-display" style="margin:2px 0 10px">${esc('You and ' + String(name).split(' ')[0])}</h3>
+    ${csH2HStandfirst(h) ? `<p class="cs-story" style="color:var(--ink); margin:0 0 18px">${esc(csH2HStandfirst(h))}</p>` : ''}
+    ${ms.length ? `<div class="eyebrow">Every meeting <span style="float:right; color:var(--mut)">${spanAll ? 'OLDEST FIRST' : 'LAST FIVE'}</span></div>
+      ${csTapeHtml(ms, { first: md(ms[0] && ms[0].on), last: md(ms[ms.length-1] && ms[ms.length-1].on), spoken: tapeSpoken })}` : ''}
+    <div class="eyebrow" style="margin-top:16px">Where it was decided</div>
+    <div class="csleaf"><table>
+      <thead><tr><th class="cs-col-s">FACET</th><th class="cs-col-s r">MET</th><th class="cs-col-s r">RECORD</th></tr></thead>
+      <tbody>${h.facets.map(f => `
+        <tr><td><span class="cs-social">${esc(String(f.head).charAt(0) + String(f.head).slice(1).toLowerCase())}</span>
+          ${csH2HFacetSub(f) ? `<div class="cs-agate-s is-phrase" style="color:var(--leaf-mut)">${esc(csH2HFacetSub(f))}</div>` : ''}</td>
+          <td class="r cs-col" style="width:44px; color:var(--leaf-mut)">${f.meetings}</td>
+          <td class="r cs-fig-s" style="width:64px">${esc(f.record || '—')}</td></tr>`).join('')}
+      </tbody></table></div>
     ${h.facets.some(f => f.key === 'played_together') ? `<p class="fine">${esc(CS_H2H_NOT_A_VOUCH)}</p>` : ''}`;
 
   if(aside) aside.innerHTML = `

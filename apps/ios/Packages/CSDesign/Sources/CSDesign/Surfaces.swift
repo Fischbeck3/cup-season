@@ -89,13 +89,17 @@ public struct CSDuskCard<Content: View>: View {
 
 // MARK: - The page header
 
-/// The gradient tick, a serif title, an optional mono eyebrow on the right,
-/// and an optional trailing control (the `+` on Home, the ⚙ on You — IOS-022
-/// item 1: the screen's one action rides the header row, not an empty
-/// navigation bar). Lives in the scroll so the glass toolbar never clips it.
+/// **§12.2's one header.** The name in `display` 34, an optional `agateS`
+/// dateline flush right, and at most one trailing control (IOS-022 item 1:
+/// the screen's one action rides the header row, not an empty navigation
+/// bar). Lives in the scroll so the glass toolbar never clips it, and every
+/// pushed screen that uses it sets `navigationTitle("")` so a name is never
+/// drawn twice.
+///
+/// The AX3 branch stacks the three elements rather than letting them fight
+/// for one row — the shipped behaviour, kept, because it is a "what works".
 public struct CSPageHeader<Trailing: View>: View {
   @Environment(\.cs) private var cs
-  @Environment(\.csLookAccent) private var la
   @Environment(\.dynamicTypeSize) private var typeSize
   let title: String
   let eyebrow: String?
@@ -117,35 +121,46 @@ public struct CSPageHeader<Trailing: View>: View {
       // untouched.
       if typeSize.isA11y {
         titleBlock
-        if let eyebrow { Text(eyebrow).csEyebrow() }
+        if let eyebrow { Text(eyebrow).csType(.agateS, caps: true).foregroundStyle(cs.mut) }
         trailing.frame(minHeight: 44)
       } else {
         HStack(alignment: .lastTextBaseline) {
           titleBlock
           Spacer(minLength: 8)
-          if let eyebrow { Text(eyebrow).csEyebrow() }
+          if let eyebrow {
+            Text(eyebrow).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              .lineLimit(1).fixedSize()
+          }
           // the control is its own accessibility element — never folded into the title
           trailing.frame(minWidth: 44, minHeight: 44).padding(.trailing, -8)
         }
       }
-      if let sub { Text(sub).font(CSFont.sentence).foregroundStyle(cs.mut) }
+      if let sub {
+        Text(sub).csType(.body).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 
+  /// §12.2's anatomy, and the whole of it: **the name in `display`**, and
+  /// nothing above it.
+  ///
+  /// The gradient tick is gone (Wave 3). It was `CSLookAccent.tick`, a 28 × 3
+  /// two-stop gradient over every pushed screen's title — and a gradient is
+  /// the one image state §10.1's ladder bans by name. It was also the only
+  /// thing on a header that changed colour with a look, so a page's name
+  /// meant "which league you last opened" rather than "which page this is".
+  /// The serif went with it: `display` is the naming role, one per viewport.
   private var titleBlock: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      // D103b: accent → accent2 under a look; ember → amber on homebase
-      Rectangle().fill(LinearGradient(colors: la.tick, startPoint: .leading, endPoint: .trailing))
-        .frame(width: 28, height: 3)
-      Text(title).font(CSFont.heroSmall).foregroundStyle(cs.ink)
-        .lineLimit(2).minimumScaleFactor(0.8)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .accessibilityElement(children: .combine)
-    // Y-33: the page's title is a heading — VoiceOver's rotor lands on it
-    .accessibilityAddTraits(.isHeader)
+    Text(title).csType(.display, caps: true).foregroundStyle(cs.ink)
+      .lineLimit(2).minimumScaleFactor(0.72)
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .accessibilityElement(children: .combine)
+      // Y-33: the page's title is a heading — VoiceOver's rotor lands on it
+      .accessibilityAddTraits(.isHeader)
+      .csBudget(display: 1)
   }
 }
 

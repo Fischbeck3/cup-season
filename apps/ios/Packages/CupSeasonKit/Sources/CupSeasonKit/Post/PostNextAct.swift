@@ -232,6 +232,9 @@ extension Int {
   }
 }
 
-extension String {
+public extension String {
+  /// **L-33's sentence case**, and the one producer of it. A clause that opens
+  /// a sentence opens it with a capital — and the phone had this written four
+  /// times before the copy ladder was one thing.
   var capitalizedFirst: String { isEmpty ? self : prefix(1).uppercased() + dropFirst() }
 }

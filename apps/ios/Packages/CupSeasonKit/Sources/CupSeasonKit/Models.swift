@@ -452,4 +452,15 @@ public enum CSCopy {
   public static func dollars(cents: Int) -> String {
     cents % 100 == 0 ? "$\(cents / 100)" : String(format: "$%.2f", Double(cents) / 100)
   }
+
+  /// **L-33 · the voice writes small numbers as words.** `three seasons`,
+  /// `eleven meetings`. Anything past twelve is a figure, because
+  /// "seventeen" reads as a stumble in a scoreline. This was written four
+  /// times in this repo — in `HeadToHeadCopy`, in `LeagueRecord`, and twice
+  /// in `index.html` — and the four disagreed about where the ceiling was.
+  public static func spelled(_ n: Int) -> String {
+    let w = ["zero", "one", "two", "three", "four", "five", "six",
+             "seven", "eight", "nine", "ten", "eleven", "twelve"]
+    return (0...12).contains(n) ? w[n] : String(n)
+  }
 }

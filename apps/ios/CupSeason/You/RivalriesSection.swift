@@ -5,10 +5,18 @@ import SwiftUI
 import CSDesign
 import CupSeasonKit
 
-/// "Rivalries · your record" — hidden entirely when there are none.
+/// **§4 · rivals, as slats.** Hidden entirely when there are none.
+///
+/// `RIVALS` was three rows of avatar + record + meeting count + league — "a
+/// table pretending to be a list" (blind-2) — with the record in `pos` when
+/// you led and the `dim` tier when you did not. **A losing record is now set
+/// in the same ink as a winning one** (DD-17): greying out your losses makes
+/// colour the only channel, and the verdict is a WORD, which is a second one
+/// (§16.4).
+///
+/// The `→` is gone with every other typed arrow: a row whose whole surface is
+/// the target carries no chevron (§D-8, LINT-13).
 struct RivalriesSection: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.dynamicTypeSize) private var typeSize
   let rivalries: [RivalryLine]
   let openTourCard: (UUID) -> Void
   /// D232 · the record calls this section "Head to head" (each row opens one);
@@ -18,63 +26,23 @@ struct RivalriesSection: View {
 
   var body: some View {
     if !rivalries.isEmpty {
-      // D177 · say the scope. `my_rivalries()` takes no league argument — this is
-      // your lifetime clash record against everyone you have played, in every
-      // league. Sitting under "Your seasons" beside a season-scoped strip, that
-      // had to be stated or the head would inherit the wrong scope from its
-      // neighbour.
-      CSSectionHead(head ?? "Rivalries · every season")
+      // D177 · say the scope. `my_rivalries()` takes no league argument — this
+      // is your lifetime clash record against everyone you have played, in
+      // every league. §16A.2: the count goes in the slot, once.
+      ProfileHead(head ?? "Rivals", count: CSCopy.spelled(rivalries.count))
       VStack(spacing: 0) {
-        ForEach(Array(rivalries.enumerated()), id: \.element.id) { i, r in
-          CSRow(last: i == rivalries.count - 1) {
-            Button { openTourCard(r.opponent) } label: {
-              A11yStack(spacing: 12, columnSpacing: 4) {
-                HStack(spacing: 12) {
-                  CSMarkerView(key: r.marker, size: 22).foregroundStyle(cs.ink).frame(width: 28).accessibilityHidden(true)
-                  VStack(alignment: .leading, spacing: 2) {
-                    if let named = r.rivalryName {
-                      Text(named).csEyebrow(cs.gold)   // M3: a christened rivalry wears its name in gold
-                    }
-                    Text(r.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-                    if !r.facets.isEmpty { Text(r.facets).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText) }
-                  }
-                  .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                HStack(spacing: 10) {
-                  // Y-08 · "1–0" in green said nothing about WHOSE record it
-                  // was, and the colour was the only thing carrying the
-                  // verdict. The label under it names both, in the Tour Card's
-                  // own words (`RivalryCopy.leadLabel`).
-                  VStack(alignment: .trailing, spacing: 2) {
-                    Text(r.record).font(CSFont.monoMediumBody).csTabular().foregroundStyle(recordColor(r.lead))
-                    Text(RivalryCopy.leadLabel(r.lead)).csEyebrow(cs.mut)
-                  }
-                  // Y-16 · one open-affordance for the tab: this row opens the
-                  // Tour Card and never said so. Same `→` the round rows and
-                  // the season rows wear.
-                  Text("→").font(CSFont.subhead).foregroundStyle(cs.dimText)
-                }
-                .padding(.leading, typeSize.isA11y ? 40 : 0)
-              }
-              .frame(minHeight: 44)
-              .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            .accessibilityHint(GolfersRoot.CardName.hint())
-          }
+        ForEach(rivalries) { r in
+          RivalSlat(face: CSFace.Model(id: r.opponent, marker: r.marker, initials: Initials.of(r.name)),
+                    name: r.name, sub: r.facets, record: r.record,
+                    verdict: RivalryCopy.leadLabel(r.lead, them: r.name),
+                    rivalryName: r.rivalryName,
+                    open: { openTourCard(r.opponent) })
         }
       }
+      .padding(.horizontal, -CSTokens.Space.gutter)
+      .padding(.top, CSTokens.Space.s3)
     }
   }
-
-  /// `.rivrec.up` pos · `.dn` dim · `.ev` mut
-  /// F-10 · a record you took off somebody IS the canonical EARNED case, so
-  /// it is the one that wears gold (L-25). Green is a figure that runs.
-  private func recordColor(_ lead: RivalryLead) -> Color {
-    switch lead { case .up: cs.gold; case .down: cs.dimText; case .even: cs.mut }
-  }
-
 }
 
 /// "You vs NAME" — the receipts behind the record (§16).

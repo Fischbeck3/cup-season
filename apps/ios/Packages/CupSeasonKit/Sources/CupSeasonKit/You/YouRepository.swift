@@ -149,8 +149,13 @@ public struct YouRepository: Sendable {
     let seasonIds = me.memberships.compactMap { $0.season?.id }
     let standings = try await rounds.individualStandings(seasonIds: seasonIds)
     return me.memberships.map { m in
-      LeagueRecordRow(id: m.league_id, name: m.name, number: m.season?.number ?? 1,
-                      line: LeagueRecord.line(phase: m.phase, season: m.season, standings: standings, myMemberId: m.member_id))
+      let f = LeagueRecord.finish(phase: m.phase, season: m.season, standings: standings, myMemberId: m.member_id)
+      let n = m.season?.number ?? 1
+      return LeagueRecordRow(id: m.league_id, name: m.name, number: n,
+                             line: LeagueRecord.line(phase: m.phase, season: m.season, standings: standings, myMemberId: m.member_id),
+                             finish: f?.finish, of: f?.of, won: f?.won ?? false,
+                             year: LeagueRecord.year(m.season?.starts_on),
+                             qualifier: LeagueRecord.spelledSeason(n))
     }
   }
 
