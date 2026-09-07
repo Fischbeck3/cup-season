@@ -153,9 +153,9 @@ struct ReportGolferSheet: View {
           CSRow(last: i == SafetyCopy.reasons.count - 1) {
             Button { reason = r; failed = nil } label: {
               HStack {
-                Text(r).font(CSFont.subhead).foregroundStyle(cs.ink)
+                Text(r).csType(.body).foregroundStyle(cs.ink)
                 Spacer(minLength: 8)
-                if reason == r { Text("✓").font(CSFont.subhead).foregroundStyle(cs.brand) }
+                if reason == r { Text("✓").csType(.body).foregroundStyle(cs.brand) }
               }
               .frame(minHeight: 44)
               .contentShape(Rectangle())
@@ -166,12 +166,13 @@ struct ReportGolferSheet: View {
         }
       }
       if let failed {
-        Text(failed).font(CSFont.subhead).foregroundStyle(cs.neg)
+        Text(failed).csType(.body).foregroundStyle(cs.neg)
           .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 6)
       }
-      CSButton(reason == nil ? "Pick a reason" : "Send this report", busy: sending) {
+      Button(reason == nil ? "Pick a reason" : "Send this report") {
         Task { await send() }
       }
+        .buttonStyle(.csPrimary(busy: sending))
       .disabled(reason == nil || sending)
       .padding(.top, 12)
     }

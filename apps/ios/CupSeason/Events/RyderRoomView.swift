@@ -404,7 +404,7 @@ struct RyderRoomView: View {
   private func act(fail: String?, ok: String?, _ op: @escaping @MainActor () async throws -> Void) {
     Task {
       do { try await op(); if let ok { toast.show(ok) } }
-      catch { toast.show(BoardText.humanError(error, fail)) }
+      catch { toast.show(BoardText.humanError(error, fail), kind: .failed) }
     }
   }
 
@@ -415,7 +415,7 @@ struct RyderRoomView: View {
   private func pair(_ s: EventSession) {
     Task {
       do { let n = try await model.pair(session: s.id); toast.show(RyderMath.pairingsToast(n)) }
-      catch { toast.show(BoardText.humanError(error, "Pairing failed.")) }
+      catch { toast.show(BoardText.humanError(error, "Pairing failed."), kind: .failed) }
     }
   }
 
@@ -424,10 +424,10 @@ struct RyderRoomView: View {
     Task {
       do {
         try await model.scrap()
-        toast.show("\(name) scrapped")
+        toast.show("\(name) scrapped", kind: .confirmed)
         await store.reload()
         dismiss()
-      } catch { toast.show(BoardText.humanError(error)) }
+      } catch { toast.show(BoardText.humanError(error), kind: .failed) }
     }
   }
 }

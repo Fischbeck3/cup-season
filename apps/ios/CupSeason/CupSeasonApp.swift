@@ -110,4 +110,40 @@ extension View {
   @ViewBuilder func csDevTextSize(_ size: DynamicTypeSize?) -> some View {
     if let size { self.dynamicTypeSize(size) } else { self }
   }
+
+  /// **A sheet presents in its own host, so the hatch has to be re-applied at
+  /// every presentation site** — Wave 7 found this the hard way, when the
+  /// round receipt photographed at the reading size under `-cs_dev_text_size
+  /// AX3` and nothing in the shot said so. A `fullScreenCover` inherits the
+  /// app root's override; a `.sheet` does not.
+  ///
+  /// It must be applied to the CONTENT at the presentation site, never inside
+  /// the sheet's own struct: `@Environment` in that struct resolves before its
+  /// body's modifiers run, so the view's own accessibility branches would
+  /// still read the device's size. These two wrappers are `.sheet` with the
+  /// line already in place, so a new sheet on a host cannot forget it. In
+  /// Release `CSDevHatch.textSize` is nil and the wrapper adds nothing.
+  func csSheet<Item: Identifiable, C: View>(item: Binding<Item?>,
+                                            @ViewBuilder content: @escaping (Item) -> C) -> some View {
+    sheet(item: item) { content($0).csDevTextSize(CSDevHatch.textSize) }
+  }
+  func csSheet<C: View>(isPresented: Binding<Bool>,
+                        @ViewBuilder content: @escaping () -> C) -> some View {
+    sheet(isPresented: isPresented) { content().csDevTextSize(CSDevHatch.textSize) }
+  }
+
+  /// **And a `fullScreenCover` does not inherit it either.** Wave 7 recorded
+  /// that a cover DOES and a sheet does not; the composer's first AX3 shot in
+  /// Wave 8 was pixel-identical to its reading-size one, which is the same
+  /// evidence-that-flatters the hatch exists to prevent. IOS-049's own note on
+  /// the event room says the same thing and re-applies it by hand. Both
+  /// presentations are wrapped here so no host has to remember which is which.
+  func csCover<Item: Identifiable, C: View>(item: Binding<Item?>,
+                                            @ViewBuilder content: @escaping (Item) -> C) -> some View {
+    fullScreenCover(item: item) { content($0).csDevTextSize(CSDevHatch.textSize) }
+  }
+  func csCover<C: View>(isPresented: Binding<Bool>,
+                        @ViewBuilder content: @escaping () -> C) -> some View {
+    fullScreenCover(isPresented: isPresented) { content().csDevTextSize(CSDevHatch.textSize) }
+  }
 }

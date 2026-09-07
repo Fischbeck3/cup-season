@@ -39,7 +39,8 @@ struct DraftNightScreen: View {
       VStack(alignment: .leading, spacing: 14) {
         if let err = room.error, !room.loaded {
           DraftClockCard(accent: dk.neg, k: "The room did not load", n: err, m: "") {
-            CSButton("Try again", style: .quiet) { Task { await room.refresh() } }
+            Button("Try again") { Task { await room.refresh() } }
+              .buttonStyle(.csSecondary())
           }
         } else if !room.loaded {
           Text(DraftCopy.eyebrow(room.bylaws.draftType)).csEyebrow()
@@ -90,7 +91,8 @@ struct DraftNightScreen: View {
 
   private var setupBounce: some View {
     DraftClockCard(accent: dk.brand, k: DraftCopy.boardWaitingK, n: DraftCopy.setupBounce, m: LeagueCopy.seatFill(code: room.league?.code, members: room.members.count, min: room.bylaws.structMin)) {
-      if room.isPro { CSButton("Continue") { links.openWizard() } } else { CSFine(DraftCopy.memberReadOnly) }
+      if room.isPro { Button("Continue") { links.openWizard() }
+          .buttonStyle(.csPrimary()) } else { CSFine(DraftCopy.memberReadOnly) }
     }
   }
 
@@ -308,7 +310,7 @@ final class DraftBoardModel {
     busy = true
     Task {
       defer { busy = false }
-      do { try await op() } catch { toast.show(roomError(error, fail)) }
+      do { try await op() } catch { toast.show(roomError(error, fail), kind: .failed) }
     }
   }
 }

@@ -355,10 +355,10 @@ struct OpenTagsSection: View {
         ForEach(Array(tags.enumerated()), id: \.element.id) { i, t in
           CSRow(last: i == tags.count - 1) {
             VStack(alignment: .leading, spacing: 8) {
-              Text(t.question).font(CSFont.sentence).foregroundStyle(cs.ink)
+              Text(t.question).csType(.story).foregroundStyle(cs.ink)
                 .fixedSize(horizontal: false, vertical: true)
               HStack(spacing: 8) {
-                CSMini("Yes, I was", tone: cs.pos, busy: busy.contains(t.id)) { Task { await answer(t, true) } }
+                CSMini("Yes, I was", busy: busy.contains(t.id)) { Task { await answer(t, true) } }
                 CSMini("No", busy: busy.contains(t.id)) { Task { await answer(t, false) } }
               }
             }

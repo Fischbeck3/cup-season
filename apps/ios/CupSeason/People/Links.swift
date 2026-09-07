@@ -1,6 +1,24 @@
-// Cup Season — where a row goes when tapped. The host wires these; a nil
-// link means the slice handles it in place (the round sheet) or the row is
-// simply not a door (the Tour Card, another slice).
+// Cup Season — where a row goes when tapped, and the small shared parts every
+// surface outside the seven Phase-3 waves is built from.
+//
+// WAVE 8 · PROPAGATE (D277 / IOS-052). These four — the mini, the tag, the
+// check row and the list row — are the vocabulary the door, the schedule, the
+// composer, the wizard, the board and every picker draw themselves in, so
+// migrating them is what stops the product being half in the new system and
+// half in the old. Each is now the system's own shape rather than a shape of
+// its own:
+//
+//   CSMini      → §7.1's tertiary link (or §7.2's chip when it is a CHOICE)
+//   CSTag       → §7.2's chip shape — a 3pt rectangle, because there is no pill
+//   CSCheckRow  → a row on the page's ground, parted by a rule — no border
+//   RoomLineRow → the same, with a 3pt rail when it carries a spine
+//
+// AND THE FACE IS KEYED TO THE GOLFER (`LINT-31`). Both rows took a marker
+// STRING and seated the golfer on a pigment derived from the glyph, so two
+// golfers who both chose the Lone Tree shared a coin — the one thing pigments
+// exist to prevent. They take a `CSFace.Model` now; `Faces.of` is the one place
+// that decides, and a golfer with no profile id (a guest on a tee sheet) is
+// seeded from their NAME, which keys to the person and is not a debt.
 
 import Foundation
 import SwiftUI
@@ -15,89 +33,127 @@ struct CSLinks {
   var openCompetition: ((UUID) -> Void)? = nil
 }
 
+/// **The one place a row decides how to draw a person.** A profile id keys the
+/// pigment to the GOLFER (§6.2a); a golfer the payload identifies only by name
+/// — a guest, a comment's author — is seeded from the name, which is still the
+/// person and still comes out different for two golfers who chose one glyph.
+enum Faces {
+  static func of(_ id: UUID?, marker: String?, name: String?, isViewer: Bool = false) -> CSFace.Model {
+    if let id {
+      return CSFace.Model(id: id, marker: marker, initials: Initials.of(name), isViewer: isViewer)
+    }
+    return .seeded(key: name ?? marker ?? "golfer", marker: marker,
+                   initials: Initials.of(name), isViewer: isViewer)
+  }
+}
+
 // MARK: - The bits the web's `openSheet` / `.mini` / `.ptag` / `.check` were
 
-/// `openSheet(title, sub, …)`: a serif title over a mono eyebrow.
+/// A sheet's head: the title in `displayS`, the eyebrow in agate beneath it.
 struct CSSheetHeader: View {
   @Environment(\.cs) private var cs
   let title: String
   let sub: String?
   var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text(title).font(CSFont.title).foregroundStyle(cs.ink)
-      if let sub, !sub.isEmpty { Text(sub).csEyebrow() }
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      Text(title).csType(.displayS).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
+      if let sub, !sub.isEmpty {
+        Text(sub).csType(.agate, caps: true).foregroundStyle(cs.mut)
+      }
     }
     .multilineTextAlignment(.leading)
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 
-/// `.mini` — a small bordered capsule, mono, 36pt tall (44pt hit).
+/// **A small inline action — §7.1's tertiary, and nothing of its own.** It was
+/// a bordered mono capsule at 36pt; there is no pill in the system and a
+/// bordered small button is a container with no job. `selected:` makes it a
+/// CHOICE instead, and a choice is a chip that inverts to the panel.
 struct CSMini: View {
   @Environment(\.cs) private var cs
   let label: String
-  var tone: Color? = nil
-  var systemImage: String? = nil
+  /// One family (D277): the drawn glyph, never an SF Symbol beside it.
+  var glyph: CSGlyph.Name? = nil
   var busy = false
   /// Y-33 · a mini standing in a set of choices says which one is chosen; the
-  /// tone alone is only visible.
-  var selected = false
+  /// tone alone is only visible. nil = it is an action, not a choice.
+  var selected: Bool? = nil
+  /// The armed half of a two-tap destructive — `neg`, and the copy is "Sure?".
+  var destructive = false
   let action: () -> Void
 
-  init(_ label: String, tone: Color? = nil, systemImage: String? = nil, busy: Bool = false, selected: Bool = false, action: @escaping () -> Void) {
-    self.label = label; self.tone = tone; self.systemImage = systemImage; self.busy = busy; self.selected = selected; self.action = action
+  init(_ label: String, glyph: CSGlyph.Name? = nil, busy: Bool = false,
+       selected: Bool? = nil, destructive: Bool = false, action: @escaping () -> Void) {
+    self.label = label; self.glyph = glyph; self.busy = busy
+    self.selected = selected; self.destructive = destructive; self.action = action
   }
 
   var body: some View {
-    Button(action: action) {
-      HStack(spacing: 6) {
-        if let systemImage { Image(systemName: systemImage).font(.system(size: 13, weight: .semibold)) }
-        if !label.isEmpty { Text(label).font(CSFont.monoMediumBody) }
+    Button(action: action) { inner }
+      .buttonStyle(.plain)
+      .disabled(busy)
+      .accessibilityAddTraits(selected == true ? [.isSelected] : [])
+  }
+
+  @ViewBuilder private var inner: some View {
+    if let selected {
+      CSChip(label, selected: selected)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+    } else {
+      HStack(spacing: CSTokens.Space.s2) {
+        if let glyph { CSGlyph(glyph, size: .inline) }
+        if !label.isEmpty {
+          VStack(alignment: .leading, spacing: 3) {
+            Text(label).csType(.nameS).lineLimit(2)
+            Rectangle().fill(destructive ? cs.neg : cs.mut).frame(height: 2)
+          }
+          .fixedSize(horizontal: true, vertical: false)
+        }
       }
-      .foregroundStyle(tone ?? cs.ink)
-      .padding(.horizontal, label.isEmpty ? 10 : 12)
-      .frame(minWidth: 36, minHeight: 36)
-      .background(cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(tone ?? cs.rule, lineWidth: 1))
-      .opacity(busy ? 0.5 : 1)
-      .frame(minWidth: 44, minHeight: 44)   // accessibility: an icon-only mini is still a 44pt target
+      .foregroundStyle(destructive ? cs.neg : cs.ink)
+      .opacity(busy ? CSTokens.Alpha.a56 : 1)
+      .frame(minWidth: 44, minHeight: 44)
       .contentShape(Rectangle())
     }
-    .buttonStyle(.plain)
-    .disabled(busy)
-    .accessibilityAddTraits(selected ? [.isSelected] : [])
   }
 }
 
-/// `.ptag` — the tag a row wears: `ok` (pos), `pos`, or plain.
+/// `.ptag` — the tag a row wears. §7.2's chip shape: a 3pt rectangle, agate,
+/// never a bordered capsule.
 struct CSTag: View {
   @Environment(\.cs) private var cs
   let text: String
   var tone: Color? = nil
   var body: some View {
-    Text(text).font(CSFont.label).tracking(0.8).textCase(.uppercase)
+    Text(text).csType(.agateS, caps: true)
       .foregroundStyle(tone ?? cs.mut)
-      .padding(.horizontal, 8).padding(.vertical, 5)
-      .overlay(Capsule().stroke((tone ?? cs.rule).opacity(0.7), lineWidth: 1))
+      .padding(.horizontal, CSTokens.Space.s3)
+      .frame(height: 24)
+      .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
   }
 }
 
-/// `.check` — a marker, a bold line, a small line, and a trailing slot.
+/// A row inside a sheet or a picker: a face, a name, a small line, a trailing
+/// slot — **on the sheet's own ground, parted by a rule.** It was a bordered
+/// tile, which is a container with no job (non-negotiable 1).
 struct CSCheckRow<Trailing: View>: View {
   @Environment(\.cs) private var cs
-  let marker: String?
+  let face: CSFace.Model
   let title: Text
   let sub: Text?
   var spine: Color? = nil
   @ViewBuilder let trailing: Trailing
 
   var body: some View {
-    HStack(alignment: .center, spacing: 12) {
+    HStack(alignment: .center, spacing: CSTokens.Space.s3) {
       // the title names the person; the marker inside the face would name itself too
-      CSFace(.unkeyed(marker: marker), size: .list).accessibilityHidden(true)
+      CSFace(face, size: .list).accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 3) {
-        title.font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        if let sub { sub.font(CSFont.monoSmall).foregroundStyle(cs.mut) }
+        title.csType(.name).foregroundStyle(cs.ink)
+        if let sub { sub.csType(.agate).foregroundStyle(cs.mut) }
       }
       // a leading stack says leading OUT LOUD: these rows sit inside sheet and
       // picker buttons, and a button label hands its children a centred text
@@ -107,23 +163,24 @@ struct CSCheckRow<Trailing: View>: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       trailing
     }
-    .padding(.vertical, 8).padding(.horizontal, 12)
-    .frame(minHeight: 52)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(spine ?? cs.rule, lineWidth: 1))
+    .padding(.vertical, CSTokens.Space.s3)
+    .frame(minHeight: 56)
+    .overlay(alignment: .leading) {
+      if let spine { Rectangle().fill(spine).frame(width: 3).padding(.vertical, 10).padding(.leading, -8) }
+    }
+    .overlay(alignment: .bottom) { CSRule() }
   }
 }
 
-/// The list row (IOS-019 rule 2): a marker, a bold line, a small line, a
-/// trailing slot — on ground, parted from the next by a hairline. An optional
-/// spine on the leading edge (a request wears ember). The bordered
-/// `CSCheckRow` stays for sheets and pickers; lists use this.
+/// The list row (IOS-019 rule 2): a face, a bold line, a small line, a
+/// trailing slot — on ground, parted from the next by a rule. An optional
+/// spine on the leading edge (a request wears ember).
 ///
 /// Y-23 · with `onTap`, the face and the two lines are ONE button (the person),
 /// read as one element with `hint`; the trailing slot keeps its own controls.
 struct RoomLineRow<Trailing: View>: View {
   @Environment(\.cs) private var cs
-  let marker: String?
+  let face: CSFace.Model
   let title: Text
   let sub: Text?
   var spine: Color? = nil
@@ -136,7 +193,7 @@ struct RoomLineRow<Trailing: View>: View {
   @ViewBuilder let trailing: Trailing
 
   var body: some View {
-    HStack(alignment: .center, spacing: 12) {
+    HStack(alignment: .center, spacing: CSTokens.Space.s3) {
       if let onTap {
         spoken(Button(action: onTap) { lead }
           .buttonStyle(.plain)
@@ -147,12 +204,12 @@ struct RoomLineRow<Trailing: View>: View {
       }
       trailing
     }
-    .padding(.vertical, 10).padding(.horizontal, 4)
+    .padding(.vertical, CSTokens.Space.s3)
     .frame(minHeight: 56)
     .overlay(alignment: .leading) {
-      if let spine { RoundedRectangle(cornerRadius: 2).fill(spine).frame(width: 3.5).padding(.vertical, 12).padding(.leading, -6) }
+      if let spine { Rectangle().fill(spine).frame(width: 3).padding(.vertical, 12).padding(.leading, -8) }
     }
-    .overlay(alignment: .bottom) { CSHairline() }
+    .overlay(alignment: .bottom) { CSRule() }
   }
 
   /// `.accessibilityLabel("")` would SILENCE an element rather than leave it
@@ -163,12 +220,14 @@ struct RoomLineRow<Trailing: View>: View {
 
   /// The part of the row that IS the person: face, name, small line.
   private var lead: some View {
-    HStack(alignment: .center, spacing: 12) {
+    HStack(alignment: .center, spacing: CSTokens.Space.s3) {
       // the title names the person; the marker inside the face would name itself too
-      CSFace(.unkeyed(marker: marker), size: .list).accessibilityHidden(true)
+      CSFace(face, size: .list).accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 3) {
-        title.font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        if let sub { sub.font(CSFont.monoSmall).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true) }
+        title.csType(.name).foregroundStyle(cs.ink)
+        if let sub {
+          sub.csType(.agate).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
+        }
       }
       // Y-23 made the lead a Button, and a button label's children inherit a
       // CENTRED alignment: "@handle · City" wrapping would centre its second
@@ -180,7 +239,7 @@ struct RoomLineRow<Trailing: View>: View {
   }
 }
 
-/// `.fine` — helper copy in `mut` (the web's `dim` → `cs.dimText`).
+/// `.fine` — helper copy in `mut`, at the system's small body size.
 struct CSFine: View {
   @Environment(\.cs) private var cs
   let text: String
@@ -189,15 +248,15 @@ struct CSFine: View {
   var body: some View {
     // the frame is leading, so the wrapped lines are too — helper copy lands
     // inside button and menu labels, which otherwise centre what they wrap.
-    Text(text).font(CSFont.footnote).foregroundStyle(tone ?? cs.dimText)
+    Text(text).csType(.bodyS).foregroundStyle(tone ?? cs.mut)
       .multilineTextAlignment(.leading)
+      .fixedSize(horizontal: false, vertical: true)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 
 /// A two-tap destructive arm ("Sure?") — never an alert (IOS-003 §4).
 struct CSArmedButton: View {
-  @Environment(\.cs) private var cs
   let label: String
   let armedLabel: String
   var busy = false
@@ -207,7 +266,7 @@ struct CSArmedButton: View {
   @State private var armed = false
 
   var body: some View {
-    CSMini(armed ? armedLabel : label, tone: armed ? cs.neg : cs.mut, busy: busy) {
+    CSMini(armed ? armedLabel : label, busy: busy, destructive: armed) {
       if armed { action() } else { armed = true; CSHaptic.warning() }
     }
     .task(id: armed) {

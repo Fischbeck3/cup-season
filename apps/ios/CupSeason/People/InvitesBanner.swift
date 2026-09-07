@@ -60,8 +60,8 @@ struct InvitesBanner: View {
           ForEach(vm.count.invites) { i in
             HStack(spacing: 12) {
               VStack(alignment: .leading, spacing: 3) {
-                Text("\(i.title) · \(i.containerName)").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-                Text(i.subline).font(CSFont.monoSmall).foregroundStyle(cs.mut)
+                Text("\(i.title) · \(i.containerName)").csType(.name).foregroundStyle(cs.ink)
+                Text(i.subline).csType(.columnS).foregroundStyle(cs.mut)
               }
               .frame(maxWidth: .infinity, alignment: .leading)
               HStack(spacing: 6) {
@@ -94,8 +94,10 @@ struct InvitesBanner: View {
         CSSheetHeader(title: i.title, sub: i.containerName.uppercased())
         CSFine(i.detail)
         HStack(spacing: 8) {
-          CSButton("Accept") { detail = nil; Task { await respond(i, accept: true) } }
-          CSButton("Not now", style: .quiet) { detail = nil; Task { await respond(i, accept: false) } }
+          Button("Accept") { detail = nil; Task { await respond(i, accept: true) } }
+            .buttonStyle(.csPrimary())
+          Button("Not now") { detail = nil; Task { await respond(i, accept: false) } }
+            .buttonStyle(.csSecondary())
         }
         .padding(.top, 4)
       }

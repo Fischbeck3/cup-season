@@ -855,12 +855,18 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--ink);
 }
 .inheritline .edit{margin-left:auto; color:var(--brand);}
+/* WAVE 8 · THE ONE CHIP (D277, §7.2). Twelve chip families at five heights,
+   five paddings, two shapes and three "selected" languages become one: a 3pt
+   rectangle, an agate label, `bg2` at rest, and SELECTED INVERTS TO THE PANEL
+   — which also fixes the finding that the selected pill read quieter than the
+   unselected one. There is no pill: 999px is the shape the system deleted. */
 .whochip{
-  display:inline-flex; align-items:center; gap:6px; padding:7px 12px; margin:0 6px 6px 0;
-  border-radius:999px; border:1px solid var(--rule); background:var(--bg2);
-  color:var(--mut); font-size:13px; cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px; padding:0 12px; margin:0 6px 6px 0;
+  min-height:28px; border-radius:var(--p); border:0; background:var(--bg2);
+  color:var(--mut); font-family:var(--board); font-size:11.5px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; cursor:pointer;
 }
-.whochip.on{border-color:var(--brand); background:color-mix(in srgb, var(--brand) 16%, transparent); color:var(--ink);}
+.whochip.on{background:var(--panel); color:var(--panel-ink);}
 .calc{
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:18px; text-align:center;
@@ -1372,8 +1378,10 @@ body.guestlive #onboard{display:none !important;}
 .groupchips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px;}
 .gchip{
   display:flex; align-items:center; gap:7px;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:99px;
-  padding:7px 12px 7px 9px; font-size:12px; font-weight:600; color:var(--ink);
+  background:var(--bg2); border:0; border-radius:var(--p);
+  padding:0 12px 0 9px; min-height:28px;
+  font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--mut);
 }
 .gchip .sw{width:8px; height:8px; border-radius:3px;}
 .gchip small{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.06em;}
@@ -1509,11 +1517,11 @@ body.guestlive #onboard{display:none !important;}
 .notifrow .tt b{font-size:13.5px; display:block;}
 .notifrow .tt small{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mut);}
 .mini{
-  font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.04em;
-  color:var(--ink); background:var(--bg2); border:1px solid var(--rule);
-  border-radius:var(--rc); padding:9px 14px; cursor:pointer; flex:none;
+  font-family:var(--board); font-size:13px; font-weight:600; letter-spacing:.02em;
+  color:var(--ink); background:var(--bg2); border:0;
+  border-radius:var(--rc); padding:0 14px; min-height:44px; cursor:pointer; flex:none;
 }
-.mini:hover{border-color:var(--dim);}
+.mini:hover{background:var(--rule);}
 .mini:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 /* F6: the one icon-chrome class — sized/aligned for inline use next to text */
 .ic{width:14px; height:14px; vertical-align:-2px; pointer-events:none;}
@@ -1576,8 +1584,8 @@ body.guestlive #onboard{display:none !important;}
 .wizp-row{display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap;}
 .wizp-row .k{font-family:var(--mono); font-size:9px; letter-spacing:.12em; color:var(--dim); text-transform:uppercase; width:62px; flex:none;}
 .wizp-dot{width:10px; height:10px; border-radius:3px; display:inline-block; flex:none;}
-.wizp-chip{font-family:var(--mono); font-size:9.5px; letter-spacing:.04em; text-transform:uppercase; padding:3px 9px; border-radius:99px; border:1px solid var(--rule); color:var(--dim); white-space:nowrap;}
-.wizp-chip.on{border-color:var(--brand); color:var(--brand); background:color-mix(in srgb, var(--brand) 20%, transparent);}
+.wizp-chip{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:0 9px; min-height:24px; display:inline-flex; align-items:center; border-radius:var(--p); border:0; background:var(--bg2); color:var(--mut); white-space:nowrap;}
+.wizp-chip.on{color:var(--panel-ink); background:var(--panel);}
 .wizp-gold{font-family:var(--serif); color:var(--gold); font-weight:700; font-size:24px; font-variant-numeric:tabular-nums;}
 .wizp-sub{font-family:var(--mono); font-size:9px; letter-spacing:.08em; color:var(--dim); text-transform:uppercase; padding-left:70px; margin-top:-4px;}
 /* Stage 3d-2: Start something as schema-art doors, competition-forward */
@@ -1731,15 +1739,16 @@ body.guestlive #onboard{display:none !important;}
 .rsheet .rs-course .meta{display:block; font-size:11px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
 .rsheet .rs-course .place{display:block; font-size:11.5px; color:var(--dim); margin-top:1px;}
 .rs-when{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
-.teechip{font-size:12.5px; font-weight:600; background:var(--bg2); border:1px solid var(--rule); border-radius:8px; padding:6px 10px;}
-.wxchip{font-size:12px; color:var(--mut); background:rgba(212,178,62,.12); border:1px solid rgba(212,178,62,.32); border-radius:8px; padding:6px 10px;}
+.teechip{font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); background:var(--bg2); border:0; border-radius:var(--p); padding:0 10px; min-height:28px; display:inline-flex; align-items:center;}
+/* the weather chip spent GOLD on a forecast — a metal that means EARNED */
+.wxchip{font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); background:var(--bg2); border:0; border-radius:var(--p); padding:0 10px; min-height:28px; display:inline-flex; align-items:center; gap:6px;}
 .wxchip .sun{color:var(--gold);} .wxchip b{color:var(--ink);}
 .rs-note{font-style:italic; color:var(--mut); font-size:13px; margin-top:10px;}
 .rivchip{margin-top:12px; border:1px solid rgba(212,178,62,.34); background:rgba(212,178,62,.08); border-radius:10px; padding:9px 11px; font-size:13px;}
 .rivchip em{font-style:italic; color:var(--mut);}
 .rs-lbl{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim); margin:16px 0 8px; display:flex; justify-content:space-between;}
 .rs-lbl .n{color:var(--pos); font-weight:600;}
-.rsvppill{font-family:var(--mono); font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; font-weight:700; padding:3px 8px; border-radius:99px; flex:none; align-self:center;}
+.rsvppill{font-family:var(--board); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; padding:0 8px; min-height:24px; display:inline-flex; align-items:center; border-radius:var(--p); flex:none; align-self:center; background:var(--bg2);}
 .rsvppill.in{color:var(--pos); background:rgba(78,197,132,.14);}
 .rsvppill.maybe{color:var(--gold); background:rgba(212,178,62,.16);}
 .rsvppill.out{color:var(--dim); background:var(--bg2);}
@@ -1838,9 +1847,9 @@ body.guestlive #onboard{display:none !important;}
 .social{margin-top:10px; padding-top:10px; border-top:1px solid var(--rule);}
 .rxbar{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
 .rxchip{
-  font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.02em;
-  color:var(--mut); background:var(--bg2); border:1px solid var(--rule);
-  border-radius:99px; padding:5px 10px; cursor:pointer; line-height:1;
+  font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em;
+  color:var(--mut); background:var(--bg2); border:0;
+  border-radius:var(--p); padding:0 10px; min-height:28px; cursor:pointer; line-height:28px;
 }
 .rxchip .e{font-family:var(--sans); margin-right:4px;}
 .rxchip:hover{color:var(--ink);}
@@ -1994,8 +2003,9 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .echips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px;}
 .echip{
   display:flex; align-items:center; gap:7px;
-  font-family:var(--mono); font-size:12.5px; color:var(--ink);
-  background:var(--bg2); border:1px solid var(--rule); border-radius:99px; padding:6px 11px;
+  font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--mut);
+  background:var(--bg2); border:0; border-radius:var(--p); padding:0 11px; min-height:28px;
 }
 .echip button{border:none; background:none; color:var(--dim); cursor:pointer; font-size:12px; padding:0;}
 .echip button:hover{color:var(--neg);}
@@ -2033,11 +2043,12 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .composer .btn{width:auto; padding:0 20px; min-height:46px; margin:0;}
 .selchip{
   display:inline-flex; align-items:center; gap:7px;
-  font-family:var(--mono); font-size:12.5px; font-weight:600; letter-spacing:.03em;
-  color:var(--mut); background:var(--bg2); border:1px solid var(--rule);
-  border-radius:99px; padding:8px 13px; cursor:pointer; margin:0 6px 6px 0;
+  font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--mut); background:var(--bg2); border:0;
+  border-radius:var(--p); padding:0 13px; min-height:28px; cursor:pointer; margin:0 6px 6px 0;
 }
-.selchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
+.selchip.on{color:var(--panel-ink); background:var(--panel);}
 .selchip.on .gtag{background:var(--bg0); color:var(--brand);}
 .selchip:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .selchip[disabled]{opacity:.45; cursor:default;}
@@ -2119,7 +2130,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   text-transform:uppercase; text-align:center; padding:2px 0 0; margin:0; font-weight:500;}
 .crtvs{align-self:center; font-family:var(--mono); font-size:10px; color:var(--dim); padding-top:52px; flex:none;}
 .crtchip{position:relative; display:flex; align-items:center; gap:8px; background:var(--bg2);
-  border:1px solid var(--rule); border-radius:11px; padding:8px 26px 8px 10px;
+  border:0; border-radius:var(--p); padding:8px 26px 8px 10px;
   min-height:44px; user-select:none; -webkit-user-select:none; touch-action:none; cursor:grab;}
 .crtchip b{font-size:13px; display:flex; align-items:center; gap:6px;}
 .crtchip small{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--dim);}
@@ -2653,8 +2664,8 @@ body.noleague .league-only{display:none !important;}
 body:not(.noleague) #hubLeagueless{display:none;}
 /* Up Next strip — what's coming, one glance, hides when empty */
 #homeUpNext:not(:empty){display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;}
-.upchip{display:inline-flex; align-items:center; gap:8px; border:0.5px solid var(--rule);
-  background:var(--bg2); border-radius:99px; padding:7px 13px; white-space:nowrap;}
+.upchip{display:inline-flex; align-items:center; gap:8px; border:0;
+  background:var(--bg2); border-radius:var(--p); padding:0 13px; white-space:nowrap;}
 .upchip .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.09em; color:var(--mut); text-transform:uppercase;}
 .upchip b{font-size:12.5px; font-weight:600; color:var(--ink);}
 /* D176: a chip is a button now. Min-height keeps the tap target honest on a
@@ -4478,8 +4489,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="wiznav">
           <button class="btn dark" id="wizCancel">Cancel</button>
-          <button class="btn dark" id="wizBack">← Back</button>
-          <button class="btn" id="wizNext">Next →</button>
+          <button class="btn dark" id="wizBack">Back</button>
+          <button class="btn" id="wizNext">Next</button>
         </div>
         </div><!-- /wiz-main -->
         <aside class="wiz-aside" aria-label="Your league so far">
@@ -7307,7 +7318,7 @@ function boardDigestHtml(){
     if(f.roundpost || (f.pvi!=null && !f.msg && !f.ann && !f.moment && !f.sys)){ lines.push(digestRoundLine(f)); break; }
   }
   for(let i=feed.length-1;i>=0;i--){
-    if(feed[i].sys){ lines.push('◆ '+esc(easeCaps(feed[i].txt||''))); break; }
+    if(feed[i].sys){ lines.push(esc(easeCaps(feed[i].txt||''))); break; }
   }
   /* 3.3 follow-up: a seasonless REAL league's load path never runs
      renderStats() before renderFeed() (only the CS.season-present branch
@@ -7375,7 +7386,7 @@ function renderFeed(){
      announcements are not chat, they must survive the scroll */
   let pin=-1; feed.forEach((f,i)=>{ if(f.ann) pin=i; });
   if(pin>-1)
-    el.insertAdjacentHTML('beforeend',`<div class="annrow pin"><b>📌 FROM THE PRO</b>${esc(feed[pin].txt)}</div>`);
+    el.insertAdjacentHTML('beforeend',`<div class="annrow pin"><b>FROM THE PRO</b>${esc(feed[pin].txt)}</div>`);
   /* F13 (3.3): quiet-day digest — rides below the pin, above the chronology */
   const dg=boardDigestHtml();
   if(dg) el.insertAdjacentHTML('beforeend', dg);
@@ -7394,7 +7405,7 @@ function renderFeed(){
       return;
     }
     if(f.ann){
-      el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>📣 FROM THE PRO</b>${esc(f.txt)}</div>`);
+      el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>FROM THE PRO</b>${esc(f.txt)}</div>`);
       return;
     }
     if(f.moment){
@@ -7517,7 +7528,7 @@ function renderFeedFull(force){
       el.insertAdjacentHTML('beforeend', sysRowHtml(f, fi, 'f-'));
       return;
     }
-    if(f.ann){ el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>📣 FROM THE PRO</b>${esc(f.txt)}</div>`); return; }
+    if(f.ann){ el.insertAdjacentHTML('beforeend',`<div class="annrow"><b>FROM THE PRO</b>${esc(f.txt)}</div>`); return; }
     if(f.moment){ el.insertAdjacentHTML('beforeend', momRowHtml(f, fi, 'f-')); return; }
     if(f.sys){ el.insertAdjacentHTML('beforeend', sysRowHtml(f, fi, 'f-')); return; }
     if(f.msg){
@@ -8054,11 +8065,17 @@ const CARD_BADGE = {
    these cards are. */
 function drawRecapCard(d){
   const W=1080, H=1350;
-  const BG='#0B1410', PANEL='#131D17', INK='#F0F2F3', MUT='#8E979E', GOLD='#E9BE62';
+  /* WAVE 8 · the `ceremony` ramp, the same eight values the settlement card
+     and the phone's `LiveSettlementCard` read (D277). This card carried the
+     palette D270 replaced. */
+  const BG='#0A0E0C', PANEL='#0A0E0C', INK='#F1F4EF', MUT='#9BA69D', GOLD='#D8B25A';
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
-  const SERIF="'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
+  /* the board face carries the card the way it carries every title in the
+     product; the serif is New York through `ui-serif` — Charter is retired */
+  const BOARD="'IBM Plex Sans Condensed',system-ui,sans-serif";
+  const SERIF="ui-serif,'New York',Georgia,serif";
   const ctr=(txt,y,font,fill,ls)=>{ x.font=font; x.fillStyle=fill;
     try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
     x.textAlign='center'; x.fillText(txt,W/2,y);
@@ -8088,12 +8105,12 @@ function drawRecapCard(d){
     x.strokeStyle=GOLD; x.lineWidth=1.8; x.lineCap='round'; x.lineJoin='round';
     x.stroke(path); x.restore();
   }
-  ctr((d.name||'A GOLFER').toUpperCase(), 372, `600 44px ${MONO}`, INK, 7);
+  ctr((d.name||'A GOLFER').toUpperCase(), 372, `700 50px ${BOARD}`, INK, 2);
   /* D60a: no league line on the card — the artifact is about the golfer, and
      league names are in-joke space (pilot: "Who's the bitch?" on a PNG headed
      for strangers). Callers may still pass d.league; it stays undrawn. */
   /* the hero number — serif, the memory-and-honor voice */
-  ctr(String(d.gross), 760, `700 300px ${SERIF}`, INK);
+  ctr(String(d.gross), 760, `700 300px ${BOARD}`, INK);
   /* band renders only on a SANE vs — a rating-less post recalcs to a nonsense
      differential (≈ −71.6 → "71.6 over your playing HCP"), so |pvi|>30 means we
      don't really have a number. Gated here at render time so every caller
@@ -8103,19 +8120,19 @@ function drawRecapCard(d){
   if(pviSane){
     /* third person on the artifact — its audience is the group chat, and the
        golfer's name is right above (same rule as the share page) */
-    ctr(theirs(bandName(Number(d.pvi))).toUpperCase(), 850, `600 46px ${MONO}`, GOLD, 9);
-    ctr(theirs(vsPhrase(Number(d.pvi))), 906, `500 31px ${SERIF}`, MUT);
+    ctr(theirs(bandName(Number(d.pvi))).toUpperCase(), 850, `600 46px ${BOARD}`, GOLD, 6);
+    ctr(theirs(vsPhrase(Number(d.pvi))), 906, `400 31px ${SERIF}`, MUT);
   }
-  if(d.badge) ctr('★ '+d.badge, 972, `600 31px ${MONO}`, GOLD, 5);
+  if(d.badge) ctr(d.badge, 972, `600 31px ${BOARD}`, GOLD, 5);
   x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
   x.beginPath(); x.moveTo(280,1020); x.lineTo(W-280,1020); x.stroke();
-  ctr((d.course||'A ROUND').toUpperCase(), 1084, `600 36px ${MONO}`, INK, 4);
+  ctr((d.course||'A ROUND').toUpperCase(), 1084, `700 40px ${BOARD}`, INK, 2);
   const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const dt=d.date||new Date();
   const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`+(d.points!=null?` · ${d.points} PTS`:'');
-  ctr(when, 1134, `500 29px ${MONO}`, MUT, 4);
-  ctr('Cup Season', 1246, `600 52px ${SERIF}`, INK);
-  ctr('cupseason.app', 1292, `500 27px ${MONO}`, MUT, 4);
+  ctr(when, 1134, `600 29px ${BOARD}`, MUT, 4);
+  ctr('CUP SEASON', 1246, `700 52px ${BOARD}`, INK, 2);
+  ctr('cupseason.app', 1292, `600 27px ${BOARD}`, MUT, 4);
   return cv;
 }
 function recapText(d){
@@ -8168,12 +8185,21 @@ async function shareRecapCard(d){
    DOM strip, drawn as rects because canvas has no DOM to reuse.               */
 function drawSettlementCard(d){
   const W=1080, H=1350;
-  const BG='#0B1410', PANEL='#131D17', INK='#F0F2F3', MUT='#8E979E',
-        GOLD='#E9BE62', HOT='#FF5A2E', SLATE='#66707A';
+  /* WAVE 8 · the card is on the product's own palette at last (D277). Every
+     value here was a hex from the palette D270 replaced, so the artifact a
+     golfer shares was printed in the old brand while both clients wore the
+     new one. These are the `ceremony` ramp, which is pinned in both
+     printings — the same eight values the phone's `LiveSettlementCard` reads
+     from `CSTokens.dark`, and preflight 47 fails if the two drift apart. */
+  const BG='#0A0E0C', INK='#F1F4EF', MUT='#9BA69D',
+        GOLD='#D8B25A', HOT='#E8622C', SLATE='#7F8C95';
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
-  const SERIF="'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
+  /* the board face carries the card the way it carries every title in the
+     product; the serif is New York through `ui-serif` — Charter is retired */
+  const BOARD="'IBM Plex Sans Condensed',system-ui,sans-serif";
+  const SERIF="ui-serif,'New York',Georgia,serif";
   const ctr=(txt,y,font,fill,ls)=>{ x.font=font; x.fillStyle=fill;
     try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
     x.textAlign='center'; x.fillText(txt,W/2,y);
@@ -8186,17 +8212,18 @@ function drawSettlementCard(d){
     for(;s>16;s-=2){ x.font=`${wt} ${s}px ${font}`; if(x.measureText(txt).width<=(max||W-220)) break; }
     ctr(txt,y,`${wt} ${s}px ${font}`,fill,ls);
   };
+  /* one ground and one rule: a rounded panel inside a ground is a container
+     inside a container (non-negotiable 1), and the card's edge is the object's
+     own line rather than a second surface */
   x.fillStyle=BG; x.fillRect(0,0,W,H);
-  x.fillStyle=PANEL;
-  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.fill();
-  x.strokeStyle='rgba(233,190,98,.35)'; x.lineWidth=2;
-  x.beginPath(); x.roundRect(36,36,W-72,H-72,28); x.stroke();
+  x.strokeStyle='rgba(216,178,90,.24)'; x.lineWidth=2;
+  x.strokeRect(36,36,W-72,H-72);
 
   const r=d.result||{}, HL=r.holes||null;
   const won=r.winner!=null;
   const wSide=r.winner==='0'?r.side_a:r.side_b, lSide=r.winner==='0'?r.side_b:r.side_a;
 
-  ctr((d.game||'SETTLED').toUpperCase(), 170, `600 32px ${MONO}`, GOLD, 8);
+  ctr((d.game||'SETTLED').toUpperCase(), 170, `600 32px ${BOARD}`, GOLD, 8);
 
   /* the hero. Two-sided games have a margin and it leads at full scale; the
      ledger games have no single margin, so their one-line result takes the
@@ -8211,19 +8238,18 @@ function drawSettlementCard(d){
     let hero=String(r.status||'').toUpperCase(), heroSub='';
     const upThru=hero.match(/^(\d+)\s*UP\s*THRU\s*(\d+)$/);
     if(upThru){ hero=upThru[1]+' UP'; heroSub='THRU '+upThru[2]; }
-    fit(hero, 440, 260, SERIF, INK, 0, W-240, 700);
-    if(heroSub) ctr(heroSub, 500, `500 30px ${MONO}`, MUT, 8);
-    fit(String(wSide||'').toUpperCase(), heroSub?570:560, 44, MONO, INK, 6);
-    ctr('DEF.', heroSub?622:612, `500 26px ${MONO}`, MUT, 8);
-    fit(String(lSide||'').toUpperCase(), heroSub?674:664, 40, MONO, MUT, 6);
+    fit(hero, 440, 250, BOARD, INK, 0, W-240, 700);
+    if(heroSub) ctr(heroSub, 500, `600 30px ${BOARD}`, MUT, 8);
+    fit(String(wSide||'').toUpperCase(), heroSub?570:560, 52, BOARD, INK, 2, W-240, 700);
+    ctr('DEF.', heroSub?622:612, `600 26px ${BOARD}`, MUT, 8);
+    fit(String(lSide||'').toUpperCase(), heroSub?674:664, 46, BOARD, MUT, 2, W-240, 700);
   } else if(twoSided){
-    ctr('ALL', 390, `700 150px ${SERIF}`, INK);
-    ctr('SQUARE', 520, `700 150px ${SERIF}`, INK);
-    fit(String(r.side_a||'').toUpperCase(), 600, 40, MONO, INK, 6);
-    fit(String(r.side_b||'').toUpperCase(), 655, 40, MONO, INK, 6);
+    ctr('ALL SQUARE', 440, `700 140px ${BOARD}`, INK);
+    fit(String(r.side_a||'').toUpperCase(), 600, 46, BOARD, INK, 2, W-240, 700);
+    fit(String(r.side_b||'').toUpperCase(), 660, 46, BOARD, INK, 2, W-240, 700);
   } else {
-    fit(String(r.share||'SETTLED'), 470, 76, SERIF, INK, 0, W-200);
-    fit(String(d.game||'').toUpperCase(), 600, 32, MONO, MUT, 8);
+    fit(String(r.share||'Settled'), 470, 76, SERIF, INK, 0, W-200, 700);
+    fit(String(d.game||'').toUpperCase(), 600, 32, BOARD, MUT, 8);
   }
 
   /* the strip — the same ledger the DOM strip draws, in rects */
@@ -8236,11 +8262,11 @@ function drawSettlementCard(d){
       const cx=L+i*(cw+gap), ch=isClose?hgt+10:hgt, cy=top+(hgt-ch);
       x.globalAlpha = v==null ? .28 : 1;
       if(v==null || v==='h' || v==='c'){
-        x.strokeStyle='rgba(255,255,255,.42)'; x.lineWidth=2;
-        x.beginPath(); x.roundRect(cx,cy,cw,ch,4); x.stroke();
+        x.strokeStyle='rgba(241,244,239,.56)'; x.lineWidth=2;
+        x.strokeRect(cx,cy,cw,ch);
       } else {
         x.fillStyle = String(v)===String(HL.hot) ? HOT : SLATE;
-        x.beginPath(); x.roundRect(cx,cy,cw,ch,4); x.fill();
+        x.fillRect(cx,cy,cw,ch);
       }
       x.globalAlpha=1;
     }
@@ -8254,26 +8280,26 @@ function drawSettlementCard(d){
     /* the legend is a swatch and a name — "took the ember holes" was internal
        vocabulary on an artifact headed for people who have never seen the app */
     if(HL.legend){
-      x.font=`500 24px ${MONO}`; x.textAlign='left';
+      x.font=`600 24px ${BOARD}`; x.textAlign='left';
       const label=String(HL.legend).toUpperCase();
       const tw=x.measureText(label).width, sw=20, sgap=12;
       const startX=(W-(tw+sw+sgap))/2;
       x.fillStyle=HOT;
-      x.beginPath(); x.roundRect(startX, 928, sw, sw, 4); x.fill();
+      x.fillRect(startX, 928, sw, sw);
       x.fillStyle=MUT; x.fillText(label, startX+sw+sgap, 946);
       x.textAlign='center';
     }
   }
 
-  ctr(String(d.money||'').toUpperCase(), 1010, `600 30px ${MONO}`, GOLD, 5);
-  x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
+  ctr(String(d.money||'').toUpperCase(), 1010, `600 30px ${BOARD}`, GOLD, 5);
+  x.strokeStyle='#8B8F8B'; x.lineWidth=1;
   x.beginPath(); x.moveTo(280,1060); x.lineTo(W-280,1060); x.stroke();
-  ctr((d.course||'A ROUND').toUpperCase(), 1124, `600 34px ${MONO}`, INK, 4);
+  ctr((d.course||'A ROUND').toUpperCase(), 1124, `700 40px ${BOARD}`, INK, 2);
   const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const dt=d.date||new Date();
-  ctr(`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`, 1174, `500 27px ${MONO}`, MUT, 4);
-  ctr('Cup Season', 1268, `600 50px ${SERIF}`, INK);
-  ctr('cupseason.app', 1312, `500 25px ${MONO}`, MUT, 4);
+  ctr(`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`, 1174, `600 27px ${BOARD}`, MUT, 4);
+  ctr('CUP SEASON', 1268, `700 50px ${BOARD}`, INK, 2);
+  ctr('cupseason.app', 1312, `600 25px ${BOARD}`, MUT, 4);
   return cv;
 }
 /* same five moves as shareRecapCard: blob, file, capability gate, share,
@@ -12794,7 +12820,7 @@ function showLiveRecap(d, result, lrId){
            <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#FF5A2E;margin-right:6px;vertical-align:middle"></span>${esc(String(result.holes.legend).toUpperCase())}
          </div>` : ''}
       ${hl.length ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${
-        hl.map(t=>`<span style="font-size:10px;letter-spacing:.1em;color:#E9BE62;border:1px solid rgba(233,190,98,.35);border-radius:999px;padding:3px 9px">${esc(t)}</span>`).join('')
+        hl.map(t=>`<span style="font-size:11px;letter-spacing:.06em;color:var(--mut);background:var(--bg2);border-radius:var(--p);padding:4px 9px">${esc(t)}</span>`).join('')
       }</div>` : ''}
     </div>`);
   }
@@ -18477,11 +18503,13 @@ function renderMajorRoom(el, E){
 /* D76 Charcoal — see the note on drawRecapCard */
 function drawMajorCard(d){
   const W=1080, H=1350;
-  const BG='#0B1410', PANEL='#131D17', INK='#F0F2F3', MUT='#8E979E', GOLD='#E9BE62';
+  /* WAVE 8 · the `ceremony` ramp, as on the settlement and recap cards (D277) */
+  const BG='#0A0E0C', PANEL='#0A0E0C', INK='#F1F4EF', MUT='#9BA69D', GOLD='#D8B25A';
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const x=cv.getContext('2d');
   const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
-  const SERIF="'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
+  const BOARD="'IBM Plex Sans Condensed',system-ui,sans-serif";
+  const SERIF="ui-serif,'New York',Georgia,serif";
   const ctr=(txt,y,font,fill,ls)=>{ x.font=font; x.fillStyle=fill;
     try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
     x.textAlign='center'; x.fillText(txt,W/2,y);
@@ -21200,7 +21228,7 @@ $('#hdrLogo')?.addEventListener('click', ()=> switchView('home'));
 
 $('#annBtn')?.addEventListener('click', async () => {
   const v = $('#chatIn').value.trim();
-  if(!v){ toast('Type the announcement first, then 📣'); return; }
+  if(!v){ toast('Type the announcement first, then send it'); return; }
   if(!CS.league) return;
   const btn = $('#annBtn'); btn.disabled = true;
   const { error } = await sb.rpc('announce', { p_league: CS.league.id, p_body: v });
@@ -22667,7 +22695,7 @@ function openEmailBox(afterEl, msg){
   if(!back){
     back = document.createElement('button');
     back.id = 'obBack'; back.type = 'button'; back.className = 'cs-tskip';
-    back.textContent = '← Back';
+    back.textContent = 'Back';
     back.addEventListener('click', () => {
       $('#emailbox')?.classList.remove('open');
       $('#codebox')?.classList.remove('open');
@@ -25738,9 +25766,11 @@ async function renderShareView(tok, _testInfo){
   /* D76: the GROUND converges to charcoal (identity, not metals) — every
      branch. Gold stays the earned face (settlement/recap); rounds are the
      live layer and speak ember/warm. */
-  const C = { bg:'#0B1410', panel:'#121417', ink:'#F0F2F3', mut:'#8E979E', gold:'#E9BE62', hot:'#FF5A2E', warm:'#E9A23B' };
+  /* WAVE 8 · the `ceremony` ramp (D277). `warm` was deleted from the palette
+     in Wave 0a and survived here because this view is built from a string. */
+  const C = { bg:'#0A0E0C', panel:'#0A0E0C', ink:'#F1F4EF', mut:'#9BA69D', gold:'#D8B25A', hot:'#E8622C', warm:'#D8B25A' };
   const MONO = "'IBM Plex Mono',ui-monospace,Menlo,monospace";
-  const SERIF = "'Charter','Iowan Old Style','Palatino Linotype',Georgia,serif";
+  const SERIF = "ui-serif,'New York',Georgia,serif";
   const wrap = document.createElement('div');
   wrap.id = 'shareView';
   wrap.style.cssText = `position:fixed;inset:0;z-index:99999;overflow:auto;background:${C.bg};color:${C.ink};-webkit-font-smoothing:antialiased`;
@@ -25863,7 +25893,7 @@ async function renderShareView(tok, _testInfo){
            ${HL.legend ? `<div style="margin-top:10px;font-size:10.5px;letter-spacing:.12em;color:${C.mut}">
               <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${C.hot};margin-right:6px;vertical-align:middle"></span>${esc(String(HL.legend).toUpperCase())}</div>` : ''}
            ${(window.holeHighlights ? window.holeHighlights(HL, { hot: HL.hot }) : []).map(t =>
-              `<span style="display:inline-block;margin:9px 5px 0 0;font-size:10px;letter-spacing:.1em;color:${C.gold};border:1px solid rgba(233,190,98,.35);border-radius:999px;padding:3px 9px">${esc(t)}</span>`).join('')}
+              `<span style="display:inline-block;margin:9px 5px 0 0;font-size:11px;letter-spacing:.06em;color:${C.mut};background:rgba(241,244,239,.08);border-radius:3px;padding:4px 9px">${esc(t)}</span>`).join('')}
          </div>`
       : '';
     card.innerHTML = `

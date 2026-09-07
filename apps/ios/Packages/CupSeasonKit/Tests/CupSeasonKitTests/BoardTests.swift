@@ -155,7 +155,9 @@ import Foundation
     ]
     let seenAfter = (t0.timeIntervalSince1970 + 600) * 1000
     let lines = BoardLogic.digest(items: items, cache: cache, names: .init(), marker: seenAfter, next: "Week closes Sun · 3d")
-    #expect(lines == ["Ed Metz · Papago · Beat your number", "◆ Mitch joined the league", "Week closes Sun · 3d"])
+    // D277 · the digest's system line carries no typed glyph: the producer
+    // emits the words and the row draws the mark (LINT-13).
+    #expect(lines == ["Ed Metz · Papago · Beat your number", "Mitch joined the league", "Week closes Sun · 3d"])
     // first-ever open: the feed itself is the reveal
     #expect(BoardLogic.digest(items: items, cache: cache, names: .init(), marker: 0, next: nil) == nil)
     // something new landed since the mark: the feed renders exactly as today

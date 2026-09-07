@@ -606,7 +606,7 @@ struct LiveGroupSheet: View {
     let guests = L.players.indices.filter { L.players[$0].guest && L.guestTokens[String($0)] != nil }
     SheetFrame("Group phones", sub: "EVERYONE SCORES · IT ALL SYNCS") {
       Text(LiveMarkdown.bold("League members just open the app — a **Continue your round** banner is waiting on Home. \(L.code == nil ? "**Sync is off for this round** (it started before the update) — one phone keeps the card. " : "")Any phone can fix any score; the newest edit wins."))
-        .font(CSFont.footnote).foregroundStyle(cs.dimText)
+        .csType(.bodyS).foregroundStyle(cs.mut)
       if guests.isEmpty {
         CSFine("No guests in this round.")
       } else {
@@ -616,13 +616,13 @@ struct LiveGroupSheet: View {
           let url = ClaimIntent.url(tok)
           A11yStack(spacing: 10, columnSpacing: 6) {
             VStack(alignment: .leading, spacing: 2) {
-              Text(L.players[i].n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-              Text("No account needed — the link is their pencil now and their recap after").font(CSFont.label).foregroundStyle(cs.dimText)
+              Text(L.players[i].n).csType(.name).foregroundStyle(cs.ink)
+              Text("No account needed — the link is their pencil now and their recap after").font(CSFont.label).foregroundStyle(cs.mut)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Spacer()
             HStack(spacing: 10) {
-            CSMini("Copy") { UIPasteboard.general.string = url.absoluteString; toast.show("Recap link copied") }
+            CSMini("Copy") { UIPasteboard.general.string = url.absoluteString; toast.show("Recap link copied", kind: .confirmed) }
               .accessibilityLabel("Copy \(L.players[i].n)'s link")
             ShareLink(item: url, message: Text("Your pencil for today's round on Cup Season")) {
               Image(systemName: "square.and.arrow.up").font(.system(size: 14, weight: .semibold)).foregroundStyle(cs.ink)

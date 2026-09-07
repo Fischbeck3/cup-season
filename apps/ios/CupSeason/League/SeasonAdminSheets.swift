@@ -40,8 +40,8 @@ struct NoticesRoomSection: View {
       }
     } else {
       HStack(spacing: 10) {
-        Image(systemName: on ? "bell" : "bell.slash").font(.system(size: 13, weight: .regular)).foregroundStyle(cs.dimText)
-        Text(NoticesCopy.memberLine(on)).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+        Image(systemName: on ? "bell" : "bell.slash").font(.system(size: 13, weight: .regular)).foregroundStyle(cs.mut)
+        Text(NoticesCopy.memberLine(on)).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       .frame(minHeight: 44)
@@ -60,7 +60,7 @@ struct NoticesRoomSection: View {
         try await model.setNotifySystem(next)
         toast.show(NoticesCopy.toast(model.league?.noticesOn ?? next))
       } catch {
-        toast.show(roomError(error, "Could not change league notices."))
+        toast.show(roomError(error, "Could not change league notices."), kind: .failed)
       }
     }
   }
@@ -106,17 +106,18 @@ struct CancelLeagueSheet: View {
           do {
             let r = try await model.requestCancel()
             dismiss()
-            if r == "done" { toast.show("\(nm) cancelled. Every round stays on its golfer."); links.leagueGone() }
-            else { toast.show("Cancellation requested — every member must approve.") }
-          } catch { toast.show(roomError(error)) }
+            if r == "done" { toast.show("\(nm) cancelled. Every round stays on its golfer.", kind: .confirmed); links.leagueGone() }
+            else { toast.show("Cancellation requested — every member must approve.", kind: .confirmed) }
+          } catch { toast.show(roomError(error), kind: .failed) }
         }
       } label: {
-        ZStack { Text("Start the cancellation").font(CSFont.button).opacity(busy ? 0 : 1); if busy { ProgressView().tint(cs.bg0) } }
+        ZStack { Text("Start the cancellation").csType(.name).opacity(busy ? 0 : 1); if busy { ProgressView().tint(cs.bg0) } }
           .frame(maxWidth: .infinity, minHeight: 50).foregroundStyle(cs.bg0)
           .background(cs.neg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       }
       .buttonStyle(.plain).disabled(busy)
-      CSButton("Keep it", style: .quiet) { dismiss() }
+      Button("Keep it") { dismiss() }
+        .buttonStyle(.csSecondary())
     }
   }
 }
@@ -142,21 +143,22 @@ struct DeleteLeagueSheet: View {
       }
       Button {
         if others > 0, typed.trimmingCharacters(in: .whitespaces).lowercased() != nm.trimmingCharacters(in: .whitespaces).lowercased() {
-          toast.show("Name didn’t match: nothing deleted"); return
+          toast.show("Name didn’t match: nothing deleted", kind: .failed); return
         }
         busy = true
         Task {
           defer { busy = false }
-          do { try await model.deleteLeague(); dismiss(); toast.show("\(nm) deleted. Every round stays on its golfer."); links.leagueGone() }
-          catch { toast.show(roomError(error)) }
+          do { try await model.deleteLeague(); dismiss(); toast.show("\(nm) deleted. Every round stays on its golfer.", kind: .confirmed); links.leagueGone() }
+          catch { toast.show(roomError(error), kind: .failed) }
         }
       } label: {
-        ZStack { Text(others == 0 ? "Delete the league" : "Delete for everyone").font(CSFont.button).opacity(busy ? 0 : 1); if busy { ProgressView().tint(cs.bg0) } }
+        ZStack { Text(others == 0 ? "Delete the league" : "Delete for everyone").csType(.name).opacity(busy ? 0 : 1); if busy { ProgressView().tint(cs.bg0) } }
           .frame(maxWidth: .infinity, minHeight: 50).foregroundStyle(cs.bg0)
           .background(cs.neg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
       }
       .buttonStyle(.plain).disabled(busy)
-      CSButton("Keep it", style: .quiet) { dismiss() }
+      Button("Keep it") { dismiss() }
+        .buttonStyle(.csSecondary())
     }
   }
 }

@@ -158,8 +158,8 @@ struct ForgeFrame: View {
       wordmark.padding(.top, 2)
       fuse.padding(.top, 12)
       VStack(spacing: 2) {
-        Text("Rally your crew. Post real rounds.").font(CSFont.sentence).foregroundStyle(cs.mut)
-        Text("Take the cup.").font(CSFont.sentenceBold).italic().foregroundStyle(cs.ink)
+        Text("Rally your crew. Post real rounds.").csType(.story).foregroundStyle(cs.mut)
+        Text("Take the cup.").csType(.name).italic().foregroundStyle(cs.ink)
       }
       .multilineTextAlignment(.center)
       .padding(.top, 14)

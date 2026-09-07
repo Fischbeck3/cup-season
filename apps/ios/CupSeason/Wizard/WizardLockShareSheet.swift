@@ -45,11 +45,11 @@ struct WizardLockShareSheet: View {
       VStack(alignment: .leading, spacing: 12) {
         CSSheetHeader(title: share.head, sub: WizardCopy.lockShareSub)
         CSFine(share.line)
-        CSCard(padding: 12) {
+        CSBand(.tone, padding: CSTokens.Space.s3) {
           VStack(alignment: .leading, spacing: 4) {
-            (Text("You're invited to ").foregroundStyle(cs.dimText) + Text(share.name).bold().foregroundStyle(cs.ink) + Text(" on Cup Season").foregroundStyle(cs.dimText))
-              .font(CSFont.footnote)
-            Text(WizardCopy.inviteShort(share.code)).font(CSFont.mono).foregroundStyle(cs.ink)
+            (Text("You're invited to ").foregroundStyle(cs.mut) + Text(share.name).bold().foregroundStyle(cs.ink) + Text(" on Cup Season").foregroundStyle(cs.mut))
+              .csType(.bodyS)
+            Text(WizardCopy.inviteShort(share.code)).csType(.column).foregroundStyle(cs.ink)
               .textSelection(.enabled)
           }
         }
@@ -71,14 +71,14 @@ struct WizardLockShareSheet: View {
           }
           .padding(.top, 2)
           ShareLink(item: url, subject: Text("Cup Season"), message: Text(WizardCopy.inviteText(share.name))) {
-            Text(WizardCopy.shareEllipsis).font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
+            Text(WizardCopy.shareEllipsis).csType(.name).frame(maxWidth: .infinity, minHeight: 50)
               .foregroundStyle(cs.bg0).background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           }
           .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: share.code, league: share.leagueId) })
           .padding(.top, 4)
         }
-        CSButton("Add golfers", style: .quiet) { picker = true }
-        CSButton(WizardCopy.openTheSeason, style: .quiet) { dismiss() }
+        Button("Add golfers") { picker = true }.buttonStyle(.csSecondary())
+        Button(WizardCopy.openTheSeason) { dismiss() }.buttonStyle(.csSecondary())
       }
       .padding(20)
     }

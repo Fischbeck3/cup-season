@@ -55,7 +55,7 @@ struct SeasonRulesPage: View {
         .font(CSFont.heroSmall).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
       if let span = SeasonRules.span(startsOn: model.clock.startsOn, endsOn: model.clock.endsOn) {
-        Text(span).font(CSFont.sentence).foregroundStyle(cs.mut)
+        Text(span).csType(.story).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
     }
@@ -67,7 +67,7 @@ struct SeasonRulesPage: View {
                                    pro: model.proName, members: model.members.count)) { s in
         VStack(alignment: .leading, spacing: 4) {
           Text(s.head).csEyebrow()
-          Text(s.body).font(CSFont.body).foregroundStyle(cs.ink)
+          Text(s.body).csType(.body).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -101,9 +101,9 @@ struct SeasonRulesPage: View {
       } trail: {
         if let url = model.inviteURL, door.isOpen {
           ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
-            Text("Invite").font(CSFont.monoSmall).foregroundStyle(cs.ink)
+            Text("Invite").csType(.columnS).foregroundStyle(cs.ink)
               .padding(.horizontal, 12).frame(minHeight: 36)
-              .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
+              .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
               .frame(minHeight: 44)
           }
           .simultaneousGesture(TapGesture().onEnded {
@@ -124,14 +124,14 @@ struct SeasonRulesPage: View {
             Task {
               defer { sharing = false }
               do { shareURL = try await model.seasonShareURL() }
-              catch { toast.show(roomError(error, "Could not make the link.")) }
+              catch { toast.show(roomError(error, "Could not make the link."), kind: .failed) }
             }
           }
           ArmedMini("✕", armedLabel: "Sure? Turn it off") {
             guard model.season != nil else { return }
             Task {
-              do { try await model.revokeSeasonShare(); toast.show("Link is off — the page stops working for everyone") }
-              catch { toast.show(roomError(error, "Could not revoke.")) }
+              do { try await model.revokeSeasonShare(); toast.show("Link is off — the page stops working for everyone", kind: .confirmed) }
+              catch { toast.show(roomError(error, "Could not revoke."), kind: .failed) }
             }
           }
           .accessibilityLabel("Turn off this link — the page stops working for everyone who has it")
@@ -147,7 +147,7 @@ struct SeasonRulesPage: View {
   /// what happens. The Pro is told WHY rather than shown nothing.
   @ViewBuilder private var leave: some View {
     VStack(alignment: .leading, spacing: 8) {
-      CSHairline()
+      CSRule()
       Text(LeaveSeason.head).csEyebrow()
       switch model.leaveGate {
       case .offer:
@@ -160,7 +160,7 @@ struct SeasonRulesPage: View {
               let r = try await model.leaveSeason()
               toast.show(r.already == true ? LeaveSeason.leftNote : LeaveSeason.done(r.league ?? model.league?.name))
             } catch {
-              toast.show(roomError(error))
+              toast.show(roomError(error), kind: .failed)
             }
           }
         }

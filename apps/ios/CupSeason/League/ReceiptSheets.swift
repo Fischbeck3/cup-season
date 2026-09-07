@@ -49,7 +49,7 @@ struct SquadReceiptSheet: View {
         HStack {
           Text("Trend").csType(.agateS, caps: true).foregroundStyle(cs.mut)
           Spacer()
-          RoomSpark(values: s, color: team.solo ? nil : cs.squad(team.ci))
+          RoomTrendBars(values: s)
         }
         .padding(.vertical, CSTokens.Space.s2)
         .accessibilityElement(children: .ignore)
@@ -63,16 +63,16 @@ struct SquadReceiptSheet: View {
               HStack(spacing: 10) {
                 RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 10, height: 10)
                 VStack(alignment: .leading, spacing: 2) {
-                  Text(p.n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+                  Text(p.n).csType(.name).foregroundStyle(cs.ink)
                   // QB-17 · the row is one golfer's average; only my own row
                   // may say "your". `IndRow.me` has always known which.
                   Text("\(p.r) ROUND\(p.r == 1 ? "" : "S") · AVG vs \(p.me ? "your" : "their") number \(p.r > 0 ? StandingsMath.sgn(p.avg) : "—")")
-                    .font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+                    .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
               }
               Spacer()
-              Text(CSCopy.points(p.pts) + (typeSize.isA11y ? " PTS" : "")).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
+              Text(CSCopy.points(p.pts) + (typeSize.isA11y ? " PTS" : "")).csType(.columnM).foregroundStyle(cs.ink)
             }
             .padding(.vertical, 10).frame(minHeight: 48).contentShape(Rectangle())
             .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
@@ -130,10 +130,10 @@ struct MemberHistorySheet: View {
               A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {
                 // the web prints the ISO string here (11303); a label row reads the calendar date
                 Text(LeagueDates.monDay(h.played_on).uppercased() + (h.holes_played == 9 ? " · 9 HOLES" : "") + (h.counting ? "" : " · BUMPED"))
-                  .font(CSFont.label).tracking(0.6).foregroundStyle(h.counting ? cs.mut : cs.dimText)
+                  .font(CSFont.label).tracking(0.6).foregroundStyle(h.counting ? cs.mut : cs.mut)
                 Spacer()
                 Text("\(StandingsMath.sgn(h.pvi)) vs \(whose) number · \(CSCopy.points(h.points)) PTS")
-                  .font(CSFont.monoSmall).csTabular().foregroundStyle(h.counting ? cs.ink : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
+                  .csType(.columnS).foregroundStyle(h.counting ? cs.ink : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
               }
               .padding(.vertical, 10).frame(minHeight: 44).contentShape(Rectangle())
               .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }

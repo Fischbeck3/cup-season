@@ -564,8 +564,11 @@ public enum WizardCopy {
 
   // nav
   public static let cancel = "Cancel"
-  public static let back = "← Back"
-  public static let next = "Next →"
+  /// LINT-13 · no typed arrow in a produced string — the back button is at
+  /// the leading edge and the primary is at the trailing one, which is the
+  /// direction said in position rather than in a glyph nobody can restyle.
+  public static let back = "Back"
+  public static let next = "Next"
   public static let cancelConfirm = "Cancel this league? It hasn’t started, so this discards it completely."
   public static let discarded = "League discarded"
   public static let couldNotDiscard = "Could not discard."

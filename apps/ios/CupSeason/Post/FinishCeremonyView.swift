@@ -45,7 +45,7 @@ struct FinishCeremonyView: View {
           .csTabular().opacity(stage >= 2 ? 1 : 0).offset(y: stage >= 2 ? 0 : 6)
           .accessibilityLabel("\(ceremony.gross) gross")
         if !ceremony.band.isEmpty {
-          Text(ceremony.band).font(CSFont.sentence).foregroundStyle(bandInk).multilineTextAlignment(.center)
+          Text(ceremony.band).csType(.story).foregroundStyle(bandInk).multilineTextAlignment(.center)
             .padding(.top, 12).opacity(stage >= 3 ? 1 : 0).offset(y: stage >= 3 ? 0 : 6)
         }
         Text(ceremony.pointsLine).font(CSFont.monoMediumBody.weight(.semibold)).tracking(2).textCase(.uppercase)
@@ -53,7 +53,7 @@ struct FinishCeremonyView: View {
           .multilineTextAlignment(.center).padding(.top, 24).opacity(stage >= 4 ? 1 : 0).offset(y: stage >= 4 ? 0 : 6)
         Rectangle().fill(bandInk.opacity(0.1)).frame(width: 120, height: 1).padding(.top, 22).opacity(stage >= 5 ? 1 : 0)
         Button { share = RecapCardView.shareItem(ceremony.recap, photo: photo) } label: {
-          Text(PostCeremony.shareLabel).font(CSFont.button).foregroundStyle(shareInk)
+          Text(PostCeremony.shareLabel).csType(.name).foregroundStyle(shareInk)
             .frame(minWidth: 220, minHeight: 46).padding(.horizontal, 28)
             .background(shareBg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         }

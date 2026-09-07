@@ -31,13 +31,13 @@ struct ScheduleScreen: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        Text("Yours, your buddies’, your seasons’").csEyebrow()
+        Text("Yours, your buddies’, your seasons’").csType(.agate, caps: true).foregroundStyle(cs.mut)
         watch
         calendarHeader
         grid
-        Text("Tap any day to put a round on the schedule.").font(CSFont.footnote).foregroundStyle(cs.dimText)
+        Text("Tap any day to put a round on the schedule.").csType(.bodyS).foregroundStyle(cs.mut)
           .frame(maxWidth: .infinity).multilineTextAlignment(.center)
-        CSButton("Put a round on the schedule") { declare = DeclarePrefill() }
+        Button("Put a round on the schedule") { declare = DeclarePrefill() }.buttonStyle(.csPrimary())
         CSSectionHead("On the schedule")
         list
         weeks
@@ -75,9 +75,9 @@ struct ScheduleScreen: View {
       CSSectionHead("In your crew's plans")
       ForEach(rows) { sr in
         let rel = sr.is_friend == true ? "BUDDY" : "IN YOUR SEASONS"
-        RoomLineRow(marker: sr.marker, title: Text(sr.display_name ?? "A golfer") + Text("  \(rel)").font(CSFont.label).foregroundStyle(cs.dimText),
+        RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name), title: Text(sr.display_name ?? "A golfer") + Text("  \(rel)").font(CSType.font(.agateS)).foregroundStyle(cs.mut),
                     sub: watchBits(sr)) {
-          if sr.tagged_me == true { Text("ON THE SCHEDULE").font(CSFont.label).foregroundStyle(cs.ink) }   // F-10
+          if sr.tagged_me == true { Text("On the schedule").csType(.agateS, caps: true).foregroundStyle(cs.ink) }   // F-10
           else {
             CSMini("I’m in") {
               declare = DeclarePrefill(iso: sr.play_on, course: sr.course_label ?? "", tee: sr.tee_time, courseId: sr.course_id,
@@ -105,20 +105,20 @@ struct ScheduleScreen: View {
 
   private var calendarHeader: some View {
     HStack {
-      Text("The calendar").csEyebrow()
+      Text("The calendar").csType(.agate, caps: true).foregroundStyle(cs.mut)
       Spacer()
-      CSMini("", systemImage: "arrow.left") { vm.page(-1, me: store.me, current: store.preferredLeague) }.accessibilityLabel("Previous month")
-      Text(vm.month.title).font(CSFont.monoMediumBody).tracking(1.2).foregroundStyle(cs.ink).frame(minWidth: 84)
-      CSMini("", systemImage: "arrow.right") { vm.page(1, me: store.me, current: store.preferredLeague) }.accessibilityLabel("Next month")
+      monthStep(back: true) { vm.page(-1, me: store.me, current: store.preferredLeague) }
+      Text(vm.month.title).csType(.name).foregroundStyle(cs.ink).frame(minWidth: 84)
+      monthStep(back: false) { vm.page(1, me: store.me, current: store.preferredLeague) }
     }
   }
 
   private var grid: some View {
-    CSCard(padding: 12) {
+    calendarGrid {
       VStack(spacing: 8) {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
           ForEach(ScheduleDates.dow, id: \.self) { d in
-            Text(String(d.prefix(1))).font(CSFont.label).foregroundStyle(cs.dimText)
+            Text(String(d.prefix(1))).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           }
           ForEach(0..<vm.month.leadingBlanks, id: \.self) { _ in Color.clear.frame(height: 44) }
           ForEach(1...vm.month.daysInMonth, id: \.self) { d in cell(d) }
@@ -133,7 +133,7 @@ struct ScheduleScreen: View {
   }
 
   private func legend(_ c: Color, _ t: String) -> some View {
-    HStack(spacing: 5) { Circle().fill(c).frame(width: 6, height: 6); Text(t).font(CSFont.label).foregroundStyle(cs.dimText) }
+    HStack(spacing: 5) { Circle().fill(c).frame(width: 6, height: 6); Text(t).csType(.agateS, caps: true).foregroundStyle(cs.mut) }
   }
 
   private func dot(_ k: CalendarItem.Dot) -> Color {
@@ -151,15 +151,19 @@ struct ScheduleScreen: View {
       else { day = DaySheet(iso: iso, items: items, canAdd: !isPast) }
     } label: {
       VStack(spacing: 3) {
-        Text("\(d)").font(CSFont.monoSmall).csTabular().foregroundStyle(isPast && items.isEmpty ? cs.dimText : cs.ink)
+        // on the panel the ink inverts — a `mut` numeral on bone is the light
+        // theme's worst contrast, and today's cell is the one that must read
+        Text("\(d)").csType(.columnS)
+          .foregroundStyle(isToday ? cs.panelInk : (isPast && items.isEmpty ? cs.mut : cs.ink))
         HStack(spacing: 2) {
           ForEach(Array(items.prefix(3).enumerated()), id: \.offset) { _, it in Circle().fill(dot(it.dot)).frame(width: 5, height: 5) }
         }
         .frame(height: 6)
       }
       .frame(maxWidth: .infinity, minHeight: 44)
-      .background(isToday ? cs.bg2 : .clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(isToday ? cs.brand : .clear, lineWidth: 1))
+      // today is the panel, not an ember outline — a day is not a live action
+      .background(isToday ? cs.panel : .clear,
+                  in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -176,23 +180,24 @@ struct ScheduleScreen: View {
         ForEach(Array(d.items.enumerated()), id: \.offset) { _, it in
           switch it {
           case .round(let sr):
-            CSCheckRow(marker: sr.marker, title: rowTitle(sr), sub: Text(dayBits(sr))) {
+            CSCheckRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(dayBits(sr))) {
               if sr.isMine, let id = sr.id { ownerActions(sr, id: id) }
             }
             .contentShape(Rectangle())
             .onTapGesture { if let id = sr.id { day = nil; open(id) } }
           case .league(let text, let gold):
-            HStack(spacing: 12) {
-              Text("⛳").font(.system(size: 20))
-              Text(text).font(CSFont.subhead.weight(.semibold)).foregroundStyle(gold ? cs.gold : cs.ink)
+            HStack(spacing: CSTokens.Space.s3) {
+              CSGlyph(.calendar, size: .row).foregroundStyle(cs.mut)
+              Text(text).csType(.name).foregroundStyle(gold ? cs.gold : cs.ink)
               Spacer()
             }
-            .padding(12).frame(minHeight: 52)
-            .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+            .padding(.vertical, CSTokens.Space.s3).frame(minHeight: 52)
+            .overlay(alignment: .bottom) { CSRule() }
           }
         }
         if d.canAdd {
-          CSButton("Put your round on this day", style: .quiet) { day = nil; declare = DeclarePrefill(iso: d.iso) }.padding(.top, 8)
+          Button("Put your round on this day") { day = nil; declare = DeclarePrefill(iso: d.iso) }
+            .buttonStyle(.csPrimary()).padding(.top, CSTokens.Space.s2)
         }
       }
       .padding(20)
@@ -218,7 +223,7 @@ struct ScheduleScreen: View {
 
   private func ownerActions(_ sr: ScheduledRound, id: UUID) -> some View {
     HStack(spacing: 6) {
-      CSMini("", systemImage: "plus") { day = nil; retag = RetagRequest(roundId: id, iso: sr.play_on ?? vm.today, courseLabel: sr.course_label, tagged: []) }
+      CSMini("", glyph: .plus) { day = nil; retag = RetagRequest(roundId: id, iso: sr.play_on ?? vm.today, courseLabel: sr.course_label, tagged: []) }
         .accessibilityLabel("Edit group")
       CSArmedButton(label: "✕", armedLabel: "Sure?", busy: vm.busy.contains(id)) {
         Task { if await vm.scratch(id) { day = nil } }
@@ -235,11 +240,11 @@ struct ScheduleScreen: View {
       CSFine("Nothing on the schedule for \(vm.month.monthName). Put one up: buddies and the crews you play with see it the moment you do.")
     } else {
       ForEach(rows) { sr in
-        RoomLineRow(marker: sr.marker, title: rowTitle(sr), sub: Text(listBits(sr))) {
+        RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(listBits(sr))) {
           HStack(spacing: 6) {
-            Text(sr.play_on.map { ScheduleDates.whenDays($0, today: vm.today) } ?? "").font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
+            Text(sr.play_on.map { ScheduleDates.whenDays($0, today: vm.today) } ?? "").csType(.agateS, caps: true).foregroundStyle(cs.mut)
             if sr.isMine, let id = sr.id {
-              CSMini("", systemImage: "plus") { retag = RetagRequest(roundId: id, iso: sr.play_on ?? vm.today, courseLabel: sr.course_label, tagged: []) }
+              CSMini("", glyph: .plus) { retag = RetagRequest(roundId: id, iso: sr.play_on ?? vm.today, courseLabel: sr.course_label, tagged: []) }
                 .accessibilityLabel("Tag your group")
               CSArmedButton(label: "✕", armedLabel: "Sure?", busy: vm.busy.contains(id)) { Task { _ = await vm.scratch(id) } }
                 .accessibilityLabel("Cancel this round")
@@ -273,9 +278,9 @@ struct ScheduleScreen: View {
           ForEach(Array(vm.weekLines.enumerated()), id: \.element.id) { i, w in
             CSRow(last: i == vm.weekLines.count - 1) {
               HStack(spacing: 10) {
-                Text(w.text).font(CSFont.footnote).foregroundStyle(cs.dimText)
+                Text(w.text).csType(.bodyS).foregroundStyle(cs.mut)
                 Spacer()
-                Text(w.points).font(CSFont.monoSmall).foregroundStyle(cs.ink).csTabular()
+                Text(w.points).csType(.columnM).foregroundStyle(cs.ink)
               }
             }
           }
@@ -354,4 +359,30 @@ final class ScheduleModel {
 
 #Preview("Calendar") {
   NavigationStack { ScheduleScreen() }.environment(SessionStore()).csTheme()
+}
+
+// MARK: - the calendar's own two parts (Wave 8)
+
+extension ScheduleScreen {
+  /// The month pager's step. A `CSMini` with a chevron pointed one way for
+  /// both directions was two controls saying the same thing; the glyph turns.
+  @ViewBuilder func monthStep(back: Bool, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      CSGlyph(.chevron, size: .row)
+        .rotationEffect(.degrees(back ? 180 : 0))
+        .frame(width: 44, height: 44)
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(back ? "Previous month" : "Next month")
+  }
+
+  /// The month grid sits on the raised ground with no border — a card round a
+  /// calendar is a container with no job (non-negotiable 1).
+  @ViewBuilder func calendarGrid<C: View>(@ViewBuilder _ c: () -> C) -> some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) { c() }
+      .padding(CSTokens.Space.s3)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(cs.bg1)
+  }
 }

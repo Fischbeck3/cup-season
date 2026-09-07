@@ -55,7 +55,7 @@ struct RootView: View {
             .onAppear { if let j = JoinIntent.pending() { pendingJoin = j.code } }
             // a claim link that came in signed-out lands the card now (D88)
             .task(id: store.me?.profile?.id) { guestDoor = false; await LiveClaimAfterAuth.run(toast: toast) }
-            .sheet(item: $pendingJoin) { code in
+            .csSheet(item: $pendingJoin) { code in
               JoinLeagueFlow(code: code) { id in
                 PendingLink.join.spend()
                 store.preferredLeague = id
@@ -201,26 +201,27 @@ struct BootFailedView: View {
     ScrollView {
       VStack(spacing: 18) {
         Text("Boot stalled").csEyebrow(cs.neg)
-        Text(message).font(CSFont.body).foregroundStyle(cs.ink).multilineTextAlignment(.center)
-        CSButton("Try again") { Task { await store.reload() } }
+        Text(message).csType(.body).foregroundStyle(cs.ink).multilineTextAlignment(.center)
+        Button("Try again") { Task { await store.reload() } }
+          .buttonStyle(.csPrimary())
 
         if signedIn {
           if let s = snapshot { lastKnown(s) }
           Button { courses = true } label: {
             HStack(spacing: 8) {
-              Text("Courses on your phone").font(CSFont.subhead).foregroundStyle(cs.brand)
-              Text("›").font(CSFont.subhead).foregroundStyle(cs.brand)
+              Text("Courses on your phone").csType(.body).foregroundStyle(cs.brand)
+              Text("›").csType(.body).foregroundStyle(cs.brand)
             }
             .frame(maxWidth: .infinity, minHeight: 44)
             .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
           Text("Tees, ratings, slopes and cards, saved on this phone. No signal needed.")
-            .font(CSFont.footnote).foregroundStyle(cs.dimText)
+            .csType(.bodyS).foregroundStyle(cs.mut)
             .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
         }
 
-        Button("Sign out") { askSignOut = true }.font(CSFont.subhead).foregroundStyle(cs.mut)
+        Button("Sign out") { askSignOut = true }.csType(.body).foregroundStyle(cs.mut)
           .padding(.top, 6)
       }
       .padding(28)
@@ -232,7 +233,7 @@ struct BootFailedView: View {
     // `CourseDisk` and needs no session, so it works on this screen unchanged
     // — and it carries its own stack, because the course page inside it is a
     // push and there is no tab bar under this screen to push onto.
-    .sheet(isPresented: $courses) {
+    .csSheet(isPresented: $courses) {
       NavigationStack {
         CoursesScreen()
           .navigationDestination(for: CourseSheetRef.self) { c in
@@ -259,20 +260,20 @@ struct BootFailedView: View {
     VStack(alignment: .leading, spacing: 8) {
       Text(s.asOf()).csEyebrow()
       if let row = s.seasonRow {
-        Text(row).font(CSFont.monoSmall).csTabular().foregroundStyle(cs.mut)
+        Text(row).csType(.columnS).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       if let eyebrow = s.leadEyebrow { Text(eyebrow).csEyebrow() }
       if let head = s.leadHeadline {
-        Text(head).font(CSFont.sentence).foregroundStyle(cs.ink)
+        Text(head).csType(.story).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
       }
       if !s.facts.isEmpty {
         VStack(alignment: .leading, spacing: 4) {
           ForEach(Array(s.facts.enumerated()), id: \.offset) { _, f in
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-              Text(f.label).font(CSFont.label).tracking(1.0).foregroundStyle(cs.dimText)
-              Text(f.value).font(CSFont.monoSmall).csTabular().foregroundStyle(cs.ink)
+              Text(f.label).font(CSFont.label).tracking(1.0).foregroundStyle(cs.mut)
+              Text(f.value).csType(.columnS).foregroundStyle(cs.ink)
             }
           }
         }
@@ -282,7 +283,6 @@ struct BootFailedView: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(14)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 }
 
@@ -291,10 +291,10 @@ struct MustUpdateView: View {
   let minBuild: Int
   var body: some View {
     VStack(spacing: 14) {
-      Text("Update Cup Season").font(CSFont.title).foregroundStyle(cs.ink)
+      Text("Update Cup Season").csType(.displayS).foregroundStyle(cs.ink)
       Text("This build is behind the season. Grab the newest one from TestFlight or the App Store, then come back.")
-        .font(CSFont.body).foregroundStyle(cs.mut).multilineTextAlignment(.center)
-      Text("needs build \(minBuild)").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
+        .csType(.body).foregroundStyle(cs.mut).multilineTextAlignment(.center)
+      Text("needs build \(minBuild)").csType(.columnS).foregroundStyle(cs.mut)
     }
     .padding(28)
   }

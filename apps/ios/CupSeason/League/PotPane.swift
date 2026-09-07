@@ -202,7 +202,7 @@ struct PotPane: View {
           if let note = mem.buy_in?.note?.trimmingCharacters(in: .whitespacesAndNewlines), !note.isEmpty {
             UIPasteboard.general.string = note
             CSHaptic.selection()
-            toast.show("\(owe) \u{00B7} copied")
+            toast.show("\(owe) \u{00B7} copied", kind: .confirmed)
           } else {
             toast.show(owe)
           }
@@ -214,7 +214,7 @@ struct PotPane: View {
       busy = m.id
       Task {
         defer { busy = nil }
-        do { try await model.markBuyIn(member: m.id, paid: !paid); CSHaptic.selection() } catch { toast.show(roomError(error, "Mark failed.")) }
+        do { try await model.markBuyIn(member: m.id, paid: !paid); CSHaptic.selection() } catch { toast.show(roomError(error, "Mark failed."), kind: .failed) }
       }
     }
   }
@@ -291,7 +291,7 @@ struct ForfeitLedgerView: View {
             if s.created_by == meP {
               ArmedMini("✕", armedLabel: "Sure? Scrap", busy: scrapping == s.id) {
                 scrapping = s.id
-                Task { defer { scrapping = nil }; do { try await model.scrapForfeit(s.id); toast.show("Scrapped") } catch { toast.show(roomError(error)) } }
+                Task { defer { scrapping = nil }; do { try await model.scrapForfeit(s.id); toast.show("Scrapped", kind: .confirmed) } catch { toast.show(roomError(error), kind: .failed) } }
               }
             }
           }
@@ -346,18 +346,20 @@ struct ForfeitCreateSheet: View {
       label("Rides on (optional)")
       CSField(ForfeitCopy.settlesPlaceholder, text: $hangs, font: CSFont.body)
       A11yStack(spacing: 8) {
-        CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 110)
-        CSButton(ForfeitCopy.put, busy: busy) {
+        Button("Cancel") { dismiss() }
+          .buttonStyle(.csSecondary()).frame(maxWidth: typeSize.isA11y ? .infinity : 110)
+        Button(ForfeitCopy.put) {
           busy = true
           Task {
             defer { busy = false }
             do {
               try await model.createForfeit(name: name.trimmingCharacters(in: .whitespaces), terms: terms.trimmingCharacters(in: .whitespaces),
                                             kind: kind, other: other, hangs: hangs.trimmingCharacters(in: .whitespaces).isEmpty ? nil : hangs.trimmingCharacters(in: .whitespaces))
-              toast.show("Stake posted — the board heard it"); dismiss()
-            } catch { toast.show(roomError(error, "Could not post the stake.")) }
+              toast.show("Stake posted — the board heard it", kind: .confirmed); dismiss()
+            } catch { toast.show(roomError(error, "Could not post the stake."), kind: .failed) }
           }
         }
+          .buttonStyle(.csPrimary(busy: busy))
       }
       .padding(.top, 6)
       RoomFine(ForfeitCopy.noPush)
@@ -375,10 +377,9 @@ struct FlowSeg: View {
     LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 6)], alignment: .leading, spacing: 6) {
       ForEach(options, id: \.0) { k, l in
         Button { selection = k; CSHaptic.selection() } label: {
-          Text(l).font(CSFont.monoSmall).foregroundStyle(selection == k ? cs.bg0 : cs.ink)
+          Text(l).csType(.columnS).foregroundStyle(selection == k ? cs.bg0 : cs.ink)
             .padding(.horizontal, 12).frame(minHeight: 36).frame(maxWidth: .infinity)
-            .background(selection == k ? cs.ink : cs.bg2, in: Capsule())
-            .overlay(Capsule().stroke(cs.rule, lineWidth: selection == k ? 0 : 1))
+            .background(selection == k ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
             .frame(minHeight: 44)
         }
         .buttonStyle(.plain)
@@ -408,8 +409,8 @@ struct ForfeitSettleSheet: View {
             busy = pid
             Task {
               defer { busy = nil }
-              do { try await model.settleForfeit(forfeit.id, winner: pid, note: note.isEmpty ? nil : note); toast.show("Settled — into the archive"); dismiss() }
-              catch { toast.show(roomError(error)) }
+              do { try await model.settleForfeit(forfeit.id, winner: pid, note: note.isEmpty ? nil : note); toast.show("Settled — into the archive", kind: .confirmed); dismiss() }
+              catch { toast.show(roomError(error), kind: .failed) }
             }
           }
         }

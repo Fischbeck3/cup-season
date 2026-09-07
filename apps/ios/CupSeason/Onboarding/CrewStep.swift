@@ -90,9 +90,11 @@ struct CrewStep: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 18) {
-        Text(OnboardingCopy.crewEyebrow).csEyebrow(cs.pos)
-        Text(OnboardingCopy.crewTitle).font(CSFont.title).foregroundStyle(cs.ink)
-        Text(OnboardingCopy.crewSub).font(CSFont.subhead).foregroundStyle(cs.mut)
+        Text(OnboardingCopy.crewEyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        Text(OnboardingCopy.crewTitle).csType(.display).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        Text(OnboardingCopy.crewSub).csType(.body).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
 
         contactsRoute
         searchRoute
@@ -133,9 +135,9 @@ struct CrewStep: View {
     return HStack(spacing: 12) {
       CSMarkerView(CSMarkers.marker(m.marker), size: 26).foregroundStyle(cs.ink)
       VStack(alignment: .leading, spacing: 2) {
-        Text(p.name).font(CSFont.sentence).foregroundStyle(cs.ink)
+        Text(p.name).csType(.name).foregroundStyle(cs.ink)
         if let h = m.handle, !h.isEmpty {
-          Text("@\(h)").font(CSFont.footnote).foregroundStyle(cs.dimText)
+          Text("@\(h)").csType(.agate).foregroundStyle(cs.mut)
         }
       }
       Spacer(minLength: 8)
@@ -152,11 +154,13 @@ struct CrewStep: View {
   private var consentSheet: some View {
     VStack(alignment: .leading, spacing: 14) {
       CSSheetHeader(title: OnboardingCopy.CrewRoute.contacts.title, sub: "PRIVACY")
-      Text(OnboardingCopy.contactsConsent).font(CSFont.body).foregroundStyle(cs.mut)
+      Text(OnboardingCopy.contactsConsent).csType(.body).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
       VStack(spacing: 8) {
-        CSButton(OnboardingCopy.contactsAllow) { consent = false; Task { await runContacts() } }
+        Button(OnboardingCopy.contactsAllow) { consent = false; Task { await runContacts() } }
+          .buttonStyle(.csPrimary())
         Button { consent = false } label: {
-          Text(OnboardingCopy.contactsDecline).font(CSFont.subhead).foregroundStyle(cs.mut)
+          Text(OnboardingCopy.contactsDecline).csType(.bodyS).foregroundStyle(cs.mut)
             .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.plain)
@@ -213,7 +217,7 @@ struct CrewStep: View {
       CSHaptic.success()
       toast.show(GolfersRoot.BuddyAsk.sent)
     } catch {
-      toast.show(AuthRules.human(error, fallback: "Couldn’t send that."))
+      toast.show(AuthRules.human(error, fallback: "Couldn’t send that."), kind: .failed)
     }
   }
 
@@ -254,8 +258,8 @@ struct CrewStep: View {
 
   private var foot: some View {
     VStack(spacing: 0) {
-      CSHairline()
-      CSButton(OnboardingCopy.crewGo) { leave("buddies") }
+      CSRule()
+      Button(OnboardingCopy.crewGo) { leave("buddies") }.buttonStyle(.csPrimary())
         .padding(.horizontal, 20).padding(.top, 10).padding(.bottom, 6)
     }
     .background(cs.bg0)
@@ -266,14 +270,18 @@ struct CrewStep: View {
   private func door(_ r: OnboardingCopy.CrewRoute, ember: Bool, action: @escaping () -> Void) -> some View {
     Button(action: action) {
       VStack(alignment: .leading, spacing: 3) {
-        Text(r.title).font(CSFont.sentenceBold).foregroundStyle(ember ? cs.brand : cs.ink)
-        if let s = r.sub { Text(s).font(CSFont.footnote).foregroundStyle(cs.mut) }
+        Text(r.title).csType(.name).foregroundStyle(cs.ink)
+        if let s = r.sub { Text(s).csType(.bodyS).foregroundStyle(cs.mut) }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal, 14).padding(.vertical, 12)
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-        .stroke(ember ? cs.brand : cs.rule, lineWidth: 1))
+      // the route this step WANTS taken keeps its metal as a 3pt rail rather
+      // than as a ring round a control: there is no border token, and ember
+      // never outlines (§7.1). The other three take the ground and nothing else.
+      .overlay(alignment: .leading) {
+        if ember { Rectangle().fill(cs.brand).frame(width: 3) }
+      }
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)

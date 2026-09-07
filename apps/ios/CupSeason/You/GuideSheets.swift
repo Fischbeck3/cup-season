@@ -60,9 +60,26 @@ struct HowItWorks: View {
     VStack(spacing: 0) {
       ForEach(Array(GuideCopy.rows.enumerated()), id: \.element.id) { i, r in
         CSRow(last: i == GuideCopy.rows.count - 1) {
-          YouDoorRow(glyph: Text(r.glyph), title: r.title, sub: r.sub, action: { open(r) })
+          YouDoorRow(glyph: CSGlyph(GuideGlyph.of(r.key), size: .row), title: r.title, sub: r.sub, action: { open(r) })
         }
       }
+    }
+  }
+}
+
+/// The guide's five rows, in the one drawn family (D277). `GuideCopy.Row.glyph`
+/// still carries the web's character — one of them is the ⛳ emoji `LINT-12`
+/// forbids — so the phone maps the row's KEY to a drawn mark rather than
+/// rendering whatever character the producer happens to hold.
+enum GuideGlyph {
+  static func of(_ key: String) -> CSGlyph.Name {
+    switch key {
+    case "places": .home
+    // never the flag — LINT-28 reserves it to the tab band and the app icon
+    case "games": .calendar
+    case "posting": .scorecard
+    case "buddies": .people
+    default: .clock
     }
   }
 }

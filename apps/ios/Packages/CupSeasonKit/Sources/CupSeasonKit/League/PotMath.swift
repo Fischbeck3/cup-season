@@ -85,6 +85,20 @@ public enum PotMath {
     public var unclaimedCents: Int { max(0, collectedCents - rows.reduce(0) { $0 + $1.cents }) }
     /// D106: what the roster still owes the pot.
     public var stillOwedCents: Int { max(0, potCents - collectedCents) }
+
+    /// Public so a DEBUG fixture can build one. **No season on any device is
+    /// `complete`**, so the ceremony — the audit's P0 — cannot be photographed
+    /// on real data by anybody working on this build; `CeremonyFixture` seats
+    /// invented golfers on invented ids behind `-cs_dev_open ceremony`, and
+    /// nothing about it ships or is ever written to the server.
+    public init(potCents: Int, collectedCents: Int, owing: [String], rows: [SettlementRow],
+                champName: String, runName: String, kingName: String, mine: SettlementRow?,
+                s1: Double?, s2: Double?, rung: String?, fromLedger: Bool) {
+      self.potCents = potCents; self.collectedCents = collectedCents; self.owing = owing
+      self.rows = rows; self.champName = champName; self.runName = runName
+      self.kingName = kingName; self.mine = mine; self.s1 = s1; self.s2 = s2
+      self.rung = rung; self.fromLedger = fromLedger
+    }
   }
 
   static let reasonOrder = ["Cup champion", "Runner-up", "Points king"]

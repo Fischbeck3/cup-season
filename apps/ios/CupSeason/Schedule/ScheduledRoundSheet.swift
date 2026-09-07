@@ -178,7 +178,7 @@ struct ScheduledRoundSheet: View {
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           ForEach(d.comments) { c in
             HStack(alignment: .top, spacing: CSTokens.Space.s3) {
-              CSFace(.unkeyed(marker: c.marker), size: .slat)
+              CSFace(.seeded(key: c.name, marker: c.marker, initials: Initials.of(c.name)), size: .slat)
               (Text(c.name).bold().foregroundStyle(cs.ink) + Text(" \(c.body)").foregroundStyle(cs.mut))
                 .csType(.bodyS)
               Spacer(minLength: 0)
@@ -498,7 +498,8 @@ struct RetagSheet: View {
           else { TagChips(candidates: candidates, tagged: $tagged, toasts: toasts) }
           CSFine("\(tagged.count) tagged")
         }
-        CSButton("Save the group", busy: busy) { Task { await save() } }.padding(.top, 6)
+        Button("Save the group") { Task { await save() } }
+          .buttonStyle(.csPrimary(busy: busy)).padding(.top, 6)
       }
       .padding(20)
     }

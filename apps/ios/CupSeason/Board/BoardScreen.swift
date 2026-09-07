@@ -43,8 +43,8 @@ struct BoardScreen: View {
     .toolbar {
       ToolbarItem(placement: .principal) {
         VStack(spacing: 1) {
-          Text("THE BOARD").font(CSFont.label).tracking(1.6).foregroundStyle(cs.pos)
-          Text((store?.leagueName ?? "").uppercased()).font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
+          Text("The board").csType(.agate, caps: true).foregroundStyle(cs.ink)
+          Text(store?.leagueName ?? "").csType(.agateS, caps: true).foregroundStyle(cs.mut)
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
@@ -67,7 +67,7 @@ struct BoardScreen: View {
             Button {
               Task { await store.loadEarlier() }
             } label: {
-              Text(store.loadingEarlier ? "Loading…" : "Earlier").font(CSFont.monoMediumBody).foregroundStyle(cs.mut)
+              Text(store.loadingEarlier ? "Loading…" : "Earlier").csType(.nameS).foregroundStyle(cs.mut)
                 .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -100,36 +100,40 @@ struct BoardScreen: View {
     A11yStack(alignment: .trailing, spacing: 8) {
       TextField("Message the league…", text: $draft, axis: .vertical)
         .accessibilityLabel("Message the league")
-        .font(CSFont.body)
+        .csType(.body)
         .foregroundStyle(cs.ink)
         .lineLimit(1...4)
-        .padding(.horizontal, 12).padding(.vertical, 10)
+        .padding(.horizontal, CSTokens.Space.s3).padding(.vertical, CSTokens.Space.s3)
         .frame(minHeight: 44)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-          .stroke(composing ? cs.brand : cs.rule, lineWidth: composing ? 2 : 1))
+        // §7.2 · no border; focus is the one 2px brand ring
+        .overlay {
+          if composing {
+            RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
+              .stroke(cs.brand, lineWidth: 2)
+          }
+        }
         .focused($composing)
         .submitLabel(.send)
         .frame(maxWidth: .infinity)
       HStack(spacing: 8) {
         if store.isPro {
           Button { announcing = true } label: {
-            Text("📣").font(.system(size: 18)).frame(minWidth: 44, minHeight: 44)
+            CSGlyph(.send, size: .row).foregroundStyle(cs.mut)
+              .frame(minWidth: 44, minHeight: 44)
               .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
+              .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Announce to the league")
         }
-        Button { send(store) } label: {
-          Text("Send").font(CSFont.button).foregroundStyle(cs.bg0)
-            .padding(.horizontal, 18).frame(minHeight: 44)
-            .background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .disabled(sending || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        .opacity(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1)
-        .accessibilityLabel("Send")
+        // the board's one primary — and a DISABLED primary is never ember
+        // (§7.1), which is why the opacity dodge is gone
+        Button("Send") { send(store) }
+          .buttonStyle(.csPrimary(busy: sending))
+          .fixedSize(horizontal: true, vertical: false)
+          .disabled(sending || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+          .accessibilityLabel("Send")
       }
     }
     .padding(.horizontal, 16).padding(.vertical, 10)

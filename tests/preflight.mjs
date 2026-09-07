@@ -2477,5 +2477,59 @@ const lint = (id, name, hits, note = '') => {
     : fail('one credential, two clients', problems.join(' · '));
 }
 
+/* 47 · one settlement card, two clients (D277, IOS-052) --------------------
+   The card the audit calls the most beautiful object in the product is drawn
+   TWICE — `LiveSettlementCard` in SwiftUI and `drawSettlementCard` on a canvas
+   — and until Wave 8 the two were printed in DIFFERENT PALETTES: both carried
+   the values D270 replaced, hard-coded, so the artifact a golfer shares was in
+   the old brand while both clients wore the new one. The recap card beside it
+   had the same six hexes and its own header already records what that costs:
+   "three artifacts circulating in the same group thread that did not match
+   each other."
+
+   The check is the cheapest possible guard on the thing that actually drifts:
+   the two canvases' colour constants must BE the `ceremony` ramp from
+   `tokens.json`, and the phone must read them from `CSTokens` rather than
+   typing them. It cannot see a layout drift, and it is not trying to. */
+{
+  const problems = [];
+  const ramp = JSON.parse(readFileSync(join(root, 'packages', 'tokens', 'tokens.json'), 'utf8')).groups.object.tokens;
+  const want = {
+    BG: ramp.ceremony.dark, INK: ramp['ceremony-ink'].dark, MUT: ramp['ceremony-mut'].dark,
+    GOLD: ramp['ceremony-gold'].dark, HOT: ramp['ceremony-brand'].dark, SLATE: ramp['ceremony-cool'].dark,
+  };
+  const card = html.slice(html.indexOf('function drawSettlementCard('), html.indexOf('async function shareSettlementCard('));
+  if (!card) problems.push('the web has no drawSettlementCard');
+  for (const [name, value] of Object.entries(want)) {
+    const m = card.match(new RegExp(`${name}\\s*=\\s*'(#[0-9A-Fa-f]{6})'`));
+    if (!m) problems.push(`the web settlement card declares no ${name}`);
+    else if (m[1].toUpperCase() !== String(value).toUpperCase()) {
+      problems.push(`the web settlement card's ${name} is ${m[1]}, tokens.json says ${value}`);
+    }
+  }
+  /* the phone reads the ramp; it must not type a hex of its own */
+  const swiftCard = (new Map(iosSrc)).get('CupSeason/Live/LiveFinishViews.swift') || '';
+  if (!swiftCard) problems.push('the phone has no LiveFinishViews');
+  if (/Color\(hex:\s*0x/.test(swiftCard)) problems.push('the phone settlement card types a hex (it reads CSTokens.dark)');
+  if (!/d\.ceremonyGold/.test(swiftCard)) problems.push('the phone settlement card does not read the ceremony ramp');
+  /* D268 · Charter is retired on both sides of this artifact */
+  /* the FACE, not the word: both files carry a comment saying Charter is retired */
+  if (/['"]Charter['"]/.test(card)) problems.push('the web settlement card still sets Charter (D268 retires it)');
+  if (/custom\("Charter/.test(swiftCard)) problems.push('the phone settlement card still sets Charter (D268 retires it)');
+
+  /* self-test: the check has to be able to see a card that drifted */
+  {
+    const drifted = card.replace(/GOLD\s*=\s*'#[0-9A-Fa-f]{6}'/, "GOLD='#E9BE62'");
+    const m = drifted.match(/GOLD\s*=\s*'(#[0-9A-Fa-f]{6})'/);
+    if (!m || m[1].toUpperCase() === String(want.GOLD).toUpperCase()) {
+      problems.push('self-test failed: the palette probe cannot see a drifted gold');
+    }
+  }
+
+  problems.length === 0
+    ? pass('one settlement card, two clients', 'the ceremony ramp on both canvases · no typed hex on the phone · Charter retired')
+    : fail('one settlement card, two clients', problems.join(' · '));
+}
+
 console.log(`\n${fails ? 'FAIL' : 'PASS'} — ${fails} failure(s), ${warns} warning(s)`);
 process.exit(fails ? 1 : 0);

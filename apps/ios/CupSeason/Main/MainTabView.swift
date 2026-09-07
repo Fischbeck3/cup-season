@@ -288,6 +288,9 @@ struct MainTabView: View {
   @State private var shareTick = 0
   #if DEBUG
   @State private var devOpened = false
+  #if DEBUG
+  @State private var devCeremony = false
+  #endif
   #endif
   /// D222 · five slots. The order is the band's order and the ⊕ is the middle
   /// of the five — a verb, not a place.
@@ -518,6 +521,9 @@ struct MainTabView: View {
           golfersPath.append(a[i + 1] == "person" ? GolfersRoute.person(opp) : GolfersRoute.headToHead(opp))
         }
       case "record": tab = .you; youPath.append(YouRoute.record)
+      // Wave 8 · the ceremony against a DEBUG fixture — the one surface in the
+      // product whose real state (`complete`) exists on no device this repo has.
+      case "ceremony": devCeremony = true
       // Wave 7 · the receipt opens from a POINTS FIGURE, which means a finger,
       // and it is one of this wave's two flagship artboards. The hatch opens
       // the newest round this account actually holds; with none it opens
@@ -645,7 +651,13 @@ struct MainTabView: View {
       guard !up else { return }
       Task { try? await Task.sleep(for: .milliseconds(500)); await drainAsk() }   // let the curtain close first
     }
-    .sheet(item: $ask.presented) { PushPromptSheet(reason: $0) }
+    .csSheet(item: $ask.presented) { PushPromptSheet(reason: $0) }
+    #if DEBUG
+    // Wave 8 · the takeover, photographable. No season on any device is
+    // `complete`, so the audit's P0 could otherwise be rebuilt and never seen.
+    // DEBUG only; the fixture's golfers are invented (see `CeremonyFixture`).
+    .modifier(CeremonyHatch(up: $devCeremony))
+    #endif
     .onChange(of: tab) { old, new in
       // The band never SELECTS the ⊕ — it calls `onPlay` — so this is now the
       // backstop for a route that lands on `.play`: it presents and the
@@ -659,7 +671,7 @@ struct MainTabView: View {
     // two meta strings for one golfer. `TourCardSheet` is deleted: the peek
     // from a round card presents THE SAME OBJECT in its own stack, so there is
     // one card in the product and one place its anatomy is decided.
-    .sheet(item: $presenter.tourCard) { id in
+    .csSheet(item: $presenter.tourCard) { id in
       NavigationStack {
         PersonPage(profileId: id,
                    openHeadToHead: { _ in },
@@ -672,11 +684,15 @@ struct MainTabView: View {
     }
     /* D262 · R-O · the bag. The You row that opens it is drawn only once its
        read has answered, so this sheet is never reachable without one. */
-    .sheet(isPresented: $presenter.showBag) { BagSheet() }
-    // **IOS-051'S HATCH DOES NOT CROSS A `.sheet`, AND IT HAS TO.**
-    // `-cs_dev_text_size` is applied once at the app root; a
-    // `.fullScreenCover` inherits it (the live sheet photographs at AX3) and a
-    // `.sheet` presents in its own host with the DEVICE's size, so the receipt
+    .csSheet(isPresented: $presenter.showBag) { BagSheet() }
+    // **IOS-051'S HATCH CROSSES NEITHER A `.sheet` NOR A COVER.**
+    // `-cs_dev_text_size` is applied once at the app root; Wave 7 recorded
+    // that a `.fullScreenCover` inherits it and a `.sheet` does not, and WAVE
+    // 8 FOUND THE OTHER HALF: the composer's first AX3 shot was pixel-
+    // identical to its reading-size one, because a cover presents in its own
+    // host too. Both are wrapped now — `csSheet` and `csCover` in
+    // `CupSeasonApp` — so a new presentation on this host cannot forget it.
+    // Everything below is the reason the wrapper exists, so the receipt
     // — one of Wave 7's two flagship artboards — photographed at the reading
     // size under the accessibility flag and nothing in the shot said so. It is
     // applied at the PRESENTATION site rather than inside the sheet, because a
@@ -685,32 +701,32 @@ struct MainTabView: View {
     // how `POINTS` still broke as `POIN / TS` on the first attempt at this.
     // DEBUG-only by construction — `CSDevHatch.textSize` is nil in Release.
     // Wave 8 owns the same line at the product's other sheets.
-    .sheet(item: $presenter.receipt) {
+    .csSheet(item: $presenter.receipt) {
       RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 })
         .csDevTextSize(CSDevHatch.textSize)
     }
-    .sheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
-    .sheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }
-    .sheet(item: $presenter.declare) { DeclareRoundSheet(prefill: $0, leagueId: store.preferredLeague) { _ in } }
-    .sheet(isPresented: $presenter.showJoin) {
+    .csSheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
+    .csSheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }
+    .csSheet(item: $presenter.declare) { DeclareRoundSheet(prefill: $0, leagueId: store.preferredLeague) { _ in } }
+    .csSheet(isPresented: $presenter.showJoin) {
       JoinLeagueFlow(code: presenter.joinCode) { id in
         Task { await store.reload() }
         openCompetition(id)
       }
     }
-    .sheet(isPresented: $presenter.showFeedback) {
+    .csSheet(isPresented: $presenter.showFeedback) {
       FeedbackSheet(screen: presenter.feedbackScreen, leagueId: store.preferredLeague,
                     leagueName: store.me?.memberships.first { $0.league_id == store.preferredLeague }?.name)
     }
-    .sheet(isPresented: $presenter.showDesk) { FounderDeskSheet() }
-    .sheet(isPresented: $presenter.showNote) { FounderNoteSheet() }
-    .sheet(item: $presenter.inviteTo) { lid in
+    .csSheet(isPresented: $presenter.showDesk) { FounderDeskSheet() }
+    .csSheet(isPresented: $presenter.showNote) { FounderNoteSheet() }
+    .csSheet(item: $presenter.inviteTo) { lid in
       let m = store.me?.memberships.first { $0.league_id == lid }
       PeoplePickerSheet(mode: .invite(.league(lid), share: m.flatMap { mm in mm.code.map { (name: mm.name, code: $0) } }),
                         onDone: { presenter.inviteTo = nil })
     }
-    .sheet(isPresented: $presenter.showEventPicker) { EventPickerSheet(links: eventLinks) }
-    .fullScreenCover(item: $presenter.event) { eid in
+    .csSheet(isPresented: $presenter.showEventPicker) { EventPickerSheet(links: eventLinks) }
+    .csCover(item: $presenter.event) { eid in
       // Wave 6 · the room hides the navigation bar so the title card runs
       // full-bleed under the status bar, and draws its own chevron on the plate
       // in `ceremonyInk`. A toolbar `Close` here would be an invisible control.
@@ -722,7 +738,7 @@ struct MainTabView: View {
       // exists to prevent. Re-applied here.
       eventRoom(eid)
     }
-    .fullScreenCover(item: $presenter.wizard) { t in
+    .csCover(item: $presenter.wizard) { t in
       // CJ-08 · the wizard's Close lives on a navigation bar, and a
       // fullScreenCover with no NavigationStack has none — the first shot of
       // the re-cut step 1 was a full-screen cover with no way out of it.
@@ -732,12 +748,12 @@ struct MainTabView: View {
     }
     // D225 · the intent sheet. Every "Start something" lands here first, and
     // nothing is minted by opening it.
-    .sheet(isPresented: $presenter.showIntent) { IntentSheet(take: takeIntent, joinWithCode: { presenter.join(code: nil) }) }
+    .csSheet(isPresented: $presenter.showIntent) { IntentSheet(take: takeIntent, joinWithCode: { presenter.join(code: nil) }) }
     #if DEBUG
     // `-cs_dev_open_play` — the ⊕ cover, on launch, for a simulator with no finger.
     .task { if CSDevHatch.openPlay { presenter.postOnComposer = false; presenter.showPost = true } }
     #endif
-    .sheet(isPresented: $presenter.showWhenFork) {
+    .csSheet(isPresented: $presenter.showWhenFork) {
       WhenForkSheet { f in
         switch f {
         case .rightNow: presenter.showLive = true
@@ -746,28 +762,28 @@ struct MainTabView: View {
       }
     }
     // R-F · the golfer, then the length. All three lengths, always.
-    .sheet(isPresented: $presenter.showPickAGolfer) {
+    .csSheet(isPresented: $presenter.showPickAGolfer) {
       PickAGolferSheet(take: { presenter.length = $0 }, findGolfers: { tab = .golfers })
     }
-    .sheet(item: $presenter.length) { who in
+    .csSheet(item: $presenter.length) { who in
       LengthStep(opponent: who,
                  liveNow: LiveRoundStore.shared.state.active,
                  myLeagues: store.me?.memberships.compactMap(\.league_id) ?? [],
                  take: { takeLength($0, who) },
                  putAForfeitOnIt: { lid in presenter.forfeit = .init(home: ForfeitHome(leagueId: lid, opponent: who.id), opponentName: who.name) })
     }
-    .sheet(item: $presenter.callout) { who in
+    .csSheet(item: $presenter.callout) { who in
       CalloutSheet(opponent: who) { _ in Task { await store.reload() } }
     }
-    .sheet(item: $presenter.calloutReply) { c in
+    .csSheet(item: $presenter.calloutReply) { c in
       CalloutReplySheet(eventId: c.eventId, from: c.from, closesOn: c.closesOn, terms: c.terms) { _ in
         Task { await store.reload() }
       }
     }
-    .sheet(item: $presenter.forfeit) { t in
+    .csSheet(item: $presenter.forfeit) { t in
       ForfeitSheet(home: t.home, opponentName: t.opponentName) { Task { await store.reload() } }
     }
-    .fullScreenCover(item: $presenter.draft) { lid in
+    .csCover(item: $presenter.draft) { lid in
       NavigationStack {
         DraftNightScreen(leagueId: lid, links: DraftLinks(
           onSeasonStarted: { id in presenter.draft = nil; store.preferredLeague = id; Task { await store.reload() }; tab = .home },
@@ -776,7 +792,7 @@ struct MainTabView: View {
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { presenter.draft = nil } } }
       }
     }
-    .sheet(item: $presenter.runBack) { lid in
+    .csSheet(item: $presenter.runBack) { lid in
       NavigationStack {
         ScrollView { RunItBackCard(leagueId: lid, links: wizardLinks).padding(20) }
           .background(cs.bg0)
@@ -784,10 +800,10 @@ struct MainTabView: View {
       }
       .presentationDetents([.medium, .large])
     }
-    .fullScreenCover(isPresented: $presenter.showPost) {
+    .csCover(isPresented: $presenter.showPost) {
       PostCoverView(startOnComposer: presenter.postOnComposer, links: postLinks)
     }
-    .fullScreenCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
+    .csCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
   }
 
   /// The band's five slots. The glyphs are the product's own drawn family at

@@ -41,11 +41,11 @@ struct PotPassCard: View {
             let band = flags.passFor(roster: r)
             let price = PricingFlags.dollars(band.cents)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-              Text("Year 1 — free.").font(CSFont.sentenceBold).foregroundStyle(cs.ink)
-              Text(price).font(CSFont.monoMediumBody).strikethrough().foregroundStyle(cs.dimText)
+              Text("Year 1 — free.").csType(.name).foregroundStyle(cs.ink)
+              Text(price).csType(.nameS).strikethrough().foregroundStyle(cs.mut)
                 .accessibilityLabel("\(price), waived")
             }
-            Text(endsLine).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+            Text(endsLine).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
             /* The words "paid from the pot" shipped in the binary until 2026-09-01,
                one boolean flip away from rendering. Arizona’s social-gambling
@@ -54,7 +54,7 @@ struct PotPassCard: View {
                Season’s fee is the sentence that makes this a rake. The Pro may
                still choose to fund it that way; the PRODUCT must not say so. */
             Text("Next year it’s \(price) for the league — about \(PricingFlags.perPlayer(cents: band.cents, roster: r)) a player, with every season included.")
-              .font(CSFont.subhead).foregroundStyle(cs.mut)
+              .csType(.body).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
           }
         }

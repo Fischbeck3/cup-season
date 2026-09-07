@@ -1,52 +1,76 @@
 // Cup Season — the board's rows, one per web class.
 //
-//   .datesep  date separator      .annrow  📌/📣 FROM THE PRO     .momrow  ✦ moment
-//   .sysrow   ◆ league notice     .msgrow  chat / compact round   .digest  SINCE YOU WERE HERE
+//   .datesep  date separator      .annrow  from the Pro     .momrow  a moment
+//   .sysrow   a clubhouse note    .msgrow  chat / compact round   .digest  since you were here
+//
+// WAVE 8 · **THE FOUR GRADIENT WASHES ARE GONE** (D277, non-negotiable 7). The
+// Pro's word and every moment sat inside a rounded box filled with a
+// gold-to-transparent and a brand-to-transparent ramp — the one image state
+// D272 bans by name, arriving as decoration rather than as a picture, and
+// spending a metal on every row of a scrolling feed while doing it. What
+// carried the meaning was always the 3.5pt spine beside them; the spine stays,
+// the box and the wash go, and the row sits on the page's own ground.
+//
+// The typed marks go with them: `📌`/`📣` (emoji, `LINT-12`), `✦`, `◆` and the
+// `›` chevron (`LINT-13`) are drawn glyphs from the one family now.
 
 import SwiftUI
 import CSDesign
 import CupSeasonKit
 
-/// `.datesep` — mono, tracked, a hairline either side.
+/// `.datesep` — agate, tracked, a rule either side.
 struct DateSeparator: View {
   @Environment(\.cs) private var cs
   let label: String
   var body: some View {
-    HStack(spacing: 12) {
-      Rectangle().fill(cs.rule).frame(height: 1)
-      Text(label).font(CSFont.label).tracking(2).textCase(.uppercase).foregroundStyle(cs.dimText).fixedSize()
-      Rectangle().fill(cs.rule).frame(height: 1)
+    HStack(spacing: CSTokens.Space.s3) {
+      Rectangle().fill(cs.rule).frame(height: CSTokens.Space.hair)
+      Text(label).csType(.agateS, caps: true).foregroundStyle(cs.mut).fixedSize()
+      Rectangle().fill(cs.rule).frame(height: CSTokens.Space.hair)
     }
-    .padding(.top, 18).padding(.bottom, 10)
+    .padding(.top, CSTokens.Space.s4).padding(.bottom, CSTokens.Space.s3)
     .accessibilityElement(children: .combine)
   }
 }
 
-/// `.annrow` — the Pro's word. The latest rides pinned ("📌"), older ones inline ("📣").
+/// The spine every board row hangs off: 3pt, full height, and the only thing
+/// that ever said which KIND of row this was.
+private struct BoardSpine<Content: View>: View {
+  let metal: Color
+  var ground: Color? = nil
+  @ViewBuilder let content: Content
+  var body: some View {
+    HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+      Rectangle().fill(metal).frame(width: 3)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) { content }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, CSTokens.Space.s3)
+        .padding(.trailing, CSTokens.Space.s3)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(ground ?? Color.clear)
+  }
+}
+
+/// `.annrow` — the Pro's word. The latest rides pinned, older ones inline.
 struct AnnounceRow: View {
   @Environment(\.cs) private var cs
   let text: String
   let pinned: Bool
   var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(pinned ? "📌 FROM THE PRO" : "📣 FROM THE PRO").font(CSFont.label).tracking(1.5).foregroundStyle(cs.gold)
+    BoardSpine(metal: cs.gold, ground: pinned ? cs.bg1 : nil) {
+      Text("From the Pro").csType(.agate, caps: true).foregroundStyle(cs.gold)
         .accessibilityLabel(pinned ? "Pinned, from the Pro" : "From the Pro")
-      Text(text).font(CSFont.subhead).foregroundStyle(cs.ink)
+      Text(text).csType(.body).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
     }
     .accessibilityElement(children: .combine)
-    .padding(.horizontal, 14).padding(.vertical, 11)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(LinearGradient(colors: [cs.gold.opacity(0.10), cs.gold.opacity(0.02)], startPoint: .leading, endPoint: .trailing),
-                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    .background(pinned ? cs.bg1 : .clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    // the Pro's word wears the gold spine, not a border (IOS-019 rule 2)
-    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cs.gold).frame(width: 3.5).padding(.vertical, 8) }
-    .padding(.vertical, pinned ? 4 : 6)
+    .padding(.vertical, CSTokens.Space.s1)
   }
 }
 
-/// `.momrow` — "✦ …" a moment (barrier, PB, streak, lead change).
-/// D181: the bar rides inside the box, as it does on the web — a moment is not
+/// `.momrow` — a moment (barrier, PB, streak, lead change).
+/// D181: the bar rides inside the row, as it does on the web — a moment is not
 /// a door, so there is nothing for a chip to be swallowed by.
 struct MomentRow: View {
   @Environment(\.cs) private var cs
@@ -54,27 +78,22 @@ struct MomentRow: View {
   var item: BoardItem? = nil
   var store: BoardStore? = nil
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
-      HStack(alignment: .firstTextBaseline, spacing: 6) {
-        Text("✦").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.brand).accessibilityHidden(true)
-        Text(text).font(CSFont.subhead).foregroundStyle(cs.ink)
+    BoardSpine(metal: cs.brand) {
+      HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+        CSGlyph(.dot, size: .inline).foregroundStyle(cs.brand).accessibilityHidden(true)
+        Text(text).csType(.body).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .accessibilityElement(children: .combine)
       .accessibilityLabel("A moment: \(text)")
       if let item, let store, item.social { ReactionBar(item: item, store: store) }
     }
-    .padding(.horizontal, 13).padding(.vertical, 10)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(LinearGradient(colors: [cs.brand.opacity(0.10), cs.brand.opacity(0.03)], startPoint: .top, endPoint: .bottom),
-                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cs.brand).frame(width: 3.5).padding(.vertical, 6) }
-    .padding(.vertical, 6)
   }
 }
 
-/// `sysRowHtml` — "◆ …" a clubhouse note. A row with a live round is a door
-/// (D92): gold spine, a chevron, and it opens the scorecard.
+/// `sysRowHtml` — a clubhouse note. A row with a live round is a door
+/// (D92): a gold spine, a chevron, and it opens the scorecard.
 struct SystemRow: View {
   @Environment(\.cs) private var cs
   let text: String
@@ -87,48 +106,51 @@ struct SystemRow: View {
     // tap. The web keeps them apart with `.sysgrp` for the same reason.
     VStack(alignment: .leading, spacing: 0) {
       if let opens {
-        Button(action: opens) { row.padding(.trailing, 22).overlay(alignment: .trailing) {
-          Text("›").font(.system(size: 17)).foregroundStyle(cs.gold).padding(.trailing, 14)
-        } }
+        Button(action: opens) {
+          row.overlay(alignment: .trailing) {
+            CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
+              .padding(.trailing, CSTokens.Space.s3)
+          }
+        }
         .buttonStyle(.plain)
         .accessibilityLabel("\(text) — open the scorecard")
       } else {
         row
       }
       if let item, let store, item.social {
-        ReactionBar(item: item, store: store).padding(.horizontal, 13).padding(.bottom, 4)
+        ReactionBar(item: item, store: store).padding(.leading, CSTokens.Space.s4).padding(.bottom, CSTokens.Space.s1)
       }
     }
   }
-  /// A quiet note sits on ground with its spine; a door keeps `bg1` and its line (it is interactive).
+
+  /// A quiet note sits on ground with its spine; a door takes `bg1` and a
+  /// 44pt target, because it is interactive.
   private var row: some View {
-    Text("◆ " + text).font(CSFont.subhead).foregroundStyle(cs.mut)
-      .accessibilityLabel(text)
-      .padding(.horizontal, 13).padding(.vertical, 10)
-      .frame(maxWidth: .infinity, minHeight: opens == nil ? 0 : 44, alignment: .leading)
-      .background(opens == nil ? .clear : cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(opens == nil ? .clear : cs.rule, lineWidth: 1))
-      .overlay(alignment: .leading) {
-        RoundedRectangle(cornerRadius: 2).fill(opens == nil ? cs.gold.opacity(0.5) : cs.gold).frame(width: 3.5).padding(.vertical, 6)
-      }
-      .padding(.vertical, 4)
+    BoardSpine(metal: opens == nil ? cs.gold.opacity(CSTokens.Alpha.a56) : cs.gold,
+               ground: opens == nil ? nil : cs.bg1) {
+      Text(text).csType(.bodyS).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityLabel(text)
+    }
+    .frame(minHeight: opens == nil ? 0 : 44)
   }
 }
 
-/// `.msgrow` — the squad-colour bar beside a text column. Chat carries the
+/// `.msgrow` — the squad-colour spine beside a text column. Chat carries the
 /// name (+ the founder tag); a compact round line carries its eased body.
-/// A row on ground, parted from the next by a hairline (IOS-019 rule 2).
+/// A row on ground, parted from the next by a rule (IOS-019 rule 2).
 struct MessageRow<Content: View>: View {
   @Environment(\.cs) private var cs
   let ci: Int
   @ViewBuilder let content: Content
   var body: some View {
-    HStack(alignment: .top, spacing: 10) {
-      RoundedRectangle(cornerRadius: 2).fill(cs.squad(ci)).frame(width: 3.5)
-      VStack(alignment: .leading, spacing: 4) { content }.frame(maxWidth: .infinity, alignment: .leading)
+    HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+      Rectangle().fill(cs.squad(ci)).frame(width: 3)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) { content }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .padding(.horizontal, 6).padding(.vertical, 12)
-    .overlay(alignment: .bottom) { CSHairline() }
+    .padding(.vertical, CSTokens.Space.s3)
+    .overlay(alignment: .bottom) { CSRule() }
   }
 }
 
@@ -139,9 +161,9 @@ struct ChatRow: View {
   let links: BoardLinks
   var body: some View {
     MessageRow(ci: item.ci) {
-      HStack(spacing: 6) {
+      HStack(spacing: CSTokens.Space.s2) {
         Button { if let p = item.profileId { links.openTourCard(p) } } label: {
-          Text(item.who).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).a11yHitSlop()   // the name is a 44pt door
+          Text(item.who).csType(.name).foregroundStyle(cs.ink).a11yHitSlop()   // the name is a 44pt door
         }
         .buttonStyle(.plain)
         .disabled(item.profileId == nil)
@@ -149,7 +171,8 @@ struct ChatRow: View {
         .accessibilityHint(item.profileId == nil ? "" : GolfersRoot.CardName.hint())
         if item.profileId != nil, item.profileId == store.founderId { FounderTag() }
       }
-      Text(item.text).font(CSFont.subhead).foregroundStyle(cs.ink).lineSpacing(3)
+      Text(item.text).csType(.body).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
       if item.social { ReactionBar(item: item, store: store) }
     }
   }
@@ -162,50 +185,49 @@ struct CompactRoundRow: View {
   let store: BoardStore
   var body: some View {
     MessageRow(ci: item.ci) {
-      Text(BoardText.easeCaps(item.text, names: store.names)).font(CSFont.subhead).foregroundStyle(cs.ink).lineSpacing(3)
+      Text(BoardText.easeCaps(item.text, names: store.names)).csType(.body).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
       if item.social { ReactionBar(item: item, store: store) }
     }
   }
 }
 
-/// `.digest` — the quiet-day card (F13 3.3).
+/// `.digest` — the quiet-day block (F13 3.3).
 struct DigestCard: View {
   @Environment(\.cs) private var cs
   let lines: [String]
   var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text("SINCE YOU WERE HERE").font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)   // `mut` at 70% fell under AA (IOS-013)
+    BoardSpine(metal: cs.brand, ground: cs.bg1) {
+      Text("Since you were here").csType(.agate, caps: true).foregroundStyle(cs.mut)
       ForEach(Array(lines.enumerated()), id: \.offset) { _, l in
-        Text(l).font(CSFont.subhead).foregroundStyle(cs.mut)
+        Text(l).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
       }
     }
-    .padding(.horizontal, 13).padding(.vertical, 10)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(cs.brand).frame(width: 3.5).padding(.vertical, 6) }
-    .padding(.top, 4).padding(.bottom, 10)
+    .padding(.top, CSTokens.Space.s1).padding(.bottom, CSTokens.Space.s3)
     .accessibilityElement(children: .combine)
   }
 }
 
-/// Redacted placeholders in the final shape — never a spinner in content.
+/// **Loading is the destination's own geometry, redacted** (§13.2) — the real
+/// rows at their real heights, not three grey tiles that look like a different
+/// screen. `.redacted(.placeholder)` blanks the type and leaves the structure.
 struct BoardSkeleton: View {
   @Environment(\.cs) private var cs
+  private static let sample = [
+    ("Galen Marr", "Posted 82 at Papago — two better than his playing HCP."),
+    ("Dev Anand", "In for Saturday. Anyone else?"),
+    ("Tash", "Broke 90 for the first time."),
+  ]
   var body: some View {
-    VStack(spacing: 8) {
-      ForEach(0..<3, id: \.self) { i in
-        HStack(alignment: .top, spacing: 10) {
-          Circle().fill(cs.bg2).frame(width: 26, height: 26)
-          VStack(alignment: .leading, spacing: 8) {
-            RoundedRectangle(cornerRadius: 4).fill(cs.bg2).frame(height: 11).frame(maxWidth: CGFloat(220 - i * 40))
-            RoundedRectangle(cornerRadius: 4).fill(cs.bg2).frame(width: 120, height: 9)
-          }
+    VStack(spacing: 0) {
+      ForEach(Array(Self.sample.enumerated()), id: \.offset) { i, s in
+        MessageRow(ci: i) {
+          Text(s.0).csType(.name).foregroundStyle(cs.ink)
+          Text(s.1).csType(.body).foregroundStyle(cs.ink)
         }
-        .padding(13)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(cs.bg1, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
       }
     }
-    .accessibilityHidden(true)
+    .csRedacted(true)
   }
 }

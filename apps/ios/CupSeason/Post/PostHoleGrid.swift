@@ -24,10 +24,9 @@ struct PostSeg<T: Hashable>: View {
       ForEach(options, id: \.0) { k, l in
         let on = selection == k
         Button { pick(k) } label: {
-          Text(l).font(CSFont.monoSmall).foregroundStyle(on ? cs.bg0 : cs.ink)
+          Text(l).csType(.columnS).foregroundStyle(on ? cs.bg0 : cs.ink)
             .padding(.horizontal, 12).frame(minHeight: 36).frame(maxWidth: .infinity)
-            .background(on ? cs.ink : cs.bg2, in: Capsule())
-            .overlay(Capsule().stroke(cs.rule, lineWidth: on ? 0 : 1))
+            .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
             .frame(minHeight: 44)
         }
         .buttonStyle(.plain)
@@ -58,20 +57,20 @@ struct PostScorecardStrip: View {
       VStack(alignment: .leading, spacing: 0) {
         CSFine("Each hole starts on par — tap to adjust only what you didn't.")
         Button { model.showPars = true } label: {
-          Text("Set the pars →").font(CSFont.footnote).foregroundStyle(cs.brand).frame(minHeight: 44)
+          Text("Set the pars →").csType(.bodyS).foregroundStyle(cs.brand).frame(minHeight: 44)
         }
         .buttonStyle(.plain)
       }
       if model.card.scan != nil {
         // the scan's escape hatch: a bad read never traps anyone in the grid
         Button { model.scrapScan() } label: {
-          Label("Scrap the scan — type front & back instead", systemImage: "xmark").font(CSFont.footnote).foregroundStyle(cs.mut)
+          Label("Scrap the scan — type front & back instead", systemImage: "xmark").csType(.bodyS).foregroundStyle(cs.mut)
             .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       } else {
         Button { model.setMode(.total) } label: {
-          Text("Front & back").font(CSFont.footnote).foregroundStyle(cs.mut).frame(minHeight: 44).contentShape(Rectangle())
+          Text("Front & back").csType(.bodyS).foregroundStyle(cs.mut).frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityHint("Switches to two gross figures")
@@ -131,11 +130,11 @@ struct PostScorecardStrip: View {
       CSHaptic.selection()
     } label: {
       VStack(spacing: 3) {
-        Text("\(i + 1)").font(CSFont.label).foregroundStyle(on ? cs.brand : cs.dimText)
+        Text("\(i + 1)").font(CSFont.label).foregroundStyle(on ? cs.brand : cs.mut)
         Text("\(sc)").font(CSFont.stat).csTabular().foregroundStyle(tone(i))
           .lineLimit(1).minimumScaleFactor(0.7)
           .contentTransition(.numericText())
-        Text("P\(par)").font(CSFont.label).foregroundStyle(cs.dimText)
+        Text("P\(par)").font(CSFont.label).foregroundStyle(cs.mut)
       }
       .frame(maxWidth: .infinity, minHeight: 66)
       .background(cs.bg1)
@@ -162,7 +161,7 @@ struct PostScorecardStrip: View {
       Text("\(total)").font(CSFont.stat).csTabular().foregroundStyle(cs.ink)
         .lineLimit(1).minimumScaleFactor(0.7)
         .contentTransition(.numericText())
-      Text("P\(par)").font(CSFont.label).foregroundStyle(cs.dimText)
+      Text("P\(par)").font(CSFont.label).foregroundStyle(cs.mut)
     }
     .frame(maxWidth: .infinity, minHeight: 66)
     .background(cs.bg2)
@@ -181,7 +180,7 @@ struct PostScorecardStrip: View {
         step("−", "Minus hole \(i + 1)") { model.minus(i) }
         VStack(spacing: 0) {
           Text(PostStrip.stepperEyebrow(hole: i, par: par)).csEyebrow()
-          Text("\(sc)").font(CSFont.hero).csTabular().foregroundStyle(tone(i))
+          Text("\(sc)").csType(.figureL).foregroundStyle(tone(i))
             .contentTransition(.numericText())
         }
         .frame(maxWidth: .infinity)
@@ -193,7 +192,7 @@ struct PostScorecardStrip: View {
         CSMotion.run(CSMotion.rise) { selected = PostStrip.next(after: i, side: model.card.side) }
         CSHaptic.selection()
       } label: {
-        Text("Next hole →").font(CSFont.footnote).foregroundStyle(cs.ink).frame(maxWidth: .infinity, minHeight: 44)
+        Text("Next hole →").csType(.bodyS).foregroundStyle(cs.ink).frame(maxWidth: .infinity, minHeight: 44)
       }
       .buttonStyle(.plain)
     }
@@ -204,7 +203,6 @@ struct PostScorecardStrip: View {
       Text(glyph).font(.system(size: 26, weight: .medium)).foregroundStyle(cs.ink)
         .frame(minWidth: 60, minHeight: 60)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -233,7 +231,7 @@ struct PostParsSheet: View {
           sideField("Front nine", $front, .front)
           if !nine { sideField("Back nine", $back, .back) }
           HStack {
-            Text("Total par").font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
+            Text("Total par").font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut)
             Spacer()
             let ok = PostPars.validSide(front) && (nine || PostPars.validSide(back))
             Text(ok ? "\(PostPars.sum(front) + (nine ? 0 : PostPars.sum(back)))" : "—").font(CSFont.stat).csTabular().foregroundStyle(ok ? cs.pos : cs.mut)
@@ -241,7 +239,8 @@ struct PostParsSheet: View {
           .accessibilityElement(children: .combine)
           .accessibilityAddTraits(.updatesFrequently)
           CSFine("Nine digits a side, 3–6. \(nine ? "Front nine only." : "Type it once.") Only matters if this course isn't par 72 — exact stroke index arrives with the course database.")
-          CSButton("Done") { if model.setPars(front: front, back: back) { dismiss() } }.padding(.top, 4)
+          Button("Done") { if model.setPars(front: front, back: back) { dismiss() } }
+            .buttonStyle(.csPrimary()).padding(.top, 4)
         }
         .padding(20)
       }
@@ -263,9 +262,9 @@ struct PostParsSheet: View {
     let bad = v.count == 9 && !PostPars.validSide(v)
     return VStack(alignment: .leading, spacing: 6) {
       HStack {
-        Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
+        Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut)
         Spacer()
-        Text(sum).font(CSFont.monoMediumBody).foregroundStyle(v.isEmpty ? cs.mut : (PostPars.validSide(v) ? cs.pos : cs.neg))
+        Text(sum).csType(.nameS).foregroundStyle(v.isEmpty ? cs.mut : (PostPars.validSide(v) ? cs.pos : cs.neg))
       }
       TextField(f == .front ? "453453543" : "434445345", text: text)
         .accessibilityLabel("\(label) pars, nine digits")
@@ -295,8 +294,10 @@ struct PostEvenParSheet: View {
     VStack(alignment: .leading, spacing: 12) {
       CSSheetHeader(title: "Post as even par?", sub: "NO HOLES ENTERED YET")   // F-13
       CSFine("Each hole is still on par, so this would post an even-par \(model.card.evenParTotal) — and it posts to your rounds — every season you're in reads it.")
-      CSButton("Enter the holes") { dismiss() }   // F-13
-      CSButton("Post even par anyway", style: .quiet) { model.postEvenParAnyway() }
+      Button("Enter the holes") { dismiss() }
+        .buttonStyle(.csPrimary())   // F-13
+      Button("Post even par anyway") { model.postEvenParAnyway() }
+        .buttonStyle(.csSecondary())
     }
     .padding(20)
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

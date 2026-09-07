@@ -32,6 +32,12 @@ public struct CSGlyph: View {
     // (`LINT-12`), so the mark is a path in this family at the family's own
     // stroke rather than an emoji in whatever face the sentence happens to be
     case sun, cloud
+    // WAVE 8 · the four icon systems become one family (D277). SF Symbols
+    // survived in nineteen places the seven surface waves never opened — a
+    // camera on the composer, a calendar on the schedule, a bell on the push
+    // prompt — and a system symbol beside a drawn one is two icon systems on
+    // one row, at two stroke weights, in two optical sizes.
+    case camera, photo, calendar, comment, bell, link, send, trash, gear, clock
     // the empty-state objects — **two absences never share one**
     case scorecard        // you have no rounds
     case emptyRail        // a board with nobody on it
@@ -58,6 +64,16 @@ public struct CSGlyph: View {
       case .plus: "M12 5v14M5 12h14"
       case .sun: "M12 8.2a3.8 3.8 0 100 7.6 3.8 3.8 0 000-7.6M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"
       case .cloud: "M7.6 18.5h9.1a3.7 3.7 0 00.4-7.4 5.3 5.3 0 00-10.1-.6 3.7 3.7 0 00.6 8"
+      case .camera: "M3.5 7.8h3.6l1.5-2.3h6.8l1.5 2.3h3.6V19H3.5zM12 16.6a3.5 3.5 0 100-7 3.5 3.5 0 000 7"
+      case .photo: "M3.5 5h17v14h-17zM3.5 15.4l4.8-4.4 3.5 3.2 3.6-3.9 5.1 5.1M8.2 9.4a1.5 1.5 0 100-3 1.5 1.5 0 000 3"
+      case .calendar: "M4 5.5h16V21H4zM4 10.5h16M8.5 3v4.5M15.5 3v4.5"
+      case .comment: "M4 5h16v11H9.5L5.5 20v-4H4z"
+      case .bell: "M12 3.2a5.4 5.4 0 015.4 5.4c0 4.6 1.6 6.4 1.6 6.4H5s1.6-1.8 1.6-6.4A5.4 5.4 0 0112 3.2M10.2 18.2a2 2 0 003.6 0"
+      case .link: "M10.4 13.6a3.6 3.6 0 010-5.1l2.6-2.6a3.6 3.6 0 015.1 5.1l-1.3 1.3M13.6 10.4a3.6 3.6 0 010 5.1l-2.6 2.6a3.6 3.6 0 01-5.1-5.1l1.3-1.3"
+      case .send: "M20.5 3.5L3.5 10.2l6.8 2.9M20.5 3.5l-6.7 17-2.9-6.8M20.5 3.5l-9.6 10.2"
+      case .trash: "M4.5 6.5h15M9.5 6.5V3.5h5v3M6.5 6.5l1 14h9l1-14M10 10v7M14 10v7"
+      case .gear: "M12 8.6a3.4 3.4 0 100 6.8 3.4 3.4 0 000-6.8M12 2.8l1.3 2.6 2.9-.5.6 2.9 2.6 1.4-1.4 2.6 1.4 2.6-2.6 1.4-.6 2.9-2.9-.5-1.3 2.6-1.3-2.6-2.9.5-.6-2.9-2.6-1.4L5.8 12 4.4 9.4 7 8l.6-2.9 2.9.5z"
+      case .clock: "M12 3.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17M12 7v5.4l3.6 2.2"
       case .scorecard: "M4.5 3h15v18h-15zM4.5 8.4h15M4.5 13.2h15M4.5 18h15M9.5 3v18M14.5 3v18"
       case .emptyRail: "M3.5 4h5.5v16H3.5zM12 7h8.5M12 12h8.5M12 17h8.5"
       case .scheduleSheet: "M4 5.5h16V21H4zM4 10.5h16M8.5 3v4.5M15.5 3v4.5M8 14.5h3M13 14.5h3"
@@ -73,6 +89,8 @@ public struct CSGlyph: View {
       case .emptyRail: "empty rail"
       case .play: "play"
       case .more: "more"
+      case .comment: "comment"
+      case .send: "send"
       default: rawValue
       }
     }

@@ -7,39 +7,26 @@ import CSDesign
 import CupSeasonKit
 
 
-/// `.mini` — a small bordered capsule, mono, 36pt tall, 44pt hit target.
+/// `.mini` — **§7.1's tertiary link**, and nothing of its own (D277). It was a
+/// bordered mono capsule with a `ProgressView` inside it: there is no pill in
+/// the system, a small bordered button is a container with no job, and a
+/// spinner belongs inside a control only as the three dots that tally.
 struct RoomMini: View {
-  @Environment(\.cs) private var cs
   let label: String
-  var tone: Color? = nil
+  var destructive = false
   var busy = false
   let action: () -> Void
-  init(_ label: String, tone: Color? = nil, busy: Bool = false, action: @escaping () -> Void) {
-    self.label = label; self.tone = tone; self.busy = busy; self.action = action
+  init(_ label: String, destructive: Bool = false, busy: Bool = false, action: @escaping () -> Void) {
+    self.label = label; self.destructive = destructive; self.busy = busy; self.action = action
   }
   var body: some View {
-    Button(action: action) {
-      ZStack {
-        Text(label).font(CSFont.monoSmall).opacity(busy ? 0 : 1)
-        if busy { ProgressView().tint(tone ?? cs.ink).scaleEffect(0.7) }
-      }
-      .foregroundStyle(tone ?? cs.ink)
-      .padding(.horizontal, 12)
-      .frame(minHeight: 36)
-      .background(cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(tone?.opacity(0.6) ?? cs.rule, lineWidth: 1))
-      .frame(minWidth: 44, minHeight: 44)   // a one-glyph mini ("✕") is still a 44pt target
-      .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .disabled(busy)
+    CSMini(label, busy: busy, destructive: destructive, action: action)
   }
 }
 
 /// A two-tap destructive/consequential action: first tap arms ("Sure? …"),
 /// second fires; disarms itself after three seconds (IOS-003 §1 "the voice").
 struct ArmedMini: View {
-  @Environment(\.cs) private var cs
   let label: String
   let armedLabel: String
   var busy = false
@@ -52,7 +39,7 @@ struct ArmedMini: View {
     self.label = label; self.armedLabel = armedLabel; self.busy = busy; self.onArm = onArm; self.action = action
   }
   var body: some View {
-    RoomMini(armed ? armedLabel : label, tone: armed ? cs.neg : nil, busy: busy) {
+    RoomMini(armed ? armedLabel : label, destructive: armed, busy: busy) {
       if armed {
         armed = false; onArm?(false); disarm?.cancel(); action()
       } else {
@@ -65,25 +52,25 @@ struct ArmedMini: View {
   }
 }
 
-/// The web's `sparkline()` (index.html 4462): the last seven points on a 60×16
-/// stage, min–max normalised. Decoration — the numbers beside it are the story.
-struct RoomSpark: View {
+/// The last seven weeks as **bars, not a curve** — the sparkline's replacement
+/// (D277). `RoomSpark` stroked a 1.5pt line in `cs.brand`, which spent one of a
+/// viewport's two ember marks on decoration; a trend is a set of weeks and the
+/// system already draws a set of weeks as ticks. The tallest week is `ink`, the
+/// rest `mut`, and the figures beside it are still the story.
+struct RoomTrendBars: View {
   @Environment(\.cs) private var cs
   let values: [Double]
-  var color: Color? = nil
   var body: some View {
     let last = Array(values.suffix(7))
-    Canvas { ctx, size in
-      guard last.count >= 2, let mn = last.min(), let mx = last.max() else { return }
-      var p = Path()
-      for (i, v) in last.enumerated() {
-        let x = CGFloat(i) / CGFloat(last.count - 1) * size.width
-        let y = size.height - CGFloat((v - mn) / max(1, mx - mn)) * (size.height - 2) - 1
-        if i == 0 { p.move(to: CGPoint(x: x, y: y)) } else { p.addLine(to: CGPoint(x: x, y: y)) }
+    let mx = max(1, last.max() ?? 1)
+    HStack(alignment: .bottom, spacing: 3) {
+      ForEach(Array(last.enumerated()), id: \.offset) { i, v in
+        Rectangle()
+          .fill(v == mx ? cs.ink : cs.mut)
+          .frame(width: 4, height: max(2, CGFloat(v / mx) * 16))
       }
-      ctx.stroke(p, with: .color(color ?? cs.brand), style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
     }
-    .frame(width: 60, height: 16)
+    .frame(height: 16, alignment: .bottom)
     .accessibilityHidden(true)
   }
 }
@@ -103,12 +90,11 @@ struct RoomCheckRow<Lead: View, Trail: View>: View {
     A11yStack(spacing: 12, columnSpacing: 8) {
       HStack(spacing: 12) {
         lead.frame(width: 36, height: 36)
-          .background(cs.bg2, in: Circle())
-          .overlay(Circle().stroke(cs.rule, lineWidth: 1))
+          .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 2) {
-          Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-          if let sub { Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true) }
+          Text(title).csType(.name).foregroundStyle(cs.ink)
+          if let sub { Text(sub).csType(.agate).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
       }
@@ -117,29 +103,7 @@ struct RoomCheckRow<Lead: View, Trail: View>: View {
     }
     .padding(.vertical, 10)
     .frame(minHeight: 56)
-    .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
-  }
-}
-
-/// `.phasehero` — the k / n / m stack in the honor voice.
-struct PhaseHero<Content: View>: View {
-  @Environment(\.cs) private var cs
-  @Environment(\.csLookAccent) private var la
-  let k: String
-  let n: String
-  let m: String
-  @ViewBuilder let content: Content
-  init(k: String, n: String, m: String, @ViewBuilder content: () -> Content) { self.k = k; self.n = n; self.m = m; self.content = content() }
-  var body: some View {
-    // D103b: a live card's spine and eyebrow wear the room's look; ember when none
-    CSCard(spine: la.spine(earned: false), padding: 20) {
-      VStack(alignment: .leading, spacing: 8) {
-        Text(k).csEyebrow(la.accent)
-        Text(n).font(CSFont.heroSmall).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
-        Text(m).font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
-        content
-      }
-    }
+    .overlay(alignment: .bottom) { CSRule() }
   }
 }
 
@@ -186,7 +150,7 @@ struct RoomFine: View {
   let text: String
   init(_ text: String) { self.text = text }
   var body: some View {
-    Text(text).font(CSFont.footnote).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
+    Text(text).csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
 }

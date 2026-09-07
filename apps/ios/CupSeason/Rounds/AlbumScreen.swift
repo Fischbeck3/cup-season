@@ -32,7 +32,7 @@ struct AlbumScreen: View {
             Section {
               ForEach(section.rows) { r in cell(r) }
             } header: {
-              Text(section.title).csEyebrow(cs.dimText)
+              Text(section.title).csEyebrow(cs.mut)
                 .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 10).padding(.bottom, 2)
             }
           }
@@ -85,7 +85,6 @@ struct AlbumScreen: View {
           }
         }
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(cs.rule, lineWidth: 1))
     }
     .buttonStyle(.plain)
     .accessibilityLabel("\(nameOf(r.profile_id)) — \(r.gross.map(String.init) ?? "") at \(r.course_label ?? "the course"), \(r.played_on ?? "")")

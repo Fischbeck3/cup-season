@@ -31,13 +31,13 @@ struct PostCourseSearchField: View {
         dropdown {
           if vm.courses.isEmpty {
             Text(vm.offline ? CourseBookCopy.searchOffline : "No match — type the course, rating and slope by hand.")
-              .font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+              .csType(.bodyS).foregroundStyle(cs.mut).padding(12)
               .fixedSize(horizontal: false, vertical: true)
           } else {
             // D261 / R-N · a round can be added in the car park: with no signal
             // the rows are the courses this phone kept, and the list says so.
             if vm.offline {
-              Text(CourseBookCopy.searchOffline).font(CSFont.footnote).foregroundStyle(cs.mut)
+              Text(CourseBookCopy.searchOffline).csType(.bodyS).foregroundStyle(cs.mut)
                 .padding(.horizontal, 12).padding(.top, 10)
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -50,7 +50,7 @@ struct PostCourseSearchField: View {
         dropdown {
           row("‹ Back to courses", nil) { vm.stage = .courses }
           if c.tees.isEmpty {
-            Text("No rated tees listed — type the rating and slope by hand.").font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+            Text("No rated tees listed — type the rating and slope by hand.").csType(.bodyS).foregroundStyle(cs.mut).padding(12)
           } else {
             ForEach(c.tees) { t in
               row(t.title, t.subtitle) {
@@ -72,14 +72,13 @@ struct PostCourseSearchField: View {
   private func dropdown<C: View>(@ViewBuilder _ content: () -> C) -> some View {
     VStack(spacing: 0) { content() }
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 
   private func row(_ b: String, _ s: String?, action: @escaping () -> Void) -> some View {
     Button(action: action) {
       VStack(alignment: .leading, spacing: 2) {
-        Text(b).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        if let s { Text(s).font(CSFont.monoSmall).foregroundStyle(cs.mut) }
+        Text(b).csType(.name).foregroundStyle(cs.ink)
+        if let s { Text(s).csType(.columnS).foregroundStyle(cs.mut) }
       }
       .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
       .padding(.horizontal, 12).padding(.vertical, 6)

@@ -495,7 +495,7 @@ struct SeasonVoteBanner: View {
         HStack(spacing: CSTokens.Space.s4) {
           switch v.act {
           case .withdraw:
-            CSDoor(.link("Call it off") { run { try await model.withdrawCancel(); toast.show("Cancellation called off.") } })
+            CSDoor(.link("Call it off") { run { try await model.withdrawCancel(); toast.show("Cancellation called off.", kind: .confirmed) } })
           case .vote:
             CSDoor(.link("Agree") { vote(true) })
             CSDoor(.link("Decline") { vote(false) })
@@ -513,14 +513,14 @@ struct SeasonVoteBanner: View {
   private func vote(_ approve: Bool) {
     run {
       let r = try await model.voteCancel(approve: approve)
-      if r == "done" { toast.show("\(model.league?.name ?? "The season") ended. Every round stays on its golfer."); links.leagueGone() }
-      else if r == "declined" { toast.show("You declined — the cancellation is off.") }
-      else { toast.show("Agreed — waiting on the rest.") }
+      if r == "done" { toast.show("\(model.league?.name ?? "The season") ended. Every round stays on its golfer.", kind: .confirmed); links.leagueGone() }
+      else if r == "declined" { toast.show("You declined — the cancellation is off.", kind: .confirmed) }
+      else { toast.show("Agreed — waiting on the rest.", kind: .confirmed) }
     }
   }
 
   private func run(_ op: @escaping @MainActor () async throws -> Void) {
     busy = true
-    Task { defer { busy = false }; do { try await op() } catch { toast.show(roomError(error)) } }
+    Task { defer { busy = false }; do { try await op() } catch { toast.show(roomError(error), kind: .failed) } }
   }
 }

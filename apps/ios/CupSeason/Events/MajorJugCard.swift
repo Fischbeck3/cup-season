@@ -42,11 +42,17 @@ struct MajorShareData: Sendable, Equatable {
 struct MajorJugCard: View {
   let d: MajorShareData
   private let W: CGFloat = 1080, H: CGFloat = 1350
-  private let bg = CSTokens.dark.bg0, panel = CSTokens.dark.bg1, ink = CSTokens.dark.ink, mut = CSTokens.dark.mut
-  private let gold = Color(hex: 0xE9BE62)   // the web's card gold, verbatim (12536)
+  // WAVE 8 · the `ceremony` ramp, as on the settlement and recap cards (D277).
+  private let bg = CSTokens.dark.ceremony, panel = CSTokens.dark.ceremony
+  private let ink = CSTokens.dark.ceremonyInk, mut = CSTokens.dark.ceremonyMut
+  private let gold = CSTokens.dark.ceremonyGold
 
-  private func mono(_ size: CGFloat, weight: String = "SemiBold") -> Font { .custom("IBMPlexMono-\(weight)", fixedSize: size) }
-  private func serif(_ size: CGFloat) -> Font { .custom("Charter-Bold", fixedSize: size) }
+  // D268 · the faces are ROLES at a literal size; Charter is retired and the
+  // serif is New York. `LINT-01` counts every `.custom("` outside the type file.
+  private func mono(_ size: CGFloat, weight: String = "SemiBold") -> Font {
+    CSType.fixed(weight == "Medium" ? .columnS : .column, size)
+  }
+  private func serif(_ size: CGFloat) -> Font { CSType.fixed(.lead, size) }
 
   var body: some View {
     ZStack {
@@ -93,13 +99,14 @@ struct MajorShareButton: View {
     Group {
       if let image {
         ShareLink(item: image, message: Text(data.caption), preview: SharePreview(data.jug, image: image)) {
-          Text("Share the jug").font(CSFont.button)
+          Text("Share the jug").csType(.name)
             .frame(maxWidth: .infinity, minHeight: 50)
             .foregroundStyle(cs.bg0)
             .background(cs.brand, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         }
       } else {
-        CSButton("Share the jug", busy: true) {}
+        Button("Share the jug") {}
+          .buttonStyle(.csPrimary(busy: true))
       }
     }
     .task(id: data) { image = await Self.render(data) }

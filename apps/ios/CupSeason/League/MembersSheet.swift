@@ -30,16 +30,16 @@ struct MembersSheet: View {
       if !pending.isEmpty {
         Text("Invites out").csEyebrow()
         ForEach(pending, id: \.self) { e in
-          Text("✉ \(e) · WAITING").font(CSFont.footnote).foregroundStyle(cs.dimText)
+          Text("✉ \(e) · WAITING").csType(.bodyS).foregroundStyle(cs.mut)
             .accessibilityLabel("\(e), invite waiting")
         }
       }
-      if model.isPro { CSButton("Add golfers") { dismiss(); links.addGolfers() }.padding(.top, 8) }
+      if model.isPro { Button("Add golfers") { dismiss(); links.addGolfers() }
+        .buttonStyle(.csPrimary()).padding(.top, 8) }
       if let url = model.inviteURL {
         ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
-          Text("Share the invite link").font(CSFont.button).frame(maxWidth: .infinity, minHeight: 50)
+          Text("Share the invite link").csType(.name).frame(maxWidth: .infinity, minHeight: 50)
             .foregroundStyle(cs.ink).background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         }
         .simultaneousGesture(TapGesture().onEnded { CSGrowth.log(.artifactShared, kind: "join", token: model.league?.code, league: model.league?.id) })
       }
@@ -63,10 +63,10 @@ struct MembersSheet: View {
           .buttonStyle(.plain).accessibilityLabel(GolfersRoot.CardName.title(m.name))
           VStack(alignment: .leading, spacing: 2) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-              Text(m.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+              Text(m.name).csType(.name).foregroundStyle(cs.ink)
               if m.isPro { Text("THE PRO").csEyebrow(cs.gold).fixedSize() }
             }
-            Text(sub.isEmpty ? "GOLFER" : sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+            Text(sub.isEmpty ? "GOLFER" : sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -85,19 +85,19 @@ struct MembersSheet: View {
           RoomMini("Set the starter") { setIndexFor = m }
           if model.league?.phase == "setup" {
             ArmedMini("Remove", armedLabel: "Sure? Remove", busy: busy == m.id, onArm: { reason = $0 ? (m.id, removeWhy) : nil }) {
-              run(m.id) { try await model.removeMember(m.id); toast.show("Removed. The board knows."); dismiss() }
+              run(m.id) { try await model.removeMember(m.id); toast.show("Removed. The board knows.", kind: .confirmed); dismiss() }
             }
             .accessibilityHint(removeWhy)
           } else {
             let mon = LeagueDates.monthLong(model.clock.today)
             ArmedMini("Bye", armedLabel: "Sure? Bye for \(String(mon.prefix(3)))", busy: busy == m.id, onArm: { reason = $0 ? (m.id, byeWhy) : nil }) {
-              run(m.id) { try await model.setMemberBye(member: m.id, month: LeagueDates.firstOfMonth(model.clock.today)); toast.show("Bye granted — posted to the board"); dismiss() }
+              run(m.id) { try await model.setMemberBye(member: m.id, month: LeagueDates.firstOfMonth(model.clock.today)); toast.show("Bye granted — posted to the board", kind: .confirmed); dismiss() }
             }
             .accessibilityHint(byeWhy)
           }
           ArmedMini("Make Pro", armedLabel: "Sure? Hand it off", busy: busy == m.id, onArm: { reason = $0 ? (m.id, proWhy) : nil }) {
             // the web reloads here (16995): a role change reshapes the whole room
-            run(m.id) { try await model.transferPro(to: m.id); toast.show("The shop has a new Pro"); await model.refresh(); dismiss() }
+            run(m.id) { try await model.transferPro(to: m.id); toast.show("The shop has a new Pro", kind: .confirmed); await model.refresh(); dismiss() }
           }
           .accessibilityHint(proWhy)
         }
@@ -113,7 +113,7 @@ struct MembersSheet: View {
 
   private func run(_ id: UUID, _ op: @escaping @MainActor () async throws -> Void) {
     busy = id
-    Task { defer { busy = nil }; do { try await op() } catch { toast.show(roomError(error)) } }
+    Task { defer { busy = nil }; do { try await op() } catch { toast.show(roomError(error), kind: .failed) } }
   }
 }
 
@@ -154,7 +154,7 @@ struct LeagueMarkerPicker: View {
     Task {
       defer { busy = nil }
       do { try await model.setLeagueMarker(key); toast.show(key == nil ? "Back to your card marker" : "Marker set for this league") }
-      catch { toast.show(roomError(error, "Could not set the marker.")) }
+      catch { toast.show(roomError(error, "Could not set the marker."), kind: .failed) }
     }
   }
 }
@@ -171,16 +171,18 @@ struct SetIndexSheet: View {
     SheetFrame("The starter", sub: "A NUMBER TO START FROM") {
       RoomFine("A starting number for \(member.name). Once they post 3 rounds, their own scores take over.")
       CSField("e.g. 12.4", text: $text).keyboardType(.numbersAndPunctuation)
-      CSButton("Set the starter", busy: busy) {
-        guard let idx = Double(text.replacingOccurrences(of: ",", with: ".")), idx >= -10, idx <= 54 else { toast.show("That number looks off: expected -10 to 54"); return }
+      Button("Set the starter") {
+        guard let idx = Double(text.replacingOccurrences(of: ",", with: ".")), idx >= -10, idx <= 54 else { toast.show("That number looks off: expected -10 to 54", kind: .failed); return }
         busy = true
         Task {
           defer { busy = false }
-          do { try await model.setMemberIndex(member: member.id, index: idx); toast.show("Starter set — posted to the board"); dismiss() }
-          catch { toast.show(roomError(error)) }
+          do { try await model.setMemberIndex(member: member.id, index: idx); toast.show("Starter set — posted to the board", kind: .confirmed); dismiss() }
+          catch { toast.show(roomError(error), kind: .failed) }
         }
       }
-      CSButton("Cancel", style: .quiet) { dismiss() }
+        .buttonStyle(.csPrimary(busy: busy))
+      Button("Cancel") { dismiss() }
+        .buttonStyle(.csSecondary())
     }
     .onAppear { if let v = member.profile?.index_current { text = String(format: "%.1f", v) } }
   }

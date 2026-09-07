@@ -85,20 +85,22 @@ struct PushPromptSheet: View {
     VStack(alignment: .leading, spacing: 14) {
       CSSheetHeader(title: "Hear it when it happens", sub: eyebrow)
       VStack(alignment: .leading, spacing: 10) {
-        line("flag.fill", "A round lands on the board. A clash is closing. The table moves.")
-        line("person.2.fill", "A buddy request, a tee time, an invite — answered from the lock screen.")
-        line("moon.zzz.fill", "Nothing else. No streaks, no noise, no badge you didn’t earn.")
+        // one drawn family (D277). `flag.fill` was also a PENNANT outside the
+        // tab band and the app icon, which `LINT-28` reserves.
+        line(.scorecard, "A round lands on the board. A clash is closing. The table moves.")
+        line(.people, "A buddy request, a tee time, an invite — answered from the lock screen.")
+        line(.bell, "Nothing else. No streaks, no noise, no badge you didn’t earn.")
       }
       .padding(.vertical, 4)
       VStack(spacing: 8) {
-        CSButton("Turn on notifications", busy: busy) {
+        Button("Turn on notifications") {
           busy = true
-          Task { let msg = await ask.accepted(); busy = false; toast.show(msg) }
+          Task { let msg = await ask.accepted(); busy = false; toast.show(msg, kind: .confirmed) }
         }
-        Button { ask.declined() } label: {
-          Text("Not now").font(CSFont.subhead).foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44)
-        }
-        .buttonStyle(.plain)
+          .buttonStyle(.csPrimary(busy: busy))
+        Button("Not now") { ask.declined() }
+          .buttonStyle(.csTertiary(.content))
+          .frame(maxWidth: .infinity)
       }
       .padding(.top, 4)
     }
@@ -111,10 +113,10 @@ struct PushPromptSheet: View {
     .onDisappear { if ask.presented != nil { ask.declined() } }   // a swipe-down is a "Not now"
   }
 
-  private func line(_ icon: String, _ text: String) -> some View {
-    HStack(alignment: .top, spacing: 12) {
-      Image(systemName: icon).font(.system(size: 15, weight: .semibold)).foregroundStyle(cs.brand).frame(width: 22)
-      Text(text).font(CSFont.body).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
+  private func line(_ icon: CSGlyph.Name, _ text: String) -> some View {
+    HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+      CSGlyph(icon, size: .row).foregroundStyle(cs.mut).frame(width: 22)
+      Text(text).csType(.body).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
     }
   }
 }

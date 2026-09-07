@@ -30,12 +30,12 @@ struct PricingPassCard: View {
         VStack(alignment: .leading, spacing: 10) {
           Text("The league pass").csEyebrow()
           VStack(alignment: .leading, spacing: 4) {
-            Text("One pass, the whole league, every season you run for a year —").font(CSFont.sentence).foregroundStyle(cs.ink)
+            Text("One pass, the whole league, every season you run for a year —").csType(.story).foregroundStyle(cs.ink)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
               Text(price).font(CSFont.stat).csTabular().foregroundStyle(cs.ink)
               Text(bragging ? "· ≈ \(each) a player · split it on Venmo — less than a sleeve each"
                             : "· ≈ \(each) a player a year · one line on the buy-in")
-                .font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+                .font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
                 .fixedSize(horizontal: false, vertical: true)
             }
           }

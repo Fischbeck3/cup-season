@@ -132,15 +132,15 @@ private struct CompeteRowView: View {
     Button(action: onTap) {
       VStack(alignment: .leading, spacing: 3) {
         Text(row.eyebrow).csEyebrow()
-        Text(row.title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        Text(row.sub).font(CSFont.monoSmall).foregroundStyle(cs.mut)
+        Text(row.title).csType(.name).foregroundStyle(cs.ink)
+        Text(row.sub).csType(.columnS).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       .multilineTextAlignment(.leading)
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.vertical, 10)
       .frame(minHeight: 56)
-      .overlay(alignment: .bottom) { CSHairline() }
+      .overlay(alignment: .bottom) { CSRule() }
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -159,11 +159,11 @@ struct EmptyRootView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text(root.head).font(CSFont.title).foregroundStyle(cs.ink)
+      Text(root.head).csType(.displayS).foregroundStyle(cs.ink)
       if let fact = root.fact {
-        Text(fact).font(CSFont.monoSmall).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
+        Text(fact).csType(.columnS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
       }
-      Text(root.sub).font(CSFont.footnote).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
+      Text(root.sub).csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
       A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 18, columnSpacing: 14) {
         ForEach(Array(root.doors.enumerated()), id: \.offset) { i, d in
           Button {

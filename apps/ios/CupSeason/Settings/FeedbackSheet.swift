@@ -27,7 +27,7 @@ struct FeedbackSheet: View {
           ForEach([("confusing", "Confusing"), ("friction", "Friction"), ("idea", "Idea"), ("bug", "Bug")], id: \.0) { key, title in
             let on = category == key
             Button { category = on ? "" : key } label: {
-              Text(title).font(CSFont.monoMediumBody).foregroundStyle(on ? cs.brand : cs.ink)
+              Text(title).csType(.nameS).foregroundStyle(on ? cs.brand : cs.ink)
                 .padding(.horizontal, 12).padding(.vertical, 8)
                 .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.brand : cs.rule, lineWidth: 1))
@@ -39,19 +39,20 @@ struct FeedbackSheet: View {
         }
         TextEditor(text: $body_)
           .accessibilityLabel("Your note")
-          .font(CSFont.body).foregroundStyle(cs.ink).scrollContentBackground(.hidden)
+          .csType(.body).foregroundStyle(cs.ink).scrollContentBackground(.hidden)
           .frame(minHeight: 120)
           .padding(10)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           .overlay(alignment: .topLeading) {
             if body_.isEmpty {
               Text("Where did the app get in your way? Even a half-formed thought helps.")
-                .font(CSFont.body).foregroundStyle(cs.dimText).padding(16).allowsHitTesting(false)
+                .csType(.body).foregroundStyle(cs.mut).padding(16).allowsHitTesting(false)
             }
           }
-        CSButton("Send", busy: busy) { Task { await send() } }
+        Button("Send") { Task { await send() } }
+          .buttonStyle(.csPrimary(busy: busy))
         Text("Goes straight to Jerecho. We attach which screen you are on so we can find it fast.")
-          .font(CSFont.footnote).foregroundStyle(cs.dimText)
+          .csType(.bodyS).foregroundStyle(cs.mut)
         Spacer()
       }
       .padding(20)
@@ -64,7 +65,7 @@ struct FeedbackSheet: View {
 
   private func send() async {
     let text = body_.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !text.isEmpty else { toast.show("Add a line first — anything helps"); return }
+    guard !text.isEmpty else { toast.show("Add a line first — anything helps", kind: .failed); return }
     busy = true
     defer { busy = false }
     let ctx: [String: JSONValue] = [
@@ -79,9 +80,9 @@ struct FeedbackSheet: View {
     do {
       try await repo.submitFeedback(category: category.isEmpty ? "other" : category, body: text, context: ctx)
       dismiss()
-      toast.show("Sent — thank you. This is how the app gets better.")
+      toast.show("Sent — thank you. This is how the app gets better.", kind: .confirmed)
     } catch {
-      toast.show(AuthRules.human(error, fallback: "Could not send."))
+      toast.show(AuthRules.human(error, fallback: "Could not send."), kind: .failed)
     }
   }
 }
@@ -100,22 +101,23 @@ struct FounderNoteSheet: View {
         Text("Straight into the feedback ledger, tagged founder").csEyebrow()
         TextEditor(text: $body_)
           .accessibilityLabel("Field note")
-          .font(CSFont.body).foregroundStyle(cs.ink).scrollContentBackground(.hidden)
+          .csType(.body).foregroundStyle(cs.ink).scrollContentBackground(.hidden)
           .frame(minHeight: 120).padding(10)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           .overlay(alignment: .topLeading) {
-            if body_.isEmpty { Text("What you noticed, before it slips").font(CSFont.body).foregroundStyle(cs.dimText).padding(16).allowsHitTesting(false) }
+            if body_.isEmpty { Text("What you noticed, before it slips").csType(.body).foregroundStyle(cs.mut).padding(16).allowsHitTesting(false) }
           }
-        CSButton("Save note", busy: busy) {
+        Button("Save note") {
           let t = body_.trimmingCharacters(in: .whitespacesAndNewlines)
-          guard !t.isEmpty else { toast.show("Write the note first"); return }
+          guard !t.isEmpty else { toast.show("Write the note first", kind: .failed); return }
           busy = true
           Task {
             defer { busy = false }
-            do { try await repo.founderNote(t); dismiss(); toast.show("Noted.") }
-            catch { toast.show(AuthRules.human(error, fallback: "Could not save.")) }
+            do { try await repo.founderNote(t); dismiss(); toast.show("Noted.", kind: .confirmed) }
+            catch { toast.show(AuthRules.human(error, fallback: "Could not save."), kind: .failed) }
           }
         }
+          .buttonStyle(.csPrimary(busy: busy))
         Spacer()
       }
       .padding(20).background(cs.bg0)
@@ -138,7 +140,7 @@ struct FounderDeskSheet: View {
         VStack(alignment: .leading, spacing: 12) {
           Text("Signups · activity · errors · feedback").csEyebrow()
           if let error {
-            Text(error).font(CSFont.footnote).foregroundStyle(cs.mut)
+            Text(error).csType(.bodyS).foregroundStyle(cs.mut)
           } else if let d = desk {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
               CSStat("Golfers", value: n(d["profiles_total"]))
@@ -176,7 +178,7 @@ struct FounderDeskSheet: View {
               }
             }
           } else {
-            Text("Pulling the numbers…").font(CSFont.footnote).foregroundStyle(cs.mut)
+            Text("Pulling the numbers…").csType(.bodyS).foregroundStyle(cs.mut)
           }
         }
         .padding(20)
@@ -211,7 +213,7 @@ struct FounderDeskSheet: View {
     if let list, !list.isEmpty {
       ForEach(Array(list.enumerated()), id: \.offset) { _, v in item(v) }
     } else {
-      Text("Nothing yet.").font(CSFont.footnote).foregroundStyle(cs.dimText)
+      Text("Nothing yet.").csType(.bodyS).foregroundStyle(cs.mut)
     }
   }
 
@@ -219,8 +221,8 @@ struct FounderDeskSheet: View {
     HStack(alignment: .top, spacing: 10) {
       Text(icon).font(.system(size: 14)).frame(width: 22)
       VStack(alignment: .leading, spacing: 2) {
-        Text(title).font(CSFont.subhead).foregroundStyle(cs.ink)
-        Text(sub).font(CSFont.footnote).foregroundStyle(cs.mut)
+        Text(title).csType(.body).foregroundStyle(cs.ink)
+        Text(sub).csType(.bodyS).foregroundStyle(cs.mut)
       }
     }
     .padding(.vertical, 6)

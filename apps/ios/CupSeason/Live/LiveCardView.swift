@@ -78,7 +78,7 @@ struct LiveCardView: View {
       if holes > 9 { cell("IN").foregroundStyle(cs.ink); cell("TOT").foregroundStyle(cs.ink) }
       cell("+/-").foregroundStyle(cs.mut)
     }
-    .font(CSFont.monoSmall)
+    .csType(.columnS)
   }
 
   private var siRow: some View {
@@ -91,7 +91,7 @@ struct LiveCardView: View {
       if holes > 9 { cell("—").foregroundStyle(cs.mut); cell("—").foregroundStyle(cs.mut) }
       cell("").foregroundStyle(cs.mut)
     }
-    .font(CSFont.monoSmall)
+    .csType(.columnS)
   }
 
   private var parRow: some View {
@@ -107,7 +107,7 @@ struct LiveCardView: View {
       }
       cell("").foregroundStyle(cs.mut)
     }
-    .font(CSFont.monoSmall)
+    .csType(.columnS)
   }
 
   private func scoreRow(_ pi: Int) -> some View {
@@ -124,7 +124,7 @@ struct LiveCardView: View {
         RoundedRectangle(cornerRadius: 2)
           .fill(p.guest ? cs.mut : squadColor(p.ci))
           .frame(width: 6, height: 6)
-        Text(p.n).font(CSFont.footnote).foregroundStyle(cs.ink).lineLimit(1)
+        Text(p.n).csType(.bodyS).foregroundStyle(cs.ink).lineLimit(1)
         Spacer(minLength: 0)
       }
       .frame(width: nameW, alignment: .leading)
@@ -168,7 +168,7 @@ struct LiveCardView: View {
 
   private func ledgerRow(_ led: Ledger) -> some View {
     GridRow {
-      Text(led.label).font(CSFont.monoSmall).foregroundStyle(cs.mut)
+      Text(led.label).csType(.columnS).foregroundStyle(cs.mut)
         .frame(width: nameW, alignment: .leading)
       ForEach(0..<holes, id: \.self) { h in
         ledgerCell(h < led.cells.count ? led.cells[h] : nil)

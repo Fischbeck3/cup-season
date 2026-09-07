@@ -17,12 +17,15 @@ struct RecapCardView: View {
 
   static let size = CGSize(width: 1080, height: 1350)
 
-  // the web's card palette, verbatim: BG/PANEL/INK/MUT are the D76 dark tokens; GOLD is the card's own
-  private let bg = CSTokens.dark.bg0
-  private let panel = CSTokens.dark.bg1
-  private let ink = CSTokens.dark.ink
-  private let mut = CSTokens.dark.mut
-  private let gold = Color(hex: 0xE9BE62)
+  // WAVE 8 · the `ceremony` ramp, as on the settlement card and on the web's
+  // `drawRecapCard` (D277). The gold here was `#E9BE62` — the metal D270
+  // replaced — typed as a literal because "it is the card's own", which is how
+  // three artifacts came to circulate in one group thread in three palettes.
+  private let bg = CSTokens.dark.ceremony
+  private let panel = CSTokens.dark.ceremony
+  private let ink = CSTokens.dark.ceremonyInk
+  private let mut = CSTokens.dark.ceremonyMut
+  private let gold = CSTokens.dark.ceremonyGold
 
   var body: some View {
     ZStack {

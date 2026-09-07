@@ -83,7 +83,7 @@ struct BuddyRequests: View {
                       spine: cs.brand, links: links) {
               HStack(spacing: 6) {
                 CSMini("Accept", busy: m.busy.contains(p.id)) { answer(p, accept: true) }
-                CSMini("", systemImage: "xmark", busy: m.busy.contains(p.id)) { answer(p, accept: false) }
+                CSMini("", glyph: .cross, busy: m.busy.contains(p.id)) { answer(p, accept: false) }
                   .accessibilityLabel("Decline")
               }
             }

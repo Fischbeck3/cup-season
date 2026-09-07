@@ -141,10 +141,9 @@ private struct PostRoundBody: View {
         // spending it four times in one row spends it on nothing"). The dot
         // goes with the metal — an ember dot is the live signal, and nothing
         // is live here yet.
-        Button { onDone(); links.openLive() } label: {
-          Text("Play now").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        }
-        .accessibilityHint("Opens live scoring for a round")
+        Button("Play now") { onDone(); links.openLive() }
+          .buttonStyle(.csTertiary(.toolbar))
+          .accessibilityHint("Opens live scoring for a round")
       }
     }
     .sheet(isPresented: $showDate) { PostDateSheet(day: $model.day) }
@@ -182,10 +181,10 @@ private struct PostRoundBody: View {
     Button { CSMotion.run { cardOpen = !cardIsOpen } } label: {
       CSRow(last: true) {
         A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 2) {
-          Text(inheritedText).font(CSFont.monoSmall).foregroundStyle(model.card.course.isEmpty ? cs.mut : cs.ink)
+          Text(inheritedText).csType(.columnM).foregroundStyle(model.card.course.isEmpty ? cs.mut : cs.ink)
             .multilineTextAlignment(.leading)
           Spacer(minLength: 8)
-          Text(cardIsOpen ? "done" : "edit").font(CSFont.monoSmall).foregroundStyle(cs.ink)
+          Text(cardIsOpen ? "Done" : "Edit").csType(.agateS, caps: true).foregroundStyle(cs.ink)
         }
       }
       .contentShape(Rectangle())
@@ -218,12 +217,12 @@ private struct PostRoundBody: View {
         FlowLayout(spacing: 8) {
           ForEach(model.partnerChoices) { p in
             let on = model.playedWith.contains(p.id)
+            // §7.2 · one chip, one selected language, and a 44pt target. These
+            // were 36pt capsules tinted with ember at `a16` — a selection is
+            // not a live action, and the sibling sheet's chips were already 44.
             Button { model.toggle(partner: p.id) } label: {
-              Text(on ? "\(p.name) ✓" : p.name)
-                .font(CSFont.subhead).foregroundStyle(on ? cs.ink : cs.mut)
-                .padding(.horizontal, 12).padding(.vertical, 8)
-                .background((on ? cs.brand.opacity(0.16) : cs.bg2), in: Capsule())
-                .overlay(Capsule().stroke(on ? cs.brand : cs.rule, lineWidth: 1))
+              CSChip(p.name, selected: on)
+                .frame(minHeight: 44).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(p.name)
@@ -267,9 +266,9 @@ private struct PostRoundBody: View {
         Button { model.fill(m); CSMotion.run { ratingOpen = false } } label: {
           CSRow {
             A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {
-              Text(m.label).font(CSFont.subhead).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
+              Text(m.label).csType(.name).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
               Spacer(minLength: 8)
-              Text("\(m.ratingText) / \(m.slope)").font(CSFont.monoSmall).foregroundStyle(cs.mut).csTabular()
+              Text("\(m.ratingText) / \(m.slope)").csType(.columnM).foregroundStyle(cs.mut)
             }
           }
           .contentShape(Rectangle())
@@ -283,12 +282,12 @@ private struct PostRoundBody: View {
       Button { CSMotion.run { ratingOpen.toggle() } } label: {
         CSRow(last: !ratingFieldsShown) {
           A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 2) {
-            Text("Rating / slope").font(CSFont.subhead).foregroundStyle(cs.mut)
+            Text("Rating / slope").csType(.name).foregroundStyle(cs.mut)
             Spacer(minLength: 8)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-              Text(ratingLine).font(CSFont.monoSmall).foregroundStyle(cs.ink).csTabular()
-              Text("·").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
-              Text(ratingFieldsShown ? "done" : "edit").font(CSFont.monoSmall).foregroundStyle(cs.ink)
+              Text(ratingLine).csType(.columnM).foregroundStyle(cs.ink)
+              Text("·").csType(.columnM).foregroundStyle(cs.mut)
+              Text(ratingFieldsShown ? "Done" : "Edit").csType(.agateS, caps: true).foregroundStyle(cs.ink)
             }
           }
         }
@@ -314,7 +313,7 @@ private struct PostRoundBody: View {
 
   private func field<C: View>(_ label: String, @ViewBuilder _ content: () -> C) -> some View {
     VStack(alignment: .leading, spacing: 6) {
-      Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
+      Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut)
       content()
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -336,7 +335,7 @@ private struct PostRoundBody: View {
           PostSeg(options: [(18, "18 holes"), (9, "9 holes")], selection: model.card.side) { model.setSide($0) }
             .frame(maxWidth: typeSize.isA11y ? .infinity : 200)
         }
-        CSHairline()
+        CSRule()
       }
       .padding(.top, 12)
       if model.card.mode == .holes {
@@ -366,9 +365,8 @@ private struct PostRoundBody: View {
         bigField(nine ? "9-hole gross" : "Front 9 gross", "41", $model.card.f9)
         if !nine { bigField("Back 9 gross", "43", $model.card.b9) }
         VStack(alignment: .leading, spacing: 6) {
-          Text("Gross").font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
-          Text(sum > 0 ? "\(sum)" : "—").font(CSFont.heroSmall).csTabular().foregroundStyle(sum > 0 ? cs.ink : cs.dimText)
-            .frame(minHeight: 48).contentTransition(.numericText())
+          CSFigure(sum > 0 ? "\(sum)" : "—", size: .m, label: "Gross")
+            .contentTransition(.numericText())
         }
         .frame(minWidth: 64, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -379,16 +377,16 @@ private struct PostRoundBody: View {
       Button { model.setMode(.holes) } label: {
         // F-13 · the FORM's own noun. "Your card" is the profile sense (§2.1
         // row 2) and this opens the hole grid.
-        Text("Enter it hole by hole").font(CSFont.footnote).foregroundStyle(cs.brand).frame(minHeight: 44).contentShape(Rectangle())
+        Text("Enter it hole by hole")
       }
-      .buttonStyle(.plain)
+      .buttonStyle(.csTertiary(.content))
       .accessibilityHint("Opens the hole-by-hole card")
     }
   }
 
   private func bigField(_ label: String, _ placeholder: String, _ text: Binding<String>) -> some View {
     VStack(alignment: .leading, spacing: 6) {
-      Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
+      Text(label).csType(.agate, caps: true).foregroundStyle(cs.mut)
       CSField(placeholder, text: text, font: CSFont.code).keyboardType(.numberPad).accessibilityLabel(label)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -400,20 +398,19 @@ private struct PostRoundBody: View {
     VStack(alignment: .leading, spacing: 10) {
       CSSectionHead("Details").padding(.top, 8)
       FlowLayout(spacing: 8) {
-        CSMini(CSHeaderDate.today(model.day), systemImage: "calendar") { showDate = true }
+        CSMini(CSHeaderDate.today(model.day), glyph: .calendar) { showDate = true }
           .accessibilityLabel("Date, \(CSHeaderDate.today(model.day))")
         if model.scanEnabled {
-          CSMini(model.scanning ? PostScan.readingLabel : "Scan the card", systemImage: "camera", busy: model.scanning, action: pickScan)
+          CSMini(model.scanning ? PostScan.readingLabel : "Scan the card", glyph: .camera, busy: model.scanning, action: pickScan)
         }
-        CSMini(model.photo == nil ? "Add a photo" : "Change photo", systemImage: "photo", action: pickPhoto)
-        if model.photo != nil { CSMini("Remove", systemImage: "xmark") { model.setPhoto(nil) } }
+        CSMini(model.photo == nil ? "Add a photo" : "Change photo", glyph: .photo, action: pickPhoto)
+        if model.photo != nil { CSMini("Remove", glyph: .cross) { model.setPhoto(nil) } }
       }
       .padding(.top, 2)
       if let img = model.photo {
         Image(uiImage: img).resizable().scaledToFill()
           .frame(maxWidth: .infinity).frame(height: 180).clipped()
-          .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(cs.rule, lineWidth: 1))
+          .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           .accessibilityLabel("Round photo, attached")
       }
     }
@@ -449,11 +446,11 @@ private struct PostRoundBody: View {
           HStack {
             Text("How points work").csEyebrow()
             Spacer()
-            Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold)).foregroundStyle(cs.mut)
-              .rotationEffect(.degrees(bandsOpen ? 180 : 0))
+            CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
+              .rotationEffect(.degrees(bandsOpen ? -90 : 90))
           }
           .frame(minHeight: 34)
-          CSHairline()
+          CSRule()
         }
         .padding(.top, 8)
         .contentShape(Rectangle())
@@ -469,7 +466,7 @@ private struct PostRoundBody: View {
           }
           // the fine print under the bands (web 3198)
           Text(countingLine)
-            .font(CSFont.footnote).foregroundStyle(cs.dimText)
+            .csType(.bodyS).foregroundStyle(cs.mut)
             .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
         }
         .transition(.opacity)
@@ -481,17 +478,23 @@ private struct PostRoundBody: View {
 
   private var bottomBar: some View {
     VStack(spacing: 0) {
-      CSHairline()
-      VStack(spacing: 4) {
-        Text(model.grossLine).font(CSFont.monoSmall).foregroundStyle(cs.mut).csTabular()
+      CSRule()
+      VStack(spacing: CSTokens.Space.s1) {
+        Text(model.grossLine).csType(.columnM).foregroundStyle(cs.mut)
           .frame(maxWidth: .infinity).frame(minHeight: 22)
           .accessibilityAddTraits(.updatesFrequently)
-        CSButton("Add my round", busy: model.busy) { model.tapPost() }
+        Button("Add my round") { model.tapPost() }
+          .buttonStyle(.csPrimary(busy: model.busy))
         // abandonment is a real path, not a refresh: one tap empties the card
-        Button { model.startOver() } label: {
-          Text("Start over — clear this round").font(CSFont.footnote)   // F-13.foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44)
-        }
-        .buttonStyle(.plain)
+        // **THE 44pt MISS THE AUDIT NAMES, AND ITS CAUSE.** `// F-13` ran
+        // straight into `.foregroundStyle(cs.mut).frame(…minHeight: 44)`, so
+        // both modifiers were inside the comment: the label rendered in the
+        // inherited colour at whatever height 13pt of text is — about 20 —
+        // and the compiler had nothing to say about it. It is a tertiary now,
+        // which carries the 44pt target in the style rather than at the site.
+        Button("Start over — clear this round") { model.startOver() }   // F-13
+          .buttonStyle(.csTertiary(.content))
+          .frame(maxWidth: .infinity)
       }
       .padding(.horizontal, 20).padding(.top, 6)
     }
@@ -615,9 +618,9 @@ private struct PostBandRow: View {
   var body: some View {
     CSRow(last: last) {
       HStack(alignment: .firstTextBaseline, spacing: 10) {
-        Text(label).font(CSFont.subhead).foregroundStyle(cs.dimText)
+        Text(label).csType(.bodyS).foregroundStyle(cs.mut)
         Spacer(minLength: 8)
-        Text(value).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
+        Text(value).csType(.columnM).foregroundStyle(cs.ink)
       }
     }
     .accessibilityElement(children: .combine)
@@ -635,7 +638,7 @@ private struct PostDateSheet: View {
       CSSheetHeader(title: "Date", sub: "THE DAY YOU PLAYED")
       DatePicker("Date", selection: $day, in: ...Calendar.current.date(byAdding: .day, value: 1, to: Date())!, displayedComponents: .date)
         .datePickerStyle(.graphical).labelsHidden().tint(cs.brand)
-      CSButton("Done") { dismiss() }
+      Button("Set the day") { dismiss() }.buttonStyle(.csPrimary())
     }
     .padding(20)
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

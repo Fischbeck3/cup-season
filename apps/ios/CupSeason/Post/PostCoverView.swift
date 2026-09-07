@@ -149,7 +149,7 @@ private struct PostCoverStack: View {
           // late score. So the golfer reads what was kept and decides.
           if !kept.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
-              CSHairline()
+              CSRule()
               Text("STILL ON THIS PHONE").csEyebrow(cs.brand).padding(.top, 14).padding(.bottom, 2)
               ForEach(Array(kept.enumerated()), id: \.element.id) { i, k in
                 PostOptionRow(tick: cs.brand, title: k.line,
@@ -175,7 +175,7 @@ private struct PostCoverStack: View {
           // — one sheet, `IntentSheet`, reached from wherever the thought
           // occurs. Creation starts from intent, never from configuration.
           VStack(alignment: .leading, spacing: 0) {
-            CSHairline()
+            CSRule()
             // L-25 · the live row already wears the ember on this screen, and
             // spending it twice spends it on nothing. What sets this row apart
             // is structural — its own rule and its own gap — not a second
@@ -198,7 +198,7 @@ private struct PostCoverStack: View {
         case .post: PostRoundScreen(links: links, onDone: close)
         }
       }
-      .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { close() }.foregroundStyle(cs.mut) } }
+      .csCloseButton { close() }
       .task { kept = KeptCards.rows(await LiveDisk.shared.unsynced()) }
       .sheet(isPresented: $showPlan) { DeclareRoundSheet(leagueId: store.preferredLeague) { _ in close() } }
     }
@@ -216,17 +216,20 @@ struct PostLiveHeroRow: View {
     Button(action: action) {
       CSRow {
         HStack(alignment: .center, spacing: 14) {
-          RoundedRectangle(cornerRadius: 2).fill(cs.brand).frame(width: 3.5).padding(.vertical, 4)
-          VStack(alignment: .leading, spacing: 5) {
-            HStack(spacing: 7) {
-              Circle().fill(cs.brand).frame(width: 7, height: 7).opacity(breathe ? 0.35 : 1)
-              Text("LIVE").font(CSFont.monoSmall.weight(.semibold)).foregroundStyle(cs.brand).tracking(1.6)
+          Rectangle().fill(cs.brand).frame(width: 3).padding(.vertical, 4)
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            HStack(spacing: CSTokens.Space.s2) {
+              Circle().fill(cs.brand).frame(width: 7, height: 7).opacity(breathe ? CSTokens.Alpha.a56 : 1)
+              Text("Live").csType(.agate, caps: true).foregroundStyle(cs.brand)
             }
-            Text(title).font(CSFont.title).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
-            Text(sub).font(CSFont.subhead).foregroundStyle(cs.mut).multilineTextAlignment(.leading)
+            Text(title).csType(.displayS).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
+            Text(sub).csType(.bodyS).foregroundStyle(cs.mut).multilineTextAlignment(.leading)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
-          Text("→").font(CSFont.title).foregroundStyle(cs.brand)
+          // the arrow is absorbed into the row (LINT-13), and the chevron is
+          // MUT: the spine, the dot and the word are already three ember marks
+          // on this viewport and §1.4's budget is two
+          CSGlyph(.chevron, size: .row).foregroundStyle(cs.mut)
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, 6)
@@ -255,13 +258,13 @@ struct PostOptionRow: View {
     Button(action: action) {
       CSRow(last: last) {
         HStack(alignment: .center, spacing: 14) {
-          RoundedRectangle(cornerRadius: 2).fill(tick).frame(width: 3.5).padding(.vertical, 4)
-          VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(CSFont.title).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
-            Text(sub).font(CSFont.subhead).foregroundStyle(cs.mut).multilineTextAlignment(.leading)
+          Rectangle().fill(tick).frame(width: 3).padding(.vertical, 4)
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            Text(title).csType(.displayS).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
+            Text(sub).csType(.bodyS).foregroundStyle(cs.mut).multilineTextAlignment(.leading)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
-          Text("→").font(CSFont.title).foregroundStyle(tick)
+          CSGlyph(.chevron, size: .row).foregroundStyle(cs.mut)
         }
         .fixedSize(horizontal: false, vertical: true)
       }

@@ -21,7 +21,7 @@ struct PostScanPickSheet: View {
           Button { pick(i); dismiss() } label: {
             CheckRow(glyph: Text("⛳"), title: p.label(i),
                      sub: (p.total.map { "\($0) GROSS · " } ?? "") + "\(p.holes_read)/18 HOLES READ") {
-              Text("→").font(CSFont.subhead).foregroundStyle(cs.dimText)
+              Text("→").csType(.body).foregroundStyle(cs.mut)
             }
           }
           .buttonStyle(.plain)
@@ -56,7 +56,7 @@ struct PostPartnersSheet: View {
             HStack(spacing: 6) {
               CSMini(tokens[i] == nil ? "Copy link" : "Copied ✓", busy: busy.contains(i)) { Task { await copy(i, p) } }
               if let t = tokens[i] {
-                CSMini("", systemImage: "square.and.arrow.up") { share = PostShareItem(items: [PostService.claimURL(t)]) }.accessibilityLabel("Share the link")
+                CSMini("", glyph: .share) { share = PostShareItem(items: [PostService.claimURL(t)]) }.accessibilityLabel("Share the link")
               }
             }
           }
@@ -78,7 +78,7 @@ struct PostPartnersSheet: View {
       UIPasteboard.general.url = PostService.claimURL(token)
       svc.event(PostEvent.scanClaimMinted)
       CSHaptic.selection()
-    } catch { toast.show(HumanError.text(error, prefix: "Could not make the link.")) }
+    } catch { toast.show(HumanError.text(error, prefix: "Could not make the link."), kind: .failed) }
   }
 }
 

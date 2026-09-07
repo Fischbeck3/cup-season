@@ -98,7 +98,10 @@ public enum BoardLogic {
     if newest > marker { return nil }   // something new landed — feed renders exactly as today
     var lines: [String] = []
     if let f = items.last(where: { $0.kind == .round }) { lines.append(digestRoundLine(f, cache: cache, names: names)) }
-    if let f = items.last(where: { $0.kind == .system }) { lines.append("◆ " + BoardText.easeCaps(f.text, names: names)) }
+    // LINT-13 / D277 · the producer emits the LINE and the renderer draws the
+    // mark. The `◆` was typed into the string here, so the digest's clubhouse
+    // note carried a glyph the board's own rows had already stopped drawing.
+    if let f = items.last(where: { $0.kind == .system }) { lines.append(BoardText.easeCaps(f.text, names: names)) }
     if let next, !next.isEmpty { lines.append(next) }
     return lines.isEmpty ? nil : lines
   }

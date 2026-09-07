@@ -50,16 +50,18 @@ struct EpilogueSheet: View {
         // THE ACT — one sentence, one door, above everything else on the page.
         if let act {
           VStack(alignment: .leading, spacing: 10) {
-            Text(act.sentence).font(CSFont.title).foregroundStyle(cs.ink)
+            Text(act.sentence).csType(.displayS).foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
             let gap = EpilogueMovement.gapNote(show.epilogue.movement)
             if !gap.isEmpty {
-              Text(gap).font(CSFont.subhead).foregroundStyle(cs.mut)
+              Text(gap).csType(.body).foregroundStyle(cs.mut)
             }
             if case .done = act.door {
-              CSButton(act.label, style: .quiet) { onDone() }
+              Button(act.label) { onDone() }
+                .buttonStyle(.csSecondary())
             } else {
-              CSButton(act.label) { take(act.door) }
+              Button(act.label) { take(act.door) }
+                .buttonStyle(.csPrimary())
             }
           }
           .padding(.top, 4)
@@ -77,24 +79,26 @@ struct EpilogueSheet: View {
         // and nothing about attestation.
         if !show.epilogue.playedWith.isEmpty {
           Text(EpilogueSheet.playedWithLine(show.epilogue.playedWith))
-            .font(CSFont.subhead).foregroundStyle(cs.mut)
+            .csType(.body).foregroundStyle(cs.mut)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.top, 2)
         }
 
         // the share artifacts, below the act
         if let gross = show.epilogue.gross, !show.ceremonyOwnsShare {
-          CSButton(PostEpilogue.shareLabel(firstEver: show.firstEver), style: .quiet) {
+          Button(PostEpilogue.shareLabel(firstEver: show.firstEver)) {
             share = RecapCardView.shareItem(recap(gross), photo: photo)
-          }.padding(.top, 8)
+          }
+            .buttonStyle(.csSecondary()).padding(.top, 8)
         }
         if show.epilogue.gross != nil {
-          CSButton(PostEpilogue.linkLabel(photoTravels: show.photoTravels), style: .quiet, busy: linking) { Task { await link() } }.padding(.top, 4)
+          Button(PostEpilogue.linkLabel(photoTravels: show.photoTravels)) { Task { await link() } }
+            .buttonStyle(.csSecondary(busy: linking)).padding(.top, 4)
           Button { Task { await revoke() } } label: {
-            Text(PostEpilogue.revokeLabel).font(CSFont.subhead).foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44)
+            Text(PostEpilogue.revokeLabel).csType(.body).foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44)
           }
           .buttonStyle(.plain).disabled(revoking)
-          Text(PostEpilogue.revokeFine).font(CSFont.footnote).foregroundStyle(cs.dimText).multilineTextAlignment(.center).frame(maxWidth: .infinity)
+          Text(PostEpilogue.revokeFine).csType(.bodyS).foregroundStyle(cs.mut).multilineTextAlignment(.center).frame(maxWidth: .infinity)
         }
       }
       .padding(20)
@@ -152,12 +156,12 @@ struct EpilogueSheet: View {
       let url = try await svc.shareLink(round: show.roundId) { data in PostPhoto.compress(data: data, maxDim: 1600, quality: 0.8) }
       let text = PostEpilogue.linkText(name: store.me?.profile?.display_name, gross: show.epilogue.gross ?? 0, course: show.course)
       share = PostShareItem(items: [text, url])
-    } catch { toast.show(HumanError.text(error, prefix: "Could not make the link.")) }
+    } catch { toast.show(HumanError.text(error, prefix: "Could not make the link."), kind: .failed) }
   }
 
   private func revoke() async {
     revoking = true; defer { revoking = false }
     do { try await svc.revokeLink(round: show.roundId); toast.show(PostEpilogue.revokedToast) }
-    catch { toast.show(HumanError.text(error, prefix: "Could not revoke.")) }
+    catch { toast.show(HumanError.text(error, prefix: "Could not revoke."), kind: .failed) }
   }
 }

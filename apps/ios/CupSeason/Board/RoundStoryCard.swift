@@ -34,23 +34,26 @@ struct RoundStoryCard: View {
         .accessibilityAction(named: GolfersRoot.CardName.title(item.who)) { if let p = round.profileId { links.openTourCard(p) } }
       if item.social { ReactionBar(item: item, store: store) }
     }
-    .padding(.horizontal, 13).padding(.vertical, 12)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-    // a door (tap → the receipt): the one card kind on the board that keeps its line
-    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(cs.rule, lineWidth: 1))
-    .padding(.vertical, 6)
+    // WAVE 8 · the round is the board's one WEIGHTED row, and weight is the
+    // raised ground plus a squad spine — not a border. The bordered tile was
+    // the last card on the board after the Pro's word and the moments lost
+    // theirs (non-negotiable 1: a container needs a job, and "this row is a
+    // door" is said by the row's own ground).
+    .padding(.horizontal, CSTokens.Space.s3).padding(.vertical, CSTokens.Space.s3)
+    .background(cs.bg1)
+    .padding(.vertical, CSTokens.Space.s2)
   }
 
   private var face: some View {
     // accessibility sizes: the PvI chip and the points drop UNDER the text instead of squeezing the name to a column of letters
     A11yStack(rowAlignment: hasPhoto ? .bottom : .center, spacing: 12, columnSpacing: 8) {
       HStack(alignment: hasPhoto ? .bottom : .center, spacing: 12) {
-        RoundedRectangle(cornerRadius: 2).fill(cs.squad(item.ci)).frame(width: 3.5)
+        Rectangle().fill(cs.squad(item.ci)).frame(width: 3)
         VStack(alignment: .leading, spacing: 3) {
           HStack(spacing: 8) {
             CSFace(.init(id: round.profileId ?? UUID(), marker: store.marker(profile: round.profileId), photoURL: store.face(profile: round.profileId)), size: .inline)
             Button { if let p = round.profileId { links.openTourCard(p) } } label: {
-              Text(item.who.isEmpty ? "—" : item.who).font(CSFont.subhead.weight(.semibold))
+              Text(item.who.isEmpty ? "—" : item.who).csType(.name)
                 .foregroundStyle(hasPhoto ? onPhotoInk : cs.ink)
                 .a11yHitSlop()
             }
@@ -58,15 +61,14 @@ struct RoundStoryCard: View {
             .disabled(round.profileId == nil)
             if round.profileId != nil, round.profileId == store.founderId { FounderTag() }
           }
-          Text(BoardLogic.courseLine(round)).font(CSFont.label).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
-          Text(BoardLogic.grossLine(round, viewer: store.profileId)).font(CSFont.monoSmall).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
-          Text(counting.text).font(CSFont.monoSmall)
-            .foregroundStyle(hasPhoto ? onPhotoMut : (counting.ok ? cs.pos : cs.dimText))
+          Text(BoardLogic.courseLine(round)).csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
+          Text(BoardLogic.grossLine(round, viewer: store.profileId)).csType(.columnS).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
+          Text(counting.text).csType(.columnS)
+            .foregroundStyle(hasPhoto ? onPhotoMut : (counting.ok ? cs.pos : cs.mut))
           if streak >= 2 {
-            Text("\(streak) STRAIGHT UNDER").font(CSFont.label).tracking(1)
-              .foregroundStyle(streak >= 3 ? cs.brand : cs.brand)
-              .padding(.horizontal, 5).padding(.vertical, 1)
-              .overlay(RoundedRectangle(cornerRadius: 4).stroke(streak >= 3 ? cs.brand : cs.brand, lineWidth: 1))
+            // a streak is a fact, not a control: agate in ink, no ring
+            Text("\(streak) straight under").csType(.agateS, caps: true)
+              .foregroundStyle(hasPhoto ? onPhotoInk : cs.ink)
               .padding(.top, 2)
           }
         }
@@ -75,16 +77,16 @@ struct RoundStoryCard: View {
       }
       HStack(alignment: .bottom, spacing: 12) {
         if let pvi = round.pvi {
-          Text(CSBands.pviChip(pvi)).font(CSFont.monoSmall.weight(.semibold)).csTabular()
-            .foregroundStyle(pvi >= 0 ? cs.pos : cs.neg)
-            .padding(.horizontal, 8).padding(.vertical, 3)
-            .background(cs.bg2, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous).stroke(cs.rule, lineWidth: 1))
+          // D273 · a round against the playing HCP is not a P&L: the figure
+          // carries its own sign and the colour axis goes. `pviChip` is the
+          // producer; the chip round it was a bordered tile in pos/neg.
+          Text(CSBands.pviChip(pvi)).csType(.columnM)
+            .foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
         }
         if let pts = round.points {
           VStack(alignment: .trailing, spacing: 0) {
-            Text(CSCopy.points(pts)).font(CSFont.stat).csTabular().foregroundStyle(hasPhoto ? onPhotoInk : cs.ink)
-            Text("PTS").font(CSFont.label).tracking(1.5).foregroundStyle(hasPhoto ? onPhotoMut : cs.dimText)
+            Text(CSCopy.points(pts)).csType(.figureS).foregroundStyle(hasPhoto ? onPhotoInk : cs.ink)
+            Text("Pts").csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
           }
           .frame(minWidth: 44, alignment: .trailing)
         }

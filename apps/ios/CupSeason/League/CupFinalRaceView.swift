@@ -124,7 +124,7 @@ struct FinalistReceiptSheet: View {
                   .font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
                 Spacer()
                 Text("\(StandingsMath.sgn(h.pvi ?? 0)) vs \(whose) number · \(CSCopy.points(h.points)) PTS")
-                  .font(CSFont.monoSmall).csTabular().foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
+                  .csType(.columnS).foregroundStyle(cs.ink).lineLimit(typeSize.isA11y ? nil : 1)
               }
               .padding(.vertical, 10).frame(minHeight: 44).contentShape(Rectangle())
               .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }

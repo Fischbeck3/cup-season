@@ -24,16 +24,19 @@ struct LiveSetupView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        Text("Set up the round").csEyebrow()
+        Text("Set up the round").csType(.agate, caps: true).foregroundStyle(cs.mut)
         if let sr = store.plan, !store.planDismissed { planBridge(sr) }
         courseCard
         foursomeCard
         gameCard
         nearbyCard
-        CSButton("Tee off →", busy: store.busy) { teeOffTaps += 1; Task { await store.teeOff() } }
+        Button("Tee off") { teeOffTaps += 1; Task { await store.teeOff() } }
+          .buttonStyle(.csPrimary(busy: store.busy))
+          .padding(.top, CSTokens.Space.s2)
       }
-      .padding(20)
+      .padding(CSTokens.Space.gutter)
     }
+    .background(cs.bg0)
     // D168 · advertising now follows the APP, not this screen — it starts here
     // and in the tab shell whenever the app is foreground and the golfer has
     // opted in. Confining it to this one screen meant everybody had to be on
@@ -63,23 +66,22 @@ struct LiveSetupView: View {
 
   private func planBridge(_ sr: ScheduledRound) -> some View {
     let withN = (sr.tagged_names ?? []).isEmpty ? "" : " · with " + (sr.tagged_names ?? []).joined(separator: " & ")
-    return VStack(alignment: .leading, spacing: 4) {
-      Text("Your round today\(sr.course_label.map { " · \($0)" } ?? "")").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-      Text("Load the course and your group into the round\(withN).").font(CSFont.footnote).foregroundStyle(cs.dimText)
-      CSMini("Load it →") { store.loadPlan() }.padding(.top, 4)
+    // gold may never touch a control (D269), and a gold border round a card
+    // with a button in it is the clearest case of it in the product
+    return CSBand(.tone, padding: CSTokens.Space.s3) {
+      Text("Your round today\(sr.course_label.map { " · \($0)" } ?? "")").csType(.name).foregroundStyle(cs.ink)
+      Text("Load the course and your group into the round\(withN).").csType(.bodyS).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+      CSMini("Load it") { store.loadPlan() }
     }
-    .padding(12)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.gold, lineWidth: 1))
+    .padding(.horizontal, CSTokens.Space.s3)
   }
 
   // MARK: the course (2985–3003)
 
   private var courseCard: some View {
-    CSCard {
-      VStack(alignment: .leading, spacing: 10) {
-        fieldLabel("Course")
+    section {
+        CSSectionHead("The course")
         LiveCourseField(text: Binding(get: { store.state.course.label }, set: { v in
           if store.state.course.label != v { store.state.course.courseId = nil }
           store.state.course.label = v
@@ -88,7 +90,7 @@ struct LiveSetupView: View {
             await store.applyTee(course: course, tee: tee)
             ratingText = store.state.course.rating.map(LiveFmt.js) ?? ""
             slopeText = store.state.course.slope.map(String.init) ?? ""
-            toast.show("Tees set — rating and slope filled")
+            toast.show("Tees set — rating and slope filled", kind: .confirmed)
           }
         }
         fieldLabel("Tee & rating — off the scorecard")
@@ -105,29 +107,37 @@ struct LiveSetupView: View {
           .frame(maxWidth: typeSize.isA11y ? .infinity : 220, alignment: .leading)
         CSFine(store.state.course.note ?? LiveCourseCard.standardNote)
         CSMini("Enter the pars") { showCard = true }
-      }
     }
   }
 
+  /// A block of the page, parted from the next by a rule — **not a card.** The
+  /// four tiles this screen wore were containers with no job (non-negotiable
+  /// 1): a bordered box round every question on a form is the audit's card
+  /// census in one screen.
+  @ViewBuilder private func section<C: View>(@ViewBuilder _ c: () -> C) -> some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) { c() }
+      .padding(.bottom, CSTokens.Space.s3)
+      .overlay(alignment: .bottom) { CSRule() }
+  }
+
   private func fieldLabel(_ s: String) -> some View {
-    Text(s).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
+    Text(s).csType(.agate, caps: true).foregroundStyle(cs.mut)
   }
 
   // MARK: the foursome (3004–3020; 8720–8817)
 
   private var foursomeCard: some View {
-    CSCard {
-      VStack(alignment: .leading, spacing: 10) {
+    section {
         // LV-08 · "the foursome" is retired (row 161) in favour of "the group",
         // which this screen's own new copy already says five ways.
-        fieldLabel("The group · \(store.sel.count) / 4")
+        CSSectionHead("The group", count: "\(store.sel.count) of 4")
         if store.teamable {
           LiveSeg(options: [(LiveMode.teams, "2v2 teams"), (LiveMode.solo, "Everyone for themselves")], selected: store.state.mode) { store.setMode($0) }
         }
         if store.courtMode { LiveCourtView(store: store) } else { slots }
         fieldLabel("Tap to fill a slot").padding(.top, 6)   // the chip groups carry their own LEAGUE header — saying it twice read as a glitch
         chips
-        CSMini("Search the app — add any golfer", systemImage: "person.2") { showPicker = true }
+        CSMini("Search the app — add any golfer", glyph: .people) { showPicker = true }
         fieldLabel("Add a guest").padding(.top, 4)
         A11yStack(spacing: 8) {
           CSField("Name", text: $guestName, font: CSFont.body).accessibilityLabel("Guest name")
@@ -141,7 +151,6 @@ struct LiveSetupView: View {
         CSFine(store.leagueId == nil
           ? "Pick who plays with who under the game — pairings, stakes, the lot. Every complete card posts to its golfer at the finish; account-less guests play every game, post nothing. Leave index blank for an estimated 18."
           : "Pick who plays with who under the game — pairings, stakes, the lot. League members post to the season; guests play every game, post nothing, no account needed. Leave index blank for an estimated 18.")
-      }
     }
   }
 
@@ -153,11 +162,11 @@ struct LiveSetupView: View {
           LiveSlotChip(player: store.roster[idx], remove: store.roster[idx].locked ? nil : { store.remove(idx) })
         } else {
           VStack(alignment: .leading, spacing: 2) {
-            Text("Open slot").font(CSFont.subhead).foregroundStyle(cs.dimText)
-            Text("TAP A PLAYER BELOW").font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)   // text never in `dim` (IOS-013)
+            Text("Open slot").csType(.name).foregroundStyle(cs.mut)
+            Text("Tap a player below").csType(.agate, caps: true).foregroundStyle(cs.mut)
           }
-          .padding(10).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+          .padding(CSTokens.Space.s3).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+          .background(cs.bg1)
           .accessibilityElement(children: .combine)
         }
       }
@@ -168,13 +177,12 @@ struct LiveSetupView: View {
   /// it does and does not do — "local network" is a scary-sounding prompt and
   /// the honest answer to it is short.
   @ViewBuilder private var nearbyCard: some View {
-    CSCard {
-      VStack(alignment: .leading, spacing: 8) {
+    section {
         HStack {
           VStack(alignment: .leading, spacing: 2) {
-            Text("Who's on this tee").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+            Text("Who's on this tee").csType(.name).foregroundStyle(cs.ink)
             Text(store.nearbyOn ? "Looking for buddies nearby" : "Fill the group from the phones next to you")
-              .font(CSFont.label).foregroundStyle(cs.dimText)
+              .csType(.agate, caps: true).foregroundStyle(cs.mut)
           }
           Spacer()
           Toggle("", isOn: Binding(get: { store.nearbyOn }, set: { store.nearbyOn = $0 }))
@@ -182,7 +190,6 @@ struct LiveSetupView: View {
             .accessibilityLabel("Find buddies on this tee")
         }
         CSFine("Bluetooth only — never your location, and nothing about where you are leaves your phone. A golfer who is not already your buddy or in a season with you stays invisible, and you still tap to add anyone.")
-      }
     }
   }
 
@@ -225,7 +232,7 @@ struct LiveSetupView: View {
           .sorted { (store.roster[$0].regular ?? .max) < (store.roster[$1].regular ?? .max) }
           .map { Pick(i: $0, p: store.roster[$0]) }
         if !items.isEmpty {
-          Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
+          Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.mut)
           LiveFlow(spacing: 6) {
             ForEach(items) { item in
               let p = item.p
@@ -241,16 +248,17 @@ struct LiveSetupView: View {
                 guard let idx = store.roster.firstIndex(where: { $0.id == p.id }) else { return }
                 isNear ? store.askNearby(idx) : store.pick(idx)
               } label: {
-                HStack(spacing: 6) {
-                  if p.guest { Text(p.buddy ? "BUDDY" : "GUEST").font(CSFont.label).foregroundStyle(cs.dimText) }
-                  else { RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 8, height: 8) }
-                  Text("\(p.n) · \(LiveFmt.idx(p.i))").font(CSFont.monoSmall).foregroundStyle(cs.ink)
-                  if waiting { Text("ASKING…").font(CSFont.label).foregroundStyle(cs.gold) }
-                  else if isNear { Text("ASK").font(CSFont.label).foregroundStyle(cs.brand) }
+                // §6 · a row with a person in it draws the person. A 8pt squad
+                // swatch is not a face, and it was the same square for four
+                // golfers on the same side.
+                HStack(spacing: CSTokens.Space.s2) {
+                  CSFace(Faces.of(p.pid, marker: p.mk, name: p.n, isViewer: p.me), size: .inline)
+                  Text("\(p.n) · \(LiveFmt.idx(p.i))").csType(.nameS).foregroundStyle(cs.ink)
+                  if waiting { Text("Asking…").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
+                  else if isNear { Text("Ask").csType(.agateS, caps: true).foregroundStyle(cs.brand) }
                 }
-                .padding(.horizontal, 10).frame(minHeight: 36)
-                .background(cs.bg2, in: Capsule())
-                .overlay(Capsule().stroke(cs.rule, lineWidth: 1))
+                .padding(.horizontal, CSTokens.Space.s2).frame(minHeight: 36)
+                .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
                 .frame(minHeight: 44).contentShape(Rectangle())   // the 44pt frame must be INSIDE the label to count
               }
               .buttonStyle(.plain)
@@ -265,7 +273,7 @@ struct LiveSetupView: View {
       if !any {
         if store.leagueId == nil {
           // D107: no league is a fine tee sheet — the add-golfer door leads
-          CSMini("Bring your group — search the app", systemImage: "person.2") { showPicker = true }
+          CSMini("Bring your group — search the app", glyph: .people) { showPicker = true }
         } else {
           CSFine("Nobody from your seasons to tap yet — search the app or add a guest below.")
         }
@@ -276,33 +284,30 @@ struct LiveSetupView: View {
   // MARK: the game (3021–3035)
 
   private var gameCard: some View {
-    CSCard {
-      VStack(alignment: .leading, spacing: 10) {
-        fieldLabel("Game for this round · pick one")
+    section {
+        CSSectionHead("The game", count: "pick one")
         LiveFlow(spacing: 6) {
           ForEach(LiveGame.allCases, id: \.self) { g in
+            // §7.2 · a chosen game INVERTS to the panel. It wore an ember fill,
+            // and ember means "the live thing you can do now" — the one primary
+            // on this screen is `Tee off`, not the game you picked.
             Button { store.setGame(g) } label: {
-              Text(g.segLabel).font(CSFont.monoMediumBody)
-                .foregroundStyle(store.state.game == g ? cs.bg0 : cs.ink)
-                .padding(.horizontal, 12).frame(minHeight: 40)
-                .background(store.state.game == g ? cs.brand : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+              CSChip(g.segLabel, selected: store.state.game == g)
                 .frame(minHeight: 44).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityAddTraits(store.state.game == g ? .isSelected : [])
           }
         }
         CSFine(store.state.game.note)
         if store.state.game.money {
-          Divider().overlay(cs.rule)
+          CSRule()
           fieldLabel(store.state.game.stakeLabel)
           CSField("0", text: $stakeText).keyboardType(.decimalPad).frame(width: 110).accessibilityLabel(store.state.game.stakeLabel)
             .onChange(of: stakeText) { _, v in store.setStake(Double(v.replacingOccurrences(of: ",", with: ".")) ?? 0) }
           if let prev = LiveCopy.preview(game: store.state.game, picked: store.picked, pairing: store.state.pairing, course: store.state.course, holes: store.state.liveHoles) {
-            Text(LiveMarkdown.bold(prev)).font(CSFont.footnote).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
+            Text(LiveMarkdown.bold(prev)).csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
           }
         }
-      }
     }
   }
 }
@@ -324,29 +329,27 @@ struct LiveSlotChip: View {
 
   var body: some View {
     HStack(spacing: 8) {
+      CSFace(Faces.of(player.pid, marker: player.mk, name: player.n, isViewer: player.me), size: .slat)
       VStack(alignment: .leading, spacing: 2) {
-        HStack(spacing: 6) {
-          if player.guest { Text(player.buddy ? "B" : "G").font(CSFont.label).foregroundStyle(cs.dimText) }
-          else { RoundedRectangle(cornerRadius: 3).fill(cs.squad(player.ci)).frame(width: 8, height: 8) }
-          Text(player.n).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink).lineLimit(1)
-        }
-        Text("\(player.est ? "EST " : "")\(LiveFmt.idx(player.i)) NUMBER").font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)
+        Text(player.n).csType(.name).foregroundStyle(cs.ink).lineLimit(1)
+        Text("\(player.est ? "Est " : "")\(LiveFmt.idx(player.i)) playing HCP")
+          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
       Spacer(minLength: 0)
-      if tradeable { Text("⇄").font(CSFont.monoSmall).foregroundStyle(cs.brand) }
+      if tradeable { CSGlyph(.chevron, size: .inline).foregroundStyle(cs.brand) }
       if let remove {
         Button(action: remove) {
-          Image(systemName: "xmark").font(.system(size: 11, weight: .semibold)).foregroundStyle(cs.mut)
-            .frame(width: 28, height: 28).background(cs.bg2, in: Circle())
+          CSGlyph(.cross, size: .inline).foregroundStyle(cs.mut)
+            .frame(width: 28, height: 28)
             .a11yHitSlop(vertical: 8, horizontal: 8)   // a 28pt glyph, a 44pt target
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Remove \(player.n)")
       }
     }
-    .padding(10).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
-    .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(picked ? cs.brand : cs.rule, lineWidth: picked ? 2 : 1))
+    .padding(CSTokens.Space.s3).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
+    .background(picked ? cs.panel : cs.bg2)
+    .foregroundStyle(picked ? cs.panelInk : cs.ink)
     .accessibilityElement(children: .contain)
     .accessibilityLabel("\(player.n), \(player.est ? "estimated " : "")index \(LiveFmt.idx(player.i))\(player.guest ? (player.buddy ? ", buddy" : ", guest") : "")\(picked ? ", selected" : "")")
   }
@@ -365,14 +368,14 @@ struct LiveCourtView: View {
     // the two zones side by side; one over the other at the accessibility sizes (a seat chip needs the width)
     A11yStack(alignment: .center, rowAlignment: .top, spacing: 8) {
       zone(0, "Team A", T[0])
-      Text("VS").font(CSFont.label).tracking(1.4).foregroundStyle(cs.dimText).padding(.top, typeSize.isA11y ? 0 : 28)
+      Text("vs").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, typeSize.isA11y ? 0 : 28)
       zone(1, "Team B", T[1])
     }
   }
 
   private func zone(_ zi: Int, _ label: String, _ positions: [Int]) -> some View {
     VStack(alignment: .leading, spacing: 6) {
-      Text(label).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(cs.dimText)
+      Text(label).csType(.agate, caps: true).foregroundStyle(cs.mut)
       ForEach(positions, id: \.self) { k in
         if k < store.sel.count, store.sel[k] < store.roster.count {
           let idx = store.sel[k]
@@ -393,9 +396,8 @@ struct LiveCourtView: View {
       }
     }
     .frame(maxWidth: .infinity)
-    .padding(8)
-    .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
+    .padding(CSTokens.Space.s2)
+    .background(cs.bg1)
   }
 }
 
@@ -406,23 +408,12 @@ struct LiveSeg<V: Hashable>: View {
   let selected: V
   let pick: (V) -> Void
 
+  /// **The one segment (§7.2).** It was a pill inside a bordered tray with an
+  /// EMBER fill on the selected item — a tab is not live, so the mark is a 2px
+  /// `ink` underline and the tray is gone.
   var body: some View {
-    A11yStack(spacing: 4) {
-      ForEach(options, id: \.0) { v, label in
-        Button { pick(v) } label: {
-          Text(label).font(CSFont.monoMediumBody)
-            .foregroundStyle(selected == v ? cs.bg0 : cs.ink)
-            .padding(.horizontal, 12).frame(maxWidth: .infinity, minHeight: 40)
-            .background(selected == v ? cs.brand : .clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .frame(minHeight: 44).contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected == v ? .isSelected : [])
-      }
-    }
-    .padding(3)
-    .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
+    CSSegment(options.map { ($0.0, $0.1) },
+              selection: Binding(get: { selected }, set: { pick($0) }))
   }
 }
 
@@ -473,13 +464,13 @@ struct LiveCourseField: View {
         dropdown {
           if vm.courses.isEmpty {
             Text(vm.offline ? CourseBookCopy.searchOffline : "No match — type the course, rating and slope by hand.")
-              .font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+              .csType(.bodyS).foregroundStyle(cs.mut).padding(12)
               .fixedSize(horizontal: false, vertical: true)
           } else {
             // D261 / R-N · a golf course is where the signal is worst. These
             // rows are the courses this phone kept, and the list says so.
             if vm.offline {
-              Text(CourseBookCopy.searchOffline).font(CSFont.footnote).foregroundStyle(cs.mut)
+              Text(CourseBookCopy.searchOffline).csType(.bodyS).foregroundStyle(cs.mut)
                 .padding(.horizontal, 12).padding(.top, 10)
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -490,7 +481,7 @@ struct LiveCourseField: View {
         dropdown {
           ddRow("‹ Back to courses", nil) { vm.stage = .courses }
           if c.tees.isEmpty {
-            Text("No rated tees listed — type the rating and slope by hand.").font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+            Text("No rated tees listed — type the rating and slope by hand.").csType(.bodyS).foregroundStyle(cs.mut).padding(12)
           } else {
             ForEach(c.tees) { t in
               ddRow(t.title, t.subtitle) {
@@ -508,19 +499,21 @@ struct LiveCourseField: View {
   }
 
   private func dropdown<C: View>(@ViewBuilder _ content: () -> C) -> some View {
+    // the results sit on the raised ground and are parted by rules — a
+    // bordered box round a list is a container with no job (non-negotiable 1)
     VStack(spacing: 0) { content() }
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 
   private func ddRow(_ b: String, _ s: String?, action: @escaping () -> Void) -> some View {
     Button(action: action) {
       VStack(alignment: .leading, spacing: 2) {
-        Text(b).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        if let s { Text(s).font(CSFont.monoSmall).foregroundStyle(cs.mut) }
+        Text(b).csType(.name).foregroundStyle(cs.ink)
+        if let s { Text(s).csType(.columnS).foregroundStyle(cs.mut) }
       }
       .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-      .padding(.horizontal, 12).padding(.vertical, 6)
+      .padding(.horizontal, CSTokens.Space.s3).padding(.vertical, CSTokens.Space.s2)
+      .overlay(alignment: .bottom) { CSRule() }
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -608,17 +601,18 @@ struct LiveCardSheet: View {
           side(nine ? "The nine" : "Front nine", $f9, placeholder: "453453543")
           if !nine { side("Back nine", $b9, placeholder: "434445345") }
           HStack {
-            Text("Total par").font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
+            Text("Total par").font(CSFont.label).tracking(1.2).foregroundStyle(cs.mut)
             Spacer()
             let ok = valid(f9) && (nine || valid(b9))
             Text(ok ? String(sum(f9) + (nine ? 0 : sum(b9))) : "—").font(CSFont.stat).foregroundStyle(ok ? cs.pos : cs.mut)
           }
           CSFine("Nine digits a side, 3–6. \(nine ? "The nine you played." : "Type it once and the card saves for every league.") Strokes fall by hole order; exact stroke index arrives with the course database.")
-          CSButton("Save the card") {
-            guard valid(f9), nine || valid(b9) else { toast.show("Nine digits a side, 3 through 6"); return }
+          Button("Save the card") {
+            guard valid(f9), nine || valid(b9) else { toast.show("Nine digits a side, 3 through 6", kind: .failed); return }
             store.saveCard(front: f9.compactMap { Int(String($0)) }, back: nine ? nil : b9.compactMap { Int(String($0)) })
             dismiss()
           }
+            .buttonStyle(.csPrimary())
         }
         .padding(20)
       }
@@ -635,10 +629,10 @@ struct LiveCardSheet: View {
   private func side(_ label: String, _ text: Binding<String>, placeholder: String) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       HStack {
-        Text(label).font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
+        Text(label).font(CSFont.label).tracking(1.2).foregroundStyle(cs.mut)
         Spacer()
         let v = text.wrappedValue
-        Text(v.isEmpty ? "—" : String(sum(v))).font(CSFont.monoMediumBody).foregroundStyle(v.isEmpty ? cs.mut : (valid(v) ? cs.pos : cs.neg))
+        Text(v.isEmpty ? "—" : String(sum(v))).csType(.nameS).foregroundStyle(v.isEmpty ? cs.mut : (valid(v) ? cs.pos : cs.neg))
       }
       CSField(placeholder, text: text).keyboardType(.numberPad)
         .onChange(of: text.wrappedValue) { _, v in let c = clean(v); if c != v { text.wrappedValue = c } }
@@ -677,8 +671,8 @@ struct LiveRosterPickerSheet: View {
               HStack(spacing: 12) {
                 CSFace(.init(id: r.id, marker: r.marker), size: .list)
                 VStack(alignment: .leading, spacing: 2) {
-                  Text(r.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-                  Text(r.subline).font(CSFont.monoSmall).foregroundStyle(cs.mut)
+                  Text(r.name).csType(.name).foregroundStyle(cs.ink)
+                  Text(r.subline).csType(.columnS).foregroundStyle(cs.mut)
                 }
                 Spacer()
                 if store.pickerExcluded.contains(r.id) { CSTag(text: "In", tone: cs.pos) }

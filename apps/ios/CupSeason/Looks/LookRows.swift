@@ -27,7 +27,7 @@ struct LookPaletteDial: View {
         LookPickRow(title: s.name, sub: LookRowCopy.sub(s), swatch: s,
                     selected: looks.personal == .fixed(s.key)) { pick(.fixed(s.key)) }
       }
-      Text("Turned on by the season").font(CSFont.footnote).foregroundStyle(cs.dimText).padding(.top, 12).padding(.bottom, 2)
+      Text("Turned on by the season").csType(.bodyS).foregroundStyle(cs.mut).padding(.top, 12).padding(.bottom, 2)
       ForEach(CSLooks.phases) { s in
         LookPickRow(title: s.name, sub: "\(s.motif) \(s.eyebrow)", swatch: s, selected: false, enabled: false) {}
       }
@@ -62,7 +62,7 @@ struct LookRoomSection: View {
       DisclosureGroup(isExpanded: $open) {
         VStack(alignment: .leading, spacing: 0) {
           Text("Every member's room wears it. The calendar looks still take their turn when nothing is set.")
-            .font(CSFont.footnote).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
+            .csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
             .padding(.top, 6).padding(.bottom, 4)
           let today = looks.calendarLook()
           LookPickRow(title: "Follow the calendar", sub: LookCopy.calendarLine(today), swatch: today,
@@ -77,7 +77,7 @@ struct LookRoomSection: View {
           Text("Dress the room").csEyebrow()
           Spacer()
           LookSwatch(spec: current, size: 16)
-          Text(current?.name ?? "Calendar").font(CSFont.monoSmall).foregroundStyle(cs.mut)
+          Text(current?.name ?? "Calendar").csType(.columnS).foregroundStyle(cs.mut)
         }
         .frame(minHeight: 44)
       }
@@ -87,7 +87,7 @@ struct LookRoomSection: View {
     } else {
       HStack(spacing: 10) {
         LookSwatch(spec: current, size: 16)
-        Text(LookCopy.roomLine(current)).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+        Text(LookCopy.roomLine(current)).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
       }
       .frame(minHeight: 44)
       .accessibilityElement(children: .combine)
@@ -105,7 +105,7 @@ struct LookRoomSection: View {
         try await looks.setLeagueLook(leagueId: leagueId, key: key)
         toast.show(LookCopy.dressed(key.flatMap(CSLooks.spec)))
       } catch {
-        toast.show(roomError(error, "Could not dress the room."))
+        toast.show(roomError(error, "Could not dress the room."), kind: .failed)
       }
     }
   }
@@ -136,7 +136,7 @@ struct LookPickRow: View {
         LookSwatch(spec: swatch, size: 22)
         VStack(alignment: .leading, spacing: 2) {
           Text(title).font(CSFont.subhead.weight(selected ? .semibold : .regular)).foregroundStyle(enabled ? cs.ink : cs.mut)
-          Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText).fixedSize(horizontal: false, vertical: true)
+          Text(sub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
         }
         Spacer(minLength: 8)
         if selected {
@@ -149,7 +149,7 @@ struct LookPickRow: View {
     }
     .buttonStyle(.plain)
     .disabled(!enabled)
-    .overlay(alignment: .bottom) { CSHairline() }
+    .overlay(alignment: .bottom) { CSRule() }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("Palette, \(title)\(selected ? ", selected" : "")")
     .accessibilityHint(enabled ? sub : "Turned on by the season")

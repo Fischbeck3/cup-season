@@ -41,11 +41,11 @@ struct BoardToastHost: ViewModifier {
       .overlay(alignment: .bottom) {
         if let text = store.toast {
           Text(text)
-            .font(CSFont.subhead)
+            .csType(.body)
             .foregroundStyle(cs.bg0)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16).padding(.vertical, 10)
-            .background(cs.ink, in: Capsule())
+            .background(cs.ink, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
             .padding(.horizontal, 24)
             .padding(.bottom, 12)
             .transition(.move(edge: .bottom).combined(with: .opacity))

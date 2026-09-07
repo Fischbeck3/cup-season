@@ -47,15 +47,15 @@ struct DeclareRoundSheet: View {
 
           HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 6) {
-              Text("Day").csEyebrow()
+              Text("Day").csType(.agate, caps: true).foregroundStyle(cs.mut)
               DatePicker("Day", selection: $vm.day, displayedComponents: .date).labelsHidden().tint(cs.brand)
             }
             VStack(alignment: .leading, spacing: 6) {
-              Text("Tee time · optional").csEyebrow(cs.gold)
+              Text("Tee time · optional").csType(.agate, caps: true).foregroundStyle(cs.mut)
               HStack(spacing: 6) {
                 if vm.teeOn {
                   DatePicker("Tee time", selection: $vm.tee, displayedComponents: .hourAndMinute).labelsHidden().tint(cs.brand)
-                  CSMini("", systemImage: "xmark") { vm.teeOn = false }.accessibilityLabel("Clear tee time")
+                  CSMini("", glyph: .cross) { vm.teeOn = false }.accessibilityLabel("Clear tee time")
                 } else {
                   CSMini("Set a tee time") { vm.teeOn = true }
                 }
@@ -63,20 +63,20 @@ struct DeclareRoundSheet: View {
             }
           }
 
-          Text("Course").csEyebrow().padding(.top, 4)
+          Text("Course").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
           CourseSearchField(text: $vm.course, courseId: $vm.courseId, toasts: toasts)
 
-          Text("Note · optional").csEyebrow().padding(.top, 4)
+          Text("Note · optional").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
           CSField("buddies trip, looking for a 4th", text: $vm.note, font: CSFont.body)
             .onChange(of: vm.note) { _, n in if n.count > 140 { vm.note = String(n.prefix(140)) } }
 
           // D240 · a name, and a game. Both optional; the name is pre-filled
           // from the course and the day and is never written for anybody.
-          Text("\(PlanCopy.nameLabel) · \(PlanCopy.nameOptional)").csEyebrow().padding(.top, 4)
+          Text("\(PlanCopy.nameLabel) · \(PlanCopy.nameOptional)").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
           CSField(vm.suggestedName ?? PlanCopy.namePlaceholder, text: $vm.name, font: CSFont.body)
             .textInputAutocapitalization(.words)
             .accessibilityLabel(PlanCopy.nameLabel)
-          Text(PlanCopy.gameLabel).csEyebrow().padding(.top, 4)
+          Text(PlanCopy.gameLabel).csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
           A11yStack(spacing: 6) {
             ForEach(Array(PlanCopy.games.enumerated()), id: \.offset) { _, g in
               gameChip(g)
@@ -84,8 +84,8 @@ struct DeclareRoundSheet: View {
           }
           Button { CSHaptic.selection(); vm.forfeit = true } label: {
             VStack(alignment: .leading, spacing: 2) {
-              Text("\(PlanCopy.stakeDoor) →").font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
-              Text(PlanCopy.stakeGloss).font(CSFont.footnote).foregroundStyle(cs.dimText)
+              Text(PlanCopy.stakeDoor).csType(.nameS).foregroundStyle(cs.ink)
+              Text(PlanCopy.stakeGloss).csType(.bodyS).foregroundStyle(cs.mut)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 10).frame(minHeight: 50)
@@ -105,22 +105,23 @@ struct DeclareRoundSheet: View {
               // planning Saturday.
               CSFine("Nobody to tag yet — buddies live on the Golfers tab. Playing anyway? Guests need no account: start it live and add them by name.").padding(.top, 6)
             } else {
-              Text("Tag your group · \(vm.tagged.count) tagged").csEyebrow().padding(.top, 6)
+              Text("Tag your group · \(vm.tagged.count) tagged").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s2)
               TagChips(candidates: vm.candidates, tagged: $vm.tagged, toasts: toasts)
             }
           }
 
-          CSButton(vm.hostName != nil ? "I'm in" : "Put it on the schedule", busy: vm.busy) {
+          Button(vm.hostName != nil ? "I'm in" : "Put it on the schedule") {
             Task { if let id = await vm.go() { onDeclared(id); dismiss() } }
           }
-          .padding(.top, 6)
+          .buttonStyle(.csPrimary(busy: vm.busy))
+          .padding(.top, CSTokens.Space.s2)
           CSFine("Posts to your seasons' boards: tagged golfers are named. Scratch it any time from the calendar.")
         }
         .padding(20)
       }
       .background(cs.bg0)
       .scrollDismissesKeyboard(.interactively)
-      .toolbar { ToolbarItem(placement: .topBarLeading) { Button("Cancel") { dismiss() }.foregroundStyle(cs.mut) } }
+      .csCloseButton { dismiss() }
       .task { await vm.loadCandidates() }
       .sheet(isPresented: $vm.forfeit) {
         // The stake is a forfeit, and it lands on the plan once the plan
@@ -137,11 +138,11 @@ struct DeclareRoundSheet: View {
   private func gameChip(_ g: LiveGame?) -> some View {
     let on = vm.game == g
     return Button { CSHaptic.selection(); vm.game = g } label: {
-      Text(PlanCopy.gameLabelFor(g)).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.85)   // L-29 · 13 × 0.85 = 11.05
-        .foregroundStyle(on ? cs.bg0 : cs.ink)
-        .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 44)
-        .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: on ? 0 : 1))
+      Text(PlanCopy.gameLabelFor(g)).csType(.agateS, caps: true).lineLimit(1).minimumScaleFactor(0.9)
+        .foregroundStyle(on ? cs.panelInk : cs.mut)
+        .padding(.horizontal, CSTokens.Space.s2).frame(maxWidth: .infinity, minHeight: 44)
+        .background(on ? cs.panel : cs.bg2,
+                    in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(on ? [.isSelected] : [])
@@ -247,14 +248,15 @@ struct TagChips: View {
           else { tagged.insert(c.id) }
           CSHaptic.selection()
         } label: {
-          HStack(spacing: 6) {
-            CSMarkerView(key: c.marker, size: 16).foregroundStyle(on ? cs.pos : cs.ink)
-            Text(c.name).font(CSFont.monoMediumBody).foregroundStyle(on ? cs.pos : cs.ink)
+          // §6 · a chip with a person in it draws the person
+          HStack(spacing: CSTokens.Space.s2) {
+            CSFace(Faces.of(c.id, marker: c.marker, name: c.name), size: .inline)
+            Text(c.name).csType(.nameS).foregroundStyle(on ? cs.panelInk : cs.ink)
           }
-          .padding(.horizontal, 12).frame(minHeight: 36)
-          .background(cs.bg2, in: Capsule())
-          .overlay(Capsule().stroke(on ? cs.pos : cs.rule, lineWidth: 1))
-          .frame(minHeight: 44)
+          .padding(.horizontal, CSTokens.Space.s3).frame(minHeight: 44)
+          .background(on ? cs.panel : cs.bg2,
+                      in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
+          .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? .isSelected : [])
@@ -310,13 +312,13 @@ struct CourseSearchField: View {
         dropdown {
           if vm.courses.isEmpty {
             Text(vm.offline ? CourseBookCopy.searchOffline : "No match — type the course, rating and slope by hand.")
-              .font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+              .csType(.bodyS).foregroundStyle(cs.mut).padding(12)
               .fixedSize(horizontal: false, vertical: true)
           } else {
             // D261 · when the rows came off the phone, the list says so BEFORE
             // the rows, so nobody reads a two-course list as the catalogue.
             if vm.offline {
-              Text(CourseBookCopy.searchOffline).font(CSFont.footnote).foregroundStyle(cs.mut)
+              Text(CourseBookCopy.searchOffline).csType(.bodyS).foregroundStyle(cs.mut)
                 .padding(.horizontal, 12).padding(.top, 10)
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -329,7 +331,7 @@ struct CourseSearchField: View {
         dropdown {
           ddRow("‹ Back to courses", nil) { vm.stage = .courses }
           if c.tees.isEmpty {
-            Text("No rated tees listed — type the rating and slope by hand.").font(CSFont.footnote).foregroundStyle(cs.mut).padding(12)
+            Text("No rated tees listed — type the rating and slope by hand.").csType(.bodyS).foregroundStyle(cs.mut).padding(12)
           } else {
             ForEach(c.tees) { t in
               ddRow(t.title, t.subtitle) {
@@ -355,14 +357,13 @@ struct CourseSearchField: View {
   private func dropdown<C: View>(@ViewBuilder _ content: () -> C) -> some View {
     VStack(spacing: 0) { content() }
       .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 
   private func ddRow(_ b: String, _ s: String?, action: @escaping () -> Void) -> some View {
     Button(action: action) {
       VStack(alignment: .leading, spacing: 2) {
-        Text(b).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        if let s { Text(s).font(CSFont.monoSmall).foregroundStyle(cs.mut) }
+        Text(b).csType(.name).foregroundStyle(cs.ink)
+        if let s { Text(s).csType(.columnS).foregroundStyle(cs.mut) }
       }
       .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
       .padding(.horizontal, 12).padding(.vertical, 6)

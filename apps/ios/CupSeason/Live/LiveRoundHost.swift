@@ -57,7 +57,7 @@ struct LiveRoundHost: View {
         // nothing behind: before tee-off there is no server round to abandon.
         NavigationStack {
           LiveSetupView(store: store)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { links.done() }.foregroundStyle(cs.mut) } }
+            .csCloseButton { links.done() }
         }
       }
     }
@@ -105,8 +105,8 @@ struct LiveResumeBanner: View {
                   Circle().fill(b.invite ? cs.brand : cs.pos).frame(width: 8, height: 8)
                   Text(b.kicker).csEyebrow(b.invite ? cs.brand : cs.pos)
                 }
-                Text(b.line).font(CSFont.sentenceBold).foregroundStyle(cs.ink)
-                Text(b.meta).font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText)
+                Text(b.line).csType(.name).foregroundStyle(cs.ink)
+                Text(b.meta).font(CSFont.label).tracking(1.2).foregroundStyle(cs.mut)
               }
               Spacer()
               Text(b.go).font(b.invite ? CSFont.monoMediumBody : CSFont.title).foregroundStyle(b.invite ? cs.brand : cs.ink)
@@ -186,14 +186,17 @@ struct GuestPencilScreen: View {
       Text("Your scorecard").csEyebrow(cs.brand)
       switch d.face {
       case .waiting(let line):
-        Text(line).font(CSFont.sentence).foregroundStyle(cs.ink)
-        CSButton("Enter your email to keep it") { onDoor() }
+        Text(line).csType(.story).foregroundStyle(cs.ink)
+        Button("Enter your email to keep it") { onDoor() }
+          .buttonStyle(.csPrimary())
       case .claimed:
-        Text("That card is already on a record.").font(CSFont.sentence).foregroundStyle(cs.ink)
-        CSButton("Sign in", style: .quiet) { onDoor() }
+        Text("That card is already on a record.").csType(.story).foregroundStyle(cs.ink)
+        Button("Sign in") { onDoor() }
+          .buttonStyle(.csSecondary())
       case .dead(let line):
-        Text(line).font(CSFont.subhead).foregroundStyle(cs.neg)
-        CSButton("Sign in", style: .quiet) { onDoor() }
+        Text(line).csType(.body).foregroundStyle(cs.neg)
+        Button("Sign in") { onDoor() }
+          .buttonStyle(.csSecondary())
       }
       Spacer()
     }

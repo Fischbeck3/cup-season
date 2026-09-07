@@ -36,10 +36,9 @@ private struct ToastHostModifier: ViewModifier {
     content.overlay(alignment: .bottom) {
       if let m = center.message {
         Text(m)
-          .font(CSFont.subhead).foregroundStyle(cs.ink)
+          .csType(.body).foregroundStyle(cs.ink)
           .padding(.horizontal, 16).padding(.vertical, 11)
-          .background(cs.bg0, in: Capsule())
-          .overlay(Capsule().stroke(cs.rule, lineWidth: 1))
+          .background(cs.bg0, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
           .padding(.bottom, 20).padding(.horizontal, 24)
           .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
           .accessibilityAddTraits(.updatesFrequently)
@@ -67,8 +66,8 @@ struct SliceSheet<Content: View>: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
         VStack(alignment: .leading, spacing: 4) {
-          Text(title).font(CSFont.title).foregroundStyle(cs.ink)
-          if !sub.isEmpty { Text(sub).font(CSFont.label).tracking(1.2).foregroundStyle(cs.dimText) }
+          Text(title).csType(.displayS).foregroundStyle(cs.ink)
+          if !sub.isEmpty { Text(sub).font(CSFont.label).tracking(1.2).foregroundStyle(cs.mut) }
         }
         .padding(.bottom, 4)
         content()
@@ -103,15 +102,14 @@ struct CheckRow<Trailing: View>: View {
     A11yStack(spacing: 12, columnSpacing: 8) {
       HStack(spacing: 12) {
         glyph
-          .font(CSFont.monoSmall).foregroundStyle(cs.mut)
+          .csType(.columnS).foregroundStyle(cs.mut)
           .frame(minWidth: 26, minHeight: 26)
           .padding(.horizontal, 2)
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(cs.rule, lineWidth: 1))
           .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 2) {
-          Text(title).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-          if let sub, !sub.isEmpty { Text(sub).font(CSFont.label).tracking(0.8).foregroundStyle(subColor ?? cs.dimText) }
+          Text(title).csType(.name).foregroundStyle(cs.ink)
+          if let sub, !sub.isEmpty { Text(sub).font(CSFont.label).tracking(0.8).foregroundStyle(subColor ?? cs.mut) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
       }
@@ -120,7 +118,6 @@ struct CheckRow<Trailing: View>: View {
     .padding(.horizontal, 14).padding(.vertical, 13)
     .frame(minHeight: 44)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
   }
 }
 
@@ -140,7 +137,7 @@ struct CheckDoor: View {
   let action: () -> Void
   var body: some View {
     Button(action: action) {
-      CheckRow(glyph: glyph, title: title, sub: sub) { Text("→").font(CSFont.subhead).foregroundStyle(cs.dimText) }
+      CheckRow(glyph: glyph, title: title, sub: sub) { Text("→").csType(.body).foregroundStyle(cs.mut) }
     }
     .buttonStyle(.plain)
     .accessibilityElement(children: .combine)
@@ -159,7 +156,7 @@ struct MathRow: View {
   @Environment(\.dynamicTypeSize) private var typeSize
   var body: some View {
     A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {
-      Text(label).font(sub ? CSFont.monoSmall : CSFont.subhead).foregroundStyle(cs.dimText)
+      Text(label).font(sub ? CSFont.monoSmall : CSFont.subhead).foregroundStyle(cs.mut)
       Spacer(minLength: 8)
       Text(value)
         .font(sub ? CSFont.monoMediumBody : CSFont.subhead.weight(.semibold))
@@ -183,10 +180,9 @@ struct MiniButton: View {
   let action: () -> Void
   var body: some View {
     Button(action: action) {
-      Text(label).font(CSFont.monoMediumBody).foregroundStyle(tone ?? cs.ink)
+      Text(label).csType(.nameS).foregroundStyle(tone ?? cs.ink)
         .padding(.horizontal, 14).frame(minHeight: 44)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .opacity(busy ? 0.5 : 1)
     }
     .buttonStyle(.plain)
@@ -203,7 +199,7 @@ struct Fine: View {
   init(_ s: String) { text = Text(s) }
   init(markdown s: String) { text = Text((try? AttributedString(markdown: s)) ?? AttributedString(s)) }
   var body: some View {
-    text.font(CSFont.subhead).foregroundStyle(cs.dimText).lineSpacing(3)
+    text.csType(.body).foregroundStyle(cs.mut).lineSpacing(3)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
@@ -237,7 +233,7 @@ struct FormRowView: View {
     VStack(alignment: .leading, spacing: 6) {
       dots
       if let caption {
-        Text(caption).font(CSFont.footnote).foregroundStyle(palette.mut)
+        Text(caption).csType(.bodyS).foregroundStyle(palette.mut)
       }
     }
   }

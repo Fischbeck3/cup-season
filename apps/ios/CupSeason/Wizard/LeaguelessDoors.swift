@@ -55,12 +55,11 @@ struct LeaguelessDoors: View {
       // and "Start a league" needs ~118pt at full size, so 1/2/2 lines made the
       // trio look ragged. The 0.7 floor covers the SE and the non-a11y xxxLarge
       // sizes; at the accessibility sizes A11yStack is a column and nothing scales.
-      Text(label).font(CSFont.monoMediumBody).multilineTextAlignment(.center)
+      Text(label).csType(.nameS).multilineTextAlignment(.center)
         .lineLimit(1).minimumScaleFactor(0.8)   // L-29 · 14 × 0.8 = 11.2, the floor
         .foregroundStyle(cs.ink)
         .padding(.horizontal, 6).frame(maxWidth: .infinity, minHeight: 50)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -96,20 +95,21 @@ struct RunItBackCard: View {
 
   var body: some View {
     let m = membership
-    CSCard(spine: cs.gold) {
+    CSBand(.tone, padding: CSTokens.Space.s3) {
       VStack(alignment: .leading, spacing: 10) {
         HStack(spacing: 12) {
           Image(systemName: "trophy").font(.system(size: 26, weight: .regular)).foregroundStyle(cs.gold).frame(width: 34).accessibilityHidden(true)
           VStack(alignment: .leading, spacing: 2) {
             Text(RunItBack.eyebrow).csEyebrow()
-            Text(m?.name ?? "Your league").font(CSFont.sentenceBold).foregroundStyle(cs.ink)
+            Text(m?.name ?? "Your league").csType(.name).foregroundStyle(cs.ink)
           }
         }
         .accessibilityElement(children: .combine)
         // LV-21 · L-25: gold on a button is a defect. Ember is the act metal.
-        CSButton(RunItBack.title(isPro: isPro, proFirstName: proFirstName), style: .primary, busy: busy) {
+        Button(RunItBack.title(isPro: isPro, proFirstName: proFirstName)) {
           Task { isPro ? await runIt() : await askThem() }
         }
+          .buttonStyle(.csPrimary(busy: busy))
         .disabled(asked && !isPro)
         CSFine(RunItBack.sub(isPro: isPro))
       }

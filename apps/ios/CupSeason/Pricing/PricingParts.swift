@@ -21,7 +21,7 @@ struct PricingMarkdown: View {
   var body: some View {
     Text((try? AttributedString(markdown: text)) ?? AttributedString(text))
       .font(font)
-      .foregroundStyle(color ?? cs.dimText)
+      .foregroundStyle(color ?? cs.mut)
       .fixedSize(horizontal: false, vertical: true)
       .frame(maxWidth: .infinity, alignment: .leading)
   }
@@ -35,7 +35,7 @@ struct PricingFoundingBadge: View {
     Text("★ FOUNDING LEAGUE № \(number)")
       .font(CSFont.label).tracking(1.2).foregroundStyle(cs.gold)
       .padding(.horizontal, 8).padding(.vertical, 4)
-      .overlay(Capsule().stroke(cs.gold.opacity(0.6), lineWidth: 1))
+      
       .accessibilityLabel("Founding League, number \(number)")
   }
 }
@@ -46,10 +46,9 @@ struct PricingChip: View {
   let text: String
   init(_ text: String) { self.text = text }
   var body: some View {
-    Text(text).font(CSFont.monoSmall).foregroundStyle(cs.ink)
+    Text(text).csType(.columnS).foregroundStyle(cs.ink)
       .padding(.horizontal, 10).padding(.vertical, 6)
-      .background(cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(cs.rule, lineWidth: 1))
+      .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
   }
 }
 
@@ -71,7 +70,7 @@ struct PricingFreeLine: View {
   init(_ text: String) { self.text = text }
   var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: 8) {
-      Text("✓").font(CSFont.monoMediumBody).foregroundStyle(cs.pos)
+      Text("✓").csType(.nameS).foregroundStyle(cs.pos)
       PricingMarkdown(text, font: CSFont.subhead, color: cs.pos)
     }
     .padding(.horizontal, 12).padding(.vertical, 10)

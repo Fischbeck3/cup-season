@@ -71,12 +71,9 @@ struct WizardScreen: View {
     .background(cs.bg0)
     .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      // CJ-08 · a way out of every step, always.
-      ToolbarItem(placement: .topBarLeading) {
-        Button(WizardCopy.close) { close() }.foregroundStyle(cs.mut)
-      }
-    }
+    // CJ-08 · a way out of every step, always — and §7.3's one dismiss verb,
+    // in the one style, at the one position.
+    .csCloseButton { close() }
     .task { await model.load(toast: toast, alreadyLocked: { links.onLocked($0) }, store: store) }
     .sheet(item: $model.share, onDismiss: { if let id = model.lockedLeague { links.onLocked(id) } }) { s in
       WizardLockShareSheet(share: s)
@@ -91,7 +88,7 @@ struct WizardScreen: View {
     ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-          Text(head).font(CSFont.title).foregroundStyle(cs.ink).id("top")
+          Text(head).csType(.displayS).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true).id("top")
           WizardDots(step: model.step)
           switch model.step {
           case 0: WizardWhoStep(model: model, findGolfers: links.findGolfers)
@@ -119,10 +116,10 @@ struct WizardScreen: View {
   private var nav: some View {
     A11yStack(spacing: 10) {
       if model.step > 0 {
-        CSButton(WizardCopy.back, style: .quiet) { model.step = max(0, model.step - 1) }
+        Button(WizardCopy.back) { model.step = max(0, model.step - 1) }.buttonStyle(.csSecondary())
       }
       if model.step < 2 {
-        CSButton(WizardCopy.next) { CSHaptic.selection(); model.step = min(2, model.step + 1) }
+        Button(WizardCopy.next) { CSHaptic.selection(); model.step = min(2, model.step + 1) }.buttonStyle(.csPrimary())
       }
     }
     .padding(.top, 6)
@@ -159,7 +156,9 @@ struct WizardDots: View {
   var body: some View {
     HStack(spacing: 6) {
       ForEach(0..<3, id: \.self) { i in
-        Capsule().fill(i <= step ? cs.brand : cs.rule).frame(width: i == step ? 22 : 8, height: 4)
+        // the step marks are ink, not ember — three steps of a form are not three
+        // live actions, and only the one you are on is filled
+        Rectangle().fill(i == step ? cs.ink : cs.rule).frame(width: i == step ? 22 : 8, height: 4)
           .csAnimation(CSMotion.rise, value: step)
       }
     }
@@ -232,7 +231,7 @@ final class WizardModel {
     loading = true
     defer { loading = false }
     do {
-      guard let head = try await svc.league(id) else { toast.show("No season with that id — it may have been deleted."); return }
+      guard let head = try await svc.league(id) else { toast.show("No season with that id — it may have been deleted.", kind: .failed); return }
       if head.phase != "setup" { alreadyLocked(id); return }   // D40: only a setup season belongs here
       let b = try? await svc.bylaws(id)
       let s = try? await svc.season(id)
@@ -242,7 +241,7 @@ final class WizardModel {
       code = head.code
       leagueId = id
       nameTouched = !WizardCopy.isUnnamed(head.name)
-    } catch { toast.show(HumanError.text(error, prefix: "Could not open this.")) }
+    } catch { toast.show(HumanError.text(error, prefix: "Could not open this."), kind: .failed) }
   }
 
   enum PublishResult { case blocked(String), failed(String), live(String?) }

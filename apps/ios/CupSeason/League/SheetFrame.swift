@@ -1,6 +1,15 @@
-// Cup Season — `openSheet(title, sub, body)` as a native sheet: serif title,
-// mono sub, a close affordance, the body scrolling. `dusk` lays the ceremony
-// ground (`.room-dusk`) under a settlement.
+// Cup Season — `openSheet(title, sub, body)` as a native sheet, in the ONE
+// grammar (UI_SYSTEM §7.3, D277).
+//
+// **Dismiss is one thing, and it is `Close`** — a toolbar tertiary at
+// `topBarTrailing`, `mut`, a 1px rule, never ember. What was here instead was
+// the product's single most visible inconsistency, because a golfer meets it on
+// every sheet: a 44pt `xmark` in a filled circle, sitting in the sheet's own
+// content beside the title, which is both a container with no job and a
+// dismiss verb drawn louder than the sheet's primary.
+//
+// The head keeps its shape — title, eyebrow, then the body — and takes the
+// system's roles. `dusk` lays the ceremony ground under a settlement.
 
 import SwiftUI
 import CSDesign
@@ -18,27 +27,30 @@ struct SheetFrame<Content: View>: View {
   }
 
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 14) {
-        HStack(alignment: .top) {
-          VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(CSFont.title).foregroundStyle(dusk ? CSTokens.dark.ink : cs.ink)
-            if !sub.isEmpty { Text(sub).font(CSFont.label).tracking(1.2).textCase(.uppercase).foregroundStyle(dusk ? CSTokens.dark.mut : cs.dimText) }
+    NavigationStack {
+      ScrollView {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+            Text(title).csType(.displayS).foregroundStyle(dusk ? CSTokens.dark.ink : cs.ink)
+              .fixedSize(horizontal: false, vertical: true)
+            if !sub.isEmpty {
+              Text(sub).csType(.agate, caps: true).foregroundStyle(dusk ? CSTokens.dark.mut : cs.mut)
+                .fixedSize(horizontal: false, vertical: true)
+            }
           }
-          Spacer()
-          Button { dismiss() } label: {
-            Image(systemName: "xmark").font(.system(size: 14, weight: .semibold))
-              .foregroundStyle(dusk ? CSTokens.dark.ink : cs.ink)
-              .frame(width: 44, height: 44)
-              .background(dusk ? CSDusk.surface : cs.bg2, in: Circle())
-          }
-          .accessibilityLabel("Close")
+          .frame(maxWidth: .infinity, alignment: .leading)
+          content
         }
-        content
+        .padding(CSTokens.Space.gutter)
       }
-      .padding(20)
+      .background(dusk ? CSDusk.ground : cs.bg1)
+      .scrollDismissesKeyboard(.interactively)
+      .navigationTitle("")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbarBackground(.hidden, for: .navigationBar)
+      .csCloseButton { dismiss() }
+      // a ceremony's toolbar reads on the pinned ground in both printings
+      .environment(\.cs, dusk ? CSTokens.dark : cs)
     }
-    .background(dusk ? CSDusk.ground : cs.bg1)
-    .scrollDismissesKeyboard(.interactively)
   }
 }

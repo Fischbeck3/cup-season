@@ -51,10 +51,9 @@ struct PeoplePickerSheet: View {
             ShareLink(item: URL(string: "https://cupseason.app/?join=\(share.code)")!,
                       subject: Text("Cup Season"),
                       message: Text("You're invited to \(share.name) on Cup Season")) {
-              Text("Share an invite link instead").font(CSFont.button).foregroundStyle(cs.ink)
+              Text("Share an invite link instead").csType(.name).foregroundStyle(cs.ink)
                 .frame(maxWidth: .infinity, minHeight: 50)
                 .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
             }
             .padding(.top, 4)
           }

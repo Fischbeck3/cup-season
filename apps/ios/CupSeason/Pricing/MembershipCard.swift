@@ -39,10 +39,10 @@ struct MembershipCard: View {
       // The flag-off stub, matching the web verbatim. D183 rewrote it: free
       // until a thousand golfers, so it says what is true and promises nothing
       // structural (D39) — no "at launch", no "the pilot" (D132).
-      HStack { Text("PLAN").font(CSFont.label).foregroundStyle(cs.mut); Spacer(); Text("FREE").font(CSFont.monoMediumBody).foregroundStyle(cs.ink) }
+      HStack { Text("PLAN").font(CSFont.label).foregroundStyle(cs.mut); Spacer(); Text("FREE").csType(.nameS).foregroundStyle(cs.ink) }
         .padding(.vertical, 8)
       Text("Everything is free — every league, every event, every round. No trial, nothing to enter.")
-        .font(CSFont.footnote).foregroundStyle(cs.dimText)
+        .csType(.bodyS).foregroundStyle(cs.mut)
     }
   }
 
@@ -54,7 +54,7 @@ struct MembershipCard: View {
       case .founding(let n):
         PricingFoundingBadge(number: n)
         PricingMarkdown("**\(m.name)** — free forever.", font: CSFont.sentence, color: cs.ink)
-        Text("One of the ten. Thanks for building this with us.").font(CSFont.footnote).foregroundStyle(cs.dimText)
+        Text("One of the ten. Thanks for building this with us.").csType(.bodyS).foregroundStyle(cs.mut)
 
       case .freeYear(let cents, let roster):
         PricingMarkdown("**\(m.name) · Year 1** — **This year is free.** Every league's first year is on us, every season included.",

@@ -31,7 +31,7 @@ struct ScorecardSheet: View {
             CSEmptyState(icon: "🗂", line: line, cta: "Close") { dismiss() }
           case .card(let card):
             Text(card.eyebrow).csEyebrow()
-            if !card.story.isEmpty { Text(card.story).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink) }
+            if !card.story.isEmpty { Text(card.story).csType(.name).foregroundStyle(cs.ink) }
             table(card)
             footer(card)
           }
@@ -91,8 +91,8 @@ struct ScorecardSheet: View {
         ForEach(Array(card.rows.enumerated()), id: \.offset) { _, row in
           GridRow {
             HStack(spacing: 4) {
-              Text(row.name).font(CSFont.monoSmall).foregroundStyle(cs.ink).lineLimit(1)
-              if row.guest { Text("G").font(CSFont.label).foregroundStyle(cs.dimText) }
+              Text(row.name).csType(.columnS).foregroundStyle(cs.ink).lineLimit(1)
+              if row.guest { Text("G").font(CSFont.label).foregroundStyle(cs.mut) }
             }
             .frame(width: 96, alignment: .leading).padding(.vertical, 6)
             .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
@@ -134,14 +134,14 @@ struct ScorecardSheet: View {
   private func color(_ s: Scorecard.CellState) -> Color {
     switch s {
     case .plain: cs.ink
-    case .gap: cs.dimText
+    case .gap: cs.mut
     case .bird: cs.gold
     case .won: cs.bg0
     }
   }
 
   private func head(_ t: String, who: Bool = false, tot: Bool = false, nine: Bool = false) -> some View {
-    Text(t).font(CSFont.label).tracking(1).foregroundStyle(cs.dimText)
+    Text(t).font(CSFont.label).tracking(1).foregroundStyle(cs.mut)
       .frame(minWidth: who ? 96 : (tot ? 38 : 26), maxWidth: who ? 96 : nil, minHeight: 30, alignment: who ? .leading : .center)
       .padding(.leading, tot ? 10 : 0)
       .overlay(alignment: .trailing) { if nine { Rectangle().fill(cs.rule).frame(width: 1) } }
@@ -150,7 +150,7 @@ struct ScorecardSheet: View {
 
   private func cell(_ t: String, who: Bool = false, dim: Bool = false, tot: Bool = false, nine: Bool = false) -> some View {
     Text(t).font(tot ? CSFont.monoSmall.weight(.bold) : CSFont.monoSmall).csTabular()
-      .foregroundStyle(dim ? cs.dimText : cs.ink)
+      .foregroundStyle(dim ? cs.mut : cs.ink)
       .frame(minWidth: who ? 96 : (tot ? 38 : 26), maxWidth: who ? 96 : nil, minHeight: 30, alignment: who ? .leading : .center)
       .padding(.leading, tot ? 10 : 0)
       .overlay(alignment: .trailing) { if nine { Rectangle().fill(cs.rule).frame(width: 1) } }
@@ -160,7 +160,7 @@ struct ScorecardSheet: View {
   private func footer(_ card: Scorecard) -> some View {
     let f = card.footer
     return (Text(f.prefix).foregroundStyle(cs.mut) + Text(f.note).foregroundStyle(f.warning ? cs.neg : cs.mut))
-      .font(CSFont.footnote)
+      .csType(.bodyS)
       .fixedSize(horizontal: false, vertical: true)
   }
 }

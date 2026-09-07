@@ -53,14 +53,14 @@ struct LengthStep: View {
           dismiss(); take(len)
         } label: {
           VStack(alignment: .leading, spacing: 3) {
-            Text(len.title).font(CSFont.sentenceBold).foregroundStyle(i == 0 ? cs.brand : cs.ink)
-            Text(len.gloss).font(CSFont.footnote).foregroundStyle(cs.dimText)
+            Text(len.title).csType(.name).foregroundStyle(i == 0 ? cs.brand : cs.ink)
+            Text(len.gloss).csType(.bodyS).foregroundStyle(cs.mut)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.vertical, 12).frame(minHeight: 56)
           // No rule under the last one when nothing follows it — a hairline
           // with nothing below reads as a row that failed to render.
-          .overlay(alignment: .bottom) { if i < lengths.count - 1 || shareASeason { CSHairline() } }
+          .overlay(alignment: .bottom) { if i < lengths.count - 1 || shareASeason { CSRule() } }
           .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -71,7 +71,7 @@ struct LengthStep: View {
       // fits what is already running (T-02: a forfeit, never a fourth noun).
       if shareASeason {
         Button { CSHaptic.selection(); dismiss(); if let l = shared { putAForfeitOnIt(l) } } label: {
-          Text("Put a forfeit on it").font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
+          Text("Put a forfeit on it").csType(.nameS).foregroundStyle(cs.ink)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 12).frame(minHeight: 50)
             .contentShape(Rectangle())
@@ -111,8 +111,8 @@ struct CalloutSheet: View {
       VStack(alignment: .leading, spacing: 12) {
         CSSheetHeader(title: CalloutCopy.sheetTitle(vm.opponent.name), sub: "BRAVADO WITH A RECEIPT")
         VStack(alignment: .leading, spacing: 2) {
-          Text(CalloutCopy.windowRow).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-          Text(CalloutCopy.openLine(closesOn: vm.closesOn)).font(CSFont.footnote).foregroundStyle(cs.dimText)
+          Text(CalloutCopy.windowRow).csType(.name).foregroundStyle(cs.ink)
+          Text(CalloutCopy.openLine(closesOn: vm.closesOn)).csType(.bodyS).foregroundStyle(cs.mut)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -127,9 +127,10 @@ struct CalloutSheet: View {
           CSFine(ForfeitCopy.definition)
         }
 
-        CSButton(CalloutCopy.send, busy: vm.busy) {
+        Button(CalloutCopy.send) {
           Task { if let id = await vm.send() { onSent(id); dismiss() } }
         }
+          .buttonStyle(.csPrimary(busy: vm.busy))
         .padding(.top, 6)
         // Zero points, always (D21).
         CSFine(CalloutCopy.noPoints)
@@ -144,11 +145,10 @@ struct CalloutSheet: View {
 
   private func pill(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
     Button { CSHaptic.selection(); action() } label: {
-      Text(label).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.85)   // L-29 · 13 × 0.85 = 11.05
+      Text(label).csType(.columnS).lineLimit(1).minimumScaleFactor(0.85)   // L-29 · 13 × 0.85 = 11.05
         .foregroundStyle(on ? cs.bg0 : cs.ink)
         .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
         .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: on ? 0 : 1))
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(on ? [.isSelected] : [])
@@ -212,10 +212,12 @@ struct CalloutReplySheet: View {
     VStack(alignment: .leading, spacing: 12) {
       CSSheetHeader(title: CalloutCopy.received(from), sub: "IT'S FOR THE RECORD")
       Text(CalloutCopy.receivedSub(closesOn: closesOn, terms: terms))
-        .font(CSFont.sentence).foregroundStyle(cs.ink)
+        .csType(.story).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
-      CSButton(CalloutCopy.accept, busy: busy) { answer(true) }
-      CSButton(CalloutCopy.decline, style: .quiet, busy: busy) { answer(false) }
+      Button(CalloutCopy.accept) { answer(true) }
+        .buttonStyle(.csPrimary(busy: busy))
+      Button(CalloutCopy.decline) { answer(false) }
+        .buttonStyle(.csSecondary(busy: busy))
       CSFine(CalloutCopy.noPoints)
     }
     .padding(20)
@@ -262,7 +264,7 @@ struct PickAGolferSheet: View {
         if !loaded {
           ProgressView().tint(cs.brand).frame(maxWidth: .infinity)
         } else if people.isEmpty {
-          Text(CalloutCopy.noBuddies).font(CSFont.sentence).foregroundStyle(cs.ink)
+          Text(CalloutCopy.noBuddies).csType(.story).foregroundStyle(cs.ink)
           Button { CSHaptic.selection(); dismiss(); findGolfers() } label: {
             Text(CalloutCopy.noBuddiesDoor.uppercased()).csEyebrow(cs.brand).a11yHitSlop()
           }
@@ -272,11 +274,11 @@ struct PickAGolferSheet: View {
             Button { CSHaptic.selection(); dismiss(); take(p) } label: {
               HStack(spacing: 10) {
                 CSMarkerView(key: p.marker, size: 20)
-                Text(p.name).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+                Text(p.name).csType(.name).foregroundStyle(cs.ink)
                 Spacer(minLength: 8)
               }
               .padding(.vertical, 10).frame(minHeight: 52)
-              .overlay(alignment: .bottom) { CSHairline() }
+              .overlay(alignment: .bottom) { CSRule() }
               .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -320,7 +322,8 @@ struct ForfeitSheet: View {
         CSField(ForfeitCopy.termsPlaceholder, text: $terms, font: CSFont.body)
         Text(ForfeitCopy.settlesLabel).csEyebrow().padding(.top, 4)
         CSField(ForfeitCopy.settlesPlaceholder, text: $hangs, font: CSFont.body)
-        CSButton(ForfeitCopy.put, busy: busy) { post() }.padding(.top, 6)
+        Button(ForfeitCopy.put) { post() }
+          .buttonStyle(.csPrimary(busy: busy)).padding(.top, 6)
         CSFine(ForfeitCopy.definition)
         CSFine(ForfeitCopy.noPush)
       }

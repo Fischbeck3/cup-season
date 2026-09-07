@@ -66,7 +66,7 @@ final class WizardContacts {
       CSHaptic.success()
       toast.show(GolfersRoot.BuddyAsk.sent)
     } catch {
-      toast.show(AuthRules.human(error, fallback: "Couldn\u{2019}t send that."))
+      toast.show(AuthRules.human(error, fallback: "Couldn\u{2019}t send that."), kind: .failed)
     }
   }
 }
@@ -107,7 +107,7 @@ struct WizardWhoStep: View {
         // missing. `search_golfers` matches an exact @handle or an existing
         // relation only (L-37), so a golfer signed in an hour cannot find two
         // friends who are already on the app.
-        Text(WizardCopy.step1Empty).font(CSFont.sentence).foregroundStyle(cs.mut)
+        Text(WizardCopy.step1Empty).csType(.story).foregroundStyle(cs.mut)
         // QB-02 · BOTH of these used to call `findGolfers`, which closed the
         // whole wizard and switched tabs. Two differently-labelled controls
         // performing one action that was neither of their labels was the worst
@@ -122,7 +122,7 @@ struct WizardWhoStep: View {
                          title: WizardCopy.textThemALink, sub: nil)
         door(WizardCopy.justMe, sub: WizardCopy.justMeSub, ember: false) { model.step = 1 }
       } else {
-        Text(WizardCopy.step1Sub).font(CSFont.footnote).foregroundStyle(cs.dimText)
+        Text(WizardCopy.step1Sub).csType(.bodyS).foregroundStyle(cs.mut)
         FlowLayout(spacing: 6) {
           ForEach(model.buddies) { b in chip(b) }
         }
@@ -167,11 +167,8 @@ struct WizardWhoStep: View {
       CSHaptic.selection()
       model.dials.expectedRoster = on ? nil : n
     } label: {
-      Text(WizardCopy.howManyLabel(n)).font(CSFont.monoMediumBody)
-        .foregroundStyle(on ? cs.pos : cs.ink)
-        .padding(.horizontal, 16).frame(minWidth: 44, minHeight: 44)
-        .background(cs.bg2, in: Capsule())
-        .overlay(Capsule().stroke(on ? cs.pos : cs.rule, lineWidth: 1))
+      CSChip(WizardCopy.howManyLabel(n), selected: on)
+        .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityLabel("\(WizardCopy.howManyLabel(n)) golfers")
@@ -186,11 +183,12 @@ struct WizardWhoStep: View {
   private var contactsConsent: some View {
     VStack(alignment: .leading, spacing: 14) {
       CSSheetHeader(title: OnboardingCopy.CrewRoute.contacts.title, sub: "PRIVACY")
-      Text(OnboardingCopy.contactsConsent).font(CSFont.body).foregroundStyle(cs.mut)
+      Text(OnboardingCopy.contactsConsent).csType(.body).foregroundStyle(cs.mut)
       VStack(spacing: 8) {
-        CSButton(OnboardingCopy.contactsAllow) { contacts.consent = false; Task { await contacts.run() } }
+        Button(OnboardingCopy.contactsAllow) { contacts.consent = false; Task { await contacts.run() } }
+          .buttonStyle(.csPrimary())
         Button { contacts.consent = false } label: {
-          Text(OnboardingCopy.contactsDecline).font(CSFont.subhead).foregroundStyle(cs.mut)
+          Text(OnboardingCopy.contactsDecline).csType(.bodyS).foregroundStyle(cs.mut)
             .frame(maxWidth: .infinity, minHeight: 44)
         }
         .buttonStyle(.plain)
@@ -221,9 +219,9 @@ struct WizardWhoStep: View {
     HStack(spacing: 12) {
       CSMarkerView(CSMarkers.marker(m.marker), size: 26).foregroundStyle(cs.ink)
       VStack(alignment: .leading, spacing: 2) {
-        Text(m.person.name).font(CSFont.sentence).foregroundStyle(cs.ink)
+        Text(m.person.name).csType(.name).foregroundStyle(cs.ink)
         if let h = m.handle, !h.isEmpty {
-          Text("@\(h)").font(CSFont.footnote).foregroundStyle(cs.dimText)
+          Text("@\(h)").csType(.agate).foregroundStyle(cs.mut)
         }
       }
       Spacer(minLength: 8)
@@ -244,13 +242,15 @@ struct WizardWhoStep: View {
       if on { model.dials.invitees.removeAll { $0 == b.id } } else { model.dials.invitees.append(b.id) }
       model.syncName(myName: store.me?.profile?.display_name)
     } label: {
-      HStack(spacing: 6) {
-        CSMarkerView(key: b.marker, size: 16).foregroundStyle(on ? cs.pos : cs.ink)
-        Text(b.name).font(CSFont.monoMediumBody).foregroundStyle(on ? cs.pos : cs.ink)
+      // §6 · a chip with a person in it draws the person
+      HStack(spacing: CSTokens.Space.s2) {
+        CSFace(Faces.of(b.id, marker: b.marker, name: b.name), size: .inline)
+        Text(b.name).csType(.nameS).foregroundStyle(on ? cs.panelInk : cs.ink)
       }
-      .padding(.horizontal, 12).frame(minHeight: 44)
-      .background(cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(on ? cs.pos : cs.rule, lineWidth: 1))
+      .padding(.horizontal, CSTokens.Space.s3).frame(minHeight: 44)
+      .background(on ? cs.panel : cs.bg2,
+                  in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
+      .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(on ? .isSelected : [])
@@ -265,14 +265,20 @@ struct WizardWhoStep: View {
         // subject, a verb and an em dash. A label stays mono; a sentence takes
         // the sans voice. The buddy chips beside these are legitimately mono.
         Text(label)
-          .font(WizardSteps.isSentence(label) ? CSFont.subhead.weight(.medium) : CSFont.monoMediumBody)
-          .foregroundStyle(ember ? cs.brand : cs.ink)
-        if let sub { Text(sub).font(CSFont.footnote).foregroundStyle(cs.dimText) }
+          .csType(WizardSteps.isSentence(label) ? .body : .nameS)
+          .foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        if let sub { Text(sub).csType(.bodyS).foregroundStyle(cs.mut) }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, 12).padding(.vertical, 10).frame(minHeight: 50)
+      .padding(.horizontal, CSTokens.Space.s3).padding(.vertical, CSTokens.Space.s3)
+      .frame(minHeight: 50)
+      // the ONE route the step wants taken keeps its metal as a 3pt rail, not
+      // as a ring round a box: gold and ember never outline a control (§7.1)
       .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(ember ? cs.brand : cs.rule, lineWidth: 1))
+      .overlay(alignment: .leading) {
+        if ember { Rectangle().fill(cs.brand).frame(width: 3) }
+      }
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -292,8 +298,8 @@ struct WizardWhenStep: View {
                    down: { model.dials.stepLength(-1) }, up: { model.dials.stepLength(1) })
       A11yStack(spacing: 10, columnSpacing: 6) {
         VStack(alignment: .leading, spacing: 2) {
-          Text(WizardCopy.firstTee.0).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-          Text(model.dials.spanText()).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+          Text(WizardCopy.firstTee.0).csType(.name).foregroundStyle(cs.ink)
+          Text(model.dials.spanText()).csType(.agateS, caps: true).foregroundStyle(cs.mut)
         }
         Spacer(minLength: 8)
         DatePicker("", selection: startDate, displayedComponents: .date)
@@ -358,7 +364,7 @@ struct WizardStakeStep: View {
       if model.dials.stake > 0 {
         CSFine(WizardCopy.potLine(stake: model.dials.stake, roster: model.roster))
         // L-09 · the ledger line, verbatim from the constant.
-        Text(MoneyCopy.ledger).font(CSFont.footnote).foregroundStyle(cs.gold)
+        Text(MoneyCopy.ledger).csType(.bodyS).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
         Text(WizardCopy.payLabel).csEyebrow().padding(.top, 4)
         CSField(WizardCopy.payPlaceholder, text: $model.dials.buyInNote, font: CSFont.body)
@@ -366,25 +372,25 @@ struct WizardStakeStep: View {
           .accessibilityLabel(WizardCopy.payLabel)
         // The ONE required field the wizard gains.
         CSFine(model.dials.payNoteMissing ? WizardCopy.payMissing : WizardCopy.payFine,
-               tone: model.dials.payNoteMissing ? cs.brand : cs.dimText)
+               tone: model.dials.payNoteMissing ? cs.brand : cs.mut)
       }
 
       Rectangle().fill(cs.rule).frame(height: 1).padding(.vertical, 4)
 
       // THE RULES, IN ONE SENTENCE. Every dial is still there, verbatim, behind
       // More settings (P-6: complexity hidden, never deleted).
-      Text(WizardCopy.rulesHead).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-      Text(WizardCopy.rulesLine(model.dials)).font(CSFont.sentence).foregroundStyle(cs.dimText)
+      Text(WizardCopy.rulesHead).csType(.name).foregroundStyle(cs.ink)
+      Text(WizardCopy.rulesLine(model.dials)).csType(.story).foregroundStyle(cs.mut)
         .fixedSize(horizontal: false, vertical: true)
       Button {
         CSMotion.run(CSMotion.rise) { model.showDials.toggle() }
       } label: {
         HStack(spacing: 6) {
-          Text(WizardCopy.moreSettings).font(CSFont.monoMediumBody)
+          Text(WizardCopy.moreSettings).csType(.nameS)
           Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold)).rotationEffect(.degrees(model.showDials ? 180 : 0))
         }
         .foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 44)
-        .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
+        .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
       }
       .buttonStyle(.plain)
       .accessibilityValue(model.showDials ? "expanded" : "collapsed")
@@ -396,7 +402,7 @@ struct WizardStakeStep: View {
         .onChange(of: model.dials.name) { _, _ in model.nameTouched = true }
         .accessibilityLabel(WizardCopy.nameIt)
 
-      CSButton(WizardCopy.publish, busy: model.busy) { publish() }
+      Button(WizardCopy.publish) { publish() }.buttonStyle(.csPrimary(busy: model.busy))
         .disabled(!model.dials.canPublish)
         .opacity(model.dials.canPublish ? 1 : 0.5)
       CSFine(WizardCopy.freezeNote)
@@ -411,12 +417,8 @@ struct WizardStakeStep: View {
     return Button {
       CSHaptic.selection(); otherOpen = false; model.dials.stake = v
     } label: {
-      Text(v == 0 ? WizardDials.braggingRights : PotMath.dollars(v))
-        .font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.85)   // L-29
-        .foregroundStyle(on ? cs.bg0 : cs.ink)
-        .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
-        .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: on ? 0 : 1))
+      CSChip(v == 0 ? WizardDials.braggingRights : PotMath.dollars(v), selected: on)
+        .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(on ? [.isSelected] : [])
@@ -429,11 +431,8 @@ struct WizardStakeStep: View {
       otherText = model.dials.stake > 0 && !WizardDials.stakeChips.contains(model.dials.stake) ? String(model.dials.stake) : ""
       model.dials.stake = Int(otherText) ?? 0
     } label: {
-      Text(WizardDials.otherLabel).font(CSFont.monoSmall)
-        .foregroundStyle(otherOpen ? cs.bg0 : cs.ink)
-        .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
-        .background(otherOpen ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: otherOpen ? 0 : 1))
+      CSChip(WizardDials.otherLabel, selected: otherOpen)
+        .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(otherOpen ? [.isSelected] : [])
@@ -502,17 +501,19 @@ struct WizardDialsPane: View {
       model.dials.applyPreset(i)
       toast.show(model.dials.presetToast)
     } label: {
-      VStack(alignment: .leading, spacing: 4) {
-        HStack(spacing: 8) {
-          Text(p.name).font(CSFont.title).foregroundStyle(cs.ink)
-          if on { Text("✓").font(CSFont.monoMediumBody).foregroundStyle(cs.brand) }
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        HStack(spacing: CSTokens.Space.s2) {
+          Text(p.name).csType(.displayS).foregroundStyle(on ? cs.panelInk : cs.ink)
+          if on { CSGlyph(.check, size: .inline).foregroundStyle(cs.panelInk) }
         }
-        Text(p.lead).font(CSFont.sentence).foregroundStyle(cs.ink)
+        Text(p.lead).csType(.bodyS).foregroundStyle(on ? cs.panelInk : cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
       }
-      .padding(14)
+      .padding(CSTokens.Space.s3)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(on ? cs.brand : cs.rule, lineWidth: on ? 1.5 : 1))
+      // the chosen preset INVERTS; it wore a 1.5px ember ring, and choosing a
+      // preset is not the live action on the step
+      .background(on ? cs.panel : cs.bg1)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -555,15 +556,15 @@ struct WizardSetRow: View {
       A11yStack(spacing: 10, columnSpacing: 6) {
         VStack(alignment: .leading, spacing: 2) {
           HStack(spacing: 6) {
-            Text(lab).font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+            Text(lab).csType(.name).foregroundStyle(cs.ink)
             if help != nil { WizardInfoButton(label: "About \(lab.lowercased())", open: open) { open.toggle() } }
           }
-          Text(small).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+          Text(small).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         Spacer(minLength: 8)
         HStack(spacing: 10) {
-          Text(val).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
+          Text(val).csType(.columnM).foregroundStyle(cs.ink)
             .accessibilityLabel("\(lab), \(val)")
             .accessibilityAddTraits(.updatesFrequently)
           HStack(spacing: 4) {
@@ -580,10 +581,9 @@ struct WizardSetRow: View {
 
   private func stepButton(_ glyph: String, _ label: String, _ action: @escaping () -> Void) -> some View {
     Button { CSHaptic.selection(); action() } label: {
-      Text(glyph).font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
+      Text(glyph).csType(.nameS).foregroundStyle(cs.ink)
         .frame(width: 44, height: 44)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
     }
     .buttonStyle(.plain)
     .accessibilityLabel(label)
@@ -604,12 +604,9 @@ struct WizardSeg: View {
       ForEach(options, id: \.key) { o in
         let on = o.key == selected
         Button { CSHaptic.selection(); pick(o.key) } label: {
-          Text(o.label).font(CSFont.monoSmall).lineLimit(1).minimumScaleFactor(0.85)   // L-29
-            .foregroundStyle(on ? cs.bg0 : cs.ink)
-            .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
-            .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: on ? 0 : 1))
-            .opacity(dimmed(o.key) && !on ? 0.4 : 1)
+          CSChip(o.label, selected: on)
+            .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
+            .opacity(dimmed(o.key) && !on ? CSTokens.Alpha.a56 : 1)
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(on ? [.isSelected] : [])
@@ -648,14 +645,14 @@ struct WizardPortraitCard: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
-      Text(WizardCopy.asideTitle).csEyebrow()
-      CSCard {
-        VStack(alignment: .leading, spacing: 10) {
-          HStack(spacing: 12) {
+      Text(WizardCopy.asideTitle).csType(.agate, caps: true).foregroundStyle(cs.mut)
+      CSBand(.tone, padding: CSTokens.Space.s3) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+          HStack(spacing: CSTokens.Space.s3) {
             flag.frame(width: 64, height: 34)
             VStack(alignment: .leading, spacing: 2) {
-              Text(portrait.name).font(CSFont.sentenceBold).foregroundStyle(cs.ink).lineLimit(2)
-              Text(portrait.sub).font(CSFont.footnote).foregroundStyle(cs.mut)
+              Text(portrait.name).csType(.name).foregroundStyle(cs.ink).lineLimit(2)
+              Text(portrait.sub).csType(.bodyS).foregroundStyle(cs.mut)
             }
           }
           .accessibilityElement(children: .combine)
@@ -680,12 +677,12 @@ struct WizardPortraitCard: View {
                 splitBar
               }
             }
-            Text(portrait.potSub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.dimText)
+            Text(portrait.potSub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
           } else {
             row("The pot") {
               HStack(spacing: 8) {
-                Text("Bragging rights").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-                Text("$0 STAKE").font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+                Text("Bragging rights").csType(.name).foregroundStyle(cs.ink)
+                Text("$0 STAKE").font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
               }
             }
           }
@@ -703,7 +700,7 @@ struct WizardPortraitCard: View {
 
   private func row<C: View>(_ k: String, @ViewBuilder _ c: () -> C) -> some View {
     A11yStack(spacing: 10, columnSpacing: 4) {
-      Text(k).font(CSFont.label).tracking(1.0).textCase(.uppercase).foregroundStyle(cs.dimText).frame(minWidth: 64, alignment: .leading)
+      Text(k).csType(.agateS, caps: true).foregroundStyle(cs.mut).frame(minWidth: 64, alignment: .leading)
       c()
       Spacer(minLength: 0)
     }
@@ -711,20 +708,18 @@ struct WizardPortraitCard: View {
   }
 
   private func chip(_ t: String, on: Bool) -> some View {
-    Text(t).font(CSFont.label).tracking(0.6)
-      .foregroundStyle(on ? cs.brand : cs.mut)
-      .padding(.horizontal, 8).padding(.vertical, 4)
-      .overlay(Capsule().stroke(on ? cs.brand : cs.rule, lineWidth: 1))
-      .accessibilityLabel(on ? "\(t), chosen" : t)
+    CSChip(t, selected: on).accessibilityLabel(on ? "\(t), chosen" : t)
   }
 
   /// Three segments in ember at 1 · .55 · .3, widths from the split.
   private var splitBar: some View {
     let w = portrait.bar
     return HStack(spacing: 3) {
-      RoundedRectangle(cornerRadius: 4).fill(cs.brand).frame(width: w[0] * 0.6, height: 8)
-      RoundedRectangle(cornerRadius: 4).fill(cs.brand.opacity(0.55)).frame(width: w[1] * 0.6, height: 8)
-      RoundedRectangle(cornerRadius: 4).fill(cs.brand.opacity(0.3)).frame(width: w[2] * 0.6, height: 8)
+      // the split is three shares of one pot, not three live things: ink at
+      // three tiers, because ember is spent on the step's own primary
+      Rectangle().fill(cs.ink).frame(width: w[0] * 0.6, height: 8)
+      Rectangle().fill(cs.mut).frame(width: w[1] * 0.6, height: 8)
+      Rectangle().fill(cs.rule).frame(width: w[2] * 0.6, height: 8)
     }
     .accessibilityHidden(true)
   }
@@ -733,13 +728,12 @@ struct WizardPortraitCard: View {
   private var seasonBand: some View {
     HStack(spacing: 4) {
       ForEach(0..<portrait.months, id: \.self) { _ in
-        RoundedRectangle(cornerRadius: 4).stroke(cs.rule, lineWidth: 1.2).frame(width: 26, height: 16)
+        Rectangle().fill(cs.rule).frame(width: 26, height: 16)
       }
       if portrait.canCup {
         // the final block, then its name at a readable size — a 7pt caption over the block fell under the 11pt floor (IOS-003 §2.1)
-        RoundedRectangle(cornerRadius: 4).fill(cs.brand.opacity(CSTokens.Alpha.a24)).frame(width: 18, height: 16)
-          .overlay(RoundedRectangle(cornerRadius: 4).stroke(cs.brand, lineWidth: 1.4))
-        Text("FINAL 4").font(CSFont.label).tracking(0.8).foregroundStyle(cs.brand).fixedSize()
+        Rectangle().fill(cs.brand).frame(width: 18, height: 16)
+        Text("Final 4").csType(.agateS, caps: true).foregroundStyle(cs.brand).fixedSize()
       }
     }
     .accessibilityHidden(true)

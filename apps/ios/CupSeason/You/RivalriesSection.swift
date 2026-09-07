@@ -77,7 +77,8 @@ struct RivalrySheet: View {
       } else {
         Fine("Pulling the weeks…")
       }
-      CSButton(currentName.map { "Rename “\($0)”" } ?? "Name this rivalry", style: .quiet) { naming = true }
+      Button(currentName.map { "Rename “\($0)”" } ?? "Name this rivalry") { naming = true }
+        .buttonStyle(.csSecondary())
         .padding(.top, 12)
     }
     .task { await load() }
@@ -91,22 +92,20 @@ struct RivalrySheet: View {
       Text(w.wkLabel).font(CSFont.label).multilineTextAlignment(.center).foregroundStyle(cs.mut)
         .frame(minWidth: 44, minHeight: 34)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(cs.rule, lineWidth: 1))
       VStack(alignment: .leading, spacing: 2) {
         (Text(w.verdictText).foregroundStyle(verdictColor(w.verdict)) + Text(" · " + w.headline).foregroundStyle(cs.ink))
-          .font(CSFont.subhead.weight(.semibold))
-        Text(RivalryCopy.weekSub).font(CSFont.label).tracking(0.8).foregroundStyle(cs.dimText)
+          .csType(.name)
+        Text(RivalryCopy.weekSub).font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }
     .padding(.horizontal, 14).padding(.vertical, 12)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .accessibilityElement(children: .combine)
   }
 
   private func verdictColor(_ v: RivalryWeek.Verdict) -> Color {
-    switch v { case .won: cs.pos; case .lost: cs.dimText; case .halved: cs.mut }
+    switch v { case .won: cs.pos; case .lost: cs.mut; case .halved: cs.mut }
   }
 
   private func load() async {
@@ -143,10 +142,12 @@ struct NameRivalrySheet: View {
       Fine(RivalryCopy.nameHelp)
       CSField(RivalryCopy.namePlaceholder, text: $text, font: CSFont.body)
         .onChange(of: text) { _, v in if v.count > 40 { text = String(v.prefix(40)) } }
-      CSButton(current != nil ? "Save the name" : "Name it", busy: busy) { Task { await save(clear: false) } }
+      Button(current != nil ? "Save the name" : "Name it") { Task { await save(clear: false) } }
+        .buttonStyle(.csPrimary(busy: busy))
         .padding(.top, 12)
       if current != nil {
-        CSButton("Clear the name", style: .quiet, busy: busy) { Task { await save(clear: true) } }.padding(.top, 8)
+        Button("Clear the name") { Task { await save(clear: true) } }
+          .buttonStyle(.csSecondary(busy: busy)).padding(.top, 8)
       }
     }
     .presentationDetents([.medium, .large])

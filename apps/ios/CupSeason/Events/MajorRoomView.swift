@@ -342,7 +342,7 @@ struct MajorRoomView: View {
   private func act(fail: String?, ok: String?, _ op: @escaping @MainActor () async throws -> Void) {
     Task {
       do { try await op(); if let ok { toast.show(ok) } }
-      catch { toast.show(BoardText.humanError(error, fail)) }
+      catch { toast.show(BoardText.humanError(error, fail), kind: .failed) }
     }
   }
 
@@ -351,10 +351,10 @@ struct MajorRoomView: View {
     Task {
       do {
         try await model.scrap()
-        toast.show("\(name) scrapped")
+        toast.show("\(name) scrapped", kind: .confirmed)
         await store.reload()
         dismiss()
-      } catch { toast.show(BoardText.humanError(error)) }
+      } catch { toast.show(BoardText.humanError(error), kind: .failed) }
     }
   }
 }

@@ -40,12 +40,13 @@ struct CardAndSettingsScreen: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
         // Y-27 · one short eyebrow for the pane in hand, not a sentence about both.
-        Text(pane == 0 ? "What your buddies see" : "How the app runs").csEyebrow()
-        Picker("Pane", selection: $pane) {
-          Text("Your card").tag(0)
-          Text("Settings").tag(1)
-        }
-        .pickerStyle(.segmented)
+        Text(pane == 0 ? "What your buddies see" : "How the app runs")
+          .csType(.agate, caps: true).foregroundStyle(cs.mut)
+        // §7.2 · the ONE segment — a 44pt row with a 2px ink underline. The
+        // platform's `.segmented` picker is a grey capsule inside a grey
+        // capsule, which is the pill the system deleted and two containers
+        // besides.
+        CSSegment([(0, "Your card"), (1, "Settings")], selection: $pane)
         .accessibilityLabel("Your card or settings")
         if pane == 0 {
           CardEditorPane(vm: vm, focus: $pendingFocus, openGuide: { guideSheet = $0 })
@@ -298,14 +299,17 @@ private struct CardEditorPane: View {
       LazyVGrid(columns: columns, spacing: 8) {
         ForEach(CSMarkers.all) { m in
           Button { vm.marker = m.key; vm.dirty = true; CSHaptic.selection() } label: {
-            VStack(spacing: 6) {
-              CSMarkerView(m, size: 28).foregroundStyle(vm.marker == m.key ? cs.brand : cs.ink)
-              Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(2).multilineTextAlignment(.center)   // L-29
+            let on = vm.marker == m.key
+            VStack(spacing: CSTokens.Space.s2) {
+              CSMarkerView(m, size: 28).foregroundStyle(on ? cs.panelInk : cs.ink)
+              Text(m.name).csType(.agateS, caps: true)
+                .foregroundStyle(on ? cs.panelInk : cs.mut).lineLimit(2).multilineTextAlignment(.center)   // L-29
             }
             .frame(maxWidth: .infinity, minHeight: 66)
-            .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-              .stroke(vm.marker == m.key ? cs.brand : cs.rule, lineWidth: vm.marker == m.key ? 2 : 1))
+            // the chosen mark inverts to the panel (§7.2) — picking a marker
+            // is not the live action on this screen, and ember said it was
+            .background(on ? cs.panel : cs.bg1,
+                        in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
           }
           .buttonStyle(.plain)
           // Y-33 · the glyph is silent by construction (`CSMarkerView` names
@@ -338,7 +342,7 @@ private struct CardEditorPane: View {
         Task {
           defer { pick = nil }
           guard let data = try? await item.loadTransferable(type: Data.self), let jpeg = AvatarCrop.squareJPEG(data, side: 512, quality: 0.85) else {
-            toast.show("Could not add the photo."); return
+            toast.show("Could not add the photo.", kind: .failed); return
           }
           toast.show(await vm.addPhoto(jpeg))
         }
@@ -356,11 +360,8 @@ private struct CardEditorPane: View {
             ForEach([("everyone", "All"), ("friends", "Buddies"), ("nobody", "Nobody")], id: \.0) { mode, title in
               let on = (vm.profile?.discoverable ?? "everyone") == mode
               Button { Task { if let e = await vm.setDiscoverable(mode) { toast.show(e) } } } label: {
-                Text(title).font(CSFont.monoSmall).foregroundStyle(on ? cs.pos : cs.ink)
-                  .padding(.horizontal, 10).padding(.vertical, 8)
-                  .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-                  .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(on ? cs.pos : cs.rule, lineWidth: 1))
-                  .a11yHitSlop(vertical: 5, horizontal: 0)
+                CSChip(title, selected: on)
+                  .frame(minHeight: 44).contentShape(Rectangle())
               }
               .buttonStyle(.plain)
               .accessibilityLabel("Findable by \(title.lowercased())")
@@ -375,12 +376,12 @@ private struct CardEditorPane: View {
       CSField("e.g. 1234567", text: $vm.ghin).keyboardType(.numberPad).frame(maxWidth: 200).onChange(of: vm.ghin) { vm.dirty = true }.accessibilityLabel("GHIN number, optional")
         .focused($focused, equals: .ghin)
       Text("A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.")
-        .font(CSFont.footnote).foregroundStyle(cs.dimText)
+        .csType(.bodyS).foregroundStyle(cs.mut)
 
       A11yStack(spacing: 12) {
-        Button { Task { await vm.save(); if vm.status?.1 == .pos { toast.show("Card saved") } } } label: { MiniPill(text: vm.saving ? "Saving…" : (vm.dirty ? "Save changes" : "Save card"), accent: vm.dirty) }
+        Button { Task { await vm.save(); if vm.status?.1 == .pos { toast.show("Card saved", kind: .confirmed) } } } label: { MiniPill(text: vm.saving ? "Saving…" : (vm.dirty ? "Save changes" : "Save card"), accent: vm.dirty) }
           .disabled(vm.saving)
-        if let s = vm.status { CSNote(s.0, tone: s.1).font(CSFont.footnote) }
+        if let s = vm.status { CSNote(s.0, tone: s.1).csType(.bodyS) }
       }
       .padding(.top, 6)
 
@@ -389,10 +390,10 @@ private struct CardEditorPane: View {
         // Y-06 · once the engine owns the number, `set_index` refuses an edit by
         // design — so no field. Say whose the number is, and where to read why.
         Text("Your number is the engine's now · \(vm.index.isEmpty ? "—" : vm.index)")
-          .font(CSFont.body).foregroundStyle(cs.ink)
+          .csType(.body).foregroundStyle(cs.ink)
           .accessibilityLabel("Your number is the engine's now. \(vm.index.isEmpty ? "No index yet" : "Index \(vm.index)")")
         Text("It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post.")
-          .font(CSFont.footnote).foregroundStyle(cs.dimText)
+          .csType(.bodyS).foregroundStyle(cs.mut)
         // Y-01 · the title names what OPENS. "How it works" is a different,
         // real thing one pane over (`CSSectionHead("How it works")` + `HowItWorks`),
         // and this door has always opened the scoring guide.
@@ -403,7 +404,7 @@ private struct CardEditorPane: View {
           Button { Task { toast.show(await vm.updateIndex()) } } label: { MiniPill(text: vm.indexBusy ? "Updating…" : "Update index") }.disabled(vm.indexBusy)
         }
         Text("Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set it here to seed a starter; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed.")
-          .font(CSFont.footnote).foregroundStyle(cs.dimText)
+          .csType(.bodyS).foregroundStyle(cs.mut)
         guideLink("How scoring works")
       }
 
@@ -419,7 +420,7 @@ private struct CardEditorPane: View {
       } else {
         ForEach(vm.leagues) { row in
           A11yStack(columnSpacing: 2) {
-            Text(row.leagues?.name ?? "League").font(CSFont.body).foregroundStyle(cs.ink)
+            Text(row.leagues?.name ?? "League").csType(.body).foregroundStyle(cs.ink)
             Spacer()
             Text("\(row.role == "commissioner" ? "PRO" : "PLAYER") · \(row.leagues?.code ?? "")").font(CSFont.label).foregroundStyle(cs.mut)
           }
@@ -448,14 +449,14 @@ private struct CardEditorPane: View {
 
   /// Y-27 · a label wraps rather than truncates; the handle's label used to clip mid-word.
   private func label(_ s: String) -> some View {
-    Text(s).font(CSFont.label).tracking(1).textCase(.uppercase).foregroundStyle(cs.dimText)
+    Text(s).font(CSFont.label).tracking(1).textCase(.uppercase).foregroundStyle(cs.mut)
       .fixedSize(horizontal: false, vertical: true)
   }
 
   /// The scoring guide's door, in the card pane's footnote voice.
   private func guideLink(_ title: String) -> some View {
     Button { openGuide(.scoring) } label: {
-      Text("\(title) →").font(CSFont.footnote).foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
+      Text("\(title) →").csType(.bodyS).foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityLabel(title)
@@ -501,16 +502,13 @@ private struct SettingsPane: View {
       // say that here rather than let the switch imply a row that isn't there.
       if push.enabled && push.unconfirmed {
         Text("This device is on here, but we haven't been able to confirm it with the server. Reopen the app with signal, or tap Disable then Enable.")
-          .font(CSFont.footnote).foregroundStyle(cs.gold)
+          .csType(.bodyS).foregroundStyle(cs.gold)
       }
       Text("Milestones, results and month closes always come through. Round posts and chat each have their own switch.")
-        .font(CSFont.footnote).foregroundStyle(cs.dimText)
+        .csType(.bodyS).foregroundStyle(cs.mut)
 
-      Text("Appearance").csEyebrow().padding(.top, 14)
-      Picker("Appearance", selection: appearance) {
-        ForEach(CSAppearance.allCases, id: \.self) { Text($0.label).tag($0) }
-      }
-      .pickerStyle(.segmented)
+      Text("Appearance").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s4)
+      CSSegment(CSAppearance.allCases.map { ($0, $0.label) }, selection: appearance)
       .onChange(of: appearance.wrappedValue) { _, new in new.save() }
 
       // IOS-025 / D103a: the personal look dial — device-local like the theme
@@ -573,9 +571,10 @@ private struct SettingsPane: View {
         Text("·").accessibilityHidden(true)
         Link(destination: CSConfig.legal("pot")) { Text("The pot (legal)").frame(minHeight: 44) }
       }
-      .font(CSFont.footnote).foregroundStyle(cs.mut)
+      .csType(.bodyS).foregroundStyle(cs.mut)
 
-      CSButton("Sign out", style: .quiet) { Task { await store.signOut() } }.padding(.top, 12)
+      Button("Sign out") { Task { await store.signOut() } }
+        .buttonStyle(.csSecondary()).padding(.top, 12)
 
       Text("Danger zone").csEyebrow().padding(.top, 18)
       if !vm.deleteArmed {
@@ -585,34 +584,30 @@ private struct SettingsPane: View {
           // VoiceOver is told, or the swap is silent.
           AccessibilityNotification.Announcement("One more step: Delete permanently, or Cancel.").post()
         } label: {
-          Text("Delete my account").font(CSFont.footnote).foregroundStyle(cs.neg).frame(minHeight: 44).contentShape(Rectangle())
+          Text("Delete my account").csType(.bodyS).foregroundStyle(cs.neg).frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityHint("Asks once more before anything happens")
       } else {
         Text("This can't be undone. Your name, photo, email and profile are removed, notifications stop, and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as \"Former member\".")
-          .font(CSFont.footnote).foregroundStyle(cs.mut)
+          .csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
         A11yStack(spacing: 8) {
           Button {
             Task {
               if let e = await vm.deleteAccount() { toast.show(e) } else { await store.signOut() }
             }
           } label: {
-            Text(vm.deleting ? "Deleting…" : "Delete permanently").font(CSFont.button)
-              .frame(maxWidth: .infinity, minHeight: 46)
-              .foregroundStyle(cs.ink)
-              .background(cs.neg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+            Text(vm.deleting ? "Deleting…" : "Delete permanently")
           }
-          .buttonStyle(.plain).disabled(vm.deleting)
+          .buttonStyle(.csDestructive)
+          .disabled(vm.deleting)
           .accessibilityHint("Closes the account for good")
-          Button { vm.deleteArmed = false } label: {
-            Text("Cancel").font(CSFont.subhead).foregroundStyle(cs.mut).padding(.horizontal, 12).frame(minHeight: 46).contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
+          Button("Not now") { vm.deleteArmed = false }
+            .buttonStyle(.csTertiary(.content))
         }
       }
 
-      Text("Cup Season · v1 · build \(store.build)").font(CSFont.footnote).foregroundStyle(cs.dimText).padding(.top, 20)
+      Text("Cup Season · v1 · build \(store.build)").csType(.columnS).foregroundStyle(cs.mut).padding(.top, 20)
         .frame(minHeight: 44, alignment: .bottomLeading)
         .contentShape(Rectangle())
         .onLongPressGesture(minimumDuration: 1) {
@@ -635,11 +630,11 @@ private struct SettingsPane: View {
 
   private func pill(_ s: String, action: @escaping () -> Void) -> some View {
     Button(action: action) {
-      Text(s).font(CSFont.monoMediumBody).foregroundStyle(cs.ink)
-        .padding(.horizontal, 12).padding(.vertical, 9)
+      Text(s).csType(.nameS).foregroundStyle(cs.ink)
+        .padding(.horizontal, CSTokens.Space.s3)
+        .frame(minHeight: 44)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
-        .a11yHitSlop(vertical: 5, horizontal: 0)   // a 35pt pill, a 44pt target
+        .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .disabled(push.busy)
@@ -671,17 +666,22 @@ struct PillFlow<Content: View>: View {
   }
 }
 
-/// The web's `.mini` pill.
+/// A small control on this screen, in the system's own shapes (D277). It was a
+/// bordered mono pill 35 points tall — reaching 44 only through a hit slop —
+/// with an ember fill on `Save changes`. The ember stays where it means the
+/// live action (an unsaved card IS the live thing on this screen) and the
+/// control is a real 44pt target rather than a slop around a 35pt one.
 private struct MiniPill: View {
   @Environment(\.cs) private var cs
   let text: String
   var accent = false
   var body: some View {
-    Text(text).font(CSFont.monoMediumBody).foregroundStyle(accent ? cs.bg0 : cs.ink)
-      .padding(.horizontal, 14).padding(.vertical, 9)
-      .background(accent ? cs.brand : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(accent ? .clear : cs.rule, lineWidth: 1))
-      .a11yHitSlop(vertical: 5, horizontal: 0)   // a 35pt pill, a 44pt target
+    Text(text).csType(.nameS).foregroundStyle(accent ? cs.bg0 : cs.ink)
+      .padding(.horizontal, CSTokens.Space.s4)
+      .frame(minHeight: 44)
+      .background(accent ? cs.brand : cs.bg2,
+                  in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
+      .contentShape(Rectangle())
   }
 }
 
@@ -699,10 +699,10 @@ private struct PolishDeveloperSection: View {
     VStack(alignment: .leading, spacing: 0) {
       CSSectionHead("Developer")
       if isFounder {
-        CSRow { YouDoorRow(glyph: Text("📈"), title: "Open the desk", action: openDesk) }
-        CSRow { YouDoorRow(glyph: Text("✏️"), title: "Field note", action: fieldNote) }
+        CSRow { YouDoorRow(glyph: CSGlyph(.emptyRail, size: .row), title: "Open the desk", action: openDesk) }
+        CSRow { YouDoorRow(glyph: CSGlyph(.scorecard, size: .row), title: "Field note", action: fieldNote) }
       }
-      CSRow(last: true) { YouDoorRow(glyph: Text("💬"), title: "Tell us how it's going", action: feedback) }
+      CSRow(last: true) { YouDoorRow(glyph: CSGlyph(.comment, size: .row), title: "Tell us how it's going", action: feedback) }
       if isFounder {
         Fine("Notes land in the feedback ledger · the desk shows signups, activity, errors, feedback.").padding(.top, 6)
       }

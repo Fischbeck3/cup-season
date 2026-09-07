@@ -101,13 +101,16 @@ struct RyderSetupSheet: View {
       EventFieldLabel(text: "Attach to a league", hint: "(optional)")
       EventLeaguePicker(memberships: memberships, selection: $league)
       EventFieldLabel(text: "Add players")
-      CSButton("Search the app or tap a buddy", style: .quiet) { picking = true }
+      Button("Search the app or tap a buddy") { picking = true }
+        .buttonStyle(.csSecondary())
       ForEach(staged) { p in EventStagedRow(person: p) { staged.removeAll { $0.id == p.id } } }
       EventFinePrint(text: "How it plays. Two teams. Each week you play one opponent on the other side, scored against your playing HCP — your best round that week faces theirs. A week won is 1 point, halved is ½ each. First team past halfway takes the cup. Points scale to team size: 6‑a‑side over 3 weeks is 18 points, first to 9½.")
         .padding(.top, 6)
       A11yStack(spacing: 8) {
-        CSButton("Cancel", style: .quiet) { dismiss() }.frame(maxWidth: typeSize.isA11y ? .infinity : 120)
-        CSButton("Create the event", busy: busy) { create() }
+        Button("Cancel") { dismiss() }
+          .buttonStyle(.csSecondary()).frame(maxWidth: typeSize.isA11y ? .infinity : 120)
+        Button("Create the event") { create() }
+          .buttonStyle(.csPrimary(busy: busy))
       }
       .padding(.top, 6)
       CSFine("You captain Team A. Invited players get a notification to accept; you draw or assign teams from the scoreboard once they're in.")

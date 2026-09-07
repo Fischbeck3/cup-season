@@ -146,7 +146,7 @@ final class PostRoundModel {
     let nine = tee.number_of_holes == 9
     card.teePicked(courseId: course.id, label: course.label + (tee.tee_name.map { " · \($0)" } ?? ""),
                    rating: tee.course_rating ?? 0, slope: tee.slope_rating ?? 0, nineHoleTee: nine)
-    toast.show("Tees set — rating and slope filled")
+    toast.show("Tees set — rating and slope filled", kind: .confirmed)
     Task {
       await sched.cacheCourse(course.id)
       guard let (pars, teeNine) = await svc.teePars(courseId: course.id, teeName: tee.tee_name, rating: tee.course_rating),
@@ -167,8 +167,8 @@ final class PostRoundModel {
     return true
   }
 
-  func startOver() { card.startOver(); setPhoto(nil); clearDraft(); toast.show("Card cleared") }
-  func scrapScan() { card.scrapScan(); toast.show("Scan scrapped — type your nines in") }
+  func startOver() { card.startOver(); setPhoto(nil); clearDraft(); toast.show("Card cleared", kind: .confirmed) }
+  func scrapScan() { card.scrapScan(); toast.show("Scan scrapped — type your nines in", kind: .confirmed) }
 
   // MARK: - photo (6521–6578)
 
@@ -178,7 +178,7 @@ final class PostRoundModel {
   }
 
   func photoPicked(_ image: UIImage?) {
-    guard let image else { toast.show("Couldn’t read that image"); return }
+    guard let image else { toast.show("Couldn’t read that image", kind: .failed); return }
     setPhoto(image)
   }
 
@@ -268,11 +268,11 @@ final class PostRoundModel {
     var payload = PostPayload.build(card, seasonId: nil)
     if let jpeg = photoJPEG {
       if let path = await svc.uploadPhoto(jpeg, uid: uid) { payload.photo_path = path }
-      else { toast.show("Photo didn’t stick — posting the round without it") }
+      else { toast.show("Photo didn’t stick — posting the round without it", kind: .failed) }
     }
     let outcome: PostService.PostOutcome
     do { outcome = try await svc.postRound(payload, playedWith: playedWith, fallbackSeason: m?.season?.id) }
-    catch { toast.show(HumanError.text(error, prefix: "Post failed.")); return }
+    catch { toast.show(HumanError.text(error, prefix: "Post failed."), kind: .failed); return }
     let roundId = outcome.roundId
 
     // D-offline · the kept card LANDED. Release it now and only now — a card

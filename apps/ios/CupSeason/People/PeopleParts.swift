@@ -230,21 +230,20 @@ struct PersonInviteLink: View {
 
   private var row: some View {
     HStack(spacing: 10) {
-      Image(systemName: "paperplane").font(.system(size: 15)).foregroundStyle(cs.brand)
+      CSGlyph(.send, size: .row).foregroundStyle(cs.mut)
       VStack(alignment: .leading, spacing: 1) {
-        Text(title ?? "Text someone a link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+        Text(title ?? "Text someone a link").csType(.name).foregroundStyle(cs.ink)
         Text(minting ? "Making the link…" : (sub ?? "Works for anyone · no account needed"))
-          .font(CSFont.label).tracking(1.1).textCase(.uppercase).foregroundStyle(cs.dimText)
+          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       .multilineTextAlignment(.leading)
       .frame(maxWidth: .infinity, alignment: .leading)
-      Text("→").font(CSFont.subhead).foregroundStyle(cs.brand)
+      CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
     }
     .padding(12)
     .frame(minHeight: 44)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .contentShape(Rectangle())
   }
 }
@@ -265,7 +264,7 @@ struct PeopleInviteLink: View {
     if all.count > 1 {
       Menu {
         ForEach(all, id: \.code) { s in
-          shareLink(s) { Label(s.name, systemImage: "link") }
+          shareLink(s) { Label(s.name, systemImage: "person.2") }
         }
       } label: {
         inviteRow(sub: "Choose the season · works for anyone, account or not")   // LV-14
@@ -297,18 +296,17 @@ struct PeopleInviteLink: View {
     HStack(spacing: 10) {
       Image(systemName: "link").font(.system(size: 15)).foregroundStyle(cs.brand)
       VStack(alignment: .leading, spacing: 1) {
-        Text("Send an invite link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-        Text(sub).font(CSFont.label).tracking(1.1).textCase(.uppercase).foregroundStyle(cs.dimText)
+        Text("Send an invite link").csType(.name).foregroundStyle(cs.ink)
+        Text(sub).font(CSFont.label).tracking(1.1).textCase(.uppercase).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       .multilineTextAlignment(.leading)
       .frame(maxWidth: .infinity, alignment: .leading)
-      Text("→").font(CSFont.subhead).foregroundStyle(cs.brand)
+      CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
     }
     .padding(12)
     .frame(minHeight: 44)
     .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .contentShape(Rectangle())
   }
 }
@@ -324,12 +322,12 @@ struct PeopleFindable: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      CSHairline().padding(.top, 14)
+      CSRule().padding(.top, 14)
       CSSectionHead("Findable by")
       CSFine("Who can find you in search. Invite links always work.")
       HStack(spacing: 6) {
         ForEach(Discoverable.allCases, id: \.self) { d in
-          CSMini(d.label, tone: vm.discoverable == d ? cs.pos : nil, selected: vm.discoverable == d) { Task { await vm.setDiscoverable(d) } }
+          CSMini(d.label, selected: vm.discoverable == d) { Task { await vm.setDiscoverable(d) } }
         }
       }
     }
@@ -349,7 +347,7 @@ struct PersonRow<Action: View>: View {
   var body: some View {
     // Y-23 · the person is a BUTTON (one element, a hint), not a tap gesture
     // over a row; the trailing action keeps its own control.
-    RoomLineRow(marker: person.marker, title: title, sub: Text(subline ?? person.subline), spine: spine,
+    RoomLineRow(face: Faces.of(person.id, marker: person.marker, name: person.name), title: title, sub: Text(subline ?? person.subline), spine: spine,
                 onTap: open, hint: open == nil ? nil : GolfersRoot.CardName.hint(person.name), label: spokenTitle) { action }
       .task { founder = await FounderBadge.shared.id() }
   }
@@ -522,21 +520,20 @@ struct PlanInviteLink: View {
         }
       } label: {
         HStack(spacing: 10) {
-          Image(systemName: "paperplane").font(.system(size: 15)).foregroundStyle(cs.brand)
+          CSGlyph(.send, size: .row).foregroundStyle(cs.mut)
           VStack(alignment: .leading, spacing: 1) {
-            Text("Text them a link").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
+            Text("Text them a link").csType(.name).foregroundStyle(cs.ink)
             Text(minting ? "Making the link…" : "Works for anyone · no account needed")
-              .font(CSFont.label).tracking(1.1).textCase(.uppercase).foregroundStyle(cs.dimText)
+              .csType(.agateS, caps: true).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
           }
           .multilineTextAlignment(.leading)
           .frame(maxWidth: .infinity, alignment: .leading)
-          Text("→").font(CSFont.subhead).foregroundStyle(cs.brand)
+          CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
         }
         .padding(12)
         .frame(minHeight: 44)
         .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)

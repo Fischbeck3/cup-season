@@ -254,6 +254,29 @@ public enum CSType {
     }
   }
 
+  /// **A role at a LITERAL point size, for an exported artifact.** The
+  /// settlement card and the share PNGs are 1080-point canvases that do not
+  /// scale with anybody's reading size: a Dynamic-Type-aware font inside an
+  /// `ImageRenderer` would make the PNG a different picture on two phones.
+  ///
+  /// It exists so an export names a ROLE rather than a PostScript string —
+  /// `LINT-01` counts every `.custom("` outside this file, and the settlement
+  /// card carried two of them.
+  public static func fixed(_ role: Role, _ points: CGFloat) -> Font {
+    switch role.family {
+    case .board:
+      let face = (role == .name || role == .nameS || role == .social
+                  || role == .agate || role == .agateS) ? boardSemi : boardBold
+      return Font.custom(face, fixedSize: points)
+    case .mono:
+      return Font.custom(role == .columnS ? monoRegular : monoMedium, fixedSize: points).monospacedDigit()
+    case .sans:
+      return Font.system(size: points)
+    case .serif:
+      return Font.system(size: points, weight: role == .lead ? .bold : .regular, design: .serif)
+    }
+  }
+
   #if canImport(UIKit)
   /// `csTabular()` is `.monospacedDigit()`, which Apple documents for SYSTEM
   /// fonts; on a `Font.custom` it resolves through the descriptor's
@@ -352,6 +375,16 @@ public extension View {
   /// case law and exists for `agate`'s one switch (§1.3).
   func csType(_ role: CSType.Role, caps: Bool? = nil) -> some View {
     modifier(CSTypeStyle(role, caps: caps))
+  }
+
+  /// **A role at a literal point size, for an EXPORTED artifact only** — the
+  /// settlement card and the share PNGs, which are fixed canvases that must
+  /// render the same picture on every phone. It carries the role's tracking
+  /// and leading and skips the metric; nothing on a screen may use it.
+  func csFixed(_ role: CSType.Role, _ points: CGFloat) -> some View {
+    font(CSType.fixed(role, points))
+      .tracking(points * role.track)
+      .lineSpacing(max(0, points * (role.leading - 1)))
   }
 }
 

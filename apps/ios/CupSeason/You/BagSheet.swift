@@ -29,7 +29,7 @@ struct BagSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-          CSSheetHeader(title: BagCopy.yours, sub: BagCopy.emptySub.uppercased())
+          CSSheetHeader(title: BagCopy.yours, sub: BagCopy.emptySub)
 
           if vm.loading {
             CSFine("Opening your bag…")
@@ -38,53 +38,64 @@ struct BagSheet: View {
             // it yet" to a golfer whose fourteen clubs are on the other side
             // of a dead network is the lie this branch exists to refuse.
             CSNote("Could not open your bag. Nothing has been changed.")
-            CSButton("Try again", style: .quiet) { Task { await vm.load() } }
+            Button("Try again") { Task { await vm.load() } }.buttonStyle(.csSecondary())
           } else {
             if let since = vm.bag?.since {
               Text(BagCopy.sinceLine(since))
-                .font(CSFont.sentence).foregroundStyle(cs.ink)
+                .csType(.story).foregroundStyle(cs.ink)
                 .fixedSize(horizontal: false, vertical: true)
             }
 
-            Text(BagCopy.inTheBag.uppercased()).csEyebrow().padding(.top, 4)
+            CSSectionHead(BagCopy.inTheBag, count: "\(vm.clubs.count) of \(BagCopy.cap)").padding(.top, CSTokens.Space.s1)
             ForEach($vm.clubs) { $club in
               row($club, inBag: true)
             }
-            if vm.clubs.isEmpty { CSFine("Nothing in the bag yet.") }
-            if vm.clubs.count >= BagCopy.cap {
+            // §13.1 · the empty is a drawn object, an eyebrow, a fact about
+            // the world and a door — never "Nothing in the bag yet", which is
+            // the golfer's own omission read back to them.
+            if vm.clubs.isEmpty {
+              // the door is a LINK, not a second primary: `Save the bag` at the
+              // foot is this sheet's one ember, and §7.1 allows exactly one.
+              // The fact slot is EMPTY because the bag has no true fact to
+              // print — §13.1 says "one true fact, IF ONE EXISTS", and the
+              // sideline's own line printed here was the next block's words
+              // read back a screen early.
+              CSEmpty(glyph: .bag, eyebrow: "The bag",
+                      headline: "Fourteen clubs is the limit. Yours is still empty.",
+                      door: .link(BagCopy.addClub, { vm.addClub() }))
+            } else if vm.clubs.count >= BagCopy.cap {
               CSFine(BagCopy.full)
             } else {
-              CSButton(BagCopy.addClub, style: .quiet) { vm.addClub() }
+              Button(BagCopy.addClub) { vm.addClub() }.buttonStyle(.csSecondary())
             }
 
-            Text(BagCopy.sideline.uppercased()).csEyebrow().padding(.top, 8)
+            CSSectionHead(BagCopy.sideline).padding(.top, CSTokens.Space.s2)
             CSFine(BagCopy.sidelineWhat)
             ForEach($vm.sideline) { $club in
               row($club, inBag: false)
             }
-            CSButton("Add to the sideline", style: .quiet) { vm.addSideline() }
+            Button("Add to the sideline") { vm.addSideline() }.buttonStyle(.csSecondary())
 
-            Text(BagCopy.ballHead.uppercased()).csEyebrow().padding(.top, 8)
+            CSSectionHead(BagCopy.ballHead).padding(.top, CSTokens.Space.s2)
             CSField(BagCopy.ballPlaceholder, text: $vm.ball, font: CSFont.subhead)
               .accessibilityLabel("The ball you play")
 
             if let note = vm.note { CSNote(note, tone: .neg).padding(.top, 4) }
 
-            CSButton("Save the bag", busy: vm.saving) {
+            Button("Save the bag") {
               Task { if await vm.save() { onSaved(); dismiss() } }
             }
-            .padding(.top, 8)
+            .buttonStyle(.csPrimary(busy: vm.saving))
+            .padding(.top, CSTokens.Space.s2)
           }
         }
         .padding(20)
       }
       .background(cs.bg0)
       .navigationTitle("")
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          Button("Done") { dismiss() }.font(CSFont.subhead).foregroundStyle(cs.brand)
-        }
-      }
+      // §7.3 · one dismiss verb, and it is Close — never a coloured "Done",
+      // and never ember, which is the metal of the sheet's own primary
+      .csCloseButton { dismiss() }
     }
     .task { await vm.load() }
     .sliceToastHost()
@@ -113,7 +124,7 @@ struct BagSheet: View {
           Button("Move down") { vm.move(club.wrappedValue, by: 1) }
           Button("Remove", role: .destructive) { vm.remove(club.wrappedValue) }
         } label: {
-          Image(systemName: "ellipsis").font(.system(size: 17, weight: .semibold))
+          CSGlyph(.more, size: .row)
             .foregroundStyle(cs.mut).frame(width: 44, height: 44).contentShape(Rectangle())
         }
         .accessibilityLabel("Move or remove \(club.wrappedValue.line)")

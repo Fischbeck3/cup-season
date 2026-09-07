@@ -45,7 +45,8 @@ struct JoinLeagueFlow: View {
             Text(vm.code).font(CSFont.code).foregroundStyle(cs.ink)
           }
           if vm.presetCode == nil, let name = vm.leagueName { CSFine("You're invited to \(name).", tone: cs.ink) }
-          CSButton("Join", busy: vm.busy) { Task { await vm.go() } }
+          Button("Join") { Task { await vm.go() } }
+            .buttonStyle(.csPrimary(busy: vm.busy))
           if let note = vm.note { CSNote(note, tone: .neg) }
         }
         .padding(20)
@@ -160,8 +161,10 @@ struct CovenantSheet: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityLabel(line)
         }
-        CSButton(covenant.joinLabel, action: onJoin).padding(.top, 8)
-        CSButton(Covenant.notNow, style: .quiet, action: onNo)
+        Button(covenant.joinLabel) { onJoin() }
+          .buttonStyle(.csPrimary()).padding(.top, 8)
+        Button(Covenant.notNow) { onNo() }
+          .buttonStyle(.csSecondary())
       }
       .padding(20)
     }
@@ -197,7 +200,7 @@ struct LeagueWelcomeSheet: View {
           // One fact, one place (brand canon §3): the stake line names the number and who tracks it;
           // the ledger sentence belongs to "The pot lives on the books" below and is said once on this sheet.
           (Text("You're on the pot: $\(welcome.usd) buy-in.").foregroundStyle(cs.gold).bold() + Text(" The Pro tracks who's paid."))
-            .font(CSFont.footnote).foregroundStyle(cs.dimText)
+            .csType(.bodyS).foregroundStyle(cs.mut)
         }
         // D205 · "your squad" is a lie in a solo league; "your standing" is
         // true in BOTH — so only a KNOWN squad league gets the squad wording,
@@ -206,16 +209,15 @@ struct LeagueWelcomeSheet: View {
              " Only by not playing. Every posted round scores — a rough day is still points on the board.")
         rule("Rounds score against your playing HCP.", " Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.")
         rule("The pot lives on the books.", " \(MoneyCopy.ledger) The settlement card shows who owes what.")
-        Button("How scoring works →") { scoring = true }.font(CSFont.footnote).foregroundStyle(cs.brand).padding(.bottom, 4)
+        Button("How scoring works →") { scoring = true }.csType(.bodyS).foregroundStyle(cs.brand).padding(.bottom, 4)
         Rectangle().fill(cs.rule).frame(height: 1)
         rule("Who else plays with you?", " Growing the league isn't the Pro's chore — any member's link works.")
         if let code = welcome.code {
           ShareLink(item: URL(string: "https://cupseason.app/?join=\(code)")!, subject: Text("Cup Season"),
                     message: Text("You're invited to \(welcome.name) on Cup Season")) {
-            Text("Share the invite link").font(CSFont.button).foregroundStyle(cs.ink)
+            Text("Share the invite link").csType(.name).foregroundStyle(cs.ink)
               .frame(maxWidth: .infinity, minHeight: 50)
               .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-              .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
           }
         }
       }
@@ -228,7 +230,7 @@ struct LeagueWelcomeSheet: View {
   }
 
   private func rule(_ b: String, _ rest: String) -> some View {
-    (Text(b).bold().foregroundStyle(cs.ink) + Text(rest)).font(CSFont.footnote).foregroundStyle(cs.dimText)
+    (Text(b).bold().foregroundStyle(cs.ink) + Text(rest)).csType(.bodyS).foregroundStyle(cs.mut)
   }
 }
 

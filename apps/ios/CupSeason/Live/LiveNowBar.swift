@@ -39,7 +39,7 @@ struct LiveNowBar: View {
             Text(live ? "LIVE" : "ON THE TEE")
               .font(CSFont.label.weight(.semibold)).tracking(1.4)
             Text(line)
-              .font(CSFont.monoSmall)
+              .csType(.columnS)
               .lineLimit(1).truncationMode(.tail)
             Spacer(minLength: 6)
             Text("→").font(CSFont.monoSmall.weight(.semibold))

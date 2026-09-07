@@ -72,12 +72,14 @@ struct CardGateView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 18) {
-        Text(OnboardingCopy.cardEyebrow).csEyebrow()
-        Text(OnboardingCopy.cardTitle).font(CSFont.title).foregroundStyle(cs.ink)
-        Text(OnboardingCopy.cardSub).font(CSFont.subhead).foregroundStyle(cs.mut)
+        Text(OnboardingCopy.cardEyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        Text(OnboardingCopy.cardTitle).csType(.display).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        Text(OnboardingCopy.cardSub).csType(.body).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
         // the claim thread (web 2906): a guest who arrived by a claim link is told the card is the last step
         if claiming {
-          Text("Saving your card attaches the round you’re claiming.").font(CSFont.subhead).foregroundStyle(cs.gold)
+          Text("Saving your card attaches the round you’re claiming.").csType(.bodyS).foregroundStyle(cs.mut)
         }
 
         nameField
@@ -87,7 +89,7 @@ struct CardGateView: View {
 
         if let note { CSNote(note.0, tone: note.1) }
 
-        CSButton(OnboardingCopy.save, busy: busy) { Task { await save() } }
+        Button(OnboardingCopy.save) { Task { await save() } }.buttonStyle(.csPrimary(busy: busy))
           .padding(.top, 6)
         CSFine(OnboardingCopy.ghinMovedNote)
       }
@@ -102,7 +104,7 @@ struct CardGateView: View {
 
   private var nameField: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text(OnboardingCopy.nameLabel).csEyebrow()
+      Text(OnboardingCopy.nameLabel).csType(.agate, caps: true).foregroundStyle(cs.mut)
       CSField(OnboardingCopy.namePlaceholder, text: $name, font: CSFont.body)
         .textContentType(.name)
         .onChange(of: name) { _, new in
@@ -116,7 +118,7 @@ struct CardGateView: View {
 
   private var bandQuestion: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text(OnboardingCopy.shootQuestion).csEyebrow()
+      Text(OnboardingCopy.shootQuestion).csType(.agate, caps: true).foregroundStyle(cs.mut)
       // A column at the accessibility sizes; a wrapped row otherwise. Five
       // options, each a 44pt target, none of them abbreviated.
       FlowLayout(spacing: 8) {
@@ -133,16 +135,16 @@ struct CardGateView: View {
       // use, so the golfer meets the number where they chose it.
       if let b = band {
         HStack(spacing: 8) {
-          Text(b.stripPreview).font(CSFont.monoMediumBody).csTabular().foregroundStyle(cs.ink)
-          Text(OnboardingCopy.stripPreviewNote).font(CSFont.footnote).foregroundStyle(cs.dimText)
+          Text(b.stripPreview).csType(.columnM).foregroundStyle(cs.ink)
+          Text(OnboardingCopy.stripPreviewNote).csType(.bodyS).foregroundStyle(cs.mut)
         }
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(b.stripPreview). \(OnboardingCopy.stripPreviewNote)")
       }
-      Text(OnboardingCopy.shootSub).font(CSFont.footnote).foregroundStyle(cs.dimText)
+      Text(OnboardingCopy.shootSub).csType(.bodyS).foregroundStyle(cs.mut)
       if let b = band, b.starter != nil {
-        Text(OnboardingCopy.shootStarterNote).font(CSFont.footnote).foregroundStyle(cs.mut)
+        Text(OnboardingCopy.shootStarterNote).csType(.bodyS).foregroundStyle(cs.mut)
       }
     }
   }
@@ -152,13 +154,9 @@ struct CardGateView: View {
     return Button {
       band = b; CSHaptic.selection()
     } label: {
-      Text(b.title)
-        .font(CSFont.monoMediumBody)
-        .foregroundStyle(on ? cs.brand : cs.ink)
-        .padding(.horizontal, 14).frame(minHeight: 44)
-        .background(cs.bg1, in: Capsule())
-        .overlay(Capsule().stroke(on ? cs.brand : cs.rule, lineWidth: on ? 2 : 1))
-        .contentShape(Capsule())
+      CSChip(b.title, selected: on)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityLabel(b.title)
@@ -169,15 +167,17 @@ struct CardGateView: View {
 
   private var markerRow: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text(OnboardingCopy.markerLabel).csEyebrow()
+      Text(OnboardingCopy.markerLabel).csType(.agate, caps: true).foregroundStyle(cs.mut)
       Button {
         pickingMarker.toggle(); CSHaptic.selection()
       } label: {
         HStack(spacing: 12) {
-          CSMarkerView(CSMarkers.marker(marker), size: 30).foregroundStyle(cs.brand)
-          Text(MarkerDefault.name(marker)).font(CSFont.sentence).foregroundStyle(cs.ink)
+          // a marker is IDENTITY, not a live action — ember has two jobs and
+          // neither is "this is your ball marker" (D269)
+          CSMarkerView(CSMarkers.marker(marker), size: 30).foregroundStyle(cs.ink)
+          Text(MarkerDefault.name(marker)).csType(.name).foregroundStyle(cs.ink)
           Spacer(minLength: 8)
-          Text(pickingMarker ? "Close" : "Change").font(CSFont.footnote).foregroundStyle(cs.mut)
+          Text(pickingMarker ? "Close" : "Change").csType(.agateS, caps: true).foregroundStyle(cs.mut)
         }
         .frame(minHeight: 44)
         .contentShape(Rectangle())
@@ -195,15 +195,18 @@ struct CardGateView: View {
         Button {
           marker = m.key; markerTouched = true; pickingMarker = false; CSHaptic.selection()
         } label: {
-          VStack(spacing: 8) {
-            CSMarkerView(m, size: 34).foregroundStyle(marker == m.key ? cs.brand : cs.ink)
-            Text(m.name).font(CSFont.label).foregroundStyle(cs.mut).lineLimit(2)   // L-29 · 11pt is the floor
+          let on = marker == m.key
+          VStack(spacing: CSTokens.Space.s2) {
+            CSMarkerView(m, size: 34).foregroundStyle(on ? cs.panelInk : cs.ink)
+            Text(m.name).csType(.agateS, caps: true)
+              .foregroundStyle(on ? cs.panelInk : cs.mut).lineLimit(2)   // L-29 · 11pt is the floor
               .multilineTextAlignment(.center)
           }
           .frame(maxWidth: .infinity, minHeight: 78)
-          .background(cs.bg1, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-            .stroke(marker == m.key ? cs.brand : cs.rule, lineWidth: marker == m.key ? 2 : 1))
+          // the chosen mark INVERTS to the panel (§7.2). It wore a 2px ember
+          // ring, and picking a ball marker is not the live action on a card.
+          .background(on ? cs.panel : cs.bg1,
+                      in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(m.name)
@@ -216,7 +219,7 @@ struct CardGateView: View {
 
   private var handleRow: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text(OnboardingCopy.handleLabel).csEyebrow()
+      Text(OnboardingCopy.handleLabel).csType(.agate, caps: true).foregroundStyle(cs.mut)
       CSField("handle", text: $handle)
         .textInputAutocapitalization(.never).autocorrectionDisabled()
         .onChange(of: handle) { _, new in
@@ -224,9 +227,9 @@ struct CardGateView: View {
           if clean != new { handle = clean } else if !clean.isEmpty { handleTouched = true }
           checkHandle(clean)
         }
-      Text(OnboardingCopy.handleRule).font(CSFont.footnote).foregroundStyle(cs.dimText)
+      Text(OnboardingCopy.handleRule).csType(.bodyS).foregroundStyle(cs.mut)
       if let handleCheck {
-        Text(handleCheck.0).font(CSFont.footnote)
+        Text(handleCheck.0).csType(.bodyS)
           .foregroundStyle(handleCheck.1 == .pos ? cs.pos : handleCheck.1 == .neg ? cs.neg : cs.mut)
           .accessibilityAddTraits(.updatesFrequently)
       }

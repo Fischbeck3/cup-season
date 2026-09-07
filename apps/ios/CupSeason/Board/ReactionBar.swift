@@ -29,35 +29,31 @@ struct ReactionBar: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Rectangle().fill(cs.rule).frame(height: 1)
+      CSRule()
       FlowRow(spacing: 6) {
         ForEach(present, id: \.self) { e in chip(e, quick: e == CSReactions.quick) }
         if !present.contains(CSReactions.quick) { chip(CSReactions.quick, quick: true, bare: true) }
-        iconButton(trayOpen ? "minus" : "plus", label: "More reactions", expanded: trayOpen) {
+        iconButton(trayOpen ? .cross : .plus, label: "More reactions", expanded: trayOpen) {
           store.openTray = trayOpen ? nil : item.id
         }
         if item.postId != nil {
-          Button { reporting = true } label: {
-            Text("⚑").font(CSFont.monoSmall).frame(minWidth: 36, minHeight: 36)
-              .foregroundStyle(cs.mut)
-              .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
-              .a11yHitSlop(vertical: 4, horizontal: 4)   // 36pt chip, 44pt target
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel("Report this post")
+          // never a flag — `LINT-28` reserves the pennant to the tab band and
+          // the app icon, and this one was a report control wearing it
+          iconButton(.more, label: "Report this post", expanded: false) { reporting = true }
         }
         if item.threads {
           Button {
             if threadOpen { store.openThreads.remove(item.id) } else { store.openThreads.insert(item.id) }
           } label: {
-            HStack(spacing: 4) {
-              Image(systemName: "bubble.left").font(.system(size: 13, weight: .regular))
-              if !item.comments.isEmpty { Text("\(item.comments.count)").font(CSFont.monoSmall.weight(.semibold)) }
+            HStack(spacing: CSTokens.Space.s1) {
+              CSGlyph(.comment, size: .inline)
+              if !item.comments.isEmpty { Text("\(item.comments.count)").csType(.agateS) }
             }
             .foregroundStyle(cs.mut)
-            .padding(.horizontal, 10).frame(minWidth: 36, minHeight: 36)
-            .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
-            .a11yHitSlop(vertical: 4, horizontal: 4)
+            .padding(.horizontal, CSTokens.Space.s3).frame(minWidth: 36, minHeight: 28)
+            .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
           .accessibilityLabel(item.comments.isEmpty ? "Comments" : "Comments, \(item.comments.count)")
@@ -83,16 +79,22 @@ struct ReactionBar: View {
       CSHaptic.selection()
       Task { await store.toggleReaction(item.id, e) }
     } label: {
-      HStack(spacing: bare ? 0 : 4) {
+      // the six canon reactions keep their emoji (the one exemption
+      // `LINT-12` names); the CHIP under them is the system's — a 3pt
+      // rectangle at a real 44pt, and a reaction you gave INVERTS to the panel
+      // rather than filling with ember, because a reaction is not live
+      HStack(spacing: bare ? 0 : CSTokens.Space.s1) {
         Text(e).font(.system(size: 15))
-        if !bare { Text("\(r.n)").font(CSFont.monoSmall.weight(.semibold)) }
+        if !bare { Text("\(r.n)").csType(.agateS) }
       }
-      .padding(.horizontal, quick ? 14 : 10)
-      .frame(minWidth: quick ? 44 : 36, minHeight: quick ? 44 : 36)
-      .foregroundStyle(r.me ? cs.bg0 : cs.mut)
-      .background(r.me ? cs.brand : cs.bg2, in: Capsule())
-      .overlay(Capsule().stroke(r.me ? cs.brand : cs.rule, lineWidth: 1))
-      .a11yHitSlop(vertical: quick ? 0 : 4, horizontal: quick ? 0 : 4)
+      // the CHIP is 28pt (§7.2) and the TARGET is 44 — the frame goes outside
+      // the fill, or a row of reactions reads as a row of grey tiles
+      .padding(.horizontal, CSTokens.Space.s3)
+      .frame(minWidth: 36, minHeight: 28)
+      .foregroundStyle(r.me ? cs.panelInk : cs.mut)
+      .background(r.me ? cs.panel : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
+      .frame(minWidth: 44, minHeight: 44)
+      .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .simultaneousGesture(quick ? LongPressGesture(minimumDuration: 0.35).onEnded { _ in
@@ -105,13 +107,14 @@ struct ReactionBar: View {
     .accessibilityAction(named: "More reactions") { store.openTray = item.id }
   }
 
-  private func iconButton(_ symbol: String, label: String, expanded: Bool, action: @escaping () -> Void) -> some View {
+  private func iconButton(_ glyph: CSGlyph.Name, label: String, expanded: Bool, action: @escaping () -> Void) -> some View {
     Button(action: action) {
-      Image(systemName: symbol).font(.system(size: 13, weight: .medium))
-        .frame(minWidth: 36, minHeight: 36)
+      CSGlyph(glyph, size: .inline)
+        .frame(minWidth: 36, minHeight: 28)
         .foregroundStyle(cs.mut)
-        .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
-        .a11yHitSlop(vertical: 4, horizontal: 4)
+        .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
+        .frame(minWidth: 44, minHeight: 44)
+        .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
     .accessibilityLabel(label)
@@ -133,9 +136,8 @@ struct ReactionBar: View {
         .accessibilityLabel(r.label)
       }
     }
-    .padding(.horizontal, 6)
+    .padding(.horizontal, CSTokens.Space.s2)
     .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
     .transition(.opacity.combined(with: .move(edge: .top)))
   }
 
@@ -144,27 +146,22 @@ struct ReactionBar: View {
   private var thread: some View {
     VStack(alignment: .leading, spacing: 6) {
       ForEach(item.comments) { c in
-        (Text(c.who + " ").font(CSFont.subhead.weight(.semibold)).foregroundStyle(cs.ink)
-          + Text(c.text).font(CSFont.subhead).foregroundStyle(cs.ink))
+        (Text(c.who + " ").font(CSType.font(.name)).foregroundStyle(cs.ink)
+          + Text(c.text).font(CSType.font(.body)).foregroundStyle(cs.ink))
           .fixedSize(horizontal: false, vertical: true)
       }
       HStack(spacing: 8) {
         TextField("Talk your talk…", text: $draft)
           .accessibilityLabel("Comment")
-          .font(CSFont.subhead.weight(.medium))
+          .csType(.body)
           .foregroundStyle(cs.ink)
-          .padding(.horizontal, 12)
+          .padding(.horizontal, CSTokens.Space.s3)
           .frame(minHeight: 44)
+          // §7.2 · a field has no border
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(cs.rule, lineWidth: 1))
           .submitLabel(.send)
           .onSubmit(send)
-        Button("Send", action: send)
-          .font(CSFont.monoMediumBody)
-          .foregroundStyle(cs.ink)
-          .padding(.horizontal, 12).frame(minHeight: 44)
-          .background(cs.bg2, in: Capsule()).overlay(Capsule().stroke(cs.rule, lineWidth: 1))
-          .buttonStyle(.plain)
+        Button("Send", action: send).buttonStyle(.csTertiary(.content))
       }
     }
     .padding(.top, 4)

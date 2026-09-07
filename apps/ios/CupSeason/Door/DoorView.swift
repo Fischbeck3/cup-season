@@ -48,7 +48,7 @@ struct DoorView: View {
             // know what I am joining."
             if vm.stage == .email {
               Text(pending ?? OnboardingCopy.doorPitch)
-                .font(pending == nil ? CSFont.sentence : CSFont.sentenceBold)
+                .csType(.story)
                 .foregroundStyle(pending == nil ? cs.mut : cs.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -116,7 +116,7 @@ struct DoorView: View {
 
   private var emailStage: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text("Email").csEyebrow()
+      Text("Email").csType(.agate, caps: true).foregroundStyle(cs.mut)
       CSField("you@example.com", text: $vm.email)
         .keyboardType(.emailAddress)
         .textContentType(.emailAddress)
@@ -125,8 +125,9 @@ struct DoorView: View {
         .submitLabel(.go)
         .focused($focus, equals: .email)
         .onSubmit { send() }
-      CSButton("Continue with email", busy: vm.busy) { send() }
-        .padding(.top, 6)
+      Button("Continue with email") { send() }
+        .buttonStyle(.csPrimary(busy: vm.busy))
+        .padding(.top, CSTokens.Space.s2)
       if flags.appleSignIn {
         DoorAppleButton(
           onToken: { token, nonce, name in Task { await vm.apple(idToken: token, nonce: nonce, appleName: name) } },
@@ -135,7 +136,7 @@ struct DoorView: View {
           .disabled(vm.busy)
       }
       Text("One code, no password. Codes come from the newest email.")
-        .font(CSFont.footnote).foregroundStyle(cs.dimText).padding(.top, 4)
+        .csType(.bodyS).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
       haveACode
     }
   }
@@ -155,29 +156,26 @@ struct DoorView: View {
   @ViewBuilder private var haveACode: some View {
     if codeEntry {
       VStack(alignment: .leading, spacing: 8) {
-        Text("Your code").csEyebrow()
+        Text("Your code").csType(.agate, caps: true).foregroundStyle(cs.mut)
         CSField("SATURDAY26", text: $typedCode)
           .textInputAutocapitalization(.characters).autocorrectionDisabled()
           .submitLabel(.done)
           .focused($focus, equals: .joinCode)
           .accessibilityLabel("Your code")
           .onSubmit { takeCode() }
-        CSButton("That\u{2019}s my code", style: .quiet) { takeCode() }
+        Button("That\u{2019}s my code") { takeCode() }.buttonStyle(.csSecondary())
       }
       .padding(.top, 16)
     } else if pending == nil {
-      Button { codeEntry = true; focus = .joinCode } label: {
-        Text("I HAVE A CODE").csEyebrow(cs.ink).a11yHitSlop()
-      }
-      .buttonStyle(.plain)
-      .accessibilityLabel("I have a code")
-      .padding(.top, 16)
+      Button("I have a code") { codeEntry = true; focus = .joinCode }
+        .buttonStyle(.csTertiary(.content))
+        .padding(.top, CSTokens.Space.s4)
     }
   }
 
   private var codeStage: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text("The \(AuthRules.otpLength) digits").csEyebrow()
+      Text("The \(AuthRules.otpLength) digits").csType(.agate, caps: true).foregroundStyle(cs.mut)
       TextField("", text: $vm.code)
         .accessibilityLabel("The \(AuthRules.otpLength) digit code")
         .font(CSFont.code)
@@ -187,42 +185,43 @@ struct DoorView: View {
         .keyboardType(.numberPad)
         .textContentType(.oneTimeCode)   // iOS lifts the code out of the Mail notification
         .accessibilityLabel("The \(AuthRules.otpLength) digits")
-        .padding(.vertical, 12)
+        .padding(.vertical, CSTokens.Space.s3)
         .frame(maxWidth: .infinity, minHeight: 64)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-          .stroke(focus == .code ? cs.brand : cs.rule, lineWidth: focus == .code ? 2 : 1))
+        // §7.2 · a field has NO border; focus is the one 2px brand ring
+        .overlay {
+          if focus == .code {
+            RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
+              .stroke(cs.brand, lineWidth: 2)
+          }
+        }
         .focused($focus, equals: .code)
         .onChange(of: vm.code) { _, new in
           let clean = AuthRules.normalizeCode(new)
           if clean != new { vm.code = clean }
           if AuthRules.isCompleteCode(clean) { verify() }
         }
-      CSButton("Verify", busy: vm.busy) { verify() }
-        .padding(.top, 6)
+      Button("Verify") { verify() }
+        .buttonStyle(.csPrimary(busy: vm.busy))
+        .padding(.top, CSTokens.Space.s2)
       // two text links side by side at reading sizes, stacked at the accessibility sizes; 44pt each
-      A11yStack(spacing: 12) {
-        Button { resend() } label: {
-          Text(vm.resendIn > 0 ? "Resend in \(vm.resendIn)s" : "Resend the code").frame(minHeight: 44).contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(vm.resendIn > 0 || vm.busy)
-        .accessibilityHint(vm.resendIn > 0 ? "Available in \(vm.resendIn) seconds" : "")
+      A11yStack(spacing: CSTokens.Space.s3) {
+        Button(vm.resendIn > 0 ? "Resend in \(vm.resendIn)s" : "Resend the code") { resend() }
+          .buttonStyle(.csTertiary(.content))
+          .disabled(vm.resendIn > 0 || vm.busy)
+          .accessibilityHint(vm.resendIn > 0 ? "Available in \(vm.resendIn) seconds" : "")
         Spacer()
-        Button { vm.backToEmail(); focus = .email } label: {
-          Text("Change email").frame(minHeight: 44).contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+        Button("Change email") { vm.backToEmail(); focus = .email }
+          .buttonStyle(.csTertiary(.content))
       }
-      .font(CSFont.subhead).foregroundStyle(cs.mut)
-      .padding(.top, 2)
+      .padding(.top, CSTokens.Space.s1)
     }
     .onAppear { focus = .code }
   }
 
   private var passwordStage: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text("Password").csEyebrow()
+      Text("Password").csType(.agate, caps: true).foregroundStyle(cs.mut)
       SecureField("REVIEW PASSWORD", text: $vm.password)
         .accessibilityLabel("Password")
         .font(CSFont.mono)
@@ -232,27 +231,29 @@ struct DoorView: View {
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .focused($focus, equals: .password)
         .onSubmit { reviewer() }
-      CSButton("Sign in", busy: vm.busy) { reviewer() }
-      Button { vm.backToEmail(); focus = .email } label: {
-        Text("Change email").font(CSFont.subhead).foregroundStyle(cs.mut).frame(minHeight: 44).contentShape(Rectangle())
-      }
-      .buttonStyle(.plain).padding(.top, 2)
+      Button("Sign in") { reviewer() }.buttonStyle(.csPrimary(busy: vm.busy))
+      Button("Change email") { vm.backToEmail(); focus = .email }
+        .buttonStyle(.csTertiary(.content)).padding(.top, CSTokens.Space.s1)
     }
     .onAppear { focus = .password }
   }
 
   private var legal: some View {
     VStack(alignment: .leading, spacing: 6) {
-      // the web's door line, verbatim: the two words are the links
-      HStack(spacing: 0) {
-        Text("By continuing you agree to the ").foregroundStyle(cs.mut)
-        Link("Terms", destination: CSConfig.legal("terms")).foregroundStyle(cs.ink)
-        Text(" & ").foregroundStyle(cs.mut)
-        Link("Privacy Policy", destination: CSConfig.legal("privacy")).foregroundStyle(cs.ink)
-        Text(".").foregroundStyle(cs.mut)
-      }
-      .font(CSFont.footnote)
-      Text("v1 · build \(SessionStore.bundleBuild())").font(CSFont.monoSmall).foregroundStyle(cs.dimText)
+      // the web's door line, verbatim: the two words are the links.
+      //
+      // **IT IS ONE `Text`, NOT FIVE IN AN `HStack`.** Five pieces cannot wrap
+      // as a sentence — a `Link` is intrinsic and will not break, so the row
+      // set "By continuing you agree to / the" on two lines with `Terms &
+      // Privacy Policy.` hanging beside them, which is what the door's first
+      // Wave 8 screenshot showed. Markdown in a `Text` keeps the links and
+      // lets the sentence wrap like a sentence.
+      Text(.init("By continuing you agree to the [Terms](\(CSConfig.legal("terms"))) & [Privacy Policy](\(CSConfig.legal("privacy")))."))
+        .csType(.bodyS)
+        .foregroundStyle(cs.mut)
+        .tint(cs.ink)
+        .fixedSize(horizontal: false, vertical: true)
+      Text("v1 · build \(SessionStore.bundleBuild())").csType(.columnS).foregroundStyle(cs.mut)
     }
   }
 
