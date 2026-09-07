@@ -138,6 +138,18 @@ public enum CSSlatMetrics {
                + changeWidth(at: measure) + trailingWidth(at: measure) + CSTokens.Space.gutter)
   }
 
+  /// **Where the name column starts, measured from the rail's right edge.**
+  ///
+  /// One arithmetic, named once, because the product shipped two board heads
+  /// twelve points apart. `CSSlat.faceAndName` pays `railGap` before the face,
+  /// draws the face, and pays `railGap` again before the name block — so a row
+  /// with a face starts its name at `railGap + face + railGap` and a row
+  /// without one starts at `railGap`. Any head that wants to sit over the name
+  /// column asks here.
+  public static func nameInset(hasFace: Bool) -> CGFloat {
+    hasFace ? railGap + CSFace.Size.slat.rawValue + railGap : railGap
+  }
+
   /// **Does this field of names fit the column it is being read in?**
   ///
   /// `MeStripLayout`'s model, applied to the board: measure the actual
@@ -152,7 +164,24 @@ public enum CSSlatMetrics {
     guard !names.isEmpty, !size.isA11y else { return count >= 10 }
     let column = nameWidth(at: measure)
     guard column > 0 else { return false }
-    return names.contains { CSAdvance.width($0, .name, size) > column }
+    return names.filter(isAbbreviable).contains { CSAdvance.width($0, .name, size) > column }
+  }
+
+  /// **A HANDLE IS NOT A NAME, AND IT MAY NOT ABBREVIATE THE FIELD.**
+  ///
+  /// Abbreviation is decided per BOARD, so one outlier decides for everybody —
+  /// and a golfer who never set a display name shows as a handle
+  /// (`fedor.garcia-mendoza`), a single unbroken token with no given name in
+  /// it to shorten. On a photographed board one 13-character handle collapsed
+  /// `GALEN MARR`, `JADE OKONKWO` and `BLAKE RIDLEY` to first names while
+  /// itself staying full, so one column carried three naming conventions and
+  /// the abbreviation bought nothing: `fedor.garcia-mendoza` has no space, so
+  /// `name(_:abbreviate:)` returns it unchanged either way.
+  ///
+  /// A token with no space and more than eleven characters therefore truncates
+  /// itself rather than shortening everyone else's name.
+  public static func isAbbreviable(_ name: String) -> Bool {
+    name.contains(" ") || name.count <= 11
   }
 }
 
@@ -430,10 +459,25 @@ public struct CSStandingsBoard<Row: View>: View {
     CSSlatMetrics.abbreviates(names: names, count: count, measure: measure, size: typeSize)
   }
 
+  /// **The name column's head, because not every board is a board of people.**
+  /// A squads season's top table ranks SQUADS, and it printed `GOLFER` over
+  /// `MUDSHARKS · SAGUAROS · COYOTES`. The head names the column it is over or
+  /// it is not a head.
+  let nameHead: String
+  /// **Whether this board's rows carry a face**, which is the only thing that
+  /// decides where the name column starts. `faceAndName` pays `railGap` before
+  /// the face, the face, and `railGap` again before the name — so a board of
+  /// people starts its names at `face + railGap × 2` and a board of squads
+  /// starts them at `railGap`. The head paid the faced arithmetic on both and
+  /// sat 42pt right of every squad name it labelled.
+  let hasFaces: Bool
+
   public init(count: Int, cut: String? = nil, cutAfter: Int? = nil, names: [String] = [],
+              nameHead: String = "Golfer", hasFaces: Bool = true,
               @ViewBuilder rows: @escaping (Int, Bool) -> Row) {
     self.count = count; self.cut = cut; self.cutAfter = cutAfter
-    self.names = names; self.rows = rows
+    self.names = names; self.nameHead = nameHead; self.hasFaces = hasFaces
+    self.rows = rows
   }
 
   public var body: some View {
@@ -455,8 +499,8 @@ public struct CSStandingsBoard<Row: View>: View {
   private var head: some View {
     HStack(spacing: 0) {
       Text("Pos").frame(width: CSTokens.Space.rail)
-      Text("Golfer").frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.leading, CSFace.Size.slat.rawValue + CSSlatMetrics.railGap * 2)
+      Text(nameHead).frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.leading, CSSlatMetrics.nameInset(hasFace: hasFaces))
       Text("Gap").frame(width: CSSlatMetrics.changeWidth(at: measure), alignment: .trailing)
       Text("Pts").frame(width: CSSlatMetrics.trailingWidth(at: measure), alignment: .trailing)
     }
@@ -485,11 +529,26 @@ public struct CSCut: View {
   let label: String
   public init(_ label: String) { self.label = label }
   public var body: some View {
-    HStack(spacing: CSTokens.Space.s3) {
-      Text(label).csType(.agateS, caps: true).foregroundStyle(cs.ink)
-        .fixedSize(horizontal: !typeSize.isA11y, vertical: true).layoutPriority(1)
-      if !typeSize.isA11y {
-        Rectangle().fill(cs.ink).frame(height: 2).frame(maxWidth: .infinity)
+    // **WAVE 11 · THE RULE NEVER LEAVES.** At AX3 the label takes two lines and
+    // the rule was dropped entirely, so the cut degraded to a stray sentence
+    // between two rows — and the cut is the one element on the board whose
+    // meaning is carried by the RULE rather than by the words. The label wraps
+    // ABOVE a full-measure rule instead: the same two objects, stacked,
+    // because the line drawn across a field is the thing being said.
+    Group {
+      if typeSize.isA11y {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          Text(label).csType(.agateS, caps: true).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+          Rectangle().fill(cs.ink).frame(height: 2).frame(maxWidth: .infinity)
+        }
+      } else {
+        HStack(spacing: CSTokens.Space.s3) {
+          Text(label).csType(.agateS, caps: true).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: true, vertical: true).layoutPriority(1)
+          Rectangle().fill(cs.ink).frame(height: 2).frame(maxWidth: .infinity)
+        }
       }
     }
     .frame(minHeight: 26)

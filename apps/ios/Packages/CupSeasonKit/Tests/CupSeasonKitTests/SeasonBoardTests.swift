@@ -183,7 +183,27 @@ import Foundation
   }
   /// The cut is never gold and never says *advance* — it says who plays.
   @Test func theCutNamesTheFinalAndNothingElse() {
-    #expect(SeasonBoardCopy.cut == "Cut · top two play the Cup Final")
+    #expect(SeasonBoardCopy.cut(k: 2) == "Cut · top two play the Cup Final")
+  }
+  /// **The seat count is the server's, not a constant.** A squad-level
+  /// `squads2` season seats ONE, and the sentence agrees with the line.
+  @Test func theCutCountsTheSeatsTheSeasonActuallyHas() {
+    #expect(SeasonBoardCopy.cut(k: 1) == "Cut · top one plays the Cup Final")
+    #expect(SeasonBoardCopy.cut(k: 3) == "Cut · top three play the Cup Final")
+    // and it never prints a zero or a negative seat
+    #expect(SeasonBoardCopy.cut(k: 0) == SeasonBoardCopy.cut(k: 1))
+  }
+  /// `ClimbMath.cut` is where K comes from, and the three shipped finish
+  /// shapes are the three the board can be asked to draw.
+  @Test func theSeatCountComesFromTheSeasonsOwnShape() {
+    func meta(_ finish: String, _ structure: String?, _ level: String?, _ k: Int?) -> SeasonScenarios.Meta {
+      SeasonScenarios.Meta(finish: finish, structure: structure, level: level, k: k,
+                           months_left: 2, locked: false, cap: 4)
+    }
+    #expect(ClimbMath.cut(meta("points_table", "solo", "member", 2)).K == 1)
+    #expect(ClimbMath.cut(meta("cup_final", "squads2", "squad", 2)).K == 1)
+    #expect(ClimbMath.cut(meta("cup_final", "solo", "member", 3)).K == 3)
+    #expect(ClimbMath.cut(meta("cup_final", "solo", "member", nil)).K == 2)
   }
 }
 

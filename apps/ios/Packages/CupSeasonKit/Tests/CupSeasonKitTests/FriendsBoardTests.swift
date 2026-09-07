@@ -63,9 +63,48 @@ private let board = """
     #expect(b.ordered(.form)[1].beats == 2)
   }
 
+  // MARK: the rail follows the figure the row prints (DF-01)
+
+  /// **A ranked list may not contradict its own column.** The board prints
+  /// `avgVsNumber` under a note reading `VS PLAYING HCP · PLUS IS BETTER`, so
+  /// a +2.8 row outranks a −2.6 row, whatever the server's `rank_by_form`
+  /// says. The fixture below is the photographed board that caught it.
+  @Test func theOrderFollowsThePrintedFigureAndNotTheServersRank() throws {
+    let b = FriendsBoard.parse(try rows("""
+    [ { "profile_id": "\(tash)",   "display_name": "Tash",   "rounds_30d": 4, "beats_30d": 3,
+        "avg_vs_number_30d": -2.6, "index_current": 14.2, "rank_by_form": 1, "rank_by_index": 3 },
+      { "profile_id": "\(me)",     "display_name": "Jerecho", "rounds_30d": 6, "beats_30d": 2,
+        "avg_vs_number_30d": 1.0,  "index_current": 12.4, "rank_by_form": 2, "rank_by_index": 2, "is_me": true },
+      { "profile_id": "\(marcus)", "display_name": "Marcus", "rounds_30d": 2, "beats_30d": 2,
+        "avg_vs_number_30d": 2.8,  "index_current": 9.1,  "rank_by_form": 3, "rank_by_index": 1 },
+      { "profile_id": "\(quiet)",  "display_name": "Jade",   "rounds_30d": 1, "beats_30d": 0,
+        "avg_vs_number_30d": -3.8, "index_current": 10.0, "rank_by_form": 4, "rank_by_index": 4 } ]
+    """))
+    // plus is better, so the figures descend down the rail
+    #expect(b.ordered(.form).map(\.name) == ["Marcus", "You", "Tash", "Jade"])
+    let figures = b.ordered(.form).compactMap(\.avgVsNumber)
+    #expect(figures == figures.sorted(by: >), "the rail contradicts its own column")
+    // and BOTH directions: a plus outranks a minus, and a bigger plus outranks
+    // a smaller one
+    #expect(b.ranked(.form).first { $0.row.name == "Marcus" }?.rank == 1)
+    #expect(b.ranked(.form).first { $0.row.name == "Jade" }?.rank == 4)
+    // the handicap lens ranks on the figure IT prints, ascending
+    #expect(b.ordered(.handicap).map(\.name) == ["Marcus", "Jade", "You", "Tash"])
+  }
+
+  /// A golfer with no figure has nothing to be ranked on and takes the tail —
+  /// never a zero, never a guess (L-44).
+  @Test func aRowWithNoFigureTakesTheTail() throws {
+    let b = FriendsBoard.parse(try rows(board))
+    #expect(b.ordered(.form).last?.name == "Jade")     // no rounds in the window
+    #expect(b.ranked(.form).last?.rank == 4)
+    // and the rail is the POSITION, so it is always 1…n with no holes
+    #expect(b.ranked(.form).map(\.rank) == [1, 2, 3, 4])
+  }
+
   @Test func theIndexIsTheSecondLensAndItReordersTheList() throws {
     let b = FriendsBoard.parse(try rows(board))
-    #expect(b.ordered(.handicap).map(\.name) == ["Marcus", "You", "Tash", "Jade"])
+    #expect(b.ordered(.handicap).map(\.name) == ["Marcus", "Jade", "You", "Tash"])
     // and the two lenses genuinely disagree — a second lens that agrees with
     // the first is not a second lens
     #expect(b.ordered(.form).map(\.name) != b.ordered(.handicap).map(\.name))

@@ -654,7 +654,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 ---
 
-## IOS-047 · The card is one object, pushed, at 362 × 312 in every theme — **P1 · BUILT 2026-09-06, Wave 2 (D272; owner-authorised "build it", 2026-09-06)**
+## IOS-047a · The card is one object, pushed, at 362 × 312 in every theme — **P1 · BUILT 2026-09-06, Wave 2 (D272; owner-authorised "build it", 2026-09-06)**
 
 **Decision.** One object, one chrome, one ratio, one meta string. `CredentialCard`, `CredentialFace`, `TourCardSheet` and `FoundingTag` are **deleted**; `CSCredential` is the card, `PersonPage` is the surface, and the peek from a round card presents that same surface rather than a second one.
 
@@ -672,7 +672,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 **Gate:** `node tools/build-tokens.mjs` reports `same` on every artefact; preflight **PASS — 0 failures, 0 warnings** (46 checks, one new — *one credential, two clients* — and seven `LINT-nn` baselines lowered as the four deleted files and the old board row left the codebase); sunningdale 27; **CupSeason 35 · CSDesign 58 · CupSeasonKit 914 = 1,007 tests in 171 suites**, up from 985 / 167 at Wave 1. No test was deleted. No migration was written, so there was none to dry-run.
 
-### IOS-047 · Wave 3 — the identity page, not an account screen — **P1 · BUILT 2026-09-06 (owner-authorised "build it", 2026-09-06)**
+## IOS-047b · Wave 3 — the identity page, not an account screen — **P1 · BUILT 2026-09-06 (owner-authorised "build it", 2026-09-06)**
 
 *IOS-047 is the entry the build brief scopes to Waves 2–3. Wave 2 built the object; this is the surface it sits on, and it is recorded here rather than as a new number because it is the same decision — one golfer, one anatomy, one page — carried through to the tab root, the archive and the rivalry.*
 
@@ -694,7 +694,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 **Gate:** `node tools/build-tokens.mjs` reports `same` on a clean tree; preflight **PASS — 0 failures, 0 warnings** (nine `LINT-nn` baselines lowered as the three deleted files and eleven emoji left the codebase); sunningdale 27; **CupSeason 39 · CSDesign 64 · CupSeasonKit 919 = 1,022 tests in 175 suites**, up from 1,007 / 171 at Wave 2. No test was deleted — `credentialLines` was MIGRATED to the thing that replaced the chips it asserted. No migration was written, so there was none to dry-run.
 
-### IOS-048 · Wave 4 — the course is an editorial object, and the rating is content — **P1 · BUILT 2026-09-06 (owner-authorised "build it", 2026-09-06)**
+## IOS-048 · Wave 4 — the course is an editorial object, and the rating is content — **P1 · BUILT 2026-09-06 (owner-authorised "build it", 2026-09-06)**
 
 *The wave the build brief scopes to the course. It carries D272's imagery ladder to the surface the ladder was written for, and D275's rating to the client, with the server half written and unpushed.*
 
@@ -716,7 +716,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 **Gate:** `node tools/build-tokens.mjs` reports `same` on a clean tree; preflight **PASS — 0 failures, 0 warnings** (three `LINT-nn` baselines lowered as the two deleted files took a `Done`-in-ember toolbar, four `CSStat` tiles, a `CSFine` spinner and an off-token radius out of the codebase); sunningdale 27; **CupSeason 39 · CSDesign 72 · CupSeasonKit 930 = 1,041 tests in 180 suites**, up from 1,022 / 175 at Wave 3. No test was deleted — neither deleted view had one. The migration `20261007090000_what_your_golfers_think_of_a_course.sql` is **written and NOT RUN**, and there is no local Postgres in this session to dry-run it against.
 
-### IOS-049 · Wave 5 — a season is a story with a leaderboard — **P1 · BUILT 2026-09-06 (owner-authorised "build it", 2026-09-06)**
+## IOS-049a · Wave 5 — a season is a story with a leaderboard — **P1 · BUILT 2026-09-06 (owner-authorised "build it", 2026-09-06)**
 
 *The wave the build brief scopes to the season. It carries D273's ink laws to the surface money actually lives on, and D267's rank rail and rule-and-figure to the surface they were designed for.*
 
@@ -738,7 +738,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 **Reversibility.** MEDIUM. Three app files deleted (`ClimbView`, `IndividualRaceView`, `ProVerbRow`), one added (`SeasonFixture`, DEBUG-only), five rebuilt (`SeasonPage`, `SeasonPhases`, `StandingsTableView`, `PotPane`, `SeasonStoryPane`), one producer added to the Kit (`SeasonBoard.swift` — the month grouping, the clause, the gap, the count slots, the countdown and the pot's caption, all pure and all tested), and `CSSectionHead`, `CSSeasonCalendar`, `CSSlat`, `CSRankRail`, `CSCut` and `CSStandingsBoard` changed in `CSDesign`. Every RPC, every mechanic and every copy producer this surface reads are untouched, so a revert is a view revert.
 
-### IOS-049 · Wave 6 — the event is a title card, and the side is carried by the roster — **P1 · BUILT 2026-09-06 (owner-authorised "build it", 2026-09-06)**
+## IOS-049b · Wave 6 — the event is a title card, and the side is carried by the roster — **P1 · BUILT 2026-09-06 (owner-authorised "build it", 2026-09-06)**
 
 *The second half of the build brief's IOS-049. It carries the ceremony ground and the rule-and-figure to the one surface whose character is a moment, and it closes the single defect two of three blind reviewers filed against this deck.*
 
@@ -766,7 +766,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 **Reversibility.** MEDIUM. Two app files added (`EventTitleCard`, `CalloutRoomView`) plus one DEBUG-only (`EventFixture`); five rebuilt (`EventRoomScreen`, `RyderRoomView`, `MajorRoomView`, `IntentSheet`, `ScheduledRoundSheet`); four re-clothed (`EventBits`, `EventChips`, `EventPickerSheet`, `EventStagePicker`, and both setup sheets); one file added to `CSDesign` (`Event.swift` — `CSSideRoster`, `CSScoreRail`, `CSClashRow`), with `CSGlyph`, `CSSectionHead` and `CSTertiaryStyle`'s call sites touched. `EventRoomModel` is untouched, every RPC and every hand is unchanged, and the producer edits are re-casings of strings both clients already shared — so a revert is a view revert plus four `toUpperCase()`s.
 
-### IOS-050 · Wave 7 — one standings object, and a score that looks like a score — **P1 · BUILT 2026-09-07 (D276; owner-authorised "build it", 2026-09-06)**
+## IOS-050 · Wave 7 — one standings object, and a score that looks like a score — **P1 · BUILT 2026-09-07 (D276; owner-authorised "build it", 2026-09-06)**
 
 *The wave the build brief scopes to leaderboards and score displays. It carries D267's rank rail and rule-and-figure to the two surfaces they were designed for — the boards and the live sheet — and D276's one-meaning-per-mark to the producers underneath them.*
 
@@ -790,7 +790,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 ---
 
-### IOS-052 · Wave 8 — the system reaches the rest of the app, and the ceremony finally plays — **P0 · BUILT 2026-09-07 (D277; owner-authorised "build it", 2026-09-06)**
+## IOS-052 · Wave 8 — the system reaches the rest of the app, and the ceremony finally plays — **P0 · BUILT 2026-09-07 (D277; owner-authorised "build it", 2026-09-06)**
 
 *The propagate wave. Everything Phase 3 did not name, brought onto the same components — and the audit's worst-scoring screen rebuilt from the ground up.*
 
@@ -812,7 +812,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 **Gate:** `build-tokens` clean · preflight PASS, 0 failures, 0 warnings, with twelve LINT baselines lowered and check 47 added · sunningdale PASS · 1109 tests in 196 suites, up from 1100 in 193.
 
-### IOS-053 · Wave 9 — the lint runs all twenty-nine, and the retired vocabulary leaves the codebase — **BUILT 2026-09-07 (D278; owner-authorised "build it", 2026-09-06)**
+## IOS-053 · Wave 9 — the lint runs all twenty-nine, and the retired vocabulary leaves the codebase — **BUILT 2026-09-07 (D278; owner-authorised "build it", 2026-09-06)**
 
 *The consistency sweep. The wave that stops the system drifting back — and the wave that found out the drift-detector itself was broken.*
 
@@ -838,7 +838,7 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 
 **Gate:** `build-tokens` clean · preflight PASS with all 29 checks of §17 running plus checks 48 and 49 · sunningdale PASS · the suite up on the design commit, and the probe tests are new coverage rather than replaced coverage.
 
-### IOS-054 · Wave 10 — one system, three phones, five switches, and a desk you can drive from a keyboard — **BUILT 2026-09-07 (D279; owner-authorised "build it", 2026-09-06)**
+## IOS-054 · Wave 10 — one system, three phones, five switches, and a desk you can drive from a keyboard — **BUILT 2026-09-07 (D279; owner-authorised "build it", 2026-09-06)**
 
 *Responsive and accessibility. The first wave that could SEE the two axes Wave 0 built the hatches for — and the first shots taken on the SE and the Max at all.*
 
@@ -869,3 +869,19 @@ The ⊕'s composer is its own decision (IOS-020). Ceremonies, the finish, the se
 **Reversibility.** MEDIUM. Two files added to `CSDesign` (`Responsive.swift`, `ResponsiveTests.swift`), `CSSlat` restructured, `CSSlatMetrics` gains four measure-derived functions, `Theme.swift` gains the Reduce Transparency printing, and ~15 app files are edited. No producer changes its words, no RPC, no migration, no mechanic. The season fixture's ids are frozen so two captures of the same board wear the same pigments.
 
 **Gate:** `build-tokens` clean · preflight PASS · sunningdale PASS · the suite up on Wave 9, with the responsive and contrast suites as new coverage and two pinned numbers corrected in place with the reason in the file.
+
+## IOS-055 · The repair pass — the rail tells the truth, and one board head — **BUILT 2026-09-07 (D281; owner-authorised "build it", 2026-09-06)**
+
+Three reviewers went over the finished overhaul. This is the first of the repair commits, and it is the boards.
+
+**THE RAIL FOLLOWS THE FIGURE.** `FriendsBoard.ordered` sorted on the server's `rank_by_form`, which ranks on beats, while the column beside it prints the average against the golfer's own playing handicap — so the photographed board read −2.6, +1.0, +2.8, −3.8 down a 44pt gold-and-panel rail. Each lens now sorts on the figure IT prints, and `ranked(_:)` hands the view the position rather than a server column, so the two cannot diverge again. Asserted in both directions: a +2.8 row outranks a −2.6 row, a row with no figure takes the tail, and the rail is 1…n with no holes.
+
+**ONE BOARD HEAD, AND IT KNOWS WHETHER ITS ROWS CARRY A FACE.** `CSSlat.faceAndName` pays `railGap` before the face and again before the name; `CSStandingsBoard.head` paid that arithmetic on every board, including a squads season's top table, whose rows carry **no** face — so `GOLFER` sat 42pt right of `MUDSHARKS`, and read `GOLFER` over four squads. `CSSlatMetrics.nameInset(hasFace:)` is now the one place that sum lives; the board takes `nameHead:` and `hasFaces:`; and `MajorRoomView`'s hand-rolled head — which paid the gap ONCE and sized `CARDS` and `NET` with the 58/50 constants while its rows used the measure-relative forms — reads the same function and the same `(at:)` widths. The product had two board heads twelve points apart and one of them was wrong on an SE as well.
+
+**THE CUT KEEPS ITS RULE AT AX3.** `CSCut` dropped the 2pt ink rule entirely when the label wrapped, so at AX3 the cut degraded to a stray sentence between two rows — and the cut is the one element on the board whose meaning is carried by the rule. The label now wraps ABOVE a full-measure rule.
+
+**ONE LONG HANDLE NO LONGER ABBREVIATES THE FIELD.** Abbreviation is decided per BOARD, so a golfer who never set a display name — `fedor.garcia-mendoza`, one unbroken token — collapsed `GALEN MARR`, `JADE OKONKWO` and `BLAKE RIDLEY` to first names while itself staying full, and bought nothing: a token with no space cannot be shortened. `CSSlatMetrics.isAbbreviable` excludes a spaceless token over eleven characters from the measurement, so the outlier truncates itself.
+
+**Reversibility.** MEDIUM. `Board.swift` gains two parameters and one static; `FriendsBoard`'s ordering changes and its rank becomes a position; `StandingsTableView` reads `ClimbMath` for K; `LeagueRoomModel` gains `myCountingPoints`, derived from rows already on the device. No RPC, no migration, no mechanic.
+
+**Gate:** `build-tokens` clean · preflight PASS · sunningdale PASS · 980 tests / 161 suites, four new assertions.

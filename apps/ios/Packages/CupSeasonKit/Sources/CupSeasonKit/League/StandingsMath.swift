@@ -283,6 +283,14 @@ public enum StandingsMath {
                    counting: mm.filter { ($0.month_rank ?? Int.max) <= capN }.count)
   }
 
+  /// **The points on the month's counting rounds**, which is the array the
+  /// QB-12 closer arithmetic bumps against. `myMonth` counts them; this names
+  /// them. A round with no points is not a counter.
+  public static func countingPoints(mine: [LeagueRoom.RankedRound], capN: Int, monthKey: String) -> [Double] {
+    mine.filter { $0.played_on.hasPrefix(monthKey) && ($0.month_rank ?? Int.max) <= capN }
+        .compactMap(\.points)
+  }
+
   /// `window.myIndexDelta` (14514–14516).
   public static func myIndexDelta(mine: [LeagueRoom.RankedRound], profileIndex: Double?) -> Double? {
     let sorted = mine.sorted { $0.played_on < $1.played_on }

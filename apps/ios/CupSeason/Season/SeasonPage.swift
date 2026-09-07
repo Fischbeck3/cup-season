@@ -324,6 +324,19 @@ struct SeasonHead: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var la
 
+  /// The one sentence, from the one producer. `ClimbMath.closer` decides; this
+  /// only hands it the gap the board is already printing and the month's own
+  /// counting rounds.
+  private var closerLine: String? {
+    guard !model.isComplete,
+          let mineId = model.myTeamId,
+          let meIdx = model.teams.firstIndex(where: { $0.id == mineId }),
+          meIdx > 0, let leader = model.teams.first else { return nil }
+    return ClimbMath.closer(gap: leader.pts - model.teams[meIdx].pts,
+                            countingPoints: model.myCountingPoints,
+                            capN: model.bylaws.cap)
+  }
+
   var body: some View {
     let stage = LeagueCopy.stage(model.clock)
     let complete = model.isComplete
@@ -357,6 +370,18 @@ struct SeasonHead: View {
           .fixedSize(horizontal: false, vertical: true)
           .padding(.top, CSTokens.Space.s2)
           .id(SeasonPane.story.anchor)
+      }
+      // **QB-12 · TURN THE GAP INTO A MOVE**, and this is the chapter line's
+      // half of it (`season.md` §5: the climb's `closer` clause moves here).
+      // It rode `ClimbView`, which the table replaced, and it stopped
+      // rendering anywhere — so the app went back to telling a golfer he was
+      // four back without ever telling him one good round covers it. It speaks
+      // only when ONE round genuinely closes the gap; silence is the honest
+      // answer for a gap bigger than that.
+      if let closer = closerLine {
+        Text(closer).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .padding(.top, CSTokens.Space.s2)
       }
     }
     // **PAD FIRST, THEN TAKE THE MEASURE.** `.frame(maxWidth: .infinity)`

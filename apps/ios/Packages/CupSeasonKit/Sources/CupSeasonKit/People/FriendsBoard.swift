@@ -79,6 +79,17 @@ public struct FriendsBoard: Sendable, Equatable {
 
     public func rank(_ lens: Lens) -> Int { lens == .form ? rankByForm : rankByIndex }
 
+    /// **Ascending sort key on the figure this lens PRINTS**, or nil when the
+    /// row has no figure and belongs in the tail. Form is negated because
+    /// plus is better and the sort is ascending; the handicap is not, because
+    /// a lower index is the better golfer.
+    func sortKey(_ lens: Lens) -> Double? {
+      switch lens {
+      case .form:     guard rounds > 0, let a = avgVsNumber else { return nil }; return -a
+      case .handicap: return indexCurrent
+      }
+    }
+
     /// "4 rounds · beat their playing HCP 3 times" — the sentence IA §10.2
     /// writes, with R-M's noun,
     /// with the pronoun the row can actually justify. Nobody's gender is
@@ -127,15 +138,45 @@ public struct FriendsBoard: Sendable, Equatable {
 
   public init(days: Int = 30, rows: [Row]) { self.days = days; self.rows = rows }
 
-  /// The rows in the order the chosen lens puts them. The SERVER computes both
-  /// ranks; this only chooses which one to read, so the two clients cannot
-  /// order the same board differently.
+  /// **THE RAIL FOLLOWS THE FIGURE THE ROW PRINTS.**
+  ///
+  /// This read the server's `rank_by_form`, which orders on BEATS first — and
+  /// the column beside it prints the AVERAGE against the golfer's own playing
+  /// handicap. On a photographed board that came out −2.6 (01), +1.0 (02),
+  /// +2.8 (03), −3.8 (04): a ranked list neither ascending nor descending on
+  /// the only figure it shows, with the design's headline device carrying the
+  /// contradiction. A rail whose numeral disagrees with the number beside it
+  /// cannot be scanned at all.
+  ///
+  /// So the order is computed here, from the figure each lens prints:
+  ///
+  ///   * **form** — `avgVsNumber` DESCENDING, because `CSBands` is written so
+  ///     a positive figure is the better round (`bandName(+3)` is *Torched
+  ///     it*). The artboard's `LOWER IS BETTER` is the document that is wrong,
+  ///     and Wave 7 already corrected the words; this corrects the sort.
+  ///   * **handicap** — `indexCurrent` ASCENDING, the parking-lot convention.
+  ///
+  /// A golfer with no rounds in the window (form) or no index (handicap) has
+  /// no figure to be ranked on and takes the TAIL, in name order — never a
+  /// zero and never a guess (L-44).
+  ///
+  /// The server's two ranks still decode, because a payload must, and
+  /// `rank_by_form` will be aligned to this when `friends_board` is pushed;
+  /// until then the ORDER a golfer reads is the order the figures make.
   public func ordered(_ lens: Lens) -> [Row] {
-    rows.sorted {
-      let a = $0.rank(lens), b = $1.rank(lens)
-      if a != b { return a < b }
-      return ($0.displayName ?? "") < ($1.displayName ?? "")
+    rows.sorted { a, b in
+      let x = a.sortKey(lens), y = b.sortKey(lens)
+      if let x, let y, x != y { return x < y }
+      if (x == nil) != (y == nil) { return y == nil }
+      return (a.displayName ?? "") < (b.displayName ?? "")
     }
+  }
+
+  /// The board with each row's POSITION in it — the numeral the rail prints.
+  /// It is the position, not a server column, so the rail and the figure can
+  /// never disagree again.
+  public func ranked(_ lens: Lens) -> [(rank: Int, row: Row)] {
+    ordered(lens).enumerated().map { (rank: $0.offset + 1, row: $0.element) }
   }
 
   // MARK: - The copy

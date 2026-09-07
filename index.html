@@ -6471,6 +6471,14 @@ function climbCut(meta){
   }
   return {K:2, line:'CUT LINE'};   /* demo / pre-scenarios: matches the standings cutrow */
 }
+/* `Cut · top two play the Cup Final` — the phone's `SeasonBoardCopy.cut(k:)`,
+   word for word, with the seat count spelled (L-33). One sentence, two
+   clients. */
+function csCutLabel(k){
+  const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+  const n = Math.max(1, k|0);
+  return 'Cut \u00b7 top ' + (words[n] || String(n)) + (n === 1 ? ' plays' : ' play') + ' the Cup Final';
+}
 function climbSpark(arr){
   /* one viewer, one line, one color — gold, like everything else on your rung */
   if(!arr || arr.length<2) return '';
@@ -7005,6 +7013,9 @@ function renderStandings(){
      says can never disagree. `StandingsMath.competitionRanks` is the twin. */
   const ranks = teams.map((t,i)=> i > 0 && teams[i-1].pts === t.pts ? null : i + 1);
   ranks.forEach((v,i)=>{ if(v === null) ranks[i] = ranks[i-1]; });
+  /* The seats this season actually has, from the one function that knows -
+     `climbCut`, which the climb has read since D24. */
+  const cutK = Math.max(1, climbCut(window.scenarios && window.scenarios.meta).K);
   const tiedAt = i => (i > 0 && ranks[i-1] === ranks[i]) || (i+1 < ranks.length && ranks[i+1] === ranks[i]);
   teams.forEach((t,i)=>{
     const ti=teams.indexOf(t);
@@ -7068,10 +7079,16 @@ function renderStandings(){
       <td class="num pts">${t.pts}</td>
     </tr>`;
     /* The cut is a Cup-Final concept — meaningless for a points table or a
-       field of two. `top two PLAY the Cup Final`, never `advance`, and never
-       gold. */
-    if(i===1 && (state.finish||'cup_final')==='cup_final' && teams.length>2)
-      html+=`<tr class="cutrow"><td colspan="${deskCols?6:4}"><span>Cut \u00b7 top two play the Cup Final</span><i></i></td></tr>`;
+       field the cut cannot divide. `top N PLAY the Cup Final`, never
+       `advance`, and never gold.
+
+       WAVE 11 · K IS NOT ALWAYS TWO. This drew after row two and said "top
+       two" while `climbCut` two thousand lines above already computed the
+       seats — one for a points table, one for a squad-level squads2 season —
+       so the desk's own two renderers disagreed with each other about the
+       same season. One function decides; both read it. */
+    if(i===cutK-1 && (state.finish||'cup_final')==='cup_final' && teams.length>cutK)
+      html+=`<tr class="cutrow"><td colspan="${deskCols?6:4}"><span>${esc(csCutLabel(cutK))}</span><i></i></td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
   sfGo(el);   /* SF-6: arm any freshly wrapped ranks — no-op on a static render */
@@ -20992,8 +21009,24 @@ async function renderFriendsBoard(){
      is one page saying two things (L-34). */
   if(rows.length < 2){ box.innerHTML = ''; return; }
   const lens = CS_BOARD_LENS;
-  const rank = r => Number((lens === 'form' ? r.rank_by_form : r.rank_by_index) || 0);
-  const sorted = rows.slice().sort((a, b) => rank(a) - rank(b) || String(a.display_name||'').localeCompare(String(b.display_name||'')));
+  /* WAVE 11 - THE RAIL FOLLOWS THE FIGURE THE ROW PRINTS. This read the
+     server's `rank_by_form`, which orders on BEATS, while the column beside it
+     prints the AVERAGE against the golfer's own playing handicap - so the
+     board came out -2.6, +1.0, +2.8, -3.8: neither ascending nor descending on
+     the one number it shows. Form sorts on the average DESCENDING (plus is
+     better - `csBoardBand` is written that way), the handicap on the index
+     ASCENDING, and a row with no figure takes the tail in name order. The
+     phone's `FriendsBoard.ordered` is the twin. */
+  const sortKey = r => lens === 'form'
+    ? (Number(r.rounds_30d || 0) > 0 && r.avg_vs_number_30d != null ? -Number(r.avg_vs_number_30d) : null)
+    : (r.index_current != null ? Number(r.index_current) : null);
+  const sorted = rows.slice().sort((a, b) => {
+    const x = sortKey(a), y = sortKey(b);
+    if(x != null && y != null && x !== y) return x - y;
+    if((x == null) !== (y == null)) return x == null ? 1 : -1;
+    return String(a.display_name||'').localeCompare(String(b.display_name||''));
+  });
+  const rank = r => sorted.indexOf(r) + 1;
   /* WAVE 7 - the same slat, and the same three facts in the same order as the
      phone: the rail, the face, the count, and the FIGURE with its band under
      it. The sub-line carries the count ONLY - it used to carry the count AND

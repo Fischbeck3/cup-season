@@ -153,7 +153,18 @@ public enum SeasonBoardCopy {
 
   /// `CUT · TOP TWO PLAY THE CUP FINAL` — and **never gold**: nothing here is
   /// won yet.
-  public static let cut = "Cut · top two play the Cup Final"
+  ///
+  /// **K IS NOT ALWAYS TWO.** This was a constant, printed under row two on
+  /// every board, while `ClimbMath.cut(meta)` has always mapped the three
+  /// shipped finish shapes to *one* seat for a points table, *one* for a
+  /// squad-level `squads2` season and `meta.k ?? 2` otherwise — a structure
+  /// the wizard offers. A squads2 league therefore read `top two play the Cup
+  /// Final` where ONE squad advances, with the line drawn under the wrong row.
+  /// The seat count comes in; the sentence spells it (L-33).
+  public static func cut(k: Int) -> String {
+    let seats = max(1, k)
+    return "Cut · top \(CSCopy.spelled(seats)) play\(seats == 1 ? "s" : "") the Cup Final"
+  }
 
   // MARK: - the pot
 

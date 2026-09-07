@@ -103,6 +103,13 @@ public final class LeagueRoomModel {
   public private(set) var teams: [Team] = []
   public private(set) var indRows: [IndRow] = []
   public private(set) var myMonth: MyMonth?
+  /// **The points on my month's COUNTING rounds**, newest month, in no order —
+  /// the array `ClimbMath.closer` needs to answer "does one round close it".
+  /// `MyMonth.counting` is a COUNT, and a count cannot say which counter a
+  /// top-band round would bump; the rows are already on the device, so the
+  /// season page reads them rather than guessing (L-44) or asking the server
+  /// for a fact it has.
+  public private(set) var myCountingPoints: [Double] = []
   public private(set) var myIndexDelta: Double?
   public private(set) var priorRank: [UUID: Int] = [:]
   /// A-4 · the day `priorRank` is measured FROM. nil = no clock, no label.
@@ -370,6 +377,8 @@ public final class LeagueRoomModel {
     indRows = StandingsMath.indRows(indiv: indivStandings, ranked: rankedRounds, members: members, squads: squads, myMemberId: myId, capN: capN)
     let mine = rankedRounds.filter { $0.member_id == myId }
     myMonth = season == nil ? nil : StandingsMath.myMonth(mine: mine, capN: capN, monthKey: LeagueDates.monthKey(clock.today))
+    myCountingPoints = season == nil ? []
+      : StandingsMath.countingPoints(mine: mine, capN: capN, monthKey: LeagueDates.monthKey(clock.today))
     myIndexDelta = StandingsMath.myIndexDelta(mine: mine, profileIndex: viewer?.indexCurrent)
     if season != nil, !squads.isEmpty {
       teams = StandingsMath.squadTeams(squads: squads, standings: squadStandings, captainName: { [self] in memName($0) })

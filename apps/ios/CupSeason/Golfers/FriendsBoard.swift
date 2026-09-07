@@ -70,9 +70,11 @@ struct FriendsBoardSection: View {
       }
       .padding(.bottom, CSTokens.Space.s2)
       columnNote
-      let rows = b.ordered(lens)
-      ForEach(rows) { r in
-        Button { openPerson(r.profileId) } label: { row(r) }
+      // The rail carries the row's POSITION on this board, not a server
+      // column — see `FriendsBoard.ordered`. The two cannot disagree because
+      // there is only one of them.
+      ForEach(b.ranked(lens), id: \.row.id) { entry in
+        Button { openPerson(entry.row.profileId) } label: { row(entry.row, rank: entry.rank) }
           .buttonStyle(.plain)
       }
       // L-22 is a promise a golfer should be able to read, so it renders
@@ -126,8 +128,8 @@ struct FriendsBoardSection: View {
   /// The rail's field is `panel` when the row is YOURS and unpainted otherwise
   /// — **never gold** (D-6), because leading a rolling 30-day form window is
   /// not a thing that was *won*, so this surface spends **zero** gold objects.
-  private func row(_ r: FriendsBoard.Row) -> some View {
-    CSSlat(rank: r.rank(lens),
+  private func row(_ r: FriendsBoard.Row, rank: Int) -> some View {
+    CSSlat(rank: rank,
            field: r.isMe ? .mine : .none,
            face: CSFace.Model(id: r.profileId, marker: r.marker,
                               initials: Initials.of(r.displayName), isViewer: r.isMe),

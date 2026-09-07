@@ -27,6 +27,10 @@ import CupSeasonKit
 
 struct MajorRoomView: View {
   @Environment(\.cs) private var cs
+  /// The width this board is being READ at, injected by `csPage` — the two
+  /// numeric columns are a fraction of it, and the head has to ask the same
+  /// question the rows do.
+  @Environment(\.csMeasure) private var measure
   @Environment(\.toast) private var toast
   @Environment(\.dismiss) private var dismiss
   @Environment(SessionStore.self) private var store
@@ -261,15 +265,24 @@ struct MajorRoomView: View {
     HStack(spacing: 0) {
       Text("Pos").csType(.agateS, caps: true).foregroundStyle(cs.mut)
         .frame(width: CSTokens.Space.rail, alignment: .center)
-      // the name column starts after the rail, the face and the gap — the head
-      // sits over the column it names or it is not a head
+      // the name column starts after the rail, the face and the two rail gaps
+      // — the head sits over the column it names or it is not a head, and
+      // `CSSlatMetrics.nameInset` is the one place that arithmetic lives now.
+      // This paid the gap ONCE and sat 12pt left of every name beneath it,
+      // while `CSStandingsBoard.head` paid it twice: the product shipped two
+      // board heads twelve points apart.
       Text("Golfer").csType(.agateS, caps: true).foregroundStyle(cs.mut)
-        .padding(.leading, CSFace.Size.slat.rawValue + CSSlatMetrics.railGap)
+        .padding(.leading, CSSlatMetrics.nameInset(hasFace: true))
         .frame(maxWidth: .infinity, alignment: .leading)
+      // **AND THE COLUMNS ARE MEASURE-RELATIVE.** The rows beneath use
+      // `changeWidth(at:)` / `trailingWidth(at:)`, which return 54 and 46.5 on
+      // a 375pt SE; the head used the 58 / 50 constants, so on every phone
+      // narrower than the artboard both heads sat right of the columns they
+      // name.
       Text("Cards").csType(.agateS, caps: true).foregroundStyle(cs.mut)
-        .frame(width: CSSlatMetrics.changeWidth, alignment: .trailing)
+        .frame(width: CSSlatMetrics.changeWidth(at: measure), alignment: .trailing)
       Text("Net").csType(.agateS, caps: true).foregroundStyle(cs.mut)
-        .frame(width: CSSlatMetrics.trailingWidth, alignment: .trailing)
+        .frame(width: CSSlatMetrics.trailingWidth(at: measure), alignment: .trailing)
     }
     .padding(.trailing, CSTokens.Space.gutter)
     .frame(maxWidth: .infinity, alignment: .leading)

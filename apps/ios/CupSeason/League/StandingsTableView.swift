@@ -42,7 +42,15 @@ struct StandingsTableView: View {
     let n = model.teams.count
     guard n > 10, !wholeField else { return nil }
     let mine = model.myTeamId.flatMap { id in model.teams.firstIndex { $0.id == id } }
-    var keep = Set([0, 1, 2])
+    // **THE WINDOW IS THE CLIMB'S WINDOW, AND K IS NOT ALWAYS TWO.**
+    // `ClimbMath.items` opened on the leader, the two rungs either side of the
+    // cut and the viewer ±1; retyping that as `Set([0, 1, 2])` hard-coded a
+    // two-seat cut, so a points table (K = 1) and a squad-level `squads2`
+    // season (K = 1) showed a golfer on rank three who is not near any line,
+    // and a K of three hid the golfer who actually holds the last seat.
+    // One producer decides the seats; the board reads it.
+    var keep = Set([0])
+    if K < n { keep.insert(K - 1); keep.insert(K) } else { keep.insert(n - 1) }
     if let m = mine { for i in (m - 1)...(m + 1) where i >= 0 && i < n { keep.insert(i) } }
     keep.insert(n - 1)
     let rows = keep.sorted()
@@ -53,6 +61,13 @@ struct StandingsTableView: View {
     }
     return (rows, hidden)
   }
+
+  /// **The seats this season actually has.** `ClimbMath.cut` maps the three
+  /// shipped finish shapes to a K — one for a points table, one for a
+  /// squad-level `squads2` season, `meta.k ?? 2` otherwise — and everything on
+  /// this board that draws a line reads it: the window, the cut's row and the
+  /// cut's sentence.
+  private var K: Int { max(1, ClimbMath.cut(model.scenarios?.meta).K) }
 
   /// **04 · 04 · 06 — competition rank, not the array index** (§3's second hard
   /// case). The renderers indexed the sorted array, so two golfers on 86 points
@@ -76,11 +91,22 @@ struct StandingsTableView: View {
                          // abbreviates on an SE instead of truncating two
                          // surnames — the count rule alone could not see the
                          // phone it was being read on.
-                         names: indices.map { teams[$0].name }) { k, abbreviate in
+                         names: indices.map { teams[$0].name },
+                         // §1.4a · the top table of a squads season ranks
+                         // SQUADS, and a squad has no face and no given name.
+                         nameHead: teams.allSatisfy(\.solo) ? "Golfer" : "Squad",
+                         hasFaces: teams.allSatisfy(\.solo)) { k, abbreviate in
           let i = indices[k]
           if let n = hidden[i] { ellipsis(n) }
           row(i, teams[i], rank: rk.indices.contains(i) ? rk[i] : i + 1,
               tied: tied(i, rk), abbreviate: abbreviate)
+        }
+        if let hollow = hollowFinal {
+          Text(hollow).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+            .csGutter()
+            .padding(.top, CSTokens.Space.s3)
+            .accessibilityLabel(hollow.capitalized)
         }
         if window != nil {
           HStack {
@@ -99,13 +125,29 @@ struct StandingsTableView: View {
 
   /// A Cup-Final concept, meaningless for a points table or a field of two.
   private var cutLabel: String? {
-    model.bylaws.finish == "cup_final" && model.teams.count > 2 ? SeasonBoardCopy.cut : nil
+    guard model.bylaws.finish == "cup_final", model.teams.count > K else { return nil }
+    return SeasonBoardCopy.cut(k: K)
   }
-  /// The cut draws after the SECOND ROW OF THE BOARD, wherever the window put
-  /// it — a cut drawn after a hidden row is a cut drawn nowhere.
+  /// The cut draws after the **Kth row of the board**, wherever the window put
+  /// it — a cut drawn after a hidden row is a cut drawn nowhere, and a cut
+  /// drawn after row two on a one-seat season is a line across the wrong
+  /// place.
   private func cutAfter(in indices: [Int]) -> Int? {
-    guard cutLabel != nil, let k = indices.firstIndex(of: 1) else { return nil }
+    guard cutLabel != nil, let k = indices.firstIndex(of: K - 1) else { return nil }
     return k + 1
+  }
+
+  /// **D127's hollow final, said out loud.** When the roster cannot fill more
+  /// seats than it has contenders there is no race, and `ClimbMath.note` is
+  /// the sentence that says so — `EVERYONE ADVANCES — 2 CONTENDERS, 2 SEATS`.
+  /// The web took this fix in August; the phone announced a race with one
+  /// runner for two months, and then the climb that carried it was folded into
+  /// the table and the sentence went with it. It rides the board's foot, where
+  /// a cut would be if there were one to draw.
+  private var hollowFinal: String? {
+    let n = model.teams.count
+    guard n > 0, model.bylaws.finish == "cup_final", K >= n else { return nil }
+    return ClimbMath.note(teams: model.teams, scenarios: model.scenarios)
   }
 
   // MARK: a row
