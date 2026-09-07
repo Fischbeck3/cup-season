@@ -219,6 +219,12 @@ enum GolfersRoute: Hashable { case person(UUID), headToHead(UUID) }
 /// `.record` is D232's second head, promoted from a section to a destination.
 enum YouRoute: Hashable { case settings, addGhin, record }
 
+/// Wave 4 · COURSES, on whichever stack asked for it. It is one case rather
+/// than a `Bool` so the path can carry it, and it is not folded into the four
+/// per-tab enums because the courses list opens from Compete, from You and
+/// from the boot-failed screen, which has no tab at all.
+enum CoursesRoute: Hashable { case list }
+
 /// Y-16, retargeted by D222 · "open this competition", callable from ANY
 /// screen: remembers it, clears Compete's stack so the object is what shows,
 /// and selects the tab. Installed once by `MainTabView`; the default is a no-op
@@ -345,6 +351,10 @@ struct MainTabView: View {
             case .schedule: ScheduleScreen(links: csLinks)
             }
           }
+          .navigationDestination(for: CourseSheetRef.self) { c in
+            CourseScreen(courseId: c.id, label: c.label)
+          }
+          .navigationDestination(for: CoursesRoute.self) { _ in CoursesScreen() }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.home.label, systemImage: "house") }
@@ -358,6 +368,10 @@ struct MainTabView: View {
                       push: { competePath.append($0) },
                       openGolfers: { openGolfers() })
           .navigationDestination(for: CompeteRoute.self) { r in competeDestination(r) }
+          .navigationDestination(for: CourseSheetRef.self) { c in
+            CourseScreen(courseId: c.id, label: c.label)
+          }
+          .navigationDestination(for: CoursesRoute.self) { _ in CoursesScreen() }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.compete.label, systemImage: "flag") }
@@ -375,6 +389,10 @@ struct MainTabView: View {
                       openHeadToHead: { golfersPath.append(GolfersRoute.headToHead($0)) },
                       openRound: { presenter.scheduledRound = $0 })
           .navigationDestination(for: GolfersRoute.self) { r in golfersDestination(r) }
+          .navigationDestination(for: CourseSheetRef.self) { c in
+            CourseScreen(courseId: c.id, label: c.label)
+          }
+          .navigationDestination(for: CoursesRoute.self) { _ in CoursesScreen() }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.golfers.label, systemImage: "person.2") }
@@ -397,6 +415,10 @@ struct MainTabView: View {
                                      })
             }
           }
+          .navigationDestination(for: CourseSheetRef.self) { c in
+            CourseScreen(courseId: c.id, label: c.label)
+          }
+          .navigationDestination(for: CoursesRoute.self) { _ in CoursesScreen() }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.you.label, systemImage: "person.text.rectangle") }
@@ -559,8 +581,18 @@ struct MainTabView: View {
       // make the screenshot a lie about what the feature does (D261's rule).
       case "bag": presenter.showBag = true
       case "coursecard":
-        let kept = await CourseBookStore().kept().first
-        presenter.courseCard = CourseSheetRef(id: kept?.id ?? "never-kept", label: kept?.label ?? "A course you have not played")
+        // `-cs_dev_open coursecard never` forces the NEVER-KEPT state on a
+        // phone that does hold books, because that state is half of this
+        // surface's acceptance and it is otherwise unreachable without
+        // deleting the store. Nothing is seeded either way — a fabricated book
+        // would make the screenshot a lie about what the store does (D261).
+        // `-cs_dev_open coursecard rate` is read by the page itself; the
+        // launch argument is the whole mechanism, so nothing here changes.
+        let never = i + 2 < a.count && a[i + 2] == "never"
+        let kept = never ? nil : await CourseBookStore().kept().first
+        openCourse(CourseSheetRef(id: kept?.id ?? "never-kept", label: kept?.label ?? "A course you have not played"))
+      // Wave 4 · the courses list is a screen now, not a settings pane.
+      case "courses": openCourse(nil)
       default: break
       }
     }
@@ -620,7 +652,6 @@ struct MainTabView: View {
           .csCloseButton { presenter.tourCard = nil }
       }
     }
-    .sheet(item: $presenter.courseCard) { CourseCardSheet(courseId: $0.id, label: $0.label) }
     /* D262 · R-O · the bag. The You row that opens it is drawn only once its
        read has answered, so this sheet is never reachable without one. */
     .sheet(isPresented: $presenter.showBag) { BagSheet() }
@@ -881,6 +912,25 @@ struct MainTabView: View {
 
   /// D222 / IOS-032 · a golfer is a destination. Clearing the stack first means
   /// the page is what shows rather than a card three pushes deep.
+  /// **A course is an OBJECT, so it is pushed** (§7.3) — onto whichever tab
+  /// the golfer is standing on, because a course opened from the schedule
+  /// belongs to Compete and one opened from Settings belongs to You. `nil`
+  /// pushes the list rather than one course.
+  ///
+  /// `CourseSheetRef(id: "never-kept", …)` keeps working exactly as it did: it
+  /// is the sentinel `MainTabView` hands the hatch when this phone holds no
+  /// books at all, and the page draws `CourseBookCopy.neverKept` from it.
+  private func openCourse(_ ref: CourseSheetRef?) {
+    switch tab {
+    case .home: if let ref { homePath.append(ref) } else { homePath.append(CoursesRoute.list) }
+    case .compete: if let ref { competePath.append(ref) } else { competePath.append(CoursesRoute.list) }
+    case .golfers: if let ref { golfersPath.append(ref) } else { golfersPath.append(CoursesRoute.list) }
+    case .you, .play:
+      tab = .you
+      if let ref { youPath.append(ref) } else { youPath.append(CoursesRoute.list) }
+    }
+  }
+
   private func openPerson(_ id: UUID) {
     if tab != .golfers { golfersPath = NavigationPath() }
     tab = .golfers

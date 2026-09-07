@@ -534,7 +534,25 @@ private struct SettingsPane: View {
       // lookup with no signal, so the lookup needs a door that does not depend
       // on one. It sits with the other things you consult rather than the
       // things you are.
-      KeptCoursesList()
+      // Wave 4 · **the courses list stops being a settings pane.** It is a
+      // screen with its own head, its own chip row and a drawn thumbnail on
+      // every row; this is the door onto it.
+      CSSectionHead("Courses").padding(.top, 14)
+      NavigationLink(value: CoursesRoute.list) {
+        HStack(spacing: CSTokens.Space.s3) {
+          VStack(alignment: .leading, spacing: 2) {
+            Text("Courses on your phone").csType(.social).foregroundStyle(cs.ink)
+            Text(CourseBookCopy.what).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+          CSGlyph(.chevron, size: .inline).foregroundStyle(cs.mut)
+        }
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityHint("Opens the courses this phone has kept")
 
       // D177 · "How it works" moved off the You page. It is reference material
       // — the same rows the Pro reads and a brand-new golfer reads — and it was

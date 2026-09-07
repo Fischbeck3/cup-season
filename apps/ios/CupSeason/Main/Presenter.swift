@@ -17,9 +17,10 @@ import CupSeasonKit
 @Observable
 final class Presenter {
   var tourCard: UUID?
-  /// D261 / R-N · the course card — the tees, the ratings and slopes and the
-  /// hole card, drawn from the phone's own store so it opens on a plane.
-  var courseCard: CourseSheetRef?
+  // D261 / R-N · the course used to rise here as a sheet. Wave 4 makes it a
+  // PUSHED screen (§7.3: objects are pushed, actions are presented), so it
+  // lives on the tab's own `NavigationPath` and `MainTabView.openCourse` is
+  // the one door onto it.
   /// D262 / R-O · the bag — fourteen clubs, the sideline and the ball, the
   /// one place any of them is edited.
   var showBag = false

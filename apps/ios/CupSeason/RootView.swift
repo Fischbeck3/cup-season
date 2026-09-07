@@ -228,7 +228,19 @@ struct BootFailedView: View {
     }
     .background(cs.bg0.ignoresSafeArea())
     .task { snapshot = DispatchSnapshot.read() }
-    .sheet(isPresented: $courses) { KeptCoursesSheet() }
+    // OE-1 · the boot-failed door onto the courses this phone kept. It reads
+    // `CourseDisk` and needs no session, so it works on this screen unchanged
+    // — and it carries its own stack, because the course page inside it is a
+    // push and there is no tab bar under this screen to push onto.
+    .sheet(isPresented: $courses) {
+      NavigationStack {
+        CoursesScreen()
+          .navigationDestination(for: CourseSheetRef.self) { c in
+            CourseScreen(courseId: c.id, label: c.label)
+          }
+          .csCloseButton { courses = false }
+      }
+    }
     // OE-2 · it names what is lost, because on this screen the golfer cannot
     // get any of it back until they have a signal AND an email.
     .confirmationDialog("Sign out of Cup Season?", isPresented: $askSignOut, titleVisibility: .visible) {

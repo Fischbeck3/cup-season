@@ -2508,15 +2508,46 @@ body:not(.noleague) #hubLeagueless{display:none;}
 /* D261 / R-N · the desk's course archive. The card scrolls INSIDE its own
    container — the page never scrolls sideways (IA §4.2, and preflight 39's
    web twin asserts it at 320px). Nothing here declares below the 11px floor. */
-.cbook{border:1px solid var(--rule); border-radius:10px; padding:10px 12px; margin-bottom:8px; background:var(--bg1);}
-.cbook>summary{cursor:pointer; list-style:none; padding:4px 0; min-height:32px;}
-.cbook>summary::-webkit-details-marker{display:none;}
-.cbtee{margin-top:10px; padding-top:8px; border-top:1px solid var(--rule);}
-.cbcard{overflow-x:auto; -webkit-overflow-scrolling:touch; max-width:100%;}
-.cbtable{border-collapse:collapse; font-family:var(--mono); font-size:11px; white-space:nowrap;}
-.cbtable th{text-align:left; padding:2px 8px 2px 0; color:var(--dim); font-weight:400;}
-.cbtable td{padding:2px 6px; color:var(--mut); text-align:right; min-width:22px;}
-.cbtable tr:nth-child(2) td{color:var(--ink);}
+/* Wave 4 · THE DESK'S COURSE PAGE (D272/D275, course.md §8). The accordion of
+   bordered `.cbook` rows is gone: a course is a PLACE, and on a 1440 it gets
+   the shape §8 asks for — the plate across the full left column at 2.6:1 with
+   the name reversed out of it, the facts as one line even at desk width, and
+   the right 340 carrying the rating, the roster and the leaf at all eighteen
+   holes. No border anywhere on it; the containers are the plate and the leaf. */
+.cs-course{display:grid; grid-template-columns:1fr 340px; gap:var(--gutter-desk);
+  align-items:start; margin-bottom:var(--s6);}
+@media (max-width:900px){ .cs-course{grid-template-columns:1fr; gap:var(--s4);} }
+.cs-plate{position:relative; aspect-ratio:2.6/1; background:var(--ceremony);
+  overflow:hidden; display:flex; align-items:flex-end;}
+.cs-plate .cs-plate-copy{position:relative; z-index:2; padding:var(--s4);
+  display:flex; align-items:flex-end; gap:var(--s3); width:100%;}
+.cs-plate .cs-scrim{position:absolute; inset:0; z-index:1;
+  background:linear-gradient(to bottom, transparent 0%,
+    color-mix(in srgb, var(--ceremony) 24%, transparent) 44%,
+    color-mix(in srgb, var(--ceremony) 72%, transparent) 72%,
+    color-mix(in srgb, var(--ceremony) 88%, transparent) 100%);}
+.cs-plate svg{position:absolute; inset:0; width:100%; height:100%;}
+.cs-plate .cs-credit{position:absolute; z-index:2; top:var(--s3); right:var(--s4);
+  color:var(--scrim-mut);}
+.cs-plate .cs-name{color:var(--scrim-ink);}
+.cs-plate .cs-sub{color:var(--scrim-mut);}
+.cs-panel{background:var(--panel); color:var(--panel-ink);
+  border-radius:var(--p); padding:var(--s2) var(--s3); text-align:center; min-width:64px;}
+.cs-panel .cs-unit{color:var(--panel-mut); display:block;}
+.cs-facts{display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--s2); margin-top:var(--s4);}
+.cs-facts .u{color:var(--mut);}
+.cs-facts .sep{color:var(--mut); opacity:var(--a56);}
+.cs-leaf{background:var(--leaf); color:var(--leaf-ink);
+  border-radius:var(--p); padding:var(--s3); overflow-x:auto;}
+.cs-leaf table{border-collapse:collapse; font-family:var(--mono); font-size:12px; white-space:nowrap;}
+.cs-leaf th{text-align:left; padding:2px 8px 2px 0; color:var(--leaf-mut); font-weight:400;}
+.cs-leaf td{padding:2px 6px; text-align:right; min-width:22px; color:var(--leaf-mut);}
+.cs-leaf tr.par td{color:var(--leaf-ink); font-weight:500;}
+.cs-leaf tr.par{border-top:1px solid color-mix(in srgb, var(--leaf-ink) 20%, transparent);}
+.cs-stars{display:inline-flex; gap:var(--s1); vertical-align:middle;}
+.cs-stars svg{width:22px; height:22px;}
+.cs-roster{display:flex; flex-wrap:wrap; gap:var(--s3); margin-top:var(--s3);}
+.cs-roster .who{text-align:center;}
 /* D262 / R-O · the bag. The desk's half is DESKTOP-FIRST (R-C): on a 1440 the
    bag and the sideline sit side by side, because the whole question the
    sideline answers ("is Galen bringing the new driver?") is a comparison, and
@@ -12590,14 +12621,73 @@ function yourMonthCredits(){
     return a + (f.meta.includes('9 HOLES') ? 0.5 : 1);
   }, 0);
 }
-/* D261 / R-N · the desk's course archive. Drawn from what THIS DEVICE kept —
-   no network read on the way in, because this is the panel a golfer opens when
-   there is no network — and refreshed underneath when there is one.
+/* Wave 4 · D272 / D275 · THE DESK'S COURSE PAGE (course.md §8). Drawn from
+   what THIS DEVICE kept — no network read on the way in, because this is the
+   panel a golfer opens when there is no network — and refreshed underneath
+   when there is one.
 
-   Every rule the phone's `CourseCardSheet` obeys is obeyed here: the saved
-   line sits ABOVE the first figure it qualifies, a tee with no card says so
-   rather than drawing eighteen par 4s, and an empty store says what fills it
-   instead of rendering nothing (L-32, L-44). */
+   THE SHAPE IS THE DESK'S OWN, never the phone's reflowed (R-C / D234): the
+   plate runs the full width of the left column at 2.6:1 with the name reversed
+   out of it, the facts line stays ONE line even at desk width, and the right
+   340 carries the rating and the leaf at ALL EIGHTEEN holes — the extra column
+   the phone cannot afford.
+
+   Every honesty rule the phone obeys is obeyed here: L-32's provenance is
+   never omitted (it moves to the facts object's own label, D-1), a tee whose
+   card was never cached says so rather than drawing eighteen par 4s (L-44),
+   the rating degrades to a full-size unfilled rail because `course_rating` is
+   written and not pushed (D275), and an empty store says what fills it. */
+
+/* Rung 2 of the ladder, in the browser. The same arithmetic `CSDrawnCard`
+   draws on the phone: WIDTH BY PAR, HEIGHT BY YARDAGE where the book carries
+   one and by par where it does not, `gold` on the #1 stroke hole, numbered
+   1-18 beneath. It returns '' when there is no real card — *fake data as
+   ornament is less premium than a plain colour*, and a course with no card
+   falls to the contour. */
+function csDrawnCardSvg(holes, opts){
+  const o = opts || {};
+  const list = (holes||[]).filter(h=>h && h.par!=null).slice(0, o.nine ? 9 : 18);
+  if(!list.length) return '';
+  const W = 1000, H = o.nine ? 180 : 220, GAP = o.nine ? 6 : 10, LAB = o.nine ? 0 : 26;
+  const wOf = p => p<=3 ? 0.78 : (p>=5 ? 1.30 : 1);
+  const total = list.reduce((a,h)=>a+wOf(h.par), 0);
+  const usable = W - GAP*(list.length-1);
+  const ys = list.map(h=>h.yards||0).filter(y=>y>0);
+  const hasY = ys.length === list.length && ys.length > 1;
+  const lo = hasY ? Math.min(...ys) : 0, hi = hasY ? Math.max(...ys) : 1;
+  const hOf = h => hasY && hi>lo ? 0.32 + 0.68*((h.yards-lo)/(hi-lo))
+                                 : (h.par<=3 ? 0.38 : (h.par>=5 ? 1 : 0.68));
+  const si = list.filter(h=>h.si!=null).sort((a,b)=>a.si-b.si)[0];
+  const field = H - LAB;
+  let x = 0, out = '';
+  list.forEach(h=>{
+    const w = usable * wOf(h.par) / total, bh = Math.max(3, field * hOf(h));
+    const fill = (si && h.hole===si.hole && !o.nine) ? 'var(--gold)' : 'var(--mut)';
+    const op   = (si && h.hole===si.hole && !o.nine) ? '1' : 'var(--a56)';
+    out += `<rect x="${x.toFixed(1)}" y="${(field-bh).toFixed(1)}" width="${w.toFixed(1)}" height="${bh.toFixed(1)}" fill="${fill}" opacity="${op}"/>`;
+    if(LAB) out += `<text x="${(x+w/2).toFixed(1)}" y="${(H-6).toFixed(1)}" text-anchor="middle" font-family="var(--mono)" font-size="15" fill="var(--mut)" opacity="var(--a56)">${h.hole}</text>`;
+    x += w + GAP;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${out}</svg>`;
+}
+
+/* Five drawn stars, filled `ink` / unfilled `rule`, halves by clipping — the
+   phone's `CSStarRail`, and the same path the glyph family draws. There is no
+   dingbat star anywhere in this product. */
+function csStarsSvg(value, unrated){
+  const d = 'M12 3.8l2.5 5.2 5.7.8-4.1 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4.1-4 5.7-.8z';
+  let out = '<span class="cs-stars" aria-hidden="true">';
+  for(let i=0;i<5;i++){
+    const f = Math.min(1, Math.max(0, (value||0) - i));
+    out += `<svg viewBox="0 0 24 24">`
+        +  `<path d="${d}" fill="none" stroke="${unrated?'var(--mut)':'var(--rule)'}" stroke-width="1.4"/>`
+        +  (f>0 ? `<clipPath id="cs-st${i}-${Math.round((value||0)*10)}"><rect x="0" y="0" width="${(24*f).toFixed(1)}" height="24"/></clipPath>`
+                + `<path d="${d}" fill="var(--ink)" clip-path="url(#cs-st${i}-${Math.round((value||0)*10)})"/>` : '')
+        +  `</svg>`;
+  }
+  return out + '</span>';
+}
+
 function renderCourseBooks(){
   const box = $('#youCourses'); if(!box) return;
   const what = $('#youCoursesWhat'); if(what) what.textContent = CS_COURSE_COPY.what;
@@ -12606,35 +12696,84 @@ function renderCourseBooks(){
     box.innerHTML = '<p class="fine">Nothing kept yet. Post a round or put one on the schedule and its course comes with you.</p>';
     return;
   }
+  const dmd = iso => { try{ const d=localDate(iso); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return iso; } };
+  const grouped = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
   box.innerHTML = books.map(b=>{
     const tees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
-    const teeRows = tees.length ? tees.map(t=>{
-      const holes = Array.isArray(t.holes) ? t.holes.slice().sort((x,y)=>(x.hole||0)-(y.hole||0)) : [];
-      const card = holes.length
-        ? `<div class="cbcard"><table class="cbtable"><tr><th>HOLE</th>${holes.map(h=>`<td>${h.hole}</td>`).join('')}</tr>`
-          + `<tr><th>PAR</th>${holes.map(h=>`<td>${h.par!=null?h.par:'—'}</td>`).join('')}</tr>`
-          + `<tr><th>SI</th>${holes.map(h=>`<td>${h.si!=null?h.si:'—'}</td>`).join('')}</tr></table></div>`
-        : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
-      const first = holes[0];
-      const firstLine = first
-        ? `<p class="fine"><b>1st: par ${first.par!=null?first.par:'—'}${first.si!=null?` · stroke index ${first.si}`:''}</b></p>` : '';
-      return `<div class="cbtee"><div class="eyebrow">${esc(t.tee_name||'Tee')}${t.gender==='female'?' · Women’s':''}`
-        + ` · Rating ${t.course_rating} · Slope ${t.slope_rating}${t.number_of_holes?` · ${t.number_of_holes} holes`:''}</div>`
-        + firstLine + card + '</div>';
-    }).join('') : '<p class="fine">No rated tees kept for this course.</p>';
-    /* a date is never printed as an ISO string — `new Date('YYYY-MM-DD')` is
-       UTC midnight and renders the previous day in Phoenix, which is why this
-       repo builds its dates by hand. Verbatim with the phone's
-       `LeagueDates.dowMonDay`. */
-    const dmd = iso => { try{ const d=localDate(iso); return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`; }catch(_){ return iso; } };
-    const why = b.next_play_on ? `On your schedule ${esc(dmd(b.next_play_on))}.`
-              : b.last_played_on ? `You last played here ${esc(dmd(b.last_played_on))}.` : '';
-    return `<details class="cbook"><summary><b>${esc(csCourseLabel(b))}</b>`
-      + `<span class="fine"> ${esc(csCoursePlace(b))}${csCoursePlace(b)?' · ':''}${tees.length} tee${tees.length===1?'':'s'}</span></summary>`
-      /* L-32 · the provenance line comes BEFORE any figure it qualifies */
-      + `<p class="fine">${esc(csCourseSavedLine(b))}. Ratings and cards change; this is the copy you have.</p>`
-      + (why?`<p class="fine">${why}</p>`:'') + teeRows + '</details>';
+    /* the longest 18 — `CourseBook.defaultTee`'s own rule, so the desk and the
+       phone open a course on the same tee */
+    const full = tees.filter(t=>(t.number_of_holes||18)===18);
+    const pool = full.length ? full : tees;
+    const tee = pool.slice().sort((x,y)=>(y.total_yards||0)-(x.total_yards||0))[0] || null;
+    const holes = tee && Array.isArray(tee.holes)
+      ? tee.holes.slice().sort((x,y)=>(x.hole||0)-(y.hole||0)) : [];
+    const hardest = holes.filter(h=>h.si!=null).sort((x,y)=>x.si-y.si)[0];
+
+    /* the plate — rung 2 where there is a card, rung 3 where there is not.
+       There is no round photo on the desk yet: the signed-URL read is the
+       phone's, and a course with no legal image shows the contour rather than
+       a wash. */
+    const plate = csDrawnCardSvg(holes) ||
+      (typeof csContourSvg === 'function' ? csContourSvg(String(b.id), true) : '');
+
+    const facts = [];
+    if(tee && tee.par_total) facts.push([tee.par_total, 'par']);
+    if(tee && tee.total_yards) facts.push([grouped(tee.total_yards), 'yds']);
+    if(tee && tee.course_rating!=null) facts.push([tee.course_rating, 'rtg']);
+    if(tee && tee.slope_rating!=null) facts.push([tee.slope_rating, 'slope']);
+    const factLine = facts.map(([v,u],i)=>
+      (i?'<span class="sep cs-agate-s">·</span>':'') +
+      `<span class="cs-fig-s">${esc(String(v))}</span><span class="u cs-agate-s">${u}</span>`).join(' ');
+
+    /* D-1 · the provenance is the facts object's own label, under the figures
+       it qualifies rather than as the first paragraph a golfer reads. */
+    const label = [tee ? (tee.tee_name||'Tee') : null,
+                   hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
+                   csCourseSavedLine(b)].filter(Boolean).join(' · ');
+
+    const row = (head, cells, cls) =>
+      `<tr class="${cls||''}"><th>${esc(head)}</th>${cells.map(c=>`<td>${esc(String(c))}</td>`).join('')}</tr>`;
+    const leaf = holes.length
+      ? `<div class="cs-leaf"><div class="cs-agate-s" style="color:var(--leaf-mut);padding-bottom:6px">`
+        + `The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</div><table>`
+        + row('HOLE', holes.map(h=>h.hole))
+        + row('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
+        + row('SI', holes.map(h=>h.si!=null?h.si:''))
+        + `</table></div>`
+      : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
+
+    /* D275 · the rating is content, and it degrades to the unrated rail
+       because `course_rating` is written and not pushed. No gold on it in any
+       state: an average of opinions is not earned. */
+    const rating = `<div style="margin-bottom:var(--s4)">${csStarsSvg(0, true)}`
+      + `<p class="cs-agate-s" style="color:var(--mut);padding-top:8px">Not rated · the first rating sets the number</p></div>`;
+
+    const why = b.next_play_on ? `On your schedule ${esc(dmd(b.next_play_on))}`
+              : b.last_played_on ? `You last played here ${esc(dmd(b.last_played_on))}` : 'Kept';
+
+    return `<section class="cs-course">
+      <div>
+        <div class="cs-plate">${plate}<div class="cs-scrim"></div>
+          <div class="cs-plate-copy"><div style="min-width:0;flex:1">
+            <div class="cs-agate cs-sub">${why}</div>
+            <div class="cs-display cs-name">${esc(csCourseLabel(b))}</div>
+            ${csCoursePlace(b)?`<div class="cs-agate cs-sub">${esc(csCoursePlace(b))}</div>`:''}
+          </div></div>
+        </div>
+        <div class="cs-facts">${factLine}</div>
+        <p class="cs-agate-s" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
+      </div>
+      <div>${rating}${leaf}</div>
+    </section>`;
   }).join('');
+}
+/* `1` -> `st`. One ordinal in the product, and the phone's `CSOrdinal.suffix`
+   is the same three lines. */
+function csOrdinalSuffix(n){
+  const t = n % 100;
+  if(t>=11 && t<=13) return 'th';
+  return ({1:'st',2:'nd',3:'rd'})[n%10] || 'th';
 }
 window.renderCourseBooks = renderCourseBooks;
 

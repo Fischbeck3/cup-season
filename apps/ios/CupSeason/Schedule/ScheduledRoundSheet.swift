@@ -14,7 +14,7 @@ struct ScheduledRoundSheet: View {
   @State private var vm: RoundSheetModel
   @State private var toasts: CSToastCenter
   @State private var retag: RetagRequest? = nil
-  @State private var card: CourseSheetRef? = nil
+  @State private var path = NavigationPath()
   let links: CSLinks
   let leagueId: UUID?
 
@@ -27,7 +27,7 @@ struct ScheduledRoundSheet: View {
   }
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $path) {
       ScrollView {
         if let d = vm.detail { sheet(d) }
         else if vm.failed { CSFine("Couldn’t load that round").padding(20) }
@@ -39,7 +39,12 @@ struct ScheduledRoundSheet: View {
       .task { await vm.load() }
       .csToasts(toasts)
       .sheet(item: $retag, onDismiss: { Task { await vm.load() } }) { r in RetagSheet(request: r, leagueId: leagueId) }
-      .sheet(item: $card) { c in CourseCardSheet(courseId: c.id, label: c.label) }
+      // D261 / R-N · the course is pushed from inside this sheet's own stack:
+      // an object is pushed, and a sheet on a sheet was the shape the design
+      // deleted.
+      .navigationDestination(for: CourseSheetRef.self) { c in
+        CourseScreen(courseId: c.id, label: c.label)
+      }
     }
     .presentationDragIndicator(.visible)
   }
@@ -66,8 +71,10 @@ struct ScheduledRoundSheet: View {
         // Offered only for a course this phone has actually kept, because a
         // door that opens on nothing is the one thing not permitted (L-32).
         if vm.kept, let id = d.courseId {
-          Button("See the tees and the card") { card = CourseSheetRef(id: id, label: d.courseName) }
-            .font(CSFont.button).foregroundStyle(cs.brand).frame(minHeight: 44)
+          Button("See the tees and the card") {
+            path.append(CourseSheetRef(id: id, label: d.courseName))
+          }
+          .buttonStyle(.csTertiary(.content))
         }
       }
       HStack(spacing: 8) {
@@ -286,7 +293,11 @@ final class RoundSheetModel {
   }
 }
 
-struct CourseSheetRef: Identifiable, Equatable { let id: String; let label: String }
+/// Wave 4 · the course is a PATH ELEMENT now, not a sheet item (§7.3: objects
+/// are pushed). It kept its name because `MainTabView`'s `"never-kept"`
+/// sentinel is written against it and because every caller reads the same two
+/// fields; it gained `Hashable` so a `NavigationPath` can carry it.
+struct CourseSheetRef: Identifiable, Equatable, Hashable { let id: String; let label: String }
 
 // MARK: - Tag your group (`openRetagSheet` 16852)
 
