@@ -70,6 +70,7 @@ struct RecordPage: View {
       .padding(.bottom, CSTokens.Space.s6)
       .frame(maxWidth: .infinity, alignment: .leading)
       .csRedacted(!model.loaded)
+      .csPage("record")
     }
     .background(cs.bg0)
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)

@@ -97,7 +97,6 @@ public struct CSSecondaryStyle: ButtonStyle {
 public struct CSTertiaryStyle: ButtonStyle {
   @Environment(\.cs) private var cs
   @Environment(\.isEnabled) private var enabled
-  @Environment(\.dynamicTypeSize) private var typeSize
   public enum Placement: Sendable {
     case live       // 2px brand — only when the link IS the screen's one live action
     case content    // 2px mut
@@ -113,30 +112,40 @@ public struct CSTertiaryStyle: ButtonStyle {
 
   public func makeBody(configuration: Configuration) -> some View {
     let pressed = configuration.isPressed || held
-    return VStack(alignment: .leading, spacing: 3) {
-      // The rule IS the affordance, so it spans the whole label block — and
-      // the label is allowed TWO lines rather than being pinned to one. A
-      // `fixedSize` link reads correctly at the reading sizes and at AX3 pushes
-      // 300pt of label off a 362pt measure, taking the page's whole left edge
-      // with it; that is the AX3 failure the capture hatch exists to catch, and
-      // it was caught here.
-      configuration.label.csType(.nameS).lineLimit(2)
-      Rectangle().fill(rule(pressed)).frame(height: placement.weight)
+    // **THE RULE MUST BE AS WIDE AS THE WORDS AND NO WIDER**, and WAVE 10
+    // stops that being a choice between two wrong answers.
+    //
+    // Hugging (`fixedSize`) is right: a `VStack` in a column proposes the
+    // column to its `Rectangle`, so a hugged rule underlines the link and an
+    // unhugged one draws a divider under a paragraph. But a hugged 300pt
+    // label at AX3 shears the page's left edge — so Wave 0b pinned two lines
+    // and Wave 1 hugged, and each shipped the other's defect: `SETTINGS`, one
+    // word, drew a full-measure rule directly above the credential (Wave 3's
+    // own note), and `START OVER — CLEAR THIS ROUND` truncated at AX5.
+    //
+    // `ViewThatFits` decides it against the real proposal at the real size:
+    // the hugged one-line form while it fits, the wrapped full-measure form
+    // when it does not, and **no line limit in the wrapped form** — a link is
+    // words, and a word a golfer cannot read is not a link.
+    return ViewThatFits(in: .horizontal) {
+      block(configuration, pressed: pressed, hugs: true)
+      block(configuration, pressed: pressed, hugs: false)
     }
-    // **THE RULE MUST BE AS WIDE AS THE WORDS AND NO WIDER.** A `VStack` in a
-    // column proposes the column to its `Rectangle`, so the underline ran the
-    // full measure and read as a divider under a paragraph rather than as an
-    // underline under a link — visible in Wave 1's first screenshot and in no
-    // unit test. It hugs at the reading sizes and keeps Wave 0b's two-line
-    // wrap at the accessibility ones, where a hugged 300pt label would shear
-    // the page's left edge.
-    .fixedSize(horizontal: !typeSize.isA11y, vertical: false)
     .opacity(pressed ? 0.92 : 1)
     .foregroundStyle(enabled ? cs.ink : cs.mut)
     .a11yHitSlop()
     .frame(minHeight: 44)
     .csBudget(ember: placement == .live && enabled ? 1 : 0)
     .csAnimation(CSMotion.snap, value: configuration.isPressed)
+  }
+
+  @ViewBuilder
+  private func block(_ configuration: Configuration, pressed: Bool, hugs: Bool) -> some View {
+    VStack(alignment: .leading, spacing: 3) {
+      configuration.label.csType(.nameS).lineLimit(hugs ? 1 : nil)
+      Rectangle().fill(rule(pressed)).frame(height: placement.weight)
+    }
+    .fixedSize(horizontal: hugs, vertical: false)
   }
 
   private func rule(_ pressed: Bool) -> Color {
@@ -250,6 +259,16 @@ public struct CSChip: View {
       .frame(height: 28)
       .background(enabled ? (selected ? cs.panel : cs.bg2) : cs.bg1,
                   in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
+      // **WAVE 10 · THE CHIP CARRIES ITS OWN 44pt TARGET** (§16.2). The drawn
+      // shape is 28 and stays 28 — that is the design — but the thing a thumb
+      // has to hit is not the drawn shape. Nineteen chip sites shipped after
+      // Wave 8 and exactly three added a target by hand, so the live round's
+      // HOLE/CARD toggle (the audit's named ~22pt miss, 28 after the sweep),
+      // the composer's golfer chips (~36) and fourteen more were all under the
+      // floor. `a11yHitSlop` sets the hit shape and hands the space straight
+      // back to the layout, so nothing moves by a point and every chip in the
+      // product is 44 tall from this line.
+      .a11yHitSlop(vertical: 8, horizontal: 0)
       .accessibilityAddTraits(selected ? [.isSelected] : [])
   }
 }

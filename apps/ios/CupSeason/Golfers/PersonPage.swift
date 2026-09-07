@@ -66,6 +66,7 @@ struct PersonPage: View {
       .padding(.horizontal, CSTokens.Space.gutter)
       .padding(.bottom, CSTokens.Space.s6)
       .frame(maxWidth: .infinity, alignment: .leading)
+      .csPage("person")
     }
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
     .background(cs.bg0)

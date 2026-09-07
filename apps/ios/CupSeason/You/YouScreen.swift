@@ -148,6 +148,7 @@ struct YouScreen: View {
         .padding(.horizontal, CSTokens.Space.gutter)
         .padding(.bottom, CSTokens.Space.s6)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .csPage("you")
       }
     }
     .background(cs.bg0)

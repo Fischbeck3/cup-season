@@ -114,6 +114,7 @@ private struct PostRoundBody: View {
           bandsSection.id("bands")
         }
         .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 12)
+        .csPage("composer")
       }
       #if DEBUG
       // `-cs_dev_post_scroll <card|details|bands>`: a simulator without a finger reaches the fold

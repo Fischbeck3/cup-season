@@ -36,10 +36,24 @@ enum SeasonFixture {
     return next == "squads" ? "squads" : "solo"
   }
 
-  private static let league = UUID(), season = UUID()
+  private static let league = fixed(200), season = fixed(201)
   private static func ids(_ n: Int) -> [UUID] {
-    // stable within a launch; a fixture never has to survive one
-    (0..<n).map { _ in UUID() }
+    (0..<n).map { fixed($0) }
+  }
+
+  /// **WAVE 10 · THE FIXTURE'S IDS ARE FROZEN.** They were `UUID()` per
+  /// launch, which is fine for a payload and wrong for a photograph: `CSFace`
+  /// derives a pigment from the profile id, so the same eight golfers wore a
+  /// different set of coloured discs in every shot ever taken of this board.
+  /// A reviewer comparing two captures would read a marker that moved — the
+  /// one thing D271 says can never happen — and would be reading the fixture,
+  /// not the product. One deterministic byte, and the board is the same board
+  /// on Tuesday.
+  private static func fixed(_ n: Int) -> UUID {
+    var b = [UInt8](repeating: 0, count: 16)
+    b[0] = 0xC5; b[1] = 0x0F; b[15] = UInt8(n & 0xFF); b[14] = UInt8((n >> 8) & 0xFF)
+    return UUID(uuid: (b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7],
+                       b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]))
   }
 
   static let names = ["Galen Marr", "Jerecho", "Jade Okafor", "Dev Rana", "Tash Bell",

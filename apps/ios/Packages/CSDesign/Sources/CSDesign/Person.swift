@@ -275,6 +275,7 @@ public struct CSSlot: View {
 /// value `ceremonyInk` at `a56` composites to, **named in `tokens.json` so
 /// nothing is invented in Swift** (preflight 15).
 public struct CSFolio: View {
+  @Environment(\.csReduceTransparency) private var reduce
   let club: String
   /// **The serial degrades.** The product owns the marker's NAME ("The Lone
   /// Tree") and does not own a card number — there is no such column, and a
@@ -285,7 +286,12 @@ public struct CSFolio: View {
   public init(club: String, serial: String? = nil) { self.club = club; self.serial = serial }
   public var body: some View {
     VStack(spacing: CSTokens.Space.s2) {
-      Rectangle().fill(CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a16))
+      // §16.5 · the folio at `a16` is one of the four textures the credential
+      // IS. Under Reduce Transparency it takes its composited opaque value —
+      // the same arithmetic that produced `folioRule` `#8B8F8B` and gave it a
+      // name, done at run time so no component carries a second hex.
+      Rectangle().fill(CSOpaque.tint(CSTokens.dark.ceremonyInk, CSTokens.Alpha.a16,
+                                     over: CSTokens.dark.ceremony, reduce: reduce))
         .frame(height: CSTokens.Space.hair)
       HStack {
         Text(club).csType(.agateS, caps: true)
@@ -420,7 +426,77 @@ public struct CSCredential<Plate: View>: View {
   /// left of its own numeral in the first screenshot of this card.
   private var column: CGFloat { (cardWidth - CSTokens.Space.s4 * 2) / 3 }
 
+  /// **WAVE 10 · THE THREE COLUMNS ARE MEASURED, NOT ASSUMED EQUAL.**
+  ///
+  /// Equal thirds were the fix for a real bug (`frame(maxWidth: .infinity)`
+  /// inside an `HStack` hands each child its ideal width first, so the second
+  /// label started 16pt left of its own numeral) and they came with a real
+  /// cost: `HANDICAP INDEX` needs 118 of a 110pt third, so the product's most
+  /// important label read `HANDICAP IND…` on every card, on every phone, and a
+  /// league called `WHO'S THE BITCH?` read `WHO'S THE BIT…` beside it. Two of
+  /// the card's three labels truncated at the DEFAULT reading size.
+  ///
+  /// So the cells take the width their own characters need — measured in the
+  /// real face at the size being read, which is what `CSAdvance` is for — and
+  /// give the surplus to the cell that needs it. Every cell still contains
+  /// both its numeral and its label, so nothing can drift out from under its
+  /// own figure. When the three genuinely do not fit they scale together and
+  /// the longest still truncates, which is the honest degrade rather than a
+  /// promise the measure cannot keep.
+  private func columnWidths(_ figs: [CSCredentialGolfer.Figure]) -> [CGFloat] {
+    let inner = cardWidth - CSTokens.Space.s4 * 2
+    let n = max(1, figs.count)
+    guard n > 1 else { return [inner / 3] }
+    let need = figs.map { f -> CGFloat in
+      max(CSAdvance.width(f.value + (f.ordinal ?? ""), .figureM, typeSize),
+          CSAdvance.width(f.label, .agateS, typeSize, caps: true)) + CSTokens.Space.s2
+    }
+    let total = need.reduce(0, +)
+    guard total > 0 else { return Array(repeating: inner / CGFloat(n), count: n) }
+    // never wider than the card; never narrower than what a two-digit figure
+    // and its rule need to stay a column
+    let scale = min(1, inner / total)
+    return need.map { max(CSTokens.Space.rail, $0 * scale) }
+  }
+
   public var body: some View {
+    Group {
+      if typeSize.isA11y {
+        // §16.3 · the ratio is released and the object GROWS THE PAGE. It
+        // needs no measure: the plate is a fixed 180, the figures are rows
+        // and nothing is a fraction of anything.
+        object
+      } else {
+        // **WAVE 10 · THE MEASURE COMES FROM A `GeometryReader`, WHICH IS
+        // THE ONE CONTAINER THAT NEVER GROWS TO ITS CONTENT.**
+        //
+        // Wave 2 measured the card from a probe in its own background — under
+        // a `frame(width: cardWidth)` that is a FIXED frame, and every frame
+        // above a fixed frame grows to hold it. So the probe read back the
+        // width the card had already chosen (362, the `@State` default) and
+        // the loop had nothing to converge on: `min(measured, 362)` is 362
+        // forever. On an SE the "measure-relative" credential §16.3 promises
+        // at **335 × 289** drew at 362 and ran 27pt off the right edge of the
+        // phone — on the You tab, on the flagship object of the design.
+        // `csPage` is what found it, by name: `CS-SHEAR you wants 402.0 in
+        // 375.0`. Two other constructions were tried first and both read 362
+        // back for the same reason; a `GeometryReader` takes the proposal and
+        // nothing else, so what it reports is the room the card is GIVEN.
+        GeometryReader { g in
+          object
+            .onAppear { measured = g.size.width }
+            .onChange(of: g.size.width) { _, n in measured = n }
+        }
+        .frame(height: cardHeight)
+      }
+    }
+    .accessibilityElement(children: .contain)
+  }
+
+  /// The object itself. Its width is `cardWidth` and it sits at the leading
+  /// edge of whatever room it is in — a credential does not stretch (it would
+  /// be a banner) and it does not float either.
+  private var object: some View {
     CSObject {
       VStack(alignment: .leading, spacing: 0) {
         head
@@ -432,15 +508,7 @@ public struct CSCredential<Plate: View>: View {
       .background(CSTokens.dark.ceremony)
       .csCeremony()
     }
-    .frame(maxWidth: presentation.maxWidth)
-    .background {
-      GeometryReader { g in
-        Color.clear
-          .onAppear { measured = g.size.width }
-          .onChange(of: g.size.width) { _, n in measured = n }
-      }
-    }
-    .accessibilityElement(children: .contain)
+    .frame(maxWidth: presentation.maxWidth, alignment: .leading)
   }
 
   // MARK: the plate half
@@ -519,10 +587,15 @@ public struct CSCredential<Plate: View>: View {
         .lineLimit(2)
         .fixedSize(horizontal: false, vertical: true)
       if !golfer.identity.isEmpty {
-        Text(golfer.identity).csType(.agateS, caps: true)
-          .foregroundStyle(CSTokens.dark.ceremonyMut)
-          .lineLimit(typeSize.isA11y ? 3 : 1)
-          .fixedSize(horizontal: false, vertical: typeSize.isA11y)
+        // **WAVE 10 · A LINE OF CLAUSES BREAKS ON ITS SEPARATORS; IT DOES NOT
+        // TRUNCATE** (§16.3, the `agate` row). `@JERECHO · PHOENIX, AZ ·
+        // LOOKOUT MOUNTAIN GOL…` was the shipped result on a 402 measure, and
+        // on an SE it lost the city too — a golfer's own card, cutting off
+        // their own home course. The tail-ellipsis policy (§9.1) is for a
+        // NAME, which is one token with nowhere to break; three clauses have
+        // two places to break and this takes them.
+        CSClauseLine(golfer.identity, role: .agateS, caps: true,
+                     colour: CSTokens.dark.ceremonyMut)
       }
     }
   }
@@ -593,7 +666,7 @@ public struct CSCredential<Plate: View>: View {
   /// `ceremony` in light** — the rule that binds the card's three figures is
   /// the last thing that may vanish in one printing.
   @ViewBuilder private var figureStrip: some View {
-    let n = max(1, golfer.figures.count)
+    // (the AX3 branch keeps its own row-per-figure geometry)
     if typeSize.isA11y {
       // §6.8 · three ROWS, each its own cell: label leading, figure trailing,
       // each on its own rule.
@@ -608,29 +681,30 @@ public struct CSCredential<Plate: View>: View {
         }
       }
     } else {
+      let widths = columnWidths(golfer.figures)
       HStack(alignment: .top, spacing: 0) {
-        ForEach(Array(golfer.figures.enumerated()), id: \.offset) { _, f in
+        ForEach(Array(golfer.figures.enumerated()), id: \.offset) { i, f in
           VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
             CSFigure(f.value, size: .m, label: nil, ordinal: f.ordinal, over: .ceremony)
-            // **A label truncates before it touches the next one.** The
-            // columns are equal thirds, so `HANDICAP INDEX` at agateS fills
-            // 118 of its 120 and ran straight into `ROUNDS` with a 2pt gap —
-            // one label, read as two words of a third. The gutter is inside
-            // the cell, so truncation starts a word earlier.
+            // **A label truncates before it touches the next one**, and the
+            // gutter is inside the cell so the truncation starts a word
+            // earlier. With measured columns it should never fire; when the
+            // three labels genuinely exceed the card it fires honestly.
             Text(f.label).csType(.agateS, caps: true)
               .foregroundStyle(CSTokens.dark.ceremonyMut)
               .lineLimit(1).truncationMode(.tail)
-              .frame(width: max(0, column - CSTokens.Space.s2), alignment: .leading)
+              .frame(width: max(0, widths[i] - CSTokens.Space.s2), alignment: .leading)
           }
-          .frame(width: column, alignment: .leading)
+          .frame(width: widths[i], alignment: .leading)
         }
         Spacer(minLength: 0)
       }
       .overlay(alignment: .topLeading) {
         // **The rule fits its own cells.** A two-cell strip under a full-width
-        // rule "reads as a missing value" — so 66% for two, 33% for one.
+        // rule "reads as a missing value", so the rule spans the sum of the
+        // cells that carry a figure and stops there.
         CSRule(.heavy, over: .ceremony)
-          .frame(width: column * CGFloat(n))
+          .frame(width: widths.reduce(0, +))
           .offset(y: CSType.renderedSize(.figureM, typeSize) + CSTokens.Space.s1)
           .allowsHitTesting(false)
       }

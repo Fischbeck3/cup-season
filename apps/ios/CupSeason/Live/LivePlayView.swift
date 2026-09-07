@@ -402,7 +402,7 @@ struct LivePlayView: View {
 
   private func wolfButton(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
     Button(action: action) {
-      CSChip(label, selected: on).frame(minHeight: 44).contentShape(Rectangle())
+      CSChip(label, selected: on)   // the 44pt target is the chip's own now
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(on ? .isSelected : [])

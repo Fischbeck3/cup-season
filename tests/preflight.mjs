@@ -2388,8 +2388,16 @@ const lint = (id, name, hits, note = '') => {
   /* LINT-14 · no uppercasing in a string. Case is a role's job; `.uppercased()`
      breaks VoiceOver and localisation, and the shipped product produces the
      same label three ways. */
+  /* AND ONE EXEMPTION, BY FILE AND WITH ITS REASON, the way `LINT-07` exempts
+     `Type.swift` as the one call site that multiplies a tracking ratio.
+     `CSAdvance` (WAVE 10) is the one call site that MEASURES a role — it asks
+     how wide a string will be when `.textCase(.uppercase)` has rendered it,
+     which means it has to uppercase the string to measure it. That is not a
+     produced string; nobody reads it, it never reaches a `Text(`, and the
+     alternative is a layout that under-measures every caps line in the
+     product by the difference between `Priya` and `PRIYA`. */
   lint('LINT-14', 'case is a role’s job, never a string’s',
-       scan(/\.uppercased\(\)/, { skip: /CSDesign\/Generated\// }),
+       scan(/\.uppercased\(\)/, { skip: /CSDesign\/Generated\/|CSDesign\/Responsive\.swift/ }),
        '.textCase(.uppercase) is the one way');
 
   /* LINT-22 · no spinner in content. A spinner inside a CONTROL is legal and

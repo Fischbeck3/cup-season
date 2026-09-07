@@ -58,6 +58,7 @@ struct CourseScreen: View {
         }
       }
       .padding(.bottom, CSTokens.Space.s6)
+      .csPage("course")
     }
     // **The plate runs full-bleed UNDER the status bar**, which is the whole
     // reason `CSPhotoScrim.top` exists — without this the scroll view insets

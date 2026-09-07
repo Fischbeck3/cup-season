@@ -686,6 +686,60 @@ tr.cutrow td i{display:inline-block; vertical-align:middle; height:2px; backgrou
    either theme or inside .room-dusk — nothing else targets it. */
 .tblwrap{background:none; border:none; padding:8px 0 2px;}
 
+/* ============ WAVE 10 - HOVER, FOCUS, KEYBOARD (UI_SYSTEM 14.4, D279) ======
+   The shipped desk had 40 hover rules and ONE [disabled] rule, and its two
+   signature objects - the standings slat and the Golfers board row - had
+   neither. They were div/tr elements with click handlers: no tabindex, no
+   role, no focus ring, nothing a keyboard could reach at all. A board a
+   golfer cannot tab into is a board half the desk's users cannot read.
+
+   Three rules, and each is stated in 14.4:
+     hover   the slat's ground steps to bg1 and its rail slot paints bg2
+     focus   a 2px brand outline on the WHOLE slat, always visible
+     keys    up/down between slats, right opens the receipt, / focuses search,
+             g then t jumps to the table, Esc closes
+
+   The rail slot paints on hover ONLY where it is unpainted: a gold rail is an
+   earned field and a hover state is not allowed to spend the earned metal. */
+@media (hover:hover){
+  .tbl tr.tap:hover td{background:var(--bg1);}
+  .tbl tr.tap:hover .rk{background:var(--bg2);}
+  .tbl tr.tap.lead:hover .rk{background:var(--gold);}
+  .tbl tr.tap.mine:hover .rk{background:var(--panel);}
+  .fbrow.tap:hover{background:var(--bg1);}
+  .fbrow.tap:hover .rk{background:var(--bg2);}
+  .fbrow.tap.mine:hover .rk{background:var(--panel);}
+}
+.tbl tr.tap:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.tbl tr.tap:focus-visible td{background:var(--bg1);}
+.fbrow.tap:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+/* THE FORTY HOVER RULES GET THEIR TWINS. Each of these had a hover state and
+   no keyboard equivalent, so a golfer tabbing the desk could not tell what
+   was selected. Grouped rather than written out one per line, because they
+   all resolve to the same two answers: the ink steps up, or the ground does. */
+.holehdr button:focus-visible, .step button:focus-visible,
+.gchip.add:focus-visible, .backlink:focus-visible, .rxchip:focus-visible,
+.hhero .hh-sub:focus-visible, .eyebrow.withgo a:focus-visible,
+.cs-tskip:focus-visible, .navitem:focus-visible,
+.sideme .mesr:focus-visible, .setrow .ctl button:focus-visible{color:var(--ink);}
+.peerrow:focus-visible, .rdrow:focus-visible, .sysrow.opens:focus-visible,
+.coursedd button:focus-visible, .mini:focus-visible{background:var(--bg1);}
+.pool-row:focus-visible, .optcard:focus-visible, .htile:focus-visible,
+.upchip[data-upgo]:focus-visible, .calcell.tap:focus-visible,
+.rxpalette button:focus-visible, .check:focus-visible{border-color:var(--rule);}
+.startdoor:focus-visible, .startjoin:focus-visible{border-color:var(--brand);}
+.dtab tr:focus-visible td{background:var(--bg1);}
+.echip button:focus-visible, .pslot .sx:focus-visible{color:var(--neg);}
+/* A LINK'S RULE THICKENS TO 3px - on hover AND on focus, which is the twin
+   the shipped `.cvs:hover` never had. */
+.cvs:focus-visible{border-bottom-width:3px; outline:none;}
+/* THE ONE FOCUS RULE THAT MAY NEVER BE SUPPRESSED. `outline:none` anywhere in
+   this file is a keyboard user losing their place; if a component needs a
+   different ring it overrides the colour, never the existence. */
+.tap:focus-visible, [tabindex]:focus-visible{outline-color:var(--brand);}
+/* g-then-t and / both need somewhere to land, and a target the eye can find. */
+.cs-kbd-jump{outline:2px solid var(--brand); outline-offset:4px;}
+
 /* ============ feed ============ */
 .round{
   display:flex; align-items:center; gap:12px;
@@ -6741,7 +6795,15 @@ function renderStandings(){
       : solo
       ? ((t.sub||0)===0 ? 'No rounds yet' : (t.sub||0)+' round'+(t.sub===1?'':'s'))
       : 'Capt. '+esc(t.cap);
-    html+=`<tr class="${ranks[i]===1?'lead':''}${isYou(t)?' mine':''} tap" data-squad="${esc(t.name)}">
+    /* WAVE 10 - the slat is a keyboard target. It was a `tr` with a click
+       handler: no tabindex, no role, no name for a screen reader and no way
+       into it from a keyboard at all. `aria-label` carries the row's own
+       facts in the product's voice, the same sentence the phone's
+       `CSSlat.spoken` reads. */
+    const rowSpoken = esc([csOrdinal(ranks[i]), isYou(t) ? 'You' : t.name, clause,
+                           mvL ? mvL.long : '', gap ? gap + ' back' : '',
+                           t.pts + ' points'].filter(Boolean).join('. '));
+    html+=`<tr class="${ranks[i]===1?'lead':''}${isYou(t)?' mine':''} tap" tabindex="0" role="button" aria-label="${rowSpoken}" data-squad="${esc(t.name)}">
       <td class="rk">${rkH}</td>
       <td><div style="display:flex;align-items:center;gap:10px">${solo?'':bar}<div style="min-width:0"><div class="tn">${isYou(t) ? 'You' : esc(t.name)}</div><div class="tc">${solo?bar:''}${seedOf(t.id)?'Seed '+seedOf(t.id)+' \u00b7 ':''}${clause}</div></div></div></td>
       <td class="num chg"${mvL?` title="${esc(mvL.long)}"`:''}>${gap}${mvH}</td>
@@ -7378,6 +7440,83 @@ document.addEventListener('keydown', e=>{
   const row = e.target.closest?.('[data-card]');
   if(row){ e.preventDefault(); window.openScorecard?.(row.dataset.card); }
 });
+
+/* ════════════════════════════════════════════════════════════════════════
+   WAVE 10 · THE DESK'S KEYBOARD MODEL (UI_SYSTEM §14.4, D279)
+
+   The desk is read at a keyboard and the shipped one could not be driven from
+   one: the standings slat and the Golfers board row were a `tr` and a `div`
+   with click handlers, so Tab walked straight past the two objects the whole
+   surface is about. Five keys, and every one of them is in §14.4:
+
+     ↑ / ↓   move between slats — within whichever board holds the focus, so
+             two boards on one page do not fight over the arrow keys
+     →       open the focused slat's receipt (Enter and Space do too, because
+             a `role="button"` that ignores Enter is a lie about its role)
+     /       focus the nearest search field
+     g t     jump to the table and put the focus on its first slat
+     Esc     close whatever is open — handled by the tray closer already, and
+             this leaves it alone
+
+   IT NEVER STEALS A KEY FROM A FIELD. `/` inside an input is a slash, `g` is
+   a `g`, and the arrows move a caret. Everything below returns early on any
+   editable target, which is the bug every hand-rolled hotkey ships with. */
+(function(){
+  const SLAT = '.tbl tr.tap, .fbrow.tap, .peerrow, .rdrow';
+  const editing = t => !!t && (t.isContentEditable ||
+    /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || ''));
+
+  /* the slats of the board the focus is IN — never every slat on the page */
+  function siblings(el){
+    const board = el.closest('table, #friendsBoard, .fbwrap, section, main') || document;
+    return Array.from(board.querySelectorAll(SLAT)).filter(n => n.offsetParent !== null);
+  }
+  function step(el, by){
+    const list = siblings(el);
+    const i = list.indexOf(el);
+    if(i < 0) return;
+    const next = list[Math.min(list.length - 1, Math.max(0, i + by))];
+    if(next && next !== el) next.focus();
+  }
+  /* the table, wherever it is on this page, and its first row */
+  function jumpToTable(){
+    const t = document.querySelector('#standings, .tbl');
+    if(!t) return;
+    t.scrollIntoView({block:'start', behavior:'smooth'});
+    const first = t.querySelector('tr.tap') || t;
+    if(first.focus) first.focus();
+    first.classList.add('cs-kbd-jump');
+    setTimeout(()=>first.classList.remove('cs-kbd-jump'), 900);
+  }
+
+  let gArmed = 0;   /* `g` then `t`, with a one-second window */
+  document.addEventListener('keydown', e => {
+    if(e.metaKey || e.ctrlKey || e.altKey) return;
+    if(editing(e.target)) return;
+
+    /* g t — the only two-key chord, and `g` alone does nothing */
+    if(e.key === 'g'){ gArmed = Date.now(); return; }
+    if(e.key === 't' && Date.now() - gArmed < 1000){ gArmed = 0; e.preventDefault(); jumpToTable(); return; }
+    gArmed = 0;
+
+    /* / — focus the nearest search field. `document.activeElement` decides
+       "nearest": the field inside the open pane, or the first one visible. */
+    if(e.key === '/'){
+      const fields = Array.from(document.querySelectorAll('input[id*="Search" i], input[id*="Find" i], input[type="search"]'))
+        .filter(n => n.offsetParent !== null);
+      if(fields.length){ e.preventDefault(); fields[0].focus(); fields[0].select?.(); }
+      return;
+    }
+
+    const slat = e.target.closest?.(SLAT);
+    if(!slat) return;
+    if(e.key === 'ArrowDown'){ e.preventDefault(); step(slat, 1); }
+    else if(e.key === 'ArrowUp'){ e.preventDefault(); step(slat, -1); }
+    else if(e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' '){
+      e.preventDefault(); slat.click();
+    }
+  });
+})();
 function renderFeed(){
   const el=$('#feedList');
   const uiS=socialUiCapture(el);
@@ -20564,7 +20703,7 @@ async function renderFriendsBoard(){
         ? (n && r.avg_vs_number_30d != null ? signed(Number(r.avg_vs_number_30d)) : '\u2014')
         : (r.index_current != null ? fmtIdx(r.index_current) : '\u2014');
       const word = lens === 'form' ? (csBoardBand(r) || (n ? '' : 'Nothing yet')) : '';
-      return `<div class="fbrow${r.is_me ? ' mine' : ''} tap" data-person="${esc(r.profile_id)}">
+      return `<div class="fbrow${r.is_me ? ' mine' : ''} tap" tabindex="0" role="button" data-person="${esc(r.profile_id)}">
         <span class="rk">${String(rank(r)).padStart(2, '0')}</span>
         <span class="fc" style="background:${window.csPigment?.(r.profile_id) || 'var(--pig0)'}">${window.mkr?.(r.marker || 'saguaro') || ''}</span>
         <span class="fbn"><b>${esc(name)}</b><small>${esc(sub)}</small></span>

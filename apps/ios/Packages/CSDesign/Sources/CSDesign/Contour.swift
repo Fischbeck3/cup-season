@@ -25,6 +25,13 @@ import SwiftUI
 /// device — the seed is hashed with FNV-1a, never with `Hashable.hashValue`,
 /// which Swift seeds per process (the same trap `CSFace.pigmentIndex` names).
 public struct CSContour: View {
+  /// §16.5 · the contour at `a56`/`a24` is one of the four textures the
+  /// credential and the title card ARE made of. Under Reduce Transparency the
+  /// isolines take their **composited opaque value** over the ceremony ground
+  /// they are always drawn on — the picture is the same picture and no line is
+  /// see-through. Resolved here rather than at the three call sites, so a
+  /// fourth plate cannot forget.
+  @Environment(\.csReduceTransparency) private var reduce
   /// The course id, or — with no home course — the golfer's own id. §2: "No
   /// home course → the curves are seeded from the golfer's id instead, and the
   /// `brand` dot is omitted (there is no hole to point at)."
@@ -43,6 +50,12 @@ public struct CSContour: View {
     self.lineWidth = lineWidth
     self.tint = tint
     self.mark = mark
+  }
+
+  /// The stroke actually laid down: the tint as given, or flattened over the
+  /// ceremony ground when Reduce Transparency is on.
+  private var inkedTint: Color {
+    reduce ? CSOpaque.composite(tint, 1, over: CSTokens.dark.ceremony) : tint
   }
 
   /// The sampling grid. 32 × 32 is the system's number; the marching-squares
@@ -70,7 +83,7 @@ public struct CSContour: View {
         Self.isoline(field, level: t, into: &path)
         let placed = path.applying(
           CGAffineTransform(translationX: originX, y: originY).scaledBy(x: side, y: side))
-        ctx.stroke(placed, with: .color(tint),
+        ctx.stroke(placed, with: .color(inkedTint),
                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
       }
       if let mark {

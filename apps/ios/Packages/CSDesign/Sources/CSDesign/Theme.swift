@@ -67,9 +67,14 @@ private struct CSThemeModifier: ViewModifier {
   /// site that will forget to.
   @Environment(\.legibilityWeight) private var legibility
   @Environment(\.colorSchemeContrast) private var contrast
+  /// WAVE 10 · resolved here for the same reason Increase Contrast is: a site
+  /// that reasons about its own transparency is a site that will forget to.
+  @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
   func body(content: Content) -> some View {
     let base = scheme == .light ? CSTokens.light : CSTokens.dark
-    return content.environment(\.cs, contrast == .increased ? base.increasedContrast : base)
+    return content
+      .environment(\.cs, contrast == .increased ? base.increasedContrast : base)
+      .environment(\.csReduceTransparency, reduceTransparency)
   }
 }
 
@@ -120,4 +125,70 @@ public extension View {
 public enum CSDusk {
   public static let ground = CSTokens.dark.ceremony
   public static let surface = CSTokens.dark.bg1
+}
+
+// MARK: - Reduce Transparency (UI_SYSTEM §16.5, WAVE 10)
+
+/// **The fourth iOS switch, and this design is unusually exposed to it.**
+///
+/// The folio's hairline at `a16`, the contour at `a24` and the photo scrim's
+/// four-stop ramp are the *entire* texture of the credential and the title
+/// card — they are not decoration over a solid thing, they ARE the thing. A
+/// golfer with Reduce Transparency on is asking for no layer to be guessed at,
+/// and §16.5's answer is not "hide the texture": it is **the composited opaque
+/// value**, so the picture is the same picture and nothing is see-through.
+///
+/// `folioRule` `#8B8F8B` is the worked example already in the palette — it is
+/// `ceremonyInk` at `a56` over `ceremony`, computed once and given a name.
+/// This does the same arithmetic for the rest, at run time, so a component
+/// never carries a second hex.
+public enum CSOpaque {
+
+  /// `color` at `alpha` over `ground`, flattened — or the plain transparent
+  /// value when Reduce Transparency is off.
+  public static func tint(_ color: Color, _ alpha: Double,
+                          over ground: Color, reduce: Bool) -> Color {
+    guard reduce else { return color.opacity(alpha) }
+    return composite(color, alpha, over: ground)
+  }
+
+  /// Source-over, in sRGB. Returns the transparent colour unchanged on a
+  /// platform that cannot resolve components — a test host, never a device.
+  public static func composite(_ color: Color, _ alpha: Double, over ground: Color) -> Color {
+    #if canImport(UIKit)
+    var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
+    var r0: CGFloat = 0, g0: CGFloat = 0, b0: CGFloat = 0, a0: CGFloat = 0
+    guard UIColor(color).getRed(&r1, green: &g1, blue: &b1, alpha: &a1),
+          UIColor(ground).getRed(&r0, green: &g0, blue: &b0, alpha: &a0)
+    else { return color.opacity(alpha) }
+    let a = CGFloat(alpha) * a1
+    // Built through `CGColor` rather than `Color(.sRGB, red:…)` ON PURPOSE:
+    // preflight check 15 fails any channel-wise colour construction on the
+    // phone, because that is how an invented colour gets in. Nothing is
+    // invented here — both operands are tokens and the arithmetic is
+    // source-over — but a purity check that has to reason about intent is a
+    // purity check with a hole in it, so the construction moves instead.
+    guard let blended = CGColor(colorSpace: CGColorSpaceCreateDeviceRGB(),
+                                components: [r1 * a + r0 * (1 - a),
+                                             g1 * a + g0 * (1 - a),
+                                             b1 * a + b0 * (1 - a), 1])
+    else { return color.opacity(alpha) }
+    return Color(cgColor: blended)
+    #else
+    return color.opacity(alpha)
+    #endif
+  }
+}
+
+private struct CSReduceTransparencyKey: EnvironmentKey {
+  static let defaultValue = false
+}
+
+public extension EnvironmentValues {
+  /// Reduce Transparency, resolved at the root by `csTheme()` so a component
+  /// reads one flag rather than an accessibility API each.
+  var csReduceTransparency: Bool {
+    get { self[CSReduceTransparencyKey.self] }
+    set { self[CSReduceTransparencyKey.self] = newValue }
+  }
 }

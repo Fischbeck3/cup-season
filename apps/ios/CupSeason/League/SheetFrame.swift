@@ -42,6 +42,7 @@ struct SheetFrame<Content: View>: View {
           content
         }
         .padding(CSTokens.Space.gutter)
+        .csPage("sheet")
       }
       .background(dusk ? CSDusk.ground : cs.bg1)
       .scrollDismissesKeyboard(.interactively)

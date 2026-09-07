@@ -71,6 +71,7 @@ struct HeadToHeadPage: View {
       }
       .padding(.horizontal, CSTokens.Space.gutter)
       .padding(.bottom, CSTokens.Space.s6)
+      .csPage("head-to-head")
       .frame(maxWidth: .infinity, alignment: .leading)
     }
     .background(cs.bg0)

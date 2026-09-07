@@ -138,16 +138,17 @@ struct SeasonPage: View {
         }
       }
       .padding(.top, CSTokens.Space.s2).padding(.bottom, CSTokens.Space.s6)
-      // **THE PAGE IS THE WIDTH OF THE PAGE.** A vertical `ScrollView` sizes
-      // its content box to its widest child and then CENTRES a box wider than
-      // itself — so one row that overflows by forty points does not clip, it
-      // slides the whole page twenty points to the left and takes the gutter
-      // with it. That is what the season page did at AX3, and it is invisible
-      // at every reading size, which is exactly the class of defect the
-      // capture hatch exists to find. Pinning the content to the container
-      // makes an overflowing row a LOCAL failure — one row clipped, named,
-      // and fixable — instead of a page-wide one.
-      .containerRelativeFrame(.horizontal)
+      // **THE PAGE IS THE WIDTH OF THE PAGE**, and WAVE 10 found the half of
+      // this Wave 5 could not. A vertical `ScrollView` sizes its content box
+      // to its widest child and CENTRES a box wider than itself, so one row
+      // that overflows by forty points slides the whole page twenty to the
+      // left and takes the gutter with it. Wave 5 pinned the width with a
+      // bare `containerRelativeFrame(.horizontal)` — which **defaults to
+      // `.center`**, so the frame was the right width and its content was
+      // still centred inside it, and the twenty-point offset survived every
+      // clamp that wave tried. One argument: `alignment: .leading`. It lives
+      // in `csPage` now, with the measure and the breach log.
+      .csPage("season")
     }
     .environment(\.csLook, seasonLook)   // R-10 · before csLookGround, which reads it
     .csFeedback(.rankUp, trigger: climbs)

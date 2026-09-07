@@ -30,6 +30,7 @@ struct StandingsTableView: View {
   @Environment(RoomRouter.self) private var router
   @Environment(\.roomLinks) private var links
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @State private var flipOnce = false
   /// The window opens on demand; the door is a tertiary link, not a push, so
   /// the golfer never loses the page he was reading.
@@ -69,7 +70,13 @@ struct StandingsTableView: View {
       let hidden = window?.hidden ?? [:]
       let rk = ranks
       VStack(spacing: 0) {
-        CSStandingsBoard(count: indices.count, cut: cutLabel, cutAfter: cutAfter(in: indices)) { k, abbreviate in
+        CSStandingsBoard(count: indices.count, cut: cutLabel, cutAfter: cutAfter(in: indices),
+                         // WAVE 10 · the board measures its own field, so an
+                         // eight-row table that sets perfectly on a Max
+                         // abbreviates on an SE instead of truncating two
+                         // surnames — the count rule alone could not see the
+                         // phone it was being read on.
+                         names: indices.map { teams[$0].name }) { k, abbreviate in
           let i = indices[k]
           if let n = hidden[i] { ellipsis(n) }
           row(i, teams[i], rank: rk.indices.contains(i) ? rk[i] : i + 1,
@@ -122,7 +129,13 @@ struct StandingsTableView: View {
     // honestly rather than the code hiding a tie to make a budget.
     let leader = rank == 1
     let pr = model.priorRank[t.id]
-    let flips = flipOnce && pr != nil && pr != i
+    // **WAVE 10 · NO SPLIT-FLAP AT THE ACCESSIBILITY SIZES.** The flip draws
+    // the numeral as an OVERLAY over the whole row, and at AX3 the row is
+    // three times the rail's own height, so the overlay's numeral floated to
+    // the row's centre — outside the painted field, in `panelInk` on a dark
+    // ground. The rest frame is the finished state (§11.2's own floor), so at
+    // AX3 the rail simply draws its numeral where it belongs.
+    let flips = flipOnce && pr != nil && pr != i && !typeSize.isA11y
     Button {
       if solo, let r = model.indRow(t.id) { router.open(.member(r)) } else { router.open(.squad(t)) }
     } label: {
@@ -134,7 +147,9 @@ struct StandingsTableView: View {
              squad: squad(t),
              movement: movement(t, at: i),
              gap: SeasonBoardCopy.gap(leader: model.teams.first?.pts ?? t.pts, row: t.pts),
-             variant: leader ? .leader : .table, railHidesNumeral: flips) {
+             variant: leader ? .leader : .table,
+             axFacts: axFacts(t, at: i, leader: leader),
+             railHidesNumeral: flips) {
         // the trailing column repeats down the table, so it carries no rule
         // and no label — position is already the hierarchy (§9.2). The
         // LEADER's total is `figure` 40 (D-5), and it is INK: the leader's
@@ -239,6 +254,29 @@ struct StandingsTableView: View {
     if d > 0 { return .up(d) }
     if d < 0 { return .down(-d) }
     return .held
+  }
+
+  /// **THE ROW'S OWN FACTS, IN WORDS, FOR AX3** (§16.3's slat row and its
+  /// table row; `leaderboard.md` §7 verbatim; Wave 7's stated deferral).
+  ///
+  /// At the accessibility sizes the column heads are hidden, because a head
+  /// naming columns that are no longer on the screen is worse than no head —
+  /// and the first AX3 photograph of this board is the proof of what that
+  /// left behind: `+4 ▲1 15`, three numerals in a row with nothing anywhere
+  /// on the page to say which was the gap, which the movement and which the
+  /// total. `Movement.long` has existed since Wave 7 and nothing consumed it.
+  private func axFacts(_ t: Team, at i: Int, leader: Bool) -> [String] {
+    var out: [String] = []
+    if let m = StandingsMath.movement(delta: model.priorRank[t.id].map { $0 - i },
+                                      since: model.priorSince) {
+      out.append(m.long)
+    }
+    // the leader's gap cell is EMPTY on the board and it says so in words too:
+    // "leading" is the fact, not a dash.
+    let gap = SeasonBoardCopy.gap(leader: model.teams.first?.pts ?? t.pts, row: t.pts)
+    if leader { out.append("leading") } else if !gap.isEmpty { out.append("\(gap) back") }
+    out.append("\(CSCopy.points(t.pts)) points")
+    return out
   }
 
   private func ellipsis(_ hidden: Int) -> some View {
@@ -380,7 +418,7 @@ struct GolferTableView: View {
   var body: some View {
     let rows = model.indRows
     let rk = StandingsMath.competitionRanks(rows.map { Int($0.pts.rounded()) })
-    CSStandingsBoard(count: rows.count) { i, abbreviate in
+    CSStandingsBoard(count: rows.count, names: rows.map(\.n)) { i, abbreviate in
       let p = rows[i]
       let tied = (i > 0 && rk[i - 1] == rk[i]) || (i + 1 < rk.count && rk[i + 1] == rk[i])
       Button { router.open(.member(p)) } label: {
@@ -392,7 +430,13 @@ struct GolferTableView: View {
                squad: p.sq.isEmpty ? nil : (cs.squad(p.ci), squadName(p.mid) ?? p.sq),
                movement: nil,
                gap: SeasonBoardCopy.gap(leader: rows.first?.pts ?? p.pts, row: p.pts),
-               variant: rk[i] == 1 ? .leader : .table) {
+               variant: rk[i] == 1 ? .leader : .table,
+               // WAVE 10 · with the heads hidden at AX3 the row says its own
+               // facts. There is no movement here by design (the snapshot
+               // holds squads, not golfers), so the line is two clauses.
+               axFacts: [rk[i] == 1 ? "leading"
+                         : "\(SeasonBoardCopy.gap(leader: rows.first?.pts ?? p.pts, row: p.pts)) back",
+                         "\(CSCopy.points(p.pts)) points"]) {
           CSFigure(CSCopy.points(p.pts), size: rk[i] == 1 ? .l : .m, label: nil)
         }
         .contentShape(Rectangle())

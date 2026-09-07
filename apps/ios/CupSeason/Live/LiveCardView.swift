@@ -73,23 +73,42 @@ struct LiveCardView: View {
         Button { onPickHole(h) } label: { cell("\(h + 1)").foregroundStyle(cs.mut) }
           .buttonStyle(.plain)
           .accessibilityLabel("Jump to hole \(h + 1)")
-        if h == half - 1 { cell(holes == 9 ? "TOT" : "OUT").foregroundStyle(cs.ink) }
+        if h == half - 1 {
+          cell(holes == 9 ? "TOT" : "OUT").foregroundStyle(cs.ink)
+            .accessibilityLabel(holes == 9 ? "Total column" : "Out column")
+        }
       }
-      if holes > 9 { cell("IN").foregroundStyle(cs.ink); cell("TOT").foregroundStyle(cs.ink) }
-      cell("+/-").foregroundStyle(cs.mut)
+      if holes > 9 {
+        cell("IN").foregroundStyle(cs.ink).accessibilityLabel("In column")
+        cell("TOT").foregroundStyle(cs.ink).accessibilityLabel("Total column")
+      }
+      cell("+/-").foregroundStyle(cs.mut).accessibilityLabel("Versus par column")
     }
     .csType(.columnS)
   }
 
+  /// **WAVE 10 · EIGHTEEN COLUMNS, EIGHTEEN LABELS** (§16.4's last line —
+  /// "the landscape scorecard's single label for 18 columns is the one hole to
+  /// fill"). The score row already named its holes; the reference rows a score
+  /// is READ AGAINST did not, so VoiceOver on this card could tell a golfer
+  /// what they shot and not what the hole plays to. A bare `4` in a swipe is a
+  /// numeral with no subject.
   private var siRow: some View {
     GridRow {
       cell("SI", w: nameW, align: .leading).foregroundStyle(cs.mut)
+        .accessibilityLabel("Stroke index row")
       ForEach(0..<holes, id: \.self) { h in
-        cell(h < s.course.si.count ? "\(s.course.si[h])" : "—").foregroundStyle(cs.mut)
-        if h == half - 1 { cell("—").foregroundStyle(cs.mut) }
+        let known = h < s.course.si.count
+        cell(known ? "\(s.course.si[h])" : "—").foregroundStyle(cs.mut)
+          .accessibilityLabel(known ? "Hole \(h + 1), stroke index \(s.course.si[h])"
+                              : "Hole \(h + 1), no stroke index")
+        if h == half - 1 { cell("—").foregroundStyle(cs.mut).accessibilityHidden(true) }
       }
-      if holes > 9 { cell("—").foregroundStyle(cs.mut); cell("—").foregroundStyle(cs.mut) }
-      cell("").foregroundStyle(cs.mut)
+      if holes > 9 {
+        cell("—").foregroundStyle(cs.mut).accessibilityHidden(true)
+        cell("—").foregroundStyle(cs.mut).accessibilityHidden(true)
+      }
+      cell("").foregroundStyle(cs.mut).accessibilityHidden(true)
     }
     .csType(.columnS)
   }
@@ -97,8 +116,10 @@ struct LiveCardView: View {
   private var parRow: some View {
     GridRow {
       cell("PAR", w: nameW, align: .leading).foregroundStyle(cs.mut)
+        .accessibilityLabel("Par row")
       ForEach(0..<holes, id: \.self) { h in
         cell("\(par(h))").foregroundStyle(cs.mut)
+          .accessibilityLabel("Hole \(h + 1), par \(par(h))")
         if h == half - 1 { cell("\(parSum(0, half))").foregroundStyle(cs.ink).accessibilityLabel("Par out, \(parSum(0, half))") }
       }
       if holes > 9 {
@@ -128,8 +149,16 @@ struct LiveCardView: View {
         Spacer(minLength: 0)
       }
       .frame(width: nameW, alignment: .leading)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("\(p.n)\(p.guest ? ", guest" : "")")
       ForEach(0..<holes, id: \.self) { h in
         let v = h < sc.count ? sc[h] : nil
+        // **A STROKE IS A FACT, NOT A DECORATION.** The pips were
+        // `accessibilityHidden`, so a golfer using VoiceOver could read every
+        // score on the card and never learn where they get a shot — the one
+        // thing the pips are on the card to say (§16.4: colour, and shape, is
+        // never the only channel).
+        let shots = h < stk.count ? stk[h] : 0
         ZStack {
           // THE INK LAW: a ring under par, a box over it, nothing at par — in
           // ink, in both printings, on every scorecard in the product.
@@ -138,9 +167,9 @@ struct LiveCardView: View {
         }
         .frame(width: cellW)
         .overlay(alignment: .topTrailing) {
-          if h < stk.count, stk[h] > 0 {
+          if shots > 0 {
             HStack(spacing: 1) {
-              ForEach(0..<min(stk[h], 2), id: \.self) { _ in
+              ForEach(0..<min(shots, 2), id: \.self) { _ in
                 Circle().fill(cs.mut).frame(width: 3, height: 3)
               }
             }
@@ -148,8 +177,11 @@ struct LiveCardView: View {
             .accessibilityHidden(true)
           }
         }
-        .accessibilityLabel(v == nil ? "Hole \(h + 1), not scored"
-                            : "Hole \(h + 1), \(v!)\(v! == par(h) ? "" : ", " + CSScoreMark(v! - par(h)).spoken)")
+        .accessibilityLabel(
+          [v == nil ? "Hole \(h + 1), not scored"
+                    : "Hole \(h + 1), \(v!)\(v! == par(h) ? "" : ", " + CSScoreMark(v! - par(h)).spoken)",
+           shots == 1 ? "a shot here" : (shots > 1 ? "\(shots) shots here" : "")]
+            .filter { !$0.isEmpty }.joined(separator: ", "))
         if h == half - 1 {
           cell(total(sc, 0, half)).foregroundStyle(cs.ink)
             .accessibilityLabel("\(holes == 9 ? "Total" : "Out"), \(total(sc, 0, half))")

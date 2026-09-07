@@ -86,7 +86,7 @@ struct ReportSheet: View {
         FlowRow(spacing: 6) {
           ForEach(reasons, id: \.self) { r in
             Button { why = r } label: {
-              CSChip(r, selected: why == r).frame(minHeight: 44).contentShape(Rectangle())
+              CSChip(r, selected: why == r)   // the 44pt target is the chip's own now
             }
             .buttonStyle(.plain)
           }

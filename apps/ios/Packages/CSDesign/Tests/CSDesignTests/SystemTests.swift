@@ -157,13 +157,24 @@ import SwiftUI
 }
 
 @Suite @MainActor struct BoardTests {
-  /// **rail 44 · face 30 · s3 12 · change 58 · points 50 · gutter 20 = 214.**
-  /// Every "the rail keeps its width" claim in the surface specs rests on this
-  /// number, and none of them carried the arithmetic.
+  /// **rail 44 · face 30 · s3 12 · change 58 · points 50 · gutter 20 = 214** —
+  /// the number every "the rail keeps its width" claim in the surface specs
+  /// rests on, and none of them carried the arithmetic.
+  ///
+  /// **WAVE 10 · AND THE ARITHMETIC WAS 12pt OPTIMISTIC.** The row pays `s3`
+  /// TWICE — once before the face and once before the name block, which is
+  /// what stops a disc touching a surname — so the real fixed total is 226 and
+  /// the name column is 176 at 402 and 156 on an SE, not 188 and 161. Every
+  /// surface spec that quoted 188 was quoting a column the product does not
+  /// have. `fixedColumns` is kept at its documented 214 because it is cited by
+  /// name in five places; `nameWidth(at:)` is the one a layout must trust, and
+  /// it now also uses that measure's OWN change and points columns.
   @Test func theFixedColumnsSumToTwoHundredAndFourteen() {
     #expect(CSSlatMetrics.fixedColumns == 214)
-    #expect(CSSlatMetrics.nameWidth(at: 402) == 188, "the name column at the 402 measure")
-    #expect(CSSlatMetrics.nameWidth(at: 375) == 161, "the name column on an SE")
+    #expect(CSSlatMetrics.nameWidth(at: 402) == 176, "the name column at the 402 measure")
+    #expect(CSSlatMetrics.nameWidth(at: 375) == 156, "the name column on an SE")
+    #expect(CSSlatMetrics.nameWidth(at: 440) > CSSlatMetrics.nameWidth(at: 402),
+            "the Max's extra 38pt goes to the name, not to the columns")
   }
 
   /// Two digits with a leading zero, centred, and never an ordinal: the rail

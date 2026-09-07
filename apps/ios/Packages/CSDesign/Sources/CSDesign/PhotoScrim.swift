@@ -158,8 +158,54 @@ public extension CSPhotoScrim {
 
   /// The geometry, drawn. `ceremony` is the ground in BOTH printings: a
   /// photograph carries its own dusk and a light-theme scrim would bleach it.
-  @ViewBuilder static func layer(_ stops: [Stop], leading: Bool = false) -> some View {
-    LinearGradient(stops: stops.map { .init(color: CSTokens.dark.ceremony.opacity($0.alpha), location: $0.at) },
+  static func layer(_ stops: [Stop], leading: Bool = false) -> some View {
+    CSScrimLayer(stops: stops, leading: leading)
+  }
+
+  /// **Reduce Transparency, on a scrim** (§16.5, WAVE 10).
+  ///
+  /// The other three exposed textures — the folio's hairline, the contour, the
+  /// crest — sit on a known opaque ground, so "the composited opaque value" is
+  /// exact arithmetic and nothing is lost. A scrim does not: the thing
+  /// underneath it is a photograph, and flattening a `.title` ramp to its
+  /// darkest stop would paint the whole plate solid and **erase the picture**,
+  /// which is not an accessibility win by any reading.
+  ///
+  /// So the resolution is the SHAPE rather than the alpha: the ramp becomes
+  /// **two stops with a hard edge at the point the original crossed half its
+  /// darkest value** — clear above, the darkest value below. Nothing fades
+  /// into anything; the copy's ground is a uniform band; the top of the
+  /// photograph survives; and the copy's contrast strictly IMPROVES, because
+  /// every point in the band now carries the ramp's own maximum.
+  static func hardEdge(_ stops: [Stop]) -> [Stop] {
+    guard let darkest = stops.map(\.alpha).max(), darkest > 0 else { return stops }
+    let half = darkest / 2
+    let sorted = stops.sorted { $0.at < $1.at }
+    var edge = sorted.last?.at ?? 1
+    for (a, b) in zip(sorted, sorted.dropFirst()) where (a.alpha - half) * (b.alpha - half) <= 0 {
+      let span = b.alpha - a.alpha
+      edge = abs(span) < 0.0001 ? a.at : a.at + (half - a.alpha) / span * (b.at - a.at)
+      break
+    }
+    let clearFirst = (sorted.first?.alpha ?? 0) < (sorted.last?.alpha ?? 0)
+    return clearFirst
+      ? [Stop(0, 0), Stop(0, edge), Stop(darkest, edge), Stop(darkest, 1)]
+      : [Stop(darkest, 0), Stop(darkest, edge), Stop(0, edge), Stop(0, 1)]
+  }
+}
+
+/// The scrim as a view, so it can read `\.csReduceTransparency`. `layer` was a
+/// static function and a static function has no environment.
+public struct CSScrimLayer: View {
+  @Environment(\.csReduceTransparency) private var reduce
+  let stops: [CSPhotoScrim.Stop]
+  let leading: Bool
+  public init(stops: [CSPhotoScrim.Stop], leading: Bool = false) {
+    self.stops = stops; self.leading = leading
+  }
+  public var body: some View {
+    let s = reduce ? CSPhotoScrim.hardEdge(stops) : stops
+    LinearGradient(stops: s.map { .init(color: CSTokens.dark.ceremony.opacity($0.alpha), location: $0.at) },
                    startPoint: leading ? .leading : .top,
                    endPoint: leading ? .trailing : .bottom)
       .allowsHitTesting(false)

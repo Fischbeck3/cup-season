@@ -32,6 +32,7 @@ import SwiftUI
 /// one idea rather than two.
 public struct CSRankRail: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   public enum Field: Sendable { case earned, mine, none }
   let rank: Int
   let field: Field
@@ -57,7 +58,14 @@ public struct CSRankRail: View {
       // the viewer's read as a caption beside its own name.
       .foregroundStyle(field == .none ? cs.ink : cs.panelInk)
       .frame(width: CSTokens.Space.rail)
-      .frame(maxHeight: .infinity)
+      // WAVE 10 · **the numeral sits with the name, not in the middle of a
+      // grown row.** At the reading sizes the rail and the name are the same
+      // height and centring is invisible; at AX3 the row grows to hold a
+      // wrapped name and a spoken facts line, and a centred numeral floats
+      // half a row below the name it belongs to — which is what the first AX3
+      // photograph of this board showed. The rail keeps its 44pt width
+      // either way (§16.3): it is the row's HEIGHT that grows.
+      .frame(maxHeight: .infinity, alignment: typeSize.isA11y ? .top : .center)
       .background(background)
       .csBudget(gold: field == .earned ? 1 : 0)
       .accessibilityHidden(true)
@@ -88,6 +96,30 @@ public enum CSSlatMetrics {
   /// The merged change cell: the gap figure, then the movement mark.
   public static let changeWidth: CGFloat = 58
   public static let trailingWidth: CGFloat = 50
+
+  // MARK: derived from the measure (WAVE 10 · §16.3's 375pt paragraph)
+
+  /// **The two numeric columns are a FRACTION of the measure, floored and
+  /// capped**, rather than two constants cut against a 402pt artboard.
+  ///
+  /// 58 and 50 are 14.4% and 12.4% of 402. At 375 that is 54 and 46.5, which
+  /// hands **7.5pt back to the name** — the difference between `PRIYA
+  /// RAGHUNA…` and `PRIYA RAGHUNATHAN` on an SE, which is the row the blind
+  /// review filed as the set's most damaging defect. The floors (46 · 44) are
+  /// what `+12` beside a triangle and a two-digit total actually need; the
+  /// caps hold the Max's extra 38pt in the NAME column, where it belongs,
+  /// rather than inflating two columns that are already wide enough.
+  public static func changeWidth(at measure: CGFloat) -> CGFloat {
+    min(58, max(46, (measure * 0.144).rounded()))
+  }
+  public static func trailingWidth(at measure: CGFloat) -> CGFloat {
+    min(50, max(44, (measure * 0.124).rounded()))
+  }
+  /// The form board's trailing column, on the same derivation. Its floor is
+  /// what `BEAT YOUR NUMBER` needs on one line.
+  public static func formTrailingWidth(at measure: CGFloat) -> CGFloat {
+    min(120, max(104, (measure * 0.3).rounded()))
+  }
   /// **The form board's trailing column is wider than the season board's, and
   /// it has to be.** It carries a signed figure at `figureS` with a band word
   /// beneath it — `BEAT YOUR NUMBER` is the longest of the five and it sets on
@@ -99,8 +131,29 @@ public enum CSSlatMetrics {
   public static let fixedColumns: CGFloat =
     CSTokens.Space.rail + CSFace.Size.slat.rawValue + railGap
     + changeWidth + trailingWidth + CSTokens.Space.gutter
-  /// What is left for the name at a given screen width.
-  public static func nameWidth(at measure: CGFloat) -> CGFloat { measure - fixedColumns }
+  /// What is left for the name at a given screen width — **with that width's
+  /// own columns**, not with the 402 artboard's.
+  public static func nameWidth(at measure: CGFloat) -> CGFloat {
+    measure - (CSTokens.Space.rail + CSFace.Size.slat.rawValue + railGap * 2
+               + changeWidth(at: measure) + trailingWidth(at: measure) + CSTokens.Space.gutter)
+  }
+
+  /// **Does this field of names fit the column it is being read in?**
+  ///
+  /// `MeStripLayout`'s model, applied to the board: measure the actual
+  /// characters in the actual face at the size being read, and abbreviate the
+  /// whole board's given names when the longest one does not fit. `count >= 10`
+  /// stays as the floor — a big field keeps one grammar whatever the phone —
+  /// and this is what catches the eight-row board on an SE, where the same
+  /// eight rows fit perfectly on a Max.
+  public static func abbreviates(names: [String], count: Int,
+                                 measure: CGFloat, size: DynamicTypeSize) -> Bool {
+    if count >= 10 { return true }
+    guard !names.isEmpty, !size.isA11y else { return count >= 10 }
+    let column = nameWidth(at: measure)
+    guard column > 0 else { return false }
+    return names.contains { CSAdvance.width($0, .name, size) > column }
+  }
 }
 
 // MARK: - The slat
@@ -109,6 +162,10 @@ public enum CSSlatMetrics {
 public struct CSSlat<Trailing: View>: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
+  /// WAVE 10 · the width this row is being READ at, injected by `csPage`. The
+  /// two numeric columns are a fraction of it (§16.3); nothing here is cut
+  /// against 402 any more.
+  @Environment(\.csMeasure) private var measure
 
   let rank: Int
   let field: CSRankRail.Field
@@ -129,6 +186,18 @@ public struct CSSlat<Trailing: View>: View {
   let movement: CSMovement.State?
   let gap: String?
   let variant: Variant
+  /// **The row's own facts, in WORDS, for the accessibility sizes** (§16.3's
+  /// slat row, and `leaderboard.md` §7 verbatim).
+  ///
+  /// At AX3 the column heads are hidden — a head that describes columns which
+  /// are no longer on screen is worse than no head — so `+4 ▲1 15` becomes
+  /// three unlabelled numerals with nothing anywhere on the page to say which
+  /// is the gap and which is the total. That is what the first AX3 photograph
+  /// of this board actually showed. With `axFacts` the row says it:
+  /// `UP ONE SINCE SUN · 4 BACK · 15 POINTS`, from `Movement.long` and the
+  /// surface's own producers, on one `CSClauseLine` that breaks rather than
+  /// truncates. Empty keeps the shipped column reflow.
+  let axFacts: [String]
   /// The rank is being animated over the rail by the surface; the rail paints
   /// its field and draws no numeral of its own.
   let railHidesNumeral: Bool
@@ -152,8 +221,9 @@ public struct CSSlat<Trailing: View>: View {
     case form
     var height: CGFloat { switch self { case .table: 50; case .leader: 74; case .form: 60 } }
     var face: CSFace.Size { self == .table ? .slat : .list }
-    var trailingWidth: CGFloat {
-      self == .form ? CSSlatMetrics.formTrailingWidth : CSSlatMetrics.trailingWidth
+    func trailingWidth(at measure: CGFloat) -> CGFloat {
+      self == .form ? CSSlatMetrics.formTrailingWidth(at: measure)
+                    : CSSlatMetrics.trailingWidth(at: measure)
     }
     /// **The form board's trailing column HUGS.** A fixed 120 sized every row
     /// to the longest band in the set — `BEAT THEIR NUMBER` — and starved the
@@ -168,11 +238,12 @@ public struct CSSlat<Trailing: View>: View {
   public init(rank: Int, field: CSRankRail.Field, face: CSFace.Model?,
               name: String, sub: String, squad: (Color, String)? = nil,
               movement: CSMovement.State?, gap: String?, variant: Variant = .table,
-              railHidesNumeral: Bool = false,
+              axFacts: [String] = [], railHidesNumeral: Bool = false,
               @ViewBuilder trailing: () -> Trailing) {
     self.rank = rank; self.field = field; self.face = face
     self.name = name; self.sub = sub; self.squad = squad
     self.movement = movement; self.gap = gap; self.variant = variant
+    self.axFacts = axFacts.filter { !$0.isEmpty }
     self.railHidesNumeral = railHidesNumeral
     self.trailing = trailing()
   }
@@ -180,70 +251,36 @@ public struct CSSlat<Trailing: View>: View {
   public var body: some View {
     VStack(spacing: 0) {
       CSRule()
-      A11yStack(spacing: 0, columnSpacing: CSTokens.Space.s2) {
-        HStack(spacing: 0) {
-          CSRankRail(rank, field: field, hidesNumeral: railHidesNumeral)
-          // the leader's wider face is absorbed by the flexible name column,
-          // never by the change or points columns, which stay on their grid
-          if let face { CSFace(face, size: variant.face).padding(.leading, CSSlatMetrics.railGap) }
-          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-            Text(name).csType(.name).foregroundStyle(cs.ink)
-              .lineLimit(1).truncationMode(.tail)
-            HStack(spacing: CSTokens.Space.s2) {
-              if let squad {
-                // **A squad's OWN row takes the 6 × 30 bar; a golfer's row in a
-                // squads season takes the 4 × 14 swatch and the squad's name.**
-                // An empty name is the tell: the row is already called by the
-                // squad, so the bar stands alone and stands taller.
-                Rectangle().fill(squad.0)
-                  .frame(width: squad.1.isEmpty ? 6 : 4, height: squad.1.isEmpty ? 30 : 14)
-                if !squad.1.isEmpty {
-                  // sentence case and a middot, because `Mudsharks · held four
-                  // weeks` is one phrase and not a label beside a phrase — and
-                  // the name never shrinks to `MUDS`, which is what a flexible
-                  // label did the first time this shipped.
-                  Text(squad.1 + " ·").csType(.agateS, caps: false).foregroundStyle(cs.mut)
-                    .lineLimit(1).fixedSize(horizontal: true, vertical: false)
-                }
-              }
-              Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
-                .lineLimit(1).truncationMode(.tail)
-            }
-          }
-          .padding(.leading, CSSlatMetrics.railGap)
-          .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-        }
-        // **A cell with nothing in it is not reserved.** D245 clause 5 puts no
-        // movement and no gap on the friends board at all, and holding 58pt
-        // open for two absent facts took the name column to 130pt and
-        // ellipsised a sub-line that fits easily without it.
-        if !typeSize.isA11y, hasChange { change }
-        if !typeSize.isA11y {
+      // **WAVE 10 · THE RAIL IS A SIBLING OF THE WHOLE ROW, NOT OF ITS FIRST
+      // LINE.** §16.3 says the rail keeps its 44pt width and the row grows its
+      // HEIGHT — and the shipped `A11yStack` grew the row by stacking a second
+      // band UNDER the rail, so at AX3 the leader's gold field stopped
+      // half-way down its own row and the viewer's `02` fell out of the bottom
+      // of its white panel into `panelInk` on a dark ground, where it is
+      // barely a numeral at all. One rail, one row, both sizes.
+      // the columns sit on the row's centre line at the reading sizes, where
+      // every cell is one line; at AX3 the row is three lines tall and every
+      // column reads from the top, beside the name it belongs to
+      HStack(alignment: typeSize.isA11y ? .top : .center, spacing: 0) {
+        CSRankRail(rank, field: field, hidesNumeral: railHidesNumeral)
+        if typeSize.isA11y {
+          HStack(alignment: .top, spacing: 0) { faceAndName }
+            .padding(.vertical, CSTokens.Space.s2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+          faceAndName
+          // **A cell with nothing in it is not reserved.** D245 clause 5 puts
+          // no movement and no gap on the friends board at all, and holding
+          // 58pt open for two absent facts took the name column to 130pt and
+          // ellipsised a sub-line that fits easily without it.
+          if hasChange { change }
           if variant.trailingHugs {
             trailing.fixedSize(horizontal: true, vertical: false)
-              .frame(minWidth: CSSlatMetrics.trailingWidth, alignment: .trailing)
+              .frame(minWidth: CSSlatMetrics.trailingWidth(at: measure), alignment: .trailing)
           } else {
-            trailing.frame(width: variant.trailingWidth, alignment: .trailing)
+            trailing.frame(width: variant.trailingWidth(at: measure), alignment: .trailing)
           }
         }
-      }
-      // at the accessibility sizes the row becomes a column rather than
-      // squeezing a two-digit figure against a name that no longer fits
-      if typeSize.isA11y {
-        HStack(spacing: CSTokens.Space.s3) {
-          if hasChange { change }
-          trailing
-          Spacer(minLength: 0)
-        }
-        // and the same trap on the accessibility branch, which is the one
-        // that actually shipped it: a `Spacer` claims the whole proposed
-        // width and the 56pt rail inset is then added to it, so the row
-        // measured screen + 56 and the ScrollView centred the whole page
-        // twenty-eight points to the left. This is AX3-only by construction,
-        // which is why it took the capture hatch to find.
-        .padding(.leading, CSTokens.Space.rail + CSSlatMetrics.railGap)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, CSTokens.Space.s2)
       }
     }
     // **PADDING AROUND A FULL-MEASURE CHILD WIDENS THE ROW.** The slat's own
@@ -259,6 +296,60 @@ public struct CSSlat<Trailing: View>: View {
     // ONE VoiceOver element per row.
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(spoken)
+  }
+
+  /// The face and the name block — the two columns that read the same way at
+  /// every size. At the reading sizes they sit between the rail and the two
+  /// numeric columns; at AX3 they are the row's first line and the facts set
+  /// beneath them.
+  @ViewBuilder private var faceAndName: some View {
+    // the leader's wider face is absorbed by the flexible name column,
+    // never by the change or points columns, which stay on their grid
+    if let face { CSFace(face, size: variant.face).padding(.leading, CSSlatMetrics.railGap) }
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      Text(name).csType(.name).foregroundStyle(cs.ink)
+        .lineLimit(typeSize.isA11y ? 3 : 1).truncationMode(.tail)
+        .fixedSize(horizontal: false, vertical: typeSize.isA11y)
+      HStack(spacing: CSTokens.Space.s2) {
+        if let squad {
+          // **A squad's OWN row takes the 6 × 30 bar; a golfer's row in a
+          // squads season takes the 4 × 14 swatch and the squad's name.**
+          // An empty name is the tell: the row is already called by the
+          // squad, so the bar stands alone and stands taller.
+          Rectangle().fill(squad.0)
+            .frame(width: squad.1.isEmpty ? 6 : 4, height: squad.1.isEmpty ? 30 : 14)
+          if !squad.1.isEmpty {
+            // sentence case and a middot, because `Mudsharks · held four
+            // weeks` is one phrase and not a label beside a phrase — and
+            // the name never shrinks to `MUDS`, which is what a flexible
+            // label did the first time this shipped.
+            Text(squad.1 + " \u{00B7}").csType(.agateS, caps: false).foregroundStyle(cs.mut)
+              .lineLimit(1).fixedSize(horizontal: true, vertical: false)
+          }
+        }
+        Text(sub).csType(.agateS, caps: false).foregroundStyle(cs.mut)
+          .lineLimit(typeSize.isA11y ? 2 : 1).truncationMode(.tail)
+          .fixedSize(horizontal: false, vertical: typeSize.isA11y)
+      }
+      // §16.3 · at AX3 the move, the gap and the points move **under the
+      // name** — inside its own block, so they read as this golfer's three
+      // facts rather than as a second row indented to the rail.
+      if typeSize.isA11y {
+        if !axFacts.isEmpty {
+          CSClauseLine(axFacts, role: .agateS, caps: true, colour: cs.mut)
+            .padding(.top, CSTokens.Space.s1)
+        } else {
+          HStack(spacing: CSTokens.Space.s3) {
+            if hasChange { change }
+            trailing
+            Spacer(minLength: 0)
+          }
+          .padding(.top, CSTokens.Space.s1)
+        }
+      }
+    }
+    .padding(.leading, CSSlatMetrics.railGap)
+    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
   }
 
   /// **A held row prints ONE mark.** `— —` — an em dash for the gap beside a
@@ -281,7 +372,8 @@ public struct CSSlat<Trailing: View>: View {
       }
       if let movement { CSMovement(movement) }
     }
-    .frame(width: typeSize.isA11y ? nil : CSSlatMetrics.changeWidth, alignment: typeSize.isA11y ? .leading : .trailing)
+    .frame(width: typeSize.isA11y ? nil : CSSlatMetrics.changeWidth(at: measure),
+           alignment: typeSize.isA11y ? .leading : .trailing)
   }
 
   var spoken: String {
@@ -316,19 +408,32 @@ public enum CSOrdinal {
 public struct CSStandingsBoard<Row: View>: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
+  @Environment(\.csMeasure) private var measure
   let count: Int
   let cut: String?
   let cutAfter: Int?
+  /// **The field's names, so the abbreviation is MEASURED** (WAVE 10, §16.3).
+  /// Optional and additive: a caller that passes none keeps the count rule.
+  let names: [String]
   let rows: (Int, Bool) -> Row
 
   /// `abbreviate` is decided per BOARD, not per row: at a field of ten or more
   /// EVERY given name goes to an initial, including the short ones, so the
   /// column keeps one grammar.
+  ///
+  /// **WAVE 10 · and also whenever the longest name in THIS field does not fit
+  /// the name column at the width this board is being read at.** Eight rows
+  /// that set perfectly on a Max truncated two surnames on an SE, because the
+  /// threshold was a count and the column is a measure.
   public var abbreviateNames: Bool { count >= 10 }
+  var abbreviatesHere: Bool {
+    CSSlatMetrics.abbreviates(names: names, count: count, measure: measure, size: typeSize)
+  }
 
-  public init(count: Int, cut: String? = nil, cutAfter: Int? = nil,
+  public init(count: Int, cut: String? = nil, cutAfter: Int? = nil, names: [String] = [],
               @ViewBuilder rows: @escaping (Int, Bool) -> Row) {
-    self.count = count; self.cut = cut; self.cutAfter = cutAfter; self.rows = rows
+    self.count = count; self.cut = cut; self.cutAfter = cutAfter
+    self.names = names; self.rows = rows
   }
 
   public var body: some View {
@@ -339,7 +444,7 @@ public struct CSStandingsBoard<Row: View>: View {
       // longer on screen.
       if !typeSize.isA11y { head }
       ForEach(0..<count, id: \.self) { i in
-        rows(i, abbreviateNames)
+        rows(i, abbreviatesHere)
         if let cut, let cutAfter, i == cutAfter - 1 { CSCut(cut) }
       }
     }
@@ -352,8 +457,8 @@ public struct CSStandingsBoard<Row: View>: View {
       Text("Pos").frame(width: CSTokens.Space.rail)
       Text("Golfer").frame(maxWidth: .infinity, alignment: .leading)
         .padding(.leading, CSFace.Size.slat.rawValue + CSSlatMetrics.railGap * 2)
-      Text("Gap").frame(width: CSSlatMetrics.changeWidth, alignment: .trailing)
-      Text("Pts").frame(width: CSSlatMetrics.trailingWidth, alignment: .trailing)
+      Text("Gap").frame(width: CSSlatMetrics.changeWidth(at: measure), alignment: .trailing)
+      Text("Pts").frame(width: CSSlatMetrics.trailingWidth(at: measure), alignment: .trailing)
     }
     .csType(.agateS, caps: true)
     .foregroundStyle(cs.mut)

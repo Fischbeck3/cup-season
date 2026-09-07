@@ -523,8 +523,13 @@ public struct CSStoryCard<Aside: View>: View {
 
   public var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      if typeSize.isA11y { aside.frame(maxWidth: .infinity, alignment: .leading) }
       eyebrowRow
+      // §16.3, the lead block's AX3 row: **the panel goes full width, ABOVE
+      // THE HEADLINE** — after the eyebrow, which is the block's own first
+      // line and names what the panel is a figure about. It shipped above the
+      // eyebrow, which put a rank chip on the page before anything said which
+      // table it was a rank in.
+      if typeSize.isA11y { aside.frame(maxWidth: .infinity, alignment: .leading) }
       if typeSize.isA11y {
         column
       } else {
@@ -547,8 +552,14 @@ public struct CSStoryCard<Aside: View>: View {
           .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 8 }
           .accessibilityLabel("Live")
       }
-      Text(eyebrow).csType(.agate, caps: true).foregroundStyle(live ? cs.brand : cs.mut)
-        .lineLimit(1).truncationMode(.tail)
+      // **WAVE 10 · THE LEAD'S EYEBROW BREAKS ON ITS MIDDOTS** (§16.3, the
+      // `agate` row). On an SE at the DEFAULT reading size the shipped line
+      // read `MON · GOLD CANYON — DINOSAUR MOUNTAIN ·…` — the course a golfer
+      // is playing today, cut off, on the front page of the product, and it
+      // got worse at every size above it. The clauses are the line; a tail
+      // ellipsis on a line made of clauses throws away the last fact for the
+      // sake of the shape of the first.
+      CSClauseLine(eyebrow, role: .agate, caps: true, colour: live ? cs.brand : cs.mut)
       if let tag {
         Spacer(minLength: CSTokens.Space.s2)
         Text(tag).csType(.agate, caps: true).foregroundStyle(cs.mut)

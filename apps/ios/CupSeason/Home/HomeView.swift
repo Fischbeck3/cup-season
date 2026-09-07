@@ -101,6 +101,7 @@ struct HomeView: View {
             .padding(.top, CSTokens.Space.s4)
         }
         .padding(.bottom, CSTokens.Space.s5)
+        .csPage("home")
       }
     }
     .background(cs.bg0)

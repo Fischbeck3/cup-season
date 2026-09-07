@@ -135,7 +135,11 @@ struct FriendsBoardSection: View {
            sub: sub(r),
            movement: nil,
            gap: nil,
-           variant: .form) {
+           variant: .form,
+           // WAVE 10 · at AX3 the heads are gone, so the row says its own
+           // column in words rather than leaving a signed figure and a band
+           // word floating under a name with nothing to attach them to.
+           axFacts: [[figure(r), word(r)].compactMap { $0 }.joined(separator: " · ")]) {
       trailing(r)
     }
     .contentShape(Rectangle())
