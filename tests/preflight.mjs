@@ -2361,11 +2361,15 @@ const lint = (id, name, hits, note = '') => {
 
   /* LINT-04 · no colour literal in Swift (check 15's sibling, scoped to the
      forms a component reaches for). Generated/Tokens.swift is the one source. */
-  /* `CredentialDev` and the developer harness draw a GREYSCALE stand-in
-     subject on purpose — the scrim's worst case is a nearly-white patch, and a
-     plausible warm portrait would have flattered it. Both are `#if DEBUG` and
-     neither ships, so they are exempt BY NAME rather than by a baseline: a
-     baseline on a zero-tolerance check is a hole with a number written on it. */
+  /* `CredentialDev`, `ReceiptPhotoDev` and the developer harness draw a
+     GREYSCALE stand-in subject on purpose — the scrim's worst case is a
+     nearly-white patch, and a plausible warm portrait would have flattered it.
+     All three are `#if DEBUG` and none ships, so they are exempt BY NAME
+     rather than by a baseline: a baseline on a zero-tolerance check is a hole
+     with a number written on it. (`ReceiptPhotoDev` joined the list with
+     D293 — it draws the round photograph the receipt's two unreachable states
+     need, for the same reason and under the same rule: no place is fabricated,
+     it is a sky, a horizon and a ground mass at 3:2.) */
   /* **AND IT HAS TO MATCH THE FORM THIS REPO ACTUALLY WRITES.** The regex was
      `Color(red:` / `Color(white:` / `Color(hue:` and reported "zero, and held
      there" for three waves while EIGHT literals shipped as `Color(hex: 0x…)`,
@@ -2377,8 +2381,8 @@ const lint = (id, name, hits, note = '') => {
      is a lint that reports on a codebase that does not exist. */
   lint('LINT-04', 'no colour invented in Swift',
        scan(/(Color|UIColor)\((red|white|hue|hex):|UIColor\(rgb:|Color\(\s*"#/,
-            { skip: /Generated\/|CredentialDev\.swift|DeveloperHarness\.swift/ }),
-       'every value comes from tokens.json; the two DEBUG fixtures are exempt by name');
+            { skip: /Generated\/|CredentialDev\.swift|ReceiptPhotoDev\.swift|DeveloperHarness\.swift/ }),
+       'every value comes from tokens.json; the three DEBUG fixtures are exempt by name');
 
   /* LINT-09 · no border. The system has NO BORDER TOKEN; the only outlines are
      the focus ring, the face's inset ring, the leaf's light edge and the

@@ -18443,6 +18443,149 @@ function roundCardBody(r, pvi, capN){
   }
   return rows.join('');
 }
+/* ============ D293 · A PHOTO ON A ROUND YOU ALREADY POSTED ================
+   The owner, from his own phone: "I just posted a round at Dinosaur mountain
+   but I cant go back to add a photo. I may have missed that option to." He
+   missed nothing — `post_round`'s `p_photo_path` was the only path a
+   photograph had ever taken to a round, and the product asked for it at the
+   one moment a golfer is least able to supply it (the score is typed in the
+   car park; the picture is on the phone from the 12th).
+
+   §16 protects a NUMBER — the chain from a standing back to the arithmetic
+   behind it — and a photograph is in none of it: no standing, no band, no cap,
+   no close reads `photo_path`, and `home_stories` / `round_card` read it LIVE
+   rather than snapshotting it. So the seal is drawn around the COLUMN:
+   `set_round_photo` / `clear_round_photo` touch `photo_path` and nothing else,
+   on a round the caller owns, and the migration raises if that ever stops
+   being true of the deployed source.
+
+   The words are the phone's `RoundCopy` (D234) — one producer, two shapes. */
+const CS_PHOTO = {
+  add: 'Add a photo',
+  replace: 'Replace photo',
+  remove: 'Remove photo',
+  armed: 'Sure?',
+  /* the honest pre-migration sentence, in the form csRateCourse set */
+  needsPush: 'Not attached — a photo on a posted round needs the next database push',
+  failed: 'That photo didn’t attach. Check your signal and try again.',
+  removeFailed: 'That photo didn’t come off. Check your signal and try again.',
+};
+/* PostgREST's tell for a function prod does not have yet (PGRST202 / 42883).
+   Only this earns the push sentence; everything else is a real failure. */
+function csMissingFn(e){
+  const s = String((e && (e.message || e.hint || e.code)) || '').toLowerCase();
+  return s.includes('schema cache') || s.includes('42883')
+      || s.includes('pgrst202') || s.includes('could not find the function');
+}
+/* one hidden input, made on first use — the receipt is a sheet, not a pane, so
+   it has no markup of its own to hang an <input> in */
+function csRoundPhotoInput(){
+  let el = document.getElementById('rcptPhotoFile');
+  if(!el){
+    el = document.createElement('input');
+    el.type = 'file'; el.id = 'rcptPhotoFile'; el.accept = 'image/*';
+    el.style.display = 'none';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+/* Upload, then attach. The unwind matters as much as the order: a failed
+   attach leaves an object with nothing pointing at it, signed-URL reachable by
+   anyone ever handed a link — the orphan `delete_round` had to learn about on
+   2026-09-01 — so the object goes back out before the golfer is told anything. */
+async function csAttachRoundPhoto(rid, file){
+  if(!rid || !window.sb || !window.CS?.user) return { ok:false, note:CS_PHOTO.failed };
+  let path = null;
+  try{
+    const blob = await compressPhoto(file, 1600, .82);
+    const pid = (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2));
+    path = `${CS.user.id}/${pid}.jpg`;          /* the server's own ^{uid}/ fence */
+    const { error: upErr } = await sb.storage.from('media')
+      .upload(path, blob, { contentType:'image/jpeg', upsert:false });
+    if(upErr) throw upErr;
+  }catch(_){ return { ok:false, note:CS_PHOTO.failed }; }
+  try{
+    const { error } = await sb.rpc('set_round_photo', { p_round: rid, p_photo_path: path });
+    if(error) throw error;
+    const { data: s } = await sb.storage.from('media').createSignedUrl(path, 3600);
+    return { ok:true, path, url: s?.signedUrl || null };
+  }catch(e){
+    try{ await sb.storage.from('media').remove([path]); }catch(_){ }
+    return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.failed };
+  }
+}
+/* The way back, for a golfer who attached the wrong one. The server reclaims
+   the object in the same statement that drops the reference. */
+async function csRemoveRoundPhoto(rid){
+  if(!rid || !window.sb || !window.CS?.user) return { ok:false, note:CS_PHOTO.removeFailed };
+  try{
+    const { error } = await sb.rpc('clear_round_photo', { p_round: rid });
+    if(error) throw error;
+    return { ok:true };
+  }catch(e){
+    return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.removeFailed };
+  }
+}
+/* the row under the hero — the photograph's own slot, his round only */
+function csReceiptPhotoRow(r){
+  const has = !!r.photo_path;
+  return `<div id="rcptPhotoRow" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 12px">
+      <button class="mini" id="rcptPhotoBtn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> ${esc(has?CS_PHOTO.replace:CS_PHOTO.add)}</button>
+      <button class="mini" id="rcptPhotoClear" type="button" style="${has?'':'display:none'}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> ${esc(CS_PHOTO.remove)}</button>
+    </div>
+    <p class="fine" id="rcptPhotoNote" style="display:none; color:var(--neg); margin:-6px 0 12px"></p>`;
+}
+/* L-32 · the sentence lands under the thumb that pressed, never in a toast
+   that has already gone, and the remove is two taps and never a confirm(). */
+function csWireReceiptPhoto(r, rid, stampOf){
+  const btn=document.getElementById('rcptPhotoBtn');
+  const clr=document.getElementById('rcptPhotoClear');
+  const note=document.getElementById('rcptPhotoNote');
+  const hero=document.getElementById('rcptHero');
+  if(!btn) return;
+  let armed=false, armTimer=null, busy=false;
+  const say = t => { if(note){ note.textContent=t||''; note.style.display=t?'':'none'; } };
+  const disarm = () => { armed=false; if(armTimer) clearTimeout(armTimer); armTimer=null;
+    if(clr) clr.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> ${esc(CS_PHOTO.remove)}`; };
+  const paint = () => {
+    btn.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> ${esc(r.photo_path?CS_PHOTO.replace:CS_PHOTO.add)}`;
+    if(clr) clr.style.display = r.photo_path ? '' : 'none';
+    if(hero){
+      if(r.photo_url){ hero.innerHTML=`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`; hero.style.display=''; }
+      else { hero.innerHTML=''; hero.style.display='none'; }
+    }
+  };
+  const busyOn = on => { busy=on; btn.disabled=on; if(clr) clr.disabled=on; };
+  const input = csRoundPhotoInput();
+  btn.addEventListener('click', ()=>{ if(busy) return; say(''); disarm(); input.click(); });
+  input.onchange = async e => {
+    const f=e.target.files?.[0]; e.target.value=''; if(!f || busy) return;
+    busyOn(true); say('');
+    const out = await csAttachRoundPhoto(rid, f);
+    busyOn(false);
+    if(!out.ok){ say(out.note); return; }
+    r.photo_path=out.path; r.photo_url=out.url;
+    if(window.roundCache && window.roundCache[rid]) Object.assign(window.roundCache[rid], { photo_path:out.path, photo_url:out.url });
+    paint();
+  };
+  clr?.addEventListener('click', async ()=>{
+    if(busy) return;
+    if(!armed){
+      armed=true; say('');
+      clr.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> ${esc(CS_PHOTO.armed)}`;
+      armTimer=setTimeout(disarm, 4000);
+      return;
+    }
+    disarm(); busyOn(true);
+    const out = await csRemoveRoundPhoto(rid);
+    busyOn(false);
+    if(!out.ok){ say(out.note); return; }
+    r.photo_path=null; r.photo_url=null;
+    if(window.roundCache && window.roundCache[rid]) Object.assign(window.roundCache[rid], { photo_path:null, photo_url:null });
+    paint();
+  });
+}
+
 /* the second pass: one read, then redraw in place */
 async function enrichRoundReceipt(rid, seed){
   try{
@@ -18462,6 +18605,15 @@ async function enrichRoundReceipt(rid, seed){
     }
     const ttl=document.getElementById('shTitle');
     if(ttl && r.gross!=null) ttl.textContent=r.gross+' gross';
+    /* D293 · the photo row was drawn from what the CALLER held; the card may
+       know about a photograph the seed did not. Keep the seed — which is the
+       object the row's own handlers close over — and the row in step. */
+    if(seed && typeof seed==='object' && r.photo_path && !seed.photo_path){
+      seed.photo_path = r.photo_path;
+      const pb=document.getElementById('rcptPhotoBtn'), pc=document.getElementById('rcptPhotoClear');
+      if(pb) pb.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> ${esc(CS_PHOTO.replace)}`;
+      if(pc) pc.style.display='';
+    }
     body.querySelector('[data-rcard]')?.addEventListener('click', e=>{
       window.openScorecard?.(e.currentTarget.dataset.rcard);
     });
@@ -18507,13 +18659,18 @@ function openRoundReceipt(x){
       ${r.gross!=null ? `<div class="f g"><b>${esc(String(r.gross))}</b><i></i><small>Gross \u00b7 ${(r.holes_played||18)} holes</small></div>` : ''}
       ${r.points!=null ? `<div class="f p"><b>${esc(String(r.points))}</b><i></i><small>Points</small></div>` : ''}
     </div>${sentence ? `<p class="fine" style="padding:0 0 4px">${esc(sentence)}</p>` : ''}`;
+  /* D293 · the photograph's own slot, and it is HIS round only — the same gate
+     the desk already applies to the delete. Demo never writes. */
+  const canPhoto = mineOf(r) && !!rid && !state.demo && !!window.sb && !!window.CS?.user;
   openSheet(mineOf(r) ? 'Your round' : 'The round', line.toUpperCase(), `
     <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`:''}</div>
+    ${canPhoto ? csReceiptPhotoRow(r) : ''}
     ${figs}
     <div class="eyebrow">The receipt</div>
     <div id="rcptBody" class="rcpt-leaf">
       <div class="rcpt-cap"><span>What this round was worth</span><span>${esc(line.split(' \u00b7 ').pop()||'')}</span></div>
       ${roundCardBody(r, pvi, capN)}</div>`);
+  if(canPhoto) csWireReceiptPhoto(r, rid, stampOf);
   if(!r.photo_url && r.photo_path && window.sb && !state.demo){
     window.sb.storage.from('media').createSignedUrl(r.photo_path, 3600).then(({data})=>{
       const hb=document.getElementById('rcptHero');

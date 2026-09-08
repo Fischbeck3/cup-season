@@ -26,6 +26,32 @@ public enum RoundCopy {
   /// L-32 · a failed write says so in the golfer's words, never with a code.
   public static let deleteFailed = "That didn’t delete. Check your signal and try again."
 
+  // MARK: - D293 · a photograph on a round you already posted
+
+  /// **The six sentences of the round photograph, and both clients read them
+  /// here** (D234). The owner posted a round and could not go back to
+  /// photograph it, because `post_round`'s `p_photo_path` was the only path a
+  /// photograph had ever taken to a round. The act now lives on the round's
+  /// own receipt — the same place D284 put the delete, and the place a golfer
+  /// looking at a round he posted already is.
+  public static let photoAdd = "Add a photo"
+  public static let photoReplace = "Replace photo"
+  public static let photoRemove = "Remove photo"
+  /// The armed half of the two-tap. Never an alert (IOS-003 §4).
+  public static let photoRemoveArmed = "Sure?"
+
+  /// **The honest pre-migration sentence**, in the form `csRateCourse` set
+  /// ("Rated — the sentence needs the next database push"). The migration that
+  /// creates `set_round_photo` is written and unpushed, so this is what every
+  /// attempt reads today: it names the push, never a code, and the object the
+  /// client had already uploaded is taken back out before the golfer sees it.
+  public static let photoNeedsPush =
+    "Not attached — a photo on a posted round needs the next database push"
+  /// L-32 again — a real failure (no signal, a refused upload, a round that is
+  /// not yours) says so where the finger is.
+  public static let photoFailed = "That photo didn’t attach. Check your signal and try again."
+  public static let photoRemoveFailed = "That photo didn’t come off. Check your signal and try again."
+
   /// The web's `pointsFor(vs)` — a preview (points, sentence) for the post
   /// composer's calc panel. The edges are `CSBands`' (D210).
   public static func pointsFor(_ vs: Double) -> (points: Int, line: String) { CSBands.pointsFor(vs) }

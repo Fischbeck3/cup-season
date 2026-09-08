@@ -25,7 +25,10 @@ struct AlbumScreen: View {
       case .opening:
         Fine("Opening the album…").padding(20)
       case .empty:
-        Fine("Photos land here when rounds carry them — add one from the Post card.").padding(20)
+        // D293 · the composer is no longer the only door: a round you already
+        // posted takes a photograph from its own receipt, so the line stops
+        // sending a golfer back to a surface he has already left.
+        Fine("Photos land here when rounds carry them — open a round and add one.").padding(20)
       case .ready:
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
           ForEach(sections, id: \.month) { section in

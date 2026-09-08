@@ -12,8 +12,19 @@
 // `figure` 56 over a 2pt rule with `GROSS · 18 HOLES` beneath it, and the
 // points at 40 over its own — and the facts print on a LEAF, because a receipt
 // is a printed grid and that is what a leaf is for. `ReceiptRows` is untouched.
+//
+// D293 / IOS-065 · **A PHOTOGRAPH GOES ON A ROUND YOU ALREADY POSTED, AND
+// THIS IS WHERE.** `post_round`'s `p_photo_path` was the only path a
+// photograph had ever taken to a round, so a golfer who did not have the
+// picture when he typed the score — which is most golfers, because the score
+// is typed in the car park — had no second chance, and one who attached the
+// wrong picture had no way back either. The act lands in the photograph's own
+// slot on the round's own receipt, which is where D284 put the delete and for
+// the same reason: this is the object page for a round, and every surface
+// that shows a round opens it.
 
 import SwiftUI
+import PhotosUI
 import CSDesign
 import CupSeasonKit
 
@@ -33,6 +44,14 @@ struct RoundReceiptSheet: View {
   @State private var armed = false
   @State private var deleting = false
   @State private var deleteFailed: String?
+  /// D293 · the photograph's own controls. `photoNote` is the one line the
+  /// golfer reads when a write does not land, and it sits under his thumb
+  /// rather than in a toast that has already gone (L-32).
+  @State private var pick: PhotosPickerItem?
+  @State private var showLibrary = false
+  @State private var showCamera = false
+  @State private var photoBusy = false
+  @State private var photoNote: String?
 
   init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil) {
     self.roundId = roundId; self.initialSeed = seed; self.openScorecard = openScorecard
@@ -52,6 +71,7 @@ struct RoundReceiptSheet: View {
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
           head(r)
           photo(r)
+          photoActions(r)
           if rows.isEmpty && !enriched {
             Text("Pulling the card…").csType(.body).foregroundStyle(cs.mut)
               .accessibilityAddTraits(.updatesFrequently)
@@ -74,6 +94,17 @@ struct RoundReceiptSheet: View {
     }
     .presentationBackground(cs.bg0)
     .task { await open() }
+    // The composer's own door, so the two surfaces open the same camera roll:
+    // the camera when the app may open it, the library otherwise.
+    .photosPicker(isPresented: $showLibrary, selection: $pick, matching: .images)
+    .onChange(of: pick) { _, item in
+      guard let item else { return }
+      pick = nil
+      Task { await attach(await PostPhoto.load(item)) }
+    }
+    .fullScreenCover(isPresented: $showCamera) {
+      PostCameraPicker { img in Task { await attach(img) } }.ignoresSafeArea()
+    }
   }
 
   /// §6.2–§6.5 · the dateline, `YOUR ROUND`, the two rule-and-figures on one
@@ -126,6 +157,80 @@ struct RoundReceiptSheet: View {
         if r.profileId != nil { MarkerStamp(marker: r.marker).padding(CSTokens.Space.s2) }
       }
       .accessibilityLabel("Round photo")
+    }
+  }
+
+  /// D293 · **the photograph's own slot, and it is his round only.**
+  /// `RoundPhotoSlot` is a pure function of two facts and is asserted in
+  /// `RoundPhotoTests` rather than photographed. `CSMini` is the control the
+  /// composer already uses for this exact act (§7.1's tertiary with the drawn
+  /// glyph), so one act reads the same on both surfaces; the remove is
+  /// `CSArmedButton`, two taps, because the object goes with the reference.
+  @ViewBuilder private func photoActions(_ r: ReceiptSeed) -> some View {
+    let slot = RoundPhotoSlot.for(isMine: mine(r), photoPath: r.photoPath)
+    if slot != .none {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        FlowLayout(spacing: 8) {
+          CSMini(slot == .offer ? RoundCopy.photoAdd : RoundCopy.photoReplace,
+                 glyph: .photo, busy: photoBusy) { openPicker() }
+          if slot == .present {
+            CSArmedButton(label: RoundCopy.photoRemove,
+                          armedLabel: RoundCopy.photoRemoveArmed,
+                          busy: photoBusy) { Task { await removePhoto() } }
+          }
+        }
+        if let photoNote {
+          Text(photoNote).csType(.bodyS).foregroundStyle(cs.neg)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      }
+    }
+  }
+
+  private func openPicker() {
+    photoNote = nil
+    if PostPhoto.cameraAvailable { showCamera = true } else { showLibrary = true }
+  }
+
+  /// Upload, attach, then draw it. The composer's own compression (1600px,
+  /// 0.82) so a round photographed on Tuesday is the same weight as one
+  /// photographed at post time.
+  private func attach(_ image: UIImage?) async {
+    guard !photoBusy, let uid = store.session?.user.id else { return }
+    guard let image, let jpeg = PostPhoto.compress(image, maxDim: 1600, quality: 0.82) else {
+      photoNote = "Couldn’t read that image"; return
+    }
+    photoBusy = true; photoNote = nil
+    defer { photoBusy = false }
+    do {
+      let path = try await RoundPhotoService().attach(roundId, jpeg: jpeg, uid: uid)
+      var next = seed ?? ReceiptSeed(id: roundId)
+      next.photoPath = path
+      next.photoURL = await RoundsRepository().signedURL(path)
+      seed = next
+      await ReceiptCache.shared.put([next])
+      CSHaptic.success()
+    } catch {
+      photoNote = (error as? RoundPhotoFailure) == .needsPush
+        ? RoundCopy.photoNeedsPush : RoundCopy.photoFailed
+    }
+  }
+
+  private func removePhoto() async {
+    guard !photoBusy else { return }
+    photoBusy = true; photoNote = nil
+    defer { photoBusy = false }
+    do {
+      try await RoundPhotoService().remove(roundId)
+      var next = seed ?? ReceiptSeed(id: roundId)
+      next.photoPath = nil
+      next.photoURL = nil
+      seed = next
+      await ReceiptCache.shared.put([next])
+      CSHaptic.success()
+    } catch {
+      photoNote = (error as? RoundPhotoFailure) == .needsPush
+        ? RoundCopy.photoNeedsPush : RoundCopy.photoRemoveFailed
     }
   }
 
@@ -244,7 +349,31 @@ struct RoundReceiptSheet: View {
       seed = merged
     }
     enriched = true
+    #if DEBUG
+    applyPhotoHatch()
+    #endif
   }
+
+  #if DEBUG
+  /// `-cs_dev_receipt_photo <none|on|skew>` — see `ReceiptPhotoDev`. It moves
+  /// the photograph's two facts and the one note line, and nothing else on the
+  /// receipt; the round, the figures and the leaf are the account's own.
+  private func applyPhotoHatch() {
+    guard let m = ReceiptPhotoDev.mode else { return }
+    var s = seed ?? ReceiptSeed(id: roundId)
+    switch m {
+    case "none":
+      s.photoPath = nil; s.photoURL = nil; photoNote = nil
+    case "on":
+      s.photoPath = ReceiptPhotoDev.path; s.photoURL = ReceiptPhotoDev.photo; photoNote = nil
+    case "skew":
+      s.photoPath = nil; s.photoURL = nil; photoNote = RoundCopy.photoNeedsPush
+    default:
+      return
+    }
+    seed = s
+  }
+  #endif
 }
 
 #Preview("An 86 on a 64.9 / 111 · Standard, 95%") {
