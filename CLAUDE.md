@@ -180,6 +180,17 @@ edge months** (blanket rule, decided). League timezone default
 
 ## Landmines (each cost real debugging time — do not relearn)
 
+- **`supabase db query --linked --file` does NOT hold `begin; … rollback;` across a file — the
+  DDL autocommits and a "dry-run" APPLIES.** Discovered 2026-09-07 night: three migrations
+  "dry-run clean" that evening (`20261010090000`, `20261012090000`, `20261013090000`) were live in
+  prod with `schema_migrations` unaware; proven by reading the new sentence out of
+  `pg_get_functiondef('home_dispatch')` and `security_invoker=true` out of
+  `v_rounds_ranked`'s reloptions after the "rollback". Only `supabase db push` records a
+  version, so the ledger lies until it runs. Rules: (1) a migration is verified by `db push` to
+  a BRANCH or by reading it, never by running it against the linked project; (2) if one is ever
+  applied this way, do not undo it by hand — make sure it is idempotent and let `db push`
+  record it; (3) a "dry-run clean" claim in a handoff is worth nothing unless it names how the
+  rollback was PROVEN (e.g. a probe table absent afterwards).
 - **Column revokes don't subtract from table grants.** `revoke select (email)`
   did nothing while the baseline's table-level `GRANT ALL` stood — emails
   stayed readable for weeks after the "fix." Sealing a column = revoke
@@ -281,7 +292,7 @@ edge months** (blanket rule, decided). League timezone default
 - **The "Supabase Casa" MCP is bound to a DIFFERENT project** (casa-contenta,
   `dloqhozuxrmgmwmibfbx`). Its advisors/cron/trigger answers are not about
   Cup Season. Verify prod with `supabase db query --linked "<sql>"` (read-only,
-  no Docker needed); wrap a migration in `begin; … rollback;` to dry-run it.
+  no Docker needed); **do NOT "dry-run" a migration by wrapping it in `begin; … rollback;` — see the first landmine above; that wrapper applies it.**
   Also: CLI ≥2.116 emits JSON when piped — `deploy-status.mjs` passes
   `--output-format text` or every layer reads "unknown" (it did, silently).
 
