@@ -2806,7 +2806,10 @@ const lint = (id, name, hits, note = '') => {
         if (line.trimStart().startsWith('//')) return;
         if (!/\bCSLeaf\s*\(?\s*\{|\bCSLeaf\s*\(/.test(line)) return;
         const window = f.lines.slice(i, i + 12).join('\n');
-        if (!/(Grid\b|GridRow|HStack|ForEach|CSLeafRule|rows:|\.earnedRule)/.test(window)) {
+        /* D294 · `CSScorecard` IS a grid — it is the printed card this lint
+           exists to protect, drawn as a component rather than at a call site.
+           A leaf holding one is a leaf holding a grid. */
+        if (!/(Grid\b|GridRow|HStack|ForEach|CSLeafRule|rows:|\.earnedRule|CSScorecard)/.test(window)) {
           hits.push(`${f.rel}:${i + 1} a leaf with no grid · ${line.trim().slice(0, 70)}`);
         }
       });

@@ -52,6 +52,24 @@ public enum RoundCopy {
   public static let photoFailed = "That photo didn’t attach. Check your signal and try again."
   public static let photoRemoveFailed = "That photo didn’t come off. Check your signal and try again."
 
+  // MARK: - D294 · the card a round actually has
+
+  /// **The five sentences of the round's own scorecard**, and both clients
+  /// read them here (D234). The product draws a real card — the bone leaf with
+  /// par and stroke index — in exactly one place, inside the course page. A
+  /// ROUND, which is the object every surface opens, showed one number.
+  public static let cardHead = "The card"
+  /// The dateline when the round has its strokes but the cache cannot prove a
+  /// par — a hand-typed course, an edited rating, a nine. It says what the
+  /// card IS rather than apologising for what it is not (L-44).
+  public static let cardStrokesOnly = "Hole by hole"
+  /// The share. **The golfer who played the round sees the card first** — it is
+  /// drawn on his own receipt, in his own theme, and this button renders the
+  /// same object for everyone else. The settlement card's mistake, named in
+  /// the audit as finding 9, was existing ONLY as a share PNG.
+  public static let cardShare = "Share the card"
+  public static let cardShareFailed = "That card didn’t render. Try again."
+
   /// The web's `pointsFor(vs)` — a preview (points, sentence) for the post
   /// composer's calc panel. The edges are `CSBands`' (D210).
   public static func pointsFor(_ vs: Double) -> (points: Int, line: String) { CSBands.pointsFor(vs) }

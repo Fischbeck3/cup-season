@@ -13,6 +13,16 @@
 // points at 40 over its own — and the facts print on a LEAF, because a receipt
 // is a printed grid and that is what a leaf is for. `ReceiptRows` is untouched.
 //
+// D294 / IOS-067 · **THE CARD IS ON THE ROUND'S OWN PAGE.** The owner: *"Our
+// scorecard looks good lets show it off."* The product drew a real card — the
+// bone leaf with par and stroke index — in exactly one place, inside the course
+// page, and a ROUND showed one number and a receipt of arithmetic. It now
+// carries `RoundCardLeaf` between the figures and the receipt: the figures are
+// what the round was WORTH, the card is what the round WAS, and the receipt is
+// how the one became the other. `See the scorecard` stays where it was, because
+// that sheet is a different object — the whole group's card, one row per
+// player, for a live round.
+//
 // D293 / IOS-065 · **A PHOTOGRAPH GOES ON A ROUND YOU ALREADY POSTED, AND
 // THIS IS WHERE.** `post_round`'s `p_photo_path` was the only path a
 // photograph had ever taken to a round, so a golfer who did not have the
@@ -52,6 +62,14 @@ struct RoundReceiptSheet: View {
   @State private var showCamera = false
   @State private var photoBusy = false
   @State private var photoNote: String?
+  /// D294 · the round's own card. Loaded after the enrich, because the seal on
+  /// the fallback path needs the gross the enrich supplies. nil is a real
+  /// answer and draws nothing (L-44).
+  @State private var card: RoundScorecard?
+  @State private var share: PostShareItem?
+  #if DEBUG
+  @State private var artifactPreview = false
+  #endif
 
   init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil) {
     self.roundId = roundId; self.initialSeed = seed; self.openScorecard = openScorecard
@@ -68,12 +86,27 @@ struct RoundReceiptSheet: View {
     let rows = ReceiptRows.build(r, capN: capN, viewerId: store.session?.user.id)
     NavigationStack {
       ScrollView {
+        ScrollViewReader { proxy in
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
           head(r)
           photo(r)
           photoActions(r)
+          scorecard(r)
+            #if DEBUG
+            // `-cs_dev_round_card` puts the card on screen without a finger.
+            // At an accessibility size the head alone fills the viewport, so a
+            // hatch that seeds a card and cannot show it photographs nothing.
+            .onChange(of: card == nil) { _, gone in
+              guard !gone, RoundCardDev.mode != nil else { return }
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                CSMotion.run(CSMotion.rise) { proxy.scrollTo(Self.cardAnchor, anchor: .top) }
+              }
+            }
+            #endif
           if rows.isEmpty && !enriched {
-            Text("Pulling the card…").csType(.body).foregroundStyle(cs.mut)
+            // "Pulling the card…" until D294; the word CARD now names a real
+            // object twenty points up the page and cannot also mean this.
+            Text("Pulling the round…").csType(.body).foregroundStyle(cs.mut)
               .accessibilityAddTraits(.updatesFrequently)
           }
           CSSectionHead("The receipt")
@@ -87,6 +120,7 @@ struct RoundReceiptSheet: View {
         .padding(.top, CSTokens.Space.s3)
         .padding(.bottom, CSTokens.Space.s5)
         .frame(maxWidth: .infinity, alignment: .leading)
+        }
       }
       .background(cs.bg0)
       .navigationTitle("").navigationBarTitleDisplayMode(.inline)
@@ -105,6 +139,10 @@ struct RoundReceiptSheet: View {
     .fullScreenCover(isPresented: $showCamera) {
       PostCameraPicker { img in Task { await attach(img) } }.ignoresSafeArea()
     }
+    .sheet(item: $share) { PostShareSheet(items: $0.items) }
+    #if DEBUG
+    .fullScreenCover(isPresented: $artifactPreview) { artifactShot }
+    #endif
   }
 
   /// §6.2–§6.5 · the dateline, `YOUR ROUND`, the two rule-and-figures on one
@@ -186,6 +224,42 @@ struct RoundReceiptSheet: View {
       }
     }
   }
+
+  /// D294 · **the card, and the act it earns.** The section is drawn only when
+  /// there is a card to draw — a round posted as one number has none, and an
+  /// empty grid with an invitation under it would be the product asking for
+  /// something a posted round can no longer supply (§16: a round is not
+  /// mutated, and holes are not a photograph).
+  @ViewBuilder private func scorecard(_ r: ReceiptSeed) -> some View {
+    if let card, !card.isEmpty {
+      CSSectionHead(RoundCopy.cardHead).id(Self.cardAnchor)
+      RoundCardLeaf(card: card, mine: mine(r))
+      // His round only: the artifact carries HIS name and HIS marker, and
+      // neither is in the payload for anybody else's round.
+      if mine(r), let recap = recap(r) {
+        CSMini(RoundCopy.cardShare, glyph: .share) {
+          share = RoundCardArtifact.shareItem(recap, card: card, mine: true)
+          CSHaptic.selection()
+        }
+      }
+    }
+  }
+
+  /// The artifact's furniture, from the producer the recap card already uses —
+  /// so the caption that lands in a group thread is one producer's words
+  /// whichever artifact carried it (D2/D60a: no differential, no index, no
+  /// league name).
+  private func recap(_ r: ReceiptSeed) -> PostRecap? {
+    guard let gross = r.gross else { return nil }
+    return PostRecap(
+      name: store.me?.profile?.display_name ?? "",
+      marker: r.marker ?? store.me?.profile?.marker ?? "",
+      gross: gross, pvi: r.resolvedPvi, points: r.points.map { Int($0) },
+      course: RoundCopy.course(r.courseLabel) , date: r.playedOn ?? "", badge: nil)
+  }
+
+  /// The card's own scroll anchor. Named once so the hatch and the view agree.
+  private static let cardAnchor = "cs.receipt.card"
 
   private func openPicker() {
     photoNote = nil
@@ -339,11 +413,11 @@ struct RoundReceiptSheet: View {
     if seed == nil, let cached = await ReceiptCache.shared.get(roundId) { seed = cached }
     let repo = RoundsRepository()
     // the second pass: one read, then redraw in place
-    async let card = repo.roundCard(roundId)
+    async let payload = repo.roundCard(roundId)
     if seed?.photoURL == nil, let path = seed?.photoPath, let url = await repo.signedURL(path) {
       seed?.photoURL = url
     }
-    if let json = try? await card {
+    if let json = try? await payload {
       var merged = (seed ?? ReceiptSeed(id: roundId)).merged(with: json)
       if merged.photoURL == nil, let path = merged.photoPath, let url = await repo.signedURL(path) { merged.photoURL = url }
       seed = merged
@@ -351,10 +425,32 @@ struct RoundReceiptSheet: View {
     enriched = true
     #if DEBUG
     applyPhotoHatch()
+    if let hatched = RoundCardDev.card {
+      card = hatched
+      if RoundCardDev.artifact { artifactPreview = true }
+      return
+    }
     #endif
+    // The card is the round showing off, never a fact the receipt depends on:
+    // it arrives after everything else and its absence is silent.
+    card = await RoundScorecardService().load(roundId, gross: seed?.gross, holesPlayed: seed?.holesPlayed)
   }
 
   #if DEBUG
+  /// `-cs_dev_card_artifact` — the share PNG, on screen, because `simctl`
+  /// cannot open a share sheet and an artifact has to be looked at.
+  @ViewBuilder private var artifactShot: some View {
+    let r = seed ?? ReceiptSeed(id: roundId)
+    if let card, let rc = recap(r), let img = RoundCardArtifact.render(rc, card: card, mine: true) {
+      Image(uiImage: img).resizable().scaledToFit()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(cs.bg0)
+        .onTapGesture { artifactPreview = false }
+    } else {
+      Color.clear.onTapGesture { artifactPreview = false }
+    }
+  }
+
   /// `-cs_dev_receipt_photo <none|on|skew>` — see `ReceiptPhotoDev`. It moves
   /// the photograph's two facts and the one note line, and nothing else on the
   /// receipt; the round, the figures and the leaf are the account's own.

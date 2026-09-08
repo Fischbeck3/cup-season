@@ -2450,6 +2450,36 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 /* a signed points row is INK on a leaf: pos/neg are cut for the page's ground
    and a green +2 beside a red -1 is the P&L axis D273 retired. */
 .rcpt-leaf .mathrow.pos b, .rcpt-leaf .mathrow.neg b{color:var(--leaf-ink);}
+/* D294 · THE CARD A ROUND ACTUALLY HAS. The owner: "our scorecard looks good
+   lets show it off." The bone leaf with par and stroke index was drawn in one
+   place — inside the course page — and a ROUND showed one number.
+   IT FOLDS, like a real card: nine columns and a total, then nine more. The
+   live `.sccard` scrolls sideways because it carries a ROW PER PLAYER and
+   cannot fold; a round has one golfer and can, so this one never scrolls on a
+   desk and never shears on a narrow one.
+   ONE METAL (33): a cell UNDER PAR is `--leaf-gold` and everything else is
+   leaf ink. That token is #795912 — 6.4:1 on bone, which is AA as INK; the
+   1.68:1 the receipt's comment names is the PAGE's gold, a different value. */
+/* 26 · THE DESK HAS ONE LEAF, NOT TWO. The card is printed on `.rcpt-leaf` —
+   the receipt's own paper, with its own bone, its own shadow and its own light
+   edge — rather than on a second bone surface built beside it. A duplicate
+   leaf is what LINT-09 and LINT-10 count, and the answer to a lint is the
+   thing it is asking for. */
+.rcard-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+.rcard{border-collapse:separate; border-spacing:0; font-family:var(--mono);
+  font-variant-numeric:tabular-nums; font-size:12.5px; width:100%;}
+.rcard + .rcard{margin-top:12px;}
+.rcard td{padding:2px 0; text-align:center; white-space:nowrap; min-width:26px;}
+.rcard td.k{text-align:left; color:var(--leaf-mut); font-size:11px;
+  letter-spacing:.08em; text-transform:uppercase; width:44px;}
+.rcard tr.key td{color:var(--leaf-mut); border-bottom:1px solid rgba(26,27,20,.16);}
+/* the tenth column's HEAD is a column head like the row keys are, and reads in
+   the same voice — OUT / IN / TOT, never Out / In / Tot */
+.rcard tr.key td.tot{text-transform:uppercase; letter-spacing:.08em; font-size:11px;}
+.rcard tr.quiet td{color:var(--leaf-mut);}
+.rcard tr.score td{color:var(--leaf-ink); font-size:14.5px; font-weight:600;}
+.rcard td.tot{text-align:right; width:40px;}
+.rcard tr.score td.up{color:var(--leaf-gold);}
 /* THE SCORE AS AN OBJECT: two rule-and-figures on one baseline, the numeral
    over a 2pt rule with an agate label beneath. No panel, no card, no plate -
    the numeral and its rule ARE the object (16). */
@@ -8817,6 +8847,118 @@ function drawRecapCard(d){
   ctr('CUP SEASON', 1246, `700 52px ${BOARD}`, INK, 2);
   ctr('cupseason.app', 1292, `600 27px ${BOARD}`, MUT, 4);
   return cv;
+}
+/* D294 · THE CARD, AS THE THING THAT LEAVES THE APP. Same canvas and the same
+   furniture as drawRecapCard (D2's law on the way out: gross, the named band in
+   the third person, course and date — no differential, no index, no league
+   name). What differs is the SUBJECT: the recap card's hero is the number, and
+   this one's is the card. Two artifacts about one round because they are about
+   two different things; a hole-by-hole grid under a 300px numeral would have
+   been one artifact good at neither.
+
+   THE GOLFER SEES IT FIRST — the same card is drawn on his own receipt, on
+   paper, in his own theme. The audit's finding 9 (the settlement card exists
+   ONLY as a share PNG, so the golfer who won reads a bulleted list) is a
+   pattern, and this is where it would have repeated. */
+function drawRoundCardArtifact(d){
+  const W=1080, H=1350;
+  const BG='#0A0E0C', INK='#F1F4EF', MUT='#9BA69D', GOLD='#D8B25A';
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+  const x=cv.getContext('2d');
+  const BOARD="'IBM Plex Sans Condensed',system-ui,sans-serif";
+  const MONO="'IBM Plex Mono',ui-monospace,Menlo,monospace";
+  const ctr=(txt,y,font,fill,ls)=>{ x.font=font; x.fillStyle=fill;
+    try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
+    x.textAlign='center'; x.fillText(txt,W/2,y);
+    try{ x.letterSpacing='0px'; }catch(e){} };
+  x.fillStyle=BG; x.fillRect(0,0,W,H);
+  /* 27 · no panel frame. On an artifact whose subject is a GRID, a rectangle
+     around the grid is the border the brief calls visual debt outright. */
+  /* the marker carries NO RING here. drawRecapCard circles its marker, but a
+     ring drawn around a glyph on an artifact whose subject is already a ruled
+     grid is the second outline on one canvas — 27 names an unnecessary border
+     outright — and the phone's twin drops it for the same reason. */
+  const mk=(window.MARKERS||{})[d.marker];
+  if(mk){
+    const sc=4.2, path=new Path2D(mk.p);
+    x.save(); x.translate(W/2-12*sc,152-12*sc); x.scale(sc,sc);
+    x.strokeStyle=GOLD; x.lineWidth=1.8; x.lineCap='round'; x.lineJoin='round';
+    x.stroke(path); x.restore();
+  }
+  ctr((d.name||'A GOLFER').toUpperCase(), 292, `700 38px ${BOARD}`, INK, 7);
+  ctr((d.course||'A ROUND').toUpperCase(), 348, `600 32px ${BOARD}`, MUT, 4);
+
+  /* THE CARD, folded. 96 + 9x80 + 120 = 936, inside 1080 with 72 either side,
+     and positioned by its CENTRE so a card with no par row stays in the middle
+     of its own band rather than dragging the furniture under it up the page. */
+  const c=d.card, LEFT=72, LAB=96, CELL=80, TOT=120, ROW=62, RGAP=4, BGAP=40;
+  const blocks=csCardBlocks(c);
+  const rowsPer = 1 + (csCardHasPar(c)?1:0) + (csCardHasSi(c)?1:0) + (csCardHasYou(c)?1:0);
+  const blockH = rowsPer*ROW + (rowsPer-1)*RGAP;
+  const cardH = blocks.length*blockH + (blocks.length-1)*BGAP;
+  let top = 690 - cardH/2;
+  const cell=(txt,cx,cy,font,fill,ls,align)=>{ x.font=font; x.fillStyle=fill;
+    try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
+    x.textAlign=align||'center'; x.fillText(txt,cx,cy);
+    try{ x.letterSpacing='0px'; }catch(e){} };
+  const gap='\u00B7';
+  blocks.forEach((b,bi)=>{
+    const rows=[];
+    rows.push({ v:'key', label:'HOLE', cells:b.holes.map(h=>({t:String(h.hole)})), tot:b.label.toUpperCase() });
+    if(csCardHasPar(c)) rows.push({ v:'quiet', label:'PAR', cells:b.holes.map(h=>({t:h.par==null?gap:String(h.par)})), tot:b.par==null?'':String(b.par) });
+    if(csCardHasSi(c))  rows.push({ v:'quiet', label:'HCP', cells:b.holes.map(h=>({t:h.si==null?gap:String(h.si)})), tot:'' });
+    if(csCardHasYou(c)) rows.push({ v:'score', label:d.mine===false?'SCORE':'YOU',
+      cells:b.holes.map(h=>({t:h.strokes==null?gap:String(h.strokes),
+                             up:h.par!=null&&h.strokes!=null&&h.strokes<h.par})),
+      tot:b.strokes==null?'':String(b.strokes) });
+    rows.forEach((r,ri)=>{
+      const y = top + ri*(ROW+RGAP);
+      const base = y + ROW*0.5 + (r.v==='score'?44:30)*0.34;
+      const f = r.v==='score' ? `600 44px ${MONO}` : `500 30px ${MONO}`;
+      cell(r.label, LEFT, base, `500 30px ${MONO}`, MUT, 2, 'left');
+      r.cells.forEach((cc,ci)=>{
+        cell(cc.t, LEFT+LAB+ci*CELL+CELL/2, base, f, cc.up?GOLD:(r.v==='score'?INK:MUT), 0);
+      });
+      if(r.tot) cell(r.tot, LEFT+LAB+9*CELL+TOT, base, f, r.v==='score'?INK:MUT, 0, 'right');
+      if(ri===0){
+        x.strokeStyle='rgba(241,244,239,.24)'; x.lineWidth=1;
+        x.beginPath(); x.moveTo(LEFT, y+ROW+RGAP/2); x.lineTo(LEFT+LAB+9*CELL+TOT, y+ROW+RGAP/2); x.stroke();
+      }
+    });
+    top += blockH + BGAP;
+  });
+
+  const pviSane = d.pvi!=null && isFinite(d.pvi) && Math.abs(Number(d.pvi))<=30;
+  if(pviSane) ctr(theirs(bandName(Number(d.pvi))).toUpperCase(), 1046, `600 42px ${BOARD}`, GOLD, 6);
+  const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const dt=d.date||new Date();
+  const sub=[`GROSS ${d.gross}`, c.parTotal!=null?`PAR ${c.parTotal}`:null,
+             `${DW[dt.getDay()]} \u00b7 ${MO[dt.getMonth()]} ${dt.getDate()}`,
+             d.points!=null?`${d.points} PTS`:null].filter(Boolean).join(' \u00b7 ');
+  ctr(sub, 1104, `600 29px ${BOARD}`, MUT, 4);
+  x.strokeStyle='rgba(255,255,255,.08)'; x.lineWidth=1;
+  x.beginPath(); x.moveTo(280,1170); x.lineTo(W-280,1170); x.stroke();
+  ctr('CUP SEASON', 1246, `700 50px ${BOARD}`, INK, 2);
+  ctr('cupseason.app', 1296, `600 26px ${BOARD}`, MUT, 4);
+  return cv;
+}
+async function shareRoundCard(d){
+  try{
+    const blob=await new Promise(res=>drawRoundCardArtifact(d).toBlob(res,'image/png'));
+    const file=new File([blob],'cup-season-card.png',{type:'image/png'});
+    /* one producer for the words that leave the app, whichever artifact carried them */
+    const text=recapText(d);
+    if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], text}); return; }
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='cup-season-card.png'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    try{ await navigator.clipboard?.writeText(text); toast('Card downloaded \u00b7 caption copied'); }
+    catch(e){ toast('Card downloaded'); }
+  }catch(e){
+    if(e && e.name==='AbortError') return;
+    console.warn('[round card]', e);
+    toast(CS_CARD.shareFailed);
+  }
 }
 function recapText(d){
   /* caption rides with the card — same sane-vs gate keeps the garbage phrase
@@ -18574,6 +18716,129 @@ async function csRemoveRoundPhoto(rid){
     return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.removeFailed };
   }
 }
+/* ---- D294 · THE CARD A ROUND ACTUALLY HAS ------------------------------
+   The owner, from his own phone on build 733: *"Our scorecard looks good lets
+   show it off."* It does, and until now the product drew it in exactly one
+   place — inside the course page — while a ROUND, the object every surface
+   opens, showed one number and a receipt of arithmetic.
+
+   The parts were already here and nothing joined them: `round_holes` holds the
+   strokes (written by the composer in holes mode and by the live finalize),
+   `round_holes_of()` has read them under the round_card visibility rule since
+   20260827130300 and was CALLED BY NOTHING, and `api_course_holes` caches par,
+   stroke index and yardage per tee. `round_scorecard()` is that join.
+
+   L-44 IS THE WHOLE OF IT. Three facts, resolved separately, each drawn only
+   when it is proved: the golfer's strokes (whole, gapless, and summing to the
+   gross printed above them), par (a tee pinned by the round's own rating and
+   slope, or every cached tee at the course agreeing), and the stroke index
+   (the same way but asked SEPARATELY — it is printed per gender and agrees far
+   less often). A nine never takes par: `round_holes` numbers a nine 1–9
+   whichever nine was walked.
+
+   THE MIGRATION IS WRITTEN AND UNPUSHED, so the read falls back to
+   `round_holes_of` — which is live — and a round with strokes draws its card
+   today, without par, and gains the par row the day the owner pushes.
+
+   The words are the phone's `RoundCopy` (D234) — one producer, two shapes. */
+const CS_CARD = {
+  head: 'The card',
+  strokesOnly: 'Hole by hole',
+  share: 'Share the card',
+  shareFailed: 'That card didn\u2019t render. Try again.',
+};
+
+/* the payload, normalised. Returns null for "there is no card" — the server
+   answers with a null rather than an empty shape, so there is one test. */
+function csRoundCardFrom(d){
+  if(!d || !Array.isArray(d.holes) || !d.holes.length) return null;
+  const n = Number(d.holes_played)===9 ? 9 : 18;
+  const holes = d.holes.map(h=>({
+    hole: Number(h.hole),
+    par: h.par==null?null:Number(h.par),
+    si: h.si==null?null:Number(h.si),
+    strokes: h.strokes==null?null:Number(h.strokes),
+  })).filter(h=>h.hole>=1 && h.hole<=n).sort((a,b)=>a.hole-b.hole);
+  if(!holes.length) return null;
+  return { n, holes, tee: d.tee_name||null,
+    out: d.out??null, inn: d.inn??null, total: d.total??null,
+    parOut: d.par_out??null, parIn: d.par_in??null, parTotal: d.par_total??null };
+}
+/* THE FALLBACK, AND THE SEAL IN IT. `round_holes_of` returns rows and nothing
+   else, so the rule the server applies has to be applied here: whole, gapless,
+   and summing to the gross the receipt is already printing. A card whose
+   columns do not add up to the number above them is worse than no card. */
+function csRoundCardFromHoles(rows, gross, holes){
+  const n = Number(holes)===9 ? 9 : 18;
+  const kept = (rows||[]).map(r=>({hole:Number(r.hole_number), strokes:Number(r.strokes)}))
+    .filter(r=>r.hole>=1 && r.hole<=n && isFinite(r.strokes))
+    .sort((a,b)=>a.hole-b.hole);
+  if(kept.length!==n || kept[0].hole!==1 || kept[n-1].hole!==n) return null;
+  if(new Set(kept.map(r=>r.hole)).size!==n) return null;
+  const sum = kept.reduce((t,r)=>t+r.strokes,0);
+  if(gross==null || sum!==Number(gross)) return null;
+  const out = kept.filter(r=>r.hole<=9).reduce((t,r)=>t+r.strokes,0);
+  return { n, holes: kept.map(r=>({hole:r.hole, par:null, si:null, strokes:r.strokes})),
+    tee:null, out, inn: n===18 ? sum-out : null, total: sum,
+    parOut:null, parIn:null, parTotal:null };
+}
+async function csRoundCardRead(rid, gross, holes){
+  if(!rid || !window.sb || state.demo || !window.CS?.user) return null;
+  try{
+    const { data, error } = await sb.rpc('round_scorecard', { p_round: rid });
+    if(error) throw error;
+    return csRoundCardFrom(data);
+  }catch(e){
+    /* only a MISSING FUNCTION is deploy skew; a refused round is a refusal */
+    if(!csMissingFn(e)) return null;
+    try{
+      const { data, error } = await sb.rpc('round_holes_of', { p_round: rid });
+      if(error) throw error;
+      return csRoundCardFromHoles(data, gross, holes);
+    }catch(_){ return null; }
+  }
+}
+
+const csCardHasPar = c => c.holes.some(h=>h.par!=null);
+const csCardHasSi  = c => c.holes.some(h=>h.si!=null);
+const csCardHasYou = c => c.holes.some(h=>h.strokes!=null);
+/* the fold: OUT and IN, or one block for a nine — and a nine's tenth column is
+   TOT, never OUT, because nothing records which nine was walked */
+function csCardBlocks(c){
+  const cut = (lo,hi,label)=>{
+    const hs = c.holes.filter(h=>h.hole>=lo && h.hole<=hi);
+    if(!hs.length) return null;
+    const pars = hs.map(h=>h.par), sts = hs.map(h=>h.strokes);
+    return { holes:hs, label,
+      par: pars.every(v=>v!=null) ? pars.reduce((a,b)=>a+b,0) : null,
+      strokes: sts.every(v=>v!=null) ? sts.reduce((a,b)=>a+b,0) : null };
+  };
+  return (c.n===9 ? [cut(1,9,'Tot')] : [cut(1,9,'Out'), cut(10,18,'In')]).filter(Boolean);
+}
+/* the leaf. A row is drawn only if its fact exists; a cell with no answer is
+   the middle dot, never a zero (a zero is a score) and never a dash. */
+function csRoundCardHTML(c, mine){
+  const gap = '\u00B7';
+  const tables = csCardBlocks(c).map(b=>{
+    const row = (cls, label, cells, total) =>
+      `<tr class="${esc(cls)}"><td class="k">${esc(label)}</td>`
+      + cells.map(x=>`<td class="${esc(x.up?'up':'')}">${esc(x.t||gap)}</td>`).join('')
+      + `<td class="tot">${esc(total||'')}</td></tr>`;
+    let html = row('key','Hole', b.holes.map(h=>({t:String(h.hole)})), b.label);
+    if(csCardHasPar(c)) html += row('quiet','Par', b.holes.map(h=>({t:h.par==null?'':String(h.par)})), b.par==null?'':String(b.par));
+    if(csCardHasSi(c))  html += row('quiet','HCP', b.holes.map(h=>({t:h.si==null?'':String(h.si)})), '');
+    if(csCardHasYou(c)) html += row('score', mine?'You':'Score',
+      b.holes.map(h=>({t:h.strokes==null?'':String(h.strokes),
+                       up:h.par!=null && h.strokes!=null && h.strokes<h.par})),
+      b.strokes==null?'':String(b.strokes));
+    return `<table class="rcard"><tbody>${html}</tbody></table>`;
+  }).join('');
+  const cap = [c.tee, c.parTotal!=null?('Par '+c.parTotal):null].filter(Boolean).join(' \u00b7 ')
+    || (csCardHasYou(c) ? CS_CARD.strokesOnly : '');
+  return `<div class="rcpt-leaf">${cap?`<div class="rcpt-cap"><span>${esc(cap)}</span></div>`:''}`
+    + `<div class="rcard-wrap">${tables}</div></div>`;
+}
+
 /* the row under the hero — the photograph's own slot, his round only */
 function csReceiptPhotoRow(r){
   const has = !!r.photo_path;
@@ -18714,11 +18979,17 @@ function openRoundReceipt(x){
     <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`:''}</div>
     ${canPhoto ? csReceiptPhotoRow(r) : ''}
     ${figs}
+    <div id="rcptCard"></div>
     <div class="eyebrow">The receipt</div>
     <div id="rcptBody" class="rcpt-leaf">
       <div class="rcpt-cap"><span>What this round was worth</span><span>${esc(line.split(' \u00b7 ').pop()||'')}</span></div>
       ${roundCardBody(r, pvi, capN)}</div>`);
   if(canPhoto) csWireReceiptPhoto(r, rid, stampOf);
+  /* D294 · the card, after everything else and never blocking any of it. A
+     round with no card draws NOTHING here — no empty grid, no invitation to
+     supply something a posted round can no longer supply (16: a round is not
+     mutated, and holes are not a photograph). */
+  if(rid && window.sb && !state.demo) csPaintReceiptCard(r, rid, mineOf(r));
   if(!r.photo_url && r.photo_path && window.sb && !state.demo){
     window.sb.storage.from('media').createSignedUrl(r.photo_path, 3600).then(({data})=>{
       const hb=document.getElementById('rcptHero');
@@ -18726,6 +18997,31 @@ function openRoundReceipt(x){
         hb.innerHTML=`<img src="${esc(data.signedUrl)}" alt="Round photo">${stampOf()}`; hb.style.display=''; }
     }).catch(()=>{});
   }
+}
+
+/* D294 · the card's own slot on the desk's receipt, and the act it earns. */
+async function csPaintReceiptCard(r, rid, mine){
+  if(!document.getElementById('rcptCard')) return;
+  const card = await csRoundCardRead(rid, r.gross, r.holes_played);
+  const slot = document.getElementById('rcptCard');
+  if(!slot || !card) return;                    /* sheet closed, or no card */
+  const canShare = mine && !!window.CS?.user;
+  slot.innerHTML = `<div class="eyebrow">${esc(CS_CARD.head)}</div>`
+    + csRoundCardHTML(card, mine)
+    + (canShare ? `<button class="mini" id="rcptCardShare" type="button" style="margin-top:8px">${esc(CS_CARD.share)}</button>` : '');
+  document.getElementById('rcptCardShare')?.addEventListener('click', ()=>{
+    /* the artifact carries HIS name and HIS marker, and neither is in the
+       payload for anybody else's round — which is why the button is his only */
+    const pvi = r.pvi!=null ? Number(r.pvi)
+      : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
+    shareRoundCard({
+      name: window.CS?.profile?.display_name || 'You',
+      marker: window.CS?.profile?.marker || 'saguaro',
+      gross: r.gross, pvi, points: r.points!=null?Number(r.points):null,
+      course: r.course_label || '', date: r.played_on ? localDate(r.played_on) : new Date(),
+      mine: true, card,
+    });
+  });
 }
 
 /* ================= drill-down receipts ================= */
