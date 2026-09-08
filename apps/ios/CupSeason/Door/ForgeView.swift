@@ -114,6 +114,9 @@ struct ForgePathShape: Shape {
 /// rests on the logo immediately. `onHandoff` fires when the door may rise.
 struct ForgeView: View {
   let play: Bool
+  /// The crest's drawn width. IOS-064: the door has two registers and the
+  /// working one draws the cup at `DoorLayout.crestWorking`.
+  var width: CGFloat = DoorLayout.crestFull
   let onHandoff: () -> Void
   @State private var began: Date? = nil
   @State private var finished = false
@@ -121,7 +124,7 @@ struct ForgeView: View {
   var body: some View {
     if play && !finished {
       TimelineView(.animation(paused: finished)) { ctx in
-        ForgeFrame(t: began.map { ctx.date.timeIntervalSince($0) } ?? 0)
+        ForgeFrame(t: began.map { ctx.date.timeIntervalSince($0) } ?? 0, width: width)
       }
       .task {
         began = Date()
@@ -133,7 +136,7 @@ struct ForgeView: View {
       }
       .accessibilityHidden(true)
     } else {
-      ForgeFrame(t: ForgeTimeline.rest)
+      ForgeFrame(t: ForgeTimeline.rest, width: width)
         .onAppear { if !play { onHandoff() } }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Cup Season")
@@ -146,8 +149,12 @@ struct ForgeView: View {
 struct ForgeFrame: View {
   @Environment(\.cs) private var cs
   let t: Double
-  /// `.ob-crest{width:min(64vw,300px)}` — the phone sits at 260.
-  private let width: CGFloat = 260
+  /// `.ob-crest{width:min(64vw,300px)}` — the phone sits at 260, and a
+  /// phone below `DoorLayout.ceremonyFloor` sits at the working width so the
+  /// mark stays WHOLE above a keyboard instead of being scrolled under the
+  /// clock (IOS-064). The wordmark and the tagline are type and keep their own
+  /// size; the drawn cup and its fuse are what scale.
+  var width: CGFloat = DoorLayout.crestFull
   private var s: CGFloat { width / ForgeGeometry.viewBox.width }
   private var height: CGFloat { ForgeGeometry.visibleHeight * s }
 

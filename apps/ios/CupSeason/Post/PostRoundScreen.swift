@@ -112,6 +112,9 @@ private struct PostRoundBody: View {
           cardFold.id("card")
           detailsSection.id("details")
           bandsSection.id("bands")
+          // IOS-064 · at an accessibility size the abandonment link rides HERE
+          // rather than in the pinned foot — see `bottomBar`.
+          if typeSize.isAccessibilitySize { startOver.padding(.top, CSTokens.Space.s4) }
         }
         .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 12)
         .csPage("composer")
@@ -477,25 +480,44 @@ private struct PostRoundBody: View {
 
   // MARK: - The bottom bar (`#postGrossLine`, `#postBtn`, `#postReset`)
 
+  /// Abandonment is a real path, not a refresh: one tap empties the card.
+  ///
+  /// **THE 44pt MISS THE AUDIT NAMES, AND ITS CAUSE.** `// F-13` ran straight
+  /// into `.foregroundStyle(cs.mut).frame(…minHeight: 44)`, so both modifiers
+  /// were inside the comment: the label rendered in the inherited colour at
+  /// whatever height 13pt of text is — about 20 — and the compiler had nothing
+  /// to say about it. It is a tertiary now, which carries the 44pt target in
+  /// the style rather than at the site.
+  private var startOver: some View {
+    Button("Start over — clear this round") { model.startOver() }   // F-13
+      .buttonStyle(.csTertiary(.content))
+      .frame(maxWidth: .infinity)
+  }
+
+  /// **IOS-064 · PINNED CHROME MAY NOT EAT THE PAGE.** `ax3-composer.png`:
+  /// at AX3 this foot took roughly a THIRD of the viewport — a two-line live
+  /// readout, a wrapped ember primary and a second wrapped action — and the
+  /// scroll content above it was left reading four words a line through a slot
+  /// the height of a business card. A pinned foot is chrome, and chrome that
+  /// takes a third of a phone is not chrome any more.
+  ///
+  /// So at an accessibility size the foot carries only what has to be pinned:
+  /// the live readout that answers the number being typed, and the one action
+  /// the surface exists for. `Start over` is not urgent, is not the ranked
+  /// act, and rides at the foot of the page instead — where a reader who wants
+  /// to abandon can still reach it, and where it stops costing every OTHER
+  /// reader a fifth of the screen they are trying to type into.
   private var bottomBar: some View {
     VStack(spacing: 0) {
       CSRule()
       VStack(spacing: CSTokens.Space.s1) {
         Text(model.grossLine).csType(.columnM).foregroundStyle(cs.mut)
           .frame(maxWidth: .infinity).frame(minHeight: 22)
+          .lineLimit(typeSize.isAccessibilitySize ? 2 : nil)
           .accessibilityAddTraits(.updatesFrequently)
         Button("Add my round") { model.tapPost() }
           .buttonStyle(.csPrimary(busy: model.busy))
-        // abandonment is a real path, not a refresh: one tap empties the card
-        // **THE 44pt MISS THE AUDIT NAMES, AND ITS CAUSE.** `// F-13` ran
-        // straight into `.foregroundStyle(cs.mut).frame(…minHeight: 44)`, so
-        // both modifiers were inside the comment: the label rendered in the
-        // inherited colour at whatever height 13pt of text is — about 20 —
-        // and the compiler had nothing to say about it. It is a tertiary now,
-        // which carries the 44pt target in the style rather than at the site.
-        Button("Start over — clear this round") { model.startOver() }   // F-13
-          .buttonStyle(.csTertiary(.content))
-          .frame(maxWidth: .infinity)
+        if !typeSize.isAccessibilitySize { startOver }
       }
       .padding(.horizontal, 20).padding(.top, 6)
     }

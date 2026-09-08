@@ -26,54 +26,75 @@ struct DoorView: View {
   @State private var typedCode = ""
   @FocusState private var focus: Field?
   enum Field { case email, code, password, joinCode }
+  /// IOS-064 · which register the door draws in. A pure read of the window and
+  /// the reader's size — see `DoorLayout`.
+  @Environment(\.dynamicTypeSize) private var typeSize
+  private var working: Bool {
+    DoorLayout.working(windowHeight: DoorLayout.windowHeight, typeSize: typeSize)
+  }
 
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 0) {
-        crest
-          .padding(.top, 48)
-          .padding(.bottom, 36)
+    ScrollViewReader { proxy in
+      ScrollView {
+        VStack(alignment: .leading, spacing: 0) {
+          crest
+            .padding(.top, DoorLayout.crestTop(working: working))
+            .padding(.bottom, DoorLayout.crestBottom(working: working))
 
-        if risen {
-          Group {
-            // QB-08 · **THE INVITED STRANGER MEETS A SENTENCE, NOT A BOX.**
-            //
-            // `PendingLink.doorLine()` produces "You're joining The Fellas.
-            // Sign in and you're on the roster.", is asserted verbatim by
-            // `OnboardingTests`, and was called from no view — so somebody who
-            // tapped a friend's link, installed, and came back met a bare email
-            // field with nothing on the screen naming the season, the money or
-            // the friend. "I have now created an account, agreed to Terms and a
-            // Privacy Policy, and handed over my email — and I still do not
-            // know what I am joining."
-            if vm.stage == .email {
-              Text(pending ?? OnboardingCopy.doorPitch)
-                .csType(.story)
-                .foregroundStyle(pending == nil ? cs.mut : cs.ink)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, 18)
-                .accessibilityAddTraits(pending == nil ? [] : .isHeader)
-            }
-            switch vm.stage {
-            case .email: emailStage
-            case .code: codeStage
-            case .password: passwordStage
-            }
+          if risen {
+            Group {
+              // QB-08 · **THE INVITED STRANGER MEETS A SENTENCE, NOT A BOX.**
+              //
+              // `PendingLink.doorLine()` produces "You're joining The Fellas.
+              // Sign in and you're on the roster.", is asserted verbatim by
+              // `OnboardingTests`, and was called from no view — so somebody who
+              // tapped a friend's link, installed, and came back met a bare email
+              // field with nothing on the screen naming the season, the money or
+              // the friend. "I have now created an account, agreed to Terms and a
+              // Privacy Policy, and handed over my email — and I still do not
+              // know what I am joining."
+              //
+              // IOS-064 · the SENTENCE is owed before the field in both
+              // registers — it is what the email is being handed over for. The
+              // generic PITCH is marketing, and on a working-register phone it
+              // is 142pt of marketing between the mark and the only action on
+              // the screen, so there it rides below.
+              if vm.stage == .email, !working || pending != nil { doorPitch }
+              switch vm.stage {
+              case .email: emailStage
+              case .code: codeStage
+              case .password: passwordStage
+              }
 
-            if let note = vm.note {
-              CSNote(note.text, tone: note.tone).padding(.top, 18)
-            }
+              if let note = vm.note {
+                CSNote(note.text, tone: note.tone).padding(.top, 18)
+              }
 
-            legal.padding(.top, 36)
+              if vm.stage == .email, working, pending == nil { doorPitch.padding(.top, 28) }
+
+              legal.padding(.top, 36)
+            }
+            .transition(.opacity.combined(with: .offset(y: 10)))
           }
-          .transition(.opacity.combined(with: .offset(y: 10)))
         }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 40)
       }
-      .padding(.horizontal, 24)
-      .padding(.bottom, 40)
+      .scrollDismissesKeyboard(.interactively)
+      // **THE ACTION CLEARS THE KEYBOARD, AND THE MARK STAYS WHOLE.** The
+      // system scrolls the FIELD into view and stops there, which on a 375pt
+      // phone left `CONTINUE WITH EMAIL` entirely behind the keyboard. The
+      // door scrolls its own primary instead, to the bottom edge, which is the
+      // minimum scroll that reveals it — and clamps at zero, so the working
+      // register (where the whole column already fits) does not move and the
+      // crest never passes under the clock.
+      .onChange(of: focus) { _, now in reach(proxy, focus: now) }
+      .onChange(of: vm.stage) { _, _ in reach(proxy, focus: focus) }
     }
-    .scrollDismissesKeyboard(.interactively)
+    // **DF-14 · NOTHING RENDERS UNDER THE CLOCK**, including the app mark. The
+    // door was the one scrolling surface without the cap, so on any phone that
+    // had to scroll the trophy was cut in half by the status bar.
+    .csStatusCap(cs.bg0)
     .csToasts(toasts)
     .onAppear {
       pending = PendingLink.doorLine()
@@ -101,14 +122,43 @@ struct DoorView: View {
   // MARK: crest — the Forge, or its rest frame
 
   @ViewBuilder private var crest: some View {
+    let w = DoorLayout.crestWidth(working: working)
     if let playForge {
-      ForgeView(play: playForge) {
+      ForgeView(play: playForge, width: w) {
         if playForge { CSMotion.run { risen = true } } else { risen = true }
         if focus == nil { focus = .email }
       }
     } else {
       // one frame before appearance decides; the rest frame keeps the layout
-      ForgeFrame(t: ForgeTimeline.rest)
+      ForgeFrame(t: ForgeTimeline.rest, width: w)
+    }
+  }
+
+  /// The door's paragraph — the invited stranger's own sentence when there is
+  /// one, the pitch when there is not. Drawn from one place because IOS-064
+  /// draws it in two: above the field in the ceremony register, below the
+  /// action in the working one.
+  private var doorPitch: some View {
+    Text(pending ?? OnboardingCopy.doorPitch)
+      .csType(.story)
+      .foregroundStyle(pending == nil ? cs.mut : cs.ink)
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.bottom, 18)
+      .accessibilityAddTraits(pending == nil ? [] : .isHeader)
+  }
+
+  /// **THE PRIMARY COMES OUT FROM BEHIND THE KEYBOARD.** Issued on every focus
+  /// change and every stage change, after the keyboard's inset has landed on
+  /// the scroll view — a scroll in the same runloop measures the pre-keyboard
+  /// viewport and undershoots by exactly the keyboard's height.
+  private func reach(_ proxy: ScrollViewProxy, focus: Field?) {
+    guard focus != nil else { return }
+    Task { @MainActor in
+      try? await Task.sleep(for: DoorLayout.settle)
+      // L-30 · the product's one curve, and it RESTS under reduced motion —
+      // where the scroll still happens, it just arrives rather than travels.
+      CSMotion.run(CSMotion.rise) { proxy.scrollTo(DoorLayout.action, anchor: .bottom) }
     }
   }
 
@@ -128,6 +178,7 @@ struct DoorView: View {
       Button("Continue with email") { send() }
         .buttonStyle(.csPrimary(busy: vm.busy))
         .padding(.top, CSTokens.Space.s2)
+        .id(DoorLayout.action)
       if flags.appleSignIn {
         DoorAppleButton(
           onToken: { token, nonce, name in Task { await vm.apple(idToken: token, nonce: nonce, appleName: name) } },
@@ -204,6 +255,7 @@ struct DoorView: View {
       Button("Verify") { verify() }
         .buttonStyle(.csPrimary(busy: vm.busy))
         .padding(.top, CSTokens.Space.s2)
+        .id(DoorLayout.action)
       // two text links side by side at reading sizes, stacked at the accessibility sizes; 44pt each
       A11yStack(spacing: CSTokens.Space.s3) {
         Button(vm.resendIn > 0 ? "Resend in \(vm.resendIn)s" : "Resend the code") { resend() }
@@ -231,7 +283,7 @@ struct DoorView: View {
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .focused($focus, equals: .password)
         .onSubmit { reviewer() }
-      Button("Sign in") { reviewer() }.buttonStyle(.csPrimary(busy: vm.busy))
+      Button("Sign in") { reviewer() }.buttonStyle(.csPrimary(busy: vm.busy)).id(DoorLayout.action)
       Button("Change email") { vm.backToEmail(); focus = .email }
         .buttonStyle(.csTertiary(.content)).padding(.top, CSTokens.Space.s1)
     }

@@ -107,12 +107,16 @@ struct HomeView: View {
     .background(cs.bg0)
     .environment(\.csLook, looks.personalLook())
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
-    // §1.6 · Home ends in a 28pt fade to `bg0`, so the tab band's rule never
-    // guillotines a row mid-glyph (problem 10).
-    .overlay(alignment: .bottom) {
-      LinearGradient(colors: [cs.bg0.opacity(0), cs.bg0], startPoint: .top, endPoint: .bottom)
-        .frame(height: 28).allowsHitTesting(false)
-    }
+    // **IOS-064 · THE FADE IS GONE, AND ITS REASON WENT FIRST.** §1.6 ended
+    // Home in a 28pt fade to `bg0` so a FLOATING tab pill's rule could not
+    // guillotine a row mid-glyph (problem 10). Wave 8 stopped the band
+    // floating — `MainTabView` says it: "the band is a sibling in the stack
+    // above, so it takes its own height and a page simply ends where it ends."
+    // There is nothing left to float over, and what the fade did instead was
+    // erase the bottom 28pt of live content. `light-home.png` caught it: the
+    // section head `THIS WEEK` faded to a ghost and read as DISABLED in the
+    // light printing, while the dark one hid the same 28pt of damage against
+    // its own near-black. A remedy that outlives its defect becomes one.
     .refreshable {
       // The pull refreshes the SESSION's payload (every other tab reads it)
       // and then the dispatch, whose own answer supersedes it for this screen.
