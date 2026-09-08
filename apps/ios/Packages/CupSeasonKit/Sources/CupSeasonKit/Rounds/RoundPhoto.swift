@@ -207,38 +207,57 @@ public struct RoundPhotoService: Sendable {
   /// of the bucket — so his data is where it started. DEBUG only; there is no
   /// such door in the shipped build.
   public func probe(_ roundId: UUID, uid: UUID, jpeg: Data, priorPath: String?) async -> String {
-    var log = "PROBE round=\(roundId.uuidString.prefix(8)) uid=\(uid.uuidString.lowercased().prefix(8)) bytes=\(jpeg.count)\n"
-    let path = RoundPhotoService.objectPath(uid: uid)
-    log += "path=\(path)\n"
-    do {
-      _ = try await svc.client.storage.from("media")
-        .upload(path, data: jpeg, options: FileOptions(contentType: "image/jpeg", upsert: false))
-      log += "UPLOAD OK\n"
-    } catch {
-      return log + "UPLOAD FAILED · " + String(describing: error)
-    }
-    do {
-      _ = try await svc.call(SetRoundPhotoCall(p_round: roundId, p_photo_path: path))
-      log += "RPC OK\n"
-    } catch {
-      _ = try? await svc.client.storage.from("media").remove(paths: [path])
-      return log + "RPC FAILED · " + SupabaseService.describe(error)
-    }
-    // Unwind to EXACTLY what the round carried before. A probe that cleared a
-    // photograph the golfer had put there would be a diagnostic that destroys
-    // the thing it is diagnosing.
-    do {
-      if let priorPath, !priorPath.isEmpty {
-        _ = try await svc.call(SetRoundPhotoCall(p_round: roundId, p_photo_path: priorPath))
-        log += "unwound (restored the photograph it had)"
-      } else {
-        try await remove(roundId)
-        log += "unwound (round cleared, as it started)"
+    var log = "PROBE round=\(roundId.uuidString.prefix(8)) bytes=\(jpeg.count)\n"
+    var uploaded: [String] = []
+
+    /// Upload one object and point the round at it. Returns the path, or nil
+    /// after writing the failure into the log.
+    func step(_ name: String, replacing old: String?) async -> String? {
+      let path = RoundPhotoService.objectPath(uid: uid)
+      do {
+        _ = try await svc.client.storage.from("media")
+          .upload(path, data: jpeg, options: FileOptions(contentType: "image/jpeg", upsert: false))
+        uploaded.append(path)
+      } catch {
+        log += "\(name) UPLOAD FAILED · " + String(describing: error) + "\n"; return nil
       }
-    } catch { log += "UNWIND FAILED · " + SupabaseService.describe(error) }
-    _ = try? await svc.client.storage.from("media").remove(paths: [path])
-    return log
+      do {
+        _ = try await svc.call(SetRoundPhotoCall(p_round: roundId, p_photo_path: path))
+        log += "\(name) OK\n"
+        return path
+      } catch {
+        log += "\(name) RPC FAILED · " + SupabaseService.describe(error) + "\n"; return nil
+      }
+    }
+
+    // 1 · ATTACH — the branch that has no object to reclaim. This one worked
+    //     the moment D300 landed, and it is why D303 stayed hidden for a run.
+    guard let first = await step("1 attach", replacing: nil) else { return await finish(log, uploaded) }
+    // 2 · REPLACE — `set_round_photo`'s reclaim branch, which raised 42501.
+    _ = await step("2 replace", replacing: first)
+    // 3 · REMOVE — `clear_round_photo`'s, which raised the same.
+    do { _ = try await svc.call(ClearRoundPhotoCall(p_round: roundId)); log += "3 remove OK\n" }
+    catch { log += "3 remove FAILED · " + SupabaseService.describe(error) + "\n" }
+
+    // Put the round back exactly as it was found. A probe that leaves a
+    // photograph on a golfer's round is a diagnostic that damages its subject
+    // — which is not hypothetical: the first run of this did that.
+    if let priorPath, !priorPath.isEmpty {
+      do { _ = try await svc.call(SetRoundPhotoCall(p_round: roundId, p_photo_path: priorPath))
+           log += "restored the photograph it had\n" }
+      catch { log += "RESTORE FAILED · " + SupabaseService.describe(error) + "\n" }
+    } else {
+      log += "round left with no photograph, as it started\n"
+    }
+    return await finish(log, uploaded)
   }
+
+  /// Take every object this probe made back out, through the Storage API.
+  private func finish(_ log: String, _ paths: [String]) async -> String {
+    for p in paths { _ = try? await svc.client.storage.from("media").remove(paths: [p]) }
+    return log + "reclaimed \(paths.count) object(s)"
+  }
+
   #endif
 
   /// PGRST202 / 42883 is the database being behind this build, and it is the
