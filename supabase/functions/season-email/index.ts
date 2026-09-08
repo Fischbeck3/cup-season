@@ -97,7 +97,7 @@ function buildHtml(p: Payload, r: Recipient) {
     r.cents > 0
       ? `<div style="margin:18px 0 0;padding:12px 14px;border-radius:12px;background:rgba(47,164,106,.20);border:1px solid #2FA46A">
            <div style="font:600 15px -apple-system,Segoe UI,sans-serif;color:#ECEEF2">Your cut of the pot: ${esc(money(r.cents))}</div>
-           <div style="font:12px -apple-system,Segoe UI,sans-serif;color:#98A29A;margin-top:3px">Whoever collected it sends it on.</div>
+           <div style="font:12px -apple-system,Segoe UI,sans-serif;color:#98A29A;margin-top:3px">The Pro sends it on.</div>
          </div>`
       : '';
   const unsub = r.token
@@ -162,14 +162,14 @@ function buildCancelHtml(league: string, r: { name: string | null; cents: number
   const owed = r.cents > 0
     ? `<div style="margin:14px 0 0;padding:12px 14px;border-radius:12px;background:rgba(47,164,106,.20);border:1px solid #2FA46A">
          <div style="font:600 15px -apple-system,Segoe UI,sans-serif;color:#ECEEF2">Your ${esc(money(r.cents))} buy-in comes back</div>
-         <div style="font:12px -apple-system,Segoe UI,sans-serif;color:#98A29A;margin-top:3px">Whoever collected it sends it back.</div>
+         <div style="font:12px -apple-system,Segoe UI,sans-serif;color:#98A29A;margin-top:3px">The Pro sends it back.</div>
        </div>`
     : '';
   return `<!doctype html><html><body style="margin:0;padding:0;background:#0A0E0C">
   <div style="max-width:520px;margin:0 auto;padding:28px 22px;font-family:-apple-system,Segoe UI,sans-serif">
     <div style="font:11px ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:#98A29A">League cancelled</div>
     <div style="font:400 30px Georgia,serif;line-height:1.1;color:#ECEEF2;margin:10px 0 6px">${esc(league)} has been called off</div>
-    <div style="font:14px -apple-system,Segoe UI,sans-serif;color:#ECEEF2;opacity:.86">The season won't be played. Nobody won, and every buy-in comes back.</div>
+    <div style="font:14px -apple-system,Segoe UI,sans-serif;color:#ECEEF2;opacity:.86">Nobody won, and every buy-in comes back.</div>
     ${owed}
     <div style="font:14px -apple-system,Segoe UI,sans-serif;color:#ECEEF2;opacity:.86;margin-top:16px">Your rounds stay on your card &mdash; all of them.</div>
     <div style="font:11px -apple-system,Segoe UI,sans-serif;color:#5E665E;margin-top:20px;line-height:1.5">

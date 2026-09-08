@@ -395,7 +395,7 @@ function friendRequestEmail(toName: string, fromName: string) {
     <p style="margin:24px 0">
       <a href="https://cupseason.app" style="background:#E9BE62;color:#1c1503;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:10px;display:inline-block">Open Cup Season</a>
     </p>
-    <p style="font-size:12px;color:#8c9992;line-height:1.5">You're getting this because someone added you on Cup Season. Manage notifications in your Tour Card.</p>
+    <p style="font-size:12px;color:#8c9992;line-height:1.5">You're getting this because ${who} added you on Cup Season.</p>
   </div>`;
 }
 
