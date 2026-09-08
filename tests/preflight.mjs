@@ -1200,6 +1200,17 @@ let VOCAB_LAWS = null;
     [39, 'seed is never a verb', [/\bseeded by\b/i, /\bseed a\b/i, /\bseeds? (from|into)\b/i]],
     [40, 'the ruled names (§2)', [/\bnext up\b/i, /^coming up$/i, /\byou vs\b/i, /\bhomebase\b/i, /\bfescue only\b/i, /regular.season/i,
                                   /\bfinal 4\b(?!\s*weeks)/i, /how teams fill/i, /^teams$/i, /four makes a season/i, /\bin the field\b/i, /\bexhibition\b/i]],
+    /* 41 · D297 class 4 / D165. A SENTENCE is never shouted: four or more
+       ALL-CAPS words closed by a full stop is prose somebody authored in caps,
+       and D165 ruled natural case at the producer, permanently — the server's
+       migration self-checks it, and until this row the clients had nothing.
+       Furniture keeps its caps because furniture carries no full stop: an
+       eyebrow, a sheet sub, a chip, a strip line, THRU 14 · +2, a settlement
+       headline. A hyphenated compound is one word (THE RULE-AND-FIGURE is a
+       name, not a sentence). The row measured exactly one offender on 2026-09-07 — a
+       fixture's board body — and the desk's climb pane, which shouted with no
+       full stop at all, was found by hand; both are fixed in the same commit. */
+    [41, 'a sentence is never shouted (D165)', [/\b[A-Z]{2,}(?:[ ,\u2014\u2013]+[A-Z0-9'\u2019]+){3,}[.!?](?:\s|$)/]],
   ];
 
   const hits = [];
@@ -1331,6 +1342,7 @@ let VOCAB_LAWS = null;
       ['Start an event', 36],
       ['Tap any player', 37],
       ['CHAMPS $315', 38],
+      ['NO ROUNDS YET. SQUADS FORM WHEN THE PRO LOCKS.', 41],
     ];
     for (const [text, n] of probes) {
       const law = LAWS.find(l => l[0] === n);

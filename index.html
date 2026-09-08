@@ -6810,7 +6810,9 @@ function renderClimb(){
   const box=$('#climb'); if(!box) return;
   const note=$('#climbNote');
   if(!teams.length){
-    box.innerHTML='<div class="climb-empty">THE RACE STARTS WITH THE FIRST POSTED ROUND<br><span>SHARE THE SEASON CODE TO FILL THE TABLE</span></div>';
+    /* natural case, said once — the standings twin below says its own
+       sentence; the climb's is the line it draws (D165, D297 class 4) */
+    box.innerHTML='<div class="climb-empty">Nobody has posted yet<br><span>The first round draws the first line</span></div>';
     if(note) note.textContent=''; return;
   }
   const real=!state.demo && window.CS?.league;

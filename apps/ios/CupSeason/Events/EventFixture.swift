@@ -125,7 +125,7 @@ enum EventFixture {
       scoreboard: [teamA: complete ? 5 : 3.5, teamB: complete ? 4 : 2.5],
       targets: targets,
       posts: [EventPost(id: UUID(uuidString: "44444444-0000-4000-8000-000000000001")!, kind: "event",
-                        body: "WEEK 2 IS OPEN — THREE CLASHES, BEST ROUND EACH.", created_at: Date())])
+                        body: "Week 2 is open — three clashes, best round each.", created_at: Date())])
   }
 
   // MARK: the callout — a field of two, one session, no league
