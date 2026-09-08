@@ -1178,3 +1178,26 @@ The owner, on the round D293 was built for: *"when I open a posted round I cant 
 **Named and not changed.** The PROFILE photo is the same class in the opposite direction: the phone's settings pane is a bare `PhotosPicker` (library only) where the desk's input offers both. Nobody has asked for a self-portrait from a settings pane and a beta morning is the wrong time to restructure a control there — it is the next one to close.
 
 **Gate:** preflight PASS 0/0 (LINT-25 caught the typed `Cancel` on the first run and the word came out) · **1,229 tests / 0 failures across the three bundles** (80 CupSeasonTests · 120 CSDesignTests · 1,029 CupSeasonKitTests), the diff purely additive at +4.
+
+## IOS-070 · The photograph over the settings link, and the target that could see it — **BUILT 2026-09-08 (D301; owner from his own phone, twice)**
+
+The owner, 2026-09-06: *"I also cant click into settings."* The owner, 2026-09-08, on the build that answered it: *"Cant click into settings."*
+
+**THE FIRST ANSWER WAS RIGHT AND DID NOT FIX IT.** IOS-068's wave moved `CSTertiaryStyle`'s `contentShape` after its 44pt frame and added a full-measure `Card & settings` door at the foot of the You page. Both correct. Both verified by measuring a frame in a unit test and by looking at a screenshot — and `TertiaryTargetTests` had already written down that neither can answer the question: *"Proving a tap needs an XCUITest target, which this app does not have; that is recorded as the honest gap rather than papered over with a probe that cannot see."*
+
+**`.clipped()` CLIPS DRAWING, NOT TOUCHES.** The credential's plate is a `scaledToFill` photograph with no intrinsic ceiling. At the card's 362pt width the image view lays out **362 × 362** while `plateHeight` is ~180 — so it hangs ~90pt above the plate and ~90pt below. The drawing is clipped; the card looks right in every screenshot ever taken of it. The hit region is not clipped, and the credential is drawn AFTER the chrome row in the You page's stack, so **the invisible top half of the golfer's own photograph lay over the word `Settings` and swallowed every tap**. The link measured 44pt, reported `isHittable == true`, accepted the touch and never fired.
+
+**THE DIAGNOSIS, IN THE ORDER IT WENT**, because two of the three steps were wrong first:
+1. The tests skipped: the probe asked for `app.buttons["YOU"]` and the tab bar does not label itself that way. Fixed by dumping the accessibility tree instead of guessing.
+2. Both tests then went red *after a correct navigation*: the success marker was `"notifications"`, which lives on the settings page's **second** pane. `"Card & settings"` was no better — the You page's own foot door carries that title and XCUITest sees off-screen elements, so it would have gone green without moving. The marker is `WHAT YOUR BUDDIES SEE`.
+3. With honest assertions: **the foot door passed and the corner link failed** — exists, hittable, tapped, nothing opened. A coordinate tap on the visible words failed too.
+4. **The control experiment**: the same `CSDoor(.link)` on the receipt (`Delete this round`) fired. So the fault was the place, not the product's shared tertiary — which matters, because that control is 63 sites and a fault there is an app-wide outage.
+5. That sent the search to what is drawn over the chrome row, and the tree had been saying it all along: the credential's element began at **y = 23.3** while the button sat at **y = 62–106**.
+
+**Fix:** `.contentShape(Rectangle())` after the plate's `.clipped()`. One line in `CSCredential`, every surface that draws the card.
+
+**Tests:** the new **`CupSeasonUITests`** target — the gap `TertiaryTargetTests` named, closed. Three tests: the corner link, the foot door, and the control experiment kept as a standing guard on `CSDoor(.link)`. It drives the real app and asks the real hit-tester; nothing in it reads a frame. Signed out it skips rather than fails.
+
+**Named and not swept:** twelve other `.clipped()` sites carry the same trap (`HomeWire:91,127` · `RecapCardView:34,56` · `RoundCardArtifact:91` · `RecordPage:323,327` · `EventTitleCard:107` · `Structure:479` · `Course:507,537` · `Person:747,951`). Most clip artefacts or plates with nothing interactive above them, and changing twelve surfaces unverified on a beta morning is the wrong trade. The rule when each is next touched: **if a clipped view can be taller than its frame, shape it.**
+
+**Gate:** preflight PASS 0/0 (the vocabulary lint caught two of my own new strings saying "session") · **1,231 unit tests + 3 UI tests, 0 failures** · installed on the owner's phone.

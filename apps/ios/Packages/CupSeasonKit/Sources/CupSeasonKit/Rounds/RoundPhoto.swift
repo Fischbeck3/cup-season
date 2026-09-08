@@ -164,6 +164,61 @@ public struct RoundPhotoService: Sendable {
     catch { throw RoundPhotoService.translate(error) }
   }
 
+  #if DEBUG
+  /// **THE PROBE** — `-cs_dev_photo_probe`. The owner, on a build with the
+  /// migration live in prod: *"when trying to post photo 'the photo didnt
+  /// attach, check your signal and try again'."*
+  ///
+  /// That sentence is `RoundCopy.photoFailed`, and L-32 is why it says nothing
+  /// more: a golfer never reads a code. The cost of that rule is that a failure
+  /// the owner can reproduce is a failure NOBODY CAN READ — not him, not me,
+  /// and the two halves of `attach` (the storage upload and the RPC) collapse
+  /// into the same word. Everything checkable from outside checks out: prod is
+  /// at 222 with `set_round_photo` live, the round is his, the bucket takes
+  /// `image/jpeg` up to 8 MB, and the INSERT policy fences the same
+  /// `{uid}/` prefix the client writes. So the answer is in the response, and
+  /// this is how the response gets read.
+  ///
+  /// It runs the REAL two steps against prod, on the simulator's copy of the
+  /// owner's own session, and reports each one raw. **It unwinds whatever it
+  /// did** — the round goes back to no photograph and the object goes back out
+  /// of the bucket — so his data is where it started. DEBUG only; there is no
+  /// such door in the shipped build.
+  public func probe(_ roundId: UUID, uid: UUID, jpeg: Data, priorPath: String?) async -> String {
+    var log = "PROBE round=\(roundId.uuidString.prefix(8)) uid=\(uid.uuidString.lowercased().prefix(8)) bytes=\(jpeg.count)\n"
+    let path = RoundPhotoService.objectPath(uid: uid)
+    log += "path=\(path)\n"
+    do {
+      _ = try await svc.client.storage.from("media")
+        .upload(path, data: jpeg, options: FileOptions(contentType: "image/jpeg", upsert: false))
+      log += "UPLOAD OK\n"
+    } catch {
+      return log + "UPLOAD FAILED · " + String(describing: error)
+    }
+    do {
+      _ = try await svc.call(SetRoundPhotoCall(p_round: roundId, p_photo_path: path))
+      log += "RPC OK\n"
+    } catch {
+      _ = try? await svc.client.storage.from("media").remove(paths: [path])
+      return log + "RPC FAILED · " + SupabaseService.describe(error)
+    }
+    // Unwind to EXACTLY what the round carried before. A probe that cleared a
+    // photograph the golfer had put there would be a diagnostic that destroys
+    // the thing it is diagnosing.
+    do {
+      if let priorPath, !priorPath.isEmpty {
+        _ = try await svc.call(SetRoundPhotoCall(p_round: roundId, p_photo_path: priorPath))
+        log += "unwound (restored the photograph it had)"
+      } else {
+        try await remove(roundId)
+        log += "unwound (round cleared, as it started)"
+      }
+    } catch { log += "UNWIND FAILED · " + SupabaseService.describe(error) }
+    _ = try? await svc.client.storage.from("media").remove(paths: [path])
+    return log
+  }
+  #endif
+
   /// PGRST202 / 42883 is the database being behind this build, and it is the
   /// ONLY error that earns the push sentence. Everything else is a real
   /// failure and gets the golfer's own words.

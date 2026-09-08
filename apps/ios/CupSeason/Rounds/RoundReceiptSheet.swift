@@ -452,6 +452,7 @@ struct RoundReceiptSheet: View {
     // nothing. (`RoundPhotoSource.offered` is false-by-simulator, so the menu
     // is forced open here; what it CONTAINS is the hatch's other half.)
     if ReceiptPhotoDev.menu { askSource = true }
+    if ReceiptPhotoDev.probe { await runPhotoProbe() }
     if let hatched = RoundCardDev.card {
       card = hatched
       if RoundCardDev.artifact { artifactPreview = true }
@@ -476,6 +477,15 @@ struct RoundReceiptSheet: View {
     } else {
       Color.clear.onTapGesture { artifactPreview = false }
     }
+  }
+
+  /// `-cs_dev_photo_probe` — the two halves of the attach, run for real, raw.
+  private func runPhotoProbe() async {
+    guard let uid = store.session?.user.id else { photoNote = "PROBE · not signed in"; return }
+    guard let jpeg = PostPhoto.compress(ReceiptPhotoDev.image, maxDim: 1600, quality: 0.82) else {
+      photoNote = "PROBE · compress returned nil"; return
+    }
+    photoNote = await RoundPhotoService().probe(roundId, uid: uid, jpeg: jpeg, priorPath: seed?.photoPath)
   }
 
   /// `-cs_dev_receipt_photo <none|on|skew>` — see `ReceiptPhotoDev`. It moves

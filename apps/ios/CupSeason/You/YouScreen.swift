@@ -187,9 +187,9 @@ struct YouScreen: View {
     HStack {
       Spacer()
       CSDoor(.link("Settings", links.openSettings))
+        .accessibilityLabel("Card and settings")
     }
     .frame(minHeight: 34)
-    .accessibilityLabel("Card and settings")
   }
 
   private func face(_ p: Me.Profile) -> CSFace.Model {

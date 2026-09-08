@@ -674,6 +674,23 @@ public struct CSCredential<Plate: View>: View {
       plate
         .frame(width: typeSize.isA11y ? nil : cardWidth, height: plateHeight)
         .clipped()
+        // **`.clipped()` CLIPS DRAWING, NOT TOUCHES** (D301), and that one
+        // asymmetry is why the owner said *"I cant click into settings"* twice.
+        // `plate` is a `scaledToFill` photograph with no intrinsic ceiling: at
+        // a 362pt card width the image view is 362 × 362 while `plateHeight`
+        // is ~180, so it hangs ~90pt above the plate and ~90pt below it. The
+        // drawing is clipped and looks perfect. The HIT REGION is not, and the
+        // credential is drawn AFTER the chrome row in the You page's stack, so
+        // the invisible top half of the photograph sat over `Settings` and ate
+        // every tap. The link measured 44pt, reported hittable to XCUITest,
+        // took the touch and never fired — a control that is correct in every
+        // way a test could see and unreachable by a thumb.
+        //
+        // `contentShape` after the frame restricts the touch region to what is
+        // actually drawn. `CupSeasonUITests` is the proof, and it is the proof
+        // BECAUSE it drives the real hit-tester: no frame measurement, no
+        // screenshot and no `UIView.hitTest` can see this.
+        .contentShape(Rectangle())
       CSPhotoScrim.layer(CSPhotoScrim.title)
       // the slot and the credit sit at the plate's HEAD, where `.title` has
       // not started ramping — so they get `.top`'s own geometry under them,

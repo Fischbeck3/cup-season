@@ -78,5 +78,12 @@ enum ReceiptPhotoDev {
   /// menu of ONE — which is precisely the state that hid this bug for five
   /// waves of screenshots. The shot has to show the phone's menu.
   static var menu: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_photo_menu") }
+
+  /// `-cs_dev_photo_probe` — run the real attach against prod and print the RAW
+  /// answer where the note line goes. See `RoundPhotoService.probe`: the
+  /// product refuses to show a golfer a code, which is right and which is
+  /// exactly why a failure the owner can reproduce is one nobody can read.
+  /// It unwinds everything it does.
+  static var probe: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_photo_probe") }
 }
 #endif

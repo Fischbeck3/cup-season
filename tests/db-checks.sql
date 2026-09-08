@@ -736,5 +736,37 @@ select '31 · what a round is worth, and it is a ceiling',
          then 'FAIL — round_worth is reachable by anon'
        else 'PASS — 12 / 6 / 0 / null / 12, and no anon execute' end,
   'round_worth(cap,used,worst) · the table in 20261001090000''s header'
+
+-- 32 · D300 · A STORAGE POLICY NEVER READS A TABLE THE GOLFER CANNOT.
+--     Postgres evaluates EVERY permissive policy for a command, so one policy
+--     that reads a revoked table kills every write to `storage.objects` — for
+--     every bucket, by everybody. That is not hypothetical: `shares` was
+--     revoked from `authenticated` on 2026-07-22 and two policies that read it
+--     landed on 2026-07-23, and no golfer could upload a photograph of any
+--     kind for the 47 days that followed. Nothing caught it, because the two
+--     halves are each correct and the client's own error sentence says
+--     "check your signal" (L-32: a golfer never reads a code).
+--     The rule is general on purpose. A check that only knew about `shares`
+--     would be a check that let the next one through.
+union all
+select '32 · a storage policy reads nothing the golfer cannot',
+  case when (select count(*) from pg_policies p
+              cross join (select c.relname
+                            from pg_class c join pg_namespace n on n.oid = c.relnamespace
+                           where n.nspname = 'public' and c.relkind in ('r','p','v','m')
+                             and not has_table_privilege('authenticated', c.oid, 'SELECT')) t(table_name)
+             where p.schemaname = 'storage' and p.tablename = 'objects'
+               and (coalesce(p.qual,'') || ' ' || coalesce(p.with_check,'')) ~ ('\m' || t.table_name || '\M')) > 0
+       then 'FAIL — ' || (select string_agg(p.policyname || ' reads ' || t.table_name, ', ')
+                            from pg_policies p
+                            cross join (select c.relname
+                                          from pg_class c join pg_namespace n on n.oid = c.relnamespace
+                                         where n.nspname = 'public' and c.relkind in ('r','p','v','m')
+                                           and not has_table_privilege('authenticated', c.oid, 'SELECT')) t(table_name)
+                           where p.schemaname = 'storage' and p.tablename = 'objects'
+                             and (coalesce(p.qual,'') || ' ' || coalesce(p.with_check,'')) ~ ('\m' || t.table_name || '\M'))
+            || ' — every upload dies with that table''s name in the message'
+       else 'PASS — every storage policy reads only what the caller may' end,
+  'pg_policies(storage.objects) × public relations authenticated cannot select'
 )
 select * from checks order by check_name;
