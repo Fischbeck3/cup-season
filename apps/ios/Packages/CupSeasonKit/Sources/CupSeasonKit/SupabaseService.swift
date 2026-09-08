@@ -23,7 +23,12 @@ public struct RpcError: LocalizedError, Sendable {
   public let name: String
   public let underlying: String
   public let droppedArgs: [String]
-  public var errorDescription: String? { "\(name): \(underlying)" }
+  /// D297 class 5 (ruling row 60): the SENTENCE, never `name: sentence`. The
+  /// RPC's name is for the console — a toast that opened "randomize_squads:
+  /// P0001 …" was the machine's voice reaching a golfer, and it also failed
+  /// every mapper's shape gate (a function name starts lowercase). `name` and
+  /// `droppedArgs` stay on the struct for whoever logs it.
+  public var errorDescription: String? { underlying }
   /// PostgREST's "function not found in schema cache" / 42883 — the phone is
   /// ahead of the database (a migration not yet pushed). Callers may fall back.
   public var isMissingFunction: Bool {
@@ -103,7 +108,7 @@ public final class SupabaseService: Sendable {
     }
     let r = try await client.auth.verifyOTP(email: to, token: token, type: .email)
     guard let s = r.session else {
-      throw RpcError(name: "verifyEmailCode", underlying: "The code was accepted but no session came back.", droppedArgs: [])
+      throw RpcError(name: "verifyEmailCode", underlying: "The code was right, but you're not signed in yet — try it again.", droppedArgs: [])
     }
     return s
   }
@@ -118,7 +123,7 @@ public final class SupabaseService: Sendable {
   /// this path either; the token round-trips inside the app.
   public func signInWithApple(idToken: String, nonce: String) async throws {
     guard !idToken.isEmpty, !nonce.isEmpty else {
-      throw RpcError(name: "signInWithApple", underlying: "Apple did not hand back a token.", droppedArgs: [])
+      throw RpcError(name: "signInWithApple", underlying: "Apple did not sign you in. Your email still works.", droppedArgs: [])
     }
     _ = try await client.auth.signInWithIdToken(credentials: OpenIDConnectCredentials(provider: .apple, idToken: idToken, nonce: nonce))
   }

@@ -158,7 +158,7 @@ final class CardSettingsModel {
         do { try await repo.setHandle(h) }
         catch {
           await load(userId: userId)
-          status = ("Card saved · handle: " + AuthRules.human(error, fallback: "not changed"), .mut)
+          status = ("Card saved · " + AuthRules.human(error, fallback: "Handle not changed."), .mut)
           return
         }
       }
@@ -197,7 +197,7 @@ final class CardSettingsModel {
   /// Returns the toast copy.
   func updateIndex() async -> String {
     guard let v = Double(index.replacingOccurrences(of: "+", with: "-")), (-10...54).contains(v) else {
-      return "Index looks off: expected -10 to 54"
+      return "Index looks off — anywhere from -10 to 54."
     }
     indexBusy = true
     defer { indexBusy = false }
@@ -390,9 +390,9 @@ private struct CardEditorPane: View {
       if vm.profile?.index_source == "app" {
         // Y-06 · once the engine owns the number, `set_index` refuses an edit by
         // design — so no field. Say whose the number is, and where to read why.
-        Text("Your number is the engine's now · \(vm.index.isEmpty ? "—" : vm.index)")
+        Text("Your number builds itself now · \(vm.index.isEmpty ? "—" : vm.index)")
           .csType(.body).foregroundStyle(cs.ink)
-          .accessibilityLabel("Your number is the engine's now. \(vm.index.isEmpty ? "No index yet" : "Index \(vm.index)")")
+          .accessibilityLabel("Your number builds itself now. \(vm.index.isEmpty ? "No index yet" : "Index \(vm.index)")")
         Text("It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post.")
           .csType(.bodyS).foregroundStyle(cs.mut)
         // Y-01 · the title names what OPENS. "How it works" is a different,
@@ -582,7 +582,7 @@ private struct SettingsPane: View {
       Button("Sign out") { Task { await store.signOut() } }
         .buttonStyle(.csSecondary()).padding(.top, 12)
 
-      Text("Danger zone").csEyebrow().padding(.top, 18)
+      Text("Your account").csEyebrow().padding(.top, 18)
       if !vm.deleteArmed {
         Button {
           vm.deleteArmed = true; CSHaptic.warning()

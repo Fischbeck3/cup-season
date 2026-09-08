@@ -550,11 +550,14 @@ public enum MajorMath {
     return "\(EventDates.weekdayMonthDay(start, calendar: calendar)) \u{2013} \(EventDates.weekdayMonthDay(finalOn, calendar: calendar)) · best round by \(EventDates.weekdayLong(finalOn, calendar: calendar)) night"
   }
 
-  /// `openMajorSetup`'s create failure (16133): the skew line, else the raw text.
-  public static func createFailure(_ message: String) -> String {
-    message.range(of: "create_major|function|schema cache", options: [.regularExpression, .caseInsensitive]) != nil
-      ? "The Major needs the database update first — one push away"
-      : "Create failed: " + message
+  /// `openMajorSetup`'s create failure (16133): the skew line in the house
+  /// form, else `BoardText.humanError` — never "Create failed: " + the raw
+  /// text (D297 class 5: the machine's voice at the source).
+  public static func createFailure(_ error: Error) -> String {
+    let raw = (error as? RpcError)?.underlying ?? String(describing: error)
+    return raw.range(of: "create_major|function|schema cache", options: [.regularExpression, .caseInsensitive]) != nil
+      ? "The Major needs the latest update — try again shortly."
+      : BoardText.humanError(error, "Could not set the Major.")
   }
 }
 

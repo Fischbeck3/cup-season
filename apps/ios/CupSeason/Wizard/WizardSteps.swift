@@ -460,7 +460,7 @@ struct WizardDialsPane: View {
       eyebrow(WizardCopy.presetEyebrow, key: "preset", text: WizardCopy.presetHelp)
       ForEach(0..<3, id: \.self) { i in presetCard(i) }
       CSFine(model.dials.presetSummaryText)
-      CSFine(WizardCopy.verificationNote)   // M-15: a norm the league holds, not a filter the engine applies
+      CSFine(WizardCopy.verificationNote)   // M-15: a norm the league holds, not a filter Cup Season applies
 
       WizardSetRow(lab: WizardCopy.buyIn.0, small: WizardCopy.buyIn.1, val: model.dials.stakeText,
                    downLabel: "Lower buy-in", upLabel: "Raise buy-in",

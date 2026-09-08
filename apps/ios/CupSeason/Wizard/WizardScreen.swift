@@ -240,7 +240,7 @@ final class WizardModel {
     loading = true
     defer { loading = false }
     do {
-      guard let head = try await svc.league(id) else { toast.show("No season with that id — it may have been deleted.", kind: .failed); return }
+      guard let head = try await svc.league(id) else { toast.show("That season isn't there any more.", kind: .failed); return }
       if head.phase != "setup" { alreadyLocked(id); return }   // D40: only a setup season belongs here
       let b = try? await svc.bylaws(id)
       let s = try? await svc.season(id)

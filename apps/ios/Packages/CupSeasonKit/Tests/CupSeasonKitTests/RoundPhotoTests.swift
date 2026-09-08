@@ -89,13 +89,17 @@ import Foundation
 
   // MARK: - the honest pre-migration state
 
-  /// L-32 · a failed write says so in the golfer's words. The push sentence is
-  /// the one `csRateCourse` set the form for, and it must name the push — a
-  /// golfer told "something went wrong" tries again forever.
-  @Test("the pre-migration sentence names the database push and no code")
+  /// L-32 · a failed write says so in the golfer's words. The skew sentence is
+  /// the one `csRateCourse` set the form for, and it must name the update — a
+  /// golfer told "something went wrong" tries again forever. D297 class 5: it
+  /// names it in the house form (`CS_SHARE_NOT_YET`'s "the latest update"),
+  /// never as the builder's "database push".
+  @Test("the pre-migration sentence names the latest update and no code")
   func theSkewSentenceIsHonest() {
     let s = RoundCopy.photoNeedsPush
-    #expect(s.contains("database push"))
+    #expect(s.contains("the latest update"))
+    #expect(!s.lowercased().contains("database"))
+    #expect(!s.lowercased().contains("push"))
     #expect(!s.contains("PGRST"))
     #expect(!s.contains("42883"))
     #expect(!s.lowercased().contains("error"))
@@ -105,7 +109,7 @@ import Foundation
   func thetwoFailuresAreToldApart() {
     #expect(RoundCopy.photoNeedsPush != RoundCopy.photoFailed)
     #expect(RoundCopy.photoFailed != RoundCopy.photoRemoveFailed)
-    #expect(!RoundCopy.photoFailed.contains("database push"))
+    #expect(!RoundCopy.photoFailed.contains("the latest update"))
   }
 
   /// Only PGRST202 / 42883 earns the push sentence. Anything else is a real

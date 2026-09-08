@@ -83,7 +83,7 @@ enum AppleName {
 
 enum DoorAppleError: LocalizedError {
   case noToken
-  var errorDescription: String? { "Apple did not hand back a token." }
+  var errorDescription: String? { "Apple did not sign you in. Your email still works." }
 
   /// The person closed Apple's sheet — not an error to show.
   static func isCancel(_ error: any Error) -> Bool {

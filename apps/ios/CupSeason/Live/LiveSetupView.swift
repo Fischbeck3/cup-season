@@ -605,7 +605,7 @@ struct LiveCardSheet: View {
             let ok = valid(f9) && (nine || valid(b9))
             Text(ok ? String(sum(f9) + (nine ? 0 : sum(b9))) : "—").font(CSFont.stat).foregroundStyle(ok ? cs.pos : cs.mut)
           }
-          CSFine("Nine digits a side, 3–6. \(nine ? "The nine you played." : "Type it once and the card saves for every league.") Strokes fall by hole order; exact stroke index arrives with the course database.")
+          CSFine("Nine digits a side, 3–6. \(nine ? "The nine you played." : "Type it once and the card saves for every league.") Strokes fall by hole order.")
           Button("Save the card") {
             guard valid(f9), nine || valid(b9) else { toast.show("Nine digits a side, 3 through 6", kind: .failed); return }
             store.saveCard(front: f9.compactMap { Int(String($0)) }, back: nine ? nil : b9.compactMap { Int(String($0)) })

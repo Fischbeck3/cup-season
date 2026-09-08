@@ -159,10 +159,12 @@ public enum HumanError {
       msg = "That already exists."
     } else if m.range(of: "violates|constraint|not-null|null value|invalid input", options: .regularExpression) != nil {
       msg = "That didn't go through — please try again."
-    } else if m.range(of: "isn't open yet|season is finished|season's underway|past the halfway turn|not golf buddies yet|already in the league", options: .regularExpression) != nil {
+    } else if let ours = BoardText.ourSentence(raw) {
       // D161/D112 · our own raise-exception lines are written for golfers —
-      // pass them through verbatim, exactly as the web's allowlist does
-      msg = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+      // pass them through verbatim, exactly as the web's allowlist does.
+      // D297 class 5: the allowlist and the shape gate are `BoardText`'s,
+      // one gate for the three mappers (ruling row 60).
+      msg = ours
     } else {
       msg = "Something went wrong — please try again."
     }

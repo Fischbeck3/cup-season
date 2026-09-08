@@ -525,7 +525,7 @@ public enum WizardCopy {
   public static let presetEyebrow = "How serious is your league?"
   public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — how much of your index you play off, how scores are vouched for, which courses count. Casual is an honor-system beer league. Standard asks you to post what you’d post to GHIN. Cutthroat wants receipts: vouched by the group where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly."
   /// M-15 · the footnote under the preset cards: verification is a norm, not a filter.
-  public static let verificationNote = "Verification is a norm the league holds, not a filter the engine applies."
+  public static let verificationNote = "Verification is a norm the league holds, not a filter Cup Season applies."
   public static let fastPath = "Use these defaults"
   public static let customize = "Customize"
   public static let hideOptions = "Hide options"
@@ -535,7 +535,7 @@ public enum WizardCopy {
   public static let teamsEyebrow = "Squads"
   public static let teamsHelp = "How the league is organized. Solo means everyone competes individually: no squads. Squad modes split the league into squads the Pro picks or draws; more squads want more golfers (4 squads plays best at 8+)."
   public static let fillEyebrow = "How squads fill"
-  public static let fillHelp = "How squads get filled. Random draw shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. Picking them yourself lets you place golfers, for groups who picked teams in the group chat. Live picking with a clock isn’t built yet."
+  public static let fillHelp = "How squads get filled. Random draw shuffles everyone and announces the reveal to the board, so nobody can rig the hat. Picking them yourself lets you place golfers, for groups who picked teams in the group chat."
   public static let endsEyebrow = "How it ends"
   public static let endsHelp = "How the champion is crowned. Cup Final resets for the last four weeks — top seeds race fresh, anyone can catch fire, playoff drama. Points table crowns whoever leads when the season ends: the whole year is the race, no reset."
   public static let potEyebrow = "The pot split"

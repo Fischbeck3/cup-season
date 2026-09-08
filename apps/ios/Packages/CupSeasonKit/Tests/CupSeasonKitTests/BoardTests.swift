@@ -90,6 +90,32 @@ import Foundation
     #expect(BoardText.humanError(E(m: "???")) == "Something went wrong — please try again.")
     #expect(BoardText.isSchemaSkew(E(m: "function live_round_card does not exist")))
   }
+
+  /// D297 class 5 · ruling row 60. The web had `looksLikeOurSentence` and the
+  /// phone had nothing, so a Pro read "randomize_squads: P0001 Only the Pro can
+  /// do that." — the RPC's name, the SQLSTATE and the sentence — and, once
+  /// D296 wrote the golfer's sentence into every raise, the shrug instead of
+  /// it. One gate, ported verbatim, and `RpcError` says the sentence alone.
+  @Test func theServersOwnSentenceReachesTheGolfer() {
+    struct E: LocalizedError { let m: String; var errorDescription: String? { m } }
+    let pro = RpcError(name: "randomize_squads", underlying: "P0001 Only the Pro can do that.", droppedArgs: [])
+    #expect(pro.errorDescription == "P0001 Only the Pro can do that.")           // the name is for the console, never the toast
+    #expect(BoardText.humanError(pro) == "Only the Pro can do that.")
+    #expect(BoardText.humanError(pro, "Draw failed.") == "Draw failed. Only the Pro can do that.")
+    // the allowlist carries what the shape cannot: a sentence that opens with a count
+    #expect(BoardText.humanError(RpcError(name: "lock_league", underlying: "P0001 2 not on a squad yet — everyone needs one before the first tee", droppedArgs: []))
+            == "2 not on a squad yet — everyone needs one before the first tee")
+    #expect(BoardText.humanError(E(m: "They're already in.")) == "They're already in.")
+    #expect(BoardText.humanError(E(m: "Index looks off — anywhere from -10 to 54.")) == "Index looks off — anywhere from -10 to 54.")
+    // the machine's voice still gets the shrug: lowercase, jargon, an identifier, too short
+    #expect(BoardText.humanError(E(m: "no such season")) == "Something went wrong — please try again.")
+    #expect(BoardText.humanError(E(m: "Relation posts_pkey is busy")) == "Something went wrong — please try again.")
+    #expect(BoardText.humanError(E(m: "Not yours")) == "Something went wrong — please try again.")
+    #expect(BoardText.looksLikeOurSentence("Only the Pro can do that."))
+    #expect(!BoardText.looksLikeOurSentence("commissioner only"))
+    #expect(!BoardText.looksLikeOurSentence("A very long sentence " + String(repeating: "x", count: 200)))
+    #expect(BoardText.ourSentence("PGRST202 Could not find the function public.x in the schema cache") == nil)
+  }
 }
 
 @Suite struct BoardLogicTests {

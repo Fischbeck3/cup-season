@@ -131,8 +131,7 @@ struct MajorSetupSheet: View {
         dismiss()
         onCreated(id)
       } catch {
-        let raw = (error as? RpcError)?.underlying ?? String(describing: error)
-        toasts.show(MajorMath.createFailure(raw))
+        toasts.show(MajorMath.createFailure(error))
       }
     }
   }

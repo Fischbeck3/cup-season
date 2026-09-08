@@ -172,7 +172,7 @@ struct SetIndexSheet: View {
       RoomFine("A starting number for \(member.name). Once they post 3 rounds, their own scores take over.")
       CSField("e.g. 12.4", text: $text).keyboardType(.numbersAndPunctuation)
       Button("Set the starter") {
-        guard let idx = Double(text.replacingOccurrences(of: ",", with: ".")), idx >= -10, idx <= 54 else { toast.show("That number looks off: expected -10 to 54", kind: .failed); return }
+        guard let idx = Double(text.replacingOccurrences(of: ",", with: ".")), idx >= -10, idx <= 54 else { toast.show("Index looks off — anywhere from -10 to 54.", kind: .failed); return }
         busy = true
         Task {
           defer { busy = false }

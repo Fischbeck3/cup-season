@@ -265,7 +265,7 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
       let s = rows.map(\.handicap)
       if s.allSatisfy({ $0 >= 1 && $0 <= 18 }) { si = s; siEst = false } else { estimate(holes: 18) }
     }
-    note = "Card loaded: \(playing == 9 ? "9-hole" : "18-hole") pars and stroke index from the course database."
+    note = "Card loaded: \(playing == 9 ? "9-hole" : "18-hole") pars and stroke index from the course's card."
     return true
   }
 

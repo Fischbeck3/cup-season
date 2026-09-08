@@ -52,7 +52,7 @@ public enum AuthRules {
       return "That code has expired. Codes expire when a new one is sent — use the newest email."
     }
     if s.contains("rate limit") || s.contains("too many") || s.contains("429") {
-      return "Too many sign-in emails for now — the mailer limits sends per hour. Give it a few minutes."
+      return "Too many sign-in emails for now — give it a few minutes and try again."
     }
     // Sign in with Apple (IOS-023): the provider not yet enabled in Supabase,
     // a nonce that did not line up, or Apple's own sheet giving up.
@@ -68,6 +68,9 @@ public enum AuthRules {
     if s.contains("network") || s.contains("offline") || s.contains("timed out") || s.contains("could not connect") {
       return "Connection hiccup — check your signal and try again."
     }
-    return m.isEmpty ? fallback : m
+    // D297 class 5 (ruling row 60): the server's own sentence passes, the
+    // machine's does not — `BoardText.ourSentence` is the web's gate, ported.
+    // Before this line every non-empty message reached the golfer verbatim.
+    return BoardText.ourSentence(m) ?? fallback
   }
 }

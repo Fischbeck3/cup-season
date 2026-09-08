@@ -84,7 +84,7 @@ struct RateCourseSheet: View {
           others
           if failed { unavailable }
           if noteWaiting {
-            Text("Your rating saved. The sentence needs the next update — it is not lost, it is just not stored yet.")
+            Text("Your rating saved. Your line will save after the next update.")
               .csType(.bodyS).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
           }

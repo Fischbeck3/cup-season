@@ -314,7 +314,7 @@ import Foundation
     #expect(WizardCopy.inviteNote == "Starting the season opens the invite link — one link fills the league. The code works until first tee, or until you close the roster. Squads need four to tee off; solo tees off at two.")
     #expect(WizardCopy.lockButton(solo: true) == "Start the season" && WizardCopy.lockButton(solo: false) == "Start the season")
     #expect(WizardDials.structNotes["solo"]?.hasPrefix("Individual · everyone for themselves — works at any size (2+).") == true)
-    #expect(WizardCopy.verificationNote == "Verification is a norm the league holds, not a filter the engine applies.")
+    #expect(WizardCopy.verificationNote == "Verification is a norm the league holds, not a filter Cup Season applies.")
   }
 }
 
@@ -341,7 +341,7 @@ import Foundation
     let empty = LeagueRoom.Squad(id: UUID(), name: "Squad 2", color: 1)
     let full = LeagueRoom.Squad(id: UUID(), name: "Squad 1", color: 0, squad_members: [.init(member_id: UUID())])
     #expect(DraftCopy.startBlocker(members: 3, pool: 0, squads: [full], solo: false) == "Minimum four to tee off — 3 in so far. Share the invite link.")
-    #expect(DraftCopy.startBlocker(members: 5, pool: 2, squads: [full], solo: false) == "2 golfer(s) not on a squad yet — everyone needs one before the first tee")
+    #expect(DraftCopy.startBlocker(members: 5, pool: 2, squads: [full], solo: false) == "2 not on a squad yet — everyone needs one before the first tee")
     #expect(DraftCopy.startBlocker(members: 5, pool: 0, squads: [full, empty], solo: false) == "Squad 2 is empty — draw again or assign somebody before the season starts")
     #expect(DraftCopy.startBlocker(members: 5, pool: 0, squads: [full], solo: false) == nil)
     #expect(DraftCopy.startBlocker(members: 1, pool: 0, squads: [], solo: true) == nil)

@@ -302,6 +302,10 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
     #expect(HumanError.text(E(m: "Failed to fetch")) == "Connection hiccup — check your signal and try again.")
     #expect(HumanError.text(E(m: "only the host and tagged players can rsvp to this round")) == "Only the host and tagged golfers can RSVP to this round.")
     #expect(HumanError.text(E(m: "boom"), prefix: "Could not join.") == "Could not join. Something went wrong — please try again.")
+    // D297 class 5 · the server's sentence passes (D296's owed twin, `already in`, and the shape gate); the machine's does not
+    #expect(HumanError.text(RpcError(name: "add_friend_to_league", underlying: "P0001 They're already in.", droppedArgs: [])) == "They're already in.")
+    #expect(HumanError.text(E(m: "Only the host and tagged golfers can RSVP to this round.")) == "Only the host and tagged golfers can RSVP to this round.")
+    #expect(HumanError.text(E(m: "invite not found")) == "Something went wrong — please try again.")
     #expect(JoinService.joinError(E(m: "invalid code")) == "No league with that code. Check with your Pro")
   }
 }

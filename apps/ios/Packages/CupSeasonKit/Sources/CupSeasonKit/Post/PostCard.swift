@@ -530,7 +530,7 @@ public struct PostScan: Sendable, Equatable, Identifiable {
 
   // the soft-failure vocabulary (6598–6608)
   public static let capToast = "Scan limit for today — type your nines in"
-  public static let restingToast = "Scan’s resting — type your nines in"
+  public static let restingToast = "Scan didn’t come back — type your nines in"
   public static let unreadableToast = "Couldn’t read the card — type your nines in"
   public static let readingLabel = "Reading the card…"
 }

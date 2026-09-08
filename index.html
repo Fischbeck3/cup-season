@@ -4864,7 +4864,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <p class="lead">Tight. Vouched where you can, and the screws in.</p>
           </button>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
-          <p class="fine" style="padding-top:0; color:var(--dim)">Verification is a norm the league holds, not a filter the engine applies.</p>
+          <p class="fine" style="padding-top:0; color:var(--dim)">Verification is a norm the league holds, not a filter Cup Season applies.</p>
           <button class="btn" id="wizFastPath" style="margin-top:10px">Use these defaults →</button>
           <button class="mini" id="wizCustomize" aria-expanded="false" style="margin-top:10px">Customize <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
           <div id="wizDials" style="display:none; margin-top:12px">
@@ -4909,7 +4909,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <p class="fine" id="structNote">4 squads · best with 8 or more.</p>
           <p class="fine" id="structFit" style="padding-top:0; color:var(--brand)"></p>
           <div class="eyebrow">How squads fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how squads fill">i</button></div>
-          <div class="ihelp" id="ih-draft">How squads get filled. <b>Random draw</b> shuffles everyone server-side and announces the reveal to the board, so nobody can rig the hat. <b>The Pro picks</b> lets you place golfers yourself, for groups who picked teams in the group chat. Live picking with a clock isn't built yet.</div>
+          <div class="ihelp" id="ih-draft">How squads get filled. <b>Random draw</b> shuffles everyone and announces the reveal to the board, so nobody can rig the hat. <b>The Pro picks</b> lets you place golfers yourself, for groups who picked teams in the group chat.</div>
           <div class="seg" id="draftSeg">
             <button data-d="random" class="on">Random draw</button>
             <button data-d="assign">Assign</button>
@@ -4941,7 +4941,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="val" id="floorVal">2 / mo</div>
             <div class="ctl"><button id="floorDown" aria-label="Lower the minimum">−</button><button id="floorUp" aria-label="Raise the minimum">+</button></div>
           </div>
-          <div class="ihelp" id="ih-floor">The anti-ghosting rule. Everyone posts at least this many rounds a month. Miss once and your bye covers it <b>automatically</b> — no asking, no approval (D14); from the second miss the squad takes the penalty: −5 points per round short under Standard rules. Short months are waived.</div>
+          <div class="ihelp" id="ih-floor">The anti-ghosting rule. Everyone posts at least this many rounds a month. Miss once and your bye covers it <b>automatically</b> — no asking, no approval; from the second miss the squad takes the penalty: −5 points per round short under Standard rules. Short months are waived.</div>
           </div><!-- /wizDials -->
         </div>
 
@@ -5519,7 +5519,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
        own counter. Golf is weekly, so a golfer in a Safari tab sits exactly on
        that boundary — miss one weekend and they are signed out. "Full screen"
        is a nice-to-have; staying signed in is the thing they care about. -->
-  <span style="flex:1; font-size:13px;">Add Cup Season to your home screen — it stays signed in, and opens full screen.</span>
+  <span style="flex:1; font-size:13px;">Safari signs you out after a week away. On your home screen, you stay signed in.</span>
   <button class="mini" id="nudgeGo">Add to Home Screen</button>
   <button class="mini" id="nudgeX" aria-label="Not now"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
 </div>
@@ -5985,7 +5985,7 @@ function humanError(e, prefix){
      a shrug is the bug. Two gates, in order: an allowlist of the sentences we
      know we wrote, then a shape test (looks like prose, contains none of the
      Postgres/PostgREST tells above). Anything else still gets the shrug. */
-  else if(/not enough golfers|minimum four|still in the pool|is empty — draw again|is empty — draw again|only the pro|commissioner only|isn't open yet|is still being set up|has wrapped|season is finished|season's underway|past the halfway turn/i.test(raw))
+  else if(/not enough golfers|minimum four|not on a squad yet|still in the pool|is empty — draw again|only the pro|commissioner only|isn't open yet|is still being set up|has wrapped|season is finished|season's underway|past the halfway turn/i.test(raw))
     msg = /only the pro|commissioner only/i.test(raw) ? 'Only the Pro can do that.' : raw.trim();
   /* a clipboard denial is not an expired session — the audit's tester was told
      to "sign in again" 18 minutes after signing in, while signed in */
@@ -9946,7 +9946,7 @@ function openPostParsSheet(){
      ${nine?'':`<div class="cardlbl"><span>Back nine</span><span id="ppB9sum">—</span></div>
      <input class="cardin" id="ppB9" inputmode="numeric" maxlength="9" placeholder="434445345" autocomplete="off">`}
      <div class="cardlbl"><span>Total par</span><span id="ppTot">—</span></div>
-     <p class="fine" style="padding-top:6px">Nine digits a side, 3–6. ${nine?'Front nine only.':'Type it once.'} Only matters if this course isn't par 72 — exact stroke index arrives with the course database.</p>
+     <p class="fine" style="padding-top:6px">Nine digits a side, 3–6. ${nine?'Front nine only.':'Type it once.'} Only matters if this course isn't par 72.</p>
      <button class="btn" id="ppSave" style="margin-top:10px">Done</button>`);
   const f9=$('#ppF9'), b9=nine?null:$('#ppB9');
   f9.value=state.post.pars.slice(0,9).join('');
@@ -10362,7 +10362,7 @@ $('#postScanFile')?.addEventListener('change',async e=>{
     if(error) throw error;
     if(data?.unavailable){
       if(data.reason==='daily_cap') toast('Scan limit for today — type your nines in');
-      else toast('Scan’s resting — type your nines in');
+      else toast('Scan didn’t come back — type your nines in');
       if(data.reason==='disabled'){ window.scanFlag={enabled:false}; refreshPostPhotoUI(); }
       return;
     }
@@ -10371,7 +10371,7 @@ $('#postScanFile')?.addEventListener('change',async e=>{
     }
     window._scanShot = shot;   /* the scan doubles as the round photo */
     scanPickRow(data.scan);
-  }catch(_){ toast('Scan’s resting — type your nines in'); }
+  }catch(_){ toast('Scan didn’t come back — type your nines in'); }
   finally{ btn.disabled=false; btn.innerHTML=was; }
 });
 function scanPickRow(scan){
@@ -10913,7 +10913,7 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
     }
     recomputeStrokes();
     const cn = $('#cardNote');
-    if(cn) cn.textContent = `Card loaded: ${liveHoles()===9?'9-hole':'18-hole'} pars and stroke index from the course database.`;
+    if(cn) cn.textContent = `Card loaded: ${liveHoles()===9?'9-hole':'18-hole'} pars and stroke index from the course's card.`;
     if(typeof renderPlay === 'function') renderPlay();
   }catch(_){ /* cache miss = the typed card path — never block setup */ }
 });
@@ -13961,7 +13961,7 @@ async function csRateCourse(id, stars, note){
     if(res.error && args.p_note !== undefined){
       const bare = { p_course_id: args.p_course_id, p_stars: args.p_stars };
       res = await window.sb.rpc('rate_course', bare);
-      if(!res.error) toast('Rated — the sentence needs the next database push');
+      if(!res.error) toast('Rated — the line needs the latest update.');
     }
     if(res.error) throw res.error;
     return csRatingPut(id, res.data || {});
@@ -14809,7 +14809,7 @@ function openCardSheet(){
      ${nine?'':`<div class="cardlbl"><span>Back nine</span><span id="b9sum">—</span></div>
      <input class="cardin" id="parB9" inputmode="numeric" maxlength="9" placeholder="434445345" autocomplete="off">`}
      <div class="cardlbl"><span>Total par</span><span id="ctot">—</span></div>
-     <p class="fine" style="padding-top:6px">Nine digits a side, 3–6. ${nine?'The nine you played.':'Type it once and the card saves for every league.'} Strokes fall by hole order; exact stroke index arrives with the course database.</p>
+     <p class="fine" style="padding-top:6px">Nine digits a side, 3–6. ${nine?'The nine you played.':'Type it once and the card saves for every league.'} Strokes fall by hole order.</p>
      <button class="btn" id="cardSave" style="margin-top:10px">Save the card</button>`);
   const f9=$('#parF9'), b9=nine?null:$('#parB9');
   f9.value=PAR.slice(0,9).join('');
@@ -18670,7 +18670,7 @@ const CS_PHOTO = {
   remove: 'Remove photo',
   armed: 'Sure?',
   /* the honest pre-migration sentence, in the form csRateCourse set */
-  needsPush: 'Not attached — a photo on a posted round needs the next database push',
+  needsPush: 'Not attached — photos on a posted round need the latest update — try again shortly.',
   failed: 'That photo didn’t attach. Check your signal and try again.',
   removeFailed: 'That photo didn’t come off. Check your signal and try again.',
 };
@@ -22944,7 +22944,7 @@ function openProfileHub(){
 
     <button class="btn dark" id="phOut" style="margin-top:16px">Sign out</button>
 
-    <div class="eyebrow" style="margin-top:24px">Danger zone</div>
+    <div class="eyebrow" style="margin-top:24px">Your account</div>
     <a href="#" id="phDelete" class="fine" style="color:var(--neg); padding-left:0; display:inline-block">Delete my account</a>
     <div id="phDelConfirm" style="display:none; margin-top:8px">
       <p class="fine" style="padding-left:0">This can't be undone. Your name, photo, email and profile are removed, notifications stop, and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as "Former member".</p>
@@ -23022,7 +23022,7 @@ function openProfileHub(){
       let { error } = await sb.rpc('set_profile',
         { p_name: $('#phName').value.trim() || p.display_name, p_photo_path: path });
       if(error && /p_photo_path|function|schema cache/.test(error.message||''))
-        throw new Error('Photo saved after the next server update — try again tomorrow');
+        throw new Error('The app just updated — give it a second and try again.');
       if(error) throw error;
       const { data: s } = await sb.storage.from('media').createSignedUrl(path, 3600);
       window.avatarUrl = window.avatarUrl || {};
@@ -23074,7 +23074,7 @@ function openProfileHub(){
           await loadProfile(); refreshWhoChip(); return;
         }
         const { error: he } = await sb.rpc('set_handle', { p_handle: hnd });
-        if(he){ await loadProfile(); refreshWhoChip(); $('#phStatus').textContent = 'Card saved · handle: ' + he.message; return; }
+        if(he){ await loadProfile(); refreshWhoChip(); $('#phStatus').textContent = 'Card saved · ' + humanError(he); return; }
       }
       await loadProfile();
       refreshWhoChip();
@@ -23088,7 +23088,7 @@ function openProfileHub(){
 
   $('#phIdxGo').addEventListener('click', async () => {
     const idx = parseFloat($('#phIdx').value);
-    if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off: expected -10 to 54'); return; }
+    if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off — anywhere from -10 to 54.'); return; }
     const btn = $('#phIdxGo'); btn.disabled = true;
     try {
       const { error } = await sb.rpc('set_index', { p_index: idx });
@@ -23481,7 +23481,7 @@ async function enablePush(){
     toast('Notifications on. The board will find you.');
     return true;
   }
-  if(VAPID_PUBLIC.startsWith('PASTE_')){ toast('Push not wired up yet: key pending'); return false; }
+  if(VAPID_PUBLIC.startsWith('PASTE_')){ toast("Notifications aren't switched on here yet — try again shortly."); return false; }
   if(!('serviceWorker' in navigator) || !('PushManager' in window)){
     toast('Notifications need the installed app: add to home screen first'); return false;
   }
@@ -23498,7 +23498,7 @@ async function enablePush(){
     profile_id: CS.user.id, endpoint: sub.endpoint,
     p256dh: j.keys.p256dh, auth: j.keys.auth,
   }, { onConflict: 'endpoint' });
-  if(error){ toast(humanError(error, 'Could not save subscription.')); return false; }
+  if(error){ toast(humanError(error, 'Could not save this device.')); return false; }
   toast('Notifications on. The board will find you.');
   return true;
 }
@@ -24202,10 +24202,10 @@ function renderFormation(){
       /* Q-11 \u00b7 a member reading this screen is not running it. The Pro's
          instructions ("tap a player, then tap a squad") and the engine-room
          line about the hat both read as things the viewer should be doing. */
-      !isC ? `The Pro forms the squads${state.draftType === 'assign' ? '' : ' \u2014 the draw is random and runs on the server, so nobody can rig it'}. You'll see them here the moment they're set.`
+      !isC ? `The Pro forms the squads${state.draftType === 'assign' ? '' : ' \u2014 the draw is random and nobody picks, so nobody can rig it'}. You'll see them here the moment they're set.`
       : state.draftType === 'assign'
       ? 'Tap a golfer, then tap a squad'
-      : 'The draw is random and runs on the server \u2014 nobody can rig it'}</div>
+      : 'The draw is random \u2014 nobody picks, so nobody can rig it'}</div>
     ${isC && pool.length && state.draftType !== 'assign'
       /* Q-08 · the draw needs at least one golfer per squad. The server has
          always said so; the client used to offer the button anyway and then
@@ -24866,9 +24866,7 @@ $('#obEmailGo').addEventListener('click', async () => {
       banned
         ? 'This account was closed and can’t sign in again. Start fresh with a different email.'
       : rate
-        ? 'Too many sign-in emails for now — the mailer limits sends per hour. Give it a few minutes.'
-      : err.message
-        ? 'Sign-in failed: ' + err.message
+        ? 'Too many sign-in emails for now — give it a few minutes and try again.'
         : 'Couldn’t send a sign-in code. If you deleted this account it can’t be reused — try a different email. Otherwise wait a minute and retry.',
       'err');
   } finally { btn.disabled = false; btn.textContent = 'Go'; }
@@ -25202,7 +25200,6 @@ function openEventPicker(){
     const s = b.dataset.evstyle;
     if(s === 'ryder'){ closeSheet(); if(window.openRyderSetup) window.openRyderSetup(); return; }
     if(s === 'major'){ closeSheet(); if(window.openMajorSetup) window.openMajorSetup(); return; }
-    toast("Bracket isn't built yet");
   }));
 }
 /* join-by-code, self-contained — the hub's join box hides for members, so the
@@ -26278,8 +26275,8 @@ async function openMajorSetup(){
     }catch(e){
       const msg=String(e.message||e);
       toast(/create_major|function|schema cache/i.test(msg)
-        ? 'The Major needs the database update first — one push away'
-        : 'Create failed: '+msg);
+        ? 'The Major needs the latest update — try again shortly.'
+        : humanError(e, 'Could not set the Major.'));
       go.disabled=false;
     }
   });
@@ -27316,7 +27313,7 @@ async function openMembersSheet(){
     document.getElementById('msIdxGo')?.addEventListener('click', async () => {
       const go = document.getElementById('msIdxGo');
       const idx = parseFloat(document.getElementById('msIdxVal')?.value);
-      if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off: expected -10 to 54'); return; }
+      if(isNaN(idx) || idx < -10 || idx > 54){ toast('Index looks off — anywhere from -10 to 54.'); return; }
       go.disabled = true;
       try {
         const { error } = await sb.rpc('set_member_index', { p_member: mid, p_index: idx });
@@ -27581,7 +27578,7 @@ try{ Object.defineProperty(window, 'bootStep', { get: () => bootStep, configurab
 async function boot(){
   const watchdog = setTimeout(() => {
     if(bootStep !== 'reveal'){
-      authStatus('Boot stalled at [' + bootStep + '] — network or auth hang', 'err');
+      authStatus("Can't get you in — check your signal and try again. [" + bootStep + "]", 'err');
     }
   }, 8000);
   try {
@@ -27658,7 +27655,8 @@ async function boot(){
        is a control, and the control is the sidebar, which lands with the web's
        own shape. */
   } catch(e){
-    authStatus('Boot failed at [' + bootStep + ']: ' + (e.message || e), 'err');
+    console.error('[boot] failed at [' + bootStep + ']', e);
+    authStatus("Can't get you in — check your signal and try again. [" + bootStep + "]", 'err');
   } finally {
     clearTimeout(watchdog);
     bootStep = 'reveal';
@@ -27723,7 +27721,8 @@ async function resumeAfterProfile(){
     }
     return { inLeague:true, viaInvite };
   } catch(e){
-    authStatus('Boot failed at [' + bootStep + ']: ' + (e.message || e), 'err');
+    console.error('[boot] failed at [' + bootStep + ']', e);
+    authStatus("Can't get you in — check your signal and try again. [" + bootStep + "]", 'err');
     return { inLeague:false, viaInvite };
   } finally { bootStep = 'reveal'; }
 }
@@ -27736,7 +27735,8 @@ async function resumeAfterProfile(){
     const code = p.get('error_code') || '';
     const msg = code === 'otp_expired'
       ? 'That sign-in link was already used or has expired. Links are single-use, and requesting a new one retires the old ones. Enter your email below for a fresh link (use the newest email).'
-      : 'Sign-in failed: ' + (p.get('error_description') || p.get('error') || 'unknown error').replace(/\+/g,' ');
+      : 'That sign-in didn’t take. Enter your email below for a fresh code.';
+    if(code !== 'otp_expired') console.warn('[cs] sign-in redirect error:', code, p.get('error_description') || p.get('error') || '');
     history.replaceState(null, '', window.location.pathname);
     /* defer until authStatus + door exist */
     window.addEventListener('DOMContentLoaded', () => authStatus(msg, 'err'));
@@ -28193,7 +28193,7 @@ async function safeBoot(force){
       /* the raw code is plumbing — the recipient never types it on this path,
          the link carries it (F1). Saying it invites them to wonder what to do
          with it. */
-      : `You're invited. Enter your email and you're in.`);
+      : `You're invited. Sign in to review the league before you join.`);
   }
   /* guest claim: the round is waiting at the door (anon-readable by token) */
   let claimTok=null; try{ claimTok=localStorage.getItem('cs_claim'); }catch(_){}

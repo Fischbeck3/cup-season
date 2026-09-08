@@ -92,6 +92,12 @@
   /* humanError — no raw backend jargon reaches a golfer */
   t('humanError: rls jargon humanized', /row-level|violates|policy/i.test(humanError({ message: 'new row violates row-level security policy' }, 'x')), false);
   t('humanError: returns a sentence', humanError({ message: 'weird unknown' }, 'Could not save.').length > 10, true);
+  /* D297 class 5 · the server's own sentence reaches the golfer — the allowlist
+     carries the count-first one the shape gate cannot (D296's owed twin), and
+     the gate passes the sentence a `raise exception` wrote for a golfer */
+  t('humanError: the count-first raise is passed verbatim', humanError({ message: '2 not on a squad yet — everyone needs one before the first tee' }), '2 not on a squad yet — everyone needs one before the first tee');
+  t('humanError: the Pro guard says the one sentence', humanError({ message: 'Only the Pro can do that.' }), 'Only the Pro can do that.');
+  t('humanError: a lowercase fragment still gets the shrug', /Something went wrong/.test(humanError({ message: 'no such season' })), true);
 
   /* csOdo — the odometer keeps text truth while animating */
   (function(){
@@ -392,7 +398,7 @@
     t('M-15: Standard asks, it does not verify', VERIF[1], "Post what you'd post to GHIN");
     const cards = document.querySelector('#presetSummary')?.parentElement?.textContent || '';
     t('M-15: the footnote sits under the preset cards',
-      /Verification is a norm the league holds, not a filter the engine applies\./.test(cards), true);
+      /Verification is a norm the league holds, not a filter Cup Season applies\./.test(cards), true);
   })();
 
   /* ══ Y-12 · a course label as it should be READ ══════════════════════════

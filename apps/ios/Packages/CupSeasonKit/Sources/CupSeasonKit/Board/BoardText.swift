@@ -121,10 +121,46 @@ public enum BoardText {
       msg = "That already exists."
     } else if matches(m, #"violates|constraint|not-null|null value|invalid input"#) {
       msg = "That didn't go through — please try again."
+    } else if let ours = ourSentence(describe(error)) {
+      msg = ours
     } else {
       msg = "Something went wrong — please try again."
     }
     return prefix.map { $0 + " " + msg } ?? msg
+  }
+
+  /// The web's Q-08 allowlist (index.html 5988): sentences we know we wrote
+  /// that the shape gate below cannot pass on its own — they open with a
+  /// count ("2 not on a squad yet — …"), or a lowercase word. `already in` is
+  /// D296's owed twin (`They're already in.`), `not on a squad yet` S-11's.
+  static let ourRaises = #"not enough golfers|minimum four|not on a squad yet|is empty — draw again|isn't open yet|is still being set up|has wrapped|season is finished|season's underway|past the halfway turn|not golf buddies yet|already in"#
+
+  /// `looksLikeOurSentence` (index.html 6007), verbatim: a sentence one of our
+  /// own `raise exception` lines wrote, rather than a database's internals
+  /// leaking — starts like prose, ends like prose, no jargon and no
+  /// identifiers. Deliberately conservative: when in doubt, the shrug.
+  ///
+  /// D297 class 5 · ruling row 60. The web had this gate and the phone did
+  /// not, so a Pro on the phone read the raw P0001 — and, after D296 wrote the
+  /// golfer's sentence into every raise, the shrug. Three mappers, one gate.
+  public static func looksLikeOurSentence(_ raw: String) -> Bool {
+    let s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard s.count >= 12, s.count <= 200 else { return false }
+    guard s.first?.isUppercase == true, s.contains(" ") else { return false }
+    if matches(s, #"[_{}<>]|::|\bpg_|\brelation\b|\bcolumn\b|\bconstraint\b|\bschema\b|\bsql\b|\berror\b|\bexception\b|^[a-z0-9_]+\("#) { return false }
+    return true
+  }
+
+  /// The server's own sentence, with the transport's tags off the front. An
+  /// `RpcError` carries `P0001 Only the Pro can do that.` — PostgREST's code
+  /// and message, joined by `SupabaseService.describe` — and `P0001` is
+  /// exactly the SQLSTATE of a `raise exception`: ours by definition. The
+  /// allowlist first, then the shape; nil is the caller's fallback.
+  public static func ourSentence(_ raw: String) -> String? {
+    let s = raw.replacingOccurrences(of: #"^\s*(?:P\d{4}|\d{5}|PGRST\d{3})\s+"#, with: "", options: .regularExpression)
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !s.isEmpty else { return nil }
+    return (matches(s, ourRaises) || looksLikeOurSentence(s)) ? s : nil
   }
 
   /// The scorecard's own skew line (10346): a missing function is the

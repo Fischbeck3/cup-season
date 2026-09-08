@@ -893,7 +893,7 @@ final class LiveRoundStore {
   // MARK: - finish (9109–9177)
 
   func finish(casual: Bool) async -> Bool {
-    guard let lr = state.lr else { toast("This round was not started on the server — tee off again"); return false }
+    guard let lr = state.lr else { toast("This round never left your phone — tee off again to post it"); return false }
     await LiveActivityHost.end()          // D155 · nothing outlives its round
     busy = true
     defer { busy = false }

@@ -1058,7 +1058,6 @@ let VOCAB_LAWS = null;
     ["A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.", 'GHIN, the profile sense (§4 row 7)'],
     ['Adding a GHIN number? It lives on your card, under You.', 'the profile sense — the card is the person (§4 row 7)'],
     ['Hidden here. It stays on their card.', 'a hidden post stays on its author’s card — the profile sense (§4 row 7)'],
-    ['The code was accepted but no session came back.', 'the auth session (§4 row 10)'],
     ['no session in storage — showing the door', 'the auth session (§4 row 10)'],
     ['session ✓', 'the auth session (§4 row 10)'],
     ['Iron Man', 'the season award, which keeps the name (§2.1)'],
@@ -1077,6 +1076,13 @@ let VOCAB_LAWS = null;
   ]);
   const exemptPrefix = [
     ['Iron Man ', 'the season award row (§2.1)'],
+    /* D297 class 5 · the founder's desk (`founder_id`-gated on both clients)
+       is the owner's own surface, and its three skew lines are the deploy
+       instruction `deploy-status` would give — the builder's voice, to the
+       builder. Row 42 leaves them; a golfer never opens the desk. */
+    ['The desk is not deployed yet', 'the founder’s desk — the owner’s surface (row 42)'],
+    ['Job health is not deployed yet', 'the founder’s desk — the owner’s surface (row 42)'],
+    ['The queue is not deployed yet', 'the founder’s desk — the owner’s surface (row 42)'],
     ['Points King takes', 'the awards footnote, where the award is named (§2.1)'],
   ];
   const isExempt = t => EXEMPT.has(t.trim()) || exemptPrefix.some(([p]) => t.trim().startsWith(p));
@@ -1211,6 +1217,23 @@ let VOCAB_LAWS = null;
        fixture's board body — and the desk's climb pane, which shouted with no
        full stop at all, was found by hand; both are fixed in the same commit. */
     [41, 'a sentence is never shouted (D165)', [/\b[A-Z]{2,}(?:[ ,\u2014\u2013]+[A-Z0-9'\u2019]+){3,}[.!?](?:\s|$)/]],
+    /* 42 · D297 class 5 / D160 / TERMINOLOGY §3. THE MACHINE'S VOICE never
+       reaches a surface. A sentence says what happened to the golfer, never
+       what the system did or where the words came from: not the server, not a
+       database push or update, not a boot step, not an id, not the engine,
+       not a decision's number, not a door that "isn't built yet", not a
+       guard's shorthand (`commissioner only`, `organizer only`). Every one of
+       these was on a surface on 2026-09-07 — "Boot stalled at [memberships]"
+       was the sentence a golfer with no signal stared at, and "Rated — the
+       sentence needs the next database push" was a toast. The web's
+       `humanError` and its shape gate are the model; the phone has the same
+       gate from this commit (`BoardText.ourSentence`, ruling row 60). Comments
+       and identifiers are never scanned, so the code may still say `server`. */
+    [42, 'the machine’s voice never reaches a surface (D160)', [/\bserver-side\b/i, /\b(on|from|reach(ed)?) the server\b/i, /\bthe server (shuffles|says|said|update)\b/i,
+                                                                  /\bdatabase\b/i, /\bmigration\b/i, /\bBoot (stalled|failed)\b/, /\bwith that id\b/i,
+                                                                  /\bthe engine('s|’s)?\b/i, /\(D\d{1,3}\)/, /\bdanger zone\b/i,
+                                                                  /\b(commissioner|organizer) only\b/i, /\bisn.t built yet\b/i, /\bhand(ed)? back a token\b/i,
+                                                                  /\bone push away\b/i, /\bmailer\b/i]],
   ];
 
   const hits = [];
@@ -1343,6 +1366,8 @@ let VOCAB_LAWS = null;
       ['Tap any player', 37],
       ['CHAMPS $315', 38],
       ['NO ROUNDS YET. SQUADS FORM WHEN THE PRO LOCKS.', 41],
+      ['Boot stalled at [memberships] — network or auth hang', 42],
+      ['Rated — the sentence needs the next database push', 42],
     ];
     for (const [text, n] of probes) {
       const law = LAWS.find(l => l[0] === n);

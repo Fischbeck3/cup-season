@@ -105,7 +105,7 @@ struct ScheduledRoundSheet: View {
       // D261 / R-N · L-32 · the read failed and this is the row we already had.
       // It is said once, at the top, before any fact it qualifies.
       if vm.stale {
-        Text("Could not reach the server. This is the plan as your phone has it — who is in and the comments may have moved.")
+        Text("Cup Season can't reach the desk right now. This is the plan as your phone has it — who is in and the comments may have moved.")
           .csType(.bodyS).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }

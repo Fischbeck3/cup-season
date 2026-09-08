@@ -41,12 +41,14 @@ public enum RoundCopy {
   public static let photoRemoveArmed = "Sure?"
 
   /// **The honest pre-migration sentence**, in the form `csRateCourse` set
-  /// ("Rated — the sentence needs the next database push"). The migration that
+  /// ("Rated — the line needs the latest update."). The migration that
   /// creates `set_round_photo` is written and unpushed, so this is what every
-  /// attempt reads today: it names the push, never a code, and the object the
-  /// client had already uploaded is taken back out before the golfer sees it.
+  /// attempt reads today: it names the update in the house form (`CS_SHARE_NOT_YET`),
+  /// never a code and never the push — "database push" is the builder's word
+  /// (D297 class 5, W-17) — and the object the client had already uploaded is
+  /// taken back out before the golfer sees it.
   public static let photoNeedsPush =
-    "Not attached — a photo on a posted round needs the next database push"
+    "Not attached — photos on a posted round need the latest update — try again shortly."
   /// L-32 again — a real failure (no signal, a refused upload, a round that is
   /// not yours) says so where the finger is.
   public static let photoFailed = "That photo didn’t attach. Check your signal and try again."

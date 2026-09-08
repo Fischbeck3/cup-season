@@ -23,6 +23,21 @@ import Foundation
     struct E: LocalizedError { var errorDescription: String? { "Token has expired or is invalid" } }
     #expect(AuthRules.human(E()).contains("newest email"))
   }
+
+  /// D297 class 5 · ruling row 60. `human` used to return every non-empty
+  /// message verbatim — an `RpcError`'s "join_league: P0001 …" included. Now
+  /// the server's own sentence passes the gate and the machine's meets the
+  /// caller's fallback; the rate-limit line says what to do, not what the
+  /// mailer does.
+  @Test func theGateHoldsAtTheDoor() {
+    struct E: LocalizedError { let m: String; var errorDescription: String? { m } }
+    #expect(AuthRules.human(RpcError(name: "join_league", underlying: "P0001 That code didn't match — check it and try again.", droppedArgs: []), fallback: "Could not join.")
+            == "That code didn't match — check it and try again.")
+    #expect(AuthRules.human(E(m: "invite not found"), fallback: "Could not send.") == "Could not send.")
+    #expect(AuthRules.human(E(m: ""), fallback: "That did not take.") == "That did not take.")
+    #expect(AuthRules.human(E(m: "429 rate limit exceeded")) == "Too many sign-in emails for now — give it a few minutes and try again.")
+    #expect(!AuthRules.human(E(m: "429 rate limit exceeded")).contains("mailer"))
+  }
 }
 
 @Suite struct DateTests {

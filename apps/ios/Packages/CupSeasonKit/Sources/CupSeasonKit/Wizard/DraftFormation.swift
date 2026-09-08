@@ -143,7 +143,7 @@ public enum DraftCopy {
     // season the server would have started.
     let need = Bylaws.structMin["squads2"] ?? 4
     if members < need { return "Minimum \(WizardCopy.numberWord(need)) to tee off — \(members) in so far. Share the invite link." }
-    if pool > 0 { return "\(pool) golfer(s) not on a squad yet — everyone needs one before the first tee" }
+    if pool > 0 { return "\(pool) not on a squad yet — everyone needs one before the first tee" }
     if let empty = squads.first(where: { $0.squad_members.isEmpty }) { return "\(empty.name) is empty — draw again or assign somebody before the season starts" }
     return nil
   }

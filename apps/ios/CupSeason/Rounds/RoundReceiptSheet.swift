@@ -481,7 +481,7 @@ struct RoundReceiptSheet: View {
   .csTheme()
 }
 
-#Preview("First round — no number yet (D124)") {
+#Preview("First round — no number yet") {
   RoundReceiptSheet(roundId: UUID(), seed: ReceiptSeed(
     id: UUID(), gross: 94, differential: 27.8, indexAtPost: 27.8, playedOn: "2026-09-03",
     courseLabel: "Papago GC", holesPlayed: 18, rating: 70.2, slope: 125, pvi: 0, points: 7, monthRank: 1, countingCap: 3,

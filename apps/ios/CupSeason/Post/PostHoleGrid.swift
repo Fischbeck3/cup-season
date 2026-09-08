@@ -238,7 +238,7 @@ struct PostParsSheet: View {
           }
           .accessibilityElement(children: .combine)
           .accessibilityAddTraits(.updatesFrequently)
-          CSFine("Nine digits a side, 3–6. \(nine ? "Front nine only." : "Type it once.") Only matters if this course isn't par 72 — exact stroke index arrives with the course database.")
+          CSFine("Nine digits a side, 3–6. \(nine ? "Front nine only." : "Type it once.") Only matters if this course isn't par 72.")
           // §7.1 · "Done" was doing two different jobs in this product — a
           // dismiss on five sheets and a COMMIT on two. This one saves the pars,
           // so it says so; the dismiss verb is Close and it is in the toolbar.

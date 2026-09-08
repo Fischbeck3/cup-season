@@ -219,7 +219,7 @@ struct BootFailedView: View {
   var body: some View {
     ScrollView {
       VStack(spacing: 18) {
-        Text("Boot stalled").csEyebrow(cs.neg)
+        Text("Can't get you in").csEyebrow(cs.neg)
         Text(message).csType(.body).foregroundStyle(cs.ink).multilineTextAlignment(.center)
         Button("Try again") { Task { await store.reload() } }
           .buttonStyle(.csPrimary())
