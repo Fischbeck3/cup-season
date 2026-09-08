@@ -208,7 +208,22 @@ public struct CSSectionHead: View {
         Text(title).csEyebrow(la.eyebrow).accessibilityAddTraits(.isHeader)
           .fixedSize(horizontal: !typeSize.isA11y, vertical: true).layoutPriority(1)
         if !typeSize.isA11y {
-          Rectangle().fill(cs.rule).frame(height: CSTokens.Space.hair).frame(maxWidth: .infinity)
+          // **D307 · THE HEAD'S RULE WEARS THE LOOK, AND IT IS THE HEAD'S
+          // RULE ONLY.** The owner, on D305: *"Only seeing one color come
+          // through, lets identify a few more elements to carry colors."* Of
+          // the four candidates he took this one — the section head, rule and
+          // eyebrow — and it is the quietest of them and the most frequent:
+          // this rule runs to the margin beside THE SEASON, RIVALS, THE
+          // RECEIPT, THE ARCHIVE, on every screen, several times each. The
+          // eyebrow beside it already took the look (`la.eyebrow`), so the two
+          // halves of one object stop disagreeing.
+          //
+          // **`CSRule` is deliberately not touched.** Every divider between
+          // rows stays `cs.rule`: a page of coloured hairlines is the wash
+          // D270/D278 deleted, arriving one line at a time. A head is a
+          // NAMED object and may wear a colour; a divider is structure.
+          Rectangle().fill(la.active ? la.accent : cs.rule)
+            .frame(height: CSTokens.Space.hair).frame(maxWidth: .infinity)
         }
       }
       if !typeSize.isA11y { Spacer(minLength: 0) }
