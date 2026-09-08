@@ -391,10 +391,12 @@ public enum LeagueCopy {
     return "CHAMPS \(PotMath.money(t.champ)) · RUNNER-UP \(PotMath.money(t.runner)) · POINTS KING \(PotMath.money(t.king))"
   }
 
-  /// The standings empty state (4516–4518).
+  /// The standings empty state — twin of `renderStandings()`. One sentence
+  /// for both structures, in natural case (D165, D297): a two-person season is
+  /// not a race (TERMINOLOGY §2.3), nothing locks (override 7), and the Cup
+  /// Final is the finish dial's to promise, not the empty table's (L-44).
   public static func standingsEmpty(solo: Bool) -> (line1: String, line2: String) {
-    solo ? ("INDIVIDUAL RACE — NO SQUADS.", "STANDINGS START AT THE FIRST POSTED ROUND; TOP 2 MEET IN THE CUP FINAL.")
-         : ("NO ROUNDS YET.", "SQUADS FORM WHEN THE PRO LOCKS — STANDINGS START AT THE FIRST POSTED ROUND.")
+    ("No rounds yet.", "The table fills with the first posted round.")
   }
 
   // MARK: - D126 · the endgame sentence

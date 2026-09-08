@@ -325,6 +325,16 @@ public struct HomePage {
                    row: HomeWireRow(id: "i-\(item.key)", body: body, period: per)))
     }
 
+    // D297 · the wire's easer is the board's easer (`BoardText.easeCaps`), and
+    // the names it can restore are the ones this wire already carries — the
+    // golfers on its round rows and the viewer's own — so a shouted body reads
+    // "Wes Tucker takes the month", never "Wes tucker takes the month".
+    var names = BoardText.NameRegistry()
+    names.learn(buckets.flatMap(\.items).map { item -> String? in
+      if case .round(let r, _) = item { return r.golfer }
+      return nil
+    } + [myName])
+
     // The league notes, gathered across EVERY bucket. They do not enter the
     // wire as rows at all — see `notes` below.
     var noteNames: [String] = []
@@ -343,7 +353,7 @@ public struct HomePage {
           let day = iso.flatMap { CSDate.days(from: today, to: $0) }
           // DEF-3 · the producer wrote it for a board; the wire is addressed
           // to one golfer, and this one may be its subject.
-          let said = HomeCopy.easeCaps(p.body ?? "")
+          let said = BoardText.easeCaps(p.body, names: names)
           let text: String
           if let mid = p.member_id {
             // The league rail. The member row is the authority, and it is the

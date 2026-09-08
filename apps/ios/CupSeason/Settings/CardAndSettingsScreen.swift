@@ -207,8 +207,9 @@ final class CardSettingsModel {
       return "Index updated to \(String(format: "%.1f", v)), posted to your league boards"
     } catch {
       // an established golfer's set is refused by design — information, not failure
-      let m = AuthRules.human(error, fallback: "Index update failed.")
-      return m.contains("comes from your scores") ? m : "Index update failed: \(m)"
+      // D297 · `AuthRules.human` already said it; a prefix welded on after it
+      // is the web's "humanError + raw" defect in Swift.
+      return AuthRules.human(error, fallback: "Index update failed.")
     }
   }
 

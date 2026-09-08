@@ -226,8 +226,8 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(MajorMath.whenLine(finalOn: "2026-07-12", days: 4, calendar: cal) == "Thu, Jul 9 \u{2013} Sun, Jul 12 · best round by Sunday night")   // D278 · a SPAN is an en dash; the arrow said motion
   }
   @Test func finePrintChoosesMoneyOnlyWhenChosen() {
-    #expect(!MajorMath.finePrint(buyIn: 0, potSplit: nil).contains("Pot is a ledger"))
-    #expect(MajorMath.finePrint(buyIn: 20, potSplit: "wta").hasSuffix("Pot is a ledger — winner takes it; money moves between friends."))
+    #expect(!MajorMath.finePrint(buyIn: 0, potSplit: nil).contains(MoneyCopy.ledger))
+    #expect(MajorMath.finePrint(buyIn: 20, potSplit: "wta").hasSuffix("Winner takes it. " + MoneyCopy.ledger))
   }
   @Test func facts() {
     let r = EventRoom(event: EventRow(id: evId, name: "The Jug", created_by: nil, kind: "major", status: "live", buy_in: 20),

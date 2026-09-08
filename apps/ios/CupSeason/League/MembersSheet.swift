@@ -22,7 +22,7 @@ struct MembersSheet: View {
 
   var body: some View {
     let n = model.members.count
-    SheetFrame("Members & invites", sub: "\(n) GOLFER\(n == 1 ? "" : "S") · CODE \(model.league?.code ?? "—")") {
+    SheetFrame("Members & invites", sub: "\(LeagueCopy.players(n)) · CODE \(model.league?.code ?? "—")") {
       VStack(spacing: 0) {
         ForEach(model.members) { m in memberRow(m) }
       }

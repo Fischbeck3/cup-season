@@ -100,9 +100,11 @@ public enum DraftCopy {
   public static let memberReadOnly = "The Pro forms the squads — you'll see them here the moment they're set."
 
   // the snake board (5440–5548)
-  public static let boardWaitingK = "Squad formation"
+  /// The stage word is `Stage.label`'s (D120/D136), never hand-derived here —
+  /// twin of `renderDraft()`'s clock (D297).
+  public static let boardWaitingK = LeagueCopy.Stage.drawing.label
   public static let boardWaitingN = "Waiting on the players"
-  public static let boardWaitingM = "THE BOARD SEEDS FROM YOUR ROSTER ONCE INVITES LAND"
+  public static let boardWaitingM = "SQUADS DRAW ONCE THE ROSTER IS IN"
   public static let onClockK = "On the clock"
   public static let doneK = "Squads are set"
   public static let doneN = "Good luck, everybody"

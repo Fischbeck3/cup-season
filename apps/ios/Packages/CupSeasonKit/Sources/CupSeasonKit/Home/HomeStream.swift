@@ -225,15 +225,8 @@ public enum HomeCopy {
     return nil
   }
   public static func who(_ r: HomeFeedRow) -> String { r.is_me == true ? "You" : (r.golfer ?? "A golfer") }
-
-  /// `easeCaps` — the server's SHOUTING bodies read as sentences on Home.
-  public static func easeCaps(_ s: String) -> String {
-    let letters = s.filter(\.isLetter)
-    guard letters.count >= 12, letters == letters.uppercased() else { return s }
-    var out = s.lowercased()
-    if let f = out.first { out.replaceSubrange(out.startIndex...out.startIndex, with: String(f).uppercased()) }
-    return out
-  }
+  // A shouted body is eased by `BoardText.easeCaps`, the board's own easer —
+  // a second easer here lowercased the golfers' names (D297).
 }
 
 // MARK: - the occasion engine (D81 R3; index.html 10032–10131)

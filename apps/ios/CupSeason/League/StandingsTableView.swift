@@ -340,10 +340,11 @@ struct StandingsTableView: View {
   /// §3 · **a fact about the world, never the golfer's omission**, and the door
   /// is required rather than optional.
   private var empty: some View {
-    CSEmpty(glyph: .emptyRail,
+    let copy = LeagueCopy.standingsEmpty(solo: model.solo)
+    return CSEmpty(glyph: .emptyRail,
             eyebrow: "The first card",
-            headline: "The season starts with the first posted round.",
-            fact: LeagueCopy.standingsEmpty(solo: model.solo).line2.capitalizedFirst,
+            headline: copy.line1,
+            fact: copy.line2,
             number: nil,
             door: links.openRecord.map { go in .primary("Add my round", go) } ?? .elsewhere("The season fills as rounds land."))
       .csGutter()
@@ -362,10 +363,6 @@ struct StandingsTableView: View {
       CSHaptic.impact(.light)
     }
   }
-}
-
-private extension String {
-  var capitalizedFirst: String { isEmpty ? self : prefix(1).uppercased() + dropFirst().lowercased() }
 }
 
 /// `#scenarioLine` (D24) — clinch / eliminated, never invented. **One `agateS`

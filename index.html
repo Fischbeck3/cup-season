@@ -4722,7 +4722,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <div id="postWhoWrap" style="margin-top:14px; display:none">
                 <div class="eyebrow" style="margin:0 0 6px">Who was out there?</div>
                 <div id="postWho"></div>
-                <p class="fine" style="padding-top:2px">Optional. They confirm it from their own phone; nothing is claimed about their score.</p>
+                <!-- painted from CS_H2H_NOT_A_VOUCH when the module runs — never retyped here (D297) -->
+                <p class="fine" style="padding-top:2px" data-not-a-vouch></p>
               </div>
               <div id="postCardFold" style="display:none; margin-top:14px">
               <div class="frow one">
@@ -4797,7 +4798,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                 <div><b id="calcGross">–</b><span>Gross</span></div>
                 <div><b id="calcVs">–</b><span>your playing HCP</span></div>
               </div>
-              <p class="fine" id="calcSeason" style="padding:8px 0 0">No season yet? The round still posts to your rounds — points apply in any season you join.</p>
+              <!-- painted by recalc() from seasonNote('long') — never retyped here (D297) -->
+              <p class="fine" id="calcSeason" style="padding:8px 0 0"></p>
             </div>
             <div class="eyebrow">Point bands</div>
             <div class="card">
@@ -4972,8 +4974,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              your leagues & events (the "Groups" it always was). -->
         <div id="hubLeagueless">
           <div class="eyebrow" style="margin-top:0">League play — cup season</div>
-          <button class="btn" id="wCreate">Start a league</button>
-      <button class="btn dark" id="wJoin" style="margin-top:10px">I have a league code</button>
+          <button class="btn" id="wCreate">Start a season</button>
+      <!-- painted from CS_INTENT_CODE_DOOR when the module runs, the way
+           data-ledger is painted from CS_LEDGER — never retyped here (D297) -->
+      <button class="btn dark" id="wJoin" style="margin-top:10px" data-intent-code-door></button>
       <div class="joinbox" id="wJoinBox">
         <input id="wCode" placeholder="LEAGUE CODE" autocomplete="off">
         <button class="btn" id="wCodeGo">Join</button>
@@ -5966,6 +5970,10 @@ function humanError(e, prefix){
   const m = raw.toLowerCase();
   let msg;
   if(/failed to fetch|networkerror|network request|load failed|timeout/.test(m)) msg = 'Connection hiccup — check your signal and try again.';
+  /* a code that a newer email superseded is not an expired session — the door
+     told a golfer who was signing in to sign in again (D297). Before the auth
+     branch, which would otherwise claim "invalid token". */
+  else if(/token has expired|invalid token|otp expired|otp_expired/.test(m)) msg = 'Codes expire when a new one is sent — use the newest email.';
   else if(/jwt|not authenticated|auth session|invalid.*token|permission denied|row-level|not logged in/.test(m)) msg = 'Please sign in again.';
   else if(/schema cache|does not exist|could not find the|no function matches|column .* does not/.test(m)) msg = 'Just updated — give it a second and try again.';
   else if(/can rsvp to this round|only the host and tagged/.test(m)) msg = 'Only the host and the players they tagged can RSVP.';   /* #5: D69 skew — surface the real reason, not a generic failure */
@@ -7155,8 +7163,10 @@ function renderStandings(){
   const story=$('#standingsStory');
   if(!teams.length){
     if(story) story.innerHTML='';
-    const soloTxt = state.structure==='solo' ? 'INDIVIDUAL RACE \u2014 NO SQUADS.<br>STANDINGS START AT THE FIRST POSTED ROUND; TOP 2 MEET IN THE CUP FINAL.' : 'NO ROUNDS YET.<br>SQUADS FORM WHEN THE PRO LOCKS \u2014 STANDINGS START AT THE FIRST POSTED ROUND.';
-    el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Player':'Squad')+'</th><th class="num">Pts</th></tr><tr><td colspan="3" style="padding:18px 6px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:.08em;line-height:1.8">'+soloTxt+'</td></tr>';
+    /* one sentence for both structures, natural case — twin of
+       LeagueCopy.standingsEmpty (D165, D297) */
+    const emptyTxt = 'No rounds yet.<br>The table fills with the first posted round.';
+    el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Player':'Squad')+'</th><th class="num">Pts</th></tr><tr><td colspan="3" style="padding:18px 6px;color:var(--dim);font-family:var(--mono);font-size:12px;letter-spacing:.08em;line-height:1.8">'+emptyTxt+'</td></tr>';
     return;
   }
   const solo = teams[0]?.solo;   /* individual race — rows are players, not squads */
@@ -8395,8 +8405,8 @@ function renderDraft(){
   if(!state.demo && window.CS?.league && window.renderFormation){ window.renderFormation(); return; }
   const dt=state.draftType;
   $('#draftEyebrow').textContent = dt==='assign'
-    ? 'Squad formation · The Pro picks'
-    : dt==='live' ? 'Live picks · clock' : 'Squad formation · random draw';
+    ? STAGE_LABEL.drawing + ' · The Pro picks'
+    : dt==='live' ? 'Live picks · clock' : STAGE_LABEL.drawing + ' · random draw';
   $('#draftAdmin').style.display = state.draft.isCommish && dt!=='assign' ? 'block':'none';
   const rs=$('#resetDraft'); if(rs) rs.style.display='';   /* demo toy — real leagues hide it */
 
@@ -8406,7 +8416,7 @@ function renderDraft(){
     $('#pool').innerHTML='';
   }
   if(!teams.length){
-    $('#clock').innerHTML='<span class="accent" style="background:var(--pos)"></span><div class="k">Squad formation</div><div class="n">Waiting on the golfers</div><div class="m">THE BOARD SEEDS FROM YOUR ROSTER ONCE INVITES LAND</div>';
+    $('#clock').innerHTML='<span class="accent" style="background:var(--pos)"></span><div class="k">'+STAGE_LABEL.drawing+'</div><div class="n">Waiting on the golfers</div><div class="m">SQUADS DRAW ONCE THE ROSTER IS IN</div>';
     $('#squads').innerHTML='';
     $('#pool').innerHTML='<p class="fine">Golfers show up here as they sign in with your season code.</p>';
     return;
@@ -8665,7 +8675,7 @@ async function openBuyInTerms(){
   if(!CS.league || state.demo) return;
   const cur = CS.settings?.buy_in_note || '';
   const due = CS.settings?.buy_in_due_on || '';
-  openSheet('How the crew pays you', 'THE APP KEEPS THE BOOKS, NOT THE MONEY', `
+  openSheet('How the crew pays you', CS_LEDGER, `
     <label class="f" for="biNote">Your words — a handle, an app, cash at the turn</label>
     <input class="f" id="biNote" maxlength="140" placeholder="Venmo @casey" value="${esc(cur)}">
     <label class="f" for="biDue" style="margin-top:10px">In by (optional)</label>
@@ -14977,7 +14987,7 @@ function renderClubGroups(){
   const cur = window.CS?.league?.id;
   const evStat = e => e.status==='complete'?'Final':e.status==='setup'?'Forming':'Live';
   const chips = (CS.memberships||[]).map(m =>
-      groupChip(esc(m.league.name), m.league.id===cur?'Here':(m.role==='commissioner'?'Your league':'In season'), m.league.id===cur, `data-cglg="${m.league.id}"`)).join('')
+      groupChip(esc(m.league.name), m.league.id===cur?'Here':stageLabel(m,{bare:true}), m.league.id===cur, `data-cglg="${m.league.id}"`)).join('')
     + (window.myEvents||[]).map(e => groupChip(esc(e.name),
         (e.kind==='major'?'Major':'Ryder') + ' · ' + (e.mine===false ? 'I\u2019m in' : evStat(e)),
         false, `data-cgev="${e.id}"`)).join('');
@@ -20464,7 +20474,7 @@ function renderMajorRoom(el, E){
   /* the fine print — chosen, not discovered (D45) */
   html+=`<div class="card" style="margin-top:12px; padding:11px 13px; background:var(--bg2)">
     <div class="fine" style="padding:0; line-height:1.65">
-      <b style="color:var(--ink)">The fine print.</b> 18-hole cards only; scored by how far you beat <em>your own</em> number. An established number (3 posted rounds) contends for the jug${buyIn>0?' and the pot':''}; newer golfers play <b>exhibition</b> — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.${buyIn>0?` Pot is a ledger — ${ev.pot_split==='wta'?'winner takes it':'60/25/15, top three'}; money moves between friends.`:''}
+      <b style="color:var(--ink)">The fine print.</b> 18-hole cards only; scored by how far you beat <em>your own</em> number. An established number (3 posted rounds) contends for the jug${buyIn>0?' and the pot':''}; newer golfers play <b>exhibition</b> — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip.${buyIn>0?` ${ev.pot_split==='wta'?'Winner takes it':'60/25/15, top three'}. ${CS_LEDGER}`:''}
     </div>
   </div>`;
 
@@ -20636,14 +20646,11 @@ function renderLeagueMeta(){
     /* D161 · the code opens nothing during setup — a visible code that refuses
        everyone who types it is worse than no code */
     { const _cs=$('#hhCodeSlot'); if(_cs) _cs.style.display = state.phase==='setup' ? 'none' : ''; }
-    /* week lives on the Season tile — the header just names the phase */
-    $('#hhPhase').textContent =
-      state.phase==='setup' ? 'Setup — not open yet'
-      : state.phase==='draft' ? 'Squad formation'
-      : (!state.demo && window.CS?.season?.status==='complete') ? 'Season complete'   /* #2: a finished league isn't "live" */
-      : atStarter() ? `Before first tee — ${firstTeeText()}`
-      : isCupFinal() ? 'Cup Final'
-      : 'Season live';
+    /* week lives on the Season tile — the header just names the phase. The
+       word is STAGE_LABEL's (D120/D136), never hand-derived here; only the
+       preseason row carries its date (ruling row 18, D297). */
+    { const st = leagueStage(), base = STAGE_LABEL[st];
+      $('#hhPhase').textContent = st === 'preseason' ? `${base} — ${firstTeeText()}` : base; }
     $('#hhSpan').textContent = state.seasonStart
       ? seasonSpanText()
       : 'Season dates are set when the season starts';
@@ -22296,6 +22303,9 @@ window.CS_H2H_FACETS = CS_H2H_FACETS;
 window.CS_H2H_HEURISTIC = CS_H2H_HEURISTIC;
 window.CS_H2H_UNCONFIRMED = CS_H2H_UNCONFIRMED;
 window.CS_H2H_NOT_A_VOUCH = CS_H2H_NOT_A_VOUCH;
+/* …and the composer's tag row reads it too, "Optional." first — the phone's
+   `PostRoundScreen` says the same two sentences (D234, D297). */
+document.querySelectorAll('[data-not-a-vouch]').forEach(el => { el.textContent = 'Optional. ' + CS_H2H_NOT_A_VOUCH; });
 
 /* the voice writes small numbers as words (L-33); past twelve a figure reads
    better in a scoreline. Verbatim with `HeadToHeadCopy.spelled`. */
@@ -23086,7 +23096,7 @@ function openProfileHub(){
       /* an established golfer's set is refused by design (behavior B) — that's
          information, not a failure, so don't dress it up as an error */
       const m = e.message || String(e);
-      toast(/comes from your scores/.test(m) ? m : 'Index update failed: ' + m);
+      toast(/comes from your scores/.test(m) ? m : humanError(e, 'Index update failed.'));
     }
     finally { btn.disabled = false; }
   });
@@ -24757,7 +24767,7 @@ $('#obCodeGo').addEventListener('click', async () => {
     /* cleanest handoff: reload with the stored session; boot runs the proven path */
     setTimeout(() => window.location.replace(window.location.pathname), 400);
   } catch(e){
-    authStatus(humanError(e, 'Code didn\u2019t take.') + ' Codes expire with resends, use the newest email.','err');
+    authStatus(humanError(e, 'Code didn\u2019t take.'),'err');
   } finally {
     btn.disabled = false; btn.textContent = 'Verify';
   }
@@ -25551,6 +25561,10 @@ const CS_INTENTS = [
 const CS_INTENT_TITLE = 'What do you want to do?';
 const CS_INTENT_MODIFIER = { line:'Put money on it', gloss:'add a pot to any of the above', go:'whatsItOn' };
 const CS_INTENT_CODE_DOOR = 'I have a code';
+/* …and the leagueless hub's code door reads it too. The markup carries no
+   text; the constant paints it, so the door and the intent sheet cannot say
+   two things for one act (D297, brand canon §3). */
+document.querySelectorAll('[data-intent-code-door]').forEach(el => { el.textContent = CS_INTENT_CODE_DOOR; });
 /* TERMINOLOGY §3.1 + §3.2. `season` is deliberately absent: §2.3 rules it the
    GOLFER's word for the thing you start, join, run and win. */
 const CS_OBJECT_NOUNS = ['league','event','ryder','major','bracket','duel','session','commissioner',

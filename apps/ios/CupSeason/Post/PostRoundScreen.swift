@@ -265,10 +265,10 @@ private struct PostRoundBody: View {
             .buttonStyle(.plain)
             .accessibilityLabel(p.name)
             .accessibilityValue(on ? "tagged" : "not tagged")
-            .accessibilityHint("Says they were out there. It is not a vouch — they confirm from their own phone.")
+            .accessibilityHint("Says they were out there.")
           }
         }
-        CSFine("Optional. They confirm it from their own phone; nothing is claimed about their score.")
+        CSFine("Optional. " + HeadToHeadCopy.notAVouch)
       }
     }
   }
@@ -651,7 +651,7 @@ private struct PostHeroContent: View {
         CSFine("A preview — your season's own math scores it on the books.").padding(.top, 4)
       }
       if model.membership == nil {
-        CSFine("No season yet? The round still posts to your rounds — points apply in any season you join.")
+        CSFine(LeagueCopy.noLeagueNote)
       }
     }
   }

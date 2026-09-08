@@ -533,7 +533,9 @@ public enum MajorMath {
     var s = "The fine print. 18-hole cards only; scored by how far you beat your playing HCP. An established number (3 posted rounds) contends for the jug"
     s += buyIn > 0 ? " and the pot" : ""
     s += "; newer golfers play exhibition — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip."
-    if buyIn > 0 { s += " Pot is a ledger — \(potSplit == "wta" ? "winner takes it" : "60/25/15, top three"); money moves between friends." }
+    // D297 · the ledger line is `MoneyCopy.ledger`, never retyped (LINT-23);
+    // twin of `renderMajorRoom()`'s fine print.
+    if buyIn > 0 { s += " \(potSplit == "wta" ? "Winner takes it" : "60/25/15, top three"). \(MoneyCopy.ledger)" }
     return s
   }
 
