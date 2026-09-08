@@ -382,7 +382,7 @@ one secondary, the rest one line — applied to Home's floor, the composer's foo
 and the bag. Strava's feed simply ends; the actions live in the chrome, never at the bottom of the
 content.
 
-### Rank 12 · Content — **cannot be bought.** See §4.
+### Rank 12 · Content — **§4 said this cannot be bought. §6 shows four sources of it already in the repo.**
 
 ---
 
@@ -527,3 +527,98 @@ the honest ceiling is a product mean around **8.0** with emotion at **6.5** and 
 which under §29 reads: *finished, and still not a 10.* With them, and with the motion work,
 **10 is reachable, and nothing in the design stands in its way.** The product is no longer waiting on
 its design. It is waiting on being used.
+
+---
+
+# 6 · THE PLAN TO 9.5 — attack the ceiling, not the score
+
+*Added 2026-09-07 on the owner's instruction: "Action plan to get to 9.5. Let's think outside the
+box." §4 above says four dimensions are capped by content that "cannot be bought." Three independent
+readings of the repo — the category playbook, the iOS platform, the product loop — found that claim
+wrong in four specific places. Real content already exists and is being thrown away. Every item below
+was verified against HEAD `a679ae7`; a move that assumed data the product does not have was cut.*
+
+## The premise, corrected
+
+Strava never asked users to fill the feed: it drew a sensor they already carried. Letterboxd pulled the
+image from a public database. Whoop drew the user's own numbers back at him. Cup Season has all three
+available today and uses none of them:
+
+| the source | what exists at HEAD | what throws it away |
+|---|---|---|
+| **the round's own holes** | `round_holes` for every live and scanned round; `round_holes_of()` in the generated client; `CSDrawnCard` built and unit-tested | the renderer is used on the course page and nowhere else — a round is never drawn |
+| **the course's real geometry** | OpenStreetMap carries surveyed `golf=hole / green / fairway / bunker` for most courses, free and keyless | the plate behind every course title is **seeded noise** — FNV-1a over the course id (`Contour.swift:27–56`); `BUILD_REPORT.md:179` already convicts it |
+| **a finished moment, weekly** | `settle_week_clash` runs on every rollover and writes `winner_member`, `a_best`, `b_best` | the client decodes them and never reads them; `winner_member` is used in one test. `clash_verdict` is a declared push kind with a payload contract and **no producer** |
+| **the weather it actually was** | `supabase/functions/weather` built, deployed, Open-Meteo, free | dead: 0 of 93 courses have coordinates, so it returns `no_location` every time |
+
+And one **live defect** found on the way: `PostRoundModel.swift:207` makes the scanned card the round's
+photograph, and `CoursePage.hero` picks the latest round photograph as a course's hero. **Every scanned
+round currently makes a photo of a piece of paper the hero image of a golf course.** Raising scan
+volume without fixing this makes the course pages worse.
+
+## The plan, in six phases
+
+Each phase ships on its own. Costs are working days. Lifts are per-dimension estimates from the three
+readings, reconciled; they are the *ceiling* moving, which §4 said could not happen.
+
+### A · Supply content from what already exists — ~3 weeks. This is the outside-the-box part.
+
+| # | move | days | what it lifts | why it is honest |
+|---|---|--:|---|---|
+| A1 | **Draw the round.** Point `CSDrawnCard` at `round_holes`: the golfer's strokes over the course's bars, gaps left as gaps. **Retroactive** — every round already posted gets a picture the day it ships, on the receipt, the row, the recap. Ship the scan-is-not-a-course-photo fix with it | 3 | D +1.0 · E +0.6 · P +0.4 | every stroke is one the golfer entered; the renderer already refuses to invent a par |
+| A2 | **Geocode the 93 courses server-side**, once, from the address already in `api_courses.raw`. The write path exists (`functions/courses/index.ts:102`); the upstream just returns null | 1 | unlocks A3, A5 | it is the course's address |
+| A3 | **The course from the map database.** Pull OSM golf geometry once per course, store it, draw it as the plate. Attribute it in the agate credit slot rung 1 already reserves. Replaces the noise field on **all 93 courses and every future one with zero user behaviour** | 6 | E +1.2 · P +1.0 · D +0.7 · B +0.5 — the biggest absolute lift on the board | surveyed by humans; it is the real place |
+| A4 | **The week's verdict as a ceremony.** Render `winner_member` and the two bests with the ceremony chassis that already exists, seen-once, with a door onto the winning round. Write the `clash_verdict` push producer. Fires 13–26 times a season instead of once at the end, never | 2.5 | E +0.8 · D +0.4 | a row the server wrote from posted rounds; a loss drawn with the same dignity as a win; both-idle stays silent |
+| A5 | **The weather it was.** With A2 done, add Open-Meteo's archive endpoint so every round already posted gets its conditions | 2 | D +0.5 · E +0.4 | a fact about a date and a place |
+
+### B · Put faces and photographs where the loop is warm — ~1.5 weeks
+
+| # | move | days | lifts | note |
+|---|---|--:|---|---|
+| B1 | **The finish frame.** The 18th green is the one moment 2–4 golfers stand together, finished, phones out; live scoring already puts a sheet there. One frame: *"one for the card."* Camera picker, compression, upload, bucket and RLS are all built | 3 | E +0.8 · P +0.5 | **the only move that produces faces at scale**; consumes the attach-later RPC being built now |
+| B2 | **The face at the card gate, with the camera.** Onboarding asks for a name, a handle, a marker and a band — and never a face. That is why one golfer in the product has one | 1 | B, E on every list row | marker stays the floor; no silhouette state |
+| B3 | **Scan as the default way to post.** It is live, capped, confirmed cell by cell, and yields hole data and a photograph in one act — and it is a small pill under `Details`. Invert it: the composer opens on the card, typed entry is the second door | 1.5 | D, and it feeds A1 | genuinely faster than typing eighteen numbers; needs no bribe |
+| B4 | **The epilogue asks the one thing only today's golfer can answer** — a photograph, at the warmest moment in the funnel | 1.5 | E, P | one ask, once, never a nag (L-22) |
+| B5 | **The camera roll already played this round.** PhotoKit: every photo has a date; a golfer who played Papago on Aug 24 has pictures from that afternoon. Offer them, retroactively, on any round | 4 | E, P | his own photos, his own choice, one permission |
+
+### C · The engineering sweep — ~2 weeks. Already costed in §3; the floor.
+Type growth cap · section-head default · chrome singletons · tab glyphs in the marker hand · 375pt and
+AX3 geometry · truncation policy · a spacing token. Lifts consistency, spacing, mobile, hierarchy and
+typography to their §4 ceilings of 8–9.
+
+### D · The premium signals the category has — ~1.5 weeks
+D1 the widget draws A1's round or A3's course instead of eight strings (2 days, on A1) · D2 the finish
+and the ceremony get a body: `CSMotion` and the haptic vocabulary exist and neither screen calls them
+(3 days) · D3 the live round reaches the lock screen by push (6 days — the Live Activity exists; the
+push side does not; defer if the budget is tight).
+
+### E · Two rulings only you can take — five minutes each
+Is a league a colour? (spend the `look` nothing uses.) Does a lit Home show one door or four?
+
+### F · Open the four unopened surfaces — ~3 weeks
+Bag, composer, board, schedule. §3 says this is the only phase that moves the *mean*, because the
+mean is a floor measurement over 23 screens.
+
+## The honest projection
+
+| after | product mean | E | P | D | note |
+|---|--:|--:|--:|--:|---|
+| today | 6.24 | 5.2 | 6.0 | 6.2 | |
+| A | ~7.0 | 7.4 | 7.5 | 7.8 | the ceiling moves; nothing here waits on adoption |
+| A + B | ~7.4 | 8.2 | 8.0 | 8.0 | faces and photographs arrive at the rate rounds are played |
+| A + B + C + E | ~8.2 | | | | the §4 ceiling, reached |
+| + D + F | **~8.8** | | | | every screen at or above 8 |
+
+**9.5 is the last stretch above that, and it is a different kind of work**: not more features but the
+9→10 on each dimension — the light theme designed rather than inverted, motion on every moment that
+changes state, a spacing rhythm a designer would not touch, and the product used by a real field so
+that the ceremonies, the faces and the courses render on data rather than fixtures. Phases A–F are
+roughly eleven weeks of engineering. They get the product to a place where a 9.5 is a matter of
+finish rather than of missing content — which today it is not.
+
+## What to do first
+
+**A1 and the scan fix, this week.** Three days, retroactive over every round in the database, and it
+turns the feed row the owner photographed from text into a picture without a single server change to
+`home_stories`. Then A2 + A4 together (the geocode is a day and the verdict is the product's biggest
+emotional moment finally firing). Then A3.
