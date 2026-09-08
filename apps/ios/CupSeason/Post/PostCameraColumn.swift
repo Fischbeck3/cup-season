@@ -106,7 +106,10 @@ struct PostCameraColumn: View {
     .overlay(alignment: .topTrailing) { if model.photo != nil { clear } }
     .frame(maxWidth: typeSize.isA11y ? .infinity : nil, alignment: .leading)
     .accessibilityLabel(model.photo == nil ? RoundCopy.photoAdd : "Round photo, attached")
-    .accessibilityHint(model.photo == nil ? "Opens your camera roll" : "Replaces the photo")
+    // D298 · this hint told the truth about a door that did not exist: it said
+    // "Opens your camera roll" over a control that opened the CAMERA. It now
+    // describes the menu, which is what the button actually does.
+    .accessibilityHint(model.photo == nil ? "Choose a photo or take one" : "Replaces the photo")
   }
 
   /// One tap, no arming: nothing has been posted yet, so this is "wrong

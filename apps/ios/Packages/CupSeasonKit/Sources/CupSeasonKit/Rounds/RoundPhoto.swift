@@ -80,6 +80,48 @@ public enum RoundPhotoSlot: Sendable, Equatable {
   }
 }
 
+/// **WHERE A PHOTOGRAPH COMES FROM, AND THE ROLL IS NEVER NOT OFFERED** (D298).
+///
+/// The owner, on build 748: *"when I open a posted round I cant add a photo
+/// from camera roll only take one."* The door was ONE LINE, and the same line
+/// on both photo surfaces —
+///
+///     if PostPhoto.cameraAvailable { showCamera = true } else { showLibrary = true }
+///
+/// — which reads as a FALLBACK: the roll is what the phone gets when the app
+/// may not open the camera. But `NSCameraUsageDescription` is in the Info.plist
+/// and every real phone has a camera, so the branch that ran was ALWAYS the
+/// camera, on every device, forever. The roll was unreachable from both doors.
+/// The simulator is the reason it was never seen: `cameraAvailable` is false
+/// there, so every screenshot this repo has ever taken went down the OTHER
+/// branch and showed the picker the phone could not open.
+///
+/// **The desk never had this bug.** `<input type="file" accept="image/*">` with
+/// no `capture` gives iOS its own menu — Photo Library · Take Photo · Choose
+/// File — so the two clients differed on a capability, which is the class D234
+/// forbids and the same class as the receipt's missing delete (D284).
+///
+/// A pure function of one fact, like `RoundPhotoSlot` above it, so the fix is
+/// asserted rather than photographed — and the assertion is the one no grep
+/// could make, because every grep for `showLibrary` found it: that the roll is
+/// in the list AT ALL.
+public enum RoundPhotoSource: String, Sendable, Equatable, CaseIterable {
+  case library, camera
+
+  /// The doors, in the order they are offered. **The roll is first**, and that
+  /// is D293's own argument applied to the door instead of the act: the score
+  /// is typed in the car park and the picture was taken on the 12th.
+  public static func offered(cameraAvailable: Bool) -> [RoundPhotoSource] {
+    cameraAvailable ? [.library, .camera] : [.library]
+  }
+
+  /// One door needs no question, two do — a simulator, or an iPad with no
+  /// camera, goes straight to the roll rather than reading a menu of one.
+  public static func asks(cameraAvailable: Bool) -> Bool {
+    offered(cameraAvailable: cameraAvailable).count > 1
+  }
+}
+
 public struct RoundPhotoService: Sendable {
   let svc: SupabaseService
   public init(_ svc: SupabaseService = .shared) { self.svc = svc }

@@ -3,13 +3,24 @@
 //
 // The camera needs `NSCameraUsageDescription` in the Info.plist or iOS kills
 // the app on first use; that key lives in project.yml (not this slice's to
-// edit), so the camera door opens only when the key is present and falls
-// back to the photo library otherwise — the web's `capture="environment"`
-// was a hint, never a requirement, and the scan reads a library shot fine.
+// edit), so the camera door opens only when the key is present.
+//
+// D298 · **THAT "ONLY WHEN THE KEY IS PRESENT" WAS WRITTEN AS AN EITHER/OR AND
+// IT WAS THE BUG.** `if cameraAvailable { camera } else { library }` reads as a
+// fallback, and on a real phone the key IS present, so the else branch never
+// ran and the camera roll was unreachable from both photo doors. The owner,
+// build 748: *"when I open a posted round I cant add a photo from camera roll
+// only take one."* A photograph now comes through whichever door the golfer
+// picks — `RoundPhotoSource` holds the list and `csPhotoSource` draws it.
+//
+// The SCAN keeps the camera on purpose: it photographs the card in front of
+// the golfer, and the desk's own input says the same thing in one attribute
+// (`capture="environment"` on `#postScanFile`, absent on `#postPhotoFile`).
 
 import SwiftUI
 import PhotosUI
 import UIKit
+import CupSeasonKit
 
 enum PostPhoto {
   /// `compressPhoto(file, maxDim, quality)`: bound the long side, JPEG.
@@ -34,10 +45,46 @@ enum PostPhoto {
     Bundle.main.object(forInfoDictionaryKey: "NSCameraUsageDescription") != nil && UIImagePickerController.isSourceTypeAvailable(.camera)
   }
 
+  /// The same fact, as the MENU sees it. `-cs_dev_photo_menu` forces the camera
+  /// row on so a simulator shot shows the phone's menu and not the one-row menu
+  /// a camera-less machine would honestly draw. Release reads the fact.
+  static var menuCameraAvailable: Bool {
+    #if DEBUG
+    return cameraAvailable || ReceiptPhotoDev.menu
+    #else
+    return cameraAvailable
+    #endif
+  }
+
   /// Load a picked library item as a UIImage; nil when it will not decode.
   static func load(_ item: PhotosPickerItem) async -> UIImage? {
     guard let data = try? await item.loadTransferable(type: Data.self) else { return nil }
     return UIImage(data: data)
+  }
+}
+
+/// D298 · **THE CHOICE, IN FURNITURE THE PRODUCT ALREADY OWNS.** A
+/// `confirmationDialog` is what iOS itself puts under a file input, and
+/// `RootView`'s sign-out is the only other either/or in this app — so the menu
+/// is the system's own idiom rather than a fourth sheet with a fourth set of
+/// manners. `titleVisibility` is `.visible` because the title is the ACT the
+/// golfer just pressed (`Add a photo` / `Replace photo`); without it two verbs
+/// float on the screen with nothing saying what they are for.
+///
+/// What is IN the menu is `RoundPhotoSource.offered`'s to say, not this view's,
+/// so the menu and the test that guards it read one producer.
+extension View {
+  func csPhotoSource(_ title: String, isPresented: Binding<Bool>,
+                     pick: @escaping (RoundPhotoSource) -> Void) -> some View {
+    confirmationDialog(title, isPresented: isPresented, titleVisibility: .visible) {
+      ForEach(RoundPhotoSource.offered(cameraAvailable: PostPhoto.menuCameraAvailable), id: \.self) { source in
+        Button(source == .library ? RoundCopy.photoFromLibrary : RoundCopy.photoFromCamera) { pick(source) }
+      }
+      // **NO TYPED CANCEL.** LINT-25 says the product has one dismiss verb and
+      // it is `Close` — and an action sheet's cancel is not the product's word
+      // to write: SwiftUI supplies one when no `.cancel` role is given, in the
+      // system's own localisation, the way the PhotosPicker's own chrome does.
+    }
   }
 }
 

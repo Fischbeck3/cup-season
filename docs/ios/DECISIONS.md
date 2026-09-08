@@ -1156,3 +1156,25 @@ The predicate is **called, not restated**: `DoorLayout.working(windowHeight:type
 **Not fixed, and named rather than skipped.** The `TOT` box: an eighteen-hole card prints `OUT 42` and `IN 48` and never prints 90, so the golfer adds his own two nines even though the gross is 200pt up the page — a real printed card has a total box, and adding one is a `CSScorecard` geometry change with its own before/after. `Replace photo` and `Remove photo` sit side by side at identical weight, which is the criticism IOS-066 made of the composer's own two pills; the two-tap arming distinguishes them on touch but not on sight. And the pre-migration sentence says *"needs the next database push"*, which is the right sentence for the owner and the wrong one for the five golfers in the Friends group if a build ever ships ahead of its migration.
 
 **Gate:** `build-tokens` clean · preflight PASS 0/0 · sunningdale PASS 27 · **1,250 tests / 0 failures** (1,249 at HEAD, +1).
+
+## IOS-069 · The camera roll is a door, not a fallback — **BUILT 2026-09-08 (D298; owner from his own phone on build 748, 2026-09-08)**
+
+The owner, on the round D293 was built for: *"when I open a posted round I cant add a photo from camera roll only take one."*
+
+**ONE LINE, IN TWO PLACES, WRITTEN AS A FALLBACK.** `if PostPhoto.cameraAvailable { showCamera = true } else { showLibrary = true }` — `RoundReceiptSheet.openPicker` and `PostRoundScreen.present`. The comment above it said the camera "falls back to the photo library", and the fallback was never the point: `NSCameraUsageDescription` has been in `project.yml` since the composer shipped and every phone has a camera, so **the condition is always true on a device and the else branch has never run on one.** `showLibrary` existed, was bound to a working `.photosPicker`, and nothing on a phone could reach it.
+
+**WHY FIVE WAVES OF SCREENSHOTS DID NOT SEE IT.** `cameraAvailable` is **false on a simulator**. Every shot this repo has ever taken went down the branch the phone never takes and photographed the picker the phone could not open. The one place the product stated the intent in words was the composer plate's accessibility hint — *"Opens your camera roll"* — over a control that opened the camera.
+
+**THE FIX IS A MENU, AND WHAT IS IN IT IS A PURE FUNCTION.** `RoundPhotoSource.offered(cameraAvailable:)` returns `[.library, .camera]` on a phone and `[.library]` on a machine without one; `csPhotoSource` draws it as a `confirmationDialog`, the system's own furniture for an either/or and the control `RootView` already uses for sign-out. The roll leads. One door asks nothing — a simulator opens the roll directly, which is also the behaviour every existing screenshot recipe keeps. The title over the menu is the act the finger pressed, so `Add a photo` and `Replace photo` open menus that name themselves. No `Cancel` is typed (LINT-25: the product's one dismiss verb is `Close`; an action sheet's cancel is the system's word, in the system's localisation).
+
+**THE SCAN KEEPS THE CAMERA**, deliberately: `Scan the scorecard` photographs the card in the golfer's hand — an alternative to the keypad, not to the picture (IOS-066) — and the desk says the same thing in one attribute, `capture="environment"` on `#postScanFile` and absent on `#postPhotoFile`.
+
+**The web needs no half of this (D234), and that is the finding rather than an absence.** Both desk inputs — `#postPhotoFile` and the receipt's `rcptPhotoFile` — are `<input type="file" accept="image/*">` with no `capture`, which is iOS's own Photo Library · Take Photo · Choose File menu. The two clients differed on a **capability**, the class D234 forbids and the same class as the receipt's missing delete (D284). This commit brings the phone up to the desk.
+
+**Tests:** four, and they are the assertion a grep cannot make. Every grep for `showLibrary` succeeded; the question was whether the roll is in the list **at all**. `theRollSurvivesACamera` (a phone that can open its camera still offers both), `theRollLeads` (order), `aCameralessMachineIsNotAskedAQuestion` (no menu of one — and this is the branch that hid the bug), `theDoorsAreNamedOnce` (D234 on the two new strings).
+
+**Photographed rather than described.** The fix is a menu and `simctl` has no finger, so `-cs_dev_photo_menu` opens it on appear and forces the camera row on — the simulator's honest menu is a menu of one. `menu-17pro.png` (offer state, over the owner's own Dinosaur Mountain round) and `menu-replace-17pro.png` (present state, title reads `Replace photo`).
+
+**Named and not changed.** The PROFILE photo is the same class in the opposite direction: the phone's settings pane is a bare `PhotosPicker` (library only) where the desk's input offers both. Nobody has asked for a self-portrait from a settings pane and a beta morning is the wrong time to restructure a control there — it is the next one to close.
+
+**Gate:** preflight PASS 0/0 (LINT-25 caught the typed `Cancel` on the first run and the word came out) · **1,229 tests / 0 failures across the three bundles** (80 CupSeasonTests · 120 CSDesignTests · 1,029 CupSeasonKitTests), the diff purely additive at +4.

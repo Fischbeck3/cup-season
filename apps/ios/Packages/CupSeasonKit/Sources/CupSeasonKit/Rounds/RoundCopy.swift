@@ -40,6 +40,14 @@ public enum RoundCopy {
   /// The armed half of the two-tap. Never an alert (IOS-003 §4).
   public static let photoRemoveArmed = "Sure?"
 
+  /// D298 · **the two doors, and one of them is the roll.** The phone offered
+  /// the camera alone — `cameraAvailable` was read as a fallback rather than a
+  /// choice — while the desk has shown iOS's own menu all along. The words are
+  /// the ACTS rather than the system's nouns ("Photo Library", "Take Photo"),
+  /// because every other sentence on this surface is in the golfer's words.
+  public static let photoFromLibrary = "Choose from your photos"
+  public static let photoFromCamera = "Take one now"
+
   /// **The honest pre-migration sentence**, in the form `csRateCourse` set
   /// ("Rated — the line needs the latest update."). The migration that
   /// creates `set_round_photo` is written and unpushed, so this is what every

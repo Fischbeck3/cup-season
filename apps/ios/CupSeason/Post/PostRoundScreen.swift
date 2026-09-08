@@ -27,6 +27,8 @@ struct PostRoundScreen: View {
   @State private var pickPurpose: PostPickPurpose = .photo
   @State private var showLibrary = false
   @State private var showCamera = false
+  /// D298 · the photograph's two doors. The scan has one and always did.
+  @State private var askSource = false
 
   var body: some View {
     Group {
@@ -54,6 +56,8 @@ struct PostRoundScreen: View {
         #endif
       }
     }
+    .csPhotoSource(model?.photo == nil ? RoundCopy.photoAdd : RoundCopy.photoReplace,
+                   isPresented: $askSource, pick: choose)
     .photosPicker(isPresented: $showLibrary, selection: $pick, matching: .images)
     .onChange(of: pick) { _, item in
       guard let item else { return }
@@ -65,9 +69,28 @@ struct PostRoundScreen: View {
     }
   }
 
+  /// D298 · **the photograph asks, the scan does not.** `Scan the scorecard`
+  /// photographs the card in the golfer's hand — it is an alternative to the
+  /// keypad, not to the picture (IOS-066) — and the desk says the same thing in
+  /// one attribute: `capture="environment"` on `#postScanFile`, absent on
+  /// `#postPhotoFile`. So the scan keeps the camera and the photo offers both.
   private func present(_ p: PostPickPurpose) {
     pickPurpose = p
-    if PostPhoto.cameraAvailable { showCamera = true } else { showLibrary = true }
+    if p == .photo, RoundPhotoSource.asks(cameraAvailable: PostPhoto.cameraAvailable) {
+      askSource = true
+    } else if PostPhoto.cameraAvailable {
+      showCamera = true
+    } else {
+      showLibrary = true
+    }
+  }
+
+  /// The menu's answer. `pickPurpose` is already set by the door that opened it.
+  private func choose(_ source: RoundPhotoSource) {
+    switch source {
+    case .library: showLibrary = true
+    case .camera: showCamera = true
+    }
   }
 
   private func picked(_ image: UIImage?) async {

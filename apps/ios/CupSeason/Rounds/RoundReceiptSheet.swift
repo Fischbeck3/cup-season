@@ -60,6 +60,8 @@ struct RoundReceiptSheet: View {
   @State private var pick: PhotosPickerItem?
   @State private var showLibrary = false
   @State private var showCamera = false
+  /// D298 · the golfer picks the door. Was: the camera, always, on any phone.
+  @State private var askSource = false
   @State private var photoBusy = false
   @State private var photoNote: String?
   /// D294 · the round's own card. Loaded after the enrich, because the seal on
@@ -128,8 +130,11 @@ struct RoundReceiptSheet: View {
     }
     .presentationBackground(cs.bg0)
     .task { await open() }
-    // The composer's own door, so the two surfaces open the same camera roll:
-    // the camera when the app may open it, the library otherwise.
+    // The composer's own door, so the two surfaces open the same camera roll —
+    // and D298 is why "the same" is now worth saying: this read `the camera
+    // when the app may open it, the library otherwise`, which on a phone means
+    // the camera and nothing else.
+    .csPhotoSource(pickerTitle, isPresented: $askSource, pick: choose)
     .photosPicker(isPresented: $showLibrary, selection: $pick, matching: .images)
     .onChange(of: pick) { _, item in
       guard let item else { return }
@@ -261,9 +266,25 @@ struct RoundReceiptSheet: View {
   /// The card's own scroll anchor. Named once so the hatch and the view agree.
   private static let cardAnchor = "cs.receipt.card"
 
+  /// The word over the menu is the act the golfer pressed, so the sheet that
+  /// opens is plainly the one his finger asked for.
+  private var pickerTitle: String {
+    RoundPhotoSlot.for(isMine: true, photoPath: seed?.photoPath) == .present
+      ? RoundCopy.photoReplace : RoundCopy.photoAdd
+  }
+
   private func openPicker() {
     photoNote = nil
-    if PostPhoto.cameraAvailable { showCamera = true } else { showLibrary = true }
+    if RoundPhotoSource.asks(cameraAvailable: PostPhoto.cameraAvailable) { askSource = true }
+    else { showLibrary = true }
+  }
+
+  /// The menu's answer, in one place, so the two doors cannot drift apart.
+  private func choose(_ source: RoundPhotoSource) {
+    switch source {
+    case .library: showLibrary = true
+    case .camera: showCamera = true
+    }
   }
 
   /// Upload, attach, then draw it. The composer's own compression (1600px,
@@ -425,6 +446,12 @@ struct RoundReceiptSheet: View {
     enriched = true
     #if DEBUG
     applyPhotoHatch()
+    // `-cs_dev_photo_menu` — the source menu, OPEN, on its own guard rather
+    // than inside `applyPhotoHatch`'s: the one thing D298 changed IS a menu,
+    // and this machine has no finger to open it with. It draws and picks
+    // nothing. (`RoundPhotoSource.offered` is false-by-simulator, so the menu
+    // is forced open here; what it CONTAINS is the hatch's other half.)
+    if ReceiptPhotoDev.menu { askSource = true }
     if let hatched = RoundCardDev.card {
       card = hatched
       if RoundCardDev.artifact { artifactPreview = true }

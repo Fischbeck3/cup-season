@@ -136,4 +136,44 @@ import Foundation
     #expect(RoundCopy.photoRemove == "Remove photo")
     #expect(RoundCopy.photoRemoveArmed == "Sure?")
   }
+
+  // MARK: - D298 · the roll is never not offered
+
+  /// **THE ONE ASSERTION THAT WOULD HAVE CAUGHT IT.** The bug was not a missing
+  /// control — `showLibrary` existed, was bound to a `.photosPicker`, and every
+  /// grep for it succeeded. It was an ORDER: `if cameraAvailable { camera }
+  /// else { library }`, on a phone where the condition is always true. The
+  /// question a grep cannot ask is whether the roll is in the list at all.
+  @Test("a phone that can open its camera still offers the camera roll")
+  func theRollSurvivesACamera() {
+    let doors = RoundPhotoSource.offered(cameraAvailable: true)
+    #expect(doors.contains(.library))
+    #expect(doors.contains(.camera))
+    #expect(doors.count == 2)
+  }
+
+  /// The roll leads, because a round is posted AFTER the round: the score is
+  /// typed in the car park and the picture was taken on the 12th (D293).
+  @Test("the roll is the first door, not the second")
+  func theRollLeads() {
+    #expect(RoundPhotoSource.offered(cameraAvailable: true).first == .library)
+  }
+
+  /// A simulator and an iPad with no camera get the roll and no question — a
+  /// menu of one is a tap nobody needed. This is also the branch every
+  /// screenshot in this repo has ever taken, which is why the bug survived.
+  @Test("no camera means no menu, and the roll opens directly")
+  func aCameralessMachineIsNotAskedAQuestion() {
+    #expect(RoundPhotoSource.offered(cameraAvailable: false) == [.library])
+    #expect(RoundPhotoSource.asks(cameraAvailable: false) == false)
+    #expect(RoundPhotoSource.asks(cameraAvailable: true) == true)
+  }
+
+  /// D234 · the menu's two words have one producer, like the six above them.
+  @Test("the two doors are named once")
+  func theDoorsAreNamedOnce() {
+    #expect(RoundCopy.photoFromLibrary == "Choose from your photos")
+    #expect(RoundCopy.photoFromCamera == "Take one now")
+    #expect(RoundCopy.photoFromLibrary != RoundCopy.photoFromCamera)
+  }
 }

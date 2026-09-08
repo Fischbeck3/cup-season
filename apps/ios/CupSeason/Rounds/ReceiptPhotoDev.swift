@@ -66,5 +66,17 @@ enum ReceiptPhotoDev {
   /// The path the fixture stands in for. It is never sent anywhere — the
   /// receipt reads it only to decide which slot to draw.
   static let path = "cs-dev/round-photo.png"
+
+  /// `-cs_dev_photo_menu` — D298's source menu, open on appear, with BOTH rows.
+  ///
+  /// The bug the owner found was that a menu did not exist; the fix IS a menu;
+  /// and a menu on this machine cannot be opened, because `simctl` has no
+  /// finger and the control that opens it is a button. So it is drawn.
+  ///
+  /// It forces the camera row too. The simulator has no camera, so
+  /// `PostPhoto.cameraAvailable` is false there and the honest menu would be a
+  /// menu of ONE — which is precisely the state that hid this bug for five
+  /// waves of screenshots. The shot has to show the phone's menu.
+  static var menu: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_photo_menu") }
 }
 #endif
