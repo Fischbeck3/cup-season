@@ -71,7 +71,7 @@ struct LengthStep: View {
       // fits what is already running (T-02: a forfeit, never a fourth noun).
       if shareASeason {
         Button { CSHaptic.selection(); dismiss(); if let l = shared { putAForfeitOnIt(l) } } label: {
-          Text("Put a forfeit on it").csType(.nameS).foregroundStyle(cs.ink)
+          Text("Put a pride bet on it").csType(.nameS).foregroundStyle(cs.ink)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 12).frame(minHeight: 50)
             .contentShape(Rectangle())
@@ -325,7 +325,7 @@ struct ForfeitSheet: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 10) {
-        CSSheetHeader(title: ForfeitCopy.title, sub: opponentName.map { "YOU AND \(CSBands.fn1($0).uppercased())" } ?? "BETS FOR PRIDE")
+        CSSheetHeader(title: ForfeitCopy.title, sub: opponentName.map { "YOU AND \(CSBands.fn1($0).uppercased())" } ?? "PRIDE BETS")
         Text(ForfeitCopy.nameLabel).csEyebrow()
         CSField(ForfeitCopy.namePlaceholder, text: $name, font: CSFont.body)
         Text(ForfeitCopy.termsLabel).csEyebrow().padding(.top, 4)

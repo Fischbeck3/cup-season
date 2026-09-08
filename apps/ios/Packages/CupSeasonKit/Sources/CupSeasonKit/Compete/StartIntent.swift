@@ -161,7 +161,7 @@ public enum StartIntent: String, Sendable, Equatable, CaseIterable, Identifiable
     /// A season already under way. The rules froze at the first tee (L-12), and
     /// saying so is more honest than hiding the door.
     public static func frozen(_ name: String, firstTee: String) -> String {
-      "\(name) started on \(firstTee) and the rules froze at the first tee. You can put a forfeit on it."
+      "\(name) started on \(firstTee) and the rules froze at the first tee. You can put a pride bet on it."
     }
   }
 }

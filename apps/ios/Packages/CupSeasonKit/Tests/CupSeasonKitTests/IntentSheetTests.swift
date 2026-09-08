@@ -120,7 +120,9 @@ import Foundation
     #expect(StartIntent.Money.emptyLine.hasSuffix("Start something first."))
     #expect(!StartIntent.Money.somethingNew.isEmpty)
     let frozen = StartIntent.Money.frozen("The Fellas", firstTee: "Saturday")
-    #expect(frozen.contains("forfeit"))
+    // D299 · the act it names is the pride bet now — `forfeit` meant conceding
+    // to every reader who had not been taught otherwise.
+    #expect(frozen.contains("pride bet"))
     #expect(frozen.contains("froze at the first tee"))
   }
 }

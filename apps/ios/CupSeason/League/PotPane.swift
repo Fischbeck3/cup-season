@@ -266,7 +266,7 @@ struct ForfeitLedgerView: View {
     if let S = model.forfeits {
       let open = S.filter { $0.status == "open" }, done = S.filter { $0.status == "settled" }
       VStack(alignment: .leading, spacing: 8) {
-        CSSectionHead("Bets for pride · on the record", trailing: "Post a forfeit") { router.open(.forfeitCreate) }
+        CSSectionHead(ForfeitCopy.ledgerHead, trailing: ForfeitCopy.title) { router.open(.forfeitCreate) }
         if open.isEmpty { RoomFine("Nothing on the record yet. The cookout isn't going to bet itself.") }
         ForEach(open) { row($0) }
         if !done.isEmpty {
@@ -326,7 +326,7 @@ struct ForfeitCreateSheet: View {
     // `ForfeitSheet` (the season-less one) are two views over one object, and
     // they said opposite things: "on the books" here against T-02's ruling
     // that a forfeit goes on the record and never on the books (L-34).
-    SheetFrame("Post a forfeit", sub: ForfeitCopy.definition) {
+    SheetFrame(ForfeitCopy.title, sub: ForfeitCopy.definition) {
       label(ForfeitCopy.nameLabel)
       CSField(ForfeitCopy.namePlaceholder, text: $name, font: CSFont.body)
       label("The shape")
@@ -355,8 +355,8 @@ struct ForfeitCreateSheet: View {
             do {
               try await model.createForfeit(name: name.trimmingCharacters(in: .whitespaces), terms: terms.trimmingCharacters(in: .whitespaces),
                                             kind: kind, other: other, hangs: hangs.trimmingCharacters(in: .whitespaces).isEmpty ? nil : hangs.trimmingCharacters(in: .whitespaces))
-              toast.show("Forfeit posted — the board heard it", kind: .confirmed); dismiss()
-            } catch { toast.show(roomError(error, "Could not post the forfeit."), kind: .failed) }
+              toast.show("Pride bet posted — the board heard it", kind: .confirmed); dismiss()
+            } catch { toast.show(roomError(error, "Could not post the pride bet."), kind: .failed) }
           }
         }
           .buttonStyle(.csPrimary(busy: busy))
@@ -401,7 +401,7 @@ struct ForfeitSettleSheet: View {
   var body: some View {
     let opts: [(UUID, String)] = forfeit.party_b.map { [(forfeit.party_a, model.stakeName(forfeit.party_a)), ($0, model.stakeName($0))] }
       ?? model.members.map { ($0.profile_id, $0.name) }
-    SheetFrame("Settle the forfeit", sub: "\(forfeit.name) · \(forfeit.terms)") {
+    SheetFrame("Settle the pride bet", sub: "\(forfeit.name) · \(forfeit.terms)") {
       RoomFine(forfeit.party_b != nil ? "Who took it?" : "Who hit it? Anyone in the crew.")
       LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 6)], alignment: .leading, spacing: 6) {
         ForEach(opts, id: \.0) { pid, name in

@@ -63,7 +63,7 @@ public struct ForfeitHome: Sendable, Equatable {
   public var refusal: String? {
     switch verdict {
     case .ok: return nil
-    case .twoHomes: return "A forfeit hangs on one thing."
+    case .twoHomes: return "A pride bet hangs on one thing."
     case .noHome: return "Say who it is with, or what it hangs on."
     case .bountyNeedsAContainer: return "A bounty needs a field. Name who it’s with."
     }
@@ -83,7 +83,10 @@ public struct ForfeitHome: Sendable, Equatable {
 /// The sheet's own copy (`PotPane`'s forfeit sheet, moved out of the pot pane so
 /// it is reachable without a season). CORE_FLOWS §6.4.
 public enum ForfeitCopy {
-  public static let title = "What’s on it?"
+  /// D299 · **ONE composer, ONE title.** LV-02 ruled one set of words for the
+  /// forfeit composer and the two sheets still differed — the Pot pane said
+  /// *Post a forfeit* and this one asked *What’s on it?*. Both say the act now.
+  public static let title = "Post a pride bet"
   public static let nameLabel = "Name it"
   public static let namePlaceholder = "The Lawn Bet"
   public static let termsLabel = "The terms"
@@ -93,6 +96,14 @@ public enum ForfeitCopy {
   public static let settlesLabel = "When it settles"
   public static let settlesPlaceholder = "Sunday’s clash · first ace · the Cup Final"
   public static let put = "Put it on the record"
+
+  /// D299 · **the ledger's head, and the control that opens the composer.**
+  /// They live here rather than in `PotPane` because the pane draws nothing at
+  /// all when a league has no pride bets on it — it is the one surface of this
+  /// object a screenshot cannot prove, so a test holds the words instead. The
+  /// control and the sheet it opens are ONE constant (`title`), which is what
+  /// LV-02 asked for and did not get.
+  public static let ledgerHead = "Pride bets · on the record"
 
   /// L-39 / T-02 · the one sentence that says what a forfeit is, at first
   /// contact, VERBATIM from TERMINOLOGY §1 definition 9.
@@ -104,7 +115,7 @@ public enum ForfeitCopy {
   /// the brand canon's rule is to say what is true now and promise nothing
   /// structural. The ledger line is the only place money's handling is
   /// described, and it is `MoneyCopy.ledger`.
-  public static let definition = "A forfeit is a bet for pride. It settles on a tap and goes on the record — never on the books."
+  public static let definition = "A bet for pride. It settles on a tap and goes on the record — never on the books."
 
   /// A forfeit is a fact, not a summons: no push fires (L-20/L-22).
   public static let noPush = "Nobody gets a notification. It’s on the record and that’s the point."
@@ -168,7 +179,7 @@ public struct ForfeitService: Sendable {
   @discardableResult
   public func post(_ home: ForfeitHome, name: String, terms: String, kind: String = "custom", hangs: String? = nil) async throws -> UUID {
     guard home.isValid else {
-      throw RpcError(name: Self.name, underlying: home.refusal ?? "A forfeit hangs on one thing", droppedArgs: [])
+      throw RpcError(name: Self.name, underlying: home.refusal ?? "A pride bet hangs on one thing", droppedArgs: [])
     }
     return try await svc.call(CreateForfeitCall(home: home, name: name, terms: terms, kind: kind, hangs: hangs))
   }

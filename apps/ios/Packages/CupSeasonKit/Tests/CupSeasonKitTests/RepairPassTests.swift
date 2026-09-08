@@ -185,7 +185,10 @@ import Foundation
 
   @Test("the forfeit's definition is TERMINOLOGY's, verbatim, and promises nothing structural")
   func theForfeitDefinitionIsRuled() {
-    #expect(ForfeitCopy.definition == "A forfeit is a bet for pride. It settles on a tap and goes on the record — never on the books.")
+    // D299 · the opener went with the noun. The sentence used to begin "A
+    // forfeit is…", which is a definition of the title standing above it —
+    // the tell that the title was wrong. It says what the act IS now.
+    #expect(ForfeitCopy.definition == "A bet for pride. It settles on a tap and goes on the record — never on the books.")
     // L-09 retired the custody claim; no forfeit string may make one
     for s in [ForfeitCopy.definition, ForfeitCopy.noPush, ForfeitCopy.put, ForfeitCopy.title] {
       let l = s.lowercased()

@@ -122,7 +122,7 @@ public enum CalloutCopy {
   public static let windowGloss = "best round by Sunday takes it"
   public static let stakeQuestion = "What's on it?"
   public static let stakeNone = "Nothing, just the record"
-  public static let stakeForfeit = "A forfeit"
+  public static let stakeForfeit = "A pride bet"
   /// T-02 · the stake is a forfeit, in words, never an amount (D242, and
   /// `forfeits` has no money column by rule).
   public static let stakePlaceholder = "Loser buys the beers"

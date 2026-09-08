@@ -5197,8 +5197,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <hr style="border:0; border-top:1px solid var(--rule); margin:18px 0 8px">
         <p class="fine" data-ledger style="padding:0"></p>
         <div class="league-only" id="stakesWrap" style="margin-top:18px">
-          <div class="eyebrow" style="display:flex; align-items:center">Bets for pride · on the record
-            <button class="mini" id="stakeAdd" style="margin-left:auto">Post a forfeit</button></div>
+          <div class="eyebrow" style="display:flex; align-items:center">Pride bets · on the record
+            <button class="mini" id="stakeAdd" style="margin-left:auto">Post a pride bet</button></div>
           <div id="stakesList"></div>
         </div>
         </div><!-- /room-pot -->
@@ -17892,7 +17892,7 @@ function renderStakes(){
     + (done.length?`<div class="eyebrow" style="margin-top:12px">The archive</div>`+done.slice(0,8).map(row).join(''):'');
   box.querySelectorAll('[data-stset]').forEach(b=>b.addEventListener('click',()=>openStakeSettle(b.dataset.stset)));
   box.querySelectorAll('[data-stscrap]').forEach(b=>b.addEventListener('click',()=>{
-    if(confirm('Scrap this forfeit? The board will hear it.')) window.stakeScrap?.(b.dataset.stscrap); }));
+    if(confirm('Scrap this pride bet? The board will hear it.')) window.stakeScrap?.(b.dataset.stscrap); }));
 }
 window.renderStakes = renderStakes;
 
@@ -17902,7 +17902,7 @@ function openStakeSettle(id){
     ? [s.party_a, s.party_b].map(p=>`<button class="mini" data-stw="${p}" style="margin:4px 6px 0 0">${esc(stakeName(p))}</button>`).join('')
     : (window.CS?.members||[]).filter(m=>m.profile_id)
         .map(m=>`<button class="mini" data-stw="${m.profile_id}" style="margin:4px 6px 0 0">${esc(m.profile?.display_name||'—')}</button>`).join('');
-  openSheet('Settle the forfeit', s.name+' · '+s.terms, `
+  openSheet('Settle the pride bet', s.name+' · '+s.terms, `
     <p class="fine" style="padding:0 0 6px">${s.party_b?'Who took it?':'Who hit it? Anyone in the crew.'}</p>
     <div>${opts}</div>
     <label class="f" style="margin-top:12px" for="stNote">A line for the archive <span style="color:var(--dim)">(optional)</span></label>
@@ -17915,13 +17915,17 @@ function openStakeSettle(id){
 }
 
 function openStakeCreate(){
-  if(state.demo || !window.CS?.user){ toast('Sign in to post a forfeit'); return; }
+  if(state.demo || !window.CS?.user){ toast('Sign in to post a pride bet'); return; }
   const others=(window.CS?.members||[]).filter(m=>m.profile_id && m.profile_id!==window.CS.user.id);
   const KINDS=[['hosts','Loser hosts'],['course_pick','Winner picks the course'],['strokes','Strokes next time'],['bounty','Standing bounty'],['custom','Name your own']];
-  /* LV-02 · ONE forfeit composer, one set of words. This sheet said "on the
-     books" while the section head above it (and the phone's own ForfeitCopy)
-     said "on the record" — T-02's ruling, and the opposite claim (L-34). */
-  openSheet('Post a forfeit', 'A forfeit is a bet for pride. It settles on a tap and goes on the record — never on the books.', `
+  /* LV-02 · ONE composer, one set of words. This sheet said "on the books"
+     while the section head above it (and the phone's own ForfeitCopy) said
+     "on the record" — T-02's ruling, and the opposite claim (L-34).
+     D299 · and the NOUN is the pride bet now. `forfeit` meant conceding to
+     every reader who had not been taught otherwise — the owner included —
+     and the sentence under the title existed to undo the title. The title
+     says the act; the sentence says what the act is. */
+  openSheet('Post a pride bet', 'A bet for pride. It settles on a tap and goes on the record — never on the books.', `
     <label class="f" for="stkName">Name it</label>
     <input class="f" id="stkName" placeholder="The Lawn Bet" autocomplete="off" style="font-family:var(--sans)">
     <label class="f" style="margin-top:10px; display:block">The shape</label>
@@ -25622,7 +25626,7 @@ function csTakeIntent(go){
      the buy-in dial; after it, the rules froze and the honest answer is a
      forfeit — said out loud rather than hidden (L-12). */
   if(CS.league && ['setup','draft'].includes(CS.league.phase)){ state.wiz = 1; renderWizard(); switchView('wizard'); return; }
-  if(CS.league) return toast(esc(CS.league.name) + ' has started and the rules froze at the first tee. You can put a forfeit on it.');
+  if(CS.league) return toast(esc(CS.league.name) + ' has started and the rules froze at the first tee. You can put a pride bet on it.');
   toast('Nothing to put money on yet. Start something first.');
 }
 function openWhenFork(){
@@ -26381,9 +26385,9 @@ window.stakeCreate = async (p)=>{
       p_league: window.CS?.league?.id, p_name: p.name, p_terms: p.terms,
       p_kind: p.kind||'custom', p_other: p.other||null, p_hangs: p.hangs||null });
     if(error) throw error;
-    toast('Forfeit posted — the board heard it');
+    toast('Pride bet posted — the board heard it');
     await loadStakes(); return true;
-  }catch(e){ toast(humanError(e, 'Could not post the forfeit.')); return false; }
+  }catch(e){ toast(humanError(e, 'Could not post the pride bet.')); return false; }
 };
 window.stakeSettle = async (id, winner, note)=>{
   try{

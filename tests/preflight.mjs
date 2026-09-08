@@ -1133,7 +1133,15 @@ let VOCAB_LAWS = null;
                            /* D297 class 3 · the pride bet is a forfeit (T-02), and `on the books` is
                               money, full stop — never `X is on the books — set the rules` */
                            /settle the stake/i, /scrap this stake/i, /\bstakes? posted\b/i, /post the stake/i, /stakes on the books/i,
-                           /bet on the record/i, /is on the books —/i]],
+                           /bet on the record/i, /is on the books —/i,
+                           /* D299 · and the pride bet is not a FORFEIT. The word means CONCEDING to
+                              anyone who has not been taught otherwise — the owner read his own
+                              control that way on build 748 — and the sentence under the title
+                              existed to undo the title. `forfeits` the table keeps its name; a
+                              schema word is not a product word, so the guard is over the strings. */
+                           /post a forfeit/i, /settle the forfeit/i, /scrap this forfeit/i,
+                           /\bforfeit posted\b/i, /put a forfeit on/i, /a forfeit is a bet/i,
+                           /a forfeit hangs/i, /bets for pride/i]],
     [9, 'the clash, never the duel', [/\bduels?\b/i]],
     [10, 'a week, never a session', [/\bsessions?\b/i, /lead the series/i, /series level/i, /\bW-L-H\b/]],
     [11, 'no Clubhouse', [/clubhouse/i]],

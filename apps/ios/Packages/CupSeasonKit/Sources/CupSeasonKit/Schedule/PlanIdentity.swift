@@ -177,8 +177,8 @@ public enum PlanCopy {
   public static let gameLabel = "Playing anything?"
   public static let justGolf = "Just golf"
   public static let stakeDoor = "Put something on it"
-  /// L-32 · the door says what it opens: a forfeit, not a fourth money noun.
-  public static let stakeGloss = "a forfeit — a bet in words"
+  /// L-32 · the door says what it opens: a pride bet, not a fourth money noun.
+  public static let stakeGloss = "a pride bet — a bet in words"
 
   /// The four the plan may carry, in the sheet's order. `nil` is Just golf.
   public static let games: [LiveGame?] = [nil, .skins, .match, .wolf]

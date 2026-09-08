@@ -57,7 +57,7 @@ import Foundation
 
   /// L-32 · a refusal a golfer can read beats a control that is missing.
   @Test func everyRefusalIsASentenceAndEveryValidHomeHasNone() {
-    #expect(ForfeitHome(leagueId: Self.a, eventId: Self.b).refusal == "A forfeit hangs on one thing.")
+    #expect(ForfeitHome(leagueId: Self.a, eventId: Self.b).refusal == "A pride bet hangs on one thing.")
     #expect(ForfeitHome().refusal == "Say who it is with, or what it hangs on.")
     #expect(ForfeitHome(opponent: Self.him).refusal == nil)
     #expect(ForfeitHome(leagueId: Self.a).refusal == nil)
@@ -78,6 +78,42 @@ import Foundation
       for w in ForfeitCopy.moneyWords {
         #expect(!s.lowercased().contains(w), Comment(rawValue: "\"\(s)\" says \(w)"))
       }
+    }
+  }
+
+  // MARK: - D299 · the noun
+
+  /// **THE TITLE NO LONGER NEEDS THE SENTENCE TO UNDO IT.** `forfeit` means
+  /// conceding to anyone who has not been taught otherwise, and the owner read
+  /// the control that way on build 748 — he wrote the product. The tell had
+  /// been on the screen for months: the title said *Post a forfeit* and the
+  /// line under it opened *A forfeit is a bet for pride*, a definition whose
+  /// only job was to correct the words above it. The sentence says what the
+  /// act IS now, and it stands on its own.
+  @Test func theNounIsThePrideBetAndTheSentenceStandsAlone() {
+    #expect(ForfeitCopy.title == "Post a pride bet")
+    #expect(ForfeitCopy.definition == "A bet for pride. It settles on a tap and goes on the record — never on the books.")
+    #expect(!ForfeitCopy.definition.hasPrefix("A pride bet is"))
+    // the ledger's head and the control on it — the pane hides entirely when a
+    // league has none, so this is the only proof those words exist
+    #expect(ForfeitCopy.ledgerHead == "Pride bets · on the record")
+  }
+
+  /// The whole sheet, swept — the same shape as the money sweep above it,
+  /// because a rename dies the same way a rule does: one string at a time.
+  /// `forfeits` the TABLE keeps its name (a schema word is not a product
+  /// word), which is exactly why the guard has to be over the STRINGS.
+  @Test func nothingAGolferReadsSaysForfeit() {
+    let strings = [ForfeitCopy.title, ForfeitCopy.nameLabel, ForfeitCopy.namePlaceholder,
+                   ForfeitCopy.termsLabel, ForfeitCopy.termsPlaceholder, ForfeitCopy.whoLabel,
+                   ForfeitCopy.theField, ForfeitCopy.settlesLabel, ForfeitCopy.settlesPlaceholder,
+                   ForfeitCopy.put, ForfeitCopy.definition, ForfeitCopy.noPush,
+                   ForfeitCopy.ledgerHead,
+                   ForfeitHome(leagueId: Self.a, eventId: Self.b).refusal ?? "",
+                   ForfeitHome().refusal ?? "",
+                   CalloutCopy.stakeForfeit, PlanCopy.stakeGloss]
+    for s in strings {
+      #expect(!s.lowercased().contains("forfeit"), Comment(rawValue: "\"\(s)\" still says forfeit"))
     }
   }
 
