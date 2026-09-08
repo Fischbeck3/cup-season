@@ -314,7 +314,7 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
     #expect(!chips.isEmpty)
     for c in chips { #expect(c.go != nil, "a chip goes nowhere") }
     #expect(chips.first { $0.k == "Next round" }?.go == .round(rid))
-    #expect(chips.first { $0.k == "Needs you" }?.go == .people)
+    #expect(!chips.contains { $0.k == "Needs you" })   // D297 · the chip is gone; the rows carry Accept
   }
 
   @Test("the month clock is a door to the league, where the arithmetic lives")

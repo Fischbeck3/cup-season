@@ -457,11 +457,13 @@ struct LivePlayView: View {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         CSDoor(.primary(finishLabel) { showFinish = true })
         HStack {
-          CSDoor(.link("Group phones — everyone can score") { showGroup = true })
+          CSDoor(.link("Group phones") { showGroup = true })
           Spacer(minLength: 0)
         }
         if !s.anyScored {
-          CSFine("Scores entered together are vouched by the group: the group verifies everyone's round just by playing it. Guests need no account: they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.")
+          CSFine("Scores entered together are vouched by the group: the group verifies everyone's round just by playing it. Guests need no account: they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. "
+                 // D297 / ruling row 22 · a league-less round is never told its cards won't post
+                 + (store.state.leagueId == nil ? "Every complete card posts to its golfer." : "Only league members' rounds post to the season."))
         }
         scrapButton
       }

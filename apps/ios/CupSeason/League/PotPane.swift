@@ -208,7 +208,7 @@ struct PotPane: View {
           }
           return
         }
-        toast.show("The Pro marks buy-ins as the money moves between friends"); return
+        toast.show("Only the Pro marks buy-ins."); return
       }
       if model.season == nil { toast.show("Buy-ins open once the season starts"); return }
       busy = m.id

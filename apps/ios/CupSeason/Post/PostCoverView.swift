@@ -103,7 +103,7 @@ private struct PostCoverStack: View {
           // D227 · three rows, one line of gloss each, and the ~1,000 px of
           // dead space under them closed (SV-22). The tab is Play, so the
           // cover is Play.
-          CSPageHeader("Play", sub: "One live, one you just finished, or the next one — or something to play for")
+          CSPageHeader("Play")
           // L-40 / D110: the live game leads and wears ember (the live metal,
           // per the tokens contract); posting and planning are quiet errand
           // rows. D227 holds that clause rather than spending it: the 90 %

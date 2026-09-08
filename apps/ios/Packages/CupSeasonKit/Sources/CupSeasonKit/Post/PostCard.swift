@@ -238,7 +238,9 @@ public enum PostCalc {
   public static let emptyMessage = "Enter your gross to see the points."
   public static let emptyMessageAfterTyping = "Enter your gross."
   // F-13 · "your card" is the PROFILE (§2.1 row 2); this is the form.
-  public static let emptyGrossLine = "Enter a score to see how it lands."
+  // D297 · the pinned bar has one job, the gross, and it is silent until it
+  // has one: the calc panel above it already says what to enter (ruling row 45).
+  public static let emptyGrossLine = ""
 
   /// IOS-030 · WHY the round cannot post yet, named. A hand-typed course has no
   /// tee to pick, so the rating and slope are the golfer's to type — and until
@@ -262,7 +264,7 @@ public enum PostCalc {
     public var reason: String { self == .noRating ? "no_rating" : "no_card" }
   }
 
-  public static let noRatingMessage = "Type the rating and slope off the scorecard — they’re on the back of the card"
+  public static let noRatingMessage = "Type the rating and slope — they’re on the back of the scorecard"
 
   /// A rating and a slope the engine can actually score against — the database's
   /// own sane ranges, so the composer refuses exactly what the table refuses.

@@ -454,7 +454,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueCopy.phaseSub(clock("2026-05-10"), b: b, code: "PIGL", members: 8) == "Wk 2 / 21 · Points Race · Standard rules")
     #expect(LeagueCopy.phaseSub(clock("2026-04-30"), b: b, code: "PIGL", members: 8) == "BEFORE FIRST TEE · SUN MAY 3 · 3 DAYS")
     #expect(LeagueCopy.phaseSub(clock("2026-05-10", phase: .setup), b: b, code: "PIGL", members: 8) == "SETUP · START THE SEASON TO OPEN INVITES")
-    #expect(LeagueCopy.kickoff(clock("2026-05-02")) == ("First tee Sun May 3", "KICKS OFF IN 1 DAY · SQUADS ARE SET · PRACTICE ROUNDS POST TO YOUR ROUNDS, NOT THE SEASON"))
+    #expect(LeagueCopy.kickoff(clock("2026-05-02")) == ("First tee Sun May 3", "KICKS OFF IN 1 DAY · SQUADS ARE SET"))
     // A-6 · a seat count counts nothing (`scheduled_rounds` has no capacity and
     // a roster's own minimum is the fact): the line names the roster and what
     // is still needed, never "3 SEATS OPEN".

@@ -147,7 +147,7 @@ struct GuestPencilScreen: View {
   @Environment(\.toast) private var toast
   @Environment(\.scenePhase) private var phase
   let token: UUID
-  /// "Enter your email to keep it" → the root's door
+  /// "Keep this round" → the root's door
   var onDoor: () -> Void = {}
   @State private var store = LiveRoundStore.shared
   @State private var face: Face = .loading
@@ -200,7 +200,7 @@ struct GuestPencilScreen: View {
       switch d.face {
       case .waiting(let line):
         Text(line).csType(.story).foregroundStyle(cs.ink)
-        Button("Enter your email to keep it") { onDoor() }
+        Button("Keep this round") { onDoor() }
           .buttonStyle(.csPrimary())
       case .claimed:
         Text("That card is already on a record.").csType(.story).foregroundStyle(cs.ink)

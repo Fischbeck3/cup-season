@@ -70,10 +70,10 @@ public enum LiveGame: String, Codable, Sendable, CaseIterable, Equatable {
   /// The stake label (8670–8673).
   public var stakeLabel: String {
     switch self {
-    case .match: "Stake per side · $0 = bragging rights"
-    case .wolf: "Dollars per point · $0 = bragging rights"
-    case .sunningdale: "Bank unit · $0 = bragging rights"
-    case .skins: "Dollars per skin · $0 = bragging rights"
+    case .match: "Stake per side · $0 is bragging rights"
+    case .wolf: "Dollars per point · $0 is bragging rights"
+    case .sunningdale: "Bank unit · $0 is bragging rights"
+    case .skins: "Dollars per skin · $0 is bragging rights"
     case .score: ""
     }
   }

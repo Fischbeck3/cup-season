@@ -529,7 +529,7 @@ public enum WizardCopy {
   public static let fastPath = "Use these defaults"
   public static let customize = "Customize"
   public static let hideOptions = "Hide options"
-  public static let buyIn = ("Buy-in", "Per player · $0 = bragging rights")
+  public static let buyIn = ("Buy-in", "Per player · $0 is bragging rights")
   public static let seasonLength = ("Season length", "Weeks or months · ends the same weekday")
   public static let firstTee = ("First tee", "Pick any day")
   public static let teamsEyebrow = "Teams"

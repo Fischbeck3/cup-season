@@ -22,7 +22,6 @@ struct FeedbackSheet: View {
   var body: some View {
     NavigationStack {
       VStack(alignment: .leading, spacing: 12) {
-        Text("What helped, what confused you, what you would change").csEyebrow()
         PillFlow {
           ForEach([("confusing", "Confusing"), ("friction", "Friction"), ("idea", "Idea"), ("bug", "Bug")], id: \.0) { key, title in
             let on = category == key
@@ -80,7 +79,7 @@ struct FeedbackSheet: View {
     do {
       try await repo.submitFeedback(category: category.isEmpty ? "other" : category, body: text, context: ctx)
       dismiss()
-      toast.show("Sent — thank you. This is how the app gets better.", kind: .confirmed)
+      toast.show("Sent — thank you.", kind: .confirmed)
     } catch {
       toast.show(AuthRules.human(error, fallback: "Could not send."), kind: .failed)
     }

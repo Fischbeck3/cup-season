@@ -543,7 +543,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     var nine = round(["A"], indices: [0], scores: [S(Array(repeating: 4, count: 9))], game: .score, holes: 9)
     #expect(LiveCopy.finishSheet(nine).primary == "Post 1 card to the season")
     nine.scores[0][8] = nil
-    #expect(LiveCopy.finishSheet(nine).primary == "Finish — no complete member card to post")
+    #expect(LiveCopy.finishSheet(nine).primary == "Finish the round")
     #expect(LiveCopy.finishSheet(nine).warning == "A — missing hole 9. That card won’t post — go back and fill in, or finish without.")
     #expect(LiveCopy.cardHoles(S(Array(repeating: 4, count: 9))) == 9)
     #expect(LiveCopy.cardHoles(S(Array(repeating: 4, count: 10))) == 0)

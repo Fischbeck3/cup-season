@@ -211,7 +211,7 @@ struct LeagueWelcomeSheet: View {
         rule("The pot lives on the books.", " \(MoneyCopy.ledger) The settlement card shows who owes what.")
         Button("How scoring works") { scoring = true }.csType(.bodyS).foregroundStyle(cs.brand).padding(.bottom, 4)
         Rectangle().fill(cs.rule).frame(height: 1)
-        rule("Who else plays with you?", " Growing the league isn't the Pro's chore — any member's link works.")
+        rule("Who else plays with you?", " Any member's link works — yours included.")
         if let code = welcome.code {
           ShareLink(item: URL(string: "https://cupseason.app/?join=\(code)")!, subject: Text("Cup Season"),
                     message: Text("You're invited to \(welcome.name) on Cup Season")) {

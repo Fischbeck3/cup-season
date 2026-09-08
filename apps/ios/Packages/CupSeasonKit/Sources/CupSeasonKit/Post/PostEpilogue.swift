@@ -150,7 +150,7 @@ public struct PostEpilogue: Sendable, Equatable {
     }
     if rows.isEmpty && !firstEver { return [] }
     if firstEver {
-      rows.insert(.line(icon: "🎉", title: "Your first round is on the board", sub: "Welcome to the season — your number and record start here"), at: 0)
+      rows.insert(.line(icon: "🎉", title: "Your first round is on the board", sub: "Your number and record start here"), at: 0)
     }
     return rows
   }

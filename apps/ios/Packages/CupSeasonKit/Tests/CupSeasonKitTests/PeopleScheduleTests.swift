@@ -87,20 +87,21 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
 }
 
 @Suite struct UpNextTests {
-  @Test func theFourChipsInOrder() {
+  @Test func theThreeChipsInOrder() {
     let watch = [row(playOn: "2026-08-29", mine: true, course: "Encanto"), row(name: "Galen Ortiz", playOn: "2026-08-28", mine: false, friend: true)]
     let chips = UpNext.chips(watch: watch, invites: 1, requests: 1, hasMemberships: true, today: "2026-08-27")
-    #expect(chips.map(\.k) == ["Next round", "Buddy's playing", "Needs you", "Month closes"])
+    // D297 / ruling row 30 · no "Needs you" chip: the invite rows on the same
+    // screen carry Accept themselves, and a count of them was a second telling.
+    #expect(chips.map(\.k) == ["Next round", "Buddy's playing", "Month closes"])
     #expect(chips[0].v == "Encanto · in 2 days")
     #expect(chips[1].v == "Galen · tomorrow")
-    #expect(chips[2].v == "2 invites")
-    #expect(chips[3].v == "in 4 days")
+    #expect(chips[2].v == "in 4 days")
   }
 
   @Test func hidesWhatIsNotComing() {
     #expect(UpNext.chips(watch: [], invites: 0, requests: 0, hasMemberships: false, today: "2026-08-27").isEmpty)
     let far = UpNext.chips(watch: [], invites: 1, requests: 0, hasMemberships: true, today: "2026-08-05")
-    #expect(far.map(\.k) == ["Needs you"] && far[0].v == "1 invite")
+    #expect(far.isEmpty)   // an invite is a row with Accept on it, never a chip (D297)
     let last = UpNext.chips(watch: [], invites: 0, requests: 0, hasMemberships: true, today: "2026-08-31")
     #expect(last.first?.v == "today")
     // a tagged buddy's round is YOUR plan — the Next-round rung, never a "Buddy's playing" nudge

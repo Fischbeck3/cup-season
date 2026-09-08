@@ -334,7 +334,7 @@ struct MajorRoomView: View {
           }
         }
         if room.event.isLive, let s = f.session, let d = f.daysLeft, d < 0 {
-          CSDoor(.link("Settle it — name the champion", {
+          CSDoor(.link("Settle it", {
             act(fail: nil, ok: "Settled — the jug has a name") { try await model.settle(session: s.id) }
           }))
         }

@@ -529,7 +529,7 @@ private struct PostRoundBody: View {
   /// to say about it. It is a tertiary now, which carries the 44pt target in
   /// the style rather than at the site.
   private var startOver: some View {
-    Button("Start over — clear this round") { model.startOver() }   // F-13
+    Button("Start over") { model.startOver() }   // F-13
       .buttonStyle(.csTertiary(.content))
       .frame(maxWidth: .infinity)
   }
@@ -647,7 +647,9 @@ private struct PostHeroContent: View {
       // to preview — a caveat about arithmetic nobody has done yet. It is the
       // vertical the plate is paid for with, and §27's own list ("excessive
       // labels") names exactly this.
-      if p != nil {
+      // D297 · and only for a golfer WITH a season: a caveat about a season's
+      // math cannot render for a golfer who has none (ruling row 66).
+      if p != nil && model.membership != nil {
         CSFine("A preview — your season's own math scores it on the books.").padding(.top, 4)
       }
       if model.membership == nil {

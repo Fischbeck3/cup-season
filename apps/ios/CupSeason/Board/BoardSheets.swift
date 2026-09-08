@@ -81,7 +81,7 @@ struct ReportSheet: View {
     NavigationStack {
       VStack(alignment: .leading, spacing: 12) {
         Text("Keeps the boards clean").csType(.agate, caps: true).foregroundStyle(cs.mut)
-        Text("What’s wrong with it? Your note goes to the founder desk with the post.")
+        Text("Your note goes to the founder desk with the post.")
           .csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
         FlowRow(spacing: 6) {
           ForEach(reasons, id: \.self) { r in

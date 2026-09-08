@@ -163,7 +163,6 @@ struct LiveSetupView: View {
         } else {
           VStack(alignment: .leading, spacing: 2) {
             Text("Open slot").csType(.name).foregroundStyle(cs.mut)
-            Text("Tap a player below").csType(.agate, caps: true).foregroundStyle(cs.mut)
           }
           .padding(CSTokens.Space.s3).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)
           .background(cs.bg1)

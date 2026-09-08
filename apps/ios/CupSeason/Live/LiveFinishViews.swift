@@ -31,7 +31,7 @@ struct LiveFinishSheet: View {
 
   var body: some View {
     let f = LiveCopy.finishSheet(store.state)
-    SheetFrame("Finish the round", sub: store.state.leagueId == nil ? "ONE FINISH — EVERY CARD POSTS TO ITS GOLFER" : "ONE FINISH — EVERY MEMBER’S CARD POSTS") {
+    SheetFrame("Finish the round", sub: "ONE FINISH FOR THE WHOLE GROUP") {
       CSFine(f.intro)
       if let w = f.warning {
         Text(w).csType(.bodyS).foregroundStyle(cs.neg).fixedSize(horizontal: false, vertical: true)
@@ -114,7 +114,7 @@ struct LiveRecapSheet: View {
               VStack(spacing: CSTokens.Space.s3) {
                 Button("Share the card") { shareCard(r) }
                   .buttonStyle(.csPrimary(busy: busy))
-                Button("Share the settlement — no account needed") { Task { await shareLink(r) } }
+                Button("Share the settlement page") { Task { await shareLink(r) } }
                   .buttonStyle(.csSecondary(busy: busy))
                 Button("Revoke a shared link") { Task { await revoke() } }
                   .buttonStyle(.csTertiary(.content))

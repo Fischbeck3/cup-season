@@ -35,7 +35,7 @@ struct ScheduleScreen: View {
         watch
         calendarHeader
         grid
-        Text("Tap any day to put a round on the schedule.").csType(.bodyS).foregroundStyle(cs.mut)
+        Text("Tap any day.").csType(.bodyS).foregroundStyle(cs.mut)
           .frame(maxWidth: .infinity).multilineTextAlignment(.center)
         Button("Put a round on the schedule") { declare = DeclarePrefill() }.buttonStyle(.csPrimary())
         CSSectionHead("On the schedule")

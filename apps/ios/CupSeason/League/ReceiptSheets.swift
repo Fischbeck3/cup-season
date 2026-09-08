@@ -156,7 +156,7 @@ struct MemberHistorySheet: View {
           }
         }
         if row.hist.contains(where: { !$0.counting }) {
-          RoomFine("Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.").padding(.top, 10)
+          RoomFine("Bumped rounds still happened — a better round took their monthly slot.").padding(.top, 10)
         }
         if let pid = row.profileId {
           RoomMini(GolfersRoot.CardName.title(row.n)) { dismiss(); links.openTourCard(pid) }.padding(.top, 6)

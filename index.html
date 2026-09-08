@@ -4513,7 +4513,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
       <!-- ⊕ GOLF (IA P4): golf's three tenses in one door — after, during, before -->
       <section class="view" id="view-record">
-        <div class="eyebrow">Play — one live, one you just finished, or the next one</div>
+        <div class="eyebrow">Play</div>
         <!-- D110: the live game leads and wears ember (the live metal); posting and
              planning are quiet errand rows. Ember was on POST before — backwards. -->
         <button class="optcard live" id="optLive" style="--acc:var(--brand)" data-go="play">
@@ -4566,7 +4566,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <div class="slot4" id="fourSlots"></div>
             <!-- pilot order: league chips lead, then the app-wide search
                  (the same People Picker the events use), then guest-by-name -->
-            <label class="f" style="margin-top:16px; display:block;">Tap to fill a slot · league</label>
+            <label class="f" style="margin-top:16px; display:block;">Tap to fill a slot</label>
             <div id="rosterChips" style="margin-top:8px"></div>
             <button class="mini" id="rosterFind" style="margin-top:14px"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg> Search the app — add any golfer</button>
             <label class="f" style="margin-top:12px; display:block;">Add a guest</label>
@@ -4588,7 +4588,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             </div>
             <p class="fine" id="gameNote">Stroke play — your card, your pace. One to four players; post when you’re done.</p>
             <div id="matchSetup" style="display:none; margin-top:12px; border-top:0.5px solid var(--rule); padding-top:12px;">
-              <label class="f" for="lrStake">Stake per side · $0 = bragging rights</label>
+              <label class="f" for="lrStake">Stake per side · $0 is bragging rights</label>
               <!-- max=200 to match the season buy-in ladder's own ceiling. The
                    field was unbounded, which made it the one surface in the
                    product that scales from "a friendly five" to a number that
@@ -4665,11 +4665,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             </div>
           </div>
           <div class="pgfinish">
-            <button class="mini" id="groupShareBtn" style="margin-top:8px">Group phones — everyone can score</button>
+            <button class="mini" id="groupShareBtn" style="margin-top:8px">Group phones</button>
             <div style="height:12px"></div>
             <div class="eyebrow" id="finishStatus" style="display:none" aria-live="polite"></div>
-            <button class="btn" id="finishBtn">Finish round &amp; post to season</button>
-            <p class="fine" id="finishFine">Scores entered together are <b>vouched by the group</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. Only league members' rounds post to the season.</p>
+            <button class="btn" id="finishBtn">Finish the round</button>
+            <p class="fine" id="finishFine">Scores entered together are <b>vouched by the group</b>: the group verifies everyone's round just by playing it. <b>Guests need no account:</b> they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. <span id="finishFineSeason">Only league members' rounds post to the season.</span></p>
             <button class="mini" id="discardBtn" style="margin-top:6px; color:var(--dim)">Scrap this round</button>
           </div>
         </div>
@@ -4762,7 +4762,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                 <!-- the scan's escape hatch: a bad read never traps anyone in the
                      grid — one tap back to the two-number card (course/date/photo
                      survive; only the model's numbers are scrapped) -->
-                <p class="fine" style="padding-top:2px"><a href="#" id="postScanBack" style="color:var(--mut)"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> Scrap the scan — type front &amp; back instead</a></p>
+                <p class="fine" style="padding-top:2px"><a href="#" id="postScanBack" style="color:var(--mut)"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> Scrap the scan</a></p>
               </div>
 
               <!-- default: front & back gross — how golfers keep score (D32) -->
@@ -4785,7 +4785,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <button class="btn" id="postBtn">Post round</button>
               <!-- abandonment is a real path, not a refresh: one tap empties the
                    card (pilot: a tested/half-filled composer lingered for days) -->
-              <p class="fine" style="text-align:center; padding:10px 0 0"><a href="#" id="postReset" style="color:var(--mut)">Start over — clear this round</a></p>
+              <p class="fine" style="text-align:center; padding:10px 0 0"><a href="#" id="postReset" style="color:var(--mut)">Start over</a></p>
             </div>
           </div>
           <div>
@@ -4869,7 +4869,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <button class="mini" id="wizCustomize" aria-expanded="false" style="margin-top:10px">Customize <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
           <div id="wizDials" style="display:none; margin-top:12px">
           <div class="setrow">
-            <div class="lab">Buy-in<small>Per player · $0 = bragging rights</small></div>
+            <div class="lab">Buy-in<small>Per player · $0 is bragging rights</small></div>
             <div class="val" id="stakeVal">None</div>
             <div class="ctl"><button id="stakeDown" aria-label="Lower buy-in">−</button><button id="stakeUp" aria-label="Raise buy-in">+</button></div>
           </div>
@@ -5063,7 +5063,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="phasehero" id="kickoffHero" style="display:none">
           <div class="k">Before first tee</div>
           <div class="n" id="khTee">First tee —</div>
-          <div class="m" id="khCount">SQUADS ARE SET · PRACTICE ROUNDS POST TO YOUR ROUNDS, NOT THE SEASON</div>
+          <div class="m" id="khCount">SQUADS ARE SET</div>
         </div>
         <button class="livebanner" id="liveBanner" data-go="play">
           <div class="lk"><span class="dot"></span>Live round in progress</div>
@@ -5394,7 +5394,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <span><i class="caldot lg"></i> SEASON DATE</span>
           </div>
         </div>
-        <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day to put a round on the schedule.</p>
+        <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day.</p>
         <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the schedule</button>
         <div class="eyebrow">On the schedule</div>
         <div id="calList"></div>
@@ -7697,7 +7697,7 @@ async function reportPost(f){
      silently on a MODERATION path. In-app sheet, same shape as the delete
      gate. */
   openSheet('Report this post', 'KEEPS THE BOARDS CLEAN', `
-    <p class="fine" style="padding-top:0">What’s wrong with it? Your note goes to the founder desk with the post.</p>
+    <p class="fine" style="padding-top:0">Your note goes to the founder desk with the post.</p>
     <input class="f" id="rptWhy" placeholder="Say what’s wrong…" autocomplete="off" maxlength="500" style="font-family:var(--sans)">
     <button class="btn" id="rptGo" style="margin-top:10px">Send the report</button>
     <button class="btn dark" id="rptNo" style="margin-top:8px">Cancel</button>`);
@@ -9457,7 +9457,7 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
      even when there's no band row yet (a brand-new golfer has no index, so pvi
      is null) — the first success is the growth seam. */
   if(firstEver)
-    rows.unshift(`<div class="check"><span class="num">🎉</span><div class="tt"><b>Your first round is on the board</b><small>Welcome to the season — your number and record start here</small></div></div>`);
+    rows.unshift(`<div class="check"><span class="num">🎉</span><div class="tt"><b>Your first round is on the board</b><small>Your number and record start here</small></div></div>`);
   const sub = course
     ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
     : 'THE ROUND, FOR YOU FIRST';
@@ -9797,7 +9797,7 @@ function recalc(){
     $('#calcMsg').textContent='Pick a tee — or type the rating and slope — to see the points.';
     $('#calcGross').textContent=String(Math.round(entry ? entry.gross : 0) || '–');
     $('#calcVs').textContent='—';
-    const glr=$('#postGrossLine'); if(glr) glr.textContent='Rating and slope set the score — pick a tee.';
+    const glr=$('#postGrossLine'); if(glr){ glr.textContent=''; glr.style.display='none'; }   /* D297 · silent until it has a gross */
     /* D234 · the card is IN and the rating is not. Q-22 already stops the post
        (an unrated round cannot be scored and must never be scored as a zero),
        but the button then said "Enter at least one nine first" — a sentence
@@ -9832,7 +9832,7 @@ function recalc(){
   } else {
     $('#calcPts').textContent='–'; $('#calcMsg').textContent='Enter your gross.';
     $('#calcGross').textContent='–'; $('#calcVs').textContent='–';
-    const gl0=$('#postGrossLine'); if(gl0) gl0.textContent='Enter a score to see how it lands.';
+    const gl0=$('#postGrossLine'); if(gl0){ gl0.textContent=''; gl0.style.display='none'; }
     state.postBlocked='card';
     state.lastPost=null; return;
   }
@@ -9860,7 +9860,7 @@ function recalc(){
   $('#calcPts').textContent = _shows ? pts : '—';
   $('#calcMsg').textContent = _ss === 'live' ? msg : (msg + ' ' + seasonNote('short') + '.');
   const gl=$('#postGrossLine');
-  if(gl) gl.textContent = `Gross ${gross} · ${label.includes('9 HOLES')?'9 holes · half value':'18 holes'}`;
+  if(gl){ gl.style.display=''; gl.textContent = `Gross ${gross} · ${label.includes('9 HOLES')?'9 holes · half value':'18 holes'}`; }
   state.lastPost={pts, vs, label};
 }
 ['inRating','inSlope','inF9','inB9','inGross'].forEach(id=>$('#'+id)?.addEventListener('input',recalc));
@@ -9993,7 +9993,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       const bad = (parseFloat(rEl?.value)>0) ? sEl : rEl;
       bad?.setAttribute('aria-invalid','true'); bad?.classList.add('bad');
       bad?.scrollIntoView?.({block:'center'}); bad?.focus?.();
-      toast('Type the rating and slope off the scorecard \u2014 they\u2019re on the back of the card');
+      toast('Type the rating and slope \u2014 they\u2019re on the back of the scorecard');
       window.qaEvent?.('post_blocked', { reason: 'no_rating' });
       return;
     }
@@ -10022,7 +10022,7 @@ $('#postBtn').addEventListener('click', async ()=>{
      never forbidden). Total mode enters gross directly, so it's exempt. */
   if(state.post.mode==='holes' && !state.post.touched){
     openSheet('Post as even par?', 'NO HOLES ENTERED YET', `
-      <p class="fine" style="padding-bottom:12px">Each hole is still on par, so this would post an even-par ${state.post.pars.slice(0,state.post.side).reduce((a,b)=>a+b,0)} — and it posts to your rounds — every season you're in reads it.</p>
+      <p class="fine" style="padding-bottom:12px">Each hole is still on par, so this would post an even-par ${state.post.pars.slice(0,state.post.side).reduce((a,b)=>a+b,0)}.</p>
       <button class="btn" id="postEnterCard" style="margin-bottom:8px">Enter the holes</button>
       <button class="btn dark" id="postEvenAnyway">Post even par anyway</button>`);
     document.getElementById('postEnterCard')?.addEventListener('click',closeSheet);
@@ -12745,12 +12745,15 @@ function renderPlay(){
      _fs.textContent=_line; _fs.style.display=_line?'':'none';
      _fs.style.color=_done?'var(--gold)':'var(--dim)'; }
    if(_fb){
-     _fb.textContent = _done ? 'Finish round & post to season' : 'Finish round';
+     _fb.textContent = 'Finish the round';
      _fb.classList.toggle('dark', !_done); }   /* .btn.dark IS the web's quiet */
    /* the teaching copy speaks ONCE, before the first score. It is restated
       where it has consequence: the finish sheet opens with "Complete cards post
       to the season, vouched by the group… A partial card is skipped, not lost." */
-   if(_ff) _ff.style.display = liveAnyScored() ? 'none' : '';}
+   if(_ff){ _ff.style.display = liveAnyScored() ? 'none' : '';
+     /* D297 / ruling row 22 · a league-less round is never told its cards won't post */
+     const _fl=_ff.querySelector('#finishFineSeason');
+     if(_fl) _fl.textContent = window.CS?.league ? "Only league members' rounds post to the season." : 'Every complete card posts to its golfer.'; }}
 
   /* THE HOLE STRIP - the viewer's own card, in the scorecard ink law. It draws
      MY row (the phone draws the same), because eighteen cells cannot hold four
@@ -13041,10 +13044,10 @@ function renderMatchPrev(){
   box.style.display = money ? 'block' : 'none';
   const prev=$('#matchPrev'); if(!money || !prev) return;
   const lbl=box.querySelector('label[for="lrStake"]');
-  if(lbl) lbl.textContent = g==='match' ? 'Stake per side · $0 = bragging rights'
-    : g==='wolf' ? 'Dollars per point · $0 = bragging rights'
-    : g==='sunningdale' ? 'Bank unit · $0 = bragging rights'
-    : 'Dollars per skin · $0 = bragging rights';
+  if(lbl) lbl.textContent = g==='match' ? 'Stake per side · $0 is bragging rights'
+    : g==='wolf' ? 'Dollars per point · $0 is bragging rights'
+    : g==='sunningdale' ? 'Bank unit · $0 is bragging rights'
+    : 'Dollars per skin · $0 is bragging rights';
   if(g==='sunningdale'){
     /* D74: no handicaps, so no strokes table — the game IS the equalizer */
     prev.innerHTML = (sel.length===2 || sel.length===4)
@@ -13123,7 +13126,7 @@ function renderRoster(){
     const d=document.createElement('div');
     if(idx===undefined){
       d.className='pslot empty';
-      d.innerHTML=`<div class="sn">Open slot</div><div class="si">TAP A PLAYER BELOW</div>`;
+      d.innerHTML=`<div class="sn">Open slot</div>`;
     } else {
       const p=ROSTER[idx];
       d.className='pslot';
@@ -13535,12 +13538,12 @@ function finishRealLiveRound(){
        }).join(' · ')}. ${open.length===1?'That card':'Those cards'} won’t post — go back and ${anyStray?'fix it':'fill in'}, or finish without.</p>`
     : '';
   const result = gameResult();
-  openSheet('Finish the round', _lg ? 'ONE FINISH — EVERY MEMBER’S CARD POSTS' : 'ONE FINISH — EVERY CARD POSTS TO ITS GOLFER',
+  openSheet('Finish the round', 'ONE FINISH FOR THE WHOLE GROUP',
     `<p class="fine" style="padding-top:0">${_lg?'Complete cards post to the season':'Every complete card posts to its golfer'}, vouched by the group${guestN?`; ${guestN} guest${guestN===1?'':'s'} get${guestN===1?'s':''} a recap to claim`:''}. A partial card is skipped, not lost.</p>
      ${warn}
      <button class="btn" id="lrPost" style="margin-top:12px">${done.length
        ? `Post ${done.length} card${done.length===1?'':'s'}${_lg?' to the season':' — each to its golfer'}`
-       : (_lg ? 'Finish — no complete member card to post' : 'Finish — no complete card to post')}</button>
+       : 'Finish the round'}</button>
      <button class="btn dark" id="lrCasual" style="margin-top:8px">This one was casual — post nothing</button>`);
   const go = async (casual) => {
     const pb=document.getElementById('lrPost'), cb=document.getElementById('lrCasual');
@@ -13674,7 +13677,7 @@ function showLiveRecap(d, result, lrId){
   /* D57: the settlement travels as a page, not just a sheet — audit F5 */
   if(result && lrId && !state.demo)
     rows.push(`<button class="btn" id="lrShareCard" style="width:100%;margin-top:14px">Share the card</button>
-      <button class="btn dark" id="lrShareLink" style="width:100%;margin-top:10px">Share the settlement — no account needed</button>
+      <button class="btn dark" id="lrShareLink" style="width:100%;margin-top:10px">Share the settlement page</button>
       <button class="cs-tskip" id="lrShareRevoke" type="button" style="width:100%;margin-top:6px">Revoke a shared link</button>`);
   openSheet(d.casual?'Casual — nothing posted':'Round posted',
     `${posted.length} CARD${posted.length===1?'':'S'}${window.CS?.league?' TO THE SEASON':' POSTED'}`,
@@ -16853,8 +16856,8 @@ function renderUpNext(){
       const when = n===0?'today':n===1?'tomorrow':DOW[d.getDay()].toLowerCase();
       chips.push(upChip("Buddy's playing", (w.display_name||'A buddy').split(' ')[0] + ' · ' + when));
     }
-    const needs = (window.myInvites||[]).length + (window.homeRequests||[]).length;
-    if(needs) chips.push(upChip('Needs you', needs + (needs===1?' invite':' invites'), 'people'));
+    /* D297 / ruling row 30 · no 'Needs you' chip: the invite rows above carry
+       Accept themselves; a count of them sent the golfer to a third screen. */
     /* D122 · a month close only means something once rounds are scoring. The
        audit's Home showed "MONTH CLOSES in 2 days" beside "7 days to first
        tee", which reads as a deadline the golfer is already missing — two
@@ -18549,7 +18552,7 @@ function openMemberHist(p){
   const hist=(p.hist||[]);
   const body=hist.length
     ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · BUMPED'}</span><b class="mono" style="white-space:nowrap">${sgn(h.pvi)} vs your playing HCP · ${h.points} PTS</b></div>`).join('')
-      + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot. A better round always bumps your worst counter.</p>':'')
+      + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot.</p>':'')
     : emptyState({ icon:'⛳', line:'No rounds this season yet — post one and you\'re on the board.', ctaLabel:'Add my round', ctaGo:'record' });
   openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
 }
@@ -19395,7 +19398,7 @@ function showPlayer(name){
         <span class="cuttag">BUMPED</span>
         <span class="rp">${r.pts}</span></button>`;
     });
-    h+=`<p class="fine" style="padding-top:12px">Displaced rounds still happened; they just fell outside the monthly cap. A better round always bumps your worst counter.</p>`;
+    h+=`<p class="fine" style="padding-top:12px">Displaced rounds still happened; they just fell outside the monthly cap.</p>`;
   }
   openSheet(name, `${p.sq} · ${p.r} ROUNDS · ${p.pts} PTS`, h);
 }
@@ -19611,7 +19614,7 @@ function wizPortrait(){
   const potRow = stake>0
     ? `<div class="wizp-row"><span class="k">The pot</span><span class="wizp-gold">${fmt$(pot)}</span>${bar}</div>
        <div class="wizp-sub">${fmt$(stake)} / player · ${roster} in so far · ${pay.join('/')}</div>`
-    : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b><span style="font-family:var(--mono);font-size:10px;color:var(--dim)">$0 STAKE</span></div>`;
+    : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b></div>`;
   const mo = Math.max(1, Math.min(6, Math.round(state.durWeeks/4.345)));
   let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--rule)" stroke-width="1.2"/>`;
   const fx = mo*41;
@@ -19811,7 +19814,7 @@ function renderPhase(){
     if(on){
       $('#khTee').textContent = 'First tee ' + firstTeeText();
       const d=daysToTee();
-      $('#khCount').textContent = `KICKS OFF IN ${d} DAY${d===1?'':'S'} · SQUADS ARE SET · PRACTICE ROUNDS POST TO YOUR ROUNDS, NOT THE SEASON`;
+      $('#khCount').textContent = `KICKS OFF IN ${d} DAY${d===1?'':'S'} · SQUADS ARE SET`;
     }
   }
   const hd=$('#hubDraftSub');
@@ -20402,7 +20405,7 @@ function renderMajorRoom(el, E){
         : `<span class="fine" style="padding:4px 0 0">Needs 2 in the field to open.</span>`;
     }
     if(ev.status==='live' && daysLeft!=null && daysLeft<0){
-      html+=`<button class="mini" onclick="window.majorSettle('${s.id}')">Sound the horn — settle</button>`;
+      html+=`<button class="mini" onclick="window.majorSettle('${s.id}')">Settle it</button>`;
     }
     /* escape hatch: only while nothing has been scored (the RPC re-validates) */
     if(!horn) html+=`<button class="mini" onclick="window.scrapEvent('${ev.id}')" title="Scrap this Major"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> Scrap</button>`;
@@ -22152,7 +22155,7 @@ async function openTourCard(profileId){
   let muteHtml='';
   if(!p.is_me){
     const muted = window.MUTED instanceof Set && window.MUTED.has(profileId);
-    muteHtml = `<button class="mini" id="tcMute" style="margin-top:16px; color:var(--mut)">${muted?'🔈 Unmute — show their posts again':'🔇 Mute — hide their posts from your boards'}</button>`;
+    muteHtml = `<button class="mini" id="tcMute" style="margin-top:16px; color:var(--mut)">${muted?'Unmute':'Mute'}</button>`;
   }
   /* D197 · the Pro's suspend, directly under Mute — deliberately, because they
      are the same gesture at two scopes: mute is what a golfer does for
@@ -23268,7 +23271,7 @@ function resetWizard(){
   state.emails = [''];
   /* setup-QA S2-03: state.stake's $75 default belongs to the demo diorama —
      a REAL league starts at bragging rights; the Pro dials money up on
-     purpose ("$0 = bragging rights" is the dial's own promise). */
+     purpose ("$0 is bragging rights" is the dial's own promise). */
   state.stake = 0;
   const nm = document.getElementById('setName'); if(nm) nm.value = '';
   if(typeof updateInviteNote === 'function') updateInviteNote();
@@ -23389,7 +23392,7 @@ async function openLockShare(nextPhase, sent){
       <div class="fine" style="padding:0 0 6px">Anyone who opens this reviews <b>${esc(L.name)}</b>, then joins.</div>
       <div class="mono" style="word-break:break-all; user-select:all; -webkit-user-select:all; font-size:12.5px">${esc(inviteUrl(L))}</div>
     </div>
-    <button class="btn" id="lkShare">Copy link, share, or read out the code</button>
+    <button class="btn" id="lkShare">Invite your crew</button>
     <button class="btn dark" id="lkLater" style="margin-top:10px">Later — it lives in the league room</button>`);
   /* D114 · the celebration and the room open the SAME invite surface, so the
      link is never a moment the Pro can miss and then not find again. */
@@ -24852,7 +24855,6 @@ $('#obEmailGo').addEventListener('click', async () => {
     $('#codebox').classList.add('open');
     $('#obCodeIn').focus();
     authStatus(`Sent to ${email}. Type the sign-in code from the newest email.`,'ok');
-    toast('Code sent');
     startResendCooldown(); scheduleSpamHint();
   } catch(err){
     const m = (err.message || '').toLowerCase();
@@ -25239,7 +25241,7 @@ function openJoinSheet(){
    to submit_feedback with WHERE the user was (screen, league, version, device)
    auto-attached, so a half-formed note still tells us where to look. */
 window.openFeedback = function(){
-  openSheet("Tell us how it's going", 'What helped, what confused you, what you would change', `
+  openSheet("Tell us how it's going", '', `
     <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px">
       <button type="button" class="fbcat" data-cat="confusing">Confusing</button>
       <button type="button" class="fbcat" data-cat="friction">Friction</button>
@@ -25275,7 +25277,7 @@ window.openFeedback = function(){
       const { error } = await sb.rpc('submit_feedback', { p_category: cat || 'other', p_body: body, p_context: ctx });
       if(error) throw error;
       closeSheet();
-      toast('Sent — thank you. This is how the app gets better.');
+      toast('Sent — thank you.');
     }catch(err){
       toast(humanError(err, 'Could not send.'));
       $('#fbGo').disabled = false;
@@ -26076,8 +26078,7 @@ async function openRyderSetup(){
     <input class="f" id="rsStart" type="date" value="${nextSundayISO()}">
     <label class="f" style="margin-top:10px" for="rsLeague">Attach to a season <span style="color:var(--dim)">(optional)</span></label>
     <select class="f" id="rsLeague" style="font-family:var(--sans)"><option value="">On its own — invite anyone</option>${leagues}</select>
-    <label class="f" style="margin-top:12px; display:block">Add players</label>
-    <button class="btn dark" id="rsAdd" style="margin-top:6px">Search the app or tap a buddy</button>
+    <button class="btn dark" id="rsAdd" style="margin-top:12px">Add golfers</button>
     <div id="rsPicked" style="margin-top:8px"></div>
     <div class="card" style="margin-top:14px; padding:11px 13px; background:var(--bg2)">
       <div class="fine" style="padding:0; line-height:1.65">
@@ -26176,7 +26177,7 @@ async function openMajorSetup(){
     <label class="f" style="margin-top:10px; display:block">Window</label>
     <div class="seg" id="mjDays">${[2,3,4].map(n=>`<button data-n="${n}" class="${n===4?'on':''}">${n} days</button>`).join('')}</div>
     <p class="fine" style="padding:4px 0 0" id="mjWhen"></p>
-    <label class="f" style="margin-top:10px" for="mjBuy">Buy-in per player <span style="color:var(--dim)">($0 = bragging rights)</span></label>
+    <label class="f" style="margin-top:10px" for="mjBuy">Buy-in per player <span style="color:var(--dim)">($0 is bragging rights)</span></label>
     <input class="f" id="mjBuy" type="number" min="0" step="1" value="0" inputmode="numeric" style="font-family:var(--sans)">
     <div id="mjSplitWrap" style="display:none">
       <label class="f" style="margin-top:10px; display:block">The pot pays</label>
@@ -26184,8 +26185,7 @@ async function openMajorSetup(){
     </div>
     <label class="f" style="margin-top:10px" for="mjLeague">Run it with a league <span style="color:var(--dim)">(optional)</span></label>
     <select class="f" id="mjLeague" style="font-family:var(--sans)"><option value="">On its own — invite anyone</option>${leagues}</select>
-    <label class="f" style="margin-top:12px; display:block">Add golfers</label>
-    <button class="btn dark" id="mjAdd" style="margin-top:6px">Search the app or tap a buddy</button>
+    <button class="btn dark" id="mjAdd" style="margin-top:12px">Add golfers</button>
     <div id="mjPicked" style="margin-top:8px"></div>
     <div class="card" style="margin-top:14px; padding:11px 13px; background:var(--bg2)">
       <div class="fine" style="padding:0; line-height:1.65">
@@ -26247,7 +26247,7 @@ async function openMajorSetup(){
   document.getElementById('mjCancel').addEventListener('click', ()=> closeSheet());
   document.getElementById('mjGo').addEventListener('click', async ()=>{
     const name=document.getElementById('mjName').value.trim();
-    if(!name){ toast('Name the jug — a Major needs a name'); return; }
+    if(!name){ toast('A Major needs a name.'); return; }
     const go=document.getElementById('mjGo'); go.disabled=true;
     try{
       const args = {
@@ -27391,7 +27391,7 @@ function openLeagueWelcome(name){
     <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> ${CS_LEDGER} The settlement card shows who owes what.</p>
     <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>
     <div style="border-top:1px solid var(--rule); padding-top:12px">
-      <p class="fine" style="padding:0 0 8px"><b>Who else plays with you?</b> Growing the league isn't the Pro's chore — any member's link works.</p>
+      <p class="fine" style="padding:0 0 8px"><b>Who else plays with you?</b> Any member's link works — yours included.</p>
       <button class="btn dark" id="cvShare">Share the invite link</button>
     </div>`);
   /* growth (2026-07-17): the covenant ends on the share ask — the moment

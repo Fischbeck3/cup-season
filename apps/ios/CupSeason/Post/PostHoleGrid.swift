@@ -64,7 +64,7 @@ struct PostScorecardStrip: View {
       if model.card.scan != nil {
         // the scan's escape hatch: a bad read never traps anyone in the grid
         Button { model.scrapScan() } label: {
-          Label("Scrap the scan — type front & back instead", systemImage: "xmark").csType(.bodyS).foregroundStyle(cs.mut)
+          Label("Scrap the scan", systemImage: "xmark").csType(.bodyS).foregroundStyle(cs.mut)
             .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -296,7 +296,7 @@ struct PostEvenParSheet: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       CSSheetHeader(title: "Post as even par?", sub: "NO HOLES ENTERED YET")   // F-13
-      CSFine("Each hole is still on par, so this would post an even-par \(model.card.evenParTotal) — and it posts to your rounds — every season you're in reads it.")
+      CSFine("Each hole is still on par, so this would post an even-par \(model.card.evenParTotal).")
       Button("Enter the holes") { dismiss() }
         .buttonStyle(.csPrimary())   // F-13
       Button("Post even par anyway") { model.postEvenParAnyway() }

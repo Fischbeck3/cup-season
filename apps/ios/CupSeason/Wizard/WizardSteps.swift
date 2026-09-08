@@ -687,11 +687,10 @@ struct WizardPortraitCard: View {
             }
             Text(portrait.potSub).font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
           } else {
+            // D297 · the dial already reads "Bragging rights" at $0; the "$0 STAKE"
+            // tail was the same fact said again (W-43, twin of the desk's wizp-row).
             row("The pot") {
-              HStack(spacing: 8) {
-                Text("Bragging rights").csType(.name).foregroundStyle(cs.ink)
-                Text("$0 STAKE").font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
-              }
+              Text("Bragging rights").csType(.name).foregroundStyle(cs.ink)
             }
           }
           row("Season") {

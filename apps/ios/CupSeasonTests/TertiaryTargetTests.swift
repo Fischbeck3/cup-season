@@ -45,7 +45,7 @@ struct TertiaryTargetTests {
 
   @Test("a long link wraps rather than shrinking below the floor")
   func longLabelStaysLegal() {
-    let h = height("Start over — clear this round")
+    let h = height("A long tertiary link that wraps onto a second line at the default size")
     #expect(h >= 44, "a wrapped link is still a target. Got \(h)")
   }
 }

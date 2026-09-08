@@ -408,8 +408,10 @@ public enum UpNext {
       chips.append(UpChip("Buddy's playing", "\(first) · \(ScheduleDates.whenLower(p, today: today))",
                           w.id.map(UpChip.Go.round) ?? .calendar))
     }
-    let needs = invites + requests
-    if needs > 0 { chips.append(UpChip("Needs you", "\(needs) \(needs == 1 ? "invite" : "invites")", .people)) }
+    // D297 / ruling row 30 · no "Needs you" chip. It counted the invite rows
+    // that sit on the same screen with Accept on them, and sent the golfer to
+    // a third screen to answer what the rows already ask. `invites` and
+    // `requests` stay in the signature for the callers; nothing reads them.
     if hasMemberships, let days = CSDate.days(from: today, to: ScheduleDates.endOfMonth(today)) {
       let d = max(0, days)
       if d <= 10 { chips.append(UpChip("Month closes", d == 0 ? "today" : "in \(d) day\(d == 1 ? "" : "s")", .standings)) }

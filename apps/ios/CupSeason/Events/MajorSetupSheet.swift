@@ -83,7 +83,7 @@ struct MajorSetupSheet: View {
       EventFieldLabel(text: "Window")
       CSSegment([2, 3, 4].map { ($0, "\($0) days") }, selection: $days)
       if let when = MajorMath.whenLine(finalOn: finalISO, days: days) { CSFine(when) }
-      EventFieldLabel(text: "Buy-in per player", hint: "($0 = bragging rights)")
+      EventFieldLabel(text: "Buy-in per player", hint: "($0 is bragging rights)")
       CSField("0", text: $buy, font: CSFont.mono).keyboardType(.numberPad).accessibilityLabel("Buy-in per player, dollars")
       if buyIn > 0 {
         EventFieldLabel(text: "The pot pays")
@@ -91,8 +91,7 @@ struct MajorSetupSheet: View {
       }
       EventFieldLabel(text: "Run it with a league", hint: "(optional)")
       EventLeaguePicker(memberships: memberships, selection: $league)
-      EventFieldLabel(text: "Add golfers")
-      Button("Search the app or tap a buddy") { picking = true }
+      Button("Add golfers") { picking = true }
         .buttonStyle(.csSecondary())
       ForEach(staged) { p in EventStagedRow(person: p) { staged.removeAll { $0.id == p.id } } }
       // D252 · the jug is defined once, and it is defined HERE too because this
@@ -119,7 +118,7 @@ struct MajorSetupSheet: View {
 
   private func create() {
     let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !n.isEmpty else { toasts.show("Name the jug — a Major needs a name"); return }
+    guard !n.isEmpty else { toasts.show("A Major needs a name."); return }
     busy = true
     Task {
       defer { busy = false }

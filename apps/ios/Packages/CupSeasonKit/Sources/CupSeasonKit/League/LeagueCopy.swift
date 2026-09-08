@@ -269,7 +269,7 @@ public enum LeagueCopy {
   /// `#kickoffHero` (12024–12030).
   public static func kickoff(_ c: RoomClock) -> (tee: String, count: String) {
     let d = c.daysToTee
-    return ("First tee \(c.firstTeeText)", "KICKS OFF IN \(d) DAY\(d == 1 ? "" : "S") · SQUADS ARE SET · PRACTICE ROUNDS POST TO YOUR ROUNDS, NOT THE SEASON")
+    return ("First tee \(c.firstTeeText)", "KICKS OFF IN \(d) DAY\(d == 1 ? "" : "S") · SQUADS ARE SET")
   }
 
   /// The danger zone (12688–12703).

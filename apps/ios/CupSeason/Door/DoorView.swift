@@ -186,7 +186,7 @@ struct DoorView: View {
           .padding(.top, 4)
           .disabled(vm.busy)
       }
-      Text("One code, no password. Codes come from the newest email.")
+      Text("One code, no password.")
         .csType(.bodyS).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
       haveACode
     }
@@ -313,9 +313,10 @@ struct DoorView: View {
 
   private func send() {
     Task {
-      let was = vm.stage
       await vm.send()
-      if vm.stage == .code { focus = .code; if was == .email { toasts.show("Code sent") } }
+      // D297 · no "Code sent" toast: the live region under the field says
+      // "Sent to … Type the 8 digits from the newest email." in the same tick.
+      if vm.stage == .code { focus = .code }
       else if vm.stage == .password { focus = .password }
     }
   }

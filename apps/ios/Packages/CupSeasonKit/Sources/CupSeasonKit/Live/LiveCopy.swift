@@ -606,7 +606,7 @@ public enum LiveCopy {
     }
     let intro = "\(leagueless ? "Every complete card posts to its golfer" : "Complete cards post to the season"), vouched by the group\(guestN > 0 ? "; \(guestN) guest\(guestN == 1 ? "" : "s") get\(guestN == 1 ? "s" : "") a recap to claim" : ""). A partial card is skipped, not lost."
     return FinishSheet(intro: intro, warning: warning,
-                       primary: done.isEmpty ? (leagueless ? "Finish — no complete card to post" : "Finish — no complete member card to post")
+                       primary: done.isEmpty ? "Finish the round"
                                              : "Post \(done.count) card\(done.count == 1 ? "" : "s")\(leagueless ? " — each to its golfer" : " to the season")",
                        secondary: "This one was casual — post nothing", completeCards: done.count, guests: guestN)
   }

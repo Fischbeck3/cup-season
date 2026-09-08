@@ -362,13 +362,15 @@ private let today = "2026-09-08"
   /// the same defect one slot over: with the strip carrying NEXT, the "Next
   /// round" chip stands down and the rest of the strip is untouched.
   @Test func theNextRoundChipStandsDownUnderTheStrip() {
-    let rows = [plan("2026-09-12")]
-    let without = UpNext.chips(watch: rows, invites: 1, requests: 0, hasMemberships: true, today: today)
-    let with = UpNext.chips(watch: rows, invites: 1, requests: 0, hasMemberships: true, today: today,
+    // D297 · the "Needs you" chip is gone (ruling row 30), so the rest of the
+    // strip is the month clock — a late-month today puts it inside its window.
+    let rows = [plan("2026-09-27")], late = "2026-09-25"
+    let without = UpNext.chips(watch: rows, invites: 0, requests: 0, hasMemberships: true, today: late)
+    let with = UpNext.chips(watch: rows, invites: 0, requests: 0, hasMemberships: true, today: late,
                             suppress: [.myNextRound])
     #expect(without.contains { $0.k == "Next round" })
     #expect(!with.contains { $0.k == "Next round" })
-    #expect(with.contains { $0.k == "Needs you" })
+    #expect(with.contains { $0.k == "Month closes" })
   }
 
   @Test func suppressingSomethingElseLeavesTheChipAlone() {
