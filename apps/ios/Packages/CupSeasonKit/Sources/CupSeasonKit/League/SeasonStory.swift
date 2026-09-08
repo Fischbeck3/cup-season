@@ -571,8 +571,11 @@ public enum SeasonRules {
     let allowance = Bylaws.allow[max(0, min(Bylaws.allow.count - 1, b.presetIdx))]
     let counted = b.cap.map { "Your best \(SeasonStoryCopy.word($0)) round\($0 == 1 ? "" : "s") each calendar month count." }
                 ?? "Every round you post counts."
+    // PROD-06 / R-M · the playing HCP IS the index under the allowance; "playing
+    // HCP at 95%" applied it twice on the page headed How it scores (L-14).
+    let at = allowance == 100 ? "your full index" : "your index at \(percent(allowance))"
     out.append(Section(head: "How it scores",
-                       body: "Every round you post is scored against your playing HCP at \(percent(allowance)). \(counted)"))
+                       body: "Every round you post is scored against your playing HCP — \(at). \(counted)"))
 
     // WHAT YOU OWE THE SEASON — D14's floor, D140's solo truth, the auto-bye.
     if b.floor > 0 {

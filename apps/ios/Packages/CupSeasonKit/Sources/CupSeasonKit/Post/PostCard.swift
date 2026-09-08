@@ -528,10 +528,13 @@ public struct PostScan: Sendable, Equatable, Identifiable {
     return (fixed, read.filter { !($0 > 0) }.count)
   }
 
-  // the soft-failure vocabulary (6598–6608)
-  public static let capToast = "Scan limit for today — type your nines in"
-  public static let restingToast = "Scan didn’t come back — type your nines in"
-  public static let unreadableToast = "Couldn’t read the card — type your nines in"
+  // the soft-failure vocabulary (6598–6608). PROD-24 · the phone composer's
+  // default field is YOUR GROSS (the nines sit behind the card fold), so the
+  // toast asks for the number the form shows; the desk keeps "nines" — its
+  // fields are Front 9 / Back 9.
+  public static let capToast = "Scan limit for today — type your gross in"
+  public static let restingToast = "Scan didn’t come back — type your gross in"
+  public static let unreadableToast = "Couldn’t read the card — type your gross in"
   public static let readingLabel = "Reading the card…"
 }
 

@@ -93,11 +93,14 @@ public struct WizardDials: Sendable, Equatable {
     Preset(cap: 3, floor: 2, name: "Standard", lead: "The default. Honest scores, light guardrails.", line: ""),
     Preset(cap: 2, floor: 3, name: "Cutthroat", lead: "Tight. Vouched where you can, and the screws in.", line: ""),
   ]
-  public static let presetSummary = [
-    "Casual — honest scores, and everything counts.",
-    "Standard — the default. Honest scores, light guardrails.",
-    "Cutthroat — tight. Vouched where you can, and the screws in.",
-  ]
+  /// The preset's one sentence, `name — lead` (W-48, L-16). The wizard no
+  /// longer renders it under the cards — the selected card carries it — but
+  /// it is derived here so the words cannot drift from `presets`.
+  public static func presetSummary(_ i: Int) -> String {
+    let p = presets[max(0, min(presets.count - 1, i))]
+    let lead = p.lead.isEmpty ? "" : p.lead.prefix(1).lowercased() + p.lead.dropFirst()
+    return "\(p.name) — \(lead)"
+  }
   /// The DB's own words for the three presets (14890–14895).
   public static let presetKeys = ["casual", "standard", "cutthroat"]
   public static let verificationKeys = ["honor", "attested", "ghin"]
@@ -161,7 +164,7 @@ public struct WizardDials: Sendable, Equatable {
   }
   /// `toast(pr.name+' rules locked for the season')`
   public var presetToast: String { "\(Self.presets[preset].name) rules set for the season" }
-  public var presetSummaryText: String { Self.presetSummary[preset] }
+  public var presetSummaryText: String { Self.presetSummary(preset) }
 
   // MARK: the steppers (7104–7112)
 

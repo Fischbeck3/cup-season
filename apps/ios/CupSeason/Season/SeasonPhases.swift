@@ -176,7 +176,7 @@ struct SeasonSetupChecklist: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       CSSectionHead("Three steps to first tee")
-      RoomCheckRow("The rules", sub: "The stakes, the rules, the format") { num("1") } trail: {
+      RoomCheckRow("The rules", sub: "The stakes, the format, the minimum") { num("1") } trail: {
         // §3 · setup is one of the four states where this page owns a primary
         if model.isPro { CSDoor(.primary("Continue", links.openWizard)) } else { Text("The Pro").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
       }

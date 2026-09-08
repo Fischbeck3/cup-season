@@ -477,7 +477,7 @@ struct SeasonDoors: View {
         }
         .buttonStyle(.plain)
       }
-      door("The board", sub: "Every round, every notice, in one thread") { links.openBoard() }
+      door("The board", sub: "Where the season talks") { links.openBoard() }
       door("The schedule", sub: "Who is playing, and when") { links.openSchedule() }
       // a door with nothing behind it is worse than no door (L-32)
       if let album = links.openAlbum {

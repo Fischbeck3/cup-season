@@ -588,7 +588,7 @@ private struct SettingsPane: View {
           vm.deleteArmed = true; CSHaptic.warning()
           // Y-33 · the arm swaps this control for a paragraph and two buttons;
           // VoiceOver is told, or the swap is silent.
-          AccessibilityNotification.Announcement("One more step: Delete permanently, or Cancel.").post()
+          AccessibilityNotification.Announcement("One more step: Delete permanently, or Not now.").post()
         } label: {
           Text("Delete my account").csType(.bodyS).foregroundStyle(cs.neg).frame(minHeight: 44).contentShape(Rectangle())
         }

@@ -596,7 +596,7 @@ struct LiveCardSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
-          CSSheetHeader(title: "Set the pars", sub: ((store.state.course.label.isEmpty ? "Course" : store.state.course.label) + " · pars only").uppercased())
+          CSSheetHeader(title: "Set the pars", sub: (store.state.course.label.isEmpty ? "Course" : store.state.course.label).uppercased())
           side(nine ? "The nine" : "Front nine", $f9, placeholder: "453453543")
           if !nine { side("Back nine", $b9, placeholder: "434445345") }
           HStack {

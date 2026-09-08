@@ -459,7 +459,8 @@ struct WizardDialsPane: View {
     VStack(alignment: .leading, spacing: 10) {
       eyebrow(WizardCopy.presetEyebrow, key: "preset", text: WizardCopy.presetHelp)
       ForEach(0..<3, id: \.self) { i in presetCard(i) }
-      CSFine(model.dials.presetSummaryText)
+      // W-48 / D201 · no summary line under the cards: the selected card says
+      // its one sentence beside it, and a second copy read as a second fact.
       CSFine(WizardCopy.verificationNote)   // M-15: a norm the league holds, not a filter Cup Season applies
 
       WizardSetRow(lab: WizardCopy.buyIn.0, small: WizardCopy.buyIn.1, val: model.dials.stakeText,

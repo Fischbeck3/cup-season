@@ -5043,7 +5043,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="roompane on" id="room-standings">
         <div id="homeSetup" style="display:none">
           <div class="eyebrow">League setup · three steps to first tee</div>
-          <div class="check"><span class="num">1</span><div class="tt"><b>The rules</b><small>The stakes, the rules, the format</small></div><button class="mini" data-go="wizard">Continue</button></div>
+          <div class="check"><span class="num">1</span><div class="tt"><b>The rules</b><small>The stakes, the format, the minimum</small></div><button class="mini" data-go="wizard">Continue</button></div>
           <div class="check"><span class="num">2</span><div class="tt"><b>Invite the crew</b><small>One link fills the league — it opens the moment you start the season</small></div><button class="mini" disabled style="opacity:.4">After step 1</button></div>
           <div class="check"><span class="num">3</span><div class="tt"><b>Squads form</b><small>After the season starts</small></div><button class="mini" disabled style="opacity:.4">After step 1</button></div>
         </div>
@@ -6597,7 +6597,8 @@ function csSeasonRules(){
     ? 'Every round you post counts.'
     : `Your best ${csWord(cap)} round${cap===1?'':'s'} each calendar month count.`;
   out.push({ head:'How it scores',
-             body:`Every round you post is scored against your playing HCP at ${csAllowanceWords(ALLOW[state.preset])}. ${counted}` });
+             /* PROD-06 / R-M · the playing HCP IS the index under the allowance; "at 95%" applied it twice (L-14) — twin of SeasonStory.sections */
+             body:`Every round you post is scored against your playing HCP — ${ALLOW[state.preset]===100 ? 'your full index' : 'your index at '+csAllowanceWords(ALLOW[state.preset])}. ${counted}` });
   const floor = Number(state.floor||0);
   if(floor > 0){
     const rounds = `${csCapWord(csWord(floor))} round${floor===1?'':'s'} a month.`;
@@ -8677,7 +8678,9 @@ async function openBuyInTerms(){
   if(!CS.league || state.demo) return;
   const cur = CS.settings?.buy_in_note || '';
   const due = CS.settings?.buy_in_due_on || '';
-  openSheet('How the crew pays you', CS_LEDGER, `
+  /* the ledger line is prose (a semicolon and a full stop) and `.sheet .sub` shouts by CSS — so it opens the body instead (W-01, D165) */
+  openSheet('How the crew pays you', '', `
+    <p class="fine" style="padding:0 0 12px">${CS_LEDGER}</p>
     <label class="f" for="biNote">Your words — a handle, an app, cash at the turn</label>
     <input class="f" id="biNote" maxlength="140" placeholder="Venmo @casey" value="${esc(cur)}">
     <label class="f" for="biDue" style="margin-top:10px">In by (optional)</label>
@@ -9940,7 +9943,7 @@ document.getElementById('postSetPars')?.addEventListener('click',(e)=>{ e.preven
 function openPostParsSheet(){
   const nine = state.post.side===9;
   openSheet('Set the pars',
-    (($('#inCourse')?.value||'Course')+' · pars only').toUpperCase(),
+    ($('#inCourse')?.value||'Course').toUpperCase(),
     `<div class="cardlbl"><span>Front nine</span><span id="ppF9sum">—</span></div>
      <input class="cardin" id="ppF9" inputmode="numeric" maxlength="9" placeholder="453453543" autocomplete="off">
      ${nine?'':`<div class="cardlbl"><span>Back nine</span><span id="ppB9sum">—</span></div>
@@ -11061,11 +11064,6 @@ function renderPot(){
 }
 
 /* ================= league setup ================= */
-const PRESET_SUMMARY=[
-  'Casual — honest scores, and everything counts.',
-  'Standard — the default. Honest scores, light guardrails.',
-  'Cutthroat — tight. Vouched where you can, and the screws in.',
-];
 function syncWizSegs(){
   /* reflect state onto the segments (a loaded league, or a preset change).
      D48: the format seg is retired — Points Race is the only season format. */
@@ -11076,7 +11074,9 @@ function syncWizSegs(){
   $$('.preset').forEach(b=>b.classList.toggle('sel',+b.dataset.p===state.preset));
   const fn=$('#finishNote'); if(fn) fn.textContent=FINISH_NOTES[state.finish||'cup_final'];
   const pn=$('#payNote'); if(pn) pn.textContent=PAY_NOTES[payKey]||PAY_NOTES['60,25,15'];
-  const ps=$('#presetSummary'); if(ps) ps.textContent=PRESET_SUMMARY[state.preset]||'';
+  /* W-48 / D201 · #presetSummary stays SILENT: the selected card above it
+     already says its one sentence, and a second copy read as a second fact. */
+  const ps=$('#presetSummary'); if(ps) ps.textContent='';
 }
 function renderSetup(){
   $('#stakeVal').textContent=state.stake===0?'None':fmt$(state.stake);
@@ -14803,7 +14803,7 @@ function validSide(str){ return str.length===9 && [...str].every(c=>c>='3'&&c<='
 function openCardSheet(){
   const nine = liveHoles()===9;   /* D73: a live nine types one side, not two */
   openSheet('Set the pars',
-    (($('#lrCourse').value||'Course')+' · pars only').toUpperCase(),
+    ($('#lrCourse').value||'Course').toUpperCase(),
     `<div class="cardlbl"><span>${nine?'The nine':'Front nine'}</span><span id="f9sum">—</span></div>
      <input class="cardin" id="parF9" inputmode="numeric" maxlength="9" placeholder="453453543" autocomplete="off">
      ${nine?'':`<div class="cardlbl"><span>Back nine</span><span id="b9sum">—</span></div>
@@ -15456,7 +15456,7 @@ function renderHomeHero(){
   box.innerHTML = heroCard('', 'Your buddies',
     `<div class="hh-fig"><span class="hh-pos">${buddies}</span><span class="hh-ord">${enough?`budd${buddies===1?'y':'ies'}`:'of 4'}</span></div>`,
     enough ? `<b>Two is a season. Four opens squads.</b> <em>You have ${buddies}.</em>`
-           : `<b>Two is a season. Four opens squads.</b> ${4-buddies} more and <em>your rounds start counting for something.</em>`,
+           : `<b>Two is a season. Four opens squads.</b>`,   /* the figure and the bar carry the count; a tail that said rounds count at four contradicted the sentence before it */
     `<span>Roster</span><span class="hh-bar"><i class="${enough?'ok':''}" style="width:${Math.min(100, Math.round(buddies/4*100))}%"></i></span><span>${enough?'enough':buddies+' of 4'}</span>`,
     enough?`<button class="hh-cta" data-hlg type="button">Start a season</button>`:'');
   wire('[data-hlg]', ()=> document.getElementById('wCreate')?.click());
@@ -26086,7 +26086,7 @@ async function openRyderSetup(){
     </div>
     <div style="display:flex; gap:8px; margin-top:14px;">
       <button class="btn dark" id="rsCancel" style="flex:0 0 auto; width:auto; padding:0 16px">Cancel</button>
-      <button class="btn" id="rsGo" style="flex:1">Start it</button>
+      <button class="btn" id="rsGo" style="flex:1">Set the Ryder</button>
     </div>
     <p class="fine">You captain Team A. Invited golfers get a notification to accept; you draw or assign teams from the scoreboard once they're in.</p>
   `);

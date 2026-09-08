@@ -227,7 +227,7 @@ struct PostParsSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 10) {
-          CSSheetHeader(title: "Set the pars", sub: ((model.card.course.isEmpty ? "Course" : model.card.course) + " · pars only").uppercased())
+          CSSheetHeader(title: "Set the pars", sub: (model.card.course.isEmpty ? "Course" : model.card.course).uppercased())
           sideField("Front nine", $front, .front)
           if !nine { sideField("Back nine", $back, .back) }
           HStack {
