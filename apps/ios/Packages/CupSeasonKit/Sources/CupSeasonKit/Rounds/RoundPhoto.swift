@@ -140,7 +140,10 @@ public struct RoundPhotoService: Sendable {
   /// The order matters and so does the unwind: a failed attach leaves an
   /// object with nothing pointing at it, signed-URL reachable by anyone ever
   /// handed a link, so the object goes back out before the failure is thrown.
-  public func attach(_ roundId: UUID, jpeg: Data, uid: UUID) async throws -> String {
+  /// `replacing` is the path the round carried BEFORE this call (D303): the
+  /// server may not delete a storage object, so whoever knows the old path has
+  /// to reclaim it.
+  public func attach(_ roundId: UUID, jpeg: Data, uid: UUID, replacing oldPath: String? = nil) async throws -> String {
     let path = RoundPhotoService.objectPath(uid: uid)
     do {
       _ = try await svc.client.storage.from("media")
@@ -150,6 +153,7 @@ public struct RoundPhotoService: Sendable {
     }
     do {
       _ = try await svc.call(SetRoundPhotoCall(p_round: roundId, p_photo_path: path))
+      await reclaim(oldPath, keeping: path)
       return path
     } catch {
       _ = try? await svc.client.storage.from("media").remove(paths: [path])
@@ -157,11 +161,29 @@ public struct RoundPhotoService: Sendable {
     }
   }
 
-  /// Take it off. The server reclaims the object in the same statement that
-  /// drops the reference, so there is nothing for the client to clean up.
-  public func remove(_ roundId: UUID) async throws {
+  /// Take it off. **The server used to reclaim the object in the same statement
+  /// that drops the reference, and the platform will not allow that** (D303) —
+  /// it drops the reference and `reclaim` takes the object out afterwards.
+  public func remove(_ roundId: UUID, object path: String? = nil) async throws {
     do { _ = try await svc.call(ClearRoundPhotoCall(p_round: roundId)) }
     catch { throw RoundPhotoService.translate(error) }
+    await reclaim(path, keeping: nil)
+  }
+
+  /// D303 · **the object is the caller's to reclaim, and never load-bearing.**
+  /// Supabase forbids `delete from storage.objects` outright, so the server
+  /// drops the reference and this takes the object out through the Storage
+  /// API — the one route the platform allows, and one a golfer is entitled to
+  /// take under `media_delete` (his own `{uid}/` prefix and nowhere else).
+  ///
+  /// It runs AFTER the reference is gone and it swallows its own failure, in
+  /// that order and on purpose: an orphan is unreachable except by a signed
+  /// URL nobody holds, while a round pointing at a deleted object draws a
+  /// broken photograph on the front page of the product.
+  private func reclaim(_ path: String?, keeping: String?) async {
+    guard let path, !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+          path != keeping else { return }
+    _ = try? await svc.client.storage.from("media").remove(paths: [path])
   }
 
   #if DEBUG

@@ -297,8 +297,11 @@ struct RoundReceiptSheet: View {
     }
     photoBusy = true; photoNote = nil
     defer { photoBusy = false }
+    // D303 · the path this round carried before the write. The server may not
+    // reclaim it, so the client hands it over and the service takes it out.
+    let was = seed?.photoPath
     do {
-      let path = try await RoundPhotoService().attach(roundId, jpeg: jpeg, uid: uid)
+      let path = try await RoundPhotoService().attach(roundId, jpeg: jpeg, uid: uid, replacing: was)
       var next = seed ?? ReceiptSeed(id: roundId)
       next.photoPath = path
       next.photoURL = await RoundsRepository().signedURL(path)
@@ -315,8 +318,9 @@ struct RoundReceiptSheet: View {
     guard !photoBusy else { return }
     photoBusy = true; photoNote = nil
     defer { photoBusy = false }
+    let was = seed?.photoPath
     do {
-      try await RoundPhotoService().remove(roundId)
+      try await RoundPhotoService().remove(roundId, object: was)
       var next = seed ?? ReceiptSeed(id: roundId)
       next.photoPath = nil
       next.photoURL = nil

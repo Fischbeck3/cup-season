@@ -18702,7 +18702,20 @@ function csRoundPhotoInput(){
    attach leaves an object with nothing pointing at it, signed-URL reachable by
    anyone ever handed a link — the orphan `delete_round` had to learn about on
    2026-09-01 — so the object goes back out before the golfer is told anything. */
-async function csAttachRoundPhoto(rid, file){
+/* D303 · **THE OBJECT IS THE CALLER'S TO RECLAIM.** Supabase forbids
+   `delete from storage.objects` outright (42501, "Use the Storage API
+   instead"), so the RPC drops the reference and this takes the object out
+   afterwards — the one route the platform allows, and one a golfer is
+   entitled to take under `media_delete` (his own `{uid}/` prefix, nowhere
+   else). It runs AFTER the reference is gone and swallows its own failure, in
+   that order and on purpose: an orphan is unreachable except by a signed URL
+   nobody holds, while a round pointing at a deleted object draws a broken
+   photograph. The phone's twin is `RoundPhotoService.reclaim`. */
+async function csReclaimPhotoObject(path, keeping){
+  if(!path || path === keeping || !window.sb) return;
+  try{ await sb.storage.from('media').remove([path]); }catch(_){ }
+}
+async function csAttachRoundPhoto(rid, file, oldPath){
   if(!rid || !window.sb || !window.CS?.user) return { ok:false, note:CS_PHOTO.failed };
   let path = null;
   try{
@@ -18716,6 +18729,7 @@ async function csAttachRoundPhoto(rid, file){
   try{
     const { error } = await sb.rpc('set_round_photo', { p_round: rid, p_photo_path: path });
     if(error) throw error;
+    await csReclaimPhotoObject(oldPath, path);
     const { data: s } = await sb.storage.from('media').createSignedUrl(path, 3600);
     return { ok:true, path, url: s?.signedUrl || null };
   }catch(e){
@@ -18725,11 +18739,12 @@ async function csAttachRoundPhoto(rid, file){
 }
 /* The way back, for a golfer who attached the wrong one. The server reclaims
    the object in the same statement that drops the reference. */
-async function csRemoveRoundPhoto(rid){
+async function csRemoveRoundPhoto(rid, oldPath){
   if(!rid || !window.sb || !window.CS?.user) return { ok:false, note:CS_PHOTO.removeFailed };
   try{
     const { error } = await sb.rpc('clear_round_photo', { p_round: rid });
     if(error) throw error;
+    await csReclaimPhotoObject(oldPath, null);
     return { ok:true };
   }catch(e){
     return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.removeFailed };
@@ -18901,7 +18916,7 @@ function csWireReceiptPhoto(r, rid, stampOf){
   input.onchange = async e => {
     const f=e.target.files?.[0]; e.target.value=''; if(!f || busy) return;
     busyOn(true); say('');
-    const out = await csAttachRoundPhoto(rid, f);
+    const out = await csAttachRoundPhoto(rid, f, r.photo_path);
     busyOn(false);
     if(!out.ok){ say(out.note); return; }
     r.photo_path=out.path; r.photo_url=out.url;
@@ -18917,7 +18932,7 @@ function csWireReceiptPhoto(r, rid, stampOf){
       return;
     }
     disarm(); busyOn(true);
-    const out = await csRemoveRoundPhoto(rid);
+    const out = await csRemoveRoundPhoto(rid, r.photo_path);
     busyOn(false);
     if(!out.ok){ say(out.note); return; }
     r.photo_path=null; r.photo_url=null;
