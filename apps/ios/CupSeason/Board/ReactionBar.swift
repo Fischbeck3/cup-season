@@ -151,7 +151,7 @@ struct ReactionBar: View {
           .fixedSize(horizontal: false, vertical: true)
       }
       HStack(spacing: 8) {
-        TextField("Talk your talk…", text: $draft)
+        TextField("Say something…", text: $draft)
           .accessibilityLabel("Comment")
           .csType(.body)
           .foregroundStyle(cs.ink)

@@ -461,7 +461,7 @@ public enum RunItBack {
   /// The Pro's control, and the member's. The member's names the Pro, because
   /// "ask somebody" with nobody in it is a door that does not say where it goes.
   public static func title(isPro: Bool, proFirstName: String?) -> String {
-    if isPro { return "Run it back — Season 2" }
+    if isPro { return "Run it back" }
     let who = (proFirstName?.isEmpty == false) ? proFirstName! : "the Pro"
     return "Ask \(who) to run it back"
   }

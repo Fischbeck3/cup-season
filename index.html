@@ -4341,7 +4341,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
              handler (window.openFeedback via #pilotChip id), quiet row right by
              the card/settings entry instead of hovering over every screen. -->
-        <button type="button" id="pilotChip" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 14px; margin-bottom:14px; cursor:pointer; color:var(--ink); font-family:var(--sans); font-size:13.5px; font-weight:600;">💬 Tell us how it's going<span style="margin-left:auto; color:var(--dim); font-weight:400">→</span></button>
+        <button type="button" id="pilotChip" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 14px; margin-bottom:14px; cursor:pointer; color:var(--ink); font-family:var(--sans); font-size:13.5px; font-weight:600;">Tell us how it's going<span style="margin-left:auto; color:var(--dim); font-weight:400">→</span></button>
         <!-- the founder's desk: hidden for everyone but the owner; the SERVER
              is the gate (founder_desk/founder_note refuse non-founders) — this
              display toggle is courtesy, not security -->
@@ -7549,7 +7549,7 @@ function socialBar(f, fi, opts){
   const thread = comments ? `<div class="cthread" id="${ns}th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
       <div class="cinput">
-        <input class="f" placeholder="Talk your talk…" data-i="${fi}">
+        <input class="f" placeholder="Say something…" data-i="${fi}">
         <button class="mini" data-s="${fi}">Send</button>
       </div>
     </div>` : '';
@@ -9493,7 +9493,7 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     host.style.display='block';
     host.scrollIntoView({ block:'nearest' });
   } else {
-    openSheet(firstEver?'Welcome to the season ⛳':'Your round', sub, rows.join(''));
+    openSheet(firstEver?'Welcome to the season':'Your round', sub, rows.join(''));
   }
   const scope = desk ? host : $('#shBody');
   const actBtn = scope.querySelector('#epiAct');
@@ -15518,20 +15518,21 @@ window.renderHomeHero = renderHomeHero;
 
 /* ============ D81 R3: the occasion engine ============
    Golf's real calendar is the one fact source that works on day one — it
-   needs nothing from the user. Six windows, all copy OBLIQUE per the
-   famous-golf-wing rule (the wink IS the feature; obliqueness is also the
-   legal safe zone) — the marker art carries the nod, never a name.
+   needs nothing from the user. Six windows. The plain line `k` NAMES THE
+   WEEK and the remark `h` stays oblique — the scene, then the observation
+   (TERMINOLOGY §2.2, D297 class 6; D81 R3's "never a name" is amended
+   there). The marker art still carries the nod.
    Weekend CLUSTERING preempts the calendar: four buddies out on one date
    is a better occasion than any date table. Dismiss is per-window-per-year
    (localStorage), so next spring the azaleas come back. */
 const OCCASIONS = [
-  {key:'opener',  w:[3,28, 4,13],  earned:true,  k:'The first one of the year', h:'Azaleas are blooming somewhere.',
+  {key:'opener',  w:[3,28, 4,13],  earned:true,  k:'Masters week', h:'Azaleas are blooming somewhere.',
    p:'One window, every card on one board, one name on the jug.', act:'Put a jug up', go:'event', mk:'azalea'},
-  {key:'test',    w:[6,8,  6,22],  earned:true,  k:'The hardest test', h:'Somewhere out there, par is winning.',
+  {key:'test',    w:[6,8,  6,22],  earned:true,  k:'U.S. Open week', h:'Somewhere out there, par is winning.',
    p:'A championship window — two to four days, best round takes it.', act:'Set the Major', go:'event', mk:'no2'},
-  {key:'oldest',  w:[7,10, 7,24],  earned:true,  k:'The oldest one', h:'Links weather is a state of mind.',
+  {key:'oldest',  w:[7,10, 7,24],  earned:true,  k:'Open week', h:'Links weather is a state of mind.',
    p:'One window, every card on one board, one name on the jug.', act:'Name the jug', go:'event', mk:'jug'},
-  {key:'teams',   w:[9,18, 10,5],  earned:false, k:'The big team match', h:'Two teams. One cup. You know the one.',
+  {key:'teams',   w:[9,18, 10,5],  earned:false, k:'The big team match', h:'Two teams. One cup.',
    p:'One opponent a week, first past half the points. Yours can start the same weekend.', act:'Run your own', go:'event', mk:null},
   {key:'fall',    w:[10,1, 11,20], earned:true,  k:"The season's turning", h:'Cool mornings, empty fairways.',
    p:'A fall Major — two to four days, best round takes it.', act:'Name the jug', go:'event', mk:null},
@@ -15803,9 +15804,9 @@ function feedRow(r, idx, stamp){
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
   const course = esc(r.course || 'a round');
   const pviN = r.pvi!=null ? Number(r.pvi) : null;
-  const milestone = r.is_pr ? '🔥 Personal best'
-    : r.is_sub80 ? '⛳ Broke 80 — first time'
-    : r.is_first ? '🎉 First round posted' : null;
+  const milestone = r.is_pr ? 'Personal best'
+    : r.is_sub80 ? 'Broke 80 — first time'
+    : r.is_first ? 'First round posted' : null;
   const vp0 = pviN!=null ? vsPhrase(pviN) : '';
   const vp = r.is_me ? vp0 : theirs(vp0);   /* crew rows speak third person */
   const vpCap = vp ? vp[0].toUpperCase()+vp.slice(1) : '';
@@ -17438,7 +17439,7 @@ function csProFirstName(m){
 }
 
 function csRunItBackTitle(isPro, proFirstName){
-  if(isPro) return 'Run it back — Season 2';
+  if(isPro) return 'Run it back';
   return 'Ask ' + (proFirstName || 'the Pro') + ' to run it back';
 }
 function csRunItBackSub(isPro){
@@ -20205,7 +20206,7 @@ function renderEvent(){
   }
   if(ev.status==='complete'){
     /* D62: the rematch tap — benches re-invited, series line follows */
-    html+=`<div style="margin:2px 0 8px"><button class="btn dark" style="width:100%" onclick="window.ryderRunBack()">Run it back — next year's benches</button></div>`;
+    html+=`<div style="margin:2px 0 8px"><button class="btn dark" style="width:100%" onclick="window.ryderRunBack()">Run it back</button></div>`;
   }
 
   /* how it scores — everyone sees the rule, not just the organizer */
@@ -20446,7 +20447,7 @@ function renderMajorRoom(el, E){
       html+=`<button class="btn" id="mjShare" style="width:100%; margin-top:12px">Share the jug</button>`;
     }
     /* D61: the rematch tap — the only door into a lineage */
-    html+=`<div style="margin-top:8px"><button class="btn dark" style="width:100%" onclick="window.majorRunBack()">Run it back — same jug, next year</button></div>`;
+    html+=`<div style="margin-top:8px"><button class="btn dark" style="width:100%" onclick="window.majorRunBack()">Run it back</button></div>`;
   } else {
     html+=`<div class="eyebrow">Leaderboard${ev.status==='live'?' — live':''}</div>`;
     let pos=0;

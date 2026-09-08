@@ -607,7 +607,7 @@ public enum WizardCopy {
   public static let joinLeague = "Join with a code"
   public static let leaguelessLine = "Add a round — it posts to your rounds. Seasons score it when you join one."
   public static let runBackK = "Season complete"
-  public static let runBack = "Run it back — Season 2"
+  public static let runBack = "Run it back"
   public static let runBackSub = "Same crew, same rules, fresh table — change anything in the wizard."
   /// `runItBack` (14177): strip a trailing "· S<n>" and append "· S2".
   public static func runBackName(_ old: String) -> String {

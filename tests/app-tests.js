@@ -1464,7 +1464,7 @@
     t('C-11: the client hashes, and takes no salt', csContactDigest.length, 1);
 
     /* D243 · run it back, role-gated */
-    t('D243: the Pro runs it back', csRunItBackTitle(true, 'Galen'), 'Run it back — Season 2');
+    t('D243: the Pro runs it back', csRunItBackTitle(true, 'Galen'), 'Run it back');
     t('D243: a member asks, and the Pro is named', csRunItBackTitle(false, 'Galen'), 'Ask Galen to run it back');
     t('D243: with no name it is still a door', csRunItBackTitle(false, null), 'Ask the Pro to run it back');
     t('D243: the Pro\'s sub promises the roster',

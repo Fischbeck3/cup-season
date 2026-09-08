@@ -218,10 +218,10 @@ public struct HomeStreamRepository: Sendable {
 
 public enum HomeCopy {
   public static func milestone(_ r: HomeFeedRow) -> String? {
-    if r.is_pr == true { return "🔥 Personal best" }
-    if r.is_sub80 == true { return "⛳ Broke 80 — first time" }
+    if r.is_pr == true { return "Personal best" }
+    if r.is_sub80 == true { return "Broke 80 — first time" }
     // TERMINOLOGY §4 row 7 · the card is the CREDENTIAL; a round POSTS.
-    if r.is_first == true { return "🎉 First round posted" }
+    if r.is_first == true { return "First round posted" }
     return nil
   }
   public static func who(_ r: HomeFeedRow) -> String { r.is_me == true ? "You" : (r.golfer ?? "A golfer") }
@@ -231,8 +231,10 @@ public enum HomeCopy {
 
 // MARK: - the occasion engine (D81 R3; index.html 10032–10131)
 
-/// Six calendar windows, all copy OBLIQUE — the marker art carries the nod,
-/// never a name. Dismiss is per-window-per-year, so next spring the azaleas
+/// Six calendar windows. The plain line `k` NAMES THE WEEK and the remark `h`
+/// stays oblique — the scene, then the observation (TERMINOLOGY §2.2, D297
+/// class 6; D81 R3's "never a name" is amended there). The marker art still
+/// carries the nod. Dismiss is per-window-per-year, so next spring the azaleas
 /// come back. Weekend CLUSTERING preempts the calendar.
 ///
 /// D252 · FOUR of the six sell a Major or a jug, and the Major's door is gated
@@ -272,13 +274,13 @@ public struct Occasion: Sendable, Identifiable {
   public var id: String { key }
 
   public static let all: [Occasion] = [
-    Occasion(key: "opener", window: (3, 28, 4, 13), earned: true, k: "The first one of the year", h: "Azaleas are blooming somewhere.",
+    Occasion(key: "opener", window: (3, 28, 4, 13), earned: true, k: "Masters week", h: "Azaleas are blooming somewhere.",
              p: "One window, every card on one board, one name on the jug.", act: "Put a jug up", go: .event, marker: "azalea", leaguelessOnly: false, needsMajor: true),
-    Occasion(key: "test", window: (6, 8, 6, 22), earned: true, k: "The hardest test", h: "Somewhere out there, par is winning.",
+    Occasion(key: "test", window: (6, 8, 6, 22), earned: true, k: "U.S. Open week", h: "Somewhere out there, par is winning.",
              p: "A championship window — two to four days, best round takes it.", act: "Set the Major", go: .event, marker: "no2", leaguelessOnly: false, needsMajor: true),
-    Occasion(key: "oldest", window: (7, 10, 7, 24), earned: true, k: "The oldest one", h: "Links weather is a state of mind.",
+    Occasion(key: "oldest", window: (7, 10, 7, 24), earned: true, k: "Open week", h: "Links weather is a state of mind.",
              p: "One window, every card on one board, one name on the jug.", act: "Name the jug", go: .event, marker: "jug", leaguelessOnly: false, needsMajor: true),
-    Occasion(key: "teams", window: (9, 18, 10, 5), earned: false, k: "The big team match", h: "Two teams. One cup. You know the one.",
+    Occasion(key: "teams", window: (9, 18, 10, 5), earned: false, k: "The big team match", h: "Two teams. One cup.",
              p: "One opponent a week, first past half the points. Yours can start the same weekend.", act: "Run your own", go: .event, marker: nil, leaguelessOnly: false, needsMajor: false),
     Occasion(key: "fall", window: (10, 1, 11, 20), earned: true, k: "The season's turning", h: "Cool mornings, empty fairways.",
              p: "A fall Major — two to four days, best round takes it.", act: "Name the jug", go: .event, marker: nil, leaguelessOnly: false, needsMajor: true),

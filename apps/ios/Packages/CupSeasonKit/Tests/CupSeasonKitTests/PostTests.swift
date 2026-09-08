@@ -340,7 +340,7 @@ import Foundation
     #expect(quiet.rows(cap: 4, firstEver: false).isEmpty)
     let first = quiet.rows(cap: 4, firstEver: true)
     #expect(first.count == 1 && first[0] == .line(icon: "🎉", title: "Your first round is on the board", sub: "Your number and record start here"))
-    #expect(PostEpilogue.title(firstEver: true) == "Welcome to the season ⛳")
+    #expect(PostEpilogue.title(firstEver: true) == "Welcome to the season")
     #expect(quiet.subtitle(course: "Papago") == "84 at PAPAGO" && quiet.subtitle(course: nil) == "THE ROUND, FOR YOU FIRST")
     #expect(PostEpilogue.linkText(name: "Jerecho", gross: 84, course: nil) == "Jerecho — 84 at the course")
   }

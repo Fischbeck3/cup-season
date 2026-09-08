@@ -155,7 +155,7 @@ public struct PostEpilogue: Sendable, Equatable {
     return rows
   }
 
-  public static func title(firstEver: Bool) -> String { firstEver ? "Welcome to the season ⛳" : "Your round" }
+  public static func title(firstEver: Bool) -> String { firstEver ? "Welcome to the season" : "Your round" }
   /// "84 AT PAPAGO" / "THE ROUND, FOR YOU FIRST"
   public func subtitle(course: String?) -> String {
     guard let course, !course.isEmpty else { return "THE ROUND, FOR YOU FIRST" }

@@ -1234,6 +1234,20 @@ let VOCAB_LAWS = null;
                                                                   /\bthe engine('s|’s)?\b/i, /\(D\d{1,3}\)/, /\bdanger zone\b/i,
                                                                   /\b(commissioner|organizer) only\b/i, /\bisn.t built yet\b/i, /\bhand(ed)? back a token\b/i,
                                                                   /\bone push away\b/i, /\bmailer\b/i]],
+    /* 43 · D297 class 6 / the canon's "never wink at the user, never explain
+       the joke" / TERMINOLOGY §2.2 and §2.5. THE TAIL THAT SAYS IT'S A JOKE
+       retires, and the wink is never printed without its scene. The three
+       run-it-back tails were three jokes for one verb (*Run it back*, §2.5);
+       "You know the one." told the reader there was a reference; "Talk your
+       talk…" was a placeholder trying to be funny (a field asks for what goes
+       in it); and the three occasion riddles ("The first one of the year",
+       "The hardest test", "The oldest one") were the remark's scene line
+       written as a second riddle — the plain line names the week (§2.2's own
+       row: "Masters week."). Each was on a surface on 2026-09-07. The wink
+       itself (the `h` line) is not scanned — the restraint is the joke, and a
+       grep cannot hear restraint; the row holds the shapes that shipped. */
+    [43, 'the tail that says it’s a joke retires (D297 class 6)', [/\bRun it back — (Season \d|next year|same jug)/, /\bYou know the one\b/i,
+                                                                    /\bTalk your talk\b/i, /^(The first one of the year|The hardest test|The oldest one)$/]],
   ];
 
   const hits = [];
@@ -1368,6 +1382,8 @@ let VOCAB_LAWS = null;
       ['NO ROUNDS YET. SQUADS FORM WHEN THE PRO LOCKS.', 41],
       ['Boot stalled at [memberships] — network or auth hang', 42],
       ['Rated — the sentence needs the next database push', 42],
+      ['Run it back — Season 2', 43],
+      ['Two teams. One cup. You know the one.', 43],
     ];
     for (const [text, n] of probes) {
       const law = LAWS.find(l => l[0] === n);
