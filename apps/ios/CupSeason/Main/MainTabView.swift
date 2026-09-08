@@ -268,6 +268,8 @@ struct MainTabView: View {
   @Environment(SessionStore.self) private var store
   @Environment(LookStore.self) private var looks
   @Environment(\.cs) private var cs
+  /// D302 · the tab bar's ember follows the golfer's palette.
+  @Environment(\.csLookAccent) private var la
   @Environment(\.colorScheme) private var scheme
   @Environment(\.scenePhase) private var scenePhase
   /// D241 / D253 · the one line a redeemed link says. The shell's own toast
@@ -432,7 +434,10 @@ struct MainTabView: View {
     // page simply ends where it ends. `csTabBarRoom` / `csTabBarEdge` /
     // `CSTabBarProbe` / `CSTabBarLongPress` are the machinery a floating pill
     // needed, and Wave 8 deletes the declarations with the rest of the shims.
-    .tint(cs.brand)
+    // D302 · the tab bar's one ember takes the look too — the ⊕ is the most
+    // seen mark in the product, and a palette that skipped it would be a
+    // palette a golfer had to hunt for.
+    .tint(la.accent)
     .environment(\.presenter, presenter)
     .environment(\.openCompetition, { id, pane in openCompetition(id, pane: pane) })
     .environment(\.openGolfers, { openGolfers() })

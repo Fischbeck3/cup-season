@@ -510,6 +510,8 @@ public struct CSFactStrip: View {
 /// (§2), so the chip and the headline never fight over a 362pt measure.
 public struct CSStoryCard<Aside: View>: View {
   @Environment(\.cs) private var cs
+  /// D302 · the live dot and its eyebrow wear the look, not a fixed ember.
+  @Environment(\.csLookAccent) private var la
   @Environment(\.dynamicTypeSize) private var typeSize
   let eyebrow: String
   let live: Bool
@@ -560,7 +562,7 @@ public struct CSStoryCard<Aside: View>: View {
         // §1.2 · a 7pt disc, and the glyph family's dot is 0.3 of its box —
         // so the box is 23 and the disc is 6.9. Named here rather than drawn
         // as a bare `Circle()`, which is a container shape (`LINT-10`).
-        CSGlyph(.dot, points: 23).foregroundStyle(cs.brand)
+        CSGlyph(.dot, points: 23).foregroundStyle(la.accent)
           .alignmentGuide(.firstTextBaseline) { $0[.bottom] - 8 }
           .accessibilityLabel("Live")
       }
@@ -571,7 +573,7 @@ public struct CSStoryCard<Aside: View>: View {
       // got worse at every size above it. The clauses are the line; a tail
       // ellipsis on a line made of clauses throws away the last fact for the
       // sake of the shape of the first.
-      CSClauseLine(eyebrow, role: .agate, caps: true, colour: live ? cs.brand : cs.mut)
+      CSClauseLine(eyebrow, role: .agate, caps: true, colour: live ? la.accent : cs.mut)
       if let tag {
         Spacer(minLength: CSTokens.Space.s2)
         Text(tag).csType(.agate, caps: true).foregroundStyle(cs.mut)

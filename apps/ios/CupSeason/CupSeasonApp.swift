@@ -26,6 +26,13 @@ struct CupSeasonApp: App {
       RootView()
         .environment(store)
         .environment(looks)
+        // D302 · **THE DIAL REACHES THE APP, NOT THREE SCREENS.** `\.csLook`
+        // was set on Home, Compete and the season page and nowhere else, so a
+        // palette a golfer picked in settings could not be seen on the page he
+        // picked it on. Set here it is the app's ground state; Compete and the
+        // season page still set their own (a league's look beats the person's,
+        // D103a) because an environment written lower down wins.
+        .environment(\.csLook, looks.personalLook())
         .task(id: store.session?.user.id) { await looks.load(userId: store.session?.user.id) }
         .environment(\.csAppearance, $appearance)
         .preferredColorScheme(appearance.colorScheme)

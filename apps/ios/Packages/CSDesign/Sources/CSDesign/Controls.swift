@@ -97,6 +97,8 @@ public struct CSSecondaryStyle: ButtonStyle {
 public struct CSTertiaryStyle: ButtonStyle {
   @Environment(\.cs) private var cs
   @Environment(\.isEnabled) private var enabled
+  /// D302 · the live rule is the look's accent, not a fixed ember.
+  @Environment(\.csLookAccent) private var la
   public enum Placement: Sendable {
     case live       // 2px brand — only when the link IS the screen's one live action
     case content    // 2px mut
@@ -168,7 +170,7 @@ public struct CSTertiaryStyle: ButtonStyle {
   private func rule(_ pressed: Bool) -> Color {
     guard enabled else { return cs.mut }
     switch placement {
-    case .live: return pressed ? cs.brand.opacity(1 - CSTokens.Alpha.a16) : cs.brand
+    case .live: return pressed ? la.accent.opacity(1 - CSTokens.Alpha.a16) : la.accent
     case .content, .toolbar: return pressed ? cs.ink : cs.mut
     }
   }
