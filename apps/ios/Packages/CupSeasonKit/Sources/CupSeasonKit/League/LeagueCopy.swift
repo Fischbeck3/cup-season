@@ -141,8 +141,8 @@ public enum LeagueCopy {
     if b.stake == 0 {
       rows.append(BylawRow("BUY-IN", "None · bragging rights"))
     } else {
-      rows.append(BylawRow("BUY-IN", "\(PotMath.dollars(b.stake)) / player"))
-      rows.append(BylawRow("POT SPLIT", "\(b.payout.map(String.init).joined(separator: " / ")) · champ / 2nd / king"))
+      rows.append(BylawRow("BUY-IN", "\(PotMath.dollars(b.stake)) / golfer"))
+      rows.append(BylawRow("POT SPLIT", "\(b.payout.map(String.init).joined(separator: " / ")) · champion / runner-up / points king"))
     }
     let tw = clock.totalWeeks
     rows.append(BylawRow("SEASON", (clock.hasSeason && tw >= 8 ? LeagueDates.durLabel(tw) + " · " : "") + clock.spanText))
@@ -159,7 +159,7 @@ public enum LeagueCopy {
     let cup = current == "cup_final"
     let next = cup ? "points_table" : "cup_final"
     return ("Finish: \(cup ? "Cup Final" : "points table") — switch to \(cup ? "points table" : "the Cup Final")", next,
-            next == "cup_final" ? "The Cup Final returns — final 4 weeks, scored fresh" : "Points table crowns the champion — posted to the board")
+            next == "cup_final" ? "The Cup Final is on — final 4 weeks, scored fresh" : "Points table crowns the champion — posted to the board")
   }
 
   // MARK: the header (12668–12704)
@@ -260,7 +260,7 @@ public enum LeagueCopy {
   public static func squadsSub(_ c: RoomClock, solo: Bool) -> String {
     if solo { return "Solo — everyone for themselves" }
     switch c.phase {
-    case .setup: return "OPENS AFTER SETTINGS LOCK"
+    case .setup: return "OPENS WHEN THE SEASON STARTS"
     case .draft: return "SQUADS DRAWING"
     case .season: return "Complete · squads are set"
     }
@@ -305,7 +305,7 @@ public enum LeagueCopy {
     let first = LeagueDates.firstOfNextMonth(today)
     var opts: [(n: Int, pri: Int, gold: Bool, t: String)] = [
       (dTo(close), 0, false, dTo(close) == 0 ? "Week closes tonight" : "Week closes \(ClashMath.dowShort(close)) · \(dTo(close))d"),
-      (dTo(first), 1, false, "Month closes \(LeagueDates.monDay(first).split(separator: " ").first.map(String.init) ?? "") 1 · floors assessed"),
+      (dTo(first), 1, false, "Month closes \(LeagueDates.monDay(first).split(separator: " ").first.map(String.init) ?? "") 1"),
     ]
     if b.finish == "cup_final" {
       // The Final tees off the morning after a week closes; that week is the
@@ -371,16 +371,16 @@ public enum LeagueCopy {
   }
 
   public static func nextUp(_ c: RoomClock, b: Bylaws, credits: Double, partial: Bool) -> (k: String, text: String) {
-    if c.atStarter { return ("Next up · kickoff", "First tee \(c.firstTeeText). Practice rounds post to your rounds, not the season.") }
+    if c.atStarter { return ("Up next · kickoff", "First tee \(c.firstTeeText). Practice rounds post to your rounds, not the season.") }
     let month = LeagueDates.monthLong(c.today)
     let rem = max(0, Double(b.floor) - credits)
     let half = halfNote(credits: credits, rem: rem)
     let text = partial
-      ? "\(month) is a short month — no floor to clear. Every round still counts."
+      ? "\(month) is a short month — no minimum to clear. Every round still counts."
       : rem > 0
         ? "Post \(fmtN(rem)) more round\(rem == 1 ? "" : "s") this month — \(b.capLabel.lowercased()) count, you've posted \(fmtN(credits))." + half
         : "\(month) is covered — \(fmtN(credits)) rounds counting. A better one always replaces your lowest." + half
-    return ("Next up · \(month)", text)
+    return ("Up next · \(month)", text)
   }
 
   /// `#lineSplit` (11943). M1 · cents in, the settlement's own split, and
@@ -388,7 +388,7 @@ public enum LeagueCopy {
   /// into a figure nobody will be paid.
   public static func lineSplit(potCents: Int, payout: [Int]) -> String {
     let t = PotMath.trioCents(potCents: potCents, payout: payout)
-    return "CHAMPS \(PotMath.money(t.champ)) · RUNNER-UP \(PotMath.money(t.runner)) · POINTS KING \(PotMath.money(t.king))"
+    return "CHAMPION \(PotMath.money(t.champ)) · RUNNER-UP \(PotMath.money(t.runner)) · POINTS KING \(PotMath.money(t.king))"
   }
 
   /// The standings empty state — twin of `renderStandings()`. One sentence
@@ -456,7 +456,7 @@ public enum RunItBack {
   /// Who is looking. `role` is `league_members.role` as the payload carries it.
   public static func isPro(role: String?) -> Bool { (role ?? "") == "commissioner" }
 
-  public static let eyebrow = "Season wrapped"
+  public static let eyebrow = "Season complete"
 
   /// The Pro's control, and the member's. The member's names the Pro, because
   /// "ask somebody" with nobody in it is a door that does not say where it goes.

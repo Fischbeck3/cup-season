@@ -76,8 +76,8 @@ struct RyderRoomView: View {
         // anyone joins one.
         CSEmpty(glyph: .emptyRail, eyebrow: "The field",
                 headline: room.players.isEmpty ? "Nobody is in it yet." : "It hasn't teed off.",
-                fact: "An event needs two sides.",
-                door: iAmOrg ? .primary("Invite players", { invite = true })
+                fact: "A Ryder needs two sides.",
+                door: iAmOrg ? .primary("Invite golfers", { invite = true })
                              : .elsewhere("The organiser opens it when both sides are in."))
           .csGutter()
       } else {
@@ -384,7 +384,7 @@ struct RyderRoomView: View {
         }
       }
       if iAmOrg {
-        CSDoor(.link("Invite players", { invite = true }))
+        CSDoor(.link("Invite golfers", { invite = true }))
         if !room.event.isComplete && !room.anyClosed {
           CSArmedButton(label: "Scrap", armedLabel: "Sure? Scrap it", busy: model.isBusy("scrap"),
                         onArm: { scrapArmed = $0 }) { scrap() }

@@ -16,7 +16,7 @@ import Foundation
     d.applyPreset(1)
     #expect(d.cap == 1 && d.floor == 2 && d.capText == "Best 3" && d.capN == 3)
     d.applyPreset(2)
-    #expect(d.cap == 0 && d.floor == 3 && d.capText == "Best 2" && d.capN == 2 && d.presetToast == "Cutthroat rules locked for the season")
+    #expect(d.cap == 0 && d.floor == 3 && d.capText == "Best 2" && d.capN == 2 && d.presetToast == "Cutthroat rules set for the season")
   }
   @Test func theLadderIsTheWebs() {
     #expect(WizardDials.caps == ["Best 2", "Best 3", "Best 4", "Best 6", "Unlimited"])
@@ -56,12 +56,12 @@ import Foundation
   }
   @Test func summaryAndNotesAreTheWebs() {
     var d = WizardDials()
-    #expect(d.presetSummaryText.hasPrefix("Standard: 95% handicap, post what you’d post to GHIN, your best 3 a month count"))
+    #expect(d.presetSummaryText == "Standard — the default. Honest scores, light guardrails.")
     d.applyPreset(2)
-    #expect(d.presetSummaryText.contains("vouched by the group where you can and the Pro rules on the rest") && d.presetSummaryText.contains("best 2 a month"))
+    #expect(d.presetSummaryText == "Cutthroat — tight. Vouched where you can, and the screws in.")
     d.applyPreset(1)
     d.payout = [70, 20, 10]
-    #expect(d.payNote == "Winner-heavy: champ 70% · runner-up 20% · Points King 10%.")
+    #expect(d.payNote == "Winner-heavy: champion 70% · runner-up 20% · Points King 10%.")
     d.finish = "points_table"
     #expect(d.finishNote.hasPrefix("Points table: whoever leads"))
     d.draftType = "assign"
@@ -94,7 +94,7 @@ import Foundation
     let p = WizardPortrait(d, roster: 3)
     #expect(p.name == "The Big Slice" && p.pot == 225 && p.squads == 4)
     #expect(p.structLine == "4 SQUADS · RANDOM DRAW")
-    #expect(p.potSub == "$75 / player · 3 in so far · 60/25/15")
+    #expect(p.potSub == "$75 / golfer · 3 in so far · 60/25/15")
     #expect(zip(p.bar, [81.6, 34.0, 20.4]).allSatisfy { abs($0 - $1) < 0.001 })
   }
   @Test func braggingRightsAndTheSeasonBand() {
@@ -311,8 +311,8 @@ import Foundation
   }
   /// D205: every minimum derives from `structMin`; a solo league forms no squads.
   @Test func theReviewStepSpeaksBothMinimums() {
-    #expect(WizardCopy.inviteNote == "Lock opens the invite link — one link fills the league. The code works until first tee, or until you close the roster. Squads need four to tee off; solo tees off at two.")
-    #expect(WizardCopy.lockButton(solo: true) == "Start the season" && WizardCopy.lockButton(solo: false) == "Start the season & form the squads")
+    #expect(WizardCopy.inviteNote == "Starting the season opens the invite link — one link fills the league. The code works until first tee, or until you close the roster. Squads need four to tee off; solo tees off at two.")
+    #expect(WizardCopy.lockButton(solo: true) == "Start the season" && WizardCopy.lockButton(solo: false) == "Start the season")
     #expect(WizardDials.structNotes["solo"]?.hasPrefix("Individual · everyone for themselves — works at any size (2+).") == true)
     #expect(WizardCopy.verificationNote == "Verification is a norm the league holds, not a filter the engine applies.")
   }

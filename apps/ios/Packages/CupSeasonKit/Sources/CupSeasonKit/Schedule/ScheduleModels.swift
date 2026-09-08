@@ -273,7 +273,7 @@ public enum CalendarBuilder {
       add(cur.endsOn, .league(text: "\(cur.name) — season ends, cup decided", gold: true))
       let first = month.firstISO
       if first > cur.startsOn && first <= cur.endsOn {
-        add(first, .league(text: "\(month.previousMonthName) closes — floors & bonuses assessed", gold: false))
+        add(first, .league(text: "\(month.previousMonthName) closes — minimums & bonuses assessed", gold: false))
       }
       for d in 1...month.daysInMonth {
         let iso = month.iso(d)
@@ -397,7 +397,7 @@ public enum UpNext {
     let mine = src.filter { ($0.mine != false || $0.tagged_me == true) && $0.my_rsvp != "out" && ($0.play_on ?? "") >= today && $0.play_on != nil }
       .sorted { ($0.play_on ?? "") < ($1.play_on ?? "") }
     if !suppress.contains(.myNextRound), let up = mine.first, let p = up.play_on {
-      let v = up.withYouChip ?? "\(up.course_label ?? "Declared round") · \(ScheduleDates.whenIn(p, today: today).lowercased())"
+      let v = up.withYouChip ?? "\(up.course_label ?? "A round") · \(ScheduleDates.whenIn(p, today: today).lowercased())"
       chips.append(UpChip("Next round", v, up.id.map(UpChip.Go.round) ?? .calendar))
     }
     // Buddy's playing — the crew's plans echo Home (10662)

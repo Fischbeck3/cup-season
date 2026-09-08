@@ -43,7 +43,7 @@ struct DeclareRoundSheet: View {
         VStack(alignment: .leading, spacing: 12) {
           CSSheetHeader(title: vm.hostName != nil ? "Get in on it" : "Put a round on the schedule",
                         sub: vm.hostName != nil ? "YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY" : "BUDDIES AND YOUR SEASONS SEE IT THE MOMENT YOU POST")
-          if let h = vm.hostName { CSFine("You're in — declaring your own round alongside \(h).", tone: cs.gold) }
+          if let h = vm.hostName { CSFine("You're in — your own round goes on the schedule alongside \(h).", tone: cs.gold) }
 
           HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 6) {
@@ -115,7 +115,7 @@ struct DeclareRoundSheet: View {
           }
           .buttonStyle(.csPrimary(busy: vm.busy))
           .padding(.top, CSTokens.Space.s2)
-          CSFine("Posts to your seasons' boards: tagged golfers are named. Scratch it any time from the calendar.")
+          CSFine("Posts to your seasons' boards: tagged golfers are named. Scratch it any time from the schedule.")
         }
         .padding(20)
       }

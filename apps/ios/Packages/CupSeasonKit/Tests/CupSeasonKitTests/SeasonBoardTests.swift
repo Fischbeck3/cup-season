@@ -147,8 +147,8 @@ import Foundation
 
 @Suite struct SeasonCountSlotTests {
   @Test func spelledToTwelveAndAFigurePastIt() {
-    #expect(SeasonBoardCopy.field(8) == "eight in the field")
-    #expect(SeasonBoardCopy.field(12) == "twelve in the field")
+    #expect(SeasonBoardCopy.field(8) == "eight playing")
+    #expect(SeasonBoardCopy.field(12) == "twelve playing")
     #expect(SeasonBoardCopy.potIn(8) == "eight in")
     #expect(SeasonBoardCopy.paid(6, of: 8) == "six of eight")
     #expect(SeasonBoardCopy.sides(4) == "four sides")

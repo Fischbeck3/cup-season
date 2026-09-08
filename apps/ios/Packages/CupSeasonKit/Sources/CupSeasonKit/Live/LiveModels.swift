@@ -34,10 +34,10 @@ public enum LiveGame: String, Codable, Sendable, CaseIterable, Equatable {
   /// `#gameNote` (8891–8896).
   public var note: String {
     switch self {
-    case .score: "Stroke play — your card, your pace. One to four players; post when you’re done."
+    case .score: "Stroke play — your card, your pace. One to four golfers; post when you’re done."
     case .match: "Singles (2) or 2v2 net best ball (4). Keep scoring; we tally the match as you go."
     case .wolf: "A round of Wolf — needs four. We run the rotation and the side tally; scores still post."
-    case .skins: "Low net takes the hole’s skin; ties carry the pot. Two to four players; scores still post."
+    case .skins: "Low net takes the hole’s skin; ties carry the pot. Two to four golfers; scores still post."
     case .sunningdale: "Match play, no handicaps — go 2 down and you get a stroke until you climb out. Singles or 2v2. Win a hole while ahead to bank a unit."
     }
   }
@@ -87,7 +87,7 @@ public enum LiveGame: String, Codable, Sendable, CaseIterable, Equatable {
     case .score: n < 1 ? "Pick at least yourself" : nil
     case .match: (n != 2 && n != 4) ? "Match play takes 2 (singles) or 4 (2v2)" : nil
     case .sunningdale: (n != 2 && n != 4) ? "Sunningdale Rules takes 2 (singles) or 4 (2v2)" : nil
-    case .skins: (n < 2 || n > 4) ? "Skins takes 2 to 4 players" : nil
+    case .skins: (n < 2 || n > 4) ? "Skins takes 2 to 4 golfers" : nil
     case .wolf: n != 4 ? "Wolf needs exactly 4" : nil
     }
   }

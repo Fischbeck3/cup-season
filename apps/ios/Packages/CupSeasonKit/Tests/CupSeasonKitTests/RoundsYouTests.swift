@@ -207,7 +207,7 @@ import Foundation
     #expect(c.best == 4.0 && c.bestText == "+4.0")        // best AGAINST the playing number
     #expect(abs((c.avg ?? 0) - 1.2) < 0.0001)             // (2.7 + 0.6 + 4.0 − 2.8 + 1.5) / 5
     #expect(c.avgText == "+1.2")
-    #expect(c.figureScope == "across 5 counting rounds")   // Y-14 · the figures name their denominator
+    #expect(c.figureScope == "across 5 rounds that count")   // Y-14 · the figures name their denominator
     #expect(c.played == 3)
     #expect(c.recent.count == 5)
     #expect(c.figure(for: rows[2]) == 4.0)
@@ -413,7 +413,7 @@ import Foundation
     #expect(s.roundsText == "2" && s.avgText == "+0.4" && s.bestText == "+1.4")
     #expect(s.deltaText == "\u{2212}0.3", "a fall in the index reads as a minus, not as a verdict")
     #expect(SeasonStats(rounds: 2, counting: 2, avg: 0, best: 0, delta: 0.4).deltaText == "+0.4")
-    #expect(s.counting == 2 && s.figureScope == "across 2 counting rounds" && s.deltaSub == YouCopy.seasonToDate)
+    #expect(s.counting == 2 && s.figureScope == "across 2 rounds that count" && s.deltaSub == YouCopy.seasonToDate)
     // Y-28 · two rounds and the number did not move is "Held", not a dash;
     // a dash is only "there is no second round yet", and the sub says so.
     let held = SeasonStats(rounds: 2, counting: 2, avg: 0.4, best: 1.4, delta: 0.0)
@@ -425,7 +425,7 @@ import Foundation
     #expect(YouCopy.needsTwoRounds == "Needs 2 rounds this season")
     // Y-14 · the singular is the whole point of the line: one counting round
     // makes the best and the average the same number.
-    #expect(YouCopy.acrossCounting(1) == "across 1 counting round")
+    #expect(YouCopy.acrossCounting(1) == "across 1 round that counts")
   }
 }
 

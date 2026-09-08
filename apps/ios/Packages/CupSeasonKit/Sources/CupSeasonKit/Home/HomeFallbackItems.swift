@@ -124,7 +124,7 @@ public enum HomeFallbackItems {
       // has three slots.
       let day = MeStripCopy.dayWord(on, today: today, calendar: calendar)
       let tee = p.tee_time.flatMap(MeStripCopy.teeText).map { "\($0) tee" }
-      let party = (p.rsvp_in ?? 0) > 1 ? "\(p.rsvp_in ?? 0) of you on the sheet" : nil
+      let party = (p.rsvp_in ?? 0) > 1 ? "\(p.rsvp_in ?? 0) of you in" : nil
       let stand = [tee, party].compactMap { $0 }.joined(separator: " · ")
       out.append(.init(key: "plan:\(p.id?.uuidString ?? on)", tier: days <= 3 ? .closing : .coming,
                        subject: mine ? "you" : who, humanSubject: true,

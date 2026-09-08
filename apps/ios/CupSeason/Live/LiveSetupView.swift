@@ -51,7 +51,7 @@ struct LiveSetupView: View {
     .csNearbyInvite(store)
     .csFeedback(.teeOff, trigger: teeOffTaps)
     .scrollDismissesKeyboard(.interactively)
-    .navigationTitle("Play now")
+    .navigationTitle("Score it live")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(isPresented: $showCard) { LiveCardSheet(store: store) }
     .sheet(isPresented: $showPicker) { LiveRosterPickerSheet(store: store) }
@@ -384,7 +384,7 @@ struct LiveCourtView: View {
             .contentShape(Rectangle())
             .onTapGesture { store.courtTap(k) }
             .accessibilityAddTraits(.isButton)
-            .accessibilityHint(store.crtPicked == nil ? "Double tap to pick, then a player on the other team to swap" : (tradeable ? "Double tap to swap" : ""))
+            .accessibilityHint(store.crtPicked == nil ? "Double tap to pick, then a golfer on the other team to swap" : (tradeable ? "Double tap to swap" : ""))
             .draggable(String(k))
             .dropDestination(for: String.self) { items, _ in
               guard let s = items.first, let from = Int(s) else { return false }
@@ -596,7 +596,7 @@ struct LiveCardSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
-          CSSheetHeader(title: "Course card", sub: ((store.state.course.label.isEmpty ? "Course" : store.state.course.label) + " · pars only").uppercased())
+          CSSheetHeader(title: "Set the pars", sub: ((store.state.course.label.isEmpty ? "Course" : store.state.course.label) + " · pars only").uppercased())
           side(nine ? "The nine" : "Front nine", $f9, placeholder: "453453543")
           if !nine { side("Back nine", $b9, placeholder: "434445345") }
           HStack {

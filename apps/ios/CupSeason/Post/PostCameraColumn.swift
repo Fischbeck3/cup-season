@@ -72,7 +72,7 @@ struct PostCameraColumn: View {
       plate
       // ONE offer under the plate, and it is the other thing a camera does.
       if model.scanEnabled {
-        CSMini(model.scanning ? PostScan.readingLabel : "Scan the card",
+        CSMini(model.scanning ? PostScan.readingLabel : "Scan the scorecard",
                glyph: .camera, busy: model.scanning, action: pickScan)
           .accessibilityHint("Photographs your scorecard and fills the round in")
       }

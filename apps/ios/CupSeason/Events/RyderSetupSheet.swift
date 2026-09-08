@@ -75,8 +75,8 @@ struct RyderSetupSheet: View {
 
   var body: some View {
     SheetFrame("Start a Ryder", sub: "Two teams. Each week you play one opponent, scored against your playing HCP. First team past halfway wins") {
-      EventFieldLabel(text: "Event name")
-      CSField("The Grudge Match", text: $name, font: CSFont.body).accessibilityLabel("Event name")
+      EventFieldLabel(text: "Name the Ryder")
+      CSField("The Grudge Match", text: $name, font: CSFont.body).accessibilityLabel("Name the Ryder")
       A11yStack(spacing: 10) {
         VStack(alignment: .leading, spacing: 6) {
           EventFieldLabel(text: "Team A")
@@ -108,15 +108,15 @@ struct RyderSetupSheet: View {
       A11yStack(spacing: 8) {
         Button("Close") { dismiss() }
           .buttonStyle(.csSecondary()).frame(maxWidth: typeSize.isA11y ? .infinity : 120)
-        Button("Create the event") { create() }
+        Button("Set the Ryder") { create() }
           .buttonStyle(.csPrimary(busy: busy))
       }
       .padding(.top, 6)
-      CSFine("You captain Team A. Invited players get a notification to accept; you draw or assign teams from the scoreboard once they're in.")
+      CSFine("You captain Team A. Invited golfers get a notification to accept; you draw or assign teams from the scoreboard once they're in.")
     }
     .csToasts(toasts)
     .sheet(isPresented: $picking) {
-      EventStagePicker(title: "Add players", sub: "They get an invite to accept once the event is created",
+      EventStagePicker(title: "Add golfers", sub: "They get an invite to accept once the Ryder is set",
                        excludeIds: [], staged: $staged)
     }
     .presentationDetents([.large])
@@ -125,7 +125,7 @@ struct RyderSetupSheet: View {
 
   private func create() {
     let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !n.isEmpty else { toasts.show("Name the event"); return }
+    guard !n.isEmpty else { toasts.show("A Ryder needs a name."); return }
     busy = true
     Task {
       defer { busy = false }
@@ -138,13 +138,13 @@ struct RyderSetupSheet: View {
         // the event now has an id — fire the staged invites (organizer-gated RPC)
         await repo.invite(staged.map(\.id), to: id)
         await store.reload()
-        toasts.show(staged.isEmpty ? "Event created — add your players" : "Event created — \(staged.count) invited")
+        toasts.show(staged.isEmpty ? "The Ryder is set — add your golfers" : "The Ryder is set — \(staged.count) invited")
         dismiss()
         onCreated(id)
       } catch {
         // the one server rule worth surfacing verbatim: the Sunday tee
         let raw = (error as? RpcError)?.underlying ?? ""
-        toasts.show(raw.contains("Sunday") ? raw : BoardText.humanError(error, "Could not create the event."))
+        toasts.show(raw.contains("Sunday") ? raw : BoardText.humanError(error, "Could not set the Ryder."))
       }
     }
   }

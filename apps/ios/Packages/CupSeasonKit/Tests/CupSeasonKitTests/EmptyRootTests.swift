@@ -28,7 +28,7 @@ import Foundation
   @Test func theDesignsWordsAreTheWords() {
     #expect(CompeteRoot.empty(buddies: 0).head == "Nothing running.")
     #expect(CompeteRoot.empty(buddies: 0).sub
-            == "Your next competition starts here — a season, a weekend, or one guy you want to beat.")
+            == "Your next competition starts here — a season, a weekend, or going head to head.")
     #expect(GolfersRoot.empty().head == "No buddies yet.")
     #expect(GolfersRoot.empty().doors.first == .findGolfers)
   }

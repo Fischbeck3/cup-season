@@ -32,7 +32,7 @@ struct RootView: View {
       cs.bg0.ignoresSafeArea()
       switch store.state {
       case .restoring:
-        BootingView(step: "Restoring your session")
+        BootingView(step: "Signing you back in")
       case .signedOut:
         if let t = ClaimIntent.pending(), !guestDoor {
           GuestPencilScreen(token: t, onDoor: { guestDoor = true })

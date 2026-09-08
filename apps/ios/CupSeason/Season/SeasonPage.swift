@@ -252,7 +252,7 @@ struct SeasonPage: View {
       if model.clock.isCupFinal && !model.isComplete && (model.cupRace?.isLive ?? false) {
         // D105: the race leads while its window is open; the season table is
         // the seed beneath it, under its own head.
-        CSSectionHead("The Cup Final", count: "two seats")
+        CSSectionHead("The Cup Final", count: "top two")
           .csGutter()
           .id(SeasonPane.table.anchor)
         CupFinalRaceView()
@@ -485,7 +485,7 @@ struct SeasonDoors: View {
       }
       if let id = model.league?.id {
         NavigationLink(value: SeasonSubRoute.rules(id)) {
-          rowLabel(model.isPro ? "Season settings" : "The rules",
+          rowLabel("The rules",
                    sub: model.isPro ? "The stakes, the dial, and everything you run"
                                     : "How this season scores, and how it ends")
         }

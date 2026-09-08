@@ -118,8 +118,8 @@ struct EventRoomScreen: View {
   /// nothing here is a fabricated name — the redaction blanks the type.
   private var placeholder: some View {
     VStack(alignment: .leading, spacing: 0) {
-      EventTitleCard(eyebrow: "Loading", live: false, title: "The event",
-                     dateline: ["A course", "A date range · four in the field"],
+      EventTitleCard(eyebrow: "Loading", live: false, title: "A Ryder or a Major",
+                     dateline: ["A course", "A date range · four playing"],
                      back: { dismiss() })
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         CSScoreRail([.init(id: "a", value: "0", label: "Side one"),

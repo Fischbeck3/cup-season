@@ -468,7 +468,7 @@ struct LongCourseNameTests {
     #expect(lead?.headline == "Galen has you down for Monday.")
     #expect(lead?.eyebrow.contains("GOLD CANYON") == true)          // the venue, once
     #expect(lead?.headline.contains("Gold Canyon") == false)        // and not twice
-    #expect(lead?.standfirst == "7:10 tee · 2 of you on the sheet.")
+    #expect(lead?.standfirst == "7:10 tee · 2 of you in.")
   }
 }
 

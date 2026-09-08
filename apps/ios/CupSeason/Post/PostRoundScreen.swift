@@ -177,7 +177,7 @@ private struct PostRoundBody: View {
         // spending it four times in one row spends it on nothing"). The dot
         // goes with the metal — an ember dot is the live signal, and nothing
         // is live here yet.
-        Button("Play now") { onDone(); links.openLive() }
+        Button("Score it live") { onDone(); links.openLive() }
           .buttonStyle(.csTertiary(.toolbar))
           .accessibilityHint("Opens live scoring for a round")
       }

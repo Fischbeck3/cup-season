@@ -602,7 +602,7 @@ struct RetagSheet: View {
       VStack(alignment: .leading, spacing: 12) {
         CSSheetHeader(title: "Tag your group", sub: ScheduleDates.long(request.iso) + (request.courseLabel.map { " · \($0.uppercased())" } ?? ""))
         if loaded {
-          if candidates.isEmpty { CSFine("No one to tag yet. Add buddies from the You tab.") }
+          if candidates.isEmpty { CSFine("No one to tag yet. Add buddies from the Golfers tab.") }
           else { TagChips(candidates: candidates, tagged: $tagged, toasts: toasts) }
           CSFine("\(tagged.count) tagged")
         }

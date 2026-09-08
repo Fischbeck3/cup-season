@@ -57,7 +57,7 @@ struct CredentialCopyTests {
     var c = DateComponents(); c.year = 2026; c.month = 8; c.day = 3
     let since = Calendar(identifier: .gregorian).date(from: c)!
     let s = CredentialCopy.firstCard(name: "Tash Bell", since: since)
-    #expect(s == "Tash joined in August. The board starts with a first round.")
+    #expect(s == "Tash joined in August. It starts with a first round.")
     // §13.1's test: could the golfer have prevented this sentence by doing
     // something? "hasn't posted a round yet" fails it; this must not say it.
     #expect(!s.contains("hasn’t") && !s.contains("hasn't") && !s.lowercased().contains("no rounds"))
@@ -66,7 +66,7 @@ struct CredentialCopyTests {
   @Test("with no join date it still names the world rather than the gap")
   func firstCardNoDate() {
     let s = CredentialCopy.firstCard(name: "Blake", since: nil)
-    #expect(s == "Blake is on the board. It starts with a first round.")
+    #expect(s == "Blake is here. It starts with a first round.")
   }
 
   @Test("the form count spells the gap; a posted round is a round, never a card (T-01)")

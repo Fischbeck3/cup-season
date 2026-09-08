@@ -160,7 +160,7 @@ struct CalloutRoomView: View {
       CSScoreRail.Cell(id: "them", value: theirPvi.map(RoundCopy.signed) ?? "—",
                        label: CSBands.fn1(their.name), spoken: theirCellSpoken(theirPvi, their.name)),
       CSScoreRail.Cell(id: "me", value: myPvi.map(RoundCopy.signed) ?? "—",
-                       label: "You", spoken: myPvi == nil ? "You have not posted" : "You, \(RoundCopy.signed(myPvi ?? 0))"),
+                       label: "You", spoken: myPvi == nil ? "You, still to post" : "You, \(RoundCopy.signed(myPvi ?? 0))"),
     ]
     if !room.event.isComplete, let on = session?.closes_on, let days = EventDates.daysUntil(on), days >= 0 {
       out.append(CSScoreRail.Cell(id: "clock", value: String(days), label: "Days left", labelLive: true,
@@ -204,7 +204,7 @@ struct CalloutRoomView: View {
 
   @ViewBuilder private var primary: some View {
     if room.event.isComplete {
-      CSDoor(.secondary("Call him out again", { if let opp = theirs?.profileId { links.callOut(opp) } }))
+      CSDoor(.secondary("Call them out again", { if let opp = theirs?.profileId { links.callOut(opp) } }))
     } else if iPosted {
       // the ember leaves the button but not the dot
       CSDoor(.secondary("See the receipt", { if let r = myRound { links.openReceipt(r) } }))

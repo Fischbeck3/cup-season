@@ -352,12 +352,12 @@ public struct CourseRating: Sendable, Equatable {
 
   public static let none = CourseRating(unavailable: true)
 
-  /// *"Your golfers give it {4.9}."* — the marked string the figure run reads.
+  /// *"Your buddies give it {4.9}."* — the marked string the figure run reads.
   /// Empty when none of them has rated it: the line does not render rather
   /// than saying nobody has.
   public var friendsLine: String {
     guard let f = friends, friendsCount > 0 else { return "" }
-    return "Your golfers give it {\(String(format: "%.1f", f))}."
+    return "Your buddies give it {\(String(format: "%.1f", f))}."
   }
 
   /// *"Rated by twenty-four golfers, four of them yours."* — the sheet's one

@@ -1057,11 +1057,18 @@ let VOCAB_LAWS = null;
     ['A reference on your card — we never resell or verify it. Leave it blank if you’d rather not.', 'GHIN, the profile sense (§4 row 7)'],
     ["A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.", 'GHIN, the profile sense (§4 row 7)'],
     ['Adding a GHIN number? It lives on your card, under You.', 'the profile sense — the card is the person (§4 row 7)'],
-    ['Restoring your session', 'the auth session (§4 row 10)'],
+    ['Hidden here. It stays on their card.', 'a hidden post stays on its author’s card — the profile sense (§4 row 7)'],
     ['The code was accepted but no session came back.', 'the auth session (§4 row 10)'],
     ['no session in storage — showing the door', 'the auth session (§4 row 10)'],
     ['session ✓', 'the auth session (§4 row 10)'],
     ['Iron Man', 'the season award, which keeps the name (§2.1)'],
+    /* D297 class 3 · `season_payouts.reason` is a STORED KEY that close_season
+       and recompute_season_payouts match by string (D296 left it alone); the
+       label a golfer reads is `Points King`, and the reason row is not a label. */
+    ['Points king', 'season_payouts.reason — a stored key, never a label (D296)'],
+    /* the points BAND's floor pairs with its ceiling on the scoring guide — a
+       different fact from the monthly minimum §4 row 2 retires */
+    ['The 12-point ceiling caps what a padded number can buy; the 5-point floor means a posted 98 still beats an unposted 82.', 'the band floor, which pairs with the ceiling (R-M) — not the monthly minimum'],
     /* §4.32 · "playing number" HAD a receipt-shaped exemption (TERMINOLOGY line
        84 + note 1). R-M retires the term itself: the figure is a PLAYING HCP,
        on the receipt and everywhere else, so the exemptions are gone and the
@@ -1078,8 +1085,14 @@ let VOCAB_LAWS = null;
      (A-1: the ledger's reason strings and the stage strings are written in
      SQL and rendered by both clients). */
   const LAWS = [
-    [1, 'the counting cap is a sentence', [/counting\s+cap/i]],
-    [2, 'the minimum, never a floor', [/participation\s+floor/i, /month\s+floor/i, /floor\s+penalty/i]],
+    /* D297 class 3 · `counting round(s)` and `your worst counter` walked past a
+       row that pinned only the cap. TERMINOLOGY §2.3: the word is COUNTS. */
+    [1, 'the counting cap is a sentence', [/counting\s+cap/i, /\bcounting rounds?\b/i, /\b(worst|first) counter\b/i]],
+    /* D297 class 3 · the row pinned three compounds and `floors assessed`, `no
+       floor to clear`, `the floor bites`, `Monthly floor`, `short of the floor`
+       all shipped. The word itself is the hit now; `floor:` is a key, and the
+       band's `5-point floor means` is exempt above by sentence. */
+    [2, 'the minimum, never a floor', [/\bfloors?\b(?!:| means)/i]],
     [3, 'the allowance is a number, not a term', [/handicap\s+allowance/i, /%\s?hcp\b/i]],
     [4, 'no dial names as row keys', [/\b(PRESET|STRUCTURE|VERIFICATION)\b/]],
     /* §2.3's lock row retires four phrasings and `SQUADS LOCKED` is the fourth
@@ -1089,8 +1102,14 @@ let VOCAB_LAWS = null;
        every other inflection ship. `lock them in` walked past `lock it in` on
        the wizard's own eyebrow, and `HAS LOCKED A CUP SEED` walked past
        `SEEDS LOCKED` on the season page. */
-    [5, 'the season starts; nothing locks', [/lock the bylaws/i, /lock (it|them) in/i, /\bseeds? locked\b/i, /rosters locked/i, /squads locked/i, /\bhas locked\b/i, /\bmore locks\b/i], { sql: true }],
-    [6, 'the rules, never the bylaws', [/bylaws/i]],
+    /* D297 class 3 · widened again: `settings lock`, `rules locked`, `locked in
+       yet`, `Lock opens`, `Lock failed`, `the moment you lock`, `At lock`,
+       `when you lock the league` were all on a surface. A handle's 60-day lock,
+       the lock screen and a draft order that locks are other senses and stay. */
+    [5, 'the season starts; nothing locks', [/lock the bylaws/i, /lock (it|them) in/i, /\bseeds? locked\b/i, /rosters locked/i, /squads locked/i, /\bhas locked\b/i, /\bmore locks\b/i,
+                                             /settings lock/i, /\brules (are |aren.t |did not |didn.t )?lock(ed|s)?( in)?\b/i, /\block opens\b/i, /\block failed\b/i,
+                                             /moment you lock\b/i, /^at lock$/i, /(when|before|until|after) you lock\b/i, /lock the (league|season|rules)\b/i], { sql: true }],
+    [6, 'the rules, never the bylaws', [/bylaws/i, /\bseason settings\b/i, /\bleague rules\b/i]],
     /* `on the card` is the SEVENTH phrasing of the retired record sense, and
        `HomeWireCopy` — a file this overhaul ADDED — wrote it on Home's wire.
        The row's own note warned that a grep for one of them lets the other
@@ -1098,22 +1117,39 @@ let VOCAB_LAWS = null;
        card", "photo on the card") is the credential and stays exempt, which
        is why the pattern requires a ROUND's verb in front of it. */
     [7, 'a round posts to your rounds', [/\bon your card\b/i, /hit your card/i, /pinned to your card/i,
-                                         /\b(round|score|gross)\b[^.]{0,24}\bon the card\b/i]],
-    [8, 'one money noun', [/post a stake/i, /the other stakes/i, /pot sheet/i, /prize pool/i]],
+                                         /\b(round|score|gross)\b[^.]{0,24}\bon the card\b/i,
+                                         /* D297 class 3 · the eighth, ninth and tenth phrasings, and the
+                                            holes' card by its old names (T-01: the card is the person) */
+                                         /leaves your card/i, /lands? on (their|your|his|her) (own )?(golfer )?card/i,
+                                         /stays? on (your|their|its|every) (golfer.?s? )?(card|profile)/i, /your card fills/i,
+                                         /\bcourse card\b/i, /\bscan the card\b/i]],
+    [8, 'one money noun', [/post a stake/i, /the other stakes/i, /pot sheet/i, /prize pool/i,
+                           /* D297 class 3 · the pride bet is a forfeit (T-02), and `on the books` is
+                              money, full stop — never `X is on the books — set the rules` */
+                           /settle the stake/i, /scrap this stake/i, /\bstakes? posted\b/i, /post the stake/i, /stakes on the books/i,
+                           /bet on the record/i, /is on the books —/i]],
     [9, 'the clash, never the duel', [/\bduels?\b/i]],
-    [10, 'a week, never a session', [/\bsessions?\b/i]],
+    [10, 'a week, never a session', [/\bsessions?\b/i, /lead the series/i, /series level/i, /\bW-L-H\b/]],
     [11, 'no Clubhouse', [/clubhouse/i]],
     [12, 'one lens (L-14)', [/\bdifferentials?\b/i, /\bPvI\b/, /vs index/i, /\bIDX\b/]],
-    [13, 'the schedule, never the tee sheet', [/tee\s+sheets?\b/i], { sql: true }],
+    /* D297 class 3 · `on the sheet`, `the calendar` (A-8) and a `declared`
+       round walked past the one compound; the Looks' calendar is another sense
+       (`Follow the calendar`) and is not matched. */
+    [13, 'the schedule, never the tee sheet', [/tee\s+sheets?\b/i, /\bon the sheet\b/i, /\bon the calendar\b/i, /from the calendar/i, /^the calendar$/i,
+                                               /plan a tee time/i, /tee time on the sheet/i, /\bdeclar(ed|ing) (your |a )?(own )?round/i], { sql: true }],
     [14, 'the draw, never a draft', [/\bdrafts?\b/i, /draft night/i, /the hat shuffles/i]],
     [15, 'vouched by the group', [/attest/i]],
-    [16, 'never a printed seat count', [/seats?\s+open/i, /\b\d+\s+seats?\b/i, /\bSEATS\b/]],
-    [17, 'the six stage words only', [/LIVE NOW/, /CAPTAINS READY/, /The Pro has the list/i, /captains draft/i], { sql: true, listing: true }],
+    [16, 'never a printed seat count', [/seats?\s+open/i, /\b\d+\s+seats?\b/i, /\bSEATS\b/, /\b(two|three|four) seats?\b/i]],
+    [17, 'the six stage words only', [/LIVE NOW/, /CAPTAINS READY/, /The Pro has the list/i, /captains draft/i,
+                                      /season wrapped/i, /squads are forming/i, /form the squads/i, /squad formation/i], { sql: true, listing: true }],
     /* `\bSI \d` catches `SI 14` in a sentence and let a bare COLUMN HEAD
        walk straight through — `label("SI")`, `cell("SI")` — which is exactly
        the hole §4's own note describes for check 7. A standalone `SI` inside a
        quoted string is now a hit; `SI` inside an identifier still is not. */
-    [18, 'the live round says the word', [/RIDING/, /DIED CARRIED/, /BRAGGING POINTS/, /\b3U\b/, /EST .*IDX/, /\bSTK\b/, /\bSELF\b/, /\bSI \d/, /^SI$/]],
+    /* D297 class 3 · the interpolated unit (`\(n)U`), the skins twin of BRAGGING
+       POINTS, `carried died`, `def.` and `on the line` (the sportsbook's) */
+    [18, 'the live round says the word', [/RIDING/, /DIED CARRIED/, /BRAGGING POINTS/, /\b3U\b/, /EST .*IDX/, /\bSTK\b/, /\bSELF\b/, /\bSI \d/, /^SI$/,
+                                          /(\)|\s)U$/, /BRAGGING SKINS/, /carried died/i, /\bdef\. /, /\bon the line\b/i]],
     [19, 'the ledger says the consequence', [/MONTH FORFEITED/i, /floors? waived/i, /month forfeited/i, /\/mo — posted/i, /^Floor $/], { sql: true }],
     /* §4 row 35 · `snapshot` is on §3.1's never-print list and had no ship-list
        row, so three live strings said it — one of them on a pane this overhaul
@@ -1133,7 +1169,7 @@ let VOCAB_LAWS = null;
        word because `TERMINOLOGY.md` A-4 had proposed MATCHES & WEEKENDS
        instead. The ruling ships; the lint holds the ruling. */
     [25, 'the ruled section heads (R-D)', [/MATCHES\s*&(amp;)?\s*WEEKENDS/i]],
-    [26, 'one verb opens the composer', [/^post (a )?round$/i]],
+    [26, 'one verb opens the composer', [/^post (a )?round$/i, /\bplay now\b/i]],
     /* 27–29 are producer greps and payload greps, not string greps */
     [28, 'no gross target off another golfer’s number', [/needs \d+ off (his|her|their)/i, /\bhe needs \d/i, /\bshe needs \d/i]],
     [29, 'no invented split', [/winner takes \d+%/i, /\d+% of the pot/i]],
@@ -1149,7 +1185,21 @@ let VOCAB_LAWS = null;
        and it was the one sentence not addressed to every golfer in a mixed
        league. It is retired on both clients, and this is what keeps it retired
        — D249's whole thesis is that a ruling with no grep behind it comes back. */
-    [34, 'the fourth intent is Go head to head (R-J)', [/beat one guy/i, /\bbeat one\b/i]],
+    [34, 'the fourth intent is Go head to head (R-J)', [/beat one guy/i, /\bbeat one\b/i, /\bone guy\b/i]],
+    /* 36–40 · D297 class 3. The words the voice review found walking past the
+       table because it had no row for them at all: `event` on a user surface
+       (§2.3 — a Ryder or a Major by its name), `player(s)` (§2.4 — golfers),
+       one spelling per trophy (§2.1), `seed` as a verb (T-11), and the rest of
+       §2's ruled names — Up next, You and Galen, Default green, the Cup Final,
+       playing (never `in the field`), doesn't count this year (never
+       `exhibition`). Each is a sentence a golfer met on 2026-09-07. */
+    [36, 'a Ryder or a Major, never an event', [/\b(an|the|this|that|no|every|your) events?\b/i, /\bevents? (created|name|loaded|stands)\b/i,
+                                                /\bstart an event\b/i, /\bcreate the event\b/i, /^leagues (&|vs) events$/i, /^your events\b/i]],
+    [37, 'golfers, never players', [/\bplayers?\b/i]],
+    [38, 'one spelling per trophy', [/\bchamps?\b/i, /Points king\b/, /points crown/i]],
+    [39, 'seed is never a verb', [/\bseeded by\b/i, /\bseed a\b/i, /\bseeds? (from|into)\b/i]],
+    [40, 'the ruled names (§2)', [/\bnext up\b/i, /^coming up$/i, /\byou vs\b/i, /\bhomebase\b/i, /\bfescue only\b/i, /regular.season/i,
+                                  /\bfinal 4\b(?!\s*weeks)/i, /how teams fill/i, /^teams$/i, /four makes a season/i, /\bin the field\b/i, /\bexhibition\b/i]],
   ];
 
   const hits = [];
@@ -1169,7 +1219,9 @@ let VOCAB_LAWS = null;
   };
 
   /* the phone */
-  const swift = T.swiftSources(join(root, 'apps', 'ios'));
+  /* §4's scope is `apps/ios/CupSeason/**` and the Kit's Sources; the app's test
+     target carries @Test display names ("below the floor"), not copy. */
+  const swift = T.swiftSources(join(root, 'apps', 'ios')).filter(f => !/\/CupSeasonTests\//.test(f));
   for (const f of swift) {
     const rel = f.slice(root.length).replace(/^\//, '');
     for (const s of T.swiftProse(readFileSync(f, 'utf8'))) {
@@ -1275,6 +1327,10 @@ let VOCAB_LAWS = null;
       ['3 SEATS OPEN', 16],
       ['Draft night', 14],
       ['I want to beat one guy', 34],
+      ['Lock opens the invite link', 5],
+      ['Start an event', 36],
+      ['Tap any player', 37],
+      ['CHAMPS $315', 38],
     ];
     for (const [text, n] of probes) {
       const law = LAWS.find(l => l[0] === n);
@@ -2987,6 +3043,16 @@ const lint = (id, name, hits, note = '') => {
       [/morning tee sheet/i, 'the light theme\u2019s canon name (UI_SYSTEM §16.1: “survives only as the light theme’s canon”)'],
       [/no session\b|with no session/i, 'the auth session — check 27 exempts the same sense (§4 row 10)'],
       [/Ryder\u2019s session pairings|session pairings/i, 'the Ryder Cup’s own noun for a half-day of play'],
+      /* D297 class 3 · the widened rows meet the design system's OWN senses:
+         a type floor, a tap floor, the four-door FLOOR on Home, the marker
+         floor — none of them the monthly minimum; `player card` is the
+         component's id and the credential spec's name; and a surface spec
+         names its object by the engine's word (§3.1 is the glossary the app
+         never shows — a spec may). */
+      [/\b(type|marker|tap|reading) floors?\b|one floor\.|a floor, not a ratio|floor doors?\b|the floor beneath|THE FLOOR( —|,)|floor suppresses|below the floor|≥44pt/i, 'the layout and type floors of UI_SYSTEM — the other sense of §4 row 2'],
+      [/player[- ]cards?\b/i, 'the component id and the credential spec’s name — not a headcount (§4 row 37)'],
+      [/^The course card and the course page\.$/i, 'the course’s own card on the Courses surface — not the pars sheet §4 row 7 renamed'],
+      [/the event(\u2019|')?s? (LIVE eyebrow|six-disc field rail|has no course|completes)\b/i, 'a surface spec naming its object by the engine’s word (§3.1)'],
     ];
     for (const [rel, line, text, source] of specimens) {
       if (RULING.test(source ?? text)) continue;

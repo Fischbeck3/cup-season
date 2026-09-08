@@ -106,7 +106,6 @@ struct ScheduleScreen: View {
 
   private var calendarHeader: some View {
     HStack {
-      Text("The calendar").csType(.agate, caps: true).foregroundStyle(cs.mut)
       Spacer()
       monthStep(back: true) { vm.page(-1, me: store.me, current: store.preferredLeague) }
       Text(vm.month.title).csType(.name).foregroundStyle(cs.ink).frame(minWidth: 84)
@@ -173,7 +172,7 @@ struct ScheduleScreen: View {
     }
     .buttonStyle(.plain)
     .disabled(!tappable)
-    .accessibilityLabel("\(ScheduleDates.long(iso))\(items.isEmpty ? "" : ", \(items.count) on the sheet")")
+    .accessibilityLabel("\(ScheduleDates.long(iso))\(items.isEmpty ? "" : ", \(items.count) on the schedule")")
   }
 
   // MARK: the day sheet (12093–12130)
@@ -181,7 +180,7 @@ struct ScheduleScreen: View {
   private func daySheet(_ d: DaySheet) -> some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 10) {
-        CSSheetHeader(title: ScheduleDates.long(d.iso), sub: "\(d.items.count) ON THE SHEET")
+        CSSheetHeader(title: ScheduleDates.long(d.iso), sub: "\(d.items.count) ON THE SCHEDULE")
         ForEach(Array(d.items.enumerated()), id: \.offset) { _, it in
           switch it {
           case .round(let sr):

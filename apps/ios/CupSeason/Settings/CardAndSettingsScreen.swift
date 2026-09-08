@@ -404,12 +404,12 @@ private struct CardEditorPane: View {
           CSField("", text: $vm.index).keyboardType(.decimalPad).frame(maxWidth: 110).accessibilityLabel("Handicap index")
           Button { Task { toast.show(await vm.updateIndex()) } } label: { MiniPill(text: vm.indexBusy ? "Updating…" : "Update index") }.disabled(vm.indexBusy)
         }
-        Text("Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set it here to seed a starter; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed.")
+        Text("Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed.")
           .csType(.bodyS).foregroundStyle(cs.mut)
         guideLink("How scoring works")
       }
 
-      Text("Your leagues").csEyebrow().padding(.top, 16)
+      Text("Your seasons").csEyebrow().padding(.top, 16)
       if noLeagues {
         // Y-13 · a league-less golfer gets the doors, not a sentence about them.
         SettingsLeaguelessDoors()
@@ -417,13 +417,13 @@ private struct CardEditorPane: View {
         // memberships say there IS a league but `repo.leagues(userId:)` came
         // back empty (`leagues = await l` swallows the failure). The eyebrow
         // above must not stand over nothing.
-        Fine("No leagues yet. Start one or join with a code.")
+        Fine("No seasons yet. Start one or join with a code.")
       } else {
         ForEach(vm.leagues) { row in
           A11yStack(columnSpacing: 2) {
             Text(row.leagues?.name ?? "League").csType(.body).foregroundStyle(cs.ink)
             Spacer()
-            Text("\(row.role == "commissioner" ? "PRO" : "PLAYER") · \(row.leagues?.code ?? "")").font(CSFont.label).foregroundStyle(cs.mut)
+            Text(row.role == "commissioner" ? "THE PRO · \(row.leagues?.code ?? "")" : (row.leagues?.code ?? "")).font(CSFont.label).foregroundStyle(cs.mut)
           }
           .padding(.vertical, 6)
           .accessibilityElement(children: .combine)
@@ -493,8 +493,8 @@ private struct SettingsPane: View {
         pill(push.enabled ? "Disable on this device" : "Enable on this device") {
           Task { toast.show(push.enabled ? await push.disable() : await push.enable()) }
         }
-        pill("Round pings: \(vm.notifyRounds ? "ON" : "OFF")") { Task { if let e = await vm.toggleRounds() { toast.show(e) } } }
-        pill("Chat pings: \(vm.notifyChat ? "ON" : "OFF")") { Task { if let e = await vm.toggleChat() { toast.show(e) } } }
+        pill("Round posts: \(vm.notifyRounds ? "ON" : "OFF")") { Task { if let e = await vm.toggleRounds() { toast.show(e) } } }
+        pill("Chat: \(vm.notifyChat ? "ON" : "OFF")") { Task { if let e = await vm.toggleChat() { toast.show(e) } } }
         if let mail = vm.emailRecap {
           pill("Season email: \(mail ? "ON" : "OFF")") { Task { if let e = await vm.toggleEmail() { toast.show(e) } } }
         }

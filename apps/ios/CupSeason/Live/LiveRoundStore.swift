@@ -660,7 +660,7 @@ final class LiveRoundStore {
 
   func joinSync() async {
     guard state.active, let lr = state.lr, let code = state.code else { return }
-    let name = state.meIndex.map { state.players[$0].n } ?? myName ?? "A player"
+    let name = state.meIndex.map { state.players[$0].n } ?? myName ?? "A golfer"
     let key = guest?.token.uuidString.lowercased() ?? myPid?.uuidString.lowercased() ?? "p" + UUID().uuidString.lowercased().prefix(8)
     await session.join(lr: lr, code: code, guest: guest?.token, name: name, presenceKey: key)
     // D125 · and record it server-side. Presence is ephemeral; `attested` needs

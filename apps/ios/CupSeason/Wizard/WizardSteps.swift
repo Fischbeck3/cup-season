@@ -740,7 +740,7 @@ struct WizardPortraitCard: View {
       if portrait.canCup {
         // the final block, then its name at a readable size — a 7pt caption over the block fell under the 11pt floor (IOS-003 §2.1)
         Rectangle().fill(cs.brand).frame(width: 18, height: 16)
-        Text("Final 4").csType(.agateS, caps: true).foregroundStyle(cs.brand).fixedSize()
+        Text("Cup Final").csType(.agateS, caps: true).foregroundStyle(cs.brand).fixedSize()
       }
     }
     .accessibilityHidden(true)

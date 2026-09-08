@@ -333,7 +333,7 @@ struct YouScreen: View {
       // each saying "not yet" in its own words.
       CSEmpty(glyph: .scorecard,
               eyebrow: "The first card",
-              headline: "Your card fills as you play.",
+              headline: "Your record fills as you play.",
               fact: YouCopy.noRoundsLine,
               door: .primary(YouCopy.postFirst, links.postRound))
         .padding(.top, CSTokens.Space.s5)

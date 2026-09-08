@@ -328,7 +328,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(ClimbMath.cut(two) == ClimbCut(K: 1, line: "TOP SEED · +10"))
     #expect(ClimbMath.cut(nil) == ClimbCut(K: 2, line: "CUT LINE"))
     let sc = SeasonScenarios(meta: pt, rows: [])
-    #expect(ClimbMath.note(teams: teams, scenarios: sc) == "TOP 1 — THE POINTS CROWN")
+    #expect(ClimbMath.note(teams: teams, scenarios: sc) == "TOP 1 — THE POINTS KING")
     #expect(ClimbMath.note(teams: [teams[0]], scenarios: nil) == "NOBODY TO RACE YET")
     #expect(ClimbMath.items(teams: [], meId: nil, scenarios: nil).isEmpty)
   }
@@ -412,7 +412,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
             && rows[5].v == "Best 4 a month count" && rows[6].v == "2 a month · −5 squad points a round short")
     #expect(rows[4].v == "Post what you'd post to GHIN")   // M-15: a norm the league holds
     #expect(Bylaws.verif == ["Honor system", "Post what you'd post to GHIN", "Vouched by the group where you can; the Pro rules on the rest"])
-    #expect(rows[7].v == "$75 / player" && rows[8].v == "60 / 25 / 15 · champ / 2nd / king")
+    #expect(rows[7].v == "$75 / golfer" && rows[8].v == "60 / 25 / 15 · champion / runner-up / points king")
     #expect(rows[9].v == "5 mo · Sun May 3 \u{2013} Sat Sep 26 · 21 wks")
     #expect(rows[10].v == "Final 4 weeks · from Sun Aug 30 · scored fresh")
     let free = LeagueCopy.bylawsRows(Bylaws(stake: 0, finish: "points_table"), clock: clock("2026-06-01", finish: "points_table"))
@@ -425,7 +425,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueCopy.deadline(clock("2026-06-04"), b: b) == .init(text: "Week closes Sat · 2d", gold: false))
     #expect(LeagueCopy.deadline(clock("2026-06-06"), b: b) == .init(text: "Week closes tonight", gold: false))
     #expect(LeagueCopy.deadline(clock("2026-06-07"), b: b) == .init(text: "Week closes Sat · 6d", gold: false))
-    #expect(LeagueCopy.deadline(clock("2026-06-30"), b: b) == .init(text: "Month closes Jul 1 · floors assessed", gold: false))
+    #expect(LeagueCopy.deadline(clock("2026-06-30"), b: b) == .init(text: "Month closes Jul 1", gold: false))
     #expect(LeagueCopy.deadline(clock("2026-08-27"), b: b) == .init(text: "Cup Final · Sun Aug 30 · 3d", gold: true))
     #expect(LeagueCopy.deadline(clock("2026-08-30"), b: b) == .init(text: "Cup Final · Sun Aug 30 · 0d", gold: true))
     #expect(LeagueCopy.deadline(clock("2026-08-28"), b: b) == .init(text: "Cup Final · Sun Aug 30 · 2d", gold: true))   // ties go to the Final
@@ -465,7 +465,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   }
   @Test func nextUpAndTheMeter() {
     let b = Bylaws.from(season)
-    #expect(LeagueCopy.nextUp(clock("2026-04-30"), b: b, credits: 0, partial: false) == ("Next up · kickoff", "First tee Sun May 3. Practice rounds post to your rounds, not the season."))
+    #expect(LeagueCopy.nextUp(clock("2026-04-30"), b: b, credits: 0, partial: false) == ("Up next · kickoff", "First tee Sun May 3. Practice rounds post to your rounds, not the season."))
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 1, partial: false).text == "Post 1 more round this month — best 4 count, you've posted 1.")
     // D234 · the half is GLOSSED, and only when there is a half on screen: the
     // floor is measured in credits (an eighteen is one, a nine is a half), and
@@ -478,7 +478,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     // and a covered month with a half in it says so too
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2.5, partial: false).text == "August is covered — 2.5 rounds counting. A better one always replaces your lowest. A nine counts half.")
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2, partial: false).text == "August is covered — 2 rounds counting. A better one always replaces your lowest.")
-    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0, partial: true) == ("Next up · August", "August is a short month — no floor to clear. Every round still counts."))
+    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0, partial: true) == ("Up next · August", "August is a short month — no minimum to clear. Every round still counts."))
     let pm = LeagueCopy.pressMeter(today: "2026-08-27")
     #expect(pm.legend == "5 days left in August" && pm.hot && abs(pm.fill - 26.0 / 31.0) < 1e-9)
     #expect(LeagueCopy.indexSub(established: false, delta: -1) == "Building your number")
@@ -488,7 +488,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(LeagueCopy.indexSub(established: true, delta: 0.3) == "0.3 on your index this season")
     #expect(LeagueCopy.indexSub(established: true, delta: 0.01) == "Season to date")
     #expect(LeagueCopy.countingSub(month: "August", capN: Int.max) == "August · every round counts")
-    #expect(LeagueCopy.lineSplit(potCents: 52_500, payout: [60, 25, 15]) == "CHAMPS $315 · RUNNER-UP $131.25 · POINTS KING $78.75")
+    #expect(LeagueCopy.lineSplit(potCents: 52_500, payout: [60, 25, 15]) == "CHAMPION $315 · RUNNER-UP $131.25 · POINTS KING $78.75")
     #expect(LeagueCopy.finishDial(current: "cup_final").label == "Finish: Cup Final — switch to points table")
   }
 }

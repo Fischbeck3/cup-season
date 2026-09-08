@@ -22,7 +22,7 @@ struct MembersSheet: View {
 
   var body: some View {
     let n = model.members.count
-    SheetFrame("Members & invites", sub: "\(LeagueCopy.players(n)) · CODE \(model.league?.code ?? "—")") {
+    SheetFrame("The roster", sub: "\(LeagueCopy.players(n)) · CODE \(model.league?.code ?? "—")") {
       VStack(spacing: 0) {
         ForEach(model.members) { m in memberRow(m) }
       }
@@ -76,8 +76,8 @@ struct MembersSheet: View {
       if model.isPro && !isMe {
         // the web's three confirm() bodies (16959 · 16974 · 16988) ride the arm: the reason shows while it is armed
         let removeWhy = "Their profile and rounds are untouched. They just leave this league."
-        let byeWhy = "Their one season bye — it waives this month's floor. (A missed floor auto-uses it anyway; this is for a known absence.)"
-        let proWhy = "You become a player. Only they can hand it back."
+        let byeWhy = "Their one season bye — it forgives this month's minimum. A missed month uses it automatically; this is for a known absence."
+        let proWhy = "You become a golfer like everyone else. Only they can hand it back."
         // the Pro's tools wrap rather than clip (three pills never fit one line at the accessibility sizes)
         FlowRow(spacing: 6) {
           // LV-19 · ONE label for one act. This sheet said "Set index" here and
@@ -90,7 +90,7 @@ struct MembersSheet: View {
             .accessibilityHint(removeWhy)
           } else {
             let mon = LeagueDates.monthLong(model.clock.today)
-            ArmedMini("Bye", armedLabel: "Sure? Bye for \(String(mon.prefix(3)))", busy: busy == m.id, onArm: { reason = $0 ? (m.id, byeWhy) : nil }) {
+            ArmedMini("Grant a bye", armedLabel: "Sure? Bye for \(String(mon.prefix(3)))", busy: busy == m.id, onArm: { reason = $0 ? (m.id, byeWhy) : nil }) {
               run(m.id) { try await model.setMemberBye(member: m.id, month: LeagueDates.firstOfMonth(model.clock.today)); toast.show("Bye granted — posted to the board", kind: .confirmed); dismiss() }
             }
             .accessibilityHint(byeWhy)

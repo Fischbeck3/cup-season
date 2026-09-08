@@ -176,15 +176,15 @@ struct SeasonSetupChecklist: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
       CSSectionHead("Three steps to first tee")
-      RoomCheckRow("Season settings", sub: "The stakes, the rules, the format") { num("1") } trail: {
+      RoomCheckRow("The rules", sub: "The stakes, the rules, the format") { num("1") } trail: {
         // §3 · setup is one of the four states where this page owns a primary
         if model.isPro { CSDoor(.primary("Continue", links.openWizard)) } else { Text("The Pro").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
       }
-      RoomCheckRow("Invite the crew", sub: "One link fills the season — it opens the moment you lock") { num("2") } trail: {
-        Text("At lock").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      RoomCheckRow("Invite the crew", sub: "One link fills the season — it opens the moment you start the season") { num("2") } trail: {
+        Text("After step 1").csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
-      RoomCheckRow("Squad formation", sub: "Unlocks when settings lock") { num("3") } trail: {
-        Text("Locked").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      RoomCheckRow("Squads form", sub: "After the season starts") { num("3") } trail: {
+        Text("After step 1").csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
       Text(LeagueCopy.seatFill(code: model.league?.code, members: model.members.count,
                                min: model.bylaws.structMin, locked: model.clock.phase != .setup))
@@ -205,13 +205,13 @@ struct SeasonDraftHero: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      CSSectionHead("Squads are forming")
+      CSSectionHead("Squads drawing")
       Text("It’s random — nobody picks.").csType(.story).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
       Text(LeagueCopy.draftPoolSub(pool: model.pool.count, members: model.members.count, min: model.bylaws.structMin))
         .csType(.agateS, caps: true).foregroundStyle(cs.mut)
         .fixedSize(horizontal: false, vertical: true)
-      CSDoor(.primary(model.isPro ? "Form the squads" : "See the squads", links.openDraft))
+      CSDoor(.primary(model.isPro ? "Draw the squads" : "See the squads", links.openDraft))
       if let url = model.inviteURL {
         ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {
           Text("Share the invite link")
@@ -247,7 +247,7 @@ struct SeasonWrappedHero: View {
   var body: some View {
     let st = model.settlement
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      CSSectionHead("Season wrapped")
+      CSSectionHead("Season complete")
       Text(st?.champName ?? "The champion").csType(.displayS).foregroundStyle(cs.ink)
       Text(model.bylaws.finish == "cup_final" ? "took the Cup Final" : "took the Cup")
         .csType(.story).foregroundStyle(cs.mut)

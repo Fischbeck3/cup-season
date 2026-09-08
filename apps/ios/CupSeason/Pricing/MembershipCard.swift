@@ -41,7 +41,7 @@ struct MembershipCard: View {
       // structural (D39) — no "at launch", no "the pilot" (D132).
       HStack { Text("PLAN").font(CSFont.label).foregroundStyle(cs.mut); Spacer(); Text("FREE").csType(.nameS).foregroundStyle(cs.ink) }
         .padding(.vertical, 8)
-      Text("Everything is free — every league, every event, every round. No trial, nothing to enter.")
+      Text("Everything is free — every season, every match, every round. No trial, nothing to enter.")
         .csType(.bodyS).foregroundStyle(cs.mut)
     }
   }
@@ -60,7 +60,7 @@ struct MembershipCard: View {
         PricingMarkdown("**\(m.name) · Year 1** — **This year is free.** Every league's first year is on us, every season included.",
                         font: CSFont.sentence, color: cs.ink)
         PricingChipRow(chips: ["After year 1 · \(PricingFlags.dollars(cents))/year",
-                               "≈ \(PricingFlags.perPlayer(cents: cents, roster: roster)) a player",
+                               "≈ \(PricingFlags.perPlayer(cents: cents, roster: roster)) a golfer",
                                "Renewed by the Pro"   /* never "from the pot" — see PotPassCard.swift */])
 
       case .paid(let p):

@@ -622,14 +622,14 @@ struct LiveGroupSheet: View {
           A11yStack(spacing: 10, columnSpacing: 6) {
             VStack(alignment: .leading, spacing: 2) {
               Text(L.players[i].n).csType(.name).foregroundStyle(cs.ink)
-              Text("No account needed — the link is their pencil now and their recap after").font(CSFont.label).foregroundStyle(cs.mut)
+              Text("No account needed — the link is their pencil now and their scorecard after").font(CSFont.label).foregroundStyle(cs.mut)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             Spacer()
             HStack(spacing: 10) {
-            CSMini("Copy") { UIPasteboard.general.string = url.absoluteString; toast.show("Recap link copied", kind: .confirmed) }
+            CSMini("Copy") { UIPasteboard.general.string = url.absoluteString; toast.show("Scorecard link copied", kind: .confirmed) }
               .accessibilityLabel("Copy \(L.players[i].n)'s link")
-            ShareLink(item: url, message: Text("Your pencil for today's round on Cup Season")) {
+            ShareLink(item: url, message: Text("Your scorecard link for today's round on Cup Season")) {
               Image(systemName: "square.and.arrow.up").font(.system(size: 14, weight: .semibold)).foregroundStyle(cs.ink)
                 .frame(width: 44, height: 44).background(cs.bg2, in: Circle())
             }

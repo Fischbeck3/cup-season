@@ -103,7 +103,7 @@ public enum DraftCopy {
   /// The stage word is `Stage.label`'s (D120/D136), never hand-derived here —
   /// twin of `renderDraft()`'s clock (D297).
   public static let boardWaitingK = LeagueCopy.Stage.drawing.label
-  public static let boardWaitingN = "Waiting on the players"
+  public static let boardWaitingN = "Waiting on the roster"
   public static let boardWaitingM = "SQUADS DRAW ONCE THE ROSTER IS IN"
   public static let onClockK = "On the clock"
   public static let doneK = "Squads are set"
@@ -124,7 +124,7 @@ public enum DraftCopy {
   public static let proNote = "Every pick and override is written to the league log."
   public static let orderLocked = "Order locks once the first pick is in"
   public static let orderRandomized = "Order randomized and posted to the board"
-  public static let pickForToast = "You already can: as the Pro, any pool player is tappable on any clock"
+  public static let pickForToast = "You already can: as the Pro, any golfer not on a squad yet is tappable on any clock"
   public static let undoPick = "Undo last pick"
   public static let captTag = "CAPT"
   public static func slot(_ r: Int) -> String { "R\(r) pick" }

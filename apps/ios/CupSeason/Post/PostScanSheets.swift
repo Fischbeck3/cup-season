@@ -26,7 +26,7 @@ struct PostScanPickSheet: View {
           }
           .buttonStyle(.plain)
         }
-        CSFine("After you post, your partners’ rows can be sent to them as claim links.").padding(.top, 4)
+        CSFine("After you post, your partners’ rows can be sent to them as scorecard links.").padding(.top, 4)
       }
       .padding(20)
     }
@@ -50,7 +50,7 @@ struct PostPartnersSheet: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 10) {
         CSSheetHeader(title: "Send their rounds", sub: "ONE SCAN, THE WHOLE GROUP")
-        CSFine("Your partners’ rows came off the same card. Send each a link — one tap and the round lands on their own golfer card.")
+        CSFine("Your partners’ rows came off the same card. Send each a link — one tap and the round posts to their rounds.")
         ForEach(Array(show.rows.enumerated()), id: \.offset) { i, p in
           CheckRow(glyph: Text("🎟️"), title: p.label(i), sub: p.total.map { "\($0) GROSS" } ?? "PARTIAL CARD") {
             HStack(spacing: 6) {

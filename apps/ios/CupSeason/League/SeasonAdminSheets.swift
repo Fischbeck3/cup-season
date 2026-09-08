@@ -68,13 +68,13 @@ struct NoticesRoomSection: View {
 
 enum NoticesCopy {
   static func sub(_ on: Bool) -> String {
-    on ? "Floors, closes and season notices reach the crew's phones" : "Only rounds, chat and the board"
+    on ? "Minimums, closes and season notices reach the crew's phones" : "Only rounds, chat and the board"
   }
   static func memberLine(_ on: Bool) -> String {
-    on ? "League notices reach your phone — floors, closes, season news" : "League notices are off — only rounds, chat and the board"
+    on ? "League notices reach your phone — minimums, closes, season news" : "League notices are off — only rounds, chat and the board"
   }
   static func toast(_ on: Bool) -> String {
-    on ? "Notices are on — floors, closes and season news reach the crew" : "Notices are off — only rounds, chat and the board ring"
+    on ? "Notices are on — minimums, closes and season news reach the crew" : "Notices are off — only rounds, chat and the board ring"
   }
 }
 
@@ -98,7 +98,7 @@ struct CancelLeagueSheet: View {
   var body: some View {
     let nm = model.league?.name ?? "the league"
     SheetFrame("Cancel \(nm)?", sub: "THE SEASON IS UNDER WAY") {
-      RoomFine("A free league cancels now. If there's a buy-in, every member must approve and each gets their buy-in back. Either way the league, its board and pot go — but every posted round stays on its golfer's card.")
+      RoomFine("A free league cancels now. If there's a buy-in, every member must approve and each gets their buy-in back. Either way the league, its board and pot go — but every posted round stays where it is.")
       Button {
         busy = true
         Task {
@@ -138,9 +138,9 @@ struct DeleteLeagueSheet: View {
     let nm = model.league?.name ?? "the league"
     SheetFrame("Delete \(nm)?", sub: others == 0 ? "ONLY POSSIBLE BEFORE THE FIRST TEE" : "THIS TAKES EVERYONE’S SEAT") {
       if others == 0 {
-        RoomFine("It's just you in it — the league, its board and settings go completely. Rounds stay on your golfer card.")
+        RoomFine("It's just you in it — the league, its board and settings go completely. Your rounds stay where they are.")
       } else {
-        RoomFine("This deletes \(nm) for everyone in it: members, board, pot, squads. Rounds stay on every golfer's profile. Type the league name to confirm.")
+        RoomFine("This deletes \(nm) for everyone in it: golfers, board, pot, squads. Every golfer's rounds stay where they are. Type the league name to confirm.")
         CSField(nm, text: $typed, font: CSFont.body)
       }
       Button {

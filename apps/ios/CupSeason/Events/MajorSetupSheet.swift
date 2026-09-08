@@ -83,8 +83,8 @@ struct MajorSetupSheet: View {
       EventFieldLabel(text: "Window")
       CSSegment([2, 3, 4].map { ($0, "\($0) days") }, selection: $days)
       if let when = MajorMath.whenLine(finalOn: finalISO, days: days) { CSFine(when) }
-      EventFieldLabel(text: "Buy-in per player", hint: "($0 is bragging rights)")
-      CSField("0", text: $buy, font: CSFont.mono).keyboardType(.numberPad).accessibilityLabel("Buy-in per player, dollars")
+      EventFieldLabel(text: "Buy-in per golfer", hint: "($0 is bragging rights)")
+      CSField("0", text: $buy, font: CSFont.mono).keyboardType(.numberPad).accessibilityLabel("Buy-in per golfer, dollars")
       if buyIn > 0 {
         EventFieldLabel(text: "The pot pays")
         CSSegment([("places", "Top 3 · 60/25/15"), ("wta", "Winner takes all")], selection: $split)
@@ -105,7 +105,7 @@ struct MajorSetupSheet: View {
           .buttonStyle(.csPrimary(busy: busy))
       }
       .padding(.top, 6)
-      CSFine("A league Major shows on the crew's board and any member can join. The window opens on its first morning; the jug is settled the morning after the final day.")
+      CSFine("A league Major shows on the crew's board and anyone in the crew can join. The window opens on its first morning; the jug is settled the morning after the final day.")
     }
     .csToasts(toasts)
     .sheet(isPresented: $picking) {

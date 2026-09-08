@@ -74,9 +74,9 @@ public enum SeasonBoardCopy {
 
   // MARK: - the count slots (§16A.2 — a count and nothing else)
 
-  /// `EIGHT IN THE FIELD`. Spelled to twelve, a figure past it.
+  /// `EIGHT PLAYING`. Spelled to twelve, a figure past it.
   public static func field(_ n: Int) -> String {
-    "\(SeasonStoryCopy.word(n)) in the field"
+    "\(SeasonStoryCopy.word(n)) playing"
   }
   /// `FOUR SIDES` — the squad table's slot.
   public static func sides(_ n: Int) -> String { "\(SeasonStoryCopy.word(n)) sides" }

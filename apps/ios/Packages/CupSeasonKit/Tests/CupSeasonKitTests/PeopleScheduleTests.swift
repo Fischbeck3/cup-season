@@ -63,7 +63,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
                   row(name: "Buddy", playOn: "2026-09-06", mine: false, friend: true)]   // pure buddy: Home, not the room
     let byDay = CalendarBuilder.items(month: month, schedule: rounds, spans: spans, current: cur)
     #expect(byDay[26]?.contains(.league(text: "PIGL — season ends, cup decided", gold: true)) == true)
-    #expect(byDay[1]?.contains(.league(text: "Aug closes — floors & bonuses assessed", gold: false)) == true)
+    #expect(byDay[1]?.contains(.league(text: "Aug closes — minimums & bonuses assessed", gold: false)) == true)
     #expect(byDay[6]?.contains(.league(text: "Week closes — the table is recorded", gold: false)) == true)   // a Sunday inside the season
     #expect(byDay[6]?.contains(where: { if case .round = $0 { return true }; return false }) == false)
     #expect(byDay[13]?.contains(.league(text: "The Sunday Cup — first tee", gold: false)) == true)
@@ -208,7 +208,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
 
   @Test func covenantCopy() {
     let c = Covenant(.object(["name": .string("PIGL"), "buyin_cents": .number(5000), "preset": .string("standard"), "floor": .number(2), "finish": .string("points_table")]))!
-    #expect(c.usd == 50 && c.buyinLine == "$50 / player · on the books")   // T-12: "pot" retires
+    #expect(c.usd == 50 && c.buyinLine == "$50 / golfer · on the books")   // T-12: "pot" retires
     #expect(c.presetLine == "Standard" && c.floorLine == "2 rounds / mo" && c.finishLine == "Points table crowns it")
     #expect(c.joinLabel == "Join — I’m in for $50")
     #expect(Covenant(.null) == nil)
@@ -300,7 +300,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
   @Test func humanErrorPhrasings() {
     struct E: LocalizedError { let m: String; var errorDescription: String? { m } }
     #expect(HumanError.text(E(m: "Failed to fetch")) == "Connection hiccup — check your signal and try again.")
-    #expect(HumanError.text(E(m: "only the host and tagged players can rsvp to this round")) == "Only the host and the players they tagged can RSVP.")
+    #expect(HumanError.text(E(m: "only the host and tagged players can rsvp to this round")) == "Only the host and tagged golfers can RSVP to this round.")
     #expect(HumanError.text(E(m: "boom"), prefix: "Could not join.") == "Could not join. Something went wrong — please try again.")
     #expect(JoinService.joinError(E(m: "invalid code")) == "No league with that code. Check with your Pro")
   }

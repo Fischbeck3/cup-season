@@ -153,10 +153,10 @@ public enum YouCopy {
   /// Y-14 · the scope of a figure, WITH its denominator. "across counting
   /// rounds" said nothing about how many, so a best and an average that were
   /// one round twice read as two measurements.
-  public static func acrossCounting(_ n: Int) -> String { "across \(n) counting round\(n == 1 ? "" : "s")" }
-  public static let noCountingRounds = "No counting rounds yet"
+  public static func acrossCounting(_ n: Int) -> String { "across \(n) round\(n == 1 ? " that counts" : "s that count")" }
+  public static let noCountingRounds = "No rounds count yet"
   /// D131/D208 · the tile that counts leagues and events
-  public static let leaguesAndEvents = "Leagues & events"
+  public static let leaguesAndEvents = "Seasons & matches"
   public static let playedIn = "Played in"
   public static let roundsPosted = "Rounds posted"
   /// Y-14 · "All time" and "This season" USED to ride the first row of each
@@ -172,7 +172,7 @@ public enum YouCopy {
   /// Y-28 · two rounds, and the number did not move — not a missing figure
   public static let held = "Held"
   /// Y-29 · the one empty state for a card with no rounds
-  public static let noRoundsLine = "No rounds yet — your card fills as you play."
+  public static let noRoundsLine = "No rounds yet — your record fills as you play."
   public static let postFirst = "Post your first round"
   /// Y-17 · the quiet line over a partial load, and its one door
   public static let partialLine = "Some of your card did not load."

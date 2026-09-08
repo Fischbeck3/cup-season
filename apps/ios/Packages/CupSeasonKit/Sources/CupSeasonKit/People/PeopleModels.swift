@@ -154,7 +154,7 @@ public enum HumanError {
     } else if m.range(of: "schema cache|does not exist|could not find the|no function matches|column .* does not", options: .regularExpression) != nil {
       msg = "Just updated — give it a second and try again."
     } else if m.range(of: "can rsvp to this round|only the host and tagged", options: .regularExpression) != nil {
-      msg = "Only the host and the players they tagged can RSVP."
+      msg = "Only the host and tagged golfers can RSVP to this round."
     } else if m.range(of: "duplicate key|already exists|unique constraint", options: .regularExpression) != nil {
       msg = "That already exists."
     } else if m.range(of: "violates|constraint|not-null|null value|invalid input", options: .regularExpression) != nil {

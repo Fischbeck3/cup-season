@@ -58,7 +58,7 @@ struct SeasonStoryPane: View {
       CSFactStrip([
         .init(value: String(format: "%02d", played), label: "weeks played"),
         .init(value: String(format: "%02d", total), label: "weeks in all"),
-        .init(value: String(format: "%02d", field), label: "in the field"),
+        .init(value: String(format: "%02d", field), label: "playing"),
       ])
     }
     .csGutter()

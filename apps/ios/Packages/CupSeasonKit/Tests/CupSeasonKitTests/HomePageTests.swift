@@ -114,7 +114,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
     #expect(HomeWirePeriod.of(days: -7) == .earlier)
     // a row with no date cannot claim a place near the front of a rundown
     #expect(HomeWirePeriod.of(days: nil) == .earlier)
-    #expect(HomeWirePeriod.allCases.map(\.head) == ["Coming up", "Today", "This week", "Earlier"])
+    #expect(HomeWirePeriod.allCases.map(\.head) == ["Up next", "Today", "This week", "Earlier"])
 
     let page = HomePage.make(me: me(rounds: 9), strip: emptyStrip,
                              ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1),

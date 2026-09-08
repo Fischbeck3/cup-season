@@ -259,7 +259,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// "Points table crowns it" / "Cup Final · final 4 weeks"
   public var finishLine: String { finish == "points_table" ? "Points table crowns it" : "Cup Final · final 4 weeks" }
   /// "$50 / player · on the pot" — kept for the row form.
-  public var buyinLine: String { "$\(usd) / player · on the books" }   // T-12: "pot" retires
+  public var buyinLine: String { "$\(usd) / golfer · on the books" }   // T-12: "pot" retires
 
   /// The head, and the order the screen draws the facts in. WHO comes before the
   /// money, and that order is a value rather than the way a View happens to be

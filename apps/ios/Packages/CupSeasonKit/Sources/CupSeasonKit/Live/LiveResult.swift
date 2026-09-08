@@ -144,7 +144,7 @@ public enum LiveResultBuilder {
     let st = status.lowercased()
     let story = winner == nil
       ? "All square — \(names(s, 0)), \(names(s, 1))\(stake > 0 ? " · nobody pays" : "")"
-      : "\(names(s, winner!)) def. \(names(s, winner! == 0 ? 1 : 0)) \(st)\(stake > 0 ? " · $\(js(stake)) on the line" : "")"
+      : "\(names(s, winner!)) beat \(names(s, winner! == 0 ? 1 : 0)) \(st)\(stake > 0 ? " · $\(js(stake)) a side" : "")"
     let share = winner == nil
       ? "All square - \(fnSide(s, 0)), \(fnSide(s, 1))"
       : "\(fnSide(s, winner!)) beat \(fnSide(s, winner! == 0 ? 1 : 0)) \(st)\(stake > 0 ? " for $\(js(stake))" : "")"
@@ -234,7 +234,7 @@ public enum LiveResultBuilder {
     let ps: [SkinsP] = s.players.enumerated().map { SkinsP(name: $1.n, skins: sk.won[$0], pts: sk.pts[$0], idx: $0) }
     let winners = ps.filter { $0.skins > 0 }
     let line = winners.isEmpty ? "nobody took a skin" : winners.map { "\($0.name) \($0.skins)" }.joined(separator: ", ")
-    let died = sk.carry > 1 ? " · \(sk.carry - 1) carried died" : ""
+    let died = sk.carry > 1 ? " · \(sk.carry - 1) never claimed" : ""
     let rank = winners.sorted { $0.skins > $1.skins }
     let lead: SkinsP? = (!rank.isEmpty && !(rank.count > 1 && rank[1].skins == rank[0].skins)) ? rank[0] : nil
     func took(_ f: (String) -> String, _ t: SkinsP) -> String {
@@ -277,7 +277,7 @@ public enum LiveResultBuilder {
     let pot = Double(abs(m.bank)) * unit
     let story = winner == nil
       ? "All square — \(names(s, 0)), \(names(s, 1)). Sunningdale Rules · \(bankTxt)"
-      : "\(names(s, winner!)) def. \(names(s, winner! == 0 ? 1 : 0)) \(status). Sunningdale Rules · \(bankTxt)"
+      : "\(names(s, winner!)) beat \(names(s, winner! == 0 ? 1 : 0)) \(status). Sunningdale Rules · \(bankTxt)"
     let share = winner == nil
       ? "All square - \(fnSide(s, 0)), \(fnSide(s, 1))"
       : "\(fnSide(s, winner!)) beat \(fnSide(s, winner! == 0 ? 1 : 0)) \(status)\(pot > 0 ? " for $\(js(pot))" : "")"
@@ -343,7 +343,7 @@ public extension LiveResult {
     if isTeamMatch {
       let won = winner != nil
       let wSide = winner == "0" ? sideA : sideB, lSide = winner == "0" ? sideB : sideA
-      let line = won ? "\(wSide ?? "") def. \(lSide ?? "") \(status ?? "")" : "All square — \(sideA ?? ""), \(sideB ?? "")"
+      let line = won ? "\(wSide ?? "") beat \(lSide ?? "") \(status ?? "")" : "All square — \(sideA ?? ""), \(sideB ?? "")"
       let money: String
       if game == .sunningdale {
         let sunnBank = Double(abs(bank ?? 0)) * stake

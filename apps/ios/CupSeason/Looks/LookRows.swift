@@ -21,7 +21,7 @@ struct LookPaletteDial: View {
     VStack(alignment: .leading, spacing: 0) {
       LookPickRow(title: "Follow the calendar", sub: LookCopy.calendarLine(today), swatch: today,
                   selected: looks.personal == .calendar) { pick(.calendar) }
-      LookPickRow(title: "Fescue only", sub: "Homebase, all year", swatch: nil,
+      LookPickRow(title: "Default green", sub: "All year", swatch: nil,
                   selected: looks.personal == .none) { pick(.none) }
       ForEach(CSLooks.calendar) { s in
         LookPickRow(title: s.name, sub: LookRowCopy.sub(s), swatch: s,

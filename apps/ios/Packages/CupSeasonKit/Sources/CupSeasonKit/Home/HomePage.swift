@@ -39,7 +39,7 @@ public enum HomeWirePeriod: Int, Sendable, CaseIterable, Equatable, Comparable {
   /// The dateline the group prints.
   public var head: String {
     switch self {
-    case .ahead: "Coming up"
+    case .ahead: "Up next"
     case .today: "Today"
     case .week: "This week"
     case .earlier: "Earlier"

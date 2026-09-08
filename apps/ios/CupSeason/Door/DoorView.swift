@@ -207,12 +207,12 @@ struct DoorView: View {
   @ViewBuilder private var haveACode: some View {
     if codeEntry {
       VStack(alignment: .leading, spacing: 8) {
-        Text("Your code").csType(.agate, caps: true).foregroundStyle(cs.mut)
+        Text("League code").csType(.agate, caps: true).foregroundStyle(cs.mut)
         CSField("SATURDAY26", text: $typedCode)
           .textInputAutocapitalization(.characters).autocorrectionDisabled()
           .submitLabel(.done)
           .focused($focus, equals: .joinCode)
-          .accessibilityLabel("Your code")
+          .accessibilityLabel("League code")
           .onSubmit { takeCode() }
         Button("That\u{2019}s my code") { takeCode() }.buttonStyle(.csSecondary())
       }

@@ -72,7 +72,7 @@ struct RateCourseSheet: View {
 
           HStack(alignment: .top, spacing: CSTokens.Space.s4) {
             CSFigure(CSRating.format(stars), size: .xl, metal: .ink, label: "Yours")
-            Text("Half stars count. Change it any time — the number moves with you.")
+            Text("Half stars count. Change it any time — the rating moves with you.")
               .csType(.body).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
               .frame(maxWidth: .infinity, alignment: .leading)
@@ -119,7 +119,7 @@ struct RateCourseSheet: View {
     CSField(label: "What you thought",
             placeholder: "Best muni in the state\u{2026}",
             text: $note,
-            caption: "Optional. One line, and your golfers see it on the course.",
+            caption: "Optional. One line, and your buddies see it on the course.",
             limit: Self.noteCap)
       .onChange(of: note) { _, n in
         if n.count > Self.noteCap { note = String(n.prefix(Self.noteCap)) }
@@ -197,7 +197,7 @@ struct RateCourseSheet: View {
           Spacer(minLength: CSTokens.Space.s4)
           if let f = rating.friends {
             VStack(alignment: .trailing, spacing: CSTokens.Space.s1) {
-              CSFigure(CSRating.format(f), size: .l, metal: .ink, label: "Your golfers")
+              CSFigure(CSRating.format(f), size: .l, metal: .ink, label: "Your buddies")
             }
           }
         }
@@ -213,7 +213,7 @@ struct RateCourseSheet: View {
   /// golfer's number still in the control — never a raw code, and never a
   /// promise that it was queued, because it was not.
   private var unavailable: some View {
-    Text("That did not save. Your number is still here — try it again in a moment.")
+    Text("That did not save. Your rating is still here — try it again in a moment.")
       .csType(.bodyS).foregroundStyle(cs.mut)
       .fixedSize(horizontal: false, vertical: true)
   }

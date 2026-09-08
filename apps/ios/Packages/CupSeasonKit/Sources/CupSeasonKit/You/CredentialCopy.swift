@@ -91,10 +91,10 @@ public enum CredentialCopy {
   /// true statement of the state rather than the headline's verdict on it.
   public static func firstCard(name: String?, since: Date?, calendar: Calendar = .current) -> String {
     let who = (name?.isEmpty == false) ? name!.split(separator: " ").first.map(String.init) ?? name! : "This golfer"
-    guard let since else { return "\(who) is on the board. It starts with a first round." }
+    guard let since else { return "\(who) is here. It starts with a first round." }
     let f = DateFormatter()
     f.calendar = calendar; f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "MMMM"
-    return "\(who) joined in \(f.string(from: since)). The board starts with a first round."
+    return "\(who) joined in \(f.string(from: since)). It starts with a first round."
   }
 
   /// The FORM head's count — `LAST FIVE`, or `TWO OF FIVE` when the golfer has

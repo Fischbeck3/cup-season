@@ -62,7 +62,7 @@ struct DraftNightScreen: View {
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button { members = true } label: { Image(systemName: "person.2").foregroundStyle(dk.brand) }
-          .accessibilityLabel("Members & invites")
+          .accessibilityLabel("The roster")
           .disabled(!room.loaded)
       }
     }

@@ -128,7 +128,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let s = round(["Jerecho", "Ed"], indices: [0, 0], scores: [a, b], game: .match, stake: 10, holes: 9)
     let r = LiveResultBuilder.match(s)
     #expect(r.winner == "0" && r.status == "5&4")
-    #expect(r.story == "Jerecho def. Ed 5&4 · $10 on the line")
+    #expect(r.story == "Jerecho beat Ed 5&4 · $10 a side")
     #expect(r.share == "Jerecho beat Ed 5&4 for $10")
     #expect(r.json["game"]?.string == "match")
     #expect(r.json["winner"]?.string == "0")
@@ -284,7 +284,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let s = round(["Ed", "Mitch", "Blake"], indices: [0, 0, 0], scores: [S(4, 3, 4), S(4, 4, 4), S(4, 4, 4)], game: .skins, stake: 5)
     let r = LiveResultBuilder.skins(s)
     // money is pts × rate: 4 × $5 = $20
-    #expect(r.story == "Ed took 2 skins and $20 · Ed 2 · $5 a skin · 1 carried died")
+    #expect(r.story == "Ed took 2 skins and $20 · Ed 2 · $5 a skin · 1 never claimed")
     #expect(r.share == "Ed took 2 skins and $20")
     #expect(r.json["carried_died"]?.int == 1 && r.json["thru"]?.int == 3)
     #expect(r.json["holes"]?["mode"]?.string == "players")
@@ -293,7 +293,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(r.json["holes"]?["cells"]?.array?[0].string == "c")
     #expect(r.transfers == [LiveTransferNamed(from: "Mitch", to: "Ed", amt: 10), LiveTransferNamed(from: "Blake", to: "Ed", amt: 10)])
     let none = round(["A", "B"], indices: [0, 0], scores: [S(4), S(4)], game: .skins)
-    #expect(LiveResultBuilder.skins(none).story == "Nobody took a skin · 1 carried died")
+    #expect(LiveResultBuilder.skins(none).story == "Nobody took a skin · 1 never claimed")
   }
 }
 
@@ -381,7 +381,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let s = round(["Jerecho", "Ed"], indices: [12, 20], scores: [S(3, 3, 4, 5, 5, 5, 6), S(4, 4, 4, 4, 4, 4, 4)], game: .sunningdale, stake: 5)
     let r = LiveResultBuilder.sunningdale(s)
     #expect(r.status == "3 up thru 7" && r.winner == "1" && r.bank == -1)
-    #expect(r.story == "Ed def. Jerecho 3 up thru 7. Sunningdale Rules · bank: Ed $5")
+    #expect(r.story == "Ed beat Jerecho 3 up thru 7. Sunningdale Rules · bank: Ed $5")
     #expect(r.share == "Ed beat Jerecho 3 up thru 7 for $5")
     #expect(r.json["unit"]?.double == 5 && r.json["bank"]?.int == -1)
     #expect(r.recapRow.money == "ED TAKES THE BANK - $5")
@@ -514,13 +514,13 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   @Test func syncBadgeAndBanner() {
     var s = round(["A", "B"], indices: [0, 0], scores: [S(4), S()], game: .score)
     s.code = nil
-    #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Solo pencil · scores live on this phone")
+    #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Scoring it yourself · live on this phone")
     s.code = "abc"
     // D-offline · "queued" implies it will go; "unsent" states the fact, and
     // with a tee-off time on the card the deadline follows it. This card has
     // no `startedAt`, so the badge says only what it knows (`UnsentBadgeTests`).
-    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 on the sheet · 2 unsent")
-    #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "1 on the sheet · synced")
+    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 scoring · 2 unsent")
+    #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "1 scoring · synced")
     s.course.label = "Papago"
     s.hole = 1
     let mine = LiveCopy.resumeBanner(s)!
@@ -538,7 +538,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let f = LiveCopy.finishSheet(s)
     #expect(f.primary == "Post 1 card to the season")
     #expect(f.warning == "Ed — missing holes 17, 18. That card won’t post — go back and fill in, or finish without.")
-    #expect(f.intro == "Complete cards post to the season, vouched by the group; 1 guest gets a recap to claim. A partial card is skipped, not lost.")
+    #expect(f.intro == "Complete cards post to the season, vouched by the group; 1 guest gets a scorecard link. A partial card is skipped, not lost.")
     // a clean front nine on a nine is a complete card; a nine's back holes are never "missing"
     var nine = round(["A"], indices: [0], scores: [S(Array(repeating: 4, count: 9))], game: .score, holes: 9)
     #expect(LiveCopy.finishSheet(nine).primary == "Post 1 card to the season")
@@ -565,14 +565,14 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let ps = [LivePlayer(n: "Ed", i: 8.1, ci: 1, guest: false), LivePlayer(n: "Danny", i: 10.6, ci: 1, guest: false)]
     let p = LiveCopy.preview(game: .match, picked: ps, pairing: 0, course: card, holes: 18)!
     #expect(p == "**Ed** vs **Danny**\nStrokes off the low man (Ed): **Danny** gets 3: holes 4, 9, 12.")
-    #expect(LiveCopy.preview(game: .wolf, picked: ps, pairing: 0, course: card, holes: 18) == "Wolf needs exactly 4 players.")
+    #expect(LiveCopy.preview(game: .wolf, picked: ps, pairing: 0, course: card, holes: 18) == "Wolf needs exactly 4 golfers.")
     #expect(LiveCopy.preview(game: .score, picked: ps, pairing: 0, course: card, holes: 18) == nil)
   }
 
   @Test func teeOffProblems() {
     #expect(LiveGame.wolf.teeOffProblem(players: 3) == "Wolf needs exactly 4")
     #expect(LiveGame.match.teeOffProblem(players: 3) == "Match play takes 2 (singles) or 4 (2v2)")
-    #expect(LiveGame.skins.teeOffProblem(players: 5) == "Skins takes 2 to 4 players")
+    #expect(LiveGame.skins.teeOffProblem(players: 5) == "Skins takes 2 to 4 golfers")
     #expect(LiveGame.score.teeOffProblem(players: 0) == "Pick at least yourself")
     #expect(LiveGame.sunningdale.teeOffProblem(players: 4) == nil)
   }

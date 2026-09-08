@@ -295,7 +295,7 @@ struct MajorRoomView: View {
     let sub = [gross.map { "\($0) gross" },
                cards > 0 ? "\(cards) card\(cards == 1 ? "" : "s")" : nil,
                prize.flatMap { $0 > 0 ? MajorMath.money($0) : nil },
-               exhibition ? "exhibition" : nil,
+               exhibition ? "doesn’t count this year" : nil,
                gross == nil ? "the window is open" : nil]
       .compactMap { $0 }.joined(separator: " · ")
     Button {

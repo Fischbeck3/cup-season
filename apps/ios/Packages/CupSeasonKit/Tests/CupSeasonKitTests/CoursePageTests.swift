@@ -138,7 +138,7 @@ import Foundation
   /// producer.
   @Test func theTwoSentences() {
     let r = CourseRating(stars: 4.6, count: 24, friends: 4.9, friendsCount: 4, mine: nil)
-    #expect(r.friendsLine == "Your golfers give it {4.9}.")
+    #expect(r.friendsLine == "Your buddies give it {4.9}.")
     #expect(r.countLine == "Rated by 24 golfers, four of them yours.")
     let alone = CourseRating(stars: 5, count: 1, friends: nil, friendsCount: 0, mine: 5)
     #expect(alone.countLine == "Rated by one golfer.")

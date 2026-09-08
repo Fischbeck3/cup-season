@@ -136,7 +136,7 @@ struct HomeFloor: View {
 
   static let doors = [
     Door(key: "add_my_round", verb: "Add my round", gloss: "One you already played"),
-    Door(key: "start_something", verb: "Start something", gloss: "A season, a weekend, a clash"),
+    Door(key: "start_something", verb: "Start something", gloss: "A season, a weekend, a head to head"),
     Door(key: "join_with_a_code", verb: "Join with a code", gloss: "Someone sent you one"),
     Door(key: "find_golfers", verb: "Find golfers", gloss: "The people you play with"),
   ]

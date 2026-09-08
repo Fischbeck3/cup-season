@@ -29,15 +29,15 @@ struct SquadReceiptSheet: View {
           Spacer(minLength: CSTokens.Space.s2)
           Text("\(rows.count) golfers").csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
         }
-        RoomMathRow(k: "Counting rounds", v: CSCopy.points(fromRounds))
+        RoomMathRow(k: "Rounds that count", v: CSCopy.points(fromRounds))
         if ledger.isEmpty {
-          if adj != 0 { RoomMathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj)) }
+          if adj != 0 { RoomMathRow(k: "Bonuses & penalties", v: (adj > 0 ? "+" : "") + CSCopy.points(adj)) }
         } else {
           ForEach(ledger) { a in
             RoomMathRow(k: ledgerLabel(a), v: (a.points > 0 ? "+" : "") + String(a.points))
           }
           if ledger.reduce(0, { $0 + Double($1.points) }) != adj {
-            RoomMathRow(k: "Bonuses & penalties · the ledger", v: (adj > 0 ? "+" : "") + CSCopy.points(adj))
+            RoomMathRow(k: "Bonuses & penalties", v: (adj > 0 ? "+" : "") + CSCopy.points(adj))
           }
         }
         RoomMathRow(k: "Total", v: CSCopy.points(team.pts), total: true)
@@ -81,9 +81,9 @@ struct SquadReceiptSheet: View {
           .accessibilityLabel("\(p.n), \(p.r) round\(p.r == 1 ? "" : "s"), \(CSCopy.points(p.pts)) points")
           .accessibilityHint("Opens their rounds")
         }
-        if rows.isEmpty { RoomFine("No rounds posted yet — the squad is waiting on its first counter.").padding(.vertical, 8) }
+        if rows.isEmpty { RoomFine("No rounds posted yet — the squad is waiting on its first round that counts.").padding(.vertical, 8) }
       }
-      RoomFine("Squad points = everyone's counting rounds + the ledger. Tap any player for the rounds behind their points.").padding(.top, 6)
+      RoomFine("Squad points = everyone's rounds that count + bonuses & penalties. Tap any golfer for the rounds behind their points.").padding(.top, 6)
     }
   }
 

@@ -36,8 +36,8 @@ struct PricingPassCard: View {
             Text("One pass, the whole league, every season you run for a year —").csType(.story).foregroundStyle(cs.ink)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
               Text(price).csType(.figureS).foregroundStyle(cs.ink)
-              Text(bragging ? "· ≈ \(each) a player · split it on Venmo — less than a sleeve each"
-                            : "· ≈ \(each) a player a year · one line on the buy-in")
+              Text(bragging ? "· ≈ \(each) a golfer · split it on Venmo — less than a sleeve each"
+                            : "· ≈ \(each) a golfer a year · one line on the buy-in")
                 .font(CSFont.label).tracking(0.6).foregroundStyle(cs.mut)
                 .fixedSize(horizontal: false, vertical: true)
             }

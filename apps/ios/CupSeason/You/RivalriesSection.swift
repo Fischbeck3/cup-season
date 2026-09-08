@@ -64,7 +64,7 @@ struct RivalrySheet: View {
   }
 
   var body: some View {
-    SliceSheet(title: "You vs \(name)", sub: [record, RivalryCopy.sheetSub].compactMap { $0 }.joined(separator: " · ")) {
+    SliceSheet(title: "You and \(name)", sub: [record, RivalryCopy.sheetSub].compactMap { $0 }.joined(separator: " · ")) {
       if let cur = currentName {
         Text("“\(cur.uppercased())”").csEyebrow(cs.gold).padding(.bottom, 4)
       }
@@ -138,7 +138,7 @@ struct NameRivalrySheet: View {
   }
 
   var body: some View {
-    SliceSheet(title: current != nil ? "Rename the rivalry" : "Name the rivalry", sub: "YOU VS \(opponentName.uppercased())") {
+    SliceSheet(title: current != nil ? "Rename the rivalry" : "Name the rivalry", sub: "YOU AND \(opponentName.uppercased())") {
       Fine(RivalryCopy.nameHelp)
       CSField(RivalryCopy.namePlaceholder, text: $text, font: CSFont.body)
         .onChange(of: text) { _, v in if v.count > 40 { text = String(v.prefix(40)) } }

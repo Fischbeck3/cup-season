@@ -559,7 +559,7 @@ public enum ClimbMath {
           lb = "\(cut.line) · \(CSCopy.points(cush)) CLEAR"
         } else {
           let need = (K - 1 < n ? teams[K - 1].pts : 0) - me.pts
-          lb = "\(cut.line) · \(need > 0 ? CSCopy.points(need) + " BACK" : "ON THE LINE")"
+          lb = "\(cut.line) · \(need > 0 ? CSCopy.points(need) + " BACK" : "LEVEL")"
         }
       }
       out.append(.cut(label: lb))
@@ -655,7 +655,7 @@ public enum ClimbMath {
     }
     // Q-26: "PROJECTED UNDER A GENEROUS CEILING" was jargon nobody decoded, and
     // it sat over two EMPTY squads on a league that had not teed off.
-    if let meta { return "TOP \(K) \(meta.finish == "points_table" ? "— THE POINTS CROWN" : "ADVANCE TO THE CUP FINAL")" }
+    if let meta { return "TOP \(K) \(meta.finish == "points_table" ? "— THE POINTS KING" : "ADVANCE TO THE CUP FINAL")" }
     return "TOP \(K) ADVANCE TO THE CUP FINAL"
   }
 }

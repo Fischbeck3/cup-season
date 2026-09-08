@@ -49,7 +49,7 @@ public enum HomeFirstRound {
       Row(key: "course", verb: "The course keeps it",
           gloss: homeCourse.map { "\($0) remembers your best" } ?? "Every course remembers your best"),
       Row(key: "friends", verb: "Your friends see it",
-          gloss: "The moment you join one"),
+          gloss: "The moment you join a season"),
     ]
   }
 }

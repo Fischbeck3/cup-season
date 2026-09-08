@@ -100,13 +100,13 @@ struct LiveRecapSheet: View {
             }
             ForEach(Array(o.guests.enumerated()), id: \.offset) { _, g in
               A11yStack(spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
-                checkRow(g.name, "Guest recap — share the link", posted: false)
+                checkRow(g.name, "Guest scorecard — share the link", posted: false)
                 if let t = g.token {
                   CSMini("Copy") {
                     UIPasteboard.general.string = ClaimIntent.url(t).absoluteString
-                    toast.show("Recap link copied", kind: .confirmed)
+                    toast.show("Scorecard link copied", kind: .confirmed)
                   }
-                  .accessibilityLabel("Copy \(g.name)'s recap link")
+                  .accessibilityLabel("Copy \(g.name)'s scorecard link")
                 }
               }
             }

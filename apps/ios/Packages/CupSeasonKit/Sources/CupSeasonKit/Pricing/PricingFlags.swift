@@ -126,7 +126,7 @@ public struct PricingFlags: Decodable, Sendable, Equatable {
 
   /// "about $7.40 a player" / "about $10 a player".
   public static func perPlayerLine(cents: Int, roster: Int) -> String {
-    "about \(perPlayer(cents: cents, roster: roster)) a player"
+    "about \(perPlayer(cents: cents, roster: roster)) a golfer"
   }
 
   // MARK: - Founding

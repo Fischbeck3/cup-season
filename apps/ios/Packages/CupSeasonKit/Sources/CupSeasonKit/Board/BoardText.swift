@@ -116,7 +116,7 @@ public enum BoardText {
     } else if matches(m, #"schema cache|does not exist|could not find the|no function matches|column .* does not"#) {
       msg = "Just updated — give it a second and try again."
     } else if matches(m, #"can rsvp to this round|only the host and tagged"#) {
-      msg = "Only the host and the players they tagged can RSVP."
+      msg = "Only the host and tagged golfers can RSVP to this round."
     } else if matches(m, #"duplicate key|already exists|unique constraint"#) {
       msg = "That already exists."
     } else if matches(m, #"violates|constraint|not-null|null value|invalid input"#) {

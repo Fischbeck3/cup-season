@@ -74,7 +74,7 @@ public enum LiveCopy {
       let status = order.map { "\(up(s.players[$0].n)) \(m.wins[$0])" }.joined(separator: " · ")
       let sTxt = m.strokes.enumerated().compactMap { i, v in v > 0 ? "\(up(s.players[i].n)) +\(v)" : nil }.joined(separator: ", ")
       let bTxt = m.bankUnits == 0 ? "BANK EMPTY"
-        : "BANK: \(up(s.players[m.bankOwner].n))\(unit > 0 ? " $\(js(Double(m.bankUnits) * unit)) · EACH OWES" : " \(m.bankUnits)U")"
+        : "BANK: \(up(s.players[m.bankOwner].n))\(unit > 0 ? " $\(js(Double(m.bankUnits) * unit)) · EACH OWES" : " \(m.bankUnits) UNIT\(m.bankUnits == 1 ? "" : "S")")"
       let meta = "THRU \(m.played) · NO HANDICAPS\(sTxt.isEmpty ? "" : " · \(sTxt) NEXT") · \(bTxt)"
       return GameCard(teams: "Sunningdale Rules · everyone for themselves", status: status, meta: meta)
     }
@@ -91,7 +91,7 @@ public enum LiveCopy {
       let unit = s.stake
       let sTxt = m.strokes[0] > 0 ? " · \(teamA) GET \(m.strokes[0]) NEXT" : m.strokes[1] > 0 ? " · \(teamB) GET \(m.strokes[1]) NEXT" : ""
       let bTxt = m.bank == 0 ? " · BANK EMPTY"
-        : " · BANK: \(m.bank > 0 ? teamA : teamB)\(unit > 0 ? " $\(js(Double(abs(m.bank)) * unit))" : " \(abs(m.bank))U")"
+        : " · BANK: \(m.bank > 0 ? teamA : teamB)\(unit > 0 ? " $\(js(Double(abs(m.bank)) * unit))" : " \(abs(m.bank)) UNIT\(abs(m.bank) == 1 ? "" : "S")")"
       return GameCard(teams: teams, status: status, meta: "THRU \(m.played) · NO HANDICAPS\(sTxt)\(bTxt)")
     }
     return nil
@@ -139,7 +139,7 @@ public enum LiveCopy {
     let status = sk.thru >= H
       ? (sk.carry > 1 ? "DONE · \(sk.carry - 1) SKIN\(sk.carry == 2 ? "" : "S") NEVER CLAIMED" : "DONE · EVERY SKIN CLAIMED")
       : "HOLE \(sk.thru + 1) WORTH \(sk.carry) SKIN\(sk.carry == 1 ? "" : "S")"
-    let meta = "THRU \(sk.thru) · LOW NET TAKES IT" + (s.stake > 0 ? " · $\(LiveFmt.js(s.stake))/SKIN" : " · BRAGGING SKINS")
+    let meta = "THRU \(sk.thru) · LOW NET TAKES IT" + (s.stake > 0 ? " · $\(LiveFmt.js(s.stake))/SKIN" : " · NO MONEY ON IT")
     return SkinsCard(status: status, meta: meta, hot: sk.thru < H && sk.carry >= 2, won: sk.won, pts: sk.pts)
   }
 
@@ -336,12 +336,12 @@ public enum LiveCopy {
                                retired: Bool = false, now: Int64 = LiveFmt.now()) -> String {
     guard s.active else { return "" }
     if retired { return "This round closed — your card is saved on this phone" }
-    guard s.code != nil else { return "Solo pencil · scores live on this phone" }
+    guard s.code != nil else { return "Scoring it yourself · live on this phone" }
     let n = max(1, presence.count)
-    guard queued > 0 else { return "\(n) on the sheet · synced" }
+    guard queued > 0 else { return "\(n) scoring · synced" }
     let strokes = "\(queued) unsent"
-    guard let deadline = closesText(s, now: now) else { return "\(n) on the sheet · \(strokes)" }
-    return "\(n) on the sheet · \(strokes) · \(deadline)"
+    guard let deadline = closesText(s, now: now) else { return "\(n) scoring · \(strokes)" }
+    return "\(n) scoring · \(strokes) · \(deadline)"
   }
 
   /// "closes in 6h" / "closes within the hour". Nil when the card predates
@@ -391,11 +391,11 @@ public enum LiveCopy {
     case .wolf:
       return n == 4
         ? "Wolf order shuffles at tee-off and locks. The wolf tees last, picks a partner after any drive — or goes lone for 3. Last two holes (\(holes == 9 ? "8–9" : "17–18")): last place is the wolf."
-        : "Wolf needs exactly 4 players."
+        : "Wolf needs exactly 4 golfers."
     case .skins:
       return (n >= 2 && n <= 4)
         ? "Low net wins the hole’s skin; a tie carries it — next hole is worth more. Strokes apply off the low man."
-        : "Skins takes 2 to 4 players."
+        : "Skins takes 2 to 4 golfers."
     case .match:
       if n != 2, n != 4 { return "Match play takes 2 (singles) or 4 (2v2 net best ball)." }
       let chs = picked.map { LiveEngines.jsRound($0.i * Double(course.effectiveSlope) / 113) }
@@ -591,7 +591,7 @@ public enum LiveCopy {
       // "fill in" is the wrong instruction when the problem is EXTRA scores
       let anyStray = open.contains { i in (0..<s.liveHoles).allSatisfy { s.scores[i][$0] != nil } }
       let parts = open.map { i -> String in
-        let who = s.players[i].n.isEmpty ? "A player" : s.players[i].n
+        let who = s.players[i].n.isEmpty ? "A golfer" : s.players[i].n
         let m = (0..<s.liveHoles).filter { s.scores[i][$0] == nil }.map { $0 + 1 }
         // D153b · an unpostable card with NOTHING missing in play is the stray
         // back-nine case: an eighteen scored past the turn and then switched to
@@ -604,7 +604,7 @@ public enum LiveCopy {
       }
       warning = parts.joined(separator: " · ") + ". \(open.count == 1 ? "That card" : "Those cards") won’t post — go back and \(anyStray ? "fix it" : "fill in"), or finish without."
     }
-    let intro = "\(leagueless ? "Every complete card posts to its golfer" : "Complete cards post to the season"), vouched by the group\(guestN > 0 ? "; \(guestN) guest\(guestN == 1 ? "" : "s") get\(guestN == 1 ? "s" : "") a recap to claim" : ""). A partial card is skipped, not lost."
+    let intro = "\(leagueless ? "Every complete card posts to its golfer" : "Complete cards post to the season"), vouched by the group\(guestN > 0 ? "; \(guestN) guest\(guestN == 1 ? "" : "s") get\(guestN == 1 ? "s" : "") a scorecard link" : ""). A partial card is skipped, not lost."
     return FinishSheet(intro: intro, warning: warning,
                        primary: done.isEmpty ? "Finish the round"
                                              : "Post \(done.count) card\(done.count == 1 ? "" : "s")\(leagueless ? " — each to its golfer" : " to the season")",

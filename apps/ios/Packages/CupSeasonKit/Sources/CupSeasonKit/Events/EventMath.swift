@@ -218,14 +218,14 @@ public enum RyderMath {
       else if r.winnerSlot == 0 { aW += 1 }
       else if r.winnerSlot == 1 { bW += 1 }
     }
-    let series: String = aW == bW ? "series level \(evHalf(aW))–\(evHalf(bW))"
-      : aW > bW ? "\(aName) lead the series \(evHalf(aW))–\(evHalf(bW))"
-      : "\(bName) lead the series \(evHalf(bW))–\(evHalf(aW))"
+    let series: String = aW == bW ? "all square \(evHalf(aW))–\(evHalf(bW))"
+      : aW > bW ? "\(aName) hold the Ryder \(evHalf(aW))–\(evHalf(bW))"
+      : "\(bName) hold the Ryder \(evHalf(bW))–\(evHalf(aW))"
     var hold = ""
     if status != "complete", let last = priors.last {
       if last.winnerShared { hold = " · the cup is shared" }
-      else if last.winnerSlot == 0 { hold = " · \(aName) defend" }
-      else if last.winnerSlot == 1 { hold = " · \(bName) defend" }
+      else if last.winnerSlot == 0 { hold = " · \(aName) hold it" }
+      else if last.winnerSlot == 1 { hold = " · \(bName) hold it" }
     }
     return "The \(nth(pos)) Ryder · \(series)\(hold)"
   }
@@ -235,7 +235,7 @@ public enum RyderMath {
     let head = "Each week pairs everyone 1‑on‑1; the best round that week against your playing HCP wins the point, a tie splits it. "
     return t.pairings > 0
       ? head + "First to \(evHalf(t.clinch)) of \(t.points) takes the cup."
-      : head + "Add players to both teams to set the target."
+      : head + "Add golfers to both teams to set the target."
   }
 
   /// The taunt toggle's label (12266).
@@ -364,7 +364,7 @@ public enum RyderMath {
       parts.append("From \(EventDates.dowMonthDay(start, calendar: calendar))")
     }
     let n = room.players.count
-    if n > 0 { parts.append("\(spelled(n)) in the field") }
+    if n > 0 { parts.append("\(spelled(n)) playing") }
     return parts.joined(separator: " · ")
   }
 
@@ -511,7 +511,7 @@ public enum MajorMath {
   public static func cardsLine(gross: Int?, cards: Int, prize: Double? = nil, exhibition: Bool = false) -> String {
     var s = (gross.map { "\($0) · " } ?? "") + "\(cards) card\(cards == 1 ? "" : "s")"
     if let p = prize, p > 0 { s += " · \(money(p))" }
-    if exhibition { s += " · exhibition" }
+    if exhibition { s += " · doesn't count this year" }
     return s
   }
 
@@ -532,7 +532,7 @@ public enum MajorMath {
   public static func finePrint(buyIn: Double, potSplit: String?) -> String {
     var s = "The fine print. 18-hole cards only; scored by how far you beat your playing HCP. An established number (3 posted rounds) contends for the jug"
     s += buyIn > 0 ? " and the pot" : ""
-    s += "; newer golfers play exhibition — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip."
+    s += "; newer golfers don't count this year — on the board, official by the next one. Ties settle on countback: second-best card, then earliest posted, then a logged coin flip."
     // D297 · the ledger line is `MoneyCopy.ledger`, never retyped (LINT-23);
     // twin of `renderMajorRoom()`'s fine print.
     if buyIn > 0 { s += " \(potSplit == "wta" ? "Winner takes it" : "60/25/15, top three"). \(MoneyCopy.ledger)" }

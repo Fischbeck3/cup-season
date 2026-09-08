@@ -49,7 +49,7 @@ public enum GuideCopy {
   public static let rows: [Row] = [
     // D222 · five, and the ⊕ is a verb rather than a fifth room.
     Row(key: "places", glyph: "◱", title: "The five places", sub: "Home · Compete · ⊕ Play · Golfers · You"),
-    Row(key: "games", glyph: "⛳", title: "Leagues vs events", sub: "The long game and the short game"),
+    Row(key: "games", glyph: "⛳", title: "Seasons, matches and weekends", sub: "What you can play for"),
     Row(key: "posting", glyph: "✎", title: "Posting a round", sub: "Basic, live, and the scan"),
     Row(key: "buddies", glyph: "◆", title: "Buddies, invites and claims", sub: "Three different links, three jobs"),
     Row(key: "scoring", glyph: "◷", title: "How scoring works", sub: "How rounds become points"),
@@ -63,20 +63,20 @@ public enum GuideCopy {
       "**Golfers** is the people — anybody waiting on you, your buddies, and the ones you play with but have not added yet.",
       "**You** is your card, your record and your trophies. The gear up top opens Card & settings, which runs everything else.",
     ]),
-    "games": GuideSheet(key: "games", title: "Leagues vs events", sub: "THE LONG GAME · THE SHORT GAME", paragraphs: [
-      "**A league is the long game.** A full season — weeks or months, squads or solo, every round you post counts toward a table, and the endgame settles it: a Cup Final or the points table.",
-      "**An event is the short game.** A weekend or a few weeks, its own little trophy: the Ryder (two teams, one clash a week), or a Major (one window, every card on one board, one name on the jug).",
-      "You can run both at once. An event stands alone, or attaches to a league.",
+    "games": GuideSheet(key: "games", title: "Seasons, matches and weekends", sub: "WHAT YOU CAN PLAY FOR", paragraphs: [
+      "**A season.** Weeks or months, squads or solo, every round you post counts toward a table, and the endgame settles it: a Cup Final or the points table.",
+      "**A Ryder or a Major.** A weekend or a few weeks, its own little trophy: the Ryder (two teams, one clash a week), or a Major (one window, every card on one board, one name on the jug).",
+      "You can run both at once. A Ryder or a Major stands alone, or attaches to a season.",
     ]),
     "posting": GuideSheet(key: "posting", title: "Posting a round", sub: "POST · BEFORE, DURING, AFTER", paragraphs: [
-      "**After you play:** front nine, back nine, pick the course — twenty seconds. It posts to your rounds and in every league you're in. **Scan the card** and the app reads it for you, the whole group at once.",
-      "**During:** Play now is the shared pencil — match play, Wolf, skins, the settle-up. Everyone's card posts at the end, vouched by the group.",
-      "**Before:** put a tee time on the sheet. Your buddies see it and tap in.",
+      "**After you play:** front nine, back nine, pick the course — twenty seconds. It posts to your rounds and in every season you're in. **Scan the scorecard** and the app reads it for you, the whole group at once.",
+      "**During:** Score it live — match play, Wolf, skins, the settle-up. Everyone's card posts at the end, vouched by the group.",
+      "**Before:** put a round on the schedule. Your buddies see it and tap in.",
     ]),
     "buddies": GuideSheet(key: "buddies", title: "Buddies, invites and claims", sub: "THREE LINKS, THREE JOBS", paragraphs: [
       "**A buddy** is mutual — open Your buddies on You to find golfers by name or @handle. Buddies see each other's rounds and share a schedule. Nothing to do with leagues or points.",
       "**An invite link** carries a league's code — whoever opens it reviews the league and joins if they're in.",
-      "**A claim link** hands one round to a guest you played with, so the score lands on their card. No league, no buddy — just the round.",
+      "**A claim link** hands one round to a guest you played with, so the round posts to their rounds. No league, no buddy — just the round.",
     ]),
   ]
 
@@ -103,11 +103,11 @@ public enum GuideCopy {
     let counts: String
     switch solo {
     case true:
-      counts = "Your best rounds each month count — a better round always bumps your worst counter. In a solo league the monthly minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in **League rules**."
+      counts = "Your best rounds each month count — a better round always bumps the worst one that counts. In a solo league the monthly minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in **The rules**."
     case false:
-      counts = "Your best rounds each month count for your squad — a better round always bumps your worst counter — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your **season bye** covers you automatically — life happens; the floor bites from the second miss. Your league's exact numbers are in **League rules**."
+      counts = "Your best rounds each month count for your squad — a better round always bumps the worst one that counts — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your **bye** covers you automatically — life happens; the penalty bites from the second miss. Your league's exact numbers are in **The rules**."
     default:
-      counts = "Your best rounds each month count — a better round always bumps your worst counter. In a squad league everyone owes a minimum number of rounds a month so nobody coasts: miss it once and your **season bye** covers you automatically — life happens; the floor bites from the second miss. In a solo league that minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in **League rules**."
+      counts = "Your best rounds each month count — a better round always bumps the worst one that counts. In a squad league everyone owes a minimum number of rounds a month so nobody coasts: miss it once and your **bye** covers you automatically — life happens; the penalty bites from the second miss. In a solo league that minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in **The rules**."
     }
     // D3's covenant line; "your squad" is a lie in a solo league and "your
     // standing" is true in BOTH — so only a KNOWN squad league gets the squad

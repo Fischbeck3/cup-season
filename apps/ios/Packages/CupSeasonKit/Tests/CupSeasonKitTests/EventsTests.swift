@@ -68,7 +68,7 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     let t = RyderMath.target(rosterA: 6, rosterB: 6, sessionCount: 3, sessionRows: 3)
     #expect(RyderMath.ruleSentence(t).hasSuffix("First to 9½ of 18 takes the cup."))
     let empty = RyderMath.target(rosterA: 0, rosterB: 3, sessionCount: 3, sessionRows: 3)
-    #expect(RyderMath.ruleSentence(empty).hasSuffix("Add players to both teams to set the target."))
+    #expect(RyderMath.ruleSentence(empty).hasSuffix("Add golfers to both teams to set the target."))
   }
 }
 
@@ -142,12 +142,12 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
   @Test func leadsTheSeriesAndDefends() {
     let chain = [EventLineageRow(eventId: e1, status: "complete", winnerSlot: 1), EventLineageRow(eventId: e2, status: "complete", winnerSlot: 0),
                  EventLineageRow(eventId: evId, status: "live")]
-    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "live", aName: "Red", bName: "Blue") == "The 3rd Ryder · series level 1–1 · Red defend")
+    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "live", aName: "Red", bName: "Blue") == "The 3rd Ryder · all square 1–1 · Red hold it")
   }
   @Test func sharedCountsHalfEach() {
     let chain = [EventLineageRow(eventId: e1, status: "complete", winnerShared: true), EventLineageRow(eventId: e2, status: "complete", winnerSlot: 1),
                  EventLineageRow(eventId: evId, status: "complete", winnerSlot: 1)]
-    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "complete", aName: "Red", bName: "Blue") == "The 3rd Ryder · Blue lead the series 1½–½")
+    #expect(RyderMath.seriesLine(lineage: chain, eventId: evId, status: "complete", aName: "Red", bName: "Blue") == "The 3rd Ryder · Blue hold the Ryder 1½–½")
   }
   @Test func quietUntilTheChainHasTwo() {
     #expect(RyderMath.seriesLine(lineage: [EventLineageRow(eventId: evId, status: "live")], eventId: evId, status: "live", aName: "A", bName: "B") == nil)
@@ -213,7 +213,7 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
   @Test func cardsLineAndShare() {
     #expect(MajorMath.cardsLine(gross: 82, cards: 2) == "82 · 2 cards")
     #expect(MajorMath.cardsLine(gross: nil, cards: 1, prize: 60) == "1 card · $60")
-    #expect(MajorMath.cardsLine(gross: 90, cards: 3, exhibition: true) == "90 · 3 cards · exhibition")
+    #expect(MajorMath.cardsLine(gross: 90, cards: 3, exhibition: true) == "90 · 3 cards · doesn't count this year")
     // D252 · "still to post", not "still to card": one act, one verb (A-5).
     #expect(MajorMath.stillToPost(["Tash", "Dev"], daysLeft: 2) == "Still to post: Tash, Dev · 2d left.")
     #expect(MajorMath.stillToPost(["Tash"], daysLeft: 0) == "Still to post: Tash · cards in by tonight.")

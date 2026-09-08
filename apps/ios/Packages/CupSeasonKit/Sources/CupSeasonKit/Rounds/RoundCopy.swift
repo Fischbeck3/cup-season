@@ -22,7 +22,7 @@ public enum RoundCopy {
   /// nowhere a producer could hold it. It is here now, so the two clients
   /// cannot tell a golfer two different things about the same irreversible act.
   public static let deleteConsequence =
-    "It leaves your card and any league standings it counted toward. This cannot be undone."
+    "It leaves your rounds and any season standings it counted toward. This cannot be undone."
   /// L-32 · a failed write says so in the golfer's words, never with a code.
   public static let deleteFailed = "That didn’t delete. Check your signal and try again."
 

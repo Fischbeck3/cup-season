@@ -151,7 +151,7 @@ public enum BoardLogic {
     struct Opt { let n: Int; let pri: Int; let t: String }
     var opts = [
       Opt(n: dTo(close), pri: 0, t: dTo(close) == 0 ? "Week closes tonight" : "Week closes \(closeDow) · \(dTo(close))d"),
-      Opt(n: dTo(first), pri: 1, t: "Month closes \(BoardText.MOS[(calendar.component(.month, from: first) - 1)]) 1 · floors assessed"),
+      Opt(n: dTo(first), pri: 1, t: "Month closes \(BoardText.MOS[(calendar.component(.month, from: first) - 1)]) 1"),
     ]
     if (finish ?? "cup_final") == "cup_final" {
       if cf >= day {

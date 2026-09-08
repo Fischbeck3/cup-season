@@ -71,7 +71,7 @@ public struct CareerRecord: Sendable, Equatable {
   }
 
   private static let order: [(String, String, String)] = [
-    ("cups", "Cup", "Cups"), ("crowns", "Points crown", "Points crowns"),
+    ("cups", "Cup", "Cups"), ("crowns", "Points King", "Points Kings"),
     ("majors", "Major", "Majors"), ("events", "Event", "Events"),
     ("runner_ups", "Runner-up", "Runner-ups"),
   ]

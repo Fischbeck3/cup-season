@@ -62,8 +62,8 @@ import Foundation
   }
 
   @Test func theLineSaysAbout() {
-    #expect(PricingFlags.perPlayerLine(cents: 8900, roster: 12) == "about $7.40 a player")
-    #expect(PricingFlags.perPlayerLine(cents: 5900, roster: 4) == "about $15 a player")
+    #expect(PricingFlags.perPlayerLine(cents: 8900, roster: 12) == "about $7.40 a golfer")
+    #expect(PricingFlags.perPlayerLine(cents: 5900, roster: 4) == "about $15 a golfer")
   }
 
   @Test func aZeroRosterNeverDividesByZero() {

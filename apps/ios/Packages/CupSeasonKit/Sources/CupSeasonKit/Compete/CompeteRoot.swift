@@ -323,7 +323,7 @@ public enum CompeteRoot {
     return EmptyRoot(
       head: counted ?? "Nothing running.",
       fact: nil,
-      sub: "Your next competition starts here — a season, a weekend, or one guy you want to beat.",
+      sub: "Your next competition starts here — a season, a weekend, or going head to head.",
       doors: [.startSomething, hasBuddies ? .joinWithCode : .findGolfers])
   }
 }

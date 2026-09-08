@@ -58,7 +58,7 @@ struct PotPassCard: View {
                a benefit from the stakes — so a sentence saying the pot pays Cup
                Season’s fee is the sentence that makes this a rake. The Pro may
                still choose to fund it that way; the PRODUCT must not say so. */
-            Text("Next year it’s \(price) for the league — about \(PricingFlags.perPlayer(cents: band.cents, roster: r)) a player, with every season included.")
+            Text("Next year it’s \(price) for the league — about \(PricingFlags.perPlayer(cents: band.cents, roster: r)) a golfer, with every season included.")
               .csType(.body).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
           }

@@ -106,7 +106,7 @@ struct PotPane: View {
   /// with their labels dropped is a split nobody can read: the reader cannot
   /// tell the champion's share from the points king's.
   @ViewBuilder private func split(_ trio: (champ: Int, runner: Int, king: Int)) -> some View {
-    let rows = [("Cup champ", PotMath.money(trio.champ)),
+    let rows = [("Champion", PotMath.money(trio.champ)),
                 ("Runner-up", PotMath.money(trio.runner)),
                 ("Points king", PotMath.money(trio.king))]
     Group {
@@ -142,7 +142,7 @@ struct PotPane: View {
       }
     }
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel("The split. Cup champ \(PotMath.money(trio.champ)), runner-up \(PotMath.money(trio.runner)), points king \(PotMath.money(trio.king)).")
+    .accessibilityLabel("The split. Champion \(PotMath.money(trio.champ)), runner-up \(PotMath.money(trio.runner)), points king \(PotMath.money(trio.king)).")
   }
 
   // MARK: - the leaf
@@ -267,7 +267,7 @@ struct ForfeitLedgerView: View {
       let open = S.filter { $0.status == "open" }, done = S.filter { $0.status == "settled" }
       VStack(alignment: .leading, spacing: 8) {
         CSSectionHead("Bets for pride · on the record", trailing: "Post a forfeit") { router.open(.forfeitCreate) }
-        if open.isEmpty { RoomFine("No stakes on the books. The cookout isn't going to bet itself.") }
+        if open.isEmpty { RoomFine("Nothing on the record yet. The cookout isn't going to bet itself.") }
         ForEach(open) { row($0) }
         if !done.isEmpty {
           CSSectionHead("The archive")
@@ -355,8 +355,8 @@ struct ForfeitCreateSheet: View {
             do {
               try await model.createForfeit(name: name.trimmingCharacters(in: .whitespaces), terms: terms.trimmingCharacters(in: .whitespaces),
                                             kind: kind, other: other, hangs: hangs.trimmingCharacters(in: .whitespaces).isEmpty ? nil : hangs.trimmingCharacters(in: .whitespaces))
-              toast.show("Stake posted — the board heard it", kind: .confirmed); dismiss()
-            } catch { toast.show(roomError(error, "Could not post the stake."), kind: .failed) }
+              toast.show("Forfeit posted — the board heard it", kind: .confirmed); dismiss()
+            } catch { toast.show(roomError(error, "Could not post the forfeit."), kind: .failed) }
           }
         }
           .buttonStyle(.csPrimary(busy: busy))
@@ -401,7 +401,7 @@ struct ForfeitSettleSheet: View {
   var body: some View {
     let opts: [(UUID, String)] = forfeit.party_b.map { [(forfeit.party_a, model.stakeName(forfeit.party_a)), ($0, model.stakeName($0))] }
       ?? model.members.map { ($0.profile_id, $0.name) }
-    SheetFrame("Settle the stake", sub: "\(forfeit.name) · \(forfeit.terms)") {
+    SheetFrame("Settle the forfeit", sub: "\(forfeit.name) · \(forfeit.terms)") {
       RoomFine(forfeit.party_b != nil ? "Who took it?" : "Who hit it? Anyone in the crew.")
       LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 6)], alignment: .leading, spacing: 6) {
         ForEach(opts, id: \.0) { pid, name in

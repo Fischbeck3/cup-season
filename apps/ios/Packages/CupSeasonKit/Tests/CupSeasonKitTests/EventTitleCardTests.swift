@@ -60,7 +60,7 @@ import Foundation
     let sessions = [EventSession(id: s1, session_no: 1, opens_on: "2026-09-06", closes_on: "2026-09-12", status: "closed"),
                     EventSession(id: s2, session_no: 2, opens_on: "2026-09-13", closes_on: "2026-09-26", status: "open")]
     let line = RyderMath.dateline(room(sessions: sessions), calendar: cal)
-    #expect(line == "Sun Sep 6 – Sat Sep 26 · six in the field")
+    #expect(line == "Sun Sep 6 – Sat Sep 26 · six playing")
     // **an en dash, never an arrow** (§5.2, LINT-13)
     #expect(!line.contains("→"))
   }

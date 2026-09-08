@@ -27,7 +27,7 @@ struct CupFinalRaceView: View {
       VStack(alignment: .leading, spacing: 0) {
         CSSectionHead("The Cup Final",
                       count: "\(dl) day\(dl == 1 ? "" : "s") left"
-                        + (race.seed_rung.map { " · seeded by \($0)" } ?? ""))
+                        + (race.seed_rung.map { " · in the Final by \($0)" } ?? ""))
           .csGutter()
           .padding(.bottom, CSTokens.Space.s2)
         CSStandingsBoard(count: race.race.count) { i, _ in
@@ -102,7 +102,7 @@ struct FinalistReceiptSheet: View {
       VStack(alignment: .leading, spacing: 0) {
         if f.head_start > 0 { RoomMathRow(k: "Head start · top seed", v: "+" + CSCopy.points(f.head_start), tone: cs.pos) }
         RoomMathRow(k: "Window rounds · scored fresh", v: CSCopy.points(f.window_points))
-        if let r = f.seed_rung { RoomMathRow(k: "Seeded by", v: r.uppercased()) }
+        if let r = f.seed_rung { RoomMathRow(k: "In the Final by", v: r.uppercased()) }
         RoomMathRow(k: "Total in the Final", v: CSCopy.points(f.total), total: true)
       }
       Text("The rounds").csEyebrow().padding(.top, 6)
@@ -110,7 +110,7 @@ struct FinalistReceiptSheet: View {
       // sentence that says so is the SERVER's, not a second copy on the phone.
       if let note = model.cupRace?.cap_note { RoomFine(note).padding(.top, 4) }
       if f.rounds.isEmpty {
-        RoomFine("No counting rounds in the window yet — the slate is still clean.").padding(.vertical, 8)
+        RoomFine("No rounds in the window yet.").padding(.vertical, 8)
       } else {
         VStack(spacing: 0) {
           ForEach(f.rounds) { h in
