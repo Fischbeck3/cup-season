@@ -34,9 +34,13 @@ enum ReceiptPhotoDev {
   /// sky, a horizon and a ground MASS at 3:2, which is what `CSPlate`'s
   /// geometry and the marker medallion's scrim are being tested against — the
   /// same rule `CredDev.photo` follows for the face.
-  static let photo: URL? = {
+  ///
+  /// IOS-066 · the COMPOSER's plate (`-cs_dev_post_seed photo`) reads the same
+  /// image rather than drawing a second one. One stand-in photograph in the
+  /// build, and one file on LINT-04's named exemption instead of two.
+  static let image: UIImage = {
     let size = CGSize(width: 1200, height: 800)
-    let img = UIGraphicsImageRenderer(size: size).image { ctx in
+    return UIGraphicsImageRenderer(size: size).image { ctx in
       let c = ctx.cgContext
       let sky = [UIColor(white: 0.86, alpha: 1).cgColor,
                  UIColor(white: 0.62, alpha: 1).cgColor] as CFArray
@@ -50,8 +54,12 @@ enum ReceiptPhotoDev {
       c.setFillColor(UIColor(white: 0.26, alpha: 1).cgColor)
       c.fillEllipse(in: CGRect(x: 620, y: size.height * 0.46, width: 760, height: 260))
     }
+  }()
+
+  /// The same image, on disk, for the receipt's `AsyncImage`.
+  static let photo: URL? = {
     let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("cs-dev-round-photo.png")
-    try? img.pngData()?.write(to: url)
+    try? image.pngData()?.write(to: url)
     return url
   }()
 

@@ -487,6 +487,46 @@ public struct CSPlate<Content: View>: View {
   }
 }
 
+// MARK: - The plate with nothing in it yet
+
+/// **THE INVITATION, AT THE SIZE AND SHAPE OF THE PICTURE IT WANTS** (IOS-066).
+///
+/// A `CSPlate` shows a photograph a golfer took. This is what the same field
+/// looks like BEFORE there is one, and it is not a button with a word on it:
+/// it is the picture's own boundary, drawn, with the family's `.photo` glyph
+/// and one agate line inside. §17 asks empty states to be invitations rather
+/// than apologies, and a frame the exact size of the result is the most
+/// literal invitation an image field can make.
+///
+/// The edge is `rule` — the system's ONE hairline, bent into the plate's own
+/// radius. It is not a fifth border style: it is `CSRule` following a corner,
+/// and it exists only while the field is empty. Put a picture in and the line
+/// goes, because the picture has its own edge.
+///
+/// It lives here rather than at the call site because the shape does: a
+/// rounded rectangle drawn outside `CSDesign` is what LINT-10 counts, and the
+/// answer to a lint is the component it is asking for.
+public struct CSPlateWell: View {
+  @Environment(\.cs) private var cs
+  let glyph: CSGlyph.Name
+  let label: String
+  public init(glyph: CSGlyph.Name = .photo, label: String) {
+    self.glyph = glyph; self.label = label
+  }
+  public var body: some View {
+    ZStack {
+      VStack(spacing: CSTokens.Space.s1) {
+        CSGlyph(glyph, size: .block)
+        Text(label).csType(.agateS, caps: true).multilineTextAlignment(.center)
+      }
+      .foregroundStyle(cs.mut)
+      .padding(.horizontal, CSTokens.Space.s1)
+      RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous)
+        .strokeBorder(cs.rule, lineWidth: CSTokens.Space.hair)
+    }
+  }
+}
+
 // MARK: - The object
 
 /// A thing a golfer would keep: the credential, the settlement card, the

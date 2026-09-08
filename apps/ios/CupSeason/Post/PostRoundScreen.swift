@@ -106,11 +106,10 @@ private struct PostRoundBody: View {
     ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
-          PostHeroCard(model: model, focus: $grossFocused)
+          PostHeroCard(model: model, focus: $grossFocused, pickPhoto: pickPhoto, pickScan: pickScan)
           inheritedLine
           whoSection
           cardFold.id("card")
-          detailsSection.id("details")
           bandsSection.id("bands")
           // IOS-064 · at an accessibility size the abandonment link rides HERE
           // rather than in the pinned foot — see `bottomBar`.
@@ -120,12 +119,17 @@ private struct PostRoundBody: View {
         .csPage("composer")
       }
       #if DEBUG
-      // `-cs_dev_post_scroll <card|details|bands>`: a simulator without a finger reaches the fold
+      // `-cs_dev_post_scroll <card|bands>`: a simulator without a finger reaches the fold
       .task {
         let a = ProcessInfo.processInfo.arguments
         guard let i = a.firstIndex(of: "-cs_dev_post_scroll"), i + 1 < a.count else { return }
         try? await Task.sleep(for: .seconds(1))
         if a[i + 1] == "bands" { bandsOpen = true }
+        // IOS-066 · `card` OPENS the fold as well as scrolling to it. A seed
+        // carries a course, so the fold it lives in is folded, and the hatch
+        // was scrolling to an id that was not in the tree.
+        if a[i + 1] == "card" { cardOpen = true }
+        grossFocused = false   // the keypad's inset is what stops the scroll short
         proxy.scrollTo(a[i + 1], anchor: .top)
       }
       #endif
@@ -196,7 +200,9 @@ private struct PostRoundBody: View {
     .buttonStyle(.plain)
     .padding(.top, 12)
     .accessibilityLabel("Course and tees: \(inheritedText)")
-    .accessibilityHint(cardIsOpen ? "Closes the card" : "Opens the course, the tees and your nines")
+    // IOS-066 · the day moved INTO the fold this line summarises, so the hint
+    // names it. It was a chip under a `Details` head that held nothing else.
+    .accessibilityHint(cardIsOpen ? "Closes the card" : "Opens the course, the tees, the day and your nines")
   }
 
   /// "PAPAGO · BLUE · 71.2 / 128 · TODAY". A missing piece is an em dash, never
@@ -284,7 +290,9 @@ private struct PostRoundBody: View {
       // rating/slope: one mono line that opens into the two fields on "edit" — always editable (D72);
       // an empty card shows "— / —" and stays folded (IOS-022 item 4)
       Button { CSMotion.run { ratingOpen.toggle() } } label: {
-        CSRow(last: !ratingFieldsShown) {
+        // IOS-066 · always draws its hairline now: `Day played` follows it, so
+        // it stopped being the section's last row.
+        CSRow {
           A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 2) {
             Text("Rating / slope").csType(.name).foregroundStyle(cs.mut)
             Spacer(minLength: 8)
@@ -308,7 +316,35 @@ private struct PostRoundBody: View {
         .padding(.top, 10)
         .transition(.opacity)
       }
+      dateRow
     }
+  }
+
+  /// **IOS-066 · THE DAY IS ONE OF THE ROUND'S CIRCUMSTANCES, NOT A "DETAIL".**
+  /// It was a `CSMini` under a `Details` head, and once the photograph and the
+  /// scan left that head it was the only thing under it — a section head, a
+  /// rule and 34pt of chrome for one chip (§27, "repetitive headers"). It
+  /// belongs in the fold that already lists where the round was played, in the
+  /// same row shape as the rating and the slope, under the line that already
+  /// SHOWS the day and says `EDIT`.
+  private var dateRow: some View {
+    Button { showDate = true } label: {
+      CSRow(last: true) {
+        A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 2) {
+          Text("Day played").csType(.name).foregroundStyle(cs.mut)
+          Spacer(minLength: 8)
+          HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(CSHeaderDate.today(model.day)).csType(.columnM).foregroundStyle(cs.ink)
+            Text("·").csType(.columnM).foregroundStyle(cs.mut)
+            Text("Edit").csType(.agateS, caps: true).foregroundStyle(cs.ink)
+          }
+        }
+      }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel("Day played, \(CSHeaderDate.today(model.day))")
+    .accessibilityHint("Opens the date picker")
   }
 
   /// Open only on "edit"; a picked tee or a course-memory row folds them back.
@@ -394,30 +430,6 @@ private struct PostRoundBody: View {
       CSField(placeholder, text: text, font: CSFont.code).keyboardType(.numberPad).accessibilityLabel(label)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-  }
-
-  // MARK: - Details (`#inDate`, `#postPhotoRow`)
-
-  private var detailsSection: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      CSSectionHead("Details").padding(.top, 8)
-      FlowLayout(spacing: 8) {
-        CSMini(CSHeaderDate.today(model.day), glyph: .calendar) { showDate = true }
-          .accessibilityLabel("Date, \(CSHeaderDate.today(model.day))")
-        if model.scanEnabled {
-          CSMini(model.scanning ? PostScan.readingLabel : "Scan the card", glyph: .camera, busy: model.scanning, action: pickScan)
-        }
-        CSMini(model.photo == nil ? "Add a photo" : "Change photo", glyph: .photo, action: pickPhoto)
-        if model.photo != nil { CSMini("Remove", glyph: .cross) { model.setPhoto(nil) } }
-      }
-      .padding(.top, 2)
-      if let img = model.photo {
-        Image(uiImage: img).resizable().scaledToFill()
-          .frame(maxWidth: .infinity).frame(height: 180).clipped()
-          .clipShape(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-          .accessibilityLabel("Round photo, attached")
-      }
-    }
   }
 
   // MARK: - Point bands (3187–3197), folded
@@ -539,8 +551,10 @@ private struct PostHeroCard: View {
   @Environment(\.cs) private var cs
   let model: PostRoundModel
   var focus: FocusState<Bool>.Binding
+  let pickPhoto: () -> Void
+  let pickScan: () -> Void
   var body: some View {
-    PostHeroContent(model: model, focus: focus)
+    PostHeroContent(model: model, focus: focus, pickPhoto: pickPhoto, pickScan: pickScan)
       .padding(.bottom, CSTokens.Space.s3)
       .accessibilityAddTraits(.updatesFrequently)
   }
@@ -551,35 +565,29 @@ private struct PostHeroContent: View {
   @Environment(\.cs) private var cs
   @Bindable var model: PostRoundModel
   var focus: FocusState<Bool>.Binding
+  let pickPhoto: () -> Void
+  let pickScan: () -> Void
 
   var body: some View {
     let p = model.preview
     VStack(alignment: .leading, spacing: 8) {
       Text(model.eyebrow).csEyebrow()
-      // IOS-030 · ONE box, and it is the hero. A focused numeric input is a
-      // control, so it wears the mono figure face and never the serif (L-29).
-      // When the golfer opens the card and types their nines instead, the box
-      // stands down and shows what those nines add up to.
-      // THE RULE-AND-FIGURE: the numeral, a 2pt rule the width of its column,
-      // and the agate label beneath. The rule stays `ink` while the round is
-      // being typed — it is not live, and nothing here is earned.
-      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-        if usesNines, let p {
-          Text("\(p.gross)").csType(.figureXL).foregroundStyle(cs.ink)
-            .contentTransition(.numericText())
-        } else {
-          // no prompt glyph: an em dash at the figure size reads as a redaction
-          // bar, and the label beneath the rule already says what it wants
-          TextField("", text: $model.card.whole)
-            .csType(.figureXL).foregroundStyle(cs.ink)
-            .keyboardType(.numberPad).focused(focus)
-            .accessibilityLabel("Your gross")
-        }
-        CSRule(.heavy)
-        Text(p.map { $0.holes == 9 ? "gross · 9 holes · half value" : "gross · 18 holes" } ?? "your gross")
-          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      // IOS-066 · THE NUMBER AND THE PICTURE, THE SAME SIZE, SIDE BY SIDE. The
+      // figure column was 150pt wide with the rest of the measure empty, and
+      // the camera was four sections below the fold. `PostCameraColumn` is the
+      // figure's twin — same width, 3:2, quiet — and it costs no vertical
+      // space that was not already blank. A column at the accessibility sizes,
+      // where the figure grows and the plate takes the whole measure.
+      // The plate is pinned to the TRAILING margin, not parked 12pt from the
+      // figure: every other trailing element on this page sits on that margin
+      // (the inherited row's `Edit`, the rating row's value, every band's
+      // points), and a drawn box that stops 22pt short of it reads as a
+      // mistake rather than as composition.
+      A11yStack(rowAlignment: .top, spacing: CSTokens.Space.s3) {
+        figureColumn(p)
+        Spacer(minLength: CSTokens.Space.s3)
+        PostCameraColumn(model: model, pickPhoto: pickPhoto, pickScan: pickScan)
       }
-      .frame(width: 150, alignment: .leading)
       // §6.5 · the sentence, and a number inside it is in the number's voice.
       CSFigureRun(sentence, role: .body).foregroundStyle(p == nil ? cs.mut : cs.ink)
       if let p {
@@ -598,11 +606,50 @@ private struct PostHeroContent: View {
           .padding(.top, 2)
       }
       // D178 · it is no longer a 100% preview, so it must no longer say so.
-      CSFine("A preview — your season's own math scores it on the books.").padding(.top, 4)
+      //
+      // IOS-066 · AND IT ONLY SAYS SO WHEN THERE IS A PREVIEW. With no number
+      // typed there is no calculation to disclaim, and on an SE this ran to
+      // two lines of the small face at the very moment the screen has nothing
+      // to preview — a caveat about arithmetic nobody has done yet. It is the
+      // vertical the plate is paid for with, and §27's own list ("excessive
+      // labels") names exactly this.
+      if p != nil {
+        CSFine("A preview — your season's own math scores it on the books.").padding(.top, 4)
+      }
       if model.membership == nil {
         CSFine("No season yet? The round still posts to your rounds — points apply in any season you join.")
       }
     }
+  }
+
+  /// IOS-030 · ONE box, and it is the hero. A focused numeric input is a
+  /// control, so it wears the mono figure face and never the serif (L-29).
+  /// When the golfer opens the card and types their nines instead, the box
+  /// stands down and shows what those nines add up to.
+  /// THE RULE-AND-FIGURE: the numeral, a 2pt rule the width of its column,
+  /// and the agate label beneath. The rule stays `ink` while the round is
+  /// being typed — it is not live, and nothing here is earned.
+  ///
+  /// Its width is `PostCameraColumn.plateWidth`, not a literal 150, because
+  /// the plate beside it is this column's TWIN and the two must move together.
+  @ViewBuilder private func figureColumn(_ p: PostPreview?) -> some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      if usesNines, let p {
+        Text("\(p.gross)").csType(.figureXL).foregroundStyle(cs.ink)
+          .contentTransition(.numericText())
+      } else {
+        // no prompt glyph: an em dash at the figure size reads as a redaction
+        // bar, and the label beneath the rule already says what it wants
+        TextField("", text: $model.card.whole)
+          .csType(.figureXL).foregroundStyle(cs.ink)
+          .keyboardType(.numberPad).focused(focus)
+          .accessibilityLabel("Your gross")
+      }
+      CSRule(.heavy)
+      Text(p.map { $0.holes == 9 ? "gross · 9 holes · half value" : "gross · 18 holes" } ?? "your gross")
+        .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+    }
+    .frame(width: PostCameraColumn.plateWidth, alignment: .leading)
   }
 
   /// The nines (or the strip) are carrying the card, so the one box stands down
@@ -703,5 +750,11 @@ private struct PostRoundScreenPreview: View {
   var body: some View {
     PostRoundBody(model: model, links: PostLinks(), pickPhoto: {}, pickScan: {}, onDone: {}).background(cs.bg0)
   }
+}
+
+/// IOS-066 · the composer top with a photograph already in the plate — the
+/// state a scan lands in, and the one a simulator cannot type its way to.
+#Preview("the plate, filled") {
+  NavigationStack { PostRoundScreenPreview(model: previewModel("photo")) }.environment(SessionStore()).csTheme()
 }
 #endif

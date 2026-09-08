@@ -384,14 +384,21 @@ final class PostRoundModel {
 
 #if DEBUG
 extension PostRoundModel {
-  /// `-cs_dev_post_seed <total|strip|scan>` — a filled card for a simulator
-  /// without a finger (IOS-020's "look" step). DEBUG-only; never posts.
+  /// `-cs_dev_post_seed <total|strip|scan|photo>` — a filled card for a
+  /// simulator without a finger (IOS-020's "look" step). DEBUG-only; never posts.
   ///   total · 41 out, 43 in on Papago Blue
   ///   strip · the scorecard strip open with a few holes off par
   ///   scan  · the strip as the scan's confirm surface: two unread cells, one partner row
+  ///   photo · IOS-066 · the hero's plate FILLED, which is where a scan lands
+  ///           and the one state `simctl` cannot reach — the PhotosPicker
+  ///           needs a finger. The image is `ReceiptPhotoDev`'s drawn stand-in,
+  ///           so the build carries one fabricated photograph and not two.
   func devSeed(_ kind: String) {
     card.course = "Papago Golf Course · Blue"; card.rating = "71.2"; card.slope = "128"
     switch kind {
+    case "photo":
+      card.f9 = "41"; card.b9 = "43"
+      setPhoto(ReceiptPhotoDev.image)
     case "strip", "scan":
       card.mode = .holes
       card.plus(0); card.plus(3); card.minus(5); card.plus(10); card.plus(10); card.minus(12); card.minus(12); card.plus(16)

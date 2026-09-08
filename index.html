@@ -999,6 +999,35 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .grossbox::-webkit-outer-spin-button, .grossbox::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
 .grossbox::placeholder{color:var(--dim);}
+/* IOS-066 - the composer's hero is the number AND the picture. The plate is
+   the gross column's neighbour: 150x100 (3:2, the CSPlate inset ratio the
+   phone and the round receipt both draw a round photograph at), one hairline,
+   no fill - it must invite, not shout, because the screen's one primary is
+   still posting the round. It collapses under the number on a narrow desk. */
+.posthero{display:flex; gap:16px; align-items:flex-start;}
+.posthero-num{flex:1; min-width:0;}
+.postcam{flex:none; width:150px; display:flex; flex-direction:column; gap:8px;}
+.postplate{position:relative; width:150px; height:100px;}
+.postplate .plate{
+  display:flex; align-items:center; justify-content:center;
+  width:100%; height:100%; padding:0; overflow:hidden; cursor:pointer;
+  background:transparent; border:1px solid var(--rule); border-radius:var(--p);
+  color:var(--mut);
+}
+.postplate .plate:hover{border-color:var(--mut);}
+.postplate .plate:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.postplate .ph{display:flex; flex-direction:column; align-items:center; gap:4px;}
+.postplate .ph b{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;}
+.postplate img{width:100%; height:100%; object-fit:cover; display:block;}
+.postplate .platex{
+  position:absolute; top:6px; right:6px; width:32px; height:32px; padding:0;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  border:0; border-radius:50%; background:var(--bg0); color:var(--ink); opacity:.88;
+}
+@media (max-width:460px){
+  .posthero{display:block;}
+  .postcam{width:150px; margin-top:12px;}
+}
 .inheritline{
   display:flex; align-items:baseline; gap:10px; width:100%; text-align:left;
   background:transparent; border:0; border-top:1px solid var(--rule);
@@ -4629,8 +4658,32 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                    rating and the date come from the last round at that course
                    and open on "edit". Everything that was here is still here,
                    complete, behind that line (P-6). -->
-              <label class="f" for="inGross">Your gross</label>
-              <input class="grossbox" id="inGross" type="number" inputmode="numeric" placeholder="&mdash;" autocomplete="off">
+              <!-- IOS-066 · THE CAMERA STANDS BESIDE THE NUMBER. The photo
+                   and scan buttons lived inside #postCardFold, which is folded
+                   shut by default — so on the desk the camera was behind a
+                   FOLD as well as a scroll. The plate is the gross box's
+                   neighbour now: an empty 3:2 frame that invites a picture,
+                   with the scan (the other thing a camera does, and a
+                   different offer: it reads the round) as a plain mini under
+                   it. Copy from RoundCopy via CS_PHOTO (D234). -->
+              <div class="posthero">
+                <div class="posthero-num">
+                  <label class="f" for="inGross">Your gross</label>
+                  <input class="grossbox" id="inGross" type="number" inputmode="numeric" placeholder="&mdash;" autocomplete="off">
+                </div>
+                <div class="postcam" id="postPhotoRow" style="display:none">
+                  <div class="postplate">
+                    <button class="plate" id="postPhotoBtn" type="button" aria-label="Add a photo">
+                      <span class="ph"><svg class="ic" aria-hidden="true" style="width:28px;height:28px"><use href="#i-photo"/></svg><b id="postPhotoBtnLabel">Add a photo</b></span>
+                      <img id="postPhotoImg" alt="Round photo" style="display:none">
+                    </button>
+                    <button class="platex" id="postPhotoClear" type="button" aria-label="Remove the photo" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+                  </div>
+                  <button class="mini" id="postScanBtn" type="button" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg> Scan the card</button>
+                </div>
+              </div>
+              <input type="file" id="postPhotoFile" accept="image/*" style="display:none">
+              <input type="file" id="postScanFile" accept="image/*" capture="environment" style="display:none">
               <button type="button" class="inheritline" id="postInherit" aria-expanded="false" aria-controls="postCardFold">
                 <span id="postInheritText">Add the course</span><span class="edit" id="postInheritEdit">edit</span>
               </button>
@@ -4693,19 +4746,6 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <div style="margin-top:10px">
                 <label class="f" for="inDate">Date</label><input class="f" id="inDate" type="date">
               </div>
-              <!-- photos arc (#13, D36): the scan is an accelerator over typed
-                   entry — its button only shows when the flag says scanning is
-                   on, and every failure path falls back to the inputs above -->
-              <div id="postPhotoRow" style="margin-top:12px; display:none; gap:8px; align-items:center; flex-wrap:wrap;">
-                <button class="mini" id="postScanBtn" type="button" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg> Scan the card</button>
-                <button class="mini" id="postPhotoBtn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> Add a photo</button>
-                <button class="mini" id="postPhotoClear" type="button" style="display:none"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> Remove</button>
-              </div>
-              <div id="postPhotoPrev" style="display:none; margin-top:8px">
-                <img id="postPhotoImg" alt="Round photo" style="max-width:100%; max-height:180px; border-radius:10px; object-fit:cover; border:1px solid var(--rule)">
-              </div>
-              <input type="file" id="postPhotoFile" accept="image/*" style="display:none">
-              <input type="file" id="postScanFile" accept="image/*" capture="environment" style="display:none">
               </div><!-- /postCardFold -->
               <!-- F2: the live gross reads at a glance right above Post, so an
                    untouched (even-par) card is visible before the tap -->
@@ -10109,17 +10149,25 @@ const b64ofBlob = blob => new Promise((res,rej)=>{
   r.onload=()=>res(String(r.result).split(',')[1]||'');
   r.onerror=rej; r.readAsDataURL(blob);
 });
+/* IOS-066 - the plate IS the control. Empty it shows the frame, the glyph and
+   one word; filled it shows the picture with a corner x. The button never
+   changes its label to "Change photo" any more, because the picture in it
+   already says what tapping does - and the accessible name has to keep
+   saying it, which is what aria-label is for. */
 function setPostPhoto(blob){
   state.post.photo = blob || null;
-  const prev=$('#postPhotoPrev'), img=$('#postPhotoImg'), clr=$('#postPhotoClear'), add=$('#postPhotoBtn');
-  if(!prev||!img||!clr||!add) return;
+  const img=$('#postPhotoImg'), clr=$('#postPhotoClear'), add=$('#postPhotoBtn'), ph=add?.querySelector('.ph');
+  if(!img||!clr||!add) return;
   if(blob){
     img.src=URL.createObjectURL(blob);
-    prev.style.display='block'; clr.style.display=''; add.innerHTML='<svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> Change photo';
+    img.style.display='block'; if(ph) ph.style.display='none';
+    clr.style.display=''; add.setAttribute('aria-label', CS_PHOTO.replace);
   } else {
     if(img.src){ try{ URL.revokeObjectURL(img.src); }catch(_){} }
     img.removeAttribute('src');
-    prev.style.display='none'; clr.style.display='none'; add.innerHTML='<svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> Add a photo';
+    img.style.display='none'; if(ph) ph.style.display='';
+    clr.style.display='none'; add.setAttribute('aria-label', CS_PHOTO.add);
+    const lbl=$('#postPhotoBtnLabel'); if(lbl) lbl.textContent = CS_PHOTO.add;
   }
 }
 function refreshPostPhotoUI(){
