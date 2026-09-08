@@ -45,6 +45,9 @@ public enum RoundCopy {
   /// choice — while the desk has shown iOS's own menu all along. The words are
   /// the ACTS rather than the system's nouns ("Photo Library", "Take Photo"),
   /// because every other sentence on this surface is in the golfer's words.
+  /// D306 · the door under the You page's status sentence.
+  public static let seeTheRound = "See the round"
+
   public static let photoFromLibrary = "Choose from your photos"
   public static let photoFromCamera = "Take one now"
 

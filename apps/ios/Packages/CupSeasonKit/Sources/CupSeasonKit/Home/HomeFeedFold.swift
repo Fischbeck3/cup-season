@@ -119,7 +119,22 @@ public enum HomeFeedFold {
     let kept = items.filter { i in
       if case .post(let p, _) = i, p.kind == "system", let s = p.scheduled_round_id, upcoming.contains(s) { return false }
       if !spent.isEmpty {
-        if case .round(let r, _) = i, let id = r.round_id, spent.contains(id) { return false }
+        // D304 · **A PHOTOGRAPH IS A TELLING NO CARD MAKES.** `spent` stops the
+        // same STORY being told twice, and the card is the better rendering —
+        // of a STORY. It is not a rendering of a photograph: no lead, deck or
+        // digest card draws one, and `HomeWireBand` is the only surface in the
+        // product that does. So a round that carries a picture keeps its row.
+        //
+        // The owner, on his own Home: *"my recent round is UNM, no sign of dino
+        // mountain which now has a photo … so no sign photos are making it to
+        // users."* His Dino round was spent by the CLASH lead, whose whole
+        // telling is *"You and Galen are both in. The week closes in 5 days."*
+        // — no gross, no course, no picture — and which is only "about" the
+        // round because `spentRound` reads a `.receipt` ROUTE as a telling. The
+        // first photograph the product ever successfully attached was
+        // suppressed on the one page it was meant for.
+        if case .round(let r, let photo) = i, photo == nil,
+           let id = r.round_id, spent.contains(id) { return false }
         if case .post(let p, _) = i, let id = p.round_id, spent.contains(id) { return false }
       }
       return true

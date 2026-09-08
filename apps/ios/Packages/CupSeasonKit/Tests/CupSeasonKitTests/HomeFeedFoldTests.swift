@@ -23,6 +23,13 @@ import Foundation
                    live_round_id: live, round_id: round, scheduled_round_id: scheduled), leagueName: names[league])
   }
 
+  /// The same round, carrying a photograph — the only surface in the product
+  /// that draws one is the wire's band (D304).
+  static func roundWithPhoto(_ day: String) -> HomeItem {
+    guard case .round(let r, _) = round(day) else { fatalError() }
+    return .round(r, photoURL: URL(string: "https://example.invalid/p.jpg")!)
+  }
+
   static func round(_ day: String) -> HomeItem {
     let json: [String: Any] = ["round_id": roundX.uuidString, "profile_id": UUID().uuidString, "golfer": "Jerecho", "marker": "saguaro",
                                "handle": "j", "gross": 85, "pvi": 1.2, "played_on": day, "course": "Encanto GC",
@@ -182,6 +189,32 @@ import Foundation
       Self.post(Self.fellas, "moment", "A best.", "2026-09-01", "16:00", round: Self.roundX),
     ], spent: [Self.roundX], today: "2026-09-01")
     #expect(spent.reduce(0) { $0 + $1.items.count } == 0)
+  }
+
+  /// **D304 · A PHOTOGRAPH IS A TELLING NO CARD MAKES.**
+  ///
+  /// The owner, on his own Home the morning the first photograph in the
+  /// product's history finally uploaded: *"my recent round is UNM, no sign of
+  /// dino mountain which now has a photo … so no sign photos are making it to
+  /// users."* The round was spent by the CLASH lead — *"You and Galen are both
+  /// in. The week closes in 5 days."* — which shows no gross, no course and no
+  /// picture, and is only "about" that round because `spentRound` reads a
+  /// `.receipt` ROUTE as a telling.
+  ///
+  /// The suppression is right for a STORY and wrong for a PHOTOGRAPH: no lead,
+  /// deck or digest card draws one, so a suppressed band is a picture nobody
+  /// ever sees. A round with a photograph keeps its row; the same round without
+  /// one still yields.
+  @Test("a spent round keeps its row when it carries a photograph")
+  func aPhotographSurvivesTheSuppression() {
+    let bare = HomeFeedFold.fold([Self.round("2026-09-01")],
+                                 spent: [Self.roundX], today: "2026-09-01")
+    #expect(bare.reduce(0) { $0 + $1.items.count } == 0)
+
+    let withPhoto = HomeFeedFold.fold([Self.roundWithPhoto("2026-09-01")],
+                                      spent: [Self.roundX], today: "2026-09-01")
+    #expect(withPhoto.reduce(0) { $0 + $1.items.count } == 1,
+            "the one surface that draws a photograph was suppressed by a card that cannot")
   }
 
   @Test("D219 · a door iff the row knows its round: live, then round, then the booking")

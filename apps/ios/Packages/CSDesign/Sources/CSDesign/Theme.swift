@@ -70,8 +70,11 @@ private struct CSThemeModifier: ViewModifier {
   /// WAVE 10 · resolved here for the same reason Increase Contrast is: a site
   /// that reasons about its own transparency is a site that will forget to.
   @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+  /// D305 · the golfer's palette, read here so every surface wears it at once.
+  @Environment(\.csLook) private var look
   func body(content: Content) -> some View {
-    let base = scheme == .light ? CSTokens.light : CSTokens.dark
+    let ground = scheme == .light ? CSTokens.light : CSTokens.dark
+    let base = ground.wearing(look, theme: scheme == .light ? .light : .dark)
     return content
       .environment(\.cs, contrast == .increased ? base.increasedContrast : base)
       .environment(\.csReduceTransparency, reduceTransparency)
@@ -83,6 +86,50 @@ public extension CSPalette {
   /// that matter: the metadata voice steps up to ink, and the one hairline
   /// steps up to the metadata voice — so a rule that was 2.66:1 becomes 7.07:1
   /// and the agate under every figure stops being the quietest thing on a
+  /// **D305 · THE LOOK IS A PALETTE SUBSTITUTION, NOT TWO PAINTED MARKS.**
+  ///
+  /// The owner, on D302's version: *"Palette is to subtle only change two lines
+  /// that are normally ember, should change the theme of the UI when user
+  /// selects."* He is right, and D302 under-reached on purpose in the wrong
+  /// place: it painted `la.accent` at three named sites and left the other
+  /// ~thirty `cs.brand` sites — the primary button, the focus ring, every chip,
+  /// the tab bar's ⊕ — wearing ember, so an eleven-palette dial moved two rules.
+  ///
+  /// **The answer is where Increase Contrast's answer is.** That setting is
+  /// resolved HERE, once, as a palette substitution rather than at 400 call
+  /// sites, for the stated reason that *a site that reasons about its own
+  /// contrast is a site that will forget to*. A look is the same kind of fact.
+  /// Substituting `brand` at the theme turns every ember in the product — every
+  /// site, including the ones D302 could not reach and the ⊕ that ignored
+  /// `.tint` — without one view knowing a look exists.
+  ///
+  /// **`brand` ONLY, and that is the whole restraint.** The grounds, the ink,
+  /// the rule, gold, the semantics and the leaf do not move: D270/D278 deleted
+  /// the wash and the sky on the argument that depth comes from ground and
+  /// objects rather than atmosphere, and tinting `bg0` would be that wash by
+  /// another name. What changes is WHICH COLOUR THE ONE ACCENT IS, which is
+  /// what a palette is, and §1.5's one-ember rule is untouched — there is still
+  /// exactly one, it is just not always ember.
+  func wearing(_ look: CSLookSpec?, theme: CSTheme) -> CSPalette {
+    guard let accent = look?.accent(theme) else { return self }
+    return CSPalette(bg0: bg0, bg1: bg1, bg2: bg2,
+              rule: rule, ink: ink, mut: mut, dim: dim,
+              pos: pos, neg: neg, cool: cool, gold: gold, brand: accent,
+              sq0: sq0, sq1: sq1, sq2: sq2, sq3: sq3,
+              panel: panel, panelInk: panelInk, panelMut: panelMut,
+              leaf: leaf, leafInk: leafInk, leafMut: leafMut, leafGold: leafGold,
+              // The ceremony ground does not re-print (D270): a trophy, a
+              // settlement and a share card are physical objects and they look
+              // the same in March and in October, whatever dial a golfer set.
+              ceremony: ceremony, ceremonyInk: ceremonyInk, ceremonyMut: ceremonyMut,
+              ceremonyBrand: ceremonyBrand, ceremonyGold: ceremonyGold,
+              ceremonyPos: ceremonyPos, ceremonyCool: ceremonyCool,
+              ceremonySq0: ceremonySq0, ceremonySq1: ceremonySq1,
+              ceremonySq2: ceremonySq2, ceremonySq3: ceremonySq3,
+              crest: crest, folioRule: folioRule, scrimInk: scrimInk, scrimMut: scrimMut,
+              pig0: pig0, pig1: pig1, pig2: pig2, pig3: pig3, pig4: pig4, pig5: pig5)
+  }
+
   /// screen full of quiet things.
   var increasedContrast: CSPalette {
     CSPalette(bg0: bg0, bg1: bg1, bg2: bg2,

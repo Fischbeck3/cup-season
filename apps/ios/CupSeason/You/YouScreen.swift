@@ -242,10 +242,26 @@ struct YouScreen: View {
        let line = CredentialCopy.status(gross: r.gross, course: r.courseLabel,
                                         playedOn: r.playedOn,
                                         roundsToEstablish: toEstablish, isMe: true) {
-      CSFigureRun(line, role: .body)
-        .foregroundStyle(cs.mut)
-        .fixedSize(horizontal: false, vertical: true)
-        .padding(.top, CSTokens.Space.s4)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        CSFigureRun(line, role: .body)
+          .foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+        // **D306 · THE SENTENCE NAMES A ROUND, SO THE PAGE OPENS IT.** The
+        // owner: *"I see it in my You but I cant click into it."* This line is
+        // the only place the You page mentions his newest round, it is prose,
+        // and prose is not a door — so the one round on the page that now
+        // carries a photograph had no way in. The receipt is where the
+        // photograph, the card and the arithmetic all are.
+        // The card's `Recent` is keyed on a composite STRING (date|gross|course)
+        // and carries no round id; the career's rows carry the real one. Same
+        // newest round, and only this list can name it.
+        // `openReceipt` already existed on `YouLinks` and already pointed at
+        // the round's own page — the door was the only missing part.
+        if let id = model.data.career?.recent.first?.id {
+          CSDoor(.link(RoundCopy.seeTheRound) { links.openReceipt(id) })
+        }
+      }
+      .padding(.top, CSTokens.Space.s4)
     } else {
       Text(CredentialCopy.mine).csType(.body).foregroundStyle(cs.mut)
         .padding(.top, CSTokens.Space.s4)

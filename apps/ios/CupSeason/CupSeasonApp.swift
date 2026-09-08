@@ -32,11 +32,17 @@ struct CupSeasonApp: App {
         // picked it on. Set here it is the app's ground state; Compete and the
         // season page still set their own (a league's look beats the person's,
         // D103a) because an environment written lower down wins.
-        .environment(\.csLook, looks.personalLook())
         .task(id: store.session?.user.id) { await looks.load(userId: store.session?.user.id) }
         .environment(\.csAppearance, $appearance)
         .preferredColorScheme(appearance.colorScheme)
         .csTheme()
+        // **THE LOOK IS PROVIDED OUTSIDE `csTheme`, AND THE ORDER IS THE POINT**
+        // (D305). `csTheme` RESOLVES the look into the palette, so it has to be
+        // able to see it — and a modifier only sees an environment written
+        // further out, because that one wraps it. Written above `.csTheme()`
+        // this line reached every view in the app and the one thing that had to
+        // read it: the theme itself.
+        .environment(\.csLook, looks.personalLook())
         // IOS-051 · `-cs_dev_text_size <category>`. `.dynamicTypeSize(_:)`
         // with a single size PINS it, which is what a capture needs; nil
         // leaves the golfer's own setting alone, and in Release it is
