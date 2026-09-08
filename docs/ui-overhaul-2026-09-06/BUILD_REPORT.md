@@ -784,3 +784,68 @@ is to retire the chips first.
 
 **7 · The owner's account has no round photographs.** Every surface above was reviewed in that state
 and holds up, which was the point — but §10.1 rung 1 has never been seen on his own data.
+
+---
+
+# The door and the camera, 2026-09-07
+
+**His words, which are the whole brief for this wave:**
+
+> *"I just posted a round at Dinosaur mountain but I cant go back to add a photo. I may have missed that option to."*
+>
+> *"Our scorecard looks good lets show it off."*
+>
+> *"APIs we can pull for interesting visuals, or do we lean into individual holes or scorecard photo/scanning options for the post."*
+
+And the one item on `ROAD_TO_TEN`'s list that was a BUG rather than a score: on a 375pt phone with the keyboard up, `CONTINUE WITH EMAIL` — the only action on the first screen of the product — was entirely behind the keyboard, and the app mark was cut in half by the status bar.
+
+## The gate
+
+`build-tokens` clean · `preflight` **PASS 0 failures / 0 warnings** · `sunningdale` **PASS, 27 assertions** · `xcodebuild test` on the 17 Pro: **1,250 tests passed, 0 failed, 0 skipped** (`xcresulttool` on the run’s own bundle — the three `Test run with` lines report the swift-testing suites only, 1,223 of them, and the 27 XCTest cases in `RoundScorecardTests` / `RoundCardTests` are not in that count). 1,198 at `a679ae7`, +51 across the four build commits, +1 from the review.
+
+## What changed
+
+**The door has two registers, and the SE can be signed into.** `se-door-AFTER-dark.png` against `rescore/shots/se-door.png`: the cup is whole and clear of the clock, the wordmark, the fuse rule, the tagline, `EMAIL`, the field **and** `CONTINUE WITH EMAIL` are all above the keyboard, and nothing was scrolled to get there. A golfer who has never seen this app can sign in without knowing a trick. Light is the same picture (`se-door-AFTER-light.png`). At AX3 on an SE the mark does scroll off — the tagline alone is ~260pt there and no register makes the crest and the action co-exist — but the action is whole and clear of both the keyboard and the status bar (`se-door-AFTER-ax3.png`). That is the honest trade and it is stated in IOS-064.
+
+**A photograph can go on a round he already posted.** `set_round_photo` / `clear_round_photo`, both `SECURITY DEFINER`, both fenced to `profile_id = auth.uid()`, both touching `photo_path` and nothing else, with a self-check that reads the deployed source and raises if either ever names another column of `rounds`. On his own Dinosaur Mountain round, with no hatch at all, the receipt now carries `Add a photo` in the photograph's own slot (`rcpt-live-none.png`); with a photograph it carries the plate, `Replace photo` and a two-tap `Remove photo` (`rcpt-photo-on.png`); and against a database that does not have the functions yet it says so, inline, in neg, under the button that failed — *"Not attached — a photo on a posted round needs the next database push"* (`rcpt-skew.png`). It names the push, not a stack trace.
+
+**He meets the camera without scrolling.** `se-composer-AFTER.png`: the empty plate and `SCAN THE CARD` sit beside the gross, above the fold, on a 375pt phone with the number pad up. `Details` is deleted rather than emptied.
+
+**And the review found two things.**
+
+**1 · A card with no scores on it is the course's card (D295, IOS-068).** `round_scorecard` returned a card whenever it could resolve **either** the strokes **or** par — and par comes out of `api_course_holes`, which describes the *course*. A round that named a cached course and typed one total therefore resolved eighteen pars and eighteen stroke indexes with **not one score under them**, and the receipt drew it under a head reading `THE CARD` with `Share the card` beneath. His own Dinosaur Mountain round is exactly that state: it pins the Black tee at 70.1/137 and carries **zero `round_holes` rows**. The day he pushed, that round would have grown a blank par grid and an offer to share it. Fixed on all three: `if v_strokes is null then return null` on the server with its own line in the self-check, `isEmpty` is `holes.isEmpty || !hasStrokes` on the phone, and `csRoundCardFrom` returns null with no strokes on the desk.
+
+**2 · The composer's pinned foot is about the window, not the type size (IOS-068).** IOS-064 moved `Start over — clear this round` out of that foot at an accessibility size, because a foot taking "roughly a third of the viewport" is not chrome any more. Right argument, condition one notch too narrow: on a 375×667 phone at the **default reading size** with the number pad up, the foot was 134pt of the 435pt the pad leaves — 31 %, the same third, on the phone most likely to be held standing on a tee box. `se-composer-BEFORE.png` → `se-composer-AFTER.png`: foot 134pt → 83pt (19 %), live content 161pt → 212pt, and the fold's first row appears without a scroll. The tall phone is unchanged (`composer-17pro-AFTER.png`). The predicate is `DoorLayout.working` **called**, not restated, so the one function `DoorLayoutTests` already asserts covers both surfaces.
+
+## The number that was wrong
+
+D294 and IOS-067 both record **"50 of 214 rounds draw a card."** Measured read-only against prod: **6**. `with_strokes 6 / would_draw 6`. The other 44 were the blank-card state counted as coverage, and the migration's own deploy-time `notice` counted "carry strokes **or** name a cached course" in those words. It counts strokes now.
+
+The picture on **his** account is starker. Of his 19 rounds, **3 carry strokes** — Raven Silver 2026-07-29, Biltmore Links Copper 2026-07-26, Palo Verde Back 2026-07-24 — and **all three have no `api_course_id` at all**, so they resolve no par and no index. So: the full par-and-HCP card in `card-full-17pro.png` is reachable by **none of his rounds**; his three July rounds would draw a strokes-only card; and his sixteen others, Dinosaur Mountain included, correctly draw nothing. **He will push this migration and see no card on the round he asked about.** That is not a defect in the read — it is the composer defaulting to `total`, which D294 already names as its own biggest deferred lever and which this wave did not move.
+
+## The migrations that are owed
+
+Both are **written and unrun**. Neither has executed anywhere; `supabase db push` is the owner's.
+
+| File | What it adds | Verified how |
+|---|---|---|
+| `supabase/migrations/20261010090000_a_photograph_is_not_a_score.sql` | `set_round_photo(p_round, p_photo_path)`, `clear_round_photo(p_round)` | self-check's three regexes and its catalogue-derived column scan evaluated read-only by the real Postgres regex engine on the real function bodies; the `CREATE`s, the grants and the `DO` block have not run |
+| `supabase/migrations/20261011090000_the_card_a_round_actually_has.sql` | `round_scorecard(p_round)` | every DATA rule the function encodes measured read-only against prod before it was written (the tee pin, the course-agreement fallback, the gross seal, the owner's own cached card); the `CREATE` and the `DO` block have not run |
+
+Both clients ship their half in the same commit and both degrade honestly against a database without the functions — the photo path says the push is owed, the card path falls back to `round_holes_of`, which is live.
+
+## What is still open
+
+**1 · Six of 214 rounds can draw a card, because the composer defaults to `total`.** This is now the headline rather than a footnote. `PostPayload.holeRows` writes `round_holes` only in `holes` mode, and D34 made two boxes the default after two pilot users stumbled on the grid. Every lever on this feature runs through that decision.
+
+**2 · An eighteen-hole card prints `OUT 42` and `IN 48` and never prints 90.** A real printed card has a total box. The gross is 200pt up the page, so nothing is *missing* — but the golfer adds his own two nines on the object whose whole job is to show him the sum. A `CSScorecard` geometry change with its own before/after.
+
+**3 · `Replace photo` and `Remove photo` are twins.** Two links, identical weight, side by side — the exact criticism IOS-066 made of the composer's own two pills before it separated them. The two-tap arming distinguishes them on touch and not on sight.
+
+**4 · A successful attach has never run anywhere, on either client.** No database has `set_round_photo`. Every filled-plate and attached-photo shot in this wave is a DEBUG hatch feeding a drawn stand-in through the shipped render path; `simctl` has no finger, so the real `PhotosPicker` has not been tapped on this machine. The *empty* states are real and unstaged.
+
+**5 · The web's wiring has been rendered and never exercised.** No browser automation was available (the Chrome extension is not connected; `safaridriver` needs a human to enable Allow Remote Automation) and every one of these surfaces is behind auth. The desk shots are harness pages built from `index.html`'s real `<style>` blocks and real markup in the iPad simulator's Safari at ~834 CSS px — the CSS, the tokens and the canvas draws are the shipped ones; the RPC calls and the handlers did not run.
+
+**6 · The pre-migration sentence says "the next database push".** The right sentence for the owner, the wrong one for the Friends group if a TestFlight build ever ships ahead of its migration.
+
+**7 · The 17 Pro simulator's keychain was copied onto the SE 3** during IOS-066 to get a signed-in session there. Nothing in the repo changed and no credential left the machine, but the owner's SE simulator state was mutated and he should know.

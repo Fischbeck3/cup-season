@@ -102,6 +102,32 @@ private struct PostRoundBody: View {
   /// course to inherit, which is the first-ever round.
   @State private var cardOpen: Bool?
 
+  /// **THE REVIEW'S MEASUREMENT.** IOS-064 moved `Start over` out of the
+  /// pinned foot at an accessibility size, because the foot was taking
+  /// "roughly a third of the viewport". On an SE at the DEFAULT reading size
+  /// with the number pad up it takes 134pt of a 435pt viewport — 31 %, the
+  /// same third, on the phone most likely to be held by somebody standing on
+  /// a tee box. The argument was never about the type size; it was about how
+  /// much room the window has, and an accessibility size is one of the two
+  /// ways a window runs out of it.
+  ///
+  /// Read ONCE on appear, the way the door reads it: a window does not resize
+  /// when a keyboard rises, so the foot cannot grow or shrink under a thumb
+  /// while a golfer is typing into it. It starts at the floor — "not short" —
+  /// so the tall phone's first frame is the one it already had.
+  @State private var windowHeight: CGFloat = DoorLayout.ceremonyFloor
+
+  /// **`DoorLayout.working` IS CALLED, NOT RESTATED.** The predicate is one
+  /// pure function of two numbers with `DoorLayoutTests` behind it (667 is
+  /// short, 844/852/956 are not; an accessibility size is short on every
+  /// device), and a second surface that re-typed `isAccessibilitySize ||
+  /// height < 700` would be a copy free to drift. What the predicate is about
+  /// is the WINDOW rather than the door — the type it lives on is now one
+  /// caller behind its own name, and a third caller should move it out.
+  private var tightFoot: Bool {
+    DoorLayout.working(windowHeight: windowHeight, typeSize: typeSize)
+  }
+
   var body: some View {
     ScrollViewReader { proxy in
       ScrollView {
@@ -111,13 +137,15 @@ private struct PostRoundBody: View {
           whoSection
           cardFold.id("card")
           bandsSection.id("bands")
-          // IOS-064 · at an accessibility size the abandonment link rides HERE
-          // rather than in the pinned foot — see `bottomBar`.
-          if typeSize.isAccessibilitySize { startOver.padding(.top, CSTokens.Space.s4) }
+          // IOS-064 · when the window is short of room — an accessibility size,
+          // or a 667pt phone — the abandonment link rides HERE rather than in
+          // the pinned foot. See `bottomBar`.
+          if tightFoot { startOver.padding(.top, CSTokens.Space.s4) }
         }
         .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 12)
         .csPage("composer")
       }
+      .onAppear { windowHeight = DoorLayout.windowHeight }
       #if DEBUG
       // `-cs_dev_post_scroll <card|bands>`: a simulator without a finger reaches the fold
       .task {
@@ -513,12 +541,18 @@ private struct PostRoundBody: View {
   /// the height of a business card. A pinned foot is chrome, and chrome that
   /// takes a third of a phone is not chrome any more.
   ///
-  /// So at an accessibility size the foot carries only what has to be pinned:
-  /// the live readout that answers the number being typed, and the one action
-  /// the surface exists for. `Start over` is not urgent, is not the ranked
-  /// act, and rides at the foot of the page instead — where a reader who wants
-  /// to abandon can still reach it, and where it stops costing every OTHER
-  /// reader a fifth of the screen they are trying to type into.
+  /// So when the window is short of room the foot carries only what has to be
+  /// pinned: the live readout that answers the number being typed, and the one
+  /// action the surface exists for. `Start over` is not urgent, is not the
+  /// ranked act, and rides at the foot of the page instead — where a reader
+  /// who wants to abandon can still reach it, and where it stops costing every
+  /// OTHER reader a fifth of the screen they are trying to type into.
+  ///
+  /// **THE REVIEW WIDENED THE CONDITION FROM THE TYPE SIZE TO THE WINDOW.**
+  /// `se-composer-BEFORE.png`: at the default reading size on a 375×667 phone
+  /// this foot was 134pt of the 435pt the number pad leaves — 31 %, the same
+  /// third the AX3 shot was condemned for. The type size was the way the
+  /// damage was FOUND, not the thing that caused it.
   private var bottomBar: some View {
     VStack(spacing: 0) {
       CSRule()
@@ -529,7 +563,7 @@ private struct PostRoundBody: View {
           .accessibilityAddTraits(.updatesFrequently)
         Button("Add my round") { model.tapPost() }
           .buttonStyle(.csPrimary(busy: model.busy))
-        if !typeSize.isAccessibilitySize { startOver }
+        if !tightFoot { startOver }
       }
       .padding(.horizontal, 20).padding(.top, 6)
     }

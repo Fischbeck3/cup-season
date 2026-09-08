@@ -18760,6 +18760,14 @@ function csRoundCardFrom(d){
     strokes: h.strokes==null?null:Number(h.strokes),
   })).filter(h=>h.hole>=1 && h.hole<=n).sort((a,b)=>a.hole-b.hole);
   if(!holes.length) return null;
+  /* AND THE STROKES ARE WHAT MAKE IT A CARD. Par and the index resolve from
+     the COURSE cache and know nothing about this round, so a round that named
+     a cached course and typed one total comes back as a full par row with no
+     scores under it — the course's card, on the round's page, beside an offer
+     to share it. The course's card has its own page. Par is what the strokes
+     are printed against; it is not a card on its own. (Matches the phone's
+     `RoundScorecard.isEmpty`.) */
+  if(!holes.some(h=>h.strokes!=null)) return null;
   return { n, holes, tee: d.tee_name||null,
     out: d.out??null, inn: d.inn??null, total: d.total??null,
     parOut: d.par_out??null, parIn: d.par_in??null, parTotal: d.par_total??null };

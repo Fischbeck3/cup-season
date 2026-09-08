@@ -221,7 +221,17 @@ begin
   end if;
 
   -- ── 3 · nothing to draw is nothing, not an empty card ─────────────────────
-  if v_strokes is null and v_pars is null then return null; end if;
+  -- **A CARD WITH NO SCORES ON IT IS THE COURSE'S CARD, NOT THE ROUND'S.**
+  -- The par and the stroke index resolve from `api_course_holes`, which knows
+  -- nothing about this round — so a round that named a cached course and typed
+  -- one total would come back as eighteen pars and eighteen indexes under a
+  -- head that says THE CARD, on a page whose whole subject is what the golfer
+  -- shot, beside a button offering to SHARE it. That object already exists and
+  -- already has a home: `CourseCardLeaf`, on the course's own page.
+  -- 44 of this database's 50 par-resolving rounds are in exactly that state.
+  -- So the strokes are the card: par and the index are what they are PRINTED
+  -- AGAINST, and neither is a card on its own.
+  if v_strokes is null then return null; end if;
 
   select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
            'hole',    g,
@@ -296,6 +306,12 @@ begin
   if src !~ 'coalesce\(v_lo, 0\) <> 1' then
     raise exception '[D294] the gapless seal is gone — round_scorecard could return a card with holes missing';
   end if;
+  -- 3b · and the strokes are what makes it a CARD. Without this line the
+  --      function answers a round that has no scores with the course's par
+  --      row, which is a different object on the wrong page.
+  if src !~ 'if v_strokes is null then return null' then
+    raise exception '[D295] round_scorecard would draw a card with no scores on it — that is the course''s card, not the round''s';
+  end if;
 
   -- 4 · a nine never takes par (holes 1..9 of the cache are the FRONT nine and
   --     nothing records which nine was walked)
@@ -317,10 +333,12 @@ begin
   end if;
 
   -- 7 · what this database can actually draw, said out loud at push time
+  -- The number is rounds that CARRY STROKES, because those are the only ones
+  -- that draw. Counting rounds that merely name a cached course was how a
+  -- 6-round feature was once described as a 50-round one.
   select count(*) into n
     from rounds r
    where not r.voided
-     and (exists (select 1 from round_holes rh where rh.round_id = r.id)
-       or r.api_course_id is not null);
-  raise notice '[D294] round_scorecard deployed. % round(s) carry strokes or name a cached course.', n;
+     and exists (select 1 from round_holes rh where rh.round_id = r.id);
+  raise notice '[D294] round_scorecard deployed. % round(s) carry the strokes a card is made of.', n;
 end $chk$;

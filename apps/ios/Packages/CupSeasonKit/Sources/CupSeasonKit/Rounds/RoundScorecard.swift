@@ -133,7 +133,17 @@ public struct RoundScorecard: Sendable, Equatable {
   public var hasIndex: Bool { holes.contains { $0.si != nil } }
   /// Nothing to draw is NOTHING — no empty grid, no row of dashes pretending
   /// to be a card (L-44). Every surface tests this one thing.
-  public var isEmpty: Bool { holes.isEmpty || (!hasStrokes && !hasPar) }
+  ///
+  /// **AND THE STROKES ARE WHAT MAKE IT A CARD.** Par and the stroke index
+  /// come out of `api_course_holes`, which describes the COURSE and knows
+  /// nothing about this round: a round that named a cached course and typed
+  /// one total resolves a full par row and a full index row and not one score,
+  /// and drawing that under a head reading THE CARD puts the course's card on
+  /// the round's page — beside a button offering to share a grid with nobody's
+  /// numbers in it. The course's card already has a home, on the course's own
+  /// page. Here, par is what the strokes are PRINTED AGAINST, and it is not a
+  /// card without them.
+  public var isEmpty: Bool { holes.isEmpty || !hasStrokes }
 
   /// How many holes carry a stroke — the honest count for the caption when a
   /// live round was walked in and one hole never got a number.

@@ -141,6 +141,28 @@ final class RoundScorecardTests: XCTestCase {
     XCTAssertFalse(card.isEmpty)
   }
 
+  /// **THE REVIEW'S OWN FINDING, KEPT.** The par row and the index row resolve
+  /// from `api_course_holes`, which describes the COURSE — so a round that
+  /// named a cached course and typed one total resolved a complete par card
+  /// with not one score in it, and the receipt drew it under a head reading
+  /// THE CARD beside `Share the card`. That is the course's card on the
+  /// round's page. The owner's own Dinosaur Mountain round is the example: it
+  /// pins the Black tee at 70.1/137 and carries zero `round_holes` rows.
+  ///
+  /// 44 of the 50 rounds this database can resolve par for are in that state,
+  /// which is also why the honest coverage number is 6 and not 50.
+  func testAParRowWithNoScoresIsTheCoursesCardAndNotThisRounds() {
+    let cells = (1...18).map { "{\"hole\":\($0),\"par\":4,\"si\":\($0)}" }.joined(separator: ",")
+    let card = RoundScorecard(json(#"""
+      {"holes_played":18,"gross":90,"tee_name":"Black","par_source":"tee","par_total":70,
+       "holes":[CELLS]}
+      """#.replacingOccurrences(of: "CELLS", with: cells)))
+    XCTAssertTrue(card?.isEmpty ?? true,
+                  "eighteen pars and eighteen indexes with no strokes is the course, not the round")
+    XCTAssertTrue(card?.hasPar ?? false, "the par is real — it is just not a card on its own")
+    XCTAssertFalse(card?.hasStrokes ?? true)
+  }
+
   // MARK: - the line under the card
 
   func testTheDatelineNamesOnlyWhatThePayloadProved() {
