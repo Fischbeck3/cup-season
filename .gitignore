@@ -30,3 +30,9 @@ apps/ios/build/
 # audit folders, ~25 files of which carry jerecho+blind* aliases) is the
 # owner's call, not a side effect of `git add -A`. Un-ignore deliberately.
 docs/audit/ship-2026-08-31/
+
+# Screenshots and device captures. This repo is PUBLIC and these are shots of
+# a real league — real names, real handles, real rounds. They are working
+# artifacts named in the decision entries for whoever has the machine, never
+# something to publish. (2026-09-09)
+renders/
