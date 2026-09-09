@@ -27,7 +27,7 @@ Commands:
   status <build>     what ASC thinks of that build number
   ship <build>       poll -> What to Test -> add to Friends -> SUBMIT -> read back
 """
-import json, os, sys, time, urllib.request, urllib.error
+import json, os, subprocess, sys, time, urllib.request, urllib.error
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -36,10 +36,29 @@ APP_ID = "6806251118"
 GROUP_ID = "9f8db84a-166c-4900-b196-ea2c5459e369"   # "Friends", EXTERNAL
 BASE = "https://api.appstoreconnect.apple.com"
 
-ISSUER = os.environ.get("ASC_ISSUER_ID", "").strip()
-KEY_ID = os.environ.get("ASC_KEY_ID", "").strip()
+def _keychain(service: str) -> str:
+    """The same two login-keychain items `tools/ios-archive.sh` reads, read the
+    same way. This script asked ONLY the environment when it was written, which
+    made it the odd one of the pair: the archive half ran with no setup and the
+    distribute half refused until you exported two variables by hand. An
+    explicit ASC_ISSUER_ID / ASC_KEY_ID still wins, for CI or a second team."""
+    try:
+        out = subprocess.run(
+            ["security", "find-generic-password", "-a", os.environ.get("USER", ""),
+             "-s", service, "-w"],
+            capture_output=True, text=True, timeout=10)
+        return out.stdout.strip()
+    except Exception:
+        return ""
+
+
+ISSUER = os.environ.get("ASC_ISSUER_ID", "").strip() or _keychain("cupseason-asc-issuer")
+KEY_ID = os.environ.get("ASC_KEY_ID", "").strip() or _keychain("cupseason-asc-key")
 if not ISSUER or not KEY_ID:
-    sys.exit("no ASC_ISSUER_ID / ASC_KEY_ID in the environment")
+    sys.exit("no App Store Connect credentials — not in the environment and not in the keychain.\n"
+             "  Store them once (each prompts, so nothing lands in your shell history):\n"
+             '    security add-generic-password -U -a "$USER" -s cupseason-asc-issuer -w\n'
+             '    security add-generic-password -U -a "$USER" -s cupseason-asc-key    -w')
 KEYFILE = os.path.expanduser(f"~/.appstoreconnect/private_keys/AuthKey_{KEY_ID}.p8")
 if not os.path.exists(KEYFILE):
     sys.exit(f"no .p8 for key {KEY_ID}")
