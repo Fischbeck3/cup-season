@@ -261,9 +261,12 @@ struct CardGateView: View {
   // MARK: actions
 
   private func prefill() {
-    // pre-fill only when the name isn't the email-derived default the signup trigger wrote
-    if let n = me.profile?.display_name, let email = store.email,
-       n.lowercased().replacingOccurrences(of: " ", with: "") != email.split(separator: "@").first.map(String.init)?.lowercased() {
+    // D325 · pre-fill only when the name is not the signup trigger's guess.
+    // The test lives in `OnboardingGate` now, normalised the way the desk has
+    // always normalised it — this file stripped spaces only, so a derived name
+    // that lost a dot the email carried pre-filled here and not there.
+    if let n = me.profile?.display_name,
+       !OnboardingGate.isDerivedName(n, email: store.email) {
       name = n
     }
     // D186 · Apple's one-shot name wins over the trigger's guess. It is the

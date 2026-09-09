@@ -18,6 +18,7 @@ struct CompeteScreen: View {
   @Environment(LookStore.self) private var looks
   @Environment(\.presenter) private var presenter
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   let links: CSLinks
   var push: (CompeteRoute) -> Void = { _ in }
   var openGolfers: () -> Void = {}
@@ -39,6 +40,16 @@ struct CompeteScreen: View {
     CompeteRoot.make(me, upcoming: me?.upcoming ?? [])
   }
 
+  /// D314 · the league the plate is seeded from — the first live season's, then
+  /// the first finished one's, then the golfer. `nil` only when there is
+  /// neither, and then no plate is drawn rather than one seeded from nothing.
+  private var plateSeed: String? {
+    let l = list
+    let league = (l.seasons.first(where: { $0.leagueId != nil })
+                  ?? l.finished.first(where: { $0.leagueId != nil }))?.leagueId
+    return league?.uuidString ?? me?.profile?.id.uuidString
+  }
+
   var body: some View {
     ScrollView {
       // §4 rule 2 · the gap between two blocks is the block's own, taken at
@@ -46,6 +57,24 @@ struct CompeteScreen: View {
       // shipped page put 14pt between EVERY child — masthead, head, row, head,
       // row — which is why the two heads read as two more rows.
       VStack(alignment: .leading, spacing: 0) {
+        // **D314 · COMPETE STANDS SOMEWHERE.** The contour plate is a real
+        // generator — seeded value noise, marching squares, five to seven
+        // isolines, *"same course, same plot, forever"* — and it draws behind
+        // the credential's crest and on the course hero. Compete called it
+        // NOWHERE, which is why the tab a season lives in looked like a list.
+        //
+        // **Behind the page head, at hero scale, and only there.** The system
+        // BANS the contour at thumbnail scale in its own words — small, it
+        // reads as three near-identical concentric ovals — so a plate per
+        // season CARD was rejected on the existing rule rather than on taste.
+        //
+        // **Seeded from the league**, so the Fellas and Who's the bitch? are
+        // two places and each is the same place every time. With no league at
+        // all it falls to the golfer's own id, which is exactly what the
+        // person card does when a golfer has no home course. **A league is not
+        // a course**: the plot means nothing about the golf, it is identity and
+        // not information, and no copy on this page claims otherwise — which
+        // is also why it carries NO `mark` (there is no hole to point at).
         CSPageHeader("Compete", eyebrow: CSHeaderDate.today()) {
           // IA §6.1 · one primary door at the head — and it is the page's ONE
           // ember (L-25), which is why the foot's two doors are quiet.
@@ -63,7 +92,31 @@ struct CompeteScreen: View {
           .buttonStyle(.plain)
           .accessibilityLabel("Start something")
         }
-
+        .background(alignment: .top) {
+          if let seed = plateSeed {
+            // **CLIPPED, because the field draws past its frame.** `CSContour`
+            // strokes isolines in its own coordinate space and a `frame(height:)`
+            // alone does not stop them: the first build ran the curves down
+            // through YOUR SEASONS and behind the first two season rows, where
+            // a 24%-opacity line crossing a 17pt name is legibility spent on
+            // texture. It clips to the head's own measure.
+            //
+            // `.clipped()` clips DRAWING and not touches (D301) — which is why
+            // `allowsHitTesting(false)` is here too and not instead.
+            // **THE TOPO FOLLOWS THE LIVERY** (owner: *"topo can follow
+            // themes"*). Under a look the field takes the accent; on homebase
+            // it is `mut`, the neutral it has always been. It is the ACCENT and
+            // not the second colour: the panel and the tick already carry
+            // accent2, and a third object in it would be the wash D270 deleted
+            // arriving as a texture.
+            CSContour(seed: seed, tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a24))
+              .frame(maxWidth: .infinity)
+              .frame(height: 132)
+              .clipped()
+              .allowsHitTesting(false)
+              .accessibilityHidden(true)
+          }
+        }
 
         switch CompeteRoot.state(list: list, loaded: loaded, readFailed: readFailed, buddies: buddies) {
         case .loading:
@@ -165,7 +218,10 @@ struct CompeteScreen: View {
   /// Every row is a door, and the object decides which one.
   private func open(_ row: CompeteRoot.Row) {
     if let id = row.leagueId { push(.season(id, pane: .table)); store.preferredLeague = id }
-    else if let id = row.eventId { presenter.event = id }
+    // D325 · an event is an object and objects are pushed (§7.3). This line
+    // and the one above it were the whole bug: two adjacent rows in one list,
+    // one pushing a season and one raising a full-screen cover.
+    else if let id = row.eventId { push(.event(id)) }
     else if let id = row.roundId { presenter.scheduledRound = id }
   }
 

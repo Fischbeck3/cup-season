@@ -135,9 +135,19 @@ public struct TourCard: Sendable {
     public let rounds: Int
     /// A calendar date as a String (L-07).
     public let lastPlayed: String?
+    /// **D319 · THE ID THAT MAKES THE ROW A DOOR.** `tour_card` grouped by
+    /// `course_key(api_course_id, course_label)` and emitted everything except
+    /// the id it grouped on, which is why a kept course was a dead line.
+    ///
+    /// **nil is common and is not a gap to fill.** `course_key` is NULL for a
+    /// free-typed round so a typed label never becomes a claim about where
+    /// somebody played, and most quick rounds in production carry no course id
+    /// at all. A row without one stays a plain line.
+    public let apiCourseId: String?
     public var id: String { name }
-    public init(name: String, rounds: Int, lastPlayed: String? = nil) {
+    public init(name: String, rounds: Int, lastPlayed: String? = nil, apiCourseId: String? = nil) {
       self.name = name; self.rounds = rounds; self.lastPlayed = lastPlayed
+      self.apiCourseId = apiCourseId
     }
   }
 
@@ -231,7 +241,8 @@ public struct TourCard: Sendable {
     }
     let courses: [Course] = (json["courses"]?.array ?? []).compactMap { c in
       guard let n = c["name"]?.string, !n.isEmpty else { return nil }
-      return Course(name: n, rounds: c["rounds"]?.int ?? 0, lastPlayed: c["last_played"]?.string)
+      return Course(name: n, rounds: c["rounds"]?.int ?? 0, lastPlayed: c["last_played"]?.string,
+                    apiCourseId: c["api_course_id"]?.string)
     }
     let shared: [SharedCourse] = (json["shared_courses"]?.array ?? []).compactMap { c in
       guard let n = c["name"]?.string, !n.isEmpty else { return nil }

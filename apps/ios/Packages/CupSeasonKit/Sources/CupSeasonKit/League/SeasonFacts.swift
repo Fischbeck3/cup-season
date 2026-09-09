@@ -311,7 +311,23 @@ public enum SeasonFacts {
   /// clause and the money stay: those are the STORY beside the record, which
   /// is the same division §9.9 makes for the gap ("the chapter line may say
   /// the gap; the column is the record").
+  /// **D318 · YOUR OWN DEBT RIDES ON THE SEASON THAT IS OWED IT.** The money
+  /// slot printed *"$75 · YOU OWE"* on Home, above the wire, as a sum with no
+  /// creditor — and the owner moved it: *"you owe needs to go to compete."*
+  ///
+  /// It is the SHORT form and not `owe`'s full sentence: this is a row in a
+  /// list, and the how-to-pay and the due date belong on the season page where
+  /// the pot is, next to the figure they qualify. The row says who wants it;
+  /// the page says how. `mine: false` is the same producer's other grain — the
+  /// season page and the Compete row are the same fact at two lengths.
+  static func myStake(_ m: Me.Membership) -> String? {
+    guard m.stakeCents > 0, m.phase != "setup", let b = m.buy_in, b.paid == false else { return nil }
+    return m.isPro ? "your own \(PotMath.money(m.stakeCents)) isn't marked in"
+                   : "you owe \(PotMath.money(m.stakeCents))"
+  }
+
   public static func seasonLine(_ m: Me.Membership, week: Bool = true, rank: Bool = true,
+                                mine: Bool = false,
                                 today: String = CSDate.today(), calendar: Calendar = .current) -> String {
     switch SeasonPhase.of(m, today: today) {
     case .season(let w, let n):
@@ -321,6 +337,9 @@ public enum SeasonFacts {
         if let race = race(st) { s += (s.isEmpty ? "" : (rank ? ", " : " · ")) + race }
       }
       if let money = SeasonFacts.footMoney(m) { s += (s.isEmpty ? "" : " · ") + money }
+      // D318 · and the viewer's own, last, because it is the one clause that
+      // is about THEM rather than about the league.
+      if mine, let owed = SeasonFacts.myStake(m) { s += (s.isEmpty ? "" : " · ") + owed }
       // A season with no standing and no money has nothing left to say once
       // the week is taken out — the stage word is the honest sentence, not an
       // empty one (L-32).

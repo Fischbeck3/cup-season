@@ -24,12 +24,22 @@ public struct HomePost: Decodable, Sendable, Identifiable, Equatable {
   /// D219 · the booking a "put a round on the books" line is about
   /// (`posts.scheduled_round_id`). nil before the column lands (deploy skew).
   public let scheduled_round_id: UUID?
+  /// **D312 · THE GOLFER A PERSON-HOMED POST IS ABOUT** (`posts.profile_id`).
+  ///
+  /// D238 gave a post the right to be homed on a person and D262 wrote the
+  /// first ones — a bag change — and **nothing ever selected the column**, so
+  /// every bag line on the wire knew a person it could not name. That is why
+  /// *"You made ten changes to the bag"* was unclickable: a wire row opens only
+  /// if it knows a ROUND, and this row knows a PERSON. It is optional for
+  /// deploy skew in the other direction, exactly like `scheduled_round_id`.
+  public let profile_id: UUID?
 
   public init(id: UUID, league_id: UUID?, kind: String, member_id: UUID? = nil, body: String?, created_at: Date?,
-              live_round_id: UUID? = nil, round_id: UUID? = nil, scheduled_round_id: UUID? = nil) {
+              live_round_id: UUID? = nil, round_id: UUID? = nil, scheduled_round_id: UUID? = nil,
+              profile_id: UUID? = nil) {
     self.id = id; self.league_id = league_id; self.kind = kind; self.member_id = member_id; self.body = body
     self.created_at = created_at; self.live_round_id = live_round_id; self.round_id = round_id
-    self.scheduled_round_id = scheduled_round_id
+    self.scheduled_round_id = scheduled_round_id; self.profile_id = profile_id
   }
 }
 
@@ -183,12 +193,18 @@ public struct HomeStreamRepository: Sendable {
   /// new column needs a client-side retry that drops it — ANY error, never a
   /// sniffed message. Both tries fail → an empty feed, never a broken Home.
   static let postColumns = "id, league_id, kind, member_id, body, created_at, live_round_id, round_id"
+  /// The two newest columns, dropped one at a time on error. `profile_id`
+  /// (D238) predates `scheduled_round_id` (D219) in the schema but is asked
+  /// for LAST here, because a database missing the older one is the rarer
+  /// case and the widest select should be tried first.
+  static let postColumnsWide = postColumns + ", scheduled_round_id, profile_id"
   func loadPosts(_ ids: [UUID]) async -> [HomePost] {
     func read(_ columns: String) async throws -> [HomePost] {
       try await svc.client.from("posts").select(columns)
         .in("league_id", values: ids).neq("kind", value: "chat").neq("kind", value: "round")
         .order("created_at", ascending: false).limit(20).execute().value
     }
+    if let wide = try? await read(Self.postColumnsWide) { return wide }
     if let full = try? await read(Self.postColumns + ", scheduled_round_id") { return full }
     return (try? await read(Self.postColumns)) ?? []
   }
@@ -209,6 +225,7 @@ public struct HomeStreamRepository: Sendable {
         .neq("kind", value: "chat").neq("kind", value: "round")
         .order("created_at", ascending: false).limit(20).execute().value
     }
+    if let wide = try? await read(Self.postColumnsWide) { return wide }
     if let full = try? await read(Self.postColumns + ", scheduled_round_id") { return full }
     return (try? await read(Self.postColumns)) ?? []
   }

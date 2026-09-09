@@ -53,9 +53,9 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     let old = now.addingTimeInterval(-86400 * 3)
     let rounds = [row(me: true, gross: 84, playedOn: "2026-08-24", createdAt: old)]
     let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark,
-                            mentions: [HomeSocial.Mention(who: "Ed", emoji: "🔥", gross: 84)], now: now)!
+                            mentions: [HomeSocial.Mention(who: "Ed", emoji: "azalea", gross: 84)], now: now)!
     #expect(d.kind == .since)
-    #expect(d.body == "Ed 🔥’d your 84.")
+    #expect(d.body == "Ed gave your 84 its flowers.")
   }
 
   @Test func quietDayResurfacesTheBestRecentThing() {

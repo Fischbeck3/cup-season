@@ -330,7 +330,11 @@ struct LiveSlotChip: View {
     HStack(spacing: 8) {
       CSFace(Faces.of(player.pid, marker: player.mk, name: player.n, isViewer: player.me), size: .slat)
       VStack(alignment: .leading, spacing: 2) {
-        Text(player.n).csType(.name).foregroundStyle(cs.ink).lineLimit(1)
+        // **D325 · YOUR OWN SEAT SAYS "YOU".** It printed the viewer's full
+        // display name, truncated — `JERECHO F…` in a tile with room — where
+        // Home's wire, the receipt, the season's clash rows and (since D324)
+        // a course's rounds all say "You". `player.me` was already on the row.
+        Text(player.me ? "You" : player.n).csType(.name).foregroundStyle(cs.ink).lineLimit(1)
         Text("\(player.est ? "Est " : "")\(LiveFmt.idx(player.i)) playing HCP")
           .csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
@@ -343,7 +347,7 @@ struct LiveSlotChip: View {
             .a11yHitSlop(vertical: 8, horizontal: 8)   // a 28pt glyph, a 44pt target
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Remove \(player.n)")
+        .accessibilityLabel(player.me ? "Remove yourself" : "Remove \(player.n)")
       }
     }
     .padding(CSTokens.Space.s3).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading)

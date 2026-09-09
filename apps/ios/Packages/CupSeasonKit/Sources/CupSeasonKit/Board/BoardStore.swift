@@ -42,8 +42,6 @@ public final class BoardStore {
   public var toast: String?
   /// Open comment threads, keyed by item id — preserved across refreshes.
   public var openThreads: Set<String> = []
-  /// Open reaction trays, exclusive — one at a time (F11 3.1).
-  public var openTray: String?
 
   public let realtime: LeagueRealtime
   /// The D86 doorbell, exposed for the live-round slice.
@@ -253,13 +251,6 @@ public final class BoardStore {
       }
       toast = BoardText.humanError(error, "Reaction did not save.")
     }
-  }
-
-  /// The tray pick (`data-rxpick`): already mine → no-op.
-  public func pickReaction(_ itemId: String, _ emoji: String) async {
-    openTray = nil
-    if let it = items.first(where: { $0.id == itemId }), it.reactions[emoji]?.me == true { return }
-    await toggleReaction(itemId, emoji)
   }
 
   // MARK: - Comments (sendComment 4785)

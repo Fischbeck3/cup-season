@@ -201,7 +201,6 @@ public struct CSLookSpec: Sendable, Identifiable, Equatable {
   public let key: String
   public let name: String
   public let eyebrow: String
-  public let motif: String
   /// m1, d1, m2, d2 — nil for a phase look.
   public let window: (Int, Int, Int, Int)?
   public let oddYearsOnly: Bool
@@ -219,7 +218,7 @@ public struct CSLookSpec: Sendable, Identifiable, Equatable {
 
 public enum CSLooks {
   public static let all: [CSLookSpec] = [
-${looks.map(l => `    CSLookSpec(key: ${S(l.key)}, name: ${S(l.name)}, eyebrow: ${S(l.eyebrow)}, motif: ${S(l.motif)}, window: ${l.window ? `(${l.window.join(', ')})` : 'nil'}, oddYearsOnly: ${!!l.odd_years}, phase: ${l.phase ? S(l.phase) : 'nil'}, accentDark: Color(hex: ${hex(l.accent.dark)}), accentLight: Color(hex: ${hex(l.accent.light)}), accent2Dark: Color(hex: ${hex(l.accent2.dark)}), accent2Light: Color(hex: ${hex(l.accent2.light)})),`).join('\n')}
+${looks.map(l => `    CSLookSpec(key: ${S(l.key)}, name: ${S(l.name)}, eyebrow: ${S(l.eyebrow)}, window: ${l.window ? `(${l.window.join(', ')})` : 'nil'}, oddYearsOnly: ${!!l.odd_years}, phase: ${l.phase ? S(l.phase) : 'nil'}, accentDark: Color(hex: ${hex(l.accent.dark)}), accentLight: Color(hex: ${hex(l.accent.light)}), accent2Dark: Color(hex: ${hex(l.accent2.dark)}), accent2Light: Color(hex: ${hex(l.accent2.light)})),`).join('\n')}
   ]
   public static func spec(_ key: String) -> CSLookSpec? { all.first { $0.key == key } }
   public static var calendar: [CSLookSpec] { all.filter { $0.window != nil } }

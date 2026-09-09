@@ -209,6 +209,18 @@ struct ProfileCoursesBlock: View {
   /// `Courses kept` on your own page; `Courses you both keep` on somebody
   /// else's, which is the social fact and the better one.
   let head: String
+  /// **D319 · A KEPT COURSE IS A DOOR NOW**, where there is something to open.
+  /// The owner: *"On recent coures played I cant click into them, should take
+  /// me to the same page where you can edit picture etc."* The rows were not
+  /// unlinked by choice — `tour_card` grouped by the course key and emitted
+  /// everything except the id it grouped on, so there was nothing to open.
+  ///
+  /// nil closure, or a row with no id, draws a plain line. **`course_key` is
+  /// NULL for a free-typed round** so a typed label never becomes a claim about
+  /// where somebody has played, and most quick rounds in production carry no
+  /// course id at all — so this is the common case, not the edge. A control
+  /// that does nothing is worse than a line that never promised to.
+  var openCourse: ((String, String) -> Void)?
   @State private var expanded = false
 
   var body: some View {
@@ -238,7 +250,17 @@ struct ProfileCoursesBlock: View {
 
   private var shown: [TourCard.Course] { expanded ? courses : Array(courses.prefix(3)) }
 
-  private func row(_ c: TourCard.Course) -> some View {
+  @ViewBuilder private func row(_ c: TourCard.Course) -> some View {
+    if let open = openCourse, let id = c.apiCourseId, !id.isEmpty {
+      Button { CSHaptic.selection(); open(id, RoundCopy.course(c.name)) } label: { rowBody(c) }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens the course")
+    } else {
+      rowBody(c)
+    }
+  }
+
+  private func rowBody(_ c: TourCard.Course) -> some View {
     VStack(spacing: 0) {
       CSRule()
       HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
@@ -258,6 +280,7 @@ struct ProfileCoursesBlock: View {
           .frame(width: typeSize.isA11y ? nil : 34, alignment: .trailing)
       }
       .frame(minHeight: 44)
+      .contentShape(Rectangle())
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("\(RoundCopy.course(c.name)), \(c.rounds) round\(c.rounds == 1 ? "" : "s")")

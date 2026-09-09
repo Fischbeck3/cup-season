@@ -128,7 +128,8 @@ struct YouScreen: View {
             form
             ProfileCoursesBlock(courses: model.card?.courses ?? [],
                                 homeCourse: p.home_course, isMe: true,
-                                head: "Courses kept")
+                                head: "Courses kept",
+                                openCourse: links.openCourse)
               .id("you-courses")
             record
           }

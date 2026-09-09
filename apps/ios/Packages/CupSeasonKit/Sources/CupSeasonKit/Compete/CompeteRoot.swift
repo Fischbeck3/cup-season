@@ -181,7 +181,10 @@ public enum CompeteRoot {
     let rank = rank(m, phase: phase)
     return Row(id: "league:\(m.league_id.uuidString)", kind: .season, eyebrow: eyebrow, title: m.name,
                sub: finishedSub(m, phase: phase)
-                 ?? SeasonFacts.seasonLine(m, week: false, rank: rank == nil, today: today, calendar: calendar),
+                 // D318 · `mine: true` — this list is the viewer's own seasons,
+                 // so their unpaid stake belongs on the row that is owed it.
+                 ?? SeasonFacts.seasonLine(m, week: false, rank: rank == nil, mine: true,
+                                           today: today, calendar: calendar),
                clock: clock(m, phase: phase, today: today, calendar: calendar),
                rank: rank,
                leagueId: m.league_id)

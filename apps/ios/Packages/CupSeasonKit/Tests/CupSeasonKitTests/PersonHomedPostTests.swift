@@ -108,9 +108,9 @@ struct PersonHomedKudosTests {
   /// after carries `profile_id`; the backfill leaves the five existing rows
   /// carrying both. All three name the same golfer.
   @Test func allThreeErasNameTheSameGolfer() {
-    let legacy  = BoardKudos.Row(post_id: postInLeague, member_id: galenMem, emoji: "🔥")
-    let modern  = BoardKudos.Row(post_id: postInLeague, profile_id: galen, emoji: "🔥")
-    let both    = BoardKudos.Row(post_id: postInLeague, profile_id: galen, member_id: galenMem, emoji: "🔥")
+    let legacy  = BoardKudos.Row(post_id: postInLeague, member_id: galenMem, emoji: "azalea")
+    let modern  = BoardKudos.Row(post_id: postInLeague, profile_id: galen, emoji: "azalea")
+    let both    = BoardKudos.Row(post_id: postInLeague, profile_id: galen, member_id: galenMem, emoji: "azalea")
     for r in [legacy, modern, both] {
       #expect(BoardKudos.author(r, memberToProfile: roster) == galen)
     }
@@ -120,18 +120,18 @@ struct PersonHomedKudosTests {
   /// "Someone" rather than guessing, and `author` returning nil is what makes
   /// that the only available answer.
   @Test func anUnresolvableRowIsNobody() {
-    let orphan = BoardKudos.Row(post_id: postInLeague, member_id: UUID(), emoji: "🔥")
+    let orphan = BoardKudos.Row(post_id: postInLeague, member_id: UUID(), emoji: "azalea")
     #expect(BoardKudos.author(orphan, memberToProfile: roster) == nil)
-    #expect(BoardKudos.author(BoardKudos.Row(post_id: postInLeague, emoji: "🔥"), memberToProfile: roster) == nil)
+    #expect(BoardKudos.author(BoardKudos.Row(post_id: postInLeague, emoji: "azalea"), memberToProfile: roster) == nil)
   }
 
   /// THE DEFECT THE RE-KEY FIXES. A golfer in two leagues has two member ids.
   /// Under the old key, "is this mine" was a comparison against ONE of them —
   /// so my own 🔥, left through my second membership, read as somebody else's.
   @Test func myOwnReactionThroughEitherMembershipIsMine() {
-    let viaA = BoardKudos.Row(post_id: postInLeague, member_id: myMemA, emoji: "🔥")
-    let viaB = BoardKudos.Row(post_id: postInLeague, member_id: myMemB, emoji: "🔥")
-    let viaProfile = BoardKudos.Row(post_id: postOnPerson, profile_id: me, emoji: "🔥")
+    let viaA = BoardKudos.Row(post_id: postInLeague, member_id: myMemA, emoji: "azalea")
+    let viaB = BoardKudos.Row(post_id: postInLeague, member_id: myMemB, emoji: "azalea")
+    let viaProfile = BoardKudos.Row(post_id: postOnPerson, profile_id: me, emoji: "azalea")
     // the OLD test: one membership in hand, and no roster to resolve the other
     #expect(BoardKudos.isMine(viaA, me: me, myMemberIds: [myMemA]) == true)
     #expect(BoardKudos.isMine(viaB, me: me, myMemberIds: [myMemA]) == false)   // the bug
@@ -141,9 +141,9 @@ struct PersonHomedKudosTests {
     #expect(BoardKudos.isMine(viaB, me: me, myMemberIds: [myMemA], memberToProfile: roster) == true)
     #expect(BoardKudos.isMine(viaB, me: me, myMemberIds: [myMemA, myMemB]) == true)
     // and somebody else is still somebody else, by either road
-    #expect(BoardKudos.isMine(BoardKudos.Row(post_id: postOnPerson, profile_id: galen, emoji: "🔥"),
+    #expect(BoardKudos.isMine(BoardKudos.Row(post_id: postOnPerson, profile_id: galen, emoji: "azalea"),
                               me: me, myMemberIds: [myMemA, myMemB]) == false)
-    #expect(BoardKudos.isMine(BoardKudos.Row(post_id: postOnPerson, member_id: galenMem, emoji: "🔥"),
+    #expect(BoardKudos.isMine(BoardKudos.Row(post_id: postOnPerson, member_id: galenMem, emoji: "azalea"),
                               me: me, myMemberIds: [myMemA, myMemB], memberToProfile: roster) == false)
   }
 
@@ -151,17 +151,18 @@ struct PersonHomedKudosTests {
   /// post and the same emoji. Two reactions, two names, and mine is mine.
   @Test func aMixedSetFoldsIntoOneHonestStrip() {
     let kudos = [
-      HomeSocial.KudoLite(post_id: postOnPerson, member_id: galenMem, emoji: "🔥", created_at: at(1)),
-      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: me, emoji: "🔥", created_at: at(2)),
-      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: galen, emoji: "🦅", created_at: at(3)),
+      HomeSocial.KudoLite(post_id: postOnPerson, member_id: galenMem, emoji: "azalea", created_at: at(1)),
+      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: me, emoji: "azalea", created_at: at(2)),
+      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: galen, emoji: "eagle", created_at: at(3)),
     ]
     let rx = HomeSocial.fold(kudos: kudos, names: names, me: me, myMemberIds: [myMemA], memberToProfile: roster)
-    #expect(rx[postOnPerson]?["🔥"]?.n == 2)
-    #expect(rx[postOnPerson]?["🔥"]?.me == true)
-    #expect(rx[postOnPerson]?["🔥"]?.who.sorted() == ["Galen", "Jerecho"])
-    // L-42 · the vocabulary is untouched: a 🦅 stays a 🦅 and never becomes fire
-    #expect(rx[postOnPerson]?["🦅"]?.n == 1)
-    #expect(rx[postOnPerson]?["🦅"]?.me == false)
+    #expect(rx[postOnPerson]?["azalea"]?.n == 2)
+    #expect(rx[postOnPerson]?["azalea"]?.me == true)
+    #expect(rx[postOnPerson]?["azalea"]?.who.sorted() == ["Galen", "Jerecho"])
+    // D309 · the vocabulary is the four tokens now, and the rule survives the
+    // change intact: an eagle stays an eagle and never becomes the quick token
+    #expect(rx[postOnPerson]?["eagle"]?.n == 1)
+    #expect(rx[postOnPerson]?["eagle"]?.me == false)
   }
 
   /// A row written before `emoji` existed still means the quick chip — which
@@ -170,7 +171,7 @@ struct PersonHomedKudosTests {
   /// reaction somebody actually chose.
   @Test func aRowWithNoEmojiIsTheQuickChip() {
     #expect(BoardKudos.emoji(BoardKudos.Row(post_id: postOnPerson, profile_id: me, emoji: nil)) == CSReactions.quick)
-    #expect(BoardKudos.emoji(BoardKudos.Row(post_id: postOnPerson, profile_id: me, emoji: "🐍")) == "🐍")
+    #expect(BoardKudos.emoji(BoardKudos.Row(post_id: postOnPerson, profile_id: me, emoji: "rake")) == "rake")
   }
 
   /// The declared fallback's one condition, as a value. A column PostgREST has
@@ -195,8 +196,8 @@ struct PersonHomedKudosTests {
     snap.names = names
     snap.targets = [roundLeagueless: HomeSocial.Target(postId: postOnPerson, leagueId: nil)]
     snap.raw = [
-      HomeSocial.KudoLite(post_id: postOnPerson, member_id: myMemB, emoji: "🔥", created_at: at(100)),
-      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: galen, emoji: "🦅", created_at: at(101)),
+      HomeSocial.KudoLite(post_id: postOnPerson, member_id: myMemB, emoji: "azalea", created_at: at(100)),
+      HomeSocial.KudoLite(post_id: postOnPerson, profile_id: galen, emoji: "eagle", created_at: at(101)),
     ]
     let rows = [HomeFeedRow(round_id: roundLeagueless, profile_id: me, golfer: "Jerecho", marker: nil, handle: nil,
                             gross: 84, pvi: nil, played_on: "2026-09-01", created_at: at(90),

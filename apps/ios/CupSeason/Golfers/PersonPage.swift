@@ -39,6 +39,9 @@ struct PersonPage: View {
   @Environment(\.presenter) private var presenter
   @Environment(\.openCompetition) private var openCompetition
   let profileId: UUID
+  /// D319 · a kept course, opened — the same `(id, label)` pair
+  /// `CourseSheetRef` takes. nil draws plain rows.
+  var openCourse: ((String, String) -> Void)?
   var openHeadToHead: (UUID) -> Void = { _ in }
   var openReceipt: (UUID) -> Void = { _ in }
   var stageRound: ((_ playOn: String, _ tag: UUID) -> Void)? = nil
@@ -86,8 +89,26 @@ struct PersonPage: View {
 
   @ViewBuilder private func card(_ l: TourCardLoad) -> some View {
     let c = l.card, p = c.profile
-    credential(l)
-      .padding(.top, CSTokens.Space.s3)
+    // **D312 · THE BAG'S FRONT DOOR.** The owner: *"Maybe a bag Icon in the
+    // corner. I should be able to click on Galen, click the bag icon and see
+    // whats in it."* The section further down this page stays; what it lacked
+    // was anything on the card that ANNOUNCED it — the bag was four scrolls
+    // down, drawn only when non-empty, with no affordance above it.
+    //
+    // It sits beside the credential rather than in the toolbar: §12.2 already
+    // gives this page exactly ONE trailing action (share) and a second would
+    // reopen the deviation that entry records.
+    //
+    // **Drawn only when there is a bag to open.** `Bag.visible` is the owner's
+    // own gate and `isEmpty` is the second — an empty door is a broken promise,
+    // and this would rather draw nothing.
+    ZStack(alignment: .topTrailing) {
+      credential(l)
+      if let bag = model.bag, bag.visible, !bag.isEmpty {
+        bagDoor(bag, name: l.card.profile.displayName)
+      }
+    }
+    .padding(.top, CSTokens.Space.s3)
 
     // ── the status sentence. No round → the line is NOT DRAWN (L-44).
     statusSentence(c)
@@ -277,6 +298,30 @@ struct PersonPage: View {
   }
 
   /// `s5` 32 between sections — `CSSectionHead` carries 10 of it itself.
+  /// The corner door — the drawn bag at 22pt over the club count, at a real
+  /// 44pt target. It is `scrimInk` because it sits on the credential's plate,
+  /// which is a photograph or a contour and never a flat ground.
+  @ViewBuilder private func bagDoor(_ bag: Bag, name: String?) -> some View {
+    Button {
+      CSHaptic.selection()
+      presenter.bagOfName = name
+      presenter.bagOf = profileId
+    } label: {
+      VStack(spacing: 2) {
+        CSGlyph(.bag, size: .tab)
+        Text("\(bag.clubs.count)").csType(.agateS, caps: true)
+      }
+      .foregroundStyle(cs.scrimInk)
+      .frame(minWidth: 44, minHeight: 44)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .padding(CSTokens.Space.s3)
+    .accessibilityLabel(bag.isMe ? "Your bag, \(bag.clubs.count) clubs"
+                                 : "Their bag, \(bag.clubs.count) clubs")
+    .accessibilityHint("Opens the bag")
+  }
+
   private func sectionHead(_ title: String, count: String?) -> some View {
     ProfileHead(title, count: count)
   }
@@ -409,7 +454,8 @@ struct PersonPage: View {
     ProfileCoursesBlock(courses: c.courses,
                         homeCourse: c.profile.homeCourse,
                         isMe: isMe,
-                        head: isMe ? "Courses kept" : "Courses")
+                        head: isMe ? "Courses kept" : "Courses",
+                        openCourse: openCourse)
   }
 
   /// D262 · R-O · the bag. Drawn only when the read answered AND there is

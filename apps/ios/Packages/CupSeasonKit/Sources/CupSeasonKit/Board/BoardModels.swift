@@ -1,32 +1,46 @@
 // Cup Season — the board's shapes (audit 05 §1, §4).
 //
 // `posts` is the board. Five kinds; chat is the only one a client writes.
-// Reactions are rows in `post_kudos` keyed (post_id, member_id, emoji);
+// Reactions are rows in `post_kudos` keyed (post_id, profile_id, emoji);
 // comments are `post_comments`, on ROUND posts only. The story card reads a
 // `BoardRound` — the web's `window.roundCache` entry — built from `rounds` +
 // `v_rounds_ranked` (season-scoped) + a signed photo URL.
 
 import Foundation
+import CSDesign
 
-/// The six curated reactions (index.html 4670–4676). Emoji stay emoji; the
-/// label is the accessibility name (`RXLABEL`).
+/// **THE FOUR DRAWN TOKENS (D309).** This enum holds keys and words and draws
+/// nothing — the drawing is `CSReactionGlyph` in CSDesign, and two of the four
+/// are read straight from the marker table rather than copied.
+///
+/// **`key` IS WHAT THE DATABASE STORES**, and the column it goes into is still
+/// called `emoji`. That is deliberate: renaming the column would make an older
+/// installed build's write FAIL, where leaving it makes that build write a
+/// token nobody recognises — degraded beats broken during a deploy window.
+///
+/// **THE COUNT IS NOT A CONSTANT ANYWHERE ELSE.** It used to be: `HomeView`
+/// typed out six `accessibilityAction`s by index, so shrinking the set trapped
+/// on `all[4]` at launch. Every consumer iterates now (D310).
 public enum CSReactions {
   public struct Reaction: Sendable, Hashable, Identifiable {
-    public let emoji: String
-    public let label: String
-    public var id: String { emoji }
+    public let token: CSReactionToken
+    /// The storage key — `azalea`, `jug`, `eagle`, `rake`.
+    public var key: String { token.key }
+    /// The crew's word, which is the MEANING and not the object: *flowers*,
+    /// never *the azalea* (owner's pick, D309).
+    public var label: String { token.word }
+    public var id: String { token.key }
   }
-  public static let all: [Reaction] = [
-    Reaction(emoji: "🔥", label: "heater"),       // hot round, on a run
-    Reaction(emoji: "🦅", label: "the eagle"),    // genuinely great, respect
-    Reaction(emoji: "⛳", label: "dialed"),       // stuck it, clean golf
-    Reaction(emoji: "🧊", label: "ice"),          // clutch, closed it out
-    Reaction(emoji: "🐍", label: "snake"),        // playful jab, three-putt energy
-    Reaction(emoji: "🚨", label: "sandbagger"),   // the friendly accusation
-  ]
-  /// The one-thumb quick chip (F11 3.1).
-  public static let quick = "🔥"
-  public static func label(_ emoji: String) -> String { all.first { $0.emoji == emoji }?.label ?? "" }
+  /// Canon order, and it is the order a row draws in — never arrival order
+  /// (D310), so the row is the same row every time you look at it.
+  public static let all: [Reaction] = CSReactionToken.allCases.map(Reaction.init(token:))
+  /// The one-thumb token (D310). Not a heater: the most common thing a golfer
+  /// wants to say to a buddy is respect.
+  public static let quick = CSReactionToken.quick.key
+  public static func label(_ key: String) -> String { CSReactionToken.of(key)?.word ?? "" }
+  /// nil for a key no build of this app ever wrote — the caller DROPS it rather
+  /// than drawing a token the writer did not choose (the D25 correction).
+  public static func token(_ key: String?) -> CSReactionToken? { CSReactionToken.of(key) }
 }
 
 /// One reaction's state on one post: count, mine, who.

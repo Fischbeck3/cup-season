@@ -24,6 +24,11 @@ struct YouLinks {
   /// without the shell, and the ROW IS NOT DRAWN when it is nil: a door that
   /// cannot open is never rendered.
   var openBag: (() -> Void)? = nil
+  /// D319 · a kept course, opened. `(api_course_id, label)` — the same pair
+  /// `CourseSheetRef` takes, so this page reaches the one course page the
+  /// product has rather than a second copy of it. nil, or a course with no id,
+  /// draws a plain row.
+  var openCourse: ((String, String) -> Void)? = nil
   /// The founder's "✏️ Field note" (`founder_note`); hidden when nil.
   var founderNote: (() -> Void)? = nil
   /// D63 "Plan a round" — the declare sheet for the given day, tagging one golfer;
@@ -41,6 +46,15 @@ struct YouLinks {
   func withBag(_ open: @escaping () -> Void) -> YouLinks {
     var copy = self
     copy.openBag = open
+    return copy
+  }
+
+  /// D319 · same reason as `withBag` — a named builder rather than a
+  /// fifteenth positional argument on a struct nobody can read at the call
+  /// site.
+  func withCourse(_ open: @escaping (String, String) -> Void) -> YouLinks {
+    var copy = self
+    copy.openCourse = open
     return copy
   }
 

@@ -159,3 +159,220 @@ import Testing
     #expect(BagCopy.cap == 14)
   }
 }
+
+// MARK: - D312 · the door the bag never had
+
+@Suite struct BagDoorTests {
+  private func post(kind: String, profile: UUID? = nil, round: UUID? = nil,
+                    live: UUID? = nil, scheduled: UUID? = nil) -> HomePost {
+    HomePost(id: UUID(), league_id: nil, kind: kind, body: "x", created_at: Date(),
+             live_round_id: live, round_id: round, scheduled_round_id: scheduled,
+             profile_id: profile)
+  }
+
+  /// **THE LINE THAT COULD NOT BE TAPPED.** A wire row opened only if it knew a
+  /// ROUND, and a bag change knows a PERSON — so "You made ten changes to the
+  /// bag" was unclickable by construction, not by oversight.
+  @Test func aBagPostOpensThatGolfersBag() {
+    let me = UUID()
+    #expect(HomeFeedFold.door(for: post(kind: "bag", profile: me)) == .bag(me))
+  }
+
+  /// The kind is the check, never the presence of `profile_id`. A MILESTONE
+  /// homed on the same person is about a round, and a door to their bag would
+  /// be a door to the wrong object.
+  @Test func onlyABagPostOpensABag() {
+    let me = UUID()
+    #expect(HomeFeedFold.door(for: post(kind: "moment", profile: me)) == nil)
+    #expect(HomeFeedFold.door(for: post(kind: "system", profile: me)) == nil)
+    // and a bag post with no profile has nowhere to lead
+    #expect(HomeFeedFold.door(for: post(kind: "bag")) == nil)
+  }
+
+  /// The round ids keep their order (D219). A post that somehow knows both is
+  /// about the round, because the round is the thing that happened.
+  @Test func aRoundOutranksTheBag() {
+    let me = UUID(), round = UUID(), live = UUID()
+    #expect(HomeFeedFold.door(for: post(kind: "bag", profile: me, round: round)) == .round(round))
+    #expect(HomeFeedFold.door(for: post(kind: "bag", profile: me, round: round, live: live)) == .live(live))
+  }
+}
+
+// MARK: - D315 · the strip yields to a competition lead
+
+@Suite struct StripYieldTests {
+  private func slot(_ f: MeStripCopy.Fact, _ v: String) -> MeStripCopy.Slot {
+    MeStripCopy.Slot(fact: f, label: f.rawValue, value: v,
+                     door: .yourCard, voiceOver: "\(f.rawValue), \(v)", isPlaceholder: false)
+  }
+
+  /// The survivor is the NEXT TEE — the only forward-looking fact, and the only
+  /// one that is a plan rather than a placing.
+  @Test func theNextTeeSurvives() {
+    let strip = MeStripCopy.Strip(
+      slots: [slot(.myNumber, "12.1"), slot(.myMoney, "+$40"),
+              slot(.myNextRound, "Sat 7:40"), slot(.myLastRound, "84")],
+      seasonRow: nil)
+    #expect(strip.leading.slots.map(\.fact) == [.myNextRound])
+    // demoted, NEVER dropped — the money slot in particular carries a debt
+    #expect(Set(strip.trailing.slots.map(\.fact)) == [.myNumber, .myMoney, .myLastRound])
+  }
+
+  /// **A PREFERENCE, NOT A MANDATE.** A golfer with nothing scheduled has no
+  /// next tee, and the rule falls to the next fact rather than printing none.
+  @Test func withNoTeeTimeItFallsThrough() {
+    let strip = MeStripCopy.Strip(
+      slots: [slot(.myMoney, "+$40"), slot(.myNumber, "12.1")], seasonRow: nil)
+    #expect(strip.leading.slots.map(\.fact) == [.myNumber])
+    #expect(strip.trailing.slots.map(\.fact) == [.myMoney])
+  }
+
+  /// One slot is already one voice — nothing to yield, and nothing sinks.
+  @Test func aSingleSlotIsUntouched() {
+    let strip = MeStripCopy.Strip(slots: [slot(.myNumber, "12.1")], seasonRow: nil)
+    #expect(strip.leading.slots.count == 1)
+    #expect(strip.trailing.isEmpty)
+  }
+
+  /// The keys are read from the item KEY and never from the prose — reading a
+  /// claim out of a headline is a guess (L-44).
+  @Test func theCompetitionKeysAreTheRankersOwn() {
+    func item(_ key: String) -> HomeDispatch.Item {
+      HomeDispatch.Item(key: key, tier: .closing, eyebrow: "e", headline: "x")
+    }
+    #expect(HomePage.isCompetition(item("clash:abc")))
+    #expect(HomePage.isCompetition(item("live:abc")))
+    #expect(HomePage.isCompetition(item("firsttee:abc")))
+    // a ceremony and the circle are NOT the strip's competition
+    #expect(!HomePage.isCompetition(item("chapter:abc")))
+    #expect(!HomePage.isCompetition(item("story:abc")))
+    #expect(!HomePage.isCompetition(item("runitback:abc")))
+    #expect(!HomePage.isCompetition(nil))
+  }
+}
+
+// MARK: - D311 · a reaction is a word, not a verb
+
+@Suite struct ReactionSentenceTests {
+  private func mention(_ key: String?) -> HomeSocial.Mention {
+    HomeSocial.Mention(who: "Jade", emoji: key, gross: 90)
+  }
+
+  @Test func everyTokenHasItsOwnSentence() {
+    #expect(HomeDigest.mention(mention("azalea"), gross: "90") == "Jade gave your 90 its flowers")
+    #expect(HomeDigest.mention(mention("jug"), gross: "90") == "Jade raised a glass to your 90")
+    #expect(HomeDigest.mention(mention("eagle"), gross: "90") == "Jade circled your 90 twice")
+    #expect(HomeDigest.mention(mention("rake"), gross: "90") == "Jade called you a sandbagger on your 90")
+  }
+
+  /// A comment is not a reaction, and a token this build cannot read is
+  /// neither — it falls to a neutral sentence rather than naming one it guessed.
+  @Test func whatIsNotATokenIsNotNamed() {
+    #expect(HomeDigest.mention(mention(nil), gross: "90") == "Jade chimed in on your 90")
+    #expect(HomeDigest.mention(mention("🔥"), gross: "90") == "Jade reacted to your 90")
+  }
+
+  /// **NO GLYPH IS EVER A VERB.** The shape of the old line, asserted against
+  /// so it cannot come back through a template.
+  @Test func noSentenceInterpolatesAToken() {
+    for k in CSReactions.all.map(\.key) + ["🔥", nil].compactMap({ $0 }) {
+      let s = HomeDigest.mention(mention(k), gross: "90")
+      #expect(!s.contains(k), "the sentence for \(k) printed the token itself")
+      #expect(!s.contains("’d your"))
+    }
+  }
+}
+
+// MARK: - D321 · Home is too much
+
+@Suite struct HomeQuietTests {
+  private func item(_ key: String, subject: String? = nil, league: UUID? = nil) -> HomeDispatch.Item {
+    HomeDispatch.Item(key: key, tier: .closing, subject: subject,
+                      eyebrow: "e", headline: "h", leagueId: league)
+  }
+  private func row(_ p: HomeWirePeriod?) -> HomeWireRow {
+    HomeWireRow(id: UUID().uuidString, body: .line(marker: nil, text: "x", door: nil), period: p)
+  }
+
+  /// **THE OWNER'S OWN HOME.** The lead was the clash with Galen in Who's the
+  /// bitch?, carrying a `2ND OF TWO` chip; the very next row said "You are 4
+  /// back of Galen with 7 weeks left" — the standing the chip had just drawn.
+  @Test func anItemThatRepeatsTheLeadsSubjectAndLeagueIsAnEcho() {
+    let league = UUID()
+    let lead = item("clash:1", subject: "Galen", league: league)
+    #expect(HomePage.echoesLead(item("need:1", subject: "Galen", league: league), lead: lead))
+  }
+
+  /// **BOTH HALVES ARE REQUIRED.** Two leagues can each be about Galen and
+  /// those are two facts; a clash and a buddy's round in one league are two
+  /// facts too. Only the pair makes them one story.
+  @Test func neitherHalfAloneIsAnEcho() {
+    let a = UUID(), b = UUID()
+    let lead = item("clash:1", subject: "Galen", league: a)
+    #expect(!HomePage.echoesLead(item("need:1", subject: "Galen", league: b), lead: lead))
+    #expect(!HomePage.echoesLead(item("need:1", subject: "Jade", league: a), lead: lead))
+    // half a pair is a guess (L-44)
+    #expect(!HomePage.echoesLead(item("need:1", subject: "Galen"), lead: lead))
+    #expect(!HomePage.echoesLead(item("need:1", league: a), lead: lead))
+    // and with no lead at all nothing echoes
+    #expect(!HomePage.echoesLead(item("need:1", subject: "Galen", league: a), lead: nil))
+  }
+
+  /// The lead can never suppress itself out of the deck.
+  @Test func theLeadIsNotItsOwnEcho() {
+    let league = UUID()
+    let lead = item("clash:1", subject: "Galen", league: league)
+    #expect(!HomePage.echoesLead(lead, lead: lead))
+  }
+
+  /// **A HEAD IS FOR A BUCKET, NOT FOR A SENTENCE.** `UP NEXT` and `TODAY`
+  /// each held one row on the owner's Home and each got a 24pt head.
+  @Test func aPeriodHoldingOneRowGetsNoHead() {
+    let rows = [row(.ahead), row(.today), row(.week), row(.week), row(.earlier), row(.earlier), row(.earlier)]
+    let headed = HomePage.headedPeriods(rows)
+    #expect(!headed.contains(.ahead))
+    #expect(!headed.contains(.today))
+    #expect(headed.contains(.week))
+    #expect(headed.contains(.earlier))
+  }
+
+  /// A row filed under no period is not a bucket and cannot summon a head.
+  @Test func aLooseRowIsNotABucket() {
+    #expect(HomePage.headedPeriods([row(nil), row(nil)]).isEmpty)
+    #expect(HomePage.headedPeriods([]).isEmpty)
+  }
+}
+
+// MARK: - D325 · the signup trigger's guess is not a name
+
+@Suite struct DerivedNameTests {
+  /// The m001 trigger writes `display_name` from the email localpart, so the
+  /// card gate would arrive pre-filled with a machine value wearing the shape
+  /// of an answer. **Eight of thirty-nine production profiles carry one.**
+  @Test func aNameThatIsTheEmailIsTheTriggersGuess() {
+    #expect(OnboardingGate.isDerivedName("a.golfer", email: "a.golfer@x.com"))
+    #expect(OnboardingGate.isDerivedName("agolfer12", email: "agolfer12@x.com"))
+    // **THE CASE THE TWO CLIENTS DISAGREED ON.** The desk normalised away every
+    // non-alphanumeric; the phone stripped spaces only, so a derived name that
+    // lost a dot the email carried pre-filled on the phone and not on the desk.
+    #expect(OnboardingGate.isDerivedName("jsmith", email: "j.smith@x.com"))
+    #expect(OnboardingGate.isDerivedName("Jerecho Fischbeck", email: "jerechofischbeck@x.com"))
+  }
+
+  /// A typed name survives — that is the whole point of the guard being narrow.
+  @Test func aRealNameIsNotTheGuess() {
+    #expect(!OnboardingGate.isDerivedName("Galen Marr", email: "galen@x.com"))
+    #expect(!OnboardingGate.isDerivedName("Tash", email: "natasha.bell@x.com"))
+  }
+
+  /// **Nothing to compare is NOT a match.** With no email on the payload a
+  /// guess would clear a name somebody typed, which is the worse failure.
+  @Test func withNothingToCompareItIsNotDerived() {
+    #expect(!OnboardingGate.isDerivedName("Drew", email: nil))
+    #expect(!OnboardingGate.isDerivedName("Drew", email: ""))
+    #expect(!OnboardingGate.isDerivedName(nil, email: "drew@x.com"))
+    #expect(!OnboardingGate.isDerivedName("", email: "drew@x.com"))
+    // punctuation-only normalises to nothing and must not match a real localpart
+    #expect(!OnboardingGate.isDerivedName("...", email: "drew@x.com"))
+  }
+}

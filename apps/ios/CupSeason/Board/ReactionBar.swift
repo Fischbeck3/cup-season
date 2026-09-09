@@ -1,10 +1,17 @@
-// Cup Season — `socialBar` (index.html 4715–4740): the reaction chips, the
-// ＋ tray, the report flag, and the comment thread on round posts.
+// Cup Season — `socialBar`: the reaction chips, the report control, and the
+// comment thread on round posts.
 //
-//   · the 🔥 heater is the one-thumb chip, always on the card face (F11 3.1);
-//     tap toggles, a ≥350 ms hold opens the tray without also toggling
-//   · the tray is exclusive — opening one closes any other (store.openTray)
-//   · a tray pick that is already mine is a no-op
+// **THE TRAY IS GONE (D310).** Six reactions needed one: a ≥350 ms hold on the
+// quick chip opened a palette holding the five that did not fit on the row,
+// exclusively, with a `held` flag so the hold did not also toggle. **Four fit
+// on the row.** So the palette, the hold, the flag and `store.openTray` all
+// retire, and a reaction is one tap at one size, everywhere — which is a
+// simpler product than the one the six required.
+//
+//   · all four are always on the face, in CANON order — never arrival order,
+//     so the row is the same row every time you look at it
+//   · a row nobody has touched shows the quick token's OUTLINE with no figure:
+//     an invitation, which cannot be read as a tally somebody already left
 //   · every write is optimistic and reverts with the web's toast on failure
 //   · chat lines react but don't thread; the thread's open state lives in the
 //     store so a refresh never collapses the one you're typing in
@@ -17,24 +24,51 @@ struct ReactionBar: View {
   @Environment(\.cs) private var cs
   let item: BoardItem
   @Bindable var store: BoardStore
-  @State private var held = false
   @State private var draft = ""
+  /// D324 · the reveal is LOCAL, like the wire's — one row opening its own
+  /// four needs none of the exclusive-tray machinery D310 deleted.
+  @State private var open = false
   @State private var reporting = false
 
-  private var present: [String] {
-    CSReactions.all.map(\.emoji).filter { (item.reactions[$0]?.n ?? 0) > 0 }
+  /// Has anybody said anything at all on this item?
+  private var untouched: Bool { given.isEmpty }
+  /// What people actually gave, in CANON order — never arrival order.
+  private var given: [CSReactions.Reaction] {
+    CSReactions.all.filter { (item.reactions[$0.key]?.n ?? 0) > 0 }
   }
-  private var trayOpen: Bool { store.openTray == item.id }
+  /// What the `+` reveals.
+  private var rest: [CSReactions.Reaction] {
+    CSReactions.all.filter { (item.reactions[$0.key]?.n ?? 0) == 0 }
+  }
   private var threadOpen: Bool { store.openThreads.contains(item.id) }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       CSRule()
       FlowRow(spacing: 6) {
-        ForEach(present, id: \.self) { e in chip(e, quick: e == CSReactions.quick) }
-        if !present.contains(CSReactions.quick) { chip(CSReactions.quick, quick: true, bare: true) }
-        iconButton(trayOpen ? .cross : .plus, label: "More reactions", expanded: trayOpen) {
-          store.openTray = trayOpen ? nil : item.id
+        // **D324 · THE BOARD GETS THE WIRE'S ROW.** D310 kept all four on the
+        // face here, on the argument that a board is a room you went to. Seen
+        // rendered that was wrong, and worse than the wire ever was: these are
+        // FILLED tiles, so four of them plus the report and the comment is six
+        // grey boxes under every post. The owner had already said what he
+        // thinks of the pattern; it just had not been carried across.
+        //
+        // What is GIVEN stays on the face — those are facts about what
+        // happened. The rest wait behind the `+`, and picking one closes it.
+        ForEach(given) { r in chip(r.token) }
+        if open {
+          ForEach(rest) { r in chip(r.token, closesOnTap: true) }
+        } else if !rest.isEmpty {
+          iconButton(.plus, label: given.isEmpty ? "React to this round" : "More reactions",
+                     expanded: false) {
+            CSHaptic.selection()
+            CSMotion.run(CSMotion.tick) { open = true }
+          }
+          .accessibilityActions {
+            ForEach(rest) { r in
+              Button(r.label) { Task { await store.toggleReaction(item.id, r.key) } }
+            }
+          }
         }
         if item.postId != nil {
           // never a flag — `LINT-28` reserves the pennant to the tab band and
@@ -61,7 +95,6 @@ struct ReactionBar: View {
           .accessibilityAddTraits(threadOpen ? [.isSelected] : [])
         }
       }
-      if trayOpen { tray }
       if item.threads && threadOpen { thread }
     }
     .padding(.top, 6)
@@ -70,41 +103,38 @@ struct ReactionBar: View {
 
   // MARK: chips
 
-  private func chip(_ e: String, quick: Bool, bare: Bool = false) -> some View {
-    let r = item.reactions[e] ?? ReactionState()
+  /// One token. **The count is drawn only when it is a count** — an untouched
+  /// row shows four outlines and no figures, which is the whole of D310: a
+  /// glyph with a phantom zero beside it reads as a reaction somebody left.
+  private func chip(_ t: CSReactionToken, closesOnTap: Bool = false) -> some View {
+    let r = item.reactions[t.key] ?? ReactionState()
     let who = r.who.joined(separator: ", ")
-    let title = CSReactions.label(e) + (who.isEmpty ? "" : " — " + who)
+    let title = t.word + (who.isEmpty ? "" : " — " + who)
     return Button {
-      if held { held = false; return }   // the hold already opened the tray — don't also toggle
       CSHaptic.selection()
-      Task { await store.toggleReaction(item.id, e) }
+      Task { await store.toggleReaction(item.id, t.key) }
+      if closesOnTap { CSMotion.run(CSMotion.tick) { open = false } }
     } label: {
-      // the six canon reactions keep their emoji (the one exemption
-      // `LINT-12` names); the CHIP under them is the system's — a 3pt
-      // rectangle at a real 44pt, and a reaction you gave INVERTS to the panel
-      // rather than filling with ember, because a reaction is not live
-      HStack(spacing: bare ? 0 : CSTokens.Space.s1) {
-        Text(e).font(.system(size: 15))
-        if !bare { Text("\(r.n)").csType(.agateS) }
-      }
       // the CHIP is 28pt (§7.2) and the TARGET is 44 — the frame goes outside
-      // the fill, or a row of reactions reads as a row of grey tiles
+      // the fill, or a row of reactions reads as a row of grey tiles. A
+      // reaction you gave INVERTS to the panel rather than filling with ember,
+      // because a reaction is not live — and under a look that panel is the
+      // livery's second colour (D313), so your own reactions wear it.
+      HStack(spacing: CSTokens.Space.s1) {
+        CSReactionGlyph(t, size: .row)
+        if r.n > 0 { Text("\(r.n)").csType(.agateS) }
+      }
       .padding(.horizontal, CSTokens.Space.s3)
       .frame(minWidth: 36, minHeight: 28)
-      .foregroundStyle(r.me ? cs.panelInk : cs.mut)
+      .foregroundStyle(r.me ? cs.panelInk : (untouched ? cs.dimText : cs.mut))
       .background(r.me ? cs.panel : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
       .frame(minWidth: 44, minHeight: 44)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .simultaneousGesture(quick ? LongPressGesture(minimumDuration: 0.35).onEnded { _ in
-      held = true
-      store.openTray = item.id
-    } : nil)
     .accessibilityLabel(title)
     .accessibilityValue(r.me ? "on" : "off")
-    .accessibilityHint(quick ? "Double tap to toggle, or use the More reactions action" : "")
-    .accessibilityAction(named: "More reactions") { store.openTray = item.id }
+    .accessibilityAddTraits(.isToggle)
   }
 
   private func iconButton(_ glyph: CSGlyph.Name, label: String, expanded: Bool, action: @escaping () -> Void) -> some View {
@@ -119,26 +149,6 @@ struct ReactionBar: View {
     .buttonStyle(.plain)
     .accessibilityLabel(label)
     .accessibilityAddTraits(expanded ? [.isSelected] : [])
-  }
-
-  // MARK: tray (`.rxpalette`)
-
-  private var tray: some View {
-    HStack(spacing: 4) {
-      ForEach(CSReactions.all) { r in
-        Button {
-          CSHaptic.selection()
-          Task { await store.pickReaction(item.id, r.emoji) }
-        } label: {
-          Text(r.emoji).font(.system(size: 22)).frame(minWidth: 44, minHeight: 44)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(r.label)
-      }
-    }
-    .padding(.horizontal, CSTokens.Space.s2)
-    .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .transition(.opacity.combined(with: .move(edge: .top)))
   }
 
   // MARK: thread (`.cthread`)

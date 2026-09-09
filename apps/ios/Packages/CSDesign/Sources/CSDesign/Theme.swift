@@ -111,12 +111,20 @@ public extension CSPalette {
   /// what a palette is, and §1.5's one-ember rule is untouched — there is still
   /// exactly one, it is just not always ember.
   func wearing(_ look: CSLookSpec?, theme: CSTheme) -> CSPalette {
-    guard let accent = look?.accent(theme) else { return self }
+    guard let look else { return self }
+    let accent = look.accent(theme)
+    // **D313 · THE SECOND COLOUR, AND THE ONE OBJECT IT TAKES.** `accent2` had
+    // never reached a pixel on any look — D307 says so in its own last line.
+    // The panel is not a ground: it is the CHOSEN STATE. Twelve sites and all
+    // of them one idea — the reaction you gave, your own line on a board, today
+    // on the schedule, a toggled setting, the option you picked in a wizard —
+    // so a livery colours YOUR CHOICES. The grounds still do not move (D270).
+    let accent2 = look.accent2(theme)
     return CSPalette(bg0: bg0, bg1: bg1, bg2: bg2,
               rule: rule, ink: ink, mut: mut, dim: dim,
               pos: pos, neg: neg, cool: cool, gold: gold, brand: accent,
               sq0: sq0, sq1: sq1, sq2: sq2, sq3: sq3,
-              panel: panel, panelInk: panelInk, panelMut: panelMut,
+              panel: accent2, panelInk: CSInk.on(accent2), panelMut: CSInk.mutOn(accent2),
               leaf: leaf, leafInk: leafInk, leafMut: leafMut, leafGold: leafGold,
               // The ceremony ground does not re-print (D270): a trophy, a
               // settlement and a share card are physical objects and they look
@@ -237,5 +245,68 @@ public extension EnvironmentValues {
   var csReduceTransparency: Bool {
     get { self[CSReduceTransparencyKey.self] }
     set { self[CSReduceTransparencyKey.self] = newValue }
+  }
+}
+
+
+/// **WHICH INK SURVIVES ON A COLOUR THE PALETTE DID NOT CHOOSE** (D313).
+///
+/// A look's `accent2` becomes the panel, and the panel carries text. Six of the
+/// eleven liveries need LIGHT ink on it and five need dark — so the flip is not
+/// an edge case and it cannot be a constant. It is computed here, once, for the
+/// same reason Increase Contrast is resolved at the theme rather than at 400
+/// call sites: **a site that reasons about its own contrast is a site that will
+/// forget to.**
+///
+/// The two candidates are the palette's own two panel inks — near-black and
+/// near-parchment — so nothing is invented (LINT-04) and the flip can only ever
+/// return a colour that came from `tokens.json`.
+///
+/// **ONE LIVERY WAS ADJUSTED RATHER THAN EXCEPTED.** Two Teams' `accent2` was
+/// `#D33A4A`, which carries 4.04:1 with dark ink and 4.16:1 with light — the
+/// only one that fails a 4.5 bar BOTH ways. It moved 8% to `#C23544` (4.79 with
+/// light ink) in `tokens.json`, so this rule has no exception in it. Every other
+/// look clears the bar as drawn; the tightest are Azaleas light (4.52) and
+/// Claret light (4.57).
+public enum CSInk {
+  /// WCAG relative luminance. Returns nil where the platform cannot resolve
+  /// components — a test host, never a device — and the caller falls back.
+  static func luminance(_ c: Color) -> Double? {
+    #if canImport(UIKit)
+    var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+    guard UIColor(c).getRed(&r, green: &g, blue: &b, alpha: &a) else { return nil }
+    func lin(_ v: CGFloat) -> Double {
+      let d = Double(v)
+      return d <= 0.04045 ? d / 12.92 : pow((d + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+    #else
+    return nil
+    #endif
+  }
+
+  static func contrast(_ a: Color, _ b: Color) -> Double? {
+    guard let la = luminance(a), let lb = luminance(b) else { return nil }
+    return (max(la, lb) + 0.05) / (min(la, lb) + 0.05)
+  }
+
+  /// Is this ground light enough to take the dark ink? The threshold is a
+  /// COMPARISON, not a magic number: whichever of the two inks reads better.
+  static func prefersDarkInk(_ ground: Color) -> Bool {
+    guard let dark = contrast(CSTokens.dark.panelInk, ground),
+          let light = contrast(CSTokens.light.panelInk, ground) else { return true }
+    return dark >= light
+  }
+
+  /// The ink a panel in `ground` should carry.
+  public static func on(_ ground: Color) -> Color {
+    prefersDarkInk(ground) ? CSTokens.dark.panelInk : CSTokens.light.panelInk
+  }
+
+  /// The metadata voice on that same panel, taken from the SAME theme as the
+  /// ink — a dark ink with a light theme's mut beside it is two decisions
+  /// disagreeing on one object.
+  public static func mutOn(_ ground: Color) -> Color {
+    prefersDarkInk(ground) ? CSTokens.dark.panelMut : CSTokens.light.panelMut
   }
 }

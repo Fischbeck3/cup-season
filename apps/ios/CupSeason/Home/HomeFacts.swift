@@ -141,12 +141,25 @@ struct HomeFloor: View {
     Door(key: "find_golfers", verb: "Find golfers", gloss: "The people you play with"),
   ]
 
-  /// The collapsed row: one door that pushes the other three, named for what
-  /// it is rather than for one of them.
-  static let elsewhere = Door(key: "start_something", verb: "Something else",
-                              gloss: "Start a season · join with a code · find golfers")
+  /// **D318 · THE FLOOR IS ONE ROW, ALWAYS.** It was four, and the finding
+  /// that settled it is that **the tab bar already carries all four**: the ⊕
+  /// cover offers *Add a round you played*, *Plan a round*, *Score it live* and
+  /// *Start something*; the code door lives inside Start something; Find
+  /// golfers is its own tab, two inches away, on every screen. Home was ending
+  /// in a second printing of its own navigation, and the owner read the bottom
+  /// quarter of the page as exactly that.
+  ///
+  /// The collapse is not new — this row already existed and was used whenever
+  /// the page carried its own primary. D318 makes it the default rather than
+  /// the exception. `Self.doors` is kept because the FIRST-ROUND rows are drawn
+  /// in the same grammar and read their verbs from it.
+  ///
+  /// It opens the ⊕ cover rather than the intent sheet, because the cover is
+  /// where three of the four actually live.
+  static let elsewhere = Door(key: "the_plus", verb: "Something else",
+                              gloss: "Add a round · start a season · join with a code")
 
-  private var rows: [Door] { pageHasPrimary ? [Self.elsewhere] : Self.doors }
+  private var rows: [Door] { [Self.elsewhere] }
 
   /// L-25 · exactly one door wears the ember, and never one the page has
   /// already offered. A page that has offered all four is a page whose floor
@@ -183,6 +196,9 @@ struct HomeFloor: View {
 
   private func open(_ key: String) {
     switch key {
+    // the ⊕ cover, which carries the round, the plan, the live round and the
+    // door to starting something — one target for the one row (D318)
+    case "the_plus": presenter.postOnComposer = false; presenter.showPost = true
     case "add_my_round": presenter.postOnComposer = true; presenter.showPost = true
     case "start_something": presenter.showIntent = true
     case "join_with_a_code": presenter.join(code: nil)

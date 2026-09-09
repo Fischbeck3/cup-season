@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import CSDesign
 @testable import CupSeasonKit
 
 @Suite struct BoardBandTests {
@@ -272,8 +273,21 @@ import Foundation
     #expect(s == ReactionState(n: 3, me: true, who: ["Mitch", "Logan", "You"]))
     s.flip(me: "You", on: false)
     #expect(s == ReactionState(n: 2, me: false, who: ["Mitch", "Logan"]))
-    #expect(CSReactions.all.map(\.emoji) == ["🔥", "🦅", "⛳", "🧊", "🐍", "🚨"])
-    #expect(CSReactions.label("🚨") == "sandbagger")
+    // D309 · FOUR, and the order is the order a row draws in (D310). Two seats
+    // stay empty on purpose — this assertion is what makes filling one a
+    // deliberate act rather than an accident.
+    #expect(CSReactions.all.map(\.key) == ["azalea", "jug", "eagle", "rake"])
+    #expect(CSReactions.all.map(\.label) == ["flowers", "cheers", "the eagle", "sandbagger"])
+    #expect(CSReactions.label("rake") == "sandbagger")
+    #expect(CSReactions.quick == "azalea")
+    // **THE COUNT IS NOT A CONSTANT ANYWHERE.** `HomeView` typed out six
+    // `accessibilityAction`s by index and would have trapped on `all[4]` at
+    // launch the day this shrank. Nothing may index past the set's own end.
+    #expect(CSReactions.all.count == CSReactionToken.allCases.count)
+    // a key no build ever wrote is NOT silently drawn as something else — the
+    // D25 correction's lesson, kept as an assertion.
+    #expect(CSReactions.token("🔥") == nil)
+    #expect(CSReactions.label("🔥") == "")
   }
 
   @Test func timestampsFromTheRealtimePayload() {

@@ -188,6 +188,18 @@ public struct CSPanel<Content: View>: View {
   private var ink: Color { ground == .overPhoto ? CSTokens.dark.panelInk : cs.panelInk }
   private var mut: Color { ground == .overPhoto ? CSTokens.dark.panelMut : cs.panelMut }
 
+  /// **A STATED WIDTH IS A WIDTH — UNTIL THE LABEL NEEDS MORE, AND THEN IT IS
+  /// A FLOOR.** Pinning it absolutely is what broke `GROSS` at 60: the tile
+  /// held its measure and the one word inside it broke by character. Measuring
+  /// is what `CSAdvance` exists for (it is LINT-14's stated exemption for
+  /// exactly this reason), and the 96 ceiling is still the law.
+  private var measure: CGFloat? {
+    guard let width, !typeSize.isA11y else { return nil }
+    guard let unit, !unit.isEmpty else { return width }
+    let need = CSAdvance.width(unit, .agateS, typeSize, caps: true) + CSTokens.Space.s3 * 2
+    return min(96, max(width, need.rounded(.up)))
+  }
+
   public var body: some View {
     VStack(spacing: CSTokens.Space.s1) {
       VStack(spacing: CSTokens.Space.s1) { content }
@@ -196,7 +208,14 @@ public struct CSPanel<Content: View>: View {
         // word is the tripwire firing, not a layout to live with
         .fixedSize(horizontal: true, vertical: false)
       if let unit {
+        // **THE LABEL NEVER WRAPS EITHER.** The `fixedSize` above is on the
+        // FIGURE, and this file's own law is that *a panel holds one word and
+        // never wraps it — a clipped word is the tripwire firing.* The unit had
+        // no such guard, so the round band's 60pt gross tile printed
+        // `90 / GROS / S`. The comment below already records this exact failure
+        // once (`OF / EIG / HT`) and fixed it only for the accessibility sizes.
         Text(unit).csType(.agateS, caps: true).foregroundStyle(mut)
+          .fixedSize(horizontal: true, vertical: false)
       }
     }
     .padding(.horizontal, CSTokens.Space.s3)
@@ -207,7 +226,7 @@ public struct CSPanel<Content: View>: View {
     // `OF / EIG / HT` under a 4TH. A panel that crops or breaks its one label
     // has stopped being a panel; at the accessibility sizes it takes the
     // measure and the label sets on one line.
-    .frame(minWidth: typeSize.isA11y ? nil : width, maxWidth: typeSize.isA11y ? nil : width,
+    .frame(minWidth: typeSize.isA11y ? nil : measure, maxWidth: typeSize.isA11y ? nil : measure,
            minHeight: typeSize.isA11y ? 38 : (height ?? 38))
     // ≤96×96 is the law; at the accessibility sizes the tile grows with the
     // numeral rather than clipping it, because a panel that crops its one
@@ -217,7 +236,7 @@ public struct CSPanel<Content: View>: View {
     // it is offered, so a panel asked for 84 and then handed a 96 ceiling drew
     // at 96 — the chip was 14% wider than the design in the first screenshot,
     // and nothing in the code said so.
-    .frame(maxWidth: width != nil && !typeSize.isA11y ? width : (typeSize.isA11y ? .infinity : 96),
+    .frame(maxWidth: measure != nil && !typeSize.isA11y ? measure : (typeSize.isA11y ? .infinity : 96),
            alignment: .center)
     .background(fill, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
     .environment(\.csInContainer, true)

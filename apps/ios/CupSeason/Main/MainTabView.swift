@@ -206,7 +206,15 @@ enum HomeRoute: Hashable { case schedule }
 /// "See the table →" anchors `.table` and the hero's own door opens the page
 /// at its head. D223 changed the LANDING (the season page replaces the room)
 /// and not one caller of this enum.
-enum CompeteRoute: Hashable { case season(UUID, pane: SeasonPane), board(UUID), schedule, album(UUID) }
+/// **D325 · AN EVENT IS PUSHED, LIKE EVERY OTHER OBJECT.** The Ryder room was
+/// the one object in the product that RISED instead: `CompeteScreen` opened a
+/// season with `push(.season(...))` and an event with `presenter.event = id`
+/// two lines below it, and the host was a full-screen `csCover`. So two
+/// adjacent rows in one list — a season and a Ryder, both a competition with a
+/// table and a pot — opened with two different navigation models, one with a
+/// back chevron and one with a Close. §7.3: objects are pushed, actions are
+/// presented, and an event room is unambiguously an object.
+enum CompeteRoute: Hashable { case season(UUID, pane: SeasonPane), board(UUID), schedule, album(UUID), event(UUID) }
 
 /// Golfers' own stack (IOS-028, filled by IOS-032). Wave 3 declared only what
 /// it could land on; wave 5 adds the two pages the design draws, because a
@@ -690,6 +698,14 @@ struct MainTabView: View {
     /* D262 · R-O · the bag. The You row that opens it is drawn only once its
        read has answered, so this sheet is never reachable without one. */
     .csSheet(isPresented: $presenter.showBag) { BagSheet() }
+    // D312 · the bag as a place. Its own stack so the page keeps a back
+    // affordance if it ever grows one, and `Close` per LINT-25.
+    .csSheet(item: $presenter.bagOf) { id in
+      NavigationStack {
+        BagPage(profileId: id, name: presenter.bagOfName)
+          .csCloseButton { presenter.bagOf = nil }
+      }
+    }
     // **IOS-051'S HATCH CROSSES NEITHER A `.sheet` NOR A COVER.**
     // `-cs_dev_text_size` is applied once at the app root; Wave 7 recorded
     // that a `.fullScreenCover` inherits it and a `.sheet` does not, and WAVE
@@ -731,6 +747,9 @@ struct MainTabView: View {
                         onDone: { presenter.inviteTo = nil })
     }
     .csSheet(isPresented: $presenter.showEventPicker) { EventPickerSheet(links: eventLinks) }
+    // D325 · the cover is gone; the room is a pushed screen. This host stays
+    // only so the DEV hatch and any deep link that has no stack of its own can
+    // still raise it — nothing in the product sets `presenter.event` now.
     .csCover(item: $presenter.event) { eid in
       // Wave 6 · the room hides the navigation bar so the title card runs
       // full-bleed under the status bar, and draws its own chevron on the plate
@@ -860,7 +879,7 @@ struct MainTabView: View {
     case .live(let lr):
       LiveRoundStore.shared.handleLiveOpen(lr: lr)
       presenter.showLive = true
-    case .event(let id): presenter.event = id
+    case .event(let id): openEvent(id)
     case .invites:
       homePath = NavigationPath()   // the banner sits at the top of Home
     // D222 · a person waiting on you is a COMMUNITY object. It was a push into
@@ -1003,6 +1022,7 @@ struct MainTabView: View {
     switch r {
     case .person(let id):
       PersonPage(profileId: id,
+                 openCourse: { cid, label in openCourse(CourseSheetRef(id: cid, label: label)) },
                  openHeadToHead: { golfersPath.append(GolfersRoute.headToHead($0)) },
                  openReceipt: { presenter.receipt = $0 },
                  stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) },
@@ -1021,6 +1041,14 @@ struct MainTabView: View {
   /// Compete's pushed destinations. D223 / IOS-031: `.season` is the SEASON
   /// PAGE — the league room and its six segments are gone, and every caller
   /// here was unchanged by that, which is what D230 was written to guarantee.
+  /// D325 · switch to Compete and push the room. Every entry point that used
+  /// to set `presenter.event` comes through here, so the room is reached one
+  /// way and `back` always lands somewhere real.
+  private func openEvent(_ id: UUID) {
+    tab = .compete
+    competePath.append(CompeteRoute.event(id))
+  }
+
   @ViewBuilder private func competeDestination(_ r: CompeteRoute) -> some View {
     switch r {
     case .season(let id, let pane):
@@ -1028,6 +1056,10 @@ struct MainTabView: View {
     case .board(let id): BoardScreen(leagueId: id, links: boardLinks)
     case .schedule: ScheduleScreen(links: csLinks)
     case .album(let id): AlbumScreen(leagueId: id)
+    // D325 · pushed, not covered. `EventRoomScreen` brings its own back
+    // chevron from the stack; the `NavigationStack` the cover wrapped it in
+    // goes with the cover.
+    case .event(let id): EventRoomScreen(eventId: id, links: eventLinks)
     }
   }
 
@@ -1114,21 +1146,19 @@ struct MainTabView: View {
   }
 
   private var eventLinks: EventLinks {
-    EventLinks(openEvent: { presenter.showEventPicker = false; presenter.event = $0 },
+    EventLinks(openEvent: { presenter.showEventPicker = false; openEvent($0) },
                openReceipt: { presenter.receipt = $0 },
                openTourCard: { presenter.tourCard = $0 },
                // Wave 6 · the title card's ONE primary. Posting the round is
                // the live thing you can do inside an open week, which is what
                // makes it legal to be ember (§2.4).
-               addRound: { presenter.event = nil; presenter.postOnComposer = true; presenter.showPost = true },
+               addRound: { presenter.postOnComposer = true; presenter.showPost = true },
                openHeadToHead: { opp in
-                 presenter.event = nil
                  tab = .golfers
                  golfersPath = NavigationPath()
                  golfersPath.append(GolfersRoute.headToHead(opp))
                },
                callOut: { opp in
-                 presenter.event = nil
                  Task {
                    if let who = await ScheduleService().tagCandidates(league: nil).first(where: { $0.id == opp }) {
                      presenter.length = who
@@ -1187,6 +1217,10 @@ struct MainTabView: View {
       stageRound: { playOn, tag in presenter.declare = DeclarePrefill(iso: playOn, tagPids: [tag]) }
     )
     .withBag { presenter.showBag = true }
+    // D319 · a kept course opens the ONE course page the product has — the
+    // same door the schedule and the dev hatch use, so a course looks the
+    // same however you arrived at it.
+    .withCourse { id, label in openCourse(CourseSheetRef(id: id, label: label)) }
     // Wave 3 · a rival slat on You opens the head-to-head — the whole point of
     // putting rivals on the page: a name here is a record there.
     .withHeadToHead { id in tab = .golfers; golfersPath.append(GolfersRoute.headToHead(id)) }

@@ -130,27 +130,36 @@ struct CourseScreen: View {
   @ViewBuilder private func page(_ book: CourseBook) -> some View {
     plate(book)
     VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
-      facts(book)
+      // **D322 · THE RATING COMES FIRST.** The owner: *"Rate it needs to come
+      // first I got lost in [the facts line]."* The rail was under four
+      // figures and a middot-joined sub-line, which is a lot of reference data
+      // to read past to reach the page's one act. The order is now the place,
+      // what people made of it, then the specs.
+      //
       // D289 · the rail IS the control. One tap sets it, tapping the value you
       // already hold takes it off, and the write returns the aggregate so the
-      // figure above re-tallies from the server's own arithmetic rather than
-      // from a number this view was holding.
+      // figure re-tallies from the server's own arithmetic rather than from a
+      // number this view was holding.
       CSRating(value: vm.rating.stars, count: vm.rating.count,
                sentence: vm.rating.friendsLine.isEmpty ? nil : vm.rating.friendsLine,
                mine: vm.rating.mine,
                onSet: vm.courseId == nil ? nil : { v in Task { await vm.set(v) } },
                rate: { rating = true })
+      facts(book)
       said
       quote
       friends
-      CourseCardLeaf(tee: vm.tee(in: book), title: leafTitle(book)).id("course-leaf")
-      // §2.6 · off the first viewport: the back nine and every rated tee,
-      // pushed as a screen and not a sheet.
+      rounds(book).id("course-rounds")
+      // **D322 · HALF A CARD IS NEITHER REFERENCE NOR SUMMARY.** The owner:
+      // *"why show the front nine scorecard?"* — a fair question, and the
+      // honest answer is that nine of eighteen holes is an arbitrary half. The
+      // whole card is one tap away and always was; the leaf was a preview of
+      // something the reader can simply open. The DOOR stays and moves to the
+      // foot, where reference belongs.
       if vm.book != nil {
-        NavigationLink { CourseWholeCardScreen(book: book) } label: { Text("The whole card") }
+        NavigationLink { CourseWholeCardScreen(book: book, openOn: vm.tee(in: book)) } label: { Text("The whole card") }
           .buttonStyle(.csTertiary(.content))
       }
-      rounds(book).id("course-rounds")
     }
     .padding(.horizontal, CSTokens.Space.gutter)
     .padding(.top, CSTokens.Space.s4)
@@ -314,7 +323,15 @@ struct CourseScreen: View {
         .padding(.bottom, CSTokens.Space.s2)
         ForEach(vm.page.rounds.prefix(12)) { r in
           CSRule()
-          CourseRoundSlat(row: r, open: { id in presenter.tourCard = id })
+          // **D320 · YOUR OWN ROUND OPENS THE ROUND.** Every slat here opened
+          // the GOLFER's card, which is right for somebody else's round — that
+          // row is really about them — and a dead end on your own: you tap your
+          // own 90 and arrive at your own card. The owner, pointing at the
+          // receipt: *"Can we associate it with the round? it should take me
+          // here."* `isMine` is already on the row; it just was not asked.
+          CourseRoundSlat(row: r,
+                          open: { id in presenter.tourCard = id },
+                          openRound: { id in presenter.receipt = id })
         }
       }
     } else if !vm.page.failed {
@@ -349,10 +366,6 @@ struct CourseScreen: View {
     .padding(.top, CSTokens.Space.s2)
   }
 
-  private func leafTitle(_ book: CourseBook) -> String {
-    let tee = vm.tee(in: book)?.title ?? ""
-    return tee.isEmpty ? "The front nine" : "The front nine · \(tee)"
-  }
 }
 
 // MARK: - A round posted here
@@ -368,7 +381,12 @@ struct CourseRoundSlat: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
   let row: CourseRoundRow
+  /// Somebody else's round — the row is about THEM, so it opens their card.
   let open: (UUID) -> Void
+  /// **Your own** — it opens the round itself, where the photograph, the
+  /// receipt and `Delete this round` are. nil falls back to the card, so a
+  /// preview or a slice compiles without wiring a second door.
+  var openRound: ((UUID) -> Void)? = nil
 
   var body: some View {
     let content = Group {
@@ -394,12 +412,20 @@ struct CourseRoundSlat: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(spoken)
 
-    if let id = row.profileId {
+    if row.isMine, let openRound {
+      Button { openRound(row.id) } label: { content }.buttonStyle(.plain)
+        .accessibilityHint("Opens the round")
+    } else if let id = row.profileId {
       Button { open(id) } label: { content }.buttonStyle(.plain)
         .accessibilityHint("Opens their card")
     } else {
       content
     }
+  }
+
+  private var rowName: String {
+    if row.isMine { return "You" }
+    return row.name.isEmpty ? "A golfer" : row.name
   }
 
   private var face: some View {
@@ -409,14 +435,18 @@ struct CourseRoundSlat: View {
   }
   private var name: some View {
     // §1.3 · a person in a course row is TITLE CASE
-    Text(row.name.isEmpty ? "A golfer" : row.name).csType(.social).foregroundStyle(cs.ink)
+    // **D324 · YOUR OWN ROW SAYS "YOU".** `ROUNDS HERE` printed the viewer's
+    // full name — *"Jerecho Fischbeck · SUN JUL 19"*, twice in a row — where
+    // Home's wire, the receipt and the season table all say "You". A surface
+    // that names you to yourself reads like somebody else's list.
+    Text(rowName).csType(.social).foregroundStyle(cs.ink)
       .lineLimit(typeSize.isA11y ? 2 : 1).truncationMode(.tail)
   }
   private var sub: some View {
     Text(row.subline()).csType(.agateS, caps: true).foregroundStyle(cs.mut).lineLimit(1)
   }
   private var spoken: String {
-    let who = row.name.isEmpty ? "A golfer" : row.name
+    let who = rowName
     let g = row.gross.map { ", \($0)" } ?? ""
     return "\(who)\(g). \(row.subline())"
   }
@@ -549,9 +579,17 @@ final class CourseModel {
   /// D-1 · the tee it describes, the difficulty fact the cached card can
   /// prove, and L-32's provenance verbatim from `CourseBook.savedLine`.
   func factsLabel(_ book: CourseBook, tee: CourseBookTee) -> String {
+    // **D322 · A CACHE STATUS IS NOT A GOLF FACT.** This line joined three
+    // unrelated things with middots — the tee, the hardest hole, and
+    // `savedLine()`, which is *"Saved on your phone today"*. The owner, on the
+    // page: *"I got lost in 'gold the 4th hardest saved on your phone
+    // today'."* The first two are about the golf and belong together; the
+    // third is a fact about this device's storage, and no golfer asked it.
+    //
+    // `savedLine()` is NOT deleted — it is the sanctioned rendering of that
+    // fact and the offline surfaces still say it. It just stops riding here.
     var parts = [tee.title]
     if let h = hardestHole(book) { parts.append("the \(h)\(CSOrdinal.suffix(h)) plays hardest") }
-    parts.append(book.savedLine())
     return parts.joined(separator: " · ")
   }
 

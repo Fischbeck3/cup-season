@@ -22,8 +22,21 @@ final class Presenter {
   // lives on the tab's own `NavigationPath` and `MainTabView.openCourse` is
   // the one door onto it.
   /// D262 / R-O · the bag — fourteen clubs, the sideline and the ball, the
-  /// one place any of them is edited.
+  /// one place any of them is EDITED.
   var showBag = false
+  /// D312 · the bag as a PLACE — anyone's, read-only (`BagPage`).
+  ///
+  /// **Presented, not pushed, and §7.3 says objects are pushed.** The deviation
+  /// is stated because the door has to work from three surfaces that do not
+  /// share a stack: a wire row on Home (which has no stack of its own to push
+  /// onto), the tour card pushed in Golfers, and the tour card as a PEEK
+  /// SHEET. One presented route serves all three; the alternative is the same
+  /// screen implemented three times, which is the failure `TourCardSheet` was
+  /// deleted for.
+  var bagOf: UUID?
+  /// The name for the bag page's eyebrow, where the caller has it — so the
+  /// page does not read a whole profile to print one word.
+  var bagOfName: String?
   var receipt: UUID?
   var scorecard: UUID?
   var scheduledRound: UUID?

@@ -50,6 +50,13 @@ enum EventFixture {
   /// **Real keys from `CSMarkers`, or every face falls back to the saguaro** —
   /// which is the exact defect §6 exists to prevent, arriving through a fixture
   /// rather than through the product.
+  ///
+  /// **AND FOR ONE DAY IT DID.** Four of the twelve carried `cactus`, `arroyo`,
+  /// `mesa` and `bloom` — none of which are among the fourteen — so those four
+  /// faces fell back to the saguaro under a comment saying they would not.
+  /// Found on re-reading during D309's wave and recorded in D308's backfilled
+  /// entry. There is **no check that a marker key resolves**; until there is,
+  /// a key added here is verified against `CSMarkers.all` by hand.
   /// **TWELVE, SO EVERY SHAPE THE PRODUCT SELLS CAN BE LOOKED AT** (D308).
   /// The owner: *"I also want to see examples from more diverse league/event
   /// types (2v2, 6v6, 12 individuals)."* The cast was six, which could only
@@ -60,8 +67,8 @@ enum EventFixture {
   private static let cast: [(String, String)] = [
     ("Galen Marr", "lonetree"), ("Jade Okafor", "shark"), ("Tash Bell", "dunes"),
     ("Jerecho", "saguaro"), ("Dev Rana", "azalea"), ("Mike Fenner", "pews"),
-    ("Ruth Alderi", "island"), ("Cam Petrie", "lighthouse"), ("Noor Haddad", "cactus"),
-    ("Sol Barrera", "arroyo"), ("Wes Tanaka", "mesa"), ("Priya Anand", "bloom"),
+    ("Ruth Alderi", "island"), ("Cam Petrie", "lighthouse"), ("Noor Haddad", "thistle"),
+    ("Sol Barrera", "weebridge"), ("Wes Tanaka", "no2"), ("Priya Anand", "stamp"),
   ]
 
   /// `-cs_dev_field <n>` — how many golfers are in the room. The Ryder splits

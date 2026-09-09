@@ -115,6 +115,55 @@ public enum MeStripCopy {
     public init(slots: [Slot], seasonRow: SeasonRow?, monthRow: String? = nil, oweRow: String? = nil) {
       self.slots = slots; self.seasonRow = seasonRow; self.monthRow = monthRow; self.oweRow = oweRow
     }
+
+    /// **D318 · A FACT THAT HAS FOUND A BETTER HOME LEAVES THIS ONE.** The
+    /// number moved to the masthead and the money moved to the season row in
+    /// Compete that is owed it; a strip that still printed either would be the
+    /// same figure twice on one screen, which is L-34's whole subject. The
+    /// season, month and owe rows ride with whatever is left.
+    public func without(_ facts: Set<Fact>) -> Strip {
+      Strip(slots: slots.filter { !facts.contains($0.fact) },
+            seasonRow: seasonRow, monthRow: monthRow,
+            // the owe row is the money slot's own instruction (QB-04) and has
+            // no meaning without it
+            oweRow: facts.contains(.myMoney) ? nil : oweRow)
+    }
+
+    // MARK: - D315 · one voice per screen
+
+    /// **THE ORDER THE STRIP YIELDS IN.** Home opens masthead → lead → these
+    /// facts, and the lead comes from a ranker whose entire top tier is
+    /// competition (`clash:` `floor:` `move:` `firsttee:` `live:`). Under it
+    /// the strip prints standing, money, next tee and your number — so the
+    /// owner met **four competition blocks before a single person**: *"the top
+    /// quarter is all 'compete' stuff."*
+    ///
+    /// `columnFacts` already suppressed duplicates, but it dedupes FACTS: it
+    /// cannot see that two different facts are the same kind of noise.
+    ///
+    /// The survivor is **the next tee** — the only forward-looking one and the
+    /// only one that is a plan rather than a placing. It is a PREFERENCE and
+    /// not a mandate: a golfer with nothing scheduled has no next tee, so the
+    /// strip falls to the next fact in this order rather than printing nothing.
+    static let yieldOrder: [Fact] = [.myNextRound, .myNumber, .myMoney, .myLastRound]
+
+    /// The one slot that stays above the wire when the lead is competition.
+    public var leading: Strip {
+      guard slots.count > 1 else { return self }
+      let keep = Self.yieldOrder.compactMap { f in slots.first { $0.fact == f } }.first ?? slots[0]
+      return Strip(slots: [keep], seasonRow: seasonRow, monthRow: nil, oweRow: nil)
+    }
+
+    /// Everything the lead pushed down. It is **not dropped** — a demoted fact
+    /// is still a fact, and the money slot in particular carries a debt. The
+    /// season row rides with the survivor; the month and owe rows ride here,
+    /// with the figures they belong to.
+    public var trailing: Strip {
+      guard slots.count > 1 else { return Strip(slots: [], seasonRow: nil) }
+      let kept = leading.slots.first?.fact
+      return Strip(slots: slots.filter { $0.fact != kept },
+                   seasonRow: nil, monthRow: monthRow, oweRow: oweRow)
+    }
   }
 
   // MARK: - The producer

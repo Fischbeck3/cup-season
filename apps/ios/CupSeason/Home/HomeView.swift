@@ -77,15 +77,42 @@ struct HomeView: View {
           // 1 · THE MASTHEAD. It needs no read, so it paints immediately —
           // the loading state is the destination's own geometry, redacted,
           // and this is the part of it that is never redacted at all.
-          CSMasthead(date: Date(), asOf: staleAt)
+          // D318 · the number takes the dateline's slot. It is the STRIP's
+          // own value, so the masthead and the card can never disagree about
+          // it, and a golfer with no number yet still gets the date.
+          let numberSlot = strip.slots.first { $0.fact == .myNumber }
+          CSMasthead(date: Date(), asOf: staleAt,
+                     number: numberSlot?.value,
+                     // D319 · the slot's own label — STARTER and BUILDING are
+                     // real states and the masthead must not print YOUR NUMBER
+                     // over a figure the engine has not established yet.
+                     numberLabel: numberSlot?.label,
+                     trend: CSNumberTrend(current: me.profile?.index_current,
+                                          previous: me.profile?.index_prev))
             .padding(.horizontal, CSTokens.Space.gutter)
 
           // 2 · THE LEAD, in one of its three forms.
           lead(page, me: me)
 
-          // 3 · THE ME STRIP.
-          if !strip.isEmpty {
-            HomeFacts(strip: strip, state: vm.stateKey,
+          // 3 · THE ME STRIP — **AND IT YIELDS TO THE LEAD** (D315).
+          //
+          // The owner: *"the top quarter is all 'compete' stuff."* He is
+          // reading it correctly — the lead is a competition item and the four
+          // facts under it are standing, money, next tee and your number, so
+          // four competition blocks stack before the first person. When the
+          // lead is one of the ranker's competition keys the strip prints ONE
+          // slot here and the rest ride at the wire's foot. Competition still
+          // leads; it stops being the whole first screen.
+          // **L-34 · ONE FACT IN ONE PLACE.** The number is in the masthead
+          // now (D318), so the strip may not print it again four lines below —
+          // that is the repetition D315 was written about, arriving from the
+          // fix for it. The money leaves Home entirely: it is on the season row
+          // that owes it, in Compete (D318).
+          let payload = strip.without([.myNumber, .myMoney])
+          let above = page.leadIsCompetition ? payload.leading : payload
+          let below = page.leadIsCompetition ? payload.trailing : nil
+          if !above.isEmpty {
+            HomeFacts(strip: above, state: vm.stateKey,
                       leadIsLive: page.leadIsLive, starterLine: page.starter)
               .padding(.horizontal, CSTokens.Space.gutter)
               .padding(.top, CSTokens.Space.s5)
@@ -94,6 +121,16 @@ struct HomeView: View {
 
           // 4 · THE WIRE.
           wire(page, me: me, strip: strip)
+
+          // 4b · WHAT THE LEAD PUSHED DOWN. Demoted, never dropped — the money
+          // slot in particular carries a debt, and the owe row rides with it.
+          if let below, !below.isEmpty {
+            HomeFacts(strip: below, state: vm.stateKey,
+                      leadIsLive: false, starterLine: page.starter)
+              .padding(.horizontal, CSTokens.Space.gutter)
+              .padding(.top, CSTokens.Space.s5)
+              .csRedacted(page.redacted)
+          }
 
           // 5 · THE FLOOR. On every Home, in every state.
           HomeFloor(offered: page.offered, pageHasPrimary: page.hasPrimary, pageHasEmber: page.hasEmber)
@@ -288,15 +325,28 @@ struct HomeView: View {
       if i > 0 { CSRule() }
       wireRow(row)
     }
+    // **D321 · A HEAD IS FOR A BUCKET, NOT FOR A SENTENCE.** A period holding
+    // ONE row used to get 24pt of `ink` and 32pt of air to announce a single
+    // line — two of them on the owner's own Home, each louder than the sentence
+    // beneath it. A lone row keeps its own date (`sayItOnce` strips only a
+    // stamp that repeats inside a group), so it loses nothing by losing its
+    // head; it just joins the run above it behind a rule, which is what every
+    // other quiet row on the wire already does.
+    let headed = HomePage.headedPeriods(page.rows)
     ForEach(HomeWirePeriod.allCases, id: \.self) { period in
       let rows = page.rows.filter { $0.period == period }
       if !rows.isEmpty {
-        CSSectionHead(period.head, weight: .display)
-          .padding(.horizontal, CSTokens.Space.gutter)
-          .padding(.top, loose.isEmpty && period == firstFilled(page) ? CSTokens.Space.s3 : CSTokens.Space.s5)
-          .padding(.bottom, CSTokens.Space.s2)
+        if headed.contains(period) {
+          CSSectionHead(period.head, weight: .display)
+            .padding(.horizontal, CSTokens.Space.gutter)
+            .padding(.top, loose.isEmpty && period == firstFilled(page) ? CSTokens.Space.s3 : CSTokens.Space.s5)
+            .padding(.bottom, CSTokens.Space.s2)
+        }
         ForEach(Array(rows.enumerated()), id: \.element.id) { i, row in
-          if i > 0, row.leadsWithRule { CSRule() }
+          // With no head above it the rule is the only separator there is, so
+          // the first row of a headless period takes one too — unless it
+          // brings its own edge (a photograph, a card).
+          if (i > 0 || !headed.contains(period)), row.leadsWithRule { CSRule() }
           wireRow(row)
         }
       }
@@ -339,11 +389,15 @@ struct HomeView: View {
         }
       }
       .contextMenu {
-        // "add a reaction" — the six named emoji, on a long press; same write path
+        // "add a reaction" on a long press; same write path as the row. The
+        // icon is the drawn token now (D309) — a context menu takes a `Label`,
+        // and a `Label`'s icon is a view, so the glyph goes in directly.
         if let rid = r.round_id, let state = vm.social.state(for: rid) {
           ForEach(CSReactions.all) { rx in
-            Button { react(r, rx.emoji) } label: { Label { Text(rx.label) } icon: { Text(rx.emoji) } }
-              .disabled(state[rx.emoji]?.me == true)
+            Button { react(r, rx.key) } label: {
+              Label { Text(rx.label) } icon: { CSReactionGlyph(rx.token, size: .row) }
+            }
+            .disabled(state[rx.key]?.me == true)
           }
         }
       }
@@ -357,6 +411,10 @@ struct HomeView: View {
 
     case .line(let marker, let text, let door):
       HomeWireLine(marker: marker, text: text, act: door.map { d in { open(d) } })
+        .padding(.horizontal, CSTokens.Space.gutter)
+
+    case .bag(let text, let marker, let door):
+      HomeWireBag(text: text, marker: marker, act: door.map { d in { open(d) } })
         .padding(.horizontal, CSTokens.Space.gutter)
 
     case .digest(let d):
@@ -687,19 +745,24 @@ final class HomeModel {
   }
 }
 
-/// The six reactions as VoiceOver actions on a Home round (the tray is a long press for the eye).
+/// The reaction tokens as VoiceOver actions on a Home round.
+///
+/// **THE COUNT WAS NEVER A VARIABLE** (D310). This was six typed lines indexing
+/// `CSReactions.all[0]` … `all[5]`. The set is four now, so those last two
+/// would have trapped on `all[4]` at launch — on Home, for everyone, before a
+/// single reaction was drawn. `accessibilityActions` takes a builder, so the
+/// set's size is the set's business and adding a fifth token needs no edit
+/// here.
 private struct A11yReactionActions: ViewModifier {
   let enabled: Bool
   let toggle: (String) -> Void
   func body(content: Content) -> some View {
     if enabled {
-      content
-        .accessibilityAction(named: CSReactions.all[0].label) { toggle(CSReactions.all[0].emoji) }
-        .accessibilityAction(named: CSReactions.all[1].label) { toggle(CSReactions.all[1].emoji) }
-        .accessibilityAction(named: CSReactions.all[2].label) { toggle(CSReactions.all[2].emoji) }
-        .accessibilityAction(named: CSReactions.all[3].label) { toggle(CSReactions.all[3].emoji) }
-        .accessibilityAction(named: CSReactions.all[4].label) { toggle(CSReactions.all[4].emoji) }
-        .accessibilityAction(named: CSReactions.all[5].label) { toggle(CSReactions.all[5].emoji) }
+      content.accessibilityActions {
+        ForEach(CSReactions.all) { r in
+          Button(r.label) { toggle(r.key) }
+        }
+      }
     } else {
       content
     }
@@ -716,12 +779,20 @@ private struct A11yReactionActions: ViewModifier {
     case .live(let id):      presenter.scorecard = id
     case .round(let id):     presenter.receipt = id
     case .scheduled(let id): presenter.scheduledRound = id
+    // D312 · the line that had no door. "Galen put a new driver in the bag."
+    case .bag(let id):       presenter.bagOfName = nil; presenter.bagOf = id
     }
   }
   static func tag(_ d: HomeFeedDoor) -> String {
-    switch d { case .live: "SCORECARD"; case .round: "THE ROUND"; case .scheduled: "THE SCHEDULE" }
+    switch d {
+    case .live: "SCORECARD"; case .round: "THE ROUND"
+    case .scheduled: "THE SCHEDULE"; case .bag: "THE BAG"
+    }
   }
   static func hint(_ d: HomeFeedDoor) -> String {
-    switch d { case .live: "Opens the scorecard"; case .round: "Opens the round"; case .scheduled: "Opens the round on the schedule" }
+    switch d {
+    case .live: "Opens the scorecard"; case .round: "Opens the round"
+    case .scheduled: "Opens the round on the schedule"; case .bag: "Opens the bag"
+    }
   }
 }

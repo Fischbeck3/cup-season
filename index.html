@@ -820,7 +820,7 @@ th.deskonly, td.deskonly{display:none;}
 .coursedd button:focus-visible, .mini:focus-visible{background:var(--bg1);}
 .pool-row:focus-visible, .optcard:focus-visible, .htile:focus-visible,
 .upchip[data-upgo]:focus-visible, .calcell.tap:focus-visible,
-.rxpalette button:focus-visible, .check:focus-visible{border-color:var(--rule);}
+.check:focus-visible{border-color:var(--rule);}
 .startdoor:focus-visible, .startjoin:focus-visible{border-color:var(--brand);}
 .dtab tr:focus-visible td{background:var(--bg1);}
 .echip button:focus-visible, .pslot .sx:focus-visible{color:var(--neg);}
@@ -2069,6 +2069,8 @@ body.guestlive #onboard{display:none !important;}
    🦅 and a 🚨 at once. who-reacted rides the chip title (rule 4: shows work). */
 .social{margin-top:10px; padding-top:10px; border-top:1px solid var(--rule);}
 .rxbar{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.rxchip.rxnone{color:var(--dim); }
+.rxchip svg{display:block;}
 .rxchip{
   font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em;
   color:var(--mut); background:var(--bg2); border:0;
@@ -2081,21 +2083,14 @@ body.guestlive #onboard{display:none !important;}
    clears the 44px floor via padding, never by inflating the emoji itself.
    Touch hardening: real iOS fires the text-selection callout on a held
    press unless it's suppressed here. */
-.rxchip.quick{
-  display:inline-flex; align-items:center; justify-content:center;
-  min-width:44px; min-height:44px; padding:5px 14px;
-  -webkit-touch-callout:none; user-select:none;
-}
 .rxcm{
   font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--mut);
   background:var(--bg2); border:1px solid var(--rule);
   border-radius:99px; padding:5px 11px; cursor:pointer; line-height:1;
 }
-/* the add-reaction affordance is a plain "+" icon — the tray hangs off it,
-   and nothing about it should read as a reaction itself. The report-flag ⚑
-   (data-report) shares this class for its chrome only — the 44px floor
-   (bullet 5) is scoped to the two tray triggers (data-rxadd/data-hadd) so
-   the report button stays its original compact size. */
+/* D310 · the tray's "+" is gone and `.rxadd` now dresses exactly one control:
+   the report flag. The class keeps its name because renaming it would touch
+   the markup for no gain; what it no longer does is open anything. */
 .rxadd{
   font-family:var(--mono); font-size:15px; font-weight:600; color:var(--mut);
   background:var(--bg2); border:1px solid var(--rule);
@@ -2103,30 +2098,14 @@ body.guestlive #onboard{display:none !important;}
   display:inline-flex; align-items:center; justify-content:center;
   padding:0 11px; height:26px;
 }
-.rxadd[data-rxadd], .rxadd[data-hadd]{min-width:44px; min-height:44px; padding:0 14px;}
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
 .rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
-.rxpalette{
-  display:none; gap:5px; flex-wrap:wrap; margin-top:8px; padding:8px;
-  background:var(--bg2); border:1px solid var(--rule); border-radius:12px;
-}
-.rxpalette.open{display:flex;}
-.rxpalette button{
-  font-family:var(--sans); font-size:19px; line-height:1; background:none;
-  border:1px solid transparent; border-radius:10px; padding:5px 7px; cursor:pointer;
-}
-.rxpalette button:hover{border-color:var(--rule); background:var(--bg1);}
-.rxpalette button:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 /* Home's circle rows are denser than board cards — the strip shrinks to fit
    under the round line and never opens a thread (comments stay a board thing).
-   The quick-tap heater and the + still hold the 44px floor (bullet 5) here
-   too — padding grows the hit box, the glyph stays Home-scaled. */
+   Every chip holds the 44px floor now rather than just the quick one: with
+   four tokens on the row and no tray behind them, each is a real target. */
 .hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
-.hrx .rxchip{font-size:11.5px; padding:3px 8px;}
-.hrx .rxchip.quick{min-width:44px; min-height:44px; padding:3px 12px;}
-.hrx .rxadd[data-hadd]{min-width:44px; min-height:44px; padding:0 12px;}
-.rxpalette.h{margin-top:6px; padding:6px;}
-.rxpalette.h button{font-size:17px; padding:4px 6px;}
+.hrx .rxchip{font-size:11.5px; padding:3px 8px; min-width:44px; min-height:44px;}
 /* the quiet-day frame — Home's feed never opens as a bare list. Either it says
    what changed since you were last here, or (on a genuinely quiet day) it
    resurfaces the best recent thing so the open still reveals something. */
@@ -7494,21 +7473,38 @@ function csOpensSentence(str, at){
    keyed (post_id, member_id, emoji). Rendering + wiring is shared between the
    compact feed and the full-screen board via socialBar()/wireSocial(). Demo
    items (no f.post_id) stay ephemeral — the diorama never writes. */
+/* D309 · THE FOUR DRAWN TOKENS. The emoji were the last foreign objects in the
+   product — rendered in whatever face the browser supplies, beside a drawn
+   icon family at a fixed stroke. Two of the four were ALREADY DRAWN: the
+   Azalea and the Jug are markers #9 and #10 of the fourteen, and `rxGlyph`
+   reads them out of MARKERS rather than copying the path, so a marker edit
+   reaches the reaction. The key is what post_kudos.emoji stores (the column
+   keeps its name so an older build writes something readable rather than
+   failing outright). The word is the MEANING, not the object. */
 const REACTIONS=[
-  {e:'🔥', label:'heater'},      /* 🔥 hot round, on a run */
-  {e:'🦅', label:'the eagle'},   /* 🦅 genuinely great, respect */
-  {e:'⛳',       label:'dialed'},      /* ⛳ stuck it, clean golf */
-  {e:'🧊', label:'ice'},         /* 🧊 clutch, closed it out */
-  {e:'🐍', label:'snake'},       /* 🐍 playful jab, three-putt energy */
-  {e:'🚨', label:'sandbagger'},  /* 🚨 the friendly accusation */
+  {k:'azalea', label:'flowers'},      /* giving them their flowers */
+  {k:'jug',    label:'cheers'},       /* the only trophy you drink out of */
+  {k:'eagle',  label:'the eagle'},    /* what a scorecard already draws */
+  {k:'rake',   label:'sandbagger'},   /* the friendly accusation */
 ];
-const RXLABEL=Object.fromEntries(REACTIONS.map(r=>[r.e,r.label]));
-/* demo items arrive with legacy kud/mine — fold them into a 🔥 chip once so
-   the diorama keeps reacting without a post row. */
+const RXLABEL=Object.fromEntries(REACTIONS.map(r=>[r.k,r.label]));
+/* the two that are not markers. MARKERS is defined further down this file, so
+   this is read at CALL time and never at definition time. */
+const RXPATH={
+  eagle:'M12 3.8a8.2 8.2 0 100 16.4 8.2 8.2 0 000-16.4M12 7.7a4.3 4.3 0 100 8.6 4.3 4.3 0 000-8.6',
+  rake: 'M4.5 20.5L12 13M9.2 10.2L14.8 15.8M10 11l1.9-1.9M12 13l1.9-1.9M14 15l1.9-1.9',
+};
+function rxGlyph(k){
+  const d = RXPATH[k] || (window.MARKERS && window.MARKERS[k] ? window.MARKERS[k].p : '');
+  if(!d) return '';
+  return `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+}
+/* demo items arrive with legacy kud/mine — fold them into the quick token once
+   so the diorama keeps reacting without a post row. */
 function ensureRx(f){
   if(f.rx) return f.rx;
   f.rx={};
-  if(f.kud){ f.rx['🔥']={n:f.kud, me:!!f.mine, who:[]}; }
+  if(f.kud){ f.rx['azalea']={n:f.kud, me:!!f.mine, who:[]}; }
   return f.rx;
 }
 /* HTML for the reaction chips + comment toggle + palette + thread. fi is the
@@ -7520,32 +7516,27 @@ function ensureRx(f){
    opts.ns prefixes the palette/thread ids ('' compact board, 'f-' full board) —
    both surfaces co-render the same feed, so unprefixed ids would duplicate
    in-document once the full board has opened */
+/* D310 · ALL FOUR, IN CANON ORDER, ALWAYS — never the ones "present" in
+   arrival order, which made the row a different row every time you looked. And
+   a figure is drawn only where there IS one: the old strip injected a bare 🔥
+   with no count on an untouched card, which reads as a reaction somebody
+   already left. Untouched now means four outlines and no numbers — an
+   invitation, marked `.rxnone` so the whole row can go quiet. */
 function rxChipsHtml(rx, attr, idx){
-  const present=Object.keys(rx).filter(e=>rx[e]&&rx[e].n>0);
-  const chips=present.map(e=>{
-    const r=rx[e]; const who=(r.who&&r.who.length)?r.who.join(', '):'';
-    const title=`${RXLABEL[e]||''}${who?' — '+who:''}`;
-    const quick=e==='🔥'?' quick':'';
-    return `<button class="rxchip${quick} ${r.me?'on':''}" ${attr}="${idx}" data-e="${esc(e)}" title="${esc(title)}"><span class="e">${esc(e)}</span>${r.n}</button>`;
+  const untouched=REACTIONS.every(t=>!(rx[t.k]&&rx[t.k].n>0));
+  return REACTIONS.map(t=>{
+    const r=rx[t.k]||{n:0,me:false,who:[]};
+    const who=(r.who&&r.who.length)?r.who.join(', '):'';
+    const title=`${t.label}${who?' — '+who:''}`;
+    const cls='rxchip'+(r.me?' on':'')+(untouched?' rxnone':'');
+    return `<button class="${cls}" ${attr}="${idx}" data-e="${esc(t.k)}" title="${esc(title)}" aria-label="${esc(t.label)}" aria-pressed="${r.me?'true':'false'}">${rxGlyph(t.k)}${r.n>0?r.n:''}</button>`;
   }).join('');
-  /* F11 3.1: the heater is the one-thumb chip, always on the card face. If it
-     already carries reactions, the chip above IS the quick-tap (same button,
-     same toggle, marked .quick so the long-press wiring below finds it either
-     way) — only inject a bare one when nobody's fired yet, so a fresh card
-     still gets a one-tap target instead of forcing the six-chip tray open. */
-  if(present.includes('🔥')) return chips;
-  return chips + `<button class="rxchip quick" ${attr}="${idx}" data-e="🔥" title="${esc(RXLABEL['🔥'])}" aria-label="${esc(RXLABEL['🔥'])}"><span class="e" style="margin-right:0">🔥</span></button>`;
-}
-function rxPaletteHtml(attr, idx){
-  return REACTIONS.map(r=>
-    `<button ${attr}="${idx}" data-e="${r.e}" title="${esc(r.label)}" aria-label="${esc(r.label)}">${r.e}</button>`).join('');
 }
 function socialBar(f, fi, opts){
   const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
   const ns=(opts&&opts.ns)||'';
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
   const chips=rxChipsHtml(rx,'data-rx',fi);
-  const pal=rxPaletteHtml('data-rxpick',fi);
   const cmBtn = comments ? `<button class="rxcm" data-c="${fi}" title="Comments" aria-label="Comments" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${cm.length?` ${cm.length}`:''}</button>` : '';
   const thread = comments ? `<div class="cthread" id="${ns}th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
@@ -7557,11 +7548,9 @@ function socialBar(f, fi, opts){
   return `<div class="social">
     <div class="rxbar">
       ${chips}
-      <button class="rxadd" data-rxadd="${fi}" title="More reactions" aria-label="More reactions" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button>
       ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">⚑</button>`:''}
       ${cmBtn}
     </div>
-    <div class="rxpalette" id="${ns}rxp${fi}">${pal}</div>
     ${thread}
   </div>`;
 }
@@ -7668,7 +7657,7 @@ async function fetchSocial(pids){
      row from before the push resolves through the open league's roster. A row
      that resolves to neither is "Someone" — the board has never guessed. */
   (kud||[]).forEach(k=>{
-    const e=k.emoji||'🔥';
+    const e=k.emoji||'azalea';
     const s=((rxBy[k.post_id]||={})[e]||={n:0, me:false, who:[]});
     s.n++;
     if(k.profile_id ? (myPid && k.profile_id===myPid) : (k.member_id===mine)) s.me=true;
@@ -7718,12 +7707,9 @@ async function reportPost(f){
   });
 }
 window.refreshSocial = refreshSocial;
-/* the tray is exclusive + dismissible from anywhere (F11 3.1): picking a chip
-   already closes its own tray (data-rxpick/data-hpick below) — this covers
+/* (retired with the tray, D310: picking a chip once closed its own tray — this covers
    the other two closes bullet 2 asks for, tap-out and Escape, and also means
    opening one tray closes any other. One shared set of helpers for both
-   surfaces: .rxpalette is the class regardless of board (id rxp*) or Home
-   (id hrxp*).
    closeTray also resets its trigger's aria-expanded (3.1 follow-up) — the
    tray closes via several paths (pick, tap-out, Escape, another tray
    opening) and the + button's disclosure state has to stay honest through
@@ -7733,70 +7719,24 @@ window.refreshSocial = refreshSocial;
    board renders TWO copies of the same fi (compact #feedList + full-screen
    #feedListFull once it's been opened) and a document-wide id match would
    silently reset the wrong copy's button. */
-function closeTray(p){
-  p.classList.remove('open');
-  const addBtn=p.previousElementSibling?.querySelector('[data-rxadd],[data-hadd]');
-  if(addBtn) addBtn.setAttribute('aria-expanded','false');
-}
-function closeAllTrays(){ document.querySelectorAll('.rxpalette.open').forEach(closeTray); }
-document.addEventListener('click', e=>{
-  document.querySelectorAll('.rxpalette.open').forEach(p=>{ if(!p.contains(e.target)) closeTray(p); });
-});
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAllTrays(); });
-/* long-press (≥350ms pointerdown) on the 🔥 quick-tap chip opens the tray
-   without also firing its tap-toggle — pointerdown timer + a `held` flag on
-   the element (the approved mock). `attr` is the data-attribute name minus
-   "data-" ('rx'/'hrx'), `prefix` is the palette id prefix ('rxp'/'hrxp');
-   shared by both surfaces so the gesture can't drift apart between them.
-   Also flips the + button's aria-expanded true on open, via the same
-   sibling lookup closeTray uses, since the long-press never touches the
-   button itself but does put it in charge of the (now open) disclosure. */
-function wireRxHold(el, attr, prefix){
-  el.querySelectorAll(`.rxchip.quick[data-${attr}]`).forEach(chip=>{
-    chip.addEventListener('pointerdown', ()=>{
-      clearTimeout(chip._holdT); chip._held=false;
-      chip._holdT=setTimeout(()=>{
-        chip._held=true;
-        closeAllTrays();
-        const p=el.querySelector('#'+prefix+chip.dataset[attr]);
-        if(p){
-          p.classList.add('open');
-          const addBtn=p.previousElementSibling?.querySelector('[data-rxadd],[data-hadd]');
-          if(addBtn) addBtn.setAttribute('aria-expanded','true');
-        }
-      }, 350);
-    });
-    ['pointerup','pointerleave','pointercancel'].forEach(evt=>
-      chip.addEventListener(evt, ()=>clearTimeout(chip._holdT)));
-  });
-}
+/* D310 · THE TRAY IS GONE, AND SO IS EVERYTHING THAT SERVED IT. Six reactions
+   needed one: a ≥350ms long-press on the quick chip, an exclusive open, a
+   `held` flag so the hold did not also toggle, tap-out and Escape closes, the
+   + button's aria-expanded kept honest through four different close paths, and
+   a capture/restore pass so a re-render did not collapse the tray you were
+   reading. Four fit on the row. All of it retires — `closeTray`,
+   `closeAllTrays`, `wireRxHold`, the document-level click and keydown
+   listeners, and the palette half of the social UI-state capture. */
 /* attach the shared handlers to a feed container. `lookup` maps a feed index
    (data attr) back to the feed item — both renderers pass fi = position in
    `feed`, so the lookup is just feed[fi]. */
 function wireSocial(el, ns){
   ns=ns||'';   /* must match the socialBar ns this container rendered with */
-  el.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',e=>{
-    if(b._held){ b._held=false; e.stopPropagation(); return; }   /* long-press already opened the tray — don't also toggle */
+  el.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.rx]; if(f) toggleRx(f, b.dataset.e);
-  }));
-  wireRxHold(el, 'rx', ns+'rxp');
-  el.querySelectorAll('[data-rxadd]').forEach(b=>b.addEventListener('click',e=>{
-    e.stopPropagation();
-    const p=el.querySelector('#'+ns+'rxp'+b.dataset.rxadd); if(!p) return;
-    const willOpen=!p.classList.contains('open');
-    closeAllTrays();
-    if(willOpen) p.classList.add('open');
-    b.setAttribute('aria-expanded', willOpen);
   }));
   el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.report]; if(f) reportPost(f);
-  }));
-  el.querySelectorAll('[data-rxpick]').forEach(b=>b.addEventListener('click',()=>{
-    const f=feed[+b.dataset.rxpick]; if(!f) return;
-    const p=el.querySelector('#'+ns+'rxp'+b.dataset.rxpick); if(p) closeTray(p);
-    const rx=ensureRx(f); const cur=rx[b.dataset.e];
-    if(cur&&cur.me) return;          /* already reacted with this one — no-op */
-    toggleRx(f, b.dataset.e);
   }));
   el.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{
     const t=el.querySelector('#'+ns+'th'+b.dataset.c); if(!t) return;
@@ -7830,7 +7770,7 @@ function wireSocial(el, ns){
    across feed rebuilds), falling back to position for demo items. */
 function socialUiKey(fi){ return feed[fi]?.post_id || ('i'+fi); }
 function socialUiCapture(el){
-  const s={ th:[], pal:[], vals:{}, focus:null };
+  const s={ th:[], vals:{}, focus:null };
   el.querySelectorAll('.cthread').forEach(t=>{
     /* ids are <ns>th<fi> / <ns>rxp<fi> — strip the letter/hyphen prefix,
        whatever surface (th / f-th / rxp / f-rxp / hrxp) minted it */
@@ -7841,14 +7781,11 @@ function socialUiCapture(el){
     if(inp&&inp.value) s.vals[k]=inp.value;
     if(inp&&document.activeElement===inp) s.focus=k;
   });
-  el.querySelectorAll('.rxpalette.open').forEach(p=>{
-    const fi=+p.id.replace(/^\D+/,''); if(fi>=0) s.pal.push(socialUiKey(fi));
-  });
   return s;
 }
 function socialUiRestore(el, s, ns){
   ns=ns||'';
-  if(!s.th.length && !s.pal.length && !s.focus && !Object.keys(s.vals).length) return;
+  if(!s.th.length && !s.focus && !Object.keys(s.vals).length) return;
   const byKey={}; feed.forEach((f,fi)=>{ byKey[socialUiKey(fi)]=fi; });
   const each=(keys,fn)=>keys.forEach(k=>{ const fi=byKey[k]; if(fi!=null) fn(fi,k); });
   /* re-opening a tray/thread has to carry its trigger's aria-expanded back to
@@ -7861,12 +7798,6 @@ function socialUiRestore(el, s, ns){
     t.style.display='block';
     const cBtn=t.closest('.social')?.querySelector('[data-c]');
     if(cBtn) cBtn.setAttribute('aria-expanded','true');
-  });
-  each(s.pal, fi=>{
-    const p=el.querySelector('#'+ns+'rxp'+fi); if(!p) return;
-    p.classList.add('open');
-    const addBtn=p.previousElementSibling?.querySelector('[data-rxadd],[data-hadd]');
-    if(addBtn) addBtn.setAttribute('aria-expanded','true');
   });
   each(Object.keys(s.vals), (fi,k)=>{
     const inp=el.querySelector(`input[data-i="${fi}"]`); if(inp) inp.value=s.vals[k];
@@ -15597,11 +15528,11 @@ window.OCCASIONS = OCCASIONS; window.occInWindow = occInWindow;   /* QA bridge �
    earlier — so the diorama shows all three and never reads stale */
 const DEMO_FEED = [
   {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true,
-   rx:{'🔥':{n:2,me:false,who:['Rosa','Marco']},'🚨':{n:1,me:false,who:['Marco']}}},
+   rx:{'azalea':{n:2,me:false,who:['Rosa','Marco']},'rake':{n:1,me:false,who:['Marco']}}},
   {golfer:'Rosa',  marker:'azalea',  gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true,
-   rx:{'🦅':{n:1,me:false,who:['Diego']}}},
+   rx:{'eagle':{n:1,me:false,who:['Diego']}}},
   {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true,
-   rx:{'🧊':{n:1,me:false,who:['Rosa']}}},
+   rx:{'jug':{n:1,me:false,who:['Rosa']}}},
   {golfer:'Marco', marker:'weebridge', gross:90, pvi:0.4, course:'Encanto', played_on:isoAgo(9)},
 ];
 /* founder badge — FOUNDER_ID is loaded by loadProfile via the founder_id() RPC.
@@ -15720,7 +15651,7 @@ async function fetchHomeSocial(){
     window.homeRx.raw=kud||[];       /* timestamped rows — the digest reads these */
     window.homeRx.cmine=cmt||[];
     (kud||[]).forEach(k=>{
-      const e=k.emoji||'🔥';
+      const e=k.emoji||'azalea';
       const s=((window.homeRx.kud[k.post_id]||={})[e]||={n:0, me:false, who:[]});
       s.n++;
       if(csKudoMine(k)) s.me=true;
@@ -15752,25 +15683,8 @@ async function toggleHomeRx(r, emoji){
 }
 function wireHomeSocial(box){
   const rows = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
-  box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',e=>{
-    if(b._held){ b._held=false; e.stopPropagation(); return; }   /* long-press already opened the tray — don't also toggle */
+  box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',()=>{
     const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, b.dataset.e);
-  }));
-  wireRxHold(box, 'hrx', 'hrxp');
-  box.querySelectorAll('[data-hadd]').forEach(b=>b.addEventListener('click',e=>{
-    e.stopPropagation();
-    const p=box.querySelector('#hrxp'+b.dataset.hadd); if(!p) return;
-    const willOpen=!p.classList.contains('open');
-    closeAllTrays();
-    if(willOpen) p.classList.add('open');
-    b.setAttribute('aria-expanded', willOpen);
-  }));
-  box.querySelectorAll('[data-hpick]').forEach(b=>b.addEventListener('click',()=>{
-    const r=rows[+b.dataset.hpick]; if(!r) return;
-    const p=box.querySelector('#hrxp'+b.dataset.hpick); if(p) closeTray(p);
-    const rx=homeRxOf(r); const cur=rx&&rx[b.dataset.e];
-    if(cur&&cur.me) return;
-    toggleHomeRx(r, b.dataset.e);
   }));
 }
 /* photos arc 2 (D59): one face for every identity chip — the avatar when the
@@ -15811,8 +15725,7 @@ function feedRow(r, idx, stamp){
   const vp = r.is_me ? vp0 : theirs(vp0);   /* crew rows speak third person */
   const vpCap = vp ? vp[0].toUpperCase()+vp.slice(1) : '';
   const rx = idx!==undefined ? homeRxOf(r) : null;
-  const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}<button class="rxadd" data-hadd="${idx}" title="More reactions" aria-label="More reactions" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button></div>
-    <div class="rxpalette h" id="hrxp${idx}">${rxPaletteHtml('data-hpick',idx)}</div>` : '';
+  const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}</div>` : '';
   const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
   /* SF-6: the arrival — the round just posted renders its gross as split-flap
      cells; renderHomeFeed arms them and retires the flag after insertion */
@@ -16245,7 +16158,7 @@ function dgMentions(mark){
     if(!k.created_at || dgTime(k.created_at)<=mark) return;
     const r=mine[k.post_id]; if(!r) return;
     if(csKudoMine(k)) return;                      /* my own tap isn't news */
-    out.push({ who:csKudoWho(k), e:k.emoji||'🔥', gross:r.gross });
+    out.push({ who:csKudoWho(k), e:k.emoji||'azalea', gross:r.gross });
   });
   (hr.cmine||[]).forEach(c=>{
     if(!c.created_at || dgTime(c.created_at)<=mark) return;
@@ -16254,6 +16167,18 @@ function dgMentions(mark){
     out.push({ who:csKudoWho(c), e:null, gross:r.gross });
   });
   return out;
+}
+/* D311 · the four sentences. A fifth token owes a fifth line, which is the
+   right pressure to feel when adding one. */
+function rxSentence(k, gross){
+  switch(k){
+    case 'azalea': return `gave your ${gross} its flowers`;
+    case 'jug':    return `raised a glass to your ${gross}`;
+    case 'eagle':  return `circled your ${gross} twice`;
+    case 'rake':   return `called you a sandbagger on your ${gross}`;
+    case null: case undefined: return `chimed in on your ${gross}`;
+    default:       return `reacted to your ${gross}`;
+  }
 }
 function renderHomeDigest(){
   const box=$('#homeDigest'); if(!box) return;
@@ -16280,8 +16205,12 @@ function renderHomeDigest(){
     if(posts.length) bits.push(`${posts.length} league note${posts.length>1?'s':''}`);
     if(men.length){
       const m=men[0];
-      bits.push(m.e ? `<b>${esc(m.who)}</b> ${m.e}’d your ${m.gross}`
-                    : `<b>${esc(m.who)}</b> chimed in on your ${m.gross}`);
+      /* D311 · a reaction is a word, not a verb. This built
+         "Jade 🔥’d your 90" — a glyph used as a verb, which no language does,
+         and which D309 makes impossible anyway: you cannot verb a drawn
+         azalea. One authored sentence per token; an unknown key falls to the
+         neutral line rather than naming a reaction it cannot read. */
+      bits.push(`<b>${esc(m.who)}</b> ${rxSentence(m.e, m.gross)}`);
       if(men.length>1) bits.push(`${men.length-1} more chimed in on your rounds`);
     }
     if(!bits.length) return;
@@ -16302,7 +16231,7 @@ function renderHomeDigest(){
 function wireFeedReceipts(box){
   box.querySelectorAll('[data-hfr]').forEach(el=>{
     const open = e => {
-      if(e.target.closest('[data-tc],button,.rxpalette')) return;
+      if(e.target.closest('[data-tc],button')) return;
       const src = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
       const r = src[Number(el.dataset.hfr)];
       if(r && typeof openRoundReceipt==='function') openRoundReceipt(r);
@@ -17366,6 +17295,25 @@ function csCrewRoutes(){
 /* D247 · the handle and the marker are DEFAULTED, not asked. The gate is
    still `marker` AND `handle` (CLAUDE.md's landmine) — defaulting is not
    skipping, because the save writes both. */
+/* D325 · IS THIS NAME THE SIGNUP TRIGGER'S GUESS? The m001 trigger writes
+   display_name from the email localpart the moment an account exists, so the
+   card gate would otherwise arrive pre-filled with "a.golfer" under copy
+   reading "Just a name to start". Eight of thirty-nine production profiles
+   carry one.
+
+   **This is the twin of `OnboardingGate.isDerivedName` in Swift** and the two
+   strip the SAME characters. They did not: this side normalised away every
+   non-alphanumeric and the phone stripped spaces only, so a derived name that
+   lost a dot the email carried pre-filled on the phone and not here. Empty on
+   either side is not derived — with nothing to compare, guessing would clear a
+   name somebody typed. */
+function csNormalizedName(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function csIsDerivedName(name, email){
+  const n = csNormalizedName(name);
+  const local = csNormalizedName(String(email||'').split('@')[0]);
+  if(!n || !local) return false;
+  return n === local;
+}
 function csHandleFromName(name){
   return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
 }
@@ -21047,15 +20995,13 @@ function showProfileGate(){
       g.prepend(note);
     }
   }catch(_){}
-  /* Phase 5: never pre-fill the name with the m001 email-derived display_name
-     ("jerechofischbeck") — an ugly default the user has to clear. Compare
-     normalized forms so dot/space/case variants of the email local part are
-     all treated as auto-derived. A real saved name still pre-fills. */
+  /* Phase 5 / D325: never pre-fill the name with the m001 email-derived
+     display_name — an ugly default the user has to clear. `csIsDerivedName` is
+     the shared rule; `OnboardingGate.isDerivedName` is its Swift twin, and the
+     two normalise the same characters so the clients cannot disagree about
+     whether a name was typed or guessed. */
   const dn = CS.profile?.display_name || '';
-  const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g, '');
-  const emailLocal = (CS.user?.email || '').split('@')[0];
-  const derivedName = dn && emailLocal && norm(dn) === norm(emailLocal);
-  if(dn && !derivedName && !$('#pfName').value) $('#pfName').value = dn;
+  if(dn && !csIsDerivedName(dn, CS.user?.email) && !$('#pfName').value) $('#pfName').value = dn;
   /* the handle DEFAULTS from the name (`csHandleFromName`, the phone's own
      derivation), and the golfer can still edit it */
   if(!$('#pfHandle').value){

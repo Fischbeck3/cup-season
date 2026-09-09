@@ -29,7 +29,7 @@ struct LookPaletteDial: View {
       }
       Text("Turned on by the season").csType(.bodyS).foregroundStyle(cs.mut).padding(.top, 12).padding(.bottom, 2)
       ForEach(CSLooks.phases) { s in
-        LookPickRow(title: s.name, sub: "\(s.motif) \(s.eyebrow)", swatch: s, selected: false, enabled: false) {}
+        LookPickRow(title: s.name, sub: s.eyebrow, swatch: s, selected: false, enabled: false) {}
       }
     }
   }
@@ -114,9 +114,12 @@ struct LookRoomSection: View {
 // MARK: - Rows
 
 enum LookRowCopy {
-  /// "🌬 Links · Jul 10 – 24" — the motif, the eyebrow word, the window.
+  /// "Links · Jul 10 – 24" — the eyebrow word and the window (D313).
   static func sub(_ s: CSLookSpec) -> String {
-    [s.motif + " " + s.eyebrow, LookCopy.window(s)].compactMap { $0 }.joined(separator: " · ")
+    // D313 · the motif retired with the last emoji in the design system's own
+    // data. It rendered here and nowhere else, so no livery lost anything it
+    // was using; a crest gets drawn when there is somewhere for it to go.
+    [s.eyebrow, LookCopy.window(s)].compactMap { $0 }.joined(separator: " · ")
   }
 }
 

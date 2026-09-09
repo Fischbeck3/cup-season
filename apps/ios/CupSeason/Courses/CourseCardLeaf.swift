@@ -124,14 +124,34 @@ struct CourseCardLeaf: View {
 
 // MARK: - The whole card
 
-/// **`The whole card`** — the back nine and every rated tee, pushed as a
-/// screen and not a sheet (§2.6). It is where the shipped `CourseCardSheet`'s
-/// tee picker went: a course with twelve rated tees still shows all twelve,
-/// but they are below the one fact the page exists for rather than on top of
-/// it, which is the escalation's own order.
+/// **`The whole card`** — every rated tee, **one card at a time** (§2.6,
+/// amended by D323).
+///
+/// It shipped as `ForEach(book.tees)` drawing a front and a back nine for each,
+/// and this file's own comment accepted the cost out loud: *"a course with
+/// twelve rated tees still shows all twelve."* Gold Canyon has enough of them
+/// that the owner counted: *"Do we need every scorecard rating, this is like 10
+/// scrolls."* Twelve tees is twenty-four leaves and nobody reads the twelfth.
+///
+/// **The facts line is the summary; the card is the disclosure.** Every tee
+/// keeps its one line — par, yards, rating, slope — because comparing tees is
+/// the actual reason a golfer opens this screen, and four figures per tee is a
+/// table you can read. Only the tee you asked for draws its holes.
+///
+/// **It opens on the tee you play.** The course page has already resolved one
+/// (`vm.tee(in:)` — the round's, or the course's default), and it hands it over
+/// so this screen opens showing the card the reader came for rather than the
+/// first one alphabetically.
 struct CourseWholeCardScreen: View {
   @Environment(\.cs) private var cs
   let book: CourseBook
+  /// The tee to open on. nil opens the first — a course page always resolves
+  /// one, so nil is a preview or a slice.
+  var openOn: CourseBookTee?
+
+  @State private var open: String?
+
+  private var shown: String? { open ?? openOn?.id ?? book.tees.first?.id }
 
   var body: some View {
     ScrollView {
@@ -141,12 +161,27 @@ struct CourseWholeCardScreen: View {
         Text(book.savedLine()).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
         ForEach(book.tees) { tee in
+          let isOpen = tee.id == shown
           VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-            CSFactsLine(facts(tee), label: tee.title)
-            CourseCardLeaf(tee: tee, title: "The front nine · \(tee.title)")
-            if tee.holes.contains(where: { $0.hole > 9 }) {
-              CourseCardLeaf(tee: tee, title: "The back nine · \(tee.title)",
-                             range: 10...18, totalLabel: "In")
+            Button {
+              CSHaptic.selection()
+              // Tapping the open one closes it — the same idiom the rating
+              // rail keeps (D289): the control you already hold takes it off.
+              CSMotion.run(CSMotion.tick) { open = isOpen ? "" : tee.id }
+            } label: {
+              CSFactsLine(facts(tee), label: tee.title)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(isOpen ? "Hides the card" : "Shows the card")
+            .accessibilityAddTraits(isOpen ? [.isSelected] : [])
+            if isOpen {
+              CourseCardLeaf(tee: tee, title: "The front nine · \(tee.title)")
+              if tee.holes.contains(where: { $0.hole > 9 }) {
+                CourseCardLeaf(tee: tee, title: "The back nine · \(tee.title)",
+                               range: 10...18, totalLabel: "In")
+              }
             }
           }
         }

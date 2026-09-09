@@ -78,7 +78,13 @@ public struct CSGlyph: View {
       case .emptyRail: "M3.5 4h5.5v16H3.5zM12 7h8.5M12 12h8.5M12 17h8.5"
       case .scheduleSheet: "M4 5.5h16V21H4zM4 10.5h16M8.5 3v4.5M15.5 3v4.5M8 14.5h3M13 14.5h3"
       case .rack: "M4 20.5h16M6.5 20.5V8.5h11v12M6.5 13h11M10 8.5V4h4v4.5"
-      case .bag: "M8.5 9.5V5.6a2.6 2.6 0 015.2 0v3.9M6.5 9.5h9.5c1 0 1.8.9 1.7 1.9l-.9 8.7H5.7l-.9-8.7c-.1-1 .7-1.9 1.7-1.9M10 3.2v2.2M12 2.6v2.8M14 3.4v2"
+      // **A GOLF BAG, NOT A TOTE.** The first drawing was a body with a
+      // handle arching over it and three ticks above — which is a handbag,
+      // and the owner said so on sight: *"Bag needs to look more like a golf
+      // bag."* The signal that makes a golf bag legible at 22pt is **clubs
+      // fanning out of the top**, so that is what this draws: a tapered body,
+      // the hood band across it, the strap, and three shafts with their heads.
+      case .bag: "M8.4 8.6h7.2c.7 0 1.2.6 1.1 1.3l-1 9.6c-.1.9-.8 1.5-1.7 1.5h-4c-.9 0-1.6-.6-1.7-1.5l-1-9.6c-.1-.7.4-1.3 1.1-1.3zM8 12.4h8M9.6 8.6c-.2-2.4.6-4 2.4-4.8M10.2 8.4V5.2M12.4 8.4V3.6M14.4 8.4V5.6M10.2 5.2l-1.5-.6M12.4 3.6l1.6-.5M14.4 5.6l1.4-.5"
       }
     }
 
@@ -150,6 +156,7 @@ public struct CSGlyph: View {
 /// quietly.
 public struct CSMasthead: View {
   @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
   @Environment(\.dynamicTypeSize) private var typeSize
   let date: Date
   let calendar: Calendar
@@ -157,8 +164,29 @@ public struct CSMasthead: View {
   /// OFFLINE` — and nothing else on the page changes and no action is
   /// disabled. It is the one place the product says the read did not land.
   let asOf: Date?
-  public init(date: Date = Date(), calendar: Calendar = .current, asOf: Date? = nil) {
+  /// **THE GOLFER'S OWN NUMBER, WHERE THE DATE USED TO BE** (D318).
+  ///
+  /// The owner, on the strip that carried it at the foot of the wire:
+  /// *"Your number either needs to stay in tour card or move very top (replace
+  /// the date?)"* — and he took the replace. It is the one figure that is his
+  /// on every screen, and the dateline slot was already sized for it.
+  ///
+  /// **THE ORDER IS STALE → NUMBER → DATE, AND THE FALLBACK IS NOT DECORATION.**
+  /// §13.3 rewrites this line IN PLACE when a read did not land, and that
+  /// sentence outranks an index: a golfer looking at a stale page needs to know
+  /// it is stale more than they need their handicap. And a golfer who has no
+  /// number yet — the first three rounds — still gets the dateline, so the
+  /// masthead is never a wordmark with a blank beside it.
+  let number: String?
+  /// **D319 · WHICH WAY THE NUMBER HAS BEEN GOING**, against the index five
+  /// posted rounds ago (`rounds.index_at_post` — the history the engine has
+  /// kept since it shipped). nil until there are five.
+  let numberLabel: String?
+  let trend: CSNumberTrend?
+  public init(date: Date = Date(), calendar: Calendar = .current, asOf: Date? = nil,
+              number: String? = nil, numberLabel: String? = nil, trend: CSNumberTrend? = nil) {
     self.date = date; self.calendar = calendar; self.asOf = asOf
+    self.number = number; self.numberLabel = numberLabel; self.trend = trend
   }
 
   /// `SUN · SEP 6`.
@@ -169,7 +197,60 @@ public struct CSMasthead: View {
   }
 
   private var line: String {
-    asOf.map { CSStale.line($0, calendar: calendar) } ?? Self.dateline(date, calendar: calendar)
+    if let asOf { return CSStale.line(asOf, calendar: calendar) }
+    if let number, !number.isEmpty { return number }
+    return Self.dateline(date, calendar: calendar)
+  }
+
+  /// What VoiceOver hears for the slot. `10.9` alone is a number with no noun;
+  /// the label says which number it is, and the date says nothing extra.
+  private var spoken: String {
+    if asOf != nil || number == nil { return line }
+    let l = (numberLabel ?? "Your number").lowercased()
+    return "\(l), \(line)" + (trend.map { ", \($0.spoken)" } ?? "")
+  }
+
+  /// The trailing slot. A number gets **weight and a noun** — the owner, on the
+  /// first printing of it: *"The 10.9 for number needds to be bolder and point
+  /// to what it is somehow, maybe a trendline as well."* It was set in the
+  /// dateline's own role, `agate` caps in `mut`, which is the voice for a date
+  /// and not for the one figure that is his.
+  ///
+  /// A date or a stale line keeps that voice, because both of them ARE
+  /// metadata. Only the number is promoted.
+  @ViewBuilder private var slot: some View {
+    if number != nil, asOf == nil {
+      // **THE TREND RIDES BESIDE THE FIGURE, NOT UNDER IT.** Its first build
+      // put `YOUR NUMBER · DOWN 1.3` on one line, which measured ~153pt — and
+      // the wordmark is ~187 of a 362 measure, so `CUP SEASON` **wrapped onto
+      // two lines at the default type size**. The wordmark is the product's
+      // name and it wraps only at the accessibility sizes, deliberately (the
+      // comment above says so); a two-line masthead at `.large` is this slot
+      // taking room that was never its own. Beside the figure it is ~108pt and
+      // the name holds its line.
+      VStack(alignment: .trailing, spacing: 1) {
+        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+          // `figureS` at 20 — the figure roles are the ones cut for a number,
+          // and 20 is the one that sits beside a 34pt wordmark without
+          // becoming a second display on a viewport that gets one (§1.5).
+          Text(line).csType(.figureS).foregroundStyle(cs.ink)
+          if let trend {
+            Text(trend.words).csType(.agateS, caps: true)
+              // **A FALLING INDEX IS A GOLFER IMPROVING**, so improvement takes
+              // `pos` — and getting worse takes `mut`, never `neg`. L-22: good
+              // news gets a colour, and the product does not shame anybody in
+              // red for a bad month.
+              .foregroundStyle(trend.better ? cs.pos : cs.mut)
+          }
+        }
+        Text(numberLabel ?? "Your number").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      }
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel(spoken)
+    } else {
+      Text(line).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        .accessibilityLabel(spoken)
+    }
   }
 
   public var body: some View {
@@ -182,14 +263,32 @@ public struct CSMasthead: View {
       // must never reach it.
       if typeSize.isA11y {
         wordmark
-        Text(line).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        slot
       } else {
         HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
           wordmark
           Spacer(minLength: CSTokens.Space.s2)
-          Text(line).csType(.agate, caps: true).foregroundStyle(cs.mut)
-            .lineLimit(1).fixedSize()
+          slot.fixedSize()
         }
+      }
+      // **D313 · THE TICK, WHICH HAS BEEN DEAD SINCE WAVE 3.**
+      // `CSLookAccent.tick` has returned `[accent, accent2]` this whole time
+      // and nothing has drawn it. It is TWO SOLID SEGMENTS — never a gradient
+      // (BRIEF §4 names the amber-to-ember ramp as a do-not, and a two-stop
+      // ramp of one hue is not a gradient anyway) — and it is the one mark on
+      // Home that says which livery the room is wearing, at the top of the
+      // page, before anything else is read.
+      //
+      // The comment above this masthead says *"No ember tick — the masthead is
+      // not live"*, and that stands: this is not ember and it is not live. It
+      // appears ONLY under a look and Fescue's masthead is unchanged.
+      if la.active {
+        HStack(spacing: 0) {
+          Rectangle().fill(la.accent)
+          Rectangle().fill(la.accent2)
+        }
+        .frame(width: 28, height: 3)
+        .accessibilityHidden(true)
       }
       CSRule(.heavy)
     }
@@ -613,4 +712,39 @@ public struct CSStoryCard<Aside: View>: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }
+}
+
+/// **WHICH WAY A GOLFER'S NUMBER IS GOING** (D319).
+///
+/// **A FALLING INDEX IS A GOLFER IMPROVING**, and this type exists so that fact
+/// lives in ONE place instead of being re-derived at every call site. It has
+/// been got wrong here before: `SeasonStats.deltaText` printed a "you fell"
+/// triangle on an improving index, and LINT-13 deleted the typed arrow that
+/// carried it.
+///
+/// **It is words and not a triangle.** The movement mark's own tokens are
+/// semantic — `pos` is performance up and `cool` is a falling row — and an
+/// index inverts both of them, so a shared glyph here would mean the opposite
+/// of what it means three rows down on a standings table. *"Down 0.4"* is what
+/// a golfer says out loud and it cannot be read backwards.
+public struct CSNumberTrend: Sendable, Equatable {
+  public let delta: Double
+  /// Is this the good direction? For an index, down.
+  public var better: Bool { delta < 0 }
+
+  public init?(current: Double?, previous: Double?) {
+    guard let current, let previous, current.isFinite, previous.isFinite else { return nil }
+    let d = current - previous
+    // Under a tenth is not a move. A number that reports "down 0.02" every time
+    // a round lands is noise wearing a trend's clothes.
+    guard abs(d) >= 0.1 else { return nil }
+    self.delta = d
+  }
+
+  public var words: String {
+    let n = String(format: "%.1f", abs(delta))
+    return better ? "down \(n)" : "up \(n)"
+  }
+  public var spoken: String { better ? "down \(String(format: "%.1f", abs(delta))), improving"
+                                     : "up \(String(format: "%.1f", abs(delta)))" }
 }

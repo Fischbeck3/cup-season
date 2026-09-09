@@ -24,7 +24,10 @@ import Foundation
   @Test func itNamesThemAndMarksTheFigure() {
     let a = CoursePageAnswer(others: [row("Galen Marr", 79), row("Tash Bell", 84),
                                       row("Jade Okafor", 88)])
-    #expect(a.friendsLine == "Galen, Tash and Jade. Galen’s {79} is the best of them.")
+    // D322 · "theirs", not "them". `others` excludes the viewer by
+    // construction and the page prints a YOUR BEST tile directly above it, so
+    // the word has to carry the exclusion the arithmetic already does.
+    #expect(a.friendsLine == "Galen, Tash and Jade. Galen’s {79} is the best of theirs.")
   }
 
   /// **Nobody else has played it: the block does not render**, rather than a
@@ -45,7 +48,24 @@ import Foundation
   /// L-44 · a golfer with no gross still gets named; the page does not invent
   /// a number to finish its own sentence.
   @Test func noGrossMeansNoClaimAboutABest() {
-    #expect(CoursePageAnswer(others: [row("Dev Patel", nil)]).friendsLine == "Dev.")
+    #expect(CoursePageAnswer(others: [row("Dev Patel", nil)]).friendsLine == "Dev has played it.")
+    // and with several, the list stands alone rather than inventing a best
+    #expect(CoursePageAnswer(others: [row("Dev Patel", nil), row("Tash Bell", nil)])
+              .friendsLine == "Dev and Tash.")
+  }
+
+  /// **THE BUG THE OWNER FOUND ON HIS OWN COURSE PAGE** (D322). One other
+  /// golfer had played Gold Canyon, and the page printed *"Galen. Galen's 92
+  /// is the best of them."* — the list clause introduces a GROUP and the
+  /// second singles one out of it, so with one person both are the same name.
+  /// **One round is not the best of anything**, so a lone golfer gets no
+  /// superlative at all.
+  @Test func oneOtherGolferIsNotAGroupAndHasNoBest() {
+    let one = CoursePageAnswer(others: [row("Galen Marr", 92)]).friendsLine
+    #expect(one == "Galen has played it — a {92}.")
+    #expect(!one.contains("best"))
+    // the name is said ONCE
+    #expect(one.components(separatedBy: "Galen").count - 1 == 1)
   }
 
   /// **No tee name, because `rounds` does not carry one.** The design asks for

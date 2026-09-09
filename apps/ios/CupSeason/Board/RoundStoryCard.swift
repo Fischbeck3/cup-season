@@ -92,6 +92,12 @@ struct RoundStoryCard: View {
             Text("Pts").csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
           }
           .frame(minWidth: 44, alignment: .trailing)
+          // **THE MEDALLION IS STAMPED IN THIS CORNER TOO** (D59: the marker
+          // rides every round photo). It is a 26pt circle with 10pt of padding
+          // — 36 from the trailing edge — and it was drawn straight over
+          // `PTS`. The figure yields, because the stamp is the object and the
+          // points have a whole column to sit in.
+          .padding(.trailing, hasPhoto ? 34 : 0)
         }
       }
       .padding(.leading, typeSize.isA11y ? 15.5 : 0)

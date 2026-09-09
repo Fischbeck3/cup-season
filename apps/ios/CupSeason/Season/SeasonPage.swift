@@ -64,6 +64,10 @@ struct SeasonPage: View {
   @Environment(LookStore.self) private var looks
   @Environment(\.dismiss) private var dismiss
   @Environment(\.cs) private var cs
+  /// D314 · the plate takes the livery's accent (owner: *"topo can follow
+  /// themes"*). Read here rather than inside `SeasonHead`, because the field is
+  /// drawn as this page's background and not as part of the head.
+  @Environment(\.csLookAccent) private var la
   @State private var model: LeagueRoomModel
   @State private var router: RoomRouter
   /// R-11 · the rank-up haptic, once per load, for the season in hand.
@@ -150,7 +154,21 @@ struct SeasonPage: View {
           // present. No spinner; `ProgressView` is banned in content.
           SeasonLoading()
         } else {
+          // **D314 · THE SEASON STANDS SOMEWHERE TOO.** The owner, on Compete's
+          // new plate: *"Some background topo could be cool here — topo can
+          // follow themes."* Same generator, same scale rule, seeded from the
+          // same league — so a season looks like the same place on the tab that
+          // lists it and on the page that IS it.
           SeasonHead()
+            .background(alignment: .top) {
+              CSContour(seed: model.leagueId.uuidString,
+                        tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a24))
+                .frame(maxWidth: .infinity)
+                .frame(height: 150)
+                .clipped()          // the field draws past its frame (D301: clips drawing, not touches)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+            }
           SeasonVoteBanner()
           thisWeek
           table

@@ -105,16 +105,35 @@ public struct CoursePageAnswer: Sendable, Equatable {
   /// list of nine first names is a roster, which is the event's device.
   public static let namedCap = 6
 
-  /// *"Galen, Tash, Jade and Dev. Galen's {79} is the best of them."* — the
+  /// *"Galen, Tash, Jade and Dev. Galen's {79} is the best of theirs."* — the
   /// braces are the figure run's mark, and the producer is here so both
   /// clients print one sentence (§2.5). Empty when nobody else has played it;
   /// the block does not render rather than saying so.
+  ///
+  /// **TWO THINGS THIS SENTENCE GOT WRONG, BOTH FOUND ON THE OWNER'S OWN
+  /// COURSE PAGE** (D322), where exactly one other golfer had played it:
+  ///
+  /// 1. **It said the name twice.** The list clause introduces a GROUP and the
+  ///    second clause singles one out of it; with one golfer both are the same
+  ///    person, and the page printed *"Galen. Galen's 92 is the best of them."*
+  ///    One round is not the best of anything, so a lone golfer gets no
+  ///    superlative at all.
+  /// 2. **"them" never said WHO.** `others` excludes the viewer by
+  ///    construction, but the page prints a `YOUR BEST` tile directly above —
+  ///    so the owner read *"90 YOUR BEST"* and then *"92 is the best of them"*
+  ///    and saw a contradiction. **"theirs"** is the word that carries the
+  ///    exclusion the arithmetic was already doing.
   public var friendsLine: String {
     let names = others.compactMap { $0.name.isEmpty ? nil : CourseNames.first($0.name) }
     guard !names.isEmpty else { return "" }
     let list = CourseNames.list(Array(names.prefix(CoursePageAnswer.namedCap)))
-    guard let best = others.first(where: { $0.gross != nil }), let g = best.gross else { return list + "." }
-    return "\(list). \(CourseNames.first(best.name))’s {\(g)} is the best of them."
+    let scored = others.first(where: { $0.gross != nil })
+    if names.count == 1 {
+      guard let g = scored?.gross else { return "\(list) has played it." }
+      return "\(list) has played it — a {\(g)}."
+    }
+    guard let best = scored, let g = best.gross else { return list + "." }
+    return "\(list). \(CourseNames.first(best.name))’s {\(g)} is the best of theirs."
   }
 }
 

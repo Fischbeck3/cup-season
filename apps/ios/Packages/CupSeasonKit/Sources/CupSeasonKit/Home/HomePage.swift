@@ -107,6 +107,10 @@ public struct HomeWireRow: Identifiable {
     case item(HomeDispatch.Item, stamp: String?)
     /// Weight 5 · one quiet line, with its date at the trailing edge.
     case line(marker: String?, text: String, door: HomeWireDoor?)
+    /// **Weight 3b · a bag change, as an object** (D312). The one wire row
+    /// whose door opens a PLACE rather than a round, so it is drawn as a card
+    /// with the bag's own glyph rather than as a sentence in the run.
+    case bag(text: String, marker: String?, door: HomeWireDoor?)
     /// The digest — "Since you were here…" — one line, in `ink`, at the head
     /// of the wire, because it is about the rows under it.
     case digest(HomeDigest)
@@ -123,6 +127,9 @@ public struct HomeWireRow: Identifiable {
   public var leadsWithRule: Bool {
     if case .round(_, let url) = body { return url == nil }
     if case .takeover = body { return false }
+    // A card brings its own edge (§4 rule 2) — a rule above it would be a
+    // second one, 20pt from the first.
+    if case .bag = body { return false }
     return true
   }
   public init(id: String, body: Body, period: HomeWirePeriod? = nil) {
@@ -192,6 +199,16 @@ public struct HomePage {
   /// The number in seat one is a starter, so the strip's line is the gloss.
   public let starter: Bool
   public let leadIsLive: Bool
+  /// **D315 · IS THE LEAD A COMPETITION ITEM?** The ranker's whole top tier is
+  /// — `clash:` `floor:` `move:` `firsttee:` `live:` — and the ME strip under
+  /// it prints standing, money, next tee and your number, so the top quarter
+  /// spoke in one voice. When this is true the strip yields to one line
+  /// (`Strip.leading`) and the rest sink to the wire's foot (`Strip.trailing`).
+  ///
+  /// **Read from the item KEY, never from the prose** — the key is the weight
+  /// map (this file's own header) and reading a claim out of a headline is a
+  /// guess (L-44).
+  public let leadIsCompetition: Bool
 
   public var wireTitle: String { firstRound ? HomeFirstRound.eyebrow : "The wire" }
 
@@ -268,7 +285,19 @@ public struct HomePage {
 
     // The ranked items that are NOT the lead. They enter the wire at the
     // weight their kind earns — never as four smaller copies of it.
-    let rest = ranked.deck + ranked.overflow
+    //
+    // **AND NOT WHEN THEY ARE THE LEAD'S OWN STORY AGAIN** (D321). The owner:
+    // *"Home page is too much."* On his own page the lead read *"You and Galen
+    // are both in. The week closes in 5 days"* with a `2ND / OF TWO` chip
+    // beside it, and the very next row read *"You are 4 back of Galen with 7
+    // weeks left."* Same rival, same league, one scroll apart — and **the
+    // lead's chip has already printed the standing that second sentence spends
+    // its words on.**
+    //
+    // `spentRound` could not see it: that mechanism dedupes by ROUND, and
+    // neither of these is about a round. This dedupes by SUBJECT AND LEAGUE,
+    // which is the pair that makes two items the same story.
+    let rest = (ranked.deck + ranked.overflow).filter { !Self.echoesLead($0, lead: ranked.lead) }
 
     // DEF-3 · the two ways the wire knows a board post is about the golfer
     // reading it: the post's own `member_id` is one of theirs (authoritative —
@@ -367,13 +396,21 @@ public struct HomePage {
             text = HomeWireCopy.viewerVoice(said, viewer: myName)
           }
           let per = filed(day)
+          let marker = per == .today ? nil
+            : HomeWireCopy.dayMarker(iso, today: today, calendar: calendar)
+          // **A BAG CHANGE IS AN OBJECT, NOT AN ASIDE** (D312, amended). The
+          // owner, on the shipped line: *"I think we need a card so this isnt
+          // just a line of text."* Every other quiet line on the wire is a
+          // league note or a milestone — a sentence about something that
+          // happened elsewhere. A bag change is a sentence about a THING you
+          // can open, and it is the only row here whose door leads to a place
+          // rather than to a round, so it is drawn as one.
+          let body: HomeWireRow.Body =
+            p.kind == "bag" && p.profile_id != nil
+              ? .bag(text: text, marker: marker, door: item.door.map(HomeWireDoor.feed))
+              : .line(marker: marker, text: text, door: item.door.map(HomeWireDoor.feed))
           rows.append((sort: distance(day),
-                       row: HomeWireRow(id: item.id,
-                                        body: .line(marker: per == .today ? nil
-                                                      : HomeWireCopy.dayMarker(iso, today: today, calendar: calendar),
-                                                    text: text,
-                                                    door: item.door.map(HomeWireDoor.feed)),
-                                        period: per)))
+                       row: HomeWireRow(id: item.id, body: body, period: per)))
         case .notes(let n):
           noteCount += n.count
           for name in n.leagueNames where !noteNames.contains(name) { noteNames.append(name) }
@@ -423,7 +460,56 @@ public struct HomePage {
       hasEmber: brandNew || (ranked.lead?.spine == .ember && !(ranked.lead?.action ?? "").isEmpty),
       firstRound: brandNew,
       starter: strip.slots.first { $0.fact == .myNumber }?.label == "STARTER",
-      leadIsLive: ranked.lead?.spine == .ember)
+      leadIsLive: ranked.lead?.spine == .ember,
+      leadIsCompetition: Self.isCompetition(ranked.lead))
+  }
+
+  /// **D321 · IS THIS ITEM THE LEAD'S STORY, TOLD AGAIN?**
+  ///
+  /// Both halves are required. A subject alone is not enough — two different
+  /// leagues can both be about Galen and those are two facts. A league alone
+  /// is not enough either: the season's clash and a buddy's round in the same
+  /// league are not the same story. **Same person AND same season is.**
+  ///
+  /// An item with no league, or no subject, is never an echo: the pair is what
+  /// makes the claim, and half of it is a guess (L-44).
+  ///
+  /// The LEAD always wins. It is rank 1 by the server's own ordering, it
+  /// carries the standing as a chip, and it is the item the ranker chose.
+  static func echoesLead(_ item: HomeDispatch.Item, lead: HomeDispatch.Item?) -> Bool {
+    guard let lead, item.key != lead.key,
+          let s = item.subject, let ls = lead.subject,
+          let l = item.leagueId, let ll = lead.leagueId
+    else { return false }
+    return s.caseInsensitiveCompare(ls) == .orderedSame && l == ll
+  }
+
+  /// **D321 · A HEAD IS FOR A BUCKET, NOT FOR A SENTENCE.**
+  ///
+  /// D287 promoted the wire's periods from a 34pt date column to real
+  /// `displayS` heads, because a flat run of dated rows *"read as one block of
+  /// text"*. That was right and it over-reached: the head draws whenever a
+  /// bucket is non-empty, so a period holding ONE row gets 24pt of `ink` and
+  /// 32pt of air to announce a single line. On the owner's own Home, `UP NEXT`
+  /// and `TODAY` each held exactly one — two headers louder than the two
+  /// sentences under them.
+  ///
+  /// A lone row loses nothing: `sayItOnce` only strips a stamp that REPEATS
+  /// inside a group, so the first row of any period always keeps its own date.
+  public static func headedPeriods(_ rows: [HomeWireRow]) -> Set<HomeWirePeriod> {
+    var n: [HomeWirePeriod: Int] = [:]
+    for r in rows { if let p = r.period { n[p, default: 0] += 1 } }
+    return Set(n.filter { $0.value >= 2 }.keys)
+  }
+
+  /// D315 · the five keys the ranker's top tier is made of. A `ceremony` or an
+  /// `empty` lead is NOT one of them: the night a season ends and a brand-new
+  /// account are both surfaces the strip is not competing with.
+  static let competitionKeys = ["clash:", "floor:", "move:", "firsttee:", "live:", "need:"]
+
+  static func isCompetition(_ item: HomeDispatch.Item?) -> Bool {
+    guard let key = item?.key else { return false }
+    return competitionKeys.contains { key.hasPrefix($0) }
   }
 
   /// **A RUNDOWN SAYS A DATE ONCE.** `Sun · Sun · Sun · Aug 31 · Aug 31` down

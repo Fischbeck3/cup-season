@@ -30,6 +30,12 @@ public enum HomeFeedDoor: Sendable, Equatable {
   case live(UUID)
   case round(UUID)
   case scheduled(UUID)
+  /// **D312 · THE GOLFER WHOSE BAG CHANGED.** Every other door here is a round,
+  /// which is why a bag post had none: the rule was `live_round_id ?? round_id
+  /// ?? scheduled_round_id` (D219) and a bag change knows a PERSON. So *"You
+  /// made ten changes to the bag"* was unclickable by construction rather than
+  /// by oversight — there was no shape for where it led.
+  case bag(UUID)
 }
 
 /// One folded group of league notes.
@@ -97,11 +103,18 @@ public enum HomeFeedFold {
   /// same minute, and the clash lines land per league on the same morning.
   public static let sameNoteWindow: TimeInterval = 48 * 3600
 
-  /// `live_round_id ?? round_id ?? scheduled_round_id` — D219.
+  /// `live_round_id ?? round_id ?? scheduled_round_id` — D219 — **and then the
+  /// bag** (D312). The round ids come first and keep their order: a post that
+  /// somehow knows both a round and a person is about the round, because the
+  /// round is the thing that happened.
   public static func door(for p: HomePost) -> HomeFeedDoor? {
     if let id = p.live_round_id { return .live(id) }
     if let id = p.round_id { return .round(id) }
     if let id = p.scheduled_round_id { return .scheduled(id) }
+    // Only a `bag` post opens a bag. A milestone homed on the same person is
+    // about a ROUND and would be a door to the wrong object — the kind is the
+    // check, never the presence of `profile_id`.
+    if p.kind == "bag", let id = p.profile_id { return .bag(id) }
     return nil
   }
 

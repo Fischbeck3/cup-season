@@ -41,6 +41,26 @@ public struct HomeDigest: Sendable, Equatable {
 
   static func who(_ r: HomeFeedRow) -> String { r.is_me == true ? "You" : (r.golfer ?? "a golfer") }
 
+  /// **D311 · A REACTION IS A WORD, NOT A VERB.** This line used to build
+  /// `"\(who) \(emoji)’d your \(gross)"` — *"Jade 🔥’d your 90."* — a glyph
+  /// used as a verb, which no language does. D309 forces the fix rather than
+  /// merely permitting it: **you cannot verb a drawn azalea.**
+  ///
+  /// One authored sentence per token, so a fifth token owes a fifth sentence —
+  /// which is the right pressure to feel when adding one. A token this build
+  /// does not know (a row written before D309, or by a newer build) falls to
+  /// the neutral sentence rather than naming a reaction it cannot read.
+  static func mention(_ m: HomeSocial.Mention, gross g: String) -> String {
+    guard let e = m.emoji else { return "\(m.who) chimed in on your \(g)" }
+    switch CSReactions.token(e) {
+    case .azalea: return "\(m.who) gave your \(g) its flowers"
+    case .jug:    return "\(m.who) raised a glass to your \(g)"
+    case .eagle:  return "\(m.who) circled your \(g) twice"
+    case .rake:   return "\(m.who) called you a sandbagger on your \(g)"
+    case .none:   return "\(m.who) reacted to your \(g)"
+    }
+  }
+
   static func day(_ t: Date, now: Date, calendar: Calendar) -> String {
     let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: t), to: calendar.startOfDay(for: now)).day ?? 0
     if days <= 0 { return "Today" }
@@ -93,7 +113,7 @@ public struct HomeDigest: Sendable, Equatable {
       if !freshPosts.isEmpty { bits.append("\(freshPosts.count) league note\(freshPosts.count > 1 ? "s" : "")") }
       if let m = mentions.first {
         let g = m.gross.map(String.init) ?? "round"
-        bits.append(m.emoji.map { "\(m.who) \($0)’d your \(g)" } ?? "\(m.who) chimed in on your \(g)")
+        bits.append(HomeDigest.mention(m, gross: g))
         strong.append(m.who)
         if mentions.count > 1 { bits.append("\(mentions.count - 1) more chimed in on your rounds") }
       }

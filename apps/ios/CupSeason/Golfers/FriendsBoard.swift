@@ -128,8 +128,12 @@ struct FriendsBoardSection: View {
   /// The rail's field is `panel` when the row is YOURS and unpainted otherwise
   /// — **never gold** (D-6), because leading a rolling 30-day form window is
   /// not a thing that was *won*, so this surface spends **zero** gold objects.
-  private func row(_ r: FriendsBoard.Row, rank: Int) -> some View {
-    CSSlat(rank: rank,
+  /// **D324 · nil rank = no numeral.** A golfer with no rounds in the window
+  /// stays on the board — they are your buddy and this tab is a roster — but
+  /// they are not fourth at anything, and `railHidesNumeral` is the rail's own
+  /// mechanism for a row that has no place to print.
+  private func row(_ r: FriendsBoard.Row, rank: Int?) -> some View {
+    CSSlat(rank: rank ?? 0,
            field: r.isMe ? .mine : .none,
            face: CSFace.Model(id: r.profileId, marker: r.marker,
                               initials: Initials.of(r.displayName), isViewer: r.isMe),
@@ -141,7 +145,8 @@ struct FriendsBoardSection: View {
            // WAVE 10 · at AX3 the heads are gone, so the row says its own
            // column in words rather than leaving a signed figure and a band
            // word floating under a name with nothing to attach them to.
-           axFacts: [[figure(r), word(r)].compactMap { $0 }.joined(separator: " · ")]) {
+           axFacts: [[figure(r), word(r)].compactMap { $0 }.joined(separator: " · ")],
+           railHidesNumeral: rank == nil) {
       trailing(r)
     }
     .contentShape(Rectangle())

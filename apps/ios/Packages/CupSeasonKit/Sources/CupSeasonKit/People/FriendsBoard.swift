@@ -175,8 +175,26 @@ public struct FriendsBoard: Sendable, Equatable {
   /// The board with each row's POSITION in it — the numeral the rail prints.
   /// It is the position, not a server column, so the rail and the figure can
   /// never disagree again.
-  public func ranked(_ lens: Lens) -> [(rank: Int, row: Row)] {
-    ordered(lens).enumerated().map { (rank: $0.offset + 1, row: $0.element) }
+  /// **D324 · A GOLFER WITH NO ROUNDS IS NOT RANKED.**
+  ///
+  /// This numbered every row, so a board of six showed `01 02 03` for people
+  /// who had played and `04 05 06` beside *"No rounds in the window · nothing
+  /// yet"* — three ordinals over nothing. Blake is not fourth at anything; that
+  /// is an absence dressed as a standing, and it quietly names who has not
+  /// played, which is the L-22 line the board's own note promises not to cross
+  /// (*"No badges, no streaks — just rounds"*).
+  ///
+  /// They stay ON the board — they are your buddies and the tab is a roster —
+  /// and their rank is nil, so the rail draws nothing where a number would be.
+  /// The ordinal counts only the ranked, so removing one does not leave a hole
+  /// in the sequence.
+  public func ranked(_ lens: Lens) -> [(rank: Int?, row: Row)] {
+    var n = 0
+    return ordered(lens).map { row in
+      guard row.sortKey(lens) != nil else { return (rank: nil, row: row) }
+      n += 1
+      return (rank: n, row: row)
+    }
   }
 
   // MARK: - The copy

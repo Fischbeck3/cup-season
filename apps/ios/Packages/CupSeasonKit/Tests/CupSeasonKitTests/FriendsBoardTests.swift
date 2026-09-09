@@ -97,9 +97,15 @@ private let board = """
   @Test func aRowWithNoFigureTakesTheTail() throws {
     let b = FriendsBoard.parse(try rows(board))
     #expect(b.ordered(.form).last?.name == "Jade")     // no rounds in the window
-    #expect(b.ranked(.form).last?.rank == 4)
-    // and the rail is the POSITION, so it is always 1…n with no holes
-    #expect(b.ranked(.form).map(\.rank) == [1, 2, 3, 4])
+    // **D324 · A GOLFER WITH NO ROUNDS IS NOT RANKED.** This asserted a `4`,
+    // which is how the board came to print `04 05 06` beside three rows
+    // reading *"No rounds in the window · nothing yet"*. Jade is not fourth at
+    // anything — that is an absence dressed as a standing, and the board's own
+    // note promises *"No badges, no streaks — just rounds."*
+    #expect(b.ranked(.form).last?.rank == nil)
+    // The rail is still the POSITION and still has no holes; the count is of
+    // the RANKED, so dropping the tail cannot leave a gap in the sequence.
+    #expect(b.ranked(.form).map(\.rank) == [1, 2, 3, nil])
   }
 
   @Test func theIndexIsTheSecondLensAndItReordersTheList() throws {

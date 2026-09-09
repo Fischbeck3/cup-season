@@ -187,42 +187,72 @@ struct HomeWireSlat: View {
   }
 }
 
-/// The reaction line under a round — 34pt, the used reactions with their
-/// counts, the day flush right. **Emoji appear here and nowhere else on Home**
-/// (§5.3), and the count beside each is set in the system's own agate rather
-/// than in mono, so the emoji is the only foreign object on the screen.
+/// The reaction line under a round — the tokens GIVEN with their counts, a
+/// `+` that reveals the rest, and the day flush right.
+///
+/// **THE ROW IS QUIET UNTIL SOMEBODY SPEAKS (D310, amended).** D310 removed the
+/// tray on the argument that four fit on the row, and on the BOARD that is
+/// right — a board is a room you went to. On Home's wire it is not: the owner,
+/// looking at four tokens under every round in `THIS WEEK` and `EARLIER`,
+/// *"maybe hide emojis under a plus."* A feed is scanned, and four marks under
+/// every row is four times the furniture for the same one thumb.
+///
+/// So the wire shows **what has actually happened** — nothing, or the tokens
+/// people gave — and a `+` opens the four inline. The board keeps all four on
+/// the face. That is a surface rule and not a reversal: what D310 removed was
+/// the pre-loaded quick chip that read as a reaction somebody had left, and
+/// nothing here brings it back. An untouched round shows a `+` and no tally.
+///
+/// The reveal is LOCAL STATE and not the store's: the tray D310 deleted was
+/// exclusive across the whole board and needed a shared flag, four close paths
+/// and a capture/restore pass. One row opening its own four needs none of that.
 struct HomeWireReactions: View {
   @Environment(\.cs) private var cs
   let state: [String: ReactionState]
   let day: String?
   let onToggle: (String) -> Void
+  @State private var open = false
 
-  /// The reactions PRESENT, plus the bare heater when nobody has fired yet —
-  /// F11 3.1: the one-thumb chip is always on the row, and never a lone `+`.
-  private var shown: [CSReactions.Reaction] {
-    let used = CSReactions.all.filter { (state[$0.emoji]?.n ?? 0) > 0 }
-    if !used.isEmpty { return used }
-    return CSReactions.all.filter { $0.emoji == CSReactions.quick }
+  /// The tokens somebody has actually given, in CANON order — never arrival
+  /// order, so the row is the same row every time you look at it.
+  private var given: [CSReactions.Reaction] {
+    CSReactions.all.filter { (state[$0.key]?.n ?? 0) > 0 }
+  }
+  /// What the `+` reveals: everything not already on the row.
+  private var rest: [CSReactions.Reaction] {
+    CSReactions.all.filter { (state[$0.key]?.n ?? 0) == 0 }
   }
 
   var body: some View {
     HStack(spacing: CSTokens.Space.s4) {
-      ForEach(shown) { rx in
-        let st = state[rx.emoji] ?? ReactionState()
-        Button { CSHaptic.selection(); onToggle(rx.emoji) } label: {
-          HStack(spacing: CSTokens.Space.s2) {
-            Text(rx.emoji).csType(.bodyS)
-            if st.n > 0 {
-              Text("\(st.n)").csType(.agateS, caps: true).foregroundStyle(st.me ? cs.ink : cs.mut)
-            }
-          }
-          .frame(minHeight: 34)
-          .a11yHitSlop(vertical: 5, horizontal: 6)
+      ForEach(given) { rx in chip(rx, mine: state[rx.key]?.me == true, n: state[rx.key]?.n ?? 0) }
+      if open {
+        // **THE REVEAL IS FOR ONE CHOICE, THEN IT CLOSES.** The owner, on the
+        // first build of this: *"When I click + for emotes they reappear lets
+        // keep them hidden with exception to when one is selected."* Left
+        // open, the row silently becomes the four-token row the `+` was added
+        // to remove — and it stays that way for the rest of the session. So
+        // picking one collapses the row back to what is GIVEN plus the `+`,
+        // and his own worked example is the result: give the azalea, and the
+        // next person sees a `+` and an azalea — open the `+` for a different
+        // one, or tap the azalea to add to it.
+        ForEach(rest) { rx in chip(rx, mine: false, n: 0, closesOnTap: true) }
+      } else if !rest.isEmpty {
+        Button {
+          CSHaptic.selection()
+          CSMotion.run(CSMotion.tick) { open = true }
+        } label: {
+          CSGlyph(.plus, size: .inline)
+            .foregroundStyle(cs.mut)
+            .frame(minHeight: 34)
+            .a11yHitSlop(vertical: 5, horizontal: 8)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(rx.label), \(st.n)\(st.me ? ", yours" : "")")
-        .accessibilityValue(st.me ? "on" : "off")
-        .accessibilityAddTraits(.isToggle)
+        .accessibilityLabel(given.isEmpty ? "React to this round" : "More reactions")
+        // VoiceOver never has to open anything: the four are actions here.
+        .accessibilityActions {
+          ForEach(rest) { rx in Button(rx.label) { onToggle(rx.key) } }
+        }
       }
       Spacer(minLength: CSTokens.Space.s2)
       if let day {
@@ -230,6 +260,31 @@ struct HomeWireReactions: View {
       }
     }
     .frame(minHeight: 34)
+  }
+
+  /// A figure is drawn only where there IS one (D310) — a glyph with a phantom
+  /// zero beside it reads as a reaction somebody left.
+  private func chip(_ rx: CSReactions.Reaction, mine: Bool, n: Int,
+                    closesOnTap: Bool = false) -> some View {
+    Button {
+      CSHaptic.selection()
+      onToggle(rx.key)
+      if closesOnTap { CSMotion.run(CSMotion.tick) { open = false } }
+    } label: {
+      HStack(spacing: CSTokens.Space.s2) {
+        CSReactionGlyph(rx.token, size: .row)
+          .foregroundStyle(mine ? cs.ink : cs.mut)
+        if n > 0 {
+          Text("\(n)").csType(.agateS, caps: true).foregroundStyle(mine ? cs.ink : cs.mut)
+        }
+      }
+      .frame(minHeight: 34)
+      .a11yHitSlop(vertical: 5, horizontal: 6)
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel("\(rx.label), \(n)\(mine ? ", yours" : "")")
+    .accessibilityValue(mine ? "on" : "off")
+    .accessibilityAddTraits(.isToggle)
   }
 }
 
@@ -453,5 +508,62 @@ struct HomeWireLine: View {
     }
     .padding(.vertical, CSTokens.Space.s3)
     .frame(minHeight: 44)
+  }
+}
+
+// MARK: - Weight 3b · a bag change, as an object
+
+/// **A CARD, BECAUSE A BAG IS A THING AND NOT AN ASIDE** (D312, amended).
+///
+/// The owner, on the line this replaces: *"I think we need a card so this isnt
+/// just a line of text."* He is right and the reason is structural rather than
+/// decorative — every other quiet line on the wire reports something that
+/// happened somewhere else (a league note, a milestone, a standing that moved).
+/// A bag change is the only row on Home whose door opens a **place you can go
+/// and look at**, and a row that leads somewhere should not be set in the same
+/// type as a row that does not.
+///
+/// It is a ruled block and **not a filled tile**: §32 is structure without
+/// containers, and D278 deleted the product's last washes. What makes it a card
+/// is the drawn object, the reading size and its own edges — not a fill.
+struct HomeWireBag: View {
+  @Environment(\.cs) private var cs
+  let text: String
+  let marker: String?
+  let act: (() -> Void)?
+
+  var body: some View {
+    Button { act?() } label: {
+      VStack(alignment: .leading, spacing: 0) {
+        CSRule()
+        HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+          // The bag's own glyph, in the look's accent where one is on — the
+          // object announcing itself before the sentence does.
+          CSGlyph(.bag, size: .block)
+            .foregroundStyle(cs.brand)
+            .padding(.top, 2)
+          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+            Text(text).csType(.body).foregroundStyle(cs.ink)
+              .fixedSize(horizontal: false, vertical: true)
+              .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(spacing: CSTokens.Space.s2) {
+              Text("See the bag").csEyebrow(cs.mut)
+              if let marker {
+                Spacer(minLength: CSTokens.Space.s2)
+                Text(marker).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              }
+            }
+          }
+        }
+        .padding(.vertical, CSTokens.Space.s4)
+        CSRule()
+      }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .disabled(act == nil)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(text)
+    .accessibilityHint(act == nil ? "" : "Opens the bag")
   }
 }

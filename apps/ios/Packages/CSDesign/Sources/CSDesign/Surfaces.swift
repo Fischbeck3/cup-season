@@ -222,8 +222,31 @@ public struct CSSectionHead: View {
           // rows stays `cs.rule`: a page of coloured hairlines is the wash
           // D270/D278 deleted, arriving one line at a time. A head is a
           // NAMED object and may wear a colour; a divider is structure.
-          Rectangle().fill(la.active ? la.accent : cs.rule)
-            .frame(height: CSTokens.Space.hair).frame(maxWidth: .infinity)
+          //
+          // **D313 · AND ITS FAR THIRD TAKES THE SECOND COLOUR.** D307 gave
+          // this rule `accent` and left `accent2` reaching nothing on any
+          // look — its own closing line said so. The rule is one object and
+          // it now carries both halves of the livery: the accent where it
+          // leaves the word, the second colour on the run to the margin. It
+          // is TWO SOLID SEGMENTS and not a gradient — BRIEF §4 names the
+          // amber-to-ember ramp as a do-not, and D270 deleted `effect.grad`.
+          // Off a look it is one neutral hairline exactly as before.
+          Group {
+            if la.active {
+              // Two flexible rectangles in an HStack split the run EVENLY —
+              // neither has an intrinsic width — so this is a half-and-half
+              // rule by construction rather than by a number, which is why
+              // there is no ratio to tune and no `GeometryReader` on a
+              // hairline that appears several times per screen.
+              HStack(spacing: 0) {
+                Rectangle().fill(la.accent)
+                Rectangle().fill(la.accent2)
+              }
+            } else {
+              Rectangle().fill(cs.rule)
+            }
+          }
+          .frame(height: CSTokens.Space.hair).frame(maxWidth: .infinity)
         }
       }
       if !typeSize.isA11y { Spacer(minLength: 0) }

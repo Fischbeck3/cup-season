@@ -268,6 +268,37 @@ public enum OnboardingGate {
     return passes(marker: p.marker, handle: p.handle)
   }
 
+  /// **D325 · IS THIS NAME THE SIGNUP TRIGGER'S GUESS?**
+  ///
+  /// The m001 trigger writes `display_name` from the email localpart the moment
+  /// an account exists (CLAUDE.md names it as a landmine), so the card gate
+  /// arrives pre-filled with `a.golfer` under copy reading *"Just a name
+  /// to start"* — a machine value wearing the shape of an answer. **Eight of
+  /// thirty-nine production profiles carry one**, and four of those have
+  /// markers, handles and rounds: they went through the card and kept it.
+  ///
+  /// Both clients already refused to pre-fill such a name **and they refused
+  /// differently.** The desk normalised away every non-alphanumeric
+  /// (`j.smith` ≡ `jsmith`); the phone stripped spaces only, so a derived name
+  /// that lost a dot the email carried still pre-filled there and not on the
+  /// desk. One rule, two implementations, two answers — the shape D259 caught.
+  /// This is the rule; `csIsDerivedName` in `index.html` is its twin, and the
+  /// pair is the reason both now strip the same characters.
+  public static func normalizedName(_ s: String?) -> String {
+    (s ?? "").lowercased().filter { $0.isLetter || $0.isNumber }
+  }
+
+  /// True when the name is indistinguishable from the email it was derived
+  /// from. Empty on either side is NOT derived — a golfer with no email on the
+  /// payload has given us nothing to compare, and guessing would clear a name
+  /// they typed.
+  public static func isDerivedName(_ name: String?, email: String?) -> Bool {
+    let n = normalizedName(name)
+    let local = normalizedName((email ?? "").split(separator: "@").first.map(String.init))
+    guard !n.isEmpty, !local.isEmpty else { return false }
+    return n == local
+  }
+
   /// The handle the gate DEFAULTS from a typed name — the same derivation the
   /// three-step gate already used, kept so no golfer's handle changes shape.
   public static func handle(from name: String) -> String {

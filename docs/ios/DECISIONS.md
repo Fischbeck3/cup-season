@@ -1201,3 +1201,79 @@ The owner, 2026-09-06: *"I also cant click into settings."* The owner, 2026-09-0
 **Named and not swept:** twelve other `.clipped()` sites carry the same trap (`HomeWire:91,127` · `RecapCardView:34,56` · `RoundCardArtifact:91` · `RecordPage:323,327` · `EventTitleCard:107` · `Structure:479` · `Course:507,537` · `Person:747,951`). Most clip artefacts or plates with nothing interactive above them, and changing twelve surfaces unverified on a beta morning is the wrong trade. The rule when each is next touched: **if a clipped view can be taller than its frame, shape it.**
 
 **Gate:** preflight PASS 0/0 (the vocabulary lint caught two of my own new strings saying "session") · **1,231 unit tests + 3 UI tests, 0 failures** · installed on the owner's phone.
+
+## IOS-071 · The four drawn tokens, and two of them were already in the product — **BUILT 2026-09-08 (D309/D310/D311; owner: *"can we find a golf related icon or set of icons like our tokens"*)**
+
+The owner asked for a golf icon set for the reactions, was shown one I drew, and rejected it — *"the tokens arent it I think we can come up with something new or already built"* — then named what he wanted: **the Azalea (giving them their flowers), the Jug (cheers)**, plus two of mine, the double circle and the rake.
+
+**"ALREADY BUILT" WAS THE WHOLE ANSWER.** `CSMarkers` is fourteen hand-drawn glyphs on the same 24 grid at the same 1.8 stroke — the Saguaro, the Island, the Pews, the Postage Stamp — and **#9 and #10 are the Azalea and the Jug.** They have been in the product since the marker picker shipped. Nothing was designed; two paths were referenced.
+
+**THE DRAWINGS I KILLED, AND WHY THEY FAILED THE SAME WAY.** Four candidates were drawn, rendered at 13/17/22/56 and thrown out: the cup-from-above (an ellipse under a ball is a **flying saucer**), the bunker (a blob with two ripples is the **Spotify mark**), the iron face (three grooves in a rounded quad is a **ruler**), the green (a ring with a dot is an **eye**). One rule fell out of it and it now governs the family: **a closed round shape with something inside it stops being a golf object and becomes a logo.** Every survivor is open, asymmetric or line-based.
+
+**Structure.** `CSReactionToken` (CSDesign) holds the four keys, their words and their paths — the two markers read from `CSMarkers` so **a marker edit reaches the reaction and the path is never copied**. `CSReactions` (Kit) holds keys and words and draws nothing. `CSReactionGlyph` is the one renderer, optically fitted the way a column of markers is, with **no size below 17**: the azalea is six subpaths inside 14 of the grid and blots at 13, and the floor is carried by the `Size` enum rather than by a comment.
+
+**THE COUNT WAS NEVER A VARIABLE.** `HomeView:697` typed out six `accessibilityAction`s by index — `CSReactions.all[0]` … `all[5]`. Shrinking the set to four would have **trapped on `all[4]` at launch, on Home, for everyone**, before a single reaction was drawn. It is `accessibilityActions { ForEach }` now, and `BoardTests` asserts nothing indexes past the set's own end.
+
+**The tray went with the two seats.** Six needed a 350ms hold, an exclusive open, a `held` flag, tap-out and Escape closes, four paths keeping one `aria-expanded` honest, and a capture/restore pass so a re-render did not collapse the tray you were reading. Four fit on the row. All of it retires on **both** clients.
+
+**Storage:** the key is the name. `post_kudos.emoji` is `char_length <= 8`, so `azalea`/`jug`/`eagle`/`rake` fit as primary-key values. The column **keeps its name** — renaming it makes an older installed build's write fail outright, where leaving it makes that build write a token nobody recognises, and degraded beats broken in a deploy window.
+
+**Tests:** the four keys and their words, `quick == "azalea"`, the count against `CSReactionToken.allCases`, a retired glyph resolving to nothing rather than to something else, and — the one that matters — **no sentence may interpolate a token**, asserted across every key so a glyph can never become a verb again through a template.
+
+## IOS-072 · The bag has a front door — **BUILT 2026-09-08 (D312; owner: *"I should be able to click on Galen, click the bag icon and see whats in it"*)**
+
+Three faults stacked, and the first is structural rather than an oversight.
+
+**A WIRE ROW OPENS ONLY IF IT KNOWS A ROUND.** `HomeFeedFold.door` is `live_round_id ?? round_id ?? scheduled_round_id` (D219) and a bag change knows a **person**. So *"You made ten changes to the bag"* was unclickable **by construction** — there was no shape for where it led. `HomeFeedDoor` gains `.bag(UUID)`, and the kind is the check: a milestone homed on the same person is about a round, and a bag door there would open the wrong object.
+
+**AND THE COLUMN WAS NEVER SELECTED.** D238 gave a post the right to be homed on a person, D262 wrote the first ones, and `HomePost` had no `profile_id` — every bag line on the wire knew a golfer it could not name. `postColumnsWide` asks for it, dropping one column at a time on error, both directions of skew.
+
+**The page.** `BagPage` reads anyone's bag; `BagSheet` keeps editing yours and says so in its own header. Not two versions of one screen — one screen that is two different things depending on whose it is, is how the tour card got complicated. **`Bag.visible` and `isEmpty` gate the door**: an empty door is a broken promise, so nothing links to a bag that is hidden or unfilled, and the page says so plainly if reached anyway.
+
+**Presented, not pushed, and §7.3 says objects are pushed.** Stated rather than quiet: the door has to work from a wire row on Home (no stack of its own), from the card pushed in Golfers, and from the card as a peek sheet. One presented route serves all three; the alternative is the same screen built three times.
+
+**The corner glyph** sits beside the credential, not in the toolbar — §12.2 gives this page exactly one trailing action and a second would reopen that deviation. `CSGlyph(.bag)` already existed.
+
+**The copy is a migration** (`20261018090000`), re-emitted from `pg_get_functiondef` in production and not from D262's file. `save_bag` was holding `v_went_in`, `v_came_out` and `v_ball_changed` separately and printing their sum: *"Galen put three clubs in and took two out."* **The noun carries or it is said again** — alone, "took two out" says two what.
+
+## IOS-073 · A livery wears two colours — **BUILT 2026-09-08 (D313; owner took the boldest of three seats)**
+
+Eleven looks, each carrying `accent` and `accent2`, resolving correctly since D103a — and **`accent2` had never reached a pixel**, which D307 recorded in its own last line. Three seats, all marks or objects and never a page ground: **the masthead tick** (`CSLookAccent.tick` has returned `[accent, accent2]` and been dead since Wave 3), **the section rule's far half** (two flexible rectangles split evenly by construction — no ratio to tune, no `GeometryReader` on a hairline drawn several times a screen), and **the panel**.
+
+**THE PANEL IS THE CHOSEN STATE.** Twelve sites, all one idea — the reaction you gave, your own line on a board, today on the schedule, a toggled setting, the option you picked. So a livery colours *your choices*. `CSInk` computes the ink flip by relative luminance, resolved at the theme for the reason Increase Contrast is: a site that reasons about its own contrast is a site that will forget to. **Six looks need light ink and five need dark** — not an edge case.
+
+**`cool` WAS OFFERED AS A SEAT AND WITHDRAWN, AND THE MISTAKE IS RECORDED BECAUSE IT WAS NEARLY BUILT.** Its token note reads *"cooling: falling rows — slate, not alarm"*; it is the down-triangle on a standing. Tinting it would have turned a dropped place azalea-pink in April — the exact lie D305 forbids for `pos` and `neg`. It was missed by reading the call-site count (one) before reading the token's own comment.
+
+**One livery was adjusted rather than excepted.** Two Teams' `accent2` carried 4.04 with dark ink and 4.16 with light — the only one failing 4.5 both ways. `#D33A4A → #C23544` (4.79), so the rule has no exception in it. **The motifs retire**: all eleven were emoji, rendering only in the look-picker rows.
+
+## IOS-074 · Compete stands somewhere — **BUILT 2026-09-08 (D314; owner: *"I would like to see more of that in 'compete'"*)**
+
+`CSContour` is a real generator and Compete called it nowhere. The plate goes behind the page head at `a24`, **seeded from the league**, so two seasons are two places and each is the same place every time — the pattern the person card already uses when a golfer has no home course. A plate per season **card** was rejected on the system's own existing rule (the contour is banned at thumbnail scale; small it reads as three near-identical ovals), not on taste. **The pin stays out of the icon family**: LINT-28 is untouched, and a pin drawn into the field behind type is a texture, not a symbol.
+
+## IOS-075 · One voice per screen — **BUILT 2026-09-08 (D315; owner: *"the top quarter is all 'compete' stuff"*)**
+
+He was reading it correctly. The lead is rank 1 from a ranker whose **entire top tier is competition** — `clash:` `floor:` `move:` `firsttee:` `live:` `need:` — and the strip under it prints standing, money, next tee and your number. Four competition blocks before the first person. `columnFacts` already suppressed duplicates but it dedupes **facts**: it cannot see that two different facts are the same kind of noise.
+
+`Strip.leading` keeps one slot above the wire and `Strip.trailing` carries the rest to its foot. **The survivor is the next tee** — the only forward-looking one, and a plan rather than a placing. It is a **preference, not a mandate**: a golfer with nothing scheduled falls to the next fact rather than printing nothing. Demoted, never dropped — the money slot carries a debt, and the owe row rides with it.
+
+**Named and not swept:** the achievement icons are still emoji (`streak_4/8/12` carry 🔥) — AP-5's remaining debt, out of this wave's scope and not smuggled into it. There is still **no check that a marker key resolves**, which is how four of `EventFixture`'s twelve golfers came to carry `cactus`, `arroyo`, `mesa` and `bloom` — none of which exist — and fall back to the saguaro under a comment promising they would not (fixed here; recorded in D308's backfilled entry).
+
+**Gate:** preflight PASS 0/0 (it caught two of my own `.uppercased()` calls) · **1,242 unit tests, 0 failures** (+10) · five baselines lowered (LINT-12 −7, and the reactions were that check's own stated exemption) · two migrations written and **not pushed** — a human stays at that wheel.
+
+## IOS-076 · The second look — a card, a plus that closes, a real golf bag, and every fact moved to what owns it — **BUILT 2026-09-08 (D316/D317/D318; owner from his own simulator, twice)**
+
+Five things came back from the owner looking at what IOS-071–075 built. Four were changes and one was a defect he spotted in a screenshot.
+
+**THE `+` REAPPEARED AND STAYED.** *"When I click + for emotes they reappear lets keep them hidden with exception to when one is selected."* The reveal had no way back — open it once and the row silently became the four-token row the `+` was added to remove, for the rest of the session. Picking one now collapses it, and his own worked example is the behaviour: give the azalea, and the next person sees a `+` and an azalea — open the `+` for a different one, or tap the azalea to add to it.
+
+**THE BAG WAS A HANDBAG.** *"Bag needs to look more like a golf bag."* It was: a body with a handle arching over it and three ticks above. Four candidates were drawn and rendered at 13/17/22/56; the one that reads is **clubs fanning out of the top** — a tapered body, the hood band, the strap, three shafts with their heads. The stand-leg variant reads as a trophy on a base at small size and was dropped.
+
+**`90 / GROS / S`** — caught in his screenshot, not by a test. `CSPanel` states its own law (*a panel holds one word and never wraps it*) and applied it to the figure, not the label. The same file already records this exact failure once, at the accessibility sizes, and fixed it only there. A stated width is now a floor when the label needs more, measured with `CSAdvance` — **no call site changed**, because a 60 that should have been a 72 is a symptom and the component was the bug.
+
+**A CARD, NOT A LINE.** The bag row is the only row on Home whose door opens **a place**, rather than a round or a board — so it is drawn as one: a ruled block, the bag's glyph in the accent, the sentence at reading size, its door named.
+
+**AND THE FLOOR WAS THE TAB BAR, RESTATED.** This is the finding that settled the last question: the ⊕ cover already carries *Add a round you played*, *Plan a round*, *Score it live* and *Start something*; the code door is inside Start something; **Find golfers is its own tab**. Home ended in four doors that all existed two inches lower. It ends in one now, opening the ⊕. The number took the masthead's dateline slot; the unpaid stake moved to the Compete row that is owed it. Home's bottom quarter went from six blocks to one.
+
+**Named and not swept:** **comments do not exist on Home and did not before this wave.** `post_comments` is drawn by three surfaces and all three are league boards — so a golfer may react to a round on Home and never say a word about it, and a golfer with no league has no board to go to. That is the same wall D238 knocked down for reactions and never knocked down for comments. The owner asked directly and chose to give it its own wave rather than bolt it on: it needs a thread on the wire, a write path, and the reporting surface the board already has.
+
+**Gate:** preflight PASS 0/0 (it caught a raw `withAnimation` — reduced motion rests on the frame) · **1,242 unit tests, 0 failures** · verified on the simulator in LIGHT, which is where the owner was reading it.

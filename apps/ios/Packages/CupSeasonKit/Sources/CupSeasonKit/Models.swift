@@ -16,6 +16,15 @@ public struct Me: Decodable, Sendable {
     public let city: String?
     public let home_course: String?
     public let index_current: Double?
+    /// **D319 · THE INDEX FIVE POSTED ROUNDS AGO** (`rounds.index_at_post`, the
+    /// history the engine has been keeping since it shipped). nil until there
+    /// are five, and the masthead then prints the number alone rather than a
+    /// delta from nothing.
+    ///
+    /// **A FALLING INDEX IS A GOLFER IMPROVING.** The direction is rendered by
+    /// `CSNumberTrend` and stated in three places on purpose: this repo has
+    /// already shipped the opposite once.
+    public let index_prev: Double?
     public let index_source: String?
     public let photo_path: String?
     public let rounds_count: Int?
@@ -34,11 +43,13 @@ public struct Me: Decodable, Sendable {
     public let days_since_round: Int?
 
     public init(id: UUID, display_name: String?, handle: String?, marker: String?, city: String?, home_course: String?,
-                index_current: Double?, index_source: String?, photo_path: String?, rounds_count: Int?,
+                index_current: Double?, index_prev: Double? = nil,
+                index_source: String?, photo_path: String?, rounds_count: Int?,
                 member_since: Date?, is_founder: Bool?, last_round_on: String? = nil, last_gross: Int? = nil,
                 last_round_id: UUID? = nil, days_since_round: Int? = nil) {
       self.id = id; self.display_name = display_name; self.handle = handle; self.marker = marker; self.city = city
-      self.home_course = home_course; self.index_current = index_current; self.index_source = index_source
+      self.home_course = home_course; self.index_current = index_current
+      self.index_prev = index_prev; self.index_source = index_source
       self.photo_path = photo_path; self.rounds_count = rounds_count; self.member_since = member_since
       self.is_founder = is_founder; self.last_round_on = last_round_on; self.last_gross = last_gross
       self.last_round_id = last_round_id; self.days_since_round = days_since_round
