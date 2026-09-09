@@ -1277,3 +1277,23 @@ Five things came back from the owner looking at what IOS-071–075 built. Four w
 **Named and not swept:** **comments do not exist on Home and did not before this wave.** `post_comments` is drawn by three surfaces and all three are league boards — so a golfer may react to a round on Home and never say a word about it, and a golfer with no league has no board to go to. That is the same wall D238 knocked down for reactions and never knocked down for comments. The owner asked directly and chose to give it its own wave rather than bolt it on: it needs a thread on the wire, a write path, and the reporting surface the board already has.
 
 **Gate:** preflight PASS 0/0 (it caught a raw `withAnimation` — reduced motion rests on the frame) · **1,242 unit tests, 0 failures** · verified on the simulator in LIGHT, which is where the owner was reading it.
+
+## IOS-077 · A mark is a glyph, a drawn marker, or nothing — **BUILT 2026-09-08 (D326; owner: *"what do you think about emojis, are we moving in the wrong direction?"* → *"yes lets use those"*)**
+
+The owner asked the question directly and the answer was yes, partly. **AP-5 reads *"emoji are the six reaction glyphs and nothing else"*** — and D309 replaced those six with four drawn tokens the same day, so the rule's subject stopped existing and the sentence became *no emoji anywhere*. Enforced as written it took eleven glyphs off the post-round epilogue, which is the app's one celebratory screen, and that recommendation was made here that morning without noticing the rule had outlived its reason.
+
+**Amended: AP-5 binds SHARED marks only.** A reaction is one golfer's pick rendered on everybody else's device — 🔥 is three different pictures across iOS, Android and the desk, which is a correctness problem and why the tokens had to be drawn. The epilogue is one golfer, one moment, one platform. Nobody else ever sees your 🏆.
+
+  · `⛳` off the band row and `⚔️` off the rival row, **replaced by nothing** — the fact leads
+  · `⭐ 🏆 🎉 ✦` stay
+  · `🔥` → **`marker:saguaro`**. Not an emoji objection: it was a reaction until D309 and one glyph may not mean two things. Marker #1 already means *still standing*.
+
+`icon` stays a `String`. `PostEpilogue.achievements` and the web's `EPI_ACH` are ONE table held byte-for-byte by preflight check 29, so the convention lives in the value — `''` · `marker:<key>` · a literal glyph — and both clients parse it (`PostEpilogueMark` / `epiMark`).
+
+`CheckRow` was `glyph: Text`, so a drawn mark could not sit in the cell and "no mark" could only be an empty box with its background still painted. It is now generic over the glyph with a `Glyph == EmptyView` init that **does not lay the cell out at all**.
+
+**A SECOND BUG, FOUND WHILE READING.** `rows()` inserted *"Your first round is on the board"* unconditionally on a first-ever round, and the achievements table carried `first_round` saying the same sentence with a different icon and a different sub. **Production holds 23 `first_round` achievements**, so both fired: one sentence, twice, on the one screen a golfer sees once. The insert is now conditional on the server's grant being absent — kept as the safety net, so a missed grant still gets its moment.
+
+**Named and not swept:** the epilogue now mixes a drawn mark with emoji in one column, which is what a consistency rule exists to prevent, and it is the right trade here — the alternatives were a cold screen or a fire that means two things. The Saguaro sits at 18pt against 17pt emoji to match stroke weight against fill; if that reads wrong on a phone it is a weight problem in the row, not a reason to put the fire back.
+
+**Gate:** `build-tokens` clean · `preflight` PASS 0/0 (check 29 compares the two tables and passes) · `sunningdale` 27 · **1,254 tests in 218 suites, 0 failures** (80 app + 120 `CSDesign` + 1,054 `CupSeasonKit`) — 1,251 before this, +3 from `EpilogueMarkTests` and the dedupe test.

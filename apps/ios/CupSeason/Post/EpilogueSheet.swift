@@ -68,9 +68,20 @@ struct EpilogueSheet: View {
           .accessibilityElement(children: .combine)
         }
 
+        // D326 · a mark is a glyph, a drawn marker, or nothing. The row says
+        // which; this only draws it.
         ForEach(rows) { row in
-          if case .line(let icon, let title, let sub) = row {
-            CheckRow(glyph: Text(icon), title: title, sub: sub) { EmptyView() }
+          if case .line(_, let title, let sub) = row {
+            switch row.mark {
+            case .none:
+              CheckRow(title: title, sub: sub) { EmptyView() }
+            case .marker(let key):
+              // 18pt against 17pt text — the marker's stroke reads lighter than
+              // an emoji's fill, so it sits a hair larger to match its weight.
+              CheckRow(glyph: CSMarkerView(key: key, size: 18), title: title, sub: sub) { EmptyView() }
+            case .glyph(let g):
+              CheckRow(glyph: Text(g), title: title, sub: sub) { EmptyView() }
+            }
           }
         }
 

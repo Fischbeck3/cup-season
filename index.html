@@ -9230,11 +9230,26 @@ const EPI_ACH = {
   sub_80:        { icon:'🏆', txt:'You broke 80 for the first time', sub:'That one goes on the wall' },
   sub_90:        { icon:'🏆', txt:'You broke 90 for the first time', sub:'In your trophy case' },
   sub_100:       { icon:'🏆', txt:'You broke 100 for the first time',sub:'In your trophy case' },
-  streak_4:      { icon:'🔥', txt:'Four weeks running',             sub:'Nobody’s had to ask where you were' },
-  streak_8:      { icon:'🔥', txt:'Eight weeks running',            sub:'Two months and still nobody’s had to ask' },
-  streak_12:     { icon:'🔥', txt:'Twelve weeks running',           sub:'Three months. The rest of them take weeks off.' },
-  first_round:   { icon:'⛳', txt:'Your first round is on the board',     sub:'Welcome to the season' },
+  /* D326 · the fire was a reaction until D309 and may not mean two things.
+     The Saguaro already means STILL STANDING, which is what a streak is. */
+  streak_4:      { icon:'marker:saguaro', txt:'Four weeks running',             sub:'Nobody’s had to ask where you were' },
+  streak_8:      { icon:'marker:saguaro', txt:'Eight weeks running',            sub:'Two months and still nobody’s had to ask' },
+  streak_12:     { icon:'marker:saguaro', txt:'Twelve weeks running',           sub:'Three months. The rest of them take weeks off.' },
+  first_round:   { icon:'🎉', txt:'Your first round is on the board',     sub:'Your number and record start here' },
 };
+/* D326 · the web twin of `PostEpilogueMark`. '' is no mark, 'marker:<key>' is
+   one of the fourteen drawn marks, anything else is a literal glyph. The table
+   above is ONE table with the phone's (preflight check 29), so the convention
+   has to live in the value and be read on both sides. */
+function epiMark(icon){
+  if(!icon) return '';
+  if(icon.indexOf('marker:')===0){
+    const k = icon.slice(7);
+    const svg = (typeof window!=='undefined' && window.mkr) ? window.mkr(k) : '';
+    return svg ? `<span class="num">${svg}</span>` : '';
+  }
+  return `<span class="num">${esc(icon)}</span>`;
+}
 function epiCounting(rank){
   if(rank==null) return '';
   const capN=CAP_N[state.cap ?? 2];
@@ -9369,11 +9384,12 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
   }
   const pvi = epi.pvi!=null ? Number(epi.pvi) : null;
   if(pvi!=null){
-    rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
+    /* D326 · no mark. The flag said "golf" on a golf app, over the best fact. */
+    rows.push(`<div class="check"><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
   }
   (epi.earned||[]).forEach(a=>{
     const m=EPI_ACH[a.kind] || { icon:'<svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg>', txt:a.label||'A milestone', sub:'In your trophy case' };
-    rows.push(`<div class="check"><span class="num">${m.icon}</span><div class="tt"><b>${esc(m.txt)}</b><small>${esc(m.sub)}</small></div></div>`);
+    rows.push(`<div class="check">${epiMark(m.icon)}<div class="tt"><b>${esc(m.txt)}</b><small>${esc(m.sub)}</small></div></div>`);
   });
   (epi.rivals||[]).forEach(rv=>{
     const w=rv.wins, l=rv.losses, t=rv.ties;
@@ -9383,7 +9399,8 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     const tie = t>0 ? ` · ${t} halved` : '';
     /* M3: a named rivalry announces itself in the epilogue too */
     const sub = rv.rivalry_name ? `“${esc(rv.rivalry_name)}” · your clash this week counted` : 'Your clash this week counted';
-    rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)} all-time${tie}</b><small>${sub}</small></div></div>`);
+    /* D326 · crossed swords are a videogame trope; this is a golf bet. */
+    rows.push(`<div class="check"><div class="tt"><b>${esc(line)} all-time${tie}</b><small>${sub}</small></div></div>`);
   });
   /* the act always says something true, so the page always has a reason to
      exist - but a page with only the act and nothing earned is still worth
@@ -9392,8 +9409,16 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
   /* Phase 4: the first-ever round always gets its moment + the shareable card,
      even when there's no band row yet (a brand-new golfer has no index, so pvi
      is null) — the first success is the growth seam. */
-  if(firstEver)
-    rows.unshift(`<div class="check"><span class="num">🎉</span><div class="tt"><b>Your first round is on the board</b><small>Your number and record start here</small></div></div>`);
+  /* D326 · **THE SAME SENTENCE WAS PRINTED TWICE.** This unshift is
+     unconditional and the server ALSO grants a `first_round` achievement
+     (production holds 23), so a first-ever round drew "Your first round is on
+     the board" twice, under two icons, with two different subs. This stays as
+     the SAFETY NET — it fires only when the grant did not arrive, so a
+     first-timer whose achievement was missed still gets the moment. */
+  if(firstEver && !(epi.earned||[]).some(a=>a.kind==='first_round')){
+    const m = EPI_ACH.first_round;
+    rows.unshift(`<div class="check">${epiMark(m.icon)}<div class="tt"><b>${esc(m.txt)}</b><small>${esc(m.sub)}</small></div></div>`);
+  }
   const sub = course
     ? `${epi.gross!=null?epi.gross+' at ':''}${String(course).toUpperCase()}`
     : 'THE ROUND, FOR YOU FIRST';

@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import CSDesign
 @testable import CupSeasonKit
 
 // The quick post, checked against the web's own math and copy (index.html
@@ -323,10 +324,10 @@ import Foundation
                          rivals: [.init(name: "Ed", wins: 3, losses: 1, ties: 1, lead: "up", rivalryName: "The Feud")])
     let rows = e.rows(cap: 4, firstEver: false)
     #expect(rows.count == 4)
-    #expect(rows[0] == .line(icon: "⛳", title: "Beat your number · 9 pts", sub: "beat your playing HCP by 2.4 · counts #2 this month"))
+    #expect(rows[0] == .line(icon: "", title: "Beat your number · 9 pts", sub: "beat your playing HCP by 2.4 · counts #2 this month"))
     #expect(rows[1] == .line(icon: "🏆", title: "You broke 90 for the first time", sub: "In your trophy case"))
     #expect(rows[2] == .line(icon: "✦", title: "A thing", sub: "In your trophy case"))
-    #expect(rows[3] == .line(icon: "⚔️", title: "You lead Ed 3–1 all-time · 1 halved", sub: "“The Feud” · your clash this week counted"))
+    #expect(rows[3] == .line(icon: "", title: "You lead Ed 3–1 all-time · 1 halved", sub: "“The Feud” · your clash this week counted"))
   }
 
   @Test func countingCopy() {
@@ -340,6 +341,16 @@ import Foundation
     #expect(quiet.rows(cap: 4, firstEver: false).isEmpty)
     let first = quiet.rows(cap: 4, firstEver: true)
     #expect(first.count == 1 && first[0] == .line(icon: "🎉", title: "Your first round is on the board", sub: "Your number and record start here"))
+
+    // D326 · the same sentence was printed twice: this insert is the safety
+    // net, and the SERVER'S grant is the fact. When both are present only one
+    // row is drawn — production held 23 `first_round` achievements while this
+    // insert was unconditional.
+    let granted = PostEpilogue(gross: 84, pvi: nil, points: nil, monthRank: nil,
+                               earned: [.init(kind: "first_round", label: nil)])
+      .rows(cap: 4, firstEver: true)
+    #expect(granted.count == 1)
+    #expect(granted[0] == .line(icon: "🎉", title: "Your first round is on the board", sub: "Your number and record start here"))
     #expect(PostEpilogue.title(firstEver: true) == "Welcome to the season")
     #expect(quiet.subtitle(course: "Papago") == "84 at PAPAGO" && quiet.subtitle(course: nil) == "THE ROUND, FOR YOU FIRST")
     #expect(PostEpilogue.linkText(name: "Jerecho", gross: 84, course: nil) == "Jerecho — 84 at the course")
@@ -351,7 +362,7 @@ import Foundation
                                    "rivals": .array([.object(["name": .string("Ed"), "wins": .number(1), "losses": .number(2), "ties": .number(0), "lead": .string("down")])])])
     let e = PostEpilogue(json: json)!
     #expect(e.gross == 84 && e.earned.first?.kind == "personal_best" && e.rivals.first?.lead == "down")
-    #expect(e.rows(cap: nil, firstEver: false)[2] == .line(icon: "⚔️", title: "Ed leads you 2–1 all-time", sub: "Your clash this week counted"))
+    #expect(e.rows(cap: nil, firstEver: false)[2] == .line(icon: "", title: "Ed leads you 2–1 all-time", sub: "Your clash this week counted"))
     #expect(PostEpilogue(json: .null) == nil)
   }
 }
@@ -390,5 +401,37 @@ import Foundation
     #expect(PostStrip.cellLabel(hole: 6, par: 4, score: 5) == "Hole 7, par 4, 5 strokes")
     #expect(PostStrip.cellLabel(hole: 0, par: 3, score: 1) == "Hole 1, par 3, 1 stroke")
     #expect(PostStrip.stepperEyebrow(hole: 6, par: 4) == "HOLE 7 · PAR 4")
+  }
+}
+
+/// D326 · a mark is a glyph, a drawn marker, or nothing — and the two clients
+/// read the same string the same way.
+@Suite struct EpilogueMarkTests {
+  @Test func theThreeShapes() {
+    #expect(PostEpilogueMark("") == PostEpilogueMark.none)
+    #expect(PostEpilogueMark("marker:saguaro") == .marker("saguaro"))
+    #expect(PostEpilogueMark("🏆") == .glyph("🏆"))
+    // a bare word is a glyph, not a marker — the prefix is the whole contract
+    #expect(PostEpilogueMark("saguaro") == .glyph("saguaro"))
+  }
+
+  @Test func everyTableIconResolves() {
+    for (key, m) in PostEpilogue.achievements {
+      switch PostEpilogueMark(m.icon) {
+      case .none:
+        Issue.record("\(key) has no mark — the table's rows all earn one")
+      case .marker(let k):
+        // the bug this catches already happened once: EventFixture shipped four
+        // marker keys that do not exist and every one drew as a saguaro.
+        #expect(CSMarkers.marker(k).key == k, "\(key) names marker '\(k)', which does not resolve")
+      case .glyph(let g):
+        #expect(!g.isEmpty)
+      }
+    }
+  }
+
+  @Test func noFireSurvivesAnywhereInTheTable() {
+    // 🔥 was a reaction until D309. One glyph may not mean two things.
+    for (_, m) in PostEpilogue.achievements { #expect(!m.icon.contains("🔥")) }
   }
 }

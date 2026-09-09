@@ -13,6 +13,44 @@ import Foundation
 public enum PostEpilogueRow: Sendable, Equatable, Identifiable {
   case line(icon: String, title: String, sub: String)
   public var id: String { if case .line(_, let t, let s) = self { return "\(t)·\(s)" }; return "" }
+  /// What the row's `icon` string actually asks for. See `PostEpilogueMark`.
+  public var mark: PostEpilogueMark {
+    if case .line(let i, _, _) = self { return PostEpilogueMark(i) }
+    return .none
+  }
+}
+
+/// D326 · **A MARK IS A GLYPH, A DRAWN MARKER, OR NOTHING.**
+///
+/// AP-5 read *"emoji are the six reaction glyphs and nothing else"* — and D309
+/// turned those six into four DRAWN tokens, so the rule's own subject stopped
+/// existing and what was left read as *no emoji anywhere*. The distinction it
+/// was reaching for is **shared vs private**: a reaction is one golfer's choice
+/// rendered on everybody else's device, and 🔥 is three different pictures
+/// across iOS, Android and the desk — so it had to be drawn. The epilogue is
+/// one golfer, one moment, one platform. Nobody else ever sees your 🏆.
+///
+/// **THE FIELD IS A STRING AND STAYS ONE.** `PostEpilogue.achievements` and
+/// `index.html`'s `EPI_ACH` are ONE table on two clients, held together
+/// byte-for-byte by preflight check 29. A Swift-only enum would break that
+/// guard and split the table, so the convention lives in the VALUE and both
+/// clients parse it (`epiMark` is the web twin).
+public enum PostEpilogueMark: Sendable, Equatable {
+  /// `""` — the fact leads its own row.
+  case none
+  /// `marker:<key>` — one of the fourteen drawn marks.
+  case marker(String)
+  /// anything else — a literal glyph, on a private surface, that earns its place.
+  case glyph(String)
+
+  public init(_ icon: String) {
+    if icon.isEmpty { self = .none }
+    else if icon.hasPrefix(Self.markerPrefix) {
+      self = .marker(String(icon.dropFirst(Self.markerPrefix.count)))
+    } else { self = .glyph(icon) }
+  }
+
+  public static let markerPrefix = "marker:"
 }
 
 public struct PostEpilogue: Sendable, Equatable {
@@ -114,10 +152,15 @@ public struct PostEpilogue: Sendable, Equatable {
     "sub_80": ("🏆", "You broke 80 for the first time", "That one goes on the wall"),
     "sub_90": ("🏆", "You broke 90 for the first time", "In your trophy case"),
     "sub_100": ("🏆", "You broke 100 for the first time", "In your trophy case"),
-    "streak_4": ("🔥", "Four weeks running", "Nobody’s had to ask where you were"),
-    "streak_8": ("🔥", "Eight weeks running", "Two months and still nobody’s had to ask"),
-    "streak_12": ("🔥", "Twelve weeks running", "Three months. The rest of them take weeks off."),
-    "first_round": ("⛳", "Your first round is on the board", "Welcome to the season"),
+    // D326 · the fire was a reaction until D309 and may not mean two things.
+    // The Saguaro (marker #1) already means STILL STANDING, which is what a
+    // streak is. `marker:` is the convention both clients parse — see `Mark`.
+    "streak_4": ("marker:saguaro", "Four weeks running", "Nobody’s had to ask where you were"),
+    "streak_8": ("marker:saguaro", "Eight weeks running", "Two months and still nobody’s had to ask"),
+    "streak_12": ("marker:saguaro", "Twelve weeks running", "Three months. The rest of them take weeks off."),
+    // D326 · this row and the `firstEver` insert below were the SAME sentence
+    // twice. They now share one glyph and one sub, and only one of them draws.
+    "first_round": ("🎉", "Your first round is on the board", "Your number and record start here"),
   ]
 
   /// `epiCounting(rank)` with the league's cap (nil = unlimited).
@@ -134,7 +177,9 @@ public struct PostEpilogue: Sendable, Equatable {
     var rows: [PostEpilogueRow] = []
     if let pvi {
       let title = CSBands.bandName(pvi) + (points.map { " · \(CSCopy.points($0)) pts" } ?? "")
-      rows.append(.line(icon: "⛳", title: title, sub: CSBands.vsPhrase(pvi) + Self.counting(rank: monthRank, cap: cap)))
+      // D326 · no mark. The flag said "golf" on a golf app, stamped over the
+      // best fact the screen has. The band and the number lead the row now.
+      rows.append(.line(icon: "", title: title, sub: CSBands.vsPhrase(pvi) + Self.counting(rank: monthRank, cap: cap)))
     }
     for a in earned {
       let m = Self.achievements[a.kind] ?? ("✦", a.label ?? "A milestone", "In your trophy case")
@@ -146,11 +191,20 @@ public struct PostEpilogue: Sendable, Equatable {
         : "Dead even with \(rv.name), \(rv.wins)–\(rv.losses)"
       let tie = rv.ties > 0 ? " · \(rv.ties) halved" : ""
       let sub = rv.rivalryName.map { "“\($0)” · your clash this week counted" } ?? "Your clash this week counted"
-      rows.append(.line(icon: "⚔️", title: "\(line) all-time\(tie)", sub: sub))
+      // D326 · crossed swords are a videogame trope; this is a golf bet.
+      rows.append(.line(icon: "", title: "\(line) all-time\(tie)", sub: sub))
     }
     if rows.isEmpty && !firstEver { return [] }
-    if firstEver {
-      rows.insert(.line(icon: "🎉", title: "Your first round is on the board", sub: "Your number and record start here"), at: 0)
+    // D326 · **THE SAME SENTENCE WAS PRINTED TWICE.** This insert is
+    // unconditional and the server ALSO grants a `first_round` achievement
+    // (production holds 23 of them), so a first-ever round drew "Your first
+    // round is on the board" twice, under two icons, with two different subs.
+    // The insert is the SAFETY NET and keeps that role: it fires only when the
+    // achievement did not arrive, so a first-timer whose grant was missed
+    // still gets the moment, and nobody gets it twice.
+    if firstEver, !earned.contains(where: { $0.kind == "first_round" }) {
+      let m = Self.achievements["first_round"]!
+      rows.insert(.line(icon: m.icon, title: m.txt, sub: m.sub), at: 0)
     }
     return rows
   }

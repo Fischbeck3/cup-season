@@ -85,28 +85,40 @@ struct SliceSheet<Content: View>: View {
 // MARK: - .check row
 
 /// `.check`: a 26pt mono glyph cell · bold title · mono small sub · trailing.
-struct CheckRow<Trailing: View>: View {
+///
+/// D326 · the glyph cell is GENERIC and OPTIONAL. It used to be `Text`, which
+/// meant a row's mark could only ever be a typed character — so a drawn marker
+/// could not sit in it, and "no mark at all" could only be spelled as an empty
+/// box with a background still painted around it. Both are now expressible: a
+/// `Text`, any view (a `CSMarkerView`), or nothing, in which case the cell is
+/// not drawn rather than drawn empty.
+struct CheckRow<Glyph: View, Trailing: View>: View {
   @Environment(\.cs) private var cs
-  let glyph: Text
+  let glyph: Glyph
+  /// false = the row has no mark, and the 26pt cell is not laid out at all.
+  let showsGlyph: Bool
   let title: String
   let sub: String?
   let subColor: Color?
   @ViewBuilder let trailing: () -> Trailing
 
-  init(glyph: Text, title: String, sub: String?, subColor: Color? = nil, @ViewBuilder trailing: @escaping () -> Trailing) {
-    self.glyph = glyph; self.title = title; self.sub = sub; self.subColor = subColor; self.trailing = trailing
+  init(glyph: Glyph, title: String, sub: String?, subColor: Color? = nil, @ViewBuilder trailing: @escaping () -> Trailing) {
+    self.glyph = glyph; self.showsGlyph = true
+    self.title = title; self.sub = sub; self.subColor = subColor; self.trailing = trailing
   }
 
   var body: some View {
     // glyph + text across; the trailing control drops under them at the accessibility sizes
     A11yStack(spacing: 12, columnSpacing: 8) {
       HStack(spacing: 12) {
-        glyph
-          .csType(.columnS).foregroundStyle(cs.mut)
-          .frame(minWidth: 26, minHeight: 26)
-          .padding(.horizontal, 2)
-          .background(cs.bg2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-          .accessibilityHidden(true)
+        if showsGlyph {
+          glyph
+            .csType(.columnS).foregroundStyle(cs.mut)
+            .frame(minWidth: 26, minHeight: 26)
+            .padding(.horizontal, 2)
+            .background(cs.bg2, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .accessibilityHidden(true)
+        }
         VStack(alignment: .leading, spacing: 2) {
           Text(title).csType(.name).foregroundStyle(cs.ink)
           if let sub, !sub.isEmpty { Text(sub).csType(.agateS).foregroundStyle(subColor ?? cs.mut) }
@@ -123,8 +135,16 @@ struct CheckRow<Trailing: View>: View {
 
 extension CheckRow where Trailing == CSGlyph {
   /// The door: the DRAWN chevron, not a typed `→` (`LINT-13`, §5.2).
-  init(glyph: Text, title: String, sub: String?) {
+  init(glyph: Glyph, title: String, sub: String?) {
     self.init(glyph: glyph, title: title, sub: sub) { CSGlyph(.chevron, size: .inline) }
+  }
+}
+
+extension CheckRow where Glyph == EmptyView {
+  /// D326 · a row whose fact leads. No cell, no empty background box.
+  init(title: String, sub: String?, subColor: Color? = nil, @ViewBuilder trailing: @escaping () -> Trailing) {
+    self.glyph = EmptyView(); self.showsGlyph = false
+    self.title = title; self.sub = sub; self.subColor = subColor; self.trailing = trailing
   }
 }
 
