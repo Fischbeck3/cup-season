@@ -9225,28 +9225,61 @@ async function csRevokeLink(kind, ref){
    record it moved. Every line names a feeling — nothing here is a bare stat.
    Dismissible; skipped silently on deploy skew or a nothing-to-say round so the
    60-second post is never blocked (D17 tradeoff). Reuses the .check row shape. */
+/* D329 · EVERY MARK HERE IS THE ONE `ACH_META` ALREADY DRAWS, on the same key.
+   The case drew `ironman` for twelve weeks while this drew the Saguaro, and the
+   case drew one `threshold` with the number inside it while this drew the same
+   trophy emoji on all three milestones. One achievement, two marks, depending
+   on which screen you stood on. Byte-for-byte with the phone (check 29). */
 const EPI_ACH = {
-  personal_best: { icon:'⭐', txt:'A personal best',                     sub:'The best round you’ve posted' },
-  sub_80:        { icon:'🏆', txt:'You broke 80 for the first time', sub:'That one goes on the wall' },
-  sub_90:        { icon:'🏆', txt:'You broke 90 for the first time', sub:'In your trophy case' },
-  sub_100:       { icon:'🏆', txt:'You broke 100 for the first time',sub:'In your trophy case' },
-  /* D326 · the fire was a reaction until D309 and may not mean two things.
-     The Saguaro already means STILL STANDING, which is what a streak is. */
-  streak_4:      { icon:'marker:saguaro', txt:'Four weeks running',             sub:'Nobody’s had to ask where you were' },
-  streak_8:      { icon:'marker:saguaro', txt:'Eight weeks running',            sub:'Two months and still nobody’s had to ask' },
-  streak_12:     { icon:'marker:saguaro', txt:'Twelve weeks running',           sub:'Three months. The rest of them take weeks off.' },
-  first_round:   { icon:'🎉', txt:'Your first round is on the board',     sub:'Your number and record start here' },
+  personal_best: { icon:'trophy:personalBest', txt:'A personal best',                     sub:'The best round you’ve posted' },
+  /* the numeral is the difference and the shape is the constant (§5.2) */
+  sub_80:        { icon:'trophy:threshold:80', txt:'You broke 80 for the first time', sub:'That one goes on the wall' },
+  sub_90:        { icon:'trophy:threshold:90', txt:'You broke 90 for the first time', sub:'In your trophy case' },
+  sub_100:       { icon:'trophy:threshold:100', txt:'You broke 100 for the first time',sub:'In your trophy case' },
+  /* D326 gave these the Saguaro so the fire would not mean two things. D329
+     gives them the mark the CASE gives them: the ticks, counted — and at twelve
+     the run doubled and stopped at both ends, which is its own achievement. */
+  streak_4:      { icon:'trophy:streak:4', txt:'Four weeks running',             sub:'Nobody’s had to ask where you were' },
+  streak_8:      { icon:'trophy:streak:8', txt:'Eight weeks running',            sub:'Two months and still nobody’s had to ask' },
+  streak_12:     { icon:'trophy:ironman', txt:'Twelve weeks running',           sub:'Three months. The rest of them take weeks off.' },
+  first_round:   { icon:'trophy:firstCard', txt:'Your first round is on the board',     sub:'Your number and record start here' },
 };
 /* D326 · the web twin of `PostEpilogueMark`. '' is no mark, 'marker:<key>' is
-   one of the fourteen drawn marks, anything else is a literal glyph. The table
-   above is ONE table with the phone's (preflight check 29), so the convention
-   has to live in the value and be read on both sides. */
-function epiMark(icon){
+   one of the fourteen drawn markers, anything else is a literal glyph. The
+   table above is ONE table with the phone's (preflight check 29), so the
+   convention has to live in the value and be read on both sides.
+   D329 adds the case this table now actually uses: 'trophy:<glyph>' and
+   'trophy:<glyph>:<numeral>', the ACHIEVEMENT family that `csTrophyMark`
+   already draws for the trophy case. The numeral is what makes `threshold`
+   mean 80 rather than 90, so it travels in the value with the glyph.
+   `tint` is the golfer's look accent, passed by the caller — the epilogue is
+   the one surface that colours these marks (see the phone's EpilogueSheet).
+   **THE DESK PASSES NOTHING AND THAT IS NOT AN OVERSIGHT.** The look system is
+   the phone's alone: there is no look picker here and no accent to read, so
+   these marks stay ink. The MARK is what D329 made agree across the two
+   clients, and it does; the colour differs because one client has a dial the
+   other has not been given yet. When looks reach the desk this is one
+   argument, which is why the parameter exists rather than being added later. */
+function epiMark(icon, tint){
   if(!icon) return '';
   if(icon.indexOf('marker:')===0){
     const k = icon.slice(7);
     const svg = (typeof window!=='undefined' && window.mkr) ? window.mkr(k) : '';
     return svg ? `<span class="num">${svg}</span>` : '';
+  }
+  if(icon.indexOf('trophy:')===0){
+    /* split at most twice, so a numeral can never eat the glyph's name */
+    const body = icon.slice(7), i = body.indexOf(':');
+    const g = i < 0 ? body : body.slice(0, i);
+    const n = i < 0 ? null : (body.slice(i+1) || null);
+    /* a bare 'trophy:' is a typo, not a mark — draw nothing rather than the
+       medal fallback, which would look deliberate on a celebration screen */
+    if(!g) return '';
+    /* 18 against 17px text, the same call the phone makes: line art reads
+       lighter than a filled glyph, so it sits a hair larger to match weight.
+       The tint reaches the MARK, not a wrapper — csTrophyMark sets its own
+       colour on the drawing and an outer span would be overridden. */
+    return `<span class="num">${csTrophyMark(g, n, 18, tint)}</span>`;
   }
   return `<span class="num">${esc(icon)}</span>`;
 }
@@ -9388,7 +9421,11 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     rows.push(`<div class="check"><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
   }
   (epi.earned||[]).forEach(a=>{
-    const m=EPI_ACH[a.kind] || { icon:'<svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg>', txt:a.label||'A milestone', sub:'In your trophy case' };
+    /* D329 · the fallback is the CASE's fallback, on both clients. A kind this
+       build has no row for drew a flag here, a star on the phone and the drawn
+       medal in the trophy case — one unknown achievement, three marks. It is
+       the medal now, which is what `ACH_META`'s own fallback has always been. */
+    const m=EPI_ACH[a.kind] || { icon:'trophy:medal', txt:a.label||'A milestone', sub:'In your trophy case' };
     rows.push(`<div class="check">${epiMark(m.icon)}<div class="tt"><b>${esc(m.txt)}</b><small>${esc(m.sub)}</small></div></div>`);
   });
   (epi.rivals||[]).forEach(rv=>{
@@ -17979,9 +18016,14 @@ const CS_TROPHY_PATH = {
   personalBest: 'M2.6 8.6h18.8M15.4 13.4h5.2v5.2h-5.2z',
   improved:  'M4 20.4V14h4v6.4M10 20.4V10.4h4v10M16 20.4V6.4h4v14',
 };
-function csTrophyMark(glyph, numeral, size){
+/* D329 · `tint` is the fourth argument and the ONLY caller that passes it is
+   the post-round epilogue, which wears the golfer's look accent so an
+   all-drawn celebration is not a monochrome one. Everything else — the whole
+   trophy case — omits it and stays ink, because a shelf where every piece is
+   coloured is a shelf with no hierarchy. The twin of `CSTrophyMark(tint:)`. */
+function csTrophyMark(glyph, numeral, size, tint){
   const px = size || 28;
-  const box = `width:${px}px; height:${px}px; flex:none; color:var(--ink)`;
+  const box = `width:${px}px; height:${px}px; flex:none; color:${tint || 'var(--ink)'}`;
   if(glyph==='lowRound' || glyph==='threshold'){
     const through = glyph==='threshold';
     return `<span aria-hidden="true" style="${box}; display:flex; flex-direction:column; justify-content:center; position:relative">

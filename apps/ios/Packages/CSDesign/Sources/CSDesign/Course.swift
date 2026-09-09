@@ -535,6 +535,13 @@ public struct CSCoursePlate<Plate: View, Panel: View>: View {
     .frame(minHeight: height)
     .frame(maxWidth: .infinity)
     .clipped()
+    // The rung-1 plate is an `AsyncImage` at `scaledToFill`, so its hit region
+    // runs past this band on the axis it covers. Capped here, at the composed
+    // band, rather than at the inner plate: one line seals both, and the inner
+    // one is the component's own loop where a future non-opaque plate would
+    // newly block. Every rung paints an opaque ground, so this adds no
+    // blocking that the drawing did not already imply.
+    .contentShape(Rectangle())
   }
 
   @ViewBuilder private func head(over scrim: Bool) -> some View {

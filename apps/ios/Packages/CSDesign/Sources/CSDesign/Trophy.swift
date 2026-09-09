@@ -73,12 +73,21 @@ public struct CSTrophyMark: View {
   let size: CGFloat
   /// The mark's own accessibility name, in the product's words.
   let spoken: String
+  /// **D329 · the one place a trophy mark is not `ink`.** The trophy case is a
+  /// shelf of many marks and they are all ink, because a case where every
+  /// piece is coloured is a case with no hierarchy. The post-round epilogue is
+  /// the opposite: four marks at most, on the one screen a golfer sees after a
+  /// round that went well, and going all-drawn would have made it monochrome.
+  /// So it passes the golfer's own look accent here. `nil` is the shelf's ink
+  /// and stays the default, so no existing call site moves.
+  let tint: Color?
 
-  public init(_ key: String, numeral: String? = nil, size: CGFloat = 28, spoken: String = "") {
+  public init(_ key: String, numeral: String? = nil, size: CGFloat = 28, spoken: String = "", tint: Color? = nil) {
     self.mark = Mark(rawValue: key) ?? .medal
     self.numeral = numeral
     self.size = size
     self.spoken = spoken
+    self.tint = tint
   }
 
   public var body: some View {
@@ -97,7 +106,7 @@ public struct CSTrophyMark: View {
       }
     }
     .frame(width: size, height: size)
-    .foregroundStyle(cs.ink)
+    .foregroundStyle(tint ?? cs.ink)
     .accessibilityHidden(spoken.isEmpty)
     .accessibilityLabel(spoken)
   }

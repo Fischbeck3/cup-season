@@ -35,26 +35,69 @@ public enum PostEpilogueRow: Sendable, Equatable, Identifiable {
 /// byte-for-byte by preflight check 29. A Swift-only enum would break that
 /// guard and split the table, so the convention lives in the VALUE and both
 /// clients parse it (`epiMark` is the web twin).
+///
+/// **D329 AMENDS D326 AGAIN, AND THIS TIME IT IS NOT ABOUT EMOJI.** The rule
+/// above still stands: a private mark MAY be a glyph. It turned out the
+/// epilogue should not take that permission, for a reason that has nothing to
+/// do with the rule — **the trophy case already draws every one of these
+/// achievements, on the same keys, on both clients.** The case draws a
+/// dedicated Iron Man for a twelve-week streak; the epilogue drew the Saguaro.
+/// The case draws ONE threshold shape with 80, 90 or 100 set inside it; the
+/// epilogue drew the same trophy emoji three times in a row and had no numeral
+/// to tell them apart. So one achievement wore two different marks depending
+/// on which screen you were standing on, which is L-34 exactly. The fix is not
+/// a new drawing — it is pointing this table at the family that already exists.
 public enum PostEpilogueMark: Sendable, Equatable {
   /// `""` — the fact leads its own row.
   case none
-  /// `marker:<key>` — one of the fourteen drawn marks.
+  /// `marker:<key>` — one of the fourteen drawn markers, the GOLFER-IDENTITY
+  /// family. **No epilogue row uses this after D329** and the case is kept on
+  /// purpose: it is half of a convention the web parses too, and a marker is
+  /// still the right mark for a row about who somebody is rather than what
+  /// they did.
   case marker(String)
-  /// anything else — a literal glyph, on a private surface, that earns its place.
+  /// `trophy:<glyph>` or `trophy:<glyph>:<numeral>` — the ACHIEVEMENT family
+  /// (`CSTrophyMark` on the phone, `csTrophyMark` on the desk), which is what
+  /// the trophy case has drawn all along. The numeral is the third field
+  /// because it is what makes `threshold` mean 80 rather than 90, and a mark
+  /// that carries a value cannot say which value without it.
+  case trophy(glyph: String, numeral: String?)
+  /// anything else — a literal glyph, on a private surface, that earns its
+  /// place. Still permitted by AP-5 as amended; no longer used by this table.
   case glyph(String)
 
   public init(_ icon: String) {
     if icon.isEmpty { self = .none }
     else if icon.hasPrefix(Self.markerPrefix) {
       self = .marker(String(icon.dropFirst(Self.markerPrefix.count)))
+    } else if icon.hasPrefix(Self.trophyPrefix) {
+      // `trophy:threshold:80` → ("threshold", "80"); `trophy:ironman` → ("ironman", nil).
+      // Split at most twice so a numeral may never eat the glyph's name.
+      let body = String(icon.dropFirst(Self.trophyPrefix.count))
+      let parts = body.split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+      let g = String(parts.first ?? "")
+      let n = parts.count > 1 && !parts[1].isEmpty ? String(parts[1]) : nil
+      // A `trophy:` with nothing after it is not a mark; it is a typo, and a
+      // typo should draw nothing rather than the medal fallback, which would
+      // look deliberate on a celebration screen.
+      self = g.isEmpty ? .none : .trophy(glyph: g, numeral: n)
     } else { self = .glyph(icon) }
   }
 
   public static let markerPrefix = "marker:"
+  public static let trophyPrefix = "trophy:"
 }
 
 public struct PostEpilogue: Sendable, Equatable {
-  public struct Earned: Sendable, Equatable { public let kind: String; public let label: String? }
+  public struct Earned: Sendable, Equatable {
+    public let kind: String
+    public let label: String?
+    /// Public because the app target builds one: `-cs_dev_epilogue` seeds the
+    /// celebration screen with every kind at once, and that state is otherwise
+    /// unreachable — these are SERVER grants. The memberwise init is internal
+    /// by default, which is why a DEBUG fixture could not name a milestone.
+    public init(kind: String, label: String?) { self.kind = kind; self.label = label }
+  }
   public struct Rival: Sendable, Equatable {
     public let name: String; public let wins: Int; public let losses: Int; public let ties: Int
     public let lead: String?; public let rivalryName: String?
@@ -147,20 +190,30 @@ public struct PostEpilogue: Sendable, Equatable {
   /// clients. The web's `streak_12` carried `streak_4`'s line — a twelve-week
   /// streak told it had played every week for a month. Preflight check 29 now
   /// compares the two, key by key, so a one-sided edit fails the push.
+  /// **D329 · EVERY MARK HERE IS THE ONE THE TROPHY CASE ALREADY DRAWS**, keyed
+  /// by the same achievement id, on both clients. Before this the two surfaces
+  /// disagreed about the same round: the case drew `ironman` for twelve weeks
+  /// and this drew the Saguaro; the case drew `threshold` with the number set
+  /// inside it and this drew one trophy emoji on all three milestones, because
+  /// the row had no numeral to tell them apart. Nothing new was drawn to fix
+  /// it — `TrophyMeta.ach` and `ACH_META` had the marks the whole time.
   public static let achievements: [String: (icon: String, txt: String, sub: String)] = [
-    "personal_best": ("⭐", "A personal best", "The best round you’ve posted"),
-    "sub_80": ("🏆", "You broke 80 for the first time", "That one goes on the wall"),
-    "sub_90": ("🏆", "You broke 90 for the first time", "In your trophy case"),
-    "sub_100": ("🏆", "You broke 100 for the first time", "In your trophy case"),
-    // D326 · the fire was a reaction until D309 and may not mean two things.
-    // The Saguaro (marker #1) already means STILL STANDING, which is what a
-    // streak is. `marker:` is the convention both clients parse — see `Mark`.
-    "streak_4": ("marker:saguaro", "Four weeks running", "Nobody’s had to ask where you were"),
-    "streak_8": ("marker:saguaro", "Eight weeks running", "Two months and still nobody’s had to ask"),
-    "streak_12": ("marker:saguaro", "Twelve weeks running", "Three months. The rest of them take weeks off."),
+    "personal_best": ("trophy:personalBest", "A personal best", "The best round you’ve posted"),
+    // The numeral is the difference and the shape is the constant — §5.2, and
+    // the reason three milestones may share one drawing without sharing a mark.
+    "sub_80": ("trophy:threshold:80", "You broke 80 for the first time", "That one goes on the wall"),
+    "sub_90": ("trophy:threshold:90", "You broke 90 for the first time", "In your trophy case"),
+    "sub_100": ("trophy:threshold:100", "You broke 100 for the first time", "In your trophy case"),
+    // D326 gave these the Saguaro, to stop the fire meaning two things. D329
+    // gives them the mark the CASE gives them: the ticks, counted — and at
+    // twelve weeks the run doubled and stopped at both ends, which is the one
+    // achievement that is not a longer version of the row above it.
+    "streak_4": ("trophy:streak:4", "Four weeks running", "Nobody’s had to ask where you were"),
+    "streak_8": ("trophy:streak:8", "Eight weeks running", "Two months and still nobody’s had to ask"),
+    "streak_12": ("trophy:ironman", "Twelve weeks running", "Three months. The rest of them take weeks off."),
     // D326 · this row and the `firstEver` insert below were the SAME sentence
     // twice. They now share one glyph and one sub, and only one of them draws.
-    "first_round": ("🎉", "Your first round is on the board", "Your number and record start here"),
+    "first_round": ("trophy:firstCard", "Your first round is on the board", "Your number and record start here"),
   ]
 
   /// `epiCounting(rank)` with the league's cap (nil = unlimited).
@@ -182,7 +235,13 @@ public struct PostEpilogue: Sendable, Equatable {
       rows.append(.line(icon: "", title: title, sub: CSBands.vsPhrase(pvi) + Self.counting(rank: monthRank, cap: cap)))
     }
     for a in earned {
-      let m = Self.achievements[a.kind] ?? ("✦", a.label ?? "A milestone", "In your trophy case")
+      // **D329 · THE FALLBACK IS THE CASE'S FALLBACK.** A kind this build has
+      // no row for drew `✦` here and the DRAWN medal in the trophy case, so an
+      // achievement the server grants before the client knows its name wore two
+      // different marks on two screens — the very split this wave closed for
+      // the eight rows that are named. `TrophyMeta.meta` states the rule ("a
+      // real mark rather than a hole in the case") and this now follows it.
+      let m = Self.achievements[a.kind] ?? ("trophy:medal", a.label ?? "A milestone", "In your trophy case")
       rows.append(.line(icon: m.icon, title: m.txt, sub: m.sub))
     }
     for rv in rivals {

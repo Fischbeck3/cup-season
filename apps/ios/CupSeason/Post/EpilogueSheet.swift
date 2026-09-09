@@ -30,6 +30,10 @@ struct EpilogueSheet: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
+  /// D329 · the epilogue's marks wear the golfer's look. `\.csLook` is set at
+  /// the app root (D302), so this reads whatever they picked in settings and
+  /// falls back to ink when no look is active.
+  @Environment(\.csLookAccent) private var la
   let show: PostEpilogueShow
   let photo: UIImage?
   var links = EpilogueLinks()
@@ -69,7 +73,7 @@ struct EpilogueSheet: View {
         }
 
         // D326 · a mark is a glyph, a drawn marker, or nothing. The row says
-        // which; this only draws it.
+        // which; this only draws it. D329 added the fourth and now usual case.
         ForEach(rows) { row in
           if case .line(_, let title, let sub) = row {
             switch row.mark {
@@ -79,6 +83,20 @@ struct EpilogueSheet: View {
               // 18pt against 17pt text — the marker's stroke reads lighter than
               // an emoji's fill, so it sits a hair larger to match its weight.
               CheckRow(glyph: CSMarkerView(key: key, size: 18), title: title, sub: sub) { EmptyView() }
+            case .trophy(let g, let n):
+              // **THE SAME 18pt, AND FOR THE SAME REASON**: this is line art in
+              // a column of 17pt text. `CSTrophyMark`'s own default is 28,
+              // which is the trophy case's shelf size and would tower here.
+              //
+              // **AND THE ONE PLACE A TROPHY MARK IS NOT INK.** All-drawn was
+              // the right call for agreement with the case, and taken alone it
+              // would have turned the app's one celebration into a monochrome
+              // list. The golfer's own look carries it instead — the same
+              // accent the live rule and the live dot already wear — so the
+              // screen keeps its colour without borrowing gold, whose budget is
+              // one object per viewport and already spent (LINT-17).
+              CheckRow(glyph: CSTrophyMark(g, numeral: n, size: 18, tint: la.active ? la.accent : nil),
+                       title: title, sub: sub) { EmptyView() }
             case .glyph(let g):
               CheckRow(glyph: Text(g), title: title, sub: sub) { EmptyView() }
             }

@@ -300,6 +300,10 @@ struct MainTabView: View {
   @State private var devOpened = false
   #if DEBUG
   @State private var devCeremony = false
+  /// D329 · the epilogue against a DEBUG fixture. Same reason as the ceremony:
+  /// its rows are SERVER grants and no simulator can hold eight at once.
+  @State private var devEpilogue = false
+  @State private var devEpilogueUnknown = false
   #endif
   #endif
   /// D222 · five slots. The order is the band's order and the ⊕ is the middle
@@ -537,6 +541,11 @@ struct MainTabView: View {
       // Wave 8 · the ceremony against a DEBUG fixture — the one surface in the
       // product whose real state (`complete`) exists on no device this repo has.
       case "ceremony": devCeremony = true
+      // D329 · the celebration screen, every row at once. `epilogue unknown`
+      // appends a kind no build knows, to photograph the fallback mark.
+      case "epilogue":
+        devEpilogueUnknown = i + 2 < a.count && a[i + 2] == "unknown"
+        devEpilogue = true
       // Wave 7 · the receipt opens from a POINTS FIGURE, which means a finger,
       // and it is one of this wave's two flagship artboards. The hatch opens
       // the newest round this account actually holds; with none it opens
@@ -670,6 +679,7 @@ struct MainTabView: View {
     // `complete`, so the audit's P0 could otherwise be rebuilt and never seen.
     // DEBUG only; the fixture's golfers are invented (see `CeremonyFixture`).
     .modifier(CeremonyHatch(up: $devCeremony))
+    .modifier(EpilogueHatch(up: $devEpilogue, unknown: devEpilogueUnknown))
     #endif
     .onChange(of: tab) { old, new in
       // The band never SELECTS the ⊕ — it calls `onPlay` — so this is now the

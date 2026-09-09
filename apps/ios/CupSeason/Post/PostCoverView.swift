@@ -49,6 +49,7 @@ struct PostCoverView: View {
 
   enum Route: Hashable { case post }
 
+
   var body: some View {
     PostCoverStack(links: links, startOnPost: (startOnComposer && !Self.forcedCover) || Self.forcedOpen, close: { dismiss() })
       .modifier(PostCoverRise())
@@ -90,6 +91,13 @@ private struct PostCoverStack: View {
   @State private var path: NavigationPath
   @State private var showPlan = false
   @State private var kept: [KeptCard] = []
+
+  /// D330 · what the topo is drawn from. `CSContour` §2: with no home course
+  /// the curves are seeded from the GOLFER's id, and with neither there is no
+  /// field — Compete's own rule is "no plate rather than one seeded from
+  /// nothing", and a field seeded from a constant would be the same picture on
+  /// every phone, which is the opposite of what this texture is for.
+  private var startSeed: String? { store.me?.profile?.id.uuidString }
 
   init(links: PostLinks, startOnPost: Bool, close: @escaping () -> Void) {
     self.links = links; self.close = close
@@ -174,17 +182,46 @@ private struct PostCoverStack: View {
           // It is the same act as Home's `START SOMETHING` door and Compete's
           // — one sheet, `IntentSheet`, reached from wherever the thought
           // occurs. Creation starts from intent, never from configuration.
+          // **D330 · IT WAS THE QUIETEST ROW ON THE SCREEN AND IT IS THE ONE
+          // NOVEL THING IN THE PRODUCT** (owner: *"Start Something in Play
+          // needs a bolder section, its ur flagship offering and novel Idea.
+          // Maybe add the topo element"*).
+          //
+          // Its own rule and its own gap were the whole of the difference, and
+          // set beside three rows drawn at the same size with the same tick and
+          // the same chevron, that reads as a fourth peer at the bottom of a
+          // list — the LAST thing an eye reaches on a screen whose first row is
+          // an ember hero. A structural difference nobody sees is not one.
+          //
+          // **L-25 STILL HOLDS AND IS WHY THIS IS NOT A SECOND EMBER.** The
+          // live row spends the metal, and spending it twice spends it on
+          // nothing. The step is made of the three things that are free:
+          // **SCALE** (`CSSectionHead(.display)` — `displayS` 24 over rows set
+          // at 15–17, which §18 calls a 1.6× size step and a full contrast step
+          // in one object, and which the system already names as the answer to
+          // *"sections aren't differentiated"*), **AIR**, and **TEXTURE**.
+          //
+          // **AND NO RULE, WHICH IS THE COMPONENT'S OWN LAW, NOT A LIBERTY.**
+          // A `.display` head "carries no rule and no box — `s5` of air above
+          // it and the size step are the separation", because a hairline under
+          // a 24pt line is the head competing with its own rows for the same
+          // device. So the rule that used to set this apart is what came out.
           VStack(alignment: .leading, spacing: 0) {
-            CSRule()
-            // L-25 · the live row already wears the ember on this screen, and
-            // spending it twice spends it on nothing. What sets this row apart
-            // is structural — its own rule and its own gap — not a second
-            // metal competing with the one act that is genuinely happening now.
-            PostOptionRow(tick: cs.rule, title: "Start something",
-                          sub: "A season, a weekend, a one-off — pick who's in and what you're playing for.",
-                          last: true) { close(); links.startSomething() }
+            PostStartBlock(seed: startSeed) { close(); links.startSomething() }
           }
-          .padding(.top, 20)
+          .padding(.top, CSTokens.Space.s5)
+          // **FULL-BLEED, AND IT IS HALF THE STEP.** The stack below is inside
+          // `.padding(20)` and `s4` IS that 20, so this takes it back and the
+          // band re-pays it on its own content. It runs to both screen edges;
+          // nothing else on this screen does, which is the whole point.
+          //
+          // **IT IS TAKEN HERE AND NOT INSIDE THE BLOCK.** Applied within the
+          // Button's own label it measured correctly and drew nothing — the
+          // band still stopped dead on the page margin at both edges (probed:
+          // x 60→1145 of 1206, which is exactly 20pt inset twice). Negative
+          // padding has to be spent OUTSIDE the button that owns the layout,
+          // not inside it.
+          .padding(.horizontal, -CSTokens.Space.s4)
           // F-13 · what the long-press OPENS, named. "Your card" is the profile
           // (the exempt sense) and this opens the composer — on a screen whose
           // row above calls the same destination "Add a round you played".
@@ -206,6 +243,109 @@ private struct PostCoverStack: View {
 }
 
 /// D110 hero — the live door: ember spine, a breathing LIVE word, taller.
+/// D330 · **Start something, as a section rather than a fourth row.**
+///
+/// The one act on this cover that does not produce a ROUND. The three above it
+/// make golf; this makes the thing golf is played FOR, and it is the product's
+/// novel idea — so it is the one that had to stop looking like the last item
+/// in a list.
+///
+/// **THE TOPO IS NOT DECORATION HERE, WHICH IS THE ONLY REASON IT IS ALLOWED.**
+/// `CSContour` is the signature of a COMPETITION surface — it is what Compete
+/// and a season page wear at their heads, and nothing else in the product does.
+/// Putting it on this door puts the destination's own face on the way in, so
+/// the block is recognisably a piece of Compete sitting inside the ⊕. A field
+/// chosen because it looked good would have been a wash, and D270 deleted the
+/// washes.
+///
+/// **IT FOLLOWS THE LIVERY** (owner, on Compete: *"topo can follow themes"*).
+/// Under a look the field takes the accent; on homebase it is `mut`, the
+/// neutral it has always been — the same expression as `CompeteScreen`, so a
+/// golfer who changes their look changes both together.
+struct PostStartBlock: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.csLookAccent) private var la
+  let seed: String?
+  let action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      // **THE STEP IS A GROUND, BECAUSE SCALE WAS NOT AVAILABLE.**
+      //
+      // The first build of this made it a `.display` head with air and no rule
+      // and it came out QUIETER than the three rows above — because those rows
+      // are `displayS` too, so the 1.6× step §18 promises is a step over rows
+      // set at 15–17 and there is no step at all over rows set at 24. Bigger
+      // was not available either: §1.5 gives a viewport exactly one `display`
+      // and the masthead has it.
+      //
+      // So the step is the one container the screen is not already using. Every
+      // other row on this cover sits on `bg0` between hairlines; this is a
+      // TONE BAND, full-bleed to both edges, and a solid ground running out
+      // past the page margin is a different KIND of object rather than a
+      // louder row. It is also what gives the topo somewhere to live: at `a24`
+      // over `bg1` the isolines read as a field the block is printed on, and
+      // over `bg0` between rules they read as lines drawn across the copy.
+      CSBand(.tone, padding: 0) {
+      HStack(alignment: .center, spacing: CSTokens.Space.s3) {
+        VStack(alignment: .leading, spacing: 0) {
+          CSSectionHead("Start something", weight: .display)
+          // LV-14 / L-34 · Home's door for this same act glosses it *"A season,
+          // a weekend, a head to head"* and this said *"a one-off"* — one door,
+          // two names for what it makes. `StartIntent.peers` is the truth of
+          // it (`Run a season`, `We're playing this weekend`, `Go head to
+          // head`, `Play with my friends`), and a head to head is one of the
+          // four while a one-off is not one of anything.
+          Text("A season, a weekend, a head to head — pick who's in and what you're playing for.")
+            .csType(.bodyS)
+            .foregroundStyle(cs.mut)
+            .multilineTextAlignment(.leading)
+            .padding(.top, CSTokens.Space.s2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        // MUT, not ember: the live row above already holds this screen's metal
+        // and §1.4's budget is two marks a viewport (L-25).
+        CSGlyph(.chevron, size: .row).foregroundStyle(cs.mut)
+      }
+      .fixedSize(horizontal: false, vertical: true)
+      // The band takes `padding: 0` and the air is set here instead, so the
+      // field below fills the WHOLE band rather than an inset box inside it.
+      .padding(.vertical, CSTokens.Space.s5)
+      .padding(.horizontal, CSTokens.Space.s4)
+      .background(alignment: .top) {
+        if let seed {
+          // **`a16`, NOT COMPETE'S `a24`, AND THE DIFFERENCE IS WHAT IS DRAWN
+          // OVER IT.** On Compete the field sits behind a HEAD, in air, and
+          // `CompeteScreen`'s own comment records what happened the first time
+          // it did not: the curves ran down through the season rows, "where a
+          // 24%-opacity line crossing a 17pt name is legibility spent on
+          // nothing". Here there is no way to keep the field off the copy —
+          // the block is a head AND two lines of body — so the field gives way
+          // instead. A texture may sit under type; it may not cross it.
+          CSContour(seed: seed, tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a16))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // **THE FIELD MAY NOT TAKE A TOUCH** — it is drawn behind a door,
+            // and `allowsHitTesting(false)` is the tool for that rather than a
+            // content shape. IOS-078 is the entry that says why: a
+            // `contentShape(Rectangle())` over stroked isolines would turn a
+            // decorative field into a solid target, and this one sits inside a
+            // Button whose own shape is declared below.
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
+      }
+      }
+      // `.clipped()` holds the field to the band (a background draws past its
+      // frame), and the content shape is what the thumb gets — the band,
+      // exactly, and not the isolines. D301's asymmetry, used on purpose.
+      .clipped()
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityHint("Opens the ways to start a competition")
+  }
+}
+
 struct PostLiveHeroRow: View {
   @Environment(\.cs) private var cs
   let title: String

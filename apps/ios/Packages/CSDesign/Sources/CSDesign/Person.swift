@@ -745,6 +745,20 @@ public struct CSCredential<Plate: View>: View {
     }
     .frame(height: plateHeight)
     .clipped()
+    // **D301 SEALED THE PHOTOGRAPH AND NOT THE BLOCK DRAWN ON TOP OF IT.**
+    // The `plate` above carries its own `.contentShape` and stops there; this
+    // is the whole head — plate, scrims, `identityBlock`, the medallion and
+    // `plateHead` — under a HARD `.frame(height:)` over a ZStack whose natural
+    // height is content-driven. `Text(golfer.name)` takes two lines and
+    // `plateHeadBand` reserves the slot's row above it, so a long name makes
+    // the stack taller than the plate, and a `.frame(height:)` CENTRES what it
+    // cannot fit: the overflow hangs ABOVE, which on the You page is where
+    // `chromeRow` and its `Settings` link are — drawn BEFORE the credential and
+    // therefore underneath it. That is D301 exactly, one level up.
+    // The a11y sizes were already handled by dropping the block off the plate
+    // (`if !typeSize.isA11y`); this covers the ordinary sizes, where the same
+    // overhang is smaller, silent, and still lands on the one control up there.
+    .contentShape(Rectangle())
   }
 
   /// The medallion clears the copy band rather than sitting on the name: it is

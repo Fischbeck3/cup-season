@@ -1,11 +1,26 @@
 // Cup Season — THE REACTION TOKENS, DRAWN (D309).
 //
-// The six emoji were the last foreign objects in the product. AP-5 states the
-// rule everything else keeps — *"emoji are the six reaction glyphs and nothing
-// else"* — and D277's Wave 8 collapsed four icon systems into one; the
+// The six emoji were the last foreign objects in the product. AP-5 STATED, at
+// the time this file was written, *"emoji are the six reaction glyphs and
+// nothing else"* — and D277's Wave 8 collapsed four icon systems into one; the
 // reactions were the fifth that survived, rendered in whatever face the phone
 // supplies at whatever weight Apple ships this year, beside a drawn family at a
 // fixed 1.8 stroke.
+//
+// **AP-5 HAS SINCE BEEN AMENDED, BY THIS FILE'S OWN DOING (D326).** Replacing
+// the six with four drawn tokens took the rule's subject away and left it
+// reading as *no emoji anywhere*, which cost the post-round epilogue eleven
+// glyphs before anybody noticed the sentence had outlived its reason. It now
+// binds SHARED marks only: a mark other people see is drawn, because the fire
+// is three different pictures across iOS, Android and the desk; a mark only you
+// see may be a glyph. Nothing about this file changes — a reaction is the most
+// shared mark in the product — but the quotation above is history, not law.
+//
+// **AND THIS FILE IS NO LONGER EXEMPT FROM `LINT-12`** (2026-09-09). It was
+// skipped back when the six canon reactions WERE emoji; it has held zero emoji
+// codepoints since D309, so the exemption was protecting nothing and standing
+// exactly where a shared mark would quietly go back to being a glyph. The skip
+// came out and the check now covers this file like any other.
 //
 // **TWO OF THE FOUR WERE ALREADY DRAWN.** The Azalea and the Jug are markers #9
 // and #10 of the fourteen — same 24 grid, same stroke, shipped since the marker

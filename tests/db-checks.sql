@@ -159,23 +159,41 @@ from (
       group by 1, 2, 3 having count(*) > 1) d) as dupes
 ) t
 
--- 9 · the email column stays sealed — AND every other profiles column stays
+-- 9 · the SEALED columns stay sealed — AND every other profiles column stays
 --     readable. The seal froze the column-grant list (20260721214500); a new
 --     column without its own grant fails boot as 42501 (photo_path, 2026-07-23).
+--     TWO COLUMNS ARE SEALED, NOT ONE (2026-09-09). This check knew only about
+--     `email` and so reported the second seal as a hole: C-11's `contact_hash`
+--     (20260928100000) is DELIBERATELY ungranted, and that migration's own
+--     self-check raises if it ever becomes selectable — granting it would hand
+--     every signed-in golfer the peppered digest of everyone's email, which is
+--     precisely the offline matching the RPC's gate exists to prevent. So the
+--     check returned FAIL against a correct production, and a guard that is
+--     permanently red is a guard nobody reads. The seal list is now the subject
+--     of the check rather than a single name: each sealed column is asserted
+--     UNREADABLE, and every column that is not sealed must carry its grant.
+--     ADDING A COLUMN HERE IS A DELIBERATE ACT — it means "no client selects
+--     this, and handing it to one would be a disclosure."
 union all
 select '9 · profiles column grants',
-  case when has_column_privilege('anon', 'public.profiles', 'email', 'select')
-         or has_column_privilege('authenticated', 'public.profiles', 'email', 'select')
-    then 'FAIL — an API role can select profiles.email'
+  case when exists (select 1 from unnest(array['email','contact_hash']) sealed(col)
+         where has_column_privilege('anon', 'public.profiles', sealed.col, 'select')
+            or has_column_privilege('authenticated', 'public.profiles', sealed.col, 'select'))
+    then 'FAIL — an API role can select a sealed column: ' ||
+      (select string_agg(sealed.col, ', ') from unnest(array['email','contact_hash']) sealed(col)
+        where has_column_privilege('anon', 'public.profiles', sealed.col, 'select')
+           or has_column_privilege('authenticated', 'public.profiles', sealed.col, 'select'))
        when exists (select 1 from information_schema.columns c
-         where c.table_schema='public' and c.table_name='profiles' and c.column_name <> 'email'
+         where c.table_schema='public' and c.table_name='profiles'
+           and c.column_name <> all (array['email','contact_hash'])
            and not has_column_privilege('authenticated', 'public.profiles', c.column_name, 'select'))
-    then 'FAIL — ungranted non-email column: ' ||
+    then 'FAIL — ungranted non-sealed column: ' ||
       (select string_agg(c.column_name, ', ') from information_schema.columns c
-        where c.table_schema='public' and c.table_name='profiles' and c.column_name <> 'email'
+        where c.table_schema='public' and c.table_name='profiles'
+          and c.column_name <> all (array['email','contact_hash'])
           and not has_column_privilege('authenticated', 'public.profiles', c.column_name, 'select'))
     else 'PASS' end,
-  'email sealed (20260718172300) · every later profiles column needs its own grant'
+  'email (20260718172300) + contact_hash (C-11) sealed · every other column needs its own grant'
 
 -- 10 · anon holds ZERO relation privileges in public (seal 20260724150000):
 --      no table/view/sequence grants, no column grants, and no default-privilege
@@ -414,13 +432,40 @@ select '17 · band boundaries',
 --     exists for exactly this failure, watched it happen and said PASS,
 --     because it names `live_round_players` and nothing else.
 --     A schema fact cannot be checked from source; it is checked here.
---     SCOPED to tables a client embeds, and four pairs are ACCEPTED by name:
+--     SCOPED to tables a client embeds, and five pairs are ACCEPTED by name:
 --     rounds (posted_by, D125a), live_round_players (guest paths),
---     content_reports (read only via moderation_queue) and round_comments
---     (queried by neither client) all carry two paths and none is a fault,
---     because nothing embeds them. Schema-wide the invariant is FALSE BY
---     DESIGN — fourteen more healthy pairs exist. A guard that fires on things
---     that are fine teaches people to push past guards.
+--     content_reports (read only via moderation_queue), round_comments
+--     (queried by neither client) and posts (see below) all carry two paths
+--     and none is a fault, because nothing embeds them. Schema-wide the
+--     invariant is FALSE BY DESIGN — fourteen more healthy pairs exist. A
+--     guard that fires on things that are fine teaches people to push past
+--     guards.
+--
+--     POSTS BECAME A SECOND PAIR ON 2026-09-21 AND NOBODY NOTICED UNTIL NOW
+--     (accepted 2026-09-09). `posts.hidden_by -> profiles` landed with the
+--     takedown path (20260901120000); D199 saw it the next day and wrote
+--     "posts keeps its audit FK: nothing embeds it, and integrity is free
+--     where it costs nothing" — TRUE AT THE TIME, because `posts.profile_id`
+--     did not exist yet, so the pair was x1 and D199's own guard passed.
+--     `20260921090000_a_post_can_be_homed_on_a_person` then added
+--     `profile_id uuid references profiles(id)` and made it x2. D199's guard
+--     only ever ran once, at its own push; this check is the standing one and
+--     it had not been run since. Verified 2026-09-09 by grep across BOTH
+--     clients, the netlify functions and the edge functions: nothing embeds
+--     profiles on posts anywhere — the board resolves an author through a
+--     separate `league_members` read (HomeSocial.swift:205), not an embed.
+--     So it is accepted, on exactly the ground `rounds -> profiles` is
+--     accepted, which is the same shape (a semantic profile_id beside an
+--     audit column).
+--
+--     THE HAZARD THIS ACCEPTANCE CARRIES, STATED SO IT IS NOT A SURPRISE:
+--     `profile_id` exists precisely so a post can be homed on a person, so
+--     embedding the author from `posts` is the obvious next thing somebody
+--     writes, and it will fail with PGRST201 on both clients. It must NAME
+--     the relationship — `profile:profiles!posts_profile_id_fkey(...)` — or
+--     `posts_hidden_by_fkey` must be dropped first, which is what D199 did to
+--     `league_members_suspended_by_fkey`: when a pair is reduced, the AUDIT
+--     foreign key goes and the semantic one stays.
 union all
 select '18 · one relationship per embed',
   case when not exists (
@@ -432,7 +477,8 @@ select '18 · one relationship per embed',
             'event_players','event_teams','content_reports')
        and (c.conrelid::regclass::text, c.confrelid::regclass::text) not in (
              ('rounds','profiles'), ('live_round_players','profiles'),
-             ('content_reports','profiles'), ('round_comments','profiles'))
+             ('content_reports','profiles'), ('round_comments','profiles'),
+             ('posts','profiles'))
      group by c.conrelid, c.confrelid having count(*) > 1)
     then 'PASS'
     else 'FAIL — ' || coalesce((
@@ -446,7 +492,8 @@ select '18 · one relationship per embed',
                       'event_players','event_teams','content_reports')
                  and (c.conrelid::regclass::text, c.confrelid::regclass::text) not in (
                        ('rounds','profiles'), ('live_round_players','profiles'),
-                       ('content_reports','profiles'), ('round_comments','profiles'))
+                       ('content_reports','profiles'), ('round_comments','profiles'),
+                       ('posts','profiles'))
                group by 1,2 having count(*) > 1) x), '?') end,
   'a client-embedded table with two paths to one target = PGRST201 on every unqualified embed'
 
@@ -658,6 +705,14 @@ select '27 · the person link keeps the anon surface at twelve',
 -- 28 · D253 · the plan link rides the SAME CHECK and the SAME two functions.
 --     It also may not widen `set_round_rsvp`: the seat is taken inside
 --     `redeem_share`, and D69's guard on the RSVP write stays exactly as it is.
+--     THE SENTENCE MOVED, THE GUARD DID NOT (2026-09-09). D296's voice pass
+--     (20261012090000) rewrote the raise as "Only the host and tagged GOLFERS
+--     can RSVP to this round" — L-42, the vocabulary is the crew's — and that
+--     migration carries its own self-check asserting the new wording is present
+--     and the old absent. This check still grepped "tagged players", so it read
+--     an intact guard as a widened one and returned FAIL against a correct
+--     production. A proxy that names a sentence has to move when the sentence
+--     does; the thing being guarded is the host/tagged test, not the wording.
 union all
 select '28 · the plan link keeps the anon surface at twelve',
   case when (select pg_get_constraintdef(oid) from pg_constraint where conname = 'shares_kind_check') not like '%plan%'
@@ -666,7 +721,7 @@ select '28 · the plan link keeps the anon surface at twelve',
          then 'FAIL — redeem_share is executable by anon: that is a thirteenth endpoint'
        when (select prosrc from pg_proc p join pg_namespace n on n.oid = p.pronamespace
               where n.nspname = 'public' and p.proname = 'set_round_rsvp')
-              not like '%Only the host and tagged players%'
+              not like '%Only the host and tagged golfers%'
          then 'FAIL — D69 guard was widened; the link was supposed to seat, not the function'
        else 'PASS — one plan, one seat, and D69 untouched' end,
   'shares.kind = plan · share_info branch · the seat is taken inside redeem_share'

@@ -2526,13 +2526,24 @@ const lint = (id, name, hits, note = '') => {
          'band · rule · rail · panel · leaf · object — on both clients');
   }
 
-  /* LINT-12 · no emoji. Reactions keep the six canon glyphs; everything else
-     is a drawn stroke. The range is the pictographic block plus the two
-     dingbat runs the audit actually found in the product. */
-  lint('LINT-12', 'no emoji outside the six reactions',
-       scan(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u,
-            { skip: /Reactions\.swift|CSDesign\/Generated\// }),
-       'the six canon reactions and a golfer’s own typed text');
+  /* LINT-12 · no emoji on a shared surface. AP-5 AS AMENDED BY D326: a mark
+     other people see is DRAWN, because the fire is three different pictures
+     across iOS, Android and the desk, so the glyph you picked is not the glyph
+     your league sees. A mark only you ever see — the post-round epilogue — may
+     be a glyph if it earns its place. The range is the pictographic block plus
+     the two dingbat runs the audit actually found in the product. */
+  /* THE TWO EXEMPTIONS WERE REMOVED 2026-09-09, because they had stopped
+     exempting anything. `Reactions.swift` was skipped back when the six canon
+     reactions WERE emoji; D309 replaced them with four drawn tokens and the
+     file has held zero emoji codepoints since, as has `CSDesign/Generated/`
+     (the looks' motifs became drawn-glyph names). A skip over a file with
+     nothing to skip is not a kindness, it is a hole — it is exactly where a
+     shared mark would go back to being a glyph without the check noticing.
+     Both paths were verified at zero before the clause came out, and the count
+     did not move. */
+  lint('LINT-12', 'no emoji on a shared surface',
+       scan(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u),
+       'AP-5 as amended · a mark others see is drawn · the epilogue and a golfer’s own typed text may be a glyph');
 
   /* LINT-13 · no typed arrow inside a produced string. The set is the one §17
      names; `−` (minus), `–` (en dash) and `—` (em dash) are

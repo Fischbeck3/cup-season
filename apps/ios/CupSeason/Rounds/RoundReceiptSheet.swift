@@ -196,6 +196,14 @@ struct RoundReceiptSheet: View {
           if case .success(let img) = phase { img.resizable().scaledToFill() } else { Color.clear }
         }
       }
+      // D301's rule, applied where the photograph actually is. `CSPlate` fills
+      // to a ratio and a `scaledToFill` image covers it, so this overhangs one
+      // axis. Nothing is swallowed today — `photoActions` and the sheet's
+      // Close are both drawn after it — and that is a fact about today's
+      // layout, not about the view. Shaped here rather than inside `CSPlate`,
+      // which also hosts the transparent `CSPlateWell` empty state and would
+      // become a solid blocker if the rule were applied to the component.
+      .contentShape(Rectangle())
       .overlay(alignment: .bottomTrailing) {
         if r.profileId != nil { MarkerStamp(marker: r.marker).padding(CSTokens.Space.s2) }
       }

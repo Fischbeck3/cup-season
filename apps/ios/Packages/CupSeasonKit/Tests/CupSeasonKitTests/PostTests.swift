@@ -325,8 +325,11 @@ import CSDesign
     let rows = e.rows(cap: 4, firstEver: false)
     #expect(rows.count == 4)
     #expect(rows[0] == .line(icon: "", title: "Beat your number · 9 pts", sub: "beat your playing HCP by 2.4 · counts #2 this month"))
-    #expect(rows[1] == .line(icon: "🏆", title: "You broke 90 for the first time", sub: "In your trophy case"))
-    #expect(rows[2] == .line(icon: "✦", title: "A thing", sub: "In your trophy case"))
+    #expect(rows[1] == .line(icon: "trophy:threshold:90", title: "You broke 90 for the first time", sub: "In your trophy case"))
+    // D329 · the unknown kind takes the CASE's fallback. It drew `✦` here, a
+    // flag on the desk and the drawn medal in the trophy case — one unknown
+    // milestone wearing three marks on three surfaces.
+    #expect(rows[2] == .line(icon: "trophy:medal", title: "A thing", sub: "In your trophy case"))
     #expect(rows[3] == .line(icon: "", title: "You lead Ed 3–1 all-time · 1 halved", sub: "“The Feud” · your clash this week counted"))
   }
 
@@ -340,7 +343,7 @@ import CSDesign
     let quiet = PostEpilogue(gross: 84, pvi: nil, points: nil, monthRank: nil)
     #expect(quiet.rows(cap: 4, firstEver: false).isEmpty)
     let first = quiet.rows(cap: 4, firstEver: true)
-    #expect(first.count == 1 && first[0] == .line(icon: "🎉", title: "Your first round is on the board", sub: "Your number and record start here"))
+    #expect(first.count == 1 && first[0] == .line(icon: "trophy:firstCard", title: "Your first round is on the board", sub: "Your number and record start here"))
 
     // D326 · the same sentence was printed twice: this insert is the safety
     // net, and the SERVER'S grant is the fact. When both are present only one
@@ -350,7 +353,7 @@ import CSDesign
                                earned: [.init(kind: "first_round", label: nil)])
       .rows(cap: 4, firstEver: true)
     #expect(granted.count == 1)
-    #expect(granted[0] == .line(icon: "🎉", title: "Your first round is on the board", sub: "Your number and record start here"))
+    #expect(granted[0] == .line(icon: "trophy:firstCard", title: "Your first round is on the board", sub: "Your number and record start here"))
     #expect(PostEpilogue.title(firstEver: true) == "Welcome to the season")
     #expect(quiet.subtitle(course: "Papago") == "84 at PAPAGO" && quiet.subtitle(course: nil) == "THE ROUND, FOR YOU FIRST")
     #expect(PostEpilogue.linkText(name: "Jerecho", gross: 84, course: nil) == "Jerecho — 84 at the course")
@@ -407,12 +410,20 @@ import CSDesign
 /// D326 · a mark is a glyph, a drawn marker, or nothing — and the two clients
 /// read the same string the same way.
 @Suite struct EpilogueMarkTests {
-  @Test func theThreeShapes() {
+  @Test func theFourShapes() {
     #expect(PostEpilogueMark("") == PostEpilogueMark.none)
     #expect(PostEpilogueMark("marker:saguaro") == .marker("saguaro"))
     #expect(PostEpilogueMark("🏆") == .glyph("🏆"))
     // a bare word is a glyph, not a marker — the prefix is the whole contract
     #expect(PostEpilogueMark("saguaro") == .glyph("saguaro"))
+    // D329 · the achievement family, with and without its value
+    #expect(PostEpilogueMark("trophy:ironman") == .trophy(glyph: "ironman", numeral: nil))
+    #expect(PostEpilogueMark("trophy:threshold:80") == .trophy(glyph: "threshold", numeral: "80"))
+    // the split is at most twice, so a numeral may never eat the glyph's name
+    #expect(PostEpilogueMark("trophy:streak:4:9") == .trophy(glyph: "streak", numeral: "4:9"))
+    // a bare prefix is a typo, and a typo draws NOTHING rather than the medal
+    // fallback, which would look deliberate on a celebration screen
+    #expect(PostEpilogueMark("trophy:") == PostEpilogueMark.none)
   }
 
   @Test func everyTableIconResolves() {
@@ -424,10 +435,54 @@ import CSDesign
         // the bug this catches already happened once: EventFixture shipped four
         // marker keys that do not exist and every one drew as a saguaro.
         #expect(CSMarkers.marker(k).key == k, "\(key) names marker '\(k)', which does not resolve")
+      case .trophy(let g, _):
+        // **THE SAME BUG, ONE FAMILY OVER, AND IT FAILS MORE QUIETLY.**
+        // `CSTrophyMark` falls back to `.medal` for a key it does not know, so
+        // a typo here does not crash and does not look broken — it draws a
+        // medal on a personal best and nobody notices for a month.
+        #expect(CSTrophyMark.Mark(rawValue: g) != nil,
+                "\(key) names trophy glyph '\(g)', which does not resolve and would draw the medal")
       case .glyph(let g):
         #expect(!g.isEmpty)
       }
     }
+  }
+
+  /// D329 · **a mark that carries a value may not arrive without one.**
+  /// `threshold` renders `numeral ?? "—"`, so a missing number does not fail —
+  /// it draws an em dash where the 80 should be, on the row that says a golfer
+  /// broke 80 for the first time.
+  @Test func everyParametricTrophyCarriesItsNumeral() {
+    let needsValue: Set<String> = ["threshold", "streak", "lowRound"]
+    for (key, m) in PostEpilogue.achievements {
+      guard case .trophy(let g, let n) = PostEpilogueMark(m.icon), needsValue.contains(g) else { continue }
+      #expect(n?.isEmpty == false, "\(key) draws '\(g)', which sets a value inside the mark, and carries no numeral")
+    }
+  }
+
+  /// D329 · **the epilogue and the trophy case are one answer per achievement.**
+  /// This is the bug the wave was for: the case drew `ironman` for twelve weeks
+  /// while the epilogue drew the Saguaro, and the case set 80/90/100 inside one
+  /// `threshold` while the epilogue drew the same trophy emoji three times.
+  /// Every key the two tables share must now name the same drawing.
+  @Test func theEpilogueAgreesWithTheTrophyCase() {
+    var checked = 0
+    for (key, m) in PostEpilogue.achievements {
+      guard let shelf = TrophyMeta.ach[key] else { continue }
+      checked += 1
+      guard case .trophy(let g, let n) = PostEpilogueMark(m.icon) else {
+        Issue.record("\(key) is in the trophy case as '\(shelf.glyph)' and the epilogue does not draw a trophy mark")
+        continue
+      }
+      #expect(g == shelf.glyph, "\(key): epilogue draws '\(g)', the case draws '\(shelf.glyph)'")
+      #expect(n == shelf.numeral, "\(key): epilogue numeral \(String(describing: n)), the case \(String(describing: shelf.numeral))")
+    }
+    // **A GUARD THAT COMPARES NOTHING PASSES.** Both loops above skip a key the
+    // other table lacks, so if the two tables ever stopped sharing keys this
+    // would go green while agreeing about nothing. Every epilogue row is also a
+    // trophy-case row today, and that is the fact being asserted.
+    #expect(checked == PostEpilogue.achievements.count,
+            "only \(checked) of \(PostEpilogue.achievements.count) epilogue rows were compared against the case")
   }
 
   @Test func noFireSurvivesAnywhereInTheTable() {

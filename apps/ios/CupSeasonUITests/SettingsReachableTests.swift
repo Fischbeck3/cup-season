@@ -152,4 +152,51 @@ final class SettingsReachableTests: XCTestCase {
     XCTAssertTrue(keep.waitForExistence(timeout: 8),
                   "the product's shared tertiary link took a tap and did not fire — this is 63 sites, not one")
   }
+
+  /// D330 · **the Start something band takes a real tap.**
+  ///
+  /// It became a full-bleed band with a `CSContour` field drawn behind its
+  /// copy, and that is the shape of the bug this whole target exists for: a
+  /// decorative view inside a control, where the hit region and the drawing
+  /// are not the same rectangle. The field carries `allowsHitTesting(false)`
+  /// and the band declares its own `contentShape`, and neither of those is
+  /// worth anything unless something asks the real hit-tester.
+  ///
+  /// It is also the flagship door — the one act on the ⊕ that makes a
+  /// competition rather than a round — so a tap that lands on nothing here is
+  /// the product's most expensive silent failure.
+  func testTheStartSomethingBandOpensTheIntentSheet() throws {
+    let app = XCUIApplication()
+    app.launchArguments += ["-cs_dev_open_play"]
+    app.launch()
+
+    // **NOT `requireSignedIn`, AND THE FIRST RUN OF THIS TEST PROVED WHY.** That
+    // probe waits for the handle or a holes count, both of which live on the
+    // YOU page — the screen the other three tests open. On the ⊕ cover neither
+    // exists, so the probe timed out and the test SKIPPED, which is a test that
+    // proves nothing while reporting green. The readiness marker has to belong
+    // to the screen under test.
+    //
+    // The live hero row is that marker: it is the cover's first row and it is
+    // there for every account. Its absence means the cover never opened, which
+    // is an environment problem and a skip. `Start something` missing AFTER the
+    // cover is up is the product being broken, and that is a FAILURE.
+    let cover = app.staticTexts.element(matching: NSPredicate(
+      format: "label CONTAINS[c] %@", "score it live"))
+    guard cover.waitForExistence(timeout: 45) else {
+      throw XCTSkip("The ⊕ cover never opened — not signed in on this simulator, or the hatch is gone.")
+    }
+
+    let start = button(containing: "start something", in: app)
+    XCTAssertTrue(start.waitForExistence(timeout: 25), "the Start something band is not in the tree")
+    XCTAssertTrue(start.isHittable, "the band exists and is not hittable — the field is eating the touch")
+    start.tap()
+
+    // The sheet's own head, matched by predicate rather than by a typed
+    // string, for the reason the comment above `button(containing:)` gives.
+    let head = app.staticTexts.element(matching: NSPredicate(
+      format: "label CONTAINS[c] %@", "what do you want to do"))
+    XCTAssertTrue(head.waitForExistence(timeout: 8),
+                  "the band took the tap and the intent sheet never rose")
+  }
 }
