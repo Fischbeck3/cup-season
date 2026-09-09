@@ -442,3 +442,11 @@ and paste-ready kickoff prompts. A session stays in one lane; the routing rule:
 sticky · **Growth/Launch** gets it in front of people · **Business** decides why
 it exists. Near-term work lives in the task list; "why a mechanic is the way it
 is" lives in `spec/decision-log.md`.
+
+**`spec/inbox.md` IS THE FOLLOW-UP LIST, AND READING IT IS PART OF STARTING.**
+Anything found and not built goes there with the date it was verified, the lane
+it belongs to and the first question it needs answered — and the owner drops raw
+notes at the top of it between sessions, from a phone if that is what he has. A
+session that opens on "what should we do" reads it before asking. An item there
+is NOT a commitment: several will be closed as won't-fix, and closing one with
+its reason is as good an outcome as building it.
