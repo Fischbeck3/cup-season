@@ -32,7 +32,19 @@ sorting.
 
 ## Raw — drop anything here
 
-*(empty — this is your end of the file)*
+**2026-09-09, from the owner:**
+
+> I searched a course and it was not found so I input the rating/slope/pars.
+> Went to schedule a round and that info didn't pull and searched the course
+> "Oak Quarry" again and it was not found again. This should be saved and maybe
+> we need a "we don't have that course in our database, enter its info"
+
+> I noticed this before but I scheduled a round, since I created it I should
+> auto be "opted in"
+
+*Both were investigated the same day and moved down to the verified list as
+items 11 and 12. Left here as written, because the words a bug is reported in
+are worth keeping next to what it turned out to be.*
 
 ---
 
@@ -60,6 +72,8 @@ Each of these was confirmed in the code on the date given. None is a guess.
 | 7 | **The web still says "league code".** `index.html:4001` is a button reading *I have a league code*, and the phrase is in four more places. LV-14 is explicit that a league is never a thing you join — the container is a SEASON. The phone was fixed; the desk was not. *(re-verified 2026-09-09)* | UX | S | Straight copy pass, or does the word "code" itself need re-thinking on the door? |
 | 8 | **`HomeWire.swift:91`'s tap seal is inherited, which is the fragile kind.** The band's photograph overhangs its 168pt frame and is capped by a `contentShape` at line 128, one level up. That line reads like a *"make the transparent parts tappable"* idiom, which is exactly how it gets deleted — and deleting it reopens D301 on the Home feed. *(2026-09-09, D328)* | UX | XS | A defensive `contentShape` after line 91 is one line and free. Worth it, or is the comment enough? |
 | 9 | **`Person.swift:635-641` is the same bug class with nothing marking it.** A `GeometryReader` under a fixed `.frame(height:)` does not clip, and its child may be taller. There is no `.clipped()` there to make it findable by grep. The neighbour below is drawn later and is safe today. *(2026-09-09, D328)* | UX | XS | Safe today is a fact about today's layout, not about the view. Shape it, or leave it named? |
+| 11 | **A hand-entered course is not saved, and the table meant to hold it is empty.** Search reads `api_courses`, a 115-row cache of an external API; "Oak Quarry" is not in it and never will be until the API has it. **A `courses` table exists with exactly the shape this needs — `external_id, club_name, course_name, city, state, lat, lng, source, verified, created_by` — and holds ZERO rows.** It was designed for a golfer-added course, `created_by` and `verified` and all, and was never wired up: no server function inserts into it, and although `authenticated` holds the INSERT grant, RLS is ON with **only a SELECT policy**, so an insert would be denied anyway. The feature is unfinished at every layer, not merely missing from the UI. *(prod, 2026-09-09: `courses` 0 rows · `api_courses` 115 rows, 0 matching Oak Quarry · his scheduled round carries `course_label` "Oak Quarry" and a NULL `course_id`)* | Gameplay | **M** | **The real question is provenance, not storage.** Rating and slope drive handicap math for everyone in a season, so a shared table that accepts unverified numbers from any golfer is a scoring-correctness decision, not a convenience. Three options: a shared `courses` row marked `verified=false` (what the schema already anticipates); a per-golfer course that only their own rounds read; or storing the numbers on the ROUND and never re-offering them. Which one is a ruling you should make before anything is built. |
+| 12 | **Creating a plan does not seat you on it, and both clients say it did.** `declare_round` writes NO row to `round_rsvp` — verified against the deployed function source, not the migration. So the host is left with no RSVP, Home then offers them *"Say you're in"* about their own round, and **both clients toast *"You're in — it's on both boards"*** the moment it is created (`DeclareRoundSheet.swift:226`, `index.html:26983`). The copy asserts a state the server never wrote. *(prod, 2026-09-09: his Oak Quarry plan was created 19:51:19 and his own RSVP landed 19:52:18 — **58 seconds later, as a separate act**. A plan from 2026-09-01 still has its host unseated.)* | Social | S | Seat the host inside `declare_round` — one insert, and the toast becomes true. The only real question is the status: `in` is what the copy already promises, and it is what he did by hand a minute later both times. Worth checking whether a host who then says "out" on their own round is a state the schedule handles. |
 | 10 | **The wizard's headcount chips wrap 7 + 1, orphaning `12+`.** The row is a `FlowLayout`, which is what keeps it safe at the accessibility sizes; pinning it to a grid to kill the orphan trades a cosmetic nit for a clipping risk at AX3. *(carried from D-earlier; re-check before building)* | UX | XS | Is the orphan worth an AX3 risk? Probably not — this may be a "close it as won't-fix" entry. |
 
 ---
