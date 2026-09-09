@@ -47,6 +47,14 @@ the two reported, 13 and 14 are things found while looking. Left here as
 written, because the words a bug is reported in are worth keeping next to what
 it turned out to be.*
 
+**2026-09-09, later:**
+
+> I entered the pars slope rating etc in a live round as well and it seems to
+> have not saved
+
+*Confirmed, and it is the sharpest of the three — see item 15. Together with 12
+they name a pattern rather than three bugs.*
+
 *Item 11 was filed wrong the first time and corrected the same hour: I wrote
 that the empty `courses` table was an oversight nobody had wired up. It is not.
 D150 retired it and the owner ruled there that free-typed courses stay demoted,
@@ -84,7 +92,23 @@ Each of these was confirmed in the code on the date given. None is a guess.
 | 13 | **The empty state names an action the screen cannot perform.** All three course pickers and the web show *"No match — type the course, rating and slope by hand."* On the composer that is true. **On the declare sheet there are no rating or slope fields at all** (`DeclareRoundSheet.swift:40-119` renders Day, Tee time, Course, Note, Name, Game, Forfeit, Tags — and the same sentence at `:314`), and the web omits them too (`index.html:26949`). So the one place the owner went looking told him to do something impossible. **LINT-21 does not reach this**: the lint is enforced through the `CSEmpty` type's declaration, and these dropdown states are raw `Text`, so a door was never required of them. *(2026-09-09)* | UX | S | Two fixes and they are independent: make the sentence true per surface, and decide whether the schedule sheet should gain the fields or should stop claiming it has them. |
 | 14 | **The app already remembers his rating and slope, in a lane he was not in.** `PostService.courseMemory` keeps the last 30 labelled rounds deduped to **three** chips of `label · rating/slope` — but only in the composer, never in the schedule sheet or live setup, and **only while the search field is EMPTY** (`PostRoundScreen.swift:323,326`). The moment he typed "Oak" to search, the chips vanished and the dropdown said *No match*. *(2026-09-09)* | UX | S | Widening this existing memory into the dropdown's empty state, and into the other two pickers, delivers most of what the report asks for with **no new table and no new trust surface** — and it sits inside D150's ruling rather than against it. Worth doing before anything structural. |
 | 12 | **Creating a plan does not seat you on it, and both clients say it did.** `declare_round` writes NO row to `round_rsvp` — verified against the deployed function source, not the migration. So the host is left with no RSVP, Home then offers them *"Say you're in"* about their own round, and **both clients toast *"You're in — it's on both boards"*** the moment it is created (`DeclareRoundSheet.swift:226`, `index.html:26983`). The copy asserts a state the server never wrote. *(prod, 2026-09-09: his Oak Quarry plan was created 19:51:19 and his own RSVP landed 19:52:18 — **58 seconds later, as a separate act**. A plan from 2026-09-01 still has its host unseated.)* | Social | S | Seat the host inside `declare_round` — one insert, and the toast becomes true. The only real question is the status: `in` is what the copy already promises, and it is what he did by hand a minute later both times. Worth checking whether a host who then says "out" on their own round is a state the schedule handles. |
+| 15 | **A live round's card is never saved until you tee off, and the app says it was.** Typing pars, rating and slope in live setup calls `LiveRoundStore.saveCard` (`:489`), which writes to **in-memory state only** — `LiveCourseCard.save` is a `mutating func` on a value type (`LiveModels.swift:273`) — and then toasts ***"Card saved: every league gets it from here."*** Nothing has left memory. `persist()` (`LiveRoundStore.swift:653`) refuses to write to disk while `state.lr` is nil, which it is until tee-off, and the card reaches the server only as `live_rounds.course_snapshot` at tee-off (`LiveModels.swift:282`, *"the snapshot shipped at tee-off"*). **Back out, get interrupted, or never tee off, and every figure typed is gone.** *(prod, 2026-09-09: **no live round exists for today at all** — the newest is 2026-09-01 — so nothing he typed was ever written anywhere)* | Gameplay | S | The toast is the part that is indefensible regardless of the fix: it should not say "saved" for something held in memory. Whether setup should also snapshot to disk before tee-off is the real question, and it is the same question as the composer's 24-hour draft — which does persist, and which discards pars anyway. |
 | 10 | **The wizard's headcount chips wrap 7 + 1, orphaning `12+`.** The row is a `FlowLayout`, which is what keeps it safe at the accessibility sizes; pinning it to a grid to kill the orphan trades a cosmetic nit for a clipping risk at AX3. *(carried from D-earlier; re-check before building)* | UX | XS | Is the orphan worth an AX3 risk? Probably not — this may be a "close it as won't-fix" entry. |
+
+---
+
+## The pattern under 12, 14 and 15
+
+Three of these are one shape: **the product tells a golfer something is kept
+when it is held in memory, or not held at all.**
+
+- Declaring a plan toasts *"You're in — it's on both boards"* and writes no RSVP (12).
+- Saving a live card toasts *"Card saved: every league gets it from here"* and writes nothing anywhere (15).
+- The composer keeps his rating and slope and then hides them the moment he types (14).
+
+Each is small alone. Together they are why a golfer stops trusting that anything
+he enters survives — which is a worse problem than any one of the three, and an
+argument for doing them as one wave rather than three fixes.
 
 ---
 
