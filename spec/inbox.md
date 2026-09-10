@@ -55,6 +55,15 @@ it turned out to be.*
 *Confirmed, and it is the sharpest of the three — see item 15. Together with 12
 they name a pattern rather than three bugs.*
 
+**2026-09-10:**
+
+> Another note. I played Oak quarry and didn't see the prompt to add a photo.
+> Idk where the course rating should come in "First time playing Oak Quarry give
+> it a rating" or "back at Oak quarry. How has it held up" - maybe the course
+> rating doesn't fit our vision, if it does it needs to be organic and seamless
+
+*Two things, and they turn out to be one surface — items 16 and 17.*
+
 *Item 11 was filed wrong the first time and corrected the same hour: I wrote
 that the empty `courses` table was an oversight nobody had wired up. It is not.
 D150 retired it and the owner ruled there that free-typed courses stay demoted,
@@ -93,6 +102,8 @@ Each of these was confirmed in the code on the date given. None is a guess.
 | 14 | **The app already remembers his rating and slope, in a lane he was not in.** `PostService.courseMemory` keeps the last 30 labelled rounds deduped to **three** chips of `label · rating/slope` — but only in the composer, never in the schedule sheet or live setup, and **only while the search field is EMPTY** (`PostRoundScreen.swift:323,326`). The moment he typed "Oak" to search, the chips vanished and the dropdown said *No match*. *(2026-09-09)* | UX | S | Widening this existing memory into the dropdown's empty state, and into the other two pickers, delivers most of what the report asks for with **no new table and no new trust surface** — and it sits inside D150's ruling rather than against it. Worth doing before anything structural. |
 | 12 | **Creating a plan does not seat you on it, and both clients say it did.** `declare_round` writes NO row to `round_rsvp` — verified against the deployed function source, not the migration. So the host is left with no RSVP, Home then offers them *"Say you're in"* about their own round, and **both clients toast *"You're in — it's on both boards"*** the moment it is created (`DeclareRoundSheet.swift:226`, `index.html:26983`). The copy asserts a state the server never wrote. *(prod, 2026-09-09: his Oak Quarry plan was created 19:51:19 and his own RSVP landed 19:52:18 — **58 seconds later, as a separate act**. A plan from 2026-09-01 still has its host unseated.)* | Social | S | Seat the host inside `declare_round` — one insert, and the toast becomes true. The only real question is the status: `in` is what the copy already promises, and it is what he did by hand a minute later both times. Worth checking whether a host who then says "out" on their own round is a state the schedule handles. |
 | 15 | **A live round's card is never saved until you tee off, and the app says it was.** Typing pars, rating and slope in live setup calls `LiveRoundStore.saveCard` (`:489`), which writes to **in-memory state only** — `LiveCourseCard.save` is a `mutating func` on a value type (`LiveModels.swift:273`) — and then toasts ***"Card saved: every league gets it from here."*** Nothing has left memory. `persist()` (`LiveRoundStore.swift:653`) refuses to write to disk while `state.lr` is nil, which it is until tee-off, and the card reaches the server only as `live_rounds.course_snapshot` at tee-off (`LiveModels.swift:282`, *"the snapshot shipped at tee-off"*). **Back out, get interrupted, or never tee off, and every figure typed is gone.** *(prod, 2026-09-09: **no live round exists for today at all** — the newest is 2026-09-01 — so nothing he typed was ever written anywhere)* | Gameplay | S | The toast is the part that is indefensible regardless of the fix: it should not say "saved" for something held in memory. Whether setup should also snapshot to disk before tee-off is the real question, and it is the same question as the composer's 24-hour draft — which does persist, and which discards pars anyway. |
+| 16 | **A plan whose day has passed is never asked about, so the photo prompt he expected was never reachable.** He planned Oak Quarry for 2026-09-09 at 16:30, played it, and saw nothing. **The photo prompt is not broken — it lives inside a post he never made, and nothing invited him to make one.** `home_dispatch` looks at plans **only in the window `today … today + 8`**, so the moment a tee time passes the plan drops off Home entirely; the function mentions photos nowhere. There is no nudge kind for it either — production holds exactly three (`nudge`, `request`, `rsvp`). **The plan loop has no closing act.** *(prod, 2026-09-10: the plan is `play_on 2026-09-09`, and no round at Oak Quarry exists on any surface)* | Social | **M** | This is the missing moment the other notes keep pointing at: a played plan should ask *how did it go*, and that one surface is where the score, the photo and — if it ever exists — the course opinion all belong. Does it live on Home, in a push, or both? |
+| 17 | **A course opinion might fit, but it CANNOT be called a "rating."** His own framing (*"First time playing Oak Quarry give it a rating"* / *"back at Oak Quarry, how has it held up"*) is a review — an opinion of the course. **In this product "course rating" already means the USGA number that drives every differential**: `rounds.rating`, the figure `post_round` bounds to 25–90, the thing he has spent two days typing by hand, and the words the empty state uses (*"type the course, rating and slope by hand"*). Shipping a second, unrelated "rating" would make one word mean two things on the same object — the exact failure D326 fixed for the fire glyph, in the vocabulary rather than the marks. *(2026-09-10)* | Business | — | **This is a vision question and it is yours, not a bug.** Three sub-questions worth separating: (a) does an opinion of a course belong in a product whose thesis is *real golf, your crew* rather than a review site — his own *"maybe it doesn't fit our vision"* deserves a real answer before any design; (b) if yes, what is it CALLED, since "rating" is taken and "score" is worse; (c) his *"organic and seamless"* has an obvious home now — item 16's missing closing act, asked once on the way past rather than as a form. |
 | 10 | **The wizard's headcount chips wrap 7 + 1, orphaning `12+`.** The row is a `FlowLayout`, which is what keeps it safe at the accessibility sizes; pinning it to a grid to kill the orphan trades a cosmetic nit for a clipping risk at AX3. *(carried from D-earlier; re-check before building)* | UX | XS | Is the orphan worth an AX3 risk? Probably not — this may be a "close it as won't-fix" entry. |
 
 ---
@@ -109,6 +120,13 @@ when it is held in memory, or not held at all.**
 Each is small alone. Together they are why a golfer stops trusting that anything
 he enters survives — which is a worse problem than any one of the three, and an
 argument for doing them as one wave rather than three fixes.
+
+**And item 16 is the other half of the same story.** Everything he typed went
+nowhere partly because he never finished a post — and nothing ever asked him to.
+A plan he made, played, and was never asked about is the moment where the score,
+the photo and the course's shape would all have been captured at once. Fixing
+the three "we said saved and did not" bugs without giving that moment somewhere
+to happen fixes the symptom and leaves the hole.
 
 ---
 
