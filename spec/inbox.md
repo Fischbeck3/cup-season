@@ -147,6 +147,22 @@ to happen fixes the symptom and leaves the hole.
 
 ---
 
+## The decision tree (2026-09-10)
+
+The four decisions behind items 11-20, with what each branch commits to, is a
+page: **https://claude.ai/code/artifact/82ae0f4b-df13-410f-923e-eee52db113ac**
+
+It is a working document, not a record — **the record is here and in
+`decision-log.md`.** When a decision is made it comes back as a `D` entry with
+its reasoning, and the item here closes. The page exists because a branching
+structure reads badly in a terminal and the owner is reading it from a phone.
+
+**One question on it can delete a whole branch before the session starts:**
+whether Oak Quarry is actually absent upstream, or is being hidden by the
+no-rated-tees filter (item 11). Answer that first and Decision B may never open.
+
+---
+
 ## Where this connects
 
 - `spec/session-tracks.md` — the five lanes an item routes into.
