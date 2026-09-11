@@ -409,7 +409,15 @@ Reference metaphor:
 
 The visual system was substantially reworked in September 2026.
 
-Current high-level direction:
+**Current native looks — 2026-09-11 (D305, amended by D313).** Ember is the default
+live/action color. In the current iOS implementation, the selected look substitutes its
+`accent` for `brand`; `accent2` supplies the specified two-color tick, section-rule treatment,
+and panel, with readable panel ink resolved by the theme. This does not assert an equivalent
+web look picker or theme substitution. Page grounds, earned gold, semantic colors (`pos`,
+`neg`, `cool`), identity pigments and ceremony colors retain their protected roles.
+See `spec/decision-log.md` D305/D313 and `apps/ios/Packages/CSDesign/Sources/CSDesign/Theme.swift`.
+
+Current high-level direction (default palette):
 - green-black dark ground
 - warm paper light ground
 - ember for live / primary action

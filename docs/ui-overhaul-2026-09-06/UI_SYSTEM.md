@@ -17,6 +17,14 @@
 
 ---
 
+> **Status and supersession note — 2026-09-11.** The Phase 2 header records the
+> September 6 design baseline, not the current implementation state. Preserve the original
+> mockups, measurements, rationale and dated findings. Implementation status is recorded in
+> `docs/ios/DECISIONS.md` and phase reports; IOS-051 built the capture hatches described below.
+> Later authoritative instructions take precedence: §16A.1 for ledger placement;
+> D318/D319/D321 for Home anatomy; D305 as amended by D313 for current iOS looks.
+> This note does not certify complete implementation or device verification.
+
 # 0 · THE IDEA
 
 ## 0.1 The thesis, in one paragraph
@@ -496,8 +504,10 @@ gold object is a 44×50 rail field.
   (`COMPONENT_SYSTEM` AP-2's one carve-out). `cool` is movement down and cooling — slate, never red.
 - **Money is ink.** The figure is `ink` (or `gold` when it is the pot or a thing won); **the sign is a
   word in agate** — `YOU OWE` · `YOU'RE OWED` · `SETTLED`; and **the ledger line renders verbatim from
-  one constant** (`CS_LEDGER` / `MoneyCopy.ledger`) in `body` 15 at `mut` under every surface that
-  shows a money figure. A red/green P&L axis is the grammar of a brokerage; a word and one metal is
+  one constant** (`CS_LEDGER` / `MoneyCopy.ledger`), with placement and typography governed
+  by §16A.1: once per client, in `agateS` at the foot of its money surface. This is the
+  authoritative rule, not a claim that the current implementation is fully compliant.
+  A red/green P&L axis is the grammar of a brokerage; a word and one metal is
   the anti-fintech answer, and it makes the ledger line's promise visually true.
 - **Links are underlined ink, and the rule's colour says what kind of link it is.** `name` 15 in `ink`,
   44pt target, always with a rule beneath — underlined ink at 16.05:1 is more visible than 7.31:1 blue
@@ -523,6 +533,18 @@ fourth warm hue the audit found (three oranges within ΔE of each other, and the
 "your cursor is here").
 
 ## 2.7 The looks, given a job and a fence
+
+**Current native looks — 2026-09-11 (D305, amended by D313).** Ember is the default
+live/action color. In the current iOS implementation, the selected look substitutes its
+`accent` for `brand`; `accent2` supplies the specified two-color tick, section-rule treatment,
+and panel, with readable panel ink resolved by the theme. This does not assert an equivalent
+web look picker or theme substitution. Page grounds, earned gold, semantic colors (`pos`,
+`neg`, `cool`), identity pigments and ceremony colors retain their protected roles.
+See `spec/decision-log.md` D305/D313 and `apps/ios/Packages/CSDesign/Sources/CSDesign/Theme.swift`.
+
+**The following is the original design restriction, superseded for current iOS by
+D305/D313.** The same qualification applies to the rail/eyebrow-only summaries in
+§0.3 and §0.5; those tables retain the original design rationale.
 
 A season's `look` (Azaleas, Cup Final, The Wrap…) tints **the rail and the eyebrow, and nothing else**
 — never a ground, never ink, never `pos`/`neg`, never a squad, never gold. That is the first defined
@@ -1220,9 +1242,16 @@ shape — and the strip above the rows then has a job the rows do not duplicate.
 
 ## 9.5 Money
 
+> **Placement correction — 2026-09-11.** §16A.1 supersedes this section's original
+> once-per-scrolling-surface instruction and `body` typography. The active rule is one
+> printing per client, in `agateS` at the foot of its money surface, from its existing
+> constant: "Cup Season keeps the ledger; the money moves between friends."
+> Earlier placement summaries elsewhere in this document also defer to §16A.1.
+> The original rationale below is historical; current implementation compliance is not asserted.
+
 - The figure is **`ink`**; the pot and anything won are **`gold`**; `pos` and `neg` never touch money.
 - **The sign is a word**, in agate: `YOU OWE` · `YOU'RE OWED` · `SETTLED` · `THE POT`.
-- **The ledger line renders verbatim from one constant** in `body` 15 at `mut` — **once per scrolling
+- **Historical placement instruction (superseded by §16A.1):** the ledger line renders verbatim from one constant in `body` 15 at `mut` — **once per scrolling
   surface, under the first money figure that surface shows.** It is the anti-"betting app" vaccine and
   it is a copy law, not a suggestion (D39, D201). *A viewport is not a surface*, and the first draft's
   "beneath every surface" left the scrolling case unresolved, so four artboards printed money with no
@@ -1234,6 +1263,15 @@ shape — and the strip above the rows then has a job the rows do not duplicate.
 - A negative money figure takes a **minus sign in ink** (`−$20`), never a red fill or a red numeral.
 
 ## 9.6 The standing line
+
+> **Home supersession — 2026-09-11.** The original Home anatomy below is amended by
+> D318 (number in the masthead, debt on its Compete season row, Home's floor collapsed),
+> D319 (number figure treatment, state label and trend), and D321 (bucket headings for
+> multiple rows and suppression of wire stories matching the lead's subject and league).
+> See `spec/decision-log.md`. This applies to Home-specific descriptions in §§9.6, 9.9,
+> 12.3, 15.1, 16.3 and the component summaries; generic component rules and original
+> mockups remain intact. The original dateline-only masthead and ME-strip arrangement
+> are not current Home implementation instructions.
 
 Four figures on one shared 2pt rule with their agate labels beneath, and **the league sentence in agate
 under the whole block**: `THE FELLAS · 2ND OF 8 · 4 BACK OF GALEN`. One agate sentence does more
@@ -1258,6 +1296,8 @@ beneath the finish cell** (gold ink on bone is 1.68:1 and is forbidden — §2.4
 archive and achievement; the archive is the one surface that should be a book page.
 
 ## 9.9 The HCP, and the gap — the two facts that keep escaping into prose
+
+> **2026-09-11:** For current Home anatomy, see the D318/D319/D321 supersession note in §9.6.
 
 **The handicap index** is always a rule-and-figure — `figure` 40 as a hero, 27 in a strip cell — with
 `HANDICAP INDEX` or `YOUR NUMBER` in agate beneath the rule. It is the first cell of the ME strip and
@@ -1539,6 +1579,8 @@ and 11 covers.
 
 ## 12.3 The masthead
 
+> **2026-09-11:** For current Home anatomy, see the D318/D319/D321 supersession note in §9.6.
+
 Home only, and it is the reason Home reads as an edition of something rather than a screen:
 **the wordmark · the dateline in agate flush right · a 2pt `ink` rule beneath, full measure.** No ember
 tick (the masthead is not live), no sky wash, no second ground.
@@ -1741,6 +1783,9 @@ one at a time — see §17's adoption clause.
 **Every surface opens with a different object.** These six paragraphs say what may differ.
 
 ## 15.1 HOME — social, dynamic. *The front page.*
+
+> **2026-09-11:** For current Home anatomy, see the D318/D319/D321 supersession note in §9.6.
+
 The only surface with a **masthead and a dateline**, and the only one that mixes five item weights
 deliberately. Its opening object is the wordmark over a heavy rule; its lead is the **one serif
 headline** the product allows per viewport; and the ME strip is four figures on one rule with the
@@ -1955,6 +2000,12 @@ design is unusually exposed to three of the other four.
 | **Reduce Motion** | already handled | both curves resolve to `nil`, never "faster" (§11.2) |
 
 ## 16.6 Two capture blockers Phase 3 must clear before it signs anything off
+
+> **Status update — 2026-09-11:** IOS-051 implemented the DEBUG launch hatches
+> `-cs_dev_appearance` and `-cs_dev_text_size`; see `docs/ios/DECISIONS.md` IOS-051 and
+> `apps/ios/CupSeason/Main/MainTabView.swift`. The missing-hatch blocker below is historical.
+> Hatches existing does not prove every screen has passed device, light-theme or
+> accessibility review. Original findings are retained as the September 6 record.
 
 Neither is fixed by design and both invalidate a claim until they are: **(1)** the light theme has
 never been rendered on a device — `CupSeasonApp.swift:15,27` applies `preferredColorScheme` from
@@ -2304,6 +2355,10 @@ in the artboards. These are the findings **declined**, each with its reason.*
 | blind-2 | "Abbreviate to 'P. Raghunathan' before you ever ellipsize, tighten rows from ~100px to ~76px so eleven fit cleanly." | **First half taken, second declined.** The abbreviation is now §9.1's rule. **The row does not shrink**: 50pt is the slat's height at the default size and it is what makes the rail's 44pt figure and the two-line name/sub-line legal at AX3 (§16.3). Fitting one more row by shrinking every row is the trade §25 forbids. The twelfth row fits because the ledger sentence left the header, which cost the design nothing. |
 | blind-2 | "ADD MY ROUND as the orange pill on a team-match screen where the natural next action is reading the matches." | **Declined.** Posting the round is what moves the event; reading the matches is what the page already is. The reviewer's underlying complaint — that the same orange pill carries five different meanings across five screens — is answered instead by §16A.5's count rule and by the pill's label always naming its own verb. One primary per surface is the system; one primary per *product* is not. |
 | blind-3 | "Split season-top in two. It runs ten modules before the table fills." | **Declined as an IA change, not a visual one.** `COMPONENT_SYSTEM.md` fixes what the season page carries and in what order; §31 asks each surface to keep its own character, and SEASON's is narrative-then-table. What is taken from the finding is everything visual inside it: the duplicated pot caption is gone, the clash is one object, the table now carries a header, and the trailing nav menu is deleted — which removes three of the ten modules the reviewer counted. |
+
+> **Status clarification — 2026-09-11:** The capture-hatch requirement in item (1)
+> below was implemented by IOS-051; see the dated update in §16.6. This preserves the
+> original review finding and makes no blanket claim of device or accessibility compliance.
 
 **Two things the reviewers were right about that this document cannot fix, and Phase 3 inherits them.**
 (1) The light theme and AX3 have still never been *rendered on a device* — §16.6's two capture blockers

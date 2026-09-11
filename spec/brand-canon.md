@@ -62,8 +62,8 @@ crew's own voice. Never hype, never urgency, never shame.
 - **Named bands, never math jargon:** "beat your number by 0.6," never
   "PvI"/"differential" on any user surface.
 - **The ledger line (amended 2026-07-20, D39; amended 2026-09-01, D201):**
-  *"Cup Season keeps the ledger; the money moves between friends"* — verbatim
-  everywhere money appears — **from one constant per client. A retyped copy
+  *"Cup Season keeps the ledger; the money moves between friends."* — verbatim,
+  **from one constant per client. A retyped copy
   is the defect the day it is written, because it is already the version
   that will drift.** (`CS_LEDGER` in `index.html`, `MoneyCopy.ledger` in the
   Kit.) Door headline "Every dollar on the books." ("Tracked, never held" and
@@ -74,6 +74,10 @@ crew's own voice. Never hype, never urgency, never shame.
   wordings were. A verbatim law has no violating token for a grep to catch,
   so it needs a fixed home or it is only a wish. "Between friends" is never
   softened to "between you".)*
+  **Placement clarification — 2026-09-11:** `UI_SYSTEM.md` §16A.1 is authoritative:
+  one printing per client, in `agateS` at the foot of its money surface. This supersedes
+  the earlier every-money-surface placement above; it does not certify implementation
+  compliance. The D39/D201 rationale is retained as history.
 - **One fact, one place** *(added 2026-09-01, D201 — the owner ruled "build
   out your suggestions")*. Every fact on a screen belongs to exactly one
   element — the one closest to the action. A control names the press; the
@@ -192,7 +196,13 @@ Consequences:
 
 ## 6. The mark (OPEN — this section is the exploration brief)
 
-**Current state:** `brand/mark.svg` — a flag standing in the green's cup,
+**Checked-in master asset — verified 2026-09-11:** `brand/mark.svg` is the **Tracer**,
+a tapered ball flight landing in a flagged cup, as described in `brand/README.md`.
+This identifies the current checked-in/master asset, not a final canonical Cup Season
+mark. The production mark remains an open owner/design decision. Strike, pennant and
+CS explorations remain exploratory only; none authorizes replacing production assets.
+
+**Former asset description (historical, superseded by the Tracer):** a flag standing in the green's cup,
 orbited by a four-arc ring in squad colors, drawn in perspective. Full asset
 family exists (light variant, lockups, PWA icons, maskable, og-image; see
 `brand/README.md`). It shipped ~v23.70 and **predates the palette evolution**:
@@ -256,7 +266,8 @@ Each of these was paid for or reasoned once; the list is the receipt.
   device. Mint is a signal, never the brand.
 - **The sportsbook**: odds-board urgency, money as hero, flashing red/green.
   Money renders in champagne (earned, celebratory) or ink — never urgent.
-  "Tracked, never held" in every money surface. This guardrail is a legal/
+  Use the exact ledger constant from §3, with placement governed by `UI_SYSTEM.md`
+  §16A.1. This guardrail is a legal/
   store-review posture as much as taste (GTM §13.5).
 - **The gated club**: crests, velvet-rope luxury, exclusion as aesthetic. We
   are muni-proud; heritage warmth without the gatekeeping. The board is earned,
@@ -271,7 +282,7 @@ Each of these was paid for or reasoned once; the list is the receipt.
   green, morning and dusk light, faces mid-laugh mid-argument. Never stock
   swing-form, never drone-porn of courses no one in the crew plays, never
   golf-as-luxury-lifestyle.
-- **Type sins**: script "clubby" fonts, aggressive sports slabs, a fourth
+- **Type sins**: script "clubby" fonts, aggressive sports slabs, a fifth
   family, serif on buttons, mono paragraphs.
 - **Tone sins**: shame mechanics, countdown pressure, "last chance." The app
   is the friend who keeps the book, not the app that needs you back.

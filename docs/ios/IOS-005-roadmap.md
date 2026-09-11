@@ -6,6 +6,13 @@ Priority = **product impact × user frequency × technical dependency ÷ effort*
 
 ---
 
+> **Status note — 2026-09-11.** This is the historical August 27 planning artifact.
+> D99 resolved the phone stack to Swift/SwiftUI; D234 superseded the web-as-behavioral-reference
+> approach with shared producers and distinct phone/desktop layouts. The original estimates,
+> alternatives and milestone gates below remain historical. Consult `docs/ios/DECISIONS.md`
+> and the relevant phase reports for recorded implementation status, and `spec/decision-log.md`
+> D99/D234 for the governing decisions. This note does not certify every milestone complete.
+
 ## 0. Before anything: unblock the two hard dependencies
 
 | | What | Owner | Why first |
