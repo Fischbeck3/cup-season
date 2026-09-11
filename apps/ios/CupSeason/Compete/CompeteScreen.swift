@@ -25,6 +25,7 @@ struct CompeteScreen: View {
   @State private var buddies: Int?
   @State private var readFailed = false
   @State private var loaded = false
+  @State private var selectedLeague: UUID?
 
   /// The payload the tab draws. `-cs_dev_compete_fixture` substitutes ONE
   /// VALUE — the `Me` — and nothing else changes: the same `CompeteRoot.make`,
@@ -40,15 +41,6 @@ struct CompeteScreen: View {
     CompeteRoot.make(me, upcoming: me?.upcoming ?? [])
   }
 
-  /// D314 · the league the plate is seeded from — the first live season's, then
-  /// the first finished one's, then the golfer. `nil` only when there is
-  /// neither, and then no plate is drawn rather than one seeded from nothing.
-  private var plateSeed: String? {
-    let l = list
-    let league = (l.seasons.first(where: { $0.leagueId != nil })
-                  ?? l.finished.first(where: { $0.leagueId != nil }))?.leagueId
-    return league?.uuidString ?? me?.profile?.id.uuidString
-  }
 
   var body: some View {
     ScrollView {
@@ -57,66 +49,17 @@ struct CompeteScreen: View {
       // shipped page put 14pt between EVERY child — masthead, head, row, head,
       // row — which is why the two heads read as two more rows.
       VStack(alignment: .leading, spacing: 0) {
-        // **D314 · COMPETE STANDS SOMEWHERE.** The contour plate is a real
-        // generator — seeded value noise, marching squares, five to seven
-        // isolines, *"same course, same plot, forever"* — and it draws behind
-        // the credential's crest and on the course hero. Compete called it
-        // NOWHERE, which is why the tab a season lives in looked like a list.
-        //
-        // **Behind the page head, at hero scale, and only there.** The system
-        // BANS the contour at thumbnail scale in its own words — small, it
-        // reads as three near-identical concentric ovals — so a plate per
-        // season CARD was rejected on the existing rule rather than on taste.
-        //
-        // **Seeded from the league**, so the Fellas and Who's the bitch? are
-        // two places and each is the same place every time. With no league at
-        // all it falls to the golfer's own id, which is exactly what the
-        // person card does when a golfer has no home course. **A league is not
-        // a course**: the plot means nothing about the golf, it is identity and
-        // not information, and no copy on this page claims otherwise — which
-        // is also why it carries NO `mark` (there is no hole to point at).
-        CSPageHeader("Compete", eyebrow: CSHeaderDate.today()) {
-          // IA §6.1 · one primary door at the head — and it is the page's ONE
-          // ember (L-25), which is why the foot's two doors are quiet.
-          //
-          // **THE ARROW IS GONE, AND IT WAS BREAKING THE HEAD.** `START
-          // SOMETHING ↗` measures wider than the 362pt measure leaves beside
-          // `COMPETE` and `MON · SEP 7`, so the glyph wrapped onto a second
-          // line under the words and sat beside the dateline. It was also the
-          // only typed arrow left in the phone: `LINT-13` deletes them by name
-          // — *movement is a drawn mark; a link's arrow is absorbed into its
-          // underline* — and this was the one that got away.
+        // DesignV1: a quiet heading; course imagery belongs to the actual season below.
+        HStack {
+          Text("The Board").csType(.name, caps: true).foregroundStyle(cs.ink)
+            .accessibilityAddTraits(.isHeader)
+          Spacer()
           Button { presenter.showIntent = true } label: {
-            Text("START SOMETHING").csEyebrow(cs.brand).lineLimit(1).fixedSize().a11yHitSlop()
+            CSGlyph(.plus, size: .row).foregroundStyle(cs.brand).a11yMinTarget()
           }
-          .buttonStyle(.plain)
-          .accessibilityLabel("Start something")
+          .buttonStyle(.plain).accessibilityLabel("Start something")
         }
-        .background(alignment: .top) {
-          if let seed = plateSeed {
-            // **CLIPPED, because the field draws past its frame.** `CSContour`
-            // strokes isolines in its own coordinate space and a `frame(height:)`
-            // alone does not stop them: the first build ran the curves down
-            // through YOUR SEASONS and behind the first two season rows, where
-            // a 24%-opacity line crossing a 17pt name is legibility spent on
-            // texture. It clips to the head's own measure.
-            //
-            // `.clipped()` clips DRAWING and not touches (D301) — which is why
-            // `allowsHitTesting(false)` is here too and not instead.
-            // **THE TOPO FOLLOWS THE LIVERY** (owner: *"topo can follow
-            // themes"*). Under a look the field takes the accent; on homebase
-            // it is `mut`, the neutral it has always been. It is the ACCENT and
-            // not the second colour: the panel and the tick already carry
-            // accent2, and a third object in it would be the wash D270 deleted
-            // arriving as a texture.
-            CSContour(seed: seed, tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a08))
-              .frame(maxWidth: .infinity)
-              .frame(height: 132)
-              .clipped()
-              .allowsHitTesting(false)
-              .accessibilityHidden(true)
-          }
-        }
+        .padding(.vertical, CSTokens.Space.s2)
 
         switch CompeteRoot.state(list: list, loaded: loaded, readFailed: readFailed, buddies: buddies) {
         case .loading:
@@ -129,7 +72,34 @@ struct CompeteScreen: View {
           // running" is true and "you have never played one" is not.
           section(CompeteRoot.Head.finished, list.finished)
         case .list:
-          section(CompeteRoot.Head.seasons, list.seasons, first: true)
+          if let row = list.seasons.first(where: { $0.leagueId == selectedLeague }) ?? list.seasons.first,
+             let leagueId = row.leagueId {
+            ScrollView(.horizontal, showsIndicators: false) {
+              HStack(spacing: CSTokens.Space.s4) {
+                ForEach(list.seasons) { option in
+                  Button { selectedLeague = option.leagueId } label: {
+                    Text(option.title).csType(.nameS)
+                      .foregroundStyle(option.id == row.id ? cs.ink : cs.mut)
+                      .padding(.vertical, CSTokens.Space.s3)
+                      .overlay(alignment: .bottom) {
+                        if option.id == row.id { CSRule(.heavy) }
+                      }
+                  }
+                  .buttonStyle(.plain)
+                  .accessibilityAddTraits(option.id == row.id ? .isSelected : [])
+                }
+              }
+            }
+            CompeteStandingsPreview(leagueId: leagueId, viewer: me.flatMap(RoomViewer.init),
+                                    title: row.eyebrow,
+                                    detail: me?.memberships.first(where: { $0.league_id == leagueId })
+                                      .flatMap { SeasonFacts.owe($0) }, open: { open(row) })
+              .id(leagueId)
+              .environment(\.csLook, look(row))
+              .padding(.top, CSTokens.Space.s3)
+          } else {
+            section(CompeteRoot.Head.seasons, list.seasons, first: true)
+          }
           section(CompeteRoot.Head.moments, list.moments, first: list.seasons.isEmpty)
           section(CompeteRoot.Head.finished, list.finished,
                   first: list.seasons.isEmpty && list.moments.isEmpty)
@@ -273,6 +243,48 @@ struct CompeteScreen: View {
       }
     }
     .csRedacted(true)
+  }
+}
+
+/// The same points/rank renderer as the season. Opening any row retains the
+/// full season's member, squad and receipt interactions.
+private struct CompeteStandingsPreview: View {
+  @Environment(SessionStore.self) private var store
+  @State private var model: LeagueRoomModel
+  @State private var router = RoomRouter()
+  let viewer: RoomViewer?
+  let title: String
+  let detail: String?
+  let open: () -> Void
+  init(leagueId: UUID, viewer: RoomViewer?, title: String, detail: String?, open: @escaping () -> Void) {
+    _model = State(initialValue: LeagueRoomModel(leagueId: leagueId))
+    self.viewer = viewer; self.title = title; self.detail = detail; self.open = open
+  }
+  var body: some View {
+    CSCompetitionBand {
+      if let photo = model.album?.first(where: { item in model.rankedRounds.contains { $0.round_id == item.id } }) {
+        AsyncImage(url: photo.url) { $0.resizable().scaledToFill() }
+          placeholder: { CSTokens.dark.bg1 }
+          .frame(height: CSTokens.Space.s6 * 1.5).frame(maxWidth: .infinity).clipped()
+          .accessibilityLabel("Round photograph by \(photo.golfer)")
+      }
+      Text(title).csType(.agate, caps: true).foregroundStyle(CSTokens.dark.mut)
+        .padding(.horizontal, CSTokens.Space.s4)
+      if model.loaded {
+        StandingsTableView(openSeason: open).environment(model).environment(router)
+      } else {
+        Text(model.error ?? "Loading the board…").csType(.bodyS)
+          .foregroundStyle(CSTokens.dark.ink).padding(CSTokens.Space.s4)
+      }
+      CSDoor(.link("View full board", open)).padding(.horizontal, CSTokens.Space.s4)
+      if let detail {
+        Text(detail).csType(.bodyS).foregroundStyle(CSTokens.dark.mut)
+          .padding(.horizontal, CSTokens.Space.s4)
+      }
+    }
+    .task(id: store.me?.generated_at) {
+      if let viewer { await model.load(viewer: viewer); await model.loadAlbum() }
+    }
   }
 }
 

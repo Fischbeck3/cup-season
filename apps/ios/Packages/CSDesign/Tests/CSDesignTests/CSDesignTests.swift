@@ -122,6 +122,16 @@ import SwiftUI
     }
   }
 
+  @Test func earnedRankClearsAAUnderEveryNativeLook() {
+    for (theme, base) in [(CSTheme.light, CSTokens.light), (.dark, CSTokens.dark)] {
+      for look in CSLooks.all {
+        let palette = base.wearing(look, theme: theme)
+        #expect(Self.contrast(palette.gold, palette.bg0) >= 4.5,
+                "\(look.key): earned rank ink must stay readable on the page ground")
+      }
+    }
+  }
+
   /// WCAG 2 relative luminance from the resolved LINEAR components.
   private static func luminance(_ c: Color) -> Double {
     let r = c.resolve(in: EnvironmentValues())

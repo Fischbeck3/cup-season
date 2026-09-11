@@ -66,9 +66,25 @@ struct HomeLead: View {
   }
 
   var body: some View {
-    CSStoryCard(eyebrow: item.eyebrow, live: live, tag: tag, credit: credit,
-                headline: item.headline, standfirst: item.standfirst, door: door) {
-      if let chip = HomeLeadChip.make(membership) { chip }
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      CSRule()
+      Text(item.eyebrow).csType(.agateS, caps: true).foregroundStyle(live ? cs.brand : cs.mut)
+      A11yStack(rowAlignment: .top, spacing: CSTokens.Space.s3) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          Text(item.headline).csType(.story).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+          if let detail = item.standfirst {
+            Text(detail).csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }.frame(maxWidth: .infinity, alignment: .leading)
+        if let chip = HomeLeadChip.make(membership) {
+          CSFigure(String(chip.rank), size: .m, label: "of \(chip.of)", ordinal: CSOrdinal.suffix(chip.rank))
+            .fixedSize(horizontal: true, vertical: false)
+        }
+      }
+      if let action = item.action, !action.isEmpty { CSDoor(.link(action, act)) }
+      if let credit { Text("\(credit.slot) · \(credit.name)").csType(.agateS).foregroundStyle(cs.gold) }
     }
     // §7 · ONE VoiceOver element for the whole block, in the product's voice,
     // with the door as its action — never eyebrow, headline, standfirst, chip

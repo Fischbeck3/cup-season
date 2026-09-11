@@ -1,7 +1,9 @@
 {
-  "provenance": "Pennant/pole: brand/candidates/fifty/fifty.svg m20 and pen. CS: brand/candidates/strike/strike.svg k-C/k-S. Beta selection, not final brand canon.",
-  "flag": "M20 22c24-13.2 48 12 72-1.2v44.4c-24 13.2-48-12-72 1.2z",
-  "pole": "M14 16h6v66h-6z",
-  "c": "M12-14L-6-14L-10-10L-10 10L-6 14L12 14",
-  "s": "M12-14L-6-14L-10-10L-10-4L-6 0L6 0L10 4L10 10L6 14L-12 14"
+  "provenance": "Clean authored Bezier geometry reconstructed from the owner-approved Desingv1.png; beta production identity for this branch. No raster tracing.",
+  "topo": "M-12 0C40 52 52 -28 108 28",
+  "flag": "M33 23C49 16 63 34 85 22L75 51C60 57 49 44 33 49Z",
+  "pole": "M32 19C29 18 29 14 32 14C35 14 36 18 34 19L34 65L31 66Z",
+  "ridge": "M5 81C30 58 57 58 92 80C59 65 33 67 5 81Z",
+  "c": "M54 32L46 32L43 35L40 43L43 46L50 46L52 42L46 42L48 36L53 36Z",
+  "s": "M70 34L59 33L56 36L54 40L61 41L60 44L54 43L52 47L63 48L66 45L68 39L61 38L62 37L68 38Z"
 }

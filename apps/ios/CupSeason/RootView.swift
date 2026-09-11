@@ -180,7 +180,7 @@ struct BootingView: View {
     // one thing every screen behind this shares: the masthead, held. The named
     // step keeps the web's `bootStep` breadcrumb visible under it.
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      Text("Cup Season").csType(.display).foregroundStyle(cs.ink)
+      CSBrandLockup()
       CSRule(.heavy)
       Text(step).csType(.agate, caps: true).foregroundStyle(cs.mut)
     }

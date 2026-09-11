@@ -83,54 +83,32 @@ struct HomeWireBand: View {
   private var line: String { HomeWireCopy.roundLine(row) }
 
   var body: some View {
-    Button(action: open) {
-      ZStack(alignment: .bottomLeading) {
-        AsyncImage(url: photo) { $0.resizable().scaledToFill() } placeholder: { CSTokens.dark.bg1 }
-          .frame(maxWidth: .infinity)
-          .frame(height: 168)
+    HStack(spacing: CSTokens.Space.s3) {
+      Button(action: open) {
+        AsyncImage(url: photo) { $0.resizable().scaledToFill() } placeholder: { cs.bg1 }
+          .frame(width: CSTokens.Space.s6, height: CSTokens.Space.s6)
           .clipped()
-        // the two named geometries, used as named: `.band` for the copy at the
-        // leading edge, `.top` for the credit riding the head of the picture
-        CSPhotoScrim.layer(CSPhotoScrim.band, leading: true)
-        CSPhotoScrim.layer(CSPhotoScrim.top).frame(height: CSPhotoScrim.topHeight)
-          .frame(maxHeight: .infinity, alignment: .top)
-        VStack(alignment: .trailing) {
-          Text(HomeWireCopy.photoCredit(row)).csType(.agateS, caps: true)
-            // §10.3's sixth conflict: `.top` reaches only a72, so a caption
-            // under it takes `scrimInk` and not `scrimMut`.
-            .foregroundStyle(CSPhotoScrim.ink(CSPhotoScrim.top, caption: true))
-          Spacer(minLength: 0)
-        }
-        .frame(maxWidth: .infinity, alignment: .trailing)
-        .padding(CSTokens.Space.s3)
-        HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
-          CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
-            .onTapGesture { openPerson() }
-          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            // §1.3 · a person in a wire row is never caps.
-            Text(name).csType(.social).foregroundStyle(CSTokens.dark.scrimInk)
-              .lineLimit(1).truncationMode(.tail)
-            Text(line).csType(.bodyS).foregroundStyle(CSTokens.dark.scrimInk)
-              .fixedSize(horizontal: false, vertical: true)
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          if let g = row.gross {
-            CSPanel(.overPhoto, unit: "Gross", width: 60, height: 60) {
-              Text("\(g)").csType(.figureM)
-            }
-          }
-        }
-        .padding(.horizontal, CSTokens.Space.gutter)
-        .padding(.bottom, CSTokens.Space.s3)
       }
-      .frame(maxWidth: .infinity)
-      .clipped()
-      .contentShape(Rectangle())
+      .buttonStyle(.plain)
+      .accessibilityLabel("Open round photograph by \(name)")
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        Button(action: openPerson) {
+          Text(name).csType(.social).foregroundStyle(cs.ink).a11yMinTarget(alignment: .leading)
+        }
+        .buttonStyle(.plain)
+        Button(action: open) {
+          Text(line).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .a11yMinTarget(alignment: .leading)
+        }
+        .buttonStyle(.plain).accessibilityHint("Opens the round")
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .buttonStyle(.plain)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("\(name). \(line)")
-    .accessibilityHint("Opens the round")
+    .padding(.horizontal, CSTokens.Space.gutter)
+    .padding(.vertical, CSTokens.Space.s2)
+    .overlay(alignment: .bottom) { CSRule(inset: CSTokens.Space.gutter) }
   }
 }
 
@@ -389,7 +367,7 @@ struct HomeWireItem: View {
   }
 
   private var row: some View {
-    HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+    A11yStack(rowAlignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
       Text(headline).csType(.body).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -117,19 +117,14 @@ private struct HeadToHeadContent: View {
     // M3/D18 · a christened rivalry wears its name, in gold — **the surface's
     // one gold object**, and absent when it is unnamed.
     if let n = h.rivalryName, !n.isEmpty {
-      Text(n).csType(.agate, caps: true).foregroundStyle(cs.gold)
+      Text(n).csType(.agate, caps: true).foregroundStyle(cs.mut)
         .padding(.top, CSTokens.Space.s3)
-        .csBudget(gold: 1)
     }
-    Text(HeadToHeadCopy.pageTitle(h)).csType(.display, caps: true).foregroundStyle(cs.ink)
-      .lineLimit(2).minimumScaleFactor(0.72)
+    Text(HeadToHeadCopy.pageTitle(h)).csType(.lead).foregroundStyle(cs.ink)
       .fixedSize(horizontal: false, vertical: true)
       .padding(.top, CSTokens.Space.s2)
       .accessibilityAddTraits(.isHeader)
       .csBudget(display: 1)
-
-    CSCompetitionBand { graphic(h) }
-      .padding(.top, CSTokens.Space.s4)
 
     // §10 · the serif carries what the numeral cannot: *"He has won the last
     // two."* One serif appearance per viewport (§1.4).
@@ -138,6 +133,9 @@ private struct HeadToHeadContent: View {
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, CSTokens.Space.s4)
     }
+
+    CSCompetitionBand { graphic(h) }
+      .padding(.top, CSTokens.Space.s4)
 
     tape(h)
 
@@ -152,6 +150,16 @@ private struct HeadToHeadContent: View {
     }
 
     doors(h)
+    brandFooter
+  }
+
+  private var brandFooter: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+      CSRule()
+      CSBrandLockup()
+    }
+    .padding(.vertical, CSTokens.Space.s5)
+    .background { CSTopoField() }
   }
 
   /// §10 · **the graphic.** Two `CSFace` 64 discs, one at each end of the
@@ -163,18 +171,32 @@ private struct HeadToHeadContent: View {
   /// `4–6 · HE LEADS`). And the lead line names a SUBJECT — `YOU LEAD` /
   /// `GALEN LEADS` / `ALL SQUARE`, never `HE LEADS`.
   @ViewBuilder private func graphic(_ h: HeadToHead) -> some View {
-    CSClash(left: me, leftName: "You",
-            right: CSFace.Model(id: h.opponent.id ?? opponentId, marker: h.opponent.marker,
-                                initials: Initials.of(h.opponent.displayName)),
-            rightName: first,
-            leftSub: mySub, rightSub: nil) {
-      VStack(spacing: CSTokens.Space.s1) {
-        CSFigure(h.record.line, size: .xl, label: nil)
-        CSRule(.heavy)
-        Text(meetingsLine(h)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      Text("Wins").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        .frame(maxWidth: .infinity, alignment: .trailing)
+      rivalryRow(face: me, name: "You", wins: h.record.wins)
+      CSRule()
+      rivalryRow(face: .init(id: h.opponent.id ?? opponentId, marker: h.opponent.marker,
+                            initials: Initials.of(h.opponent.displayName)),
+                 name: name, wins: h.record.losses)
+      if h.record.ties > 0 {
+        Text("\(h.record.ties) tied").csType(.agateS).foregroundStyle(cs.mut)
       }
-      .accessibilityElement(children: .ignore)
-      .accessibilityLabel("\(h.record.line), \(RivalryCopy.leadLabel(h.lead, them: name).lowercased()). \(meetingsLine(h))")
+    }
+    .padding(CSTokens.Space.s4)
+    .background(cs.bg1)
+  }
+
+  private func rivalryRow(face: CSFace.Model, name: String, wins: Int) -> some View {
+    A11yStack(spacing: CSTokens.Space.s3) {
+      HStack(spacing: CSTokens.Space.s3) {
+        CSFace(face, size: .list, name: name)
+        Text(name).csType(.name).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+      }.frame(maxWidth: .infinity, alignment: .leading)
+      Text(String(wins)).csType(.figureL).foregroundStyle(cs.ink)
+        .fixedSize(horizontal: true, vertical: false)
+        .accessibilityLabel("\(wins) wins")
     }
   }
 
@@ -233,8 +255,7 @@ private struct HeadToHeadContent: View {
   @ViewBuilder private var empty: some View {
     Text("Nothing counted yet").csType(.agate, caps: true).foregroundStyle(cs.mut)
       .padding(.top, CSTokens.Space.s4)
-    Text(TourCard.youAndThem(name)).csType(.display, caps: true).foregroundStyle(cs.ink)
-      .lineLimit(2).minimumScaleFactor(0.72)
+    Text(TourCard.youAndThem(name)).csType(.lead).foregroundStyle(cs.ink)
       .fixedSize(horizontal: false, vertical: true)
       .padding(.top, CSTokens.Space.s2)
       .accessibilityAddTraits(.isHeader)
@@ -252,13 +273,14 @@ private struct HeadToHeadContent: View {
     Text(HeadToHeadCopy.emptySub).csType(.body).foregroundStyle(cs.mut)
       .fixedSize(horizontal: false, vertical: true)
       .padding(.top, CSTokens.Space.s3)
-    CSDoor(.primary("Play \(first)", { stageRound?(LastRoundWith.nextSaturday(), opponentId) }))
+    CSPrimaryAction("Play \(first)") { stageRound?(LastRoundWith.nextSaturday(), opponentId) }
       .padding(.top, CSTokens.Space.s4)
     HStack {
       CSDoor(.link("\(first)’s card", { openPerson(opponentId) }))
       Spacer()
     }
     .padding(.top, CSTokens.Space.s3)
+    brandFooter
   }
 
   private var me: CSFace.Model {

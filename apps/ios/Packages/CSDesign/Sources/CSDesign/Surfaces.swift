@@ -179,7 +179,7 @@ public struct CSSectionHead: View {
   /// no rule beside it to give way and a head wider than the page is the AX3
   /// shear the comment below records.
   private var displayHead: some View {
-    Text(title).csType(.displayS)
+    Text(title).csType(.story)
       .foregroundStyle(cs.ink)
       .fixedSize(horizontal: false, vertical: true)
       .frame(maxWidth: .infinity, alignment: .leading)

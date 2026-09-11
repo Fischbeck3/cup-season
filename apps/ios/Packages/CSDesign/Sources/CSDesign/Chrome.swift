@@ -326,7 +326,7 @@ public struct CSTabBand<T: Hashable>: View {
               // AX3 `agateS` renders ~25pt and 0.55 of that is ~14, still
               // above the default reading size and comfortably above the 11pt
               // floor, on the one row where five slots have to share 402pt.
-              Text(item.label).csType(.agateS, caps: true)
+              Text(item.label).csType(.agateS, caps: false)
                 .multilineTextAlignment(.center)
                 .lineLimit(1)
                 .minimumScaleFactor(typeSize.isA11y ? 0.55 : 1)
@@ -336,7 +336,7 @@ public struct CSTabBand<T: Hashable>: View {
                 .frame(width: 26, height: 2)
             }
             .foregroundStyle(item.isPlay ? cs.brand : (on ? cs.ink : cs.mut))
-            .frame(maxWidth: .infinity, minHeight: typeSize.isA11y ? 84 : 74)
+            .frame(maxWidth: .infinity, minHeight: typeSize.isA11y ? 84 : CSTokens.Space.s6)
             .contentShape(Rectangle())
           }
           .buttonStyle(.plain)

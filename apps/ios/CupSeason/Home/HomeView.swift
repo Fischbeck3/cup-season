@@ -81,18 +81,38 @@ struct HomeView: View {
           // own value, so the masthead and the card can never disagree about
           // it, and a golfer with no number yet still gets the date.
           let numberSlot = strip.slots.first { $0.fact == .myNumber }
-          CSMasthead(date: Date(), asOf: staleAt,
-                     number: numberSlot?.value,
-                     // D319 · the slot's own label — STARTER and BUILDING are
-                     // real states and the masthead must not print YOUR NUMBER
-                     // over a figure the engine has not established yet.
-                     numberLabel: numberSlot?.label,
-                     trend: CSNumberTrend(current: me.profile?.index_current,
-                                          previous: me.profile?.index_prev))
-            .padding(.horizontal, CSTokens.Space.gutter)
+          VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+            HStack {
+              CSBrandMark().frame(width: CSTokens.Space.s5, height: CSTokens.Space.s5)
+              Spacer()
+              if let p = me.profile {
+                CSFace(.init(id: p.id, marker: p.marker), size: .list,
+                       name: p.display_name ?? p.handle ?? "You")
+              }
+            }
+            VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+              Text(greeting(me)).csType(.lead).foregroundStyle(cs.ink)
+                .fixedSize(horizontal: false, vertical: true)
+              Text(staleAt == nil ? "Rounds count." : "Showing your last update.")
+                .csType(.bodyS).foregroundStyle(cs.mut)
+            }
+            if let numberSlot {
+              CSNumberFeature(number: numberSlot.value, label: numberSlot.label,
+                              trend: CSNumberTrend(current: me.profile?.index_current,
+                                                   previous: me.profile?.index_prev),
+                              photo: vm.ownPhoto)
+            }
+            if !page.hasPrimary && !page.offered.contains("add_my_round") {
+              CSPrimaryAction("Log a round") {
+                presenter.postOnComposer = true; presenter.showPost = true
+              }
+            }
+          }
+          .padding(.horizontal, CSTokens.Space.gutter)
+          .padding(.top, CSTokens.Space.s3)
 
           // 2 · THE LEAD, in one of its three forms.
-          lead(page, me: me)
+          if case .block = page.lead {} else { lead(page, me: me) }
 
           // 3 · THE ME STRIP — **AND IT YIELDS TO THE LEAD** (D315).
           //
@@ -111,6 +131,10 @@ struct HomeView: View {
           let payload = strip.without([.myNumber, .myMoney])
           let above = page.leadIsCompetition ? payload.leading : payload
           let below = page.leadIsCompetition ? payload.trailing : nil
+          // DesignV1 puts recent golf immediately below the number/action.
+          // The ranker and its suppression set remain authoritative.
+          wire(page, me: me, strip: strip)
+          if case .block = page.lead { lead(page, me: me) }
           if !above.isEmpty {
             HomeFacts(strip: above, state: vm.stateKey,
                       leadIsLive: page.leadIsLive, starterLine: page.starter)
@@ -120,7 +144,6 @@ struct HomeView: View {
           }
 
           // 4 · THE WIRE.
-          wire(page, me: me, strip: strip)
 
           // 4b · WHAT THE LEAD PUSHED DOWN. Demoted, never dropped — the money
           // slot in particular carries a debt, and the owe row rides with it.
@@ -178,6 +201,13 @@ struct HomeView: View {
   private var staleAt: Date? {
     guard vm.feedFailed, !vm.dispatch.isEmpty || vm.digest != nil else { return nil }
     return store.me?.generated_at ?? Date()
+  }
+
+  private func greeting(_ me: Me) -> String {
+    let hour = Calendar.current.component(.hour, from: Date())
+    let salutation = hour < 12 ? "Good morning" : (hour < 18 ? "Good afternoon" : "Good evening")
+    guard let name = me.profile?.display_name?.split(separator: " ").first else { return salutation + "." }
+    return "\(salutation),\n\(name)."
   }
 
   // MARK: - 2 · the lead
@@ -531,6 +561,10 @@ final class HomeModel {
   private var rounds: [HomeFeedRow] = []
   private var posts: [HomePost] = []
   private var urls: [UUID: URL] = [:]
+  var ownPhoto: URL? {
+    rounds.first(where: { $0.is_me == true && $0.round_id.flatMap { urls[$0] } != nil })
+      .flatMap { $0.round_id }.flatMap { urls[$0] }
+  }
   private let repo = HomeStreamRepository()
   private let socialRepo = HomeSocial()
   /// Which load is current. A superseded run still comes back from its awaits,

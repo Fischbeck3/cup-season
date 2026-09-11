@@ -95,6 +95,10 @@ struct RoundReceiptSheet: View {
           photo(r)
             .padding(.horizontal, -CSTokens.Space.gutter)
           head(r)
+            .padding(CSTokens.Space.s4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(cs.bg1)
+            .padding(.top, r.photoURL == nil ? 0 : -CSTokens.Space.s5)
           photoActions(r)
           scorecard(r)
             #if DEBUG
@@ -174,9 +178,10 @@ struct RoundReceiptSheet: View {
                    label: "gross · \(r.holesPlayed == 9 ? "9" : "18") holes")
             .frame(width: typeSize.isA11y ? nil : 132, alignment: .leading)
         }
-        if let p = r.points {
-          CSFigure(CSCopy.points(p), size: .l, label: "points")
-            .frame(width: typeSize.isA11y ? nil : 76, alignment: .leading)
+        if let g = r.gross, let par = card?.parTotal {
+          let relative = g - par
+          CSFigure(relative == 0 ? "E" : String(format: "%+d", relative), size: .l, label: "to par")
+            .frame(minWidth: typeSize.isA11y ? nil : CSTokens.Space.s6, alignment: .leading)
         }
         if !typeSize.isA11y { Spacer(minLength: 0) }
       }
@@ -193,8 +198,7 @@ struct RoundReceiptSheet: View {
   @ViewBuilder private func photo(_ r: ReceiptSeed) -> some View {
     if let url = r.photoURL {
       CSPhotoHeading(url: url, title: r.courseLabel ?? (mine(r) ? "Your round" : "The round"),
-                     detail: [r.playedOn.map { RivalryCopy.monthDay($0) },
-                              "\(r.holesPlayed ?? 18) holes"].compactMap { $0 }.joined(separator: " · "))
+                     detail: r.playedOn.map { RivalryCopy.monthDay($0) } ?? "")
     }
   }
 
@@ -417,8 +421,6 @@ struct RoundReceiptSheet: View {
   /// LOOSE`. One producer, one direction, three renderers.
   private func sentence(_ r: ReceiptSeed) -> String? {
     guard r.indexProvisional != true, let pvi = r.resolvedPvi else { return nil }
-    let named = r.band ?? CSBands.bandName(pvi)
-    let band = mine(r) ? named : CSBands.theirs(named)
     var phrase = CSBands.vsPhraseMarked(pvi)
     guard !phrase.isEmpty else { return nil }
     if !mine(r) { phrase = CSBands.theirs(phrase) }
@@ -426,7 +428,7 @@ struct RoundReceiptSheet: View {
     // pronoun in front of it makes half the cases verbless ("You 2.0 over your
     // playing HCP"). It opens the same way the composer's does, and the two
     // read as one voice because they are one producer.
-    return phrase.prefix(1).uppercased() + phrase.dropFirst() + " — " + band.lowercased() + "."
+    return phrase.prefix(1).uppercased() + phrase.dropFirst() + "."
   }
 
   private func open() async {

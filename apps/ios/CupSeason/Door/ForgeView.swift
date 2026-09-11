@@ -161,9 +161,10 @@ struct ForgeFrame: View {
   var body: some View {
     let markP = ForgeTimeline.progress(t, ForgeTimeline.mark, ForgeTimeline.roll)
     VStack(spacing: 0) {
-      canvas.frame(width: width, height: height)
-      wordmark.padding(.top, 2)
-      fuse.padding(.top, 12)
+      CSBrandMark().frame(width: width, height: height)
+      Text("CUP SEASON").csType(.displayS).foregroundStyle(cs.ink)
+        .padding(.top, CSTokens.Space.s2)
+      Text("ROUNDS COUNT").csType(.agateS, caps: true).foregroundStyle(cs.mut)
       VStack(spacing: 2) {
         Text("Rally your crew. Post real rounds.").csType(.story).foregroundStyle(cs.mut)
         Text("Take the cup.").csType(.name).italic().foregroundStyle(cs.ink)

@@ -611,18 +611,21 @@ public struct CSPhotoHeading: View {
     VStack(alignment: .leading, spacing: 0) {
       AsyncImage(url: url) { image in image.resizable().scaledToFill() }
         placeholder: { CSTokens.dark.bg1 }
-        .frame(height: 196)
+        .frame(height: 240)
         .frame(maxWidth: .infinity)
         .clipped()
         .contentShape(Rectangle())
         .accessibilityLabel("Round photo")
       VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-        Text(title).csType(.story).foregroundStyle(CSTokens.dark.ink)
+        Text(title).csType(.lead).foregroundStyle(CSTokens.dark.ink)
           .fixedSize(horizontal: false, vertical: true)
-        Text(detail).csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.mut)
-          .fixedSize(horizontal: false, vertical: true)
+        if !detail.isEmpty {
+          Text(detail).csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
       }
       .padding(CSTokens.Space.s4)
+      .padding(.bottom, CSTokens.Space.s5)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(CSTokens.dark.bg0)
     }

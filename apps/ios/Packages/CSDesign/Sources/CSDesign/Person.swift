@@ -317,6 +317,8 @@ public struct CSFolio: View {
                                      over: CSTokens.dark.ceremony, reduce: reduce))
         .frame(height: CSTokens.Space.hair)
       HStack {
+        CSBrandMark().frame(width: CSTokens.Space.s4, height: CSTokens.Space.s4)
+          .environment(\.cs, CSTokens.dark)
         Text(club).csType(.agateS, caps: true)
         Spacer(minLength: CSTokens.Space.s2)
         if let serial { Text(serial).csType(.agateS, caps: true) }
