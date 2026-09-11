@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <!-- One-colour STAMP — engraving, the ball-marker die, embroidery, 16px.
+       The coin's face as a solid disc with the glyph struck out of it. Pure
+       ink; swap the fill for the thread or the metal. -->
+  <path fill="#151B17" fill-rule="evenodd" d="M48 3 a45 45 0 1 0 0 90 a45 45 0 1 0 0-90 z
+    M36 28 a3 3 0 0 1 6 0 v44 a3 3 0 0 1 -6 0 z
+    M42 27 c10.7-5.9 21.3 5.3 32-.5 v19.7 c-10.7 5.9-21.3-5.3-32 .5 z
+    M22 71 a17 5.5 0 1 0 34 0 a17 5.5 0 1 0 -34 0 z"/>
+  <path fill="#151B17" d="M26.5 71 a12.5 3.2 0 1 0 25 0 a12.5 3.2 0 1 0 -25 0 z"/>
+</svg>
