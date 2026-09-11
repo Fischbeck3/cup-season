@@ -209,6 +209,20 @@ to happen fixes the symptom and leaves the hole.
 
 ---
 
+## The build plan (2026-09-10)
+
+Nineteen findings as four sequenced waves:
+**https://claude.ai/code/artifact/a1bf141f-2164-4b1a-9fa2-8c2b592abbe1**
+
+**Wave 1 needs no decision and can start without him** — the six findings where
+the product asserts something untrue. Wave 2 is one missing field (`api_course_id`
+on a feed row) that opens the whole card→course→plan loop. Wave 3 is the closing
+act and is the keystone. Wave 4 waits on the card ruling.
+
+Five items are HELD deliberately: they wait on an answer, not on time.
+
+---
+
 ## The decision tree (2026-09-10)
 
 The four decisions behind items 11-20, with what each branch commits to, is a
