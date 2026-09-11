@@ -1,68 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 260" style="color:#D8B25A">
-  <!-- Cup Season — STRIKE, detail pass (2026-09-11). Inline letters; 11 is CS with a dimpled ball in flight;
-       20 and 33 carry finial, collar, stitched hoist and folds; 33 has five contours with an index line.
-       Letters are paths on a 40 grid, never a font file. -->
+  <!-- Cup Season — STRIKE, emblem pass (2026-09-11). Pulled back from the rendered pass: ten dimples not
+       thirty-seven, a finial not stitching, three contours not five. Letters are paths on a 40 grid. -->
   <rect width="440" height="260" fill="#0A0E0C"/>
   <defs>
-  <!-- ═══ STRIKE — the letterforms. 40 tall, baseline at +20, centre 0,0. Heavy monoline, flat-cut terminals, set with skewX(-10). Weight is the stroke: 12 on 40. ═══ -->
-  <path id="k-C" d="M12-14L-6-14L-10-10L-10 10L-6 14L12 14"/>
-  <path id="k-S" d="M12-14L-6-14L-10-10L-10-4L-6 0L6 0L10 4L10 10L6 14L-12 14"/>
-  <path id="k-U" d="M-12-20L-12 8L-6 14L6 14L12 8L12-20"/>
-  <path id="k-P" d="M-12 20L-12-20L6-20L12-14L12-6L6 0L-12 0"/>
-  <path id="k-E" d="M12-20L-12-20L-12 20L12 20M-12 0L8 0"/>
-  <path id="k-A" d="M-14 20L0-20L14 20M-8 4L8 4"/>
-  <path id="k-O" d="M-6-20L6-20L12-14L12 14L6 20L-6 20L-12 14L-12-14Z"/>
-  <path id="k-N" d="M-12 20L-12-20L12 20L12-20"/>
-  <!-- the two-letter mark, set: C then S, 8 apart -->
-  <g id="CS" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g>
-  <!-- the strike: one slice at the club's angle, applied as a mask to whatever carries the letters -->
-  <mask id="strike"><rect x="-200" y="-200" width="600" height="600" fill="white"/><path d="M-60 34L60-34" stroke="black" stroke-width="3.4"/></mask>
-    <!-- the iron: hosel at the origin, toe along +x; grooves in the ground colour -->
-  <g id="iron"><path d="M-46-78L-9-22L-8-8L-5-5L44-16Q50-14 50-7Q50 1 45 3Q22 8-3 4Q-6 3-6-2L-4-8L0-22L-37-78Z" fill="currentColor"/><path d="M6-4L36-11M6 0L36-7M6 4L36-3" stroke="#0A0E0C" stroke-width="1.2" stroke-linecap="round"/></g>
-  <g id="ball"><circle r="15" fill="currentColor"/><g fill="var(--g)"><circle cx="-6.6" cy="-11.4" r="0.92"/><circle cx="-2.2" cy="-11.4" r="1.04"/><circle cx="2.2" cy="-11.4" r="1.04"/><circle cx="6.6" cy="-11.4" r="0.92"/><circle cx="-8.8" cy="-7.6" r="1.04"/><circle cx="-4.4" cy="-7.6" r="1.17"/><circle cx="0.0" cy="-7.6" r="1.21"/><circle cx="4.4" cy="-7.6" r="1.17"/><circle cx="8.8" cy="-7.6" r="1.04"/><circle cx="-11.0" cy="-3.8" r="1.04"/><circle cx="-6.6" cy="-3.8" r="1.21"/><circle cx="-2.2" cy="-3.8" r="1.29"/><circle cx="2.2" cy="-3.8" r="1.29"/><circle cx="6.6" cy="-3.8" r="1.21"/><circle cx="11.0" cy="-3.8" r="1.04"/><circle cx="-13.2" cy="0.0" r="0.92"/><circle cx="-8.8" cy="0.0" r="1.17"/><circle cx="-4.4" cy="0.0" r="1.29"/><circle cx="0.0" cy="0.0" r="1.32"/><circle cx="4.4" cy="0.0" r="1.29"/><circle cx="8.8" cy="0.0" r="1.17"/><circle cx="13.2" cy="0.0" r="0.92"/><circle cx="-11.0" cy="3.8" r="1.04"/><circle cx="-6.6" cy="3.8" r="1.21"/><circle cx="-2.2" cy="3.8" r="1.29"/><circle cx="2.2" cy="3.8" r="1.29"/><circle cx="6.6" cy="3.8" r="1.21"/><circle cx="11.0" cy="3.8" r="1.04"/><circle cx="-8.8" cy="7.6" r="1.04"/><circle cx="-4.4" cy="7.6" r="1.17"/><circle cx="0.0" cy="7.6" r="1.21"/><circle cx="4.4" cy="7.6" r="1.17"/><circle cx="8.8" cy="7.6" r="1.04"/><circle cx="-6.6" cy="11.4" r="0.92"/><circle cx="-2.2" cy="11.4" r="1.04"/><circle cx="2.2" cy="11.4" r="1.04"/><circle cx="6.6" cy="11.4" r="0.92"/></g><path d="M3.5 13.9A14.5 14.5 0 0 0 13.9 3.5" fill="none" stroke="var(--g)" stroke-width="2.2" stroke-linecap="round"/></g>
-  <g id="trail" fill="currentColor"><path d="M-52 15L-17 4.5L-17 8.5Z"/><path d="M-42 22L-14 10L-14 13.5Z"/><path d="M-36 7L-16 0L-16 3Z"/></g>
-  <path id="pen" d="M0 0c8-4.4 16 4 24-.4v14.8c-8 4.4-16-4-24 .4z"/>
-  <path id="topo1" d="M48 22c15 0 30 9 30 26s-15 26-30 26-30-9-30-26 15-26 30-26z" fill="none" stroke-width="1.6"/>
-  <path id="topo2" d="M48 32c10 0 21 6 21 16s-11 18-21 18-19-8-19-18 9-16 19-16z" fill="none" stroke-width="1.6"/>
-  <path id="topo3" d="M48 41c5 0 11 3 11 8s-6 9-11 9-10-4-10-9 5-8 10-8z" fill="none" stroke-width="1.6"/>
-  <clipPath id="penclip"><path d="M0 0c8-4.4 16 4 24-.4v14.8c-8 4.4-16-4-24 .4z" transform="translate(20 20) scale(3)"/></clipPath>
-
-  <!-- ═══ 11 · CS, IRONED — the club is the strike, threaded: over the C, under the S ═══ -->
-    <g id="m11" style="--g:#0A0E0C">
-    <g transform="translate(44 60) scale(.95)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="currentColor" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g><g stroke="#0A0E0C" stroke-width="3.2" stroke-linecap="butt"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g>
-    <g transform="translate(75 27) scale(1.15)"><use href="#trail"/><use href="#ball"/></g>
-  </g>
-  <g id="m11p" style="--g:#F4F1E9">
-    <g transform="translate(44 60) scale(.95)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="currentColor" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g><g stroke="#F4F1E9" stroke-width="3.2" stroke-linecap="butt"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g>
-    <g transform="translate(75 27) scale(1.15)"><use href="#trail"/><use href="#ball"/></g>
-  </g>
-  <!-- ═══ 20 · ON THE PENNANT — the tab band's flag at 3x, CS struck out of it, the strike letting the gold through ═══ -->
-  <g id="m20">
-    <rect x="12" y="14" width="6" height="70" rx="3" fill="currentColor"/><circle cx="15" cy="12.5" r="3.6" fill="currentColor"/><path d="M12 21.5h6" stroke="#0A0E0C" stroke-width="1.4"/><path d="M21 22v42" stroke="#0A0E0C" stroke-width="1.1" stroke-dasharray="2 2.2"/>
-    <use href="#pen" transform="translate(18 20) scale(3)" fill="currentColor"/>
-    <g clip-path="url(#penclip)" fill="none" stroke="#0A0E0C" stroke-width="1"><path d="M18 52c24-13.2 48 12 72-1.2"/><path d="M18 58c24-13.2 48 12 72-1.2"/></g>
-    <g transform="translate(56 42) scale(.62)"><g mask="url(#strike)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="#0A0E0C" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g><g stroke="currentColor" stroke-width="3.2" stroke-linecap="butt"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g></g>
-  </g>
-  <!-- ═══ 33 · TOPO PENNANT — the flag carries the course's contours, CS struck through them ═══ -->
-  <g id="m33">
-    <rect x="12" y="14" width="6" height="70" rx="3" fill="currentColor"/><circle cx="15" cy="12.5" r="3.6" fill="currentColor"/><path d="M12 21.5h6" stroke="#0A0E0C" stroke-width="1.4"/><path d="M21 22v42" stroke="#0A0E0C" stroke-width="1.1" stroke-dasharray="2 2.2"/>
-    <use href="#pen" transform="translate(18 20) scale(3)" fill="currentColor"/>
-    <g clip-path="url(#penclip)" fill="none" stroke="#0A0E0C"><g transform="translate(68 44) scale(.95) translate(-48 -48)"><path d="M48 8c22 0 42 14 42 40s-20 40-42 40S6 74 6 48 26 8 48 8z" stroke-width="1"/><path d="M48 15c18 0 35 12 35 33s-17 33-35 33-35-12-35-33 17-33 35-33z" stroke-width="1"/><use href="#topo1" stroke-width="2"/><use href="#topo2" stroke-width="1"/><use href="#topo3" stroke-width="1"/><circle cx="48" cy="49" r="2.2" fill="#0A0E0C" stroke="none"/></g></g>
-    <g transform="translate(57 43) scale(.58)"><g mask="url(#strike)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="#0A0E0C" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g><g stroke="currentColor" stroke-width="3.2" stroke-linecap="butt"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g></g>
-  </g>
-  <!-- paper variants: the knockout colour is paper -->
-  <g id="m20p">
-    <rect x="12" y="14" width="6" height="70" rx="3" fill="currentColor"/><circle cx="15" cy="12.5" r="3.6" fill="currentColor"/><path d="M12 21.5h6" stroke="#F4F1E9" stroke-width="1.4"/><path d="M21 22v42" stroke="#F4F1E9" stroke-width="1.1" stroke-dasharray="2 2.2"/>
-    <use href="#pen" transform="translate(18 20) scale(3)" fill="currentColor"/>
-    <g clip-path="url(#penclip)" fill="none" stroke="#F4F1E9" stroke-width="1"><path d="M18 52c24-13.2 48 12 72-1.2"/><path d="M18 58c24-13.2 48 12 72-1.2"/></g>
-    <g transform="translate(56 42) scale(.62)"><g mask="url(#strike)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="#F4F1E9" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g><g stroke="currentColor" stroke-width="3.2" stroke-linecap="butt"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g></g>
-  </g>
-  <g id="m33p">
-    <rect x="12" y="14" width="6" height="70" rx="3" fill="currentColor"/><circle cx="15" cy="12.5" r="3.6" fill="currentColor"/><path d="M12 21.5h6" stroke="#F4F1E9" stroke-width="1.4"/><path d="M21 22v42" stroke="#F4F1E9" stroke-width="1.1" stroke-dasharray="2 2.2"/>
-    <use href="#pen" transform="translate(18 20) scale(3)" fill="currentColor"/>
-    <g clip-path="url(#penclip)" fill="none" stroke="#F4F1E9"><g transform="translate(68 44) scale(.95) translate(-48 -48)"><path d="M48 8c22 0 42 14 42 40s-20 40-42 40S6 74 6 48 26 8 48 8z" stroke-width="1"/><path d="M48 15c18 0 35 12 35 33s-17 33-35 33-35-12-35-33 17-33 35-33z" stroke-width="1"/><use href="#topo1" stroke-width="2"/><use href="#topo2" stroke-width="1"/><use href="#topo3" stroke-width="1"/><circle cx="48" cy="49" r="2.2" fill="#F4F1E9" stroke="none"/></g></g>
-    <g transform="translate(57 43) scale(.58)"><g mask="url(#strike)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="#F4F1E9" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g><g stroke="currentColor" stroke-width="3.2" stroke-linecap="butt"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g></g>
-  </g>
+  <!-- STRIKE — 40 tall, centre 0,0; angular centrelines, 12 on 40, set with skewX(-10) -->
+<path id="k-C" d="M12-14L-6-14L-10-10L-10 10L-6 14L12 14"/>
+<path id="k-S" d="M12-14L-6-14L-10-10L-10-4L-6 0L6 0L10 4L10 10L6 14L-12 14"/>
+<path id="k-U" d="M-12-20L-12 8L-6 14L6 14L12 8L12-20"/>
+<path id="k-P" d="M-12 20L-12-20L6-20L12-14L12-6L6 0L-12 0"/>
+<path id="k-E" d="M12-20L-12-20L-12 20L12 20M-12 0L8 0"/>
+<path id="k-A" d="M-14 20L0-20L14 20M-8 4L8 4"/>
+<path id="k-O" d="M-6-20L6-20L12-14L12 14L6 20L-6 20L-12 14L-12-14Z"/>
+<path id="k-N" d="M-12 20L-12-20L12 20L12-20"/>
+<g id="CS" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g>
+<mask id="strike"><rect x="-200" y="-200" width="600" height="600" fill="white"/><path d="M-60 34L60-34" stroke="black" stroke-width="3.4"/></mask>
+<g id="ball"><circle r="15" fill="currentColor"/><g fill="var(--g)"><circle cx="0.0" cy="-9.4" r="1.85"/><circle cx="-8.1" cy="-4.7" r="1.85"/><circle cx="-2.7" cy="-4.7" r="1.99"/><circle cx="2.7" cy="-4.7" r="1.99"/><circle cx="8.1" cy="-4.7" r="1.85"/><circle cx="-5.4" cy="0.0" r="1.99"/><circle cx="0.0" cy="0.0" r="2.05"/><circle cx="5.4" cy="0.0" r="1.99"/><circle cx="-8.1" cy="4.7" r="1.85"/><circle cx="-2.7" cy="4.7" r="1.99"/></g><path d="M3.5 13.9A14.5 14.5 0 0 0 13.9 3.5" fill="none" stroke="var(--g)" stroke-width="2.4" stroke-linecap="round"/></g>
+<g id="trail" fill="currentColor"><path d="M-54 14L-17 4.5L-17 9Z"/><path d="M-40 23L-14 10.5L-14 14.5Z"/></g>
+<path id="pen" d="M0 0c8-4.4 16 4 24-.4v14.8c-8 4.4-16-4-24 .4z"/>
+<path id="topo1" d="M48 22c15 0 30 9 30 26s-15 26-30 26-30-9-30-26 15-26 30-26z" fill="none"/>
+<path id="topo2" d="M48 32c10 0 21 6 21 16s-11 18-21 18-19-8-19-18 9-16 19-16z" fill="none"/>
+<clipPath id="penclip"><path d="M0 0c8-4.4 16 4 24-.4v14.8c-8 4.4-16-4-24 .4z" transform="translate(20 20) scale(3)"/></clipPath>
+<g id="m11" style="--g:#0A0E0C"><g transform="translate(44 60) scale(.95)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="currentColor" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g><g stroke="#0A0E0C" stroke-width="3.2"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g><g transform="translate(75 27) scale(1.15)"><use href="#trail"/><use href="#ball"/></g></g>
+<g id="m11p" style="--g:#F4F1E9"><g transform="translate(44 60) scale(.95)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="currentColor" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g><g stroke="#F4F1E9" stroke-width="3.2"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g><g transform="translate(75 27) scale(1.15)"><use href="#trail"/><use href="#ball"/></g></g>
+<g id="m20"><rect x="12" y="14" width="6" height="70" rx="3" fill="currentColor"/><circle cx="15" cy="12.5" r="3.6" fill="currentColor"/><use href="#pen" transform="translate(18 20) scale(3)" fill="currentColor"/><g transform="translate(56 42) scale(.64)"><g mask="url(#strike)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="#0A0E0C" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g></g></g>
+<g id="m20p"><rect x="12" y="14" width="6" height="70" rx="3" fill="currentColor"/><circle cx="15" cy="12.5" r="3.6" fill="currentColor"/><use href="#pen" transform="translate(18 20) scale(3)" fill="currentColor"/><g transform="translate(56 42) scale(.64)"><g mask="url(#strike)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="#F4F1E9" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g></g></g>
+<g id="m33"><rect x="12" y="14" width="6" height="70" rx="3" fill="currentColor"/><circle cx="15" cy="12.5" r="3.6" fill="currentColor"/><use href="#pen" transform="translate(18 20) scale(3)" fill="currentColor"/><g clip-path="url(#penclip)" fill="none" stroke="#0A0E0C"><g transform="translate(68 44) scale(.95) translate(-48 -48)"><path d="M48 15c18 0 35 12 35 33s-17 33-35 33-35-12-35-33 17-33 35-33z" stroke-width="1.3"/><use href="#topo1" stroke-width="2.2"/><use href="#topo2" stroke-width="1.3"/></g></g><g transform="translate(57 43) scale(.6)"><g mask="url(#strike)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="#0A0E0C" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g></g></g>
+<g id="m33p"><rect x="12" y="14" width="6" height="70" rx="3" fill="currentColor"/><circle cx="15" cy="12.5" r="3.6" fill="currentColor"/><use href="#pen" transform="translate(18 20) scale(3)" fill="currentColor"/><g clip-path="url(#penclip)" fill="none" stroke="#F4F1E9"><g transform="translate(68 44) scale(.95) translate(-48 -48)"><path d="M48 15c18 0 35 12 35 33s-17 33-35 33-35-12-35-33 17-33 35-33z" stroke-width="1.3"/><use href="#topo1" stroke-width="2.2"/><use href="#topo2" stroke-width="1.3"/></g></g><g transform="translate(57 43) scale(.6)"><g mask="url(#strike)"><g fill="none" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)"><g stroke="#F4F1E9" stroke-width="12"><use href="#k-C" transform="translate(-20 0)"/><use href="#k-S" transform="translate(20 0)"/></g></g></g></g></g>
   </defs>
   <g transform="translate(28 62) scale(.94)"><g fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="3" transform="skewX(-10)">
           <use href="#k-C" transform="translate(16 0)"/><use href="#k-U" transform="translate(56 0)"/><use href="#k-P" transform="translate(98 0)"/>
