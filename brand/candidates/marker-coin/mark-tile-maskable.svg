@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <defs><mask id="cs"><rect width="96" height="96" fill="white"/><path d="M57.5 33.5 A4.2 4.2 0 1 0 57.5 39.5 M66.8 33.2 C 65.6 31.2, 61.2 31.5, 61.2 34.1 C 61.2 36.8, 66.6 36.2, 66.6 38.9 C 66.6 41.5, 62 41.7, 60.8 39.7" fill="none" stroke="black" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></mask></defs>
   <!-- icon-512-maskable — Android crops to a circle; everything lives inside
        the centred 80% safe circle (r 38.4). Glyph bbox (21,20)-(74,76.5),
        centre (47.5,48.25), half-diagonal 38.7 — held at 0.9 (34.9 <= 38.4). -->
@@ -6,6 +7,6 @@
   <g transform="translate(48 48) scale(0.9) translate(-47.5 -48.25)">
     <g fill="#0A0E0C"><path fill-rule="evenodd" d="M22 71 a17 5.5 0 1 0 34 0 a17 5.5 0 1 0 -34 0 z M26.5 71 a12.5 3.2 0 1 0 25 0 a12.5 3.2 0 1 0 -25 0 z"/></g>
     <path d="M26.5 71 a12.5 3.2 0 1 0 25 0 a12.5 3.2 0 1 0 -25 0 z" fill="#D8B25A"/>
-    <g fill="#0A0E0C"><rect x="36" y="25" width="6" height="47" rx="3"/> <path d="M42 27 c10.7-5.9 21.3 5.3 32-.5 v19.7 c-10.7 5.9-21.3-5.3-32 .5 z"/></g>
+    <g fill="#0A0E0C"><rect x="36" y="25" width="6" height="47" rx="3"/> <path mask="url(#cs)" d="M42 27 c10.7-5.9 21.3 5.3 32-.5 v19.7 c-10.7 5.9-21.3-5.3-32 .5 z"/></g>
   </g>
 </svg>
