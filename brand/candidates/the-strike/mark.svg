@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <!-- Cup Season — THE STRIKE (candidate, 2026-09-11). The Tracer with its
+       comet removed and the crest's rings put back: flag, cup, and the ripple
+       from where a round just landed. The safe control — holds at every size. -->
+  <g fill="none" stroke="#E8622C">
+    <ellipse cx="48" cy="77" rx="36" ry="12.5" stroke-width="2.2"/>
+    <ellipse cx="48" cy="75.5" rx="25" ry="8.7" stroke-width="2.6"/>
+  </g>
+  <g fill="#E8622C"><ellipse cx="48" cy="74" rx="15" ry="5.5"/> <rect x="45" y="24" width="6" height="52" rx="3"/> <path d="M51 27 c9.6-5.3 19.2 4.8 28.8-.5 v17.8 c-9.6 5.3-19.2-4.8-28.8 .5 z"/></g>
+</svg>

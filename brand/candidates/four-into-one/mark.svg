@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <!-- Cup Season — FOUR INTO ONE (candidate, 2026-09-11). The crest (D76/D91)
+       at icon weight: four golfers' flights, each the Tracer's own tapered
+       comet, arranged as the door arranges them, landing on one flagged cup.
+       Three in ember; the white-hot one is your line among the crew's.
+       Ember is the brand metal (canon §4); a flame is not earned, so no gold. -->
+  <g fill="#E8622C"><path d="M8 12 C 14 36, 26 59, 42 73 C 45 76, 49 75, 50 72 C 36 60, 23 38, 13 13 C 12 10, 9 9, 8 12 Z"/> <path d="M20 2 C 26 26, 36 52, 46 71 C 47 74, 51 73, 50 70 C 42 50, 32 26, 24 2 C 23.5 0, 20.5 0, 20 2 Z"/> <path d="M76 2 C 70 26, 60 52, 50 71 C 49 74, 45 73, 46 70 C 54 50, 64 26, 72 2 C 72.5 0, 75.5 0, 76 2 Z"/></g>
+  <g fill="#F1F4EF"><path d="M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z"/></g>
+  <g fill="#E8622C"><ellipse cx="48" cy="74" rx="15" ry="5.5"/> <rect x="45" y="24" width="6" height="52" rx="3"/> <path d="M51 27 c9.6-5.3 19.2 4.8 28.8-.5 v17.8 c-9.6 5.3-19.2-4.8-28.8 .5 z"/></g>
+</svg>
