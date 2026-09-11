@@ -8,4 +8,6 @@
 | `the-cup-held/` | Territory 2 — the Jug with the pin in its bowl. | Rejected 2026-09-11 as primary; still the natural reverse for trophy plates. |
 
 The pitch that kills eight to these three: the "Four Into One" page in the session artifacts.
+
+**2026-09-11, before going further: `spec/mark-research-2026-09-11.md`** — twelve of golf's most-loved logos, read for what they depict and why they work. The finding: the coin is the right kind of object; its face (a flag in a cup) is the acronym of golf imagery, and CS makes it ours only by label. What exists only here is the marker family itself.
 What "feels like Cup Season" was measured against: the crest (`ember-logo-system/masters/converge/v1/crest-static.svg`, the og-image, the door) — the one picture the owner approved.
