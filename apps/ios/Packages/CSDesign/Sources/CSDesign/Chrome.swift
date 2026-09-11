@@ -210,42 +210,24 @@ public struct CSMasthead: View {
     return "\(l), \(line)" + (trend.map { ", \($0.spoken)" } ?? "")
   }
 
-  /// The trailing slot. A number gets **weight and a noun** — the owner, on the
-  /// first printing of it: *"The 10.9 for number needds to be bolder and point
-  /// to what it is somehow, maybe a trendline as well."* It was set in the
-  /// dateline's own role, `agate` caps in `mut`, which is the voice for a date
-  /// and not for the one figure that is his.
-  ///
-  /// A date or a stale line keeps that voice, because both of them ARE
-  /// metadata. Only the number is promoted.
+  // The September 11 target promotes the existing D318/D319 slot. Its
+  // stale → number → date precedence and state/trend producers are unchanged.
   @ViewBuilder private var slot: some View {
     if number != nil, asOf == nil {
-      // **THE TREND RIDES BESIDE THE FIGURE, NOT UNDER IT.** Its first build
-      // put `YOUR NUMBER · DOWN 1.3` on one line, which measured ~153pt — and
-      // the wordmark is ~187 of a 362 measure, so `CUP SEASON` **wrapped onto
-      // two lines at the default type size**. The wordmark is the product's
-      // name and it wraps only at the accessibility sizes, deliberately (the
-      // comment above says so); a two-line masthead at `.large` is this slot
-      // taking room that was never its own. Beside the figure it is ~108pt and
-      // the name holds its line.
-      VStack(alignment: .trailing, spacing: 1) {
-        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
-          // `figureS` at 20 — the figure roles are the ones cut for a number,
-          // and 20 is the one that sits beside a 34pt wordmark without
-          // becoming a second display on a viewport that gets one (§1.5).
-          Text(line).csType(.figureS).foregroundStyle(cs.ink)
-          if let trend {
-            Text(trend.words).csType(.agateS, caps: true)
-              // **A FALLING INDEX IS A GOLFER IMPROVING**, so improvement takes
-              // `pos` — and getting worse takes `mut`, never `neg`. L-22: good
-              // news gets a colour, and the product does not shame anybody in
-              // red for a bad month.
-              .foregroundStyle(trend.better ? cs.pos : cs.mut)
-          }
+      HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          Text(numberLabel ?? "Your number").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          Text(line).csType(.figureXL).foregroundStyle(cs.ink)
         }
-        Text(numberLabel ?? "Your number").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        if let trend {
+          Text(trend.words).csType(.agateS, caps: true)
+            .foregroundStyle(trend.better ? cs.pos : cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.bottom, CSTokens.Space.s1)
+        }
+        Spacer(minLength: 0)
       }
-      .accessibilityElement(children: .combine)
+      .accessibilityElement(children: .ignore)
       .accessibilityLabel(spoken)
     } else {
       Text(line).csType(.agate, caps: true).foregroundStyle(cs.mut)
@@ -254,54 +236,26 @@ public struct CSMasthead: View {
   }
 
   public var body: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      // At the default size `CUP SEASON` measures ~187pt and the dateline 65 —
-      // 252 of the 362 measure. At AX3 a capped wordmark is 300pt and even a
-      // capped dateline is 141, so the single row fails at AX2. From AX1 up the
-      // dateline takes its own line and the wordmark WRAPS rather than
-      // truncating — it is the product's name, and the tail-ellipsis policy
-      // must never reach it.
-      if typeSize.isA11y {
-        wordmark
-        slot
-      } else {
-        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
-          wordmark
-          Spacer(minLength: CSTokens.Space.s2)
-          slot.fixedSize()
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      HStack(spacing: CSTokens.Space.s3) {
+        CSBetaMark().frame(width: CSTokens.Space.rail, height: CSTokens.Space.rail)
+          .accessibilityHidden(true)
+        Text("Cup Season").csType(.name).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        Spacer(minLength: 0)
+        if la.active {
+          HStack(spacing: 0) {
+            Rectangle().fill(la.accent)
+            Rectangle().fill(la.accent2)
+          }
+          .frame(width: 28, height: 3)
+          .accessibilityHidden(true)
         }
       }
-      // **D313 · THE TICK, WHICH HAS BEEN DEAD SINCE WAVE 3.**
-      // `CSLookAccent.tick` has returned `[accent, accent2]` this whole time
-      // and nothing has drawn it. It is TWO SOLID SEGMENTS — never a gradient
-      // (BRIEF §4 names the amber-to-ember ramp as a do-not, and a two-stop
-      // ramp of one hue is not a gradient anyway) — and it is the one mark on
-      // Home that says which livery the room is wearing, at the top of the
-      // page, before anything else is read.
-      //
-      // The comment above this masthead says *"No ember tick — the masthead is
-      // not live"*, and that stands: this is not ember and it is not live. It
-      // appears ONLY under a look and Fescue's masthead is unchanged.
-      if la.active {
-        HStack(spacing: 0) {
-          Rectangle().fill(la.accent)
-          Rectangle().fill(la.accent2)
-        }
-        .frame(width: 28, height: 3)
-        .accessibilityHidden(true)
-      }
+      slot
       CSRule(.heavy)
     }
-    .accessibilityElement(children: .combine)
-    .accessibilityAddTraits(.isHeader)
-  }
-
-  private var wordmark: some View {
-    Text("Cup Season")
-      .csType(.display)
-      .foregroundStyle(cs.ink)
-      .lineLimit(2)
-      .fixedSize(horizontal: false, vertical: true)
+    .padding(.top, CSTokens.Space.s2)
   }
 }
 

@@ -70,6 +70,21 @@ public extension View {
   func csCeremony() -> some View { modifier(CSCeremonyGround(on: true)) }
 }
 
+// A competition board is a printed dark band, not a ceremony or a card.
+// Descendants read the dark palette, including the selected native livery.
+public struct CSCompetitionBand<Content: View>: View {
+  let content: Content
+  public init(@ViewBuilder content: () -> Content) { self.content = content() }
+  public var body: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) { content }
+      .padding(.vertical, CSTokens.Space.s4)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(CSTokens.dark.bg0)
+      .csTheme()
+      .environment(\.colorScheme, .dark)
+  }
+}
+
 // MARK: - The rule
 
 /// **The only divider in the product.** Replaces `CSHairline` and every bare
@@ -580,5 +595,36 @@ public struct CSObject<Content: View>: View {
       )
       .shadow(color: CSTokens.shadowLift.color,
               radius: CSTokens.shadowLift.radius, x: CSTokens.shadowLift.x, y: CSTokens.shadowLift.y)
+  }
+}
+
+// A photograph keeps an unobstructed upper field; its title lives on a solid
+// fescue caption band. Intrinsic text height keeps large type out of the photo.
+public struct CSPhotoHeading: View {
+  let url: URL
+  let title: String
+  let detail: String
+  public init(url: URL, title: String, detail: String) {
+    self.url = url; self.title = title; self.detail = detail
+  }
+  public var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      AsyncImage(url: url) { image in image.resizable().scaledToFill() }
+        placeholder: { CSTokens.dark.bg1 }
+        .frame(height: 196)
+        .frame(maxWidth: .infinity)
+        .clipped()
+        .contentShape(Rectangle())
+        .accessibilityLabel("Round photo")
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        Text(title).csType(.story).foregroundStyle(CSTokens.dark.ink)
+          .fixedSize(horizontal: false, vertical: true)
+        Text(detail).csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .padding(CSTokens.Space.s4)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(CSTokens.dark.bg0)
+    }
   }
 }

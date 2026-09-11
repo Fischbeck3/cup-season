@@ -62,7 +62,7 @@ struct HomeLead: View {
     // §1.5's one-ember rule: the lead's door wears the live metal only while
     // the lead IS live. Between seasons nothing is running, so the same door
     // is a `mut` rule and the floor's lit door becomes the screen's one ember.
-    return live ? .liveLink(a, act) : .link(a, act)
+    return live ? .primary(a, act) : .link(a, act)
   }
 
   var body: some View {

@@ -33,6 +33,19 @@ import CSDesign
 import CupSeasonKit
 
 struct HeadToHeadPage: View {
+  let opponentId: UUID
+  var fallbackName: String?
+  var openPerson: (UUID) -> Void = { _ in }
+  var stageRound: ((_ playOn: String, _ tag: UUID) -> Void)? = nil
+  var body: some View {
+    HeadToHeadContent(opponentId: opponentId, fallbackName: fallbackName,
+                      openPerson: openPerson, stageRound: stageRound)
+      .csTheme()
+      .environment(\.colorScheme, .dark)
+  }
+}
+
+private struct HeadToHeadContent: View {
   @Environment(\.cs) private var cs
   @Environment(SessionStore.self) private var store
   let opponentId: UUID
@@ -56,6 +69,10 @@ struct HeadToHeadPage: View {
   }
 
   var body: some View {
+    competitionPage
+  }
+
+  private var competitionPage: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 0) {
         switch model.state {
@@ -111,7 +128,8 @@ struct HeadToHeadPage: View {
       .accessibilityAddTraits(.isHeader)
       .csBudget(display: 1)
 
-    graphic(h).padding(.top, CSTokens.Space.s4)
+    CSCompetitionBand { graphic(h) }
+      .padding(.top, CSTokens.Space.s4)
 
     // §10 · the serif carries what the numeral cannot: *"He has won the last
     // two."* One serif appearance per viewport (§1.4).

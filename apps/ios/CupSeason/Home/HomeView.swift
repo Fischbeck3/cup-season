@@ -221,7 +221,7 @@ struct HomeView: View {
     case .block(let item):
       HomeLead(item: item, membership: league(item)) { take(item) }
         .padding(.horizontal, CSTokens.Space.gutter)
-        .padding(.top, CSTokens.Space.s4)
+        .padding(.top, CSTokens.Space.s3)
         .csRedacted(page.redacted)
     }
   }

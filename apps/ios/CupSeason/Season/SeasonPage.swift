@@ -162,7 +162,7 @@ struct SeasonPage: View {
           SeasonHead()
             .background(alignment: .top) {
               CSContour(seed: model.leagueId.uuidString,
-                        tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a24))
+                        tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a08))
                 .frame(maxWidth: .infinity)
                 .frame(height: 150)
                 .clipped()          // the field draws past its frame (D301: clips drawing, not touches)
@@ -296,7 +296,7 @@ struct SeasonPage: View {
           .csGutter()
           .id(SeasonPane.table.anchor)
       }
-      StandingsTableView()
+      CSCompetitionBand { StandingsTableView() }
       if !model.bylaws.solo && !model.indRows.isEmpty {
         CSSectionHead("Every golfer", count: SeasonBoardCopy.field(model.indRows.count))
           .csGutter()

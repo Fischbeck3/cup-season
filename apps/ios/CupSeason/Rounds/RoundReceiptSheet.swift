@@ -90,8 +90,11 @@ struct RoundReceiptSheet: View {
       ScrollView {
         ScrollViewReader { proxy in
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
-          head(r)
+          Text(mine(r) ? "Your round" : "The round")
+            .csType(.name).foregroundStyle(cs.ink)
           photo(r)
+            .padding(.horizontal, -CSTokens.Space.gutter)
+          head(r)
           photoActions(r)
           scorecard(r)
             #if DEBUG
@@ -154,9 +157,10 @@ struct RoundReceiptSheet: View {
   /// baseline, and the sentence with its figure run.
   @ViewBuilder private func head(_ r: ReceiptSeed) -> some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      Text(dateline(r)).csType(.agate, caps: true).foregroundStyle(cs.mut)
-        .fixedSize(horizontal: false, vertical: true)
-      Text(mine(r) ? "Your round" : "The round").csType(.displayS, caps: true).foregroundStyle(cs.ink)
+      if r.photoURL == nil {
+        Text(dateline(r)).csType(.agate, caps: true).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
       // **Two rule-and-figures on ONE BASELINE** — which is the BOTTOM here,
       // not the first text baseline: each figure sits over its own rule with
       // its own label under it, so aligning the numerals would stagger the two
@@ -188,26 +192,9 @@ struct RoundReceiptSheet: View {
 
   @ViewBuilder private func photo(_ r: ReceiptSeed) -> some View {
     if let url = r.photoURL {
-      // §10.1 rung 1 · a golfer's own round photo, and the poster's mark is the
-      // credit. `CSPlate` carries the scrim, so the medallion never sits on a
-      // bright sky at 1.4:1.
-      CSPlate(.inset32) {
-        AsyncImage(url: url) { phase in
-          if case .success(let img) = phase { img.resizable().scaledToFill() } else { Color.clear }
-        }
-      }
-      // D301's rule, applied where the photograph actually is. `CSPlate` fills
-      // to a ratio and a `scaledToFill` image covers it, so this overhangs one
-      // axis. Nothing is swallowed today — `photoActions` and the sheet's
-      // Close are both drawn after it — and that is a fact about today's
-      // layout, not about the view. Shaped here rather than inside `CSPlate`,
-      // which also hosts the transparent `CSPlateWell` empty state and would
-      // become a solid blocker if the rule were applied to the component.
-      .contentShape(Rectangle())
-      .overlay(alignment: .bottomTrailing) {
-        if r.profileId != nil { MarkerStamp(marker: r.marker).padding(CSTokens.Space.s2) }
-      }
-      .accessibilityLabel("Round photo")
+      CSPhotoHeading(url: url, title: r.courseLabel ?? (mine(r) ? "Your round" : "The round"),
+                     detail: [r.playedOn.map { RivalryCopy.monthDay($0) },
+                              "\(r.holesPlayed ?? 18) holes"].compactMap { $0 }.joined(separator: " · "))
     }
   }
 

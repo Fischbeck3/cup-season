@@ -109,7 +109,7 @@ struct CompeteScreen: View {
             // not the second colour: the panel and the tick already carry
             // accent2, and a third object in it would be the wash D270 deleted
             // arriving as a texture.
-            CSContour(seed: seed, tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a24))
+            CSContour(seed: seed, tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a08))
               .frame(maxWidth: .infinity)
               .frame(height: 132)
               .clipped()
@@ -170,9 +170,19 @@ struct CompeteScreen: View {
       CSSectionHead(head, weight: .display)
         .padding(.top, first ? CSTokens.Space.s4 : CSTokens.Space.s5)
         .padding(.bottom, CSTokens.Space.s2)
-      ForEach(rows) { row in
-        CompeteRowView(row: row) { open(row) }
-          .environment(\.csLook, look(row))
+      if rows.contains(where: { $0.rank != nil }) {
+        CSCompetitionBand {
+          ForEach(rows) { row in
+            CompeteRowView(row: row) { open(row) }
+              .environment(\.csLook, look(row))
+          }
+        }
+        .padding(.horizontal, -CSTokens.Space.gutter)
+      } else {
+        ForEach(rows) { row in
+          CompeteRowView(row: row) { open(row) }
+            .environment(\.csLook, look(row))
+        }
       }
     }
   }
@@ -295,14 +305,6 @@ private struct CompeteRowView: View {
     Button(action: onTap) {
       A11yStack(alignment: .leading, rowAlignment: .center,
                 spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s3) {
-        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-          Text(row.eyebrow).csEyebrow()
-          Text(row.title).csType(.name).foregroundStyle(cs.ink)
-          Text(row.sub).csType(.bodyS).foregroundStyle(cs.mut)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        .multilineTextAlignment(.leading)
-        .frame(maxWidth: .infinity, alignment: .leading)
         if let r = row.rank {
           // `fixedSize(horizontal: true)` is the same line the round slat
           // needed: `CSRule` is a bare `Rectangle`, so a figure's stack reads
@@ -314,8 +316,18 @@ private struct CompeteRowView: View {
             .fixedSize(horizontal: true, vertical: false)
             .frame(minWidth: 62, alignment: typeSize.isA11y ? .leading : .trailing)
         }
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          Text(row.eyebrow).csEyebrow()
+          Text(row.title).csType(.name).foregroundStyle(cs.ink)
+          Text(row.sub).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
       }
-      .padding(.vertical, CSTokens.Space.s3)
+      .padding(.vertical, CSTokens.Space.s4)
+      .padding(.horizontal, row.rank == nil ? 0 : CSTokens.Space.gutter)
       .frame(minHeight: 68)
       .overlay(alignment: .bottom) { CSRule() }
       .contentShape(Rectangle())
