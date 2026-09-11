@@ -24,3 +24,14 @@ Letters are paths on a 40-unit grid, never a font file, so masters carry the
 type and a digitiser gets geometry. Eight letters cover the name; the rest of
 the alphabet follows the same four rules. `strike.svg` holds the face and the
 three marks.
+
+## preview/ (2026-09-11)
+
+The three marks as standalone 96-grid files, knockouts as real masks so
+they work on any ground: `strike-NN.svg` (gold #795912, light ground) and
+`strike-NN-dark.svg` (gold #D8B25A, dark ground). `preview.html` is the
+OpenDesign `svg-design` preview scaffold (tryopendata/skills, MIT), unmodified;
+`variants.js` feeds it. Open `preview.html` to see each mark at 16, 32 and
+64 px on both grounds, in a favicon tab and in a nav bar. Reading at size:
+20 is the only one that survives 16 px as a flag; 11 is the most
+distinctive from 64 up; 33's contours swallow the letters below 64.
