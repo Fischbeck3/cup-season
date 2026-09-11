@@ -209,6 +209,29 @@ to happen fixes the symptom and leaves the hole.
 
 ---
 
+## What earns its place (2026-09-11)
+
+Measured against **production**, not argued from the roadmap:
+**https://claude.ai/code/artifact/fe5df00e-02d8-4147-ad46-51c553bf0ee9**
+
+**The measurement reframes the keep/ditch question.** 213 rounds exist and
+**171 are backfilled history**; only **20** were posted within two days of being
+played. **6 golfers active in the last fortnight.** The composer is opened
+**219** times and submitted **24**. Live scoring: **28 started, 21 abandoned, 7
+finished** — and `abandoned` is the database's own word for it.
+
+So breadth is not the constraint. **The single act everything depends on fails
+nine times in ten**, and every note of the last two days describes a reason why.
+
+**It also retires one of my own proposals.** Item 5, comments on Home, assumed
+comments exist elsewhere. `post_comments` holds **zero rows** — nobody has ever
+left one, on any surface. And it weakens the case I made for Wave 3: scheduling
+is 2,535 lines and prod holds **four plans**. The wave is still worth doing, but
+as a *bet that plans are unused because nothing ever comes of one* — which is a
+weaker claim than I made, and should be named as one.
+
+---
+
 ## The build plan (2026-09-10)
 
 Nineteen findings as four sequenced waves:
