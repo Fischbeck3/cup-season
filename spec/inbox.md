@@ -72,6 +72,14 @@ they name a pattern rather than three bugs.*
 silent fallback firing, and the fact that you did not recognise a mark whose
 whole job is attribution is the second half of the finding.*
 
+**2026-09-10, with a screenshot of Home:**
+
+> Before I added a photo for this round at Oak Quarry it just had that bland
+> "1 round" tagline. We need to be bold with postings even absent of images
+
+*Item 21. The line he quoted is the DIGEST, not the round row — and the digest
+says less when there is more to say.*
+
 *Item 11 was filed wrong the first time and corrected the same hour: I wrote
 that the empty `courses` table was an oversight nobody had wired up. It is not.
 D150 retired it and the owner ruled there that free-typed courses stay demoted,
@@ -115,6 +123,7 @@ Each of these was confirmed in the code on the date given. None is a guess.
 | 18 | **The cactus on his photos is not his marker — it is a silent fallback, and it is showing the wrong golfer's identity.** `CSMarkers.marker` is documented as *"The floor. Unknown or nil → The Saguaro"* (`Markers.swift:38`), so **any nil key draws a cactus and nothing says so.** **His profile marker is `azalea`; his `league_members.marker` is NULL** (prod, 2026-09-10). The receipt's stamp is fed from a LEAGUE-MATES lookup — `AlbumScreen.swift:78`, `marker: r.profile_id.flatMap { mates[$0]?.marker }` — which is nil for him, so it floors to the Saguaro. **The same file already knows the right answer sixty lines further down**: the share artifact reads `r.marker ?? store.me?.profile?.marker ?? ""` (`RoundReceiptSheet.swift:269`) while the stamp above it passes `r.marker` bare (`:208`). So his shared card carries the azalea and his own screen carries a cactus. | UX | S | The one-line fix is the fallback the artifact already uses. The wider question is whether a stamp should read a per-league override at all when the golfer has no league — D59 introduced that override, and this is the first surface where its absence is visible. |
 | 19 | **A mark whose entire job is attribution has no label anywhere, and its author did not recognise it.** D59 put the marker on round photos as *"attribution + brand"* — the poster's credit, and the marker's second job so it would not become a relic when photos took over identity. **It carries no caption, no tooltip, and `accessibilityHidden(true)` in BOTH implementations**, so VoiceOver does not explain it either. There is no channel in the product that says what it is. The owner — who made the decision — asked what it was. *(2026-09-10)* | UX | S | On your OWN photo, attribution is redundant; you know who took it. It earns its place on somebody else's round in a feed. Is the credit worth keeping where it is, worth moving to where it answers a real question, or worth a label? |
 | 20 | **One mark, three implementations, already drifted.** `MarkerStamp` (`SliceComponents.swift:282`, glyph **15**pt, `cs.ink`, `cs.bg0` ground), `RoundStoryCard.medallion` (`:130`, glyph **16**pt, `onPhotoInk`, `CSDusk.ground`), and the web's `.mkstamp` CSS (`index.html:1363`). Same 26pt circle, same 0.55 ground opacity, three sources of truth — and the phone's two already disagree by a point. *(2026-09-10)* | UX | XS | Pure L-34. One `CSDesign` component, three call sites, and the drift closes itself. Worth folding into whichever of 18 or 19 gets built. |
+| 21 | **The digest counts when it could narrate, and it is worst exactly when there is news.** *"1 round."* is `HomeDigest.make`'s `.since` branch: `bits.append("\(freshRounds.count) round…")` (`HomeDigest.swift:109`), joined and given a full stop. For one ordinary round — not a personal best, not a sub-80, not a first — the whole sentence is the count. **`HomeDigest.line()` sits twenty lines above it and narrates properly** — *"You posted 84 at Oak Quarry"* (`:85-91`) — **and is used only on the QUIET branch.** So a round posted since your last visit gets *"1 round."*, and the same round seen on a quiet day gets a sentence with who, what and where. **It is worse in two more ways:** the digest computes `label: "Since you were here"` and the renderer draws **only `d.body`** (`HomeView.swift:420-422`), so the count arrives unlabelled; and `.since` sets `roundId: nil`, so unlike the quiet line **it is not even tappable** — no door, which is the one thing LINT-21 exists to prevent. *(2026-09-10, from his screenshot)* | UX | S | `line()` already exists and already handles the PR / sub-80 / first-round cases. The question is only what a MULTI-round digest becomes — one sentence about the best of them, or a count that earns its place by leading to something. |
 | 10 | **The wizard's headcount chips wrap 7 + 1, orphaning `12+`.** The row is a `FlowLayout`, which is what keeps it safe at the accessibility sizes; pinning it to a grid to kill the orphan trades a cosmetic nit for a clipping risk at AX3. *(carried from D-earlier; re-check before building)* | UX | XS | Is the orphan worth an AX3 risk? Probably not — this may be a "close it as won't-fix" entry. |
 
 ---
@@ -131,6 +140,17 @@ when it is held in memory, or not held at all.**
 Each is small alone. Together they are why a golfer stops trusting that anything
 he enters survives — which is a worse problem than any one of the three, and an
 argument for doing them as one wave rather than three fixes.
+
+**AND THE WIDER PATTERN, WHICH IS NOW FOUR DEEP: the app already contains the
+good version of almost everything he has reported, one branch away.**
+
+- `courseMemory` holds his rating and slope, shown only while the search box is empty (14).
+- The share artifact falls back to the right marker; the stamp sixty lines above it does not (18).
+- `HomeWireSlat` — the no-photo round row — is documented as *"the majority case today, and it must be beautiful"* and is genuinely rich: face, name, sentence, rule-and-figure.
+- `HomeDigest.line()` narrates, and runs only on the quiet path (21).
+
+**Nothing here needs inventing. It needs the good branch reaching the case the
+golfer is actually in.** That is a much cheaper wave than it looks from the list.
 
 **And item 16 is the other half of the same story.** Everything he typed went
 nowhere partly because he never finished a post — and nothing ever asked him to.
