@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500" style="color:#D8B25A">
+  <!-- Cup Season — THE FIFTY (2026-09-11). Fifty explorations in six families:
+       A coins 01-10 · B a club through the letters 11-18 · C CS in a golf shape 19-28 ·
+       D topo 29-36 · E the season, the crew, the record 37-44 · F outside the box 45-50.
+       Champagne on the ceremony ground; the metal is its own decision. Each mark is a
+       96x96 <g id="mNN"> in the defs; this file arranges them 10 x 5. -->
+  <rect width="1000" height="500" fill="#0A0E0C"/>
+  <defs>
+  <!-- ═══ primitives, 96 grid, currentColor; G = the dusk ground for knockouts ═══ -->
+  <circle id="ring" cx="48" cy="48" r="43" fill="none" stroke="currentColor" stroke-width="4"/>
+  <circle id="disc" cx="48" cy="48" r="45" fill="currentColor"/>
+  <path id="pen" d="M0 0c8-4.4 16 4 24-.4v14.8c-8 4.4-16-4-24 .4z"/>
+  <path id="saguaro" d="M12 3v18M12 10c-3 0-4-1-4-4M12 13c3 0 4-1 4-5"/>
+  <path id="jug" d="M10 5h4l.6 3c1.8 1.2 2 4.4.4 6h-6c-1.6-1.6-1.4-4.8.4-6L10 5M12 14v3M9.5 20h5c0-1.6-1-2.6-2.5-2.6s-2.5 1-2.5 2.6M16 9c2 0 2.8 1.8 2 3.2-.5 1-1.4 1.6-2.5 1.8"/>
+  <path id="azalea" d="M12 10c-1.4-1.9-1.4-4.7 0-6 1.4 1.3 1.4 4.1 0 6M10 11.3C7.7 10.7 6 8.4 6.5 6.5c1.9.1 3.9 2.1 4.3 4.4M10.9 13.6c-1.6 1.8-4.4 2.4-6 1.2.8-1.8 3.5-2.9 5.8-2.5M13.1 13.6c1.6 1.8 4.4 2.4 6 1.2-.8-1.8-3.5-2.9-5.8-2.5M14 11.3c2.3-.6 4-2.9 3.5-4.8-1.9.1-3.9 2.1-4.3 4.4M13.2 12a1.2 1.2 0 11-2.4 0 1.2 1.2 0 012.4 0"/>
+  <path id="thistle" d="M8.2 5l1.5 2.6M12 4v3M15.8 5l-1.5 2.6M12 7c2.2 0 3.5 1.2 3.5 3s-1.3 3-3.5 3-3.5-1.2-3.5-3 1.3-3 3.5-3M10.2 8.6l3.6 2.8M13.8 8.6l-3.6 2.8M12 13v8M11 16.5c-1.8-.2-3.2-1.2-3.7-2.9M13 17.8c1.8-.2 3.2-1.2 3.7-2.9"/>
+  <!-- letters: C and S as strokes, 40 tall, centred at 0,0; sw set by the user -->
+  <path id="C" d="M12.3-10.3A16 16 0 1 0 12.3 10.3" fill="none" stroke="currentColor" stroke-linecap="round"/>
+  <path id="S" d="M13-11C8-18-14-16-14-6-14 4 14 0 14 8 14 18-8 20-13 12" fill="none" stroke="currentColor" stroke-linecap="round"/>
+  <g id="CS"><use href="#C" transform="translate(-19 0)" stroke-width="9"/><use href="#S" transform="translate(20 0)" stroke-width="9"/></g>
+  <!-- clubs -->
+  <g id="iron"><path d="M6 48H66" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M64 40l22 5-3 11-21-3z" fill="currentColor"/></g>
+  <g id="putter"><path d="M6 48H70" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><rect x="66" y="41" width="24" height="14" rx="3" fill="currentColor"/></g>
+  <g id="driver"><path d="M6 48H62" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M60 38c14-4 30 2 30 12s-16 14-30 8z" fill="currentColor"/></g>
+  <!-- ball, cup, pole, tee, topo, tally, ground -->
+  <g id="ball"><circle cx="48" cy="48" r="30" fill="currentColor"/><g fill="#0A0E0C"><circle cx="40" cy="38" r="2.6"/><circle cx="52" cy="34" r="2.6"/><circle cx="60" cy="46" r="2.6"/><circle cx="36" cy="50" r="2.6"/><circle cx="48" cy="48" r="2.6"/><circle cx="56" cy="58" r="2.6"/><circle cx="42" cy="62" r="2.6"/></g></g>
+  <ellipse id="cup" cx="48" cy="74" rx="14" ry="4.8" fill="currentColor"/>
+  <rect id="pole" x="45.5" y="26" width="5" height="50" rx="2.5" fill="currentColor"/>
+  <g id="tee"><path d="M34 26h28l-8 10h-12z" fill="currentColor"/><rect x="45" y="34" width="6" height="40" rx="3" fill="currentColor"/></g>
+  <path id="topo1" d="M48 22c15 0 30 9 30 26s-15 26-30 26-30-9-30-26 15-26 30-26z" fill="none" stroke="currentColor" stroke-width="2.2"/>
+  <path id="topo2" d="M48 32c10 0 21 6 21 16s-11 18-21 18-19-8-19-18 9-16 19-16z" fill="none" stroke="currentColor" stroke-width="2.2"/>
+  <path id="topo3" d="M48 41c5 0 11 3 11 8s-6 9-11 9-10-4-10-9 5-8 10-8z" fill="none" stroke="currentColor" stroke-width="2.2"/>
+  <g id="topo"><use href="#topo1"/><use href="#topo2"/><use href="#topo3"/></g>
+  <g id="tally" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none"><path d="M26 30v36M38 30v36M50 30v36M62 30v36M20 62L70 34"/></g>
+  <path id="ground" d="M8 60H88" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <!-- season ring: 12 ticks -->
+  <g id="ticks12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M48 6v8M48 82v8M6 48h8M82 48h8M18.3 18.3l5.7 5.7M72 72l5.7 5.7M18.3 77.7l5.7-5.7M72 24l5.7-5.7M27 11.6l4 6.9M65 77.5l4 6.9M11.6 27l6.9 4M77.5 65l6.9 4"/></g>
+
+  <!-- ═══ A · COINS ═══ -->
+  <g id="m01"><use href="#ring"/><g transform="translate(9.6 10) scale(3.2)" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><use href="#saguaro"/></g></g>
+  <g id="m02"><use href="#ring"/><g transform="translate(9.6 12) scale(3.2)" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><use href="#jug"/></g></g>
+  <g id="m03"><use href="#ring"/><g transform="translate(9.6 14) scale(3.2)" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><use href="#azalea"/></g></g>
+  <g id="m04"><use href="#ring"/><ellipse cx="48" cy="80" rx="13" ry="4.5" fill="currentColor"/><g transform="translate(9.6 13) scale(3.2)" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><use href="#saguaro"/></g><use href="#pen" transform="translate(48 23.5) scale(.8)" fill="currentColor"/></g>
+  <g id="m05"><use href="#ring"/><use href="#CS" transform="translate(48 48) scale(.78)"/></g>
+  <g id="m06"><use href="#ring"/><use href="#CS" transform="translate(48 48) scale(.72)"/><use href="#iron" transform="translate(4 -2) scale(.92) rotate(-20 48 48)"/></g>
+  <g id="m07"><use href="#ring"/><use href="#tally" transform="translate(48 48) scale(.62) translate(-48 -48)"/></g>
+  <g id="m08"><use href="#ring"/><use href="#ticks12" transform="translate(48 48) scale(.74) translate(-48 -48)"/><use href="#pen" transform="translate(48 34) scale(.6)" fill="currentColor"/><rect x="46.2" y="34" width="3.6" height="26" rx="1.8" fill="currentColor"/></g>
+  <g id="m09"><use href="#disc"/><path d="M14 56h68" stroke="#0A0E0C" stroke-width="3.5"/><path d="M40 56v10a8 8 0 0 0 16 0V56" fill="none" stroke="#0A0E0C" stroke-width="3.5"/><circle cx="48" cy="63" r="4" fill="#0A0E0C"/><rect x="46.3" y="20" width="3.4" height="36" fill="#0A0E0C"/><use href="#pen" transform="translate(49.7 20) scale(.55)" fill="#0A0E0C"/></g>
+  <g id="m10"><use href="#ring"/><use href="#topo" transform="translate(48 48) scale(.7) translate(-48 -48)"/><circle cx="48" cy="49" r="3" fill="currentColor"/></g>
+  <!-- ═══ B · CS WITH A CLUB THROUGH IT ═══ -->
+  <g id="m11"><use href="#CS" transform="translate(48 46) scale(.95)"/><use href="#iron" transform="translate(48 48) rotate(-32) translate(-48 -48)"/></g>
+  <g id="m12"><use href="#CS" transform="translate(48 48) scale(.95)"/><use href="#putter" transform="translate(48 50) rotate(-8) translate(-48 -48)"/></g>
+  <g id="m13"><use href="#C" transform="translate(30 48) scale(1.1)" stroke-width="10"/><path d="M52 28v40" stroke="currentColor" stroke-width="10" stroke-linecap="round"/><path d="M50 24l24 6-2 10-22-3z" fill="currentColor"/><use href="#S" transform="translate(58 66) scale(.5)" stroke-width="16"/></g>
+  <g id="m14"><use href="#CS" transform="translate(48 44) scale(.9)"/><use href="#driver" transform="translate(48 52) rotate(-38) translate(-48 -48) scale(1)"/></g>
+  <g id="m15"><rect x="10" y="10" width="76" height="76" rx="6" fill="none" stroke="currentColor" stroke-width="4"/><use href="#CS" transform="translate(48 48) scale(.8)"/><use href="#iron" transform="translate(48 48) rotate(-45) scale(.9) translate(-48 -48)"/></g>
+  <g id="m16"><use href="#C" transform="translate(48 40) scale(1.25)" stroke-width="9"/><use href="#S" transform="translate(48 40) scale(.62)" stroke-width="12"/><use href="#putter" transform="translate(48 30) scale(.8) translate(-48 -48) translate(0 32)"/></g>
+  <g id="m17"><use href="#CS" transform="translate(48 46) scale(.92)"/><path d="M8 78H88" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M86 70l6 8-6 8" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <g id="m18"><use href="#C" transform="translate(48 48) scale(1.55)" stroke-width="8"/><use href="#S" transform="translate(52 48) scale(.62)" stroke-width="13"/><use href="#iron" transform="translate(48 48) rotate(-55) scale(.62) translate(-48 -48)"/></g>
+  <!-- ═══ C · CS IN A GOLF SHAPE ═══ -->
+  <g id="m19"><use href="#ball" transform="translate(48 48) scale(1.25) translate(-48 -48)"/><g style="color:#0A0E0C"><use href="#CS" transform="translate(48 48) scale(.62)"/></g></g>
+  <g id="m20"><use href="#pen" transform="translate(20 22) scale(3)" fill="currentColor"/><rect x="14" y="16" width="6" height="66" rx="3" fill="currentColor"/><g style="color:#0A0E0C"><use href="#CS" transform="translate(56 44) scale(.5)"/></g></g>
+  <g id="m21"><circle cx="48" cy="48" r="40" fill="currentColor"/><circle cx="48" cy="48" r="26" fill="#0A0E0C"/><g style="color:#D8B25A"><use href="#CS" transform="translate(48 48) scale(.5)"/></g></g>
+  <g id="m22"><path d="M22 30c10-10 44-14 56 2 8 12-2 34-16 44-16 10-42 8-48-6-6-14-2-30 8-40z" fill="currentColor"/><g style="color:#0A0E0C"><use href="#CS" transform="translate(48 50) scale(.6)"/></g><circle cx="70" cy="34" r="3.5" fill="#0A0E0C"/><rect x="69" y="12" width="2.4" height="22" fill="#0A0E0C"/></g>
+  <g id="m23"><path d="M14 58c8-16 22-26 34-26s26 10 34 26c-8 8-22 14-34 14s-26-6-34-14z" fill="currentColor"/><circle cx="48" cy="50" r="14" fill="#0A0E0C"/><g style="color:#D8B25A"><use href="#CS" transform="translate(48 50) scale(.32)"/></g></g>
+  <g id="m24"><rect x="14" y="14" width="68" height="68" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="48" cy="48" r="26" fill="none" stroke="currentColor" stroke-width="4"/><use href="#CS" transform="translate(48 48) scale(.44)"/></g>
+  <g id="m25"><use href="#tee"/><g style="color:#0A0E0C"><use href="#C" transform="translate(48 30) scale(.28)" stroke-width="12"/></g><use href="#S" transform="translate(70 62) scale(.55)" stroke-width="10"/></g>
+  <g id="m26"><path d="M10 64c14-30 62-30 76 0-14 12-62 12-76 0z" fill="currentColor"/><g style="color:#0A0E0C"><use href="#CS" transform="translate(48 58) scale(.42)"/></g></g>
+  <g id="m27"><use href="#disc" transform="translate(48 48) scale(.62) translate(-48 -48)"/><rect x="45" y="66" width="6" height="26" rx="3" fill="currentColor"/><g style="color:#0A0E0C"><use href="#CS" transform="translate(48 48) scale(.42)"/></g></g>
+  <g id="m28"><rect x="12" y="30" width="72" height="36" rx="4" fill="currentColor"/><g style="color:#0A0E0C"><use href="#CS" transform="translate(36 48) scale(.42)"/></g><rect x="60" y="40" width="16" height="16" rx="2" fill="#0A0E0C"/><path d="M68 44v8M64 48h8" stroke="#D8B25A" stroke-width="2.5" stroke-linecap="round"/></g>
+  <!-- ═══ D · TOPO ═══ -->
+  <g id="m29"><g stroke="currentColor" stroke-width="5" fill="none" stroke-linecap="round"><path d="M66 22A30 30 0 1 0 66 74"/><path d="M60 32A18 18 0 1 0 60 64" stroke-width="4"/><path d="M55 40A8 8 0 1 0 55 56" stroke-width="3"/></g></g>
+  <g id="m30"><use href="#topo"/><circle cx="48" cy="49" r="4.5" fill="#0A0E0C" stroke="currentColor" stroke-width="2.2"/></g>
+  <g id="m31"><use href="#topo" transform="translate(48 48) scale(1.05) translate(-48 -48)"/><rect x="46" y="20" width="4" height="30" rx="2" fill="currentColor"/><use href="#pen" transform="translate(50 20) scale(.62)" fill="currentColor"/></g>
+  <g id="m32"><use href="#ring"/><use href="#topo" transform="translate(48 48) scale(.62) translate(-48 -48)"/><g style="color:#0A0E0C"><rect x="22" y="38" width="52" height="20" rx="2" fill="#0A0E0C"/></g><use href="#CS" transform="translate(48 48) scale(.42)"/></g>
+  <g id="m33"><use href="#pen" transform="translate(22 24) scale(3)" fill="currentColor"/><rect x="16" y="18" width="6" height="64" rx="3" fill="currentColor"/><g style="color:#0A0E0C" stroke-width="1.6"><use href="#topo" transform="translate(58 46) scale(.42) translate(-48 -48)"/></g></g>
+  <g id="m34"><use href="#topo" transform="translate(48 52) scale(1.1) translate(-48 -48)"/><g transform="translate(24.4 8) scale(2.2)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><use href="#saguaro"/></g></g>
+  <g id="m35"><g stroke="currentColor" fill="none" stroke-width="2.2"><path d="M10 40c10 8 20 10 38 10s28-2 38-10"/><path d="M20 52c8 5 16 7 28 7s20-2 28-7"/><path d="M32 62c4 3 10 4 16 4s12-1 16-4"/></g><circle cx="48" cy="67" r="3.5" fill="currentColor"/><path d="M48 22v45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><use href="#pen" transform="translate(50 22) scale(.55)" fill="currentColor"/></g>
+  <g id="m36"><use href="#disc"/><g style="color:#0A0E0C"><use href="#topo" transform="translate(48 48) scale(.78) translate(-48 -48)"/></g><circle cx="48" cy="49" r="3.4" fill="#0A0E0C"/></g>
+  <!-- ═══ E · THE SEASON, THE CREW, THE RECORD ═══ -->
+  <g id="m37"><use href="#ticks12"/><rect x="46" y="36" width="4" height="28" rx="2" fill="currentColor"/><use href="#pen" transform="translate(50 36) scale(.62)" fill="currentColor"/></g>
+  <g id="m38"><use href="#tally"/></g>
+  <g id="m39"><g fill="none" stroke="currentColor" stroke-width="3.5"><rect x="12" y="16" width="72" height="64" rx="3"/><path d="M12 32h72M30 16v64M48 16v64M66 16v64M12 48h72M12 64h72"/></g><circle cx="57" cy="72" r="5" fill="currentColor"/></g>
+  <g id="m40"><g transform="translate(9.6 12) scale(3.2)" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><use href="#jug"/></g><path d="M40.5 33c2.5 3 12.5 3 15 0" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/></g>
+  <g id="m41"><g fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"><g transform="translate(6 6) scale(1.75)"><use href="#saguaro"/></g><g transform="translate(48 6) scale(1.75)"><use href="#azalea"/></g><g transform="translate(6 48) scale(1.75)"><use href="#jug"/></g><g transform="translate(48 48) scale(1.75)"><use href="#thistle"/></g></g></g>
+  <g id="m42"><rect x="30" y="10" width="36" height="76" rx="3" fill="currentColor"/><g style="color:#0A0E0C"><use href="#C" transform="translate(48 34) scale(.42)" stroke-width="10"/><use href="#S" transform="translate(48 62) scale(.42)" stroke-width="10"/></g><path d="M34 22h28M34 74h28" stroke="#0A0E0C" stroke-width="2"/></g>
+  <g id="m43"><circle cx="48" cy="48" r="40" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="48" cy="48" r="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/><g style="color:#D8B25A"><use href="#pen" transform="translate(48 34) scale(.6)" fill="currentColor"/><rect x="46.2" y="34" width="3.6" height="26" rx="1.8" fill="currentColor"/></g></g>
+  <g id="m44"><path d="M20 70V26h56v44" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M14 70h68" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><use href="#CS" transform="translate(48 50) scale(.48)"/></g>
+  <!-- ═══ F · OUTSIDE THE BOX ═══ -->
+  <g id="m45"><use href="#ground" transform="translate(0 -6)"/><path d="M36 54v14a12 12 0 0 0 24 0V54" fill="none" stroke="currentColor" stroke-width="3.5"/><circle cx="48" cy="62" r="5.5" fill="currentColor"/><rect x="46.3" y="16" width="3.4" height="38" fill="currentColor"/><use href="#pen" transform="translate(49.7 16) scale(.6)" fill="currentColor"/></g>
+  <g id="m46"><path d="M8 68h80" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M22 68a26 26 0 0 1 52 0" fill="currentColor"/><g transform="translate(6 34) scale(1.6)" fill="none" stroke="#0A0E0C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#saguaro"/></g><g transform="translate(58 40) scale(1.2)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><use href="#saguaro"/></g></g>
+  <g id="m47"><path d="M48 12c-4 10-18 20-18 34a18 18 0 0 0 36 0c0-14-14-24-18-34z" fill="currentColor"/><circle cx="48" cy="50" r="9" fill="#0A0E0C"/><circle cx="46" cy="48" r="2" fill="#D8B25A"/></g>
+  <g id="m48"><circle cx="48" cy="48" r="42" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="48" cy="48" r="30" fill="none" stroke="currentColor" stroke-width="1.5"/><g style="color:#D8B25A"><use href="#CS" transform="translate(48 48) scale(.42)"/></g><g fill="currentColor"><circle cx="48" cy="10" r="2"/><circle cx="48" cy="86" r="2"/><circle cx="10" cy="48" r="2"/><circle cx="86" cy="48" r="2"/><circle cx="21" cy="21" r="2"/><circle cx="75" cy="75" r="2"/><circle cx="21" cy="75" r="2"/><circle cx="75" cy="21" r="2"/></g></g>
+  <g id="m49"><rect x="14" y="30" width="68" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="4"/><rect x="30" y="66" width="36" height="6" fill="currentColor"/><rect x="45" y="72" width="6" height="16" fill="currentColor"/><use href="#CS" transform="translate(48 48) scale(.44)"/></g>
+  <g id="m50"><circle cx="48" cy="48" r="36" fill="none" stroke="currentColor" stroke-width="4"/><path d="M48 12a36 36 0 0 1 36 36" fill="none" stroke="currentColor" stroke-width="10"/><circle cx="48" cy="48" r="5" fill="currentColor"/><path d="M48 48L70 30" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></g>
+</defs>
+  <use href="#m01" transform="translate(2 2)"/>
+  <use href="#m02" transform="translate(102 2)"/>
+  <use href="#m03" transform="translate(202 2)"/>
+  <use href="#m04" transform="translate(302 2)"/>
+  <use href="#m05" transform="translate(402 2)"/>
+  <use href="#m06" transform="translate(502 2)"/>
+  <use href="#m07" transform="translate(602 2)"/>
+  <use href="#m08" transform="translate(702 2)"/>
+  <use href="#m09" transform="translate(802 2)"/>
+  <use href="#m10" transform="translate(902 2)"/>
+  <use href="#m11" transform="translate(2 102)"/>
+  <use href="#m12" transform="translate(102 102)"/>
+  <use href="#m13" transform="translate(202 102)"/>
+  <use href="#m14" transform="translate(302 102)"/>
+  <use href="#m15" transform="translate(402 102)"/>
+  <use href="#m16" transform="translate(502 102)"/>
+  <use href="#m17" transform="translate(602 102)"/>
+  <use href="#m18" transform="translate(702 102)"/>
+  <use href="#m19" transform="translate(802 102)"/>
+  <use href="#m20" transform="translate(902 102)"/>
+  <use href="#m21" transform="translate(2 202)"/>
+  <use href="#m22" transform="translate(102 202)"/>
+  <use href="#m23" transform="translate(202 202)"/>
+  <use href="#m24" transform="translate(302 202)"/>
+  <use href="#m25" transform="translate(402 202)"/>
+  <use href="#m26" transform="translate(502 202)"/>
+  <use href="#m27" transform="translate(602 202)"/>
+  <use href="#m28" transform="translate(702 202)"/>
+  <use href="#m29" transform="translate(802 202)"/>
+  <use href="#m30" transform="translate(902 202)"/>
+  <use href="#m31" transform="translate(2 302)"/>
+  <use href="#m32" transform="translate(102 302)"/>
+  <use href="#m33" transform="translate(202 302)"/>
+  <use href="#m34" transform="translate(302 302)"/>
+  <use href="#m35" transform="translate(402 302)"/>
+  <use href="#m36" transform="translate(502 302)"/>
+  <use href="#m37" transform="translate(602 302)"/>
+  <use href="#m38" transform="translate(702 302)"/>
+  <use href="#m39" transform="translate(802 302)"/>
+  <use href="#m40" transform="translate(902 302)"/>
+  <use href="#m41" transform="translate(2 402)"/>
+  <use href="#m42" transform="translate(102 402)"/>
+  <use href="#m43" transform="translate(202 402)"/>
+  <use href="#m44" transform="translate(302 402)"/>
+  <use href="#m45" transform="translate(402 402)"/>
+  <use href="#m46" transform="translate(502 402)"/>
+  <use href="#m47" transform="translate(602 402)"/>
+  <use href="#m48" transform="translate(702 402)"/>
+  <use href="#m49" transform="translate(802 402)"/>
+  <use href="#m50" transform="translate(902 402)"/>
+</svg>
