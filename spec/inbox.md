@@ -273,6 +273,17 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
 
 
 
+
+### 2026-09-12 · Gameplay · the tee-less course, tree'd
+
+Full tree: `docs/reviews/2026-09-12-tee-less-course-tree.md`. **The framing changed after reading the code.** Three things were conflated and only one is a product decision:
+
+- The edge function returns bare courses **on purpose** (`courses/index.ts:232-234`, *"bare courses still answer, the client's manual-entry row covers the rest"*) and both client readers then delete them (`ScheduleService.swift:148`, `:160`). The server and the client disagree about the contract.
+- **One search serves planning and live setup.** A plan stores no tee — `scheduled_rounds` has no tee column and 4 of 5 prod plans carry no `course_id` at all — so a filter written for live scoring is deleting courses from the planner.
+- Only the genuinely-absent course (Oak Quarry, in no catalogue) is a real ruling, and it is D150's.
+
+Most of the fix is already built: D333 makes live setup honest about a card it cannot use, and typed rating/slope has always been the posting path. What is left is two `.filter` deletions plus a label, skipping the declare sheet's tee stage for a bare course, and moving the detail fetch from search to selection. **Owner ruling still owed on D150** — my recommendation is a per-golfer course, never a shared one, because one wrong tee in a shared record becomes contagious.
+
 ### 2026-09-12 · Gameplay · plan entry, items 12 and the evening rejection BUILT
 
 Two of the four plan-entry defects are built and unpushed: **D343** seats the host (`20261022090000`), **D344** gives the four plan-day guards one day of slack so evening golf can be organised in the evening (`20261023090000`). Both proven on a throwaway cluster. **Owed: `supabase db push`, the owner's to run.** No client change needed for either.
