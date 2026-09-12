@@ -1198,6 +1198,18 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfcard.hfrail{border-top:1px solid var(--rule); padding:12px 0; margin:0;}
 .hfgross{flex:none; text-align:right;}
 .hfgross b{display:block; color:var(--ink);}
+/* D340 · no-photo rounds use the existing type roles and rule-and-figure. */
+.hfcard.hfrecord{padding:20px 0 12px;}
+.hfrecord .hfhead{margin-bottom:16px;}
+.hfrecord-date{color:var(--mut);flex:none;}
+.hfrecord-body{display:flex;align-items:flex-start;gap:20px;}
+.hfrecord-place{flex:1;min-width:0;}
+.hfrecord-place>b{display:block;overflow-wrap:anywhere;}
+.hfrecord-place>p{margin:8px 0 0;color:var(--mut);}
+.hfrecord .hfgross{border-top:2px solid var(--ink);padding-top:4px;text-align:left;min-width:62px;}
+.hfrecord .hfgross>span{display:block;color:var(--mut);margin-top:4px;}
+@media(max-width:360px){.hfrecord-body{gap:12px;}}
+
 /* B1: a photo-backed round IS the card — dusk wash, serif gross, marker medal */
 .hfcard.hfstory{padding:0; position:relative; overflow:hidden; border-radius:var(--r); min-height:220px; display:flex; flex-direction:column; justify-content:space-between; color:#F4F6F2; border:none;}
 .hfcard.hfstory .hsbg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
@@ -2100,12 +2112,14 @@ body.guestlive #onboard{display:none !important;}
 }
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
 .rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
-/* Home's circle rows are denser than board cards — the strip shrinks to fit
-   under the round line and never opens a thread (comments stay a board thing).
-   Every chip holds the 44px floor now rather than just the quick one: with
-   four tokens on the row and no tray behind them, each is a real target. */
+/* D341 · Home keeps given reactions and an invitation to reveal the rest.
+   Every choice retains a 44px target; the reveal wraps on narrow screens. */
 .hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
 .hrx .rxchip{font-size:11.5px; padding:3px 8px; min-width:44px; min-height:44px;}
+.hrx-options:not([hidden]){display:contents;}
+.hrx-options .rxchip.rxnone{color:var(--mut);}
+.hrx .hreact{display:inline-flex; align-items:center; gap:var(--s2); background:transparent;}
+.hrx .hreact span{font-family:var(--mono); letter-spacing:0;}
 /* the quiet-day frame — Home's feed never opens as a bare list. Either it says
    what changed since you were last here, or (on a genuinely quiet day) it
    resurfaces the best recent thing so the open still reveals something. */
@@ -7522,15 +7536,24 @@ function ensureRx(f){
    with no count on an untouched card, which reads as a reaction somebody
    already left. Untouched now means four outlines and no numbers — an
    invitation, marked `.rxnone` so the whole row can go quiet. */
-function rxChipsHtml(rx, attr, idx){
+function rxChipsHtml(rx, attr, idx, tokens=REACTIONS){
   const untouched=REACTIONS.every(t=>!(rx[t.k]&&rx[t.k].n>0));
-  return REACTIONS.map(t=>{
+  return tokens.map(t=>{
     const r=rx[t.k]||{n:0,me:false,who:[]};
     const who=(r.who&&r.who.length)?r.who.join(', '):'';
     const title=`${t.label}${who?' — '+who:''}`;
     const cls='rxchip'+(r.me?' on':'')+(untouched?' rxnone':'');
     return `<button class="${cls}" ${attr}="${idx}" data-e="${esc(t.k)}" title="${esc(title)}" aria-label="${esc(t.label)}" aria-pressed="${r.me?'true':'false'}">${rxGlyph(t.k)}${r.n>0?r.n:''}</button>`;
   }).join('');
+}
+/* D341 · Home shows only given reactions; the labelled invitation reveals
+   the remaining canon choices, and the normal post-toggle render closes it. */
+function homeRxChipsHtml(rx, idx){
+  const given=REACTIONS.filter(t=>(rx[t.k]?.n||0)>0);
+  const rest=REACTIONS.filter(t=>!(rx[t.k]?.n>0));
+  const chips=rxChipsHtml(rx,'data-hrx',idx,given);
+  if(!rest.length) return chips;
+  return chips+`<button class="rxchip hreact" data-hreact aria-label="${given.length?'More reactions':'React to this round'}" aria-expanded="false" aria-controls="home-rx-${idx}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>${given.length?'':'<span>React</span>'}</button><span class="hrx-options" id="home-rx-${idx}" hidden>${rxChipsHtml(rx,'data-hrx',idx,rest)}</span>`;
 }
 function socialBar(f, fi, opts){
   const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
@@ -15745,6 +15768,12 @@ async function toggleHomeRx(r, emoji){
 }
 function wireHomeSocial(box){
   const rows = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
+  box.querySelectorAll('[data-hreact]').forEach(b=>b.addEventListener('click',()=>{
+    const options=b.nextElementSibling;
+    const open=b.getAttribute('aria-expanded')!=='true';
+    options.hidden=!open;
+    b.setAttribute('aria-expanded',String(open));
+  }));
   box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',()=>{
     const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, b.dataset.e);
   }));
@@ -15771,6 +15800,15 @@ function memberMarker(pid){
   const m = (window.CS?.members||[]).find(m => m.profile_id === pid);
   return m ? (m.mk || m.marker || m.profile?.marker || 'saguaro') : 'saguaro';
 }
+/* D340 · HomeWireCopy.roundDetail's copy cases, kept on both clients. */
+function homeRoundDetail(r){
+  if(r.gross==null) return '';
+  if(r.is_pr) return 'a personal best.';
+  if(r.is_sub80) return 'broke 80 for the first time.';
+  if(r.is_first) return r.is_me ? 'your first round posted.' : 'their first round posted.';
+  if(r.pvi!=null){ const phrase=vsPhrase(Number(r.pvi)); return (r.is_me ? phrase : theirs(phrase))+'.'; }
+  return '';
+}
 function feedRow(r, idx, stamp){
   /* A2 scorecard rail + B1 photo takeover (owner pick, feed boards 2026-07-23):
      the face carries the name, the serif gross carries the score — the same
@@ -15785,9 +15823,8 @@ function feedRow(r, idx, stamp){
     : r.is_first ? 'First round posted' : null;
   const vp0 = pviN!=null ? vsPhrase(pviN) : '';
   const vp = r.is_me ? vp0 : theirs(vp0);   /* crew rows speak third person */
-  const vpCap = vp ? vp[0].toUpperCase()+vp.slice(1) : '';
   const rx = idx!==undefined ? homeRxOf(r) : null;
-  const social = rx ? `<div class="hrx">${rxChipsHtml(rx,'data-hrx',idx)}</div>` : '';
+  const social = rx ? `<div class="hrx">${homeRxChipsHtml(rx,idx)}</div>` : '';
   const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
   /* SF-6: the arrival — the round just posted renders its gross as split-flap
      cells; renderHomeFeed arms them and retires the flag after insertion */
@@ -15809,16 +15846,18 @@ function feedRow(r, idx, stamp){
       ${social?`<div class="hsfoot">${social}</div>`:''}</div>`;
   }
 
-  /* D288 · WEIGHT 2b — the slat. `stamp` is the producer's ruling on whether
-     this row says its own date: null under TODAY, and null again when the row
-     above it in the same group already said it (`csHomeFold`'s sayItOnce).
-     The course still prints, because it is the place and not the date. */
-  const meta = [course, stamp ? esc(csDayToken(stamp)) : null].filter(Boolean).join(' · ');
-  return `<div class="hfcard hfrail stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
+  /* D340 · Course and gross lead even when the optional photograph is absent. */
+  const detail = homeRoundDetail(r);
+  const sentence = detail ? detail[0].toUpperCase()+detail.slice(1) : '';
+  return `<div class="hfcard hfrail hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
     <div class="hfhead">
       <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 44)}</span>
-      <div class="hfid"><b class="cs-social">${whoTag}</b>${(milestone||vpCap)?`<small class="hfphrase cs-body-s">${milestone||vpCap}</small>`:''}<small class="hfmeta cs-agate-s">${meta}</small></div>
-      ${r.gross!=null?`<div class="hfgross"><b class="cs-fig-m">${grossH}</b></div>`:''}
+      <div class="hfid"><b class="cs-social">${whoTag}</b></div>
+      ${stamp?`<span class="hfrecord-date cs-agate-s">${esc(csDayToken(stamp))}</span>`:''}
+    </div>
+    <div class="hfrecord-body">
+      <div class="hfrecord-place"><b class="cs-name">${r.course ? course : 'Course not recorded'}</b>${sentence?`<p class="cs-story">${esc(sentence)}</p>`:''}</div>
+      ${r.gross!=null?`<div class="hfgross"><b class="cs-fig-xl">${grossH}</b><span class="cs-agate-s">GROSS</span></div>`:''}
     </div>
     ${social}</div>`;
 }
@@ -16258,6 +16297,16 @@ function renderHomeDigest(){
   if(state.demo && !fresh.length) men=[];
   if(fresh.length || men.length){
     const rounds=fresh.filter(i=>i.kind==='round'), posts=fresh.filter(i=>i.kind==='post');
+    /* One round already has its own record below (or in the ranked lead).
+       Yield the empty count; if the feed isn't available, retain a receipt door. */
+    if(rounds.length===1 && !posts.length && !men.length){
+      const only=rounds[0], rid=only.r.round_id;
+      const src=state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
+      if(rid && (src.some(r=>r.round_id===rid) || window.__spentRounds?.has(String(rid)))) return;
+      box.innerHTML=`<div class="digest"><span class="dk">Since you were here</span><button type="button" class="hfnotes" data-dg-single>${dgLine(only)}.</button></div>`;
+      box.querySelector('[data-dg-single]')?.addEventListener('click',()=>openRoundReceipt(only.r));
+      return;
+    }
     const bits=[];
     if(rounds.length) bits.push(`<b>${rounds.length} round${rounds.length>1?'s':''}</b>`);
     const pr=rounds.find(i=>i.r.is_pr), s80=rounds.find(i=>i.r.is_sub80), fst=rounds.find(i=>i.r.is_first);
@@ -16299,7 +16348,7 @@ function wireFeedReceipts(box){
       if(r && typeof openRoundReceipt==='function') openRoundReceipt(r);
     };
     el.addEventListener('click', open);
-    el.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(e); } });
+    el.addEventListener('keydown', e=>{ if(e.target.closest('[data-tc],button')) return; if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(e); } });
   });
 }
 function renderHomeFeed(){

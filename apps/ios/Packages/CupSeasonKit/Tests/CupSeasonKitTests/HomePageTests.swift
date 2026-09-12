@@ -416,6 +416,19 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
     #expect(hasDigest(elsewhere))
   }
 
+  @Test("A single fresh round yields to its own record; a separate story keeps its door")
+  func singleFreshRoundYieldsToItsRecord() {
+    let mine = HomeFeedRow.plain(golfer: "You", gross: 84, course: "Oak Quarry")
+    let single = HomeDigest(kind: .since, label: "Since you were here", body: "You posted 84 at Oak Quarry.",
+                            roundId: mine.round_id, photoURL: nil, isRoundStory: true)
+    let page = HomePage.make(me: me(rounds: 9), strip: emptyStrip, ranked: HomeRank.arrange([]),
+      buckets: [HomeFeedBucket(label: "This week", items: [.round(mine, photoURL: nil)])], digest: single)
+    #expect(!page.rows.contains { if case .digest = $0.body { return true }; return false })
+    #expect(page.rows.contains { if case .round = $0.body { return true }; return false })
+    let elsewhere = HomePage.make(me: me(rounds: 9), strip: emptyStrip, ranked: HomeRank.arrange([]), buckets: [], digest: single)
+    #expect(elsewhere.rows.contains { if case .digest = $0.body { return true }; return false })
+  }
+
   @Test("The SINCE frame is a summary of what changed, and is never dropped")
   func theSinceFrameSurvives() {
     let mine = HomeFeedRow.plain(golfer: "You", gross: 89, course: "UNM Championship")

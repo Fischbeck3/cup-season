@@ -48,6 +48,23 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     #expect(d.body == "2 rounds, a personal best from Diego, and Rosa broke 80.")
   }
 
+  @Test func oneFreshRoundNamesTheRoundAndKeepsItsDoor() {
+    let id = UUID()
+    let r = row(id, me: true, gross: 84, playedOn: "2026-08-27", createdAt: now)
+    let d = HomeDigest.make(rounds: [r], posts: [], mark: now.addingTimeInterval(-3600), now: now)!
+    #expect(d.body == "You posted 84 at Papago GC.")
+    #expect(d.roundId == id)
+    #expect(d.isRoundStory)
+  }
+
+  @Test func noPhotoDetailDoesNotRepeatTheScoreOrCourse() {
+    let r = row(me: true, gross: 84, pvi: nil, playedOn: "2026-08-27", first: true)
+    #expect(HomeWireCopy.roundDetail(r) == "your first round posted.")
+    #expect(HomeWireCopy.roundDetail(row(gross: 79, playedOn: "2026-08-27", pr: true)) == "a personal best.")
+    #expect(HomeWireCopy.roundDetail(row(gross: nil, playedOn: "2026-08-27", pr: true)) == nil)
+    #expect(HomeWireCopy.roundDetail(row(pvi: nil, playedOn: "2026-08-27")) == nil)
+  }
+
   @Test func aMentionRescuesAQuietDay() {
     let mark = now.addingTimeInterval(-3600)
     let old = now.addingTimeInterval(-86400 * 3)

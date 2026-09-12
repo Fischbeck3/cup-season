@@ -316,17 +316,17 @@ public struct HomePage {
     // rows below as the wire's 68pt slat, gross and all. It also put a date
     // back at the HEAD of a sentence, which is the leading column D285 deleted.
     //
-    // Narrow on purpose: `.since` is a real summary of what changed and is
-    // never dropped, and a quiet frame whose round the wire is NOT drawing
-    // still renders, because that is the day the frame exists for.
+    // D340: multi-update summaries stay. A quiet frame or a single fresh
+    // round story yields to the same round in the wire/lead; an otherwise
+    // absent story retains its receipt door.
     let wireRounds: Set<UUID> = Set(buckets.flatMap(\.items).compactMap {
       if case .round(let r, _) = $0 { return r.round_id }
       return nil
     })
     let framed: HomeDigest? = {
       guard let d = digest else { return nil }
-      guard d.kind == .quiet, let id = d.roundId else { return d }
-      return wireRounds.contains(id) ? nil : d
+      guard d.kind == .quiet || d.isRoundStory, let id = d.roundId else { return d }
+      return wireRounds.contains(id) || ranked.spentRounds.contains(id) ? nil : d
     }()
 
     var rows: [(sort: Int, row: HomeWireRow)] = []

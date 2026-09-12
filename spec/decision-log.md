@@ -7309,3 +7309,22 @@ that was skipped. Each carries the date the owner authorised it and, where a rul
 - **Open 1 — LINT-28.** The rule reserves the pennant to the tab band and the app icon. `preflight` stays green because the lint counts `CSGlyph.Name.pennant` and the new mark is a different type on eight surfaces. Either the owner extends the reservation to `CSBrandMark` (and the lint learns the name), or the rule is amended to "the pennant is the brand's mark and may sit wherever the brand signs". Not mine to rule.
 - **Open 2 — the icon tile.** The tile draws contour lines behind the mark. `brand/README.md` says the tile is a solid field, and the owner's implementation brief says contours are "sparse … never wallpaper". Owner's eye at home-screen size decides.
 - **Kept as a record:** `brand/candidates/marker-coin`, `fifty`, `strike` remain exploratory (brand-canon, 2026-09-11); the production mark is still the owner's decision.
+
+
+### D340 · A round without a photograph still has a front page
+**AUTHORISED 2026-09-12** (owner: “Can you show me ideas in an artifact while we fix the no photo issue?”) · UI/copy level · D234, D287, D288, §10.1, L-34
+
+- **Current behavior:** Home's no-photo round is a compact slat; the phone repeats gross and course inside its sentence beside a gross figure. A single fresh ordinary round can also produce an inert “1 round.” digest.
+- **Problem:** an ordinary round loses presence for lacking an optional photograph, and the count repeats the round without adding a story or a door.
+- **Recommendation:** give the no-photo round a golfer header, prominent course, gross rule-and-figure and the existing milestone/band sentence with no duplicated gross or course. Both clients use the same detail-copy cases. Retain receipt, person and reaction destinations. A single fresh round gets the existing digest story and a receipt id, and that story yields when the same round is already on Home. Multi-update summaries retain their existing behavior.
+- **Principle served:** memory over statistics; golf first; one fact, one place. A real round is meaningful without extra data entry.
+- **Benefit:** course and score are recognizable at a glance, with no photo required and no fabricated holes, par, contour or performance claim.
+- **Tradeoffs:** no-photo rounds are taller than the former slat; accessibility sizes stack the score. This is the factual typography fallback, not a new course-card data read. The optional icon/reaction/after-golf variants in the design study are proposals, not production changes. No mechanics, persistence, brand assets or backend contracts change.
+
+### D341 · Home names the invitation to react
+**AUTHORISED 2026-09-12** (owner: “Go on next steps”) · UI level · D234, D309, D310 as amended by D324, D340
+
+- **Current behavior:** native Home shows given reactions plus an unlabelled plus; web Home still exposes all four choices on every round.
+- **Change:** an untouched round shows plus and “React” on both clients. Given reactions retain their actual counts in canon order; a plus offers the remaining choices. Choosing one closes the reveal. Native retains its direct VoiceOver actions; web exposes expanded state and can close the reveal without reacting.
+- **Principle served:** an understandable invitation, no phantom reactions, and consistent behavior across clients. Existing drawn reaction marks, names, write paths and ability to give multiple different reactions remain.
+- **Tradeoff:** one extra tap to choose an unused reaction on web, matching the native choice approved in D324. The label appears only on untouched rounds to keep counted rows compact. Board rendering and the after-golf proposal are outside this change.

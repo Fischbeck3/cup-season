@@ -21,6 +21,8 @@ public struct HomeDigest: Sendable, Equatable {
   public let photoURL: URL?
   /// Substrings of `body` the web sets in `<b>` (10538–10600): the count, the name.
   public var strong: [String] = []
+  /// A single round story yields to the same round in the lead or wire.
+  public var isRoundStory = false
 
   private static func key(profile: UUID?) -> String { "cs.seen.\(profile?.uuidString.lowercased() ?? "anon")" }
 
@@ -103,6 +105,11 @@ public struct HomeDigest: Sendable, Equatable {
     guard let mark else { return nil }   // first visit — the feed IS the reveal
     let freshRounds = rounds.filter { ($0.created_at ?? CSDate.local($0.played_on ?? "") ?? .distantPast) > mark }
     let freshPosts = posts.filter { ($0.created_at ?? .distantPast) > mark }
+    if freshRounds.count == 1, freshPosts.isEmpty, mentions.isEmpty, let round = freshRounds.first {
+      return HomeDigest(kind: .since, label: "Since you were here", body: line(round) + ".",
+                        roundId: round.round_id, photoURL: round.round_id.flatMap { photoURLs[$0] },
+                        strong: [who(round)], isRoundStory: true)
+    }
     // mentions can RESCUE a quiet day — a reaction on your round IS something new
     if !freshRounds.isEmpty || !freshPosts.isEmpty || !mentions.isEmpty {
       var bits: [String] = [], strong: [String] = []

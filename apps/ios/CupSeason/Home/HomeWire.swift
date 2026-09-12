@@ -134,56 +134,64 @@ struct HomeWireBand: View {
   }
 }
 
-/// **Weight 2 with no photograph — the majority case today, and it must be
-/// beautiful.** A 68pt slat on the page's own ground: the face, the name, the
-/// sentence, and the gross as a right-flush rule-and-figure. No placeholder
-/// image, no gradient wash, no tinted block — *a wash standing in for a
-/// photograph is forbidden outright* (§10.1).
+/// D340 · The factual no-photo fallback. Course, gross and story each print
+/// once. No image slot or invented hole detail is needed to make a round matter.
 struct HomeWireSlat: View {
   @Environment(\.cs) private var cs
-  @Environment(\.dynamicTypeSize) private var typeSize
   let row: HomeFeedRow
   let open: () -> Void
   let openPerson: () -> Void
 
   private var name: String { HomeCopy.who(row) }
-  private var line: String { HomeWireCopy.roundLine(row) }
 
   var body: some View {
-    Button(action: open) {
-      A11yStack(alignment: .leading, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s3) {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      Button(action: openPerson) {
         HStack(spacing: CSTokens.Space.s3) {
           CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
-            .onTapGesture { openPerson() }
-          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            Text(name).csType(.social).foregroundStyle(cs.ink)
-              .lineLimit(1).truncationMode(.tail)
-            Text(line).csType(.bodyS).foregroundStyle(cs.mut)
+          Text(name).csType(.social).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+          Spacer(minLength: 0)
+        }
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel(name)
+      .accessibilityHint("Opens the golfer")
+
+      Button(action: open) {
+        A11yStack(alignment: .leading, rowAlignment: .top, spacing: CSTokens.Space.s4, columnSpacing: CSTokens.Space.s3) {
+          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+            Text(row.course.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded")
+              .csType(.name).foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
+            if let detail = HomeWireCopy.roundDetail(row) {
+              Text(detail.prefix(1).uppercased() + detail.dropFirst())
+                .csType(.story).foregroundStyle(cs.mut)
+                .fixedSize(horizontal: false, vertical: true)
+            }
           }
           .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        if let g = row.gross {
-          // **THE RULE IS THE WIDTH OF ITS COLUMN** (§0.2), and without this it
-          // was the width of half the page: `CSRule` is a bare `Rectangle`, so
-          // the figure's stack reads as FLEXIBLE inside an `HStack` and took
-          // an equal share — which left "89 at UNM Championship — 1.4 over your
-          // playing HCP." breaking over four lines beside a 2pt rule running to
-          // the margin. `fixedSize` proposes the column its own ideal width,
-          // which is the label's, and hands the rest back to the sentence.
-          CSFigure("\(g)", size: .m, label: "Gross")
+          if let gross = row.gross {
+            VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+              CSRule(.heavy)
+              Text("\(gross)").csType(.figureXL).foregroundStyle(cs.ink)
+              Text("Gross").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            }
             .fixedSize(horizontal: true, vertical: false)
-            .frame(minWidth: 62, alignment: typeSize.isA11y ? .leading : .trailing)
+          }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
       }
-      .padding(.vertical, CSTokens.Space.s3)
-      .frame(minHeight: 68)
-      .contentShape(Rectangle())
+      .buttonStyle(.plain)
+      .accessibilityIdentifier("home.round.no-photo")
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("\(name). \(HomeWireCopy.roundLine(row))")
+      .accessibilityHint("Opens the round")
     }
-    .buttonStyle(.plain)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("\(name). \(line)")
-    .accessibilityHint("Opens the round")
+    .padding(.vertical, CSTokens.Space.s4)
   }
 }
 
@@ -242,7 +250,10 @@ struct HomeWireReactions: View {
           CSHaptic.selection()
           CSMotion.run(CSMotion.tick) { open = true }
         } label: {
-          CSGlyph(.plus, size: .inline)
+          HStack(spacing: CSTokens.Space.s2) {
+            CSGlyph(.plus, size: .inline)
+            if given.isEmpty { Text("React").csType(.agateS) }
+          }
             .foregroundStyle(cs.mut)
             .frame(minHeight: 34)
             .a11yHitSlop(vertical: 5, horizontal: 8)
@@ -282,7 +293,7 @@ struct HomeWireReactions: View {
       .a11yHitSlop(vertical: 5, horizontal: 6)
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(rx.label), \(n)\(mine ? ", yours" : "")")
+    .accessibilityLabel(n > 0 ? "\(rx.label), \(n)\(mine ? ", yours" : "")" : rx.label)
     .accessibilityValue(mine ? "on" : "off")
     .accessibilityAddTraits(.isToggle)
   }

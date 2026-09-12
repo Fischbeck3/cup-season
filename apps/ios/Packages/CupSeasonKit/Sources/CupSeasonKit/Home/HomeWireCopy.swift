@@ -31,19 +31,22 @@ public enum HomeWireCopy {
       // been read, and the line says only what it knows (L-44).
       return "A round at \(course)."
     }
-    if r.is_pr == true { return "\(g) at \(course) — a personal best." }
-    if r.is_sub80 == true { return "\(g) at \(course) — broke 80 for the first time." }
-    // TERMINOLOGY §4 row 7 retires the RECORD sense of "your card" — the
-    // card is the CREDENTIAL now — and warns that the sense has at least six
-    // phrasings, so "a grep for one of them lets the other five ship". This
-    // file is new and wrote a seventh; check 7's three patterns
-    // (`on your card`, `hit your card`, `pinned to your card`) all missed it.
-    if r.is_first == true { return "\(g) at \(course) — their first round posted." }
+    if let detail = roundDetail(r) { return "\(g) at \(course) — \(detail)" }
+    return "\(g) at \(course)."
+  }
+
+  /// The no-photo record already prints course and gross. Keep only the story.
+  /// A missing gross is not a milestone or a performance claim.
+  public static func roundDetail(_ r: HomeFeedRow) -> String? {
+    guard r.gross != nil else { return nil }
+    if r.is_pr == true { return "a personal best." }
+    if r.is_sub80 == true { return "broke 80 for the first time." }
+    if r.is_first == true { return r.is_me == true ? "your first round posted." : "their first round posted." }
     if let p = r.pvi {
       let phrase = r.is_me == true ? CSBands.vsPhrase(p) : CSBands.theirs(CSBands.vsPhrase(p))
-      return "\(g) at \(course) — \(phrase)."
+      return "\(phrase)."
     }
-    return "\(g) at \(course)."
+    return nil
   }
 
   /// `Today` · `Mon` · `Aug 21` — the marker that leads a quiet row and

@@ -91,6 +91,9 @@ struct RootView: View {
     }
     #if DEBUG
     .overlay {
+      if ProcessInfo.processInfo.arguments.contains("-cs_dev_no_photo") { HomeNoPhotoFixture() }
+    }
+    .overlay {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") {
         RoundSharePreview(recap: PostRecap(name: "QA golfer", marker: "",
           gross: 91, pvi: nil, points: nil, course: "QA course · fixture",

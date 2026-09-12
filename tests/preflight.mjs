@@ -1652,7 +1652,7 @@ let VOCAB_LAWS = null;
    one paid off ratchets the number down. It is the only shape that makes a
    pre-existing violation safe to leave in place. */
 {
-  const BELOW_11 = 78;                    // 2026-09-07, after Wave 7's live sheet, form board and receipts paid five back
+  const BELOW_11 = 67;                    // 2026-09-12: bank the verified floor, including inherited build-795 reductions
   const found = (html.match(/font-size:\s*(?:[0-9]|10)(?:\.[0-9]+)?px/g) || []);
   if (found.length > BELOW_11) {
     fail('the 11px floor holds', `${found.length} rule(s) below 11px — the debt is ${BELOW_11} and may only shrink (L-29). New: ${found.length - BELOW_11}`);
