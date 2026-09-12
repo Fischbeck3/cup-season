@@ -7,7 +7,8 @@ Updated 2026-09-12. One queue for the next expansion. This records assignments a
 - Audited candidate: `ca682da`, build 815. Keep it unchanged while Apple distribution signing is unavailable. Latest Claude handoff reviewed: `b2dac7e`; no signing issue is a reason to deploy D345.
 - Current planning workspace: `/Users/fischbeck3/cup-season-vision-next`, branch `codex/vision-next-2026-09-12`, based on `ca682da`.
 - Codex's release workspace and Claude's existing workspace retain their owners. Do not switch or edit another agent's branch. A new implementation branch starts from the explicitly agreed integration checkpoint.
-- This turn produces documents and a proposed build sequence. No new product implementation has started under this plan. Actual start/completion is recorded by the assigned agent with a commit hash.
+- First execution checkpoint completed: interactive prototype/brand proof and an independent Claude C0 review. Production implementation has not started. See `docs/reviews/2026-09-12-next-checkpoint.md` for evidence and findings disposition.
+- Claude C0 ran to completion in `/Users/fischbeck3/cup-season-next-loop-contract`, branch `claude/next-loop-contract`, base `205a0ef`. Its report is imported unchanged with attribution; that bounded process has finished.
 
 ## Ownership defaults
 
@@ -29,9 +30,12 @@ This is a file-ownership rule, not a claim that one agent is intrinsically bette
 
 | ID | Deliverable | Owner | Status | Dependency / completion proof |
 |---|---|---|---|---|
-| V0 | Expanded vision, evidence-based roadmap, ownership brief | Codex | Drafted for owner review | This checkpoint; no new mechanics approved |
-| C0 | Independent critique + exact week-loop contract packet | Claude | Ready to assign; not started | Read V0 and `ca682da`; own docs-only branch |
-| B0 | Pennant application and symbol-role proof sheet | Codex | Proposed next | Existing tokens; explicit D339 choices shown |
+| V0 | Expanded vision, evidence-based roadmap, ownership brief | Codex | Direction accepted; expansion language remains draft | Planning commit `205a0ef`; owner approved first execution checkpoint |
+| C0 | Independent critique + exact week-loop contract packet | Claude | Review delivered; contract proposals not yet agreed | `docs/reviews/next-loop-contract.md`, base `205a0ef`; static review only |
+| B0 | Pennant application and symbol-role proof sheet | Codex | Prototype ready for visual selection | `docs/prototypes/next-week.html`; final D339 decision still open |
+| P0 | Complete-week interaction prototype | Codex | Review delivered | 21 checks at each of three widths; see checkpoint review |
+| Q0 | Reproduce/repair native draft restore and seed protection | Codex | Recommended next; not started | C0 F2; model-level test before fix; isolated implementation branch |
+| C0a | Minimal D345 context, typed answer and capability proposal | Claude | Recommended next; not started | C0 + Codex disposition; preserve approved per-plan semantics; no deploy |
 | C1 | Course search/detail and bare-course behavior | Claude backend / Codex clients | Proposed | C0, accepted scope, named Edge deployment gate |
 | C2 | After-golf answers and safe draft continuity | Claude backend / Codex clients | Proposed | C0; decision before new linkage semantics |
 | Q1 | Integrated complete-week audit | Codex + Claude independent review | Proposed | C1/C2; same commit, both clients, real RPC and UI evidence |
@@ -49,7 +53,7 @@ Use states **Proposed → Contract agreed → Building → Review → Integrated
 
 Integration order: reviewer reads the exact commit → builder resolves findings → Codex integrates into an owned branch → generate derived files from agreed sources → run targeted and required checks → self-review the combined diff → record an immutable release checkpoint. Deploy only the explicitly authorised layers. Never cherry-pick the same correction twice just because two review reports mention it.
 
-## Copyable next task for Claude
+## Completed C0 brief (historical; do not reassign)
 
 ```text
 We are planning Cup Season's next expansion while TestFlight signing is held.
@@ -80,15 +84,19 @@ Do not reopen D345's already approved eligibility/window rulings. Commit the
 packet and return its exact hash, findings and next steps. No production writes.
 ```
 
+## Next packet constraints
+
+Before C1/C2, read Codex’s disposition in `docs/reviews/2026-09-12-next-checkpoint.md`. Client-first shipping alone does not protect installed `p_today`-capable builds without prefill. C0a must address this explicitly. Do not expand answers to the whole day, discard unowned legacy drafts, add linkage, or remove the community rating aggregate as incidental fixes. Q0 and C0a are the next bounded assignments, not running tasks.
+
 ## Session-end handoff
 
 Branch: `codex/vision-next-2026-09-12`.
-Goal: expand the product vision into a reviewable sequence with one owner per file.
-What changed: proposed vision extension, implementation/brand assessment, build gates and collaboration queue.
-Files changed: vision, doc map, inbox, prior tandem pointer, and these two planning documents.
-Verification run: source/decision inspection, fresh app captures, local document-link and diff checks. Documentation only; no application test suite rerun.
-Database deploy owed: none from planning; D345 remains separately held.
-Edge deploy owed: none from planning.
-Client deploy owed: none from planning; build 815 signing issue remains separate.
-Open questions / risks: owner direction/brand choices; draft/linkage semantics; no new implementation or automatic Claude task started.
-Recommended next step: owner reviews the proposed order; hand C0 to Claude while Codex develops B0 and the week-loop prototype once the first slice is selected.
+Goal: complete the first review/prototype checkpoint.
+What changed: prototype, brand proof, imported C0 review and integrated findings/build order.
+Files changed: see `docs/reviews/2026-09-12-next-checkpoint.md`.
+Verification run: 21 browser assertions at three widths; brand/text-stress captures; visual, generation, hash, link and diff checks.
+Database deploy owed: none; D345 remains held separately.
+Edge deploy owed: none.
+Client deploy owed: none; build 815 signing recovery remains separate.
+Open questions / risks: C0 contract proposals and F2 reproduction; D339 selection; production code not repaired in this checkpoint.
+Recommended next step: Q0 draft recovery and C0a contract packet, each on its own branch from this committed checkpoint.

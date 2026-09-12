@@ -44,6 +44,11 @@ Current status supersedes older release-window notes below: Claude's completed `
 
 Release inspection and evidence: `docs/reviews/2026-09-12-testflight-preparation.md`. Preparing a clean archive/export does not upload it or deploy the pending database feature. Later / Didn't play controls, plan-to-round prefill/linkage, and the tee-less course work remain separate follow-ups.
 
+
+### 2026-09-12 · Next chapter checkpoint delivered
+
+Prototype and brand proof: `docs/prototypes/next-week.html`. Claude completed C0 in a separate workspace; report imported with attribution. Read Codex’s disposition and next assignments in `docs/reviews/2026-09-12-next-checkpoint.md` and `docs/planning/ACTIVE_WORK.md`. Priorities: native draft recovery, correct plan date, explicit client capability, then course-cache readiness. No production changes or deploys from this checkpoint.
+
 ## Raw — drop anything here
 
 **2026-09-09, from the owner:**
@@ -325,7 +330,7 @@ Still open: reproduce the cached-image/arrival split-flap re-entry symptom befor
 
 **Not pushed, on purpose.** D343 and D344 were fixes to live defects and the owner authorised those pushes explicitly. This is a **new surface on Home**, and the owner reviews Home by screenshot, not by diff. It is one command when he is back: stage per the recipe in `docs/reviews/2026-09-12-claude-handoff.md`, then `supabase db push --linked`.
 
-**Client work owed, Codex's:** the *Later* and *Didn't play* controls (the item ships with one door, "Add my round", which works on every build already in the field); passing `p_today`; a drop-argument retry on the phone for it; and **deleting `HomeDispatch.localHeadline`**, whose only reason to exist was the server saying "You have a round on today." — fixed here.
+**Client status, reconciled with the D345 release correction:** `p_today` and old-signature retry are in the audited candidate. Keep `HomeDispatch.localHeadline` for old-server compatibility. Later / Didn’t play controls and safe plan-date/course prefill remain owed. C0 found that the current Add door defaults to today; D345 activation therefore remains held. See `docs/reviews/next-loop-contract.md` and Codex’s disposition in `docs/reviews/2026-09-12-next-checkpoint.md`.
 
 **Still open and still the owner's:** `rounds.scheduled_round_id` (item 28) — suppression is a documented heuristic until it exists, and the column belongs with the composer's plan bridge. And the tee-less course ruling (Q6 of the tree), which I recommend holding until bare courses are visible and the real absence rate is known.
 

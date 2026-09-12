@@ -4,6 +4,10 @@
 
 **Recommendation:** complete the week of golf, then deepen the Record, then make the group easier to bring back. Develop the brand system alongside the first wave. Preserve build 815 as an independent recovery candidate while signing is blocked.
 
+## First execution checkpoint · 2026-09-12
+
+Owner approved proceeding with the parallel prototype/review checkpoint. The [journey and brand proof](../prototypes/next-week.html) and [Claude C0 report](../reviews/next-loop-contract.md) are delivered. Read [Codex’s disposition](../reviews/2026-09-12-next-checkpoint.md) before assigning implementation: draft restoration and correct plan-date entry precede bare-course exposure; ordinary-post retry safety remains a Wave 1 gate. C0’s proposed mechanics are not automatically accepted, and its client-first deploy recommendation needs a capability gate for installed intermediate builds.
+
 ## What this review actually inspected
 
 Baseline `ca682da`, the audited native/web candidate, in isolated branch `codex/vision-next-2026-09-12`. Read the founding vision, competition spec, brand canon/bible, design guide and relevant UI rules, native roadmap/amendment, inbox, D309/D324/D326/D329/D331–D345, and the current Home, course search, posting and Record implementations. Read Claude's subsequent `b2dac7e` signing handoff without modifying its workspace.

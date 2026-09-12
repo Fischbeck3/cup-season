@@ -7,6 +7,8 @@ Index only — files live where they live. OS layer: `../StudioOS`.
 | vision | `spec/product-vision-v1.0.md` (founding text + clearly marked expansion draft) |
 | next expansion / build plan | `docs/planning/2026-09-12-next-chapter.md` |
 | current agent ownership / queue | `docs/planning/ACTIVE_WORK.md` |
+| next-week prototype / brand proof | `docs/prototypes/next-week.html` |
+| next checkpoint / C0 disposition | `docs/reviews/2026-09-12-next-checkpoint.md` |
 | rules spec | `spec/spec-v1.0.md` |
 | decisions | `spec/decision-log.md` |
 | gameplay | `spec/gameplay-modes-working.md` |
