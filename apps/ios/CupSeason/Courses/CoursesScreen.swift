@@ -33,6 +33,7 @@ struct CoursesScreen: View {
   @State private var stars: [String: MyCourseRating] = [:]
   @State private var loaded = false
   @State private var filter: Filter = .all
+  @State private var showOfflineCourses = false
 
   enum Filter: String, CaseIterable, Hashable { case all, planned, played
     var label: String { rawValue }
@@ -63,6 +64,8 @@ struct CoursesScreen: View {
         Text("Courses").csType(.display).foregroundStyle(cs.ink)
         Text(sub).csType(.agate, caps: true).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
+        Button("Save courses for offline") { showOfflineCourses = true }
+          .buttonStyle(.csTertiary(.content))
 
         HStack(spacing: CSTokens.Space.s2) {
           ForEach(Filter.allCases, id: \.self) { f in
@@ -86,7 +89,7 @@ struct CoursesScreen: View {
                   eyebrow: "On your phone",
                   headline: empty,
                   fact: CourseBookCopy.what,
-                  door: .elsewhere("A course arrives the first time you post a round at it or put one on the plan."))
+                  door: .elsewhere("Save a course for offline, post a round at it, or put one on the plan."))
         } else {
           // §16A.3 · an unlabelled number column is a defect, not a minimalism
           // — and a HEAD OVER AN EMPTY COLUMN is the same defect the other way
@@ -114,6 +117,9 @@ struct CoursesScreen: View {
     .background(cs.bg0.ignoresSafeArea())
     .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
+    .sheet(isPresented: $showOfflineCourses, onDismiss: { Task { books = await CourseBookStore().kept() } }) {
+      OfflineCoursesSheet().csDevTextSize(CSDevHatch.textSize)
+    }
     .task {
       books = await CourseBookStore().kept()
       loaded = true

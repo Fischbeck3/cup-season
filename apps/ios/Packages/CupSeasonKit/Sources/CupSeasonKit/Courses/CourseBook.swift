@@ -9,10 +9,10 @@
 // `api_course_tees` / `api_course_holes`. On a plane, and at most golf
 // courses, the app had nothing to say.
 //
-// A book is a few kilobytes. The scope is R-N's exactly — every course on my
-// schedule and every course I have posted a round at, and NOTHING else.
-// Searching the whole catalogue offline is not in scope and needs the network,
-// which the client says out loud rather than pretending.
+// A book is a few kilobytes. Played/planned courses are kept automatically;
+// the owner's September 12 trip-preparation flow also allows an explicit save.
+// Searching the whole catalogue offline still needs the network; the phone
+// only searches books it already holds.
 //
 // Three honesty rules are built into the type rather than left to the drawing
 // code, the way `DispatchSnapshot` builds L-44 in:
@@ -79,6 +79,23 @@ public struct CourseBookTee: Codable, Sendable, Equatable, Identifiable {
   /// "Rating 71.2 · Slope 131". A missing figure prints an em dash rather than
   /// a zero — L-44, and the exact thing the owner could not read at 30,000ft.
   public var subtitle: String { "Rating \(CSCopy.points(rating)) · Slope \(slope.map(String.init) ?? "—")" }
+
+  /// Readiness is about a complete, real tee card, not merely a cached name.
+  /// Stroke indexes are optional for solo gross scoring; missing pars are not.
+  public var offlineReady: Bool {
+    guard let n = holesCount, n == 9 || n == 18,
+          let rating, rating.isFinite, rating > 0, let slope, slope > 0,
+          holes.count == n else { return false }
+    let ordered = holes.sorted { $0.hole < $1.hole }
+    return ordered.map(\.hole) == Array(1...n)
+      && ordered.allSatisfy { (2...7).contains($0.par ?? 0) }
+  }
+
+  public var offlineStatus: String {
+    if offlineReady { return "Ready offline · \(holesCount!) holes" }
+    if rating == nil || slope == nil { return "Not ready · rating or slope missing" }
+    return "Not ready · complete hole pars needed"
+  }
 
   /// The pars in hole order, or nil when the card was never cached.
   public func pars(want: Int) -> [Int]? {

@@ -64,10 +64,6 @@ struct SeasonPage: View {
   @Environment(LookStore.self) private var looks
   @Environment(\.dismiss) private var dismiss
   @Environment(\.cs) private var cs
-  /// D314 · the plate takes the livery's accent (owner: *"topo can follow
-  /// themes"*). Read here rather than inside `SeasonHead`, because the field is
-  /// drawn as this page's background and not as part of the head.
-  @Environment(\.csLookAccent) private var la
   @State private var model: LeagueRoomModel
   @State private var router: RoomRouter
   /// R-11 · the rank-up haptic, once per load, for the season in hand.
@@ -85,7 +81,7 @@ struct SeasonPage: View {
   var body: some View {
     ScrollViewReader { proxy in
       page(proxy)
-        // LINT-24 · the season's name is printed ONCE, in `display` 34 (CS-07:
+        // LINT-24 · the season's name is printed ONCE (CS-07:
         // it was set three times in 50pt of vertical space).
         //
         // **AND THE BAR CARRIES NOTHING** (DF-09). iOS 26 wrapped the system
@@ -154,21 +150,7 @@ struct SeasonPage: View {
           // present. No spinner; `ProgressView` is banned in content.
           SeasonLoading()
         } else {
-          // **D314 · THE SEASON STANDS SOMEWHERE TOO.** The owner, on Compete's
-          // new plate: *"Some background topo could be cool here — topo can
-          // follow themes."* Same generator, same scale rule, seeded from the
-          // same league — so a season looks like the same place on the tab that
-          // lists it and on the page that IS it.
           SeasonHead()
-            .background(alignment: .top) {
-              CSContour(seed: model.leagueId.uuidString,
-                        tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a24))
-                .frame(maxWidth: .infinity)
-                .frame(height: 150)
-                .clipped()          // the field draws past its frame (D301: clips drawing, not touches)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-            }
           SeasonVoteBanner()
           thisWeek
           table
@@ -354,10 +336,8 @@ struct SeasonPage: View {
 
 // MARK: - The head (§1.1)
 
-/// The eyebrow, the season's name in `display`, the dateline, and **the chapter
-/// line in the serif** — the audit's "best line on the phone", finally at lead
-/// size instead of body size (CS-08). One `display` and one serif appearance
-/// per viewport, which is what §1.4 budgets.
+/// Compact competitive heading and one serif chapter. Golf terrain belongs
+/// to the heading only; the story and the table retain a clear page ground.
 struct SeasonHead: View {
   @Environment(LeagueRoomModel.self) private var model
   @Environment(\.cs) private var cs
@@ -380,35 +360,45 @@ struct SeasonHead: View {
     let stage = LeagueCopy.stage(model.clock)
     let complete = model.isComplete
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      HStack(spacing: CSTokens.Space.s1) {
-        // **The dot IS the ember**, and LINT-18 counts it and its own eyebrow
-        // as ONE mark: both are the same clock and the eyebrow names it.
-        if !complete {
-          Circle().fill(la.accent ?? cs.brand).frame(width: 7, height: 7)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        HStack(spacing: CSTokens.Space.s1) {
+          // **The dot IS the ember**, and LINT-18 counts it and its own eyebrow
+          // as ONE mark: both are the same clock and the eyebrow names it.
+          if !complete {
+            Circle().fill(la.accent).frame(width: 7, height: 7)
+          }
+          Text(SeasonBoardCopy.eyebrow(stage: stage,
+                                       week: model.seasonStory?.facts?.week_no ?? model.clock.currentWeek,
+                                       weeks: model.seasonStory?.facts?.weeks_total ?? model.clock.totalWeeks))
+            .csType(.agateS, caps: true)
+            .foregroundStyle(complete ? cs.gold : la.accent)
+            .fixedSize(horizontal: false, vertical: true)
         }
-        Text(SeasonBoardCopy.eyebrow(stage: stage,
-                                     week: model.seasonStory?.facts?.week_no ?? model.clock.currentWeek,
-                                     weeks: model.seasonStory?.facts?.weeks_total ?? model.clock.totalWeeks))
-          .csType(.agate, caps: true)
-          .foregroundStyle(complete ? cs.gold : (la.accent ?? cs.brand))
+        .csBudget(gold: complete ? 1 : 0, ember: complete ? 0 : 1)
+        Text(model.league?.name ?? "The season").csType(.displayS)
+          .foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityAddTraits(.isHeader)
+          .accessibilityIdentifier("season.title")
+        Text(SeasonBoardCopy.dateline(number: model.season?.number,
+                                      span: SeasonBoardCopy.span(startsOn: model.clock.startsOn,
+                                                                 endsOn: model.clock.endsOn) ?? model.clock.spanText,
+                                      pro: model.proName,
+                                      squads: model.bylaws.solo ? nil : model.squads.count))
+          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
-      .csBudget(gold: complete ? 1 : 0, ember: complete ? 0 : 1)
-      Text(model.league?.name ?? "The season").csType(.display)
-        .foregroundStyle(cs.ink)
-        .fixedSize(horizontal: false, vertical: true)
-      Text(SeasonBoardCopy.dateline(number: model.season?.number,
-                                    span: SeasonBoardCopy.span(startsOn: model.clock.startsOn,
-                                                               endsOn: model.clock.endsOn) ?? model.clock.spanText,
-                                    pro: model.proName,
-                                    squads: model.bylaws.solo ? nil : model.squads.count))
-        .csType(.agate, caps: true).foregroundStyle(cs.mut)
-        .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background {
+        CSTopoField(tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a24))
+          .padding(.horizontal, -CSTokens.Space.gutter)
+      }
       if let line = model.storyLine {
-        Text(line.text).csType(.lead).foregroundStyle(cs.ink)
+        Text(line.text).csType(.story).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
           .padding(.top, CSTokens.Space.s2)
           .id(SeasonPane.story.anchor)
+          .accessibilityIdentifier("season.story")
       }
       // **QB-12 · TURN THE GAP INTO A MOVE**, and this is the chapter line's
       // half of it (`season.md` §5: the climb's `closer` clause moves here).
@@ -444,8 +434,8 @@ struct SeasonLoading: View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
       VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
         Text("Season live · week 5 of 13").csType(.agate, caps: true).foregroundStyle(cs.mut)
-        Text("The season").csType(.display).foregroundStyle(cs.ink)
-        Text("Season one · the dates · the Pro").csType(.agate, caps: true).foregroundStyle(cs.mut)
+        Text("The season").csType(.displayS).foregroundStyle(cs.ink)
+        Text("Season one · the dates · the Pro").csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
       .csGutter()
       CSSeasonCalendar(weeks: 13, played: 0, now: -1,

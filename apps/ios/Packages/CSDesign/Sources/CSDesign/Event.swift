@@ -78,13 +78,14 @@ public struct CSSideRoster: View {
     // reads at, and an AX3 name under it is 26pt tall; squeezing six of those
     // into 362 points is how a roster becomes a smudge.
     if typeSize.isA11y {
-      ScrollView(.horizontal, showsIndicators: false) {
+      ScrollView(.horizontal, showsIndicators: true) {
         HStack(alignment: .top, spacing: CSTokens.Space.s4) {
           group(left, align: .leading)
           group(right, align: .leading)
         }
       }
       .accessibilityElement(children: .contain)
+      .accessibilityIdentifier("event.side-roster")
     } else {
       // Two groups side by side while the names fit on one line each; the
       // moment they do not — a long first name on a narrow phone — the groups

@@ -198,9 +198,7 @@ public struct CourseBookStore: Sendable {
                            city: old?.city, state: old?.state, tees: tees,
                            planned: old?.planned ?? false, played: old?.played ?? false,
                            nextPlayOn: old?.nextPlayOn, lastPlayedOn: old?.lastPlayedOn)
-    await disk.save(book)
-    guard let saved = await disk.book(hit.id), saved.tees == book.tees else { return nil }
-    return saved
+    return try? await disk.saveVerified(book)
   }
 
   // MARK: - the reads

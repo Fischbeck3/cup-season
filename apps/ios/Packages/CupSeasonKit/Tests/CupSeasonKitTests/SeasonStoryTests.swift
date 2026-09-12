@@ -258,7 +258,39 @@ struct SeasonStoryHistoryTests {
     let p = payload(facts: quiet, history: [
       SeasonStory.History(kind: "my_run", source: "standings_snapshots", rank: 2, weeks: 4),
     ])
-    #expect(SeasonStoryCopy.line(p)?.text == "You have held 2nd for four straight weeks.")
+    #expect(SeasonStoryCopy.line(p)?.text == "Through Aug 30, you held 2nd for four straight weeks.")
+  }
+
+  @Test("a historical rank differing from the live table carries its own date")
+  func myRunAfterMovement() {
+    let p = payload(facts: quiet,
+                    table: [row("You", 40, rank: 1, me: true), row("Galen", 31, rank: 2)],
+                    history: [.init(kind: "my_run", source: "standings_snapshots", rank: 2, weeks: 4)])
+    let line = SeasonStoryCopy.line(p)
+    #expect(line?.rung == 7)
+    #expect(line?.text == "Through Aug 30, you held 2nd for four straight weeks.")
+    #expect(line?.source == "standings_snapshots")
+  }
+
+  @Test("a missing snapshot date stays explicitly historical, without inventing a date")
+  func myRunWithoutDate() {
+    let h = SeasonStory.History(kind: "my_run", source: "standings_snapshots", rank: 3, weeks: 2)
+    for stamp: String? in [nil, "", "not-a-date", "2026-02-30", "2026-13-01"] {
+      #expect(SeasonStoryCopy.history(h, lastSnapshotOn: stamp)
+              == "Your weekly record includes two straight weeks in 3rd.")
+    }
+    #expect(SeasonStoryCopy.history(.init(kind: "my_run", source: "standings_snapshots", rank: 0, weeks: 3)) == nil)
+  }
+
+  @Test("the weekly record uses its calendar date across time zones and year boundaries")
+  func myRunCalendarDate() {
+    let h = SeasonStory.History(kind: "my_run", source: "standings_snapshots", rank: 2, weeks: 4)
+    for zone in ["America/Phoenix", "Pacific/Honolulu", "Pacific/Auckland"] {
+      var calendar = Calendar(identifier: .gregorian)
+      calendar.timeZone = TimeZone(identifier: zone)!
+      #expect(SeasonStoryCopy.history(h, lastSnapshotOn: "2026-12-31T23:59:00+00:00", calendar: calendar)
+              == "Through Dec 31, you held 2nd for four straight weeks.")
+    }
   }
 
   @Test("my best week, as a difference between two rows that exist")

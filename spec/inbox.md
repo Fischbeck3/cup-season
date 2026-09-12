@@ -269,3 +269,11 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
   contradicts a decision is not a bug report until that decision is read.
 - `docs/ios/DECISIONS.md` — what was actually built, and its gate.
 - `CLAUDE.md` — architecture, the landmines, and the current state.
+
+### 2026-09-12 · UX · Compete gameplay review follow-ups
+
+- Actual root says 1st while its season hero says “You have held 2nd for four straight weeks.” `SeasonStoryCopy.history(my_run)` formats a run from weekly standings snapshots in present tense. First question: should the historical run be dated or suppressed when it differs from current standings? Inspect current table and snapshot dates together; do not alter points to reconcile copy.
+- Compete root uses smooth golf `CSTopoField`; season and event headers still use heavy polygonal `CSContour` behind title/roster content. First question: unify their contour drawing/contrast while retaining the established screen structure? Visual evidence: `/Users/fischbeck3/cup-season-course-compete-review/index.html`.
+
+
+**Follow-through — 2026-09-12, owner: “Build to your recommendation”:** implemented native past-tense weekly-run copy anchored to the existing `last_snapshot_on`, with an explicitly historical fallback if the date is unavailable. Season/event headings now use shared golf terrain and smaller existing type roles; rosters remain on clear ground. No points, rules or backend change. Review and evidence: `docs/reviews/2026-09-12-compete-consistency.md`. Owner screenshot review remains the release gate.

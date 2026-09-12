@@ -13,10 +13,9 @@
 // competition set smaller than the label above it.
 //
 // THE IMAGE LADDER HAS TWO RUNGS HERE AND ONLY TWO (§7.7). There is **no
-// photograph on this surface, ever** — an event is not a place and the product
-// has no picture of one. It is the contour, seeded from the event's course if
-// it has one, or **nothing at all**. `event-callout` is the rendered proof that
-// the bare ceremony ground is not a degraded state.
+// photograph on this surface** — the existing course-context gate remains.
+// With a course, the header carries the shared abstract golf terrain; it is
+// brand geometry, not a map of that course. Rosters stay on clear ground.
 
 import SwiftUI
 import CSDesign
@@ -29,13 +28,12 @@ struct EventTitleCard<Field: View>: View {
   /// The 7pt dot rides the eyebrow while the clock is running and leaves with
   /// it. **No ember band** — §2.4 forbids a saturated field wider than a chip.
   let live: Bool
-  /// `display` 34, wrapping to two lines. One `display` per viewport, and this
-  /// is it. `nil` when the FIELD is the title — which is the callout, where the
+  /// Compact board title, freely wrapping. `nil` for a callout, where the
   /// two golfers' names are the graphic.
   let title: String?
   /// One dateline, one or two lines, never three metadata blocks (§13 D-2).
   let dateline: [String]
-  /// The contour's seed — the event's course. `nil` draws the bare ground.
+  /// Existing course-context gate. `nil` keeps the bare ceremony ground.
   let seed: String?
   let back: (() -> Void)?
   @ViewBuilder let field: Field
@@ -43,64 +41,66 @@ struct EventTitleCard<Field: View>: View {
   var body: some View {
     ZStack(alignment: .topLeading) {
       CSTokens.dark.ceremony
-      if let seed {
-        // §2 A.1 · six nested closed curves, cropped hard off their own
-        // centre, with one `brand` dot on the hardest hole. Deterministic from
-        // the course: same course, same plot, forever.
-        CSContour(seed: seed, lineWidth: 1.2,
-                  tint: CSTokens.dark.ceremonyMut.opacity(CSTokens.Alpha.a24),
-                  mark: CSTokens.dark.ceremonyBrand)
-          .allowsHitTesting(false)
-      }
-      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-        if let back {
-          Button(action: back) {
-            CSGlyph(.chevron, size: .tab)
-              .scaleEffect(x: -1)
-              .foregroundStyle(CSTokens.dark.ceremonyInk)
-              .frame(width: 44, height: 44)
-              .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel("Back")
-          .padding(.leading, -CSTokens.Space.s3)
-        }
-        HStack(spacing: CSTokens.Space.s1) {
-          // **The dot IS the ember**, and it and its own eyebrow are ONE mark:
-          // both are the same clock and the eyebrow names it.
-          if live {
-            Circle().fill(CSTokens.dark.ceremonyBrand).frame(width: 7, height: 7)
-              .accessibilityHidden(true)
-          }
-          Text(eyebrow).csType(.agate, caps: true)
-            .foregroundStyle(live ? CSTokens.dark.ceremonyBrand : CSTokens.dark.ceremonyMut)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        if let title {
-          Text(title).csType(.display).foregroundStyle(CSTokens.dark.ceremonyInk)
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityAddTraits(.isHeader)
-        }
-        // **DF-22 · EYEBROW → TITLE → DATELINE → ROSTER.** The dateline sat
-        // BELOW the field, so a block of six faces separated the event's name
-        // from its own subtitle and a reader had to jump the roster to learn
-        // where and when it is played. `event-ryder-live.png` puts the
-        // dateline directly under the title, where a subtitle goes.
-        if !dateline.isEmpty {
-          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            ForEach(Array(dateline.enumerated()), id: \.offset) { _, line in
-              Text(line).csType(.agate, caps: true).foregroundStyle(CSTokens.dark.ceremonyMut)
-                .fixedSize(horizontal: false, vertical: true)
+      VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          if let back {
+            Button(action: back) {
+              CSGlyph(.chevron, size: .tab)
+                .scaleEffect(x: -1)
+                .foregroundStyle(CSTokens.dark.ceremonyInk)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Back")
+            .padding(.leading, -CSTokens.Space.s3)
           }
-          .accessibilityElement(children: .combine)
+          HStack(spacing: CSTokens.Space.s1) {
+            // **The dot IS the ember**, and it and its own eyebrow are ONE mark:
+            // both are the same clock and the eyebrow names it.
+            if live {
+              Circle().fill(CSTokens.dark.ceremonyBrand).frame(width: 7, height: 7)
+                .accessibilityHidden(true)
+            }
+            Text(eyebrow).csType(.agateS, caps: true)
+              .foregroundStyle(live ? CSTokens.dark.ceremonyBrand : CSTokens.dark.ceremonyMut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+          if let title {
+            Text(title).csType(.displayS).foregroundStyle(CSTokens.dark.ceremonyInk)
+              .fixedSize(horizontal: false, vertical: true)
+              .accessibilityAddTraits(.isHeader)
+              .accessibilityIdentifier("event.title")
+          }
+          // **DF-22 · EYEBROW → TITLE → DATELINE → ROSTER.** The dateline sat
+          // BELOW the field, so a block of six faces separated the event's name
+          // from its own subtitle and a reader had to jump the roster to learn
+          // where and when it is played. `event-ryder-live.png` puts the
+          // dateline directly under the title, where a subtitle goes.
+          if !dateline.isEmpty {
+            VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+              ForEach(Array(dateline.enumerated()), id: \.offset) { _, line in
+                Text(line).csType(.agateS, caps: true).foregroundStyle(CSTokens.dark.ceremonyMut)
+                  .fixedSize(horizontal: false, vertical: true)
+              }
+            }
+            .accessibilityElement(children: .combine)
+          }
+        }
+        .padding(.horizontal, CSTokens.Space.gutter)
+        // the status-bar band: the chevron and the eyebrow clear the clock
+        .padding(.top, back == nil ? CSTokens.Space.s4 : 54)
+        .padding(.bottom, CSTokens.Space.s3)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+          if seed != nil {
+            CSTopoField(tint: CSTokens.dark.ceremonyMut.opacity(CSTokens.Alpha.a24))
+          }
         }
         field
+          .padding(.horizontal, CSTokens.Space.gutter)
+          .padding(.bottom, CSTokens.Space.s4)
       }
-      .padding(.horizontal, CSTokens.Space.gutter)
-      // the status-bar band: the chevron and the eyebrow clear the clock
-      .padding(.top, back == nil ? CSTokens.Space.s4 : 54)
-      .padding(.bottom, CSTokens.Space.s4)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .fixedSize(horizontal: false, vertical: true)
@@ -122,7 +122,7 @@ extension EventTitleCard where Field == EmptyView {
 
 // MARK: - the callout's head
 
-/// **The two golfers ARE the title** (§3): a 56pt face and `display` 34 for
+/// **The two golfers ARE the title** (§3): a 56pt face and compact board type for
 /// you, a 2pt `brand` rule across the full measure, then the same pair for him.
 /// The rule between the two names is the whole graphic — two names, one live
 /// rule — and it goes to `ink` the moment the callout closes.
@@ -135,10 +135,8 @@ struct CalloutHead: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      // **You are the top name.** §3's own order — "a 56pt face and `display`
-      // 34 for you, a 2pt `brand` rule, then the same pair for him" — and the
-      // reason is that the row a reader is IN leads on every surface in the
-      // product, from the board's own `YOU` to the week's first clash.
+      // Keep the viewer first, then the opponent, with the same side rule.
+      // The compact board role preserves hierarchy without enlarging faces.
       name(mine, myName)
       CSRule(.heavy, metal: live ? .live : .ink, over: .ceremony)
       name(theirs, theirName)
@@ -153,8 +151,8 @@ struct CalloutHead: View {
   private func name(_ f: CSFace.Model, _ n: String) -> some View {
     HStack(spacing: CSTokens.Space.s3) {
       CSFace(f, size: .block)
-      Text(n).csType(.display).foregroundStyle(CSTokens.dark.ceremonyInk)
-        .lineLimit(2).minimumScaleFactor(0.7)
+      Text(n).csType(.displayS).foregroundStyle(CSTokens.dark.ceremonyInk)
+        .fixedSize(horizontal: false, vertical: true)
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(n)

@@ -76,9 +76,8 @@ public actor CourseDisk {
   }
 
   /// The books whose label or place matches, most recently used first. This is
-  /// the OFFLINE search, and its scope is deliberately the store: R-N does not
-  /// put the catalogue on the phone, so this can only ever answer for a course
-  /// the golfer has played or planned.
+  /// the OFFLINE search, and its scope is deliberately the store: played,
+  /// planned or explicitly saved courses, never the whole catalogue.
   public func search(_ q: String, limit: Int = 12) -> [CourseBook] {
     let needle = q.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     guard needle.count >= 2 else { return [] }
@@ -98,6 +97,19 @@ public actor CourseDisk {
   public func save(_ book: CourseBook) {
     write(book)
     evict()
+  }
+
+  /// Explicit trip preparation must report disk failure, even if an older
+  /// copy with identical tee data already exists.
+  public func saveVerified(_ book: CourseBook) throws -> CourseBook {
+    let data = try enc.encode(book)
+    try data.write(to: url(book.id), options: .atomic)
+    let saved = try dec.decode(CourseBook.self, from: Data(contentsOf: url(book.id)))
+    guard saved.tees == book.tees, saved.id == book.id else {
+      throw CocoaError(.fileReadCorruptFile)
+    }
+    evict()
+    return saved
   }
 
   /// A whole refresh, in one pass — the `my_course_books` read.

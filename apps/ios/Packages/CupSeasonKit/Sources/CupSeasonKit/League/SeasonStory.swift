@@ -359,7 +359,7 @@ public enum SeasonStoryCopy {
 
     // Rung 7 · the reach back (R-H).
     for h in p.history {
-      if let text = history(h, calendar: calendar), let src = h.source, ok(src) {
+      if let text = history(h, lastSnapshotOn: f.last_snapshot_on, calendar: calendar), let src = h.source, ok(src) {
         return Line(rung: 7, text: text, source: src)
       }
     }
@@ -375,7 +375,8 @@ public enum SeasonStoryCopy {
   /// how to say it (a kind from a newer server renders nothing rather than a
   /// guess). Nothing here is inflated: a rivalry with no settled week says
   /// nothing at all, and a run of one week is not a run.
-  public static func history(_ h: SeasonStory.History, calendar: Calendar = .current) -> String? {
+  public static func history(_ h: SeasonStory.History, lastSnapshotOn: String? = nil,
+                             calendar: Calendar = .current) -> String? {
     switch h.kind {
     case "unsettled_week":
       // A week settled days ago is not a story; a fortnight is.
@@ -389,8 +390,16 @@ public enum SeasonStoryCopy {
       }
       return s
     case "my_run":
-      guard let rank = h.rank, let weeks = h.weeks, weeks >= 2 else { return nil }
-      return "You have held \(CSCopy.ordinal(rank)) for \(word(weeks)) straight weeks."
+      guard let rank = h.rank, rank > 0, let weeks = h.weeks, weeks >= 2 else { return nil }
+      // This run ends at the latest WEEKLY snapshot, not today's live table.
+      // L-07: use that snapshot's calendar-date prefix, as the arc does.
+      if let stamp = lastSnapshotOn {
+        let day = String(stamp.prefix(10))
+        if let date = CSDate.local(day, calendar: calendar), CSDate.iso(date, calendar: calendar) == day {
+          return "Through \(LeagueDates.monDay(day, calendar: calendar)), you held \(CSCopy.ordinal(rank)) for \(word(weeks)) straight weeks."
+        }
+      }
+      return "Your weekly record includes \(word(weeks)) straight weeks in \(CSCopy.ordinal(rank))."
     case "my_best_week":
       guard let week = h.week, let pts = h.points, pts > 0 else { return nil }
       return "Your best week of the season is still week \(word(week)) — \(CSCopy.points(pts)) points."

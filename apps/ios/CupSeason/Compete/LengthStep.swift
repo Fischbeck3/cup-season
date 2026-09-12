@@ -145,9 +145,11 @@ struct CalloutSheet: View {
 
   private func pill(_ label: String, on: Bool, action: @escaping () -> Void) -> some View {
     Button { CSHaptic.selection(); action() } label: {
-      Text(label).csType(.columnS).lineLimit(1).minimumScaleFactor(0.85)   // L-29 · 13 × 0.85 = 11.05
+      Text(label).csType(.columnS).multilineTextAlignment(.center)
+        .fixedSize(horizontal: false, vertical: true)
         .foregroundStyle(on ? cs.bg0 : cs.ink)
-        .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
+        .padding(.horizontal, 10).padding(.vertical, 8)
+        .frame(maxWidth: .infinity, minHeight: 56)
         .background(on ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
     }
     .buttonStyle(.plain)

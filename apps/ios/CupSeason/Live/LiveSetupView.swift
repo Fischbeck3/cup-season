@@ -21,6 +21,7 @@ struct LiveSetupView: View {
   /// Counts tee-off taps — the trigger for the `.impact` (IOS-022 item 6).
   @State private var teeOffTaps = 0
   @State private var phoneCards: [LiveRoundState] = []
+  @State private var showOfflineCourses = false
 
   var body: some View {
     ScrollView {
@@ -74,6 +75,15 @@ struct LiveSetupView: View {
     .navigationBarTitleDisplayMode(.inline)
     .sheet(isPresented: $showCard) { LiveCardSheet(store: store) }
     .sheet(isPresented: $showPicker) { LiveRosterPickerSheet(store: store) }
+    .csSheet(isPresented: $showOfflineCourses) {
+      OfflineCoursesSheet { course, tee in
+        Task {
+          await store.applyTee(course: course, tee: tee, savedOnly: true)
+          ratingText = store.state.course.rating.map(LiveFmt.js) ?? ""
+          slopeText = store.state.course.slope.map(String.init) ?? ""
+        }
+      }
+    }
     .onAppear {
       stakeText = store.state.stake > 0 ? LiveFmt.js(store.state.stake) : "0"
       ratingText = store.state.course.rating.map(LiveFmt.js) ?? ""
@@ -101,6 +111,9 @@ struct LiveSetupView: View {
   private var courseCard: some View {
     section {
         CSSectionHead("The course")
+        Button("Save courses for offline") { showOfflineCourses = true }
+          .buttonStyle(.csTertiary(.content))
+          .accessibilityIdentifier("offline.courses.open")
         LiveCourseField(localOnly: store.scoreOnPhone, text: Binding(get: { store.state.course.label }, set: { v in
           if store.state.course.label != v { store.state.course.courseId = nil; store.state.course.note = nil; store.state.course.parsCourse = nil }
           store.state.course.label = v
@@ -469,6 +482,7 @@ struct LiveFlow: Layout {
 /// TEE (rating, slope, holes) so the live sheet can fill its card.
 struct LiveCourseField: View {
   var localOnly = false
+  var fieldIdentifier = "live.course.search"
   @Environment(\.cs) private var cs
   @Binding var text: String
   let onTee: (CourseHit, CourseTee) -> Void
@@ -477,6 +491,7 @@ struct LiveCourseField: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       CSField("Search a course, or type your own", text: $text, font: CSFont.body)
+        .accessibilityIdentifier(fieldIdentifier)
         .onChange(of: text) { _, q in
           if vm.pickedLabel != q { vm.pickedLabel = nil }
           vm.localOnly = localOnly

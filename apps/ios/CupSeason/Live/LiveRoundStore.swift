@@ -561,7 +561,7 @@ final class LiveRoundStore {
   // MARK: the course (6900–6934)
 
   /// A tee picked from the search: rating + slope + label, then the real card.
-  func applyTee(course: CourseHit, tee: CourseTee) async {
+  func applyTee(course: CourseHit, tee: CourseTee, savedOnly: Bool = false) async {
     state.course.label = course.label + (tee.tee_name.map { " · \($0)" } ?? "")
     state.course.courseId = course.id
     if let t = tee.tee_name { state.course.tee = t }
@@ -588,7 +588,7 @@ final class LiveRoundStore {
                                                rating: tee.course_rating, want: state.liveHoles) {
       state.course.load(holes: saved, playing: state.liveHoles)
     }
-    if scoreOnPhone { return }
+    if scoreOnPhone || savedOnly { return }
     _ = await CourseBookStore().prepare(course)
     guard state.course.courseId == course.id, state.course.tee == (tee.tee_name ?? "") else { return }
     if let rows = await repo.courseHoles(courseId: course.id, teeName: tee.tee_name,
