@@ -23,8 +23,15 @@ struct HomeNoPhotoFixture: View {
         Text("This week").csType(.display).padding(.bottom, CSTokens.Space.s3)
         ForEach(Array(examples.enumerated()), id: \.offset) { index, row in
           CSRule()
-          HomeWireSlat(row: row, open: { destination = "Round · \(row.course ?? "")" },
-                       openPerson: { destination = "Golfer · \(row.golfer ?? "")" })
+          if ProcessInfo.processInfo.arguments.contains("-cs_dev_failed_photo") {
+            HomeWireBand(row: row, photo: URL(string: "data:image/png;base64,invalid")!,
+                         open: { destination = "Round · \(row.course ?? "")" },
+                         openPerson: { destination = "Golfer · \(row.golfer ?? "")" })
+              .padding(.horizontal, -CSTokens.Space.gutter)
+          } else {
+            HomeWireSlat(row: row, open: { destination = "Round · \(row.course ?? "")" },
+                         openPerson: { destination = "Golfer · \(row.golfer ?? "")" })
+          }
           HomeWireReactions(state: reactions[index] ?? [:], day: HomeWireCopy.dayMarker(row.played_on)) { key in
             var value = reactions[index]?[key] ?? ReactionState()
             value.flip(me: "You", on: !value.me)

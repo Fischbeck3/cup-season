@@ -1201,6 +1201,8 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 /* D340 · no-photo rounds use the existing type roles and rule-and-figure. */
 .hfcard.hfrecord{padding:20px 0 12px;}
 .hfrecord .hfhead{margin-bottom:16px;}
+.hfperson{padding:0;border:0;background:transparent;cursor:pointer;min-width:44px;min-height:44px;}
+.hfperson:focus-visible{outline:2px solid var(--brand);outline-offset:2px;}
 .hfrecord-date{color:var(--mut);flex:none;}
 .hfrecord-body{display:flex;align-items:flex-start;gap:20px;}
 .hfrecord-place{flex:1;min-width:0;}
@@ -15809,6 +15811,20 @@ function homeRoundDetail(r){
   if(r.pvi!=null){ const phrase=vsPhrase(Number(r.pvi)); return (r.is_me ? phrase : theirs(phrase))+'.'; }
   return '';
 }
+/* A failed image must not keep the round in an empty photo panel. Only the
+   URL is suppressed, so refreshed signed URLs get another chance to load. */
+const homeFailedPhotos = new Set();
+function wireHomePhotos(box){
+  box.querySelectorAll('.hsbg').forEach(img=>{
+    const failed=()=>{
+      if(!img.isConnected || homeFailedPhotos.has(img.getAttribute('src'))) return;
+      homeFailedPhotos.add(img.getAttribute('src'));
+      renderHomeFeed();
+    };
+    img.addEventListener('error',failed,{once:true});
+    if(img.complete && img.naturalWidth===0) failed();
+  });
+}
 function feedRow(r, idx, stamp){
   /* A2 scorecard rail + B1 photo takeover (owner pick, feed boards 2026-07-23):
      the face carries the name, the serif gross carries the score — the same
@@ -15831,12 +15847,12 @@ function feedRow(r, idx, stamp){
   const sfNew = window._sfRid && r.round_id===window._sfRid && r.gross!=null;
   const grossH = sfNew ? sfWrap(String(r.gross)) : (r.gross??'');
 
-  if(r.photo_url){
+  if(r.photo_url && !homeFailedPhotos.has(r.photo_url)){
     /* B1: the round as a story card — dusk wash, serif gross, marker medal */
     return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
       <img class="hsbg" src="${esc(r.photo_url)}" alt="" loading="lazy">
       <div class="hstop">
-        <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 40)}</span>
+        ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
         <div class="hsid"><b>${whoTag}</b><small>${course} · ${dfmtShort(r.played_on)}${milestone?' · '+milestone:''}</small></div>
       </div>
       <div class="hsbot">
@@ -15851,7 +15867,7 @@ function feedRow(r, idx, stamp){
   const sentence = detail ? detail[0].toUpperCase()+detail.slice(1) : '';
   return `<div class="hfcard hfrail hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
     <div class="hfhead">
-      <span class="hffacew"${r.profile_id?` data-tc="${r.profile_id}"`:''}>${face(r.profile_id, r.marker, 44)}</span>
+      ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
       <div class="hfid"><b class="cs-social">${whoTag}</b></div>
       ${stamp?`<span class="hfrecord-date cs-agate-s">${esc(csDayToken(stamp))}</span>`:''}
     </div>
@@ -16400,6 +16416,7 @@ function renderHomeFeed(){
   }));
   wireHomeSocial(box);
   wireFeedReceipts(box);
+  wireHomePhotos(box);
   /* SF-6: the just-posted card landed here first — arm it, retire the flag */
   if(box.querySelector('.sfc:not(.go)')){ sfGo(box); window._sfRid=null; }
 }

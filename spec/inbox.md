@@ -289,3 +289,7 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
 ### 2026-09-12 · UX · No-photo Home follow-through (D340)
 
 Native and web no-photo rounds now lead with course and gross, followed by the existing milestone/band detail without repeating those facts. The single-fresh-round “1 round.” summary yields to the visible round; multi-update digests remain. This addresses item 21's single-round case and the plain factual fallback in items 22–24. It does **not** wire course-card drawings into the feed or add course identity to the feed contract. Those remain separate data work. D341 follows through on the reaction invitation: untouched rounds say “React”, and web Home now reveals unused choices on demand like native. The after-golf prompt remains a proposal; item 16 is still open. Branch: `codex/home-no-photo-2026-09-12`; review: `docs/reviews/2026-09-12-home-no-photo.md`.
+
+### 2026-09-12 · UX / function · Audit while continuing (D342)
+
+A failed Home photograph now yields to the factual record on both clients. Native reaction failures reach the shared toast; web golfer controls are keyboard reachable. The browser runner now rejects injected exceptions, and 13 stale assertions were checked against the approved copy/visual decisions and updated. Final audit: 1,314 native tests, 461 web assertions, and the two-width Home flow pass. No TestFlight push. Details and remaining after-golf contract: `docs/reviews/2026-09-12-home-function-audit.md`.

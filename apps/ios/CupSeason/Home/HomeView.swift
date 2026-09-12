@@ -50,6 +50,7 @@ struct HomeView: View {
   @Environment(\.openCompetition) private var openCompetition
   @Environment(\.openGolfers) private var openGolfers
   @Environment(\.cs) private var cs
+  @Environment(\.toast) private var toast
   let links: CSLinks
   /// A row is a door. The tap pushes onto the tab's own path.
   var push: (HomeRoute) -> Void = { _ in }
@@ -457,7 +458,9 @@ struct HomeView: View {
   private func react(_ r: HomeFeedRow, _ emoji: String) {
     Task {
       guard let me = store.me else { return }
-      _ = await vm.toggle(round: r, emoji: emoji, me: me, name: me.profile?.display_name ?? "You")
+      if let error = await vm.toggle(round: r, emoji: emoji, me: me, name: me.profile?.display_name ?? "You") {
+        toast.show(error, kind: .failed)
+      }
     }
   }
 

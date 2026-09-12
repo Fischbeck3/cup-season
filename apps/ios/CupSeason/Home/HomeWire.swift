@@ -83,9 +83,20 @@ struct HomeWireBand: View {
   private var line: String { HomeWireCopy.roundLine(row) }
 
   var body: some View {
+    AsyncImage(url: photo) { phase in
+      if let image = phase.image {
+        band(image)
+      } else {
+        HomeWireSlat(row: row, open: open, openPerson: openPerson)
+          .padding(.horizontal, CSTokens.Space.gutter)
+      }
+    }
+  }
+
+  private func band(_ image: Image) -> some View {
     Button(action: open) {
       ZStack(alignment: .bottomLeading) {
-        AsyncImage(url: photo) { $0.resizable().scaledToFill() } placeholder: { CSTokens.dark.bg1 }
+        image.resizable().scaledToFill()
           .frame(maxWidth: .infinity)
           .frame(height: 168)
           .clipped()
@@ -131,6 +142,7 @@ struct HomeWireBand: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("\(name). \(line)")
     .accessibilityHint("Opens the round")
+    .accessibilityAction(named: Text("Open golfer"), openPerson)
   }
 }
 

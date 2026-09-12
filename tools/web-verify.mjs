@@ -167,8 +167,12 @@ async function main() {
     if (EVAL) {
       try {
         const r = await S('Runtime.evaluate', { expression: EVAL, awaitPromise: true, returnByValue: true })
+        if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text || 'Evaluation failed')
         console.log(`eval@${w}:`, JSON.stringify(r.result?.value ?? r.result?.description ?? null))
-      } catch (e) { console.log(`eval@${w}: FAILED ${e.message}`) }
+      } catch (e) {
+        console_.push({ level: 'evaluation', text: `eval@${w}: ${e.message}` })
+        console.log(`eval@${w}: FAILED ${e.message}`)
+      }
     }
     /* D258 · **NOTHING SCROLLS HORIZONTALLY.** The phone's accessibility
        acceptance test (IA §4.2) has an exact web twin, and it is the one
@@ -215,12 +219,13 @@ async function main() {
   }
 
   const bad = console_.filter(c =>
-    (c.level === 'error' || c.level === 'exception') &&
-    !KNOWN_OK.some(k => (c.text || '').includes(k)))
+    c.level === 'evaluation' ||
+    ((c.level === 'error' || c.level === 'exception') &&
+     !KNOWN_OK.some(k => (c.text || '').includes(k))))
   const warn = console_.filter(c => c.level === 'warning')
 
   console.log(`\nconsole: ${console_.length} message(s) · ${bad.length} error(s) · ${warn.length} warning(s)`)
-  for (const c of console_.slice(0, 40)) console.log(`  [${c.level}] ${(c.text || '').slice(0, 300)}`)
+  for (const c of [...bad, ...console_.filter(c => !bad.includes(c)).slice(0, 40)]) console.log(`  [${c.level}] ${(c.text || '').slice(0, 300)}`)
 
   try { ws.close() } catch {}
   proc.kill()

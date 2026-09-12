@@ -4,14 +4,15 @@
      python -m http.server 8791  ->  open localhost:8791/?exit
      paste this file into the console (or inject via the browser MCP)
 
-   Read-only: pure functions + one DOM-scratch odometer check. Prints one
-   line per test and a PASS/FAIL summary; returns the summary object. */
-(function(){
+   Local function and DOM checks. The share-screen read and telemetry are
+   stubbed; no production writes. Returns a Promise of the complete summary,
+   including asynchronous checks. Await it before declaring a pass. */
+(async function(){
   const R = [];
   const t = (name, got, want) => {
     const ok = Object.is(got, want) || JSON.stringify(got) === JSON.stringify(want);
     R.push({ name, ok, got, want });
-    console.log((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : ` — got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`));
+    (ok ? console.log : console.error)((ok ? '  PASS  ' : 'X FAIL  ') + name + (ok ? '' : ` — got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`));
   };
 
   /* esc — the XSS gate */
@@ -37,7 +38,7 @@
   /* the named bands — UI speaks bands, never PvI */
   t('bandName: even round is a type', typeof bandName(0), 'string');
   t('bandName: hot round differs from rough day', bandName(-6) === bandName(6), false);
-  t('vsPhrase: mentions the number', /number/i.test(vsPhrase(-2.4)), true);
+  t('D260: comparison names playing HCP', /playing HCP/.test(vsPhrase(-2.4)), true);
 
   /* Q-20 · one rule, three implementations (web pointsFor, web bandName,
      server cup_points) — they disagreed at exactly -1.0, where the client
@@ -130,20 +131,26 @@
      What is testable HERE is the half the Pro actually reads: openLockShare()
      must print the join URL as selectable text — that sheet is the only place
      in the file a Pro can read the link, and it is what never opened.
-     lockBylaws() itself cannot be unit-tested in the browser: the module's `sb`
-     is a const binding that no window.* bridge can stub, so its guarantee is
-     covered by preflight's free-identifier check (the `staged` lint) and by
-     driving a real lock. Self-cleaning: CS.league is restored. */
-  (function(){
+     This checks the share screen, not the lockBylaws() write. The share
+     screen's seat-count read and telemetry are stubbed on the shared service
+     object; CS.league and both methods are restored after the assertions. */
+  await (async function(){
     const bridged = typeof window.lockBylaws === 'function' && typeof window.openLockShare === 'function';
     t('lock: lockBylaws + openLockShare bridged for QA', bridged, true);
     if (!bridged || !window.CS) return;
 
     const realLeague = window.CS.league, realDemo = window.state?.demo;
+    const realFrom = window.sb.from, realQA = window.qaEvent;
+    // The celebration's fresh seat count and telemetry are outside a local UI test.
+    window.sb.from = table => {
+      if(table !== 'league_members') throw new Error('Unexpected test read: ' + table);
+      return {select(){return this;},eq(){return Promise.resolve({count:0,error:null});}};
+    };
+    window.qaEvent = () => {};
     window.CS.league = { id: 'l1', name: 'Test Cup', code: 'TESTCODE' };
     if (window.state) window.state.demo = false;
 
-    Promise.resolve(window.openLockShare('draft', 0)).then(() => {
+    await Promise.resolve(window.openLockShare('draft', 0)).then(() => {
       const txt = document.querySelector('#sheet')?.innerText || '';
       t('lock: share sheet prints the join URL as text', /\?join=TESTCODE/.test(txt), true);
       t('lock: share sheet names the league', /Test Cup/.test(txt), true);
@@ -152,8 +159,8 @@
       t('lock: share sheet opens without throwing', String(e?.message || e), '(no throw)');
     }).finally(() => {
       window.CS.league = realLeague;
+      window.sb.from = realFrom; window.qaEvent = realQA;
       if (window.state) window.state.demo = realDemo;
-      console.log('  (the two lock lines are async — they print after the summary)');
     });
   })();
 
@@ -218,7 +225,7 @@
       renderPulse();
       t('floor line: silent for a golfer with no league', (box.innerText || '').trim(), '');
       if (window.CS) window.CS.league = { id: 'x', name: 'Test' };
-      try { renderPulse(); t('floor line: still speaks inside a league', /Monthly floor/.test(box.innerText || ''), true); }
+      try { renderPulse(); t('floor line: still speaks inside a league', /Monthly minimum/.test(box.innerText || ''), true); }
       catch (e) { t('floor line: still speaks inside a league', 'threw ' + e.message, true); }
       box.innerHTML = '';
       if (madeFoot) foot.remove();
@@ -252,14 +259,14 @@
     t('D205: the minimum is a word, from the table', numberWord(STRUCT_MIN.squads2), 'four');
     t('D205: solo tees off at two', numberWord(STRUCT_MIN.solo), 'two');
     t('D205: the invite note says both, verbatim with the phone', inviteNoteText(),
-      'Lock opens the invite link \u2014 one link fills the league. The code works until first tee, '
+      'Starting the season opens the invite link \u2014 one link fills the league. The code works until first tee, '
       + 'or until you close the roster. Squads need four to tee off; solo tees off at two.');
     t('D205: solo works at any size (2+)', /works at any size \(2\+\)/.test(STRUCT_NOTES.solo), true);
     const wasStruct = state.structure;
     state.structure = 'solo';
     t('D205: a solo league has no squads to form', lockButtonText(), 'Start the season');
     state.structure = 'squads2';
-    t('D205: squads still form at the lock', lockButtonText(), 'Start the season & form the squads');
+    t('D297: both structures name the same start action', lockButtonText(), 'Start the season');
     state.structure = wasStruct;
   })();
 
@@ -360,7 +367,7 @@
       /A little loose · 1 to 3 over · 6 pts/.test(txt), true);
     t('Y-25: no band edge overlaps its neighbour', /by 1 to 2.9/.test(txt), true);
     t('Y-31: the guide names the allowance the bands measure from',
-      /playing number/.test(txt) && /Standard scores you against 95% of it/.test(txt), true);
+      /playing HCP/.test(txt) && /Standard scores you against 95% of it/.test(txt), true);
     t('M-19: with no league in hand the floor describes both structures',
       /In a solo league that minimum is a habit, not a penalty/.test(txt), true);
     t('D201: the ledger line is the constant, verbatim', txt.indexOf(CS_LEDGER) >= 0, true);
@@ -421,20 +428,22 @@
      round the best and the average are the same number, and the line is the
      only thing that can explain that. Twin of YouCopy.acrossCounting. */
   (function(){
-    t('Y-14: the singular is the whole point', countingScope(1), 'across 1 counting round');
-    t('Y-14: the plural', countingScope(5), 'across 5 counting rounds');
+    t('Y-14: the singular is the whole point', countingScope(1), 'across 1 round that counts');
+    t('Y-14: the plural', countingScope(5), 'across 5 rounds that count');
   })();
 
-  /* ══ Y-08 · the FORM dots get a visible key ══════════════════════════════
-     The legend lived only in the aria-label, and a screen-reader string is not
-     a legend for the eye. The credential passes none — that card can be
-     somebody else's, where "your playing number" would be a lie. */
+  /* UI_SYSTEM §9.7 / IOS-047 replaced the old dots with actual gross and
+     date columns. Keep chronological order, one best, and no fabricated slots. */
   (function(){
-    const rec = [{beat:true},{beat:false},{beat:true},{beat:true},{beat:false}];
-    const withKey = formRowHtml(rec, 'Your last five rounds, oldest first — a lit dot beat your playing number.');
-    t('Y-08: the key is drawn, not only spoken', /a lit dot beat your playing number/.test(withKey), true);
-    t('Y-08: the credential passes none', /lit dot/.test(formRowHtml(rec)), false);
-    t('Y-08: the dots survive the caption', (withKey.match(/<i /g) || []).length, 5);
+    const rec = [84,79,90,79,85].map((gross,i)=>({gross,played_on:'2026-09-'+String(10-i).padStart(2,'0')}));
+    const box = document.createElement('div');
+    box.innerHTML = formRowHtml(rec, 'retired dot legend');
+    t('§9.7: five real grosses read oldest first', [...box.querySelectorAll('.dfcol b')].map(e=>+e.textContent), [85,79,90,79,84]);
+    t('§9.7: tied best earns one mark', box.querySelectorAll('.dfcol.won').length, 1);
+    t('§9.7: obsolete caption stays retired', box.textContent.includes('retired dot legend'), false);
+    box.innerHTML = formRowHtml(rec.slice(0,2));
+    t('§9.7: fewer rounds have no fabricated slots', box.querySelectorAll('.dfcol').length, 2);
+    t('§9.7: missing scores cannot draw form', formRowHtml([{beat:true}]), '');
   })();
 
   /* ══ D126 · the endgame sentence, one fixture on both clients ═════════════
@@ -1233,9 +1242,9 @@
 
     /* D80 · a REQUEST, never a friendship — unless they asked first */
     t('D241: the sentence says request, not friendship',
-      csShareLine('person', { kind:'person', result:'requested' }), 'Asked to join their crew. They’ll get the nudge.');
+      csShareLine('person', { kind:'person', result:'requested' }), 'Request sent');
     t('D241: mutual intent is the ONLY case that says buddies',
-      csShareLine('person', { kind:'person', result:'friend' }), 'You’re in each other’s crew now.');
+      csShareLine('person', { kind:'person', result:'friend' }), 'You’re golf buddies now.');
     t('D241: your own link on your own phone says nothing',
       csShareLine('person', { kind:'person', result:'self' }), null);
 
@@ -1419,7 +1428,7 @@
       ['island','lighthouse','shark','dunes']);
     t('L-24: the footnote names it and says where to change it',
       csMarkerFootnote('The Island'),
-      'Your marker is The Island until you pick another — tap it, or change it any time from You.');
+      'Your marker is The Island — your face here until you add a photo, and your stamp on every round after. Tap it to pick another, or change it any time from You.');
 
     /* D233 · four routes, and the exit is not a failure */
     t('D233: four crew routes, in reading order',
@@ -1437,7 +1446,7 @@
     /* D251 · the privacy envelope */
     t('D251: the consent sentence says what travels and what is kept',
       CS_ONBOARDING.contactsConsent,
-      "We'll check your contacts against the golfers already here. We send hashes, never your contacts, and we keep nothing that doesn't match.");
+      "We'll check your contacts against the golfers already here. Your names and numbers never leave the phone — we send a scrambled version, and we keep nothing that doesn't match.");
     t('D251: declining is a named control', CS_ONBOARDING.contactsDecline, 'Not now');
     t('D251: an empty match ends in a next move',
       CS_ONBOARDING.contactsNone, 'None of your contacts is here yet. Text one a link.');

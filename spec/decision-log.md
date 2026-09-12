@@ -7328,3 +7328,12 @@ that was skipped. Each carries the date the owner authorised it and, where a rul
 - **Change:** an untouched round shows plus and “React” on both clients. Given reactions retain their actual counts in canon order; a plus offers the remaining choices. Choosing one closes the reveal. Native retains its direct VoiceOver actions; web exposes expanded state and can close the reveal without reacting.
 - **Principle served:** an understandable invitation, no phantom reactions, and consistent behavior across clients. Existing drawn reaction marks, names, write paths and ability to give multiple different reactions remain.
 - **Tradeoff:** one extra tap to choose an unused reaction on web, matching the native choice approved in D324. The label appears only on untouched rounds to keep counted rows compact. Board rendering and the after-golf proposal are outside this change.
+
+### D342 · Home keeps a usable record when a photograph cannot load
+**AUTHORISED 2026-09-12** (owner: “Let’s continue on before TestFlight push… auditing as we go for general function”) · implementation/UI level · §10.1, D301, D340/D341
+
+- **Current behavior:** a photo URL chooses the photo panel even if the image cannot load. Native Home also discards the existing reaction-write error returned by its model.
+- **Change:** native renders the factual round while its image is unavailable; a successful load retains the existing photo band. Web failed images yield to the same factual record, retaining the source round, dateline and actions. A failed URL stays suppressed for that page session; a refreshed URL can load normally. Native surfaces the existing failure message through the shared toast. Home golfer controls on web use actual buttons for keyboard access.
+- **Principle served:** optional imagery cannot erase the round or its destinations; an action that failed must say so. No new data, scoring, photo requirement or backend behavior.
+- **Tradeoff:** native height can change when a photograph finishes loading. Web retries a failed image after a URL refresh or new page session instead of on every reaction repaint.
+- **Audit integrity:** browser verification must fail on injected evaluation exceptions; a quiet console alone is not proof that assertions finished. This is test tooling, not golfer-facing behavior.
