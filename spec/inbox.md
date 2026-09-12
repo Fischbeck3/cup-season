@@ -274,6 +274,17 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
 
 
 
+
+### 2026-09-12 · Gameplay · the after-golf prompt is BUILT (server half), NOT pushed
+
+**D345**, migration `20261024090000_the_loop_has_a_closing_act.sql`. Closes items **16** and most of **29**; item **28** is deliberately left open. Owner: *"Build the rest to your recommendation"*, while away for a week.
+
+**Not pushed, on purpose.** D343 and D344 were fixes to live defects and the owner authorised those pushes explicitly. This is a **new surface on Home**, and the owner reviews Home by screenshot, not by diff. It is one command when he is back: stage per the recipe in `docs/reviews/2026-09-12-claude-handoff.md`, then `supabase db push --linked`.
+
+**Client work owed, Codex's:** the *Later* and *Didn't play* controls (the item ships with one door, "Add my round", which works on every build already in the field); passing `p_today`; a drop-argument retry on the phone for it; and **deleting `HomeDispatch.localHeadline`**, whose only reason to exist was the server saying "You have a round on today." — fixed here.
+
+**Still open and still the owner's:** `rounds.scheduled_round_id` (item 28) — suppression is a documented heuristic until it exists, and the column belongs with the composer's plan bridge. And the tee-less course ruling (Q6 of the tree), which I recommend holding until bare courses are visible and the real absence rate is known.
+
 ### 2026-09-12 · Gameplay · the tee-less course, tree'd
 
 Full tree: `docs/reviews/2026-09-12-tee-less-course-tree.md`. **The framing changed after reading the code.** Three things were conflated and only one is a product decision:
