@@ -269,3 +269,15 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
   contradicts a decision is not a bug report until that decision is read.
 - `docs/ios/DECISIONS.md` — what was actually built, and its gate.
 - `CLAUDE.md` — architecture, the landmines, and the current state.
+
+### 2026-09-12 · Gameplay / UX · the after-golf prompt, audited
+
+Full audit: `docs/reviews/2026-09-12-after-golf-audit.md` (contract + 30 acceptance cases). It is items 16, 28 and 29 read together. Implementation is Codex's.
+
+- Confirmed against the DEPLOYED function, not the migration: `home_dispatch` sees a plan only in `v_today … v_today + 8`, and `native_home` feeds it from `my_schedule(v_today, v_today + 14)` — both forward-only, so widening one clause changes nothing.
+- **Found in passing, unrelated to the prompt:** prod `TimeZone` is UTC, so after 17:00 Phoenix `current_date` is already tomorrow and `declare_round`'s `p_play_on < current_date` guard refuses a plan for this evening. First question: fix by passing the client's local date, or by giving a golfer a timezone?
+- **Also found:** `packages/db/contract.psv` is stale — it lists the dropped 5/6-arg `declare_round` and a 17-column `my_schedule` against today's 8 and 21. `build-db.mjs` generates `Rpc.swift` from it. Refresh after the next push.
+
+### 2026-09-12 · UX · regressions in bee364a / de338d8 (Codex branch)
+
+Full review: `docs/reviews/2026-09-12-home-no-photo-regression-review.md`. Two that change what a golfer sees: a photo row renders as a text slat while loading and again on every recycle (`HomeWire.swift:85-94`), and the whole name row now opens the golfer on the phone while the same tap opens the round on the web (`HomeWire.swift:160-174` vs `index.html:15871`). Left for Codex to fix on its own branch.
