@@ -300,3 +300,64 @@ A failed Home photograph now yields to the factual record on both clients. Nativ
 Five findings in Claude's `079a67f` review now have client fixes and local evidence: loading layout, name/face destinations, expanded reaction plus, missing-course spoken copy, and unsupported no-score photo claims. Native 1,096 and web 461 pass, along with two-width Home checks and preflight. See `docs/reviews/2026-09-12-home-review-follow-through.md`.
 
 Still open: reproduce the cached-image/arrival split-flap re-entry symptom before changing the render path; assess whether a fresh round hidden behind the feed's eight-row expander should still suppress its digest; remove obsolete form-row caption plumbing only after checking callers. Native gross blocks remain right-flush; no fixed-width change was made. TestFlight remains held.
+
+
+
+
+
+### 2026-09-12 · Gameplay · the after-golf prompt is BUILT (server half), NOT pushed
+
+**D345**, migration `20261024090000_the_loop_has_a_closing_act.sql`. Closes items **16** and most of **29**; item **28** is deliberately left open. Owner: *"Build the rest to your recommendation"*, while away for a week.
+
+**Not pushed, on purpose.** D343 and D344 were fixes to live defects and the owner authorised those pushes explicitly. This is a **new surface on Home**, and the owner reviews Home by screenshot, not by diff. It is one command when he is back: stage per the recipe in `docs/reviews/2026-09-12-claude-handoff.md`, then `supabase db push --linked`.
+
+**Client work owed, Codex's:** the *Later* and *Didn't play* controls (the item ships with one door, "Add my round", which works on every build already in the field); passing `p_today`; a drop-argument retry on the phone for it; and **deleting `HomeDispatch.localHeadline`**, whose only reason to exist was the server saying "You have a round on today." — fixed here.
+
+**Still open and still the owner's:** `rounds.scheduled_round_id` (item 28) — suppression is a documented heuristic until it exists, and the column belongs with the composer's plan bridge. And the tee-less course ruling (Q6 of the tree), which I recommend holding until bare courses are visible and the real absence rate is known.
+
+### 2026-09-12 · Gameplay · the tee-less course, tree'd
+
+Full tree: `docs/reviews/2026-09-12-tee-less-course-tree.md`. **The framing changed after reading the code.** Three things were conflated and only one is a product decision:
+
+- The edge function returns bare courses **on purpose** (`courses/index.ts:232-234`, *"bare courses still answer, the client's manual-entry row covers the rest"*) and both client readers then delete them (`ScheduleService.swift:148`, `:160`). The server and the client disagree about the contract.
+- **One search serves planning and live setup.** A plan stores no tee — `scheduled_rounds` has no tee column and 4 of 5 prod plans carry no `course_id` at all — so a filter written for live scoring is deleting courses from the planner.
+- Only the genuinely-absent course (Oak Quarry, in no catalogue) is a real ruling, and it is D150's.
+
+Most of the fix is already built: D333 makes live setup honest about a card it cannot use, and typed rating/slope has always been the posting path. What is left is two `.filter` deletions plus a label, skipping the declare sheet's tee stage for a bare course, and moving the detail fetch from search to selection. **Owner ruling still owed on D150** — my recommendation is a per-golfer course, never a shared one, because one wrong tee in a shared record becomes contagious.
+
+### 2026-09-12 · Gameplay · plan entry, items 12 and the evening rejection BUILT
+
+Two of the four plan-entry defects are built and unpushed: **D343** seats the host (`20261022090000`), **D344** gives the four plan-day guards one day of slack so evening golf can be organised in the evening (`20261023090000`). **Both APPLIED in prod 2026-09-12 and verified: 4 of 4 guards read `plan_day_floor()`, 0 future plans unseated, db-check 33 PASS, 33 checks 0 failing.** Nothing owed. No client change needed for either.
+
+Two left, and my read on one of them changed after looking at the code:
+
+- **The course page cannot start a plan.** `CourseScreen.swift:361` "Put it on the plan" lives only inside `neverKept`. **I called this "moving one door" and that was too glib.** The move is mechanical, but `page(book)` already ends with a tertiary "The whole card" door at its foot (D322 put it there), so adding a second door raises a real question about which of the two leads and at what weight — a design call with a screenshot attached, not a transplant. **Handing to Codex** with that as the first question.
+- **Search hides real courses.** `ScheduleService.swift:148` and `:160` both end `.filter { !$0.tees.isEmpty }`; 12 of 115 cached courses have no tee rows and are invisible, indistinguishable from "no such course". This is why Oak Quarry looked missing. **Owner ruling needed first:** a tee-less course cannot be planned against properly, and the unlisted-course path was deliberately demoted by D150, so showing it means deciding what it offers.
+
+### 2026-09-12 · Gameplay · plan entry, item 12 BUILT; three left
+
+**Item 12 is built AND APPLIED** (D343, `20261022090000`, pushed and verified 2026-09-12 — prod at 231 migrations): `declare_round` now seats the host. Owner ruled "write it then let's build it". Proven on a throwaway cluster, not on prod. **Owed: `supabase db push`** — it is the owner's to run.
+
+The other three plan-entry defects, in the order I would take them:
+
+- **The evening rejection.** `declare_round` compares against `current_date` and prod runs UTC, so after 17:00 Phoenix a golfer cannot schedule tonight's round: *"Pick a day that has not happened yet"*, about today, for seven hours a day. `DeclareRoundSheet.swift:51` has no `in:` range on the picker, so nothing stops them walking into it. First question: fix with the `p_today`/`cs_local_day` work the after-golf prompt needs anyway, and put a minimum on the picker?
+- **The course page cannot start a plan.** `CourseScreen.swift:361` "Put it on the plan" lives only inside `neverKept`, the branch for a course the phone has never kept. On a page that renders, the door is absent. Moving one door.
+- **Search hides real courses.** `ScheduleService.swift:148` and `:160` both end `.filter { !$0.tees.isEmpty }`, and 12 of 115 cached courses have no tee rows, so they are invisible and indistinguishable from "no such course". This is why Oak Quarry looked missing. First question: what should a tee-less course offer — it cannot be planned against properly, and the unlisted-course path was deliberately demoted by D150.
+
+### 2026-09-12 · Gameplay · after-golf contract, second pass (owner rulings owed)
+
+Follow-up: `docs/reviews/2026-09-12-after-golf-contract-review.md`. Two of my own proposals were proven wrong on a throwaway PostgreSQL 17 cluster and are corrected there: a defaulted second argument would have created an **overload** and broken every existing `home_dispatch` caller with `is not unique` (the fix is drop-and-recreate in one migration, re-issuing the grants the drop discards), and an action routed to `{kind:'plan'}` reaches no posting flow on either client (the phone opens the plan sheet, the web opens the schedule list and discards the id) — it must be "Add my round" to `{kind:'composer'}`.
+
+**Four owner rulings are owed before anyone builds this:** the window length (three days proposed); whether `maybe` and unanswered tags qualify; one prompt per day when two plans share a day; and — the real one — **same-day suppression when the plan has no course id**. Four of five prod plans have none, so the match is a heuristic, never an established link: the choice is between a missed prompt and asking a golfer to post a round they already posted. First question: which of those two errors do you prefer? The ambiguity disappears with item 28's nullable column.
+
+### 2026-09-12 · Gameplay / UX · the after-golf prompt, audited
+
+Full audit: `docs/reviews/2026-09-12-after-golf-audit.md` (contract + 30 acceptance cases). It is items 16, 28 and 29 read together. Implementation is Codex's.
+
+- Confirmed against the DEPLOYED function, not the migration: `home_dispatch` sees a plan only in `v_today … v_today + 8`, and `native_home` feeds it from `my_schedule(v_today, v_today + 14)` — both forward-only, so widening one clause changes nothing.
+- **Found in passing, unrelated to the prompt:** prod `TimeZone` is UTC, so after 17:00 Phoenix `current_date` is already tomorrow and `declare_round`'s `p_play_on < current_date` guard refuses a plan for this evening. First question: fix by passing the client's local date, or by giving a golfer a timezone?
+- **Also found:** `packages/db/contract.psv` is stale — it lists the dropped 5/6-arg `declare_round` and a 17-column `my_schedule` against today's 8 and 21. `build-db.mjs` generates `Rpc.swift` from it. Refresh after the next push.
+
+### 2026-09-12 · UX · regressions in bee364a / de338d8 (Codex branch)
+
+Full review: `docs/reviews/2026-09-12-home-no-photo-regression-review.md`. Two that change what a golfer sees: a photo row renders as a text slat while loading and again on every recycle (`HomeWire.swift:85-94`), and the whole name row now opens the golfer on the phone while the same tap opens the round on the web (`HomeWire.swift:160-174` vs `index.html:15871`). Left for Codex to fix on its own branch.
