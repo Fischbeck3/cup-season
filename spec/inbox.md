@@ -272,6 +272,16 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
 
 
 
+
+### 2026-09-12 · Gameplay · plan entry, items 12 and the evening rejection BUILT
+
+Two of the four plan-entry defects are built and unpushed: **D343** seats the host (`20261022090000`), **D344** gives the four plan-day guards one day of slack so evening golf can be organised in the evening (`20261023090000`). Both proven on a throwaway cluster. **Owed: `supabase db push`, the owner's to run.** No client change needed for either.
+
+Two left, and my read on one of them changed after looking at the code:
+
+- **The course page cannot start a plan.** `CourseScreen.swift:361` "Put it on the plan" lives only inside `neverKept`. **I called this "moving one door" and that was too glib.** The move is mechanical, but `page(book)` already ends with a tertiary "The whole card" door at its foot (D322 put it there), so adding a second door raises a real question about which of the two leads and at what weight — a design call with a screenshot attached, not a transplant. **Handing to Codex** with that as the first question.
+- **Search hides real courses.** `ScheduleService.swift:148` and `:160` both end `.filter { !$0.tees.isEmpty }`; 12 of 115 cached courses have no tee rows and are invisible, indistinguishable from "no such course". This is why Oak Quarry looked missing. **Owner ruling needed first:** a tee-less course cannot be planned against properly, and the unlisted-course path was deliberately demoted by D150, so showing it means deciding what it offers.
+
 ### 2026-09-12 · Gameplay · plan entry, item 12 BUILT; three left
 
 **Item 12 is built** (D343, migration `20261022090000_the_host_has_a_seat.sql`, unpushed): `declare_round` now seats the host. Owner ruled "write it then let's build it". Proven on a throwaway cluster, not on prod. **Owed: `supabase db push`** — it is the owner's to run.
