@@ -7337,3 +7337,15 @@ that was skipped. Each carries the date the owner authorised it and, where a rul
 - **Principle served:** optional imagery cannot erase the round or its destinations; an action that failed must say so. No new data, scoring, photo requirement or backend behavior.
 - **Tradeoff:** native height can change when a photograph finishes loading. Web retries a failed image after a URL refresh or new page session instead of on every reaction repaint.
 - **Audit integrity:** browser verification must fail on injected evaluation exceptions; a quiet console alone is not proof that assertions finished. This is test tooling, not golfer-facing behavior.
+
+
+#### D340–D342 · Review follow-through, 2026-09-12
+
+Within the existing authorization to fix Home and audit general function, Claude's review of `bee364a` / `de338d8` prompted these corrections:
+
+- Native loading reserves the existing 168pt photograph height; only an actual image failure becomes the factual record. The loading state has its own accessibility identifier and retains round and golfer actions. This supersedes D342's loading-height tradeoff; failure may still change height.
+- The face opens the golfer card; the name and record open the round on both clients. Native's face is a separate 44pt button, matching the existing web destination rule.
+- Web's reaction reveal replaces the invitation with the choices and moves keyboard focus to the first choice. Selection rerenders the given reactions. This supersedes D341's web-only plus-to-close behavior; reopening Home resets an unused reveal, as native does.
+- Missing course data is called “Course not recorded” visually and in the spoken record. Photo cards cannot assert a milestone or performance band without a gross score, matching the factual fallback.
+
+No new mechanics, backend contract, brand assets, or generated output. Validation and remaining review points: `docs/reviews/2026-09-12-home-review-follow-through.md`.

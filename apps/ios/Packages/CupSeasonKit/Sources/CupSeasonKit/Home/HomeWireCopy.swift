@@ -25,14 +25,15 @@ public enum HomeWireCopy {
   /// 2.4"* — never a re-wording. The five bands and the gloss are a spec
   /// §2.2 contract with a preflight check behind it.
   public static func roundLine(_ r: HomeFeedRow) -> String {
-    let course = r.course ?? "a round"
-    guard let g = r.gross else {
-      // No gross is not "0". A round with no number is a round that has not
-      // been read, and the line says only what it knows (L-44).
-      return "A round at \(course)."
+    let course = r.course?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let base: String
+    if course.isEmpty {
+      base = r.gross.map { "\($0). Course not recorded" } ?? "A round. Course not recorded"
+    } else {
+      base = r.gross.map { "\($0) at \(course)" } ?? "A round at \(course)"
     }
-    if let detail = roundDetail(r) { return "\(g) at \(course) — \(detail)" }
-    return "\(g) at \(course)."
+    if let detail = roundDetail(r) { return "\(base) — \(detail)" }
+    return "\(base)."
   }
 
   /// The no-photo record already prints course and gross. Keep only the story.

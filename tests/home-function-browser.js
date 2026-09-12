@@ -37,7 +37,7 @@
       closeSheet();state.demo=true;
     };
     await visitGolfer();
-    first().querySelector('.hfrecord-body').click();check(openedRound===DEMO_FEED[0],'Receipt tap lost its source round');
+    first().querySelector('.hfid').click();check(openedRound===DEMO_FEED[0],'Receipt tap lost its source round');
     openedRound=null;
     const person=first().querySelector('.hfperson');person.focus();check(document.activeElement===person,'Golfer cannot take keyboard focus');
     const key=new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});person.dispatchEvent(key);check(!key.defaultPrevented,'Receipt swallowed golfer keyboard activation');
@@ -45,6 +45,8 @@
     const visible=()=>[...row().querySelectorAll('[data-hrx]')].filter(b=>b.getClientRects().length);
     check(!visible().length,'Untouched round shows a reaction');
     row().querySelector('[data-hreact]').click();check(visible().length===4,'Missing reaction choices');
+    check(!row().querySelector('[data-hreact]').getClientRects().length,'Expanded reactions retained plus');
+    check(document.activeElement===visible()[0],'Reaction reveal lost keyboard focus');
     visible()[0].click();check(visible().length===1 && visible()[0].textContent==='1','Selection did not collapse to actual count');
     check(!openedRound,'Reaction opened the receipt');
     visible()[0].click();check(!visible().length && row().textContent.includes('React'),'Removal did not restore invitation');
@@ -52,6 +54,14 @@
     await until(()=>first().querySelector('.hsbg')?.naturalWidth>0,'Refreshed image did not load');
     check(first().classList.contains('hfstory'),'Successful image lost its photo treatment');
     await visitGolfer();
+    for(const course of [null,'','   ']){
+      const missing={...DEMO_FEED[0],course,gross:null,pvi:-4,is_pr:true};
+      for(const photo_url of [null,good]){
+        const probe=document.createElement('div');probe.innerHTML=feedRow({...missing,photo_url});
+        check(probe.querySelector('.hfcard').getAttribute('aria-label').includes('Course not recorded'),'Missing-course spoken copy lost');
+        check(!probe.textContent.includes('Personal best') && !probe.textContent.includes('beat their'),'Missing score asserted performance');
+      }
+    }
     // Leave the no-image fallback and the next row's revealed choices for QA.
     DEMO_FEED[0].photo_url=photoURL;renderHomeFeed();
     box.querySelectorAll('[data-hreact]')[1].click();

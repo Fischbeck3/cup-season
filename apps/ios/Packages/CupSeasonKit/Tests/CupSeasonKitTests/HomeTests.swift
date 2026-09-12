@@ -57,6 +57,13 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     #expect(d.isRoundStory)
   }
 
+  @Test func missingCourseIsSpokenAsMissingInsteadOfARound() {
+    for course: String? in [nil, "", "   "] {
+      #expect(HomeWireCopy.roundLine(row(gross: 84, pvi: nil, playedOn: "2026-09-12", course: course)) == "84. Course not recorded.")
+      #expect(HomeWireCopy.roundLine(row(gross: nil, playedOn: "2026-09-12", course: course, pr: true)) == "A round. Course not recorded.")
+    }
+  }
+
   @Test func noPhotoDetailDoesNotRepeatTheScoreOrCourse() {
     let r = row(me: true, gross: 84, pvi: nil, playedOn: "2026-08-27", first: true)
     #expect(HomeWireCopy.roundDetail(r) == "your first round posted.")

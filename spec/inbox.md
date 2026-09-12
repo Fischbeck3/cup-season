@@ -293,3 +293,10 @@ Native and web no-photo rounds now lead with course and gross, followed by the e
 ### 2026-09-12 · UX / function · Audit while continuing (D342)
 
 A failed Home photograph now yields to the factual record on both clients. Native reaction failures reach the shared toast; web golfer controls are keyboard reachable. The browser runner now rejects injected exceptions, and 13 stale assertions were checked against the approved copy/visual decisions and updated. Final audit: 1,314 native tests, 461 web assertions, and the two-width Home flow pass. No TestFlight push. Details and remaining after-golf contract: `docs/reviews/2026-09-12-home-function-audit.md`.
+
+
+### 2026-09-12 · UX / function · Home independent review follow-through
+
+Five findings in Claude's `079a67f` review now have client fixes and local evidence: loading layout, name/face destinations, expanded reaction plus, missing-course spoken copy, and unsupported no-score photo claims. Native 1,096 and web 461 pass, along with two-width Home checks and preflight. See `docs/reviews/2026-09-12-home-review-follow-through.md`.
+
+Still open: reproduce the cached-image/arrival split-flap re-entry symptom before changing the render path; assess whether a fresh round hidden behind the feed's eight-row expander should still suppress its digest; remove obsolete form-row caption plumbing only after checking callers. Native gross blocks remain right-flush; no fixed-width change was made. TestFlight remains held.

@@ -86,9 +86,18 @@ struct HomeWireBand: View {
     AsyncImage(url: photo) { phase in
       if let image = phase.image {
         band(image)
-      } else {
+      } else if phase.error != nil {
         HomeWireSlat(row: row, open: open, openPerson: openPerson)
           .padding(.horizontal, CSTokens.Space.gutter)
+      } else {
+        // Reserve the photo geometry while loading. Only a failure becomes
+        // a record, so scrolling a loading image cannot flash a text slat.
+        Button(action: open) { cs.bg1.frame(height: 168) }
+          .buttonStyle(.plain)
+          .accessibilityIdentifier("home.round.photo-loading")
+          .accessibilityLabel("\(name). \(line)")
+          .accessibilityHint("Photo loading. Opens the round")
+          .accessibilityAction(named: Text("Open golfer"), openPerson)
       }
     }
   }
@@ -158,24 +167,28 @@ struct HomeWireSlat: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      Button(action: openPerson) {
-        HStack(spacing: CSTokens.Space.s3) {
+      HStack(spacing: CSTokens.Space.s3) {
+        Button(action: openPerson) {
           CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Open golfer card: \(name)")
+        Button(action: open) {
           Text(name).csType(.social).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
-          Spacer(minLength: 0)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
         }
-        .frame(minHeight: 44)
-        .contentShape(Rectangle())
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens the round")
       }
-      .buttonStyle(.plain)
-      .accessibilityLabel(name)
-      .accessibilityHint("Opens the golfer")
 
       Button(action: open) {
         A11yStack(alignment: .leading, rowAlignment: .top, spacing: CSTokens.Space.s4, columnSpacing: CSTokens.Space.s3) {
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-            Text(row.course.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded")
+            Text(row.course.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded")
               .csType(.name).foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
             if let detail = HomeWireCopy.roundDetail(row) {

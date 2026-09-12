@@ -2121,6 +2121,7 @@ body.guestlive #onboard{display:none !important;}
 .hrx-options:not([hidden]){display:contents;}
 .hrx-options .rxchip.rxnone{color:var(--mut);}
 .hrx .hreact{display:inline-flex; align-items:center; gap:var(--s2); background:transparent;}
+.hrx .hreact[hidden]{display:none;}
 .hrx .hreact span{font-family:var(--mono); letter-spacing:0;}
 /* the quiet-day frame — Home's feed never opens as a bare list. Either it says
    what changed since you were last here, or (on a genuinely quiet day) it
@@ -15772,9 +15773,10 @@ function wireHomeSocial(box){
   const rows = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
   box.querySelectorAll('[data-hreact]').forEach(b=>b.addEventListener('click',()=>{
     const options=b.nextElementSibling;
-    const open=b.getAttribute('aria-expanded')!=='true';
-    options.hidden=!open;
-    b.setAttribute('aria-expanded',String(open));
+    options.hidden=false;
+    b.setAttribute('aria-expanded','true');
+    b.hidden=true;
+    options.querySelector('button')?.focus();
   }));
   box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',()=>{
     const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, b.dataset.e);
@@ -15811,6 +15813,13 @@ function homeRoundDetail(r){
   if(r.pvi!=null){ const phrase=vsPhrase(Number(r.pvi)); return (r.is_me ? phrase : theirs(phrase))+'.'; }
   return '';
 }
+/* HomeWireCopy.roundLine: the spoken record names missing course data too. */
+function homeRoundLine(r){
+  const course=(r.course||'').trim();
+  const base=course ? `${r.gross??'A round'} at ${course}` : `${r.gross??'A round'}. Course not recorded`;
+  const detail=homeRoundDetail(r);
+  return detail ? `${base} — ${detail}` : base+'.';
+}
 /* A failed image must not keep the round in an empty photo panel. Only the
    URL is suppressed, so refreshed signed URLs get another chance to load. */
 const homeFailedPhotos = new Set();
@@ -15832,9 +15841,9 @@ function feedRow(r, idx, stamp){
      itself. Whole card opens the receipt; face + reactions keep their taps. */
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
-  const course = esc(r.course || 'a round');
-  const pviN = r.pvi!=null ? Number(r.pvi) : null;
-  const milestone = r.is_pr ? 'Personal best'
+  const course = esc((r.course||'').trim() || 'Course not recorded');
+  const pviN = r.gross!=null && r.pvi!=null ? Number(r.pvi) : null;
+  const milestone = r.gross==null ? null : r.is_pr ? 'Personal best'
     : r.is_sub80 ? 'Broke 80 — first time'
     : r.is_first ? 'First round posted' : null;
   const vp0 = pviN!=null ? vsPhrase(pviN) : '';
@@ -15849,7 +15858,7 @@ function feedRow(r, idx, stamp){
 
   if(r.photo_url && !homeFailedPhotos.has(r.photo_url)){
     /* B1: the round as a story card — dusk wash, serif gross, marker medal */
-    return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
+    return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
       <img class="hsbg" src="${esc(r.photo_url)}" alt="" loading="lazy">
       <div class="hstop">
         ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
@@ -15865,7 +15874,7 @@ function feedRow(r, idx, stamp){
   /* D340 · Course and gross lead even when the optional photograph is absent. */
   const detail = homeRoundDetail(r);
   const sentence = detail ? detail[0].toUpperCase()+detail.slice(1) : '';
-  return `<div class="hfcard hfrail hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${r.gross??''} at ${course}">
+  return `<div class="hfcard hfrail hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
     <div class="hfhead">
       ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
       <div class="hfid"><b class="cs-social">${whoTag}</b></div>
