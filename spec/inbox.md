@@ -270,6 +270,13 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
 - `docs/ios/DECISIONS.md` — what was actually built, and its gate.
 - `CLAUDE.md` — architecture, the landmines, and the current state.
 
+
+### 2026-09-12 · Brand / UX · rulings owed after Codex's beta identity (D339, IOS-081)
+
+- LINT-28: the pennant is on eight surfaces as `CSBrandMark` and the lint only counts the old glyph. First question: is the pennant the brand's mark everywhere, or still reserved to the band and the icon? Then the lint learns the answer.
+- The app-icon tile wallpapers contours behind the mark; `brand/README.md` says solid field, the implementation brief says never wallpaper. First question: look at it on a home screen next to other icons.
+- D337 CONFLICT: `HomeDispatch.localHeadline()` rewrites the server's plan headline on the phone. First question: move the date sentence into `home_dispatch` and delete the local rewrite?
+
 ### 2026-09-12 · UX · Compete gameplay review follow-ups
 
 - Actual root says 1st while its season hero says “You have held 2nd for four straight weeks.” `SeasonStoryCopy.history(my_run)` formats a run from weekly standings snapshots in present tense. First question: should the historical run be dated or suppressed when it differs from current standings? Inspect current table and snapshot dates together; do not alter points to reconcile copy.
