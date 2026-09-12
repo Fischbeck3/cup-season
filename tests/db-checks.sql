@@ -823,5 +823,29 @@ select '32 · a storage policy reads nothing the golfer cannot',
             || ' — every upload dies with that table''s name in the message'
        else 'PASS — every storage policy reads only what the caller may' end,
   'pg_policies(storage.objects) × public relations authenticated cannot select'
+
+-- 33 · D343 · a plan seats the host who declared it.
+--     `declare_round` wrote no `round_rsvp` row for its own caller, so three
+--     surfaces disagreed about the same plan: the roster array synthesises the
+--     host as 'in', `my_rsvp` read the real table and came back null, and Home
+--     therefore offered the host "Say you're in" about their own round while
+--     both clients had already toasted "You're in" at creation. The check is
+--     scoped to plans that have not happened yet, which is exactly what the
+--     migration backfilled — a past plan's host is left as the record found
+--     them, because seating one would move an `rsvp_in` somebody has read.
+union all
+select '33 · a plan seats the host who declared it',
+  case when (select count(*) from scheduled_rounds sr
+              where sr.play_on >= current_date
+                and not exists (select 1 from round_rsvp r
+                                 where r.round_id = sr.id and r.profile_id = sr.profile_id)) > 0
+       then 'FAIL — ' || (select count(*)::text from scheduled_rounds sr
+                           where sr.play_on >= current_date
+                             and not exists (select 1 from round_rsvp r
+                                              where r.round_id = sr.id and r.profile_id = sr.profile_id))
+            || ' future plan(s) whose host was never seated — Home will ask them to say they are in'
+       else 'PASS — every future plan has its host on the sheet' end,
+  'scheduled_rounds(play_on >= today) × round_rsvp'
+
 )
 select * from checks order by check_name;

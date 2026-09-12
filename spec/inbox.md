@@ -271,6 +271,17 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
 - `CLAUDE.md` — architecture, the landmines, and the current state.
 
 
+
+### 2026-09-12 · Gameplay · plan entry, item 12 BUILT; three left
+
+**Item 12 is built** (D343, migration `20261022090000_the_host_has_a_seat.sql`, unpushed): `declare_round` now seats the host. Owner ruled "write it then let's build it". Proven on a throwaway cluster, not on prod. **Owed: `supabase db push`** — it is the owner's to run.
+
+The other three plan-entry defects, in the order I would take them:
+
+- **The evening rejection.** `declare_round` compares against `current_date` and prod runs UTC, so after 17:00 Phoenix a golfer cannot schedule tonight's round: *"Pick a day that has not happened yet"*, about today, for seven hours a day. `DeclareRoundSheet.swift:51` has no `in:` range on the picker, so nothing stops them walking into it. First question: fix with the `p_today`/`cs_local_day` work the after-golf prompt needs anyway, and put a minimum on the picker?
+- **The course page cannot start a plan.** `CourseScreen.swift:361` "Put it on the plan" lives only inside `neverKept`, the branch for a course the phone has never kept. On a page that renders, the door is absent. Moving one door.
+- **Search hides real courses.** `ScheduleService.swift:148` and `:160` both end `.filter { !$0.tees.isEmpty }`, and 12 of 115 cached courses have no tee rows, so they are invisible and indistinguishable from "no such course". This is why Oak Quarry looked missing. First question: what should a tee-less course offer — it cannot be planned against properly, and the unlisted-course path was deliberately demoted by D150.
+
 ### 2026-09-12 · Gameplay · after-golf contract, second pass (owner rulings owed)
 
 Follow-up: `docs/reviews/2026-09-12-after-golf-contract-review.md`. Two of my own proposals were proven wrong on a throwaway PostgreSQL 17 cluster and are corrected there: a defaulted second argument would have created an **overload** and broken every existing `home_dispatch` caller with `is not unique` (the fix is drop-and-recreate in one migration, re-issuing the grants the drop discards), and an action routed to `{kind:'plan'}` reaches no posting flow on either client (the phone opens the plan sheet, the web opens the schedule list and discards the id) — it must be "Add my round" to `{kind:'composer'}`.
