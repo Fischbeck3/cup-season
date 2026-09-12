@@ -86,18 +86,20 @@ private struct CSToastHost: ViewModifier {
           // rail and a drawn glyph. There is no pill: a chip is a 3pt rectangle,
           // a toast is a 10pt block, a badge is a circle because it holds a count.
           HStack(spacing: CSTokens.Space.s3) {
-            Rectangle().fill(rail(item.kind)).frame(width: 3)
             if let g = item.kind.glyph {
               CSGlyph(g, size: .row).foregroundStyle(rail(item.kind))
             }
-            Text(item.text).csType(.bodyS).foregroundStyle(cs.ink).lineLimit(1)
+            Text(item.text).csType(.bodyS).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
             if let label = item.actionLabel, let run = item.action {
               Spacer(minLength: CSTokens.Space.s2)
               Button(label, action: run).buttonStyle(.csTertiary(.content))
             }
           }
           .padding(.horizontal, CSTokens.Space.s3)
+          .padding(.vertical, CSTokens.Space.s2)
           .frame(minHeight: 46)
+          .overlay(alignment: .leading) { Rectangle().fill(rail(item.kind)).frame(width: 3) }
+          .accessibilityIdentifier("cs.toast")
           .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
           .padding(.horizontal, CSTokens.Space.gutter)
             // 92 is the floor (off the tabs); on a tab it clears the measured pill

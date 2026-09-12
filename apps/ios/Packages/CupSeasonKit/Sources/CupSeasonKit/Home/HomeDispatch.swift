@@ -129,6 +129,16 @@ public enum HomeDispatch {
     /// L-07. Used for the tie-break only; never parsed for arithmetic.
     public let at: String?
 
+    /// Calendar-date plans use the same local day as their adjacent stamp.
+    public func localHeadline(today: String = CSDate.today(), calendar: Calendar = .current) -> String {
+      guard key.hasPrefix("plan:"), let at, at.count == 10,
+            CSDate.local(at, calendar: calendar) != nil,
+            let subject, !subject.isEmpty else { return headline }
+      let day = MeStripCopy.dayWord(at, today: today, calendar: calendar)
+      let when = (day == "today" || day == "tomorrow") ? day : "on \(day)"
+      return subject == "you" ? "You have a round \(when)." : "\(subject) has you down for \(day)."
+    }
+
     public var id: String { key }
 
     public init(key: String, tier: Tier, rank: Int? = nil, score: Int? = nil, rankReason: String? = nil,

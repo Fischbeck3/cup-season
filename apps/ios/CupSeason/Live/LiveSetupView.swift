@@ -20,23 +20,42 @@ struct LiveSetupView: View {
   @State private var slopeText = ""
   /// Counts tee-off taps — the trigger for the `.impact` (IOS-022 item 6).
   @State private var teeOffTaps = 0
+  @State private var phoneCards: [LiveRoundState] = []
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
         Text("Set up the round").csType(.agate, caps: true).foregroundStyle(cs.mut)
-        if let sr = store.plan, !store.planDismissed { planBridge(sr) }
+        if let sr = store.plan, !store.planDismissed, !store.scoreOnPhone { planBridge(sr) }
+        Toggle("Score on this phone", isOn: Binding(get: { store.scoreOnPhone }, set: { store.useLocalScoring($0) }))
+          .disabled(store.busy)
+        if store.scoreOnPhone {
+          CSFine("No signal needed. Keep scores here, then review and post your own round when you reconnect. No group sync or automatic posting.")
+        }
+        if let error = store.localSaveError { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }
         courseCard
-        foursomeCard
-        gameCard
-        nearbyCard
+        if !store.scoreOnPhone { foursomeCard; gameCard; nearbyCard }
+        else { CSFine("Your round only. Choose the actual tees and pars before you leave service.") }
         Button("Tee off") { teeOffTaps += 1; Task { await store.teeOff() } }
           .buttonStyle(.csPrimary(busy: store.busy))
+          .disabled(store.busy)
           .padding(.top, CSTokens.Space.s2)
+        if !phoneCards.isEmpty {
+          CSSectionHead("On this phone", count: "\(phoneCards.count)")
+          ForEach(KeptCards.rows(phoneCards)) { card in
+            Button { store.resumeLocal(card.lr) } label: {
+              VStack(alignment: .leading, spacing: 4) {
+                Text(card.line).csType(.name)
+                Text([card.playedOn, "Not posted · review scorecard"].compactMap { $0 }.joined(separator: " · ")).csType(.bodyS)
+              }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            }.buttonStyle(.plain)
+          }
+        }
       }
       .padding(CSTokens.Space.gutter)
     }
     .background(cs.bg0)
+    .task(id: store.state.lr) { phoneCards = store.localCards() }
     // D168 · advertising now follows the APP, not this screen — it starts here
     // and in the tab shell whenever the app is foreground and the golfer has
     // opted in. Confining it to this one screen meant everybody had to be on
@@ -82,8 +101,8 @@ struct LiveSetupView: View {
   private var courseCard: some View {
     section {
         CSSectionHead("The course")
-        LiveCourseField(text: Binding(get: { store.state.course.label }, set: { v in
-          if store.state.course.label != v { store.state.course.courseId = nil }
+        LiveCourseField(localOnly: store.scoreOnPhone, text: Binding(get: { store.state.course.label }, set: { v in
+          if store.state.course.label != v { store.state.course.courseId = nil; store.state.course.note = nil; store.state.course.parsCourse = nil }
           store.state.course.label = v
         })) { course, tee in
           Task {
@@ -449,6 +468,7 @@ struct LiveFlow: Layout {
 /// Like the calendar's `CourseSearchField`, but the tee pick hands back the
 /// TEE (rating, slope, holes) so the live sheet can fill its card.
 struct LiveCourseField: View {
+  var localOnly = false
   @Environment(\.cs) private var cs
   @Binding var text: String
   let onTee: (CourseHit, CourseTee) -> Void
@@ -459,6 +479,7 @@ struct LiveCourseField: View {
       CSField("Search a course, or type your own", text: $text, font: CSFont.body)
         .onChange(of: text) { _, q in
           if vm.pickedLabel != q { vm.pickedLabel = nil }
+          vm.localOnly = localOnly
           vm.queue(q)
         }
       switch vm.stage {
@@ -533,6 +554,7 @@ final class LiveCourseSearchModel {
   /// D261 · true when nothing on the network answered and these rows are the
   /// courses on this phone.
   var offline = false
+  var localOnly = false
   private var task: Task<Void, Never>?
   private var lastQ = ""
   private let sched = ScheduleService()
@@ -573,6 +595,10 @@ final class LiveCourseSearchModel {
     let fresh = { self.lastQ == q && !self.inTees }
     let saved = await books.search(q).map(\.hit)
     if !saved.isEmpty, fresh() { courses = saved; stage = .courses }
+    if localOnly {
+      if fresh() { courses = saved; offline = true; stage = .courses }
+      return
+    }
     // D261 / R-N · ONE producer: the book, then our cache, then the API.
     let answer = await books.searchCourses(q)
     // show the list even when empty — the empty state IS the "type it by hand"

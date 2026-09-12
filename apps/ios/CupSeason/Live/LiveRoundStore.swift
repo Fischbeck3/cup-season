@@ -41,6 +41,84 @@ final class LiveRoundStore {
   var syncStatus: String?
   var recap: LiveRecapData?
   var busy = false
+  var scoreOnPhone = false
+  var localSaveError: String?
+  private let offline: OfflineRounds
+
+  /// The explicit local path never falls back from an uncertain server start.
+  func prepareOffline(_ golfer: OfflineGolfer) {
+    if let old = state.localOwner, old != golfer.id { state = .fresh() }
+    myPid = golfer.id; myName = golfer.name; myIndex = golfer.index; myMarker = golfer.marker
+    scoreOnPhone = true
+    var player = LivePlayer(n: golfer.name, i: golfer.index ?? 0, ci: 1, guest: false, me: true, locked: true, mk: golfer.marker)
+    player.pid = golfer.id; player.est = golfer.index == nil
+    roster = [player]; sel = [0]; rosterPrimed = true
+    do {
+      if let current = try offline.rounds(owner: golfer.id).first(where: { $0.active }) {
+        state = current; localSaveError = nil; return
+      }
+    } catch { localSaveError = "Couldn’t read the phone scorecards. They haven’t been removed."; return }
+    if state.active { return }
+    state = .fresh(); state.game = .score; state.mode = .solo
+  }
+
+  func useLocalScoring(_ enabled: Bool) {
+    guard !state.active, !busy else { return }
+    scoreOnPhone = enabled
+    if enabled { state.game = .score; state.mode = .solo; state.stake = 0; stopNearby() }
+  }
+
+  func flushLocalCard() {
+    guard state.onThisPhone, state.active else { return }
+    do { try offline.save(state); localSaveError = nil }
+    catch { localSaveError = "Couldn’t keep the latest scores on this phone. Keep this screen open and try again." }
+  }
+
+  private func teeOffLocally() {
+    guard let owner = myPid else { toast("Sign in before preparing an offline round."); return }
+    guard let player = roster.first(where: { $0.me && $0.pid == owner }) else { toast("Your golfer identity is unavailable. Reopen the round setup."); return }
+    guard !state.course.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { toast("Enter the course before teeing off."); return }
+    guard state.course.note != nil else { toast("Load the scorecard or enter its actual pars before scoring offline."); return }
+    var s = LiveRoundState.fresh(players: [player], course: state.course)
+    s.holes = state.holes; s.rating9 = state.rating9; s.mode = .solo
+    s.lr = UUID(); s.localOwner = owner; s.playedDay = CSDate.iso(Date(), calendar: ScheduleDates.gregorian)
+    s.startedAt = LiveFmt.now(); s.ts = s.startedAt!; s.active = true; s.stage = .live
+    do { try offline.save(s); state = s; localSaveError = nil; LiveActivityHost.start(s) }
+    catch { localSaveError = "Couldn’t create a scorecard on this phone. Free up storage and try again." }
+  }
+
+  func localCards() -> [LiveRoundState] {
+    guard let owner = myPid else { return [] }
+    do { return try offline.rounds(owner: owner).filter { $0.localCompleted == true } }
+    catch { localSaveError = "Couldn’t read the phone scorecards. They haven’t been removed. Try again."; return [] }
+  }
+  func resumeLocal(_ id: UUID) {
+    guard !state.active, let owner = myPid else { return }
+    do {
+      guard var s = try offline.round(owner: owner, id: id) else { return }
+      if let pending = try OfflinePostDisk.shared.read(owner: owner, request: id) {
+        toast(pending.accepted != nil ? "This round already posted. Open your round history when connected." : "This scorecard has a post awaiting confirmation. Retry it from Play when connected.")
+        return
+      }
+      s.active = true; s.localCompleted = false
+      try offline.save(s); state = s; scoreOnPhone = true; localSaveError = nil
+    } catch { localSaveError = "Couldn’t open this phone scorecard. Try again." }
+  }
+
+  private func keepLocalRound() -> Bool {
+    guard state.anyScored else { toast("Enter a score before keeping the round."); return false }
+    var kept = state; kept.active = false; kept.stage = .setup; kept.localCompleted = true; kept.ts = LiveFmt.now()
+    do {
+      try offline.save(kept)
+      state = kept; rosterPrimed = true; localSaveError = nil
+      toast("Round kept on this phone. Review and post it when you have a signal.")
+      return true
+    } catch {
+      localSaveError = "Couldn’t keep this round. Your scores are still on screen. Try again before closing."
+      return false
+    }
+  }
+
   var plan: ScheduledRound?
   var planDismissed = false
   /// the kiosk guest's round ended on another phone — 'final' | 'abandoned'
@@ -66,7 +144,8 @@ final class LiveRoundStore {
   let session = LiveRoundSession()
   private var eventTask: Task<Void, Never>?
 
-  init() {
+  init(offline: OfflineRounds = .shared) {
+    self.offline = offline
     eventTask = Task { [weak self] in
       guard let self else { return }
       for await e in session.events { self.handle(e) }
@@ -80,6 +159,25 @@ final class LiveRoundStore {
   /// Called by the host with what the session knows. Primes the roster for
   /// the league Home leads with; never wipes an in-progress round.
   func configure(me: Me?, preferredLeague: UUID?) async {
+    #if DEBUG
+    if ProcessInfo.processInfo.arguments.contains("-cs_dev_offline_trip") {
+      if myPid == nil {
+        let args = ProcessInfo.processInfo.arguments
+        let owner = args.firstIndex(of: "-cs_dev_offline_owner").flatMap { i in i + 1 < args.count ? UUID(uuidString: args[i + 1]) : nil }
+          ?? UUID(uuidString: "00000000-0000-0000-0000-00000000F331")!
+        prepareOffline(OfflineGolfer(id: owner, name: "Offline QA golfer", index: nil, marker: nil))
+        if !state.active {
+          state.course.label = "Offline QA course — fixture"
+          state.course.save(front: Array(repeating: 4, count: 9), back: Array(repeating: 4, count: 9), nine: false)
+        }
+      }
+      return
+    }
+    #endif
+    if let owner = myPid, let next = me?.profile?.id, owner != next {
+      state = .fresh(); scoreOnPhone = false; rosterPrimed = false; rehydrated = false
+    }
+    if me == nil, scoreOnPhone { return }
     let m = me?.memberships.first { $0.league_id == preferredLeague } ?? me?.memberships.first
     myPid = me?.profile?.id
     myName = me?.profile?.display_name
@@ -98,6 +196,13 @@ final class LiveRoundStore {
     }
     if CSDevHatch.live, !state.active { seedDevRound(); LiveActivityHost.start(state); return }
     #endif
+    if let owner = myPid, let local = try? offline.rounds(owner: owner).first(where: { $0.active }) {
+      if let profile = me?.profile {
+        prepareOffline(OfflineGolfer(id: owner, name: profile.display_name ?? "You", index: profile.index_current, marker: profile.marker))
+      } else { state = local; scoreOnPhone = true }
+      return
+    }
+    if scoreOnPhone { return }
     if !rehydrated { rehydrated = true; await rehydrate() }
     if !rosterPrimed || rosterLeague != leagueId { await primeRoster() }
     if plan == nil, !planDismissed { plan = await repo.todaysPlan() }
@@ -172,6 +277,7 @@ final class LiveRoundStore {
                             est: m.indexCurrent == nil, mid: m.memberId, pid: m.profileId, team: "—", mk: m.marker))
       }
     }
+    guard !state.active, !scoreOnPhone else { return }
     // keep any guests / buddies already added this session
     r.append(contentsOf: roster.filter(\.guest))
     roster = r
@@ -203,6 +309,7 @@ final class LiveRoundStore {
   var incoming: NearbyInvite?
 
   func startNearby() {
+    guard !scoreOnPhone else { return }
     // D168 · runs from the tab shell now, so it must be safe to call often and
     // from anywhere: already-running is a no-op, and a live round still stops
     // advertising (the foursome is set — there is nobody left to ask).
@@ -458,6 +565,8 @@ final class LiveRoundStore {
     state.course.label = course.label + (tee.tee_name.map { " · \($0)" } ?? "")
     state.course.courseId = course.id
     if let t = tee.tee_name { state.course.tee = t }
+    state.course.note = nil
+    state.rating9 = tee.number_of_holes == 9
     state.course.rating = tee.course_rating
     state.course.slope = tee.slope_rating
     // D73: a real 9-hole tee flips the live round to a nine — its rating IS a 9-hole rating
@@ -479,7 +588,9 @@ final class LiveRoundStore {
                                                rating: tee.course_rating, want: state.liveHoles) {
       state.course.load(holes: saved, playing: state.liveHoles)
     }
-    await ScheduleService().cacheCourse(course.id)
+    if scoreOnPhone { return }
+    _ = await CourseBookStore().prepare(course)
+    guard state.course.courseId == course.id, state.course.tee == (tee.tee_name ?? "") else { return }
     if let rows = await repo.courseHoles(courseId: course.id, teeName: tee.tee_name,
                                          rating: tee.course_rating, want: state.liveHoles) {
       state.course.load(holes: rows, playing: state.liveHoles)
@@ -488,12 +599,14 @@ final class LiveRoundStore {
 
   func saveCard(front: [Int], back: [Int]?) {
     state.course.save(front: front, back: back, nine: state.liveHoles == 9)
-    toast("Card saved: every league gets it from here")
+    toast(scoreOnPhone ? "Pars set for this scorecard." : "Card saved: every league gets it from here")
   }
 
   // MARK: - tee off (8902–9006)
 
   func teeOff() async {
+    guard !busy, !state.active else { return }
+    if scoreOnPhone { teeOffLocally(); return }
     let g = state.game
     if let problem = g.teeOffProblem(players: sel.count) { toast(problem); return }
     // D107: the tee sheet is the free door — no league required. A league-less
@@ -652,6 +765,7 @@ final class LiveRoundStore {
   /// `persistLive`: a guest phone never snapshots.
   private func persist() {
     guard guest == nil, state.active, state.lr != nil else { return }
+    if state.onThisPhone { state.ts = LiveFmt.now(); flushLocalCard(); return }
     let s = state
     Task { await disk.save(s) }
   }
@@ -717,6 +831,7 @@ final class LiveRoundStore {
 
   /// Phone back from a pocket: drain the queue, then pull truth.
   func foregrounded() {
+    if scoreOnPhone { return }
     Task {
       // D167 · LOOK AGAIN. `rehydrate()` was latched to run once per process
       // (`if !rehydrated`), so a round that started while this app was already
@@ -735,13 +850,14 @@ final class LiveRoundStore {
   /// process latch. Safe to call often: it no-ops while a round is already up,
   /// and `LiveRehydrator` prefers a local snapshot over the network anyway.
   func refreshLive() async {
-    guard myPid != nil else { return }
+    guard !scoreOnPhone, myPid != nil else { return }
     guard !(state.active && state.stage == .live) else { return }
     await rehydrate()
     if state.active, state.stage == .live { LiveActivityHost.start(state) }
   }
 
   private func handle(_ e: LiveRoundSession.Event) {
+    guard !state.onThisPhone else { return }
     switch e {
     case .message(let m):
       guard state.active else { return }
@@ -788,7 +904,12 @@ final class LiveRoundStore {
 
   /// The cards kept on disk because their strokes could never land. Nothing
   /// removes one automatically — a golfer posts it or dismisses it.
-  func keptCards() async -> [LiveRoundState] { await LiveDisk.shared.unsynced() }
+  func keptCards() async -> [LiveRoundState] {
+    guard let owner = myPid else { return [] }
+    let local = (try? offline.rounds(owner: owner)) ?? []
+    let remote = await disk.unsynced().filter { $0.players.contains { $0.me && $0.pid == owner } }
+    return (local.filter { $0.localCompleted == true } + remote).sorted { $0.ts > $1.ts }
+  }
 
   /// `liveRoundEndedRemotely` (7821).
   private func endedRemotely(_ status: String) {
@@ -855,6 +976,7 @@ final class LiveRoundStore {
 
   /// `rehydrateLiveRound` (7604).
   func rehydrate() async {
+    guard !state.onThisPhone else { return }
     let out = await LiveRehydrator.run(current: state.active ? state : nil, myPid: myPid, repo: repo, disk: disk)
     if let s = out.state {
       let was = state.lr
@@ -893,6 +1015,12 @@ final class LiveRoundStore {
   // MARK: - finish (9109–9177)
 
   func finish(casual: Bool) async -> Bool {
+    guard !busy else { return false }
+    if state.onThisPhone {
+      let kept = keepLocalRound()
+      if kept { await LiveActivityHost.end() }
+      return kept
+    }
     guard let lr = state.lr else { toast("This round never left your phone — tee off again to post it"); return false }
     await LiveActivityHost.end()          // D155 · nothing outlives its round
     busy = true
@@ -923,6 +1051,15 @@ final class LiveRoundStore {
   // MARK: - scrap (9332)
 
   func scrap() async {
+    if let owner = state.localOwner, let id = state.lr {
+      do {
+        try offline.remove(owner: owner, id: id)
+        state = .fresh(); localSaveError = nil
+        await LiveActivityHost.end()
+        toast("Round discarded — nothing posted")
+      } catch { localSaveError = "Couldn’t discard this scorecard. Try again." }
+      return
+    }
     await LiveActivityHost.end()          // D155 · nothing outlives its round
     if sendable { await session.send(.gone(cts: LiveFmt.now()), broadcastOnly: true) }
     await session.leave()

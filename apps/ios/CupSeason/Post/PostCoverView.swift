@@ -162,8 +162,8 @@ private struct PostCoverStack: View {
               ForEach(Array(kept.enumerated()), id: \.element.id) { i, k in
                 PostOptionRow(tick: cs.brand, title: k.line,
                               sub: k.isComplete
-                                ? "Scored here, never landed. Check it and post it."
-                                : "Scored here, never landed — \(18 - k.holesPlayed) holes blank.",
+                                ? "Not posted. Review the scorecard and post when connected."
+                                : "Scored here, never landed — \(k.holes - k.holesPlayed) holes blank.",
                               last: i == kept.count - 1) { close(); links.postKept(k) }
               }
             }
@@ -226,7 +226,7 @@ private struct PostCoverStack: View {
           // (the exempt sense) and this opens the composer — on a screen whose
           // row above calls the same destination "Add a round you played".
           CSFine("Hold the ⊕ to go straight to Add my round.").padding(.top, 12)
-          CSBrandSignature()
+          CSBrandSignature(showsTopo: false)
         }
         .padding(20)
       }
@@ -237,7 +237,13 @@ private struct PostCoverStack: View {
         }
       }
       .csCloseButton { close() }
-      .task { kept = KeptCards.rows(await LiveDisk.shared.unsynced()) }
+      .task {
+        if let owner = store.session?.user.id {
+          let local = (try? OfflineRounds.shared.rounds(owner: owner)) ?? []
+          let remote = await LiveDisk.shared.unsynced().filter { $0.players.contains { $0.me && $0.pid == owner } }
+          kept = KeptCards.rows(local.filter { $0.localCompleted == true } + remote)
+        }
+      }
       .sheet(isPresented: $showPlan) { DeclareRoundSheet(leagueId: store.preferredLeague) { _ in close() } }
     }
   }

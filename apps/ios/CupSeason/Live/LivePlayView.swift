@@ -70,7 +70,9 @@ struct LivePlayView: View {
 
   var body: some View {
     Group {
-      if cardView && canShowCard {
+      if s.players.isEmpty || !s.active {
+        Color.clear
+      } else if cardView && canShowCard {
         VStack(spacing: 0) {
           landscapeBar
           LiveCardView(s: s) { h in
@@ -138,12 +140,12 @@ struct LivePlayView: View {
       A11yStack(rowAlignment: .firstTextBaseline, spacing: CSTokens.Space.s2, columnSpacing: CSTokens.Space.s2) {
         HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
           Circle().fill(cs.brand).frame(width: 7, height: 7)
-          Text("Live · " + s.course.place).csType(.agate, caps: true).foregroundStyle(cs.brand)
+          Text("Live · " + (s.onThisPhone ? s.course.localPlace : s.course.place)).csType(.agate, caps: true).foregroundStyle(cs.brand)
             .lineLimit(typeSize.isA11y ? nil : 1).truncationMode(.tail)
             .fixedSize(horizontal: false, vertical: true)
         }
         if !typeSize.isA11y { Spacer(minLength: 0) }
-        if !store.isPencilOnly {
+        if !store.isPencilOnly && !s.onThisPhone {
           Button { store.backToSetup() } label: {
             Text("Change setup").csType(.agateS, caps: true).foregroundStyle(cs.mut).a11yHitSlop()
           }
@@ -151,7 +153,11 @@ struct LivePlayView: View {
           .fixedSize(horizontal: !typeSize.isA11y, vertical: true)
         }
       }
-      if !badge.isEmpty {
+      if let error = store.localSaveError {
+        Text(error).csType(.bodyS).foregroundStyle(cs.neg)
+        Button("Retry saving scores") { store.flushLocalCard() }.buttonStyle(.csSecondary())
+      }
+      if !badge.isEmpty && store.localSaveError == nil {
         Text(badge).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           .accessibilityAddTraits(.updatesFrequently)
       }
@@ -167,7 +173,7 @@ struct LivePlayView: View {
       holeTarget(back: true)
       VStack(spacing: 2) {
         Text(h.num).csType(.display, caps: true).foregroundStyle(cs.ink)
-        Text(h.meta).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        Text(s.onThisPhone && s.course.siEst ? "PAR \(s.course.pars[s.hole])" : h.meta).csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
       .frame(maxWidth: .infinity)
       .accessibilityElement(children: .combine)
@@ -214,10 +220,12 @@ struct LivePlayView: View {
 
   // MARK: - a golfer's row and the score object (§5.5, §5.6)
 
-  private func playerRow(_ pi: Int) -> some View {
+  @ViewBuilder private func playerRow(_ pi: Int) -> some View {
+    let s = store.state
+    if s.active, s.players.indices.contains(pi), s.scores.indices.contains(pi) {
     let r = LiveCopy.playerRow(s, pi)
     let p = s.players[pi]
-    return VStack(spacing: 0) {
+    VStack(spacing: 0) {
       CSRule()
       A11yStack(spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
         HStack(spacing: CSTokens.Space.s3) {
@@ -246,6 +254,7 @@ struct LivePlayView: View {
       .padding(.trailing, CSTokens.Space.gutter)
       .padding(.vertical, CSTokens.Space.s2)
       .frame(minHeight: 70)
+    }
     }
   }
 
@@ -456,11 +465,12 @@ struct LivePlayView: View {
     if !store.isPencilOnly {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         CSDoor(.primary(finishLabel) { showFinish = true })
-        HStack {
+        if !s.onThisPhone { HStack {
           CSDoor(.link("Group phones") { showGroup = true })
           Spacer(minLength: 0)
         }
-        if !s.anyScored {
+        }
+        if !s.anyScored && !s.onThisPhone {
           CSFine("Scores entered together are vouched by the group: the group verifies everyone's round just by playing it. Guests need no account: they play every side game, appear in the settlement, and get a recap text with their scorecard and an invite when you finish. "
                  // D297 / ruling row 22 · a league-less round is never told its cards won't post
                  + (store.state.leagueId == nil ? "Every complete card posts to its golfer." : "Only league members' rounds post to the season."))
@@ -475,6 +485,7 @@ struct LivePlayView: View {
   /// of them is late. The count is the same `notIn` the rows print, so the
   /// button and the sub-lines can never say different things.
   private var finishLabel: String {
+    if s.onThisPhone { return "Keep round on this phone" }
     let out = s.players.indices.filter { LiveCopy.playerRow(s, $0).notIn > 0 }.count
     return out == 0 ? "Finish the round" : "Finish the round · \(out) not in"
   }
@@ -485,7 +496,7 @@ struct LivePlayView: View {
   private var landscapeBar: some View {
     HStack(spacing: CSTokens.Space.s3) {
       Circle().fill(cs.brand).frame(width: 7, height: 7)
-      Text("Live · " + s.course.place).csType(.agateS, caps: true).foregroundStyle(cs.brand)
+      Text("Live · " + (s.onThisPhone ? s.course.localPlace : s.course.place)).csType(.agateS, caps: true).foregroundStyle(cs.brand)
         .lineLimit(1).truncationMode(.tail)
       Spacer(minLength: CSTokens.Space.s2)
       viewToggle

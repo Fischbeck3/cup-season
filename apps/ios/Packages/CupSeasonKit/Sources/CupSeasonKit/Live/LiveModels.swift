@@ -316,6 +316,14 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
   /// LIVE, and `LIVE · LIVE ROUND · ENCANTO` is the same word twice in eight
   /// characters (§5.2: one line, and every character on it has to earn its
   /// place before the tail is dropped).
+  public var localPlace: String {
+    let name = label.isEmpty ? "Course" : label
+    let t = tee.trimmingCharacters(in: .whitespaces)
+    let title = t.isEmpty || name.lowercased().hasSuffix(("· " + t).lowercased()) ? name : name + " — " + t
+    guard let rating, let slope else { return title }
+    return title + " · " + LiveFmt.js(rating) + "/" + String(slope)
+  }
+
   public var place: String {
     let c = label.isEmpty ? "Course" : label
     let t = tee.trimmingCharacters(in: .whitespaces)
@@ -374,6 +382,12 @@ public struct LiveRoundState: Codable, Sendable, Equatable {
   /// this field existed decode without it. It is what makes the server's
   /// twenty-four-hour window sayable on the phone instead of guessed at.
   public var startedAt: Int64?
+  /// Local scorekeeping is never a server live-round ID or a vouch.
+  public var localOwner: UUID?
+  public var playedDay: String?
+  public var localCompleted: Bool?
+  public var onThisPhone: Bool { localOwner != nil }
+
 
   /// How many strokes are actually written on this card. `anyScored` says
   /// whether it is worth keeping; this says which of two copies is fuller.

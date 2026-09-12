@@ -62,6 +62,9 @@ public final class SupabaseService: Sendable {
     let c = URLSessionConfiguration.default
     c.timeoutIntervalForRequest = 12
     c.waitsForConnectivity = false
+    #if DEBUG
+    if ProcessInfo.processInfo.arguments.contains("-cs_dev_offline_network") { c.protocolClasses = [OfflineReviewTransport.self] }
+    #endif
     return URLSession(configuration: c)
   }
 
@@ -193,3 +196,14 @@ private struct EphemeralStorage: AuthLocalStorage {
   func retrieve(key: String) throws -> Data? { box.lock.lock(); defer { box.lock.unlock() }; return box.store[key] }
   func remove(key: String) throws { box.lock.lock(); defer { box.lock.unlock() }; box.store[key] = nil }
 }
+
+#if DEBUG
+/// Deterministic no-service test hatch. No request is sent through this
+/// transport; real authentication/boot handles the same network error.
+private final class OfflineReviewTransport: URLProtocol {
+  override class func canInit(with request: URLRequest) -> Bool { true }
+  override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+  override func startLoading() { client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet)) }
+  override func stopLoading() {}
+}
+#endif

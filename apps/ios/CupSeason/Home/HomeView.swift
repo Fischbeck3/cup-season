@@ -210,7 +210,7 @@ struct HomeView: View {
         CSGlyph(.scorecard, points: 78, labelled: true).foregroundStyle(cs.mut)
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           Text(item.eyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
-          Text(item.headline).csType(.lead).foregroundStyle(cs.ink)
+          Text(item.localHeadline()).csType(.lead).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
           if let s = item.standfirst, !s.isEmpty {
             Text(s).csType(.body).foregroundStyle(cs.mut)
@@ -413,7 +413,7 @@ struct HomeView: View {
       HomeWireTakeover(item: item) { take(item) }
 
     case .item(let it, let stamp):
-      HomeWireItem(headline: it.headline, stamp: stamp) { take(it) }
+      HomeWireItem(headline: it.localHeadline(), stamp: stamp) { take(it) }
         .padding(.horizontal, CSTokens.Space.gutter)
 
     case .line(let marker, let text, let door):

@@ -61,7 +61,12 @@ public struct RunItBackResult: Decodable, Sendable, Equatable {
 
   /// The sentence the golfer reads, produced once.
   public var line: String {
-    RunItBack.done(seasonNumber: season?.number, seated: seated ?? 0,
+    if already_running == true { return "This season is already open." }
+    guard let seated else {
+      let started = season?.number.map { "Season \($0) is on." } ?? "The next season is on."
+      return covenant_refires == true ? started + " The terms changed, so everyone reads them again." : started
+    }
+    return RunItBack.done(seasonNumber: season?.number, seated: seated,
                    covenantRefires: covenant_refires ?? false)
   }
 }
@@ -83,6 +88,7 @@ public struct RunItBackService: Sendable {
       let r = try await svc.call(RunItBackCall(p_league: league, p_starts_on: startsOn, p_ends_on: endsOn,
                                                p_buyin_cents: buyInCents, p_season_months: months,
                                                p_pay_note: payNote))
+      guard r.season?.id != nil else { return .refused("Couldn’t confirm the next season. Refresh Compete before trying again.") }
       return .ran(r)
     } catch {
       if PostService.fallbackFires(on: error) { return .notYet }

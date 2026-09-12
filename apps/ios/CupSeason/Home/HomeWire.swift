@@ -430,7 +430,7 @@ struct HomeWireTakeover: View {
         Text(item.eyebrow).csType(.agate, caps: true)
           .foregroundStyle(CSTokens.dark.ceremonyBrand)
           .lineLimit(2)
-        Text(item.headline).csType(.display)
+        Text(item.localHeadline()).csType(.display)
           .foregroundStyle(CSTokens.dark.ceremonyInk)
           .fixedSize(horizontal: false, vertical: true)
         if let s = item.standfirst, !s.isEmpty {
@@ -448,7 +448,7 @@ struct HomeWireTakeover: View {
     }
     .buttonStyle(.plain)
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel([item.eyebrow, item.headline, item.standfirst].compactMap { $0 }.joined(separator: ". "))
+    .accessibilityLabel([item.eyebrow, item.localHeadline(), item.standfirst].compactMap { $0 }.joined(separator: ". "))
   }
 }
 

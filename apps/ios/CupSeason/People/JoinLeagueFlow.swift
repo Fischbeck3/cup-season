@@ -117,11 +117,12 @@ final class JoinModel {
   }
 
   func join() async {
+    guard !busy else { return }
     let c = JoinIntent.normalize(code)
     busy = true; defer { busy = false }
     do {
       let id = try await joins.join(c)
-      JoinIntent.clear()
+      JoinIntent.clear(ifMatching: c)
       CSHaptic.success()
       toasts.show("Joined \(leagueName ?? "the season")")
       joinedId = id

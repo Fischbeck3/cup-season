@@ -40,14 +40,29 @@ struct CompeteScreen: View {
     CompeteRoot.make(me, upcoming: me?.upcoming ?? [])
   }
 
-  /// D314 · the league the plate is seeded from — the first live season's, then
-  /// the first finished one's, then the golfer. `nil` only when there is
-  /// neither, and then no plate is drawn rather than one seeded from nothing.
-  private var plateSeed: String? {
-    let l = list
-    let league = (l.seasons.first(where: { $0.leagueId != nil })
-                  ?? l.finished.first(where: { $0.leagueId != nil }))?.leagueId
-    return league?.uuidString ?? me?.profile?.id.uuidString
+  private var mastheadPalette: CSPalette {
+    CSTokens.dark.wearing(looks.personalLook(), theme: .dark)
+  }
+
+  private var masthead: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      CSPageHeader("Compete") { EmptyView() }
+      Text(CSBrandCopy.tagline.replacingOccurrences(of: "\n", with: " "))
+        .csType(.agateS, caps: true).foregroundStyle(mastheadPalette.mut)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    .padding(CSTokens.Space.gutter)
+    .padding(.vertical, CSTokens.Space.s2)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background {
+      ZStack {
+        mastheadPalette.bg1
+        CSTopoField(tint: mastheadPalette.mut.opacity(CSTokens.Alpha.a24))
+      }
+    }
+    .environment(\.cs, mastheadPalette)
+    .padding(.horizontal, -CSTokens.Space.gutter)
+    .padding(.bottom, CSTokens.Space.s2)
   }
 
   var body: some View {
@@ -57,33 +72,7 @@ struct CompeteScreen: View {
       // shipped page put 14pt between EVERY child — masthead, head, row, head,
       // row — which is why the two heads read as two more rows.
       VStack(alignment: .leading, spacing: 0) {
-        // **D314 · COMPETE STANDS SOMEWHERE.** The contour plate is a real
-        // generator — seeded value noise, marching squares, five to seven
-        // isolines, *"same course, same plot, forever"* — and it draws behind
-        // the credential's crest and on the course hero. Compete called it
-        // NOWHERE, which is why the tab a season lives in looked like a list.
-        //
-        // **Behind the page head, at hero scale, and only there.** The system
-        // BANS the contour at thumbnail scale in its own words — small, it
-        // reads as three near-identical concentric ovals — so a plate per
-        // season CARD was rejected on the existing rule rather than on taste.
-        //
-        // **Seeded from the league**, so the Fellas and Who's the bitch? are
-        // two places and each is the same place every time. With no league at
-        // all it falls to the golfer's own id, which is exactly what the
-        // person card does when a golfer has no home course. **A league is not
-        // a course**: the plot means nothing about the golf, it is identity and
-        // not information, and no copy on this page claims otherwise — which
-        // is also why it carries NO `mark` (there is no hole to point at).
-        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          CSPageHeader("Compete") { EmptyView() }
-          HStack {
-            Text(CSBrandCopy.tagline).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-            Spacer()
-            CSTopoField().frame(width: 180, height: 64)
-          }
-        }
-        .padding(.bottom, CSTokens.Space.s4)
+        masthead
 
         switch CompeteRoot.state(list: list, loaded: loaded, readFailed: readFailed, buddies: buddies) {
         case .loading:
@@ -97,8 +86,18 @@ struct CompeteScreen: View {
           section(CompeteRoot.Head.finished, list.finished)
         case .list:
           section(CompeteRoot.Head.seasons, list.seasons, first: true)
-          CSDoorRow(verb: "Start something", gloss: "") { presenter.showIntent = true }
-            .accessibilityLabel("Start something")
+          Button { presenter.showIntent = true } label: {
+            HStack(spacing: CSTokens.Space.s3) {
+              Text("Start something").csType(.name)
+              Spacer(minLength: CSTokens.Space.s2)
+              CSGlyph(.chevron, size: .row)
+            }
+            .padding(.horizontal, CSTokens.Space.s4)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+          }
+          .buttonStyle(.csPrimary())
+          .padding(.top, CSTokens.Space.s3)
+          .accessibilityLabel("Start something")
           section(CompeteRoot.Head.moments, list.moments, first: list.seasons.isEmpty)
           section(CompeteRoot.Head.finished, list.finished,
                   first: list.seasons.isEmpty && list.moments.isEmpty)
@@ -126,17 +125,11 @@ struct CompeteScreen: View {
     }
   }
 
-  /// **THE HEAD IS A REAL STEP, AND IT IS THE PRODUCT'S ONE HEAD** (D286).
-  ///
-  /// `YOUR SEASONS` shipped as `csEyebrow` — mono 12 tracked caps in `mut` —
-  /// over rows whose own name was 17pt caps in `ink`. The head was the
-  /// QUIETEST thing in its own section, so the page read as one flat list with
-  /// two labels in it. `CSSectionHead(.display)` is `displayS` 24 in `ink`:
-  /// the same object Home's wire runs its datelines under, used here for the
-  /// second time, which is what makes it an idiom rather than a one-off.
+  /// Owner visual refinement: league names and ranks lead; section names
+  /// remain the same quiet navigation landmarks. No change to peer ordering.
   @ViewBuilder private func section(_ head: String, _ rows: [CompeteRoot.Row], first: Bool = false) -> some View {
     if !rows.isEmpty {
-      CSSectionHead(head, weight: head == CompeteRoot.Head.seasons ? .display : .label)
+      CSSectionHead(head, weight: .label)
         .padding(.top, first ? CSTokens.Space.s4 : CSTokens.Space.s5)
         .padding(.bottom, CSTokens.Space.s2)
       ForEach(rows) { row in
@@ -146,21 +139,9 @@ struct CompeteScreen: View {
     }
   }
 
-  /// **THE FOOT — AND THE HONEST ANSWER TO A SCREEN AND A HALF OF NOTHING.**
-  ///
-  /// A golfer with two seasons and one moment has a short page, and the space
-  /// under it is not a design problem to be filled: §27 forbids decorative UI
-  /// with no purpose, and §32 forbids answering it with a card. What the space
-  /// IS good for is the two acts this tab offers that the masthead does not —
-  /// and the masthead's door is at the top-right corner of a phone, which is
-  /// the one place a thumb cannot reach.
-  ///
-  /// So: `s6` (§4's own token — *before a ceremony or a page foot*), a heavy
-  /// rule, and the two doors `CompeteRoot.empty` already names as the
-  /// alternatives to starting something. **Neither is lit**: L-25 allows the
-  /// page exactly one ember and the masthead is wearing it, so a second one
-  /// here would spend it on nothing. Everything below them stays empty, which
-  /// is what a short page should look like.
+  /// Secondary doors stay below the season and moment records. The primary
+  /// action is Start something, after Your Seasons; joining and finding
+  /// golfers remain quiet, familiar rows separated by a rule.
   private var foot: some View {
     VStack(alignment: .leading, spacing: 0) {
       CSRule(.heavy)
@@ -222,7 +203,7 @@ struct CompeteScreen: View {
   /// this page is about to render, in the same type at the same size.
   private var skeleton: some View {
     VStack(alignment: .leading, spacing: 0) {
-      CSSectionHead(CompeteRoot.Head.seasons, weight: .display)
+      CSSectionHead(CompeteRoot.Head.seasons, weight: .label)
         .padding(.top, CSTokens.Space.s4)
         .padding(.bottom, CSTokens.Space.s2)
       ForEach(0..<2, id: \.self) { i in
@@ -265,9 +246,9 @@ private struct CompeteRowView: View {
       A11yStack(alignment: .leading, rowAlignment: .center,
                 spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s3) {
         VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-          Text(row.title).csType(.name).foregroundStyle(cs.ink)
+          Text(row.title).csType(row.kind == .season ? .displayS : .name).foregroundStyle(cs.ink)
           Text(row.eyebrow).csEyebrow()
-          Text(row.sub).csType(.bodyS).foregroundStyle(cs.mut)
+          Text(row.sub).csType(.bodyS).foregroundStyle(row.kind == .season ? cs.ink : cs.mut)
             .fixedSize(horizontal: false, vertical: true)
         }
         .multilineTextAlignment(.leading)
@@ -278,13 +259,13 @@ private struct CompeteRowView: View {
           // as FLEXIBLE inside an `HStack` and takes an equal share of it —
           // the 2pt rule then runs half the page and the sentence beside it
           // breaks over four lines. The rule is the width of its column (§0.2).
-          CSFigure("\(r.place)", size: .m, label: "of \(r.of)",
+          CSFigure("\(r.place)", size: row.kind == .season ? .l : .m, label: "of \(r.of)",
                    ordinal: CSOrdinal.suffix(r.place))
             .fixedSize(horizontal: true, vertical: false)
             .frame(minWidth: 62, alignment: typeSize.isA11y ? .leading : .trailing)
         }
       }
-      .padding(.vertical, CSTokens.Space.s3)
+      .padding(.vertical, row.kind == .season ? CSTokens.Space.s4 : CSTokens.Space.s3)
       .frame(minHeight: 68)
       .overlay(alignment: .bottom) { CSRule() }
       .contentShape(Rectangle())
@@ -293,6 +274,7 @@ private struct CompeteRowView: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("\(row.title), \(row.eyebrow).\(spokenRank ?? "") \(row.sub)")
     .accessibilityHint(row.kind == .season ? "Opens the season" : "Opens it")
+    .accessibilityIdentifier("compete.row." + row.id)
   }
 }
 

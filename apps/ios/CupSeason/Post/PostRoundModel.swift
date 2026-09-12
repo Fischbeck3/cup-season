@@ -42,6 +42,7 @@ final class PostRoundModel {
   var partnerChoices: [Person] = []
   var playedWith: [UUID] = []
 
+  private let draftOwner: UUID?
   private let store: SessionStore
   private let toast: CSToastCenter
   private let svc = PostService()
@@ -52,7 +53,7 @@ final class PostRoundModel {
   private var typedSomething = false
 
   init(store: SessionStore, toast: CSToastCenter) {
-    self.store = store; self.toast = toast
+    self.store = store; self.toast = toast; self.draftOwner = store.session?.user.id
     card.date = CSDate.iso(day, calendar: ScheduleDates.gregorian)
   }
 
@@ -64,16 +65,19 @@ final class PostRoundModel {
   var seededFrom: UUID?
 
   func seed(_ c: PostCard, from lr: UUID? = nil) {
-    card = c
     seededFrom = lr
-    if let iso = c.date, let d = CSDate.local(iso, calendar: ScheduleDates.gregorian) { day = d }
+    if let lr, let uid, let pending = try? OfflinePostDisk.shared.read(owner: uid, request: lr) {
+      card = pending.card
+    } else { card = c }
+    seededFrom = lr
+    if let iso = card.date, let d = CSDate.local(iso, calendar: ScheduleDates.gregorian) { day = d }
     typedSomething = true
     recalc()
   }
 
   // MARK: - who and where
 
-  var uid: UUID? { store.session?.user.id }
+  var uid: UUID? { store.session?.user.id == draftOwner ? draftOwner : nil }
   var profile: Me.Profile? { store.me?.profile }
   /// D229 · the membership this round belongs to is derived from the DATE, the
   /// same way `post_round` derives it on the server — never from
@@ -168,7 +172,12 @@ final class PostRoundModel {
     return true
   }
 
-  func startOver() { card.startOver(); setPhoto(nil); clearDraft(); toast.show("Card cleared", kind: .confirmed) }
+  func startOver() {
+    if seededFrom != nil {
+      toast.show("Close this scorecard to keep it. Open a new round separately."); return
+    }
+    card.startOver(); setPhoto(nil); clearDraft(); toast.show("Card cleared", kind: .confirmed)
+  }
   func scrapScan() { card.scrapScan(); toast.show("Scan scrapped — type your nines in", kind: .confirmed) }
 
   // MARK: - photo (6521–6578)
@@ -212,25 +221,38 @@ final class PostRoundModel {
 
   // MARK: - picks (6217–6270)
 
+  private var draftKey: String { PostDraft.key + "." + (draftOwner?.uuidString ?? "signed-out") }
+
   private func scheduleDraft() {
     draftTask?.cancel()
     let snapshot = card
+    let source = seededFrom
     draftTask = Task {
       try? await Task.sleep(for: .milliseconds(350))
       guard !Task.isCancelled else { return }
-      if snapshot.isBlank { UserDefaults.standard.removeObject(forKey: PostDraft.key); return }
-      if let data = PostDraft.encode(PostDraft(card: snapshot)) { UserDefaults.standard.set(data, forKey: PostDraft.key) }
+      if snapshot.isBlank { UserDefaults.standard.removeObject(forKey: draftKey); return }
+      if let data = PostDraft.encode(PostDraft(card: snapshot, sourceLive: source)) { UserDefaults.standard.set(data, forKey: draftKey) }
     }
   }
-  private func clearDraft() { draftTask?.cancel(); UserDefaults.standard.removeObject(forKey: PostDraft.key) }
+  /// A draft flush is never proof of server acceptance.
+  func flushDraft() {
+    draftTask?.cancel()
+    if card.isBlank { UserDefaults.standard.removeObject(forKey: draftKey); return }
+    if let data = PostDraft.encode(PostDraft(card: card, sourceLive: seededFrom)) {
+      UserDefaults.standard.set(data, forKey: draftKey)
+    }
+  }
+
+  private func clearDraft() { draftTask?.cancel(); UserDefaults.standard.removeObject(forKey: draftKey) }
 
   private func restoreDraft() {
     guard !draftRestored else { return }
     draftRestored = true
-    guard let d = PostDraft.decode(UserDefaults.standard.data(forKey: PostDraft.key)) else {
-      UserDefaults.standard.removeObject(forKey: PostDraft.key); return
+    guard let d = PostDraft.decode(UserDefaults.standard.data(forKey: draftKey)) else {
+      UserDefaults.standard.removeObject(forKey: draftKey); return
     }
     guard card.isBlank else { return }
+    seededFrom = d.sourceLive
     card = d.card
     if let iso = d.card.date, let date = CSDate.local(iso, calendar: ScheduleDates.gregorian) { day = date }
     toast.show(PostDraft.restoredToast)
@@ -262,29 +284,68 @@ final class PostRoundModel {
   private func submit() async {
     guard !busy, preview != nil, let uid else { return }
     busy = true; defer { busy = false }
+    flushDraft()
     let m = membership
     // D229 · no season on the payload. `post_round` derives it; the season on
     // the build below is the DECLARED FALLBACK's only use of a client-chosen
     // one, for a database that does not have the function yet.
     var payload = PostPayload.build(card, seasonId: nil)
-    if let jpeg = photoJPEG {
+    if seededFrom == nil, let jpeg = photoJPEG {
       if let path = await svc.uploadPhoto(jpeg, uid: uid) { payload.photo_path = path }
       else { toast.show("Couldn’t upload the photo. Posting the round without it.", kind: .failed) }
     }
     let outcome: PostService.PostOutcome
-    do { outcome = try await svc.postRound(payload, playedWith: playedWith, fallbackSeason: m?.season?.id) }
-    catch { toast.show(HumanError.text(error, prefix: "Post failed."), kind: .failed); return }
+    do {
+      if let lr = seededFrom {
+        var pending: OfflinePost
+        if let previous = try OfflinePostDisk.shared.read(owner: uid, request: lr) {
+          guard previous.accepted == nil else {
+            toast.show("This round already posted. Open your round history to view it.", kind: .confirmed); return
+          }
+          guard previous.card == card else {
+            toast.show("A previous post still needs confirmation. Reopen this phone scorecard to retry the original round before editing it.", kind: .failed); return
+          }
+          pending = previous
+        } else {
+          guard card.date != nil else { toast.show("Choose the date you played.", kind: .failed); return }
+          if card.mode == .holes, card.scores.prefix(payload.holes_played).contains(where: { $0 <= 0 }) {
+            toast.show("Fill every hole on this scorecard before posting.", kind: .failed); return
+          }
+          if let jpeg = photoJPEG {
+            guard let path = await svc.uploadPhoto(jpeg, uid: uid) else {
+              toast.show("Couldn’t upload the photo. Your scorecard is still on this phone.", kind: .failed); return
+            }
+            payload.photo_path = path
+          }
+          pending = OfflinePost(owner: uid, request: lr, card: card, payload: payload, playedWith: playedWith)
+          try OfflinePostDisk.shared.save(pending)
+        }
+        outcome = try await svc.postOnce(pending)
+        pending.accepted = outcome.roundId
+        try OfflinePostDisk.shared.save(pending)
+      } else {
+        outcome = try await svc.postRound(payload, playedWith: playedWith, fallbackSeason: m?.season?.id)
+      }
+    } catch {
+      let message = seededFrom != nil && PostService.fallbackFires(on: error)
+        ? "Posting saved scorecards isn’t available yet. Your round is still kept here."
+        : HumanError.text(error, prefix: seededFrom != nil ? "Couldn’t confirm the post. Your phone scorecard is kept for retry." : "Post failed.")
+      toast.show(message, kind: .failed); return
+    }
     let roundId = outcome.roundId
+    let postedFromPhone = seededFrom != nil
 
     // D-offline · the kept card LANDED. Release it now and only now — a card
     // released on the way into the composer would be gone if the post failed,
     // and one never released would sit there inviting a second post.
     if let lr = seededFrom {
       await LiveDisk.shared.removeUnsynced(lr)
+      do { try OfflineRounds.shared.remove(owner: uid, id: lr) }
+      catch { toast.show("Round posted. Couldn’t remove the phone copy — don’t post it again.", kind: .failed) }
       seededFrom = nil
     }
 
-    await svc.insertHoles(PostPayload.holeRows(card, roundId: roundId))
+    if !postedFromPhone { await svc.insertHoles(PostPayload.holeRows(card, roundId: roundId)) }
     svc.event(PostEvent.submit, [
       "mode": .string(card.mode.rawValue), "secs": .number(Date().timeIntervalSince(openedAt).rounded()),
       "holes": .number(Double(payload.holes_played)),

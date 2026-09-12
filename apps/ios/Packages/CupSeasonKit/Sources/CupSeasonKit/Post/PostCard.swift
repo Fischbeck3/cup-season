@@ -347,7 +347,7 @@ public enum PostCalc {
 /// as ABSENT (never `null`), which is what the server defaults need
 /// (`played_on` → current_date). `course_label` is NOT NULL on the table; the
 /// web sends null and fails at the DB — the phone is honest about that too.
-public struct PostPayload: Encodable, Sendable, Equatable {
+public struct PostPayload: Codable, Sendable, Equatable {
   public var gross: Int
   public var rating: Double
   public var nine_rating: Double?
@@ -443,9 +443,12 @@ public struct PostDraft: Codable, Sendable, Equatable {
   public var at: Date
   public var card: PostCard
 
-  public init(at: Date = Date(), card: PostCard) { self.at = at; self.card = card }
+  public var sourceLive: UUID?
+  public init(at: Date = Date(), card: PostCard, sourceLive: UUID? = nil) {
+    self.at = at; self.card = card; self.sourceLive = sourceLive
+  }
 
-  public func isFresh(now: Date = Date()) -> Bool { now.timeIntervalSince(at) <= Self.ttl }
+  public func isFresh(now: Date = Date()) -> Bool { sourceLive != nil || now.timeIntervalSince(at) <= Self.ttl }
 
   public static func encode(_ d: PostDraft) -> Data? { try? JSONEncoder().encode(d) }
   /// nil when absent, unreadable, or older than the TTL.

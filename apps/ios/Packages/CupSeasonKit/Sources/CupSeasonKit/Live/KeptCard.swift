@@ -37,15 +37,18 @@ public struct KeptCard: Sendable, Equatable, Identifiable {
   public let rating: Double?
   public let slope: Int?
   public let pars: [Int]
+  public var holes: Int = 18
+  public var rating9: Bool = false
+  public var knownPars: Bool = true
   public var id: UUID { lr }
 
   /// An 18-hole card with every hole written. A card with gaps is still worth
   /// keeping and still worth showing — it is just not a round to post whole.
-  public var isComplete: Bool { holesPlayed == 18 }
+  public var isComplete: Bool { holesPlayed == holes }
 
   /// "Papago Golf Course · Sunday · 14 of 18 holes" — what the row says.
   public var line: String {
-    let holes = isComplete ? "\(total)" : "\(holesPlayed) of 18 holes"
+    let holes = isComplete ? "\(total)" : "\(holesPlayed) of \(self.holes) holes"
     return [course.isEmpty ? "A round" : course, holes].joined(separator: " · ")
   }
 }
@@ -66,19 +69,21 @@ public enum KeptCards {
     let seat = s.players.firstIndex(where: { $0.me }) ?? (s.players.count == 1 ? 0 : nil)
     guard let seat, s.scores.indices.contains(seat) else { return nil }
     let raw = s.scores[seat]
-    let scores = (0..<18).map { i in raw.indices.contains(i) ? (raw[i] ?? 0) : 0 }
+    let scores = (0..<18).map { i in i < s.liveHoles && raw.indices.contains(i) ? (raw[i] ?? 0) : 0 }
     let played = scores.filter { $0 > 0 }.count
     guard played > 0 else { return nil }
     return KeptCard(lr: lr,
                     course: s.course.label.trimmingCharacters(in: .whitespaces),
                     courseId: s.course.courseId,
-                    playedOn: s.startedAt.flatMap(day(fromMillis:)),
+                    playedOn: s.playedDay ?? s.startedAt.flatMap(day(fromMillis:)),
                     scores: scores,
                     holesPlayed: played,
                     total: scores.reduce(0, +),
                     rating: s.course.rating,
                     slope: s.course.slope,
-                    pars: s.course.pars.count == 18 ? s.course.pars : PostCard.parStd)
+                    pars: s.course.pars.count == 18 ? s.course.pars : PostCard.parStd,
+                    holes: s.liveHoles, rating9: s.rating9,
+                    knownPars: s.course.parsCourse != nil)
   }
 
   /// The composer, seeded. Holes mode with the strokes in the grid, so the
@@ -87,9 +92,10 @@ public enum KeptCards {
   public static func compose(_ k: KeptCard) -> PostCard {
     var c = PostCard()
     c.mode = .holes
-    c.side = 18
+    c.side = k.holes
+    c.rating9 = k.rating9
     c.pars = k.pars
-    c.parsCourse = k.course
+    c.parsCourse = k.knownPars ? k.course : nil
     c.scores = k.scores
     c.touched = true
     c.course = k.course

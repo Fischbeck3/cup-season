@@ -1,0 +1,60 @@
+# Next TestFlight — troubleshooting and release gate
+
+Reviewed 2026-09-12 on `codex/run-it-back-topo-2026-09-12`, based on `246b77af61e1bedf7ebefd34e0ab9936104306d4` / build 793. The next candidate is uncommitted. This session inspected and verified; it did not change application code, deploy a backend, archive, upload or install to a phone.
+
+**Recommendation: hold the next upload for a short reliability pass and a controlled two-account test.** The visual direction is sufficiently established. More visual invention is lower value than proving that one round survives a bad connection, belongs to the correct golfer, and opens the correct receipt.
+
+## Evidence from this session
+
+- XcodeGen succeeded. Full native app and package suite: **1,291 passed, zero failed/skipped**.
+- Signed-in simulator UI suite: **7 passed, zero failed/skipped**. Existing accepted-round completion → receipt; receipt → real-photo preview → photo opt-out → native share sheet → cancellation; Compete light/dark and narrow AX3; season navigation; golfer row → Player Card; Play and Compete creation doors → existing intent chooser.
+- Preflight: **0 failures / 0 warnings**. `git diff --check`: clean.
+- Release iPhone compile, without signing or archive: **passed**.
+- Read-only migration history: **228 applied versions recorded**, including `post_round` (`20260910090000`), `run_it_back` (`20260928093000`), and the later server-copy amendment (`20261012090000`). The isolated worktree has no linked project reference; the first deployment check therefore returned unknown. A second read used the existing main checkout's saved reference without relinking or modifying either workspace. Old source comments saying Run it back is unpushed are stale. Migration history is evidence of deployment, not proof of the live end-to-end flow or current function body.
+- No factual round was inserted, no league joined and no season minted in this review. Sign-in with a fresh OTP, two-account switching, interrupted submission and real Pro/member renewal remain controlled end-to-end checks.
+- Actual screenshots: `/Users/fischbeck3/cup-season-readiness-review/`. Earlier sign-in/loading/Play visual evidence remains in `/Users/fischbeck3/cup-season-compete-review/`.
+
+## Fix / verify / defer
+
+| Priority | Finding and evidence | Smallest useful next step | Approval / verification |
+|---|---|---|---|
+| Fix before release | **A lost response can produce a duplicate round on retry.** `PostRoundModel.swift:285` awaits an unkeyed `post_round` call. The submitted draft remains until the post and follow-up work finish. `PostService.swift:168` has no request identity. Success on the server followed by network loss or app termination is ambiguous. Existing risk, not a new topo regression. | Implement the bounded account-scoped request/receipt contract already proposed in the return-flow review; persist the request before sending it and replay the accepted result. Do not substitute optimistic copy or a disabled button for deduplication. | **Owner approval required for new RPC/private receipt table.** Prove concurrent taps, response lost after commit, retry, relaunch, changed payload and deleted-round replay against a disposable database. |
+| Fix before release | **Drafts are not owned by an account.** `PostCard.swift:438` stores only time/card under global `cs_post_draft`; `PostRoundModel.restoreDraft` restores without an owner check; `SessionStore.signOut` does not clear it. A second golfer on the same installation can be offered the first golfer's draft. Confirmed by source; not exercised using two real accounts. | Bind drafts to the authenticated account and define safe treatment of legacy drafts with unknown ownership. Preserve same-account recovery. | Client-only boundary fix; no new backend required. Test account A draft → B login → A login and expiration, without posting either draft. Do not silently discard unrelated user data. |
+| Fix release tooling | **The archive script can hide failure and reuse stale output.** `tools/ios-archive.sh:42` and `:47` end pipelines with `|| true`; the next checks ask only whether a directory/IPA exists. The script also allows a dirty tree and derives build solely from commit count. HEAD still counts to **793**. | Make archive/export fail on their actual exit status; use a fresh output location; require a known candidate commit and verify app/extension versions, bundle IDs and exported artifact identity. Preserve existing signing/upload process. | Bounded local tool change. Verify with simulated failing commands and stale outputs; no archive needed to test the guards. Recheck the latest accepted Apple build only when release actions are approved. |
+| Fix / test before calling Run it back ready | **Malformed success can still sound successful.** Every `RunItBackResult` field is optional; decoding `{}` produces “The next season is on,” and `run` returns `.ran`. A current test encodes that behavior. | Require a usable returned season identity before presenting success or routing. Keep missing optional roster counts absent. | Client-only validation; test empty/partial response, already-open response and normal response. Passing the current test is not the desired behavior. |
+| Verify and harden | **Run it back concurrency is not proven.** The checked-in SQL reads the open/latest season before obtaining a serialization lock. The unique `(league_id, number)` constraint protects against duplicate numbers, but two simultaneous requests can still race and one can fail rather than return the existing season. | Controlled Pro test: first renewal, repeat after response loss, two-device overlap, already-open season, non-Pro attempt; confirm roster and terms. If reproduced, serialize before reading the season state. | Current production write not performed. Any RPC change needs owner approval; do not mint seasons in a real crew merely to test it. |
+| Verify / improve failure reporting | **Hole details can fail silently after gross is accepted.** `PostService.swift:257` uses `try?` for the separate hole insert. Gross acceptance is real, but complete scorecard persistence is not guaranteed. | Preserve the accepted round, report missing detail accurately and offer recovery through the existing supported write path. Never ask the golfer to post the whole round again to fix holes. | Inject a hole-write failure; assert one round, honest receipt, and no invented zeros. A transactional/new RPC path is a separate approval boundary. |
+| Verify on two accounts | **Invitation continuity is improved but unproven after real acceptance/interrupted auth.** The code now retains the invitation until acceptance and routes through refreshed membership. UI tests do not execute that transaction. | Test signed out → OTP → original invite; signed in; already a member; invalid code; decline; app quit; accepted join followed by failed refresh. Confirm private preview limits and correct destination. | Use a disposable league/account. Do not accept a covenant or alter a real roster as an incidental test. |
+| Defer after blockers | **Visual cleanup and measurement gaps remain.** Share cards still use a small isolated topo accent; Play's scrolled header/close overlap merits a targeted check. There are three unused legacy icon children and existing concurrency warnings. Telemetry exists and DEBUG is excluded, but second-round/returning-crew baselines and complete funnel reporting were not established. | Review targeted visuals; remove legacy outputs via their source process; prioritize measured activation using accepted records and existing events. | Do not expand into another redesign, add an analytics vendor, or treat opening a share sheet as a sent card. |
+
+## Controlled phone session — approximately 45–60 minutes
+
+Use two named disposable accounts, one disposable league with a completed season, and one golfer with no active league. Do not seed test records into the owner's real competitions. Keep the same candidate commit throughout.
+
+1. **Entry, 10 minutes:** existing install upgrade, cold launch, fresh sign-in, valid/invalid invite, interrupted sign-in, return to intended destination. Declining an invitation must not join it. Check account switching and draft ownership.
+2. **A round, 15 minutes:** no-league round, selected course/tee, manually entered course with missing rating, 9/18 holes, double tap, loss of connection, app background/relaunch. Distinguish failure before acceptance from response lost after acceptance. Inspect authoritative round count and IDs.
+3. **Meaning and sharing, 10 minutes:** exact course/date/gross; real counting/non-counting context; scorecard/adjustment path; no-photo and photo preview; photo removal; native share cancellation. Check privacy and that cancelling changes no round.
+4. **The crew returns, 10 minutes:** Pro reviews then cancels; Pro runs it back once; opens the same season on repeat; member asks and can retry a failed ask; former/suspended members stay governed by existing rules. Verify the receiving account sees the correct season and roster.
+5. **Usability and upgrade, 10–15 minutes:** Home/Compete/Play/Golfers/You, small width, large text, light/dark, a nondefault selected look, VoiceOver critical actions, long names, missing image, denied photo permission, lock/unlock, offline cold launch/recovery. Confirm live-round draft and widget behavior survive an app update on the phone.
+
+Pass means the outcome is observed in the app **and**, for writes, in the authoritative saved record. A green unit suite or a success toast alone is insufficient.
+
+## Release gate
+
+- Resolve the account-draft and success-validation issues. Harden the existing release script.
+- Resolve the round-retry risk, or explicitly decide that a narrowly controlled internal build carries that known limitation. It should not silently become a wider beta.
+- Complete the controlled round, invitation and renewal checks; log each result and remaining uncertainty.
+- Freeze the candidate: commit only owned application/docs/tests/assets; leave `cup-season-visual-implementation-pack/` untouched. Separate the web invitation patch into a deliberate web release decision. No merge is needed merely to review the native candidate.
+- Re-run affected checks on that exact commit and install it on the owner's phone for review. Build 793 currently on the phone does not include these uncommitted refinements.
+- Marketing version stays **1.0.0**. The existing commit-count process makes **794** the next number only if this becomes one new commit and no higher build has been accepted; determine the real number from the final history and Apple status when approved.
+- Owner explicitly approves screenshots and release. Only then archive, validate, upload, verify processing and add the accepted build to the existing internal group. Signing credentials, current agreements and Apple processing have not been tested by an unsigned compile.
+
+## Next three focused builds
+
+1. **A round is safe to keep.** Account-owned draft, accepted identity retained, reliable retry, honest partial-save reporting and robust release guards. Success: one intentional round → one accepted record through interruption.
+2. **A friend reaches the right place.** Verified invitation journey plus truthful Run it back success and repeat behavior. Success: the same crew reaches its next season without rebuilding the group or losing the destination.
+3. **A reason to return.** Use existing accepted-round history and existing analytics to measure second rounds and returning participants; improve the weakest observed step. Keep one strong share artifact. Add templates or new features only when observed use justifies them.
+
+## Decision needed
+
+The one substantive implementation approval remains the bounded server idempotency change described in `2026-09-12-return-flows.md`. The other immediate fixes can stay within existing client behavior and release tooling. A disposable test league and two test accounts are needed before executing the write scenarios above.

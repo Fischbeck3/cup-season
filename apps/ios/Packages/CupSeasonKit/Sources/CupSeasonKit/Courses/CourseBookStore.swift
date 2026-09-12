@@ -171,6 +171,38 @@ public struct CourseBookStore: Sendable {
                                savedAt: Date(), usedAt: old.usedAt))
   }
 
+  /// Selecting a course before a trip keeps every available tee's actual
+  /// hole data in one read. Missing pars remain missing, never par-four guesses.
+  public func prepare(_ hit: CourseHit) async -> CourseBook? {
+    await ScheduleService(svc).cacheCourse(hit.id)
+    struct Hole: Decodable { let hole_number: Int; let par: Int?; let handicap: Int? }
+    struct Tee: Decodable {
+      let tee_name: String?; let gender: String?; let course_rating: Double?; let slope_rating: Int?
+      let number_of_holes: Int?; let api_course_holes: [Hole]?
+    }
+    guard let rows: [Tee] = try? await svc.client.from("api_course_tees")
+      .select("tee_name,gender,course_rating,slope_rating,number_of_holes,api_course_holes(hole_number,par,handicap)")
+      .eq("course_id", value: hit.id).execute().value, !rows.isEmpty else { return nil }
+    let old = await disk.book(hit.id)
+    let tees = rows.compactMap { row -> CourseBookTee? in
+      guard row.course_rating != nil, row.slope_rating != nil else { return nil }
+      let prior = old?.tees.first { $0.teeName == row.tee_name && $0.gender == row.gender }
+      let holes = (row.api_course_holes ?? []).sorted { $0.hole_number < $1.hole_number }
+        .map { CourseHole(hole: $0.hole_number, par: $0.par, si: $0.handicap) }
+      return CourseBookTee(teeName: row.tee_name, gender: row.gender, rating: row.course_rating,
+                           slope: row.slope_rating, holesCount: row.number_of_holes,
+                           parTotal: prior?.parTotal, yards: prior?.yards, holes: holes.isEmpty ? prior?.holes ?? [] : holes)
+    }
+    guard !tees.isEmpty else { return nil }
+    let book = CourseBook(id: hit.id, clubName: old?.clubName ?? hit.label, courseName: old?.courseName,
+                           city: old?.city, state: old?.state, tees: tees,
+                           planned: old?.planned ?? false, played: old?.played ?? false,
+                           nextPlayOn: old?.nextPlayOn, lastPlayedOn: old?.lastPlayedOn)
+    await disk.save(book)
+    guard let saved = await disk.book(hit.id), saved.tees == book.tees else { return nil }
+    return saved
+  }
+
   // MARK: - the reads
 
   /// Everything on the phone, most recently used first.

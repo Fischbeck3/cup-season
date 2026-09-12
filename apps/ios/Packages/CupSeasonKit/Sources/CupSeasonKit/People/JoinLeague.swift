@@ -28,6 +28,12 @@ public enum JoinIntent {
     return (c, defaults.string(forKey: nameKey))
   }
 
+  /// A late acceptance must not consume a newer invitation.
+  public static func clear(ifMatching code: String, defaults: UserDefaults = .standard) {
+    guard let pending = pending(defaults: defaults), normalize(pending.code) == normalize(code) else { return }
+    clear(defaults: defaults)
+  }
+
   public static func clear(defaults: UserDefaults = .standard) {
     defaults.removeObject(forKey: codeKey)
     defaults.removeObject(forKey: nameKey)

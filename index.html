@@ -27646,16 +27646,17 @@ async function boot(){
          link with no terms shown at all — the one door where consent mattered
          most. It also deleted the pending code BEFORE trying, so any failure
          (or a "not now") threw the invite away and left no way back to it.
-         Show the covenant first; keep the code unless the join is attempted. */
+         Show the covenant first; keep the code until the server accepts the join. */
       if(!(await covenantGate(pend))){
         window.qaEvent?.('covenant_declined', { via: 'link' });
         /* a decline is a state, not a loss — the code stays for Home to offer */
       } else {
-      localStorage.removeItem('cs_code');
-      localStorage.removeItem('cs_code_name');
       try {
         const { error } = await sb.rpc('join_league', { p_code: pend });
         if(error) throw error;
+        if(localStorage.getItem('cs_code') === pend){
+          localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name');
+        }
         await loadMemberships();
         const m = CS.memberships.find(x => x.league.code === pend);
         if(m){ await enterLeague(m); toast('Joined ' + m.league.name); openLeagueWelcome(m.league.name); return; }
@@ -27713,7 +27714,7 @@ async function resumeAfterProfile(){
        league on THIS session. boot()'s join block is skipped on first signup
        (the profile-gate early return sits before it), so without this the join
        silently defers to a later refresh and they'd land league-less here. The
-       code is removed before the attempt (as in boot()) so a failure can't loop. */
+       code is removed only after acceptance so an interrupted request remains recoverable. */
     const pend = ls('cs_code');
     if(pend){
       try{
@@ -27723,10 +27724,12 @@ async function resumeAfterProfile(){
           /* Q-14 (D116) · the code used to be deleted BEFORE the attempt, which
              made the decline message a lie: "use code X whenever you're ready"
              about a code we had just thrown away. The audit's joiner re-typed
-             it from his text message. Clear it only once we are committing. */
-          try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}
+             it from his text message. Clear it only after the server accepts the join. */
           const { error } = await sb.rpc('join_league', { p_code: pend });
           if(error) throw error;
+          try{ if(localStorage.getItem('cs_code') === pend){
+            localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name');
+          } }catch(_){}
         } else {
           /* a decline is a state, not a loss — the code stays, and Home can
              still offer it */

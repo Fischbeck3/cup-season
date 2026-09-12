@@ -90,7 +90,7 @@ struct HomeLead: View {
         .accessibilityHint(item.action ?? "Opens the competition")
     } else {
     CSStoryCard(eyebrow: item.eyebrow, live: live, tag: tag, credit: credit,
-                headline: item.headline, standfirst: item.standfirst, door: door) {
+                headline: item.localHeadline(), standfirst: item.standfirst, door: door) {
       if let chip = HomeLeadChip.make(membership) { chip }
     }
     // §7 · ONE VoiceOver element for the whole block, in the product's voice,
@@ -102,7 +102,7 @@ struct HomeLead: View {
   }
 
   private var spoken: String {
-    var parts = [live ? "Live" : nil, item.eyebrow, item.headline, item.standfirst].compactMap { $0 }
+    var parts = [live ? "Live" : nil, item.eyebrow, item.localHeadline(), item.standfirst].compactMap { $0 }
     if let chip = HomeLeadChip.make(membership) {
       parts.append("You are \(CSCopy.ordinal(chip.rank)) of \(chip.of)")
       if let m = chip.move { parts.append(m.spokenPhrase) }

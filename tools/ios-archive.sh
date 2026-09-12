@@ -25,11 +25,17 @@
 set -euo pipefail
 cd "$(dirname "$0")/../apps/ios"
 
+case "${1:-}" in ""|--upload) ;; *) echo "Unknown option: $1"; exit 2 ;; esac
+if [ -n "$(git status --porcelain)" ]; then
+  echo "✗ Review and commit the working tree before archiving."
+  exit 1
+fi
 BUILD=$(git rev-list --count HEAD)
 SHA=$(git rev-parse --short HEAD)
-OUT="build/archive"
-ARCHIVE="$OUT/CupSeason-$BUILD-$SHA.xcarchive"
-mkdir -p "$OUT"
+mkdir -p build/archive
+OUT=$(mktemp -d "build/archive/run-$BUILD-$SHA.XXXXXX")
+ARCHIVE="$OUT/CupSeason.xcarchive"
+EXPORT="$OUT/export"
 
 echo "▸ xcodegen"
 xcodegen generate >/dev/null
@@ -39,13 +45,20 @@ xcodebuild -project CupSeason.xcodeproj -scheme CupSeason \
   -destination "generic/platform=iOS" -configuration Release \
   -archivePath "$ARCHIVE" -allowProvisioningUpdates \
   CURRENT_PROJECT_VERSION="$BUILD" \
-  archive 2>&1 | /usr/bin/grep -E "error:|warning: .*(entitlement|provision)|ARCHIVE (SUCCEEDED|FAILED)" || true
+  archive > "$OUT/archive.log" 2>&1 || {
+    tail -40 "$OUT/archive.log"; echo "✗ archive failed"; exit 1;
+  }
 [ -d "$ARCHIVE" ] || { echo "✗ no archive produced"; exit 1; }
 
 echo "▸ export"
-xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "$OUT/export-$BUILD" \
-  -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates 2>&1 | /usr/bin/grep -E "error:|EXPORT (SUCCEEDED|FAILED)" || true
-IPA=$(ls "$OUT/export-$BUILD"/*.ipa 2>/dev/null | head -1)
+xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "$EXPORT" \
+  -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates > "$OUT/export.log" 2>&1 || {
+    tail -40 "$OUT/export.log"; echo "✗ export failed"; exit 1;
+  }
+shopt -s nullglob
+IPAS=("$EXPORT"/*.ipa)
+[ "${#IPAS[@]}" -eq 1 ] || { echo "✗ expected exactly one new .ipa"; exit 1; }
+IPA="${IPAS[0]}"
 [ -n "$IPA" ] || { echo "✗ no .ipa exported"; exit 1; }
 echo "  ipa: $IPA"
 

@@ -89,6 +89,7 @@ struct RunItBackCard: View {
   let links: WizardLinks
   @State private var busy = false
   @State private var asked = false
+  @State private var reviewing = false
 
   private var membership: Me.Membership? { store.me?.memberships.first { $0.league_id == leagueId } }
   private var isPro: Bool { RunItBack.isPro(role: membership?.role) }
@@ -110,12 +111,18 @@ struct RunItBackCard: View {
         .accessibilityElement(children: .combine)
         // LV-21 · L-25: gold on a button is a defect. Ember is the act metal.
         Button(RunItBack.title(isPro: isPro, proFirstName: proFirstName)) {
-          Task { isPro ? await runIt() : await askThem() }
+          if isPro { reviewing = true } else { Task { await askThem() } }
         }
           .buttonStyle(.csPrimary(busy: busy))
-        .disabled(asked && !isPro)
+        .disabled(busy || (asked && !isPro))
         CSFine(RunItBack.sub(isPro: isPro))
       }
+    }
+    .confirmationDialog("Run it back?", isPresented: $reviewing, titleVisibility: .visible) {
+      Button("Run it back") { Task { await runIt() } }
+      Button("Close", role: .cancel) {}
+    } message: {
+      Text("Start the next season of \(membership?.name ?? "your league") with the existing crew and rules. If a season is already open, you’ll return to it.")
     }
     .onAppear { asked = UserDefaults.standard.bool(forKey: RunItBack.askKey(league: leagueId)) }
   }
@@ -128,6 +135,7 @@ struct RunItBackCard: View {
   }
 
   private func runIt() async {
+    guard !busy else { return }
     busy = true
     defer { busy = false }
     switch await RunItBackService().run(leagueId) {
@@ -144,12 +152,13 @@ struct RunItBackCard: View {
   }
 
   private func askThem() async {
+    guard !busy, !asked else { return }
     guard let member = membership?.member_id else { toast.show(RunItBack.noSeatLine); return }
     busy = true
     defer { busy = false }
     let first = store.me?.profile?.display_name?.split(separator: " ").first.map(String.init)
     let line = await RunItBackService().ask(league: leagueId, season: nil, member: member, myFirstName: first)
-    asked = true
+    asked = UserDefaults.standard.bool(forKey: RunItBack.askKey(league: leagueId))
     toast.show(line)
   }
 }

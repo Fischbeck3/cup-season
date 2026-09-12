@@ -31,7 +31,13 @@ struct LiveFinishSheet: View {
 
   var body: some View {
     let f = LiveCopy.finishSheet(store.state)
-    SheetFrame("Finish the round", sub: "ONE FINISH FOR THE WHOLE GROUP") {
+    SheetFrame("Finish the round", sub: store.state.onThisPhone ? "KEEP ON THIS PHONE" : "ONE FINISH FOR THE WHOLE GROUP") {
+      if store.state.onThisPhone {
+        CSFine("This keeps the scorecard on this phone. Nothing posts yet. When you reconnect, open Play to review and post your own round. Any other golfers’ scores stay on this phone.")
+        if let error = store.localSaveError { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }
+        Button("Keep round on this phone") { Task { if await store.finish(casual: false) { dismiss() } } }
+          .buttonStyle(.csPrimary(busy: store.busy)).disabled(store.busy)
+      } else {
       CSFine(f.intro)
       if let w = f.warning {
         Text(w).csType(.bodyS).foregroundStyle(cs.neg).fixedSize(horizontal: false, vertical: true)
@@ -40,6 +46,7 @@ struct LiveFinishSheet: View {
         .buttonStyle(.csPrimary(busy: store.busy))
       Button(f.secondary) { Task { if await store.finish(casual: true) { dismiss() } } }
         .buttonStyle(.csSecondary(busy: store.busy))
+      }
     }
     .presentationDetents([.medium, .large])
   }

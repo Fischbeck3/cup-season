@@ -334,6 +334,7 @@ public enum LiveCopy {
   /// only that the strokes are unsent.
   public static func syncBadge(_ s: LiveRoundState, presence: [String], queued: Int,
                                retired: Bool = false, now: Int64 = LiveFmt.now()) -> String {
+    if s.onThisPhone { return "ON THIS PHONE · NOT POSTED" }
     guard s.active else { return "" }
     if retired { return "This round closed — your card is saved on this phone" }
     guard s.code != nil else { return "Scoring it yourself · live on this phone" }

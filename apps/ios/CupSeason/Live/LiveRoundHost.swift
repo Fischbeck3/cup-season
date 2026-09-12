@@ -45,7 +45,10 @@ struct LiveRoundHost: View {
             // control on the live sheet is never the one that closes it.
             .toolbar {
               ToolbarItem(placement: .topBarTrailing) {
-                Button("Close") { links.done() }
+                Button("Close") {
+                  store.flushLocalCard()
+                  if store.localSaveError == nil { links.done() }
+                }
                   .buttonStyle(.csTertiary(.toolbar))
                   .accessibilityHint("Leaves this screen — the round keeps going, and the bar at the top brings you back")
               }
@@ -72,8 +75,8 @@ struct LiveRoundHost: View {
       // lives exactly as long as the sheet does.
       store.watchReachability()
     }
-    .onDisappear { store.stopWatchingReachability() }
-    .onChange(of: phase) { _, p in if p == .active { store.foregrounded() } }
+    .onDisappear { store.flushLocalCard(); store.stopWatchingReachability() }
+    .onChange(of: phase) { _, p in if p == .active { store.foregrounded() } else { store.flushLocalCard() } }
     .onChange(of: store.leaveRequested) { _, v in if v { store.leaveRequested = false; links.done() } }
     .sheet(item: Binding(get: { store.recap }, set: { store.recap = $0 })) { r in
       LiveRecapSheet(data: r, store: store)

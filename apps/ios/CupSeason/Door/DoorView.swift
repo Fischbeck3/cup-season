@@ -41,7 +41,8 @@ struct DoorView: View {
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
           crest
-            .background { CSTopoField().opacity(CSTokens.Alpha.a56) }
+            .frame(maxWidth: .infinity, alignment: .center)
+
             .padding(.top, DoorLayout.crestTop(working: working))
             .padding(.bottom, DoorLayout.crestBottom(working: working))
 
@@ -100,6 +101,14 @@ struct DoorView: View {
     // **DF-14 · NOTHING RENDERS UNDER THE CLOCK**, including the app mark. The
     // door was the one scrolling surface without the cap, so on any phone that
     // had to scroll the trophy was cut in half by the status bar.
+    .background {
+      ZStack {
+        cs.bg0
+        CSTopoField(.page)
+      }
+      .ignoresSafeArea(.container)
+      .ignoresSafeArea(.keyboard)
+    }
     .csStatusCap(cs.bg0)
     .csToasts(toasts)
     .onAppear {
@@ -135,7 +144,7 @@ struct DoorView: View {
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityAddTraits(.isHeader)
         Text("Golf with your people, all season.").csType(.body).foregroundStyle(cs.mut)
-        CSTopoField().frame(height: 120)
+        Color.clear.frame(height: 120).accessibilityHidden(true)
         Button("Get started", action: enter).buttonStyle(.csPrimary())
         Button("Sign in", action: enter).buttonStyle(.csSecondary())
       }
@@ -144,7 +153,6 @@ struct DoorView: View {
       .frame(maxWidth: 440, alignment: .leading)
       .frame(maxWidth: .infinity)
     }
-    .background(cs.bg0)
   }
 
   private func enter() {
@@ -154,10 +162,21 @@ struct DoorView: View {
   }
 
   private var crest: some View {
-    HStack(spacing: CSTokens.Space.s3) {
-      CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
-      Text("Cup Season").csType(.name)
-    }.foregroundStyle(cs.ink)
+    ViewThatFits(in: .horizontal) {
+      HStack(spacing: CSTokens.Space.s3) {
+        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
+        Text("Cup Season").csType(.name)
+      }
+      .fixedSize(horizontal: true, vertical: false)
+      VStack(spacing: CSTokens.Space.s2) {
+        CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
+        Text("Cup Season").csType(.name).multilineTextAlignment(.center)
+      }
+    }
+    .foregroundStyle(cs.ink)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("Cup Season")
+    .accessibilityIdentifier("door.brand.lockup")
   }
 
   /// The door's paragraph — the invited stranger's own sentence when there is

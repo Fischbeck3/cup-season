@@ -102,6 +102,9 @@ public final class SessionStore {
           preferredLeague = nil
         }
         if preferredLeague == nil { preferredLeague = me.memberships.first?.league_id }
+        if let p = me.profile, p.id == uid {
+          OfflineGolfer(id: p.id, name: p.display_name ?? "You", index: p.index_current, marker: p.marker).keep()
+        }
         state = .ready(me)
         if signInPending { signInPending = false; CSTelemetry.product(.signedIn) }
         // D261 / R-N · fill the offline course store off the back of a boot

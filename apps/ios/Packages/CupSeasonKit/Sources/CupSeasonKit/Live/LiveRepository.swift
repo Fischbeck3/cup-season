@@ -315,7 +315,8 @@ public struct LiveRepository: Sendable {
     guard let row else { return nil }
     guard let holes: [HoleRow] = try? await svc.client.from("api_course_holes").select("hole_number, par, handicap").eq("tee_id", value: row.id)
       .order("hole_number", ascending: true).execute().value, !holes.isEmpty else { return nil }
-    return holes.map { (par: $0.par ?? 4, handicap: $0.handicap ?? 0) }
+    guard holes.allSatisfy({ $0.par.map { (3...6).contains($0) } ?? false }) else { return nil }
+    return holes.map { (par: $0.par!, handicap: $0.handicap ?? 0) }
   }
 
   // MARK: the pick list (7398)

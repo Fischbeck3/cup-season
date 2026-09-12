@@ -50,21 +50,20 @@ struct RootView: View {
             // here, on appear — before the covenant sheet had resolved — so a
             // golfer who backgrounded the app on the covenant, or whose join
             // failed, lost the code they had been sent and had no way back to
-            // it. It is spent when the join is ANSWERED, and nowhere else
-            // (`PendingLink.spend`).
+            // it. It is spent only after the server accepts the join.
             .onAppear { if let j = JoinIntent.pending() { pendingJoin = j.code } }
             // a claim link that came in signed-out lands the card now (D88)
             .task(id: store.me?.profile?.id) { guestDoor = false; await LiveClaimAfterAuth.run(toast: toast) }
             .csSheet(item: $pendingJoin) { code in
               JoinLeagueFlow(code: code) { id in
-                PendingLink.join.spend()
+                JoinIntent.clear(ifMatching: code)
                 store.preferredLeague = id
-                Task { await store.reload() }
+                Task {
+                  await store.reload()
+                  PushRouter.shared.pending = .board(id)
+                }
               }
-              // A covenant declined, or the sheet swiped away, is an ANSWER
-              // too: the golfer decided. What it must not do is leave the code
-              // pending so the sheet rises again on the next boot.
-              .onDisappear { PendingLink.join.spend() }
+              // Keep an unfinished invitation available after dismissal or interrupted sign-in.
             }
         }
       case .mustUpdate(let min):
@@ -157,7 +156,7 @@ struct RootView: View {
       }
     }
     .overlay {
-      if (CSDevHatch.live || CSDevHatch.nearby) && devLive {
+      if (CSDevHatch.live || CSDevHatch.nearby || ProcessInfo.processInfo.arguments.contains("-cs_dev_offline_trip")) && devLive {
         LiveRoundHost(links: LiveLinks(done: { devLive = false }))
           .background(cs.bg0.ignoresSafeArea())
       }
@@ -189,12 +188,23 @@ struct BootingView: View {
     // step keeps the web's `bootStep` breadcrumb visible under it.
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       CSBrandLockup()
-        .background(alignment: .trailing) { CSTopoField().frame(width: 100, height: 60) }
+        .frame(maxWidth: .infinity, alignment: .center)
       CSRule(.heavy)
       Text(step).csType(.agate, caps: true).foregroundStyle(cs.mut)
     }
     .padding(.horizontal, CSTokens.Space.s4)
-    .frame(maxWidth: .infinity, alignment: .leading)
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    // The same page composition as the sign-in door, at the same scale and
+    // contrast. Loading should not squeeze the terrain behind the wordmark.
+    .background {
+      ZStack {
+        cs.bg0
+        CSTopoField(.page)
+      }
+      .ignoresSafeArea(.container)
+      .ignoresSafeArea(.keyboard)
+    }
+    .csStatusCap(cs.bg0)
   }
 }
 
@@ -221,6 +231,7 @@ struct BootFailedView: View {
   let message: String
   @State private var snapshot: DispatchSnapshot? = nil
   @State private var courses = false
+  @State private var offlineLive = false
   @State private var askSignOut = false
 
   private var signedIn: Bool { store.session != nil }
@@ -234,6 +245,14 @@ struct BootFailedView: View {
           .buttonStyle(.csPrimary())
 
         if signedIn {
+          if let owner = store.session?.user.id, let golfer = OfflineGolfer.read(owner: owner) {
+            Button("Score on this phone") {
+              LiveRoundStore.shared.prepareOffline(golfer)
+              offlineLive = true
+            }.buttonStyle(.csSecondary())
+            Text("Start or continue an offline scorecard. Review and post when you reconnect.")
+              .csType(.bodyS).foregroundStyle(cs.mut)
+          }
           if let s = snapshot { lastKnown(s) }
           Button { courses = true } label: {
             HStack(spacing: 8) {
@@ -257,6 +276,9 @@ struct BootFailedView: View {
     }
     .background(cs.bg0.ignoresSafeArea())
     .task { snapshot = DispatchSnapshot.read() }
+    .fullScreenCover(isPresented: $offlineLive) {
+      LiveRoundHost(links: LiveLinks(done: { offlineLive = false }))
+    }
     // OE-1 · the boot-failed door onto the courses this phone kept. It reads
     // `CourseDisk` and needs no session, so it works on this screen unchanged
     // — and it carries its own stack, because the course page inside it is a

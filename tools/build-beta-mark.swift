@@ -23,7 +23,7 @@ try FileManager.default.createDirectory(at: output, withIntermediateDirectories:
 let iconContourAlpha: CGFloat = {
   if let i = CommandLine.arguments.firstIndex(of: "--icon-alpha"), CommandLine.arguments.count > i + 1,
      let alpha = Double(CommandLine.arguments[i + 1]), (0...1).contains(alpha) { return CGFloat(alpha) }
-  return 0.12
+  return 0.132
 }()
 func draw(_ size: Int, contourAlpha: CGFloat = iconContourAlpha) -> Data {
   let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
@@ -58,7 +58,7 @@ func draw(_ size: Int, contourAlpha: CGFloat = iconContourAlpha) -> Data {
 if let flag = CommandLine.arguments.firstIndex(of: "--review"), CommandLine.arguments.count > flag + 1 {
   let review = URL(fileURLWithPath: CommandLine.arguments[flag + 1])
   try FileManager.default.createDirectory(at: review, withIntermediateDirectories: true)
-  for (name, alpha) in [("A-current", 0.09), ("B-slight", 0.12), ("C-moderate", 0.16)] {
+  for (name, alpha) in [("A-current", 0.12), ("B-plus-ten-percent", 0.132)] {
     try draw(1024, contourAlpha: alpha).write(to: review.appendingPathComponent(name + ".png"))
   }
 }

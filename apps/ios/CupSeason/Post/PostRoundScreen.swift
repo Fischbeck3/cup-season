@@ -18,6 +18,7 @@ struct PostRoundScreen: View {
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.scenePhase) private var scenePhase
   let links: PostLinks
   /// Where the flow lands when the ceremony and its sheets are done; nil = pop.
   var onDone: (() -> Void)? = nil
@@ -32,10 +33,16 @@ struct PostRoundScreen: View {
 
   var body: some View {
     Group {
-      if let model { PostRoundBody(model: model, links: links, pickPhoto: { present(.photo) }, pickScan: { present(.scan) }, onDone: finish) }
+      if let model { PostRoundBody(model: model, links: links, pickPhoto: { present(.photo) }, pickScan: { present(.scan) }, onDone: finish)
+          .disabled(model.busy)
+          .interactiveDismissDisabled(model.busy) }
       else { Color.clear }
     }
     .background(cs.bg0)
+    .onChange(of: scenePhase) { _, phase in
+      if phase != .active { model?.flushDraft() }
+    }
+    .onDisappear { model?.flushDraft() }
     .task {
       if model == nil {
         let m = PostRoundModel(store: store, toast: toast)
@@ -46,7 +53,9 @@ struct PostRoundScreen: View {
         // this round explicitly, and a half-typed draft must not overwrite it.
         if let lr = LiveRoundStore.shared.pendingPost {
           LiveRoundStore.shared.pendingPost = nil
-          if let st = await LiveDisk.shared.snapshotUnsynced(lr), let k = KeptCards.card(from: st) {
+          let local = (store.session?.user.id).flatMap { try? OfflineRounds.shared.round(owner: $0, id: lr) }
+          let remote = await LiveDisk.shared.snapshotUnsynced(lr)
+          if let st = local ?? remote, let k = KeptCards.card(from: st) {
             m.seed(KeptCards.compose(k), from: lr)
           }
         }
