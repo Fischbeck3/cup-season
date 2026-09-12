@@ -286,7 +286,7 @@ Most of the fix is already built: D333 makes live setup honest about a card it c
 
 ### 2026-09-12 · Gameplay · plan entry, items 12 and the evening rejection BUILT
 
-Two of the four plan-entry defects are built and unpushed: **D343** seats the host (`20261022090000`), **D344** gives the four plan-day guards one day of slack so evening golf can be organised in the evening (`20261023090000`). Both proven on a throwaway cluster. **Owed: `supabase db push`, the owner's to run.** No client change needed for either.
+Two of the four plan-entry defects are built and unpushed: **D343** seats the host (`20261022090000`), **D344** gives the four plan-day guards one day of slack so evening golf can be organised in the evening (`20261023090000`). **Both APPLIED in prod 2026-09-12 and verified: 4 of 4 guards read `plan_day_floor()`, 0 future plans unseated, db-check 33 PASS, 33 checks 0 failing.** Nothing owed. No client change needed for either.
 
 Two left, and my read on one of them changed after looking at the code:
 
@@ -295,7 +295,7 @@ Two left, and my read on one of them changed after looking at the code:
 
 ### 2026-09-12 · Gameplay · plan entry, item 12 BUILT; three left
 
-**Item 12 is built** (D343, migration `20261022090000_the_host_has_a_seat.sql`, unpushed): `declare_round` now seats the host. Owner ruled "write it then let's build it". Proven on a throwaway cluster, not on prod. **Owed: `supabase db push`** — it is the owner's to run.
+**Item 12 is built AND APPLIED** (D343, `20261022090000`, pushed and verified 2026-09-12 — prod at 231 migrations): `declare_round` now seats the host. Owner ruled "write it then let's build it". Proven on a throwaway cluster, not on prod. **Owed: `supabase db push`** — it is the owner's to run.
 
 The other three plan-entry defects, in the order I would take them:
 
