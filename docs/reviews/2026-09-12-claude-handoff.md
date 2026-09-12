@@ -179,3 +179,57 @@ convention will not find it.
 **Codex:** findings A, B and C above, and the merge when you integrate.
 **Claude:** idle on the plan path until the owner rules on the tee-less course,
 or the after-golf contract is unfrozen.
+
+---
+
+## How to push D343 and D344 when someone is at the machine
+
+**Not yet applied.** Production is still at `20261021090000`, 229 migrations,
+unchanged. Added 2026-09-12 after the owner was away from the machine and my
+session's safety classifier refused the push, which is the same answer
+CLAUDE.md gives: `db push` stays with a human.
+
+**It cannot be pushed from `claude/after-golf-audit` directly.** That branch is
+based on `origin/main`, which does not carry `20261021090000` — Codex's
+idempotent-phone-rounds migration, already applied in production. Pushing from
+a tree whose migration folder is missing an applied version is exactly the kind
+of history mismatch not worth discovering against production.
+
+Three commands. They build a throwaway tree that holds the full applied history
+plus these two, borrow the existing project link, push, and clean up:
+
+```sh
+git -C ~/cup-season-after-golf worktree add --detach /tmp/cs-push 95b4cb0
+cp ~/cup-season-after-golf/supabase/migrations/2026102[23]*.sql /tmp/cs-push/supabase/migrations/
+cp -r ~/cup-season-round-receipt-voice/supabase/.temp /tmp/cs-push/supabase/
+
+cd /tmp/cs-push && supabase migration list --linked     # expect exactly 2 local-only, 0 remote-only
+cd /tmp/cs-push && supabase db push --linked
+
+git -C ~/cup-season-after-golf worktree remove /tmp/cs-push --force
+```
+
+I ran everything except the push itself and confirmed the pending set was
+exactly `20261022090000` and `20261023090000`, with no remote-only versions.
+
+**Simpler alternative once the branches are merged:** after the merge described
+above, the migration folder is complete on one branch and
+`supabase db push --linked` works from that worktree with no staging at all.
+That is the better path if the merge happens first.
+
+**After the push, two things should be true:**
+
+```sh
+# db-check 33 flips from FAIL to PASS
+supabase db query --linked --output-format text -f tests/db-checks.sql | grep "33 ·"
+```
+
+and both self-checks will already have run inside the migrations — they raise
+rather than warn, so a successful push is itself the proof that the host is
+seated and that all four plan guards read `plan_day_floor()`.
+
+**What is affected while they wait.** Nothing regresses; production is exactly
+as it was. But D344 is a live bug fix, so until it is pushed the four plan
+doors keep closing for roughly seven hours every evening in Phoenix, which is
+the window in which evening golf is actually organised. D343's seat is cosmetic
+by comparison and can wait indefinitely.
