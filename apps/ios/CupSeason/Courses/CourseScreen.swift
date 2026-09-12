@@ -157,6 +157,11 @@ struct CourseScreen: View {
       // something the reader can simply open. The DOOR stays and moves to the
       // foot, where reference belongs.
       if vm.book != nil {
+        Button("Put it on the plan") {
+          presenter.declare = DeclarePrefill(course: vm.title, courseId: vm.courseId)
+        }
+        .buttonStyle(.csTertiary(.content))
+        .accessibilityIdentifier("course.plan")
         NavigationLink { CourseWholeCardScreen(book: book, openOn: vm.tee(in: book)) } label: { Text("The whole card") }
           .buttonStyle(.csTertiary(.content))
       }

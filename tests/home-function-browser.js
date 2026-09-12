@@ -4,7 +4,7 @@
 (async function(){
   const check=(ok,label)=>{if(!ok)throw new Error(label)};
   const until=async(test,label)=>{for(let i=0;i<100;i++){if(test())return;await new Promise(r=>setTimeout(r,20));}throw new Error(label);};
-  const saved={demo:state.demo,rows:DEMO_FEED.slice(),receipt:openRoundReceipt,rpc:window.sb.rpc,user:window.CS.user,spent:window.__spentRounds};
+  const saved={demo:state.demo,rows:DEMO_FEED.slice(),receipt:openRoundReceipt,rpc:window.sb.rpc,user:window.CS.user,spent:window.__spentRounds,dispatch:window.homeDispatch,rx:window.homeRx,feed:window.homeFeedRows,posts:window.homePosts,write:rxWrite};
   let openedRound=null,openedGolfer=null;
   const bad='data:image/png;base64,aW52YWxpZA==';
   const good='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1sAAAAASUVORK5CYII=';
@@ -12,11 +12,19 @@
     state.demo=true;window.__spentRounds=new Set();
     openRoundReceipt=r=>{openedRound=r;};
     window.CS.user={id:'a0000000-0000-4000-8000-000000000099'};
+    const dispatchCalls=[];
     window.sb.rpc=async(name,args)=>{
+      if(name==='home_dispatch'){
+        dispatchCalls.push(args);
+        return args.p_today ? {data:null,error:{code:'PGRST202'}} : {data:{items:[]},error:null};
+      }
       if(name==='tour_card'){openedGolfer=args.p_profile;return {data:{visible:false},error:null};}
       if(name==='my_friends')return {data:[],error:null};
       throw new Error('Unexpected audit RPC: '+name);
     };
+    state.demo=false;await loadHomeDispatch();state.demo=true;
+    check(dispatchCalls.length===2 && dispatchCalls[0].p_today===isoAgo(0) && !('p_today' in dispatchCalls[1]),'Home local-day old-server retry failed');
+    check(window.homeDispatch?.items.length===0,'Home retry discarded a valid reply');
     DEMO_FEED.splice(0,DEMO_FEED.length,
       {round_id:'a0000000-0000-4000-8000-000000000001',profile_id:'a0000000-0000-4000-8000-000000000011',golfer:'You',marker:'azalea',gross:84,pvi:0,course:'Oak Quarry',played_on:isoAgo(0),is_me:true,photo_url:bad,rx:{}},
       {round_id:'a0000000-0000-4000-8000-000000000002',profile_id:'a0000000-0000-4000-8000-000000000012',golfer:'Sam',marker:'jug',gross:79,course:'Papago',played_on:isoAgo(1),is_pr:true,rx:{}});
@@ -49,7 +57,19 @@
     check(document.activeElement===visible()[0],'Reaction reveal lost keyboard focus');
     visible()[0].click();check(visible().length===1 && visible()[0].textContent==='1','Selection did not collapse to actual count');
     check(!openedRound,'Reaction opened the receipt');
+    check(document.activeElement===visible()[0],'Reaction selection lost focus');
     visible()[0].click();check(!visible().length && row().textContent.includes('React'),'Removal did not restore invitation');
+    check(document.activeElement===row().querySelector('[data-hreact]'),'Reaction removal lost focus');
+    // Exercise the real optimistic/rollback render with an isolated failed write.
+    window.homeFeedRows=DEMO_FEED;window.homePosts=[];
+    window.homeRx={post:{[DEMO_FEED[0].round_id]:{post_id:'qa-post',league_id:null}},kud:{'qa-post':{}},names:{}};
+    rxWrite=async()=>({message:'Deliberate local reaction failure'});
+    state.demo=false;renderHomeFeed();
+    row().querySelector('[data-hreact]').click();
+    const choice=visible()[0];choice.focus();const emoji=choice.dataset.e;
+    await toggleHomeRx(DEMO_FEED[0],emoji);
+    check(!visible().length && document.activeElement===row().querySelector('[data-hreact]'),'Failed reaction lost restored invitation focus');
+    rxWrite=saved.write;state.demo=true;renderHomeFeed();
     const photoURL=DEMO_FEED[0].photo_url;DEMO_FEED[0].photo_url=good;renderHomeFeed();
     await until(()=>first().querySelector('.hsbg')?.naturalWidth>0,'Refreshed image did not load');
     check(first().classList.contains('hfstory'),'Successful image lost its photo treatment');
@@ -73,6 +93,6 @@
     return {passed:true};
   }finally{
     state.demo=saved.demo;DEMO_FEED.splice(0,DEMO_FEED.length,...saved.rows);openRoundReceipt=saved.receipt;window.sb.rpc=saved.rpc;window.CS.user=saved.user;window.__spentRounds=saved.spent;
-    homeFailedPhotos.delete(bad);
+    homeFailedPhotos.delete(bad);window.homeDispatch=saved.dispatch;window.homeRx=saved.rx;window.homeFeedRows=saved.feed;window.homePosts=saved.posts;rxWrite=saved.write;
   }
 })()

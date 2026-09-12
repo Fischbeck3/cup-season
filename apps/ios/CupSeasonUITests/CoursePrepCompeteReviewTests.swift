@@ -1,6 +1,29 @@
 import XCTest
 
 final class CoursePrepReviewTests: XCTestCase {
+  @MainActor func testKeptCourseOpensPrefilledPlan() throws {
+    let app = XCUIApplication()
+    for room in ["light", "dark"] {
+      app.launchArguments = ["-cs_dev_open", "coursecard", "-cs_dev_scroll", "rounds", "-cs_dev_look", "none", "-cs_dev_appearance", room]
+      app.terminate(); app.launch()
+      let plan = app.buttons["course.plan"]
+      XCTAssertTrue(plan.waitForExistence(timeout: 30))
+      for _ in 0..<10 where !plan.isHittable { app.swipeUp() }
+      XCTAssertTrue(plan.isHittable)
+      capture(app, "kept-course-plan-door-" + room)
+      plan.tap()
+      let title = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Put a round on the schedule")).firstMatch
+      XCTAssertTrue(title.waitForExistence(timeout: 10))
+      let course = app.textFields.firstMatch
+      XCTAssertTrue(course.waitForExistence(timeout: 10))
+      let value = course.value as? String ?? ""
+      XCTAssertFalse(value.isEmpty)
+      XCTAssertFalse(value.localizedCaseInsensitiveContains("Search a course"))
+      capture(app, "kept-course-prefilled-plan-" + room)
+      app.terminate() // Inspect only; never submit the plan.
+    }
+  }
+
   @MainActor func testSaveBajamarThenUseItWithoutNetwork() throws {
     let app = XCUIApplication()
     app.launchArguments = ["-cs_dev_open", "live", "-cs_dev_look", "none", "-cs_dev_appearance", "light"]

@@ -133,16 +133,18 @@ public struct HomeStreamRepository: Sendable {
   /// Hand-declared rather than generated, because the migration that creates
   /// the function is written and unpushed — the documented shape while a
   /// migration awaits its contract refresh (preflight 17 tolerates it and
-  /// still demands the grant). `p_days` is optional on both sides.
+  /// still demands the grant). `p_today` is retried without the argument on
+  /// an older server; preserve the requested `p_days` on that retry.
   ///
   /// nil means "the ranker could not be reached", which is a DIFFERENT answer
   /// from "the ranker returned nothing": the first renders `HomeFallbackItems`,
   /// the second renders an honest, shorter Home.
   struct DispatchCall: RpcCall {
     static let name = "home_dispatch"
-    static let optionalArgs: [String] = ["p_days"]
+    static let optionalArgs: [String] = ["p_today"]
     typealias Returns = HomeDispatch.Payload
     var p_days: Int?
+    var p_today: String? = CSDate.today()
   }
 
   public func dispatch(days: Int = 21) async -> HomeDispatch.Payload? {

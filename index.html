@@ -16416,6 +16416,11 @@ function renderHomeFeed(){
           + `<span class="hl cs-body-s">${esc(csNotesLine(fold.notes))}</span>`
           + `<span class="hs cs-agate-s">The board</span></button>`;
   }
+  const focused=document.activeElement;
+  const focusChip=box.contains(focused) ? focused.closest('[data-hrx],[data-hreact]') : null;
+  const focusRow=focusChip?.closest('[data-hfr]');
+  const focusRound=focusRow ? src[+focusRow.dataset.hfr]?.round_id : null;
+  const focusEmoji=focusChip?.dataset.e;
   box.innerHTML = html
     || '<p class="fine" style="padding:0">No rounds from your buddies yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add some buddies</a>.</p>';
   box.querySelectorAll('[data-notes]').forEach(el=>el.addEventListener('click',()=>{
@@ -16426,6 +16431,17 @@ function renderHomeFeed(){
   wireHomeSocial(box);
   wireFeedReceipts(box);
   wireHomePhotos(box);
+  if(focusRound){
+    const idx=src.findIndex(r=>r.round_id===focusRound);
+    const card=box.querySelector(`[data-hfr="${idx}"]`);
+    const expanded=card?.closest('details');
+    if(expanded) expanded.open=true;
+    const chips=[...(card?.querySelectorAll('[data-hrx]')||[])];
+    const next=chips.find(b=>b.dataset.e===focusEmoji && b.getClientRects().length)
+      || card?.querySelector('[data-hreact]') || card;
+    next?.focus({preventScroll:true});
+  }
+
   /* SF-6: the just-posted card landed here first — arm it, retire the flag */
   if(box.querySelector('.sfc:not(.go)')){ sfGo(box); window._sfRid=null; }
 }
@@ -16787,8 +16803,9 @@ async function loadHomeDispatch(){
   if(window.csHomeState){ window.homeDispatch = await csLoadHomeStateFixture(window.csHomeState); return; }
   if(state.demo || !window.sb || !CS?.user) return;
   try{
-    const { data, error } = await window.sb.rpc('home_dispatch', { p_days: 21 });
-    if(!error && data) window.homeDispatch = data;
+    let reply = await window.sb.rpc('home_dispatch', { p_days: 21, p_today: isoAgo(0) });
+    if(reply.error) reply = await window.sb.rpc('home_dispatch', { p_days: 21 });
+    if(!reply.error && reply.data) window.homeDispatch = reply.data;
   }catch(_){ /* skew: an un-migrated database renders the fallback, never an error */ }
 }
 window.loadHomeDispatch = loadHomeDispatch;

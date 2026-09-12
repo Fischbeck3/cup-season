@@ -7,11 +7,9 @@
 -- asked about it was never asked. Inbox items 16, 28 and 29 are the same hole
 -- seen from three sides.
 --
--- THIS MIGRATION IS THE SERVER HALF ONLY. It needs no client release: the new
--- item uses the sixteen keys the shape already has, its route is `composer`,
--- which both shipped clients already decode, and an unknown tier falls to the
--- lowest band by design. A client that sends no `p_today` behaves exactly as
--- it does today.
+-- Clients opt into the new band by supplying their local p_today. Older
+-- callers retain the existing Home without a premature after-golf prompt.
+-- The route remains composer and uses the existing payload shape.
 --
 -- WHAT IS DELIBERATELY NOT HERE. `rounds` still carries no pointer to the plan
 -- it was played on (inbox 28). Suppression is therefore a HEURISTIC — same
@@ -68,7 +66,7 @@ declare
   sr    scheduled_rounds%rowtype;
 begin
   if v is null then raise exception 'Sign in first'; end if;
-  if p_answer not in ('later','didnt_play') then raise exception 'That is not an answer'; end if;
+  if p_answer is null or p_answer not in ('later','didnt_play') then raise exception 'That is not an answer'; end if;
   select * into sr from scheduled_rounds where id = p_plan;
   if sr.id is null then raise exception 'That round is not on the schedule'; end if;
   -- PARTICIPATION, not visibility. `can_see_round` admits every league mate
@@ -82,7 +80,8 @@ begin
   values (p_plan, v, p_answer,
           case when p_answer = 'later' then v_day + 1 else null end)
   on conflict (scheduled_round_id, profile_id) do update
-     set answer = excluded.answer, snooze_until = excluded.snooze_until, updated_at = now();
+     set answer = excluded.answer, snooze_until = excluded.snooze_until, updated_at = now()
+   where plan_followups.answer <> 'didnt_play';
 end $fn$;
 revoke all on function public.answer_plan_followup(uuid, text, date) from public, anon;
 grant execute on function public.answer_plan_followup(uuid, text, date) to authenticated;
@@ -141,6 +140,21 @@ begin
   end;
   if v_me is null then
     return jsonb_build_object('me', null, 'items', '[]'::jsonb, 'generated_at', now());
+  end if;
+
+  -- native_home's legacy read starts on the server day. Refresh its existing
+  -- schedule shape when the caller's calendar differs, before ranking it.
+  if p_today is not null and v_today <> current_date then
+    declare v_schedule jsonb;
+    begin
+      begin
+        select coalesce(jsonb_agg(to_jsonb(s)), '[]'::jsonb) into v_schedule
+          from my_schedule(v_today, v_today + 14) s;
+      exception when others then
+        v_schedule := '[]'::jsonb;
+      end;
+      v_me := jsonb_set(v_me, '{upcoming_rounds}', v_schedule);
+    end;
   end if;
 
   v_rounds  := coalesce((v_me #>> '{profile,rounds_count}')::int, 0);
@@ -690,7 +704,8 @@ begin
              coalesce(firstname(p.display_name), 'A golfer') as who
         from scheduled_rounds sr
         join profiles p on p.id = sr.profile_id
-       where sr.play_on between v_today - 3 and v_today - 1
+       where p_today is not null
+         and sr.play_on between v_today - 3 and v_today - 1
          and (sr.profile_id = v or v = any(coalesce(sr.tagged, '{}'::uuid[])))
          and not exists (select 1 from round_rsvp r
                           where r.round_id = sr.id and r.profile_id = v
@@ -709,7 +724,7 @@ begin
     ) x
   loop
     declare
-      j     jsonb := e.j;
+      j     jsonb := e;
       v_ago int   := v_today - (j->>'play_on')::date;
       v_dw  text  := case when v_today - (j->>'play_on')::date = 1 then 'yesterday'
                           else to_char((j->>'play_on')::date, 'FMDay') end;
@@ -727,8 +742,8 @@ begin
                            || case when nullif(j->>'course_label', '') is not null
                                    then ' · ' || upper(j->>'course_label') else '' end,
         'headline',      case when coalesce((j->>'mine')::boolean, false)
-                              then 'You had a round ' || v_dw || '.'
-                              else 'You were out with ' || (j->>'who') || ' ' || v_dw || '.' end,
+                              then 'You planned a round for ' || v_dw || '.'
+                              else (j->>'who') || ' had you on the plan for ' || v_dw || '.' end,
         'standfirst',    'Nothing posted yet.',
         -- L-32 · the door must be one that works on every shipped build. The
         -- plan route opens the plan SHEET on the phone and the schedule LIST

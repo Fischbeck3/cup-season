@@ -23,7 +23,14 @@ struct HomeNoPhotoFixture: View {
         Text("This week").csType(.display).padding(.bottom, CSTokens.Space.s3)
         ForEach(Array(examples.enumerated()), id: \.offset) { index, row in
           CSRule()
-          if ProcessInfo.processInfo.arguments.contains("-cs_dev_failed_photo") {
+          if ProcessInfo.processInfo.arguments.contains("-cs_dev_loaded_photo") {
+            // A labelled render fixture for the successful photo state; no network.
+            HomeWireBand(row: row, photo: URL(string: "about:blank")!,
+                         open: { destination = "Round · \(row.course ?? "")" },
+                         openPerson: { destination = "Golfer · \(row.golfer ?? "")" })
+              .band(Image(systemName: "photo"))
+              .padding(.horizontal, -CSTokens.Space.gutter)
+          } else if ProcessInfo.processInfo.arguments.contains("-cs_dev_failed_photo") {
             HomeWireBand(row: row, photo: URL(string: "data:image/png;base64,invalid")!,
                          open: { destination = "Round · \(row.course ?? "")" },
                          openPerson: { destination = "Golfer · \(row.golfer ?? "")" })

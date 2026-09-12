@@ -102,7 +102,7 @@ struct HomeWireBand: View {
     }
   }
 
-  private func band(_ image: Image) -> some View {
+  func band(_ image: Image) -> some View {
     Button(action: open) {
       ZStack(alignment: .bottomLeading) {
         image.resizable().scaledToFill()
@@ -125,6 +125,8 @@ struct HomeWireBand: View {
         .padding(CSTokens.Space.s3)
         HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
           CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
             .onTapGesture { openPerson() }
           VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
             // §1.3 · a person in a wire row is never caps.
@@ -152,6 +154,7 @@ struct HomeWireBand: View {
     .accessibilityLabel("\(name). \(line)")
     .accessibilityHint("Opens the round")
     .accessibilityAction(named: Text("Open golfer"), openPerson)
+    .accessibilityIdentifier("home.round.photo")
   }
 }
 

@@ -30,6 +30,13 @@ sorting.
 
 ---
 
+
+### 2026-09-12 · Release preparation · integrated and inspected
+
+Current status supersedes older release-window notes below: Claude's completed `040dcd2` handoff is integrated. D343/D344 are already applied; D345 remains held. Its reproduced runtime error, date compatibility, factual copy and terminal-answer behavior are corrected locally with actual-RPC regression coverage. Both clients now pass the local date with an old-server retry; keep the native local headline compatibility correction. The course-page planning door, loaded-photo 44pt target and web reaction focus are fixed and exercised.
+
+Release inspection and evidence: `docs/reviews/2026-09-12-testflight-preparation.md`. Preparing a clean archive/export does not upload it or deploy the pending database feature. Later / Didn't play controls, plan-to-round prefill/linkage, and the tee-less course work remain separate follow-ups.
+
 ## Raw — drop anything here
 
 **2026-09-09, from the owner:**

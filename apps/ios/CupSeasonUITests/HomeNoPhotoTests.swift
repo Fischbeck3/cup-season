@@ -1,6 +1,24 @@
 import XCTest
 
 final class HomeNoPhotoTests: XCTestCase {
+  @MainActor func testLoadedPhotoFaceAndRoundHaveDistinctDestinations() {
+    let app = XCUIApplication()
+    app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_loaded_photo", "-cs_dev_text_size", "large", "-cs_dev_look", "none"]
+    app.terminate(); app.launch()
+    let photo = app.descendants(matching: .any)["home.round.photo"].firstMatch
+    XCTAssertTrue(photo.waitForExistence(timeout: 20))
+    XCTAssertEqual(photo.frame.height, 168, accuracy: 1)
+    let shot = XCTAttachment(screenshot: app.screenshot())
+    shot.name = "Loaded photo control fixture"; shot.lifetime = .keepAlways; add(shot)
+    // The 44pt face starts at the 20pt gutter and ends 12pt above the band bottom.
+    photo.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 42, dy: 134)).tap()
+    XCTAssertTrue(app.staticTexts["Golfer · You"].waitForExistence(timeout: 5))
+    app.terminate(); app.launch()
+    XCTAssertTrue(photo.waitForExistence(timeout: 20))
+    photo.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)).tap()
+    XCTAssertTrue(app.staticTexts["Round · Oak Quarry"].waitForExistence(timeout: 5))
+  }
+
   @MainActor func testUnavailablePhotoKeepsReceiptPersonAndReactionDoors() {
     let app = XCUIApplication()
     app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_failed_photo", "-cs_dev_text_size", "ax3", "-cs_dev_look", "none"]

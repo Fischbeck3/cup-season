@@ -18,6 +18,14 @@ import Foundation
 @testable import CupSeasonKit
 
 @Suite struct HomeDispatchDecodeTests {
+  @Test func dispatchSendsLocalDayAndOnlyDropsItForAnOlderServer() throws {
+    let call = HomeStreamRepository.DispatchCall(p_days: 21, p_today: "2026-09-12")
+    let args = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(call)) as? [String: Any])
+    #expect(args["p_today"] as? String == "2026-09-12")
+    #expect(args["p_days"] as? Int == 21)
+    #expect(HomeStreamRepository.DispatchCall.optionalArgs == ["p_today"])
+  }
+
 
   struct Case: Decodable {
     let state: String

@@ -75,3 +75,8 @@ Edge deploy owed: none for this setup.
 Client deploy owed: none for this document; prior client changes remain unreleased.
 Open questions / risks: the after-golf contract is a proposal; Claude's regression findings still require Codex disposition; Codex branch has no upstream.
 Recommended next step: Claude continues the bounded contract review above while Codex resolves the Home regression findings.
+
+
+## Release checkpoint · 2026-09-12
+
+The owner subsequently approved D343–D345 in Claude's session and handed off `040dcd2`. Codex integrated that completed branch at `05beb49`; the earlier proposal/assignment status above is historical. D343/D344 are applied, D345 is held. The owner then authorised full TestFlight preparation and function/quality inspection. Current scope, fixes, evidence and remaining release boundary: [TestFlight preparation](2026-09-12-testflight-preparation.md). The owned workspace and branch remain unchanged. Archive/export is authorised preparation; no upload or production migration is implied.
