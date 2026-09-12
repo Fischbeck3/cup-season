@@ -31,6 +31,13 @@ sorting.
 ---
 
 
+### 2026-09-12 · Vision / next build · proposal drafted while signing is held
+
+The owner asked to expand the vision, inspect app/branding and make Codex/Claude ownership seamless. The vision now has a clearly marked expansion draft; original requirements remain preserved. Proposed order: complete the week of golf, deepen the existing Record, then improve group continuity. Brand proof work runs alongside the first wave. Source findings, stale-document conflicts and acceptance gates: `docs/planning/2026-09-12-next-chapter.md`. Current file ownership, task status and Claude's next bounded review prompt: `docs/planning/ACTIVE_WORK.md`.
+
+This is an ideation/plan checkpoint, not approval of new mechanics, a final mark or production deployment. Build 815 stays intact. Course opinions and the Record already exist; extend/reconcile them rather than inventing duplicate features.
+
+
 ### 2026-09-12 · Release preparation · integrated and inspected
 
 Current status supersedes older release-window notes below: Claude's completed `040dcd2` handoff is integrated. D343/D344 are already applied; D345 remains held. Its reproduced runtime error, date compatibility, factual copy and terminal-answer behavior are corrected locally with actual-RPC regression coverage. Both clients now pass the local date with an old-server retry; keep the native local headline compatibility correction. The course-page planning door, loaded-photo 44pt target and web reaction focus are fixed and exercised.

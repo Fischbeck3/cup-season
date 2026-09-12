@@ -80,3 +80,8 @@ Recommended next step: Claude continues the bounded contract review above while 
 ## Release checkpoint · 2026-09-12
 
 The owner subsequently approved D343–D345 in Claude's session and handed off `040dcd2`. Codex integrated that completed branch at `05beb49`; the earlier proposal/assignment status above is historical. D343/D344 are applied, D345 is held. The owner then authorised full TestFlight preparation and function/quality inspection. Current scope, fixes, evidence and remaining release boundary: [TestFlight preparation](2026-09-12-testflight-preparation.md). The owned workspace and branch remain unchanged. Archive/export is authorised preparation; no upload or production migration is implied.
+
+
+## Next expansion · 2026-09-12
+
+The owner chose to continue product expansion while release signing is blocked, and requested vision/brand ideation and a coordinated build plan. Current queue and file ownership now live in [ACTIVE_WORK.md](../planning/ACTIVE_WORK.md); the assignments earlier in this file are historical checkpoints. This update does not start an automatic Claude session or authorise production changes.
