@@ -75,7 +75,9 @@ Build number after the merge is about **804** (`git rev-list --count HEAD`).
 
 Detail in `git show c7236ea:docs/reviews/2026-09-12-home-fixes-inspection.md`.
 
-1. **The photo band has no VoiceOver route to the golfer** and its face is
+1. ~~**The photo band has no VoiceOver route to the golfer**~~ **WRONG, corrected — the action is at `HomeWire.swift:154` and always was.** What survived is only the 44pt target, which Codex has fixed.
+   <!-- original: -->
+   **The photo band has no VoiceOver route to the golfer** and its face is
    under 44pt (`HomeWire.swift:126-152`). Your fix reached the loading and
    failure states and not the loaded photograph, so the placeholder is now more
    accessible than the photo. **Pre-existing on the band, additive to fix.**

@@ -76,6 +76,17 @@ test gains four genuine assertions. Nothing became conditional.
 
 ## New finding · the destination fix reached two of a photo row's three states
 
+> **CORRECTION, 2026-09-12.** This finding is **wrong** and Codex was right to
+> reject it. `b61024d` already carries
+> `.accessibilityAction(named: Text("Open golfer"), openPerson)` on the **loaded**
+> band at `HomeWire.swift:154`. I read the band's body to line 152 and stopped
+> one line short of the modifier I was claiming was absent. VoiceOver has always
+> had a route to the golfer on a photo row. **What survives** is the smaller
+> half: the face was a bare `.onTapGesture` under the 44pt target its sibling
+> states had, and Codex has since given it one. The accessibility claim should
+> not have been made.
+
+
 **CONFIRMED.** Severity: moderate. Accessibility and tap target, not data.
 
 A photo row has three states, and this commit treated them differently:
