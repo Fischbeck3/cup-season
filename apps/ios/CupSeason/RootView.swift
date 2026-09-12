@@ -91,6 +91,14 @@ struct RootView: View {
       if CrewFlag.take(me) { crewing = true }
     }
     #if DEBUG
+    .overlay {
+      if ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") {
+        RoundSharePreview(recap: PostRecap(name: "QA golfer", marker: "",
+          gross: 91, pvi: nil, points: nil, course: "QA course · fixture",
+          date: "2026-09-11", badge: nil), photo: nil)
+          .background(cs.bg0.ignoresSafeArea())
+      }
+    }
     // `-cs_dev_door`: the door over the root whatever the session is, so a
     // simulator signed in to a real account can show it without signing out.
     .overlay { if DoorDev.forced { DoorView().background(cs.bg0.ignoresSafeArea()) } }
@@ -181,6 +189,7 @@ struct BootingView: View {
     // step keeps the web's `bootStep` breadcrumb visible under it.
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       CSBrandLockup()
+        .background(alignment: .trailing) { CSTopoField().frame(width: 100, height: 60) }
       CSRule(.heavy)
       Text(step).csType(.agate, caps: true).foregroundStyle(cs.mut)
     }

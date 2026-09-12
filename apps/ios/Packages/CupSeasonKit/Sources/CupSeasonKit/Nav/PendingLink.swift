@@ -70,12 +70,12 @@ public enum PendingLink: String, Sendable, Equatable, CaseIterable {
   /// rather than meeting a bare email box (IOS-033).
   public static func doorLine(defaults: UserDefaults = .standard) -> String? {
     if let j = JoinIntent.pending(defaults: defaults) {
-      return j.name.map { "You're joining \($0). Sign in and you're on the roster." }
-        ?? "You're joining a season. Sign in and you're on the roster."
+      return j.name.map { "You're joining \($0). Sign in to review and join." }
+        ?? "You're joining a season. Sign in to review and join."
     }
-    if claim.isPending(defaults: defaults) { return "A round is waiting to be yours. Sign in and it attaches." }
-    if person.isPending(defaults: defaults) { return "Somebody sent you their card. Sign in and you're buddies." }
-    if plan.isPending(defaults: defaults) { return "There's a round on. Sign in and take the seat." }
+    if claim.isPending(defaults: defaults) { return "A round is waiting. Sign in to review it." }
+    if person.isPending(defaults: defaults) { return "Someone shared their golfer card. Sign in to view it." }
+    if plan.isPending(defaults: defaults) { return "You’ve been invited to a round. Sign in to view the plan." }
     return nil
   }
 }

@@ -26,7 +26,6 @@ import CSDesign
 import CupSeasonKit
 
 struct StandingsTableView: View {
-  var openSeason: (() -> Void)? = nil
   @Environment(LeagueRoomModel.self) private var model
   @Environment(RoomRouter.self) private var router
   @Environment(\.roomLinks) private var links
@@ -180,8 +179,7 @@ struct StandingsTableView: View {
     // AX3 the rail simply draws its numeral where it belongs.
     let flips = flipOnce && pr != nil && pr != i && !typeSize.isA11y
     Button {
-      if let openSeason { openSeason() }
-      else if solo, let r = model.indRow(t.id) { router.open(.member(r)) } else { router.open(.squad(t)) }
+      if solo, let r = model.indRow(t.id) { router.open(.member(r)) } else { router.open(.squad(t)) }
     } label: {
       CSSlat(rank: rank,
              field: leader ? .earned : (mine ? .mine : .none),
@@ -205,7 +203,7 @@ struct StandingsTableView: View {
       .overlay(alignment: .leading) {
         if flips {
           RankFlipText(text: String(format: "%02d", rank), flip: true,
-                       tone: leader ? cs.gold : (mine ? cs.panelInk : cs.ink))
+                       tone: leader || mine ? cs.panelInk : cs.ink)
             .frame(width: CSTokens.Space.rail)
             .frame(maxHeight: .infinity)
             .allowsHitTesting(false)

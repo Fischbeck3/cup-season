@@ -288,12 +288,11 @@ struct LiveSettlementCard: View {
     let won = r.winner != nil
     let wSide = r.winner == "0" ? r.sideA : r.sideB, lSide = r.winner == "0" ? r.sideB : r.sideA
     ZStack {
-      d.ceremony
-      // the object's own edge — the folio rule, not a border token
-      Rectangle().stroke(d.ceremonyGold.opacity(CSTokens.Alpha.a24), lineWidth: 2).padding(36)
+      d.bg0
+      CSBrandMark(ground: d.bg0).frame(width: 112, height: 64).position(x: 124, y: 82)
       VStack(spacing: 0) {
         Text(game).csFixed(.agate, 32).textCase(.uppercase)
-          .tracking(8).foregroundStyle(d.ceremonyGold).padding(.top, 130)
+          .tracking(8).foregroundStyle(d.ceremonyMut).padding(.top, 130)
         Spacer(minLength: 0)
         Group {
           if twoSided, won {
@@ -367,13 +366,12 @@ struct LiveSettlementCard: View {
           .padding(.top, 50).padding(.horizontal, 100)
         Text(LiveSettlementCard.dateLine(date)).csFixed(.agate, 27).tracking(4)
           .foregroundStyle(d.ceremonyMut).padding(.top, 24)
-        Text("Cup Season").csFixed(.display, 50).textCase(.uppercase)
-          .tracking(2).foregroundStyle(d.ceremonyInk).padding(.top, 70)
-        Text("cupseason.app").csFixed(.agate, 25).tracking(4)
-          .foregroundStyle(d.ceremonyMut).padding(.top, 12).padding(.bottom, 100)
+        CSArtifactFooter().padding(.horizontal, 64).padding(.top, 52).padding(.bottom, 64)
       }
     }
     .frame(width: W, height: H)
+    .environment(\.cs, d)
+    .environment(\.colorScheme, .dark)
   }
 
   /// "SAT · AUG 22"

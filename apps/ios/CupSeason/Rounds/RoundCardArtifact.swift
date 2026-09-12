@@ -45,50 +45,19 @@ struct RoundCardArtifact: View {
     cell: 80, total: 120, label: 96, row: 62, key: 30, score: 44, blockGap: 40)
 
   var body: some View {
-    ZStack {
-      bg
-      // §27 · NO PANEL FRAME. `RecapCardView` draws a gold-hairline rounded
-      // rectangle inside its own margin; on an artifact whose subject is a
-      // GRID, a second rectangle around the grid is the border the brief calls
-      // visual debt outright, and the ceremony ground is already the object's
-      // edge. It is also the one shape LINT-10 counts outside CSDesign.
-
-      // Identity above everything — the marker is WHO, before what. It carries
-      // no ring: `RecapCardView` circles its marker, but a ring drawn around a
-      // glyph on an artifact whose subject is already a ruled grid is the
-      // second outline on one canvas, and §27 names an unnecessary border
-      // outright. The marker at 100 on the ceremony ground is the mark.
-      CSMarkerView(key: recap.marker, size: 100, lineWidth: 2)
-        .foregroundStyle(gold).position(x: 540, y: 152)
-
-      line(recap.nameLine, y: 292, "IBMPlexMono-SemiBold", 38, ink, tracking: 7)
-      line(recap.courseLine, y: 348, "IBMPlexMono-SemiBold", 32, mut, tracking: 4)
-
-      // THE CARD, printed on the artifact's own ground rather than on paper —
-      // a leaf inside a dark artifact is a second object inside the object,
-      // which is what §32 is about. `over: .ceremony` is the system's own
-      // vocabulary for that (`CSRule.Ground`), so the component reads the
-      // ceremony ramp with no palette rebuilt at this call site.
-      CSScorecard(RoundCardBlocks.build(card, mine: mine), over: .ceremony, fixed: Self.fixed)
-        .frame(width: 936)
-        // Positioned by its CENTRE, so a card with no par row (or no index)
-        // stays in the middle of its own band rather than dragging the
-        // furniture under it up the canvas. The two blocks at full height run
-        // 410–970; the band below them starts at 1046.
-        .position(x: 540, y: 690)
-
-      if let band = recap.bandLine {
-        line(band, y: 1046, "IBMPlexMono-SemiBold", 42, gold, tracking: 9)
+    CSArtifactFrame("Scorecard") {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+        Text(recap.course.isEmpty ? "A round" : recap.course)
+          .csFixed(.lead, 62).lineLimit(2).minimumScaleFactor(0.6)
+        Text(recap.nameLine).csFixed(.name, 38).lineLimit(2).minimumScaleFactor(0.7)
+        Text(subhead).csFixed(.columnS, 28).foregroundStyle(mut)
+        CSScorecard(RoundCardBlocks.build(card, mine: mine), over: .ceremony, fixed: Self.fixed)
+          .frame(width: 936).padding(.vertical, 52)
+        if let band = recap.bandLine {
+          Text(band).csFixed(.story, 42).lineLimit(2).minimumScaleFactor(0.7)
+        }
       }
-      line(subhead, y: 1104, "IBMPlexMono-Medium", 29, mut, tracking: 4)
-
-      Rectangle().fill(ink.opacity(CSTokens.Alpha.a08))
-        .frame(width: 520, height: CSTokens.Space.hair).position(x: 540, y: 1170)
-      line("Cup Season", y: 1246, "Charter-Bold", 50, ink, caps: false)
-      line("cupseason.app", y: 1296, "IBMPlexMono-Medium", 26, mut, tracking: 4)
     }
-    .frame(width: Self.size.width, height: Self.size.height)
-    .clipped()
   }
 
   /// "GROSS 90 · PAR 70 · SAT · SEP 5" — the round's own totals, and the two

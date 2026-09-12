@@ -27,6 +27,7 @@ import CupSeasonKit
 struct FriendsBoardSection: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
+  @State private var photos: [UUID: URL] = [:]
   let board: FriendsBoard?
   /// L-32 · a failed read says so in one line. It does not replace the tab.
   let failed: Bool
@@ -76,6 +77,7 @@ struct FriendsBoardSection: View {
       ForEach(b.ranked(lens), id: \.row.id) { entry in
         Button { openPerson(entry.row.profileId) } label: { row(entry.row, rank: entry.rank) }
           .buttonStyle(.plain)
+          .accessibilityIdentifier("golfer.directory.row")
       }
       // L-22 is a promise a golfer should be able to read, so it renders
       // verbatim beneath the list.
@@ -133,21 +135,30 @@ struct FriendsBoardSection: View {
   /// they are not fourth at anything, and `railHidesNumeral` is the rail's own
   /// mechanism for a row that has no place to print.
   private func row(_ r: FriendsBoard.Row, rank: Int?) -> some View {
-    CSSlat(rank: rank ?? 0,
-           field: r.isMe ? .mine : .none,
-           face: CSFace.Model(id: r.profileId, marker: r.marker,
-                              initials: Initials.of(r.displayName), isViewer: r.isMe),
-           name: r.name,
-           sub: sub(r),
-           movement: nil,
-           gap: nil,
-           variant: .form,
-           // WAVE 10 · at AX3 the heads are gone, so the row says its own
-           // column in words rather than leaving a signed figure and a band
-           // word floating under a name with nothing to attach them to.
-           axFacts: [[figure(r), word(r)].compactMap { $0 }.joined(separator: " · ")],
-           railHidesNumeral: rank == nil) {
+    A11yStack(alignment: .leading, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+      HStack(spacing: CSTokens.Space.s3) {
+        Text(rank.map { String(format: "%02d", $0) } ?? "")
+          .csType(.agateS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: true, vertical: false)
+          .frame(width: typeSize.isA11y ? nil : CSTokens.Space.s4)
+        CSFace(.init(id: r.profileId, marker: r.marker, photoURL: photos[r.profileId],
+                     initials: Initials.of(r.displayName), isViewer: r.isMe), size: .list)
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          Text(r.name).csType(.name).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+          Text(sub(r)).csType(.agateS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      }.frame(maxWidth: .infinity, alignment: .leading)
       trailing(r)
+    }
+    .padding(.vertical, CSTokens.Space.s3)
+    .frame(minHeight: CSTokens.Space.s6)
+    .overlay(alignment: .bottom) { CSRule() }
+    .task(id: r.profileId) {
+      if photos[r.profileId] == nil {
+        photos[r.profileId] = await ProfileRepository().avatarURL(userId: r.profileId)
+      }
     }
     .contentShape(Rectangle())
     .accessibilityHint("Opens their card")

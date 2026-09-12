@@ -19,35 +19,48 @@ func token(_ group: String, _ name: String) -> NSColor {
 let ground = token("ground", "bg0"), ink = token("text", "ink")
 let output = root.appendingPathComponent("apps/ios/CupSeason/Assets.xcassets/AppIcon.appiconset")
 try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
-func draw(_ size: Int) -> Data {
+// Icon-only contrast. Geometry and all in-app contour treatments stay unchanged.
+let iconContourAlpha: CGFloat = {
+  if let i = CommandLine.arguments.firstIndex(of: "--icon-alpha"), CommandLine.arguments.count > i + 1,
+     let alpha = Double(CommandLine.arguments[i + 1]), (0...1).contains(alpha) { return CGFloat(alpha) }
+  return 0.12
+}()
+func draw(_ size: Int, contourAlpha: CGFloat = iconContourAlpha) -> Data {
   let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
   let ctx = NSGraphicsContext(bitmapImageRep: rep)!.cgContext
   ctx.setFillColor(ground.cgColor); ctx.fill(CGRect(x: 0, y: 0, width: size, height: size))
   ctx.saveGState()
-  ctx.scaleBy(x: CGFloat(size)/96, y: CGFloat(size)/96)
-  ctx.setStrokeColor(ink.withAlphaComponent(size <= 32 ? 0 : 0.07).cgColor)
-  ctx.setLineWidth(0.25)
-  for i in -4...10 {
-    ctx.saveGState(); ctx.translateBy(x: 0, y: CGFloat(i)*12)
-    ctx.addPath(SVGPath.path(paths["topo"]!).cgPath)
-    ctx.strokePath()
-    ctx.restoreGState()
-  }
+  ctx.translateBy(x: 0, y: CGFloat(size))
+  ctx.scaleBy(x: CGFloat(size)/96, y: -CGFloat(size)/96)
+  ctx.setStrokeColor(ink.withAlphaComponent(size <= 32 ? 0 : contourAlpha).cgColor)
+  ctx.setLineWidth(0.28)
+  ctx.addPath(SVGPath.path(paths["topo"]!).cgPath)
+  ctx.strokePath()
   ctx.restoreGState()
-  let inset = size <= 32 ? 0.04 : 0.14
-  ctx.translateBy(x: CGFloat(size)*inset, y: CGFloat(size)*(1-inset))
-  let scale = CGFloat(size)*(1-2*inset)/96
+  let inset = size <= 32 ? 0.08 : 0.10
+  ctx.translateBy(x: CGFloat(size)*inset, y: CGFloat(size)*(size <= 32 ? 0.75 : 0.67))
+  let scale = CGFloat(size)*(1-2*inset)/1000
   ctx.scaleBy(x: scale, y: -scale)
+  // Knock the contour field out of the custom CS counters.
+  ctx.setFillColor(ground.cgColor)
+  ctx.addPath(SVGPath.path(paths["flag"]!).cgPath); ctx.fillPath()
   ctx.setFillColor(ink.cgColor)
   for key in ["flag", "c", "s"] { ctx.addPath(SVGPath.path(paths[key]!).cgPath) }
   ctx.drawPath(using: .eoFill)
   for key in ["pole", "ridge"] { ctx.addPath(SVGPath.path(paths[key]!).cgPath); ctx.fillPath() }
   if size <= 32 {
     // Optical reinforcement keeps the pole continuous on a 16px pixel grid.
-    ctx.setStrokeColor(ink.cgColor); ctx.setLineWidth(2)
-    ctx.move(to: CGPoint(x: 32, y: 18)); ctx.addLine(to: CGPoint(x: 32, y: 66)); ctx.strokePath()
+    ctx.setStrokeColor(ink.cgColor); ctx.setLineWidth(38)
+    ctx.move(to: CGPoint(x: 375, y: 30)); ctx.addLine(to: CGPoint(x: 375, y: 444)); ctx.strokePath()
   }
   return rep.representation(using: .png, properties: [:])!
+}
+if let flag = CommandLine.arguments.firstIndex(of: "--review"), CommandLine.arguments.count > flag + 1 {
+  let review = URL(fileURLWithPath: CommandLine.arguments[flag + 1])
+  try FileManager.default.createDirectory(at: review, withIntermediateDirectories: true)
+  for (name, alpha) in [("A-current", 0.09), ("B-slight", 0.12), ("C-moderate", 0.16)] {
+    try draw(1024, contourAlpha: alpha).write(to: review.appendingPathComponent(name + ".png"))
+  }
 }
 for file in ["app-icon.png", "app-icon-dark.png", "app-icon-tinted.png"] { try draw(1024).write(to: output.appendingPathComponent(file)) }
 let manifest: [String: Any] = ["images": [
@@ -66,19 +79,23 @@ public enum CSBrandGeometry {
 }
 public struct CSBrandMark: View {
   @Environment(\\.cs) private var cs
-  public init() {}
+  let ground: Color?
+  public init(ground: Color? = nil) { self.ground = ground }
   public var body: some View {
     Canvas { context, size in
-      let scale = min(size.width, size.height) / 96
-      context.translateBy(x: (size.width - 96 * scale) / 2, y: (size.height - 96 * scale) / 2)
+      let scale = min(size.width / 1000, size.height / 570)
+      context.translateBy(x: (size.width - 1000 * scale) / 2, y: (size.height - 570 * scale) / 2)
       context.scaleBy(x: scale, y: scale)
+      if let ground {
+        context.fill(SVGPath.path("\(paths["flag"]!)"), with: .color(ground))
+      }
       let outline = SVGPath.path("\(["flag", "c", "s"].map { paths[$0]! }.joined(separator: " "))")
       context.fill(outline, with: .color(cs.ink), style: FillStyle(eoFill: true))
       for path in ["\(paths["pole"]!)", "\(paths["ridge"]!)"] {
         context.fill(SVGPath.path(path), with: .color(cs.ink))
       }
       if min(size.width, size.height) <= 32 {
-        context.stroke(SVGPath.path("M32 18L32 66"), with: .color(cs.ink), lineWidth: 2)
+        context.stroke(SVGPath.path("M375 30L375 444"), with: .color(cs.ink), lineWidth: 38)
       }
     }
     .accessibilityHidden(true)
@@ -123,13 +140,29 @@ func word(_ text: String, size: CGFloat, x: CGFloat, y: CGFloat, tracking: CGFlo
   return result
 }
 for (name, color) in [("light-ground", "#0F1A15"), ("dark-ground", "#F4F1E9"), ("one-color", "currentColor")] {
-  let svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 96 96\"><g fill=\"\(color)\"><path fill-rule=\"evenodd\" d=\"\(geometry)\"/><path d=\"\(paths["pole"]!) \(paths["ridge"]!)\"/></g></svg>\n"
+  let svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 570\"><g fill=\"\(color)\"><path fill-rule=\"evenodd\" d=\"\(geometry)\"/><path d=\"\(paths["pole"]!) \(paths["ridge"]!)\"/></g></svg>\n"
   try svg.write(to: vectors.appendingPathComponent("mark-\(name).svg"), atomically: true, encoding: .utf8)
-  let lettering = word("CUP SEASON", size: 29, x: 110, y: 49, tracking: 3)
-    + word("ROUNDS COUNT", size: 10, x: 111, y: 69, tracking: 3)
-  let lockup = svg.replacingOccurrences(of: "viewBox=\"0 0 96 96\"", with: "viewBox=\"0 0 320 96\"")
+  let lettering = word("CUP SEASON", size: 220, x: 1130, y: 290, tracking: 20)
+    + word("ROUNDS COUNT", size: 80, x: 1140, y: 455, tracking: 22)
+  let lockup = svg.replacingOccurrences(of: "viewBox=\"0 0 1000 570\"", with: "viewBox=\"0 0 2900 570\"")
     .replacingOccurrences(of: "</g>", with: "<path d=\"\(lettering)\"/></g>")
   try lockup.write(to: vectors.appendingPathComponent("lockup-\(name).svg"), atomically: true, encoding: .utf8)
 }
 for size in [16, 32] { try draw(size).write(to: vectors.appendingPathComponent("icon-\(size).png")) }
 print("Generated DesignV1 native mark, light/dark/one-color vectors and app icons.")
+
+for size in [16, 32, 64, 256, 1000] {
+  let height = Int((Double(size) * 0.57).rounded(.up))
+  let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: height, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+  let ctx = NSGraphicsContext(bitmapImageRep: rep)!.cgContext
+  ctx.translateBy(x: 0, y: CGFloat(height)); ctx.scaleBy(x: CGFloat(size)/1000, y: -CGFloat(size)/1000)
+  ctx.setFillColor(ground.cgColor)
+  for key in ["flag", "c", "s"] { ctx.addPath(SVGPath.path(paths[key]!).cgPath) }
+  ctx.drawPath(using: .eoFill)
+  for key in ["pole", "ridge"] { ctx.addPath(SVGPath.path(paths[key]!).cgPath); ctx.fillPath() }
+  if size <= 32 {
+    ctx.setStrokeColor(ground.cgColor); ctx.setLineWidth(38)
+    ctx.move(to: CGPoint(x: 375, y: 30)); ctx.addLine(to: CGPoint(x: 375, y: 444)); ctx.strokePath()
+  }
+  try rep.representation(using: .png, properties: [:])!.write(to: vectors.appendingPathComponent("mark-\(size).png"))
+}

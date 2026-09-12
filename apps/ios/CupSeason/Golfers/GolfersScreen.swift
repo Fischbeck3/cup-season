@@ -58,7 +58,7 @@ struct GolfersScreen: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        CSPageHeader("Golfers", eyebrow: CSHeaderDate.today()) { EmptyView() }.padding(.bottom, 2)
+        CSPageHeader("Golfers") { EmptyView() }.padding(.bottom, 2)
 
         switch GolfersRoot.state(buddies: vm.lists.buddies.count, requests: reqs.requests.count,
                                  loaded: vm.loaded, readFailed: vm.readFailed) {

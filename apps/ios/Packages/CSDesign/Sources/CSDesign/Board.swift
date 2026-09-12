@@ -56,7 +56,7 @@ public struct CSRankRail: View {
       // Unpainted is a FIELD state, not an ink state: the numeral stays `ink`
       // so a rank reads as a figure. `mut` made every row but the leader's and
       // the viewer's read as a caption beside its own name.
-      .foregroundStyle(field == .earned ? cs.gold : (field == .none ? cs.ink : cs.panelInk))
+      .foregroundStyle(field == .none ? cs.ink : cs.panelInk)
       .frame(width: CSTokens.Space.rail)
       // WAVE 10 · **the numeral sits with the name, not in the middle of a
       // grown row.** At the reading sizes the rail and the name are the same
@@ -73,7 +73,7 @@ public struct CSRankRail: View {
 
   @ViewBuilder private var background: some View {
     switch field {
-    case .earned: HStack(spacing: 0) { cs.gold.frame(width: CSTokens.Space.s1); Spacer(minLength: 0) }
+    case .earned: cs.gold
     case .mine: cs.panel
     case .none: Color.clear
     }

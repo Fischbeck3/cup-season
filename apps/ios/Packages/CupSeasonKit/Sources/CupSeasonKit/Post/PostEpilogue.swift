@@ -299,7 +299,7 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
   public let date: String
   public let gross: Int
   public let vs: Double?
-  /// the PREVIEW's points, passed only when the date is inside the season window
+  /// Accepted server points when available; absent when no verified figure is supplied.
   public let points: Int?
   public let squad: String?
   public let inLeague: Bool
@@ -373,6 +373,15 @@ public struct PostRecap: Sendable, Equatable {
     "personal_best": "PERSONAL BEST", "sub_80": "BROKE 80", "sub_90": "BROKE 90", "sub_100": "BROKE 100",
     "streak_4": "4 WEEKS RUNNING", "streak_8": "8 WEEKS RUNNING", "streak_12": "12 WEEKS RUNNING", "first_round": "FIRST ROUND ON THE BOARD",
   ]
+
+  /// Public round exports do not carry competition points or milestone claims.
+  /// Course/date/gross and an already established band remain the golfer's record.
+  public var publicRoundCard: PostRecap {
+    var value = self
+    value.points = nil
+    value.badge = nil
+    return value
+  }
 
   public var pviSane: Bool { PostCalc.vsIsSane(pvi) }
   /// "A GOLFER" when there is no name.

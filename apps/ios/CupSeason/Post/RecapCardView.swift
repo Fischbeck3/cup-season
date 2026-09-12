@@ -5,7 +5,7 @@
 // the viewer's theme; an artifact has ONE face. D2's law holds on the way out
 // the door: gross + the named band phrase (third person) + course/date/points
 // + at most one milestone badge. No differential, no index, no league name
-// (D60a). The round's photo becomes the atmosphere under a heavy charcoal wash.
+// (D60a). The round's photograph is a clear landscape region within the record.
 
 import SwiftUI
 import CSDesign
@@ -17,52 +17,32 @@ struct RecapCardView: View {
 
   static let size = CGSize(width: 1080, height: 1350)
 
-  // WAVE 8 · the `ceremony` ramp, as on the settlement card and on the web's
-  // `drawRecapCard` (D277). The gold here was `#E9BE62` — the metal D270
-  // replaced — typed as a literal because "it is the card's own", which is how
-  // three artifacts came to circulate in one group thread in three palettes.
-  private let bg = CSTokens.dark.ceremony
-  private let panel = CSTokens.dark.ceremony
-  private let ink = CSTokens.dark.ceremonyInk
-  private let mut = CSTokens.dark.ceremonyMut
-  private let gold = CSTokens.dark.ceremonyGold
-
   var body: some View {
-    ZStack {
-      bg
-      if let photo {
-        Image(uiImage: photo).resizable().scaledToFill().frame(width: Self.size.width, height: Self.size.height).clipped()
-        bg.opacity(0.78)
+    CSArtifactFrame("Round record") {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+        Text(recap.course.isEmpty ? "A round" : recap.course)
+          .csFixed(.lead, 56).lineLimit(2).minimumScaleFactor(0.65)
+        Text(recap.whenLine).csFixed(.columnS, 28).foregroundStyle(CSTokens.dark.mut)
+        if let photo {
+          Image(uiImage: photo).resizable().scaledToFill()
+            .frame(width: 952, height: 300).clipped()
+        }
+        HStack(alignment: .firstTextBaseline, spacing: 32) {
+          Text(String(recap.gross)).csFixed(.figureXL, photo == nil ? 260 : 160)
+          Text("GROSS").csFixed(.columnS, 28).foregroundStyle(CSTokens.dark.mut)
+        }
+        HStack(spacing: CSTokens.Space.s4) {
+          if !recap.marker.isEmpty { CSMarkerView(key: recap.marker, size: 46, lineWidth: 2) }
+          Text(recap.nameLine).csFixed(.name, 40).lineLimit(2).minimumScaleFactor(0.65)
+        }
+        if let band = recap.bandLine {
+          Text(band).csFixed(.story, 40).lineLimit(2).minimumScaleFactor(0.7)
+        }
+        if let badge = recap.badge {
+          Text(badge).csFixed(.columnS, 28).foregroundStyle(CSTokens.dark.gold)
+        }
       }
-      RoundedRectangle(cornerRadius: 28, style: .continuous)
-        .fill(photo != nil ? panel.opacity(0.58) : panel)
-        .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(gold.opacity(0.35), lineWidth: 2))
-        .padding(36)
-      // the marker — identity above everything
-      Circle().stroke(gold.opacity(0.4), lineWidth: 2).frame(width: 156, height: 156).position(x: 540, y: 208)
-      CSMarkerView(key: recap.marker, size: 110, lineWidth: 1.8).foregroundStyle(gold).position(x: 540, y: 208)
-      line(recap.nameLine, y: 372, "IBMPlexMono-SemiBold", 44, ink, tracking: 7)
-      line(String(recap.gross), y: 760, "Charter-Bold", 300, ink)
-      if let band = recap.bandLine { line(band, y: 850, "IBMPlexMono-SemiBold", 46, gold, tracking: 9) }
-      if let vs = recap.vsLine { line(vs, y: 906, "Charter-Roman", 31, mut) }
-      if let badge = recap.badge { line("★ " + badge, y: 972, "IBMPlexMono-SemiBold", 31, gold, tracking: 5) }
-      Rectangle().fill(ink.opacity(0.1)).frame(width: 520, height: 1).position(x: 540, y: 1020)
-      line(recap.courseLine, y: 1084, "IBMPlexMono-SemiBold", 36, ink, tracking: 4)
-      line(recap.whenLine, y: 1134, "IBMPlexMono-Medium", 29, mut, tracking: 4)
-      line("Cup Season", y: 1246, "Charter-Bold", 52, ink)
-      line("cupseason.app", y: 1292, "IBMPlexMono-Medium", 27, mut, tracking: 4)
     }
-    .frame(width: Self.size.width, height: Self.size.height)
-    .clipped()
-  }
-
-  /// Centred text on a canvas BASELINE, as `ctr(txt, y, font, fill, ls)` draws
-  /// it: `.position` centres the glyph box, so the centre sits ~0.36 em above
-  /// the baseline the web names.
-  private func line(_ s: String, y: CGFloat, _ face: String, _ size: CGFloat, _ color: Color, tracking: CGFloat = 0) -> some View {
-    Text(s).font(.custom(face, fixedSize: size)).tracking(tracking).foregroundStyle(color).lineLimit(1).minimumScaleFactor(0.5)
-      .frame(width: 960)
-      .position(x: 540, y: y - size * 0.36)
   }
 
   // MARK: - render + share

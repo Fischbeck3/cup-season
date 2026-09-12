@@ -55,29 +55,24 @@ struct MajorJugCard: View {
   private func serif(_ size: CGFloat) -> Font { CSType.fixed(.lead, size) }
 
   var body: some View {
-    ZStack {
-      bg
-      RoundedRectangle(cornerRadius: 28).fill(panel)
-        .overlay(RoundedRectangle(cornerRadius: 28).stroke(gold.opacity(0.35), lineWidth: 2))
-        .padding(36)
-      // the marker in a gold ring
-      Circle().stroke(gold.opacity(0.4), lineWidth: 2).frame(width: 156, height: 156).position(x: W / 2, y: 208)
-      CSMarkerView(key: d.marker, size: 24 * 4.6, lineWidth: 1.8).foregroundStyle(gold).position(x: W / 2, y: 208)
-      line("MAJOR CHAMPION", y: 348, font: mono(30), color: gold, tracking: 9)
-      line(d.name.uppercased(), y: 412, font: mono(46), color: ink, tracking: 7)
-      line(d.gross.map { String($0) } ?? "—", y: 760, font: serif(300), color: ink, tracking: 0)
-      if d.pvi != nil { line(MajorMath.vs(d.pvi) + " THEIR NUMBER", y: 850, font: mono(44), color: gold, tracking: 7) }
-      line("BEST CARD OF THE WINDOW", y: 906, font: mono(27, weight: "Medium"), color: mut, tracking: 5)
-      Rectangle().fill(ink.opacity(0.1)).frame(width: W - 560, height: 1).position(x: W / 2, y: 1000)
-      line(d.jug.uppercased(), y: 1064, font: mono(36), color: ink, tracking: 4)
-      let pod = d.podium.map { "\($0.rank == 2 ? "2ND" : "3RD") \($0.name.uppercased()) \(MajorMath.vs($0.pvi))" }.joined(separator: " · ")
-      if !pod.isEmpty { line(pod, y: 1116, font: mono(26, weight: "Medium"), color: mut, tracking: 3) }
-      line(d.when + (d.pot.map { " · POT \($0)" } ?? ""), y: 1166, font: mono(27, weight: "Medium"), color: mut, tracking: 4)
-      line("Cup Season", y: 1246, font: serif(52), color: ink, tracking: 0)
-      line("START YOURS AT CUPSEASON.APP", y: 1292, font: mono(25, weight: "Medium"), color: mut, tracking: 4)
+    CSArtifactFrame("Major champion") {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s5) {
+        Text(d.jug).csFixed(.lead, 76).lineLimit(3).minimumScaleFactor(0.6)
+        HStack(spacing: CSTokens.Space.s4) {
+          CSMarkerView(key: d.marker, size: 76, lineWidth: 2).foregroundStyle(gold)
+          Text(d.name).csFixed(.name, 56).lineLimit(2).minimumScaleFactor(0.6)
+        }
+        if let gross = d.gross {
+          Text(String(gross)).csFixed(.figureXL, 220)
+          Text("GROSS").csFixed(.columnS, 28).foregroundStyle(mut)
+        }
+        Text("Major champion").csFixed(.story, 52).foregroundStyle(gold)
+        ForEach(Array(d.podium.enumerated()), id: \.offset) { _, row in
+          Text("\(row.rank) · \(row.name)").csFixed(.name, 36).lineLimit(2)
+        }
+        Text(d.when).csFixed(.columnS, 28).foregroundStyle(mut)
+      }
     }
-    .frame(width: W, height: H)
-    .environment(\.colorScheme, .dark)
   }
 
   /// `ctr(txt, y, font, fill, ls)` — centred on the baseline row.

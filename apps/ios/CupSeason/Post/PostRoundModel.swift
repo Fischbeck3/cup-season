@@ -36,6 +36,7 @@ final class PostRoundModel {
   var pendingPartners: PostPartnersShow?
   /// `_lastPostPhoto` — the recap card rides it
   var recapPhoto: UIImage?
+  var acceptedRoundId: UUID?
   /// D239 · who was out there. Optional, bounded by the buddies and league
   /// mates the golfer actually plays with, and never a vouch (L-19).
   var partnerChoices: [Person] = []
@@ -259,7 +260,7 @@ final class PostRoundModel {
   }
 
   private func submit() async {
-    guard !busy, let preview, let uid else { return }
+    guard !busy, preview != nil, let uid else { return }
     busy = true; defer { busy = false }
     let m = membership
     // D229 · no season on the payload. `post_round` derives it; the season on
@@ -268,7 +269,7 @@ final class PostRoundModel {
     var payload = PostPayload.build(card, seasonId: nil)
     if let jpeg = photoJPEG {
       if let path = await svc.uploadPhoto(jpeg, uid: uid) { payload.photo_path = path }
-      else { toast.show("Photo didn’t stick — posting the round without it", kind: .failed) }
+      else { toast.show("Couldn’t upload the photo. Posting the round without it.", kind: .failed) }
     }
     let outcome: PostService.PostOutcome
     do { outcome = try await svc.postRound(payload, playedWith: playedWith, fallbackSeason: m?.season?.id) }
@@ -286,7 +287,7 @@ final class PostRoundModel {
     await svc.insertHoles(PostPayload.holeRows(card, roundId: roundId))
     svc.event(PostEvent.submit, [
       "mode": .string(card.mode.rawValue), "secs": .number(Date().timeIntervalSince(openedAt).rounded()),
-      "gross": .number(Double(payload.gross)), "holes": .number(Double(payload.holes_played)),
+      "holes": .number(Double(payload.holes_played)),
     ])
     var claim: PostPartnersShow?
     if let scan = card.scan {
@@ -300,7 +301,8 @@ final class PostRoundModel {
     }
     await svc.remember(roundId: roundId, payload: payload, profileId: uid, marker: profile?.marker)
 
-    recapPhoto = photo
+    acceptedRoundId = roundId
+    recapPhoto = payload.photo_path == nil ? nil : photo
     let course = payload.course_label
     let firstEver = (profile?.rounds_count ?? 0) == 0
     // The SERVER says what the round counts for; the local rule is what answers
@@ -308,8 +310,8 @@ final class PostRoundModel {
     let counts = outcome.viaFallback
       ? PostSeasonRule.counts(playedOn: payload.played_on, season: m?.season, hasLeague: m != nil)
       : outcome.counts
-    ceremony = PostCeremony(course: course ?? "A round", date: payload.played_on ?? CSDate.today(), gross: payload.gross, vs: preview.vs,
-                            points: counts ? preview.points : nil, squad: outcome.squad ?? m?.squad?.name, inLeague: counts,
+    ceremony = PostCeremony(course: course ?? "A round", date: payload.played_on ?? CSDate.today(), gross: outcome.epilogue?.gross ?? payload.gross, vs: outcome.epilogue?.pvi,
+                            points: counts ? outcome.epilogue?.points.flatMap { Int(exactly: $0) } : nil, squad: outcome.squad ?? m?.squad?.name, inLeague: counts,
                             name: profile?.display_name ?? "You", marker: profile?.marker ?? "saguaro",
                             leagueName: outcome.leagueName ?? m?.name,
                             /* D122 · why it did not score for the league, in words */
@@ -335,7 +337,7 @@ final class PostRoundModel {
       if epi != nil || firstEver {
         pendingEpilogue = PostEpilogueShow(epilogue: epi ?? PostEpilogue(gross: payload.gross, pvi: nil, points: nil, monthRank: nil),
                                            course: course, firstEver: firstEver, roundId: roundId, cap: cap,
-                                           photoTravels: payload.photo_path != nil, ceremonyOwnsShare: true, act: act)
+                                           photoTravels: payload.photo_path != nil, ceremonyOwnsShare: true, act: act, playedOn: payload.played_on)
       }
     }
     playedWith = []
@@ -426,6 +428,7 @@ struct PostEpilogueShow: Identifiable {
   let ceremonyOwnsShare: Bool
   /// The one ranked next act (P-3). Defaulted so an older caller still compiles.
   var act: PostNextAct? = nil
+  var playedOn: String? = nil
   var id: UUID { roundId }
 }
 

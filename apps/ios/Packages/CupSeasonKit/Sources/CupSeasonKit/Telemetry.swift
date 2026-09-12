@@ -86,6 +86,9 @@ public enum CSTelemetry {
     // row the window remembers are the same row. The window itself is
     // unchanged: `platform` is a constant on every key, so it collapses no
     // burst that was not already collapsing and splits none that was not.
+    #if DEBUG
+    return
+    #endif
     let stampedProps = stamped(props)
     let key = TelemetryDedupe.key(name, stampedProps)
     let row = Row(event: name, props: .object(stampedProps))

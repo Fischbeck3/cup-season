@@ -213,7 +213,7 @@ import Foundation
     JoinIntent.store("FELLAS", name: "The Fellas", defaults: d)
     #expect(PendingLink.first(defaults: d) == .join)
     #expect(PendingLink.invited(defaults: d))
-    #expect(PendingLink.doorLine(defaults: d) == "You're joining The Fellas. Sign in and you're on the roster.")
+    #expect(PendingLink.doorLine(defaults: d) == "You're joining The Fellas. Sign in to review and join.")
 
     // A claim outranks a join: a guest pencil is already holding a round.
     ClaimIntent.store(UUID().uuidString, defaults: d)

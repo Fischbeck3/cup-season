@@ -32,6 +32,7 @@ struct SeasonCeremonyView: View {
   @Environment(LeagueRoomModel.self) private var model: LeagueRoomModel?
   @Environment(\.roomLinks) private var links
   @Environment(\.dismiss) private var dismiss
+  @State private var share: PostShareItem?
   private let d = CSTokens.dark   // the ceremony keeps its ink in every theme
 
   private let givenSettlement: PotMath.Settlement?
@@ -75,6 +76,14 @@ struct SeasonCeremonyView: View {
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
           if let st = settlement {
             takeover(st, cup: cup)
+            if st.fromLedger, !st.champName.isEmpty, let season = model?.season, let league = model?.league {
+              Button("Share season result") {
+                share = BrandRecordCard(kind: cup ? "Cup result" : "Season result",
+                  title: st.champName, figure: nil, statement: cup ? "Cup champion" : "Season champion",
+                  rows: ["\(league.name) · \(season.starts_on) – \(season.ends_on)", st.runName.isEmpty ? nil : "Runner-up · \(st.runName)", st.kingName.isEmpty ? nil : "Points King · \(st.kingName)"].compactMap { $0 },
+                  earned: true).shareItem()
+              }.buttonStyle(.csSecondary()).csGutter()
+            }
             VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
               finishers(st)
               if let mine = st.mine, st.potCents > 0 {
@@ -112,6 +121,7 @@ struct SeasonCeremonyView: View {
       .toolbarBackground(.hidden, for: .navigationBar)
       .csCloseButton { dismiss() }
     }
+    .sheet(item: $share) { PostShareSheet(items: $0.items) }
     .csCeremony()
     // Once per member. From the room the model owns the key; from Home the
     // same device-local key is written directly, so a ceremony fired from

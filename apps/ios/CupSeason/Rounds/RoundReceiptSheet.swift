@@ -50,6 +50,7 @@ struct RoundReceiptSheet: View {
 
   @State private var seed: ReceiptSeed?
   @State private var enriched = false
+  @State private var loadFailed = false
   /// **The round's own delete**, two steps, on the object it removes.
   @State private var armed = false
   @State private var deleting = false
@@ -69,8 +70,12 @@ struct RoundReceiptSheet: View {
   /// answer and draws nothing (L-44).
   @State private var card: RoundScorecard?
   @State private var share: PostShareItem?
+  @State private var roundPreview = false
+  @State private var sharePhoto: UIImage?
+  @State private var shareBusy = false
   #if DEBUG
   @State private var artifactPreview = false
+  @State private var reviewPhoto: UIImage?
   #endif
 
   init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil) {
@@ -90,16 +95,15 @@ struct RoundReceiptSheet: View {
       ScrollView {
         ScrollViewReader { proxy in
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
-          Text(mine(r) ? "Your round" : "The round")
-            .csType(.name).foregroundStyle(cs.ink)
-          photo(r)
-            .padding(.horizontal, -CSTokens.Space.gutter)
           head(r)
-            .padding(CSTokens.Space.s4)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(cs.bg1)
-            .padding(.top, r.photoURL == nil ? 0 : -CSTokens.Space.s5)
+          photo(r)
           photoActions(r)
+          if enriched, r.profileId == store.session?.user.id, recap(r) != nil {
+            CSMini("Share round", glyph: .share, busy: shareBusy) {
+              Task { await previewRound(r) }
+            }
+            .accessibilityIdentifier("round.share.preview")
+          }
           scorecard(r)
             #if DEBUG
             // `-cs_dev_round_card` puts the card on screen without a finger.
@@ -115,8 +119,12 @@ struct RoundReceiptSheet: View {
           if rows.isEmpty && !enriched {
             // "Pulling the card…" until D294; the word CARD now names a real
             // object twenty points up the page and cannot also mean this.
-            Text("Pulling the round…").csType(.body).foregroundStyle(cs.mut)
+            Text("Loading round…").csType(.body).foregroundStyle(cs.mut)
               .accessibilityAddTraits(.updatesFrequently)
+          }
+          if loadFailed {
+            Text("Couldn’t load this round.").csType(.body).foregroundStyle(cs.mut)
+            CSDoor(.link("Try again") { Task { await open() } })
           }
           CSSectionHead("The receipt")
           ReceiptLeaf(caption: "What this round was worth",
@@ -152,6 +160,9 @@ struct RoundReceiptSheet: View {
       PostCameraPicker { img in Task { await attach(img) } }.ignoresSafeArea()
     }
     .sheet(item: $share) { PostShareSheet(items: $0.items) }
+    .sheet(isPresented: $roundPreview) {
+      if let seed, let recap = recap(seed) { RoundSharePreview(recap: recap, photo: sharePhoto) }
+    }
     #if DEBUG
     .fullScreenCover(isPresented: $artifactPreview) { artifactShot }
     #endif
@@ -161,10 +172,9 @@ struct RoundReceiptSheet: View {
   /// baseline, and the sentence with its figure run.
   @ViewBuilder private func head(_ r: ReceiptSeed) -> some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      if r.photoURL == nil {
-        Text(dateline(r)).csType(.agate, caps: true).foregroundStyle(cs.mut)
-          .fixedSize(horizontal: false, vertical: true)
-      }
+      Text(dateline(r)).csType(.agate, caps: true).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
+      Text(mine(r) ? "Your round" : "The round").csType(.displayS, caps: true).foregroundStyle(cs.ink)
       // **Two rule-and-figures on ONE BASELINE** — which is the BOTTOM here,
       // not the first text baseline: each figure sits over its own rule with
       // its own label under it, so aligning the numerals would stagger the two
@@ -178,10 +188,9 @@ struct RoundReceiptSheet: View {
                    label: "gross · \(r.holesPlayed == 9 ? "9" : "18") holes")
             .frame(width: typeSize.isA11y ? nil : 132, alignment: .leading)
         }
-        if let g = r.gross, let par = card?.parTotal {
-          let relative = g - par
-          CSFigure(relative == 0 ? "E" : String(format: "%+d", relative), size: .l, label: "to par")
-            .frame(minWidth: typeSize.isA11y ? nil : CSTokens.Space.s6, alignment: .leading)
+        if let p = r.points {
+          CSFigure(CSCopy.points(p), size: .l, label: "points")
+            .frame(width: typeSize.isA11y ? nil : 76, alignment: .leading)
         }
         if !typeSize.isA11y { Spacer(minLength: 0) }
       }
@@ -197,8 +206,26 @@ struct RoundReceiptSheet: View {
 
   @ViewBuilder private func photo(_ r: ReceiptSeed) -> some View {
     if let url = r.photoURL {
-      CSPhotoHeading(url: url, title: r.courseLabel ?? (mine(r) ? "Your round" : "The round"),
-                     detail: r.playedOn.map { RivalryCopy.monthDay($0) } ?? "")
+      // §10.1 rung 1 · a golfer's own round photo, and the poster's mark is the
+      // credit. `CSPlate` carries the scrim, so the medallion never sits on a
+      // bright sky at 1.4:1.
+      CSPlate(.inset32) {
+        AsyncImage(url: url) { phase in
+          if case .success(let img) = phase { img.resizable().scaledToFill() } else { Color.clear }
+        }
+      }
+      // D301's rule, applied where the photograph actually is. `CSPlate` fills
+      // to a ratio and a `scaledToFill` image covers it, so this overhangs one
+      // axis. Nothing is swallowed today — `photoActions` and the sheet's
+      // Close are both drawn after it — and that is a fact about today's
+      // layout, not about the view. Shaped here rather than inside `CSPlate`,
+      // which also hosts the transparent `CSPlateWell` empty state and would
+      // become a solid blocker if the rule were applied to the component.
+      .contentShape(Rectangle())
+      .overlay(alignment: .bottomTrailing) {
+        if r.profileId != nil { MarkerStamp(marker: r.marker).padding(CSTokens.Space.s2) }
+      }
+      .accessibilityLabel("Round photo")
     }
   }
 
@@ -258,7 +285,7 @@ struct RoundReceiptSheet: View {
     return PostRecap(
       name: store.me?.profile?.display_name ?? "",
       marker: r.marker ?? store.me?.profile?.marker ?? "",
-      gross: gross, pvi: r.resolvedPvi, points: r.points.map { Int($0) },
+      gross: gross, pvi: r.indexProvisional == true ? nil : r.resolvedPvi, points: r.points.map { Int($0) },
       course: RoundCopy.course(r.courseLabel) , date: r.playedOn ?? "", badge: nil)
   }
 
@@ -421,6 +448,8 @@ struct RoundReceiptSheet: View {
   /// LOOSE`. One producer, one direction, three renderers.
   private func sentence(_ r: ReceiptSeed) -> String? {
     guard r.indexProvisional != true, let pvi = r.resolvedPvi else { return nil }
+    let named = r.band ?? CSBands.bandName(pvi)
+    let band = mine(r) ? named : CSBands.theirs(named)
     var phrase = CSBands.vsPhraseMarked(pvi)
     guard !phrase.isEmpty else { return nil }
     if !mine(r) { phrase = CSBands.theirs(phrase) }
@@ -428,10 +457,24 @@ struct RoundReceiptSheet: View {
     // pronoun in front of it makes half the cases verbless ("You 2.0 over your
     // playing HCP"). It opens the same way the composer's does, and the two
     // read as one voice because they are one producer.
-    return phrase.prefix(1).uppercased() + phrase.dropFirst() + "."
+    return phrase.prefix(1).uppercased() + phrase.dropFirst() + " — " + band.lowercased() + "."
+  }
+
+  private func previewRound(_ r: ReceiptSeed) async {
+    guard !shareBusy else { return }
+    shareBusy = true
+    defer { shareBusy = false }
+    sharePhoto = nil
+    // Only the photograph attached to this accepted, owned round; no course fallback.
+    if let url = r.photoURL, let (data, response) = try? await URLSession.shared.data(from: url),
+       (response as? HTTPURLResponse)?.statusCode == 200 {
+      sharePhoto = UIImage(data: data)
+    }
+    roundPreview = true
   }
 
   private func open() async {
+    loadFailed = false
     if seed == nil, let cached = await ReceiptCache.shared.get(roundId) { seed = cached }
     let repo = RoundsRepository()
     // the second pass: one read, then redraw in place
@@ -443,8 +486,30 @@ struct RoundReceiptSheet: View {
       var merged = (seed ?? ReceiptSeed(id: roundId)).merged(with: json)
       if merged.photoURL == nil, let path = merged.photoPath, let url = await repo.signedURL(path) { merged.photoURL = url }
       seed = merged
+    } else {
+      loadFailed = seed?.gross == nil
     }
     enriched = true
+    if seed?.gross != nil { CSTelemetry.event("receipt_viewed") }
+    #if DEBUG
+    if ProcessInfo.processInfo.arguments.contains("-cs_dev_share_preview"), let r = seed,
+       r.profileId == store.session?.user.id { await previewRound(r) }
+    #endif
+    #if DEBUG
+    if (ProcessInfo.processInfo.arguments.contains("-cs_dev_brand_export") || ProcessInfo.processInfo.arguments.contains("-cs_dev_brand_finish")),
+       let r = seed, mine(r), let recap = recap(r) {
+      var image: UIImage?
+      if let url = r.photoURL, let (data, _) = try? await URLSession.shared.data(from: url) {
+        image = UIImage(data: data)
+      }
+      reviewPhoto = image
+      if ProcessInfo.processInfo.arguments.contains("-cs_dev_brand_finish") { artifactPreview = true }
+      if let png = RecapCardView.render(recap, photo: image)?.pngData() {
+        let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        try? png.write(to: folder.appendingPathComponent("brand-round-review.png"))
+      }
+    }
+    #endif
     #if DEBUG
     applyPhotoHatch()
     // `-cs_dev_photo_menu` — the source menu, OPEN, on its own guard rather
@@ -470,7 +535,13 @@ struct RoundReceiptSheet: View {
   /// cannot open a share sheet and an artifact has to be looked at.
   @ViewBuilder private var artifactShot: some View {
     let r = seed ?? ReceiptSeed(id: roundId)
-    if let card, let rc = recap(r), let img = RoundCardArtifact.render(rc, card: card, mine: true) {
+    if ProcessInfo.processInfo.arguments.contains("-cs_dev_brand_finish"), let rc = recap(r) {
+      FinishCeremonyView(ceremony: PostCeremony(course: rc.course, date: rc.date,
+        gross: rc.gross, vs: rc.pvi, points: rc.points, squad: nil,
+        inLeague: rc.points != nil, name: rc.name, marker: rc.marker, leagueName: nil),
+        photo: reviewPhoto, onBack: { artifactPreview = false }, roundId: roundId)
+        .csDevTextSize(CSDevHatch.textSize)
+    } else if let card, let rc = recap(r), let img = RoundCardArtifact.render(rc, card: card, mine: true) {
       Image(uiImage: img).resizable().scaledToFit()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(cs.bg0)

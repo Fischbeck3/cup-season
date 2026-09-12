@@ -20,3 +20,16 @@ serif because a licensed Tiempos Headline font is not present.
 
 The source remains isolated here so the beta selection is reversible. The
 older candidate files and historical decision records remain intact.
+
+## Pass 2 master
+
+The rejected square 96-unit icon geometry is replaced by a 1000 × 570 master.
+The wide ridge, pole, waving pennant and custom outlined CS are authored at
+that scale. All marks derive from it; 16/32px variants reinforce the pole,
+and icon variants omit fine contours at those sizes. The generator also
+exports 1000/256/64/32/16px master PNGs for visual comparison.
+
+`python3 tools/designv1-qa.py /absolute/review/directory` creates the dedicated
+logo comparisons and, when actual captures are present, four phone comparisons,
+50% overlays and 12px Gaussian-blur comparisons. This script crops/resizes only
+review artifacts; it never creates application assets or retouches screenshots.

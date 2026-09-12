@@ -25,7 +25,6 @@ struct CompeteScreen: View {
   @State private var buddies: Int?
   @State private var readFailed = false
   @State private var loaded = false
-  @State private var selectedLeague: UUID?
 
   /// The payload the tab draws. `-cs_dev_compete_fixture` substitutes ONE
   /// VALUE — the `Me` — and nothing else changes: the same `CompeteRoot.make`,
@@ -41,6 +40,15 @@ struct CompeteScreen: View {
     CompeteRoot.make(me, upcoming: me?.upcoming ?? [])
   }
 
+  /// D314 · the league the plate is seeded from — the first live season's, then
+  /// the first finished one's, then the golfer. `nil` only when there is
+  /// neither, and then no plate is drawn rather than one seeded from nothing.
+  private var plateSeed: String? {
+    let l = list
+    let league = (l.seasons.first(where: { $0.leagueId != nil })
+                  ?? l.finished.first(where: { $0.leagueId != nil }))?.leagueId
+    return league?.uuidString ?? me?.profile?.id.uuidString
+  }
 
   var body: some View {
     ScrollView {
@@ -49,17 +57,33 @@ struct CompeteScreen: View {
       // shipped page put 14pt between EVERY child — masthead, head, row, head,
       // row — which is why the two heads read as two more rows.
       VStack(alignment: .leading, spacing: 0) {
-        // DesignV1: a quiet heading; course imagery belongs to the actual season below.
-        HStack {
-          Text("The Board").csType(.name, caps: true).foregroundStyle(cs.ink)
-            .accessibilityAddTraits(.isHeader)
-          Spacer()
-          Button { presenter.showIntent = true } label: {
-            CSGlyph(.plus, size: .row).foregroundStyle(cs.brand).a11yMinTarget()
+        // **D314 · COMPETE STANDS SOMEWHERE.** The contour plate is a real
+        // generator — seeded value noise, marching squares, five to seven
+        // isolines, *"same course, same plot, forever"* — and it draws behind
+        // the credential's crest and on the course hero. Compete called it
+        // NOWHERE, which is why the tab a season lives in looked like a list.
+        //
+        // **Behind the page head, at hero scale, and only there.** The system
+        // BANS the contour at thumbnail scale in its own words — small, it
+        // reads as three near-identical concentric ovals — so a plate per
+        // season CARD was rejected on the existing rule rather than on taste.
+        //
+        // **Seeded from the league**, so the Fellas and Who's the bitch? are
+        // two places and each is the same place every time. With no league at
+        // all it falls to the golfer's own id, which is exactly what the
+        // person card does when a golfer has no home course. **A league is not
+        // a course**: the plot means nothing about the golf, it is identity and
+        // not information, and no copy on this page claims otherwise — which
+        // is also why it carries NO `mark` (there is no hole to point at).
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          CSPageHeader("Compete") { EmptyView() }
+          HStack {
+            Text(CSBrandCopy.tagline).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            Spacer()
+            CSTopoField().frame(width: 180, height: 64)
           }
-          .buttonStyle(.plain).accessibilityLabel("Start something")
         }
-        .padding(.vertical, CSTokens.Space.s2)
+        .padding(.bottom, CSTokens.Space.s4)
 
         switch CompeteRoot.state(list: list, loaded: loaded, readFailed: readFailed, buddies: buddies) {
         case .loading:
@@ -72,34 +96,9 @@ struct CompeteScreen: View {
           // running" is true and "you have never played one" is not.
           section(CompeteRoot.Head.finished, list.finished)
         case .list:
-          if let row = list.seasons.first(where: { $0.leagueId == selectedLeague }) ?? list.seasons.first,
-             let leagueId = row.leagueId {
-            ScrollView(.horizontal, showsIndicators: false) {
-              HStack(spacing: CSTokens.Space.s4) {
-                ForEach(list.seasons) { option in
-                  Button { selectedLeague = option.leagueId } label: {
-                    Text(option.title).csType(.nameS)
-                      .foregroundStyle(option.id == row.id ? cs.ink : cs.mut)
-                      .padding(.vertical, CSTokens.Space.s3)
-                      .overlay(alignment: .bottom) {
-                        if option.id == row.id { CSRule(.heavy) }
-                      }
-                  }
-                  .buttonStyle(.plain)
-                  .accessibilityAddTraits(option.id == row.id ? .isSelected : [])
-                }
-              }
-            }
-            CompeteStandingsPreview(leagueId: leagueId, viewer: me.flatMap(RoomViewer.init),
-                                    title: row.eyebrow,
-                                    detail: me?.memberships.first(where: { $0.league_id == leagueId })
-                                      .flatMap { SeasonFacts.owe($0) }, open: { open(row) })
-              .id(leagueId)
-              .environment(\.csLook, look(row))
-              .padding(.top, CSTokens.Space.s3)
-          } else {
-            section(CompeteRoot.Head.seasons, list.seasons, first: true)
-          }
+          section(CompeteRoot.Head.seasons, list.seasons, first: true)
+          CSDoorRow(verb: "Start something", gloss: "") { presenter.showIntent = true }
+            .accessibilityLabel("Start something")
           section(CompeteRoot.Head.moments, list.moments, first: list.seasons.isEmpty)
           section(CompeteRoot.Head.finished, list.finished,
                   first: list.seasons.isEmpty && list.moments.isEmpty)
@@ -137,22 +136,12 @@ struct CompeteScreen: View {
   /// second time, which is what makes it an idiom rather than a one-off.
   @ViewBuilder private func section(_ head: String, _ rows: [CompeteRoot.Row], first: Bool = false) -> some View {
     if !rows.isEmpty {
-      CSSectionHead(head, weight: .display)
+      CSSectionHead(head, weight: head == CompeteRoot.Head.seasons ? .display : .label)
         .padding(.top, first ? CSTokens.Space.s4 : CSTokens.Space.s5)
         .padding(.bottom, CSTokens.Space.s2)
-      if rows.contains(where: { $0.rank != nil }) {
-        CSCompetitionBand {
-          ForEach(rows) { row in
-            CompeteRowView(row: row) { open(row) }
-              .environment(\.csLook, look(row))
-          }
-        }
-        .padding(.horizontal, -CSTokens.Space.gutter)
-      } else {
-        ForEach(rows) { row in
-          CompeteRowView(row: row) { open(row) }
-            .environment(\.csLook, look(row))
-        }
+      ForEach(rows) { row in
+        CompeteRowView(row: row) { open(row) }
+          .environment(\.csLook, look(row))
       }
     }
   }
@@ -246,48 +235,6 @@ struct CompeteScreen: View {
   }
 }
 
-/// The same points/rank renderer as the season. Opening any row retains the
-/// full season's member, squad and receipt interactions.
-private struct CompeteStandingsPreview: View {
-  @Environment(SessionStore.self) private var store
-  @State private var model: LeagueRoomModel
-  @State private var router = RoomRouter()
-  let viewer: RoomViewer?
-  let title: String
-  let detail: String?
-  let open: () -> Void
-  init(leagueId: UUID, viewer: RoomViewer?, title: String, detail: String?, open: @escaping () -> Void) {
-    _model = State(initialValue: LeagueRoomModel(leagueId: leagueId))
-    self.viewer = viewer; self.title = title; self.detail = detail; self.open = open
-  }
-  var body: some View {
-    CSCompetitionBand {
-      if let photo = model.album?.first(where: { item in model.rankedRounds.contains { $0.round_id == item.id } }) {
-        AsyncImage(url: photo.url) { $0.resizable().scaledToFill() }
-          placeholder: { CSTokens.dark.bg1 }
-          .frame(height: CSTokens.Space.s6 * 1.5).frame(maxWidth: .infinity).clipped()
-          .accessibilityLabel("Round photograph by \(photo.golfer)")
-      }
-      Text(title).csType(.agate, caps: true).foregroundStyle(CSTokens.dark.mut)
-        .padding(.horizontal, CSTokens.Space.s4)
-      if model.loaded {
-        StandingsTableView(openSeason: open).environment(model).environment(router)
-      } else {
-        Text(model.error ?? "Loading the board…").csType(.bodyS)
-          .foregroundStyle(CSTokens.dark.ink).padding(CSTokens.Space.s4)
-      }
-      CSDoor(.link("View full board", open)).padding(.horizontal, CSTokens.Space.s4)
-      if let detail {
-        Text(detail).csType(.bodyS).foregroundStyle(CSTokens.dark.mut)
-          .padding(.horizontal, CSTokens.Space.s4)
-      }
-    }
-    .task(id: store.me?.generated_at) {
-      if let viewer { await model.load(viewer: viewer); await model.loadAlbum() }
-    }
-  }
-}
-
 /// One peer, as a **slat**: the stage eyebrow, the name, the one true
 /// sentence — and, on a season, the standing as a rule-and-figure at the
 /// trailing edge (D286, `UI_SYSTEM` §9.1/§9.2).
@@ -317,6 +264,14 @@ private struct CompeteRowView: View {
     Button(action: onTap) {
       A11yStack(alignment: .leading, rowAlignment: .center,
                 spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s3) {
+        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+          Text(row.title).csType(.name).foregroundStyle(cs.ink)
+          Text(row.eyebrow).csEyebrow()
+          Text(row.sub).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         if let r = row.rank {
           // `fixedSize(horizontal: true)` is the same line the round slat
           // needed: `CSRule` is a bare `Rectangle`, so a figure's stack reads
@@ -328,18 +283,8 @@ private struct CompeteRowView: View {
             .fixedSize(horizontal: true, vertical: false)
             .frame(minWidth: 62, alignment: typeSize.isA11y ? .leading : .trailing)
         }
-        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-          Text(row.eyebrow).csEyebrow()
-          Text(row.title).csType(.name).foregroundStyle(cs.ink)
-          Text(row.sub).csType(.bodyS).foregroundStyle(cs.mut)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        .multilineTextAlignment(.leading)
-        .frame(maxWidth: .infinity, alignment: .leading)
-
       }
-      .padding(.vertical, CSTokens.Space.s4)
-      .padding(.horizontal, row.rank == nil ? 0 : CSTokens.Space.gutter)
+      .padding(.vertical, CSTokens.Space.s3)
       .frame(minHeight: 68)
       .overlay(alignment: .bottom) { CSRule() }
       .contentShape(Rectangle())

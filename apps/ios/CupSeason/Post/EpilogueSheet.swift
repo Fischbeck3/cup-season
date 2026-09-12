@@ -39,6 +39,7 @@ struct EpilogueSheet: View {
   var links = EpilogueLinks()
   var onDone: () -> Void = {}
   @State private var share: PostShareItem?
+  @State private var roundPreview = false
   @State private var linking = false
   @State private var revoking = false
   private let svc = PostService()
@@ -113,10 +114,21 @@ struct EpilogueSheet: View {
             .padding(.top, 2)
         }
 
+        if let movement = show.epilogue.movement,
+           let before = movement.rankBefore, let after = movement.rankAfter,
+           before != after, before > 0, after > 0 {
+          Button("Share movement") {
+            share = BrandRecordCard(kind: "Standings movement",
+              title: store.me?.profile?.display_name ?? "You",
+              figure: String(after), statement: "Previously \(before) · position after this round",
+              rows: movement.of.map { ["In a field of \($0)"] } ?? [], earned: after == 1).shareItem()
+          }.buttonStyle(.csSecondary()).padding(.top, 8)
+        }
+
         // the share artifacts, below the act
         if let gross = show.epilogue.gross, !show.ceremonyOwnsShare {
           Button(PostEpilogue.shareLabel(firstEver: show.firstEver)) {
-            share = RecapCardView.shareItem(recap(gross), photo: photo)
+            roundPreview = true
           }
             .buttonStyle(.csSecondary()).padding(.top, 8)
         }
@@ -136,6 +148,9 @@ struct EpilogueSheet: View {
     .presentationDetents([.medium, .large])
     .presentationDragIndicator(.visible)
     .sheet(item: $share) { PostShareSheet(items: $0.items) }
+    .sheet(isPresented: $roundPreview) {
+      if let gross = show.epilogue.gross { RoundSharePreview(recap: recap(gross), photo: photo) }
+    }
     // D104: the first posted round is one of the three moments the ask may follow
     // (raised once this sheet and the composer are down); any posted round
     // makes tonight's duel reminder moot (§7).
@@ -174,7 +189,7 @@ struct EpilogueSheet: View {
   private func recap(_ gross: Int) -> PostRecap {
     let p = store.me?.profile
     return PostRecap(name: p?.display_name ?? "You", marker: p?.marker ?? "saguaro", gross: gross, pvi: show.epilogue.pvi,
-                     points: show.epilogue.points.map { Int($0) }, course: show.course ?? "", date: CSDate.today(),
+                     points: show.epilogue.points.map { Int($0) }, course: show.course ?? "", date: show.playedOn ?? "",
                      badge: show.epilogue.earned.first.flatMap { PostRecap.badges[$0.kind] })
   }
 

@@ -211,7 +211,7 @@ private struct PostRoundBody: View {
     .sheet(item: $model.scanToPick) { scan in PostScanPickSheet(scan: scan) { model.apply(scan, row: $0) } }
     // the curtain closes fully before the next sheet rises — a sheet presented mid-dismissal is dropped
     .fullScreenCover(item: $model.ceremony, onDismiss: { if !model.afterCeremony() { onDone() } }) { c in
-      FinishCeremonyView(ceremony: c, photo: model.recapPhoto) { model.ceremony = nil }
+      FinishCeremonyView(ceremony: c, photo: model.recapPhoto, onBack: { model.ceremony = nil }, roundId: model.acceptedRoundId)
     }
     .sheet(item: $model.epilogue, onDismiss: onDone) { show in
       EpilogueSheet(show: show, photo: model.recapPhoto,

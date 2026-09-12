@@ -2,23 +2,27 @@
 // Owner-approved DesignV1 beta production mark; source geometry remains isolated.
 import SwiftUI
 public enum CSBrandGeometry {
-  public static let contour = "M-12 0C40 52 52 -28 108 28"
+  public static let contour = "M-5 15C15 0 32 12 40 -5 M-5 25C13 9 27 23 39 14C47 8 48 0 49 -5 M-5 33C10 11 29 32 43 22C54 14 54 0 58 -5 M-5 43C14 16 28 40 47 29C60 19 60 5 66 -6 M-6 56C15 19 28 54 51 37C67 25 65 2 77 -6 M-5 68C17 27 34 66 56 43C71 30 70 11 85 -5 M-3 81C17 40 37 71 61 51C76 36 74 17 94 -5 M0 91C17 61 37 80 64 64C85 51 76 18 106 4 M20 101C41 83 69 73 101 80 M36 104C60 87 80 83 103 92 M52 107C76 91 91 96 108 102"
 }
 public struct CSBrandMark: View {
   @Environment(\.cs) private var cs
-  public init() {}
+  let ground: Color?
+  public init(ground: Color? = nil) { self.ground = ground }
   public var body: some View {
     Canvas { context, size in
-      let scale = min(size.width, size.height) / 96
-      context.translateBy(x: (size.width - 96 * scale) / 2, y: (size.height - 96 * scale) / 2)
+      let scale = min(size.width / 1000, size.height / 570)
+      context.translateBy(x: (size.width - 1000 * scale) / 2, y: (size.height - 570 * scale) / 2)
       context.scaleBy(x: scale, y: scale)
-      let outline = SVGPath.path("M33 23C49 16 63 34 85 22L75 51C60 57 49 44 33 49Z M54 32L46 32L43 35L40 43L43 46L50 46L52 42L46 42L48 36L53 36Z M70 34L59 33L56 36L54 40L61 41L60 44L54 43L52 47L63 48L66 45L68 39L61 38L62 37L68 38Z")
+      if let ground {
+        context.fill(SVGPath.path("M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z"), with: .color(ground))
+      }
+      let outline = SVGPath.path("M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z")
       context.fill(outline, with: .color(cs.ink), style: FillStyle(eoFill: true))
-      for path in ["M32 19C29 18 29 14 32 14C35 14 36 18 34 19L34 65L31 66Z", "M5 81C30 58 57 58 92 80C59 65 33 67 5 81Z"] {
+      for path in ["M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z", "M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"] {
         context.fill(SVGPath.path(path), with: .color(cs.ink))
       }
       if min(size.width, size.height) <= 32 {
-        context.stroke(SVGPath.path("M32 18L32 66"), with: .color(cs.ink), lineWidth: 2)
+        context.stroke(SVGPath.path("M375 30L375 444"), with: .color(cs.ink), lineWidth: 38)
       }
     }
     .accessibilityHidden(true)

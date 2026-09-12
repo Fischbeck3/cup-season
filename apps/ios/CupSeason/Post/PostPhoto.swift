@@ -118,6 +118,13 @@ struct PostCameraPicker: UIViewControllerRepresentable {
 /// `UIActivityViewController` — the native share sheet for the card and the link.
 struct PostShareSheet: UIViewControllerRepresentable {
   let items: [Any]
-  func makeUIViewController(context: Context) -> UIActivityViewController { UIActivityViewController(activityItems: items, applicationActivities: nil) }
+  var completion: ((Bool, Bool) -> Void)? = nil
+  func makeUIViewController(context: Context) -> UIActivityViewController {
+    let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+    controller.completionWithItemsHandler = { _, completed, _, error in
+      completion?(completed, error != nil)
+    }
+    return controller
+  }
   func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
 }

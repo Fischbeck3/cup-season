@@ -42,6 +42,9 @@ public enum CSGrowth {
   /// `kind` is one of share · claim · join · recap · settlement (nil = none).
   public static func log(_ node: Node, kind: String? = nil, token: String? = nil,
                          league: UUID? = nil, props: [String: JSONValue] = [:]) {
+    #if DEBUG
+    return
+    #endif
     let call = Call(p_node: node.rawValue, p_kind: kind, p_token: token, p_props: .object(props), p_league: league)
     Task.detached(priority: .utility) {
       _ = try? await SupabaseService.shared.call(call)

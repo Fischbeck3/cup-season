@@ -1,5 +1,88 @@
 # Cup Season — Voice & Tone
 
+## Current editorial system — owner direction, 2026-09-11
+
+This is the single voice guide for both clients and both coding agents. This
+amendment supersedes the 2026-08-31 persona below. It does not amend mechanics,
+legal language, consent, privacy, payment behavior, or protected scoring terms.
+
+**A golfer who knows the group, understands the game, and gets to the point.**
+Confident, welcoming, specific, occasionally dry. Never trying too hard.
+
+Say what happened. Make the next step clear. Add personality only when it helps.
+
+### Three registers
+
+| Register | Use | Rule | Example |
+|---|---|---|---|
+| Utility | Forms, actions, save states, errors, permissions, settings | Plain language; no metaphor required | “View receipt.” |
+| Golf context | Standings, round context, plans, rivalry | Name the actual fact, unit and period | “First, 9 points ahead of Galen.” Only with those verified facts. |
+| Brand moment | Welcome, shareables, season close, proven achievements | One spare line; no stack of slogans | “Any time. Anywhere.” |
+
+### Brand-line hierarchy
+
+Primary: **Any time. Anywhere.** Line breaks may separate the two sentences.
+Extended, selectively: **Any time. Anywhere. All season.**
+Supporting: “Rounds count.” “Another one in the book.”
+“Your golf. Your people. A season worth keeping.”
+Campaign: “Start something.” “More rounds ahead.”
+
+Use one strong line. The primary line is a brand promise, not a claim of offline,
+every-course, every-device or every-format support. Utility screens need no tagline.
+
+### Truth before tone
+
+- Draft, submitting, locally retained, server accepted, and failed are different states.
+- Say “Round saved” only after durable server acceptance. A timeout may be an unknown outcome.
+- Never promise retained input or automatic recovery without a verified path.
+- Sign-in does not mean an invitation was accepted or a friendship created.
+- Never invent par, handicap status, movement, achievements, courses, people or photos.
+- Dates come from the event's calendar date. Investigate contradictory date sources.
+- Preserve variables, localization, singular/plural, units and accessibility labels.
+- A share sheet opening is not a share completing. A request is not an accepted round.
+- Do not turn a quiet implemented capability into a claim that it is missing.
+
+### Protected language
+
+Keep **The Pro**, **Run it back**, **Your Number**, named scoring bands and approved
+competition terminology. App-derived form is not an official Handicap Index.
+Do not rewrite user-authored names, handles, comments or league titles.
+Legal, consent, financial and privacy copy is not a stylistic exercise.
+
+Keep the exact sentence and the authoritative placement rule in spec §16A.1:
+
+> Cup Season keeps the ledger; the money moves between friends.
+
+This guide makes no claim that every current surface is compliant.
+
+### Before / after
+
+| Before | After | Why |
+|---|---|---|
+| “Sign in and you're on the roster.” | “Sign in to review and join.” | Membership still requires joining. |
+| “Sign in and you're buddies.” | “Sign in to view it.” | Opening a card does not establish friendship. |
+| “Sign in and it attaches.” | “Sign in to review it.” | Claim acceptance is a separate step. |
+| “Pulling the round…” | “Loading round…” | Clear utility language. |
+
+### Avoid
+
+Corporate growth language, “unlock,” “elevate,” “supercharge,” “ultimate,” generic
+“golf journey,” forced clubhouse metaphors, guilt about inactivity, insults about
+ability, commands to crush friends, vague poetic empty states, clever errors,
+unverified celebrations, repeated taglines and duplicate facts.
+
+Friendly competition is welcome. Protected scoring-band wording that conflicts
+with this tone is flagged for a decision, never silently renamed.
+
+---
+
+## Historical reference — superseded 2026-08-31 direction
+
+The following preserves the earlier rationale. Its persona and stylistic advice
+are historical, not competing instructions. Apply the current system above.
+
+# Cup Season — Voice & Tone
+
 *Owner-authored, 2026-08-31. CANON. This document governs every user-facing
 string in both clients, alongside `spec/product-vision-v1.0.md`. Where a copy
 decision in `spec/decision-log.md` predates this file and conflicts with it,

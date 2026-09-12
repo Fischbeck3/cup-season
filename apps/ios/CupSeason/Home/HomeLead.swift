@@ -31,6 +31,7 @@ struct HomeLead: View {
   let membership: Me.Membership?
   /// The one door the ranker put under it.
   let act: () -> Void
+  var compact = false
 
   /// `LIVE` is a clock running, and it is the item's own spine — ember means
   /// live, and it is the eyebrow, the dot and the door's rule, which is ONE
@@ -62,35 +63,42 @@ struct HomeLead: View {
     // §1.5's one-ember rule: the lead's door wears the live metal only while
     // the lead IS live. Between seasons nothing is running, so the same door
     // is a `mut` rule and the floor's lit door becomes the screen's one ember.
-    return live ? .primary(a, act) : .link(a, act)
+    return live ? .liveLink(a, act) : .link(a, act)
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      CSRule()
-      Text(item.eyebrow).csType(.agateS, caps: true).foregroundStyle(live ? cs.brand : cs.mut)
-      A11yStack(rowAlignment: .top, spacing: CSTokens.Space.s3) {
-        VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-          Text(item.headline).csType(.story).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: false, vertical: true)
-          if let detail = item.standfirst {
-            Text(detail).csType(.bodyS).foregroundStyle(cs.mut)
-              .fixedSize(horizontal: false, vertical: true)
+    if compact {
+      Button(action: act) {
+        HStack(spacing: CSTokens.Space.s3) {
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            HStack(spacing: CSTokens.Space.s2) {
+              Text(item.eyebrow).csType(.agate, caps: true)
+              if let chip = HomeLeadChip.make(membership) {
+                Text(CSCopy.ordinal(chip.rank)).csType(.name)
+              }
+            }.foregroundStyle(cs.ink)
+
           }
-        }.frame(maxWidth: .infinity, alignment: .leading)
-        if let chip = HomeLeadChip.make(membership) {
-          CSFigure(String(chip.rank), size: .m, label: "of \(chip.of)", ordinal: CSOrdinal.suffix(chip.rank))
-            .fixedSize(horizontal: true, vertical: false)
+          Spacer(minLength: 0)
+          Image(systemName: "chevron.right").foregroundStyle(cs.mut)
         }
-      }
-      if let action = item.action, !action.isEmpty { CSDoor(.link(action, act)) }
-      if let credit { Text("\(credit.slot) · \(credit.name)").csType(.agateS).foregroundStyle(cs.gold) }
+        .padding(.vertical, CSTokens.Space.s3)
+        .frame(minHeight: CSTokens.Space.rail)
+        .contentShape(Rectangle())
+      }.buttonStyle(.plain)
+        .accessibilityLabel(spoken)
+        .accessibilityHint(item.action ?? "Opens the competition")
+    } else {
+    CSStoryCard(eyebrow: item.eyebrow, live: live, tag: tag, credit: credit,
+                headline: item.headline, standfirst: item.standfirst, door: door) {
+      if let chip = HomeLeadChip.make(membership) { chip }
     }
     // §7 · ONE VoiceOver element for the whole block, in the product's voice,
     // with the door as its action — never eyebrow, headline, standfirst, chip
     // and movement as five stops down one page.
     .accessibilityElement(children: .contain)
     .accessibilityLabel(spoken)
+    }
   }
 
   private var spoken: String {

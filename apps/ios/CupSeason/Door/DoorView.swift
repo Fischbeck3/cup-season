@@ -14,6 +14,7 @@ struct DoorView: View {
   @Environment(\.cs) private var cs
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var vm = DoorModel()
+  @State private var entering = false
   @State private var playForge: Bool? = nil
   @State private var risen = false
   @State private var flags = DoorFlags.closed
@@ -34,10 +35,13 @@ struct DoorView: View {
   }
 
   var body: some View {
+    Group {
+    if !entering { welcome } else {
     ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
           crest
+            .background { CSTopoField().opacity(CSTokens.Alpha.a56) }
             .padding(.top, DoorLayout.crestTop(working: working))
             .padding(.bottom, DoorLayout.crestBottom(working: working))
 
@@ -59,7 +63,7 @@ struct DoorView: View {
               // generic PITCH is marketing, and on a working-register phone it
               // is 142pt of marketing between the mark and the only action on
               // the screen, so there it rides below.
-              if vm.stage == .email, !working || pending != nil { doorPitch }
+              if vm.stage == .email, pending != nil { doorPitch }
               switch vm.stage {
               case .email: emailStage
               case .code: codeStage
@@ -70,7 +74,7 @@ struct DoorView: View {
                 CSNote(note.text, tone: note.tone).padding(.top, 18)
               }
 
-              if vm.stage == .email, working, pending == nil { doorPitch.padding(.top, 28) }
+
 
               legal.padding(.top, 36)
             }
@@ -90,6 +94,8 @@ struct DoorView: View {
       // crest never passes under the clock.
       .onChange(of: focus) { _, now in reach(proxy, focus: now) }
       .onChange(of: vm.stage) { _, _ in reach(proxy, focus: focus) }
+    }
+    }
     }
     // **DF-14 · NOTHING RENDERS UNDER THE CLOCK**, including the app mark. The
     // door was the one scrolling surface without the cap, so on any phone that
@@ -121,17 +127,37 @@ struct DoorView: View {
 
   // MARK: crest — the Forge, or its rest frame
 
-  @ViewBuilder private var crest: some View {
-    let w = DoorLayout.crestWidth(working: working)
-    if let playForge {
-      ForgeView(play: playForge, width: w) {
-        if playForge { CSMotion.run { risen = true } } else { risen = true }
-        if focus == nil { focus = .email }
+  private var welcome: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s5) {
+        CSBrandMark().frame(width: 112, height: 64).foregroundStyle(cs.ink)
+        Text(CSBrandCopy.tagline).csType(.lead).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityAddTraits(.isHeader)
+        Text("Golf with your people, all season.").csType(.body).foregroundStyle(cs.mut)
+        CSTopoField().frame(height: 120)
+        Button("Get started", action: enter).buttonStyle(.csPrimary())
+        Button("Sign in", action: enter).buttonStyle(.csSecondary())
       }
-    } else {
-      // one frame before appearance decides; the rest frame keeps the layout
-      ForgeFrame(t: ForgeTimeline.rest, width: w)
+      .padding(CSTokens.Space.gutter)
+      .padding(.top, CSTokens.Space.s6)
+      .frame(maxWidth: 440, alignment: .leading)
+      .frame(maxWidth: .infinity)
     }
+    .background(cs.bg0)
+  }
+
+  private func enter() {
+    entering = true
+    risen = true
+    focus = .email
+  }
+
+  private var crest: some View {
+    HStack(spacing: CSTokens.Space.s3) {
+      CSBrandMark().frame(width: CSTokens.Space.s6, height: CSTokens.Space.s5)
+      Text("Cup Season").csType(.name)
+    }.foregroundStyle(cs.ink)
   }
 
   /// The door's paragraph — the invited stranger's own sentence when there is

@@ -226,6 +226,7 @@ private struct PostCoverStack: View {
           // (the exempt sense) and this opens the composer — on a screen whose
           // row above calls the same destination "Add a round you played".
           CSFine("Hold the ⊕ to go straight to Add my round.").padding(.top, 12)
+          CSBrandSignature()
         }
         .padding(20)
       }
@@ -313,7 +314,7 @@ struct PostStartBlock: View {
       .padding(.vertical, CSTokens.Space.s5)
       .padding(.horizontal, CSTokens.Space.s4)
       .background(alignment: .top) {
-        if let seed {
+        if seed != nil {
           // **`a16`, NOT COMPETE'S `a24`, AND THE DIFFERENCE IS WHAT IS DRAWN
           // OVER IT.** On Compete the field sits behind a HEAD, in air, and
           // `CompeteScreen`'s own comment records what happened the first time
@@ -322,7 +323,7 @@ struct PostStartBlock: View {
           // nothing". Here there is no way to keep the field off the copy —
           // the block is a head AND two lines of body — so the field gives way
           // instead. A texture may sit under type; it may not cross it.
-          CSContour(seed: seed, tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a16))
+          CSTopoField(tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a16))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             // **THE FIELD MAY NOT TAKE A TOUCH** — it is drawn behind a door,
             // and `allowsHitTesting(false)` is the tool for that rather than a

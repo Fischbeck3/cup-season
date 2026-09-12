@@ -33,19 +33,6 @@ import CSDesign
 import CupSeasonKit
 
 struct HeadToHeadPage: View {
-  let opponentId: UUID
-  var fallbackName: String?
-  var openPerson: (UUID) -> Void = { _ in }
-  var stageRound: ((_ playOn: String, _ tag: UUID) -> Void)? = nil
-  var body: some View {
-    HeadToHeadContent(opponentId: opponentId, fallbackName: fallbackName,
-                      openPerson: openPerson, stageRound: stageRound)
-      .csTheme()
-      .environment(\.colorScheme, .dark)
-  }
-}
-
-private struct HeadToHeadContent: View {
   @Environment(\.cs) private var cs
   @Environment(SessionStore.self) private var store
   let opponentId: UUID
@@ -56,6 +43,7 @@ private struct HeadToHeadContent: View {
   var stageRound: ((_ playOn: String, _ tag: UUID) -> Void)? = nil
 
   @State private var model = HeadToHeadModel()
+  @State private var share: PostShareItem?
   @State private var naming = false
   @State private var showFacets = false
 
@@ -69,10 +57,6 @@ private struct HeadToHeadContent: View {
   }
 
   var body: some View {
-    competitionPage
-  }
-
-  private var competitionPage: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 0) {
         switch model.state {
@@ -85,6 +69,7 @@ private struct HeadToHeadContent: View {
         case .ready:
           if let h = model.h2h { record(h) }
         }
+        CSBrandSignature()
       }
       .padding(.horizontal, CSTokens.Space.gutter)
       .padding(.bottom, CSTokens.Space.s6)
@@ -108,6 +93,7 @@ private struct HeadToHeadContent: View {
     .sheet(isPresented: $showFacets) {
       if let h = model.h2h { FacetSheet(h: h, name: name) }
     }
+    .sheet(item: $share) { PostShareSheet(items: $0.items) }
     .sliceToastHost()
   }
 
@@ -117,14 +103,18 @@ private struct HeadToHeadContent: View {
     // M3/D18 · a christened rivalry wears its name, in gold — **the surface's
     // one gold object**, and absent when it is unnamed.
     if let n = h.rivalryName, !n.isEmpty {
-      Text(n).csType(.agate, caps: true).foregroundStyle(cs.mut)
+      Text(n).csType(.agate, caps: true).foregroundStyle(cs.gold)
         .padding(.top, CSTokens.Space.s3)
+        .csBudget(gold: 1)
     }
-    Text(HeadToHeadCopy.pageTitle(h)).csType(.lead).foregroundStyle(cs.ink)
+    Text(HeadToHeadCopy.pageTitle(h)).csType(.display, caps: true).foregroundStyle(cs.ink)
+      .lineLimit(2).minimumScaleFactor(0.72)
       .fixedSize(horizontal: false, vertical: true)
       .padding(.top, CSTokens.Space.s2)
       .accessibilityAddTraits(.isHeader)
       .csBudget(display: 1)
+
+    graphic(h).padding(.top, CSTokens.Space.s4)
 
     // §10 · the serif carries what the numeral cannot: *"He has won the last
     // two."* One serif appearance per viewport (§1.4).
@@ -133,9 +123,6 @@ private struct HeadToHeadContent: View {
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, CSTokens.Space.s4)
     }
-
-    CSCompetitionBand { graphic(h) }
-      .padding(.top, CSTokens.Space.s4)
 
     tape(h)
 
@@ -150,16 +137,14 @@ private struct HeadToHeadContent: View {
     }
 
     doors(h)
-    brandFooter
-  }
-
-  private var brandFooter: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
-      CSRule()
-      CSBrandLockup()
+    if h.record.settled > 0 {
+      Button("Share rivalry") {
+        let who = store.me?.profile?.display_name ?? "You"
+        share = BrandRecordCard(kind: "Rivalry record", title: "\(who) & \(name)",
+          figure: h.record.line, statement: "\(h.record.wins) wins · \(h.record.losses) losses · \(h.record.ties) ties",
+          rows: ["\(h.record.total) meetings", "Record as of \(CSDate.today())"]).shareItem()
+      }.buttonStyle(.csSecondary()).padding(.top, CSTokens.Space.s4)
     }
-    .padding(.vertical, CSTokens.Space.s5)
-    .background { CSTopoField() }
   }
 
   /// §10 · **the graphic.** Two `CSFace` 64 discs, one at each end of the
@@ -171,32 +156,18 @@ private struct HeadToHeadContent: View {
   /// `4–6 · HE LEADS`). And the lead line names a SUBJECT — `YOU LEAD` /
   /// `GALEN LEADS` / `ALL SQUARE`, never `HE LEADS`.
   @ViewBuilder private func graphic(_ h: HeadToHead) -> some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      Text("Wins").csType(.agateS, caps: true).foregroundStyle(cs.mut)
-        .frame(maxWidth: .infinity, alignment: .trailing)
-      rivalryRow(face: me, name: "You", wins: h.record.wins)
-      CSRule()
-      rivalryRow(face: .init(id: h.opponent.id ?? opponentId, marker: h.opponent.marker,
-                            initials: Initials.of(h.opponent.displayName)),
-                 name: name, wins: h.record.losses)
-      if h.record.ties > 0 {
-        Text("\(h.record.ties) tied").csType(.agateS).foregroundStyle(cs.mut)
+    CSClash(left: me, leftName: "You",
+            right: CSFace.Model(id: h.opponent.id ?? opponentId, marker: h.opponent.marker,
+                                initials: Initials.of(h.opponent.displayName)),
+            rightName: first,
+            leftSub: mySub, rightSub: nil) {
+      VStack(spacing: CSTokens.Space.s1) {
+        CSFigure(h.record.line, size: .xl, label: nil)
+        CSRule(.heavy)
+        Text(meetingsLine(h)).csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
-    }
-    .padding(CSTokens.Space.s4)
-    .background(cs.bg1)
-  }
-
-  private func rivalryRow(face: CSFace.Model, name: String, wins: Int) -> some View {
-    A11yStack(spacing: CSTokens.Space.s3) {
-      HStack(spacing: CSTokens.Space.s3) {
-        CSFace(face, size: .list, name: name)
-        Text(name).csType(.name).foregroundStyle(cs.ink)
-          .fixedSize(horizontal: false, vertical: true)
-      }.frame(maxWidth: .infinity, alignment: .leading)
-      Text(String(wins)).csType(.figureL).foregroundStyle(cs.ink)
-        .fixedSize(horizontal: true, vertical: false)
-        .accessibilityLabel("\(wins) wins")
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("\(h.record.line), \(RivalryCopy.leadLabel(h.lead, them: name).lowercased()). \(meetingsLine(h))")
     }
   }
 
@@ -255,7 +226,8 @@ private struct HeadToHeadContent: View {
   @ViewBuilder private var empty: some View {
     Text("Nothing counted yet").csType(.agate, caps: true).foregroundStyle(cs.mut)
       .padding(.top, CSTokens.Space.s4)
-    Text(TourCard.youAndThem(name)).csType(.lead).foregroundStyle(cs.ink)
+    Text(TourCard.youAndThem(name)).csType(.display, caps: true).foregroundStyle(cs.ink)
+      .lineLimit(2).minimumScaleFactor(0.72)
       .fixedSize(horizontal: false, vertical: true)
       .padding(.top, CSTokens.Space.s2)
       .accessibilityAddTraits(.isHeader)
@@ -273,14 +245,13 @@ private struct HeadToHeadContent: View {
     Text(HeadToHeadCopy.emptySub).csType(.body).foregroundStyle(cs.mut)
       .fixedSize(horizontal: false, vertical: true)
       .padding(.top, CSTokens.Space.s3)
-    CSPrimaryAction("Play \(first)") { stageRound?(LastRoundWith.nextSaturday(), opponentId) }
+    CSDoor(.primary("Play \(first)", { stageRound?(LastRoundWith.nextSaturday(), opponentId) }))
       .padding(.top, CSTokens.Space.s4)
     HStack {
       CSDoor(.link("\(first)’s card", { openPerson(opponentId) }))
       Spacer()
     }
     .padding(.top, CSTokens.Space.s3)
-    brandFooter
   }
 
   private var me: CSFace.Model {

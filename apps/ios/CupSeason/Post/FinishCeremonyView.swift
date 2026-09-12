@@ -19,10 +19,12 @@ struct FinishCeremonyView: View {
   let ceremony: PostCeremony
   let photo: UIImage?
   let onBack: () -> Void
+  var roundId: UUID? = nil
+  @State private var showReceipt = false
+  @State private var showPreview = false
 
   @State private var stage = 0
   @State private var thock = false
-  @State private var share: PostShareItem?
 
   // **WAVE 11 · THE FINISH IS ON THE CEREMONY RAMP, NOT ON THE OLD WEB'S
   // HEXES.** Five literals were copied out of `index.html` and lived here in
@@ -45,11 +47,19 @@ struct FinishCeremonyView: View {
       // **AND THE WASH IS GONE.** A radial gradient over a ground is the one
       // image state D272 bans by name, and this one was drawn in a deleted
       // token. One ground, painted once (the audit's F-04 / F-05).
-      CSDusk.ground.ignoresSafeArea()
+      CSTokens.dark.bg0.ignoresSafeArea()
+      VStack { Spacer(); CSTopoField().frame(height: 110) }.allowsHitTesting(false)
+      ScrollView {
       VStack(spacing: 0) {
         Spacer(minLength: 24)
         Text(ceremony.eyebrow).font(CSFont.eyebrow).tracking(2.6).textCase(.uppercase).foregroundStyle(eyebrowInk)
           .multilineTextAlignment(.center).opacity(stage >= 1 ? 1 : 0)
+        if let photo {
+          Image(uiImage: photo).resizable().scaledToFill()
+            .frame(maxWidth: 340).frame(height: 120).clipped()
+            .padding(.top, CSTokens.Space.s4).opacity(stage >= 1 ? 1 : 0)
+            .accessibilityLabel("Round photograph")
+        }
         PostCupRoll(rolled: stage >= 2, reduceMotion: reduceMotion).frame(height: 44).padding(.top, 18)
         // D267 / D268 · a gross is a FIGURE, and the serif it was set in is
         // Charter, which D268 retired. `figureXL` is the role: the board face,
@@ -67,7 +77,12 @@ struct FinishCeremonyView: View {
           .foregroundStyle(ceremony.earned ? CSTokens.dark.gold : eyebrowInk)
           .multilineTextAlignment(.center).padding(.top, 24).opacity(stage >= 4 ? 1 : 0).offset(y: stage >= 4 ? 0 : 6)
         Rectangle().fill(bandInk.opacity(0.1)).frame(width: 120, height: 1).padding(.top, 22).opacity(stage >= 5 ? 1 : 0)
-        Button { share = RecapCardView.shareItem(ceremony.recap, photo: photo) } label: {
+        if roundId != nil {
+          Button("View receipt") { showReceipt = true }
+            .buttonStyle(.csTertiary(.toolbar))
+            .padding(.top, 12).opacity(stage >= 5 ? 1 : 0)
+        }
+        Button { showPreview = true } label: {
           Text(PostCeremony.shareLabel).csType(.name).foregroundStyle(shareInk)
             .frame(minWidth: 220, minHeight: 46).padding(.horizontal, 28)
             .background(shareBg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
@@ -77,14 +92,24 @@ struct FinishCeremonyView: View {
           Text(PostCeremony.backLabel).font(CSFont.subhead.weight(.medium)).foregroundStyle(eyebrowInk).frame(minHeight: 44).padding(.horizontal, 12)
         }
         .buttonStyle(.plain).padding(.top, 8).opacity(stage >= 5 ? 1 : 0)
+        Text(CSBrandCopy.tagline).csType(.agateS, caps: true)
+          .foregroundStyle(eyebrowInk).padding(.top, CSTokens.Space.s4).opacity(stage >= 5 ? 1 : 0)
         Spacer(minLength: 24)
       }
       .padding(.horizontal, 24)
       .frame(maxWidth: 440)
+      .frame(maxWidth: .infinity)
+      }
     }
+    .environment(\.cs, CSTokens.dark)
+    .environment(\.colorScheme, .dark)
+    .preferredColorScheme(.dark)
     .onAppear { run(); thock = true }
     .csFeedback(.posted, trigger: thock)
-    .sheet(item: $share) { PostShareSheet(items: $0.items) }
+    .sheet(isPresented: $showPreview) { RoundSharePreview(recap: ceremony.recap, photo: photo) }
+    .sheet(isPresented: $showReceipt) {
+      if let roundId { RoundReceiptSheet(roundId: roundId, seed: nil) }
+    }
     .accessibilityAddTraits(.isModal)
   }
 
