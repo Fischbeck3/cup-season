@@ -10,6 +10,27 @@ This is the deep version of `spec/inbox.md` items **16** (a plan whose day has
 passed is never asked about), **28** (nothing ties a posted round to the plan)
 and **29** (the live bridge is shallow).
 
+
+> ## ⚠ CORRECTED 2026-09-12 — read `2026-09-12-after-golf-contract-review.md` first
+>
+> Two things in §5 of this report are **wrong** and were proven wrong on a real
+> PostgreSQL cluster:
+>
+> 1. **§5.1 is dangerous as written.** Adding `p_today` as a second defaulted
+>    argument creates an **overload**, and every existing caller then fails with
+>    `function home_dispatch(integer) is not unique`. It would have broken Home
+>    on every shipped client. The fix is to **drop the old signature and create
+>    the new one in the same migration**, and to re-issue the grants, which the
+>    drop discards.
+> 2. **§5.2's action is untruthful.** `route {kind:'plan'}` opens the plan sheet
+>    on the phone (no posting door) and the schedule **list** on the web (the id
+>    is discarded). The action must be **"Add my round"** routed to
+>    `{kind:'composer'}`.
+>
+> Everything else below stands. §§1–4 and the thirty acceptance cases are
+> unchanged.
+
+
 ---
 
 ## 0 · The finding in one paragraph

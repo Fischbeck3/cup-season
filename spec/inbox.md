@@ -270,6 +270,13 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
 - `docs/ios/DECISIONS.md` — what was actually built, and its gate.
 - `CLAUDE.md` — architecture, the landmines, and the current state.
 
+
+### 2026-09-12 · Gameplay · after-golf contract, second pass (owner rulings owed)
+
+Follow-up: `docs/reviews/2026-09-12-after-golf-contract-review.md`. Two of my own proposals were proven wrong on a throwaway PostgreSQL 17 cluster and are corrected there: a defaulted second argument would have created an **overload** and broken every existing `home_dispatch` caller with `is not unique` (the fix is drop-and-recreate in one migration, re-issuing the grants the drop discards), and an action routed to `{kind:'plan'}` reaches no posting flow on either client (the phone opens the plan sheet, the web opens the schedule list and discards the id) — it must be "Add my round" to `{kind:'composer'}`.
+
+**Four owner rulings are owed before anyone builds this:** the window length (three days proposed); whether `maybe` and unanswered tags qualify; one prompt per day when two plans share a day; and — the real one — **same-day suppression when the plan has no course id**. Four of five prod plans have none, so the match is a heuristic, never an established link: the choice is between a missed prompt and asking a golfer to post a round they already posted. First question: which of those two errors do you prefer? The ambiguity disappears with item 28's nullable column.
+
 ### 2026-09-12 · Gameplay / UX · the after-golf prompt, audited
 
 Full audit: `docs/reviews/2026-09-12-after-golf-audit.md` (contract + 30 acceptance cases). It is items 16, 28 and 29 read together. Implementation is Codex's.
