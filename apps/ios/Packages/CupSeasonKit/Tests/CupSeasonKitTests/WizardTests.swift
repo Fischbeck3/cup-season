@@ -271,7 +271,12 @@ import Foundation
     #expect(b.cap == 5 && b.capN == 5 && b.capLabel == "Best 5" && b.capIdx == 2 && b.fmtIdx == 0)
     #expect(Bylaws.fmtNames[b.fmtIdx] == "Points Race" && Bylaws.fmtNames.count == 2)
     let d = WizardDials.from(s, name: "X")
-    #expect(d.cap == 2 && d.capText == "Best 4")   // the wizard can only offer its rungs
+    // D347 · the STEPPER still sits on the nearest rung — that part of D142 is
+    // unchanged — but the row now names the rule the league actually stores.
+    // It previously read "Best 4" and locked Best 4, rewriting a rule the Pro
+    // never touched; the control is a value row with two arrows, not a
+    // positional picker, so naming 5 on the 4-rung is coherent.
+    #expect(d.cap == 2 && d.capText == "Best 5" && d.capN == 5)
     #expect(Bylaws.from(LeagueRoom.Settings(league_id: UUID(), counting_cap: 3)).capIdx == 1)
     #expect(Bylaws.from(nil).cap == 3 && Bylaws.from(nil).capLabel == "Best 3")
   }

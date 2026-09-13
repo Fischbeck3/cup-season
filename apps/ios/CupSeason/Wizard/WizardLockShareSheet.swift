@@ -26,7 +26,7 @@ struct WizardLockShare: Identifiable, Equatable {
   var id: UUID { leagueId }
   var line: String {
     if let w = weeks, let s = startsOn {
-      return WizardCopy.liveSub(weeks: w, startsOn: s, invited: invited)
+      return WizardCopy.liveSub(weeks: w, startsOn: s, invited: invited, members: members)
     }
     return WizardCopy.lockShareLine(nextPhase: nextPhase, members: members, structure: structure, draftType: draftType, startsOn: startsOn)
   }

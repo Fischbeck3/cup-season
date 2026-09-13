@@ -175,7 +175,19 @@ public struct WizardDials: Sendable, Equatable {
   }
   public mutating func stepStake(_ dir: Int) { stake = Self.step(Self.stakes, stake, dir) }
   public mutating func stepLength(_ dir: Int) { durWeeks = Self.step(Self.durs, durWeeks, dir) }
-  public mutating func stepCap(_ dir: Int) { cap = max(0, min(Self.caps.count - 1, cap + dir)) }
+  /// D347 · stepping always lands on a rung, and from an off-ladder stored cap
+  /// it lands on the nearest rung IN THE DIRECTION OF TRAVEL. A league storing
+  /// 5 sits on the Best-4 rung reading "Best 5"; one tap down is Best 4, one
+  /// tap up is Best 6. Without the direction check, down would skip to Best 3.
+  public mutating func stepCap(_ dir: Int) {
+    if let exact = capExact, cap == Bylaws.capIndex(exact), !Self.capVals.contains(exact) {
+      capExact = nil
+      if dir < 0, let n = Self.capVals[cap], n < exact { return }   // the rung below is already correct
+      if dir > 0, let n = Self.capVals[cap], n > exact { return }
+    }
+    capExact = nil
+    cap = max(0, min(Self.caps.count - 1, cap + dir))
+  }
   public mutating func stepFloor(_ dir: Int) { floor = max(0, min(4, floor + dir)) }
 
   /// `#stakeVal`: "None" at $0, else "$75".
@@ -184,7 +196,23 @@ public struct WizardDials: Sendable, Equatable {
   public var lengthText: String { LeagueDates.durLabel(durWeeks) }
   public var capText: String { Bylaws.capLabel(capN) }
   public var floorText: String { "\(floor) / mo" }
-  public var capN: Int? { Self.capVals[max(0, min(Self.capVals.count - 1, cap))] }
+  /// D347 · the STORED cap, when the ladder does not carry it.
+  ///
+  /// `Bylaws.capIndex` deliberately snaps an off-ladder value to the nearest
+  /// rung so a league room can render "Best 5" on a five-rung stepper. Using
+  /// that rung to SAVE is a different act: a league storing 5 resumed as Best 4
+  /// and locked as Best 4, rewriting a rule the Pro never touched. Eight of the
+  /// twelve caps the CHECK admits (1, 5, 7, 8, 10, 12, 20, 31) moved this way.
+  ///
+  /// The exact value rides here and `capN` prefers it for as long as the
+  /// stepper still sits on its snapped rung. The moment the Pro moves the
+  /// stepper the rung stops matching and the ladder's own value wins, so no
+  /// extra clearing is needed on `applyPreset` or the suggestion.
+  public var capExact: Int?
+  public var capN: Int? {
+    if let capExact, cap == Bylaws.capIndex(capExact) { return capExact }
+    return Self.capVals[max(0, min(Self.capVals.count - 1, cap))]
+  }
   public var solo: Bool { structure == "solo" }
 
   // MARK: - D225 · what the wizard asks, and what it derives
@@ -330,6 +358,7 @@ public struct WizardDials: Sendable, Equatable {
     }
     d.floor = base.floor
     d.cap = base.capIdx
+    d.capExact = b.counting_cap   // D347 · keep the rule the league actually stores
     d.preset = base.presetIdx
     d.structure = base.structure
     d.payout = base.payout
@@ -729,10 +758,17 @@ public enum WizardCopy {
 
   /// The share screen, which is the SAME screen (D114's phone half).
   public static func liveHead(_ name: String) -> String { "\(name) is live." }
-  public static func liveSub(weeks: Int, startsOn: String, invited: Int) -> String {
-    let crew = invited > 0
-      ? "\(WizardCopy.numberWord(invited + 1).capitalized) in, and the link works for anyone."
-      : "The link works for anyone."
+  /// D348 · **an invitation is not a member.** This read `invited + 1` and said
+  /// "Six in" to a Pro standing alone in her own league with five invitations
+  /// out. `invite_golfer` writes `member_invites` and never `league_members`,
+  /// so the two numbers are different facts and the sentence now says both.
+  /// The web half has always counted `league_members` fresh at this moment
+  /// (`openLockShare`, "N in so far … (M already invited.)") — this is the
+  /// phone catching up to it, not a new rule.
+  public static func liveSub(weeks: Int, startsOn: String, invited: Int, members: Int) -> String {
+    var crew = members > 1 ? "\(numberWord(members).capitalized) in" : "You're in"
+    if invited > 0 { crew += ", \(numberWord(invited)) invited" }
+    crew += ", and the link works for anyone."
     return "\(numberWord(weeks).capitalized) weeks from \(LeagueDates.dowMonDay(startsOn)). \(crew)"
   }
   public static let copyLink = "Copy link"

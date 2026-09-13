@@ -5623,7 +5623,7 @@ const state = {
      defaults `create_league` writes, so a row and a wizard can never disagree
      again. Not shorter: under ~10 weeks the calendar-month floor never
      assesses (D143). The phone mints the same league (`WizardDials`). */
-  stake:0, months:3, cap:1, floor:2, myIndex:12.4,
+  stake:0, months:3, cap:1, capExact:null, floor:2, myIndex:12.4,
   phase:'season', wiz:0, preset:1, fmt:0, emails:[], showOthers:false, structure:'squads2', demo:true, startOffset:0, durWeeks:13, startISO:'',
   draftType:'random',
   finish:'cup_final',   /* the endgame dial (008): cup_final | points_table */
@@ -5651,6 +5651,21 @@ const STAKES=[0,25,50,75,100,150,200], LENGTHS=[6,9,12],
    that makes a good round matter without making a fourth round worthless. */
 const CAP_N=[2,3,4,6,Infinity];      /* client math */
 const CAP_DB=[2,3,4,6,null];         /* league_settings.counting_cap */
+/* D347 · the STORED cap, when the ladder does not carry it. `CAPMAP[n] ?? 1`
+   used to land an off-ladder value on Best 3 and lock Best 3, rewriting a rule
+   the Pro never touched - and the phone's own fallback picked the NEAREST rung,
+   so the two clients did not even rewrite it to the same thing. The exact value
+   rides in state.capExact and wins while the picker still sits on its rung;
+   moving the picker clears it. capDB() is the only thing that may be sent. */
+const CAPMAP_IDX = n => { const i = CAP_DB.indexOf(n); if (i >= 0) return i;
+  let best = 1, d = Infinity;
+  CAP_DB.forEach((v, j) => { if (v != null && Math.abs(v - n) < d) { d = Math.abs(v - n); best = j; } });
+  return best; };
+const capIdx = () => Number.isInteger(state.cap) ? state.cap : 2;   /* the old `state.cap ?? 2` guard, in one place */
+const capDB = () => (state.capExact != null && CAPMAP_IDX(state.capExact) === capIdx())
+                    ? state.capExact : CAP_DB[capIdx()];
+const capLabel = () => { const n = capDB(); return n == null ? 'Unlimited' : `Best ${n}`; };
+const capNum   = () => { const n = capDB(); return n == null ? Infinity : n; };   /* client math */
 /* season length ladder in WEEKS — short casual seasons ("a quick 3-round run
    before it's cold") through full multi-month leagues. Flexible start (§14.0
    v1.1: Sunday-start no longer required — caps/floors stay calendar-month). */
@@ -6601,7 +6616,7 @@ function csAllowanceWords(n){
 }
 function csSeasonRules(){
   const out = [];
-  const cap = CAP_DB[state.cap];
+  const cap = capDB();
   const counted = cap == null
     ? 'Every round you post counts.'
     : `Your best ${csWord(cap)} round${cap===1?'':'s'} each calendar month count.`;
@@ -8186,7 +8201,7 @@ function renderFeedFull(force){
         const up=(r.pvi??0)>=0;
         /* D2: no differential/index jargon on the story card — the round reads
            as a sentence; the math lives in the receipts sheet */
-        const capN=CAP_N[state.cap];
+        const capN=capNum();
         const counting = r.month_rank==null
           ? `<span class="dim">PRE-SEASON · NOT COUNTING</span>`
           : r.month_rank<=capN
@@ -9324,7 +9339,7 @@ function epiMark(icon, tint){
 }
 function epiCounting(rank){
   if(rank==null) return '';
-  const capN=CAP_N[state.cap ?? 2];
+  const capN=capNum();
   if(rank<=capN) return capN===Infinity ? ' · counts this month' : ` · counts #${rank} this month`;
   return ` · outside your best ${capN} this month, for now`;
 }
@@ -11137,7 +11152,7 @@ document.getElementById('useBusyFriends')?.addEventListener('click', ()=>{
 function renderSetup(){
   $('#stakeVal').textContent=state.stake===0?'None':fmt$(state.stake);
   $('#lenVal').textContent=durLabel(state.durWeeks);
-  $('#capVal').textContent=CAPS[state.cap];
+  $('#capVal').textContent=capLabel();
   $('#floorVal').textContent=state.floor ? state.floor+' / mo' : 'None';
   csRenderSetupMinimum();
   $('#wkTotal2').textContent=state.durWeeks;
@@ -14730,7 +14745,7 @@ function wireBag(){
 function renderStats(){
   renderCourseBooks();
   csBagRefresh();
-  const capN=CAP_N[state.cap];
+  const capN=capNum();
   /* real leagues read the view-backed month numbers (window.myMonth, set by
      the module) — the demo's feed-scrape (who==='You') never matches real
      display names and would pin every real user at zero */
@@ -14850,7 +14865,7 @@ function renderStats(){
   $('#nextTxt').textContent = partial
     ? `${curMonth()} is a short month — no minimum to clear. Every round still counts.`
     : rem>0
-      ? `Post ${fmtN(rem)} more round${rem===1?'':'s'} this month — ${CAPS[state.cap].toLowerCase()} count, you've posted ${fmtN(credits)}.` + half
+      ? `Post ${fmtN(rem)} more round${rem===1?'':'s'} this month — ${capLabel().toLowerCase()} count, you've posted ${fmtN(credits)}.` + half
       : `${curMonth()} is covered — ${fmtN(credits)} rounds counting. A better one always replaces your lowest.` + half;
 }
 
@@ -19096,7 +19111,7 @@ async function enrichRoundReceipt(rid, seed){
       : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
     const body=document.getElementById('rcptBody');
     if(!body) return;                             /* sheet already closed */
-    body.innerHTML = roundCardBody(r, pvi, CAP_N[state.cap]);
+    body.innerHTML = roundCardBody(r, pvi, capNum());
     /* the header learns the course it was missing */
     const sub=document.getElementById('shSub');
     if(sub && r.course_label){
@@ -19141,7 +19156,7 @@ function openRoundReceipt(x){
   if(rid && window.sb && !state.demo) enrichRoundReceipt(rid, r);
   const pvi = r.pvi!=null ? Number(r.pvi)
     : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
-  const capN=CAP_N[state.cap];
+  const capN=capNum();
   const line=[r.course_label||'somewhere out there', (r.holes_played||18)+' holes', r.played_on||''].filter(Boolean).join(' · ');
   /* D59 (2c): the poster's marker medallion rides the photo — attribution */
   const stampOf = () => r.profile_id && window.mkr
@@ -19244,7 +19259,7 @@ function seedHistory(){
 }
 /* which rounds counted, per the rounds that count, per month */
 function markCounting(rows){
-  const capN=CAP_N[state.cap];
+  const capN=capNum();
   const byMonth={};
   rows.forEach(r=>{ (byMonth[r.month] ||= []).push(r); });
   Object.values(byMonth).forEach(list=>{
@@ -19539,10 +19554,10 @@ function showPlayer(name){
   const rows=markCounting([...(HIST[name]||[])]).sort((a,b)=>b.pts-a.pts);
   const counting=rows.filter(r=>r.counts);
   const cut=rows.filter(r=>!r.counts);
-  const capN=CAP_N[state.cap];
+  const capN=capNum();
 
   let h=`<div class="mathrow"><span>Rounds posted</span><b>${p.r}</b></div>
-    <div class="mathrow"><span>Counting (${CAPS[state.cap].toLowerCase()} / mo)</span><b>${counting.length}</b></div>
+    <div class="mathrow"><span>Counting (${capLabel().toLowerCase()} / mo)</span><b>${counting.length}</b></div>
     <div class="mathrow"><span>Average vs your playing HCP</span><b>${p.avg>=0?'+':''}${p.avg.toFixed(1)}</b></div>
     <div class="mathrow tot"><span>Season points</span><b>${p.pts}</b></div>`;
 
@@ -19555,7 +19570,7 @@ function showPlayer(name){
       <span class="rp">${r.pts}</span></button>`;
   });
   if(cut.length){
-    h+=`<div class="eyebrow" style="margin-top:18px">Displaced · outside ${CAPS[state.cap].toLowerCase()}</div>`;
+    h+=`<div class="eyebrow" style="margin-top:18px">Displaced · outside ${capLabel().toLowerCase()}</div>`;
     cut.forEach(r=>{
       const i=(HIST[name]||[]).indexOf(r);
       h+=`<button class="rdrow cut" data-round="${name}|${i}">
@@ -19817,7 +19832,7 @@ function renderBylaws(){
     <div class="byrow"><span>HOUSE RULES</span><b>${pr.name}</b></div>
     <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored at ${ALLOW[state.preset]}% of your index</b></div>
     <div class="byrow"><span>SCORES</span><b>${VERIF[state.preset]}</b></div>
-    <div class="byrow"><span>EACH MONTH</span><b>${CAPS[state.cap]==='Unlimited' ? 'Every round counts' : CAPS[state.cap]+' a month count'}</b></div>
+    <div class="byrow"><span>EACH MONTH</span><b>${capLabel()==='Unlimited' ? 'Every round counts' : capLabel()+' a month count'}</b></div>
     <div class="byrow"><span>THE MINIMUM</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
     ${state.structure!=='solo' && state.floor>0 ? `<div class="byrow"><span>IF YOU MISS IT</span><b>${esc(csSetupMinimum(state))}</b></div>` : ''}
     ${state.stake===0
@@ -23784,7 +23799,8 @@ function applyBylaws(b){
      not paid, and one in four landed in the wrong points band. Nullable so a
      league loaded from an older payload falls back to the preset map. */
   state.allowance = (b.handicap_allowance == null) ? null : Number(b.handicap_allowance);
-  state.cap       = b.counting_cap === null ? 4 : (CAPMAP[b.counting_cap] ?? 1);
+  state.cap       = b.counting_cap === null ? 4 : (CAPMAP[b.counting_cap] ?? CAPMAP_IDX(b.counting_cap));
+  state.capExact  = b.counting_cap;   /* D347 - keep the rule the league stores */
   state.preset    = ['casual','standard','cutthroat'].indexOf(b.preset) >= 0
                     ? ['casual','standard','cutthroat'].indexOf(b.preset) : 1;
   /* D206 · points unless this league is already LOCKED on a legacy value.
@@ -24191,7 +24207,7 @@ async function loadStandingsAndFeed(){
      with \u2014 no demo-shaped math anywhere near a real league */
   if(CS.season){
     try {
-      const capN=CAP_N[state.cap];
+      const capN=capNum();
       const [{ data: rr }, { data: ind }] = await Promise.all([
         sb.from('v_rounds_ranked')
           .select('member_id, round_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played')
@@ -24668,6 +24684,8 @@ async function createLeague(){
 }
 
 /* ---------- lock the bylaws ---------- */
+/* D347 · left for readers of old diffs. Nothing may send the raw ladder:
+   capDB() is the only value that reaches league_settings.counting_cap. */
 const CAPVALS = CAP_DB;
 async function lockBylaws(){
   if(!CS.league) throw new Error('no league');
@@ -24688,7 +24706,7 @@ async function lockBylaws(){
       p_preset:              ['casual','standard','cutthroat'][state.preset],
       p_handicap_allowance:  [100,95,90][state.preset],
       p_verification:        ['honor','attested','ghin'][state.preset],
-      p_counting_cap:        CAPVALS[state.cap],
+      p_counting_cap:        capDB(),
       p_participation_floor: state.floor,
       p_floor_penalty:       ['none','deduct','forfeit'][state.preset],
       p_season_format:       fmtKeyForLock(),
@@ -24752,7 +24770,7 @@ async function lockBylaws(){
     preset:              ['casual','standard','cutthroat'][state.preset],
     handicap_allowance:  [100,95,90][state.preset],
     verification:        ['honor','attested','ghin'][state.preset],
-    counting_cap:        CAPVALS[state.cap],
+    counting_cap:        capDB(),
     participation_floor: state.floor,
     floor_penalty:       ['none','deduct','forfeit'][state.preset],
     season_format:       fmtKeyForLock(),
@@ -24773,7 +24791,7 @@ async function lockBylaws(){
       preset:['casual','standard','cutthroat'][state.preset],
       handicap_allowance:[100,95,90][state.preset],
       verification:['honor','attested','ghin'][state.preset],
-      counting_cap:CAPVALS[state.cap], participation_floor:state.floor,
+      counting_cap:capDB(), participation_floor:state.floor,
       floor_penalty:['none','deduct','forfeit'][state.preset],
       season_format:fmtKeyForLock(), structure:state.structure,
       buyin_cents:state.stake*100, season_months:durMonths(state.durWeeks),
