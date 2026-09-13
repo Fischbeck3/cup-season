@@ -114,18 +114,67 @@ final class AfterGolfAnswerTests: XCTestCase {
   }
 }
 
-// R1 · THE THIRD PLACEMENT IS CODE-COMPLETE AND NOT PROVABLE HERE, which is
-// worth saying plainly rather than leaving a green suite to imply otherwise.
-//
-// An after-golf item that is not the lead renders through the wire, and the
-// wire is built from `HomeModel.items` — the FEED. `runFixture` clears that
-// deliberately: "a fixture that invented a feed would be inventing golfers"
-// (D259, and EVIDENCE_POLICY). So a Home-state fixture can put a card in the
-// lead and cannot put one in the wire, and a test that seemed to do so would be
-// testing a feed this repository has ruled it may not fabricate.
-//
-// What IS proven: `HomeStateFixtureTests` asserts the `after_golf_wire` payload
-// carries an answerable card that is not the lead, and `HomeView.answers(_:)`
-// is one producer called from all three placements, so a layout cannot ship the
-// door without the answers again. A real displaced card belongs to a device
-// pass with a real account.
+/// F1 · the fourth placement: another story leads AND the feed is empty, so
+/// `HomePage.make` promotes the reminder to `wireEmptyItem`. That block drew
+/// three lines and offered no act at all.
+///
+/// The regression is Codex's, brought across from its review workspace. My own
+/// note here previously said a displaced card was not reachable through a
+/// fixture because the wire is built from the feed. That was wrong in the one
+/// way that mattered: when the feed is EMPTY the item is promoted out of the
+/// wire and into this block, so `after_golf_wire` reaches it without inventing
+/// a single feed row.
+final class AfterGolfWirePlacementTests: XCTestCase {
+
+  private func launch(_ extra: [String]) -> XCUIApplication {
+    let app = XCUIApplication()
+    app.launchArguments = ["-cs_dev_home_state", "after_golf_wire", "-cs_dev_look", "none"] + extra
+    app.terminate(); app.launch()
+    return app
+  }
+
+  private func reach(_ e: XCUIElement, _ app: XCUIApplication, _ what: String,
+                     file: StaticString = #filePath, line: UInt = #line) {
+    XCTAssertTrue(e.waitForExistence(timeout: 25), "F1: \(what) never rendered", file: file, line: line)
+    for _ in 0..<40 where !e.isHittable { app.scrollViews.firstMatch.swipeUp() }
+    XCTAssertTrue(e.isHittable, "F1: \(what) rendered but cannot be tapped", file: file, line: line)
+    XCTAssertGreaterThanOrEqual(e.frame.height, 43, "F1: \(what) is under the tap target", file: file, line: line)
+  }
+
+  @MainActor func testDisplacedCardWithAnEmptyFeedKeepsAllThreeActions() {
+    let app = launch(["-cs_dev_text_size", "large"])
+    XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "had you on the plan"))
+                    .firstMatch.waitForExistence(timeout: 25), "the reminder itself is gone")
+    // Something else must be leading, or this is not the arrangement under test.
+    // The lead is ONE combined accessibility element (§7), so its headline is
+    // inside the button's label rather than a static text of its own.
+    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "two points off the lead"))
+                    .firstMatch.exists, "the lead above it was lost — this is not the displaced arrangement")
+    reach(app.buttons["Add my round"].firstMatch, app, "the plan-aware round door")
+    reach(app.buttons["Later"].firstMatch, app, "Later")
+    reach(app.buttons["Didn’t play"].firstMatch, app, "Didn’t play")
+    let shot = XCTAttachment(screenshot: app.screenshot())
+    shot.name = "After golf · displaced, empty feed"; shot.lifetime = .keepAlways; add(shot)
+  }
+
+  @MainActor func testDisplacedCardSurvivesAccessibilityText() {
+    let app = launch(["-cs_dev_text_size", "ax3"])
+    reach(app.buttons["Add my round"].firstMatch, app, "the round door at AX3")
+    reach(app.buttons["Later"].firstMatch, app, "Later at AX3")
+    reach(app.buttons["Didn’t play"].firstMatch, app, "Didn’t play at AX3")
+    let shot = XCTAttachment(screenshot: app.screenshot())
+    shot.name = "After golf · displaced · AX3"; shot.lifetime = .keepAlways; add(shot)
+  }
+
+  /// A failed answer keeps the card here too — the fixture has no session, so
+  /// the call fails, and nothing local may be written or hidden on a failure.
+  @MainActor func testAFailedAnswerKeepsTheDisplacedCard() {
+    let app = launch(["-cs_dev_text_size", "large"])
+    let later = app.buttons["Later"].firstMatch
+    reach(later, app, "Later")
+    later.tap()
+    XCTAssertTrue(app.buttons["Add my round"].firstMatch.waitForExistence(timeout: 10),
+                  "F1: a failed answer threw the displaced card away")
+    XCTAssertTrue(later.exists, "F1: a failed answer left no way to try again")
+  }
+}

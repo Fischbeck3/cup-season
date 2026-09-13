@@ -292,17 +292,33 @@ struct HomeView: View {
         // The wire's own empty, as the design draws it: an eyebrow, a headline
         // that is a fact about the WORLD, and a body. Its door is the lit door
         // in the floor beneath, so the screen carries one act and not two.
+        //
+        // F1 · **the fourth placement, and the one that stranded the reminder.**
+        // `HomePage.make` promotes the highest remaining item here when the feed
+        // is empty — which is exactly the after-golf card's own arrangement when
+        // something else leads and the golfer's buddies have posted nothing. The
+        // block drew three lines and offered no act at all: the floor's specific
+        // door is gone (it says only "Something else" now), so the sentence that
+        // asks a golfer about their round had no way to answer it and no way to
+        // make it go away. The one-act rule still holds for every other item;
+        // a card that ASKS a question carries the answers to it.
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-          Text(block.eyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
-          Text(block.headline).csType(.lead).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: false, vertical: true)
-          if let s = block.standfirst, !s.isEmpty {
-            Text(s).csType(.body).foregroundStyle(cs.mut)
+          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+            Text(block.eyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
+            Text(block.localHeadline()).csType(.lead).foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
+            if let s = block.standfirst, !s.isEmpty {
+              Text(s).csType(.body).foregroundStyle(cs.mut)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+          }
+          .accessibilityElement(children: .combine)
+          if block.answerable {
+            if let a = block.action, !a.isEmpty { CSDoor(.primary(a) { take(block) }) }
+            answers(block)
           }
         }
         .padding(.horizontal, CSTokens.Space.gutter)
-        .accessibilityElement(children: .combine)
       } else if page.wireEmpty {
         // QB-05 · **NEVER "add some buddies" TO A GOLFER WITH A ROSTER**, and
         // the producer already branches on it. It is set as a SENTENCE with a
