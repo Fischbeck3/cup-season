@@ -41,6 +41,7 @@ This is a file-ownership rule, not a claim that one agent is intrinsically bette
 | Q1 | Integrated complete-week audit | Codex + Claude independent review | Proposed | C1/C2; same commit, both clients, real RPC and UI evidence |
 | R1 | Existing Record extended into a season chapter | Codex prototype / Claude facts | Later proposal | Q1; sparse-data and privacy proof |
 | G1 | Existing invite/guest/renewal continuity | Codex clients / Claude contracts | Later proposal | Core loop and chapter evidence |
+| N0 | Widget, Live Activity and notification structure | Codex surfaces / Claude events | Design proposal; no activation | `docs/planning/2026-09-12-notifications-next.md`; D104/D248 gates and sharing contract |
 | S0 | Signing recovery for build 815 | Owner/account operator; Claude retains prior release handoff | Blocked separately | Valid authorised distribution signing; no app-source edits required |
 
 At most one active build packet per agent. Review can overlap the other builder's independent work, but a contract consumer waits for the agreed payload. A proposed row is not a running assignment.
