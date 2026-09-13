@@ -160,7 +160,10 @@ public enum SeasonFacts {
   ///   "Partial month · no minimum" / "Minimum met · 6/4" /
   ///   "4 a month · 2 to go" — then "Best 4 rounds a month count", else nil.
   public static func footRule(_ m: Me.Membership, today: String = CSDate.today(), calendar: Calendar = .current) -> String? {
-    let cap = m.settings?.counting_cap.map { "Best \($0) rounds a month count" }
+    // D352 · an Unlimited league has a counting rule too, and this used to
+    // return nil for it — so the foot of a league where every round counts said
+    // nothing at all about how rounds count.
+    let cap: String? = LeagueCopy.countingLabel(m.settings?.counting_cap, long: true)
     // Outside the window there is no month to have a floor or a clock in —
     // the pulse still comes back (partial = true before first tee) and would
     // otherwise say "floors waived" about a month that is not in the season.
@@ -172,11 +175,15 @@ public enum SeasonFacts {
     default: return cap
     }
     if m.isSolo {
-      let posted = CSCopy.points(m.pulse?.credits ?? 0)
+      // D140 · solo NEVER shows a floor. D352 · and the figure beside "posted"
+      // is `floor_credit`, in which a nine is a half — so where a half is
+      // actually on screen it is glossed, off the same predicate the sentence
+      // surfaces use. A golfer with three eighteens never meets the clause.
+      let c = m.pulse?.credits ?? 0
       let left = LeagueDates.daysInMonth(today, calendar: calendar) - (Int(today.suffix(2)) ?? 0)
       let month = LeagueDates.monthLong(today, calendar: calendar)
       let clock = left <= 0 ? "last day of \(month)" : left == 1 ? "1 day left in \(month)" : "\(left) days left in \(month)"
-      return "\(cap ?? "Every round counts") · \(posted) posted · \(clock)"
+      return "\(cap ?? "") · \(CSCopy.points(c)) posted\(LeagueCopy.halfParen(credits: c)) · \(clock)"
     }
     if let p = m.pulse, let floor = p.floor, floor > 0 {
       let credits = p.credits ?? 0
@@ -210,15 +217,20 @@ public enum SeasonFacts {
     case .season, .cupFinal: break
     default: return nil
     }
-    guard let cap = m.settings?.counting_cap, cap > 0 else { return nil }
+    // D352 · this used to `guard let cap`, so an **Unlimited** league — the one
+    // whose rule is easiest to state — got no month line on Home at all.
+    let head = LeagueCopy.countingLabel(m.settings?.counting_cap)
     let left = LeagueDates.daysInMonth(today, calendar: calendar) - (Int(today.suffix(2)) ?? 0)
     let month = LeagueDates.monthLong(today, calendar: calendar)
     let clock = left <= 0 ? "last day of \(month)"
               : left == 1 ? "1 day left in \(month)"
               : "\(left) days left in \(month)"
-    let head = "Best \(cap) a month count"
-    guard let credits = m.pulse?.credits else { return "\(head) · \(clock)" }
-    return "\(head) · \(CSCopy.points(credits)) posted · \(clock)"
+    // The minimum's figure appears only where there is a minimum. It is
+    // `floor_credit` — a nine is a half — and it is not a count of rounds.
+    guard let floor = m.pulse?.floor, floor > 0, let credits = m.pulse?.credits else {
+      return "\(head) · \(clock)"
+    }
+    return "\(head) · \(CSCopy.points(credits))/\(floor) toward the minimum · \(clock)"
   }
 
   /// D126 · how the season ends — `LeagueCopy.endgame`. nil until a season exists.

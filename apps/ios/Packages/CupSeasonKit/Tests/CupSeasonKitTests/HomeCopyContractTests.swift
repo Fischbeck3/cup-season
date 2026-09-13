@@ -282,7 +282,14 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
     #expect(SeasonFacts.footRule(heroMembership(cap: nil, credits: 1), today: "2026-10-01") == "Every round counts · 1 posted · 30 days left in October")
     // before first tee the clock means nothing — the cap alone
     #expect(SeasonFacts.footRule(heroMembership(), today: "2026-07-01") == "Best 4 rounds a month count")
-    #expect(SeasonFacts.footRule(heroMembership(cap: nil), today: "2026-07-01") == nil)
+    // D352 · an UNLIMITED league has a counting rule too, and this used to be
+    // nil — so the foot of the one league whose rule is easiest to state said
+    // nothing at all about how rounds count.
+    #expect(SeasonFacts.footRule(heroMembership(cap: nil), today: "2026-07-01") == "Every round counts")
+    // D352 · and where a half is actually on screen, the unit is named: the
+    // figure is `floor_credit`, not a count of rounds.
+    #expect(SeasonFacts.footRule(heroMembership(credits: 2.5), today: "2026-09-29")
+            == "Best 4 rounds a month count · 2.5 posted (a nine counts half) · 1 day left in September")
   }
 
   @Test("squads: the floor sentence Home has carried since D14, word for word")
@@ -291,7 +298,7 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
     #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", credits: 6, floor: 4), today: "2026-09-02") == "Minimum met · 6/4")
     #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", credits: 0, floor: 4, partial: true), today: "2026-09-02") == "Partial month · no minimum")
     #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", floor: nil), today: "2026-09-02") == "Best 4 rounds a month count")
-    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", cap: nil, floor: nil), today: "2026-09-02") == nil)
+    #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", cap: nil, floor: nil), today: "2026-09-02") == "Every round counts")   // D352
   }
 
   @Test("D106 · the pot's two numbers to everyone; D70 · nothing on a $0 league")
@@ -329,8 +336,9 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
       #expect(SeasonFacts.footRule(heroMembership(status: status, credits: 2, floor: 4, partial: true), today: today) == "Best 4 rounds a month count", "\(label)")
       #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", status: status, credits: 2, floor: 4, partial: true), today: today) == "Best 4 rounds a month count", "\(label)")
       #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", status: status, credits: 6, floor: 4), today: today) == "Best 4 rounds a month count", "\(label)")
-      #expect(SeasonFacts.footRule(heroMembership(cap: nil, status: status, credits: 2, floor: 4), today: today) == nil, "\(label)")
-      #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", cap: nil, status: status, credits: 2, floor: 4), today: today) == nil, "\(label)")
+      // D352 · Unlimited is a rule, not an absence of one
+      #expect(SeasonFacts.footRule(heroMembership(cap: nil, status: status, credits: 2, floor: 4), today: today) == "Every round counts", "\(label)")
+      #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", cap: nil, status: status, credits: 2, floor: 4), today: today) == "Every round counts", "\(label)")
     }
     // and a league still forming has no month at all
     #expect(SeasonFacts.footRule(heroMembership(structure: "squads2", phase: "setup", floor: 4, season: false), today: "2026-09-02") == "Best 4 rounds a month count")

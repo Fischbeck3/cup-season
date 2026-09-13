@@ -207,7 +207,7 @@ struct SeasonPage: View {
       Group {
         switch s {
         case .squad(let t): SquadReceiptSheet(team: t)
-        case .member(let r): MemberHistorySheet(row: r)
+        case .member(let r): MemberHistorySheet(row: r, cap: model.bylaws.cap)
         case .finalist(let f): FinalistReceiptSheet(finalist: f)
         case .scoringHelp: ScoringHelpSheet(solo: model.bylaws.solo)
         case .ceremony: SeasonCeremonyView()

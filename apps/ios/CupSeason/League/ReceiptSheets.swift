@@ -102,6 +102,11 @@ struct MemberHistorySheet: View {
   @Environment(\.cs) private var cs
   @Environment(\.dynamicTypeSize) private var typeSize
   let row: IndRow
+  /// D352 · the league's stored counting rule, so the sentence that explains a
+  /// round sitting outside the month can NAME the rule that put it there
+  /// instead of gesturing at it. nil is Unlimited, in which case no round is
+  /// ever outside and this sentence never appears.
+  var cap: Int? = nil
 
   /// QB-17 · **WHOSE NUMBER.**
   ///
@@ -155,7 +160,7 @@ struct MemberHistorySheet: View {
           }
         }
         if row.hist.contains(where: { !$0.counting }) {
-          RoomFine("These rounds stay in your record. They sit outside the best rounds counting for that month.").padding(.top, 10)
+          RoomFine("These rounds stay in your record. \(LeagueCopy.countingRule(cap)) A better one took the slot.").padding(.top, 10)
         }
         if let pid = row.profileId {
           RoomMini(GolfersRoot.CardName.title(row.n)) { dismiss(); links.openTourCard(pid) }.padding(.top, 6)

@@ -5102,7 +5102,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="nextcard">
           <div class="nx">
             <div class="nk" id="nextK">Up next · this month</div>
-            <div class="nt" id="nextTxt">Post 1 more round this month — best 4 count, you've posted 3.</div>
+            <div class="nt" id="nextTxt">Your best three each month count.</div>
           </div>
           <button class="mini" data-go="record">Live round</button>
         </div>
@@ -5666,6 +5666,19 @@ const capDB = () => (state.capExact != null && CAPMAP_IDX(state.capExact) === ca
                     ? state.capExact : CAP_DB[capIdx()];
 const capLabel = () => { const n = capDB(); return n == null ? 'Unlimited' : `Best ${n}`; };
 const capNum   = () => { const n = capDB(); return n == null ? Infinity : n; };   /* client math */
+/* D352 · the counting rule as a RULE. `capLabel()` is the picker's label — it
+   reads "Unlimited", which is why sentences came out as "unlimited count, you've
+   posted 2". The phone's `LeagueCopy.countingRule` is the same rule said the
+   same way; the two may not drift. `n` is the league's stored cap, not the
+   picker's rung, so an off-ladder rule states itself (D347). */
+function csCountingRule(n){
+  if(n == null) return 'Every round you post counts.';
+  return Number(n) === 1 ? 'Your best round each month counts.' : `Your best ${csWord(Number(n))} each month count.`;
+}
+/* D352 · the only promise the product makes about an extra round. It does NOT
+   say the round adds points, overtakes anybody or qualifies anyone — Postgres
+   decides a band, after the round is posted. Twin of `LeagueCopy.anotherChance`. */
+const CS_ANOTHER_CHANCE = 'Another round is another chance to improve on one of them.';
 /* season length ladder in WEEKS — short casual seasons ("a quick 3-round run
    before it's cold") through full multi-month leagues. Flexible start (§14.0
    v1.1: Sunday-start no longer required — caps/floors stay calendar-month). */
@@ -14950,11 +14963,18 @@ function renderStats(){
      three eighteens never meets the rule. The phone's LeagueCopy.halfNote is
      the same clause off the same rule; the two may not drift. */
   const half = (credits%1 || rem%1) ? ' A nine counts half.' : '';
-  $('#nextTxt').textContent = partial
-    ? `${curMonth()} is a short month — no minimum to clear. Every round still counts.`
-    : rem>0
-      ? `Post ${fmtN(rem)} more round${rem===1?'':'s'} this month — ${capLabel().toLowerCase()} count, you've posted ${fmtN(credits)}.` + half
-      : `${curMonth()} is covered — ${fmtN(credits)} rounds counting. A better one always replaces your lowest.` + half;
+  /* D352 · this ran three facts together and got two of them wrong. The COUNTING
+     rule and the monthly MINIMUM are different rules; the figure after "posted"
+     was neither a round count nor a counting-rounds count, but `floor_credit`,
+     the minimum's own unit; and in a league with NO MINIMUM the zero-remaining
+     branch fired and announced the month "covered", which says something was
+     owed where nothing is. Twin of `LeagueCopy.nextUp`. */
+  const counts = csCountingRule(capDB());
+  $('#nextTxt').textContent =
+    !(Number(state.floor) > 0) ? `${counts} ${CS_ANOTHER_CHANCE}`
+    : partial ? `${curMonth()} is a short month — no minimum to clear. ${counts}`
+    : rem>0   ? `${fmtN(rem)} more toward ${curMonth()}'s minimum of ${state.floor} — you're at ${fmtN(credits)}.` + half + ` ${counts}`
+              : `${curMonth()}'s minimum is met — ${fmtN(credits)} of ${state.floor}.` + half + ` ${counts} ${CS_ANOTHER_CHANCE}`;
 }
 
 /* ================= course card · pars in a sheet ================= */

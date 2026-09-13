@@ -364,23 +364,74 @@ public enum LeagueCopy {
   /// every number shows its work, so the half is glossed, and only when there
   /// is a half on screen: a golfer with three eighteens never meets the rule.
   /// The web's `nextUpText` carries the same clause off the same rule.
-  static func halfNote(credits: Double, rem: Double) -> String {
-    let fractional = credits.truncatingRemainder(dividingBy: 1) != 0
-      || rem.truncatingRemainder(dividingBy: 1) != 0
-    return fractional ? " A nine counts half." : ""
+  /// D352 · **the counting rule, in the league's own terms, Unlimited
+  /// included.** `capLabel` is a PICKER label — it reads "Unlimited", which
+  /// made sentences like "unlimited count, you've posted 2". A rule is a
+  /// sentence; this is the one place it is written, and every month surface on
+  /// the phone reads it. The web's `csCountingRule` is the same rule, said the
+  /// same way; the two may not drift.
+  public static func countingRule(_ cap: Int?) -> String {
+    guard let cap else { return "Every round you post counts." }
+    return cap == 1 ? "Your best round each month counts."
+                    : "Your best \(cap) each month count."
   }
 
+  /// D352 · the same rule as a terse LABEL, for the foot and the month row,
+  /// which are chips rather than prose. The two long/short shapes below are
+  /// pre-existing — the foot has always said "rounds" and the month row has
+  /// not — and they live here now so the Unlimited case cannot be forgotten in
+  /// one of them. **Never nil:** an Unlimited league has a counting rule, and
+  /// returning nil for it is why the foot of such a league said nothing at all.
+  public static func countingLabel(_ cap: Int?, long: Bool = false) -> String {
+    guard let cap else { return "Every round counts" }
+    return long ? "Best \(cap) rounds a month count" : "Best \(cap) a month count"
+  }
+
+  /// D352 · the improvement sentence, which is the only promise the product is
+  /// allowed to make about an extra round. It does NOT say the round adds
+  /// points, overtakes anybody or qualifies anyone — only Postgres decides a
+  /// band, and it decides it after the round is posted.
+  public static let anotherChance = "Another round is another chance to improve on one of them."
+
+  static func hasHalf(_ credits: Double, _ rem: Double = 0) -> Bool {
+    credits.truncatingRemainder(dividingBy: 1) != 0 || rem.truncatingRemainder(dividingBy: 1) != 0
+  }
+  static func halfNote(credits: Double, rem: Double) -> String {
+    hasHalf(credits, rem) ? " A nine counts half." : ""
+  }
+  /// The same rule in the shape a chip can carry. One predicate, two shapes,
+  /// so the sentence and the chip can never disagree about when a half is on
+  /// screen.
+  public static func halfParen(credits: Double) -> String {
+    hasHalf(credits) ? " (a nine counts half)" : ""
+  }
+
+  /// D352 · this sentence used to run three facts together and get two of them
+  /// wrong. It read *"Post 1 more round this month — best 4 count, you've
+  /// posted 2"*: the **counting rule** and the **monthly minimum** are different
+  /// rules, and the figure after "posted" is neither a round count nor a
+  /// counting-rounds count — it is `floor_credit`, the minimum's own unit, in
+  /// which a nine is a half. On an Unlimited league `capLabel` put the word
+  /// *"unlimited"* where a rule belonged. And in a league with **no minimum at
+  /// all** the zero-remaining branch fired and announced the month "covered",
+  /// which says something was owed in a league where nothing is.
+  ///
+  /// So: the minimum is spoken only where there is one, always in its own unit
+  /// and against its own target; the counting rule is spoken as a rule; and the
+  /// extra round is a chance to improve, never a promise of points.
   public static func nextUp(_ c: RoomClock, b: Bylaws, credits: Double, partial: Bool) -> (k: String, text: String) {
     if c.atStarter { return ("Up next · kickoff", "First tee \(c.firstTeeText). Practice rounds post to your rounds, not the season.") }
     let month = LeagueDates.monthLong(c.today)
+    let key = "Up next · \(month)"
+    let counts = countingRule(b.cap)
+    guard b.floor > 0 else { return (key, "\(counts) \(anotherChance)") }
+    if partial { return (key, "\(month) is a short month — no minimum to clear. \(counts)") }
     let rem = max(0, Double(b.floor) - credits)
     let half = halfNote(credits: credits, rem: rem)
-    let text = partial
-      ? "\(month) is a short month — no minimum to clear. Every round still counts."
-      : rem > 0
-        ? "Post \(fmtN(rem)) more round\(rem == 1 ? "" : "s") this month — \(b.capLabel.lowercased()) count, you've posted \(fmtN(credits))." + half
-        : "\(month) is covered — \(fmtN(credits)) rounds counting. A better one always replaces your lowest." + half
-    return ("Up next · \(month)", text)
+    if rem > 0 {
+      return (key, "\(fmtN(rem)) more toward \(month)'s minimum of \(b.floor) — you're at \(fmtN(credits))." + half + " \(counts)")
+    }
+    return (key, "\(month)'s minimum is met — \(fmtN(credits)) of \(b.floor)." + half + " \(counts) \(anotherChance)")
   }
 
   /// `#lineSplit` (11943). M1 · cents in, the settlement's own split, and

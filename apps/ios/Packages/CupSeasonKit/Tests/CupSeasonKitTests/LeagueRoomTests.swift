@@ -466,19 +466,52 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
   @Test func nextUpAndTheMeter() {
     let b = Bylaws.from(season)
     #expect(LeagueCopy.nextUp(clock("2026-04-30"), b: b, credits: 0, partial: false) == ("Up next · kickoff", "First tee Sun May 3. Practice rounds post to your rounds, not the season."))
-    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 1, partial: false).text == "Post 1 more round this month — best 4 count, you've posted 1.")
+    // D352 · this ran three facts together and got two of them wrong. The
+    // COUNTING rule and the monthly MINIMUM are different rules, and the figure
+    // after "posted" was neither a round count nor a counting-rounds count — it
+    // is `floor_credit`, the minimum's own unit. The minimum now speaks in its
+    // own unit against its own target, and the counting rule speaks as a rule.
+    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 1, partial: false).text
+            == "1 more toward August's minimum of 2 — you're at 1. Your best 4 each month count.")
     // D234 · the half is GLOSSED, and only when there is a half on screen: the
     // floor is measured in credits (an eighteen is one, a nine is a half), and
     // "you've posted 0.5" without that clause told a golfer they had posted
     // half a round. The web's `nextUpText` carries the same words.
-    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0.5, partial: false).text == "Post 1.5 more rounds this month — best 4 count, you've posted 0.5. A nine counts half.")
+    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0.5, partial: false).text
+            == "1.5 more toward August's minimum of 2 — you're at 0.5. A nine counts half. Your best 4 each month count.")
     // a whole number of eighteens never meets the rule
     #expect(!LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 1, partial: false).text.contains("A nine counts half."))
     #expect(!LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2, partial: false).text.contains("A nine counts half."))
     // and a covered month with a half in it says so too
-    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2.5, partial: false).text == "August is covered — 2.5 rounds counting. A better one always replaces your lowest. A nine counts half.")
-    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2, partial: false).text == "August is covered — 2 rounds counting. A better one always replaces your lowest.")
-    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0, partial: true) == ("Up next · August", "August is a short month — no minimum to clear. Every round still counts."))
+    // D352 · "covered — 2.5 rounds counting" printed the MINIMUM's figure as a
+    // COUNTING-rounds figure. With a cap of 4 and five eighteens those are 5
+    // and 4, and they are never the same question.
+    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2.5, partial: false).text
+            == "August's minimum is met — 2.5 of 2. A nine counts half. Your best 4 each month count. Another round is another chance to improve on one of them.")
+    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2, partial: false).text
+            == "August's minimum is met — 2 of 2. Your best 4 each month count. Another round is another chance to improve on one of them.")
+    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0, partial: true)
+            == ("Up next · August", "August is a short month — no minimum to clear. Your best 4 each month count."))
+
+    // D352 · a league with NO MINIMUM. The zero-remaining branch used to fire
+    // here and announce the month "covered", which says something was owed in a
+    // league where nothing is. And the extra round is a CHANCE, never a promise
+    // of points, an overtake or a qualification — only Postgres decides a band.
+    let noFloor = Bylaws(floor: 0, cap: 4)
+    let free = LeagueCopy.nextUp(clock("2026-08-27"), b: noFloor, credits: 3, partial: false)
+    #expect(free.text == "Your best 4 each month count. Another round is another chance to improve on one of them.")
+    #expect(!free.text.contains("covered"))
+    #expect(!free.text.lowercased().contains("minimum"))
+    for word in ["adds", "overtake", "guarantee", "qualif"] {
+      #expect(!free.text.lowercased().contains(word), "the chance sentence promises nothing: \(word)")
+    }
+
+    // D352 · an UNLIMITED league states its rule rather than the picker's label,
+    // which used to put the word "unlimited" where a rule belonged.
+    let unl = Bylaws(floor: 2, cap: nil)
+    #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: unl, credits: 2, partial: false).text
+              .hasPrefix("August's minimum is met — 2 of 2. Every round you post counts."))
+    #expect(!LeagueCopy.nextUp(clock("2026-08-27"), b: unl, credits: 2, partial: false).text.lowercased().contains("unlimited count"))
     let pm = LeagueCopy.pressMeter(today: "2026-08-27")
     #expect(pm.legend == "5 days left in August" && pm.hot && abs(pm.fill - 26.0 / 31.0) < 1e-9)
     #expect(LeagueCopy.indexSub(established: false, delta: -1) == "Building your number")
