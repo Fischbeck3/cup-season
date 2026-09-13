@@ -83,6 +83,9 @@
 # cannot see — the payload's keys are the client's business, not this file's.
 #
 # Refreshed 2026-09-13 after the eight reviewed release migrations. D345 remains held.
+# 2026-09-13 · REFRESHED from the deployed catalog after 20261102090000 and
+# 20261103090000 were applied and read back (242 applied, check 34 PASS).
+# Same canonical query, output written verbatim; nothing hand-shaped.
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
@@ -95,6 +98,7 @@ add_event_player|p_event uuid, p_profile uuid|uuid|definer|auth
 add_friend_to_league|p_league uuid, p_profile uuid|void|definer|auth
 add_round_comment|p_round uuid, p_body text|void|definer|auth
 announce|p_league uuid, p_body text|void|definer|auth
+answer_plan_followup|p_plan uuid, p_answer text, p_today date DEFAULT NULL::date|jsonb|definer|auth
 ask_for_a_seat|p_scheduled_round uuid|jsonb|definer|auth
 assert_sandbox|p_league uuid, p_need_flag boolean|void|definer|none
 assign_player|p_squad uuid, p_member uuid|void|definer|auth
@@ -136,6 +140,7 @@ create_scan_claim|p_name text, p_gross integer, p_strokes jsonb, p_course text, 
 create_share|p_kind text, p_ref uuid|uuid|definer|auth
 cron_health||jsonb|definer|auth
 cs_contact_digest|p_normalised text|text|invoker|none
+cs_local_day|p_today date|date|invoker|none
 cs_normalise_email|p_raw text|text|invoker|none
 cs_normalise_phone|p_raw text|text|invoker|none
 cs_pepper|p_client_digest text|text|definer|none
@@ -176,7 +181,7 @@ handle_new_user||trigger|definer|none
 head_to_head|p_opponent uuid DEFAULT NULL::uuid|jsonb|definer|auth
 hide_content|p_kind text, p_id uuid, p_reason text DEFAULT NULL::text|void|definer|auth
 home_clash|p_league uuid|jsonb|definer|auth
-home_dispatch|p_days integer DEFAULT 21|jsonb|definer|auth
+home_dispatch|p_days integer DEFAULT 21, p_today date DEFAULT NULL::date, p_caps text[] DEFAULT NULL::text[]|jsonb|definer|auth
 home_feed|p_days integer DEFAULT 21|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text)|definer|auth
 home_stories|p_days integer DEFAULT 21, p_league uuid DEFAULT NULL::uuid|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text, has_rating boolean)|definer|auth
 invite_golfer|p_league uuid, p_event uuid, p_profile uuid|uuid|definer|auth
