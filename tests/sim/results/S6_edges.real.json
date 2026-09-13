@@ -1,8 +1,8 @@
 {
  "real": {
   "squads": {
-   "A": 117,
-   "B": 98
+   "B": 98,
+   "A": 117
   },
   "individual": {
    "T1": {
@@ -58,6 +58,11 @@
     0,
     ""
    ]
+  ],
+  "payouts": [],
+  "pot": [
+   "0",
+   "0"
   ],
   "season": {
    "status": "complete",

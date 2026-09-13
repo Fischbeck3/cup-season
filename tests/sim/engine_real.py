@@ -102,9 +102,20 @@ class Real:
         for mi, a, b in month_days(self.start, self.end):
             self.sql(f"select close_month('{self.season}', '{date(a.year, a.month, 1)}');")
 
-    def finish(self):
+    def close_month_at(self, first_of_month):
+        self.sql(f"select close_month('{self.season}', '{first_of_month}');")
+
+    def enter_cup_final(self):
+        """Fired when the replay's clock reaches ends_on-27, as the daily tick
+        would. enter_cup_final itself guards on current_date >= ends_on-27, and
+        the sandbox's today is later than these past seasons, so the guard passes."""
         self.sql(f"select enter_cup_final('{self.season}');")
+
+    def close_season(self):
         self.sql(f"select close_season('{self.season}');")
+
+    def finish(self):
+        self.enter_cup_final(); self.close_season()
 
     # ------------------------------------------------------------ read
     def read(self) -> dict:

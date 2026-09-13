@@ -47,7 +47,8 @@ def differential_to_gross(diff: float) -> int:
     return int(round(diff * SLOPE / 113.0 + RATING))
 
 def gross_to_differential(gross: int) -> float:
-    return round((gross - RATING) * 113.0 / SLOPE, 1)
+    from decimal import Decimal, ROUND_HALF_UP
+    return float(Decimal(repr((gross - RATING) * 113.0 / SLOPE)).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP))
 
 def draw_round(rng: random.Random, g: Golfer, on: date) -> Round:
     d = rng.gauss(g.ability, g.sigma)

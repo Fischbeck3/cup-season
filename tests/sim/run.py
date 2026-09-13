@@ -14,7 +14,7 @@ from collections import defaultdict
 from dataclasses import asdict
 from datetime import date, timedelta
 sys.path.insert(0, os.path.dirname(__file__))
-from golfers import Golfer, Round, history, season_rounds
+from golfers import Golfer, Round, history, season_rounds, month_days
 import engine_mirror as E
 from engine_real import Real
 from scenarios import FAMILIES, EXPLICIT
@@ -119,14 +119,29 @@ def run_real(fam, seed, G, bylaws, start, end, prior, rounds, edits=None):
     todo.sort(key=lambda t: (t[0], t[1]))
     ids = {}
     joined = set()
+    # Drive the CLOCK, not just the data: production closes a month on the 1st
+    # and opens the Cup window on ends_on-27, both from the daily tick. Posting
+    # everything and only then calling them would let post-lock rounds into the
+    # seeding read (v_squad_standings is the whole season), which is a replay
+    # artefact rather than engine behaviour.
+    lock_on = end - timedelta(days=27)
+    closed = set(); locked = False
     for posted, played, n, r in todo:
         if n in R.late and n not in joined and played >= start + timedelta(days=G[n].join_offset_days):
             R.late_join(n, G[n], start + timedelta(days=G[n].join_offset_days)); joined.add(n)
+        if played >= start:
+            for mi, a, b in month_days(start, end):
+                first = date(a.year, a.month, 1)
+                if b < played.replace(day=1) and first not in closed:
+                    R.close_month_at(first); closed.add(first)
+            if not locked and played >= lock_on:
+                R.enter_cup_final(); locked = True
         ids[id(r)] = R.post(n, r)
     for n, rs in rounds.items():
         for r in rs:
             if r.voided and ids.get(id(r)): R.delete(n, ids[id(r)])
-    R.close_months(); R.finish()
+    if not locked: R.enter_cup_final()
+    R.close_months(); R.close_season()
     return R.read()
 
 def compare(fam, table, pg, cup, real):

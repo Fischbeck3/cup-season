@@ -1,0 +1,126 @@
+{
+ "real": {
+  "squads": {
+   "North": 95,
+   "West": 112,
+   "South": 97,
+   "East": 59
+  },
+  "individual": {
+   "Rae": {
+    "points": 58,
+    "rounds": 10
+   },
+   "You": {
+    "points": 55,
+    "rounds": 10
+   },
+   "Kim": {
+    "points": 48,
+    "rounds": 10
+   },
+   "Sam": {
+    "points": 49,
+    "rounds": 8
+   },
+   "Jo": {
+    "points": 46,
+    "rounds": 9
+   },
+   "Nia": {
+    "points": 54,
+    "rounds": 9
+   },
+   "Pat": {
+    "points": 16,
+    "rounds": 3
+   },
+   "Alex": {
+    "points": 42,
+    "rounds": 7
+   }
+  },
+  "counting": {
+   "Alex": {
+    "counting": 7,
+    "counting_points": 42,
+    "avg_pvi": -3.9
+   },
+   "Jo": {
+    "counting": 8,
+    "counting_points": 46,
+    "avg_pvi": -4.07
+   },
+   "Kim": {
+    "counting": 9,
+    "counting_points": 48,
+    "avg_pvi": -6.28
+   },
+   "Nia": {
+    "counting": 8,
+    "counting_points": 54,
+    "avg_pvi": -3.23
+   },
+   "Pat": {
+    "counting": 3,
+    "counting_points": 16,
+    "avg_pvi": -5.23
+   },
+   "Rae": {
+    "counting": 9,
+    "counting_points": 58,
+    "avg_pvi": -3.45
+   },
+   "Sam": {
+    "counting": 8,
+    "counting_points": 49,
+    "avg_pvi": -4.26
+   },
+   "You": {
+    "counting": 9,
+    "counting_points": 55,
+    "avg_pvi": -3.27
+   }
+  },
+  "adjustments": [
+   [
+    "bye",
+    "2026-06",
+    0,
+    "Auto-bye \u2014 the first missed month. Life happens; the season'"
+   ],
+   [
+    "floor_penalty",
+    "2026-07",
+    -5,
+    "July \u2014 2 a month, posted 1.0. The bye was already used."
+   ]
+  ],
+  "cup_finalists": [
+   [
+    "West",
+    1,
+    0,
+    ""
+   ],
+   [
+    "North",
+    2,
+    0,
+    ""
+   ]
+  ],
+  "payouts": [],
+  "pot": [
+   "0",
+   "0"
+  ],
+  "season": {
+   "status": "complete",
+   "champion_score": "34",
+   "tiebreak_rung": "",
+   "champion": "West"
+  }
+ },
+ "diffs": []
+}

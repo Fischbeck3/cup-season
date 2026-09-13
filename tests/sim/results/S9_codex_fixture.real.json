@@ -1,0 +1,113 @@
+{
+ "real": {
+  "squads": {
+   "North": 95,
+   "West": 103,
+   "East": 95,
+   "South": 97
+  },
+  "individual": {
+   "You": {
+    "points": 55,
+    "rounds": 10
+   },
+   "Jo": {
+    "points": 46,
+    "rounds": 9
+   },
+   "Sam": {
+    "points": 49,
+    "rounds": 8
+   },
+   "Alex": {
+    "points": 42,
+    "rounds": 7
+   },
+   "Pat": {
+    "points": 45,
+    "rounds": 9
+   },
+   "Kim": {
+    "points": 50,
+    "rounds": 9
+   },
+   "Nia": {
+    "points": 44,
+    "rounds": 8
+   },
+   "Rae": {
+    "points": 59,
+    "rounds": 11
+   }
+  },
+  "counting": {
+   "Alex": {
+    "counting": 7,
+    "counting_points": 42,
+    "avg_pvi": -3.9
+   },
+   "Jo": {
+    "counting": 8,
+    "counting_points": 46,
+    "avg_pvi": -4.07
+   },
+   "Kim": {
+    "counting": 8,
+    "counting_points": 50,
+    "avg_pvi": -3.19
+   },
+   "Nia": {
+    "counting": 8,
+    "counting_points": 44,
+    "avg_pvi": -5.19
+   },
+   "Pat": {
+    "counting": 8,
+    "counting_points": 45,
+    "avg_pvi": -3.08
+   },
+   "Rae": {
+    "counting": 9,
+    "counting_points": 59,
+    "avg_pvi": -2.83
+   },
+   "Sam": {
+    "counting": 8,
+    "counting_points": 49,
+    "avg_pvi": -4.26
+   },
+   "You": {
+    "counting": 9,
+    "counting_points": 55,
+    "avg_pvi": -3.27
+   }
+  },
+  "adjustments": [],
+  "cup_finalists": [
+   [
+    "East",
+    1,
+    0,
+    ""
+   ],
+   [
+    "West",
+    2,
+    0,
+    ""
+   ]
+  ],
+  "payouts": [],
+  "pot": [
+   "0",
+   "0"
+  ],
+  "season": {
+   "status": "complete",
+   "champion_score": "32",
+   "tiebreak_rung": "",
+   "champion": "West"
+  }
+ },
+ "diffs": []
+}

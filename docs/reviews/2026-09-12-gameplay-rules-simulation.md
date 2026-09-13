@@ -1,6 +1,9 @@
 # Gameplay rules audit and season simulation
 
 **2026-09-12 · Claude · branch `claude/gameplay-rules-simulation` · commit: see the handoff at the foot.**
+**Second pass** adds Codex's own fixture replayed against the real engine, the four measurements
+Codex's handoff asks for, an audit of late joining against the current gate, and one cross-agent
+defect that matters more than anything else here (§2.6).
 Codex owns the interactive prototype and the comprehension review; this document owns the rules
 inventory, the fairness analysis and the simulation evidence.
 
@@ -108,7 +111,42 @@ provisional — retired D49, then bounded D124 (conflict). Sunday-start seasons 
 "Best 4" default — replaced by Best 3 in D142 (and, per §1.2, by nothing in production). The
 gameplay-modes working doc still states cap default 4 and is not current on it.
 
-### 1.6 Unverified production behaviour (data no document records)
+### 1.6 Late joining — audited against the gate, not the prose
+
+Codex's brief says not to assume the old spec prose still permits a mid-season join. It does not,
+in the way the prose describes. `_join_gate(league, via_pro)`
+(`20260831190000_roster_door.sql:46`) is the single door, and it decides in this order:
+
+| # | Condition | Outcome |
+|---|---|---|
+| 1 | league phase `setup` | **refused** — "isn't open yet" |
+| 2 | league phase `complete` | **refused** |
+| 3 | `roster_closed_at` set, and not the Pro | **refused** (D180) |
+| 4 | no `active`/`cup_final` season | open |
+| 5 | today < `starts_on` | open to anyone with the code |
+| 6 | league locked on/after its own first tee, and today ≤ lock + 7 | open — D180's one-week floor |
+| 7 | season underway and **not** the Pro | **refused** — "ask the Pro to add you" |
+| 8 | the Pro, past `starts_on + (ends_on − starts_on)/2` | **refused** — "past the halfway turn" |
+| 9 | otherwise | allowed |
+
+Three consequences worth stating plainly, because two documents disagree with them:
+
+- **Self-join by code dies at first tee.** `join_league` passes `via_pro = false`
+  (`20261012090000…:2071`). After the season starts, only `add_friend_to_league`
+  (`:3872`, `via_pro = true`) and a Pro-staged invite (`:2104`) get through.
+- **The halfway turn is real and computed from the season's own dates.** For Codex's Sep 1 – Nov 30
+  fixture that is **October 16**. A golfer cannot be added on 1 November by anyone.
+- **Spec §9's "mid-season joins until halfway (provisional scoring; floor prorates — see §14.1 15th
+  rule)" is wrong twice over.** Provisional scoring is undefined and unbuilt (D124 vs D49, still a
+  named conflict), and the 15th rule is superseded by D161's whole-join-month waiver, which is what
+  `close_month` implements. The outcome — "until halfway" — is right; the mechanism and both
+  sub-clauses are not.
+
+I confirmed the gate empirically rather than only by reading: the first replay attempt failed with
+*"isn't open yet — the Pro is still locking in the rules"* because it added members before
+`lock_league`. The harness now locks first, which is the real order.
+
+### 1.7 Unverified production behaviour (data no document records)
 
 - **The participation floor has never fired.** Zero `floor_penalty`, `bye` or `floor_forfeit` rows in
   production, ever. Seasons are short, starts are mid-month, and the partial-month rule waives.
@@ -147,6 +185,13 @@ python3 tests/sim/run.py
 # one family through BOTH engines, with a line-by-line comparison
 python3 tests/sim/run.py S1_frequency --engine real
 
+# Codex's fixture (dates shifted, see 2.4) and the same fixture under the real default
+python3 tests/sim/run.py S9_codex_fixture --engine real
+python3 tests/sim/run.py S10_busy_golfer  --engine real
+
+# the four measurements Codex asked for
+python3 tests/sim/analysis.py all          # or: d212 | attempts | floor
+
 # fairness Monte Carlo over 300 seeds (mirror)
 python3 tests/sim/run.py --mc 300
 
@@ -174,6 +219,9 @@ not state, and each is now in §1:
 | Deleting a round | never rescores rounds already posted; their index snapshot stands |
 | Founding members | `joined_at` is before the season; only a mid-season add gets D161's waiver |
 | Minimum roster | `start_season` refuses fewer than four for squads (D205) — the mirror does not |
+| Join order | members cannot be added before `lock_league`; the roster door opens at lock (§1.6) |
+| PvI arithmetic | exact decimal, half away from zero — floats disagree at a band edge (§2.6) |
+| When the tick fires | seeding reads the whole-season table, so the replay must call `enter_cup_final` **at** the lock day, not after posting everything |
 
 ### 2.3 The families and what they showed
 
@@ -270,6 +318,139 @@ May, the June window is identical.
 - $50 buy-in, six members, nobody paid: `pot_cents 30000, collected_cents 0`, and **zero
   `season_payouts` rows.** The champion's record shows no settlement at all.
 
+### 2.4 Codex's own fixture, replayed against the real engine
+
+Codex's configuration, not the Standard default: eight golfers, four squads of two, thirteen weeks
+across three whole calendar months, **Best 3**, **95 %**, **no minimum and no penalties**, no buy-in,
+Final = the last 28 days beginning on the 3rd of the closing month.
+
+**One stated substitution.** `post_round` refuses `played_on > current_date`, and Codex's
+Sep 1 – Nov 30 2026 window is in the future as of 2026-09-12, so it cannot be replayed at all.
+`S9_codex_fixture` uses **Jun 1 – Aug 30 2026**, which has the identical shape: 91 days = 13 weeks,
+three whole calendar months, ends on a 30th so the lock falls on the 3rd, and **Aug 1–2 are the
+pre-window days that Nov 1–2 are in Codex's fixture**. Every rule interaction is preserved; only the
+month names change. *(That the engine cannot score a future season is itself worth knowing: a
+prototype dated forward can never be checked against it.)*
+
+Mirror and engine agree on **every** golfer and **every** squad:
+
+| | You | Alex | Sam | Jo | Pat | Kim | Nia | Rae |
+|---|---|---|---|---|---|---|---|---|
+| counting points | 55 | 42 | 49 | 46 | 45 | 50 | 44 | 59 |
+
+Squads: **West 103 · South 97 · East 95 · North 95.** Seeds at the lock: **East (1), West (2)**.
+Champion **West**, window 32. Both engines, including the tie-relevant ordering.
+
+**The result Codex's review tasks should sit beside: the Cup is seeded on a table that is not the
+final table.** East led at the lock on 3 August and finished *third* of four. West was second at the
+lock and won. A golfer reading the end-of-season standings cannot reconstruct why those two squads
+were in the Final, because the table they are looking at is not the table that chose them. Nothing
+in the product currently shows the lock-day table.
+
+With no minimum, the low-volume golfer (Pat, 45) is genuinely mid-pack — Codex's "welcoming role"
+holds in this fixture. §2.5 measures what the real default would do to the same golfer.
+
+### 2.5 The four measurements Codex's handoff asks for
+
+Run with `python3 tests/sim/analysis.py {d212|attempts|floor|all}`. Mirror-only and deliberately so:
+these measure the *rule* over thousands of seasons, and the rule was reconciled against the engine
+first (§2.2, §2.6).
+
+**(a) D212 — a pre-window round holding a monthly place.** Codex: *"quantify its effect."* The lock
+month is split by the window; rounds played before the window compete for the same monthly places.
+4,000 seasons per row, cap 3, ability 13.0, σ 3.2:
+
+| pre-window rounds | rounds inside the window | P(a window round is displaced) | mean Final points lost | worst |
+|---|---|---|---|---|
+| 0 | any | 0 % | 0.00 | 0 |
+| 1 | 3 | **85 %** | 4.66 | 9 |
+| 1 | 4 | 70 % | 4.25 | 12 |
+| 1 | 6 | 53 % | 3.78 | 12 |
+| 2 | 3 | **94 %** | **7.85** | 19 |
+| 2 | 4 | 88 % | 7.45 | 21 |
+| 2 | 6 | 77 % | 7.04 | 21 |
+
+Read the 2-and-3 row: a golfer who plays twice in the first two days of the closing month and three
+times inside the Final loses, **94 % of the time, a mean of 7.9 points they earned inside the Final
+window** — more than a whole round, sometimes two. This is not an edge case; it is the normal
+consequence of playing early in the month. "Scored fresh" (§14.3) describes something the engine does
+not do, and the golfer sees a Final round with no effect and no explanation.
+
+**(b) Best-N attempt advantage.** Codex: *"caps limit counted volume without removing the
+opportunity advantage of more attempts. Measure this."* Expected best-3 monthly total at identical
+ability, 6,000 months per cell:
+
+| σ | 3 attempts | 4 | 5 | 6 | 8 | 10 |
+|---|---|---|---|---|---|---|
+| 2.0 | 21.3 | 22.6 (+6 %) | 23.6 (+11 %) | 24.4 (+15 %) | 25.4 (+20 %) | 26.2 (**+23 %**) |
+| 3.2 | 22.1 | 24.0 (+9 %) | 25.3 (+15 %) | 26.6 (+20 %) | 28.1 (+28 %) | 29.5 (**+34 %**) |
+| 5.0 | 23.0 | 25.4 (+10 %) | 27.2 (+18 %) | 28.7 (+25 %) | 30.9 (+34 %) | 32.4 (**+41 %**) |
+
+The cap bounds the *count*, never the *chance*. Ten attempts beat three by a quarter to two fifths on
+identical ability, and **the wider a golfer's spread the larger their advantage from volume** — the
+opposite of the intuition that the cap protects the infrequent golfer. It protects them from being
+buried by *volume of counted rounds*; it does nothing about volume of *chances at a good one*.
+
+**(c) The real default minimum on a busy golfer.** Codex: *"compare with the real default floor and
+bye behaviour; do not generalise this example."* Same three-month season, rounds held constant, only
+the dial changed. 3,000 seasons:
+
+| rounds / month | no minimum | floor 2, −5 short | cost | months penalised |
+|---|---|---|---|---|
+| 1 | 22.6 | **14.4** | **−8.1** | 1.21 |
+| 2 | 41.8 | 40.8 | −1.0 | 0.19 |
+| 3 | 57.9 | 57.9 | 0.0 | 0.00 |
+| 5 | 68.6 | 68.6 | 0.0 | 0.00 |
+
+Codex's no-minimum fixture is not a small variation: it is the difference between a once-a-month
+golfer keeping 100 % of their contribution and keeping **64 %**. The auto-bye covers the first miss,
+so the cost lands from the second month on. In the engine replay (`S10_busy_golfer`) the same golfer
+scored 16 points and drew a −5, and their squad finished last by a distance. Codex is right that the
+fixture is welcoming; it is welcoming *because* the minimum is off, and the Standard preset that a
+real league would mint is not.
+
+**(d) Season provisional versus Major exhibition.** These are two different gates and a golfer can be
+on the wrong side of one and the right side of the other in the same week:
+
+| | Season | Major |
+|---|---|---|
+| Gate | none — every round scores | **established index at entry** (D44) |
+| Below 3 differentials | the index is null; the round falls back to its own differential, PvI 0, **7 points** | **exhibition**: on the board, cannot win title or money |
+| Establishing mid-window | n/a | still exhibition for that Major (D44) |
+| Allowance | league's, 95 % | **100 %** (D43) |
+| Band ceiling | 12 | **none** (D43) |
+
+So a new golfer contributes to their squad from round one, and is simultaneously barred from winning
+the Major they entered. Nia's exhibition entry in Codex's fixture is exactly this shape. Both rules
+are defensible alone; together they need one sentence at entry, because the golfer experiences them
+as a single question ("do I count?") with two different answers.
+
+### 2.6 The finding that crosses both workstreams: PvI is decimal, browsers are not
+
+Reconciling the mirror with the engine on Codex's fixture took three attempts, and the last one
+matters to Codex's prototype more than to me.
+
+The engine computes `round(index_at_post × allowance/100 − differential, 1)` in Postgres **numeric**,
+which is exact base-10 and rounds **half away from zero**. Doing the same arithmetic in IEEE doubles
+— Python, or **JavaScript, which has no decimal type at all** — gives a different answer near a band
+edge:
+
+```
+index 9.0, allowance 95, differential 9.5
+  Postgres numeric :  9.0*95/100 = 8.55        8.55 − 9.5 = −0.95   round → −1.0  → 6 points
+  IEEE double      :  9.0*95/100 = 8.550000000000001
+                                               → −0.9499999999999993 → −0.9  → 7 points
+```
+
+One round, one point, and in `S9_codex_fixture` that one point moved a squad from 96 to 95 and
+**changed which two squads were seeded into the Final**. My mirror had to compute PvI in `Decimal`
+end to end to agree with the engine; rounding at the end was not enough.
+
+Codex's handoff says the fixture's points are pre-authored and only sorting and aggregation run in
+the browser, which avoids this today. It becomes live the moment any client computes a band. This is
+the concrete form of Codex's own sixth finding — that production needs one shared source of accepted
+consequences — and it is worth stating as a rule: **only Postgres decides a band.**
+
 ---
 
 ## 3 · Findings, ranked
@@ -280,45 +461,63 @@ Each is marked **F** (fairness), **C** (comprehension) or **I** (implementation 
 1. **[C, F · production]** Two thirds of real rounds score the bottom two bands and the top band has
    paid once. The labels describe a good day as "played to your index" and the median day as
    "rough". (§0)
-2. **[F · synthetic, direction confirmed in prod]** Frequency dominates ability. At identical
+2. **[I · engine, cross-agent]** **Only Postgres decides a band.** The same PvI arithmetic in IEEE
+   floats disagrees with the engine at a band edge, and in Codex's own fixture one such round
+   changed which squads were seeded into the Final. Any client that computes a band — a browser
+   prototype, a spreadsheet, a second service — will occasionally contradict the season. (§2.6)
+3. **[F · synthetic]** **Best-N caps counted volume, not opportunity.** Ten attempts beat three by
+   23–41 % on identical ability, and the advantage grows with a golfer's spread — the opposite of
+   the protection the cap is assumed to give. (§2.5b)
+4. **[F, C · engine]** **The Cup is seeded on a table nobody is shown.** In Codex's fixture the squad
+   that led at the lock finished third, and the final standings cannot explain the pairing. (§2.4)
+5. **[F · synthetic]** **The default minimum costs a once-a-month golfer 36 % of their season.**
+   22.6 points becomes 14.4 under Standard's floor 2 / −5. Codex's fixture is welcoming precisely
+   because that dial is off. (§2.5c)
+6. **[C · engine]** **A new golfer counts for their squad from round one and cannot win the Major
+   they entered.** Two defensible gates, experienced as one question. (§2.5d)
+7. **[F · synthetic, direction confirmed in prod]** Frequency dominates ability. At identical
    skill, 7/month beats 4/month every time and beats 2/month by 80 %. Under Best-3 the marginal
    round past three is worth less each month, but the *first* three are worth everything, and a
    two-a-month golfer is one bad week from the floor. (S1)
-3. **[F · by ruling]** Squads are summed, not averaged, so a 4-golfer squad beats a 3-golfer squad
+8. **[F · by ruling]** Squads are summed, not averaged, so a 4-golfer squad beats a 3-golfer squad
    300 times in 300. This is D243/244's decision and the draw can produce it. It needs to be
    *said* on the standings. (S3)
-4. **[I · engine]** The Cup Final is not scored fresh for the cap. A window round counts only if it
-   is within the cap of its whole calendar month, so three strong rounds in the first days of the
-   lock month can delete a Final round. Documented in D212, contradicted by the spec's "scored
-   fresh", and invisible to the golfer. (§1.3)
-5. **[I · engine]** A backdated round scores against *today's* index, not the index as of the day
+9. **[I · engine, quantified]** **The Cup Final is not scored fresh, and the cost is a round a
+   golfer watched themselves earn.** With two rounds before the window and three inside it, 94 % of
+   seasons lose Final points, a mean of 7.9 and up to 21. (§2.5a) A window round counts only if it
+   Documented in D212, contradicted by the spec's "scored fresh", and invisible to the golfer.
+10. **[I · engine]** A backdated round scores against *today's* index, not the index as of the day
    played; and a deleted round's influence persists in every snapshot taken while it existed. Both
    are consistent with "rounds are facts"; neither is explained anywhere a golfer reads. (§1.1, S6)
-6. **[I · production]** No league runs the documented default cap; seven run unlimited via NULL.
+11. **[I · production]** No league runs the documented default cap; seven run unlimited via NULL.
    Every claim about "Best 3" in the spec, the wizard copy and D142 describes zero real seasons.
    (§1.6)
-7. **[C · engine]** `months_won` is "beat every other squad", the spec says head-to-head; the spec
+12. **[C · engine]** `months_won` is "beat every other squad", the spec says head-to-head; the spec
    carries three tie rules; the ladder has never fired in production and produced its first stored
    rung in this sandbox. (§1.3, S8)
-8. **[I · engine]** No void or correction path exists. §9 promises the commissioner can void or
+13. **[I · engine]** No void or correction path exists. §9 promises the commissioner can void or
    edit; the only tool is the owner's hard delete, which does not re-open a closed month's floor.
    (§1.3)
-9. **[F · engine]** A floor penalty never touches the golfer's own number. Points King is blind to
+14. **[F · engine]** A floor penalty never touches the golfer's own number. Points King is blind to
    participation; a golfer who misses every floor loses their squad −5s and keeps every individual
    point. (§1.2)
-10. **[F · synthetic]** High variance does not pay. The index already punishes it harder than the
+15. **[F · synthetic]** High variance does not pay. The index already punishes it harder than the
     12-point ceiling ever could, so the ceiling's stated purpose is served twice and its cost —
     that a career round is worth the same as a good one — is paid for nothing. (S2)
-11. **[I · engine]** The floor has never assessed in production, and under the 13-week default it
+16. **[I · engine]** The floor has never assessed in production, and under the 13-week default it
     assesses at most twice. The mechanic every preset advertises has no observed behaviour. (§1.6)
-12. **[I · engine]** An uncollected pot settles to nothing: no payout rows, no ledger line naming
+17. **[I · engine]** An uncollected pot settles to nothing: no payout rows, no ledger line naming
     the champion's share. (S8)
-13. **[I · engine]** A 9-hole round without `nine_rating` gets an 18-hole differential. Latent; one
+18. **[I · engine]** A 9-hole round without `nine_rating` gets an 18-hole differential. Latent; one
     9-hole round exists in production. (§1.1)
-14. **[I · engine]** Weekly snapshots and the daily tick read UTC, the same class of defect D344
+19. **[I · engine]** Weekly snapshots and the daily tick read UTC, the same class of defect D344
     fixed on the plan path. (§1.2)
-15. **[C · docs]** The spec's §3.2 bye, §9 tie rule, §9 void/edit, §14.1 15th rule and §14.2 hybrid
+20. **[C · docs]** The spec's §3.2 bye, §9 tie rule, §9 void/edit, §14.1 15th rule and §14.2 hybrid
     +15 are all superseded and unamended; the working notes still say cap 4. (§1.5)
+21. **[C · docs]** **Late joining is Pro-only to the halfway turn**, and spec §9's description of it
+   is wrong in both sub-clauses. A golfer cannot self-join by code once the season starts. (§1.6)
+22. **[I · engine]** **A season dated in the future cannot be scored at all** — `post_round` refuses
+   it — so a forward-dated prototype can never be validated against the engine. (§2.4)
 
 ---
 
@@ -361,10 +560,21 @@ month is not re-assessed after a deletion.
 collected, capped at the pot: 25 % runner-up, 15 % Points King, remainder champion, per seat in
 `profile_id` order. If nothing was collected, nothing is recorded.
 
+**Eligibility, joining.** Before first tee, anyone with the code. After first tee, **the Pro only**,
+and only to `starts_on + (ends_on − starts_on)/2`. A Pro who closed the roster keeps their own door;
+everyone else is refused. A league locked on or after its own first tee gets one week from the lock.
+There is no provisional scoring: a new golfer's rounds score normally from the first one.
+
+**Arithmetic.** PvI is `index_at_post × allowance/100 − differential` evaluated in **exact decimal**
+and rounded to 1 dp **half away from zero**, then compared to the band edges `≥3, ≥1, >−1, ≥−3`.
+A client MUST NOT compute a band in binary floating point; it will differ from the season.
+
 **Golfer-facing explanations owed by this contract.** (a) What band an ordinary round lands in and
 why. (b) That the squad table sums incomes and squads may differ in size. (c) That the Final's cap
 is monthly, not window-only. (d) That a correction is a new round with new provenance. (e) Which
-cap the golfer's league actually runs.
+cap the golfer's league actually runs. (f) Which table seeded the Final, shown as it stood on the
+lock day. (g) At entry, that a new golfer's rounds count for their squad immediately and that a
+Major may still class them exhibition.
 
 ---
 
@@ -377,11 +587,14 @@ cap the golfer's league actually runs.
    ordinary one"*, 5 as *"Posted"* — and let the receipt say *"your index is your best eight of
    twenty, so most rounds land here"*. This is the highest-leverage change in the audit, it is copy
    only, and Codex's prototype can measure whether it lands (§6). *Owner ruling: the words.*
-2. **Make the Final actually fresh, or say it is not.** Either rank window rounds among themselves
-   (a one-clause change to `_cup_window_rounds`, logged as a D-entry), or amend §14.3 to say the
-   monthly cap still applies and show it on the Final's receipt. The engine and the spec must stop
-   disagreeing about the one contest the whole season leads to. *Mechanic change: needs a D-entry
-   first.*
+2. **Make the Final actually fresh, or say it is not — now with a number attached.** 94 % of
+   seasons in which a golfer plays twice before the window and three times inside it lose Final
+   points they earned in the window, a mean of 7.9 and up to 21 (§2.5a). Either rank window rounds
+   among themselves (a one-clause change to `_cup_window_rounds`) or amend §14.3 and show the
+   displaced round on the Final's receipt with its reason. My preference is to rank the window on
+   its own: "scored fresh" is the promise the whole season is built toward, and the current
+   behaviour is indefensible to a golfer watching a Final round count for nothing.
+   *Mechanic change: needs a D-entry first.*
 
 **New proposal.**
 
@@ -398,18 +611,52 @@ table, not the arithmetic.
 
 ---
 
-## 6 · Questions Codex's prototype should help answer
+## 6 · Questions for Codex's comprehension review
 
-1. Shown their own last ten rounds banded, do golfers read "a little loose" as a bad day? Does
-   renaming the 6 and 5 bands change what they say the season is telling them?
-2. Shown a 4-v-3 squad table, do golfers assume it is averaged? What sentence on the table makes
-   the sum feel fair rather than rigged?
-3. Shown the Final's receipt with a window round displaced by a pre-window round of the same month,
-   do golfers accept it, or does "scored fresh" have to mean fresh?
-4. Does "your correction scored against this month's index, not last month's" read as fair or as a
-   trick?
-5. When a golfer is told their league's cap is unlimited (as seven real ones are), does the
-   "best three" framing in the wizard still make sense to them?
+Mapped to Codex's own eight review tasks where they meet. **Nothing in this document is confirmed by
+the prototype, and the prototype confirms nothing about production deployment.** These are questions
+a participant can answer that a simulation cannot.
+
+Against Codex's tasks 1, 2 and 7 — *marginal contribution and tracing a total*:
+
+1. Shown their own last ten rounds banded, do golfers read "a little loose" as a bad day? Two thirds
+   of real rounds are 5s and 6s (§0). Does renaming the 6 and 5 bands change what they say the
+   season is telling them?
+2. When a golfer adds a fourth round in a month under Best 3 and nothing changes, do they read the
+   cap as protection or as a wasted round? (Bears on §2.5b: the cap does not remove the advantage of
+   more attempts, and golfers may believe it does.)
+
+Against Codex's task 5 — *November 1 holds a place but adds no Final points*:
+
+3. Shown a Final receipt where a round inside the window scored nothing because two earlier rounds
+   in the same month outranked it, do golfers accept it? Ask before showing the explanation, and
+   record whether "scored fresh" was their prior expectation. **This is the question I would most
+   like answered**, because §2.5a says it is common rather than rare.
+4. Does any participant spontaneously ask *which* table decided who reached the Final? In the
+   engine replay the squad leading at the lock finished third (§2.4).
+
+Against Codex's tasks 3 and 4 — *the Major, exhibition, and no season bonus*:
+
+5. Does a golfer who is told their score counts for their squad but cannot win the Major experience
+   that as two rules or as one broken rule? (§2.5d)
+
+Against Codex's task 6 — *what remains when your squad misses the Final*:
+
+6. With no minimum, Pat is mid-pack. Told that the real Standard preset would have cost them about
+   a third of their season (§2.5c), do they still describe the competition as one they belong in?
+
+Against Codex's task 8 — *what Run it back carries*:
+
+7. Do golfers expect their index, their history, or their squad to carry into the next season? The
+   engine carries the index and the bylaws, not the squad.
+
+Two more that the fixture cannot pose but the prototype's participants can:
+
+8. Shown a correction — a round deleted and re-posted with the right score — do golfers expect the
+   original's influence to disappear? It does not; the index snapshots of every round posted in
+   between stand (§2.3 S6).
+9. When told their league's cap is "unlimited" — as seven of ten real leagues are (§1.7) — does the
+   wizard's "best three" framing still make sense to them?
 
 ---
 
@@ -430,24 +677,39 @@ table, not the arithmetic.
   do not. Nothing here tests what a golfer can *see*.
 - **Majors and the Ryder were not simulated**; their separation from season points is asserted
   from the deployed function bodies, not from a run.
-- **The prototype is Codex's.** Nothing here claims to know what a golfer will understand.
+- **Codex's fixture was replayed on shifted dates.** Jun 1 – Aug 30 2026 has the identical shape to
+  Sep 1 – Nov 30, but it is not the same season, and the engine cannot score the real one because it
+  is in the future (§2.4).
+- **The four measurements in §2.5 are mirror-only.** They measure the rule across thousands of
+  seasons, which the engine replay cannot do in reasonable time. The rule they measure was
+  reconciled against the engine first, and the reconciliation is the evidence for trusting them —
+  but a Monte Carlo is not an engine run.
+- **The decimal finding (§2.6) is proven for Python and asserted for JavaScript.** JavaScript has no
+  decimal type and its `Number` is the same IEEE double, so the same divergence follows; I did not
+  run it in a browser.
+- **The prototype is Codex's.** Nothing here claims to know what a golfer will understand, that the
+  prototype confirms any rule in this document, or that anything in it is deployed to production.
 
 ---
 
 ## Handoff
 
-- **Branch / commit:** `claude/gameplay-rules-simulation`, **`b86de14`** (the harness, the evidence and
-  this report; pushed). This line was added in the following commit so the SHA is exact.
-- **Goal / owned files:** rules inventory, fairness analysis, simulation evidence. New:
-  `tests/sim/` (harness, sandbox scripts, engine dump, results), this report, three `.gitignore`
-  lines. No application code, no migration, no generated file, no shared spec file edited.
-- **Built or reviewed:** both — the harness was built; the engine was reviewed.
-- **Verification:** the isolated cluster applied 228/228 migrations with zero skips; six families
-  reconciled between the mirror and the real engine on every squad, golfer, seed and champion; the
-  forced tie stored `tiebreak_rung`; the band distribution was checked against 298 production
-  rounds by SELECT. `npm run preflight` passes on this branch.
-- **Findings still open:** all fifteen in §3; the three recommendations in §5 need owner rulings
-  before any mechanic changes.
-- **Database / Edge / client deploy owed:** none. Nothing was deployed. Production was read-only.
-- **Next owner and bounded task:** Codex, for the prototype and §6; the owner, for the rulings in
-  §5. The sandbox rebuilds from `tests/sim/sandbox/apply.sh` in about two minutes on this machine.
+- **Branch / commit:** `claude/gameplay-rules-simulation`. First pass **`b86de14`**; this second pass
+  is the commit recorded in the git log for this file. Pushed.
+- **Goal / owned files:** rules inventory, fairness analysis, simulation evidence. `tests/sim/`
+  (harness, `analysis.py`, sandbox scripts, engine dump, results) and this report. No application
+  code, no migration, no generated file, no shared spec file, and nothing in any Codex checkout —
+  `/Users/fischbeck3/cup-season-vision-next` was read and not written.
+- **Built or reviewed:** both. The harness was built; the engine was reviewed; Codex's handoff was
+  read and its six findings are addressed at §1.6, §2.4, §2.5 and §2.6.
+- **Verification:** the isolated cluster applies 228/228 migrations, zero skipped. Eight families
+  reconcile between the mirror and the real engine on every squad, golfer, seed and champion,
+  including Codex's own configuration. Three reconciliation defects were found and fixed in the
+  mirror this pass, one of which (§2.6) is a real cross-implementation hazard. `npm run preflight`
+  passes.
+- **Findings still open:** all twenty-one in §3. The three recommendations in §5 need owner rulings
+  before any mechanic change. Nothing was implemented.
+- **Database / Edge / client deploy owed:** none. Nothing deployed, no mechanic changed, no
+  dependency added; production was read with SELECT only and was never a sandbox.
+- **Next owner and bounded task:** Codex, for the comprehension review and §6 — question 3 first.
+  The owner, for §5. Rebuild the sandbox with `REPO=$PWD tests/sim/sandbox/apply.sh` (~2 min).

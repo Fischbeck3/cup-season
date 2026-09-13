@@ -102,3 +102,42 @@ def S8_rounds(G, start, end):
 
 FAMILIES["S8_tie_settle"] = S8_tie_settle
 EXPLICIT = {"S8_tie_settle": S8_rounds}
+
+# ============================================================ Codex's fixture
+def S9_codex_fixture():
+    """Codex's comprehension fixture, replayed against the real engine.
+
+    8 golfers, 4 squads of 2, Sep 1 - Nov 30 2026 (13 weeks), Best 3 per
+    calendar month, 95% season allowance, NO minimum and NO penalties, no
+    buy-in. Explicitly NOT the Standard default (which is floor 2 / -5).
+    Final window Nov 3-30; the lock is ends_on-27 = Nov 3.
+
+    DATE SHIFT (stated, not hidden): the engine refuses `played_on > current_date`
+    (post_round), and Codex's Sep 1 - Nov 30 2026 window is in the future as of
+    2026-09-12, so it cannot be replayed. Jun 1 - Aug 30 2026 has the IDENTICAL
+    shape: 91 days = 13 weeks, three whole calendar months, ends on the 30th, so
+    the lock lands on the 3rd of the last month and Aug 1-2 are the pre-window
+    days that Nov 1-2 are in Codex's fixture. Every rule interaction is preserved.
+    """
+    names = [("You","South"),("Alex","South"),("Sam","North"),("Jo","North"),
+             ("Pat","East"),("Kim","East"),("Nia","West"),("Rae","West")]
+    g = [Golfer(n, ability=13.0, sigma=3.2, per_month=3, squad=s) for n, s in names]
+    b = Bylaws(); b.cap = 3; b.allowance = 95; b.floor = 0; b.penalty = "none"; b.weeks = 13
+    return g, b, date(2026, 6, 1), date(2026, 8, 30), "Codex's fixture (dates shifted to Jun 1-Aug 30, same shape): no minimum, Best 3, 95%, Final Aug 3-30."
+
+FAMILIES["S9_codex_fixture"] = S9_codex_fixture
+
+def S10_busy_golfer():
+    """Codex: 'compare the no-minimum fixture with the real default floor.'
+    Same eight golfers, same dates, but Standard's floor 2 / -5, and one
+    genuinely busy golfer who manages one round a month."""
+    names = [("You","South"),("Alex","South"),("Sam","North"),("Jo","North"),
+             ("Pat","East"),("Kim","East"),("Nia","West"),("Rae","West")]
+    g = []
+    for n, s in names:
+        rate = 1 if n == "Pat" else 3          # Pat is the busy one
+        g.append(Golfer(n, 13.0, 3.2, rate, squad=s))
+    b = Bylaws(); b.cap = 3; b.allowance = 95; b.floor = 2; b.penalty = "deduct"; b.weeks = 13
+    return g, b, date(2026, 6, 1), date(2026, 8, 30), "Codex's fixture under the REAL Standard default: floor 2, -5 a round short."
+
+FAMILIES["S10_busy_golfer"] = S10_busy_golfer

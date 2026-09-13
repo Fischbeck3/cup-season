@@ -16,6 +16,16 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from decimal import Decimal, ROUND_HALF_UP
+
+def r1(x) -> float:
+    """Round to 1dp the way POSTGRES numeric does: half away from zero.
+    Python's float round() is half-to-even on a binary approximation, so
+    round(0.15,1)=0.1 where Postgres gives 0.2. PvI is rounded to 1dp and the
+    band edges are exact comparisons, so the rounding MODE decides a band
+    whenever PvI lands on x.x5. Any second implementation in IEEE floats
+    (a browser prototype, a spreadsheet) will disagree with the engine there."""
+    return float(Decimal(repr(float(x))).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP))
 from typing import Iterable
 from golfers import Round, Golfer, month_days
 
@@ -46,11 +56,20 @@ def whs_index(diffs_newest_last: list[float]) -> float | None:
     if n < ESTABLISH_AT: return None
     m, adj = _m_adj(n)
     best = sorted(last)[:m]
-    return round(sum(best) / m + adj, 1)
+    return r1(sum(best) / m + adj)
 
 # ------------------------------------------------------------ points (§2.1-2)
 def pvi(index: float, allowance_pct: int, differential: float) -> float:
-    return round(index * allowance_pct / 100.0 - differential, 1)
+    """DECIMAL end to end, because the engine is.
+
+    `v_rounds_ranked` computes `round(index_at_post * allowance/100 - differential, 1)`
+    in Postgres NUMERIC, which is exact base-10. In IEEE doubles
+    9.0 * 95/100 is 8.550000000000001, so 8.55 - 9.5 comes out -0.9499999999999993
+    and rounds to -0.9 where the engine gets exactly -0.95 and rounds to -1.0.
+    That is band 7 versus band 6 on the same round. Any reimplementation in
+    floats (a browser prototype, a spreadsheet) inherits this."""
+    d = (Decimal(str(index)) * Decimal(allowance_pct) / Decimal(100)) - Decimal(str(differential))
+    return float(d.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP))
 
 def band(p: float) -> int:
     # spec §2.2: +3.0 or better 12 · +1.0..+2.9 9 · −0.9..+0.9 7 · −3.0..−1.0 6 · worse 5
@@ -248,6 +267,7 @@ def assumptions() -> list[str]:
     return [
       "Index m-table and adjustments copied from the DEPLOYED handicap_index_asof (differs from WHS 2020 at c=18 and c=9..11); the engine refreshes the index on every post, never monthly.",
       "Band edges as deployed in cup_points: >=3, >=1, >-1, >=-3, else 5. (A dead 7-arg score_round uses >=-1; ignored.)",
+      "PvI and the index are rounded HALF AWAY FROM ZERO to match Postgres numeric; IEEE-float rounding disagrees at x.x5 and can move a band.",
       "Counting ties: points desc, pvi desc, played_on DESC — the later round wins — as deployed.",
       "A golfer with no established index (<3 differentials) scores 7 and is badged; the engine instead uses profiles.index_current or falls back to the round's own differential (PvI 0 => 7). Same points, different provenance.",
       "Auto-bye consumes the season's one bye on the FIRST missed floor (D14, deployed).",
