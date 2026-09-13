@@ -1,0 +1,153 @@
+{
+ "real": {
+  "squads": {
+   "D": 491,
+   "A": 331,
+   "C": 335,
+   "B": 336
+  },
+  "individual": {
+   "B1": {
+    "points": 109,
+    "rounds": 22
+   },
+   "C3": {
+    "points": 112,
+    "rounds": 23
+   },
+   "D4iron": {
+    "points": 135,
+    "rounds": 51
+   },
+   "B2": {
+    "points": 118,
+    "rounds": 27
+   },
+   "D3": {
+    "points": 113,
+    "rounds": 27
+   },
+   "C2": {
+    "points": 114,
+    "rounds": 25
+   },
+   "A2": {
+    "points": 109,
+    "rounds": 24
+   },
+   "A3": {
+    "points": 116,
+    "rounds": 25
+   },
+   "D1": {
+    "points": 130,
+    "rounds": 27
+   },
+   "C1": {
+    "points": 109,
+    "rounds": 22
+   },
+   "A1": {
+    "points": 106,
+    "rounds": 22
+   },
+   "B3": {
+    "points": 109,
+    "rounds": 26
+   },
+   "D2": {
+    "points": 113,
+    "rounds": 26
+   }
+  },
+  "counting": {
+   "A1": {
+    "counting": 17,
+    "counting_points": 106,
+    "avg_pvi": -3.61
+   },
+   "A2": {
+    "counting": 18,
+    "counting_points": 109,
+    "avg_pvi": -4.15
+   },
+   "A3": {
+    "counting": 18,
+    "counting_points": 116,
+    "avg_pvi": -3.08
+   },
+   "B1": {
+    "counting": 18,
+    "counting_points": 109,
+    "avg_pvi": -3.44
+   },
+   "B2": {
+    "counting": 18,
+    "counting_points": 118,
+    "avg_pvi": -3.07
+   },
+   "B3": {
+    "counting": 18,
+    "counting_points": 109,
+    "avg_pvi": -3.65
+   },
+   "C1": {
+    "counting": 18,
+    "counting_points": 109,
+    "avg_pvi": -4.49
+   },
+   "C2": {
+    "counting": 18,
+    "counting_points": 114,
+    "avg_pvi": -4.3
+   },
+   "C3": {
+    "counting": 18,
+    "counting_points": 112,
+    "avg_pvi": -3.71
+   },
+   "D1": {
+    "counting": 18,
+    "counting_points": 130,
+    "avg_pvi": -3.57
+   },
+   "D2": {
+    "counting": 18,
+    "counting_points": 113,
+    "avg_pvi": -4.17
+   },
+   "D3": {
+    "counting": 18,
+    "counting_points": 113,
+    "avg_pvi": -3.65
+   },
+   "D4iron": {
+    "counting": 18,
+    "counting_points": 135,
+    "avg_pvi": -3.99
+   }
+  },
+  "adjustments": [],
+  "cup_finalists": [
+   [
+    "D",
+    1,
+    0,
+    ""
+   ],
+   [
+    "B",
+    2,
+    0,
+    ""
+   ]
+  ],
+  "season": {
+   "status": "complete",
+   "champion_score": "70",
+   "tiebreak_rung": "",
+   "champion": "D"
+  }
+ },
+ "diffs": []
+}

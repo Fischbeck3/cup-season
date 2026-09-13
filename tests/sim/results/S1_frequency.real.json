@@ -1,0 +1,91 @@
+{
+ "real": {
+  "squads": {
+   "B": 63,
+   "A": 34,
+   "C": 13,
+   "D": 58
+  },
+  "individual": {
+   "Bo": {
+    "points": 63,
+    "rounds": 21
+   },
+   "Cy": {
+    "points": 18,
+    "rounds": 3
+   },
+   "Ada": {
+    "points": 34,
+    "rounds": 6
+   },
+   "Di": {
+    "points": 58,
+    "rounds": 13
+   }
+  },
+  "counting": {
+   "Ada": {
+    "counting": 6,
+    "counting_points": 34,
+    "avg_pvi": -4.98
+   },
+   "Bo": {
+    "counting": 9,
+    "counting_points": 63,
+    "avg_pvi": -3.21
+   },
+   "Cy": {
+    "counting": 3,
+    "counting_points": 18,
+    "avg_pvi": -2.8
+   },
+   "Di": {
+    "counting": 9,
+    "counting_points": 58,
+    "avg_pvi": -4.14
+   }
+  },
+  "adjustments": [
+   [
+    "bye",
+    "2026-03",
+    0,
+    "Auto-bye \u2014 the first missed month. Life happens; the season'"
+   ],
+   [
+    "bye",
+    "2026-04",
+    0,
+    "Auto-bye \u2014 the first missed month. Life happens; the season'"
+   ],
+   [
+    "floor_penalty",
+    "2026-04",
+    -5,
+    "April \u2014 2 a month, posted 1.0. The bye was already used."
+   ]
+  ],
+  "cup_finalists": [
+   [
+    "B",
+    1,
+    0,
+    ""
+   ],
+   [
+    "D",
+    2,
+    0,
+    ""
+   ]
+  ],
+  "season": {
+   "status": "complete",
+   "champion_score": "20",
+   "tiebreak_rung": "",
+   "champion": "B"
+  }
+ },
+ "diffs": []
+}

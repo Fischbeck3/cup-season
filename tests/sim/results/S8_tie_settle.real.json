@@ -1,0 +1,94 @@
+{
+ "real": {
+  "squads": {
+   "A": 140,
+   "C": 84,
+   "B": 126
+  },
+  "individual": {
+   "B1": {
+    "points": 63,
+    "rounds": 9
+   },
+   "A1": {
+    "points": 70,
+    "rounds": 10
+   },
+   "A2": {
+    "points": 70,
+    "rounds": 10
+   },
+   "C1": {
+    "points": 42,
+    "rounds": 6
+   },
+   "B2": {
+    "points": 63,
+    "rounds": 9
+   },
+   "C2": {
+    "points": 42,
+    "rounds": 6
+   }
+  },
+  "counting": {
+   "A1": {
+    "counting": 10,
+    "counting_points": 70,
+    "avg_pvi": -0.5
+   },
+   "A2": {
+    "counting": 10,
+    "counting_points": 70,
+    "avg_pvi": -0.5
+   },
+   "B1": {
+    "counting": 9,
+    "counting_points": 63,
+    "avg_pvi": -0.5
+   },
+   "B2": {
+    "counting": 9,
+    "counting_points": 63,
+    "avg_pvi": -0.5
+   },
+   "C1": {
+    "counting": 6,
+    "counting_points": 42,
+    "avg_pvi": -0.5
+   },
+   "C2": {
+    "counting": 6,
+    "counting_points": 42,
+    "avg_pvi": -0.5
+   }
+  },
+  "adjustments": [],
+  "cup_finalists": [
+   [
+    "A",
+    1,
+    0,
+    ""
+   ],
+   [
+    "B",
+    2,
+    0,
+    ""
+   ]
+  ],
+  "payouts": [],
+  "pot": [
+   "30000",
+   "0"
+  ],
+  "season": {
+   "status": "complete",
+   "champion_score": "28",
+   "tiebreak_rung": "months won",
+   "champion": "A"
+  }
+ },
+ "diffs": []
+}

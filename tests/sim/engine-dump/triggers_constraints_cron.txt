@@ -1,0 +1,357 @@
+### TRIGGERS
+[
+ {
+  "def": "CREATE TRIGGER event_complete_award AFTER UPDATE ON public.events FOR EACH ROW EXECUTE FUNCTION trg_event_complete()",
+  "tbl": "events",
+  "tgname": "event_complete_award"
+ },
+ {
+  "def": "CREATE TRIGGER bag_follows_the_card AFTER UPDATE OF deleted_at ON public.profiles FOR EACH ROW EXECUTE FUNCTION bag_follows_the_card()",
+  "tbl": "profiles",
+  "tgname": "bag_follows_the_card"
+ },
+ {
+  "def": "CREATE TRIGGER profile_contact_hash_trg BEFORE INSERT OR UPDATE OF email ON public.profiles FOR EACH ROW EXECUTE FUNCTION profile_refresh_contact_hash()",
+  "tbl": "profiles",
+  "tgname": "profile_contact_hash_trg"
+ },
+ {
+  "def": "CREATE TRIGGER trg_tag_founder BEFORE INSERT OR UPDATE OF email ON public.profiles FOR EACH ROW EXECUTE FUNCTION tag_founder()",
+  "tbl": "profiles",
+  "tgname": "trg_tag_founder"
+ },
+ {
+  "def": "CREATE TRIGGER round_achievements_after_delete_trg AFTER DELETE ON public.rounds FOR EACH ROW EXECUTE FUNCTION round_achievements_on_delete()",
+  "tbl": "rounds",
+  "tgname": "round_achievements_after_delete_trg"
+ },
+ {
+  "def": "CREATE TRIGGER round_achievements_before_delete_trg BEFORE DELETE ON public.rounds FOR EACH ROW EXECUTE FUNCTION round_achievements_on_delete()",
+  "tbl": "rounds",
+  "tgname": "round_achievements_before_delete_trg"
+ },
+ {
+  "def": "CREATE TRIGGER round_duel_nudge_trg AFTER INSERT ON public.rounds FOR EACH ROW EXECUTE FUNCTION round_duel_nudge()",
+  "tbl": "rounds",
+  "tgname": "round_duel_nudge_trg"
+ },
+ {
+  "def": "CREATE TRIGGER round_major_story_trg AFTER INSERT ON public.rounds FOR EACH ROW EXECUTE FUNCTION round_major_story()",
+  "tbl": "rounds",
+  "tgname": "round_major_story_trg"
+ },
+ {
+  "def": "CREATE TRIGGER round_refresh_index_trg AFTER INSERT OR DELETE ON public.rounds FOR EACH ROW EXECUTE FUNCTION round_refresh_index()",
+  "tbl": "rounds",
+  "tgname": "round_refresh_index_trg"
+ },
+ {
+  "def": "CREATE TRIGGER rounds_after_insert AFTER INSERT ON public.rounds FOR EACH ROW EXECUTE FUNCTION round_to_board()",
+  "tbl": "rounds",
+  "tgname": "rounds_after_insert"
+ },
+ {
+  "def": "CREATE TRIGGER rounds_before_insert BEFORE INSERT ON public.rounds FOR EACH ROW EXECUTE FUNCTION score_round()",
+  "tbl": "rounds",
+  "tgname": "rounds_before_insert"
+ },
+ {
+  "def": "CREATE TRIGGER rounds_no_future_trg BEFORE INSERT OR UPDATE ON public.rounds FOR EACH ROW EXECUTE FUNCTION rounds_no_future()",
+  "tbl": "rounds",
+  "tgname": "rounds_no_future_trg"
+ },
+ {
+  "def": "CREATE TRIGGER trg_round_moments AFTER INSERT ON public.rounds FOR EACH ROW EXECUTE FUNCTION round_moments()",
+  "tbl": "rounds",
+  "tgname": "trg_round_moments"
+ },
+ {
+  "def": "CREATE TRIGGER trg_squad_lead_moments AFTER INSERT ON public.rounds FOR EACH ROW EXECUTE FUNCTION squad_lead_moments()",
+  "tbl": "rounds",
+  "tgname": "trg_squad_lead_moments"
+ },
+ {
+  "def": "CREATE TRIGGER seasons_email_on_complete AFTER UPDATE OF status ON public.seasons FOR EACH ROW EXECUTE FUNCTION season_email_on_complete()",
+  "tbl": "seasons",
+  "tgname": "seasons_email_on_complete"
+ }
+]
+### CHECK CONSTRAINTS
+[
+ {
+  "conname": "leagues_code_key",
+  "def": "UNIQUE (code)",
+  "tbl": "leagues"
+ },
+ {
+  "conname": "leagues_look_check",
+  "def": "CHECK (((look IS NULL) OR (look ~ '^[a-z][a-z0-9_]{0,31}$'::text)))",
+  "tbl": "leagues"
+ },
+ {
+  "conname": "leagues_phase_check",
+  "def": "CHECK ((phase = ANY (ARRAY['setup'::text, 'draft'::text, 'season'::text, 'complete'::text])))",
+  "tbl": "leagues"
+ },
+ {
+  "conname": "draft_type_valid",
+  "def": "CHECK ((draft_type = ANY (ARRAY['random'::text, 'assign'::text, 'snake'::text, 'live'::text])))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_buyin_range",
+  "def": "CHECK (((buyin_cents >= 0) AND (buyin_cents <= 20000)))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_counting_cap_range",
+  "def": "CHECK (((counting_cap IS NULL) OR ((counting_cap >= 1) AND (counting_cap <= 31))))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_finish_check",
+  "def": "CHECK ((finish = ANY (ARRAY['points_table'::text, 'cup_final'::text])))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_floor_penalty_check",
+  "def": "CHECK ((floor_penalty = ANY (ARRAY['none'::text, 'deduct'::text, 'forfeit'::text])))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_handicap_allowance_check",
+  "def": "CHECK ((handicap_allowance = ANY (ARRAY[90, 95, 100])))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_participation_floor_check",
+  "def": "CHECK (((participation_floor >= 0) AND (participation_floor <= 4)))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_preset_check",
+  "def": "CHECK ((preset = ANY (ARRAY['casual'::text, 'standard'::text, 'cutthroat'::text, 'custom'::text])))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_season_format_check",
+  "def": "CHECK ((season_format = ANY (ARRAY['points'::text, 'h2h'::text, 'hybrid'::text])))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_season_months_check",
+  "def": "CHECK (((season_months >= 1) AND (season_months <= 12)))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_structure_check",
+  "def": "CHECK ((structure = ANY (ARRAY['solo'::text, 'squads2'::text, 'squads3'::text, 'squads4'::text])))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_settings_verification_check",
+  "def": "CHECK ((verification = ANY (ARRAY['honor'::text, 'attested'::text, 'ghin'::text])))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "payout_sums_100",
+  "def": "CHECK ((((payout_champ + payout_runnerup) + payout_king) = 100))",
+  "tbl": "league_settings"
+ },
+ {
+  "conname": "league_members_index_source_check",
+  "def": "CHECK ((index_source = ANY (ARRAY['self'::text, 'app'::text, 'ghin'::text])))",
+  "tbl": "league_members"
+ },
+ {
+  "conname": "league_members_league_id_profile_id_key",
+  "def": "UNIQUE (league_id, profile_id)",
+  "tbl": "league_members"
+ },
+ {
+  "conname": "league_members_role_check",
+  "def": "CHECK ((role = ANY (ARRAY['commissioner'::text, 'captain'::text, 'player'::text])))",
+  "tbl": "league_members"
+ },
+ {
+  "conname": "seasons_league_id_number_key",
+  "def": "UNIQUE (league_id, number)",
+  "tbl": "seasons"
+ },
+ {
+  "conname": "seasons_status_check",
+  "def": "CHECK ((status = ANY (ARRAY['active'::text, 'cup_final'::text, 'complete'::text])))",
+  "tbl": "seasons"
+ },
+ {
+  "conname": "squads_color_check",
+  "def": "CHECK (((color >= 0) AND (color <= 3)))",
+  "tbl": "squads"
+ },
+ {
+  "conname": "rounds_gross_check",
+  "def": "CHECK (((gross >= 18) AND (gross <= 200)))",
+  "tbl": "rounds"
+ },
+ {
+  "conname": "rounds_holes_played_check",
+  "def": "CHECK ((holes_played = ANY (ARRAY[9, 18])))",
+  "tbl": "rounds"
+ },
+ {
+  "conname": "rounds_index_source_at_post_check",
+  "def": "CHECK ((index_source_at_post = ANY (ARRAY['self'::text, 'app'::text, 'ghin'::text])))",
+  "tbl": "rounds"
+ },
+ {
+  "conname": "rounds_rating_sane",
+  "def": "CHECK (((rating >= (25)::numeric) AND (rating <= (90)::numeric))) NOT VALID",
+  "tbl": "rounds"
+ },
+ {
+  "conname": "rounds_slope_sane",
+  "def": "CHECK (((slope >= 55) AND (slope <= 155))) NOT VALID",
+  "tbl": "rounds"
+ },
+ {
+  "conname": "rounds_source_check",
+  "def": "CHECK ((source = ANY (ARRAY['quick'::text, 'live'::text, 'scan_claim'::text])))",
+  "tbl": "rounds"
+ },
+ {
+  "conname": "season_adjustments_kind_check",
+  "def": "CHECK ((kind = ANY (ARRAY['floor_penalty'::text, 'floor_forfeit'::text, 'matchup_bonus'::text, 'bye'::text, 'override'::text, 'month_closed'::text])))",
+  "tbl": "season_adjustments"
+ },
+ {
+  "conname": "standings_snapshots_season_id_week_no_key",
+  "def": "UNIQUE (season_id, week_no)",
+  "tbl": "standings_snapshots"
+ },
+ {
+  "conname": "cup_finalists_check",
+  "def": "CHECK (((squad_id IS NOT NULL) OR (member_id IS NOT NULL)))",
+  "tbl": "cup_finalists"
+ },
+ {
+  "conname": "cup_finalists_season_id_seed_key",
+  "def": "UNIQUE (season_id, seed)",
+  "tbl": "cup_finalists"
+ },
+ {
+  "conname": "events_draw_rule_check",
+  "def": "CHECK ((draw_rule = ANY (ARRAY['team_pvi'::text, 'shared'::text])))",
+  "tbl": "events"
+ },
+ {
+  "conname": "events_session_count_check",
+  "def": "CHECK (((session_count >= 1) AND (session_count <= 26)))",
+  "tbl": "events"
+ },
+ {
+  "conname": "events_session_weeks_check",
+  "def": "CHECK (((session_weeks >= 1) AND (session_weeks <= 4)))",
+  "tbl": "events"
+ },
+ {
+  "conname": "events_status_check",
+  "def": "CHECK ((status = ANY (ARRAY['setup'::text, 'live'::text, 'complete'::text, 'cancelled'::text])))",
+  "tbl": "events"
+ },
+ {
+  "conname": "event_sessions_event_id_session_no_key",
+  "def": "UNIQUE (event_id, session_no)",
+  "tbl": "event_sessions"
+ },
+ {
+  "conname": "event_sessions_status_check",
+  "def": "CHECK ((status = ANY (ARRAY['upcoming'::text, 'open'::text, 'closed'::text])))",
+  "tbl": "event_sessions"
+ },
+ {
+  "conname": "event_duels_result_check",
+  "def": "CHECK ((result = ANY (ARRAY['pending'::text, 'a'::text, 'b'::text, 'halve'::text])))",
+  "tbl": "event_duels"
+ },
+ {
+  "conname": "forfeits_has_home",
+  "def": "CHECK (((league_id IS NOT NULL) OR (event_id IS NOT NULL) OR (scheduled_round_id IS NOT NULL) OR (party_b IS NOT NULL)))",
+  "tbl": "forfeits"
+ },
+ {
+  "conname": "forfeits_kind_check",
+  "def": "CHECK ((kind = ANY (ARRAY['hosts'::text, 'course_pick'::text, 'strokes'::text, 'bounty'::text, 'custom'::text])))",
+  "tbl": "forfeits"
+ },
+ {
+  "conname": "forfeits_name_len",
+  "def": "CHECK (((char_length(name) >= 2) AND (char_length(name) <= 60)))",
+  "tbl": "forfeits"
+ },
+ {
+  "conname": "forfeits_one_home",
+  "def": "CHECK ((((\nCASE\n    WHEN (league_id IS NOT NULL) THEN 1\n    ELSE 0\nEND +\nCASE\n    WHEN (event_id IS NOT NULL) THEN 1\n    ELSE 0\nEND) +\nCASE\n    WHEN (scheduled_round_id IS NOT NULL) THEN 1\n    ELSE 0\nEND) <= 1))",
+  "tbl": "forfeits"
+ },
+ {
+  "conname": "forfeits_parties",
+  "def": "CHECK (((party_b IS NULL) OR (party_b <> party_a)))",
+  "tbl": "forfeits"
+ },
+ {
+  "conname": "forfeits_status_check",
+  "def": "CHECK ((status = ANY (ARRAY['open'::text, 'settled'::text, 'scrapped'::text])))",
+  "tbl": "forfeits"
+ },
+ {
+  "conname": "forfeits_terms_len",
+  "def": "CHECK (((char_length(terms) >= 2) AND (char_length(terms) <= 200)))",
+  "tbl": "forfeits"
+ },
+ {
+  "conname": "week_clashes_distinct_pair",
+  "def": "CHECK ((a_member <> b_member))",
+  "tbl": "week_clashes"
+ },
+ {
+  "conname": "week_clashes_season_id_week_no_key",
+  "def": "UNIQUE (season_id, week_no)",
+  "tbl": "week_clashes"
+ },
+ {
+  "conname": "week_clashes_week_positive",
+  "def": "CHECK ((week_no >= 1))",
+  "tbl": "week_clashes"
+ }
+]
+### CRON
+[
+ {
+  "active": true,
+  "command": "select public.run_month_closes()",
+  "jobid": 1,
+  "jobname": "cs-month-close",
+  "schedule": "10 7 1 * *"
+ },
+ {
+  "active": true,
+  "command": "select public.run_week_snapshots()",
+  "jobid": 2,
+  "jobname": "cs-week-snapshot",
+  "schedule": "10 7 * * 0"
+ },
+ {
+  "active": true,
+  "command": "select public.daily_season_tick()",
+  "jobid": 3,
+  "jobname": "cs-daily-tick",
+  "schedule": "20 7 * * *"
+ },
+ {
+  "active": true,
+  "command": "select public.run_event_sessions()",
+  "jobid": 4,
+  "jobname": "run_event_sessions",
+  "schedule": "15 7 * * *"
+ }
+]

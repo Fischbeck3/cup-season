@@ -36,3 +36,5 @@ docs/audit/ship-2026-08-31/
 # artifacts named in the decision entries for whoever has the machine, never
 # something to publish. (2026-09-09)
 renders/
+tests/sim/sandbox/pgdata/
+tests/sim/sandbox/*.log

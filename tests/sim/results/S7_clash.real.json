@@ -1,0 +1,70 @@
+{
+ "real": {
+  "squads": {
+   "A": 114,
+   "B": 105
+  },
+  "individual": {
+   "L1": {
+    "points": 51,
+    "rounds": 10
+   },
+   "K1": {
+    "points": 50,
+    "rounds": 12
+   },
+   "K2": {
+    "points": 64,
+    "rounds": 12
+   },
+   "L2": {
+    "points": 54,
+    "rounds": 13
+   }
+  },
+  "counting": {
+   "K1": {
+    "counting": 9,
+    "counting_points": 50,
+    "avg_pvi": -5.43
+   },
+   "K2": {
+    "counting": 9,
+    "counting_points": 64,
+    "avg_pvi": -2.48
+   },
+   "L1": {
+    "counting": 9,
+    "counting_points": 51,
+    "avg_pvi": -3.83
+   },
+   "L2": {
+    "counting": 9,
+    "counting_points": 54,
+    "avg_pvi": -4.53
+   }
+  },
+  "adjustments": [],
+  "cup_finalists": [
+   [
+    "A",
+    1,
+    10,
+    ""
+   ],
+   [
+    "B",
+    2,
+    0,
+    ""
+   ]
+  ],
+  "season": {
+   "status": "complete",
+   "champion_score": "48",
+   "tiebreak_rung": "",
+   "champion": "A"
+  }
+ },
+ "diffs": []
+}

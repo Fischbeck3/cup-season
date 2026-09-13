@@ -1,0 +1,179 @@
+{
+ "family": "S7_clash",
+ "seed": 7,
+ "note": "The clash must never move a squad total.",
+ "bylaws": {
+  "allowance": 95,
+  "cap": 3,
+  "floor": 2,
+  "penalty": "deduct",
+  "bye_per_season": 1,
+  "weeks": 13,
+  "structure": "squads4",
+  "final_days": 28
+ },
+ "season": [
+  "2026-03-01",
+  "2026-05-30"
+ ],
+ "golfers": {
+  "K1": {
+   "rounds": 12,
+   "counting": 9,
+   "points": 50,
+   "penalties": 0,
+   "avg_pvi": -5.43,
+   "ability": null,
+   "index_start": 10.4,
+   "index_end": 12.6,
+   "bands": {
+    "12": 0,
+    "9": 0,
+    "7": 2,
+    "6": 1,
+    "5": 9
+   }
+  },
+  "K2": {
+   "rounds": 12,
+   "counting": 9,
+   "points": 64,
+   "penalties": 0,
+   "avg_pvi": -2.49,
+   "ability": null,
+   "index_start": 11.0,
+   "index_end": 9.3,
+   "bands": {
+    "12": 1,
+    "9": 2,
+    "7": 1,
+    "6": 2,
+    "5": 6
+   }
+  },
+  "L1": {
+   "rounds": 10,
+   "counting": 9,
+   "points": 51,
+   "penalties": 0,
+   "avg_pvi": -3.83,
+   "ability": null,
+   "index_start": 12.0,
+   "index_end": 12.9,
+   "bands": {
+    "12": 0,
+    "9": 0,
+    "7": 2,
+    "6": 2,
+    "5": 6
+   }
+  },
+  "L2": {
+   "rounds": 13,
+   "counting": 9,
+   "points": 54,
+   "penalties": 0,
+   "avg_pvi": -4.53,
+   "ability": null,
+   "index_start": 11.6,
+   "index_end": 12.6,
+   "bands": {
+    "12": 0,
+    "9": 1,
+    "7": 2,
+    "6": 1,
+    "5": 9
+   }
+  }
+ },
+ "months": [
+  {
+   "month": 1,
+   "from": "2026-03-01",
+   "to": "2026-03-31",
+   "partial": false,
+   "points": {
+    "K1": 17,
+    "K2": 25,
+    "L1": 18,
+    "L2": 17
+   },
+   "penalties": {},
+   "byes": [],
+   "forfeits": []
+  },
+  {
+   "month": 2,
+   "from": "2026-04-01",
+   "to": "2026-04-30",
+   "partial": false,
+   "points": {
+    "K1": 15,
+    "K2": 19,
+    "L1": 18,
+    "L2": 19
+   },
+   "penalties": {},
+   "byes": [],
+   "forfeits": []
+  },
+  {
+   "month": 3,
+   "from": "2026-05-01",
+   "to": "2026-05-30",
+   "partial": true,
+   "points": {
+    "K1": 18,
+    "K2": 20,
+    "L1": 15,
+    "L2": 18
+   },
+   "penalties": {},
+   "byes": [],
+   "forfeits": []
+  }
+ ],
+ "squads": {
+  "A": 114,
+  "B": 105
+ },
+ "cup": {
+  "seeds": [
+   "A",
+   "B"
+  ],
+  "lock_on": "2026-05-03",
+  "window": [
+   "2026-05-03",
+   "2026-05-30"
+  ],
+  "final_points": {
+   "A": 38,
+   "B": 33
+  },
+  "champion": "A",
+  "tiebreak_used": null
+ },
+ "clash_wins": {
+  "K2": 4,
+  "L1": 1,
+  "L2": 4,
+  "K1": 2
+ },
+ "extra": [],
+ "assumptions": [
+  "Index m-table and adjustments copied from the DEPLOYED handicap_index_asof (differs from WHS 2020 at c=18 and c=9..11); the engine refreshes the index on every post, never monthly.",
+  "Band edges as deployed in cup_points: >=3, >=1, >-1, >=-3, else 5. (A dead 7-arg score_round uses >=-1; ignored.)",
+  "Counting ties: points desc, pvi desc, played_on DESC \u2014 the later round wins \u2014 as deployed.",
+  "A golfer with no established index (<3 differentials) scores 7 and is badged; the engine instead uses profiles.index_current or falls back to the round's own differential (PvI 0 => 7). Same points, different provenance.",
+  "Auto-bye consumes the season's one bye on the FIRST missed floor (D14, deployed).",
+  "Join-month floor waived entirely (D161, deployed via joined_at), not spec 14.1's 15th rule.",
+  "Floors never assessed in a partial edge month (blanket, deployed).",
+  "Cup seeds ranked on counting rounds with played_on < ends_on-27; window rounds count only within the cap of their whole calendar month (_cup_window_rounds); +10 head start for seed #1 under squads2 only.",
+  "months_won = strictly beat the max of all other squads that month (deployed), not h2h; then best_month, rounds_used, random().",
+  "One rated course (71.2/128) for every round; 18 holes only; no sim rounds; independent Gaussian differentials with no form or course effects.",
+  "Clash pairing is a fixed rotation, not the deployed picker; only 'never cup points' is asserted.",
+  "Majors and Ryder are not simulated; the engine dump shows they read rounds and write only event tables.",
+  "The mirror has no notion of created_at, so suspension/leave cut-offs and 'posted late' provenance are not modelled."
+ ]
+}

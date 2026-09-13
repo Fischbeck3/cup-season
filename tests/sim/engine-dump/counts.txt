@@ -1,0 +1,481 @@
+### rounds
+[
+ {
+  "attested": 7,
+  "first": "2026-03-22",
+  "last": "2026-09-10",
+  "nine": 1,
+  "no_season": 61,
+  "null_diff": 0,
+  "provisional": 0,
+  "total": 213,
+  "voided": 0
+ }
+]
+### rounds by source
+[
+ {
+  "count": 7,
+  "source": "live"
+ },
+ {
+  "count": 206,
+  "source": "quick"
+ }
+]
+### seasons by status
+[
+ {
+  "count": 5,
+  "kicked_off": 5,
+  "status": "active"
+ },
+ {
+  "count": 2,
+  "kicked_off": 1,
+  "status": "complete"
+ }
+]
+### leagues
+[
+ {
+  "count": 1,
+  "phase": "complete",
+  "sandbox": false
+ },
+ {
+  "count": 1,
+  "phase": "complete",
+  "sandbox": true
+ },
+ {
+  "count": 5,
+  "phase": "season",
+  "sandbox": false
+ },
+ {
+  "count": 3,
+  "phase": "setup",
+  "sandbox": false
+ }
+]
+### standings_snapshots
+[
+ {
+  "max": 24,
+  "min": 1,
+  "n": 19,
+  "seasons": 7
+ }
+]
+### season_adjustments
+[
+ {
+  "count": 2,
+  "kind": "matchup_bonus",
+  "reason": "Monthly head-to-head winner",
+  "sum": 30
+ },
+ {
+  "count": 4,
+  "kind": "month_closed",
+  "reason": "Month closed",
+  "sum": 0
+ },
+ {
+  "count": 5,
+  "kind": "month_closed",
+  "reason": "Partial edge month \u2014 floors waived",
+  "sum": 0
+ }
+]
+### cup_finalists
+[
+ {
+  "head_starts": [
+   0,
+   10
+  ],
+  "member_rows": 0,
+  "n": 4,
+  "rungs": [
+   null
+  ],
+  "seasons": 2,
+  "squad_rows": 4
+ }
+]
+### events
+[
+ {
+  "count": 1,
+  "kind": "ryder",
+  "status": "complete"
+ }
+]
+### event_sessions
+[
+ {
+  "count": 3,
+  "status": "closed"
+ }
+]
+### event_duels
+[
+ {
+  "count": 2,
+  "result": "b"
+ },
+ {
+  "count": 4,
+  "result": "halve"
+ },
+ {
+  "count": 3,
+  "result": "a"
+ }
+]
+### week_clashes
+[
+ {
+  "count": 13,
+  "settled": 8,
+  "with_winner": 2
+ }
+]
+### forfeits
+[]
+### league_settings distinct
+[
+ {
+  "buyin_cents": 0,
+  "count": 3,
+  "counting_cap": null,
+  "draft_type": "random",
+  "finish": "cup_final",
+  "floor_penalty": "deduct",
+  "handicap_allowance": 95,
+  "locked": false,
+  "nine_hole_allowed": true,
+  "participation_floor": 2,
+  "payout_champ": 60,
+  "payout_king": 15,
+  "payout_runnerup": 25,
+  "preset": "standard",
+  "season_format": "points",
+  "season_months": 3,
+  "sim_rounds_allowed": true,
+  "structure": "squads2",
+  "verification": "attested"
+ },
+ {
+  "buyin_cents": 7500,
+  "count": 1,
+  "counting_cap": null,
+  "draft_type": "random",
+  "finish": "cup_final",
+  "floor_penalty": "deduct",
+  "handicap_allowance": 95,
+  "locked": true,
+  "nine_hole_allowed": true,
+  "participation_floor": 2,
+  "payout_champ": 60,
+  "payout_king": 15,
+  "payout_runnerup": 25,
+  "preset": "standard",
+  "season_format": "h2h",
+  "season_months": 9,
+  "sim_rounds_allowed": true,
+  "structure": "squads2",
+  "verification": "attested"
+ },
+ {
+  "buyin_cents": 7500,
+  "count": 1,
+  "counting_cap": null,
+  "draft_type": "random",
+  "finish": "cup_final",
+  "floor_penalty": "deduct",
+  "handicap_allowance": 95,
+  "locked": true,
+  "nine_hole_allowed": true,
+  "participation_floor": 2,
+  "payout_champ": 60,
+  "payout_king": 15,
+  "payout_runnerup": 25,
+  "preset": "standard",
+  "season_format": "points",
+  "season_months": 9,
+  "sim_rounds_allowed": true,
+  "structure": "solo",
+  "verification": "attested"
+ },
+ {
+  "buyin_cents": 7500,
+  "count": 1,
+  "counting_cap": null,
+  "draft_type": "random",
+  "finish": "cup_final",
+  "floor_penalty": "deduct",
+  "handicap_allowance": 95,
+  "locked": true,
+  "nine_hole_allowed": true,
+  "participation_floor": 2,
+  "payout_champ": 60,
+  "payout_king": 15,
+  "payout_runnerup": 25,
+  "preset": "standard",
+  "season_format": "hybrid",
+  "season_months": 9,
+  "sim_rounds_allowed": true,
+  "structure": "squads2",
+  "verification": "attested"
+ },
+ {
+  "buyin_cents": 7500,
+  "count": 1,
+  "counting_cap": null,
+  "draft_type": "random",
+  "finish": "cup_final",
+  "floor_penalty": "deduct",
+  "handicap_allowance": 95,
+  "locked": true,
+  "nine_hole_allowed": true,
+  "participation_floor": 2,
+  "payout_champ": 60,
+  "payout_king": 15,
+  "payout_runnerup": 25,
+  "preset": "standard",
+  "season_format": "hybrid",
+  "season_months": 9,
+  "sim_rounds_allowed": true,
+  "structure": "squads4",
+  "verification": "attested"
+ },
+ {
+  "buyin_cents": 0,
+  "count": 1,
+  "counting_cap": 4,
+  "draft_type": "random",
+  "finish": "cup_final",
+  "floor_penalty": "deduct",
+  "handicap_allowance": 95,
+  "locked": true,
+  "nine_hole_allowed": true,
+  "participation_floor": 2,
+  "payout_champ": 60,
+  "payout_king": 15,
+  "payout_runnerup": 25,
+  "preset": "standard",
+  "season_format": "points",
+  "season_months": 3,
+  "sim_rounds_allowed": true,
+  "structure": "solo",
+  "verification": "attested"
+ },
+ {
+  "buyin_cents": 5000,
+  "count": 1,
+  "counting_cap": 4,
+  "draft_type": "random",
+  "finish": "cup_final",
+  "floor_penalty": "deduct",
+  "handicap_allowance": 95,
+  "locked": true,
+  "nine_hole_allowed": true,
+  "participation_floor": 2,
+  "payout_champ": 60,
+  "payout_king": 15,
+  "payout_runnerup": 25,
+  "preset": "standard",
+  "season_format": "points",
+  "season_months": 3,
+  "sim_rounds_allowed": true,
+  "structure": "squads4",
+  "verification": "attested"
+ },
+ {
+  "buyin_cents": 7500,
+  "count": 1,
+  "counting_cap": 4,
+  "draft_type": "random",
+  "finish": "cup_final",
+  "floor_penalty": "deduct",
+  "handicap_allowance": 95,
+  "locked": true,
+  "nine_hole_allowed": true,
+  "participation_floor": 2,
+  "payout_champ": 60,
+  "payout_king": 15,
+  "payout_runnerup": 25,
+  "preset": "standard",
+  "season_format": "points",
+  "season_months": 6,
+  "sim_rounds_allowed": true,
+  "structure": "solo",
+  "verification": "attested"
+ }
+]
+### seasons distinct config
+[
+ {
+  "count": 5,
+  "grace_hours": 48,
+  "king_rung": null,
+  "max_days": 182,
+  "min_days": 91,
+  "status": "active",
+  "tiebreak_rung": null,
+  "timezone": "America/Phoenix"
+ },
+ {
+  "count": 2,
+  "grace_hours": 48,
+  "king_rung": null,
+  "max_days": 167,
+  "min_days": 42,
+  "status": "complete",
+  "tiebreak_rung": null,
+  "timezone": "America/Phoenix"
+ }
+]
+### league_members
+[
+ {
+  "count": 10,
+  "index_source": "self",
+  "left_": 0,
+  "role": "commissioner",
+  "susp": 0
+ },
+ {
+  "count": 33,
+  "index_source": "self",
+  "left_": 0,
+  "role": "player",
+  "susp": 0
+ }
+]
+### season_payouts
+[
+ {
+  "count": 3,
+  "reason": "Cup champion",
+  "sum": 22500
+ },
+ {
+  "count": 1,
+  "reason": "Points king",
+  "sum": 5625
+ },
+ {
+  "count": 3,
+  "reason": "Runner-up",
+  "sum": 9375
+ }
+]
+### trophies
+[
+ {
+  "count": 2,
+  "kind": "league",
+  "placement": "points_king"
+ },
+ {
+  "count": 5,
+  "kind": "league",
+  "placement": "runner_up"
+ },
+ {
+  "count": 5,
+  "kind": "league",
+  "placement": "winner"
+ },
+ {
+  "count": 3,
+  "kind": "ryder",
+  "placement": "winner"
+ }
+]
+### squads
+[
+ {
+  "league_members": 43,
+  "live_profiles": 33,
+  "squad_members": 31,
+  "squads": 12
+ }
+]
+### rounds per season
+[
+ {
+  "ends_on": "2026-12-19",
+  "id": "8289855c-8880-4f9a-88e5-e131f8974fce",
+  "name": "Ridgeline Cup",
+  "rounds": 60,
+  "sandbox": false,
+  "starts_on": "2026-07-05",
+  "status": "active",
+  "voided": 0
+ },
+ {
+  "ends_on": "2026-09-05",
+  "id": "cd194498-2649-4014-81d8-dd726226eead",
+  "name": "Sunset Match",
+  "rounds": 43,
+  "sandbox": false,
+  "starts_on": "2026-03-22",
+  "status": "complete",
+  "voided": 0
+ },
+ {
+  "ends_on": "2027-01-02",
+  "id": "b91123ea-a7d8-490d-857f-24e84c385e8d",
+  "name": "Fairway Society",
+  "rounds": 36,
+  "sandbox": false,
+  "starts_on": "2026-07-19",
+  "status": "active",
+  "voided": 0
+ },
+ {
+  "ends_on": "2026-11-02",
+  "id": "077e73d1-7ede-46fb-9a77-e971c28188c0",
+  "name": "Who\u2019s the bitch?",
+  "rounds": 7,
+  "sandbox": false,
+  "starts_on": "2026-08-03",
+  "status": "active",
+  "voided": 0
+ },
+ {
+  "ends_on": "2026-07-15",
+  "id": "d8d02435-bd66-4367-80dc-9cb9775526cc",
+  "name": "Sandbox",
+  "rounds": 6,
+  "sandbox": true,
+  "starts_on": "2026-06-03",
+  "status": "complete",
+  "voided": 0
+ },
+ {
+  "ends_on": "2027-01-18",
+  "id": "67ce8ef8-e28b-4bbd-a178-d76d8e9da5ad",
+  "name": "Fellas",
+  "rounds": 0,
+  "sandbox": false,
+  "starts_on": "2026-07-20",
+  "status": "active",
+  "voided": 0
+ },
+ {
+  "ends_on": "2027-02-13",
+  "id": "2d98b25a-6f81-41fa-afc8-d84419e42956",
+  "name": "Winter Circuit",
+  "rounds": 0,
+  "sandbox": false,
+  "starts_on": "2026-08-30",
+  "status": "active",
+  "voided": 0
+ }
+]

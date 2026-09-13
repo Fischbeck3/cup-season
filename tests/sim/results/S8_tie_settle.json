@@ -1,0 +1,233 @@
+{
+ "family": "S8_tie_settle",
+ "seed": 7,
+ "note": "Forced Final tie walked down the ladder; an uncollected pot settled.",
+ "bylaws": {
+  "allowance": 95,
+  "cap": 3,
+  "floor": 2,
+  "penalty": "deduct",
+  "bye_per_season": 1,
+  "weeks": 13,
+  "structure": "squads3",
+  "buyin_cents": 5000,
+  "final_days": 28
+ },
+ "season": [
+  "2026-03-01",
+  "2026-06-27"
+ ],
+ "golfers": {
+  "A1": {
+   "rounds": 10,
+   "counting": 10,
+   "points": 70,
+   "penalties": 0,
+   "avg_pvi": -0.5,
+   "ability": null,
+   "index_start": 10.0,
+   "index_end": 10.0,
+   "bands": {
+    "12": 0,
+    "9": 0,
+    "7": 10,
+    "6": 0,
+    "5": 0
+   }
+  },
+  "A2": {
+   "rounds": 10,
+   "counting": 10,
+   "points": 70,
+   "penalties": 0,
+   "avg_pvi": -0.5,
+   "ability": null,
+   "index_start": 10.0,
+   "index_end": 10.0,
+   "bands": {
+    "12": 0,
+    "9": 0,
+    "7": 10,
+    "6": 0,
+    "5": 0
+   }
+  },
+  "B1": {
+   "rounds": 9,
+   "counting": 9,
+   "points": 63,
+   "penalties": 0,
+   "avg_pvi": -0.5,
+   "ability": null,
+   "index_start": 10.0,
+   "index_end": 10.0,
+   "bands": {
+    "12": 0,
+    "9": 0,
+    "7": 9,
+    "6": 0,
+    "5": 0
+   }
+  },
+  "B2": {
+   "rounds": 9,
+   "counting": 9,
+   "points": 63,
+   "penalties": 0,
+   "avg_pvi": -0.5,
+   "ability": null,
+   "index_start": 10.0,
+   "index_end": 10.0,
+   "bands": {
+    "12": 0,
+    "9": 0,
+    "7": 9,
+    "6": 0,
+    "5": 0
+   }
+  },
+  "C1": {
+   "rounds": 6,
+   "counting": 6,
+   "points": 42,
+   "penalties": 0,
+   "avg_pvi": -0.5,
+   "ability": null,
+   "index_start": 10.0,
+   "index_end": 10.0,
+   "bands": {
+    "12": 0,
+    "9": 0,
+    "7": 6,
+    "6": 0,
+    "5": 0
+   }
+  },
+  "C2": {
+   "rounds": 6,
+   "counting": 6,
+   "points": 42,
+   "penalties": 0,
+   "avg_pvi": -0.5,
+   "ability": null,
+   "index_start": 10.0,
+   "index_end": 10.0,
+   "bands": {
+    "12": 0,
+    "9": 0,
+    "7": 6,
+    "6": 0,
+    "5": 0
+   }
+  }
+ },
+ "months": [
+  {
+   "month": 1,
+   "from": "2026-03-01",
+   "to": "2026-03-31",
+   "partial": false,
+   "points": {
+    "A1": 21,
+    "A2": 21,
+    "B1": 14,
+    "B2": 14,
+    "C1": 14,
+    "C2": 14
+   },
+   "penalties": {},
+   "byes": [],
+   "forfeits": []
+  },
+  {
+   "month": 2,
+   "from": "2026-04-01",
+   "to": "2026-04-30",
+   "partial": false,
+   "points": {
+    "A1": 21,
+    "A2": 21,
+    "B1": 14,
+    "B2": 14,
+    "C1": 14,
+    "C2": 14
+   },
+   "penalties": {},
+   "byes": [],
+   "forfeits": []
+  },
+  {
+   "month": 3,
+   "from": "2026-05-01",
+   "to": "2026-05-31",
+   "partial": false,
+   "points": {
+    "A1": 14,
+    "A2": 14,
+    "B1": 21,
+    "B2": 21,
+    "C1": 14,
+    "C2": 14
+   },
+   "penalties": {},
+   "byes": [],
+   "forfeits": []
+  },
+  {
+   "month": 4,
+   "from": "2026-06-01",
+   "to": "2026-06-27",
+   "partial": true,
+   "points": {
+    "A1": 14,
+    "A2": 14,
+    "B1": 14,
+    "B2": 14,
+    "C1": 0,
+    "C2": 0
+   },
+   "penalties": {},
+   "byes": [],
+   "forfeits": []
+  }
+ ],
+ "squads": {
+  "A": 140,
+  "B": 126,
+  "C": 84
+ },
+ "cup": {
+  "seeds": [
+   "A",
+   "B"
+  ],
+  "lock_on": "2026-05-31",
+  "window": [
+   "2026-05-31",
+   "2026-06-27"
+  ],
+  "final_points": {
+   "A": 28,
+   "B": 28
+  },
+  "champion": "A",
+  "tiebreak_used": "h2h months won"
+ },
+ "clash_wins": {},
+ "extra": [],
+ "assumptions": [
+  "Index m-table and adjustments copied from the DEPLOYED handicap_index_asof (differs from WHS 2020 at c=18 and c=9..11); the engine refreshes the index on every post, never monthly.",
+  "Band edges as deployed in cup_points: >=3, >=1, >-1, >=-3, else 5. (A dead 7-arg score_round uses >=-1; ignored.)",
+  "Counting ties: points desc, pvi desc, played_on DESC \u2014 the later round wins \u2014 as deployed.",
+  "A golfer with no established index (<3 differentials) scores 7 and is badged; the engine instead uses profiles.index_current or falls back to the round's own differential (PvI 0 => 7). Same points, different provenance.",
+  "Auto-bye consumes the season's one bye on the FIRST missed floor (D14, deployed).",
+  "Join-month floor waived entirely (D161, deployed via joined_at), not spec 14.1's 15th rule.",
+  "Floors never assessed in a partial edge month (blanket, deployed).",
+  "Cup seeds ranked on counting rounds with played_on < ends_on-27; window rounds count only within the cap of their whole calendar month (_cup_window_rounds); +10 head start for seed #1 under squads2 only.",
+  "months_won = strictly beat the max of all other squads that month (deployed), not h2h; then best_month, rounds_used, random().",
+  "One rated course (71.2/128) for every round; 18 holes only; no sim rounds; independent Gaussian differentials with no form or course effects.",
+  "Clash pairing is a fixed rotation, not the deployed picker; only 'never cup points' is asserted.",
+  "Majors and Ryder are not simulated; the engine dump shows they read rounds and write only event tables.",
+  "The mirror has no notion of created_at, so suspension/leave cut-offs and 'posted late' provenance are not modelled."
+ ]
+}

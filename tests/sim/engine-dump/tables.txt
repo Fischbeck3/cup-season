@@ -1,0 +1,329 @@
+
+== attestations ==
+  round_id                           uuid                         NOT NULL 
+  attested_by                        text                         NOT NULL 
+  is_member                          boolean                      NOT NULL true
+  created_at                         timestamp with time zone     NOT NULL now()
+
+== buy_ins ==
+  season_id                          uuid                         NOT NULL 
+  member_id                          uuid                         NOT NULL 
+  amount_cents                       integer                      NOT NULL 
+  paid                               boolean                      NOT NULL false
+  marked_by                          uuid                         NULL     
+  marked_at                          timestamp with time zone     NULL     
+
+== cup_finalists ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  season_id                          uuid                         NOT NULL 
+  squad_id                           uuid                         NULL     
+  member_id                          uuid                         NULL     
+  seed                               integer                      NOT NULL 
+  head_start                         integer                      NOT NULL 0
+  locked_at                          timestamp with time zone     NOT NULL now()
+  seed_rung                          text                         NULL     
+
+== event_duels ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  event_id                           uuid                         NOT NULL 
+  session_id                         uuid                         NOT NULL 
+  a_player                           uuid                         NOT NULL 
+  b_player                           uuid                         NOT NULL 
+  a_round                            uuid                         NULL     
+  b_round                            uuid                         NULL     
+  a_pvi                              numeric                      NULL     
+  b_pvi                              numeric                      NULL     
+  a_points                           numeric                      NOT NULL 0
+  b_points                           numeric                      NOT NULL 0
+  result                             text                         NOT NULL 'pending'::text
+  resolved_at                        timestamp with time zone     NULL     
+
+== event_major_cards ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  event_id                           uuid                         NOT NULL 
+  player_id                          uuid                         NOT NULL 
+  round_id                           uuid                         NULL     
+  gross                              integer                      NULL     
+  pvi                                numeric                      NULL     
+  second_pvi                         numeric                      NULL     
+  cards                              integer                      NOT NULL 0
+  best_posted_at                     timestamp with time zone     NULL     
+  no_card                            boolean                      NOT NULL false
+  exhibition                         boolean                      NOT NULL false
+  rank                               integer                      NULL     
+  prize                              numeric                      NOT NULL 0
+  resolved_at                        timestamp with time zone     NOT NULL now()
+
+== event_players ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  event_id                           uuid                         NOT NULL 
+  profile_id                         uuid                         NOT NULL 
+  team_id                            uuid                         NULL     
+  role                               text                         NOT NULL 'player'::text
+  seed                               integer                      NOT NULL 0
+  benched_count                      integer                      NOT NULL 0
+  created_at                         timestamp with time zone     NOT NULL now()
+  notify_target                      boolean                      NOT NULL false
+  exhibition                         boolean                      NOT NULL false
+
+== event_sessions ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  event_id                           uuid                         NOT NULL 
+  session_no                         integer                      NOT NULL 
+  opens_on                           date                         NOT NULL 
+  closes_on                          date                         NOT NULL 
+  status                             text                         NOT NULL 'upcoming'::text
+  weight                             numeric                      NOT NULL 1
+
+== event_teams ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  event_id                           uuid                         NOT NULL 
+  slot                               integer                      NOT NULL 
+  name                               text                         NOT NULL 
+  color                              integer                      NOT NULL 0
+  captain_player_id                  uuid                         NULL     
+
+== events ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  name                               text                         NOT NULL 
+  created_by                         uuid                         NOT NULL 
+  kind                               text                         NOT NULL 'ryder'::text
+  status                             text                         NOT NULL 'setup'::text
+  starts_on                          date                         NOT NULL 
+  session_count                      integer                      NOT NULL 3
+  session_weeks                      integer                      NOT NULL 1
+  draw_rule                          text                         NOT NULL 'team_pvi'::text
+  defender_team_id                   uuid                         NULL     
+  allowance                          integer                      NOT NULL 100
+  winner_team_id                     uuid                         NULL     
+  created_at                         timestamp with time zone     NOT NULL now()
+  league_id                          uuid                         NULL     
+  tz                                 text                         NOT NULL 'America/Phoenix'::text
+  buy_in                             numeric                      NOT NULL 0
+  pot_split                          text                         NOT NULL 'places'::text
+  lineage_id                         uuid                         NULL     
+  decided_by                         text                         NULL     
+  course_id                          text                         NULL     
+  course_label                       text                         NULL     
+
+== forfeits ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  league_id                          uuid                         NULL     
+  name                               text                         NOT NULL 
+  terms                              text                         NOT NULL 
+  kind                               text                         NOT NULL 'custom'::text
+  party_a                            uuid                         NOT NULL 
+  party_b                            uuid                         NULL     
+  hangs_on                           text                         NULL     
+  status                             text                         NOT NULL 'open'::text
+  winner                             uuid                         NULL     
+  settled_note                       text                         NULL     
+  created_by                         uuid                         NOT NULL 
+  created_at                         timestamp with time zone     NOT NULL now()
+  settled_at                         timestamp with time zone     NULL     
+  settled_by                         uuid                         NULL     
+  event_id                           uuid                         NULL     
+  scheduled_round_id                 uuid                         NULL     
+
+== league_members ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  league_id                          uuid                         NOT NULL 
+  profile_id                         uuid                         NOT NULL 
+  role                               text                         NOT NULL 'player'::text
+  index_current                      numeric                      NOT NULL 18.0
+  index_source                       text                         NOT NULL 'self'::text
+  joined_at                          timestamp with time zone     NOT NULL now()
+  marker                             text                         NULL     
+  suspended_at                       timestamp with time zone     NULL     
+  suspended_by                       uuid                         NULL     
+  suspend_reason                     text                         NULL     
+  left_at                            timestamp with time zone     NULL     
+
+== league_settings ==
+  league_id                          uuid                         NOT NULL 
+  preset                             text                         NOT NULL 'standard'::text
+  handicap_allowance                 integer                      NOT NULL 95
+  verification                       text                         NOT NULL 'attested'::text
+  counting_cap                       integer                      NULL     
+  participation_floor                integer                      NOT NULL 2
+  floor_penalty                      text                         NOT NULL 'deduct'::text
+  season_format                      text                         NOT NULL 'points'::text
+  buyin_cents                        integer                      NOT NULL 0
+  season_months                      integer                      NOT NULL 3
+  sim_rounds_allowed                 boolean                      NOT NULL true
+  nine_hole_allowed                  boolean                      NOT NULL true
+  locked_at                          timestamp with time zone     NULL     
+  structure                          text                         NOT NULL 'squads2'::text
+  draft_type                         text                         NOT NULL 'random'::text
+  payout_champ                       integer                      NOT NULL 60
+  payout_runnerup                    integer                      NOT NULL 25
+  payout_king                        integer                      NOT NULL 15
+  finish                             text                         NOT NULL 'cup_final'::text
+  buy_in_note                        text                         NULL     
+  buy_in_due_on                      date                         NULL     
+  roster_closed_at                   timestamp with time zone     NULL     
+
+== leagues ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  name                               text                         NOT NULL 
+  code                               text                         NOT NULL 
+  phase                              text                         NOT NULL 'setup'::text
+  commissioner_id                    uuid                         NOT NULL 
+  created_at                         timestamp with time zone     NOT NULL now()
+  sandbox                            boolean                      NOT NULL false
+  look                               text                         NULL     
+  notify_system                      boolean                      NOT NULL true
+
+== profiles ==
+  id                                 uuid                         NOT NULL 
+  display_name                       text                         NOT NULL 
+  email                              text                         NOT NULL 
+  ghin_number                        text                         NULL     
+  created_at                         timestamp with time zone     NOT NULL now()
+  city                               text                         NULL     
+  home_course                        text                         NULL     
+  index_current                      numeric                      NULL     
+  marker                             text                         NULL     
+  notify_chat                        boolean                      NOT NULL true
+  handle                             text                         NULL     
+  discoverable                       text                         NOT NULL 'everyone'::text
+  deleted_at                         timestamp with time zone     NULL     
+  is_founder                         boolean                      NOT NULL false
+  notify_rounds                      boolean                      NOT NULL true
+  handle_set_at                      timestamp with time zone     NULL     
+  index_source                       text                         NULL     
+  photo_path                         text                         NULL     
+  founding_member                    boolean                      NOT NULL false
+  came_via_kind                      text                         NULL     
+  came_via_token                     text                         NULL     
+  actionable_seen_at                 timestamp with time zone     NULL     
+  contact_hash                       ARRAY                        NULL     
+
+== round_holes ==
+  round_id                           uuid                         NOT NULL 
+  hole_number                        integer                      NOT NULL 
+  strokes                            integer                      NOT NULL 
+
+== round_players ==
+  round_id                           uuid                         NOT NULL 
+  profile_id                         uuid                         NOT NULL 
+  claimed_by                         uuid                         NULL     
+  created_at                         timestamp with time zone     NOT NULL now()
+  confirmed_at                       timestamp with time zone     NULL     
+
+== rounds ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  season_id                          uuid                         NULL     
+  live_round_id                      uuid                         NULL     
+  course_id                          uuid                         NULL     
+  tee_id                             uuid                         NULL     
+  course_label                       text                         NOT NULL 
+  played_on                          date                         NOT NULL CURRENT_DATE
+  holes_played                       integer                      NOT NULL 18
+  gross                              integer                      NOT NULL 
+  rating                             numeric                      NOT NULL 
+  slope                              integer                      NOT NULL 
+  nine_rating                        numeric                      NULL     
+  index_at_post                      numeric                      NOT NULL 
+  differential                       numeric                      NULL     
+  source                             text                         NOT NULL 'quick'::text
+  attested                           boolean                      NOT NULL false
+  voided                             boolean                      NOT NULL false
+  created_at                         timestamp with time zone     NOT NULL now()
+  index_source_at_post               text                         NOT NULL 'self'::text
+  profile_id                         uuid                         NULL     
+  api_course_id                      text                         NULL     
+  photo_path                         text                         NULL     
+  posted_by                          uuid                         NULL     
+  index_provisional                  boolean                      NOT NULL false
+
+== season_adjustments ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  season_id                          uuid                         NOT NULL 
+  squad_id                           uuid                         NULL     
+  member_id                          uuid                         NULL     
+  month                              date                         NOT NULL 
+  kind                               text                         NOT NULL 
+  points                             integer                      NOT NULL 0
+  reason                             text                         NULL     
+  created_by                         uuid                         NULL     
+  created_at                         timestamp with time zone     NOT NULL now()
+
+== season_lead ==
+  season_id                          uuid                         NOT NULL 
+  squad_id                           uuid                         NULL     
+  since                              timestamp with time zone     NOT NULL now()
+
+== season_payouts ==
+  season_id                          uuid                         NOT NULL 
+  profile_id                         uuid                         NOT NULL 
+  cents                              integer                      NOT NULL 
+  reason                             text                         NOT NULL 
+  created_at                         timestamp with time zone     NOT NULL now()
+
+== seasons ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  league_id                          uuid                         NOT NULL 
+  number                             integer                      NOT NULL 1
+  starts_on                          date                         NOT NULL 
+  ends_on                            date                         NOT NULL 
+  status                             text                         NOT NULL 'active'::text
+  timezone                           text                         NOT NULL 'America/Phoenix'::text
+  grace_hours                        integer                      NOT NULL 48
+  champion_squad_id                  uuid                         NULL     
+  points_king_member_id              uuid                         NULL     
+  kicked_off                         boolean                      NOT NULL false
+  champion_member_id                 uuid                         NULL     
+  runnerup_squad_id                  uuid                         NULL     
+  runnerup_member_id                 uuid                         NULL     
+  champion_score                     numeric                      NULL     
+  runnerup_score                     numeric                      NULL     
+  tiebreak_rung                      text                         NULL     
+  pot_cents                          integer                      NULL     
+  collected_cents                    integer                      NULL     
+  king_rung                          text                         NULL     
+
+== squad_members ==
+  squad_id                           uuid                         NOT NULL 
+  member_id                          uuid                         NOT NULL 
+  drafted_round                      integer                      NULL     
+  pick_number                        integer                      NULL     
+
+== squads ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  season_id                          uuid                         NOT NULL 
+  name                               text                         NOT NULL 
+  color                              integer                      NOT NULL 0
+  captain_member_id                  uuid                         NULL     
+
+== standings_snapshots ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  season_id                          uuid                         NOT NULL 
+  week_no                            integer                      NOT NULL 
+  captured_at                        timestamp with time zone     NOT NULL now()
+  standings                          jsonb                        NOT NULL 
+
+== trophies ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  profile_id                         uuid                         NOT NULL 
+  kind                               text                         NOT NULL 
+  title                              text                         NOT NULL 
+  subtitle                           text                         NULL     
+  placement                          text                         NOT NULL 'winner'::text
+  event_id                           uuid                         NULL     
+  league_id                          uuid                         NULL     
+  season_year                        integer                      NULL     
+  earned_on                          date                         NOT NULL CURRENT_DATE
+  created_at                         timestamp with time zone     NOT NULL now()
+
+== week_clashes ==
+  id                                 uuid                         NOT NULL gen_random_uuid()
+  season_id                          uuid                         NOT NULL 
+  week_no                            integer                      NOT NULL 
+  a_member                           uuid                         NOT NULL 
+  b_member                           uuid                         NOT NULL 
+  opened_at                          timestamp with time zone     NOT NULL now()
+  settled_at                         timestamp with time zone     NULL     
+  winner_member                      uuid                         NULL     
+  a_best                             jsonb                        NULL     
+  b_best                             jsonb                        NULL     

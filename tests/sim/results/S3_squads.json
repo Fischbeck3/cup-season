@@ -1,0 +1,349 @@
+{
+ "family": "S3_squads",
+ "seed": 7,
+ "note": "4 vs 3 vs 4-with-holes. Sum-not-average is the structural question.",
+ "bylaws": {
+  "allowance": 95,
+  "cap": 3,
+  "floor": 2,
+  "penalty": "deduct",
+  "bye_per_season": 1,
+  "weeks": 13,
+  "structure": "squads4",
+  "final_days": 28
+ },
+ "season": [
+  "2026-03-01",
+  "2026-06-27"
+ ],
+ "golfers": {
+  "A1": {
+   "rounds": 18,
+   "counting": 12,
+   "points": 82,
+   "penalties": 0,
+   "avg_pvi": -3.49,
+   "ability": null,
+   "index_start": 10.4,
+   "index_end": 10.0,
+   "bands": {
+    "12": 2,
+    "9": 1,
+    "7": 0,
+    "6": 5,
+    "5": 10
+   }
+  },
+  "A2": {
+   "rounds": 16,
+   "counting": 12,
+   "points": 76,
+   "penalties": 0,
+   "avg_pvi": -2.99,
+   "ability": null,
+   "index_start": 11.0,
+   "index_end": 11.4,
+   "bands": {
+    "12": 0,
+    "9": 1,
+    "7": 2,
+    "6": 8,
+    "5": 5
+   }
+  },
+  "A3": {
+   "rounds": 16,
+   "counting": 12,
+   "points": 80,
+   "penalties": 0,
+   "avg_pvi": -2.62,
+   "ability": null,
+   "index_start": 12.0,
+   "index_end": 11.1,
+   "bands": {
+    "12": 0,
+    "9": 2,
+    "7": 5,
+    "6": 3,
+    "5": 6
+   }
+  },
+  "A4": {
+   "rounds": 15,
+   "counting": 12,
+   "points": 84,
+   "penalties": 0,
+   "avg_pvi": -1.91,
+   "ability": null,
+   "index_start": 11.6,
+   "index_end": 9.5,
+   "bands": {
+    "12": 0,
+    "9": 4,
+    "7": 3,
+    "6": 2,
+    "5": 6
+   }
+  },
+  "B1": {
+   "rounds": 18,
+   "counting": 12,
+   "points": 79,
+   "penalties": 0,
+   "avg_pvi": -2.83,
+   "ability": null,
+   "index_start": 11.9,
+   "index_end": 11.1,
+   "bands": {
+    "12": 1,
+    "9": 0,
+    "7": 4,
+    "6": 5,
+    "5": 8
+   }
+  },
+  "B2": {
+   "rounds": 12,
+   "counting": 11,
+   "points": 62,
+   "penalties": 0,
+   "avg_pvi": -5.25,
+   "ability": null,
+   "index_start": 9.7,
+   "index_end": 10.1,
+   "bands": {
+    "12": 1,
+    "9": 0,
+    "7": 0,
+    "6": 0,
+    "5": 11
+   }
+  },
+  "B3": {
+   "rounds": 16,
+   "counting": 12,
+   "points": 70,
+   "penalties": 0,
+   "avg_pvi": -4.16,
+   "ability": null,
+   "index_start": 10.9,
+   "index_end": 11.8,
+   "bands": {
+    "12": 0,
+    "9": 1,
+    "7": 1,
+    "6": 4,
+    "5": 10
+   }
+  },
+  "C1": {
+   "rounds": 14,
+   "counting": 12,
+   "points": 70,
+   "penalties": 0,
+   "avg_pvi": -3.73,
+   "ability": null,
+   "index_start": 10.9,
+   "index_end": 12.3,
+   "bands": {
+    "12": 0,
+    "9": 1,
+    "7": 1,
+    "6": 4,
+    "5": 8
+   }
+  },
+  "C2": {
+   "rounds": 12,
+   "counting": 11,
+   "points": 65,
+   "penalties": 0,
+   "avg_pvi": -3.53,
+   "ability": null,
+   "index_start": 10.8,
+   "index_end": 11.8,
+   "bands": {
+    "12": 0,
+    "9": 1,
+    "7": 1,
+    "6": 4,
+    "5": 6
+   }
+  },
+  "C3late": {
+   "rounds": 14,
+   "counting": 11,
+   "points": 81,
+   "penalties": 0,
+   "avg_pvi": -1.94,
+   "ability": null,
+   "index_start": 12.2,
+   "index_end": 10.1,
+   "bands": {
+    "12": 1,
+    "9": 3,
+    "7": 3,
+    "6": 1,
+    "5": 6
+   }
+  },
+  "C4absent": {
+   "rounds": 9,
+   "counting": 6,
+   "points": 38,
+   "penalties": -10,
+   "avg_pvi": -4.82,
+   "ability": null,
+   "index_start": 11.1,
+   "index_end": 10.4,
+   "bands": {
+    "12": 0,
+    "9": 1,
+    "7": 2,
+    "6": 0,
+    "5": 6
+   }
+  }
+ },
+ "months": [
+  {
+   "month": 1,
+   "from": "2026-03-01",
+   "to": "2026-03-31",
+   "partial": false,
+   "points": {
+    "A1": 16,
+    "A2": 18,
+    "A3": 21,
+    "A4": 23,
+    "B1": 21,
+    "B2": 22,
+    "B3": 17,
+    "C1": 16,
+    "C2": 13,
+    "C3late": 14,
+    "C4absent": 19
+   },
+   "penalties": {},
+   "byes": [],
+   "forfeits": []
+  },
+  {
+   "month": 2,
+   "from": "2026-04-01",
+   "to": "2026-04-30",
+   "partial": false,
+   "points": {
+    "A1": 23,
+    "A2": 21,
+    "A3": 19,
+    "A4": 19,
+    "B1": 16,
+    "B2": 15,
+    "B3": 16,
+    "C1": 20,
+    "C2": 16,
+    "C3late": 19,
+    "C4absent": 0
+   },
+   "penalties": {},
+   "byes": [
+    "C4absent"
+   ],
+   "forfeits": []
+  },
+  {
+   "month": 3,
+   "from": "2026-05-01",
+   "to": "2026-05-31",
+   "partial": false,
+   "points": {
+    "A1": 27,
+    "A2": 19,
+    "A3": 20,
+    "A4": 17,
+    "B1": 17,
+    "B2": 10,
+    "B3": 20,
+    "C1": 17,
+    "C2": 16,
+    "C3late": 22,
+    "C4absent": 0
+   },
+   "penalties": {
+    "C4absent": -10
+   },
+   "byes": [],
+   "forfeits": []
+  },
+  {
+   "month": 4,
+   "from": "2026-06-01",
+   "to": "2026-06-27",
+   "partial": true,
+   "points": {
+    "A1": 16,
+    "A2": 18,
+    "A3": 20,
+    "A4": 25,
+    "B1": 25,
+    "B2": 15,
+    "B3": 17,
+    "C1": 17,
+    "C2": 20,
+    "C3late": 26,
+    "C4absent": 19
+   },
+   "penalties": {},
+   "byes": [],
+   "forfeits": []
+  }
+ ],
+ "squads": {
+  "A": 322,
+  "B": 211,
+  "C": 244
+ },
+ "cup": {
+  "seeds": [
+   "A",
+   "C"
+  ],
+  "lock_on": "2026-05-31",
+  "window": [
+   "2026-05-31",
+   "2026-06-27"
+  ],
+  "final_points": {
+   "A": 79,
+   "C": 82
+  },
+  "champion": "C",
+  "tiebreak_used": null
+ },
+ "clash_wins": {
+  "A1": 3,
+  "A4": 1,
+  "B2": 1,
+  "B3": 1,
+  "C1": 1,
+  "C2": 1,
+  "C3late": 1
+ },
+ "extra": [],
+ "assumptions": [
+  "Index m-table and adjustments copied from the DEPLOYED handicap_index_asof (differs from WHS 2020 at c=18 and c=9..11); the engine refreshes the index on every post, never monthly.",
+  "Band edges as deployed in cup_points: >=3, >=1, >-1, >=-3, else 5. (A dead 7-arg score_round uses >=-1; ignored.)",
+  "Counting ties: points desc, pvi desc, played_on DESC \u2014 the later round wins \u2014 as deployed.",
+  "A golfer with no established index (<3 differentials) scores 7 and is badged; the engine instead uses profiles.index_current or falls back to the round's own differential (PvI 0 => 7). Same points, different provenance.",
+  "Auto-bye consumes the season's one bye on the FIRST missed floor (D14, deployed).",
+  "Join-month floor waived entirely (D161, deployed via joined_at), not spec 14.1's 15th rule.",
+  "Floors never assessed in a partial edge month (blanket, deployed).",
+  "Cup seeds ranked on counting rounds with played_on < ends_on-27; window rounds count only within the cap of their whole calendar month (_cup_window_rounds); +10 head start for seed #1 under squads2 only.",
+  "months_won = strictly beat the max of all other squads that month (deployed), not h2h; then best_month, rounds_used, random().",
+  "One rated course (71.2/128) for every round; 18 holes only; no sim rounds; independent Gaussian differentials with no form or course effects.",
+  "Clash pairing is a fixed rotation, not the deployed picker; only 'never cup points' is asserted.",
+  "Majors and Ryder are not simulated; the engine dump shows they read rounds and write only event tables.",
+  "The mirror has no notion of created_at, so suspension/leave cut-offs and 'posted late' provenance are not modelled."
+ ]
+}
