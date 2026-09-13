@@ -120,4 +120,31 @@ struct WidgetSnapshotTests {
     #expect(DispatchSnapshotFeed.publish(strip: empty, lead: nil, defaults: d) == false)
     #expect(DispatchSnapshot.read(d)?.seasonRow == "FELLAS · 2ND OF 8", "an empty load wiped the widget")
   }
+  @Test("the timeline includes the exact expiry even if the OS postpones a reload")
+  func expiryEntry() {
+    let now = Date(timeIntervalSince1970: 1_800_000_000)
+    let s = DispatchSnapshot(seasonRow: "Regulars", facts: [], savedAt: now.addingTimeInterval(-3600))
+    let dates = s.timelineDates(now: now)
+    #expect(dates.count == 2)
+    #expect(s.verb(now: dates[1]) == nil)
+    #expect(s.isStale(now: dates[1]))
+    #expect(s.timelineDates(now: dates[1]) == [dates[1]])
+    let future = DispatchSnapshot(seasonRow: "Regulars", facts: [], savedAt: now.addingTimeInterval(3600))
+    #expect(future.isStale(now: now))
+  }
+
+  @Test("legacy persisted facts are filtered when read and a sign-out removes the snapshot")
+  func persistedPrivacy() throws {
+    let suite = "cupseason.widget.privacy.\(UUID().uuidString)"
+    let d = try #require(UserDefaults(suiteName: suite))
+    defer { d.removePersistentDomain(forName: suite) }
+    let s = DispatchSnapshot(seasonRow: "Regulars", facts: [.init(label: "LAST", value: "84")])
+    var json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(s)) as? [String: Any])
+    json["facts"] = [["label": "BUY-IN", "value": "$50"], ["label": "LAST", "value": "84"]]
+    d.set(try JSONSerialization.data(withJSONObject: json), forKey: CSAppGroup.snapshotKey)
+    #expect(DispatchSnapshot.read(d)?.facts.map(\.value) == ["84"])
+    DispatchSnapshot.forget(d)
+    #expect(DispatchSnapshot.read(d) == nil)
+  }
+
 }

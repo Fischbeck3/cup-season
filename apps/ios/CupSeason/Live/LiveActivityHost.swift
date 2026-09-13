@@ -77,13 +77,11 @@ enum LiveActivityHost {
 
   /// A crash or a force-quit can leave one running with no round behind it.
   /// Swept on rehydrate, before anything can tap it.
-  static func clearStale(hasLiveRound: Bool) async {
-    let live = await Self.ids()
-    if hasLiveRound, currentID == nil, let adopt = live.first {
-      currentID = adopt                      // the island belonging to the resumed round
-    }
-    for id in live where id != currentID { await Self.stop(id: id) }
-    if !hasLiveRound { currentID = nil }
+  static func clearStale() async {
+    // Never adopt an arbitrary activity: older attributes carry no owner or round ID.
+    // The caller starts the recovered round immediately after this cleanup.
+    currentID = nil
+    for id in await Self.ids() { await Self.stop(id: id) }
   }
 
   // MARK: the ActivityKit side — nonisolated, so no handle crosses an actor

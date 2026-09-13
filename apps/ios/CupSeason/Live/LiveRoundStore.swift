@@ -989,7 +989,7 @@ final class LiveRoundStore {
     }
     if let t = out.toast, out.state?.lr != nil || out.retired { toast(t) }
     // D155 · a crash or force-quit can leave an island with no round behind it
-    await LiveActivityHost.clearStale(hasLiveRound: state.active && state.stage == .live)
+    await LiveActivityHost.clearStale()
     if state.active, state.stage == .live { LiveActivityHost.start(state) }
     queued = await session.queued()
   }

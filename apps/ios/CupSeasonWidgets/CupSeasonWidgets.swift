@@ -50,10 +50,11 @@ struct CSSeasonProvider: TimelineProvider {
   }
   func getTimeline(in context: Context, completion: @escaping (Timeline<CSSeasonEntry>) -> Void) {
     let now = Date()
-    let entry = CSSeasonEntry(date: now, snapshot: DispatchSnapshot.read())
-    // one refresh an hour: the snapshot only changes when the app loads Home,
-    // and the only thing time itself changes is the AS OF line going stale.
-    completion(Timeline(entries: [entry], policy: .after(now.addingTimeInterval(3600))))
+    let snapshot = DispatchSnapshot.read()
+    let entries = (snapshot?.timelineDates(now: now) ?? [now]).map {
+      CSSeasonEntry(date: $0, snapshot: snapshot)
+    }
+    completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(3600))))
   }
 }
 
@@ -64,7 +65,7 @@ struct CSSeasonWidget: Widget {
     }
     .configurationDisplayName("Your season")
     .description("The season row and what is up next — as of the last time you opened the app.")
-    .supportedFamilies([.systemSmall, .systemMedium])
+    .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
   }
 }
 
@@ -79,10 +80,36 @@ struct CSSeasonWidgetView: View {
   private var bg: Color { CSTokens.dark.bg1 }
 
   var body: some View {
-    content
+    Group {
+      if family == .accessoryRectangular { accessory }
+      else { content }
+    }
+      .privacySensitive()
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
       .containerBackground(bg, for: .widget)
-      .widgetURL(entry.snapshot?.url(now: entry.date) ?? URL(string: "cupseason://home")!)
+      .widgetURL(family == .accessoryRectangular ? URL(string: "cupseason://home")! :
+        (entry.snapshot?.url(now: entry.date) ?? URL(string: "cupseason://home")!))
+  }
+
+  /// A private, dated season glance. No social headline or money on the lock screen.
+  @ViewBuilder private var accessory: some View {
+    if let s = entry.snapshot {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        Text(s.isStale(now: entry.date) ? "Open to refresh" : (s.seasonRow ?? "Cup Season"))
+          .font(.headline).lineLimit(2)
+        if !s.isStale(now: entry.date), let next = s.facts.first(where: { $0.label.caseInsensitiveCompare("NEXT") == .orderedSame }) {
+          Text(next.value).font(.caption).lineLimit(1)
+        }
+        Text(s.asOf(now: entry.date)).font(.caption2).lineLimit(1)
+      }
+      .accessibilityElement(children: .combine)
+    } else {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        Text("Cup Season").font(.headline)
+        Text("Open the app to catch up.").font(.caption)
+      }
+      .accessibilityElement(children: .combine)
+    }
   }
 
   @ViewBuilder private var content: some View {
@@ -137,7 +164,7 @@ struct CSRoundLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: CSRoundActivity.self) { ctx in
       lockScreen(ctx.attributes, ctx.state)
-        .widgetURL(CSRoundActivityLink.url)
+       .widgetURL(CSRoundActivityLink.url)
     } dynamicIsland: { ctx in
       DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {

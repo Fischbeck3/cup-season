@@ -24,6 +24,9 @@
 //     re-derived from a payload the widget cannot read anyway.
 
 import Foundation
+#if canImport(WidgetKit)
+import WidgetKit
+#endif
 
 /// The App Group the app and the widget share. Registered in the developer
 /// portal by the owner (IOS-034 steps 1 and 4); both entitlements files name
@@ -81,7 +84,15 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
 
   public static let staleAfter: TimeInterval = 24 * 60 * 60
 
-  public func isStale(now: Date = Date()) -> Bool { now.timeIntervalSince(savedAt) >= Self.staleAfter }
+  public func isStale(now: Date = Date()) -> Bool {
+    now.timeIntervalSince(savedAt) >= Self.staleAfter || savedAt.timeIntervalSince(now) > 300
+  }
+
+  /// Pre-render the expiry entry: an OS-delayed reload must not keep an old action alive.
+  public func timelineDates(now: Date) -> [Date] {
+    let expiry = savedAt.addingTimeInterval(Self.staleAfter)
+    return isStale(now: now) ? [now] : [now, expiry]
+  }
 
   /// `AS OF 2:22 PM` while it is fresh; `AS OF SAT · OPEN TO REFRESH` once it
   /// is not. The widget never draws a bare time.
@@ -117,7 +128,11 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
 
   public static func read(_ defaults: UserDefaults? = UserDefaults(suiteName: CSAppGroup.id)) -> DispatchSnapshot? {
     guard let data = defaults?.data(forKey: CSAppGroup.snapshotKey) else { return nil }
-    return try? JSONDecoder().decode(DispatchSnapshot.self, from: data)
+    guard let saved = try? JSONDecoder().decode(DispatchSnapshot.self, from: data) else { return nil }
+    // Synthesized Codable bypasses init. Reapply the privacy filter to older snapshots.
+    return DispatchSnapshot(seasonRow: saved.seasonRow, facts: saved.facts,
+      leadEyebrow: saved.leadEyebrow, leadHeadline: saved.leadHeadline,
+      leadVerb: saved.leadVerb, leadRoute: saved.leadRoute, savedAt: saved.savedAt)
   }
 
   /// P3f · the HOME SCREEN is not behind a session. The snapshot is a season
@@ -130,12 +145,18 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
   /// too. A widget has no door.
   public static func forget(_ defaults: UserDefaults? = UserDefaults(suiteName: CSAppGroup.id)) {
     defaults?.removeObject(forKey: CSAppGroup.snapshotKey)
+    #if canImport(WidgetKit)
+    WidgetCenter.shared.reloadTimelines(ofKind: "CSSeasonWidget")
+    #endif
   }
 
   @discardableResult
   public func write(_ defaults: UserDefaults? = UserDefaults(suiteName: CSAppGroup.id)) -> Bool {
     guard let d = defaults, let data = try? JSONEncoder().encode(self) else { return false }
     d.set(data, forKey: CSAppGroup.snapshotKey)
+    #if canImport(WidgetKit)
+    WidgetCenter.shared.reloadTimelines(ofKind: "CSSeasonWidget")
+    #endif
     return true
   }
 }
