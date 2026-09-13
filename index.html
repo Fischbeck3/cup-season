@@ -9994,25 +9994,61 @@ function clearPostDraft(){ try{ clearTimeout(_draftT); localStorage.removeItem(P
 
    The id is minted once per composed round and FROZEN across retries.
    Regenerating it after a timeout is the bug, not the fix. It lives in
-   localStorage so an iOS eviction mid-post cannot lose it. */
+   localStorage so an iOS eviction mid-post cannot lose it.
+
+   BUILT (2026-09-13): the record is OWNER-SCOPED — an account switch on a
+   shared browser must find nothing to replay — and it carries the FROZEN
+   ENVELOPE (payload with the uploaded photo path, hole scores, partners), so a
+   retry sends exactly what was sent, never a recomputed payload. A record the
+   server already accepted FINISHES the form; an edited card under a resolved-
+   unknown id is settled by asking `round_post_status` (read-only), never by
+   guessing. `postRequestPlan` is the pure decision; tests/post-request.test.mjs
+   lifts it. A write that fails STOPS the network with a message about this
+   browser, and there is no fallback to a function that cannot deduplicate. */
 const POST_REQ_KEY='cs_post_request';
-function postRequestId(){
-  try{
-    const raw=localStorage.getItem(POST_REQ_KEY);
-    if(raw){ const d=JSON.parse(raw); if(d && d.id) return d; }
-  }catch(_){}
-  const id = crypto.randomUUID ? crypto.randomUUID()
-           : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-               const r = Math.random()*16|0; return (c==='x'? r : (r&0x3|0x8)).toString(16); });
-  const d={ id, at:Date.now(), accepted:null };
-  try{ localStorage.setItem(POST_REQ_KEY, JSON.stringify(d)); }catch(_){}
-  return d;
+function postRequestKey(uid){ return POST_REQ_KEY + '.' + String(uid || 'signed-out'); }
+function postNewRequestId(){
+  return crypto.randomUUID ? crypto.randomUUID()
+       : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+           const r = Math.random()*16|0; return (c==='x'? r : (r&0x3|0x8)).toString(16); });
 }
-function postRequestAccepted(roundId){
-  try{ const raw=localStorage.getItem(POST_REQ_KEY); const d=raw?JSON.parse(raw):null;
-       if(d){ d.accepted=roundId; localStorage.setItem(POST_REQ_KEY, JSON.stringify(d)); } }catch(_){}
+/* The record, or null. A record that cannot be parsed cannot be replayed
+   either; it is reported and removed rather than silently reused. */
+function postRequestRead(uid){
+  let raw = null;
+  try{ raw = localStorage.getItem(postRequestKey(uid)); }catch(_){ return null; }
+  if(!raw) return null;
+  try{ const d = JSON.parse(raw); if(d && d.id) return d; }catch(_){}
+  window.qaEvent?.('post_request_corrupt');
+  clearPostRequest(uid);
+  return null;
 }
-function clearPostRequest(){ try{ localStorage.removeItem(POST_REQ_KEY); }catch(_){} }
+/* THROWS on a storage failure — the caller must not go to the network. */
+function postRequestWrite(uid, rec){ localStorage.setItem(postRequestKey(uid), JSON.stringify(rec)); }
+function postRequestAccepted(uid, roundId){
+  try{ const d = postRequestRead(uid); if(d){ d.accepted = roundId; postRequestWrite(uid, d); } }catch(_){}
+}
+function clearPostRequest(uid){ try{ localStorage.removeItem(postRequestKey(uid)); }catch(_){} }
+/* The same round? The payload minus the photo path (an upload output, frozen
+   on the record's side only), the hole scores and the partners. */
+function postEnvelopeMatches(a, b){
+  if(!a || !b) return false;
+  const strip = p => { const o = Object.assign({}, p || {}); delete o.photo_path; return JSON.stringify(o, Object.keys(o).sort()); };
+  return strip(a.payload) === strip(b.payload)
+      && JSON.stringify(a.holes || []) === JSON.stringify(b.holes || [])
+      && JSON.stringify((a.playedWith || []).slice().sort()) === JSON.stringify((b.playedWith || []).slice().sort());
+}
+/* 'finish'  · the record says the server accepted it: finish the form, send nothing
+   'replay'  · the same card: send the frozen envelope again under the same id
+   'resolve' · a different card under an unresolved id: ask the server first
+   'fresh'   · no usable record: mint, freeze, write, then send */
+function postRequestPlan(rec, env){
+  if(!rec) return 'fresh';
+  if(rec.accepted) return 'finish';
+  if(!rec.env) return 'fresh';
+  return postEnvelopeMatches(rec.env, env) ? 'replay' : 'resolve';
+}
+window.postRequestPlan = postRequestPlan;
 function restorePostDraft(){
   if(_draftRestored || state.demo || !window.CS?.user) return false;
   _draftRestored=true;
@@ -10179,45 +10215,92 @@ $('#postBtn').addEventListener('click', async ()=>{
            insert on cache timing). Legacy uuid course_id stays untouched. */
         api_course_id: $('#inCourse').dataset.courseId || null,
       };
-      /* photos arc: upload first (own-prefix path in the private bucket), ride
-         the path on the insert. A failed upload demotes to a photo-less post —
-         the photo is garnish, the round is the fact. */
-      if(state.post.photo){
-        try{
-          const pid=(crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2));
-          const path=`${CS.user.id}/${pid}.jpg`;
-          const { error: upErr } = await sb.storage.from('media')
-            .upload(path, state.post.photo, { contentType:'image/jpeg', upsert:false });
-          if(upErr) toast('Photo didn’t stick — posting the round without it');
-          else payload.photo_path = path;
-        }catch(_){ /* storage unreachable: post without the photo */ }
-      }
-      /* L-03 / IOS-030 - the round is posted by the SERVER. `post_round` derives
-         the season from played_on against every membership's window at that
-         membership's own allowance (D229/L-13), so the client sends no season
-         at all: `CS.season` could only ever name ONE, and a golfer in two
-         seasons scores in both. The epilogue rides back in the same answer.
+      /* L-03 / IOS-030 - the round is posted by the SERVER. `post_round_once`
+         derives the season from played_on against every membership's window at
+         that membership's own allowance (D229/L-13), so the client sends no
+         season at all. The epilogue rides back in the same answer.
 
-         The direct insert is KEPT as the declared fallback and fires only when
-         the function is not there yet (PGRST202 / 42883) - CLAUDE.md's skew
-         rule covers new args and new columns, not a function that does not
-         exist. Anything else is a real error and reaches the golfer. */
-      let rrow=null, error=null, epiFromRpc=null, rpcRound=null, holesWritten=false;
-      /* D350 · the same round, however many times this button is pressed. A
-         replay of this request id returns the ORIGINAL answer; a different
-         scorecard under the same id is refused rather than posted again. */
-      const req = postRequestId();
-      if(req.accepted){
-        toast('This round already posted — it is in your history');
-        clearPostRequest(); btn.disabled=false; return;
-      }
+         D350 (built) · the same round, however many times this button is
+         pressed. One request id per composed round, owner-scoped, with the
+         frozen envelope beside it; a replay sends the envelope verbatim; a
+         different card under an unresolved id asks the server first. A server
+         without the function is fail-closed: nothing else is tried and the
+         draft stays. There is no fallback to a function that cannot deduplicate. */
+      let rrow=null, epiFromRpc=null, rpcRound=null, holesWritten=false;
+      const uid = CS.user.id;
       const holeScores = holesMode
         ? state.post.scores.slice(0, nine ? 9 : 18).map(Number)
         : [];
+      const playedWith = (state.post.playedWith||[]).slice();
+      const missingFn = e => {
+        const m=String(e && (e.code||e.message) || '').toLowerCase();
+        return m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function');
+      };
+      let rec = postRequestRead(uid);
+      let plan = postRequestPlan(rec, { payload, holes: holeScores, playedWith });
+      if(plan === 'finish'){
+        /* It posted. Finish the form EXACTLY ONCE — clearing the id and leaving
+           the card was how the next tap minted a second round. */
+        const landed = rec.accepted;
+        clearPostComposerAfterPost();
+        clearPostRequest(uid);
+        toast('This round already posted — it’s in your history');
+        if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
+        if(window.loadCareer) window.loadCareer();
+        if(window.loadHome) window.loadHome();
+        switchView('home');
+        try{ if(window.openRoundSheet) window.openRoundSheet(landed); }catch(_){}
+        btn.disabled=false; return;
+      }
+      if(plan === 'resolve'){
+        /* A different card under an id the server may hold. Ask; never guess. */
+        const { data: status, error: serr } = await sb.rpc('round_post_status', { p_request_id: rec.id });
+        if(serr){
+          if(missingFn(serr)){ toast('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); btn.disabled=false; return; }
+          throw Object.assign(new Error(String(serr.message||serr)), { csPrefix: 'Couldn’t confirm your earlier post.' });
+        }
+        const landed = status && status.round && status.round.id;
+        if(landed){
+          /* the earlier envelope landed: it is done, and THIS card is a new round */
+          postRequestAccepted(uid, landed);
+          clearPostRequest(uid);
+          toast('Your earlier round posted and is in your history. This card is a new round — press Post to add it.');
+          if(window.loadCareer) window.loadCareer();
+          btn.disabled=false; return;
+        }
+        /* it never landed: release the old id and post this card under a fresh one */
+        clearPostRequest(uid); rec = null; plan = 'fresh';
+      }
+      let env;
+      if(plan === 'replay'){
+        env = rec.env;   /* verbatim — photo path, holes and partners included; no second upload */
+      } else {
+        /* photos arc: upload first (own-prefix path in the private bucket), ride
+           the path on the frozen envelope. A failed upload demotes to a photo-
+           less post — the photo is garnish, the round is the fact. */
+        if(state.post.photo){
+          try{
+            const pid=(crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2));
+            const path=`${uid}/${pid}.jpg`;
+            const { error: upErr } = await sb.storage.from('media')
+              .upload(path, state.post.photo, { contentType:'image/jpeg', upsert:false });
+            if(upErr) toast('Photo didn’t stick — posting the round without it');
+            else payload.photo_path = path;
+          }catch(_){ /* storage unreachable: post without the photo */ }
+        }
+        env = { payload, holes: holeScores, playedWith };
+        rec = { id: postNewRequestId(), at: Date.now(), accepted: null, env };
+        /* the envelope is written BEFORE the call; a write that fails stops here */
+        try{ postRequestWrite(uid, rec); }
+        catch(_){
+          toast('Couldn’t keep a record of this post in this browser, so it wasn’t sent. Free up storage and press Post again.');
+          btn.disabled=false; return;
+        }
+      }
       try{
         const { data: once, error: oerr } = await sb.rpc('post_round_once', {
-          p_request_id: req.id, p_payload: payload,
-          p_hole_scores: holeScores, p_played_with: (state.post.playedWith||[]),
+          p_request_id: rec.id, p_payload: env.payload,
+          p_hole_scores: env.holes || [], p_played_with: env.playedWith || [],
         });
         if(oerr) throw oerr;
         rpcRound = once && once.round;
@@ -10225,48 +10308,12 @@ $('#postBtn').addEventListener('click', async ()=>{
         rrow = { id: rpcRound.id };
         epiFromRpc = (once && once.epilogue) || null;
         holesWritten = true;   /* written inside the accepting transaction */
-        postRequestAccepted(rrow.id);
+        postRequestAccepted(uid, rrow.id);
+        payload.photo_path = env.payload.photo_path || null;   /* the path that actually posted */
       }catch(e0){
-        const m0=String(e0 && (e0.code||e0.message) || '').toLowerCase();
-        const missing0 = m0.includes('pgrst202') || m0.includes('42883') || m0.includes('schema cache') || m0.includes('could not find the function');
-        if(!missing0) throw e0;
-        /* The one documented skew: this database has not had the migration.
-           Fall through to today's path, which keeps today's guarantees and no
-           more — nothing on screen may promise a safe retry from here. */
-        await postTheOldWay();
-      }
-      async function postTheOldWay(){
-      try{
-        const { data: posted, error: perr } = await sb.rpc('post_round', {
-          p_gross: payload.gross, p_rating: payload.rating, p_slope: payload.slope,
-          p_holes_played: payload.holes_played, p_nine_rating: payload.nine_rating,
-          p_course_id: payload.api_course_id, p_course_label: payload.course_label,
-          p_played_on: payload.played_on, p_photo_path: payload.photo_path,
-          p_played_with: (state.post.playedWith||[]),
-        });
-        if(perr) throw perr;
-        rpcRound = posted && posted.round;
-        if(!rpcRound || !rpcRound.id) throw new Error('post_round returned no round id');
-        rrow = { id: rpcRound.id };
-        epiFromRpc = (posted && posted.epilogue) || null;
-      }catch(e){
-        const m=String(e && (e.code||e.message) || '').toLowerCase();
-        const missing = m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function');
-        if(!missing) throw e;
-        payload.season_id = CS.season?.id || null;   /* the fallback's only client-chosen season */
-        ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
-        /* Netlify ships this client before `db push` - if a column isn't there
-           yet, drop it and retry so a post never fails on deploy skew */
-        if(error && /api_course_id/.test(error.message||'')){
-          delete payload.api_course_id;
-          ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
-        }
-        if(error && /photo_path/.test(error.message||'')){
-          delete payload.photo_path;
-          ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
-        }
-        if(error) throw error;
-      }
+        if(missingFn(e0)){ toast('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); btn.disabled=false; return; }
+        throw Object.assign(e0 instanceof Error ? e0 : new Error(String(e0 && e0.message || e0)),
+                            { csPrefix: 'Couldn’t confirm the post. Press Post again to retry the same round.' });
       }
       /* SF-6: the arrival — this round's gross flips in on its FIRST card
          render (home story card or full board), then the flag dies there.
@@ -10345,22 +10392,8 @@ $('#postBtn').addEventListener('click', async ()=>{
       setTimeout(() => window.csEarnInstallNudge?.(), 1400);   /* earned: the first real round hits the board */
       /* clear the form so a posted round never reads as "didn't submit"
          (pilot feedback: entered a second round thinking the first failed) */
-      $('#inGross').value=''; $('#inF9').value=''; $('#inB9').value='';
-      state.post.playedWith=[]; if(typeof renderPostWho==='function') renderPostWho();
-      $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
-      $('#inRating').value=''; $('#inSlope').value='';
-      state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
-      state.post.side=18; state.post.rating9=false;   /* D72: the next round starts at 18 holes, not sticky on the last post's nine */
-      /* the course field just cleared above — the CARD clears with it. Keeping
-         the posted course's pars left the next round (typed course, or one with
-         no cached holes) wearing the last course's card. */
-      state.post.pars = POST_PAR_STD.slice(); state.post.parsCourse = null;
-      state.post.scores = state.post.pars.slice();   /* reset the grid to par */
-      state.post.touched=false;                       /* next round starts fresh */
-      if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
-      clearPostRequest();   /* D350 · this round is settled; the next one mints its own id */
-      state.lastPost=null; state.postBlocked=null;
-      if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
+      clearPostComposerAfterPost();
+      clearPostRequest(uid);   /* D350 · this round is settled; the next one mints its own id */
       const firstEver = (window.career?.rounds || 0) === 0;   /* Phase 4: capture before loadCareer updates the count */
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
       if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
@@ -10387,7 +10420,7 @@ $('#postBtn').addEventListener('click', async ()=>{
           });
         } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
       }
-    } catch(e){ toast(humanError(e, 'Post failed.')); }
+    } catch(e){ toast(humanError(e, (e && e.csPrefix) || 'Post failed.')); }
     finally { btn.disabled=false; }
     return;
   }
@@ -10626,11 +10659,34 @@ function resetPostComposer(){
   state.lastPost=null; state.postBlocked=null;
   renderPostHoles();
 }
+/* The one place the form is put down after the server has accepted a round —
+   the normal post and the accepted-recovery finish both land here, so the two
+   can never disagree about what "finished" means. */
+function clearPostComposerAfterPost(){
+  $('#inGross').value=''; $('#inF9').value=''; $('#inB9').value='';
+  state.post.playedWith=[]; if(typeof renderPostWho==='function') renderPostWho();
+  $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
+  $('#inRating').value=''; $('#inSlope').value='';
+  state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
+  state.post.side=18; state.post.rating9=false;   /* D72: the next round starts at 18 holes, not sticky on the last post's nine */
+  /* the course field just cleared above — the CARD clears with it. Keeping
+     the posted course's pars left the next round (typed course, or one with
+     no cached holes) wearing the last course's card. */
+  state.post.pars = POST_PAR_STD.slice(); state.post.parsCourse = null;
+  state.post.scores = state.post.pars.slice();   /* reset the grid to par */
+  state.post.touched=false;                       /* next round starts fresh */
+  setPostPhoto(null);
+  if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
+  state.lastPost=null; state.postBlocked=null;
+  if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
+}
 $('#postReset')?.addEventListener('click',e=>{
   e.preventDefault();
   resetPostComposer();
   if(typeof clearPostDraft==='function') clearPostDraft();   /* an explicit start-over scraps the draft too */
-  clearPostRequest();   /* D350 · a deliberate start-over is a different round */
+  /* D350 (built) · the request id is NOT cleared here. A start-over after an
+     ambiguous failure is exactly the case the id exists for: the next post,
+     under a different card, asks the server whether the earlier one landed. */
   toast('Card cleared');
 });
 $('#postScanBack')?.addEventListener('click',e=>{

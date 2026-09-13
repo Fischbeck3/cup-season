@@ -468,7 +468,13 @@ public struct PostDraft: Codable, Sendable, Equatable {
     self.at = at; self.card = card; self.sourceLive = sourceLive; self.request = request
   }
 
-  public func isFresh(now: Date = Date()) -> Bool { sourceLive != nil || now.timeIntervalSince(at) <= Self.ttl }
+  /// A draft that carries a request identity has been SENT at least once, and
+  /// an envelope the server may hold must not expire on the phone: dropping
+  /// it after a day is how the next tap mints a second id for the same round.
+  /// Only a never-sent draft ages out.
+  public func isFresh(now: Date = Date()) -> Bool {
+    sourceLive != nil || request != nil || now.timeIntervalSince(at) <= Self.ttl
+  }
 
   public static func encode(_ d: PostDraft) -> Data? { try? JSONEncoder().encode(d) }
   /// nil when absent, unreadable, or older than the TTL.
