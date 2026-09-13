@@ -9739,7 +9739,11 @@ const POST_PAR_STD=[4,4,4,3,5,4,3,4,5, 4,4,3,4,5,4,3,4,5];   // par 72 template
 /* F2: `touched` tracks whether the golfer interacted with the grid at all —
    guards against a rushed Post on an untouched par-prefilled card (accidental
    even-par). Tracks interaction, not scores===pars, so a legit dial-to-par counts. */
-state.post = { mode:'total', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false, rating9:false, parsCourse:null, playedWith:[] };  /* D32: front & back is the default; hole-by-hole is the opt-in card. D72: rating9 = the rating field already holds a 9-hole rating (a real 9-hole tee), so recalc must NOT halve it */
+state.post = { mode:'total', side:18, pars:POST_PAR_STD.slice(), scores:POST_PAR_STD.slice(), touched:false, rating9:false, parsCourse:null, playedWith:[],
+  /* R2/D354 · the plan this composer is filling in, when one sent it here. It
+     is display context only: it never reaches the round and it is not the
+     post's identity. Declared here so nothing reads `undefined`. */
+  plan:null };  /* D32: front & back is the default; hole-by-hole is the opt-in card. D72: rating9 = the rating field already holds a 9-hole rating (a real 9-hole tee), so recalc must NOT halve it */
 /* f9/b9 the rest of the pipeline reads — from the grid in holes mode, from the
    two inputs in total mode. One source, so scoring never disagrees with entry. */
 function postInputs(){
@@ -10000,10 +10004,25 @@ function stampPostDate(){
   _postDateStamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   el.value = _postDateStamp;
 }
+/* R2 · **one list, because four hand-kept copies drifted.** `inGross` — the
+   hero box, the main total-score field, the one most golfers use — was missing
+   from the snapshot, the meaningful-work predicate and the consent check. A
+   card carrying only a gross therefore read as empty: a plan changed its date
+   with no question asked, and a save/restore round trip returned the date and
+   the course with the score gone.
+   `inDate` is separate below because a date equal to the stamp is the
+   machine's, not the golfer's (D349). */
+const POST_TYPED = ['inGross','inF9','inB9','inRating','inSlope','inCourse'];
+const POST_FIELDS = POST_TYPED.concat(['inDate']);
+function postReadFields(){
+  const v = {};
+  POST_FIELDS.forEach(id => { const e=$('#'+id); if(e) v[id]=e.value; });
+  return v;
+}
 /* The golfer put something here — the one predicate the save and the restore
    both ask, so they can never disagree about what an empty card is. */
 function postDraftHasContent(vals, touched){
-  return ['inF9','inB9','inRating','inSlope','inCourse'].some(id => String(vals[id]||'').trim())
+  return POST_TYPED.some(id => String(vals[id]||'').trim())
       || (String(vals.inDate||'').trim() && vals.inDate !== _postDateStamp)
       || !!touched;
 }
@@ -10013,14 +10032,18 @@ function savePostDraft(){
   _draftT=setTimeout(()=>{
     try{
       const uid = window.CS?.user?.id; if(!uid) return;
-      const vals={};
-      ['inF9','inB9','inRating','inSlope','inCourse','inDate'].forEach(id=>{ const e=$('#'+id); if(e) vals[id]=e.value; });
+      const vals=postReadFields();
       if(!postDraftHasContent(vals, state.post.touched)){ localStorage.removeItem(postDraftKey(uid)); return; }
       localStorage.setItem(postDraftKey(uid), JSON.stringify({
         owner: uid,
         at:Date.now(), vals, cid:($('#inCourse')?.dataset.courseId)||null,
         mode:state.post.mode, side:state.post.side, rating9:state.post.rating9,
         pars:state.post.pars, scores:state.post.scores, touched:state.post.touched,
+        /* R2/D354 · the plan rides WITH the draft, under the same owner-scoped
+           key, so the composer still knows which day it is filling in after a
+           relaunch — and so the same plan does not ask again. It is display
+           context: it is not the post's identity and never reaches the round. */
+        plan: state.post.plan || null,
       }));
     }catch(_){}
   },350);
@@ -10144,6 +10167,9 @@ function restorePostDraft(){
     if(Array.isArray(d.pars)   && d.pars.length===18)   state.post.pars=d.pars.map(Number);
     if(Array.isArray(d.scores) && d.scores.length===18) state.post.scores=d.scores.map(Number);
     state.post.touched=!!d.touched;
+    /* Only under this golfer's own key. A legacy unowned draft that was just
+       adopted has no plan on it, and a plan is never inherited from one. */
+    state.post.plan = (d.owner === uid && d.plan && d.plan.id) ? d.plan : null;
     renderPostHoles();
     toast('Your unposted round came back — it’s waiting in Add my round');
     return true;
@@ -10795,6 +10821,11 @@ function clearPostComposerAfterPost(){
   state.post.touched=false;                       /* next round starts fresh */
   setPostPhoto(null);
   if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
+  /* R2 · the plan goes with the card it filled in. It is display context for
+     ONE round; carrying it into the next one would say a round came from a
+     plan it has nothing to do with. `resetPostComposer` shares this path, so a
+     deliberate start-over drops it too. */
+  state.post.plan = null;
   state.lastPost=null; state.postBlocked=null;
   if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
 }
@@ -17188,6 +17219,32 @@ function csAfterplan(it){
   return (c && c.plan_id) ? c : null;
 }
 
+/* R3 · **the middle server.** The ladder walks capability, then day, then
+   neither — and a database with D345 but WITHOUT the capability gate accepts
+   the second rung. It then emits an afterplan item with no `context`, because
+   context arrives with the gate. Rendered as-is that is the original defect
+   exactly: an ember door to a blank composer dated today, and no way to answer
+   or dismiss it.
+
+   So the fence is on the ITEM, not on which call happened to succeed. An
+   afterplan item this build cannot faithfully act on is dropped, and every
+   other item in the same reply is kept — a golfer on that server gets the Home
+   they had before D345, which is the honest degradation. Malformed context
+   falls here too: `csAfterplan` requires a plan id, so a half-built object is
+   the same answer as none.
+
+   Database-first is still the release order. This is what makes the order a
+   preference rather than a cliff. */
+function csUsableItems(data){
+  if(!data || !Array.isArray(data.items)) return data;
+  const keep = data.items.filter(it => !String(it && it.key || '').startsWith('afterplan:') || csAfterplan(it));
+  if(keep.length !== data.items.length){
+    window.qaEvent?.('afterplan_unusable', { dropped: data.items.length - keep.length });
+  }
+  return Object.assign({}, data, { items: keep });
+}
+window.csUsableItems = csUsableItems;
+
 window.homeDispatch = null;
 async function loadHomeDispatch(){
   window.homeDispatch = null;
@@ -17203,7 +17260,7 @@ async function loadHomeDispatch(){
     let reply = await window.sb.rpc('home_dispatch', { p_days: 21, p_today: isoAgo(0), p_caps: CS_CAPS });
     if(reply.error) reply = await window.sb.rpc('home_dispatch', { p_days: 21, p_today: isoAgo(0) });
     if(reply.error) reply = await window.sb.rpc('home_dispatch', { p_days: 21 });
-    if(!reply.error && reply.data) window.homeDispatch = reply.data;
+    if(!reply.error && reply.data) window.homeDispatch = csUsableItems(reply.data);
   }catch(_){ /* skew: an un-migrated database renders the fallback, never an error */ }
 }
 window.loadHomeDispatch = loadHomeDispatch;
@@ -17349,11 +17406,9 @@ window.csAnswerPlan = csAnswerPlan;
    changes nothing about how the round posts — a plan carries no score and no
    attendance. It is kept beside the draft only so the composer can still say
    which day it is filling in after a reload. */
-function csPostVals(){
-  const v = {};
-  ['inF9','inB9','inRating','inSlope','inCourse','inDate'].forEach(id => { const e=$('#'+id); if(e) v[id]=e.value; });
-  return v;
-}
+/* R2 · the same snapshot the draft takes, so "is there work here?" cannot be
+   answered differently by the two callers. */
+function csPostVals(){ return postReadFields(); }
 function csPlanDay(ctx){
   const d = ctx && ctx.play_on;
   return d ? (typeof csDayToken==='function' ? csDayToken(d) : d) : 'that day';

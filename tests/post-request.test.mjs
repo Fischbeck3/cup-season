@@ -12,6 +12,15 @@ import { dirname, join } from 'node:path';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const html = readFileSync(join(root, 'index.html'), 'utf8');
 
+/* R2 · the composer's field list is a CONSTANT now, because four hand-kept
+   copies of it had drifted and `inGross` was missing from three of them. It is
+   lifted from index.html rather than retyped, so this suite fails if the real
+   list and this one ever part company. */
+function liftConst(name) {
+  const m = html.match(new RegExp(`^const ${name} = .*?;$`, 'm'));
+  if (!m) { console.error(`FAIL — const ${name} not found in index.html`); process.exit(1); }
+  return m[0];
+}
 function lift(name) {
   const at = html.indexOf(`function ${name}(`);
   if (at < 0) { console.error(`FAIL — ${name} not found in index.html`); process.exit(1); }
@@ -27,12 +36,13 @@ const src = [
   `const CS_LEDGER = 'Cup Season keeps the ledger; the money moves between friends.';`,
   `let _postDateStamp = '2026-09-13';`,
   `const csDowMonDay = iso => iso;`,
+  liftConst('POST_TYPED'), liftConst('POST_FIELDS'),
   lift('postRequestPlan'), lift('postEnvelopeMatches'), lift('postRequestKey'),
   lift('postDraftHasContent'), lift('postDraftDecision'), lift('postDraftKey'),
   lift('csEventTerms'), lift('csInviteTitle'),
-  `return { postRequestPlan, postEnvelopeMatches, postRequestKey, postDraftDecision, postDraftKey, csEventTerms, csInviteTitle };`,
+  `return { postRequestPlan, postEnvelopeMatches, postRequestKey, postDraftDecision, postDraftKey, csEventTerms, csInviteTitle, postDraftHasContent, POST_TYPED, POST_FIELDS };`,
 ].join('\n');
-const { postRequestPlan, postEnvelopeMatches, postRequestKey, postDraftDecision, postDraftKey, csEventTerms, csInviteTitle } = new Function(src)();
+const { postRequestPlan, postEnvelopeMatches, postRequestKey, postDraftDecision, postDraftKey, csEventTerms, csInviteTitle, postDraftHasContent, POST_TYPED, POST_FIELDS } = new Function(src)();
 
 let pass = 0, fail = 0;
 const eq = (got, want, label) => {
@@ -91,6 +101,29 @@ eq(csEventTerms({ kind: 'event' }), [], 'an older server gives no terms — and 
 eq(csInviteTitle({ kind: 'event', event_kind: 'major' }), 'Major invite', 'a Major is titled a Major');
 eq(csInviteTitle({ kind: 'event' }), 'Invite', 'an unnamed one is not guessed into a Ryder');
 eq(csInviteTitle({ kind: 'league' }), 'League invite', 'a league is a league');
+
+
+/* ---- R2 · the field list, and what counts as work --------------------------
+   `inGross` is the hero box and the main total-score field. It was missing from
+   the snapshot, the meaningful-work predicate and the consent check, so a card
+   carrying only a gross read as EMPTY: a plan moved its date with no question,
+   and a save/restore returned the date and course with the score gone. */
+eq(POST_TYPED.includes('inGross'), true, 'the gross is one of the typed fields');
+for (const id of ['inF9', 'inB9', 'inRating', 'inSlope', 'inCourse'])
+  eq(POST_TYPED.includes(id), true, `${id} is one of the typed fields`);
+eq(POST_TYPED.includes('inDate'), false, 'the date is NOT typed work — a stamp is the machine’s');
+eq(POST_FIELDS.length, POST_TYPED.length + 1, 'the saved fields are the typed ones plus the date');
+eq(POST_FIELDS.includes('inDate'), true, 'and the date is saved');
+
+eq(postDraftHasContent({ inGross: '84', inDate: '2026-09-13' }, false), true,
+   'a gross-only card is work — this is the R2 reproduction, as an assertion');
+eq(postDraftHasContent({ inDate: '2026-09-13' }, false), false,
+   'the stamped date alone is not work');
+eq(postDraftHasContent({ inDate: '2026-09-07' }, false), true,
+   'a date the golfer chose is work');
+eq(postDraftHasContent({}, true), true, 'a touched grid is work');
+for (const id of POST_TYPED)
+  eq(postDraftHasContent({ [id]: 'x', inDate: '2026-09-13' }, false), true, `${id} alone is work`);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
