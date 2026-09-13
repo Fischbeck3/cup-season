@@ -694,8 +694,8 @@ Two more that the fixture cannot pose but the prototype's participants can:
 
 ## Handoff
 
-- **Branch / commit:** `claude/gameplay-rules-simulation`. First pass **`b86de14`**; this second pass
-  is the commit recorded in the git log for this file. Pushed.
+- **Branch / commit:** `claude/gameplay-rules-simulation`. First pass **`b86de14`**; second pass **`6b46a8b`**
+  (this SHA line added in the commit after it). Pushed.
 - **Goal / owned files:** rules inventory, fairness analysis, simulation evidence. `tests/sim/`
   (harness, `analysis.py`, sandbox scripts, engine dump, results) and this report. No application
   code, no migration, no generated file, no shared spec file, and nothing in any Codex checkout —
