@@ -182,7 +182,12 @@ the ungated band against production today and is the post-push gate.
   placements share one producer. A real displaced card belongs to a device pass.
 - **No device, no live account, no offline pass.** Everything native is
   simulator and fixture.
-- **Eight UI tests in four review-capture suites fail, and they are
+- **SUPERSEDED — the failure count here was wrong.** It is not eight. The
+  whole-target result is 41 UI tests: 21 passed, 14 failed, 6 skipped, and every
+  failure and skip is accounted for individually in
+  `docs/reviews/2026-09-13-native-test-accounting.md`. The description below was
+  right about the cause and wrong about the scale.
+- **Fourteen UI tests in five review-capture suites fail, and they are
   environmental.** `AcceptedRoundReviewTests`, `CompeteBoldReviewTests` and
   `CompeteGameplayReviewTests` launch with `-cs_dev_open compete` / `receipt` —
   hatches that open a real screen for a **signed-in** account — and read real
