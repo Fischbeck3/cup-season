@@ -10,7 +10,7 @@
 //   1 · Who's playing?              → and the structure is DERIVED from the answer
 //   2 · How long, and when's the first tee?
 //   3 · What's on it?               → and above $0, how they pay you (required)
-//   then: the rules in one sentence · Name it (pre-filled) · Start the season
+//   then: editable rules · Name it (pre-filled) · review agreement · Start
 //
 // NOTHING IS MINTED UNTIL THE LAST TAP. Prod holds six founder-alone `setup`
 // leagues because "Start the league" minted a row on a typed NAME. The name is
@@ -59,6 +59,22 @@ struct WizardScreen: View {
     self.links = links
   }
 
+  #if DEBUG
+  init(fixture: Bool) {
+    let model = WizardModel(existingLeagueId: nil, runBack: nil, initialStep: 2)
+    model.fixtureMode = true
+    model.buddiesLoaded = true
+    model.dials.name = "Saturday Regulars"
+    model.dials.expectedRoster = 8
+    model.dials.startISO = "2026-10-03"
+    model.squadsChosen = true
+    model.playingFrequency = 1
+    model.nameTouched = true
+    _model = State(initialValue: model)
+    links = WizardLinks(onLocked: { _ in }, onCancelled: {}, startEvent: {})
+  }
+  #endif
+
   var body: some View {
     Group {
       if model.loading {
@@ -66,7 +82,7 @@ struct WizardScreen: View {
         // the golfer is about to read, in the place they will read it.
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           Text("Setting up").csType(.agate, caps: true)
-          Text("A season for the fellas").csType(.lead)
+          Text("A season for your people").csType(.lead)
           CSRule()
           Text("Every league needs a name and a first tee.").csType(.body)
         }
@@ -78,6 +94,7 @@ struct WizardScreen: View {
       }
     }
     .background(cs.bg0)
+    .interactiveDismissDisabled(model.busy)
     .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     // CJ-08 · a way out of every step, always — and §7.3's one dismiss verb,
@@ -97,19 +114,27 @@ struct WizardScreen: View {
     ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
-          Text(head).csType(.displayS).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true).id("top")
-          WizardDots(step: model.step)
-          switch model.step {
-          case 0: WizardWhoStep(model: model, findGolfers: links.findGolfers)
-          case 1: WizardWhenStep(model: model)
-          default: WizardStakeStep(model: model, publish: publish)
+          #if DEBUG
+          if model.fixtureMode { Text("Design fixture · no season will be created").csType(.agateS).foregroundStyle(cs.mut) }
+          #endif
+          if let agreement = model.agreement {
+            WizardAgreementView(agreement: agreement, busy: model.busy, canChange: !model.publishAttempted, change: { model.agreement = nil }, publish: publish)
+          } else {
+            Text(head).csType(.displayS).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true).id("top")
+            WizardDots(step: model.step)
+            switch model.step {
+            case 0: WizardWhoStep(model: model, findGolfers: links.findGolfers)
+            case 1: WizardWhenStep(model: model)
+            default: WizardStakeStep(model: model, review: { model.prepareAgreement() })
+            }
+            nav
           }
-          nav
         }
         .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 32)
       }
       .scrollDismissesKeyboard(.interactively)
       .onChange(of: model.step) { _, _ in CSMotion.run(CSMotion.rise) { proxy.scrollTo("top", anchor: .top) } }
+      .onChange(of: model.agreement != nil) { _, _ in proxy.scrollTo("top", anchor: .top) }
     }
   }
 
@@ -121,7 +146,7 @@ struct WizardScreen: View {
     }
   }
 
-  /// Back / Next. Step 2 has no Next — its own **Start the season** is the tap.
+  /// Back / Next. The final editor step opens its agreement.
   private var nav: some View {
     A11yStack(spacing: 10) {
       if model.step > 0 {
@@ -135,9 +160,10 @@ struct WizardScreen: View {
   }
 
   private func close() {
+    guard !model.busy else { return }
     Task {
-      // Nothing was minted unless this is an in-progress league from before the
-      // re-cut, in which case Cancel still discards it.
+      // Discard only an untouched legacy setup. A publish attempt may have
+      // reached the server, so closing it must not delete that league.
       try? await model.discardIfMinted()
       links.onCancelled()
     }
@@ -186,8 +212,15 @@ final class WizardModel {
   var busy = false
   var loading = false
   var showDials = false
-  /// nil until the golfer is asked (four or more). Below four it is never asked
-  /// and the structure is solo by derivation.
+  var playingFrequency = 0
+  var agreement: WizardAgreement?
+  private(set) var publishAttempted = false
+  private(set) var createdHere: WizardService.Created?
+  #if DEBUG
+  var fixtureMode = false
+  #endif
+  /// nil derives solo. The roster question, More settings and carried rules
+  /// record an explicit choice, including squads awaiting future invitees.
   var squadsChosen: Bool? = nil
   var buddies: [TagCandidate] = []
   var buddiesLoaded = false
@@ -209,6 +242,7 @@ final class WizardModel {
     self.step = max(0, min(2, initialStep))
     if let rb = runBack, let b = rb.bylaws {
       dials = WizardDials.from(b, name: rb.name)
+      squadsChosen = !dials.solo
     } else {
       dials = WizardDials(name: runBack?.name ?? "")
     }
@@ -219,7 +253,12 @@ final class WizardModel {
   /// downstream reads this: the pot line, the structure-fit line, the squads
   /// question and the first-tee default.
   var roster: Int { dials.plannedRoster }
-  var portrait: WizardPortrait { WizardPortrait(dials, roster: roster) }
+  var reviewDials: WizardDials { dials.preparedForReview(squadsChosen: squadsChosen) }
+  var portrait: WizardPortrait { WizardPortrait(reviewDials, roster: roster) }
+  func prepareAgreement() {
+    guard !busy, !publishAttempted, dials.canPublish, !dials.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+    agreement = WizardAgreement(reviewDials)
+  }
   var asksAboutSquads: Bool { WizardDials.asksAboutSquads(roster: roster) }
 
   /// The name, pre-filled from the roster until the golfer types over it.
@@ -231,6 +270,9 @@ final class WizardModel {
   }
 
   func load(toast: CSToastCenter, alreadyLocked: @escaping (UUID) -> Void, store: SessionStore) async {
+    #if DEBUG
+    if fixtureMode { return }
+    #endif
     if buddies.isEmpty && !buddiesLoaded {
       buddies = await sched.tagCandidates(league: nil)
       buddiesLoaded = true
@@ -246,6 +288,7 @@ final class WizardModel {
       let s = try? await svc.season(id)
       if let b { dials = WizardDials.from(b, name: WizardCopy.isUnnamed(head.name) ? "" : head.name, season: s) }
       else { dials.name = WizardCopy.isUnnamed(head.name) ? "" : head.name }
+      squadsChosen = !dials.solo
       storedName = head.name
       code = head.code
       leagueId = id
@@ -258,36 +301,47 @@ final class WizardModel {
   /// One tap. `create_league` → `lock_league(+ p_pay_note)` → one
   /// `invite_golfer` per picked buddy, and the share screen is the same screen.
   func publish() async -> PublishResult {
-    // The one required field the wizard gains (D225).
-    if dials.payNoteMissing { step = 2; return .blocked(WizardCopy.payMissing) }
-    var d = dials
-    d.structure = WizardDials.derivedStructure(roster: roster, squadsChosen: squadsChosen)
-    if d.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { d.name = storedName }
+    guard !busy, lockedLeague == nil else { return .blocked("This season is already being started.") }
+    guard let agreement else { return .blocked("Review your league before starting.") }
+    #if DEBUG
+    if fixtureMode { return .blocked("Design fixture only. No season created or invitations sent.") }
+    #endif
+    let d = agreement.dials
+    if d.payNoteMissing { return .blocked(WizardCopy.payMissing) }
     busy = true
+    publishAttempted = true
     defer { busy = false }
     svc.track(.lock_attempt)
 
     do {
       // An in-progress league from before the re-cut already has its row.
-      if let id = leagueId {
+      if let id = leagueId, createdHere == nil {
         let locked = try await svc.lock(leagueId: id, dials: d, fallbackName: storedName)
-        return finish(leagueId: id, code: code ?? "", name: d.name.isEmpty ? storedName : d.name,
+        return await finish(leagueId: id, code: code ?? "", name: d.name.isEmpty ? storedName : d.name,
                       locked: locked, invited: 0, notInvited: 0, dials: d)
       }
-      let p = try await svc.publish(dials: d)
+      let p = try await svc.publish(dials: d, resuming: createdHere, didCreate: { [weak self] created in
+        await self?.rememberCreated(created)
+      })
       leagueId = p.leagueId; code = p.code; storedName = p.name
-      return finish(leagueId: p.leagueId, code: p.code, name: p.name, locked: p.locked,
+      return await finish(leagueId: p.leagueId, code: p.code, name: p.name, locked: p.locked,
                     invited: p.invited, notInvited: p.notInvited, dials: d)
     } catch {
       return .failed(HumanError.text(error, prefix: WizardCopy.publishFailed))
     }
   }
 
+  private func rememberCreated(_ created: WizardService.Created) {
+    createdHere = created; leagueId = created.leagueId; code = created.code; storedName = created.name
+  }
+
   private func finish(leagueId id: UUID, code c: String, name: String, locked: WizardService.Locked,
-                      invited: Int, notInvited: Int, dials d: WizardDials) -> PublishResult {
+                      invited: Int, notInvited: Int, dials d: WizardDials) async -> PublishResult {
+    let members = await svc.memberCount(id)
+    agreement = nil
     lockedLeague = id
     share = WizardLockShare(leagueId: id, name: name, code: c, nextPhase: locked.nextPhase,
-                            members: 1 + invited, structure: d.structure, draftType: d.draftType,
+                            members: members, structure: d.structure, draftType: d.draftType,
                             startsOn: locked.startsOn, weeks: d.durWeeks, invited: invited)
     // R18 · the note did not land. Named out loud rather than dropped.
     if d.stake > 0 && !locked.payNoteLanded { return .live(WizardCopy.payNoteMissedIt) }
@@ -300,7 +354,7 @@ final class WizardModel {
   /// Only an in-progress league minted BEFORE the re-cut has anything to
   /// discard. A wizard closed at step 1 has written nothing at all.
   func discardIfMinted() async throws {
-    guard let id = leagueId, lockedLeague == nil else { return }
+    guard !busy, !publishAttempted, createdHere == nil, let id = leagueId, lockedLeague == nil else { return }
     try await svc.deleteLeague(id)
     leagueId = nil; code = nil; storedName = ""
   }

@@ -1,13 +1,13 @@
 # Cup Season · active work and ownership
 
-Updated 2026-09-12. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
+Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
 ## Baselines and current state
 
 - Audited candidate: `ca682da`, build 815. Keep it unchanged while Apple distribution signing is unavailable. Latest Claude handoff reviewed: `b2dac7e`; no signing issue is a reason to deploy D345.
 - Current planning workspace: `/Users/fischbeck3/cup-season-vision-next`, branch `codex/vision-next-2026-09-12`, based on `ca682da`.
 - Codex's release workspace and Claude's existing workspace retain their owners. Do not switch or edit another agent's branch. A new implementation branch starts from the explicitly agreed integration checkpoint.
-- First execution checkpoint completed: interactive prototype/brand proof and an independent Claude C0 review. Production implementation has not started. See `docs/reviews/2026-09-12-next-checkpoint.md` for evidence and findings disposition.
+- First execution checkpoint completed: interactive prototype/brand proof and an independent Claude C0 review. Production implementation had not started at that checkpoint. The 2026-09-13 busy-friends client slice below is now implemented on a separate review branch. See `docs/reviews/2026-09-12-next-checkpoint.md` for evidence and findings disposition.
 - Claude C0 ran to completion in `/Users/fischbeck3/cup-season-next-loop-contract`, branch `claude/next-loop-contract`, base `205a0ef`. Its report is imported unchanged with attribution; that bounded process has finished.
 
 ## Ownership defaults
@@ -101,3 +101,15 @@ Edge deploy owed: none.
 Client deploy owed: none; build 815 signing recovery remains separate.
 Open questions / risks: C0 contract proposals and F2 reproduction; D339 selection; production code not repaired in this checkpoint.
 Recommended next step: Q0 draft recovery and C0a contract packet, each on its own branch from this committed checkpoint.
+
+
+## Busy-friends client slice · 2026-09-13
+
+Status: **Review**. Owner approved editable setup and brief language, then “Do it.”
+
+- Codex branch: `codex/busy-friends-native-2026-09-13`; workspace `/Users/fischbeck3/cup-season-busy-friends`; base `e0643c1` (planning checkpoint on audited `ca682da`).
+- Built: explicit best-2/no-minimum suggestion, editable choices, native agreement, retained creation checkpoint for retry, exact review dates, truthful invite/member distinction, receipt reconciliation, and corresponding web setup disclosure. D346 records scope and tradeoffs.
+- Evidence and exact review request: [busy-friends native handoff](../reviews/2026-09-13-busy-friends-native.md).
+- Claude’s gameplay audit at `8dcd403` informed this work; its branch and workspace remain untouched. No automated Claude task was started or message sent.
+- Recommended next owner: Claude independently reviews this committed client diff and proposes durable create/lock recovery. Codex resolves findings and integrates a new release candidate. Fresh-scored Final needs an owner decision before backend implementation.
+- No production DB, Edge, web or TestFlight release performed. Build 815 remains separate.

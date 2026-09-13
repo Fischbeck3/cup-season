@@ -91,6 +91,11 @@ struct RootView: View {
     }
     #if DEBUG
     .overlay {
+      if ProcessInfo.processInfo.arguments.contains("-cs_dev_wizard_fixture") {
+        NavigationStack { WizardScreen(fixture: true) }.background(cs.bg0.ignoresSafeArea())
+      }
+    }
+    .overlay {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_no_photo") { HomeNoPhotoFixture() }
     }
     .overlay {

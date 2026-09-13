@@ -4841,8 +4841,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         </div>
 
         <div class="wizstep" data-step="1">
-          <div class="eyebrow" style="margin-top:0">How serious is your league? <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">One pick, made now, that sets the fairness rules for the whole season — how much of your index you play off, how scores are vouched for, which courses count. <b>Casual</b> is an honor-system beer league. <b>Standard</b> asks you to post what you'd post to GHIN. <b>Cutthroat</b> wants receipts: vouched by the group where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly.</div>
+          <div class="eyebrow" style="margin-top:0">Pick a starting point <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
+          <div class="ihelp" id="ih-preset">Start with a set of rules, then change the choices below. Each starting point sets how handicaps count, score expectations, rounds that count and minimum. Score expectations are a group agreement; the app does not check GHIN posting or restrict courses.</div>
           <!-- D225 / L-16 · the cards STOP NAMING DIALS. Each is one sentence,
                and the wording is the phone's own (WizardDials.presets.lead) so
                a reword on one client fails the other (D234). Every dial is
@@ -4861,7 +4861,31 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </button>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
           <p class="fine" style="padding-top:0; color:var(--dim)">Verification is a norm the league holds, not a filter Cup Season applies.</p>
-          <button class="btn" id="wizFastPath" style="margin-top:10px">Use these defaults →</button>
+          <label class="f" for="wizardFrequency">How often will most of you play?</label>
+          <select class="f" id="wizardFrequency">
+            <option value="0">Choose a pace</option>
+            <option value="1">About once a month</option>
+            <option value="2">About twice a month</option>
+            <option value="3">Most weeks</option>
+          </select>
+          <div id="busyFriendsSuggestion" hidden>
+            <p class="fine">For a busy group, try best 2 and no minimum.</p>
+            <button class="mini" id="useBusyFriends">Use best 2, no minimum</button>
+          </div>
+          <div class="setrow">
+            <div class="lab">Rounds that count <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About the rounds that count">i</button><small>Your best N each month score</small></div>
+            <div class="val" id="capVal">Best 3</div>
+            <div class="ctl"><button id="capDown" aria-label="Fewer rounds count">−</button><button id="capUp" aria-label="More rounds count">+</button></div>
+          </div>
+          <div class="ihelp" id="ih-cap">“Best” means the rounds worth the most league points, after handicaps. Extra rounds give you more chances to improve. A better round replaces the lowest one that counts.</div>
+          <div class="setrow">
+            <div class="lab">Require a minimum number of rounds? <button class="ibtn" data-i="floor" aria-expanded="false" aria-label="About the monthly minimum">i</button><small>Per golfer each month</small></div>
+            <div class="val" id="floorVal">2 / mo</div>
+            <div class="ctl"><button id="floorDown" aria-label="Lower the minimum">−</button><button id="floorUp" aria-label="Raise the minimum">+</button></div>
+          </div>
+          <div class="ihelp" id="ih-floor">An 18-hole round meets one round of the minimum; a 9-hole round meets half. One missed minimum is forgiven automatically each season. Partial season months and the month you join are exempt. The selected rules determine any later team penalty.</div>
+          <p class="fine" id="setupMinimumConsequence" aria-live="polite"></p>
+          <p class="fine" id="setupPaceWarning" hidden>This asks for more rounds than your group expects to play.</p>
           <button class="mini" id="wizCustomize" aria-expanded="false" style="margin-top:10px">Customize <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
           <div id="wizDials" style="display:none; margin-top:12px">
           <div class="setrow">
@@ -4912,12 +4936,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           </div>
           <p class="fine" id="draftNote">Random draw: everyone who joined is shuffled into squads and the reveal is posted. Argument-proof.</p>
           <div class="eyebrow">How it ends <button class="ibtn" data-i="finish" aria-expanded="false" aria-label="About how it ends">i</button></div>
-          <div class="ihelp" id="ih-finish">How the champion is crowned. <b>Cup Final</b> resets for the last four weeks — top seeds race fresh, anyone can catch fire, playoff drama. <b>Points table</b> crowns whoever leads when the season ends: the whole year is the race, no reset.</div>
+          <div class="ihelp" id="ih-finish"><b>Cup Final</b>: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place. Seasons shorter than six weeks use the points table. <b>Points table</b>: the points leader at season end wins.</div>
           <div class="seg" id="finishSeg">
             <button data-e="cup_final" class="on">Cup Final</button>
             <button data-e="points_table">Points table</button>
           </div>
-          <p class="fine" id="finishNote">Cup Final: the last four weeks reset and score fresh — top seeds only, whoever's hottest takes the cup.</p>
+          <p class="fine" id="finishNote">Cup Final: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place.</p>
           <div class="eyebrow">The pot split <button class="ibtn" data-i="payout" aria-expanded="false" aria-label="About the pot split">i</button></div>
           <div class="ihelp" id="ih-payout">How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). <span data-ledger></span></div>
           <div class="seg" id="paySeg">
@@ -4925,20 +4949,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
             <button data-pay="70,20,10">Winner-heavy</button>
             <button data-pay="50,30,20">Spread it</button>
           </div>
-          <p class="fine" id="payNote">Balanced: champion 60% · runner-up 25% · Points King 15%.</p>
-          <div class="setrow">
-            <div class="lab">Rounds that count <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About the rounds that count">i</button><small>Your best N each month score</small></div>
-            <div class="val" id="capVal">Best 3</div>
-            <div class="ctl"><button id="capDown" aria-label="Fewer rounds count">−</button><button id="capUp" aria-label="More rounds count">+</button></div>
-          </div>
-          <div class="ihelp" id="ih-cap">The dial that decides what a point means. Only your best N rounds each month score, so the retiree who plays daily can't bury the dad who plays weekly — and, just as much, so a good round is worth more than another round. Set it low and the table ranks how you played; set it high and it ranks how often you showed up. A better round always replaces the worst one that counts, so posting never stops mattering.</div>
-          <div class="setrow">
-            <div class="lab">The monthly minimum <button class="ibtn" data-i="floor" aria-expanded="false" aria-label="About the monthly minimum">i</button><small>ROUNDS A MONTH · −5 SQUAD POINTS SHORT</small></div>
-            <div class="val" id="floorVal">2 / mo</div>
-            <div class="ctl"><button id="floorDown" aria-label="Lower the minimum">−</button><button id="floorUp" aria-label="Raise the minimum">+</button></div>
-          </div>
-          <div class="ihelp" id="ih-floor">The anti-ghosting rule. Everyone posts at least this many rounds a month. Miss once and your bye covers it <b>automatically</b> — no asking, no approval; from the second miss the squad takes the penalty: −5 points per round short under Standard rules. Short months are waived.</div>
+          <p class="fine" id="payoutNote">Balanced: champion 60% · runner-up 25% · Points King 15%.</p>
           </div><!-- /wizDials -->
+          <button class="btn" id="wizFastPath" style="margin-top:10px">Review your league</button>
         </div>
 
         <div class="wizstep" data-step="2">
@@ -11092,16 +11105,41 @@ function syncWizSegs(){
   $$('#structSeg button').forEach(b=>b.classList.toggle('on',b.dataset.s===state.structure));
   $$('.preset').forEach(b=>b.classList.toggle('sel',+b.dataset.p===state.preset));
   const fn=$('#finishNote'); if(fn) fn.textContent=FINISH_NOTES[state.finish||'cup_final'];
-  const pn=$('#payNote'); if(pn) pn.textContent=PAY_NOTES[payKey]||PAY_NOTES['60,25,15'];
+  const pn=$('#payoutNote'); if(pn) pn.textContent=PAY_NOTES[payKey]||PAY_NOTES['60,25,15'];
   /* W-48 / D201 · #presetSummary stays SILENT: the selected card above it
      already says its one sentence, and a second copy read as a second fact. */
   const ps=$('#presetSummary'); if(ps) ps.textContent='';
 }
+// D346: an explicit suggestion changes only the two named rules.
+function csUseBusyFriends(settings){ settings.cap=0; settings.floor=0; }
+function csSetupMinimum(settings){
+  if(settings.structure==='solo') return 'No team penalty in an individual season.';
+  if(!settings.floor) return 'Play when you can. No points lost for playing less.';
+  if(settings.preset===0) return 'A target for the group. No points penalty under these rules.';
+  const penalty=settings.preset===2
+    ? 'After that, that golfer’s counting points for the month are removed from the team total.'
+    : 'After that, the team loses 5 points per round short.';
+  return 'One missed minimum is forgiven each season. '+penalty+' Partial months are exempt.';
+}
+function csRenderSetupMinimum(){
+  const consequence=document.getElementById('setupMinimumConsequence');
+  if(consequence) consequence.textContent=csSetupMinimum(state);
+  const pace=Number(document.getElementById('wizardFrequency')?.value || 0);
+  const suggestion=document.getElementById('busyFriendsSuggestion');
+  if(suggestion) suggestion.hidden=pace!==1;
+  const warning=document.getElementById('setupPaceWarning');
+  if(warning) warning.hidden=state.structure==='solo' || !pace || state.floor<=(pace===3 ? 4 : pace);
+}
+document.getElementById('wizardFrequency')?.addEventListener('change', csRenderSetupMinimum);
+document.getElementById('useBusyFriends')?.addEventListener('click', ()=>{
+  csUseBusyFriends(state); renderSetup();
+});
 function renderSetup(){
   $('#stakeVal').textContent=state.stake===0?'None':fmt$(state.stake);
   $('#lenVal').textContent=durLabel(state.durWeeks);
   $('#capVal').textContent=CAPS[state.cap];
-  $('#floorVal').textContent=state.floor+' / mo';
+  $('#floorVal').textContent=state.floor ? state.floor+' / mo' : 'None';
+  csRenderSetupMinimum();
   $('#wkTotal2').textContent=state.durWeeks;
   const wmn=$('#wholeMonthNote');
   if(wmn){
@@ -11191,7 +11229,7 @@ $('#floorDown').addEventListener('click',()=>{if(state.floor>0){state.floor--;re
    league is already LOCKED on a legacy value (the two seed rows). */
 /* the endgame dial (migration 008): Cup Final vs points-table crowning (D4) */
 const FINISH_NOTES={
-  cup_final:'Cup Final: the last four weeks reset and score fresh — top seeds only, whoever’s hottest takes the cup.',
+  cup_final:'Cup Final: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place.',
   points_table:'Points table: whoever leads when the season ends takes the cup. The whole year is the race — no reset.',
 };
 $$('#finishSeg button').forEach(b=>b.addEventListener('click',()=>{
@@ -11211,7 +11249,7 @@ $$('#paySeg button').forEach(b=>b.addEventListener('click',()=>{
   $$('#paySeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
   state.payout=b.dataset.pay.split(',').map(Number);
-  $('#payNote').textContent=PAY_NOTES[b.dataset.pay];
+  $('#payoutNote').textContent=PAY_NOTES[b.dataset.pay];
   renderBylaws();
 }));
 /* D8 → A-W3: every wizard dial (buy-in … the monthly minimum) now lives behind
@@ -19769,6 +19807,10 @@ function wizPortrait(){
 }
 function renderBylaws(){
   const pr=PRESETS[state.preset];
+  // The agreement describes the wizard's outgoing dates, never the last viewed season.
+  const starts=seasonStartDate(), ends=seasonEndDate(), weeks=state.durWeeks;
+  const span=`${WD[starts.getDay()]} ${MOS[starts.getMonth()]} ${starts.getDate()} → ${WD[ends.getDay()]} ${MOS[ends.getMonth()]} ${ends.getDate()} · ${weeks} wks`;
+  const finalStarts=new Date(ends); finalStarts.setDate(finalStarts.getDate()-27);
   const rows=`
     <div class="byrow"><span>FORMAT</span><b>${STRUCT_NAMES[state.structure]}</b></div>
     <div class="byrow"><span>THE DRAW</span><b>${({random:'Random draw',assign:'The Pro picks',snake:'In turns · async',live:'Live · pick clock'})[state.draftType]}</b></div>
@@ -19776,14 +19818,16 @@ function renderBylaws(){
     <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored at ${ALLOW[state.preset]}% of your index</b></div>
     <div class="byrow"><span>SCORES</span><b>${VERIF[state.preset]}</b></div>
     <div class="byrow"><span>EACH MONTH</span><b>${CAPS[state.cap]==='Unlimited' ? 'Every round counts' : CAPS[state.cap]+' a month count'}</b></div>
-    <div class="byrow"><span>THE MINIMUM</span><b>${state.floor} a month · ${PENALTY[state.preset]}</b></div>
+    <div class="byrow"><span>THE MINIMUM</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
+    ${state.structure!=='solo' && state.floor>0 ? `<div class="byrow"><span>IF YOU MISS IT</span><b>${esc(csSetupMinimum(state))}</b></div>` : ''}
     ${state.stake===0
       ? `<div class="byrow"><span>BUY-IN</span><b>None · bragging rights</b></div>`
       : `<div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / golfer</b></div>
+    <div class="byrow"><span>HOW TO PAY</span><b>${esc(csPayNote())}</b></div>
     <div class="byrow"><span>POT SPLIT</span><b>${(state.payout||[60,25,15]).join(' / ')} · champion / runner-up / points king</b></div>`}
-    <div class="byrow"><span>SEASON</span><b>${totalWeeks()>=8 ? durLabel(totalWeeks())+' · ' : ''}${seasonSpanText()}</b></div>
-    ${(state.finish||'cup_final')==='cup_final' && totalWeeks()>=6
-      ? `<div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from ${WD[cupFinalStart().getDay()]} ${MOS[cupFinalStart().getMonth()]} ${cupFinalStart().getDate()} · scored fresh</b></div>`
+    <div class="byrow"><span>SEASON</span><b>${span}</b></div>
+    ${(state.finish||'cup_final')==='cup_final' && weeks>=6
+      ? `<div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from ${WD[finalStarts.getDay()]} ${MOS[finalStarts.getMonth()]} ${finalStarts.getDate()}. Final rounds must also fit the monthly counting limit; an earlier round can take a place.${state.structure==='squads2' ? ' Leading squad starts with 10 points.' : ''}</b></div>`
       : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
   /* D223 §7.4 · the season page reads SENTENCES; the wizard's review keeps the
      dials, because that is where a Pro is setting them and the engine's nouns
@@ -20808,11 +20852,15 @@ function renderLeagueMeta(){
   }
 }
 function renderWizard(){
+  if(state.wiz===2){
+    if(!state.startISO) state.startISO=isoOf(seasonStartDate());
+    renderBylaws();
+  }
   $$('.wizstep').forEach(s=>s.classList.toggle('on',+s.dataset.step===state.wiz));
   $$('.wizdots i').forEach((d,i)=>d.classList.toggle('on',i<=state.wiz));
   $('#wizBack').style.display   = state.wiz===0 ? 'none':'flex';
   $('#wizCancel').style.display = state.wiz===0 ? 'flex':'none';   /* step 0: Cancel replaces Back */
-  $('#wizNext').style.display = state.wiz===2 ? 'none':'flex';
+  $('#wizNext').style.display = state.wiz===0 ? 'flex':'none';
   if(state.wiz===0 && !state.demo) window.renderProChip?.();
   csRenderPayNote();
 }

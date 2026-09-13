@@ -189,12 +189,33 @@ public struct WizardService: Sendable {
   /// a signature every build in the field calls — so the ONE half-state that
   /// survives is named on screen and `lock_league` is idempotent on `locked_at`,
   /// which is what makes the retry safe.
-  public func publish(dials: WizardDials, today: String = CSDate.today()) async throws -> Published {
+  public func publish(dials: WizardDials, today: String = CSDate.today(), resuming: Created? = nil,
+                      didCreate: @Sendable (Created) async -> Void = { _ in }) async throws -> Published {
+    let result = try await Self.publish(dials: dials, resuming: resuming, didCreate: didCreate,
+      create: { try await createLeague(name: $0) },
+      lock: { try await lock(leagueId: $0.leagueId, dials: dials, fallbackName: $0.name, today: today) },
+      invite: { league, profile in
+        _ = try await svc.call(InviteGolferCall(p_league: league, p_event: nil, p_profile: profile))
+      })
+    track(.invite_open, ["sent": .number(Double(result.invited))])
+    return result
+  }
+
+  /// The same orchestration is exercised with in-memory transport failures in tests.
+  static func publish(dials: WizardDials, resuming: Created?,
+                      didCreate: @Sendable (Created) async -> Void,
+                      create: @Sendable (String) async throws -> Created,
+                      lock: @Sendable (Created) async throws -> Locked,
+                      invite: @Sendable (UUID, UUID) async throws -> Void) async throws -> Published {
     let name = dials.name.trimmingCharacters(in: .whitespacesAndNewlines)
-    let created = try await createLeague(name: name)
+    let created: Created
+    if let resuming { created = resuming } else {
+      created = try await create(name)
+      await didCreate(created)
+    }
     let locked: Locked
     do {
-      locked = try await lock(leagueId: created.leagueId, dials: dials, fallbackName: created.name, today: today)
+      locked = try await lock(created)
     } catch {
       throw RpcError(name: WizardLockCall.name,
                      underlying: WizardCopy.publishFailedHalf + " (" + HumanError.text(error) + ")",
@@ -202,10 +223,9 @@ public struct WizardService: Sendable {
     }
     var ok = 0, bad = 0
     for pid in dials.invitees {
-      do { _ = try await svc.call(InviteGolferCall(p_league: created.leagueId, p_event: nil, p_profile: pid)); ok += 1 }
+      do { try await invite(created.leagueId, pid); ok += 1 }
       catch { bad += 1 }
     }
-    track(.invite_open, ["sent": .number(Double(ok))])
     return Published(leagueId: created.leagueId, code: created.code, name: created.name,
                      locked: locked, invited: ok, notInvited: bad)
   }

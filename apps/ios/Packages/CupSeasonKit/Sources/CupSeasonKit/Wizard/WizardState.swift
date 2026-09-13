@@ -55,7 +55,7 @@ public struct WizardDials: Sendable, Equatable {
   public static let finishes = ["cup_final", "points_table"]
   public static let finishLabels = ["cup_final": "Cup Final", "points_table": "Points table"]
   public static let finishNotes = [
-    "cup_final": "Cup Final: the last four weeks reset and score fresh — top seeds only, whoever’s hottest takes the cup.",
+    "cup_final": "Cup Final: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place.",
     "points_table": "Points table: whoever leads when the season ends takes the cup. The whole year is the race — no reset.",
   ]
   public static let payouts: [[Int]] = [[60, 25, 15], [70, 20, 10], [50, 30, 20]]
@@ -526,7 +526,7 @@ public enum WizardCopy {
 
   // step 1
   public static let presetEyebrow = "How serious is your league?"
-  public static let presetHelp = "One pick, made now, that sets the fairness rules for the whole season — how much of your index you play off, how scores are vouched for, which courses count. Casual is an honor-system beer league. Standard asks you to post what you’d post to GHIN. Cutthroat wants receipts: vouched by the group where you can; the Pro rules on the rest. Deciding this before anyone tees off is what keeps October friendly."
+  public static let presetHelp = "A starting point for handicaps, score expectations and minimum penalties. You can change how many rounds count and the monthly minimum. Score expectations are a group agreement, not an automatic eligibility check."
   /// M-15 · the footnote under the preset cards: verification is a norm, not a filter.
   public static let verificationNote = "Verification is a norm the league holds, not a filter Cup Season applies."
   public static let fastPath = "Use these defaults"
@@ -540,13 +540,13 @@ public enum WizardCopy {
   public static let fillEyebrow = "How squads fill"
   public static let fillHelp = "How squads get filled. Random draw shuffles everyone and announces the reveal to the board, so nobody can rig the hat. Picking them yourself lets you place golfers, for groups who picked teams in the group chat."
   public static let endsEyebrow = "How it ends"
-  public static let endsHelp = "How the champion is crowned. Cup Final resets for the last four weeks — top seeds race fresh, anyone can catch fire, playoff drama. Points table crowns whoever leads when the season ends: the whole year is the race, no reset."
+  public static let endsHelp = "Cup Final: the top two compete in the last four weeks, with the monthly counting limit still applying. Points table: whoever leads at season end wins."
   public static let potEyebrow = "The pot split"
   public static let potHelp = "How the pot pays out at season’s end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — " + MoneyCopy.ledger
   public static let countingCap = ("Rounds that count", "Your best N each month score")
-  public static let capHelp = "The core fairness dial. Only your best N rounds each month score for the squad, so the retiree who plays daily can’t bury the dad who plays weekly. A better round automatically replaces the worst one that counts, so posting never stops mattering."
+  public static let capHelp = "“Best” means the rounds worth the most league points, after handicaps. Extra rounds give you more chances to improve. A better round replaces the lowest one that counts."
   public static let floorRow = ("The monthly minimum", "ROUNDS A MONTH · −5 SQUAD POINTS SHORT")
-  public static let floorHelp = "The anti-ghosting rule. Every golfer posts at least this many rounds a month, or the squad takes a penalty: −5 points per round short under Standard rules. One Pro-approved bye month per season covers vacations and injuries."
+  public static let floorHelp = "An 18-hole round meets one round of the minimum; a 9-hole round meets half. One missed minimum is forgiven automatically each season. Partial season months and the month you join are exempt. The selected rules determine any later team penalty."
   public static let asideTitle = "Your league so far"
   public static let asideHint = "Turn the dials — the rules fill in here. They freeze at the first tee."
 
@@ -690,7 +690,7 @@ public enum WizardCopy {
   }
 
   /// 3 · WHAT'S ON IT
-  public static let step3 = "What’s on it?"
+  public static let step3 = "Make it yours."
   public static let payLabel = "How do they pay you?"
   public static let payPlaceholder = "Venmo @galen"
   public static let payFine = "Everyone who owes will see this. It’s the only place they can look."
@@ -702,7 +702,7 @@ public enum WizardCopy {
   }
 
   /// THEN, AND ONLY THEN.
-  public static let rulesHead = "Standard rules."
+  public static let rulesHead = "Your rules"
   public static func rulesLine(_ d: WizardDials) -> String {
     var clauses = ["Honest scores"]
     if let c = d.capN { clauses.append("best \(numberWord(c)) a month count") }
@@ -711,7 +711,7 @@ public enum WizardCopy {
     return clauses.joined(separator: ", ") + "."
   }
   public static let moreSettings = "More settings"
-  public static let nameIt = "Name it"
+  public static let nameIt = "What’s your league called?"
   public static let publish = "Start the season"
   /// T-11 · the state, not the word. Nothing "locks".
   public static let freezeNote = "The rules freeze at the first tee."

@@ -16,9 +16,9 @@ struct SquadReceiptSheet: View {
 
   var body: some View {
     let rows = model.indRows.filter { r in model.squads.first { $0.id == team.id }?.seats(r.mid) ?? false }.sorted { $0.pts > $1.pts }
-    let fromRounds = rows.reduce(0) { $0 + $1.pts }
-    let adj = team.pts - fromRounds   // the ledger's net: bonuses − penalties
     let ledger = model.ledger(squad: team.id)
+    let breakdown = SquadReceiptBreakdown(total: team.pts, roundContributions: rows.map(\.pts), ledgerPoints: ledger.map(\.points))
+    let fromRounds = breakdown.rounds
     SheetFrame(team.name, sub: "\(team.cap.isEmpty ? "" : "CAPT. \(team.cap.uppercased()) · ")\(rows.count) GOLFERS · \(CSCopy.points(team.pts)) PTS") {
       // §6 · **the same leaf as the round's receipt.** One receipt shape in the
       // product: label rows on hairlines, the arithmetic quieter than the
@@ -30,17 +30,16 @@ struct SquadReceiptSheet: View {
           Text("\(rows.count) golfers").csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
         }
         RoomMathRow(k: "Rounds that count", v: CSCopy.points(fromRounds))
-        if ledger.isEmpty {
-          if adj != 0 { RoomMathRow(k: "Bonuses & penalties", v: (adj > 0 ? "+" : "") + CSCopy.points(adj)) }
-        } else {
-          ForEach(ledger) { a in
-            RoomMathRow(k: ledgerLabel(a), v: (a.points > 0 ? "+" : "") + String(a.points))
-          }
-          if ledger.reduce(0, { $0 + Double($1.points) }) != adj {
-            RoomMathRow(k: "Bonuses & penalties", v: (adj > 0 ? "+" : "") + CSCopy.points(adj))
-          }
+        ForEach(ledger) { a in
+          RoomMathRow(k: ledgerLabel(a), v: (a.points > 0 ? "+" : "") + String(a.points))
+        }
+        if breakdown.unexplained != 0 {
+          RoomMathRow(k: "Breakdown not yet available", v: (breakdown.unexplained > 0 ? "+" : "") + CSCopy.points(breakdown.unexplained))
         }
         RoomMathRow(k: "Total", v: CSCopy.points(team.pts), total: true)
+      }
+      if breakdown.unexplained != 0 {
+        RoomFine("The breakdown is incomplete. The total is from the standings; close and reopen the season to refresh.")
       }
       // the table's Trend column (web 4547) lives here on the phone, as
       // promised in StandingsTableView — on the PAGE, not on the leaf: a leaf
@@ -139,7 +138,7 @@ struct MemberHistorySheet: View {
             } label: {
               A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {
                 // the web prints the ISO string here (11303); a label row reads the calendar date
-                Text(LeagueDates.monDay(h.played_on).uppercased() + (h.holes_played == 9 ? " · 9 HOLES" : "") + (h.counting ? "" : " · BUMPED"))
+                Text(LeagueDates.monDay(h.played_on).uppercased() + (h.holes_played == 9 ? " · 9 HOLES" : "") + (h.counting ? "" : " · OUTSIDE MONTHLY BEST"))
                   .font(CSFont.label).tracking(0.6).foregroundStyle(h.counting ? cs.mut : cs.mut)
                 Spacer()
                 Text("\(StandingsMath.sgn(h.pvi)) vs \(whose) number · \(CSCopy.points(h.points)) PTS")
@@ -151,12 +150,12 @@ struct MemberHistorySheet: View {
             .buttonStyle(.plain)
             .disabled(h.round_id == nil)
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(h.played_on)\(h.holes_played == 9 ? ", 9 holes" : ""), \(StandingsMath.sgn(h.pvi)) versus \(whose) number, \(CSCopy.points(h.points)) points\(h.counting ? "" : ", bumped")")
+            .accessibilityLabel("\(h.played_on)\(h.holes_played == 9 ? ", 9 holes" : ""), \(StandingsMath.sgn(h.pvi)) versus \(whose) number, \(CSCopy.points(h.points)) points\(h.counting ? "" : ", outside the monthly best")")
             .accessibilityHint(h.round_id == nil ? "" : "Opens the round")
           }
         }
         if row.hist.contains(where: { !$0.counting }) {
-          RoomFine("Bumped rounds still happened — a better round took their monthly slot.").padding(.top, 10)
+          RoomFine("These rounds stay in your record. They sit outside the best rounds counting for that month.").padding(.top, 10)
         }
         if let pid = row.profileId {
           RoomMini(GolfersRoot.CardName.title(row.n)) { dismiss(); links.openTourCard(pid) }.padding(.top, 6)

@@ -337,7 +337,7 @@ struct WizardStakeStep: View {
   @Environment(\.cs) private var cs
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Bindable var model: WizardModel
-  let publish: () -> Void
+  let review: () -> Void
   @State private var help: Set<String> = []
   @State private var otherOpen = false
   @State private var otherText = ""
@@ -345,6 +345,9 @@ struct WizardStakeStep: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
+      Text("Give the group chat something to play for.").csType(.story).foregroundStyle(cs.mut)
+      WizardRulesEditor(model: model)
+      Text("What’s up for grabs?").csType(.name).foregroundStyle(cs.ink)
       // L-11 · Bragging rights is SELECTED. Money is a choice, never a default.
       A11yStack(spacing: 6) {
         ForEach(WizardDials.stakeChips, id: \.self) { v in stakeChip(v) }
@@ -385,11 +388,7 @@ struct WizardStakeStep: View {
 
       Rectangle().fill(cs.rule).frame(height: 1).padding(.vertical, 4)
 
-      // THE RULES, IN ONE SENTENCE. Every dial is still there, verbatim, behind
-      // More settings (P-6: complexity hidden, never deleted).
-      Text(WizardCopy.rulesHead).csType(.name).foregroundStyle(cs.ink)
-      Text(WizardCopy.rulesLine(model.dials)).csType(.story).foregroundStyle(cs.mut)
-        .fixedSize(horizontal: false, vertical: true)
+      // The remaining choices stay available in More settings.
       Button {
         CSMotion.run(CSMotion.rise) { model.showDials.toggle() }
       } label: {
@@ -405,18 +404,22 @@ struct WizardStakeStep: View {
       if model.showDials { WizardDialsPane(model: model, help: $help) }
 
       Text(WizardCopy.nameIt).csEyebrow().padding(.top, 6)
-      CSField("The Fellas", text: $model.dials.name, font: CSFont.body)
+      CSField("The Saturday Regulars", text: $model.dials.name, font: CSFont.body)
         .textInputAutocapitalization(.words)
         .onChange(of: model.dials.name) { _, _ in model.nameTouched = true }
         .accessibilityLabel(WizardCopy.nameIt)
 
-      Button(WizardCopy.publish) { publish() }.buttonStyle(.csPrimary(busy: model.busy))
-        .disabled(!model.dials.canPublish)
-        .opacity(model.dials.canPublish ? 1 : 0.5)
-      CSFine(WizardCopy.freezeNote)
-      WizardPortraitCard(portrait: model.portrait)
-        .task { pricing = await PricingFlags.load() }
+      Button("Review your league", action: review).buttonStyle(.csPrimary())
+        .accessibilityIdentifier("wizard-review")
+        .disabled(!model.dials.canPublish || model.dials.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+      CSFine("Nothing starts and no league invitations are sent until you confirm.")
       PricingPassCard(flags: pricing, roster: model.roster, buyInCents: model.dials.stake * 100)
+        .task {
+          #if DEBUG
+          if model.fixtureMode { return }
+          #endif
+          pricing = await PricingFlags.load()
+        }
     }
   }
 
@@ -490,20 +493,14 @@ struct WizardDialsPane: View {
       WizardSeg(options: WizardDials.payouts.map { p in (p.map(String.init).joined(separator: ","), WizardDials.payLabels[p.map(String.init).joined(separator: ",")] ?? "") },
                 selected: model.dials.payKey) { k in model.dials.payout = k.split(separator: ",").compactMap { Int($0) } }
       CSFine(model.dials.payNote)
-
-      WizardSetRow(lab: WizardCopy.countingCap.0, small: WizardCopy.countingCap.1, val: model.dials.capText,
-                   downLabel: "Fewer rounds count", upLabel: "More rounds count", help: ("cap", WizardCopy.capHelp),
-                   down: { model.dials.stepCap(-1) }, up: { model.dials.stepCap(1) })
-      WizardSetRow(lab: WizardCopy.floorRow.0, small: WizardCopy.floorRow.1, val: model.dials.floorText,
-                   downLabel: "Lower the minimum", upLabel: "Raise the minimum", help: ("floor", WizardCopy.floorHelp),
-                   down: { model.dials.stepFloor(-1) }, up: { model.dials.stepFloor(1) })
     }
     .transition(.opacity.combined(with: .move(edge: .top)))
   }
 
-  /// `.preset` — the name, and ONE sentence. The dial recital is gone (L-16).
+  /// Name the starting point and the concrete rules it will replace (D346).
   private func presetCard(_ i: Int) -> some View {
     let p = WizardDials.presets[i]
+    let minimum = p.floor
     let on = model.dials.preset == i
     return Button {
       CSHaptic.selection()
@@ -515,7 +512,7 @@ struct WizardDialsPane: View {
           Text(p.name).csType(.displayS).foregroundStyle(on ? cs.panelInk : cs.ink)
           if on { CSGlyph(.check, size: .inline).foregroundStyle(cs.panelInk) }
         }
-        Text(p.lead).csType(.bodyS).foregroundStyle(on ? cs.panelInk : cs.mut)
+        Text("\(p.cap.map { "Best \($0)" } ?? "All rounds") per month · \(p.floor == 0 ? "no minimum" : "minimum \(minimum)") · \(Bylaws.allow[i])% of your handicap").csType(.bodyS).foregroundStyle(on ? cs.panelInk : cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       .padding(CSTokens.Space.s3)
