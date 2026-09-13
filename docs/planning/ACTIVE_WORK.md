@@ -2,6 +2,16 @@
 
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
+## Current mobile-web catch-up override · 2026-09-13
+
+This section supersedes the historical release status and ownership assignments below for the current packet.
+
+- Live web audited: `963d0e6`; release evidence checkpoint `eca1b3c`. Release evidence records 242 production migrations, latest `20261103090000`, and native archive 857; TestFlight export/upload remains blocked separately by distribution signing. See [release evidence](../reviews/2026-09-13-release-evidence.md).
+- Owner requested an audit after finding mobile web visually behind, with Claude continuing as lead builder.
+- Codex audit: `codex/mobile-web-audit-2026-09-13`, `/Users/fischbeck3/cup-season-mobile-web-audit`. [Findings](../reviews/2026-09-13-mobile-web-experience-audit.md): the actual Compete creation link is dead; Home, Compete, season, posting and setup need focused responsive refinement.
+- Next packet: [mobile Safari experience sprint](2026-09-13-mobile-safari-experience-sprint.md). **Ready for Claude; not dispatched.** Claude owns `index.html`, related web tests and implementation fixes on a new owned branch. Codex owns independent review and integration/device verification. This explicitly supersedes the default web-editor row for this packet.
+- No application source or production deployment changed in the audit. Actual iPhone Safari acceptance remains owed; mobile-width Chromium checks are labeled as such.
+
 ## Current release override · 2026-09-13
 
 Owner requested both phone surfaces, Safari first. The historical baselines below are retained as history, not the current release candidate.
