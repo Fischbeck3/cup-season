@@ -117,7 +117,7 @@ struct WidgetSnapshotTests {
     defer { d.removePersistentDomain(forName: suite) }
     DispatchSnapshot(seasonRow: "FELLAS · 2ND OF 8", facts: []).write(d)
     let empty = MeStripCopy.Strip(slots: [], seasonRow: nil)
-    #expect(DispatchSnapshotFeed.publish(strip: empty, lead: nil, defaults: d) == false)
+    #expect(DispatchSnapshotFeed.publish(strip: empty, lead: nil, owner: nil, defaults: d) == false)
     #expect(DispatchSnapshot.read(d)?.seasonRow == "FELLAS · 2ND OF 8", "an empty load wiped the widget")
   }
   @Test("the timeline includes the exact expiry even if the OS postpones a reload")
@@ -145,6 +145,27 @@ struct WidgetSnapshotTests {
     #expect(DispatchSnapshot.read(d)?.facts.map(\.value) == ["84"])
     DispatchSnapshot.forget(d)
     #expect(DispatchSnapshot.read(d) == nil)
+  }
+
+  @Test("an old account's delayed Home cannot refill a cleared widget")
+  func accountBoundary() throws {
+    let suite = "cupseason.widget.accounts.\(UUID().uuidString)"
+    let d = try #require(UserDefaults(suiteName: suite))
+    let first = UUID(), next = UUID()
+    defer { d.removePersistentDomain(forName: suite) }
+    let strip = MeStripCopy.Strip(slots: [],
+      seasonRow: .init(leagueId: UUID(), text: "Regulars", parts: ["Regulars"]))
+    DispatchSnapshot.claim(owner: first, defaults: d)
+    #expect(DispatchSnapshotFeed.publish(strip: strip, lead: nil, owner: first, defaults: d))
+    DispatchSnapshot.claim(owner: nil, defaults: d)
+    #expect(DispatchSnapshot.read(d) == nil)
+    #expect(!DispatchSnapshotFeed.publish(strip: strip, lead: nil, owner: first, defaults: d))
+    DispatchSnapshot.claim(owner: next, defaults: d)
+    #expect(!DispatchSnapshotFeed.publish(strip: strip, lead: nil, owner: first, defaults: d))
+    #expect(DispatchSnapshot.read(d) == nil)
+    #expect(DispatchSnapshotFeed.publish(strip: strip, lead: nil, owner: next, defaults: d))
+    DispatchSnapshot.claim(owner: next, defaults: d)
+    #expect(DispatchSnapshot.read(d)?.seasonRow == "Regulars")
   }
 
 }

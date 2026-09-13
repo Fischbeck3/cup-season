@@ -59,6 +59,9 @@ public final class SessionStore {
   }
 
   private func handle(_ event: AuthChangeEvent, _ session: Session?) async {
+    let changedOwner = self.session?.user.id != session?.user.id
+    if changedOwner || event == .initialSession { DispatchSnapshot.claim(owner: session?.user.id) }
+    if changedOwner, self.session != nil { state = .restoring }
     self.session = session
     await svc.forwardRealtimeAuth(session)
     switch event {
@@ -82,11 +85,17 @@ public final class SessionStore {
     guard let uid = session?.user.id else { state = .signedOut; return }
     guard !loading else { return }
     loading = true
-    defer { loading = false }
+    defer {
+      loading = false
+      // A different account may have arrived while this read occupied the loader.
+      if let next = session?.user.id, next != uid { Task { await reload() } }
+    }
     do {
       async let ids = FoundingIds.load(svc)
       let me = try await loadWithSkewRetry(uid)
-      founding = await ids
+      let resolvedIds = await ids
+      guard session?.user.id == uid else { return }
+      founding = resolvedIds
       if let min = me.minIOSBuild, build > 0, build < min {
         state = .mustUpdate(minBuild: min)
       } else if me.needsCard {
@@ -121,6 +130,7 @@ public final class SessionStore {
         }
       }
     } catch {
+      guard session?.user.id == uid else { return }
       // `.failed` is the BOOT's state ("retry offered" — RootView swaps the
       // tabs out for it). A refresh that fails with a payload already in hand
       // keeps that payload: a pull on a bad connection, or any of the many
@@ -159,6 +169,9 @@ public final class SessionStore {
   }
 
   public func signOut() async {
+    // Invalidate pending reads before waiting on auth or the network.
+    session = nil
+    DispatchSnapshot.claim(owner: nil)
     try? await svc.signOut()
     // OE-2 · the course books are NOT deleted here. D261's rule — a shared
     // phone does not hand one golfer's schedule and rounds to the next — is

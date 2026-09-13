@@ -34,6 +34,7 @@ import WidgetKit
 public enum CSAppGroup {
   public static let id = "group.app.cupseason.shared"
   public static let snapshotKey = "home.dispatch.snapshot"
+  public static let ownerKey = "home.dispatch.owner"
 }
 
 /// What the app hands the home screen after a successful `home_dispatch`.
@@ -148,6 +149,19 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
     #if canImport(WidgetKit)
     WidgetCenter.shared.reloadTimelines(ofKind: "CSSeasonWidget")
     #endif
+  }
+
+  /// Retire the old account's facts before the new account starts loading.
+  public static func claim(owner: UUID?, defaults: UserDefaults? = UserDefaults(suiteName: CSAppGroup.id)) {
+    let next = owner?.uuidString
+    if defaults?.string(forKey: CSAppGroup.ownerKey) != next || owner == nil { forget(defaults) }
+    if let next { defaults?.set(next, forKey: CSAppGroup.ownerKey) }
+    else { defaults?.removeObject(forKey: CSAppGroup.ownerKey) }
+  }
+
+  public static func belongs(to owner: UUID?, defaults: UserDefaults?) -> Bool {
+    guard let owner else { return false }
+    return defaults?.string(forKey: CSAppGroup.ownerKey) == owner.uuidString
   }
 
   @discardableResult

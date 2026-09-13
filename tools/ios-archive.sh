@@ -37,13 +37,25 @@ OUT=$(mktemp -d "build/archive/run-$BUILD-$SHA.XXXXXX")
 ARCHIVE="$OUT/CupSeason.xcarchive"
 EXPORT="$OUT/export"
 
+# The same existing API key authenticates provisioning AND upload. Without
+# these flags, export asks for an Xcode account even when upload is configured.
+kc() { security find-generic-password -a "$USER" -s "$1" -w 2>/dev/null || true; }
+ASC_ISSUER_ID="${ASC_ISSUER_ID:-$(kc cupseason-asc-issuer)}"
+ASC_KEY_ID="${ASC_KEY_ID:-$(kc cupseason-asc-key)}"
+KEYFILE="${ASC_KEY_PATH:-$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8}"
+XCODE_AUTH=(-allowProvisioningUpdates)
+if [ -n "$ASC_ISSUER_ID" ] && [ -n "$ASC_KEY_ID" ] && [ -f "$KEYFILE" ]; then
+  XCODE_AUTH+=(-authenticationKeyPath "$KEYFILE" -authenticationKeyID "$ASC_KEY_ID"
+              -authenticationKeyIssuerID "$ASC_ISSUER_ID")
+fi
+
 echo "▸ xcodegen"
 xcodegen generate >/dev/null
 
 echo "▸ archive  build $BUILD ($SHA)"
 xcodebuild -project CupSeason.xcodeproj -scheme CupSeason \
   -destination "generic/platform=iOS" -configuration Release \
-  -archivePath "$ARCHIVE" -allowProvisioningUpdates \
+  -archivePath "$ARCHIVE" "${XCODE_AUTH[@]}" \
   CURRENT_PROJECT_VERSION="$BUILD" \
   archive > "$OUT/archive.log" 2>&1 || {
     tail -40 "$OUT/archive.log"; echo "✗ archive failed"; exit 1;
@@ -52,7 +64,7 @@ xcodebuild -project CupSeason.xcodeproj -scheme CupSeason \
 
 echo "▸ export"
 xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "$EXPORT" \
-  -exportOptionsPlist ExportOptions.plist -allowProvisioningUpdates > "$OUT/export.log" 2>&1 || {
+  -exportOptionsPlist ExportOptions.plist "${XCODE_AUTH[@]}" > "$OUT/export.log" 2>&1 || {
     tail -40 "$OUT/export.log"; echo "✗ export failed"; exit 1;
   }
 shopt -s nullglob
@@ -73,10 +85,6 @@ if [ "${1:-}" = "--upload" ]; then
   #   security add-generic-password -U -a "$USER" -s cupseason-asc-key    -w
   # An explicit ASC_ISSUER_ID / ASC_KEY_ID in the environment still wins, so CI
   # or a one-off override needs no edit here.
-  kc() { security find-generic-password -a "$USER" -s "$1" -w 2>/dev/null || true; }
-  ASC_ISSUER_ID="${ASC_ISSUER_ID:-$(kc cupseason-asc-issuer)}"
-  ASC_KEY_ID="${ASC_KEY_ID:-$(kc cupseason-asc-key)}"
-
   if [ -z "${ASC_ISSUER_ID:-}" ] || [ -z "${ASC_KEY_ID:-}" ]; then
     echo "✗ no App Store Connect credentials."
     echo "  Store them once (each prompts, so nothing lands in your shell history):"
@@ -86,7 +94,6 @@ if [ "${1:-}" = "--upload" ]; then
     exit 1
   fi
 
-  KEYFILE="$HOME/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8"
   [ -f "$KEYFILE" ] || { echo "✗ key $ASC_KEY_ID has no .p8 at $KEYFILE"; exit 1; }
 
   echo "▸ upload (altool, API key $ASC_KEY_ID)"

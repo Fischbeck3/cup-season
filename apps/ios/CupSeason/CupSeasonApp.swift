@@ -50,6 +50,9 @@ struct CupSeasonApp: App {
         .csDevTextSize(CSDevHatch.textSize)
         .csToasts(toasts)
         .task { store.start() }
+        .onChange(of: store.session?.user.id) { before, after in
+          if before != nil, before != after { Task { await LiveActivityHost.clearStale() } }
+        }
         .task { await PushService.shared.syncOnLaunch() }
         // One row per FOREGROUND, not per `.active`: a banner, the app
         // switcher and Face ID all bounce through `.inactive` and back, and
@@ -78,6 +81,9 @@ struct CupSeasonApp: App {
           // twelve anon endpoints, so this resolves BEFORE sign-in, which is
           // the whole point: the stranger who tapped a friend's link meets the
           // season's name above the email field rather than a bare box.
+          else if url.scheme == "cupseason", url.host == "home" {
+            PushRouter.shared.pending = .home
+          }
           else if let code = JoinIntent.code(from: url) {
             JoinIntent.store(code)
             CSGrowth.log(.linkOpened, kind: "join", token: code)

@@ -614,7 +614,7 @@ final class HomeModel {
                                            spent: r.spentRounds) }
     if case .live = lead?.route { HomeLeadFlag.shared.liveIsLead = true }
     else { HomeLeadFlag.shared.liveIsLead = false }
-    DispatchSnapshotFeed.publish(strip: strip, lead: usedFallback ? nil : lead)
+    DispatchSnapshotFeed.publish(strip: strip, lead: usedFallback ? nil : lead, owner: m.profile?.id)
   }
 
   /// One load per payload. A pull and `.task(id:)` share a key; the second

@@ -47,8 +47,10 @@ public enum DispatchSnapshotFeed {
   /// Write it, unless nothing would be drawn. An empty snapshot is not written
   /// over a good one: a failed read is never an empty screen (L-32).
   @discardableResult
-  public static func publish(strip: MeStripCopy.Strip, lead: HomeDispatch.Item?, now: Date = Date(),
+  public static func publish(strip: MeStripCopy.Strip, lead: HomeDispatch.Item?, owner: UUID?, now: Date = Date(),
                              defaults: UserDefaults? = UserDefaults(suiteName: CSAppGroup.id)) -> Bool {
+    // A late Home request must not publish the previous golfer's facts.
+    guard DispatchSnapshot.belongs(to: owner, defaults: defaults) else { return false }
     guard !strip.isEmpty || lead != nil else { return false }
     return make(strip: strip, lead: lead, now: now).write(defaults)
   }
