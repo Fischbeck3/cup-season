@@ -711,5 +711,153 @@ Two more that the fixture cannot pose but the prototype's participants can:
   before any mechanic change. Nothing was implemented.
 - **Database / Edge / client deploy owed:** none. Nothing deployed, no mechanic changed, no
   dependency added; production was read with SELECT only and was never a sandbox.
+- **Third pass (2026-09-13):** §8 compares Codex's four-persona prototype against this inventory
+  and recommends the first production slice. The design site returned 401; the published source was
+  read from the Codex checkout, which was not written to.
 - **Next owner and bounded task:** Codex, for the comprehension review and §6 — question 3 first.
   The owner, for §5. Rebuild the sandbox with `REPO=$PWD tests/sim/sandbox/apply.sh` (~2 min).
+
+---
+
+## 8 · The four-persona prototype, against this inventory
+
+**2026-09-13, third pass.** Codex published `personas.html` and the tandem handoff
+`personas-review.html`. **Both URLs return HTTP 401 to me** — the design site is owner-private — so
+I read the published source from the Codex-owned checkout at
+`/Users/fischbeck3/cup-season-vision-next/work/mobile-site/`, which I read and did not write.
+Quotations below are from `out/personas.js`, `out/personas-review.html` and `PERSONAS_HANDOFF.md`.
+
+**Nothing in this section claims the prototype validates a rule, and nothing claims production
+deployment.** Codex's own handoff says the same in the other direction, and it is right to.
+
+### 8.1 What already works — existing rules, no new mechanic
+
+| Journey | What it needs | Status in the engine |
+|---|---|---|
+| **Evan** · three matchup windows, a chosen pace | recurring Ryder windows of configurable length | **Built.** `create_event(p_name, p_starts_on, p_sessions, p_session_weeks, p_draw_rule, p_team_a, p_team_b, p_league, p_tz, p_lineage)`. Evan's "two weeks · six-week competition" is `p_sessions=3, p_session_weeks=2`; his one-week variant is `p_session_weeks=1`. Both are arguments that exist. |
+| **Evan** · 12 available points, win 1 / half ½, "first past 6" | session scoring and a clinch | **Built.** `resolve_session` scores the best PvI in the window at 1 / 0.5 / 0 and clinches at `> pairs × sessions / 2` = **> 6** of 12. The prototype's arithmetic matches the engine's exactly. |
+| **Evan** · eight former teammates, no club | a standalone event | **Built.** `create_event` takes `p_league` nullable. `add_event_player` admits league mates **or** buddies; anyone else needs an invite they accept. |
+| **Evan** · "best eligible round in the window, against your playing handicap" | window scoring vs PvI | **Built**, and at 100 % allowance for a standalone event, 95 % if attached (D149). The prototype does not state which; it matters (§8.4). |
+| **Matt** · Best 2 / Best 3 / Unlimited, minimum 0 / 1 / 2 | selectable bylaws | **Built.** `lock_league(p_counting_cap, p_participation_floor, p_floor_penalty, …)`; `counting_cap` CHECK 1..31 (D206). Every option Matt's chooser offers is a real dial. |
+| **Matt** · "−5 squad points per required round missed" | the floor penalty | **Built.** `close_month`: `−5 × ceil(short)` as a `floor_penalty` ledger row carrying its reason. |
+| **Matt** · a round contributing to the shared season, traceable to its rounds | counting rounds and receipts | **Built.** `v_rounds_ranked.month_rank` and §16's receipt rule. |
+| **Nia** · optional Tuesday/Saturday nines, independent of membership | plans that are not enrolment | **Built.** `scheduled_rounds` + `declare_round`; a plan carries no competition consequence. D343 (2026-09-12) seats the host on their own plan, which this journey depends on to read honestly. |
+| **Nia** · "provisional season rounds can score normally… a Major requires an established index to contend" | the two gates | **Built, and the prototype has already written the sentence.** This is §2.5d verbatim in product voice. Below-3-differentials scores 7 and counts; D44 keeps the Major exhibition. |
+| **Mara** · a private member season beside a separate group | two membership objects | **Half built.** The private season is a league. The group is not an object (§8.3). |
+
+**The strongest convergence:** Codex's recommended shape for busy friends — **Best 2, no minimum** —
+is the shape my simulations support. §2.5c measures the default minimum costing a once-a-month
+golfer **36 %** of their season (22.6 → 14.4), and §1.7 records that the floor has **never fired in
+production**. Codex reached that shape from comprehension; I reached it from arithmetic. When two
+independent methods land on the same dial, that is the closest thing to evidence either of us has.
+
+### 8.2 What needs implementation — approved rules with no enforcement
+
+1. **Course eligibility (Mara's control).** The brief offers *"Willow Club only"* versus *"Eligible
+   rated rounds wherever members play"*, and the page correctly flags it as needing "a production
+   rule and enforcement review". **Verified: there is no mechanism at all.** `v_rounds_ranked`
+   filters on voided, hole count and membership dates — nothing about the course — and
+   `league_settings` has no course or tee column. Spec §2.4's "Course requirement: Any / Rated
+   courses only" and "Tee requirement" have never been built. This is a new column plus a clause in
+   the scoring lens, and it interacts with the fact that **four of five production plans carry no
+   `course_id` at all**, so a home-course restriction would be unenforceable against most rounds
+   today.
+2. **The agreement artifact.** Three journeys turn on a reviewable agreement before commitment —
+   Evan's *"review the agreement"*, Matt's *"a sample agreement for review"*, Mara's brief. Bylaws
+   exist in `league_settings`; a **shareable pre-lock agreement object does not**. The wizard's
+   fine-print disclosure is the nearest thing. This is presentation over existing data, not a new
+   mechanic, which makes it the cheapest of the gaps.
+3. **The lock-day table.** Not in the prototype, but §2.4 found that the Cup is seeded on a table
+   nobody is shown — in Codex's own season fixture the squad leading at the lock finished third.
+   Any journey that ends in a Final owes the golfer that table.
+
+### 8.3 What requires a product decision — proposed, not approved
+
+Codex labels these as proposals and does not ask for them to be treated otherwise. Keeping them
+separate from approved rules, as instructed:
+
+| Proposal | What it would add | The decision it needs |
+|---|---|---|
+| **Community discovery** (a findable local group) | a public or semi-public object a stranger can see | Cup Season's entry model is friends-and-invites. This is the first object a stranger can find. **Product-vision question**, not a mechanic. |
+| **Organizer approval** (Nia requests, Mara accepts) | a join-request with pending / accepted / declined | **Verified: no league join-request object exists.** `_join_gate` is Pro-only after first tee (§1.6) and `add_friend_to_league` requires an accepted friendship. A request object is genuinely new. |
+| **Group membership ≠ season membership** | two scopes over one roster | The engine has one membership, `league_members`. Two scopes is a data-model change. The prototype's rule — *"Joining that group grants no private-season access"* — is the right default and needs stating in the model, not only in copy. |
+| **Club course eligibility** | §8.2's restriction, as an organizer choice | Whether a league may narrow where rounds count at all. |
+| **Fit recommendations** ("Room for life" / "A shared commitment" / "Every round contributes") | preset bundles distinct from Casual/Standard/Cutthroat | These are **better named** than the shipped presets and describe the same dials. A naming decision with real comprehension value. |
+
+### 8.4 Three places the prototype and the engine disagree
+
+Each is small, each is worth fixing before anyone reads the prototype as the rules.
+
+1. **The minimum example is harsher than the engine.** The page states: *"Matt's comparison is a full
+   month with no bye or waiver."* The engine gives every golfer **one automatic bye on their first
+   missed month** (D14, `close_month` writes a `bye` row and a board post) and **waives floors
+   entirely in a partial edge month** (§14.0). So Pat's first short month costs **nothing**, not −5.
+   Over a 13-week season starting mid-month the floor may assess in as few as two months (§1.7).
+   The example overstates the penalty on first contact — the moment a newcomer is most likely to
+   meet it — and understates how rarely it bites.
+2. **"The study does not resolve ties or missing cards."** The engine does both: a tied duel halves
+   (½ each), a missing card loses to any posted card, dead rubbers still resolve, and D144–D148 made
+   the resolver idempotent so a late post or a deletion cannot retro-flip a decided duel. The
+   prototype is conservative here rather than wrong, but Codex's open question *"what happens when a
+   teammate never submits a card"* **already has an answer in the engine**, and it is a good one.
+3. **Allowance is unstated in Evan's journey.** A standalone event scores at 100 %; an attached one
+   inherits the league's, which is 95 % on every production league (D149, §1.1). Evan's group has no
+   league, so 100 % — but the agreement should say so, because it is the difference between two
+   golfers' numbers.
+
+### 8.5 The first complete production slice
+
+Codex's recommended next step is *"ship the known-friends path using existing rules before
+implementing new community permissions."* I agree, and I would make it narrower still.
+
+**Ship Matt's journey, end to end, and nothing else.**
+
+It is the only one of the four that needs **no new object, no new permission and no new mechanic** —
+every dial it offers already exists — and it is the journey aimed at the group Cup Season is for.
+Evan's is nearly as ready but needs the event-creation surface, which is a second wizard; Nia's and
+Mara's both wait on decisions in §8.3.
+
+The slice, in order:
+
+1. **A pre-lock agreement screen** built from `league_settings` as it will be written: the cap, the
+   minimum, the stake, the dates, in the group's own words. Presentation over existing data.
+2. **Defaults set to Best 2, no minimum, for a group that says it plays about once a month** —
+   Codex's "Room for life". The wizard currently defaults to Best 3 with a floor of 2, which
+   §2.5c says costs that golfer a third of their season, and which **no production league actually
+   runs** (§1.7: `counting_cap` is NULL on seven of ten). *This is a default change and wants an
+   owner ruling, not an inference from my numbers.*
+3. **Matt's comparison view, corrected to the engine** — with the auto-bye and the partial-month
+   waiver in it (§8.4.1). It becomes more welcoming, not less, and it becomes true.
+4. **A receipt on the squad total** that decomposes to counting rounds, displaced rounds and ledger
+   rows. §16 already requires it and `v_rounds_ranked` already carries `month_rank`.
+5. **The lock-day table**, shown when the Final is seeded (§8.2.3).
+
+What that deliberately excludes: community discovery, organizer approval, course eligibility, the
+two-scope membership model, and any change to how a round scores. None of those is needed to run a
+season for eight friends, and each carries a decision that has not been made.
+
+**Two things to settle before the slice, not during it.** The default cap and minimum for a
+busy-friends league (§8.5.2), and whether the Final is scored fresh or the monthly cap applies
+(§5.2, quantified at 94 % of seasons losing a mean 7.9 points). The second one will be visible in
+any journey that reaches a Final, including Codex's.
+
+### 8.6 Answers to the open questions Codex's page poses
+
+Where my work already answers one, with the caveat that a simulation cannot say what is fun:
+
+- *"Does one round feel consequential without pretending it equals three opportunities?"* — The
+  arithmetic says the pretence would be real: under Best 2, ten attempts still beat three by a
+  wide margin (§2.5b). One round can be made *consequential* (no minimum, Best 2) without being
+  made *equal*. The honest copy is "one round counts", never "one round is enough".
+- *"What happens when a teammate never submits a card?"* — In the Ryder, they lose the duel to any
+  posted card and the session still resolves. In the season, the floor penalty applies after the
+  auto-bye, and their own individual total is untouched (§1.2 — a floor penalty never reaches the
+  golfer's number, only the squad's). That asymmetry is worth a decision of its own.
+- *"Can a newcomer understand eligibility without feeling excluded from ordinary golf?"* — The two
+  gates are already written correctly in Nia's agreement (§8.1). The risk is not the wording but
+  the ordering: it must appear **before** entry to a title event, which is what the prototype does.
+- *"After a missed week, is there still a clear reason to return?"* — Under Best 2 with no minimum,
+  yes and the numbers support it. Under the current Standard default, the second missed month costs
+  −5 and the reason to return gets weaker exactly when it needs to be stronger (§2.5c).
+- *"Would each group willingly choose this commitment before first tee?"* — Not answerable by
+  simulation. It is the best question on the page.
