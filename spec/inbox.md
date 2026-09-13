@@ -517,3 +517,15 @@ and the checkpoint commits.
   any more. First question: adopt or delete.
 - **"Held since week N" is back-computed on the client.** UX. The table ignores
   the server's `since` date and subtracts `run_weeks` from the week number.
+- **The Home state hatch loads its fixture and renders nothing.** Tooling, and
+  it blocks native visual evidence for any state an account cannot reach.
+  `-cs_dev_home_state <id>` needed two fixes this sprint: `CSDevHatch.fixtureHome`
+  was declared and read by nothing, so the hatch never bypassed the sign-in
+  door; and the substitution sat BELOW `run`'s `guard let sessionMe`, so it
+  required a real account — which is exactly what the twelve unreachable states
+  do not have. Both are fixed, and the fixture now demonstrably loads: the log
+  prints `[home-state] S18 · After golf …`. The screen is still blank, so there
+  is a third dependency in `HomeView`'s body or its environment under a
+  signed-out root. First question: does the overlay need the tab shell's
+  environment (`LookStore`, the links, the presenter), or is `if let me` failing
+  because the model instance the overlay renders is not the one that loaded?

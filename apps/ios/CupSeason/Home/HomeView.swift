@@ -667,18 +667,22 @@ final class HomeModel {
   #endif
 
   private func run(me sessionMe: Me?, gen: Int) async {
-    guard let sessionMe else { return }
-    guard live(gen) else { return }
-    loading = true
-    defer { if gen == generation { loading = false } }
-
     #if DEBUG
     // D259 · `-cs_dev_home_state <id>`. ONE READ is substituted and nothing
     // else changes: the same arrangement rule, the same producers, the same
     // six slots. It is the only way twelve of the seventeen states in
     // `HOME_STATE_MATRIX.md` can be looked at, and it never writes anything.
+    //
+    // ABOVE the session guard, deliberately. It sat below it, so the hatch
+    // still needed a real account — and the states it exists to photograph are
+    // exactly the ones no account this product has can reach. A build machine
+    // signed out got a blank screen and no explanation.
     if let want = CSDevHatch.homeState { runFixture(want); return }
     #endif
+    guard let sessionMe else { return }
+    guard live(gen) else { return }
+    loading = true
+    defer { if gen == generation { loading = false } }
 
     // D252 · a card whose act is a Major or a jug does not render until the
     // Major's door opens. The WINDOW is checked first — pure, no I/O — so the
