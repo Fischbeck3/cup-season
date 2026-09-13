@@ -8,6 +8,13 @@ two and nothing else.
 Branch `claude/complete-the-week`. **Nothing here has been deployed.**
 No deployment happens during the repair pass.
 
+> **DEPLOYED 2026-09-13.** Step 1 ran with exactly the two migrations named
+> below and was read back: 242 applied, one `home_dispatch(integer,date,text[])`,
+> `answer_plan_followup` returning jsonb, check 34 PASS. Steps 2–4 done; Step 5
+> archived (build 857) and blocked at export on distribution signing. Evidence:
+> [`2026-09-13-release-evidence.md`](2026-09-13-release-evidence.md). The
+> sentences above describe the state BEFORE that and are left as written.
+
 ---
 
 ## 1 · Production, read at 2026-09-13 during this repair pass
