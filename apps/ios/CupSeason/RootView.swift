@@ -34,7 +34,28 @@ struct RootView: View {
       case .restoring:
         BootingView(step: "Signing you back in")
       case .signedOut:
-        if let t = ClaimIntent.pending(), !guestDoor {
+        // R1 · the Home-state hatch renders HERE, as a branch of the root's own
+        // ZStack, not as an `.overlay`. Inside an overlay the scroll view took
+        // its content's IDEAL width — zero — and every control came out 16pt
+        // wide and 1,900pt down the page: in the element tree, invisible on
+        // screen, unhittable. This branch gets the same full-size proposal the
+        // door gets, because it sits beside it.
+        //
+        // `CSDevHatch.fixtureHome` reads a launch argument only under DEBUG, so
+        // in Release it is false and this branch is unreachable.
+        if CSDevHatch.fixtureHome {
+          // Inside the same NavigationStack the real tab gives it. Home's
+          // content proposes no width of its own; the stack is what hands it
+          // one, which is why a bare instance collapsed to a 16pt column.
+          // The frame is load-bearing. The fixture's payload arrives in a
+          // `.task`, so the scroll view can lay out once with no content — and
+          // a scroll view with nothing in it takes its content's ideal width,
+          // which is zero. It never re-expands, and every control inside then
+          // renders a 16pt column a finger cannot reach. In the real app Home
+          // always has a `me` before it appears, so only the hatch sees this.
+          NavigationStack { HomeView(links: CSLinks(), push: { _ in }) }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let t = ClaimIntent.pending(), !guestDoor {
           GuestPencilScreen(token: t, onDoor: { guestDoor = true })
         } else {
           DoorView()
@@ -113,13 +134,6 @@ struct RootView: View {
     .overlay {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_no_photo") { HomeNoPhotoFixture() }
     }
-    // D259's hatch says "twelve of the seventeen cannot be reached from any
-    // account this product has, which is why the re-audit could not photograph
-    // them" — but `CSDevHatch.fixtureHome` was declared and read by NOTHING, so
-    // the hatch still needed a real session and a build machine got the DOOR.
-    // Same posture as the overlays around it: DEBUG only, one read substituted,
-    // nothing written, and a fixture is never a fact on a home screen.
-    .overlay { HomeFixtureOverlay() }
     .overlay {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") {
         RoundSharePreview(recap: PostRecap(name: "QA golfer", marker: "",

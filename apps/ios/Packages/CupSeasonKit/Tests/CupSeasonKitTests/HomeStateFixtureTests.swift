@@ -23,7 +23,7 @@ struct HomeStateFixtureTests {
   @Test func everyStateInTheBriefIsDeclared() {
     let want = ["brand_new", "rounds_no_buddies", "buddies_no_competition", "event_ahead", "event_live",
                 "between_seasons", "ceremony_night", "inactive", "invited", "callout_pending",
-                "preseason", "round_morning", "round_evening", "after_golf"]
+                "preseason", "round_morning", "round_evening", "after_golf", "after_golf_wire"]
     let got = HomeStateFixtures.all.map(\.id)
     #expect(got == want, "the ids drifted: \(got)")
     #expect(Set(HomeStateFixtures.all.map(\.matrix)).count == want.count, "two fixtures claim one matrix row")
@@ -51,6 +51,18 @@ struct HomeStateFixtureTests {
     // the day is a token, so the fixture never reads stale
     #expect(card.plan?.playOn == card.at)
     #expect(card.standfirst == "Nothing posted yet.", "it asserts nothing about whether they played")
+    // R1 · the fixture must carry a `me`, or Home renders nothing at all: the
+    // body is `if let me`, and `runFixture` returns early without one.
+    #expect(p.me != nil, "the after-golf fixture has no ME payload, so Home would render blank")
+    #expect(p.me?.profile != nil, "and no profile")
+    #expect(p.me?.memberships.isEmpty == false,
+            "R1 · without a membership the lead layout lays out with no width and the card cannot be tapped")
+
+    // R1 · and the same card when something else leads the page.
+    let w = try #require(HomeStateFixtures.payload("after_golf_wire"))
+    let below = try #require(w.items.first { $0.key.hasPrefix("afterplan:") })
+    #expect(below.answerable, "the displaced card must still be answerable")
+    #expect(w.items.first?.key.hasPrefix("afterplan:") == false, "it is not the lead in this state")
   }
 
   // MARK: - the dates are tokens, so a fixture never reads stale

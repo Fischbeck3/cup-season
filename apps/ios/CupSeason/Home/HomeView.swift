@@ -221,19 +221,25 @@ struct HomeView: View {
         if let a = item.action, !a.isEmpty {
           CSDoor(.primary(a) { take(item) })
         }
-        if item.answerable {
-          AfterGolfAnswers(item: item, reload: { await vm.load(me: store.me, key: loadKey) })
-        }
+        answers(item)
       }
       .padding(.horizontal, CSTokens.Space.gutter)
       .padding(.top, CSTokens.Space.s5)
       .accessibilityElement(children: .contain)
 
+    // R1 · **the lead placement, which is the one an established golfer sees.**
+    // The answers shipped only on `.empty` — the layout chosen when a golfer
+    // has neither seasons nor rounds — so the build declared a capability that
+    // its ordinary Home did not implement. A card that cannot be answered is
+    // the defect the capability exists to prevent.
     case .block(let item):
-      HomeLead(item: item, membership: league(item), act: { take(item) }, compact: item.key.hasPrefix("clash:") || item.key.hasPrefix("move:"))
-        .padding(.horizontal, CSTokens.Space.gutter)
-        .padding(.top, CSTokens.Space.s4)
-        .csRedacted(page.redacted)
+      VStack(alignment: .leading, spacing: 0) {
+        HomeLead(item: item, membership: league(item), act: { take(item) }, compact: item.key.hasPrefix("clash:") || item.key.hasPrefix("move:"))
+        answers(item)
+      }
+      .padding(.horizontal, CSTokens.Space.gutter)
+      .padding(.top, CSTokens.Space.s4)
+      .csRedacted(page.redacted)
     }
   }
 
@@ -416,9 +422,16 @@ struct HomeView: View {
     case .takeover(let item):
       HomeWireTakeover(item: item) { take(item) }
 
+    // R1 · and the wire, where an after-golf item lands when something else
+    // leads. The row keeps its weight — one quiet line — and the two ways out
+    // sit under it, because a row is a Button and a Button may not hold
+    // buttons. The web does the same thing for the same reason.
     case .item(let it, let stamp):
-      HomeWireItem(headline: it.localHeadline(), stamp: stamp) { take(it) }
-        .padding(.horizontal, CSTokens.Space.gutter)
+      VStack(alignment: .leading, spacing: 0) {
+        HomeWireItem(headline: it.localHeadline(), stamp: stamp) { take(it) }
+        answers(it)
+      }
+      .padding(.horizontal, CSTokens.Space.gutter)
 
     case .line(let marker, let text, let door):
       HomeWireLine(marker: marker, text: text, act: door.map { d in { open(d) } })
@@ -473,6 +486,16 @@ struct HomeView: View {
     return me?.memberships.first { $0.league_id == id }
   }
 
+  /// R1 · the two ways out of an after-golf card, wherever the arrangement put
+  /// it. ONE call site's worth of code in three placements, so a layout cannot
+  /// ship the door without the answers again.
+  @ViewBuilder private func answers(_ item: HomeDispatch.Item) -> some View {
+    if item.answerable {
+      AfterGolfAnswers(item: item, reload: { await vm.load(me: store.me, key: loadKey) })
+        .padding(.top, CSTokens.Space.s3)
+    }
+  }
+
   /// Every item's one door. The ranker chose it; this only opens it.
   private func take(_ item: HomeDispatch.Item) {
     CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue,
@@ -524,6 +547,25 @@ final class HomeLeadFlag {
 @MainActor
 @Observable
 final class HomeModel {
+  #if DEBUG
+  /// R1 · the fixture is applied at INIT, not in a `.task`.
+  ///
+  /// Loaded asynchronously it raced layout: a relaunched scene could lay the
+  /// scroll view out once with no content, and a scroll view with nothing in it
+  /// takes its content's ideal width — zero. It never re-expands, so every
+  /// control inside rendered a 16pt column a finger could not reach. The page
+  /// existed, the buttons existed, the screenshot was blank. That is the third
+  /// dependency this hatch has been carrying, and it is why it has never shown
+  /// anybody anything.
+  ///
+  /// Applied here the payload is in hand before the first layout pass. The real
+  /// app is unaffected: it has no `homeState` argument, and Home always has a
+  /// `me` from the session before it appears.
+  init() {
+    if let want = CSDevHatch.homeState { runFixture(want) }
+  }
+  #endif
+
   /// The wire as loaded, newest first. The view folds it (`feed(upcoming:)`)
   /// against the Coming-up card, which loads on its own clock.
   var items: [HomeItem] = []

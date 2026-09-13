@@ -1144,7 +1144,58 @@
             "rounds_count": 22,
             "is_founder": false
           },
-          "memberships": [],
+          "memberships": [
+            {
+              "league_id": "b0000000-0000-4000-8000-000000000001",
+              "name": "Fellas",
+              "code": "FELLAS",
+              "phase": "season",
+              "sandbox": false,
+              "role": "member",
+              "member_id": "c0000000-0000-4000-8000-000000000001",
+              "marker": "⛳",
+              "commissioner_name": "Galen Marr",
+              "pro_name": "Galen",
+              "members": 6,
+              "roster": 6,
+              "settings": {
+                "structure": "solo",
+                "counting_cap": 4,
+                "handicap_allowance": 95,
+                "buyin_cents": 0,
+                "finish": "points"
+              },
+              "season": {
+                "id": "b1000000-0000-4000-8000-000000000001",
+                "number": 1,
+                "starts_on": "@today-28",
+                "ends_on": "@today+63",
+                "status": "active",
+                "timezone": "America/Phoenix",
+                "week_no": 5,
+                "weeks_total": 13,
+                "week_ends_on": "@today+2",
+                "days_left": 63
+              },
+              "standing": {
+                "rank": 2,
+                "of": 6,
+                "points": 27,
+                "prev_rank": 4,
+                "leader_name": "Galen",
+                "leader_points": 31,
+                "gap_to_leader": 4,
+                "next_up": {
+                  "name": "Galen",
+                  "points": 31
+                },
+                "next_down": {
+                  "name": "Jade",
+                  "points": 24
+                }
+              }
+            }
+          ],
           "invites": [],
           "upcoming_rounds": [],
           "events": [],
@@ -1155,6 +1206,136 @@
             "key": "afterplan:c0000000-0000-4000-8000-0000000000a1",
             "tier": "changed",
             "rank": 1,
+            "score": 806,
+            "rank_reason": "B2 800 + 6 (M8 6 (a dated thing)) = 806",
+            "subject": "you",
+            "human_subject": true,
+            "eyebrow": "@eyebrow-2",
+            "headline": "Galen had you on the plan for Friday.",
+            "standfirst": "Nothing posted yet.",
+            "action": "Add my round",
+            "route": {
+              "kind": "composer"
+            },
+            "context": {
+              "plan_id": "c0000000-0000-4000-8000-0000000000a1",
+              "play_on": "@today-2",
+              "course_label": "Papago",
+              "course_id": null,
+              "tee_time": "08:10"
+            },
+            "league_id": null,
+            "suppress": [],
+            "spine": "ember",
+            "at": "@today-2"
+          }
+        ],
+        "lead_suppress": []
+      }
+    },
+    {
+      "id": "after_golf_wire",
+      "matrix": "S19",
+      "title": "After golf, below the lead — something else leads the page",
+      "note": "R1 · the same card when the arrangement does NOT make it the lead. It renders through the wire, where a row is a Button and a Button may not hold buttons, so the two ways out sit under the row. The controls shipped on the empty layout alone, so this placement had a door and no answers.",
+      "payload": {
+        "me": {
+          "profile": {
+            "id": "a0000000-0000-4000-8000-000000000001",
+            "display_name": "Sam Ridley",
+            "handle": "sam",
+            "marker": "⛳",
+            "city": "Tempe",
+            "home_course": null,
+            "index_current": 12.4,
+            "index_source": "engine",
+            "photo_path": null,
+            "rounds_count": 22,
+            "is_founder": false
+          },
+          "memberships": [
+            {
+              "league_id": "b0000000-0000-4000-8000-000000000001",
+              "name": "Fellas",
+              "code": "FELLAS",
+              "phase": "season",
+              "sandbox": false,
+              "role": "member",
+              "member_id": "c0000000-0000-4000-8000-000000000001",
+              "marker": "⛳",
+              "commissioner_name": "Galen Marr",
+              "pro_name": "Galen",
+              "members": 6,
+              "roster": 6,
+              "settings": {
+                "structure": "solo",
+                "counting_cap": 4,
+                "handicap_allowance": 95,
+                "buyin_cents": 0,
+                "finish": "points"
+              },
+              "season": {
+                "id": "b1000000-0000-4000-8000-000000000001",
+                "number": 1,
+                "starts_on": "@today-28",
+                "ends_on": "@today+63",
+                "status": "active",
+                "timezone": "America/Phoenix",
+                "week_no": 5,
+                "weeks_total": 13,
+                "week_ends_on": "@today+2",
+                "days_left": 63
+              },
+              "standing": {
+                "rank": 2,
+                "of": 6,
+                "points": 27,
+                "prev_rank": 4,
+                "leader_name": "Galen",
+                "leader_points": 31,
+                "gap_to_leader": 4,
+                "next_up": {
+                  "name": "Galen",
+                  "points": 31
+                },
+                "next_down": {
+                  "name": "Jade",
+                  "points": 24
+                }
+              }
+            }
+          ],
+          "invites": [],
+          "upcoming_rounds": [],
+          "events": [],
+          "open_duels": []
+        },
+        "items": [
+          {
+            "key": "clash:c0000000-0000-4000-8000-0000000000b1",
+            "tier": "changed",
+            "rank": 1,
+            "score": 900,
+            "subject": "you",
+            "human_subject": true,
+            "eyebrow": "THIS WEEK",
+            "headline": "You are two points off the lead.",
+            "standfirst": "Four rounds still count this month.",
+            "action": "See the table",
+            "route": {
+              "kind": "season",
+              "id": "b0000000-0000-4000-8000-000000000001",
+              "pane": "table"
+            },
+            "league_id": "b0000000-0000-4000-8000-000000000001",
+            "suppress": [],
+            "spine": "mut",
+            "at": "@today"
+          },
+          {
+            "key": "afterplan:c0000000-0000-4000-8000-0000000000a1",
+            "tier": "changed",
+            "rank": 2,
             "score": 806,
             "rank_reason": "B2 800 + 6 (M8 6 (a dated thing)) = 806",
             "subject": "you",
