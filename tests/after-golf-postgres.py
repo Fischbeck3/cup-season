@@ -142,6 +142,12 @@ with tempfile.TemporaryDirectory(prefix="cup-season-after-golf-test-") as temp:
         # the shipped Safari client sends a day and no capabilities: this is the
         # exact call that was showing an unanswerable card in production
         require(len(prompts(caps="null")) == 0, "the shipped client's own call no longer produces the card")
+        # And it must still SUCCEED. If the two-argument call errored, the
+        # shipped client's retry would drop `p_today` as well and Home would
+        # change in a second way. `p_caps` is defaulted, so it resolves.
+        shipped = json.loads(sql("select home_dispatch(p_days => 21, p_today => current_date);", role="authenticated"))
+        require(isinstance(shipped.get("items"), list), "the shipped two-argument call still resolves")
+        require(not [x for x in shipped["items"] if x["key"].startswith("afterplan:")], "and returns the Home it had before D345")
 
         ctx = prompts()[0]["context"]
         require(ctx["plan_id"] == PLAN, "the item carries the plan id outside the display key")
