@@ -24908,7 +24908,9 @@ async function createLeague(){
      `create_league`: a server without the function cannot deduplicate, so it is
      told to the golfer and nothing is minted. */
   const uid = CS.user.id;
-  let rec = createRequestRead(uid);
+  /* a run-it-back is a NEW season carried from the last one, never a resume of
+     an unrelated unfinished create; it mints its own id */
+  let rec = window._runItBack ? null : createRequestRead(uid);
   if(!rec){
     /* the module block cannot rely on a classic helper by bare name (landmine:
        the classic ↔ module boundary), so the id is minted here */

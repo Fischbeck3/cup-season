@@ -307,7 +307,9 @@ final class WizardModel {
     // "Start a season" door passed nothing, so a golfer whose create was
     // ambiguous could mint a second league beside the first; the record is
     // what makes the retry the same request.
-    if existingLeagueId == nil, leagueId == nil, createRequest == nil,
+    // A run-it-back is a NEW season carried from the last one, never a resume
+    // of an unrelated unfinished create; its own publish writes its own record.
+    if existingLeagueId == nil, runBack == nil, leagueId == nil, createRequest == nil,
        let uid = owner, let p = PendingCreate.read(owner: uid) {
       createRequest = p.request
       dials = p.dials
