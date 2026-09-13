@@ -10487,7 +10487,7 @@ $('#postBtn').addEventListener('click', async ()=>{
          existing success path (the loads + nav below still run; dismiss lands
          on home). The explicit else keeps a missing ceremony fn from failing
          silent (landmine), falling back to the old stamp. */
-      { const mySquad=(window.CS?.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS?.member?.id))?.name || null;
+      {
         /* #2 (pilot): a round only "counts this season" if it lands INSIDE the
            season window — the exact rule v_rounds_ranked enforces (played_on
            between starts_on and ends_on). A pre-season or out-of-window
@@ -10507,16 +10507,35 @@ $('#postBtn').addEventListener('click', async ()=>{
            and it decides it against the season the DATE falls in, which is not
            necessarily the league on screen (D229/L-13).
 
-           The client figures survive for exactly one case: the declared insert
-           fallback, where there is no server answer to prefer. That case is
-           logged rather than dressed up as one. */
+           R4 · and the ATTRIBUTION comes from the same answer as the figures.
+           `counts`, `points` and `pvi` were taken from the server while the
+           league name and the squad were still read off whichever league the
+           browser had open — so a backdated round could be announced with the
+           server's twelve points under the wrong league's name and a squad the
+           golfer is not on in that season. One result, one attribution.
+
+           The client figures survive only where the server's answer OMITS a
+           field. They are not a fallback for a missing post: ordinary posting
+           fails closed now — there is no direct insert left on this path — so
+           a post that did not land throws and no ceremony runs at all. (The
+           earlier note here said "the declared insert fallback"; that fallback
+           is gone and the note was stale.) */
         const svCounts = (rpcRound && rpcRound.counts != null) ? !!rpcRound.counts : null;
         const svPts = (epiFromRpc && epiFromRpc.points != null) ? Number(epiFromRpc.points) : null;
         const svVs  = (epiFromRpc && epiFromRpc.pvi    != null) ? Number(epiFromRpc.pvi)    : null;
+        /* The season the DATE fell in named these, not the league on screen. */
+        const svLeague = (rpcRound && rpcRound.league_name) || null;
+        const svSquad  = (rpcRound && rpcRound.squad) || null;
         const counts = svCounts != null ? svCounts
           : (!!window.CS?.league && !!state.seasonStart && !!state.seasonEnd
              && played >= state.seasonStart && played <= state.seasonEnd);
-        if(svCounts == null) qaEvent('ceremony_client_figures', { reason: 'no server answer' });
+        if(svCounts == null) qaEvent('ceremony_client_figures', { reason: 'server answer omitted counts' });
+        /* A round that counts for NO season has no league and no squad to name,
+           and the open league's are not a stand-in for them (L-44). */
+        const openSquad = (window.CS?.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS?.member?.id))?.name || null;
+        const mySquad = svCounts != null ? (counts ? svSquad : null) : openSquad;
+        const leagueName = svCounts != null ? (counts ? svLeague : null)
+                                            : (window.CS?.league?.name || null);
         if(typeof finishCeremony==='function') finishCeremony({
           course: payload.course_label || 'A round',
           date: payload.played_on ? localDate(payload.played_on) : new Date(),
@@ -10527,7 +10546,7 @@ $('#postBtn').addEventListener('click', async ()=>{
           inLeague: counts,
           name: window.CS?.profile?.display_name || 'You',
           marker: window.CS?.profile?.marker || 'saguaro',
-          leagueName: window.CS?.league?.name || null,
+          leagueName: leagueName,
           photo: window._lastPostPhoto || null,
         }); else { stampPosted('POSTED ✓'); toast(`Round posted: ~${pts} pts pending the league's math`); } }
       /* the ceremony IS the confirmation — its toast lives only in the stamp fallback (above),
@@ -17409,6 +17428,19 @@ window.csAnswerPlan = csAnswerPlan;
 /* R2 · the same snapshot the draft takes, so "is there work here?" cannot be
    answered differently by the two callers. */
 function csPostVals(){ return postReadFields(); }
+/* R6 · **the question describes THIS card, not the general case.** It promised
+   to replace "the date and course" whenever the plan named one — but the rule
+   both clients keep is that a course the golfer already typed is LEFT ALONE. A
+   golfer agreeing to start the Papago round could keep a different course and
+   its tee details, having been told otherwise. The approved rule is unchanged;
+   only the sentence is, and it now reads the actual draft. */
+function csPlanChanges(ctx){
+  const typed = ($('#inCourse')?.value || '').trim();
+  const willCourse = !!(ctx.course_label && !typed);
+  const what = willCourse ? 'the date and the course' : 'the date';
+  const kept = (ctx.course_label && typed) ? ` ${typed} stays.` : '';
+  return `Your card keeps whatever you have typed. This changes ${what}, and nothing else.${kept}`;
+}
 function csPlanDay(ctx){
   const d = ctx && ctx.play_on;
   return d ? (typeof csDayToken==='function' ? csDayToken(d) : d) : 'that day';
@@ -17453,7 +17485,7 @@ function csPlanToComposer(ctx){
   const sameDay = String(vals.inDate||'') === String(ctx.play_on||'');
   if(started && !(sameDay && state.post.plan && state.post.plan.id === ctx.plan_id)){
     openSheet('Start ' + csPlanDay(ctx) + '\u2019s round?', 'YOU HAVE A CARD IN PROGRESS', `
-      <p class="fine" style="padding-bottom:12px">Your card keeps whatever you have typed. Starting ${esc(csPlanDay(ctx))}\u2019s round replaces the date${ctx.course_label?' and course':''}, and nothing else.</p>
+      <p class="fine" style="padding-bottom:12px">${esc(csPlanChanges(ctx))}</p>
       <button class="btn dark" id="planKeep" style="margin-bottom:8px">Keep the round I started</button>
       <button class="btn" id="planTake">Start ${esc(csPlanDay(ctx))}\u2019s round</button>`);
     document.getElementById('planKeep')?.addEventListener('click', closeSheet);

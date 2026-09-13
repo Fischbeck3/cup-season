@@ -131,7 +131,70 @@
     await loadHomeDispatch();
     check(window.homeDispatch===null,'R3: a transport failure did not read as unreachable');
 
-    return {passed:true, checks:'R2 gross-only consent, save, relaunch, foreign draft, pending request; R3 four server shapes'};
+    /* ── R6 · the question describes THIS card ──────────────────────────── */
+    window.sb={rpc:async()=>({data:null,error:null})};
+    reset(); document.getElementById('inGross').value='84';
+    csPlanToComposer(ctx); await until(asking,'R6: no question for a started card');
+    let q=document.getElementById('sheet').textContent;
+    check(/changes the date and the course/.test(q),'R6: a blank course should take the plan\u2019s');
+    document.getElementById('planKeep').click();
+    reset(); document.getElementById('inGross').value='84';
+    document.getElementById('inCourse').value='Somewhere else';
+    csPlanToComposer(ctx); await until(asking,'R6: no question with a typed course');
+    q=document.getElementById('sheet').textContent;
+    check(/changes the date, and nothing else/.test(q),'R6: it promised a course change it will not make');
+    check(/Somewhere else stays/.test(q),'R6: it did not say the typed course stays');
+    document.getElementById('planTake').click();
+    check(document.getElementById('inCourse').value==='Somewhere else','R6: the typed course was replaced after all');
+    check(document.getElementById('inDate').value===ctx.play_on,'R6: the date did not change');
+
+    /* ── R4 · one server result, one attribution ─────────────────────────── */
+    let ceremony=null; finishCeremony=o=>{ceremony=o;};
+    const post=(round,epi)=>{
+      window.sb={rpc:async(n)=>n==='post_round_once'?{data:{round:round,epilogue:epi},error:null}:{data:null,error:null},
+                 from:()=>({insert:async()=>({data:null,error:null})})};
+    };
+    const fire=async()=>{
+      ceremony=null;
+      clearPostRequest(uid); clearPostDraft();
+      reset();
+      document.getElementById('inGross').value='84';
+      document.getElementById('inRating').value='72';
+      document.getElementById('inSlope').value='113';
+      state.lastPost={pts:99,vs:8,label:'84'};
+      const b=document.getElementById('postBtn'); b.disabled=false; b.click();
+      await until(()=>ceremony,'R4: the ceremony never fired');
+      await new Promise(r=>setTimeout(r,80));
+      return ceremony;
+    };
+    for(const k of ['loadStandingsAndFeed','loadCareer','loadHome','refreshHomeLead','openRoundSheet'])window[k]=async()=>{};
+    window.scrollFeedBottom=()=>{}; window.showEpilogue=()=>{}; window.csEarnInstallNudge=()=>{};
+    if(typeof scrollFeedBottom==='undefined'){} else { scrollFeedBottom=()=>{}; }
+    showEpilogue=()=>{};
+
+    /* a BACKDATED round the server scored for an earlier league */
+    post({id:'f0000000-0000-4000-8000-000000000003',counts:true,league_name:'Earlier league',squad:'Earlier squad'},{points:12,pvi:3});
+    let c=await fire();
+    check(c.points===12 && c.vs===3,'R4: the ceremony did not use the server figures');
+    check(c.leagueName==='Earlier league','R4: the ceremony named the open league, not the scoring one');
+    check(c.squad==='Earlier squad','R4: the ceremony named the open squad, not the scoring one');
+    check(c.inLeague===true,'R4: a counting round did not read as counting');
+
+    /* a round that counts for NO season names no league and no squad */
+    post({id:'f0000000-0000-4000-8000-000000000004',counts:false,league_name:null,squad:null},{points:0,pvi:1});
+    c=await fire();
+    check(c.inLeague===false,'R4: a non-counting round read as counting');
+    check(c.leagueName===null && c.squad===null,'R4: the open league stood in for a season the round does not belong to');
+    check(c.points===null,'R4: points were claimed for a round that counts for nothing');
+
+    /* an older server that omits `counts` falls back, and says so */
+    const logged=[]; window.qaEvent=(n,p)=>logged.push(n);
+    post({id:'f0000000-0000-4000-8000-000000000005',league_name:null,squad:null},{points:7,pvi:2});
+    c=await fire();
+    check(logged.includes('ceremony_client_figures'),'R4: a client-figure ceremony was not recorded as one');
+    window.qaEvent=()=>{};
+
+    return {passed:true, checks:'R2 consent/save/relaunch/foreign/pending; R3 four server shapes; R4 attribution; R6 question copy'};
   } finally {
     try{ clearPostRequest(uid); clearPostDraft(); closeSheet(); }catch(_){}
     window.fetch=realFetch; window.sb=realSb; window.CS=realCS; state.demo=realDemo;

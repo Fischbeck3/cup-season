@@ -81,14 +81,14 @@ struct PostRoundScreen: View {
     }
     // D354 · a card the golfer has started is never replaced by a plan without
     // a tap that says so. Two plain choices, no third state: keeping is the
-    // cancel, and starting the plan's round changes the date and the course
-    // and nothing else — whatever has been typed stays typed.
+    // cancel, and starting the plan's round changes the date — and the course
+    // only when the card has none — and nothing else.
     .confirmationDialog(planQuestion, isPresented: planAsking, titleVisibility: .visible) {
       if let m = model, let ctx = m.planAsking {
         Button(PostPlanCopy.start(ctx)) { m.applyPlan(ctx) }
         Button(PostPlanCopy.keep, role: .cancel) { m.planAsking = nil }
       }
-    } message: { Text(PostPlanCopy.explain(model?.planAsking)) }
+    } message: { Text(PostPlanCopy.explain(model?.planAsking, typedCourse: model?.card.course ?? "")) }
     .csPhotoSource(model?.photo == nil ? RoundCopy.photoAdd : RoundCopy.photoReplace,
                    isPresented: $askSource, pick: choose)
     .photosPicker(isPresented: $showLibrary, selection: $pick, matching: .images)
@@ -865,10 +865,19 @@ private struct PostRoundScreenPreview: View {
 enum PostPlanCopy {
   static let keep = "Keep the round I started"
   static func start(_ ctx: PlanContext) -> String { "Start \(day(ctx))’s round" }
-  static func explain(_ ctx: PlanContext?) -> String {
+  /// R6 · what changes on THIS card. It promised to change "date and course"
+  /// whenever the plan named one — but the rule both clients keep is that a
+  /// course the golfer already typed is LEFT ALONE, so a golfer agreeing to
+  /// start the Papago round could keep a different course and its tee details,
+  /// having been told otherwise. The rule is unchanged; the sentence reads the
+  /// actual draft now.
+  static func explain(_ ctx: PlanContext?, typedCourse: String) -> String {
     guard let ctx else { return "" }
-    let what = (ctx.courseLabel?.isEmpty == false) ? "date and course" : "date"
-    return "Your card keeps whatever you have typed. This changes the \(what), and nothing else."
+    let typed = typedCourse.trimmingCharacters(in: .whitespaces)
+    let willCourse = (ctx.courseLabel?.isEmpty == false) && typed.isEmpty
+    let what = willCourse ? "the date and the course" : "the date"
+    let kept = (ctx.courseLabel?.isEmpty == false && !typed.isEmpty) ? " \(typed) stays." : ""
+    return "Your card keeps whatever you have typed. This changes \(what), and nothing else.\(kept)"
   }
   /// "Saturday" / "yesterday" — the same day producer the strip uses.
   static func day(_ ctx: PlanContext) -> String {

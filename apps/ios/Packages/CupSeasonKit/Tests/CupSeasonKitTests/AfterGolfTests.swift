@@ -166,13 +166,25 @@ import Foundation
     #expect(back.plan == nil)
   }
 
-  @Test func theQuestionNamesTheDayAndOnlyWhatChanges() {
-    let withCourse = PostPlanCopyProbe.explain(ctx)
-    #expect(withCourse.contains("date and course"))
-    let bare = PostPlanCopyProbe.explain(PlanContext(planId: UUID(), playOn: "2026-09-12"))
-    #expect(bare.contains("date") && !bare.contains("course"))
+  /// R6 · the question describes THIS card. It promised to replace the course
+  /// whenever the plan named one, while both clients leave a course the golfer
+  /// already typed alone — so somebody could agree to start the Papago round
+  /// and keep a different course, having been told otherwise.
+  @Test func theQuestionDescribesWhatActuallyChanges() {
+    let blank = PostPlanCopyProbe.explain(ctx, typedCourse: "")
+    #expect(blank.contains("the date and the course"), "a blank card does take the plan's course")
+    #expect(!blank.contains("stays"))
+
+    let populated = PostPlanCopyProbe.explain(ctx, typedCourse: "Somewhere else")
+    #expect(populated.contains("This changes the date, and nothing else"), "a typed course is not replaced, and the question must say so")
+    #expect(populated.contains("Somewhere else stays."))
+    #expect(!populated.contains("the course,"), "it must not promise a course change it will not make")
+
+    let noCourseOnThePlan = PostPlanCopyProbe.explain(PlanContext(planId: UUID(), playOn: "2026-09-12"), typedCourse: "")
+    #expect(noCourseOnThePlan.contains("This changes the date, and nothing else"))
+
     for word in ["score", "point", "count"] {
-      #expect(!withCourse.lowercased().contains(word), "a plan promises nothing about scoring: \(word)")
+      #expect(!blank.lowercased().contains(word), "a plan promises nothing about scoring: \(word)")
     }
   }
 }
@@ -181,8 +193,11 @@ import Foundation
 /// hold it. If the two ever disagree the app's dialog is the one that ships —
 /// keep them identical.
 enum PostPlanCopyProbe {
-  static func explain(_ ctx: PlanContext) -> String {
-    let what = (ctx.courseLabel?.isEmpty == false) ? "date and course" : "date"
-    return "Your card keeps whatever you have typed. This changes the \(what), and nothing else."
+  static func explain(_ ctx: PlanContext, typedCourse: String) -> String {
+    let typed = typedCourse.trimmingCharacters(in: .whitespaces)
+    let willCourse = (ctx.courseLabel?.isEmpty == false) && typed.isEmpty
+    let what = willCourse ? "the date and the course" : "the date"
+    let kept = (ctx.courseLabel?.isEmpty == false && !typed.isEmpty) ? " \(typed) stays." : ""
+    return "Your card keeps whatever you have typed. This changes \(what), and nothing else.\(kept)"
   }
 }
