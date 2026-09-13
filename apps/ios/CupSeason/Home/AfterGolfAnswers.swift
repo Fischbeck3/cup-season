@@ -63,3 +63,23 @@ struct AfterGolfAnswers: View {
     }
   }
 }
+
+#if DEBUG
+/// `-cs_dev_home_state <id>` over a signed-out root, so any state in the Home
+/// matrix — including the after-golf card, which needs a plan, a session and a
+/// server carrying the migration — can be photographed in both themes and at
+/// accessibility text sizes. Its own view, because the root's body is already
+/// at the type-checker's limit.
+struct HomeFixtureOverlay: View {
+  @Environment(SessionStore.self) private var store
+  @Environment(\.cs) private var cs
+  var body: some View {
+    if CSDevHatch.fixtureHome, store.me == nil {
+      // Every door is nil: a fixture is a picture of a state, not a place to
+      // navigate from, and a tap that led somewhere would leave the fixture.
+      NavigationStack { HomeView(links: CSLinks(), push: { _ in }) }
+        .background(cs.bg0.ignoresSafeArea())
+    }
+  }
+}
+#endif

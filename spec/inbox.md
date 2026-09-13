@@ -450,3 +450,70 @@ above; kept here as the record of what was found.**
   `leagues.code` for a league the golfer is not in, and `leagues_read` has no
   invitee arm. Moot only because its one caller is unrendered. First question:
   delete it in favour of `join_covenant_for_invite`.
+
+## 2026-09-13 · Complete-the-week sprint · what was found and not built (claude/complete-the-week)
+
+Each item was reproduced on that branch or read out of production. None is a
+commitment. Full context: `docs/reviews/2026-09-13-after-golf-deploy-sequence.md`
+and the checkpoint commits.
+
+- **Run it back enrols a member and bills them, without asking.** Gameplay /
+  product decision, and the largest thing here. `run_it_back` writes no
+  `league_members` row — "re-seating is a count, not an insert" — so a member of
+  the league is a member of its next season by construction. It also overwrites
+  `league_settings.buyin_cents` in the same call. With no `buy_ins` row the Home
+  strip then prints **"YOU OWE $X"** for a stake that member never agreed to,
+  and the copy says *"6 of you are on it"* about six people who were not asked.
+  Declining the refire invitation does not un-seat anybody; the migration says so
+  outright. There is **no acceptance artefact anywhere in the schema** — no
+  `agreed_at`, `terms_accepted` or equivalent exists. First question: does a new
+  season re-ask for consent and for money, or does the league's standing
+  agreement carry forward and the copy simply stop claiming an opt-in nobody
+  made? The second is much the smaller change.
+- **The covenant refire is unreachable from the shipped UI.** Gameplay. The SQL
+  fires it when the stake or the length moved, but neither client sends
+  `p_buyin_cents` or `p_season_months`, so it never fires. First question: is the
+  Pro meant to be able to change terms through run-it-back at all?
+- **`is_league_member` ignores `left_at` and `suspended_at`.** Correctness, and
+  it touches RLS, so it needs its own packet. A golfer who used "Leave the
+  season" still counts as a league member: they can still enter an attached
+  Major and still create a Ryder against that league. `run_it_back` filters
+  `left_at` correctly; the event paths do not. First question: is the fix inside
+  `is_league_member`, or a separate `is_active_member` at the event doors — the
+  first is one line and a wide blast radius, the second is narrow and duplicated.
+- **Leaving does not clear what leaving should clear.** UX/correctness.
+  `leave_season` sets `left_at` and stops scoring forward, but it does not
+  decline a pending invitation and does not clear the "YOU OWE" strip, because
+  `MeStripCopy` does not filter on `left_at`. First question: which of those two
+  is the debt's real owner.
+- **The Major's live leader and its settled winner can be different people.**
+  Gameplay/UX. `major_board` orders ties **alphabetically** and does not return
+  `second_pvi`; `settle_major` breaks them on the countback ladder the room's own
+  fine print promises. Neither client could apply the ladder from the payload.
+  First question: does `major_board` return the countback keys, or does the live
+  board stop printing a position and show the card instead?
+- **The Major pot is client multiplication with no ledger.** Gameplay/money.
+  `buy_in × contenders` drawn in gold on both clients; no per-event payment row
+  exists in the schema at all. First question: does a Major get a payment record
+  like a season, or does the figure become "if everyone pays"?
+- **Web creates a Major with no flag; iOS is gated.** Growth/release. iOS reads
+  `app_flags.ios.major` fail-closed; the web renders both picker rows, tags both
+  LIVE, and calls `create_major` directly. The server gates neither. First
+  question: should the desk read the same flag, or is the flag retired now that
+  the Major has opened?
+- **A Ryder has no eligibility rule and says nothing about it.** Gameplay. A
+  provisional starter number competes on equal terms with an established one;
+  the Major's rule has no Ryder equivalent and neither surface mentions it.
+  First question: is that deliberate?
+- **The demo trophy case shows an unlabelled Major trophy.** UX. `state.demo`
+  defaults true and `renderTrophyCase` draws `DEMO_TROPHIES` — including a Major
+  trophy dated 2026 — in the golfer's own case with no demo mark, while every
+  other demo surface toasts that it is a diorama.
+- **The web member history has no tap from a round to its receipt.** UX, §16.
+  The rows are `div`s; the phone's twin is a button that opens the round. The
+  chain from a points figure to the round stops one link short on the desk.
+- **`WizardRunBack` is dead code on both clients.** Code health. Every call site
+  passes nil; the web records in a comment that nothing sets `window._runItBack`
+  any more. First question: adopt or delete.
+- **"Held since week N" is back-computed on the client.** UX. The table ignores
+  the server's `since` date and subtracts `run_weeks` from the week number.

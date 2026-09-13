@@ -162,7 +162,10 @@ public struct Invite: Identifiable, Sendable, Equatable {
   /// said a kind this build cannot describe) — and nil is a shut door.
   public var eventLine: String? {
     switch eventKind {
-    case "major": return "A Major — one week, one card, the best round takes it."
+    // D357 · "one week" was never true: a Major's window is two to four days
+    // (`create_major`'s clamp, and the setup sheet's only choices). The
+    // invitation says what the payload can establish and no more.
+    case "major": return "A Major — a short window, one card, the best round takes it."
     case "ryder": return "A Ryder — two teams, one clash each week."
     default: return nil
     }

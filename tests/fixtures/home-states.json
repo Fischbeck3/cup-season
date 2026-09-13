@@ -1123,6 +1123,64 @@
         ],
         "lead_suppress": []
       }
+    },
+    {
+      "id": "after_golf",
+      "matrix": "S18",
+      "title": "After golf — a plan two days back, nothing posted yet",
+      "note": "D353/D354 · the after-golf card as a CAPABLE client receives it: the ember door to the composer plus the two ways out, and the plan's own facts in `context` so the composer opens on the day that was PLAYED. A client that does not declare `afterplan.v1` is sent no such item at all, which is the state every shipped build is in.",
+      "payload": {
+        "me": {
+          "profile": {
+            "id": "a0000000-0000-4000-8000-000000000001",
+            "display_name": "Sam Ridley",
+            "handle": "sam",
+            "marker": "⛳",
+            "city": "Tempe",
+            "home_course": null,
+            "index_current": 12.4,
+            "index_source": "engine",
+            "photo_path": null,
+            "rounds_count": 22,
+            "is_founder": false
+          },
+          "memberships": [],
+          "invites": [],
+          "upcoming_rounds": [],
+          "events": [],
+          "open_duels": []
+        },
+        "items": [
+          {
+            "key": "afterplan:c0000000-0000-4000-8000-0000000000a1",
+            "tier": "changed",
+            "rank": 1,
+            "score": 806,
+            "rank_reason": "B2 800 + 6 (M8 6 (a dated thing)) = 806",
+            "subject": "you",
+            "human_subject": true,
+            "eyebrow": "@eyebrow-2",
+            "headline": "Galen had you on the plan for Friday.",
+            "standfirst": "Nothing posted yet.",
+            "action": "Add my round",
+            "route": {
+              "kind": "composer"
+            },
+            "context": {
+              "plan_id": "c0000000-0000-4000-8000-0000000000a1",
+              "play_on": "@today-2",
+              "course_label": "Papago",
+              "course_id": null,
+              "tee_time": "08:10"
+            },
+            "league_id": null,
+            "suppress": [],
+            "spine": "ember",
+            "at": "@today-2"
+          }
+        ],
+        "lead_suppress": []
+      }
     }
   ]
 }

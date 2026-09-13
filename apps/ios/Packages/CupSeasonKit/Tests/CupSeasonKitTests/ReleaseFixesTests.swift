@@ -132,7 +132,8 @@ import Foundation
     let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Galen",
                    startsOn: "2026-10-03", eventKind: "major", buyIn: 25)
     #expect(i.title == "Major invite" && i.isMajor)
-    #expect(i.eventTerms == ["A Major — one week, one card, the best round takes it.",
+    // D357 · a Major's window is two to four days, never a week.
+    #expect(i.eventTerms == ["A Major — a short window, one card, the best round takes it.",
                              "First tee Sat Oct 3.", "$25 each.", MoneyCopy.ledger])
   }
   @Test func aFreeRyderSaysNoBuyInAndNoLedger() {

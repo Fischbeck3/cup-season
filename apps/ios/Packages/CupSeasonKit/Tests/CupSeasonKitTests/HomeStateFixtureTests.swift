@@ -23,7 +23,7 @@ struct HomeStateFixtureTests {
   @Test func everyStateInTheBriefIsDeclared() {
     let want = ["brand_new", "rounds_no_buddies", "buddies_no_competition", "event_ahead", "event_live",
                 "between_seasons", "ceremony_night", "inactive", "invited", "callout_pending",
-                "preseason", "round_morning", "round_evening"]
+                "preseason", "round_morning", "round_evening", "after_golf"]
     let got = HomeStateFixtures.all.map(\.id)
     #expect(got == want, "the ids drifted: \(got)")
     #expect(Set(HomeStateFixtures.all.map(\.matrix)).count == want.count, "two fixtures claim one matrix row")
@@ -34,6 +34,23 @@ struct HomeStateFixtureTests {
       #expect(HomeStateFixtures.payload(s.id) != nil, "\(s.id) does not decode as a home_dispatch payload")
     }
     #expect(HomeStateFixtures.payload("no_such_state") == nil)
+  }
+
+  /// D353/D354 · the after-golf state is the one a CAPABLE client receives, and
+  /// it is the only fixture whose item can be answered. It exists so the card
+  /// can be photographed in both themes and at accessibility text sizes without
+  /// a live plan, a live session or a server that has the migration.
+  @Test func theAfterGolfFixtureCarriesEverythingTheCardNeeds() throws {
+    let p = try #require(HomeStateFixtures.payload("after_golf"))
+    let card = try #require(p.items.first { $0.key.hasPrefix("afterplan:") })
+    #expect(card.answerable, "the fixture must exercise the two ways out, not just the door")
+    #expect(card.route == .composer)
+    #expect(card.plan?.courseLabel == "Papago")
+    #expect(card.plan?.courseId == nil, "a plan with no catalogue course invents none")
+    #expect(card.action == "Add my round")
+    // the day is a token, so the fixture never reads stale
+    #expect(card.plan?.playOn == card.at)
+    #expect(card.standfirst == "Nothing posted yet.", "it asserts nothing about whether they played")
   }
 
   // MARK: - the dates are tokens, so a fixture never reads stale

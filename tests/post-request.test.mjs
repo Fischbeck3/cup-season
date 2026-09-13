@@ -82,7 +82,8 @@ eq(postDraftDecision(null, 'u1', false, NOW), 'stamp-only', 'no draft, nothing t
 
 /* ---- an event invitation says what it is and what it costs, or nothing ---- */
 eq(csEventTerms({ kind: 'event', event_kind: 'major', buy_in: 25, starts_on: '2026-10-03' }),
-   ['A Major — one week, one card, the best round takes it.', 'First tee 2026-10-03.', '$25 each.',
+   /* D357 · a Major's window is two to four days, never a week. */
+   ['A Major — a short window, one card, the best round takes it.', 'First tee 2026-10-03.', '$25 each.',
     'Cup Season keeps the ledger; the money moves between friends.'], 'a Major with a stake says the stake and the ledger');
 eq(csEventTerms({ kind: 'event', event_kind: 'ryder', buy_in: 0 }), ['A Ryder — two teams, one clash each week.', 'No buy-in.'],
    'a free Ryder says no buy-in and no ledger');

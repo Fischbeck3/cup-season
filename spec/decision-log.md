@@ -7548,3 +7548,34 @@ D343/D344 are applied. D345 remains a separate, unapplied database change while 
 - **Three identities, kept apart.** `plan` is display context, `request` is what the server deduplicates the post on, `sourceLive` is a kept scorecard that already exists. All three ride the draft separately and none is derived from another. The plan does not travel with the round, does not alter the post path or its TTL, and adds nothing to the payload.
 - **Principle served.** Real golf, low friction, and every figure tracing to the round that produced it.
 - **Tradeoffs.** A plan-dated round is back-dated by design, and the golfer can still change the date. Without a durable plan-to-round link, two rounds on one day can still miss a prompt — D345's chosen error, unchanged here. Linkage stays a separate ruling.
+
+### D355 · The ceremony says what the server decided
+**Repair, 2026-09-13**, checkpoint 2. §16, D229, L-13, D350.
+
+- **Current mechanic.** `post_round` returns `{round, epilogue}` in one answer: the round's own `counts`, and the epilogue's `pvi` and `points`, decided by Postgres against the season the round's DATE falls in. The phone reads them (`PostRoundModel` takes `outcome.counts` and `outcome.epilogue`). **The desk did not.** `finishCeremony` was fed `pts` and `vs` from `state.lastPost` — the composer's own preview, computed in the browser by `pointsFor`/`pviFor` — and `counts` was derived by comparing the played date to whichever league the browser happened to have open, while the server's answer sat on the same response, unread.
+- **Problem.** The largest, first, gold statement a golfer sees after posting was a **prediction**. Two ways it can be wrong. The figure: only Postgres decides a band, and a client's floating-point arithmetic disagrees with Postgres's exact decimal at band edges — a known, written-up hazard in this repository. The league: D229 moved season derivation to the server precisely because a golfer can be in two seasons, and `CS.league` is navigation memory, not a scoring answer. A backdated round could be announced as counting for the league on screen while the server scored it for another, or for none.
+- **Recommendation, as built.** The ceremony prefers the server's `counts`, `points` and `pvi`. The client figures survive for exactly one case — the declared insert fallback, where there is no server answer to prefer — and that case is logged (`ceremony_client_figures`) rather than dressed up as an authority it does not have.
+- **Principle served.** §16, and the rule this sprint was given: only Postgres decides a band.
+- **Tradeoffs.** None found: the values were already on the page.
+
+### D356 · An invitation seats you the way every other door does
+**Repair, 2026-09-13**, checkpoint 2. D345-era events work, §16.
+
+- **Current mechanic.** A Major ranks only an **established number** for the jug — `major_contender` is `handicap_index(profile) is not null`, which is null under three differential-carrying rounds. Both clients print the rule in the room. Three of the four doors into a Major set `event_players.exhibition` accordingly: `create_major`, `enter_major`, `add_event_player`. The fourth, `respond_invite`, inserted `(event_id, profile_id, seed)` and nothing else.
+- **Problem.** `exhibition` defaults to false, so a golfer who **accepts an invitation** was seated as a full contender however few rounds they had posted — ranked for the jug by `settle_major` and counted into the pot — in direct contradiction of the sentence the room shows them. No trigger and no backfill repaired it afterwards.
+- **Recommendation, as built.** The invitation door seats by the same rule as the others. A Ryder seat keeps the column's default, because a Ryder has no established-number rule to apply — which is its own finding, and a copy question rather than a SQL one.
+- **Latent, not live.** Production holds no Major and no accepted event invitation (read-only, 2026-09-13), so there is nothing to backfill and this is a forward fix.
+- **Tradeoffs.** A golfer invited to a Major before establishing a number now plays as an exhibition rather than for the jug. That is the rule they were shown.
+- **A second reported defect is deliberately NOT fixed.** `run_it_back`'s `v_months is distinct from v_settings.season_months` would be true for a NULL, firing the covenant refire and announcing a change nobody made. `league_settings.season_months` is `integer DEFAULT 9 NOT NULL` in the initial baseline and no migration has relaxed it, so the column cannot hold a NULL and the comparison is correct for every value it can take. Proven by trying: the update is refused by the constraint. Replacing a live function to guard a state its own schema forbids is churn with risk and no benefit.
+
+### D357 · Say the unit, the window and the money you can actually establish
+**Repair, 2026-09-13**, checkpoint 2. D234, D352, §16.
+
+Four sentences that asserted more than their payload carried. Each is the same fault: a figure or a fact stated in a register the data does not support.
+
+- **The Unlimited counting tile printed the minimum's number as rounds.** `#statCount` showed `credits` — `floor_credit`, in which a nine is a half — under the caption "every round counts". The capped branch beside it already used the server-ranked `counting`. Now both do. D352 fixed this family on the month sentence; this is the case it missed.
+- **The pulse card called floor credits "rounds counted".** `"0.5 rounds counted, minimum met"` tells a golfer they posted half a round. It now names the unit — *toward the minimum* — and carries the same half gloss the month sentence uses, from one shared producer so the two cards cannot drift.
+- **A Major invitation said "one week".** The window is two to four days: `create_major` clamps it and the setup sheet offers nothing else. It now says "a short window", which is what the payload can establish.
+- **A Major card said "buy-in stays in the pot".** That asserts money was collected. **No Major payment record exists anywhere in the schema** — `buy_ins` is season-scoped and no migration creates a per-event payment row — so the app cannot know it. It now says only what it knows: no card.
+- **Principle served.** §16, and L-44: a fact with no read renders nothing rather than something plausible.
+- **Not fixed here, and recorded instead:** the Major pot figure itself is client multiplication (`buy_in × contenders`) with no ledger behind it, on both clients. Naming that honestly is a larger copy and product question than this checkpoint should decide alone.

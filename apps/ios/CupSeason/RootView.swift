@@ -113,6 +113,13 @@ struct RootView: View {
     .overlay {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_no_photo") { HomeNoPhotoFixture() }
     }
+    // D259's hatch says "twelve of the seventeen cannot be reached from any
+    // account this product has, which is why the re-audit could not photograph
+    // them" — but `CSDevHatch.fixtureHome` was declared and read by NOTHING, so
+    // the hatch still needed a real session and a build machine got the DOOR.
+    // Same posture as the overlays around it: DEBUG only, one read substituted,
+    // nothing written, and a fixture is never a fact on a home screen.
+    .overlay { HomeFixtureOverlay() }
     .overlay {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") {
         RoundSharePreview(recap: PostRecap(name: "QA golfer", marker: "",

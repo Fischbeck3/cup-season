@@ -5690,6 +5690,13 @@ function csCountingRule(n){
    say the round adds points, overtakes anybody or qualifies anyone — Postgres
    decides a band, after the round is posted. Twin of `LeagueCopy.anotherChance`. */
 const CS_ANOTHER_CHANCE = 'Another round is another chance to improve on one of them.';
+/* D234/D357 · the minimum is measured in credits — an eighteen is one, a nine a
+   half — and the gloss appears only when a half is actually on screen. One
+   producer, so the month sentence and the pulse card cannot disagree about when
+   to say it. Twin of `LeagueCopy.halfNote`. */
+function csHalfNote(credits, rem){
+  return ((Number(credits)%1) || (Number(rem)%1)) ? ' A nine counts half.' : '';
+}
 /* season length ladder in WEEKS — short casual seasons ("a quick 3-round run
    before it's cold") through full multi-month leagues. Flexible start (§14.0
    v1.1: Sunday-start no longer required — caps/floors stay calendar-month). */
@@ -10464,12 +10471,33 @@ $('#postBtn').addEventListener('click', async ()=>{
            promise. Keyed on the date, not atStarter() alone: a backdated round
            during an active season hits this too. */
         const played = payload.played_on || isoOf(new Date());
-        const counts = !!window.CS?.league && !!state.seasonStart && !!state.seasonEnd
-          && played >= state.seasonStart && played <= state.seasonEnd;
+        /* D355 · **the ceremony says what the SERVER decided.**
+           It used to print `pts` and `vs` from `state.lastPost` — the composer's
+           own preview, computed here by `pointsFor`/`pviFor` — and derive
+           `counts` by comparing the date to whichever league the browser
+           happened to have open. So the largest, gold, first statement a golfer
+           saw after posting was a PREDICTION, while `post_round`'s authoritative
+           answer sat on the same response, unread. Only Postgres decides a band,
+           and it decides it against the season the DATE falls in, which is not
+           necessarily the league on screen (D229/L-13).
+
+           The client figures survive for exactly one case: the declared insert
+           fallback, where there is no server answer to prefer. That case is
+           logged rather than dressed up as one. */
+        const svCounts = (rpcRound && rpcRound.counts != null) ? !!rpcRound.counts : null;
+        const svPts = (epiFromRpc && epiFromRpc.points != null) ? Number(epiFromRpc.points) : null;
+        const svVs  = (epiFromRpc && epiFromRpc.pvi    != null) ? Number(epiFromRpc.pvi)    : null;
+        const counts = svCounts != null ? svCounts
+          : (!!window.CS?.league && !!state.seasonStart && !!state.seasonEnd
+             && played >= state.seasonStart && played <= state.seasonEnd);
+        if(svCounts == null) qaEvent('ceremony_client_figures', { reason: 'no server answer' });
         if(typeof finishCeremony==='function') finishCeremony({
           course: payload.course_label || 'A round',
           date: payload.played_on ? localDate(payload.played_on) : new Date(),
-          gross: payload.gross, vs, points: counts ? pts : null, squad: mySquad,
+          gross: payload.gross,
+          vs: svVs != null ? svVs : vs,
+          points: counts ? (svPts != null ? svPts : pts) : null,
+          squad: mySquad,
           inLeague: counts,
           name: window.CS?.profile?.display_name || 'You',
           marker: window.CS?.profile?.marker || 'saguaro',
@@ -15076,7 +15104,13 @@ function renderStats(){
   /* D3: the month is a fill meter, not prose about "caps" — four slots you
      can see filling. A better round always bumps the worst one that counts. */
   if(capN===Infinity){
-    $('#statCount').innerHTML = fmtN(credits)+' <small>rounds</small>';
+    /* D357 · this printed `credits` — `floor_credit`, the MINIMUM's unit, in
+       which a nine is a half — under the caption "every round counts". Two
+       different rules, one number. `my.counting` is the count of rounds the
+       SERVER ranked inside the cap, which under Unlimited is every eligible
+       round, and it is the figure this tile has always meant. */
+    const n = my ? my.counting : credits;
+    $('#statCount').innerHTML = fmtN(n)+' <small>round'+(Number(n)===1?'':'s')+'</small>';
   } else {
     const dots=Array.from({length:capN},(_,i)=>
       `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;${i<used?'background:var(--pos)':'border:1px solid var(--dim);opacity:.55'}"></span>`).join('');
@@ -18403,8 +18437,11 @@ function renderPulse(){
     const needTxt=need%1?need.toFixed(1):need;
     const cr=fmt(me.credits);
     box.innerHTML=pulseGauge(Number(me.credits), floor, `Your ${mName} · ${closes}`,
-      need>0 ? `<b>Post ${needTxt} more</b> to clear this month's minimum — ${cr}/${floor} counted.`
-             : `<b>Cleared for ${mName}</b> — ${cr} round${cr==='1'?'':'s'} counted, minimum met.`);
+      /* D357 · `cr` is `floor_credit` toward the MINIMUM, not a count of
+         rounds, and a nine is a half of it. The unit is named here the way
+         `nextUpText` names it, and the cleared line stops calling it rounds. */
+      need>0 ? `<b>Post ${needTxt} more</b> to clear this month's minimum — ${cr}/${floor} toward it.${csHalfNote(Number(me.credits), need)}`
+             : `<b>Cleared for ${mName}</b> — ${cr} of ${floor} toward the minimum.${csHalfNote(Number(me.credits), need)}`);
   }
   /* #5 (pilot): "make it more clear about the month minimum." The gauge shows
      the COUNT; this line states the RULE — how many, what a miss costs, and the
@@ -19976,10 +20013,24 @@ function showSquadReal(t){
   const ids=new Set((q?.squad_members||[]).map(x=>x.member_id));
   const rows=(window.indRows||[]).filter(r=>ids.has(r.mid)).sort((a,b)=>b.pts-a.pts);
   const fromRounds=rows.reduce((a,r)=>a+r.pts,0);
-  const adj=t.pts-fromRounds;   /* the ledger's net: bonuses − penalties */
+  /* D355 · every ledger row, with its reason — then only what is actually left
+     over. `total − rounds` used to be printed as "the ledger" whether or not a
+     ledger row explained it. The phone's twin is `SquadReceiptBreakdown`. */
+  const led = window.seasonLedger === null ? null
+            : (window.seasonLedger||[]).filter(a => a.squad_id === t.id);
+  const known = (led||[]).reduce((a,r)=>a+Number(r.points||0),0);
+  const rest = Math.round((t.pts - fromRounds - known) * 1e6) / 1e6;
   let h=`<div class="mathrow"><span>Rounds that count</span><b>${fromRounds}</b></div>`;
-  if(adj) h+=`<div class="mathrow ${adj>0?'pos':'neg'}"><span>Bonuses &amp; penalties · the ledger</span><b>${adj>0?'+':''}${adj}</b></div>`;
+  (led||[]).forEach(a=>{
+    const when = a.month ? String(a.month).slice(0,10) : '';
+    const who  = a.member_id ? memName(a.member_id) : '';
+    const why  = a.reason || String(a.kind||'').replace(/_/g,' ');
+    const label = [when && csDayToken ? csDayToken(when) : when, who, why].filter(Boolean).join(' · ');
+    h+=`<div class="mathrow ${a.points>0?'pos':'neg'}"><span>${esc(label)}</span><b>${a.points>0?'+':''}${a.points}</b></div>`;
+  });
+  if(rest) h+=`<div class="mathrow ${rest>0?'pos':'neg'}"><span>Breakdown not yet available</span><b>${rest>0?'+':''}${rest}</b></div>`;
   h+=`<div class="mathrow tot"><span>Total</span><b>${t.pts}</b></div>`;
+  if(rest) h+=`<p class="fine" style="padding-top:8px">The breakdown is incomplete. The total is from the standings; reopen the season to refresh.</p>`;
   h+=`<div class="eyebrow" style="margin-top:18px">Who built it</div>`;
   rows.forEach((p,i)=>{
     h+=`<button class="rdrow" data-sqm="${i}">
@@ -21078,7 +21129,11 @@ function renderMajorRoom(el, E){
     if(nc.length){
       html+=`<div class="eyebrow">No card</div>`;
       nc.forEach(c=>{ const r={...nameOf(c), pvi:null};
-        html+=rowHtml('—', r, buyIn>0&&!c.exhibition?'No card · buy-in stays in the pot':'No card this time'); });
+        /* D357 · "buy-in stays in the pot" asserted that money was collected.
+           A Major has no payment record anywhere — `buy_ins` is season-scoped
+           and no migration creates a per-event payment row — so the app cannot
+           know it. It says what it does know: no card. */
+        html+=rowHtml('—', r, 'No card this time'); });
     }
     if(champ && champCard){
       html+=`<button class="btn" id="mjShare" style="width:100%; margin-top:12px">Share the jug</button>`;
@@ -24543,6 +24598,22 @@ async function loadStandingsAndFeed(){
   /* D105: the window race is a server figure — never computed here. Any error
      (an un-migrated DB, a non-member) leaves the block hidden and the table
      rendering exactly as before. */
+  /* D355 · the ledger, READ. The desk never read `season_adjustments` at all:
+     the squad receipt derived `total − rounds` and labelled the whole
+     difference "Bonuses & penalties · the ledger", so every discrepancy was
+     attributed to rows nobody had looked at — including a discrepancy no
+     ledger row explains. §16 says a figure shows its work. The phone has read
+     this table since D220 (`LeagueRoomModel.adjustments`); this is the desk
+     catching up, with the same sentinel exclusion.
+     Any error leaves it null, and the receipt then says it cannot break the
+     total down rather than inventing an explanation for it. */
+  window.seasonLedger = null;
+  {
+    const lq = await sb.from('season_adjustments')
+      .select('id, squad_id, member_id, month, kind, points, reason, created_by')
+      .eq('season_id', CS.season.id).order('created_at');
+    if(!lq.error) window.seasonLedger = (lq.data||[]).filter(a => a.kind !== 'month_closed');
+  }
   window.cupRace = null;
   if(CS.season.status === 'cup_final' || CS.season.status === 'complete'){
     const { data: race, error: er } = await sb.rpc('cup_final_race', { p_season: CS.season.id });
@@ -25752,7 +25823,10 @@ function csEventTerms(inv){
   const kind = String(inv.event_kind);
   /* a kind this build cannot describe is a shut door, like no kind at all */
   if(kind !== 'major' && kind !== 'ryder') return [];
-  const out = [kind === 'major' ? 'A Major — one week, one card, the best round takes it.'
+  /* D357 · "one week" was never true: a Major's window is two to four days
+     (`create_major`'s own clamp, and the setup sheet's only choices). The
+     invitation now says what the payload can establish and no more. */
+  const out = [kind === 'major' ? 'A Major — a short window, one card, the best round takes it.'
              : 'A Ryder — two teams, one clash each week.'];
   if(inv.starts_on) out.push('First tee ' + csDowMonDay(inv.starts_on) + '.');
   if(inv.buy_in != null){
