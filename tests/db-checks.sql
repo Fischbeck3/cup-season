@@ -847,5 +847,33 @@ select '33 · a plan seats the host who declared it',
        else 'PASS — every future plan has its host on the sheet' end,
   'scheduled_rounds(play_on >= today) × round_rsvp'
 
+-- 34 · D353 · a band nobody can answer is never served.
+--     D345 reached production without `schema_migrations` knowing, and its one
+--     gate was `p_today is not null` — which every shipped build already sent.
+--     So the after-golf card went live on clients with no Later, no Didn't play
+--     and no date prefill: a card a golfer could neither answer nor dismiss,
+--     whose only door opened a blank composer dated today. This check is the
+--     claim made self-enforcing. It reads the DEPLOYED function, not the file.
+union all
+select '34 · the after-golf band waits for a client that can answer it',
+  case
+    when (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public' and p.proname = 'home_dispatch') <> 1
+      then 'FAIL — home_dispatch does not resolve to exactly one function; the overload trap has fired'
+    when (select position('afterplan:' in pg_get_functiondef(p.oid)) = 0
+            from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public' and p.proname = 'home_dispatch')
+      then 'PASS — this database has no after-golf band to gate'
+    when (select position('afterplan.v1' in pg_get_functiondef(p.oid)) = 0
+            from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public' and p.proname = 'home_dispatch')
+      then 'FAIL — the after-golf band is live with NO capability gate; every shipped client that sends p_today gets a card it cannot answer'
+    when (select pg_get_function_result(p.oid) <> 'jsonb'
+            from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public' and p.proname = 'answer_plan_followup')
+      then 'FAIL — answer_plan_followup returns void; a client cannot tell a recorded answer from an already-terminal one'
+    else 'PASS — the band requires a declared capability, and an answer says what it did' end,
+  'pg_get_functiondef(home_dispatch) × answer_plan_followup result type'
+
 )
 select * from checks order by check_name;
