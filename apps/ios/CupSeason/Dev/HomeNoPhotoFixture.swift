@@ -47,6 +47,7 @@ struct HomeNoPhotoFixture: View {
         }
       }.padding(.horizontal, CSTokens.Space.gutter)
     }
+    .accessibilityIdentifier("home.no-photo.fixture")
     .background(cs.bg0.ignoresSafeArea())
     .sheet(isPresented: Binding(get: { destination != nil }, set: { if !$0 { destination = nil } })) {
       Text(destination ?? "").csType(.name).padding()

@@ -2,6 +2,17 @@
 
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
+## Current release override · 2026-09-13
+
+Owner requested both phone surfaces, Safari first. The historical baselines below are retained as history, not the current release candidate.
+
+- Integration: `codex/today-release-2026-09-13`, `/Users/fischbeck3/cup-season-today-release`.
+- Claude implementation lead completed `99549ca` on `claude/release-fixes-2026-09-13`; integrated and independently audited. Codex now owns final edits, QA and release. Claude is idle.
+- R1 posting/setup/invitations/month facts and R4 snapshot/widget work are implemented. R2 complete-week and R3 competition chapters/event renewal remain explicitly scoped in [today's sprint](2026-09-13-today-release.md).
+- Eight reviewed migrations applied to production; readback 239 total, latest `20261101090000`, D345 absent. No Edge or Vault changes.
+- Safari publication and fresh TestFlight artifact are in progress. Build 815 is superseded and must not be uploaded. See [release evidence](../reviews/2026-09-13-production-release.md) for final delivery state.
+- Do not run a blanket database push: `20261024090000_the_loop_has_a_closing_act.sql` remains held pending capability protection.
+
 ## Baselines and current state
 
 - Audited candidate: `ca682da`, build 815. Keep it unchanged while Apple distribution signing is unavailable. Latest Claude handoff reviewed: `b2dac7e`; no signing issue is a reason to deploy D345.

@@ -10392,6 +10392,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       if(!acceptedRecorded) toast('Round posted. Couldn’t record that in this browser — don’t post it again.');
       /* everything from here to the clear is narration; none of it may leave
          a posted round on the form. The clear runs whatever happens. */
+      let scanCtx=null;
       try{
       /* SF-6: the arrival — this round's gross flips in on its FIRST card
          render (home story card or full board), then the flag dies there.
@@ -10422,7 +10423,6 @@ $('#postBtn').addEventListener('click', async ()=>{
       });
       /* D36: scan accuracy is measured, not guessed — cells the golfer changed
          from what the model read = the model's error rate, straight to Monday */
-      let scanCtx=null;
       if(state.post.scan){
         const read=state.post.scan.read||[];
         const fixed=read.reduce((n,v,i)=> n + (v>0 && +state.post.scores[i]!==v ? 1 : 0), 0);

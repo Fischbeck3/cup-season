@@ -1,0 +1,61 @@
+# Production release inspection · 2026-09-13
+
+## Outcome and ownership
+
+Owner requested a larger audited sprint and production access on a phone: **Safari first, then TestFlight**. Codex integration branch `codex/today-release-2026-09-13` incorporates Claude's season activation and second release-fix pass `99549ca`. Claude led implementation on its separate workspace; Codex independently reviewed, integrated, repaired the remaining web scope defect, tested, and operated release.
+
+Safari publish and native artifact/distribution are in progress. This statement is updated after readback; database deployment alone does not establish either client release.
+
+## Findings resolved
+
+- Ordinary posting retains one durable, owner-scoped request identity through retries and edits. Missing RPC/unreadable storage fails closed. Accepted recovery clears the composer; server serialization prevents concurrent bodies creating two rounds.
+- League creation has durable replay. The agreement preserves real stored/custom rules including Unlimited. Invitation/code doors disclose authoritative handicap allowance, limits, minimum and dates. Event invitations disclose actual type and stake. Warm join links and decline have reachable routes.
+- Month/Home use the same server facts for joining-month waiver and available bye. No competition scoring changes.
+- Home no-photo receipts, person doors and reactions retain their separate actions. Independent preflight found `scanCtx` declared inside a narration try block but used outside; moved the declaration into the handler scope before release.
+- Widget snapshots request reload on publish/clear, schedule expiry explicitly, sanitize legacy data and clear across account changes. Delayed old-owner publication is refused. Lock Screen rectangular season glance is private and dated. Orphan own-round Live Activities are ended on recovery/account change.
+- Archive helper now authenticates both provisioning phases using the existing App Store Connect API key. Fake-tool regression checks cover archive/export failure and prevent old artifacts being uploaded. Actual Apple signing still requires a fresh attempt.
+
+## Executed verification
+
+- Full local PostgreSQL history: **239 migrations passed**, D345 excluded. Isolated UTF-8 cluster with local Supabase stubs; no production rollback sandbox.
+- Real local RPC concurrency/permissions tests: **9 groups passed**, including both amended-request arrival orders, same-body replay, corrected refusal, owner-only status, league creation replay, invitation/code covenant, event invitations and monthly/Home facts.
+- Final preflight with installed locked lint dependencies: **0 failures, 0 warnings** after contract generation.
+- Compact iPhone native run: 1,262 passed; two UI selectors were ambiguous because the debug fixture overlays another screen. Scoped the golfer selector to the fixture and tapped the receipt's identifier; all four Home UI journeys then passed. Domain/app tests and both league-setup UI tests passed in the full run.
+- Snapshot lifecycle suite: 11 passed, including account changes, delayed publisher, clearing, expiry, future timestamps and persisted-content sanitization.
+- Browser at 390/320, service workers/caches cleared: setup 20 checks each; actual Post-button fault injection 11 checks each (network disabled) covering offline, edited retry, accepted recovery, narration failure and unreadable receipt. Existing Home browser audit also passed photo/fallback, person/receipt/reaction and keyboard/target checks. No console errors or horizontal overflow. Existing Supabase lock-option deprecation and deliberately injected failure warnings remain documented.
+- Compact native Home screenshots inspected at normal and AX3 text; no-photo fallback/reactions are readable. These fixtures prove the UI paths, not live account end-to-end transactions or actual iPhone WidgetKit scheduling.
+- Standard iPhone 17 Pro native run against the regenerated bindings is in progress.
+
+## Exact database deployment
+
+Applied from a hash-recorded staging manifest containing canonical migrations except held D345, using `supabase db push --skip-vault`. Dry run showed only these eight; actual deployment and read-only production readback confirmed **239 applied**, latest `20261101090000`, held D345 false.
+
+1. `20261025090000_unlimited_means_unlimited.sql`
+2. `20261026090000_the_terms_reach_every_door.sql`
+3. `20261027090000_a_post_can_be_asked_about.sql`
+4. `20261028090000_one_league_however_many_times_start_is_pressed.sql`
+5. `20261029090000_the_covenant_says_the_allowance.sql`
+6. `20261030090000_the_pulse_says_who_joined_and_who_has_a_bye.sql`
+7. `20261031090000_an_invitation_says_what_it_is.sql`
+8. `20261101090000_home_carries_the_month_facts.sql`
+
+Read-only live pg_proc refresh produced 262 function signatures; generated bindings contain 244 functions / 193 client-callable Swift RPCs. The prior snapshot lagged other already-live migrations, so generation includes that existing contract drift too. Generated outputs were not hand-edited.
+
+No Edge Functions, production secrets, Final scoring, historical rounds, or friend alert fanout were changed by this release operation.
+
+## Remaining sprint and limits
+
+R2: capability-protected Add / Later / Didn't play, safe plan-to-draft prefill and selected-course cache integrity. R3: extend factual season Record/chapters and audit existing event/Run it back consent paths. These are the next Claude-led implementation checkpoints, not delivered features merely because listed in a plan. Friend booking/start/birdie pushes and public discovery still need audience/evidence/delivery contracts. Final §14.3 vs D212 remains an owner decision.
+
+## Handoff
+
+Branch: `codex/today-release-2026-09-13`
+Goal: audited Safari release first, current native TestFlight release second.
+What changed: posting/creation integrity, real invitation/setup/month facts, Home no-photo behavior, widget lifecycle and signing-helper authentication.
+Files changed: web client; iOS feature/domain/widget code and tests; eight migrations; generated contract from its source; release tools and planning/review evidence. Detailed history includes Claude `99549ca` and Codex integration.
+Verification run: listed above; final standard native result and deployed clients pending readback.
+Database deploy owed: none for this release; D345 deliberately held.
+Edge deploy owed: none for this release.
+Client deploy owed: Safari publish and TestFlight artifact/distribution in progress.
+Open questions / risks: actual Apple provisioning, TestFlight processing/review, device widget behavior; retained R2/R3 gates above.
+Recommended next step: publish/verify Safari, then validate/upload the fresh native artifact and verify beta distribution.

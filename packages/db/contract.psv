@@ -82,6 +82,7 @@
 # unchanged by 200000: v2 changed its RETURN SHAPE, which a contract snapshot
 # cannot see — the payload's keys are the client's business, not this file's.
 #
+# Refreshed 2026-09-13 after the eight reviewed release migrations. D345 remains held.
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
@@ -94,35 +95,54 @@ add_event_player|p_event uuid, p_profile uuid|uuid|definer|auth
 add_friend_to_league|p_league uuid, p_profile uuid|void|definer|auth
 add_round_comment|p_round uuid, p_body text|void|definer|auth
 announce|p_league uuid, p_body text|void|definer|auth
+ask_for_a_seat|p_scheduled_round uuid|jsonb|definer|auth
 assert_sandbox|p_league uuid, p_need_flag boolean|void|definer|none
 assign_player|p_squad uuid, p_member uuid|void|definer|auth
 award_event_trophies|p_event uuid|void|definer|none
 award_season_trophies|p_season uuid|void|definer|none
+bag_article|p_word text|text|invoker|none
+bag_count_word|p_n integer|text|invoker|none
+bag_follows_the_card||trigger|definer|none
+bag_of|p_profile uuid DEFAULT NULL::uuid|jsonb|definer|auth
+bag_word|p_slot text|text|invoker|none
+band_name|p_pvi numeric|text|invoker|auth
+call_out|p_opponent uuid, p_closes_on date DEFAULT NULL::date, p_forfeit_terms text DEFAULT NULL::text|uuid|definer|auth
+can_drop_share_copy|p_name text|boolean|definer|auth
 can_see_media|p_owner text|boolean|definer|auth
+can_see_profile_board|p_profile uuid|boolean|definer|auth
 can_see_round|p_round uuid|boolean|definer|auth
+can_write_share_copy|p_name text|boolean|definer|auth
 cancel_league_now|p_league uuid|void|definer|none
 career_record||jsonb|definer|auth
 claim_round_info|p_token uuid|jsonb|definer|anon,auth
 claim_round|p_token uuid|jsonb|definer|auth
 claim_scan_round|p_token uuid|jsonb|definer|auth
 clash_last_call|p_season uuid|uuid|definer|none
+clear_round_photo|p_round uuid|jsonb|definer|auth
 close_month|p_season uuid, p_month date|void|definer|none
 close_roster|p_league uuid, p_open boolean DEFAULT false|timestamp with time zone|definer|auth
 close_season|p_season uuid|void|definer|none
+confirm_round_partner|p_round uuid, p_confirm boolean DEFAULT true|jsonb|definer|auth
 course_key|p_api_id text, p_label text|text|invoker|auth
 course_name_of|p_api_id text, p_label text|text|invoker|auth
+course_rating_is_mine|p_me uuid, p_them uuid|boolean|definer|none
+course_rating|p_course_id text|jsonb|definer|auth
 create_event|p_name text, p_starts_on date, p_sessions integer, p_session_weeks integer, p_draw_rule text, p_team_a text, p_team_b text, p_league uuid DEFAULT NULL::uuid, p_tz text DEFAULT NULL::text, p_lineage uuid DEFAULT NULL::uuid|uuid|definer|auth
-create_forfeit|p_league uuid, p_name text, p_terms text, p_kind text DEFAULT 'custom'::text, p_other uuid DEFAULT NULL::uuid, p_hangs text DEFAULT NULL::text|uuid|definer|auth
+create_forfeit|p_league uuid, p_name text, p_terms text, p_kind text DEFAULT 'custom'::text, p_other uuid DEFAULT NULL::uuid, p_hangs text DEFAULT NULL::text, p_event uuid DEFAULT NULL::uuid, p_round uuid DEFAULT NULL::uuid|uuid|definer|auth
+create_league_once|p_request_id uuid, p_name text, p_code text|json|definer|auth
 create_league|p_name text, p_code text|json|definer|auth
 create_major|p_name text, p_final_on date, p_days integer DEFAULT 4, p_buy_in numeric DEFAULT 0, p_pot_split text DEFAULT 'places'::text, p_league uuid DEFAULT NULL::uuid, p_tz text DEFAULT NULL::text, p_lineage uuid DEFAULT NULL::uuid|uuid|definer|auth
 create_scan_claim|p_name text, p_gross integer, p_strokes jsonb, p_course text, p_rating numeric, p_slope integer, p_played date, p_holes integer DEFAULT 18|uuid|definer|auth
 create_share|p_kind text, p_ref uuid|uuid|definer|auth
 cron_health||jsonb|definer|auth
+cs_contact_digest|p_normalised text|text|invoker|none
+cs_normalise_email|p_raw text|text|invoker|none
+cs_normalise_phone|p_raw text|text|invoker|none
+cs_pepper|p_client_digest text|text|definer|none
 cup_final_race|p_season uuid|jsonb|definer|auth
 cup_points|p_pvi numeric|integer|invoker|auth
 daily_season_tick||void|definer|none
-declare_round|p_play_on date, p_course text, p_note text, p_tagged uuid[] DEFAULT '{}'::uuid[], p_tee time without time zone DEFAULT NULL::time without time zone, p_course_id text DEFAULT NULL::text|uuid|definer|auth
-declare_round|p_play_on date, p_course text, p_note text, p_tagged uuid[] DEFAULT '{}'::uuid[], p_tee time without time zone DEFAULT NULL::time without time zone|uuid|definer|auth
+declare_round|p_play_on date, p_course text, p_note text, p_tagged uuid[] DEFAULT '{}'::uuid[], p_tee time without time zone DEFAULT NULL::time without time zone, p_course_id text DEFAULT NULL::text, p_name text DEFAULT NULL::text, p_game text DEFAULT NULL::text|uuid|definer|auth
 delete_account||void|definer|auth
 delete_event|p_event uuid|void|definer|auth
 delete_league|p_league uuid|void|definer|auth
@@ -144,6 +164,7 @@ founder_note|p_body text|uuid|definer|auth
 founding_ids||jsonb|definer|auth
 friend_request|p_profile uuid|text|definer|auth
 friend_respond|p_id uuid, p_accept boolean|void|definer|auth
+friends_board|p_days integer DEFAULT 30|TABLE(profile_id uuid, display_name text, handle text, marker text, index_current numeric, rounds_30d integer, beats_30d integer, avg_vs_number_30d numeric, best_vs_number_30d numeric, last_round_on date, rank_by_form integer, rank_by_index integer, is_me boolean)|definer|auth
 generate_pairings|p_session uuid|integer|definer|auth
 guest_live_set_score|p_token uuid, p_player uuid, p_hole integer, p_strokes integer, p_client_ts timestamp with time zone|void|definer|anon,auth
 guest_live_set_wolf|p_token uuid, p_hole integer, p_wolf jsonb, p_client_ts timestamp with time zone|void|definer|anon,auth
@@ -152,9 +173,12 @@ handicap_index_asof|p_profile uuid, p_before_date date, p_before_id uuid|numeric
 handicap_index|p_profile uuid|numeric|definer|auth
 handle_available|p_handle text|boolean|definer|auth
 handle_new_user||trigger|definer|none
+head_to_head|p_opponent uuid DEFAULT NULL::uuid|jsonb|definer|auth
 hide_content|p_kind text, p_id uuid, p_reason text DEFAULT NULL::text|void|definer|auth
 home_clash|p_league uuid|jsonb|definer|auth
+home_dispatch|p_days integer DEFAULT 21|jsonb|definer|auth
 home_feed|p_days integer DEFAULT 21|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text)|definer|auth
+home_stories|p_days integer DEFAULT 21, p_league uuid DEFAULT NULL::uuid|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text, has_rating boolean)|definer|auth
 invite_golfer|p_league uuid, p_event uuid, p_profile uuid|uuid|definer|auth
 is_commissioner|p_league uuid|boolean|definer|auth
 is_event_league_member|p_event uuid|boolean|definer|auth
@@ -163,20 +187,22 @@ is_event_organizer|p_event uuid|boolean|definer|auth
 is_league_member|p_league uuid|boolean|definer|auth
 is_suspended|p_league uuid|boolean|definer|auth
 is_undeliverable|p_email text|boolean|invoker|none
+join_covenant_for_invite|p_invite uuid|jsonb|definer|auth
 join_covenant_info|p_code text|jsonb|definer|anon,auth
 join_league|p_code text|uuid|definer|auth
 last_round_with||TABLE(profile_id uuid, display_name text, marker text, last_on date, shared_cards integer)|definer|auth
 league_by_code|p_code text|text|definer|anon,auth
 league_cancel_status|p_league uuid|jsonb|definer|auth
 league_looks||jsonb|definer|auth
-league_pulse|p_league uuid|TABLE(profile_id uuid, display_name text, marker text, credits numeric, floor integer, at_floor boolean, is_me boolean, partial boolean)|definer|auth
+league_pulse|p_league uuid|TABLE(profile_id uuid, display_name text, marker text, credits numeric, floor integer, at_floor boolean, is_me boolean, partial boolean, joined_this_month boolean, bye_available boolean)|definer|auth
+leave_season|p_league uuid DEFAULT NULL::uuid|jsonb|definer|auth
 lineage_root|p_event uuid|uuid|definer|none
 live_join|p_live_round uuid|void|definer|auth
 live_round_card|p_live_round uuid|jsonb|definer|auth
 live_set_score|p_live_round uuid, p_player uuid, p_hole integer, p_strokes integer, p_client_ts timestamp with time zone|void|definer|auth
 live_set_wolf|p_live_round uuid, p_hole integer, p_wolf jsonb, p_client_ts timestamp with time zone|void|definer|auth
 live_state|p_live_round uuid|jsonb|definer|auth
-lock_league|p_league uuid, p_name text DEFAULT NULL::text, p_preset text DEFAULT 'standard'::text, p_handicap_allowance integer DEFAULT 95, p_verification text DEFAULT 'attested'::text, p_counting_cap integer DEFAULT 3, p_participation_floor integer DEFAULT 2, p_floor_penalty text DEFAULT 'deduct'::text, p_season_format text DEFAULT 'points'::text, p_structure text DEFAULT 'squads2'::text, p_buyin_cents integer DEFAULT 0, p_season_months integer DEFAULT 6, p_draft_type text DEFAULT 'random'::text, p_finish text DEFAULT 'cup_final'::text, p_payout_champ integer DEFAULT 60, p_payout_runnerup integer DEFAULT 25, p_payout_king integer DEFAULT 15, p_starts_on date DEFAULT NULL::date, p_ends_on date DEFAULT NULL::date|json|definer|auth
+lock_league|p_league uuid, p_name text DEFAULT NULL::text, p_preset text DEFAULT 'standard'::text, p_handicap_allowance integer DEFAULT 95, p_verification text DEFAULT 'attested'::text, p_counting_cap integer DEFAULT 3, p_participation_floor integer DEFAULT 2, p_floor_penalty text DEFAULT 'deduct'::text, p_season_format text DEFAULT 'points'::text, p_structure text DEFAULT 'squads2'::text, p_buyin_cents integer DEFAULT 0, p_season_months integer DEFAULT 6, p_draft_type text DEFAULT 'random'::text, p_finish text DEFAULT 'cup_final'::text, p_payout_champ integer DEFAULT 60, p_payout_runnerup integer DEFAULT 25, p_payout_king integer DEFAULT 15, p_starts_on date DEFAULT NULL::date, p_ends_on date DEFAULT NULL::date, p_pay_note text DEFAULT NULL::text|json|definer|auth
 log_growth_event|p_node text, p_kind text DEFAULT NULL::text, p_token text DEFAULT NULL::text, p_props jsonb DEFAULT '{}'::jsonb, p_league uuid DEFAULT NULL::uuid|void|definer|anon,auth
 major_board|p_event uuid|TABLE(player_id uuid, profile_id uuid, display_name text, marker text, exhibition boolean, round_id uuid, gross integer, pvi numeric, cards integer, best_posted_at timestamp with time zone)|definer|none
 major_contender|p_profile uuid|boolean|definer|none
@@ -188,18 +214,24 @@ mark_actionable_seen||integer|definer|auth
 mark_buy_in|p_season uuid, p_member uuid, p_paid boolean|void|definer|auth
 mark_cancellation_sent|p_id uuid, p_error text DEFAULT NULL::text|void|definer|none
 mark_email_sent|p_id uuid, p_error text DEFAULT NULL::text|void|definer|none
+match_contacts|p_hashes text[]|TABLE(id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text)|definer|auth
 mj_money|n numeric|text|invoker|none
 mj_vs|n numeric|text|invoker|none
 moderation_queue||jsonb|definer|auth
 moderator_can|p_league uuid|boolean|definer|none
+month_counters|p_member uuid DEFAULT NULL::uuid, p_season uuid DEFAULT NULL::uuid, p_cap integer DEFAULT NULL::integer, p_on date DEFAULT NULL::date|jsonb|definer|none
 my_achievements||TABLE(kind text, label text, earned_on date, meta jsonb, round_id uuid)|definer|auth
 my_actionable_count||integer|definer|auth
+my_course_books|p_limit integer DEFAULT 24|jsonb|definer|auth
+my_course_ratings||jsonb|definer|auth
 my_friends||TABLE(friendship_id uuid, profile_id uuid, handle text, display_name text, city text, marker text, index_current numeric, status text, incoming boolean)|definer|auth
-my_invites||TABLE(id uuid, kind text, container_id uuid, container_name text, inviter text, starts_on date, created_at timestamp with time zone)|definer|auth
+my_invites||TABLE(id uuid, kind text, container_id uuid, container_name text, inviter text, starts_on date, created_at timestamp with time zone, event_kind text, buy_in numeric)|definer|auth
 my_member_id|p_league uuid|uuid|definer|auth
 my_mutes||uuid[]|definer|auth
+my_open_tags|p_limit integer DEFAULT 10|TABLE(round_id uuid, played_on date, course_label text, gross integer, by_name text, by_profile uuid, tagged_at timestamp with time zone)|definer|auth
 my_rivalries||TABLE(opponent uuid, display_name text, handle text, marker text, wins integer, losses integer, ties integer, meetings integer, lead text, duel_wins integer, duel_losses integer, duel_halves integer, rivalry_name text)|definer|auth
-my_schedule|p_from date, p_to date|TABLE(id uuid, profile_id uuid, display_name text, marker text, play_on date, course_label text, note text, tee_time time without time zone, mine boolean, is_friend boolean, shared_league boolean, tagged_names text[], tagged_me boolean, course_id text, rsvp_in integer, my_rsvp text, comment_n integer)|definer|auth
+my_schedule|p_from date, p_to date|TABLE(id uuid, profile_id uuid, display_name text, marker text, play_on date, course_label text, note text, tee_time time without time zone, mine boolean, is_friend boolean, shared_league boolean, tagged_names text[], tagged_me boolean, course_id text, rsvp_in integer, my_rsvp text, comment_n integer, name text, game text, tagged_pids uuid[], rsvp jsonb)|definer|auth
+my_side_games|p_limit integer DEFAULT 20|TABLE(live_round_id uuid, played_on date, game text, course_label text, players text[], story text, status text)|definer|auth
 my_trophies||TABLE(id uuid, kind text, title text, subtitle text, placement text, season_year integer, earned_on date)|definer|auth
 my_visitor_rounds||jsonb|definer|auth
 native_home||jsonb|definer|auth
@@ -208,11 +240,19 @@ notify_founder_of_report||trigger|definer|none
 nth_up|n integer|text|invoker|none
 open_major|p_session uuid|void|definer|auth
 open_week_clash|p_season uuid|uuid|definer|none
+ordinal|p_n integer|text|invoker|none
+plan_day_floor||date|invoker|none
 playerlabel|p_profile uuid|text|definer|auth
+post_kudos_home||trigger|definer|none
+post_round_once|p_request_id uuid, p_payload jsonb, p_hole_scores integer[], p_played_with uuid[]|jsonb|definer|auth
+post_round|p_gross integer, p_rating numeric, p_slope integer, p_holes_played integer DEFAULT 18, p_nine_rating numeric DEFAULT NULL::numeric, p_course_id text DEFAULT NULL::text, p_course_label text DEFAULT NULL::text, p_played_on date DEFAULT CURRENT_DATE, p_photo_path text DEFAULT NULL::text, p_played_with uuid[] DEFAULT '{}'::uuid[]|jsonb|definer|auth
 post_week_comeback|p_season uuid, p_week integer|void|definer|none
+profile_refresh_contact_hash||trigger|definer|none
 randomize_squads|p_season uuid|void|definer|auth
+rate_course|p_course_id text, p_stars numeric, p_note text DEFAULT NULL::text|jsonb|definer|auth
 recent_partners|p_limit integer DEFAULT 12|TABLE(id uuid, handle text, display_name text, city text, home_course text, marker text, index_current numeric, rel text, last_played timestamp with time zone, rounds_together integer)|definer|auth
 recompute_season_payouts|p_season uuid|jsonb|definer|none
+redeem_share|p_token uuid|jsonb|definer|auth
 rederive_achievements|p_profile uuid|void|definer|none
 register_device_token|p_token text, p_platform text DEFAULT 'ios'::text|void|definer|auth
 remove_member|p_member uuid|void|definer|auth
@@ -220,6 +260,7 @@ report_content|p_post uuid DEFAULT NULL::uuid, p_reason text DEFAULT NULL::text,
 request_league_cancel|p_league uuid|text|definer|auth
 resolve_report|p_report uuid, p_resolution text DEFAULT NULL::text|void|definer|auth
 resolve_session|p_session uuid|void|definer|auth
+respond_callout|p_event uuid, p_accept boolean DEFAULT true|text|definer|auth
 respond_invite|p_id uuid, p_accept boolean|void|definer|auth
 retag_round|p_id uuid, p_tagged uuid[]|void|definer|auth
 revoke_share|p_token uuid|boolean|definer|auth
@@ -232,10 +273,14 @@ round_epilogue|p_round uuid|jsonb|definer|auth
 round_holes_of|p_round uuid|TABLE(hole_number integer, strokes integer)|definer|auth
 round_major_story||trigger|definer|none
 round_moments||trigger|definer|none
+round_post_status|p_request_id uuid|jsonb|definer|auth
 round_refresh_index||trigger|definer|auth
+round_scorecard|p_round uuid|jsonb|definer|auth
 round_to_board||trigger|definer|auth
+round_worth|p_cap integer DEFAULT NULL::integer, p_used integer DEFAULT NULL::integer, p_worst numeric DEFAULT NULL::numeric|numeric|invoker|none
 rounds_no_future||trigger|invoker|none
 run_event_sessions||void|definer|none
+run_it_back|p_league uuid, p_starts_on date DEFAULT NULL::date, p_ends_on date DEFAULT NULL::date, p_buyin_cents integer DEFAULT NULL::integer, p_season_months integer DEFAULT NULL::integer, p_pay_note text DEFAULT NULL::text|json|definer|auth
 run_month_closes||void|definer|none
 run_week_snapshots||void|definer|none
 sandbox_advance|p_league uuid|jsonb|definer|auth
@@ -245,6 +290,7 @@ sandbox_reshape|p_league uuid, p_back integer, p_long integer|jsonb|definer|auth
 sandbox_rewind|p_league uuid, p_weeks integer|jsonb|definer|auth
 sandbox_scrap|p_league uuid|jsonb|definer|auth
 sandbox_week|p_league uuid|jsonb|definer|auth
+save_bag|p_clubs jsonb DEFAULT NULL::jsonb, p_sideline jsonb DEFAULT NULL::jsonb, p_ball text DEFAULT NULL::text, p_ball_set boolean DEFAULT false|jsonb|definer|auth
 scan_claim_info|p_token uuid|jsonb|definer|anon,auth
 sched_major_story||trigger|definer|none
 score_round|p_gross integer, p_rating numeric, p_slope integer, p_nine_rating numeric, p_index numeric, p_allowance integer, p_holes integer|TABLE(o_diff numeric, o_pvi numeric, o_points integer)|invoker|none
@@ -255,6 +301,7 @@ search_golfers|p_q text|TABLE(profile_id uuid, handle text, display_name text, c
 season_email_on_complete||trigger|definer|none
 season_email_payload|p_season uuid|jsonb|definer|none
 season_scenarios|p_season uuid|jsonb|definer|auth
+season_story|p_season uuid DEFAULT NULL::uuid, p_league uuid DEFAULT NULL::uuid|jsonb|definer|auth
 set_buy_in_terms|p_league uuid, p_note text DEFAULT NULL::text, p_due_on date DEFAULT NULL::date|json|definer|auth
 set_discoverable|p_mode text|void|definer|auth
 set_email_recap|p_on boolean DEFAULT NULL::boolean|boolean|definer|auth
@@ -271,8 +318,9 @@ set_member_index|p_member uuid, p_index numeric|void|definer|auth
 set_mute|p_profile uuid, p_on boolean|void|definer|auth
 set_notify_chat|p_on boolean|void|definer|auth
 set_notify_rounds|p_on boolean|void|definer|auth
-set_profile|p_name text, p_city text DEFAULT NULL::text, p_home text DEFAULT NULL::text, p_index numeric DEFAULT NULL::numeric, p_marker text DEFAULT NULL::text, p_ghin text DEFAULT NULL::text, p_photo_path text DEFAULT NULL::text|void|definer|auth
+set_profile|p_name text, p_city text DEFAULT NULL::text, p_home text DEFAULT NULL::text, p_index numeric DEFAULT NULL::numeric, p_marker text DEFAULT NULL::text, p_ghin text DEFAULT NULL::text, p_photo_path text DEFAULT NULL::text, p_index_source text DEFAULT NULL::text|void|definer|auth
 set_rivalry_name|p_opponent uuid, p_name text|void|definer|auth
+set_round_photo|p_round uuid, p_photo_path text|jsonb|definer|auth
 set_round_rsvp|p_round uuid, p_status text|void|definer|auth
 settle_forfeit|p_id uuid, p_winner uuid DEFAULT NULL::uuid, p_note text DEFAULT NULL::text|void|definer|auth
 settle_major|p_session uuid|void|definer|auth
@@ -292,6 +340,7 @@ trg_event_complete||trigger|definer|auth
 undo_pick|p_draft uuid|void|definer|auth
 unfriend|p_profile uuid|void|definer|auth
 unhide_content|p_kind text, p_id uuid|void|definer|auth
+unrate_course|p_course_id text|jsonb|definer|auth
 unregister_device_token|p_token text|void|definer|auth
 unsuspend_member|p_member uuid|void|definer|auth
 vote_league_cancel|p_league uuid, p_approve boolean|text|definer|auth

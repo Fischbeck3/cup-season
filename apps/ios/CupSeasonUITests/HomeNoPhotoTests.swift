@@ -36,7 +36,7 @@ final class HomeNoPhotoTests: XCTestCase {
     record.tap()
     XCTAssertTrue(app.staticTexts["Round · Oak Quarry"].waitForExistence(timeout: 5))
     app.terminate(); app.launch()
-    let golfer = app.buttons["Open golfer card: You"]
+    let golfer = app.scrollViews["home.no-photo.fixture"].firstMatch.buttons["Open golfer card: You"]
     XCTAssertTrue(golfer.waitForExistence(timeout: 20))
     golfer.tap()
     XCTAssertTrue(app.staticTexts["Golfer · You"].waitForExistence(timeout: 5))
@@ -70,11 +70,11 @@ final class HomeNoPhotoTests: XCTestCase {
     let record = app.buttons.matching(identifier: "home.round.no-photo").firstMatch
     XCTAssertTrue(record.waitForExistence(timeout: 20))
     XCTAssertTrue(record.isHittable)
-    app.buttons["You"].tap()
+    record.tap()
     XCTAssertTrue(app.staticTexts["Round · Oak Quarry"].waitForExistence(timeout: 5))
     app.terminate()
     app.launch()
-    let golfer = app.buttons["Open golfer card: You"]
+    let golfer = app.scrollViews["home.no-photo.fixture"].firstMatch.buttons["Open golfer card: You"]
     XCTAssertTrue(golfer.waitForExistence(timeout: 20))
     golfer.tap()
     XCTAssertTrue(app.staticTexts["Golfer · You"].waitForExistence(timeout: 5))
