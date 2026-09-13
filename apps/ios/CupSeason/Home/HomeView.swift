@@ -484,7 +484,17 @@ struct HomeView: View {
     case .plan(let id):        presenter.scheduledRound = id
     case .season(let id, let pane): openCompetition(id, SeasonPane.named(pane))
     case .pot(let id):         openCompetition(id, .pot)
-    case .invite(let id, _):   openCompetition(id, .table)
+    // D351 (built) · "See the terms" opens THE TERMS. The route carries the
+    // container id (the season), which an invitee cannot open — the first cut
+    // routed there and the page said the season was not theirs to see. The
+    // invitation's own id is the item's key (`invite:<id>`, server and
+    // fallback alike), and the covenant is read for it.
+    case .invite(let container, let kind):
+      if let inviteId = HomeDispatch.HomeInviteKey.inviteId(from: item.key) {
+        presenter.inviteTerms = InviteTermsTarget(inviteId: inviteId, containerId: container, kind: kind)
+      } else {
+        openCompetition(container, .table)   // no invitation id: the old door, honestly
+      }
     case .none:                break
     }
   }

@@ -81,6 +81,10 @@ struct CupSeasonApp: App {
           else if let code = JoinIntent.code(from: url) {
             JoinIntent.store(code)
             CSGrowth.log(.linkOpened, kind: "join", token: code)
+            // D351 (built) · a link tapped while the app is open and signed in
+            // used to store the code and do nothing: only `onAppear` read it.
+            // The root consumes it reactively now, once.
+            NotificationCenter.default.post(name: .csJoinCodePending, object: nil)
             Task {
               // A name that does not resolve leaves the generic line standing;
               // it never blocks the door and never invents a name (L-44).

@@ -55,4 +55,9 @@ public extension Notification.Name {
   /// what makes a link tapped while the app is ALREADY open land at once
   /// rather than on the next cold start.
   static let csShareTokenPending = Notification.Name("cs.shareTokenPending")
+  /// D351 (built) · a `?join=` code was just stored by `onOpenURL`. `RootView`
+  /// reads the pending code on appear and on a change of golfer; this is what
+  /// makes a link tapped while the app is ALREADY open and signed in present
+  /// the covenant at once, exactly once, rather than on the next cold start.
+  static let csJoinCodePending = Notification.Name("cs.joinCodePending")
 }

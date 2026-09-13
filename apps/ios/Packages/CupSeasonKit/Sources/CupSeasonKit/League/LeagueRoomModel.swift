@@ -72,7 +72,7 @@ public final class LeagueRoomModel {
   /// nil = the table is not there yet (deploy skew) — the block hides, like the web.
   public private(set) var forfeits: [LeagueRoom.Forfeit]? = nil
   public private(set) var payouts: [LeagueRoom.Payout] = []
-  public private(set) var pulse: [Rpc.league_pulse.Row] = []
+  public private(set) var pulse: [LeaguePulseRow] = []
   public private(set) var scenarios: SeasonScenarios?
   /// D105: the Cup Final race from the server; nil until the window opens (or on skew).
   public private(set) var cupRace: CupFinalRace?
@@ -181,6 +181,9 @@ public final class LeagueRoomModel {
   /// The ledger lines for one squad (reasons included), sentinel excluded.
   public func ledger(squad: UUID) -> [LeagueRoom.Adjustment] { adjustments.filter { $0.squad_id == squad && !$0.isSentinel } }
   public var partialMonth: Bool { pulse.first?.partial ?? false }
+  /// D354 · my own pulse row — the one carrying `joined_this_month` and
+  /// `bye_available` for the golfer reading the page. nil until the read lands.
+  public var myPulse: LeaguePulseRow? { pulse.first { $0.is_me == true } }
 
   /// `players` in the pot (6988): the real roster, never below one.
   public var potPlayers: Int { max(members.count, 1) }
@@ -309,7 +312,7 @@ public final class LeagueRoomModel {
                    members: [LeagueRoom.Member], squads: [LeagueRoom.Squad] = [], squadStandings: [LeagueRoom.SquadStanding] = [],
                    indiv: [LeagueRoom.IndivStanding] = [], ranked: [LeagueRoom.RankedRound] = [], snapshots: [LeagueRoom.Snapshot] = [],
                    adjustments: [LeagueRoom.Adjustment] = [], buyIns: [LeagueRoom.BuyIn] = [], payouts: [LeagueRoom.Payout] = [],
-                   scenarios: SeasonScenarios? = nil, forfeits: [LeagueRoom.Forfeit]? = nil, pulse: [Rpc.league_pulse.Row] = [],
+                   scenarios: SeasonScenarios? = nil, forfeits: [LeagueRoom.Forfeit]? = nil, pulse: [LeaguePulseRow] = [],
                    today: String? = nil) {
     self.viewer = viewer; self.league = league; self.settings = settings; self.season = season
     self.members = members; self.squads = squads; self.squadStandings = squadStandings; self.indivStandings = indiv
@@ -394,7 +397,7 @@ public final class LeagueRoomModel {
   // MARK: - The fire-and-forget layer
 
   private func loadPulse() async {
-    pulse = (try? await svc.call(Rpc.league_pulse(p_league: leagueId))) ?? []
+    pulse = (try? await svc.call(LeaguePulseCall(p_league: leagueId))) ?? []
   }
 
   private func loadCupRace() async {

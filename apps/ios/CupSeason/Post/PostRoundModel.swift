@@ -59,8 +59,12 @@ final class PostRoundModel {
   @ObservationIgnored private var defaultDay = CSDate.iso(Date(), calendar: ScheduleDates.gregorian)
   /// D350 · the ordinary post's request identity. Minted once for the round
   /// being composed and **frozen across retries** — regenerating it after a
-  /// timeout is exactly how a committed round becomes two. Released only when
-  /// the server has accepted, or when the composer is cleared for a new round.
+  /// timeout is exactly how a committed round becomes two. Mirrored into
+  /// `PostRequestStore` (owner-scoped, outside the draft) the moment it is
+  /// minted, and released only when the server's answer has been RECOVERED:
+  /// an acceptance, or a status read that says the request never landed.
+  /// "Start over" does not release it — the next post under a different card
+  /// resolves it through `round_post_status` rather than guessing.
   @ObservationIgnored private var ordinaryRequest: UUID?
 
   init(store: SessionStore, toast: CSToastCenter) {
@@ -123,6 +127,10 @@ final class PostRoundModel {
     openedAt = Date()
     svc.event(PostEvent.open)
     restoreDraft()
+    // D350 · a request that outlived its draft (a "Start over", a TTL, a
+    // relaunch) is picked up here so the next post resolves it rather than
+    // minting a second id beside it.
+    if ordinaryRequest == nil, let uid { ordinaryRequest = PostRequestStore.pending(owner: uid) }
     if let uid { memory = await svc.courseMemory(uid) }
     scanEnabled = await svc.scanEnabled()
     partnerChoices = await people.playedWith()
@@ -268,8 +276,9 @@ final class PostRoundModel {
     guard card.isUntouched(defaultDate: defaultDay) else { return }
     seededFrom = d.sourceLive
     // D350 · the frozen request id comes back with the card, so a retry after a
-    // relaunch is the same request and not a second round.
-    ordinaryRequest = d.request
+    // relaunch is the same request and not a second round. The owner-scoped
+    // store is the second copy, for a draft written before the id existed.
+    ordinaryRequest = d.request ?? uid.flatMap { PostRequestStore.pending(owner: $0) }
     card = d.card
     if let iso = d.card.date, let date = CSDate.local(iso, calendar: ScheduleDates.gregorian) { day = date }
     toast.show(PostDraft.restoredToast)
@@ -299,21 +308,20 @@ final class PostRoundModel {
   }
 
   private func submit() async {
-    guard !busy, preview != nil, let uid else { return }
+    guard !busy, preview != nil else { return }
+    // Account switch: the composer was opened by one golfer and the session
+    // now belongs to another. Say so rather than returning in silence.
+    guard let uid else { toast.show(OrdinaryPost.wrongGolferCopy, kind: .failed); return }
     busy = true; defer { busy = false }
-    // D350 · mint the request identity BEFORE the draft is written, so the id
-    // is durable before anything can go wrong with the call that uses it.
+    // D350 · mint the request identity BEFORE the draft is written, and write
+    // it to the owner-scoped store, so the id is durable before anything can
+    // go wrong with the call that uses it.
     if seededFrom == nil, ordinaryRequest == nil { ordinaryRequest = UUID() }
+    if seededFrom == nil, let r = ordinaryRequest { PostRequestStore.set(r, owner: uid) }
     flushDraft()
     let m = membership
-    // D229 · no season on the payload. `post_round` derives it; the season on
-    // the build below is the DECLARED FALLBACK's only use of a client-chosen
-    // one, for a database that does not have the function yet.
+    // D229 · no season on the payload. The server derives it.
     var payload = PostPayload.build(card, seasonId: nil)
-    if seededFrom == nil, let jpeg = photoJPEG {
-      if let path = await svc.uploadPhoto(jpeg, uid: uid) { payload.photo_path = path }
-      else { toast.show("Couldn’t upload the photo. Posting the round without it.", kind: .failed) }
-    }
     let outcome: PostService.PostOutcome
     /// True when the accepted round already carries its hole detail, because
     /// the server wrote it in the same transaction that accepted the round.
@@ -347,49 +355,66 @@ final class PostRoundModel {
         pending.accepted = outcome.roundId
         try OfflinePostDisk.shared.save(pending)
       } else {
-        // D350 · the ordinary round gets the request identity the kept card has
-        // had all along, through the same already-written function.
-        let request = ordinaryRequest ?? UUID()
-        ordinaryRequest = request   // already minted above; this is the belt
-        var pending: OfflinePost
-        if let previous = try? OfflinePostDisk.shared.read(owner: uid, request: request) {
-          if let landed = previous.accepted {
-            // It posted. Saying so is the whole point of keeping the receipt.
-            ordinaryRequest = nil
-            acceptedRoundId = landed
-            toast.show("This round already posted. Open your round history to view it.", kind: .confirmed); return
-          }
-          guard previous.card == card else {
-            toast.show("That round may already have posted. Check your history before changing it, then post the new one.", kind: .failed); return
-          }
-          pending = previous
-        } else {
-          pending = OfflinePost(owner: uid, request: request, card: card, payload: payload, playedWith: playedWith)
+        // D350 (built) · the ordinary round, through `OrdinaryPost`: one
+        // request id, a frozen envelope written before the call, a replay
+        // that sends the envelope verbatim, and an edited card resolved by
+        // asking the server rather than guessing. No fallback: a server
+        // without the function is told to the golfer, not routed around.
+        var request = ordinaryRequest ?? UUID()
+        let ports = OrdinaryPost.livePorts(svc, owner: uid)
+        var result = await OrdinaryPost.run(owner: uid, request: request, card: card, payload: payload,
+                                            playedWith: playedWith, jpeg: photoJPEG, ports: ports)
+        if case .staleRequest = result {
+          // The earlier request never landed and this is a different card:
+          // release the old id and post this card under a fresh one, once.
+          request = UUID()
+          ordinaryRequest = request
+          PostRequestStore.set(request, owner: uid)
+          flushDraft()
+          result = await OrdinaryPost.run(owner: uid, request: request, card: card, payload: payload,
+                                          playedWith: playedWith, jpeg: photoJPEG, ports: ports)
         }
-        pending.payload = payload
-        // The envelope is written BEFORE the call, so a process that dies
-        // mid-flight still knows which request to retry rather than re-post.
-        try? OfflinePostDisk.shared.save(pending)
-        do {
-          outcome = try await svc.postOnce(pending)
+        switch result {
+        case .accepted(let out, _, let photoDropped, let receiptUnsaved):
+          if photoDropped { toast.show(OrdinaryPost.photoDroppedCopy, kind: .failed) }
+          if receiptUnsaved { toast.show(OrdinaryPost.receiptUnsavedCopy, kind: .failed) }
+          outcome = out
           // post_round_once writes round_holes inside the same transaction.
           holesWritten = true
-        } catch {
-          // The one documented skew: the database has not had the migration.
-          // Fall back to today's path, which keeps today's guarantees and no
-          // more — so nothing on screen may promise a safe retry here.
-          guard PostService.fallbackFires(on: error) else { throw error }
-          outcome = try await svc.postRound(payload, playedWith: playedWith, fallbackSeason: m?.season?.id)
+          // the envelope's photo path is the one that posted
+          if let path = (try? OfflinePostDisk.shared.read(owner: uid, request: request))?.payload.photo_path { payload.photo_path = path }
+          ordinaryRequest = nil
+          PostRequestStore.clear(owner: uid)
+        case .alreadyPosted(let landed):
+          // It posted. Finish the form exactly once — a cleared id over a
+          // full card is how the next tap minted a second round.
+          finishAccepted(landed, owner: uid, message: OrdinaryPost.alreadyPostedCopy)
+          return
+        case .earlierPosted(let landed):
+          // The old envelope landed; this edited card is a new round. The id
+          // is released, the card stays, and the golfer is told both facts.
+          acceptedRoundId = landed
+          ordinaryRequest = nil
+          PostRequestStore.clear(owner: uid)
+          flushDraft()
+          toast.show(OrdinaryPost.earlierPostedCopy, kind: .confirmed)
+          Task { await store.reload() }
+          return
+        case .staleRequest:
+          // cannot recur: the second run above was under a fresh id
+          toast.show(OrdinaryPost.ambiguousPrefix, kind: .failed); return
+        case .storageFailed(let msg):
+          toast.show(msg, kind: .failed); return
+        case .notAvailable:
+          toast.show(OrdinaryPost.notAvailableCopy, kind: .failed); return
+        case .failed(let msg):
+          toast.show(msg, kind: .failed); return
         }
-        pending.accepted = outcome.roundId
-        try? OfflinePostDisk.shared.save(pending)
-        ordinaryRequest = nil
       }
     } catch {
       let message = seededFrom != nil && PostService.fallbackFires(on: error)
         ? "Posting saved scorecards isn’t available yet. Your round is still kept here."
-        : HumanError.text(error, prefix: seededFrom != nil ? "Couldn’t confirm the post. Your phone scorecard is kept for retry."
-                                                            : (ordinaryRequest != nil ? "Couldn’t confirm the post. Press Post again to retry the same round." : "Post failed."))
+        : HumanError.text(error, prefix: "Couldn’t confirm the post. Your phone scorecard is kept for retry.")
       toast.show(message, kind: .failed); return
     }
     let roundId = outcome.roundId
@@ -440,16 +465,7 @@ final class PostRoundModel {
     CSHaptic.success()
 
     // clear the form so a posted round never reads as "didn't submit"
-    setPhoto(nil)
-    card.clearAfterPost()
-    clearDraft()
-    day = Date()
-    // The reset stamps a date the same way `init` does, and across midnight it
-    // is a DIFFERENT one — so the gate has to learn it, or a blank just-posted
-    // card reads as a draft worth keeping.
-    defaultDay = CSDate.iso(day, calendar: ScheduleDates.gregorian)
-    ordinaryRequest = nil
-    openedAt = Date()
+    clearAfterAccepted(owner: uid)
 
     // one sheet gets the moment: partner claims when the scan carried the group, else the epilogue
     pendingPartners = claim
@@ -466,8 +482,36 @@ final class PostRoundModel {
                                            photoTravels: payload.photo_path != nil, ceremonyOwnsShare: true, act: act, playedOn: payload.played_on)
       }
     }
-    playedWith = []
     Task { await store.reload() }   // the home feed, the standing, the count
+  }
+
+  /// The one place the form is put down after the server has accepted a round
+  /// — the normal post and the accepted-recovery path both land here, so the
+  /// two can never disagree about what "finished" means.
+  private func clearAfterAccepted(owner uid: UUID) {
+    setPhoto(nil)
+    card.clearAfterPost()
+    clearDraft()
+    day = Date()
+    // The reset stamps a date the same way `init` does, and across midnight it
+    // is a DIFFERENT one — so the gate has to learn it, or a blank just-posted
+    // card reads as a draft worth keeping.
+    defaultDay = CSDate.iso(day, calendar: ScheduleDates.gregorian)
+    ordinaryRequest = nil
+    PostRequestStore.clear(owner: uid)
+    openedAt = Date()
+    playedWith = []
+  }
+
+  /// D350 (built) · the accepted-recovery finish. The disk says this request
+  /// landed — the round is on the board, the form is finished exactly once,
+  /// and the golfer is told where it is. Nothing is sent.
+  private func finishAccepted(_ roundId: UUID, owner uid: UUID, message: String) {
+    acceptedRoundId = roundId
+    clearAfterAccepted(owner: uid)
+    toast.show(message, kind: .confirmed)
+    CSHaptic.success()
+    Task { await store.reload() }
   }
 
   /// Everything the next act is allowed to know, and nothing else. A count that

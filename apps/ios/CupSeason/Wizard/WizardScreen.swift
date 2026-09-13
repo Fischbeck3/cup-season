@@ -52,6 +52,8 @@ struct WizardScreen: View {
   @Environment(\.cs) private var cs
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var model: WizardModel
+  /// D355 · the close of a season that was created and never started.
+  @State private var askDiscard = false
   let links: WizardLinks
 
   init(existingLeagueId: UUID?, links: WizardLinks, runBack: WizardRunBack? = nil, initialStep: Int = 0) {
@@ -101,6 +103,18 @@ struct WizardScreen: View {
     // in the one style, at the one position.
     .csCloseButton { close() }
     .task { await model.load(toast: toast, alreadyLocked: { links.onLocked($0) }, store: store) }
+    .confirmationDialog("Keep this unfinished season?", isPresented: $askDiscard, titleVisibility: .visible) {
+      Button("Keep it for later") { links.onCancelled() }
+      Button(WizardCopy.discardPending, role: .destructive) {
+        Task {
+          do { try await model.discardPending(); links.onCancelled() }
+          catch { toast.show(HumanError.text(error, prefix: "Could not discard."), kind: .failed) }
+        }
+      }
+      Button("Back to the season", role: .cancel) { }
+    } message: {
+      Text("It was created and hasn’t started. Kept, it comes back here with the same choices. Discarded, it is gone.")
+    }
     .sheet(item: $model.share, onDismiss: { if let id = model.lockedLeague { links.onLocked(id) } }) { s in
       WizardLockShareSheet(share: s)
         .presentationDetents([.large])
@@ -161,6 +175,10 @@ struct WizardScreen: View {
 
   private func close() {
     guard !model.busy else { return }
+    // D355 · a season whose create was attempted is KEPT on close, with its
+    // record, so it resumes into the same league. Discarding it is a choice
+    // the Pro makes out loud, never a side effect of the X.
+    if model.hasPendingCreate { askDiscard = true; return }
     Task {
       // Discard only an untouched legacy setup. A publish attempt may have
       // reached the server, so closing it must not delete that league.
@@ -235,6 +253,11 @@ final class WizardModel {
   private let svc = WizardService()
   private let sched = ScheduleService()
   private let existingLeagueId: UUID?
+  /// D355 · the golfer the durable create record belongs to, learned on load.
+  private var owner: UUID?
+  /// D355 · the frozen request id for THIS season's create, across retries
+  /// and relaunches. Minted on the first publish, or restored from the record.
+  private var createRequest: UUID?
 
   init(existingLeagueId: UUID?, runBack: WizardRunBack?, initialStep: Int) {
     self.existingLeagueId = existingLeagueId
@@ -278,6 +301,24 @@ final class WizardModel {
       buddiesLoaded = true
       syncName(myName: store.me?.profile?.display_name)
     }
+    owner = store.session?.user.id
+    // D355 · a season whose create was attempted and never finished comes
+    // back with the same request id and the same choices. The leagueless
+    // "Start a season" door passed nothing, so a golfer whose create was
+    // ambiguous could mint a second league beside the first; the record is
+    // what makes the retry the same request.
+    // A run-it-back is a NEW season carried from the last one, never a resume
+    // of an unrelated unfinished create; its own publish writes its own record.
+    if existingLeagueId == nil, runBack == nil, leagueId == nil, createRequest == nil,
+       let uid = owner, let p = PendingCreate.read(owner: uid) {
+      createRequest = p.request
+      dials = p.dials
+      squadsChosen = p.squadsChosen
+      nameTouched = !p.dials.name.trimmingCharacters(in: .whitespaces).isEmpty
+      if let c = p.created { rememberCreated(c) }
+      step = 2
+      toast.show(PendingCreate.resumedToast)
+    }
     guard let id = existingLeagueId, leagueId == nil else { return }
     loading = true
     defer { loading = false }
@@ -320,7 +361,17 @@ final class WizardModel {
         return await finish(leagueId: id, code: code ?? "", name: d.name.isEmpty ? storedName : d.name,
                       locked: locked, invited: 0, notInvited: 0, dials: d)
       }
-      let p = try await svc.publish(dials: d, resuming: createdHere, didCreate: { [weak self] created in
+      // D355 · the request id is minted once and written to the durable record
+      // BEFORE the create is sent. A record that cannot be written stops the
+      // publish: a create the phone cannot remember is a create a kill turns
+      // into two leagues.
+      let request = createRequest ?? UUID()
+      createRequest = request
+      if let uid = owner {
+        do { try PendingCreate.write(PendingCreate(request: request, dials: d, squadsChosen: squadsChosen, created: createdHere), owner: uid) }
+        catch { return .failed(WizardCopy.createNotRemembered) }
+      }
+      let p = try await svc.publish(dials: d, resuming: createdHere, request: request, didCreate: { [weak self] created in
         await self?.rememberCreated(created)
       })
       leagueId = p.leagueId; code = p.code; storedName = p.name
@@ -333,6 +384,12 @@ final class WizardModel {
 
   private func rememberCreated(_ created: WizardService.Created) {
     createdHere = created; leagueId = created.leagueId; code = created.code; storedName = created.name
+    // the record learns the league the moment the server names it, so a kill
+    // after this line resumes into the SAME league without a second create
+    if let uid = owner, let request = createRequest, var p = PendingCreate.read(owner: uid), p.request == request {
+      p.created = created
+      try? PendingCreate.write(p, owner: uid)
+    }
   }
 
   private func finish(leagueId id: UUID, code c: String, name: String, locked: WizardService.Locked,
@@ -340,6 +397,10 @@ final class WizardModel {
     let members = await svc.memberCount(id)
     agreement = nil
     lockedLeague = id
+    // D355 · the season STARTED: the accepted outcome is recovered, and only
+    // now is the frozen request released.
+    if let uid = owner { PendingCreate.clear(owner: uid) }
+    createRequest = nil
     share = WizardLockShare(leagueId: id, name: name, code: c, nextPhase: locked.nextPhase,
                             members: members, structure: d.structure, draftType: d.draftType,
                             startsOn: locked.startsOn, weeks: d.durWeeks, invited: invited)
@@ -357,5 +418,20 @@ final class WizardModel {
     guard !busy, !publishAttempted, createdHere == nil, let id = leagueId, lockedLeague == nil else { return }
     try await svc.deleteLeague(id)
     leagueId = nil; code = nil; storedName = ""
+  }
+
+  /// D355 · a create has been attempted for this season and the season has not
+  /// started, so a durable record exists and the close must ask.
+  var hasPendingCreate: Bool { createRequest != nil && lockedLeague == nil }
+
+  /// D355 · the Pro discards a season that was created and never started. The
+  /// league row goes through `delete_league` as it always has; the durable
+  /// record goes with it, because a request whose league is deliberately gone
+  /// must not resume into it.
+  func discardPending() async throws {
+    guard !busy, lockedLeague == nil else { return }
+    if let id = leagueId { try await svc.deleteLeague(id) }
+    if let uid = owner { PendingCreate.clear(owner: uid) }
+    createRequest = nil; createdHere = nil; leagueId = nil; code = nil; storedName = ""; publishAttempted = false
   }
 }

@@ -43,23 +43,52 @@ public struct WizardService: Sendable {
 
   // MARK: create (`createLeague`)
 
-  public struct Created: Sendable, Equatable {
+  public struct Created: Sendable, Equatable, Codable {
     public let leagueId: UUID
     public let name: String
     public let code: String
     public let memberId: UUID?
+    public init(leagueId: UUID, name: String, code: String, memberId: UUID?) {
+      self.leagueId = leagueId; self.name = name; self.code = code; self.memberId = memberId
+    }
   }
 
-  public func createLeague(name rawName: String) async throws -> Created {
+  /// D355 · `create_league_once(p_request_id, p_name, p_code)` — the same
+  /// league however many times Start is pressed. Hand-declared while the
+  /// migration awaits its contract refresh; no droppable arguments, and NO
+  /// fallback to `create_league`: a server without the function cannot
+  /// deduplicate, so it is told to the golfer and nothing is minted.
+  struct CreateLeagueOnceCall: RpcCall {
+    static let name = "create_league_once"
+    static let optionalArgs: [String] = []
+    typealias Returns = JSONValue
+    let p_request_id: UUID
+    let p_name: String
+    let p_code: String
+  }
+  public static let createNotAvailable = "Starting a season isn’t available on this server yet. Nothing was created — try again after the update."
+
+  /// One request id per season being started, FROZEN across retries and
+  /// relaunches (`PendingCreate`). A replay returns the original league.
+  public func createLeague(name rawName: String, request: UUID) async throws -> Created {
     let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
     let finalName = name.isEmpty ? "My Cup" : name
     let code = WizardCode.codeFor(finalName)
-    let data = try await svc.call(Rpc.create_league(p_name: finalName, p_code: code))
-    guard let idStr = data["league"]?["id"]?.string, let id = UUID(uuidString: idStr) else {
-      throw RpcError(name: "create_league", underlying: "The league was created but its id did not come back.", droppedArgs: [])
+    let data: JSONValue
+    do { data = try await svc.call(CreateLeagueOnceCall(p_request_id: request, p_name: finalName, p_code: code)) }
+    catch {
+      if (error as? RpcError)?.isMissingFunction == true {
+        throw RpcError(name: CreateLeagueOnceCall.name, underlying: Self.createNotAvailable, droppedArgs: [])
+      }
+      throw error
     }
-    track(.league_create, ["named": .bool(finalName != "My Cup")])
-    CSTelemetry.product(.leagueCreated, leagueId: id)   // IOS-024
+    guard let idStr = data["league"]?["id"]?.string, let id = UUID(uuidString: idStr) else {
+      throw RpcError(name: CreateLeagueOnceCall.name, underlying: "The league was created but its id did not come back.", droppedArgs: [])
+    }
+    if data["replayed"]?.bool != true {
+      track(.league_create, ["named": .bool(finalName != "My Cup")])
+      CSTelemetry.product(.leagueCreated, leagueId: id)   // IOS-024
+    }
     return Created(leagueId: id, name: data["league"]?["name"]?.string ?? finalName,
                    code: data["league"]?["code"]?.string ?? code,
                    memberId: data["member"]?["id"]?.string.flatMap(UUID.init))
@@ -190,9 +219,10 @@ public struct WizardService: Sendable {
   /// survives is named on screen and `lock_league` is idempotent on `locked_at`,
   /// which is what makes the retry safe.
   public func publish(dials: WizardDials, today: String = CSDate.today(), resuming: Created? = nil,
+                      request: UUID = UUID(),
                       didCreate: @Sendable (Created) async -> Void = { _ in }) async throws -> Published {
     let result = try await Self.publish(dials: dials, resuming: resuming, didCreate: didCreate,
-      create: { try await createLeague(name: $0) },
+      create: { try await createLeague(name: $0, request: request) },
       lock: { try await lock(leagueId: $0.leagueId, dials: dials, fallbackName: $0.name, today: today) },
       invite: { league, profile in
         _ = try await svc.call(InviteGolferCall(p_league: league, p_event: nil, p_profile: profile))
@@ -235,4 +265,41 @@ public struct WizardService: Sendable {
   public func deleteLeague(_ id: UUID) async throws {
     _ = try await svc.call(Rpc.delete_league(p_league: id))
   }
+}
+
+/// D355 · the durable create record: one request id per season being started,
+/// the dials it was started with, and the league once the server has said so.
+/// Owner-scoped, written BEFORE `create_league_once` is called, updated when
+/// the create answers, and cleared only when the season has actually STARTED
+/// (the lock landed) or the Pro discarded it. A wizard killed anywhere in
+/// between comes back with the same id — so the replay returns the same
+/// league — and the same choices, including an explicit Unlimited, an
+/// off-ladder exact cap and a chosen squad count.
+public struct PendingCreate: Codable, Sendable, Equatable {
+  public static let key = "cs_create_request"
+  public var request: UUID
+  public var dials: WizardDials
+  public var squadsChosen: Bool?
+  public var created: WizardService.Created?
+  public var at: Date
+
+  public init(request: UUID, dials: WizardDials, squadsChosen: Bool?, created: WizardService.Created? = nil, at: Date = Date()) {
+    self.request = request; self.dials = dials; self.squadsChosen = squadsChosen; self.created = created; self.at = at
+  }
+
+  static func name(_ owner: UUID) -> String { key + "." + owner.uuidString }
+
+  public static func read(owner: UUID, defaults: UserDefaults = .standard) -> PendingCreate? {
+    guard let data = defaults.data(forKey: name(owner)) else { return nil }
+    return try? JSONDecoder().decode(PendingCreate.self, from: data)
+  }
+  /// Throws when the record cannot be written: a create that cannot be
+  /// remembered must not be sent, or a kill mid-flight mints a second league.
+  public static func write(_ p: PendingCreate, owner: UUID, defaults: UserDefaults = .standard) throws {
+    defaults.set(try JSONEncoder().encode(p), forKey: name(owner))
+  }
+  public static func clear(owner: UUID, defaults: UserDefaults = .standard) {
+    defaults.removeObject(forKey: name(owner))
+  }
+  public static let resumedToast = "Your unfinished season came back — review it and start."
 }

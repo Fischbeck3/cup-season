@@ -381,11 +381,53 @@ Full audit: `docs/reviews/2026-09-12-after-golf-audit.md` (contract + 30 accepta
 
 Full review: `docs/reviews/2026-09-12-home-no-photo-regression-review.md`. Two that change what a golfer sees: a photo row renders as a text slat while loading and again on every recycle (`HomeWire.swift:85-94`), and the whole name row now opens the golfer on the phone while the same tap opens the round on the web (`HomeWire.swift:160-174` vs `index.html:15871`). Left for Codex to fix on its own branch.
 
+## Release fixes — what closed and what opened, 2026-09-13 (claude/release-fixes-2026-09-13)
+
+Built from Codex's review of the activation sprint. Full evidence and the exact
+commits: `docs/reviews/2026-09-13-release-fixes-handoff.md`. **CLOSED** from the
+section below: duplicate leagues after an ambiguous create (D355), the phone's
+invitations list and decline (Compete, D351), "See the terms" (both clients,
+D351), the covenant's allowance (D353), the join-month waiver and the bye
+(D354), the warm `?join=` link (D351), and `covenantForLeague` (deleted).
+`PendingLink.spend/first` are still unused — code health, not touched.
+
+Found while building, not built — each verified on this branch:
+
+- **A Major invitation is labelled "Ryder invite" and accepted without its
+  buy-in.** Gameplay/contract. `my_invites.kind` is `league` | `event` and
+  carries no event kind and no stake, so both clients title every event
+  invitation a Ryder and the event Accept shows no money (`events.buy_in`
+  exists for a Major). First question: does `my_invites` grow `event_kind` and
+  `buy_in`, and does an event invitation get a covenant of its own (D225's
+  rule is "every join passes the covenant")?
+- **`native_home`'s `pulse` does not carry `joined_this_month` / `bye_available`.**
+  Contract. `league_pulse` does now (D354); Home's month row reads the four keys
+  `native_home` names and stays honestly silent on the two new facts. First
+  question: copy the two keys into `native_home`'s pulse object (one small
+  `create or replace` of a 43 KB function), or leave Home to the rule and the
+  clock and let the season page carry the waiver?
+- **A run-it-back over an unfinished create.** UX. Both clients now mint a fresh
+  request for a run-it-back rather than resuming an unrelated unfinished
+  create, so the earlier unstarted league stays a husk (today's behavior).
+  First question: should the leagueless door list unstarted leagues before
+  minting anything at all?
+- **`tests/homefold.test.mjs` fails on the baseline** ("Up next" vs "Coming
+  up" dateline). Code health, pre-existing at `1ef0dc6`; not touched here.
+  First question: which word is canon — the test's or the code's?
+- **The Ryder / Major setup sheets' prefill is consumed by nobody on a kill.**
+  UX. `MJ_PREFILL` / `RS_PREFILL` and their phone twins live in memory only;
+  a run-it-back interrupted before the create leaves nothing. Same family as
+  D355, smaller consequence (an event, not a season). First question: is
+  `create_event` / `create_major` worth a request identity, or is the rematch
+  tap cheap enough to repeat?
+
 ## Season activation sprint — open items, verified 2026-09-13 (claude/season-activation)
 
 Found while building `98540b5` / `0889ddd` / `8403343`. Each was reproduced on
 that branch; none is a commitment. Full context:
-`docs/reviews/2026-09-13-season-activation-handoff.md`.
+`docs/reviews/2026-09-13-season-activation-handoff.md`. **Six of the eight below
+closed on 2026-09-13 in `claude/release-fixes-2026-09-13` — see the section
+above; kept here as the record of what was found.**
 
 - **Duplicate leagues after an ambiguous create.** UX/Gameplay. The orphan is
   recoverable through its own room, but the leagueless "Start a season" door

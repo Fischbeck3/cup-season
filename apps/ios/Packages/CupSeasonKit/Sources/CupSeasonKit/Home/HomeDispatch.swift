@@ -68,6 +68,16 @@ public enum HomeDispatch {
     case ember, gold, mut
   }
 
+  /// D351 (built) · an invitation item's KEY is `invite:<invitation id>` on
+  /// the server and on the fallback alike; its ROUTE id is the container. The
+  /// terms are read for the invitation, so the key is what the door needs.
+  public enum HomeInviteKey {
+    public static func inviteId(from key: String) -> UUID? {
+      guard key.hasPrefix("invite:") else { return nil }
+      return UUID(uuidString: String(key.dropFirst("invite:".count)))
+    }
+  }
+
   /// Where an item's one door leads. Every case exists on the phone today;
   /// a route this build cannot resolve decodes to nil and the item is dropped
   /// by the fence rather than rendered as a dead sentence.

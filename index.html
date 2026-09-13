@@ -9994,25 +9994,61 @@ function clearPostDraft(){ try{ clearTimeout(_draftT); localStorage.removeItem(P
 
    The id is minted once per composed round and FROZEN across retries.
    Regenerating it after a timeout is the bug, not the fix. It lives in
-   localStorage so an iOS eviction mid-post cannot lose it. */
+   localStorage so an iOS eviction mid-post cannot lose it.
+
+   BUILT (2026-09-13): the record is OWNER-SCOPED — an account switch on a
+   shared browser must find nothing to replay — and it carries the FROZEN
+   ENVELOPE (payload with the uploaded photo path, hole scores, partners), so a
+   retry sends exactly what was sent, never a recomputed payload. A record the
+   server already accepted FINISHES the form; an edited card under a resolved-
+   unknown id is settled by asking `round_post_status` (read-only), never by
+   guessing. `postRequestPlan` is the pure decision; tests/post-request.test.mjs
+   lifts it. A write that fails STOPS the network with a message about this
+   browser, and there is no fallback to a function that cannot deduplicate. */
 const POST_REQ_KEY='cs_post_request';
-function postRequestId(){
-  try{
-    const raw=localStorage.getItem(POST_REQ_KEY);
-    if(raw){ const d=JSON.parse(raw); if(d && d.id) return d; }
-  }catch(_){}
-  const id = crypto.randomUUID ? crypto.randomUUID()
-           : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-               const r = Math.random()*16|0; return (c==='x'? r : (r&0x3|0x8)).toString(16); });
-  const d={ id, at:Date.now(), accepted:null };
-  try{ localStorage.setItem(POST_REQ_KEY, JSON.stringify(d)); }catch(_){}
-  return d;
+function postRequestKey(uid){ return POST_REQ_KEY + '.' + String(uid || 'signed-out'); }
+function postNewRequestId(){
+  return crypto.randomUUID ? crypto.randomUUID()
+       : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+           const r = Math.random()*16|0; return (c==='x'? r : (r&0x3|0x8)).toString(16); });
 }
-function postRequestAccepted(roundId){
-  try{ const raw=localStorage.getItem(POST_REQ_KEY); const d=raw?JSON.parse(raw):null;
-       if(d){ d.accepted=roundId; localStorage.setItem(POST_REQ_KEY, JSON.stringify(d)); } }catch(_){}
+/* The record, or null. A record that cannot be parsed cannot be replayed
+   either; it is reported and removed rather than silently reused. */
+function postRequestRead(uid){
+  let raw = null;
+  try{ raw = localStorage.getItem(postRequestKey(uid)); }catch(_){ return null; }
+  if(!raw) return null;
+  try{ const d = JSON.parse(raw); if(d && d.id) return d; }catch(_){}
+  window.qaEvent?.('post_request_corrupt');
+  clearPostRequest(uid);
+  return null;
 }
-function clearPostRequest(){ try{ localStorage.removeItem(POST_REQ_KEY); }catch(_){} }
+/* THROWS on a storage failure — the caller must not go to the network. */
+function postRequestWrite(uid, rec){ localStorage.setItem(postRequestKey(uid), JSON.stringify(rec)); }
+function postRequestAccepted(uid, roundId){
+  try{ const d = postRequestRead(uid); if(d){ d.accepted = roundId; postRequestWrite(uid, d); } }catch(_){}
+}
+function clearPostRequest(uid){ try{ localStorage.removeItem(postRequestKey(uid)); }catch(_){} }
+/* The same round? The payload minus the photo path (an upload output, frozen
+   on the record's side only), the hole scores and the partners. */
+function postEnvelopeMatches(a, b){
+  if(!a || !b) return false;
+  const strip = p => { const o = Object.assign({}, p || {}); delete o.photo_path; return JSON.stringify(o, Object.keys(o).sort()); };
+  return strip(a.payload) === strip(b.payload)
+      && JSON.stringify(a.holes || []) === JSON.stringify(b.holes || [])
+      && JSON.stringify((a.playedWith || []).slice().sort()) === JSON.stringify((b.playedWith || []).slice().sort());
+}
+/* 'finish'  · the record says the server accepted it: finish the form, send nothing
+   'replay'  · the same card: send the frozen envelope again under the same id
+   'resolve' · a different card under an unresolved id: ask the server first
+   'fresh'   · no usable record: mint, freeze, write, then send */
+function postRequestPlan(rec, env){
+  if(!rec) return 'fresh';
+  if(rec.accepted) return 'finish';
+  if(!rec.env) return 'fresh';
+  return postEnvelopeMatches(rec.env, env) ? 'replay' : 'resolve';
+}
+window.postRequestPlan = postRequestPlan;
 function restorePostDraft(){
   if(_draftRestored || state.demo || !window.CS?.user) return false;
   _draftRestored=true;
@@ -10179,45 +10215,92 @@ $('#postBtn').addEventListener('click', async ()=>{
            insert on cache timing). Legacy uuid course_id stays untouched. */
         api_course_id: $('#inCourse').dataset.courseId || null,
       };
-      /* photos arc: upload first (own-prefix path in the private bucket), ride
-         the path on the insert. A failed upload demotes to a photo-less post —
-         the photo is garnish, the round is the fact. */
-      if(state.post.photo){
-        try{
-          const pid=(crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2));
-          const path=`${CS.user.id}/${pid}.jpg`;
-          const { error: upErr } = await sb.storage.from('media')
-            .upload(path, state.post.photo, { contentType:'image/jpeg', upsert:false });
-          if(upErr) toast('Photo didn’t stick — posting the round without it');
-          else payload.photo_path = path;
-        }catch(_){ /* storage unreachable: post without the photo */ }
-      }
-      /* L-03 / IOS-030 - the round is posted by the SERVER. `post_round` derives
-         the season from played_on against every membership's window at that
-         membership's own allowance (D229/L-13), so the client sends no season
-         at all: `CS.season` could only ever name ONE, and a golfer in two
-         seasons scores in both. The epilogue rides back in the same answer.
+      /* L-03 / IOS-030 - the round is posted by the SERVER. `post_round_once`
+         derives the season from played_on against every membership's window at
+         that membership's own allowance (D229/L-13), so the client sends no
+         season at all. The epilogue rides back in the same answer.
 
-         The direct insert is KEPT as the declared fallback and fires only when
-         the function is not there yet (PGRST202 / 42883) - CLAUDE.md's skew
-         rule covers new args and new columns, not a function that does not
-         exist. Anything else is a real error and reaches the golfer. */
-      let rrow=null, error=null, epiFromRpc=null, rpcRound=null, holesWritten=false;
-      /* D350 · the same round, however many times this button is pressed. A
-         replay of this request id returns the ORIGINAL answer; a different
-         scorecard under the same id is refused rather than posted again. */
-      const req = postRequestId();
-      if(req.accepted){
-        toast('This round already posted — it is in your history');
-        clearPostRequest(); btn.disabled=false; return;
-      }
+         D350 (built) · the same round, however many times this button is
+         pressed. One request id per composed round, owner-scoped, with the
+         frozen envelope beside it; a replay sends the envelope verbatim; a
+         different card under an unresolved id asks the server first. A server
+         without the function is fail-closed: nothing else is tried and the
+         draft stays. There is no fallback to a function that cannot deduplicate. */
+      let rrow=null, epiFromRpc=null, rpcRound=null, holesWritten=false;
+      const uid = CS.user.id;
       const holeScores = holesMode
         ? state.post.scores.slice(0, nine ? 9 : 18).map(Number)
         : [];
+      const playedWith = (state.post.playedWith||[]).slice();
+      const missingFn = e => {
+        const m=String(e && (e.code||e.message) || '').toLowerCase();
+        return m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function');
+      };
+      let rec = postRequestRead(uid);
+      let plan = postRequestPlan(rec, { payload, holes: holeScores, playedWith });
+      if(plan === 'finish'){
+        /* It posted. Finish the form EXACTLY ONCE — clearing the id and leaving
+           the card was how the next tap minted a second round. */
+        const landed = rec.accepted;
+        clearPostComposerAfterPost();
+        clearPostRequest(uid);
+        toast('This round already posted — it’s in your history');
+        if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
+        if(window.loadCareer) window.loadCareer();
+        if(window.loadHome) window.loadHome();
+        switchView('home');
+        try{ if(window.openRoundSheet) window.openRoundSheet(landed); }catch(_){}
+        btn.disabled=false; return;
+      }
+      if(plan === 'resolve'){
+        /* A different card under an id the server may hold. Ask; never guess. */
+        const { data: status, error: serr } = await sb.rpc('round_post_status', { p_request_id: rec.id });
+        if(serr){
+          if(missingFn(serr)){ toast('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); btn.disabled=false; return; }
+          throw Object.assign(new Error(String(serr.message||serr)), { csPrefix: 'Couldn’t confirm your earlier post.' });
+        }
+        const landed = status && status.round && status.round.id;
+        if(landed){
+          /* the earlier envelope landed: it is done, and THIS card is a new round */
+          postRequestAccepted(uid, landed);
+          clearPostRequest(uid);
+          toast('Your earlier round posted and is in your history. This card is a new round — press Post to add it.');
+          if(window.loadCareer) window.loadCareer();
+          btn.disabled=false; return;
+        }
+        /* it never landed: release the old id and post this card under a fresh one */
+        clearPostRequest(uid); rec = null; plan = 'fresh';
+      }
+      let env;
+      if(plan === 'replay'){
+        env = rec.env;   /* verbatim — photo path, holes and partners included; no second upload */
+      } else {
+        /* photos arc: upload first (own-prefix path in the private bucket), ride
+           the path on the frozen envelope. A failed upload demotes to a photo-
+           less post — the photo is garnish, the round is the fact. */
+        if(state.post.photo){
+          try{
+            const pid=(crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2));
+            const path=`${uid}/${pid}.jpg`;
+            const { error: upErr } = await sb.storage.from('media')
+              .upload(path, state.post.photo, { contentType:'image/jpeg', upsert:false });
+            if(upErr) toast('Photo didn’t stick — posting the round without it');
+            else payload.photo_path = path;
+          }catch(_){ /* storage unreachable: post without the photo */ }
+        }
+        env = { payload, holes: holeScores, playedWith };
+        rec = { id: postNewRequestId(), at: Date.now(), accepted: null, env };
+        /* the envelope is written BEFORE the call; a write that fails stops here */
+        try{ postRequestWrite(uid, rec); }
+        catch(_){
+          toast('Couldn’t keep a record of this post in this browser, so it wasn’t sent. Free up storage and press Post again.');
+          btn.disabled=false; return;
+        }
+      }
       try{
         const { data: once, error: oerr } = await sb.rpc('post_round_once', {
-          p_request_id: req.id, p_payload: payload,
-          p_hole_scores: holeScores, p_played_with: (state.post.playedWith||[]),
+          p_request_id: rec.id, p_payload: env.payload,
+          p_hole_scores: env.holes || [], p_played_with: env.playedWith || [],
         });
         if(oerr) throw oerr;
         rpcRound = once && once.round;
@@ -10225,48 +10308,12 @@ $('#postBtn').addEventListener('click', async ()=>{
         rrow = { id: rpcRound.id };
         epiFromRpc = (once && once.epilogue) || null;
         holesWritten = true;   /* written inside the accepting transaction */
-        postRequestAccepted(rrow.id);
+        postRequestAccepted(uid, rrow.id);
+        payload.photo_path = env.payload.photo_path || null;   /* the path that actually posted */
       }catch(e0){
-        const m0=String(e0 && (e0.code||e0.message) || '').toLowerCase();
-        const missing0 = m0.includes('pgrst202') || m0.includes('42883') || m0.includes('schema cache') || m0.includes('could not find the function');
-        if(!missing0) throw e0;
-        /* The one documented skew: this database has not had the migration.
-           Fall through to today's path, which keeps today's guarantees and no
-           more — nothing on screen may promise a safe retry from here. */
-        await postTheOldWay();
-      }
-      async function postTheOldWay(){
-      try{
-        const { data: posted, error: perr } = await sb.rpc('post_round', {
-          p_gross: payload.gross, p_rating: payload.rating, p_slope: payload.slope,
-          p_holes_played: payload.holes_played, p_nine_rating: payload.nine_rating,
-          p_course_id: payload.api_course_id, p_course_label: payload.course_label,
-          p_played_on: payload.played_on, p_photo_path: payload.photo_path,
-          p_played_with: (state.post.playedWith||[]),
-        });
-        if(perr) throw perr;
-        rpcRound = posted && posted.round;
-        if(!rpcRound || !rpcRound.id) throw new Error('post_round returned no round id');
-        rrow = { id: rpcRound.id };
-        epiFromRpc = (posted && posted.epilogue) || null;
-      }catch(e){
-        const m=String(e && (e.code||e.message) || '').toLowerCase();
-        const missing = m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function');
-        if(!missing) throw e;
-        payload.season_id = CS.season?.id || null;   /* the fallback's only client-chosen season */
-        ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
-        /* Netlify ships this client before `db push` - if a column isn't there
-           yet, drop it and retry so a post never fails on deploy skew */
-        if(error && /api_course_id/.test(error.message||'')){
-          delete payload.api_course_id;
-          ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
-        }
-        if(error && /photo_path/.test(error.message||'')){
-          delete payload.photo_path;
-          ({ data:rrow, error } = await sb.from('rounds').insert(payload).select('id').single());
-        }
-        if(error) throw error;
-      }
+        if(missingFn(e0)){ toast('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); btn.disabled=false; return; }
+        throw Object.assign(e0 instanceof Error ? e0 : new Error(String(e0 && e0.message || e0)),
+                            { csPrefix: 'Couldn’t confirm the post. Press Post again to retry the same round.' });
       }
       /* SF-6: the arrival — this round's gross flips in on its FIRST card
          render (home story card or full board), then the flag dies there.
@@ -10345,22 +10392,8 @@ $('#postBtn').addEventListener('click', async ()=>{
       setTimeout(() => window.csEarnInstallNudge?.(), 1400);   /* earned: the first real round hits the board */
       /* clear the form so a posted round never reads as "didn't submit"
          (pilot feedback: entered a second round thinking the first failed) */
-      $('#inGross').value=''; $('#inF9').value=''; $('#inB9').value='';
-      state.post.playedWith=[]; if(typeof renderPostWho==='function') renderPostWho();
-      $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
-      $('#inRating').value=''; $('#inSlope').value='';
-      state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
-      state.post.side=18; state.post.rating9=false;   /* D72: the next round starts at 18 holes, not sticky on the last post's nine */
-      /* the course field just cleared above — the CARD clears with it. Keeping
-         the posted course's pars left the next round (typed course, or one with
-         no cached holes) wearing the last course's card. */
-      state.post.pars = POST_PAR_STD.slice(); state.post.parsCourse = null;
-      state.post.scores = state.post.pars.slice();   /* reset the grid to par */
-      state.post.touched=false;                       /* next round starts fresh */
-      if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
-      clearPostRequest();   /* D350 · this round is settled; the next one mints its own id */
-      state.lastPost=null; state.postBlocked=null;
-      if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
+      clearPostComposerAfterPost();
+      clearPostRequest(uid);   /* D350 · this round is settled; the next one mints its own id */
       const firstEver = (window.career?.rounds || 0) === 0;   /* Phase 4: capture before loadCareer updates the count */
       if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
       if(window.loadCareer) window.loadCareer();     /* You-tab recent rounds */
@@ -10387,7 +10420,7 @@ $('#postBtn').addEventListener('click', async ()=>{
           });
         } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
       }
-    } catch(e){ toast(humanError(e, 'Post failed.')); }
+    } catch(e){ toast(humanError(e, (e && e.csPrefix) || 'Post failed.')); }
     finally { btn.disabled=false; }
     return;
   }
@@ -10626,11 +10659,34 @@ function resetPostComposer(){
   state.lastPost=null; state.postBlocked=null;
   renderPostHoles();
 }
+/* The one place the form is put down after the server has accepted a round —
+   the normal post and the accepted-recovery finish both land here, so the two
+   can never disagree about what "finished" means. */
+function clearPostComposerAfterPost(){
+  $('#inGross').value=''; $('#inF9').value=''; $('#inB9').value='';
+  state.post.playedWith=[]; if(typeof renderPostWho==='function') renderPostWho();
+  $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
+  $('#inRating').value=''; $('#inSlope').value='';
+  state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
+  state.post.side=18; state.post.rating9=false;   /* D72: the next round starts at 18 holes, not sticky on the last post's nine */
+  /* the course field just cleared above — the CARD clears with it. Keeping
+     the posted course's pars left the next round (typed course, or one with
+     no cached holes) wearing the last course's card. */
+  state.post.pars = POST_PAR_STD.slice(); state.post.parsCourse = null;
+  state.post.scores = state.post.pars.slice();   /* reset the grid to par */
+  state.post.touched=false;                       /* next round starts fresh */
+  setPostPhoto(null);
+  if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
+  state.lastPost=null; state.postBlocked=null;
+  if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
+}
 $('#postReset')?.addEventListener('click',e=>{
   e.preventDefault();
   resetPostComposer();
   if(typeof clearPostDraft==='function') clearPostDraft();   /* an explicit start-over scraps the draft too */
-  clearPostRequest();   /* D350 · a deliberate start-over is a different round */
+  /* D350 (built) · the request id is NOT cleared here. A start-over after an
+     ambiguous failure is exactly the case the id exists for: the next post,
+     under a different card, asks the server whether the earlier one landed. */
   toast('Card cleared');
 });
 $('#postScanBack')?.addEventListener('click',e=>{
@@ -14970,11 +15026,32 @@ function renderStats(){
      branch fired and announced the month "covered", which says something was
      owed where nothing is. Twin of `LeagueCopy.nextUp`. */
   const counts = csCountingRule(capDB());
+  /* D354 · two facts the pulse now carries, said ONLY when it carries them
+     (an older server says neither): a golfer who joined during this month is
+     told the minimum is waived — which is what close_month will do — rather
+     than shown a figure to chase; and while a minimum is still owed, whether
+     the season's one bye is still there. Twin of `LeagueCopy.nextUp`. */
+  const meRow = (!state.demo && (window.leaguePulse||[]).find(r=>r.is_me)) || null;
+  const joinedThisMonth = !!(meRow && meRow.joined_this_month === true);
+  const byeNote = csByeNote(meRow ? meRow.bye_available : undefined);
   $('#nextTxt').textContent =
     !(Number(state.floor) > 0) ? `${counts} ${CS_ANOTHER_CHANCE}`
     : partial ? `${curMonth()} is a short month — no minimum to clear. ${counts}`
-    : rem>0   ? `${fmtN(rem)} more toward ${curMonth()}'s minimum of ${state.floor} — you're at ${fmtN(credits)}.` + half + ` ${counts}`
+    : joinedThisMonth ? `You joined this month, so there's no minimum to clear until ${csNextMonthLong()}. ${counts}`
+    : rem>0   ? `${fmtN(rem)} more toward ${curMonth()}'s minimum of ${state.floor} — you're at ${fmtN(credits)}.` + half + ` ${counts}` + byeNote
               : `${curMonth()}'s minimum is met — ${fmtN(credits)} of ${state.floor}.` + half + ` ${counts} ${CS_ANOTHER_CHANCE}`;
+}
+/* D354 · the bye, said only when the payload says it. A season has one. Twin
+   of `LeagueCopy.byeNote`; the two may not drift. */
+function csByeNote(available){
+  if(available === true)  return ' Your one bye for the season is still there.';
+  if(available === false) return ' Your one bye is used — from here the minimum counts.';
+  return '';
+}
+/* "October" for a day in September; the month a join-month waiver runs out. */
+function csNextMonthLong(d){
+  const now = d || new Date();
+  return CS_MONTHS_LONG[(now.getMonth() + 1) % 12];
 }
 
 /* ================= course card · pars in a sheet ================= */
@@ -16775,7 +16852,17 @@ function csItemDoor(it){
     case 'live':      return id ? ()=>switchView('play') : null;
     case 'season':    return id ? ()=>switchView('hub') : null;
     case 'pot':       return id ? ()=>switchView('pot') : null;
-    case 'invite':    return id ? ()=>switchView('hub') : null;
+    /* D351 (built) · "See the terms" opens THE TERMS. The route's id is the
+       CONTAINER (a season the invitee cannot open); the invitation's own id is
+       the item's key, `invite:<id>`, and the covenant is read for it. With no
+       invitation to read for, the switcher — which lists every invitation with
+       its terms and its decline — is the honest door. */
+    case 'invite':    return id ? ()=>{
+        const key = String(it.key||''), iid = key.startsWith('invite:') ? key.slice(7) : null;
+        const inv = (window.myInvites||[]).find(x => x.id === iid) || (window.myInvites||[]).find(x => x.container_id === id) || null;
+        if(inv && window.respondInvite) window.respondInvite(inv.id, true);
+        else if(window.openLeagueSwitcher) window.openLeagueSwitcher();
+      } : null;
     default:          return null;
   }
 }
@@ -18051,8 +18138,22 @@ function renderPulse(){
       isPro ? `Short month — no monthly minimum. Everyone posts freely.` : `Short month — no minimum to clear. Post when you can.`);
     return;
   }
+  /* D354 · a golfer who joined during this month is not docked for it
+     (close_month's own D161 waiver), so the gauge does not ask them for a
+     figure — and the Pro's "waiting on" list does not name them. Said only
+     when the payload carries the fact. */
+  const meRowJ = rows.find(r=>r.is_me) || null;
+  if(!isPro && meRowJ && meRowJ.joined_this_month === true){
+    box.innerHTML=pulseCard(`${mName} · no minimum this month`,
+      `You joined this month, so there's no minimum to clear until ${csNextMonthLong()}. Post when you can.`);
+    if(state.floor>0){
+      box.insertAdjacentHTML('beforeend',
+        `<p class="fine" style="padding:8px 0 0; line-height:1.45">Monthly minimum · ${floorSentence()}</p>`);
+    }
+    return;
+  }
   if(isPro){
-    const short=rows.filter(r=>!r.at_floor);
+    const short=rows.filter(r=>!r.at_floor && r.joined_this_month !== true);
     const atFloor=rows.length-short.length;
     const names=short.slice(0,4).map(r=>esc(r.display_name||'A member')).join(', ')+(short.length>4?` +${short.length-4}`:'');
     box.innerHTML=pulseCard(`${mName} · monthly minimum · ${closes}`,
@@ -20877,17 +20978,19 @@ function renderNotifications(){
       <div class="tt"><b>${i.kind==='league'?'League invite':'Ryder invite'} · ${esc(i.container_name||'')}</b>
         <small>from ${esc(i.inviter||'a golfer')}${i.kind==='event'&&i.starts_on?' · first tee '+i.starts_on:''}</small></div>
       <span style="display:flex; gap:6px; flex:none">
-        <button class="mini" data-ivacc="${i.id}">Accept</button>
+        <button class="mini" data-ivacc="${i.id}">${i.kind==='league'?'See the terms':'Accept'}</button>
         <button class="mini" data-ivdet="${i.id}">Details</button>
       </span>
     </div>`).join('');
+  /* D351 · a season's primary control READS THE TERMS; the accept is the
+     covenant sheet's own Join. `respondInvite(…, true)` is that gate. */
   el.querySelectorAll('[data-ivacc]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivacc,true)));
   el.querySelectorAll('[data-ivdet]').forEach(b=>b.addEventListener('click',()=>{
     const i=inv.find(x=>x.id===b.dataset.ivdet); if(!i) return;
     openSheet(i.kind==='league'?'League invite':'Ryder invite', (i.container_name||'').toUpperCase(),
       `<p class="fine">${i.kind==='league'?'A season-long league.':'A Ryder — two teams, one clash each week.'} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
        <div style="display:flex; gap:8px; margin-top:14px">
-         <button class="btn" id="ivDetAcc" style="flex:1">Accept & join</button>
+         <button class="btn" id="ivDetAcc" style="flex:1">${i.kind==='league'?'See the terms':'Accept'}</button>
          <button class="btn dark" id="ivDetDec" style="flex:1">Decline</button>
        </div>`);
     $('#ivDetAcc').addEventListener('click',()=>{ closeSheet(); window.respondInvite(i.id,true); });
@@ -24770,6 +24873,23 @@ document.addEventListener('visibilitychange', ()=>{
 
 
 /* ---------- create a league ---------- */
+/* D355 · the durable create record. One key per golfer; cleared only when the
+   season STARTS (the lock landed) or the Pro discards the league. */
+const CREATE_REQ_KEY='cs_create_request';
+function createRequestKey(uid){ return CREATE_REQ_KEY + '.' + String(uid || 'signed-out'); }
+function createRequestRead(uid){
+  try{ const raw = localStorage.getItem(createRequestKey(uid)); if(!raw) return null;
+       const d = JSON.parse(raw); return (d && d.id) ? d : null; }catch(_){ return null; }
+}
+function createRequestWrite(uid, rec){ localStorage.setItem(createRequestKey(uid), JSON.stringify(rec)); }   /* throws */
+function clearCreateRequest(uid, leagueId){
+  /* with a league id, clear only the record that names it — a stale record for
+     some other league is not this one's to clear */
+  try{
+    if(leagueId){ const d = createRequestRead(uid); if(d && d.leagueId && d.leagueId !== leagueId) return; }
+    localStorage.removeItem(createRequestKey(uid));
+  }catch(_){}
+}
 async function createLeague(){
   /* F-001: never fire the create_league RPC without a real session (demo or
      signed-out) — it round-trips to prod and dies on the NOT-NULL
@@ -24779,9 +24899,38 @@ async function createLeague(){
   const name = ($('#setName').value || '').trim() || 'My Cup';
   const code = codeFor(name);
 
-  const { data, error } = await sb.rpc('create_league', { p_name: name, p_code: code });
-  if(error) throw error;
+  /* D355 · ONE league however many times Start is pressed. The request id is
+     owner-scoped, written BEFORE the call, and kept until the season actually
+     starts (the lock) or the Pro discards it — so a response lost to a timeout,
+     a tab killed between the create and the lock, or a second tap all replay
+     into the SAME league. A record that cannot be written stops here: a create
+     the browser cannot remember is one a kill turns into two. No fallback to
+     `create_league`: a server without the function cannot deduplicate, so it is
+     told to the golfer and nothing is minted. */
+  const uid = CS.user.id;
+  /* a run-it-back is a NEW season carried from the last one, never a resume of
+     an unrelated unfinished create; it mints its own id */
+  let rec = window._runItBack ? null : createRequestRead(uid);
+  if(!rec){
+    /* the module block cannot rely on a classic helper by bare name (landmine:
+       the classic ↔ module boundary), so the id is minted here */
+    const id = crypto.randomUUID ? crypto.randomUUID()
+             : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'? r : (r&0x3|0x8)).toString(16); });
+    rec = { id, at: Date.now(), name, code, leagueId: null };
+    try{ createRequestWrite(uid, rec); }
+    catch(_){ throw new Error('Couldn’t keep a record of this season in this browser, so nothing was started. Free up storage and try again.'); }
+  }
+  const { data, error } = await sb.rpc('create_league_once', { p_request_id: rec.id, p_name: name, p_code: code });
+  if(error){
+    const m = String(error.code || error.message || '').toLowerCase();
+    if(m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function')){
+      throw new Error('Starting a season isn’t available on this server yet. Nothing was created — try again after the update.');
+    }
+    throw error;
+  }
   const league = data.league, member = data.member;
+  rec.leagueId = league.id; try{ createRequestWrite(uid, rec); }catch(_){}
+  if(data.replayed) toast('Picking up the season you already started');
 
   CS.league = league;
   CS.member = { id: member.id, role:'commissioner', index: member.index_current };
@@ -25260,11 +25409,17 @@ function csCovenantFacts(info, postedRounds){
   if(weeksText && tee) out.push({ k:'length', t: weeksText + ' from ' + tee + '.' });
   else if(weeksText)   out.push({ k:'length', t: weeksText + '.' });
   else if(tee)         out.push({ k:'length', t: 'First tee ' + tee + '.' });
-  /* 4 · the rule. The payload's `floor` is the OTHER number; R9 brings the cap. */
+  /* 4 · the rule. The payload's `floor` is the OTHER number; R9 brings the cap.
+     D353 · an Unlimited league says "every round counts" off the payload's own
+     boolean (never off an absent key), and the allowance says what every points
+     figure is scored at, in the wizard's own words ("95 percent of your index")
+     so the Pro's agreement and the joiner's covenant read alike. */
   {
     const clauses = ['honest scores'];
-    if(Number(info.counting_cap)) clauses.push('best ' + csWord(Number(info.counting_cap)) + ' a month count');
+    if(info.every_round_counts === true) clauses.push('every round counts');
+    else if(Number(info.counting_cap)) clauses.push('best ' + csWord(Number(info.counting_cap)) + ' a month count');
     if(Number(info.floor)) clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
+    if(Number(info.handicap_allowance)) clauses.push(Number(info.handicap_allowance) + ' percent of your index');
     const head = info.preset ? csCap(String(info.preset)) + ' rules: ' : 'The rules: ';
     out.push({ k:'rules', t: head + clauses.join(', ') + '.' });
   }
@@ -25314,6 +25469,13 @@ async function covenantGate(code){
      'skew' · this database has not got the function; the caller keeps today's
               behaviour and must not claim the terms were shown. */
 async function covenantGateForInvite(inviteId){
+  /* BUILT 2026-09-13 \u00b7 fail-closed on every path that is not the terms. The
+     first cut returned 'skew' on a missing function AND on a null answer, and
+     the caller then accepted without the terms \u2014 which is the exact hole D351
+     exists to close. A server without the function is told to the golfer and
+     the invitation is kept; a null answer is either an event invitation (no
+     terms to read \u2014 accept proceeds) or an invitation already answered. */
+  const inv = (window.myInvites||[]).find(x => x.id === inviteId) || null;
   let info=null, answered=false;
   try{
     const {data,error}=await sb.rpc('join_covenant_for_invite',{p_invite:inviteId});
@@ -25321,11 +25483,19 @@ async function covenantGateForInvite(inviteId){
     info=data; answered=true;
   }catch(e){
     const m=String(e && (e.code||e.message) || '').toLowerCase();
-    if(m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function')) return 'skew';
+    if(m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function')){
+      toast('The terms can\u2019t be read on this server yet. Nothing was accepted \u2014 try again after the update.');
+      return false;
+    }
   }
   if(!answered){ toast('Could not check this league\u2019s terms \u2014 try again in a moment'); return false; }
-  /* an event invitation has no league settings to read, and no stake */
-  if(!info) return 'skew';
+  if(!info){
+    /* a Ryder / Major invitation has no league settings and no stake to read */
+    if(inv && inv.kind === 'event') return true;
+    toast('That invitation was already answered \u2014 nothing changed');
+    await loadInvites(); if(window.renderNotifications) window.renderNotifications();
+    return false;
+  }
   return showCovenant(info);
 }
 
@@ -25443,6 +25613,9 @@ $('#lockBtn').addEventListener('click', async () => {
 
   if(locked){
     window.qaEvent?.('lock_ok', { next_phase: locked.nextPhase });
+    /* D355 · the season STARTED: the accepted outcome is recovered, and only
+       now is the frozen create request released. */
+    if(CS.user && CS.league) clearCreateRequest(CS.user.id, CS.league.id);
     try {
       await loadMemberships();
       switchView('home');
@@ -25510,6 +25683,7 @@ document.getElementById('wizCancel')?.addEventListener('click', async () => {
     if(!state.demo && CS.league?.id){
       const { error } = await sb.rpc('delete_league', { p_league: CS.league.id });
       if(error) throw error;
+      if(CS.user) clearCreateRequest(CS.user.id, CS.league.id);   /* D355 · a discarded league must not resume */
       await loadMemberships();
     }
   } catch(e){ toast(humanError(e, 'Could not discard.')); return; }
@@ -25817,7 +25991,7 @@ async function openLeagueSwitcher(){
     <div class="check"><span class="num">${i.kind==='league'?'⛳':'🏆'}</span>
       <div class="tt"><b>${esc(i.container_name||'')}</b><small>INVITE · FROM ${esc((i.inviter||'').toUpperCase())}</small></div>
       <span style="display:flex; gap:6px; flex:none">
-        <button class="mini" data-swacc="${i.id}">Accept</button>
+        <button class="mini" data-swacc="${i.id}">${i.kind==='league'?'See the terms':'Accept'}</button>
         <button class="mini" data-swdec="${i.id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
       </span></div>`).join('');
   /* the get-started surface: bold, unmissable. Primary two carry the accent. */
@@ -25863,6 +26037,7 @@ async function openLeagueSwitcher(){
     try {
       const { error } = await sb.rpc('delete_league', { p_league: id });
       if(error) throw error;
+      if(CS.user) clearCreateRequest(CS.user.id, id);   /* D355 · a deleted league must not resume */
       if(CS.league?.id === id) goClubhouse();
       toast(nm + ' deleted');
       await loadMemberships();
@@ -26824,13 +26999,13 @@ window.loadInvites = loadInvites;
 window.respondInvite = async (id, accept)=>{
   try{
     /* D351 · the terms come before the money. Declining stays one tap and stays
-       ungated — nobody needs the terms to say no. */
+       ungated — nobody needs the terms to say no. Accepting NEVER proceeds
+       without the terms: the gate is fail-closed on a missing function and on
+       an answered invitation (see covenantGateForInvite). */
+    const inv = (window.myInvites||[]).find(x => x.id === id) || null;
     if(accept){
-      /* 'skew' = this database has not got the function; keep today's behaviour
-         rather than blocking the golfer, and promise nothing about the terms. */
-      if((await covenantGateForInvite(id)) === false) return;
+      if((await covenantGateForInvite(id)) !== true) return;
     }
-    const before = (window.CS?.memberships||[]).length + (window.myEvents||[]).length;
     const { error } = await sb.rpc('respond_invite', { p_id:id, p_accept:accept });
     if(error) throw error;
     await loadInvites();
@@ -26840,9 +27015,15 @@ window.respondInvite = async (id, accept)=>{
     /* D351 · `respond_invite` RETURNS SILENTLY when the invitation was already
        accepted or already declined, and this used to read that silence as
        success and say "Joined ✓" for a join that never happened. A seat is a
-       seat only when it arrives. */
-    const after = (window.CS?.memberships||[]).length + (window.myEvents||[]).length;
-    if(after > before) toast('Joined ✓');
+       seat only when THIS container arrives — a count could be moved by some
+       other join in the meantime. */
+    const landed = inv && inv.container_id && (inv.kind === 'event'
+      ? (window.myEvents||[]).some(e => e.id === inv.container_id)
+      : (window.CS?.memberships||[]).some(m => m.league && m.league.id === inv.container_id));
+    if(landed){
+      toast('Joined ✓');
+      if(inv.kind !== 'event'){ const m = CS.memberships.find(x => x.league.id === inv.container_id); if(m) await enterLeague(m); }
+    }
     else toast('That invitation was already answered — nothing changed');
   }catch(e){ toast(humanError(e)); }
 };

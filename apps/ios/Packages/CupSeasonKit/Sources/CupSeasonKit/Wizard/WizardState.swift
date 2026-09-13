@@ -13,7 +13,11 @@
 import Foundation
 
 /// `state` as the wizard reads it. Stake in DOLLARS (the lock writes cents).
-public struct WizardDials: Sendable, Equatable {
+/// `Codable` since D355: the dials ride the durable create record, so a wizard
+/// killed between the create and the lock comes back with every choice —
+/// an explicit Unlimited, an off-ladder exact cap, a chosen squad count, the
+/// pay note — rather than the defaults.
+public struct WizardDials: Sendable, Equatable, Codable {
   /// D225 · the ladder, plus **Other**. $20 was impossible: the rungs are fixed
   /// and there was no field. `otherStake` is the escape hatch and the ladder is
   /// otherwise unchanged — L-11 keeps $0 (bragging rights) selected.
@@ -762,6 +766,10 @@ public enum WizardCopy {
   /// rather than a second season.
   public static let publishFailedHalf = "The season was created but did not start. Try again — it will not make a second one."
   public static let publishFailed = "Couldn’t start the season."
+  /// D355 · the record could not be written, so nothing was sent.
+  public static let createNotRemembered = "Couldn’t keep a record of this season on your phone, so nothing was started. Free up some space and try again."
+  /// D355 · a created-but-unstarted season the Pro is giving up on.
+  public static let discardPending = "Discard this season"
   /// R18 · the note did not land because the database has not had the migration.
   /// Named out loud rather than dropped (D225).
   public static let payNoteMissedIt = "The season is live. Add how they pay you from the pot."

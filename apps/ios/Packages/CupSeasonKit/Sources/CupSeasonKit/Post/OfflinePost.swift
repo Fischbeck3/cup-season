@@ -58,4 +58,21 @@ extension PostService {
     }
     return out
   }
+
+  /// D350 (built) · `round_post_status(p_request_id)` — did an earlier request
+  /// land? READ-ONLY: it never posts. Returns the accepted round id, or nil
+  /// when the server holds no receipt for this owner and request. Hand-declared
+  /// beside `post_round_once` while the migration awaits its contract refresh;
+  /// no droppable arguments.
+  struct RoundPostStatusCall: RpcCall {
+    static let name = "round_post_status"
+    static let optionalArgs: [String] = []
+    typealias Returns = JSONValue
+    let p_request_id: UUID
+  }
+  public func postStatus(request: UUID) async throws -> UUID? {
+    let json = try await svc.call(RoundPostStatusCall(p_request_id: request))
+    if json.isNull { return nil }
+    return PostOutcome(json: json)?.roundId
+  }
 }

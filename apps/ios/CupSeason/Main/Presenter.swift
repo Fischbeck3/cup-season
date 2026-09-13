@@ -76,6 +76,9 @@ final class Presenter {
   var calloutReply: CalloutInvite?
   /// D242 · the forfeit sheet, reachable without a season.
   var forfeit: ForfeitTarget?
+  /// D351 (built) · "See the terms" from Home: the INVITATION's own id, so the
+  /// covenant is read for it rather than a season page the invitee cannot open.
+  var inviteTerms: InviteTermsTarget?
   struct CalloutInvite: Identifiable { let eventId: UUID; let from: String; let closesOn: String; var terms: String? = nil; var id: UUID { eventId } }
   struct ForfeitTarget: Identifiable { var home = ForfeitHome(); var opponentName: String? = nil; var id: String { String(describing: home) } }
 
@@ -87,7 +90,7 @@ final class Presenter {
     tourCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
       showFeedback || showDesk || showNote || declare != nil || inviteTo != nil || wizard != nil || draft != nil || runBack != nil ||
       showEventPicker || event != nil || showIntent || showWhenFork || showPickAGolfer ||
-      length != nil || callout != nil || calloutReply != nil || forfeit != nil
+      length != nil || callout != nil || calloutReply != nil || forfeit != nil || inviteTerms != nil
   }
 
   /// Take everything down. Returns true if anything was up (the caller
@@ -99,7 +102,7 @@ final class Presenter {
     showFeedback = false; showDesk = false; showNote = false; declare = nil; inviteTo = nil; wizard = nil; draft = nil; runBack = nil
     showEventPicker = false; event = nil
     showIntent = false; showWhenFork = false; showPickAGolfer = false
-    length = nil; callout = nil; calloutReply = nil; forfeit = nil
+    length = nil; callout = nil; calloutReply = nil; forfeit = nil; inviteTerms = nil
     return was
   }
 }
