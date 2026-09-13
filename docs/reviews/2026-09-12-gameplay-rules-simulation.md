@@ -436,8 +436,8 @@ table, not the arithmetic.
 
 ## Handoff
 
-- **Branch / commit:** `claude/gameplay-rules-simulation`, commit recorded in the git log for this
-  file; pushed.
+- **Branch / commit:** `claude/gameplay-rules-simulation`, **`b86de14`** (the harness, the evidence and
+  this report; pushed). This line was added in the following commit so the SHA is exact.
 - **Goal / owned files:** rules inventory, fairness analysis, simulation evidence. New:
   `tests/sim/` (harness, sandbox scripts, engine dump, results), this report, three `.gitignore`
   lines. No application code, no migration, no generated file, no shared spec file edited.
