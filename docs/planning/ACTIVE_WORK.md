@@ -113,3 +113,16 @@ Status: **Review**. Owner approved editable setup and brief language, then “Do
 - Claude’s gameplay audit at `8dcd403` informed this work; its branch and workspace remain untouched. No automated Claude task was started or message sent.
 - Recommended next owner: Claude independently reviews this committed client diff and proposes durable create/lock recovery. Codex resolves findings and integrates a new release candidate. Fresh-scored Final needs an owner decision before backend implementation.
 - No production DB, Edge, web or TestFlight release performed. Build 815 remains separate.
+
+
+## Claude-led season activation sprint · 2026-09-13
+
+Owner requested that Claude take the build lead. This is the current sprint-specific ownership assignment and supersedes the default editor table only for this packet.
+
+- Packet: [From invitation to a first round that counts](2026-09-13-claude-led-season-activation.md).
+- Status: **Ready to start; not dispatched by Codex.** App base `1c59a96`; start from the documentation checkpoint containing the packet on a new `claude/season-activation` branch/workspace.
+- Claude: lead builder and fixes; affected invite, draft/post, setup and season/receipt implementation; sole `index.html` editor; scoped backend/contract work and tests. Review fixes are a separate first commit.
+- Codex: independent review and integration/local device verification after handoff. No concurrent edits to Claude-owned implementation files. Native execution requires a local Mac session.
+- Q0 draft protection moves into Claude’s sprint. C0a/D345 plan capability remains the next separate contract; do not fold unapproved plan semantics into activation. Existing G1 invitation paths are audited here; broader renewal remains later.
+- S1 review closeout → S2 reliable invitation/draft/post → S3 understandable monthly contribution. Exact acceptance and deferred opportunities are in the packet.
+- No production deploy, scoring rewrite, new notification audience or brand decision is authorized by this ownership change.
