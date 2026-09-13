@@ -235,6 +235,26 @@
     check(document.getElementById('inGross').value==='','F2: the abandoned gross came back');
     check(state.post.plan===null,'F2: the abandoned plan came back');
 
+    /* ── HOTFIX · an accepted BACKDATED post leaves no phantom behind ──────
+       Found live: the posted date stayed on the form, a chosen date is work,
+       so a date-only draft was written and restored on every later load. */
+    window.sb={rpc:async(n)=>n==='post_round_once'?{data:{round:{id:'f0000000-0000-4000-8000-0000000000d1',counts:true,league_name:'L',squad:null},epilogue:{points:7,pvi:-0.5}},error:null}:{data:null,error:null},
+               from:()=>({insert:async()=>({data:null,error:null})})};
+    clearPostRequest(uid); clearPostDraft(); reset();
+    document.getElementById('inDate').value=isoAgo(1);           /* yesterday: the after-golf case */
+    document.getElementById('inGross').value='84'; document.getElementById('inRating').value='72'; document.getElementById('inSlope').value='113';
+    state.post.plan={id:PLAN, play_on:isoAgo(1)};
+    state.lastPost={pts:7,vs:-0.5,label:'84'};                    /* the recalc'd card the button reads */
+    { let done=null; const rf=finishCeremony; finishCeremony=o=>{done=o;}; const b=document.getElementById('postBtn'); b.disabled=false; b.click();
+      await until(()=>done,'HOTFIX: the backdated post never landed'); finishCeremony=rf; await new Promise(r=>setTimeout(r,120)); }
+    check(document.getElementById('inDate').value===_postDateStamp,'HOTFIX: the posted date stayed on the form after acceptance');
+    check(document.getElementById('inGross').value==='','HOTFIX: the gross survived acceptance');
+    check(state.post.plan===null,'HOTFIX: the plan survived acceptance');
+    savePostDraft(); await new Promise(r=>setTimeout(r,450));
+    check(!localStorage.getItem(postDraftKey(uid)),'HOTFIX: a date-only phantom draft was written after acceptance');
+    _draftRestored=false; check(restorePostDraft()===false,'HOTFIX: a reload restored a round that does not exist');
+    check(document.getElementById('inDate').value===_postDateStamp,'HOTFIX: the reload brought yesterday back');
+
     /* the frozen request is NOT released by Start over — that is what it is for */
     postRequestWrite(uid,{id:'f0000000-0000-4000-8000-00000000000c',env:null,accepted:null});
     reset(); document.getElementById('inGross').value='91';

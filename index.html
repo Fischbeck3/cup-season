@@ -10845,6 +10845,8 @@ function putTheCardDown({ restamp = false } = {}){
   state.post.plan = null;
   state.lastPost=null; state.postBlocked=null;
   if(restamp){ const d=$('#inDate'); if(d) d.value=''; stampPostDate(); }
+  /* the stamp is refreshed above, so a save fired by the clearing itself finds
+     the machine's date, not the posted one, and writes nothing */
   if(typeof clearPostDraft==='function') clearPostDraft();
   if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
 }
@@ -10853,8 +10855,18 @@ function putTheCardDown({ restamp = false } = {}){
 function resetPostComposer(){ putTheCardDown({ restamp: true }); }
 /* The one place the form is put down after the server has accepted a round —
    the normal post and the accepted-recovery finish both land here, so the two
-   can never disagree about what "finished" means. */
-function clearPostComposerAfterPost(){ putTheCardDown(); }
+   can never disagree about what "finished" means.
+
+   RELEASE HOTFIX 2026-09-13 · this restamps too, exactly as the phone does
+   (`day = Date()` after posting). Found on the live site with the review
+   account: post yesterday's round from the after-golf card, and the posted
+   date stayed on the form while everything else cleared. A date that is not
+   the stamp counts as work (D349), so the next save wrote a DATE-ONLY draft —
+   which every later load restored, re-saved, and announced as "Your unposted
+   round came back". The composer would default to yesterday until Start over.
+   The asymmetry ("an accepted post leaves the date to its caller") had no
+   product reason behind it. */
+function clearPostComposerAfterPost(){ putTheCardDown({ restamp: true }); }
 $('#postReset')?.addEventListener('click',e=>{
   e.preventDefault();
   /* `putTheCardDown` drops the saved draft as part of putting the card down, so
