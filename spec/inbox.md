@@ -380,3 +380,46 @@ Full audit: `docs/reviews/2026-09-12-after-golf-audit.md` (contract + 30 accepta
 ### 2026-09-12 · UX · regressions in bee364a / de338d8 (Codex branch)
 
 Full review: `docs/reviews/2026-09-12-home-no-photo-regression-review.md`. Two that change what a golfer sees: a photo row renders as a text slat while loading and again on every recycle (`HomeWire.swift:85-94`), and the whole name row now opens the golfer on the phone while the same tap opens the round on the web (`HomeWire.swift:160-174` vs `index.html:15871`). Left for Codex to fix on its own branch.
+
+## Season activation sprint — open items, verified 2026-09-13 (claude/season-activation)
+
+Found while building `98540b5` / `0889ddd` / `8403343`. Each was reproduced on
+that branch; none is a commitment. Full context:
+`docs/reviews/2026-09-13-season-activation-handoff.md`.
+
+- **Duplicate leagues after an ambiguous create.** UX/Gameplay. The orphan is
+  recoverable through its own room, but the leagueless "Start a season" door
+  passes no existing id, so a second league can be minted beside the first.
+  First question: does `create_league` take a request identity like
+  `post_round_once`, or does the door learn to look for a setup-phase league?
+- **The phone has no invitations list and no decline control.** UX.
+  `InvitesBanner` is complete, commented, and rendered by no screen — so the
+  covenant fix it documents ships to nobody, and a golfer cannot say no on the
+  phone at all. First question: which screen owns it now that Home gave it up
+  (IOS-046) — Golfers, You, or a notification destination?
+- **"See the terms" shows no terms.** UX. The Home invitation item routes to
+  `openCompetition(id, .table)` on the phone, which answers "that season isn't
+  yours to see", and to `switchView('hub')` with the id discarded on the web.
+  First question: is the destination the covenant sheet on both, now that
+  `join_covenant_for_invite` exists to feed it?
+- **The covenant omits the handicap allowance.** Gameplay/contract. It is a rule
+  of the league and it is not in `join_covenant_info`'s payload, so neither
+  client can show it. First question: add `handicap_allowance` to that payload,
+  or is the preset name the intended level of disclosure before joining?
+- **The join-month waiver and the auto-bye cannot be said honestly.**
+  Gameplay/contract. `league_pulse.partial` is computed from the season's edges
+  with no `joined_at` arm, so a golfer who joined mid-month may be shown a
+  minimum `close_month` will waive; and nothing in the payload says whether a
+  bye is still available. First question: one more column on `league_pulse`, or
+  a separate per-golfer month fact?
+- **A `?join=` link tapped while the app is open and signed in does nothing.**
+  UX. The code is stored; only `MainTabView.onAppear` reads it, and it does not
+  re-fire. First question: does the stored intent get an observer, or does the
+  URL handler present the flow itself?
+- **`PendingLink.spend(...)` and `PendingLink.first(...)` are called by nothing.**
+  Code health. Described as "the only door to a clear", while the real clears
+  go straight to `JoinIntent.clear`. First question: adopt them or delete them.
+- **`JoinService.covenantForLeague(_:)` cannot succeed.** Code health. It reads
+  `leagues.code` for a league the golfer is not in, and `leagues_read` has no
+  invitee arm. Moot only because its one caller is unrendered. First question:
+  delete it in favour of `join_covenant_for_invite`.
