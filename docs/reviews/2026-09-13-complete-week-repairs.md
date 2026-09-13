@@ -127,6 +127,7 @@ stays when one does.
 | `CupSeasonKit` | 1,158 tests in 188 suites |
 | `CupSeasonTests` | 85 tests in 17 suites |
 | `CupSeasonUITests/AfterGolfAnswerTests` (new) | **5 tests, 0 failures** |
+| `CupSeasonUITests` (whole target) | my 5 pass; **8 review-capture tests fail on a missing precondition** — see below |
 | `npm run preflight` | 0 failures, 0 warnings |
 | `supabase db push --dry-run` | exactly the two migrations |
 
@@ -181,6 +182,18 @@ the ungated band against production today and is the post-push gate.
   placements share one producer. A real displaced card belongs to a device pass.
 - **No device, no live account, no offline pass.** Everything native is
   simulator and fixture.
+- **Eight UI tests in four review-capture suites fail, and they are
+  environmental.** `AcceptedRoundReviewTests`, `CompeteBoldReviewTests` and
+  `CompeteGameplayReviewTests` launch with `-cs_dev_open compete` / `receipt` —
+  hatches that open a real screen for a **signed-in** account — and read real
+  account data (`compete.row.`, `season.title`, a real receipt). One of them
+  fails with its own precondition message, *"Use the signed-in review
+  simulator"*. This machine's simulator has no signed-in account. None of them
+  touches Home, the after-golf card, the composer draft or the ceremony, which
+  is where every change in this pass lives. This is the first run of the whole
+  UI target in this workspace — the previous checkpoint ran only
+  `LeagueSetupReviewTests` — which is why they surface now rather than earlier.
+  A signed-in simulator, which Codex's release workspace has, is what they need.
 - **`tests/homefold.test.mjs` fails one assertion** ("Up next" vs "Coming up").
   Pre-existing; confirmed identical on a clean `origin/main` tree in the previous
   checkpoint and unchanged by this pass.
