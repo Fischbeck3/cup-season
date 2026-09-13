@@ -42,7 +42,10 @@ struct MonthClock: View {
     let months = SeasonCalendarMath.months(startsOn: c.startsOn, weeks: c.totalWeeks, today: c.today)
     let now = c.done || c.atStarter ? -1 : max(0, c.currentWeek - 1)
     let n = model.myMonth?.credits ?? 0
-    let next = LeagueCopy.nextUp(c, b: model.bylaws, credits: n, partial: model.partialMonth)
+    // D354 · the waiver and the bye ride the golfer's own pulse row, and are
+    // said only when the server said them.
+    let next = LeagueCopy.nextUp(c, b: model.bylaws, credits: n, partial: model.partialMonth,
+                                 joinedThisMonth: model.myPulse?.joined_this_month, byeAvailable: model.myPulse?.bye_available)
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
       if !months.isEmpty {
         CSSeasonCalendar(weeks: c.totalWeeks,

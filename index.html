@@ -15026,11 +15026,32 @@ function renderStats(){
      branch fired and announced the month "covered", which says something was
      owed where nothing is. Twin of `LeagueCopy.nextUp`. */
   const counts = csCountingRule(capDB());
+  /* D354 · two facts the pulse now carries, said ONLY when it carries them
+     (an older server says neither): a golfer who joined during this month is
+     told the minimum is waived — which is what close_month will do — rather
+     than shown a figure to chase; and while a minimum is still owed, whether
+     the season's one bye is still there. Twin of `LeagueCopy.nextUp`. */
+  const meRow = (!state.demo && (window.leaguePulse||[]).find(r=>r.is_me)) || null;
+  const joinedThisMonth = !!(meRow && meRow.joined_this_month === true);
+  const byeNote = csByeNote(meRow ? meRow.bye_available : undefined);
   $('#nextTxt').textContent =
     !(Number(state.floor) > 0) ? `${counts} ${CS_ANOTHER_CHANCE}`
     : partial ? `${curMonth()} is a short month — no minimum to clear. ${counts}`
-    : rem>0   ? `${fmtN(rem)} more toward ${curMonth()}'s minimum of ${state.floor} — you're at ${fmtN(credits)}.` + half + ` ${counts}`
+    : joinedThisMonth ? `You joined this month, so there's no minimum to clear until ${csNextMonthLong()}. ${counts}`
+    : rem>0   ? `${fmtN(rem)} more toward ${curMonth()}'s minimum of ${state.floor} — you're at ${fmtN(credits)}.` + half + ` ${counts}` + byeNote
               : `${curMonth()}'s minimum is met — ${fmtN(credits)} of ${state.floor}.` + half + ` ${counts} ${CS_ANOTHER_CHANCE}`;
+}
+/* D354 · the bye, said only when the payload says it. A season has one. Twin
+   of `LeagueCopy.byeNote`; the two may not drift. */
+function csByeNote(available){
+  if(available === true)  return ' Your one bye for the season is still there.';
+  if(available === false) return ' Your one bye is used — from here the minimum counts.';
+  return '';
+}
+/* "October" for a day in September; the month a join-month waiver runs out. */
+function csNextMonthLong(d){
+  const now = d || new Date();
+  return CS_MONTHS_LONG[(now.getMonth() + 1) % 12];
 }
 
 /* ================= course card · pars in a sheet ================= */
@@ -18117,8 +18138,22 @@ function renderPulse(){
       isPro ? `Short month — no monthly minimum. Everyone posts freely.` : `Short month — no minimum to clear. Post when you can.`);
     return;
   }
+  /* D354 · a golfer who joined during this month is not docked for it
+     (close_month's own D161 waiver), so the gauge does not ask them for a
+     figure — and the Pro's "waiting on" list does not name them. Said only
+     when the payload carries the fact. */
+  const meRowJ = rows.find(r=>r.is_me) || null;
+  if(!isPro && meRowJ && meRowJ.joined_this_month === true){
+    box.innerHTML=pulseCard(`${mName} · no minimum this month`,
+      `You joined this month, so there's no minimum to clear until ${csNextMonthLong()}. Post when you can.`);
+    if(state.floor>0){
+      box.insertAdjacentHTML('beforeend',
+        `<p class="fine" style="padding:8px 0 0; line-height:1.45">Monthly minimum · ${floorSentence()}</p>`);
+    }
+    return;
+  }
   if(isPro){
-    const short=rows.filter(r=>!r.at_floor);
+    const short=rows.filter(r=>!r.at_floor && r.joined_this_month !== true);
     const atFloor=rows.length-short.length;
     const names=short.slice(0,4).map(r=>esc(r.display_name||'A member')).join(', ')+(short.length>4?` +${short.length-4}`:'');
     box.innerHTML=pulseCard(`${mName} · monthly minimum · ${closes}`,

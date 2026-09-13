@@ -419,19 +419,47 @@ public enum LeagueCopy {
   /// So: the minimum is spoken only where there is one, always in its own unit
   /// and against its own target; the counting rule is spoken as a rule; and the
   /// extra round is a chance to improve, never a promise of points.
-  public static func nextUp(_ c: RoomClock, b: Bylaws, credits: Double, partial: Bool) -> (k: String, text: String) {
+  ///
+  /// D354 · and two facts the pulse now carries, said ONLY when it carries
+  /// them (nil = an older server, and nothing is claimed): a golfer who joined
+  /// during this month is told the minimum is waived — which is what
+  /// `close_month` will do — rather than shown a figure to chase; and while a
+  /// minimum is still owed, whether the season's one bye is still there. The
+  /// desk's `nextUpText` carries the same clauses off the same rows.
+  public static func nextUp(_ c: RoomClock, b: Bylaws, credits: Double, partial: Bool,
+                            joinedThisMonth: Bool? = nil, byeAvailable: Bool? = nil) -> (k: String, text: String) {
     if c.atStarter { return ("Up next · kickoff", "First tee \(c.firstTeeText). Practice rounds post to your rounds, not the season.") }
     let month = LeagueDates.monthLong(c.today)
     let key = "Up next · \(month)"
     let counts = countingRule(b.cap)
     guard b.floor > 0 else { return (key, "\(counts) \(anotherChance)") }
     if partial { return (key, "\(month) is a short month — no minimum to clear. \(counts)") }
+    if joinedThisMonth == true {
+      return (key, "You joined this month, so there's no minimum to clear until \(nextMonthLong(c.today)). \(counts)")
+    }
     let rem = max(0, Double(b.floor) - credits)
     let half = halfNote(credits: credits, rem: rem)
     if rem > 0 {
-      return (key, "\(fmtN(rem)) more toward \(month)'s minimum of \(b.floor) — you're at \(fmtN(credits))." + half + " \(counts)")
+      return (key, "\(fmtN(rem)) more toward \(month)'s minimum of \(b.floor) — you're at \(fmtN(credits))." + half + " \(counts)" + byeNote(byeAvailable))
     }
     return (key, "\(month)'s minimum is met — \(fmtN(credits)) of \(b.floor)." + half + " \(counts) \(anotherChance)")
+  }
+
+  /// D354 · the bye, said only when the payload says it. A season has one.
+  public static let byeStillThere = "Your one bye for the season is still there."
+  public static let byeUsed = "Your one bye is used — from here the minimum counts."
+  static func byeNote(_ available: Bool?) -> String {
+    switch available {
+    case .some(true): return " " + byeStillThere
+    case .some(false): return " " + byeUsed
+    case .none: return ""
+    }
+  }
+
+  /// "October" for a day in September; the month the waiver runs out.
+  public static func nextMonthLong(_ iso: String, calendar: Calendar = .current) -> String {
+    guard let d = CSDate.local(iso, calendar: calendar), let n = calendar.date(byAdding: .month, value: 1, to: d) else { return "next month" }
+    return LeagueDates.monthLong(CSDate.iso(n, calendar: calendar), calendar: calendar)
   }
 
   /// `#lineSplit` (11943). M1 · cents in, the settlement's own split, and

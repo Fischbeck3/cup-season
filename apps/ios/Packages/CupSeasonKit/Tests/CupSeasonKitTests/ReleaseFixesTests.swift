@@ -79,6 +79,53 @@ import Foundation
   }
 }
 
+/// D354 · the month sentence says the waiver and the bye only off the payload.
+@Suite struct MonthWaiverCopyTests {
+  private func clock(_ today: String) -> RoomClock {
+    RoomClock(phase: .season, startsOn: "2026-05-03", endsOn: "2026-12-26", status: "active", finish: "cup_final", today: today)
+  }
+  private let b = Bylaws(floor: 2, cap: 4)
+
+  @Test func aGolferWhoJoinedThisMonthIsToldTheMinimumIsWaived() {
+    let t = LeagueCopy.nextUp(clock("2026-09-13"), b: b, credits: 0, partial: false, joinedThisMonth: true, byeAvailable: true).text
+    #expect(t == "You joined this month, so there's no minimum to clear until October. Your best 4 each month count.")
+    #expect(!t.contains("more toward"), "no figure to chase in a month close_month will waive")
+    #expect(!t.contains("bye"), "the bye is not spent in a waived month, so it is not mentioned")
+  }
+
+  @Test func theByeIsSaidOnlyWhileAMinimumIsOwedAndOnlyOffThePayload() {
+    let owed = LeagueCopy.nextUp(clock("2026-09-13"), b: b, credits: 1, partial: false, joinedThisMonth: false, byeAvailable: true).text
+    #expect(owed.hasSuffix(LeagueCopy.byeStillThere))
+    let used = LeagueCopy.nextUp(clock("2026-09-13"), b: b, credits: 1, partial: false, joinedThisMonth: false, byeAvailable: false).text
+    #expect(used.hasSuffix(LeagueCopy.byeUsed))
+    // an older server: neither fact, and the sentence is exactly D352's
+    let old = LeagueCopy.nextUp(clock("2026-09-13"), b: b, credits: 1, partial: false).text
+    #expect(old == "1 more toward September's minimum of 2 — you're at 1. Your best 4 each month count.")
+    // met: nothing about the bye either way
+    let met = LeagueCopy.nextUp(clock("2026-09-13"), b: b, credits: 2, partial: false, joinedThisMonth: false, byeAvailable: false).text
+    #expect(!met.contains("bye"))
+  }
+
+  @Test func noMinimumAndAShortMonthOutrankTheWaiver() {
+    let free = LeagueCopy.nextUp(clock("2026-09-13"), b: Bylaws(floor: 0, cap: 4), credits: 0, partial: false, joinedThisMonth: true, byeAvailable: true).text
+    #expect(!free.lowercased().contains("minimum") && !free.contains("bye"))
+    let short = LeagueCopy.nextUp(clock("2026-09-13"), b: b, credits: 0, partial: true, joinedThisMonth: true, byeAvailable: true).text
+    #expect(short.hasPrefix("September is a short month"))
+  }
+
+  @Test func theNextMonthRollsTheYear() {
+    #expect(LeagueCopy.nextMonthLong("2026-12-13") == "January")
+    #expect(LeagueCopy.nextMonthLong("2026-09-13") == "October")
+  }
+
+  @Test func theExtendedRowDecodesWithAndWithoutTheNewColumns() throws {
+    let new = try JSONDecoder().decode(LeaguePulseRow.self, from: Data(#"{"profile_id":null,"credits":1.5,"floor":2,"at_floor":false,"is_me":true,"partial":false,"joined_this_month":true,"bye_available":false}"#.utf8))
+    #expect(new.joined_this_month == true && new.bye_available == false && new.credits == 1.5)
+    let old = try JSONDecoder().decode(LeaguePulseRow.self, from: Data(#"{"credits":1,"floor":2,"at_floor":false,"is_me":true,"partial":false}"#.utf8))
+    #expect(old.joined_this_month == nil && old.bye_available == nil, "an older server claims neither")
+  }
+}
+
 /// D351 (built) · the phone's invitation-list model says "Joined ✓" only on proof.
 @Suite struct InviteLandedTests {
   @Test func theRouteKeyCarriesTheInvitationId() {
