@@ -490,3 +490,88 @@ import CSDesign
     for (_, m) in PostEpilogue.achievements { #expect(!m.icon.contains("🔥")) }
   }
 }
+
+/// D349 · C0 F2 — the composer stamps today's date into the card at
+/// construction, so every draft gate that asked `isBlank` (which requires
+/// `date == nil`) was asking a question that could never be true again.
+/// The restore gate was one of them: an unfinished ordinary draft was saved
+/// faithfully and then refused on every reopen.
+@Suite struct DraftResumeGateTests {
+  private let today = "2026-09-13"
+
+  /// The reproduction. This is the state the composer is in the instant it
+  /// opens, before the golfer has done anything at all.
+  @Test func aFreshlyStampedCardIsNotBlankButIsUntouched() {
+    var c = PostCard(); c.date = today
+    #expect(c.isBlank == false, "the stamped date alone already defeats isBlank")
+    #expect(c.isUntouched(defaultDate: today), "and that is why the gate has to ask this instead")
+  }
+
+  /// The consequence: the old gate `guard card.isBlank` refused every restore.
+  @Test func theOldGateRefusedEveryRestoreAndTheNewOneDoesNot() {
+    var opened = PostCard(); opened.date = today
+    #expect(opened.isBlank == false)                       // old gate: return, draft dropped
+    #expect(opened.isUntouched(defaultDate: today) == true) // new gate: restore proceeds
+  }
+
+  /// A date the golfer actually chose is not the stamped one, and must block
+  /// a restore from overwriting it.
+  @Test func aChosenDateIsNotTheStampedOne() {
+    var c = PostCard(); c.date = "2026-09-07"
+    #expect(c.isUntouched(defaultDate: today) == false)
+  }
+
+  @Test func anyTypedFieldBlocksTheRestore() {
+    for mutate in [{ (c: inout PostCard) in c.whole = "84" },
+                   { c in c.f9 = "41" },
+                   { c in c.b9 = "43" },
+                   { c in c.rating = "71.2" },
+                   { c in c.slope = "128" },
+                   { c in c.course = "Papago" },
+                   { c in c.touched = true }] {
+      var c = PostCard(); c.date = today; mutate(&c)
+      #expect(c.isUntouched(defaultDate: today) == false)
+    }
+  }
+
+  /// The save side asked the same question, so a card carrying nothing but the
+  /// stamped date used to be written to disk as a "draft".
+  @Test func theStampedDateAloneIsNotADraftWorthKeeping() {
+    var c = PostCard(); c.date = today
+    #expect(c.isUntouched(defaultDate: today), "nothing here the golfer put here")
+  }
+
+  /// `isBlank` keeps its own meaning and its own callers.
+  @Test func isBlankStillMeansLiterallyNothing() {
+    let c = PostCard()
+    #expect(c.isBlank)
+    #expect(c.isUntouched(defaultDate: today))
+    #expect(c.isUntouched(defaultDate: nil))
+  }
+
+  /// A draft that survives the round trip keeps the date, course and scores.
+  @Test func aSavedDraftComesBackWhole() throws {
+    var c = PostCard()
+    c.date = "2026-09-07"; c.course = "Papago"; c.f9 = "41"; c.b9 = "43"
+    c.rating = "71.2"; c.slope = "128"
+    let data = try #require(PostDraft.encode(PostDraft(card: c)))
+    let back = try #require(PostDraft.decode(data))
+    #expect(back.card.date == "2026-09-07")
+    #expect(back.card.course == "Papago")
+    #expect(back.card.f9 == "41" && back.card.b9 == "43")
+    #expect(back.card.rating == "71.2" && back.card.slope == "128")
+    #expect(back.card.isUntouched(defaultDate: today) == false, "and it still blocks a second restore")
+  }
+
+  /// A kept live scorecard outlives the ordinary TTL on purpose, and carries
+  /// its own source so an ordinary resume cannot pretend to be it.
+  @Test func aKeptLiveCardDoesNotExpireWithTheOrdinaryDraft() throws {
+    var c = PostCard(); c.date = today; c.whole = "84"
+    let live = UUID()
+    let stale = Date().addingTimeInterval(-(PostDraft.ttl + 3600))
+    let ordinary = try #require(PostDraft.encode(PostDraft(at: stale, card: c)))
+    let kept = try #require(PostDraft.encode(PostDraft(at: stale, card: c, sourceLive: live)))
+    #expect(PostDraft.decode(ordinary) == nil, "an ordinary draft older than the TTL is gone")
+    #expect(PostDraft.decode(kept)?.sourceLive == live, "a kept live card is not")
+  }
+}

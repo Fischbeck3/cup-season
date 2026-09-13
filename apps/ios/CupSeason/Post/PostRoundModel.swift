@@ -52,9 +52,22 @@ final class PostRoundModel {
   private var openedAt = Date()
   private var typedSomething = false
 
+  /// D349 · the date this composer stamped into the card at construction.
+  /// `isUntouched(defaultDate:)` needs it to tell the machine's date from the
+  /// golfer's, and every draft gate below asks that question rather than
+  /// `isBlank`, which `card.date` had already made permanently false.
+  @ObservationIgnored private var defaultDay = CSDate.iso(Date(), calendar: ScheduleDates.gregorian)
+  /// D350 · the ordinary post's request identity. Minted once for the round
+  /// being composed and **frozen across retries** — regenerating it after a
+  /// timeout is exactly how a committed round becomes two. Released only when
+  /// the server has accepted, or when the composer is cleared for a new round.
+  @ObservationIgnored private var ordinaryRequest: UUID?
+
   init(store: SessionStore, toast: CSToastCenter) {
     self.store = store; self.toast = toast; self.draftOwner = store.session?.user.id
-    card.date = CSDate.iso(day, calendar: ScheduleDates.gregorian)
+    let iso = CSDate.iso(day, calendar: ScheduleDates.gregorian)
+    defaultDay = iso
+    card.date = iso
   }
 
   /// D-offline · take a whole card from somewhere else — today, a live round
@@ -126,7 +139,7 @@ final class PostRoundModel {
     // D178 · at the league's allowance, not at 100%. `membership` is the same
     // preferred-league pick the rest of the sheet uses; no league = nil = 100%.
     preview = PostCalc.preview(card, myIndex: myIndex, allowance: membership?.settings?.handicap_allowance)
-    if !card.isBlank { typedSomething = true }
+    if !card.isUntouched(defaultDate: defaultDay) { typedSomething = true }
   }
   var calcMessage: String { preview?.message ?? (typedSomething ? PostCalc.emptyMessageAfterTyping : PostCalc.emptyMessage) }
   var grossLine: String { preview?.grossLine ?? PostCalc.emptyGrossLine }
@@ -227,18 +240,19 @@ final class PostRoundModel {
     draftTask?.cancel()
     let snapshot = card
     let source = seededFrom
+    let request = ordinaryRequest
     draftTask = Task {
       try? await Task.sleep(for: .milliseconds(350))
       guard !Task.isCancelled else { return }
-      if snapshot.isBlank { UserDefaults.standard.removeObject(forKey: draftKey); return }
-      if let data = PostDraft.encode(PostDraft(card: snapshot, sourceLive: source)) { UserDefaults.standard.set(data, forKey: draftKey) }
+      if snapshot.isUntouched(defaultDate: defaultDay) { UserDefaults.standard.removeObject(forKey: draftKey); return }
+      if let data = PostDraft.encode(PostDraft(card: snapshot, sourceLive: source, request: request)) { UserDefaults.standard.set(data, forKey: draftKey) }
     }
   }
   /// A draft flush is never proof of server acceptance.
   func flushDraft() {
     draftTask?.cancel()
-    if card.isBlank { UserDefaults.standard.removeObject(forKey: draftKey); return }
-    if let data = PostDraft.encode(PostDraft(card: card, sourceLive: seededFrom)) {
+    if card.isUntouched(defaultDate: defaultDay) { UserDefaults.standard.removeObject(forKey: draftKey); return }
+    if let data = PostDraft.encode(PostDraft(card: card, sourceLive: seededFrom, request: ordinaryRequest)) {
       UserDefaults.standard.set(data, forKey: draftKey)
     }
   }
@@ -251,8 +265,11 @@ final class PostRoundModel {
     guard let d = PostDraft.decode(UserDefaults.standard.data(forKey: draftKey)) else {
       UserDefaults.standard.removeObject(forKey: draftKey); return
     }
-    guard card.isBlank else { return }
+    guard card.isUntouched(defaultDate: defaultDay) else { return }
     seededFrom = d.sourceLive
+    // D350 · the frozen request id comes back with the card, so a retry after a
+    // relaunch is the same request and not a second round.
+    ordinaryRequest = d.request
     card = d.card
     if let iso = d.card.date, let date = CSDate.local(iso, calendar: ScheduleDates.gregorian) { day = date }
     toast.show(PostDraft.restoredToast)
@@ -284,6 +301,9 @@ final class PostRoundModel {
   private func submit() async {
     guard !busy, preview != nil, let uid else { return }
     busy = true; defer { busy = false }
+    // D350 · mint the request identity BEFORE the draft is written, so the id
+    // is durable before anything can go wrong with the call that uses it.
+    if seededFrom == nil, ordinaryRequest == nil { ordinaryRequest = UUID() }
     flushDraft()
     let m = membership
     // D229 · no season on the payload. `post_round` derives it; the season on
@@ -295,6 +315,9 @@ final class PostRoundModel {
       else { toast.show("Couldn’t upload the photo. Posting the round without it.", kind: .failed) }
     }
     let outcome: PostService.PostOutcome
+    /// True when the accepted round already carries its hole detail, because
+    /// the server wrote it in the same transaction that accepted the round.
+    var holesWritten = false
     do {
       if let lr = seededFrom {
         var pending: OfflinePost
@@ -324,12 +347,49 @@ final class PostRoundModel {
         pending.accepted = outcome.roundId
         try OfflinePostDisk.shared.save(pending)
       } else {
-        outcome = try await svc.postRound(payload, playedWith: playedWith, fallbackSeason: m?.season?.id)
+        // D350 · the ordinary round gets the request identity the kept card has
+        // had all along, through the same already-written function.
+        let request = ordinaryRequest ?? UUID()
+        ordinaryRequest = request   // already minted above; this is the belt
+        var pending: OfflinePost
+        if let previous = try? OfflinePostDisk.shared.read(owner: uid, request: request) {
+          if let landed = previous.accepted {
+            // It posted. Saying so is the whole point of keeping the receipt.
+            ordinaryRequest = nil
+            acceptedRoundId = landed
+            toast.show("This round already posted. Open your round history to view it.", kind: .confirmed); return
+          }
+          guard previous.card == card else {
+            toast.show("That round may already have posted. Check your history before changing it, then post the new one.", kind: .failed); return
+          }
+          pending = previous
+        } else {
+          pending = OfflinePost(owner: uid, request: request, card: card, payload: payload, playedWith: playedWith)
+        }
+        pending.payload = payload
+        // The envelope is written BEFORE the call, so a process that dies
+        // mid-flight still knows which request to retry rather than re-post.
+        try? OfflinePostDisk.shared.save(pending)
+        do {
+          outcome = try await svc.postOnce(pending)
+          // post_round_once writes round_holes inside the same transaction.
+          holesWritten = true
+        } catch {
+          // The one documented skew: the database has not had the migration.
+          // Fall back to today's path, which keeps today's guarantees and no
+          // more — so nothing on screen may promise a safe retry here.
+          guard PostService.fallbackFires(on: error) else { throw error }
+          outcome = try await svc.postRound(payload, playedWith: playedWith, fallbackSeason: m?.season?.id)
+        }
+        pending.accepted = outcome.roundId
+        try? OfflinePostDisk.shared.save(pending)
+        ordinaryRequest = nil
       }
     } catch {
       let message = seededFrom != nil && PostService.fallbackFires(on: error)
         ? "Posting saved scorecards isn’t available yet. Your round is still kept here."
-        : HumanError.text(error, prefix: seededFrom != nil ? "Couldn’t confirm the post. Your phone scorecard is kept for retry." : "Post failed.")
+        : HumanError.text(error, prefix: seededFrom != nil ? "Couldn’t confirm the post. Your phone scorecard is kept for retry."
+                                                            : (ordinaryRequest != nil ? "Couldn’t confirm the post. Press Post again to retry the same round." : "Post failed."))
       toast.show(message, kind: .failed); return
     }
     let roundId = outcome.roundId
@@ -345,7 +405,7 @@ final class PostRoundModel {
       seededFrom = nil
     }
 
-    if !postedFromPhone { await svc.insertHoles(PostPayload.holeRows(card, roundId: roundId)) }
+    if !postedFromPhone && !holesWritten { await svc.insertHoles(PostPayload.holeRows(card, roundId: roundId)) }
     svc.event(PostEvent.submit, [
       "mode": .string(card.mode.rawValue), "secs": .number(Date().timeIntervalSince(openedAt).rounded()),
       "holes": .number(Double(payload.holes_played)),
@@ -384,6 +444,11 @@ final class PostRoundModel {
     card.clearAfterPost()
     clearDraft()
     day = Date()
+    // The reset stamps a date the same way `init` does, and across midnight it
+    // is a DIFFERENT one — so the gate has to learn it, or a blank just-posted
+    // card reads as a draft worth keeping.
+    defaultDay = CSDate.iso(day, calendar: ScheduleDates.gregorian)
+    ordinaryRequest = nil
     openedAt = Date()
 
     // one sheet gets the moment: partner claims when the scan carried the group, else the epilogue

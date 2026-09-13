@@ -236,7 +236,13 @@ public enum PushCategory: String, Sendable, CaseIterable {
     switch self {
     case .request: [(Action.accept, "Accept"), (Action.decline, "Decline")]
     case .rsvp: [(Action.rsvpIn, "I’m in"), (Action.rsvpOut, "Can’t")]
-    case .invite: [(Action.accept, "Accept")]
+    /// D351 · **no lock-screen Accept.** A league invitation can carry a
+    /// buy-in, and this button accepted it in the background with the app shut
+    /// — no Pro, no length, no rules, no stake, and no way to decline. The
+    /// covenant is the one door into a league and it needs a screen. Tapping
+    /// the notification opens the app, which is where the terms can be read.
+    /// A friend REQUEST and an RSVP keep their actions: neither owes money.
+    case .invite: []
     }
   }
 }
@@ -259,7 +265,9 @@ public enum PushActionCall: Sendable, Equatable {
     case (.request, PushCategory.Action.decline): return payload.requestId.map { .friendRespond(id: $0, accept: false) }
     case (.rsvp, PushCategory.Action.rsvpIn): return payload.scheduledRoundId.map { .roundRsvp(round: $0, status: "in") }
     case (.rsvp, PushCategory.Action.rsvpOut): return payload.scheduledRoundId.map { .roundRsvp(round: $0, status: "out") }
-    case (.invite, PushCategory.Action.accept): return payload.inviteId.map { .respondInvite(id: $0, accept: true) }
+    // D351 · deliberately unmapped. Even if an old notification is still sitting
+    // on a lock screen with the retired button on it, it resolves to nothing and
+    // the tap opens the app instead of joining a season in the background.
     default: return nil
     }
   }

@@ -83,8 +83,12 @@ private func userInfo(kind: String, v: Any = 1, category: String? = nil, _ ids: 
     #expect(PushActionCall.resolve(category: rsvp.category, action: "IN", payload: rsvp) == .roundRsvp(round: SR, status: "in"))
     #expect(PushActionCall.resolve(category: rsvp.category, action: "OUT", payload: rsvp) == .roundRsvp(round: SR, status: "out"))
 
+    // D351 · a league invitation can carry a buy-in, so it has no lock-screen
+    // action at all any more: the covenant needs a screen. An old notification
+    // still wearing the retired button resolves to nothing and opens the app.
     let inv = PushPayload(userInfo: userInfo(kind: "invite", category: "CS_INVITE", ["invite_id": IV, "league_id": L]))!
-    #expect(PushActionCall.resolve(category: inv.category, action: "ACCEPT", payload: inv) == .respondInvite(id: IV, accept: true))
+    #expect(PushActionCall.resolve(category: inv.category, action: "ACCEPT", payload: inv) == nil)
+    #expect(inv.inviteId == IV, "the payload still carries the id — the app reads it, the lock screen does not act on it")
   }
 
   @Test func nothingRunsWhenThePiecesDoNotLineUp() {
@@ -102,7 +106,7 @@ private func userInfo(kind: String, v: Any = 1, category: String? = nil, _ ids: 
     #expect(PushCategory.allCases.map(\.rawValue) == ["CS_REQUEST", "CS_RSVP", "CS_INVITE"])
     #expect(PushCategory.request.actions.map(\.id) == ["ACCEPT", "DECLINE"])
     #expect(PushCategory.rsvp.actions.map(\.id) == ["IN", "OUT"])
-    #expect(PushCategory.invite.actions.map(\.id) == ["ACCEPT"])
+    #expect(PushCategory.invite.actions.isEmpty, "D351 · no money is owed from a lock screen")
   }
 }
 

@@ -401,8 +401,9 @@ public struct WizardPortrait: Sendable, Equatable {
   }
 
   public var sub: String { "Forming — the rules aren’t set yet" }
-  /// "$75 / player · 3 in so far · 60/25/15"
-  public var potSub: String { "\(PotMath.dollars(stake)) / golfer · \(roster) in so far · \(payout.map(String.init).joined(separator: "/"))" }
+  /// "$75 / golfer · 3 expected · 60/25/15" — D351: expected, not "in so far".
+  /// Nobody is in until they accept, and the wizard has not asked them yet.
+  public var potSub: String { "\(PotMath.dollars(stake)) / golfer · \(roster) expected · \(payout.map(String.init).joined(separator: "/"))" }
   /// The split bar widths, proportional (the web's `p*1.36`, min 5 of 150).
   public var bar: [Double] { payout.map { max(5, Double($0) * 1.36) } }
   public var seasonTail: String { durLabel + (canCup ? "" : " · POINTS TABLE") }
@@ -726,8 +727,17 @@ public enum WizardCopy {
   /// The one required field the wizard gains (D225).
   public static let payMissing = "They’ll need somewhere to send it."
   /// L-09 · printed from the constant, never retyped.
+  /// D351 · **"in" was a word this screen had not earned.** `roster` here is
+  /// `plannedRoster` — the organiser plus the golfers she has PICKED, who have
+  /// not been invited yet (`invite_golfer` fires at publish) and so have
+  /// certainly not accepted. Saying "Six in makes $300" beside a real dollar
+  /// figure asserts six people's consent and their money. The number is a plan
+  /// and now says so; the pot it implies says "if".
   public static func potLine(stake: Int, roster: Int) -> String {
-    "$\(stake) each. \(WizardCopy.numberWord(max(1, roster)).capitalized) in makes \(PotMath.dollars(stake * max(1, roster)))."
+    let n = max(1, roster)
+    let pot = PotMath.dollars(stake * n)
+    if n == 1 { return "$\(stake) each. Just you so far — \(pot)." }
+    return "$\(stake) each. If all \(WizardCopy.numberWord(n)) play, that's \(pot)."
   }
 
   /// THEN, AND ONLY THEN.

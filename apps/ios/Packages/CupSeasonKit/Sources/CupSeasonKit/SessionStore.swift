@@ -173,6 +173,12 @@ public final class SessionStore {
     // left on a widget is a signed-out golfer still broadcasting to whoever
     // picks the phone up. The next successful Home writes it again.
     DispatchSnapshot.forget()
+    // D351 · and the pending invitation goes with it. `cs_code` survives a
+    // failure and a decline on purpose — the invitation is still there when the
+    // golfer is ready — but it must not survive the GOLFER. Left behind, the
+    // next account on this phone is walked into somebody else's league. The web
+    // has always cleared it on SIGNED_OUT; this is the phone catching up.
+    JoinIntent.clear()
     state = .signedOut
   }
 

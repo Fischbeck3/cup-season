@@ -94,7 +94,8 @@ import Foundation
     let p = WizardPortrait(d, roster: 3)
     #expect(p.name == "The Big Slice" && p.pot == 225 && p.squads == 4)
     #expect(p.structLine == "4 SQUADS · RANDOM DRAW")
-    #expect(p.potSub == "$75 / golfer · 3 in so far · 60/25/15")
+    // D351 · expected, not "in so far" — nobody has been asked yet.
+    #expect(p.potSub == "$75 / golfer · 3 expected · 60/25/15")
     #expect(zip(p.bar, [81.6, 34.0, 20.4]).allSatisfy { abs($0 - $1) < 0.001 })
   }
   @Test func braggingRightsAndTheSeasonBand() {
@@ -161,10 +162,10 @@ import Foundation
   @Test func theExpectedRosterDrivesEverythingDownstream() {
     var d = WizardDials()
     #expect(d.plannedRoster == 1)
-    #expect(WizardCopy.potLine(stake: 50, roster: d.plannedRoster) == "$50 each. 1 in makes $50.")
+    #expect(WizardCopy.potLine(stake: 50, roster: d.plannedRoster) == "$50 each. Just you so far — $50.")
     d.expectedRoster = 6
     #expect(d.plannedRoster == 6)
-    #expect(WizardCopy.potLine(stake: 50, roster: d.plannedRoster) == "$50 each. Six in makes $300.")
+    #expect(WizardCopy.potLine(stake: 50, roster: d.plannedRoster) == "$50 each. If all six play, that's $300.")
     #expect(WizardDials.asksAboutSquads(roster: d.plannedRoster))
     // D206 stands: an explicit "Squads" answer mints squads; silence never does.
     #expect(WizardDials.derivedStructure(roster: d.plannedRoster, squadsChosen: nil) == "solo")

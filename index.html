@@ -9931,6 +9931,28 @@ $('#inRating')?.addEventListener('input',()=>{ state.post.rating9=false; });
    survive eviction — the numbers are the point; re-pick the photo. */
 const POST_DRAFT_KEY='cs_post_draft';
 let _draftT=null, _draftRestored=false;
+/* D349 · the date the COMPOSER stamped, which is not a date the golfer chose.
+   Boot and "Start over" both default #inDate to today, so "is there anything
+   in this form?" answered yes before anybody had typed a thing — and the next
+   boot restored that nothing and toasted "Your unposted round came back" at a
+   golfer who had never started one. The phone had the mirror image of this bug:
+   its card gate required `date == nil`, so it refused every restore. One
+   question, asked correctly on both clients: a date still equal to the stamp is
+   the machine's, and does not make a draft. */
+let _postDateStamp = null;
+function stampPostDate(){
+  const el = $('#inDate'); if(!el) return;
+  const d = new Date();
+  _postDateStamp = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  el.value = _postDateStamp;
+}
+/* The golfer put something here — the one predicate the save and the restore
+   both ask, so they can never disagree about what an empty card is. */
+function postDraftHasContent(vals, touched){
+  return ['inF9','inB9','inRating','inSlope','inCourse'].some(id => String(vals[id]||'').trim())
+      || (String(vals.inDate||'').trim() && vals.inDate !== _postDateStamp)
+      || !!touched;
+}
 function savePostDraft(){
   if(state.demo || !window.CS?.user) return;
   try{ clearTimeout(_draftT); }catch(_){ return; }   /* pre-init call = nothing to save yet */
@@ -9938,8 +9960,7 @@ function savePostDraft(){
     try{
       const vals={};
       ['inF9','inB9','inRating','inSlope','inCourse','inDate'].forEach(id=>{ const e=$('#'+id); if(e) vals[id]=e.value; });
-      const hasAny = Object.values(vals).some(v=>String(v||'').trim()) || state.post.touched;
-      if(!hasAny){ localStorage.removeItem(POST_DRAFT_KEY); return; }
+      if(!postDraftHasContent(vals, state.post.touched)){ localStorage.removeItem(POST_DRAFT_KEY); return; }
       localStorage.setItem(POST_DRAFT_KEY, JSON.stringify({
         at:Date.now(), vals, cid:($('#inCourse')?.dataset.courseId)||null,
         mode:state.post.mode, side:state.post.side, rating9:state.post.rating9,
@@ -9949,6 +9970,36 @@ function savePostDraft(){
   },350);
 }
 function clearPostDraft(){ try{ clearTimeout(_draftT); localStorage.removeItem(POST_DRAFT_KEY); }catch(_){} }
+
+/* D350 · the ordinary post's request identity, and the receipt of what the
+   server accepted under it. The request timeout is finite and a post that
+   COMMITTED and lost its response reaches the golfer as a failure whose one
+   obvious remedy — press Post again — mints a SECOND scoring round: double
+   counted in the index, the standings, the participation floor and the board.
+   The kept live scorecard has had `post_round_once` behind it all along; this
+   gives the ordinary round the same identity through the same function.
+
+   The id is minted once per composed round and FROZEN across retries.
+   Regenerating it after a timeout is the bug, not the fix. It lives in
+   localStorage so an iOS eviction mid-post cannot lose it. */
+const POST_REQ_KEY='cs_post_request';
+function postRequestId(){
+  try{
+    const raw=localStorage.getItem(POST_REQ_KEY);
+    if(raw){ const d=JSON.parse(raw); if(d && d.id) return d; }
+  }catch(_){}
+  const id = crypto.randomUUID ? crypto.randomUUID()
+           : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+               const r = Math.random()*16|0; return (c==='x'? r : (r&0x3|0x8)).toString(16); });
+  const d={ id, at:Date.now(), accepted:null };
+  try{ localStorage.setItem(POST_REQ_KEY, JSON.stringify(d)); }catch(_){}
+  return d;
+}
+function postRequestAccepted(roundId){
+  try{ const raw=localStorage.getItem(POST_REQ_KEY); const d=raw?JSON.parse(raw):null;
+       if(d){ d.accepted=roundId; localStorage.setItem(POST_REQ_KEY, JSON.stringify(d)); } }catch(_){}
+}
+function clearPostRequest(){ try{ localStorage.removeItem(POST_REQ_KEY); }catch(_){} }
 function restorePostDraft(){
   if(_draftRestored || state.demo || !window.CS?.user) return false;
   _draftRestored=true;
@@ -9956,6 +10007,9 @@ function restorePostDraft(){
     const raw=localStorage.getItem(POST_DRAFT_KEY); if(!raw) return false;
     const d=JSON.parse(raw);
     if(!d || !d.at || (Date.now()-d.at) > 24*3600*1000){ localStorage.removeItem(POST_DRAFT_KEY); return false; }
+    /* a draft written by an older build can still be stamp-only; it is not a
+       round, so it is dropped rather than announced. */
+    if(!postDraftHasContent(d.vals||{}, d.touched)){ localStorage.removeItem(POST_DRAFT_KEY); return false; }
     Object.entries(d.vals||{}).forEach(([id,v])=>{ const e=$('#'+id); if(e && v) e.value=v; });
     if(d.cid && $('#inCourse')) $('#inCourse').dataset.courseId=d.cid;
     if(d.mode) state.post.mode=d.mode;
@@ -10135,7 +10189,40 @@ $('#postBtn').addEventListener('click', async ()=>{
          the function is not there yet (PGRST202 / 42883) - CLAUDE.md's skew
          rule covers new args and new columns, not a function that does not
          exist. Anything else is a real error and reaches the golfer. */
-      let rrow=null, error=null, epiFromRpc=null, rpcRound=null;
+      let rrow=null, error=null, epiFromRpc=null, rpcRound=null, holesWritten=false;
+      /* D350 · the same round, however many times this button is pressed. A
+         replay of this request id returns the ORIGINAL answer; a different
+         scorecard under the same id is refused rather than posted again. */
+      const req = postRequestId();
+      if(req.accepted){
+        toast('This round already posted — it is in your history');
+        clearPostRequest(); btn.disabled=false; return;
+      }
+      const holeScores = holesMode
+        ? state.post.scores.slice(0, nine ? 9 : 18).map(Number)
+        : [];
+      try{
+        const { data: once, error: oerr } = await sb.rpc('post_round_once', {
+          p_request_id: req.id, p_payload: payload,
+          p_hole_scores: holeScores, p_played_with: (state.post.playedWith||[]),
+        });
+        if(oerr) throw oerr;
+        rpcRound = once && once.round;
+        if(!rpcRound || !rpcRound.id) throw new Error('post_round_once returned no round id');
+        rrow = { id: rpcRound.id };
+        epiFromRpc = (once && once.epilogue) || null;
+        holesWritten = true;   /* written inside the accepting transaction */
+        postRequestAccepted(rrow.id);
+      }catch(e0){
+        const m0=String(e0 && (e0.code||e0.message) || '').toLowerCase();
+        const missing0 = m0.includes('pgrst202') || m0.includes('42883') || m0.includes('schema cache') || m0.includes('could not find the function');
+        if(!missing0) throw e0;
+        /* The one documented skew: this database has not had the migration.
+           Fall through to today's path, which keeps today's guarantees and no
+           more — nothing on screen may promise a safe retry from here. */
+        await postTheOldWay();
+      }
+      async function postTheOldWay(){
       try{
         const { data: posted, error: perr } = await sb.rpc('post_round', {
           p_gross: payload.gross, p_rating: payload.rating, p_slope: payload.slope,
@@ -10167,6 +10254,7 @@ $('#postBtn').addEventListener('click', async ()=>{
         }
         if(error) throw error;
       }
+      }
       /* SF-6: the arrival — this round's gross flips in on its FIRST card
          render (home story card or full board), then the flag dies there.
          Stepper + gross-only both land here — one success path, one flag. */
@@ -10174,7 +10262,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       /* decision #5: a hole-by-hole card writes its strokes to round_holes, so
          the round carries hole detail (feeds stats, moments, match receipts).
          Best-effort — a round_holes hiccup never un-posts the round. */
-      if(holesMode && rrow?.id){
+      if(holesMode && rrow?.id && !holesWritten){
         const nH = nine ? 9 : 18, rh=[];
         for(let i=0;i<nH;i++){ const s=+state.post.scores[i]; if(s>0) rh.push({ round_id:rrow.id, hole_number:i+1, strokes:s }); }
         if(rh.length){
@@ -10257,6 +10345,7 @@ $('#postBtn').addEventListener('click', async ()=>{
       state.post.scores = state.post.pars.slice();   /* reset the grid to par */
       state.post.touched=false;                       /* next round starts fresh */
       if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
+      clearPostRequest();   /* D350 · this round is settled; the next one mints its own id */
       state.lastPost=null; state.postBlocked=null;
       if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
       const firstEver = (window.career?.rounds || 0) === 0;   /* Phase 4: capture before loadCareer updates the count */
@@ -10512,9 +10601,7 @@ function resetPostComposer(){
      nothing put it back, so the next Post failed on a NOT NULL played_on and
      the golfer was told "That didn't go through — please try again" with no
      field marked. Restore the default the same way boot does. */
-  const dEl = $('#inDate');
-  if(dEl && !dEl.value){ const d=new Date();
-    dEl.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  if(!$('#inDate')?.value) stampPostDate();
   const ic=$('#inCourse'); if(ic) ic.dataset.courseId='';
   const chips=$('#courseChips'); if(chips) chips.innerHTML='';
   state.post.mode='total';
@@ -10530,6 +10617,7 @@ $('#postReset')?.addEventListener('click',e=>{
   e.preventDefault();
   resetPostComposer();
   if(typeof clearPostDraft==='function') clearPostDraft();   /* an explicit start-over scraps the draft too */
+  clearPostRequest();   /* D350 · a deliberate start-over is a different round */
   toast('Card cleared');
 });
 $('#postScanBack')?.addEventListener('click',e=>{
@@ -19794,7 +19882,7 @@ function wizPortrait(){
   const bar = `<svg viewBox="0 0 150 10" width="150" height="10" aria-hidden="true"><rect x="0" y="1" width="${bw[0]}" height="8" rx="4" fill="var(--brand)"/><rect x="${bw[0]+3}" y="1" width="${bw[1]}" height="8" rx="4" fill="var(--brand)" opacity=".55"/><rect x="${bw[0]+bw[1]+6}" y="1" width="${bw[2]}" height="8" rx="4" fill="var(--brand)" opacity=".3"/></svg>`;
   const potRow = stake>0
     ? `<div class="wizp-row"><span class="k">The pot</span><span class="wizp-gold">${fmt$(pot)}</span>${bar}</div>
-       <div class="wizp-sub">${fmt$(stake)} / golfer · ${roster} in so far · ${pay.join('/')}</div>`
+       <div class="wizp-sub">${fmt$(stake)} / golfer · ${roster} expected · ${pay.join('/')}</div>`
     : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b></div>`;
   const mo = Math.max(1, Math.min(6, Math.round(state.durWeeks/4.345)));
   let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--rule)" stroke-width="1.2"/>`;
@@ -19888,8 +19976,13 @@ function renderBylaws(){
     const la=$('#lineAmt'); if(la){
       /* one source of player count everywhere the pot shows: demo = the crew,
          real = the actual roster (the 16 fallback made the tile lie vs the pot page) */
+      /* D351 · typed email addresses are not payers. This fallback turned the
+         organiser's address book into a collected-pot figure whenever the
+         member read was unavailable — people who had not been invited, let
+         alone accepted, multiplied into a dollar amount beside a COLLECTED
+         bar. A league with no readable roster has one known golfer: you. */
       const n = state.demo ? state.payers.length
-        : (window.CS?.members?.length || Math.max(1, state.emails.filter(e=>e.includes('@')).length + 1));
+        : Math.max(1, window.CS?.members?.length || 1);
       const total=state.stake*n;
       const [pc,pr,pk]=state.payout||[60,25,15];
       la.textContent=fmt$(total);
@@ -20996,7 +21089,7 @@ $$('.ibtn').forEach(b=>b.addEventListener('click',e=>{
   if(pc){ if(PILOT) pc.addEventListener('click', ()=> window.openFeedback?.()); else pc.remove(); } })();
 seedHistory();
 /* post form defaults to today, local — toISOString() is UTC and drifts in Phoenix evenings */
-{ const d=new Date(); $('#inDate').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+stampPostDate();
 paintLedgerLines();
 renderClimb(); renderStandings(); renderFeed(); renderDraft(); renderPot(); renderSetup(); renderPostHoles(); renderRoster(); renderPlay(); renderWizard(); renderPhase(); renderBylaws(); renderEmails(); renderStats(); renderIndStats();
 </script>
@@ -21338,7 +21431,11 @@ $('#pfSave').addEventListener('click', async () => {
    crash mid-screen can never trap anyone in it. */
 async function continueAfterCard(){
   const ls = k => { try{ return localStorage.getItem(k); }catch(_){ return null; } };
-  const invited = !!(ls('cs_code') || ls('cs_claim') || ls('cs_share_person') || ls('cs_share_plan'));
+  /* D351 · these two keys never existed. `CS_SHARE_LINKS` writes `cs_person`
+     and `cs_plan`, so a golfer who arrived on a shared person or plan link was
+     still walked through the crew step as if they had come in cold. The invite
+     and claim arms were right, which is why it went unnoticed. */
+  const invited = !!(ls('cs_code') || ls('cs_claim') || ls('cs_person') || ls('cs_plan'));
   const seen    = !!ls('cs_crew');
   if(invited || seen){ await resumeAfterProfile(); return; }
   try { localStorage.setItem('cs_crew','1'); } catch(_){}
@@ -25184,6 +25281,35 @@ async function covenantGate(code){
     info=data; answered=true;
   }catch(_){}
   if(!answered){ toast('Could not check this league\u2019s terms \u2014 try again in a moment'); return false; }
+  return showCovenant(info);
+}
+
+/* D351 · the SAME sheet, reached from an invitation. `join_covenant_info` keys
+   on the league CODE and an invitation does not carry one — `my_invites` returns
+   the container id, and `leagues_read` gives an invitee no read on `leagues` —
+   so accepting an invitation used to skip the covenant entirely and a $50 season
+   could be accepted with the stake never shown. Returns:
+     true   · the golfer read the terms and said yes
+     false  · the golfer said no, or dismissed the sheet
+     'skew' · this database has not got the function; the caller keeps today's
+              behaviour and must not claim the terms were shown. */
+async function covenantGateForInvite(inviteId){
+  let info=null, answered=false;
+  try{
+    const {data,error}=await sb.rpc('join_covenant_for_invite',{p_invite:inviteId});
+    if(error) throw error;
+    info=data; answered=true;
+  }catch(e){
+    const m=String(e && (e.code||e.message) || '').toLowerCase();
+    if(m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function')) return 'skew';
+  }
+  if(!answered){ toast('Could not check this league\u2019s terms \u2014 try again in a moment'); return false; }
+  /* an event invitation has no league settings to read, and no stake */
+  if(!info) return 'skew';
+  return showCovenant(info);
+}
+
+function showCovenant(info){
   /* L-12 / D225 · the covenant renders at EVERY stake, INCLUDING $0. It used
      to return true unmodified below $0, so a golfer joining a FREE season never
      met the Pro, the length, the rules or the ending — the covenant's whole
@@ -26677,12 +26803,27 @@ window.loadInvites = loadInvites;
 
 window.respondInvite = async (id, accept)=>{
   try{
+    /* D351 · the terms come before the money. Declining stays one tap and stays
+       ungated — nobody needs the terms to say no. */
+    if(accept){
+      /* 'skew' = this database has not got the function; keep today's behaviour
+         rather than blocking the golfer, and promise nothing about the terms. */
+      if((await covenantGateForInvite(id)) === false) return;
+    }
+    const before = (window.CS?.memberships||[]).length + (window.myEvents||[]).length;
     const { error } = await sb.rpc('respond_invite', { p_id:id, p_accept:accept });
     if(error) throw error;
     await loadInvites();
     if(accept){ await loadMemberships(); await loadMyEvents(); }
     if(window.renderNotifications) window.renderNotifications();
-    toast(accept ? 'Joined ✓' : 'Declined');
+    if(!accept){ toast('Declined'); return; }
+    /* D351 · `respond_invite` RETURNS SILENTLY when the invitation was already
+       accepted or already declined, and this used to read that silence as
+       success and say "Joined ✓" for a join that never happened. A seat is a
+       seat only when it arrives. */
+    const after = (window.CS?.memberships||[]).length + (window.myEvents||[]).length;
+    if(after > before) toast('Joined ✓');
+    else toast('That invitation was already answered — nothing changed');
   }catch(e){ toast(humanError(e)); }
 };
 
