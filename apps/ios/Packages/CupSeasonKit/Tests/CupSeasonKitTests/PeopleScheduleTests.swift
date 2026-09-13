@@ -230,9 +230,13 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
   }
 
   @Test func inviteAndPersonCopy() {
-    let i = Invite(id: UUID(), kind: "event", containerId: nil, containerName: "Desert Ryder", inviter: "Galen", startsOn: "2026-09-12")
+    // D356 · the title and the sentence come from the event's OWN kind; a server
+    // that has not said what the event is gets "Event invite", never a guess.
+    let i = Invite(id: UUID(), kind: "event", containerId: nil, containerName: "Desert Ryder", inviter: "Galen", startsOn: "2026-09-12", eventKind: "ryder")
     #expect(i.title == "Ryder invite" && i.subline == "from Galen · first tee 2026-09-12")
     #expect(i.detail == "A Ryder — two teams, one clash each week. Invited by Galen. First tee 2026-09-12.")
+    let unsaid = Invite(id: UUID(), kind: "event", containerId: nil, containerName: "Desert Ryder", inviter: "Galen", startsOn: "2026-09-12")
+    #expect(unsaid.title == "Invite" && unsaid.eventTerms.isEmpty, "no kind, no terms, no door")
     let l = Invite(id: UUID(), kind: "league", containerId: nil, containerName: "PIGL", inviter: "a golfer", startsOn: nil)
     #expect(l.subline == "from a golfer" && l.detail == "A season-long league. Invited by a golfer")
     #expect(Rel("incoming").tag == "Wants to add you" && Rel("none").action == "Add" && Rel("incoming").action == "Accept" && Rel("friend").action == nil)

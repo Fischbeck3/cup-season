@@ -243,6 +243,9 @@ public enum HomeFallbackItems {
   /// a minimum named on the 4th is a nag, not a clock (L-22).
   static func floorItem(_ m: Me.Membership, today: String, calendar: Calendar) -> HomeDispatch.Item? {
     guard !m.isSolo, let pu = m.pulse, pu.partial != true,
+          // D354 · a golfer who joined this month is not behind: close_month
+          // waives the floor for them, so the alarm must not fire
+          pu.joined_this_month != true,
           let floor = pu.floor, floor > 0,
           let credits = pu.credits, credits < Double(floor),
           let left = CSDate.days(from: today, to: ScheduleDates.endOfMonth(today)),

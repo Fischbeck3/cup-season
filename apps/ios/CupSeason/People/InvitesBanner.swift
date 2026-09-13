@@ -73,12 +73,14 @@ struct InvitesBanner: View {
               }
               .frame(maxWidth: .infinity, alignment: .leading)
               HStack(spacing: 6) {
-                // A season invite passes the covenant; a Ryder invite has no
-                // terms to read and keeps the one-tap Accept it always had.
+                // A season invite passes the covenant. D356 · an EVENT invite
+                // passes its own terms — what it is, when, what it costs — and
+                // a server that has not said what the event is keeps the door
+                // shut rather than accepting a stake unseen.
                 if i.isLeague {
                   CSMini(InviteCopy.seeTerms, busy: vm.reading.contains(i.id)) { Task { await openTerms(i) } }
                 } else {
-                  CSMini(InviteCopy.accept, busy: vm.busy.contains(i.id)) { Task { await respond(i, accept: true) } }
+                  CSMini(InviteCopy.seeTerms, busy: vm.busy.contains(i.id)) { openEventTerms(i) }
                 }
                 CSMini(InviteCopy.decline, busy: vm.busy.contains(i.id)) { Task { await respond(i, accept: false) } }
               }
@@ -97,22 +99,9 @@ struct InvitesBanner: View {
                     onNo:   { terms = nil })   // dismissed without a mark — the invitation stays
     }
     .sheet(item: $detail) { i in
-      VStack(alignment: .leading, spacing: 14) {
-        CSSheetHeader(title: i.title, sub: i.containerName)
-        CSFine(i.detail)
-        HStack(spacing: 8) {
-          Button(InviteCopy.accept) { detail = nil; Task { await respond(i, accept: true) } }
-            .buttonStyle(.csPrimary())
-          Button(InviteCopy.decline) { detail = nil; Task { await respond(i, accept: false) } }
-            .buttonStyle(.csSecondary())
-        }
-        .padding(.top, 4)
-      }
-      .padding(20)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background(cs.bg0)
-      .presentationDetents([.medium])
-      .presentationDragIndicator(.visible)
+      EventTermsSheet(invite: i,
+                      onAccept: { detail = nil; Task { await respond(i, accept: true) } },
+                      onNo: { detail = nil })
     }
   }
 
@@ -120,6 +109,13 @@ struct InvitesBanner: View {
   /// through to the join — it says so, and the golfer stays out (fail-closed).
   private func openTerms(_ i: Invite) async {
     if let c = await vm.terms(for: i) { terms = InviteTerms(invite: i, covenant: c) }
+  }
+
+  /// D356 · the terms of an event invitation. Fail-closed: a server that has
+  /// not said what the event is gives the golfer nothing to accept.
+  private func openEventTerms(_ i: Invite) {
+    guard !i.eventTerms.isEmpty else { toasts.show(InviteCopy.eventTermsNotAvailable, kind: .failed); return }
+    detail = i
   }
 
   private func respond(_ i: Invite, accept: Bool) async {
@@ -138,6 +134,43 @@ enum InviteCopy {
   static let decline = "Decline"
   static let joined = "Joined ✓"
   static let declined = "Declined"
+  /// D356 · the event's kind and stake are not in the payload (an older server).
+  static let eventTermsNotAvailable = "This server hasn’t said whether this is a Ryder or a Major, or what it costs, so nothing was accepted. Try again after the update."
+  static let eventSub = "EVERYTHING BEFORE YOU TAP"
+}
+
+/// D356 · an event invitation's terms — what it is, when, what it costs — the
+/// same discipline as the season covenant, one door over. Built from the
+/// payload's own facts; the stake is said above $0 only (L-10) with the ledger
+/// line verbatim (L-09). No money moves here.
+struct EventTermsSheet: View {
+  @Environment(\.cs) private var cs
+  let invite: Invite
+  let onAccept: () -> Void
+  let onNo: () -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+      CSSheetHeader(title: "Before you accept \(invite.containerName)", sub: InviteCopy.eventSub)
+      ForEach(Array(invite.eventTerms.enumerated()), id: \.offset) { i, line in
+        Text(line)
+          .font(i == 0 ? CSFont.sentenceBold : CSFont.sentence)
+          .foregroundStyle(line == invite.stakeLine && (invite.buyIn ?? 0) > 0 ? cs.gold : cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      }
+      CSFine("Invited by \(invite.inviter).")
+      Button((invite.buyIn ?? 0) > 0 ? "Accept — I’m in for $\(Int((invite.buyIn ?? 0).rounded()))" : InviteCopy.accept) { onAccept() }
+        .buttonStyle(.csPrimary()).padding(.top, CSTokens.Space.s2)
+      Button(Covenant.notNow) { onNo() }
+        .buttonStyle(.csSecondary())
+    }
+    .padding(20)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(cs.bg0)
+    .presentationDetents([.medium, .large])
+    .presentationDragIndicator(.visible)
+  }
 }
 
 @MainActor
@@ -246,16 +279,10 @@ struct InviteTermsSheet: View {
         CovenantSheet(covenant: c, postedRounds: store.me?.profile?.rounds_count,
                       onJoin: { Task { await respond(i, accept: true) } },
                       onNo: { dismiss() })
-      } else if let i = invite, !i.isLeague {
-        VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-          CSSheetHeader(title: i.title, sub: i.containerName)
-          CSFine(i.detail)
-          HStack(spacing: CSTokens.Space.s2) {
-            Button(InviteCopy.accept) { Task { await respond(i, accept: true) } }.buttonStyle(.csPrimary(busy: !vm.busy.isEmpty))
-            Button(InviteCopy.decline) { Task { await respond(i, accept: false) } }.buttonStyle(.csSecondary())
-          }
-        }
-        .padding(20).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+      } else if let i = invite, !i.isLeague, !i.eventTerms.isEmpty {
+        // D356 · an event's terms, from the payload's own facts; with none
+        // (an older server) the sheet falls to the note below and stays shut.
+        EventTermsSheet(invite: i, onAccept: { Task { await respond(i, accept: true) } }, onNo: { dismiss() })
       } else {
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           CSSheetHeader(title: "An invitation", sub: "EVERYTHING BEFORE YOU TAP")
@@ -282,7 +309,10 @@ struct InviteTermsSheet: View {
       note = JoinService.invitationAnswered; return
     }
     invite = i
-    guard i.isLeague else { return }
+    guard i.isLeague else {
+      if i.eventTerms.isEmpty { note = InviteCopy.eventTermsNotAvailable }
+      return
+    }
     if let c = await vm.terms(for: i) { covenant = c } else { note = JoinService.termsNotAvailable }
   }
 
@@ -297,6 +327,7 @@ struct InviteTermsSheet: View {
 #Preview("Invites") {
   let c = InvitesCount()
   c.invites = [Invite(id: UUID(), kind: "league", containerId: UUID(), containerName: "PIGL", inviter: "Jerecho", startsOn: nil),
-               Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "Desert Ryder", inviter: "Galen", startsOn: "2026-09-12")]
+               Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "Desert Ryder", inviter: "Galen", startsOn: "2026-09-12", eventKind: "ryder", buyIn: 0),
+               Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Galen", startsOn: "2026-10-03", eventKind: "major", buyIn: 25)]
   return InvitesBanner(count: c, onJoined: { _ in }).padding(20).environment(SessionStore()).csTheme()
 }

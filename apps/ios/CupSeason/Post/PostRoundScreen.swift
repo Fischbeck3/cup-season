@@ -236,6 +236,14 @@ private struct PostRoundBody: View {
       if model.card.entry == nil { grossFocused = true }
     }
     .sheet(item: $model.partners, onDismiss: onDone) { PostPartnersSheet(show: $0) }
+    // D350 · a recovery finished with a round the server already held: the
+    // composer is done and the receipt of THAT round is what the golfer sees.
+    .onChange(of: model.recoveredRoundId) { _, id in
+      guard let id else { return }
+      model.recoveredRoundId = nil
+      onDone()
+      links.openReceipt(id)
+    }
   }
 
   // MARK: - The inherited line (IOS-030 · course · rating/slope · date, one row)

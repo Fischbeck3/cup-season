@@ -199,6 +199,11 @@ public struct Me: Decodable, Sendable {
     public let floor: Int?
     public let at_floor: Bool?
     public let partial: Bool?
+    /// D354 · this golfer joined during the month; the floor is waived for
+    /// them (the same predicate `close_month` waives on). nil = not said.
+    public let joined_this_month: Bool?
+    /// D354 · the season's one bye has not been spent. nil = not said.
+    public let bye_available: Bool?
   }
 
   public struct Membership: Decodable, Sendable, Identifiable {

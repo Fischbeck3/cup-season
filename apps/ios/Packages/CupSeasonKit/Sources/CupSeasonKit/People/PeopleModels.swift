@@ -113,9 +113,17 @@ public struct Invite: Identifiable, Sendable, Equatable {
   public let containerName: String
   public let inviter: String
   public let startsOn: String?
+  /// D356 · the event's own kind (`ryder` | `major` …); nil for a league, and
+  /// nil on a server that does not say — which is a different fact from
+  /// "Ryder", and is never guessed into one.
+  public let eventKind: String?
+  /// D356 · the event's stake in dollars, as stored; nil when not said.
+  public let buyIn: Double?
 
-  public init(id: UUID, kind: String, containerId: UUID?, containerName: String, inviter: String, startsOn: String?) {
+  public init(id: UUID, kind: String, containerId: UUID?, containerName: String, inviter: String, startsOn: String?,
+              eventKind: String? = nil, buyIn: Double? = nil) {
     self.id = id; self.kind = kind; self.containerId = containerId; self.containerName = containerName; self.inviter = inviter; self.startsOn = startsOn
+    self.eventKind = eventKind; self.buyIn = buyIn
   }
 
   public init?(_ r: Rpc.my_invites.Row) {
@@ -124,21 +132,87 @@ public struct Invite: Identifiable, Sendable, Equatable {
               inviter: r.inviter ?? "a golfer", startsOn: r.starts_on)
   }
 
+  /// D356 · the extended row (20261031090000), hand-declared until the
+  /// contract refresh. Every new field optional: an older server says neither.
+  public init?(_ r: InviteRow) {
+    guard let id = r.id else { return nil }
+    self.init(id: id, kind: r.kind ?? "league", containerId: r.container_id, containerName: r.container_name ?? "",
+              inviter: r.inviter ?? "a golfer", startsOn: r.starts_on, eventKind: r.event_kind, buyIn: r.buy_in)
+  }
+
   public var isLeague: Bool { kind == "league" }
-  /// "League invite" / "Ryder invite"
-  public var title: String { isLeague ? "League invite" : "Ryder invite" }
+  public var isMajor: Bool { eventKind == "major" }
+  /// "League invite" / "Ryder invite" / "Major invite" — and, for one the
+  /// server has not named, just "Invite" rather than a guess.
+  public var title: String {
+    if isLeague { return "League invite" }
+    switch eventKind {
+    case "major": return "Major invite"
+    case "ryder": return "Ryder invite"
+    default: return "Invite"
+    }
+  }
   /// "from X · first tee YYYY-MM-DD"
   public var subline: String {
     var s = "from \(inviter)"
     if !isLeague, let d = startsOn { s += " · first tee \(d)" }
     return s
   }
+  /// What it IS, in one sentence. nil when the server has not said (or has
+  /// said a kind this build cannot describe) — and nil is a shut door.
+  public var eventLine: String? {
+    switch eventKind {
+    case "major": return "A Major — one week, one card, the best round takes it."
+    case "ryder": return "A Ryder — two teams, one clash each week."
+    default: return nil
+    }
+  }
+  /// The stake, above $0 only (L-10). nil when the server has not said.
+  public var stakeLine: String? {
+    guard let b = buyIn else { return nil }
+    return b > 0 ? "$\(Int(b.rounded())) each." : "No buy-in."
+  }
+  /// D356 · the terms an EVENT invitation can show before the tap: what it
+  /// is, when, and what it costs. Empty when the server has not said what the
+  /// event is — and an empty list is a door that stays shut (fail-closed),
+  /// never a one-tap accept.
+  public var eventTerms: [String] {
+    guard let line = eventLine else { return [] }
+    var out = [line]
+    if let d = startsOn { out.append("First tee \(LeagueDates.dowMonDay(d)).") }
+    if let s = stakeLine { out.append(s) }
+    if let b = buyIn, b > 0 { out.append(MoneyCopy.ledger) }
+    return out
+  }
   /// The Details sheet line.
   public var detail: String {
-    var s = (isLeague ? "A season-long league." : "A Ryder — two teams, one clash each week.") + " Invited by \(inviter)"
+    var s = (isLeague ? "A season-long league." : (eventLine ?? "This server hasn’t said whether it’s a Ryder or a Major yet.")) + " Invited by \(inviter)"
     if let d = startsOn { s += ". First tee \(d)." }
     return s
   }
+}
+
+/// D356 · `my_invites` with `event_kind` and `buy_in` (20261031090000).
+public struct InviteRow: Decodable, Sendable {
+  public let id: UUID?
+  public let kind: String?
+  public let container_id: UUID?
+  public let container_name: String?
+  public let inviter: String?
+  public let starts_on: String?
+  public let created_at: Date?
+  public let event_kind: String?
+  public let buy_in: Double?
+  public init(id: UUID?, kind: String?, container_id: UUID?, container_name: String?, inviter: String?, starts_on: String?,
+              created_at: Date? = nil, event_kind: String? = nil, buy_in: Double? = nil) {
+    self.id = id; self.kind = kind; self.container_id = container_id; self.container_name = container_name
+    self.inviter = inviter; self.starts_on = starts_on; self.created_at = created_at; self.event_kind = event_kind; self.buy_in = buy_in
+  }
+}
+struct MyInvitesCall: RpcCall {
+  static let name = "my_invites"
+  static let optionalArgs: [String] = []
+  typealias Returns = [InviteRow]
 }
 
 /// `humanError` (index.html 4084) — the transport-failure phrasings, verbatim.

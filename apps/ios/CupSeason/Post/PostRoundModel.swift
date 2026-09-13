@@ -66,6 +66,12 @@ final class PostRoundModel {
   /// "Start over" does not release it — the next post under a different card
   /// resolves it through `round_post_status` rather than guessing.
   @ObservationIgnored private var ordinaryRequest: UUID?
+  /// D350 · the owner-scoped request pointer exists and cannot be read. The
+  /// composer refuses to post rather than mint over an identity it cannot see.
+  @ObservationIgnored private var requestUnreadable = false
+  /// D350 · a recovery finished with a round that had already landed. The
+  /// screen opens its receipt so the golfer sees the round the server holds.
+  var recoveredRoundId: UUID?
 
   init(store: SessionStore, toast: CSToastCenter) {
     self.store = store; self.toast = toast; self.draftOwner = store.session?.user.id
@@ -129,8 +135,15 @@ final class PostRoundModel {
     restoreDraft()
     // D350 · a request that outlived its draft (a "Start over", a TTL, a
     // relaunch) is picked up here so the next post resolves it rather than
-    // minting a second id beside it.
-    if ordinaryRequest == nil, let uid { ordinaryRequest = PostRequestStore.pending(owner: uid) }
+    // minting a second id beside it. A stored value that cannot be read is
+    // NOT absent: it is reported, and this composer will not mint over it.
+    if let uid {
+      switch PostRequestStore.read(owner: uid) {
+      case .pending(let id): if ordinaryRequest == nil { ordinaryRequest = id }
+      case .unreadable: requestUnreadable = true
+      case .none: break
+      }
+    }
     if let uid { memory = await svc.courseMemory(uid) }
     scanEnabled = await svc.scanEnabled()
     partnerChoices = await people.playedWith()
@@ -312,6 +325,7 @@ final class PostRoundModel {
     // Account switch: the composer was opened by one golfer and the session
     // now belongs to another. Say so rather than returning in silence.
     guard let uid else { toast.show(OrdinaryPost.wrongGolferCopy, kind: .failed); return }
+    if seededFrom == nil, requestUnreadable { toast.show(OrdinaryPost.pointerUnreadable, kind: .failed); return }
     busy = true; defer { busy = false }
     // D350 · mint the request identity BEFORE the draft is written, and write
     // it to the owner-scoped store, so the id is durable before anything can
@@ -355,27 +369,18 @@ final class PostRoundModel {
         pending.accepted = outcome.roundId
         try OfflinePostDisk.shared.save(pending)
       } else {
-        // D350 (built) · the ordinary round, through `OrdinaryPost`: one
-        // request id, a frozen envelope written before the call, a replay
-        // that sends the envelope verbatim, and an edited card resolved by
-        // asking the server rather than guessing. No fallback: a server
-        // without the function is told to the golfer, not routed around.
-        var request = ordinaryRequest ?? UUID()
+        // D350 (built, amended) · the ordinary round, through `OrdinaryPost`:
+        // ONE request id for the life of the intent, never rotated; a frozen
+        // envelope written before the call; the same card replayed verbatim;
+        // an edited card sent as an amendment under the same id, with the
+        // server deciding which body won. No fallback: a server without the
+        // function is told to the golfer, not routed around.
+        let request = ordinaryRequest ?? UUID()
         let ports = OrdinaryPost.livePorts(svc, owner: uid)
-        var result = await OrdinaryPost.run(owner: uid, request: request, card: card, payload: payload,
+        let result = await OrdinaryPost.run(owner: uid, request: request, card: card, payload: payload,
                                             playedWith: playedWith, jpeg: photoJPEG, ports: ports)
-        if case .staleRequest = result {
-          // The earlier request never landed and this is a different card:
-          // release the old id and post this card under a fresh one, once.
-          request = UUID()
-          ordinaryRequest = request
-          PostRequestStore.set(request, owner: uid)
-          flushDraft()
-          result = await OrdinaryPost.run(owner: uid, request: request, card: card, payload: payload,
-                                          playedWith: playedWith, jpeg: photoJPEG, ports: ports)
-        }
         switch result {
-        case .accepted(let out, _, let photoDropped, let receiptUnsaved):
+        case .accepted(let out, _, _, let photoDropped, let receiptUnsaved):
           if photoDropped { toast.show(OrdinaryPost.photoDroppedCopy, kind: .failed) }
           if receiptUnsaved { toast.show(OrdinaryPost.receiptUnsavedCopy, kind: .failed) }
           outcome = out
@@ -386,27 +391,24 @@ final class PostRoundModel {
           ordinaryRequest = nil
           PostRequestStore.clear(owner: uid)
         case .alreadyPosted(let landed):
-          // It posted. Finish the form exactly once — a cleared id over a
+          // It posted. Finish the intent exactly once — a cleared id over a
           // full card is how the next tap minted a second round.
           finishAccepted(landed, owner: uid, message: OrdinaryPost.alreadyPostedCopy)
           return
         case .earlierPosted(let landed):
-          // The old envelope landed; this edited card is a new round. The id
-          // is released, the card stays, and the golfer is told both facts.
-          acceptedRoundId = landed
-          ordinaryRequest = nil
-          PostRequestStore.clear(owner: uid)
-          flushDraft()
-          toast.show(OrdinaryPost.earlierPostedCopy, kind: .confirmed)
-          Task { await store.reload() }
+          // The earlier body under this id landed. This intent is FINISHED
+          // with that round; the edit is a correction on a posted round
+          // (delete it, post again), never a second round. The receipt opens.
+          finishAccepted(landed, owner: uid, message: OrdinaryPost.earlierPostedCopy)
+          recoveredRoundId = landed
           return
-        case .staleRequest:
-          // cannot recur: the second run above was under a fresh id
-          toast.show(OrdinaryPost.ambiguousPrefix, kind: .failed); return
         case .storageFailed(let msg):
           toast.show(msg, kind: .failed); return
         case .notAvailable:
           toast.show(OrdinaryPost.notAvailableCopy, kind: .failed); return
+        case .refused(let msg):
+          // definite: nothing was written, the id stays, the card needs a change
+          toast.show(msg, kind: .failed); return
         case .failed(let msg):
           toast.show(msg, kind: .failed); return
         }

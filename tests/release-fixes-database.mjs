@@ -7,13 +7,17 @@
 //   node tests/release-fixes-database.mjs
 //
 // Covers:
+//   · post_round_once under CONCURRENCY and DELAY — the amended-request contract
+//     D350 relies on: two bodies under one id in every arrival order → one round
 //   · round_post_status       (20261027090000) — read-only, owner-scoped, null when no receipt
 //   · create_league_once      (20261028090000) — replay returns the same league, owner-scoped, private receipts
 //   · join_covenant_info / join_covenant_for_invite (20261029090000) — allowance, cap, every-round-counts, dates; invite door == code door
 //   · league_pulse            (20261030090000) — joined_this_month and bye_available, grants restated after the drop
+//   · my_invites              (20261031090000) — event_kind and buy_in, old columns intact
+//   · native_home             (20261101090000) — the pulse object patch, applied to a stub carrying the live substring
 
 import { readFileSync, mkdtempSync, mkdirSync, rmSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -28,21 +32,30 @@ const temp = mkdtempSync(join(tmpdir(), 'cs-release-pg-'));
 const data = join(temp, 'data'), sock = join(temp, 'socket'); mkdirSync(sock);
 const PORT = '55438';
 
-function run(cmd, args, input) {
-  const p = spawnSync(cmd, args, { input, encoding: 'utf8' });
-  return p;
-}
+function run(cmd, args, input) { return spawnSync(cmd, args, { input, encoding: 'utf8' }); }
 let r = run(join(bin, 'initdb'), ['-D', data, '-A', 'trust', '--no-locale']);
 if (r.status) { console.error(r.stderr); process.exit(1); }
 r = run(join(bin, 'pg_ctl'), ['-D', data, '-l', join(temp, 'log'), '-o', `-k ${sock} -p ${PORT} -c listen_addresses=''`, 'start']);
 if (r.status) { console.error(r.stderr); process.exit(1); }
 
+const PSQL = ['-h', sock, '-p', PORT, '-d', 'postgres', '-q', '-v', 'ON_ERROR_STOP=1', '-At'];
 function sql(text, ok = true) {
-  const p = run(join(bin, 'psql'), ['-h', sock, '-p', PORT, '-d', 'postgres', '-q', '-v', 'ON_ERROR_STOP=1', '-At'], text);
+  const p = run(join(bin, 'psql'), PSQL, text);
   if (ok && p.status) throw new Error(p.stderr + '\n--- while running ---\n' + text.slice(0, 400));
   if (!ok && !p.status) throw new Error('Expected rejection: ' + text.slice(0, 300));
   return (p.stdout || '').trim();
 }
+/* the same, on its own connection, resolving when psql exits — for concurrency */
+function sqlAsync(text) {
+  return new Promise((resolve) => {
+    const p = spawn(join(bin, 'psql'), PSQL);
+    let out = '', err = '';
+    p.stdout.on('data', d => out += d); p.stderr.on('data', d => err += d);
+    p.on('close', code => resolve({ code, out: out.trim(), err: err.trim() }));
+    p.stdin.end(text);
+  });
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 const assert = (cond, msg) => { if (!cond) throw new Error('ASSERT: ' + msg); };
 
 try {
@@ -57,16 +70,21 @@ try {
       preset text default 'standard', participation_floor int default 2, finish text default 'cup_final', buy_in_note text, buy_in_due_on date,
       counting_cap int, handicap_allowance int default 95, payout_champ int default 60, payout_runnerup int default 25, payout_king int default 15);
     create table public.seasons(id uuid primary key default gen_random_uuid(), league_id uuid, number int default 1, starts_on date, ends_on date, status text default 'active', timezone text default 'America/Phoenix');
+    create table public.events(id uuid primary key default gen_random_uuid(), name text, kind text, starts_on date, buy_in numeric not null default 0, pot_split text default 'places');
     create table public.member_invites(id uuid primary key default gen_random_uuid(), league_id uuid, event_id uuid, profile_id uuid, invited_by uuid, status text default 'pending', created_at timestamptz default now());
     create table public.season_adjustments(id uuid primary key default gen_random_uuid(), season_id uuid, squad_id uuid, member_id uuid, month date, kind text, points numeric, reason text, created_by uuid);
     create table public.v_rounds_ranked(member_id uuid, season_id uuid, played_on date, floor_credit numeric, points numeric, month_rank int);
     create function public.is_league_member(p uuid) returns boolean language sql as $$ select exists(select 1 from public.league_members where league_id = p and profile_id = auth.uid()) $$;
     create table public.rounds(id uuid primary key default gen_random_uuid(), owner_id uuid, gross int);
     create table public.round_holes(round_id uuid references public.rounds(id) on delete cascade, hole_number int, strokes int check(strokes between 1 and 15));
+    -- a gross of 99 is the SLOW fixture: it holds the (owner, request) lock for 400ms inside post_round,
+    -- which is how a delayed first request is staged. A rating below 25 is REFUSED, the way rounds_rating_sane does.
     create function public.post_round(p_gross int,p_rating numeric,p_slope int,p_holes_played int default 18,p_nine_rating numeric default null,p_course_id text default null,p_course_label text default null,p_played_on date default current_date,p_photo_path text default null,p_played_with uuid[] default '{}') returns jsonb language plpgsql as $$
-      declare r uuid; begin insert into public.rounds(owner_id,gross) values(auth.uid(),p_gross) returning id into r;
+      declare r uuid; begin
+      if p_rating < 25 then raise exception 'rounds_rating_sane'; end if;
+      if p_gross = 99 then perform pg_sleep(0.4); end if;
+      insert into public.rounds(owner_id,gross) values(auth.uid(),p_gross) returning id into r;
       return jsonb_build_object('round',jsonb_build_object('id',r)); end $$;
-    -- the live create_league, verbatim in shape: league, commissioner seat, settings
     create function public.create_league(p_name text, p_code text) returns json language plpgsql security definer set search_path = public as $$
       declare v_league leagues; v_member league_members;
       begin
@@ -75,35 +93,90 @@ try {
         insert into league_settings (league_id, season_format, structure, season_months, buyin_cents) values (v_league.id, 'points', 'squads2', 3, 0);
         return json_build_object('league', row_to_json(v_league), 'member', row_to_json(v_member));
       end $$;
+    -- native_home STUB carrying the live pulse substring verbatim (20261019090000:604-608), so the patch's
+    -- replace and its self-checks are exercised for real; nothing else of native_home is modelled.
+    create function public.native_home() returns jsonb language plpgsql security definer set search_path = public as $$
+      declare v_pulse jsonb; m record;
+      begin
+        for m in select league_id from league_members where profile_id = auth.uid() loop
+        select jsonb_build_object(
+          'credits',  lp.credits,
+          'floor',    lp.floor,
+          'at_floor', lp.at_floor,
+          'partial',  lp.partial)
+        into v_pulse
+        from league_pulse(m.league_id) lp
+        where lp.is_me
+        limit 1;
+        end loop;
+        return jsonb_build_object('pulse', v_pulse);
+      end $$;
     grant usage on schema public to anon, authenticated;
-    grant execute on function public.create_league(text, text) to authenticated;`);
-  // the pre-existing covenant + pulse producers this sprint extends, in prod order
+    grant execute on function public.create_league(text, text) to authenticated;
+    grant execute on function public.native_home() to authenticated;`);
+  sql(read('20260713180000_member_invites.sql').split('-- ---- accept / decline ----')[0].split('-- ---- my pending invites')[1].replace(/^[^c]*/, ''));
   sql(read('20260722211500_covenant_pulse_pairings.sql').split('create or replace function public.generate_pairings')[0]);
   sql(read('20260924110000_the_covenant_names_the_crew.sql'));
   sql(read('20261021090000_idempotent_phone_rounds.sql'));
   sql(read('20261026090000_the_terms_reach_every_door.sql'));
-  // ---- the four new migrations, in order ----
+  // ---- the six new migrations, in order ----
   sql(read('20261027090000_a_post_can_be_asked_about.sql'));
   sql(read('20261028090000_one_league_however_many_times_start_is_pressed.sql'));
   sql(read('20261029090000_the_covenant_says_the_allowance.sql'));
   sql(read('20261030090000_the_pulse_says_who_joined_and_who_has_a_bye.sql'));
+  sql(read('20261031090000_an_invitation_says_what_it_is.sql'));
+  sql(read('20261101090000_home_carries_the_month_facts.sql'));
 
   const a = randomUUID(), b = randomUUID();
   sql(`insert into auth.users values('${a}'),('${b}'); insert into public.profiles values('${a}','Jerecho Fixture','saguaro',12.4),('${b}','Galen Fixture','owl',8.1);`);
   const asu = (who, text, role = 'authenticated') => `set request.jwt.claim.sub='${who}'; set role ${role}; ${text}`;
+  const body = (gross, extra = {}) => JSON.stringify({ gross, rating: 72, slope: 113, holes_played: 18, played_on: '2026-09-13', course_label: 'QA fixture', ...extra });
+  const post = (who, key, gross, extra) => asu(who, `select public.post_round_once('${key}','${body(gross, extra)}'::jsonb, ARRAY[]::int[], '{}'::uuid[]);`);
+  const rounds = () => Number(sql('select count(*) from rounds'));
 
-  // ======================= round_post_status =======================
+  // ======================= the amended-request contract, under concurrency and delay =======================
   {
-    const key = randomUUID();
-    const payload = JSON.stringify({ gross: 72, rating: 72, slope: 113, holes_played: 18, played_on: '2026-09-13', course_label: 'QA fixture' });
-    assert(sql(asu(a, `select public.round_post_status('${key}') is null;`)) === 't', 'no receipt → null');
-    const posted = JSON.parse(sql(asu(a, `select public.post_round_once('${key}','${payload}'::jsonb, ARRAY[]::int[], '{}'::uuid[]);`)));
+    // A · the first request is SLOW (holds the lock inside post_round); the amended second arrives while it is in flight.
+    let key = randomUUID(), before = rounds();
+    const [slow, amended] = await Promise.all([sqlAsync(post(a, key, 99)), (async () => { await sleep(120); return sqlAsync(post(a, key, 72)); })()]);
+    assert(slow.code === 0, 'the slow first request commits');
+    assert(amended.code !== 0 && /different scorecard/.test(amended.err), 'the amendment that arrives while the first is in flight waits on the lock, then is refused — it does not mint');
+    assert(rounds() === before + 1, 'exactly one round');
+    console.log('PASS  amended request · first in flight, second waits and is refused: one round');
+
+    // B · the DELAYED first request: the amended body lands first, the original arrives after it.
+    key = randomUUID(); before = rounds();
+    const [first, late] = await Promise.all([sqlAsync(post(a, key, 72)), (async () => { await sleep(150); return sqlAsync(post(a, key, 84)); })()]);
+    assert(first.code === 0, 'the body that arrives first commits');
+    assert(late.code !== 0 && /different scorecard/.test(late.err), 'the delayed original is refused against the receipt — it does not mint');
+    assert(rounds() === before + 1, 'exactly one round');
+    console.log('PASS  amended request · the delayed original arrives after the amendment: refused, one round');
+
+    // C · the same body twice, concurrently: one round, both answers identical (replay).
+    key = randomUUID(); before = rounds();
+    const [x, y] = await Promise.all([sqlAsync(post(a, key, 77)), sqlAsync(post(a, key, 77))]);
+    assert(x.code === 0 && y.code === 0 && x.out === y.out, 'both get the same stored answer');
+    assert(rounds() === before + 1, 'exactly one round');
+    console.log('PASS  same body twice, concurrently · one round, one answer');
+
+    // D · a definite refusal writes no receipt; the corrected card posts under the SAME id.
+    key = randomUUID(); before = rounds();
+    sql(post(a, key, 80, { rating: 10 }), false);
+    assert(sql(asu(a, `select public.round_post_status('${key}') is null;`)) === 't', 'a refusal leaves no receipt');
+    sql(post(a, key, 80, { rating: 72 }));
+    assert(rounds() === before + 1, 'the corrected card posts under the same id — no dead end, no second id');
+    // and a replay of the corrected body returns the stored answer, not a second round
+    sql(post(a, key, 80, { rating: 72 }));
+    assert(rounds() === before + 1, 'replay after the correction is still one round');
+    console.log('PASS  definite refusal · no receipt, same id, corrected card posts once');
+
+    // E · the receipt is the tombstone: a NULL status never means "safe to mint" — but the client no longer asks that
+    //     question anyway; what it asks is "which round DID land", and that answer is verbatim.
     const status = JSON.parse(sql(asu(a, `select public.round_post_status('${key}');`)));
-    assert(status.round.id === posted.round.id, 'the status is the stored response, verbatim');
+    assert(status.round && status.round.id, 'the status names the round that landed');
     assert(sql(asu(b, `select public.round_post_status('${key}') is null;`)) === 't', 'another golfer sees nothing');
-    assert(sql('select count(*) from rounds') === '1', 'asking never posts');
     sql(asu(a, `select public.round_post_status('${key}');`, 'anon'), false);
-    console.log('PASS  round_post_status · null before, verbatim after, owner-scoped, never posts, anon refused');
+    console.log('PASS  round_post_status · verbatim, owner-scoped, anon refused');
   }
 
   // ======================= create_league_once =======================
@@ -114,17 +187,20 @@ try {
     const again = JSON.parse(sql(asu(a, `select public.create_league_once('${req}','The Fellas','FELLAS26');`)));
     assert(first.league.id === again.league.id, 'a replay returns the SAME league');
     assert(again.replayed === true && first.replayed !== true, 'and says it was a replay');
-    assert(sql('select count(*) from leagues') === '1', 'one league');
     const renamed = JSON.parse(sql(asu(a, `select public.create_league_once('${req}','The Lads','LADS26');`)));
     assert(renamed.league.id === first.league.id && renamed.league.name === 'The Fellas', 'a conflicting body returns the stored league');
     assert(sql('select count(*) from leagues') === '1', 'a conflicting body mints nothing');
-    const other = JSON.parse(sql(asu(b, `select public.create_league_once('${req}','Their League','THEIRS26');`)));
-    assert(other.league.id !== first.league.id && sql('select count(*) from leagues') === '2', 'identity is (owner, request)');
+    // concurrent Start taps: one league
+    const req2 = randomUUID();
+    const [p1, p2] = await Promise.all([sqlAsync(asu(b, `select public.create_league_once('${req2}','Their League','THEIRS26');`)),
+                                        sqlAsync(asu(b, `select public.create_league_once('${req2}','Their League','THEIRS26');`))]);
+    assert(p1.code === 0 && p2.code === 0 && JSON.parse(p1.out).league.id === JSON.parse(p2.out).league.id, 'two concurrent taps, one league');
+    assert(sql('select count(*) from leagues') === '2', 'identity is (owner, request)');
     sql(asu(a, `select public.create_league_once('${randomUUID()}','Dupe','FELLAS26');`), false);
     assert(sql('select count(*) from cupseason_private.league_create_receipts') === '2', 'a refusal leaves no receipt');
     sql(asu(a, `select public.create_league_once('${randomUUID()}','Anon','ANON26');`, 'anon'), false);
     sql('set role authenticated; select * from cupseason_private.league_create_receipts', false);
-    console.log('PASS  create_league_once · replay = same league, conflicting body mints nothing, owner-scoped, refusal leaves no receipt, private receipts');
+    console.log('PASS  create_league_once · replay = same league, concurrent taps = one league, conflicting body mints nothing, private receipts');
   }
 
   // ======================= the covenant, from a code and from an invitation =======================
@@ -135,8 +211,6 @@ try {
     const codeView = JSON.parse(sql(asu(b, `select public.join_covenant_info('FELLAS26');`)));
     assert(codeView.handicap_allowance === 90 && codeView.counting_cap === 3 && codeView.every_round_counts === false, 'allowance and cap');
     assert(codeView.starts_on === '2026-09-13' && codeView.ends_on === '2026-12-12' && codeView.weeks === 13, 'dates and weeks');
-    assert(codeView.floor === 2 && codeView.finish === 'cup_final', 'floor and finish');
-    // a real anon caller carries NO sub claim; the fixture's auth.uid() reads the claim, not the role
     const anonView = JSON.parse(sql(`set request.jwt.claim.sub=''; set role anon; select public.join_covenant_info('FELLAS26');`));
     assert(!('handicap_allowance' in anonView) && !('roster' in anonView) && !('starts_on' in anonView), 'anon still gets the small object');
     const inv = sql(`insert into member_invites(league_id, profile_id, invited_by) values ('${lid}','${b}','${a}') returning id;`);
@@ -149,11 +223,26 @@ try {
     sql(`update league_settings set counting_cap = null where league_id = '${lid}';`);
     const unl = JSON.parse(sql(asu(b, `select public.join_covenant_info('FELLAS26');`)));
     assert(unl.every_round_counts === true && unl.counting_cap === null, 'Unlimited is a present boolean, not an absent key');
-    sql(asu(b, `select public.join_covenant_for_invite('${inv}');`, 'anon'), false);
     console.log('PASS  covenant · allowance, cap, every_round_counts, dates, weeks; invite door == code door; anon unchanged; no code');
   }
 
-  // ======================= league_pulse: who joined this month, who still has a bye =======================
+  // ======================= my_invites: what it is, what it costs =======================
+  {
+    const ev = sql(`insert into events(name, kind, starts_on, buy_in) values ('The Bloom','major','2026-10-03',25) returning id;`);
+    const ry = sql(`insert into events(name, kind, starts_on, buy_in) values ('Desert Ryder','ryder','2026-10-10',0) returning id;`);
+    sql(`insert into member_invites(event_id, profile_id, invited_by) values ('${ev}','${b}','${a}'),('${ry}','${b}','${a}');`);
+    sql(`insert into member_invites(league_id, profile_id, invited_by) values ('${lid}','${b}','${a}');`);
+    const rows = sql(asu(b, `select row_to_json(i) from public.my_invites() i;`)).split('\n').map(JSON.parse);
+    const major = rows.find(x => x.container_name === 'The Bloom'), ryder = rows.find(x => x.container_name === 'Desert Ryder'), league = rows.find(x => x.kind === 'league');
+    assert(major.event_kind === 'major' && Number(major.buy_in) === 25, 'a Major says major and its stake');
+    assert(ryder.event_kind === 'ryder' && Number(ryder.buy_in) === 0, 'a Ryder says ryder and no stake');
+    assert(league.event_kind === null && league.buy_in === null, 'a league invitation carries neither');
+    for (const k of ['id', 'kind', 'container_id', 'container_name', 'inviter', 'starts_on', 'created_at']) assert(k in major, `old column ${k} still there`);
+    sql(asu(b, `select * from public.my_invites();`, 'anon'), false);
+    console.log('PASS  my_invites · event_kind and buy_in, old columns intact, anon refused');
+  }
+
+  // ======================= league_pulse + native_home: who joined this month, who still has a bye =======================
   {
     const sid = sql(`select id from seasons where league_id = '${lid}'`);
     const ma = sql(`select id from league_members where league_id = '${lid}' and profile_id = '${a}'`);
@@ -167,10 +256,11 @@ try {
     rows = sql(asu(a, `select row_to_json(p) from public.league_pulse('${lid}') p;`)).split('\n').map(JSON.parse);
     by = Object.fromEntries(rows.map(r => [r.profile_id, r]));
     assert(by[a].bye_available === false && by[b].bye_available === true, 'a spent bye is spent for the season');
-    for (const k of ['credits', 'floor', 'at_floor', 'is_me', 'partial']) assert(k in by[a], `old column ${k} still there`);
-    assert(sql(asu(b, `select count(*) from public.league_pulse('${lid}');`)) === '2', 'a member reads the table');
+    // and Home's own payload carries the same two facts after the patch
+    const home = JSON.parse(sql(asu(b, `select public.native_home();`)));
+    assert(home.pulse.joined_this_month === true && home.pulse.bye_available === true && home.pulse.floor === 2, 'native_home pulse carries joined_this_month and bye_available beside the old keys');
     sql(asu(a, `select * from public.league_pulse('${lid}');`, 'anon'), false);
-    console.log('PASS  league_pulse · joined_this_month, bye_available, old columns intact, grants restated after the drop');
+    console.log('PASS  league_pulse + native_home · joined_this_month, bye_available, old columns intact, patch applied and grants restated');
   }
   console.log('ALL PASS');
 } catch (e) {

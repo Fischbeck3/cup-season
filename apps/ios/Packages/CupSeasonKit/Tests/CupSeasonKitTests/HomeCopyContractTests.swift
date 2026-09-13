@@ -42,6 +42,7 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
                     leaderPts: Double? = 21, gapLeader: Double? = 12, gapNext: Double? = nil,
                     leader: String? = "Galen", runnerUp: String? = "Jerecho", runnerPts: Double? = 9,
                     credits: Double? = 2, floor: Int? = nil, partial: Bool? = false,
+                    joinedThisMonth: Bool? = nil, byeAvailable: Bool? = nil,
                     paid: Bool? = false, note: String? = nil, due: String? = nil, players: Int? = nil, paidCount: Int? = 0,
                     collected: Int? = 0, v2: Bool = true, buyIn: Bool = true, season: Bool = true, standing: Bool = true,
                     seed: Int? = nil, finalists: [String]? = nil, roster: Int? = nil, members: Int? = nil,
@@ -64,7 +65,8 @@ func heroMembership(name: String = "Who's the bitch?", structure: String = "solo
                         "points_king_member_id": nil, "tiebreak_rung": nil] as [String: Any?] : nil,
     "squad": nil,
     "standing": standing ? st : nil,
-    "pulse": ["credits": credits, "floor": floor, "at_floor": false, "partial": partial] as [String: Any?],
+    "pulse": ["credits": credits, "floor": floor, "at_floor": false, "partial": partial,
+              "joined_this_month": joinedThisMonth, "bye_available": byeAvailable] as [String: Any?],
   ]
   if v2 && buyIn && stake > 0 { m["buy_in"] = bi }
   if v2 { m["roster"] = roster; m["members"] = members }
