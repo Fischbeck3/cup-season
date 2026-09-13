@@ -51,9 +51,24 @@ struct RootView: View {
             // golfer who backgrounded the app on the covenant, or whose join
             // failed, lost the code they had been sent and had no way back to
             // it. It is spent only after the server accepts the join.
-            .onAppear { if let j = JoinIntent.pending() { pendingJoin = j.code } }
-            // a claim link that came in signed-out lands the card now (D88)
-            .task(id: store.me?.profile?.id) { guestDoor = false; await LiveClaimAfterAuth.run(toast: toast) }
+            // D351 (built) · THE CODE IS CONSUMED REACTIVELY, EXACTLY ONCE.
+            // `onAppear` alone meant a link tapped while the app was open and
+            // signed in did nothing until the next cold start, and a golfer who
+            // signed out and back in as somebody else inherited the sheet from
+            // the appearance before. Three moments, one gate: appear / a change
+            // of golfer (the identity-keyed task), and a link stored while the
+            // tabs are up (the notification). `pendingJoin == nil` is the gate,
+            // so a sheet already up is never presented twice; `signOut()` clears
+            // the code, so a new golfer never meets the old one's link.
+            .task(id: store.me?.profile?.id) {
+              guestDoor = false
+              if pendingJoin == nil, let j = JoinIntent.pending() { pendingJoin = j.code }
+              // a claim link that came in signed-out lands the card now (D88)
+              await LiveClaimAfterAuth.run(toast: toast)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .csJoinCodePending)) { _ in
+              if pendingJoin == nil, let j = JoinIntent.pending() { pendingJoin = j.code }
+            }
             .csSheet(item: $pendingJoin) { code in
               JoinLeagueFlow(code: code) { id in
                 JoinIntent.clear(ifMatching: code)

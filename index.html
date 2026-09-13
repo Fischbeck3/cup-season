@@ -16831,7 +16831,17 @@ function csItemDoor(it){
     case 'live':      return id ? ()=>switchView('play') : null;
     case 'season':    return id ? ()=>switchView('hub') : null;
     case 'pot':       return id ? ()=>switchView('pot') : null;
-    case 'invite':    return id ? ()=>switchView('hub') : null;
+    /* D351 (built) · "See the terms" opens THE TERMS. The route's id is the
+       CONTAINER (a season the invitee cannot open); the invitation's own id is
+       the item's key, `invite:<id>`, and the covenant is read for it. With no
+       invitation to read for, the switcher — which lists every invitation with
+       its terms and its decline — is the honest door. */
+    case 'invite':    return id ? ()=>{
+        const key = String(it.key||''), iid = key.startsWith('invite:') ? key.slice(7) : null;
+        const inv = (window.myInvites||[]).find(x => x.id === iid) || (window.myInvites||[]).find(x => x.container_id === id) || null;
+        if(inv && window.respondInvite) window.respondInvite(inv.id, true);
+        else if(window.openLeagueSwitcher) window.openLeagueSwitcher();
+      } : null;
     default:          return null;
   }
 }
@@ -20933,17 +20943,19 @@ function renderNotifications(){
       <div class="tt"><b>${i.kind==='league'?'League invite':'Ryder invite'} · ${esc(i.container_name||'')}</b>
         <small>from ${esc(i.inviter||'a golfer')}${i.kind==='event'&&i.starts_on?' · first tee '+i.starts_on:''}</small></div>
       <span style="display:flex; gap:6px; flex:none">
-        <button class="mini" data-ivacc="${i.id}">Accept</button>
+        <button class="mini" data-ivacc="${i.id}">${i.kind==='league'?'See the terms':'Accept'}</button>
         <button class="mini" data-ivdet="${i.id}">Details</button>
       </span>
     </div>`).join('');
+  /* D351 · a season's primary control READS THE TERMS; the accept is the
+     covenant sheet's own Join. `respondInvite(…, true)` is that gate. */
   el.querySelectorAll('[data-ivacc]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivacc,true)));
   el.querySelectorAll('[data-ivdet]').forEach(b=>b.addEventListener('click',()=>{
     const i=inv.find(x=>x.id===b.dataset.ivdet); if(!i) return;
     openSheet(i.kind==='league'?'League invite':'Ryder invite', (i.container_name||'').toUpperCase(),
       `<p class="fine">${i.kind==='league'?'A season-long league.':'A Ryder — two teams, one clash each week.'} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
        <div style="display:flex; gap:8px; margin-top:14px">
-         <button class="btn" id="ivDetAcc" style="flex:1">Accept & join</button>
+         <button class="btn" id="ivDetAcc" style="flex:1">${i.kind==='league'?'See the terms':'Accept'}</button>
          <button class="btn dark" id="ivDetDec" style="flex:1">Decline</button>
        </div>`);
     $('#ivDetAcc').addEventListener('click',()=>{ closeSheet(); window.respondInvite(i.id,true); });
@@ -24826,6 +24838,23 @@ document.addEventListener('visibilitychange', ()=>{
 
 
 /* ---------- create a league ---------- */
+/* D355 · the durable create record. One key per golfer; cleared only when the
+   season STARTS (the lock landed) or the Pro discards the league. */
+const CREATE_REQ_KEY='cs_create_request';
+function createRequestKey(uid){ return CREATE_REQ_KEY + '.' + String(uid || 'signed-out'); }
+function createRequestRead(uid){
+  try{ const raw = localStorage.getItem(createRequestKey(uid)); if(!raw) return null;
+       const d = JSON.parse(raw); return (d && d.id) ? d : null; }catch(_){ return null; }
+}
+function createRequestWrite(uid, rec){ localStorage.setItem(createRequestKey(uid), JSON.stringify(rec)); }   /* throws */
+function clearCreateRequest(uid, leagueId){
+  /* with a league id, clear only the record that names it — a stale record for
+     some other league is not this one's to clear */
+  try{
+    if(leagueId){ const d = createRequestRead(uid); if(d && d.leagueId && d.leagueId !== leagueId) return; }
+    localStorage.removeItem(createRequestKey(uid));
+  }catch(_){}
+}
 async function createLeague(){
   /* F-001: never fire the create_league RPC without a real session (demo or
      signed-out) — it round-trips to prod and dies on the NOT-NULL
@@ -24835,9 +24864,36 @@ async function createLeague(){
   const name = ($('#setName').value || '').trim() || 'My Cup';
   const code = codeFor(name);
 
-  const { data, error } = await sb.rpc('create_league', { p_name: name, p_code: code });
-  if(error) throw error;
+  /* D355 · ONE league however many times Start is pressed. The request id is
+     owner-scoped, written BEFORE the call, and kept until the season actually
+     starts (the lock) or the Pro discards it — so a response lost to a timeout,
+     a tab killed between the create and the lock, or a second tap all replay
+     into the SAME league. A record that cannot be written stops here: a create
+     the browser cannot remember is one a kill turns into two. No fallback to
+     `create_league`: a server without the function cannot deduplicate, so it is
+     told to the golfer and nothing is minted. */
+  const uid = CS.user.id;
+  let rec = createRequestRead(uid);
+  if(!rec){
+    /* the module block cannot rely on a classic helper by bare name (landmine:
+       the classic ↔ module boundary), so the id is minted here */
+    const id = crypto.randomUUID ? crypto.randomUUID()
+             : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'? r : (r&0x3|0x8)).toString(16); });
+    rec = { id, at: Date.now(), name, code, leagueId: null };
+    try{ createRequestWrite(uid, rec); }
+    catch(_){ throw new Error('Couldn’t keep a record of this season in this browser, so nothing was started. Free up storage and try again.'); }
+  }
+  const { data, error } = await sb.rpc('create_league_once', { p_request_id: rec.id, p_name: name, p_code: code });
+  if(error){
+    const m = String(error.code || error.message || '').toLowerCase();
+    if(m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function')){
+      throw new Error('Starting a season isn’t available on this server yet. Nothing was created — try again after the update.');
+    }
+    throw error;
+  }
   const league = data.league, member = data.member;
+  rec.leagueId = league.id; try{ createRequestWrite(uid, rec); }catch(_){}
+  if(data.replayed) toast('Picking up the season you already started');
 
   CS.league = league;
   CS.member = { id: member.id, role:'commissioner', index: member.index_current };
@@ -25316,11 +25372,17 @@ function csCovenantFacts(info, postedRounds){
   if(weeksText && tee) out.push({ k:'length', t: weeksText + ' from ' + tee + '.' });
   else if(weeksText)   out.push({ k:'length', t: weeksText + '.' });
   else if(tee)         out.push({ k:'length', t: 'First tee ' + tee + '.' });
-  /* 4 · the rule. The payload's `floor` is the OTHER number; R9 brings the cap. */
+  /* 4 · the rule. The payload's `floor` is the OTHER number; R9 brings the cap.
+     D353 · an Unlimited league says "every round counts" off the payload's own
+     boolean (never off an absent key), and the allowance says what every points
+     figure is scored at, in the wizard's own words ("95 percent of your index")
+     so the Pro's agreement and the joiner's covenant read alike. */
   {
     const clauses = ['honest scores'];
-    if(Number(info.counting_cap)) clauses.push('best ' + csWord(Number(info.counting_cap)) + ' a month count');
+    if(info.every_round_counts === true) clauses.push('every round counts');
+    else if(Number(info.counting_cap)) clauses.push('best ' + csWord(Number(info.counting_cap)) + ' a month count');
     if(Number(info.floor)) clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
+    if(Number(info.handicap_allowance)) clauses.push(Number(info.handicap_allowance) + ' percent of your index');
     const head = info.preset ? csCap(String(info.preset)) + ' rules: ' : 'The rules: ';
     out.push({ k:'rules', t: head + clauses.join(', ') + '.' });
   }
@@ -25370,6 +25432,13 @@ async function covenantGate(code){
      'skew' · this database has not got the function; the caller keeps today's
               behaviour and must not claim the terms were shown. */
 async function covenantGateForInvite(inviteId){
+  /* BUILT 2026-09-13 \u00b7 fail-closed on every path that is not the terms. The
+     first cut returned 'skew' on a missing function AND on a null answer, and
+     the caller then accepted without the terms \u2014 which is the exact hole D351
+     exists to close. A server without the function is told to the golfer and
+     the invitation is kept; a null answer is either an event invitation (no
+     terms to read \u2014 accept proceeds) or an invitation already answered. */
+  const inv = (window.myInvites||[]).find(x => x.id === inviteId) || null;
   let info=null, answered=false;
   try{
     const {data,error}=await sb.rpc('join_covenant_for_invite',{p_invite:inviteId});
@@ -25377,11 +25446,19 @@ async function covenantGateForInvite(inviteId){
     info=data; answered=true;
   }catch(e){
     const m=String(e && (e.code||e.message) || '').toLowerCase();
-    if(m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function')) return 'skew';
+    if(m.includes('pgrst202') || m.includes('42883') || m.includes('schema cache') || m.includes('could not find the function')){
+      toast('The terms can\u2019t be read on this server yet. Nothing was accepted \u2014 try again after the update.');
+      return false;
+    }
   }
   if(!answered){ toast('Could not check this league\u2019s terms \u2014 try again in a moment'); return false; }
-  /* an event invitation has no league settings to read, and no stake */
-  if(!info) return 'skew';
+  if(!info){
+    /* a Ryder / Major invitation has no league settings and no stake to read */
+    if(inv && inv.kind === 'event') return true;
+    toast('That invitation was already answered \u2014 nothing changed');
+    await loadInvites(); if(window.renderNotifications) window.renderNotifications();
+    return false;
+  }
   return showCovenant(info);
 }
 
@@ -25499,6 +25576,9 @@ $('#lockBtn').addEventListener('click', async () => {
 
   if(locked){
     window.qaEvent?.('lock_ok', { next_phase: locked.nextPhase });
+    /* D355 · the season STARTED: the accepted outcome is recovered, and only
+       now is the frozen create request released. */
+    if(CS.user && CS.league) clearCreateRequest(CS.user.id, CS.league.id);
     try {
       await loadMemberships();
       switchView('home');
@@ -25566,6 +25646,7 @@ document.getElementById('wizCancel')?.addEventListener('click', async () => {
     if(!state.demo && CS.league?.id){
       const { error } = await sb.rpc('delete_league', { p_league: CS.league.id });
       if(error) throw error;
+      if(CS.user) clearCreateRequest(CS.user.id, CS.league.id);   /* D355 · a discarded league must not resume */
       await loadMemberships();
     }
   } catch(e){ toast(humanError(e, 'Could not discard.')); return; }
@@ -25873,7 +25954,7 @@ async function openLeagueSwitcher(){
     <div class="check"><span class="num">${i.kind==='league'?'⛳':'🏆'}</span>
       <div class="tt"><b>${esc(i.container_name||'')}</b><small>INVITE · FROM ${esc((i.inviter||'').toUpperCase())}</small></div>
       <span style="display:flex; gap:6px; flex:none">
-        <button class="mini" data-swacc="${i.id}">Accept</button>
+        <button class="mini" data-swacc="${i.id}">${i.kind==='league'?'See the terms':'Accept'}</button>
         <button class="mini" data-swdec="${i.id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
       </span></div>`).join('');
   /* the get-started surface: bold, unmissable. Primary two carry the accent. */
@@ -25919,6 +26000,7 @@ async function openLeagueSwitcher(){
     try {
       const { error } = await sb.rpc('delete_league', { p_league: id });
       if(error) throw error;
+      if(CS.user) clearCreateRequest(CS.user.id, id);   /* D355 · a deleted league must not resume */
       if(CS.league?.id === id) goClubhouse();
       toast(nm + ' deleted');
       await loadMemberships();
@@ -26880,13 +26962,13 @@ window.loadInvites = loadInvites;
 window.respondInvite = async (id, accept)=>{
   try{
     /* D351 · the terms come before the money. Declining stays one tap and stays
-       ungated — nobody needs the terms to say no. */
+       ungated — nobody needs the terms to say no. Accepting NEVER proceeds
+       without the terms: the gate is fail-closed on a missing function and on
+       an answered invitation (see covenantGateForInvite). */
+    const inv = (window.myInvites||[]).find(x => x.id === id) || null;
     if(accept){
-      /* 'skew' = this database has not got the function; keep today's behaviour
-         rather than blocking the golfer, and promise nothing about the terms. */
-      if((await covenantGateForInvite(id)) === false) return;
+      if((await covenantGateForInvite(id)) !== true) return;
     }
-    const before = (window.CS?.memberships||[]).length + (window.myEvents||[]).length;
     const { error } = await sb.rpc('respond_invite', { p_id:id, p_accept:accept });
     if(error) throw error;
     await loadInvites();
@@ -26896,9 +26978,15 @@ window.respondInvite = async (id, accept)=>{
     /* D351 · `respond_invite` RETURNS SILENTLY when the invitation was already
        accepted or already declined, and this used to read that silence as
        success and say "Joined ✓" for a join that never happened. A seat is a
-       seat only when it arrives. */
-    const after = (window.CS?.memberships||[]).length + (window.myEvents||[]).length;
-    if(after > before) toast('Joined ✓');
+       seat only when THIS container arrives — a count could be moved by some
+       other join in the meantime. */
+    const landed = inv && inv.container_id && (inv.kind === 'event'
+      ? (window.myEvents||[]).some(e => e.id === inv.container_id)
+      : (window.CS?.memberships||[]).some(m => m.league && m.league.id === inv.container_id));
+    if(landed){
+      toast('Joined ✓');
+      if(inv.kind !== 'event'){ const m = CS.memberships.find(x => x.league.id === inv.container_id); if(m) await enterLeague(m); }
+    }
     else toast('That invitation was already answered — nothing changed');
   }catch(e){ toast(humanError(e)); }
 };

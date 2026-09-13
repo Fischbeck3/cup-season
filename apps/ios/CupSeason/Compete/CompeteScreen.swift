@@ -80,11 +80,13 @@ struct CompeteScreen: View {
         case .failed(let root):
           EmptyRootView(root: root, take: take)
         case .empty(let root):
+          invitations
           EmptyRootView(root: root, take: take)
           // Finished seasons still render under an empty root: "nothing
           // running" is true and "you have never played one" is not.
           section(CompeteRoot.Head.finished, list.finished)
         case .list:
+          invitations
           section(CompeteRoot.Head.seasons, list.seasons, first: true)
           Button { presenter.showIntent = true } label: {
             HStack(spacing: CSTokens.Space.s3) {
@@ -123,6 +125,26 @@ struct CompeteScreen: View {
       loaded = me != nil
       await countBuddies()
     }
+  }
+
+  /// D351 (built) · the invitations list, and the phone's one DECLINE control.
+  /// It renders only when there is an invitation (its own read), and never
+  /// under a fixture payload, which is somebody else's Compete drawn over a
+  /// real account's invitations.
+  @ViewBuilder private var invitations: some View {
+    #if DEBUG
+    if CompeteFixture.on { EmptyView() } else { invitationsList }
+    #else
+    invitationsList
+    #endif
+  }
+  private var invitationsList: some View {
+    InvitesBanner { id in
+      Task { await store.reload() }
+      store.preferredLeague = id
+      push(.season(id, pane: .table))
+    }
+    .padding(.top, CSTokens.Space.s4)
   }
 
   /// Owner visual refinement: league names and ranks lead; section names

@@ -817,6 +817,10 @@ struct MainTabView: View {
     .csSheet(item: $presenter.forfeit) { t in
       ForfeitSheet(home: t.home, opponentName: t.opponentName) { Task { await store.reload() } }
     }
+    // D351 (built) · the terms for an invitation, from Home's own door.
+    .csSheet(item: $presenter.inviteTerms) { t in
+      InviteTermsSheet(target: t) { id in Task { await store.reload() }; openCompetition(id) }
+    }
     .csCover(item: $presenter.draft) { lid in
       NavigationStack {
         DraftNightScreen(leagueId: lid, links: DraftLinks(

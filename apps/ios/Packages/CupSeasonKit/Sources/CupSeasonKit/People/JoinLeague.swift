@@ -101,6 +101,14 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   public let buyInDueOn: String?
   /// D161/D112 — where the league stands before the OTP.
   public let phase: String?
+  /// D353 · the allowance every points figure is scored at (`index × allowance
+  /// / 100`, D178). nil = not in the payload (an older server); never guessed.
+  public let handicapAllowance: Int?
+  /// D353 · `true` = the league counts every round (a stored cap of NULL). A
+  /// real boolean, so Unlimited is distinguishable from "not in the payload".
+  public let everyRoundCounts: Bool?
+  /// D353 · the last day of the season, when the payload carries it.
+  public let endsOn: String?
 
   public struct Split: Sendable, Equatable {
     public let champion: Int
@@ -114,11 +122,13 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   public init(name: String, buyinCents: Int, preset: String?, floor: Int, finish: String?,
               proName: String? = nil, rosterCount: Int? = nil, rosterNames: [String] = [],
               startsOn: String? = nil, weeks: Int? = nil, countingCap: Int? = nil,
-              split: Split? = nil, hasPayNote: Bool? = nil, buyInDueOn: String? = nil, phase: String? = nil) {
+              split: Split? = nil, hasPayNote: Bool? = nil, buyInDueOn: String? = nil, phase: String? = nil,
+              handicapAllowance: Int? = nil, everyRoundCounts: Bool? = nil, endsOn: String? = nil) {
     self.name = name; self.buyinCents = buyinCents; self.preset = preset; self.floor = floor; self.finish = finish
     self.proName = proName; self.rosterCount = rosterCount; self.rosterNames = rosterNames
     self.startsOn = startsOn; self.weeks = weeks; self.countingCap = countingCap
     self.split = split; self.hasPayNote = hasPayNote; self.buyInDueOn = buyInDueOn; self.phase = phase
+    self.handicapAllowance = handicapAllowance; self.everyRoundCounts = everyRoundCounts; self.endsOn = endsOn
   }
 
   public init?(_ v: JSONValue) {
@@ -142,7 +152,10 @@ public struct Covenant: Sendable, Equatable, Identifiable {
               },
               hasPayNote: v["pay"]?["has_note"]?.bool ?? v["has_pay_note"]?.bool,
               buyInDueOn: v["pay"]?["due_on"]?.string ?? v["buy_in_due_on"]?.string,
-              phase: v["phase"]?.string)
+              phase: v["phase"]?.string,
+              handicapAllowance: v["handicap_allowance"]?.int,
+              everyRoundCounts: v["every_round_counts"]?.bool,
+              endsOn: v["ends_on"]?.string)
   }
 
   /// `Math.round(buyin_cents/100)`
@@ -203,10 +216,18 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// 4 · "Standard rules: honest scores, best three a month count, two a month
   /// keeps you in." The rounds that count is R9's; the payload's `floor` is the
   /// OTHER number and always was.
+  ///
+  /// D353 · and the two rules that were unsayable: an Unlimited league says
+  /// "every round counts" (off the payload's real boolean, never off an absent
+  /// key), and the allowance says what every points figure is scored at, in
+  /// the wizard's own words (`WizardCopy.rulesLine`: "95 percent of your
+  /// index"), so the Pro's agreement and the joiner's covenant read alike.
   public var rulesLine: String? {
     var clauses: [String] = ["honest scores"]
-    if let c = countingCap { clauses.append("best \(SeasonStoryCopy.word(c)) a month count") }
+    if everyRoundCounts == true { clauses.append("every round counts") }
+    else if let c = countingCap { clauses.append("best \(SeasonStoryCopy.word(c)) a month count") }
     if floor > 0 { clauses.append("\(SeasonStoryCopy.word(floor)) a month keeps you in") }
+    if let a = handicapAllowance { clauses.append("\(a) percent of your index") }
     let head = presetLine.map { "\($0) rules: " } ?? "The rules: "
     return head + clauses.joined(separator: ", ") + "."
   }
@@ -315,20 +336,47 @@ public struct JoinService: Sendable {
     return c
   }
 
-  /// The covenant for a league I was INVITED to, by id rather than by code.
-  /// `InvitesBanner` accepted a $50 season with one tap and never showed the
-  /// $50 (A-7, a live L-12 violation on the shipping client); the invite row's
-  /// primary control becomes **See the terms**, and this is the read behind it.
-  /// A league with no code cannot be read this way, and the sheet says so
-  /// rather than seating anybody.
-  public func covenantForLeague(_ id: UUID) async throws -> Covenant {
-    struct Row: Decodable { let code: String? }
-    let rows: [Row] = try await svc.client.from("leagues").select("code").eq("id", value: id).limit(1).execute().value
-    guard let code = rows.first?.code, !code.isEmpty else {
-      throw RpcError(name: "join_covenant_info", underlying: "Couldn’t read the terms for that one.", droppedArgs: [])
-    }
-    return try await covenant(code)
+  /// D351 (built) · the covenant for an INVITATION, by its own id.
+  ///
+  /// The first cut read `leagues.code` and then called the code door — a read
+  /// `leagues_read` refuses an invitee, so it could not succeed for its only
+  /// caller. `join_covenant_for_invite` (20261026090000 + 20261029090000)
+  /// resolves the league through the invitation itself, returns the SAME
+  /// object the code door returns, and never the code.
+  ///
+  /// Three answers, because two of them look alike if collapsed:
+  ///   `.terms`        · read them; the join waits on the tap
+  ///   `.notADoor`     · the invitation is answered, or somebody else's, or an
+  ///                     event with no terms to read (the caller knows which)
+  ///   `.notAvailable` · the server has not got the function: FAIL-CLOSED —
+  ///                     nothing is accepted, the invitation is kept
+  /// Anything else throws, and the caller says so without seating anybody.
+  public enum CovenantRead: Sendable, Equatable {
+    case terms(Covenant)
+    case notADoor
+    case notAvailable
   }
+  struct JoinCovenantForInviteCall: RpcCall {
+    static let name = "join_covenant_for_invite"
+    static let optionalArgs: [String] = []
+    typealias Returns = JSONValue
+    let p_invite: UUID
+  }
+  public func covenantForInvite(_ inviteId: UUID) async throws -> CovenantRead {
+    let json: JSONValue
+    do { json = try await svc.call(JoinCovenantForInviteCall(p_invite: inviteId)) }
+    catch {
+      if (error as? RpcError)?.isMissingFunction == true { return .notAvailable }
+      throw error
+    }
+    if json.isNull { return .notADoor }
+    guard let c = Covenant(json) else {
+      throw RpcError(name: JoinCovenantForInviteCall.name, underlying: "Couldn’t read the terms — try again.", droppedArgs: [])
+    }
+    return .terms(c)
+  }
+  public static let termsNotAvailable = "The terms can’t be read on this server yet. Nothing was accepted — try again after the update."
+  public static let invitationAnswered = "That invitation was already answered — nothing changed."
 
   /// `join_league` → the league id.
   public func join(_ code: String) async throws -> UUID {
