@@ -583,7 +583,7 @@ public enum MeStripCopy {
   /// The day as a WORD, for a sentence rather than a slot: `today`,
   /// `tomorrow`, or the weekday (`Monday`). `dayToken` is the mono form the
   /// strip and the eyebrows wear; this is the one a headline can end on.
-  static func dayWord(_ iso: String, today: String, calendar: Calendar = .current) -> String {
+  public static func dayWord(_ iso: String, today: String, calendar: Calendar = .current) -> String {
     guard let days = CSDate.days(from: today, to: iso) else { return "a round" }
     if days == 0 { return "today" }
     if days == 1 { return "tomorrow" }

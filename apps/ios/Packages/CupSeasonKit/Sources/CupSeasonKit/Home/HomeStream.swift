@@ -141,14 +141,47 @@ public struct HomeStreamRepository: Sendable {
   /// the second renders an honest, shorter Home.
   struct DispatchCall: RpcCall {
     static let name = "home_dispatch"
-    static let optionalArgs: [String] = ["p_today"]
+    /// D353 · both of the newer arguments are droppable, and the retry removes
+    /// them TOGETHER. That is the honest degradation: a server that has never
+    /// heard of either answers the call this build's grandparent made.
+    static let optionalArgs: [String] = ["p_today", "p_caps"]
     typealias Returns = HomeDispatch.Payload
     var p_days: Int?
     var p_today: String? = CSDate.today()
+    /// D353 · **what this build can do, not what it knows.** `p_today` only
+    /// ever said "this client knows its own calendar day", which every shipped
+    /// build already said — and it was the only gate the after-golf band had,
+    /// so the band went live on clients with no way to answer it. A capability
+    /// is named here only when the code beside it implements the feature.
+    var p_caps: [String]? = HomeCapability.all
   }
 
   public func dispatch(days: Int = 21) async -> HomeDispatch.Payload? {
     try? await svc.call(DispatchCall(p_days: days))
+  }
+
+  /// D353 · the answer to an after-golf card. It returns a STATUS now, because
+  /// void could not tell a recorded answer from a plan that was already
+  /// terminal or was never this golfer's to answer — and two of those used to
+  /// arrive as raised errors a golfer would read as failures for things that
+  /// are not failures.
+  ///
+  /// Hand-declared for the same reason `home_dispatch` is: the contract is
+  /// regenerated from the pushed database, and this function is not in it yet.
+  struct AnswerPlanCall: RpcCall {
+    static let name = "answer_plan_followup"
+    /// NOTHING is droppable. Dropping `p_today` here would let the server use
+    /// its own day to decide whether the round has happened yet.
+    static let optionalArgs: [String] = []
+    typealias Returns = PlanAnswer
+    var p_plan: UUID
+    var p_answer: String
+    var p_today: String? = CSDate.today()
+  }
+
+  public func answerPlan(_ plan: UUID, _ answer: PlanAnswer.Choice,
+                         today: String = CSDate.today()) async throws -> PlanAnswer {
+    try await svc.call(AnswerPlanCall(p_plan: plan, p_answer: answer.rawValue, p_today: today))
   }
 
   public func load(memberships: [Me.Membership]) async -> Result {

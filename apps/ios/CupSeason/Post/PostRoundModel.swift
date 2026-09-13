@@ -66,6 +66,15 @@ final class PostRoundModel {
   /// "Start over" does not release it — the next post under a different card
   /// resolves it through `round_post_status` rather than guessing.
   @ObservationIgnored private var ordinaryRequest: UUID?
+  /// D354 · the plan this composer is filling in. A THIRD identity, and
+  /// deliberately not mixed with the other two: `seededFrom` is a kept
+  /// scorecard that already exists, `ordinaryRequest` is what the server
+  /// deduplicates the post on, and this is display context. It never travels
+  /// with the round.
+  private(set) var plan: PlanContext?
+  /// Set when a plan arrived but could not be applied without the golfer
+  /// saying so. The screen puts the question; nothing is written until it does.
+  var planAsking: PlanContext?
   /// D350 · the owner-scoped request pointer exists and cannot be read. The
   /// composer refuses to post rather than mint over an identity it cannot see.
   @ObservationIgnored private var requestUnreadable = false
@@ -86,6 +95,53 @@ final class PostRoundModel {
   /// can fix a gap, rather than being handed a total he has to trust.
   /// The kept round this composer was seeded from, released once it posts.
   var seededFrom: UUID?
+
+  /// D354 · what a plan may do to this composer, and the three states that
+  /// decide it. Returns true when the card was filled in; false when the
+  /// golfer has to be asked first (`planAsking` carries the question) or when
+  /// the composer is not free to take it at all.
+  @discardableResult
+  func take(plan ctx: PlanContext) -> Bool {
+    // 1 · a kept phone scorecard is never replaced. It is a card that already
+    //     exists, with strokes in it; a plan is a line in a diary.
+    if seededFrom != nil {
+      planAsking = nil
+      toast.show("Finish your kept scorecard first.", kind: .failed)
+      return false
+    }
+    // 2 · a round is already out there under a frozen request. Rewriting the
+    //     date would change the body of a request the server may already hold,
+    //     and D350's whole guarantee is that the body does not move.
+    if ordinaryRequest != nil || requestUnreadable {
+      planAsking = nil
+      toast.show("Finish the round you already sent first.", kind: .failed)
+      return false
+    }
+    // 3 · the same plan again is a resume, not a question.
+    if plan?.planId == ctx.planId, !card.isUntouched(defaultDate: defaultDay) {
+      plan = ctx
+      return true
+    }
+    // 4 · a card the golfer has started is their work. It is not replaced
+    //     without a tap that says so.
+    guard card.isUntouched(defaultDate: defaultDay) else {
+      planAsking = ctx
+      return false
+    }
+    applyPlan(ctx)
+    return true
+  }
+
+  /// The only place a plan writes to the card.
+  func applyPlan(_ ctx: PlanContext) {
+    planAsking = nil
+    plan = ctx
+    card.fill(plan: ctx)
+    if let iso = card.date, let d = CSDate.local(iso, calendar: ScheduleDates.gregorian) { day = d }
+    typedSomething = true
+    recalc()
+    scheduleDraft()
+  }
 
   func seed(_ c: PostCard, from lr: UUID? = nil) {
     seededFrom = lr
@@ -262,18 +318,19 @@ final class PostRoundModel {
     let snapshot = card
     let source = seededFrom
     let request = ordinaryRequest
+    let planId = plan?.planId
     draftTask = Task {
       try? await Task.sleep(for: .milliseconds(350))
       guard !Task.isCancelled else { return }
       if snapshot.isUntouched(defaultDate: defaultDay) { UserDefaults.standard.removeObject(forKey: draftKey); return }
-      if let data = PostDraft.encode(PostDraft(card: snapshot, sourceLive: source, request: request)) { UserDefaults.standard.set(data, forKey: draftKey) }
+      if let data = PostDraft.encode(PostDraft(card: snapshot, sourceLive: source, request: request, plan: planId)) { UserDefaults.standard.set(data, forKey: draftKey) }
     }
   }
   /// A draft flush is never proof of server acceptance.
   func flushDraft() {
     draftTask?.cancel()
     if card.isUntouched(defaultDate: defaultDay) { UserDefaults.standard.removeObject(forKey: draftKey); return }
-    if let data = PostDraft.encode(PostDraft(card: card, sourceLive: seededFrom, request: ordinaryRequest)) {
+    if let data = PostDraft.encode(PostDraft(card: card, sourceLive: seededFrom, request: ordinaryRequest, plan: plan?.planId)) {
       UserDefaults.standard.set(data, forKey: draftKey)
     }
   }
@@ -292,6 +349,10 @@ final class PostRoundModel {
     // relaunch is the same request and not a second round. The owner-scoped
     // store is the second copy, for a draft written before the id existed.
     ordinaryRequest = d.request ?? uid.flatMap { PostRequestStore.pending(owner: $0) }
+    // D354 · the plan comes back with the draft so the composer still knows
+    // which day it is filling in, and so the same plan does not ask again.
+    // Only the id survives a relaunch; the card already carries the facts.
+    if let p = d.plan { plan = PlanContext(planId: p, playOn: d.card.date) }
     card = d.card
     if let iso = d.card.date, let date = CSDate.local(iso, calendar: ScheduleDates.gregorian) { day = date }
     toast.show(PostDraft.restoredToast)

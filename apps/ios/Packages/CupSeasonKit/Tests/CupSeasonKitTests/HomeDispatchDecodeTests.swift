@@ -23,7 +23,12 @@ import Foundation
     let args = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(call)) as? [String: Any])
     #expect(args["p_today"] as? String == "2026-09-12")
     #expect(args["p_days"] as? Int == 21)
-    #expect(HomeStreamRepository.DispatchCall.optionalArgs == ["p_today"])
+    // D353 · the capability rides beside the day, and the retry drops BOTH.
+    // `p_today` alone was never a capability: it says this client knows its own
+    // calendar day, which every shipped build already said — and it was the
+    // only gate the after-golf band had.
+    #expect(args["p_caps"] as? [String] == ["afterplan.v1"])
+    #expect(HomeStreamRepository.DispatchCall.optionalArgs == ["p_today", "p_caps"])
   }
 
 

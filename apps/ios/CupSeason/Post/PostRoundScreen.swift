@@ -24,6 +24,16 @@ struct PostRoundScreen: View {
   var onDone: (() -> Void)? = nil
 
   @State private var model: PostRoundModel?
+
+  /// The dialog's presentation is the model's own question, so nothing can show
+  /// it without a plan behind it.
+  private var planAsking: Binding<Bool> {
+    Binding(get: { model?.planAsking != nil },
+            set: { if !$0 { model?.planAsking = nil } })
+  }
+  private var planQuestion: String {
+    model?.planAsking.map { PostPlanCopy.start($0) + "?" } ?? ""
+  }
   @State private var pick: PhotosPickerItem?
   @State private var pickPurpose: PostPickPurpose = .photo
   @State private var showLibrary = false
@@ -59,12 +69,26 @@ struct PostRoundScreen: View {
             m.seed(KeptCards.compose(k), from: lr)
           }
         }
+        // D354 · a plan, if one sent us here. AFTER the kept-card seed on
+        // purpose: a card with strokes already in it outranks a line in a
+        // diary, and `take(plan:)` refuses in that case rather than guessing.
+        if let ctx = PlanHandoff.shared.take() { m.take(plan: ctx) }
         #if DEBUG
         let a = ProcessInfo.processInfo.arguments
         if let i = a.firstIndex(of: "-cs_dev_post_seed"), i + 1 < a.count { m.devSeed(a[i + 1]) }
         #endif
       }
     }
+    // D354 · a card the golfer has started is never replaced by a plan without
+    // a tap that says so. Two plain choices, no third state: keeping is the
+    // cancel, and starting the plan's round changes the date and the course
+    // and nothing else — whatever has been typed stays typed.
+    .confirmationDialog(planQuestion, isPresented: planAsking, titleVisibility: .visible) {
+      if let m = model, let ctx = m.planAsking {
+        Button(PostPlanCopy.start(ctx)) { m.applyPlan(ctx) }
+        Button(PostPlanCopy.keep, role: .cancel) { m.planAsking = nil }
+      }
+    } message: { Text(PostPlanCopy.explain(model?.planAsking)) }
     .csPhotoSource(model?.photo == nil ? RoundCopy.photoAdd : RoundCopy.photoReplace,
                    isPresented: $askSource, pick: choose)
     .photosPicker(isPresented: $showLibrary, selection: $pick, matching: .images)
@@ -834,3 +858,21 @@ private struct PostRoundScreenPreview: View {
   NavigationStack { PostRoundScreenPreview(model: previewModel("photo")) }.environment(SessionStore()).csTheme()
 }
 #endif
+
+
+/// D354 · the question a plan asks a started card, said briefly. One producer,
+/// so the dialog and any later surface cannot drift.
+enum PostPlanCopy {
+  static let keep = "Keep the round I started"
+  static func start(_ ctx: PlanContext) -> String { "Start \(day(ctx))’s round" }
+  static func explain(_ ctx: PlanContext?) -> String {
+    guard let ctx else { return "" }
+    let what = (ctx.courseLabel?.isEmpty == false) ? "date and course" : "date"
+    return "Your card keeps whatever you have typed. This changes the \(what), and nothing else."
+  }
+  /// "Saturday" / "yesterday" — the same day producer the strip uses.
+  static func day(_ ctx: PlanContext) -> String {
+    guard let at = ctx.playOn, at.count == 10 else { return "that day" }
+    return MeStripCopy.dayWord(at, today: CSDate.today())
+  }
+}

@@ -221,6 +221,9 @@ struct HomeView: View {
         if let a = item.action, !a.isEmpty {
           CSDoor(.primary(a) { take(item) })
         }
+        if item.answerable {
+          AfterGolfAnswers(item: item, reload: { await vm.load(me: store.me, key: loadKey) })
+        }
       }
       .padding(.horizontal, CSTokens.Space.gutter)
       .padding(.top, CSTokens.Space.s5)
@@ -476,7 +479,12 @@ struct HomeView: View {
                       ["door": .string(item.key.split(separator: ":").first.map(String.init) ?? item.key),
                        "tier": .string(item.tier.rawValue)])
     switch item.route {
-    case .composer:            presenter.postOnComposer = true; presenter.showPost = true
+    // D354 · an after-golf door carries its plan, so the composer opens on the
+    // day that was PLAYED. A blank composer dated today was the whole defect:
+    // the round scored against the wrong day's window, and because suppression
+    // matches on the date, the card stayed on Home afterwards.
+    case .composer:            PlanHandoff.shared.pending = item.plan
+                               presenter.postOnComposer = true; presenter.showPost = true
     case .people:              openGolfers()
     case .declare:             presenter.declare = DeclarePrefill()
     case .live:                presenter.showLive = true

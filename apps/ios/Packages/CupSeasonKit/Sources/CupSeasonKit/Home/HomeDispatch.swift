@@ -138,6 +138,15 @@ public enum HomeDispatch {
     /// A calendar date or an instant, as the server wrote it — a String, per
     /// L-07. Used for the tie-break only; never parsed for arithmetic.
     public let at: String?
+    /// D354 · the plan behind an after-golf card, when the server sent one.
+    /// nil on every other item, and on an older server that has never heard of
+    /// it — in which case the card cannot be answered and is not shown at all,
+    /// because the same server has no capability gate to open it.
+    public let plan: PlanContext?
+
+    /// D353 · the card a golfer can answer. It needs the plan, so an item that
+    /// arrives without one is a door and nothing more.
+    public var answerable: Bool { plan != nil && key.hasPrefix("afterplan:") }
 
     /// Calendar-date plans use the same local day as their adjacent stamp.
     public func localHeadline(today: String = CSDate.today(), calendar: Calendar = .current) -> String {
@@ -154,11 +163,12 @@ public enum HomeDispatch {
     public init(key: String, tier: Tier, rank: Int? = nil, score: Int? = nil, rankReason: String? = nil,
                 subject: String? = nil, humanSubject: Bool = false, eyebrow: String, headline: String,
                 standfirst: String? = nil, action: String? = nil, route: Route? = nil, leagueId: UUID? = nil,
-                suppress: Set<MeStripCopy.Fact> = [], spine: Spine = .mut, at: String? = nil) {
+                suppress: Set<MeStripCopy.Fact> = [], spine: Spine = .mut, at: String? = nil,
+                plan: PlanContext? = nil) {
       self.key = key; self.tier = tier; self.rank = rank; self.score = score; self.rankReason = rankReason
       self.subject = subject; self.humanSubject = humanSubject; self.eyebrow = eyebrow; self.headline = headline
       self.standfirst = standfirst; self.action = action; self.route = route; self.leagueId = leagueId
-      self.suppress = suppress; self.spine = spine; self.at = at
+      self.suppress = suppress; self.spine = spine; self.at = at; self.plan = plan
     }
 
     /// The score the arrangement sorts by: the server's when it sent one, the
@@ -168,6 +178,7 @@ public enum HomeDispatch {
     private enum CodingKeys: String, CodingKey {
       case key, tier, rank, score, rank_reason, subject, human_subject, eyebrow
       case headline, standfirst, action, route, league_id, suppress, spine, at
+      case context
     }
     private struct RouteSpec: Decodable { let kind: String?; let id: UUID?; let pane: String? }
 
@@ -200,6 +211,7 @@ public enum HomeDispatch {
       suppress = Set((opt([String].self, .suppress) ?? []).compactMap(MeStripCopy.Fact.init(rawValue:)))
       spine = opt(String.self, .spine).flatMap(Spine.init(rawValue:)) ?? .mut
       at = opt(String.self, .at)
+      plan = opt(PlanContext.self, .context)
     }
   }
 
