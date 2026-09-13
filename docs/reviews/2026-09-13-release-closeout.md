@@ -143,9 +143,12 @@ No console errors and no horizontal overflow at either width.
 
 It reported `gross 84` with the plan still attached.
 
-**Native**: `CupSeasonKit` 1,158 · `CupSeasonTests` 120 (Swift Testing) + 38
-(XCTest) · `CupSeasonUITests` 41 = 21 passed, 14 failed, 6 skipped, all itemised.
-The 14 after-golf tests — 5 lead, 3 displaced (F1), 6 plan-route seam — all pass.
+**Native**, from the completed run (it reached `** TEST FAILED **`, failing on
+the account-dependent tests): three Swift Testing runs all green — **1,158**,
+**120** and **85** tests. XCTest: `CupSeasonKitTests` **16 passed**,
+`CupSeasonTests` **22 passed**, `CupSeasonUITests` **41 = 21 passed, 14 failed,
+6 skipped**, every one itemised. The 14 after-golf tests — 5 lead, 3 displaced
+(F1), 6 plan-route seam — all pass.
 
 **Database, read-only on this commit**: 240 applied, exactly two pending, and the
 dry run names those two and nothing else.

@@ -16,14 +16,32 @@ cd apps/ios && xcodebuild test -project CupSeason.xcodeproj -scheme CupSeason \
 
 ## 1 · The totals
 
-| Target | Framework | Result |
-|---|---|---|
-| `CupSeasonKit` | Swift Testing | **1,158 passed**, 188 suites |
-| `CupSeasonTests` | Swift Testing | **120 passed**, 32 suites |
-| `CupSeasonTests` | XCTest | **38 passed** |
-| `CupSeasonUITests` | XCTest | **41 executed · 21 passed · 14 failed · 6 skipped** |
+The run reached its terminal marker (`** TEST FAILED **`, failing on the 14
+account-dependent tests below), so these are complete counts and not a partial
+run.
 
-XCTest cases across both targets: **59 passed, 14 failed, 6 skipped**.
+**Swift Testing** — three runs, every one green:
+
+| Tests | Suites |
+|---|---|
+| **1,158** | 188 |
+| **120** | 32 |
+| **85** | 17 |
+
+**XCTest** — per target:
+
+| Target | Result |
+|---|---|
+| `CupSeasonKitTests` | **16 passed** |
+| `CupSeasonTests` | **22 passed** |
+| `CupSeasonUITests` | **41 executed · 21 passed · 14 failed · 6 skipped** |
+
+XCTest cases in total: **79 — 59 passed, 14 failed, 6 skipped**.
+
+*(Corrected after re-deriving from the completed log: an earlier draft of this
+file attributed the 120-test Swift Testing run to `CupSeasonTests` and put its
+XCTest count at 38. The app target's XCTest count is 22, and the three Swift
+Testing runs are listed above without guessing which target hosts which.)*
 
 The previous inspection counted 38 UI tests (18 passed). This run has 41 because
 the closeout adds three. Both readings agree on the failures and the skips.
