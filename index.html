@@ -10804,32 +10804,31 @@ function scanPartnersSheet(ctx){
    lingered across visits — state.post persists by design for mid-entry tab
    switches, so leaving needs a door, not a refresh).
    Scrap the scan = just the model's numbers go; course/date/photo stay. */
-function resetPostComposer(){
-  ['inF9','inB9','inRating','inSlope','inCourse','inDate'].forEach(id=>{ const e=$('#'+id); if(e) e.value=''; });
-  /* Q-21 · boot defaults the date to today; "Start over" used to blank it and
-     nothing put it back, so the next Post failed on a NOT NULL played_on and
-     the golfer was told "That didn't go through — please try again" with no
-     field marked. Restore the default the same way boot does. */
-  if(!$('#inDate')?.value) stampPostDate();
+/* F2 · **ONE place the card is put down, because two hand-kept lists drifted.**
+   `resetPostComposer` kept its own field list without `inGross` — the hero box
+   and the main total score — and never cleared the plan, the partners, the nine
+   or the course's cached card. So "Start over" left the previous round's score
+   on screen and its plan still attached, while the date reset to today: the
+   visible form and the words on the button disagreed. A comment beside the
+   other function claimed Start over already shared it. It did not.
+
+   Both callers put the SAME card down. They differ in exactly two ways and
+   those are the arguments:
+     `restamp` · Start over restores today's date (Q-21 — blanking it made the
+                 next Post fail on a NOT NULL `played_on` with no field marked),
+                 while an accepted post leaves the date to its own caller.
+     `drop`    · what happens to the saved draft.
+
+   NEITHER touches the post REQUEST. A start-over after an ambiguous failure is
+   exactly the case the frozen id exists for (D350); the accepted paths release
+   it themselves, next to their own `clearPostRequest`. And neither runs on
+   navigation — only an explicit button or a server-accepted round puts a card
+   down, so an ordinary draft survives leaving the screen. */
+function putTheCardDown({ restamp = false } = {}){
+  POST_TYPED.forEach(id=>{ const e=$('#'+id); if(e) e.value=''; });
   const ic=$('#inCourse'); if(ic) ic.dataset.courseId='';
   const chips=$('#courseChips'); if(chips) chips.innerHTML='';
-  state.post.mode='total';
-  state.post.scores = state.post.pars.slice();
-  state.post.touched=false;
-  state.post.scan=null;
-  window._scanShot=null;
-  setPostPhoto(null);
-  state.lastPost=null; state.postBlocked=null;
-  renderPostHoles();
-}
-/* The one place the form is put down after the server has accepted a round —
-   the normal post and the accepted-recovery finish both land here, so the two
-   can never disagree about what "finished" means. */
-function clearPostComposerAfterPost(){
-  $('#inGross').value=''; $('#inF9').value=''; $('#inB9').value='';
   state.post.playedWith=[]; if(typeof renderPostWho==='function') renderPostWho();
-  $('#inCourse').value=''; $('#inCourse').dataset.courseId='';
-  $('#inRating').value=''; $('#inSlope').value='';
   state.post.mode='total';                        /* the grid was a scan confirm — the composer resets to front & back (D34) */
   state.post.side=18; state.post.rating9=false;   /* D72: the next round starts at 18 holes, not sticky on the last post's nine */
   /* the course field just cleared above — the CARD clears with it. Keeping
@@ -10838,23 +10837,32 @@ function clearPostComposerAfterPost(){
   state.post.pars = POST_PAR_STD.slice(); state.post.parsCourse = null;
   state.post.scores = state.post.pars.slice();   /* reset the grid to par */
   state.post.touched=false;                       /* next round starts fresh */
+  state.post.scan=null; window._scanShot=null;
   setPostPhoto(null);
-  if(typeof clearPostDraft==='function') clearPostDraft();   /* posted = the draft's job is done */
   /* R2 · the plan goes with the card it filled in. It is display context for
      ONE round; carrying it into the next one would say a round came from a
-     plan it has nothing to do with. `resetPostComposer` shares this path, so a
-     deliberate start-over drops it too. */
+     plan it has nothing to do with. */
   state.post.plan = null;
   state.lastPost=null; state.postBlocked=null;
+  if(restamp){ const d=$('#inDate'); if(d) d.value=''; stampPostDate(); }
+  if(typeof clearPostDraft==='function') clearPostDraft();
   if(typeof renderPostHoles==='function') renderPostHoles(); else if(typeof recalc==='function') recalc();
 }
+/* The explicit button. It restores today's date, because a card with no date
+   cannot be posted at all. */
+function resetPostComposer(){ putTheCardDown({ restamp: true }); }
+/* The one place the form is put down after the server has accepted a round —
+   the normal post and the accepted-recovery finish both land here, so the two
+   can never disagree about what "finished" means. */
+function clearPostComposerAfterPost(){ putTheCardDown(); }
 $('#postReset')?.addEventListener('click',e=>{
   e.preventDefault();
-  resetPostComposer();
-  if(typeof clearPostDraft==='function') clearPostDraft();   /* an explicit start-over scraps the draft too */
-  /* D350 (built) · the request id is NOT cleared here. A start-over after an
+  /* `putTheCardDown` drops the saved draft as part of putting the card down, so
+     the abandoned content cannot come back on the next load.
+     D350 (built) · the request id is NOT cleared here. A start-over after an
      ambiguous failure is exactly the case the id exists for: the next post,
      under a different card, asks the server whether the earlier one landed. */
+  resetPostComposer();
   toast('Card cleared');
 });
 $('#postScanBack')?.addEventListener('click',e=>{

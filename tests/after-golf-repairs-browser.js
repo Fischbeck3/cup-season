@@ -194,7 +194,66 @@
     check(logged.includes('ceremony_client_figures'),'R4: a client-figure ceremony was not recorded as one');
     window.qaEvent=()=>{};
 
-    return {passed:true, checks:'R2 consent/save/relaunch/foreign/pending; R3 four server shapes; R4 attribution; R6 question copy'};
+    /* ── F2 · the ACTUAL Start over button ───────────────────────────────
+       Reset kept its own field list without `inGross` and never cleared the
+       plan, so a fresh round began carrying the previous one's score and its
+       plan identity while the date reset to today. The button is clicked here,
+       not the function called. */
+    window.sb={rpc:async()=>({data:null,error:null})};
+    clearPostRequest(uid); clearPostDraft();
+    reset();
+    document.getElementById('inGross').value='84';
+    document.getElementById('inF9').value='41';
+    document.getElementById('inB9').value='43';
+    document.getElementById('inRating').value='71.2';
+    document.getElementById('inSlope').value='128';
+    document.getElementById('inCourse').value='Papago';
+    document.getElementById('inCourse').dataset.courseId='gc-1';
+    state.post.playedWith=['f0000000-0000-4000-8000-00000000000b'];
+    state.post.touched=true; state.post.side=9; state.post.rating9=true;
+    state.post.plan={id:PLAN, play_on:ctx.play_on};
+    document.getElementById('inDate').value=ctx.play_on;
+    savePostDraft(); await new Promise(r=>setTimeout(r,450));
+    check(!!localStorage.getItem(postDraftKey(uid)),'F2: nothing was saved to start over from');
+
+    document.getElementById('postReset').click();
+    await new Promise(r=>setTimeout(r,60));
+    check(document.getElementById('inGross').value==='','F2: Start over kept the gross');
+    for(const id of ['inF9','inB9','inRating','inSlope','inCourse'])
+      check(document.getElementById(id).value==='','F2: Start over kept '+id);
+    check(document.getElementById('inCourse').dataset.courseId==='','F2: Start over kept the course id');
+    check(state.post.plan===null,'F2: Start over kept the plan');
+    check(state.post.playedWith.length===0,'F2: Start over kept the partners');
+    check(state.post.touched===false && state.post.side===18 && state.post.rating9===false,'F2: Start over kept the card shape');
+    check(document.getElementById('inDate').value===_postDateStamp,'F2: Start over did not restore today\u2019s date');
+    check(!postDraftHasContent(csPostVals(), state.post.touched),'F2: the cleared card still reads as work');
+
+    /* and the abandoned content does not come back on the next load */
+    check(!localStorage.getItem(postDraftKey(uid)),'F2: the abandoned draft survived Start over');
+    _draftRestored=false;
+    check(restorePostDraft()===false,'F2: a reload restored the abandoned card');
+    check(document.getElementById('inGross').value==='','F2: the abandoned gross came back');
+    check(state.post.plan===null,'F2: the abandoned plan came back');
+
+    /* the frozen request is NOT released by Start over — that is what it is for */
+    postRequestWrite(uid,{id:'f0000000-0000-4000-8000-00000000000c',env:null,accepted:null});
+    reset(); document.getElementById('inGross').value='91';
+    document.getElementById('postReset').click();
+    await new Promise(r=>setTimeout(r,60));
+    const kept=postRequestRead(uid);
+    check(kept && kept.id==='f0000000-0000-4000-8000-00000000000c','F2: Start over released a request the server may hold');
+    clearPostRequest(uid);
+
+    /* navigating away is not starting over: an ordinary draft continues */
+    reset(); document.getElementById('inGross').value='77';
+    savePostDraft(); await new Promise(r=>setTimeout(r,450));
+    switchView('home'); switchView('post');
+    await new Promise(r=>setTimeout(r,60));
+    check(document.getElementById('inGross').value==='77','F2: leaving the screen cleared the card');
+    check(!!localStorage.getItem(postDraftKey(uid)),'F2: leaving the screen scrapped the draft');
+    clearPostDraft();
+
+    return {passed:true, checks:'R2 consent/save/relaunch/foreign/pending; R3 four server shapes; R4 attribution; R6 question copy; F2 actual Start over + reload + request ownership + navigation'};
   } finally {
     try{ clearPostRequest(uid); clearPostDraft(); closeSheet(); }catch(_){}
     window.fetch=realFetch; window.sb=realSb; window.CS=realCS; state.demo=realDemo;
