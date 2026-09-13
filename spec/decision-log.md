@@ -7471,7 +7471,7 @@ D343/D344 are applied. D345 remains a separate, unapplied database change while 
 - **Tradeoffs.** Accepting an invitation is now two taps rather than one, and cannot be done from the lock screen at all. That is the cost of the stake being on screen before the money is owed. On a database without the new function, invite acceptance behaves exactly as it does today and the copy promises nothing more.
 - **Not in scope:** restoring an invitations LIST to the phone (`InvitesBanner` is unrendered dead code, so the phone has no decline control at all), the Home invitation item whose "See the terms" action routes to a season page rather than the terms, and the covenant's missing **handicap allowance** — which is not in the payload and would be its own contract. All three are recorded in the S2 review as open.
 
-### D353 · The covenant says the allowance, the whole counting rule and the dates
+### D353a · The covenant says the allowance, the whole counting rule and the dates
 **BUILT 2026-09-13** (owner: build and release). Closes open item #4 of the activation handoff. D178, D225 (R9), D347, D351, L-12, L-44. Migration `20261029090000_the_covenant_says_the_allowance.sql`.
 
 - **Current mechanic.** `join_covenant_info` (R9) returns, to a signed-in caller, the roster, the first tee, the weeks, `counting_cap`, the split and the pay facts — but not the **handicap allowance**, which is the one rule every points figure is scored at (`index × allowance / 100`, D178). A joiner could read the stake and the split and not the number that decides whether an 84 is nine points or seven. And a stored cap of NULL — Unlimited — reached a client as an absent key, indistinguishable from an older server, so the easiest rule to state could not be stated. The invite door (`join_covenant_for_invite`, unpushed) rebuilt the small anon-shaped object by hand, so an invited golfer saw less than a code-joiner on the same league.
@@ -7480,7 +7480,7 @@ D343/D344 are applied. D345 remains a separate, unapplied database change while 
 - **Principle served:** informed commitment (L-12); a fact with no read renders nothing (L-44); every points figure traces to its rule (§16).
 - **Tradeoffs.** One more clause on the rules line. No scoring rule is touched or restated here — the clause names the stored allowance and nothing else.
 
-### D354 · The pulse says who joined this month and who still has a bye
+### D354a · The pulse says who joined this month and who still has a bye
 **BUILT 2026-09-13** (owner: build and release). Closes open item #5 of the activation handoff, which D352 recorded rather than invented. D14, D161, D352, §14.0, §16. Migration `20261030090000_the_pulse_says_who_joined_and_who_has_a_bye.sql`.
 
 - **Current mechanic.** `close_month` waives the participation floor for a member whose `joined_at` falls in the month being closed (D161) and spends the season's one bye on the first miss (D14). Both facts decide money. Neither reached a client: `league_pulse` carried `credits`, `floor`, `at_floor`, `is_me`, `partial` and nothing about the member, so a golfer who joined on the 20th was shown a minimum the server would waive, and nobody could be told whether their bye was still there.
@@ -7490,7 +7490,7 @@ D343/D344 are applied. D345 remains a separate, unapplied database change while 
 - **NOT changed, deliberately:** `close_month`, the floor arithmetic, eligibility of any kind. Only Postgres decides a consequence; this exposes two facts it already decides on. **Product choice surfaced, not made:** the bye is a *season* bye today (one per season, any month); nothing here changes that, and a per-month or per-golfer variation would be its own decision.
 - **Amendment, 2026-09-13 (Codex's review of `f905573`).** Home was left honest-but-wrong: `native_home` names four pulse keys, so the Home month row and the floor alarm could still show a mid-month joiner a minimum the server will waive while the season page said the truth. `20261101090000` patches `native_home` the way D161 patched `close_month` — the live body is read from the catalogue, the one four-key pulse object is replaced with the six-key one, the patch raises if the substring is absent or not unique or the executed body lacks the keys. `Me.Pulse` decodes the two facts; `SeasonFacts.footRule` / `monthRow` and `HomeFallbackItems.floorItem` say the waiver and stand the alarm down only when the row says so; an older payload changes nothing (`HomeMonthFactsTests`). The desk's Home floor rung reads the same row.
 
-### D355 · One league, however many times Start is pressed
+### D355a · One league, however many times Start is pressed
 **BUILT 2026-09-13** (owner: build and release). Closes open item #1 of the activation handoff and the "ambiguous create" limit named in D346. D111, D206, D225, D346, D350, L-41. Migration `20261028090000_one_league_however_many_times_start_is_pressed.sql`.
 
 - **Current mechanic.** `create_league(p_name, p_code)` mints a league, a commissioner seat and a settings row with no request identity. The phone retains a created league for an in-session retry (D346); the web retains nothing. An AMBIGUOUS create — a response lost to a timeout, an app or tab killed between the create and the lock — leaves the golfer with no id, and the leagueless "Start a season" door mints a second league beside the first. Prod already holds founder-alone `setup` husks from a cousin of this.
@@ -7501,7 +7501,7 @@ D343/D344 are applied. D345 remains a separate, unapplied database change while 
 - **NOT changed:** `create_league`, `lock_league`, any scoring or eligibility mechanic.
 - **Amendment, 2026-09-13.** A guard that minted a fresh request whenever a run-it-back was in progress was removed on both clients: the league's own run-it-back is `run_it_back` on the server (D243) and never comes through this create, and `_runItBack` / `runBack` are set by nothing. There is one record per golfer and it is always resumed, so a retry after a kill never mints a second id. The Ryder and Major rematch prefills (`create_event` / `create_major`) carry no request identity; that stays in the inbox and is not a season.
 
-### D356 · An invitation says what it is, and what it costs
+### D356a · An invitation says what it is, and what it costs
 **BUILT 2026-09-13** (owner: fix the validated blockers; Codex named this a release consent defect). D225 (L-12), D351, D356 closes the Major half of the door. Migration `20261031090000_an_invitation_says_what_it_is.sql`.
 
 - **Current mechanic.** `my_invites` returned `kind` as `league` | `event` and nothing else about an event. Both clients therefore titled every event invitation "Ryder invite" and accepted it in one tap — including a Major carrying `events.buy_in`, whose stake was never shown. The same hole D351 closed for leagues, one door over.
@@ -7526,11 +7526,54 @@ D343/D344 are applied. D345 remains a separate, unapplied database change while 
 - **Said only where the server supports it.** `league_pulse` returns `credits`, `floor` and `partial`, and those are all that is claimed. **Two things are therefore NOT said, and are recorded rather than invented:** (a) `partial` is computed from the season's own edges only, with no `joined_at` arm, so the **join-month waiver (D161)** cannot be distinguished from a full month — a golfer who joined mid-month may be shown a minimum `close_month` will waive; (b) nothing in the payload says whether a golfer's **auto-bye (D14)** is still available, so no surface claims it is. Both need `league_pulse` to carry one more fact, which is its own contract and its own decision.
 - **No contract change here.** Client copy on both halves; no RPC, payload, column or scoring behavior is touched.
 
-### D353 · The after-golf band waits for a client that can answer it
+## CORRECTION · 2026-09-13, release closeout
+
+Three things in the entries below were wrong or ambiguous when they were
+written. The original text is left standing underneath; this is what supersedes
+it. Corrections are recorded rather than edited away, because an entry that
+quietly changed its own facts is worth less than one that shows them moving.
+
+**1 · Duplicate numbers D353–D356.** Two waves landed on the same four numbers.
+They are disambiguated as `a` (the release-candidate wave: the covenant's
+allowance, the pulse's join/bye facts, one league per Start, an invitation's
+kind and cost) and `b` (the complete-week wave: the capability gate, a post that
+starts from a plan, the ceremony's own figures, and how an invitation seats a
+golfer). **A bare `D353`–`D356` in after-golf, plan-prefill, ceremony or Major
+seating code means the `b` entry.** Nothing is renumbered, so existing citations
+in either wave still resolve.
+
+**2 · The migration count, and what is NOT known about D345.** D353b says "all
+239 migrations present". The count was produced by a `grep -c` over the CLI
+listing and it miscounted. Counted by reading the Remote column the figure is
+**240 applied**, which is the number the independent inspection reported.
+
+D353b also says D345 reached production "without `schema_migrations` knowing"
+while its own sentence before it cites the migration listing showing it applied.
+Both cannot be true. **What is observed:** `20261024090000` is present in
+migration history and its function body is live. **What is also observed:** the
+prior release's executed readback returned 239 with a check reported as
+`held_d345_applied=false`. Both observations stand with their times and context.
+**What is NOT known and is not inferred here: who applied it, when, or why the
+release documents believed it was held.** "The hold simply did not hold" reads
+as a cause; it is a description of the outcome and nothing more.
+
+None of this changes what the repair does or why. The gate is needed because the
+band is live and ungated, which both readings agree on.
+
+**3 · The ceremony's stale fallback.** D355b describes the client figures as
+surviving for "the declared insert fallback". That fallback is **gone** from the
+ordinary post path: posting fails closed, and a post that does not land throws
+before any ceremony runs. The client figures survive only where the server's
+answer OMITS a field, and that case is logged. The code comment was corrected in
+the repair pass; this corrects the decision entry to match.
+
+---
+
+### D353b · The after-golf band waits for a client that can answer it
 **Repair, 2026-09-13.** Found by reading production, not the plan. D345, D332, L-32, §16.
 
 - **What was believed.** Every planning document in this repository says D345 (`20261024090000`) is HELD and unapplied — the release review, the sprint packet, the contract report and the migration manifest all say so.
-- **What is true.** It is applied. `supabase migration list --linked` shows all 239 migrations present including `20261024090000`; the live signature is `home_dispatch(integer, date)`; `plan_followups` and `answer_plan_followup` both exist; and `afterplan:` is in the deployed function body. The deployed body is **byte-identical** to the file, so nothing drifted — the hold simply did not hold. This is the second time a migration has reached production without `schema_migrations` knowing (CLAUDE.md, first landmine), and the first time it shipped a user-visible feature.
+- **What is true.** *(Superseded in part — see the CORRECTION above: the count is 240, and the `schema_migrations` clause at the end of this bullet contradicts its own first sentence.)* It is applied. `supabase migration list --linked` shows all 239 migrations present including `20261024090000`; the live signature is `home_dispatch(integer, date)`; `plan_followups` and `answer_plan_followup` both exist; and `afterplan:` is in the deployed function body. The deployed body is **byte-identical** to the file, so nothing drifted — the hold simply did not hold. This is the second time a migration has reached production without `schema_migrations` knowing (CLAUDE.md, first landmine), and the first time it shipped a user-visible feature.
 - **The problem that makes it urgent.** The only gate on the band is `p_today is not null`, and the shipped Safari client sends `p_today`. So the band is live on a client with no Later, no Didn't play and no date prefill: the single door opens a **blank composer dated today**, a round posted from it carries the wrong date — which both mis-scores the window and fails the same-day suppression predicate, so the card stays — and there is no other control, so the golfer cannot make it go away at all. At the time of writing one real plan sat in the live window with three tagged golfers and the host, no course named and no round posted.
 - **Why `p_today` was never the right gate.** It says *this client knows its own calendar day*. Every candidate build already said that. It says nothing about whether the client can answer. The next-checkpoint review named this exactly — "client-first deployment is insufficient by itself… the release gate must cover those intermediate clients explicitly, with a separate capability/version signal" — and the deployment went ahead on `p_today` anyway.
 - **Recommendation, as built.** `home_dispatch` gains `p_caps text[]`, and the band is emitted only to a caller that names `afterplan.v1`. A capability is added to a client's list **only when the code beside it implements the feature**. Deploying the migration ALONE takes the band off every client in the field — Home returns to exactly what it was before D345 — and it comes back only for a build that declares it. That property is the point: the database fix stops the harm without waiting for a client.
@@ -7539,7 +7582,7 @@ D343/D344 are applied. D345 remains a separate, unapplied database change while 
 - **Principle served.** L-32 — the product does not hand people contradictions, and a card that cannot be answered or dismissed is one. §16 — a round scores against the day it was played.
 - **Tradeoffs.** Between the migration landing and a client shipping, nobody sees the band at all. That is the correct order and the correct cost: a missing prompt is yesterday's behaviour, an unanswerable one is a defect. D345's approved eligibility, privacy, window and terminal rules are untouched.
 
-### D354 · A post can start from a plan, and the plan never becomes the round
+### D354b · A post can start from a plan, and the plan never becomes the round
 **2026-09-13**, built with D353. D332, D345, D349, D350, §16, L-32, L-37.
 
 - **Current mechanic.** The after-golf door opens a blank composer dated today. The round then scores against today's window and does not close the card.
@@ -7549,16 +7592,16 @@ D343/D344 are applied. D345 remains a separate, unapplied database change while 
 - **Principle served.** Real golf, low friction, and every figure tracing to the round that produced it.
 - **Tradeoffs.** A plan-dated round is back-dated by design, and the golfer can still change the date. Without a durable plan-to-round link, two rounds on one day can still miss a prompt — D345's chosen error, unchanged here. Linkage stays a separate ruling.
 
-### D355 · The ceremony says what the server decided
+### D355b · The ceremony says what the server decided
 **Repair, 2026-09-13**, checkpoint 2. §16, D229, L-13, D350.
 
 - **Current mechanic.** `post_round` returns `{round, epilogue}` in one answer: the round's own `counts`, and the epilogue's `pvi` and `points`, decided by Postgres against the season the round's DATE falls in. The phone reads them (`PostRoundModel` takes `outcome.counts` and `outcome.epilogue`). **The desk did not.** `finishCeremony` was fed `pts` and `vs` from `state.lastPost` — the composer's own preview, computed in the browser by `pointsFor`/`pviFor` — and `counts` was derived by comparing the played date to whichever league the browser happened to have open, while the server's answer sat on the same response, unread.
 - **Problem.** The largest, first, gold statement a golfer sees after posting was a **prediction**. Two ways it can be wrong. The figure: only Postgres decides a band, and a client's floating-point arithmetic disagrees with Postgres's exact decimal at band edges — a known, written-up hazard in this repository. The league: D229 moved season derivation to the server precisely because a golfer can be in two seasons, and `CS.league` is navigation memory, not a scoring answer. A backdated round could be announced as counting for the league on screen while the server scored it for another, or for none.
-- **Recommendation, as built.** The ceremony prefers the server's `counts`, `points` and `pvi`. The client figures survive for exactly one case — the declared insert fallback, where there is no server answer to prefer — and that case is logged (`ceremony_client_figures`) rather than dressed up as an authority it does not have.
+- **Recommendation, as built.** *(Superseded in part — see the CORRECTION above: the insert fallback is gone; the client figures survive only where the server's answer omits a field.)* The ceremony prefers the server's `counts`, `points` and `pvi`. The client figures survive for exactly one case — the declared insert fallback, where there is no server answer to prefer — and that case is logged (`ceremony_client_figures`) rather than dressed up as an authority it does not have.
 - **Principle served.** §16, and the rule this sprint was given: only Postgres decides a band.
 - **Tradeoffs.** None found: the values were already on the page.
 
-### D356 · An invitation seats you the way every other door does
+### D356b · An invitation seats you the way every other door does
 **Repair, 2026-09-13**, checkpoint 2. D345-era events work, §16.
 
 - **Current mechanic.** A Major ranks only an **established number** for the jug — `major_contender` is `handicap_index(profile) is not null`, which is null under three differential-carrying rounds. Both clients print the rule in the room. Three of the four doors into a Major set `event_players.exhibition` accordingly: `create_major`, `enter_major`, `add_event_player`. The fourth, `respond_invite`, inserted `(event_id, profile_id, seed)` and nothing else.

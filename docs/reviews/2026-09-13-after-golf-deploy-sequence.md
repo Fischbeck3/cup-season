@@ -75,20 +75,27 @@ finding rather than the deploy. The dry run and the real command use the **same
 scope and the same flags**; no applied migration is replayed, because nothing
 else is pending.
 
-**If a gate-only first phase is chosen** — reasonable, since the first migration
-is the one that stops the exposure — it needs a staging copy, because
-`db push` has no per-file selection:
+**A gate-only first phase was offered here and is now REMOVED, because it does
+not work.** The idea was to push `20261102090000` alone from a staging directory
+holding only that file, since `db push` has no per-file selection. Tested on
+2026-09-13 against the linked project with a read-only dry run, it fails:
 
-```sh
-mkdir -p /tmp/cs-gate/supabase/migrations
-cp supabase/config.toml /tmp/cs-gate/supabase/
-cp supabase/migrations/20261102090000_*.sql /tmp/cs-gate/supabase/migrations/
-shasum -a 256 /tmp/cs-gate/supabase/migrations/*.sql      # record the hash
-(cd /tmp/cs-gate && supabase link --project-ref zddbfcokmvneltrgukzf \
-   && supabase db push --linked --dry-run --skip-vault && supabase db push --linked --skip-vault)
+```
+LegacyDbPushMissingLocalError:
+  Remote migration versions not found in local migrations directory.
 ```
 
-Then run Step 1 unmodified afterwards for the second migration.
+and the CLI's own suggestion is `supabase migration repair --status reverted`
+across **all 240 applied versions**, followed by `db pull`. Following that
+suggestion would rewrite the migration ledger of a live database to make it
+agree with a directory containing one file. The recipe was written but never
+executed; it is removed rather than left as plausible-looking instructions with
+a destructive remedy attached to its first failure.
+
+**So there is one phase, and it is Step 1.** The gate ships together with the
+seating fix. That is acceptable: the gate is what stops the live exposure, the
+second migration is latent-only (production holds no Major and no accepted event
+invitation), and both are idempotent and self-checking.
 
 ### Step 2 — read the database back, before any client ships
 
