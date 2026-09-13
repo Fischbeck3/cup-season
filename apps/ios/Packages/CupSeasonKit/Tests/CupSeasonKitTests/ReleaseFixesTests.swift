@@ -126,6 +126,56 @@ import Foundation
   }
 }
 
+/// D356 · an event invitation says what it is and what it costs, or nothing.
+@Suite struct EventInviteTermsTests {
+  @Test func aMajorWithAStakeSaysTheStakeAndTheLedger() {
+    let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Galen",
+                   startsOn: "2026-10-03", eventKind: "major", buyIn: 25)
+    #expect(i.title == "Major invite" && i.isMajor)
+    #expect(i.eventTerms == ["A Major — one week, one card, the best round takes it.",
+                             "First tee Sat Oct 3.", "$25 each.", MoneyCopy.ledger])
+  }
+  @Test func aFreeRyderSaysNoBuyInAndNoLedger() {
+    let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "Desert Ryder", inviter: "Galen",
+                   startsOn: nil, eventKind: "ryder", buyIn: 0)
+    #expect(i.eventTerms == ["A Ryder — two teams, one clash each week.", "No buy-in."])
+    #expect(!i.eventTerms.contains(MoneyCopy.ledger), "the ledger line is above $0 only")
+  }
+  @Test func anOlderServerGivesNoTermsAndThereforeNoDoor() {
+    let i = Invite(id: UUID(), kind: "event", containerId: UUID(), containerName: "The Bloom", inviter: "Galen", startsOn: "2026-10-03")
+    #expect(i.eventTerms.isEmpty && i.stakeLine == nil && i.title == "Invite")
+  }
+  @Test func theExtendedRowDecodesWithAndWithoutTheNewColumns() throws {
+    let new = try JSONDecoder().decode(InviteRow.self, from: Data(#"{"id":"\#(UUID().uuidString)","kind":"event","container_id":null,"container_name":"The Bloom","inviter":"Galen","starts_on":"2026-10-03","event_kind":"major","buy_in":25}"#.utf8))
+    #expect(Invite(new)?.eventKind == "major" && Invite(new)?.buyIn == 25)
+    let old = try JSONDecoder().decode(InviteRow.self, from: Data(#"{"id":"\#(UUID().uuidString)","kind":"event","container_name":"The Bloom","inviter":"Galen"}"#.utf8))
+    #expect(Invite(old)?.eventKind == nil && Invite(old)?.eventTerms.isEmpty == true)
+  }
+}
+
+/// D354 (amended) · Home's own producers read the month facts off `native_home`.
+@Suite struct HomeMonthFactsTests {
+  @Test func theFootAndTheMonthRowSayTheWaiverOnlyOffThePayload() {
+    let joined = heroMembership(structure: "squads2", credits: 0, floor: 2, joinedThisMonth: true)
+    #expect(SeasonFacts.footRule(joined, today: "2026-09-13") == "Joined this month · no minimum")
+    #expect(SeasonFacts.monthRow(joined, today: "2026-09-13") == "Best 4 a month count · no minimum this month, you joined this month · 17 days left in September")
+    // an older payload: no fact, and the figure toward the minimum stands as before
+    let old = heroMembership(structure: "squads2", credits: 0, floor: 2)
+    #expect(SeasonFacts.footRule(old, today: "2026-09-13") == "2 a month · 2 to go")
+    #expect(SeasonFacts.monthRow(old, today: "2026-09-13") == "Best 4 a month count · 0/2 toward the minimum · 17 days left in September")
+    // said false: the same as unsaid, no waiver invented
+    let stayed = heroMembership(structure: "squads2", credits: 0, floor: 2, joinedThisMonth: false)
+    #expect(SeasonFacts.footRule(stayed, today: "2026-09-13") == "2 a month · 2 to go")
+  }
+  @Test func theFloorAlarmDoesNotFireForAMidMonthJoiner() {
+    let cal = Calendar(identifier: .gregorian)
+    let joined = heroMembership(structure: "squads2", credits: 0, floor: 2, joinedThisMonth: true)
+    #expect(HomeFallbackItems.floorItem(joined, today: "2026-09-29", calendar: cal) == nil)
+    let old = heroMembership(structure: "squads2", credits: 0, floor: 2)
+    #expect(HomeFallbackItems.floorItem(old, today: "2026-09-29", calendar: cal) != nil, "with no fact the alarm keeps its existing rule")
+  }
+}
+
 /// D351 (built) · the phone's invitation-list model says "Joined ✓" only on proof.
 @Suite struct InviteLandedTests {
   @Test func theRouteKeyCarriesTheInvitationId() {

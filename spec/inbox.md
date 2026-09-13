@@ -391,26 +391,11 @@ D351), the covenant's allowance (D353), the join-month waiver and the bye
 (D354), the warm `?join=` link (D351), and `covenantForLeague` (deleted).
 `PendingLink.spend/first` are still unused — code health, not touched.
 
-Found while building, not built — each verified on this branch:
+**Second pass, same day (Codex's independent review of `f905573`):** the Major
+invitation (D356), Home's pulse facts (D354 amended) and the run-it-back guard
+(D355 amended) below are now BUILT; the posting identity was re-cut so the id
+is never rotated (D350, second amendment). Still open from this branch:
 
-- **A Major invitation is labelled "Ryder invite" and accepted without its
-  buy-in.** Gameplay/contract. `my_invites.kind` is `league` | `event` and
-  carries no event kind and no stake, so both clients title every event
-  invitation a Ryder and the event Accept shows no money (`events.buy_in`
-  exists for a Major). First question: does `my_invites` grow `event_kind` and
-  `buy_in`, and does an event invitation get a covenant of its own (D225's
-  rule is "every join passes the covenant")?
-- **`native_home`'s `pulse` does not carry `joined_this_month` / `bye_available`.**
-  Contract. `league_pulse` does now (D354); Home's month row reads the four keys
-  `native_home` names and stays honestly silent on the two new facts. First
-  question: copy the two keys into `native_home`'s pulse object (one small
-  `create or replace` of a 43 KB function), or leave Home to the rule and the
-  clock and let the season page carry the waiver?
-- **A run-it-back over an unfinished create.** UX. Both clients now mint a fresh
-  request for a run-it-back rather than resuming an unrelated unfinished
-  create, so the earlier unstarted league stays a husk (today's behavior).
-  First question: should the leagueless door list unstarted leagues before
-  minting anything at all?
 - **`tests/homefold.test.mjs` fails on the baseline** ("Up next" vs "Coming
   up" dateline). Code health, pre-existing at `1ef0dc6`; not touched here.
   First question: which word is canon — the test's or the code's?

@@ -188,6 +188,9 @@ public enum SeasonFacts {
     if let p = m.pulse, let floor = p.floor, floor > 0 {
       let credits = p.credits ?? 0
       if p.partial == true { return "Partial month · no minimum" }
+      // D354 · a golfer who joined during this month is not asked for a
+      // figure `close_month` will waive. Said only when the payload says it.
+      if p.joined_this_month == true { return "Joined this month · no minimum" }
       return credits >= Double(floor) ? "Minimum met · \(CSCopy.points(credits))/\(floor)"
                                       : "\(floor) a month · \(CSCopy.points(Double(floor) - credits)) to go"
     }
@@ -230,6 +233,9 @@ public enum SeasonFacts {
     guard let floor = m.pulse?.floor, floor > 0, let credits = m.pulse?.credits else {
       return "\(head) · \(clock)"
     }
+    // D354 · a mid-month joiner owes nothing this month, and the row says so
+    // rather than printing a figure toward a minimum the server will waive.
+    if m.pulse?.joined_this_month == true { return "\(head) · no minimum this month, you joined this month · \(clock)" }
     return "\(head) · \(CSCopy.points(credits))/\(floor) toward the minimum · \(clock)"
   }
 

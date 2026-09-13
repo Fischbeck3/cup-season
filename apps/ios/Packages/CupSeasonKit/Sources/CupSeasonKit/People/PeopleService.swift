@@ -257,8 +257,10 @@ public struct PeopleService: Sendable {
 
   // MARK: invites (decision B: consent-based add)
 
+  /// D356 · the extended row; an older server's rows decode with the two new
+  /// fields nil, and the event door then stays shut rather than guessing.
   public func invites() async throws -> [Invite] {
-    try await svc.call(Rpc.my_invites()).compactMap(Invite.init)
+    try await svc.call(MyInvitesCall()).compactMap(Invite.init)
   }
 
   public func respondInvite(_ id: UUID, accept: Bool) async throws {

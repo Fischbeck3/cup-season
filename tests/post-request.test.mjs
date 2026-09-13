@@ -1,7 +1,7 @@
-// Cup Season — the desk's ordinary-post request record (D350, built).
-// `postRequestPlan` and `postEnvelopeMatches` are PURE functions in index.html
-// (classic block) — lifted here by brace-matching and evaluated with no DOM,
-// exactly as tests/homefold.test.mjs lifts `csHomeFold`.
+// Cup Season — the desk's ordinary-post request record and its draft (D350,
+// built and amended; D356 event terms). The functions are PURE and live in
+// index.html — lifted here by brace-matching and evaluated with no DOM, exactly
+// as tests/homefold.test.mjs lifts `csHomeFold`.
 //
 //   node tests/post-request.test.mjs
 
@@ -22,8 +22,17 @@ function lift(name) {
   }
   return html.slice(at, end);
 }
-const { postRequestPlan, postEnvelopeMatches, postRequestKey } =
-  new Function(`const POST_REQ_KEY='cs_post_request';\n${lift('postRequestPlan')}\n${lift('postEnvelopeMatches')}\n${lift('postRequestKey')}\nreturn { postRequestPlan, postEnvelopeMatches, postRequestKey };`)();
+const src = [
+  `const POST_REQ_KEY='cs_post_request'; const POST_DRAFT_KEY='cs_post_draft';`,
+  `const CS_LEDGER = 'Cup Season keeps the ledger; the money moves between friends.';`,
+  `let _postDateStamp = '2026-09-13';`,
+  `const csDowMonDay = iso => iso;`,
+  lift('postRequestPlan'), lift('postEnvelopeMatches'), lift('postRequestKey'),
+  lift('postDraftHasContent'), lift('postDraftDecision'), lift('postDraftKey'),
+  lift('csEventTerms'), lift('csInviteTitle'),
+  `return { postRequestPlan, postEnvelopeMatches, postRequestKey, postDraftDecision, postDraftKey, csEventTerms, csInviteTitle };`,
+].join('\n');
+const { postRequestPlan, postEnvelopeMatches, postRequestKey, postDraftDecision, postDraftKey, csEventTerms, csInviteTitle } = new Function(src)();
 
 let pass = 0, fail = 0;
 const eq = (got, want, label) => {
@@ -36,34 +45,51 @@ const payload = { gross: 84, rating: 71.2, nine_rating: null, slope: 128, holes_
                   played_on: '2026-09-13', course_label: 'Papago', api_course_id: null };
 const env = { payload, holes: [], playedWith: [] };
 
-/* no record → fresh */
+/* ---- the request record: one intent, one id, never rotated ---- */
 eq(postRequestPlan(null, env), 'fresh', 'no record: mint, freeze, write, send');
-/* a record with no envelope (written by an older build) cannot be replayed verbatim */
-eq(postRequestPlan({ id: 'r', at: 1, accepted: null }, env), 'fresh', 'a record without an envelope is not replayable');
-/* accepted → finish, whatever the form now says */
-eq(postRequestPlan({ id: 'r', accepted: 'round-1', env }, env), 'finish', 'an accepted record finishes the form');
+eq(postRequestPlan({ unreadable: true }, env), 'stop', 'a record that cannot be read STOPS — it is never minted over');
+eq(postRequestPlan({ id: 'r', at: 1, accepted: null }, env), 'amend', 'a record without an envelope keeps its id: this card is sent under it');
+eq(postRequestPlan({ id: 'r', accepted: 'round-1', env }, env), 'finish', 'an accepted record finishes the intent');
 eq(postRequestPlan({ id: 'r', accepted: 'round-1', env }, { ...env, payload: { ...payload, gross: 48 } }), 'finish',
-   'an accepted record finishes even over an edited card');
-/* same card → replay */
+   'an accepted record finishes even over an edited card — the edit is a correction elsewhere');
 eq(postRequestPlan({ id: 'r', accepted: null, env }, env), 'replay', 'the same card replays the frozen envelope');
-/* the frozen envelope carries the uploaded photo path; the live form never does */
 eq(postRequestPlan({ id: 'r', accepted: null, env: { ...env, payload: { ...payload, photo_path: 'u/p.jpg' } } }, env), 'replay',
    'the photo path is an upload output and does not make it a different card');
-/* an edited card → resolve */
-eq(postRequestPlan({ id: 'r', accepted: null, env }, { ...env, payload: { ...payload, gross: 48 } }), 'resolve',
-   'a different gross under an unresolved id asks the server');
-eq(postRequestPlan({ id: 'r', accepted: null, env }, { ...env, playedWith: ['mate'] }), 'resolve',
-   'a changed partner list is a different card');
-eq(postRequestPlan({ id: 'r', accepted: null, env }, { ...env, holes: Array(18).fill(4) }), 'resolve',
-   'hole scores are part of the envelope');
-/* key order does not matter; partner order does not matter */
+eq(postRequestPlan({ id: 'r', accepted: null, env }, { ...env, payload: { ...payload, gross: 48 } }), 'amend',
+   'a different gross under an unresolved id is an AMENDMENT under the same id');
+eq(postRequestPlan({ id: 'r', accepted: null, env }, { ...env, playedWith: ['mate'] }), 'amend', 'a changed partner list is an amendment');
+eq(postRequestPlan({ id: 'r', accepted: null, env }, { ...env, holes: Array(18).fill(4) }), 'amend', 'hole scores are part of the envelope');
+eq(['fresh', 'stop', 'amend', 'finish', 'replay'].includes('resolve'), false, 'there is no plan that rotates the id');
 eq(postEnvelopeMatches({ payload: { b: 1, a: 2 }, holes: [], playedWith: ['x', 'y'] },
-                       { payload: { a: 2, b: 1 }, holes: [], playedWith: ['y', 'x'] }), true,
-   'matching is by value, not by key or partner order');
+                       { payload: { a: 2, b: 1 }, holes: [], playedWith: ['y', 'x'] }), true, 'matching is by value, not by key or partner order');
 eq(postEnvelopeMatches(null, env), false, 'nothing matches nothing');
-/* owner scoping */
 eq(postRequestKey('u1') === postRequestKey('u2'), false, 'two golfers, two records');
 eq(postRequestKey(null), 'cs_post_request.signed-out', 'a signed-out key never collides with an account');
+
+/* ---- the draft: owned, offered, never silently leaked or deleted ---- */
+const NOW = Date.parse('2026-09-13T12:00:00Z');
+const typed = { vals: { inF9: '41', inB9: '43', inDate: '2026-09-13' }, touched: false };
+eq(postDraftKey('u1') === postDraftKey('u2'), false, 'the draft key is per golfer');
+eq(postDraftDecision({ owner: 'u1', at: NOW - 3600e3, ...typed }, 'u1', false, NOW), 'restore', 'my own recent draft restores');
+eq(postDraftDecision({ owner: 'u2', at: NOW - 3600e3, ...typed }, 'u1', false, NOW), 'foreign', 'another golfer’s draft is never shown');
+eq(postDraftDecision({ at: NOW - 3600e3, ...typed }, 'u1', false, NOW), 'ask', 'a legacy unowned draft is OFFERED, not shown or deleted');
+eq(postDraftDecision({ owner: 'u1', at: NOW - 30 * 3600e3, ...typed }, 'u1', false, NOW), 'expired', 'a day-old draft with nothing pending ages out');
+eq(postDraftDecision({ owner: 'u1', at: NOW - 30 * 3600e3, ...typed }, 'u1', true, NOW), 'restore',
+   'a day-old draft behind a PENDING post attempt is its recovery envelope and never ages out');
+eq(postDraftDecision({ owner: 'u1', at: NOW, vals: { inDate: '2026-09-13' }, touched: false }, 'u1', false, NOW), 'stamp-only',
+   'the stamped date alone is not a draft');
+eq(postDraftDecision(null, 'u1', false, NOW), 'stamp-only', 'no draft, nothing to do');
+
+/* ---- an event invitation says what it is and what it costs, or nothing ---- */
+eq(csEventTerms({ kind: 'event', event_kind: 'major', buy_in: 25, starts_on: '2026-10-03' }),
+   ['A Major — one week, one card, the best round takes it.', 'First tee 2026-10-03.', '$25 each.',
+    'Cup Season keeps the ledger; the money moves between friends.'], 'a Major with a stake says the stake and the ledger');
+eq(csEventTerms({ kind: 'event', event_kind: 'ryder', buy_in: 0 }), ['A Ryder — two teams, one clash each week.', 'No buy-in.'],
+   'a free Ryder says no buy-in and no ledger');
+eq(csEventTerms({ kind: 'event' }), [], 'an older server gives no terms — and no terms is no door');
+eq(csInviteTitle({ kind: 'event', event_kind: 'major' }), 'Major invite', 'a Major is titled a Major');
+eq(csInviteTitle({ kind: 'event' }), 'Invite', 'an unnamed one is not guessed into a Ryder');
+eq(csInviteTitle({ kind: 'league' }), 'League invite', 'a league is a league');
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
