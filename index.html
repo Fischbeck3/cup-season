@@ -17496,7 +17496,14 @@ function renderUpNext(){
        one fact on one screen, and it stands down when the block carried it. */
     const meOwnsNext = window.__meSuppress && window.__meSuppress.has('my_next_round');
     const up = (typeof upcomingFromSchedule==='function') ? upcomingFromSchedule() : [];
-    if(up.length && !meOwnsNext) chips.push(upChip('Next round', up[0].what + ' · ' + up[0].when.toLowerCase()));
+    if(up.length && !meOwnsNext){
+      chips.push(upChip('Next round', up[0].what + ' \u00b7 ' + up[0].when.toLowerCase()));
+      /* F1 · whatever PRINTS the fact owns it. The strip owns the next round on
+         the desk; where it does not, this chip does, and the tile below reads
+         the same set and stands down. One fact, one place (D201), at both
+         widths rather than only one of them. */
+      (window.__meSuppress ||= new Set()).add('my_next_round');
+    }
     /* the crew's plans echo Home → the Watch List is one tap from the nudge */
     const watch = (window.watchAll||[]).filter(r => r.mine===false && (r.is_friend||r.shared_league) && !r.tagged_me);
     if(watch.length){
@@ -18380,8 +18387,19 @@ function renderMeStrip(){
   /* L-34 - the facts this block has SPENT. Whatever renders below drops them:
      the phone hands the same set down from `MeStripCopy.Strip.suppress`. Set
      BEFORE the rest of Home paints, which is why `renderMeStrip` is the first
-     call in `renderHomeHub`. */
-  window.__meSuppress = new Set(strip.suppress);
+     call in `renderHomeHub`.
+
+     F1 · AND ONLY THE FACTS THAT ARE ACTUALLY ON THIS SURFACE. The compact
+     strip drops `my_next_round` and `my_money` below the desk, but suppression
+     was still copied from the full desktop strip — so the hidden sidebar
+     "owned" the next round while the chip and the tile both stood down for it,
+     and a golfer with a round on the calendar saw it NOWHERE on their phone.
+     The set is derived from the slots this width renders; `#homeUpNext` then
+     claims the next round as it prints it (see `renderUpNext`), so the fact
+     lands exactly once at every width. `my_money` leaves the phone's set with
+     no consumer — the pot keeps its own page and no money copy is added. */
+  const onDesk = !window.matchMedia || window.matchMedia('(min-width:960px)').matches;
+  window.__meSuppress = new Set((onDesk ? strip.slots : compactSlots).map(s => s.fact));
   /* D234 - the same funnel the phone writes, off the same producer. No name,
      no handle, no id; `qaEvent` stamps the platform centrally. */
   const tag = `${strip.slots.length}${strip.seasonRow?'s':'-'}`;
@@ -18389,6 +18407,27 @@ function renderMeStrip(){
     qaEvent('home_state_seen', { state: seasonState(), facts: strip.slots.length, season_row: !!strip.seasonRow }); }
 }
 window.renderMeStrip = renderMeStrip;
+/* F1 · CROSSING 960 CHANGES WHO OWNS WHAT. The strip that renders is chosen by
+   width, so the ownership set has to be rebuilt when the width crosses the
+   desk boundary — otherwise a window dragged wider keeps the phone's
+   arrangement (the chip printing the next round while the now-visible sidebar
+   prints it too) until something else repaints Home. Only the four renderers
+   that read the set run, in their own order: the strip lays the base, the
+   dispatch unions onto it, and the chip and the tile read the result. */
+(function(){
+  const DESK = '(min-width: 960px)';
+  const again = () => {
+    if(typeof renderMeStrip !== 'function') return;
+    const home = document.getElementById('view-home');
+    if(!home || !home.classList.contains('active')) return;   /* repaint on arrival instead */
+    renderMeStrip();
+    if(typeof renderHomeDispatch === 'function') renderHomeDispatch();
+    if(typeof renderUpNext === 'function') renderUpNext();
+    if(typeof renderHomeTiles === 'function') renderHomeTiles();
+  };
+  try { window.matchMedia(DESK).addEventListener('change', again); }
+  catch(_){ window.addEventListener('resize', again); }
+})();
 
 /* WAVE 11 / D280 - the sidebar's foot. Name, face, number, and nothing else:
    the league's own name moved one step down and one step quieter, because the
@@ -22333,10 +22372,18 @@ function refreshWhoChip(){
      for one, 66% for two. */
   const figs = $('#youFigs');
   if(figs){
-    const rounds = Number(window.career?.rounds ?? 0);
+    /* WA3 · A COUNT THAT HAS NOT ARRIVED IS NOT ZERO. This read `career?.rounds
+       ?? 0` and printed it, so the credential said "0 rounds" from the moment
+       the profile painted — and `loadCareer` only came back to fix it when the
+       index was still building, which means every established golfer kept the
+       zero on screen beside their own career. `career` is null before the read
+       lands and after it fails; a real empty history is `rounds: 0`. The three
+       states are three different things and the card says which it is. */
+    const known = window.career && window.career.rounds != null;
+    const rounds = known ? Number(window.career.rounds) : null;
     const cells = [];
     if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Handicap index']);
-    cells.push([String(rounds), 'Rounds']);
+    cells.push([rounds == null ? '\u2014' : String(rounds), 'Rounds']);
     figs.innerHTML = cells.map(([v, l]) =>
       `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
       + `<span class="crule" style="width:${(cells.length * 33.333).toFixed(2)}%"></span>`;
@@ -22383,6 +22430,10 @@ function refreshWhoChip(){
     yt.innerHTML = lines.join('<br>');
   }
 }
+/* bridge (classic wiring + testability), the same reason `renderRoundSheet`
+   carries one: the credential is a module-scope renderer and WA3's regression
+   drives it directly, across the classic/module boundary. */
+window.refreshWhoChip = refreshWhoChip;
 let phMarker = null;
 function renderPhMarkers(){
   const grid = $('#phMarkers'); if(!grid) return;
@@ -27736,9 +27787,11 @@ async function loadCareer(){
     };
   }catch(e){ window.career = window.career || null; }
   if(window.renderCareer) window.renderCareer();
-  /* the establishing meter ("2 of 3") needs the round count, which lands
-     after the profile paints — refresh the card once the career is in */
-  if(CS.profile && CS.profile.index_current==null) refreshWhoChip();
+  /* WA3 · the card is refreshed whenever the count lands, not only while the
+     index is still building. The establishing meter ("2 of 3") was the only
+     reason named here, so an established profile kept whatever the credential
+     had printed before the read returned — which was a zero. */
+  if(CS.profile) refreshWhoChip();
 }
 window.loadCareer = loadCareer;
 

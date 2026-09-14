@@ -7,7 +7,8 @@
   const until=async(t,label)=>{ for(let i=0;i<100;i++){ if(t()) return; await new Promise(r=>setTimeout(r,20)); } throw new Error(label); };
   const saved={ demo:state.demo, user:window.CS.user, mems:window.CS.memberships, league:window.CS.league, rpc:window.sb&&window.sb.rpc,
                 dispatch:window.homeDispatch, enter:window.enterLeagueById, qa:window.qaEvent, rows:window.homeFeedRows, spent:window.__spentRounds,
-                career:window.career, profile:window.CS.profile, member:window.CS.member, stake:state.stake, phase:state.phase, buy:window.buyIns };
+                career:window.career, profile:window.CS.profile, member:window.CS.member, stake:state.stake, phase:state.phase, buy:window.buyIns,
+                sched:window.mySchedule, watch:window.watchAll, posts:window.homePosts };
   const out={ width: innerWidth };
   const A='f0000000-0000-4000-8000-0000000000a1', B='f0000000-0000-4000-8000-0000000000a2';
   try{
@@ -128,6 +129,45 @@
       check(getComputedStyle(main).display!=='contents','the desk column dissolved on the desk');
       check(wire.left>main.getBoundingClientRect().left+200,'the desk lost its second column');
     }
+    /* ── F1 · A SCHEDULED ROUND LANDS EXACTLY ONCE, AT EVERY WIDTH ─────────
+       The compact strip drops `my_next_round`, but suppression was copied
+       from the full desktop strip — so the hidden sidebar owned the fact and
+       the chip and the tile both stood down: on a phone the golfer's next
+       round appeared NOWHERE. This counts the fact after the whole Home
+       render, which is the only way to see either failure (missing, or twice). */
+    const iso=n=>{ const d=new Date(); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+    window.mySchedule=[{ id:'50000000-0000-4000-8000-000000000001', mine:true, play_on:iso(2),
+                         course_label:'Papago', tee_time:'08:10', profile_id:window.CS.user.id }];
+    window.watchAll=[]; window.homeDispatch.items=[]; window.homePosts=[];
+    const wholeHomeRender=()=>{ renderMeStrip(); renderHomeDispatch(); renderUpNext(); renderHomeTiles(); };
+    const visible=el=>{ if(!el) return false; const r=el.getBoundingClientRect(); return !!(r.width && r.height); };
+    const nextPlaces=()=>{
+      const places=[];
+      document.querySelectorAll('[data-mego="my_next_round"]').forEach(el=>{ if(visible(el)) places.push('strip:'+(el.closest('#homeMe')?'phone':'desk')); });
+      document.querySelectorAll('#homeUpNext .upchip').forEach(el=>{ if(visible(el) && /next round/i.test(el.textContent)) places.push('chip'); });
+      document.querySelectorAll('#homeTiles .htile').forEach(el=>{ if(visible(el) && /^Next/.test(el.textContent)) places.push('tile'); });
+      return places;
+    };
+    wholeHomeRender();
+    const places=nextPlaces();
+    check(places.length===1,'F1: the scheduled round is on Home '+places.length+' time(s) at '+innerWidth+': '+JSON.stringify(places));
+    out.nextRoundOwnedBy=places[0];
+    if(innerWidth<960) check(places[0]==='chip','F1: the phone’s next round is not carried by the Up next chip: '+places[0]);
+    else check(places[0]==='strip:desk','F1: the desk stopped carrying the next round in its strip: '+places[0]);
+    /* and the round's own facts are on the screen, not merely a slot that
+       claims the fact: the chip names the course, the desk strip the tee */
+    /* the desk's strip lives in the SIDEBAR, outside #homeHub — read the
+       element that claimed the fact rather than one container */
+    const claimed=document.querySelector(places[0]==='chip'
+      ? '#homeUpNext .upchip' : '[data-mego="my_next_round"]');
+    const said=(claimed&&claimed.textContent)||'';
+    if(places[0]==='chip') check(/papago/i.test(said),'F1: the chip claimed the round without naming its course: '+said);
+    else check(/8:10/.test(said) || /papago/i.test(said),'F1: the desk strip claimed the round without naming its tee or course: '+said);
+    /* with no plan at all the tile keeps its door, and nothing claims a fact */
+    window.mySchedule=[];
+    wholeHomeRender();
+    check(!nextPlaces().some(x=>x==='chip'),'F1: a chip printed a round that does not exist');
+
     out.passed=true;
     return out;
   } finally {
@@ -135,5 +175,6 @@
     if(window.sb) window.sb.rpc=saved.rpc; window.homeDispatch=saved.dispatch; window.enterLeagueById=saved.enter;
     window.qaEvent=saved.qa; window.homeFeedRows=saved.rows; window.__spentRounds=saved.spent; window.career=saved.career;
     window.CS.profile=saved.profile; window.CS.member=saved.member; state.stake=saved.stake; state.phase=saved.phase; window.buyIns=saved.buy;
+    window.mySchedule=saved.sched; window.watchAll=saved.watch; window.homePosts=saved.posts;
   }
 })()
