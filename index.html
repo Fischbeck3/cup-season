@@ -8,10 +8,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Cup Season">
-<!-- The Tracer (2026-08-06), matching icon-192/512, apple-touch-icon and the
-     door's rest frame. A browser tab is the one place a stale logo hides in
-     plain sight — this must always equal brand/mark-tile.svg. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' rx='21' fill='%23F4712E'/%3E%3Cg fill='%230C0D0F'%3E%3Cpath d='M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z'/%3E%3Cellipse cx='38' cy='79' rx='17' ry='6.5'/%3E%3Crect x='27' y='13' width='10' height='68' rx='5'/%3E%3Cpath d='M36 13 L74 26 L36 39 Z'/%3E%3C/g%3E%3C/svg%3E">
+<!-- D358 · THE PENNANT, the owner-ratified production mark (2026-09-14).
+     Generated, never hand-drawn: `tools/build-beta-mark.sh` emits favicon.svg,
+     favicon-32, icon-192/512, the maskable tile, the apple-touch icon and the
+     link card from one source, `brand/candidates/testflight-pennant/source.json`,
+     so the tab, the home screen, the link preview and the phone's app icon
+     cannot wear different marks. A browser tab is the one place a stale logo
+     hides in plain sight — the Tracer was that logo until today. The tab takes
+     the small-size drawing: fescue field, cream pennant, no contour field,
+     because at 16px the contours are noise (the owner's ruling allows
+     simplifying them where clarity needs it). -->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <!-- D77: these are the DEFAULTS. A /?share= link gets per-token tags rewritten
@@ -24,12 +32,12 @@
 <meta property="og:description" content="The round, the result, and who owes who. Season-long golf with your own crew.">
 <meta property="og:url" content="https://cupseason.app">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://cupseason.app/og-image.png?v=3">
+<meta property="og:image" content="https://cupseason.app/og-image.png?v=4">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Cup Season — Any time. Anywhere.">
-<meta name="twitter:image" content="https://cupseason.app/og-image.png?v=3">
+<meta name="twitter:image" content="https://cupseason.app/og-image.png?v=4">
 <title>Cup Season — season-long fantasy golf with your own crew</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4247,9 +4255,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <!-- WAVE 11 / D280 - THE MARK AND THE WORDMARK, at the top of the desk's
          own margin. It was retired here and printed in the sticky header
          instead; UI_SYSTEM 14.1 puts it here, and the header's copy is
-         suppressed at this width so the desk prints it once. The Tracer is
+         suppressed at this width so the desk prints it once. The pennant is
          the SAME mark the icons, the favicon and the door's rest frame carry
-         - one mark, everywhere. #brandSeason setters are guarded. -->
+         - one mark, everywhere (D358; it was the Tracer until 2026-09-14).
+         #brandSeason setters are guarded. -->
     <div class="brand">
       <span class="mk" aria-hidden="true">
         <svg class="cs-mark" viewBox="0 0 1000 570"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
@@ -4344,10 +4353,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         </div>
         <button class="hdrlogo" id="hdrLogo" aria-label="Cup Season — home" style="margin-left:auto; display:flex; align-items:center; gap:8px; background:none; border:0; cursor:pointer; padding:6px 0;">
           <!-- D339 · WEB HALF (I-1) · the pennant, the same generated mark the
-               door and the sidebar carry. The icons and the favicon still carry
-               the Tracer until D339's icon-tile ruling (open 2). Ember on the
-               charcoal theme, ink on light (mark-light rule): currentColor,
-               set by the .hdrmark rules below the theme tokens. -->
+               door and the sidebar carry. D358 closed the icon-tile question
+               the same way, so the icons, the favicon and the link card now
+               carry it too — one mark on every surface. Ember on the charcoal
+               theme, ink on light (mark-light rule): currentColor, set by the
+               .hdrmark rules below the theme tokens. -->
           <svg class="hdrmark cs-mark" viewBox="0 0 1000 570" style="width:30px; height:17px; flex:none" aria-hidden="true">
             <g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g>
           </svg>

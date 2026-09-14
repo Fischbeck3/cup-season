@@ -82,8 +82,10 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
 {
   const shell = [...(sw.match(/const SHELL = \[([\s\S]*?)\]/) || ['',''])[1]
     .matchAll(/'([^']+)'/g)].map(m => m[1]).filter(p => p !== '/');
-  const cpLine = (stamp.match(/^cp (?!-r)(.*)\\\n(.*)$/m) || [null, '', ''])
-    .slice(1).join(' ') || (stamp.match(/^cp (?!-r).*$/gm) || []).join(' ');
+  /* the allowlist is one `cp` continued over AS MANY lines as it needs. This
+     read exactly two and silently ignored a third, so an asset added on the
+     next line looked allowlisted and 404'd after deploy. */
+  const cpLine = (stamp.match(/^cp (?!-r)(?:.*\\\n)*.*$/gm) || []).join(' ').replace(/\\\n/g, ' ');
   const missing = shell.filter(p => !cpLine.includes(p.replace(/^\//, '')));
   missing.length === 0
     ? pass('sw shell within dist allowlist', `${shell.length} assets`)
@@ -188,7 +190,8 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
 
 /* 8 · dist allowlist files all exist --------------------------------------- */
 {
-  const names = ((stamp.match(/^cp (?!-r).*$/gm) || []).join(' ').match(/[\w.-]+\.(?:html|js|webmanifest|png)/g) || []);
+  const names = ((stamp.match(/^cp (?!-r)(?:.*\\\n)*.*$/gm) || []).join(' ')
+    .match(/[\w.-]+\.(?:html|js|webmanifest|png|svg)/g) || []);
   const missing = names.filter(n => !existsSync(join(root, n)));
   missing.length === 0
     ? pass('dist allowlist files exist', `${names.length} files`)
@@ -2576,6 +2579,49 @@ const lint = (id, name, hits, note = '') => {
     if(sf == null || sf.trim() !== standfirst) fails.push(`the door's standfirst is not CS_BRAND.standfirst (${JSON.stringify(sf)})`);
     if(meta == null || meta !== description) fails.push(`<meta name="description"> is not CS_BRAND.description (${JSON.stringify(meta)})`);
     lint('BRAND-01', 'the door and the head say what CS_BRAND says', fails, 'edit CS_BRAND and the markup together');
+  }
+
+  /* BRAND-02 · a look styles the action, never the signal (D359, owner-ratified
+     2026-09-14). The looks' own note has said "never pos/neg or gold" since
+     D103a, and nothing enforced it: `fresh` carried literal `ink` as its second
+     accent and two more looks carried ember and gold. This reads the token
+     source and holds the rule.
+
+     A CALENDAR look is a personal livery on a date window. It may take no
+     reserved value at all — not the competition ember, not earned gold, not a
+     semantic, not ink or the ground.
+
+     The two PHASE looks are NAMED EXEMPTIONS, each with its reason, in the form
+     LINT-07 and LINT-14 use. `cupfinal` takes ember because a Cup Final IS the
+     active competition ember marks; `wrap` takes gold because a wrapped season
+     IS the earning gold is reserved for. They are the signal, not a style over
+     it — and they are still held to the semantics and to ink. */
+  {
+    const tok = JSON.parse(readFileSync(join(root, 'packages', 'tokens', 'tokens.json'), 'utf8'));
+    const looks = tok.looks?.all || [];
+    const group = g => tok.groups?.[g]?.tokens || {};
+    const reserved = { ...group('metal'), ...group('semantic'), ...group('text'), ...group('ground') };
+    const value = (name, theme) => String(reserved[name]?.[theme] || '').toUpperCase();
+    /* the exemption is by look key AND by token name, never blanket */
+    const allowed = { cupfinal: ['brand'], wrap: ['gold'] };
+    const fails = [];
+    for (const look of looks) {
+      const phase = !!look.phase;
+      const exempt = allowed[look.key] || [];
+      for (const slot of ['accent', 'accent2']) {
+        for (const theme of ['dark', 'light']) {
+          const hex = String(look[slot]?.[theme] || '').toUpperCase();
+          for (const name of Object.keys(reserved)) {
+            if (value(name, theme) !== hex) continue;
+            if (phase && exempt.includes(name)) continue;
+            fails.push(`${look.key}.${slot}.${theme} is \`${name}\` (${hex})` +
+                       (phase ? ' — a phase look may only take the token its phase IS' : ''));
+          }
+        }
+      }
+    }
+    lint('BRAND-02', 'a look styles the action, never the signal', fails,
+         'give the look its own colour; ember, gold, pos/neg, ink and the ground are roles');
   }
 
   /* LINT-14 · no uppercasing in a string. Case is a role's job; `.uppercased()`

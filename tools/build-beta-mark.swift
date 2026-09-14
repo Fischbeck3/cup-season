@@ -155,14 +155,12 @@ for size in [16, 32] { try draw(size).write(to: vectors.appendingPathComponent("
 // pennant by a flag — it hardcodes that mark's geometry — so the candidate web
 // family is generated here, where the pennant already lives.
 //
-// These land in `generated/web/`, which NOTHING REFERENCES. The production
-// favicon, PWA icons, apple-touch icon and OG image stay on the Tracer until
-// the owner rules on the mark and on the icon tile (D339 open 2). Swapping
-// them is a separate, explicitly approved commit; this is the candidate to
-// look at beside the phone's. (`stamp-version.sh` copies `brand/` wholesale,
-// so these are reachable URLs like every other candidate asset already in
-// that tree — reachable is not installed: no manifest, link tag or meta
-// points at them.)
+// D358 · the owner ratified the pennant as the production mark on 2026-09-14
+// and ruled the tile: a fescue field, a cream pennant, sparse fine contours.
+// These files are therefore INSTALLED — copied to the site root, where the
+// manifest, both pages' `<link rel="icon">`, the apple-touch tag and `og:image`
+// point at them. `generated/web/` stays the generator's output; the root copies
+// are the served ones, and the two must move together in one commit.
 let web = vectors.appendingPathComponent("web")
 try FileManager.default.createDirectory(at: web, withIntermediateDirectories: true)
 // The PWA and apple-touch sizes, straight off the tile.
@@ -185,7 +183,112 @@ do {
   }
   try rep.representation(using: .png, properties: [:])!.write(to: web.appendingPathComponent("icon-512-maskable.png"))
 }
-print("Generated DesignV1 native mark, light/dark/one-color vectors, app icons, and the CANDIDATE web icon family in generated/web (nothing is served from there).")
+// D358 · the SVG favicon and the link card, from this same source.
+//
+// The tab icon was an inline data URI carrying the Tracer's geometry by hand —
+// the one place a superseded mark hides in plain sight. It is generated now,
+// at the SMALL-SIZE geometry (`draw`'s `size <= 32` branch): no contour field,
+// the deeper inset, and the pole's optical reinforcement, because a tab is
+// 16px and the owner's ruling allows simplifying the contours where clarity
+// needs it.
+do {
+  let inset = 96.0 * 0.08, baseline = 96.0 - 96.0 * 0.75, s = 96.0 * 0.84 / 1000
+  let hex = { (c: NSColor) -> String in
+    let r = c.usingColorSpace(.sRGB)!
+    return String(format: "#%02X%02X%02X", Int(r.redComponent*255), Int(r.greenComponent*255), Int(r.blueComponent*255))
+  }
+  let svg = """
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">\
+  <rect width="96" height="96" fill="\(hex(ground))"/>\
+  <g transform="translate(\(inset),\(baseline)) scale(\(s))" fill="\(hex(ink))">\
+  <path fill-rule="evenodd" d="\(["flag", "c", "s"].map { paths[$0]! }.joined(separator: " "))"/>\
+  <path d="\(paths["pole"]!) \(paths["ridge"]!)"/>\
+  <path d="M375 30L375 444" stroke="\(hex(ink))" stroke-width="38"/>\
+  </g></svg>
+
+  """
+  try svg.write(to: web.appendingPathComponent("favicon.svg"), atomically: true, encoding: .utf8)
+}
+
+// The link card · 1200×630, the desk's own artifact signature scaled to the
+// one composition the generator could not already make (`csArtifactSignature`
+// in index.html: the mark and the name on one baseline, the brand line under
+// them, the address under that). Three times its scale, on the same fescue
+// ground and the same sparse contours as the tile.
+do {
+  let W = 1200, H = 630
+  let mut = token("text", "mut")
+  let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: W, pixelsHigh: H, bitsPerSample: 8,
+                             samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                             colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+  let ctx = NSGraphicsContext(bitmapImageRep: rep)!.cgContext
+  ctx.setFillColor(ground.cgColor); ctx.fill(CGRect(x: 0, y: 0, width: W, height: H))
+  // the contour field, laid across the full width and cropped to the card —
+  // the tile's own stroke weight, held at the tile's apparent thickness.
+  ctx.saveGState()
+  let cs = CGFloat(W) / 96
+  ctx.translateBy(x: 0, y: CGFloat(H)); ctx.scaleBy(x: cs, y: -cs)
+  ctx.setStrokeColor(ink.withAlphaComponent(0.10).cgColor)
+  ctx.setLineWidth(0.15)
+  ctx.addPath(SVGPath.path(paths["topo"]!).cgPath)
+  ctx.strokePath()
+  ctx.restoreGState()
+
+  // one word producer for the card, in the bundled OFL face, outlined
+  @discardableResult
+  func line(_ text: String, size: CGFloat, baseline: CGFloat, tracking: CGFloat,
+            color: NSColor, x: CGFloat? = nil) -> CGFloat {
+    let ct = CTFontCreateWithGraphicsFont(font, size, nil, nil)
+    var chars = Array(text.utf16), glyphs = [CGGlyph](repeating: 0, count: text.utf16.count)
+    CTFontGetGlyphsForCharacters(ct, &chars, &glyphs, chars.count)
+    var width: CGFloat = 0
+    for g in glyphs {
+      var one = g, advance = CGSize.zero
+      CTFontGetAdvancesForGlyphs(ct, .horizontal, &one, &advance, 1)
+      width += advance.width + tracking
+    }
+    width -= tracking
+    guard let start = x else { return width }
+    var cursor = start
+    ctx.setFillColor(color.cgColor)
+    for g in glyphs {
+      if let p = CTFontCreatePathForGlyph(ct, g, nil) {
+        var t = CGAffineTransform(translationX: cursor, y: CGFloat(H) - baseline)
+        ctx.addPath(p.copy(using: &t)!)
+      }
+      var one = g, advance = CGSize.zero
+      CTFontGetAdvancesForGlyphs(ct, .horizontal, &one, &advance, 1)
+      cursor += advance.width + tracking
+    }
+    ctx.fillPath()
+    return width
+  }
+
+  // the signature's own numbers, at 2.4x — the largest scale whose mark-and-
+  // name row still clears a margin on a 1200-wide card.
+  let k: CGFloat = 2.4
+  let markW = 96 * k, markH = markW * 0.57, gap = 22 * k, top: CGFloat = 165
+  let nameW = line("CUP SEASON", size: 46 * k, baseline: 0, tracking: 2 * k, color: ink)
+  let x0 = (CGFloat(W) - (markW + gap + nameW)) / 2
+  line("CUP SEASON", size: 46 * k, baseline: top + markH * 0.84, tracking: 2 * k, color: ink, x: x0 + markW + gap)
+  ctx.saveGState()
+  ctx.translateBy(x: x0, y: CGFloat(H) - top)
+  ctx.scaleBy(x: markW / 1000, y: -markW / 1000)
+  ctx.setFillColor(ink.cgColor)
+  for key in ["flag", "c", "s"] { ctx.addPath(SVGPath.path(paths[key]!).cgPath) }
+  ctx.drawPath(using: .eoFill)
+  for key in ["pole", "ridge"] { ctx.addPath(SVGPath.path(paths[key]!).cgPath); ctx.fillPath() }
+  ctx.restoreGState()
+  // `CS_BRAND.taglineCaps`, then the address — the signature's two lines, centred
+  let tagline = "ANY TIME. ANYWHERE."
+  let tagW = line(tagline, size: 26 * k, baseline: 0, tracking: 4 * k, color: ink)
+  line(tagline, size: 26 * k, baseline: top + markH + 34 * k, tracking: 4 * k, color: ink, x: (CGFloat(W) - tagW) / 2)
+  let addr = "cupseason.app"
+  let addrW = line(addr, size: 24 * k, baseline: 0, tracking: 4 * k, color: mut)
+  line(addr, size: 24 * k, baseline: top + markH + 70 * k, tracking: 4 * k, color: mut, x: (CGFloat(W) - addrW) / 2)
+  try rep.representation(using: .png, properties: [:])!.write(to: web.appendingPathComponent("og-image.png"))
+}
+print("Generated DesignV1 native mark, light/dark/one-color vectors, app icons, and the web family in generated/web — the tile sizes, the SVG favicon and the 1200x630 link card.")
 
 for size in [16, 32, 64, 256, 1000] {
   let height = Int((Double(size) * 0.57).rounded(.up))
