@@ -2,6 +2,14 @@
 
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
+## Parallel delivery and phone review · owner direction 2026-09-13
+
+The owner is away from the Mac and uses mobile web to track progress. This is a standing delivery requirement for future milestones: pair web/native scope, and provide a verified working HTTPS phone preview at each review checkpoint. Native signing must not block web review. A local artifact or source commit alone is not delivery.
+
+Claude builds the next bounded slice while Codex reviews the previous committed checkpoint in an isolated workspace. Claude remains the sole web implementation editor and fixes review findings. This records the collaboration process; no automatic messaging or monitoring is configured.
+
+Current handoff: Claude's D339 inventory `ef4f1b7` is reviewed and incorporated on the Codex audit branch. [Review corrections and delivery acceptance](../reviews/2026-09-13-d339-web-half-review.md) govern the next build. Status: **ready for implementation; no new app preview produced**. Fixes and identity changes remain separate commits; the first identity preview must include the narrow phone masthead. Next output should be a working build/link, not another inventory-only packet.
+
 ## Current mobile-web catch-up override · 2026-09-13
 
 This section supersedes the historical release status and ownership assignments below for the current packet.

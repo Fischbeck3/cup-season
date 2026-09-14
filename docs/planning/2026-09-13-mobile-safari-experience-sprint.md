@@ -6,6 +6,10 @@ Outcome: opening cupseason.app on a phone should make the current competition an
 
 Read the [mobile web audit](../reviews/2026-09-13-mobile-web-experience-audit.md) first. Its finding IDs are the acceptance checklist.
 
+## Current review and delivery amendment
+
+Claude's D339 inventory is incorporated. Apply the [review corrections and owner's parallel delivery requirement](../reviews/2026-09-13-d339-web-half-review.md): the next checkpoint must include a verified working HTTPS phone preview and candidate SHA. Claude builds while Codex reviews a prior committed checkpoint. The first identity preview includes the narrow masthead; correct the icon generator assumption and static metadata strategy. No new application build or preview exists from these planning commits.
+
 ## Ownership and starting point
 
 Claude is lead builder and sole editor of `index.html` for this packet, plus narrowly related web tests and handoff documentation. Codex independently reviews commits and helps with local/device acceptance. Neither agent edits the other's active branch. Owner handles Apple certificate/signing access separately.
