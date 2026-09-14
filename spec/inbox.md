@@ -31,6 +31,10 @@ sorting.
 ---
 
 
+### 2026-09-13 · UX / function · signed-in preview repair queue
+
+Verified on the combined PR #3 preview: posted-receipt shortcuts fail, cross-league links load context without reaching the season, and the You credential retains a false zero count. Standings history lacks receipt drill-down; receipt explanation and solo/squad language need repair. First question: do the actual rendered controls arrive at the correct record and league after async loading? Repros, source traces, priorities and acceptance: [signed-in walkthrough](../docs/reviews/2026-09-13-signed-in-account-walkthrough.md). Claude owns fixes alongside checkpoint B; Codex rechecks the integrated preview. Prior future-round suppression and enlarged-text findings remain open. No production promotion or business-record submissions from the review.
+
 ### 2026-09-12 · Vision / next build · proposal drafted while signing is held
 
 The owner asked to expand the vision, inspect app/branding and make Codex/Claude ownership seamless. The vision now has a clearly marked expansion draft; original requirements remain preserved. Proposed order: complete the week of golf, deepen the existing Record, then improve group continuity. Brand proof work runs alongside the first wave. Source findings, stale-document conflicts and acceptance gates: `docs/planning/2026-09-12-next-chapter.md`. Current file ownership, task status and Claude's next bounded review prompt: `docs/planning/ACTIVE_WORK.md`.

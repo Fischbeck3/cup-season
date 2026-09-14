@@ -2,6 +2,10 @@
 
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
+## Signed-in review · 2026-09-13
+
+Codex completed an authorized account walkthrough of PR #3, app candidate `8f85dac` / served `b12c0ca`. [Consolidated findings](../reviews/2026-09-13-signed-in-account-walkthrough.md): P1 posted-receipt shortcuts fail; P1 cross-league links fail to reach the season (prior F2 now reproduced); P2 credential count stays at a false zero; standings-to-receipt and copy repairs also recorded. Prior F1 remains source-confirmed, with a future-round fixture owed because this account had no qualifying future rounds. F3 remains open. Normal posted receipts, root tabs and posting/planning/name-gate entry worked. No business records submitted; physical iPhone Safari and write-path acceptance remain pending. Claude repairs and continues checkpoint B, then updates the same PR #3 preview. This section supersedes earlier signed-in-review status below.
+
 ## Integrated candidate review · 2026-09-13
 
 Codex independently reviewed `8f85dac` in `codex/welcome-review-2026-09-13`. The combined PR #3 preview currently reads `b12c0ca` (documentation-only difference). [Review findings](../reviews/2026-09-13-integrated-welcome-review.md): two P1 Home issues (hidden next round; cross-league season navigation) and P2 text-enlargement clipping require fixes before promotion. Welcome composition is directionally ready for owner review, with quieter terrain near text recommended. Claude retains implementation ownership and checkpoint B; Codex reviews committed checkpoints in parallel. No production promotion performed.

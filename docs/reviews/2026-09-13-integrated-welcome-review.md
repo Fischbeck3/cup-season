@@ -4,6 +4,8 @@
 
 Reviewed in isolated worktree `/Users/fischbeck3/cup-season-welcome-review`, branch `codex/welcome-review-2026-09-13`, rooted at exact candidate `8f85dac`. Claude retains ownership of both implementation workspaces and checkpoint B.
 
+Follow-up: the [signed-in account walkthrough](2026-09-13-signed-in-account-walkthrough.md) now reproduces F2 on the actual preview account and adds receipt/count findings. F1 still requires a future-round fixture; actual iPhone Safari remains pending. The verification below records the earlier independent checkpoint, before login.
+
 ## Findings for Claude
 
 ### F1 · P1 · A scheduled round can disappear from mobile Home
