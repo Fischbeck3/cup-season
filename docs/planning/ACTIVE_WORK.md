@@ -2,6 +2,10 @@
 
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
+## Paired release override · owner direction 2026-09-13
+
+The owner has requested web and iOS reach an equal state, as far as platforms allow, in the next push before TestFlight review. [Paired checkpoint](2026-09-13-paired-release-checkpoint.md) expands the current repair scope to the remaining mobile experience and brand applications, with separate built/verified/delivered evidence per platform. Claude remains lead builder and sole web editor; Codex independently verified three native baseline UI journeys (3 passed, 0 failed, 0 skipped) and will verify the integrated candidate. The same PR #3 preview is the web review surface. No claim that this new scope has been delivered to or acknowledged by the running Claude session; its next handoff must acknowledge it. Production-mark approval, device acceptance and signing remain explicit gates. This overrides narrower historical packet-completion definitions below.
+
 ## Signed-in review · 2026-09-13
 
 Codex completed an authorized account walkthrough of PR #3, app candidate `8f85dac` / served `b12c0ca`. [Consolidated findings](../reviews/2026-09-13-signed-in-account-walkthrough.md): P1 posted-receipt shortcuts fail; P1 cross-league links fail to reach the season (prior F2 now reproduced); P2 credential count stays at a false zero; standings-to-receipt and copy repairs also recorded. Prior F1 remains source-confirmed, with a future-round fixture owed because this account had no qualifying future rounds. F3 remains open. Normal posted receipts, root tabs and posting/planning/name-gate entry worked. No business records submitted; physical iPhone Safari and write-path acceptance remain pending. Claude repairs and continues checkpoint B, then updates the same PR #3 preview. This section supersedes earlier signed-in-review status below.
