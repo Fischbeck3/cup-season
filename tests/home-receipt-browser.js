@@ -90,6 +90,54 @@
     await until(()=>document.getElementById('sheet').classList.contains('open'),'the scheduled sheet did not open');
     check(calls.some(c=>c[0]==='round_detail' && c[1].p_round===PLAN),'WA1: the scheduled sheet stopped reading round_detail');
     closeSheet();
+    /* ── WA6 · the verdict says one thing once, in the right voice ────────── */
+    const V=(pvi,mine)=>window.csReceiptVerdict(bandName(pvi), vsPhrase(pvi), mine);
+    check(V(0.2,true)==='Played to your playing HCP.','WA6: the verdict still stutters: '+V(0.2,true));
+    check(V(2.4,true)==='Beat your playing HCP by 2.4.','WA6: the beat verdict still stutters: '+V(2.4,true));
+    check(V(4.1,true)==='Beat your playing HCP by 4.1 \u2014 torched it.','WA6: a band that ADDS something was dropped: '+V(4.1,true));
+    check(V(-2.4,true)==='2.4 over your playing HCP \u2014 a little loose.','WA6: the loose verdict changed: '+V(-2.4,true));
+    check(V(0.2,false)==='Played to their playing HCP.','WA6: somebody else’s round is still announced as yours: '+V(0.2,false));
+    check(V(4.1,false)==='Beat their playing HCP by 4.1 \u2014 torched it.','WA6: the third person did not reach the phrase: '+V(4.1,false));
+    out.verdict=V(0.2,true);
+
+    /* ── WA6 · the arithmetic is grouped the way it is computed ───────────── */
+    await window.csOpenPostedRound(CACHED);
+    await until(()=>document.getElementById('rcptBody'),'the receipt did not reopen for the arithmetic');
+    const math=Array.from(document.querySelectorAll('#rcptBody .mathrow span')).map(e=>e.textContent);
+    const expr=math.find(t=>/113/.test(t));
+    check(!!expr,'WA6: the differential line is gone');
+    check(/^\(\s*84\s*\u2212\s*71\.2\s*\)/.test(expr.replace(/−/g,'\u2212')),'WA6: the expression is still ungrouped: '+expr);
+    out.expression=expr;
+    closeSheet(); await until(()=>!open(),'the sheet did not close after the arithmetic');
+
+    /* ── WA4 · a standings history row opens the round behind it (§16) ────── */
+    calls.length=0;
+    window.CS.member={ id:'mem-1', role:'player' };
+    openMemberHist({ n:'Audit', mid:'mem-1', me:true, r:2, pts:16,
+      hist:[ { round_id:POSTED, played_on:isoAgo(1), pvi:0.2, points:7, counting:true, holes_played:18 },
+             { round_id:CACHED, played_on:isoAgo(8), pvi:-2.4, points:6, counting:false, holes_played:18 },
+             { round_id:null,   played_on:isoAgo(20), pvi:1.1, points:9, counting:true, holes_played:18 } ] });
+    await until(()=>document.querySelectorAll('#shBody [data-histround]').length===2,'WA4: the history rows are not doors');
+    const doors=Array.from(document.querySelectorAll('#shBody [data-histround]'));
+    check(doors.every(d=>d.getBoundingClientRect().height>=44-1),'WA4: a history door is under the tap target');
+    check(document.querySelectorAll('#shBody .histrow.static').length===1,'WA4: a row with no round became a door anyway');
+    check(/BUMPED/.test(doors[1].textContent),'WA4: the bumped row lost its explanation');
+    doors[1].click();                                   /* the BUMPED round, and it is cached */
+    await until(()=>document.getElementById('rcptBody'),'WA4: a history row did not open its receipt');
+    check(/71\.2 \/ 128/.test(document.getElementById('rcptBody').textContent),'WA4: the receipt opened without its facts');
+    closeSheet(); await until(()=>!open(),'the sheet did not close after the history receipt');
+    /* and an UNCACHED history round resolves itself rather than opening nothing */
+    calls.length=0;
+    openMemberHist({ n:'Audit', mid:'mem-1', me:true, r:1, pts:7,
+      hist:[ { round_id:'40000000-0000-4000-8000-00000000000c', played_on:isoAgo(3), pvi:0.2, points:7, counting:true, holes_played:18 } ] });
+    await until(()=>document.querySelector('#shBody [data-histround]'),'the single history row did not render');
+    document.querySelector('#shBody [data-histround]').click();
+    await until(()=>document.getElementById('rcptBody'),'WA4: an uncached history round opened nothing');
+    check(calls.some(c=>c[0]==='round_card'),'WA4: the uncached history round never read its card');
+    check(!calls.some(c=>c[0]==='round_detail'),'WA4: a history row read the SCHEDULED round');
+    out.history=true;
+    closeSheet();
+
     out.passed=true; return out;
   } finally {
     state.demo=saved.demo; window.CS.user=saved.user; window.CS.memberships=saved.mems; window.CS.league=saved.league;

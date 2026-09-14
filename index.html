@@ -525,6 +525,15 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
    week. Ember is the clock's colour on this client (D231); it is a word, not a
    control, so it is never a button. */
 .peerrow .pt{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); display:block; margin-top:4px;}
+/* WA4 · a standings-history row is a door to its round (§16). It keeps the
+   line it always was; what changes is that it is a control, so it takes the
+   tap target every other row on this client takes. */
+.histrow{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+  min-height:44px; padding:4px 0; background:none; border:0; text-align:left; color:inherit; cursor:pointer;}
+.histrow.static{cursor:default;}
+.histrow .cv{flex:none; color:var(--mut);}
+.histrow:hover:not(.static){color:var(--ink);}
+.histrow:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 @media(max-width:959px){ #view-compete .deskaside[data-empty]{display:none;} }
 /* L-32 · the empty root, one shape for both destinations */
 .cmphead{display:flex; align-items:baseline; gap:14px; margin:0 0 6px;}
@@ -19375,11 +19384,29 @@ function renderIndStatsReal(){
 function openMemberHist(p){
   const sgn=v=>(v>=0?'+':'')+Number(v).toFixed(1);
   const hist=(p.hist||[]);
+  const mine = p.me === true || (p.mid!=null && p.mid === window.CS?.member?.id);
   const body=hist.length
-    ? hist.map(h=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · BUMPED'}</span><b class="mono" style="white-space:nowrap">${sgn(h.pvi)} vs your playing HCP · ${h.points} PTS</b></div>`).join('')
+    /* WA4 · §16 · every points figure traces to the round that produced it.
+       These rows listed the date, the figure and whether it counted, and then
+       stopped: the one control on the sheet was Close, so a golfer could see a
+       dated contribution and never reach the course, the rating and the
+       receipt behind it. A row with a round is a button now (the same posted
+       receipt every other surface opens, which resolves an uncached round for
+       itself); a row without one stays the plain line it was. */
+    ? hist.map(h=>{
+        const inner = `<span>${h.played_on}${h.holes_played===9?' · 9 HOLES':''}${h.counting?'':' · BUMPED'}</span><b class="mono" style="white-space:nowrap">${sgn(h.pvi)} vs ${mine?'your':'their'} playing HCP · ${h.points} PTS</b>`;
+        return h.round_id
+          ? `<button type="button" class="histrow fine" data-histround="${esc(h.round_id)}">${inner}<span class="cv" aria-hidden="true">›</span></button>`
+          : `<div class="fine histrow static">${inner}</div>`;
+      }).join('')
       + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot.</p>':'')
     : emptyState({ icon:'⛳', line:'No rounds this season yet — post one and you\'re on the board.', ctaLabel:'Add my round', ctaGo:'record' });
   openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
+  document.getElementById('shBody')?.querySelectorAll('[data-histround]').forEach(b =>
+    b.addEventListener('click', () => {
+      window.qaEvent?.('cta_tapped', { door: 'standings:receipt' });
+      window.csOpenPostedRound?.(b.getAttribute('data-histround'));
+    }));
 }
 
 /* photos arc 2 (ckpt 1): the one round-receipts sheet — a round opened from
@@ -19436,7 +19463,11 @@ function roundCardBody(r, pvi, capN){
   if(r.differential!=null && r.rating!=null && r.slope!=null && r.gross!=null){
     const holes = r.holes_played===9 ? 9 : 18;
     const rt = holes===9 && r.nine_rating!=null ? Number(r.nine_rating) : Number(r.rating);
-    rows.push(`<div class="mathrow sub"><span>${r.gross} − ${rt.toFixed(1)} × 113 ⁄ ${r.slope}</span><b>${Number(r.differential).toFixed(1)} VS COURSE</b></div>`);
+    /* WA6 · the parentheses are not decoration: read as printed, `gross −
+       rating × 113 / slope` is the rating multiplied first, which is not the
+       number beside it. The expression now groups the way the differential is
+       actually computed, and the way the scorecard's own arithmetic reads. */
+    rows.push(`<div class="mathrow sub"><span>(${r.gross} − ${rt.toFixed(1)}) × 113 ⁄ ${r.slope}</span><b>${Number(r.differential).toFixed(1)} VS COURSE</b></div>`);
   }
   if(provisional){
     /* the one sentence, byte-for-byte the phone's ReceiptRows.noNumberYet */
@@ -19806,6 +19837,25 @@ function mineOf(r){
        : (!r.profile_id || r.profile_id===window.CS?.user?.id);
 }
 function csTheirs(s){ return String(s||'').replace(/your/gi, m => m[0]==='Y' ? 'Their' : 'their'); }
+/* WA6 · THE VERDICT SAYS ONE THING, ONCE. `vsPhrase` and `bandName` are two
+   names for the same judgment, and at two of the five bands they are the same
+   word: the receipt read "Played to your playing HCP — played to it." and
+   "Beat your playing HCP by 2.4 — beat your number." The band is added only
+   when it tells the reader something the phrase has not already said.
+
+   The voice is fixed here too: the phrase carries "your" and only the BAND was
+   put into the third person, so somebody else's round was announced as if it
+   were the reader's. The whole sentence turns now, or none of it does. */
+function csReceiptVerdict(band, phrase, mine){
+  if(!band || !phrase) return '';
+  const firstWord = t => String(t||'').trim().split(/\s+/)[0].toLowerCase();
+  const lead = phrase.charAt(0).toUpperCase() + phrase.slice(1);
+  const sentence = firstWord(band) === firstWord(phrase)
+    ? lead + '.'
+    : lead + ' \u2014 ' + band.toLowerCase() + '.';
+  return mine ? sentence : csTheirs(sentence);
+}
+window.csReceiptVerdict = csReceiptVerdict;
 /* WA1 · A POSTED ROUND OPENS THE POSTED RECEIPT. Two Home shortcuts — the
    lead's "See the receipt" and the compact strip's last score — handed a
    posted round's id to `openRoundSheet`, which reads `round_detail`: the
@@ -19866,9 +19916,7 @@ function openRoundReceipt(x, opts){
      page's name rather than a restatement of the figure four lines below it. */
   const band = pvi!=null ? bandName(Number(pvi)) : null;
   const phrase = pvi!=null ? vsPhrase(Number(pvi)) : '';
-  const sentence = band && phrase
-    ? phrase.charAt(0).toUpperCase() + phrase.slice(1) + ' \u2014 ' + (mineOf(r) ? band : csTheirs(band)).toLowerCase() + '.'
-    : '';
+  const sentence = csReceiptVerdict(band, phrase, mineOf(r));
   const figs = `<div class="rcpt-figs">
       ${r.gross!=null ? `<div class="f g"><b>${esc(String(r.gross))}</b><i></i><small>Gross \u00b7 ${(r.holes_played||18)} holes</small></div>` : ''}
       ${r.points!=null ? `<div class="f p"><b>${esc(String(r.points))}</b><i></i><small>Points</small></div>` : ''}
