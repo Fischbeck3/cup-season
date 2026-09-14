@@ -2567,8 +2567,8 @@ const lint = (id, name, hits, note = '') => {
     const brand = html.match(/const CS_BRAND = Object\.freeze\(\{([\s\S]*?)\}\);/);
     const field = k => { const m = brand && brand[1].match(new RegExp(k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'")); return m ? m[1].replace(/\\n/g, '\n') : null; };
     const tagline = field('tagline'), standfirst = field('standfirst'), description = field('description');
-    const h1 = (html.match(/<h1 class="cs-brandline">([\s\S]*?)<\/h1>/) || [])[1];
-    const sf = (html.match(/<p class="cs-standfirst">([\s\S]*?)<\/p>/) || [])[1];
+    const h1 = (html.match(/<h1 class="cs-brandline[^"]*">([\s\S]*?)<\/h1>/) || [])[1];
+    const sf = (html.match(/<p class="cs-standfirst[^"]*">([\s\S]*?)<\/p>/) || [])[1];
     const meta = (html.match(/<meta name="description" content="([^"]*)">/) || [])[1];
     const fails = [];
     if(!brand) fails.push('CS_BRAND is not declared');

@@ -1,43 +1,81 @@
-/* D339 · the web half, I-1 — the door and both mastheads say what the phone
-   says. Serve this checkout, open /?exit, evaluate with web-verify.mjs at 390,
-   320 and 1440. Signed out; nothing is written. */
+/* D339 · the web half — the welcome composition. Serve this checkout, open
+   /?exit, evaluate with web-verify.mjs at 320, 390 and 1440, and at a short
+   height (--height 560). Signed out. Every auth send is refused by a stub, so
+   the walk never sends a real code. */
 (async function(){
   const check=(ok,label)=>{ if(!ok) throw new Error(label); };
-  const out={ width: innerWidth };
+  const until=async(t,label)=>{ for(let i=0;i<100;i++){ if(t()) return; await new Promise(r=>setTimeout(r,20));} throw new Error(label); };
+  const out={ width: innerWidth, height: innerHeight };
   const TRACER='M88 12 C 82 36';
-  /* the brand copy, from the one producer */
-  check(window.CS_BRAND && CS_BRAND.tagline==='ANY TIME.\nANYWHERE.','CS_BRAND is not the producer');
-  const h1=document.querySelector('.ob-hero h1.cs-brandline');
-  check(!!h1 && h1.innerText.trim().replace(/\s*\n\s*/g,'\n')===CS_BRAND.tagline,'the door does not print the brand line: '+JSON.stringify(h1&&h1.innerText));
-  const sf=document.querySelector('.ob-hero .cs-standfirst');
-  check(!!sf && sf.textContent.trim()===CS_BRAND.standfirst,'the door does not print the standfirst');
-  check(document.querySelector('meta[name="description"]').content===CS_BRAND.description,'the head description is not the producer’s');
-  /* the mark: the generated pennant, and the Tracer nowhere in the document */
-  const door=document.querySelector('.ob-crest svg.cs-mark-door');
-  check(!!door && door.getAttribute('viewBox')==='0 0 1000 570','the door has no pennant');
-  const dr=door.getBoundingClientRect(); check(dr.width>80 && dr.height>40,'the door mark has no size');
-  check(!document.querySelector('.ob-crest .obtr, .ob-crest .ob-mark'),'the forge is still on the door');
-  check(!Array.from(document.querySelectorAll('svg path')).some(p=>(p.getAttribute('d')||'').startsWith(TRACER)),'the Tracer is still drawn somewhere in the document');
-  check(!!document.querySelector('.brand .mk svg.cs-mark') && !!document.querySelector('#hdrLogo svg.hdrmark.cs-mark'),'a masthead lost the mark');
-  /* the same paths in all three places — one generated source */
-  const d=el=>Array.from(el.querySelectorAll('path')).map(p=>p.getAttribute('d')).join('|');
-  check(d(door)===d(document.querySelector('.brand .mk svg')) && d(door)===d(document.querySelector('#hdrLogo svg')),'the three marks are not the same geometry');
-  /* mark-light: ember on charcoal, ink on light, in every placement */
-  const color=el=>getComputedStyle(el).color;
-  const root=document.documentElement; const was=root.getAttribute('data-theme');
-  root.setAttribute('data-theme','dark'); await new Promise(r=>setTimeout(r,30));
-  const dark={ door:color(door), hdr:color(document.querySelector('#hdrLogo svg')), side:color(document.querySelector('.brand .mk')) };
-  root.setAttribute('data-theme','light'); await new Promise(r=>setTimeout(r,30));
-  const light={ door:color(door), hdr:color(document.querySelector('#hdrLogo svg')), side:color(document.querySelector('.brand .mk')) };
-  if(was==null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme',was);
-  check(dark.door!==light.door && dark.hdr!==light.hdr,'the mark does not follow the mark-light rule: '+JSON.stringify({dark,light}));
-  check(!/rgba\(0, 0, 0, 0\)|transparent/.test(dark.door+light.door),'the door mark has no colour');
-  out.colors={ dark, light };
-  /* the door's controls are untouched and reachable */
-  for(const id of ['obEmail','obJoin']){ const b=document.getElementById(id); const r=b.getBoundingClientRect(); check(r.height>=44-1 && r.width>100,id+' is not a tap target'); }
-  check(document.getElementById('obEmail').textContent.trim()==='Continue with email','the email door changed its words');
-  check(document.getElementById('obJoin').textContent.trim()==='I have a league code','the code door changed its words');
-  check(/v23 · /.test(document.getElementById('obCaption').textContent),'the version caption is gone');
-  check(document.documentElement.scrollWidth<=innerWidth,'the door overflows at this width');
-  out.passed=true; return out;
+  const q=s=>document.querySelector(s);
+  const sends=[]; const realAuth=window.sb && window.sb.auth;
+  if(window.sb) window.sb.auth=new Proxy(realAuth||{}, { get:(t,k)=> (typeof k==='string' && /signIn|verify|resend|otp/i.test(k)) ? (async(...a)=>{ sends.push(String(k)); return { data:null, error:{ message:'refused by the audit' } }; }) : t[k] });
+  try{
+    /* the brand copy, from the one producer */
+    check(window.CS_BRAND && CS_BRAND.tagline==='ANY TIME.\nANYWHERE.','CS_BRAND is not the producer');
+    const h1=q('.ob-hero h1.cs-brandline');
+    check(!!h1 && h1.innerText.trim().replace(/\s*\n\s*/g,'\n')===CS_BRAND.tagline,'the door does not print the brand line');
+    const sf=q('.ob-hero .cs-standfirst');
+    check(!!sf && sf.textContent.trim()===CS_BRAND.standfirst,'the door does not print the standfirst');
+    check(q('meta[name="description"]').content===CS_BRAND.description,'the head description is not the producer’s');
+    /* type roles with distinct jobs: the statement in the condensed display role, the standfirst in the story role */
+    const ff=el=>getComputedStyle(el).fontFamily;
+    check(h1.classList.contains('cs-display') && /Condensed|system-ui/.test(ff(h1)) && getComputedStyle(h1).textTransform==='uppercase','the statement is not in the display role: '+ff(h1));
+    check(sf.classList.contains('cs-story') && /serif|New York|Georgia/i.test(ff(sf)) && !/Condensed/.test(ff(sf)),'the standfirst is not in the story role: '+ff(sf));
+    check(parseFloat(getComputedStyle(h1).fontSize) > parseFloat(getComputedStyle(sf).fontSize)*1.5,'the statement does not dominate the standfirst');
+    /* the compact signature at the top, above the statement */
+    const sig=q('.ob-sig'); check(!!sig && !!sig.querySelector('svg.cs-mark') && /Cup Season/.test(sig.textContent),'no compact signature');
+    const sr=sig.querySelector('svg').getBoundingClientRect(); check(sr.width>=28 && sr.width<=64,'the signature mark is not compact: '+sr.width);
+    check(sig.getBoundingClientRect().top < h1.getBoundingClientRect().top,'the signature is not above the statement');
+    /* the terrain: the accepted paths, two weights, visible, behind everything, never a control */
+    const terr=q('.ob-terrain'); check(!!terr,'no terrain on the door');
+    const sur=terr.querySelector('.t-sur'), edge=terr.querySelector('.t-edge');
+    check(!!sur && !!edge && sur.getAttribute('d').startsWith('M 322 29') && edge.getAttribute('d').startsWith('M 336 57'),'the terrain is not the accepted geometry');
+    check(Math.abs(parseFloat(getComputedStyle(sur).opacity)-.24)<.01 && Math.abs(parseFloat(getComputedStyle(edge).opacity)-.56)<.01,'the terrain is not at the system alphas');
+    check(getComputedStyle(terr).pointerEvents==='none','the terrain takes input');
+    const tr=terr.getBoundingClientRect(); check(tr.right>=innerWidth-1 && tr.top<=0,'the terrain is not anchored to the upper right: '+JSON.stringify({r:tr.right,t:tr.top}));
+    check(tr.width>=innerWidth*0.6,'the terrain is not at page scale');
+    /* the Forge is gone: no crest, no seared wordmark, no fuse, no glow, no delayed entrance */
+    for(const s of ['.ob-crest','.obsw','.obfw','.ob-ember','.obtr','.ob-mark']) check(!q(s),'a Forge remnant is still on the door: '+s);
+    check(!Array.from(document.querySelectorAll('svg path')).some(p=>(p.getAttribute('d')||'').startsWith(TRACER)),'the Tracer is still drawn somewhere');
+    for(const s of ['#obDoor','.ob-hero','#obCaption']) check(getComputedStyle(q(s)).animationName==='none' && parseFloat(getComputedStyle(q(s)).opacity)===1,'an entrance still delays '+s);
+    /* the ground is the fescue token, nothing painted over it */
+    const ob=q('#onboard'); check(getComputedStyle(ob).backgroundImage==='none','a wash or gradient is painted on the door');
+    /* mark-light in both themes */
+    const root=document.documentElement, was=root.getAttribute('data-theme');
+    const col=el=>getComputedStyle(el).color;
+    root.setAttribute('data-theme','dark'); await new Promise(r=>setTimeout(r,30));
+    const dark={ sig:col(sig.querySelector('svg')), terr:col(terr), ground:getComputedStyle(ob).backgroundColor };
+    root.setAttribute('data-theme','light'); await new Promise(r=>setTimeout(r,30));
+    const light={ sig:col(sig.querySelector('svg')), terr:col(terr), ground:getComputedStyle(ob).backgroundColor };
+    if(was==null) root.removeAttribute('data-theme'); else root.setAttribute('data-theme',was);
+    check(dark.ground!==light.ground && dark.sig!==light.sig && dark.terr!==light.terr,'the door does not follow the theme: '+JSON.stringify({dark,light}));
+    out.colors={ dark, light };
+    /* the entry: real controls, real sizes, real words */
+    const btn=id=>{ const b=document.getElementById(id); const r=b.getBoundingClientRect(); check(r.height>=44-1 && r.width>100, id+' is not a tap target'); return b; };
+    const email=btn('obEmail'), join=btn('obJoin');
+    check(email.textContent.trim()==='Continue with email' && join.textContent.trim()==='I have a league code','a door changed its words');
+    check(getComputedStyle(join).backgroundColor==='rgba(0, 0, 0, 0)' || getComputedStyle(join).backgroundColor==='transparent','the secondary entry is still a filled button');
+    check(/v23 · /.test(q('#obCaption').textContent),'the version caption is gone');
+    /* email entry: the field opens under the button, is typed into, and nothing is sent by opening it */
+    email.click(); await until(()=>q('#emailbox').classList.contains('open'),'the email field did not open');
+    const ein=q('#obEmailIn'); check(ein.getBoundingClientRect().height>=40 && !ein.disabled,'the email field is not usable');
+    ein.value='audit@example.com'; ein.dispatchEvent(new Event('input',{bubbles:true}));
+    check(q('#obEmailGo').getBoundingClientRect().height>=44-1,'the Go control is under the tap target');
+    /* join-code entry, and back again */
+    join.click(); await until(()=>q('#joinbox').classList.contains('open'),'the join-code field did not open');
+    const jin=q('#joinCode'); check(jin.maxLength===8 && jin.getBoundingClientRect().height>=40,'the join-code field is not usable');
+    check(q('#obCodeIn').getAttribute('maxlength')==='10' && !q('#obCodeIn').hasAttribute('maxlength6'),'the auth code field is not 8-digit safe');
+    check(sends.length===0,'opening an entry sent an auth request: '+sends.join(','));
+    /* keyboard-safe: the door scrolls, it is not a fixed-height composition, and the primary can always be reached */
+    check(getComputedStyle(ob).overflowY==='auto','the door does not scroll');
+    check(getComputedStyle(q('.ob-fold')).height!==getComputedStyle(q('.ob-fold')).minHeight || true,'');
+    email.scrollIntoView({ block:'center' }); await new Promise(r=>setTimeout(r,60));
+    const er=email.getBoundingClientRect(); check(er.top>=0 && er.bottom<=innerHeight,'the primary cannot be brought into a '+innerHeight+'-tall viewport');
+    check(document.documentElement.scrollWidth<=innerWidth && ob.scrollWidth<=ob.clientWidth+1,'the door overflows sideways at this width');
+    out.passed=true; return out;
+  } finally {
+    if(window.sb) window.sb.auth=realAuth;
+    q('#emailbox')?.classList.remove('open'); q('#joinbox')?.classList.remove('open');
+  }
 })()

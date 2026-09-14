@@ -35,6 +35,8 @@ const WIDTHS = arg('widths', '1440,390').split(',').map(n => parseInt(n.trim(), 
 const WAIT = parseInt(arg('wait', '4500'), 10)
 const EVAL = arg('eval', null)
 const LABEL = arg('label', 'page')
+/* --height N · a short phone (the door under an open keyboard, an SE); default is the harness's own 844 / 900 */
+const HEIGHT = parseInt(arg('height', '0'), 10) || 0
 
 /* The one console line CLAUDE.md says is expected on a cold boot. Anything
    else is a finding. Kept as substrings so a wrapped message still matches. */
@@ -160,7 +162,7 @@ async function main() {
   const overflow = []
   for (const w of WIDTHS) {
     await S('Emulation.setDeviceMetricsOverride', {
-      width: w, height: w >= 900 ? 900 : 844, deviceScaleFactor: 2, mobile: w < 900,
+      width: w, height: HEIGHT || (w >= 900 ? 900 : 844), deviceScaleFactor: 2, mobile: w < 900,
     })
     await S('Page.navigate', { url: URL_ })
     await sleep(WAIT)
