@@ -1,5 +1,12 @@
 # Cup Season · active work and ownership
 
+## Brand and client parity · owner direction 2026-09-14
+
+Current build brief: [Brand and client parity](2026-09-14-brand-and-client-parity.md). **Ready for Claude; not automatically dispatched.** The exact owner board is committed with the brief. Claude leads implementation on a new owned branch; Codex independently reviews committed checkpoints and performs native/local verification. A single per-surface ledger must distinguish built, reviewed, preview verified and production verified for both clients. Missing counterparts remain open. Application baseline is main `1bc307f`; archive 890 does not establish the installed TestFlight version. Signing recovery remains separate.
+
+This brief supersedes older visual recoloring proposals and inventory-only assignments below for the new pass. It preserves working iOS interactions, restores the full cream/fescue/paper brand composition, reduces orange dominance, and requires the native five-position labeled Play band on mobile web. No application or production asset change is made by this documentation checkpoint.
+
+
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
 ## Parallel delivery and phone review · owner direction 2026-09-13
