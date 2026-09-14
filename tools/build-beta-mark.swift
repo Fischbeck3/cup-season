@@ -149,7 +149,43 @@ for (name, color) in [("light-ground", "#0F1A15"), ("dark-ground", "#F4F1E9"), (
   try lockup.write(to: vectors.appendingPathComponent("lockup-\(name).svg"), atomically: true, encoding: .utf8)
 }
 for size in [16, 32] { try draw(size).write(to: vectors.appendingPathComponent("icon-\(size).png")) }
-print("Generated DesignV1 native mark, light/dark/one-color vectors and app icons.")
+
+// D339 I-4 · the WEB icon family, from this same source and this same `draw`.
+// `tools/make-icons.py` renders the Tracer and cannot be pointed at the
+// pennant by a flag — it hardcodes that mark's geometry — so the candidate web
+// family is generated here, where the pennant already lives.
+//
+// These land in `generated/web/`, which NOTHING REFERENCES. The production
+// favicon, PWA icons, apple-touch icon and OG image stay on the Tracer until
+// the owner rules on the mark and on the icon tile (D339 open 2). Swapping
+// them is a separate, explicitly approved commit; this is the candidate to
+// look at beside the phone's. (`stamp-version.sh` copies `brand/` wholesale,
+// so these are reachable URLs like every other candidate asset already in
+// that tree — reachable is not installed: no manifest, link tag or meta
+// points at them.)
+let web = vectors.appendingPathComponent("web")
+try FileManager.default.createDirectory(at: web, withIntermediateDirectories: true)
+// The PWA and apple-touch sizes, straight off the tile.
+for (name, size) in [("icon-192", 192), ("icon-512", 512), ("apple-touch-icon", 180), ("favicon-32", 32)] {
+  try draw(size).write(to: web.appendingPathComponent("\(name).png"))
+}
+// Maskable: the same tile with the art held inside the 80% safe circle, which
+// is what Android's mask crops to. Drawn by rendering the tile small and
+// centring it on a full-bleed ground rather than by re-laying the art out.
+do {
+  let size = 512, safe = Int(Double(size) * 0.8)
+  let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size, bitsPerSample: 8,
+                             samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                             colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+  let ctx = NSGraphicsContext(bitmapImageRep: rep)!.cgContext
+  ctx.setFillColor(ground.cgColor); ctx.fill(CGRect(x: 0, y: 0, width: size, height: size))
+  if let inner = NSImage(data: draw(safe)), let cg = inner.cgImage(forProposedRect: nil, context: nil, hints: nil) {
+    let o = (size - safe) / 2
+    ctx.draw(cg, in: CGRect(x: o, y: o, width: safe, height: safe))
+  }
+  try rep.representation(using: .png, properties: [:])!.write(to: web.appendingPathComponent("icon-512-maskable.png"))
+}
+print("Generated DesignV1 native mark, light/dark/one-color vectors, app icons, and the CANDIDATE web icon family in generated/web (nothing is served from there).")
 
 for size in [16, 32, 64, 256, 1000] {
   let height = Int((Double(size) * 0.57).rounded(.up))
