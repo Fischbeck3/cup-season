@@ -11,7 +11,7 @@ built on the reviewed candidate `8f85dac`. `claude/mobile-safari-experience` and
 
 | | |
 |---|---|
-| **Candidate** | **`0251e86`** — see the readback line below for the exact SHA the preview serves |
+| **Candidate** | **`227189b`**, the tip of this branch. **The application source is `0251e86`** — `227189b` is this document, so `git diff 0251e86..227189b -- index.html tools apps` is empty. |
 | **Preview** | **https://deploy-preview-3--cupseason.netlify.app** — PR #3, the same preview. **PR #1 and PR #2 are retired as review links**; #3 is the only integrated one. |
 | Live web | `https://cupseason.app` unchanged at `963d0e6`. Nothing promoted, nothing written to the backend. |
 | Native | build 857 archived from `963d0e6`; export still blocked on distribution signing. **No native source change in this branch** beyond the LINT-14 test correction already in the baseline. |
@@ -32,6 +32,7 @@ Commits since the reviewed candidate:
 | `cfb44b5` | **D339 I-3** |
 | `0163979` | **D339 I-4** (candidate family; nothing installed) |
 | `0251e86` | WA6 correction — my own over-reach, reverted |
+| `227189b` | this document |
 
 ---
 
@@ -141,7 +142,7 @@ rendered recap artifact showing the new signature — under
 
 Branch `claude/mobile-web-integration`. Database deploy owed: none. Edge deploy
 owed: none. Client deploy owed: the reviewed candidate's publication, which is
-Codex's under the release sequence. Recommended next: audit `0251e86` at the PR
+Codex's under the release sequence. Recommended next: audit `227189b` at the PR
 #3 preview, repeat the signed-in read paths, run the paired native checks on
 this exact source, and take the three named native defects into your own
 workspace.
