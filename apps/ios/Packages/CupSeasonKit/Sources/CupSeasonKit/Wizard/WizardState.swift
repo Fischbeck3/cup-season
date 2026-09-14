@@ -76,7 +76,12 @@ public struct WizardDials: Sendable, Equatable, Codable {
     public let cap: Int?
     public let floor: Int
     public let name: String
-    public let lead: String
+    /// MW-06: the card explains its actual choices in ordinary words.
+    public var lead: String {
+      let counts = cap.map { "Your best \(SeasonStoryCopy.word($0)) each month count" } ?? "Every round counts"
+      let minimum = floor == 0 ? "no monthly minimum" : "\(SeasonStoryCopy.word(floor))-round monthly minimum"
+      return "\(counts) · \(minimum)."
+    }
     public let line: String
     /// The stepper slot for this preset's cap.
     public var capIdx: Int { Bylaws.capIndex(cap) }
@@ -84,18 +89,13 @@ public struct WizardDials: Sendable, Equatable, Codable {
   /// M-15: verification is described as what the league asks of a golfer,
   /// never as something the engine checks ("GHIN-verified" was a claim the
   /// app cannot make — ship audit 2026-08-31).
-  /// D225 / L-16 · THE CARDS STOP NAMING DIALS. "95% hcp · post what you'd post
-  /// to GHIN · best 3 / mo count · 2-round floor" recited four dials on a card
-  /// a golfer meets before they have met any of them — a live L-16 violation on
-  /// the shipping client. Each card is ONE SENTENCE now, and the wording is
-  /// TERMINOLOGY §2.3's own cell, cited rather than restated. `line` survives as
-  /// the empty string so nothing that reads it breaks; the dials themselves are
-  /// all still there, verbatim, behind **More settings** (P-6: complexity is
-  /// hidden, never deleted).
+  /// MW-06 / owner's paired-release direction supersedes the earlier mood
+  /// copy. Explain only the counting limit and minimum, without internal dial
+  /// names. More settings and all editable values remain available.
   public static let presets = [
-    Preset(cap: nil, floor: 0, name: "Casual", lead: "Honest scores, and everything counts.", line: ""),
-    Preset(cap: 3, floor: 2, name: "Standard", lead: "The default. Honest scores, light guardrails.", line: ""),
-    Preset(cap: 2, floor: 3, name: "Cutthroat", lead: "Tight. Vouched where you can, and the screws in.", line: ""),
+    Preset(cap: nil, floor: 0, name: "Casual", line: ""),
+    Preset(cap: 3, floor: 2, name: "Standard", line: ""),
+    Preset(cap: 2, floor: 3, name: "Cutthroat", line: ""),
   ]
   /// The preset's one sentence, `name — lead` (W-48, L-16). The wizard no
   /// longer renders it under the cards — the selected card carries it — but

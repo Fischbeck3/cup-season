@@ -575,3 +575,33 @@ import CSDesign
     #expect(PostDraft.decode(kept)?.sourceLive == live, "a kept live card is not")
   }
 }
+
+@Suite struct PostCountingNoteTests {
+  private func member(_ settings: String) throws -> Me.Membership {
+    let json = """
+    {"league_id":"00000000-0000-4000-8000-000000000001","name":"Test season",
+     "phase":"season","role":"member","member_id":"00000000-0000-4000-8000-000000000002","settings":\(settings)}
+    """
+    return try JSONDecoder().decode(Me.Membership.self, from: Data(json.utf8))
+  }
+
+  @Test func soloAndSquadsDescribeTheirOwnStoredCap() throws {
+    let solo = try member(#"{"structure":"solo","counting_cap":5}"#)
+    let squad = try member(#"{"structure":"squads2","counting_cap":2}"#)
+    #expect(PostSeasonRule.countingNote(solo).contains("best five each month count toward your season total"))
+    #expect(!PostSeasonRule.countingNote(solo).contains("squad"))
+    #expect(PostSeasonRule.countingNote(squad).contains("best two each month count toward your squad"))
+  }
+
+  @Test func unlimitedDoesNotPromiseReplacement() throws {
+    let unlimited = try member(#"{"structure":"solo","counting_cap":null}"#)
+    #expect(PostSeasonRule.countingNote(unlimited).contains("every one of them counts toward your season total"))
+    #expect(!PostSeasonRule.countingNote(unlimited).contains("replaces"))
+  }
+
+  @Test func missingLeagueOrSettingsDoesNotInventARule() throws {
+    #expect(PostSeasonRule.countingNote(nil).contains("Join a season"))
+    let unloaded = try member("null")
+    #expect(PostSeasonRule.countingNote(unloaded) == "Every posted round posts to your rounds.")
+  }
+}

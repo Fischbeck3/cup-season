@@ -604,6 +604,22 @@ public struct PostScan: Sendable, Equatable, Identifiable {
 // MARK: - the season window (6428–6440)
 
 public enum PostSeasonRule {
+  /// Paired release / MW-05: describe the selected membership's stored rules.
+  /// Missing settings are not proof of Unlimited or of a squad.
+  public static func countingNote(_ membership: Me.Membership?) -> String {
+    guard let membership else {
+      return "Every posted round posts to your rounds. Join a season and it counts there too."
+    }
+    guard let settings = membership.settings, let structure = settings.structure else {
+      return "Every posted round posts to your rounds."
+    }
+    let whose = structure == "solo" ? "your season total" : "your squad"
+    guard let cap = settings.counting_cap else {
+      return "Every posted round scores, and in this season every one of them counts toward \(whose)."
+    }
+    return "Every posted round scores. Your best \(SeasonStoryCopy.word(cap)) each month count toward \(whose) — a better round always replaces your lowest, in real time."
+  }
+
   /// A round only "counts this season" if it lands INSIDE the window —
   /// `played_on between starts_on and ends_on`, the rule `v_rounds_ranked` enforces.
   public static func counts(playedOn: String?, season: Me.Season?, hasLeague: Bool, today: String = CSDate.today()) -> Bool {

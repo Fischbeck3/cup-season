@@ -1,3 +1,10 @@
+> Paired-release amendment · 2026-09-14 (owner's approved MW-06 scope):
+> preset cards now explain their actual counting limit and monthly minimum
+> in plain language, derived from the preset values on both clients. This
+> supersedes §2.3's exact "light guardrails" sentence and its mood-only wording.
+> Internal dial names remain excluded; every rule remains editable. This
+> changes explanation only, not competition mechanics or preset values.
+
 # Cup Season — Terminology
 
 *The final user-facing vocabulary. Repo `/Users/fischbeck3/cup-season` at tip `3bba87e` · written 2026-09-05 · read-only on the repo but for this folder.*

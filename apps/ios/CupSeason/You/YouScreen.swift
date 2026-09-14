@@ -237,8 +237,8 @@ struct YouScreen: View {
   /// §9.9's rule is untouched: the index SLOT is still absent until there is
   /// an index. The denominator is a sentence, which is where it belongs.
   @ViewBuilder private func statusSentence(_ p: Me.Profile) -> some View {
-    let rounds = model.data.career?.rounds ?? model.card?.career.rounds ?? p.rounds_count ?? 0
-    let toEstablish = (p.index_current == nil && rounds < 3) ? 3 - rounds : nil
+    let rounds = model.data.career?.rounds ?? model.card?.career.rounds ?? p.rounds_count
+    let toEstablish = rounds.flatMap { p.index_current == nil && $0 < 3 ? 3 - $0 : nil }
     if let r = model.card?.recent.first,
        let line = CredentialCopy.status(gross: r.gross, course: r.courseLabel,
                                         playedOn: r.playedOn,
@@ -293,8 +293,9 @@ struct YouScreen: View {
     if let idx = p.index_current {
       out.append(.init(CSCopy.index(idx), label: "Handicap index"))
     }
-    let rounds = model.data.career?.rounds ?? model.card?.career.rounds ?? p.rounds_count ?? 0
-    out.append(.init(String(rounds), label: "Rounds"))
+    if let rounds = model.data.career?.rounds ?? model.card?.career.rounds ?? p.rounds_count {
+      out.append(.init(String(rounds), label: "Rounds"))
+    }
     if let m = league, let st = m.standing {
       out.append(.init(String(st.rank), label: m.name, ordinal: CSOrdinal.suffix(st.rank)))
     } else if let best = model.card?.bestRound {

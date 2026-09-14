@@ -536,16 +536,8 @@ private struct PostRoundBody: View {
     (-1, "1 to 3 over"), (-4, "more than 3 over"),
   ]
 
-  /// D142 · the cap is the LEAGUE's, never a literal 4 — Standard counts the
-  /// best 3, Cutthroat the best 2, Casual everything. With no cap in hand (an
-  /// unlimited league, or no league at all) the sentence drops the number
-  /// rather than naming one no league uses.
-  private var countingLine: String {
-    let stem = "Every posted round scores. Your best "
-    let tail = " each month count toward your squad — a better round always replaces your lowest, in real time."
-    guard let cap = model.membership?.settings?.counting_cap else { return stem + "few" + tail }   // the web's wording for the same unknown
-    return stem + String(cap) + tail
-  }
+  /// MW-05: the same format-aware explanation as the web composer.
+  private var countingLine: String { PostSeasonRule.countingNote(model.membership) }
 
   private var bandsSection: some View {
     VStack(alignment: .leading, spacing: 0) {

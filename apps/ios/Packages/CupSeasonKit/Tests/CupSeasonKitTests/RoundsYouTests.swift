@@ -16,7 +16,7 @@ import Foundation
     #expect(rows[0] == .math(label: "The course", value: "64.9 / 111", sub: false))
     // D209 · the number rows come FIRST, then the arithmetic; D210 · "VS COURSE"
     #expect(rows[1] == .math(label: "Your index that day", value: "10.0", sub: true))
-    #expect(rows[2] == .math(label: "86 − 64.9 × 113 ⁄ 111", value: "21.5 VS COURSE", sub: true))
+    #expect(rows[2] == .math(label: "(86 − 64.9) × 113 ⁄ 111", value: "21.5 VS COURSE", sub: true))
     #expect(rows[3] == .math(label: "Against your playing HCP", value: "-11.5 — POSTED ANYWAY", sub: false))
     #expect(rows[4] == .math(label: "Points", value: "5", sub: false))
     // L-01 · the denominator is part of the fact, and the fixture carries a
@@ -30,7 +30,7 @@ import Foundation
     var r = biltmore
     r.holesPlayed = 9; r.nineRating = 32.1; r.gross = 42; r.differential = 10.1
     let rows = ReceiptRows.build(r, capN: nil, viewerId: nil)
-    #expect(rows.contains(.math(label: "42 − 32.1 × 113 ⁄ 111", value: "10.1 VS COURSE", sub: true)))
+    #expect(rows.contains(.math(label: "(42 − 32.1) × 113 ⁄ 111", value: "10.1 VS COURSE", sub: true)))
     #expect(rows.contains(.math(label: "Nine holes", value: "HALF VALUE · HALF A ROUND", sub: false)))
   }
 

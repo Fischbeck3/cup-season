@@ -21,15 +21,12 @@ import Foundation
   @Test func theLadderIsTheWebs() {
     #expect(WizardDials.caps == ["Best 2", "Best 3", "Best 4", "Best 6", "Unlimited"])
     #expect(WizardDials.capVals == [2, 3, 4, 6, nil])
-    // D225 / L-16 · the cards STOP NAMING DIALS. Reciting four dials on a card
-    // a golfer meets before they have met any of them was a live L-16 violation
-    // on the shipping client; each card is one sentence now, and every dial is
-    // still there, verbatim, behind More settings (P-6).
+    // MW-06: explain actual consequences without internal dial names.
     #expect(WizardDials.presets.map(\.line) == ["", "", ""])
     #expect(WizardDials.presets.map(\.lead) == [
-      "Honest scores, and everything counts.",
-      "The default. Honest scores, light guardrails.",
-      "Tight. Vouched where you can, and the screws in.",
+      "Every round counts · no monthly minimum.",
+      "Your best three each month count · two-round monthly minimum.",
+      "Your best two each month count · three-round monthly minimum.",
     ])
     for p in WizardDials.presets {
       for dial in ["hcp", "%", "counting", "floor", "GHIN", "attested"] {
@@ -56,9 +53,9 @@ import Foundation
   }
   @Test func summaryAndNotesAreTheWebs() {
     var d = WizardDials()
-    #expect(d.presetSummaryText == "Standard — the default. Honest scores, light guardrails.")
+    #expect(d.presetSummaryText == "Standard — your best three each month count · two-round monthly minimum.")
     d.applyPreset(2)
-    #expect(d.presetSummaryText == "Cutthroat — tight. Vouched where you can, and the screws in.")
+    #expect(d.presetSummaryText == "Cutthroat — your best two each month count · three-round monthly minimum.")
     d.applyPreset(1)
     d.payout = [70, 20, 10]
     #expect(d.payNote == "Winner-heavy: champion 70% · runner-up 20% · Points King 10%.")

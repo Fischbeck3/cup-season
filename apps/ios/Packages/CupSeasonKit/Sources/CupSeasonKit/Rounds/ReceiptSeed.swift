@@ -196,7 +196,7 @@ public enum ReceiptRows {
     if let diff = r.differential, let rating = r.rating, let slope = r.slope, let gross = r.gross {
       let holes = r.holesPlayed == 9 ? 9 : 18
       let rt = (holes == 9 && r.nineRating != nil) ? r.nineRating! : rating
-      rows.append(.math(label: "\(gross) − \(RoundCopy.f1(rt)) × 113 ⁄ \(slope)", value: "\(RoundCopy.f1(diff)) VS COURSE", sub: true))
+      rows.append(.math(label: "(\(gross) − \(RoundCopy.f1(rt))) × 113 ⁄ \(slope)", value: "\(RoundCopy.f1(diff)) VS COURSE", sub: true))
     }
     if provisional {
       rows.append(.note(noNumberYet(round: r.provisionalRound)))
