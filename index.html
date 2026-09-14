@@ -519,6 +519,11 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .peerrow .pe{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); display:block;}
 .peerrow .pn{font-size:14.5px; font-weight:700; display:block; margin-top:2px;}
 .peerrow .ps{font-family:var(--mono); font-size:12px; color:var(--mut); display:block; margin-top:3px;}
+/* MW-03 · one status, when there is one: the clash closing, the season's last
+   week. Ember is the clock's colour on this client (D231); it is a word, not a
+   control, so it is never a button. */
+.peerrow .pt{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); display:block; margin-top:4px;}
+@media(max-width:959px){ #view-compete .deskaside[data-empty]{display:none;} }
 /* L-32 · the empty root, one shape for both destinations */
 .cmphead{display:flex; align-items:baseline; gap:14px; margin:0 0 6px;}
 /* WAVE 11 / D280 - a page names itself in the DISPLAY role, not the serif.
@@ -18004,19 +18009,57 @@ function csDaysBetween(fromISO, toISO){
 /* The list itself. `memberships` and `events` are what the boot already loaded;
    `schedule` is `my_schedule`'s rows, filtered by the SINGLE plan predicate
    (`isMyPlan`) rather than re-filtered here — D234's whole point. */
-function csCompeteList(memberships, events, schedule, todayISO){
+/* MW-03 · what a season row can say about MY standing, from the one read that
+   carries it. The boot's membership rows carry no standing (the lead block's
+   own note says so), but `home_dispatch.me.memberships[]` does: `standing`
+   {rank, of, points, gap_to_leader, leader_name…} and `season` {week_no,
+   weeks_total, days_left}. Joined by league id. A missing rank stays missing —
+   the row keeps its plain sentence — and nothing here computes a point. */
+function csCompeteFacts(){
+  const d = window.homeDispatch && window.homeDispatch.me;
+  const rows = d && Array.isArray(d.memberships) ? d.memberships : [];
+  const map = new Map();
+  rows.forEach(m => { if(m && m.league_id) map.set(m.league_id, m); });
+  return map;
+}
+function csSeasonRowFacts(f, role){
+  if(!f) return null;
+  const st = f.standing || null, se = f.season || null;
+  const rank = st && Number.isFinite(Number(st.rank)) ? Number(st.rank) : null;
+  const of   = st && Number.isFinite(Number(st.of)) ? Number(st.of) : null;
+  const pts  = st && st.points != null && Number.isFinite(Number(st.points)) ? Number(st.points) : null;
+  const gap  = st && st.gap_to_leader != null && Number.isFinite(Number(st.gap_to_leader)) ? Number(st.gap_to_leader) : null;
+  const parts = [];
+  if(rank != null && of != null) parts.push(climbOrd(rank) + ' of ' + of);
+  if(pts != null) parts.push(pts + ' pts');
+  if(rank != null && of != null){
+    if(rank === 1 && of > 1) parts.push('leading');
+    else if(gap != null && gap > 0 && st.leader_name) parts.push(gap + ' behind ' + String(st.leader_name).split(' ')[0]);
+  }
+  let eyebrow = null;
+  if(se && se.week_no != null && se.weeks_total != null) eyebrow = 'Week ' + se.week_no + ' of ' + se.weeks_total;
+  const clash = f.clash || null;
+  let status = null;
+  if(clash && clash.closes_today) status = 'The clash closes today';
+  else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
+  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status };
+}
+function csCompeteList(memberships, events, schedule, todayISO, facts){
   const today = todayISO || new Date().toISOString().slice(0,10);
   const live=[], moments=[], finished=[];
+  const fm = facts || csCompeteFacts();
   (memberships||[]).forEach(m=>{
     const lg=m.league||m, done = (lg.phase==='complete');
+    const f = !done && lg.phase==='season' ? csSeasonRowFacts(fm.get(lg.id), m.role) : null;
     const row={ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
-                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? 'In season' : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
+                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? ((f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
                 title: lg.name || 'A season',
                 /* L-44 · a finished season says it is finished. The champion's
                    NAME is a fact the boot's membership rows do not carry, so it
                    is not claimed here — the season page names them. */
                 sub: done ? 'Wrapped. Open it for the table.'
-                          : (m.role==='commissioner' ? 'You run it (the Pro).' : 'You’re in it.'),
+                          : ((f && f.sub) ? f.sub : (m.role==='commissioner' ? 'You run it (the Pro).' : 'You’re in it.')),
+                status: f && f.status ? f.status : null,
                 clock: null };
     (done ? finished : live).push(row);
   });
@@ -18280,7 +18323,7 @@ function csEmptyRootHtml(root){
 
 function csPeerRowHtml(r){
   return `<button class="peerrow" type="button" data-peer="${esc(r.id)}">
-      <span class="pe">${esc(r.eyebrow)}</span><span class="pn">${esc(r.title)}</span><span class="ps">${esc(r.sub)}</span>
+      <span class="pe">${esc(r.eyebrow)}</span><span class="pn">${esc(r.title)}</span><span class="ps">${esc(r.sub)}</span>${r.status ? `<span class="pt">${esc(r.status)}</span>` : ''}
     </button>`;
 }
 
@@ -18316,6 +18359,11 @@ function renderCompete(){
   if(shelf) shelf.innerHTML = list.finished.length
     ? list.finished.map(csPeerRowHtml).join('')
     : '<p class="fine" style="padding:0">Nothing finished yet.</p>';
+  /* MW-03 · an empty archive is chrome on a phone. The shelf keeps its place
+     on the desk, where a column beside the list costs nothing; below the desk
+     it stands down until there is something finished to show. */
+  const aside = shelf && shelf.closest('.deskaside');
+  if(aside) aside.toggleAttribute('data-empty', !list.finished.length);
   [box, shelf].forEach(el=>{ if(!el) return;
     el.querySelectorAll('[data-peer]').forEach(b=>b.addEventListener('click',()=>{
       const [kind,id]=b.dataset.peer.split(':');
