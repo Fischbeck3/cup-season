@@ -15,6 +15,10 @@
     check(window.CS_BRAND && CS_BRAND.tagline==='ANY TIME.\nANYWHERE.','CS_BRAND is not the producer');
     const h1=q('.ob-hero h1.cs-brandline');
     check(!!h1 && h1.innerText.trim().replace(/\s*\n\s*/g,'\n')===CS_BRAND.tagline,'the door does not print the brand line');
+    await document.fonts.ready;
+    const headlineStyle=getComputedStyle(h1);
+    check(h1.getBoundingClientRect().height <= parseFloat(headlineStyle.lineHeight)*2+2,
+      'the normal-size statement breaks ANYWHERE onto a third line');
     const sf=q('.ob-hero .cs-standfirst');
     check(!!sf && sf.textContent.trim()===CS_BRAND.standfirst,'the door does not print the standfirst');
     check(q('meta[name="description"]').content===CS_BRAND.description,'the head description is not the producer’s');
