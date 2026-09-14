@@ -40,6 +40,12 @@ public enum RoundCopy {
   /// The armed half of the two-tap. Never an alert (IOS-003 §4).
   public static let photoRemoveArmed = "Sure?"
 
+  /// **The seventh sentence** · the artifact that leaves the app asks before
+  /// it carries the photograph, and the desk asks in the same words. The
+  /// control is a switch on the phone and a pressed-state button on the desk —
+  /// the shapes differ, the sentence does not (D234).
+  public static let photoInclude = "Include round photo"
+
   /// D298 · **the two doors, and one of them is the roll.** The phone offered
   /// the camera alone — `cameraAvailable` was read as a fallback rather than a
   /// choice — while the desk has shown iOS's own menu all along. The words are

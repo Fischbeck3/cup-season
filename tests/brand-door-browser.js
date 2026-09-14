@@ -126,18 +126,27 @@
       return over;
     };
     const rootWas=docEl.style.fontSize, h1Was=h1.style.fontSize;
+    const normalSize=parseFloat(getComputedStyle(h1).fontSize);
     try{
       docEl.style.fontSize='32px';                                  /* 200% of the 16px default */
       await new Promise(r=>setTimeout(r,40));
       const big=parseFloat(getComputedStyle(h1).fontSize);
-      check(big>60,'F3: the statement ignored the reader’s text size (still '+big+'px)');
+      /* enlargement is PRESERVED — the statement grows with the reader's
+         setting — and it is CAPPED at what this measure holds as whole words,
+         which is the owner's 2026-09-14 ruling. Both halves are asserted. */
+      check(big>normalSize,'the statement ignored the reader’s text size ('+normalSize+' → '+big+'px)');
       let over=clipped();
       check(!over.length,'F3: enlarged text is clipped inside the door: '+JSON.stringify(over));
-      h1.style.fontSize=(big*1.5)+'px';                            /* and beyond any setting */
-      await new Promise(r=>setTimeout(r,40));
-      over=clipped();
-      check(!over.length,'F3: a larger statement is clipped inside the door: '+JSON.stringify(over));
+      out.normalSize=normalSize;
       check(/ANY TIME/.test(h1.innerText.toUpperCase()) && /ANYWHERE/.test(h1.innerText.toUpperCase()),'F3: the statement lost letters when it reflowed');
+      /* OWNER RULING (2026-09-14) · enlargement is preserved AND the words stay
+         whole. Breaking anywhere kept every letter and printed ANYWHE / RE;
+         the composition takes the height instead. */
+      const wrap=getComputedStyle(h1);
+      check(wrap.overflowWrap==='normal' && wrap.wordBreak==='normal','the statement may still break mid-word: '+wrap.overflowWrap+'/'+wrap.wordBreak);
+      const words=h1.innerText.split(/\s+/).filter(Boolean).map(w=>w.replace(/[^A-Za-z.]/g,''));
+      check(words.every(w=>/^(Any|time\.|Anywhere\.)$/i.test(w)),'the statement broke a word: '+JSON.stringify(words));
+      out.enlargedWords=words;
       const entries=[q('#obEmail'), q('#obJoin')].filter(shown);
       check(entries.length===2,'F3: an entry control vanished at enlarged text');
       for(const b of entries){

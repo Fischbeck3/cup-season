@@ -47,6 +47,10 @@ same drawing at two volumes.
 
 ## Rules
 
+- **SUPERSEDED FOR THE PRODUCTION MARK (D358, 2026-09-14).** The tile is a
+  **fescue field with a cream pennant and sparse, fine contours**, simplified at
+  small sizes for legibility. The rule below described the Tracer's tile and is
+  kept as history for that asset family.
 - **Solid ember field, never a black tile** — a near-black tile reads as a
   hole between home-screen icons.
 - **Flat ember only in the mark.** The gradient (`#F2A03D` → `#FF5A2E`) is an

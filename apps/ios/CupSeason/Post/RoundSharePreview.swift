@@ -24,12 +24,19 @@ struct RoundSharePreview: View {
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
           if let image {
             Image(uiImage: image).resizable().scaledToFit()
+              // The identifier names the composition that was actually
+              // rendered — `RecapCardView.render` was handed the photograph or
+              // it was not — so a test can read the opt-out's effect on the
+              // OUTPUT rather than on the switch.
+              .accessibilityIdentifier(includePhoto && photo != nil ? "round.share.card.withPhoto" : "round.share.card.noPhoto")
               .accessibilityLabel("Round card. \(publicRecap.name). \(publicRecap.gross) gross at \(publicRecap.course). \(publicRecap.date). Any time. Anywhere.")
           } else {
             Text("Couldn’t create your round card. Close and try again.").csType(.body)
           }
           if photo != nil {
-            Toggle("Include round photo", isOn: $includePhoto).tint(cs.brand)
+            // D359 · an ordinary control takes the action colour; ember is
+            // reserved for an active competition and a share sheet is not one.
+            Toggle(RoundCopy.photoInclude, isOn: $includePhoto).tint(cs.act)
           }
           Text(publicRecap.caption).csType(.bodyS).foregroundStyle(cs.mut)
 

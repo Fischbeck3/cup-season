@@ -444,7 +444,11 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .csedn.ember .eb{color:var(--brand);}
 /* the LIVE dot, 7px in ember. WAVE 11 adds the season head's eyebrow to the
    same rule rather than writing the mark a second time. */
-.csedn .dot, .seasoneye .dot{width:7px; height:7px; border-radius:50%; background:var(--brand); flex:none;}
+.csedn .dot, .seasoneye .dot{width:7px; height:7px; border-radius:50%; flex:none;}
+/* the lead's dot renders only inside `.csedn.ember` — an active competition,
+   so it keeps ember. The season dateline's is decoration and does not (D359). */
+.csedn .dot{background:var(--brand);}
+.seasoneye .dot{background:var(--mut);}
 .csedn .hl{color:var(--ink); margin:0;}
 .csedn .sf{color:var(--mut); margin-top:11px;}
 /* the door: a 2px rule under the words, and the rule is the affordance. It is
@@ -2803,9 +2807,22 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
    setting entirely); and a word longer than the measure breaks instead of
    running past it. 2.625rem is 42px at the default root — the composition at
    ordinary settings is unchanged. */
-.onboard .ob-hero .cs-brandline{font-family:var(--serif); font-weight:700; font-size:2.625rem; line-height:1.04;
+/* ENLARGED TEXT KEEPS WHOLE WORDS (owner ruling, 2026-09-14). F3 stopped the
+   clipping by letting a word break anywhere, and at 200% that printed
+   ANYWHE / RE — letters preserved and the composition ruined. The fix belongs
+   to the composition, not to the word: the size still follows `rem`, so a
+   reader's setting still enlarges it, and `13vw` caps it at what this measure
+   can hold as WHOLE words. The line simply takes another line and the column
+   takes the height, which the door already scrolls. `overflow-wrap:normal` is
+   explicit so nothing re-introduces a mid-word break. */
+.onboard .ob-hero .cs-brandline{font-family:var(--serif); font-weight:700;
+  /* 15vw, not 13: at 320 a 13vw cap already bound at the DEFAULT size, so the
+     reader's text setting moved nothing on the narrowest phone. 15vw leaves the
+     rem term winning everywhere at default — the composition is unchanged — and
+     still caps enlargement at what the measure holds as whole words. */
+  font-size:min(2.625rem, 15vw); line-height:1.04;
   letter-spacing:calc(var(--tight) * 1em); color:var(--ink); margin:0; max-width:100%; text-wrap:balance;
-  overflow-wrap:anywhere;}
+  overflow-wrap:normal; word-break:normal; hyphens:none;}
 /* The board draws a short rule under the statement, and the composition wants
    it. It is NOT ember: the D305/D313 amendment (2026-09-14) reserves ember for
    an ACTIVE COMPETITION — a live clash, a closing window, a round to answer —
@@ -2819,7 +2836,11 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .ob-sig{flex-wrap:wrap;}
 .onboard .ob-hero .cs-standfirst{color:var(--mut); margin:20px 0 0; max-width:36ch; margin-left:0; margin-right:0;}
 @media(min-width:760px){
-  .onboard .ob-hero .cs-brandline{font-size:4rem;}
+  /* on the desk the statement's column is a fixed 480 (`.ob-in`), so its cap
+     is a length rather than a viewport fraction: 88px is what 480 holds as
+     whole words. Below 760 the column IS the viewport, so the phone rule's
+     `13vw` is the right cap there. */
+  .onboard .ob-hero .cs-brandline{font-size:min(4rem, 88px);}
 }
 @keyframes csDraw{from{stroke-dashoffset:620;} to{stroke-dashoffset:0;}}
 @keyframes csPlant{0%{opacity:0; transform:translateY(12px);} 55%{opacity:1; transform:translateY(-2px);} 100%{opacity:1; transform:translateY(0);}}
@@ -3494,6 +3515,14 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 }
 .finish-share:hover{filter:brightness(1.06);}
 .finish-share:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
+.finish-photoopt{
+  display:flex; align-items:center; justify-content:center; gap:var(--s2); min-height:44px;
+  margin-top:var(--s5); padding:0 var(--s4); border:1px solid var(--ceremony-mut);
+  border-radius:var(--rc); background:none; cursor:pointer;
+  font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ceremony-mut);
+}
+.finish-photoopt[aria-pressed="true"]{color:var(--ceremony-ink); border-color:var(--ceremony-ink);}
+.finish-photoopt:focus-visible{outline:2px solid var(--ceremony-ink); outline-offset:2px;}
 .finish-back{margin-top:8px; padding:12px; border:0; background:none; cursor:pointer;
   font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ceremony-mut);}
 .finish-back:focus-visible{outline:2px solid var(--ceremony-mut); outline-offset:2px; border-radius:6px;}
@@ -3502,11 +3531,11 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 #finish.open .finish-gross{animation:finishRoll .64s var(--roll) 1.85s both;}
 #finish.open .finish-band{animation:finishRoll .64s var(--roll) 2.03s both;}
 #finish.open .finish-pts{animation:finishRoll .64s var(--roll) 2.21s both;}
-#finish.open .finish-rule, #finish.open .finish-share, #finish.open .finish-back{animation:csFade .5s ease 2.55s both;}
+#finish.open .finish-rule, #finish.open .finish-photoopt, #finish.open .finish-share, #finish.open .finish-back{animation:csFade .5s ease 2.55s both;}
 @keyframes finishRoll{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
 @media(prefers-reduced-motion:reduce){
   #finish.open .finish-gross, #finish.open .finish-band, #finish.open .finish-pts,
-  #finish.open .finish-rule, #finish.open .finish-share, #finish.open .finish-back{animation:none;}
+  #finish.open .finish-rule, #finish.open .finish-photoopt, #finish.open .finish-share, #finish.open .finish-back{animation:none;}
   #finish.open .finish-ball, #finish.open .finish-cup,
   #finish.open .finish-cupfront, #finish.open .finish-cupring{display:none;}
 }
@@ -3826,9 +3855,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
 /* eyebrows: every section tees off with the scoreline dash */
 .eyebrow{justify-content:flex-start; gap:8px;}
+/* D359 · THE SECTION DASH IS NOT A COMPETITION SIGNAL. It was ember before
+   every section head on the phone — furniture wearing the colour that means
+   "a contest is live right now". Muted ink; the desk deletes it entirely
+   (below), and a live item still gets its own ember spine. */
 .eyebrow::before{
   content:""; width:10px; height:3px; border-radius:2px; flex:none;
-  background:var(--brand); opacity:.85;
+  background:var(--mut); opacity:.85;
 }
 .eyebrow a, .eyebrow span:last-child{margin-left:auto;}
 /* WAVE 11 / D280 - AT THE DESK A SECTION HEAD IS A LABEL, A RULE TO THE
@@ -5618,6 +5651,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     <div class="finish-band" id="finBand"></div>
     <div class="finish-pts" id="finPts"></div>
     <div class="finish-rule" aria-hidden="true"></div>
+    <!-- D359 follow-through · the photograph is the golfer's, and the artifact
+         that leaves the app asks before it carries it. The phone asks with a
+         switch and the desk with a pressed-state button — one sentence, two
+         shapes (RoundCopy.photoInclude). Hidden when the round has no
+         photograph, so the control never stands with nothing behind it. -->
+    <button class="finish-photoopt" id="finPhoto" type="button" aria-pressed="true" hidden></button>
     <button class="finish-share" id="finShare" type="button">Share the card</button>
     <button class="finish-back" id="finBack" type="button">Back to the board</button>
   </div>
@@ -9847,6 +9886,18 @@ function finishCeremony(o){
     course:o.course||'', date:dt, league:o.leagueName||null,
     badge:null, photo:o.photo||null,
   };
+  /* the opt-out stands only when there is a photograph to leave out, and it
+     re-arms on every post — a golfer who opted out of one card is not opted
+     out of the next one. */
+  const po=$('#finPhoto');
+  if(po){
+    po.hidden = !_finishShare.photo;
+    po.setAttribute('aria-pressed','true');
+    /* CS_PHOTO is a top-level `const` in this same classic script, so it is
+       NOT on `window` — the landmine that reads a missing bridge as demo mode
+       reads a missing const as the fallback string. `typeof` is the test. */
+    po.textContent = (typeof CS_PHOTO!=='undefined' ? CS_PHOTO.include : 'Include round photo');
+  }
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
   lockBody();
@@ -9863,7 +9914,18 @@ function finishDismiss(){
 }
 (function wireFinish(){
   const el=document.getElementById('finish'); if(!el) return;
-  $('#finShare')?.addEventListener('click',()=>{ if(_finishShare) shareRecapCard(_finishShare); });
+  $('#finPhoto')?.addEventListener('click',e=>{
+    const b=e.currentTarget;
+    b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true' ? 'false' : 'true');
+  });
+  /* the OUTPUT carries the photograph only while the control says so; the
+     round's own attachment is never touched by this — opting out of a card is
+     not removing a photograph from a round (§16). */
+  $('#finShare')?.addEventListener('click',()=>{
+    if(!_finishShare) return;
+    const po=$('#finPhoto'), on = !po || po.hidden || po.getAttribute('aria-pressed')==='true';
+    shareRecapCard(Object.assign({}, _finishShare, { photo: on ? _finishShare.photo : null }));
+  });
   $('#finBack')?.addEventListener('click',finishDismiss);
   el.addEventListener('click',e=>{ if(e.target===el) finishDismiss(); });   /* backdrop */
   /* capture-phase Escape: the curtain eats it before the global sheet-closer,
@@ -19807,6 +19869,8 @@ const CS_PHOTO = {
   replace: 'Replace photo',
   remove: 'Remove photo',
   armed: 'Sure?',
+  /* the seventh sentence · RoundCopy.photoInclude */
+  include: 'Include round photo',
   /* the honest pre-migration sentence, in the form csRateCourse set */
   needsPush: 'Not attached — photos on a posted round need the latest update — try again shortly.',
   failed: 'That photo didn’t attach. Check your signal and try again.',

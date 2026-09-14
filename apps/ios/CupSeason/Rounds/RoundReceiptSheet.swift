@@ -465,8 +465,15 @@ struct RoundReceiptSheet: View {
     shareBusy = true
     defer { shareBusy = false }
     sharePhoto = nil
+    #if DEBUG
+    // `-cs_dev_receipt_photo on` stands a photograph on the round itself. The
+    // fetch below deliberately accepts only a signed HTTP 200, and the hatch's
+    // URL is a file on disk, so the stand-in is handed over directly rather
+    // than smuggled through a relaxed status check on the real path.
+    if ReceiptPhotoDev.mode == "on" { sharePhoto = ReceiptPhotoDev.image }
+    #endif
     // Only the photograph attached to this accepted, owned round; no course fallback.
-    if let url = r.photoURL, let (data, response) = try? await URLSession.shared.data(from: url),
+    if sharePhoto == nil, let url = r.photoURL, let (data, response) = try? await URLSession.shared.data(from: url),
        (response as? HTTPURLResponse)?.statusCode == 200 {
       sharePhoto = UIImage(data: data)
     }

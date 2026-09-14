@@ -138,7 +138,13 @@ struct RootView: View {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") {
         RoundSharePreview(recap: PostRecap(name: "QA golfer", marker: "",
           gross: 91, pvi: nil, points: nil, course: "QA course · fixture",
-          date: "2026-09-11", badge: nil), photo: nil)
+          date: "2026-09-11", badge: nil),
+          // `-cs_dev_share_photo` · the fixture round ACTUALLY carries a
+          // photograph, so the opt-out has a with-photo state to remove and
+          // restore without a signed-in account or a signed URL. Without the
+          // flag this is the no-photo case, which stays a case of its own.
+          photo: ProcessInfo.processInfo.arguments.contains("-cs_dev_share_photo")
+            ? ReceiptPhotoDev.image : nil)
           .background(cs.bg0.ignoresSafeArea())
       }
     }

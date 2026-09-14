@@ -7622,3 +7622,27 @@ Four sentences that asserted more than their payload carried. Each is the same f
 - **A Major card said "buy-in stays in the pot".** That asserts money was collected. **No Major payment record exists anywhere in the schema** — `buy_ins` is season-scoped and no migration creates a per-event payment row — so the app cannot know it. It now says only what it knows: no card.
 - **Principle served.** §16, and L-44: a fact with no read renders nothing rather than something plausible.
 - **Not fixed here, and recorded instead:** the Major pot figure itself is client multiplication (`buy_in × contenders`) with no ledger behind it, on both clients. Naming that honestly is a larger copy and product question than this checkpoint should decide alone.
+
+### D358 · The pennant is the production mark, and identity may sign where identity belongs
+**OWNER-RATIFIED 2026-09-14** (owner, on the 2026-09-14 brand board: *"ratify the established CS pennant from the approved board as our production mark"*) · UI/brand level · supersedes the open questions in D339, amends LINT-28 and `brand/README.md`
+
+- **Current state before this.** `brand/mark.svg` — the Tracer — was the checked-in master, and brand canon recorded the production mark as an open owner decision. The pennant shipped as the iOS app icon from TestFlight 791 and was drawn on the native door, masthead, folio, boot screen and every artifact, while the web served the Tracer for the favicon, PWA icons, apple-touch icon and link preview. **Two marks were live at once, split by platform.**
+- **Decision.** The CS pennant — a cream flag with cut CS counters over a curved ridge, generated from `brand/candidates/testflight-pennant/source.json` by `tools/build-beta-mark.sh` — **is the production mark of Cup Season.** One authoritative vector source; every raster in the web and iOS families is generated from it and never hand-drawn or traced.
+- **The two grounds.** Cream pennant on deep fescue; dark-green pennant on warm paper. Both appear on the owner's board as mark variations and both resolve to the existing `ink` token on their own ground, so neither client needs a colour of its own.
+- **Icon tile (closes D339 open 2).** A **fescue field, a cream pennant and sparse, fine contours.** There is no solid ember identity tile. `brand/README.md`'s "solid ember field, never a black tile" described the Tracer's tile and is superseded for this mark. At small sizes the contours **simplify or drop** in favour of legibility — the mark must read at 16px before it decorates at 1024.
+- **Placement (amends LINT-28).** The pennant may appear **wherever Cup Season signs its identity**: the welcome, mastheads, the app icon, boot, and shared artifacts. It is used **sparingly** and is **not a generic action icon** — it does not become a button glyph, a row affordance or a bullet. LINT-28's old reservation to the tab band and the app icon is replaced by that rule; the separate ban on the pennant as an ACHIEVEMENT glyph (§5.1) is untouched, because a trophy is not a signature.
+- **Principle served.** One product, one mark. D234 says a change has a phone half and a web half and is not done until both ship; two live marks was that rule failing in the most visible place a brand can fail.
+- **Tradeoffs.** Every web install, favicon and link preview changes at once, and cached installs will show the old icon until refreshed. The Tracer family stays in the repository as history and is not deleted.
+
+### D359 · Green carries ordinary actions; ember marks active competition; a look styles the action, never the signal
+**OWNER-RATIFIED 2026-09-14** · UI/colour level · implements and closes the D305/D313 amendment; supersedes "ember = live and the one primary action"
+
+- **Current mechanic before this.** `brand` (ember) painted ordinary actions, Play and live competition alike, and a selected look replaced `brand` broadly — one substitution doing two jobs. Mobile web additionally floated an ember Play disc above the band.
+- **Decision, as built.**
+  - **`act` is the ordinary-action colour** — a fescue-family green, `#5FA271` on the dark ground and `#1F5D3A` on warm paper. It lives in `packages/tokens/tokens.json` and is generated into `tokens.css`, `tokens.ts` and `Tokens.swift`, so both clients read one value. It carries primary buttons, Play, focus rings and ordinary selected states.
+  - **Ember is reserved for an active competition** — a live clash, an existing closing window, a round to answer in an active contest — and it keeps that colour wherever the same competition surfaces.
+  - **A personal look may style the ordinary action** and does: `CSTheme.livery` substitutes `act`, not `brand`. **It may not repaint the reserved competition signal, earned gold or the semantic colours.**
+  - **Routine decorative ember is neutralised through the shared components**, not per call site: a page header's tick and eyebrow fall back to muted ink on homebase. Meaningful competition indicators keep ember.
+- **Principle served.** One colour, one meaning. Ordinary navigation, starting golf and a live contest were spending the same attention colour, and the owner's board puts fescue and paper in front with orange as an accent among five.
+- **Tradeoffs.** A golfer who chose a look sees it on their controls rather than on live states — which is the point, but it is a visible change for anyone who had set one. No semantic green, gold, image colour or `brand` value was globally replaced.
+

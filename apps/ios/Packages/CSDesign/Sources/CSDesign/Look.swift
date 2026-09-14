@@ -38,9 +38,9 @@ public struct CSLookAccent: Sendable {
 
   public var active: Bool { look != nil }
   /// The spine, the halo tint, the eyebrow word's colour.
-  public var accent: Color { look?.accent(theme) ?? cs.brand }
+  public var accent: Color { look?.accent(theme) ?? cs.act }
   /// The partner colour — the swatch's second half, a chip's stroke.
-  public var accent2: Color { look?.accent2(theme) ?? cs.brand }
+  public var accent2: Color { look?.accent2(theme) ?? cs.act }
 
   /// The spine a surface should wear: gold when EARNED (never overridden), else the accent.
   public func spine(earned: Bool) -> Color { earned ? cs.gold : accent }
@@ -53,10 +53,14 @@ public struct CSLookAccent: Sendable {
      wash nothing paints is a number waiting to be painted again. **A look now
      reaches exactly three channels: the tick, the eyebrow and the spine** —
      all three of them a MARK, none of them a field of colour over a page. */
-  /// The page header's tick: accent → accent2 under a look; flat ember on
-  /// homebase. D270 deleted `effect.grad` — BRIEF §4 names the amber→ember
-  /// gradient as a do-not, and a two-stop ramp of one hue is not a gradient.
-  public var tick: [Color] { active ? [accent, accent2] : [cs.brand, cs.brand] }
+  /// The page header's tick: accent → accent2 under a look; **muted ink on
+  /// homebase** (D359, 2026-09-14). It was flat ember, which spent the
+  /// competition colour on a decoration that appears at the top of every page
+  /// — ember now marks an active competition and nothing routine. A look still
+  /// styles it, because a livery is the golfer's own choice.
+  /// D270 deleted `effect.grad` — BRIEF §4 names the amber→ember gradient as a
+  /// do-not, and a two-stop ramp of one hue is not a gradient.
+  public var tick: [Color] { active ? [accent, accent2] : [cs.mut, cs.mut] }
   /// An eyebrow or section head's colour: the accent at full strength under a
   /// look; nil = `.csEyebrow()`'s default `mut`. Gold eyebrows are the caller's.
   public var eyebrow: Color? { active ? accent : nil }

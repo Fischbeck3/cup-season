@@ -12,6 +12,55 @@ final class RoundShareReviewTests: XCTestCase {
     shot.name = "share-preview-large-text-dark-fixture"; shot.lifetime = .keepAlways; add(shot)
   }
 
+  /// D359 follow-through · the opt-out, on a fixture round that ACTUALLY
+  /// carries a photograph. Nothing here touches an account: `-cs_dev_share_photo`
+  /// hands the fixture the drawn stand-in, so the three states — included,
+  /// opted out, opted back in — are the same three every run.
+  ///
+  /// It reads the OUTPUT, not the switch: `round.share.card.withPhoto` and
+  /// `round.share.card.noPhoto` are the identifier of the rendered card, and
+  /// they name which composition `RecapCardView.render` was actually handed.
+  @MainActor func testFixturePhotoOptOutRemovesAndRestoresIt() throws {
+    let app = XCUIApplication()
+    app.launchArguments = ["-cs_dev_round_share_fixture", "-cs_dev_share_photo",
+                           "-cs_dev_look", "none", "-cs_dev_appearance", "dark"]
+    app.launch()
+    let withPhoto = app.images["round.share.card.withPhoto"]
+    let noPhoto = app.images["round.share.card.noPhoto"]
+    XCTAssertTrue(withPhoto.waitForExistence(timeout: 35), "the fixture round carries a photograph")
+    let on = XCTAttachment(screenshot: app.screenshot())
+    on.name = "fixture-share-with-photo"; on.lifetime = .keepAlways; add(on)
+
+    let toggle = app.switches["Include round photo"]
+    XCTAssertTrue(toggle.waitForExistence(timeout: 10), "a round with a photograph offers the opt-out")
+    for _ in 0..<4 where !toggle.isHittable { app.swipeUp() }
+    toggle.tap()
+    XCTAssertTrue(noPhoto.waitForExistence(timeout: 10), "opting out removes the photograph from the card")
+    XCTAssertFalse(withPhoto.exists)
+    let off = XCTAttachment(screenshot: app.screenshot())
+    off.name = "fixture-share-opted-out"; off.lifetime = .keepAlways; add(off)
+
+    toggle.tap()
+    XCTAssertTrue(withPhoto.waitForExistence(timeout: 10), "opting back in restores it")
+    XCTAssertFalse(noPhoto.exists)
+    let back = XCTAttachment(screenshot: app.screenshot())
+    back.name = "fixture-share-photo-restored"; back.lifetime = .keepAlways; add(back)
+  }
+
+  /// The separate no-photo case: a round with no photograph renders the card
+  /// without one and offers no switch at all, so the opt-out is not a control
+  /// that exists with nothing behind it.
+  @MainActor func testFixtureWithoutPhotoOffersNoOptOut() throws {
+    let app = XCUIApplication()
+    app.launchArguments = ["-cs_dev_round_share_fixture", "-cs_dev_look", "none", "-cs_dev_appearance", "dark"]
+    app.launch()
+    XCTAssertTrue(app.images["round.share.card.noPhoto"].waitForExistence(timeout: 35))
+    XCTAssertFalse(app.images["round.share.card.withPhoto"].exists)
+    XCTAssertFalse(app.switches["Include round photo"].exists, "no photograph, no opt-out")
+    let shot = XCTAttachment(screenshot: app.screenshot())
+    shot.name = "fixture-share-no-photo-case"; shot.lifetime = .keepAlways; add(shot)
+  }
+
   @MainActor func testFixturePreviewAndNativeShareCancellation() throws {
     let app = XCUIApplication()
     app.launchArguments = ["-cs_dev_round_share_fixture", "-cs_dev_look", "none", "-cs_dev_appearance", "light"]
@@ -50,7 +99,14 @@ final class AcceptedRoundReviewTests: XCTestCase {
 
   @MainActor func testAcceptedReceiptToPreviewAndPhotoOptOut() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-cs_dev_open", "receipt", "-cs_dev_look", "none", "-cs_dev_appearance", "light", "-cs_dev_text_size", "large", "-cs_dev_share_export"]
+    // `-cs_dev_receipt_photo on` is what makes this deterministic: the hatch
+    // stands a photograph on whichever accepted round the receipt opened, so
+    // the test no longer presumes the account's newest round happens to carry
+    // one. It overrides the photograph's two facts and nothing else, and it
+    // writes nothing to the server.
+    app.launchArguments = ["-cs_dev_open", "receipt", "-cs_dev_receipt_photo", "on",
+                           "-cs_dev_look", "none", "-cs_dev_appearance", "light",
+                           "-cs_dev_text_size", "large", "-cs_dev_share_export"]
     app.launch()
     let previewDoor = app.buttons["round.share.preview"]
     XCTAssertTrue(previewDoor.waitForExistence(timeout: 35))
@@ -64,13 +120,20 @@ final class AcceptedRoundReviewTests: XCTestCase {
     XCTAssertTrue(send.isHittable)
     let photo = XCTAttachment(screenshot: app.screenshot())
     photo.name = "real-round-photo-preview"; photo.lifetime = .keepAlways; add(photo)
+    XCTAssertTrue(app.images["round.share.card.withPhoto"].waitForExistence(timeout: 10),
+                  "the hatch stood a photograph on the round, so the card carries one")
     let toggle = app.switches["Include round photo"]
-    XCTAssertTrue(toggle.exists, "Review account's accepted round has an attached photo")
+    XCTAssertTrue(toggle.exists, "a round with a photograph offers the opt-out")
     for _ in 0..<4 where !toggle.isHittable { app.swipeUp() }
     toggle.tap()
+    XCTAssertTrue(app.images["round.share.card.noPhoto"].waitForExistence(timeout: 10),
+                  "opting out removes the photograph from the card")
     app.swipeDown()
     let noPhoto = XCTAttachment(screenshot: app.screenshot())
     noPhoto.name = "real-round-no-photo-preview"; noPhoto.lifetime = .keepAlways; add(noPhoto)
+    toggle.tap()
+    XCTAssertTrue(app.images["round.share.card.withPhoto"].waitForExistence(timeout: 10),
+                  "opting back in restores it")
     send.tap()
     let activity = app.otherElements["ActivityListView"]
     XCTAssertTrue(activity.waitForExistence(timeout: 10))
