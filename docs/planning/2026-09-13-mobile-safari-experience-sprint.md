@@ -14,6 +14,8 @@ Create a new `claude/mobile-safari-experience` branch/workspace from freshly fet
 
 Read AGENTS.md, CLAUDE.md, docs/doc-map.md and the canonical sources linked in the audit. Current scope is responsive web implementation; no native, token-system, gameplay, database or production-mark rewrite.
 
+**Identity rides separately — 2026-09-13 reconciliation (Claude).** The other half of the gap the owner saw is D339's beta identity, which shipped natively only. That work is inventoried and sequenced in [D339 · the web half](2026-09-13-d339-web-half.md) on its own branch (`claude/d339-web-half`); it needs one owner ruling first and touches only the door, the sidebar brand block and the artifact footers, none of which this packet edits. MW-07's "preserve the production mark pending an explicit brand decision" stands; that plan is the execution of the decision once taken. The functional repairs below are not blocked on it and are not folded into it.
+
 ## Checkpoint A — working doors and a useful first screen
 
 Make small reviewable commits in this order.

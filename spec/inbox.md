@@ -294,6 +294,7 @@ no-rated-tees filter (item 11). Answer that first and Decision B may never open.
 
 - LINT-28: the pennant is on eight surfaces as `CSBrandMark` and the lint only counts the old glyph. First question: is the pennant the brand's mark everywhere, or still reserved to the band and the icon? Then the lint learns the answer.
 - The app-icon tile wallpapers contours behind the mark; `brand/README.md` says solid field, the implementation brief says never wallpaper. First question: look at it on a home screen next to other icons.
+- **The web half of D339 (added 2026-09-13).** cupseason.app still carries the Tracer and "Rally your crew" on the door, masthead and artifacts; the phone carries the pennant and ANY TIME. ANYWHERE. First question: does the web show the beta identity at all, or wait for the production mark? Then `docs/planning/2026-09-13-d339-web-half.md` I-1. The two rulings above decide the icons and where the mark may sit; they do not block I-1.
 - D337 CONFLICT: `HomeDispatch.localHeadline()` rewrites the server's plan headline on the phone. First question: move the date sentence into `home_dispatch` and delete the local rewrite?
 
 ### 2026-09-12 · UX · Compete gameplay review follow-ups

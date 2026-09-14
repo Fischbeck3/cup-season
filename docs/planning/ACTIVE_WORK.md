@@ -11,6 +11,7 @@ This section supersedes the historical release status and ownership assignments 
 - Codex audit: `codex/mobile-web-audit-2026-09-13`, `/Users/fischbeck3/cup-season-mobile-web-audit`. [Findings](../reviews/2026-09-13-mobile-web-experience-audit.md): the actual Compete creation link is dead; Home, Compete, season, posting and setup need focused responsive refinement.
 - Next packet: [mobile Safari experience sprint](2026-09-13-mobile-safari-experience-sprint.md). **Ready for Claude; not dispatched.** Claude owns `index.html`, related web tests and implementation fixes on a new owned branch. Codex owns independent review and integration/device verification. This explicitly supersedes the default web-editor row for this packet.
 - No application source or production deployment changed in the audit. Actual iPhone Safari acceptance remains owed; mobile-width Chromium checks are labeled as such.
+- Identity half, kept separate (Claude, 2026-09-13): D339's beta identity shipped natively only; [D339 · the web half](2026-09-13-d339-web-half.md) inventories every surface, reconciles with the Safari sprint, and asks for one ruling (does the web show the beta identity?) before its first checkpoint I-1 (door + sidebar brand, copy + mark). Branch `claude/d339-web-half`; nothing built; frozen release unchanged.
 
 ## Current release override · 2026-09-13
 
@@ -54,6 +55,7 @@ This is a file-ownership rule, not a claim that one agent is intrinsically bette
 | V0 | Expanded vision, evidence-based roadmap, ownership brief | Codex | Direction accepted; expansion language remains draft | Planning commit `205a0ef`; owner approved first execution checkpoint |
 | C0 | Independent critique + exact week-loop contract packet | Claude | Review delivered; contract proposals not yet agreed | `docs/reviews/next-loop-contract.md`, base `205a0ef`; static review only |
 | B0 | Pennant application and symbol-role proof sheet | Codex | Prototype ready for visual selection | `docs/prototypes/next-week.html`; final D339 decision still open |
+| B1 | D339 web half — door, masthead, brand copy, shared artifacts | Claude plan / owner ruling | Proposed; plan committed | [plan](2026-09-13-d339-web-half.md); needs decision 0 (beta identity on web); I-1 after Safari checkpoint A review |
 | P0 | Complete-week interaction prototype | Codex | Review delivered | 21 checks at each of three widths; see checkpoint review |
 | Q0 | Reproduce/repair native draft restore and seed protection | Codex | Recommended next; not started | C0 F2; model-level test before fix; isolated implementation branch |
 | C0a | Minimal D345 context, typed answer and capability proposal | Claude | Recommended next; not started | C0 + Codex disposition; preserve approved per-plan semantics; no deploy |
