@@ -173,18 +173,20 @@ asking. My recommendation: `mut`, which is what the web's hairline became.
 | **Native** | `ReceiptSeed` rows; `CSArtifactFrame`/`CSArtifactFooter` sign exports. |
 | **Web before** | a plain photo band, then a figures strip, then rows. |
 | **Web now** | **the board's brand moment**: course and day in the metadata voice, the gross at 76px in the **tournament board face** (it was the serif in `bc22372` — corrected in P0), the verdict beneath in the serif, a neutral hairline, the mark signing the corner — over the round's photograph when there is one, and on the fescue ground with a sparse contour when there is not. Every value is the round's own; a missing fact leaves its line absent. D201 followed through — the strip and the sheet subtitle stopped repeating the gross, the course and the day. |
-| **Difference remaining** | **The native receipt is not yet this composition** — the biggest open parity gap in this pass. With-photo state is verified only with a fixture URL; a real photo round is still unwalked (carried from the earlier follow-up packet). |
-| **Evidence** | `home-receipt-browser.js`, `artifact-signature-browser.js`; `compare-rcpt.png`. |
-| **Status** | web **preview-verified** (no-photo) · native **scoped** · with-photo **unverified both** |
+| **Difference remaining** | **The native receipt is not yet this composition** — the biggest open parity gap in this pass. |
+| **With-photo, closed 2026-09-14** | Both clients, on deterministic fixtures, both directions. **Native:** `-cs_dev_share_photo` gives the fixture round a photograph, the receipt's own hatch feeds its stand-in through to the preview, and the rendered card identifies its composition, so the test reads the OUTPUT and not the switch — included, opted out, opted back in, plus a separate no-photo case that offers no control at all. The test that used to fail on a data precondition now passes. **Web:** the desk had no opt-out; it has one, on the ceremony's share, in the same sentence the phone uses (`RoundCopy.photoInclude` / `CS_PHOTO.include`). Opting out changes the artifact only — the round's attachment is never touched, per §16. |
+| **Evidence** | `home-receipt-browser.js`, `artifact-signature-browser.js`, **`round-photo-browser.js`** (card ground 36.8 with no photograph, 59.2 with one; three shares read true/false/true), `RoundShareReviewTests` + `AcceptedRoundReviewTests` (6 tests, iPhone 17 Pro). |
+| **Status** | with-photo **verified both** · the native receipt composition **still scoped** |
 
 ### 9 · Icons, favicon, Apple touch, OG, boot, lockups
 
 | | |
 |---|---|
 | **Native** | pennant app icon from `tools/build-beta-mark.sh`. |
-| **Web** | candidate family generated into `brand/candidates/testflight-pennant/generated/web/`; **nothing references it** — the served favicon/PWA/apple-touch/OG are still the Tracer. |
-| **Difference remaining** | the whole family, plus an OG composition (1200×630, not a square tile). The board shows the tile with **sparse fine contours**, which answers D339 open 2 in favour of contours — *restrained*, not wallpaper. The production mark decision remains the owner's. |
-| **Status** | **scoped** · deliberately not promoted in this checkpoint |
+| **Web, closed 2026-09-14 (D358)** | the owner ratified the pennant as the production mark and ruled the tile — fescue field, cream pennant, sparse fine contours. The generator gained the two compositions it could not make: a **`favicon.svg`** at the small-size drawing (no contour field, deeper inset, the pole's optical reinforcement) and the **1200×630 link card**, which is `csArtifactSignature`'s own composition at 2.4× on the fescue ground. All seven files are **installed at the site root**; both pages link the generated favicon instead of a hand-written data URI; `og:image` moves to `?v=4`; `stamp-version.sh` ships the two new files. |
+| **Difference remaining** | none in the family. A **real phone** still has to install it and open a link preview — that is row 10's device pass, not this row's. Cached installs keep the old icon until they refresh. |
+| **Evidence** | all seven assets return 200 from the served tree; the head carries no Tracer geometry; the generator is byte-reproducible from `source.json`. |
+| **Status** | **installed** · device check **open** |
 
 ### 10 · Appearance, light/dark, accessibility, keyboard/safe areas, cache
 
@@ -199,7 +201,7 @@ asking. My recommendation: `mut`, which is what the web's hairline became.
 | Capability | Native | Web |
 |---|---|---|
 | Widgets, Live Activities, system share sheet | present | **no browser equivalent, and none invented** |
-| Add to Home Screen / PWA install | n/a | present, but wearing the Tracer icon until row 9 closes |
+| Add to Home Screen / PWA install | n/a | present, and wearing the pennant since D358 (row 9) |
 
 ---
 
@@ -214,8 +216,18 @@ both clients read the same value. Semantics (`pos`/`neg`) and earned gold are
 untouched, and no global colour replacement was performed: the sites that moved
 are listed in `bc22372`'s message.
 
+## 11 · The colour roles, after the ruling (D359)
+
+| | |
+|---|---|
+| **Native** | `act` carries the primary button, the field's focus ring, the lit segment and Play; the header tick and eyebrow fall to muted ink on homebase; the five remaining `cs.brand` sites in the design system are all live/competition indicators (the hole being played, a live match, a live label, the `.live` structure case). |
+| **Web now** | **every focus ring in the stylesheet moved together** — 40 rules plus the global `[tabindex]` rule and the start-door border — because a ring that is one colour in one place and another elsewhere is not a system, and the phone's field already rang in `act`. Five ordinary states moved with them: the desk's active nav rail, the side-panel hover, the empty-root primary door, the inherit line's edit, and a selected preset. The eyebrow's tick and the season eye's dot took muted ink; the live edition dot kept its ember. |
+| **Preserved** | in-game controls and live indicators keep ember — the Wolf buttons, the head-to-head dots, the ledger's own chip, the hole strip's current tick, `.optcard.live`. The armed half of a destructive two-tap keeps it too; that is a warning, not a decoration. |
+| **The looks** | three had drifted from the roles their own note declared. `fresh` carried literal `ink`; `cupfinal` carried earned **gold** as its second accent. Both resolved. `cupfinal`'s ember and `wrap`'s gold stand as **named exemptions with their reason** — a Cup Final is the active competition, a wrapped season is the earning. **BRAND-02** holds it from the token source, by look key and by token name. |
+| **Status** | **built and verified both** |
+
 ## Next
 
-**B · shared function gaps** — with-photo receipt on both clients, the native
-receipt moment, Compete masthead tagline, the editorial lead. **C · asset
-family** — row 9, behind the owner's mark ruling. Neither blocks the preview.
+**B · shared function gaps** — the native receipt moment, the Compete masthead
+tagline, the editorial lead. **C · the device pass** — row 10 and row 9's
+install/link-preview check, both on a real iPhone. Neither blocks the preview.

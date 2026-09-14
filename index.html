@@ -383,9 +383,9 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   color:var(--mut);
   border-left:3px solid transparent;
 }
-.navitem.active{color:var(--ink); border-left-color:var(--brand);}
+.navitem.active{color:var(--ink); border-left-color:var(--act);}
 @media(hover:hover){ .navitem:hover{color:var(--ink);} }
-.navitem:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.navitem:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 /* the section below the rule - a list, in `agate-s`, one step quieter */
 .sidesec{margin-top:20px; padding-top:20px; border-top:var(--hair) solid var(--rule);}
 /* ============ D236 - the ME strip / the desk's identity block ============
@@ -405,15 +405,15 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .sideme .mefact small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase;}
 /* L-10 - money is `neg`, never gold and never a countdown */
 .sideme .mefact.owed b{color:var(--neg);}
-.sideme .mefact:hover b{color:var(--brand);}
-.sideme .mefact:focus-visible{outline:2px solid var(--brand); outline-offset:3px; border-radius:4px;}
+.sideme .mefact:hover b{color:var(--act);}
+.sideme .mefact:focus-visible{outline:2px solid var(--act); outline-offset:3px; border-radius:4px;}
 .sideme .mesr{
   display:block; width:100%; margin-top:12px; padding:0; border:0; background:none; cursor:pointer;
   font-family:var(--sans); font-size:11.5px; line-height:1.5; color:var(--mut); text-align:left;
   letter-spacing:.02em;
 }
 .sideme .mesr:hover{color:var(--ink);}
-.sideme .mesr:focus-visible{outline:2px solid var(--brand); outline-offset:3px; border-radius:4px;}
+.sideme .mesr:focus-visible{outline:2px solid var(--act); outline-offset:3px; border-radius:4px;}
 /* ============ D228 - the desk's two-column body ============
    The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,
    two shapes (D234, R-C as revised): the dispatch reads down the left, the
@@ -478,7 +478,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   color:var(--mut); border-bottom:1px solid var(--rule);
 }
 .csans-b:disabled{opacity:.5; cursor:default;}
-.csans-b:focus-visible{outline:2px solid var(--brand); outline-offset:4px;}
+.csans-b:focus-visible{outline:2px solid var(--act); outline-offset:4px;}
 /* Weight 5 -- minor activity: one 44pt row, a day marker in the leading
    column, one line of prose, a rule on top. The marker is `mut` and never
    `dim`: `dim` is 3.15 / 2.89 and may not carry a word. */
@@ -489,7 +489,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .cswire .mk{flex:none; width:34px; color:var(--mut); text-transform:none; letter-spacing:.02em;}
 .cswire .ln{flex:1; min-width:0; color:var(--mut);}
 .cswire .cv{flex:none; color:var(--mut);}
-.cswire:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.cswire:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* the sidebar is the desk's home for it; #homeMe covers the narrow widths */
 .homeme{display:block; margin:0 0 18px; padding:0 0 14px; border-top:0; border-bottom:1px solid var(--rule);}
 .homeme .mefacts{gap:12px 20px;}
@@ -536,7 +536,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   border-bottom:1px solid var(--rule); padding:12px 2px; cursor:pointer; color:var(--ink);
 }
 .peerrow:hover{background:var(--bg1);}
-.peerrow:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.peerrow:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 .peerrow .pe{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); display:block;}
 .peerrow .pn{font-size:14.5px; font-weight:700; display:block; margin-top:2px;}
 .peerrow .ps{font-family:var(--mono); font-size:12px; color:var(--mut); display:block; margin-top:3px;}
@@ -552,7 +552,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .histrow.static{cursor:default;}
 .histrow .cv{flex:none; color:var(--mut);}
 .histrow:hover:not(.static){color:var(--ink);}
-.histrow:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.histrow:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 @media(max-width:959px){ #view-compete .deskaside[data-empty]{display:none;} }
 /* D339 I-3 · the head's own terrain. It sits BEHIND the name, bleeding off the
    right edge, at the quiet end of the alpha ramp — a ground, never a graphic
@@ -588,8 +588,8 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   background:none; border:0; padding:6px 0; min-height:44px; cursor:pointer;
   font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);
 }
-.emptyroot .doors button:first-child{color:var(--brand);}
-.emptyroot .doors button:focus-visible{outline:2px solid var(--brand); outline-offset:3px;}
+.emptyroot .doors button:first-child{color:var(--act);}
+.emptyroot .doors button:focus-visible{outline:2px solid var(--act); outline-offset:3px;}
 /* THE FOOT - the viewer, and the build (D280). The face is the golfer's own
    marker on their own frozen pigment, which is the guaranteed floor (6.1):
    there is no silhouette state on this product and never has been. The build
@@ -879,9 +879,9 @@ th.deskonly, td.deskonly{display:none;}
   .fbrow.tap:hover .rk{background:var(--bg2);}
   .fbrow.tap.mine:hover .rk{background:var(--panel);}
 }
-.tbl tr.tap:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.tbl tr.tap:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 .tbl tr.tap:focus-visible td{background:var(--bg1);}
-.fbrow.tap:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.fbrow.tap:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 /* THE FORTY HOVER RULES GET THEIR TWINS. Each of these had a hover state and
    no keyboard equivalent, so a golfer tabbing the desk could not tell what
    was selected. Grouped rather than written out one per line, because they
@@ -896,7 +896,7 @@ th.deskonly, td.deskonly{display:none;}
 .pool-row:focus-visible, .optcard:focus-visible, .htile:focus-visible,
 .upchip[data-upgo]:focus-visible, .calcell.tap:focus-visible,
 .check:focus-visible{border-color:var(--rule);}
-.startdoor:focus-visible, .startjoin:focus-visible{border-color:var(--brand);}
+.startdoor:focus-visible, .startjoin:focus-visible{border-color:var(--act);}
 .dtab tr:focus-visible td{background:var(--bg1);}
 .echip button:focus-visible, .pslot .sx:focus-visible{color:var(--neg);}
 /* A LINK'S RULE THICKENS TO 3px - on hover AND on focus, which is the twin
@@ -905,9 +905,14 @@ th.deskonly, td.deskonly{display:none;}
 /* THE ONE FOCUS RULE THAT MAY NEVER BE SUPPRESSED. `outline:none` anywhere in
    this file is a keyboard user losing their place; if a component needs a
    different ring it overrides the colour, never the existence. */
-.tap:focus-visible, [tabindex]:focus-visible{outline-color:var(--brand);}
+.tap:focus-visible, [tabindex]:focus-visible{outline-color:var(--act);}
+/* D359 · THE FOCUS RING IS AN ORDINARY ACTION, so it takes `act` and not the
+   competition ember. Every ring in this stylesheet moved together — a ring
+   that is one colour in one place and another elsewhere is not a system — and
+   the phone's `CSField` already rang in `act`. Selected states moved with
+   them; a live indicator did not. */
 /* g-then-t and / both need somewhere to land, and a target the eye can find. */
-.cs-kbd-jump{outline:2px solid var(--brand); outline-offset:4px;}
+.cs-kbd-jump{outline:2px solid var(--act); outline-offset:4px;}
 
 /* ============ feed ============ */
 .round{
@@ -968,7 +973,7 @@ th.deskonly, td.deskonly{display:none;}
   transition:border-color .12s ease;
 }
 .pool-row:hover{border-color:var(--rule);}
-.pool-row:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.pool-row:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .pool-row .nm{flex:1; font-size:13.5px; font-weight:600;}
 .pool-row .hcp{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .pool-row .go{
@@ -1038,7 +1043,7 @@ input.f, textarea.f, select.f{
   background:var(--bg2); border:1px solid var(--rule); border-radius:var(--rc);
   padding:11px 12px; min-height:44px;
 }
-input.f:focus-visible, textarea.f:focus-visible, select.f:focus-visible{outline:2px solid var(--brand); outline-offset:1px;}
+input.f:focus-visible, textarea.f:focus-visible, select.f:focus-visible{outline:2px solid var(--act); outline-offset:1px;}
 /* iOS date inputs ship an intrinsic min-width that ignores width:100% and
    pokes past the container (the pilot's protruding date selector). Width
    clamps everywhere; the appearance flattening is iOS-only (desktop Chrome
@@ -1090,7 +1095,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   color:var(--mut);
 }
 .postplate .plate:hover{border-color:var(--mut);}
-.postplate .plate:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.postplate .plate:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .postplate .ph{display:flex; flex-direction:column; align-items:center; gap:4px;}
 .postplate .ph b{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;}
 .postplate img{width:100%; height:100%; object-fit:cover; display:block;}
@@ -1125,7 +1130,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:12px 0 0; margin-top:12px; cursor:pointer;
   font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--ink);
 }
-.inheritline .edit{margin-left:auto; color:var(--brand);}
+.inheritline .edit{margin-left:auto; color:var(--act);}
 /* WAVE 8 · THE ONE CHIP (D277, §7.2). Twelve chip families at five heights,
    five paddings, two shapes and three "selected" languages become one: a 3pt
    rectangle, an agate label, `bg2` at rest, and SELECTED INVERTS TO THE PANEL
@@ -1199,7 +1204,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:11px 13px; margin-bottom:7px; cursor:pointer;
   font-size:13px; font-weight:600; min-height:44px;
 }
-.payer:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.payer:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .payer .tick{
   width:22px; height:22px; border-radius:6px; flex:none;
   border:1.5px solid var(--rule);
@@ -1229,7 +1234,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   cursor:pointer; border-radius:9px; color:var(--mut);
 }
 .setrow .ctl button:hover{color:var(--ink);}
-.setrow .ctl button:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.setrow .ctl button:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 .seg{display:flex; gap:4px; background:var(--bg2); border:1px solid var(--rule); border-radius:11px; padding:4px; margin-bottom:8px;}
 .seg button{
   flex:1; border:none; background:none; cursor:pointer;
@@ -1241,7 +1246,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
 #albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); padding:10px 2px 2px;}
 #albumGrid .alcell{aspect-ratio:1; border:1px solid var(--rule); border-radius:10px; background-size:cover; background-position:center; cursor:pointer; padding:0;}
-#albumGrid .alcell:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+#albumGrid .alcell:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .rcpt-hero{margin:0 0 12px;}
 /* THE ROUND AS A BRAND MOMENT (owner board, 2026-09-14). One composition: the
    course and the day in the metadata voice, the gross enormous in the editorial
@@ -1315,7 +1320,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    container survives for ONE weight, the photographed round, which is a
    full-bleed object and not a box (§10.1 rung 1). */
 .hfcard{margin:0 0 12px; cursor:pointer;}
-.hfcard:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.hfcard:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .hfhead{display:flex; align-items:center; gap:12px;}
 .hfid{flex:1; min-width:0;}
 .hfid b{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; color:var(--ink);}
@@ -1338,7 +1343,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfcard.hfrecord{padding:20px 0 12px;}
 .hfrecord .hfhead{margin-bottom:16px;}
 .hfperson{padding:0;border:0;background:transparent;cursor:pointer;min-width:44px;min-height:44px;}
-.hfperson:focus-visible{outline:2px solid var(--brand);outline-offset:2px;}
+.hfperson:focus-visible{outline:2px solid var(--act);outline-offset:2px;}
 .hfrecord-date{color:var(--mut);flex:none;}
 .hfrecord-body{display:flex;align-items:flex-start;gap:20px;}
 .hfrecord-place{flex:1;min-width:0;}
@@ -1372,7 +1377,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfline .hs{flex:none; color:var(--dim);}
 .hfline.opens{cursor:pointer;}
 .hfline.opens:hover{background:var(--bg1);}
-.hfline.opens:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.hfline.opens:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* D288 · EVERY SURVIVING LEAGUE NOTE, AS ONE LINE (D285's `HomeWireNotes`).
    The quietest voice the wire has, at its foot, and it opens the board where
    the notes actually live. */
@@ -1380,7 +1385,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   background:none; border:0; border-top:1px solid var(--rule); padding:12px 0; margin:0;
   color:var(--mut); cursor:pointer;}
 .hfnotes:hover{color:var(--ink);}
-.hfnotes:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.hfnotes:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .hfnotes .hl{flex:1; min-width:0;}
 /* Tour Card — C4 credential, refaced charcoal (D76): one flat #131D17
    OBJECT, ember heat top-right, ivory ink; trophies stay champagne (earned
@@ -1512,20 +1517,20 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfcard .hrx{margin-top:8px;}
 .mkstamp{position:absolute; right:10px; bottom:10px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(8,9,11,.55); color:var(--scrim-ink); backdrop-filter:blur(2px);}
 .rcpt-hero{position:relative;}
-.seg button:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.seg button:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 .preset{
   width:100%; text-align:left; cursor:pointer;
   background:var(--bg1); border:1px solid var(--rule); border-radius:12px;
   padding:13px 14px; margin-bottom:8px;
 }
-.preset:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.preset:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .preset h4{font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px;}
 .preset .ok{
   margin-left:auto; width:20px; height:20px; border-radius:6px; flex:none;
   border:1.5px solid var(--rule); color:transparent;
   display:grid; place-items:center; font-size:12.5px; font-weight:700;
 }
-.preset.sel{border-color:var(--rule); box-shadow:inset 3px 0 0 var(--brand);}
+.preset.sel{border-color:var(--rule); box-shadow:inset 3px 0 0 var(--act);}
 .preset.sel .ok{background:var(--act); border-color:var(--act); color:var(--bg0);}
 .preset p{font-family:var(--mono); font-size:12.5px; color:var(--mut); line-height:1.6; margin-top:5px;}
 .preset p b{color:var(--ink); font-weight:600;}
@@ -1667,7 +1672,7 @@ body.guestlive #onboard{display:none !important;}
   background:var(--bg2); font-size:16px; cursor:pointer; color:var(--mut); flex:none;
 }
 .holehdr button:hover{color:var(--ink);}
-.holehdr button:focus-visible{outline:2px solid var(--brand);}
+.holehdr button:focus-visible{outline:2px solid var(--act);}
 /* WAVE 7 - THE HOLE STRIP REPLACES THE EIGHTEEN DOTS (leaderboard.md 5.4,
    chart 4). The dots were countable and said only how FAR the round was; the
    strip says how it is GOING, in the scorecard ink law - a ring under par, a
@@ -1708,7 +1713,7 @@ body.guestlive #onboard{display:none !important;}
 .step{display:flex; align-items:center; gap:2px; background:var(--bg2); border:1px solid var(--rule); border-radius:10px; flex:none;}
 .step button{width:36px; height:36px; border:none; background:none; font-size:16px; font-weight:600; color:var(--mut); cursor:pointer; border-radius:9px;}
 .step button:hover{color:var(--ink);}
-.step button:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.step button:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 .step .sv{font-family:var(--mono); font-size:15px; font-weight:600; min-width:26px; text-align:center; font-variant-numeric:tabular-nums;}
 /* Batch C: the old scorecard notation — under par draws a gold birdie circle */
 .step .sv.birdie{width:28px; height:28px; line-height:28px; min-width:28px; border-radius:50%;
@@ -1728,7 +1733,7 @@ body.guestlive #onboard{display:none !important;}
   font-weight:600; color:var(--mut); cursor:pointer;
 }
 .wolfbtns button.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
-.wolfbtns button:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.wolfbtns button:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .wolftally{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:12px;}
 .wolftally .wt{background:var(--bg2); border:1px solid var(--rule); border-radius:9px; padding:8px 4px; text-align:center;}
 .wolftally .wt b{display:block; font-family:var(--mono); font-size:14px; font-variant-numeric:tabular-nums;}
@@ -1751,7 +1756,7 @@ body.guestlive #onboard{display:none !important;}
 .gchip small{font-family:var(--mono); font-size:10.5px; color:var(--dim); letter-spacing:.06em;}
 .gchip.add{border-style:dashed; color:var(--mut); background:none; cursor:pointer;}
 .gchip.add:hover{color:var(--ink);}
-.gchip.add:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.gchip.add:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .gtag{
   font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:.1em;
   color:var(--bg0); background:var(--mut); border-radius:4px; padding:2.5px 5px; flex:none;
@@ -1772,7 +1777,7 @@ body.guestlive #onboard{display:none !important;}
 }
 .optcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--brand));}
 .optcard:hover{border-color:var(--rule); filter:brightness(1.08);}
-.optcard:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.optcard:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .optcard h4{font-size:15px; font-weight:700;}
 .optcard p{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:5px; line-height:1.7; letter-spacing:.02em;}
 .optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--dim); font-size:16px;}
@@ -1796,7 +1801,7 @@ body.guestlive #onboard{display:none !important;}
 .coursedd button{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--rule); padding:9px 12px; cursor:pointer; color:var(--ink);}
 .coursedd button:last-child{border-bottom:none;}
 .coursedd button:hover{background:var(--bg1);}
-.coursedd button.kbd{background:var(--bg1); outline:2px solid var(--brand); outline-offset:-2px;}
+.coursedd button.kbd{background:var(--bg1); outline:2px solid var(--act); outline-offset:-2px;}
 .coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
 .coursedd button span{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
 .coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.03em;}
@@ -1886,7 +1891,7 @@ body.guestlive #onboard{display:none !important;}
   border-radius:var(--rc); padding:0 14px; min-height:44px; cursor:pointer; flex:none;
 }
 .mini:hover{background:var(--rule);}
-.mini:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.mini:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* F6: the one icon-chrome class — sized/aligned for inline use next to text */
 .ic{width:14px; height:14px; vertical-align:-2px; pointer-events:none;}
 .ic.flip{transform:rotate(180deg);}
@@ -1971,7 +1976,7 @@ body.guestlive #onboard{display:none !important;}
 .startdoor small{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim);}
 .startjoin{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:10px; padding:11px; background:var(--bg2); border:1px solid var(--rule); border-radius:12px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
 @media(hover:hover){ .startdoor:hover, .startjoin:hover{border-color:var(--brand);} }
-.startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* D41: run-it-back — the settled season, gold-washed, above the cold-start doors */
 .runback{border:1px solid color-mix(in srgb, var(--gold) 42%, var(--rule)); border-radius:14px; padding:14px; margin-bottom:12px;
   background:linear-gradient(180deg, color-mix(in srgb, var(--gold) 10%, transparent), transparent 72%);}
@@ -2251,7 +2256,7 @@ body.guestlive #onboard{display:none !important;}
   padding:0 11px; height:26px;
 }
 .rxadd:hover, .rxcm:hover{color:var(--ink);}
-.rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.rxadd:focus-visible, .rxcm:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* D341 · Home keeps given reactions and an invitation to reveal the rest.
    Every choice retains a 44px target; the reveal wraps on narrow screens. */
 .hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
@@ -2297,7 +2302,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 .htile .s{font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--mut);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 .htile:hover{border-color:var(--acc,var(--rule));}
-.htile:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.htile:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* D93 · a section head that carries a way through. renderHomeRounds clears the
    head's inline display, so the flex must live in a rule or the link loses its
    right edge the moment the section is shown. */
@@ -2326,7 +2331,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   color:var(--gold); font-size:17px; line-height:1;
 }
 .sysrow.opens:hover{ background:var(--bg2); }
-.sysrow.opens:focus-visible{ outline:2px solid var(--brand); outline-offset:2px; }
+.sysrow.opens:focus-visible{ outline:2px solid var(--act); outline-offset:2px; }
 /* D181 · a settlement's reaction bar sits below its row, outside the door. The
    row keeps its own border, so the bar drops the divider it wears elsewhere and
    indents to the row's text instead. */
@@ -2407,7 +2412,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .selchip.on{color:var(--panel-ink); background:var(--panel);}
 .selchip.on .gtag{background:var(--bg0); color:var(--brand);}
-.selchip:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.selchip:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .selchip[disabled]{opacity:.45; cursor:default;}
 .livebanner{
   display:none; width:100%; text-align:left; cursor:pointer;
@@ -2449,7 +2454,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   cursor:pointer; vertical-align:middle; padding:0; text-transform:lowercase;
 }
 .ibtn:hover{color:var(--ink); border-color:var(--dim);}
-.ibtn:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.ibtn:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* D76 sweep: open/closed is an interaction state, not an outcome — ember, not
    --pos. Toggle and panel move together or an opened help shows two metals. */
 .ibtn[aria-expanded="true"]{color:var(--brand); border-color:var(--brand);}
@@ -2492,7 +2497,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .crtchip b{font-size:13px; display:flex; align-items:center; gap:6px;}
 .crtchip small{display:block; font-family:var(--mono); font-size:8.5px; letter-spacing:.1em; color:var(--dim);}
 .crtchip.dragging{opacity:.35;}
-.crtchip.picked{outline:2px solid var(--brand); outline-offset:1px;}
+.crtchip.picked{outline:2px solid var(--act); outline-offset:1px;}
 /* the swap TARGET: exactly one chip lights while you drag (or after a tap-pick)
    — you always see who you're trading with before you let go */
 .crtchip.swaptar{outline:2px solid var(--gold); outline-offset:1px; background:var(--bg1);}
@@ -2516,7 +2521,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   color:var(--dim); font-size:14px; cursor:pointer; padding:2px 4px;
 }
 .pslot .sx:hover{color:var(--neg);}
-.pslot .sx:focus-visible{outline:2px solid var(--brand); border-radius:6px;}
+.pslot .sx:focus-visible{outline:2px solid var(--act); border-radius:6px;}
 
 /* ============ v23: drill-down sheet, draft, quick-enter card ============ */
 .sheet{
@@ -2927,7 +2932,7 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
   color:var(--dim); opacity:.55; font-weight:400;
   letter-spacing:.02em; text-transform:none;
 }
-.joinbox input:focus-visible{outline:2px solid var(--brand);}
+.joinbox input:focus-visible{outline:2px solid var(--act);}
 .joinbox .btn{width:auto; padding:0 22px; margin:0;}
 
 /* ---- the wings: live showcases beside the centered door (>=1100px only).
@@ -2989,7 +2994,7 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
   font-size:12.5px; color:var(--dim); text-decoration:underline; text-underline-offset:3px;
 }
 .cs-tskip:hover{color:var(--mut);}
-.cs-tskip:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.cs-tskip:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 
 
 
