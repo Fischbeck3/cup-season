@@ -48,18 +48,59 @@
     const texts=rows.map(r=>r.querySelector('.ln').textContent);
     check(new Set(texts).size===3,'MW-02: two wire rows still read identically: '+JSON.stringify(texts));
 
-    /* the season door opens THAT league, not whichever is open */
-    const entered=[]; window.enterLeagueById=async(id,nav)=>{ entered.push([id,nav]); };
-    const views=[]; const realView=switchView; switchView=v=>{ views.push(v); };
+    /* WA2 · the season door ARRIVES at the season it names. The previous
+       assertion here required no view change after the other-league click,
+       which is the defect written down as an expectation: it confirmed a call
+       and never asked whether the golfer got anywhere. The loader stub now
+       does what a real load does — it changes the context — so the walk can
+       assert the active league AND the active view. */
+    const entered=[]; const views=[]; const toasts=[];
+    const realView=switchView, realToast=toast;
+    let loader=async(id)=>{ entered.push(id); window.CS.league={ id, name:'Loaded', phase:'season' }; };
+    window.enterLeagueById=(id,nav)=>{ check(nav===false,'the season door let enterLeague navigate for itself'); return loader(id); };
+    switchView=v=>{ views.push(v); };
+    toast=m=>{ toasts.push(String(m)); };
     try{
+      /* the OTHER league: one click, and both the context and the room move */
       byKey('chapter:'+B).click();
-      await until(()=>entered.length===1,'MW-02: the other league’s season door did not enter that league');
-      check(entered[0][0]===B && entered[0][1]===false,'the season door entered the wrong league');
-      check(!views.length,'the season door also switched view before entering');
+      await until(()=>views.includes('hub'),'WA2: the other league’s season door never opened the season');
+      check(entered.length===1 && entered[0]===B,'the season door entered the wrong league');
+      check(window.CS.league.id===B,'the season door opened the hub without changing league');
+      check(!toasts.length,'a successful arrival complained');
+
+      /* the CURRENT league: still one click, and no reload */
+      views.length=0; entered.length=0;
+      window.CS.league={ id:A, name:'Fellas', phase:'season' };
+      renderHomeDispatch();
       byKey('chapter:'+A).click();
       await until(()=>views.includes('hub'),'the open league’s season door did not open the hub');
-      check(entered.length===1,'the open league was re-entered');
-    } finally { switchView=realView; }
+      check(entered.length===0,'the open league was re-entered');
+
+      /* a FAILED load must not navigate: the wrong league’s table under
+         another league’s name is worse than staying put */
+      views.length=0; entered.length=0; toasts.length=0;
+      loader=async(id)=>{ entered.push(id); /* context never changes */ };
+      byKey('chapter:'+B).click();
+      await until(()=>toasts.length===1,'WA2: a failed load said nothing');
+      check(!views.length,'WA2: a failed load navigated anyway');
+      check(window.CS.league.id===A,'a failed load changed the league');
+
+      /* a league that is NOT a membership: no load attempt, an honest line */
+      views.length=0; entered.length=0; toasts.length=0;
+      const gone=window.CS.memberships; window.CS.memberships=[gone[0]];
+      byKey('chapter:'+B).click();
+      await until(()=>toasts.length===1,'WA2: an absent membership said nothing');
+      check(!entered.length,'WA2: an absent membership still tried to load');
+      check(!views.length,'WA2: an absent membership navigated anyway');
+      window.CS.memberships=gone;
+
+      /* a THROWN load is a failure too, not an exception on the page */
+      views.length=0; toasts.length=0;
+      loader=async()=>{ throw new Error('network'); };
+      byKey('chapter:'+B).click();
+      await until(()=>toasts.length===1,'WA2: a thrown load said nothing');
+      check(!views.length,'WA2: a thrown load navigated anyway');
+    } finally { switchView=realView; toast=realToast; }
 
     /* the compact strip below the desk: number and last round, never the debt */
     window.CS.profile={ display_name:'Audit', index_current:11.4, index_source:'engine' };

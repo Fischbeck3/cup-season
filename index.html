@@ -16936,7 +16936,9 @@ function csItemDoor(it){
     case 'people':    return ()=>switchView('golfers');
     case 'declare':   return ()=>window.openDeclareSheet?.();
     case 'plan':      return id ? ()=>switchView('schedule') : null;
-    case 'receipt':   return id ? ()=>(window.openRoundSheet ? window.openRoundSheet(id) : switchView('record')) : null;
+    /* WA1 · a receipt route names a POSTED round, so it opens the posted
+       receipt. It called `openRoundSheet`, the scheduled round's reader. */
+    case 'receipt':   return id ? ()=>(window.csOpenPostedRound ? window.csOpenPostedRound(id) : switchView('record')) : null;
     /* the web's live surface is the tee sheet (`view-play`), not a view named
        "live" — a switchView to a view that does not exist deactivates every
        pane and lands the golfer on a blank screen, which is the one thing a
@@ -16944,9 +16946,10 @@ function csItemDoor(it){
     case 'live':      return id ? ()=>switchView('play') : null;
     /* MW-02 · a season item names ITS league. `switchView('hub')` opened
        whichever league the browser happened to have open, so "Open the season"
-       on the other league's row landed on the wrong table. The Compete row's
-       own rule: enter the league by id, or open the hub if it is already in. */
-    case 'season':    return id ? ()=>{ if(window.CS?.league?.id!==id && window.enterLeagueById) window.enterLeagueById(id, false); else switchView('hub'); } : null;
+       on the other league's row landed on the wrong table.
+       WA2 · and it has to ARRIVE: loading the league without opening its room
+       left the golfer on Home under a league they had not asked to be in. */
+    case 'season':    return id ? ()=>window.csOpenSeason?.(id) : null;
     case 'pot':       return id ? ()=>switchView('pot') : null;
     /* D351 (built) · "See the terms" opens THE TERMS. The route's id is the
        CONTAINER (a season the invitee cannot open); the invitation's own id is
@@ -18238,7 +18241,10 @@ function renderCompete(){
   [box, shelf].forEach(el=>{ if(!el) return;
     el.querySelectorAll('[data-peer]').forEach(b=>b.addEventListener('click',()=>{
       const [kind,id]=b.dataset.peer.split(':');
-      if(kind==='league'){ if(window.CS?.league?.id!==id) window.enterLeagueById?.(id, false); else switchView('hub'); }
+      /* WA2 · the same arrival Home's season item takes. This row had the
+         pattern first: clicking another league changed the context and left
+         Compete open, so it took two clicks to reach the season. */
+      if(kind==='league'){ window.csOpenSeason?.(id); }
       else if(kind==='event') window.openEvent?.(id);
       else switchView('schedule');
     }));
@@ -18353,7 +18359,10 @@ function renderMeStrip(){
       /* Every figure taps to its receipt (L-01). Each door is one that already
          exists on this client - the block adds no route of its own. */
       if(go==='my_number')          { switchView('stats'); }
-      else if(go==='my_last_round') { if(id && window.openRoundSheet) window.openRoundSheet(id); else switchView('record'); }
+      /* WA1 · the last round is a POSTED round; `openRoundSheet` reads the
+         scheduled one and 400s on it. The next round below still opens the
+         schedule, because that one IS a scheduled round. */
+      else if(go==='my_last_round') { if(id && window.csOpenPostedRound) window.csOpenPostedRound(id); else switchView('record'); }
       else if(go==='my_next_round') { if(id) switchView('schedule'); else window.openDeclareSheet?.(); }
       else if(go==='my_money')      { switchView('pot'); }
       else if(go==='season_row')    { switchView('hub'); }
@@ -19744,13 +19753,53 @@ function mineOf(r){
        : (!r.profile_id || r.profile_id===window.CS?.user?.id);
 }
 function csTheirs(s){ return String(s||'').replace(/your/gi, m => m[0]==='Y' ? 'Their' : 'their'); }
-function openRoundReceipt(x){
+/* WA1 · A POSTED ROUND OPENS THE POSTED RECEIPT. Two Home shortcuts — the
+   lead's "See the receipt" and the compact strip's last score — handed a
+   posted round's id to `openRoundSheet`, which reads `round_detail`: the
+   SCHEDULED round's read (20260725160000). Against a posted id that RPC
+   returns 400, the sheet closes and the golfer gets "Couldn't load that
+   round" on their own round. The feed row was always right, because it calls
+   `openRoundReceipt` with the row it holds.
+
+   `openRoundReceipt` alone is not the fix: given a bare string it looks the
+   round up in `roundCache` and RETURNS SILENTLY when it is not there, which is
+   every round the current page has not already listed. This resolves the
+   identity first — the cache when it has it, `round_card` when it does not —
+   so an uncached round opens with its own facts and a round that cannot be
+   read says so. The league lens is the server's: `round_card` picks the
+   scoring membership itself and returns the points, the month rank and the
+   counting cap with them. */
+async function csOpenPostedRound(id){
+  const rid = (id && typeof id === 'object') ? (id.id || id.round_id) : id;
+  if(!rid) return false;
+  const cached = (window.roundCache||{})[rid];
+  if(cached){ openRoundReceipt(cached); return true; }            /* instant, then enriched */
+  if(state.demo || !window.sb){ openRoundReceipt({ id: rid }); return true; }
+  openSheet('Round', 'LOADING\u2026', '<p class="fine" style="padding:10px 0">Loading the round\u2026</p>');
+  try{
+    const { data, error } = await window.sb.rpc('round_card', { p_round: rid });
+    if(error) throw error;
+    if(!data) throw new Error('no round');
+    const row = Object.assign({ id: rid }, data);
+    (window.roundCache ||= {})[rid] = row;
+    /* `carded` · the payload IS the card, so the sheet does not fetch it twice */
+    openRoundReceipt(row, { carded:true });
+    return true;
+  }catch(e){
+    closeSheet();
+    toast(humanError(e, 'Couldn\u2019t open that round.'));
+    return false;
+  }
+}
+window.csOpenPostedRound = csOpenPostedRound;
+
+function openRoundReceipt(x, opts){
   const r = (x && typeof x==='object') ? x : (window.roundCache||{})[x];
   if(!r) return;
   /* the alias fix, applied everywhere a row reaches this sheet */
   if(r.course_label==null && r.course!=null) r.course_label=r.course;
   const rid = r.id || r.round_id || (typeof x==='string' ? x : null);
-  if(rid && window.sb && !state.demo) enrichRoundReceipt(rid, r);
+  if(rid && window.sb && !state.demo && !(opts && opts.carded)) enrichRoundReceipt(rid, r);
   const pvi = r.pvi!=null ? Number(r.pvi)
     : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
   const capN=capNum();
@@ -26701,6 +26750,38 @@ window.enterLeagueById = async (id, nav=true) => {
   const m = (CS.memberships||[]).find(x => x.league.id === id);
   if(m) await enterLeague(m, nav);
 };
+/* WA2 / F2 · ONE CLICK REACHES THE SEASON IT NAMES. Home's season item and
+   Compete's league row both did `enterLeagueById(id, false)` and stopped:
+   `enterLeague` navigates only when `nav` is true, so the golfer's context
+   silently became league B while the view stayed on Home (or on Compete), and
+   a second click on the now-current league was needed to arrive. Passing
+   `true` instead is not the fix either — `enterLeague`'s own navigation picks
+   Home, or the wizard for a Pro in setup, never the season room.
+
+   So: load, CONFIRM THE CONTEXT ACTUALLY CHANGED, then open the room. A load
+   that fails or a league that is no longer a membership leaves the golfer
+   where they are and says so, because navigating on a failed load would show
+   one league's table under another league's name. */
+async function csOpenSeason(id, opts){
+  const view = (opts && opts.view) || 'hub';
+  if(!id) return false;
+  if(window.CS?.league?.id === id){ switchView(view); return true; }
+  const m = (window.CS?.memberships||[]).find(x => x && x.league && x.league.id === id);
+  if(!m){ toast('That season isn\u2019t one of yours.'); return false; }
+  try{
+    await window.enterLeagueById(id, false);
+  }catch(e){
+    toast(humanError(e, 'Couldn\u2019t open that season.'));
+    return false;
+  }
+  if(window.CS?.league?.id !== id){
+    toast('Couldn\u2019t open that season \u2014 try again.');
+    return false;
+  }
+  switchView(view);
+  return true;
+}
+window.csOpenSeason = csOpenSeason;
 ['lgRow','sideLeague'].forEach(id => {
   const el = document.getElementById(id);
   if(el){ el.style.cursor = 'pointer'; el.addEventListener('click', openLeagueSwitcher); }
