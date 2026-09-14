@@ -27,6 +27,26 @@ Owner corrections governing this pass:
 
 Codex's September 14 recoloring/oversized-score mockups are review history, not the new design authority. Document the bounded appearance amendment before implementation wherever current canon still mandates orange on ordinary actions. Gameplay mechanics remain unchanged. Exact production logo geometry remains subject to the owner reviewing the concrete result; use the established vector generator, not a raster trace.
 
+## Color rule · owner approved 2026-09-14
+
+Governing decision: **D305/D313 amendment · Ember marks active competition; green carries ordinary actions**, in `spec/decision-log.md`. Approved direction; not yet implemented.
+
+| Role | Treatment | Concrete examples |
+|---|---|---|
+| Identity and ground | Cream on fescue; dark green on warm paper | Pennant, lockup, welcome, normal season identity |
+| Ordinary action | Green by default | Play, sign-in, routine setup, posting a round |
+| Ordinary navigation and facts | Neutral ink/muted ink; selected-tab underline | Compete tab selection, standings, points and season information |
+| Active competition | Restrained ember | Live clash, existing closing-window state, a round to answer in an active contest, immediate competitive action |
+| Earned result | Existing gold rules | Verified win, trophy or earned honor |
+
+Ember belongs to the competitive **situation**, not the tab. Carry it with the same item onto Home and existing alert/share surfaces. Do not paint every Compete element orange. Do not invent urgency, gameplay conditions or notification sends to justify the accent. Plain text/state labels remain readable without color.
+
+Play remains a green outlined glyph plus visible label inside the five-position band. The band itself remains fescue; ordinary selected tabs use neutral ink and underline. No filled floating disc.
+
+Implement separate ordinary-action and active-competition roles through shared token/theme/component sources. Do not replace semantic greens, earned gold, image colors or every `brand` use indiscriminately. Preserve stored appearance choices and explicitly resolve any existing look that conflicts with reserved ember. Native and web must agree on when a situation qualifies.
+
+Add paired evidence for normal Compete, an active clash, that same clash on Home, a finished result, and Play, in light/dark. Record implemented and verified states separately from this approved rule.
+
 ## Source and ownership
 
 Application baseline: main **1bc307f** at brief creation. Native build **890** archived from that source; the last release attempt failed distribution export. Do not equate that archive with the owner's installed TestFlight build. Verify current branches/deployment versions and record what is actually installed/available before claiming parity.

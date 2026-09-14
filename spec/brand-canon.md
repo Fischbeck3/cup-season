@@ -1,5 +1,15 @@
 # Cup Season — Brand Canon
 
+> **Owner color amendment · 2026-09-14 — approved direction, implementation pending.**
+> Green is the default ordinary-action color, including Play. Cream on fescue
+> and dark green on warm paper carry the identity. Ember marks active competition
+> and follows that situation across surfaces; the Compete tab alone does not
+> qualify. Gold remains earned. This supersedes older blanket ember-primary-action
+> language below. See the **D305/D313 amendment · Ember marks active competition**
+> in [the decision log](decision-log.md) and the
+> [paired implementation brief](../docs/planning/2026-09-14-brand-and-client-parity.md#color-rule--owner-approved-2026-09-14).
+
+
 Version 1.0 · Growth/Launch lane · 2026-07-17
 
 **What this is:** the single page that says what the brand *is* — what's decided,
