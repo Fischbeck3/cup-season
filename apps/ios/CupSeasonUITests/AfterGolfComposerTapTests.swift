@@ -40,12 +40,15 @@ final class AfterGolfComposerTapTests: XCTestCase {
     // header exactly as `CSHeaderDate.today` does.
     let played = Calendar.current.date(byAdding: .day, value: -2, to: Date())!
     let f = DateFormatter(); f.calendar = .current; f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "EEE · MMM d"
-    let expected = f.string(from: played).uppercased()
-    let header = app.staticTexts[expected]
+    // Case is the role's job (LINT-14): the header renders through a caps role,
+    // so the match is case-insensitive rather than uppercasing the string.
+    let expected = f.string(from: played)
+    let header = app.staticTexts.element(matching: NSPredicate(format: "label ==[c] %@", expected))
     XCTAssertTrue(header.waitForExistence(timeout: 20),
                   "the composer did not open on the day played (\(expected)); texts: \(app.staticTexts.allElementsBoundByIndex.prefix(14).map { $0.label })")
-    let today = f.string(from: Date()).uppercased()
-    XCTAssertFalse(today == expected || app.staticTexts[today].exists, "the composer opened on today rather than the day played")
+    let today = f.string(from: Date())
+    let todayHeader = app.staticTexts.element(matching: NSPredicate(format: "label ==[c] %@", today))
+    XCTAssertFalse(today.caseInsensitiveCompare(expected) == .orderedSame || todayHeader.exists, "the composer opened on today rather than the day played")
 
     // The course rides as TEXT — the fixture names Papago with no catalogue id.
     let course = app.textFields.element(matching: NSPredicate(format: "value == %@", "Papago"))
