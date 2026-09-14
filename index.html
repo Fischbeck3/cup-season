@@ -1861,6 +1861,8 @@ body.guestlive #onboard{display:none !important;}
 .nextcard .nx{flex:1; min-width:0;}
 .nextcard .nk{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--brand);}
 .nextcard .nt{font-size:13px; font-weight:600; margin-top:3px;}
+/* MW-06 · the step's name above its rail */
+.wizstepname{color:var(--mut); margin:0 0 6px;}
 .wizdots{display:flex; gap:6px; margin-bottom:14px;}
 .wizdots i{height:4px; flex:1; border-radius:99px; background:var(--bg2);}
 /* D76 sweep: progress is momentum, not an outcome — the rail is ember, never
@@ -3670,6 +3672,29 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 #roomFooter{margin-top:20px; padding-top:14px; border-top:1px solid var(--rule);
   display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
 #roomFooter:empty{display:none;}
+/* MW-04 · the jump row. A quiet rail of the season's own rooms, in the agate
+   role, scrollable rather than wrapped so four never becomes two lines. The
+   desk has the sidebar list and does not need it. */
+.seasonjump{display:flex; gap:8px; overflow-x:auto; margin:0 0 14px; padding-bottom:2px; -webkit-overflow-scrolling:touch;}
+.seasonjump::-webkit-scrollbar{display:none;}
+.seasonjump button{
+  flex:none; min-height:36px; padding:0 12px; cursor:pointer;
+  background:none; border:1px solid var(--rule); border-radius:999px; color:var(--mut);
+  font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+}
+.seasonjump button:hover{color:var(--ink); border-color:var(--dim);}
+.seasonjump button:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.seasonjump:empty{display:none;}
+@media(min-width:960px){ .seasonjump{display:none;} }
+/* MW-04 · ON A PHONE THE TABLE COMES FIRST. `.homegrid` holds the climb and
+   the standings; the climb is a graphic of the race and the table is the race,
+   so below the desk the table leads and the climb follows it. The desk keeps
+   its two columns, where neither is above the other. */
+@media(max-width:959px){
+  .homegrid{display:flex; flex-direction:column;}
+  .homegrid > :nth-child(1){order:2;}
+  .homegrid > :nth-child(2){order:1;}
+}
 #hhAddSlot:empty{display:none;}
 
 /* ---- D66: the ceremony. A season has to END. Gold is EARNED here and only
@@ -4803,7 +4828,8 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
         <div class="wiz-grid">
         <div class="wiz-main">
         <div class="eyebrow">Set the rules once, then start the season</div>
-        <div class="wizdots"><i class="on"></i><i></i><i></i></div>
+        <div class="wizstepname cs-agate-s" id="wizStepName" aria-live="polite"></div>
+        <div class="wizdots" role="presentation"><i class="on"></i><i></i><i></i></div>
 
         <div class="wizstep on" data-step="0">
           <div class="card">
@@ -4828,15 +4854,19 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                still here, verbatim, further down (P-6). -->
           <button class="preset" data-p="0">
             <h4>Casual <span class="ok" aria-hidden="true">✓</span></h4>
-            <p class="lead">Honest scores, and everything counts.</p>
+            <!-- MW-06 · the lead is PAINTED from the preset's own two dials
+                 (`csPresetLead`), never typed here: "light guardrails" and
+                 "the screws in" named a mood, and an organiser could not tell
+                 what either would do to their season. -->
+            <p class="lead" data-preset-lead="0"></p>
           </button>
           <button class="preset sel" data-p="1">
             <h4>Standard <span class="ok" aria-hidden="true">✓</span></h4>
-            <p class="lead">The default. Honest scores, light guardrails.</p>
+            <p class="lead" data-preset-lead="1"></p>
           </button>
           <button class="preset" data-p="2">
             <h4>Cutthroat <span class="ok" aria-hidden="true">✓</span></h4>
-            <p class="lead">Tight. Vouched where you can, and the screws in.</p>
+            <p class="lead" data-preset-lead="2"></p>
           </button>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
           <p class="fine" style="padding-top:0; color:var(--dim)">Verification is a norm the league holds, not a filter Cup Season applies.</p>
@@ -5026,6 +5056,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              page now, and `setRoomSeg` scrolls to one instead of hiding the
              other three. Its markup is kept, with every id intact, so every
              renderer below works unchanged. -->
+        <!-- MW-04 · THE SEASON'S OWN ROOMS, REACHABLE FROM A PHONE. Every
+             pane is on this page, stacked, and the desk reaches them from the
+             sidebar list (`deskMenu`, `data-seg`). Below 960 that list is
+             hidden, so the money, the board and the rules were a long scroll
+             with nothing naming them. This is the same `setRoomSeg` the desk
+             uses — no second router, no new route — rendered only where the
+             sidebar is not. -->
+        <nav class="seasonjump league-only" id="seasonJump" aria-label="This season's rooms"></nav>
         <div class="room-grid" id="roomGrid" data-room="standings">
 
         <div class="roompane on" id="room-standings">
@@ -6228,6 +6266,22 @@ $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v)
     setRoomSeg(seg);
   }));
   window.csDeskReveal = () => {};
+  /* MW-04 · the phone's copy of that list. Built from the panes that are
+     actually on the page, so a room that does not exist is never offered, and
+     wired to the same `setRoomSeg`. The table it sits above is the standings;
+     that one scrolls to itself like the rest. */
+  const JUMPS = [['standings','Standings'], ['pot','Money'], ['board','Board'], ['league','Rules']];
+  window.renderSeasonJump = function(){
+    const box = document.getElementById('seasonJump'); if(!box) return;
+    const live = JUMPS.filter(([id]) => document.getElementById('room-' + id));
+    box.innerHTML = live.map(([id, label]) =>
+      `<button type="button" data-jump="${id}">${label}</button>`).join('');
+    box.querySelectorAll('[data-jump]').forEach(b => b.addEventListener('click', () => {
+      window.qaEvent?.('cta_tapped', { door: 'season:' + b.dataset.jump });
+      setRoomSeg(b.dataset.jump);
+    }));
+  };
+  window.renderSeasonJump();
 })();
 
 /* a11y: the app renders many click-only .tap rows (hub, switcher, sheets,
@@ -21693,7 +21747,35 @@ function renderLeagueMeta(){
       : '(the season is under way — a pot needs every member to approve)';
   }
 }
+/* MW-06 · WHAT A PRESET ACTUALLY DOES, IN THE LEAGUE'S OWN UNITS. The three
+   cards led with a mood — "light guardrails", "the screws in" — and an
+   organiser choosing between them could not tell what either would set. Each
+   card names its two dials now, read from `PRESETS` and the same `CAP_DB`
+   ladder the picker below writes, so a preset and its card cannot drift. It
+   stops at what is SET: the penalty for missing the minimum belongs to the
+   floor sentence (`csSetupMinimum`, Q-27 — there is one of those and this is
+   not a fourth). Every dial stays editable underneath (P-6). */
+function csPresetLead(i){
+  const pr = PRESETS[i]; if(!pr) return '';
+  const cap = CAP_DB[pr.cap];
+  const counts = cap == null ? 'Every round counts' : `Your best ${csWord(cap)} each month count`;
+  const minimum = pr.floor ? `${csWord(pr.floor)}-round monthly minimum` : 'no monthly minimum';
+  return `${counts} \u00b7 ${minimum}.`;
+}
+window.csPresetLead = csPresetLead;
+/* MW-06 · the rail says WHICH step, not only how far. Three bars named
+   nothing, so Back and Next were the only way to learn where you were. */
+const WIZ_STEPS = ['The league', 'The rules', 'Review'];
+function csRenderWizStep(){
+  const el = document.getElementById('wizStepName');
+  if(el) el.textContent = `Step ${state.wiz + 1} of ${WIZ_STEPS.length} \u00b7 ${WIZ_STEPS[state.wiz] || ''}`;
+  document.querySelectorAll('[data-preset-lead]').forEach(p => {
+    p.textContent = csPresetLead(+p.getAttribute('data-preset-lead'));
+  });
+}
+window.csRenderWizStep = csRenderWizStep;
 function renderWizard(){
+  csRenderWizStep();
   if(state.wiz===2){
     if(!state.startISO) state.startISO=isoOf(seasonStartDate());
     renderBylaws();
