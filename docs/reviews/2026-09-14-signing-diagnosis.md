@@ -41,6 +41,42 @@ Locally:
 not in the Apple Developer account.** Cloud-managed signing had nothing to
 fetch, which is why `signingStyle: automatic` fails.
 
+## 1a · When it broke, and the likeliest reason — read 2026-09-14
+
+`GET /v1/apps/<app>/builds` returns **11 builds**, and the most recent uploads
+are:
+
+| Uploaded | Build | State |
+|---|---|---|
+| 2026-09-12 | **795** | VALID |
+| 2026-09-11 | 791 | VALID |
+| 2026-09-09 | 762 | VALID |
+| 2026-09-08 | 758 | VALID |
+
+**Distribution signing worked on 2026-09-12** — build 795 uploaded that day — and
+the first failed export was 2026-09-13 (build 835). So the certificate was
+present on the 12th and absent on the 13th.
+
+Nothing in the account was misconfigured in that window, and no permission was
+withdrawn: the Apple ID is still `ACCOUNT_HOLDER` with `provisioningAllowed:
+true`. An Apple Distribution certificate is valid for one year, and Apple drops
+expired certificates from the list — which is exactly the state the account is
+in, with **no** distribution certificate of any kind remaining. **The likeliest
+explanation is that the certificate reached its expiry on or about 2026-09-12,
+having signed build 795 on its last day.** This cannot be proved from here,
+because an expired certificate is no longer returned by the API; revocation
+would leave the same trace. Either way the remedy is the same, and it is
+ordinary annual maintenance rather than a repair.
+
+Two corrections to the record, both mine or inherited:
+
+- earlier reports (including my own on 2026-09-13) said the operator needed to
+  be *granted* cloud-signing access. That access is present and was never the
+  problem.
+- builds 835, 855, 857 and 890 were **archived but never uploaded**. The last
+  build actually on App Store Connect is **795**. Saying "the workflow that
+  produced 669 through 835" was wrong; it produced 669 through 795.
+
 ## 2 · Why the API key does not fix it by itself
 
 `tools/ios-archive.sh` already passes the key to both phases
@@ -126,6 +162,17 @@ already reads them; they are never written into this public repo.)
 **Delivery is not upload.** The report will name: the source SHA, the build
 number actually available in App Store Connect, its processing state, and
 whether it is attached to the owner's existing beta group.
+
+## 5a · What is already clear downstream of signing
+
+Checked read-only today, so none of it can surprise the upload:
+
+| | |
+|---|---|
+| Export compliance | `ITSAppUsesNonExemptEncryption: false` is in the archived `Info.plist` for build 890 — no post-upload questionnaire will block it |
+| Beta group | **"Friends"**, `isInternalGroup: false`, **4 testers** |
+| Consequence | an **external** group means **Beta App Review** stands between a processed build and a tester's phone. Upload is not delivery, and neither is `VALID`; the build has to clear review and be attached |
+| App record | reachable; 11 builds in its history |
 
 ## 6 · Scope
 
