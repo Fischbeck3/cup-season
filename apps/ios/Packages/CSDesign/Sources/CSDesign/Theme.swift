@@ -122,7 +122,18 @@ public extension CSPalette {
     let accent2 = look.accent2(theme)
     return CSPalette(bg0: bg0, bg1: bg1, bg2: bg2,
               rule: rule, ink: ink, mut: mut, dim: dim,
-              pos: pos, neg: neg, cool: cool, gold: gold, brand: accent,
+              // D305/D313 amendment (2026-09-14) · A LIVERY COLOURS YOUR
+              // CHOICES, AND AN ACTIVE COMPETITION KEEPS ITS OWN SIGNAL. The
+              // look used to replace `brand`, which at the time meant both
+              // ordinary actions and live competition — one substitution for
+              // two jobs. Those are separate roles now, so the look reaches
+              // the ORDINARY ACTION (`act`), which is where a golfer actually
+              // sees "their" colour — the button they press, Play, a focus
+              // ring — and ember stays ember, because the amendment's
+              // cross-surface rule says the same qualifying competition keeps
+              // its colour wherever it surfaces. A personal dial may not
+              // repaint a live clash.
+              pos: pos, neg: neg, cool: cool, gold: gold, brand: brand, act: accent,
               sq0: sq0, sq1: sq1, sq2: sq2, sq3: sq3,
               panel: accent2, panelInk: CSInk.on(accent2), panelMut: CSInk.mutOn(accent2),
               leaf: leaf, leafInk: leafInk, leafMut: leafMut, leafGold: leafGold,
@@ -142,7 +153,7 @@ public extension CSPalette {
   var increasedContrast: CSPalette {
     CSPalette(bg0: bg0, bg1: bg1, bg2: bg2,
               rule: mut, ink: ink, mut: ink.opacity(CSTokens.Alpha.a88), dim: mut,
-              pos: pos, neg: neg, cool: cool, gold: gold, brand: brand,
+              pos: pos, neg: neg, cool: cool, gold: gold, brand: brand, act: act,
               sq0: sq0, sq1: sq1, sq2: sq2, sq3: sq3,
               panel: panel, panelInk: panelInk, panelMut: panelInk.opacity(CSTokens.Alpha.a88),
               leaf: leaf, leafInk: leafInk, leafMut: leafInk.opacity(CSTokens.Alpha.a88),

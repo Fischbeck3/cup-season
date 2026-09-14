@@ -383,7 +383,9 @@ public struct CSTabBand<T: Hashable>: View {
                 .fill(on && !item.isPlay ? cs.ink : Color.clear)
                 .frame(width: 26, height: 2)
             }
-            .foregroundStyle(item.isPlay ? cs.brand : (on ? cs.ink : cs.mut))
+            // Play is an ordinary action and wears `act`; the selected slot
+            // is ink. Neither is ember (D305/D313 amendment, 2026-09-14).
+            .foregroundStyle(item.isPlay ? cs.act : (on ? cs.ink : cs.mut))
             .frame(maxWidth: .infinity, minHeight: typeSize.isA11y ? 84 : 74)
             .contentShape(Rectangle())
           }

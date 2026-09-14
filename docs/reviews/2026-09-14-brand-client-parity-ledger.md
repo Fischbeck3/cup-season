@@ -11,7 +11,8 @@ application **`1bc307f`** (live on cupseason.app at time of writing).
 
 | | |
 |---|---|
-| **Checkpoint A candidate** | **`bc22372`** |
+| **Checkpoint A candidate** | `bc22372` — superseded |
+| **P0/P1 candidate** | **see the P0/P1 section below** |
 | **Phone preview** | **https://deploy-preview-4--cupseason.netlify.app** — read back `v23 · bc22372` in the page **and** in `sw.js` at 08:22:33 |
 | Native source | `1bc307f` + the shared `act` token generated into `Tokens.swift`. **No native UI change yet** — see the native column below |
 | Live web | `1bc307f`, untouched. Nothing promoted. |
@@ -42,6 +43,55 @@ both grounds, where the board shows cream-on-fescue and dark-green-on-paper),
 
 ---
 
+## P0 · reconciling checkpoint A (2026-09-14, after `2e4d9c5` and `9201c08`)
+
+The newer amendment — **D305/D313 · ember marks active competition; green
+carries ordinary actions** — arrived after checkpoint A and changes two things
+I had built, plus one thing I had written down wrongly. All three are corrected
+rather than argued with.
+
+| Finding | Disposition |
+|---|---|
+| `bc22372` painted a **decorative ember hairline** on the welcome and the receipt, and my ledger called it "the identity's hairline" | **corrected.** A welcome is the most ordinary surface there is, and a receipt for a finished round is not an active competition. The rule stays as composition and is now a `mut` hairline at half alpha. Not ported to native. |
+| My receipt set the **gross in the editorial serif** | **corrected.** The serif is memory and honour; a gross is a competition figure, and this product sets every score, rank and column in the board face. `rm-fig` is `--board` with tabular figures. The sentence under it stays serif, because that one is a story. |
+| My ledger row 2 said **native AX labels wrap** | **wrong, and mine.** `CSTabBand` sets `.lineLimit(1)` with `.minimumScaleFactor(0.55)` at accessibility sizes — it shrinks, it does not wrap. I took that from a stale comment above the code instead of the code. Row 2 is fixed below. |
+| Native declared `act` but **no UI consumed it** | **done in P1 below.** |
+
+Kept without change: the five-position band, the labelled outlined Play, the
+cream/paper mark treatment, the serif *statement*, the quieter terrain, the
+green ordinary controls, and the authentication flow — none of which the
+amendment touches.
+
+## P1 · shared identity and action roles, on both clients
+
+`act` now reaches the native UI through shared sources, not local patches:
+
+| Native consumer | Before | Now |
+|---|---|---|
+| `CSPrimaryStyle.fill` (every primary button) | `cs.brand` | `cs.act`; its ember budget drops to 0 |
+| `CSTabBand` Play | `cs.brand` | `cs.act` — verified on the simulator, Play renders green in the band |
+| `CSField` focus ring | `cs.brand` | `cs.act` |
+| A lit choice's underline | `cs.brand` | `cs.act`; ember budget 0 |
+| `CSTheme.livery(look:)` | replaced `brand` with the look's accent | replaces **`act`**; `brand` stays ember |
+| `CSPalette.increasedContrast` | — | carries `act` through |
+
+**One judgement call, flagged for review.** The livery used to substitute
+`brand`, which at the time meant *both* ordinary actions and live competition —
+one substitution doing two jobs. Those are separate roles now, so I pointed the
+look at `act`: a golfer's chosen colour still reaches the thing they press,
+while an active clash keeps ember, because the amendment's cross-surface rule
+says a qualifying competition keeps its colour wherever it surfaces and a
+personal dial should not repaint a live clash. That is my reading of "preserve
+personal preference while separating ordinary action from the reserved
+competition signal", and it changes existing look behaviour, so it wants an
+explicit yes or no.
+
+**Not done in P1, named rather than skipped.** `CSLook.tick` and
+`CSLook.eyebrow` still fall back to `cs.brand` on homebase — routine decorative
+ember on page headers. Neutralising it is a visual call across every header at
+once, and the plan warns against blanket replacement, so I left it and I am
+asking. My recommendation: `mut`, which is what the web's hairline became.
+
 ## The ledger
 
 ### 1 · Boot, welcome, email/code entry, join entry, branding
@@ -50,8 +100,8 @@ both grounds, where the board shows cream-on-fescue and dark-green-on-paper),
 |---|---|
 | **Native** | `DoorView` · `1bc307f`. Cream `CSBrandMark` on `bg0`, `CSTopoField(.page)`, statement in `.lead` (serif), Get started / Sign in. Already board-aligned on mark and ground. |
 | **Web before** | `1bc307f`. Ember mark; statement in the **condensed** face in caps; terrain at a24/a56 running through the statement; **orange** primary button. |
-| **Web now** | `bc22372`. Cream mark (`ink`); statement in the **editorial serif**, sentence case, with the board's single ember hairline under it; terrain a08/a16 at 0.8 stroke; **green** primary action. Auth flow untouched — email → 8-digit code → verify, join code, resend, terms, version caption. |
-| **Difference remaining** | Native's statement is `.lead` serif at 28pt; web's is 2.625rem serif — same face, different scale by platform measure. Native has no ember hairline yet. The board's "ROUNDS MAKE A GOOD LIFE." line is on neither. |
+| **Web now** | Cream mark (`ink`); statement in the **editorial serif**, sentence case, with a **neutral** hairline under it (it was ember in `bc22372`; the amendment reserves ember for active competition); terrain a08/a16 at 0.8 stroke; **green** primary action. Auth flow untouched — email → 8-digit code → verify, join code, resend, terms, version caption. |
+| **Difference remaining** | Native's statement is `.lead` serif at 28pt; web's is 2.625rem serif — same face, different scale by platform measure. Native has no hairline under the statement. The board's "ROUNDS MAKE A GOOD LIFE." line is on neither. Native's primary entry buttons are green as of P1. |
 | **Evidence** | `tests/brand-door-browser.js` at 320/390/1440/390×560, both themes, 200% text. Comparison image `compare-door.png`. |
 | **Status** | web **preview-verified** · native **scoped** (hairline + parity of statement scale) |
 
@@ -62,7 +112,7 @@ both grounds, where the board shows cream-on-fescue and dark-green-on-paper),
 | **Native** | `CSTabBand` · five equal slots, every one labelled, `CSGlyph.play` outlined, selected = 26×2 rule in `ink`, Play tinted flat. This is the reference. |
 | **Web before** | **Four** lanes; Play pulled out as a **filled ember disc floating above the bar** with its label suppressed (`font-size:0`); selected = a 4px ember dot. |
 | **Web now** | Five equal slots in the phone's order — Home, Compete, Play, Golfers, You — Play **in** the band and **labelled**, drawing `CSGlyph.play`'s exact path, selected = 26×2 `ink` rule; Play carries `act`, flat. No disc, no glow, no ember on any slot. |
-| **Difference remaining** | Native's band grows its height and wraps labels at AX3; the web's labels shrink instead. Desk (≥960) still uses the sidebar, by design (D222/D234). |
+| **Difference remaining** | **Correction:** an earlier version of this row said native wraps its labels at AX3. It does not — `CSTabBand` sets `.lineLimit(1)` with `.minimumScaleFactor(0.55)`, so it shrinks, which is what the web does too. The two now agree. Desk (≥960) still uses the sidebar, by design (D222/D234). |
 | **Evidence** | `tests/nav-band-browser.js` — order, labels, Play in-box, glyph path, rule size and colour, no ember, 44pt targets, routing. Fails on `1bc307f` at *"the band does not lay out five equal slots: 4"*. |
 | **Status** | web **preview-verified** · native **already correct** (it is the reference) |
 
@@ -122,7 +172,7 @@ both grounds, where the board shows cream-on-fescue and dark-green-on-paper),
 |---|---|
 | **Native** | `ReceiptSeed` rows; `CSArtifactFrame`/`CSArtifactFooter` sign exports. |
 | **Web before** | a plain photo band, then a figures strip, then rows. |
-| **Web now** | **the board's brand moment**: course and day in the metadata voice, the gross at 76px in the editorial serif, the verdict beneath, the ember hairline, the mark signing the corner — over the round's photograph when there is one, and on the fescue ground with a sparse contour when there is not. Every value is the round's own; a missing fact leaves its line absent. D201 followed through — the strip and the sheet subtitle stopped repeating the gross, the course and the day. |
+| **Web now** | **the board's brand moment**: course and day in the metadata voice, the gross at 76px in the **tournament board face** (it was the serif in `bc22372` — corrected in P0), the verdict beneath in the serif, a neutral hairline, the mark signing the corner — over the round's photograph when there is one, and on the fescue ground with a sparse contour when there is not. Every value is the round's own; a missing fact leaves its line absent. D201 followed through — the strip and the sheet subtitle stopped repeating the gross, the course and the day. |
 | **Difference remaining** | **The native receipt is not yet this composition** — the biggest open parity gap in this pass. With-photo state is verified only with a fixture URL; a real photo round is still unwalked (carried from the earlier follow-up packet). |
 | **Evidence** | `home-receipt-browser.js`, `artifact-signature-browser.js`; `compare-rcpt.png`. |
 | **Status** | web **preview-verified** (no-photo) · native **scoped** · with-photo **unverified both** |
