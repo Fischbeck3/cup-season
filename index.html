@@ -8826,6 +8826,63 @@ const CARD_BADGE = {
    artifacts circulating in the same group thread that did not match each other.
    Gold is unchanged: D76 narrows it to the EARNED metal, which is exactly what
    these cards are. */
+/* ═══ D339 I-2 · ONE SIGNATURE ON EVERY SHARED ARTIFACT ═══════════════════
+   The four canvas artifacts a golfer sends out — the recap, the round card,
+   the settlement card and the Major card — each signed themselves differently:
+   three drew "CUP SEASON / cupseason.app" at three sizes and three baselines,
+   the fourth drew a serif name and "START YOURS AT CUPSEASON.APP", and none
+   of them carried the mark or the brand line. The phone signs all of its
+   exports with one `CSArtifactFooter` (Artifact.swift): the mark, the name,
+   the brand line, the address.
+
+   This is that footer for the desk. The geometry is the GENERATED pennant
+   (`brand/candidates/testflight-pennant`, `tools/build-beta-mark.sh`) — the
+   same two paths the door and both mastheads draw, as `Path2D` — so the
+   artifact and the app cannot wear different marks. Each card keeps its own
+   composition above it and passes the top it wants; nothing else moves. */
+const CS_MARK_PATH_A = 'M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z';
+const CS_MARK_PATH_B = 'M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z';
+function csArtifactSignature(x, W, top, opts){
+  const o = opts || {};
+  const INK = o.ink || '#F1F4EF', MUT = o.mut || '#9BA69D';
+  const BOARD = "'IBM Plex Sans Condensed',system-ui,sans-serif";
+  const markW = o.mark || 96, markH = markW * 0.57;
+  const gap = 22;
+  /* the mark and the name on one baseline, as the phone's frame sets them */
+  x.save();
+  x.font = `700 46px ${BOARD}`;
+  try{ x.letterSpacing = '2px'; }catch(e){}
+  const nameW = x.measureText('CUP SEASON').width;
+  const rowW = markW + gap + nameW;
+  const x0 = (W - rowW) / 2;
+  x.fillStyle = INK; x.textAlign = 'left';
+  x.fillText('CUP SEASON', x0 + markW + gap, top + markH * 0.84);
+  try{ x.letterSpacing = '0px'; }catch(e){}
+  x.restore();
+  x.save();
+  x.translate(x0, top);
+  x.scale(markW / 1000, markW / 1000);
+  x.fillStyle = INK;
+  try{
+    x.fill(new Path2D(CS_MARK_PATH_A), 'evenodd');
+    x.fill(new Path2D(CS_MARK_PATH_B));
+  }catch(e){ /* a browser without Path2D still gets the name and the lines */ }
+  x.restore();
+  /* the brand line, then the address — `CS_BRAND` is the one producer */
+  const line = (window.CS_BRAND ? CS_BRAND.tagline : 'ANY TIME.\nANYWHERE.').replace(/\n/g, ' ');
+  const put = (txt, y, font, fill, ls) => {
+    x.save(); x.font = font; x.fillStyle = fill;
+    try{ x.letterSpacing = (ls || 0) + 'px'; }catch(e){}
+    x.textAlign = 'center'; x.fillText(txt, W / 2, y);
+    try{ x.letterSpacing = '0px'; }catch(e){}
+    x.restore();
+  };
+  put(line, top + markH + 34, `600 26px ${BOARD}`, INK, 4);
+  put('cupseason.app', top + markH + 70, `600 24px ${BOARD}`, MUT, 4);
+  return top + markH + 70;
+}
+window.csArtifactSignature = csArtifactSignature;
+
 function drawRecapCard(d){
   const W=1080, H=1350;
   /* WAVE 8 · the `ceremony` ramp, the same eight values the settlement card
@@ -8894,8 +8951,7 @@ function drawRecapCard(d){
   const dt=d.date||new Date();
   const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`+(d.points!=null?` · ${d.points} PTS`:'');
   ctr(when, 1134, `600 29px ${BOARD}`, MUT, 4);
-  ctr('CUP SEASON', 1246, `700 52px ${BOARD}`, INK, 2);
-  ctr('cupseason.app', 1292, `600 27px ${BOARD}`, MUT, 4);
+  csArtifactSignature(x, W, 1180, { ink:INK, mut:MUT });
   return cv;
 }
 /* D294 · THE CARD, AS THE THING THAT LEAVES THE APP. Same canvas and the same
@@ -8988,8 +9044,7 @@ function drawRoundCardArtifact(d){
   ctr(sub, 1104, `600 29px ${BOARD}`, MUT, 4);
   x.strokeStyle='rgba(255,255,255,.08)'; x.lineWidth=1;
   x.beginPath(); x.moveTo(280,1170); x.lineTo(W-280,1170); x.stroke();
-  ctr('CUP SEASON', 1246, `700 50px ${BOARD}`, INK, 2);
-  ctr('cupseason.app', 1296, `600 26px ${BOARD}`, MUT, 4);
+  csArtifactSignature(x, W, 1190, { ink:INK, mut:MUT });
   return cv;
 }
 async function shareRoundCard(d){
@@ -9173,8 +9228,7 @@ function drawSettlementCard(d){
   const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const dt=d.date||new Date();
   ctr(`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`, 1174, `600 27px ${BOARD}`, MUT, 4);
-  ctr('CUP SEASON', 1268, `700 50px ${BOARD}`, INK, 2);
-  ctr('cupseason.app', 1312, `600 25px ${BOARD}`, MUT, 4);
+  csArtifactSignature(x, W, 1192, { ink:INK, mut:MUT });
   return cv;
 }
 /* same five moves as shareRecapCard: blob, file, capability gate, share,
@@ -21604,8 +21658,9 @@ function drawMajorCard(d){
   const pod=(d.podium||[]).map(p=>`${p.rank===2?'2ND':'3RD'} ${(p.name||'').toUpperCase()} ${mjVs(p.pvi)}`).join(' · ');
   if(pod) ctr(pod, 1116, `500 26px ${MONO}`, MUT, 3);
   ctr((d.when||'')+(d.pot?` · POT ${d.pot}`:''), 1166, `500 27px ${MONO}`, MUT, 4);
-  ctr('Cup Season', 1246, `600 52px ${SERIF}`, INK);
-  ctr('START YOURS AT CUPSEASON.APP', 1292, `500 25px ${MONO}`, MUT, 4);
+  /* D339 I-2 · the Major card signed itself in the serif with its own
+     sentence; it takes the product's one signature like every other artifact. */
+  csArtifactSignature(x, W, 1186, { ink:INK, mut:MUT });
   return cv;
 }
 async function shareMajorCard(d){
