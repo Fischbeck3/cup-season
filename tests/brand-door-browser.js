@@ -12,7 +12,12 @@
   if(window.sb) window.sb.auth=new Proxy(realAuth||{}, { get:(t,k)=> (typeof k==='string' && /signIn|verify|resend|otp/i.test(k)) ? (async(...a)=>{ sends.push(String(k)); return { data:null, error:{ message:'refused by the audit' } }; }) : t[k] });
   try{
     /* the brand copy, from the one producer */
-    check(window.CS_BRAND && CS_BRAND.tagline==='ANY TIME.\nANYWHERE.','CS_BRAND is not the producer');
+    /* the owner's 2026-09-14 board sets this line TWO ways and the producer
+       carries both: the editorial serif, sentence case, where it IS the
+       statement; tracked caps where it signs a lockup or an artifact. */
+    check(!!window.CS_BRAND,'CS_BRAND is not the producer');
+    check(CS_BRAND.tagline==='Any time.\nAnywhere.','the statement is not the board’s editorial form: '+JSON.stringify(CS_BRAND.tagline));
+    check(CS_BRAND.taglineCaps==='ANY TIME. ANYWHERE.','the tracked-caps form is missing: '+JSON.stringify(CS_BRAND.taglineCaps));
     const h1=q('.ob-hero h1.cs-brandline');
     check(!!h1 && h1.innerText.trim().replace(/\s*\n\s*/g,'\n')===CS_BRAND.tagline,'the door does not print the brand line');
     await document.fonts.ready;
@@ -24,18 +29,32 @@
     check(q('meta[name="description"]').content===CS_BRAND.description,'the head description is not the producer’s');
     /* type roles with distinct jobs: the statement in the condensed display role, the standfirst in the story role */
     const ff=el=>getComputedStyle(el).fontFamily;
-    check(h1.classList.contains('cs-display') && /Condensed|system-ui/.test(ff(h1)) && getComputedStyle(h1).textTransform==='uppercase','the statement is not in the display role: '+ff(h1));
+    /* BOARD RULE · the brand's own moments are the editorial serif; the
+       condensed board face belongs to competition and figures. This assertion
+       previously required the opposite and is superseded by the owner board. */
+    check(/serif|New York|Georgia/i.test(ff(h1)) && !/Condensed/.test(ff(h1)),'the statement is not in the editorial serif: '+ff(h1));
+    check(getComputedStyle(h1).textTransform!=='uppercase','the statement is still set in caps');
+    check(!!q('.ob-hero .cs-brandrule'),'the board’s ember hairline under the statement is missing');
     check(sf.classList.contains('cs-story') && /serif|New York|Georgia/i.test(ff(sf)) && !/Condensed/.test(ff(sf)),'the standfirst is not in the story role: '+ff(sf));
     check(parseFloat(getComputedStyle(h1).fontSize) > parseFloat(getComputedStyle(sf).fontSize)*1.5,'the statement does not dominate the standfirst');
     /* the compact signature at the top, above the statement */
     const sig=q('.ob-sig'); check(!!sig && !!sig.querySelector('svg.cs-mark') && /Cup Season/.test(sig.textContent),'no compact signature');
     const sr=sig.querySelector('svg').getBoundingClientRect(); check(sr.width>=28 && sr.width<=64,'the signature mark is not compact: '+sr.width);
+    /* the mark is cream on fescue and dark green on paper — never ember
+       (owner board, 2026-09-14 · mark variations) */
+    const markColour=getComputedStyle(sig.querySelector('svg')).color;
+    check(markColour===getComputedStyle(q('.ob-hero h1')).color,'the mark is not the ink the statement uses: '+markColour);
+    out.markColour=markColour;
     check(sig.getBoundingClientRect().top < h1.getBoundingClientRect().top,'the signature is not above the statement');
     /* the terrain: the accepted paths, two weights, visible, behind everything, never a control */
     const terr=q('.ob-terrain'); check(!!terr,'no terrain on the door');
     const sur=terr.querySelector('.t-sur'), edge=terr.querySelector('.t-edge');
     check(!!sur && !!edge && sur.getAttribute('d').startsWith('M 322 29') && edge.getAttribute('d').startsWith('M 336 57'),'the terrain is not the accepted geometry');
-    check(Math.abs(parseFloat(getComputedStyle(sur).opacity)-.24)<.01 && Math.abs(parseFloat(getComputedStyle(edge).opacity)-.56)<.01,'the terrain is not at the system alphas');
+    /* BOARD RULE (2026-09-14) · sparse and fine, and not behind the reading.
+       This previously pinned a24/a56, which put contour curves straight through
+       the statement; the owner's masthead contours are barely there. */
+    check(Math.abs(parseFloat(getComputedStyle(sur).opacity)-.08)<.01 && Math.abs(parseFloat(getComputedStyle(edge).opacity)-.16)<.01,
+          'the terrain is not at the quiet end of the ramp: '+getComputedStyle(sur).opacity+'/'+getComputedStyle(edge).opacity);
     check(getComputedStyle(terr).pointerEvents==='none','the terrain takes input');
     const tr=terr.getBoundingClientRect(); check(tr.right>=innerWidth-1 && tr.top<=0,'the terrain is not anchored to the upper right: '+JSON.stringify({r:tr.right,t:tr.top}));
     check(tr.width>=innerWidth*0.6,'the terrain is not at page scale');

@@ -73,7 +73,13 @@
      viewport, counted by hue; at most two ember marks. Gold may never touch
      a control. `dawn` and `pine` are deleted. */
   --gold:#D8B25A;                 /* champagne / bronze on paper — EARNED only: leads, the pot, trophies */
-  --brand:#E8622C;                /* ember / stamp red on paper — live, and the one primary action */
+  --brand:#E8622C;                /* ember / stamp red on paper — LIVE and urgent, and the identity's
+                                     one hairline. It is no longer the ordinary action: the owner's
+                                     2026-09-14 board puts fescue and paper in front and orange behind. */
+  --act:#5FA271;                  /* THE ACTION. A fescue-family green that carries an ordinary
+                                     primary control on the dark ground with `bg0` type on it.
+                                     Identity (`ink`), semantics (`pos`/`neg`) and earned gold are
+                                     deliberately NOT this, and none of them moved. */
 
   /* squad — Four squad hues, re-cut off the metals so a team colour can
      never be mistaken for ember or champagne (D270). */
@@ -273,6 +279,7 @@ html[data-theme="light"]{
   --pos:#0A6D3C; --neg:#B02A20; --cool:#56615B;
   /* metal */
   --gold:#795912; --brand:#A13F0E;
+  --act:#1F5D3A;                  /* on warm paper the action is the deep green, cream type on it */
   /* squad */
   --sq0:#002B40; --sq1:#603E35; --sq2:#4C705D;
   --sq3:#8B88A8;
@@ -350,7 +357,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   }
 }
 .brand{display:flex; align-items:center; gap:12px; padding:0 0 32px;}
-.brand .mk{width:20px; height:20px; flex:none; color:var(--brand); display:block;}
+.brand .mk{width:20px; height:20px; flex:none; color:var(--ink); display:block;}
 .brand .mk svg{width:20px; height:20px; display:block;}
 /* D339 · the pennant is wider than it is tall; the sidebar's mark box follows it */
 .brand .mk{width:28px; height:16px;} .brand .mk svg.cs-mark{width:28px; height:16px;}
@@ -447,8 +454,8 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   display:inline-block; margin-top:15px; background:none; border:0; padding:0 0 4px; cursor:pointer;
   color:var(--ink); border-bottom:2px solid var(--mut);
 }
-.csedn.ember .act{border-bottom-color:var(--brand);}
-.csedn .act:focus-visible{outline:2px solid var(--brand); outline-offset:4px;}
+.csedn.ember .act{border-bottom-color:var(--act);}   /* an ordinary action, in the action colour */
+.csedn .act:focus-visible{outline:2px solid var(--act); outline-offset:4px;}
 /* D353 · the two ways out of an after-golf card. Quiet on purpose: the round is
    the point and the ember link is the round, so these are text with a 44px tap
    target and no chrome of their own. They wrap on a narrow phone rather than
@@ -557,7 +564,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .cmphead h2{font-family:var(--board); font-size:42px; font-weight:700; line-height:.98;
   text-transform:uppercase; letter-spacing:calc(var(--d1) * 1em); margin:0; flex:1;}
 @media(max-width:720px){ .cmphead h2{font-size:34px;} }
-.cmphead a{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--brand); text-decoration:none;}
+.cmphead a{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--act); text-decoration:none;}
 .emptyroot{padding:6px 0 2px;}
 .emptyroot h3{font-family:var(--serif); font-size:22px; margin:0 0 8px; font-weight:700;}
 .emptyroot .fact{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin:0 0 6px;}
@@ -1144,7 +1151,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .btn{
   display:flex; align-items:center; justify-content:center; gap:8px;
   width:100%; min-height:46px; border:none; border-radius:var(--rc); cursor:pointer;
-  font-size:14px; font-weight:600; color:var(--bg0); background:var(--brand);
+  /* the ordinary primary action is the ACTION GREEN. Ember stays for live and
+     urgent states and for the identity's hairline (owner board, 2026-09-14). */
+  font-size:14px; font-weight:600; color:var(--bg0); background:var(--act);
   transition:filter .2s var(--roll), transform .2s var(--roll);
 }
 .btn:hover{filter:brightness(1.06);}
@@ -1222,6 +1231,43 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 #albumGrid .alcell{aspect-ratio:1; border:1px solid var(--rule); border-radius:10px; background-size:cover; background-position:center; cursor:pointer; padding:0;}
 #albumGrid .alcell:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 .rcpt-hero{margin:0 0 12px;}
+/* THE ROUND AS A BRAND MOMENT (owner board, 2026-09-14). One composition: the
+   course and the day in the metadata voice, the gross enormous in the editorial
+   serif, the verdict beneath it, the ember hairline, the mark signing the
+   corner. Over the round's photograph when there is one; on the fescue ground
+   with a sparse contour when there is not — which is a designed state, not a
+   fallback, and never a stock photograph standing in for a round nobody shot. */
+.rcpt-moment{
+  position:relative; overflow:hidden; border-radius:var(--p);
+  background:var(--bg1); color:var(--ink); margin:0 0 var(--s4); isolation:isolate;
+}
+.rcpt-moment img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2;}
+/* the scrim: type over a photograph reads on its own ground (§10.3) */
+.rcpt-moment.has-photo::before{
+  content:""; position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(180deg, rgba(10,14,12,.34) 0%, rgba(10,14,12,.62) 46%, rgba(10,14,12,.86) 100%);
+}
+.rcpt-moment.has-photo{color:var(--scrim-ink, #F1F4EF);}
+.rcpt-moment .rm-topo{position:absolute; right:-14%; top:50%; transform:translateY(-50%);
+  width:70%; height:auto; z-index:-1; color:var(--mut); pointer-events:none;}
+.rcpt-moment .rm-topo .t-sur{stroke-width:.9; opacity:.08;}
+.rcpt-moment .rm-topo .t-edge{stroke-width:.9; opacity:.16;}
+.rcpt-moment .rm-in{position:relative; padding:var(--s4); min-height:280px; display:flex; flex-direction:column; align-items:flex-start;}
+.rcpt-moment .rm-meta{
+  font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate) * 1em);
+  text-transform:uppercase; color:inherit; opacity:.86;
+}
+.rcpt-moment .rm-fig{
+  font-family:var(--serif); font-weight:700; font-size:76px; line-height:1;
+  letter-spacing:calc(var(--tight) * 1em); margin:var(--s4) 0 0;
+}
+.rcpt-moment .rm-say{font-family:var(--serif); font-size:21px; line-height:1.3; margin:var(--s2) 0 0; max-width:22ch;}
+.rcpt-moment .cs-brandrule{margin-top:var(--s3);}
+.rcpt-moment .rm-foot{display:flex; align-items:center; gap:var(--s3); width:100%; margin-top:auto; padding-top:var(--s4);}
+.rcpt-moment .rm-tag{font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate) * 1em); opacity:.7;}
+.rcpt-moment .rm-mark{width:34px; height:20px; margin-left:auto; flex:none; color:inherit;}
+.rcpt-moment .mkstamp{position:absolute; right:var(--s3); top:var(--s3); z-index:1;}
+@media(max-width:360px){ .rcpt-moment .rm-fig{font-size:62px;} }
 .rcpt-hero img{width:100%; max-height:260px; object-fit:cover; border-radius:12px; border:1px solid var(--rule); display:block;}
 .digest .dgthumb{float:right; width:44px; height:44px; border-radius:10px; object-fit:cover; margin-left:10px; border:1px solid var(--rule);}
 /* photos arc 2 ckpt 2 (D59): faces + the marker stamp */
@@ -1462,7 +1508,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   display:grid; place-items:center; font-size:12.5px; font-weight:700;
 }
 .preset.sel{border-color:var(--rule); box-shadow:inset 3px 0 0 var(--brand);}
-.preset.sel .ok{background:var(--brand); border-color:var(--brand); color:var(--bg0);}
+.preset.sel .ok{background:var(--act); border-color:var(--act); color:var(--bg0);}
 .preset p{font-family:var(--mono); font-size:12.5px; color:var(--mut); line-height:1.6; margin-top:5px;}
 .preset p b{color:var(--ink); font-weight:600;}
 .preset .lead{font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ink); line-height:1.45; margin-top:4px;}
@@ -1530,7 +1576,7 @@ body.cardview nav.tabbar .tab[data-v="record"]{visibility:hidden;}
 @media(min-width:740px){ .vtog{display:flex;} }
 .vtog button{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; padding:4px 9px;
   color:var(--dim); background:none; border:0; cursor:pointer;}
-.vtog button.on{background:var(--brand); color:#0E1512; font-weight:600;}
+.vtog button.on{background:var(--act); color:#0E1512; font-weight:600;}
 .cardwrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
 table.hcard{width:100%; border-collapse:collapse; font-family:var(--mono); min-width:600px;}
 table.hcard th, table.hcard td{padding:4px 0; text-align:center; font-size:11px;
@@ -2243,7 +2289,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   color:var(--gold); text-decoration:none;
 }
 .eyebrow.withgo a:hover{color:var(--ink);}
-.eyebrow.withgo a:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.eyebrow.withgo a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .sysrow{
   font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
   color:var(--mut); text-align:left; padding:10px 13px; margin-bottom:8px;
@@ -2665,8 +2711,8 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   padding:6px 2px; border-radius:10px; min-height:46px;
 }
 .tab svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
-.tab.active{color:var(--brand);}
-.tab:focus-visible{outline:2px solid var(--brand); outline-offset:-2px;}
+.tab.active{color:var(--ink);}
+.tab:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 
 /* ============ toast ============ */
 .toast{
@@ -2732,11 +2778,17 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
    keyboard takes the viewport (`.onboard` is overflow:auto). Left-aligned
    like the phone's welcome; the profile and crew frames were already. */
 .ob-sig{display:flex; align-items:center; gap:12px; color:var(--ink); margin:12px 0 0;}
-.ob-sig .cs-mark-door{width:40px; height:23px; flex:none; color:var(--brand); display:block;}
-html[data-theme="light"] .ob-sig .cs-mark-door{color:var(--ink);}
-.ob-sig .cs-name{color:var(--ink);}
+.ob-sig .cs-mark-door{width:40px; height:23px; flex:none; color:var(--ink); display:block;}
+/* the board's lockup sets CUP SEASON in the editorial serif, tracked wide —
+   not the condensed competition face */
+.ob-sig .cs-name{color:var(--ink); font-family:var(--serif); font-weight:700;
+  letter-spacing:calc(var(--caps) * 1em);}
 .onboard .ob-hero{margin:44px 0 0;}
-/* F3 · THE STATEMENT REFLOWS AT ENLARGED TEXT; IT NEVER CLIPS. `.onboard` is a
+/* THE STATEMENT IS THE EDITORIAL SERIF (owner board, 2026-09-14 · taglines).
+   It was set in the condensed board face in caps, which is this product's voice
+   for COMPETITION and FIGURES — a table, a gross, a rank. The brand's own
+   moments are the serif, and the board sets this line in it, sentence case.
+   F3 · THE STATEMENT REFLOWS AT ENLARGED TEXT; IT NEVER CLIPS. `.onboard` is a
    fixed overlay with `overflow-x:hidden`, so a headline wider than its column
    loses its last letters silently — the document never scrolls and an
    overflow check at the document level prints PASS while "ANYWHERE." is cut.
@@ -2745,9 +2797,11 @@ html[data-theme="light"] .ob-sig .cs-mark-door{color:var(--ink);}
    setting entirely); and a word longer than the measure breaks instead of
    running past it. 2.625rem is 42px at the default root — the composition at
    ordinary settings is unchanged. */
-.onboard .ob-hero .cs-brandline{font-family:var(--board); font-weight:700; text-transform:uppercase; font-size:2.625rem; line-height:.98;
-  letter-spacing:calc(var(--d1) * 1em); color:var(--ink); margin:0; max-width:100%; text-wrap:balance;
+.onboard .ob-hero .cs-brandline{font-family:var(--serif); font-weight:700; font-size:2.625rem; line-height:1.04;
+  letter-spacing:calc(var(--tight) * 1em); color:var(--ink); margin:0; max-width:100%; text-wrap:balance;
   overflow-wrap:anywhere;}
+/* the hairline the board draws under the statement — the one ember on the door */
+.cs-brandrule{display:block; width:52px; height:2px; background:var(--brand); margin:var(--s3) 0 0;}
 /* the name beside the mark, and the sentence under the statement, take the
    same rule: enlarged, they wrap rather than push the column sideways */
 .ob-sig .cs-name, .onboard .ob-hero .cs-standfirst{overflow-wrap:anywhere;}
@@ -2772,8 +2826,10 @@ html[data-theme="light"] .ob-sig .cs-mark-door{color:var(--ink);}
    door (the rules below this comment went with them). */
 
 /* the header mark: ember on charcoal, ink on light (the mark-light rule) */
-/* D339 · the mark's colour is the token's (it was a literal beside the token) */
-.hdrmark{color:var(--brand);}
+/* THE MARK IS CREAM ON FESCUE AND DARK GREEN ON WARM PAPER — the owner's
+   2026-09-14 board, both variations, and `ink` already holds exactly those two
+   values. It was ember on both grounds, which the board does not show anywhere. */
+.hdrmark{color:var(--ink);}
 html[data-theme="light"] .hdrmark{color:var(--ink);}
 /* ignition (D76): the ember floor-glow — a low radiance warming in from the
    bottom edge. Base state is VISIBLE (the animation only fades it up, `both`
@@ -2788,8 +2844,13 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
    wash, no gradient anywhere on this door. */
 .ob-terrain{position:fixed; top:0; right:0; z-index:0; pointer-events:none; color:var(--mut);
   width:max(100%, 520px); max-width:900px; height:auto; display:block;}
-.ob-terrain .t-sur{stroke-width:1; opacity:.24;}
-.ob-terrain .t-edge{stroke-width:1; opacity:.56;}
+/* SPARSE AND FINE, AND NOT BEHIND THE READING (owner board, 2026-09-14). It
+   was a24/a56 at full stroke, and its curves ran straight through the
+   statement and the standfirst. The board's masthead contours are barely
+   there: a texture you notice second, never a graphic competing with the
+   sentence. Same accepted geometry, taken down to the quiet end of the ramp. */
+.ob-terrain .t-sur{stroke-width:.8; opacity:.08;}
+.ob-terrain .t-edge{stroke-width:.8; opacity:.16;}
 @media(min-width:760px){ .ob-terrain{width:min(62vw, 900px);} }
 /* D339 · the door is static and immediate: no entrance, no delay */
 .ob-wing{animation:none;}
@@ -3255,14 +3316,17 @@ body:not(.noleague) #hubLeagueless{display:none;}
 /* D76: primary actions are flat ember with near-black ink (the hottest thing
    you can touch); the amber→ember --grad is reserved for the tee, which has a
    cream glyph and no text to worry about. */
+/* THE ORDINARY PRIMARY ACTION IS GREEN (owner board, 2026-09-14). Ember keeps
+   live and urgent states, the semantic colours keep their meanings and earned
+   gold is untouched — only the everyday control moved. */
 .btn:not(.dark):not(.gold):not(.apple){
-  background:var(--brand); color:#1C1208;
-  box-shadow:0 8px 22px -12px color-mix(in srgb, var(--brand) 20%, transparent), inset 0 1px 0 rgba(255,255,255,.2);
+  background:var(--act); color:#0E1B14;
+  box-shadow:0 8px 22px -12px color-mix(in srgb, var(--act) 22%, transparent), inset 0 1px 0 rgba(255,255,255,.14);
 }
 /* F1 (re-run for D76): dark ink on the light-theme ember (#C94E1F) is ~3.0:1 —
    fails AA. White ink clears 4.5:1. Dark theme's brighter ember (#E8622C)
    passes at ~5.6:1 with the near-black ink above — untouched. */
-html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#FFFFFF;}
+html[data-theme="light"] .btn:not(.dark):not(.gold):not(.apple){color:#F7F4EB;}
 /* D211: the paper gold moved to #846415 to clear AA as TEXT, and #171204 on it
    is 3.4:1 — white clears 5.5:1. Dark keeps the near-black ink (9.28:1) it has
    always had. The phone's twin is CSButton .gold, which paints cs.bg0. */
@@ -3291,28 +3355,23 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 /* tabbar: four lanes (D222's five slots less the floating ⊕); the Record tee
    is a standalone floating tab ABOVE the bar, dead center — a ball teed up on
    the bar, not squeezed into it */
-.tabbar{grid-template-columns:repeat(4,1fr);}
-.tab[data-v="record"]{
-  position:fixed; left:50%; transform:translateX(-50%);
-  bottom:calc(64px + env(safe-area-inset-bottom));
-  z-index:26; font-size:0; gap:0; padding:0;   /* circle only — no label */
-  min-width:44px;   /* F2: hit target was 42×46 (width-limited); floor to 44 */
-}
-.tab[data-v="record"] .circ{margin:0;}
-.tab[data-v="record"] .circ svg{stroke:#F4F8F2;}   /* cream + on the pine tee (Batch B) */
-.tab{position:relative;}
+/* THE BAND IS THE PHONE'S BAND (2026-09-14 · owner board + `CSTabBand`).
+   It was four lanes with Play pulled OUT as a filled ember disc floating above
+   the bar, its label suppressed to `font-size:0`. The phone has never done
+   that: five equal slots, Play among them, LABELLED, the same outlined glyph
+   as its neighbours, and the selected slot marked by a 26×2 rule in `ink` —
+   not a coloured dot, not a glow. This is that band. */
+.tabbar{grid-template-columns:repeat(5,1fr);}
+.tab{position:relative; padding-bottom:var(--s2);}
+/* the selected rule, `CSTabBand`'s `Rectangle().frame(width: 26, height: 2)` */
 .tab.active::after{
-  content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
-  width:4px; height:4px; border-radius:50%; background:var(--brand);
+  content:""; position:absolute; bottom:2px; left:50%; transform:translateX(-50%);
+  width:26px; height:2px; background:var(--ink);
 }
-.tab .circ{
-  background:var(--brand);
-  box-shadow:0 10px 24px -8px color-mix(in srgb, var(--brand) 20%, transparent), 0 4px 10px -4px rgba(0,0,0,.5),
-             inset 0 1px 0 rgba(255,255,255,.3);
-  transition:transform .22s var(--roll);
-}
-.tab:active .circ{transform:scale(.94);}
-.tab[data-v="record"].active::after{display:none;}
+/* Play is tinted and flat — the action colour, never a disc */
+.tab[data-v="record"]{color:var(--act);}
+.tab[data-v="record"] .circ{background:none; box-shadow:none; margin:0; padding:0; display:contents;}
+.tab[data-v="record"].active::after{background:var(--act);}
 
 /* WAVE 11 / D280 - the ember GLOW behind the selected nav item is deleted.
    BRIEF section 4 names a gradient wash as a do-not, and D280 gives the state
@@ -3634,7 +3693,7 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
   --ink:#F4F1EE; --mut:#9A918A; --dim:#665F59;
   /* semantics: identical to :root — meaning does not change by room */
   --pos:#4EC584; --neg:#FF5F56; --gold:#D8B25A;
-  --brand:#E8622C; --dawn:#7FA6C9; --focus:#FF8A4C;
+  --brand:#E8622C; --act:#5FA271; --dawn:#7FA6C9; --focus:#FF8A4C;
   --warm:#E9A23B; --hot:#FF5A2E; --fire:#FF3B1A; --cool:#66707A;
   --sq0:#57A8FF; --sq1:#FB8B4B; --sq2:#A78BFA; --sq3:#2FD3BE;
   /* the one thing the room turns UP: the glow is the fire in the grate */
@@ -3696,7 +3755,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
 }
 .seasonjump button:hover{color:var(--ink); border-color:var(--dim);}
-.seasonjump button:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
+.seasonjump button:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .seasonjump:empty{display:none;}
 @media(min-width:960px){ .seasonjump{display:none;} }
 /* MW-04 · ON A PHONE THE TABLE COMES FIRST. `.homegrid` holds the climb and
@@ -4021,7 +4080,10 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
       <b class="cs-name">Cup Season</b>
     </div>
     <div class="ob-hero">
-      <h1 class="cs-brandline cs-display">ANY TIME.<br>ANYWHERE.</h1>
+      <h1 class="cs-brandline">Any time.<br>Anywhere.</h1>
+      <!-- the board's one ember: a short hairline under the statement. Orange
+           is an accent on this brand, not the colour of its controls. -->
+      <i class="cs-brandrule" aria-hidden="true"></i>
       <p class="cs-standfirst cs-story">Golf with your people, all season.</p>
     </div>
     <div id="obDoor">
@@ -5465,7 +5527,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 <nav class="tabbar" aria-label="Sections">
   <button class="tab active" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v10h12V10"/></svg>Home</button>
   <button class="tab" data-v="compete"><svg viewBox="0 0 24 24"><path d="M6 21V3"/><path d="M6 4h11l-2.4 3.6L17 11H6"/></svg>Compete</button>
-  <button class="tab" data-v="record" aria-label="Play"><span class="circ"><svg viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg></span>Play</button>
+  <!-- the phone's `CSGlyph.play`, verbatim: an OUTLINED circle with a plus in
+         it. The web drew a bare plus inside a filled ember disc that floated
+         above the band; the band has five equal slots now and this is a tab
+         like its neighbours (owner board, 2026-09-14). -->
+    <button class="tab" data-v="record" aria-label="Play"><svg viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 100 17 8.5 8.5 0 000-17M12 8v8M8 12h8"/></svg>Play</button>
   <button class="tab" data-v="golfers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.6 19c.4-3 2.7-4.6 5.4-4.6s5 1.6 5.4 4.6"/><path d="M16.2 6.4a3 3 0 0 1 0 5.6"/><path d="M17.4 14.9c2 .6 3.2 2.1 3.5 4.1"/></svg>Golfers</button>
   <button class="tab" data-v="stats"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><circle cx="8.5" cy="11.4" r="2.3"/><path d="M13 9.6h4.6M13 13h4.6M6 15.7c.7-1.3 4-1.3 4.7 0"/></svg>You</button>
 </nav>
@@ -8908,7 +8974,7 @@ function csArtifactSignature(x, W, top, opts){
   }catch(e){ /* a browser without Path2D still gets the name and the lines */ }
   x.restore();
   /* the brand line, then the address — `CS_BRAND` is the one producer */
-  const line = (window.CS_BRAND ? CS_BRAND.tagline : 'ANY TIME.\nANYWHERE.').replace(/\n/g, ' ');
+  const line = (window.CS_BRAND ? CS_BRAND.taglineCaps : 'ANY TIME. ANYWHERE.');
   const put = (txt, y, font, fill, ls) => {
     x.save(); x.font = font; x.fillStyle = fill;
     try{ x.letterSpacing = (ls || 0) + 'px'; }catch(e){}
@@ -20123,17 +20189,57 @@ function openRoundReceipt(x, opts){
   const band = pvi!=null ? bandName(Number(pvi)) : null;
   const phrase = pvi!=null ? vsPhrase(Number(pvi)) : '';
   const sentence = csReceiptVerdict(band, phrase, mineOf(r));
-  const figs = `<div class="rcpt-figs">
-      ${r.gross!=null ? `<div class="f g"><b>${esc(String(r.gross))}</b><i></i><small>Gross \u00b7 ${(r.holes_played||18)} holes</small></div>` : ''}
+  /* THE ROUND AS A BRAND MOMENT (owner board, 2026-09-14 · "brand moments").
+     The board's phone shows a posted round as one composition: the course and
+     the day in tracked caps, the gross enormous in the editorial serif, the
+     verdict in the same serif, an ember hairline, and the mark signing the
+     corner — over the round's own photograph.
+
+     Every word here is the round's: the course it was played at, the day it
+     was played, the server's gross and the server's verdict. Nothing is
+     invented to fill the composition, and when a fact is missing its line is
+     simply absent. With no photograph the moment keeps its shape on the fescue
+     ground with the sparse contour behind it — the truthful no-photo state,
+     not a stock photograph standing in for a round nobody photographed. */
+  const rmWhen = r.played_on ? (()=>{ const d=localDate(String(r.played_on).slice(0,10));
+      return d && !isNaN(d) ? `${MOS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`.toUpperCase() : ''; })() : '';
+  const rmCourse = (r.course_label || '').trim();
+  /* D201 · one fact, one place. The moment prints the gross at 76px; the strip
+     under it printed the same number again, and the sheet's own subtitle
+     printed the course and the day a third time. Whatever the moment says, the
+     rows below it stop saying. */
+  const rmShowsFigure = r.gross != null;
+  const figs = `<div class="rcpt-moment${r.photo_url?' has-photo':''}" id="rcptHero">
+      ${r.photo_url ? `<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}` : `
+      <svg class="rm-topo" viewBox="120 -20 380 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path class="t-sur" d="M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z"/>
+        <path class="t-edge" d="M 336 57 C 358 38 386 42 395 60 C 404 77 391 91 386 107 C 380 125 385 145 366 153 C 346 162 316 151 309 132 C 303 115 318 106 320 90 C 322 77 324 66 336 57 Z"/>
+      </g></svg>`}
+      <div class="rm-in">
+        ${rmCourse ? `<div class="rm-meta">${esc(rmCourse.toUpperCase())}</div>` : ''}
+        ${rmWhen ? `<div class="rm-meta">${esc(rmWhen)}</div>` : ''}
+        ${r.gross!=null ? `<div class="rm-fig">${esc(String(r.gross))}</div>` : ''}
+        ${sentence ? `<div class="rm-say">${esc(sentence)}</div>` : ''}
+        <i class="cs-brandrule" aria-hidden="true"></i>
+        <div class="rm-foot">
+          <span class="rm-tag">${esc(window.CS_BRAND ? CS_BRAND.taglineCaps : 'ANY TIME. ANYWHERE.')}</span>
+          <svg class="rm-mark cs-mark" viewBox="0 0 1000 570" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
+        </div>
+      </div>
+    </div>
+    ${(r.gross==null && r.points==null) ? '' : `<div class="rcpt-figs">
+      ${(r.gross!=null && !rmShowsFigure) ? `<div class="f g"><b>${esc(String(r.gross))}</b><i></i><small>Gross \u00b7 ${(r.holes_played||18)} holes</small></div>` : ''}
       ${r.points!=null ? `<div class="f p"><b>${esc(String(r.points))}</b><i></i><small>Points</small></div>` : ''}
-    </div>${sentence ? `<p class="fine" style="padding:0 0 4px">${esc(sentence)}</p>` : ''}`;
+    </div>`}`;
   /* D293 · the photograph's own slot, and it is HIS round only — the same gate
      the desk already applies to the delete. Demo never writes. */
   const canPhoto = mineOf(r) && !!rid && !state.demo && !!window.sb && !!window.CS?.user;
-  openSheet(mineOf(r) ? 'Your round' : 'The round', line.toUpperCase(), `
-    <div class="rcpt-hero" id="rcptHero" style="${r.photo_url?'':'display:none'}">${r.photo_url?`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`:''}</div>
-    ${canPhoto ? csReceiptPhotoRow(r) : ''}
+  const headSub = rmShowsFigure
+    ? `${(r.holes_played||18)} HOLES`      /* the moment has the course and the day */
+    : line.toUpperCase();
+  openSheet(mineOf(r) ? 'Your round' : 'The round', headSub, `
     ${figs}
+    ${canPhoto ? csReceiptPhotoRow(r) : ''}
     <div id="rcptCard"></div>
     <div class="eyebrow">The receipt</div>
     <div id="rcptBody" class="rcpt-leaf">
@@ -26952,7 +27058,12 @@ window.openJoinSheet   = openJoinSheet;
    sentence are not brand copy and live where they always did. */
 const CS_BRAND = Object.freeze({
   name: 'Cup Season',
-  tagline: 'ANY TIME.\nANYWHERE.',
+  /* the owner's 2026-09-14 board shows the line TWICE and differently: the
+     editorial serif, sentence case, where it IS the statement (the taglines
+     panel, the welcome); tracked caps where it is a subordinate line under the
+     lockup or on a shared artifact. One sentence, two settings, one source. */
+  tagline: 'Any time.\nAnywhere.',
+  taglineCaps: 'ANY TIME. ANYWHERE.',
   extended: 'ANY TIME.\nANYWHERE.\nALL SEASON.',
   standfirst: 'Golf with your people, all season.',
   description: 'Any time. Anywhere. Golf with your people, all season — points, pot, pressure.',
