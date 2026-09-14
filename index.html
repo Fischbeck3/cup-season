@@ -473,6 +473,20 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .homeme{display:block; margin:0 0 18px; padding:0 0 14px; border-top:0; border-bottom:1px solid var(--rule);}
 .homeme .mefacts{gap:12px 20px;}
 @media(min-width:960px){ .homeme{display:none;} }
+/* MW-02 · THE PHONE'S ORDER. Below the desk the body is one column, and the
+   column reads: the lead and its one action; the compact strip; the wire; the
+   hero; then recent golf (the feed); then the doors, the calendar rows, the
+   tiles and the pulse. The desk's grid above 960 is untouched — `.deskmain`
+   dissolves into the column only here, so the DOM stays the desk's. */
+@media(max-width:959px){
+  #homeHub.deskbody{display:flex; flex-direction:column;}
+  #homeHub .deskmain{display:contents;}
+  #homeLead{order:1;} #homeMe{order:2;} #homeDeck{order:3;} #homeHero{order:4;}
+  #homeHub .deskwire{order:5;} #homeStart{order:6;} #homeUpNext{order:7;}
+  #homeOccasion{order:8;} #homeTiles{order:9;} #homePulse{order:10;}
+}
+/* MW-02 · the league's name before a shared sentence, in the agate role */
+.cswire .lc{display:block; color:var(--dim); margin-bottom:2px;}
 /* D222 · the Desk disclosure. A desk has room for a list; the three surfaces
    under it are destinations a golfer reaches on a Sunday night, not at the
    turn, and they do not earn a slot of their own on a 1,440-px screen. */
@@ -17052,7 +17066,11 @@ function csItemDoor(it){
        pane and lands the golfer on a blank screen, which is the one thing a
        door may never do (L-32). */
     case 'live':      return id ? ()=>switchView('play') : null;
-    case 'season':    return id ? ()=>switchView('hub') : null;
+    /* MW-02 · a season item names ITS league. `switchView('hub')` opened
+       whichever league the browser happened to have open, so "Open the season"
+       on the other league's row landed on the wrong table. The Compete row's
+       own rule: enter the league by id, or open the hub if it is already in. */
+    case 'season':    return id ? ()=>{ if(window.CS?.league?.id!==id && window.enterLeagueById) window.enterLeagueById(id, false); else switchView('hub'); } : null;
     case 'pot':       return id ? ()=>switchView('pot') : null;
     /* D351 (built) · "See the terms" opens THE TERMS. The route's id is the
        CONTAINER (a season the invitee cannot open); the invitation's own id is
@@ -17347,18 +17365,55 @@ function csDayMarker(iso){
 }
 /* WEIGHT 5 -- a ranked item that is not the lead. One quiet line, a day
    marker, a chevron because it knows where it goes. Never a second card. */
-function csWireLine(it){
+function csWireLine(it, ctx){
   /* D353 · a wire line is ONE button, and a button may not contain buttons.
      An item that can be answered renders as the quiet block instead, so its
      two ways out are reachable wherever it lands in the deck. */
   if(csAfterplan(it)) return csLeadBlock(it);
   const mk = csDayMarker(it.at);
+  /* MW-02 · the league, when the sentence alone would not say which. Two
+     `chapter:` items read "You are the one to catch." for two leagues and the
+     wire printed the sentence twice with nothing between them. The context is
+     a name the payload already carries, printed only when it is needed. */
+  const lc = ctx ? `<span class="lc cs-agate-s">${esc(ctx)}</span>` : '';
   return `<button type="button" class="cswire" data-dgo="${esc(it.key)}">
     <span class="mk cs-agate-s is-phrase">${esc(mk)}</span>
-    <span class="ln cs-body-s">${esc(it.headline)}</span>
+    <span class="ln cs-body-s">${lc}${esc(it.headline)}</span>
     <span class="cv" aria-hidden="true">&rsaquo;</span>
   </button>`;
 }
+/* MW-02 · one fact, one place (D201), on the wire. Two items that say the
+   same sentence about the same league are one item — the first stays. Two
+   items that say the same sentence about DIFFERENT leagues are two facts, and
+   each names its league, because "You are the one to catch." twice in a row
+   is anonymous the second time. The name comes from the dispatch's own
+   membership rows (the same read), then the boot's, then the eyebrow's first
+   segment; an item with no league gets no context and is never de-duplicated
+   against one that has. */
+function csLeagueName(id){
+  if(!id) return null;
+  const d = window.homeDispatch && window.homeDispatch.me && Array.isArray(window.homeDispatch.me.memberships)
+    ? window.homeDispatch.me.memberships.find(m => m && m.league_id === id) : null;
+  if(d && d.name) return d.name;
+  const b = (window.CS && Array.isArray(CS.memberships) ? CS.memberships : []).find(m => m && m.league && m.league.id === id);
+  return (b && b.league.name) || null;
+}
+function csWireArrange(lead, deck){
+  const seen = new Set(); const out = [];
+  const sig = it => String(it.headline||'').trim() + '\u0000' + String(it.league_id||'');
+  if(lead) seen.add(sig(lead));
+  (deck||[]).forEach(it => { const k = sig(it); if(it.league_id && seen.has(k)) return; seen.add(k); out.push(it); });
+  const byHeadline = new Map();
+  [lead, ...out].filter(Boolean).forEach(it => { const h = String(it.headline||'').trim(); byHeadline.set(h, (byHeadline.get(h)||0) + 1); });
+  const ctx = new Map();
+  out.forEach(it => {
+    if(!it.league_id || byHeadline.get(String(it.headline||'').trim()) < 2) return;
+    const name = csLeagueName(it.league_id) || String(it.eyebrow||'').split(' · ')[0].trim() || null;
+    if(name) ctx.set(it.key, name);
+  });
+  return { deck: out, ctx };
+}
+window.csWireArrange = csWireArrange;
 /* The dispatch, rendered: the lead into #homeLead and the deck into #homeDeck.
    The old four-faced D176 card is gone — its ladder is a written desk rule on
    the server now, and its good sentences ride the fallback above. */
@@ -17378,7 +17433,9 @@ function renderHomeDispatch(){
     useServerRank: !!served });
   if(leadBox) leadBox.innerHTML = r.lead ? csLeadBlock(r.lead) : '';
   /* the deck is deleted: items 2-5 run in the wire at weight 5, in date order */
-  if(deckBox) deckBox.innerHTML = r.deck.map(csWireLine).join('');
+  const w = csWireArrange(r.lead, r.deck);
+  r.deck = w.deck;
+  if(deckBox) deckBox.innerHTML = r.deck.map(it => csWireLine(it, w.ctx.get(it.key))).join('');
   /* L-34 · the lead's set is UNIONED onto the strip's, never swapped for it —
      `renderMeStrip` runs first and everything below reads the union. */
   window.__meSuppress = r.suppress;
@@ -18353,10 +18410,24 @@ function renderMeStrip(){
         <b>${esc(s.value)}</b><small>${esc(s.label)}</small>
       </button>`).join('')}</div>
     ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
+  /* MW-02 · below the desk the strip is COMPACT: the number, the last round
+     and the season row. The next round has its own row further down
+     (`#homeUpNext`) and the money owed has its own page (the pot), where the
+     tile already leads; printing both again above the lead put four small
+     facts and a debt ahead of the one thing Home is for. The desk's sidebar
+     keeps the full strip. Suppression is unchanged: the facts are still spent
+     on this page, just not at its head. */
+  const compactSlots = strip.slots.filter(s => s.fact === 'my_number' || s.fact === 'my_last_round');
+  const compact = (!compactSlots.length && !strip.seasonRow) ? '' : `
+    <div class="mefacts">${compactSlots.map(s => `
+      <button class="mefact" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
+        <b>${esc(s.value)}</b><small>${esc(s.label)}</small>
+      </button>`).join('')}</div>
+    ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
   ['#sideMe', '#homeMe'].forEach(sel => {
     const box = document.querySelector(sel);
     if(!box) return;
-    box.innerHTML = html;
+    box.innerHTML = sel === '#homeMe' ? compact : html;
     box.querySelectorAll('[data-mego]').forEach(el => el.addEventListener('click', () => {
       const go = el.getAttribute('data-mego'), id = el.getAttribute('data-meid');
       qaEvent('cta_tapped', { door: go });
