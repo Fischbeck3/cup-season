@@ -1,5 +1,12 @@
 # Cup Season · active work and ownership
 
+## Current delivery override · 2026-09-14
+
+This section supersedes older statuses below. Claude completed eaaa361; Codex integrated review fixes on codex/paired-release-2026-09-14. **Web 1bc307f is live and verified at cupseason.app. Native build 890 from the same source archived; export remains blocked by cloud signing permission and a missing iOS Distribution certificate. No TestFlight upload.** No database or Edge deployment owed from this pass.
+
+[Paired release evidence, resolved findings and remaining differences](../reviews/2026-09-14-paired-release-evidence.md) is the current handoff. Claude remains lead builder for the next bounded packet from main 1bc307f; Codex owns independent review and native/integration checks. Every packet requires both client dispositions and a working phone HTTPS preview. Web install/share icons and physical iPhone verification remain explicit open work. Historical “not built,” prior release hashes and archive numbers below do not describe this release.
+
+
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
 ## Parallel delivery and phone review · owner direction 2026-09-13
