@@ -2696,11 +2696,25 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 html[data-theme="light"] .ob-sig .cs-mark-door{color:var(--ink);}
 .ob-sig .cs-name{color:var(--ink);}
 .onboard .ob-hero{margin:44px 0 0;}
-.onboard .ob-hero .cs-brandline{font-family:var(--board); font-weight:700; text-transform:uppercase; font-size:42px; line-height:.98;
-  letter-spacing:calc(var(--d1) * 1em); color:var(--ink); margin:0; max-width:9ch; text-wrap:balance;}
+/* F3 · THE STATEMENT REFLOWS AT ENLARGED TEXT; IT NEVER CLIPS. `.onboard` is a
+   fixed overlay with `overflow-x:hidden`, so a headline wider than its column
+   loses its last letters silently — the document never scrolls and an
+   overflow check at the document level prints PASS while "ANYWHERE." is cut.
+   Two changes, both at the type rather than the box: the size is in `rem`, so
+   a reader who enlarges text actually enlarges this (a px literal ignores the
+   setting entirely); and a word longer than the measure breaks instead of
+   running past it. 2.625rem is 42px at the default root — the composition at
+   ordinary settings is unchanged. */
+.onboard .ob-hero .cs-brandline{font-family:var(--board); font-weight:700; text-transform:uppercase; font-size:2.625rem; line-height:.98;
+  letter-spacing:calc(var(--d1) * 1em); color:var(--ink); margin:0; max-width:9ch; text-wrap:balance;
+  overflow-wrap:anywhere;}
+/* the name beside the mark, and the sentence under the statement, take the
+   same rule: enlarged, they wrap rather than push the column sideways */
+.ob-sig .cs-name, .onboard .ob-hero .cs-standfirst{overflow-wrap:anywhere;}
+.ob-sig{flex-wrap:wrap;}
 .onboard .ob-hero .cs-standfirst{color:var(--mut); margin:20px 0 0; max-width:36ch; margin-left:0; margin-right:0;}
 @media(min-width:760px){
-  .onboard .ob-hero .cs-brandline{font-size:64px;}
+  .onboard .ob-hero .cs-brandline{font-size:4rem;}
 }
 @keyframes csDraw{from{stroke-dashoffset:620;} to{stroke-dashoffset:0;}}
 @keyframes csPlant{0%{opacity:0; transform:translateY(12px);} 55%{opacity:1; transform:translateY(-2px);} 100%{opacity:1; transform:translateY(0);}}

@@ -69,10 +69,65 @@
     check(sends.length===0,'opening an entry sent an auth request: '+sends.join(','));
     /* keyboard-safe: the door scrolls, it is not a fixed-height composition, and the primary can always be reached */
     check(getComputedStyle(ob).overflowY==='auto','the door does not scroll');
-    check(getComputedStyle(q('.ob-fold')).height!==getComputedStyle(q('.ob-fold')).minHeight || true,'');
+    /* F3 · the door is not a fixed-height composition: its column is free to
+       grow past the viewport and the overlay scrolls to it. (This replaces an
+       assertion that ended in `|| true` and therefore tested nothing.) */
+    const fold=q('.ob-fold');
+    check(getComputedStyle(fold).height==='auto' || fold.getBoundingClientRect().height>=parseFloat(getComputedStyle(fold).minHeight||'0')-1,
+          'the door’s fold is pinned to a fixed height');
+    check(ob.scrollHeight>=ob.clientHeight,'the door cannot grow past its viewport');
     email.scrollIntoView({ block:'center' }); await new Promise(r=>setTimeout(r,60));
     const er=email.getBoundingClientRect(); check(er.top>=0 && er.bottom<=innerHeight,'the primary cannot be brought into a '+innerHeight+'-tall viewport');
     check(document.documentElement.scrollWidth<=innerWidth && ob.scrollWidth<=ob.clientWidth+1,'the door overflows sideways at this width');
+    /* ── F3 · ENLARGED TEXT REFLOWS; NOTHING IS CLIPPED ────────────────────
+       `.onboard` is a fixed overlay with `overflow-x:hidden`, so a document
+       -level overflow check prints PASS while the headline's last letters are
+       cut off. This measures INSIDE the overlay, and it enlarges the text two
+       ways so the check does not depend on which mechanism the reader uses:
+       the root font-size (what a browser's text-size setting moves, and what
+       a rem-based heading follows) and a direct doubling of the rendered size
+       (what a px literal would have ignored). */
+    /* back to the resting door: the walk above opened both entry boxes, and an
+       opened box hides the button that opened it */
+    q('#emailbox').classList.remove('open'); q('#joinbox').classList.remove('open');
+    q('#obEmail').style.display=''; q('#obJoin').style.display='';
+    await new Promise(r=>setTimeout(r,40));
+    const docEl=document.documentElement;
+    const shown=el=>!!(el && el.offsetParent!==null && el.getBoundingClientRect().height);
+    const clipped=()=>{
+      const over=[];
+      for(const el of [h1, sf, sig, q('#obDoor'), q('#obEmail'), q('#obJoin'), ob]){
+        if(!el) continue;
+        if(el.scrollWidth > el.clientWidth + 1) over.push((el.id||el.className||el.tagName)+' '+el.clientWidth+'<'+el.scrollWidth);
+      }
+      return over;
+    };
+    const rootWas=docEl.style.fontSize, h1Was=h1.style.fontSize;
+    try{
+      docEl.style.fontSize='32px';                                  /* 200% of the 16px default */
+      await new Promise(r=>setTimeout(r,40));
+      const big=parseFloat(getComputedStyle(h1).fontSize);
+      check(big>60,'F3: the statement ignored the reader’s text size (still '+big+'px)');
+      let over=clipped();
+      check(!over.length,'F3: enlarged text is clipped inside the door: '+JSON.stringify(over));
+      h1.style.fontSize=(big*1.5)+'px';                            /* and beyond any setting */
+      await new Promise(r=>setTimeout(r,40));
+      over=clipped();
+      check(!over.length,'F3: a larger statement is clipped inside the door: '+JSON.stringify(over));
+      check(/ANY TIME/.test(h1.innerText.toUpperCase()) && /ANYWHERE/.test(h1.innerText.toUpperCase()),'F3: the statement lost letters when it reflowed');
+      const entries=[q('#obEmail'), q('#obJoin')].filter(shown);
+      check(entries.length===2,'F3: an entry control vanished at enlarged text');
+      for(const b of entries){
+        const r=b.getBoundingClientRect();
+        check(r.height>=44-1 && r.left>=-1 && r.right<=innerWidth+1,
+              'F3: an entry control is unusable at enlarged text: '+b.id+' '+JSON.stringify({h:Math.round(r.height),l:Math.round(r.left),rt:Math.round(r.right)}));
+      }
+      out.enlargedTo=big;
+    } finally {
+      docEl.style.fontSize=rootWas; h1.style.fontSize=h1Was;
+      await new Promise(r=>setTimeout(r,40));
+    }
+
     out.passed=true; return out;
   } finally {
     if(window.sb) window.sb.auth=realAuth;
