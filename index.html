@@ -521,7 +521,9 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .emptyroot .sub{font-size:13.5px; color:var(--dim); margin:0 0 12px; max-width:46ch;}
 .emptyroot .doors{display:flex; flex-wrap:wrap; gap:18px;}
 .emptyroot .doors button{
-  background:none; border:0; padding:6px 0; cursor:pointer;
+  /* MW-01 · a door is a tap target: 44 tall, at every width (the audit's
+     regression measures it). The type is unchanged; the padding is the target. */
+  background:none; border:0; padding:6px 0; min-height:44px; cursor:pointer;
   font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);
 }
 .emptyroot .doors button:first-child{color:var(--brand);}
@@ -18267,13 +18269,27 @@ function renderCompete(){
   });
   csEmptyRootDoors(box, take);
   function take(k){
-    if(k==='startSomething') switchView('wizard');
+    /* MW-01 · the same door Home opens. It went straight to the wizard, which
+       skips the question the intent sheet asks and, for a member who is not
+       the Pro of an open league, bounces off the D40 gate with a toast — a
+       door that does not open (L-32). Nothing is created by opening a sheet. */
+    if(k==='startSomething') window.openIntentSheet ? window.openIntentSheet() : switchView('wizard');
     else if(k==='joinWithCode') window.openJoinSheet ? window.openJoinSheet() : switchView('wizard');
     else if(k==='findGolfers') switchView('golfers');
     else if(k==='retry') window.loadHome?.();
   }
 }
 window.renderCompete = renderCompete;
+/* MW-01 · the visible creation control. `#cmpStart` — START SOMETHING ↗ at the
+   head of Compete — was markup with no handler: the one visible way to start
+   a competition from the competition page did nothing, at every width. It
+   opens the intent sheet, the same door Home's "Start something" opens; the
+   sheet creates nothing, and a season begins only at the name sheet's submit. */
+document.getElementById('cmpStart')?.addEventListener('click', e => {
+  e.preventDefault();
+  window.qaEvent?.('cta_tapped', { door: 'compete:start' });
+  if(window.openIntentSheet) window.openIntentSheet(); else switchView('wizard');
+});
 
 /* Golfers' own root. The rows themselves are `renderCrewPeople`'s, unchanged —
    promoting a screen to a destination is not a licence to rewrite what it says.
