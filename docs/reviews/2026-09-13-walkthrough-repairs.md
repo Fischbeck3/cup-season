@@ -12,9 +12,9 @@ on top of the reviewed candidate `8f85dac`. Neither source branch was reset;
 
 | | |
 |---|---|
-| **Candidate** | **`f79140b`** (the last commit is test-only; the application source is `cb5d5be`) |
-| **Preview** | **https://deploy-preview-3--cupseason.netlify.app** — PR #3, the same preview, rebuilt |
-| **Readback** | `#obCaption` `v23 · f79140b` and `sw.js` `VERSION = 'f79140b'`, read at 20:09:51 |
+| **Candidate** | **`ae184bf`**, the tip of this branch. **The application source is `cb5d5be`** — `f79140b` corrects a regression suite and `ae184bf` is this document, so `git diff cb5d5be..ae184bf -- index.html` is empty. |
+| **Preview** | **https://deploy-preview-3--cupseason.netlify.app** — PR #3, the same preview, rebuilt on every push |
+| **Readback** | `#obCaption` `v23 · ae184bf` and `sw.js` `VERSION = 'ae184bf'`, read at 20:13:20. (It read `f79140b` at 20:09:51, before this document was pushed; the served client is identical.) |
 | Live web | `https://cupseason.app` **unchanged at `963d0e6`**. Nothing promoted. |
 | Backend | the production Supabase project, as before. Nothing was written from the preview by this pass. |
 | Native | no app change; 857 archived from `963d0e6`, export still blocked on signing. |
@@ -29,6 +29,7 @@ Commits, in Codex's order:
 | `67a831d` | **WA4**, **WA6** |
 | `cb5d5be` | **MW-05** (checkpoint B; WA5's named half) |
 | `f79140b` | regression corrections only — no product change |
+| `ae184bf` | this document |
 
 ---
 
@@ -220,6 +221,6 @@ continue checkpoint B on the same preview. What changed: five product commits
 and one test-only commit; no production state. Database deploy owed: none.
 Edge deploy owed: none. Client deploy owed: none — the candidate is unpromoted
 by design. Recommended next: Codex repeats the affected signed-in read paths on
-`f79140b` at that preview URL — Home's lead and last-score receipts, both season
+`ae184bf` at that preview URL — Home's lead and last-score receipts, both season
 doors from Home and Compete, the You credential after a reload, standings
 history → receipt, and the composer's sentence in a solo league.
