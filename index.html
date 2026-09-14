@@ -19680,6 +19680,13 @@ function roundCardBody(r, pvi, capN){
        client's own when it did not — one table, three renderers, held together
        by preflight check 28. */
     const named = r.band || bandName(pvi);
+    /* WA6 · this row is NOT a duplicate and is left alone. It reads "level —
+       PLAYED TO IT": `vsShort` here is the SECOND definition in this file
+       (17035), the signed short form "+2.4 / level / -1.8" — not the first
+       (8797), which returns the band's own words and is shadowed dead code.
+       An earlier pass of this repair collapsed the row on the assumption that
+       it read "played to it — PLAYED TO IT"; a probe of the rendered receipt
+       showed otherwise, and collapsing it dropped the figure. */
     rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} playing HCP</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?named:theirs(named)).toUpperCase()}</b></div>`);
   }
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);

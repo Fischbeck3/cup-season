@@ -13,6 +13,7 @@
   const GONE  ='40000000-0000-4000-8000-000000000009';
   const PLAN  ='50000000-0000-4000-8000-000000000001';
   const calls=[], toasts=[];
+  let seedOnly=false;
   const sheet=()=>document.getElementById('sheet');
   const open=()=>sheet().classList.contains('open');
   const card=id=>({ id, gross:84, rating:71.2, slope:128, differential:11.4, index_at_post:11.4, playing_index:11.4,
@@ -27,7 +28,13 @@
     window.CS.league={ id:A, name:'Fellas', phase:'season' };
     window.sb.rpc=async(name,args)=>{
       calls.push([name,args]);
-      if(name==='round_card') return args.p_round===GONE ? { data:null, error:{ message:'round not found' } } : { data:card(args.p_round), error:null };
+      if(name==='round_card'){
+        if(args.p_round===GONE) return { data:null, error:{ message:'round not found' } };
+        /* the verdict-row probe seeds its own pvi; letting this stub answer
+           would repaint the row from THIS card and measure the wrong round */
+        if(seedOnly) return { data:null, error:{ code:'AUDIT', message:'seeded' } };
+        return { data:card(args.p_round), error:null };
+      }
       if(name==='round_detail') return { data:null, error:{ code:'400', message:'round_detail is the SCHEDULED read' } };
       return { data:null, error:{ code:'AUDIT', message:'refused by the audit: '+name } };
     };
@@ -99,6 +106,30 @@
     check(V(0.2,false)==='Played to their playing HCP.','WA6: somebody else’s round is still announced as yours: '+V(0.2,false));
     check(V(4.1,false)==='Beat their playing HCP by 4.1 \u2014 torched it.','WA6: the third person did not reach the phrase: '+V(4.1,false));
     out.verdict=V(0.2,true);
+
+    /* the verdict ROW is a different sentence and stays whole: `vsShort`
+       here is the signed short form ("+2.4" / "level" / "-1.8"), so the row
+       reads "level — PLAYED TO IT" and repeats nothing. Pinned, because an
+       earlier pass of this repair collapsed it on the opposite assumption. */
+    seedOnly=true;
+    const rowFor=async(pvi)=>{
+      window.roundCache={ ['r-'+pvi]: Object.assign(card('r-'+pvi), { pvi, differential: 11.4 - pvi, band:null }) };
+      document.getElementById('shBody').innerHTML='';
+      await window.csOpenPostedRound('r-'+pvi);
+      await until(()=>document.getElementById('rcptBody'),'the receipt for pvi '+pvi+' never opened');
+      const r=Array.from(document.querySelectorAll('#rcptBody .mathrow'))
+        .map(e=>[e.querySelector('span')?.textContent||'', e.querySelector('b')?.textContent||''])
+        .find(([k])=>/Against/.test(k));
+      closeSheet(); await until(()=>!open(),'the receipt did not close');
+      return r ? r[1] : null;
+    };
+    const rowLevel=await rowFor(0.2), rowBeat=await rowFor(2.4), rowLoose=await rowFor(-2.4);
+    check(rowLevel==='level — PLAYED TO IT','WA6: the level row changed: '+rowLevel);
+    check(rowBeat==='+2.4 — BEAT YOUR NUMBER','WA6: the row lost its figure: '+rowBeat);
+    check(rowLoose==='-2.4 — A LITTLE LOOSE','WA6: the loose row changed: '+rowLoose);
+    out.verdictRows=[rowLevel,rowBeat,rowLoose];
+    seedOnly=false;
+    window.roundCache={ [CACHED]: card(CACHED) };
 
     /* ── WA6 · the arithmetic is grouped the way it is computed ───────────── */
     await window.csOpenPostedRound(CACHED);
