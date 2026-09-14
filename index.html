@@ -535,6 +535,19 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .histrow:hover:not(.static){color:var(--ink);}
 .histrow:focus-visible{outline:2px solid var(--brand); outline-offset:2px;}
 @media(max-width:959px){ #view-compete .deskaside[data-empty]{display:none;} }
+/* D339 I-3 · the head's own terrain. It sits BEHIND the name, bleeding off the
+   right edge, at the quiet end of the alpha ramp — a ground, never a graphic
+   with something to say. The head is the only place it goes on an interior
+   page: a table has facts in it and a contour behind a figure is texture over
+   data (§10.2's own reason for banning the contour at thumbnail scale). */
+.cmphead, .seasonhead{position:relative; isolation:isolate;}
+.cs-topohead{
+  position:absolute; right:-10px; top:50%; transform:translateY(-50%);
+  width:min(46%, 260px); height:auto; z-index:-1; pointer-events:none; color:var(--mut);
+}
+.cs-topohead .t-sur{stroke-width:1.2; opacity:.08;}
+.cs-topohead .t-edge{stroke-width:1.2; opacity:.16;}
+@media(max-width:460px){ .cs-topohead{width:min(52%, 180px); right:-18px;} }
 /* L-32 · the empty root, one shape for both destinations */
 .cmphead{display:flex; align-items:baseline; gap:14px; margin:0 0 6px;}
 /* WAVE 11 / D280 - a page names itself in the DISPLAY role, not the serif.
@@ -5025,7 +5038,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              Pro on one agate line. `hhSpan` and `hhPro` MOVED here from the
              card and kept their ids, so both setters follow them. -->
         <div class="seasoneye league-only" id="seasonDateline"></div>
-        <h1 class="seasontitle cs-display league-only" id="seasonTitle"></h1>
+        <h1 class="seasontitle cs-display league-only seasonhead" id="seasonTitle"></h1>
         <div class="seasondate league-only"><span id="hhSpan"></span><span id="hhPro"></span></div>
         <div class="seasonlead league-only" id="seasonLead"></div>
         <a href="#seasonArc" class="seasonmore league-only" id="seasonMore" style="display:none">The season's story →</a>
@@ -6266,6 +6279,32 @@ $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v)
     setRoomSeg(seg);
   }));
   window.csDeskReveal = () => {};
+  /* D339 I-3 · THE TERRAIN BEHIND A PAGE'S OWN NAME. The phone carries
+     `CSTopoField` on the Compete masthead and on the season and event heads;
+     the desk had the identity on its door and nothing inside. Same accepted
+     geometry as the door, at the quiet end of the ramp (a08 / a16) and behind
+     the head only — never behind a table, never at thumbnail scale, which
+     §10.2 bans by name. One element per head, injected once, inert. */
+  window.csTopoHead = function(host){
+    if(!host || host.querySelector(':scope > .cs-topohead')) return;
+    const NS='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(NS,'svg');
+    svg.setAttribute('class','cs-topohead');
+    svg.setAttribute('viewBox','120 -20 380 300');
+    svg.setAttribute('aria-hidden','true');
+    const g=document.createElementNS(NS,'g');
+    g.setAttribute('fill','none'); g.setAttribute('stroke','currentColor');
+    g.setAttribute('stroke-linecap','round'); g.setAttribute('stroke-linejoin','round');
+    const path=(d,cls)=>{ const el=document.createElementNS(NS,'path'); el.setAttribute('d',d); el.setAttribute('class',cls); g.appendChild(el); };
+    path('M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z M 306 15 C 342 -14 402 -9 435 26 C 467 65 449 105 438 134 C 425 169 429 185 396 204 C 363 223 319 213 287 185 C 257 159 251 131 261 104 C 272 76 277 39 306 15 M 252 -10 C 241 24 220 54 216 92 C 208 151 210 186 256 224 C 303 262 359 276 414 255 C 446 243 466 218 478 195 M 162 -9 C 184 22 170 62 166 104 C 161 151 164 195 193 236 C 222 277 258 289 278 329 C 299 371 303 407 330 446 C 356 483 393 509 436 526 M 56 -12 C 105 14 121 58 119 105 C 116 167 117 207 140 257 C 163 307 190 332 211 373 C 233 417 247 469 282 506 C 324 551 380 576 435 582 M -6 39 C 32 55 56 85 61 125 C 70 183 58 230 76 281 C 91 324 119 364 139 404 C 175 483 202 532 270 579 C 324 616 388 642 450 650','t-sur');
+    path('M 336 57 C 358 38 386 42 395 60 C 404 77 391 91 386 107 C 380 125 385 145 366 153 C 346 162 316 151 309 132 C 303 115 318 106 320 90 C 322 77 324 66 336 57 Z M 294 83 C 301 76 310 77 311 87 C 312 98 299 105 297 116 C 294 126 287 129 281 121 C 274 111 283 95 294 83 Z M 393 169 C 402 157 414 155 420 163 C 427 173 414 179 410 188 C 405 200 393 207 386 199 C 379 190 385 180 393 169 Z','t-edge');
+    svg.appendChild(g);
+    host.insertBefore(svg, host.firstChild);
+  };
+  window.csPaintTopoHeads = function(){
+    document.querySelectorAll('.cmphead, .seasonhead').forEach(h => window.csTopoHead(h));
+  };
+  window.csPaintTopoHeads();
   /* MW-04 · the phone's copy of that list. Built from the panes that are
      actually on the page, so a room that does not exist is never offered, and
      wired to the same `setRoomSeg`. The table it sits above is the standings;
