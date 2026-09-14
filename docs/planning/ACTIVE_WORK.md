@@ -1,5 +1,10 @@
 # Cup Season · active work and ownership
 
+## Current execution plan · product sections, 2026-09-14
+
+[Product-board paired implementation plan](2026-09-14-product-board-implementation.md) is the current build sequence. The exact generated section board is saved with it as a review reference. Claude has **built checkpoint A `bc22372`**, recorded by ledger `9604661` on `claude/brand-client-parity`; Codex independent review remains pending. Next: reconcile the competition-only ember amendment, consume ordinary-action roles natively, then deliver paired Home/Compete, Play/receipt, people/record and asset waves. Reuse Claude's existing parity ledger; no duplicate tracker. This supersedes older 'ready/not started' status below. No new application deployment by this planning update.
+
+
 ## Brand and client parity · owner direction 2026-09-14
 
 **Color ruling added:** green carries ordinary actions/Play; ember marks active competition wherever surfaced; gold stays earned. See the D305/D313 amendment in `spec/decision-log.md` and the brief's color table. Approved direction, implementation pending; this does not make all of Compete orange.

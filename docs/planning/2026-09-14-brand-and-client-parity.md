@@ -1,6 +1,6 @@
 # Brand and client parity · Claude implementation brief
 
-Status: **Ready for Claude; not dispatched automatically.** Owner requested this brief after reviewing the current/future comparisons. Implementation proceeds in Claude's owned workspace; this document does not itself deploy application changes.
+Status: **Claude checkpoint A built; independent review pending.** Application `bc22372`, ledger `9604661`, on `claude/brand-client-parity`. The [product-board implementation plan](2026-09-14-product-board-implementation.md) now sequences the work and records the newer color corrections. No automatic task dispatch is configured; this document does not itself deploy application changes.
 
 ## Outcome
 
