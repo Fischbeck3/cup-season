@@ -19,8 +19,8 @@
      stranger sees landing on the root, so it has to work in one breath. The old
      copy was a 170-character paragraph listing mechanics before saying what the
      thing is for. -->
-<meta name="description" content="Rally your crew. Post real rounds. Take the cup. Season-long golf with the people you already play with — points, pot, pressure.">
-<meta property="og:title" content="Cup Season — season-long fantasy golf for your crew">
+<meta name="description" content="Any time. Anywhere. Golf with your people, all season — points, pot, pressure.">
+<meta property="og:title" content="Cup Season — Any time. Anywhere.">
 <meta property="og:description" content="The round, the result, and who owes who. Season-long golf with your own crew.">
 <meta property="og:url" content="https://cupseason.app">
 <meta property="og:type" content="website">
@@ -28,7 +28,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Cup Season — season-long fantasy golf for your crew">
+<meta name="twitter:title" content="Cup Season — Any time. Anywhere.">
 <meta name="twitter:image" content="https://cupseason.app/og-image.png?v=3">
 <title>Cup Season — season-long fantasy golf with your own crew</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -352,6 +352,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .brand{display:flex; align-items:center; gap:12px; padding:0 0 32px;}
 .brand .mk{width:20px; height:20px; flex:none; color:var(--brand); display:block;}
 .brand .mk svg{width:20px; height:20px; display:block;}
+/* D339 · the pennant is wider than it is tall; the sidebar's mark box follows it */
+.brand .mk{width:28px; height:16px;} .brand .mk svg.cs-mark{width:28px; height:16px;}
 html[data-theme="light"] .brand .mk{color:var(--ink);}
 .brand b{
   font-family:var(--board); font-size:15px; font-weight:700; line-height:1.16;
@@ -2692,6 +2694,11 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
    same rest frame, tenth of the wait. ?forge in the URL replays the show. */
 .ob-crest{width:min(64vw, 300px); margin:0 auto 4px; pointer-events:none;}
 .ob-crest svg{width:100%; height:auto; display:block;}
+/* D339 · the pennant on the door: ember on charcoal, ink on light, sized to
+   the crest's measure. It is the only mark on the door. */
+.ob-crest .cs-mark-door{width:min(44vw, 190px); margin:20px auto 12px; color:var(--brand);}
+html[data-theme="light"] .ob-crest .cs-mark-door{color:var(--ink);}
+.ob-hero .cs-brandline{font-family:var(--serif); letter-spacing:.01em; line-height:1.05;}
 @media(min-width:760px){ .ob-crest{width:min(76vw, 420px);} }
 @media(min-width:760px) and (max-height:820px){ .ob-crest{width:min(60vw, 340px);} }
 /* IOS-064, the web half. The desk already gives the crest back on a short wide
@@ -2778,8 +2785,9 @@ html.ob-fast .ob-wing.ob-wr, html.ob-fast .ob-more{animation-delay:.5s;}
   .ob-mark{animation:none !important; opacity:1 !important;}
 }
 /* the header mark: ember on charcoal, ink on light (the mark-light rule) */
-.hdrmark{color:#F4712E;}
-html[data-theme="light"] .hdrmark{color:#0B1410;}
+/* D339 · the mark's colour is the token's (it was a literal beside the token) */
+.hdrmark{color:var(--brand);}
+html[data-theme="light"] .hdrmark{color:var(--ink);}
 /* ignition (D76): the ember floor-glow — a low radiance warming in from the
    bottom edge. Base state is VISIBLE (the animation only fades it up, `both`
    rests it ON), it sits under all content and never takes input. Nothing
@@ -3983,56 +3991,24 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
            the icon-weight mark, and the door rests ON the logo. The mark group
            is positioned by the OUTER g and animated on the INNER — never
            collapse them (a transform animation replaces the attribute). -->
-      <svg viewBox="0 0 460 300" fill="none">
-        <defs>
-          <radialGradient id="obGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#FF5A2E" stop-opacity=".26"/>
-            <stop offset="55%" stop-color="#FF5A2E" stop-opacity=".08"/>
-            <stop offset="100%" stop-color="#FF5A2E" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <g class="ob-amb">
-          <ellipse cx="230" cy="238" rx="150" ry="44" fill="url(#obGlow)"/>
-          <ellipse cx="230" cy="236" rx="118" ry="32" stroke="#FF5A2E" stroke-opacity=".10" stroke-width="1.5"/>
-          <ellipse cx="230" cy="233" rx="78" ry="22" stroke="#FF5A2E" stroke-opacity=".18" stroke-width="1.5"/>
-          <ellipse cx="230" cy="230" rx="44" ry="13" stroke="#FF5A2E" stroke-opacity=".30" stroke-width="1.5"/>
-        </g>
-        <path class="obtr" d="M-24 96 C 80 118, 160 176, 224 224" stroke="#E9A23B" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease .3s both, csGone .8s ease 4.6s forwards"></path>
-        <path class="obtr" d="M96 -20 C 140 66, 190 160, 227 222" stroke="#FF5A2E" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease .85s both, csGone .8s ease 4.6s forwards"></path>
-        <path class="obtr" d="M372 -16 C 352 44, 310 150, 249 199" stroke="#FF3B1A" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease 1.4s both, csGone .6s ease 4.8s forwards"></path>
-        <path class="obtr" d="M484 96 C 380 118, 300 176, 236 224" stroke="var(--ink)" stroke-width="2.6" opacity=".85" stroke-linecap="round" stroke-dasharray="560" style="stroke-dashoffset:0; animation:csDraw 1.05s ease 1.95s both, csGone .8s ease 4.6s forwards"></path>
-        <g class="obflag">
-          <ellipse cx="230" cy="226" rx="15" ry="5.5" fill="#0A0B0D" stroke="#332018" stroke-width="2"></ellipse>
-          <path d="M236 223V120" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"></path>
-          <path class="obpen" d="M236 120l38 13-38 13z" fill="#FF5A2E"></path>
-        </g>
-        <circle class="obball" cx="230" cy="224" r="4.5" fill="#F4F7F4"></circle>
-        <ellipse class="obring1" cx="230" cy="226" rx="15" ry="5.5" stroke="#FF5A2E" stroke-width="1.5"></ellipse>
-        <ellipse class="obspark" cx="230" cy="226" rx="12" ry="4.5" stroke="#E9A23B" stroke-width="1.5" style="--d:1.35s"></ellipse>
-        <ellipse class="obspark" cx="230" cy="226" rx="12" ry="4.5" stroke="#FF5A2E" stroke-width="1.5" style="--d:1.9s"></ellipse>
-        <ellipse class="obspark" cx="230" cy="226" rx="12" ry="4.5" stroke="#FF3B1A" stroke-width="1.5" style="--d:2.45s"></ellipse>
-        <ellipse class="obspark" cx="230" cy="226" rx="12" ry="4.5" stroke="#F4F7F4" stroke-width="1.5" style="--d:3s"></ellipse>
-        <!-- V5: the mark, icon weight — what the forge leaves behind. Outer g
-             positions (never animated), inner .ob-mark animates. Base state
-             VISIBLE: with animations off this IS the door. -->
-        <g transform="translate(150 46) scale(2.15)">
-          <g class="ob-mark" fill="#F4712E">
-            <path d="M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z"/>
-            <ellipse cx="38" cy="79" rx="17" ry="6.5"/>
-            <rect x="27" y="13" width="10" height="68" rx="5"/>
-            <path d="M36 13 L74 26 L36 39 Z"/>
-          </g>
-        </g>
-        <ellipse class="ob-stampring" cx="232" cy="216" rx="46" ry="16" stroke="#FF5A2E" stroke-width="2"></ellipse>
-        <ellipse class="ob-pulse" cx="232" cy="216" rx="37" ry="14" stroke="#FF5A2E" stroke-width="1.5" opacity="0"></ellipse>
-      </svg>
+      <!-- D339 · WEB HALF (I-1, identity preview) · the pennant, static. The
+           Forge — four tracers, sparks, sears, the survivor handing off to the
+           Tracer — is retired here the way the phone retired its own boot
+           animation: the door rests on the mark. The mark is the GENERATED
+           one-colour pennant from brand/candidates/testflight-pennant
+           (tools/build-beta-mark.sh); edit the source and the generator,
+           never these paths. Ember on charcoal, ink on light (mark-light). -->
+      <svg class="cs-mark cs-mark-door" viewBox="0 0 1000 570" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
     </div>
     <!-- the seared wordmark IS the wordmark (Entry V4) — groups (C,U)(P,S)(E,A)(S,O,N) land with the tracers -->
     <div class="obsw" role="img" aria-label="Cup Season"><b style="--d:1.35s">C</b><b style="--d:1.45s">U</b><b style="--d:1.9s">P</b><i class="obsg"></i><b style="--d:2s">S</b><b style="--d:2.45s">E</b><b style="--d:2.55s">A</b><b style="--d:3s">S</b><b style="--d:3.1s">O</b><b style="--d:3.2s">N</b></div>
     <span class="obfw" aria-hidden="true"><i class="obfr"></i><i class="obfz"></i></span>
     <div class="ob-hero">
       <!-- Entry V4: the mark row is gone — the seared wordmark above is the wordmark -->
-      <h1>Rally your crew.<br>Post real rounds.<br><em>Take the cup.</em></h1>
+      <!-- D339 · the brand line (CS_BRAND.tagline) and the door's standfirst
+           (CS_BRAND.standfirst); preflight BRAND-01 holds them to the producer. -->
+      <h1 class="cs-brandline">ANY TIME.<br>ANYWHERE.</h1>
+      <p class="cs-standfirst">Golf with your people, all season.</p>
     </div>
     <div id="obDoor">
     <button class="btn" id="obEmail">Continue with email</button>
@@ -4156,12 +4132,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
          - one mark, everywhere. #brandSeason setters are guarded. -->
     <div class="brand">
       <span class="mk" aria-hidden="true">
-        <svg viewBox="0 0 96 96"><g fill="currentColor">
-          <path d="M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z"/>
-          <ellipse cx="38" cy="79" rx="17" ry="6.5"/>
-          <rect x="27" y="13" width="10" height="68" rx="5"/>
-          <path d="M36 13 L74 26 L36 39 Z"/>
-        </g></svg>
+        <svg class="cs-mark" viewBox="0 0 1000 570"><g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g></svg>
       </span>
       <b>Cup Season</b>
     </div>
@@ -4252,17 +4223,13 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           <div class="sub" id="phaseSub">Wk 18 / 36</div>
         </div>
         <button class="hdrlogo" id="hdrLogo" aria-label="Cup Season — home" style="margin-left:auto; display:flex; align-items:center; gap:8px; background:none; border:0; cursor:pointer; padding:6px 0;">
-          <!-- The Tracer (2026-08-06) — the SAME mark the icons, favicon and
-               the door's rest frame carry. One mark, everywhere. Ember on the
+          <!-- D339 · WEB HALF (I-1) · the pennant, the same generated mark the
+               door and the sidebar carry. The icons and the favicon still carry
+               the Tracer until D339's icon-tile ruling (open 2). Ember on the
                charcoal theme, ink on light (mark-light rule): currentColor,
                set by the .hdrmark rules below the theme tokens. -->
-          <svg class="hdrmark" viewBox="0 0 96 96" style="width:24px; height:24px; flex:none" aria-hidden="true">
-            <g fill="currentColor">
-              <path d="M88 12 C 82 36, 70 59, 54 73 C 51 76, 47 75, 46 72 C 60 60, 73 38, 83 13 C 84 10, 87 9, 88 12 Z"/>
-              <ellipse cx="38" cy="79" rx="17" ry="6.5"/>
-              <rect x="27" y="13" width="10" height="68" rx="5"/>
-              <path d="M36 13 L74 26 L36 39 Z"/>
-            </g>
+          <svg class="hdrmark cs-mark" viewBox="0 0 1000 570" style="width:30px; height:17px; flex:none" aria-hidden="true">
+            <g fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></g>
           </svg>
           <b style="font-size:15px; color:var(--ink); letter-spacing:.01em">Cup Season</b>
         </button>
@@ -26669,6 +26636,19 @@ window.openJoinSheet   = openJoinSheet;
    (D234). The fifth is a MODIFIER and renders below a hairline as a footer
    line, because money is a choice ON a competition and never a competition
    (L-11, D46). NOTHING is minted by opening it. */
+/* D339 · THE BRAND COPY, once. The phone's `CSBrandCopy`; the door's brand
+   line and standfirst and the head's description are held to these strings
+   by preflight BRAND-01, because the served HTML is static and a runtime
+   constant alone cannot rewrite it. Product terminology and the ledger
+   sentence are not brand copy and live where they always did. */
+const CS_BRAND = Object.freeze({
+  name: 'Cup Season',
+  tagline: 'ANY TIME.\nANYWHERE.',
+  extended: 'ANY TIME.\nANYWHERE.\nALL SEASON.',
+  standfirst: 'Golf with your people, all season.',
+  description: 'Any time. Anywhere. Golf with your people, all season — points, pot, pressure.',
+});
+window.CS_BRAND = CS_BRAND;
 const CS_INTENTS = [
   { k:'playWithFriends', line:'Play with my friends',      gloss:'a round with whoever is around',      go:'whenFork' },
   { k:'runASeason',      line:'Run a season',              gloss:'weeks of golf that add up to a table', go:'season' },
