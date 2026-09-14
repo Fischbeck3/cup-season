@@ -10,8 +10,8 @@ neither is processed**, so the three states are reported apart.
 
 | | |
 |---|---|
-| **Web commit** | `807eeaf` on `claude/brand-client-parity` |
-| **Web preview** | <https://deploy-preview-4--cupseason.netlify.app> — serves `v23 · 807eeaf`, and `sw.js` carries the same SHA |
+| **Web commit** | `807eeaf` on `claude/brand-client-parity` — the last commit that changed a served file. Anything after it on this branch is documentation, so the preview's SHA may read later while the client is byte-identical. |
+| **Web preview** | <https://deploy-preview-4--cupseason.netlify.app> — the preview tracks the branch head and rebuilds on every push; verified serving `v23 · 807eeaf` with `sw.js` carrying the same SHA |
 | **Production web** | `cupseason.app` is still `1bc307f` and was deliberately not touched; this branch is a preview, not a merge |
 | **Native source commit** | `807eeaf` — the same tree |
 | **Native build** | **898** (`git rev-list --count HEAD`) |
