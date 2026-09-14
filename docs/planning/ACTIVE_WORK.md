@@ -2,6 +2,10 @@
 
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
+## Current welcome correction · owner review 2026-09-13
+
+Owner rejected the I-1 phone preview as dated and explicitly asked for the fescue/topo vision. [Corrective build target](../reviews/2026-09-13-welcome-preview-correction.md) supersedes the copy-and-mark-only I-1 scope: full welcome composition, accepted terrain, compact signature, distinct type hierarchy, removal of leftover Forge effects. Claude remains lead builder. Next handoff is one integrated phone preview containing functional and identity work; no new production deployment is implied.
+
 ## Parallel delivery and phone review · owner direction 2026-09-13
 
 The owner is away from the Mac and uses mobile web to track progress. This is a standing delivery requirement for future milestones: pair web/native scope, and provide a verified working HTTPS phone preview at each review checkpoint. Native signing must not block web review. A local artifact or source commit alone is not delivery.
