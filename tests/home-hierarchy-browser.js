@@ -101,6 +101,27 @@
       byKey('chapter:'+B).click();
       await until(()=>toasts.length===1,'WA2: a thrown load said nothing');
       check(!views.length,'WA2: a thrown load navigated anyway');
+      /* The real loader changes CS.league early and used to swallow query
+         errors. A stub that never changed it could not expose that failure. */
+      views.length=0; toasts.length=0;
+      window.enterLeagueById=saved.enter;
+      window.CS.league={ id:A, name:'Fellas', phase:'season' };
+      const from=window.sb.from; let reads=0;
+      try {
+        window.sb.from=()=>{
+          reads++;
+          const chain={};
+          for(const name of ['select','eq','single']) chain[name]=()=>chain;
+          chain.then=(resolve,reject)=>Promise.resolve({ data:null,error:{ message:'fixture bylaws unavailable' } }).then(resolve,reject);
+          return chain;
+        };
+        const arrived=await window.csOpenSeason(B);
+        check(reads>0,'WA2: the real bylaws read was not exercised');
+        check(arrived===false && !views.length,'WA2: a refused real room read navigated anyway');
+        check(window.CS.league.id===A,'WA2: a refused initial read changed league context');
+        check(toasts.length===1,'WA2: a refused real room read said nothing');
+      } finally { window.sb.from=from; }
+
     } finally { switchView=realView; toast=realToast; }
 
     /* the compact strip below the desk: number and last round, never the debt */

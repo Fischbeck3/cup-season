@@ -3691,7 +3691,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .seasonjump{display:flex; gap:8px; overflow-x:auto; margin:0 0 14px; padding-bottom:2px; -webkit-overflow-scrolling:touch;}
 .seasonjump::-webkit-scrollbar{display:none;}
 .seasonjump button{
-  flex:none; min-height:36px; padding:0 12px; cursor:pointer;
+  flex:none; min-height:44px; padding:0 12px; cursor:pointer;
   background:none; border:1px solid var(--rule); border-radius:999px; color:var(--mut);
   font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
 }
@@ -24896,7 +24896,10 @@ async function runItBack(oldLeague, membership){
 window.runItBack = runItBack;
 
 /* ---------- enter a league ---------- */
-async function enterLeague(m, nav=true){
+async function enterLeague(m, nav=true, opts={}){
+  // A season door must prove its required read before changing context.
+  // Boot retains its existing partial-load behavior.
+  const requiredBylaws = opts.requireRoom ? await loadBylaws(m.league.id) : null;
   document.body.classList.remove('noleague');
   CS.league = m.league;
   CS.member = { id:m.id, role:m.role, index:m.index_current };
@@ -24921,7 +24924,7 @@ async function enterLeague(m, nav=true){
   bootStep = 'blank-slate';
   resetToBlank(m.league.name);   // real league = blank slate, no demo data
   bootStep = 'bylaws';
-  try { applyBylaws(await loadBylaws(m.league.id)); } catch(e){ /* setup phase: none yet */ }
+  try { applyBylaws(requiredBylaws || await loadBylaws(m.league.id)); } catch(e){ if(opts.requireRoom) throw e; /* setup phase: none yet */ }
   bootStep = 'season-dates';
   try {
     /* D66: the result columns carry the ceremony (champion, margin, the rung
@@ -24943,10 +24946,11 @@ async function enterLeague(m, nav=true){
     }
     if(sErr){
       try{ console.warn('[season] result columns unavailable, retrying legacy:', sErr.message||sErr); }catch(_){}
-      ({ data: season } = await sb.from('seasons')
+      ({ data: season, error: sErr } = await sb.from('seasons')
         .select('id, number, starts_on, ends_on, status').eq('league_id', m.league.id)
         .order('number', { ascending:false }).limit(1).maybeSingle());
     }
+    if(sErr && opts.requireRoom) throw sErr;
     if(season){
       CS.season = season;
       /* D106: the payout ledger, read never recomputed; absent on an old DB
@@ -24960,14 +24964,15 @@ async function enterLeague(m, nav=true){
       state.seasonStart = season.starts_on; state.seasonEnd = season.ends_on;
       renderPhase(); renderStats();
     }
-  } catch(e){ /* pre-lock: no season yet */ }
+  } catch(e){ if(opts.requireRoom){ CS.roomLoadFailed=true; throw e; } /* pre-lock: no season yet */ }
 
   bootStep = 'league-data';
   if(CS.profile){
     state.myIndex = Number(CS.profile.index_current) || state.myIndex;
     window.csRenderComposerEyebrow?.();
   }
-  try { await loadLeagueData(); } catch(e){ bootTrace('league data: '+(e.message||e)); }
+  try { await loadLeagueData(!!opts.requireRoom); CS.roomLoadFailed=false; }
+  catch(e){ CS.roomLoadFailed=true; if(opts.requireRoom) throw e; bootTrace('league data: '+(e.message||e)); }
   /* resume an in-progress live round dropped by a refresh — runs after
      loadLeagueData so CS.members is populated; sets state.live.active before
      Play can open, so primeRealRoster's guard leaves the resumed round alone */
@@ -25013,7 +25018,7 @@ async function enterLeague(m, nav=true){
 CS.members = []; CS.squads = []; CS.sel = null;
 
 window.loadLeagueData = (...a) => loadLeagueData(...a);   /* hub safety net (classic side) */
-async function loadLeagueData(){
+async function loadLeagueData(requireRoom=false){
   if(!CS.league) return;
   /* photos arc 2 (D59): avatars + the per-league marker override ride the
      member load — retry without both on deploy skew */
@@ -25028,6 +25033,7 @@ async function loadLeagueData(){
       .select('id, role, profile_id, joined_at, profile:profiles(display_name, marker, index_current, handle)')
       .eq('league_id', CS.league.id);
   }
+  if(mq.error && requireRoom) throw mq.error;
   CS.members = mq.data || [];
   /* effective marker: league override → profile choice → floor */
   CS.members.forEach(m => { m.mk = m.marker || m.profile?.marker || 'saguaro'; });
@@ -25060,7 +25066,7 @@ async function loadLeagueData(){
       .select('member_id, paid, amount_cents').eq('season_id', CS.season.id);
     window.buyIns = Object.fromEntries((bi||[]).map(r => [r.member_id, r]));
   }
-  await loadStandingsAndFeed(); /* board is league-scoped — load it pre-season too */
+  await loadStandingsAndFeed(requireRoom); /* board is league-scoped — load it pre-season too */
   renderFormation();
   loadTrophies();               /* the case is user-global, refresh it in-league too */
   loadCareer();                 /* lifetime line is cross-league too */
@@ -25090,14 +25096,15 @@ const memMk = id => {
    memMk are called module-side only, so they don't need bridging. */
 window.memName = memName;
 
-async function loadStandingsAndFeed(){
+async function loadStandingsAndFeed(requireRoom=false){
   /* the board belongs to the LEAGUE, not the season — chat must load and
      persist from day one, pre-lock. Only standings need a season. */
   if(!CS.league) return;
   if(CS.season){
   /* standings: view points mapped onto squads -> the demo teams shape */
-  const { data: st } = await sb.from('v_squad_standings')
+  const { data: st, error: standingsError } = await sb.from('v_squad_standings')
     .select('squad_id, points').eq('season_id', CS.season.id);
+  if(standingsError && requireRoom) throw standingsError;
   const pts = Object.fromEntries((st||[]).map(r => [r.squad_id, r.points]));
   teams.length = 0;
   CS.squads.forEach((q,i) => teams.push({
@@ -25157,6 +25164,7 @@ async function loadStandingsAndFeed(){
       .order('created_at', { ascending:false }).limit(120);
     if(r.error) r = await sb.from('posts').select(COLS(false)).eq('league_id', CS.league.id)
       .order('created_at', { ascending:false }).limit(120);
+    if(r.error && requireRoom) throw r.error;
     posts = (r.data || []).slice().reverse();
   }
   const memCi = id => {
@@ -27094,9 +27102,9 @@ window.csLengthsOffered = csLengthsOffered;
 window.CS_INTENTS = CS_INTENTS;
 window.CS_LENGTHS = CS_LENGTHS;
 /* switch into a league by id — the Home hub's group rows call this (classic) */
-window.enterLeagueById = async (id, nav=true) => {
+window.enterLeagueById = async (id, nav=true, opts={}) => {
   const m = (CS.memberships||[]).find(x => x.league.id === id);
-  if(m) await enterLeague(m, nav);
+  if(m) await enterLeague(m, nav, opts);
 };
 /* WA2 / F2 · ONE CLICK REACHES THE SEASON IT NAMES. Home's season item and
    Compete's league row both did `enterLeagueById(id, false)` and stopped:
@@ -27113,11 +27121,11 @@ window.enterLeagueById = async (id, nav=true) => {
 async function csOpenSeason(id, opts){
   const view = (opts && opts.view) || 'hub';
   if(!id) return false;
-  if(window.CS?.league?.id === id){ switchView(view); return true; }
+  if(window.CS?.league?.id === id && !CS.roomLoadFailed){ switchView(view); return true; }
   const m = (window.CS?.memberships||[]).find(x => x && x.league && x.league.id === id);
   if(!m){ toast('That season isn\u2019t one of yours.'); return false; }
   try{
-    await window.enterLeagueById(id, false);
+    await window.enterLeagueById(id, false, { requireRoom:true });
   }catch(e){
     toast(humanError(e, 'Couldn\u2019t open that season.'));
     return false;
@@ -28028,6 +28036,7 @@ async function loadCareer(){
       rq = await sb.from('rounds')
         .select('id, gross, differential, index_at_post, played_on, course_label, holes_played')
         .eq('profile_id', CS.user.id).order('played_on', { ascending:false }).limit(400);
+    if(rq.error) throw rq.error;   /* a refused compatibility read is not an empty career */
     const rows = rq.data || [];
     /* pilot: "no idea where round photos live" — they backdrop the board story
        card; now the You tab's recent rounds carry them too (tap to open) */

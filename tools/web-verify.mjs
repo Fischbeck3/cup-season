@@ -129,6 +129,11 @@ async function main() {
 
   await S('Page.enable'); await S('Runtime.enable'); await S('Log.enable')
   await S('Network.enable')
+  // Review source, not a retained HTTP response or a worker still controlling
+  // the initial page after unregister(). Service-worker update behavior is a
+  // separate check; this walk promises to inspect the candidate being served.
+  await S('Network.setCacheDisabled', { cacheDisabled: true })
+  await S('Network.setBypassServiceWorker', { bypass: true })
 
   const console_ = []
   ws.addEventListener('message', ev => {

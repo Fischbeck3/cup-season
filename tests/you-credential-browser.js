@@ -3,6 +3,7 @@
 (async function(){
   const check=(ok,label)=>{ if(!ok) throw new Error(label); };
   const saved={ demo:state.demo, user:window.CS.user, profile:window.CS.profile, career:window.career, render:window.renderCareer };
+  const savedFrom = window.sb.from;
   const out={};
   const fig=label=>{
     const f=Array.from(document.querySelectorAll('#youFigs .cfig'))
@@ -46,8 +47,39 @@
     window.refreshWhoChip();
     check(fig('Handicap index')===null,'a building index printed a figure');
     check(fig('Rounds')==='2','WA3: a provisional profile lost its count');
+    /* Exercise the real loader, including Supabase's resolved {error}
+       response. Rendering a hand-assigned null never tested this path. */
+    let replies = [], reads = 0;
+    window.sb.from = table => {
+      const result = table === 'rounds' ? (reads++, replies.shift()) : { data: [], error: null };
+      const chain = {};
+      for (const name of ['select', 'eq', 'order', 'limit']) chain[name] = () => chain;
+      chain.then = (resolve, reject) => Promise.resolve(result).then(resolve, reject);
+      return chain;
+    };
+    const failure = { data: null, error: { message: 'fixture read unavailable' } };
+    window.CS.profile.index_current = 11.4;
+    window.career = null;
+    replies = [failure, failure]; reads = 0;
+    await window.loadCareer();
+    check(reads === 2, 'career compatibility retry did not run');
+    check(window.career === null && fig('Rounds') === '—',
+      'WA3 loader: two refused reads became a zero');
+
+    window.career = { rounds: 12, rows: [], recent: [] };
+    replies = [failure, failure];
+    await window.loadCareer();
+    check(window.career.rounds === 12 && fig('Rounds') === '12',
+      'WA3 loader: failed refresh erased the last known count');
+
+    replies = [failure, { data: [], error: null }];
+    await window.loadCareer();
+    check(window.career.rounds === 0 && fig('Rounds') === '0',
+      'WA3 loader: a successful empty compatibility read must be zero');
+    out.loaderFailureAndRetry = true;
     out.passed=true; return out;
   } finally {
+    window.sb.from = savedFrom;
     state.demo=saved.demo; window.CS.user=saved.user; window.CS.profile=saved.profile;
     window.career=saved.career; window.renderCareer=saved.render;
   }
