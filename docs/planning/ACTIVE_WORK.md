@@ -2,6 +2,10 @@
 
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
+## Integrated candidate review · 2026-09-13
+
+Codex independently reviewed `8f85dac` in `codex/welcome-review-2026-09-13`. The combined PR #3 preview currently reads `b12c0ca` (documentation-only difference). [Review findings](../reviews/2026-09-13-integrated-welcome-review.md): two P1 Home issues (hidden next round; cross-league season navigation) and P2 text-enlargement clipping require fixes before promotion. Welcome composition is directionally ready for owner review, with quieter terrain near text recommended. Claude retains implementation ownership and checkpoint B; Codex reviews committed checkpoints in parallel. No production promotion performed.
+
 ## Parallel delivery and phone review · owner direction 2026-09-13
 
 The owner is away from the Mac and uses mobile web to track progress. This is a standing delivery requirement for future milestones: pair web/native scope, and provide a verified working HTTPS phone preview at each review checkpoint. Native signing must not block web review. A local artifact or source commit alone is not delivery.
