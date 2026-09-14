@@ -2558,6 +2558,26 @@ const lint = (id, name, hits, note = '') => {
        scan(/"[^"]*[→←▲▼↑↓⇧⇩][^"]*"/).filter(h => !/#Preview\(|NSLog\(|\bprint\(/.test(h)),
        'movement is a drawn mark; a link’s arrow is absorbed into its underline');
 
+  /* BRAND-01 · one brand producer, and the static HTML agrees with it. The
+     door's brand line and standfirst and the head's description are markup
+     Netlify serves as-is (stamp-version.sh replaces the version placeholder
+     only), so a runtime `CS_BRAND` cannot rewrite them; this holds them to
+     the producer instead, and a change to one without the other fails here. */
+  {
+    const brand = html.match(/const CS_BRAND = Object\.freeze\(\{([\s\S]*?)\}\);/);
+    const field = k => { const m = brand && brand[1].match(new RegExp(k + ":\\s*'((?:[^'\\\\]|\\\\.)*)'")); return m ? m[1].replace(/\\n/g, '\n') : null; };
+    const tagline = field('tagline'), standfirst = field('standfirst'), description = field('description');
+    const h1 = (html.match(/<h1 class="cs-brandline">([\s\S]*?)<\/h1>/) || [])[1];
+    const sf = (html.match(/<p class="cs-standfirst">([\s\S]*?)<\/p>/) || [])[1];
+    const meta = (html.match(/<meta name="description" content="([^"]*)">/) || [])[1];
+    const fails = [];
+    if(!brand) fails.push('CS_BRAND is not declared');
+    if(h1 == null || h1.replace(/<br\s*\/?>/g, '\n').trim() !== tagline) fails.push(`the door's brand line is not CS_BRAND.tagline (${JSON.stringify(h1)})`);
+    if(sf == null || sf.trim() !== standfirst) fails.push(`the door's standfirst is not CS_BRAND.standfirst (${JSON.stringify(sf)})`);
+    if(meta == null || meta !== description) fails.push(`<meta name="description"> is not CS_BRAND.description (${JSON.stringify(meta)})`);
+    lint('BRAND-01', 'the door and the head say what CS_BRAND says', fails, 'edit CS_BRAND and the markup together');
+  }
+
   /* LINT-14 · no uppercasing in a string. Case is a role's job; `.uppercased()`
      breaks VoiceOver and localisation, and the shipped product produces the
      same label three ways. */
