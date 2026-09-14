@@ -1070,6 +1070,22 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 @media (max-width:460px){
   .posthero{display:block;}
   .postcam{width:150px; margin-top:12px;}
+  /* MW-05 · THE SCORE LEADS. On a phone the empty 150×100 photo frame sat
+     between the gross and the course, so the optional thing was the biggest
+     thing above the primary action. With no photo attached the plate is a
+     quiet full-measure row — the same weight as the course line under it —
+     and the scan sits beside it. It costs nothing: both controls keep their
+     words and their 44. The moment a photograph IS attached it becomes the
+     picture again (`.has-photo`), because then it is not optional furniture,
+     it is the round's own image. */
+  .postcam{width:100%; flex-direction:row; align-items:center; gap:10px;}
+  .postcam .postplate{width:auto; flex:1; height:44px;}
+  .postcam .postplate .plate{border-radius:var(--rc); justify-content:flex-start; padding:0 12px;}
+  .postcam .postplate .ph{flex-direction:row; gap:8px;}
+  .postcam #postScanBtn{flex:none; margin:0;}
+  .postcam.has-photo{flex-direction:column; align-items:stretch; width:150px;}
+  .postcam.has-photo .postplate{width:150px; height:100px; flex:none;}
+  .postcam.has-photo .postplate .plate{border-radius:var(--p); justify-content:center; padding:0;}
 }
 .inheritline{
   display:flex; align-items:baseline; gap:10px; width:100%; text-align:left;
@@ -4769,7 +4785,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
                 <tr><td>A little loose · 1 to 3 over</td><td>6</td></tr>
                 <tr><td>Posted anyway · more than 3 over</td><td>5</td></tr>
               </table>
-              <p class="fine">Every posted round scores. Your best few each month count toward your squad — a better round always replaces your lowest, in real time.</p>
+              <!-- MW-05 · painted by `csRenderComposerEyebrow` from
+                   `csCountingNote()` — never retyped here (D297). It said
+                   "count toward your squad" in every league, including a solo
+                   one, and "your best few" where the league stores a number. -->
+              <p class="fine" id="postCountingNote"></p>
             </div>
           </div>
         </div>
@@ -6062,9 +6082,39 @@ function csComposerEyebrow(){
   return ix == null ? 'Add my round \u00b7 your index builds at 3 rounds'
                     : 'Add my round \u00b7 your index ' + Number(ix).toFixed(1);
 }
+/* MW-05 · WHAT THIS ROUND COUNTS TOWARD, IN THIS LEAGUE'S OWN RULES. The
+   composer printed one sentence for every league: "Your best few each month
+   count toward your squad." In a solo season there is no squad — the walk on
+   the owner's own account read it under a solo league — and "a few" is a
+   number the league actually stores (`league_settings.counting_cap`, null for
+   Unlimited). One producer, read from the same `capDB()` / `state.structure`
+   every other counting sentence on this client reads; no rule is computed
+   here and none is changed. */
+function csCountingNote(){
+  if(seasonState() === 'no_league')
+    /* §42 · "against your number" is the banned gloss; this is `seasonNote`'s
+       own approved sentence for a golfer with no season, in this slot's words. */
+    return 'Every posted round posts to your rounds. Join a season and it counts there too.';
+  /* the LEAGUE's stored rules, not the wizard's picker. `capDB()` answers for
+     the rung the Pro is currently looking at while editing bylaws, and
+     `state.structure` follows it; `CS.settings` is what the league actually
+     stores (`loadLeagueData` assigns the bylaws row to it). The picker is the
+     fallback, for the composer opened while a league is still being set up. */
+  const B     = (window.CS && CS.settings) || null;
+  const solo  = (B && B.structure != null ? B.structure : state.structure) === 'solo';
+  const whose = solo ? 'your season total' : 'your squad';
+  const cap   = B && 'counting_cap' in B ? B.counting_cap
+              : ((typeof capDB === 'function') ? capDB() : null);
+  if(cap == null)
+    return `Every posted round scores, and in this season every one of them counts toward ${whose}.`;
+  return `Every posted round scores. Your best ${csWord(cap)} each month count toward ${whose} — a better round always replaces your lowest, in real time.`;
+}
+window.csCountingNote = csCountingNote;
 function csRenderComposerEyebrow(){
   const pe = document.getElementById('postEyebrow');
   if(pe) pe.textContent = csComposerEyebrow();
+  const cn = document.getElementById('postCountingNote');
+  if(cn) cn.textContent = csCountingNote();
 }
 window.csComposerEyebrow = csComposerEyebrow;
 window.csRenderComposerEyebrow = csRenderComposerEyebrow;
@@ -10579,11 +10629,13 @@ function setPostPhoto(blob){
     img.src=URL.createObjectURL(blob);
     img.style.display='block'; if(ph) ph.style.display='none';
     clr.style.display=''; add.setAttribute('aria-label', CS_PHOTO.replace);
+    $('#postPhotoRow')?.classList.add('has-photo');      /* MW-05 · a real photograph earns the frame back */
   } else {
     if(img.src){ try{ URL.revokeObjectURL(img.src); }catch(_){} }
     img.removeAttribute('src');
     img.style.display='none'; if(ph) ph.style.display='';
     clr.style.display='none'; add.setAttribute('aria-label', CS_PHOTO.add);
+    $('#postPhotoRow')?.classList.remove('has-photo');
     const lbl=$('#postPhotoBtnLabel'); if(lbl) lbl.textContent = CS_PHOTO.add;
   }
 }
