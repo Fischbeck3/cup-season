@@ -23,6 +23,8 @@
 # Before the first TestFlight upload: `supabase secrets unset APNS_SANDBOX`
 # (runbook D5) — a production token against the sandbox host is pruned as dead.
 set -euo pipefail
+# resolved BEFORE the cd, so a relative invocation still finds its siblings
+TOOLS="$(cd "$(dirname "$0")" && pwd)"
 cd "$(dirname "$0")/../apps/ios"
 
 case "${1:-}" in ""|--upload) ;; *) echo "Unknown option: $1"; exit 2 ;; esac
@@ -62,9 +64,49 @@ xcodebuild -project CupSeason.xcodeproj -scheme CupSeason \
   }
 [ -d "$ARCHIVE" ] || { echo "✗ no archive produced"; exit 1; }
 
+# THE EXPORT SIGNS FROM THE LOCAL VAULT WHEN THERE IS ONE (2026-09-14).
+#
+# Cloud-managed signing cannot be used by an App Store Connect API key — the
+# key authenticates, reads the app and mints profiles, and then the export
+# fails with "Cloud signing permission error / No signing certificate iOS
+# Distribution found". That is what stopped builds 835 through 890 for two
+# days. `tools/ios-signing.sh` puts a distribution identity and two App Store
+# profiles in ~/.appstoreconnect/cupseason-dist; when that vault exists this
+# exports MANUALLY against it, which needs no cloud signing and no Xcode
+# account. Without the vault it falls back to the old automatic path, so a
+# machine that has a working Xcode login is unaffected.
+VAULT="$HOME/.appstoreconnect/cupseason-dist"
+OPTS="ExportOptions.plist"
+KEYCHAIN="$HOME/Library/Keychains/cs-signing-tmp.keychain-db"
+ORIG_KEYCHAINS=$(security list-keychains -d user | tr -d ' "' | tr '\n' ' ')
+vault_cleanup() {
+  security list-keychains -d user -s $ORIG_KEYCHAINS >/dev/null 2>&1 || true
+  security delete-keychain "$KEYCHAIN" >/dev/null 2>&1 || true
+}
+if [ -f "$VAULT/identity.p12" ] && [ -f "$VAULT/profiles.json" ]; then
+  echo "▸ signing identity from the local vault"
+  trap vault_cleanup EXIT
+  P12=$(cat "$VAULT/identity.pass")
+  PASS=$(openssl rand -hex 24)
+  security delete-keychain "$KEYCHAIN" >/dev/null 2>&1 || true
+  security create-keychain -p "$PASS" "$KEYCHAIN"
+  security set-keychain-settings -lut 21600 "$KEYCHAIN"
+  security unlock-keychain -p "$PASS" "$KEYCHAIN"
+  security import "$VAULT/identity.p12" -k "$KEYCHAIN" -P "$P12" \
+    -T /usr/bin/codesign -T /usr/bin/xcodebuild -T /usr/bin/productbuild >/dev/null
+  # the line that keeps this unattended: codesign may use the key without asking
+  security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$PASS" "$KEYCHAIN" >/dev/null 2>&1
+  security list-keychains -d user -s "$KEYCHAIN" $ORIG_KEYCHAINS >/dev/null
+  security find-identity -v -p codesigning | grep -q "Apple Distribution" || {
+    echo "✗ the vault holds no Apple Distribution identity — run tools/ios-signing.sh"; exit 1; }
+  OPTS="$OUT/ExportOptions-manual.plist"
+  VAULT="$VAULT" OPTS="$OPTS" python3 "$TOOLS/ios-export-options.py"
+  XCODE_AUTH=()
+fi
+
 echo "▸ export"
 xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "$EXPORT" \
-  -exportOptionsPlist ExportOptions.plist "${XCODE_AUTH[@]}" > "$OUT/export.log" 2>&1 || {
+  -exportOptionsPlist "$OPTS" ${XCODE_AUTH[@]+"${XCODE_AUTH[@]}"} > "$OUT/export.log" 2>&1 || {
     tail -40 "$OUT/export.log"; echo "✗ export failed"; exit 1;
   }
 shopt -s nullglob
