@@ -1,5 +1,20 @@
 # Cup Season — Decision Log
 
+### Owner amendment · One applause action, quiet icon and count
+
+**Approved 2026-09-15. Presentation and social vocabulary; implementation pending.**
+
+- **Current behavior / problem:** several symbolic reactions and a reveal control ask golfers to choose and interpret an icon. The owner explicitly reversed that direction in favor of one appreciation gesture.
+- **Decision:** option A from the September 15 study: muted outlined two-hand applause icon with count, becoming filled green when selected. No capsule or permanent text label. Preserve a generous touch target, selected-state accessibility and reversible interaction. The count opens the people who applauded.
+- **Vocabulary:** applause / applaud / applauded. First-use feedback: "Applause sent". Accessibility: "Give applause" / "Remove applause". Activity: "Alex applauded your round" / "Alex and 2 others applauded your round". The drawing is a clap; product copy does not say clap/clapped.
+- **CONFLICT / supersession:** replaces the owner's earlier multi-reaction direction and interim visible Applaud/Applauded button proposal. The study's B/C treatments and clap/clapped captions are not approved implementation instructions.
+- **Principle / benefit:** low friction, recognizable appreciation and one meaning across Home, board and receipt.
+- **Tradeoffs:** loses reaction-specific expression; comments retain room for a personal response.
+- **Scope boundary:** naming and presentation approved. Specify historical reaction conversion and notification grouping, preferences, audience and delivery separately. Do not delete historical reactions or send migration/backfill alerts by implication. No scoring changes.
+- **Reference / handoff:** `docs/planning/2026-09-15-phone-findings-and-appreciation.md`, F5. Study: `docs/brand/references/2026-09-15-applause-options.png`, A only. Built-in image-generation concept with enlarged controls; use a code-native production icon and existing tokens. Both clients must implement and verify the same behavior.
+
+---
+
 Status: STANDING PROTOCOL. Every recommendation to change or remove a mechanic
 gets an entry here BEFORE it's built. Entries cite the hierarchy of truth and
 name conflicts explicitly — a recommendation that collides with a higher level
