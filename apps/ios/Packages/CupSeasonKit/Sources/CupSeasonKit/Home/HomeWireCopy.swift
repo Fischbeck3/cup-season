@@ -50,6 +50,33 @@ public enum HomeWireCopy {
     return nil
   }
 
+  /// D360 · **ONE supported story under a round with no photograph.** The
+  /// competition's own consequence when the caller holds it — points and the
+  /// month rank against the counting cap — otherwise the handicap context
+  /// `roundDetail` already speaks, sentence-cased. Never both, and never a
+  /// manufactured one: a round nobody knows the consequence of says what the
+  /// row knows and no more.
+  ///
+  /// `home_feed` does not carry the consequence yet, so on the phone the
+  /// caller has nothing to pass and the story is the context; the desk reads
+  /// its board cache for the active league. When the row carries it, both
+  /// clients print this same sentence off the same three numbers.
+  public static func roundStory(_ r: HomeFeedRow, points: Int? = nil, monthRank: Int? = nil,
+                                cap: Int? = nil) -> String? {
+    guard r.gross != nil else { return nil }
+    if let points, let monthRank {
+      let counting: String
+      if let cap, cap > 0, monthRank > cap {
+        counting = "bumped — outside the best \(cap) this month"
+      } else {
+        counting = "counting #\(monthRank) this month"
+      }
+      return "\(CSCopy.points(Double(points))) pts · \(counting)"
+    }
+    guard let d = roundDetail(r) else { return nil }
+    return d.prefix(1).uppercased() + d.dropFirst()
+  }
+
   /// `Today` · `Mon` · `Aug 21` — the marker that leads a quiet row and
   /// credits a photograph.
   ///

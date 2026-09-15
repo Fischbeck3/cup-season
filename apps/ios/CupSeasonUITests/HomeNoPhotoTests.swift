@@ -16,7 +16,7 @@ final class HomeNoPhotoTests: XCTestCase {
     app.terminate(); app.launch()
     XCTAssertTrue(photo.waitForExistence(timeout: 20))
     photo.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)).tap()
-    XCTAssertTrue(app.staticTexts["Round · Oak Quarry"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["Round · UNM Championship Course"].waitForExistence(timeout: 5))
   }
 
   @MainActor func testUnavailablePhotoKeepsReceiptPersonAndReactionDoors() {
@@ -34,7 +34,7 @@ final class HomeNoPhotoTests: XCTestCase {
     flowers.tap()
     XCTAssertTrue(app.descendants(matching: .any)["flowers, 1, yours"].exists)
     record.tap()
-    XCTAssertTrue(app.staticTexts["Round · Oak Quarry"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["Round · UNM Championship Course"].waitForExistence(timeout: 5))
     app.terminate(); app.launch()
     let golfer = app.scrollViews["home.no-photo.fixture"].firstMatch.buttons["Open golfer card: You"]
     XCTAssertTrue(golfer.waitForExistence(timeout: 20))
@@ -63,6 +63,27 @@ final class HomeNoPhotoTests: XCTestCase {
     XCTAssertTrue(app.buttons["React to this round"].firstMatch.exists)
   }
 
+  /// D360 · the five states of the record, photographed in both appearances
+  /// and at an accessibility size: the reference round, a milestone, a long
+  /// course name with no handicap context, and the consequence case.
+  @MainActor func testRecordStatesInBothAppearances() {
+    for (appearance, size) in [("dark", "large"), ("light", "large"), ("dark", "ax3")] {
+      let app = XCUIApplication()
+      app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_text_size", size, "-cs_dev_look", "none", "-cs_dev_appearance", appearance]
+      app.launch()
+      let record = app.buttons.matching(identifier: "home.round.no-photo").firstMatch
+      XCTAssertTrue(record.waitForExistence(timeout: 20))
+      XCTAssertTrue(app.staticTexts["UNM Championship Course"].exists, "the course is the title")
+      XCTAssertTrue(app.staticTexts["89"].exists, "the gross is the figure")
+      XCTAssertTrue(app.staticTexts["2.0 over your playing HCP."].exists, "the story is the handicap context")
+      XCTAssertTrue(app.staticTexts["9 pts · counting #2 this month"].exists, "the consequence is the story when it is known")
+      XCTAssertFalse(app.staticTexts["Beat their playing HCP by 3.1."].exists, "two stories on one round")
+      let shot = XCTAttachment(screenshot: app.screenshot())
+      shot.name = "record-states-\(appearance)-\(size)"; shot.lifetime = .keepAlways; add(shot)
+      app.terminate()
+    }
+  }
+
   @MainActor func testRecordAndGolferHaveSeparateWorkingDoors() {
     let app = XCUIApplication()
     app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_text_size", "large", "-cs_dev_look", "none"]
@@ -71,7 +92,7 @@ final class HomeNoPhotoTests: XCTestCase {
     XCTAssertTrue(record.waitForExistence(timeout: 20))
     XCTAssertTrue(record.isHittable)
     record.tap()
-    XCTAssertTrue(app.staticTexts["Round · Oak Quarry"].waitForExistence(timeout: 5))
+    XCTAssertTrue(app.staticTexts["Round · UNM Championship Course"].waitForExistence(timeout: 5))
     app.terminate()
     app.launch()
     let golfer = app.scrollViews["home.no-photo.fixture"].firstMatch.buttons["Open golfer card: You"]

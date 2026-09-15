@@ -1339,19 +1339,37 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfcard.hfrail{border-top:1px solid var(--rule); padding:12px 0; margin:0;}
 .hfgross{flex:none; text-align:right;}
 .hfgross b{display:block; color:var(--ink);}
-/* D340 · no-photo rounds use the existing type roles and rule-and-figure. */
-.hfcard.hfrecord{padding:20px 0 12px;}
-.hfrecord .hfhead{margin-bottom:16px;}
+/* D360 · the compact scorecard for a round with no photograph. Existing
+   roles only (`cs-social`, `cs-agate-s`, `cs-name`, `cs-fig-l`, `cs-body-s`),
+   the page's own rule, and the receipt's contour at the `.cs-topohead`
+   opacities — restrained, behind the title, never behind the figure (§10.2).
+   Paper stays readable in both themes because every colour is a token. */
+.hfcard.hfrecord{padding:var(--s2) 0 var(--s1); border-top:1px solid var(--rule); margin:0;}
 .hfperson{padding:0;border:0;background:transparent;cursor:pointer;min-width:44px;min-height:44px;}
 .hfperson:focus-visible{outline:2px solid var(--act);outline-offset:2px;}
-.hfrecord-date{color:var(--mut);flex:none;}
-.hfrecord-body{display:flex;align-items:flex-start;gap:20px;}
-.hfrecord-place{flex:1;min-width:0;}
-.hfrecord-place>b{display:block;overflow-wrap:anywhere;}
-.hfrecord-place>p{margin:8px 0 0;color:var(--mut);}
-.hfrecord .hfgross{border-top:2px solid var(--ink);padding-top:4px;text-align:left;min-width:62px;}
-.hfrecord .hfgross>span{display:block;color:var(--mut);margin-top:4px;}
-@media(max-width:360px){.hfrecord-body{gap:12px;}}
+/* the identity row is 32 tall; the person's 44pt target overhangs it by 6
+   either side rather than stretching the row to the target's size */
+.hfr-id{display:flex; align-items:center; gap:var(--s2); min-height:32px;}
+.hfr-id .hffacew{display:flex; align-items:center;}
+.hfr-id .hfperson{margin:calc(-1 * var(--s2)) 0;}
+.hfr-who{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink);}
+.hfr-day{flex:none; color:var(--mut);}
+/* the scorecard's header row: the course on the left, the figure on the
+   right, one fine rule under both. A long name wraps in its own column and
+   the figure stays on the rule. */
+.hfr-title{position:relative; isolation:isolate; display:flex; align-items:flex-end; justify-content:space-between; gap:var(--s3);
+  margin-top:var(--s2); padding-bottom:var(--s1); border-bottom:1px solid var(--rule);}
+.hfr-title>b{flex:1; min-width:0; color:var(--ink); overflow-wrap:anywhere; text-wrap:balance; padding-bottom:var(--s1);}
+.hfr-topo{position:absolute; left:34%; top:50%; transform:translateY(-50%); width:min(30%, 130px); height:auto; z-index:-1; pointer-events:none; color:var(--mut);}
+.hfr-topo .t-sur{stroke-width:1.2; opacity:.08;}
+.hfr-topo .t-edge{stroke-width:1.2; opacity:.16;}
+.hfr-gross{flex:none; display:flex; align-items:baseline; gap:var(--s2);}
+.hfr-gross>b{color:var(--ink);}
+.hfr-gross>span{color:var(--mut);}
+.hfr-story{margin:var(--s2) 0 0; color:var(--mut);}
+.hfr-foot{display:flex; align-items:center; justify-content:space-between; gap:var(--s2); margin-top:var(--s1);}
+.hfr-foot .hrx{margin-top:0;}
+.hfr-go{flex:none; color:var(--mut);}
 
 /* B1: a photo-backed round IS the card — dusk wash, serif gross, marker medal */
 .hfcard.hfstory{padding:0; position:relative; overflow:hidden; border-radius:var(--r); min-height:220px; display:flex; flex-direction:column; justify-content:space-between; color:#F4F6F2; border:none;}
@@ -1920,7 +1938,7 @@ body.guestlive #onboard{display:none !important;}
 .feedsec{color:var(--ink); margin:32px 0 12px;}
 .feedsec:first-child{margin-top:0;}
 /* the first row under a dateline needs no rule — the head is its edge */
-.feedsec + .hfcard.hfrail, .feedsec + .hfline{border-top:0;}
+.feedsec + .hfcard.hfrail, .feedsec + .hfcard.hfrecord, .feedsec + .hfline{border-top:0;}
 .feedmore{margin-top:4px;}
 .feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:10px 12px; border:1px solid var(--rule); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
 .feedmore>summary::-webkit-details-marker{display:none;}
@@ -16513,6 +16531,28 @@ function homeRoundDetail(r){
   if(r.pvi!=null){ const phrase=vsPhrase(Number(r.pvi)); return (r.is_me ? phrase : theirs(phrase))+'.'; }
   return '';
 }
+/* D360 · ONE SUPPORTED STORY under a round with no photograph. The
+   competition's own consequence when this client already holds it — the
+   board's round cache carries `points` and `month_rank` for the active league,
+   which is a fact already on the screen (D201) — otherwise the handicap
+   context `roundDetail` already speaks. Never both, never a manufactured one:
+   a round the cache has not seen says what the wire row knows and no more.
+   `home_feed` does not carry the consequence yet; when it does, the row wins
+   and the cache is only a fallback. */
+function homeRoundStory(r){
+  if(r.gross==null) return '';
+  const c = r.round_id && window.roundCache ? window.roundCache[r.round_id] : null;
+  const pts = r.points!=null ? r.points : (c && c.points!=null ? c.points : null);
+  const rank = r.month_rank!=null ? r.month_rank : (c && c.month_rank!=null ? c.month_rank : null);
+  if(pts!=null && rank!=null){
+    const cap = r.counting_cap!=null ? Number(r.counting_cap) : capNum();
+    const counting = cap===Infinity || rank<=cap ? `counting #${rank} this month`
+                   : `bumped — outside the best ${cap} this month`;
+    return `${pts} pts · ${counting}`;
+  }
+  const d = homeRoundDetail(r);
+  return d ? d[0].toUpperCase()+d.slice(1) : '';
+}
 /* HomeWireCopy.roundLine: the spoken record names missing course data too. */
 function homeRoundLine(r){
   const course=(r.course||'').trim();
@@ -16571,20 +16611,36 @@ function feedRow(r, idx, stamp){
       ${social?`<div class="hsfoot">${social}</div>`:''}</div>`;
   }
 
-  /* D340 · Course and gross lead even when the optional photograph is absent. */
-  const detail = homeRoundDetail(r);
-  const sentence = detail ? detail[0].toUpperCase()+detail.slice(1) : '';
-  return `<div class="hfcard hfrail hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
-    <div class="hfhead">
-      ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
-      <div class="hfid"><b class="cs-social">${whoTag}</b></div>
-      ${stamp?`<span class="hfrecord-date cs-agate-s">${esc(csDayToken(stamp))}</span>`:''}
+  /* D360 · A ROUND WITHOUT A PHOTOGRAPH IS A COMPACT SCORECARD, complete and
+     worth keeping. D340 gave it course and gross; this gives it the shape —
+     a quiet identity row (face, name, day), the course as the title over a
+     fine rule with a restrained contour behind it, the gross in the
+     tournament figure labelled GROSS, ONE story beside it, and a foot that
+     holds the reactions and the way into the receipt. Tighter than the tall
+     treatment it replaces: one rule, not a heavy bar; the figure at `l`, not
+     `xl`; the story in body, not the serif. No placeholder for the picture
+     that is not there, and no decorative ember. */
+  const story = homeRoundStory(r);
+  const day = stamp ? csDayToken(stamp) : dfmtShort(r.played_on);
+  return `<div class="hfcard hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
+    <div class="hfr-id">
+      ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,32)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,32)}</span>`}
+      <b class="cs-social hfr-who">${whoTag}</b>
+      ${day?`<span class="hfr-day cs-agate-s">${esc(day)}</span>`:''}
     </div>
-    <div class="hfrecord-body">
-      <div class="hfrecord-place"><b class="cs-name">${r.course ? course : 'Course not recorded'}</b>${sentence?`<p class="cs-story">${esc(sentence)}</p>`:''}</div>
-      ${r.gross!=null?`<div class="hfgross"><b class="cs-fig-xl">${grossH}</b><span class="cs-agate-s">GROSS</span></div>`:''}
+    <div class="hfr-title">
+      <b class="cs-name">${r.course ? course : 'Course not recorded'}</b>
+      ${r.gross!=null?`<div class="hfr-gross"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">GROSS</span></div>`:''}
+      <svg class="hfr-topo" viewBox="120 -20 380 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path class="t-sur" d="M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z"/>
+        <path class="t-edge" d="M 336 57 C 358 38 386 42 395 60 C 404 77 391 91 386 107 C 380 125 385 145 366 153 C 346 162 316 151 309 132 C 303 115 318 106 320 90 C 322 77 324 66 336 57 Z"/>
+      </g></svg>
     </div>
-    ${social}</div>`;
+    ${story?`<p class="hfr-story cs-body-s">${esc(story)}</p>`:''}
+    <div class="hfr-foot">
+      ${social||'<span></span>'}
+      <span class="hfr-go cs-agate-s" aria-hidden="true">Receipt ›</span>
+    </div></div>`;
 }
 /* D288 · WEIGHT 5 — a league moment is a LINE (VISUAL_PASS §1c). It was a
    44pt face, a bold sentence and a mono sub-line inside a dashed `bg2` card,

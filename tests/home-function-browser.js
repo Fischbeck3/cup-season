@@ -135,7 +135,7 @@
       closeSheet();state.demo=true;
     };
     await visitGolfer();
-    first().querySelector('.hfid').click();check(openedRound===DEMO_FEED[0],'Receipt tap lost its source round');
+    first().querySelector('.hfr-title').click();check(openedRound===DEMO_FEED[0],'Receipt tap lost its source round');
     openedRound=null;
     const person=first().querySelector('.hfperson');person.focus();check(document.activeElement===person,'Golfer cannot take keyboard focus');
     const key=new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});person.dispatchEvent(key);check(!key.defaultPrevented,'Receipt swallowed golfer keyboard activation');
@@ -175,7 +175,7 @@
     // Leave the no-image fallback and the next row's revealed choices for QA.
     DEMO_FEED[0].photo_url=photoURL;renderHomeFeed();
     box.querySelectorAll('[data-hreact]')[1].click();
-    check(box.querySelector('[data-hfr="1"] .hfrecord-date'),'Fallback lost the next row dateline');
+    check(box.querySelector('[data-hfr="1"] .hfr-day'),'Fallback lost the next row dateline');
     check(document.documentElement.scrollWidth<=innerWidth,'Horizontal overflow');
     const targets=[...box.querySelectorAll('.hfperson,.rxchip')].filter(b=>b.getClientRects().length);
     check(targets.every(b=>b.getBoundingClientRect().width>=44 && b.getBoundingClientRect().height>=44),'Target below 44px');

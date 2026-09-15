@@ -158,57 +158,91 @@ struct HomeWireBand: View {
   }
 }
 
-/// D340 · The factual no-photo fallback. Course, gross and story each print
-/// once. No image slot or invented hole detail is needed to make a round matter.
+/// D360 · **A ROUND WITHOUT A PHOTOGRAPH IS A COMPACT SCORECARD**, complete and
+/// worth keeping. D340 gave it course and gross; this gives it the shape the
+/// desk's `.hfrecord` has: a quiet identity row (face, name, day), the course
+/// as the title with the gross on the same rule in the tournament figure and
+/// labelled, ONE story under the rule, and the reactions row that follows in
+/// the wire as its foot. Fine rules, the receipt's contour behind the title
+/// at the `.cs-topohead` opacity, tighter than the tall treatment it
+/// replaces — the figure at `l` rather than `xl`, the story in body rather
+/// than the serif, no heavy bar. No slot for the picture that is not there,
+/// no invented achievement, no decorative ember.
 struct HomeWireSlat: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let row: HomeFeedRow
   let open: () -> Void
   let openPerson: () -> Void
+  /// The competition's consequence, when the caller holds it (see
+  /// `HomeWireCopy.roundStory`). Home has none to pass today.
+  var points: Int? = nil
+  var monthRank: Int? = nil
+  var cap: Int? = nil
 
   private var name: String { HomeCopy.who(row) }
+  private var course: String {
+    row.course.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded"
+  }
+  private var story: String? { HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap) }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      HStack(spacing: CSTokens.Space.s3) {
+    VStack(alignment: .leading, spacing: 0) {
+      // the quiet identity row · the person is a door of their own
+      HStack(spacing: CSTokens.Space.s2) {
         Button(action: openPerson) {
-          CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
+          CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .slat, name: name)
             .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open golfer card: \(name)")
-        Button(action: open) {
-          Text(name).csType(.social).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-            .contentShape(Rectangle())
+        Text(name).csType(.social).foregroundStyle(cs.ink)
+          .lineLimit(1).truncationMode(.tail)
+          .frame(maxWidth: .infinity, alignment: .leading)
+        if let day = HomeWireCopy.dayMarker(row.played_on) {
+          Text(day).csType(.agateS, caps: true).foregroundStyle(cs.mut)
         }
-        .buttonStyle(.plain)
-        .accessibilityHint("Opens the round")
       }
+      .padding(.vertical, -CSTokens.Space.s1)
 
+      // the scorecard's header row and everything under it opens the round
       Button(action: open) {
-        A11yStack(alignment: .leading, rowAlignment: .top, spacing: CSTokens.Space.s4, columnSpacing: CSTokens.Space.s3) {
-          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-            Text(row.course.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded")
-              .csType(.name).foregroundStyle(cs.ink)
+        VStack(alignment: .leading, spacing: 0) {
+          A11yStack(alignment: .leading, rowAlignment: .bottom, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+            Text(course).csType(.name).foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
-            if let detail = HomeWireCopy.roundDetail(row) {
-              Text(detail.prefix(1).uppercased() + detail.dropFirst())
-                .csType(.story).foregroundStyle(cs.mut)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .padding(.bottom, CSTokens.Space.s1)
+            if let gross = row.gross {
+              HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+                Text("\(gross)").csType(.figureL).foregroundStyle(cs.ink)
+                Text("Gross").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              }
+              .fixedSize()
+            }
+          }
+          .padding(.top, CSTokens.Space.s2)
+          .padding(.bottom, CSTokens.Space.s1)
+          .background(alignment: .leading) {
+            // restrained: the receipt's own contour, the section head's opacity,
+            // behind the title and never behind the figure (§10.2)
+            CSTopoField(.page, tint: cs.mut.opacity(CSTokens.Alpha.a16))
+              .frame(width: 130, height: 56)
+              .padding(.leading, 120)
+          }
+          CSRule()
+          // the one story, and the way in — said, not only hinted
+          HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+            if let story {
+              Text(story).csType(.bodyS).foregroundStyle(cs.mut)
                 .fixedSize(horizontal: false, vertical: true)
             }
+            Spacer(minLength: 0)
+            Text("Receipt ›").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              .fixedSize()
           }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          if let gross = row.gross {
-            VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-              CSRule(.heavy)
-              Text("\(gross)").csType(.figureXL).foregroundStyle(cs.ink)
-              Text("Gross").csType(.agateS, caps: true).foregroundStyle(cs.mut)
-            }
-            .fixedSize(horizontal: true, vertical: false)
-          }
+          .padding(.top, CSTokens.Space.s2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
@@ -219,7 +253,7 @@ struct HomeWireSlat: View {
       .accessibilityLabel("\(name). \(HomeWireCopy.roundLine(row))")
       .accessibilityHint("Opens the round")
     }
-    .padding(.vertical, CSTokens.Space.s4)
+    .padding(.top, CSTokens.Space.s2)
   }
 }
 

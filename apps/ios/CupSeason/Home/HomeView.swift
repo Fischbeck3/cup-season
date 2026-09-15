@@ -415,7 +415,8 @@ struct HomeView: View {
             .padding(.horizontal, CSTokens.Space.gutter)
         }
         if let rid = r.round_id, let state = vm.social.state(for: rid) {
-          HomeWireReactions(state: state, day: HomeWireCopy.dayMarker(r.played_on)) { emoji in
+          // one fact, one place: a record's identity row already carries the day
+          HomeWireReactions(state: state, day: url == nil ? nil : HomeWireCopy.dayMarker(r.played_on)) { emoji in
             react(r, emoji)
           }
           .padding(.horizontal, CSTokens.Space.gutter)
