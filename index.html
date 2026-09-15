@@ -19390,6 +19390,25 @@ function openStakeSettle(id){
   }));
 }
 
+/* D366 (F6) · the words of the pride-bet composer, shared with the phone's
+   `ForfeitCopy`. A first-time golfer can answer from the sheet alone: what the
+   button creates, whether the other golfer agreed (no — nobody is asked to
+   accept here), what decides it, who confirms it, where it shows, and whether
+   it touches league points (never). Honest about being record-only. */
+const CS_PRIDE={
+  sub:'RECORDED HERE, MADE BETWEEN YOU',
+  purpose:"A bet for pride between golfers, kept on the record. It records an agreement you've already made — nobody is asked to accept here.",
+  whereLabel:'Where it lives', decidesLabel:'What decides it', decidesOptional:'optional',
+  points:'It never touches league points.',
+  whereItShows:'It shows under Pride bets · on the record, for the people involved.',
+  who: name => name ? `You and ${String(name).trim().split(/\s+/)[0]}` : 'You and the field — first to hit it',
+  context: (kind, name) => kind==='season' ? `On ${name||'this season'} — the result never touches its points.`
+    : kind==='moment' ? `On ${name||'this contest'}.` : kind==='plan' ? `On ${name||'this planned round'}.`
+    : kind==='buddies' ? 'Between the two of you — no season or round attached.' : 'Say who it is with, or what it hangs on.',
+  confirm: name => { const them = name ? String(name).trim().split(/\s+/)[0] : 'the other golfer';
+    return `When it's decided, either of you settles it with a tap. ${them} isn't asked to accept here — tell them yourself.`; },
+};
+window.CS_PRIDE = CS_PRIDE;
 function openStakeCreate(){
   if(state.demo || !window.CS?.user){ toast('Sign in to post a pride bet'); return; }
   const others=(window.CS?.members||[]).filter(m=>m.profile_id && m.profile_id!==window.CS.user.id);
@@ -19401,26 +19420,43 @@ function openStakeCreate(){
      every reader who had not been taught otherwise — the owner included —
      and the sentence under the title existed to undo the title. The title
      says the act; the sentence says what the act is. */
-  openSheet('Post a pride bet', 'A bet for pride. It settles on a tap and goes on the record — never on the books.', `
+  /* D366 (F6) · WHAT THIS IS, before any field: a record of an agreement made
+     between you — not a challenge, not a contest, not a form that scores
+     anything. Where it lives, what decides it, how it is confirmed, where it
+     shows, and that league points are untouched. The phone's `ForfeitCopy`
+     says the same sentences. */
+  const P=CS_PRIDE;
+  openSheet('Post a pride bet', P.sub, `
+    <p class="fine" style="padding-top:0" data-pride-purpose>${esc(P.purpose)}</p>
+    <label class="f" style="margin-top:8px; display:block">${esc(P.whereLabel)}</label>
+    <p class="fine" style="padding-top:0" data-pride-context>${esc(P.context('season', window.CS?.league?.name||null))}</p>
     <label class="f" for="stkName">Name it</label>
     <input class="f" id="stkName" placeholder="The Lawn Bet" autocomplete="off" style="font-family:var(--sans)">
-    <label class="f" style="margin-top:10px; display:block">The shape</label>
+    <label class="f" style="margin-top:8px; display:block">The shape</label>
     <div class="seg" id="stkKind" style="flex-wrap:wrap">${KINDS.map(([k,l],i)=>`<button data-k="${k}" class="${i===0?'on':''}">${l}</button>`).join('')}</div>
-    <label class="f" style="margin-top:10px" for="stkTerms">The terms</label>
+    <label class="f" style="margin-top:8px" for="stkTerms">The terms</label>
     <input class="f" id="stkTerms" value="Loser hosts the cookout" data-auto="1" style="font-family:var(--sans)">
-    <label class="f" style="margin-top:10px; display:block">Against</label>
+    <label class="f" style="margin-top:8px; display:block">Against</label>
     <select class="f" id="stkVs" style="font-family:var(--sans)">
       <option value="">The field — first to hit it</option>
       ${others.map(m=>`<option value="${m.profile_id}">${esc(m.profile?.display_name||'—')}</option>`).join('')}
     </select>
-    <label class="f" style="margin-top:10px" for="stkHangs">Rides on <span style="color:var(--dim)">(optional)</span></label>
+    <label class="f" style="margin-top:8px" for="stkHangs">${esc(P.decidesLabel)} <span style="color:var(--dim)">(${esc(P.decidesOptional)})</span></label>
     <input class="f" id="stkHangs" placeholder="Sunday's clash · first ace · the Cup Final" autocomplete="off" style="font-family:var(--sans)">
-    <div style="display:flex; gap:8px; margin-top:14px">
-      <button class="btn dark" id="stkCancel" style="flex:0 0 auto; width:auto; padding:0 16px">Cancel</button>
+    <p class="fine" data-pride-confirm>${esc(P.confirm(null))}</p>
+    <p class="fine" style="padding-top:0">${esc(P.points)}</p>
+    <p class="fine" style="padding-top:0">${esc(P.whereItShows)}</p>
+    <div style="display:flex; gap:8px; margin-top:12px">
+      <button class="btn dark" id="stkCancel" style="flex:0 0 auto; width:auto; padding:0 12px">Cancel</button>
       <button class="btn" id="stkGo" style="flex:1">Put it on the record</button>
     </div>
     <p class="fine">Nobody gets a notification. It's on the record and that's the point.</p>
   `);
+  /* the confirmation line names the golfer once one is chosen */
+  document.getElementById('stkVs')?.addEventListener('change', e=>{
+    const sel=e.target; const nm=sel.value ? (sel.selectedOptions[0]?.textContent||null) : null;
+    const c=document.querySelector('[data-pride-confirm]'); if(c) c.textContent=P.confirm(nm);
+  });
   let kind='hosts';
   const TERMS={hosts:'Loser hosts the cookout',course_pick:'Winner picks the next course',strokes:'Loser gives 2 a side next time',bounty:'First ace: steak dinner from everyone',custom:''};
   document.querySelectorAll('#stkKind button').forEach(b=>b.addEventListener('click',()=>{

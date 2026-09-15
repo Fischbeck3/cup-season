@@ -386,19 +386,36 @@ struct ForfeitSheet: View {
   @State private var busy = false
   @State private var toasts = CSToastCenter()
 
+  /// D366 · the season, contest or plan this hangs on, named when the door knows it.
+  var contextName: String? = nil
+
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 10) {
-        CSSheetHeader(title: ForfeitCopy.title, sub: opponentName.map { "YOU AND \(CSBands.fn1($0).uppercased())" } ?? "PRIDE BETS")
-        Text(ForfeitCopy.nameLabel).csEyebrow()
+        // D366 (F6) · WHAT THIS IS, before any field: a record of an agreement
+        // made between you — not a challenge, not a contest, not a form that
+        // scores anything. Who, where it lives, what decides it, how it is
+        // confirmed, where it shows, and that league points are untouched.
+        CSSheetHeader(title: ForfeitCopy.title, sub: ForfeitCopy.sub)
+        CSFine(ForfeitCopy.purpose).accessibilityIdentifier("pride.purpose")
+        Text(ForfeitCopy.whoLabel).csEyebrow().padding(.top, 4)
+        Text(ForfeitCopy.who(opponentName)).csType(.name).foregroundStyle(cs.ink)
+          .accessibilityIdentifier("pride.who")
+        Text(ForfeitCopy.whereLabel).csEyebrow().padding(.top, 4)
+        Text(ForfeitCopy.context(home, name: contextName)).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityIdentifier("pride.context")
+        Text(ForfeitCopy.nameLabel).csEyebrow().padding(.top, 4)
         CSField(ForfeitCopy.namePlaceholder, text: $name, font: CSFont.body)
         Text(ForfeitCopy.termsLabel).csEyebrow().padding(.top, 4)
         CSField(ForfeitCopy.termsPlaceholder, text: $terms, font: CSFont.body)
-        Text(ForfeitCopy.settlesLabel).csEyebrow().padding(.top, 4)
+        Text("\(ForfeitCopy.decidesLabel) · \(ForfeitCopy.decidesOptional)").csEyebrow().padding(.top, 4)
         CSField(ForfeitCopy.settlesPlaceholder, text: $hangs, font: CSFont.body)
+        CSFine(ForfeitCopy.confirm(opponentName)).accessibilityIdentifier("pride.confirm")
+        CSFine(ForfeitCopy.points)
+        CSFine(ForfeitCopy.whereItShows)
         Button(ForfeitCopy.put) { post() }
           .buttonStyle(.csPrimary(busy: busy)).padding(.top, 6)
-        CSFine(ForfeitCopy.definition)
         CSFine(ForfeitCopy.noPush)
       }
       .padding(20)

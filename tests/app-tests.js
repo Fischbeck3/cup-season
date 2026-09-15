@@ -1562,6 +1562,15 @@
        csRoundWorthLines([{ league_name: 'A', cap: 4, used: 2 }, { league_name: 'B', cap: 4, used: 2 }, { league_name: 'C', cap: 4, used: 2 }], 'This round').length,
        csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }, { league_name: 'PIGL', cap: 4, used: 4, worst: 5 }], 'This round').length],
       [['This round can score up to 12, and it counts in both The Fellas and PIGL: your best 4 count and you have 2.'], 1, 2]);
+    /* D366 (F6) · the pride-bet composer says what it is: record-only, no
+       acceptance, what decides it, who confirms, where it shows, no points */
+    t('D366: the composer never claims a challenge was sent or accepted',
+      [CS_PRIDE.purpose.includes('nobody is asked to accept'), CS_PRIDE.who('Alex Rivera'), CS_PRIDE.who(null).startsWith('You and the field'),
+       CS_PRIDE.context('season', 'the Fellas'), CS_PRIDE.context('buddies'), CS_PRIDE.context('plan'),
+       CS_PRIDE.confirm('Alex Rivera').includes("Alex isn't asked to accept here"), CS_PRIDE.points, CS_PRIDE.decidesLabel,
+       Object.values(CS_PRIDE).filter(v=>typeof v==='string').some(s=>/forfeit|\$|dollars|cents|challenge sent|has accepted/i.test(s))],
+      [true, 'You and Alex', true, 'On the Fellas — the result never touches its points.', 'Between the two of you — no season or round attached.',
+       'On this planned round.', true, 'It never touches league points.', 'What decides it', false]);
   })();
 
   /* ── Wave 3 · the profile's own producers ───────────────────────────── */
