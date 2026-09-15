@@ -115,3 +115,15 @@ data precondition and now runs on a deterministic fixture.
 **Remaining parity gaps.** The scorecard's *competition* story reaches the desk through the board cache and cannot reach the phone until `home_feed` carries points and the month rank (sprint B's migration). The board's story card still uses `AsyncImage`; the wire is fixed, the board is next. A physical iPhone pass is still owed for everything above.
 
 **Deployment status.** Database: **no migration applied or proposed for this release** (the packet names its migrations; none run). Edge: none. Web: preview only; `cupseason.app` stays at `1bc307f`. Signing: recovered and repeatable; builds 890 and 898 remain internal-only on TestFlight.
+
+
+---
+
+## Evening checkpoint and increment · 2026-09-14, late
+
+| Increment | Source | Web | Native | Database | Checks |
+|---|---|---|---|---|---|
+| Photo findings closed + receipt moment | `f6a31d9`, `714609b` | preview at `f6a31d9` (same client) | **build 905** — VALID, internal `IN_BETA_TESTING`, external not submitted | none | eight web suites on the preview; 54 native tests across nine suites |
+| The round that counts, explained (D362) | the commit after `714609b` | composer worth line, receipt denominator and door | prepared behind the migration | `20261104090000` prepared, isolated-cluster validated, **not applied** | `counting-explained-browser.js` |
+
+The frozen checkpoint is recorded in [2026-09-14-release-checkpoint-evening.md](2026-09-14-release-checkpoint-evening.md). Physical-device verification remains outstanding.

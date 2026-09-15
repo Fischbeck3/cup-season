@@ -307,3 +307,179 @@ owner's, and none is proposed here without its migration named.
 `home_feed` does not carry `points`, `month_rank` or `counting_cap`, so the
 new compact scorecard's *competition story* is a desk-only reach through the
 board cache until it does (D360). It belongs to sprint B's migration.
+
+---
+
+## Evening revision · 2026-09-14 — the owner's four personas, the corrections, and what was built
+
+### The personas are the owner's, not administrative roles
+
+The morning packet used `spec/personas-dashboards-v1.0.md`'s dashboard roles.
+The owner's four are people, and the sprint leads with the second:
+
+| Persona | What they need from this sprint |
+|---|---|
+| **The former D1 golfer reconnecting dispersed teammates** | credible competition and results they can explain: what a round was worth under the rules, why a good round was bumped, where they stand and why |
+| **Busy friends with kids** — *the lead* | flexible participation with a clear commitment: before a rare Saturday round, *what can this one add*; after it, *what it did*, once; and a reason to find the next one |
+| **The woman new to golf and the city** | a welcoming expectation, an identifiable host, an approachable first step — the community pilot (sprint after this) |
+| **The club professional** | sustained member participation with manageable administration — the same pilot, from the host's side |
+
+Role and permission rules underneath are unchanged: the Pro is still
+`league_members.role='commissioner'`; nothing here widens what a member can do.
+
+### Corrections to the morning packet
+
+- **A said `round_epilogue` "already returns rank_before/after"** — true, but
+  see §5 below: it is a comparison of present standings with and without the
+  round, computed at post time, and **not a stored fact**. Recomputing it later
+  does not reproduce it. The receipt-keeps-its-delta increment in B is
+  therefore **proposed, not built**, until the posting-time record exists.
+- **B assumed the composer could read the counters** — `month_counters` has no
+  grant (internal to `round_detail`), so the phone could not. The desk derives
+  the same numbers from `v_rounds_ranked` rows it already loads for the hub;
+  the phone needs the prepared `my_month_counters`.
+- **B assumed a receipt could open the counting set** — `round_card` carries no
+  league, season or member. The desk can route inside the league it has open;
+  the phone cannot route at all until `round_card` carries the lens (prepared).
+- **C said "Run it back carries the roster"** — it carries the **membership
+  count** (no `league_members` insert, no acceptance), the **stake** (overwritten
+  in `league_settings`) and the **setup**. It does not carry *participation*:
+  nobody is asked, and declining the covenant re-fire does not un-seat anyone.
+  The contradiction is resolved below.
+
+### B · built tonight — "the round that counts, explained" (web); prepared (shared data)
+
+**Before posting, on the desk.** The composer says what this round can add
+under the league's own rule, from the engine's own rows: *"This round is worth
+up to 12. Your best 4 count and you have 2."* / *"…worth up to 7 more. Your
+best 4 count this month and your worst is a 5."* / *"…cannot add to your
+points this month — your best 4 already count. It still builds your number."*
+/ uncapped: *"Every round you post this month counts."* Nothing is promised
+outside a live season. The sentence producer is the one the scheduled-round
+sheet already used (`csRoundWorthLine`); the counters are the golfer's
+`v_rounds_ranked` rows for the played month. No prediction of rank.
+
+**After posting.** Unchanged and already once: the epilogue's points line,
+the counting rung and the movement sentence. Gross, handicap context, points
+and counting status stay four distinct rows on the receipt.
+
+**From the receipt, on the desk.** `COUNTING #2 OF 4` — the denominator is
+part of the fact and the phone had it first — and a door, *"Your rounds that
+count this season ›"*, into the member's history sheet where every row is
+counting or BUMPED and opens its receipt. Honest limits: the door exists only
+for the league the desk has open (`indRows` is that season's), and it opens
+the **season's** list, not the month's; a round from another league, or a
+golfer outside the open league, gets no door. Uncapped leagues print
+`COUNTING #n` with no denominator. Bumped rounds say BUMPED. Squads: the sheet
+is the member's own rounds, which is the fact; the squad's counting set is the
+sum of its members' and is not drawn here.
+
+**Prepared, validated on an isolated cluster, not applied** —
+`supabase/migrations/20261104090000_the_round_that_counts_explained.sql`:
+`my_month_counters(p_on)` for the phone's composer (authenticated only; `[]`
+when signed out or out of season) and `round_card` + `league_id`, `season_id`,
+`member_id` so both receipts can open the right league and season. All 265
+public functions applied in order with it; grants read back. **After
+`supabase db push` (owner):** regenerate `packages/db/contract.psv` from the
+live database, run `tools/build-db.mjs`, and the phone's composer line and
+receipt door follow the desk's in one paired commit.
+
+**Parity gap, named.** Tonight the composer's worth line and the receipt's
+door are desk-only. The phone prints its existing counting note and
+`COUNTING #n OF cap`.
+
+**Personas.** *Busy friend:* Saturday, one round this month so far — the
+composer says worth up to 12, best 4 count and you have 1; after the 84, the
+epilogue says +7, counting #2 of 4; the receipt's door shows the two that
+count. *Former D1:* her 79 was bumped; the receipt says BUMPED and the door
+shows the four that took the slots. *Newcomer / club pro:* not in this
+increment.
+
+**Acceptance.** On the fixture league: the four composer sentences, the
+receipt denominator, the door present for the open league and absent
+otherwise, the door opening the member history — `tests/counting-explained-browser.js`
+passes on the preview.
+
+### First counting round — defined, not built
+
+"First" is **the earliest-posted round, by posting time, that entered the
+counting set of that membership at the moment it was posted.** Consequences:
+
+- *Backdated rounds:* posting time governs. A round played in March and posted
+  in May does not become the first because its date is earlier.
+- *First posted ≠ first counting:* a first round posted before the window, or
+  bumped at post (impossible for the first round of a month, possible for a
+  first round posted into a month already full from a prior membership) is not it.
+- *Multiple leagues:* per membership; a golfer in two leagues has two.
+- *Displacement:* a round later bumped out of the counting set **keeps the
+  recognition** — it was the first that counted when it counted; the record is
+  of an event, not a standing.
+- *Corrections:* if the recorded round is deleted (`delete_round`), the record
+  is cleared and the next qualifying post may claim it; nothing else moves it.
+
+**Backend to establish it reliably:** one nullable column,
+`league_members.first_counting_round_id` (+ `first_counting_at`), written by
+`post_round` when the round's `month_rank` at post ≤ cap (or uncapped) and the
+column is null; cleared by `delete_round` when it points at the deleted round.
+`round_epilogue` then returns `first_counting: boolean` (additive). **Not
+prepared tonight**: it changes `post_round`, the one function with game
+consequences, and belongs in its own reviewed migration after the definition
+above is accepted.
+
+### §5 · Historical movement — the audit and the smallest reliable design
+
+**What exists.** `round_epilogue` computes `rank_before`, `rank_after`,
+`passed[]` and `gap_to_next_after` by ranking the season **with and without
+this round at the time of the call**. It is returned inside `post_round`'s
+answer and **stored nowhere**: the only persistence is whatever the client
+shows in that moment. Called again later, it compares today's table with
+today's table minus the round — which is a different question once other
+rounds have posted. Home's `move:` items and `prev_rank` are Sunday snapshots,
+labelled with their clock.
+
+**Rule.** A recalculation is never labelled as what happened at posting.
+
+**Smallest reliable design.** A posting-time record, written once:
+
+```
+round_movement(round_id pk, member_id, season_id,
+               rank_before int, rank_after int, of int,
+               passed jsonb, gap_to_next_after numeric,
+               posted_at timestamptz default now(),
+               voided_at timestamptz null)
+```
+
+written by `post_round` from the same numbers it returns today; `delete_round`
+sets `voided_at` rather than deleting (the movement happened; the round is
+gone). `round_card` returns the row when present, labelled *"when it was
+posted"*. Corrections to older rounds do not rewrite rows — a corrected past
+is a new fact with its own timestamp, not an edit. Storage: one small row per
+posted round in a season. **Decision required**: whether the product wants
+posting-time movement on the receipt at all, given that the same receipt will
+also show the round's *current* counting status, and the two can disagree by
+design. Held as proposed.
+
+### §7 · The sprint after this — season renewal and a hosted-community pilot
+
+**Resolving "Run it back".** It carries **setup and the membership count**,
+not participation. The proposal: run-it-back creates the next season in setup
+and re-issues the **covenant** to every member with last season's result on
+it; a member is seated in season two only by accepting, which writes
+`league_members.agreed_at` (+ the season number). Changed terms (stake,
+length, rule) always re-covenant; unchanged terms still ask, because the
+product's promise is that everyone understood what they joined. Data model:
+`league_members.agreed_at timestamptz`, `agreed_season int`; `join_covenant_info`
+gains `last_finish` and `terms_changed`. The held `run_it_back` migration is
+**not** deployed to unblock this; it needs the acceptance column beside it.
+
+**The pilot** (one club professional, one newcomer): extend the anon
+`join_covenant_info` with the Pro's first name and marker and the first tee —
+never the roster — and render the covenant as the league's page on both
+clients from the link that already exists. Discovery, email delivery,
+friend-start/birdie notifications and new competition mechanics stay out.
+
+**Notifications, audited before claimed.** Direct invitations and RSVPs have
+producers and routes on both clients. APNs delivery is env-gated and has
+**never been proven in production** (one sandbox token in `device_tokens`);
+web push has a VAPID path. Nothing in this evening's work sends anything new,
+and no delivery is claimed working that has not been read back from a device.

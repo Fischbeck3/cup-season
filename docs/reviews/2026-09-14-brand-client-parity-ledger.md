@@ -253,8 +253,25 @@ are listed in `bc22372`'s message.
 | **Evidence** | `HomePhotoStoreTests` (5), `HomePhotoStabilityTests` (3), `home-photos-browser.js` (6 checks); measurements in D361. |
 | **Status** | see D361 for the verified state |
 
+## 8 · addendum — the native receipt moment is built (evening)
+
+`ReceiptMoment` on the phone: the desk's composition over the photograph or the raised ground, the course named once, reading its picture from the shared store. `ReceiptMomentTests` photographs four states. **Row 8's difference is closed.**
+
+## 14 · addendum — Codex's three findings closed (evening)
+
+Credential ≠ verdict; bounded recovery; post-decode re-check; signing epoch. Board and receipt on the one store and the one signing path. **Verified both.**
+
+## 15 · The round that counts, explained (D362)
+
+| | |
+|---|---|
+| **Web** | composer worth line from the engine's rows; receipt `COUNTING #n OF cap` and the door to the member's rounds that count (open league, season list). |
+| **Native** | `COUNTING #n OF cap` already; composer line and receipt door **wait on** `20261104090000` (prepared, validated in isolation, not applied) and the contract regeneration. |
+| **Evidence** | `counting-explained-browser.js`; isolated-cluster checks. |
+| **Status** | web **built** · native **prepared** · shared data **owner's push** |
+
 ## Next
 
-**B · shared function gaps** — the native receipt moment, the Compete masthead
+**B · shared function gaps** — the Compete masthead
 tagline, the editorial lead. **C · the device pass** — row 10 and row 9's
 install/link-preview check, both on a real iPhone. Neither blocks the preview.

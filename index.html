@@ -10225,7 +10225,13 @@ function recalc(){
   const _k = document.querySelector('.calc .k');
   if(_k) _k.textContent = _ss === 'live' ? 'League points this round'
                         : _ss === 'no_league' ? 'This round would score' : 'This round';
-  const _sn = $('#calcSeason'); if(_sn) _sn.textContent = seasonNote('long') || 'Counts in every league you\u2019re in.';
+  const _sn = $('#calcSeason');
+  if(_sn){
+    /* D362 · live season: what this round can add under the league's own cap,
+       from the engine's rows; otherwise the season note says why it does not */
+    const worth = _ss === 'live' ? csComposerWorthLine($('#inDate')?.value || null) : null;
+    _sn.textContent = worth || seasonNote('long') || 'Counts in every league you\u2019re in.';
+  }
   $('#calcVs').textContent=vsShort(vs);   /* Q-23: words, not a sign */
   $('#calcVs').style.color = vs>-1 ? 'var(--pos)' : 'var(--neg)';
   $('#calcPts').textContent = _shows ? pts : '—';
@@ -19897,6 +19903,16 @@ function openMemberHist(p){
    Called twice: once with the row the caller had (instant), once with the full
    round_card payload. Anything missing is simply absent — a receipt never
    guesses at a number it does not hold. */
+/* the member-history row for a round's golfer, in the league the desk has
+   open — null when the round is not that league's, or the rows are not loaded */
+function csMemberHistFor(r){
+  const rows = window.indRows || [];
+  if(!rows.length) return null;
+  const mid = r.member_id || (window.CS?.members||[]).find(m => m.profile_id && m.profile_id===r.profile_id)?.id
+           || (r.profile_id && r.profile_id===window.CS?.user?.id ? window.CS?.member?.id : null);
+  return mid ? (rows.find(x => x.mid===mid) || null) : null;
+}
+window.csMemberHistFor = csMemberHistFor;
 function roundCardBody(r, pvi, capN){
   const mine = r.is_mine!=null ? !!r.is_mine
              : (!r.profile_id || r.profile_id===window.CS?.user?.id);
@@ -19973,7 +19989,14 @@ function roundCardBody(r, pvi, capN){
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
   if(r.month_rank!=null){
     const cap = r.counting_cap!=null ? Number(r.counting_cap) : capN;
-    rows.push(`<div class="mathrow"><span>This month</span><b>${r.month_rank<=cap?'COUNTING #'+r.month_rank:'BUMPED'}</b></div>`);
+    /* THE DENOMINATOR IS PART OF THE FACT (L-01) — the phone prints `OF 4`; the desk now does too */
+    const clause = cap===Infinity || cap==null ? 'COUNTING #'+r.month_rank : 'COUNTING #'+r.month_rank+' OF '+cap;
+    rows.push(`<div class="mathrow"><span>This month</span><b>${cap===Infinity || cap==null || r.month_rank<=cap ? clause : 'BUMPED'}</b></div>`);
+    /* D362 · the way back to the rounds that count — the member's own history
+       sheet, where every row is counting or BUMPED and opens its receipt (§16).
+       Only for the league the desk has open: `indRows` is that season's. */
+    const p = csMemberHistFor(r);
+    if(p) rows.push(`<button type="button" class="cs-tskip" data-counting-for="${esc(p.mid)}" style="margin-top:var(--s2)">${mine?'Your':'Their'} rounds that count this season ›</button>`);
   }
   if(r.holes_played===9) rows.push(`<div class="mathrow"><span>Nine holes</span><b>HALF VALUE · HALF A ROUND</b></div>`);
   if(r.attested) rows.push(`<div class="mathrow"><span>Vouched</span><b>PLAYED WITH THE GROUP</b></div>`);
@@ -20465,6 +20488,18 @@ function openRoundReceipt(x, opts){
       <div class="rcpt-cap"><span>What this round was worth</span><span>${esc(line.split(' \u00b7 ').pop()||'')}</span></div>
       ${roundCardBody(r, pvi, capN)}</div>`);
   if(canPhoto) csWireReceiptPhoto(r, rid, stampOf);
+  /* D362 · one delegated listener for the door to the rounds that count: the
+     leaf is repainted when `round_card` lands, so the listener lives on the
+     sheet body and not on the button */
+  const sb_=document.getElementById('shBody');
+  if(sb_ && !sb_.__countingDoor){
+    sb_.__countingDoor = true;
+    sb_.addEventListener('click', e=>{
+      const b=e.target.closest('[data-counting-for]'); if(!b) return;
+      const p=(window.indRows||[]).find(x=>String(x.mid)===b.dataset.countingFor);
+      if(p && typeof openMemberHist==='function') openMemberHist(p);
+    });
+  }
   /* D294 · the card, after everything else and never blocking any of it. A
      round with no card draws NOTHING here — no empty grid, no invitation to
      supply something a posted round can no longer supply (16: a round is not
@@ -25616,6 +25651,8 @@ async function loadStandingsAndFeed(requireRoom=false){
         };
       }).sort((a,b)=>b.pts-a.pts || b.avg-a.avg);
       const mine=by[CS.member?.id]||[];
+      /* D362 · the composer reads these to say what a round can add this month */
+      window.myRanked = mine;
       const now=new Date();
       const mkey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
       const mm=mine.filter(r=>String(r.played_on).startsWith(mkey));
@@ -28827,6 +28864,25 @@ function csRoundWorthLine(subject, cap, used, worst, season){
     ? 'Your best ' + c + ' count this month and your worst is a ' + csNum(worst) + '.'
     : 'Your best ' + c + ' count and you have ' + u + '.');
 }
+/* D362 · WHAT THIS ROUND CAN ADD, before it is posted. The counters are the
+   engine's own rows (`v_rounds_ranked`, loaded for the hub): how many of the
+   golfer's rounds in the played month are inside the cap, and the worst of
+   them. `csRoundWorthLine` is the one sentence producer (the scheduled-round
+   sheet prints the same). Null when there is no live season, no cap known, or
+   no date — a ceiling is never guessed. */
+function csComposerWorthLine(playedOn, capGiven){
+  if(typeof seasonState==='function' && seasonState()!=='live') return null;
+  if(!window.CS?.season || !Array.isArray(window.myRanked)) return null;
+  const capN = capGiven === undefined ? capNum() : (capGiven == null ? Infinity : Number(capGiven));
+  const cap = capN===Infinity ? null : capN;
+  const key = String(playedOn || isoOf(new Date())).slice(0,7);
+  const month = window.myRanked.filter(r => String(r.played_on||'').startsWith(key));
+  const counting = cap==null ? month : month.filter(r => r.month_rank!=null && r.month_rank <= cap);
+  const used = counting.length;
+  const worst = counting.length ? Math.min(...counting.map(r => Number(r.points))) : null;
+  return csRoundWorthLine('This round', cap, used, worst, null);
+}
+window.csComposerWorthLine = csComposerWorthLine;
 /* `round_detail.worth` — one row per season the round counts in, at most two.
    Three of these is a wall of arithmetic on a sheet whose job is who is in and
    when. An old payload has no `worth` key at all and renders nothing (L-44). */
