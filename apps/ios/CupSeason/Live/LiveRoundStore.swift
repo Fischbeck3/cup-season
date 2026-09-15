@@ -21,6 +21,14 @@ struct LiveRecapData: Identifiable {
   let lr: UUID
   let course: String
   let date: Date
+  /// F12 · the course IDENTITY and the viewer's own name, carried so the recap
+  /// can find the round that was just posted and open ITS receipt. The finish
+  /// payload names cards but gives no round id, so this is the evidence the
+  /// lookup is allowed to use: my rounds, this course id, this day.
+  var courseId: String? = nil
+  var myName: String? = nil
+  /// The card was kept on this phone rather than posted.
+  var keptLocally: Bool = false
 }
 
 @MainActor
@@ -1113,9 +1121,11 @@ final class LiveRoundStore {
       // be posted twice.
       await disk.removeUnsynced(lr)
       let course = state.course.label
+      let courseId = state.course.courseId
       state.active = false; state.stage = .setup
       retiredCard = false
-      recap = LiveRecapData(outcome: out, result: casual ? nil : result, lr: lr, course: course, date: Date())
+      recap = LiveRecapData(outcome: out, result: casual ? nil : result, lr: lr, course: course, date: Date(),
+                            courseId: courseId, myName: myName)
       CSHaptic.success()
       await primeRoster()
       return true

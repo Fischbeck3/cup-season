@@ -38,6 +38,9 @@ final class Presenter {
   /// page does not read a whole profile to print one word.
   var bagOfName: String?
   var receipt: UUID?
+  /// F12 · raise the receipt's own photo picker once on open ("Add a photo"
+  /// from the finish). Cleared by the sheet the moment it fires.
+  var receiptArmPhoto = false
   var scorecard: UUID?
   var scheduledRound: UUID?
   var showJoin = false

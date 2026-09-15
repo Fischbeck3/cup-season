@@ -733,8 +733,10 @@ struct MainTabView: View {
     // DEBUG-only by construction — `CSDevHatch.textSize` is nil in Release.
     // Wave 8 owns the same line at the product's other sheets.
     .csSheet(item: $presenter.receipt) {
-      RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 })
+      RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 },
+                        armPhoto: presenter.receiptArmPhoto)
         .csDevTextSize(CSDevHatch.textSize)
+        .task { presenter.receiptArmPhoto = false }
     }
     .csSheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
     .csSheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }
@@ -1096,7 +1098,10 @@ struct MainTabView: View {
   }
 
   private var liveLinks: LiveLinks {
-    LiveLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 }, done: { presenter.showLive = false })
+    LiveLinks(openReceipt: { presenter.receipt = $0 },
+              openReceiptAddingPhoto: { presenter.receiptArmPhoto = true; presenter.receipt = $0 },
+              openTourCard: { presenter.tourCard = $0 },
+              done: { presenter.showLive = false })
   }
 
   private var csLinks: CSLinks {
