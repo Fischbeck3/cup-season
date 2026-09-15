@@ -70,6 +70,8 @@ struct RoundReceiptSheet: View {
   /// answer and draws nothing (L-44).
   @State private var card: RoundScorecard?
   @State private var share: PostShareItem?
+  /// D362 · the door to the rounds that count, when one is tapped
+  @State private var countingDoor: ReceiptCountingDoor?
   @State private var roundPreview = false
   @State private var sharePhoto: UIImage?
   @State private var shareBusy = false
@@ -176,6 +178,7 @@ struct RoundReceiptSheet: View {
       PostCameraPicker { img in Task { await attach(img) } }.ignoresSafeArea()
     }
     .sheet(item: $share) { PostShareSheet(items: $0.items) }
+    .sheet(item: $countingDoor) { CountingRoundsSheet(door: $0) }
     .sheet(isPresented: $roundPreview) {
       if let seed, let recap = recap(seed) { RoundSharePreview(recap: recap, photo: sharePhoto) }
     }
@@ -379,6 +382,13 @@ struct RoundReceiptSheet: View {
   @ViewBuilder private func foot(_ rows: [ReceiptRow]) -> some View {
     let mates: [String] = rows.compactMap { if case .playedWith(let m) = $0 { return m.joined(separator: ", ") } else { return nil } }
     let live: UUID? = rows.compactMap { if case .scorecard(let id) = $0 { return id } else { return nil } }.first
+    let doors: [ReceiptCountingDoor] = rows.compactMap { if case .countingDoor(let d) = $0 { return d } else { return nil } }
+    // D362 · the way back to the rounds that count — one door per lens the
+    // server showed, each into that league, season and month
+    ForEach(doors) { d in
+      CSDoor(.link(d.label + " ›") { countingDoor = d })
+        .accessibilityIdentifier("receipt.counting.door")
+    }
     if live != nil || !mates.isEmpty {
       HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
         if let live, let openScorecard {
@@ -515,6 +525,13 @@ struct RoundReceiptSheet: View {
     enriched = true
     if seed?.gross != nil { CSTelemetry.event("receipt_viewed") }
     #if DEBUG
+    // `-cs_dev_receipt_lenses <one|two|bumped|uncapped>` · D362's lenses on
+    // whichever round the receipt opened, so the rows and the doors can be
+    // photographed before the migration lands. Overrides `contributions` and
+    // nothing else; writes nothing.
+    applyLensesHatch()
+    #endif
+    #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("-cs_dev_share_preview"), let r = seed,
        r.profileId == store.session?.user.id { await previewRound(r) }
     #endif
@@ -581,6 +598,27 @@ struct RoundReceiptSheet: View {
       photoNote = "PROBE · compress returned nil"; return
     }
     photoNote = await RoundPhotoService().probe(roundId, uid: uid, jpeg: jpeg, priorPath: seed?.photoPath)
+  }
+
+  private func applyLensesHatch() {
+    let a = ProcessInfo.processInfo.arguments
+    guard let i = a.firstIndex(of: "-cs_dev_receipt_lenses"), i + 1 < a.count, var s = seed else { return }
+    let fellas = UUID(uuidString: "00000000-0000-4000-8000-00000000b001")!, sunday = UUID(uuidString: "00000000-0000-4000-8000-00000000b002")!
+    let season1 = UUID(uuidString: "00000000-0000-4000-8000-00000000c001")!, season2 = UUID(uuidString: "00000000-0000-4000-8000-00000000c002")!
+    let m1 = UUID(uuidString: "00000000-0000-4000-8000-00000000d001")!, m2 = UUID(uuidString: "00000000-0000-4000-8000-00000000d003")!
+    let month = String((s.playedOn ?? CSDate.today()).prefix(7))
+    func lens(_ name: String, _ league: UUID, _ season: UUID, _ member: UUID, rank: Int, cap: Int?, pts: Double) -> ReceiptContribution {
+      ReceiptContribution(leagueId: league, leagueName: name, seasonId: season, memberId: member, points: pts,
+                          monthRank: rank, countingCap: cap, month: month)
+    }
+    switch a[i + 1] {
+    case "one":      s.contributions = [lens("Fellas", fellas, season1, m1, rank: 2, cap: 4, pts: 7)]
+    case "two":      s.contributions = [lens("Fellas", fellas, season1, m1, rank: 2, cap: 4, pts: 7), lens("Sunday Cup", sunday, season2, m2, rank: 1, cap: nil, pts: 9)]
+    case "bumped":   s.contributions = [lens("Fellas", fellas, season1, m1, rank: 5, cap: 4, pts: 2)]
+    case "uncapped": s.contributions = [lens("Sunday Cup", sunday, season2, m2, rank: 3, cap: nil, pts: 5)]
+    default: return
+    }
+    seed = s
   }
 
   /// `-cs_dev_receipt_photo <none|on|skew>` — see `ReceiptPhotoDev`. It moves

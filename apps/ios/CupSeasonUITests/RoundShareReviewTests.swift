@@ -164,3 +164,76 @@ final class ReceiptMomentTests: XCTestCase {
     }
   }
 }
+
+
+/// D362 · the receipt's lenses and doors, on the signed-in account's own round
+/// with the lenses stood in by the hatch (the production database predates
+/// them), photographed in both appearances.
+final class ReceiptLensesUITests: XCTestCase {
+  @MainActor func testLensRowsAndDoors() throws {
+    for (mode, appearance, expectRows, expectDoor) in [
+      ("two", "dark", ["This month · Fellas", "This month · Sunday Cup"], "Your rounds that count in"),
+      ("bumped", "light", ["This month"], "Your rounds that count in"),
+      ("uncapped", "dark", ["This month"], "Your rounds that count in"),
+    ] {
+      let app = XCUIApplication()
+      app.launchArguments = ["-cs_dev_open", "receipt", "-cs_dev_receipt_lenses", mode, "-cs_dev_receipt_photo", "none",
+                             "-cs_dev_look", "none", "-cs_dev_appearance", appearance, "-cs_dev_text_size", "large"]
+      app.launch()
+      let door = app.descendants(matching: .any)["receipt.counting.door"].firstMatch
+      XCTAssertTrue(door.waitForExistence(timeout: 35), "no door for \(mode)")
+      for _ in 0..<6 where !door.isHittable { app.swipeUp() }
+      for label in expectRows { XCTAssertTrue(app.staticTexts[label].exists, "missing row \(label) for \(mode)") }
+      XCTAssertTrue(door.label.contains(expectDoor), door.label)
+      if mode == "bumped" { XCTAssertTrue(app.staticTexts["BUMPED"].exists) }
+      if mode == "uncapped" { XCTAssertTrue(app.staticTexts["COUNTING #3"].exists && !app.staticTexts["COUNTING #3 OF"].exists) }
+      let shot = XCTAttachment(screenshot: app.screenshot())
+      shot.name = "receipt-lenses-\(mode)-\(appearance)"; shot.lifetime = .keepAlways; add(shot)
+      // the door opens the sheet; against the older database it says so honestly
+      door.tap()
+      let sheet = app.descendants(matching: .any)["counting.sheet"].firstMatch
+      XCTAssertTrue(sheet.waitForExistence(timeout: 10))
+      let settled = NSPredicate(format: "exists == true")
+      let honest = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'latest update' OR label CONTAINS 'No rounds' OR label CONTAINS 'at '")).firstMatch
+      expectation(for: settled, evaluatedWith: honest); waitForExpectations(timeout: 15)
+      let shot2 = XCTAttachment(screenshot: app.screenshot())
+      shot2.name = "counting-sheet-\(mode)"; shot2.lifetime = .keepAlways; add(shot2)
+      app.terminate()
+    }
+  }
+}
+
+
+/// D362 · the composer says what this round can add, from the served counters
+/// (stood in by `-cs_dev_worth` until the migration lands).
+final class ComposerWorthUITests: XCTestCase {
+  @MainActor func testWorthLinesInTheComposer() throws {
+    for (mode, expect) in [("room", "worth up to 12. Your best 4 count and you have 2."),
+                           ("full", "worth up to 7 more."),
+                           ("capped", "cannot add to your points this month"),
+                           ("open", "Every round you post this month counts."),
+                           ("two", "in Sunday Cup")] {
+      let app = XCUIApplication()
+      app.launchArguments = ["-cs_dev_open", "post", "-cs_dev_worth", mode, "-cs_dev_look", "none", "-cs_dev_text_size", "large"]
+      app.launch()
+      // `-cs_dev_open post` opens the PLAY fork; the composer is its second door
+      let addDoor = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH[c] %@", "Add a round you played")).firstMatch
+      XCTAssertTrue(addDoor.waitForExistence(timeout: 35), "the Play fork did not open for \(mode)")
+      addDoor.tap()
+      // the disclosure is a plain-style button; find it by its label wherever the tree files it
+      let bands = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "How points work")).firstMatch
+      if !bands.waitForExistence(timeout: 35) {
+        let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = "composer-missing-\(mode)"; shot.lifetime = .keepAlways; add(shot)
+        XCTFail("the composer did not open for \(mode)"); app.terminate(); continue
+      }
+      for _ in 0..<8 where !bands.isHittable { app.swipeUp() }
+      bands.tap()
+      let line = app.staticTexts.matching(identifier: "post.worth").firstMatch
+      XCTAssertTrue(line.waitForExistence(timeout: 10), "no worth line for \(mode)")
+      XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", expect)).firstMatch.exists, "\(mode): \(line.label)")
+      let shot = XCTAttachment(screenshot: app.screenshot())
+      shot.name = "composer-worth-\(mode)"; shot.lifetime = .keepAlways; add(shot)
+      app.terminate()
+    }
+  }
+}

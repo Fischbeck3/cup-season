@@ -266,9 +266,10 @@ Credential ≠ verdict; bounded recovery; post-decode re-check; signing epoch. B
 | | |
 |---|---|
 | **Web** | composer worth line from the engine's rows; receipt `COUNTING #n OF cap` and the door to the member's rounds that count (open league, season list). |
-| **Native** | `COUNTING #n OF cap` already; composer line and receipt door **wait on** `20261104090000` (prepared, validated in isolation, not applied) and the contract regeneration. |
-| **Evidence** | `counting-explained-browser.js`; isolated-cluster checks. |
-| **Status** | web **built** · native **prepared** · shared data **owner's push** |
+| **Native** | the composer's worth lines from `my_month_counters`; the receipt's lens rows (league-named when >1) and `CountingRoundsSheet` from `counting_rounds`; empty and honest on the older database. |
+| **Both, corrected** | the receipt's lens is explicit or the server's `contributions`, never an arbitrary rank; the door opens the month in the right league and season. |
+| **Evidence** | `counting-explained-browser.js` (lenses, doors through the producer, served counters); `ReceiptLensesTests` (Kit); `ReceiptLensesUITests`, `ComposerWorthUITests` (hatches stand in for the migration); `tests/db/counting-explained.sql` on the isolated cluster. |
+| **Status** | web **built** · native **built** · shared data **prepared, not applied** — `docs/reviews/2026-09-14-counting-deployment-packet.md` |
 
 ## Next
 

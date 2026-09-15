@@ -568,6 +568,12 @@ private struct PostRoundBody: View {
           Text(countingLine)
             .csType(.bodyS).foregroundStyle(cs.mut)
             .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
+          // D362 · what THIS round can add, from the server's own counters
+          ForEach(model.worthLines, id: \.self) { line in
+            Text(line).csType(.bodyS).foregroundStyle(cs.ink)
+              .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
+              .accessibilityIdentifier("post.worth")
+          }
         }
         .transition(.opacity)
       }

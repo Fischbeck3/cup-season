@@ -10229,8 +10229,16 @@ function recalc(){
   if(_sn){
     /* D362 · live season: what this round can add under the league's own cap,
        from the engine's rows; otherwise the season note says why it does not */
-    const worth = _ss === 'live' ? csComposerWorthLine($('#inDate')?.value || null) : null;
+    const on = $('#inDate')?.value || null;
+    const worth = _ss === 'live' ? csComposerWorthLine(on) : null;
     _sn.textContent = worth || seasonNote('long') || 'Counts in every league you\u2019re in.';
+    /* and ask the server; when its answer lands for this same date, say it */
+    if(_ss === 'live') csLoadMyCounters(on).then(c => {
+      if(!c || c.rows==null) return;
+      const now = $('#inDate')?.value || null;
+      if(String(now||isoOf(new Date())).slice(0,10) !== c.on) return;
+      const w = csComposerWorthLine(now); if(w && _sn.isConnected) _sn.textContent = w;
+    });
   }
   $('#calcVs').textContent=vsShort(vs);   /* Q-23: words, not a sign */
   $('#calcVs').style.color = vs>-1 ? 'var(--pos)' : 'var(--neg)';
@@ -19903,6 +19911,48 @@ function openMemberHist(p){
    Called twice: once with the row the caller had (instant), once with the full
    round_card payload. Anything missing is simply absent — a receipt never
    guesses at a number it does not hold. */
+/* `2026-09` → `September` */
+function csMonthWord(ym){
+  const m = parseInt(String(ym||'').slice(5,7), 10);
+  const MOSL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return m>=1 && m<=12 ? MOSL[m-1] : 'this month';
+}
+/* D362 · one golfer's rounds under one season's rule, one month — the server's
+   `counting_rounds`, the same producer the phone reads. Every row is counting
+   or BUMPED and opens its receipt (§16). Nothing here is computed on the desk. */
+async function csOpenCountingRounds(member, season, month, leagueName){
+  if(!window.sb || !member || !season) return;
+  let d=null;
+  try{
+    const { data, error } = await sb.rpc('counting_rounds', { p_member: member, p_season: season, p_month: month||null });
+    if(error) throw error;
+    d = data;
+  }catch(e){
+    toast(csMissingFn(e) ? 'Those rounds need the latest update — try again shortly.' : humanError(e, 'Could not open those rounds.'));
+    return;
+  }
+  if(!d) return;
+  const rounds = Array.isArray(d.rounds) ? d.rounds : [];
+  const cap = d.cap!=null ? Number(d.cap) : null;
+  const mine = d.is_me === true;
+  const who = mine ? 'Your' : `${esc(String(d.golfer||'Their').split(' ')[0])}\u2019s`;
+  const when = month ? csMonthWord(month) : 'this season';
+  const rule = cap!=null && cap>0 ? `Best ${cap} count each month` : 'Every round counts';
+  const rows = rounds.map(x => {
+    const tag = x.counting ? `<b class="mono">${esc(String(x.points))}</b>` : `<b class="mono">${esc(String(x.points))} · BUMPED</b>`;
+    const inner = `<span>${esc(String(x.played_on||''))}${x.holes_played===9?' · 9 HOLES':''} · ${esc(String(x.gross??''))} at ${esc(String(x.course_label||'course not recorded'))}</span>${tag}`;
+    return x.round_id
+      ? `<button type="button" class="histrow fine${x.counting?'':' cut'}" data-histround="${esc(x.round_id)}">${inner}<span class="cv" aria-hidden="true">›</span></button>`
+      : `<div class="fine histrow static">${inner}</div>`;
+  }).join('');
+  const body = rows
+    ? rows + (rounds.some(x=>!x.counting) ? '<p class="fine" style="padding-top:var(--s3)">Bumped rounds still happened — a better round took their monthly slot.</p>' : '')
+    : `<p class="fine" style="padding:0">No rounds ${esc(when.toLowerCase())} under this rule yet.</p>`;
+  openSheet(`${who} rounds that count`, `${esc(String(d.league_name||leagueName||'').toUpperCase())} · ${esc(when.toUpperCase())} · ${esc(rule.toUpperCase())}`, body);
+  document.getElementById('shBody')?.querySelectorAll('[data-histround]').forEach(b =>
+    b.addEventListener('click', () => window.csOpenPostedRound?.(b.getAttribute('data-histround'))));
+}
+window.csOpenCountingRounds = csOpenCountingRounds;
 /* the member-history row for a round's golfer, in the league the desk has
    open — null when the round is not that league's, or the rows are not loaded */
 function csMemberHistFor(r){
@@ -19987,14 +20037,33 @@ function roundCardBody(r, pvi, capN){
     rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} playing HCP</span><b>${mine?vsShort(pvi):theirs(vsShort(pvi))} — ${(mine?named:theirs(named)).toUpperCase()}</b></div>`);
   }
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
-  if(r.month_rank!=null){
-    const cap = r.counting_cap!=null ? Number(r.counting_cap) : capN;
-    /* THE DENOMINATOR IS PART OF THE FACT (L-01) — the phone prints `OF 4`; the desk now does too */
-    const clause = cap===Infinity || cap==null ? 'COUNTING #'+r.month_rank : 'COUNTING #'+r.month_rank+' OF '+cap;
-    rows.push(`<div class="mathrow"><span>This month</span><b>${cap===Infinity || cap==null || r.month_rank<=cap ? clause : 'BUMPED'}</b></div>`);
-    /* D362 · the way back to the rounds that count — the member's own history
-       sheet, where every row is counting or BUMPED and opens its receipt (§16).
-       Only for the league the desk has open: `indRows` is that season's. */
+  /* D362 · THE LENSES. `contributions` is every league this round counts in
+     that the VIEWER may see (the server decides; the desk never guesses). One
+     row per lens, the league named when there is more than one, each with the
+     way back to the rounds that count in that league, season and month. A
+     database that predates `contributions` carries the single lens as the
+     scalars it always did, and that path stays below. */
+  const lenses = Array.isArray(r.contributions) ? r.contributions : null;
+  const clauseFor = (rank, cap) => {
+    if(rank==null) return null;
+    const c = cap!=null ? Number(cap) : null;
+    if(c==null || !(c>0)) return 'COUNTING #'+rank;                       /* uncapped: no denominator, nothing to be outside of */
+    return rank<=c ? 'COUNTING #'+rank+' OF '+c : 'BUMPED';
+  };
+  if(lenses && lenses.length){
+    lenses.forEach(c => {
+      const clause = clauseFor(c.month_rank, c.counting_cap);
+      if(!clause) return;
+      const named = lenses.length>1;
+      const label = named ? `This month · ${esc(String(c.league_name||'').toUpperCase())}` : 'This month';
+      const pts = named && c.points!=null ? ` · ${esc(String(c.points))} PTS` : '';
+      rows.push(`<div class="mathrow"><span>${label}</span><b>${clause}${pts}</b></div>`);
+      rows.push(`<button type="button" class="cs-tskip" data-counting-member="${esc(c.member_id||'')}" data-counting-season="${esc(c.season_id||'')}" data-counting-month="${esc(c.month||'')}" data-counting-league="${esc(c.league_name||'')}" style="margin-top:var(--s2)">${mine?'Your':'Their'} rounds that count in ${esc(csMonthWord(c.month))}${named?' · '+esc(c.league_name||''):''} ›</button>`);
+    });
+  } else if(r.month_rank!=null){
+    const cap = r.counting_cap!=null ? Number(r.counting_cap) : (capN===Infinity ? null : capN);
+    rows.push(`<div class="mathrow"><span>This month</span><b>${clauseFor(r.month_rank, cap)}</b></div>`);
+    /* the older database: the member's season history, for the league the desk has open */
     const p = csMemberHistFor(r);
     if(p) rows.push(`<button type="button" class="cs-tskip" data-counting-for="${esc(p.mid)}" style="margin-top:var(--s2)">${mine?'Your':'Their'} rounds that count this season ›</button>`);
   }
@@ -20308,7 +20377,14 @@ function csWireReceiptPhoto(r, rid, stampOf){
 /* the second pass: one read, then redraw in place */
 async function enrichRoundReceipt(rid, seed){
   try{
-    const { data, error } = await window.sb.rpc('round_card', { p_round: rid });
+    /* D362 · the lens is EXPLICIT: the league the desk has open, if the round
+       counts there. A database that predates `p_league` answers the two-argument
+       call with an error, so the call is retried without it — any error, never
+       a sniffed message (CLAUDE.md) — and the older receipt is what it was. */
+    const lens = (window.CS && CS.league && CS.league.id) || null;
+    let res = lens ? await window.sb.rpc('round_card', { p_round: rid, p_league: lens }) : null;
+    if(!res || res.error) res = await window.sb.rpc('round_card', { p_round: rid });
+    const { data, error } = res;
     if(error || !data) return;                    /* deploy skew — keep the instant view */
     const r = Object.assign({}, seed, data);
     const pvi = r.pvi!=null ? Number(r.pvi)
@@ -20495,6 +20571,8 @@ function openRoundReceipt(x, opts){
   if(sb_ && !sb_.__countingDoor){
     sb_.__countingDoor = true;
     sb_.addEventListener('click', e=>{
+      const d=e.target.closest('[data-counting-member]');
+      if(d){ csOpenCountingRounds(d.dataset.countingMember, d.dataset.countingSeason, d.dataset.countingMonth||null, d.dataset.countingLeague||''); return; }
       const b=e.target.closest('[data-counting-for]'); if(!b) return;
       const p=(window.indRows||[]).find(x=>String(x.mid)===b.dataset.countingFor);
       if(p && typeof openMemberHist==='function') openMemberHist(p);
@@ -28527,7 +28605,7 @@ window.renderAlbum = renderAlbum;
    milestone flags) + season end dates for the league recap. Degrades to an
    empty feed if the RPC isn't deployed yet. */
 async function loadHome(){
-  if(!CS.user){ window.homeFeedRows=[]; window.leagueEnds={}; csSignedClear(); if(window.renderHomeHub) window.renderHomeHub(); return; }
+  if(!CS.user){ window.homeFeedRows=[]; window.leagueEnds={}; csSignedClear(); window.myCounters=null; if(window.renderHomeHub) window.renderHomeHub(); return; }
   try {
     const ids = (CS.memberships||[]).map(m=>m.league.id);
     if(ids.length){
@@ -28870,8 +28948,32 @@ function csRoundWorthLine(subject, cap, used, worst, season){
    them. `csRoundWorthLine` is the one sentence producer (the scheduled-round
    sheet prints the same). Null when there is no live season, no cap known, or
    no date — a ceiling is never guessed. */
+/* the server's answer for a date, cached by date: `my_month_counters` — the
+   producer the phone reads too. Absent on an older database, in which case the
+   desk derives the same numbers from the engine rows it holds. */
+window.myCounters = null;
+async function csLoadMyCounters(playedOn){
+  if(!window.sb || !window.CS?.user || state.demo) return null;
+  const on = String(playedOn || isoOf(new Date())).slice(0,10);
+  if(window.myCounters && window.myCounters.on === on) return window.myCounters;
+  try{
+    const { data, error } = await sb.rpc('my_month_counters', { p_on: on });
+    if(error) throw error;
+    window.myCounters = { on, rows: Array.isArray(data) ? data : [] };
+  }catch(_){ window.myCounters = { on, rows: null }; }   /* older database: derive */
+  return window.myCounters;
+}
+window.csLoadMyCounters = csLoadMyCounters;
 function csComposerWorthLine(playedOn, capGiven){
   if(typeof seasonState==='function' && seasonState()!=='live') return null;
+  const on = String(playedOn || isoOf(new Date())).slice(0,10);
+  /* the shared producer first: one sentence per season the date falls in,
+     the season named only when there is more than one */
+  const served = capGiven === undefined && window.myCounters && window.myCounters.on === on ? window.myCounters.rows : null;
+  if(served){
+    const lines = served.map(x => csRoundWorthLine('This round', x.cap, x.counters?.used, x.counters?.worst, served.length>1 ? x.league_name : null)).filter(Boolean);
+    return lines.length ? lines.join(' ') : null;
+  }
   if(!window.CS?.season || !Array.isArray(window.myRanked)) return null;
   const capN = capGiven === undefined ? capNum() : (capGiven == null ? Infinity : Number(capGiven));
   const cap = capN===Infinity ? null : capN;

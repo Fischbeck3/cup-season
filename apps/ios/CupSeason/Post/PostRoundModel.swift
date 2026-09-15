@@ -13,7 +13,31 @@ import CupSeasonKit
 @MainActor
 @Observable
 final class PostRoundModel {
-  var card = PostCard() { didSet { recalc(); scheduleDraft() } }
+  var card = PostCard() { didSet { recalc(); scheduleDraft(); loadWorth() } }
+  /// D362 · what this round can add under each season's own rule, from the
+  /// server's `my_month_counters` — the same producer the desk reads. Empty on
+  /// a database that predates it, or outside a live season: the counting note
+  /// alone then, and nothing is promised.
+  var worthLines: [String] = []
+  private var worthTask: Task<Void, Never>?
+  private func loadWorth() {
+    worthTask?.cancel()
+    let on = card.date
+    worthTask = Task { [weak self] in
+      guard let self, store.session != nil, !ProcessInfo.processInfo.arguments.contains("-cs_dev_no_worth") else { return }
+      #if DEBUG
+      // `-cs_dev_worth <room|full|capped|open|two>` · the server's answer stood
+      // in, so the sentence can be photographed before the migration lands.
+      if let stood = PostWorthDev.served {
+        guard !Task.isCancelled, self.card.date == on else { return }
+        self.worthLines = RoundWorth.servedLines(stood); return
+      }
+      #endif
+      let lines = (try? await SupabaseService.shared.call(Rpc.my_month_counters(p_on: on))).map { RoundWorth.servedLines($0) } ?? []
+      guard !Task.isCancelled, self.card.date == on else { return }
+      self.worthLines = lines
+    }
+  }
   var preview: PostPreview?
   /// `#inDate` — mirrored into `card.date` as a calendar String.
   var day = Date() { didSet { let iso = CSDate.iso(day, calendar: ScheduleDates.gregorian); if card.date != iso { card.date = iso } } }
@@ -671,3 +695,25 @@ struct PostPartnersShow: Identifiable, Equatable {
   let ctx: PostService.ClaimContext
   var id: String { ctx.playedOn + (ctx.courseLabel ?? "") }
 }
+
+
+#if DEBUG
+/// D362 · `-cs_dev_worth <room|full|capped|open|two>` — what `my_month_counters`
+/// would say, stood in. Fixture leagues only; nothing is read or written.
+enum PostWorthDev {
+  static var served: JSONValue? {
+    let a = ProcessInfo.processInfo.arguments
+    guard let i = a.firstIndex(of: "-cs_dev_worth"), i + 1 < a.count else { return nil }
+    let json: String
+    switch a[i + 1] {
+    case "room":   json = #"[{"league_name":"Fellas","cap":4,"counters":{"used":2,"worst":5}}]"#
+    case "full":   json = #"[{"league_name":"Fellas","cap":4,"counters":{"used":4,"worst":5}}]"#
+    case "capped": json = #"[{"league_name":"Fellas","cap":4,"counters":{"used":4,"worst":12}}]"#
+    case "open":   json = #"[{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
+    case "two":    json = #"[{"league_name":"Fellas","cap":2,"counters":{"used":2,"worst":6}},{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
+    default: return nil
+    }
+    return try? JSONDecoder().decode(JSONValue.self, from: Data(json.utf8))
+  }
+}
+#endif

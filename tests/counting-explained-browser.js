@@ -59,6 +59,37 @@
     check(opened && opened.mid==='m-me','the door did not open the member history');
     window.openMemberHist=realHist; sb_.innerHTML=prev;
     out.receipt={ counting:'COUNTING #2 OF 4', door:true };
+
+    /* ── the lenses, as the new database serves them ─────────────────────── */
+    const twoLens=roundCardBody({ profile_id:'p-me', gross:92, pvi:-3, contributions:[
+      { league_name:'Fellas', season_id:'s1', member_id:'m-me', points:2, month_rank:3, counting_cap:2, month:month },
+      { league_name:'Sunday Cup', season_id:'s2', member_id:'m-me2', points:2, month_rank:3, counting_cap:null, month:month } ] }, -3, 4);
+    check(/This month · FELLAS<\/span><b>BUMPED · 2 PTS/.test(twoLens) && /This month · SUNDAY CUP<\/span><b>COUNTING #3 · 2 PTS/.test(twoLens),'two lenses did not name themselves: '+twoLens.replace(/<[^>]+>/g,'|').slice(-260));
+    check((twoLens.match(/data-counting-member=/g)||[]).length===2,'two lenses, two doors');
+    check(/rounds that count in [A-Z][a-z]+ · Fellas/.test(twoLens),'the door does not name the month and the league');
+    const oneLens=roundCardBody({ profile_id:'p-jade', gross:77, contributions:[{ league_name:'Fellas', season_id:'s1', member_id:'m-jade', points:9, month_rank:1, counting_cap:4, month:month }] }, 2.6, 4);
+    check(/This month<\/span><b>COUNTING #1 OF 4<\/b>/.test(oneLens) && !/This month · /.test(oneLens),'one lens was named');
+    const noLens=roundCardBody({ profile_id:'p-me', gross:84, contributions:[] }, 0.4, 4);
+    check(!/This month/.test(noLens) && !/data-counting/.test(noLens),'a round with no lens the viewer may see printed one');
+    /* the door reads the shared producer and opens the rounds */
+    const realRpc=window.sb?.rpc, realSb=window.sb;
+    window.sb = Object.assign({}, realSb||{}, { rpc: async (fn, args) => fn==='counting_rounds'
+      ? { data:{ league_name:'Fellas', golfer:'Sam Fixture', is_me:true, cap:4, month:args.p_month, rounds:[
+          { round_id:'r1', played_on:month+'-03', gross:80, course_label:'Aguila', points:9, month_rank:1, counting:true },
+          { round_id:'r2', played_on:month+'-12', gross:92, course_label:'Encanto', points:2, month_rank:5, counting:false } ] } }
+      : { data:null, error:{ message:'stub' } } });
+    await csOpenCountingRounds('m-me','s1',month,'Fellas');
+    const sheet=document.getElementById('shBody').innerHTML;
+    check(/80 at Aguila/.test(sheet) && /BUMPED/.test(sheet) && /Bumped rounds still happened/.test(sheet),'the counting sheet did not list the rounds: '+sheet.replace(/<[^>]+>/g,'|').slice(0,200));
+    check(document.getElementById('shTitle').textContent.includes('Your rounds that count'),'the sheet is not titled for the golfer');
+    check((sheet.match(/data-histround=/g)||[]).length===2,'the rounds do not open their receipts');
+    /* the composer, from the served counters, one sentence per season */
+    window.myCounters={ on:month+'-20', rows:[{ league_name:'Fellas', cap:2, counters:{ used:2, worst:6 } },{ league_name:'Sunday Cup', cap:null, counters:{ used:3, worst:5 } }] };
+    const served=csComposerWorthLine(month+'-20');
+    check(/in Fellas/.test(served) && /in Sunday Cup/.test(served) && /Every round you post this month counts/.test(served),'the served counters did not become the sentences: '+served);
+    window.myCounters=null;
+    if(realSb) window.sb=realSb;
+    out.lenses=true;
   } finally { window.seasonState=realState; }
   out.passed=true;
   return JSON.stringify(out);
