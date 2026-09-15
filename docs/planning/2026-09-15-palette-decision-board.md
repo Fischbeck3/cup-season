@@ -4,6 +4,8 @@ Status: exploration requested by the owner, not a selected palette or production
 
 ## The decision
 
+**Owner response to the first set:** “None of these. More options please.” A/B/C are rejected explorations, not a shortlist or implementation direction. The owner has not supplied a more specific preference; the next set broadens the hue families and everyday surfaces without treating rejection as approval of a different visual system.
+
 The owner wants an entire palette refresh and a visibly more colorful, energetic Compete experience. Earlier rules restricted ember to active competition. This exploration proposes a broader competition identity for Compete, seasons, events and matchups, with the same identity following those items onto Home. Selecting a palette would require a recorded amendment to the current color rules before implementation.
 
 Keep the distinction between **competition identity** and **live status**: a colorful season surface does not claim an event is currently live. Actual live/closed/pending states still need explicit wording and accessible indicators. A general Home booking remains ordinary, even on the day of play.
@@ -24,6 +26,21 @@ Candidate colors are exploratory, not additions to production tokens:
 - A: forest #10281F, pine #1D3C2E, chalk #F4F1E8, fern #77B98B, lime #D5F45B, teal #087F78.
 - B: ink #142530, slate #263E4A, porcelain #F3F0E9, sea glass #93C9BF, coral #FF876D, plum #512C50.
 - C: paper #F3EFE5, warm panel #E8E0D1, deep green #17392B, action green #28764D, cobalt #274BCE, sky #C2DDFF.
+
+## Second set — D/E/F/G, awaiting owner review
+
+**Subsequent steering while these rendered:** the owner asked to explore the current color set and make it more distinctive. Preserve these alternatives as exploratory references; prioritize the current-palette application board. None of D/E/F/G is approved. The generator added incidental copy and interface variations; in particular E's “Same course” slogan is not product language and is rejected. Cross-course competition remains foundational. Some Home matchup samples did not carry the proposed competition colors; these are not authoritative component specifications.
+
+| Option | Everyday app | Compete | What this tests |
+|---|---|---|---|
+| D — Bone & Burgundy | Warm bone, olive ink and olive actions | Oxblood, garnet and bone | A warmer championship/club character, without orange. |
+| E — Graphite & Iris | Graphite, alabaster and silver actions | Iris, deep aubergine and orchid | A restrained modern dark app with a distinctly purple competition room. |
+| F — Mist & Atlantic | Light mineral mist, evergreen ink and dusty ocean actions | Petrol, teal and ice mint | An airy everyday app with coastal colors and saturated competition surfaces. |
+| G — Espresso & Raspberry | Espresso, vanilla and mushroom actions | Raspberry, wine and rose | A warmer dark app with a more expressive competition identity. |
+
+All four use the same booked-round and matchup scenario. No option changes the pennant design. The mockups are generated visual studies; production would reuse the existing vector mark exactly, regardless of incidental raster variations. Layout, icon and photography variations are not approved changes.
+
+Boards: [D](../brand/references/2026-09-15-palette-d-bone-burgundy.png), [E](../brand/references/2026-09-15-palette-e-graphite-iris.png), [F](../brand/references/2026-09-15-palette-f-mist-atlantic.png), [G](../brand/references/2026-09-15-palette-g-espresso-raspberry.png). [Second-set prompts](../brand/references/2026-09-15-palette-round-2-prompts.md).
 
 ## Shared structure
 
