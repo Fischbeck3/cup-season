@@ -356,7 +356,7 @@ struct HomeView: View {
     let loose = page.rows.filter { $0.period == nil }
     ForEach(Array(loose.enumerated()), id: \.element.id) { i, row in
       if i > 0 { CSRule() }
-      wireRow(row)
+      wireRow(row, context: page.wireContext)
     }
     // **D321 · A HEAD IS FOR A BUCKET, NOT FOR A SENTENCE.** A period holding
     // ONE row used to get 24pt of `ink` and 32pt of air to announce a single
@@ -380,7 +380,7 @@ struct HomeView: View {
           // the first row of a headless period takes one too — unless it
           // brings its own edge (a photograph, a card).
           if (i > 0 || !headed.contains(period)), row.leadsWithRule { CSRule() }
-          wireRow(row)
+          wireRow(row, context: page.wireContext)
         }
       }
     }
@@ -400,7 +400,7 @@ struct HomeView: View {
     [HomeWirePeriod.today, .week, .earlier, .ahead].first { p in page.rows.contains { $0.period == p } }
   }
 
-  @ViewBuilder private func wireRow(_ row: HomeWireRow) -> some View {
+  @ViewBuilder private func wireRow(_ row: HomeWireRow, context: [String: String] = [:]) -> some View {
     switch row.body {
     case .round(let r, let url):
       VStack(alignment: .leading, spacing: 0) {
@@ -445,7 +445,7 @@ struct HomeView: View {
     // buttons. The web does the same thing for the same reason.
     case .item(let it, let stamp):
       VStack(alignment: .leading, spacing: 0) {
-        HomeWireItem(headline: it.localHeadline(), stamp: stamp) { take(it) }
+        HomeWireItem(headline: it.localHeadline(), stamp: stamp, context: context[it.key]) { take(it) }
         answers(it)
       }
       .padding(.horizontal, CSTokens.Space.gutter)

@@ -38,6 +38,38 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
 
 @Suite struct HomePageTests {
 
+  // MARK: - MW-02 · one fact, one place, on the wire
+
+  @Test("Two leagues, one sentence — both stay and each names its league; the same league twice is one line")
+  func repeatedHeadlinesNameTheirLeague() {
+    let a = UUID(), b = UUID()
+    func membership(_ id: UUID, _ name: String) -> Me.Membership {
+      Me.Membership(league_id: id, name: name, code: nil, phase: "season", sandbox: false, role: "player", member_id: UUID(),
+                    marker: nil, commissioner_name: nil, settings: nil, season: nil, squad: nil, standing: nil, pulse: nil)
+    }
+    let ms = [membership(a, "Fellas"), membership(b, "Sunday Cup")]
+    func chapter(_ key: String, _ league: UUID, rank: Int) -> HomeDispatch.Item {
+      .init(key: key, tier: .chapter, rank: rank, subject: "You", humanSubject: false,
+            eyebrow: "X · WEEK 3 OF 12", headline: "You are the one to catch.",
+            standfirst: "9 days still to play.", action: "Open the season", route: .composer, leagueId: league)
+    }
+    let lead = item("clash:1", .closing, rank: 1, spine: .ember, route: .composer)
+    let items = [lead, chapter("chapter:a", a, rank: 2), chapter("chapter:b", b, rank: 3), chapter("chapter:a2", a, rank: 4)]
+    let page = HomePage.make(me: me(rounds: 12, memberships: ms), strip: emptyStrip,
+                             ranked: HomeRank.arrange(items), buckets: [])
+    // with no feed the first wire item stands as the wire-empty item rather
+    // than a row; the arrangement is the same either way
+    let keys = page.rows.compactMap { row -> String? in
+      if case .item(let it, _) = row.body { return it.key }
+      return nil
+    } + [page.wireEmptyItem?.key].compactMap { $0 }
+    #expect(keys.contains("chapter:a") && keys.contains("chapter:b"), "two leagues are two facts")
+    #expect(!keys.contains("chapter:a2"), "the same sentence about the same league is one line")
+    #expect(page.wireContext["chapter:a"] == "Fellas")
+    #expect(page.wireContext["chapter:b"] == "Sunday Cup")
+    #expect(page.wireContext[lead.key] == nil, "a sentence that appears once needs no league")
+  }
+
   // MARK: - the two Homes the audit says look identical
 
   @Test("H-03 · ceremony night is a TAKEOVER and a brand-new account is an EMPTY — not one card twice")

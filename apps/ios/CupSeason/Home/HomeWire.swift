@@ -448,14 +448,20 @@ struct HomeWireItem: View {
   @Environment(\.cs) private var cs
   let headline: String
   let stamp: String?
+  /// MW-02 · the league, printed only when the sentence alone would not say which.
+  var context: String? = nil
   let act: (() -> Void)?
+
+  init(headline: String, stamp: String?, context: String? = nil, act: (() -> Void)?) {
+    self.headline = headline; self.stamp = stamp; self.context = context; self.act = act
+  }
 
   var body: some View {
     if let act {
       Button(action: act) { row.contentShape(Rectangle()) }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel([headline, stamp].compactMap { $0 }.joined(separator: ". "))
+        .accessibilityLabel([context, headline, stamp].compactMap { $0 }.joined(separator: ". "))
     } else {
       row.accessibilityElement(children: .combine)
     }
@@ -463,9 +469,14 @@ struct HomeWireItem: View {
 
   private var row: some View {
     HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
-      Text(headline).csType(.body).foregroundStyle(cs.ink)
-        .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: .infinity, alignment: .leading)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        if let context {
+          Text(context).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
+        Text(headline).csType(.body).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
       if let stamp {
         Text(stamp).csType(.agateS, caps: false).foregroundStyle(cs.mut)
           .fixedSize(horizontal: true, vertical: false)

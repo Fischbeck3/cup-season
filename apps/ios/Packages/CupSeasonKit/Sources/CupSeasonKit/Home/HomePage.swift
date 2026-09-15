@@ -209,6 +209,9 @@ public struct HomePage {
   /// map (this file's own header) and reading a claim out of a headline is a
   /// guess (L-44).
   public let leadIsCompetition: Bool
+  /// MW-02 · the league to name before a wire headline that appears more than
+  /// once on the page, keyed by item key. Empty when nothing repeats.
+  public let wireContext: [String: String]
 
   public var wireTitle: String { firstRound ? HomeFirstRound.eyebrow : "The wire" }
 
@@ -297,7 +300,17 @@ public struct HomePage {
     // `spentRound` could not see it: that mechanism dedupes by ROUND, and
     // neither of these is about a round. This dedupes by SUBJECT AND LEAGUE,
     // which is the pair that makes two items the same story.
-    let rest = (ranked.deck + ranked.overflow).filter { !Self.echoesLead($0, lead: ranked.lead) }
+    let echoed = (ranked.deck + ranked.overflow).filter { !Self.echoesLead($0, lead: ranked.lead) }
+    // MW-02 · **ONE FACT, ONE PLACE, ON THE WIRE** — the desk's `csWireArrange`,
+    // here (D360's Home audit). Two items that say the same sentence about the
+    // SAME league are one item, and the first stays. Two items that say the
+    // same sentence about DIFFERENT leagues are two facts, and each names its
+    // league, because "You are the one to catch." twice in a row is anonymous
+    // the second time. The name comes from the membership rows the payload
+    // already carries, then from the eyebrow's first segment; an item with no
+    // league gets no context and is never collapsed against one that has.
+    let (rest, wireContext) = Self.arrangeWire(lead: ranked.lead, rest: echoed,
+                                               memberships: me?.memberships ?? [])
 
     // DEF-3 · the two ways the wire knows a board post is about the golfer
     // reading it: the post's own `member_id` is one of theirs (authoritative —
@@ -461,7 +474,39 @@ public struct HomePage {
       firstRound: brandNew,
       starter: strip.slots.first { $0.fact == .myNumber }?.label == "STARTER",
       leadIsLive: ranked.lead?.spine == .ember,
-      leadIsCompetition: Self.isCompetition(ranked.lead))
+      leadIsCompetition: Self.isCompetition(ranked.lead),
+      wireContext: brandNew ? [:] : wireContext)
+  }
+
+  /// MW-02's twin. Returns the deck with exact repeats collapsed, and the
+  /// league name to print before any headline that still appears more than
+  /// once on the page, keyed by item key.
+  static func arrangeWire(lead: HomeDispatch.Item?, rest: [HomeDispatch.Item],
+                          memberships: [Me.Membership]) -> ([HomeDispatch.Item], [String: String]) {
+    func sig(_ it: HomeDispatch.Item) -> String {
+      it.headline.trimmingCharacters(in: .whitespaces) + "\u{0}" + (it.leagueId?.uuidString ?? "")
+    }
+    var seen = Set<String>()
+    if let lead { seen.insert(sig(lead)) }
+    var out: [HomeDispatch.Item] = []
+    for it in rest {
+      let k = sig(it)
+      if it.leagueId != nil, seen.contains(k) { continue }
+      seen.insert(k)
+      out.append(it)
+    }
+    var byHeadline: [String: Int] = [:]
+    for it in ([lead].compactMap { $0 } + out) {
+      byHeadline[it.headline.trimmingCharacters(in: .whitespaces), default: 0] += 1
+    }
+    var context: [String: String] = [:]
+    for it in out {
+      guard let league = it.leagueId, byHeadline[it.headline.trimmingCharacters(in: .whitespaces), default: 0] >= 2 else { continue }
+      let name = memberships.first { $0.league_id == league }?.name
+        ?? it.eyebrow.components(separatedBy: " · ").first?.trimmingCharacters(in: .whitespaces)
+      if let name, !name.isEmpty { context[it.key] = name }
+    }
+    return (out, context)
   }
 
   /// **D321 · IS THIS ITEM THE LEAD'S STORY, TOLD AGAIN?**

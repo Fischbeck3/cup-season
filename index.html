@@ -17743,6 +17743,11 @@ function renderHomeDispatch(){
     leadSuppress: (window.homeDispatch && window.homeDispatch.lead_suppress) || [],
     useServerRank: !!served });
   if(leadBox) leadBox.innerHTML = r.lead ? csLeadBlock(r.lead) : '';
+  /* the column says the standing → the strip's season row yields (one fact,
+     one place). The strip painted first, so it is repainted only when the
+     answer changed; `renderMeStrip` never calls back here, so this cannot loop. */
+  { const said = [r.lead, ...r.deck].filter(Boolean).some(csSaysStanding);
+    if(said !== !!window.__standingSaid){ window.__standingSaid = said; if(typeof renderMeStrip==='function') renderMeStrip(); } }
   /* the deck is deleted: items 2-5 run in the wire at weight 5, in date order */
   const w = csWireArrange(r.lead, r.deck);
   r.deck = w.deck;
@@ -18191,7 +18196,18 @@ function csMeStrip(){
    man actually winning is named nowhere - and the endgame clause is dropped at
    that length rather than wrapping. With no season the row is ABSENT, not a row
    of zeroes (L-44). */
+/* the ranker's own families whose whole point is where I stand — `HomeRank.saysStanding`,
+   keyed on the family and never on the prose */
+function csSaysStanding(it){
+  return ['need','move','chapter','lastseason','runitback'].includes(String((it && it.key) || '').split(':')[0]);
+}
+window.csSaysStanding = csSaysStanding;
 function csMeSeasonRow(){
+  /* MW-02 / D360 audit · ONE FACT, ONE PLACE. When the ranked column already
+     says where I stand — "You are the one to catch." on the wire — the season
+     row stands down rather than saying `1ST OF 8` under it. The phone has done
+     this since D321 (`standingSaid`); the desk printed both. */
+  if(window.__standingSaid) return null;
   if(state.demo || !window.CS || !CS.league || !teams.length) return null;
   if(state.phase !== 'season') return null;
   const solo = state.structure==='solo';
