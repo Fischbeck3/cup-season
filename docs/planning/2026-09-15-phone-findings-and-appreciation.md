@@ -35,6 +35,8 @@ Proposal: compact course invitation with existing paper/fescue identity and supp
 
 ### F4 — Ember audit
 
+**Superseded in part by F11, owner-approved 2026-09-15:** retain the correction to routine bag/booking decoration, but replace the active-only rule below with the selected competition Scoreboard identity.
+
 `HomeWireBag` still draws its bag glyph with `cs.brand`. Correct ordinary bag/activity decoration to the appropriate neutral or ordinary-action role. Existing owner ruling: ordinary Compete standings/navigation may stay neutral; active competition carries restrained ember wherever shown, including Home. Compare the same active clash in both locations, plus finished and noncompetitive states. A routine plan is not automatically competition. No blanket orange repaint of Compete; record any proposed broader Compete identity change separately.
 
 ### F5 — One appreciation action: option A approved
@@ -100,6 +102,12 @@ Source: Home's action copy is server-produced in applied migrations, with `HomeF
 Carry plan identity, course ID, exact tee/rating category, holes, actual card data and game settings when present. Do not infer missing tee data from the label or silently backdate a live round from an old booking. Accepted participants can be prepared using their profile IDs and existing handicap producer; pending invites remain visibly pending, declined golfers are excluded. Being tagged is not consent or proof of attendance. Review how existing live invitations/acceptance represent that distinction; preserve the owner-requested fast entry without fabricating participation or bypassing access. Other golfers should have a permission-checked path to the same live round when eligible, using existing invitation/join infrastructure. Any new notification delivery policy remains a separate decision.
 
 Acceptance: booked round → prepared setup → confirmed live round; another accepted golfer reaches that same round; pending/declined participants handled honestly; duplicate names never confuse identity. Test double taps, retries, concurrent starters, existing active rounds, cancelled/changed bookings, missing tees, full groups and offline setup. Persist/link a single shared live round through server authority where needed; never rely solely on client state to prevent duplicates. Record any necessary mechanic/schema amendment before implementing it and validate migrations in isolation. No production database push is authorized by this finding alone. Deliver the behavior on both clients with device-visible proof.
+
+### F11 — Current palette, Scoreboard competition identity
+
+**Owner-approved for the Claude handoff, 2026-09-15:** option 2 · Scoreboard from [the current-palette application board](2026-09-15-current-palette-application.md). Retain the current palette and exact logo. Everyday fescue/cream and green ordinary actions; larger ember competition score panels with dark ink; quieter forest match sections; paper standings; earned gold only. Carry the same competition treatment onto Home. Explicit words distinguish upcoming/live/finished; ordinary bookings do not become ember solely because they happen today.
+
+This supersedes F4's older active-only restriction and is recorded as an owner amendment in `spec/decision-log.md` and `spec/brand-canon.md`. No alternate palette or full-ember field is selected. Implement both clients and review the same competition across surfaces, dark/light, enlarged text and all actual states. Maintain semantic color roles and contrast; no logo/icon/typography redesign inferred from generated artwork. Full acceptance is in the updated Claude handoff §5A. Implementation and deployment remain pending.
 
 ## Sequencing and ownership
 

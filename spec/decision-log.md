@@ -1,5 +1,19 @@
 # Cup Season — Decision Log
 
+### Owner amendment · Current palette, competition Scoreboard treatment
+
+**Approved 2026-09-15 for the Claude handoff; implementation and verification pending.** The owner asked to retain the current colors and make them more distinctive, then said “Okay add that into our Claude handoff” after the recommendation of option **2 · Scoreboard**.
+
+- **Current behavior / problem:** sparse ember accents and similar fescue surfaces do not give competition sufficient distinction; ordinary bookings and decoration have also worn ember inconsistently.
+- **Decision:** retain the current palette and existing pennant source. Use fescue/cream for the everyday app, green for ordinary actions, a substantial ember scoreboard band with dark ink for competition, and paper for readable standings/scorecard contrast. Gold remains earned. Option 2 is the direction; the alternate new palettes and full-ember option 3 are not selected.
+- **CONFLICT / supersession:** broadens the September 14 D305/D313 color amendment and its active-only enforcement (including D359/F4). Ember now identifies competition across upcoming, live and finished states; explicit words indicate actual state. A plain booking remains ordinary even on the day of play. The same competition carries its treatment onto Home. This does not authorize a blanket orange app, semantic performance recoloring or team-identity overrides.
+- **Principle / benefit:** familiar golf identity with recognizable, more energetic competition and consistent cross-client meaning.
+- **Tradeoff:** ember no longer proves liveness on its own. Live/closed/pending status must be explicit and accessible. Broad saturated panels need controlled use and dark readable ink.
+- **Implementation:** record the amendment in current branch docs/lint rules, retain existing source tokens, generate any needed derived output from source, and implement web/iOS in paired commits. Preserve neutral booking/bag decoration, green Play/applause, earned gold and exact logo geometry. No mechanics, data conversion or notification change follows from this decision.
+- **Evidence / handoff:** `docs/planning/2026-09-15-current-palette-application.md`; board `docs/brand/references/2026-09-15-current-palette-application-final.png`; phone findings F11. Generated board illustrates color roles, not new fonts, icons, gradients or authoritative app facts. No production deployment authorized by this amendment alone.
+
+---
+
 ### Owner amendment · One applause action, quiet icon and count
 
 **Approved 2026-09-15. Presentation and social vocabulary; implementation pending.**

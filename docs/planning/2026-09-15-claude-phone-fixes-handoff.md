@@ -2,7 +2,7 @@
 
 Owner instruction, 2026-09-15: “Okay let's hand all these items over for Claude to fix.”
 
-Implement the eight findings in [the source review](2026-09-15-phone-findings-and-appreciation.md). This is an implementation handoff, not another inventory exercise. Claude owns implementation; Codex reviews the resulting candidate. Use your own branch/workspace and preserve other agents' work. Reconcile this packet with current HEAD and the actual release state before coding; earlier notes about frozen builds are historical, not instructions to undo a release.
+Implement findings **F1–F11**, including the latest selected color direction, in [the source review](2026-09-15-phone-findings-and-appreciation.md). This is an implementation handoff, not another inventory exercise. Claude owns implementation; Codex reviews the resulting candidate. Use your own branch/workspace and preserve other agents' work. Reconcile this packet with current HEAD and the actual release state before coding; earlier notes about frozen builds are historical, not instructions to undo a release.
 
 ## Authorization and boundaries
 
@@ -36,7 +36,17 @@ Explain round points separately from additional counting gain. Example only when
 
 ### 5. Correct color roles — F4
 
-Remove routine ember from the Home bag glyph and similar ordinary decoration. Use restrained ember for an active competition consistently wherever that same item appears on Home or Compete. Ordinary standings, navigation and plans do not all become orange. Preserve green ordinary actions, earned gold and existing theme/token roles. Audit light/dark and chosen looks; no new palette.
+**Apply the latest F11 amendment below:** routine bag/booking decoration remains neutral and ordinary actions green, but the older active-only ember restriction is superseded. Competition now gets the selected Scoreboard identity; actual state is stated explicitly. No new palette or logo.
+
+### 5A. Current palette, stronger competition — F11, owner-approved
+
+Implement **option 2 · Scoreboard** from [the application board](2026-09-15-current-palette-application.md). Keep exact existing logo geometry and current palette. Home/Play/Golfers/You retain fescue/cream and ordinary green actions. Give Compete a substantial ember season/scoreboard band with dark ink, quieter forest match rows and readable paper standings. Carry a compact version onto the same competition in Home and relevant round/season contexts. Use the same family for the Compete overview, season room and matchup; do not repaint every surface orange.
+
+Ember now identifies competition, including upcoming/live/finished contests. Labels must communicate actual status. A booked round or bag update alone is not competitive; green Tee it up and applause remain ordinary actions. Gold stays earned. Update active-only docs, lint expectations and token-role comments deliberately rather than disabling checks. Preserve protected semantics, team colors, light-theme ink pairs and chosen-look behavior.
+
+The generated board is a color/composition reference, not a mandate to change icons, fonts, card radii or introduce gradients. Keep broad ember panels flat. Source-color checks give fescue text on ember 5.27:1 versus cream on ember 3.05:1; verify real controls and states in the implementation. Do not copy raster pixels as token values.
+
+Deliver paired mobile captures of Home and Compete, the same upcoming/live/finished contest across surfaces, a plain booked round, a season room, dark/light and enlarged text. Include all F1–F11 status/evidence in the final review handoff. No production push or new mechanics are authorized by the color selection alone.
 
 ### 6. Ship the approved applause presentation — F5
 

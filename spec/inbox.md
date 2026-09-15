@@ -51,6 +51,8 @@ Prototype and brand proof: `docs/prototypes/next-week.html`. Claude completed C0
 
 ## Raw — drop anything here
 
+- **2026-09-15 · Approved color direction / F11:** current palette, option 2 Scoreboard. Larger ember competition panels, fescue/cream everyday surfaces, green ordinary actions, earned gold. Ember identifies competition across states; plain bookings stay neutral. Existing logo unchanged. Owner amendment recorded; [Claude handoff §5A](../docs/planning/2026-09-15-claude-phone-fixes-handoff.md). Both clients; implementation pending.
+
 - **2026-09-15 · Phone follow-up F9/F10:** applause glyph is not recognizable; redraw within approved icon/count direction. Replace “Open the plan” with View round and add Tee it up from a booked round, preserving actual tees, participant IDs/RSVP and a single shared live round. [Source and acceptance](../docs/planning/2026-09-15-phone-findings-and-appreciation.md#f9--applause-glyph-does-not-read-as-applause). Both clients; no production database push or new notification policy implied.
 
 - **2026-09-15 · Course search / keyboard:** matching courses appear below the visible area in live setup. Reveal the input and first complete result above the keyboard as results arrive; include tee selection, empty/loading/offline states and mobile Safari in the audit. [Phone findings F8](../docs/planning/2026-09-15-phone-findings-and-appreciation.md#f8--course-search-results-hidden-by-the-keyboard). Claude implementation; source inspected, device fix not yet verified.

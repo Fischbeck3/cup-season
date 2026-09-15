@@ -1,5 +1,7 @@
 # Current palette, more distinctive use
 
+**Selected for implementation handoff, 2026-09-15: option 2 · Scoreboard.** The owner accepted adding the recommended direction to Claude's handoff. The exploration text below records the reasoning; selection supersedes its earlier pending-status language. See the current owner amendment in `spec/decision-log.md`. No app changes or deployment have been performed by Codex.
+
 2026-09-15. Owner steering: “Ok let's explore our current color set and how they can be more distinctive.” Exploration only; no production token or client change. Earlier palette alternatives remain unselected. Existing pennant geometry stays unchanged.
 
 ## Diagnosis and proposal

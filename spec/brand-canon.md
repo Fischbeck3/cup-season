@@ -1,5 +1,16 @@
 # Cup Season — Brand Canon
 
+> **Owner color amendment · 2026-09-15 — Scoreboard direction approved; implementation pending.**
+> Retain the current palette and existing pennant. Fescue/cream carry everyday
+> surfaces, green ordinary actions, and substantial ember scoreboard bands with
+> dark ink give competition its identity. Paper provides readable standings
+> contrast; gold remains earned. Ember may identify upcoming, live and finished
+> competition, whose actual state is stated explicitly. It follows the same
+> competition onto Home; ordinary bookings and decoration remain neutral/green.
+> This supersedes the **active-only** restriction in the September 14 note below.
+> See the newest [decision-log amendment](decision-log.md) and
+> [approved application direction](../docs/planning/2026-09-15-current-palette-application.md).
+
 > **Owner color amendment · 2026-09-14 — approved direction, implementation pending.**
 > Green is the default ordinary-action color, including Play. Cream on fescue
 > and dark green on warm paper carry the identity. Ember marks active competition
