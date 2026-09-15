@@ -19009,12 +19009,14 @@ function renderCompete(){
      one broad ember band with dark ink — the competition room — and the rest of
      the list stays the quiet fescue it already was. One band, not a repainted
      tab: the moments and the finished shelf keep their ordinary rows. */
-  const lead = list.seasons.find(r => r.state) || null;
+  const lead = list.seasons.find(r => r.state === 'Live' && r.figure)
+           || list.seasons.find(r => r.state === 'Live')
+           || list.seasons.find(r => r.state) || null;
   const body = list.nothingRunning
     ? csEmptyRootHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
     : (lead ? csCompetitionBandHtml(lead) : '')
       + `<div class="eyebrow">Your seasons</div>`
-      + (list.seasons.length ? list.seasons.map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
+      + (list.seasons.length ? list.seasons.filter(r => !lead || r.id !== lead.id).map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
       + (list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '');
   box.innerHTML = body;
   box.querySelector('[data-cband]')?.addEventListener('click', () => {

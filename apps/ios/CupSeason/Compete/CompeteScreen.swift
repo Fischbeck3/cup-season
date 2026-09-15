@@ -40,6 +40,16 @@ struct CompeteScreen: View {
     CompeteRoot.make(me, upcoming: me?.upcoming ?? [])
   }
 
+  /// F11 · the season the band leads with: the one being PLAYED — live, with a
+  /// standing to show — before a season that has not teed off. A golfer in
+  /// three seasons has one that is actually running, and that is the room.
+  private var leadSeason: CompeteRoot.Row? {
+    let seasons = list.seasons
+    return seasons.first { $0.state == .live && $0.rank != nil }
+        ?? seasons.first { $0.state == .live }
+        ?? seasons.first
+  }
+
   private var mastheadPalette: CSPalette {
     CSTokens.dark.wearing(looks.personalLook(), theme: .dark)
   }
@@ -91,8 +101,9 @@ struct CompeteScreen: View {
           // tab as one broad ember band with dark ink — the competition room
           // the owner's board asked for — and the rest of the list stays the
           // quiet fescue it already was. One band, not a repainted tab.
-          if let lead = list.seasons.first { leadBand(lead) }
-          section(CompeteRoot.Head.seasons, list.seasons, first: true)
+          if let lead = leadSeason { leadBand(lead) }
+          // the band IS that season, so the list below does not say it again
+          section(CompeteRoot.Head.seasons, list.seasons.filter { $0.id != leadSeason?.id }, first: true)
           Button { presenter.showIntent = true } label: {
             HStack(spacing: CSTokens.Space.s3) {
               Text("Start something").csType(.name)
