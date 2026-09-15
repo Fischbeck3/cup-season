@@ -170,10 +170,12 @@ public struct SupabaseBoardRepository: BoardRepository {
         if var r = cache[k.round_id] { r.pvi = k.pvi; r.points = k.points; r.monthRank = k.month_rank; cache[k.round_id] = r }
       }
     }
-    // private bucket: one batched signing call — a storage hiccup means text-only cards
+    // D361 · the round photographs are signed the one way — cached by path,
+    // sized for a screen — so a picture the wire already holds is the same
+    // picture here. A storage hiccup means the card keeps what it has.
     let paths = cache.values.compactMap(\.photoPath)
     if !paths.isEmpty {
-      let urls = await signedURLs(paths: paths)
+      let urls = await StoragePhotos.sized(paths, storage: db.storage).urls
       for (id, r) in cache { if let p = r.photoPath, let u = urls[p] { var x = r; x.photoURL = u; cache[id] = x } }
     }
     return cache

@@ -16564,13 +16564,19 @@ function homeRoundLine(r){
    minutes of expiry. Sign-out clears it; a photograph replaced or removed is
    forgotten by path. */
 const csSigned = new Map();
+/* bumped on sign-out: a signing call in flight under an older epoch may not
+   write into a cache cleared for a new account */
+let csSignedEpoch = 0;
 function csSignedGet(path){
   const e = path ? csSigned.get(path) : null;
   return e && e.exp - Date.now() > 300e3 ? e.url : null;
 }
 function csSignedPut(path, url, seconds){ if(path && url) csSigned.set(path, { url, exp: Date.now() + seconds*1000 }); }
 function csSignedForget(path){ csSigned.delete(path); }
-function csSignedClear(){ csSigned.clear(); csLastGoodPhoto.clear(); homeFailedPhotos.clear(); }
+function csSignedClear(){ csSigned.clear(); csLastGoodPhoto.clear(); homeFailedPhotos.clear(); csPhotoAttempts.clear(); csSignedEpoch++; }
+/* bounded recovery for a URL that missed with no picture to fall back on:
+   one retry after a short wait, never on every render */
+const csPhotoAttempts = new Map();
 window.csSignedClear = csSignedClear;
 /* the last URL that actually painted for a path — kept so a refresh whose new
    URL misses transiently falls back to the picture already seen, instead of
@@ -16591,6 +16597,13 @@ function wireHomePhotos(box){
       if(good && good !== src){
         /* transient: keep the picture that was already up */
         img.setAttribute('src', good);
+        return;
+      }
+      const n = (csPhotoAttempts.get(src)||0) + 1;
+      csPhotoAttempts.set(src, n);
+      if(n <= 1){
+        /* bounded: one retry, after a short wait, on the same credential */
+        setTimeout(()=>{ if(img.isConnected){ img.removeAttribute('src'); img.setAttribute('src', src); wireHomePhotos(img.parentElement||box); } }, 2000);
         return;
       }
       if(homeFailedPhotos.has(src)) return;
@@ -25546,15 +25559,20 @@ async function loadStandingsAndFeed(requireRoom=false){
     window.csLearnNames?.((rds || []).map(r => r.course_label));
     /* private bucket: one batched signing call turns paths into hour-long
        URLs for the story cards; a storage hiccup just means text-only cards */
+    /* D361 · the one way: cached by path, sized for a screen, so the board's
+       card and Home's band ask for the same bytes at the same URL */
     const withPhoto = (rds || []).filter(r => r.photo_path);
     if(withPhoto.length){
       try{
-        const { data: signed } = await sb.storage.from('media')
-          .createSignedUrls(withPhoto.map(r => r.photo_path), 3600);
-        (signed || []).forEach(s => {
-          if(!s?.signedUrl) return;
-          const r = withPhoto.find(r => r.photo_path === s.path);
-          if(r && window.roundCache[r.id]) window.roundCache[r.id].photo_url = s.signedUrl;
+        const missing = [...new Set(withPhoto.map(r => r.photo_path).filter(p => !csSignedGet(p)))];
+        const epoch = csSignedEpoch;
+        const signed = await Promise.all(missing.map(p =>
+          sb.storage.from('media').createSignedUrl(p, 3600, { transform: { width: 1200, quality: 75 } })
+            .then(r => ({ path: p, url: r?.data?.signedUrl || null })).catch(() => ({ path: p, url: null }))));
+        if(epoch === csSignedEpoch) signed.forEach(s => { if(s.url) csSignedPut(s.path, s.url, 3600); });
+        withPhoto.forEach(r => {
+          const u = csSignedGet(r.photo_path) || csLastGoodPhoto.get(r.photo_path);
+          if(u && window.roundCache[r.id]) window.roundCache[r.id].photo_url = u;
         });
       }catch(_){ /* cards render without photos */ }
     }
@@ -28503,12 +28521,23 @@ async function loadHome(){
        the cache means a path is signed once an hour. */
     const missing = [...new Set(wp.map(r => r.photo_path).filter(p => !csSignedGet(p)))];
     if(missing.length){
+      const epoch = csSignedEpoch;
       const signed = await Promise.all(missing.map(p =>
         sb.storage.from('media').createSignedUrl(p, 3600, { transform: { width: 1200, quality: 75 } })
-          .then(r => ({ path: p, url: r?.data?.signedUrl || null })).catch(() => ({ path: p, url: null }))));
-      signed.forEach(s => { if(s.url) csSignedPut(s.path, s.url, 3600); });
+          .then(r => ({ path: p, url: r?.data?.signedUrl || null, denied: !!r?.error && /40[034]|not found|forbidden|unauthori/i.test(String(r.error.statusCode||r.error.message||'')) }))
+          .catch(() => ({ path: p, url: null, denied: false }))));
+      /* an account change while signing was in flight: nothing lands */
+      if(epoch === csSignedEpoch){
+        signed.forEach(s => {
+          if(s.url) csSignedPut(s.path, s.url, 3600);
+          /* the storage's own refusal is about the object: forget it and its last good picture */
+          else if(s.denied){ csSignedForget(s.path); csLastGoodPhoto.delete(s.path); }
+          /* otherwise this load simply could not get a credential — the last
+             good URL, if there is one, is still the best way to keep the picture */
+        });
+      }
     }
-    wp.forEach(r => { const u = csSignedGet(r.photo_path); if(u) r.photo_url = u; });
+    wp.forEach(r => { const u = csSignedGet(r.photo_path) || csLastGoodPhoto.get(r.photo_path) || null; if(u) r.photo_url = u; });
     /* a new load is a new chance: a photograph that missed last time may load now */
     homeFailedPhotos.clear();
   } catch(e){ /* rows render photo-less */ }

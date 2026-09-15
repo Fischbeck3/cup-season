@@ -23,11 +23,54 @@ public actor SignedURLCache {
   public static let shared = SignedURLCache()
 
   public struct Entry: Sendable { public let url: URL; public let expires: Date }
+  /// What signing one path said. `denied` is the storage's own refusal (4xx —
+  /// gone, or not ours); `unavailable` is everything else (offline, 5xx, a
+  /// timeout) and says nothing about the object.
+  public enum Outcome: Sendable, Equatable { case url(URL), denied, unavailable }
+  public struct Resolution: Sendable {
+    public var urls: [String: URL] = [:]
+    public var denied: Set<String> = []
+    /// paths that could not be signed this time for a reason that is not the object's
+    public var unavailable: Set<String> = []
+  }
   private var entries: [String: Entry] = [:]
+  /// bumped by `clear()`: a signing call that started under an older epoch may
+  /// not write its answers into a cache that has since been cleared for a new
+  /// account (Codex, 2026-09-14)
+  private var epoch = 0
   /// re-sign this close to expiry rather than serve a URL about to go stale
   private let margin: TimeInterval = 300
 
   public init() {}
+
+  /// The full answer: URLs for what is cached or newly signed, the paths the
+  /// storage refused, and the paths that could not be reached. The caller
+  /// decides what each means for a picture already on screen.
+  public func resolve(_ paths: [String], expiresIn: Int = 3600,
+                      sign: ([String]) async -> [String: Outcome]) async -> Resolution {
+    let now = Date()
+    var out = Resolution()
+    var missing: [String] = []
+    for p in Set(paths.filter { !$0.isEmpty }) {
+      if let e = entries[p], e.expires.timeIntervalSince(now) > margin { out.urls[p] = e.url } else { missing.append(p) }
+    }
+    if !missing.isEmpty {
+      let started = epoch
+      let fresh = await sign(missing.sorted())
+      let expires = now.addingTimeInterval(TimeInterval(expiresIn))
+      for (p, o) in fresh {
+        switch o {
+        case .url(let u):
+          if epoch == started { entries[p] = Entry(url: u, expires: expires) }
+          out.urls[p] = u
+        case .denied: out.denied.insert(p); entries[p] = nil
+        case .unavailable: out.unavailable.insert(p)
+        }
+      }
+      for p in missing where fresh[p] == nil { out.unavailable.insert(p) }
+    }
+    return out
+  }
 
   /// The URLs for `paths`: unexpired ones from the cache, the rest signed in
   /// ONE call through `sign`, which returns path ⇒ URL for what it could sign.
@@ -52,8 +95,8 @@ public actor SignedURLCache {
   public func forget(_ path: String) { entries[path] = nil }
 
   /// Sign-out, or an account change: nothing signed for the last session
-  /// may answer for the next.
-  public func clear() { entries.removeAll() }
+  /// may answer for the next — including a signing call still in flight.
+  public func clear() { entries.removeAll(); epoch += 1 }
 
   /// For tests and the probe: how many paths are currently held.
   public var count: Int { entries.count }

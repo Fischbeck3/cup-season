@@ -84,4 +84,34 @@ final class HomePhotoStabilityTests: XCTestCase {
     let shot = XCTAttachment(screenshot: app.screenshot())
     shot.name = "one-photo-one-record-after-removal"; shot.lifetime = .keepAlways; add(shot)
   }
+
+  @MainActor func testFirstLoadMissRecoversOnAPullWithoutANewCredential() {
+    let app = launch(["-cs_dev_photo_fail_first", "first"])
+    // the second is up; the first missed and shows the record, not an empty panel
+    XCTAssertTrue(band(app, "Jade").waitForExistence(timeout: 15))
+    let record = app.buttons.matching(identifier: "home.round.no-photo").firstMatch
+    XCTAssertTrue(record.waitForExistence(timeout: 10))
+    let before = fetches(app)
+    // a pull asks again on the SAME credential, and the picture lands
+    app.buttons["home.photo.pull"].tap()
+    XCTAssertTrue(band(app, "Galen").waitForExistence(timeout: 15), "the first round did not recover")
+    XCTAssertEqual(fetches(app), before + 1, "recovery was more than one request")
+    let shot = XCTAttachment(screenshot: app.screenshot())
+    shot.name = "first-load-miss-recovered"; shot.lifetime = .keepAlways; add(shot)
+  }
+
+  @MainActor func testACredentialThisLoadCouldNotGetKeepsThePictureUp() {
+    let app = launch(["-cs_dev_photo_unsignable", "second"])
+    XCTAssertTrue(bothUp(app, timeout: 15))
+    // the re-sign yields no credential for the second: a temporary condition
+    app.buttons["home.photo.resign"].tap()
+    XCTAssertTrue(band(app, "Jade").waitForExistence(timeout: 3), "a transient signing failure took the picture down")
+    XCTAssertTrue(band(app, "Galen").waitForExistence(timeout: 5))
+    // only the first's refresh went out: nothing was requested for a path with no credential
+    let settled = NSPredicate(format: "label ENDSWITH '3'")
+    expectation(for: settled, evaluatedWith: app.staticTexts["home.photo.fetches"]); waitForExpectations(timeout: 8)
+    XCTAssertTrue(band(app, "Jade").exists && band(app, "Galen").exists)
+    let shot = XCTAttachment(screenshot: app.screenshot())
+    shot.name = "unsignable-keeps-picture"; shot.lifetime = .keepAlways; add(shot)
+  }
 }

@@ -56,17 +56,34 @@ final class HomePhotoStore {
   /// a timeout), or a definitive one (the object is gone or forbidden).
   enum Outcome { case data(Data), transient, gone }
   typealias Fetcher = @Sendable (URL) async -> Outcome
+  typealias Decoder = @Sendable (Data, Int) async -> UIImage?
+
+  /// What this load could say about a round's picture. A URL is a way to
+  /// fetch it; `denied` is the storage's own refusal (gone, or not ours);
+  /// `unavailable` is a credential this load could not get, which says nothing
+  /// about the picture — a picture already up stays up (Codex, 2026-09-14).
+  enum Credential: Equatable { case url(URL), denied, unavailable }
 
   private(set) var states: [String: State] = [:]
   private var tasks: [String: Task<Void, Never>] = [:]
   private var urls: [String: URL] = [:]
+  /// bounded recovery for a URL that missed: how many times, and not before when
+  private var attempts: [String: Int] = [:]
+  private var retryAfter: [String: Date] = [:]
+  /// bumped by `clear` and `reconcile`: a decode that finishes after either
+  /// may not write into state that has moved on
+  private var generation = 0
   /// counts, for the tests and the probe: how many fetches actually went out
   private(set) var fetches = 0
   private let fetch: Fetcher
+  private let decoder: Decoder
   private let maxPixel: Int
+  /// 2 s, 8 s, 30 s — then nothing until a new credential or a pull
+  static let backoff: [TimeInterval] = [2, 8, 30]
 
-  init(fetch: Fetcher? = nil, maxPixel: Int = 1400) {
+  init(fetch: Fetcher? = nil, decode: Decoder? = nil, maxPixel: Int = 1400) {
     self.fetch = fetch ?? HomePhotoStore.networkFetch
+    self.decoder = decode ?? { data, px in await HomePhotoStore.decode(data, maxPixel: px) }
     self.maxPixel = maxPixel
   }
 
@@ -78,35 +95,66 @@ final class HomePhotoStore {
   /// Bring one round's photograph up to date. Called by the band when it
   /// appears and whenever its URL changes. A URL the store has already loaded
   /// is not fetched again — returning Home reuses what it has.
+  /// The convenience the fixture and the tests use: a URL, or nothing to sign.
   func load(path: String?, url: URL?) {
+    load(path: path, credential: url.map { .url($0) } ?? .unavailable)
+  }
+
+  /// Bring one round's photograph up to date. Called by the band when it
+  /// appears and whenever its credential changes. A URL the store has already
+  /// loaded is not fetched again — returning Home reuses what it has.
+  func load(path: String?, credential: Credential) {
     guard let path, !path.isEmpty else { return }
-    guard let url else {
-      // the row says there is an attachment but nothing could sign it: gone,
-      // or not ours any more. A picture from a previous session's grant does
-      // not stay up on a credential that no longer exists.
-      cancel(path); states[path] = .removed; urls[path] = nil
+    switch credential {
+    case .denied:
+      // the storage's own answer: gone, or not ours any more. A picture from a
+      // previous grant does not stay up on a credential that no longer exists.
+      cancel(path); states[path] = .removed; urls[path] = nil; attempts[path] = nil
       return
+    case .unavailable:
+      // no credential THIS time — a temporary condition, never a verdict on
+      // the picture. What is up stays up; what was never up is a miss that the
+      // next load's credential retries.
+      if tasks[path] != nil { return }
+      let prior = states[path]?.image
+      if case .removed = states[path] { return }
+      states[path] = .failed(prior: prior)
+      return
+    case .url(let url):
+      if urls[path] == url, let s = states[path], !s.isLoading, s.image != nil { return }
+      if urls[path] == url, tasks[path] != nil { return }
+      if urls[path] == url, case .removed = states[path] { return }   // gone is gone until the credential changes
+      if urls[path] == url, case .failed = states[path] {
+        // bounded recovery on the same URL: not on every appearance, not forever
+        let n = attempts[path] ?? 0
+        guard n < Self.backoff.count, Date() >= (retryAfter[path] ?? .distantPast) else { return }
+      }
+      if urls[path] != url { attempts[path] = nil; retryAfter[path] = nil }
+      start(path: path, url: url)
     }
-    if urls[path] == url, let s = states[path], !s.isLoading, s.image != nil { return }
-    if urls[path] == url, tasks[path] != nil { return }
-    if urls[path] == url, case .removed = states[path] { return }   // gone is gone until the URL changes
-    if urls[path] == url, case .failed = states[path] { return }    // a miss is retried by the next load's URL, not by every appearance
+  }
+
+  private func start(path: String, url: URL) {
     cancel(path)
     urls[path] = url
     let prior = states[path]?.image
     states[path] = .loading(prior: prior)
     fetches += 1
-    let fetch = self.fetch, maxPixel = self.maxPixel
+    let fetch = self.fetch, decoder = self.decoder, maxPixel = self.maxPixel
+    let gen = generation
     tasks[path] = Task { [weak self] in
       let outcome = await fetch(url)
-      guard !Task.isCancelled, let self else { return }
-      guard self.urls[path] == url else { return }   // superseded by a newer URL
+      guard !Task.isCancelled, let self, self.generation == gen, self.urls[path] == url else { return }
       switch outcome {
       case .data(let d):
-        if let img = await Self.decode(d, maxPixel: maxPixel) { self.states[path] = .loaded(img) }
-        else { self.states[path] = .failed(prior: prior) }
+        let img = await decoder(d, maxPixel)
+        // checked AGAIN after the decode: the state may have been cleared, the
+        // path dropped, or a newer credential started while the bytes decoded
+        guard !Task.isCancelled, self.generation == gen, self.urls[path] == url else { return }
+        if let img { self.states[path] = .loaded(img); self.attempts[path] = nil; self.retryAfter[path] = nil }
+        else { self.miss(path, prior: prior) }
       case .transient:
-        self.states[path] = .failed(prior: prior)
+        self.miss(path, prior: prior)
       case .gone:
         self.states[path] = .removed
       }
@@ -114,17 +162,38 @@ final class HomePhotoStore {
     }
   }
 
+  private func miss(_ path: String, prior: UIImage?) {
+    states[path] = .failed(prior: prior)
+    let n = (attempts[path] ?? 0) + 1
+    attempts[path] = n
+    retryAfter[path] = Date().addingTimeInterval(Self.backoff[min(n, Self.backoff.count) - 1])
+  }
+
+  /// A pull-to-refresh: every miss tries again now, on the credential it has.
+  /// The band's `.task(id:)` does not re-fire for an unchanged credential, so
+  /// the store restarts the misses itself rather than waiting to be asked.
+  func retryMisses() {
+    attempts.removeAll(); retryAfter.removeAll()
+    for (path, state) in states {
+      if case .failed = state, tasks[path] == nil, let url = urls[path] { start(path: path, url: url) }
+    }
+  }
+
   /// A load told us which paths the wire holds now. Any path we remember that
   /// the wire no longer carries is a photograph that was removed or replaced.
   func reconcile(paths present: [String]) {
     let keep = Set(present)
-    for p in states.keys where !keep.contains(p) { cancel(p); states[p] = nil; urls[p] = nil }
+    var dropped = false
+    for p in states.keys where !keep.contains(p) { cancel(p); states[p] = nil; urls[p] = nil; attempts[p] = nil; dropped = true }
+    if dropped { generation += 1 }
   }
 
-  /// Sign-out or an account change: nothing survives.
+  /// Sign-out or an account change: nothing survives, and nothing in flight
+  /// may land afterwards.
   func clear() {
     for p in tasks.keys { cancel(p) }
-    states.removeAll(); urls.removeAll()
+    states.removeAll(); urls.removeAll(); attempts.removeAll(); retryAfter.removeAll()
+    generation += 1
   }
 
   private func cancel(_ path: String) { tasks[path]?.cancel(); tasks[path] = nil }

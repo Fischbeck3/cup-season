@@ -83,6 +83,21 @@
   check(loaded().length===1 && imgs()[0].getAttribute('src')===csSignedGet('fixture/first.png'),'removing the second touched the first');
   out.removalIsRecord=true;
 
+  /* ── 5b · a credential this load could not get: the last good picture stays ─ */
+  csSignedClear();
+  rows[1].photo_path='fixture/fourth.png'; rows[1].photo_url=null;
+  load([A,B]);
+  await until(()=>loaded().length===2);
+  /* the next load cannot sign the second (transient): the cache is cold for it,
+     nothing is put — but the last good URL still carries the picture */
+  csSignedForget('fixture/fourth.png');
+  rows.forEach(r=>{ r.photo_url = csSignedGet(r.photo_path) || csLastGoodPhoto.get(r.photo_path) || null; });
+  window.homeFeedRows=rows; renderHomeFeed();
+  check(imgs().length===2 && loaded().length===2,'a transient signing failure took a picture down');
+  out.unsignableKeepsLastGood=true;
+  /* an account change while a signing call is in flight: the epoch moves */
+  const e0=csSignedEpoch; csSignedClear(); check(csSignedEpoch===e0+1,'sign-out did not move the signing epoch');
+
   /* ── 6 · sign-out: no credential survives ──────────────────────────────── */
   csSignedClear();
   check(csSigned.size===0 && !csSignedGet('fixture/first.png'),'a credential survived sign-out');

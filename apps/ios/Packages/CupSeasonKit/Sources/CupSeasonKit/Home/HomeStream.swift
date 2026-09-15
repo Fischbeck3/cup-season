@@ -109,9 +109,15 @@ public struct HomeStreamRepository: Sendable {
     /// so a pull on a bad signal keeps what is already on screen instead of
     /// painting "No rounds from your buddies yet." over the circle's rounds.
     public let failed: Bool
+    /// D361 · the photo paths the storage REFUSED to sign this load (gone, or
+    /// not ours). A path absent from both the URLs and this set could not be
+    /// reached, which says nothing about its picture.
+    public let photoDenied: Set<String>
 
-    public init(items: [HomeItem], rounds: [HomeFeedRow], posts: [HomePost], failed: Bool = false) {
+    public init(items: [HomeItem], rounds: [HomeFeedRow], posts: [HomePost], failed: Bool = false,
+                photoDenied: Set<String> = []) {
       self.items = items; self.rounds = rounds; self.posts = posts; self.failed = failed
+      self.photoDenied = photoDenied
     }
   }
 
@@ -219,26 +225,14 @@ public struct HomeStreamRepository: Sendable {
     // signed token, so it is one signing call per path rather than one batch;
     // they run concurrently, and the cache means a path is signed once an hour.
     let paths = Array(rows.compactMap(\.photo_path).prefix(14))
-    let storage = svc.client.storage
-    let urls = await SignedURLCache.shared.urls(for: paths) { missing in
-      await withTaskGroup(of: (String, URL?).self, returning: [String: URL].self) { group in
-        for path in missing {
-          group.addTask {
-            (path, try? await storage.from("media").createSignedURL(
-              path: path, expiresIn: 3600, transform: TransformOptions(width: 1200, quality: 75)))
-          }
-        }
-        var fresh: [String: URL] = [:]
-        for await (path, url) in group { if let url { fresh[path] = url } }
-        return fresh
-      }
-    }
+    let resolved = await StoragePhotos.sized(paths, storage: svc.client.storage)
+    let urls = resolved.urls
 
     let items = (rows.map { HomeItem.round($0, photoURL: $0.photo_path.flatMap { urls[$0] }) }
       + moments.map { HomeItem.post($0, leagueName: $0.league_id.flatMap { names[$0] }) })
       .sorted { $0.time > $1.time }
       .prefix(30)
-    return Result(items: Array(items), rounds: rows, posts: moments, failed: read == nil)
+    return Result(items: Array(items), rounds: rows, posts: moments, failed: read == nil, photoDenied: resolved.denied)
   }
 
   /// The posts read, in two tries. `scheduled_round_id` (D219) is the newest

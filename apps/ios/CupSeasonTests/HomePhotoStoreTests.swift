@@ -89,9 +89,69 @@ struct HomePhotoStoreTests {
     store.load(path: "a.png", url: a2); gate.answer(a2, .gone); await Self.settle()
     #expect(store.state(for: "a.png") == .removed, "access withdrawn or object gone → the record")
     store.load(path: "b.png", url: nil)
-    #expect(store.state(for: "b.png") == .removed, "a path nothing could sign → the record")
+    #expect(store.state(for: "b.png").image != nil, "a credential this load could not get is NOT removal — the picture stays")
+    store.load(path: "b.png", credential: .denied)
+    #expect(store.state(for: "b.png") == .removed, "the storage's refusal is removal")
     store.reconcile(paths: ["c.png"])
     #expect(store.state(for: "a.png") == .none && store.state(for: "b.png") == .none, "paths the wire no longer carries are forgotten")
+  }
+
+  @Test("a credential this load could not get is not removal: the picture stays; a never-loaded round is a miss the next credential retries")
+  func unavailableIsNotRemoval() async {
+    let gate = Gate()
+    let store = HomePhotoStore(fetch: { await gate.fetch($0) }, maxPixel: 200)
+    store.load(path: "a.png", url: a); gate.answer(a, .data(Self.png(0.9))); await Self.settle()
+    let shown = store.state(for: "a.png").image
+    store.load(path: "a.png", credential: .unavailable)
+    #expect(store.state(for: "a.png").image === shown, "a transient signing failure took the picture down")
+    if case .failed = store.state(for: "a.png") {} else { Issue.record("unavailable is recorded as a miss, not removal") }
+    store.load(path: "b.png", credential: .unavailable)
+    #expect(store.state(for: "b.png") == .failed(prior: nil), "never loaded + no credential → a miss (the record), not removed")
+    store.load(path: "b.png", url: b); gate.answer(b, .data(Self.png(0.4))); await Self.settle()
+    #expect(store.state(for: "b.png").image != nil, "the next credential loads it")
+    store.load(path: "a.png", credential: .denied)
+    #expect(store.state(for: "a.png") == .removed, "the storage's own refusal is removal")
+  }
+
+  @Test("a failed first download recovers on the SAME URL, bounded: not on every appearance, and again after a pull")
+  func boundedRecovery() async {
+    let gate = Gate()
+    let store = HomePhotoStore(fetch: { await gate.fetch($0) }, maxPixel: 200)
+    store.load(path: "a.png", url: a); gate.answer(a, .transient); await Self.settle()
+    #expect(store.state(for: "a.png") == .failed(prior: nil) && gate.count == 1)
+    // the next appearance, inside the backoff: nothing goes out
+    store.load(path: "a.png", url: a); await Self.settle()
+    #expect(gate.count == 1, "a miss was retried on the very next appearance")
+    // a pull asks again now, on the same URL
+    store.retryMisses()
+    store.load(path: "a.png", url: a); gate.answer(a, .data(Self.png(0.6))); await Self.settle()
+    #expect(gate.count == 2 && store.state(for: "a.png").image != nil, "the same URL was not retried after a pull")
+  }
+
+  @Test("an old decode never repopulates cleared state or overwrites a newer picture")
+  func decodeAfterClear() async {
+    let gate = Gate()
+    final class DecodeGate: @unchecked Sendable {
+      var c: CheckedContinuation<UIImage?, Never>?
+      func wait() async -> UIImage? { await withCheckedContinuation { self.c = $0 } }
+      func release(_ img: UIImage?) { c?.resume(returning: img); c = nil }
+    }
+    let dg = DecodeGate()
+    let store = HomePhotoStore(fetch: { await gate.fetch($0) }, decode: { _, _ in await dg.wait() }, maxPixel: 200)
+    store.load(path: "a.png", url: a); gate.answer(a, .data(Self.png(0.9))); await Self.settle()
+    // the bytes are decoding; the account changes underneath
+    store.clear()
+    dg.release(UIImage(data: Self.png(0.9))); await Self.settle()
+    #expect(store.state(for: "a.png") == .none, "a decode that finished after clear repopulated the state")
+    // and a newer credential wins over an older decode
+    let a2 = URL(string: "sig://media/a.png?t=2")!
+    store.load(path: "a.png", url: a); gate.answer(a, .data(Self.png(0.2))); await Self.settle()
+    store.load(path: "a.png", url: a2)
+    dg.release(UIImage(data: Self.png(0.2))); await Self.settle()   // the OLD decode finishes
+    #expect(store.state(for: "a.png").isLoading, "an old decode overwrote a newer load")
+    gate.answer(a2, .data(Self.png(0.7))); await Self.settle()
+    dg.release(UIImage(data: Self.png(0.7))); await Self.settle()
+    #expect(store.state(for: "a.png").image != nil)
   }
 
   @Test("the decode is downsampled at the source")

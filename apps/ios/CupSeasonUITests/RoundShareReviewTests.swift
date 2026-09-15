@@ -142,3 +142,25 @@ final class AcceptedRoundReviewTests: XCTestCase {
     XCTAssertTrue(send.isHittable)
   }
 }
+
+/// D360 row 8 · the receipt's brand moment on the phone, in its states: with
+/// the round's photograph and without one, both appearances, and at AX3.
+/// The hatch stands a photograph on the receipt or takes it away; the round,
+/// the figures and the leaf are the signed-in account's own.
+final class ReceiptMomentTests: XCTestCase {
+  @MainActor func testMomentStatesInBothAppearances() throws {
+    for (photo, appearance, size) in [("on", "dark", "large"), ("none", "light", "large"), ("on", "light", "ax3"), ("none", "dark", "large")] {
+      let app = XCUIApplication()
+      app.launchArguments = ["-cs_dev_open", "receipt", "-cs_dev_receipt_photo", photo,
+                             "-cs_dev_look", "none", "-cs_dev_appearance", appearance, "-cs_dev_text_size", size]
+      app.launch()
+      let id = photo == "on" ? "receipt.moment.photo" : "receipt.moment"
+      let moment = app.descendants(matching: .any)[id].firstMatch
+      XCTAssertTrue(moment.waitForExistence(timeout: 35), "the moment did not render for photo=\(photo)")
+      XCTAssertTrue(moment.label.localizedCaseInsensitiveContains("any time"), "the moment signs itself: \(moment.label)")
+      let shot = XCTAttachment(screenshot: app.screenshot())
+      shot.name = "receipt-moment-\(photo)-\(appearance)-\(size)"; shot.lifetime = .keepAlways; add(shot)
+      app.terminate()
+    }
+  }
+}

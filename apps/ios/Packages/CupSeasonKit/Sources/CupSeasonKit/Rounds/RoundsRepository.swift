@@ -109,7 +109,9 @@ public struct RoundsRepository: Sendable {
   /// One signed URL for the private `media` bucket, an hour long. nil on any
   /// failure — the facts still show; a photo is never load-bearing.
   public func signedURL(_ path: String, expiresIn: Int = 3600) async -> URL? {
-    try? await svc.client.storage.from("media").createSignedURL(path: path, expiresIn: expiresIn)
+    // D361 · the one way: cached by path, sized for a screen. The receipt's
+    // photograph is then the same URL — and the same bytes — Home already has.
+    await StoragePhotos.sized([path], storage: svc.client.storage, expiresIn: expiresIn).urls[path]
   }
 
   /// One batched signing call → path ⇒ URL. Failures leave gaps, never throw.

@@ -86,12 +86,18 @@ struct HomeWireBand: View {
   let row: HomeFeedRow
   let photo: URL?
   var photos: HomePhotoStore = .shared
+  /// the storage refused this path on the last load — the object is gone or not ours
+  var denied: Bool = false
   let open: () -> Void
   let openPerson: () -> Void
 
-  init(row: HomeFeedRow, photo: URL?, photos: HomePhotoStore = .shared,
+  init(row: HomeFeedRow, photo: URL?, photos: HomePhotoStore = .shared, denied: Bool = false,
        open: @escaping () -> Void, openPerson: @escaping () -> Void) {
-    self.row = row; self.photo = photo; self.photos = photos; self.open = open; self.openPerson = openPerson
+    self.row = row; self.photo = photo; self.photos = photos; self.denied = denied; self.open = open; self.openPerson = openPerson
+  }
+  private var credential: HomePhotoStore.Credential {
+    if let photo { return .url(photo) }
+    return denied ? .denied : .unavailable
   }
 
   private var name: String { HomeCopy.who(row) }
@@ -112,7 +118,7 @@ struct HomeWireBand: View {
         HomeWireSlat(row: row, open: open, openPerson: openPerson).padding(.horizontal, CSTokens.Space.gutter)
       }
     }
-    .task(id: photo) { photos.load(path: row.photo_path, url: photo) }
+    .task(id: credential) { photos.load(path: row.photo_path, credential: credential) }
   }
 
   /// The band's own geometry while the first fetch is out: the same 168pt,

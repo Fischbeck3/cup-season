@@ -95,8 +95,20 @@ struct RoundReceiptSheet: View {
       ScrollView {
         ScrollViewReader { proxy in
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
-          head(r)
-          photo(r)
+          if r.gross != nil {
+            // D360 · the desk's brand moment, on the phone: the photograph is
+            // its ground when there is one, so the separate photo slot goes.
+            Text(mine(r) ? "Your round" : "The round").csType(.displayS, caps: true).foregroundStyle(cs.ink)
+            ReceiptMoment(dateline: dateline(r), course: r.courseLabel?.trimmingCharacters(in: .whitespaces),
+                          gross: r.gross, holes: r.holesPlayed, sentence: sentence(r),
+                          photoPath: r.photoPath, photoURL: r.photoURL, marker: r.marker)
+            if let p = r.points {
+              CSFigure(CSCopy.points(p), size: .l, label: "points")
+            }
+          } else {
+            head(r)
+            photo(r)
+          }
           photoActions(r)
           if enriched, r.profileId == store.session?.user.id, recap(r) != nil {
             CSMini("Share round", glyph: .share, busy: shareBusy) {

@@ -166,6 +166,7 @@ struct HomeView: View {
       // The pull refreshes the SESSION's payload (every other tab reads it)
       // and then the dispatch, whose own answer supersedes it for this screen.
       await store.reload()
+      HomePhotoStore.shared.retryMisses()   // a pull is a golfer asking again
       await vm.load(me: store.me, key: loadKey)
     }
     .task(id: loadKey) {
@@ -414,8 +415,13 @@ struct HomeView: View {
     switch row.body {
     case .round(let r, let url):
       VStack(alignment: .leading, spacing: 0) {
-        if let url {
+        // D361 · a round WITH an attachment goes through the band whether or not
+        // this load could sign it: the band knows the difference between a
+        // credential it could not get and a picture that is gone, and it keeps
+        // what it has. Only a round with no attachment is a record from here.
+        if url != nil || (r.photo_path.map { !$0.isEmpty } ?? false) {
           HomeWireBand(row: r, photo: url, photos: HomePhotoStore.shared,
+                       denied: r.photo_path.map { vm.photoDenied.contains($0) } ?? false,
                        open: { if let id = r.round_id { presenter.receipt = id } },
                        openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
         } else {
@@ -626,6 +632,8 @@ final class HomeModel {
   private var majorOpen: Bool?
   private var mark: Date?
   private(set) var rounds: [HomeFeedRow] = []
+  /// D361 · paths the storage refused to sign on the last load
+  private(set) var photoDenied: Set<String> = []
   private var posts: [HomePost] = []
   private var urls: [UUID: URL] = [:]
   private let repo = HomeStreamRepository()
@@ -785,6 +793,7 @@ final class HomeModel {
     // A failed read is not an empty feed. With rounds already on screen, a
     // pull on a bad signal keeps them.
     feedFailed = r.failed
+    photoDenied = r.photoDenied
     if !(r.failed && !items.isEmpty) {
       items = r.items
       rounds = r.rounds; posts = r.posts
