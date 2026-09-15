@@ -7,7 +7,7 @@
 - Track the scheduled-course graphic and confusing round-points versus total-gain copy from the preceding review.
 - Rethink the course's whole-scorecard organization and how saved courses/rounds are understood.
 - Audit misplaced ember: the owner sees it on a Home bag icon but not in Compete.
-- **New owner direction:** replace the reaction menu with one appreciation action, and redesign how it is communicated/notified. This supersedes the earlier multi-icon direction. Name, drawing, historical-data treatment and notification policy are proposals below, not approved details or activated delivery.
+- **New owner direction:** replace the reaction menu with one appreciation action, and redesign how it is communicated/notified. Subsequently approved: **option A, quiet icon + count**, with **applause / applauded** vocabulary. This supersedes the earlier multi-icon and visible-text-button directions. Historical-data treatment and push policy remain proposals, not activated delivery.
 
 ## Findings and proposed acceptance
 
@@ -37,9 +37,11 @@ Proposal: compact course invitation with existing paper/fescue identity and supp
 
 `HomeWireBag` still draws its bag glyph with `cs.brand`. Correct ordinary bag/activity decoration to the appropriate neutral or ordinary-action role. Existing owner ruling: ordinary Compete standings/navigation may stay neutral; active competition carries restrained ember wherever shown, including Home. Compare the same active clash in both locations, plus finished and noncompetitive states. A routine plan is not automatically competition. No blanket orange repaint of Compete; record any proposed broader Compete identity change separately.
 
-### F5 — One appreciation action (owner-directed), proposed expression
+### F5 — One appreciation action: option A approved
 
-Recommended working name: **Applaud**, with one recognizable drawn applause icon and a visible text label. Tap gives appreciation; selected state says Applauded; tap again undoes. Count opens the people who applauded. No picker, plus-menu or requirement to learn symbolic reaction meanings. Comments remain for conversation. It should appreciate participation and connection, not claim a good score on every round.
+**Owner-approved 2026-09-15:** option A from the [comparison study](../brand/references/2026-09-15-applause-options.png): one recognizable two-hand applause icon plus a count, no visible button capsule and no persistent word beside it. Resting: outlined muted icon. Selected: filled green icon, optional light haptic. Keep at least a 44pt touch target. Tap to give applause, tap again to undo; the count opens the people who applauded. The enlarged study is a composition reference, not production icon geometry or an exact token-color source; implement a code-native glyph within the existing icon system.
+
+**Approved vocabulary:** applause (noun), applaud (action), applauded (completed action). Do not ship "clap", "clapped" or "Clap sent" copy from the comparison study. First-use feedback: "Applause sent". Accessibility: "Give applause" / "Remove applause", exposing selected state and count. Activity: "Alex applauded your round" / "Alex and 2 others applauded your round". People list: "Applause". No permanent "Applauded" label in the feed. Comments remain for conversation. Applause appreciates participation and connection, not necessarily a good score.
 
 Proposed identity: one golfer's appreciation per round across league copies, consistent on Home, board and receipt. Audit `HomeSocial`, `BoardKudos`, `post_kudos`, their permissions and uniqueness before changing writes. Existing data includes profile/member identities and emoji values; do not silently delete or sum all historical reactions. Prepare explicit deduplication/migration semantics and a shared backend contract. Historical appreciation changes must never generate new notifications.
 
@@ -50,6 +52,6 @@ Proposed communication: immediate local selected feedback; durable in-app activi
 1. Keep the frozen counting release separate. Record these findings now; do not silently extend its migration.
 2. Claude: bounded paired course selector / saved-state language / worth-copy and color fixes, followed by visible mobile proof.
 3. Codex: review selected-tee continuity, round-state routes, numerical wording and paired color states.
-4. Appreciation: approve one concrete button/activity/preferences example, then implement its shared behavior and both clients together. Server and client deployment states reported separately.
+4. Appreciation: option A and applause/applauded copy are approved. Implement shared behavior and both clients together after specifying historical-reaction conversion and notification preferences. Server and client deployment states reported separately.
 
 Track each finding as observed → specified → built web/iOS → verified → available on phone. No automatic agent messages or notification delivery were configured by this note.

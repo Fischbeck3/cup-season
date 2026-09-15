@@ -51,6 +51,8 @@ Prototype and brand proof: `docs/prototypes/next-week.html`. Claude completed C0
 
 ## Raw — drop anything here
 
+**2026-09-15 · Appreciation ruling:** owner selected **A (quiet applause icon + count)** and **applause / applauded** wording. Outlined muted → filled green; no persistent text label, capsule or reaction picker. Use "Applause sent" for first-use feedback and "Alex applauded your round" for activity. Supersedes the comparison image's clap/clapped copy and the earlier visible Applaud button proposal. Details: [tracked review](../docs/planning/2026-09-15-phone-findings-and-appreciation.md#f5--one-appreciation-action-option-a-approved). Historical-reaction conversion and push policy remain to specify; no app changes in this documentation commit.
+
 **2026-09-15 · Phone review / UX + Social:** course tee/rating order and saved-course versus planned/draft/posted round language; scheduled-course bars and points-earned versus total-gain copy; misplaced ember on Home bag versus active competition; owner now wants ONE appreciation action instead of the reaction picker, with clearer activity/notification behavior. Source findings, proposed Applaud treatment and paired acceptance: [tracked review](../docs/planning/2026-09-15-phone-findings-and-appreciation.md). New direction recorded; naming, historical reaction conversion and push policy remain proposed. No production changes.
 
 **2026-09-09, from the owner:**
