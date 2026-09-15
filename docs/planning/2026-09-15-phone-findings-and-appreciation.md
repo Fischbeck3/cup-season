@@ -73,6 +73,16 @@ Acceptance: walk profile → round now, profile → planned round, weekly contes
 
 Status: source-confirmed live context loss and date-copy defect; weekly composition issue identified, installed route reproduction outstanding. Documentation only. Claude owns the paired implementation; no new contest mechanics or notification policy approved here.
 
+### F8 — Course search results hidden by the keyboard
+
+**Owner observation, 2026-09-15:** in live setup, typing a course leaves the search field just above the keyboard and matching courses below it. The golfer must scroll to discover whether search found anything. Expected behavior: results come into view automatically while typing.
+
+Source: `LiveSetupView` has an ordinary `ScrollView` with interactive keyboard dismissal. `LiveCourseField` inserts its courses and tees beneath the input, without a result-visibility callback or scroll anchor. Its search waits 320ms after at least three characters and can show local results before a later network answer; field visibility alone does not ensure asynchronously inserted results are visible. This supports the reported native defect. Equivalent Safari behavior has not been reproduced.
+
+Acceptance for Claude's paired fix: while the field is focused, reveal the input and first complete matching course row above the actual keyboard when results arrive. Show additional rows when space permits; keep the list scrollable. Reveal loading, no-match and offline outcomes in the same visible region so a hidden answer never looks like a missing course. Course selection must bring the tee choices into view too. Preserve keyboard focus while typing, retain the query, and do not select a result automatically. Adjust only when needed; do not jump on every keystroke or fight deliberate scrolling. Honor reduced motion. At very large text sizes or short heights, prioritize a usable search/results region rather than squeezing rows to meet an arbitrary visible count.
+
+Verify with the plan banner present and absent, slow search, cached-to-network updates, empty/offline results, changed queries, course-to-tee selection, keyboard show/hide and enlarged text. Assert actual result frames against the unobscured viewport, not merely element existence. Audit the other course-search entry points and mobile Safari keyboard behavior for the same failure. Native source finding confirmed; paired implementation and physical-device proof outstanding. No search-provider or scoring change requested.
+
 ## Sequencing and ownership
 
 1. Keep the frozen counting release separate. Record these findings now; do not silently extend its migration.
