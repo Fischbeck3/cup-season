@@ -131,7 +131,16 @@ public struct LiveStartOutcome: Sendable, Equatable {
 
 /// What `finish_live_round` hands back (`{posted, guests, skipped, casual}` / `{already_final}`).
 public struct LiveFinishOutcome: Sendable, Equatable {
-  public struct Posted: Sendable, Equatable { public let name: String; public let gross: Int?; public let holes: Int? }
+  /// F12 · `round_id` and `profile_id` arrive once 20261105090000 is applied;
+  /// an older server sends neither and the recap falls back to matching on
+  /// course id and day.
+  public struct Posted: Sendable, Equatable {
+    public let name: String; public let gross: Int?; public let holes: Int?
+    public let roundId: UUID?; public let profileId: UUID?
+    public init(name: String, gross: Int?, holes: Int?, roundId: UUID? = nil, profileId: UUID? = nil) {
+      self.name = name; self.gross = gross; self.holes = holes; self.roundId = roundId; self.profileId = profileId
+    }
+  }
   public struct Guest: Sendable, Equatable { public let name: String; public let token: UUID? }
   public struct Skipped: Sendable, Equatable { public let name: String; public let reason: String }
   public let posted: [Posted]
@@ -146,7 +155,10 @@ public struct LiveFinishOutcome: Sendable, Equatable {
 
   public init(_ v: JSONValue) {
     alreadyFinal = v["already_final"]?.bool ?? false
-    posted = (v["posted"]?.array ?? []).map { Posted(name: $0["name"]?.string ?? "A golfer", gross: $0["gross"]?.int, holes: $0["holes"]?.int) }
+    posted = (v["posted"]?.array ?? []).map {
+      Posted(name: $0["name"]?.string ?? "A golfer", gross: $0["gross"]?.int, holes: $0["holes"]?.int,
+             roundId: $0["round_id"]?.string.flatMap(UUID.init), profileId: $0["profile_id"]?.string.flatMap(UUID.init))
+    }
     guests = (v["guests"]?.array ?? []).map { Guest(name: $0["name"]?.string ?? "Guest", token: $0["claim_token"]?.string.flatMap(UUID.init)) }
     skipped = (v["skipped"]?.array ?? []).map { Skipped(name: $0["name"]?.string ?? "A golfer", reason: $0["reason"]?.string ?? "") }
     casual = v["casual"]?.bool ?? false

@@ -85,6 +85,13 @@ struct LiveRecapSheet: View {
   private func findMine() async {
     guard !looked, status.hasRound, let uid = store.myPid else { return }
     looked = true
+    // The server names my round outright once 20261105090000 is applied —
+    // no matching needed, and no ambiguity possible.
+    if let named = data.outcome.posted.first(where: { $0.profileId == uid })?.roundId {
+      mine = .one(named)
+      await sessionStore.reload()
+      return
+    }
     let day = CSDate.iso(data.date, calendar: ScheduleDates.gregorian)
     let rows = (try? await RoundsRepository().myRounds(uid)) ?? []
     mine = RoundReconcile.mine(rows.map { RoundReconcile.Candidate(id: $0.id, courseId: $0.api_course_id, playedOn: $0.played_on) },
