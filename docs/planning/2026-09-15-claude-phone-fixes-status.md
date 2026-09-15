@@ -42,14 +42,14 @@ Legend: **web** = built in `index.html` · **iOS** = authored in Swift ·
 
 | # | Finding | Web | iOS | Verified | On phone |
 |---|---|---|---|---|---|
-| F1 | Course card opens on your tee; Change tees; yardage row; strict tee identity | built (tee picker, YDS row on the record) | authored (`CourseWholeCardScreen`, `CourseCardLeaf`, `CourseSheetRef.tee/rating`, `WholeCardRef`) | web: `course-card-browser` (picker, change, YDS, plan tee, longest-said-as-such) | web preview · iOS pending build |
-| F2 | Saved course · planned round · unfinished round · posted round, four sentences | built (`Available offline · saved today`) | authored (`savedLine`, Play cover *Unfinished round(s)*, live setup *Unfinished rounds*) | Kit `CourseBookTests` updated; web suite | web preview · iOS pending build |
-| F3 | Plan block as a composition; worth line: ceiling, rule, arithmetic; nine-hole; merge only when contexts agree | built (`csPlanCourseHtml`, `csRoundWorthLine` + `csRoundCeiling`, merge) | authored (`ScheduledRoundSheet.planCourse`, `RoundWorth.line/ceiling/merged`, composer re-derives on 9/18 flip) | web: `counting-explained-browser` (four sentences + the nine), `app-tests` D364 block; Kit `RoundWorthTests`, `ReceiptLensesTests`, `ComposerWorthUITests` updated | web preview · iOS pending build |
-| F4 | Routine ember off; the live signal ember on every look; same clash marked on Home and in the season room | already on `--act`; no change needed | authored (bag, digest, plan dots, form, first door, focus rings, date pickers → mut/act/ink; `CSStoryCard`/`CSDoor` live → brand; compact lead + clash head dot) | preflight incl. LINT-18 budget | web unchanged · iOS pending build |
-| F5 | One applause action, count opens people, applause vocabulary, no menu | built (`applauseHtml`, people sheet, digest grouping, first-use toast) | authored (`Applause` Kit, `CSApplauseGlyph`, `ApplauseControl`, Home/board/context menu/VoiceOver, digest grouping) | web: `home-function-browser` (give, count, take back, failed write reverts), `round-record-browser`; Kit `ApplauseTests`; no-photo UI tests rewritten | web preview · iOS pending build |
-| F6 | Pride bet says what it is (purpose, who, where, what decides, confirm, where it shows, no points); record-only honesty | built (`CS_PRIDE`, both lines in the composer) | authored (`ForfeitCopy` + both composers) | `app-tests` D366; Kit `ForfeitHomeTests` sweeps `ForfeitCopy.all` | web preview · iOS pending build |
-| F7 | Play with Alex → Play a round (now / schedule) · Go head to head (review first) · Start a season; the person rides into each | built (`csAskTheLength`, `csAskRoundWhen`, `csOpenCalloutReview`, live preselect, wizard invitee, `csCalloutDefaultClose`) | authored (`CalloutLength` words, `PlayRoute`, `LengthStep` fork, `CalloutSheet` review, `LiveRoundStore.preselect/seat`, `WizardTarget.invitee`, `DeclarePrefill.tagPids`) | web: `play-with-browser` (three ways, fork, review order, Sunday rule, seating); `app-tests` R-F/D363 block; Kit `CalloutTests`; app `LivePreselectTests` | web preview · iOS pending build |
-| F8 | Course search answers above the keyboard, on transitions only, every entry point | built (`csRevealSearch` on the three inputs, visual-viewport measured) | authored (`CourseSearchReveal` in live setup, plan composer, post composer, offline sheet) | web: `play-with-browser` §3 (a hidden answer is revealed; one in view is left alone) | web preview · iOS pending build |
+| F1 | Course card opens on your tee; Change tees; yardage row; strict tee identity | built (tee picker, YDS row on the record) | authored (`CourseWholeCardScreen`, `CourseCardLeaf`, `CourseSheetRef.tee/rating`, `WholeCardRef`) | web: `course-card-browser` (picker, change, YDS, plan tee, longest-said-as-such) | web preview · build 919 |
+| F2 | Saved course · planned round · unfinished round · posted round, four sentences | built (`Available offline · saved today`) | authored (`savedLine`, Play cover *Unfinished round(s)*, live setup *Unfinished rounds*) | Kit `CourseBookTests` updated; web suite | web preview · build 919 |
+| F3 | Plan block as a composition; worth line: ceiling, rule, arithmetic; nine-hole; merge only when contexts agree | built (`csPlanCourseHtml`, `csRoundWorthLine` + `csRoundCeiling`, merge) | authored (`ScheduledRoundSheet.planCourse`, `RoundWorth.line/ceiling/merged`, composer re-derives on 9/18 flip) | web: `counting-explained-browser` (four sentences + the nine), `app-tests` D364 block; Kit `RoundWorthTests`, `ReceiptLensesTests`, `ComposerWorthUITests` updated | web preview · build 919 |
+| F4 | Routine ember off; the live signal ember on every look; same clash marked on Home and in the season room | already on `--act`; no change needed | authored (bag, digest, plan dots, form, first door, focus rings, date pickers → mut/act/ink; `CSStoryCard`/`CSDoor` live → brand; compact lead + clash head dot) | preflight incl. LINT-18 budget | web unchanged · build 919 |
+| F5 | One applause action, count opens people, applause vocabulary, no menu | built (`applauseHtml`, people sheet, digest grouping, first-use toast) | authored (`Applause` Kit, `CSApplauseGlyph`, `ApplauseControl`, Home/board/context menu/VoiceOver, digest grouping) | web: `home-function-browser` (give, count, take back, failed write reverts), `round-record-browser`; Kit `ApplauseTests`; no-photo UI tests rewritten | web preview · build 919 |
+| F6 | Pride bet says what it is (purpose, who, where, what decides, confirm, where it shows, no points); record-only honesty | built (`CS_PRIDE`, both lines in the composer) | authored (`ForfeitCopy` + both composers) | `app-tests` D366; Kit `ForfeitHomeTests` sweeps `ForfeitCopy.all` | web preview · build 919 |
+| F7 | Play with Alex → Play a round (now / schedule) · Go head to head (review first) · Start a season; the person rides into each | built (`csAskTheLength`, `csAskRoundWhen`, `csOpenCalloutReview`, live preselect, wizard invitee, `csCalloutDefaultClose`) | authored (`CalloutLength` words, `PlayRoute`, `LengthStep` fork, `CalloutSheet` review, `LiveRoundStore.preselect/seat`, `WizardTarget.invitee`, `DeclarePrefill.tagPids`) | web: `play-with-browser` (three ways, fork, review order, Sunday rule, seating); `app-tests` R-F/D363 block; Kit `CalloutTests`; app `LivePreselectTests` | web preview · build 919 |
+| F8 | Course search answers above the keyboard, on transitions only, every entry point | built (`csRevealSearch` on the three inputs, visual-viewport measured) | authored (`CourseSearchReveal` in live setup, plan composer, post composer, offline sheet) | web: `play-with-browser` §3 (a hidden answer is revealed; one in view is left alone) | web preview · build 919 |
 
 ### Before / after, compact
 
@@ -70,7 +70,7 @@ Legend: **web** = built in `index.html` · **iOS** = authored in Swift ·
 | **Database** | **Nothing applied, nothing to apply.** No migration in this candidate. Applause writes `post_kudos.emoji = 'applause'` inside the existing check and key. The head-to-head sends `p_closes_on` (the shared Sunday rule) to the existing `call_out`. |
 | **Edge Functions** | **Unchanged, not deployed.** `push` never handled kudos and still does not. |
 | **Web** | **Preview only** (`deploy-preview-5`). Not promoted to `cupseason.app`, which stays at `c6acc53`. Preflight clean; `app-tests` 473 checks; suites `play-with`, `course-card`, `counting-explained`, `home-function`, `round-record`, `home-photos`, `home-repetition` pass on the local tree at 390. |
-| **TestFlight** | **No new build.** Build 905 (`714609b`) remains the Owner group's latest; Friends external and untouched. The candidate would mint build 916 from this branch's tip once Xcode is unblocked. |
+| **TestFlight** | **Build 919 (`5be5fa0`), internal Owner group only** — `IN_BETA_TESTING`, read back twice. Build 905 (`714609b`) stands beside it as the earlier checkpoint. Friends is external, untouched, and still holds its same nine builds. |
 
 ## Decisions still open (proposals, not built)
 
@@ -79,13 +79,20 @@ Legend: **web** = built in `index.html` · **iOS** = authored in Swift ·
 2. Grouped opt-in applause push: window, daily cap, undo, audience and mute rules. Nothing activated.
 3. Pride agreements with a lifecycle (proposed → accepted/declined/cancelled → settled/disputed) and competition-backed settlement. The record-only composer stands and says so.
 
-## Deployment order, when the candidate is accepted
+## Deployment order, from here
 
-1. Owner: `sudo xcodebuild -license accept`; run `CupSeasonKitTests`, `CupSeasonTests`, `CupSeasonUITests` (the reworded suites: `CalloutTests`, `RoundWorthTests`, `ReceiptLensesTests`, `CourseBookTests`, `ForfeitHomeTests`, `ApplauseTests`, `LivePreselectTests`, `HomeNoPhotoTests`, `ComposerWorthUITests`); fix what a compiler finds.
-2. Native captures at 390 and AX3 with the keyboard up: course search in live setup (results and tees), the whole card with *Change tees* open, the live group with the preselected golfer, the head-to-head review, applause given.
-3. Codex reviews the candidate on the preview and the source.
-4. Web: merge to `main` → Netlify; read back `#obCaption` and `sw.js`. No database push, no Edge deploy.
-5. Native: `tools/ios-archive.sh --upload`, `python3 tools/asc.py status <build>`, attach to the internal Owner group; Friends untouched.
+Steps 1 and 2 of the original plan are DONE: the licence is accepted, the
+native half compiles clean, and build 919 is in the Owner group.
+
+1. **Codex reviews** the candidate — the preview, the source, and this file.
+2. **Restore the review simulator**: sign the iPhone 17 Pro simulator back in
+   (an emailed code), then run `ComposerWorthUITests` and take the AX3 and
+   keyboard-up native captures. This is the one verification gap.
+3. **Web**: merge to `main` → Netlify; read back `#obCaption` and `sw.js`.
+   No database push, no Edge deploy — there is nothing to push.
+4. **Native, only if the review changes code**: `tools/ios-archive.sh --upload`,
+   then attach to the internal Owner group. Use the internal-only attach, NOT
+   `asc.py ship`, which targets Friends and submits for beta review.
 
 ## Physical-device checks, outstanding
 
