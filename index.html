@@ -2265,7 +2265,7 @@ body.guestlive #onboard{display:none !important;}
 .ap-give svg{display:block;}
 .ap-give:hover{color:var(--ink);}
 .ap-give.on{color:var(--act);}
-.ap-give.on .ap-hands{fill:var(--act); fill-opacity:.28;}
+.ap-give.on .ap-hands{fill:var(--act);}   /* F9 · a filled silhouette, not a wash */
 .ap-give:focus-visible, .ap-n:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .ap-n{min-width:20px; min-height:44px; background:transparent; border:0; padding:0 var(--s1); cursor:pointer;
   font-family:var(--mono); font-size:12px; letter-spacing:.04em; color:var(--mut);}
@@ -7844,10 +7844,19 @@ const APPLAUSE={
     : who.length===2 ? `${who[0]} and ${who[1]} applauded your round` : `${who[0]} and ${who.length-1} others applauded your round`; },
   earlierNote: n => n===1 ? '1 earlier reaction, from before applause' : `${n} earlier reactions, from before applause`,
 };
-const APPLAUSE_HANDS='M11.2 21.2L6.6 16.9a2.1 2.1 0 0 1 2.9-3l1.7 1.6V8.3a1.4 1.4 0 0 1 2.8 0v6.5M12.8 21.2l4.6-4.3a2.1 2.1 0 0 0-2.9-3l-1.7 1.6M11.2 21.2h1.6';
-const APPLAUSE_SPARKS='M8.6 5.6L7.6 3.9M15.4 5.6l1-1.7M12 4.6V2.6';
+/* F9 · THE FIRST DRAWING DID NOT READ AS APPLAUSE. A narrow, largely
+   mirrored path with a central upright finger reads as a downward arrow into a
+   cup at 22px. This is ONE hand — palm, three fingers, thumb heel — drawn
+   TWICE at two angles; two hands at an angle to each other is what makes the
+   mark read as applause. The given state fills the FRONT hand only: filling
+   both merges them into a blob with no hands in it. Identical geometry and
+   transforms to the phone's `CSApplauseGlyph`. */
+const APPLAUSE_HAND='M13.4 20.4 A3.0 3.0 0 0 0 16.9 17.9 L18.1 12.4 A1.4 1.4 0 0 0 15.4 11.7 L14.9 14.0 L16.0 8.2 A1.4 1.4 0 0 0 13.3 7.6 L12.4 12.6 L12.9 9.0 A1.4 1.4 0 0 0 10.2 8.6 L9.4 14.2 A4.2 4.2 0 0 0 13.4 20.4 Z';
+const APPLAUSE_SPARKS='M20.0 5.6l1.8-1.6M21.2 9.2l2.0-.6';
+const APPLAUSE_BACK='translate(-5.6,0.4) rotate(-30,13,14) scale(0.92)';
+const APPLAUSE_FRONT='translate(1.8,0.6) rotate(18,13,14) scale(0.92)';
 function applauseGlyph(on){
-  return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="${on?2:1.7}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ap-hands" d="${APPLAUSE_HANDS}"/><path d="${APPLAUSE_SPARKS}"/></svg>`;
+  return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="${APPLAUSE_BACK}"><path d="${APPLAUSE_HAND}"/></g><g transform="${APPLAUSE_FRONT}"><path class="ap-hands" d="${APPLAUSE_HAND}"/></g><path d="${APPLAUSE_SPARKS}"/></svg>`;
 }
 /* the state of one post from the emoji-keyed fold: applause counted, the
    retired tokens kept apart */

@@ -1,20 +1,49 @@
-// Cup Season — the applause mark (D365).
+// Cup Season — the applause mark (D365, redrawn for F9).
 //
-// Two hands meeting, three sparks above — drawn in the glyph family's own
-// hand: a 24 × 24 grid, one stroke weight, round caps and joins, `currentColor`.
-// The comparison study the owner approved is a composition reference, not
-// geometry; this is the code-native glyph. It is never smaller than 17pt (the
-// reaction rule) and it draws two ways: OUTLINE at rest, and FILLED — the
-// hands filled in the ordinary-action green — once you have applauded. The
-// sparks stay a stroke in both, so the filled state reads as hands, not a blob.
+// **THE FIRST DRAWING DID NOT READ AS APPLAUSE.** The owner, on the shipped
+// build: it is not recognisable. He was right, and the failure is visible the
+// moment the glyph is put on a page instead of reasoned about — a narrow,
+// largely mirrored path with a central upright finger reads as a DOWNWARD
+// ARROW into a cup at 22pt, which is what the review saw.
+//
+// This is ONE hand — a palm with three fingers and a thumb heel — drawn
+// TWICE, at two angles, the back hand rotated away and the front hand
+// rotated toward it. Two hands at an angle to each other is what makes the
+// mark read as applause rather than as a wave or a pair of mittens; the
+// composition was chosen by rendering four of them side by side at 22, 34 and
+// 110 points in both themes and looking.
+//
+// **The given state fills the FRONT hand only.** F9 asks for a filled
+// silhouette rather than the translucent wash the first version used, and a
+// solid fill on BOTH hands merges them into an amorphous blob with no hands
+// in it at any size — a worse failure than the one being fixed. One filled
+// hand overlapping one outlined hand keeps both readable and still reads as
+// unmistakably "on".
+//
+// The web twin (`applauseGlyph` in index.html) draws the same path with the
+// same two transforms, so the mark is one drawing on both clients.
 
 import SwiftUI
 
 public struct CSApplauseGlyph: View {
-  /// The two hands: left rising to a finger, right mirrored and behind.
-  static let hands = "M11.2 21.2L6.6 16.9a2.1 2.1 0 0 1 2.9-3l1.7 1.6V8.3a1.4 1.4 0 0 1 2.8 0v6.5M12.8 21.2l4.6-4.3a2.1 2.1 0 0 0-2.9-3l-1.7 1.6M11.2 21.2h1.6"
-  /// Three sparks — the sound.
-  static let sparks = "M8.6 5.6L7.6 3.9M15.4 5.6l1-1.7M12 4.6V2.6"
+  /// One hand on the 24 grid: the palm, three fingers and the thumb heel.
+  static let hand = "M13.4 20.4 A3.0 3.0 0 0 0 16.9 17.9 L18.1 12.4 A1.4 1.4 0 0 0 15.4 11.7 L14.9 14.0 L16.0 8.2 A1.4 1.4 0 0 0 13.3 7.6 L12.4 12.6 L12.9 9.0 A1.4 1.4 0 0 0 10.2 8.6 L9.4 14.2 A4.2 4.2 0 0 0 13.4 20.4 Z"
+  /// Two short marks off the meeting edge — the sound, kept to two so they
+  /// stay legible at 22pt rather than becoming noise.
+  static let sparks = "M20.0 5.6l1.8-1.6M21.2 9.2l2.0-.6"
+
+  /// `translate(tx, ty) rotate(deg, 13, 14) scale(s)` — the SVG nesting the
+  /// web twin uses, in the order Core Graphics applies it.
+  static func place(tx: CGFloat, ty: CGFloat, deg: CGFloat, s: CGFloat) -> CGAffineTransform {
+    CGAffineTransform.identity
+      .translatedBy(x: tx, y: ty)
+      .translatedBy(x: 13, y: 14)
+      .rotated(by: deg * .pi / 180)
+      .translatedBy(x: -13, y: -14)
+      .scaledBy(x: s, y: s)
+  }
+  static let back = place(tx: -5.6, ty: 0.4, deg: -30, s: 0.92)
+  static let front = place(tx: 1.8, ty: 0.6, deg: 18, s: 0.92)
 
   public let size: CGFloat
   public let filled: Bool
@@ -25,14 +54,20 @@ public struct CSApplauseGlyph: View {
   }
 
   public var body: some View {
-    let scale = size / 24
-    let hands = SVGPath.path(Self.hands).applying(CGAffineTransform(scaleX: scale, y: scale))
-    let sparks = SVGPath.path(Self.sparks).applying(CGAffineTransform(scaleX: scale, y: scale))
-    let stroke = StrokeStyle(lineWidth: (filled ? 2.0 : 1.7) * scale, lineCap: .round, lineJoin: .round)
+    let k = size / 24
+    let fit = CGAffineTransform(scaleX: k, y: k)
+    let hand = SVGPath.path(Self.hand)
+    let backHand = hand.applying(Self.back.concatenating(fit))
+    let frontHand = hand.applying(Self.front.concatenating(fit))
+    let marks = SVGPath.path(Self.sparks).applying(fit)
+    let stroke = StrokeStyle(lineWidth: 1.7 * k, lineCap: .round, lineJoin: .round)
     ZStack {
-      if filled { hands.fill(.primary.opacity(0.28)) }
-      hands.stroke(style: stroke)
-      sparks.stroke(style: stroke)
+      backHand.stroke(style: stroke)
+      // the front hand is filled when given, and its own stroke keeps its
+      // edge off the hand behind it
+      if filled { frontHand.fill(.primary) }
+      frontHand.stroke(style: stroke)
+      marks.stroke(style: stroke)
     }
     .frame(width: size, height: size)
     .accessibilityLabel(labelled ? "Applause" : "")
