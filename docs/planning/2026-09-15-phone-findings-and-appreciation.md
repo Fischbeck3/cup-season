@@ -57,6 +57,22 @@ This is a **proposal**, not an approved mechanics change. A proposal/acceptance 
 
 Acceptance proposal: a first-time golfer can say what the button creates, whether the other golfer has agreed, what decides the winner, who confirms it, where it appears later and whether it affects league points. Both clients show the same lifecycle. Naming alone will not close this finding.
 
+### F7 — Play a person: misleading dates and lost golfer context
+
+**Owner observation, 2026-09-15:** opening Play from a golfer's profile offers “This Saturday,” which sounds like a date restriction. The weekly choice feels like another pride bet. The live choice opens a group containing only the owner; the selected golfer must be selected again.
+
+Source inspection at `a8b3fe3d`: native `CalloutLength` hard-codes “This Saturday,” but `MainTabView.takeLength` only sets `presenter.showLive = true`, dropping its `who` argument. Web `csAskTheLength` similarly switches to Play without carrying its `pid`. This is confirmed context loss on both clients, not evidence that play is restricted to Saturday. The season branch also opens a generic wizard without passing the person; include that route in the continuity audit.
+
+The current native weekly branch opens `CalloutSheet`, not `ForfeitSheet`. Its competition/date line is followed immediately by “What's on it?” and “A pride bet,” with no-stake selected by default. Thus the observed confusion is supported by the composition, but a route substitution has not been reproduced. The installed build's exact behavior remains to be walked. The web length handler calls `call_out` directly with no stake, a further review/confirmation disparity. `defaultClose` selects Sunday and can skip to the following Sunday when fewer than three days remain: “One week” is not an exact duration. Show the actual closing date from the shared rule; do not silently change that rule.
+
+Proposed presentation: **“Play with [name]”** → **“Play a round”** (one round together), **“Go head to head”** (each posts a round before the stated closing date), **“Start a season”** (rounds over time). The round path can use the existing now/plan choice, carrying the person through either path. No weekday promise unless the golfer actually chooses that date. Retain the established competition comparison and explain it plainly before optional stakes; do not invent a new scoring rule. Keep any pride agreement contextual as described in F6.
+
+Requested continuity behavior: entering live setup from a person preselects that person's stable profile identity in the proposed group alongside the owner, removable before starting. Use the existing handicap producer; do not copy a displayed handicap into a fabricated playing handicap. Opening or cancelling setup must not create a round, notify the person or assert that they accepted. Preserve an existing live round/draft and handle an already-selected golfer, full group, failed lookup and account change explicitly. For a season, preserve the intended invitee without silently enrolling them or bypassing consent.
+
+Acceptance: walk profile → round now, profile → planned round, weekly contest and season on both clients. Verify opponent identity across navigation, course/tee changes, back/cancel/reopen and persistence; no duplicate selection or stale opponent in generic Play. Assert writes occur only at the existing confirmation boundary. Prove weekly setup states its actual deadline, scoring basis and invitation state before optional stakes, and that no-stake remains a complete path. Capture narrow-phone and enlarged-text screens. Update R-F/D237 copy rules and their pinned tests together once the replacement wording is agreed; the old wording is explicitly pinned, not a reason to preserve the reported confusion.
+
+Status: source-confirmed live context loss and date-copy defect; weekly composition issue identified, installed route reproduction outstanding. Documentation only. Claude owns the paired implementation; no new contest mechanics or notification policy approved here.
+
 ## Sequencing and ownership
 
 1. Keep the frozen counting release separate. Record these findings now; do not silently extend its migration.
