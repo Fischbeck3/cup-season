@@ -265,6 +265,6 @@ one-argument call resolves to the two-argument function, proved in §5.
 | | Candidate |
 |---|---|
 | Quality checkpoint (unchanged) | `714609b` · build **905** · internal-only |
-| Counting increment, both clients | **`0792ddd`** on `claude/brand-client-parity` · **no native build archived** for it — the phone's half needs the migration to do anything on production, and the increment is proven on fixtures and the isolated cluster |
+| Counting increment, both clients | **`bc3f97b`** on `claude/brand-client-parity` (corrected candidate; `0792ddd` was its first form) · **no native build archived** for it — the phone's half needs the migration to do anything on production, and the increment is proven on fixtures and the isolated cluster |
 | Production web | `1bc307f`, untouched |
 

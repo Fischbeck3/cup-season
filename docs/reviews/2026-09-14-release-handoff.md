@@ -145,3 +145,21 @@ The frozen checkpoint is recorded in [2026-09-14-release-checkpoint-evening.md](
 **Checks run on this source.** Web: `counting-explained-browser.js` (composer sentences: room, full, capped, uncapped, no live season; the receipt's denominator, single and named lenses, no-lens, the door through the stubbed producer, the served counters), plus the eight standing suites on the preview. Native: `ReceiptLensesTests` (clause, one lens, two lenses named with points, bumped, uncapped, the older database, served lines), `ReceiptLensesUITests` (two, bumped, uncapped; the door opens the sheet, which says the honest thing against the older database), `ComposerWorthUITests` (room, full, capped, open, two), `ReceiptMomentTests`, `AcceptedRoundReviewTests`. Database: `tests/db/counting-explained.sql` on the isolated cluster — two-league owner, one-league mate, refusal, backdated, bumped, per-league counters.
 
 **Unverified.** Production behaviour of the three functions (they are not applied); a physical device; squads' summed counting sets (not drawn by design).
+
+
+---
+
+## Counting increment · corrected candidate, 2026-09-14 late
+
+**`bc3f97b`** supersedes `0792ddd`. Six acceptance items closed: the composer's
+sentence proved readable by frame (keypad up, while typing, dismissed, AX3);
+the counters keyed to date and session so a score edit asks nothing; the
+counting sheet never inferring a rule or a counting status; the SQL probes
+converted to 55 assertions with two negative controls; build 905's own code
+run against the new payloads; and the production inventory re-read.
+
+**Correction to the record:** `20261024090000` is **applied in production**,
+not held. Production is at 242, latest `20261103090000`, and the only
+unapplied file on this branch is `20261104090000`.
+
+Quality checkpoint `714609b` / build 905 — untouched. No production push.
