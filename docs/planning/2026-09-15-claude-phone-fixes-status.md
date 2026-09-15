@@ -7,12 +7,20 @@ this branch; see the report's read-back). Handoff:
 `2026-09-15-claude-phone-fixes-handoff.md`; source review:
 `2026-09-15-phone-findings-and-appreciation.md`.
 
-**The one blocker, stated first.** Xcode 27.0's license is unaccepted on the
-build machine, so `xcodebuild`, `simctl` and the Xcode shims for `git` and
-`python3` refuse. Every native change below is **authored and unit-tested in
-source, not compiled, not run, not captured**. `sudo xcodebuild -license
-accept` in a Terminal, then the native test targets and the archive, are the
-next step and are the owner's to unblock. The web half is verified end to end.
+**Native: compiled, tested and shipped.** The Xcode 27.0 licence was accepted
+on 2026-09-15 and the whole native half was built and run for the first time.
+Clean compile, zero Swift errors. **Kit 1183 tests in 193 suites passed**;
+**app target 100 tests in 19 suites passed** (including `LivePreselectTests`
+across every seating branch); **`HomeNoPhotoTests` 5 of 5 passed**, covering
+the applause control end to end — give, count, the people sheet, take back.
+**Build 919 is on TestFlight in the internal Owner group** (`IN_BETA_TESTING`,
+read back twice). Friends is untouched and still holds its same nine builds.
+
+**What is still not verified, and why.** `ComposerWorthUITests` (three tests)
+could not run: fixing a launch failure required erasing the simulator, which
+destroyed the signed-in review session those tests need, and signing back in
+takes an emailed code. They are blocked by environment, not by code. No AX3
+or keyboard-up native captures for the composer for the same reason.
 
 ## The candidate
 

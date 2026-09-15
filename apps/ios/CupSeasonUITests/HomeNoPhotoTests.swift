@@ -64,7 +64,17 @@ final class HomeNoPhotoTests: XCTestCase {
     // the count opens the people
     app.buttons["1 applause"].firstMatch.tap()
     XCTAssertTrue(app.staticTexts["Applause"].firstMatch.waitForExistence(timeout: 5))
-    app.buttons["Close"].firstMatch.tap()
+    // `app.buttons["Close"]` matches the IDENTIFIER, and a toolbar
+    // `Button("Close")` carries the word as its LABEL with no identifier — so
+    // the subscript never found it. Match either, and say what the sheet
+    // actually had if it is missing.
+    // `app.buttons["Close"]` matches the IDENTIFIER, and the toolbar tertiary
+    // carries the word as an UPPERCASED label with no identifier — so both the
+    // subscript and a case-sensitive label match missed a control that was
+    // there. Match the label case-insensitively.
+    let close = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Close")).firstMatch
+    XCTAssertTrue(close.waitForExistence(timeout: 5), "the applause people sheet has no Close")
+    close.tap()
     remove.tap()
     XCTAssertTrue(app.buttons["Give applause"].firstMatch.waitForExistence(timeout: 5))
     XCTAssertFalse(app.buttons["1 applause"].exists)
