@@ -249,7 +249,7 @@ public final class BoardStore {
         back.flip(me: me, on: had)
         items[j].reactions[emoji] = back
       }
-      toast = BoardText.humanError(error, "Reaction did not save.")
+      toast = BoardText.humanError(error, emoji == Applause.key ? Applause.failed : "Reaction did not save.")
     }
   }
 

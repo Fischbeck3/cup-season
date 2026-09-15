@@ -2255,7 +2255,23 @@ body.guestlive #onboard{display:none !important;}
 }
 .rxchip .e{font-family:var(--sans); margin-right:4px;}
 .rxchip:hover{color:var(--ink);}
-.rxchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
+.rxchip.on{color:var(--bg0); background:var(--ink); border-color:var(--ink);}   /* legacy · a reaction is not live (D359) */
+/* D365 · the one appreciation control: a two-hand applause glyph and a count.
+   Outline in mut at rest; filled green once given (the ordinary-action
+   colour, never ember); the target is 44px whatever the glyph draws at. */
+.applause{display:inline-flex; align-items:center; gap:var(--s1);}
+.ap-give{width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center;
+  background:transparent; border:0; padding:0; color:var(--mut); cursor:pointer; border-radius:var(--p);}
+.ap-give svg{display:block;}
+.ap-give:hover{color:var(--ink);}
+.ap-give.on{color:var(--act);}
+.ap-give.on .ap-hands{fill:var(--act); fill-opacity:.28;}
+.ap-give:focus-visible, .ap-n:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.ap-n{min-width:20px; min-height:44px; background:transparent; border:0; padding:0 var(--s1); cursor:pointer;
+  font-family:var(--mono); font-size:12px; letter-spacing:.04em; color:var(--mut);}
+.ap-n.on{color:var(--act);}
+.ap-give:active svg{transform:scale(.92);}
+@media (prefers-reduced-motion: no-preference){ .ap-give svg{transition:transform .18s cubic-bezier(.2,0,0,1);} }
 /* the heater doubles as the one-thumb quick-tap (F11 3.1) — its hit box
    clears the 44px floor via padding, never by inflating the emoji itself.
    Touch hardening: real iOS fires the text-selection callout on a held
@@ -7810,25 +7826,51 @@ function ensureRx(f){
    with no count on an untouched card, which reads as a reaction somebody
    already left. Untouched now means four outlines and no numbers — an
    invitation, marked `.rxnone` so the whole row can go quiet. */
-function rxChipsHtml(rx, attr, idx, tokens=REACTIONS){
-  const untouched=REACTIONS.every(t=>!(rx[t.k]&&rx[t.k].n>0));
-  return tokens.map(t=>{
-    const r=rx[t.k]||{n:0,me:false,who:[]};
-    const who=(r.who&&r.who.length)?r.who.join(', '):'';
-    const title=`${t.label}${who?' — '+who:''}`;
-    const cls='rxchip'+(r.me?' on':'')+(untouched?' rxnone':'');
-    return `<button class="${cls}" ${attr}="${idx}" data-e="${esc(t.k)}" title="${esc(title)}" aria-label="${esc(t.label)}" aria-pressed="${r.me?'true':'false'}">${rxGlyph(t.k)}${r.n>0?r.n:''}</button>`;
-  }).join('');
+/* D365 · ONE APPRECIATION ACTION: APPLAUSE (owner-approved option A,
+   2026-09-15). The four-token menu is retired from every surface. One quiet
+   control — a two-hand applause glyph and a count — that a golfer taps to
+   applaud a round and taps again to take back; the count opens the people.
+   Outline in mut at rest, filled green once given, a 44px target. Vocabulary:
+   applause · applaud · applauded — never "clap". Stored in the same row the
+   reactions used (post_kudos.emoji = 'applause'; the primary key already makes
+   it one per golfer per post). Historical reactions are kept and shown apart
+   in the people list, never summed into the count — the conversion policy and
+   the cross-league fold are proposals (docs/planning/2026-09-15-applause-and-
+   pride-proposals.md). The phone's `Applause` / `ApplauseControl` are the twins. */
+const APPLAUSE={
+  key:'applause', noun:'Applause', give:'Give applause', remove:'Remove applause',
+  sent:'Applause sent', failed:'Applause did not save.',
+  activity: names => { const who=[...new Set(names)]; return who.length===0 ? '' : who.length===1 ? `${who[0]} applauded your round`
+    : who.length===2 ? `${who[0]} and ${who[1]} applauded your round` : `${who[0]} and ${who.length-1} others applauded your round`; },
+  earlierNote: n => n===1 ? '1 earlier reaction, from before applause' : `${n} earlier reactions, from before applause`,
+};
+const APPLAUSE_HANDS='M11.2 21.2L6.6 16.9a2.1 2.1 0 0 1 2.9-3l1.7 1.6V8.3a1.4 1.4 0 0 1 2.8 0v6.5M12.8 21.2l4.6-4.3a2.1 2.1 0 0 0-2.9-3l-1.7 1.6M11.2 21.2h1.6';
+const APPLAUSE_SPARKS='M8.6 5.6L7.6 3.9M15.4 5.6l1-1.7M12 4.6V2.6';
+function applauseGlyph(on){
+  return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="${on?2:1.7}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ap-hands" d="${APPLAUSE_HANDS}"/><path d="${APPLAUSE_SPARKS}"/></svg>`;
 }
-/* D341 · Home shows only given reactions; the labelled invitation reveals
-   the remaining canon choices, and the normal post-toggle render closes it. */
-function homeRxChipsHtml(rx, idx){
-  const given=REACTIONS.filter(t=>(rx[t.k]?.n||0)>0);
-  const rest=REACTIONS.filter(t=>!(rx[t.k]?.n>0));
-  const chips=rxChipsHtml(rx,'data-hrx',idx,given);
-  if(!rest.length) return chips;
-  return chips+`<button class="rxchip hreact" data-hreact aria-label="${given.length?'More reactions':'React to this round'}" aria-expanded="false" aria-controls="home-rx-${idx}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>${given.length?'':'<span>React</span>'}</button><span class="hrx-options" id="home-rx-${idx}" hidden>${rxChipsHtml(rx,'data-hrx',idx,rest)}</span>`;
+/* the state of one post from the emoji-keyed fold: applause counted, the
+   retired tokens kept apart */
+function applauseState(rx){
+  const a=(rx&&rx[APPLAUSE.key])||{n:0,me:false,who:[]};
+  const earlier=Object.entries(rx||{}).filter(([k])=>k!==APPLAUSE.key).reduce((s,[,v])=>s+(v.n||0),0);
+  return { n:a.n||0, me:!!a.me, who:a.who||[], earlier };
 }
+function applauseHtml(rx, attr, idx){
+  const s=applauseState(rx);
+  const count=s.n>0 ? `<button type="button" class="ap-n${s.me?' on':''}" ${attr}people="${idx}" aria-label="${s.n} applause" title="${esc(s.who.join(', '))}">${s.n}</button>` : '';
+  return `<span class="applause"><button type="button" class="ap-give${s.me?' on':''}" ${attr}="${idx}" data-e="${APPLAUSE.key}" aria-pressed="${s.me?'true':'false'}" aria-label="${s.me?APPLAUSE.remove:APPLAUSE.give}">${applauseGlyph(s.me)}</button>${count}</span>`;
+}
+function openApplausePeople(rx){
+  const s=applauseState(rx);
+  openSheet(APPLAUSE.noun, s.n===1 ? '1 GOLFER' : `${s.n} GOLFERS`,
+    (s.who.length ? s.who.map(w=>`<p style="margin:0; padding:12px 0; border-bottom:1px solid var(--rule)">${esc(w)}</p>`).join('') : '<p class="fine">Nobody yet.</p>')
+    + (s.earlier ? `<p class="fine" style="padding-top:8px">${esc(APPLAUSE.earlierNote(s.earlier))}</p>` : ''));
+}
+/* the two names every caller still uses — both draw the one control now */
+function rxChipsHtml(rx, attr, idx){ return applauseHtml(rx, attr, idx); }
+function homeRxChipsHtml(rx, idx){ return applauseHtml(rx, 'data-hrx', idx); }
+window.APPLAUSE = APPLAUSE; window.applauseState = applauseState; window.applauseHtml = applauseHtml;
 function socialBar(f, fi, opts){
   const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
   const ns=(opts&&opts.ns)||'';
@@ -7917,8 +7959,13 @@ async function toggleRx(f, emoji){
   if(error){ /* revert the optimistic flip — and say so */
     console.warn('[reaction]', emoji, error);
     rxFlip(cur, me, had);
-    rerenderFeeds(); toast(humanError(error, 'Reaction did not save.'));
-  }
+    rerenderFeeds(); toast(humanError(error, emoji===APPLAUSE.key ? APPLAUSE.failed : 'Reaction did not save.'));
+  } else if(emoji===APPLAUSE.key && !had) csApplauseFirstSend();
+}
+/* D365 · first-use feedback, once per browser — and only for a GIVE */
+function csApplauseFirstSend(){
+  try{ if(localStorage.getItem('cs.applause.sent')) return; localStorage.setItem('cs.applause.sent','1'); }catch(_){ return; }
+  toast(APPLAUSE.sent);
 }
 /* post a comment on feed item f — optimistic echo, DB-backed when real */
 async function sendComment(f, text){
@@ -8029,8 +8076,12 @@ window.refreshSocial = refreshSocial;
    `feed`, so the lookup is just feed[fi]. */
 function wireSocial(el, ns){
   ns=ns||'';   /* must match the socialBar ns this container rendered with */
+  /* D365 · the glyph toggles applause; the count opens the people */
   el.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',()=>{
-    const f=feed[+b.dataset.rx]; if(f) toggleRx(f, b.dataset.e);
+    const f=feed[+b.dataset.rx]; if(f) toggleRx(f, APPLAUSE.key);
+  }));
+  el.querySelectorAll('[data-rxpeople]').forEach(b=>b.addEventListener('click',()=>{
+    const f=feed[+b.dataset.rxpeople]; if(f) openApplausePeople(ensureRx(f));
   }));
   el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.report]; if(f) reportPost(f);
@@ -16601,20 +16652,17 @@ async function toggleHomeRx(r, emoji){
     console.warn('[reaction:home]', emoji, error);
     rxFlip(cur, me, had);
     renderHomeFeed();
-    toast(humanError(error, 'Reaction did not save.'));
-  }
+    toast(humanError(error, emoji===APPLAUSE.key ? APPLAUSE.failed : 'Reaction did not save.'));
+  } else if(emoji===APPLAUSE.key && !had) csApplauseFirstSend();
 }
 function wireHomeSocial(box){
   const rows = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
-  box.querySelectorAll('[data-hreact]').forEach(b=>b.addEventListener('click',()=>{
-    const options=b.nextElementSibling;
-    options.hidden=false;
-    b.setAttribute('aria-expanded','true');
-    b.hidden=true;
-    options.querySelector('button')?.focus();
-  }));
+  /* D365 · the glyph toggles applause; the count opens the people */
   box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',()=>{
-    const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, b.dataset.e);
+    const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, APPLAUSE.key);
+  }));
+  box.querySelectorAll('[data-hrxpeople]').forEach(b=>b.addEventListener('click',()=>{
+    const r=rows[+b.dataset.hrxpeople]; const rx=r && homeRxOf(r); if(rx) openApplausePeople(rx);
   }));
 }
 /* photos arc 2 (D59): one face for every identity chip — the avatar when the
@@ -17187,7 +17235,7 @@ function dgMentions(mark){
   if(state.demo){
     /* diorama: the seeded reactions on the is_me row, treated as fresh */
     DEMO_FEED.filter(r=>r.is_me&&r.rx).forEach(r=>{
-      Object.entries(r.rx).forEach(([e,s])=>(s.who||[]).forEach(w=>out.push({who:w, e, gross:r.gross})));
+      Object.entries(r.rx).forEach(([e,s])=>(s.who||[]).forEach(w=>out.push({who:w, e, gross:r.gross, rid:r.round_id})));
     });
     return out;
   }
@@ -17198,13 +17246,13 @@ function dgMentions(mark){
     if(!k.created_at || dgTime(k.created_at)<=mark) return;
     const r=mine[k.post_id]; if(!r) return;
     if(csKudoMine(k)) return;                      /* my own tap isn't news */
-    out.push({ who:csKudoWho(k), e:k.emoji||'azalea', gross:r.gross });
+    out.push({ who:csKudoWho(k), e:k.emoji||'azalea', gross:r.gross, rid:r.round_id });
   });
   (hr.cmine||[]).forEach(c=>{
     if(!c.created_at || dgTime(c.created_at)<=mark) return;
     const r=mine[c.post_id]; if(!r) return;
     if(csKudoMine(c)) return;
-    out.push({ who:csKudoWho(c), e:null, gross:r.gross });
+    out.push({ who:csKudoWho(c), e:null, gross:r.gross, rid:r.round_id });
   });
   return out;
 }
@@ -17212,6 +17260,7 @@ function dgMentions(mark){
    right pressure to feel when adding one. */
 function rxSentence(k, gross){
   switch(k){
+    case 'applause': return 'applauded your round';   /* D365 · the round, not the score */
     case 'azalea': return `gave your ${gross} its flowers`;
     case 'jug':    return `raised a glass to your ${gross}`;
     case 'eagle':  return `circled your ${gross} twice`;
@@ -17253,15 +17302,22 @@ function renderHomeDigest(){
     if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
     if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
     if(posts.length) bits.push(`${posts.length} league note${posts.length>1?'s':''}`);
-    if(men.length){
-      const m=men[0];
+    /* D365 · applause is grouped by round and distinct people — "Alex and 2
+       others applauded your round" — never listed tap by tap; whatever else
+       landed (a comment, an earlier reaction) keeps the old shape. */
+    const apByRound={}, apOrder=[];
+    men.filter(m=>m.e===APPLAUSE.key).forEach(m=>{ const k=String(m.rid||('gross:'+m.gross)); if(!apByRound[k]){ apByRound[k]=[]; apOrder.push(k); } apByRound[k].push(m.who); });
+    apOrder.slice(0,2).forEach(k=>{ const s=APPLAUSE.activity(apByRound[k]); if(s){ const first=s.split(' ')[0]; bits.push(`<b>${esc(first)}</b>${esc(s.slice(first.length))}`); } });
+    const rest=men.filter(m=>m.e!==APPLAUSE.key);
+    if(rest.length){
+      const m=rest[0];
       /* D311 · a reaction is a word, not a verb. This built
          "Jade 🔥’d your 90" — a glyph used as a verb, which no language does,
          and which D309 makes impossible anyway: you cannot verb a drawn
          azalea. One authored sentence per token; an unknown key falls to the
          neutral line rather than naming a reaction it cannot read. */
       bits.push(`<b>${esc(m.who)}</b> ${rxSentence(m.e, m.gross)}`);
-      if(men.length>1) bits.push(`${men.length-1} more chimed in on your rounds`);
+      if(rest.length>1) bits.push(`${rest.length-1} more chimed in on your rounds`);
     }
     if(!bits.length) return;
     box.innerHTML=`<div class="digest"><span class="dk">Since you were here</span>${dgJoin(bits)}.</div>`;

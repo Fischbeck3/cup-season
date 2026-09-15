@@ -30,45 +30,17 @@ struct ReactionBar: View {
   @State private var open = false
   @State private var reporting = false
 
-  /// Has anybody said anything at all on this item?
-  private var untouched: Bool { given.isEmpty }
-  /// What people actually gave, in CANON order — never arrival order.
-  private var given: [CSReactions.Reaction] {
-    CSReactions.all.filter { (item.reactions[$0.key]?.n ?? 0) > 0 }
-  }
-  /// What the `+` reveals.
-  private var rest: [CSReactions.Reaction] {
-    CSReactions.all.filter { (item.reactions[$0.key]?.n ?? 0) == 0 }
-  }
   private var threadOpen: Bool { store.openThreads.contains(item.id) }
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       CSRule()
       FlowRow(spacing: 6) {
-        // **D324 · THE BOARD GETS THE WIRE'S ROW.** D310 kept all four on the
-        // face here, on the argument that a board is a room you went to. Seen
-        // rendered that was wrong, and worse than the wire ever was: these are
-        // FILLED tiles, so four of them plus the report and the comment is six
-        // grey boxes under every post. The owner had already said what he
-        // thinks of the pattern; it just had not been carried across.
-        //
-        // What is GIVEN stays on the face — those are facts about what
-        // happened. The rest wait behind the `+`, and picking one closes it.
-        ForEach(given) { r in chip(r.token) }
-        if open {
-          ForEach(rest) { r in chip(r.token, closesOnTap: true) }
-        } else if !rest.isEmpty {
-          iconButton(.plus, label: given.isEmpty ? "React to this round" : "More reactions",
-                     expanded: false) {
-            CSHaptic.selection()
-            CSMotion.run(CSMotion.tick) { open = true }
-          }
-          .accessibilityActions {
-            ForEach(rest) { r in
-              Button(r.label) { Task { await store.toggleReaction(item.id, r.key) } }
-            }
-          }
+        // D365 · **the reaction menu is gone.** The board draws the one
+        // applause control the wire draws — glyph and count — beside the
+        // report control and the thread. Nothing else is offered.
+        ApplauseControl(state: Applause.state(item.reactions)) {
+          Task { await store.toggleReaction(item.id, Applause.key) }
         }
         if item.postId != nil {
           // never a flag — `LINT-28` reserves the pennant to the tab band and
@@ -101,41 +73,7 @@ struct ReactionBar: View {
     .sheet(isPresented: $reporting) { ReportSheet(item: item, store: store) }
   }
 
-  // MARK: chips
-
-  /// One token. **The count is drawn only when it is a count** — an untouched
-  /// row shows four outlines and no figures, which is the whole of D310: a
-  /// glyph with a phantom zero beside it reads as a reaction somebody left.
-  private func chip(_ t: CSReactionToken, closesOnTap: Bool = false) -> some View {
-    let r = item.reactions[t.key] ?? ReactionState()
-    let who = r.who.joined(separator: ", ")
-    let title = t.word + (who.isEmpty ? "" : " — " + who)
-    return Button {
-      CSHaptic.selection()
-      Task { await store.toggleReaction(item.id, t.key) }
-      if closesOnTap { CSMotion.run(CSMotion.tick) { open = false } }
-    } label: {
-      // the CHIP is 28pt (§7.2) and the TARGET is 44 — the frame goes outside
-      // the fill, or a row of reactions reads as a row of grey tiles. A
-      // reaction you gave INVERTS to the panel rather than filling with ember,
-      // because a reaction is not live — and under a look that panel is the
-      // livery's second colour (D313), so your own reactions wear it.
-      HStack(spacing: CSTokens.Space.s1) {
-        CSReactionGlyph(t, size: .row)
-        if r.n > 0 { Text("\(r.n)").csType(.agateS) }
-      }
-      .padding(.horizontal, CSTokens.Space.s3)
-      .frame(minWidth: 36, minHeight: 28)
-      .foregroundStyle(r.me ? cs.panelInk : (untouched ? cs.dimText : cs.mut))
-      .background(r.me ? cs.panel : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
-      .frame(minWidth: 44, minHeight: 44)
-      .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .accessibilityLabel(title)
-    .accessibilityValue(r.me ? "on" : "off")
-    .accessibilityAddTraits(.isToggle)
-  }
+  // MARK: the report control
 
   private func iconButton(_ glyph: CSGlyph.Name, label: String, expanded: Bool, action: @escaping () -> Void) -> some View {
     Button(action: action) {

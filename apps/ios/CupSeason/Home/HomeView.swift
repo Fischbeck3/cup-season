@@ -439,15 +439,11 @@ struct HomeView: View {
         }
       }
       .contextMenu {
-        // "add a reaction" on a long press; same write path as the row. The
-        // icon is the drawn token now (D309) — a context menu takes a `Label`,
-        // and a `Label`'s icon is a view, so the glyph goes in directly.
+        // D365 · one act on a long press, the same write path as the control.
         if let rid = r.round_id, let state = vm.social.state(for: rid) {
-          ForEach(CSReactions.all) { rx in
-            Button { react(r, rx.key) } label: {
-              Label { Text(rx.label) } icon: { CSReactionGlyph(rx.token, size: .row) }
-            }
-            .disabled(state[rx.key]?.me == true)
+          let a = Applause.state(state)
+          Button { react(r, Applause.key) } label: {
+            Label { Text(a.me ? Applause.remove : Applause.give) } icon: { CSApplauseGlyph(points: 17, filled: a.me) }
           }
         }
       }
@@ -509,6 +505,10 @@ struct HomeView: View {
       guard let me = store.me else { return }
       if let error = await vm.toggle(round: r, emoji: emoji, me: me, name: me.profile?.display_name ?? "You") {
         toast.show(error, kind: .failed)
+      } else if emoji == Applause.key, let rid = r.round_id,
+                vm.social.state(for: rid)?[Applause.key]?.me == true, Applause.firstSend() {
+        // D365 · first-use feedback, once per install — and only for a GIVE
+        toast.show(Applause.sent, kind: .confirmed)
       }
     }
   }
@@ -850,7 +850,7 @@ final class HomeModel {
     catch {
       st.flip(me: name, on: had)
       social.rx[t.postId, default: [:]][emoji] = st
-      return AuthRules.human(error, fallback: "Reaction did not save.")
+      return AuthRules.human(error, fallback: emoji == Applause.key ? Applause.failed : "Reaction did not save.")
     }
   }
 }
@@ -868,10 +868,9 @@ private struct A11yReactionActions: ViewModifier {
   let toggle: (String) -> Void
   func body(content: Content) -> some View {
     if enabled {
+      // D365 · one action: applaud, or take it back
       content.accessibilityActions {
-        ForEach(CSReactions.all) { r in
-          Button(r.label) { toggle(r.key) }
-        }
+        Button(Applause.give) { toggle(Applause.key) }
       }
     } else {
       content

@@ -49,7 +49,16 @@ public struct HomeSocial: Sendable {
       self.post_id = post_id; self.member_id = member_id; self.created_at = created_at
     }
   }
-  public struct Mention: Sendable, Equatable { public let who: String; public let emoji: String?; public let gross: Int? }
+  public struct Mention: Sendable, Equatable {
+    public let who: String
+    public let emoji: String?
+    public let gross: Int?
+    /// D365 · the round, so applause on one round groups into one sentence.
+    public let roundId: UUID?
+    public init(who: String, emoji: String?, gross: Int?, roundId: UUID? = nil) {
+      self.who = who; self.emoji = emoji; self.gross = gross; self.roundId = roundId
+    }
+  }
 
   /// One `posts` row as the picker sees it. `profile_id` is optional on the
   /// client for deploy skew in the other direction: the column may not be
@@ -94,13 +103,13 @@ public struct HomeSocial: Sendable {
         let row = BoardKudos.Row(post_id: k.post_id, profile_id: k.profile_id, member_id: k.member_id, emoji: k.emoji)
         if BoardKudos.isMine(row, me: me, myMemberIds: myMemberIds, memberToProfile: memberToProfile) { continue }
         let who = BoardKudos.author(row, memberToProfile: memberToProfile).flatMap { names[$0] } ?? "someone"
-        out.append(Mention(who: who, emoji: k.emoji ?? CSReactions.quick, gross: r.gross))
+        out.append(Mention(who: who, emoji: k.emoji ?? CSReactions.quick, gross: r.gross, roundId: r.round_id))
       }
       for c in myComments {
         guard let t = c.created_at, t > mark, let r = mine[c.post_id] else { continue }
         if let m = c.member_id, myMemberIds.contains(m) || memberToProfile[m] == me { continue }
         let who = c.member_id.flatMap { memberToProfile[$0] }.flatMap { names[$0] } ?? "someone"
-        out.append(Mention(who: who, emoji: nil, gross: r.gross))
+        out.append(Mention(who: who, emoji: nil, gross: r.gross, roundId: r.round_id))
       }
       return out
     }

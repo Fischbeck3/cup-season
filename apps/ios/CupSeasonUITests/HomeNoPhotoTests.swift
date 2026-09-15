@@ -28,11 +28,12 @@ final class HomeNoPhotoTests: XCTestCase {
     XCTAssertTrue(record.isHittable)
     let photoFallback = XCTAttachment(screenshot: app.screenshot())
     photoFallback.name = "Unavailable photo at AX3"; photoFallback.lifetime = .keepAlways; add(photoFallback)
-    app.buttons["React to this round"].firstMatch.tap()
-    let flowers = app.descendants(matching: .any)["flowers"]
-    XCTAssertTrue(flowers.waitForExistence(timeout: 5))
-    flowers.tap()
-    XCTAssertTrue(app.descendants(matching: .any)["flowers, 1, yours"].exists)
+    // D365 · one appreciation action: give applause, and the count appears
+    let give = app.buttons["Give applause"].firstMatch
+    XCTAssertTrue(give.waitForExistence(timeout: 5))
+    give.tap()
+    XCTAssertTrue(app.buttons["Remove applause"].firstMatch.waitForExistence(timeout: 5))
+    XCTAssertTrue(app.buttons["1 applause"].firstMatch.exists)
     record.tap()
     XCTAssertTrue(app.staticTexts["Round · UNM Championship Course"].waitForExistence(timeout: 5))
     app.terminate(); app.launch()
@@ -46,21 +47,28 @@ final class HomeNoPhotoTests: XCTestCase {
     let app = XCUIApplication()
     app.launchArguments = ["-cs_dev_no_photo", "-cs_dev_text_size", "large", "-cs_dev_look", "none"]
     app.launch()
-    let react = app.buttons["React to this round"].firstMatch
-    XCTAssertTrue(react.waitForExistence(timeout: 20))
+    // D365 · no picker, no capsule, no word: one glyph, then a count, and a
+    // second tap takes it back. The old menu's words never appear.
+    let give = app.buttons["Give applause"].firstMatch
+    XCTAssertTrue(give.waitForExistence(timeout: 20))
     XCTAssertFalse(app.descendants(matching: .any)["flowers"].exists)
-    react.tap()
-    let flowers = app.descendants(matching: .any)["flowers"]
-    XCTAssertTrue(flowers.waitForExistence(timeout: 5))
-    let reveal = XCTAttachment(screenshot: app.screenshot())
-    reveal.name = "Home reaction choices"; reveal.lifetime = .keepAlways; add(reveal)
-    flowers.tap()
-    XCTAssertTrue(app.descendants(matching: .any)["flowers, 1, yours"].waitForExistence(timeout: 5))
-    XCTAssertFalse(app.descendants(matching: .any)["cheers"].exists)
-    XCTAssertTrue(app.buttons["More reactions"].exists)
-    app.descendants(matching: .any)["flowers, 1, yours"].tap()
-    XCTAssertFalse(app.descendants(matching: .any)["flowers, 1, yours"].exists)
-    XCTAssertTrue(app.buttons["React to this round"].firstMatch.exists)
+    XCTAssertFalse(app.buttons["React to this round"].exists)
+    XCTAssertFalse(app.buttons["More reactions"].exists)
+    XCTAssertGreaterThanOrEqual(give.frame.width, 44); XCTAssertGreaterThanOrEqual(give.frame.height, 44)
+    give.tap()
+    let remove = app.buttons["Remove applause"].firstMatch
+    XCTAssertTrue(remove.waitForExistence(timeout: 5))
+    XCTAssertTrue(app.buttons["1 applause"].firstMatch.exists)
+    let given = XCTAttachment(screenshot: app.screenshot())
+    given.name = "Home applause given"; given.lifetime = .keepAlways; add(given)
+    // the count opens the people
+    app.buttons["1 applause"].firstMatch.tap()
+    XCTAssertTrue(app.staticTexts["Applause"].firstMatch.waitForExistence(timeout: 5))
+    app.buttons["Close"].firstMatch.tap()
+    remove.tap()
+    XCTAssertTrue(app.buttons["Give applause"].firstMatch.waitForExistence(timeout: 5))
+    XCTAssertFalse(app.buttons["1 applause"].exists)
+    XCTAssertTrue(app.buttons["Give applause"].firstMatch.exists)   // D365
   }
 
   /// D360 · the five states of the record, photographed in both appearances
