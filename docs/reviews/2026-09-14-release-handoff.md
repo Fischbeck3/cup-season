@@ -136,7 +136,7 @@ The frozen checkpoint is recorded in [2026-09-14-release-checkpoint-evening.md](
 | | |
 |---|---|
 | **Quality checkpoint, unchanged** | `714609b` · build 905 · internal-only |
-| **Source** | the commit named in the deployment packet's release-candidates table (this addendum ships in it) |
+| **Source** | `0792ddd` (the commit after it is this note) |
 | **Web** | preview on every push; the desk's composer worth line, lens rows with denominators, and the door to the month's rounds through `counting_rounds` |
 | **Native** | the composer's worth lines from `my_month_counters`; lens rows from `contributions`; `CountingRoundsSheet` from `counting_rounds`; honest on the older database. **No native build archived** for this increment — the phone's half needs the migration to say anything on production. |
 | **Database** | `20261104090000` prepared, validated on an isolated cluster, **not applied**; the held `20261024090000` unchanged. Packet: `docs/reviews/2026-09-14-counting-deployment-packet.md` |
