@@ -226,6 +226,33 @@ are listed in `bc22372`'s message.
 | **The looks** | three had drifted from the roles their own note declared. `fresh` carried literal `ink`; `cupfinal` carried earned **gold** as its second accent. Both resolved. `cupfinal`'s ember and `wrap`'s gold stand as **named exemptions with their reason** — a Cup Final is the active competition, a wrapped season is the earning. **BRAND-02** holds it from the token source, by look key and by token name. |
 | **Status** | **built and verified both** |
 
+## 12 · A round without a photograph (D360)
+
+| | |
+|---|---|
+| **Both clients** | the compact scorecard: identity row, course as title with the gross on the same rule, one supported story, a foot with reactions and the receipt route; the photograph keeps its own presentation. |
+| **Difference remaining** | the *competition* story (points · counting #n) is reachable on the desk through the board cache for the active league; the phone has nothing to pass until `home_feed` carries `points`, `month_rank`, `counting_cap` — a named backend dependency (sprint B). |
+| **Evidence** | `round-record-browser.js` (both themes, 390/320), `HomeNoPhotoTests` (both appearances, AX3). |
+| **Status** | **built and verified both** · backend dependency **open** |
+
+## 13 · Home says each fact once (D360 audit)
+
+| | |
+|---|---|
+| **Web** | MW-02 already collapsed and named repeated wire sentences; the season row now yields when the ranked column says the standing. |
+| **Native** | `HomePage.arrangeWire` is MW-02's twin; the season row yielded since D321. |
+| **Status** | **built and verified both** |
+
+## 14 · Home photograph stability (D361)
+
+| | |
+|---|---|
+| **Both clients** | a signed URL is a credential, not an identity: paths keep their URL until near expiry; each round's picture is keyed by path; loading and transient misses keep the last good picture; removal, a gone object and sign-out drop it. |
+| **Native** | `HomePhotoStore` replaces `AsyncImage`; the loading frame keeps score and course at the band's height; decode is downsampled at the source. |
+| **Web** | a signed cache by path, a last-good fallback, decoded nodes kept across re-renders. |
+| **Evidence** | `HomePhotoStoreTests` (5), `HomePhotoStabilityTests` (3), `home-photos-browser.js` (6 checks); measurements in D361. |
+| **Status** | see D361 for the verified state |
+
 ## Next
 
 **B · shared function gaps** — the native receipt moment, the Compete masthead

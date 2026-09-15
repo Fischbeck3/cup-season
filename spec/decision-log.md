@@ -7667,3 +7667,28 @@ Four sentences that asserted more than their payload carried. Each is the same f
 - **Tradeoffs.** The record is only modestly shorter (204 → 186 at 390 wide for the reference round) because the reactions' 44pt targets and the receipt route are structure that was missing, not air that was removed. The consequence story is a desk-only reach until `home_feed` carries `points`, `month_rank` and `counting_cap` — a backend dependency recorded in the sprint packet, not deployed here.
 - **Evidence.** `tests/round-record-browser.js` (both themes, 390 and 320), `tests/home-repetition-browser.js`, `HomeNoPhotoTests` (five, iPhone 17 Pro, both appearances and AX3), `HomePageTests.repeatedHeadlinesNameTheirLeague`.
 
+### D361 · A signed URL is a credential, not an identity — each Home round owns its photograph
+**Owner-directed 2026-09-14** (*"Prioritize Home photo stability… Each round owns its image state independently. Loading another image never removes an already displayed photograph."*) · implementation level, both clients
+
+- **The case.** Two adjacent photo rounds on Home; loading one removed the other. Reproduced deterministically on a fixture (`-cs_dev_photo_stability`) with a stub fetcher that answers late and in either order.
+- **The cause, read from the code and measured.** Every Home load signed the circle's photo paths again, and a signed URL carries a fresh token every time. The URL string therefore changed on every refresh; `AsyncImage(url:)` — the picture's only memory — saw a new identity, threw away what it had and started over, and drew a transient miss as "no photograph". `URLCache` never matched, because no two loads asked for the same URL; and the storage responses carry **no `Cache-Control`**, so even the same URL is a cache hit only sometimes (one of three in the probe).
+- **Measured before, on the signed-in simulator, real rounds** (`-cs_dev_photo_probe_home`, three photo rounds in the circle):
+
+  | | |
+  |---|---|
+  | batch signing, 3 paths | 162 ms · single signs 101–290 ms |
+  | fresh URL download | 470–877 KB · 350–510 ms each |
+  | same URL again | 1 ms when the cache hit (once), 87–95 ms otherwise |
+  | decode, full 1600×1200 | 18–38 ms |
+  | decode, downsampled to 1400 | 16–29 ms |
+  | server transform, 1200 wide q75 | HTTP 200 · 159–431 KB (35–50% of the original) · 247–449 ms |
+
+- **Decision, as built.**
+  - **The credential is cached by path** (`SignedURLCache`, and `csSigned` on the desk): a path keeps the URL it was signed with until five minutes before expiry. A refresh, a returning tab and a scroll ask for the same URL. Sign-out clears it; a replaced or removed photograph forgets its path.
+  - **The picture is asked for sized for the band**: 1200 wide, quality 75, through the storage's transform. A transform is bound into the token, so it is one signing call per path, concurrent, once an hour.
+  - **Each round's picture is remembered by path** (`HomePhotoStore`), in five states: *none*, *loading with the last good picture kept*, *loaded*, *failed with the last good picture kept*, *removed*. The band draws them: a loading round with no prior picture shows its frame with the score, course and gross at the band's height; a transient miss keeps the picture; only no attachment, a gone object (4xx), a path nothing could sign, or a path the wire dropped becomes the record. Loading one round's picture cannot touch another's, because a round's entry is touched only by its own path. The decode is downsampled at the source. Returning Home reuses what the store holds — no fetch for an unchanged URL.
+  - **The desk** keeps the last good URL per path and falls back to it when a refreshed URL misses; decoded `<img>` nodes are kept across a re-render rather than recreated; `decoding="async"`.
+- **After.** A refresh mints no new URL for an unexpired path (0 signing calls, 0 downloads on the desk's test; on the phone, 2 fetches for 2 rounds and none on return). The fixture's reversed order, refresh-with-a-miss, gone-object and removal all leave the other photograph up.
+- **Not done.** `HomeDigest`'s thumbnail still takes the URL map as before (it is the same cached URL now). The board's `RoundStoryCard` still uses `AsyncImage`; it is a room you went to, not the wire, and is the next place to move the store.
+- **Evidence.** `HomePhotoStoreTests` (5: reversed order, refresh keeps the picture and skips an unchanged URL, cancellation, gone/removal/reconcile, downsample), `HomePhotoStabilityTests` (3, iPhone 17 Pro, with screenshots), `tests/home-photos-browser.js` (6 checks), the probe's JSON.
+

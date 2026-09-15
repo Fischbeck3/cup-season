@@ -97,3 +97,21 @@ data precondition and now runs on a deterministic fixture.
   submission that actually puts a build in front of the Friends group.
 - **The native receipt moment** — the desk's composition has not crossed to the
   phone yet. It is row 8 of the parity ledger.
+
+
+---
+
+## Evening addendum · 2026-09-14 — the scorecard, the Home audit, photo stability, and the sprint packet
+
+**Source.** Everything below is on `claude/brand-client-parity`; the last commit that changed a served file is the one this addendum ships in (the preview's `#obCaption` names it). Native build **898** predates this work; **no new native build was archived** — the signing path is proven and `tools/ios-archive.sh --upload` mints the next number when Codex has reviewed.
+
+| Work | Web | Native | Evidence |
+|---|---|---|---|
+| D360 · compact no-photo scorecard | built | built | `round-record-browser.js` (dark/light, 390/320), `HomeNoPhotoTests` (5, both appearances, AX3) |
+| D360 · Home says each fact once | season row yields to the column | MW-02's twin (`HomePage.arrangeWire`) | `home-repetition-browser.js`, `HomePageTests` (27) |
+| D361 · photo stability | signed cache by path, sized pictures, last-good fallback, nodes kept | `HomePhotoStore`, `SignedURLCache`, sized signing, loading frame | `home-photos-browser.js` (6), `HomePhotoStoreTests` (5), `HomePhotoStabilityTests` (3); measurements in D361 |
+| Sprint packet | — | — | `docs/planning/2026-09-14-gameplay-sprint-candidates.md`; nothing in the release |
+
+**Remaining parity gaps.** The scorecard's *competition* story reaches the desk through the board cache and cannot reach the phone until `home_feed` carries points and the month rank (sprint B's migration). The board's story card still uses `AsyncImage`; the wire is fixed, the board is next. A physical iPhone pass is still owed for everything above.
+
+**Deployment status.** Database: **no migration applied or proposed for this release** (the packet names its migrations; none run). Edge: none. Web: preview only; `cupseason.app` stays at `1bc307f`. Signing: recovered and repeatable; builds 890 and 898 remain internal-only on TestFlight.

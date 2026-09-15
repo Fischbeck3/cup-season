@@ -72,37 +72,94 @@ struct HomeSectionRule: View {
 /// scrim's own leading anchor, and the gross sits in the **bone** panel in both
 /// themes — a photograph carries its own dusk, and the light theme's ink panel
 /// would vanish into it.
+///
+/// D361 · **THE BAND READS ITS PICTURE FROM `HomePhotoStore`, KEYED BY THE
+/// ROUND'S OWN PATH.** `AsyncImage(url:)` was the only memory the picture had,
+/// and it forgot on every change of URL — which every refresh caused — and on
+/// every transient failure, which it drew as "no photograph". Now: a loading
+/// band keeps the last good picture, or shows its frame with the score and
+/// course in place at the same height; a transient miss keeps the last good
+/// picture; only a round with no attachment, a removed one, or a withdrawn
+/// grant becomes the record. Loading one round's picture cannot touch another's.
 struct HomeWireBand: View {
   @Environment(\.cs) private var cs
   let row: HomeFeedRow
-  let photo: URL
+  let photo: URL?
+  var photos: HomePhotoStore = .shared
   let open: () -> Void
   let openPerson: () -> Void
 
-  private var name: String { HomeCopy.who(row) }
-  private var line: String { HomeWireCopy.roundLine(row) }
-
-  var body: some View {
-    AsyncImage(url: photo) { phase in
-      if let image = phase.image {
-        band(image)
-      } else if phase.error != nil {
-        HomeWireSlat(row: row, open: open, openPerson: openPerson)
-          .padding(.horizontal, CSTokens.Space.gutter)
-      } else {
-        // Reserve the photo geometry while loading. Only a failure becomes
-        // a record, so scrolling a loading image cannot flash a text slat.
-        Button(action: open) { cs.bg1.frame(height: 168) }
-          .buttonStyle(.plain)
-          .accessibilityIdentifier("home.round.photo-loading")
-          .accessibilityLabel("\(name). \(line)")
-          .accessibilityHint("Photo loading. Opens the round")
-          .accessibilityAction(named: Text("Open golfer"), openPerson)
-      }
-    }
+  init(row: HomeFeedRow, photo: URL?, photos: HomePhotoStore = .shared,
+       open: @escaping () -> Void, openPerson: @escaping () -> Void) {
+    self.row = row; self.photo = photo; self.photos = photos; self.open = open; self.openPerson = openPerson
   }
 
-  func band(_ image: Image) -> some View {
+  private var name: String { HomeCopy.who(row) }
+  private var line: String { HomeWireCopy.roundLine(row) }
+  private var state: HomePhotoStore.State { photos.state(for: row.photo_path) }
+
+  var body: some View {
+    Group {
+      switch state {
+      case .loaded(let img):
+        band(Image(uiImage: img))
+      case .loading(let prior):
+        if let prior { band(Image(uiImage: prior), loading: true) } else { frame }
+      case .failed(let prior):
+        if let prior { band(Image(uiImage: prior)) }
+        else { HomeWireSlat(row: row, open: open, openPerson: openPerson).padding(.horizontal, CSTokens.Space.gutter) }
+      case .none, .removed:
+        HomeWireSlat(row: row, open: open, openPerson: openPerson).padding(.horizontal, CSTokens.Space.gutter)
+      }
+    }
+    .task(id: photo) { photos.load(path: row.photo_path, url: photo) }
+  }
+
+  /// The band's own geometry while the first fetch is out: the same 168pt,
+  /// the copy row in place — name, line and gross — over the raised ground.
+  /// The score and the course never wait for the picture.
+  private var frame: some View {
+    Button(action: open) {
+      ZStack(alignment: .bottomLeading) {
+        cs.bg1.frame(maxWidth: .infinity).frame(height: 168)
+        copyRow(onPhoto: false)
+      }
+      .frame(maxWidth: .infinity)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("\(name). \(line)")
+    .accessibilityHint("Photo loading. Opens the round")
+    .accessibilityAction(named: Text("Open golfer"), openPerson)
+    .accessibilityIdentifier("home.round.photo-loading")
+  }
+
+  @ViewBuilder private func copyRow(onPhoto: Bool) -> some View {
+    HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
+      CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
+        .frame(width: 44, height: 44)
+        .contentShape(Rectangle())
+        .onTapGesture { openPerson() }
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        // §1.3 · a person in a wire row is never caps.
+        Text(name).csType(.social).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.ink)
+          .lineLimit(1).truncationMode(.tail)
+        Text(line).csType(.bodyS).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      if let g = row.gross {
+        CSPanel(onPhoto ? .overPhoto : .page, unit: "Gross", width: 60, height: 60) {
+          Text("\(g)").csType(.figureM)
+        }
+      }
+    }
+    .padding(.horizontal, CSTokens.Space.gutter)
+    .padding(.bottom, CSTokens.Space.s3)
+  }
+
+  func band(_ image: Image, loading: Bool = false) -> some View {
     Button(action: open) {
       ZStack(alignment: .bottomLeading) {
         image.resizable().scaledToFill()
@@ -123,27 +180,7 @@ struct HomeWireBand: View {
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
         .padding(CSTokens.Space.s3)
-        HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
-          CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
-            .frame(width: 44, height: 44)
-            .contentShape(Rectangle())
-            .onTapGesture { openPerson() }
-          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            // §1.3 · a person in a wire row is never caps.
-            Text(name).csType(.social).foregroundStyle(CSTokens.dark.scrimInk)
-              .lineLimit(1).truncationMode(.tail)
-            Text(line).csType(.bodyS).foregroundStyle(CSTokens.dark.scrimInk)
-              .fixedSize(horizontal: false, vertical: true)
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          if let g = row.gross {
-            CSPanel(.overPhoto, unit: "Gross", width: 60, height: 60) {
-              Text("\(g)").csType(.figureM)
-            }
-          }
-        }
-        .padding(.horizontal, CSTokens.Space.gutter)
-        .padding(.bottom, CSTokens.Space.s3)
+        copyRow(onPhoto: true)
       }
       .frame(maxWidth: .infinity)
       .clipped()
@@ -152,7 +189,7 @@ struct HomeWireBand: View {
     .buttonStyle(.plain)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("\(name). \(line)")
-    .accessibilityHint("Opens the round")
+    .accessibilityHint(loading ? "Photo refreshing. Opens the round" : "Opens the round")
     .accessibilityAction(named: Text("Open golfer"), openPerson)
     .accessibilityIdentifier("home.round.photo")
   }

@@ -126,6 +126,12 @@ struct RootView: View {
       if CrewFlag.take(me) { crewing = true }
     }
     #if DEBUG
+    // `-cs_dev_photo_probe_home` · measure the Home photograph path, once, on
+    // a signed-in simulator. Writes Documents/photo-probe.json; changes nothing.
+    .task(id: store.session?.user.id) {
+      guard HomePhotoProbe.wanted, store.session != nil else { return }
+      await HomePhotoProbe.run(client: SupabaseService.shared.client)
+    }
     .overlay {
       if ProcessInfo.processInfo.arguments.contains("-cs_dev_wizard_fixture") {
         NavigationStack { WizardScreen(fixture: true) }.background(cs.bg0.ignoresSafeArea())

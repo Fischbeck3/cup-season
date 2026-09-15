@@ -208,11 +208,30 @@ public struct HomeStreamRepository: Sendable {
     let moments = (leaguePosts + personPosts).filter { seenPosts.insert($0.id).inserted }
     let rows = read ?? []
 
-    // one batched signing per load: the circle's photo paths → hour URLs
-    var urls: [String: URL] = [:]
-    let paths = rows.compactMap(\.photo_path).prefix(14)
-    if !paths.isEmpty, let signed = try? await svc.client.storage.from("media").createSignedURLs(paths: Array(paths), expiresIn: 3600) {
-      for s in signed where s.error == nil { urls[s.path] = s.signedURL }
+    // one batched signing per load: the circle's photo paths → hour URLs.
+    // D361 · THROUGH THE CACHE, so a path keeps the URL it was signed with
+    // until that URL is nearly stale. A refresh therefore asks for the same
+    // bytes at the same URL and the HTTP cache answers; a new signature is
+    // minted only for a path the cache has not seen, or one about to expire.
+    // The picture is asked for SIZED FOR THE BAND — 1200px wide, quality 75 —
+    // which the storage answers at 35–50% of the original bytes (measured
+    // 2026-09-14, HTTP 200 on this project). A transform is bound into the
+    // signed token, so it is one signing call per path rather than one batch;
+    // they run concurrently, and the cache means a path is signed once an hour.
+    let paths = Array(rows.compactMap(\.photo_path).prefix(14))
+    let storage = svc.client.storage
+    let urls = await SignedURLCache.shared.urls(for: paths) { missing in
+      await withTaskGroup(of: (String, URL?).self, returning: [String: URL].self) { group in
+        for path in missing {
+          group.addTask {
+            (path, try? await storage.from("media").createSignedURL(
+              path: path, expiresIn: 3600, transform: TransformOptions(width: 1200, quality: 75)))
+          }
+        }
+        var fresh: [String: URL] = [:]
+        for await (path, url) in group { if let url { fresh[path] = url } }
+        return fresh
+      }
     }
 
     let items = (rows.map { HomeItem.round($0, photoURL: $0.photo_path.flatMap { urls[$0] }) }

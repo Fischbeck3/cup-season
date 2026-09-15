@@ -2,6 +2,12 @@
 
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
+## Brand and parity sprint, and the next gameplay sprint · 2026-09-14
+
+- Claude's owned branch: `claude/brand-client-parity` (PR #4, preview on every push). Web preview and TestFlight state in [the release handoff](../reviews/2026-09-14-release-handoff.md); the per-surface ledger in [the parity ledger](../reviews/2026-09-14-brand-client-parity-ledger.md).
+- The owner's seven ratified decisions are D358/D359; the compact no-photo scorecard and Home's one-fact-one-place audit are D360; Home photograph stability is D361 (`spec/decision-log.md`).
+- **Next gameplay sprint, proposed and not dispatched:** [four candidates, one recommendation](2026-09-14-gameplay-sprint-candidates.md) — run B ("why the next round matters") with A's first increment, then C behind the season-two consent decision. Nothing from it is in the current release; its migrations are named, none applied.
+
 ## Parallel delivery and phone review · owner direction 2026-09-13
 
 The owner is away from the Mac and uses mobile web to track progress. This is a standing delivery requirement for future milestones: pair web/native scope, and provide a verified working HTTPS phone preview at each review checkpoint. Native signing must not block web review. A local artifact or source commit alone is not delivery.

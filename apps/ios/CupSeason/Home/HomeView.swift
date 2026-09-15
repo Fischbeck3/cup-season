@@ -168,7 +168,17 @@ struct HomeView: View {
       await store.reload()
       await vm.load(me: store.me, key: loadKey)
     }
-    .task(id: loadKey) { await vm.load(me: store.me, key: loadKey) }
+    .task(id: loadKey) {
+      await vm.load(me: store.me, key: loadKey)
+      // D361 · a path the wire no longer carries is a photograph removed or
+      // replaced; its memory goes with it. Everything else is kept as it was.
+      HomePhotoStore.shared.reconcile(paths: vm.rounds.compactMap(\.photo_path))
+    }
+    .onChange(of: store.session?.user.id) { _, _ in
+      // sign-out or an account change: no picture and no credential survives
+      HomePhotoStore.shared.clear()
+      Task { await SignedURLCache.shared.clear() }
+    }
     .navigationTitle("")
     .toolbar(.hidden, for: .navigationBar)
     // **DF-14 · A FIGURE MAY NOT RENDER UNDER THE CLOCK.** Content scrolled
@@ -405,7 +415,7 @@ struct HomeView: View {
     case .round(let r, let url):
       VStack(alignment: .leading, spacing: 0) {
         if let url {
-          HomeWireBand(row: r, photo: url,
+          HomeWireBand(row: r, photo: url, photos: HomePhotoStore.shared,
                        open: { if let id = r.round_id { presenter.receipt = id } },
                        openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
         } else {
@@ -615,7 +625,7 @@ final class HomeModel {
   /// the four gated cards dark for ever after wave 3 opens the flag.
   private var majorOpen: Bool?
   private var mark: Date?
-  private var rounds: [HomeFeedRow] = []
+  private(set) var rounds: [HomeFeedRow] = []
   private var posts: [HomePost] = []
   private var urls: [UUID: URL] = [:]
   private let repo = HomeStreamRepository()

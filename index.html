@@ -16560,18 +16560,46 @@ function homeRoundLine(r){
   const detail=homeRoundDetail(r);
   return detail ? `${base} — ${detail}` : base+'.';
 }
-/* A failed image must not keep the round in an empty photo panel. Only the
-   URL is suppressed, so refreshed signed URLs get another chance to load. */
+/* D361 · the signed-URL cache: path → { url, exp }. Re-signed only within five
+   minutes of expiry. Sign-out clears it; a photograph replaced or removed is
+   forgotten by path. */
+const csSigned = new Map();
+function csSignedGet(path){
+  const e = path ? csSigned.get(path) : null;
+  return e && e.exp - Date.now() > 300e3 ? e.url : null;
+}
+function csSignedPut(path, url, seconds){ if(path && url) csSigned.set(path, { url, exp: Date.now() + seconds*1000 }); }
+function csSignedForget(path){ csSigned.delete(path); }
+function csSignedClear(){ csSigned.clear(); csLastGoodPhoto.clear(); homeFailedPhotos.clear(); }
+window.csSignedClear = csSignedClear;
+/* the last URL that actually painted for a path — kept so a refresh whose new
+   URL misses transiently falls back to the picture already seen, instead of
+   taking it down. Keyed by PATH: the photograph's identity, not its credential. */
+const csLastGoodPhoto = new Map();
+/* A failed image must not keep the round in an empty photo panel. Failures are
+   keyed by URL and cleared on every load, so refreshed signed URLs get another
+   chance; a URL that misses while the path has a last-good picture falls back
+   to that picture rather than to the record. */
 const homeFailedPhotos = new Set();
 function wireHomePhotos(box){
   box.querySelectorAll('.hsbg').forEach(img=>{
+    const path = img.getAttribute('data-path') || '';
     const failed=()=>{
-      if(!img.isConnected || homeFailedPhotos.has(img.getAttribute('src'))) return;
-      homeFailedPhotos.add(img.getAttribute('src'));
+      if(!img.isConnected) return;
+      const src = img.getAttribute('src');
+      const good = csLastGoodPhoto.get(path);
+      if(good && good !== src){
+        /* transient: keep the picture that was already up */
+        img.setAttribute('src', good);
+        return;
+      }
+      if(homeFailedPhotos.has(src)) return;
+      homeFailedPhotos.add(src);
       renderHomeFeed();
     };
     img.addEventListener('error',failed,{once:true});
-    if(img.complete && img.naturalWidth===0) failed();
+    img.addEventListener('load',()=>{ if(img.naturalWidth>0 && path) csLastGoodPhoto.set(path, img.getAttribute('src')); },{once:true});
+    if(img.complete){ if(img.naturalWidth===0) failed(); else if(path) csLastGoodPhoto.set(path, img.getAttribute('src')); }
   });
 }
 function feedRow(r, idx, stamp){
@@ -16599,7 +16627,7 @@ function feedRow(r, idx, stamp){
   if(r.photo_url && !homeFailedPhotos.has(r.photo_url)){
     /* B1: the round as a story card — dusk wash, serif gross, marker medal */
     return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
-      <img class="hsbg" src="${esc(r.photo_url)}" alt="" loading="lazy">
+      <img class="hsbg" src="${esc(r.photo_url)}" data-path="${esc(r.photo_path||'')}" alt="" loading="lazy" decoding="async">
       <div class="hstop">
         ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
         <div class="hsid"><b>${whoTag}</b><small>${course} · ${dfmtShort(r.played_on)}${milestone?' · '+milestone:''}</small></div>
@@ -17177,8 +17205,22 @@ function renderHomeFeed(){
   const focusRow=focusChip?.closest('[data-hfr]');
   const focusRound=focusRow ? src[+focusRow.dataset.hfr]?.round_id : null;
   const focusEmoji=focusChip?.dataset.e;
+  /* D361 · a photograph already decoded on the page is KEPT, not repainted.
+     The feed is rebuilt as markup, which would create a fresh <img> for every
+     round and let each one flash empty until it decoded again — even from the
+     cache. So the decoded elements are lifted out first and put back wherever
+     the new markup asks for the same path at the same URL. */
+  const keep = new Map();
+  box.querySelectorAll('img.hsbg').forEach(img => {
+    if(img.complete && img.naturalWidth > 0 && img.getAttribute('data-path'))
+      keep.set(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'), img);
+  });
   box.innerHTML = html
     || '<p class="fine" style="padding:0">No rounds from your buddies yet. Post one, or <a href="#" data-gopeople style="color:var(--brand)">add some buddies</a>.</p>';
+  box.querySelectorAll('img.hsbg').forEach(img => {
+    const old = keep.get(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'));
+    if(old) img.replaceWith(old);
+  });
   box.querySelectorAll('[data-notes]').forEach(el=>el.addEventListener('click',()=>{
     const id=el.dataset.notes;
     if(id && window.CS?.league?.id!==id) window.enterLeagueById?.(id, false);
@@ -20203,6 +20245,7 @@ function csWireReceiptPhoto(r, rid, stampOf){
     const out = await csAttachRoundPhoto(rid, f, r.photo_path);
     busyOn(false);
     if(!out.ok){ say(out.note); return; }
+    if(r.photo_path && r.photo_path!==out.path) csSignedForget(r.photo_path);
     r.photo_path=out.path; r.photo_url=out.url;
     if(window.roundCache && window.roundCache[rid]) Object.assign(window.roundCache[rid], { photo_path:out.path, photo_url:out.url });
     paint();
@@ -20219,6 +20262,7 @@ function csWireReceiptPhoto(r, rid, stampOf){
     const out = await csRemoveRoundPhoto(rid, r.photo_path);
     busyOn(false);
     if(!out.ok){ say(out.note); return; }
+    csSignedForget(r.photo_path);
     r.photo_path=null; r.photo_url=null;
     if(window.roundCache && window.roundCache[rid]) Object.assign(window.roundCache[rid], { photo_path:null, photo_url:null });
     paint();
@@ -28428,7 +28472,7 @@ window.renderAlbum = renderAlbum;
    milestone flags) + season end dates for the league recap. Degrades to an
    empty feed if the RPC isn't deployed yet. */
 async function loadHome(){
-  if(!CS.user){ window.homeFeedRows=[]; window.leagueEnds={}; if(window.renderHomeHub) window.renderHomeHub(); return; }
+  if(!CS.user){ window.homeFeedRows=[]; window.leagueEnds={}; csSignedClear(); if(window.renderHomeHub) window.renderHomeHub(); return; }
   try {
     const ids = (CS.memberships||[]).map(m=>m.league.id);
     if(ids.length){
@@ -28445,17 +28489,28 @@ async function loadHome(){
   /* photos arc 2 (ckpt 1): one batched signing per load turns the circle's
      photo paths into hour URLs (receipt hero + quiet-day thumb). Skew-safe:
      a pre-migration payload has no photo_path and the filter finds nothing. */
+  /* D361 · THROUGH THE CACHE, so a path keeps the URL it was signed with until
+     that URL is nearly stale. A refresh therefore asks for the same bytes at
+     the same URL and the browser's own cache answers — no re-download, no
+     flash; a new signature is minted only for a path the cache has not seen
+     or one about to expire. A signed URL is a fetch credential, not the
+     photograph's identity. */
   try {
     const wp = (window.homeFeedRows||[]).filter(r => r.photo_path).slice(0, 14);
-    if(wp.length){
-      const { data: signed } = await sb.storage.from('media')
-        .createSignedUrls(wp.map(r => r.photo_path), 3600);
-      (signed||[]).forEach(s => {
-        if(!s?.signedUrl) return;
-        const r = wp.find(r => r.photo_path === s.path);
-        if(r) r.photo_url = s.signedUrl;
-      });
+    /* sized for the card — 1200 wide, quality 75 — which the storage answers at
+       35–50% of the original bytes (measured 2026-09-14). A transform is bound
+       into the token, so it is one signing call per path, concurrently, and
+       the cache means a path is signed once an hour. */
+    const missing = [...new Set(wp.map(r => r.photo_path).filter(p => !csSignedGet(p)))];
+    if(missing.length){
+      const signed = await Promise.all(missing.map(p =>
+        sb.storage.from('media').createSignedUrl(p, 3600, { transform: { width: 1200, quality: 75 } })
+          .then(r => ({ path: p, url: r?.data?.signedUrl || null })).catch(() => ({ path: p, url: null }))));
+      signed.forEach(s => { if(s.url) csSignedPut(s.path, s.url, 3600); });
     }
+    wp.forEach(r => { const u = csSignedGet(r.photo_path); if(u) r.photo_url = u; });
+    /* a new load is a new chance: a photograph that missed last time may load now */
+    homeFailedPhotos.clear();
   } catch(e){ /* rows render photo-less */ }
   /* circle reactions ride the rounds just loaded (round → shared-league post) */
   try { await fetchHomeSocial(); } catch(e){ console.warn('[homeSocial]', e); }
