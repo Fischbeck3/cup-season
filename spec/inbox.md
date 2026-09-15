@@ -51,6 +51,8 @@ Prototype and brand proof: `docs/prototypes/next-week.html`. Claude completed C0
 
 ## Raw — drop anything here
 
+- **2026-09-15 · Post-play report / F12–F13:** scheduled course remained prompted after finish; no photo opportunity and own new round hard to find on Home. Verify actual round outcome, then close booking → live → receipt/photo → Home reconciliation. Add meaningful factual birdie/eagle feedback during score entry, with any heating-up rule explicitly defined. [Phone findings](../docs/planning/2026-09-15-phone-findings-and-appreciation.md#f12--finish-the-booked-round-loop-recognition-receipt-photo-and-home). Existing F10 was the entry half; this is the finish half. Both clients; no account writes inferred.
+
 - **2026-09-15 · Approved color direction / F11:** current palette, option 2 Scoreboard. Larger ember competition panels, fescue/cream everyday surfaces, green ordinary actions, earned gold. Ember identifies competition across states; plain bookings stay neutral. Existing logo unchanged. Owner amendment recorded; [Claude handoff §5A](../docs/planning/2026-09-15-claude-phone-fixes-handoff.md). Both clients; implementation pending.
 
 - **2026-09-15 · Phone follow-up F9/F10:** applause glyph is not recognizable; redraw within approved icon/count direction. Replace “Open the plan” with View round and add Tee it up from a booked round, preserving actual tees, participant IDs/RSVP and a single shared live round. [Source and acceptance](../docs/planning/2026-09-15-phone-findings-and-appreciation.md#f9--applause-glyph-does-not-read-as-applause). Both clients; no production database push or new notification policy implied.

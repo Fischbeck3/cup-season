@@ -2,7 +2,7 @@
 
 Owner instruction, 2026-09-15: “Okay let's hand all these items over for Claude to fix.”
 
-Implement findings **F1–F11**, including the latest selected color direction, in [the source review](2026-09-15-phone-findings-and-appreciation.md). This is an implementation handoff, not another inventory exercise. Claude owns implementation; Codex reviews the resulting candidate. Use your own branch/workspace and preserve other agents' work. Reconcile this packet with current HEAD and the actual release state before coding; earlier notes about frozen builds are historical, not instructions to undo a release.
+Implement findings **F1–F13**, including the latest selected color direction and finish-loop report, in [the source review](2026-09-15-phone-findings-and-appreciation.md). This is an implementation handoff, not another inventory exercise. Claude owns implementation; Codex reviews the resulting candidate. Use your own branch/workspace and preserve other agents' work. Reconcile this packet with current HEAD and the actual release state before coding; earlier notes about frozen builds are historical, not instructions to undo a release.
 
 ## Authorization and boundaries
 
@@ -11,6 +11,14 @@ The owner authorizes the described usability fixes, the proposed plain-language 
 Scoring rules remain unchanged. Implement improvements to pride-agreement explanation and context using current capabilities. A new agreement acceptance/settlement engine, historical-reaction conversion policy and new push delivery policy still require concrete decisions. Prepare those designs and any isolated validation alongside the other work; do not let them block independent fixes or silently represent them as already approved. Do not apply production migrations or deploy Edge Functions under this handoff alone. Respect any separate release authorization already given in the active session.
 
 ## Work order and acceptance
+
+### Priority follow-up: finish → your round → Home — F12
+
+The owner finished a scheduled course, was not offered a photo, cannot easily find the new round on Home, and still sees the booking reminder. Verify actual posted/local/skipped status first; do not infer data loss or repost. Complete plan/live/posted identity reconciliation, expose the owner's actual receipt plus optional Add a photo at finish and later, and refresh Home so the newly posted own round is discoverable without an image. Reconcile booking completion per golfer, not for all invitees. F12 specifies ambiguity, retries, local/offline outcomes and photo failure handling. Fix this functional loop before decorative expansion; no production data mutation or migration push is implied.
+
+### Score-entry experience: birdie and eagle — F13
+
+The owner wants positive golf moments to feel meaningful during play. Prepare restrained inline ember Birdie/Eagle feedback on committed, factual hole scores with appropriate haptics and immediate continuation. Preserve neutral scorecard notation, actual scoring and accessibility. Document the narrow color/scorecard-rule amendment before implementation. Avoid intermediate-stepper triggers and replay from sync/recovery; unknown par does not support a confident claim. A factual eagle/birdie tally can carry the round's story forward. Present the interaction on both clients; define any proposed persistent “Heating up” threshold before treating it as an agreed mechanic. Full source/acceptance in F13. No new points or notification fan-out.
 
 ### 1. Preserve the golfer through Play — F7
 

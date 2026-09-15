@@ -109,6 +109,36 @@ Acceptance: booked round → prepared setup → confirmed live round; another ac
 
 This supersedes F4's older active-only restriction and is recorded as an owner amendment in `spec/decision-log.md` and `spec/brand-canon.md`. No alternate palette or full-ember field is selected. Implement both clients and review the same competition across surfaces, dark/light, enlarged text and all actual states. Maintain semantic color roles and contrast; no logo/icon/typography redesign inferred from generated artwork. Full acceptance is in the updated Claude handoff §5A. Implementation and deployment remain pending.
 
+### F12 — Finish the booked-round loop: recognition, receipt, photo and Home
+
+**Owner report, 2026-09-15:** after playing and finishing the scheduled course, Home still says a round is scheduled today, no photo was offered at finish, and the new round is difficult to find. The screenshot shows older rounds leading This week and a generic new-round digest, but does not establish whether the just-finished round was posted, kept locally, skipped or missing. Do not diagnose data loss or duplicate-post the round from this evidence.
+
+F2/F10 covered state clarity and booking → live setup. This adds explicit acceptance for **finish → authoritative posted result → receipt/photo → Home → completed booking**. Treat receipt discoverability and truthful save status as the first priority, before further decorative work.
+
+Source inspected at `7a09b5a`: `LiveRoundStore.finish` has different local-kept, casual and server-posted paths. It receives the finish outcome, builds `LiveRecapData`, resets active state and primes the roster. `LiveRecapSheet` lists posted/skipped cards and game-sharing actions but has no direct personal receipt/photo action. `LiveLinks.openReceipt` exists, but `LiveRoundHost` does not pass it into the recap. No explicit Home/session refresh appears in the inspected finish method; trace downstream subscriptions before asserting the exact stale-feed cause. `todaysPlan` picks the first owned plan for today; that is not proof of linkage or completion. Inspect current producers and live/posted/plan identity end to end, including any newer F10 work, before fixing.
+
+Claude acceptance:
+
+- First locate the outcome and the owner's authoritative round ID using read-only evidence where authorized. Distinguish “Round posted,” “Saved on this phone” and “Not posted” accurately, with a recovery path. Never infer success from a generic recap title, refreshed handicap or a digest sentence.
+- After a successful post, land on or expose **Your round** with course, gross and actual result. Provide **Add a photo** and **View round** immediately; photo remains optional with an easy skip. Reuse the existing receipt's attach/remove pipeline, permissions and shared photo store. Cancelling or failing a photo upload cannot undo a posted score or create another round. Do not ask for library permission until the golfer chooses the action.
+- Refresh Home from the confirmed outcome and make the just-posted own round easy to reach even without a photo. Its receipt must provide Add a photo later. Avoid a photo-first ranking that buries a fresh factual round beneath older images; preserve backdated played-on dates and avoid falsely claiming they happened today. A temporary own-round confirmation can bridge refresh latency but must reconcile to the real round ID without duplicate feed cards.
+- A plan launched through Tee it up retains explicit identity through finish and reconciles the booking for that golfer after confirmed posting. A host finishing does not mark every invited golfer as having played. If a round was started independently, use golfer, course ID and local played date as candidate evidence; course names alone are insufficient. An ambiguous match asks a brief confirmation rather than automatically linking the wrong round. Test multiple same-day rounds, changed tees, cancelled plans, backdated posting and timezone boundaries.
+- Test online/local-only/casual/skipped outcomes, failed or retried finish, stale Home responses, photo skip/retry, multiple leagues and round removal/corrections. The saved round must remain discoverable and a reconciled booking must not continue to prompt that golfer as if unplayed. Protect existing receipt lenses and photo reliability.
+
+Paired web/iOS delivery required. Account investigation is read-only unless separately authorized; use fixtures for writes. Any required linkage migration is isolated and reviewed, with production deployment reported separately. This report is not permission to rewrite the owner's historical round or mark a booking complete without evidence.
+
+### F13 — Feel the golf: birdie and eagle moments during scoring
+
+**Owner request, 2026-09-15:** an eagle and a birdie should produce a meaningful ember/heating-up response while entering scores and moving through the card. The requested direction is recognition of actual golf, not extra points or new data entry.
+
+Source: `LiveRoundStore` emits general selection/hole-complete haptics; `LiveCarryPulse` concerns game carryovers. `LiveCardView` explicitly preserves D267's neutral scorecard notation (rings under par, boxes over par). No dedicated birdie/eagle acknowledgement was found in the inspected score-entry path. Preserve the factual scorecard and distinguish gross birdie/eagle from any net result.
+
+Proposed first increment: when a hole score is committed, show a brief inline **Birdie** / **Eagle** moment naming the hole, a restrained ember stroke/band and a distinct optional haptic. Eagle can be more pronounced than birdie. Keep the next-hole action immediately available; no modal, forced wait, confetti or automatic sound. Respect Reduce Motion, haptic preferences and accessible text. Recognize positive moments in solo play too; this requires documenting a narrow earned-play-moment exception to F11's competition-color role and D267 before implementation, rather than silently repainting the score grid.
+
+Do not trigger on intermediate stepper values, typing, initial hydration, reconnect or every remote synchronization. Key feedback to player/round/hole and committed revision; corrections must clear/revise false recognition without replaying rewards through undo/re-entry. Use actual known hole par; estimated/unknown pars must not confidently declare an eagle. Record the current save/advance boundary and use it instead of inventing a separate score submission requirement.
+
+For continued “heating up,” favor a factual quiet summary such as **1 eagle · 1 birdie** from that golfer's entered holes, and preserve highlights in the final receipt where the data supports them. A “Heating up” label, combo threshold or persistent meter needs an explicit definition and owner review; two good holes at unspecified spacing do not prove a streak. No scoring changes, streak penalties, invented season awards or friend push notifications. Show a short device-visible prototype of birdie/eagle/ordinary-hole transitions on both clients, then verify corrections, missing pars, shared scoring, accessibility and recovery.
+
 ## Sequencing and ownership
 
 1. Keep the frozen counting release separate. Record these findings now; do not silently extend its migration.
