@@ -51,6 +51,8 @@ Prototype and brand proof: `docs/prototypes/next-week.html`. Claude completed C0
 
 ## Raw — drop anything here
 
+**2026-09-15 · Phone review / UX + Social:** course tee/rating order and saved-course versus planned/draft/posted round language; scheduled-course bars and points-earned versus total-gain copy; misplaced ember on Home bag versus active competition; owner now wants ONE appreciation action instead of the reaction picker, with clearer activity/notification behavior. Source findings, proposed Applaud treatment and paired acceptance: [tracked review](../docs/planning/2026-09-15-phone-findings-and-appreciation.md). New direction recorded; naming, historical reaction conversion and push policy remain proposed. No production changes.
+
 **2026-09-09, from the owner:**
 
 > I searched a course and it was not found so I input the rating/slope/pars.

@@ -8,6 +8,7 @@ Index only — files live where they live. OS layer: `../StudioOS`.
 | next expansion / build plan | `docs/planning/2026-09-12-next-chapter.md` |
 | today release sprint | `docs/planning/2026-09-13-today-release.md` |
 | current product-board implementation plan | `docs/planning/2026-09-14-product-board-implementation.md` |
+| latest phone findings / one appreciation action | `docs/planning/2026-09-15-phone-findings-and-appreciation.md` |
 | current brand and client parity brief | `docs/planning/2026-09-14-brand-and-client-parity.md` |
 | current agent ownership / queue | `docs/planning/ACTIVE_WORK.md` |
 | next-week prototype / brand proof | `docs/prototypes/next-week.html` |
