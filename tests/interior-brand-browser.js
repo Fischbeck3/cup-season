@@ -19,7 +19,10 @@
   /* restrained: quieter than the door, behind the type, and inert */
   const s=getComputedStyle(head), se=getComputedStyle(edge), box=getComputedStyle(withTopo[0].querySelector('.cs-topohead'));
   check(parseFloat(s.opacity)<=0.10 && parseFloat(se.opacity)<=0.20,'I-3: the interior terrain is not restrained: '+s.opacity+'/'+se.opacity);
-  check(parseFloat(s.opacity)<parseFloat(getComputedStyle(document.querySelector('.ob-terrain .t-sur')).opacity),'I-3: the interior terrain is as loud as the door’s');
+  /* the door came DOWN to this same quiet end under the owner's 2026-09-14
+     board, so the rule is no longer "quieter than the door" but "both at the
+     quiet end" — sparse and fine everywhere, never behind reading. */
+  check(parseFloat(s.opacity)<=parseFloat(getComputedStyle(document.querySelector('.ob-terrain .t-sur')).opacity)+.001,'I-3: the interior terrain is louder than the door’s');
   check(box.pointerEvents==='none','I-3: the terrain takes input');
   check(Number(box.zIndex)<0,'I-3: the terrain is not behind the page’s own name');
   out.alpha=[s.opacity, se.opacity];

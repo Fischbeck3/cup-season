@@ -1,9 +1,32 @@
 # Cup Season — brand assets
 
-One mark, and the door that explains it (2026-08-06 — supersedes the D89 ember
-flag and D91's mark/crest split).
+## The production mark is the CS pennant (D358, owner-ratified 2026-09-14)
 
-**The mark — the Tracer.** One shot falls out of the sky and lands in the
+**One authoritative source, one generator, one family.**
+`brand/candidates/testflight-pennant/source.json` holds the geometry and
+`tools/build-beta-mark.sh` draws everything from it: the phone's app icon set,
+the Swift `CSBrandMark`, the light/dark/one-colour vectors and lockups, and the
+**web family** — `favicon.svg`, `favicon-32`, `icon-192`, `icon-512`,
+`icon-512-maskable`, `apple-touch-icon` and the 1200×630 `og-image`. Those web
+files are generated into `candidates/testflight-pennant/generated/web/` and
+**installed at the site root**, which is what the served pages reference. Never
+hand-edit one: change the source, re-run the script, copy the family across in
+one commit so a tab, a home screen and a link preview can never disagree.
+
+The tile is a **fescue field, a cream pennant and sparse, fine contours**. The
+contour field is dropped at 32px and below — the tab and the small favicon take
+the simplified drawing — because the ruling allows simplifying the contours
+wherever clarity needs it. The mark signs identity (welcome, mastheads, app
+icon, shared artifacts) and is used sparingly; it is not a generic action icon
+(LINT-28).
+
+Everything below this line describes **the Tracer**, the former mark. It is
+kept as history for that asset family, and `tools/make-icons.py` /
+`tools/make-og-image.py` are its generators, not the product's.
+
+---
+
+**The mark — the Tracer (historical).** One shot falls out of the sky and lands in the
 flagged cup: a tapered comet (the ball flight), a proud pin with a wedge
 pennant, the cup catching both. Flat ember `#F4712E` — the mark NEVER takes
 the gradient (it bands at 32px and dies in monochrome). It goes on every icon,
@@ -47,6 +70,10 @@ same drawing at two volumes.
 
 ## Rules
 
+- **SUPERSEDED FOR THE PRODUCTION MARK (D358, 2026-09-14).** The tile is a
+  **fescue field with a cream pennant and sparse, fine contours**, simplified at
+  small sizes for legibility. The rule below described the Tracer's tile and is
+  kept as history for that asset family.
 - **Solid ember field, never a black tile** — a near-black tile reads as a
   hole between home-screen icons.
 - **Flat ember only in the mark.** The gradient (`#F2A03D` → `#FF5A2E`) is an
@@ -57,5 +84,8 @@ same drawing at two volumes.
 - Clear space: one pennant-height on all sides of the bare mark.
 - The wordmark is IBM Plex Mono 600, tracked ~0.32em, always CAPS. (The door's
   seared serif "CUP SEASON" is the door's voice, not the lockup's.)
-- The favicon data-URIs in `index.html` and `legal.html` must always equal
-  `mark-tile.svg` — they are the two places a stale mark hides longest.
+- ~~The favicon data-URIs in `index.html` and `legal.html` must always equal
+  `mark-tile.svg`~~ — **superseded (D358).** Both pages now link the generated
+  `/favicon.svg`, with `/favicon-32.png` behind it for browsers that want a
+  raster. There is no hand-written favicon left to go stale, which was the
+  point of the rule.

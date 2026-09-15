@@ -2162,7 +2162,7 @@ component rewrites) → `06/07/14` (with the type and spacing sweep) → `08/15/
 | **LINT-25** | grep · one dismiss verb | a toolbar item whose label is "Done", "Cancel" or an `xmark` inside a sheet |
 | **LINT-26** | grep · photos are not avatars | a `rounds.photo_path` URL passed to `CSFace` |
 | **LINT-27** | grep · **no retired term in a produced string** | any of `TERMINOLOGY.md` §4's **34 patterns** in any string this document or its surface specs produce — including `.accessibilityLabel`, which §4's scope explicitly covers. The 34 are run over `UI_SYSTEM.md`, the seven surface specs and the seven mockups **before Phase 3 opens**, not after: five of the six hits found in this design's own copy were written into specs Phase 3 builds from without asking questions |
-| **LINT-28** | grep · the pennant is reserved | the `pennant` glyph outside `CSTabBand` and the app-icon asset (§5.1) |
+| **LINT-28** | grep · the pennant signs identity, and is not an action icon | **AMENDED 2026-09-14 (D358):** the pennant is the production mark and may sign the welcome, the mastheads, the app icon, boot and shared artifacts. What the check still catches is the pennant used as a generic affordance — a button glyph, a row icon, a bullet — and as an ACHIEVEMENT glyph (§5.1), because a trophy is not a signature |
 | **LINT-29** | grep · `dim` is never a word | the `dim` token inside a `Text(` or a `.foregroundStyle(` applied to a string (§16.1) |
 
 ---

@@ -131,3 +131,21 @@ public enum RoundWorth {
     return rows.prefix(limit).compactMap { $0.line(subject: subject, named: named) }
   }
 }
+
+
+// MARK: - D362 · the composer, from the shared producer
+
+public extension RoundWorth {
+  /// `my_month_counters(p_on)` → the sentences the composer prints, one per
+  /// season the date falls in, the season named only when there is more than
+  /// one. `[]` when the server has none to say — no ceiling is ever guessed.
+  static func servedLines(_ json: JSONValue, subject: String = "This round") -> [String] {
+    let rows = json.array ?? []
+    let named = rows.count > 1
+    return rows.compactMap { r in
+      let c = r["counters"]
+      return line(subject: subject, cap: r["cap"]?.int, used: c?["used"]?.int, worst: c?["worst"]?.double,
+                  season: named ? r["league_name"]?.string : nil)
+    }
+  }
+}

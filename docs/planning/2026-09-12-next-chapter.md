@@ -114,3 +114,14 @@ Qualitative gate: can an unfamiliar golfer recognise the next action, explain wh
 Recommended first choice: **Wave 1 leads; brand proof work runs alongside it.** Then review the season-chapter prototype before committing Wave 2. Outstanding specific rulings: D339 signature placement/icon tile; draft replacement and durable plan linkage; how to consolidate stale vision requirements; later, D150 personal course identity. None requires reopening D345's already approved participation/window rules.
 
 No dates or staffing multipliers are promised. Re-estimate each wave after its contract and measured unknowns are clear. Work ownership and the exact next prompts live in [ACTIVE_WORK.md](ACTIVE_WORK.md).
+
+
+## Extended 2026-09-14 · the inventory behind the next sprint
+
+The four priorities from the competitor exercise were inventoried across
+backend, web and iOS and marked implemented / incomplete / absent / awaiting
+decision in [2026-09-14-gameplay-sprint-candidates.md](2026-09-14-gameplay-sprint-candidates.md).
+Wave 1's gate above ("a person other than the owner joins through a real
+invitation, understands the competition, and returns") maps onto its A, B and C;
+the recommendation is B then A, with C behind the one consent decision this
+document and `spec/inbox.md` both carry.

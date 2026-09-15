@@ -13,7 +13,63 @@ import CupSeasonKit
 @MainActor
 @Observable
 final class PostRoundModel {
-  var card = PostCard() { didSet { recalc(); scheduleDraft() } }
+  var card = PostCard() {
+    didSet {
+      recalc(); scheduleDraft()
+      // D362 · the counters answer a QUESTION ABOUT A DATE, not about a score.
+      // Typing a gross changes `card` on every keystroke; refetching there
+      // asked the server the same question a dozen times a round and, worse,
+      // let an answer for one date land under another. Only the date moves it.
+      if oldValue.date != card.date { loadWorth() }
+    }
+  }
+  /// D362 · what this round can add under each season's own rule, from the
+  /// server's `my_month_counters` — the same producer the desk reads. Empty on
+  /// a database that predates it, or outside a live season: the counting note
+  /// alone then, and nothing is promised.
+  var worthLines: [String] = []
+  /// The context the lines on screen are FOR: the date they were asked about
+  /// and the session that asked. A line whose context no longer matches what
+  /// the golfer is editing is stale and is cleared rather than left standing.
+  private var worthContext: WorthContext?
+  private var worthTask: Task<Void, Never>?
+  struct WorthContext: Equatable { let date: String?; let user: UUID? }
+
+  /// Ask again for a date whose answer may have changed — a round posted, a
+  /// season joined. The date's cached answer is dropped first.
+  func invalidateWorth() { worthContext = nil; loadWorth() }
+
+  private func stillWants(_ c: WorthContext) -> Bool {
+    c == WorthContext(date: card.date, user: store.session?.user.id)
+  }
+
+  private func loadWorth() {
+    let want = WorthContext(date: card.date, user: store.session?.user.id)
+    // already answered for exactly this context: nothing goes out
+    if worthContext == want, !worthLines.isEmpty { return }
+    worthTask?.cancel()
+    // the context is changing, so what is on screen is about to be wrong
+    worthLines = []
+    worthContext = nil
+    let on = card.date
+    worthTask = Task { [weak self] in
+      guard let self, store.session != nil, !ProcessInfo.processInfo.arguments.contains("-cs_dev_no_worth") else { return }
+      #if DEBUG
+      // `-cs_dev_worth <room|full|capped|open|two>` · the server's answer stood
+      // in, so the sentence can be photographed before the migration lands.
+      if let stood = PostWorthDev.served {
+        guard !Task.isCancelled, self.stillWants(want) else { return }
+        self.worthLines = RoundWorth.servedLines(stood); self.worthContext = want; return
+      }
+      #endif
+      let lines = (try? await SupabaseService.shared.call(Rpc.my_month_counters(p_on: on ?? CSDate.today()))).map { RoundWorth.servedLines($0) } ?? []
+      // the context may have moved while the question was out — a new date, a
+      // new session. An answer for a context nobody is in is dropped.
+      guard !Task.isCancelled, self.stillWants(want) else { return }
+      self.worthLines = lines
+      self.worthContext = want
+    }
+  }
   var preview: PostPreview?
   /// `#inDate` — mirrored into `card.date` as a calendar String.
   var day = Date() { didSet { let iso = CSDate.iso(day, calendar: ScheduleDates.gregorian); if card.date != iso { card.date = iso } } }
@@ -671,3 +727,25 @@ struct PostPartnersShow: Identifiable, Equatable {
   let ctx: PostService.ClaimContext
   var id: String { ctx.playedOn + (ctx.courseLabel ?? "") }
 }
+
+
+#if DEBUG
+/// D362 · `-cs_dev_worth <room|full|capped|open|two>` — what `my_month_counters`
+/// would say, stood in. Fixture leagues only; nothing is read or written.
+enum PostWorthDev {
+  static var served: JSONValue? {
+    let a = ProcessInfo.processInfo.arguments
+    guard let i = a.firstIndex(of: "-cs_dev_worth"), i + 1 < a.count else { return nil }
+    let json: String
+    switch a[i + 1] {
+    case "room":   json = #"[{"league_name":"Fellas","cap":4,"counters":{"used":2,"worst":5}}]"#
+    case "full":   json = #"[{"league_name":"Fellas","cap":4,"counters":{"used":4,"worst":5}}]"#
+    case "capped": json = #"[{"league_name":"Fellas","cap":4,"counters":{"used":4,"worst":12}}]"#
+    case "open":   json = #"[{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
+    case "two":    json = #"[{"league_name":"Fellas","cap":2,"counters":{"used":2,"worst":6}},{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#
+    default: return nil
+    }
+    return try? JSONDecoder().decode(JSONValue.self, from: Data(json.utf8))
+  }
+}
+#endif

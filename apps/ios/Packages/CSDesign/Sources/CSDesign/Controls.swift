@@ -46,16 +46,23 @@ public struct CSPrimaryStyle: ButtonStyle {
     .foregroundStyle(enabled ? cs.bg0 : cs.mut)
     .background(fill(pressed),
                 in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-    .csBudget(ember: enabled ? 1 : 0)
+    // the primary is `act` now, so it spends no ember (D305/D313 amendment)
+    .csBudget(ember: 0)
     .csAnimation(CSMotion.snap, value: configuration.isPressed)
   }
 
-  /// **A disabled primary is never ember.** It falls to `bg1` with a `mut`
-  /// label — because a control that cannot be used should not be wearing the
-  /// colour that means "this is the live thing you can do now".
+  /// **THE ORDINARY PRIMARY IS GREEN** (D305/D313 amendment, 2026-09-14):
+  /// ember is reserved for an ACTIVE COMPETITION — a live clash, a closing
+  /// window, a round to answer — and "post a round", "sign in" or "start a
+  /// season" is not that. `act` is the same token the web reads, generated
+  /// from `packages/tokens/tokens.json`, so neither client can drift.
+  ///
+  /// **A disabled primary is never coloured at all.** It falls to `bg1` with a
+  /// `mut` label — because a control that cannot be used should not be wearing
+  /// the colour that means "this is the live thing you can do now".
   private func fill(_ pressed: Bool) -> Color {
     guard enabled else { return cs.bg1 }
-    return pressed ? cs.brand.opacity(1 - CSTokens.Alpha.a16) : cs.brand
+    return pressed ? cs.act.opacity(1 - CSTokens.Alpha.a16) : cs.act
   }
 }
 
@@ -394,10 +401,11 @@ public struct CSField: View {
         .background(enabled ? cs.bg2 : cs.bg1,
                     in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         .overlay {
-          // the ONE outline a field is allowed: the focus ring
+          // the ONE outline a field is allowed: the focus ring. It is an
+          // ordinary interactive state, so it takes `act` and not ember.
           if focused {
             RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-              .stroke(cs.brand, lineWidth: 2)
+              .stroke(cs.act, lineWidth: 2)
           }
         }
         .overlay(alignment: .trailing) {
@@ -542,7 +550,7 @@ public struct CSDoorRow: View {
         line
       }
     }
-    .csBudget(ember: lit ? 1 : 0)
+    .csBudget(ember: 0)   // `act`, not ember
     // VoiceOver reads a tracked all-caps verb letter by letter; give it the
     // sentence, with the gloss folded in (§7).
     .accessibilityElement(children: .ignore)
@@ -555,7 +563,8 @@ public struct CSDoorRow: View {
       VStack(alignment: .leading, spacing: 3) {
         Text(verb).csType(.nameS).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
-        Rectangle().fill(lit ? cs.brand : Color.clear).frame(height: 2)
+        // a lit choice is an ordinary selection, not a competition signal
+        Rectangle().fill(lit ? cs.act : Color.clear).frame(height: 2)
       }
       .fixedSize(horizontal: !typeSize.isA11y, vertical: false)
       if !typeSize.isA11y { Spacer(minLength: CSTokens.Space.s3) }

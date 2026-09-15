@@ -72,37 +72,100 @@ struct HomeSectionRule: View {
 /// scrim's own leading anchor, and the gross sits in the **bone** panel in both
 /// themes — a photograph carries its own dusk, and the light theme's ink panel
 /// would vanish into it.
+///
+/// D361 · **THE BAND READS ITS PICTURE FROM `HomePhotoStore`, KEYED BY THE
+/// ROUND'S OWN PATH.** `AsyncImage(url:)` was the only memory the picture had,
+/// and it forgot on every change of URL — which every refresh caused — and on
+/// every transient failure, which it drew as "no photograph". Now: a loading
+/// band keeps the last good picture, or shows its frame with the score and
+/// course in place at the same height; a transient miss keeps the last good
+/// picture; only a round with no attachment, a removed one, or a withdrawn
+/// grant becomes the record. Loading one round's picture cannot touch another's.
 struct HomeWireBand: View {
   @Environment(\.cs) private var cs
   let row: HomeFeedRow
-  let photo: URL
+  let photo: URL?
+  var photos: HomePhotoStore = .shared
+  /// the storage refused this path on the last load — the object is gone or not ours
+  var denied: Bool = false
   let open: () -> Void
   let openPerson: () -> Void
 
-  private var name: String { HomeCopy.who(row) }
-  private var line: String { HomeWireCopy.roundLine(row) }
-
-  var body: some View {
-    AsyncImage(url: photo) { phase in
-      if let image = phase.image {
-        band(image)
-      } else if phase.error != nil {
-        HomeWireSlat(row: row, open: open, openPerson: openPerson)
-          .padding(.horizontal, CSTokens.Space.gutter)
-      } else {
-        // Reserve the photo geometry while loading. Only a failure becomes
-        // a record, so scrolling a loading image cannot flash a text slat.
-        Button(action: open) { cs.bg1.frame(height: 168) }
-          .buttonStyle(.plain)
-          .accessibilityIdentifier("home.round.photo-loading")
-          .accessibilityLabel("\(name). \(line)")
-          .accessibilityHint("Photo loading. Opens the round")
-          .accessibilityAction(named: Text("Open golfer"), openPerson)
-      }
-    }
+  init(row: HomeFeedRow, photo: URL?, photos: HomePhotoStore = .shared, denied: Bool = false,
+       open: @escaping () -> Void, openPerson: @escaping () -> Void) {
+    self.row = row; self.photo = photo; self.photos = photos; self.denied = denied; self.open = open; self.openPerson = openPerson
+  }
+  private var credential: HomePhotoStore.Credential {
+    if let photo { return .url(photo) }
+    return denied ? .denied : .unavailable
   }
 
-  func band(_ image: Image) -> some View {
+  private var name: String { HomeCopy.who(row) }
+  private var line: String { HomeWireCopy.roundLine(row) }
+  private var state: HomePhotoStore.State { photos.state(for: row.photo_path) }
+
+  var body: some View {
+    Group {
+      switch state {
+      case .loaded(let img):
+        band(Image(uiImage: img))
+      case .loading(let prior):
+        if let prior { band(Image(uiImage: prior), loading: true) } else { frame }
+      case .failed(let prior):
+        if let prior { band(Image(uiImage: prior)) }
+        else { HomeWireSlat(row: row, open: open, openPerson: openPerson).padding(.horizontal, CSTokens.Space.gutter) }
+      case .none, .removed:
+        HomeWireSlat(row: row, open: open, openPerson: openPerson).padding(.horizontal, CSTokens.Space.gutter)
+      }
+    }
+    .task(id: credential) { photos.load(path: row.photo_path, credential: credential) }
+  }
+
+  /// The band's own geometry while the first fetch is out: the same 168pt,
+  /// the copy row in place — name, line and gross — over the raised ground.
+  /// The score and the course never wait for the picture.
+  private var frame: some View {
+    Button(action: open) {
+      ZStack(alignment: .bottomLeading) {
+        cs.bg1.frame(maxWidth: .infinity).frame(height: 168)
+        copyRow(onPhoto: false)
+      }
+      .frame(maxWidth: .infinity)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("\(name). \(line)")
+    .accessibilityHint("Photo loading. Opens the round")
+    .accessibilityAction(named: Text("Open golfer"), openPerson)
+    .accessibilityIdentifier("home.round.photo-loading")
+  }
+
+  @ViewBuilder private func copyRow(onPhoto: Bool) -> some View {
+    HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
+      CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
+        .frame(width: 44, height: 44)
+        .contentShape(Rectangle())
+        .onTapGesture { openPerson() }
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        // §1.3 · a person in a wire row is never caps.
+        Text(name).csType(.social).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.ink)
+          .lineLimit(1).truncationMode(.tail)
+        Text(line).csType(.bodyS).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      if let g = row.gross {
+        CSPanel(onPhoto ? .overPhoto : .page, unit: "Gross", width: 60, height: 60) {
+          Text("\(g)").csType(.figureM)
+        }
+      }
+    }
+    .padding(.horizontal, CSTokens.Space.gutter)
+    .padding(.bottom, CSTokens.Space.s3)
+  }
+
+  func band(_ image: Image, loading: Bool = false) -> some View {
     Button(action: open) {
       ZStack(alignment: .bottomLeading) {
         image.resizable().scaledToFill()
@@ -123,27 +186,7 @@ struct HomeWireBand: View {
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
         .padding(CSTokens.Space.s3)
-        HStack(alignment: .bottom, spacing: CSTokens.Space.s3) {
-          CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
-            .frame(width: 44, height: 44)
-            .contentShape(Rectangle())
-            .onTapGesture { openPerson() }
-          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            // §1.3 · a person in a wire row is never caps.
-            Text(name).csType(.social).foregroundStyle(CSTokens.dark.scrimInk)
-              .lineLimit(1).truncationMode(.tail)
-            Text(line).csType(.bodyS).foregroundStyle(CSTokens.dark.scrimInk)
-              .fixedSize(horizontal: false, vertical: true)
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          if let g = row.gross {
-            CSPanel(.overPhoto, unit: "Gross", width: 60, height: 60) {
-              Text("\(g)").csType(.figureM)
-            }
-          }
-        }
-        .padding(.horizontal, CSTokens.Space.gutter)
-        .padding(.bottom, CSTokens.Space.s3)
+        copyRow(onPhoto: true)
       }
       .frame(maxWidth: .infinity)
       .clipped()
@@ -152,63 +195,97 @@ struct HomeWireBand: View {
     .buttonStyle(.plain)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("\(name). \(line)")
-    .accessibilityHint("Opens the round")
+    .accessibilityHint(loading ? "Photo refreshing. Opens the round" : "Opens the round")
     .accessibilityAction(named: Text("Open golfer"), openPerson)
     .accessibilityIdentifier("home.round.photo")
   }
 }
 
-/// D340 · The factual no-photo fallback. Course, gross and story each print
-/// once. No image slot or invented hole detail is needed to make a round matter.
+/// D360 · **A ROUND WITHOUT A PHOTOGRAPH IS A COMPACT SCORECARD**, complete and
+/// worth keeping. D340 gave it course and gross; this gives it the shape the
+/// desk's `.hfrecord` has: a quiet identity row (face, name, day), the course
+/// as the title with the gross on the same rule in the tournament figure and
+/// labelled, ONE story under the rule, and the reactions row that follows in
+/// the wire as its foot. Fine rules, the receipt's contour behind the title
+/// at the `.cs-topohead` opacity, tighter than the tall treatment it
+/// replaces — the figure at `l` rather than `xl`, the story in body rather
+/// than the serif, no heavy bar. No slot for the picture that is not there,
+/// no invented achievement, no decorative ember.
 struct HomeWireSlat: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   let row: HomeFeedRow
   let open: () -> Void
   let openPerson: () -> Void
+  /// The competition's consequence, when the caller holds it (see
+  /// `HomeWireCopy.roundStory`). Home has none to pass today.
+  var points: Int? = nil
+  var monthRank: Int? = nil
+  var cap: Int? = nil
 
   private var name: String { HomeCopy.who(row) }
+  private var course: String {
+    row.course.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded"
+  }
+  private var story: String? { HomeWireCopy.roundStory(row, points: points, monthRank: monthRank, cap: cap) }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      HStack(spacing: CSTokens.Space.s3) {
+    VStack(alignment: .leading, spacing: 0) {
+      // the quiet identity row · the person is a door of their own
+      HStack(spacing: CSTokens.Space.s2) {
         Button(action: openPerson) {
-          CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .list, name: name)
+          CSFace(.init(id: row.profile_id ?? UUID(), marker: row.marker), size: .slat, name: name)
             .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open golfer card: \(name)")
-        Button(action: open) {
-          Text(name).csType(.social).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-            .contentShape(Rectangle())
+        Text(name).csType(.social).foregroundStyle(cs.ink)
+          .lineLimit(1).truncationMode(.tail)
+          .frame(maxWidth: .infinity, alignment: .leading)
+        if let day = HomeWireCopy.dayMarker(row.played_on) {
+          Text(day).csType(.agateS, caps: true).foregroundStyle(cs.mut)
         }
-        .buttonStyle(.plain)
-        .accessibilityHint("Opens the round")
       }
+      .padding(.vertical, -CSTokens.Space.s1)
 
+      // the scorecard's header row and everything under it opens the round
       Button(action: open) {
-        A11yStack(alignment: .leading, rowAlignment: .top, spacing: CSTokens.Space.s4, columnSpacing: CSTokens.Space.s3) {
-          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-            Text(row.course.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : $0 } ?? "Course not recorded")
-              .csType(.name).foregroundStyle(cs.ink)
+        VStack(alignment: .leading, spacing: 0) {
+          A11yStack(alignment: .leading, rowAlignment: .bottom, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
+            Text(course).csType(.name).foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
-            if let detail = HomeWireCopy.roundDetail(row) {
-              Text(detail.prefix(1).uppercased() + detail.dropFirst())
-                .csType(.story).foregroundStyle(cs.mut)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .padding(.bottom, CSTokens.Space.s1)
+            if let gross = row.gross {
+              HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+                Text("\(gross)").csType(.figureL).foregroundStyle(cs.ink)
+                Text("Gross").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              }
+              .fixedSize()
+            }
+          }
+          .padding(.top, CSTokens.Space.s2)
+          .padding(.bottom, CSTokens.Space.s1)
+          .background(alignment: .leading) {
+            // restrained: the receipt's own contour, the section head's opacity,
+            // behind the title and never behind the figure (§10.2)
+            CSTopoField(.page, tint: cs.mut.opacity(CSTokens.Alpha.a16))
+              .frame(width: 130, height: 56)
+              .padding(.leading, 120)
+          }
+          CSRule()
+          // the one story, and the way in — said, not only hinted
+          HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+            if let story {
+              Text(story).csType(.bodyS).foregroundStyle(cs.mut)
                 .fixedSize(horizontal: false, vertical: true)
             }
+            Spacer(minLength: 0)
+            Text("Receipt ›").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              .fixedSize()
           }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          if let gross = row.gross {
-            VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-              CSRule(.heavy)
-              Text("\(gross)").csType(.figureXL).foregroundStyle(cs.ink)
-              Text("Gross").csType(.agateS, caps: true).foregroundStyle(cs.mut)
-            }
-            .fixedSize(horizontal: true, vertical: false)
-          }
+          .padding(.top, CSTokens.Space.s2)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
@@ -219,7 +296,7 @@ struct HomeWireSlat: View {
       .accessibilityLabel("\(name). \(HomeWireCopy.roundLine(row))")
       .accessibilityHint("Opens the round")
     }
-    .padding(.vertical, CSTokens.Space.s4)
+    .padding(.top, CSTokens.Space.s2)
   }
 }
 
@@ -414,14 +491,20 @@ struct HomeWireItem: View {
   @Environment(\.cs) private var cs
   let headline: String
   let stamp: String?
+  /// MW-02 · the league, printed only when the sentence alone would not say which.
+  var context: String? = nil
   let act: (() -> Void)?
+
+  init(headline: String, stamp: String?, context: String? = nil, act: (() -> Void)?) {
+    self.headline = headline; self.stamp = stamp; self.context = context; self.act = act
+  }
 
   var body: some View {
     if let act {
       Button(action: act) { row.contentShape(Rectangle()) }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel([headline, stamp].compactMap { $0 }.joined(separator: ". "))
+        .accessibilityLabel([context, headline, stamp].compactMap { $0 }.joined(separator: ". "))
     } else {
       row.accessibilityElement(children: .combine)
     }
@@ -429,9 +512,14 @@ struct HomeWireItem: View {
 
   private var row: some View {
     HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
-      Text(headline).csType(.body).foregroundStyle(cs.ink)
-        .fixedSize(horizontal: false, vertical: true)
-        .frame(maxWidth: .infinity, alignment: .leading)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+        if let context {
+          Text(context).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        }
+        Text(headline).csType(.body).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
       if let stamp {
         Text(stamp).csType(.agateS, caps: false).foregroundStyle(cs.mut)
           .fixedSize(horizontal: true, vertical: false)

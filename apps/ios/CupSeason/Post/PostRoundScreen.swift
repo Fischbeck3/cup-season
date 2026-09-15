@@ -188,7 +188,7 @@ private struct PostRoundBody: View {
     ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: 0) {
-          PostHeroCard(model: model, focus: $grossFocused, pickPhoto: pickPhoto, pickScan: pickScan)
+          PostHeroCard(model: model, focus: $grossFocused, pickPhoto: pickPhoto, pickScan: pickScan).id("hero")
           inheritedLine
           whoSection
           cardFold.id("card")
@@ -202,6 +202,21 @@ private struct PostRoundBody: View {
         .csPage("composer")
       }
       .onAppear { windowHeight = DoorLayout.windowHeight }
+      // D362 · the sentence arrives from the server AFTER the keypad is up, so
+      // on a short phone it can land below the fold on a page the golfer has
+      // not scrolled. Bring the hero back into view when it appears — and only
+      // then, so this can never fight a golfer who has scrolled away.
+      .onChange(of: model.worthLines) { old, new in
+        // The sentence arrives ONCE, moments after the composer opens — before
+        // the cursor lands on the number (IOS-030 waits 350ms), so a `focused`
+        // guard here never fired and the scroll never happened at AX3.
+        guard old.isEmpty, !new.isEmpty else { return }
+        // **THE SENTENCE, not the hero.** `.bottom` puts its last line on the
+        // bottom edge of the scroll view, which the keypad has already inset —
+        // so it lands just above the keys at every text size. Anchoring the
+        // hero's TOP left it 160pt under the keypad at AX3.
+        CSMotion.run(CSMotion.rise) { proxy.scrollTo("worth", anchor: .bottom) }
+      }
       #if DEBUG
       // `-cs_dev_post_scroll <card|bands>`: a simulator without a finger reaches the fold
       .task {
@@ -217,6 +232,11 @@ private struct PostRoundBody: View {
         proxy.scrollTo(a[i + 1], anchor: .top)
       }
       #endif
+      // the keypad rising re-insets the scroll view: bring the sentence back
+      .onChange(of: grossFocused) { _, up in
+        guard up, !model.worthLines.isEmpty else { return }
+        CSMotion.run(CSMotion.rise) { proxy.scrollTo("worth", anchor: .bottom) }
+      }
     }
     .scrollDismissesKeyboard(.interactively)
     .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
@@ -255,6 +275,9 @@ private struct PostRoundBody: View {
                     onDone: { model.epilogue = nil })
     }
     .task {
+      // D362 · ask once, for the date the composer opened on. Every later ask
+      // is a DATE change; a score edit asks nothing.
+      model.invalidateWorth()
       // the composer opens ON the number — two digits and a tap (IOS-030)
       try? await Task.sleep(for: .milliseconds(350))
       if model.card.entry == nil { grossFocused = true }
@@ -695,6 +718,24 @@ private struct PostHeroContent: View {
           .fixedSize(horizontal: false, vertical: true)
           .padding(.top, 2)
       }
+      // D362 · **WHAT THIS ROUND CAN ADD, WHERE THE DESK PUTS IT** — under the
+      // points, in the hero, always on screen. It lived inside the `How points
+      // work` disclosure, which is a REFERENCE fold: a golfer had to know to
+      // open it, and with the keypad up it was three sections below the fold.
+      // The desk's `#calcSeason` has always sat here.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        ForEach(model.worthLines, id: \.self) { line in
+          Text(line).csType(.bodyS).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier("post.worth")
+        }
+      }
+      .padding(.top, model.worthLines.isEmpty ? 0 : CSTokens.Space.s2)
+      // the anchor the page scrolls TO, so the sentence itself clears the
+      // keypad — scrolling to the hero's top does not, at an accessibility
+      // size, because the hero is then taller than the room above the keys
+      .id("worth")
       // D178 · it is no longer a 100% preview, so it must no longer say so.
       //
       // IOS-066 · AND IT ONLY SAYS SO WHEN THERE IS A PREVIEW. With no number

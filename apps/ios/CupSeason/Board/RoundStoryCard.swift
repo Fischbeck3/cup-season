@@ -17,7 +17,13 @@ struct RoundStoryCard: View {
   let store: BoardStore
   let links: BoardLinks
 
-  private var hasPhoto: Bool { round.photoURL != nil }
+  /// D361 · the picture comes from the same store Home reads, by the round's
+  /// path — one download for one photograph wherever it appears, and a
+  /// transient miss keeps what is already up. `AsyncImage` used to forget on
+  /// every re-signed URL here too.
+  private var photos: HomePhotoStore { .shared }
+  private var picture: UIImage? { photos.state(for: round.photoPath).image }
+  private var hasPhoto: Bool { picture != nil }
   /// Text that reads DIRECTLY on the photo is forced light — and `scrimInk` /
   /// `scrimMut` are the two tokens `object` carries for exactly that, added by
   /// D270 so no surface would invent a hex for copy over a photograph. This
@@ -108,16 +114,15 @@ struct RoundStoryCard: View {
     .overlay(alignment: .bottomTrailing) { if hasPhoto { medallion.padding(10) } }
     .clipShape(RoundedRectangle(cornerRadius: hasPhoto ? 10 : 0, style: .continuous))
     .contentShape(Rectangle())
+    .task(id: round.photoURL) { photos.load(path: round.photoPath, url: round.photoURL) }
   }
 
   /// The photo as ground, under the three-stop dusk scrim (1026–1030).
   private var photoGround: some View {
     ZStack {
       CSDusk.surface
-      if let url = round.photoURL {
-        AsyncImage(url: url) { phase in
-          if case .success(let img) = phase { img.resizable().scaledToFill() }
-        }
+      if let picture {
+        Image(uiImage: picture).resizable().scaledToFill()
       }
       LinearGradient(stops: [
         .init(color: CSDusk.ground.opacity(0.35), location: 0),

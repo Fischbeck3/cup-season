@@ -39,6 +39,10 @@ public struct ReceiptSeed: Sendable, Equatable {
   public var points: Double?
   public var monthRank: Int?
   public var countingCap: Int?
+  /// D362 · every league this round counts in that the VIEWER may see, from
+  /// `round_card.contributions`. nil on a database that predates it — the
+  /// scalars above then carry the one lens they always did.
+  public var contributions: [ReceiptContribution]?
   public var attested: Bool?
   public var playedWith: [String]
   public var liveRoundId: UUID?
@@ -115,6 +119,7 @@ public struct ReceiptSeed: Sendable, Equatable {
     if has("points") { r.points = o["points"]?.double }
     if has("month_rank") { r.monthRank = o["month_rank"]?.int }
     if has("counting_cap") { r.countingCap = o["counting_cap"]?.int }
+    if has("contributions") { r.contributions = (o["contributions"]?.array ?? []).map(ReceiptContribution.init(json:)) }
     if has("attested") { r.attested = o["attested"]?.bool }
     if has("played_with") { r.playedWith = (o["played_with"]?.array ?? []).compactMap(\.string).filter { !$0.isEmpty } }
     if has("live_round_id") { r.liveRoundId = o["live_round_id"]?.string.flatMap(UUID.init) }
@@ -137,6 +142,9 @@ public enum ReceiptRow: Sendable, Equatable, Identifiable {
   case note(String)
   case playedWith([String])
   case scorecard(UUID)
+  /// D362 · the way back to the rounds that count in one league, season and
+  /// month. Drawn OUTSIDE the leaf, like the scorecard door.
+  case countingDoor(ReceiptCountingDoor)
 
   public var id: String {
     switch self {
@@ -144,6 +152,7 @@ public enum ReceiptRow: Sendable, Equatable, Identifiable {
     case .note(let s): "n:\(s)"
     case .playedWith: "with"
     case .scorecard(let id): "sc:\(id)"
+    case .countingDoor(let d): "cd:\(d.memberId.uuidString):\(d.month ?? "")"
     }
   }
 }
@@ -212,16 +221,32 @@ public enum ReceiptRows {
                         value: "\(CSBands.vsShort(pvi)) — \(band.uppercased())", sub: false))
     }
     if let pts = r.points { rows.append(.math(label: "Points", value: CSCopy.points(pts), sub: false)) }
-    if let rank = r.monthRank {
+    // D362 · THE LENSES. One row per league the viewer may see this round
+    // count in, the league named when there is more than one, each with the
+    // door back to the rounds that count there. The server chose which lenses
+    // to show; this never guesses one by rank.
+    if let lenses = r.contributions, !lenses.isEmpty {
+      let named = lenses.count > 1
+      for c in lenses {
+        guard let rank = c.monthRank, let clause = ReceiptRows.clause(rank: rank, cap: c.countingCap) else { continue }
+        // case is a role's job (LINT-14): the league keeps its own case here
+        let label = named ? "This month · \(c.leagueName ?? "")" : "This month"
+        let pts = named ? (c.points.map { " · \(CSCopy.points($0)) PTS" } ?? "") : ""
+        rows.append(.math(label: label, value: clause + pts, sub: false))
+        if let member = c.memberId, let season = c.seasonId {
+          rows.append(.countingDoor(ReceiptCountingDoor(memberId: member, seasonId: season, month: c.month,
+                                                        leagueName: c.leagueName, named: named, mine: mine)))
+        }
+      }
+    } else if let rank = r.monthRank {
+      // the older database: the one lens the scalars carry
       let cap = r.countingCap ?? capN
-      let counting = cap.map { rank <= $0 } ?? true
       // **THE DENOMINATOR IS PART OF THE FACT** (L-01). `lb-score-object.png`
       // prints `COUNTING #2 OF 4`, and the leaf held the cap all along —
       // Wave 7 left it out to keep the producer untouched, and the artboard is
       // the document that was right. `COUNTING #2` alone says a golfer's round
       // counted second without saying what it counted second OF.
-      let clause = cap.map { "COUNTING #\(rank) OF \($0)" } ?? "COUNTING #\(rank)"
-      rows.append(.math(label: "This month", value: counting ? clause : "BUMPED", sub: false))
+      rows.append(.math(label: "This month", value: ReceiptRows.clause(rank: rank, cap: cap) ?? "COUNTING #\(rank)", sub: false))
     }
     if r.holesPlayed == 9 { rows.append(.math(label: "Nine holes", value: "HALF VALUE · HALF A ROUND", sub: false)) }
     if r.attested == true { rows.append(.math(label: "Attested", value: "PLAYED WITH THE GROUP", sub: false)) }
@@ -239,4 +264,73 @@ public actor ReceiptCache {
   public func put(_ seed: ReceiptSeed) { if let id = seed.id { rows[id] = seed } }
   public func put(_ seeds: [ReceiptSeed]) { for s in seeds { put(s) } }
   public func get(_ id: UUID) -> ReceiptSeed? { rows[id] }
+}
+
+
+// MARK: - D362 · the lenses
+
+/// One league this round counts in, as `round_card.contributions` says it.
+public struct ReceiptContribution: Sendable, Equatable {
+  public let leagueId: UUID?
+  public let leagueName: String?
+  public let seasonId: UUID?
+  public let seasonNumber: Int?
+  public let memberId: UUID?
+  public let points: Double?
+  public let monthRank: Int?
+  public let countingCap: Int?
+  public let structure: String?
+  /// `YYYY-MM` — the month the round scored in
+  public let month: String?
+  public init(leagueId: UUID?, leagueName: String?, seasonId: UUID?, seasonNumber: Int? = nil, memberId: UUID?,
+              points: Double?, monthRank: Int?, countingCap: Int?, structure: String? = nil, month: String?) {
+    self.leagueId = leagueId; self.leagueName = leagueName; self.seasonId = seasonId; self.seasonNumber = seasonNumber
+    self.memberId = memberId; self.points = points; self.monthRank = monthRank; self.countingCap = countingCap
+    self.structure = structure; self.month = month
+  }
+  public init(json o: JSONValue) {
+    self.init(leagueId: o["league_id"]?.string.flatMap(UUID.init), leagueName: o["league_name"]?.string,
+              seasonId: o["season_id"]?.string.flatMap(UUID.init), seasonNumber: o["season_number"]?.int,
+              memberId: o["member_id"]?.string.flatMap(UUID.init), points: o["points"]?.double,
+              monthRank: o["month_rank"]?.int, countingCap: o["counting_cap"]?.int,
+              structure: o["structure"]?.string, month: o["month"]?.string)
+  }
+}
+
+/// The door under a lens row: which golfer, which season, which month.
+public struct ReceiptCountingDoor: Sendable, Equatable, Identifiable {
+  public let memberId: UUID
+  public let seasonId: UUID
+  public let month: String?
+  public let leagueName: String?
+  /// the league is named on the door only when the receipt shows more than one
+  public let named: Bool
+  public let mine: Bool
+  public var id: String { memberId.uuidString + ":" + seasonId.uuidString + ":" + (month ?? "") }
+  public init(memberId: UUID, seasonId: UUID, month: String?, leagueName: String?, named: Bool, mine: Bool) {
+    self.memberId = memberId; self.seasonId = seasonId; self.month = month; self.leagueName = leagueName
+    self.named = named; self.mine = mine
+  }
+  /// "Your rounds that count in September · Fellas ›"
+  public var label: String {
+    let who = mine ? "Your" : "Their"
+    let when = month.flatMap(ReceiptRows.monthWord) ?? "this season"
+    return "\(who) rounds that count in \(when)" + (named ? " · \(leagueName ?? "")" : "")
+  }
+}
+
+public extension ReceiptRows {
+  /// The one clause producer for "this month", on every surface: no
+  /// denominator when there is no cap (nothing to be outside of), the
+  /// denominator when there is one, BUMPED past it.
+  static func clause(rank: Int, cap: Int?) -> String? {
+    guard let cap, cap > 0 else { return "COUNTING #\(rank)" }
+    return rank <= cap ? "COUNTING #\(rank) OF \(cap)" : "BUMPED"
+  }
+  /// `2026-09` → `September`
+  static func monthWord(_ ym: String) -> String? {
+    guard ym.count >= 7, let m = Int(ym.dropFirst(5).prefix(2)), (1...12).contains(m) else { return nil }
+    return ["January", "February", "March", "April", "May", "June", "July", "August",
+            "September", "October", "November", "December"][m - 1]
+  }
 }

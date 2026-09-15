@@ -90,7 +90,7 @@ struct ReceiptLeaf: View {
           .padding(.vertical, tail ? CSTokens.Space.s1 : CSTokens.Space.s2)
           .fixedSize(horizontal: false, vertical: true)
       }
-    case .playedWith, .scorecard:
+    case .playedWith, .scorecard, .countingDoor:
       // Both live OUTSIDE the leaf — one is a credit line and one is a door,
       // and a leaf holds a grid. The sheets draw them under it (§6.8).
       EmptyView()

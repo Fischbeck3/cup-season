@@ -102,14 +102,29 @@ public struct RoundsRepository: Sendable {
 
   // MARK: - the receipt
 
-  public func roundCard(_ id: UUID) async throws -> JSONValue {
-    try await svc.call(Rpc.round_card(p_round: id))
+  /// D362 · with the league the caller has open as the EXPLICIT lens. A
+  /// database that predates `p_league` refuses the two-argument call; then the
+  /// one-argument call is made and the older receipt is what it was — any
+  /// error, never a sniffed message (CLAUDE.md).
+  public func roundCard(_ id: UUID, league: UUID? = nil) async throws -> JSONValue {
+    if let league {
+      if let v = try? await svc.call(Rpc.round_card(p_round: id, p_league: league)) { return v }
+    }
+    return try await svc.call(Rpc.round_card(p_round: id, p_league: nil))
+  }
+
+  /// D362 · one golfer's rounds under one season's rule, one month — the
+  /// server's `counting_rounds`, the same producer the desk reads.
+  public func countingRounds(member: UUID, season: UUID, month: String?) async throws -> JSONValue {
+    try await svc.call(Rpc.counting_rounds(p_member: member, p_season: season, p_month: month))
   }
 
   /// One signed URL for the private `media` bucket, an hour long. nil on any
   /// failure — the facts still show; a photo is never load-bearing.
   public func signedURL(_ path: String, expiresIn: Int = 3600) async -> URL? {
-    try? await svc.client.storage.from("media").createSignedURL(path: path, expiresIn: expiresIn)
+    // D361 · the one way: cached by path, sized for a screen. The receipt's
+    // photograph is then the same URL — and the same bytes — Home already has.
+    await StoragePhotos.sized([path], storage: svc.client.storage, expiresIn: expiresIn).urls[path]
   }
 
   /// One batched signing call → path ⇒ URL. Failures leave gaps, never throw.

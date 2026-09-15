@@ -166,9 +166,20 @@ struct HomeView: View {
       // The pull refreshes the SESSION's payload (every other tab reads it)
       // and then the dispatch, whose own answer supersedes it for this screen.
       await store.reload()
+      HomePhotoStore.shared.retryMisses()   // a pull is a golfer asking again
       await vm.load(me: store.me, key: loadKey)
     }
-    .task(id: loadKey) { await vm.load(me: store.me, key: loadKey) }
+    .task(id: loadKey) {
+      await vm.load(me: store.me, key: loadKey)
+      // D361 · a path the wire no longer carries is a photograph removed or
+      // replaced; its memory goes with it. Everything else is kept as it was.
+      HomePhotoStore.shared.reconcile(paths: vm.rounds.compactMap(\.photo_path))
+    }
+    .onChange(of: store.session?.user.id) { _, _ in
+      // sign-out or an account change: no picture and no credential survives
+      HomePhotoStore.shared.clear()
+      Task { await SignedURLCache.shared.clear() }
+    }
     .navigationTitle("")
     .toolbar(.hidden, for: .navigationBar)
     // **DF-14 · A FIGURE MAY NOT RENDER UNDER THE CLOCK.** Content scrolled
@@ -356,7 +367,7 @@ struct HomeView: View {
     let loose = page.rows.filter { $0.period == nil }
     ForEach(Array(loose.enumerated()), id: \.element.id) { i, row in
       if i > 0 { CSRule() }
-      wireRow(row)
+      wireRow(row, context: page.wireContext)
     }
     // **D321 · A HEAD IS FOR A BUCKET, NOT FOR A SENTENCE.** A period holding
     // ONE row used to get 24pt of `ink` and 32pt of air to announce a single
@@ -380,7 +391,7 @@ struct HomeView: View {
           // the first row of a headless period takes one too — unless it
           // brings its own edge (a photograph, a card).
           if (i > 0 || !headed.contains(period)), row.leadsWithRule { CSRule() }
-          wireRow(row)
+          wireRow(row, context: page.wireContext)
         }
       }
     }
@@ -400,12 +411,17 @@ struct HomeView: View {
     [HomeWirePeriod.today, .week, .earlier, .ahead].first { p in page.rows.contains { $0.period == p } }
   }
 
-  @ViewBuilder private func wireRow(_ row: HomeWireRow) -> some View {
+  @ViewBuilder private func wireRow(_ row: HomeWireRow, context: [String: String] = [:]) -> some View {
     switch row.body {
     case .round(let r, let url):
       VStack(alignment: .leading, spacing: 0) {
-        if let url {
-          HomeWireBand(row: r, photo: url,
+        // D361 · a round WITH an attachment goes through the band whether or not
+        // this load could sign it: the band knows the difference between a
+        // credential it could not get and a picture that is gone, and it keeps
+        // what it has. Only a round with no attachment is a record from here.
+        if url != nil || (r.photo_path.map { !$0.isEmpty } ?? false) {
+          HomeWireBand(row: r, photo: url, photos: HomePhotoStore.shared,
+                       denied: r.photo_path.map { vm.photoDenied.contains($0) } ?? false,
                        open: { if let id = r.round_id { presenter.receipt = id } },
                        openPerson: { if let p = r.profile_id { presenter.tourCard = p } })
         } else {
@@ -415,7 +431,8 @@ struct HomeView: View {
             .padding(.horizontal, CSTokens.Space.gutter)
         }
         if let rid = r.round_id, let state = vm.social.state(for: rid) {
-          HomeWireReactions(state: state, day: HomeWireCopy.dayMarker(r.played_on)) { emoji in
+          // one fact, one place: a record's identity row already carries the day
+          HomeWireReactions(state: state, day: url == nil ? nil : HomeWireCopy.dayMarker(r.played_on)) { emoji in
             react(r, emoji)
           }
           .padding(.horizontal, CSTokens.Space.gutter)
@@ -444,7 +461,7 @@ struct HomeView: View {
     // buttons. The web does the same thing for the same reason.
     case .item(let it, let stamp):
       VStack(alignment: .leading, spacing: 0) {
-        HomeWireItem(headline: it.localHeadline(), stamp: stamp) { take(it) }
+        HomeWireItem(headline: it.localHeadline(), stamp: stamp, context: context[it.key]) { take(it) }
         answers(it)
       }
       .padding(.horizontal, CSTokens.Space.gutter)
@@ -614,7 +631,9 @@ final class HomeModel {
   /// the four gated cards dark for ever after wave 3 opens the flag.
   private var majorOpen: Bool?
   private var mark: Date?
-  private var rounds: [HomeFeedRow] = []
+  private(set) var rounds: [HomeFeedRow] = []
+  /// D361 · paths the storage refused to sign on the last load
+  private(set) var photoDenied: Set<String> = []
   private var posts: [HomePost] = []
   private var urls: [UUID: URL] = [:]
   private let repo = HomeStreamRepository()
@@ -774,6 +793,7 @@ final class HomeModel {
     // A failed read is not an empty feed. With rounds already on screen, a
     // pull on a bad signal keeps them.
     feedFailed = r.failed
+    photoDenied = r.photoDenied
     if !(r.failed && !items.isEmpty) {
       items = r.items
       rounds = r.rounds; posts = r.posts

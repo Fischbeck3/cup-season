@@ -109,9 +109,15 @@ public struct HomeStreamRepository: Sendable {
     /// so a pull on a bad signal keeps what is already on screen instead of
     /// painting "No rounds from your buddies yet." over the circle's rounds.
     public let failed: Bool
+    /// D361 · the photo paths the storage REFUSED to sign this load (gone, or
+    /// not ours). A path absent from both the URLs and this set could not be
+    /// reached, which says nothing about its picture.
+    public let photoDenied: Set<String>
 
-    public init(items: [HomeItem], rounds: [HomeFeedRow], posts: [HomePost], failed: Bool = false) {
+    public init(items: [HomeItem], rounds: [HomeFeedRow], posts: [HomePost], failed: Bool = false,
+                photoDenied: Set<String> = []) {
       self.items = items; self.rounds = rounds; self.posts = posts; self.failed = failed
+      self.photoDenied = photoDenied
     }
   }
 
@@ -208,18 +214,25 @@ public struct HomeStreamRepository: Sendable {
     let moments = (leaguePosts + personPosts).filter { seenPosts.insert($0.id).inserted }
     let rows = read ?? []
 
-    // one batched signing per load: the circle's photo paths → hour URLs
-    var urls: [String: URL] = [:]
-    let paths = rows.compactMap(\.photo_path).prefix(14)
-    if !paths.isEmpty, let signed = try? await svc.client.storage.from("media").createSignedURLs(paths: Array(paths), expiresIn: 3600) {
-      for s in signed where s.error == nil { urls[s.path] = s.signedURL }
-    }
+    // one batched signing per load: the circle's photo paths → hour URLs.
+    // D361 · THROUGH THE CACHE, so a path keeps the URL it was signed with
+    // until that URL is nearly stale. A refresh therefore asks for the same
+    // bytes at the same URL and the HTTP cache answers; a new signature is
+    // minted only for a path the cache has not seen, or one about to expire.
+    // The picture is asked for SIZED FOR THE BAND — 1200px wide, quality 75 —
+    // which the storage answers at 35–50% of the original bytes (measured
+    // 2026-09-14, HTTP 200 on this project). A transform is bound into the
+    // signed token, so it is one signing call per path rather than one batch;
+    // they run concurrently, and the cache means a path is signed once an hour.
+    let paths = Array(rows.compactMap(\.photo_path).prefix(14))
+    let resolved = await StoragePhotos.sized(paths, storage: svc.client.storage)
+    let urls = resolved.urls
 
     let items = (rows.map { HomeItem.round($0, photoURL: $0.photo_path.flatMap { urls[$0] }) }
       + moments.map { HomeItem.post($0, leagueName: $0.league_id.flatMap { names[$0] }) })
       .sorted { $0.time > $1.time }
       .prefix(30)
-    return Result(items: Array(items), rounds: rows, posts: moments, failed: read == nil)
+    return Result(items: Array(items), rounds: rows, posts: moments, failed: read == nil, photoDenied: resolved.denied)
   }
 
   /// The posts read, in two tries. `scheduled_round_id` (D219) is the newest
