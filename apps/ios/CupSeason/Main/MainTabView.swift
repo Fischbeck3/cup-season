@@ -733,8 +733,10 @@ struct MainTabView: View {
     // DEBUG-only by construction — `CSDevHatch.textSize` is nil in Release.
     // Wave 8 owns the same line at the product's other sheets.
     .csSheet(item: $presenter.receipt) {
-      RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 })
+      RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 },
+                        armPhoto: presenter.receiptArmPhoto)
         .csDevTextSize(CSDevHatch.textSize)
+        .task { presenter.receiptArmPhoto = false }
     }
     .csSheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
     .csSheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }
@@ -777,7 +779,7 @@ struct MainTabView: View {
       // fullScreenCover with no NavigationStack has none — the first shot of
       // the re-cut step 1 was a full-screen cover with no way out of it.
       NavigationStack {
-        WizardScreen(existingLeagueId: t.existingLeagueId, links: wizardLinks, initialStep: t.initialStep)
+        WizardScreen(existingLeagueId: t.existingLeagueId, links: wizardLinks, initialStep: t.initialStep, invitee: t.invitee)
       }
     }
     // D225 · the intent sheet. Every "Start something" lands here first, and
@@ -803,7 +805,7 @@ struct MainTabView: View {
       LengthStep(opponent: who,
                  liveNow: LiveRoundStore.shared.state.active,
                  myLeagues: store.me?.memberships.compactMap(\.league_id) ?? [],
-                 take: { takeLength($0, who) },
+                 take: { takeRoute($0, who) },
                  putAForfeitOnIt: { lid in presenter.forfeit = .init(home: ForfeitHome(leagueId: lid, opponent: who.id), opponentName: who.name) })
     }
     .csSheet(item: $presenter.callout) { who in
@@ -1096,7 +1098,10 @@ struct MainTabView: View {
   }
 
   private var liveLinks: LiveLinks {
-    LiveLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 }, done: { presenter.showLive = false })
+    LiveLinks(openReceipt: { presenter.receipt = $0 },
+              openReceiptAddingPhoto: { presenter.receiptArmPhoto = true; presenter.receipt = $0 },
+              openTourCard: { presenter.tourCard = $0 },
+              done: { presenter.showLive = false })
   }
 
   private var csLinks: CSLinks {
@@ -1118,15 +1123,28 @@ struct MainTabView: View {
   }
 
   /// R-F · each length lands on an object that already exists, and the golfer
-  /// never meets its name.
-  private func takeLength(_ len: CalloutLength, _ who: TagCandidate) {
-    switch len.object {
-    case .liveRound:  presenter.showLive = true          // L-40 · the free door
-    case .callout:    presenter.callout = who
-    case .pairSeason:
+  /// never meets its name. D363 · **and the person rides.** Before this, the
+  /// live door dropped `who` on the floor (`showLive = true` and nothing else)
+  /// and the wizard opened generic — the owner tapped "Play Alex" and met a
+  /// group with only himself in it. Nothing here writes: the live sheet seats
+  /// a person in a picker, the plan tags them in a composer, the wizard holds
+  /// an invitation to send at lock. Every write stays at its own confirmation.
+  private func takeRoute(_ r: PlayRoute, _ who: TagCandidate) {
+    switch r {
+    case .liveNow:
+      // L-40 · the free door — with the person handed to the store, which
+      // seats them (or says why it could not) once the roster is primed.
+      LiveRoundStore.shared.preselect(who)
+      presenter.showLive = true
+    case .plan:
+      // The composer's own default day — no weekday promised by this door.
+      presenter.declare = DeclarePrefill(tagPids: [who.id])
+    case .headToHead:
+      presenter.callout = who
+    case .season:
       // D205 · a season at two golfers. The wizard mints it, and the second
       // seat is an INVITE, never `add_friend_to_league` (L-12, A-1).
-      presenter.wizard = .init(existingLeagueId: nil)
+      presenter.wizard = .init(existingLeagueId: nil, invitee: who)
     }
   }
 

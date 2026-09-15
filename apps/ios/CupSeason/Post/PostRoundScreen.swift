@@ -183,6 +183,10 @@ private struct PostRoundBody: View {
   private var tightFoot: Bool {
     DoorLayout.working(windowHeight: windowHeight, typeSize: typeSize)
   }
+  /// F8 · where the course search sits in the scroll, and the proxy the
+  /// `whereSection` needs to bring it above the keyboard (see `CourseSearchReveal`).
+  @State private var searchTop: CGFloat = .nan
+  @State private var scrollProxy: ScrollViewProxy?
 
   var body: some View {
     ScrollViewReader { proxy in
@@ -201,7 +205,7 @@ private struct PostRoundBody: View {
         .padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 12)
         .csPage("composer")
       }
-      .onAppear { windowHeight = DoorLayout.windowHeight }
+      .onAppear { windowHeight = DoorLayout.windowHeight; scrollProxy = proxy }
       // D362 · the sentence arrives from the server AFTER the keypad is up, so
       // on a short phone it can land below the fold on a page the golfer has
       // not scrolled. Bring the hero back into view when it appears — and only
@@ -377,11 +381,15 @@ private struct PostRoundBody: View {
   private var whereSection: some View {
     VStack(alignment: .leading, spacing: 0) {
       CSSectionHead("Course & tees").padding(.top, 8)
-      PostCourseSearchField(text: $model.card.course, courseId: $model.card.courseId) { c, t in
+      PostCourseSearchField(text: $model.card.course, courseId: $model.card.courseId,
+                            onReveal: { if let p = scrollProxy { CourseSearchReveal.run(p, top: searchTop) } }) { c, t in
         model.teePicked(course: c, tee: t)
         CSMotion.run { ratingOpen = false }   // the tee filled the line; the fields fold
       }
         .padding(.top, 12).padding(.bottom, 2)
+        // F8 · the answer arrives under this field, above the keyboard
+        .id(CourseSearchReveal.id)
+        .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
       // course memory — ONLY while the search field is empty, so recents never read as stuck search results (they used to sit
       // under the field unconditionally and, with a failed search above them, looked exactly like a broken dropdown)
       if model.card.course.isEmpty && !model.memory.isEmpty {
@@ -840,7 +848,7 @@ private struct PostDateSheet: View {
     VStack(alignment: .leading, spacing: 12) {
       CSSheetHeader(title: "Date", sub: "THE DAY YOU PLAYED")
       DatePicker("Date", selection: $day, in: ...Calendar.current.date(byAdding: .day, value: 1, to: Date())!, displayedComponents: .date)
-        .datePickerStyle(.graphical).labelsHidden().tint(cs.brand)
+        .datePickerStyle(.graphical).labelsHidden().tint(cs.act)
       Button("Set the day") { dismiss() }.buttonStyle(.csPrimary())
     }
     .padding(20)

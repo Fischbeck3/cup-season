@@ -45,11 +45,16 @@ struct RoundReceiptSheet: View {
   @Environment(\.dynamicTypeSize) private var typeSize
   let roundId: UUID
   let initialSeed: ReceiptSeed?
+  /// F12 · opened from the finish by "Add a photo": the receipt's own picker
+  /// is raised once, so the library is asked for only after the golfer chose
+  /// the action, and the attach/remove pipeline is the one that already ships.
+  var armPhoto: Bool = false
   /// "See the scorecard" — the hand-off to the live-round card (D92).
   var openScorecard: ((UUID) -> Void)? = nil
 
   @State private var seed: ReceiptSeed?
   @State private var enriched = false
+  @State private var armedOnce = false
   @State private var loadFailed = false
   /// **The round's own delete**, two steps, on the object it removes.
   @State private var armed = false
@@ -80,8 +85,9 @@ struct RoundReceiptSheet: View {
   @State private var reviewPhoto: UIImage?
   #endif
 
-  init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil) {
+  init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil, armPhoto: Bool = false) {
     self.roundId = roundId; self.initialSeed = seed; self.openScorecard = openScorecard
+    self.armPhoto = armPhoto
     _seed = State(initialValue: seed)
   }
 
@@ -163,6 +169,14 @@ struct RoundReceiptSheet: View {
     }
     .presentationBackground(cs.bg0)
     .task { await open() }
+    // F12 · "Add a photo" at the finish lands here with the picker already
+    // asked for — once, and only because the golfer chose that action, so the
+    // library is never asked for on arrival.
+    .task {
+      guard armPhoto, !armedOnce else { return }
+      armedOnce = true
+      openPicker()
+    }
     // The composer's own door, so the two surfaces open the same camera roll —
     // and D298 is why "the same" is now worth saying: this read `the camera
     // when the app may open it, the library otherwise`, which on a phone means

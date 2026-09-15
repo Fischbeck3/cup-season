@@ -78,7 +78,16 @@ struct ScheduledRoundSheet: View {
       // an object is pushed, and a sheet on a sheet was the shape the design
       // deleted.
       .navigationDestination(for: CourseSheetRef.self) { c in
-        CourseScreen(courseId: c.id, label: c.label)
+        CourseScreen(courseId: c.id, label: c.label, tee: c.tee, rating: c.rating)
+      }
+      // D364 (F1) · "View scorecard" lands on the whole card, on the plan's
+      // own tee, from the book this phone holds.
+      .navigationDestination(for: WholeCardRef.self) { w in
+        if let book = vm.book, book.id == w.bookId {
+          CourseWholeCardScreen(book: book, openOn: book.tees.first { $0.id == w.teeId }, yours: w.teeId != nil)
+        } else {
+          Text(CourseBookCopy.neverKept).csType(.bodyS).foregroundStyle(cs.mut).padding(CSTokens.Space.gutter)
+        }
       }
     }
     .presentationDragIndicator(.visible)
@@ -145,12 +154,13 @@ struct ScheduledRoundSheet: View {
       // night before. Everything comes off the phone's own store, so it is
       // there on a plane (R-N).
       planCourse(d)
-      // D261 / R-N · the tees, the ratings and the whole card — from the phone.
-      // Offered only for a course this phone has kept, so a door can never
-      // open on nothing (L-32).
+      // D261 / R-N · the course's own page — rounds here, the rating, every
+      // tee — from the phone, opened on THIS plan's tee (D364). Offered only
+      // for a course this phone has kept, so a door can never open on nothing
+      // (L-32).
       if vm.kept, let id = d.courseId {
-        CSDoor(.link("The tees and the whole card", {
-          path.append(CourseSheetRef(id: id, label: d.courseName))
+        CSDoor(.link("The course page", {
+          path.append(CourseSheetRef(id: id, label: d.courseName, tee: d.course?.tee, rating: d.course?.rating))
         }))
       }
 
@@ -276,24 +286,42 @@ struct ScheduledRoundSheet: View {
       // viewport (D201). `tee(named:holes:rating:)` returns the PICKED tee or
       // nil, never a near miss, and the fallback is only for a plan whose row
       // carries no tee at all.
-      let tee = book.tee(named: d.course?.tee, holes: 18, rating: d.course?.rating) ?? book.defaultTee
+      let named = book.tee(named: d.course?.tee, holes: 18, rating: d.course?.rating)
+      let tee = named ?? book.defaultTee
       let holes = (tee?.holes ?? []).sorted { $0.hole < $1.hole }
-      let drawn = holes.compactMap { h in
-        h.par.map { CSDrawnCard.Hole(number: h.hole, par: $0, si: h.si, yards: h.yards) }
-      }
+      let hasCard = holes.contains { $0.par != nil }
+      // D364 (F3) · **a compact composition, not a graphic.** The drawn bars
+      // encoded yardage as height and par as width and nothing on the sheet
+      // said so; "The three that decide it" were the three lowest stroke
+      // indexes, which do not predict which holes decide anything. Now: the
+      // tee the plan names (or the longest, said as such), its facts, the
+      // turn, and a door to the whole scorecard — on paper, over the topo the
+      // sheet already stands on. No invented map, no photograph the plan
+      // does not carry.
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         CSRule()
-        if drawn.isEmpty {
-          Text(CourseBookCopy.noCard).csType(.bodyS).foregroundStyle(cs.mut)
-            .fixedSize(horizontal: false, vertical: true)
-        } else {
-          Text("The card · " + (tee?.teeName ?? "Tee"))
-            .csType(.agateS, caps: true).foregroundStyle(cs.mut)
-          CSDrawnCard(drawn).frame(height: 84)
-          if let turn = PlanCourseCopy.turn(holes: holes, tee: tee) {
-            Text(turn).csType(.columnM).foregroundStyle(cs.mut)
+        // On the sheet's own ground: the paper leaf is reserved for a grid
+        // (LINT-20), and the scorecard behind the door IS that leaf.
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          Text("The course").csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          if let tee {
+            Text(tee.title + " tees").csType(.name).foregroundStyle(cs.ink)
+              .accessibilityIdentifier("plan.course.tee")
+            Text(named == nil ? CourseBookCopy.teeIsTheLongest : CourseBookCopy.teeIsYours)
+              .csType(.agateS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+            if let turn = PlanCourseCopy.turn(holes: holes, tee: tee) {
+              Text(turn).csType(.columnM).foregroundStyle(cs.ink)
+            }
           }
-          hardest(drawn)
+          if !hasCard {
+            Text(CourseBookCopy.noCard).csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          } else {
+            Button("View scorecard") { path.append(WholeCardRef(bookId: book.id, teeId: tee?.id)) }
+              .buttonStyle(.csTertiary(.content))
+              .accessibilityIdentifier("plan.course.scorecard")
+          }
         }
         if let line = PlanCourseCopy.history(book.label, played: vm.played) {
           Text(line).csType(.bodyS).foregroundStyle(cs.mut)
@@ -314,29 +342,10 @@ struct ScheduledRoundSheet: View {
     }
   }
 
-  /// **THE THREE THAT DECIDE IT** — the three lowest stroke indexes as three
-  /// figures on one rule, with `PAR 5 · 604 · SI 1` beneath each.
-  ///
-  /// It is a fact about the CARD and not about the golfer: a scratch player's
-  /// three hardest holes are not a bogey golfer's, and the product has no
-  /// model that would know the difference. The head says "decide it" rather
-  /// than "your three hardest" for exactly that reason.
-  @ViewBuilder private func hardest(_ holes: [CSDrawnCard.Hole]) -> some View {
-    let three = holes.filter { $0.si != nil }.sorted { ($0.si ?? 99) < ($1.si ?? 99) }.prefix(3)
-    if three.count == 3 {
-      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-        Text("The three that decide it").csType(.agateS, caps: true).foregroundStyle(cs.mut)
-        HStack(alignment: .top, spacing: CSTokens.Space.s4) {
-          ForEach(Array(three), id: \.id) { h in
-            CSFigure("\(h.number)", size: .m, metal: .ink,
-                     label: PlanCourseCopy.hole(par: h.par, yards: h.yards, si: h.si),
-                     ordinal: CSOrdinal.suffix(h.number))
-              .frame(maxWidth: .infinity, alignment: .leading)
-          }
-        }
-      }
-    }
-  }
+  // D364 (F3) · "The three that decide it" is gone. It was the three lowest
+  // stroke indexes — a fact about the card's handicap allocation, not a
+  // prediction of which holes decide a round — and the head claimed the
+  // second. The whole card is one tap away, with every index on it.
 
   private func facts(_ d: RoundDetail) -> [CSScoreRail.Cell] {
     var out: [CSScoreRail.Cell] = []
@@ -574,7 +583,19 @@ final class RoundSheetModel {
 /// are pushed). It kept its name because `MainTabView`'s `"never-kept"`
 /// sentinel is written against it and because every caller reads the same two
 /// fields; it gained `Hashable` so a `NavigationPath` can carry it.
-struct CourseSheetRef: Identifiable, Equatable, Hashable { let id: String; let label: String }
+/// D364 (F1) · a course door carries the TEE the round names — its name and
+/// its rating, which separates a men's `Back` from a women's `Back` — so the
+/// course page and the whole card open on that tee, never on the longest.
+struct CourseSheetRef: Identifiable, Equatable, Hashable {
+  let id: String
+  let label: String
+  var tee: String? = nil
+  var rating: Double? = nil
+}
+
+/// "View scorecard" from a plan: the whole card, straight from the phone's
+/// own book, opened on the plan's tee.
+struct WholeCardRef: Equatable, Hashable { let bookId: String; let teeId: String? }
 
 // MARK: - Tag your group (`openRetagSheet` 16852)
 

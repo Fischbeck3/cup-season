@@ -59,8 +59,48 @@ struct LiveRecapSheet: View {
   @Environment(\.dismiss) private var dismiss
   let data: LiveRecapData
   @Bindable var store: LiveRoundStore
+  /// F12 · the doors onto the viewer's OWN round: the receipt, and the
+  /// receipt with its photo picker armed.
+  var links = LiveLinks()
   @State private var share: LiveShareItems?
   @State private var busy = false
+  /// F12 · which posted round is mine. `finish_live_round` returns names,
+  /// grosses and holes and NO round id, so the id is found from the evidence
+  /// the finding sanctions — my rounds, this course id, this day — and two
+  /// candidates are a question rather than a link.
+  @State private var mine: RoundReconcile.Match = .none
+  @State private var looked = false
+  @Environment(SessionStore.self) private var sessionStore
+
+  /// The truth about the save, which is never inferred from the title.
+  private var status: RoundReconcile.SaveStatus {
+    RoundReconcile.status(posted: data.outcome.posted.map(\.name),
+                          skipped: data.outcome.skipped.map { ($0.name, $0.reason) },
+                          casual: data.outcome.casual,
+                          keptLocally: data.keptLocally,
+                          mine: data.myName)
+  }
+
+  /// Find my round once, and only when there is one to find.
+  private func findMine() async {
+    guard !looked, status.hasRound, let uid = store.myPid else { return }
+    looked = true
+    // The server names my round outright once 20261105090000 is applied —
+    // no matching needed, and no ambiguity possible.
+    if let named = data.outcome.posted.first(where: { $0.profileId == uid })?.roundId {
+      mine = .one(named)
+      await sessionStore.reload()
+      return
+    }
+    let day = CSDate.iso(data.date, calendar: ScheduleDates.gregorian)
+    let rows = (try? await RoundsRepository().myRounds(uid)) ?? []
+    mine = RoundReconcile.mine(rows.map { RoundReconcile.Candidate(id: $0.id, courseId: $0.api_course_id, playedOn: $0.played_on) },
+                               courseId: data.courseId, playedOn: day)
+    // F12 · Home is refreshed from the CONFIRMED post, so the just-posted
+    // round is on the wire before the golfer gets back to it — never from a
+    // guess that the finish "probably worked".
+    await sessionStore.reload()
+  }
 
   private let d = CSTokens.dark
 
@@ -96,6 +136,7 @@ struct LiveRecapSheet: View {
                 }
               }
             }
+            yourRound
             if !o.posted.isEmpty || !o.skipped.isEmpty || !o.guests.isEmpty {
               CSSectionHead("The cards", count: "\(o.posted.count) posted")
             }
@@ -146,13 +187,46 @@ struct LiveRecapSheet: View {
     .sheet(item: $share) { LiveShareSheet(items: $0.items) }
   }
 
+  /// F12 · YOUR ROUND — the save status in the product's three words, then the
+  /// two doors onto it. The photograph is optional and is asked for only when
+  /// the golfer taps it; skipping it changes nothing about the posted score,
+  /// and a failed upload can never unpost a round or mint a second one.
+  @ViewBuilder private var yourRound: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      CSSectionHead("Your round")
+      Text(data.course).csType(.name).foregroundStyle(d.ink)
+      Text(status.title).csType(.agateS, caps: true).foregroundStyle(d.mut)
+      Text(status.detail).csType(.bodyS).foregroundStyle(d.mut)
+        .fixedSize(horizontal: false, vertical: true)
+      switch mine {
+      case .one(let id):
+        A11yStack(spacing: CSTokens.Space.s2) {
+          CSMini("View round") { dismiss(); links.openReceipt(id) }
+          CSMini(RoundCopy.photoAdd, glyph: .photo) { dismiss(); links.openReceiptAddingPhoto(id) }
+        }
+        .padding(.top, CSTokens.Space.s1)
+      case .ambiguous:
+        // More than one round on this course today: the product asks rather
+        // than opening the wrong one.
+        CSFine(RoundReconcile.askWhichRound + " Open it from your rounds.")
+      case .none:
+        if status.hasRound { CSFine("Your round is on the books. Open it from your rounds.") }
+      }
+    }
+    .padding(.top, CSTokens.Space.s2)
+    .task { await findMine() }
+  }
+
   /// The round's own takeover: what happened, in `display`, on the ceremony
   /// ground, with the money as the figure that tallies.
   @ViewBuilder private func takeover(_ o: LiveFinishOutcome) -> some View {
     let casual = o.casual
     let line = data.result?.share ?? ""
     CSTakeover(
-      eyebrow: casual ? "Casual — nothing posted" : "Round posted",
+      // F12 · the eyebrow is the VIEWER's own outcome, not a generic title:
+      // a recap that says "Round posted" over a card the server skipped is
+      // the exact false success the finding names.
+      eyebrow: casual ? "Casual — nothing posted" : status.title,
       lines: [line.isEmpty ? (casual ? "Nothing posted" : "The cards are in")
                            : String(line.prefix(64))],
       figure: nil,

@@ -209,6 +209,11 @@ struct RootView: View {
       if CompeteFixture.on {
         NavigationStack { CompeteScreen(links: CSLinks()) }
           .background(cs.bg0.ignoresSafeArea())
+          // The fixture is an OVERLAY on the root, so it never passes through
+          // the tab shell where `-cs_dev_text_size` is applied — which meant
+          // this screen could not be photographed at an accessibility size at
+          // all, and F11 asks for exactly that proof.
+          .csDevTextSize(CSDevHatch.textSize)
       }
     }
     .overlay {

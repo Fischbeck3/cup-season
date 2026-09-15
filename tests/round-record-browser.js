@@ -58,7 +58,7 @@
   check(ref.querySelector('.hfr-gross .cs-agate-s').textContent==='GROSS','the figure is not labelled');
   check(ref.querySelectorAll('.hfr-story').length===1 && ref.querySelector('.hfr-story').textContent==='2.0 over your playing HCP.','the story is not the handicap context: '+JSON.stringify(ref.querySelector('.hfr-story')?.textContent));
   check(ref.querySelector('.hfr-go') && ref.getAttribute('role')==='button','no route into the receipt');
-  check(ref.querySelector('.hfr-foot [data-hreact]'),'no compact reactions in the foot');
+  check(ref.querySelector('.hfr-foot [data-hrx]') && !ref.querySelector('.hfr-foot [data-hreact]'),'no applause control in the foot (D365)');
   check(ref.querySelector('.hfr-topo'),'no contour behind the title');
   check(!ref.querySelector('img'),'the record grew a picture it does not have');
 
@@ -100,8 +100,13 @@
   ref.querySelector('.hfr-title').click();
   check(opened && (opened===rows[0] || opened.round_id===rows[0].round_id || opened===rows[0].round_id),'the title did not open the receipt');
   window.openRoundReceipt=realOpen;
-  ref.querySelector('.hfr-foot [data-hreact]').click();
-  check(ref.querySelectorAll('.hfr-foot [data-hrx]').length>=4,'the reactions did not open in the foot');
+  /* D365 · the foot carries the one applause control; the glyph does not open the receipt */
+  opened=null; window.openRoundReceipt=(r)=>{ opened=r; };
+  const ap=ref.querySelector('.hfr-foot [data-hrx]');
+  check(ap && ap.getAttribute('aria-label')==='Give applause' && !ref.querySelector('.hfr-foot .rxchip'),'the foot does not carry the applause control');
+  ap.click();
+  check(!opened,'applause opened the receipt');
+  window.openRoundReceipt=realOpen;
 
   out.passed=true;
   return JSON.stringify(out);

@@ -33,6 +33,14 @@ public enum RoundWorth {
   /// The top band, read from the one band table (§4.27) rather than typed.
   public static var topBand: Double { Double(CSBands.cupPoints(3)) }
 
+  /// The ceiling for a round of `holes`. A nine-hole round earns HALF the
+  /// band, rounded up — `v_rounds_ranked` scores it `ceil(cup_points(…)/2)`
+  /// and counts it as half a round — so an eighteen-hole ceiling is never
+  /// promised to a nine (F3, D364).
+  public static func ceiling(holes: Int = 18) -> Double {
+    holes == 9 ? (topBand / 2).rounded(.up) : topBand
+  }
+
   // MARK: - the sum
 
   /// The points a top-band round ADDS to my month, or nil when the machine
@@ -42,11 +50,12 @@ public enum RoundWorth {
   ///   round is worth the whole top band.
   /// - `used` ≥ `cap` is a full month: the round bumps the worst counter, and
   ///   without that counter's points there is no honest answer.
-  public static func gain(cap: Int?, used: Int?, worst: Double?) -> Double? {
+  public static func gain(cap: Int?, used: Int?, worst: Double?, holes: Int = 18) -> Double? {
     let u = used ?? 0
-    guard let cap, cap > 0, u >= cap else { return topBand }
+    let top = ceiling(holes: holes)
+    guard let cap, cap > 0, u >= cap else { return top }
     guard let worst, worst.isFinite else { return nil }
-    return topBand - worst
+    return top - worst
   }
 
   /// How many counting slots the month still has open, or nil when uncapped
@@ -69,24 +78,34 @@ public enum RoundWorth {
   ///
   /// `season` names the season when a round counts in more than one, and is
   /// left nil when there is only one to name.
+  ///
+  /// D364 (F3) · **the points a round can SCORE and the points it would ADD
+  /// are two facts, said separately.** "Worth up to 7 more" folded them into
+  /// one figure nobody could check. Now: the ceiling first (12, or 6 for a
+  /// nine), then the counting rule, then — in a full month — the replacement
+  /// arithmetic in the open: your lowest is a 5, so a 12 would add 7.
   public static func line(subject: String, cap: Int?, used: Int?, worst: Double? = nil,
-                          season: String? = nil) -> String? {
-    guard let g = gain(cap: cap, used: used, worst: worst) else { return nil }
+                          season: String? = nil, holes: Int = 18) -> String? {
+    guard let g = gain(cap: cap, used: used, worst: worst, holes: holes) else { return nil }
+    let top = CSCopy.points(ceiling(holes: holes))
     let whose = season.map { " in \($0)" } ?? ""
     let u = used ?? 0
     let full = (cap ?? 0) > 0 && u >= (cap ?? 0)
+    // a nine is scored as half a round, and only where the season allows nines
+    let nine = holes == 9 ? " as a nine, counted as half a round where the season allows nines" : ""
     if g <= 0 {
       // A month whose counters are already top-band rounds. The round still
       // builds the number and still earns its floor credit, and saying so is
       // truer than silence and truer than a zero.
-      return "\(subject) cannot add to your points\(whose) this month — your best \(cap.map(String.init) ?? "rounds") already count. It still builds your number."
+      return "\(subject) can score up to \(top)\(nine), but your best \(cap.map(String.init) ?? "rounds") already count and none is below \(top) — it can't add to your total\(whose) this month. It still builds your number."
     }
-    let head = "\(subject) is worth up to \(CSCopy.points(g))\(full ? " more" : "")\(whose)."
-    guard let cap, cap > 0 else { return head + " Every round you post this month counts." }
-    let tail = full
-      ? "Your best \(cap) count this month and your worst is a \(CSCopy.points(worst))."
-      : "Your best \(cap) count and you have \(u)."
-    return head + " " + tail
+    guard let cap, cap > 0 else {
+      return "\(subject) can score up to \(top)\(nine)\(whose). Every round you post this month counts."
+    }
+    if full {
+      return "\(subject) can score up to \(top)\(nine)\(whose). Your best \(cap) count this month and your lowest is a \(CSCopy.points(worst)), so a \(top) would add \(CSCopy.points(g))."
+    }
+    return "\(subject) can score up to \(top)\(nine), and it counts\(whose): your best \(cap) count and you have \(u)."
   }
 
   // MARK: - the counters, as they arrive
@@ -117,18 +136,33 @@ public enum RoundWorth {
     /// This row's sentence. `named` is the caller's answer to "is there more
     /// than one season on this round" — the only reason to spend words on a
     /// season's name (L-34).
-    public func line(subject: String, named: Bool) -> String? {
+    public func line(subject: String, named: Bool, holes: Int = 18) -> String? {
       RoundWorth.line(subject: subject, cap: cap, used: used, worst: worst,
-                      season: named ? leagueName : nil)
+                      season: named ? leagueName : nil, holes: holes)
     }
+  }
+
+  /// D364 · seasons whose cap, used and lowest counter all agree would print
+  /// the same sentence twice with two names on it. They say it once, naming
+  /// the seasons together. Seasons that differ each keep their own line —
+  /// a merge is only ever of contexts that actually agree.
+  static func merged(_ rows: [Counters]) -> Counters? {
+    guard rows.count > 1, let f = rows.first,
+          rows.allSatisfy({ $0.cap == f.cap && $0.used == f.used && $0.worst == f.worst }) else { return nil }
+    let names = rows.compactMap(\.leagueName)
+    let name = (rows.count == 2 && names.count == 2)
+      ? "both \(names[0]) and \(names[1])"
+      : "all \(rows.count) of your seasons"
+    return Counters(leagueId: nil, leagueName: name, cap: f.cap, used: f.used, worst: f.worst)
   }
 
   /// The lines a plan sheet prints, in payload order, at most two. A round can
   /// count in more than one season, and three of these is a wall of arithmetic
   /// on a sheet whose job is who is in and when.
-  public static func lines(_ rows: [Counters], subject: String = "This round", limit: Int = 2) -> [String] {
+  public static func lines(_ rows: [Counters], subject: String = "This round", limit: Int = 2, holes: Int = 18) -> [String] {
+    if let one = merged(rows) { return [one.line(subject: subject, named: true, holes: holes)].compactMap { $0 } }
     let named = rows.count > 1
-    return rows.prefix(limit).compactMap { $0.line(subject: subject, named: named) }
+    return rows.prefix(limit).compactMap { $0.line(subject: subject, named: named, holes: holes) }
   }
 }
 
@@ -138,14 +172,15 @@ public enum RoundWorth {
 public extension RoundWorth {
   /// `my_month_counters(p_on)` → the sentences the composer prints, one per
   /// season the date falls in, the season named only when there is more than
-  /// one. `[]` when the server has none to say — no ceiling is ever guessed.
-  static func servedLines(_ json: JSONValue, subject: String = "This round") -> [String] {
-    let rows = json.array ?? []
-    let named = rows.count > 1
-    return rows.compactMap { r in
-      let c = r["counters"]
-      return line(subject: subject, cap: r["cap"]?.int, used: c?["used"]?.int, worst: c?["worst"]?.double,
-                  season: named ? r["league_name"]?.string : nil)
+  /// one — and once, together, when every season says the same thing (D364).
+  /// `[]` when the server has none to say — no ceiling is ever guessed.
+  /// `holes` is the card's own side (9 or 18), so a nine is never promised an
+  /// eighteen-hole ceiling.
+  static func servedLines(_ json: JSONValue, subject: String = "This round", holes: Int = 18) -> [String] {
+    let rows = (json.array ?? []).map { r in
+      Counters(leagueId: r["league_id"]?.string.flatMap(UUID.init), leagueName: r["league_name"]?.string,
+               cap: r["cap"]?.int, used: r["counters"]?["used"]?.int, worst: r["counters"]?["worst"]?.double)
     }
+    return lines(rows, subject: subject, limit: rows.count, holes: holes)
   }
 }

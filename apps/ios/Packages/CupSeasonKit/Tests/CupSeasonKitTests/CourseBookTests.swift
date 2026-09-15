@@ -151,13 +151,15 @@ import Testing
     let now = Date(timeIntervalSince1970: 1_757_030_400)     // a fixed clock
     let b = book("a", saved: now)
     let line = b.savedLine(now: now, calendar: cal)
-    #expect(line == "Saved on your phone today")
+    // D364 (F2) · leads with what the copy is FOR, and still never claims a
+    // refresh: "saved", never "updated" or "live"
+    #expect(line == "Available offline · saved today")
     #expect(!line.lowercased().contains("live"))
     #expect(!line.lowercased().contains("updated"))
     let older = book("a", saved: now.addingTimeInterval(-86_400))
-    #expect(older.savedLine(now: now, calendar: cal) == "Saved on your phone yesterday")
+    #expect(older.savedLine(now: now, calendar: cal) == "Available offline · saved yesterday")
     let old = book("a", saved: now.addingTimeInterval(-5 * 86_400))
-    #expect(old.savedLine(now: now, calendar: cal).hasPrefix("Saved on your phone "))
+    #expect(old.savedLine(now: now, calendar: cal).hasPrefix("Available offline · saved "))
     #expect(!old.savedLine(now: now, calendar: cal).contains("today"))
   }
 
@@ -168,7 +170,7 @@ import Testing
     #expect(CourseAnswer(book: nil, source: .neverKept).line() == CourseBookCopy.neverKept)
     let b = book("a")
     let saved = CourseAnswer(book: b, source: .saved(b.savedAt)).line()
-    #expect(saved.hasPrefix("Saved on your phone"))
+    #expect(saved.hasPrefix("Available offline · saved"))
     // a course this phone never kept says so and offers what it can — it is
     // never a blank screen and never an invented tee
     #expect(CourseBookCopy.neverKept.contains("not on your phone"))

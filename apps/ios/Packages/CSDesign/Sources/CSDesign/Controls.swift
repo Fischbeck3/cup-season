@@ -177,7 +177,9 @@ public struct CSTertiaryStyle: ButtonStyle {
   private func rule(_ pressed: Bool) -> Color {
     guard enabled else { return cs.mut }
     switch placement {
-    case .live: return pressed ? la.accent.opacity(1 - CSTokens.Alpha.a16) : la.accent
+    // D359 / F4 · a live door's rule is the competition's signal: ember on
+    // every look, never the look's accent (which is green on homebase)
+    case .live: return pressed ? cs.brand.opacity(1 - CSTokens.Alpha.a16) : cs.brand
     case .content, .toolbar: return pressed ? cs.ink : cs.mut
     }
   }

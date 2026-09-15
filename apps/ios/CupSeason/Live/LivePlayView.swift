@@ -116,6 +116,14 @@ struct LivePlayView: View {
       VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
         eyebrow.csGutter()
         holeHeader.csGutter()
+        // F13 · the good hole, said once, under the header — the next-hole
+        // target above it is never covered and never waits.
+        if let m = store.moment {
+          LiveHoleMomentView(data: m).csGutter().padding(.top, CSTokens.Space.s2)
+        }
+        if let t = store.momentTally {
+          LiveMomentTally(line: t).csGutter().padding(.top, CSTokens.Space.s1)
+        }
         strip.csGutter()
         VStack(spacing: 0) { ForEach(s.players.indices, id: \.self) { playerRow($0) } }
         matchState

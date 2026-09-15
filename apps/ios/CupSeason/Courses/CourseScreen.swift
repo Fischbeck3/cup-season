@@ -38,8 +38,10 @@ struct CourseScreen: View {
   @State private var vm: CourseModel
   @State private var rating = false
 
-  init(courseId: String?, label: String? = nil) {
-    _vm = State(initialValue: CourseModel(courseId: courseId, label: label))
+  /// D364 (F1) · `tee`/`rating` name the round's own tee, so the page and the
+  /// whole card open on it rather than on the longest.
+  init(courseId: String?, label: String? = nil, tee: String? = nil, rating: Double? = nil) {
+    _vm = State(initialValue: CourseModel(courseId: courseId, label: label, tee: tee, rating: rating))
   }
 
   var body: some View {
@@ -162,8 +164,9 @@ struct CourseScreen: View {
         }
         .buttonStyle(.csTertiary(.content))
         .accessibilityIdentifier("course.plan")
-        NavigationLink { CourseWholeCardScreen(book: book, openOn: vm.tee(in: book)) } label: { Text("The whole card") }
+        NavigationLink { CourseWholeCardScreen(book: book, openOn: vm.tee(in: book), yours: vm.teeIsYours) } label: { Text("The whole card") }
           .buttonStyle(.csTertiary(.content))
+          .accessibilityIdentifier("course.wholecard")
       }
     }
     .padding(.horizontal, CSTokens.Space.gutter)
@@ -480,9 +483,17 @@ final class CourseModel {
 
   private let store = CourseBookStore()
 
-  init(courseId: String?, label: String?) {
+  /// D364 (F1) · the tee the round named, if any. The page opens on it and
+  /// says so; with none named it opens on the longest and says THAT.
+  private let wantTee: String?
+  private let wantRating: Double?
+  private(set) var teeIsYours = false
+
+  init(courseId: String?, label: String?, tee: String? = nil, rating: Double? = nil) {
     self.courseId = courseId
     self.label = label ?? ""
+    self.wantTee = tee
+    self.wantRating = rating
   }
 
   var title: String { book?.label ?? (label.isEmpty ? "Course" : label) }
@@ -527,7 +538,11 @@ final class CourseModel {
     loading = true
     let answer = await store.book(courseId)
     book = answer.book
-    picked = answer.book?.defaultTee?.id
+    // D364 (F1) · the round's own tee wins, strictly (`tee(named:)` never
+    // hands back a near miss); only with none named does the longest lead.
+    let named = answer.book?.tee(named: wantTee, holes: 18, rating: wantRating)
+    teeIsYours = named != nil
+    picked = named?.id ?? answer.book?.defaultTee?.id
     loading = false
     // the social half and the rating are both allowed to fail without taking
     // the page with them (L-32)

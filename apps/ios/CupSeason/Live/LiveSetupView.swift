@@ -22,8 +22,12 @@ struct LiveSetupView: View {
   @State private var teeOffTaps = 0
   @State private var phoneCards: [LiveRoundState] = []
   @State private var showOfflineCourses = false
+  /// F8 · where the course search sits in the scroll, so an answer is revealed
+  /// only when it would otherwise be under the keyboard.
+  @State private var searchTop: CGFloat = .nan
 
   var body: some View {
+    ScrollViewReader { proxy in
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
         Text("Set up the round").csType(.agate, caps: true).foregroundStyle(cs.mut)
@@ -34,7 +38,7 @@ struct LiveSetupView: View {
           CSFine("No signal needed. Keep scores here, then review and post your own round when you reconnect. No group sync or automatic posting.")
         }
         if let error = store.localSaveError { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }
-        courseCard
+        courseCard(proxy)
         if !store.scoreOnPhone { foursomeCard; gameCard; nearbyCard }
         else { CSFine("Your round only. Choose the actual tees and pars before you leave service.") }
         Button("Tee off") { teeOffTaps += 1; Task { await store.teeOff() } }
@@ -42,18 +46,20 @@ struct LiveSetupView: View {
           .disabled(store.busy)
           .padding(.top, CSTokens.Space.s2)
         if !phoneCards.isEmpty {
-          CSSectionHead("On this phone", count: "\(phoneCards.count)")
+          // D364 (F2) · an unfinished round says it is one: resume, then post
+          CSSectionHead("Unfinished rounds", count: "\(phoneCards.count)")
           ForEach(KeptCards.rows(phoneCards)) { card in
             Button { store.resumeLocal(card.lr) } label: {
               VStack(alignment: .leading, spacing: 4) {
                 Text(card.line).csType(.name)
-                Text([card.playedOn, "Not posted · review scorecard"].compactMap { $0 }.joined(separator: " · ")).csType(.bodyS)
+                Text([card.playedOn, "Not posted · resume it here"].compactMap { $0 }.joined(separator: " · ")).csType(.bodyS)
               }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             }.buttonStyle(.plain)
           }
         }
       }
       .padding(CSTokens.Space.gutter)
+    }
     }
     .background(cs.bg0)
     .task(id: store.state.lr) { phoneCards = store.localCards() }
@@ -108,7 +114,7 @@ struct LiveSetupView: View {
 
   // MARK: the course (2985–3003)
 
-  private var courseCard: some View {
+  private func courseCard(_ proxy: ScrollViewProxy) -> some View {
     section {
         CSSectionHead("The course")
         Button("Save courses for offline") { showOfflineCourses = true }
@@ -117,7 +123,7 @@ struct LiveSetupView: View {
         LiveCourseField(localOnly: store.scoreOnPhone, text: Binding(get: { store.state.course.label }, set: { v in
           if store.state.course.label != v { store.state.course.courseId = nil; store.state.course.note = nil; store.state.course.parsCourse = nil }
           store.state.course.label = v
-        })) { course, tee in
+        }), onReveal: { CourseSearchReveal.run(proxy, top: searchTop) }) { course, tee in
           Task {
             await store.applyTee(course: course, tee: tee)
             ratingText = store.state.course.rating.map(LiveFmt.js) ?? ""
@@ -125,6 +131,9 @@ struct LiveSetupView: View {
             toast.show("Tees set — rating and slope filled", kind: .confirmed)
           }
         }
+        // F8 · the answer arrives under this field, above the keyboard
+        .id(CourseSearchReveal.id)
+        .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
         fieldLabel("Tee & rating — off the scorecard")
         // three fields across; stacked (and the tee field full-width) at the accessibility sizes
         A11yStack(spacing: 8) {
@@ -217,7 +226,7 @@ struct LiveSetupView: View {
           }
           Spacer()
           Toggle("", isOn: Binding(get: { store.nearbyOn }, set: { store.nearbyOn = $0 }))
-            .labelsHidden().tint(cs.brand)
+            .labelsHidden().tint(cs.act)
             .accessibilityLabel("Find buddies on this tee")
         }
         CSFine("Bluetooth only — never your location, and nothing about where you are leaves your phone. A golfer who is not already your buddy or in a season with you stays invisible, and you still tap to add anyone.")
@@ -286,7 +295,7 @@ struct LiveSetupView: View {
                   CSFace(Faces.of(p.pid, marker: p.mk, name: p.n, isViewer: p.me), size: .inline)
                   Text("\(p.n) · \(LiveFmt.idx(p.i))").csType(.nameS).foregroundStyle(cs.ink)
                   if waiting { Text("Asking…").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
-                  else if isNear { Text("Ask").csType(.agateS, caps: true).foregroundStyle(cs.brand) }
+                  else if isNear { Text("Ask").csType(.agateS, caps: true).foregroundStyle(cs.act) }
                 }
                 .padding(.horizontal, CSTokens.Space.s2).frame(minHeight: 36)
                 .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
@@ -371,7 +380,7 @@ struct LiveSlotChip: View {
           .csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
       Spacer(minLength: 0)
-      if tradeable { CSGlyph(.chevron, size: .inline).foregroundStyle(cs.brand) }
+      if tradeable { CSGlyph(.chevron, size: .inline).foregroundStyle(cs.act) }
       if let remove {
         Button(action: remove) {
           CSGlyph(.cross, size: .inline).foregroundStyle(cs.mut)
@@ -485,6 +494,10 @@ struct LiveCourseField: View {
   var fieldIdentifier = "live.course.search"
   @Environment(\.cs) private var cs
   @Binding var text: String
+  /// F8 · fired when the answer ARRIVES (rows, a no-match, the offline list,
+  /// the tee list) — the host scrolls the field above the keyboard. Never on
+  /// a keystroke.
+  var onReveal: (() -> Void)? = nil
   let onTee: (CourseHit, CourseTee) -> Void
   @State private var vm = LiveCourseSearchModel()
 
@@ -497,6 +510,7 @@ struct LiveCourseField: View {
           vm.localOnly = localOnly
           vm.queue(q)
         }
+        .onChange(of: vm.reveal) { _, _ in onReveal?() }
       switch vm.stage {
       case .hidden: EmptyView()
       case .courses:
@@ -513,9 +527,13 @@ struct LiveCourseField: View {
                 .padding(.horizontal, 12).padding(.top, 10)
                 .fixedSize(horizontal: false, vertical: true)
             }
-            ForEach(vm.courses) { c in ddRow(c.label, c.subline) { text = c.label; vm.pickedLabel = c.label; vm.stage = .tees(c) } }
+            ForEach(vm.courses) { c in
+              ddRow(c.label, c.subline) { text = c.label; vm.pickedLabel = c.label; vm.showTees(c) }
+                .accessibilityIdentifier("course.search.row")
+            }
           }
         }
+        .accessibilityIdentifier("course.search.answer")
       case .tees(let c):
         dropdown {
           ddRow("‹ Back to courses", nil) { vm.stage = .courses }
@@ -530,9 +548,11 @@ struct LiveCourseField: View {
                 onTee(c, t)
                 Task { await CourseBookStore().keep(hit: c, tee: t) }
               }
+              .accessibilityIdentifier("course.search.tee")
             }
           }
         }
+        .accessibilityIdentifier("course.search.tees")
       }
     }
   }
@@ -570,10 +590,24 @@ final class LiveCourseSearchModel {
   /// courses on this phone.
   var offline = false
   var localOnly = false
+  /// F8 · bumped when an ANSWER arrives: the list opens (rows, no-match or
+  /// offline), an empty list fills, or the tee list follows a pick. A
+  /// keystroke that keeps the same open list bumps nothing.
+  private(set) var reveal = 0
   private var task: Task<Void, Never>?
   private var lastQ = ""
   private let sched = ScheduleService()
   private let books = CourseBookStore()
+
+  func showTees(_ c: CourseHit) { stage = .tees(c); reveal += 1 }
+
+  /// The one place the course list is painted, so the reveal rule lives once.
+  private func present(_ hits: [CourseHit], offline: Bool) {
+    let wasHidden: Bool = { if case .hidden = stage { return true }; return false }()
+    let wasEmpty = courses.isEmpty
+    courses = hits; self.offline = offline; stage = .courses
+    if wasHidden || (wasEmpty && !hits.isEmpty) { reveal += 1 }
+  }
 
   /// 320 ms debounce, ≥3 chars (6814–6830).
   func queue(_ q: String) {
@@ -609,16 +643,16 @@ final class LiveCourseSearchModel {
   private func run(_ q: String) async {
     let fresh = { self.lastQ == q && !self.inTees }
     let saved = await books.search(q).map(\.hit)
-    if !saved.isEmpty, fresh() { courses = saved; stage = .courses }
+    if !saved.isEmpty, fresh() { present(saved, offline: offline) }
     if localOnly {
-      if fresh() { courses = saved; offline = true; stage = .courses }
+      if fresh() { present(saved, offline: true) }
       return
     }
     // D261 / R-N · ONE producer: the book, then our cache, then the API.
     let answer = await books.searchCourses(q)
     // show the list even when empty — the empty state IS the "type it by hand"
     // row, so a no-match never looks like a dead field
-    if fresh() { courses = answer.hits; offline = answer.offline; stage = .courses }
+    if fresh() { present(answer.hits, offline: answer.offline) }
   }
 }
 

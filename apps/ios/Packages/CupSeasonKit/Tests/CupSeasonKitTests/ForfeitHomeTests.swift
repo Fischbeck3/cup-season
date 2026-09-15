@@ -70,10 +70,10 @@ import Foundation
   /// amount. It is the store-review posture as much as taste (D39/D64), and a
   /// widening is exactly when a rule gets quietly dropped.
   @Test func nothingInTheForfeitSheetSaysMoney() {
-    let strings = [ForfeitCopy.title, ForfeitCopy.nameLabel, ForfeitCopy.namePlaceholder,
-                   ForfeitCopy.termsLabel, ForfeitCopy.termsPlaceholder, ForfeitCopy.whoLabel,
-                   ForfeitCopy.theField, ForfeitCopy.settlesLabel, ForfeitCopy.settlesPlaceholder,
-                   ForfeitCopy.put, ForfeitCopy.definition, ForfeitCopy.noPush]
+    // D366 · `all` is every sentence the composer shows, so a new line is
+    // swept the day it is written
+    let strings = ForfeitCopy.all
+    #expect(strings.count >= 20)
     for s in strings {
       for w in ForfeitCopy.moneyWords {
         #expect(!s.lowercased().contains(w), Comment(rawValue: "\"\(s)\" says \(w)"))
@@ -104,16 +104,36 @@ import Foundation
   /// `forfeits` the TABLE keeps its name (a schema word is not a product
   /// word), which is exactly why the guard has to be over the STRINGS.
   @Test func nothingAGolferReadsSaysForfeit() {
-    let strings = [ForfeitCopy.title, ForfeitCopy.nameLabel, ForfeitCopy.namePlaceholder,
-                   ForfeitCopy.termsLabel, ForfeitCopy.termsPlaceholder, ForfeitCopy.whoLabel,
-                   ForfeitCopy.theField, ForfeitCopy.settlesLabel, ForfeitCopy.settlesPlaceholder,
-                   ForfeitCopy.put, ForfeitCopy.definition, ForfeitCopy.noPush,
-                   ForfeitCopy.ledgerHead,
+    let strings = ForfeitCopy.all + [
                    ForfeitHome(leagueId: Self.a, eventId: Self.b).refusal ?? "",
                    ForfeitHome().refusal ?? "",
                    CalloutCopy.stakeForfeit, PlanCopy.stakeGloss]
     for s in strings {
       #expect(!s.lowercased().contains("forfeit"), Comment(rawValue: "\"\(s)\" still says forfeit"))
+    }
+  }
+
+  // MARK: - D366 (F6) · a first-time golfer can say what the button does
+
+  /// Purpose, parties, context, confirmation, where it appears, and league
+  /// points — each answered on the sheet, and honestly record-only: it never
+  /// claims the other golfer agreed or was sent anything.
+  @Test func theSheetAnswersTheSixQuestionsAndNeverClaimsAcceptance() {
+    #expect(ForfeitCopy.purpose.contains("nobody is asked to accept"))
+    #expect(ForfeitCopy.who("Alex Rivera") == "You and Alex")
+    #expect(ForfeitCopy.who(nil).hasPrefix("You and the field"))
+    #expect(ForfeitCopy.context(ForfeitHome(leagueId: Self.a), name: "the Fellas") == "On the Fellas — the result never touches its points.")
+    #expect(ForfeitCopy.context(ForfeitHome(opponent: Self.him)) == "Between the two of you — no season or round attached.")
+    #expect(ForfeitCopy.context(ForfeitHome(scheduledRoundId: Self.b)) == "On this planned round.")
+    #expect(ForfeitCopy.confirm("Alex Rivera").contains("either of you settles it with a tap"))
+    #expect(ForfeitCopy.confirm("Alex Rivera").contains("Alex isn't asked to accept here"))
+    #expect(ForfeitCopy.points == "It never touches league points.")
+    #expect(ForfeitCopy.whereItShows.contains("Pride bets · on the record"))
+    #expect(ForfeitCopy.decidesLabel == "What decides it")
+    // nothing on the sheet says a challenge was SENT, or that anyone accepted
+    for s in ForfeitCopy.all {
+      let l = s.lowercased()
+      #expect(!l.contains("challenge sent") && !l.contains("they accepted") && !l.contains("has accepted"), Comment(rawValue: s))
     }
   }
 

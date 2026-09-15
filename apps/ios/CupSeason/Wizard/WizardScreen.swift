@@ -56,8 +56,8 @@ struct WizardScreen: View {
   @State private var askDiscard = false
   let links: WizardLinks
 
-  init(existingLeagueId: UUID?, links: WizardLinks, runBack: WizardRunBack? = nil, initialStep: Int = 0) {
-    _model = State(initialValue: WizardModel(existingLeagueId: existingLeagueId, runBack: runBack, initialStep: initialStep))
+  init(existingLeagueId: UUID?, links: WizardLinks, runBack: WizardRunBack? = nil, initialStep: Int = 0, invitee: TagCandidate? = nil) {
+    _model = State(initialValue: WizardModel(existingLeagueId: existingLeagueId, runBack: runBack, initialStep: initialStep, invitee: invitee))
     self.links = links
   }
 
@@ -259,9 +259,15 @@ final class WizardModel {
   /// and relaunches. Minted on the first publish, or restored from the record.
   private var createRequest: UUID?
 
-  init(existingLeagueId: UUID?, runBack: WizardRunBack?, initialStep: Int) {
+  /// D363 · the person "Start a season" was tapped from. Pre-picked as an
+  /// INVITEE — the same chip a golfer taps at step 1, removable there, and
+  /// sent as `invite_golfer` at lock like any other pick. Never a seat.
+  let invitee: TagCandidate?
+
+  init(existingLeagueId: UUID?, runBack: WizardRunBack?, initialStep: Int, invitee: TagCandidate? = nil) {
     self.existingLeagueId = existingLeagueId
     self.runBack = runBack
+    self.invitee = invitee
     self.step = max(0, min(2, initialStep))
     if let rb = runBack, let b = rb.bylaws {
       dials = WizardDials.from(b, name: rb.name)
@@ -269,6 +275,7 @@ final class WizardModel {
     } else {
       dials = WizardDials(name: runBack?.name ?? "")
     }
+    if let invitee, existingLeagueId == nil { dials.invitees = [invitee.id] }
   }
 
   /// The roster the season will have: me, plus everyone picked — and never
@@ -298,6 +305,11 @@ final class WizardModel {
     #endif
     if buddies.isEmpty && !buddiesLoaded {
       buddies = await sched.tagCandidates(league: nil)
+      // D363 · the carried person leads the chips even when they are not a
+      // buddy yet — the chip is how the organiser sees, and can drop, the
+      // invitation that goes out at lock. `invite_golfer` still answers for
+      // itself; a refusal there is reported, never hidden.
+      if let inv = invitee, !buddies.contains(where: { $0.id == inv.id }) { buddies.insert(inv, at: 0) }
       buddiesLoaded = true
       syncName(myName: store.me?.profile?.display_name)
     }

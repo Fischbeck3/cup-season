@@ -21,6 +21,14 @@ struct LiveRecapData: Identifiable {
   let lr: UUID
   let course: String
   let date: Date
+  /// F12 · the course IDENTITY and the viewer's own name, carried so the recap
+  /// can find the round that was just posted and open ITS receipt. The finish
+  /// payload names cards but gives no round id, so this is the evidence the
+  /// lookup is allowed to use: my rounds, this course id, this day.
+  var courseId: String? = nil
+  var myName: String? = nil
+  /// The card was kept on this phone rather than posted.
+  var keptLocally: Bool = false
 }
 
 @MainActor
@@ -40,6 +48,12 @@ final class LiveRoundStore {
   var queued = 0
   var syncStatus: String?
   var recap: LiveRecapData?
+  /// F13 · the good hole just left, for one breath. nil almost always.
+  var moment: LiveHoleMomentData?
+  /// F13 · `1 eagle · 1 birdie` from MY committed holes, or nil.
+  var momentTally: String?
+  private var momentLedger = HoleMomentLedger()
+  private var momentClear: Task<Void, Never>?
   var busy = false
   var scoreOnPhone = false
   var localSaveError: String?
@@ -200,12 +214,16 @@ final class LiveRoundStore {
       if let profile = me?.profile {
         prepareOffline(OfflineGolfer(id: owner, name: profile.display_name ?? "You", index: profile.index_current, marker: profile.marker))
       } else { state = local; scoreOnPhone = true }
+      refusePending(.alreadyInARound)   // D363 · an existing round is never overwritten
       return
     }
-    if scoreOnPhone { return }
+    if scoreOnPhone { refusePending(.yourRoundOnly); return }
     if !rehydrated { rehydrated = true; await rehydrate() }
     if !rosterPrimed || rosterLeague != leagueId { await primeRoster() }
-    if plan == nil, !planDismissed { plan = await repo.todaysPlan() }
+    // D363 · the person "Play with <name>" was tapped from — seated only now,
+    // AFTER the prime, because `primeRoster()` resets the selection.
+    await applyPending()
+    if plan == nil, !planDismissed { plan = await reconciledPlan(await repo.todaysPlan()) }
   }
 
   #if DEBUG
@@ -262,6 +280,20 @@ final class LiveRoundStore {
                  [4,4,4,5,3,4,3,4,5, 4,3,4,5,5,5,nil,nil,nil],
                  [5,5,3,5,4,4,4,5,5, 4,4,4,5,4,nil,nil,nil,nil]]
     state = st
+    // `-cs_dev_moment birdie|eagle` · F13 · the good hole reached through the
+    // REAL advance path: my score on the current hole is set under par with
+    // a fresh clock and `nextHole()` is called, exactly as a tap would. The
+    // fixture's pars are marked as known for this alone, because a fixture
+    // is not a course and the rule would otherwise (rightly) stay silent.
+    let args = ProcessInfo.processInfo.arguments
+    if let k = args.firstIndex(of: "-cs_dev_moment"), k + 1 < args.count, let me = state.players.firstIndex(where: \.me) {
+      state.course.parsCourse = "dev-fixture"
+      primeMomentLedger()
+      let h = state.hole, par = state.course.pars[h]
+      state.scores[me][h] = args[k + 1] == "eagle" ? par - 2 : par - 1
+      state.scts[me][h] = LiveFmt.now()
+      nextHole()
+    }
   }
   #endif
 
@@ -523,6 +555,79 @@ final class LiveRoundStore {
   }
   var pickerExcluded: Set<UUID> { Set(roster.compactMap(\.pid)) }
 
+  // MARK: D363 · a person handed in from "Play with <name> → Now"
+
+  /// Held until the roster is primed, then seated — or refused with a reason.
+  /// Cleared the moment either happens, so a later generic Play never
+  /// inherits the last opponent.
+  private var pending: TagCandidate?
+  func preselect(_ who: TagCandidate) { pending = who }
+
+  /// What seating a person came to. The cases are the packet's own list:
+  /// an existing round is never overwritten, the phone-only path is one
+  /// golfer, a person already in the group is not seated twice, a full group
+  /// says so.
+  enum Seating: Equatable { case alreadyInARound, yourRoundOnly, alreadySeated, full, seated(estimated: Bool) }
+
+  /// Seat `who` beside me. Pure — no network — so a test walks every branch.
+  /// `index` comes from the picker's own producer (`my_friends` /
+  /// `search_golfers`), never from a number a profile page displayed; nil is
+  /// the store's ordinary estimate, flagged EST like any other unknown.
+  @discardableResult
+  func seat(_ who: TagCandidate, index: Double?) -> Seating {
+    guard !state.active else { return .alreadyInARound }
+    guard !scoreOnPhone else { return .yourRoundOnly }
+    if let i = roster.firstIndex(where: { $0.pid == who.id }) {
+      if sel.contains(i) { return .alreadySeated }
+      guard sel.count < 4 else { return .full }
+      sel.append(i)
+      return .seated(estimated: roster[i].est)
+    }
+    guard sel.count < 4 else { return .full }
+    roster.append(LivePlayer(id: "p:\(who.id.uuidString)", n: who.name, i: index ?? 18, ci: -1, guest: true,
+                             est: index == nil, buddy: true, pid: who.id, team: nil, mk: who.marker))
+    sel.append(roster.count - 1)
+    return .seated(estimated: index == nil)
+  }
+
+  /// Applied once the roster is primed, and told to the golfer either way.
+  /// The person is removable from the slot like anyone else; nothing is
+  /// written, sent or asserted about them by this.
+  func applyPending() async {
+    guard let who = pending else { return }
+    pending = nil
+    let index = state.active || scoreOnPhone ? nil : await indexFor(who)
+    say(seat(who, index: index), who)
+  }
+
+  /// A refusal on a path that never reaches the roster (an offline round in
+  /// progress, the phone-only path).
+  private func refusePending(_ s: Seating) {
+    guard let who = pending else { return }
+    pending = nil
+    say(s, who)
+  }
+
+  private func say(_ s: Seating, _ who: TagCandidate) {
+    switch s {
+    case .alreadySeated:    break
+    case .alreadyInARound:  toast(PlayWithCopy.alreadyInARound(who.name))
+    case .yourRoundOnly:    toast(PlayWithCopy.yourRoundOnly(who.name))
+    case .full:             toast(PlayWithCopy.groupFull(who.name))
+    case .seated(let est):  toast(PlayWithCopy.seated(who.name, estimated: est))
+    }
+  }
+
+  /// The same producer the roster picker reads (`LiveRosterHit`): buddies
+  /// first, then the app-wide search, matched by id — never by name alone.
+  private func indexFor(_ who: TagCandidate) async -> Double? {
+    if let l = try? await SupabaseService.shared.call(Rpc.my_friends()),
+       let r = l.first(where: { $0.profile_id == who.id }) { return r.index_current }
+    if let l = try? await SupabaseService.shared.call(Rpc.search_golfers(p_q: who.name)),
+       let r = l.first(where: { $0.profile_id == who.id }) { return r.index_current }
+    return nil
+  }
+
   /// The plan bridge's "Load it →" (8365).
   func loadPlan() {
     guard let sr = plan else { return }
@@ -758,7 +863,66 @@ final class LiveRoundStore {
 
   // D155 · walking holes moves the island too — it shows the hole you are on
   func prevHole() { state.hole = max(0, state.hole - 1); persist(); LiveActivityHost.update(state) }
-  func nextHole() { state.hole = min(state.liveHoles - 1, state.hole + 1); persist(); LiveActivityHost.update(state) }
+  func nextHole() {
+    // F13 · the stepper persists every tap, so a score passing through 3 on
+    // its way to 5 has already been saved three times. LEAVING the hole is
+    // the moment the score stops changing, and that — the existing advance
+    // boundary, not a new "submit" — is when a birdie is real.
+    commitMoment(leaving: state.hole)
+    state.hole = min(state.liveHoles - 1, state.hole + 1); persist(); LiveActivityHost.update(state)
+  }
+
+  // MARK: - F12 · a booking I have played
+
+  /// The plan bridge stops offering a round I have already posted — matched
+  /// on the booking's course id and day against MY rounds, never a label and
+  /// never anyone else's. No evidence, or two candidates, and it stays.
+  private func reconciledPlan(_ sr: ScheduledRound?) async -> ScheduledRound? {
+    guard let sr, let uid = myPid else { return sr }
+    let rows = (try? await RoundsRepository().myRounds(uid)) ?? []
+    let mine = rows.map { RoundReconcile.Candidate(id: $0.id, courseId: $0.api_course_id, playedOn: $0.played_on) }
+    if case .played = RoundReconcile.booking(courseId: sr.course_id, playOn: sr.play_on, myRounds: mine) { return nil }
+    return sr
+  }
+
+  // MARK: - F13 · the good holes (D368)
+
+  private var myPlayerIndex: Int? { state.players.firstIndex(where: \.me) }
+  /// Pars are KNOWN when they came from a course, or the golfer wrote the
+  /// card themselves. The standard par-72 template is a guess, and a guess
+  /// cannot declare an eagle.
+  private var parsAreKnown: Bool {
+    state.course.parsCourse != nil || (state.course.note != nil && state.course.note != LiveCourseCard.standardNote)
+  }
+  private func commitMoment(leaving h: Int) {
+    guard state.active, let pi = myPlayerIndex,
+          h < state.scores[pi].count, h < state.scts[pi].count, h < state.course.pars.count else { return }
+    let m = momentLedger.commit(player: "me", hole: h + 1, revision: Int(truncatingIfNeeded: state.scts[pi][h]),
+                                strokes: state.scores[pi][h], par: state.course.pars[h], parIsKnown: parsAreKnown)
+    momentTally = momentLedger.tallyLine(player: "me")
+    guard let m else { return }
+    CSMotion.run { moment = LiveHoleMomentData(kind: m, hole: h + 1) }
+    // distinct, optional, and heavier for the rarer bird
+    if m == .eagle { CSHaptic.success() } else { CSHaptic.impact(.medium) }
+    momentClear?.cancel()
+    momentClear = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(3.2))
+      guard !Task.isCancelled, let self else { return }
+      CSMotion.run { self.moment = nil }
+    }
+  }
+  /// Arm the ledger WITHOUT speaking: a reopened card, a reconnect, another
+  /// phone's echo of my scores. After this, nothing already on the card can
+  /// fire as if it had just been played.
+  func primeMomentLedger() {
+    guard let pi = myPlayerIndex else { return }
+    let n = min(state.scores[pi].count, state.scts[pi].count, state.course.pars.count)
+    for h in 0..<n {
+      momentLedger.seen(player: "me", hole: h + 1, revision: Int(truncatingIfNeeded: state.scts[pi][h]),
+                        strokes: state.scores[pi][h], par: state.course.pars[h], parIsKnown: parsAreKnown)
+    }
+    momentTally = momentLedger.tallyLine(player: "me")
+  }
 
   private var sendable: Bool { state.active && state.code != nil }
 
@@ -862,11 +1026,12 @@ final class LiveRoundStore {
     case .message(let m):
       guard state.active else { return }
       if m.t == "finish" || m.t == "gone" { endedRemotely(m.status ?? "final"); return }
-      if LiveMerge.apply(m, to: &state) { persist() }
+      // F13 · another phone echoing MY scores is sync, not play: arm silently.
+      if LiveMerge.apply(m, to: &state) { persist(); primeMomentLedger() }
     case .state(let d):
       guard state.active else { return }
       if let st = LiveMerge.applyState(d, to: &state) { endedRemotely(st); return }
-      persist()
+      persist(); primeMomentLedger()
     case .presence(let names): presence = names
     case .queued(let n): queued = n
     case .status(let s): syncStatus = s
@@ -992,6 +1157,7 @@ final class LiveRoundStore {
     await LiveActivityHost.clearStale()
     if state.active, state.stage == .live { LiveActivityHost.start(state) }
     queued = await session.queued()
+    primeMomentLedger()
   }
 
   // MARK: - the guest pencil (7881)
@@ -1036,9 +1202,12 @@ final class LiveRoundStore {
       // be posted twice.
       await disk.removeUnsynced(lr)
       let course = state.course.label
+      let courseId = state.course.courseId
       state.active = false; state.stage = .setup
       retiredCard = false
-      recap = LiveRecapData(outcome: out, result: casual ? nil : result, lr: lr, course: course, date: Date())
+      momentLedger = HoleMomentLedger(); momentTally = nil; moment = nil
+      recap = LiveRecapData(outcome: out, result: casual ? nil : result, lr: lr, course: course, date: Date(),
+                            courseId: courseId, myName: myName)
       CSHaptic.success()
       await primeRoster()
       return true

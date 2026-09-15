@@ -54,6 +54,9 @@ public struct HomeDigest: Sendable, Equatable {
   /// the neutral sentence rather than naming a reaction it cannot read.
   static func mention(_ m: HomeSocial.Mention, gross g: String) -> String {
     guard let e = m.emoji else { return "\(m.who) chimed in on your \(g)" }
+    // D365 · applause has the approved activity sentence, and it names the
+    // round rather than the score: applause is for showing up, not the number.
+    if e == Applause.key { return Applause.activity([m.who]) }
     switch CSReactions.token(e) {
     case .azalea: return "\(m.who) gave your \(g) its flowers"
     case .jug:    return "\(m.who) raised a glass to your \(g)"
@@ -61,6 +64,19 @@ public struct HomeDigest: Sendable, Equatable {
     case .rake:   return "\(m.who) called you a sandbagger on your \(g)"
     case .none:   return "\(m.who) reacted to your \(g)"
     }
+  }
+
+  /// D365 · the applause mentions, one sentence per round, distinct people,
+  /// in arrival order of the rounds. Public so the fold is a value a test holds.
+  public static func applauseLines(_ mentions: [HomeSocial.Mention]) -> [String] {
+    var order: [String] = []
+    var names: [String: [String]] = [:]
+    for m in mentions where m.emoji == Applause.key {
+      let k = m.roundId?.uuidString ?? "gross:\(m.gross ?? -1)"
+      if names[k] == nil { order.append(k); names[k] = [] }
+      names[k]!.append(m.who)
+    }
+    return order.compactMap { names[$0].map(Applause.activity) }.filter { !$0.isEmpty }
   }
 
   static func day(_ t: Date, now: Date, calendar: Calendar) -> String {
@@ -118,11 +134,17 @@ public struct HomeDigest: Sendable, Equatable {
       if let s = freshRounds.first(where: { $0.is_sub80 == true }) { bits.append("\(who(s)) broke 80") }
       if let f = freshRounds.first(where: { $0.is_first == true }) { bits.append("\(who(f))'s first round") }
       if !freshPosts.isEmpty { bits.append("\(freshPosts.count) league note\(freshPosts.count > 1 ? "s" : "")") }
-      if let m = mentions.first {
+      // D365 · applause is grouped by round and distinct people — "Alex and 2
+      // others applauded your round" — never listed tap by tap; whatever else
+      // landed (a comment, an earlier reaction) keeps the old shape.
+      let applause = applauseLines(mentions)
+      let rest = mentions.filter { $0.emoji != Applause.key }
+      for line in applause.prefix(2) { bits.append(line); strong.append(String(line.split(separator: " ").first ?? "")) }
+      if let m = rest.first {
         let g = m.gross.map(String.init) ?? "round"
         bits.append(HomeDigest.mention(m, gross: g))
         strong.append(m.who)
-        if mentions.count > 1 { bits.append("\(mentions.count - 1) more chimed in on your rounds") }
+        if rest.count > 1 { bits.append("\(rest.count - 1) more chimed in on your rounds") }
       }
       guard !bits.isEmpty else { return nil }
       return HomeDigest(kind: .since, label: "Since you were here", body: join(bits) + ".", roundId: nil, photoURL: nil, strong: strong)

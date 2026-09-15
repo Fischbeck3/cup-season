@@ -232,9 +232,10 @@ struct StreakTag: View {
   let hot: Bool
   var body: some View {
     Text(text).csType(.agateS, caps: true)
-      .foregroundStyle(hot ? cs.brand : cs.brand)
+      // D359 / F4 · form is a fact about the past, not a live competition
+      .foregroundStyle(hot ? cs.ink : cs.mut)
       .padding(.horizontal, 5).padding(.vertical, 1)
-      .overlay(RoundedRectangle(cornerRadius: 4).stroke(hot ? cs.brand : cs.brand, lineWidth: 1))
+      .overlay(RoundedRectangle(cornerRadius: 4).stroke(hot ? cs.ink : cs.mut, lineWidth: 1))
   }
 }
 
@@ -265,9 +266,8 @@ struct FormRowView: View {
       Text("LAST FIVE").csType(.agateS, caps: true).foregroundStyle(palette.mut).padding(.trailing, 2)
       ForEach(Array(form.dots.enumerated()), id: \.offset) { _, on in
         Circle()
-          .fill(on == true ? palette.brand : palette.ink.opacity(0.14))
+          .fill(on == true ? palette.ink : palette.ink.opacity(0.14))   // D359 / F4 · results, not a live signal
           .frame(width: 9, height: 9)
-          .shadow(color: on == true ? palette.brand.opacity(0.55) : .clear, radius: 3.5)
       }
       if let tag = form.tag { StreakTag(text: tag, hot: form.hot).padding(.leading, 4).environment(\.cs, palette) }
     }
