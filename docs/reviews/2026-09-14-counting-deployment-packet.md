@@ -210,6 +210,13 @@ supabase migration list --linked        # expect: latest applied 20261103090000
 
 # 2 · show what the push WILL do, without doing it
 supabase db push --linked --dry-run     # expect: 20261104090000 only
+#
+# NOTE · run this from a checkout that holds EVERY migration file. The CLI
+# refuses when the local directory is missing versions the remote has:
+#   LegacyDbPushMissingLocalError … Remote migration versions not found
+# That is what a stale checkout looks like. The fix is to run from the release
+# source — never `migration repair`, which rewrites history to match the stale
+# tree.
 
 # 3 · apply it (the one mutating command; `ship.sh` asks for the word `push`)
 supabase db push --linked
@@ -254,11 +261,34 @@ python3 tools/asc.py status <build>     # processing
 pending), deploys no Edge function, and touches no secret. Build 905 and its
 source `714609b` are untouched by every step.
 
-**If the push must be rolled back:** the change is additive except for the
-dropped one-argument `round_card`. Reverting means re-creating that signature
-from `20260930090000_one_band_name.sql` in a NEW migration — never editing an
-applied file (CLAUDE.md rule 2). Build 905 keeps working either way: its
-one-argument call resolves to the two-argument function, proved in §5.
+### Rollback — corrected, and rehearsed
+
+The first version of this section said to "re-create the one-argument signature
+in a new migration". **That is wrong and would break every shipped client at
+once.** Rehearsed on the isolated cluster:
+
+| Revert | Result |
+|---|---|
+| re-create `round_card(uuid)` **beside** `round_card(uuid, uuid)` | two signatures; the one-argument call every shipped client makes fails **42725 · function public.round_card(unknown) is not unique** |
+| **drop the two-argument form FIRST, then re-create the one-argument one** | one signature; the one-argument call resolves; the two-argument call is gone (42883); `my_month_counters` and `counting_rounds` are untouched |
+
+A revert is therefore ONE new migration, in this order — never an edit to an
+applied file (CLAUDE.md rule 2):
+
+```sql
+-- 20261105090000_revert_round_card_to_one_argument.sql
+drop function if exists public.round_card(uuid, uuid);
+-- then the body verbatim from 20260930090000_one_band_name.sql, and:
+revoke all on function public.round_card(uuid) from public, anon;
+grant execute on function public.round_card(uuid) to authenticated;
+```
+
+`my_month_counters` and `counting_rounds` need no revert — nothing on an older
+client calls them, and dropping them would break the new one. Leave them.
+
+**Build 905 keeps working across the push either way**: its one-argument call
+resolves to the two-argument function, proved in §5 and re-proved against
+production in §10.
 
 ## 9 · Release candidates
 
@@ -268,3 +298,47 @@ one-argument call resolves to the two-argument function, proved in §5.
 | Counting increment, both clients | **`bc3f97b`** on `claude/brand-client-parity` (corrected candidate; `0792ddd` was its first form) · **no native build archived** for it — the phone's half needs the migration to do anything on production, and the increment is proven on fixtures and the isolated cluster |
 | Production web | `1bc307f`, untouched |
 
+
+---
+
+## 10 · Production release · 2026-09-15
+
+**Applied.** `supabase db push --linked`, from the checkout holding all 243
+migrations. The dry run named exactly one file and the push applied exactly
+that file; no seeds, no roles, no Edge function, no secret.
+
+```
+Would push these migrations:
+ - 20261104090000_the_round_that_counts_explained.sql
+```
+
+**Read back from production:**
+
+| | |
+|---|---|
+| Migrations applied | **243**, latest `20261104090000` |
+| Public functions | 264 to **266** |
+| `round_card` | `(p_round uuid, p_league uuid DEFAULT NULL::uuid)` - definer - one-argument form **gone** (count 0) |
+| `my_month_counters` | `(p_on date DEFAULT NULL::date)` - definer |
+| `counting_rounds` | `(p_member uuid, p_season uuid, p_month text DEFAULT NULL::text)` - definer |
+| Grants, all three | `authenticated` + `postgres` + `service_role` - **no `anon`, no `PUBLIC`** |
+| Live contract vs `packages/db/contract.psv` | **266 = 266, zero differences** - the file in the repository is what production holds |
+
+**Existing-client compatibility, verified against production** as an
+authenticated caller, on a real round that counts in two leagues:
+
+| Check | Result |
+|---|---|
+| the one-argument `round_card(p_round)` every shipped client makes | resolves |
+| the 25 keys build 905 reads | all present |
+| `contributions` | 2 lenses, so build 905 shows no month row for this round, exactly as `Build905CompatTests` predicted |
+| the new keys `league_id` / `season_id` / `member_id` / `contributions` | present |
+| `my_month_counters()` | 2 seasons |
+
+**Not yet done, and why.** The web promotion and the native archive. Xcode
+updated to 27.0 mid-session, which invalidated the license agreement recorded
+for 26.6 - and on this machine `git`, `python3`, `xcodebuild` and `simctl` all
+route through the Xcode shim, so all four refuse until `sudo xcodebuild
+-license accept` is run. That needs the owner's password. The database release
+is complete and safe on its own: every shipped client keeps working, proved
+above.
