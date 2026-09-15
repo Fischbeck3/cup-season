@@ -28,6 +28,8 @@ struct DeclareRoundSheet: View {
   @Environment(\.dismiss) private var dismiss
   @State private var vm: DeclareModel
   @State private var toasts: CSToastCenter
+  /// F8 · where the course search sits in the scroll (see `CourseSearchReveal`).
+  @State private var searchTop: CGFloat = .nan
   let onDeclared: (UUID) -> Void
 
   init(prefill: DeclarePrefill? = nil, leagueId: UUID? = nil, onDeclared: @escaping (UUID) -> Void) {
@@ -39,6 +41,7 @@ struct DeclareRoundSheet: View {
 
   var body: some View {
     NavigationStack {
+      ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
           CSSheetHeader(title: vm.hostName != nil ? "Get in on it" : "Put a round on the schedule",
@@ -64,7 +67,11 @@ struct DeclareRoundSheet: View {
           }
 
           Text("Course").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
-          CourseSearchField(text: $vm.course, courseId: $vm.courseId, toasts: toasts)
+          CourseSearchField(text: $vm.course, courseId: $vm.courseId, toasts: toasts,
+                            onReveal: { CourseSearchReveal.run(proxy, top: searchTop) })
+            // F8 · the answer arrives under this field, above the keyboard
+            .id(CourseSearchReveal.id)
+            .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
 
           Text("Note · optional").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
           CSField("buddies trip, looking for a 4th", text: $vm.note, font: CSFont.body)
@@ -118,6 +125,7 @@ struct DeclareRoundSheet: View {
           CSFine("Posts to your seasons' boards: tagged golfers are named. Scratch it any time from the schedule.")
         }
         .padding(20)
+      }
       }
       .background(cs.bg0)
       .scrollDismissesKeyboard(.interactively)
@@ -296,16 +304,21 @@ struct CourseSearchField: View {
   @Binding var text: String
   @Binding var courseId: String?
   let toasts: CSToastCenter
+  /// F8 · fired when the answer ARRIVES — the host scrolls the field above
+  /// the keyboard. Never on a keystroke.
+  var onReveal: (() -> Void)? = nil
   @State private var vm = CourseSearchModel()
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       CSField("Pebble Beach", text: $text, font: CSFont.body)
+        .accessibilityIdentifier("plan.course.search")
         .onChange(of: text) { _, q in
           // typing again after a pick unstamps the course id (the label no longer matches the row)
           if vm.pickedLabel != q { courseId = nil; vm.pickedLabel = nil }
           vm.queue(q)
         }
+        .onChange(of: vm.reveal) { _, _ in onReveal?() }
       switch vm.stage {
       case .hidden: EmptyView()
       case .courses:
@@ -384,12 +397,24 @@ final class CourseSearchModel {
   /// the network answered. The dropdown says so rather than implying the
   /// catalogue is this short (L-32).
   var offline = false
+  /// F8 · bumped when an ANSWER arrives: the list opens (rows, no-match or
+  /// offline), an empty list fills, or the tee list follows a pick. A
+  /// keystroke that keeps the same open list bumps nothing.
+  private(set) var reveal = 0
   private var task: Task<Void, Never>?
   private var lastQ = ""
   private let sched = ScheduleService()
   private let books = CourseBookStore()
 
-  func showTees(_ c: CourseHit) { stage = .tees(c) }
+  func showTees(_ c: CourseHit) { stage = .tees(c); reveal += 1 }
+
+  /// The one place the course list is painted, so the reveal rule lives once.
+  private func present(_ hits: [CourseHit], offline: Bool) {
+    let wasHidden: Bool = { if case .hidden = stage { return true }; return false }()
+    let wasEmpty = courses.isEmpty
+    courses = hits; self.offline = offline; stage = .courses
+    if wasHidden || (wasEmpty && !hits.isEmpty) { reveal += 1 }
+  }
 
   /// 320 ms debounce, ≥3 chars (6814–6830).
   func queue(_ q: String) {
@@ -427,13 +452,13 @@ final class CourseSearchModel {
     // out of the tee list, never let a stale response overwrite a newer query
     let fresh = { self.lastQ == q && !self.inTees }
     let saved = await books.search(q).map(\.hit)
-    if !saved.isEmpty, fresh() { courses = saved; stage = .courses }
+    if !saved.isEmpty, fresh() { present(saved, offline: offline) }
     // D261 / R-N · ONE producer: the book, then our cache, then the API — and
     // it reports whether the network was in the answer at all.
     let answer = await books.searchCourses(q)
     // show the list even when empty — the empty state IS the "type it by hand"
     // row, so a no-match never looks like a dead field
-    if fresh() { courses = answer.hits; offline = answer.offline; stage = .courses }
+    if fresh() { present(answer.hits, offline: answer.offline) }
   }
 }
 

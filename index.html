@@ -1513,6 +1513,8 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 /* pilot: "Save card is hard to find when a change is made" — the button ARMS
    the moment the card changes: fairway fill, one soft rise. Disarms on save. */
 .mini.armed{background:var(--brand); color:#fff; border-color:var(--brand); font-weight:700; animation:csRise .35s var(--roll) both;}
+/* a chosen pill inverts to ink (the phone's `CalloutSheet` pill) — an ordinary selected state, never ember (D359) */
+.mini.sel{background:var(--ink); color:var(--bg0); border-color:var(--ink);}
 @media (prefers-reduced-motion: reduce){ .mini.armed{animation:none;} }
 /* month-seal motion carries over from the .check rows (C5) */
 .hfcard.sealin .hfid > b{transform-origin:center; animation:csSeal .6s var(--roll) both;}
@@ -4994,6 +4996,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <span class="pmeta"><b>You</b><small>You run this league</small></span>
               <span class="ptag" style="color:var(--brand)">THE PRO</span>
             </div>
+            <!-- D363 · the person "Start a season" was tapped from: an invitation
+                 to send at lock, never a seat. Painted by renderWizardWith(). -->
+            <div id="wizWith" hidden style="margin-top:12px"></div>
           </div>
         </div>
 
@@ -6349,7 +6354,7 @@ function switchView(v){
   /* IA P4 → D107: real accounts get the full ⊕ triptych. Play now is the
      real tee sheet — it persists server-side at tee-off (league or not) and
      one finish posts every complete card to its golfer. */
-  if(v==='play' && !state.demo) primeRealRoster();
+  if(v==='play' && !state.demo){ primeRealRoster(); csApplyLivePreselect(); }
   /* F-005: the event room renders from CS_EVENT via loadEvent; if view-event is
      shown without a loaded event, render the empty-state ("No event loaded.")
      instead of leaving a blank shell with just the back link. */
@@ -11341,6 +11346,31 @@ async function csCourseRefresh(){
 window.csCourseRefresh = csCourseRefresh;
 window.csCourseAll = csCourseAll;
 
+/* D363 / F8 · a course search answers ABOVE the keyboard. When the answer
+   ARRIVES — rows, a no-match, the offline list, the tee list after a pick —
+   and the input or the first row is outside the VISUAL viewport (mobile
+   Safari shrinks it when the keyboard is up), the input is scrolled to the
+   top of whatever scrolls it: the page for the tee sheet and the composer,
+   the sheet's own panel for the plan. Only on a transition — never on a
+   keystroke, never against a scroll the golfer made on purpose, never when
+   it is already in view. Focus is never touched. Reduced motion: no smooth. */
+function csRevealSearch(input, dd){
+  if(!input) return false;
+  const vv = window.visualViewport;
+  const top = vv ? vv.offsetTop : 0;
+  const bottom = top + (vv ? vv.height : window.innerHeight);
+  const r = input.getBoundingClientRect();
+  const first = dd && (dd.querySelector('button') || dd.querySelector('.coursedd-msg'));
+  const fr = first ? first.getBoundingClientRect() : null;
+  /* hidden = the input has scrolled off the top, or the first complete row
+     (or the input itself, with no row) is under the keyboard's edge */
+  const hidden = r.top < top - 1 || (fr ? fr.bottom > bottom - 8 : r.bottom > bottom - 8);
+  if(!hidden) return false;
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  try { input.scrollIntoView({ block:'start', behavior: reduced ? 'auto' : 'smooth' }); } catch(_){ input.scrollIntoView(true); }
+  return true;
+}
+window.csRevealSearch = csRevealSearch;
 function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   const input=$(courseSel); if(!input) return;
   const dd=document.createElement('div'); dd.className='coursedd'; dd.style.display='none';
@@ -11377,6 +11407,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
         `<button type="button" data-ti="${ti}"><b>${esc(t.tee_name||'Tee')}${t.gender==='female'?' · Women’s':''}</b><span>Rating ${t.course_rating} · Slope ${t.slope_rating}</span></button>`).join('')
        : '<div class="coursedd-msg">No rated tees listed — type the rating and slope by hand.</div>');
     dd.style.display='block'; dd.dataset.stage='tees';   /* a late search response must not yank you back to the course list */
+    csRevealSearch(input, dd);   /* F8 · the tee choices come into view with the pick */
     dd.querySelector('[data-back]')?.addEventListener('mousedown',e=>{ e.preventDefault(); showCourses(); });
     dd.querySelectorAll('[data-ti]').forEach(b=>b.addEventListener('mousedown',e=>{
       e.preventDefault();
@@ -11396,14 +11427,22 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
     }));
   }
   function showCourses(){
+    /* F8 · reveal only on a transition: the list opening (rows, no-match or
+       offline), or an empty list filling. A repaint of an open list — the
+       cached rows, then the network's — moves nothing. */
+    const wasHidden = dd.style.display==='none' || dd.dataset.stage!=='courses';
+    const wasEmpty = !dd.querySelector('[data-ci]');
     dd.dataset.stage='courses';
     if(!courses.length){
       dd.innerHTML = `<div class="coursedd-msg">${offline ? esc(CS_COURSE_COPY.searchOffline) : 'No match — type the course, rating and slope by hand.'}</div>`;
-      dd.style.display='block'; return;
+      dd.style.display='block';
+      if(wasHidden) csRevealSearch(input, dd);
+      return;
     }
     dd.innerHTML = (offline ? `<div class="coursedd-msg">${esc(CS_COURSE_COPY.searchOffline)}</div>` : '') + courses.map((c,ci)=>
       `<button type="button" data-ci="${ci}"><b>${esc(c.label)}</b><span>${c.place?esc(c.place)+' · ':''}${c.tees.length} tee${c.tees.length===1?'':'s'}</span></button>`).join('');
     dd.style.display='block';
+    if(wasHidden || wasEmpty) csRevealSearch(input, dd);
     dd.querySelectorAll('[data-ci]').forEach(b=>b.addEventListener('mousedown',e=>{
       e.preventDefault();
       const ci=+b.dataset.ci;
@@ -12226,6 +12265,38 @@ async function markRegulars(){
   if(typeof renderRoster === 'function') renderRoster();
 }
 
+/* D363 · the person "Play with <name> → Now" was tapped from, seated beside
+   me once the roster is primed — or refused with a reason. Consumed on the
+   spot, so a later generic Play never inherits the last opponent. The number
+   comes from the picker's own producer (`my_friends`, then `search_golfers`,
+   matched by id), never from a figure a profile page displayed. */
+async function csApplyLivePreselect(){
+  const who = window.csLivePreselect; if(!who) return;
+  window.csLivePreselect = null;
+  const first = String(who.name||'').trim().split(/\s+/)[0] || 'them';
+  const live = { active: !!(state.live && state.live.active), phoneOnly: false };
+  let index = null;
+  if(!live.active && window.sb){
+    try {
+      const { data } = await window.sb.rpc('my_friends');
+      const hit = (data||[]).find(f => f.profile_id === who.pid);
+      if(hit) index = hit.index_current;
+      else {
+        const r = await window.sb.rpc('search_golfers', { p_q: who.name });
+        const s = (r.data||[]).find(f => f.profile_id === who.pid);
+        if(s) index = s.index_current;
+      }
+    } catch(_){}
+  }
+  const person = { pid: who.pid, name: who.name };
+  const out = window.csPreselectInto(ROSTER, sel, person, index, live);
+  if(out === 'seated'){ LIVE = sel.map(i=>ROSTER[i]); renderRoster(); }
+  const W = window.CS_PLAY_WITH || {};
+  if(out === 'alreadyInARound') toast(W.alreadyInARound ? W.alreadyInARound(first) : `You're already in a round — ${first} wasn't added.`);
+  else if(out === 'full') toast(W.groupFull ? W.groupFull(first) : `The group is full — remove someone to add ${first}.`);
+  else if(out === 'seated') toast(W.seated ? W.seated(first, index == null) : `${first} is in the group.`);
+}
+window.csApplyLivePreselect = csApplyLivePreselect;
 function primeRealRoster(){
   if(state.demo) return;
   if(state.live && state.live.active) return;   /* never wipe an in-progress round */
@@ -22324,7 +22395,7 @@ function renderWizard(){
   $('#wizBack').style.display   = state.wiz===0 ? 'none':'flex';
   $('#wizCancel').style.display = state.wiz===0 ? 'flex':'none';   /* step 0: Cancel replaces Back */
   $('#wizNext').style.display = state.wiz===0 ? 'flex':'none';
-  if(state.wiz===0 && !state.demo) window.renderProChip?.();
+  if(state.wiz===0 && !state.demo){ window.renderProChip?.(); window.renderWizardWith?.(); }
   csRenderPayNote();
 }
 /* D225 / R18 · the pay note is REQUIRED above $0, and the lock button says so
@@ -24322,14 +24393,11 @@ async function openPerson(profileId){
         <td class="rt">${Number(x.rounds || 0)} round${Number(x.rounds || 0) === 1 ? '' : 's'}</td></tr>`).join('')}</tbody></table>` : ''}
     ${caseLine ? `<div class="dsec"><span>The record</span><i></i><span></span></div><p class="fine" style="padding-top:0">${esc(caseLine)}</p>` : ''}
     ${shared ? `<p class="cstatus">${esc(csBothPlayed(card.shared_courses || []))}</p>` : ''}
-    <div class="eyebrow" style="margin-top:18px">Play them</div>
-    <p class="fine" style="padding-top:0">How long do you want it to run?</p>
+    <div class="eyebrow" style="margin-top:18px">Play</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
-      <button class="mini" type="button" data-len="saturday">This Saturday</button>
-      <button class="mini" type="button" data-len="week" disabled>One week</button>
-      <button class="mini" type="button" data-len="season">A season</button>
+      <button class="mini" type="button" data-playwith="1">${esc(CS_PLAY_WITH.head(name))}</button>
     </div>
-    <p class="fine" style="padding-top:6px">A round on the schedule with them in it · a one-week head-to-head, which opens when callouts do · a season with them in it.</p>`;
+    <p class="fine" style="padding-top:6px">A round together, a head-to-head, or a season — they're in it from the start.</p>`;
 
   /* the aside IS the record between the two of you - the desk's own shape */
   if(aside){
@@ -24349,9 +24417,11 @@ async function openPerson(profileId){
         <p class="fine" style="padding:0">Nothing between you yet. The moment you both post a round the same week, or one of you tags the other on a card, this fills in.</p>`;
     }
   }
-  main?.querySelectorAll('[data-len]').forEach(b => b.addEventListener('click', () => {
-    if(b.dataset.len === 'season') switchView('wizard');
-    else if(b.dataset.len === 'saturday') switchView('schedule');
+  /* D363 · one door, headed the same way as the sheet it opens; the person
+     rides into whichever of the three ways is picked. */
+  main?.querySelectorAll('[data-playwith]').forEach(b => b.addEventListener('click', () => {
+    window.qaEvent?.('cta_tapped', { door: 'play.with' });
+    window.csAskTheLength?.(profileId, name);
   }));
 }
 window.openPerson = openPerson;
@@ -24930,6 +25000,22 @@ function resetWizard(){
   if(typeof updateInviteNote === 'function') updateInviteNote();
 }
 window.resetWizard = resetWizard;
+/* D363 · the person "Start a season" was tapped from, said as what it is: an
+   invitation that goes out at lock (`csInviteSeasonWith`). The ✕ drops it and
+   nothing is sent; the wizard's Cancel drops it too. Never a seat (L-12). */
+function renderWizardWith(){
+  const box = document.getElementById('wizWith'); if(!box) return;
+  const w = window._seasonWith;
+  if(!w){ box.hidden = true; box.innerHTML = ''; return; }
+  const first = String(w.name||'').trim().split(/\s+/)[0] || 'them';
+  const W = window.CS_PLAY_WITH;
+  box.hidden = false;
+  box.innerHTML = `<p class="fine" style="padding:0; display:flex; gap:8px; align-items:flex-start">
+    <span style="flex:1" id="wizWithLine">${esc(W ? W.seasonWith(first) : `Starting this with ${first}. They get an invitation to accept when the season locks.`)}</span>
+    <button class="mini" type="button" id="wizWithDrop" aria-label="Don't invite ${esc(first)}">✕</button></p>`;
+  document.getElementById('wizWithDrop')?.addEventListener('click', () => { window._seasonWith = null; renderWizardWith(); });
+}
+window.renderWizardWith = renderWizardWith;
 /* the Pro is always the creator — show it as a fixed identity, not a dead
    email field (pilot feedback: "Pro-you won't let me type"). */
 function renderProChip(){
@@ -26282,6 +26368,9 @@ async function lockBylaws(){
     $('#leagueName').textContent = name; $('#sideLeague').textContent = name;
     state.phase = data?.phase || state.phase;
     renderPhase();
+    /* D363 · the person the season was started from gets their invitation
+       now, at lock — the same `invite_golfer` every picked golfer gets. */
+    await window.csInviteSeasonWith?.(CS.league.id);
     return { emails: 0, nextPhase: data?.phase };
   };
   const missingFn = e => /schema cache|could not find the|does not exist|no function matches/
@@ -27003,6 +27092,7 @@ function goClubhouse(){
 /* wizard step-0 Cancel: the league row already exists (created on "Start a
    league"), so abandoning discards it — delete_league is setup/draft-only. */
 document.getElementById('wizCancel')?.addEventListener('click', async () => {
+  window._seasonWith = null;   /* D363 · a cancelled season sends nobody an invitation */
   /* Q-10 · belt to switchView's braces. A member who reached this button was
      offered "discards it completely" about someone else's league; only
      delete_league's commissioner check refused him, and the audit logged the
@@ -27440,18 +27530,66 @@ function csIntentStrings(){
   return CS_INTENTS.flatMap(i => [i.line, i.gloss])
     .concat([CS_INTENT_TITLE, CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, CS_INTENT_CODE_DOOR]);
 }
-/* R-F · the three lengths, always all three, in the owner's own words. The
-   person's state may ORDER them; it may never withhold one. */
+/* R-F · the three lengths, always all three. The person's state may ORDER
+   them; it may never withhold one. D363 (owner, 2026-09-15) reworded them so
+   none reads as a date — "This Saturday" sounded like the only day you could
+   play — and the same words are the phone's (`CalloutLength`, pinned on both). */
 const CS_LENGTHS = [
-  { k:'thisSaturday', title:'This Saturday', gloss:'a live match, on one card',       object:'liveRound' },
-  { k:'oneWeek',      title:'One week',      gloss:'best round by Sunday takes it',   object:'callout' },
-  { k:'aSeason',      title:'A season',      gloss:'a table, and a cup at the end',   object:'pairSeason' },
+  { k:'aRound',     title:'Play a round',     gloss:'one round together — now, or on the schedule',        object:'round' },
+  { k:'headToHead', title:'Go head to head',  gloss:'each of you posts a round before it closes',          object:'callout' },
+  { k:'aSeason',    title:'Start a season',   gloss:'rounds over time — a table, and a cup at the end',    object:'pairSeason' },
 ];
 function csLengthsOffered(liveNow, shareASeason){
   let o = CS_LENGTHS.slice();
   if(shareASeason){ o = o.filter(x => x.k !== 'aSeason').concat(CS_LENGTHS.filter(x => x.k === 'aSeason')); }
-  if(liveNow){ o = CS_LENGTHS.filter(x => x.k === 'thisSaturday').concat(o.filter(x => x.k !== 'thisSaturday')); }
+  if(liveNow){ o = CS_LENGTHS.filter(x => x.k === 'aRound').concat(o.filter(x => x.k !== 'aRound')); }
   return o;
+}
+/* D363 · the words around the three, shared with the phone (`PlayWithCopy`,
+   `CalloutCopy`). No weekday anywhere: the head-to-head prints its real date. */
+const CS_PLAY_WITH = {
+  head: name => 'Play with ' + (String(name||'').trim().split(/\s+/)[0] || 'them'),
+  roundHead: 'When?', nowTitle: 'Now', nowGloss: 'score it live, hole by hole',
+  laterTitle: 'On the schedule', laterGloss: "pick the day — they're in the group from the start",
+  basis: 'One round each, any course. The better round against your playing HCP takes it; a tie is all square.',
+  invitation: first => `${first} gets a note and answers on their phone. Nothing is sent until you tap Send it.`,
+  noPoints: "It's for the record — nothing scores toward a season.",
+  stakeQuestion: "What's on it? — optional", stakeNone: 'Nothing, just the record', stakeForfeit: 'A pride bet',
+  stakePlaceholder: 'Loser buys the beers', send: 'Send it',
+  seasonWith: first => `Starting this with ${first}. They get an invitation to accept when the season locks — nothing seats them before that.`,
+  alreadyInARound: first => `You're already in a round — ${first} wasn't added.`,
+  groupFull: first => `The group is full — remove someone to add ${first}.`,
+  seated: (first, est) => `${first} is in the group${est ? ' — no number on file, so an estimated 18' : ''}.`,
+};
+/* THE SHARED SUNDAY RULE (`CalloutLength.defaultClose` on the phone): the
+   coming Sunday, unless that is fewer than three days out — then the one
+   after. The web used to send `p_closes_on: null` and let the server pick
+   "today + 7" on whatever weekday that fell, while toasting "by Sunday". */
+function csCalloutDefaultClose(todayISO){
+  const [y, m, d] = (todayISO || isoOf(new Date())).split('-').map(Number);
+  const t = new Date(y, m - 1, d);
+  let add = (7 - t.getDay()) % 7; if(add === 0) add = 7;
+  if(add < 3) add += 7;
+  const c = new Date(y, m - 1, d + add);
+  return `${c.getFullYear()}-${String(c.getMonth()+1).padStart(2,'0')}-${String(c.getDate()).padStart(2,'0')}`;
+}
+/* D363 · seat a person in a live group. PURE — the test walks every branch.
+   `roster`/`sel` are the tee sheet's own arrays, mutated in place; returns
+   one of: alreadyInARound · yourRoundOnly · alreadySeated · full · seated. */
+function csPreselectInto(roster, sel, person, index, live){
+  if(live && live.active) return 'alreadyInARound';
+  if(live && live.phoneOnly) return 'yourRoundOnly';
+  const i = roster.findIndex(r => r.pid && r.pid === person.pid);
+  if(i >= 0){
+    if(sel.includes(i)) return 'alreadySeated';
+    if(sel.length >= 4) return 'full';
+    sel.push(i); return 'seated';
+  }
+  if(sel.length >= 4) return 'full';
+  roster.push({ n: person.name || 'Golfer', i: (index == null ? 18 : Number(index)), ci: -1, team: null,
+                guest: true, buddy: true, est: index == null, pid: person.pid });
+  sel.push(roster.length - 1);
+  return 'seated';
 }
 function openIntentSheet(){
   const row = (line, gloss, id, ember) => `
@@ -27513,38 +27651,111 @@ async function openLengthStep(){
     closeSheet(); csAskTheLength(b.dataset.csl, b.dataset.cslname);
   }));
 }
+/* D363 · "Play with <name>" — the three ways, and THE PERSON RIDES into each.
+   Before this, "This Saturday" did `switchView('play')` and dropped `pid` on
+   the floor: the owner tapped Play on a golfer and met a group with only
+   himself in it. Nothing here writes — the live sheet seats a person in a
+   picker, the plan tags them in a composer, the wizard holds an invitation
+   to send at lock, and the head-to-head goes through a review sheet first. */
 function csAskTheLength(pid, name){
   const first = String(name||'').trim().split(/\s+/)[0] || 'them';
   const lengths = csLengthsOffered(!!CS.liveRound, false);
-  openSheet('How long?', 'YOU AND ' + esc(first.toUpperCase()),
-    lengths.map((l, n) => `
-      <button class="startjoin" data-csln="${l.k}" type="button"
+  const row = (k, title, gloss) => `
+      <button class="startjoin" data-csln="${esc(k)}" type="button"
               style="margin:0 0 2px; width:100%; text-align:left; display:block; padding:12px 14px; min-height:56px">
-        <b style="display:block; color:${n===0?'var(--brand)':'var(--ink)'}">${esc(l.title)}</b>
-        <small style="display:block; color:var(--dim)">${esc(l.gloss)}</small>
-      </button>`).join(''));
-  document.getElementById('shBody')?.querySelectorAll('[data-csln]').forEach(b => b.addEventListener('click', async () => {
+        <b style="display:block; color:var(--ink)">${esc(title)}</b>
+        <small style="display:block; color:var(--dim)">${esc(gloss)}</small>
+      </button>`;
+  openSheet(CS_PLAY_WITH.head(name), 'THREE WAYS · PICK ONE', lengths.map(l => row(l.k, l.title, l.gloss)).join(''));
+  document.getElementById('shBody')?.querySelectorAll('[data-csln]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.csln;
     closeSheet();
     window.qaEvent?.('cta_tapped', { door: 'length:' + k });
-    if(k === 'thisSaturday') return switchView('play');
-    if(k === 'aSeason')      return document.getElementById('wCreate')?.click();
-    /* D237 · the callout. R19 mints a Ryder with a field of two and one
-       session — no new table. A database without it says so rather than
-       claiming the callout failed (wave 6's three-way rule). */
-    try {
-      const { data, error } = await sb.rpc('call_out', { p_opponent: pid, p_closes_on: null, p_forfeit_terms: null });
-      if(error) throw error;
-      toast('Sent. Best round by Sunday takes it.');
-      return data;
-    } catch(err){
-      const m = String(err?.message || err).toLowerCase();
-      toast(/schema cache|could not find the|does not exist|no function matches|pgrst202/.test(m)
-        ? 'Callouts need the latest update — try again shortly.'
-        : humanError(err));
+    if(k === 'aRound')     return csAskRoundWhen(pid, name);
+    if(k === 'headToHead') return csOpenCalloutReview(pid, name);
+    if(k === 'aSeason'){
+      /* the wizard carries the person as an INVITATION to send at lock (L-12,
+         A-1: never a seat). Dropped by the ✕ on the wizard's first step. */
+      window._seasonWith = { pid, name: first };
+      return document.getElementById('wCreate')?.click();
     }
   }));
 }
+/* "Play a round" → now, or on the schedule. The person rides into either. */
+function csAskRoundWhen(pid, name){
+  const first = String(name||'').trim().split(/\s+/)[0] || 'them';
+  openSheet(CS_PLAY_WITH.roundHead, 'A ROUND WITH ' + esc(first.toUpperCase()), `
+    <button class="startjoin" id="csrw-now" type="button" style="margin:0 0 2px; width:100%; text-align:left; display:block; padding:12px; min-height:52px">
+      <b style="display:block">${esc(CS_PLAY_WITH.nowTitle)}</b><small style="display:block; color:var(--dim)">${esc(CS_PLAY_WITH.nowGloss)}</small></button>
+    <button class="startjoin" id="csrw-plan" type="button" style="margin:0; width:100%; text-align:left; display:block; padding:12px; min-height:52px">
+      <b style="display:block">${esc(CS_PLAY_WITH.laterTitle)}</b><small style="display:block; color:var(--dim)">${esc(CS_PLAY_WITH.laterGloss)}</small></button>`);
+  document.getElementById('csrw-now')?.addEventListener('click', () => {
+    closeSheet(); window.qaEvent?.('cta_tapped', { door: 'play.with.now' });
+    window.csLivePreselect = { pid, name: first };
+    switchView('play');
+  });
+  document.getElementById('csrw-plan')?.addEventListener('click', () => {
+    closeSheet(); window.qaEvent?.('cta_tapped', { door: 'play.with.plan' });
+    /* the composer's own default day — no weekday promised by this door */
+    window.openDeclareSheet?.(null, { tagPids: [pid] });
+  });
+}
+/* D363 · the head-to-head REVIEW. The three facts a first-timer needs before
+   any stake — the day it closes (the shared Sunday rule), how it is decided,
+   what the other golfer sees — then that nothing scores, then the optional
+   stake, then Send it. The stake is a pride bet in words (T-02), never an
+   amount, and the no-stake path is complete. */
+function csOpenCalloutReview(pid, name){
+  const first = String(name||'').trim().split(/\s+/)[0] || 'them';
+  const closes = csCalloutDefaultClose();
+  openSheet('Head to head with ' + esc(first), 'REVIEW, THEN SEND', `
+    <p style="margin:0 0 4px"><b id="csco-closes">Closes ${esc(csDowMonDay(closes))}</b></p>
+    <p class="fine" style="padding-top:0">${esc(CS_PLAY_WITH.basis)}</p>
+    <p class="fine" style="padding-top:0" id="csco-invitation">${esc(CS_PLAY_WITH.invitation(first))}</p>
+    <p class="fine" style="padding-top:0; color:var(--dim)">${esc(CS_PLAY_WITH.noPoints)}</p>
+    <div class="eyebrow" style="margin-top:12px">${esc(CS_PLAY_WITH.stakeQuestion)}</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="mini sel" type="button" data-csstake="0" aria-pressed="true">${esc(CS_PLAY_WITH.stakeNone)}</button>
+      <button class="mini" type="button" data-csstake="1" aria-pressed="false">${esc(CS_PLAY_WITH.stakeForfeit)}</button>
+    </div>
+    <input class="f" id="csco-terms" placeholder="${esc(CS_PLAY_WITH.stakePlaceholder)}" maxlength="200" hidden autocomplete="off" style="margin-top:8px; font-family:var(--sans); font-size:16px" aria-label="${esc(CS_PLAY_WITH.stakeForfeit)}">
+    <button class="btn" id="csco-send" style="margin-top:12px">${esc(CS_PLAY_WITH.send)}</button>`);
+  const body = document.getElementById('shBody');
+  let hasStake = false;
+  body?.querySelectorAll('[data-csstake]').forEach(b => b.addEventListener('click', () => {
+    hasStake = b.dataset.csstake === '1';
+    body.querySelectorAll('[data-csstake]').forEach(x => { const on = (x.dataset.csstake === '1') === hasStake; x.classList.toggle('sel', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    const t = document.getElementById('csco-terms'); if(t){ t.hidden = !hasStake; if(hasStake) t.focus(); }
+  }));
+  document.getElementById('csco-send')?.addEventListener('click', async () => {
+    const terms = hasStake ? (document.getElementById('csco-terms')?.value || '').trim() : '';
+    const btn = document.getElementById('csco-send'); if(btn) btn.disabled = true;
+    const ok = await csSendCallout(pid, closes, terms || null);
+    if(ok) closeSheet(); else if(btn) btn.disabled = false;
+  });
+}
+async function csSendCallout(pid, closesOn, forfeitTerms){
+  /* D237 · the callout. R19 mints a Ryder with a field of two and one
+     session — no new table. A database without it says so rather than
+     claiming the callout failed (wave 6's three-way rule). */
+  try {
+    const { error } = await sb.rpc('call_out', { p_opponent: pid, p_closes_on: closesOn, p_forfeit_terms: forfeitTerms });
+    if(error) throw error;
+    toast('Sent. Best round by ' + csDowMonDay(closesOn) + ' takes it.');
+    return true;
+  } catch(err){
+    const m = String(err?.message || err).toLowerCase();
+    toast(/schema cache|could not find the|does not exist|no function matches|pgrst202/.test(m)
+      ? 'Callouts need the latest update — try again shortly.'
+      : humanError(err));
+    return false;
+  }
+}
+window.csAskTheLength = csAskTheLength;
+window.csCalloutDefaultClose = csCalloutDefaultClose;
+window.csDowMonDay = csDowMonDay;
+window.csPreselectInto = csPreselectInto;
+window.CS_PLAY_WITH = CS_PLAY_WITH;
 window.openIntentSheet = openIntentSheet;
 window.csIntentStrings = csIntentStrings;
 window.csObjectNouns   = csObjectNouns;
@@ -28416,6 +28627,22 @@ window.respondInvite = async (id, accept)=>{
   }catch(e){ toast(humanError(e)); }
 };
 
+/* D363 · the invitation "Start a season with <name>" carried through the
+   wizard, sent at lock and never before. `invite_golfer` answers for itself —
+   a refusal is said, never hidden — and the carry is cleared either way so a
+   later, generic season never inherits it. */
+async function csInviteSeasonWith(leagueId){
+  const w = window._seasonWith; if(!w || !leagueId) return;
+  window._seasonWith = null;
+  window.renderWizardWith?.();
+  const first = String(w.name||'').trim().split(/\s+/)[0] || 'them';
+  try {
+    const { error } = await sb.rpc('invite_golfer', { p_league: leagueId, p_event: null, p_profile: w.pid });
+    if(error) throw error;
+    toast(`Invited ${first} — they choose whether to join.`);
+  } catch(err){ toast(humanError(err, `Couldn't send ${first} the invitation. Add golfers from the season page instead.`)); }
+}
+window.csInviteSeasonWith = csInviteSeasonWith;
 /* Add golfers to a league OR event — now a thin wrapper over the one People
    Picker (invite mode). Deleted its private search/buddy/invite copy. */
 async function openInvitePicker(container){

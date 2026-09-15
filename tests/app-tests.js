@@ -1317,25 +1317,64 @@
     t('D240: the weekend door sells a name, never a trophy',
       [CS_INTENTS[2].gloss.includes('trophy'), CS_INTENTS[2].gloss.includes('cup')], [false, false]);
 
-    /* R-F · all three lengths, always, in the owner's own words */
-    t('R-F: the three lengths are the owner\u2019s words',
+    /* R-F · all three lengths, always. D363 (owner, 2026-09-15) reworded them
+       so none reads as a date; the words are the phone's (`CalloutLength`). */
+    t('R-F/D363: the three ways are the owner’s words',
       CS_LENGTHS.map(l => l.title + ' — ' + l.gloss),
-      ['This Saturday — a live match, on one card',
-       'One week — best round by Sunday takes it',
-       'A season — a table, and a cup at the end']);
+      ['Play a round — one round together — now, or on the schedule',
+       'Go head to head — each of you posts a round before it closes',
+       'Start a season — rounds over time — a table, and a cup at the end']);
+    t('D363: the head names the person, and no route word names a weekday or a week',
+      [CS_PLAY_WITH.head('Alex Rivera'),
+       CS_LENGTHS.flatMap(l => [l.title, l.gloss]).concat([CS_PLAY_WITH.roundHead, CS_PLAY_WITH.nowTitle, CS_PLAY_WITH.nowGloss, CS_PLAY_WITH.laterTitle, CS_PLAY_WITH.laterGloss])
+         .filter(s => /monday|tuesday|wednesday|thursday|friday|saturday|sunday|week/i.test(s))],
+      ['Play with Alex', []]);
     t('R-F: the state ORDERS them and never shortens them',
       [csLengthsOffered(false, false).map(l => l.k),
        csLengthsOffered(true, false).map(l => l.k),
        csLengthsOffered(false, true).map(l => l.k),
        csLengthsOffered(true, true).map(l => l.k)],
-      [['thisSaturday', 'oneWeek', 'aSeason'],
-       ['thisSaturday', 'oneWeek', 'aSeason'],
-       ['thisSaturday', 'oneWeek', 'aSeason'],
-       ['thisSaturday', 'oneWeek', 'aSeason']]);
+      [['aRound', 'headToHead', 'aSeason'],
+       ['aRound', 'headToHead', 'aSeason'],
+       ['aRound', 'headToHead', 'aSeason'],
+       ['aRound', 'headToHead', 'aSeason']]);
     t('R-F: every length lands on an object that already exists',
-      CS_LENGTHS.map(l => l.object), ['liveRound', 'callout', 'pairSeason']);
-    t('R-F: and the golfer never meets the object\u2019s name',
+      CS_LENGTHS.map(l => l.object), ['round', 'callout', 'pairSeason']);
+    t('R-F: and the golfer never meets the object’s name',
       CS_LENGTHS.flatMap(l => csObjectNouns(l.title + ' ' + l.gloss)), []);
+    /* D363 · the head-to-head closes on the SHARED Sunday rule (the phone's
+       `CalloutLength.defaultClose`): the coming Sunday, unless fewer than
+       three days out — then the one after. The web used to send null. */
+    t('D363: the head-to-head closes on the shared Sunday rule',
+      ['2026-09-05', '2026-09-06', '2026-09-07', '2026-09-09', '2026-09-11', '2026-09-12'].map(csCalloutDefaultClose),
+      ['2026-09-13', '2026-09-13', '2026-09-13', '2026-09-13', '2026-09-20', '2026-09-20']);
+    /* D363 · seating the person "Play with → Now" was tapped from: never over
+       an existing round, never twice, never past four, an unknown number is
+       an estimate and says so. */
+    {
+      const me = { n:'You', i:12.4, pid:'p-me', me:true, locked:true };
+      const alex = { pid:'p-alex', name:'Alex Rivera' };
+      const fresh = () => ({ roster:[Object.assign({}, me)], sel:[0] });
+      let s = fresh();
+      const seated = csPreselectInto(s.roster, s.sel, alex, 9.8, { active:false });
+      t('D363: the person is seated beside me with the producer’s number',
+        [seated, s.sel.length, s.roster[1].pid, s.roster[1].i, s.roster[1].est, s.roster[1].guest && s.roster[1].buddy],
+        ['seated', 2, 'p-alex', 9.8, false, true]);
+      t('D363: seated again is not seated twice',
+        [csPreselectInto(s.roster, s.sel, alex, 9.8, { active:false }), s.sel.length, s.roster.length], ['alreadySeated', 2, 2]);
+      s = fresh();
+      t('D363: no number on file is an estimated 18, flagged',
+        [csPreselectInto(s.roster, s.sel, alex, null, { active:false }), s.roster[1].i, s.roster[1].est], ['seated', 18, true]);
+      s = fresh();
+      t('D363: an existing round is never overwritten',
+        [csPreselectInto(s.roster, s.sel, alex, 9.8, { active:true }), s.roster.length], ['alreadyInARound', 1]);
+      s = fresh(); [1,2,3].forEach(k => { s.roster.push({ n:'Guest '+k, i:18, guest:true }); s.sel.push(k); });
+      t('D363: a full group says so rather than dropping someone',
+        [csPreselectInto(s.roster, s.sel, alex, 9.8, { active:false }), s.sel.length, s.roster.length], ['full', 4, 4]);
+      s = fresh(); s.roster.push({ n:'Alex Rivera', i:9.8, pid:'p-alex', guest:false });
+      t('D363: a league mate already in the roster is selected, not duplicated',
+        [csPreselectInto(s.roster, s.sel, alex, 9.8, { active:false }), s.sel, s.roster.length], ['seated', [0, 1], 2]);
+    }
 
     /* D225 / R9 · the covenant names the crew, the clock and what the money
        buys — and an absent fact renders NOTHING (L-44). */

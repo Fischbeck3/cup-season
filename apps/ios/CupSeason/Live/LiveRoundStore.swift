@@ -200,11 +200,15 @@ final class LiveRoundStore {
       if let profile = me?.profile {
         prepareOffline(OfflineGolfer(id: owner, name: profile.display_name ?? "You", index: profile.index_current, marker: profile.marker))
       } else { state = local; scoreOnPhone = true }
+      refusePending(.alreadyInARound)   // D363 · an existing round is never overwritten
       return
     }
-    if scoreOnPhone { return }
+    if scoreOnPhone { refusePending(.yourRoundOnly); return }
     if !rehydrated { rehydrated = true; await rehydrate() }
     if !rosterPrimed || rosterLeague != leagueId { await primeRoster() }
+    // D363 · the person "Play with <name>" was tapped from — seated only now,
+    // AFTER the prime, because `primeRoster()` resets the selection.
+    await applyPending()
     if plan == nil, !planDismissed { plan = await repo.todaysPlan() }
   }
 
@@ -522,6 +526,79 @@ final class LiveRoundStore {
     if sel.count < 4 { sel.append(roster.count - 1) }
   }
   var pickerExcluded: Set<UUID> { Set(roster.compactMap(\.pid)) }
+
+  // MARK: D363 · a person handed in from "Play with <name> → Now"
+
+  /// Held until the roster is primed, then seated — or refused with a reason.
+  /// Cleared the moment either happens, so a later generic Play never
+  /// inherits the last opponent.
+  private var pending: TagCandidate?
+  func preselect(_ who: TagCandidate) { pending = who }
+
+  /// What seating a person came to. The cases are the packet's own list:
+  /// an existing round is never overwritten, the phone-only path is one
+  /// golfer, a person already in the group is not seated twice, a full group
+  /// says so.
+  enum Seating: Equatable { case alreadyInARound, yourRoundOnly, alreadySeated, full, seated(estimated: Bool) }
+
+  /// Seat `who` beside me. Pure — no network — so a test walks every branch.
+  /// `index` comes from the picker's own producer (`my_friends` /
+  /// `search_golfers`), never from a number a profile page displayed; nil is
+  /// the store's ordinary estimate, flagged EST like any other unknown.
+  @discardableResult
+  func seat(_ who: TagCandidate, index: Double?) -> Seating {
+    guard !state.active else { return .alreadyInARound }
+    guard !scoreOnPhone else { return .yourRoundOnly }
+    if let i = roster.firstIndex(where: { $0.pid == who.id }) {
+      if sel.contains(i) { return .alreadySeated }
+      guard sel.count < 4 else { return .full }
+      sel.append(i)
+      return .seated(estimated: roster[i].est)
+    }
+    guard sel.count < 4 else { return .full }
+    roster.append(LivePlayer(id: "p:\(who.id.uuidString)", n: who.name, i: index ?? 18, ci: -1, guest: true,
+                             est: index == nil, buddy: true, pid: who.id, team: nil, mk: who.marker))
+    sel.append(roster.count - 1)
+    return .seated(estimated: index == nil)
+  }
+
+  /// Applied once the roster is primed, and told to the golfer either way.
+  /// The person is removable from the slot like anyone else; nothing is
+  /// written, sent or asserted about them by this.
+  func applyPending() async {
+    guard let who = pending else { return }
+    pending = nil
+    let index = state.active || scoreOnPhone ? nil : await indexFor(who)
+    say(seat(who, index: index), who)
+  }
+
+  /// A refusal on a path that never reaches the roster (an offline round in
+  /// progress, the phone-only path).
+  private func refusePending(_ s: Seating) {
+    guard let who = pending else { return }
+    pending = nil
+    say(s, who)
+  }
+
+  private func say(_ s: Seating, _ who: TagCandidate) {
+    switch s {
+    case .alreadySeated:    break
+    case .alreadyInARound:  toast(PlayWithCopy.alreadyInARound(who.name))
+    case .yourRoundOnly:    toast(PlayWithCopy.yourRoundOnly(who.name))
+    case .full:             toast(PlayWithCopy.groupFull(who.name))
+    case .seated(let est):  toast(PlayWithCopy.seated(who.name, estimated: est))
+    }
+  }
+
+  /// The same producer the roster picker reads (`LiveRosterHit`): buddies
+  /// first, then the app-wide search, matched by id — never by name alone.
+  private func indexFor(_ who: TagCandidate) async -> Double? {
+    if let l = try? await SupabaseService.shared.call(Rpc.my_friends()),
+       let r = l.first(where: { $0.profile_id == who.id }) { return r.index_current }
+    if let l = try? await SupabaseService.shared.call(Rpc.search_golfers(p_q: who.name)),
+       let r = l.first(where: { $0.profile_id == who.id }) { return r.index_current }
+    return nil
+  }
 
   /// The plan bridge's "Load it →" (8365).
   func loadPlan() {

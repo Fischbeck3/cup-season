@@ -59,7 +59,14 @@ final class Presenter {
   var wizard: WizardTarget?
   var draft: UUID?
   var runBack: UUID?
-  struct WizardTarget: Identifiable { let existingLeagueId: UUID?; var initialStep = 0; var id: String { (existingLeagueId?.uuidString ?? "new") + "·\(initialStep)" } }
+  /// D363 · `invitee` is the person "Start a season" was tapped from. They are
+  /// carried as an INVITATION to send at lock — never a seat (L-12, A-1).
+  struct WizardTarget: Identifiable {
+    let existingLeagueId: UUID?
+    var initialStep = 0
+    var invitee: TagCandidate? = nil
+    var id: String { (existingLeagueId?.uuidString ?? "new") + "·\(initialStep)" + (invitee.map { "·\($0.id.uuidString)" } ?? "") }
+  }
   /// Events (wave 6): the picker, and a room.
   var showEventPicker = false
   var event: UUID?

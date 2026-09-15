@@ -26,27 +26,58 @@ import Foundation
   }
 
   @Test func theStateOrdersThemAndNeverShortensThem() {
-    #expect(CalloutLength.offered() == [.thisSaturday, .oneWeek, .aSeason])
-    // already in a live round → This Saturday first
-    #expect(CalloutLength.offered(liveNow: true).first == .thisSaturday)
+    #expect(CalloutLength.offered() == [.aRound, .headToHead, .aSeason])
+    // already in a live round → Play a round first
+    #expect(CalloutLength.offered(liveNow: true).first == .aRound)
     // already sharing a season → A season LAST, and still there
     #expect(CalloutLength.offered(shareASeason: true).last == .aSeason)
     #expect(CalloutLength.offered(shareASeason: true).contains(.aSeason))
     // both at once still leaves three, with live first and the season last
     let both = CalloutLength.offered(liveNow: true, shareASeason: true)
-    #expect(both == [.thisSaturday, .oneWeek, .aSeason])
+    #expect(both == [.aRound, .headToHead, .aSeason])
   }
 
   // MARK: - 2 · the owner's words
 
-  @Test func theWordsAreRFsVerbatim() {
-    #expect(CalloutLength.question == "How long?")
-    #expect(CalloutLength.thisSaturday.title == "This Saturday")
-    #expect(CalloutLength.oneWeek.title == "One week")
-    #expect(CalloutLength.aSeason.title == "A season")
-    #expect(CalloutLength.thisSaturday.gloss == "a live match, on one card")
-    #expect(CalloutLength.oneWeek.gloss == "best round by Sunday takes it")
-    #expect(CalloutLength.aSeason.gloss == "a table, and a cup at the end")
+  @Test func theWordsAreTheOwnersVerbatim() {
+    // D363 · the plain-language route labels, authorised 2026-09-15
+    #expect(CalloutLength.head("Alex Rivera") == "Play with Alex")
+    #expect(CalloutLength.aRound.title == "Play a round")
+    #expect(CalloutLength.headToHead.title == "Go head to head")
+    #expect(CalloutLength.aSeason.title == "Start a season")
+    #expect(CalloutLength.aRound.gloss == "one round together — now, or on the schedule")
+    #expect(CalloutLength.headToHead.gloss == "each of you posts a round before it closes")
+    #expect(CalloutLength.aSeason.gloss == "rounds over time — a table, and a cup at the end")
+  }
+
+  /// F7 · "This Saturday" read as the only day you could play, and "One week"
+  /// as a duration nobody could verify. No route word, gloss or fork word
+  /// names a weekday or a week now; the head-to-head sheet prints the actual
+  /// closing date instead.
+  @Test func noRouteWordNamesAWeekday() {
+    let days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "week"]
+    var strings = CalloutLength.allCases.flatMap { [$0.title, $0.gloss] }
+    strings += [PlayWithCopy.roundHead, PlayWithCopy.nowTitle, PlayWithCopy.nowGloss,
+                PlayWithCopy.laterTitle, PlayWithCopy.laterGloss]
+    for s in strings {
+      for d in days { #expect(!s.lowercased().contains(d), Comment(rawValue: "\"\(s)\" says \(d)")) }
+    }
+  }
+
+  /// The review sheet states the three facts before any stake: the real
+  /// closing date from the shared Sunday rule, the basis, the invitation.
+  @Test func theReviewLeadsWithTheDateTheBasisAndTheInvitation() {
+    #expect(CalloutCopy.closesRow(closesOn: "2026-09-13") == "Closes Sun Sep 13")
+    #expect(CalloutCopy.basis.contains("all square"))
+    #expect(CalloutCopy.basis.contains("your playing HCP"))   // R-M / §42: the comparison noun is playing HCP
+    #expect(CalloutCopy.invitation("Alex Rivera").hasPrefix("Alex gets a note"))
+    #expect(CalloutCopy.invitation("Alex").contains("Nothing is sent until"))
+    #expect(CalloutCopy.stakeQuestion.lowercased().contains("optional"))
+    // each route knows its length, so the fork can be walked from a route
+    #expect(PlayRoute.liveNow.length == .aRound)
+    #expect(PlayRoute.plan.length == .aRound)
+    #expect(PlayRoute.headToHead.length == .headToHead)
+    #expect(PlayRoute.season.length == .aSeason)
   }
 
   /// The golfer never meets the object's name.
@@ -60,8 +91,8 @@ import Foundation
   // MARK: - 3 · each lands on something that already exists
 
   @Test func eachLengthMapsToAnObjectTheEngineHas() {
-    #expect(CalloutLength.thisSaturday.object == .liveRound)
-    #expect(CalloutLength.oneWeek.object == .callout)
+    #expect(CalloutLength.aRound.object == .round)
+    #expect(CalloutLength.headToHead.object == .callout)
     #expect(CalloutLength.aSeason.object == .pairSeason)
     let objects = CalloutLength.allCases.map(\.object)
     #expect(Set(objects).count == 3)
@@ -80,13 +111,13 @@ import Foundation
   @Test func onlyTheCallOutIsNew() {
     // Every RPC named here ships today except `call_out` — which is the whole
     // of D237's "no new table" claim, expressed as a list.
-    let shipped: Set<String> = ["start_live_round", "create_league", "lock_league", "invite_golfer"]
+    let shipped: Set<String> = ["start_live_round", "declare_round", "create_league", "lock_league", "invite_golfer"]
     for l in CalloutLength.allCases {
       for r in l.rpcs where r != "call_out" {
         #expect(shipped.contains(r), Comment(rawValue: r))
       }
     }
-    #expect(CalloutLength.oneWeek.rpcs == ["call_out"])
+    #expect(CalloutLength.headToHead.rpcs == ["call_out"])
   }
 
   /// T-02 · no length invents a money noun. Not one string in the whole flow
@@ -94,7 +125,8 @@ import Foundation
   @Test func noLengthInventsAStake() {
     let banned = ["cents", "$", "dollars", "buy-in", "buyin", "pot"]
     var strings = CalloutLength.allCases.flatMap { [$0.title, $0.gloss] }
-    strings += [CalloutLength.question, CalloutCopy.stakeQuestion, CalloutCopy.stakeNone,
+    strings += [CalloutLength.head("Alex"), CalloutCopy.basis, CalloutCopy.invitation("Alex"),
+                CalloutCopy.closesRow(closesOn: "2026-09-13"), CalloutCopy.stakeQuestion, CalloutCopy.stakeNone,
                 CalloutCopy.stakeForfeit, CalloutCopy.stakePlaceholder, CalloutCopy.send,
                 CalloutCopy.allSquare, CalloutCopy.noPoints, CalloutCopy.accept, CalloutCopy.decline]
     for s in strings {
