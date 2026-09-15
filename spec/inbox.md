@@ -51,6 +51,8 @@ Prototype and brand proof: `docs/prototypes/next-week.html`. Claude completed C0
 
 ## Raw — drop anything here
 
+- **2026-09-15 · Phone follow-up F9/F10:** applause glyph is not recognizable; redraw within approved icon/count direction. Replace “Open the plan” with View round and add Tee it up from a booked round, preserving actual tees, participant IDs/RSVP and a single shared live round. [Source and acceptance](../docs/planning/2026-09-15-phone-findings-and-appreciation.md#f9--applause-glyph-does-not-read-as-applause). Both clients; no production database push or new notification policy implied.
+
 - **2026-09-15 · Course search / keyboard:** matching courses appear below the visible area in live setup. Reveal the input and first complete result above the keyboard as results arrive; include tee selection, empty/loading/offline states and mobile Safari in the audit. [Phone findings F8](../docs/planning/2026-09-15-phone-findings-and-appreciation.md#f8--course-search-results-hidden-by-the-keyboard). Claude implementation; source inspected, device fix not yet verified.
 
 - **2026-09-15 · Phone review / profile Play continuity:** fixed “This Saturday” copy implies a restriction; live setup loses the selected profile on both clients; weekly setup foregrounds pride stakes and needs its competition explained first. Audit season invitee continuity too. Source evidence, proposed labels and paired acceptance are in [phone findings F7](../docs/planning/2026-09-15-phone-findings-and-appreciation.md#f7--play-a-person-misleading-dates-and-lost-golfer-context). Implementation remains with Claude; no scoring or notification change authorized by this note.

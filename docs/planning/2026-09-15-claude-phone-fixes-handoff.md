@@ -52,6 +52,8 @@ Prepare a concrete follow-on proposal for opponent acceptance and competition-ba
 
 ## Evidence and delivery
 
+**Follow-up, 2026-09-15:** include F9/F10 from the source review: redraw the ambiguous applause glyph at actual display size; use View round in place of Open the plan; add Tee it up from the booked-round details into a prepared live round, preserving identity, tees and honest invitation/acceptance state. This extends the review to F1–F10. Inspect existing plan/live linkage and make duplicate prevention authoritative. Keep new schema deployment and notification policy separately reported; do not edit applied migrations.
+
 - Work in bounded paired commits. Track each F1–F8 as built web / built iOS / verified / deployed or pending, with the same user scenario on each client.
 - Run focused regressions, relevant native tests and preflight. Protect the recent photo reliability fixes, multi-league receipt authorization and points provenance. Do not create real invitations, rounds or reactions on the owner's account just to test; use fixtures/test accounts.
 - Capture narrow mobile layouts and enlarged text, particularly search with keyboard up, selected tee, selected opponent, weekly confirmation and applause states. Physical-device proof must be labeled outstanding when unavailable.
