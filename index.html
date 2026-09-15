@@ -554,6 +554,24 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
    colour can serve both. No gradient, no second ember object inside it.
    Ember marks a competition in ANY state, so the band always prints the
    state as a WORD; colour never carries it. */
+/* F13 · the inline hole moment: a restrained ember stroke beside the hole,
+   never a modal, never confetti, and the next hole stays available under it.
+   It is an EARNED PLAY MOMENT, which is a narrow documented exception to
+   F11's competition-only ember role and to D267's neutral scorecard: the
+   grid itself is NOT repainted — this sits beside it and then leaves. */
+.hmoment{display:inline-flex; align-items:baseline; gap:var(--s2);
+  border-left:2px solid var(--brand); padding:var(--s1) 0 var(--s1) var(--s2);}
+.hmoment .w{font-family:var(--board); font-size:15px; letter-spacing:calc(var(--caps2) * 1em);
+  text-transform:uppercase; color:var(--brand);}
+.hmoment.eagle .w{font-size:18px;}
+.hmoment .h{font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; color:var(--mut);}
+.hmoment-tally{font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; color:var(--mut);}
+@media (prefers-reduced-motion: no-preference){
+  .hmoment{animation:hmrise .26s cubic-bezier(.16,.84,.36,1) both;}
+  @keyframes hmrise{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+}
 .cband{display:block; width:100%; text-align:left; border:0; cursor:pointer;
   background:var(--brand); color:var(--brand-ink);
   border-radius:var(--r); padding:var(--s4); margin:var(--s4) 0 0;}
@@ -18661,6 +18679,51 @@ function csSeasonRowFacts(f, role){
   else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
   return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank };
 }
+/* F13 · A BIRDIE IS A BIRDIE. The risk in celebrating a good hole is FALSE
+   recognition, so every rule here is a refusal: par must be KNOWN (an
+   estimated par cannot declare an eagle), the score must be COMMITTED (a
+   stepper passing through 3 on its way to 5 is not a birdie), hydration and
+   sync arm the ledger silently, and a correction revises rather than
+   replaying the reward through undo and re-entry. Gross, not net. No points,
+   no post, no notification. Twin of the phone's `HoleMoment`. */
+function csHoleMoment(strokes, par, parIsKnown){
+  if(!parIsKnown || strokes == null || par == null) return null;
+  const s = Number(strokes), p = Number(par);
+  if(!(s > 0) || !(p > 0)) return null;
+  const under = p - s;
+  return under >= 2 ? 'eagle' : under === 1 ? 'birdie' : null;
+}
+const CS_MOMENT_WORD = { birdie:'Birdie', eagle:'Eagle' };
+function csMomentLedger(){
+  const seen = {}, standing = {};
+  const key = (pl, h) => pl + '#' + h;
+  return {
+    /* arm without speaking — hydration, reconnect, a remote echo */
+    seen(pl, h, rev, strokes, par, known){ seen[key(pl,h)] = rev; standing[key(pl,h)] = csHoleMoment(strokes, par, known); },
+    /* a committed score speaks once, and only when it is genuinely under a known par */
+    commit(pl, h, rev, strokes, par, known){
+      const k = key(pl,h), m = csHoleMoment(strokes, par, known), already = seen[k] === rev;
+      seen[k] = rev; standing[k] = m;
+      return already ? null : m;
+    },
+    tally(pl){
+      let e = 0, b = 0;
+      Object.keys(standing).forEach(k => { if(!k.startsWith(pl + '#')) return;
+        if(standing[k] === 'eagle') e++; else if(standing[k] === 'birdie') b++; });
+      return { eagles:e, birdies:b };
+    },
+    /* `1 eagle · 1 birdie` — facts. NOT 'Heating up': a streak label claims
+       something two good holes do not prove, and needs its own ruling. */
+    tallyLine(pl){
+      const t = this.tally(pl), parts = [];
+      if(t.eagles) parts.push(t.eagles + ' eagle' + (t.eagles === 1 ? '' : 's'));
+      if(t.birdies) parts.push(t.birdies + ' birdie' + (t.birdies === 1 ? '' : 's'));
+      return parts.length ? parts.join(' · ') : null;
+    },
+  };
+}
+window.csHoleMoment = csHoleMoment; window.csMomentLedger = csMomentLedger;
+
 /* F11 · Upcoming · Live · Final — the twin of the phone's `CompetitionState`.
    Ember identifies a COMPETITION now, in any state, so the state can no longer
    be carried by the colour: every surface wearing the treatment prints one of
