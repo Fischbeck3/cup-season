@@ -848,7 +848,7 @@ private struct PostDateSheet: View {
     VStack(alignment: .leading, spacing: 12) {
       CSSheetHeader(title: "Date", sub: "THE DAY YOU PLAYED")
       DatePicker("Date", selection: $day, in: ...Calendar.current.date(byAdding: .day, value: 1, to: Date())!, displayedComponents: .date)
-        .datePickerStyle(.graphical).labelsHidden().tint(cs.brand)
+        .datePickerStyle(.graphical).labelsHidden().tint(cs.act)
       Button("Set the day") { dismiss() }.buttonStyle(.csPrimary())
     }
     .padding(20)

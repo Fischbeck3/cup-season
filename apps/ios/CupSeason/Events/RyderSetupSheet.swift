@@ -92,7 +92,7 @@ struct RyderSetupSheet: View {
       EventFieldLabel(text: "Cadence")
       CSSegment([(1, "Weekly"), (2, "Every 2 wks")], selection: $weeks)
       EventFieldLabel(text: "First tee (a Sunday)")
-      DatePicker("First tee", selection: $start, displayedComponents: .date).labelsHidden().tint(cs.brand)
+      DatePicker("First tee", selection: $start, displayedComponents: .date).labelsHidden().tint(cs.act)
         .frame(maxWidth: .infinity, alignment: .leading)
       if !EventDates.isSunday(startISO) {
         // the server raises on any other day — say so before the tap

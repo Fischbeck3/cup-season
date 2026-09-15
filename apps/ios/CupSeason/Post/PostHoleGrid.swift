@@ -140,9 +140,9 @@ struct PostScorecardStrip: View {
       .background(cs.bg1)
       .overlay {
         if on {
-          RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.brand, lineWidth: 2).padding(2)
+          RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.act, lineWidth: 2).padding(2)   // D359 · selection, not a signal
         } else if unread {
-          RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.brand, style: StrokeStyle(lineWidth: 1, dash: [3, 2])).padding(2)
+          RoundedRectangle(cornerRadius: 4, style: .continuous).stroke(cs.act, style: StrokeStyle(lineWidth: 1, dash: [3, 2])).padding(2)
         }
       }
       .contentShape(Rectangle())
@@ -275,7 +275,7 @@ struct PostParsSheet: View {
         .foregroundStyle(bad ? cs.neg : cs.ink)
         .padding(.horizontal, 14).frame(minHeight: 56)
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(bad ? cs.neg : (focus == f ? cs.brand : cs.rule), lineWidth: focus == f ? 2 : 1))
+        .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous).stroke(bad ? cs.neg : (focus == f ? cs.act : cs.rule), lineWidth: focus == f ? 2 : 1))
         .focused($focus, equals: f)
         .onChange(of: v) { _, n in
           let c = PostPars.clean(n)

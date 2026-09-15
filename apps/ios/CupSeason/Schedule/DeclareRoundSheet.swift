@@ -51,13 +51,13 @@ struct DeclareRoundSheet: View {
           HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 6) {
               Text("Day").csType(.agate, caps: true).foregroundStyle(cs.mut)
-              DatePicker("Day", selection: $vm.day, displayedComponents: .date).labelsHidden().tint(cs.brand)
+              DatePicker("Day", selection: $vm.day, displayedComponents: .date).labelsHidden().tint(cs.act)
             }
             VStack(alignment: .leading, spacing: 6) {
               Text("Tee time · optional").csType(.agate, caps: true).foregroundStyle(cs.mut)
               HStack(spacing: 6) {
                 if vm.teeOn {
-                  DatePicker("Tee time", selection: $vm.tee, displayedComponents: .hourAndMinute).labelsHidden().tint(cs.brand)
+                  DatePicker("Tee time", selection: $vm.tee, displayedComponents: .hourAndMinute).labelsHidden().tint(cs.act)
                   CSMini("", glyph: .cross) { vm.teeOn = false }.accessibilityLabel("Clear tee time")
                 } else {
                   CSMini("Set a tee time") { vm.teeOn = true }

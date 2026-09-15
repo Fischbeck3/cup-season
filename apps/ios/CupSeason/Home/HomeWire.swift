@@ -666,8 +666,9 @@ struct HomeWireBag: View {
         HStack(alignment: .top, spacing: CSTokens.Space.s3) {
           // The bag's own glyph, in the look's accent where one is on — the
           // object announcing itself before the sentence does.
+          // D359 / F4 · the bag is ordinary decoration, not a live competition
           CSGlyph(.bag, size: .block)
-            .foregroundStyle(cs.brand)
+            .foregroundStyle(cs.mut)
             .padding(.top, 2)
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
             Text(text).csType(.body).foregroundStyle(cs.ink)

@@ -72,6 +72,14 @@ struct HomeLead: View {
         HStack(spacing: CSTokens.Space.s3) {
           VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
             HStack(spacing: CSTokens.Space.s2) {
+              // D359 / F4 · an ACTIVE clash keeps its restrained ember here
+              // too — one dot — so the same competition reads the same on
+              // Home and in the season room. Settled and idle wear none.
+              if live {
+                CSGlyph(.dot, points: 23).foregroundStyle(cs.brand)
+                  .accessibilityLabel("Live")
+                  .csBudget(ember: 1)
+              }
               Text(item.eyebrow).csType(.agate, caps: true)
               if let chip = HomeLeadChip.make(membership) {
                 Text(CSCopy.ordinal(chip.rank)).csType(.name)

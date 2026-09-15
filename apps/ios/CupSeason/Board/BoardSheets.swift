@@ -34,7 +34,7 @@ struct AnnounceSheet: View {
           .overlay {
             if focused {
               RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous)
-                .stroke(cs.brand, lineWidth: 2)
+                .stroke(cs.act, lineWidth: 2)   // D359 · a focus ring is an ordinary interactive state
             }
           }
           .focused($focused)

@@ -197,7 +197,8 @@ struct DigestCard: View {
   @Environment(\.cs) private var cs
   let lines: [String]
   var body: some View {
-    BoardSpine(metal: cs.brand, ground: cs.bg1) {
+    // D359 / F4 · a quiet-day digest is not a live competition
+    BoardSpine(metal: cs.mut, ground: cs.bg1) {
       Text("Since you were here").csType(.agate, caps: true).foregroundStyle(cs.mut)
       ForEach(Array(lines.enumerated()), id: \.offset) { _, l in
         Text(l).csType(.bodyS).foregroundStyle(cs.mut)

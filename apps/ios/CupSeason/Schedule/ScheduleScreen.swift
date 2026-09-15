@@ -128,7 +128,7 @@ struct ScheduleScreen: View {
           // D269: gold reachable from a legend key is gold as chrome). The
           // three channels are the live metal, ink and `mut` — three tones a
           // golfer can tell apart without one of them being the earned one.
-          legend(cs.brand, "ON THE SCHEDULE"); legend(cs.ink, "IN YOUR SEASONS"); legend(cs.mut, "SEASON DATE")
+          legend(cs.act, "ON THE SCHEDULE"); legend(cs.ink, "IN YOUR SEASONS"); legend(cs.mut, "SEASON DATE")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 4)
@@ -141,7 +141,8 @@ struct ScheduleScreen: View {
   }
 
   private func dot(_ k: CalendarItem.Dot) -> Color {
-    switch k { case .round: cs.brand; case .leagueMate: cs.ink; case .season: cs.mut }
+    // D359 / F4 · a routine plan is not competition: the ordinary colour, never ember
+    switch k { case .round: cs.act; case .leagueMate: cs.ink; case .season: cs.mut }
   }
 
   private func cell(_ d: Int) -> some View {

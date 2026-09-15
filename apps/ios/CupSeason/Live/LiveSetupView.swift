@@ -226,7 +226,7 @@ struct LiveSetupView: View {
           }
           Spacer()
           Toggle("", isOn: Binding(get: { store.nearbyOn }, set: { store.nearbyOn = $0 }))
-            .labelsHidden().tint(cs.brand)
+            .labelsHidden().tint(cs.act)
             .accessibilityLabel("Find buddies on this tee")
         }
         CSFine("Bluetooth only — never your location, and nothing about where you are leaves your phone. A golfer who is not already your buddy or in a season with you stays invisible, and you still tap to add anyone.")
@@ -295,7 +295,7 @@ struct LiveSetupView: View {
                   CSFace(Faces.of(p.pid, marker: p.mk, name: p.n, isViewer: p.me), size: .inline)
                   Text("\(p.n) · \(LiveFmt.idx(p.i))").csType(.nameS).foregroundStyle(cs.ink)
                   if waiting { Text("Asking…").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
-                  else if isNear { Text("Ask").csType(.agateS, caps: true).foregroundStyle(cs.brand) }
+                  else if isNear { Text("Ask").csType(.agateS, caps: true).foregroundStyle(cs.act) }
                 }
                 .padding(.horizontal, CSTokens.Space.s2).frame(minHeight: 36)
                 .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
@@ -380,7 +380,7 @@ struct LiveSlotChip: View {
           .csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
       Spacer(minLength: 0)
-      if tradeable { CSGlyph(.chevron, size: .inline).foregroundStyle(cs.brand) }
+      if tradeable { CSGlyph(.chevron, size: .inline).foregroundStyle(cs.act) }
       if let remove {
         Button(action: remove) {
           CSGlyph(.cross, size: .inline).foregroundStyle(cs.mut)

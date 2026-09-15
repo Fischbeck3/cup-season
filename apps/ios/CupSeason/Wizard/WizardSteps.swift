@@ -319,7 +319,7 @@ struct WizardWhenStep: View {
         }
         Spacer(minLength: 8)
         DatePicker("", selection: startDate, displayedComponents: .date)
-          .labelsHidden().tint(cs.brand).frame(minHeight: 44)
+          .labelsHidden().tint(cs.act).frame(minHeight: 44)
           .accessibilityLabel(WizardCopy.firstTee.0)
       }
       .padding(.vertical, 8)

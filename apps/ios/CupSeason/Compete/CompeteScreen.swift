@@ -323,7 +323,8 @@ struct EmptyRootView: View {
           } label: {
             // L-25 · the first door wears the ember; the rest are quiet and
             // equally present. Spending ember on every door spends it on none.
-            Text(d.title.uppercased()).csEyebrow(i == 0 ? cs.brand : cs.mut).a11yHitSlop()
+            // D359 / F4 · the first door is an ordinary action: act, never ember (the desk agrees)
+            Text(d.title.uppercased()).csEyebrow(i == 0 ? cs.act : cs.mut).a11yHitSlop()
           }
           .buttonStyle(.plain)
           .accessibilityLabel(d.title)
