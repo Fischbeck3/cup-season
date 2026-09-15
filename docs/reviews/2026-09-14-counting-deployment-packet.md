@@ -30,15 +30,41 @@ file, three additive changes, each skew-safe:
 | viewer reading the unshared league's rounds | refused |
 | viewer sharing only the other league | the receipt opens; the unshared lens is **withheld** |
 
-## 2 · All pending database changes
+## 2 · All pending database changes — read from production, 2026-09-14 late
 
-| Migration | State |
+`supabase migration list --linked`, read-only, from the linked checkout:
+
+| | |
 |---|---|
-| through `20261103090000` | applied and read back on 2026-09-13/14 (242) — the last readback this session could make; `deploy-status` in this worktree reports **unknown** (CLI not linked here) |
-| `20261024090000_the_loop_has_a_closing_act.sql` | **held** since 2026-09-13 pending capability protection — not part of this packet, and not a dependency of it |
-| `20261104090000_the_round_that_counts_explained.sql` | **prepared, reviewed above, not applied** |
+| Applied in production | **242**, latest `20261103090000` |
+| On disk in this worktree | 243 |
+| **On disk and NOT applied** | **`20261104090000` — this file, and nothing else** |
+| Applied but not on disk | none |
+
+**A correction to the earlier packet.** It recorded
+`20261024090000_the_loop_has_a_closing_act.sql` as *held*. It is **applied in
+production** — the remote list returns it, dated 2026-10-24 — and has been
+since before this session. There is no held migration left to exclude, and
+`supabase db push` from this branch applies exactly one file.
 
 Edge functions: none. Secrets: none.
+
+### Revalidated against a production-equivalent schema
+
+An isolated cluster was built from **exactly the 242 migrations production
+reports as applied** (this file skipped), then this file was applied alone:
+
+| | Before | After |
+|---|---|---|
+| `round_card` argument count | 1 | 2 |
+| `my_month_counters` | 0 | 1 |
+| `counting_rounds` | 0 | 1 |
+| public functions | 264 | 266 |
+| migrations recorded | 242 | 243 |
+
+All **55** assertions in `tests/db/counting-explained.sql` pass on that schema,
+and the contract snapshot taken from it **matches `packages/db/contract.psv`
+exactly** — so the file in the repository is what the push produces.
 
 ## 3 · The typed contract
 
@@ -70,11 +96,75 @@ Compete tab could pass its league; today the server's rule decides, which is
 correct and complete). Squads: the sheet is the member's own rounds; a squad's
 counting set is the sum of its members' and is not drawn.
 
-## 5 · Checks run
+## 5 · Compatibility with build 905, proved rather than assumed
 
-See the handoff addendum for the exact suites and outcomes on this source.
+Build 905 is on TestFlight and calls `round_card(p_round)` with one argument.
+This migration **drops** that signature. Two pieces of evidence:
 
-## 6 · Recognition, still proposed
+1. **The call still resolves.** On the production-equivalent cluster, the
+   one-argument call returns a payload carrying **every one of the 25 keys
+   build 905 reads** (asserted by name, not by eye). PostgREST and SQL both
+   resolve `round_card(p_round := …)` to the two-argument function with
+   `p_league` defaulted.
+2. **Its own code, frozen, against the new payload.**
+   `Build905CompatTests` copies `714609b`'s `ReceiptSeed.merged(with:)` and its
+   month-row rule verbatim and runs them against the two payloads the new
+   function returns:
+
+   | Payload | Build 905 prints |
+   |---|---|
+   | one league (scalars filled) | `COUNTING #2 OF 4` — unchanged |
+   | two leagues (scalars null) | **no month row at all** |
+
+   The two-league case degrades to **silence**, never to another league's rank.
+   The current client, given the same payload, prints both lenses.
+
+That is the whole risk of replacing the signature, and it is bounded: a shipped
+build loses one row on a round that counts in more than one league, until it is
+replaced by a build that reads `contributions`.
+
+## 6 · Checks run
+
+**Database — assertions, not probes.** `tests/db/counting-explained.sql` is
+**55 assertions** that raise on a wrong answer. Each compares through one
+`want()` with explicit typed overloads, because a polymorphic helper silently
+fails to resolve an int/bigint or jsonb/text mix — which is how a probe file
+stops half way down and still exits 0. An expected refusal matches the exact
+message the function raises; **any other error is re-raised as a wrong-reason
+failure**, so a missing column or a bad call can never read as an access
+denial. Two negative controls were run:
+
+| Control | Result |
+|---|---|
+| flip one expectation (`2` → `99`) | `psql` exits **3**: *FAIL owner sees two lenses — got 2, expected 99* |
+| make a refused call invalid instead | `psql` exits **3**: *refused for the WRONG reason: function … does not exist (expected Those rounds are not yours to read)* |
+
+They cover: the grants (authenticated only, no `anon`, no `PUBLIC`, all three
+SECURITY DEFINER, the one-argument `round_card` gone), signed-out behaviour,
+the two-lens owner with null scalars and the 100% `pvi` fallback, lens
+ordering, explicit lens selection both ways, a league the round does not count
+in, the one-argument call's 25 keys, month filtering against a backdated
+round, counting status row by row against the cap, the uncapped season, a
+month with no rounds, a member/season mismatch, per-league counters, a mate
+who sees one lens and is refused the other league, a third golfer who sees
+only his own league's lens, and a stranger refused outright.
+
+**Web:** `counting-explained-browser.js` on the live preview.
+
+**Native:** `Build905CompatTests` (4), `ReceiptLensesTests` (5),
+`ReceiptLensesUITests` (3 modes × rows, doors, sheet), `ComposerWorthUITests`
+(5 sentences, plus readability with the keypad up, while typing, dismissed,
+and at AX3 on a small phone).
+
+### The three acceptance corrections
+
+| Item | Before | Now |
+|---|---|---|
+| The sentence's readability | inside the `How points work` disclosure, three sections below the fold and under the keypad at AX3 — present in the tree, invisible on screen | in the hero under the points, where the desk's `#calcSeason` sits; the page scrolls it to the bottom edge when it arrives and again when the keypad rises. Asserted by **frame**: inside the window, `maxY` above the keyboard, and hittable |
+| Refetching on a score edit | `card` changed on every keystroke and each one re-asked the server | keyed to **date + session**; only a date change asks. An answer for a context the golfer has left is dropped, and the sentence is cleared while the context changes rather than left standing |
+| The sheet's rule | `cap` nil meant "Every round counts" — also true of an unloaded or failed payload | the rule prints only when the payload **has** a `cap` key; a missing counting status stays unknown and says nothing rather than defaulting to counting |
+
+## 7 · Recognition, still proposed
 
 **First counting round** = the earliest-*posted* round that entered the
 counting set of that membership at the moment it was posted.
@@ -109,7 +199,68 @@ recalculation labelled as history. Neither is prepared as a migration: both
 change `post_round`, the one function with game consequences, and each needs
 its definition accepted first.
 
-## 7 · Release candidates
+## 8 · The exact deployment procedure
+
+Run from the **linked** checkout (`~/cup-season`), on a branch that carries
+this file. Every step is copy-paste; the push is the only mutating one.
+
+```sh
+# 1 · confirm the gap is exactly one file, from production itself
+supabase migration list --linked        # expect: latest applied 20261103090000
+
+# 2 · show what the push WILL do, without doing it
+supabase db push --linked --dry-run     # expect: 20261104090000 only
+
+# 3 · apply it (the one mutating command; `ship.sh` asks for the word `push`)
+supabase db push --linked
+
+# 4 · read production back
+supabase migration list --linked        # expect: latest applied 20261104090000
+
+# 5 · re-take the contract FROM THE LIVE DATABASE (the header's own query)
+supabase db query --linked --output-format text \
+  "select string_agg(sig, E'\n' order by sig) from (
+     select p.proname || '|' || coalesce(pg_get_function_arguments(p.oid),'')
+         || '|' || pg_get_function_result(p.oid)
+         || '|' || case when p.prosecdef then 'definer' else 'invoker' end
+         || '|' || coalesce((select string_agg(x, ',' order by x) from (
+              select case when a.grantee::regrole::text='anon' then 'anon'
+                          when a.grantee::regrole::text='authenticated' then 'auth'
+                          else null end as x
+              from aclexplode(p.proacl) a where a.privilege_type='EXECUTE') g
+            where x is not null), 'none') as sig
+     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+     where n.nspname='public' and p.prokind='f') s;"
+# paste the rows under the header in packages/db/contract.psv, then:
+node tools/build-db.mjs --check         # expect: clean, no diff
+
+# 6 · the grants, read back from production
+supabase db query --linked --output-format text \
+  "select p.proname, a.grantee::regrole::text, a.privilege_type
+     from pg_proc p join pg_namespace n on n.oid=p.pronamespace,
+          aclexplode(p.proacl) a
+    where n.nspname='public'
+      and p.proname in ('round_card','counting_rounds','my_month_counters')
+    order by 1,2;"
+# expect authenticated EXECUTE on all three, and NO anon row
+
+# 7 · the paired native build, from the same source
+tools/ios-archive.sh --upload
+python3 tools/asc.py status <build>     # processing
+# attach to the internal Owner group, then read availability back separately
+```
+
+**What this does not do:** it applies no other migration (there is none
+pending), deploys no Edge function, and touches no secret. Build 905 and its
+source `714609b` are untouched by every step.
+
+**If the push must be rolled back:** the change is additive except for the
+dropped one-argument `round_card`. Reverting means re-creating that signature
+from `20260930090000_one_band_name.sql` in a NEW migration — never editing an
+applied file (CLAUDE.md rule 2). Build 905 keeps working either way: its
+one-argument call resolves to the two-argument function, proved in §5.
+
+## 9 · Release candidates
 
 | | Candidate |
 |---|---|
@@ -117,6 +268,3 @@ its definition accepted first.
 | Counting increment, both clients | **`0792ddd`** on `claude/brand-client-parity` · **no native build archived** for it — the phone's half needs the migration to do anything on production, and the increment is proven on fixtures and the isolated cluster |
 | Production web | `1bc307f`, untouched |
 
-**Order when authorized:** push `20261104090000` → re-take the contract from
-the live database → confirm `tools/build-db.mjs --check` is clean → archive
-the paired build → verify processing and availability separately.

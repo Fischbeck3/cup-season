@@ -13,15 +13,44 @@ import CupSeasonKit
 @MainActor
 @Observable
 final class PostRoundModel {
-  var card = PostCard() { didSet { recalc(); scheduleDraft(); loadWorth() } }
+  var card = PostCard() {
+    didSet {
+      recalc(); scheduleDraft()
+      // D362 · the counters answer a QUESTION ABOUT A DATE, not about a score.
+      // Typing a gross changes `card` on every keystroke; refetching there
+      // asked the server the same question a dozen times a round and, worse,
+      // let an answer for one date land under another. Only the date moves it.
+      if oldValue.date != card.date { loadWorth() }
+    }
+  }
   /// D362 · what this round can add under each season's own rule, from the
   /// server's `my_month_counters` — the same producer the desk reads. Empty on
   /// a database that predates it, or outside a live season: the counting note
   /// alone then, and nothing is promised.
   var worthLines: [String] = []
+  /// The context the lines on screen are FOR: the date they were asked about
+  /// and the session that asked. A line whose context no longer matches what
+  /// the golfer is editing is stale and is cleared rather than left standing.
+  private var worthContext: WorthContext?
   private var worthTask: Task<Void, Never>?
+  struct WorthContext: Equatable { let date: String?; let user: UUID? }
+
+  /// Ask again for a date whose answer may have changed — a round posted, a
+  /// season joined. The date's cached answer is dropped first.
+  func invalidateWorth() { worthContext = nil; loadWorth() }
+
+  private func stillWants(_ c: WorthContext) -> Bool {
+    c == WorthContext(date: card.date, user: store.session?.user.id)
+  }
+
   private func loadWorth() {
+    let want = WorthContext(date: card.date, user: store.session?.user.id)
+    // already answered for exactly this context: nothing goes out
+    if worthContext == want, !worthLines.isEmpty { return }
     worthTask?.cancel()
+    // the context is changing, so what is on screen is about to be wrong
+    worthLines = []
+    worthContext = nil
     let on = card.date
     worthTask = Task { [weak self] in
       guard let self, store.session != nil, !ProcessInfo.processInfo.arguments.contains("-cs_dev_no_worth") else { return }
@@ -29,13 +58,16 @@ final class PostRoundModel {
       // `-cs_dev_worth <room|full|capped|open|two>` · the server's answer stood
       // in, so the sentence can be photographed before the migration lands.
       if let stood = PostWorthDev.served {
-        guard !Task.isCancelled, self.card.date == on else { return }
-        self.worthLines = RoundWorth.servedLines(stood); return
+        guard !Task.isCancelled, self.stillWants(want) else { return }
+        self.worthLines = RoundWorth.servedLines(stood); self.worthContext = want; return
       }
       #endif
-      let lines = (try? await SupabaseService.shared.call(Rpc.my_month_counters(p_on: on))).map { RoundWorth.servedLines($0) } ?? []
-      guard !Task.isCancelled, self.card.date == on else { return }
+      let lines = (try? await SupabaseService.shared.call(Rpc.my_month_counters(p_on: on ?? CSDate.today()))).map { RoundWorth.servedLines($0) } ?? []
+      // the context may have moved while the question was out — a new date, a
+      // new session. An answer for a context nobody is in is dropped.
+      guard !Task.isCancelled, self.stillWants(want) else { return }
       self.worthLines = lines
+      self.worthContext = want
     }
   }
   var preview: PostPreview?
