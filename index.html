@@ -13579,6 +13579,9 @@ function renderPlanBridge(){
   const mine=(window.watchAll||[]).filter(r=>r.mine!==false && r.play_on===todayISO);
   if(!mine.length){ box.style.display='none'; return; }
   const sr=mine[0];
+  /* F12 · played already? Then this is not a bridge into a round, it is a
+     booking I have finished — and it stops prompting me. Per golfer. */
+  if(sr.course_id){ csBookingPlayed(sr.course_id, sr.play_on).then(played=>{ if(played) box.style.display='none'; }); }
   const withN=(sr.tagged_names||[]).length?' · with '+esc(sr.tagged_names.join(' & ')):'';
   box.style.display='block';
   box.innerHTML=`<div class="card" style="border-color:var(--gold); padding:12px">
@@ -14575,10 +14578,35 @@ function showLiveRecap(d, result, lrId){
     rows.push(`<button class="btn" id="lrShareCard" style="width:100%;margin-top:14px">Share the card</button>
       <button class="btn dark" id="lrShareLink" style="width:100%;margin-top:10px">Share the settlement page</button>
       <button class="cs-tskip" id="lrShareRevoke" type="button" style="width:100%;margin-top:6px">Revoke a shared link</button>`);
-  openSheet(d.casual?'Casual — nothing posted':'Round posted',
+  /* F12 · YOUR ROUND — the truth about the save in the product's own words,
+     then View round and Add a photo, which reuse the receipt's own pipeline. */
+  const myName = window.CS?.profile?.display_name || null;
+  const st = csSaveStatus(posted, skipped, !!d.casual, myName);
+  const courseLabel = ($('#lrCourse')?.value || '').trim();
+  rows.unshift(`<div class="eyebrow">Your round</div>
+    <div class="check" id="lrMine"><div class="tt"><b>${esc(courseLabel || 'Your round')}</b><small>${esc(st.title).toUpperCase()}</small>
+    <span class="fine" style="padding:0;display:block">${esc(st.detail)}</span>
+    <span id="lrMineDoors" style="display:flex;gap:8px;margin-top:8px"></span></div></div>`);
+  openSheet(d.casual?'Casual — nothing posted':st.title,
     `${posted.length} CARD${posted.length===1?'':'S'}${window.CS?.league?' TO THE SEASON':' POSTED'}`,
     rows.join('') || '<p class="fine" style="padding-top:0">Nothing to post.</p>');
   $('#sheet').classList.add('room-dusk');   /* the post-round settlement is a ceremony - dusk for every viewer, like #finish */
+  (async()=>{
+    const doors = document.getElementById('lrMineDoors'); if(!doors) return;
+    if(!st.hasRound){ doors.remove(); return; }
+    const day = csTodayISO();
+    const m = csMyRoundMatch(await csMyRoundsOn(day), ($('#lrCourse')?.dataset.courseId || null), day);
+    if(m.kind==='one'){
+      doors.innerHTML = `<button class="mini" id="lrViewRound" type="button">View round</button><button class="mini" id="lrAddPhoto" type="button">Add a photo</button>`;
+      document.getElementById('lrViewRound')?.addEventListener('click',()=>{ closeSheet?.(); openRoundReceipt(m.id, {}); });
+      /* the receipt's OWN picker: the library is asked for only because the golfer chose it */
+      document.getElementById('lrAddPhoto')?.addEventListener('click',()=>{ closeSheet?.(); openRoundReceipt(m.id, {}); setTimeout(()=>document.getElementById('phPhotoBtn')?.click(), 250); });
+    } else {
+      doors.outerHTML = `<span class="fine" style="padding:0;display:block">${m.kind==='ambiguous' ? 'Which round was this? Open it from your rounds.' : 'Your round is on the books. Open it from your rounds.'}</span>`;
+    }
+    /* Home is refreshed from the CONFIRMED post, never from a guess */
+    try{ await (window.loadHome?.()); }catch(_){}
+  })();
   document.querySelectorAll('#shBody [data-copylink]').forEach(b=>b.addEventListener('click',()=>{
     try{ navigator.clipboard?.writeText(b.dataset.copylink); toast('Scorecard link copied'); }
     catch(_){ toast('Copy failed'); }
@@ -17887,9 +17915,21 @@ function csAfterplan(it){
 
    Database-first is still the release order. This is what makes the order a
    preference rather than a cliff. */
+const CS_PLAYED_PLANS = new Set();
+async function csPrimePlayedPlans(items){
+  for(const it of (items||[])){
+    const k = String(it && it.key || ''); if(!k.startsWith('plan:') || !it.plan) continue;
+    const cid = it.plan.course_id || it.plan.courseId, day = it.plan.play_on || it.plan.playOn, id = String(it.plan.plan_id||it.plan.planId||'');
+    if(id && await csBookingPlayed(cid, day)) CS_PLAYED_PLANS.add(id);
+  }
+}
+window.csPrimePlayedPlans = csPrimePlayedPlans;
 function csUsableItems(data){
   if(!data || !Array.isArray(data.items)) return data;
-  const keep = data.items.filter(it => !String(it && it.key || '').startsWith('afterplan:') || csAfterplan(it));
+  const keep = data.items.filter(it => !String(it && it.key || '').startsWith('afterplan:') || csAfterplan(it))
+    /* F12 · a `plan:` item whose booking I have PLAYED (course id + day, from
+       my own rounds — primed by csPrimePlayedPlans) leaves Home. */
+    .filter(it => !(String(it && it.key || '').startsWith('plan:') && it.plan && CS_PLAYED_PLANS.has(String(it.plan.plan_id||it.plan.planId||''))));
   if(keep.length !== data.items.length){
     window.qaEvent?.('afterplan_unusable', { dropped: data.items.length - keep.length });
   }
@@ -17912,7 +17952,8 @@ async function loadHomeDispatch(){
     let reply = await window.sb.rpc('home_dispatch', { p_days: 21, p_today: isoAgo(0), p_caps: CS_CAPS });
     if(reply.error) reply = await window.sb.rpc('home_dispatch', { p_days: 21, p_today: isoAgo(0) });
     if(reply.error) reply = await window.sb.rpc('home_dispatch', { p_days: 21 });
-    if(!reply.error && reply.data) window.homeDispatch = csUsableItems(reply.data);
+    if(!reply.error && reply.data){ try{ await csPrimePlayedPlans(reply.data.items); }catch(_){}
+      window.homeDispatch = csUsableItems(reply.data); }
   }catch(_){ /* skew: an un-migrated database renders the fallback, never an error */ }
 }
 window.loadHomeDispatch = loadHomeDispatch;
@@ -17942,6 +17983,41 @@ function csItemState(it){
 }
 window.csIsCompetition = csIsCompetition;
 window.csItemState = csItemState;
+/* F12 · THE TRUTH ABOUT THE SAVE, and WHICH ROUND IS MINE — twins of the
+   phone's `RoundReconcile`. A status is never inferred from a title; a round
+   is matched on COURSE ID and day, never a label; two candidates are a
+   question rather than a link; and a booking is reconciled PER GOLFER. */
+function csSaveStatus(posted, skipped, casual, mine){
+  const names = (posted||[]).map(x=>x && x.name);
+  if(mine && names.includes(mine)) return { title:'Round posted', detail:'It’s on the books and scoring.', hasRound:true };
+  const sk = mine && (skipped||[]).find(x=>x && x.name===mine);
+  if(sk) return { title:'Not posted', detail: sk.reason || 'Nothing was written down.', hasRound:false };
+  if(casual) return { title:'Not posted', detail:'A casual round scores nothing — nobody’s card was posted.', hasRound:false };
+  if(names.length && !mine) return { title:'Round posted', detail:'It’s on the books and scoring.', hasRound:true };
+  return { title:'Not posted', detail:'Nothing was written down.', hasRound:false };
+}
+function csMyRoundMatch(rounds, courseId, playedOn){
+  if(!courseId || !playedOn) return { kind:'none' };
+  const hits = (rounds||[]).filter(r => String(r.api_course_id||'')===String(courseId) && r.played_on===playedOn);
+  return hits.length===1 ? { kind:'one', id:hits[0].id } : hits.length>1 ? { kind:'ambiguous', ids:hits.map(r=>r.id) } : { kind:'none' };
+}
+/* my rounds on a day, read once per day and cached — the evidence a match uses */
+const CS_MY_ROUNDS = { day:null, rows:null, at:0 };
+async function csMyRoundsOn(day){
+  if(!window.sb || !window.CS?.user || state.demo) return [];
+  if(CS_MY_ROUNDS.day===day && CS_MY_ROUNDS.rows && Date.now()-CS_MY_ROUNDS.at < 60000) return CS_MY_ROUNDS.rows;
+  const { data } = await sb.from('rounds').select('id, api_course_id, played_on').eq('profile_id', CS.user.id).eq('played_on', day).eq('voided', false);
+  CS_MY_ROUNDS.day = day; CS_MY_ROUNDS.rows = data || []; CS_MY_ROUNDS.at = Date.now();
+  return CS_MY_ROUNDS.rows;
+}
+function csTodayISO(){ const n=new Date(), pad=x=>String(x).padStart(2,'0'); return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`; }
+/* has THIS golfer played this booking? true only on exactly one match */
+async function csBookingPlayed(courseId, playOn){
+  if(!courseId || !playOn) return false;
+  const m = csMyRoundMatch(await csMyRoundsOn(playOn), courseId, playOn);
+  return m.kind==='one';
+}
+window.csSaveStatus = csSaveStatus; window.csMyRoundMatch = csMyRoundMatch; window.csBookingPlayed = csBookingPlayed;
 function csLeadBlock(it){
   /* F11 · ember identifies a COMPETITION, in any state — so the mark follows
      the item's family, not whether a clock is running, and the state arrives

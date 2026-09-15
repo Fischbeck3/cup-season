@@ -146,3 +146,20 @@ public enum RoundReconcile {
   /// does not claim a result it has not read.
   public static let bookingPlayed = "You played this one"
 }
+
+// MARK: - Home: a booking I have played stops prompting me
+
+extension RoundReconcile {
+  /// F12 · drop every `plan:` item on Home whose booking THIS golfer has
+  /// already played — matched on the booking's course id and day against the
+  /// golfer's own rounds. Everything else passes through untouched, including
+  /// a plan whose course id is unknown (no evidence, so it keeps prompting)
+  /// and an ambiguous day (two rounds on that course: asked, not dropped).
+  public static func droppingPlayedPlans(_ items: [HomeDispatch.Item], myRounds: [Candidate]) -> [HomeDispatch.Item] {
+    items.filter { it in
+      guard it.key.hasPrefix("plan:"), let p = it.plan else { return true }
+      if case .played = booking(courseId: p.courseId, playOn: p.playOn, myRounds: myRounds) { return false }
+      return true
+    }
+  }
+}

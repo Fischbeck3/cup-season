@@ -97,3 +97,35 @@ native half compiles clean, and build 919 is in the Owner group.
 ## Physical-device checks, outstanding
 
 Keyboard-up search reveal in Safari and in the app on a real phone (the visual-viewport measurement and SwiftUI's scroll inset are proven on the desk and by construction only); VoiceOver on the applause control and the people sheet; Dynamic Type AX3 on the review sheet, the whole card and the plan block; the live group with a preselected golfer end to end against a real account (fixtures only here — no invitations, rounds, reactions or applause were created on the owner's account).
+
+## F9 – F13 · 2026-09-15, second pass (Claude)
+
+Branch `claude/phone-fixes-2026-09-15`, PR #5. Every item below is paired web + iOS unless stated. Delivery states are at the end and are SEPARATE.
+
+### F9 · the applause mark — DONE
+Redrawn as two overlapping hands (front hand filled, back hand stroked, two sparks) after rendering candidates at 22, 34 and 110pt and looking; the old glyph read as a downward arrow. Same geometry on both clients. Captures: `f9-applause` (in-feed + enlarged).
+
+### F11 · Scoreboard, option 2 — DONE
+Ember identifies a COMPETITION in any state. `CompetitionState` / `CS_COMPETITION` produce Upcoming · Live · Final from the statuses the database already stores. `CSCompetitionBand` / `.cband`: one broad flat ember surface, dark ink, no gradient; leads Compete with the season being PLAYED (live with a standing first) and the list beneath no longer repeats it. Home carries the same competition by its key FAMILY, so a plain `plan:` round stays neutral. **`brand-ink` flips with the printing** (measured: fescue on dark ember 5.27:1 / cream 2.99:1; on light ember 2.74:1 / 5.76:1) — the board's single "dark ink" is right for one theme only. LINT-18 restated, not relaxed (probe + rule table): a band is ONE mark. The Compete fixture now honours `-cs_dev_text_size` (it was an overlay that bypassed the tab shell, so that screen had never been photographable at an accessibility size). D367 records F12; `spec/brand-canon.md` amendment is in D368's wording. Captures: native dark / light / AX3; web three states + neutral booked round + light + enlarged.
+
+### F12 · finish → your round → Home — DONE on the clients; server link WRITTEN, NOT PUSHED
+**Read-only evidence first:** the owner's round WAS posted (Bajamar, 82, 18 holes, played+created 2026-09-15, source live, not voided, exactly one round that day, 4 board posts, no photo). Nothing lost, nothing reposted. Three separate causes:
+1. the recap said "Round posted" unconditionally → now the VIEWER's outcome (`RoundReconcile.status`: Round posted · Saved on this phone · Not posted + reason);
+2. `finish_live_round` returns `{name, gross, holes}` with NO round id → the recap could never open your receipt. Now: **Your round** with View round and Add a photo (arms the receipt's OWN picker; library asked for only after the golfer chooses); the round is found from my rounds + this COURSE ID + this day, never a label; two candidates ask *Which round was this?*;
+3. `scheduled_rounds` has NO completion column → the booking kept prompting. Now reconciled PER GOLFER client-side (`RoundReconcile.booking` / `csBookingPlayed`): the Home `plan:` item and the live-setup plan bridge stop prompting the golfer who played it; a host finishing never marks their guests. Home is refreshed from the CONFIRMED post (`sessionStore.reload()` / `loadHome()`).
+**Migration `20261103100000_the_round_remembers_its_plan.sql`** (written, validated, NOT pushed): `live_rounds.scheduled_round_id` + `rounds.scheduled_round_id`; partial unique index = one live round per (booking, starter) — server-authoritative duplicate prevention for F10's "Tee it up"; `start_live_round(+p_scheduled_round)` and `finish_live_round` patched from `pg_get_functiondef` with every anchor asserted, and the finish payload now carries `round_id` + `profile_id` per posted card. Validated on a disposable cluster seeded with the REAL production bodies (fetched read-only): every anchor hit, patched plpgsql compiles, self-check passes, index refuses a second live round for the same booking+starter and allows a different golfer. Not a full-chain staging run (no Docker on this Mac).
+Tests: `RoundReconcileTests` (12), `PlayedPlanOnHomeTests` (5), `tests/round-reconcile-browser.js`.
+
+### F13 · birdie and eagle — PROTOTYPED on both clients
+`HoleMoment` / `HoleMomentLedger` and `csHoleMoment` / `csMomentLedger`: the same refusals twice — par must be KNOWN (an estimated par claims nothing), the score must be COMMITTED (the phone fires at `nextHole()`, the existing advance boundary; the stepper persists every tap so it is never the trigger), hydration / reconnect / another phone's echo arm the ledger silently, a correction revises rather than replaying, gross not net, per golfer. Inline: a 2pt ember stroke + the word + "on N" under the hole header, eagle larger by size only, haptic distinct (eagle success, birdie medium), gone after 3.2s, next-hole target never covered; Reduce Motion honoured via `CSMotion`. Continued line is a TALLY (`1 eagle · 2 birdies`) — **"Heating up" deliberately NOT built** (needs the owner's definition, D368). D368 written BEFORE implementation. Hatch `-cs_dev_live -cs_dev_moment birdie|eagle` drives the REAL advance path. Tests: `HoleMomentTests` (8), `tests/hole-moment-browser.js`. Captures: native birdie / eagle / AX3; web ordinary · birdie · eagle · estimated par.
+Not yet: the tally in the final receipt; shared-scoring device test with two phones.
+
+### F10 · "View round" / "Tee it up" — PARTIAL
+Server side is in the F12 migration above (booking link + duplicate prevention). NOT done: the client "Tee it up" door from the booked-round sheet into prepared live setup, and retiring "Open the plan" (needs a `home_dispatch` patch; the decision-log:5029 rejection of the name must be read and superseded in writing first).
+
+### Delivery states (separate)
+- **Database:** 1 new migration, validated in isolation, **NOT pushed** — `supabase db push` is the owner's.
+- **Edge:** nothing.
+- **Web:** on the branch / PR #5 preview; not promoted.
+- **TestFlight:** code changed since build 919; **no new archive** — say the word and it goes to the internal Owner group only.
+- Kit 1213 tests / 197 suites pass; preflight clean; 9 web suites pass.

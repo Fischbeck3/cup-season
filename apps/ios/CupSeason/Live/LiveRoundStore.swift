@@ -48,6 +48,12 @@ final class LiveRoundStore {
   var queued = 0
   var syncStatus: String?
   var recap: LiveRecapData?
+  /// F13 · the good hole just left, for one breath. nil almost always.
+  var moment: LiveHoleMomentData?
+  /// F13 · `1 eagle · 1 birdie` from MY committed holes, or nil.
+  var momentTally: String?
+  private var momentLedger = HoleMomentLedger()
+  private var momentClear: Task<Void, Never>?
   var busy = false
   var scoreOnPhone = false
   var localSaveError: String?
@@ -217,7 +223,7 @@ final class LiveRoundStore {
     // D363 · the person "Play with <name>" was tapped from — seated only now,
     // AFTER the prime, because `primeRoster()` resets the selection.
     await applyPending()
-    if plan == nil, !planDismissed { plan = await repo.todaysPlan() }
+    if plan == nil, !planDismissed { plan = await reconciledPlan(await repo.todaysPlan()) }
   }
 
   #if DEBUG
@@ -274,6 +280,20 @@ final class LiveRoundStore {
                  [4,4,4,5,3,4,3,4,5, 4,3,4,5,5,5,nil,nil,nil],
                  [5,5,3,5,4,4,4,5,5, 4,4,4,5,4,nil,nil,nil,nil]]
     state = st
+    // `-cs_dev_moment birdie|eagle` · F13 · the good hole reached through the
+    // REAL advance path: my score on the current hole is set under par with
+    // a fresh clock and `nextHole()` is called, exactly as a tap would. The
+    // fixture's pars are marked as known for this alone, because a fixture
+    // is not a course and the rule would otherwise (rightly) stay silent.
+    let args = ProcessInfo.processInfo.arguments
+    if let k = args.firstIndex(of: "-cs_dev_moment"), k + 1 < args.count, let me = state.players.firstIndex(where: \.me) {
+      state.course.parsCourse = "dev-fixture"
+      primeMomentLedger()
+      let h = state.hole, par = state.course.pars[h]
+      state.scores[me][h] = args[k + 1] == "eagle" ? par - 2 : par - 1
+      state.scts[me][h] = LiveFmt.now()
+      nextHole()
+    }
   }
   #endif
 
@@ -843,7 +863,66 @@ final class LiveRoundStore {
 
   // D155 · walking holes moves the island too — it shows the hole you are on
   func prevHole() { state.hole = max(0, state.hole - 1); persist(); LiveActivityHost.update(state) }
-  func nextHole() { state.hole = min(state.liveHoles - 1, state.hole + 1); persist(); LiveActivityHost.update(state) }
+  func nextHole() {
+    // F13 · the stepper persists every tap, so a score passing through 3 on
+    // its way to 5 has already been saved three times. LEAVING the hole is
+    // the moment the score stops changing, and that — the existing advance
+    // boundary, not a new "submit" — is when a birdie is real.
+    commitMoment(leaving: state.hole)
+    state.hole = min(state.liveHoles - 1, state.hole + 1); persist(); LiveActivityHost.update(state)
+  }
+
+  // MARK: - F12 · a booking I have played
+
+  /// The plan bridge stops offering a round I have already posted — matched
+  /// on the booking's course id and day against MY rounds, never a label and
+  /// never anyone else's. No evidence, or two candidates, and it stays.
+  private func reconciledPlan(_ sr: ScheduledRound?) async -> ScheduledRound? {
+    guard let sr, let uid = myPid else { return sr }
+    let rows = (try? await RoundsRepository().myRounds(uid)) ?? []
+    let mine = rows.map { RoundReconcile.Candidate(id: $0.id, courseId: $0.api_course_id, playedOn: $0.played_on) }
+    if case .played = RoundReconcile.booking(courseId: sr.course_id, playOn: sr.play_on, myRounds: mine) { return nil }
+    return sr
+  }
+
+  // MARK: - F13 · the good holes (D368)
+
+  private var myPlayerIndex: Int? { state.players.firstIndex(where: \.me) }
+  /// Pars are KNOWN when they came from a course, or the golfer wrote the
+  /// card themselves. The standard par-72 template is a guess, and a guess
+  /// cannot declare an eagle.
+  private var parsAreKnown: Bool {
+    state.course.parsCourse != nil || (state.course.note != nil && state.course.note != LiveCourseCard.standardNote)
+  }
+  private func commitMoment(leaving h: Int) {
+    guard state.active, let pi = myPlayerIndex,
+          h < state.scores[pi].count, h < state.scts[pi].count, h < state.course.pars.count else { return }
+    let m = momentLedger.commit(player: "me", hole: h + 1, revision: Int(truncatingIfNeeded: state.scts[pi][h]),
+                                strokes: state.scores[pi][h], par: state.course.pars[h], parIsKnown: parsAreKnown)
+    momentTally = momentLedger.tallyLine(player: "me")
+    guard let m else { return }
+    CSMotion.run { moment = LiveHoleMomentData(kind: m, hole: h + 1) }
+    // distinct, optional, and heavier for the rarer bird
+    if m == .eagle { CSHaptic.success() } else { CSHaptic.impact(.medium) }
+    momentClear?.cancel()
+    momentClear = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(3.2))
+      guard !Task.isCancelled, let self else { return }
+      CSMotion.run { self.moment = nil }
+    }
+  }
+  /// Arm the ledger WITHOUT speaking: a reopened card, a reconnect, another
+  /// phone's echo of my scores. After this, nothing already on the card can
+  /// fire as if it had just been played.
+  func primeMomentLedger() {
+    guard let pi = myPlayerIndex else { return }
+    let n = min(state.scores[pi].count, state.scts[pi].count, state.course.pars.count)
+    for h in 0..<n {
+      momentLedger.seen(player: "me", hole: h + 1, revision: Int(truncatingIfNeeded: state.scts[pi][h]),
+                        strokes: state.scores[pi][h], par: state.course.pars[h], parIsKnown: parsAreKnown)
+    }
+    momentTally = momentLedger.tallyLine(player: "me")
+  }
 
   private var sendable: Bool { state.active && state.code != nil }
 
@@ -947,11 +1026,12 @@ final class LiveRoundStore {
     case .message(let m):
       guard state.active else { return }
       if m.t == "finish" || m.t == "gone" { endedRemotely(m.status ?? "final"); return }
-      if LiveMerge.apply(m, to: &state) { persist() }
+      // F13 · another phone echoing MY scores is sync, not play: arm silently.
+      if LiveMerge.apply(m, to: &state) { persist(); primeMomentLedger() }
     case .state(let d):
       guard state.active else { return }
       if let st = LiveMerge.applyState(d, to: &state) { endedRemotely(st); return }
-      persist()
+      persist(); primeMomentLedger()
     case .presence(let names): presence = names
     case .queued(let n): queued = n
     case .status(let s): syncStatus = s
@@ -1077,6 +1157,7 @@ final class LiveRoundStore {
     await LiveActivityHost.clearStale()
     if state.active, state.stage == .live { LiveActivityHost.start(state) }
     queued = await session.queued()
+    primeMomentLedger()
   }
 
   // MARK: - the guest pencil (7881)
@@ -1124,6 +1205,7 @@ final class LiveRoundStore {
       let courseId = state.course.courseId
       state.active = false; state.stage = .setup
       retiredCard = false
+      momentLedger = HoleMomentLedger(); momentTally = nil; moment = nil
       recap = LiveRecapData(outcome: out, result: casual ? nil : result, lr: lr, course: course, date: Date(),
                             courseId: courseId, myName: myName)
       CSHaptic.success()

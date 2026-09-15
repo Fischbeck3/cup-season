@@ -70,6 +70,7 @@ struct LiveRecapSheet: View {
   /// candidates are a question rather than a link.
   @State private var mine: RoundReconcile.Match = .none
   @State private var looked = false
+  @Environment(SessionStore.self) private var sessionStore
 
   /// The truth about the save, which is never inferred from the title.
   private var status: RoundReconcile.SaveStatus {
@@ -88,6 +89,10 @@ struct LiveRecapSheet: View {
     let rows = (try? await RoundsRepository().myRounds(uid)) ?? []
     mine = RoundReconcile.mine(rows.map { RoundReconcile.Candidate(id: $0.id, courseId: $0.api_course_id, playedOn: $0.played_on) },
                                courseId: data.courseId, playedOn: day)
+    // F12 · Home is refreshed from the CONFIRMED post, so the just-posted
+    // round is on the wire before the golfer gets back to it — never from a
+    // guess that the finish "probably worked".
+    await sessionStore.reload()
   }
 
   private let d = CSTokens.dark

@@ -786,6 +786,15 @@ final class HomeModel {
       dispatch = served.items
       leadSuppress = served.leadSuppress
       usedFallback = false
+      // F12 · a booking I have already PLAYED stops telling me a round is
+      // scheduled. Client-side until the server carries the link (a written,
+      // unpushed migration): my rounds, the booking's course id, its day.
+      if let uid = (self.me ?? sessionMe)?.profile?.id, dispatch.contains(where: { $0.key.hasPrefix("plan:") }) {
+        let rows = (try? await RoundsRepository().myRounds(uid)) ?? []
+        let mine = rows.map { RoundReconcile.Candidate(id: $0.id, courseId: $0.api_course_id, playedOn: $0.played_on) }
+        guard live(gen) else { return }
+        dispatch = RoundReconcile.droppingPlayedPlans(dispatch, myRounds: mine)
+      }
     }
 
     let r = await repo.load(memberships: (me ?? sessionMe).memberships)
