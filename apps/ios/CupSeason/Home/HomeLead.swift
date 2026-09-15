@@ -37,6 +37,17 @@ struct HomeLead: View {
   /// live, and it is the eyebrow, the dot and the door's rule, which is ONE
   /// ember object however many marks it takes to draw it.
   private var live: Bool { item.spine == .ember }
+  /// F11 · is this row a COMPETITION? A plain booked round is not — it is a
+  /// date in a diary until something is at stake on it — so it takes neither
+  /// the ember mark nor a state word, however close its date is. The key
+  /// family is the producer, not the spine, because the server still spines a
+  /// plan `.ember` and correcting that is a migration (reported separately).
+  private var competition: Bool { HomePage.isCompetition(item) }
+  /// Upcoming · Live · Final, from the season this row names.
+  private var stateWord: String? {
+    guard competition, let m = membership else { return nil }
+    return CompetitionState.season(status: m.season?.status, phase: SeasonPhase.of(m))?.word
+  }
 
   /// The league tag, flush right on the eyebrow's baseline — and **only when
   /// the eyebrow does not already name it**, because `THE DEW SWEEPERS ·
@@ -72,17 +83,22 @@ struct HomeLead: View {
         HStack(spacing: CSTokens.Space.s3) {
           VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
             HStack(spacing: CSTokens.Space.s2) {
-              // D359 / F4 · an ACTIVE clash keeps its restrained ember here
-              // too — one dot — so the same competition reads the same on
-              // Home and in the season room. Settled and idle wear none.
-              if live {
+              // F11 · the SAME competition carries the same mark here as in the
+              // season room — and it carries it whether the contest is
+              // upcoming, live or finished, because ember identifies a
+              // competition now rather than announcing that one is running.
+              // The state is a WORD, right of the eyebrow, never the colour.
+              if competition {
                 CSGlyph(.dot, points: 23).foregroundStyle(cs.brand)
-                  .accessibilityLabel("Live")
+                  .accessibilityHidden(true)
                   .csBudget(ember: 1)
               }
               Text(item.eyebrow).csType(.agate, caps: true)
               if let chip = HomeLeadChip.make(membership) {
                 Text(CSCopy.ordinal(chip.rank)).csType(.name)
+              }
+              if let word = stateWord {
+                Text(word).csType(.agateS, caps: true).foregroundStyle(cs.brand)
               }
             }.foregroundStyle(cs.ink)
 

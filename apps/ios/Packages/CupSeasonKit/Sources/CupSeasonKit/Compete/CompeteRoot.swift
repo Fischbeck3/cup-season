@@ -69,13 +69,19 @@ public enum CompeteRoot {
     public let leagueId: UUID?
     public let eventId: UUID?
     public let roundId: UUID?
+    /// F11 · Upcoming · Live · Final. `nil` on a row that is not a
+    /// competition — a plain booked round is a date in a diary, and it takes
+    /// neither the word nor the ember treatment.
+    public let state: CompetitionState?
 
     public init(id: String, kind: Kind, eyebrow: String, title: String, sub: String, clock: Int?,
                 rank: Rank? = nil,
-                leagueId: UUID? = nil, eventId: UUID? = nil, roundId: UUID? = nil) {
+                leagueId: UUID? = nil, eventId: UUID? = nil, roundId: UUID? = nil,
+                state: CompetitionState? = nil) {
       self.id = id; self.kind = kind; self.eyebrow = eyebrow; self.title = title; self.sub = sub
       self.clock = clock; self.rank = rank
       self.leagueId = leagueId; self.eventId = eventId; self.roundId = roundId
+      self.state = state
     }
   }
 
@@ -128,7 +134,8 @@ public enum CompeteRoot {
                     eyebrow: eventEyebrow(e, calendar: calendar), title: e.name,
                     sub: EventCopy.momentLine(kind: e.kind, status: e.status, mine: e.my_team_slot != nil || e.is_organizer == true),
                     clock: e.status == "complete" ? nil : clock,
-                    eventId: e.id)
+                    eventId: e.id,
+                    state: CompetitionState.event(status: e.status))
       if e.status == "complete" { done.append(row) } else { moments.append(row) }
     }
 
@@ -145,6 +152,8 @@ public enum CompeteRoot {
                          // DEF-1's lesson: a slot sized for a short name gets the
                          // club, not `Gold Canyon — Dinosaur Mountain · Black/Blue`.
                          title: r.courseShort ?? "A round",
+                         // F11 · no `state`: a booked round is a date in a diary,
+                         // not a competition, and it takes no ember treatment.
                          sub: planLine(r, myName: myName), clock: days, roundId: rid))
     }
 
@@ -187,7 +196,8 @@ public enum CompeteRoot {
                                            today: today, calendar: calendar),
                clock: clock(m, phase: phase, today: today, calendar: calendar),
                rank: rank,
-               leagueId: m.league_id)
+               leagueId: m.league_id,
+               state: CompetitionState.season(status: m.season?.status, phase: phase))
   }
 
   /// **A FIGURE IS ONLY DRAWN WHERE THERE IS A STANDING TO DRAW**, and the two

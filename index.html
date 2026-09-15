@@ -81,9 +81,13 @@
      viewport, counted by hue; at most two ember marks. Gold may never touch
      a control. `dawn` and `pine` are deleted. */
   --gold:#D8B25A;                 /* champagne / bronze on paper — EARNED only: leads, the pot, trophies */
-  --brand:#E8622C;                /* ember / stamp red on paper — LIVE and urgent, and the identity's
-                                     one hairline. It is no longer the ordinary action: the owner's
-                                     2026-09-14 board puts fescue and paper in front and orange behind. */
+  --brand:#E8622C;                /* ember / stamp red on paper — COMPETITION identity (F11,
+                                     owner-approved 2026-09-15): a season, a clash or an event,
+                                     before, during and after play. It is not the ordinary action,
+                                     and a plain booked round never takes it. */
+  --brand-ink:#0F1A15;            /* the type ON a broad ember panel, and it FLIPS with the printing
+                                     because ember does: fescue on this ember is 5.27:1 and cream
+                                     2.99:1; on the light theme's darker ember they swap. */
   --act:#5FA271;                  /* THE ACTION. A fescue-family green that carries an ordinary
                                      primary control on the dark ground with `bg0` type on it.
                                      Identity (`ink`), semantics (`pos`/`neg`) and earned gold are
@@ -286,7 +290,7 @@ html[data-theme="light"]{
   /* semantic */
   --pos:#0A6D3C; --neg:#B02A20; --cool:#56615B;
   /* metal */
-  --gold:#795912; --brand:#A13F0E;
+  --gold:#795912; --brand:#A13F0E; --brand-ink:#F4F1E9;   /* cream on the darker ember: 5.76:1 */
   --act:#1F5D3A;                  /* on warm paper the action is the deep green, cream type on it */
   /* squad */
   --sq0:#002B40; --sq1:#603E35; --sq2:#4C705D;
@@ -543,6 +547,29 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 /* MW-03 · one status, when there is one: the clash closing, the season's last
    week. Ember is the clock's colour on this client (D231); it is a word, not a
    control, so it is never a button. */
+/* F11 · THE COMPETITION BAND (option 2 · Scoreboard, owner-approved
+   2026-09-15). One broad FLAT ember surface per competition, dark ink on it,
+   and the ink flips with the printing because ember does — cream on the dark
+   theme's ember is 2.99:1, fescue on the light theme's is 2.74:1, so neither
+   colour can serve both. No gradient, no second ember object inside it.
+   Ember marks a competition in ANY state, so the band always prints the
+   state as a WORD; colour never carries it. */
+.cband{display:block; width:100%; text-align:left; border:0; cursor:pointer;
+  background:var(--brand); color:var(--brand-ink);
+  border-radius:var(--r); padding:var(--s4); margin:var(--s4) 0 0;}
+.cband-top{display:flex; align-items:baseline; gap:var(--s2);}
+.cband-name{font-family:var(--board); font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; flex:1; min-width:0;}
+.cband-state{font-family:var(--board); font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;}
+.cband-mid{display:flex; align-items:baseline; gap:var(--s4); padding-top:var(--s3);}
+.cband-fig{font-family:var(--board); font-size:40px; line-height:1; font-weight:700;}
+.cband-note{font-family:var(--serif); font-size:20px; line-height:1.25;}
+.cband-meta{display:block; font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; padding-top:var(--s3); opacity:.72;}
+.cband:focus-visible{outline:2px solid var(--brand-ink); outline-offset:2px;}
+/* F11 · the same competition carries the same mark on Home, at a smaller
+   size: the ember dot and the state word, never a second full band. */
+.csedn .cstate, .cswire .cstate{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; color:var(--brand); margin-left:var(--s2);}
 .peerrow .pt{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); display:block; margin-top:4px;}
 /* WA4 · a standings-history row is a door to its round (§16). It keeps the
    line it always was; what changes is that it is a control, so it takes the
@@ -17878,10 +17905,34 @@ window.loadHomeDispatch = loadHomeDispatch;
    at all, and §1.2's own rule is that **a chip is never invented to fill the
    column** -- with no figure the right column is absent and the sentence takes
    the full measure, which is exactly what this renders. */
+/* F11 · the five key families the ranker treats as competition — the twin of
+   the phone's `HomePage.competitionKeys`. `plan:` is deliberately NOT one:
+   a booked round is a date in a diary until something is at stake on it, so
+   it takes neither the ember mark nor a state word however close its date. */
+const CS_COMPETITION_KEYS = ['clash:', 'floor:', 'move:', 'firsttee:', 'live:', 'need:'];
+function csIsCompetition(it){
+  const k = it && it.key ? String(it.key) : '';
+  return CS_COMPETITION_KEYS.some(pre => k.startsWith(pre));
+}
+/* The state word for a Home item, from the season it names. */
+function csItemState(it){
+  if(!csIsCompetition(it)) return null;
+  const id = it && it.league_id;
+  const m = id ? (window.CS?.memberships || []).find(x => (x.league || x).id === id) : null;
+  const lg = m ? (m.league || m) : null;
+  return lg ? CS_COMPETITION.season(lg.phase, (lg.season && lg.season.status) || null) : null;
+}
+window.csIsCompetition = csIsCompetition;
+window.csItemState = csItemState;
 function csLeadBlock(it){
-  const live = it.spine === 'ember';
+  /* F11 · ember identifies a COMPETITION, in any state — so the mark follows
+     the item's family, not whether a clock is running, and the state arrives
+     as a word beside the eyebrow rather than as the colour. */
+  const competition = csIsCompetition(it);
+  const stateWord = csItemState(it);
+  const live = competition;
   return `<div class="csedn${live?' ember':''}" data-dkey="${esc(it.key)}"${it.rank_reason?` data-why="${esc(it.rank_reason)}"`:''}>
-    ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${esc(it.eyebrow)}</span></div>`:''}
+    ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${esc(it.eyebrow)}</span>${stateWord?`<span class="cstate">${esc(stateWord)}</span>`:''}</div>`:''}
     <div class="hl cs-lead">${esc(it.headline)}</div>
     ${it.standfirst?`<div class="sf cs-body">${esc(it.standfirst)}</div>`:''}
     ${it.action?`<button type="button" class="act cs-name-s" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`:''}
@@ -18608,8 +18659,43 @@ function csSeasonRowFacts(f, role){
   let status = null;
   if(clash && clash.closes_today) status = 'The clash closes today';
   else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
-  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status };
+  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank };
 }
+/* F11 · Upcoming · Live · Final — the twin of the phone's `CompetitionState`.
+   Ember identifies a COMPETITION now, in any state, so the state can no longer
+   be carried by the colour: every surface wearing the treatment prints one of
+   these three words. The words are not new — each is what the product already
+   calls that state. A plain booked round is not a competition and gets none. */
+const CS_COMPETITION = {
+  season(phase, status){
+    if(phase === 'complete' || status === 'complete') return 'Final';
+    if(status === 'active' || status === 'cup_final' || phase === 'season') return 'Live';
+    if(phase || status) return 'Upcoming';
+    return null;
+  },
+  event(status){
+    return status === 'complete' ? 'Final' : status === 'live' ? 'Live'
+         : status === 'setup' ? 'Upcoming' : null;
+  },
+  spoken(word){
+    return word === 'Final' ? 'Finished competition' : word === 'Live' ? 'Live competition' : 'Upcoming competition';
+  },
+};
+window.CS_COMPETITION = CS_COMPETITION;
+/* F11 · ONE broad flat ember band with dark ink — the competition room. The
+   ink token FLIPS with the printing (`--brand-ink`) because ember does. */
+function csCompetitionBandHtml(row){
+  if(!row || !row.state) return '';
+  const fig = row.figure ? `<span class="cband-fig">${esc(row.figure)}</span>` : '';
+  const note = row.sub ? `<span class="cband-note">${esc(row.sub)}</span>` : '';
+  return `<button class="cband" type="button" data-cband="${esc(row.id)}"
+      aria-label="${esc([CS_COMPETITION.spoken(row.state), row.title, row.eyebrow, row.figure, row.sub].filter(Boolean).join(', '))}">
+    <span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span>
+    ${(fig||note) ? `<span class="cband-mid">${fig}${note}</span>` : ''}
+    ${row.eyebrow ? `<span class="cband-meta">${esc(row.eyebrow)}</span>` : ''}
+  </button>`;
+}
+window.csCompetitionBandHtml = csCompetitionBandHtml;
 function csCompeteList(memberships, events, schedule, todayISO, facts){
   const today = todayISO || new Date().toISOString().slice(0,10);
   const live=[], moments=[], finished=[];
@@ -18626,6 +18712,8 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
                 sub: done ? 'Wrapped. Open it for the table.'
                           : ((f && f.sub) ? f.sub : (m.role==='commissioner' ? 'You run it (the Pro).' : 'You’re in it.')),
                 status: f && f.status ? f.status : null,
+                state: CS_COMPETITION.season(lg.phase, (lg.season && lg.season.status) || null),
+                figure: (f && f.rank != null) ? (f.rank + csOrdinalSuffix(f.rank)) : null,
                 clock: null };
     (done ? finished : live).push(row);
   });
@@ -18635,6 +18723,7 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
                 eyebrow: done ? 'Final' : (e.starts_on ? csDayToken(e.starts_on) : 'Forming'),
                 title: e.name || 'A moment',
                 sub: csMomentLine(e.kind, e.status, e.mine !== false),
+                state: CS_COMPETITION.event(e.status),
                 clock: (done || !e.starts_on) ? null : csDaysBetween(today, e.starts_on) };
     (done ? finished : moments).push(row);
   });
@@ -18916,12 +19005,22 @@ function renderCompete(){
   }
   const list = csCompeteList(CS.memberships, window.myEvents,
                              (window.watchAll&&window.watchAll.length)?window.watchAll:(window.mySchedule||[]));
+  /* F11 · THE SCOREBOARD. The season a golfer is actually in leads the tab as
+     one broad ember band with dark ink — the competition room — and the rest of
+     the list stays the quiet fescue it already was. One band, not a repainted
+     tab: the moments and the finished shelf keep their ordinary rows. */
+  const lead = list.seasons.find(r => r.state) || null;
   const body = list.nothingRunning
     ? csEmptyRootHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
-    : `<div class="eyebrow">Your seasons</div>`
+    : (lead ? csCompetitionBandHtml(lead) : '')
+      + `<div class="eyebrow">Your seasons</div>`
       + (list.seasons.length ? list.seasons.map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
       + (list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '');
   box.innerHTML = body;
+  box.querySelector('[data-cband]')?.addEventListener('click', () => {
+    const id = String(lead && lead.leagueId || '');
+    if(id) window.enterLeagueById?.(id);
+  });
   if(shelf) shelf.innerHTML = list.finished.length
     ? list.finished.map(csPeerRowHtml).join('')
     : '<p class="fine" style="padding:0">Nothing finished yet.</p>';

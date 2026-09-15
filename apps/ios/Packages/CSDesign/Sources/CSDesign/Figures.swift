@@ -118,6 +118,7 @@ public struct CSFigure: View {
     case .page: metal == .earned ? cs.gold : cs.ink
     case .leaf: cs.leafInk
     case .panel: metal == .earned ? cs.leafGold : cs.panelInk
+    case .ember: cs.brandInk
     case .ceremony: CSTokens.dark.ceremonyInk
     }
   }
@@ -127,6 +128,7 @@ public struct CSFigure: View {
     case .page: cs.mut
     case .leaf: cs.leafMut
     case .panel: cs.panelMut
+    case .ember: cs.brandInk.opacity(CSTokens.Alpha.a56)
     case .ceremony: CSTokens.dark.ceremonyMut
     }
   }
