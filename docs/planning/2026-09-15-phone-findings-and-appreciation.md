@@ -47,6 +47,16 @@ Proposed identity: one golfer's appreciation per round across league copies, con
 
 Proposed communication: immediate local selected feedback; durable in-app activity such as "Alex and 2 others applauded your round" linked to that round and its people. Group by round and distinct actors. Push is separately opt-in and batched; no alert for each tap, own activity, undo/re-add, retry or backfill. Exact batching/cap and audience rules need a recorded decision. Honor existing visibility, mutes, removal and access changes. Reuse and audit notification infrastructure; do not claim APNs delivered because an event or route exists.
 
+### F6 — Pride bet: meaning, placement and agreement
+
+**Owner observation, 2026-09-15:** the pride-bet composer looks engaging but its purpose and place in the app are unclear. `ForfeitCopy` asks for a name, prose terms and a prose settlement trigger, then says nobody gets notified. `create_forfeit` records the parties and those words; an optional league/event/planned-round reference supplies context. Creation does not ask the other golfer to accept. `settle_forfeit` allows a party (or the applicable Pro) to name the winner manually; it does not interpret the prose condition into scoring or automatically award season points. The D299 rename was a terminology repair; D64/D242 and L-20/L-22 describe the underlying record-only behavior.
+
+Proposal: make this an optional agreement attached to a competition the golfers understand, such as an existing clash, event or an explicitly defined game for a planned round. Entry from a person should select that context before asking for terms. Lead with who, what decides the winner, what is on the line and how the result is confirmed; name optional or generated. Example: existing clash → "Winner picks our next course" → opponent reviews and accepts → result from the actual competition, or explicit confirmation where the app cannot establish it → retained in the rivalry/round record. Avoid invented handicap comparisons, automatic awards and a generic text field masquerading as a scored contest.
+
+This is a **proposal**, not an approved mechanics change. A proposal/acceptance lifecycle, direct invitation notification and authoritative settlement are changes to today's record-only/no-push contract. Record a decision and define permissions, decline/edit/cancel and dispute/correction behavior before implementation. Preserve existing pride-bet records. If the product retains record-only behavior, label it honestly as recording an agreement made elsewhere; do not present it as sending a challenge. Do not activate notifications or modify the frozen release from this finding.
+
+Acceptance proposal: a first-time golfer can say what the button creates, whether the other golfer has agreed, what decides the winner, who confirms it, where it appears later and whether it affects league points. Both clients show the same lifecycle. Naming alone will not close this finding.
+
 ## Sequencing and ownership
 
 1. Keep the frozen counting release separate. Record these findings now; do not silently extend its migration.
