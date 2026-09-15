@@ -11278,7 +11278,9 @@ function csCourseSavedLine(b){
   if(iso(at)===iso(now)) when = 'today';
   else if(iso(at)===iso(new Date(now.getTime()-86400000))) when = 'yesterday';
   else when = `${DOW[at.getDay()]} ${MOS[at.getMonth()]} ${at.getDate()}`;
-  return `Saved on this device ${when}`;
+  /* D364 (F2) · leads with what the copy is FOR; "saved", never "updated" or
+     "live" — the device wrote a copy that day, and that is all it knows */
+  return `Available offline · saved ${when}`;
 }
 function csCourseSearch(q){
   const needle = String(q||'').trim().toLowerCase();
@@ -14848,11 +14850,37 @@ function csRatingBlock(id, opts){
 
 /* the tee a course opens on — `CourseBook.defaultTee`'s own rule, so the desk
    and the phone open a course on the same tee */
+/* one stable identity for a tee: its name, its rating category and its holes
+   — a men's Back and a women's Back are two keys (the phone's `CourseBookTee.id`) */
+function csTeeKey(t){ return `${t.tee_name||''}·${t.gender||''}·${t.number_of_holes||18}`; }
 function csBookTee(b){
   const tees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
+  /* D364 (F1) · a tee the golfer CHOSE on the record wins; otherwise the
+     longest rated 18 — a fact about the course, never a guess about the golfer */
+  const chosen = (window.CS_COURSE_TEE||{})[String(b.id)];
+  if(chosen){ const hit = tees.find(t=>csTeeKey(t)===chosen); if(hit) return hit; }
   const full = tees.filter(t=>(t.number_of_holes||18)===18);
   const pool = full.length ? full : tees;
   return pool.slice().sort((x,y)=>(y.total_yards||0)-(x.total_yards||0))[0] || null;
+}
+window.csTeeKey = csTeeKey;
+/* the card's rows: HOLE, YDS when every hole carries one, PAR, HCP */
+function csCardRows(holes, tr){
+  const yds = holes.length && holes.every(h=>h.yards);
+  return tr('HOLE', holes.map(h=>h.hole))
+    + (yds ? tr('YDS', holes.map(h=>h.yards)) : '')
+    + tr('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
+    + tr('HCP', holes.map(h=>h.si!=null?h.si:''));   /* TERMINOLOGY §3.1 */
+}
+/* the tee picker on a course record — every rated tee, the chosen one selected */
+function csTeePickerHtml(b, tee){
+  const rated = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
+  if(rated.length < 2) return '';
+  const name = t => (t.tee_name||'Tee') + (t.gender==='female' ? ' · Women’s' : '') + ((t.number_of_holes||18)===9 ? ' · 9 holes' : '');
+  return `<label class="cs-agate-s" style="color:var(--mut); display:block; padding-top:8px">Tees
+    <select class="f" data-cstee="${esc(String(b.id))}" style="margin-top:4px; font-family:var(--sans); font-size:16px" aria-label="Change tees">${
+      rated.map(t=>`<option value="${esc(csTeeKey(t))}"${tee && csTeeKey(t)===csTeeKey(tee) ? ' selected' : ''}>${esc(name(t))} — ${esc(String(t.course_rating))} / ${esc(String(t.slope_rating))}${t.total_yards ? ' · ' + esc(String(t.total_yards).replace(/\B(?=(\d{3})+(?!\d))/g, ',')) + ' yds' : ''}</option>`).join('')
+    }</select></label>`;
 }
 function csBookHoles(b){
   const tee = csBookTee(b);
@@ -14914,9 +14942,7 @@ function renderCourseBooks(){
     const leaf = holes.length
       ? `<details class="cs-cardleaf"><summary class="cs-agate-s">The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</summary>`
         + `<div class="cs-leaf"><table>`
-        + tr('HOLE', holes.map(h=>h.hole))
-        + tr('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
-        + tr('HCP', holes.map(h=>h.si!=null?h.si:''))   /* TERMINOLOGY §3.1 */
+        + csCardRows(holes, tr)
         + `</table></div></details>`
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
 
@@ -14991,9 +15017,7 @@ function renderCourseBooks(){
     const leaf = holes.length
       ? `<div class="cs-leaf"><div class="cs-agate-s" style="color:var(--leaf-mut);padding-bottom:6px">`
         + `The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</div><table>`
-        + tr('HOLE', holes.map(h=>h.hole))
-        + tr('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
-        + tr('HCP', holes.map(h=>h.si!=null?h.si:''))   /* TERMINOLOGY §3.1 */
+        + csCardRows(holes, tr)
         + `</table></div>`
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
     return `<section class="cs-course">
@@ -15007,6 +15031,7 @@ function renderCourseBooks(){
         </div>
         <div class="cs-facts">${factLine}</div>
         <p class="cs-agate-s" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
+        ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
       </div>
       <div>${csRatingBlock(b.id, { size:48 })}${leaf}</div>
@@ -15080,6 +15105,12 @@ function csRatingsFillNotes(ids){
    The rail moves IN PLACE — the list is not re-sorted under the thumb — and
    §22's sweep is the width transition, with nothing else on the page moving. */
 function csCourseBooksWire(box){
+  /* D364 (F1) · changing tees changes the facts and the card together */
+  box.querySelectorAll('select[data-cstee]').forEach(sel=>sel.addEventListener('change',()=>{
+    window.CS_COURSE_TEE = window.CS_COURSE_TEE || {};
+    window.CS_COURSE_TEE[sel.dataset.cstee] = sel.value;
+    renderCourseBooks();
+  }));
   box.querySelectorAll('[data-cslead]').forEach(row=>{
     const go = e => {
       if(e.target.closest('details') || e.target.closest('input')) return;
@@ -15173,30 +15204,31 @@ function csPlanCourseHtml(courseId, want){
   const tee = (named.slice().sort((x,y)=>(y.total_yards||0)-(x.total_yards||0))[0]) || csBookTee(b);
   const holes = tee && Array.isArray(tee.holes)
     ? tee.holes.slice().sort((x,y)=>(x.hole||0)-(y.hole||0)) : [];
-  const card = csDrawnCardSvg(holes);
-  if(!card) return `<p class="fine" style="padding:8px 0">${esc(CS_COURSE_COPY.noCard)}</p>`;
+  const hasCard = holes.some(h=>h.par!=null);
 
-  /* the three lowest stroke indexes — the fact a golfer actually wants, and
-     the literal answer to his sentence. Never four, never a "hardest stretch":
-     three fits one rule at `figure` 27 on a 340 aside and at 390. */
-  const three = holes.filter(h=>h.si!=null).sort((x,y)=>x.si-y.si).slice(0,3).map(h=>{
-    const sub = [h.par!=null?`par ${h.par}`:null, h.yards?String(h.yards):null,
-                 `si ${h.si}`].filter(Boolean).join(' · ');
-    return `<div class="cs-hard"><span class="cs-fig-m">${h.hole}${csOrdinalSuffix(h.hole)}</span>`
-      + `<span class="cs-agate-s">${esc(sub)}</span></div>`;
-  }).join('');
-
-  /* the turn. OUT and IN here are the COURSE'S PARS and never a score, which
-     is why the line is labelled with the tee it is drawn from. */
+  /* D364 (F3) · A COMPACT COMPOSITION, NOT A GRAPHIC. The drawn bars encoded
+     yardage as height and par as width and nothing said so; "The three that
+     decide it" were the three lowest stroke indexes, which decide nothing.
+     Now: the tee the plan names (or the longest, said as such), its facts,
+     the turn, and the whole scorecard behind View scorecard — on the leaf's
+     paper. No invented map, no photograph the plan does not carry. */
+  const grouped = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const teeLine = tee ? [
+    (tee.tee_name||'Tee') + (tee.gender==='female' ? ' · Women’s' : '') + ' tees',
+    tee.total_yards ? `${grouped(tee.total_yards)} yds` : null,
+    (tee.course_rating!=null && tee.slope_rating!=null) ? `${tee.course_rating} / ${tee.slope_rating}` : null
+  ].filter(Boolean).join(' · ') : '';
+  const teeWhy = tee ? (named.length ? 'Your tee for this round.' : 'The longest rated 18 — the plan names no tee.') : '';
+  /* the turn. OUT and IN here are the COURSE'S PARS and never a score */
   const sum = list => list.reduce((a,h)=>a + (h.par||0), 0);
   const out = sum(holes.slice(0,9)), inn = sum(holes.slice(9,18));
-  const grouped = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const turn = [
-    (out && inn) ? `OUT ${out} · IN ${inn}` : null,
-    tee && tee.total_yards ? `${grouped(tee.total_yards)} YDS` : null,
-    (tee && tee.course_rating!=null && tee.slope_rating!=null)
-      ? `${tee.course_rating} / ${tee.slope_rating}` : null
-  ].filter(Boolean).join('  ·  ');
+  const turn = (out && inn) ? `Out ${out} · In ${inn}` : '';
+  const tr = (head, cells, cls) =>
+    `<tr class="${cls||''}"><th>${esc(head)}</th>${cells.map(c=>`<td>${esc(String(c))}</td>`).join('')}</tr>`;
+  const cardHtml = hasCard
+    ? `<details class="cs-cardleaf" data-cs-scorecard="1"><summary class="cs-agate-s">View scorecard</summary>`
+      + `<div class="cs-leaf"><table>${csCardRows(holes, tr)}</table></div></details>`
+    : `<p class="fine" style="padding:8px 0">${esc(CS_COURSE_COPY.noCard)}</p>`;
 
   const hist = csCourseHistoryLine(b);
   const r = csRatingOf(b.id);
@@ -15212,11 +15244,11 @@ function csPlanCourseHtml(courseId, want){
     : '';
 
   return `<div class="cs-plan-course">
-    <div class="cs-agate-s" style="color:var(--mut)">The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</div>
-    <div class="cs-plan-card">${card}</div>
-    ${turn?`<p class="cs-col-m" style="color:var(--mut);padding-top:8px">${esc(turn)}</p>`:''}
-    ${three?`<div class="cs-agate-s" style="color:var(--mut);padding-top:12px">The three that decide it</div>
-      <div class="cs-hardrow">${three}</div>`:''}
+    <div class="cs-agate-s" style="color:var(--mut)">The course</div>
+    ${teeLine?`<p style="margin:4px 0 0" data-cs-plan-tee="1"><b>${esc(teeLine)}</b></p>`:''}
+    ${teeWhy?`<p class="cs-agate-s" style="color:var(--mut);padding-top:2px">${esc(teeWhy)}</p>`:''}
+    ${turn?`<p class="cs-col-m" style="color:var(--mut);padding-top:4px">${esc(turn)}</p>`:''}
+    ${cardHtml}
     ${hist}${rate}
   </div>`;
 }
@@ -29141,10 +29173,17 @@ document.getElementById('optPlan')?.addEventListener('click', () => openDeclareS
    IT IS A CEILING, NEVER A PROBABILITY (D24). There is exactly one copy of
    this on this client and one in the Kit (`RoundWorth.gain`); preflight 37
    fails the push on a second. */
-function csRoundWorth(cap, used, worst){
+/* The ceiling for a round of `holes`. A nine earns HALF the band, rounded up
+   (`v_rounds_ranked`: ceil(cup_points(…)/2)) and counts as half a round, so
+   an eighteen-hole ceiling is never promised to it (D364, F3). */
+function csRoundCeiling(holes){
+  const top = pointsFor(3)[0];
+  return Number(holes) === 9 ? Math.ceil(top / 2) : top;
+}
+function csRoundWorth(cap, used, worst, holes){
   const c = (cap == null) ? null : Number(cap);
   const u = Number(used || 0);
-  const top = pointsFor(3)[0];
+  const top = csRoundCeiling(holes);
   if(c == null || !(c > 0) || u < c) return top;
   if(worst == null || !isFinite(Number(worst))) return null;
   return top - Number(worst);
@@ -29153,21 +29192,29 @@ function csRoundWorth(cap, used, worst){
    the round: the sheet passes "This round" because its own header already
    carries the day and the course, and a card that prints one fact twice is the
    defect DEF-2 was filed for (L-34). `season` is spent only when a round counts
-   in more than one. */
-function csRoundWorthLine(subject, cap, used, worst, season){
-  const g = csRoundWorth(cap, used, worst);
+   in more than one.
+   D364 (F3) · THE POINTS A ROUND CAN SCORE AND THE POINTS IT WOULD ADD ARE
+   TWO FACTS, SAID SEPARATELY. "Worth up to 7 more" folded them into one
+   figure nobody could check. Now: the ceiling first, then the counting rule,
+   then — in a full month — the replacement arithmetic in the open: your
+   lowest is a 5, so a 12 would add 7. String-for-string the phone's
+   `RoundWorth.line`. */
+function csRoundWorthLine(subject, cap, used, worst, season, holes){
+  const g = csRoundWorth(cap, used, worst, holes);
   if(g == null) return null;
+  const top = csNum(csRoundCeiling(holes));
   const c = (cap == null) ? null : Number(cap);
   const u = Number(used || 0);
   const whose = season ? (' in ' + season) : '';
   const full = c != null && c > 0 && u >= c;
-  if(g <= 0) return subject + ' cannot add to your points' + whose + ' this month — your best '
-    + (c == null ? 'rounds' : c) + ' already count. It still builds your number.';
-  const head = subject + ' is worth up to ' + csNum(g) + (full ? ' more' : '') + whose + '.';
-  if(c == null || !(c > 0)) return head + ' Every round you post this month counts.';
-  return head + ' ' + (full
-    ? 'Your best ' + c + ' count this month and your worst is a ' + csNum(worst) + '.'
-    : 'Your best ' + c + ' count and you have ' + u + '.');
+  const nine = Number(holes) === 9 ? ' as a nine, counted as half a round where the season allows nines' : '';
+  if(g <= 0) return subject + ' can score up to ' + top + nine + ', but your best '
+    + (c == null ? 'rounds' : c) + ' already count and none is below ' + top
+    + " — it can't add to your total" + whose + ' this month. It still builds your number.';
+  if(c == null || !(c > 0)) return subject + ' can score up to ' + top + nine + whose + '. Every round you post this month counts.';
+  if(full) return subject + ' can score up to ' + top + nine + whose + '. Your best ' + c
+    + ' count this month and your lowest is a ' + csNum(worst) + ', so a ' + top + ' would add ' + csNum(g) + '.';
+  return subject + ' can score up to ' + top + nine + ', and it counts' + whose + ': your best ' + c + ' count and you have ' + u + '.';
 }
 /* D362 · WHAT THIS ROUND CAN ADD, before it is posted. The counters are the
    engine's own rows (`v_rounds_ranked`, loaded for the hub): how many of the
@@ -29196,9 +29243,13 @@ function csComposerWorthLine(playedOn, capGiven){
   const on = String(playedOn || isoOf(new Date())).slice(0,10);
   /* the shared producer first: one sentence per season the date falls in,
      the season named only when there is more than one */
+  /* D364 (F3) · the card's own side — a nine is never promised an
+     eighteen-hole ceiling */
+  const holes = (typeof state !== 'undefined' && state.post && state.post.side === 9) ? 9 : 18;
   const served = capGiven === undefined && window.myCounters && window.myCounters.on === on ? window.myCounters.rows : null;
   if(served){
-    const lines = served.map(x => csRoundWorthLine('This round', x.cap, x.counters?.used, x.counters?.worst, served.length>1 ? x.league_name : null)).filter(Boolean);
+    const rows = served.map(x => ({ league_name: x.league_name, cap: x.cap, used: x.counters?.used, worst: x.counters?.worst }));
+    const lines = csRoundWorthLines(rows, 'This round', holes, rows.length);
     return lines.length ? lines.join(' ') : null;
   }
   if(!window.CS?.season || !Array.isArray(window.myRanked)) return null;
@@ -29209,17 +29260,30 @@ function csComposerWorthLine(playedOn, capGiven){
   const counting = cap==null ? month : month.filter(r => r.month_rank!=null && r.month_rank <= cap);
   const used = counting.length;
   const worst = counting.length ? Math.min(...counting.map(r => Number(r.points))) : null;
-  return csRoundWorthLine('This round', cap, used, worst, null);
+  return csRoundWorthLine('This round', cap, used, worst, null, holes);
 }
 window.csComposerWorthLine = csComposerWorthLine;
+window.csRoundCeiling = csRoundCeiling;
 /* `round_detail.worth` — one row per season the round counts in, at most two.
    Three of these is a wall of arithmetic on a sheet whose job is who is in and
    when. An old payload has no `worth` key at all and renders nothing (L-44). */
-function csRoundWorthLines(rows, subject){
+function csRoundWorthLines(rows, subject, holes, limit){
   const w = Array.isArray(rows) ? rows : [];
+  /* D364 · seasons whose cap, used and lowest all agree say ONE sentence,
+     naming the seasons together; seasons that differ each keep their own.
+     A merge is only ever of contexts that actually agree. */
+  if(w.length > 1){
+    const f = w[0];
+    const same = w.every(r => (r.cap ?? null) === (f.cap ?? null) && Number(r.used||0) === Number(f.used||0) && (r.worst ?? null) === (f.worst ?? null));
+    if(same){
+      const names = w.map(r => r.league_name).filter(Boolean);
+      const name = (w.length === 2 && names.length === 2) ? `both ${names[0]} and ${names[1]}` : `all ${w.length} of your seasons`;
+      return [csRoundWorthLine(subject || 'This round', f.cap, f.used, f.worst, name, holes)].filter(Boolean);
+    }
+  }
   const named = w.length > 1;
-  return w.slice(0, 2)
-    .map(r => csRoundWorthLine(subject || 'This round', r.cap, r.used, r.worst, named ? r.league_name : null))
+  return w.slice(0, limit == null ? 2 : limit)
+    .map(r => csRoundWorthLine(subject || 'This round', r.cap, r.used, r.worst, named ? r.league_name : null, holes))
     .filter(Boolean);
 }
 

@@ -40,14 +40,28 @@ struct RoundWorthTests {
 
   // MARK: - the sentences
 
+  /// D364 (F3) · the points a round can SCORE and the points it would ADD are
+  /// said separately: the ceiling, then the counting rule.
   @Test func theOwnersSentence() {
     #expect(RoundWorth.line(subject: "Tomorrow at Papago", cap: 4, used: 2)
-              == "Tomorrow at Papago is worth up to 12. Your best 4 count and you have 2.")
+              == "Tomorrow at Papago can score up to 12, and it counts: your best 4 count and you have 2.")
   }
 
+  /// A full month shows the replacement arithmetic in the open: a 12 replacing
+  /// a 7 adds 5 — never "worth 5 more" with the 12 and the 7 hidden.
   @Test func aFullMonthSaysWhatItBumps() {
     #expect(RoundWorth.line(subject: "This round", cap: 4, used: 4, worst: 7)
-              == "This round is worth up to 5 more. Your best 4 count this month and your worst is a 7.")
+              == "This round can score up to 12. Your best 4 count this month and your lowest is a 7, so a 12 would add 5.")
+  }
+
+  /// A nine is scored as half the band, rounded up, and counts as half a
+  /// round — an eighteen-hole ceiling is never promised to it.
+  @Test func aNineIsNeverPromisedAnEighteenHoleCeiling() {
+    #expect(RoundWorth.ceiling(holes: 9) == 6 && RoundWorth.ceiling(holes: 18) == 12)
+    #expect(RoundWorth.gain(cap: 4, used: 4, worst: 5, holes: 9) == 1)
+    let s = RoundWorth.line(subject: "This round", cap: 4, used: 2, holes: 9)
+    #expect(s == "This round can score up to 6 as a nine, counted as half a round where the season allows nines, and it counts: your best 4 count and you have 2.")
+    #expect(!(s ?? "").contains("12"))
   }
 
   @Test func everySentenceIsACeiling() {
@@ -67,12 +81,12 @@ struct RoundWorthTests {
 
   @Test func aMaxedMonthIsToldTheTruthRatherThanAZero() {
     let s = RoundWorth.line(subject: "This round", cap: 4, used: 4, worst: 12)
-    #expect(s == "This round cannot add to your points this month — your best 4 already count. It still builds your number.")
+    #expect(s == "This round can score up to 12, but your best 4 already count and none is below 12 — it can't add to your total this month. It still builds your number.")
   }
 
   @Test func anUncappedLeagueCountsEverything() {
     #expect(RoundWorth.line(subject: "This round", cap: nil, used: 3)
-              == "This round is worth up to 12. Every round you post this month counts.")
+              == "This round can score up to 12. Every round you post this month counts.")
   }
 
   // MARK: - the rows, as they arrive
@@ -80,15 +94,29 @@ struct RoundWorthTests {
   @Test func theSeasonIsNamedOnlyWhenThereIsMoreThanOne() {
     let a = RoundWorth.Counters(leagueId: nil, leagueName: "The Fellas", cap: 4, used: 2, worst: nil)
     let b = RoundWorth.Counters(leagueId: nil, leagueName: "PIGL", cap: 3, used: 0, worst: nil)
-    #expect(RoundWorth.lines([a]) == ["This round is worth up to 12. Your best 4 count and you have 2."])
+    #expect(RoundWorth.lines([a]) == ["This round can score up to 12, and it counts: your best 4 count and you have 2."])
     let both = RoundWorth.lines([a, b])
     #expect(both.count == 2)
     #expect(both[0].contains("in The Fellas"))
     #expect(both[1].contains("in PIGL"))
   }
 
+  /// D364 · two seasons that say the SAME thing say it once, together — and
+  /// only when cap, used and lowest all agree. A differing third stays apart.
+  @Test func agreeingSeasonsAreSaidOnceTogether() {
+    let a = RoundWorth.Counters(leagueId: nil, leagueName: "The Fellas", cap: 4, used: 2, worst: nil)
+    let b = RoundWorth.Counters(leagueId: nil, leagueName: "PIGL", cap: 4, used: 2, worst: nil)
+    let same = RoundWorth.lines([a, b])
+    #expect(same == ["This round can score up to 12, and it counts in both The Fellas and PIGL: your best 4 count and you have 2."])
+    let c = RoundWorth.Counters(leagueId: nil, leagueName: "Sunday Cup", cap: 4, used: 4, worst: 5)
+    let mixed = RoundWorth.lines([a, b, c])
+    #expect(mixed.count == 2 && mixed[0].contains("in The Fellas") && mixed[1].contains("in PIGL"))
+    let three = RoundWorth.lines([a, b, RoundWorth.Counters(leagueId: nil, leagueName: "S3", cap: 4, used: 2, worst: nil)])
+    #expect(three == ["This round can score up to 12, and it counts in all 3 of your seasons: your best 4 count and you have 2."])
+  }
+
   @Test func threeSeasonsDoNotBecomeAWallOfArithmetic() {
-    let rows = (0..<3).map { RoundWorth.Counters(leagueId: nil, leagueName: "S\($0)", cap: 4, used: 1, worst: nil) }
+    let rows = (0..<3).map { RoundWorth.Counters(leagueId: nil, leagueName: "S\($0)", cap: 4, used: $0, worst: nil) }
     #expect(RoundWorth.lines(rows).count == 2)
   }
 

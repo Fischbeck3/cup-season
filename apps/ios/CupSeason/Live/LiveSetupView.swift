@@ -46,12 +46,13 @@ struct LiveSetupView: View {
           .disabled(store.busy)
           .padding(.top, CSTokens.Space.s2)
         if !phoneCards.isEmpty {
-          CSSectionHead("On this phone", count: "\(phoneCards.count)")
+          // D364 (F2) · an unfinished round says it is one: resume, then post
+          CSSectionHead("Unfinished rounds", count: "\(phoneCards.count)")
           ForEach(KeptCards.rows(phoneCards)) { card in
             Button { store.resumeLocal(card.lr) } label: {
               VStack(alignment: .leading, spacing: 4) {
                 Text(card.line).csType(.name)
-                Text([card.playedOn, "Not posted · review scorecard"].compactMap { $0 }.joined(separator: " · ")).csType(.bodyS)
+                Text([card.playedOn, "Not posted · resume it here"].compactMap { $0 }.joined(separator: " · ")).csType(.bodyS)
               }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             }.buttonStyle(.plain)
           }

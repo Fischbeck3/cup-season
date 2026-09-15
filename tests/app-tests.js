@@ -1534,21 +1534,34 @@
     t('D256: a month of top-band rounds gains nothing', csRoundWorth(4, 4, 12), 0);
     t('D256: full with an unknown counter has no honest answer', csRoundWorth(4, 4, null), null);
     t('D256: uncapped means every round counts', csRoundWorth(null, 9, null), 12);
-    t('R-K: the owner\u2019s own sentence',
+    /* D364 (F3) · the ceiling and the counting rule, said separately; a full
+       month shows the replacement arithmetic; a nine is half the band. */
+    t('R-K/D364: the owner’s own sentence',
       csRoundWorthLine('Tomorrow at Papago', 4, 2, null, null),
-      'Tomorrow at Papago is worth up to 12. Your best 4 count and you have 2.');
+      'Tomorrow at Papago can score up to 12, and it counts: your best 4 count and you have 2.');
     t('D24: it is a ceiling, never a probability',
       /up to/.test(csRoundWorthLine('This round', 4, 2, null, null)), true);
-    t('D256: a full month says what it bumps',
+    t('D364: a full month shows what a 12 replaces and what it adds',
       csRoundWorthLine('This round', 4, 4, 7, null),
-      'This round is worth up to 5 more. Your best 4 count this month and your worst is a 7.');
+      'This round can score up to 12. Your best 4 count this month and your lowest is a 7, so a 12 would add 5.');
+    t('D364: a maxed month says why it cannot add, and that it still builds the number',
+      csRoundWorthLine('This round', 4, 4, 12, null),
+      'This round can score up to 12, but your best 4 already count and none is below 12 — it can’t add to your total this month. It still builds your number.'.replace('’', "'"));
+    t('D364: a nine is never promised an eighteen-hole ceiling',
+      [csRoundCeiling(9), csRoundWorth(4, 4, 5, 9), /up to 6 as a nine/.test(csRoundWorthLine('This round', 4, 2, null, null, 9)), /12/.test(csRoundWorthLine('This round', 4, 2, null, null, 9))],
+      [6, 1, true, false]);
     t('L-44: absent facts render nothing', csRoundWorthLines(undefined, 'This round'), []);
     t('L-34: the season is named only when there is more than one',
       [csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }], 'This round').length,
        csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 },
                           { league_name: 'PIGL', cap: 3, used: 0 }], 'This round')[1].includes('in PIGL'),
-       csRoundWorthLines([{ cap: 4, used: 1 }, { cap: 4, used: 1 }, { cap: 4, used: 1 }], 'This round').length],
+       csRoundWorthLines([{ cap: 4, used: 0 }, { cap: 4, used: 1 }, { cap: 4, used: 2 }], 'This round').length],
       [1, true, 2]);
+    t('D364: seasons that say the same thing say it once, together',
+      [csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }, { league_name: 'PIGL', cap: 4, used: 2 }], 'This round'),
+       csRoundWorthLines([{ league_name: 'A', cap: 4, used: 2 }, { league_name: 'B', cap: 4, used: 2 }, { league_name: 'C', cap: 4, used: 2 }], 'This round').length,
+       csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }, { league_name: 'PIGL', cap: 4, used: 4, worst: 5 }], 'This round').length],
+      [['This round can score up to 12, and it counts in both The Fellas and PIGL: your best 4 count and you have 2.'], 1, 2]);
   })();
 
   /* ── Wave 3 · the profile's own producers ───────────────────────────── */

@@ -158,12 +158,15 @@ private struct PostCoverStack: View {
           if !kept.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
               CSRule()
-              Text("STILL ON THIS PHONE").csEyebrow(cs.brand).padding(.top, 14).padding(.bottom, 2)
+              // D364 (F2) · an UNFINISHED ROUND is its own noun — not a saved
+              // course, not a plan, not a posted round — and it is ordinary
+              // (mut), not a live competition (D359): nothing here is running.
+              Text(kept.count == 1 ? "UNFINISHED ROUND" : "UNFINISHED ROUNDS").csEyebrow(cs.mut).padding(.top, 14).padding(.bottom, 2)
               ForEach(Array(kept.enumerated()), id: \.element.id) { i, k in
-                PostOptionRow(tick: cs.brand, title: k.line,
+                PostOptionRow(tick: cs.mut, title: k.line,
                               sub: k.isComplete
-                                ? "Not posted. Review the scorecard and post when connected."
-                                : "Scored here, never landed — \(k.holes - k.holesPlayed) holes blank.",
+                                ? "Scored, not posted. Review the scorecard and post it when you're connected."
+                                : "Unfinished — \(k.holes - k.holesPlayed) holes blank. Resume it here.",
                               last: i == kept.count - 1) { close(); links.postKept(k) }
               }
             }
