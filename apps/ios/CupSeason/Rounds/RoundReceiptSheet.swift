@@ -99,7 +99,11 @@ struct RoundReceiptSheet: View {
             // D360 · the desk's brand moment, on the phone: the photograph is
             // its ground when there is one, so the separate photo slot goes.
             Text(mine(r) ? "Your round" : "The round").csType(.displayS, caps: true).foregroundStyle(cs.ink)
-            ReceiptMoment(dateline: dateline(r), course: r.courseLabel?.trimmingCharacters(in: .whitespaces),
+            // one fact, one place: the dateline already names the course on the
+            // phone, so the moment's own course line stands down when it does
+            ReceiptMoment(dateline: dateline(r),
+                          course: r.courseLabel.map { $0.trimmingCharacters(in: .whitespaces) }
+                            .flatMap { dateline(r).localizedCaseInsensitiveContains($0) ? nil : $0 },
                           gross: r.gross, holes: r.holesPlayed, sentence: sentence(r),
                           photoPath: r.photoPath, photoURL: r.photoURL, marker: r.marker)
             if let p = r.points {
