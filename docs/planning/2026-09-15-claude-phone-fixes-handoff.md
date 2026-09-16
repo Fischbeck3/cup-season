@@ -12,6 +12,8 @@ Scoring rules remain unchanged. Implement improvements to pride-agreement explan
 
 ## Work order and acceptance
 
+**Release review follow-up:** [Codex review of `2a85cf0`](../reviews/2026-09-15-finish-loop-release-review.md) identifies R1–R7 to close before release: receipt/photo misrouting, account-scoped cache invalidation, identity-based finish status, authoritative booking start/join, ambiguous booking matching, incomplete F10/contract and incorrect build-928 upload instructions. These corrections take precedence over the previous “push then review” suggestion. No new approval is needed for the already-authorized booked-round Tee it up wording; the old rejection concerned roster closure.
+
 ### Priority follow-up: finish → your round → Home — F12
 
 The owner finished a scheduled course, was not offered a photo, cannot easily find the new round on Home, and still sees the booking reminder. Verify actual posted/local/skipped status first; do not infer data loss or repost. Complete plan/live/posted identity reconciliation, expose the owner's actual receipt plus optional Add a photo at finish and later, and refresh Home so the newly posted own round is discoverable without an image. Reconcile booking completion per golfer, not for all invitees. F12 specifies ambiguity, retries, local/offline outcomes and photo failure handling. Fix this functional loop before decorative expansion; no production data mutation or migration push is implied.
