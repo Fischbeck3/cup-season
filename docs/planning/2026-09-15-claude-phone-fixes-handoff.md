@@ -6,9 +6,11 @@ Implement findings **F1–F13**, including the latest selected color direction a
 
 ## Authorization and boundaries
 
+**Deployment authorization updated:** the owner explicitly authorizes **Claude** to push the reviewed migration and upload the corrected build to internal **Owner**, because the owner is away and cannot run commands. Friends stays untouched. This supersedes older owner-only deployment wording for these two actions. First close the [build-930 follow-up S1–S3](../reviews/2026-09-15-build-930-followup.md), then execute through supported tools. An actual approval-system denial must be reported with its exact reason, never bypassed or assumed resolved by user authorization. This does not add web-main promotion or Edge deployment authority.
+
 The owner authorizes the described usability fixes, the proposed plain-language route labels, selected-person continuity, course/round presentation corrections and approved applause UI. Update the governing copy decisions alongside implementation so tests do not preserve obsolete “This Saturday” wording.
 
-Scoring rules remain unchanged. Implement improvements to pride-agreement explanation and context using current capabilities. A new agreement acceptance/settlement engine, historical-reaction conversion policy and new push delivery policy still require concrete decisions. Prepare those designs and any isolated validation alongside the other work; do not let them block independent fixes or silently represent them as already approved. Do not apply production migrations or deploy Edge Functions under this handoff alone. Respect any separate release authorization already given in the active session.
+Scoring rules remain unchanged. Implement improvements to pride-agreement explanation and context using current capabilities. A new agreement acceptance/settlement engine, historical-reaction conversion policy and new push delivery policy still require concrete decisions. Prepare those designs and any isolated validation alongside the other work; do not let them block independent fixes or silently represent them as already approved. Only the reviewed migration and Owner TestFlight release have the explicit deployment authorization above; unrelated migrations and Edge Functions remain outside this handoff.
 
 ## Work order and acceptance
 
