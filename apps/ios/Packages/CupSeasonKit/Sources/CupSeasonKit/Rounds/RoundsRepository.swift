@@ -112,6 +112,18 @@ public struct RoundsRepository: Sendable {
   /// database that predates `p_league` refuses the two-argument call; then the
   /// one-argument call is made and the older receipt is what it was — any
   /// error, never a sniffed message (CLAUDE.md).
+  /// F13 · the receipt's factual tally line, or nil when nothing can honestly
+  /// be claimed. Facts only — never a streak label (D368).
+  public func roundTally(_ id: UUID) async throws -> String? {
+    let v: JSONValue = try await svc.call(Rpc.round_tally(p_round: id))
+    guard v["known"]?.bool == true else { return nil }
+    let e = v["eagles"]?.int ?? 0, b = v["birdies"]?.int ?? 0
+    var parts: [String] = []
+    if e > 0 { parts.append("\(e) eagle\(e == 1 ? "" : "s")") }
+    if b > 0 { parts.append("\(b) birdie\(b == 1 ? "" : "s")") }
+    return parts.isEmpty ? nil : parts.joined(separator: " · ")
+  }
+
   public func roundCard(_ id: UUID, league: UUID? = nil) async throws -> JSONValue {
     if let league {
       if let v = try? await svc.call(Rpc.round_card(p_round: id, p_league: league)) { return v }

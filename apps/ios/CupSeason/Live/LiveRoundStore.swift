@@ -223,6 +223,7 @@ final class LiveRoundStore {
     // D363 · the person "Play with <name>" was tapped from — seated only now,
     // AFTER the prime, because `primeRoster()` resets the selection.
     await applyPending()
+    await applyPlanHandoff()
     if plan == nil, !planDismissed { plan = await reconciledPlan(await repo.todaysPlan()) }
   }
 
@@ -563,6 +564,45 @@ final class LiveRoundStore {
   private var pending: TagCandidate?
   func preselect(_ who: TagCandidate) { pending = who }
 
+  /// F10 · a booking, shaped for live setup. Seats are PROFILE IDS, never
+  /// names, so a golfer with a shared name is never mis-seated.
+  struct PlanHandoff: Equatable {
+    let planId: UUID
+    let courseLabel: String?
+    let courseId: String?
+    let accepted: [TagCandidate]
+    let pending: [String]
+  }
+  private var planHandoff: PlanHandoff?
+  func prepare(from d: RoundDetail) {
+    let seats = d.rsvp.filter { $0.profileId != nil }
+    planHandoff = PlanHandoff(
+      planId: d.id,
+      courseLabel: d.course?.name ?? d.courseLabel,
+      courseId: d.courseId,
+      accepted: seats.filter { $0.status == "in" || $0.profileId == d.profileId }
+                     .map { TagCandidate(id: $0.profileId!, name: $0.name, marker: $0.marker) },
+      pending: seats.filter { $0.status != "in" && $0.status != "out" && $0.profileId != d.profileId }.map(\.name))
+    planDismissed = true; plan = nil
+  }
+  /// After the roster is primed (it resets the selection): the course, the
+  /// accepted golfers, the booking id the start will go through.
+  func applyPlanHandoff() async {
+    guard let h = planHandoff else { return }
+    planHandoff = nil
+    guard !state.active else { toast("You’re already in a round."); return }
+    if let c = h.courseLabel, !c.isEmpty { state.course.label = c }
+    if let id = h.courseId { state.course.courseId = id }
+    state.scheduledRoundId = h.planId
+    var seated = 0
+    for who in h.accepted where who.id != myPid {
+      let index = await indexFor(who)
+      if case .seated = seat(who, index: index) { seated += 1 }
+    }
+    let pend = h.pending.isEmpty ? "" : " · \(h.pending.joined(separator: ", ")) \(h.pending.count == 1 ? "hasn’t" : "haven’t") answered"
+    toast("Booking loaded\(seated > 0 ? " — \(seated) seated" : "")\(pend)")
+  }
+
   /// What seating a person came to. The cases are the packet's own list:
   /// an existing round is never overwritten, the phone-only path is one
   /// golfer, a person already in the group is not seated twice, a full group
@@ -780,8 +820,24 @@ final class LiveRoundStore {
       cfg = .object([:])
     }
     do {
-      let out = try await repo.start(league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g, players: playersJSON, config: cfg,
+      // F10 · a round teed up from a booking starts THROUGH the booking: one
+      // live round per booking, and a second starter is handed the first
+      // golfer's round. An older server has no such function; the plain start
+      // then runs and the link is simply not made (skew, never a failure).
+      let out: LiveStartOutcome
+      if let planId = s.scheduledRoundId {
+        do {
+          out = try await repo.startFromPlan(planId, league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g,
+                                             players: playersJSON, config: cfg, apiCourseId: s.course.courseId)
+          if out.joined { toast("Joined the round already teed up for this booking.") }
+        } catch let e as RpcError where e.isMissingFunction {
+          out = try await repo.start(league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g, players: playersJSON, config: cfg,
                                      apiCourseId: s.course.courseId)
+        }
+      } else {
+        out = try await repo.start(league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g, players: playersJSON, config: cfg,
+                                   apiCourseId: s.course.courseId)
+      }
       s.lr = out.lr
       // The server abandons an unfinished round 24h from here. The card carries
       // the moment so the phone can SAY that deadline instead of guessing it.

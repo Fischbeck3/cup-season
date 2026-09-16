@@ -1107,6 +1107,7 @@ struct MainTabView: View {
   private var csLinks: CSLinks {
     CSLinks(openTourCard: { presenter.tourCard = $0 },
             openRound: nil,      // a nil openRound presents the scheduled-round sheet in place
+            openLive: { presenter.showLive = true },   // F10 · "Tee it up" from a booking
             openCompetition: { openCompetition($0) })
   }
 

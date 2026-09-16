@@ -123,9 +123,18 @@ Not yet: the tally in the final receipt; shared-scoring device test with two pho
 ### F10 · "View round" / "Tee it up" — PARTIAL
 Server side is in the F12 migration above (booking link + duplicate prevention). NOT done: the client "Tee it up" door from the booked-round sheet into prepared live setup, and retiring "Open the plan" (needs a `home_dispatch` patch; the decision-log:5029 rejection of the name must be read and superseded in writing first).
 
-### Delivery states (separate) — updated after the owner said "push as needed"
-- **Database:** `20261105090000_the_round_remembers_its_plan.sql` (renamed past the remote head 20261104; unapplied files may be renamed). `supabase db push --linked --dry-run` lists exactly this one file. The real push was **blocked by the session's permission classifier** — not by the migration — so it is still the owner's: `supabase db push --linked`. Verify afterwards: `select position('round_id' in pg_get_functiondef('public.finish_live_round'::regproc)) > 0` and `tests/db-checks.sql`.
+### Codex release review R1–R7 (docs/reviews/2026-09-15-finish-loop-release-review.md) — CLOSED
+- **R1** web recap doors go through `csOpenPostedRound` (fetch-by-id, never a cache that may not hold the round); "Add a photo" opens the SAME receipt with its own `rcptPhotoBtn` scrolled into view and focused — no timed click, no picker outside the golfer's tap. Test: `tests/round-reconcile-browser.js`; capture `f12-recap-web`.
+- **R2** `CS_MY_ROUNDS` keyed by account+day, invalidated on finish (`csInvalidateMyRounds`), late/other-account responses discarded, failed or signed-out read = UNKNOWN (never empty); `CS_PLAYED_PLANS` recomputed per load. Browser test asserts unknown never hides a booking.
+- **R3** `RoundReconcile.status` / `csSaveStatus` decide by PROFILE ID; finish payload now carries `round_id`+`profile_id` (posted) and `profile_id` (skipped); an identity-less payload is **Not confirmed yet** until one authoritative match. Tests: duplicate name, someone else's post, missing identity, skipped viewer (Kit 6 + web).
+- **R4** index is `(scheduled_round_id) where status='live'` — one live round per BOOKING; `start_live_round_from_plan` is a NEW fully specified function: validates booking + caller (host or tagged, not declined) BEFORE any write; JOIN returns the standing round (`joined:true`); the concurrent loser is handed the winner's round; `start_live_round` untouched. Every anchor COUNT asserted. Validator: 27 PASS including refusals-write-nothing and the race.
+- **R5** competing bookings (one round, two plans, same course+day) are never dropped — Kit test + web prime logic.
+- **R6** contract rows for `start_live_round_from_plan` and `round_tally` written to the snapshot query's exact shape and verified row-for-row against the disposable cluster; `start_live_round` row unchanged. Both "Tee it up" doors built (phone `ScheduledRoundSheet` → `LiveRoundStore.prepare(from:)` → `startFromPlan`; web `rtTeeUp` → `csTeeUpFromPlan` → `start_live_round_from_plan`, skew-safe). "View round" in `home_dispatch`, `HomeFallbackItems`, fixture. Receipt tally via `round_tally` on both clients. D367 addendum records the "Tee it up" distinction (roster closure ≠ booked round).
+- **R7** the corrected candidate is archived at ITS commit with the number the helper computes (below). Build 928 is not shipped.
+
+### Delivery states (separate)
+- **Database:** `20261105090000_the_round_remembers_its_plan.sql` — rewritten per R3/R4/R6, validated (27 PASS) on a disposable cluster seeded with the real production bodies of `finish_live_round` and `home_dispatch` plus a signature-exact stub of `start_live_round`; `supabase db push --linked --dry-run` lists exactly this file. **NOT pushed** (the push is refused to this session by the permission classifier; the owner runs `supabase db push --linked`). Not a full-chain staging run — no Docker on this Mac.
 - **Edge:** nothing.
-- **Web:** on the branch / PR #5 preview; not promoted (merge to main is the client deploy).
-- **TestFlight:** **build 928 (e45ffda) archived, signed and exported locally** at `apps/ios/build/archive/run-928-e45ffda.UnzX5H/export/Cup Season.ipa`. The upload was blocked by the same classifier; the owner runs `tools/ios-archive.sh --upload` (re-archives at the same number) or the altool line in that script, then attaches to the internal Owner group ONLY (never Friends).
-- Kit 1213 tests / 197 suites pass; preflight clean; 9 web suites pass.
+- **Web:** branch / PR #5 preview; not promoted.
+- **TestFlight:** see the build identity line appended below after the archive. Friends untouched.
+- Kit 1217 tests / 197 suites; app target 100 / 19; preflight clean; 9 web suites incl. `round-reconcile` and `hole-moment`.

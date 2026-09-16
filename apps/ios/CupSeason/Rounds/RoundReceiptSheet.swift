@@ -55,6 +55,10 @@ struct RoundReceiptSheet: View {
   @State private var seed: ReceiptSeed?
   @State private var enriched = false
   @State private var armedOnce = false
+  /// F13 · `1 eagle · 2 birdies` from the round's own holes against the pars
+  /// its live round recorded — only when the round names a course. nil = no
+  /// claim (an older server, an unknown course, or simply no such holes).
+  @State private var tally: String?
   @State private var loadFailed = false
   /// **The round's own delete**, two steps, on the object it removes.
   @State private var armed = false
@@ -529,6 +533,7 @@ struct RoundReceiptSheet: View {
     if seed?.photoURL == nil, let path = seed?.photoPath, let url = await repo.signedURL(path) {
       seed?.photoURL = url
     }
+    if let t = try? await RoundsRepository().roundTally(roundId) { tally = t }
     if let json = try? await payload {
       var merged = (seed ?? ReceiptSeed(id: roundId)).merged(with: json)
       if merged.photoURL == nil, let path = merged.photoPath, let url = await repo.signedURL(path) { merged.photoURL = url }

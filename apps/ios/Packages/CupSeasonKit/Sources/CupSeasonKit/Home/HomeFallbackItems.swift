@@ -135,7 +135,7 @@ public enum HomeFallbackItems {
                                       : "\(who) has you down for \(day).",
                        standfirst: !stand.isEmpty ? stand + "."
                                    : (p.my_rsvp == nil ? "You have not said either way." : nil),
-                       action: p.my_rsvp == nil ? "Say you're in" : "Open the plan",
+                       action: p.my_rsvp == nil ? "Say you're in" : "View round",
                        route: p.id.map(HomeDispatch.Route.plan) ?? .declare,
                        spine: .ember, at: on))
     }

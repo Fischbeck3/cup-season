@@ -16,47 +16,76 @@ import Foundation
     RoundReconcile.Candidate(id: id, courseId: course, playedOn: day)
   }
 
-  // MARK: - the save status, in the product's own words
+  // MARK: - the save status, decided by identity
+
+  private static let me = UUID(uuidString: "00000000-0000-0000-0000-0000000000E1")!
+  private static let alex = UUID(uuidString: "00000000-0000-0000-0000-000000000A1E")!
+  private func card(_ name: String, _ pid: UUID?, round: UUID? = nil, reason: String? = nil) -> RoundReconcile.Card {
+    RoundReconcile.Card(name: name, profileId: pid, roundId: round, reason: reason)
+  }
 
   @Test func postedSavedAndNotPostedAreThreeDifferentSentences() {
-    let posted = RoundReconcile.status(posted: ["Jerecho"], skipped: [], casual: false, keptLocally: false, mine: "Jerecho")
+    let posted = RoundReconcile.status(posted: [card("Jerecho", Self.me, round: Self.a)], skipped: [], casual: false, keptLocally: false, me: Self.me)
     #expect(posted == .posted)
     #expect(posted.title == "Round posted")
-    #expect(posted.detail == "It's on the books and scoring.")
     #expect(posted.hasRound)
 
-    let local = RoundReconcile.status(posted: [], skipped: [], casual: false, keptLocally: true, mine: "Jerecho")
+    let local = RoundReconcile.status(posted: [], skipped: [], casual: false, keptLocally: true, me: Self.me)
     #expect(local == .savedOnThisPhone)
-    #expect(local.title == "Saved on this phone")
     #expect(!local.hasRound, "a local card has no receipt to open yet")
 
-    let skipped = RoundReconcile.status(posted: [], skipped: [("Jerecho", "No holes scored")],
-                                        casual: false, keptLocally: false, mine: "Jerecho")
+    let skipped = RoundReconcile.status(posted: [], skipped: [card("Jerecho", Self.me, reason: "No holes scored")],
+                                        casual: false, keptLocally: false, me: Self.me)
     #expect(skipped == .notPosted(reason: "No holes scored"))
-    #expect(skipped.detail == "No holes scored")
     #expect(!skipped.hasRound)
   }
 
-  /// **The local card wins over everything.** A phone that kept the card has
-  /// not posted it, whatever else the payload says.
-  @Test func aKeptCardIsNeverReportedAsPosted() {
-    #expect(RoundReconcile.status(posted: ["Jerecho"], skipped: [], casual: false,
-                                  keptLocally: true, mine: "Jerecho") == .savedOnThisPhone)
+  /// **Codex R3 · a name is not an identity.** Another Alex posted and this
+  /// Alex was skipped: the viewer is NOT told their round posted.
+  @Test func aSharedNameDoesNotBorrowSomeoneElsesPost() {
+    let s = RoundReconcile.status(posted: [card("Alex", Self.alex, round: Self.b)],
+                                  skipped: [card("Alex", Self.me, reason: "incomplete card")],
+                                  casual: false, keptLocally: false, me: Self.me)
+    #expect(s == .notPosted(reason: "incomplete card"))
   }
 
-  /// A casual round posts nothing BY DESIGN, and says so rather than reading
-  /// as a failure.
+  /// Identities were reported and mine is not among them: not posted, and
+  /// never inferred from a posted card that belongs to someone else.
+  @Test func somebodyElsesPostIsNotMine() {
+    #expect(RoundReconcile.status(posted: [card("Galen", Self.alex, round: Self.b)], skipped: [], casual: false,
+                                  keptLocally: false, me: Self.me) == .notPosted(reason: ""))
+  }
+
+  /// An OLD payload names nobody. That is uncertainty, and it is said as such
+  /// until authoritative evidence confirms — one matching round of mine.
+  @Test func aPayloadWithoutIdentitiesIsUnconfirmedUntilEvidence() {
+    let s = RoundReconcile.status(posted: [card("Jerecho", nil)], skipped: [], casual: false, keptLocally: false, me: Self.me)
+    #expect(s == .unconfirmed)
+    #expect(s.title == "Not confirmed yet")
+    #expect(!s.hasRound)
+    #expect(RoundReconcile.confirm(s, match: .one(Self.a)) == .posted)
+    #expect(RoundReconcile.confirm(s, match: .ambiguous([Self.a, Self.b])) == .unconfirmed)
+    #expect(RoundReconcile.confirm(s, match: .none) == .unconfirmed)
+    // and a posted status is never demoted by the confirm step
+    #expect(RoundReconcile.confirm(.posted, match: .none) == .posted)
+  }
+
+  /// The kept card wins over everything.
+  @Test func aKeptCardIsNeverReportedAsPosted() {
+    #expect(RoundReconcile.status(posted: [card("Jerecho", Self.me, round: Self.a)], skipped: [], casual: false,
+                                  keptLocally: true, me: Self.me) == .savedOnThisPhone)
+  }
+
   @Test func aCasualRoundSaysWhatItIs() {
-    let s = RoundReconcile.status(posted: [], skipped: [], casual: true, keptLocally: false, mine: "Jerecho")
+    let s = RoundReconcile.status(posted: [], skipped: [], casual: true, keptLocally: false, me: Self.me)
     #expect(s.title == "Not posted")
     #expect(s.detail.contains("casual"))
   }
 
-  /// The viewer is not in the posted list and there is no skip line for them:
-  /// the product does not claim their round is on the books.
-  @Test func somebodyElsesPostIsNotMine() {
-    #expect(RoundReconcile.status(posted: ["Galen"], skipped: [], casual: false,
-                                  keptLocally: false, mine: "Jerecho") == .notPosted(reason: ""))
+  /// The server named my round: no matching, no ambiguity.
+  @Test func theServerNamesMyRound() {
+    #expect(RoundReconcile.namedRound(posted: [card("Alex", Self.alex, round: Self.b), card("Jerecho", Self.me, round: Self.a)], me: Self.me) == Self.a)
+    #expect(RoundReconcile.namedRound(posted: [card("Jerecho", nil, round: Self.a)], me: Self.me) == nil, "a round without an identity is not claimed")
   }
 
   // MARK: - which round is mine
@@ -155,6 +184,19 @@ import Foundation
     let items = [planItem(course: "100", day: "2026-09-15")]
     let out = RoundReconcile.droppingPlayedPlans(items, myRounds: [round(Self.a, "100", "2026-09-15"), round(Self.b, "100", "2026-09-15")])
     #expect(out.count == 1)
+  }
+
+  /// **Codex R5 · two bookings, one round.** One round at course 100 today and
+  /// TWO bookings there today: the round cannot be assigned to either, so
+  /// neither is dropped and the golfer keeps both reminders.
+  @Test func twoBookingsOnOneCourseAndDayAreBothKept() {
+    let p2 = UUID(uuidString: "00000000-0000-0000-0000-0000000000D4")!
+    var second = planItem(course: "100", day: "2026-09-15")
+    second = HomeDispatch.Item(key: "plan:\(p2)", tier: .closing, eyebrow: "", headline: "", spine: .ember,
+                               plan: PlanContext(planId: p2, playOn: "2026-09-15", courseLabel: "Bajamar", courseId: "100", teeTime: "13:10"))
+    let items = [planItem(course: "100", day: "2026-09-15"), second]
+    let out = RoundReconcile.droppingPlayedPlans(items, myRounds: [round(Self.a, "100", "2026-09-15")])
+    #expect(out.count == 2)
   }
 
   /// Only `plan:` items are touched — a clash or a story passes through even

@@ -116,7 +116,7 @@
             "eyebrow": "C", "headline": "You moved up 2 since Sunday.", "action": "See the table",
             "route": { "kind": "season", "id": "55555555-5555-5555-5555-555555555555" } },
           { "key": "d", "tier": "coming", "rank": 4, "score": 626, "human_subject": true, "subject": "Galen",
-            "eyebrow": "D", "headline": "Galen has Monday on the sheet.", "action": "Open the plan",
+            "eyebrow": "D", "headline": "Galen has Monday on the sheet.", "action": "View round",
             "route": { "kind": "plan", "id": "66666666-6666-6666-6666-666666666666" } },
           { "key": "e", "tier": "chapter", "rank": 5, "score": 205, "human_subject": true, "subject": "Tommy",
             "eyebrow": "E", "headline": "Tommy is the one to catch.", "action": "Open the season",

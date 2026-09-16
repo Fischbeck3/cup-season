@@ -385,6 +385,9 @@ public struct LiveRoundState: Codable, Sendable, Equatable {
   /// Local scorekeeping is never a server live-round ID or a vouch.
   public var localOwner: UUID?
   public var playedDay: String?
+  /// F10 · the booking this round was teed up from, so the start goes through
+  /// `start_live_round_from_plan` and the finish can link the posted round.
+  public var scheduledRoundId: UUID?
   public var localCompleted: Bool?
   public var onThisPhone: Bool { localOwner != nil }
 

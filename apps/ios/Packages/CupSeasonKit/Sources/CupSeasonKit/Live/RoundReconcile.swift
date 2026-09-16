@@ -40,12 +40,17 @@ public enum RoundReconcile {
     case savedOnThisPhone
     /// Not posted, with the reason the server gave.
     case notPosted(reason: String)
+    /// The server did not say WHOSE card it posted (a payload from before
+    /// 20261105090000), and nothing authoritative has confirmed it yet. The
+    /// product says so rather than guessing from a name.
+    case unconfirmed
 
     public var title: String {
       switch self {
       case .posted:           return "Round posted"
       case .savedOnThisPhone: return "Saved on this phone"
       case .notPosted:        return "Not posted"
+      case .unconfirmed:      return "Not confirmed yet"
       }
     }
 
@@ -57,6 +62,8 @@ public enum RoundReconcile {
         return "It's kept here. Review the scorecard and post it when you're connected."
       case .notPosted(let reason):
         return reason.isEmpty ? "Nothing was written down." : reason
+      case .unconfirmed:
+        return "Check your rounds before posting it again."
       }
     }
 
@@ -64,21 +71,54 @@ public enum RoundReconcile {
     public var hasRound: Bool { self == .posted }
   }
 
-  /// The viewer's own status, from the finish payload. `mine` is the name the
-  /// server used for the viewer, which is the only handle the payload gives.
+  /// One card the server reported. `profileId` is the identity; `name` is
+  /// only what it printed, and two golfers may print the same name.
+  public struct Card: Equatable, Sendable {
+    public let name: String
+    public let profileId: UUID?
+    public let roundId: UUID?
+    public let reason: String?
+    public init(name: String, profileId: UUID? = nil, roundId: UUID? = nil, reason: String? = nil) {
+      self.name = name; self.profileId = profileId; self.roundId = roundId; self.reason = reason
+    }
+  }
+
+  /// The viewer's own status, decided by PROFILE ID — never by a display name,
+  /// which another golfer in the group may share (Codex R3). A payload that
+  /// carries no identities at all is `.unconfirmed` until `confirm(...)` finds
+  /// the round by authoritative evidence; a shared name or somebody else's
+  /// posted card is never enough to say "Round posted".
   ///
   /// A CASUAL round posts nothing by design, and that is not a failure: it is
   /// said as what it is rather than dressed as an error.
-  public static func status(posted: [String], skipped: [(name: String, reason: String)],
-                            casual: Bool, keptLocally: Bool, mine: String?) -> SaveStatus {
+  public static func status(posted: [Card], skipped: [Card], casual: Bool, keptLocally: Bool, me: UUID?) -> SaveStatus {
     if keptLocally { return .savedOnThisPhone }
-    if let mine {
-      if posted.contains(mine) { return .posted }
-      if let s = skipped.first(where: { $0.name == mine }) { return .notPosted(reason: s.reason) }
-    }
     if casual { return .notPosted(reason: "A casual round scores nothing — nobody's card was posted.") }
-    if !posted.isEmpty, mine == nil { return .posted }
-    return .notPosted(reason: "")
+    let identified = posted.contains { $0.profileId != nil } || skipped.contains { $0.profileId != nil }
+    if let me, identified {
+      if posted.contains(where: { $0.profileId == me }) { return .posted }
+      if let s = skipped.first(where: { $0.profileId == me }) { return .notPosted(reason: s.reason ?? "") }
+      // identities were reported and mine is not among them
+      return .notPosted(reason: "")
+    }
+    if posted.isEmpty && skipped.isEmpty { return .notPosted(reason: "") }
+    return .unconfirmed
+  }
+
+  /// The viewer's round id straight from the payload, when the server named it.
+  public static func namedRound(posted: [Card], me: UUID?) -> UUID? {
+    guard let me else { return nil }
+    return posted.first { $0.profileId == me }?.roundId
+  }
+
+  /// Resolve an `.unconfirmed` status against authoritative evidence: my own
+  /// rounds, this course id, this day. Exactly one match confirms a post;
+  /// anything else stays unconfirmed — the product never becomes more sure
+  /// than the receipt it can open.
+  public static func confirm(_ status: SaveStatus, match: Match) -> SaveStatus {
+    guard status == .unconfirmed else { return status }
+    if case .one = match { return .posted }
+    return status
   }
 
   // MARK: - which round is mine
@@ -156,8 +196,16 @@ extension RoundReconcile {
   /// a plan whose course id is unknown (no evidence, so it keeps prompting)
   /// and an ambiguous day (two rounds on that course: asked, not dropped).
   public static func droppingPlayedPlans(_ items: [HomeDispatch.Item], myRounds: [Candidate]) -> [HomeDispatch.Item] {
-    items.filter { it in
+    // Codex R5 · one round and TWO bookings at that course on that day: the
+    // round cannot be assigned to either, so neither is dropped — the golfer
+    // keeps both reminders rather than losing the one they have not played.
+    var competing: [String: Int] = [:]
+    for it in items where it.key.hasPrefix("plan:") {
+      if let p = it.plan, let c = p.courseId, let d = p.playOn { competing["\(c)#\(d)", default: 0] += 1 }
+    }
+    return items.filter { it in
       guard it.key.hasPrefix("plan:"), let p = it.plan else { return true }
+      if let c = p.courseId, let d = p.playOn, competing["\(c)#\(d)", default: 0] > 1 { return true }
       if case .played = booking(courseId: p.courseId, playOn: p.playOn, myRounds: myRounds) { return false }
       return true
     }

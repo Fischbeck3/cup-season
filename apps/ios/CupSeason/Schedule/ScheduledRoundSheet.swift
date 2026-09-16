@@ -436,6 +436,22 @@ struct ScheduledRoundSheet: View {
   // MARK: 10 · the actions — two marks, not five
 
   @ViewBuilder private func actions(_ d: RoundDetail) -> some View {
+    // F10 · TEE IT UP — from the booking into a PREPARED live setup: course
+    // identity, the accepted golfers seated by profile id, pending shown as
+    // pending, declined excluded. The start then goes through
+    // `start_live_round_from_plan`, so one live round stands for the booking
+    // and a second starter joins it. (The decision log's earlier rejection of
+    // "Tee it up" at ~5029 concerned CLOSING A SEASON ROSTER, not this
+    // action; the owner approved this one in F10 — D367 records the
+    // distinction.) A golfer who declined is not offered it.
+    if d.canRsvp, d.myRsvp != "out", let openLive = links.openLive {
+      CSDoor(.primary("Tee it up", {
+        LiveRoundStore.shared.prepare(from: d)
+        dismiss()
+        openLive()
+      }))
+      .accessibilityHint("Starts the round for this booking with the group already seated")
+    }
     if d.canRsvp {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         HStack(spacing: CSTokens.Space.s3) {

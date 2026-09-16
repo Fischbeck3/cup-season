@@ -72,30 +72,38 @@ struct LiveRecapSheet: View {
   @State private var looked = false
   @Environment(SessionStore.self) private var sessionStore
 
-  /// The truth about the save, which is never inferred from the title.
+  /// The truth about the save, decided by PROFILE ID (Codex R3). An old
+  /// payload with no identities is unconfirmed until `findMine` confirms it
+  /// by evidence; `confirmed` holds that result.
+  @State private var confirmed: RoundReconcile.SaveStatus?
   private var status: RoundReconcile.SaveStatus {
-    RoundReconcile.status(posted: data.outcome.posted.map(\.name),
-                          skipped: data.outcome.skipped.map { ($0.name, $0.reason) },
-                          casual: data.outcome.casual,
-                          keptLocally: data.keptLocally,
-                          mine: data.myName)
+    if let confirmed { return confirmed }
+    return RoundReconcile.status(posted: data.outcome.posted.map { RoundReconcile.Card(name: $0.name, profileId: $0.profileId, roundId: $0.roundId) },
+                                 skipped: data.outcome.skipped.map { RoundReconcile.Card(name: $0.name, profileId: $0.profileId, reason: $0.reason) },
+                                 casual: data.outcome.casual,
+                                 keptLocally: data.keptLocally,
+                                 me: store.myPid)
   }
 
-  /// Find my round once, and only when there is one to find.
+  /// Find my round once. The server names it outright once 20261105090000 is
+  /// applied; an older payload is confirmed only by authoritative evidence —
+  /// one round of mine on this course today — and otherwise stays unconfirmed.
   private func findMine() async {
-    guard !looked, status.hasRound, let uid = store.myPid else { return }
+    guard !looked, let uid = store.myPid else { return }
+    let s = status
+    guard s.hasRound || s == .unconfirmed else { return }
     looked = true
-    // The server names my round outright once 20261105090000 is applied —
-    // no matching needed, and no ambiguity possible.
-    if let named = data.outcome.posted.first(where: { $0.profileId == uid })?.roundId {
+    if let named = RoundReconcile.namedRound(posted: data.outcome.posted.map { RoundReconcile.Card(name: $0.name, profileId: $0.profileId, roundId: $0.roundId) }, me: uid) {
       mine = .one(named)
       await sessionStore.reload()
       return
     }
     let day = CSDate.iso(data.date, calendar: ScheduleDates.gregorian)
     let rows = (try? await RoundsRepository().myRounds(uid)) ?? []
-    mine = RoundReconcile.mine(rows.map { RoundReconcile.Candidate(id: $0.id, courseId: $0.api_course_id, playedOn: $0.played_on) },
-                               courseId: data.courseId, playedOn: day)
+    let match = RoundReconcile.mine(rows.map { RoundReconcile.Candidate(id: $0.id, courseId: $0.api_course_id, playedOn: $0.played_on) },
+                                    courseId: data.courseId, playedOn: day)
+    confirmed = RoundReconcile.confirm(s, match: match)
+    mine = confirmed?.hasRound == true ? match : .none
     // F12 · Home is refreshed from the CONFIRMED post, so the just-posted
     // round is on the wire before the golfer gets back to it — never from a
     // guess that the finish "probably worked".
@@ -211,6 +219,7 @@ struct LiveRecapSheet: View {
         CSFine(RoundReconcile.askWhichRound + " Open it from your rounds.")
       case .none:
         if status.hasRound { CSFine("Your round is on the books. Open it from your rounds.") }
+        else if status == .unconfirmed { CSFine("The server didn’t say whose card it posted. Check your rounds before posting it again.") }
       }
     }
     .padding(.top, CSTokens.Space.s2)
