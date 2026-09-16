@@ -25,7 +25,7 @@ Environment column: **sandbox** = disposable full-chain cluster, every migration
 | 7 | Later guest claim posts once; second claim "already"; another golfer refused | PASS | sandbox | §7 |
 | 8 | Planned-round linkage survives completion (both rounds carry the booking) | PASS | sandbox | §6 |
 | 9 | Valid par provenance survives hydration and finish; historical snapshots claim nothing | PASS | sandbox + Kit | §6 tally; `ParProvenanceTests` (7) |
-| 10 | Owner can read own holes on a league-less round; tally honest without evidence | PASS (with `20261107090000`) / **FAIL on production today** | sandbox / prod | found by §6, fixed by the pending migration |
+| 10 | Owner can read own holes on a league-less round; tally honest without evidence | PASS (sandbox) / **PASS on production since 2026-09-15 night** (`20261107090000` applied, read back) | sandbox / prod-ro | found by §6 |
 | 11 | Spontaneous league-less Match Play, Wolf, Skins start and finish, cards post | PASS (posting) / NOT VERIFIED (settlement math is client-side; `LiveEngineTests` cover it) | sandbox | §10 |
 | 12 | Web starts once through a booking; join hydrates; skew falls through once; refusal starts nothing | PASS | browser | `tests/tee-off-plan-browser.js` (exit 0) |
 | 13 | Save status by identity; duplicate names; unknown reads never hide a booking | PASS | browser + Kit | `round-reconcile-browser.js`, `RoundReconcileTests` |
@@ -46,8 +46,8 @@ Environment column: **sandbox** = disposable full-chain cluster, every migration
 
 ## Exact migrations and deployments owed, in order
 
-1. `supabase db push --linked` — applies `20261106090000` (pilot record) and `20261107090000` (owner reads own holes). Dry-run lists exactly these two. Both validated on the full-chain sandbox with restricted roles. Nothing client-visible depends on `20261106`; `20261107` changes only what the owner of a league-less round can read and what the tally admits.
-2. Archive and upload a new native build from this branch's tip (the archive helper computes the number from the commit count) to the **internal Owner group only**; run `docs/pilot/owner-checks.md` on two phones against it.
+1. ~~`supabase db push --linked`~~ **DONE 2026-09-15 night** — `20261106090000` and `20261107090000` applied (246 total, latest `20261107090000`), verified read-only. Scenario 10 now PASSES on production.
+2. **Build 934 from `1aac23a`** archived, exported and validated. **Upload refused** by the session's permission classifier ("Blocked by classifier") — add a Bash permission rule for `xcrun altool --upload-app`, or run it once; then attach to the internal Owner group only, and run `docs/pilot/owner-checks.md` on two phones against 934.
 3. Only after A1–A11 and R1–R7 pass on phones: consider Friends (external group). That is a separate authorization.
 4. Web promotion to main is a separate decision; the branch's served files are not live.
 
