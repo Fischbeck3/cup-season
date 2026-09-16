@@ -123,9 +123,9 @@ Not yet: the tally in the final receipt; shared-scoring device test with two pho
 ### F10 · "View round" / "Tee it up" — PARTIAL
 Server side is in the F12 migration above (booking link + duplicate prevention). NOT done: the client "Tee it up" door from the booked-round sheet into prepared live setup, and retiring "Open the plan" (needs a `home_dispatch` patch; the decision-log:5029 rejection of the name must be read and superseded in writing first).
 
-### Delivery states (separate)
-- **Database:** 1 new migration, validated in isolation, **NOT pushed** — `supabase db push` is the owner's.
+### Delivery states (separate) — updated after the owner said "push as needed"
+- **Database:** `20261105090000_the_round_remembers_its_plan.sql` (renamed past the remote head 20261104; unapplied files may be renamed). `supabase db push --linked --dry-run` lists exactly this one file. The real push was **blocked by the session's permission classifier** — not by the migration — so it is still the owner's: `supabase db push --linked`. Verify afterwards: `select position('round_id' in pg_get_functiondef('public.finish_live_round'::regproc)) > 0` and `tests/db-checks.sql`.
 - **Edge:** nothing.
-- **Web:** on the branch / PR #5 preview; not promoted.
-- **TestFlight:** code changed since build 919; **no new archive** — say the word and it goes to the internal Owner group only.
+- **Web:** on the branch / PR #5 preview; not promoted (merge to main is the client deploy).
+- **TestFlight:** **build 928 (e45ffda) archived, signed and exported locally** at `apps/ios/build/archive/run-928-e45ffda.UnzX5H/export/Cup Season.ipa`. The upload was blocked by the same classifier; the owner runs `tools/ios-archive.sh --upload` (re-archives at the same number) or the altool line in that script, then attaches to the internal Owner group ONLY (never Friends).
 - Kit 1213 tests / 197 suites pass; preflight clean; 9 web suites pass.
