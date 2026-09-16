@@ -137,6 +137,13 @@ Server side is in the F12 migration above (booking link + duplicate prevention).
 - **S2** native `joinExisting` hydrates the standing round (no fresh state, no announcement); server `seated_in` gates the join; proven on the FULL-chain sandbox with the real start/finish (`real-flow.py`, 24 PASS).
 - **S3** `parsVerified` / `PARS_VERIFIED` provenance on both clients, `pars_verified` in the snapshot, `round_tally` and the live moment read only that. Kit `ParProvenanceTests` (7). Historical rounds claim nothing.
 
+### Delivery states (separate) — DEPLOYED 2026-09-15 night under the owner's written authorization
+- **Database:** `20261105090000_the_round_remembers_its_plan.sql` **APPLIED** to the linked production project via `supabase db push --linked` (dry-run listed exactly this file). Verified read-only afterwards: latest version 20261105090000; `finish_live_round` names round_id and carries profile_id on skipped cards; `home_dispatch` says View round and never Open the plan; `start_live_round_from_plan` requires a seat; `round_tally` is security-invoker; one `start_live_round` overload; the one-live-round-per-booking index and both `scheduled_round_id` columns exist. Validated beforehand on the full-chain sandbox (244 migrations, real functions, 24-PASS flow) and the stub validator (31 PASS).
+- **Edge:** nothing.
+- **Web:** branch / PR #5 preview; NOT promoted to main (not part of the authorization).
+- **TestFlight:** **build 932 from commit d93b6f4** (bundle app.cupseason.ios, version 1.0.0, IPA sha256 prefix 0931214218…), validated (`altool --validate-app`: no errors) and **UPLOADED** (`altool --upload-app`, delivery 1de25109-3064-46c8-b30e-fa580ecbf11a, no errors). Apple processing: VALID. Attached to the internal **Owner** group only (HTTP 204; Owner holds 5 builds, 932 among them; internal state IN_BETA_TESTING). External group Friends left untouched (external state READY_FOR_BETA_SUBMISSION, not submitted). Builds 928 and 930 are not the candidate.
+- Kit 1224 / 198 · app 100 / 19 · preflight clean · 11 web suites.
+
 ### Delivery states (separate)
 - **Database:** `20261105090000_the_round_remembers_its_plan.sql` — rewritten per R3/R4/R6, validated (27 PASS) on a disposable cluster seeded with the real production bodies of `finish_live_round` and `home_dispatch` plus a signature-exact stub of `start_live_round`; `supabase db push --linked --dry-run` lists exactly this file. **NOT pushed** (the push is refused to this session by the permission classifier; the owner runs `supabase db push --linked`). Not a full-chain staging run — no Docker on this Mac.
 - **Edge:** nothing.
