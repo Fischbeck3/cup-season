@@ -54,6 +54,19 @@ create index if not exists rounds_scheduled_round_idx
   on public.rounds (scheduled_round_id) where scheduled_round_id is not null;
 
 -- ── 2 · start-or-join, fully specified ───────────────────────────────────────
+-- Does this golfer hold a seat in that live round? A member seat is matched
+-- through league_members.profile_id; a known-golfer seat through
+-- guest_profile_id; a claimed guest seat through claimed_profile.
+create or replace function public.seated_in(p_live_round uuid, p_profile uuid)
+returns boolean language sql stable security definer set search_path to 'public' as $fn$
+  select exists (
+    select 1 from live_round_players p
+      left join league_members m on m.id = p.member_id
+     where p.live_round_id = p_live_round
+       and (p.guest_profile_id = p_profile or p.claimed_profile = p_profile or m.profile_id = p_profile))
+$fn$;
+revoke all on function public.seated_in(uuid, uuid) from public, anon, authenticated;
+
 create or replace function public.start_live_round_from_plan(
   p_scheduled_round uuid,
   p_league uuid default null,
@@ -90,11 +103,18 @@ begin
     raise exception 'You said you could not make this one';
   end if;
 
-  -- JOIN: a live round already stands for this booking — hand it back
+  -- JOIN: a live round already stands for this booking — hand it back, but
+  -- ONLY to a golfer who holds a seat in it (Codex S2). Being tagged on the
+  -- booking is not a seat: the host seats the group at tee-off, and a golfer
+  -- who was pending then is told so rather than dropped into a round whose
+  -- roster does not contain them.
   select * into v_existing from live_rounds
    where scheduled_round_id = sr.id and status = 'live'
    limit 1;
   if found then
+    if not seated_in(v_existing.id, v) then
+      raise exception 'The group teed off without a seat for you — ask the host to add you';
+    end if;
     return jsonb_build_object('live_round_id', v_existing.id, 'join_code', v_existing.join_code, 'joined', true);
   end if;
 
@@ -111,6 +131,9 @@ begin
     end if;
     select * into v_existing from live_rounds where scheduled_round_id = sr.id and status = 'live' limit 1;
     if not found then raise; end if;
+    if not seated_in(v_existing.id, v) then
+      raise exception 'The group teed off without a seat for you — ask the host to add you';
+    end if;
     return jsonb_build_object('live_round_id', v_existing.id, 'join_code', v_existing.join_code, 'joined', true);
   end;
   return v_out || jsonb_build_object('joined', false);
@@ -188,8 +211,8 @@ $patch$;
 -- ── 6 · the receipt's factual tally ──────────────────────────────────────────
 -- SECURITY INVOKER on purpose: whoever may read the round and its holes under
 -- RLS may read this; nobody else learns anything. Pars are the ones the live
--- round recorded, and only when the round names a course — a template card is
--- a guess, and a guess cannot declare an eagle (D368).
+-- round recorded, and only when that snapshot says they were VERIFIED — a
+-- template card is a guess, and a guess cannot declare an eagle (D368).
 create or replace function public.round_tally(p_round uuid)
 returns jsonb
 language sql
@@ -198,7 +221,14 @@ security invoker
 set search_path to 'public'
 as $fn$
   with r as (
-    select rd.id, lr.course_snapshot->'pars' as pars, lr.api_course_id
+    -- Codex S3 · a course id and a populated array are NOT proof of par: the
+    -- client installs a par-72 template the moment a course is picked and
+    -- replaces it only when the card read lands. `pars_verified` is written
+    -- by the client ONLY when the pars came from the course's own card or the
+    -- golfer wrote them; a snapshot without it (every historical round) is
+    -- unknown, and unknown claims nothing.
+    select rd.id, lr.course_snapshot->'pars' as pars,
+           coalesce((lr.course_snapshot->>'pars_verified')::boolean, false) as verified
       from rounds rd
       join live_rounds lr on lr.id = rd.live_round_id
      where rd.id = p_round
@@ -209,12 +239,12 @@ as $fn$
       from round_holes h
       join r on true
      where h.round_id = p_round
-       and r.api_course_id is not null
+       and r.verified
        and jsonb_typeof(r.pars) = 'array'
        and jsonb_array_length(r.pars) >= h.hole_number
   )
   select jsonb_build_object(
-    'known',   exists (select 1 from r where r.api_course_id is not null and jsonb_typeof(r.pars) = 'array'),
+    'known',   exists (select 1 from r where r.verified and jsonb_typeof(r.pars) = 'array'),
     'eagles',  (select count(*) from h where h.strokes > 0 and h.par - h.strokes >= 2),
     'birdies', (select count(*) from h where h.strokes > 0 and h.par - h.strokes = 1))
 $fn$;
@@ -237,6 +267,8 @@ begin
   if position('View round' in b) = 0 or position('Open the plan' in b) > 0 then raise exception 'check: home_dispatch still says Open the plan'; end if;
   if position('rd.scheduled_round_id = nullif(e->>''id''' in b) = 0 then raise exception 'check: home_dispatch does not suppress a linked plan'; end if;
   if c is null then raise exception 'check: start_live_round_from_plan is missing'; end if;
+  if position('seated_in(v_existing.id, v)' in c) = 0 then raise exception 'check: the join path does not require a seat'; end if;
+  if not exists (select 1 from pg_proc where proname = 'seated_in') then raise exception 'check: seated_in is missing'; end if;
   if (select count(*) from pg_proc where proname = 'start_live_round') <> 1 then raise exception 'check: start_live_round overload count changed'; end if;
   if not exists (select 1 from pg_indexes where indexname = 'live_rounds_one_live_per_booking') then
     raise exception 'check: the one-live-round-per-booking index is missing'; end if;

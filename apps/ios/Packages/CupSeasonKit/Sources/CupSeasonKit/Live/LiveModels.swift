@@ -187,6 +187,12 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
   public var siLoaded: [Int]?
   /// Which course the pars came from (7193).
   public var parsCourse: String?
+  /// Codex S3 · **were these pars VERIFIED** — read from the course's own card
+  /// for every hole in play, or written by the golfer? `parsCourse` is not
+  /// that: `applyTee` names the course and installs a par-72 template before
+  /// any card read lands. Only a verified card may declare a birdie or fill a
+  /// receipt tally; the flag travels in the snapshot as `pars_verified`.
+  public var parsVerified: Bool = false
   public var courseId: String?
   /// `#cardNote` — set by the loader or "Save the card"; nil = the standard line.
   public var note: String?
@@ -226,6 +232,19 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
     siEst = true
   }
 
+  /// The par-72 template: named as a guess, never verified.
+  public mutating func installTemplate() {
+    pars = LiveCourseCard.postParStd
+    siLoaded = nil
+    parsVerified = false
+  }
+
+  /// The golfer wrote the card themselves: confirmed, and it counts.
+  public mutating func confirmPars(_ p: [Int]) {
+    pars = p
+    parsVerified = p.count == 18 && p.allSatisfy { $0 >= 3 && $0 <= 6 }
+  }
+
   /// A stroke index re-ranked 1..n over `raw` (6925, 6951).
   static func rerank(_ raw: [Int]) -> [Int] {
     let order = raw.indices.sorted { raw[$0] < raw[$1] }
@@ -252,6 +271,9 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
   @discardableResult
   public mutating func load(holes rows: [(par: Int, handicap: Int)], playing: Int) -> Bool {
     guard !rows.isEmpty else { return false }
+    // verified only when the card covers every hole in play with a real par;
+    // an incomplete array leaves template holes behind, and those are guesses
+    parsVerified = rows.count >= playing && rows.prefix(playing).allSatisfy { $0.par > 0 }
     siLoaded = rows.map(\.handicap)
     if playing == 9 {
       let nine = Array(rows.prefix(9))
@@ -272,6 +294,8 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
   /// "Save the card" (9570–9577): pars only, estimated index, ranked over the nine or the eighteen.
   public mutating func save(front: [Int], back: [Int]?, nine: Bool) {
     pars = nine ? front + Array(pars[9..<18]) : front + (back ?? Array(pars[9..<18]))
+    // S3 · the golfer wrote these: confirmed, for the holes they wrote
+    parsVerified = pars.prefix(nine ? 9 : 18).allSatisfy { $0 >= 3 && $0 <= 6 }
     estimate(holes: nine ? 9 : 18)
     siLoaded = nil
     let total = front.reduce(0, +) + (nine ? 0 : (back ?? []).reduce(0, +))
@@ -287,6 +311,7 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
     if holes == 9, let r = rating { o["nine_rating"] = .number(rating9 ? r : r / 2) } else { o["nine_rating"] = .null }
     o["holes"] = .number(Double(holes))
     o["pars"] = .array(pars.map { .number(Double($0)) })
+    o["pars_verified"] = .bool(parsVerified)
     o["si"] = .array(si.map { .number(Double($0)) })
     o["label"] = .string(label.trimmingCharacters(in: .whitespaces))
     o["tee"] = .string(tee.trimmingCharacters(in: .whitespaces))
@@ -298,6 +323,7 @@ public struct LiveCourseCard: Codable, Sendable, Equatable {
     var c = LiveCourseCard()
     let pars = snap?["pars"]?.array?.compactMap { $0.int ?? $0.string.flatMap(Int.init) }
     if let pars, pars.count == 18 { c.pars = pars }
+    c.parsVerified = snap?["pars_verified"]?.bool ?? false
     let si = snap?["si"]?.array?.compactMap { $0.int ?? $0.string.flatMap(Int.init) }
     if let si, si.count == 18 { c.si = si; c.siEst = siEstimated } else { c.estimate(holes: snap?["holes"]?.int == 9 ? 9 : 18) }
     if let r = snap?["rating"]?.double ?? snap?["rating"]?.string.flatMap(Double.init), r != 0 { c.rating = r }

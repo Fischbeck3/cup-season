@@ -11719,7 +11719,7 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
      card. Every early return below (uncached course, partial hole rows) would
      otherwise leave the previous course's pars + SI standing. */
   if(LR_PARS_COURSE !== course.id){
-    PAR = POST_PAR_STD.slice(); SI_LOADED = null; estimateSI(liveHoles());
+    PAR = POST_PAR_STD.slice(); SI_LOADED = null; PARS_VERIFIED = false; estimateSI(liveHoles());
     LR_PARS_COURSE = course.id;
     recomputeStrokes();
   }
@@ -11741,6 +11741,7 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
          card. SI re-ranked among the nine so the strokes allocate 1-9. */
       const nine = holes.slice(0,9);
       PAR = [...nine.map(h => Number(h.par) || 4), ...PAR.slice(9,18)];
+      PARS_VERIFIED = nine.length >= 9 && nine.every(h => Number(h.par) > 0);
       const rawSI = nine.map(h => Number(h.handicap));
       if(rawSI.every(n => n >= 1)){
         const order=[...rawSI.keys()].sort((a,b)=> rawSI[a]-rawSI[b]);
@@ -11749,6 +11750,7 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
     } else {
       if(holes.length !== 18) return;   /* an 18-hole card must be complete */
       PAR = holes.map(h => Number(h.par) || 4);
+      PARS_VERIFIED = holes.length >= liveHoles() && holes.slice(0, liveHoles()).every(h => Number(h.par) > 0);
       const si = holes.map(h => Number(h.handicap));
       if(si.every(n => n >= 1 && n <= 18)){ SI = si; SIEST = false; } else estimateSI();
     }
@@ -12091,6 +12093,8 @@ $$('.preset').forEach(p=>{
 /* ================= live round (play) ================= */
 /* the course card — pars drive the stepper default; SI optional (null = by hole order) */
 let PAR=[4,4,3,5,4,4,3,4,5,4,3,4,5,4,4,3,4,5];
+/* Codex S3 · were these pars VERIFIED — the course's own card for every hole in play, or the golfer's own hand? The template is a guess and a guess cannot declare a birdie. */
+let PARS_VERIFIED=false; window.csParsVerified = () => PARS_VERIFIED;
 let SI =[7,13,15,1,9,5,17,11,3,8,14,2,10,4,12,18,6,16];
 let CRATE=70.2, CSLOPE=123;
 /* golf convention: an index better than scratch is a PLUS handicap — display
@@ -12649,6 +12653,30 @@ async function drainAbandons(){
   try{ localStorage.setItem(PENDA_KEY, JSON.stringify(left)); }catch(_){}
 }
 window.drainAbandons=drainAbandons;
+/* the live round row, the one shape resume AND join read */
+function csLiveCols(jc, sp){ return `id, league_id, game, game_config, ${jc?'join_code, ':''}${sp?'starter_profile_id, ':''}started_by, course_snapshot, course_label, started_at, live_round_players!live_round_players_live_round_id_fkey(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))`; }
+/* Codex S2 · join the round that already stands for a booking: read it as the
+   server has it and apply it through the SAME conversion resume uses — its
+   roster and seat ids, its scores from this browser if any, its start, its
+   host. Returns false when I hold no seat in it; nothing is initialised. */
+async function csJoinExistingLiveRound(lr){
+  const myPid = window.CS?.user?.id || null;
+  if(!window.sb || !lr) return false;
+  let row = null;
+  for(const [jc, sp] of [[true,true],[true,false],[false,false]]){
+    const r = await sb.from('live_rounds').select(csLiveCols(jc, sp)).eq('id', lr).maybeSingle();
+    if(r && !r.error){ row = r.data; break; }
+  }
+  if(!row) return false;
+  const seated = (row.live_round_players||[]).some(p => p.member?.profile_id===myPid || p.guest_profile_id===myPid);
+  if(!seated) return false;
+  if(!applyServerRound(row, myPid)) return false;
+  persistLive();
+  liveJoinIfAble();
+  renderPlay();
+  return true;
+}
+window.csJoinExistingLiveRound = csJoinExistingLiveRound;
 async function rehydrateLiveRound(){
   if(state.demo) return;
   /* an ACTIVE in-memory round is the freshest truth there is — never re-apply
@@ -12686,7 +12714,7 @@ async function rehydrateLiveRound(){
        for 'live_rounds' and 'live_round_players'". Every boot after a live
        round logged that, the resume list came back empty, and "Continue your
        round" never appeared (D86's doorbell). The hint is the whole fix. */
-    const _cols = (jc, sp) => `id, league_id, game, game_config, ${jc?'join_code, ':''}${sp?'starter_profile_id, ':''}started_by, course_snapshot, course_label, started_at, live_round_players!live_round_players_live_round_id_fkey(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))`;
+    const _cols = csLiveCols;
     const _sel = (jc, sp) => sb.from('live_rounds')
       .select(_cols(jc, sp)).eq('status','live').order('started_at',{ ascending:false });
     let { data, error } = await _sel(true, true);
@@ -14248,7 +14276,8 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
     ? [0,1,2,3].map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])
     : null;
   const _holes=liveHoles(), _rating9=!!(state.live&&state.live.rating9);   /* carry the setup's holes choice into the live round */
-  state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9, pairing:_pairing, mode:_mode,
+  const _planId=(state.live&&state.live.planId)||null;   /* F10 · the booking this round is teed up from survives the rebuild (S1) */
+  state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9, pairing:_pairing, mode:_mode, planId:_planId,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:null,   /* D85: per-cell write clocks + the channel key */
     lr:null, league_id:(window.CS?.league?.id||null), pmap:null, guestTokens:{}};
@@ -14267,7 +14296,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
       const _r=parseFloat($('#lrRate').value)||null;
       const _nine9 = _holes===9 && _r!=null ? (_rating9 ? _r : _r/2) : null;
       const snap={ rating:_r, slope:parseInt($('#lrSlope').value)||null,
-        nine_rating:_nine9, holes:_holes, pars:PAR.slice(), si:(SI?SI.slice():null),
+        nine_rating:_nine9, holes:_holes, pars:PAR.slice(), pars_verified:PARS_VERIFIED, si:(SI?SI.slice():null),
         label:($('#lrCourse').value||'').trim(), tee:($('#lrTee').value||'').trim() };
       /* D88: a guest we searched up in the app IS a known golfer — carry the
          profile so the server can ring them and their app can find the round.
@@ -14307,24 +14336,42 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
          live round per booking, and a second starter is handed the first
          golfer's round. An older server has no such function; then the plain
          start runs and the link is simply not made (skew, never a failure). */
+      /* F10 / Codex S1 · ONE start. A round teed up from a booking goes
+         THROUGH the booking, and that call's answer IS the round: a fresh
+         start's payload is consumed as the start (no second, unlinked
+         start_live_round call); a JOIN hydrates the standing round and
+         returns; a missing function on an older server is the only case
+         that falls through to the ordinary start (the link simply not made);
+         a permission or network failure aborts — it never starts an
+         unrelated round. */
+      let data = null, error = null, viaPlan = false;
       if(state.live.planId && window.sb){
-        try{
-          const pa = { p_scheduled_round: state.live.planId, p_league: args.p_league, p_course_label: args.p_course_label, p_snapshot: args.p_snapshot,
-                       p_game: args.p_game, p_players: args.p_players, p_config: args.p_config, p_api_course_id: args.p_api_course_id };
-          const pr = await window.sb.rpc('start_live_round_from_plan', pa);
-          if(!pr.error && pr.data){ if(pr.data.joined) toast('Joined the round already teed up for this booking.'); window.__csPlanStart = pr; }
-          else if(pr.error && !/function|schema cache/i.test(pr.error.message||'')) throw pr.error;
-        }catch(e){ toast(humanError(e, 'Couldn’t tee up the booking.')); return; }
+        const pa = { p_scheduled_round: state.live.planId, p_league: args.p_league, p_course_label: args.p_course_label, p_snapshot: args.p_snapshot,
+                     p_game: args.p_game, p_players: args.p_players, p_config: args.p_config, p_api_course_id: args.p_api_course_id };
+        const pr = await window.sb.rpc('start_live_round_from_plan', pa);
+        if(pr.error){
+          if(!/function|schema cache/i.test(pr.error.message||'')) throw pr.error;   /* refused: no unrelated round */
+          /* skew: an older server — the ordinary start below, unlinked */
+        } else if(pr.data && pr.data.joined){
+          const ok = await csJoinExistingLiveRound(pr.data.live_round_id);
+          if(!ok) throw new Error('The group teed off without a seat for you — ask the host to add you.');
+          toast('Joined the round already teed up for this booking.');
+          btn.disabled=false; return;
+        } else if(pr.data && pr.data.live_round_id){
+          data = pr.data; viaPlan = true;
+        }
       }
-      let { data, error } = await sb.rpc('start_live_round', args);
-      /* Netlify ships this client before `db push` — old RPC has no p_config;
-         drop it and retry so a tee-off never fails on deploy skew */
-      if(error && /p_config|p_api_course_id|function|schema cache/i.test(error.message||'')){
-        delete args.p_api_course_id;              /* D150 · shed the newest arg first */
+      if(!viaPlan){
         ({ data, error } = await sb.rpc('start_live_round', args));
-        if(error && /p_config|function|schema cache/i.test(error.message||'')){
-          delete args.p_config;
+        /* D150 · an older server rejects an argument it does not know:
+           drop it and retry so a tee-off never fails on deploy skew */
+        if(error && /p_config|p_api_course_id|function|schema cache/i.test(error.message||'')){
+          delete args.p_api_course_id;              /* D150 · shed the newest arg first */
           ({ data, error } = await sb.rpc('start_live_round', args));
+          if(error && /p_config|function|schema cache/i.test(error.message||'')){
+            delete args.p_config;
+            ({ data, error } = await sb.rpc('start_live_round', args));
+          }
         }
       }
       if(error) throw error;
@@ -15879,6 +15926,7 @@ function openCardSheet(){
     const f=f9.value, b=b9?b9.value:'';
     if(!validSide(f)||(!nine&&!validSide(b))){ toast('Nine digits a side, 3 through 6'); return; }
     PAR=nine ? [...[...f].map(Number), ...PAR.slice(9,18)] : [...f,...b].map(Number);
+    PARS_VERIFIED = PAR.slice(0, nine?9:18).every(v => v>=3 && v<=6);   /* S3 · the golfer wrote it: confirmed */
     /* pars-only card carries no stroke index — estimate (flagged), never null:
        strokeOn()/matchCalc() dereference SI on every match hole. Rank over the
        holes in play so a nine's SI is 1-9. */

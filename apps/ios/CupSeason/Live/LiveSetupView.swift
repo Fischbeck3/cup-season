@@ -121,7 +121,7 @@ struct LiveSetupView: View {
           .buttonStyle(.csTertiary(.content))
           .accessibilityIdentifier("offline.courses.open")
         LiveCourseField(localOnly: store.scoreOnPhone, text: Binding(get: { store.state.course.label }, set: { v in
-          if store.state.course.label != v { store.state.course.courseId = nil; store.state.course.note = nil; store.state.course.parsCourse = nil }
+          if store.state.course.label != v { store.state.course.courseId = nil; store.state.course.note = nil; store.state.course.parsCourse = nil; store.state.course.parsVerified = false }
           store.state.course.label = v
         }), onReveal: { CourseSearchReveal.run(proxy, top: searchTop) }) { course, tee in
           Task {

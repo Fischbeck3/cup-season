@@ -288,7 +288,7 @@ final class LiveRoundStore {
     // is not a course and the rule would otherwise (rightly) stay silent.
     let args = ProcessInfo.processInfo.arguments
     if let k = args.firstIndex(of: "-cs_dev_moment"), k + 1 < args.count, let me = state.players.firstIndex(where: \.me) {
-      state.course.parsCourse = "dev-fixture"
+      state.course.parsCourse = "dev-fixture"; state.course.parsVerified = true
       primeMomentLedger()
       let h = state.hole, par = state.course.pars[h]
       state.scores[me][h] = args[k + 1] == "eagle" ? par - 2 : par - 1
@@ -717,8 +717,7 @@ final class LiveRoundStore {
     // D73: a real 9-hole tee flips the live round to a nine — its rating IS a 9-hole rating
     if tee.number_of_holes == 9 { state.holes = 9; state.rating9 = true }
     if state.course.parsCourse != course.id {
-      state.course.pars = LiveCourseCard.postParStd
-      state.course.siLoaded = nil
+      state.course.installTemplate()          // S3 · a guess, marked as one
       state.course.estimate(holes: state.liveHoles)
       state.course.parsCourse = course.id
       state.course.note = nil
@@ -829,7 +828,15 @@ final class LiveRoundStore {
         do {
           out = try await repo.startFromPlan(planId, league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g,
                                              players: playersJSON, config: cfg, apiCourseId: s.course.courseId)
-          if out.joined { toast("Joined the round already teed up for this booking.") }
+          if out.joined {
+            // Codex S2 · the round already stands. The fresh `s` built above —
+            // its players, blank scores, game and settings — is DISCARDED, and
+            // the existing round is loaded from the server: its roster and
+            // seat ids, its scores, its start time, its host, and whether I
+            // am the viewer or the starter. No start is announced.
+            await joinExisting(out.lr)
+            return
+          }
         } catch let e as RpcError where e.isMissingFunction {
           out = try await repo.start(league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g, players: playersJSON, config: cfg,
                                      apiCourseId: s.course.courseId)
@@ -928,6 +935,28 @@ final class LiveRoundStore {
     state.hole = min(state.liveHoles - 1, state.hole + 1); persist(); LiveActivityHost.update(state)
   }
 
+  // MARK: - S2 · joining the round that already stands for a booking
+
+  /// Load the standing round as the server has it, through the same row-to-
+  /// state conversion the resume path uses, and only if I hold a seat in it.
+  private func joinExisting(_ lr: UUID) async {
+    let rows = (try? await repo.openRounds()) ?? []
+    guard let row = rows.first(where: { $0["id"]?.string.flatMap(UUID.init) == lr }),
+          var s = LiveRehydrator.fromServerRow(row, myPid: myPid) else {
+      toast("The group teed off without a seat for you — ask the host to add you.")
+      state.active = false; state.stage = .setup
+      return
+    }
+    if let cc = await disk.snapshot(lr) { LiveRehydrator.overlay(local: cc, onto: &s) }
+    s.stage = .live; s.active = true
+    state = s
+    persist()
+    await joinSync()
+    LiveActivityHost.start(state)
+    primeMomentLedger()
+    toast(s.host.map { "Joined \(LiveFmt.fn1($0))’s round for this booking" } ?? "Joined the round already teed up for this booking")
+  }
+
   // MARK: - F12 · a booking I have played
 
   /// The plan bridge stops offering a round I have already posted — matched
@@ -947,9 +976,7 @@ final class LiveRoundStore {
   /// Pars are KNOWN when they came from a course, or the golfer wrote the
   /// card themselves. The standard par-72 template is a guess, and a guess
   /// cannot declare an eagle.
-  private var parsAreKnown: Bool {
-    state.course.parsCourse != nil || (state.course.note != nil && state.course.note != LiveCourseCard.standardNote)
-  }
+  private var parsAreKnown: Bool { state.course.parsVerified }
   private func commitMoment(leaving h: Int) {
     guard state.active, let pi = myPlayerIndex,
           h < state.scores[pi].count, h < state.scts[pi].count, h < state.course.pars.count else { return }

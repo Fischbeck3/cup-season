@@ -132,6 +132,11 @@ Server side is in the F12 migration above (booking link + duplicate prevention).
 - **R6** contract rows for `start_live_round_from_plan` and `round_tally` written to the snapshot query's exact shape and verified row-for-row against the disposable cluster; `start_live_round` row unchanged. Both "Tee it up" doors built (phone `ScheduledRoundSheet` → `LiveRoundStore.prepare(from:)` → `startFromPlan`; web `rtTeeUp` → `csTeeUpFromPlan` → `start_live_round_from_plan`, skew-safe). "View round" in `home_dispatch`, `HomeFallbackItems`, fixture. Receipt tally via `round_tally` on both clients. D367 addendum records the "Tee it up" distinction (roster closure ≠ booked round).
 - **R7** the corrected candidate is archived at ITS commit with the number the helper computes (below). Build 928 is not shipped.
 
+### Codex build-930 follow-up S1–S3 (docs/reviews/2026-09-15-build-930-followup.md) — CLOSED
+- **S1** one start on the web: plan payload consumed, join hydrates, skew falls through once, refusal starts nothing; the booking id survives the state rebuild. Regression `tests/tee-off-plan-browser.js` drives the real handler with a mocked RPC layer.
+- **S2** native `joinExisting` hydrates the standing round (no fresh state, no announcement); server `seated_in` gates the join; proven on the FULL-chain sandbox with the real start/finish (`real-flow.py`, 24 PASS).
+- **S3** `parsVerified` / `PARS_VERIFIED` provenance on both clients, `pars_verified` in the snapshot, `round_tally` and the live moment read only that. Kit `ParProvenanceTests` (7). Historical rounds claim nothing.
+
 ### Delivery states (separate)
 - **Database:** `20261105090000_the_round_remembers_its_plan.sql` — rewritten per R3/R4/R6, validated (27 PASS) on a disposable cluster seeded with the real production bodies of `finish_live_round` and `home_dispatch` plus a signature-exact stub of `start_live_round`; `supabase db push --linked --dry-run` lists exactly this file. **NOT pushed** (the push is refused to this session by the permission classifier; the owner runs `supabase db push --linked`). Not a full-chain staging run — no Docker on this Mac.
 - **Edge:** nothing.

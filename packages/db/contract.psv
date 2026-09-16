@@ -319,6 +319,7 @@ season_email_on_complete||trigger|definer|none
 season_email_payload|p_season uuid|jsonb|definer|none
 season_scenarios|p_season uuid|jsonb|definer|auth
 season_story|p_season uuid DEFAULT NULL::uuid, p_league uuid DEFAULT NULL::uuid|jsonb|definer|auth
+seated_in|p_live_round uuid, p_profile uuid|boolean|definer|none
 set_buy_in_terms|p_league uuid, p_note text DEFAULT NULL::text, p_due_on date DEFAULT NULL::date|json|definer|auth
 set_discoverable|p_mode text|void|definer|auth
 set_email_recap|p_on boolean DEFAULT NULL::boolean|boolean|definer|auth
