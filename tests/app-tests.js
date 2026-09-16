@@ -1317,25 +1317,64 @@
     t('D240: the weekend door sells a name, never a trophy',
       [CS_INTENTS[2].gloss.includes('trophy'), CS_INTENTS[2].gloss.includes('cup')], [false, false]);
 
-    /* R-F · all three lengths, always, in the owner's own words */
-    t('R-F: the three lengths are the owner\u2019s words',
+    /* R-F · all three lengths, always. D363 (owner, 2026-09-15) reworded them
+       so none reads as a date; the words are the phone's (`CalloutLength`). */
+    t('R-F/D363: the three ways are the owner’s words',
       CS_LENGTHS.map(l => l.title + ' — ' + l.gloss),
-      ['This Saturday — a live match, on one card',
-       'One week — best round by Sunday takes it',
-       'A season — a table, and a cup at the end']);
+      ['Play a round — one round together — now, or on the schedule',
+       'Go head to head — each of you posts a round before it closes',
+       'Start a season — rounds over time — a table, and a cup at the end']);
+    t('D363: the head names the person, and no route word names a weekday or a week',
+      [CS_PLAY_WITH.head('Alex Rivera'),
+       CS_LENGTHS.flatMap(l => [l.title, l.gloss]).concat([CS_PLAY_WITH.roundHead, CS_PLAY_WITH.nowTitle, CS_PLAY_WITH.nowGloss, CS_PLAY_WITH.laterTitle, CS_PLAY_WITH.laterGloss])
+         .filter(s => /monday|tuesday|wednesday|thursday|friday|saturday|sunday|week/i.test(s))],
+      ['Play with Alex', []]);
     t('R-F: the state ORDERS them and never shortens them',
       [csLengthsOffered(false, false).map(l => l.k),
        csLengthsOffered(true, false).map(l => l.k),
        csLengthsOffered(false, true).map(l => l.k),
        csLengthsOffered(true, true).map(l => l.k)],
-      [['thisSaturday', 'oneWeek', 'aSeason'],
-       ['thisSaturday', 'oneWeek', 'aSeason'],
-       ['thisSaturday', 'oneWeek', 'aSeason'],
-       ['thisSaturday', 'oneWeek', 'aSeason']]);
+      [['aRound', 'headToHead', 'aSeason'],
+       ['aRound', 'headToHead', 'aSeason'],
+       ['aRound', 'headToHead', 'aSeason'],
+       ['aRound', 'headToHead', 'aSeason']]);
     t('R-F: every length lands on an object that already exists',
-      CS_LENGTHS.map(l => l.object), ['liveRound', 'callout', 'pairSeason']);
-    t('R-F: and the golfer never meets the object\u2019s name',
+      CS_LENGTHS.map(l => l.object), ['round', 'callout', 'pairSeason']);
+    t('R-F: and the golfer never meets the object’s name',
       CS_LENGTHS.flatMap(l => csObjectNouns(l.title + ' ' + l.gloss)), []);
+    /* D363 · the head-to-head closes on the SHARED Sunday rule (the phone's
+       `CalloutLength.defaultClose`): the coming Sunday, unless fewer than
+       three days out — then the one after. The web used to send null. */
+    t('D363: the head-to-head closes on the shared Sunday rule',
+      ['2026-09-05', '2026-09-06', '2026-09-07', '2026-09-09', '2026-09-11', '2026-09-12'].map(csCalloutDefaultClose),
+      ['2026-09-13', '2026-09-13', '2026-09-13', '2026-09-13', '2026-09-20', '2026-09-20']);
+    /* D363 · seating the person "Play with → Now" was tapped from: never over
+       an existing round, never twice, never past four, an unknown number is
+       an estimate and says so. */
+    {
+      const me = { n:'You', i:12.4, pid:'p-me', me:true, locked:true };
+      const alex = { pid:'p-alex', name:'Alex Rivera' };
+      const fresh = () => ({ roster:[Object.assign({}, me)], sel:[0] });
+      let s = fresh();
+      const seated = csPreselectInto(s.roster, s.sel, alex, 9.8, { active:false });
+      t('D363: the person is seated beside me with the producer’s number',
+        [seated, s.sel.length, s.roster[1].pid, s.roster[1].i, s.roster[1].est, s.roster[1].guest && s.roster[1].buddy],
+        ['seated', 2, 'p-alex', 9.8, false, true]);
+      t('D363: seated again is not seated twice',
+        [csPreselectInto(s.roster, s.sel, alex, 9.8, { active:false }), s.sel.length, s.roster.length], ['alreadySeated', 2, 2]);
+      s = fresh();
+      t('D363: no number on file is an estimated 18, flagged',
+        [csPreselectInto(s.roster, s.sel, alex, null, { active:false }), s.roster[1].i, s.roster[1].est], ['seated', 18, true]);
+      s = fresh();
+      t('D363: an existing round is never overwritten',
+        [csPreselectInto(s.roster, s.sel, alex, 9.8, { active:true }), s.roster.length], ['alreadyInARound', 1]);
+      s = fresh(); [1,2,3].forEach(k => { s.roster.push({ n:'Guest '+k, i:18, guest:true }); s.sel.push(k); });
+      t('D363: a full group says so rather than dropping someone',
+        [csPreselectInto(s.roster, s.sel, alex, 9.8, { active:false }), s.sel.length, s.roster.length], ['full', 4, 4]);
+      s = fresh(); s.roster.push({ n:'Alex Rivera', i:9.8, pid:'p-alex', guest:false });
+      t('D363: a league mate already in the roster is selected, not duplicated',
+        [csPreselectInto(s.roster, s.sel, alex, 9.8, { active:false }), s.sel, s.roster.length], ['seated', [0, 1], 2]);
+    }
 
     /* D225 / R9 · the covenant names the crew, the clock and what the money
        buys — and an absent fact renders NOTHING (L-44). */
@@ -1495,21 +1534,43 @@
     t('D256: a month of top-band rounds gains nothing', csRoundWorth(4, 4, 12), 0);
     t('D256: full with an unknown counter has no honest answer', csRoundWorth(4, 4, null), null);
     t('D256: uncapped means every round counts', csRoundWorth(null, 9, null), 12);
-    t('R-K: the owner\u2019s own sentence',
+    /* D364 (F3) · the ceiling and the counting rule, said separately; a full
+       month shows the replacement arithmetic; a nine is half the band. */
+    t('R-K/D364: the owner’s own sentence',
       csRoundWorthLine('Tomorrow at Papago', 4, 2, null, null),
-      'Tomorrow at Papago is worth up to 12. Your best 4 count and you have 2.');
+      'Tomorrow at Papago can score up to 12, and it counts: your best 4 count and you have 2.');
     t('D24: it is a ceiling, never a probability',
       /up to/.test(csRoundWorthLine('This round', 4, 2, null, null)), true);
-    t('D256: a full month says what it bumps',
+    t('D364: a full month shows what a 12 replaces and what it adds',
       csRoundWorthLine('This round', 4, 4, 7, null),
-      'This round is worth up to 5 more. Your best 4 count this month and your worst is a 7.');
+      'This round can score up to 12. Your best 4 count this month and your lowest is a 7, so a 12 would add 5.');
+    t('D364: a maxed month says why it cannot add, and that it still builds the number',
+      csRoundWorthLine('This round', 4, 4, 12, null),
+      'This round can score up to 12, but your best 4 already count and none is below 12 — it can’t add to your total this month. It still builds your number.'.replace('’', "'"));
+    t('D364: a nine is never promised an eighteen-hole ceiling',
+      [csRoundCeiling(9), csRoundWorth(4, 4, 5, 9), /up to 6 as a nine/.test(csRoundWorthLine('This round', 4, 2, null, null, 9)), /12/.test(csRoundWorthLine('This round', 4, 2, null, null, 9))],
+      [6, 1, true, false]);
     t('L-44: absent facts render nothing', csRoundWorthLines(undefined, 'This round'), []);
     t('L-34: the season is named only when there is more than one',
       [csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }], 'This round').length,
        csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 },
                           { league_name: 'PIGL', cap: 3, used: 0 }], 'This round')[1].includes('in PIGL'),
-       csRoundWorthLines([{ cap: 4, used: 1 }, { cap: 4, used: 1 }, { cap: 4, used: 1 }], 'This round').length],
+       csRoundWorthLines([{ cap: 4, used: 0 }, { cap: 4, used: 1 }, { cap: 4, used: 2 }], 'This round').length],
       [1, true, 2]);
+    t('D364: seasons that say the same thing say it once, together',
+      [csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }, { league_name: 'PIGL', cap: 4, used: 2 }], 'This round'),
+       csRoundWorthLines([{ league_name: 'A', cap: 4, used: 2 }, { league_name: 'B', cap: 4, used: 2 }, { league_name: 'C', cap: 4, used: 2 }], 'This round').length,
+       csRoundWorthLines([{ league_name: 'The Fellas', cap: 4, used: 2 }, { league_name: 'PIGL', cap: 4, used: 4, worst: 5 }], 'This round').length],
+      [['This round can score up to 12, and it counts in both The Fellas and PIGL: your best 4 count and you have 2.'], 1, 2]);
+    /* D366 (F6) · the pride-bet composer says what it is: record-only, no
+       acceptance, what decides it, who confirms, where it shows, no points */
+    t('D366: the composer never claims a challenge was sent or accepted',
+      [CS_PRIDE.purpose.includes('nobody is asked to accept'), CS_PRIDE.who('Alex Rivera'), CS_PRIDE.who(null).startsWith('You and the field'),
+       CS_PRIDE.context('season', 'the Fellas'), CS_PRIDE.context('buddies'), CS_PRIDE.context('plan'),
+       CS_PRIDE.confirm('Alex Rivera').includes("Alex isn't asked to accept here"), CS_PRIDE.points, CS_PRIDE.decidesLabel,
+       Object.values(CS_PRIDE).filter(v=>typeof v==='string').some(s=>/forfeit|\$|dollars|cents|challenge sent|has accepted/i.test(s))],
+      [true, 'You and Alex', true, 'On the Fellas — the result never touches its points.', 'Between the two of you — no season or round attached.',
+       'On this planned round.', true, 'It never touches league points.', 'What decides it', false]);
   })();
 
   /* ── Wave 3 · the profile's own producers ───────────────────────────── */

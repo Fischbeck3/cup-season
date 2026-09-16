@@ -117,11 +117,15 @@ public struct LiveStartOutcome: Sendable, Equatable {
   public let lr: UUID
   public let code: String?
   public let seats: [Seat]
+  /// F10 · true when `start_live_round_from_plan` handed back a round that
+  /// was ALREADY standing for the booking, rather than opening a new one.
+  public let joined: Bool
 
   public init?(_ v: JSONValue) {
     guard let id = v["live_round_id"]?.string.flatMap(UUID.init) else { return nil }
     lr = id
     code = v["join_code"]?.string
+    joined = v["joined"]?.bool ?? false
     seats = (v["players"]?.array ?? []).compactMap { p in
       guard let pid = p["id"]?.string.flatMap(UUID.init) else { return nil }
       return Seat(id: pid, position: p["position"]?.int ?? 0, guestName: p["guest_name"]?.string, claimToken: p["claim_token"]?.string.flatMap(UUID.init))
@@ -131,9 +135,21 @@ public struct LiveStartOutcome: Sendable, Equatable {
 
 /// What `finish_live_round` hands back (`{posted, guests, skipped, casual}` / `{already_final}`).
 public struct LiveFinishOutcome: Sendable, Equatable {
-  public struct Posted: Sendable, Equatable { public let name: String; public let gross: Int?; public let holes: Int? }
+  /// F12 · `round_id` and `profile_id` arrive once 20261105090000 is applied;
+  /// an older server sends neither and the recap falls back to matching on
+  /// course id and day.
+  public struct Posted: Sendable, Equatable {
+    public let name: String; public let gross: Int?; public let holes: Int?
+    public let roundId: UUID?; public let profileId: UUID?
+    public init(name: String, gross: Int?, holes: Int?, roundId: UUID? = nil, profileId: UUID? = nil) {
+      self.name = name; self.gross = gross; self.holes = holes; self.roundId = roundId; self.profileId = profileId
+    }
+  }
   public struct Guest: Sendable, Equatable { public let name: String; public let token: UUID? }
-  public struct Skipped: Sendable, Equatable { public let name: String; public let reason: String }
+  public struct Skipped: Sendable, Equatable {
+    public let name: String; public let reason: String; public let profileId: UUID?
+    public init(name: String, reason: String, profileId: UUID? = nil) { self.name = name; self.reason = reason; self.profileId = profileId }
+  }
   public let posted: [Posted]
   public let guests: [Guest]
   public let skipped: [Skipped]
@@ -146,9 +162,14 @@ public struct LiveFinishOutcome: Sendable, Equatable {
 
   public init(_ v: JSONValue) {
     alreadyFinal = v["already_final"]?.bool ?? false
-    posted = (v["posted"]?.array ?? []).map { Posted(name: $0["name"]?.string ?? "A golfer", gross: $0["gross"]?.int, holes: $0["holes"]?.int) }
+    posted = (v["posted"]?.array ?? []).map {
+      Posted(name: $0["name"]?.string ?? "A golfer", gross: $0["gross"]?.int, holes: $0["holes"]?.int,
+             roundId: $0["round_id"]?.string.flatMap(UUID.init), profileId: $0["profile_id"]?.string.flatMap(UUID.init))
+    }
     guests = (v["guests"]?.array ?? []).map { Guest(name: $0["name"]?.string ?? "Guest", token: $0["claim_token"]?.string.flatMap(UUID.init)) }
-    skipped = (v["skipped"]?.array ?? []).map { Skipped(name: $0["name"]?.string ?? "A golfer", reason: $0["reason"]?.string ?? "") }
+    skipped = (v["skipped"]?.array ?? []).map {
+      Skipped(name: $0["name"]?.string ?? "A golfer", reason: $0["reason"]?.string ?? "", profileId: $0["profile_id"]?.string.flatMap(UUID.init))
+    }
     casual = v["casual"]?.bool ?? false
   }
 }
@@ -181,6 +202,20 @@ public struct LiveRepository: Sendable {
   }
 
   // MARK: the round
+
+  /// F10 · start-or-join through a booking (`start_live_round_from_plan`,
+  /// 20261105090000). The server refuses a stranger, a declined seat and a
+  /// cancelled booking before writing; a second eligible caller is handed
+  /// the round already standing, with `joined` true.
+  public func startFromPlan(_ plan: UUID, league: UUID?, label: String, snapshot: JSONValue, game: LiveGame, players: JSONValue,
+                            config: JSONValue, apiCourseId: String? = nil) async throws -> LiveStartOutcome {
+    let v = try await svc.call(Rpc.start_live_round_from_plan(p_scheduled_round: plan, p_league: league, p_course_label: label, p_snapshot: snapshot,
+                                                              p_game: game.server, p_players: players, p_config: config, p_api_course_id: apiCourseId))
+    guard let out = LiveStartOutcome(v) else {
+      throw RpcError(name: "start_live_round_from_plan", underlying: "The round did not come back with an id.", droppedArgs: [])
+    }
+    return out
+  }
 
   public func start(league: UUID?, label: String, snapshot: JSONValue, game: LiveGame, players: JSONValue, config: JSONValue,
                     apiCourseId: String? = nil) async throws -> LiveStartOutcome {

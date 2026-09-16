@@ -326,7 +326,12 @@ struct ForfeitCreateSheet: View {
     // `ForfeitSheet` (the season-less one) are two views over one object, and
     // they said opposite things: "on the books" here against T-02's ruling
     // that a forfeit goes on the record and never on the books (L-34).
-    SheetFrame(ForfeitCopy.title, sub: ForfeitCopy.definition) {
+    SheetFrame(ForfeitCopy.title, sub: ForfeitCopy.sub) {
+      // D366 (F6) · what this is, before any field — see `ForfeitSheet`
+      RoomFine(ForfeitCopy.purpose)
+      label(ForfeitCopy.whereLabel)
+      Text(ForfeitCopy.context(kind: .season)).csType(.bodyS).foregroundStyle(cs.mut)
+        .fixedSize(horizontal: false, vertical: true)
       label(ForfeitCopy.nameLabel)
       CSField(ForfeitCopy.namePlaceholder, text: $name, font: CSFont.body)
       label("The shape")
@@ -343,8 +348,11 @@ struct ForfeitCreateSheet: View {
       .accessibilityLabel("Against")
       .padding(.horizontal, 14).frame(minHeight: 48).frame(maxWidth: .infinity, alignment: .leading)
       .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      label("Rides on (optional)")
+      label("\(ForfeitCopy.decidesLabel) · \(ForfeitCopy.decidesOptional)")
       CSField(ForfeitCopy.settlesPlaceholder, text: $hangs, font: CSFont.body)
+      RoomFine(ForfeitCopy.confirm(other.flatMap { id in others.first { $0.profile_id == id }?.name }))
+      RoomFine(ForfeitCopy.points)
+      RoomFine(ForfeitCopy.whereItShows)
       A11yStack(spacing: 8) {
         Button("Close") { dismiss() }
           .buttonStyle(.csSecondary()).frame(maxWidth: typeSize.isA11y ? .infinity : 110)

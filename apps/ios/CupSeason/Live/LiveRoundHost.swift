@@ -9,6 +9,8 @@ import CupSeasonKit
 /// Where the tee sheet hands off. The host wires these.
 struct LiveLinks {
   var openReceipt: (UUID) -> Void = { _ in }
+  /// F12 · the same receipt, with its photo picker armed.
+  var openReceiptAddingPhoto: (UUID) -> Void = { _ in }
   var openTourCard: (UUID) -> Void = { _ in }
   var done: () -> Void = {}
 }
@@ -79,7 +81,7 @@ struct LiveRoundHost: View {
     .onChange(of: phase) { _, p in if p == .active { store.foregrounded() } else { store.flushLocalCard() } }
     .onChange(of: store.leaveRequested) { _, v in if v { store.leaveRequested = false; links.done() } }
     .sheet(item: Binding(get: { store.recap }, set: { store.recap = $0 })) { r in
-      LiveRecapSheet(data: r, store: store)
+      LiveRecapSheet(data: r, store: store, links: links)
     }
   }
 }

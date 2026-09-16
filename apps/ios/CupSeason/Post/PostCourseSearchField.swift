@@ -14,17 +14,22 @@ struct PostCourseSearchField: View {
   @Environment(\.cs) private var cs
   @Binding var text: String
   @Binding var courseId: String?
+  /// F8 · fired when the answer ARRIVES — the host scrolls the field above
+  /// the keyboard. Never on a keystroke.
+  var onReveal: (() -> Void)? = nil
   let onTee: (CourseHit, CourseTee) -> Void
   @State private var vm = CourseSearchModel()
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       CSField("Search a course, or type your own", text: $text, font: CSFont.body)
+        .accessibilityIdentifier("post.course.search")
         .onChange(of: text) { _, q in
           // typing again after a pick unstamps the course id (the label no longer matches the row)
           if vm.pickedLabel != q { courseId = nil; vm.pickedLabel = nil }
           vm.queue(q)
         }
+        .onChange(of: vm.reveal) { _, _ in onReveal?() }
       switch vm.stage {
       case .hidden: EmptyView()
       case .courses:

@@ -139,26 +139,27 @@
     openedRound=null;
     const person=first().querySelector('.hfperson');person.focus();check(document.activeElement===person,'Golfer cannot take keyboard focus');
     const key=new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true});person.dispatchEvent(key);check(!key.defaultPrevented,'Receipt swallowed golfer keyboard activation');
+    /* D365 · one appreciation action: the glyph, then a count; a second tap
+       takes it back; no picker, no capsule, no word */
     const row=()=>first().querySelector('.hrx');
-    const visible=()=>[...row().querySelectorAll('[data-hrx]')].filter(b=>b.getClientRects().length);
-    check(!visible().length,'Untouched round shows a reaction');
-    row().querySelector('[data-hreact]').click();check(visible().length===4,'Missing reaction choices');
-    check(!row().querySelector('[data-hreact]').getClientRects().length,'Expanded reactions retained plus');
-    check(document.activeElement===visible()[0],'Reaction reveal lost keyboard focus');
-    visible()[0].click();check(visible().length===1 && visible()[0].textContent==='1','Selection did not collapse to actual count');
-    check(!openedRound,'Reaction opened the receipt');
-    check(document.activeElement===visible()[0],'Reaction selection lost focus');
-    visible()[0].click();check(!visible().length && row().textContent.includes('React'),'Removal did not restore invitation');
-    check(document.activeElement===row().querySelector('[data-hreact]'),'Reaction removal lost focus');
+    const give=()=>row().querySelector('[data-hrx]');
+    const count=()=>row().querySelector('[data-hrxpeople]');
+    check(give() && !row().querySelector('[data-hreact]') && !row().querySelector('.rxchip'),'The reaction menu survived');
+    check(give().getAttribute('aria-label')==='Give applause' && !count(),'An untouched round should offer applause and no count');
+    check(!/clap/i.test(row().textContent+give().getAttribute('aria-label')),'The old word survived');
+    give().click();
+    check(give().getAttribute('aria-label')==='Remove applause' && give().getAttribute('aria-pressed')==='true','Applause did not take');
+    check(count() && count().textContent==='1','The count did not appear');
+    check(!openedRound,'Applause opened the receipt');
+    give().click();
+    check(give().getAttribute('aria-label')==='Give applause' && !count(),'Removal did not take the applause back');
     // Exercise the real optimistic/rollback render with an isolated failed write.
     window.homeFeedRows=DEMO_FEED;window.homePosts=[];
     window.homeRx={post:{[DEMO_FEED[0].round_id]:{post_id:'qa-post',league_id:null}},kud:{'qa-post':{}},names:{}};
     rxWrite=async()=>({message:'Deliberate local reaction failure'});
     state.demo=false;renderHomeFeed();
-    row().querySelector('[data-hreact]').click();
-    const choice=visible()[0];choice.focus();const emoji=choice.dataset.e;
-    await toggleHomeRx(DEMO_FEED[0],emoji);
-    check(!visible().length && document.activeElement===row().querySelector('[data-hreact]'),'Failed reaction lost restored invitation focus');
+    await toggleHomeRx(DEMO_FEED[0],APPLAUSE.key);
+    check(give().getAttribute('aria-label')==='Give applause' && !count(),'A failed applause was not taken back');
     rxWrite=saved.write;state.demo=true;renderHomeFeed();
     const photoURL=DEMO_FEED[0].photo_url;DEMO_FEED[0].photo_url=good;renderHomeFeed();
     await until(()=>first().querySelector('.hsbg')?.naturalWidth>0,'Refreshed image did not load');
@@ -174,10 +175,9 @@
     }
     // Leave the no-image fallback and the next row's revealed choices for QA.
     DEMO_FEED[0].photo_url=photoURL;renderHomeFeed();
-    box.querySelectorAll('[data-hreact]')[1].click();
     check(box.querySelector('[data-hfr="1"] .hfr-day'),'Fallback lost the next row dateline');
     check(document.documentElement.scrollWidth<=innerWidth,'Horizontal overflow');
-    const targets=[...box.querySelectorAll('.hfperson,.rxchip')].filter(b=>b.getClientRects().length);
+    const targets=[...box.querySelectorAll('.hfperson,.ap-give,.ap-n')].filter(b=>b.getClientRects().length);
     check(targets.every(b=>b.getBoundingClientRect().width>=44 && b.getBoundingClientRect().height>=44),'Target below 44px');
     console.log('Home audit passed: failed photo, refreshed photo, preserved data, golfer/receipt routes, keyboard, reactions, targets and reflow');
     return {passed:true};

@@ -32,6 +32,14 @@ public struct CSBudget: Equatable, Sendable {
   public var goldObjects = 0
   /// §2.4 — at most **two** ember marks, counting every fill, rule, glyph, dot
   /// and word outside the tab band.
+  ///
+  /// F11 (2026-09-15) · ember identifies a COMPETITION now — upcoming, live or
+  /// finished — rather than announcing that one is running. The BUDGET does not
+  /// move: two marks is still the discipline, and a broad competition band is
+  /// ONE mark however large it is, declared once by `CSCompetitionBand` rather
+  /// than counted per word inside it. What the widening costs is that colour no
+  /// longer carries the state, so every surface wearing it prints the state as
+  /// a word — which this probe cannot check and a test does.
   public var emberMarks = 0
   /// §3.1 — **zero**. A panel, leaf or plate rendering inside another.
   public var nestedContainers = 0

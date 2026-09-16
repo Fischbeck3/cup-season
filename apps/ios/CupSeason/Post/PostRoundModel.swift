@@ -21,6 +21,10 @@ final class PostRoundModel {
       // asked the server the same question a dozen times a round and, worse,
       // let an answer for one date land under another. Only the date moves it.
       if oldValue.date != card.date { loadWorth() }
+      // D364 (F3) · a nine and an eighteen have different ceilings, but the
+      // counters are the same answer — re-derive the sentences from the
+      // answer already held; nothing goes out.
+      else if oldValue.side != card.side { rederiveWorth() }
     }
   }
   /// D362 · what this round can add under each season's own rule, from the
@@ -33,7 +37,15 @@ final class PostRoundModel {
   /// the golfer is editing is stale and is cleared rather than left standing.
   private var worthContext: WorthContext?
   private var worthTask: Task<Void, Never>?
+  /// The server's answer as it arrived, so a 9/18 flip re-derives the
+  /// sentences without asking again (D364).
+  private var worthServed: JSONValue?
   struct WorthContext: Equatable { let date: String?; let user: UUID? }
+
+  private func rederiveWorth() {
+    guard let served = worthServed, worthContext != nil else { return }
+    worthLines = RoundWorth.servedLines(served, holes: card.side)
+  }
 
   /// Ask again for a date whose answer may have changed — a round posted, a
   /// season joined. The date's cached answer is dropped first.
@@ -59,14 +71,16 @@ final class PostRoundModel {
       // in, so the sentence can be photographed before the migration lands.
       if let stood = PostWorthDev.served {
         guard !Task.isCancelled, self.stillWants(want) else { return }
-        self.worthLines = RoundWorth.servedLines(stood); self.worthContext = want; return
+        self.worthServed = stood
+        self.worthLines = RoundWorth.servedLines(stood, holes: card.side); self.worthContext = want; return
       }
       #endif
-      let lines = (try? await SupabaseService.shared.call(Rpc.my_month_counters(p_on: on ?? CSDate.today()))).map { RoundWorth.servedLines($0) } ?? []
+      let served = try? await SupabaseService.shared.call(Rpc.my_month_counters(p_on: on ?? CSDate.today()))
       // the context may have moved while the question was out — a new date, a
       // new session. An answer for a context nobody is in is dropped.
       guard !Task.isCancelled, self.stillWants(want) else { return }
-      self.worthLines = lines
+      self.worthServed = served
+      self.worthLines = served.map { RoundWorth.servedLines($0, holes: card.side) } ?? []
       self.worthContext = want
     }
   }

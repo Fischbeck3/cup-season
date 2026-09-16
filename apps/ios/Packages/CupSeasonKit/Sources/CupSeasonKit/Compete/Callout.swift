@@ -21,31 +21,41 @@ import Foundation
 // MARK: - the length
 
 public enum CalloutLength: String, Sendable, Equatable, CaseIterable, Identifiable {
-  case thisSaturday, oneWeek, aSeason
+  case aRound, headToHead, aSeason
   public var id: String { rawValue }
 
-  /// R-F's words, verbatim. These are the owner's own and are pinned by test.
+  /// D363 · the plain-language route labels the owner authorised on
+  /// 2026-09-15, replacing R-F's "This Saturday · One week · A season". The
+  /// first read as a date restriction ("This Saturday" sounded like the only
+  /// day you could play) and the second as a duration nobody could verify
+  /// ("One week" ends on a Sunday, which is not a week from any Tuesday).
+  /// Each now names what you DO, and the sheet behind it states the actual
+  /// date. Pinned by test.
   public var title: String {
     switch self {
-    case .thisSaturday: return "This Saturday"
-    case .oneWeek:      return "One week"
-    case .aSeason:      return "A season"
+    case .aRound:     return "Play a round"
+    case .headToHead: return "Go head to head"
+    case .aSeason:    return "Start a season"
     }
   }
 
-  /// R-F's glosses, verbatim.
+  /// What each one is, in a clause. No weekday is promised anywhere: the round
+  /// asks now-or-schedule next, and the head-to-head sheet prints the day it
+  /// actually closes.
   public var gloss: String {
     switch self {
-    case .thisSaturday: return "a live match, on one card"
-    case .oneWeek:      return "best round by Sunday takes it"
-    case .aSeason:      return "a table, and a cup at the end"
+    case .aRound:     return "one round together — now, or on the schedule"
+    case .headToHead: return "each of you posts a round before it closes"
+    case .aSeason:    return "rounds over time — a table, and a cup at the end"
     }
   }
 
   /// The engine object behind it. The golfer never hears any of these words.
   public enum Object: String, Sendable, Equatable {
-    /// `start_live_round(p_game:'match')` — the free door (L-40).
-    case liveRound
+    /// `start_live_round(p_game:'match')` — the free door (L-40) — or
+    /// `declare_round` when the golfer picks a day instead. The same person
+    /// rides into either.
+    case round
     /// `call_out` — a Ryder with a field of two and one session (D237).
     case callout
     /// `create_league` → `lock_league(p_structure:'solo')` → `invite_golfer`.
@@ -56,9 +66,9 @@ public enum CalloutLength: String, Sendable, Equatable, CaseIterable, Identifiab
 
   public var object: Object {
     switch self {
-    case .thisSaturday: return .liveRound
-    case .oneWeek:      return .callout
-    case .aSeason:      return .pairSeason
+    case .aRound:     return .round
+    case .headToHead: return .callout
+    case .aSeason:    return .pairSeason
     }
   }
 
@@ -66,32 +76,33 @@ public enum CalloutLength: String, Sendable, Equatable, CaseIterable, Identifiab
   /// new and none of them is a money object.
   public var rpcs: [String] {
     switch self {
-    case .thisSaturday: return ["start_live_round"]
-    case .oneWeek:      return ["call_out"]
-    case .aSeason:      return ["create_league", "lock_league", "invite_golfer"]
+    case .aRound:     return ["start_live_round", "declare_round"]
+    case .headToHead: return ["call_out"]
+    case .aSeason:    return ["create_league", "lock_league", "invite_golfer"]
     }
   }
 
   // MARK: the order, which the state may change and may never shorten
 
-  /// ALL THREE, ALWAYS. A golfer already in a live round sees *This Saturday*
-  /// first; two who already share a season see *A season* last. Nothing is ever
-  /// withheld, and the returned array is always `allCases` in some order.
+  /// ALL THREE, ALWAYS. A golfer already in a live round sees *Play a round*
+  /// first; two who already share a season see *Start a season* last. Nothing
+  /// is ever withheld, and the returned array is always `allCases` in some order.
   public static func offered(liveNow: Bool = false, shareASeason: Bool = false) -> [CalloutLength] {
-    var order: [CalloutLength] = [.thisSaturday, .oneWeek, .aSeason]
+    var order: [CalloutLength] = [.aRound, .headToHead, .aSeason]
     if shareASeason {
       order.removeAll { $0 == .aSeason }
       order.append(.aSeason)
     }
     if liveNow {
-      order.removeAll { $0 == .thisSaturday }
-      order.insert(.thisSaturday, at: 0)
+      order.removeAll { $0 == .aRound }
+      order.insert(.aRound, at: 0)
     }
     return order
   }
 
-  /// The head above the three.
-  public static let question = "How long?"
+  /// The head above the three: the person, named. "How long?" asked a
+  /// question the three answers no longer share.
+  public static func head(_ name: String) -> String { "Play with \(CSBands.fn1(name))" }
 
   /// WHEN "ONE WEEK" ENDS, and it ends on a **Sunday** — because R-F's ruled
   /// gloss says so out loud ("best round by Sunday takes it") and a sheet that
@@ -109,6 +120,54 @@ public enum CalloutLength: String, Sendable, Equatable, CaseIterable, Identifiab
   }
 }
 
+// MARK: - where a person rides (D363)
+
+/// The four places "Play with <name>" can land, with the person carried into
+/// each. A round is now or on the schedule — the fork the intent sheet already
+/// asks (`WhenForkSheet`), asked again here with the person attached, so the
+/// live setup opens with them in the group and the plan opens with them tagged.
+public enum PlayRoute: String, Sendable, Equatable, CaseIterable {
+  case liveNow, plan, headToHead, season
+
+  /// The length a route belongs to — `.aRound` forks into two.
+  public var length: CalloutLength {
+    switch self {
+    case .liveNow, .plan: return .aRound
+    case .headToHead:     return .headToHead
+    case .season:         return .aSeason
+    }
+  }
+}
+
+/// The words of the round fork under "Play a round", and what the live sheet
+/// says about a person it was asked to seat. No weekday anywhere.
+public enum PlayWithCopy {
+  public static let roundHead = "When?"
+  public static let nowTitle = "Now"
+  public static let nowGloss = "score it live, hole by hole"
+  public static let laterTitle = "On the schedule"
+  public static let laterGloss = "pick the day — they're in the group from the start"
+  public static let back = "‹ Back"
+
+  // the live sheet, seating the person it was handed
+  public static func alreadyInARound(_ name: String) -> String {
+    "You're already in a round — \(CSBands.fn1(name)) wasn't added."
+  }
+  public static func yourRoundOnly(_ name: String) -> String {
+    "Scoring on this phone is your round only — \(CSBands.fn1(name)) wasn't added."
+  }
+  public static func groupFull(_ name: String) -> String {
+    "The group is full — remove someone to add \(CSBands.fn1(name))."
+  }
+  public static func seated(_ name: String, estimated: Bool) -> String {
+    "\(CSBands.fn1(name)) is in the group" + (estimated ? " — no number on file, so an estimated 18" : "") + "."
+  }
+  /// The wizard, when a person was carried in. An invitation, never a seat.
+  public static func seasonWith(_ name: String) -> String {
+    "Starting this with \(CSBands.fn1(name)). They get an invitation to accept when the season locks — nothing seats them before that."
+  }
+}
+
 // MARK: - the copy a field of two reads
 
 /// Every sentence a callout ever shows, in one place. The Ryder room's grammar
@@ -116,11 +175,25 @@ public enum CalloutLength: String, Sendable, Equatable, CaseIterable, Identifiab
 /// thing that is one week long by construction, and a series score of "1–0"
 /// between two men who bet on Saturday — so a callout does not land there.
 public enum CalloutCopy {
-  // the sheet
-  public static func sheetTitle(_ name: String) -> String { "Call \(CSBands.fn1(name)) out" }
-  public static let windowRow = "This week"
+  // the sheet · D363: a REVIEW before anything is sent. It leads with the
+  // day it closes, how it is decided and what the other golfer sees — the
+  // stake, if any, comes after all three, so the contest never reads as a bet
+  // form with a date on it.
+  public static func sheetTitle(_ name: String) -> String { "Head to head with \(CSBands.fn1(name))" }
+  public static let sheetSub = "REVIEW, THEN SEND"
+  /// The actual closing date from `CalloutLength.defaultClose` — a Sunday, at
+  /// least three days out. Never "one week".
+  public static func closesRow(closesOn: String) -> String { "Closes \(LeagueDates.dowMonDay(closesOn))" }
+  /// How it is decided — the comparison the clash already uses (D2's named
+  /// bands against your own number), said once, with the tie named.
+  public static let basis = "One round each, any course. The better round against your playing HCP takes it; a tie is all square."
+  /// What the other golfer sees, and when. Nothing leaves this sheet before
+  /// Send it, and they answer on their own phone.
+  public static func invitation(_ name: String) -> String {
+    "\(CSBands.fn1(name)) gets a note and answers on their phone. Nothing is sent until you tap Send it."
+  }
   public static let windowGloss = "best round by Sunday takes it"
-  public static let stakeQuestion = "What's on it?"
+  public static let stakeQuestion = "What's on it? — optional"
   public static let stakeNone = "Nothing, just the record"
   public static let stakeForfeit = "A pride bet"
   /// T-02 · the stake is a forfeit, in words, never an amount (D242, and

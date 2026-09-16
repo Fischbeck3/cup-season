@@ -40,6 +40,16 @@ struct CompeteScreen: View {
     CompeteRoot.make(me, upcoming: me?.upcoming ?? [])
   }
 
+  /// F11 · the season the band leads with: the one being PLAYED — live, with a
+  /// standing to show — before a season that has not teed off. A golfer in
+  /// three seasons has one that is actually running, and that is the room.
+  private var leadSeason: CompeteRoot.Row? {
+    let seasons = list.seasons
+    return seasons.first { $0.state == .live && $0.rank != nil }
+        ?? seasons.first { $0.state == .live }
+        ?? seasons.first
+  }
+
   private var mastheadPalette: CSPalette {
     CSTokens.dark.wearing(looks.personalLook(), theme: .dark)
   }
@@ -87,7 +97,13 @@ struct CompeteScreen: View {
           section(CompeteRoot.Head.finished, list.finished)
         case .list:
           invitations
-          section(CompeteRoot.Head.seasons, list.seasons, first: true)
+          // F11 · THE SCOREBOARD. The season a golfer is actually in leads the
+          // tab as one broad ember band with dark ink — the competition room
+          // the owner's board asked for — and the rest of the list stays the
+          // quiet fescue it already was. One band, not a repainted tab.
+          if let lead = leadSeason { leadBand(lead) }
+          // the band IS that season, so the list below does not say it again
+          section(CompeteRoot.Head.seasons, list.seasons.filter { $0.id != leadSeason?.id }, first: true)
           Button { presenter.showIntent = true } label: {
             HStack(spacing: CSTokens.Space.s3) {
               Text("Start something").csType(.name)
@@ -145,6 +161,25 @@ struct CompeteScreen: View {
       push(.season(id, pane: .table))
     }
     .padding(.top, CSTokens.Space.s4)
+  }
+
+  /// F11 · the competition band for the season that leads the tab. The figure
+  /// is the standing when there is one — an upcoming season has none, and the
+  /// band says so in words rather than drawing a nought.
+  @ViewBuilder private func leadBand(_ row: CompeteRoot.Row) -> some View {
+    if let state = row.state {
+      Button { open(row) } label: {
+        CSCompetitionBand(title: row.title,
+                          meta: row.eyebrow,
+                          state: state.word,
+                          figure: row.rank.map { CSCopy.ordinal($0.place) },
+                          note: row.sub,
+                          spokenState: state.spoken)
+      }
+      .buttonStyle(.plain)
+      .padding(.top, CSTokens.Space.s4)
+      .accessibilityHint("Opens the season")
+    }
   }
 
   /// Owner visual refinement: league names and ranks lead; section names
@@ -321,9 +356,10 @@ struct EmptyRootView: View {
             CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string(String(describing: d))])
             take(d)
           } label: {
-            // L-25 · the first door wears the ember; the rest are quiet and
-            // equally present. Spending ember on every door spends it on none.
-            Text(d.title.uppercased()).csEyebrow(i == 0 ? cs.brand : cs.mut).a11yHitSlop()
+            // D359 / F4 · the first door is an ordinary action: act, never ember.
+            // L-25 · the rest are quiet and equally present.
+            // D359 / F4 · the first door is an ordinary action: act, never ember (the desk agrees)
+            Text(d.title.uppercased()).csEyebrow(i == 0 ? cs.act : cs.mut).a11yHitSlop()
           }
           .buttonStyle(.plain)
           .accessibilityLabel(d.title)

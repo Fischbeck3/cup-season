@@ -81,9 +81,13 @@
      viewport, counted by hue; at most two ember marks. Gold may never touch
      a control. `dawn` and `pine` are deleted. */
   --gold:#D8B25A;                 /* champagne / bronze on paper — EARNED only: leads, the pot, trophies */
-  --brand:#E8622C;                /* ember / stamp red on paper — LIVE and urgent, and the identity's
-                                     one hairline. It is no longer the ordinary action: the owner's
-                                     2026-09-14 board puts fescue and paper in front and orange behind. */
+  --brand:#E8622C;                /* ember / stamp red on paper — COMPETITION identity (F11,
+                                     owner-approved 2026-09-15): a season, a clash or an event,
+                                     before, during and after play. It is not the ordinary action,
+                                     and a plain booked round never takes it. */
+  --brand-ink:#0F1A15;            /* the type ON a broad ember panel, and it FLIPS with the printing
+                                     because ember does: fescue on this ember is 5.27:1 and cream
+                                     2.99:1; on the light theme's darker ember they swap. */
   --act:#5FA271;                  /* THE ACTION. A fescue-family green that carries an ordinary
                                      primary control on the dark ground with `bg0` type on it.
                                      Identity (`ink`), semantics (`pos`/`neg`) and earned gold are
@@ -286,7 +290,7 @@ html[data-theme="light"]{
   /* semantic */
   --pos:#0A6D3C; --neg:#B02A20; --cool:#56615B;
   /* metal */
-  --gold:#795912; --brand:#A13F0E;
+  --gold:#795912; --brand:#A13F0E; --brand-ink:#F4F1E9;   /* cream on the darker ember: 5.76:1 */
   --act:#1F5D3A;                  /* on warm paper the action is the deep green, cream type on it */
   /* squad */
   --sq0:#002B40; --sq1:#603E35; --sq2:#4C705D;
@@ -543,6 +547,47 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 /* MW-03 · one status, when there is one: the clash closing, the season's last
    week. Ember is the clock's colour on this client (D231); it is a word, not a
    control, so it is never a button. */
+/* F11 · THE COMPETITION BAND (option 2 · Scoreboard, owner-approved
+   2026-09-15). One broad FLAT ember surface per competition, dark ink on it,
+   and the ink flips with the printing because ember does — cream on the dark
+   theme's ember is 2.99:1, fescue on the light theme's is 2.74:1, so neither
+   colour can serve both. No gradient, no second ember object inside it.
+   Ember marks a competition in ANY state, so the band always prints the
+   state as a WORD; colour never carries it. */
+/* F13 · the inline hole moment: a restrained ember stroke beside the hole,
+   never a modal, never confetti, and the next hole stays available under it.
+   It is an EARNED PLAY MOMENT, which is a narrow documented exception to
+   F11's competition-only ember role and to D267's neutral scorecard: the
+   grid itself is NOT repainted — this sits beside it and then leaves. */
+.hmoment{display:inline-flex; align-items:baseline; gap:var(--s2);
+  border-left:2px solid var(--brand); padding:var(--s1) 0 var(--s1) var(--s2);}
+.hmoment .w{font-family:var(--board); font-size:15px; letter-spacing:calc(var(--caps2) * 1em);
+  text-transform:uppercase; color:var(--brand);}
+.hmoment.eagle .w{font-size:18px;}
+.hmoment .h{font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; color:var(--mut);}
+.hmoment-tally{font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; color:var(--mut);}
+@media (prefers-reduced-motion: no-preference){
+  .hmoment{animation:hmrise .26s cubic-bezier(.16,.84,.36,1) both;}
+  @keyframes hmrise{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+}
+.cband{display:block; width:100%; text-align:left; border:0; cursor:pointer;
+  background:var(--brand); color:var(--brand-ink);
+  border-radius:var(--r); padding:var(--s4); margin:var(--s4) 0 0;}
+.cband-top{display:flex; align-items:baseline; gap:var(--s2);}
+.cband-name{font-family:var(--board); font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; flex:1; min-width:0;}
+.cband-state{font-family:var(--board); font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;}
+.cband-mid{display:flex; align-items:baseline; gap:var(--s4); padding-top:var(--s3);}
+.cband-fig{font-family:var(--board); font-size:40px; line-height:1; font-weight:700;}
+.cband-note{font-family:var(--serif); font-size:20px; line-height:1.25;}
+.cband-meta{display:block; font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; padding-top:var(--s3); opacity:.72;}
+.cband:focus-visible{outline:2px solid var(--brand-ink); outline-offset:2px;}
+/* F11 · the same competition carries the same mark on Home, at a smaller
+   size: the ember dot and the state word, never a second full band. */
+.csedn .cstate, .cswire .cstate{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; color:var(--brand); margin-left:var(--s2);}
 .peerrow .pt{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); display:block; margin-top:4px;}
 /* WA4 · a standings-history row is a door to its round (§16). It keeps the
    line it always was; what changes is that it is a control, so it takes the
@@ -1513,6 +1558,8 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 /* pilot: "Save card is hard to find when a change is made" — the button ARMS
    the moment the card changes: fairway fill, one soft rise. Disarms on save. */
 .mini.armed{background:var(--brand); color:#fff; border-color:var(--brand); font-weight:700; animation:csRise .35s var(--roll) both;}
+/* a chosen pill inverts to ink (the phone's `CalloutSheet` pill) — an ordinary selected state, never ember (D359) */
+.mini.sel{background:var(--ink); color:var(--bg0); border-color:var(--ink);}
 @media (prefers-reduced-motion: reduce){ .mini.armed{animation:none;} }
 /* month-seal motion carries over from the .check rows (C5) */
 .hfcard.sealin .hfid > b{transform-origin:center; animation:csSeal .6s var(--roll) both;}
@@ -2253,7 +2300,23 @@ body.guestlive #onboard{display:none !important;}
 }
 .rxchip .e{font-family:var(--sans); margin-right:4px;}
 .rxchip:hover{color:var(--ink);}
-.rxchip.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
+.rxchip.on{color:var(--bg0); background:var(--ink); border-color:var(--ink);}   /* legacy · a reaction is not live (D359) */
+/* D365 · the one appreciation control: a two-hand applause glyph and a count.
+   Outline in mut at rest; filled green once given (the ordinary-action
+   colour, never ember); the target is 44px whatever the glyph draws at. */
+.applause{display:inline-flex; align-items:center; gap:var(--s1);}
+.ap-give{width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center;
+  background:transparent; border:0; padding:0; color:var(--mut); cursor:pointer; border-radius:var(--p);}
+.ap-give svg{display:block;}
+.ap-give:hover{color:var(--ink);}
+.ap-give.on{color:var(--act);}
+.ap-give.on .ap-hands{fill:var(--act);}   /* F9 · a filled silhouette, not a wash */
+.ap-give:focus-visible, .ap-n:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.ap-n{min-width:20px; min-height:44px; background:transparent; border:0; padding:0 var(--s1); cursor:pointer;
+  font-family:var(--mono); font-size:12px; letter-spacing:.04em; color:var(--mut);}
+.ap-n.on{color:var(--act);}
+.ap-give:active svg{transform:scale(.92);}
+@media (prefers-reduced-motion: no-preference){ .ap-give svg{transition:transform .18s cubic-bezier(.2,0,0,1);} }
 /* the heater doubles as the one-thumb quick-tap (F11 3.1) — its hit box
    clears the 44px floor via padding, never by inflating the emoji itself.
    Touch hardening: real iOS fires the text-selection callout on a held
@@ -4994,6 +5057,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
               <span class="pmeta"><b>You</b><small>You run this league</small></span>
               <span class="ptag" style="color:var(--brand)">THE PRO</span>
             </div>
+            <!-- D363 · the person "Start a season" was tapped from: an invitation
+                 to send at lock, never a seat. Painted by renderWizardWith(). -->
+            <div id="wizWith" hidden style="margin-top:12px"></div>
           </div>
         </div>
 
@@ -6349,7 +6415,7 @@ function switchView(v){
   /* IA P4 → D107: real accounts get the full ⊕ triptych. Play now is the
      real tee sheet — it persists server-side at tee-off (league or not) and
      one finish posts every complete card to its golfer. */
-  if(v==='play' && !state.demo) primeRealRoster();
+  if(v==='play' && !state.demo){ primeRealRoster(); csApplyLivePreselect(); }
   /* F-005: the event room renders from CS_EVENT via loadEvent; if view-event is
      shown without a loaded event, render the empty-state ("No event loaded.")
      instead of leaving a blank shell with just the back link. */
@@ -7805,25 +7871,60 @@ function ensureRx(f){
    with no count on an untouched card, which reads as a reaction somebody
    already left. Untouched now means four outlines and no numbers — an
    invitation, marked `.rxnone` so the whole row can go quiet. */
-function rxChipsHtml(rx, attr, idx, tokens=REACTIONS){
-  const untouched=REACTIONS.every(t=>!(rx[t.k]&&rx[t.k].n>0));
-  return tokens.map(t=>{
-    const r=rx[t.k]||{n:0,me:false,who:[]};
-    const who=(r.who&&r.who.length)?r.who.join(', '):'';
-    const title=`${t.label}${who?' — '+who:''}`;
-    const cls='rxchip'+(r.me?' on':'')+(untouched?' rxnone':'');
-    return `<button class="${cls}" ${attr}="${idx}" data-e="${esc(t.k)}" title="${esc(title)}" aria-label="${esc(t.label)}" aria-pressed="${r.me?'true':'false'}">${rxGlyph(t.k)}${r.n>0?r.n:''}</button>`;
-  }).join('');
+/* D365 · ONE APPRECIATION ACTION: APPLAUSE (owner-approved option A,
+   2026-09-15). The four-token menu is retired from every surface. One quiet
+   control — a two-hand applause glyph and a count — that a golfer taps to
+   applaud a round and taps again to take back; the count opens the people.
+   Outline in mut at rest, filled green once given, a 44px target. Vocabulary:
+   applause · applaud · applauded — never "clap". Stored in the same row the
+   reactions used (post_kudos.emoji = 'applause'; the primary key already makes
+   it one per golfer per post). Historical reactions are kept and shown apart
+   in the people list, never summed into the count — the conversion policy and
+   the cross-league fold are proposals (docs/planning/2026-09-15-applause-and-
+   pride-proposals.md). The phone's `Applause` / `ApplauseControl` are the twins. */
+const APPLAUSE={
+  key:'applause', noun:'Applause', give:'Give applause', remove:'Remove applause',
+  sent:'Applause sent', failed:'Applause did not save.',
+  activity: names => { const who=[...new Set(names)]; return who.length===0 ? '' : who.length===1 ? `${who[0]} applauded your round`
+    : who.length===2 ? `${who[0]} and ${who[1]} applauded your round` : `${who[0]} and ${who.length-1} others applauded your round`; },
+  earlierNote: n => n===1 ? '1 earlier reaction, from before applause' : `${n} earlier reactions, from before applause`,
+};
+/* F9 · THE FIRST DRAWING DID NOT READ AS APPLAUSE. A narrow, largely
+   mirrored path with a central upright finger reads as a downward arrow into a
+   cup at 22px. This is ONE hand — palm, three fingers, thumb heel — drawn
+   TWICE at two angles; two hands at an angle to each other is what makes the
+   mark read as applause. The given state fills the FRONT hand only: filling
+   both merges them into a blob with no hands in it. Identical geometry and
+   transforms to the phone's `CSApplauseGlyph`. */
+const APPLAUSE_HAND='M13.4 20.4 A3.0 3.0 0 0 0 16.9 17.9 L18.1 12.4 A1.4 1.4 0 0 0 15.4 11.7 L14.9 14.0 L16.0 8.2 A1.4 1.4 0 0 0 13.3 7.6 L12.4 12.6 L12.9 9.0 A1.4 1.4 0 0 0 10.2 8.6 L9.4 14.2 A4.2 4.2 0 0 0 13.4 20.4 Z';
+const APPLAUSE_SPARKS='M20.0 5.6l1.8-1.6M21.2 9.2l2.0-.6';
+const APPLAUSE_BACK='translate(-5.6,0.4) rotate(-30,13,14) scale(0.92)';
+const APPLAUSE_FRONT='translate(1.8,0.6) rotate(18,13,14) scale(0.92)';
+function applauseGlyph(on){
+  return `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="${APPLAUSE_BACK}"><path d="${APPLAUSE_HAND}"/></g><g transform="${APPLAUSE_FRONT}"><path class="ap-hands" d="${APPLAUSE_HAND}"/></g><path d="${APPLAUSE_SPARKS}"/></svg>`;
 }
-/* D341 · Home shows only given reactions; the labelled invitation reveals
-   the remaining canon choices, and the normal post-toggle render closes it. */
-function homeRxChipsHtml(rx, idx){
-  const given=REACTIONS.filter(t=>(rx[t.k]?.n||0)>0);
-  const rest=REACTIONS.filter(t=>!(rx[t.k]?.n>0));
-  const chips=rxChipsHtml(rx,'data-hrx',idx,given);
-  if(!rest.length) return chips;
-  return chips+`<button class="rxchip hreact" data-hreact aria-label="${given.length?'More reactions':'React to this round'}" aria-expanded="false" aria-controls="home-rx-${idx}"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>${given.length?'':'<span>React</span>'}</button><span class="hrx-options" id="home-rx-${idx}" hidden>${rxChipsHtml(rx,'data-hrx',idx,rest)}</span>`;
+/* the state of one post from the emoji-keyed fold: applause counted, the
+   retired tokens kept apart */
+function applauseState(rx){
+  const a=(rx&&rx[APPLAUSE.key])||{n:0,me:false,who:[]};
+  const earlier=Object.entries(rx||{}).filter(([k])=>k!==APPLAUSE.key).reduce((s,[,v])=>s+(v.n||0),0);
+  return { n:a.n||0, me:!!a.me, who:a.who||[], earlier };
 }
+function applauseHtml(rx, attr, idx){
+  const s=applauseState(rx);
+  const count=s.n>0 ? `<button type="button" class="ap-n${s.me?' on':''}" ${attr}people="${idx}" aria-label="${s.n} applause" title="${esc(s.who.join(', '))}">${s.n}</button>` : '';
+  return `<span class="applause"><button type="button" class="ap-give${s.me?' on':''}" ${attr}="${idx}" data-e="${APPLAUSE.key}" aria-pressed="${s.me?'true':'false'}" aria-label="${s.me?APPLAUSE.remove:APPLAUSE.give}">${applauseGlyph(s.me)}</button>${count}</span>`;
+}
+function openApplausePeople(rx){
+  const s=applauseState(rx);
+  openSheet(APPLAUSE.noun, s.n===1 ? '1 GOLFER' : `${s.n} GOLFERS`,
+    (s.who.length ? s.who.map(w=>`<p style="margin:0; padding:12px 0; border-bottom:1px solid var(--rule)">${esc(w)}</p>`).join('') : '<p class="fine">Nobody yet.</p>')
+    + (s.earlier ? `<p class="fine" style="padding-top:8px">${esc(APPLAUSE.earlierNote(s.earlier))}</p>` : ''));
+}
+/* the two names every caller still uses — both draw the one control now */
+function rxChipsHtml(rx, attr, idx){ return applauseHtml(rx, attr, idx); }
+function homeRxChipsHtml(rx, idx){ return applauseHtml(rx, 'data-hrx', idx); }
+window.APPLAUSE = APPLAUSE; window.applauseState = applauseState; window.applauseHtml = applauseHtml;
 function socialBar(f, fi, opts){
   const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
   const ns=(opts&&opts.ns)||'';
@@ -7912,8 +8013,13 @@ async function toggleRx(f, emoji){
   if(error){ /* revert the optimistic flip — and say so */
     console.warn('[reaction]', emoji, error);
     rxFlip(cur, me, had);
-    rerenderFeeds(); toast(humanError(error, 'Reaction did not save.'));
-  }
+    rerenderFeeds(); toast(humanError(error, emoji===APPLAUSE.key ? APPLAUSE.failed : 'Reaction did not save.'));
+  } else if(emoji===APPLAUSE.key && !had) csApplauseFirstSend();
+}
+/* D365 · first-use feedback, once per browser — and only for a GIVE */
+function csApplauseFirstSend(){
+  try{ if(localStorage.getItem('cs.applause.sent')) return; localStorage.setItem('cs.applause.sent','1'); }catch(_){ return; }
+  toast(APPLAUSE.sent);
 }
 /* post a comment on feed item f — optimistic echo, DB-backed when real */
 async function sendComment(f, text){
@@ -8024,8 +8130,12 @@ window.refreshSocial = refreshSocial;
    `feed`, so the lookup is just feed[fi]. */
 function wireSocial(el, ns){
   ns=ns||'';   /* must match the socialBar ns this container rendered with */
+  /* D365 · the glyph toggles applause; the count opens the people */
   el.querySelectorAll('[data-rx]').forEach(b=>b.addEventListener('click',()=>{
-    const f=feed[+b.dataset.rx]; if(f) toggleRx(f, b.dataset.e);
+    const f=feed[+b.dataset.rx]; if(f) toggleRx(f, APPLAUSE.key);
+  }));
+  el.querySelectorAll('[data-rxpeople]').forEach(b=>b.addEventListener('click',()=>{
+    const f=feed[+b.dataset.rxpeople]; if(f) openApplausePeople(ensureRx(f));
   }));
   el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.report]; if(f) reportPost(f);
@@ -11273,7 +11383,9 @@ function csCourseSavedLine(b){
   if(iso(at)===iso(now)) when = 'today';
   else if(iso(at)===iso(new Date(now.getTime()-86400000))) when = 'yesterday';
   else when = `${DOW[at.getDay()]} ${MOS[at.getMonth()]} ${at.getDate()}`;
-  return `Saved on this device ${when}`;
+  /* D364 (F2) · leads with what the copy is FOR; "saved", never "updated" or
+     "live" — the device wrote a copy that day, and that is all it knows */
+  return `Available offline · saved ${when}`;
 }
 function csCourseSearch(q){
   const needle = String(q||'').trim().toLowerCase();
@@ -11341,6 +11453,31 @@ async function csCourseRefresh(){
 window.csCourseRefresh = csCourseRefresh;
 window.csCourseAll = csCourseAll;
 
+/* D363 / F8 · a course search answers ABOVE the keyboard. When the answer
+   ARRIVES — rows, a no-match, the offline list, the tee list after a pick —
+   and the input or the first row is outside the VISUAL viewport (mobile
+   Safari shrinks it when the keyboard is up), the input is scrolled to the
+   top of whatever scrolls it: the page for the tee sheet and the composer,
+   the sheet's own panel for the plan. Only on a transition — never on a
+   keystroke, never against a scroll the golfer made on purpose, never when
+   it is already in view. Focus is never touched. Reduced motion: no smooth. */
+function csRevealSearch(input, dd){
+  if(!input) return false;
+  const vv = window.visualViewport;
+  const top = vv ? vv.offsetTop : 0;
+  const bottom = top + (vv ? vv.height : window.innerHeight);
+  const r = input.getBoundingClientRect();
+  const first = dd && (dd.querySelector('button') || dd.querySelector('.coursedd-msg'));
+  const fr = first ? first.getBoundingClientRect() : null;
+  /* hidden = the input has scrolled off the top, or the first complete row
+     (or the input itself, with no row) is under the keyboard's edge */
+  const hidden = r.top < top - 1 || (fr ? fr.bottom > bottom - 8 : r.bottom > bottom - 8);
+  if(!hidden) return false;
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  try { input.scrollIntoView({ block:'start', behavior: reduced ? 'auto' : 'smooth' }); } catch(_){ input.scrollIntoView(true); }
+  return true;
+}
+window.csRevealSearch = csRevealSearch;
 function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
   const input=$(courseSel); if(!input) return;
   const dd=document.createElement('div'); dd.className='coursedd'; dd.style.display='none';
@@ -11377,6 +11514,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
         `<button type="button" data-ti="${ti}"><b>${esc(t.tee_name||'Tee')}${t.gender==='female'?' · Women’s':''}</b><span>Rating ${t.course_rating} · Slope ${t.slope_rating}</span></button>`).join('')
        : '<div class="coursedd-msg">No rated tees listed — type the rating and slope by hand.</div>');
     dd.style.display='block'; dd.dataset.stage='tees';   /* a late search response must not yank you back to the course list */
+    csRevealSearch(input, dd);   /* F8 · the tee choices come into view with the pick */
     dd.querySelector('[data-back]')?.addEventListener('mousedown',e=>{ e.preventDefault(); showCourses(); });
     dd.querySelectorAll('[data-ti]').forEach(b=>b.addEventListener('mousedown',e=>{
       e.preventDefault();
@@ -11396,14 +11534,22 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
     }));
   }
   function showCourses(){
+    /* F8 · reveal only on a transition: the list opening (rows, no-match or
+       offline), or an empty list filling. A repaint of an open list — the
+       cached rows, then the network's — moves nothing. */
+    const wasHidden = dd.style.display==='none' || dd.dataset.stage!=='courses';
+    const wasEmpty = !dd.querySelector('[data-ci]');
     dd.dataset.stage='courses';
     if(!courses.length){
       dd.innerHTML = `<div class="coursedd-msg">${offline ? esc(CS_COURSE_COPY.searchOffline) : 'No match — type the course, rating and slope by hand.'}</div>`;
-      dd.style.display='block'; return;
+      dd.style.display='block';
+      if(wasHidden) csRevealSearch(input, dd);
+      return;
     }
     dd.innerHTML = (offline ? `<div class="coursedd-msg">${esc(CS_COURSE_COPY.searchOffline)}</div>` : '') + courses.map((c,ci)=>
       `<button type="button" data-ci="${ci}"><b>${esc(c.label)}</b><span>${c.place?esc(c.place)+' · ':''}${c.tees.length} tee${c.tees.length===1?'':'s'}</span></button>`).join('');
     dd.style.display='block';
+    if(wasHidden || wasEmpty) csRevealSearch(input, dd);
     dd.querySelectorAll('[data-ci]').forEach(b=>b.addEventListener('mousedown',e=>{
       e.preventDefault();
       const ci=+b.dataset.ci;
@@ -11573,7 +11719,7 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
      card. Every early return below (uncached course, partial hole rows) would
      otherwise leave the previous course's pars + SI standing. */
   if(LR_PARS_COURSE !== course.id){
-    PAR = POST_PAR_STD.slice(); SI_LOADED = null; estimateSI(liveHoles());
+    PAR = POST_PAR_STD.slice(); SI_LOADED = null; PARS_VERIFIED = false; estimateSI(liveHoles());
     LR_PARS_COURSE = course.id;
     recomputeStrokes();
   }
@@ -11595,6 +11741,7 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
          card. SI re-ranked among the nine so the strokes allocate 1-9. */
       const nine = holes.slice(0,9);
       PAR = [...nine.map(h => Number(h.par) || 4), ...PAR.slice(9,18)];
+      PARS_VERIFIED = nine.length >= 9 && nine.every(h => Number(h.par) > 0);
       const rawSI = nine.map(h => Number(h.handicap));
       if(rawSI.every(n => n >= 1)){
         const order=[...rawSI.keys()].sort((a,b)=> rawSI[a]-rawSI[b]);
@@ -11603,6 +11750,7 @@ attachCourseSearch('#lrCourse', '#lrRate', '#lrSlope', async ({ course, tee, cac
     } else {
       if(holes.length !== 18) return;   /* an 18-hole card must be complete */
       PAR = holes.map(h => Number(h.par) || 4);
+      PARS_VERIFIED = holes.length >= liveHoles() && holes.slice(0, liveHoles()).every(h => Number(h.par) > 0);
       const si = holes.map(h => Number(h.handicap));
       if(si.every(n => n >= 1 && n <= 18)){ SI = si; SIEST = false; } else estimateSI();
     }
@@ -11945,6 +12093,8 @@ $$('.preset').forEach(p=>{
 /* ================= live round (play) ================= */
 /* the course card — pars drive the stepper default; SI optional (null = by hole order) */
 let PAR=[4,4,3,5,4,4,3,4,5,4,3,4,5,4,4,3,4,5];
+/* Codex S3 · were these pars VERIFIED — the course's own card for every hole in play, or the golfer's own hand? The template is a guess and a guess cannot declare a birdie. */
+let PARS_VERIFIED=false; window.csParsVerified = () => PARS_VERIFIED;
 let SI =[7,13,15,1,9,5,17,11,3,8,14,2,10,4,12,18,6,16];
 let CRATE=70.2, CSLOPE=123;
 /* golf convention: an index better than scratch is a PLUS handicap — display
@@ -12226,6 +12376,38 @@ async function markRegulars(){
   if(typeof renderRoster === 'function') renderRoster();
 }
 
+/* D363 · the person "Play with <name> → Now" was tapped from, seated beside
+   me once the roster is primed — or refused with a reason. Consumed on the
+   spot, so a later generic Play never inherits the last opponent. The number
+   comes from the picker's own producer (`my_friends`, then `search_golfers`,
+   matched by id), never from a figure a profile page displayed. */
+async function csApplyLivePreselect(){
+  const who = window.csLivePreselect; if(!who) return;
+  window.csLivePreselect = null;
+  const first = String(who.name||'').trim().split(/\s+/)[0] || 'them';
+  const live = { active: !!(state.live && state.live.active), phoneOnly: false };
+  let index = null;
+  if(!live.active && window.sb){
+    try {
+      const { data } = await window.sb.rpc('my_friends');
+      const hit = (data||[]).find(f => f.profile_id === who.pid);
+      if(hit) index = hit.index_current;
+      else {
+        const r = await window.sb.rpc('search_golfers', { p_q: who.name });
+        const s = (r.data||[]).find(f => f.profile_id === who.pid);
+        if(s) index = s.index_current;
+      }
+    } catch(_){}
+  }
+  const person = { pid: who.pid, name: who.name };
+  const out = window.csPreselectInto(ROSTER, sel, person, index, live);
+  if(out === 'seated'){ LIVE = sel.map(i=>ROSTER[i]); renderRoster(); }
+  const W = window.CS_PLAY_WITH || {};
+  if(out === 'alreadyInARound') toast(W.alreadyInARound ? W.alreadyInARound(first) : `You're already in a round — ${first} wasn't added.`);
+  else if(out === 'full') toast(W.groupFull ? W.groupFull(first) : `The group is full — remove someone to add ${first}.`);
+  else if(out === 'seated') toast(W.seated ? W.seated(first, index == null) : `${first} is in the group.`);
+}
+window.csApplyLivePreselect = csApplyLivePreselect;
 function primeRealRoster(){
   if(state.demo) return;
   if(state.live && state.live.active) return;   /* never wipe an in-progress round */
@@ -12471,6 +12653,30 @@ async function drainAbandons(){
   try{ localStorage.setItem(PENDA_KEY, JSON.stringify(left)); }catch(_){}
 }
 window.drainAbandons=drainAbandons;
+/* the live round row, the one shape resume AND join read */
+function csLiveCols(jc, sp){ return `id, league_id, game, game_config, ${jc?'join_code, ':''}${sp?'starter_profile_id, ':''}started_by, course_snapshot, course_label, started_at, live_round_players!live_round_players_live_round_id_fkey(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))`; }
+/* Codex S2 · join the round that already stands for a booking: read it as the
+   server has it and apply it through the SAME conversion resume uses — its
+   roster and seat ids, its scores from this browser if any, its start, its
+   host. Returns false when I hold no seat in it; nothing is initialised. */
+async function csJoinExistingLiveRound(lr){
+  const myPid = window.CS?.user?.id || null;
+  if(!window.sb || !lr) return false;
+  let row = null;
+  for(const [jc, sp] of [[true,true],[true,false],[false,false]]){
+    const r = await sb.from('live_rounds').select(csLiveCols(jc, sp)).eq('id', lr).maybeSingle();
+    if(r && !r.error){ row = r.data; break; }
+  }
+  if(!row) return false;
+  const seated = (row.live_round_players||[]).some(p => p.member?.profile_id===myPid || p.guest_profile_id===myPid);
+  if(!seated) return false;
+  if(!applyServerRound(row, myPid)) return false;
+  persistLive();
+  liveJoinIfAble();
+  renderPlay();
+  return true;
+}
+window.csJoinExistingLiveRound = csJoinExistingLiveRound;
 async function rehydrateLiveRound(){
   if(state.demo) return;
   /* an ACTIVE in-memory round is the freshest truth there is — never re-apply
@@ -12508,7 +12714,7 @@ async function rehydrateLiveRound(){
        for 'live_rounds' and 'live_round_players'". Every boot after a live
        round logged that, the resume list came back empty, and "Continue your
        round" never appeared (D86's doorbell). The hint is the whole fix. */
-    const _cols = (jc, sp) => `id, league_id, game, game_config, ${jc?'join_code, ':''}${sp?'starter_profile_id, ':''}started_by, course_snapshot, course_label, started_at, live_round_players!live_round_players_live_round_id_fkey(id, member_id, guest_name, guest_index, index_source, position, guest_profile_id, member:league_members(profile_id, profile:profiles(display_name, index_current)))`;
+    const _cols = csLiveCols;
     const _sel = (jc, sp) => sb.from('live_rounds')
       .select(_cols(jc, sp)).eq('status','live').order('started_at',{ ascending:false });
     let { data, error } = await _sel(true, true);
@@ -13392,6 +13598,39 @@ function settleRows(pts, val){
    books today? Pull its course + planned group into the tee sheet instead of
    rebuilding it. Names map to roster entries; any that don't match are named so
    you can add them (or add a guest). watchAll carries a today→+14 window. */
+/* F10 · the plan-shaped handoff into live setup. Seats are PROFILE IDS —
+   never names — so a golfer with a shared name is never mis-seated. */
+function csTeeUpFromPlan(d){
+  const seats = (d.rsvp||[]).filter(r => r && r.profile_id);
+  window.csLivePlan = {
+    planId: d.id, courseLabel: (d.course && d.course.name) || d.course_label || null, courseId: d.course_id || null,
+    game: d.game || null,
+    accepted: seats.filter(r => r.status==='in' || r.profile_id===d.profile_id).map(r => ({ pid:r.profile_id, name:r.name||'A golfer', marker:r.marker||null })),
+    pending:  seats.filter(r => r.status!=='in' && r.status!=='out' && r.profile_id!==d.profile_id).map(r => r.name||'A golfer'),
+  };
+  closeSheet?.();
+  switchView('play');
+}
+window.csTeeUpFromPlan = csTeeUpFromPlan;
+async function csApplyLivePlan(){
+  const P = window.csLivePlan; if(!P) return;
+  window.csLivePlan = null;
+  if(state.live && state.live.active) { toast('You’re already in a round.'); return; }
+  const lc = $('#lrCourse');
+  if(lc && P.courseLabel){ lc.value = P.courseLabel; if(P.courseId) lc.dataset.courseId = String(P.courseId); }
+  state.live.planId = P.planId;
+  const me = window.CS?.user?.id || null;
+  let seated = 0;
+  for(const a of P.accepted){
+    if(a.pid === me) continue;
+    const out = window.csPreselectInto(ROSTER, sel, { pid:a.pid, name:a.name }, null, { active:false, phoneOnly:false });
+    if(out === 'seated') seated++;
+  }
+  LIVE = sel.map(i=>ROSTER[i]); renderRoster();
+  const pend = P.pending.length ? ` · ${P.pending.join(', ')} ${P.pending.length===1?'hasn’t':'haven’t'} answered` : '';
+  toast(`Booking loaded${seated?` — ${seated} seated`:''}${pend}`);
+}
+window.csApplyLivePlan = csApplyLivePlan;
 function renderPlanBridge(){
   const box=$('#planBridge'); if(!box) return;
   if(state.demo || !window.CS?.user){ box.style.display='none'; return; }
@@ -13401,6 +13640,11 @@ function renderPlanBridge(){
   const mine=(window.watchAll||[]).filter(r=>r.mine!==false && r.play_on===todayISO);
   if(!mine.length){ box.style.display='none'; return; }
   const sr=mine[0];
+  /* F12 · played already? Then this is not a bridge into a round, it is a
+     booking I have finished — and it stops prompting me. Per golfer. */
+  if(sr.course_id && mine.filter(x=>String(x.course_id||'')===String(sr.course_id)).length===1){
+    csBookingPlayed(sr.course_id, sr.play_on).then(v=>{ if(v==='played') box.style.display='none'; });
+  }
   const withN=(sr.tagged_names||[]).length?' · with '+esc(sr.tagged_names.join(' & ')):'';
   box.style.display='block';
   box.innerHTML=`<div class="card" style="border-color:var(--gold); padding:12px">
@@ -13428,7 +13672,7 @@ function renderPlay(){
   if(setup && document.body.classList.contains('cardview')) setCardView(false);
   $('#playSetup').style.display = setup ? 'block':'none';
   $('#playLive').style.display  = setup ? 'none':'block';
-  if(setup){ renderPlanBridge(); renderRoster(); renderLiveBanner(); return; }
+  if(setup){ if(window.csLivePlan) csApplyLivePlan(); renderPlanBridge(); renderRoster(); renderLiveBanner(); return; }
 
   persistLive();   /* every live repaint follows a state.live mutation → snapshot the card so a refresh resumes it */
   /* D152 · the card is a VIEW of this same state, so it repaints on the same
@@ -14032,7 +14276,8 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
     ? [0,1,2,3].map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1])
     : null;
   const _holes=liveHoles(), _rating9=!!(state.live&&state.live.rating9);   /* carry the setup's holes choice into the live round */
-  state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9, pairing:_pairing, mode:_mode,
+  const _planId=(state.live&&state.live.planId)||null;   /* F10 · the booking this round is teed up from survives the rebuild (S1) */
+  state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9, pairing:_pairing, mode:_mode, planId:_planId,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:null,   /* D85: per-cell write clocks + the channel key */
     lr:null, league_id:(window.CS?.league?.id||null), pmap:null, guestTokens:{}};
@@ -14051,7 +14296,7 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
       const _r=parseFloat($('#lrRate').value)||null;
       const _nine9 = _holes===9 && _r!=null ? (_rating9 ? _r : _r/2) : null;
       const snap={ rating:_r, slope:parseInt($('#lrSlope').value)||null,
-        nine_rating:_nine9, holes:_holes, pars:PAR.slice(), si:(SI?SI.slice():null),
+        nine_rating:_nine9, holes:_holes, pars:PAR.slice(), pars_verified:PARS_VERIFIED, si:(SI?SI.slice():null),
         label:($('#lrCourse').value||'').trim(), tee:($('#lrTee').value||'').trim() };
       /* D88: a guest we searched up in the app IS a known golfer — carry the
          profile so the server can ring them and their app can find the round.
@@ -14087,15 +14332,46 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
         p_course_label:snap.label, p_snapshot:snap,
         p_game:(game==='score'?'none':game), p_players:players, p_config:cfg,
         p_api_course_id: ($('#lrCourse')?.dataset.courseId || null) };
-      let { data, error } = await sb.rpc('start_live_round', args);
-      /* Netlify ships this client before `db push` — old RPC has no p_config;
-         drop it and retry so a tee-off never fails on deploy skew */
-      if(error && /p_config|p_api_course_id|function|schema cache/i.test(error.message||'')){
-        delete args.p_api_course_id;              /* D150 · shed the newest arg first */
+      /* F10 · a round teed up from a booking starts THROUGH the booking: one
+         live round per booking, and a second starter is handed the first
+         golfer's round. An older server has no such function; then the plain
+         start runs and the link is simply not made (skew, never a failure). */
+      /* F10 / Codex S1 · ONE start. A round teed up from a booking goes
+         THROUGH the booking, and that call's answer IS the round: a fresh
+         start's payload is consumed as the start (no second, unlinked
+         start_live_round call); a JOIN hydrates the standing round and
+         returns; a missing function on an older server is the only case
+         that falls through to the ordinary start (the link simply not made);
+         a permission or network failure aborts — it never starts an
+         unrelated round. */
+      let data = null, error = null, viaPlan = false;
+      if(state.live.planId && window.sb){
+        const pa = { p_scheduled_round: state.live.planId, p_league: args.p_league, p_course_label: args.p_course_label, p_snapshot: args.p_snapshot,
+                     p_game: args.p_game, p_players: args.p_players, p_config: args.p_config, p_api_course_id: args.p_api_course_id };
+        const pr = await window.sb.rpc('start_live_round_from_plan', pa);
+        if(pr.error){
+          if(!/function|schema cache/i.test(pr.error.message||'')) throw pr.error;   /* refused: no unrelated round */
+          /* skew: an older server — the ordinary start below, unlinked */
+        } else if(pr.data && pr.data.joined){
+          const ok = await csJoinExistingLiveRound(pr.data.live_round_id);
+          if(!ok) throw new Error('The group teed off without a seat for you — ask the host to add you.');
+          toast('Joined the round already teed up for this booking.');
+          btn.disabled=false; return;
+        } else if(pr.data && pr.data.live_round_id){
+          data = pr.data; viaPlan = true;
+        }
+      }
+      if(!viaPlan){
         ({ data, error } = await sb.rpc('start_live_round', args));
-        if(error && /p_config|function|schema cache/i.test(error.message||'')){
-          delete args.p_config;
+        /* D150 · an older server rejects an argument it does not know:
+           drop it and retry so a tee-off never fails on deploy skew */
+        if(error && /p_config|p_api_course_id|function|schema cache/i.test(error.message||'')){
+          delete args.p_api_course_id;              /* D150 · shed the newest arg first */
           ({ data, error } = await sb.rpc('start_live_round', args));
+          if(error && /p_config|function|schema cache/i.test(error.message||'')){
+            delete args.p_config;
+            ({ data, error } = await sb.rpc('start_live_round', args));
+          }
         }
       }
       if(error) throw error;
@@ -14397,10 +14673,42 @@ function showLiveRecap(d, result, lrId){
     rows.push(`<button class="btn" id="lrShareCard" style="width:100%;margin-top:14px">Share the card</button>
       <button class="btn dark" id="lrShareLink" style="width:100%;margin-top:10px">Share the settlement page</button>
       <button class="cs-tskip" id="lrShareRevoke" type="button" style="width:100%;margin-top:6px">Revoke a shared link</button>`);
-  openSheet(d.casual?'Casual — nothing posted':'Round posted',
+  /* F12 · YOUR ROUND — the truth about the save in the product's own words,
+     then View round and Add a photo, which reuse the receipt's own pipeline. */
+  const st = csSaveStatus(posted, skipped, !!d.casual, (window.CS?.user?.id || null));
+  csInvalidateMyRounds();   /* R2 · a finish changes what my rounds are */
+  const courseLabel = ($('#lrCourse')?.value || '').trim();
+  rows.unshift(`<div class="eyebrow">Your round</div>
+    <div class="check" id="lrMine"><div class="tt"><b>${esc(courseLabel || 'Your round')}</b><small>${esc(st.title).toUpperCase()}</small>
+    <span class="fine" style="padding:0;display:block">${esc(st.detail)}</span>
+    <span id="lrMineDoors" style="display:flex;gap:8px;margin-top:8px"></span></div></div>`);
+  openSheet(d.casual?'Casual — nothing posted':st.title,
     `${posted.length} CARD${posted.length===1?'':'S'}${window.CS?.league?' TO THE SEASON':' POSTED'}`,
     rows.join('') || '<p class="fine" style="padding-top:0">Nothing to post.</p>');
   $('#sheet').classList.add('room-dusk');   /* the post-round settlement is a ceremony - dusk for every viewer, like #finish */
+  (async()=>{
+    const doors = document.getElementById('lrMineDoors'); if(!doors) return;
+    const day = csTodayISO(), courseId = ($('#lrCourse')?.dataset.courseId || null);
+    /* the server names my round outright once 20261105090000 is applied; an
+       older payload is confirmed only by authoritative evidence — one round
+       of mine on this course today — and otherwise stays unconfirmed */
+    let final = st;
+    if(!final.roundId){ final = csConfirmStatus(st, csMyRoundMatch(await csMyRoundsOn(day), courseId, day)); }
+    const lbl = document.querySelector('#lrMine small'), det = document.querySelector('#lrMine .fine');
+    if(lbl) lbl.textContent = final.title.toUpperCase();
+    if(det) det.textContent = final.detail;
+    if(!final.hasRound){ doors.remove(); return; }
+    const rid = final.roundId;
+    /* R1 · through the fetch-by-id route — the receipt is fetched, never read
+       from a cache that may not hold it — and the photo door opens the SAME
+       receipt with its own attach control focused: no timed click, no
+       picker opened outside the golfer's own tap on that control. */
+    doors.innerHTML = `<button class="mini" id="lrViewRound" type="button">View round</button><button class="mini" id="lrAddPhoto" type="button">Add a photo</button>`;
+    document.getElementById('lrViewRound')?.addEventListener('click',()=>{ closeSheet?.(); csOpenPostedRound(rid); });
+    document.getElementById('lrAddPhoto')?.addEventListener('click',()=>{ closeSheet?.(); csOpenPostedRound(rid, { photoIntent:true }); });
+    /* Home is refreshed from the CONFIRMED post, never from a guess */
+    try{ await (window.loadHome?.()); }catch(_){}
+  })();
   document.querySelectorAll('#shBody [data-copylink]').forEach(b=>b.addEventListener('click',()=>{
     try{ navigator.clipboard?.writeText(b.dataset.copylink); toast('Scorecard link copied'); }
     catch(_){ toast('Copy failed'); }
@@ -14777,11 +15085,37 @@ function csRatingBlock(id, opts){
 
 /* the tee a course opens on — `CourseBook.defaultTee`'s own rule, so the desk
    and the phone open a course on the same tee */
+/* one stable identity for a tee: its name, its rating category and its holes
+   — a men's Back and a women's Back are two keys (the phone's `CourseBookTee.id`) */
+function csTeeKey(t){ return `${t.tee_name||''}·${t.gender||''}·${t.number_of_holes||18}`; }
 function csBookTee(b){
   const tees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
+  /* D364 (F1) · a tee the golfer CHOSE on the record wins; otherwise the
+     longest rated 18 — a fact about the course, never a guess about the golfer */
+  const chosen = (window.CS_COURSE_TEE||{})[String(b.id)];
+  if(chosen){ const hit = tees.find(t=>csTeeKey(t)===chosen); if(hit) return hit; }
   const full = tees.filter(t=>(t.number_of_holes||18)===18);
   const pool = full.length ? full : tees;
   return pool.slice().sort((x,y)=>(y.total_yards||0)-(x.total_yards||0))[0] || null;
+}
+window.csTeeKey = csTeeKey;
+/* the card's rows: HOLE, YDS when every hole carries one, PAR, HCP */
+function csCardRows(holes, tr){
+  const yds = holes.length && holes.every(h=>h.yards);
+  return tr('HOLE', holes.map(h=>h.hole))
+    + (yds ? tr('YDS', holes.map(h=>h.yards)) : '')
+    + tr('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
+    + tr('HCP', holes.map(h=>h.si!=null?h.si:''));   /* TERMINOLOGY §3.1 */
+}
+/* the tee picker on a course record — every rated tee, the chosen one selected */
+function csTeePickerHtml(b, tee){
+  const rated = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
+  if(rated.length < 2) return '';
+  const name = t => (t.tee_name||'Tee') + (t.gender==='female' ? ' · Women’s' : '') + ((t.number_of_holes||18)===9 ? ' · 9 holes' : '');
+  return `<label class="cs-agate-s" style="color:var(--mut); display:block; padding-top:8px">Tees
+    <select class="f" data-cstee="${esc(String(b.id))}" style="margin-top:4px; font-family:var(--sans); font-size:16px" aria-label="Change tees">${
+      rated.map(t=>`<option value="${esc(csTeeKey(t))}"${tee && csTeeKey(t)===csTeeKey(tee) ? ' selected' : ''}>${esc(name(t))} — ${esc(String(t.course_rating))} / ${esc(String(t.slope_rating))}${t.total_yards ? ' · ' + esc(String(t.total_yards).replace(/\B(?=(\d{3})+(?!\d))/g, ',')) + ' yds' : ''}</option>`).join('')
+    }</select></label>`;
 }
 function csBookHoles(b){
   const tee = csBookTee(b);
@@ -14843,9 +15177,7 @@ function renderCourseBooks(){
     const leaf = holes.length
       ? `<details class="cs-cardleaf"><summary class="cs-agate-s">The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</summary>`
         + `<div class="cs-leaf"><table>`
-        + tr('HOLE', holes.map(h=>h.hole))
-        + tr('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
-        + tr('HCP', holes.map(h=>h.si!=null?h.si:''))   /* TERMINOLOGY §3.1 */
+        + csCardRows(holes, tr)
         + `</table></div></details>`
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
 
@@ -14920,9 +15252,7 @@ function renderCourseBooks(){
     const leaf = holes.length
       ? `<div class="cs-leaf"><div class="cs-agate-s" style="color:var(--leaf-mut);padding-bottom:6px">`
         + `The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</div><table>`
-        + tr('HOLE', holes.map(h=>h.hole))
-        + tr('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
-        + tr('HCP', holes.map(h=>h.si!=null?h.si:''))   /* TERMINOLOGY §3.1 */
+        + csCardRows(holes, tr)
         + `</table></div>`
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
     return `<section class="cs-course">
@@ -14936,6 +15266,7 @@ function renderCourseBooks(){
         </div>
         <div class="cs-facts">${factLine}</div>
         <p class="cs-agate-s" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
+        ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
       </div>
       <div>${csRatingBlock(b.id, { size:48 })}${leaf}</div>
@@ -15009,6 +15340,12 @@ function csRatingsFillNotes(ids){
    The rail moves IN PLACE — the list is not re-sorted under the thumb — and
    §22's sweep is the width transition, with nothing else on the page moving. */
 function csCourseBooksWire(box){
+  /* D364 (F1) · changing tees changes the facts and the card together */
+  box.querySelectorAll('select[data-cstee]').forEach(sel=>sel.addEventListener('change',()=>{
+    window.CS_COURSE_TEE = window.CS_COURSE_TEE || {};
+    window.CS_COURSE_TEE[sel.dataset.cstee] = sel.value;
+    renderCourseBooks();
+  }));
   box.querySelectorAll('[data-cslead]').forEach(row=>{
     const go = e => {
       if(e.target.closest('details') || e.target.closest('input')) return;
@@ -15102,30 +15439,31 @@ function csPlanCourseHtml(courseId, want){
   const tee = (named.slice().sort((x,y)=>(y.total_yards||0)-(x.total_yards||0))[0]) || csBookTee(b);
   const holes = tee && Array.isArray(tee.holes)
     ? tee.holes.slice().sort((x,y)=>(x.hole||0)-(y.hole||0)) : [];
-  const card = csDrawnCardSvg(holes);
-  if(!card) return `<p class="fine" style="padding:8px 0">${esc(CS_COURSE_COPY.noCard)}</p>`;
+  const hasCard = holes.some(h=>h.par!=null);
 
-  /* the three lowest stroke indexes — the fact a golfer actually wants, and
-     the literal answer to his sentence. Never four, never a "hardest stretch":
-     three fits one rule at `figure` 27 on a 340 aside and at 390. */
-  const three = holes.filter(h=>h.si!=null).sort((x,y)=>x.si-y.si).slice(0,3).map(h=>{
-    const sub = [h.par!=null?`par ${h.par}`:null, h.yards?String(h.yards):null,
-                 `si ${h.si}`].filter(Boolean).join(' · ');
-    return `<div class="cs-hard"><span class="cs-fig-m">${h.hole}${csOrdinalSuffix(h.hole)}</span>`
-      + `<span class="cs-agate-s">${esc(sub)}</span></div>`;
-  }).join('');
-
-  /* the turn. OUT and IN here are the COURSE'S PARS and never a score, which
-     is why the line is labelled with the tee it is drawn from. */
+  /* D364 (F3) · A COMPACT COMPOSITION, NOT A GRAPHIC. The drawn bars encoded
+     yardage as height and par as width and nothing said so; "The three that
+     decide it" were the three lowest stroke indexes, which decide nothing.
+     Now: the tee the plan names (or the longest, said as such), its facts,
+     the turn, and the whole scorecard behind View scorecard — on the leaf's
+     paper. No invented map, no photograph the plan does not carry. */
+  const grouped = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const teeLine = tee ? [
+    (tee.tee_name||'Tee') + (tee.gender==='female' ? ' · Women’s' : '') + ' tees',
+    tee.total_yards ? `${grouped(tee.total_yards)} yds` : null,
+    (tee.course_rating!=null && tee.slope_rating!=null) ? `${tee.course_rating} / ${tee.slope_rating}` : null
+  ].filter(Boolean).join(' · ') : '';
+  const teeWhy = tee ? (named.length ? 'Your tee for this round.' : 'The longest rated 18 — the plan names no tee.') : '';
+  /* the turn. OUT and IN here are the COURSE'S PARS and never a score */
   const sum = list => list.reduce((a,h)=>a + (h.par||0), 0);
   const out = sum(holes.slice(0,9)), inn = sum(holes.slice(9,18));
-  const grouped = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const turn = [
-    (out && inn) ? `OUT ${out} · IN ${inn}` : null,
-    tee && tee.total_yards ? `${grouped(tee.total_yards)} YDS` : null,
-    (tee && tee.course_rating!=null && tee.slope_rating!=null)
-      ? `${tee.course_rating} / ${tee.slope_rating}` : null
-  ].filter(Boolean).join('  ·  ');
+  const turn = (out && inn) ? `Out ${out} · In ${inn}` : '';
+  const tr = (head, cells, cls) =>
+    `<tr class="${cls||''}"><th>${esc(head)}</th>${cells.map(c=>`<td>${esc(String(c))}</td>`).join('')}</tr>`;
+  const cardHtml = hasCard
+    ? `<details class="cs-cardleaf" data-cs-scorecard="1"><summary class="cs-agate-s">View scorecard</summary>`
+      + `<div class="cs-leaf"><table>${csCardRows(holes, tr)}</table></div></details>`
+    : `<p class="fine" style="padding:8px 0">${esc(CS_COURSE_COPY.noCard)}</p>`;
 
   const hist = csCourseHistoryLine(b);
   const r = csRatingOf(b.id);
@@ -15141,11 +15479,11 @@ function csPlanCourseHtml(courseId, want){
     : '';
 
   return `<div class="cs-plan-course">
-    <div class="cs-agate-s" style="color:var(--mut)">The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</div>
-    <div class="cs-plan-card">${card}</div>
-    ${turn?`<p class="cs-col-m" style="color:var(--mut);padding-top:8px">${esc(turn)}</p>`:''}
-    ${three?`<div class="cs-agate-s" style="color:var(--mut);padding-top:12px">The three that decide it</div>
-      <div class="cs-hardrow">${three}</div>`:''}
+    <div class="cs-agate-s" style="color:var(--mut)">The course</div>
+    ${teeLine?`<p style="margin:4px 0 0" data-cs-plan-tee="1"><b>${esc(teeLine)}</b></p>`:''}
+    ${teeWhy?`<p class="cs-agate-s" style="color:var(--mut);padding-top:2px">${esc(teeWhy)}</p>`:''}
+    ${turn?`<p class="cs-col-m" style="color:var(--mut);padding-top:4px">${esc(turn)}</p>`:''}
+    ${cardHtml}
     ${hist}${rate}
   </div>`;
 }
@@ -15588,6 +15926,7 @@ function openCardSheet(){
     const f=f9.value, b=b9?b9.value:'';
     if(!validSide(f)||(!nine&&!validSide(b))){ toast('Nine digits a side, 3 through 6'); return; }
     PAR=nine ? [...[...f].map(Number), ...PAR.slice(9,18)] : [...f,...b].map(Number);
+    PARS_VERIFIED = PAR.slice(0, nine?9:18).every(v => v>=3 && v<=6);   /* S3 · the golfer wrote it: confirmed */
     /* pars-only card carries no stroke index — estimate (flagged), never null:
        strokeOn()/matchCalc() dereference SI on every match hole. Rank over the
        holes in play so a nine's SI is 1-9. */
@@ -16498,20 +16837,17 @@ async function toggleHomeRx(r, emoji){
     console.warn('[reaction:home]', emoji, error);
     rxFlip(cur, me, had);
     renderHomeFeed();
-    toast(humanError(error, 'Reaction did not save.'));
-  }
+    toast(humanError(error, emoji===APPLAUSE.key ? APPLAUSE.failed : 'Reaction did not save.'));
+  } else if(emoji===APPLAUSE.key && !had) csApplauseFirstSend();
 }
 function wireHomeSocial(box){
   const rows = state.demo ? DEMO_FEED : (window.homeFeedRows||[]);
-  box.querySelectorAll('[data-hreact]').forEach(b=>b.addEventListener('click',()=>{
-    const options=b.nextElementSibling;
-    options.hidden=false;
-    b.setAttribute('aria-expanded','true');
-    b.hidden=true;
-    options.querySelector('button')?.focus();
-  }));
+  /* D365 · the glyph toggles applause; the count opens the people */
   box.querySelectorAll('[data-hrx]').forEach(b=>b.addEventListener('click',()=>{
-    const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, b.dataset.e);
+    const r=rows[+b.dataset.hrx]; if(r) toggleHomeRx(r, APPLAUSE.key);
+  }));
+  box.querySelectorAll('[data-hrxpeople]').forEach(b=>b.addEventListener('click',()=>{
+    const r=rows[+b.dataset.hrxpeople]; const rx=r && homeRxOf(r); if(rx) openApplausePeople(rx);
   }));
 }
 /* photos arc 2 (D59): one face for every identity chip — the avatar when the
@@ -17084,7 +17420,7 @@ function dgMentions(mark){
   if(state.demo){
     /* diorama: the seeded reactions on the is_me row, treated as fresh */
     DEMO_FEED.filter(r=>r.is_me&&r.rx).forEach(r=>{
-      Object.entries(r.rx).forEach(([e,s])=>(s.who||[]).forEach(w=>out.push({who:w, e, gross:r.gross})));
+      Object.entries(r.rx).forEach(([e,s])=>(s.who||[]).forEach(w=>out.push({who:w, e, gross:r.gross, rid:r.round_id})));
     });
     return out;
   }
@@ -17095,13 +17431,13 @@ function dgMentions(mark){
     if(!k.created_at || dgTime(k.created_at)<=mark) return;
     const r=mine[k.post_id]; if(!r) return;
     if(csKudoMine(k)) return;                      /* my own tap isn't news */
-    out.push({ who:csKudoWho(k), e:k.emoji||'azalea', gross:r.gross });
+    out.push({ who:csKudoWho(k), e:k.emoji||'azalea', gross:r.gross, rid:r.round_id });
   });
   (hr.cmine||[]).forEach(c=>{
     if(!c.created_at || dgTime(c.created_at)<=mark) return;
     const r=mine[c.post_id]; if(!r) return;
     if(csKudoMine(c)) return;
-    out.push({ who:csKudoWho(c), e:null, gross:r.gross });
+    out.push({ who:csKudoWho(c), e:null, gross:r.gross, rid:r.round_id });
   });
   return out;
 }
@@ -17109,6 +17445,7 @@ function dgMentions(mark){
    right pressure to feel when adding one. */
 function rxSentence(k, gross){
   switch(k){
+    case 'applause': return 'applauded your round';   /* D365 · the round, not the score */
     case 'azalea': return `gave your ${gross} its flowers`;
     case 'jug':    return `raised a glass to your ${gross}`;
     case 'eagle':  return `circled your ${gross} twice`;
@@ -17150,15 +17487,22 @@ function renderHomeDigest(){
     if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
     if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
     if(posts.length) bits.push(`${posts.length} league note${posts.length>1?'s':''}`);
-    if(men.length){
-      const m=men[0];
+    /* D365 · applause is grouped by round and distinct people — "Alex and 2
+       others applauded your round" — never listed tap by tap; whatever else
+       landed (a comment, an earlier reaction) keeps the old shape. */
+    const apByRound={}, apOrder=[];
+    men.filter(m=>m.e===APPLAUSE.key).forEach(m=>{ const k=String(m.rid||('gross:'+m.gross)); if(!apByRound[k]){ apByRound[k]=[]; apOrder.push(k); } apByRound[k].push(m.who); });
+    apOrder.slice(0,2).forEach(k=>{ const s=APPLAUSE.activity(apByRound[k]); if(s){ const first=s.split(' ')[0]; bits.push(`<b>${esc(first)}</b>${esc(s.slice(first.length))}`); } });
+    const rest=men.filter(m=>m.e!==APPLAUSE.key);
+    if(rest.length){
+      const m=rest[0];
       /* D311 · a reaction is a word, not a verb. This built
          "Jade 🔥’d your 90" — a glyph used as a verb, which no language does,
          and which D309 makes impossible anyway: you cannot verb a drawn
          azalea. One authored sentence per token; an unknown key falls to the
          neutral line rather than naming a reaction it cannot read. */
       bits.push(`<b>${esc(m.who)}</b> ${rxSentence(m.e, m.gross)}`);
-      if(men.length>1) bits.push(`${men.length-1} more chimed in on your rounds`);
+      if(rest.length>1) bits.push(`${rest.length-1} more chimed in on your rounds`);
     }
     if(!bits.length) return;
     box.innerHTML=`<div class="digest"><span class="dk">Since you were here</span>${dgJoin(bits)}.</div>`;
@@ -17674,9 +18018,29 @@ function csAfterplan(it){
 
    Database-first is still the release order. This is what makes the order a
    preference rather than a cliff. */
+/* Codex R2 / R5 · RECOMPUTED on every load (never a set that only grows),
+   per account, and a booking that competes with another at the same course
+   on the same day is never dropped — one round cannot be assigned to two. */
+let CS_PLAYED_PLANS = new Set();
+async function csPrimePlayedPlans(items){
+  const next = new Set();
+  const plans = (items||[]).filter(it => String(it && it.key || '').startsWith('plan:') && it.plan);
+  const competing = {};
+  plans.forEach(it => { const c = it.plan.course_id || it.plan.courseId, d = it.plan.play_on || it.plan.playOn; if(c && d) competing[c+'#'+d] = (competing[c+'#'+d]||0) + 1; });
+  for(const it of plans){
+    const cid = it.plan.course_id || it.plan.courseId, day = it.plan.play_on || it.plan.playOn, id = String(it.plan.plan_id||it.plan.planId||'');
+    if(!id || !cid || !day || competing[cid+'#'+day] > 1) continue;
+    if((await csBookingPlayed(cid, day)) === 'played') next.add(id);
+  }
+  CS_PLAYED_PLANS = next;
+}
+window.csPrimePlayedPlans = csPrimePlayedPlans;
 function csUsableItems(data){
   if(!data || !Array.isArray(data.items)) return data;
-  const keep = data.items.filter(it => !String(it && it.key || '').startsWith('afterplan:') || csAfterplan(it));
+  const keep = data.items.filter(it => !String(it && it.key || '').startsWith('afterplan:') || csAfterplan(it))
+    /* F12 · a `plan:` item whose booking I have PLAYED (course id + day, from
+       my own rounds — primed by csPrimePlayedPlans) leaves Home. */
+    .filter(it => !(String(it && it.key || '').startsWith('plan:') && it.plan && CS_PLAYED_PLANS.has(String(it.plan.plan_id||it.plan.planId||''))));
   if(keep.length !== data.items.length){
     window.qaEvent?.('afterplan_unusable', { dropped: data.items.length - keep.length });
   }
@@ -17699,7 +18063,8 @@ async function loadHomeDispatch(){
     let reply = await window.sb.rpc('home_dispatch', { p_days: 21, p_today: isoAgo(0), p_caps: CS_CAPS });
     if(reply.error) reply = await window.sb.rpc('home_dispatch', { p_days: 21, p_today: isoAgo(0) });
     if(reply.error) reply = await window.sb.rpc('home_dispatch', { p_days: 21 });
-    if(!reply.error && reply.data) window.homeDispatch = csUsableItems(reply.data);
+    if(!reply.error && reply.data){ try{ await csPrimePlayedPlans(reply.data.items); }catch(_){}
+      window.homeDispatch = csUsableItems(reply.data); }
   }catch(_){ /* skew: an un-migrated database renders the fallback, never an error */ }
 }
 window.loadHomeDispatch = loadHomeDispatch;
@@ -17710,10 +18075,98 @@ window.loadHomeDispatch = loadHomeDispatch;
    at all, and §1.2's own rule is that **a chip is never invented to fill the
    column** -- with no figure the right column is absent and the sentence takes
    the full measure, which is exactly what this renders. */
+/* F11 · the five key families the ranker treats as competition — the twin of
+   the phone's `HomePage.competitionKeys`. `plan:` is deliberately NOT one:
+   a booked round is a date in a diary until something is at stake on it, so
+   it takes neither the ember mark nor a state word however close its date. */
+const CS_COMPETITION_KEYS = ['clash:', 'floor:', 'move:', 'firsttee:', 'live:', 'need:'];
+function csIsCompetition(it){
+  const k = it && it.key ? String(it.key) : '';
+  return CS_COMPETITION_KEYS.some(pre => k.startsWith(pre));
+}
+/* The state word for a Home item, from the season it names. */
+function csItemState(it){
+  if(!csIsCompetition(it)) return null;
+  const id = it && it.league_id;
+  const m = id ? (window.CS?.memberships || []).find(x => (x.league || x).id === id) : null;
+  const lg = m ? (m.league || m) : null;
+  return lg ? CS_COMPETITION.season(lg.phase, (lg.season && lg.season.status) || null) : null;
+}
+window.csIsCompetition = csIsCompetition;
+window.csItemState = csItemState;
+/* F12 · THE TRUTH ABOUT THE SAVE, and WHICH ROUND IS MINE — twins of the
+   phone's `RoundReconcile`. A status is never inferred from a title; a round
+   is matched on COURSE ID and day, never a label; two candidates are a
+   question rather than a link; and a booking is reconciled PER GOLFER. */
+function csSaveStatus(posted, skipped, casual, me){
+  /* Codex R3 · decided by PROFILE ID, never by a display name another golfer
+     may share. A payload from before 20261105090000 carries no identities:
+     that is UNCERTAINTY, said as such, until csConfirmStatus finds the round
+     by authoritative evidence. Someone else's posted card is never mine. */
+  const P = posted||[], K = skipped||[];
+  if(casual) return { title:'Not posted', detail:'A casual round scores nothing — nobody’s card was posted.', hasRound:false, unconfirmed:false };
+  const identified = P.some(x=>x && x.profile_id) || K.some(x=>x && x.profile_id);
+  if(me && identified){
+    const mine = P.find(x=>x && x.profile_id===me);
+    if(mine) return { title:'Round posted', detail:'It’s on the books and scoring.', hasRound:true, unconfirmed:false, roundId: mine.round_id||null };
+    const sk = K.find(x=>x && x.profile_id===me);
+    if(sk) return { title:'Not posted', detail: sk.reason || 'Nothing was written down.', hasRound:false, unconfirmed:false };
+    return { title:'Not posted', detail:'Nothing was written down.', hasRound:false, unconfirmed:false };
+  }
+  if(!P.length && !K.length) return { title:'Not posted', detail:'Nothing was written down.', hasRound:false, unconfirmed:false };
+  return { title:'Not confirmed yet', detail:'Check your rounds before posting it again.', hasRound:false, unconfirmed:true };
+}
+/* an unconfirmed status becomes posted on exactly ONE authoritative match */
+function csConfirmStatus(st, match){
+  if(!st || !st.unconfirmed) return st;
+  if(match && match.kind==='one') return { title:'Round posted', detail:'It’s on the books and scoring.', hasRound:true, unconfirmed:false, roundId: match.id };
+  return st;
+}
+function csMyRoundMatch(rounds, courseId, playedOn){
+  if(!courseId || !playedOn) return { kind:'none' };
+  const hits = (rounds||[]).filter(r => String(r.api_course_id||'')===String(courseId) && r.played_on===playedOn);
+  return hits.length===1 ? { kind:'one', id:hits[0].id } : hits.length>1 ? { kind:'ambiguous', ids:hits.map(r=>r.id) } : { kind:'none' };
+}
+/* Codex R2 · my rounds on a day, keyed by ACCOUNT and day, invalidated on any
+   finish / delete / correction, and a failed read is UNKNOWN — never an empty
+   authoritative answer. A late response for another account is discarded. */
+const CS_MY_ROUNDS = { uid:null, day:null, rows:null, at:0, seq:0 };
+function csInvalidateMyRounds(){ CS_MY_ROUNDS.rows = null; CS_MY_ROUNDS.day = null; CS_MY_ROUNDS.seq++; }
+window.csInvalidateMyRounds = csInvalidateMyRounds;
+async function csMyRoundsOn(day){
+  const uid = window.CS?.user?.id || null;
+  if(!window.sb || !uid || state.demo) return null;                       /* unknown, not empty */
+  if(CS_MY_ROUNDS.uid===uid && CS_MY_ROUNDS.day===day && CS_MY_ROUNDS.rows && Date.now()-CS_MY_ROUNDS.at < 60000) return CS_MY_ROUNDS.rows;
+  const seq = ++CS_MY_ROUNDS.seq;
+  let data, error;
+  try { ({ data, error } = await sb.from('rounds').select('id, api_course_id, played_on').eq('profile_id', uid).eq('played_on', day).eq('voided', false)); }
+  catch(e){ error = e; }
+  if(error) return null;                                                   /* a failed read decides nothing */
+  if(seq !== CS_MY_ROUNDS.seq || (window.CS?.user?.id||null) !== uid) return null;   /* stale: the account or the world moved */
+  CS_MY_ROUNDS.uid = uid; CS_MY_ROUNDS.day = day; CS_MY_ROUNDS.rows = data || []; CS_MY_ROUNDS.at = Date.now();
+  return CS_MY_ROUNDS.rows;
+}
+function csTodayISO(){ const n=new Date(), pad=x=>String(x).padStart(2,'0'); return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`; }
+/* has THIS golfer played this booking? 'played' only on exactly one match;
+   'unknown' when the evidence could not be read — and unknown never hides. */
+async function csBookingPlayed(courseId, playOn){
+  if(!courseId || !playOn) return 'open';
+  const rows = await csMyRoundsOn(playOn);
+  if(rows === null) return 'unknown';
+  const m = csMyRoundMatch(rows, courseId, playOn);
+  return m.kind==='one' ? 'played' : m.kind==='ambiguous' ? 'ambiguous' : 'open';
+}
+window.csSaveStatus = csSaveStatus; window.csConfirmStatus = csConfirmStatus; window.csMyRoundMatch = csMyRoundMatch; window.csBookingPlayed = csBookingPlayed; window.csMyRoundsOn = csMyRoundsOn;
+window.csSaveStatus = csSaveStatus; window.csMyRoundMatch = csMyRoundMatch; window.csBookingPlayed = csBookingPlayed;
 function csLeadBlock(it){
-  const live = it.spine === 'ember';
+  /* F11 · ember identifies a COMPETITION, in any state — so the mark follows
+     the item's family, not whether a clock is running, and the state arrives
+     as a word beside the eyebrow rather than as the colour. */
+  const competition = csIsCompetition(it);
+  const stateWord = csItemState(it);
+  const live = competition;
   return `<div class="csedn${live?' ember':''}" data-dkey="${esc(it.key)}"${it.rank_reason?` data-why="${esc(it.rank_reason)}"`:''}>
-    ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${esc(it.eyebrow)}</span></div>`:''}
+    ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${esc(it.eyebrow)}</span>${stateWord?`<span class="cstate">${esc(stateWord)}</span>`:''}</div>`:''}
     <div class="hl cs-lead">${esc(it.headline)}</div>
     ${it.standfirst?`<div class="sf cs-body">${esc(it.standfirst)}</div>`:''}
     ${it.action?`<button type="button" class="act cs-name-s" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`:''}
@@ -18440,8 +18893,88 @@ function csSeasonRowFacts(f, role){
   let status = null;
   if(clash && clash.closes_today) status = 'The clash closes today';
   else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
-  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status };
+  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank };
 }
+/* F13 · A BIRDIE IS A BIRDIE. The risk in celebrating a good hole is FALSE
+   recognition, so every rule here is a refusal: par must be KNOWN (an
+   estimated par cannot declare an eagle), the score must be COMMITTED (a
+   stepper passing through 3 on its way to 5 is not a birdie), hydration and
+   sync arm the ledger silently, and a correction revises rather than
+   replaying the reward through undo and re-entry. Gross, not net. No points,
+   no post, no notification. Twin of the phone's `HoleMoment`. */
+function csHoleMoment(strokes, par, parIsKnown){
+  if(!parIsKnown || strokes == null || par == null) return null;
+  const s = Number(strokes), p = Number(par);
+  if(!(s > 0) || !(p > 0)) return null;
+  const under = p - s;
+  return under >= 2 ? 'eagle' : under === 1 ? 'birdie' : null;
+}
+const CS_MOMENT_WORD = { birdie:'Birdie', eagle:'Eagle' };
+function csMomentLedger(){
+  const seen = {}, standing = {};
+  const key = (pl, h) => pl + '#' + h;
+  return {
+    /* arm without speaking — hydration, reconnect, a remote echo */
+    seen(pl, h, rev, strokes, par, known){ seen[key(pl,h)] = rev; standing[key(pl,h)] = csHoleMoment(strokes, par, known); },
+    /* a committed score speaks once, and only when it is genuinely under a known par */
+    commit(pl, h, rev, strokes, par, known){
+      const k = key(pl,h), m = csHoleMoment(strokes, par, known), already = seen[k] === rev;
+      seen[k] = rev; standing[k] = m;
+      return already ? null : m;
+    },
+    tally(pl){
+      let e = 0, b = 0;
+      Object.keys(standing).forEach(k => { if(!k.startsWith(pl + '#')) return;
+        if(standing[k] === 'eagle') e++; else if(standing[k] === 'birdie') b++; });
+      return { eagles:e, birdies:b };
+    },
+    /* `1 eagle · 1 birdie` — facts. NOT 'Heating up': a streak label claims
+       something two good holes do not prove, and needs its own ruling. */
+    tallyLine(pl){
+      const t = this.tally(pl), parts = [];
+      if(t.eagles) parts.push(t.eagles + ' eagle' + (t.eagles === 1 ? '' : 's'));
+      if(t.birdies) parts.push(t.birdies + ' birdie' + (t.birdies === 1 ? '' : 's'));
+      return parts.length ? parts.join(' · ') : null;
+    },
+  };
+}
+window.csHoleMoment = csHoleMoment; window.csMomentLedger = csMomentLedger;
+
+/* F11 · Upcoming · Live · Final — the twin of the phone's `CompetitionState`.
+   Ember identifies a COMPETITION now, in any state, so the state can no longer
+   be carried by the colour: every surface wearing the treatment prints one of
+   these three words. The words are not new — each is what the product already
+   calls that state. A plain booked round is not a competition and gets none. */
+const CS_COMPETITION = {
+  season(phase, status){
+    if(phase === 'complete' || status === 'complete') return 'Final';
+    if(status === 'active' || status === 'cup_final' || phase === 'season') return 'Live';
+    if(phase || status) return 'Upcoming';
+    return null;
+  },
+  event(status){
+    return status === 'complete' ? 'Final' : status === 'live' ? 'Live'
+         : status === 'setup' ? 'Upcoming' : null;
+  },
+  spoken(word){
+    return word === 'Final' ? 'Finished competition' : word === 'Live' ? 'Live competition' : 'Upcoming competition';
+  },
+};
+window.CS_COMPETITION = CS_COMPETITION;
+/* F11 · ONE broad flat ember band with dark ink — the competition room. The
+   ink token FLIPS with the printing (`--brand-ink`) because ember does. */
+function csCompetitionBandHtml(row){
+  if(!row || !row.state) return '';
+  const fig = row.figure ? `<span class="cband-fig">${esc(row.figure)}</span>` : '';
+  const note = row.sub ? `<span class="cband-note">${esc(row.sub)}</span>` : '';
+  return `<button class="cband" type="button" data-cband="${esc(row.id)}"
+      aria-label="${esc([CS_COMPETITION.spoken(row.state), row.title, row.eyebrow, row.figure, row.sub].filter(Boolean).join(', '))}">
+    <span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span>
+    ${(fig||note) ? `<span class="cband-mid">${fig}${note}</span>` : ''}
+    ${row.eyebrow ? `<span class="cband-meta">${esc(row.eyebrow)}</span>` : ''}
+  </button>`;
+}
+window.csCompetitionBandHtml = csCompetitionBandHtml;
 function csCompeteList(memberships, events, schedule, todayISO, facts){
   const today = todayISO || new Date().toISOString().slice(0,10);
   const live=[], moments=[], finished=[];
@@ -18458,6 +18991,8 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
                 sub: done ? 'Wrapped. Open it for the table.'
                           : ((f && f.sub) ? f.sub : (m.role==='commissioner' ? 'You run it (the Pro).' : 'You’re in it.')),
                 status: f && f.status ? f.status : null,
+                state: CS_COMPETITION.season(lg.phase, (lg.season && lg.season.status) || null),
+                figure: (f && f.rank != null) ? (f.rank + csOrdinalSuffix(f.rank)) : null,
                 clock: null };
     (done ? finished : live).push(row);
   });
@@ -18467,6 +19002,7 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
                 eyebrow: done ? 'Final' : (e.starts_on ? csDayToken(e.starts_on) : 'Forming'),
                 title: e.name || 'A moment',
                 sub: csMomentLine(e.kind, e.status, e.mine !== false),
+                state: CS_COMPETITION.event(e.status),
                 clock: (done || !e.starts_on) ? null : csDaysBetween(today, e.starts_on) };
     (done ? finished : moments).push(row);
   });
@@ -18748,12 +19284,24 @@ function renderCompete(){
   }
   const list = csCompeteList(CS.memberships, window.myEvents,
                              (window.watchAll&&window.watchAll.length)?window.watchAll:(window.mySchedule||[]));
+  /* F11 · THE SCOREBOARD. The season a golfer is actually in leads the tab as
+     one broad ember band with dark ink — the competition room — and the rest of
+     the list stays the quiet fescue it already was. One band, not a repainted
+     tab: the moments and the finished shelf keep their ordinary rows. */
+  const lead = list.seasons.find(r => r.state === 'Live' && r.figure)
+           || list.seasons.find(r => r.state === 'Live')
+           || list.seasons.find(r => r.state) || null;
   const body = list.nothingRunning
     ? csEmptyRootHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
-    : `<div class="eyebrow">Your seasons</div>`
-      + (list.seasons.length ? list.seasons.map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
+    : (lead ? csCompetitionBandHtml(lead) : '')
+      + `<div class="eyebrow">Your seasons</div>`
+      + (list.seasons.length ? list.seasons.filter(r => !lead || r.id !== lead.id).map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
       + (list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '');
   box.innerHTML = body;
+  box.querySelector('[data-cband]')?.addEventListener('click', () => {
+    const id = String(lead && lead.leagueId || '');
+    if(id) window.enterLeagueById?.(id);
+  });
   if(shelf) shelf.innerHTML = list.finished.length
     ? list.finished.map(csPeerRowHtml).join('')
     : '<p class="fine" style="padding:0">Nothing finished yet.</p>';
@@ -19231,6 +19779,25 @@ function openStakeSettle(id){
   }));
 }
 
+/* D366 (F6) · the words of the pride-bet composer, shared with the phone's
+   `ForfeitCopy`. A first-time golfer can answer from the sheet alone: what the
+   button creates, whether the other golfer agreed (no — nobody is asked to
+   accept here), what decides it, who confirms it, where it shows, and whether
+   it touches league points (never). Honest about being record-only. */
+const CS_PRIDE={
+  sub:'RECORDED HERE, MADE BETWEEN YOU',
+  purpose:"A bet for pride between golfers, kept on the record. It records an agreement you've already made — nobody is asked to accept here.",
+  whereLabel:'Where it lives', decidesLabel:'What decides it', decidesOptional:'optional',
+  points:'It never touches league points.',
+  whereItShows:'It shows under Pride bets · on the record, for the people involved.',
+  who: name => name ? `You and ${String(name).trim().split(/\s+/)[0]}` : 'You and the field — first to hit it',
+  context: (kind, name) => kind==='season' ? `On ${name||'this season'} — the result never touches its points.`
+    : kind==='moment' ? `On ${name||'this contest'}.` : kind==='plan' ? `On ${name||'this planned round'}.`
+    : kind==='buddies' ? 'Between the two of you — no season or round attached.' : 'Say who it is with, or what it hangs on.',
+  confirm: name => { const them = name ? String(name).trim().split(/\s+/)[0] : 'the other golfer';
+    return `When it's decided, either of you settles it with a tap. ${them} isn't asked to accept here — tell them yourself.`; },
+};
+window.CS_PRIDE = CS_PRIDE;
 function openStakeCreate(){
   if(state.demo || !window.CS?.user){ toast('Sign in to post a pride bet'); return; }
   const others=(window.CS?.members||[]).filter(m=>m.profile_id && m.profile_id!==window.CS.user.id);
@@ -19242,26 +19809,43 @@ function openStakeCreate(){
      every reader who had not been taught otherwise — the owner included —
      and the sentence under the title existed to undo the title. The title
      says the act; the sentence says what the act is. */
-  openSheet('Post a pride bet', 'A bet for pride. It settles on a tap and goes on the record — never on the books.', `
+  /* D366 (F6) · WHAT THIS IS, before any field: a record of an agreement made
+     between you — not a challenge, not a contest, not a form that scores
+     anything. Where it lives, what decides it, how it is confirmed, where it
+     shows, and that league points are untouched. The phone's `ForfeitCopy`
+     says the same sentences. */
+  const P=CS_PRIDE;
+  openSheet('Post a pride bet', P.sub, `
+    <p class="fine" style="padding-top:0" data-pride-purpose>${esc(P.purpose)}</p>
+    <label class="f" style="margin-top:8px; display:block">${esc(P.whereLabel)}</label>
+    <p class="fine" style="padding-top:0" data-pride-context>${esc(P.context('season', window.CS?.league?.name||null))}</p>
     <label class="f" for="stkName">Name it</label>
     <input class="f" id="stkName" placeholder="The Lawn Bet" autocomplete="off" style="font-family:var(--sans)">
-    <label class="f" style="margin-top:10px; display:block">The shape</label>
+    <label class="f" style="margin-top:8px; display:block">The shape</label>
     <div class="seg" id="stkKind" style="flex-wrap:wrap">${KINDS.map(([k,l],i)=>`<button data-k="${k}" class="${i===0?'on':''}">${l}</button>`).join('')}</div>
-    <label class="f" style="margin-top:10px" for="stkTerms">The terms</label>
+    <label class="f" style="margin-top:8px" for="stkTerms">The terms</label>
     <input class="f" id="stkTerms" value="Loser hosts the cookout" data-auto="1" style="font-family:var(--sans)">
-    <label class="f" style="margin-top:10px; display:block">Against</label>
+    <label class="f" style="margin-top:8px; display:block">Against</label>
     <select class="f" id="stkVs" style="font-family:var(--sans)">
       <option value="">The field — first to hit it</option>
       ${others.map(m=>`<option value="${m.profile_id}">${esc(m.profile?.display_name||'—')}</option>`).join('')}
     </select>
-    <label class="f" style="margin-top:10px" for="stkHangs">Rides on <span style="color:var(--dim)">(optional)</span></label>
+    <label class="f" style="margin-top:8px" for="stkHangs">${esc(P.decidesLabel)} <span style="color:var(--dim)">(${esc(P.decidesOptional)})</span></label>
     <input class="f" id="stkHangs" placeholder="Sunday's clash · first ace · the Cup Final" autocomplete="off" style="font-family:var(--sans)">
-    <div style="display:flex; gap:8px; margin-top:14px">
-      <button class="btn dark" id="stkCancel" style="flex:0 0 auto; width:auto; padding:0 16px">Cancel</button>
+    <p class="fine" data-pride-confirm>${esc(P.confirm(null))}</p>
+    <p class="fine" style="padding-top:0">${esc(P.points)}</p>
+    <p class="fine" style="padding-top:0">${esc(P.whereItShows)}</p>
+    <div style="display:flex; gap:8px; margin-top:12px">
+      <button class="btn dark" id="stkCancel" style="flex:0 0 auto; width:auto; padding:0 12px">Cancel</button>
       <button class="btn" id="stkGo" style="flex:1">Put it on the record</button>
     </div>
     <p class="fine">Nobody gets a notification. It's on the record and that's the point.</p>
   `);
+  /* the confirmation line names the golfer once one is chosen */
+  document.getElementById('stkVs')?.addEventListener('change', e=>{
+    const sel=e.target; const nm=sel.value ? (sel.selectedOptions[0]?.textContent||null) : null;
+    const c=document.querySelector('[data-pride-confirm]'); if(c) c.textContent=P.confirm(nm);
+  });
   let kind='hosts';
   const TERMS={hosts:'Loser hosts the cookout',course_pick:'Winner picks the next course',strokes:'Loser gives 2 a side next time',bounty:'First ace: steak dinner from everyone',custom:''};
   document.querySelectorAll('#stkKind button').forEach(b=>b.addEventListener('click',()=>{
@@ -20323,8 +20907,16 @@ function csReceiptPhotoRow(r){
 }
 /* L-32 · the sentence lands under the thumb that pressed, never in a toast
    that has already gone, and the remove is two taps and never a confirm(). */
-function csWireReceiptPhoto(r, rid, stampOf){
+function csWireReceiptPhoto(r, rid, stampOf, opts){
   const btn=document.getElementById('rcptPhotoBtn');
+  if(btn && opts && opts.photoIntent){
+    /* F12 / R1 · "Add a photo" at the finish lands HERE, on the receipt's own
+       control, scrolled into view and focused — the picker opens on the
+       golfer's next tap, inside their own gesture, never on a timer. */
+    try{ btn.scrollIntoView({ block:'center' }); btn.focus({ preventScroll:true }); }catch(_){}
+    const note=document.getElementById('rcptPhotoNote');
+    if(note){ note.textContent='Tap to add a photo of this round.'; note.style.display=''; }
+  }
   const clr=document.getElementById('rcptPhotoClear');
   const note=document.getElementById('rcptPhotoNote');
   const hero=document.getElementById('rcptHero');
@@ -20392,6 +20984,18 @@ async function enrichRoundReceipt(rid, seed){
     const body=document.getElementById('rcptBody');
     if(!body) return;                             /* sheet already closed */
     body.innerHTML = roundCardBody(r, pvi, capNum());
+    /* F13 · the factual tally, from the round's own holes against the pars
+       its live round recorded — and only when the round names a course. An
+       older server has no round_tally and the receipt is what it was. */
+    try{
+      const t = await window.sb.rpc('round_tally', { p_round: rid });
+      const v = t && t.data;
+      if(v && v.known && (Number(v.eagles)||Number(v.birdies))){
+        const parts=[]; if(v.eagles) parts.push(v.eagles+' eagle'+(v.eagles==1?'':'s')); if(v.birdies) parts.push(v.birdies+' birdie'+(v.birdies==1?'':'s'));
+        const el=document.createElement('p'); el.className='hmoment-tally'; el.style.paddingTop='10px'; el.textContent=parts.join(' · ');
+        body.appendChild(el);
+      }
+    }catch(_){}
     /* the header learns the course it was missing */
     const sub=document.getElementById('shSub');
     if(sub && r.course_label){
@@ -20462,12 +21066,13 @@ window.csReceiptVerdict = csReceiptVerdict;
    read says so. The league lens is the server's: `round_card` picks the
    scoring membership itself and returns the points, the month rank and the
    counting cap with them. */
-async function csOpenPostedRound(id){
+async function csOpenPostedRound(id, opts){
   const rid = (id && typeof id === 'object') ? (id.id || id.round_id) : id;
   if(!rid) return false;
+  const intent = (opts && opts.photoIntent) ? { photoIntent:true } : {};
   const cached = (window.roundCache||{})[rid];
-  if(cached){ openRoundReceipt(cached); return true; }            /* instant, then enriched */
-  if(state.demo || !window.sb){ openRoundReceipt({ id: rid }); return true; }
+  if(cached){ openRoundReceipt(cached, intent); return true; }            /* instant, then enriched */
+  if(state.demo || !window.sb){ openRoundReceipt({ id: rid }, intent); return true; }
   openSheet('Round', 'LOADING\u2026', '<p class="fine" style="padding:10px 0">Loading the round\u2026</p>');
   try{
     const { data, error } = await window.sb.rpc('round_card', { p_round: rid });
@@ -20476,7 +21081,7 @@ async function csOpenPostedRound(id){
     const row = Object.assign({ id: rid }, data);
     (window.roundCache ||= {})[rid] = row;
     /* `carded` · the payload IS the card, so the sheet does not fetch it twice */
-    openRoundReceipt(row, { carded:true });
+    openRoundReceipt(row, Object.assign({ carded:true }, intent));
     return true;
   }catch(e){
     closeSheet();
@@ -22324,7 +22929,7 @@ function renderWizard(){
   $('#wizBack').style.display   = state.wiz===0 ? 'none':'flex';
   $('#wizCancel').style.display = state.wiz===0 ? 'flex':'none';   /* step 0: Cancel replaces Back */
   $('#wizNext').style.display = state.wiz===0 ? 'flex':'none';
-  if(state.wiz===0 && !state.demo) window.renderProChip?.();
+  if(state.wiz===0 && !state.demo){ window.renderProChip?.(); window.renderWizardWith?.(); }
   csRenderPayNote();
 }
 /* D225 / R18 · the pay note is REQUIRED above $0, and the lock button says so
@@ -24322,14 +24927,11 @@ async function openPerson(profileId){
         <td class="rt">${Number(x.rounds || 0)} round${Number(x.rounds || 0) === 1 ? '' : 's'}</td></tr>`).join('')}</tbody></table>` : ''}
     ${caseLine ? `<div class="dsec"><span>The record</span><i></i><span></span></div><p class="fine" style="padding-top:0">${esc(caseLine)}</p>` : ''}
     ${shared ? `<p class="cstatus">${esc(csBothPlayed(card.shared_courses || []))}</p>` : ''}
-    <div class="eyebrow" style="margin-top:18px">Play them</div>
-    <p class="fine" style="padding-top:0">How long do you want it to run?</p>
+    <div class="eyebrow" style="margin-top:18px">Play</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
-      <button class="mini" type="button" data-len="saturday">This Saturday</button>
-      <button class="mini" type="button" data-len="week" disabled>One week</button>
-      <button class="mini" type="button" data-len="season">A season</button>
+      <button class="mini" type="button" data-playwith="1">${esc(CS_PLAY_WITH.head(name))}</button>
     </div>
-    <p class="fine" style="padding-top:6px">A round on the schedule with them in it · a one-week head-to-head, which opens when callouts do · a season with them in it.</p>`;
+    <p class="fine" style="padding-top:6px">A round together, a head-to-head, or a season — they're in it from the start.</p>`;
 
   /* the aside IS the record between the two of you - the desk's own shape */
   if(aside){
@@ -24349,9 +24951,11 @@ async function openPerson(profileId){
         <p class="fine" style="padding:0">Nothing between you yet. The moment you both post a round the same week, or one of you tags the other on a card, this fills in.</p>`;
     }
   }
-  main?.querySelectorAll('[data-len]').forEach(b => b.addEventListener('click', () => {
-    if(b.dataset.len === 'season') switchView('wizard');
-    else if(b.dataset.len === 'saturday') switchView('schedule');
+  /* D363 · one door, headed the same way as the sheet it opens; the person
+     rides into whichever of the three ways is picked. */
+  main?.querySelectorAll('[data-playwith]').forEach(b => b.addEventListener('click', () => {
+    window.qaEvent?.('cta_tapped', { door: 'play.with' });
+    window.csAskTheLength?.(profileId, name);
   }));
 }
 window.openPerson = openPerson;
@@ -24930,6 +25534,22 @@ function resetWizard(){
   if(typeof updateInviteNote === 'function') updateInviteNote();
 }
 window.resetWizard = resetWizard;
+/* D363 · the person "Start a season" was tapped from, said as what it is: an
+   invitation that goes out at lock (`csInviteSeasonWith`). The ✕ drops it and
+   nothing is sent; the wizard's Cancel drops it too. Never a seat (L-12). */
+function renderWizardWith(){
+  const box = document.getElementById('wizWith'); if(!box) return;
+  const w = window._seasonWith;
+  if(!w){ box.hidden = true; box.innerHTML = ''; return; }
+  const first = String(w.name||'').trim().split(/\s+/)[0] || 'them';
+  const W = window.CS_PLAY_WITH;
+  box.hidden = false;
+  box.innerHTML = `<p class="fine" style="padding:0; display:flex; gap:8px; align-items:flex-start">
+    <span style="flex:1" id="wizWithLine">${esc(W ? W.seasonWith(first) : `Starting this with ${first}. They get an invitation to accept when the season locks.`)}</span>
+    <button class="mini" type="button" id="wizWithDrop" aria-label="Don't invite ${esc(first)}">✕</button></p>`;
+  document.getElementById('wizWithDrop')?.addEventListener('click', () => { window._seasonWith = null; renderWizardWith(); });
+}
+window.renderWizardWith = renderWizardWith;
 /* the Pro is always the creator — show it as a fixed identity, not a dead
    email field (pilot feedback: "Pro-you won't let me type"). */
 function renderProChip(){
@@ -26282,6 +26902,9 @@ async function lockBylaws(){
     $('#leagueName').textContent = name; $('#sideLeague').textContent = name;
     state.phase = data?.phase || state.phase;
     renderPhase();
+    /* D363 · the person the season was started from gets their invitation
+       now, at lock — the same `invite_golfer` every picked golfer gets. */
+    await window.csInviteSeasonWith?.(CS.league.id);
     return { emails: 0, nextPhase: data?.phase };
   };
   const missingFn = e => /schema cache|could not find the|does not exist|no function matches/
@@ -27003,6 +27626,7 @@ function goClubhouse(){
 /* wizard step-0 Cancel: the league row already exists (created on "Start a
    league"), so abandoning discards it — delete_league is setup/draft-only. */
 document.getElementById('wizCancel')?.addEventListener('click', async () => {
+  window._seasonWith = null;   /* D363 · a cancelled season sends nobody an invitation */
   /* Q-10 · belt to switchView's braces. A member who reached this button was
      offered "discards it completely" about someone else's league; only
      delete_league's commissioner check refused him, and the audit logged the
@@ -27440,18 +28064,66 @@ function csIntentStrings(){
   return CS_INTENTS.flatMap(i => [i.line, i.gloss])
     .concat([CS_INTENT_TITLE, CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, CS_INTENT_CODE_DOOR]);
 }
-/* R-F · the three lengths, always all three, in the owner's own words. The
-   person's state may ORDER them; it may never withhold one. */
+/* R-F · the three lengths, always all three. The person's state may ORDER
+   them; it may never withhold one. D363 (owner, 2026-09-15) reworded them so
+   none reads as a date — "This Saturday" sounded like the only day you could
+   play — and the same words are the phone's (`CalloutLength`, pinned on both). */
 const CS_LENGTHS = [
-  { k:'thisSaturday', title:'This Saturday', gloss:'a live match, on one card',       object:'liveRound' },
-  { k:'oneWeek',      title:'One week',      gloss:'best round by Sunday takes it',   object:'callout' },
-  { k:'aSeason',      title:'A season',      gloss:'a table, and a cup at the end',   object:'pairSeason' },
+  { k:'aRound',     title:'Play a round',     gloss:'one round together — now, or on the schedule',        object:'round' },
+  { k:'headToHead', title:'Go head to head',  gloss:'each of you posts a round before it closes',          object:'callout' },
+  { k:'aSeason',    title:'Start a season',   gloss:'rounds over time — a table, and a cup at the end',    object:'pairSeason' },
 ];
 function csLengthsOffered(liveNow, shareASeason){
   let o = CS_LENGTHS.slice();
   if(shareASeason){ o = o.filter(x => x.k !== 'aSeason').concat(CS_LENGTHS.filter(x => x.k === 'aSeason')); }
-  if(liveNow){ o = CS_LENGTHS.filter(x => x.k === 'thisSaturday').concat(o.filter(x => x.k !== 'thisSaturday')); }
+  if(liveNow){ o = CS_LENGTHS.filter(x => x.k === 'aRound').concat(o.filter(x => x.k !== 'aRound')); }
   return o;
+}
+/* D363 · the words around the three, shared with the phone (`PlayWithCopy`,
+   `CalloutCopy`). No weekday anywhere: the head-to-head prints its real date. */
+const CS_PLAY_WITH = {
+  head: name => 'Play with ' + (String(name||'').trim().split(/\s+/)[0] || 'them'),
+  roundHead: 'When?', nowTitle: 'Now', nowGloss: 'score it live, hole by hole',
+  laterTitle: 'On the schedule', laterGloss: "pick the day — they're in the group from the start",
+  basis: 'One round each, any course. The better round against your playing HCP takes it; a tie is all square.',
+  invitation: first => `${first} gets a note and answers on their phone. Nothing is sent until you tap Send it.`,
+  noPoints: "It's for the record — nothing scores toward a season.",
+  stakeQuestion: "What's on it? — optional", stakeNone: 'Nothing, just the record', stakeForfeit: 'A pride bet',
+  stakePlaceholder: 'Loser buys the beers', send: 'Send it',
+  seasonWith: first => `Starting this with ${first}. They get an invitation to accept when the season locks — nothing seats them before that.`,
+  alreadyInARound: first => `You're already in a round — ${first} wasn't added.`,
+  groupFull: first => `The group is full — remove someone to add ${first}.`,
+  seated: (first, est) => `${first} is in the group${est ? ' — no number on file, so an estimated 18' : ''}.`,
+};
+/* THE SHARED SUNDAY RULE (`CalloutLength.defaultClose` on the phone): the
+   coming Sunday, unless that is fewer than three days out — then the one
+   after. The web used to send `p_closes_on: null` and let the server pick
+   "today + 7" on whatever weekday that fell, while toasting "by Sunday". */
+function csCalloutDefaultClose(todayISO){
+  const [y, m, d] = (todayISO || isoOf(new Date())).split('-').map(Number);
+  const t = new Date(y, m - 1, d);
+  let add = (7 - t.getDay()) % 7; if(add === 0) add = 7;
+  if(add < 3) add += 7;
+  const c = new Date(y, m - 1, d + add);
+  return `${c.getFullYear()}-${String(c.getMonth()+1).padStart(2,'0')}-${String(c.getDate()).padStart(2,'0')}`;
+}
+/* D363 · seat a person in a live group. PURE — the test walks every branch.
+   `roster`/`sel` are the tee sheet's own arrays, mutated in place; returns
+   one of: alreadyInARound · yourRoundOnly · alreadySeated · full · seated. */
+function csPreselectInto(roster, sel, person, index, live){
+  if(live && live.active) return 'alreadyInARound';
+  if(live && live.phoneOnly) return 'yourRoundOnly';
+  const i = roster.findIndex(r => r.pid && r.pid === person.pid);
+  if(i >= 0){
+    if(sel.includes(i)) return 'alreadySeated';
+    if(sel.length >= 4) return 'full';
+    sel.push(i); return 'seated';
+  }
+  if(sel.length >= 4) return 'full';
+  roster.push({ n: person.name || 'Golfer', i: (index == null ? 18 : Number(index)), ci: -1, team: null,
+                guest: true, buddy: true, est: index == null, pid: person.pid });
+  sel.push(roster.length - 1);
+  return 'seated';
 }
 function openIntentSheet(){
   const row = (line, gloss, id, ember) => `
@@ -27513,38 +28185,111 @@ async function openLengthStep(){
     closeSheet(); csAskTheLength(b.dataset.csl, b.dataset.cslname);
   }));
 }
+/* D363 · "Play with <name>" — the three ways, and THE PERSON RIDES into each.
+   Before this, "This Saturday" did `switchView('play')` and dropped `pid` on
+   the floor: the owner tapped Play on a golfer and met a group with only
+   himself in it. Nothing here writes — the live sheet seats a person in a
+   picker, the plan tags them in a composer, the wizard holds an invitation
+   to send at lock, and the head-to-head goes through a review sheet first. */
 function csAskTheLength(pid, name){
   const first = String(name||'').trim().split(/\s+/)[0] || 'them';
   const lengths = csLengthsOffered(!!CS.liveRound, false);
-  openSheet('How long?', 'YOU AND ' + esc(first.toUpperCase()),
-    lengths.map((l, n) => `
-      <button class="startjoin" data-csln="${l.k}" type="button"
+  const row = (k, title, gloss) => `
+      <button class="startjoin" data-csln="${esc(k)}" type="button"
               style="margin:0 0 2px; width:100%; text-align:left; display:block; padding:12px 14px; min-height:56px">
-        <b style="display:block; color:${n===0?'var(--brand)':'var(--ink)'}">${esc(l.title)}</b>
-        <small style="display:block; color:var(--dim)">${esc(l.gloss)}</small>
-      </button>`).join(''));
-  document.getElementById('shBody')?.querySelectorAll('[data-csln]').forEach(b => b.addEventListener('click', async () => {
+        <b style="display:block; color:var(--ink)">${esc(title)}</b>
+        <small style="display:block; color:var(--dim)">${esc(gloss)}</small>
+      </button>`;
+  openSheet(CS_PLAY_WITH.head(name), 'THREE WAYS · PICK ONE', lengths.map(l => row(l.k, l.title, l.gloss)).join(''));
+  document.getElementById('shBody')?.querySelectorAll('[data-csln]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.csln;
     closeSheet();
     window.qaEvent?.('cta_tapped', { door: 'length:' + k });
-    if(k === 'thisSaturday') return switchView('play');
-    if(k === 'aSeason')      return document.getElementById('wCreate')?.click();
-    /* D237 · the callout. R19 mints a Ryder with a field of two and one
-       session — no new table. A database without it says so rather than
-       claiming the callout failed (wave 6's three-way rule). */
-    try {
-      const { data, error } = await sb.rpc('call_out', { p_opponent: pid, p_closes_on: null, p_forfeit_terms: null });
-      if(error) throw error;
-      toast('Sent. Best round by Sunday takes it.');
-      return data;
-    } catch(err){
-      const m = String(err?.message || err).toLowerCase();
-      toast(/schema cache|could not find the|does not exist|no function matches|pgrst202/.test(m)
-        ? 'Callouts need the latest update — try again shortly.'
-        : humanError(err));
+    if(k === 'aRound')     return csAskRoundWhen(pid, name);
+    if(k === 'headToHead') return csOpenCalloutReview(pid, name);
+    if(k === 'aSeason'){
+      /* the wizard carries the person as an INVITATION to send at lock (L-12,
+         A-1: never a seat). Dropped by the ✕ on the wizard's first step. */
+      window._seasonWith = { pid, name: first };
+      return document.getElementById('wCreate')?.click();
     }
   }));
 }
+/* "Play a round" → now, or on the schedule. The person rides into either. */
+function csAskRoundWhen(pid, name){
+  const first = String(name||'').trim().split(/\s+/)[0] || 'them';
+  openSheet(CS_PLAY_WITH.roundHead, 'A ROUND WITH ' + esc(first.toUpperCase()), `
+    <button class="startjoin" id="csrw-now" type="button" style="margin:0 0 2px; width:100%; text-align:left; display:block; padding:12px; min-height:52px">
+      <b style="display:block">${esc(CS_PLAY_WITH.nowTitle)}</b><small style="display:block; color:var(--dim)">${esc(CS_PLAY_WITH.nowGloss)}</small></button>
+    <button class="startjoin" id="csrw-plan" type="button" style="margin:0; width:100%; text-align:left; display:block; padding:12px; min-height:52px">
+      <b style="display:block">${esc(CS_PLAY_WITH.laterTitle)}</b><small style="display:block; color:var(--dim)">${esc(CS_PLAY_WITH.laterGloss)}</small></button>`);
+  document.getElementById('csrw-now')?.addEventListener('click', () => {
+    closeSheet(); window.qaEvent?.('cta_tapped', { door: 'play.with.now' });
+    window.csLivePreselect = { pid, name: first };
+    switchView('play');
+  });
+  document.getElementById('csrw-plan')?.addEventListener('click', () => {
+    closeSheet(); window.qaEvent?.('cta_tapped', { door: 'play.with.plan' });
+    /* the composer's own default day — no weekday promised by this door */
+    window.openDeclareSheet?.(null, { tagPids: [pid] });
+  });
+}
+/* D363 · the head-to-head REVIEW. The three facts a first-timer needs before
+   any stake — the day it closes (the shared Sunday rule), how it is decided,
+   what the other golfer sees — then that nothing scores, then the optional
+   stake, then Send it. The stake is a pride bet in words (T-02), never an
+   amount, and the no-stake path is complete. */
+function csOpenCalloutReview(pid, name){
+  const first = String(name||'').trim().split(/\s+/)[0] || 'them';
+  const closes = csCalloutDefaultClose();
+  openSheet('Head to head with ' + esc(first), 'REVIEW, THEN SEND', `
+    <p style="margin:0 0 4px"><b id="csco-closes">Closes ${esc(csDowMonDay(closes))}</b></p>
+    <p class="fine" style="padding-top:0">${esc(CS_PLAY_WITH.basis)}</p>
+    <p class="fine" style="padding-top:0" id="csco-invitation">${esc(CS_PLAY_WITH.invitation(first))}</p>
+    <p class="fine" style="padding-top:0; color:var(--dim)">${esc(CS_PLAY_WITH.noPoints)}</p>
+    <div class="eyebrow" style="margin-top:12px">${esc(CS_PLAY_WITH.stakeQuestion)}</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="mini sel" type="button" data-csstake="0" aria-pressed="true">${esc(CS_PLAY_WITH.stakeNone)}</button>
+      <button class="mini" type="button" data-csstake="1" aria-pressed="false">${esc(CS_PLAY_WITH.stakeForfeit)}</button>
+    </div>
+    <input class="f" id="csco-terms" placeholder="${esc(CS_PLAY_WITH.stakePlaceholder)}" maxlength="200" hidden autocomplete="off" style="margin-top:8px; font-family:var(--sans); font-size:16px" aria-label="${esc(CS_PLAY_WITH.stakeForfeit)}">
+    <button class="btn" id="csco-send" style="margin-top:12px">${esc(CS_PLAY_WITH.send)}</button>`);
+  const body = document.getElementById('shBody');
+  let hasStake = false;
+  body?.querySelectorAll('[data-csstake]').forEach(b => b.addEventListener('click', () => {
+    hasStake = b.dataset.csstake === '1';
+    body.querySelectorAll('[data-csstake]').forEach(x => { const on = (x.dataset.csstake === '1') === hasStake; x.classList.toggle('sel', on); x.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    const t = document.getElementById('csco-terms'); if(t){ t.hidden = !hasStake; if(hasStake) t.focus(); }
+  }));
+  document.getElementById('csco-send')?.addEventListener('click', async () => {
+    const terms = hasStake ? (document.getElementById('csco-terms')?.value || '').trim() : '';
+    const btn = document.getElementById('csco-send'); if(btn) btn.disabled = true;
+    const ok = await csSendCallout(pid, closes, terms || null);
+    if(ok) closeSheet(); else if(btn) btn.disabled = false;
+  });
+}
+async function csSendCallout(pid, closesOn, forfeitTerms){
+  /* D237 · the callout. R19 mints a Ryder with a field of two and one
+     session — no new table. A database without it says so rather than
+     claiming the callout failed (wave 6's three-way rule). */
+  try {
+    const { error } = await sb.rpc('call_out', { p_opponent: pid, p_closes_on: closesOn, p_forfeit_terms: forfeitTerms });
+    if(error) throw error;
+    toast('Sent. Best round by ' + csDowMonDay(closesOn) + ' takes it.');
+    return true;
+  } catch(err){
+    const m = String(err?.message || err).toLowerCase();
+    toast(/schema cache|could not find the|does not exist|no function matches|pgrst202/.test(m)
+      ? 'Callouts need the latest update — try again shortly.'
+      : humanError(err));
+    return false;
+  }
+}
+window.csAskTheLength = csAskTheLength;
+window.csCalloutDefaultClose = csCalloutDefaultClose;
+window.csDowMonDay = csDowMonDay;
+window.csPreselectInto = csPreselectInto;
+window.CS_PLAY_WITH = CS_PLAY_WITH;
 window.openIntentSheet = openIntentSheet;
 window.csIntentStrings = csIntentStrings;
 window.csObjectNouns   = csObjectNouns;
@@ -28416,6 +29161,22 @@ window.respondInvite = async (id, accept)=>{
   }catch(e){ toast(humanError(e)); }
 };
 
+/* D363 · the invitation "Start a season with <name>" carried through the
+   wizard, sent at lock and never before. `invite_golfer` answers for itself —
+   a refusal is said, never hidden — and the carry is cleared either way so a
+   later, generic season never inherits it. */
+async function csInviteSeasonWith(leagueId){
+  const w = window._seasonWith; if(!w || !leagueId) return;
+  window._seasonWith = null;
+  window.renderWizardWith?.();
+  const first = String(w.name||'').trim().split(/\s+/)[0] || 'them';
+  try {
+    const { error } = await sb.rpc('invite_golfer', { p_league: leagueId, p_event: null, p_profile: w.pid });
+    if(error) throw error;
+    toast(`Invited ${first} — they choose whether to join.`);
+  } catch(err){ toast(humanError(err, `Couldn't send ${first} the invitation. Add golfers from the season page instead.`)); }
+}
+window.csInviteSeasonWith = csInviteSeasonWith;
 /* Add golfers to a league OR event — now a thin wrapper over the one People
    Picker (invite mode). Deleted its private search/buddy/invite copy. */
 async function openInvitePicker(container){
@@ -28914,10 +29675,17 @@ document.getElementById('optPlan')?.addEventListener('click', () => openDeclareS
    IT IS A CEILING, NEVER A PROBABILITY (D24). There is exactly one copy of
    this on this client and one in the Kit (`RoundWorth.gain`); preflight 37
    fails the push on a second. */
-function csRoundWorth(cap, used, worst){
+/* The ceiling for a round of `holes`. A nine earns HALF the band, rounded up
+   (`v_rounds_ranked`: ceil(cup_points(…)/2)) and counts as half a round, so
+   an eighteen-hole ceiling is never promised to it (D364, F3). */
+function csRoundCeiling(holes){
+  const top = pointsFor(3)[0];
+  return Number(holes) === 9 ? Math.ceil(top / 2) : top;
+}
+function csRoundWorth(cap, used, worst, holes){
   const c = (cap == null) ? null : Number(cap);
   const u = Number(used || 0);
-  const top = pointsFor(3)[0];
+  const top = csRoundCeiling(holes);
   if(c == null || !(c > 0) || u < c) return top;
   if(worst == null || !isFinite(Number(worst))) return null;
   return top - Number(worst);
@@ -28926,21 +29694,29 @@ function csRoundWorth(cap, used, worst){
    the round: the sheet passes "This round" because its own header already
    carries the day and the course, and a card that prints one fact twice is the
    defect DEF-2 was filed for (L-34). `season` is spent only when a round counts
-   in more than one. */
-function csRoundWorthLine(subject, cap, used, worst, season){
-  const g = csRoundWorth(cap, used, worst);
+   in more than one.
+   D364 (F3) · THE POINTS A ROUND CAN SCORE AND THE POINTS IT WOULD ADD ARE
+   TWO FACTS, SAID SEPARATELY. "Worth up to 7 more" folded them into one
+   figure nobody could check. Now: the ceiling first, then the counting rule,
+   then — in a full month — the replacement arithmetic in the open: your
+   lowest is a 5, so a 12 would add 7. String-for-string the phone's
+   `RoundWorth.line`. */
+function csRoundWorthLine(subject, cap, used, worst, season, holes){
+  const g = csRoundWorth(cap, used, worst, holes);
   if(g == null) return null;
+  const top = csNum(csRoundCeiling(holes));
   const c = (cap == null) ? null : Number(cap);
   const u = Number(used || 0);
   const whose = season ? (' in ' + season) : '';
   const full = c != null && c > 0 && u >= c;
-  if(g <= 0) return subject + ' cannot add to your points' + whose + ' this month — your best '
-    + (c == null ? 'rounds' : c) + ' already count. It still builds your number.';
-  const head = subject + ' is worth up to ' + csNum(g) + (full ? ' more' : '') + whose + '.';
-  if(c == null || !(c > 0)) return head + ' Every round you post this month counts.';
-  return head + ' ' + (full
-    ? 'Your best ' + c + ' count this month and your worst is a ' + csNum(worst) + '.'
-    : 'Your best ' + c + ' count and you have ' + u + '.');
+  const nine = Number(holes) === 9 ? ' as a nine, counted as half a round where the season allows nines' : '';
+  if(g <= 0) return subject + ' can score up to ' + top + nine + ', but your best '
+    + (c == null ? 'rounds' : c) + ' already count and none is below ' + top
+    + " — it can't add to your total" + whose + ' this month. It still builds your number.';
+  if(c == null || !(c > 0)) return subject + ' can score up to ' + top + nine + whose + '. Every round you post this month counts.';
+  if(full) return subject + ' can score up to ' + top + nine + whose + '. Your best ' + c
+    + ' count this month and your lowest is a ' + csNum(worst) + ', so a ' + top + ' would add ' + csNum(g) + '.';
+  return subject + ' can score up to ' + top + nine + ', and it counts' + whose + ': your best ' + c + ' count and you have ' + u + '.';
 }
 /* D362 · WHAT THIS ROUND CAN ADD, before it is posted. The counters are the
    engine's own rows (`v_rounds_ranked`, loaded for the hub): how many of the
@@ -28969,9 +29745,13 @@ function csComposerWorthLine(playedOn, capGiven){
   const on = String(playedOn || isoOf(new Date())).slice(0,10);
   /* the shared producer first: one sentence per season the date falls in,
      the season named only when there is more than one */
+  /* D364 (F3) · the card's own side — a nine is never promised an
+     eighteen-hole ceiling */
+  const holes = (typeof state !== 'undefined' && state.post && state.post.side === 9) ? 9 : 18;
   const served = capGiven === undefined && window.myCounters && window.myCounters.on === on ? window.myCounters.rows : null;
   if(served){
-    const lines = served.map(x => csRoundWorthLine('This round', x.cap, x.counters?.used, x.counters?.worst, served.length>1 ? x.league_name : null)).filter(Boolean);
+    const rows = served.map(x => ({ league_name: x.league_name, cap: x.cap, used: x.counters?.used, worst: x.counters?.worst }));
+    const lines = csRoundWorthLines(rows, 'This round', holes, rows.length);
     return lines.length ? lines.join(' ') : null;
   }
   if(!window.CS?.season || !Array.isArray(window.myRanked)) return null;
@@ -28982,17 +29762,30 @@ function csComposerWorthLine(playedOn, capGiven){
   const counting = cap==null ? month : month.filter(r => r.month_rank!=null && r.month_rank <= cap);
   const used = counting.length;
   const worst = counting.length ? Math.min(...counting.map(r => Number(r.points))) : null;
-  return csRoundWorthLine('This round', cap, used, worst, null);
+  return csRoundWorthLine('This round', cap, used, worst, null, holes);
 }
 window.csComposerWorthLine = csComposerWorthLine;
+window.csRoundCeiling = csRoundCeiling;
 /* `round_detail.worth` — one row per season the round counts in, at most two.
    Three of these is a wall of arithmetic on a sheet whose job is who is in and
    when. An old payload has no `worth` key at all and renders nothing (L-44). */
-function csRoundWorthLines(rows, subject){
+function csRoundWorthLines(rows, subject, holes, limit){
   const w = Array.isArray(rows) ? rows : [];
+  /* D364 · seasons whose cap, used and lowest all agree say ONE sentence,
+     naming the seasons together; seasons that differ each keep their own.
+     A merge is only ever of contexts that actually agree. */
+  if(w.length > 1){
+    const f = w[0];
+    const same = w.every(r => (r.cap ?? null) === (f.cap ?? null) && Number(r.used||0) === Number(f.used||0) && (r.worst ?? null) === (f.worst ?? null));
+    if(same){
+      const names = w.map(r => r.league_name).filter(Boolean);
+      const name = (w.length === 2 && names.length === 2) ? `both ${names[0]} and ${names[1]}` : `all ${w.length} of your seasons`;
+      return [csRoundWorthLine(subject || 'This round', f.cap, f.used, f.worst, name, holes)].filter(Boolean);
+    }
+  }
   const named = w.length > 1;
-  return w.slice(0, 2)
-    .map(r => csRoundWorthLine(subject || 'This round', r.cap, r.used, r.worst, named ? r.league_name : null))
+  return w.slice(0, limit == null ? 2 : limit)
+    .map(r => csRoundWorthLine(subject || 'This round', r.cap, r.used, r.worst, named ? r.league_name : null, holes))
     .filter(Boolean);
 }
 
@@ -29025,11 +29818,16 @@ async function openRoundSheet(id){
   renderRoundSheet(id, d);
 }
 window.openRoundSheet = openRoundSheet;
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest && e.target.closest('#rtTeeUp'); if(!b) return;
+  const d = window.__roundSheetData; if(d) csTeeUpFromPlan(d);
+});
 window.renderRoundSheet = (id,d)=>renderRoundSheet(id,d);   /* bridge (classic wiring + testability) */
 window.openRetagSheet = openRetagSheet;   /* classic calendar (renderCalendar) opens it too — must be bridged */
 window.openDeclareSheet = openDeclareSheet;   /* D63: the whisper's Stage-it tap lives classic-side */
 
 function renderRoundSheet(id, d){
+  window.__roundSheetData = Object.assign({ id }, d);
   const M = window.mkr || (()=> '⛳');
   const play = d.play_on ? localDate(d.play_on) : null;
   const dateTxt = play ? `${DOW[play.getDay()]} ${MOS[play.getMonth()]} ${play.getDate()}` : 'Round';
@@ -29059,10 +29857,16 @@ function renderRoundSheet(id, d){
      don't see the buttons until the migration lands (fails closed, never
      errors). */
   const canRsvp = !!(d.mine || d.tagged_me);
+  /* F10 · Tee it up: from the booking into a PREPARED live setup — course
+     identity, the accepted golfers seated by profile id, pending shown as
+     pending, declined excluded, and the start goes through
+     start_live_round_from_plan so one live round stands for the booking. */
+  const canTee = canRsvp && myR !== 'out' && !state.demo;
+  const teeUp = canTee ? `<button class="btn" id="rtTeeUp" type="button" style="width:100%;margin-top:12px">Tee it up</button>` : '';
   const rsvpSet = canRsvp ? `<div class="rsvpset">
      <button class="rbtn${myR==='in'?' on in':''}" data-rsvp="in">I’m in</button>
      <button class="rbtn${myR==='maybe'?' on maybe':''}" data-rsvp="maybe">Maybe</button>
-     <button class="rbtn${myR==='out'?' on out':''}" data-rsvp="out">Can’t</button></div>` : '';
+     <button class="rbtn${myR==='out'?' on out':''}" data-rsvp="out">Can’t</button></div>` + teeUp : '';
 
   /* R-K · what this round is worth, to the person reading it. The server sends
      the cap and the counters; the sentence is produced once, here and in the

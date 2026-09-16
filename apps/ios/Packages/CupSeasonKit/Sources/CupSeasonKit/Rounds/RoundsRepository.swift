@@ -20,15 +20,21 @@ public struct RoundRow: Decodable, Sendable, Identifiable, Equatable {
   public let course_label: String?
   public let holes_played: Int?
   public let photo_path: String?
+  /// F12 · the course IDENTITY. A match between a booking and a played round
+  /// is made on this and the date — never on `course_label`, which is written
+  /// four ways for the same course and matches the wrong round.
+  public let api_course_id: String?
   public var photo_url: URL?
 
   public init(id: UUID, profile_id: UUID? = nil, gross: Int?, differential: Double?, index_at_post: Double?, played_on: String?,
-              course_label: String?, holes_played: Int?, photo_path: String? = nil, photo_url: URL? = nil) {
+              course_label: String?, holes_played: Int?, photo_path: String? = nil, photo_url: URL? = nil,
+              api_course_id: String? = nil) {
     self.id = id; self.profile_id = profile_id; self.gross = gross; self.differential = differential; self.index_at_post = index_at_post
     self.played_on = played_on; self.course_label = course_label; self.holes_played = holes_played; self.photo_path = photo_path; self.photo_url = photo_url
+    self.api_course_id = api_course_id
   }
 
-  enum CodingKeys: String, CodingKey { case id, profile_id, gross, differential, index_at_post, played_on, course_label, holes_played, photo_path }
+  enum CodingKeys: String, CodingKey { case id, profile_id, gross, differential, index_at_post, played_on, course_label, holes_played, photo_path, api_course_id }
 
   /// `pvi = index_at_post − differential` at 100% — the Tour Card's own
   /// figure. NOT the You tab's: D209 reads the allowance figure off
@@ -106,6 +112,18 @@ public struct RoundsRepository: Sendable {
   /// database that predates `p_league` refuses the two-argument call; then the
   /// one-argument call is made and the older receipt is what it was — any
   /// error, never a sniffed message (CLAUDE.md).
+  /// F13 · the receipt's factual tally line, or nil when nothing can honestly
+  /// be claimed. Facts only — never a streak label (D368).
+  public func roundTally(_ id: UUID) async throws -> String? {
+    let v: JSONValue = try await svc.call(Rpc.round_tally(p_round: id))
+    guard v["known"]?.bool == true else { return nil }
+    let e = v["eagles"]?.int ?? 0, b = v["birdies"]?.int ?? 0
+    var parts: [String] = []
+    if e > 0 { parts.append("\(e) eagle\(e == 1 ? "" : "s")") }
+    if b > 0 { parts.append("\(b) birdie\(b == 1 ? "" : "s")") }
+    return parts.isEmpty ? nil : parts.joined(separator: " · ")
+  }
+
   public func roundCard(_ id: UUID, league: UUID? = nil) async throws -> JSONValue {
     if let league {
       if let v = try? await svc.call(Rpc.round_card(p_round: id, p_league: league)) { return v }
@@ -139,7 +157,7 @@ public struct RoundsRepository: Sendable {
 
   // MARK: - my rounds (loadCareer 16409)
 
-  private static let roundCols = "id, profile_id, gross, differential, index_at_post, played_on, course_label, holes_played"
+  private static let roundCols = "id, profile_id, gross, differential, index_at_post, played_on, course_label, holes_played, api_course_id"
 
   /// The 400 newest rounds on my card, newest first; the first five with a
   /// photo carry a signed URL.
