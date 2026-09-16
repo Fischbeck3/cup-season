@@ -1,0 +1,4 @@
+# Migrations skipped by apply.sh — one per line: "<filename>  # reason".
+# NONE. All 228 files in supabase/migrations apply in filename order.
+# (Three CREATE EXTENSION lines are rewritten to comments in the psql stream
+#  by apply.sh — the files on disk are untouched; see stubs.md.)

@@ -776,6 +776,11 @@ final class LiveRoundStore {
     busy = true
     defer { busy = false }
     await repo.drainAbandons(disk: disk)
+    // PILOT · one attempt id per tap; a retry re-sends the same id and the server
+    // stores it once. Attempted here, the outcome below; live_rounds is the truth.
+    let attempt = UUID().uuidString.lowercased()
+    CSTelemetry.event("live_start_attempted", ["attempt_id": .string(attempt), "game": .string(g.server),
+                                             "via_plan": .bool(s.scheduledRoundId != nil), "players": .number(Double(players.count))])
     let snap = s.course.snapshot(holes: s.liveHoles, rating9: s.rating9)
     let playersJSON: JSONValue = .array(players.map { p in
       (p.guest || league == nil)   // D107: no member tags without a league — everyone is a known golfer by profile
@@ -829,6 +834,7 @@ final class LiveRoundStore {
           out = try await repo.startFromPlan(planId, league: league, label: s.course.label.trimmingCharacters(in: .whitespaces), snapshot: snap, game: g,
                                              players: playersJSON, config: cfg, apiCourseId: s.course.courseId)
           if out.joined {
+            CSTelemetry.event("live_join_result", ["attempt_id": .string(attempt), "outcome": .string("joined"), "live_round_id": .string(out.lr.uuidString.lowercased())])
             // Codex S2 · the round already stands. The fresh `s` built above —
             // its players, blank scores, game and settings — is DISCARDED, and
             // the existing round is loaded from the server: its roster and
@@ -846,6 +852,7 @@ final class LiveRoundStore {
                                    apiCourseId: s.course.courseId)
       }
       s.lr = out.lr
+      CSTelemetry.event("live_start_succeeded", ["attempt_id": .string(attempt), "via_plan": .bool(s.scheduledRoundId != nil), "live_round_id": .string(out.lr.uuidString.lowercased())])
       // The server abandons an unfinished round 24h from here. The card carries
       // the moment so the phone can SAY that deadline instead of guessing it.
       s.startedAt = LiveFmt.now()
@@ -879,6 +886,7 @@ final class LiveRoundStore {
       LiveActivityHost.start(state)   // D155 · one tap back from a locked phone
       toast("On the tee, good luck everybody")
     } catch {
+      CSTelemetry.event("live_start_failed", ["attempt_id": .string(attempt), "via_plan": .bool(s.scheduledRoundId != nil), "reason": .string(HumanError.text(error, prefix: "").prefix(80).description)])
       toast(HumanError.text(error, prefix: "Could not start the round."))
       state.active = false; state.stage = .setup
     }
@@ -1275,8 +1283,12 @@ final class LiveRoundStore {
     busy = true
     defer { busy = false }
     let result = LiveResultBuilder.gameResult(state)
+    let finishAttempt = UUID().uuidString.lowercased()
+    CSTelemetry.event("live_finish_attempted", ["attempt_id": .string(finishAttempt), "live_round_id": .string(lr.uuidString.lowercased()), "casual": .bool(casual)])
     do {
       let out = try await repo.finish(lr: lr, cards: LiveCopy.cards(state), casual: casual, result: casual ? nil : result?.json)
+      CSTelemetry.event("live_finish_result", ["attempt_id": .string(finishAttempt), "live_round_id": .string(lr.uuidString.lowercased()),
+                                             "posted": .number(Double(out.posted.count)), "skipped": .number(Double(out.skipped.count)), "already_final": .bool(out.alreadyFinal)])
       if sendable { await session.send(.finish(cts: LiveFmt.now()), broadcastOnly: true) }
       await session.leave()
       await disk.removeSnapshot(lr)
@@ -1295,6 +1307,7 @@ final class LiveRoundStore {
       await primeRoster()
       return true
     } catch {
+      CSTelemetry.event("live_finish_failed", ["attempt_id": .string(finishAttempt), "live_round_id": .string(lr.uuidString.lowercased())])
       toast(HumanError.text(error, prefix: "Finish failed."))
       return false
     }

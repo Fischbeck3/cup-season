@@ -14277,6 +14277,11 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
     : null;
   const _holes=liveHoles(), _rating9=!!(state.live&&state.live.rating9);   /* carry the setup's holes choice into the live round */
   const _planId=(state.live&&state.live.planId)||null;   /* F10 · the booking this round is teed up from survives the rebuild (S1) */
+  /* PILOT · one attempt id per tap; a retry re-sends the same id and the server
+     stores the event once (client_events_one_attempt). Attempted is written
+     here; succeeded/failed below; the SERVER row (live_rounds) is the truth. */
+  const _attempt = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+  qaEvent('live_start_attempted', { attempt_id:_attempt, game, via_plan: !!_planId, players: sel.length });
   state.live={stage:'live', active:true, game, stake, wolfOrder, holes:_holes, rating9:_rating9, pairing:_pairing, mode:_mode, planId:_planId,
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:null,   /* D85: per-cell write clocks + the channel key */
@@ -14350,10 +14355,11 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
                      p_game: args.p_game, p_players: args.p_players, p_config: args.p_config, p_api_course_id: args.p_api_course_id };
         const pr = await window.sb.rpc('start_live_round_from_plan', pa);
         if(pr.error){
-          if(!/function|schema cache/i.test(pr.error.message||'')) throw pr.error;   /* refused: no unrelated round */
+          if(!/function|schema cache/i.test(pr.error.message||'')){ qaEvent('live_start_failed', { attempt_id:_attempt, via_plan:true, reason:'refused' }); throw pr.error; }   /* refused: no unrelated round */
           /* skew: an older server — the ordinary start below, unlinked */
         } else if(pr.data && pr.data.joined){
           const ok = await csJoinExistingLiveRound(pr.data.live_round_id);
+          qaEvent('live_join_result', { attempt_id:_attempt, outcome: ok ? 'joined' : 'no_seat', live_round_id: pr.data.live_round_id });
           if(!ok) throw new Error('The group teed off without a seat for you — ask the host to add you.');
           toast('Joined the round already teed up for this booking.');
           btn.disabled=false; return;
@@ -14374,7 +14380,8 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
           }
         }
       }
-      if(error) throw error;
+      if(error){ qaEvent('live_start_failed', { attempt_id:_attempt, via_plan:viaPlan, reason:'error' }); throw error; }
+      qaEvent('live_start_succeeded', { attempt_id:_attempt, via_plan:viaPlan, live_round_id:data.live_round_id });
       state.live.lr = data.live_round_id;
       state.live.code = data.join_code || null;   /* D85: null on an old DB — sync quietly off, the pencil still works */
       const byPos=(data.players||[]).slice().sort((a,b)=>a.position-b.position);
@@ -14545,6 +14552,10 @@ function finishRealLiveRound(){
     try{
       const args = { p_live_round: state.live.lr, p_cards: cards, p_casual: !!casual,
                      p_result: result };
+      /* PILOT · one attempt id per finish tap; the outcome is written after the
+         answer and the server's `rounds` rows are the truth */
+      const _finAttempt = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+      qaEvent('live_finish_attempted', { attempt_id:_finAttempt, live_round_id: state.live.lr, casual: !!casual });
       let { data, error } = await sb.rpc('finish_live_round', args);
       /* deploy skew: old RPC has no p_result — drop it, the finish still lands */
       if(error && /p_result|function|schema cache/i.test(error.message||'')){
@@ -14561,6 +14572,7 @@ function finishRealLiveRound(){
       state.live.active=false; state.live.stage='setup';
       renderPlay();
       renderResumeBanner();   /* round posted → the Home Continue banner clears */
+      qaEvent('live_finish_result', { attempt_id:_finAttempt, live_round_id: lrId, posted:(data&&data.posted||[]).length, skipped:(data&&data.skipped||[]).length, already_final: !!(data&&data.already_final) });
       showLiveRecap(data||{}, casual?null:result, lrId);
       if(window.CS?.league && window.loadStandingsAndFeed) loadStandingsAndFeed();
     }catch(e){
@@ -18165,6 +18177,10 @@ function csLeadBlock(it){
   const competition = csIsCompetition(it);
   const stateWord = csItemState(it);
   const live = competition;
+  /* PILOT · the weekly clash was on screen. Exposure only — a view is not
+     proof anyone valued it; the receipt interaction is the next fact. One
+     event per clash per day by deterministic attempt id. */
+  try{ if(String(it.key||'').startsWith('clash:')) qaEvent('clash_seen', { attempt_id: String(it.key)+':'+csTodayISO(), league_id: it.league_id||null }); }catch(_){}
   return `<div class="csedn${live?' ember':''}" data-dkey="${esc(it.key)}"${it.rank_reason?` data-why="${esc(it.rank_reason)}"`:''}>
     ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${esc(it.eyebrow)}</span>${stateWord?`<span class="cstate">${esc(stateWord)}</span>`:''}</div>`:''}
     <div class="hl cs-lead">${esc(it.headline)}</div>
@@ -21094,6 +21110,9 @@ window.csOpenPostedRound = csOpenPostedRound;
 function openRoundReceipt(x, opts){
   const r = (x && typeof x==='object') ? x : (window.roundCache||{})[x];
   if(!r) return;
+  /* PILOT · a receipt was opened. One event per round per day (the attempt id
+     is deterministic, so a re-open is the same event and the server keeps one). */
+  try{ const rid0 = r.id || r.round_id; if(rid0) qaEvent('receipt_viewed', { attempt_id: 'receipt:'+rid0+':'+csTodayISO(), round_id: rid0 }); }catch(_){}
   /* the alias fix, applied everywhere a row reaches this sheet */
   if(r.course_label==null && r.course!=null) r.course_label=r.course;
   const rid = r.id || r.round_id || (typeof x==='string' ? x : null);

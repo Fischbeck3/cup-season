@@ -78,6 +78,15 @@ struct HomeLead: View {
   }
 
   var body: some View {
+    // PILOT · the weekly clash was on screen. Exposure only; the receipt
+    // interaction is the next fact. One event per clash per day, by a
+    // deterministic attempt id the server de-duplicates.
+    let _ = { () -> Void in
+      guard item.key.hasPrefix("clash:") else { return }
+      let day = CSDate.iso(Date(), calendar: ScheduleDates.gregorian)
+      CSTelemetry.event("clash_seen", ["attempt_id": .string("\(item.key):\(day)"),
+                                       "league_id": .string(item.leagueId?.uuidString.lowercased() ?? "")])
+    }()
     if compact {
       Button(action: act) {
         HStack(spacing: CSTokens.Space.s3) {

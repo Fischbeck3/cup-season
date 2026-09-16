@@ -1,5 +1,30 @@
 # Cup Season · active work and ownership
 
+## THE RELEASE RECORD · verified 2026-09-15 night (this section is the one record; the sections below are history)
+
+Verified from the systems themselves on 2026-09-15, not from prior reports. "Implemented", "tested", "deployed" and "available to testers" are kept apart.
+
+| Layer | State | Evidence |
+|---|---|---|
+| **Owner candidate (TestFlight, internal group "Owner")** | build **932** from commit **`d93b6f4`** (branch `claude/phone-fixes-2026-09-15`), processing VALID, internal state IN_BETA_TESTING, uploaded 2026-09-15 18:32. Owner also holds 905 and 919. | App Store Connect API, read 2026-09-15 |
+| **Friends (TestFlight, external group)** | latest build **795** (DesignV1 identity, 2026-09-12); 9 builds in the group. **932 is NOT in Friends.** External state of 932: READY_FOR_BETA_SUBMISSION, i.e. not submitted for external review. | App Store Connect API |
+| **Live web (cupseason.app)** | stamp `v23 · c6acc53` = `origin/main` tip. The 21+ commits on `claude/phone-fixes-2026-09-15` and this branch are **not** on main and not live. | `curl` of the live page + `git log origin/main` |
+| **Database (linked project)** | **244 migrations applied**, latest `20261105090000_the_round_remembers_its_plan` (applied 2026-09-15 under written authorization; verified read-only afterwards). **Pending, written and validated on the full-chain sandbox, NOT applied:** `20261106090000_the_pilot_keeps_its_own_record` (pilot cohorts, sessions, retry-safe events) and `20261107090000_a_round_reads_its_own_holes` (owner may read own holes; `round_tally` says unknown without evidence). | `tools/deploy-status.mjs`; `tests/pilot/*.py` |
+| **Edge functions** | 6 deployed, none stale, nothing pending. | `tools/deploy-status.mjs` |
+| **Implemented but not on any tester's phone** | everything after `d93b6f4` on this branch: pilot telemetry (attempt-keyed start/join/finish events, receipt and clash exposure), the two pending migrations, the harness and materials. | this branch |
+
+### Known issues (as of 2026-09-15)
+- A seated non-starter cannot finish a league-less round; the host (or a league member seat) must. By design (D107), told to testers. `tests/pilot/authz-flow.py` NOT VERIFIED line.
+- Historical rounds carry no par provenance and therefore show no birdie/eagle tally — including the owner's own 2026-09-15 round. Honest by design (Codex S3).
+- Production `client_events` holds 9 `client_error` rows in the last four weeks: 8 native crash reports (SIGTRAP/SIGABRT) on 2026-09-03 from the pre-905 era, and 1 native SIGABRT on 2026-09-11. The 09-11 row and half of the 09-03 rows carry build `1` — an unarchived local Xcode run, not a tester's build; the rest carry 669 (pre-905). No crash on 932 is on record.
+- Production posting baseline: of 8 live games finished in 12 weeks, 2 posted nothing and none of the account-less guests claimed. The pilot task sheet asks for the claim path explicitly.
+- The web has no plan-suppression cache reset on sign-out beyond account keying (Codex R2 closed by keying per account + invalidation on finish).
+
+### Outstanding device checks
+- The two-phone lifecycle and recovery checks in `docs/pilot/owner-checks.md` (A1–A11, R1–R7, G1–G2) are **NOT RUN** on physical phones. The simulator is signed out (erased earlier for a stale DerivedData fix), so the signed-in native walkthroughs (+ chooser, invitation states) were verified from code and on the web only.
+- `ComposerWorthUITests` (3) remain blocked on the simulator sign-in OTP.
+
+
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.
 
 ## Brand and parity sprint, and the next gameplay sprint · 2026-09-14
