@@ -6,12 +6,12 @@ Verified from the systems themselves on 2026-09-15, not from prior reports. "Imp
 
 | Layer | State | Evidence |
 |---|---|---|
-| **Owner candidate (TestFlight, internal group "Owner")** | build **932** from commit **`d93b6f4`** (branch `claude/phone-fixes-2026-09-15`), processing VALID, internal state IN_BETA_TESTING, uploaded 2026-09-15 18:32. Owner also holds 905 and 919. | App Store Connect API, read 2026-09-15 |
+| **Owner candidate (TestFlight, internal group "Owner")** | build **934** from commit **`1aac23a`** (branch `claude/pilot-readiness-2026-09-15`), uploaded 2026-09-16 from the validated IPA (sha256 prefix `579b0cbc4306410f`, no rebuild), processing VALID, internal state IN_BETA_TESTING, attached to Owner (HTTP 204; Owner holds 6 builds: …905, 919, 932, 934). **Available to the owner to install; the phone is NOT confirmed updated until the owner installs 934 and reads the build number on the device.** | App Store Connect API, read back 2026-09-16 |
 | **Friends (TestFlight, external group)** | latest build **795** (DesignV1 identity, 2026-09-12); 9 builds in the group. **932 is NOT in Friends.** External state of 932: READY_FOR_BETA_SUBMISSION, i.e. not submitted for external review. | App Store Connect API |
 | **Live web (cupseason.app)** | stamp `v23 · c6acc53` = `origin/main` tip. The 21+ commits on `claude/phone-fixes-2026-09-15` and this branch are **not** on main and not live. | `curl` of the live page + `git log origin/main` |
 | **Database (linked project)** | **246 migrations applied**, latest `20261107090000` (both pilot-readiness migrations applied 2026-09-15 night under the owner's "push remaining items"; verified read-only: owner-read policy on `round_holes` present, `round_tally` requires readable holes, `pilot_cohort_members` and `pilot_sessions` exist with RLS on, `client_events_one_attempt` present). **Nothing pending.** | `supabase db push --linked` + read-back |
 | **Edge functions** | 6 deployed, none stale, nothing pending. | `tools/deploy-status.mjs` |
-| **Implemented, archived, validated, NOT uploaded** | **build 934 from commit `1aac23a`** (this branch's tip: telemetry attempt ids, `round_tally` client expectations, the pilot package). Exported and `altool --validate-app` clean at `apps/ios/build/archive/run-934-1aac23a.ZYTX5b/export/Cup Season.ipa` (sha256 prefix `579b0cbc4306410f`). The upload was refused by the session's auto-mode permission classifier ("Blocked by classifier"); resolve with a Bash permission rule for `xcrun altool --upload-app` or run that one command, then attach to the internal Owner group only. Until then the newest phone build is 932. | this session |
+| **Newest build in Friends** | still **795**; 934's external state is READY_FOR_BETA_SUBMISSION, i.e. not submitted. Friends unchanged. | App Store Connect API |
 
 ### Known issues (as of 2026-09-15)
 - A seated non-starter cannot finish a league-less round; the host (or a league member seat) must. By design (D107), told to testers. `tests/pilot/authz-flow.py` NOT VERIFIED line.
@@ -23,6 +23,7 @@ Verified from the systems themselves on 2026-09-15, not from prior reports. "Imp
 ### Outstanding device checks
 - The two-phone lifecycle and recovery checks in `docs/pilot/owner-checks.md` (A1–A11, R1–R7, G1–G2) are **NOT RUN** on physical phones. The simulator is signed out (erased earlier for a stale DerivedData fix), so the signed-in native walkthroughs (+ chooser, invitation states) were verified from code and on the web only.
 - `ComposerWorthUITests` (3) remain blocked on the simulator sign-in OTP.
+- Scorecard baseline refreshed 2026-09-16 with the pilot tables present: `docs/pilot/scorecard-2026-09-16.md` — the cohort table is EMPTY, so the cohort sections print no rows until the founder names cohorts (`docs/pilot/session-log.md`).
 
 
 Updated 2026-09-13. One queue for the next expansion. This records assignments and gates; it does not configure automatic agent-to-agent messages or monitoring.

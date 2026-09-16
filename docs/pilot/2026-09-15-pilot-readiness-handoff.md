@@ -47,7 +47,7 @@ Environment column: **sandbox** = disposable full-chain cluster, every migration
 ## Exact migrations and deployments owed, in order
 
 1. ~~`supabase db push --linked`~~ **DONE 2026-09-15 night** — `20261106090000` and `20261107090000` applied (246 total, latest `20261107090000`), verified read-only. Scenario 10 now PASSES on production.
-2. **Build 934 from `1aac23a`** archived, exported and validated. **Upload refused** by the session's permission classifier ("Blocked by classifier") — add a Bash permission rule for `xcrun altool --upload-app`, or run it once; then attach to the internal Owner group only, and run `docs/pilot/owner-checks.md` on two phones against 934.
+2. ~~Build 934~~ **DONE 2026-09-16** — the same validated IPA (no rebuild) uploaded, Apple processing VALID, attached to the internal Owner group only (Owner holds 6 builds); Friends untouched at 795. **Next: install 934 on the phone, confirm the build number on the device, then run `docs/pilot/owner-checks.md` in the order given there.**
 3. Only after A1–A11 and R1–R7 pass on phones: consider Friends (external group). That is a separate authorization.
 4. Web promotion to main is a separate decision; the branch's served files are not live.
 
