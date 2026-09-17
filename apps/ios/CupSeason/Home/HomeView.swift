@@ -472,7 +472,8 @@ struct HomeView: View {
 
     case .digest(let d):
       HomeWireLine(marker: nil, text: d.body, ink: cs.ink,
-                   act: d.roundId.map { id in { presenter.receipt = id } })
+                   act: d.roundId.map { id in { presenter.receipt = id } }
+                     ?? d.planId.map { id in { presenter.scheduledRound = id } })
         .padding(.horizontal, CSTokens.Space.gutter)
 
     case .occasion(let o):

@@ -1203,7 +1203,8 @@ struct MainTabView: View {
   }
 
   private var boardLinks: BoardLinks {
-    BoardLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 })
+    BoardLinks(openReceipt: { presenter.receipt = $0 }, openTourCard: { presenter.tourCard = $0 },
+               openPlan: { presenter.scheduledRound = $0 })
   }
 
   /// D-offline · a card this phone kept because the server abandoned its round

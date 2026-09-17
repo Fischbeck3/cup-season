@@ -530,3 +530,8 @@ and the checkpoint commits.
   signed-out root. First question: does the overlay need the tab shell's
   environment (`LookStore`, the links, the presenter), or is `if let me` failing
   because the model instance the overlay renders is not the one that loaded?
+
+### 2026-09-17 · Audit follow-ups (Claude, working independently until Saturday)
+- **League member indexes are stale at the lock default.** In the two-member league both `league_members.index_current` rows read 18.0 / `self` while the profiles read 10.5 / 9.5. Season SCORING is untouched (verified: `v_rounds_ranked` reads `rounds.index_at_post`), but the league copy seeds the live-round roster pick list, so a league live MATCH could stroke 0 difference instead of ~1. First question: should a `self` league index follow the profile once the auto-engine establishes, or is the override sacred? Lane: gameplay.
+- **The schedule-note door** (built on `claude/pilot-readiness-2026-09-15`, this date): a system post about a booking now opens the round sheet on both clients, and a single league note prints its own sentence on Home. The server already stamps `posts.scheduled_round_id` (D219) — nothing selected or rendered it. Not yet deployed anywhere.
+- **Untagged buddies of a booking** can see the round (friendship/league visibility) but Home gives them no plan item and no door by design; the note door above is the remedy for discovery. If pilots show untagged league members expecting RSVP, that is a D69 conversation, not a rendering fix.

@@ -220,8 +220,13 @@ struct BoardRowsList: View {
     case .announce: AnnounceRow(text: f.text, pinned: false)
     case .moment: MomentRow(text: BoardText.easeCaps(f.text, names: store.names), item: f, store: store)
     case .system:
+      // The one dead end on the booking journey (owner, 2026-09-17): the
+      // schedule note printed the where and when but opened nothing. It now
+      // opens the round sheet, which already links the course page and
+      // offers Ask for a seat. A settlement note keeps its scorecard door.
       SystemRow(text: BoardText.easeCaps(f.text, names: store.names),
-                opens: f.liveRoundId.map { id in { openScorecard(id) } },
+                opens: f.liveRoundId.map { id in { openScorecard(id) } }
+                    ?? f.scheduledRoundId.flatMap { id in links.openPlan.map { open in { open(id) } } },
                 item: f, store: store)
     case .chat: ChatRow(item: f, store: store, links: links)
     }

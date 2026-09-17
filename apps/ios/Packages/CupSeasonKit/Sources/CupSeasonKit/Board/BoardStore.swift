@@ -182,7 +182,8 @@ public final class BoardStore {
     }
     return BoardItem(id: p.id.uuidString, postId: p.id, kind: kind, dateLabel: BoardText.dateLabel(p.created_at), ts: p.created_at,
                      who: kind == .chat || kind == .round ? memberName(p.member_id) : "", profileId: m?.profileId, memberId: p.member_id,
-                     ci: m?.ci ?? 1, text: p.body ?? "", roundId: p.round_id, liveRoundId: p.live_round_id)
+                     ci: m?.ci ?? 1, text: p.body ?? "", roundId: p.round_id, liveRoundId: p.live_round_id,
+                     scheduledRoundId: p.scheduled_round_id)
   }
 
   private func recomputeDigest() {

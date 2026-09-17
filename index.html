@@ -8344,9 +8344,13 @@ function sysWrap(row, f, fi, ns){
    every other caller draws the row alone. */
 function sysRowHtml(f, fi, ns){
   const body = `◆ ${esc(easeCaps(f.txt||''))}`;
-  const row = (!f || !f.lrid) ? `<div class="sysrow">${body}</div>`
-    : `<div class="sysrow opens" data-card="${esc(f.lrid)}" role="button" tabindex="0"`
-       + ` aria-label="${esc(easeCaps(f.txt||''))} — open the scorecard">${body}</div>`;
+  const row = f && f.lrid
+    ? `<div class="sysrow opens" data-card="${esc(f.lrid)}" role="button" tabindex="0"`
+       + ` aria-label="${esc(easeCaps(f.txt||''))} — open the scorecard">${body}</div>`
+    : f && f.srid
+    ? `<div class="sysrow opens" data-planrow="${esc(f.srid)}" role="button" tabindex="0"`
+       + ` aria-label="${esc(easeCaps(f.txt||''))} — open the round">${body}</div>`
+    : `<div class="sysrow">${body}</div>`;
   return sysWrap(row, f, fi, ns);
 }
 /* one delegated listener for every board surface: rows are re-rendered
@@ -8354,6 +8358,13 @@ function sysRowHtml(f, fi, ns){
 document.addEventListener('click', e=>{
   const row = e.target.closest?.('[data-card]');
   if(row) window.openScorecard?.(row.dataset.card);
+  const plan = e.target.closest?.('[data-planrow]');
+  if(plan) window.openRoundSheet?.(plan.dataset.planrow);
+});
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Enter' && e.key!==' ') return;
+  const plan = e.target.closest?.('[data-planrow]');
+  if(plan){ e.preventDefault(); window.openRoundSheet?.(plan.dataset.planrow); }
 });
 document.addEventListener('keydown', e=>{
   if(e.key!=='Enter' && e.key!==' ') return;
@@ -17339,14 +17350,20 @@ function csHomeFold(input){
 
   /* the notes, gathered across EVERY bucket — they are a line, not rows */
   const names = [];
-  let count = 0, leagueId = null;
+  let count = 0, leagueId = null, single = null;
   sys.forEach(p => {
     if(dropped[p.id]) return;
     count++;
     if(leagueId === null) leagueId = p.league_id || null;
+    if(count === 1) single = p; else single = null;
     (sets[p.id] || []).forEach(s => { if(s.name && names.indexOf(s.name) < 0) names.push(s.name); });
   });
-  const notes = count ? { names: names.slice().sort(), count, leagueId } : null;
+  /* ONE surviving note carries its own sentence and, when it is about a
+     booking, the booking itself — "1 league note" made a golfer hunt the
+     board for a tee time that was already in the note (owner, 2026-09-17). */
+  const notes = count ? { names: names.slice().sort(), count, leagueId,
+                          body: (single && single.body) || null,
+                          srid: (single && single.scheduled_round_id) || null } : null;
 
   return { buckets, notes };
 }
@@ -17355,6 +17372,8 @@ function csHomeFold(input){
    wall again, so it counts them instead. */
 function csNotesLine(n){
   const c = (n && n.count) || 0;
+  /* one note says what it is; the count is for a stack */
+  if(c === 1 && n.body) return String(n.body).length > 110 ? String(n.body).slice(0, 109) + '…' : String(n.body);
   const names = (n && n.names) || [];
   const who = names.length === 0 ? 'Your leagues'
             : names.length <= 2 ? names.join(' & ')
@@ -17579,7 +17598,11 @@ function renderHomeFeed(){
   /* D285 · every surviving league note as ONE line, at the foot, opening the
      board where the notes live. A wire carrying only notes is NOT empty. */
   if(fold.notes){
-    html += `<button type="button" class="hfnotes"${fold.notes.leagueId?` data-notes="${esc(fold.notes.leagueId)}"`:''}>`
+    html += fold.notes.srid
+      ? `<button type="button" class="hfnotes" data-notesplan="${esc(fold.notes.srid)}">`
+          + `<span class="hl cs-body-s">${esc(csNotesLine(fold.notes))}</span>`
+          + `<span class="hs cs-agate-s">The round</span></button>`
+      : `<button type="button" class="hfnotes"${fold.notes.leagueId?` data-notes="${esc(fold.notes.leagueId)}"`:''}>`
           + `<span class="hl cs-body-s">${esc(csNotesLine(fold.notes))}</span>`
           + `<span class="hs cs-agate-s">The board</span></button>`;
   }
@@ -17604,6 +17627,7 @@ function renderHomeFeed(){
     const old = keep.get(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'));
     if(old) img.replaceWith(old);
   });
+  box.querySelectorAll('[data-notesplan]').forEach(el=>el.addEventListener('click',()=>{ window.openRoundSheet?.(el.dataset.notesplan); }));
   box.querySelectorAll('[data-notes]').forEach(el=>el.addEventListener('click',()=>{
     const id=el.dataset.notes;
     if(id && window.CS?.league?.id!==id) window.enterLeagueById?.(id, false);
@@ -26231,7 +26255,7 @@ async function loadStandingsAndFeed(requireRoom=false){
      lesson: a column error never names the column). */
   let posts=null;
   {
-    const COLS = lr => `id, kind, body, created_at, member_id, round_id${lr?', live_round_id':''}`;
+    const COLS = lr => `id, kind, body, created_at, member_id, round_id${lr?', live_round_id, scheduled_round_id':''}`;
     /* ascending:FALSE + reverse, not ascending:true (ship audit 2026-08-31).
        `limit(120)` on an ascending sort takes the 120 OLDEST posts, so a league
        that crosses 120 loses its NEWEST ones — one prod league is at 122 and
@@ -26264,7 +26288,7 @@ async function loadStandingsAndFeed(requireRoom=false){
     else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, ts, roundpost:true, post_id:p.id, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
     else if(p.kind === 'moment') feed.push({ d: ds, ts, moment:true, post_id:p.id, txt:p.body });
     /* D92: a settlement carries its live round, so the row can open the card */
-    else feed.push({ d: ds, ts, sys:true, post_id:p.id, txt:p.body, lrid:p.live_round_id||null });
+    else feed.push({ d: ds, ts, sys:true, post_id:p.id, txt:p.body, lrid:p.live_round_id||null, srid:p.scheduled_round_id||null });
   });
 
   /* season history: the weekly snapshots the cron spine records */
@@ -29456,7 +29480,7 @@ async function loadHome(){
          of its own — `posts.round_id` is in the BASELINE (`posts_round_id_fkey
          → rounds(id)`), so it is on every database this client can reach; the
          `lr` flag stays what it was, the retry for `live_round_id`. */
-      const HCOLS = lr => `id, league_id, kind, member_id, body, created_at, round_id${lr?', live_round_id':''}`;
+      const HCOLS = lr => `id, league_id, kind, member_id, body, created_at, round_id${lr?', live_round_id, scheduled_round_id':''}`;
       let hr = await sb.from('posts').select(HCOLS(true))
         .in('league_id', ids).neq('kind','chat').neq('kind','round')
         .order('created_at', { ascending:false }).limit(20);

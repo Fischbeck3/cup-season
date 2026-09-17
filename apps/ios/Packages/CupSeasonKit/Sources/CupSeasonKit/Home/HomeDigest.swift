@@ -19,6 +19,8 @@ public struct HomeDigest: Sendable, Equatable {
   /// For the quiet frame: the resurfaced round, so a thumb can open its receipt.
   public let roundId: UUID?
   public let photoURL: URL?
+  /// The booking a single schedule note is about — the row's door.
+  public var planId: UUID? = nil
   /// Substrings of `body` the web sets in `<b>` (10538–10600): the count, the name.
   public var strong: [String] = []
   /// A single round story yields to the same round in the lead or wire.
@@ -125,6 +127,18 @@ public struct HomeDigest: Sendable, Equatable {
       return HomeDigest(kind: .since, label: "Since you were here", body: line(round) + ".",
                         roundId: round.round_id, photoURL: round.round_id.flatMap { photoURLs[$0] },
                         strong: [who(round)], isRoundStory: true)
+    }
+    // ONE league note is a sentence the product already wrote — "Galen put a
+    // round on the schedule — Sat · 2:10PM · Papago" — and hiding it behind
+    // "1 league note." made a golfer hunt the board for a tee time the note
+    // itself contained (owner, 2026-09-17). Say it, and when it is about a
+    // booking, open that booking.
+    if freshRounds.isEmpty, mentions.isEmpty, freshPosts.count == 1,
+       let note = freshPosts.first, let text = note.body, !text.isEmpty {
+      let clipped = text.count > 110 ? String(text.prefix(109)) + "…" : text
+      return HomeDigest(kind: .since, label: "Since you were here",
+                        body: clipped.hasSuffix(".") || clipped.hasSuffix("…") ? clipped : clipped + ".",
+                        roundId: nil, photoURL: nil, planId: note.scheduled_round_id)
     }
     // mentions can RESCUE a quiet day — a reaction on your round IS something new
     if !freshRounds.isEmpty || !freshPosts.isEmpty || !mentions.isEmpty {
