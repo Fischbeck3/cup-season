@@ -19006,12 +19006,15 @@ window.CS_COMPETITION = CS_COMPETITION;
 function csCompetitionBandHtml(row){
   if(!row || !row.state) return '';
   const fig = row.figure ? `<span class="cband-fig">${esc(row.figure)}</span>` : '';
-  const note = row.sub ? `<span class="cband-note">${esc(row.sub)}</span>` : '';
+  /* the FIGURE carries the rank (LINT-19's one-place rule): a sub that leads
+     with "2nd of 2 · " would say it twice on the band, so the clause folds */
+  const subTxt = row.sub && row.figure ? String(row.sub).replace(new RegExp('^' + row.figure + ' of \\d+( · )?'), '') : row.sub;
+  const note = subTxt ? `<span class="cband-note">${esc(subTxt)}</span>` : '';
   return `<button class="cband" type="button" data-cband="${esc(row.id)}"
       aria-label="${esc([CS_COMPETITION.spoken(row.state), row.title, row.eyebrow, row.figure, row.sub].filter(Boolean).join(', '))}">
     <span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span>
     ${(fig||note) ? `<span class="cband-mid">${fig}${note}</span>` : ''}
-    ${row.eyebrow ? `<span class="cband-meta">${esc(row.eyebrow)}</span>` : ''}
+    ${(row.eyebrow||row.status) ? `<span class="cband-meta">${esc([row.eyebrow, row.status].filter(Boolean).join(' · '))}</span>` : ''}
   </button>`;
 }
 window.csCompetitionBandHtml = csCompetitionBandHtml;

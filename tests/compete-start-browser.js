@@ -30,7 +30,8 @@
     tab.click();
     await until(()=>document.getElementById('view-compete')?.classList.contains('active') || getComputedStyle(document.getElementById('view-compete')).display!=='none','Compete did not open from its tab');
     renderCompete();
-    check(document.querySelectorAll('#cmpList .peerrow').length===2,'the two seasons did not render');
+    check(document.querySelectorAll('#cmpList .cband').length===1,'F11: the lead season is not a band');
+    check(document.querySelectorAll('#cmpList .peerrow').length===1,'the other season did not render as a row');
     const start=document.getElementById('cmpStart');
     check(!!start,'START SOMETHING is not on the page');
     const r=start.getBoundingClientRect();

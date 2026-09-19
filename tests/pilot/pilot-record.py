@@ -16,6 +16,7 @@ F, G = str(uuid.uuid4()), str(uuid.uuid4())
 for uid, nm in ((F, "Founder"), (G, "Golfer")):
     sql(f"insert into auth.users(id, email) values ('{uid}','{nm.lower()}-{uid[:6]}@pilot.test'); update profiles set display_name='{nm}' where id='{uid}';", role=None)
 sql(f"update profiles set is_founder = (id = '{F}');", role=None)
+sql("delete from pilot_sessions; delete from pilot_cohort_members;", role=None)  # idempotent reruns on a shared sandbox
 r = sql("select founder_id();", role=None); ok(r.stdout.strip() == F, "the sandbox founder is the seeded founder")
 # cohorts
 r = sql(f"insert into pilot_cohort_members(profile_id, cohort, group_key, added_by) values ('{G}','friends','galen-jade','{F}');", uid=F)
