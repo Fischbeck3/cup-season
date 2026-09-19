@@ -159,7 +159,7 @@ const rows = f => f.buckets.map(b => [b.key, b.items.length]);
     round({ rid: 'D', on: '2026-08-20', i: 3 }),   // earlier
   ] });
   eq(rows(f), [['ahead', 1], ['today', 1], ['week', 1], ['earlier', 1]], 'four buckets, in the wire’s order');
-  eq(f.buckets.map(b => b.label), ['Coming up', 'Today', 'This week', 'Earlier'], 'and their datelines');
+  eq(f.buckets.map(b => b.label), ['Up next', 'Today', 'This week', 'Earlier'], 'and their datelines');
   eq(fold({ rounds: [round({ rid: 'E', on: '2026-09-01', i: 0 })] }).buckets[0].key, 'week',
      'six days back is still this week');
   eq(fold({ rounds: [round({ rid: 'F', on: '2026-08-31', i: 0 })] }).buckets[0].key, 'earlier',

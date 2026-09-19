@@ -319,88 +319,25 @@ struct HomeWireSlat: View {
 /// The reveal is LOCAL STATE and not the store's: the tray D310 deleted was
 /// exclusive across the whole board and needed a shared flag, four close paths
 /// and a capture/restore pass. One row opening its own four needs none of that.
+/// D365 · **the reaction menu is gone.** One control — the applause glyph and
+/// its count — where the given tokens and the `+` used to be. The signature is
+/// kept so every caller (Home, the fixtures) hands in the same fold; the
+/// toggle is always `Applause.key`.
 struct HomeWireReactions: View {
   @Environment(\.cs) private var cs
   let state: [String: ReactionState]
   let day: String?
   let onToggle: (String) -> Void
-  @State private var open = false
-
-  /// The tokens somebody has actually given, in CANON order — never arrival
-  /// order, so the row is the same row every time you look at it.
-  private var given: [CSReactions.Reaction] {
-    CSReactions.all.filter { (state[$0.key]?.n ?? 0) > 0 }
-  }
-  /// What the `+` reveals: everything not already on the row.
-  private var rest: [CSReactions.Reaction] {
-    CSReactions.all.filter { (state[$0.key]?.n ?? 0) == 0 }
-  }
 
   var body: some View {
     HStack(spacing: CSTokens.Space.s4) {
-      ForEach(given) { rx in chip(rx, mine: state[rx.key]?.me == true, n: state[rx.key]?.n ?? 0) }
-      if open {
-        // **THE REVEAL IS FOR ONE CHOICE, THEN IT CLOSES.** The owner, on the
-        // first build of this: *"When I click + for emotes they reappear lets
-        // keep them hidden with exception to when one is selected."* Left
-        // open, the row silently becomes the four-token row the `+` was added
-        // to remove — and it stays that way for the rest of the session. So
-        // picking one collapses the row back to what is GIVEN plus the `+`,
-        // and his own worked example is the result: give the azalea, and the
-        // next person sees a `+` and an azalea — open the `+` for a different
-        // one, or tap the azalea to add to it.
-        ForEach(rest) { rx in chip(rx, mine: false, n: 0, closesOnTap: true) }
-      } else if !rest.isEmpty {
-        Button {
-          CSHaptic.selection()
-          CSMotion.run(CSMotion.tick) { open = true }
-        } label: {
-          HStack(spacing: CSTokens.Space.s2) {
-            CSGlyph(.plus, size: .inline)
-            if given.isEmpty { Text("React").csType(.agateS) }
-          }
-            .foregroundStyle(cs.mut)
-            .frame(minHeight: 34)
-            .a11yHitSlop(vertical: 5, horizontal: 8)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(given.isEmpty ? "React to this round" : "More reactions")
-        // VoiceOver never has to open anything: the four are actions here.
-        .accessibilityActions {
-          ForEach(rest) { rx in Button(rx.label) { onToggle(rx.key) } }
-        }
-      }
+      ApplauseControl(state: Applause.state(state)) { onToggle(Applause.key) }
       Spacer(minLength: CSTokens.Space.s2)
       if let day {
         Text(day).csType(.agateS, caps: true).foregroundStyle(cs.mut).accessibilityHidden(true)
       }
     }
-    .frame(minHeight: 34)
-  }
-
-  /// A figure is drawn only where there IS one (D310) — a glyph with a phantom
-  /// zero beside it reads as a reaction somebody left.
-  private func chip(_ rx: CSReactions.Reaction, mine: Bool, n: Int,
-                    closesOnTap: Bool = false) -> some View {
-    Button {
-      CSHaptic.selection()
-      onToggle(rx.key)
-      if closesOnTap { CSMotion.run(CSMotion.tick) { open = false } }
-    } label: {
-      HStack(spacing: CSTokens.Space.s2) {
-        CSReactionGlyph(rx.token, size: .row)
-          .foregroundStyle(mine ? cs.ink : cs.mut)
-        if n > 0 {
-          Text("\(n)").csType(.agateS, caps: true).foregroundStyle(mine ? cs.ink : cs.mut)
-        }
-      }
-      .frame(minHeight: 34)
-      .a11yHitSlop(vertical: 5, horizontal: 6)
-    }
-    .buttonStyle(.plain)
-    .accessibilityLabel(n > 0 ? "\(rx.label), \(n)\(mine ? ", yours" : "")" : rx.label)
-    .accessibilityValue(mine ? "on" : "off")
-    .accessibilityAddTraits(.isToggle)
+    .frame(minHeight: 44)
   }
 }
 
@@ -666,8 +603,9 @@ struct HomeWireBag: View {
         HStack(alignment: .top, spacing: CSTokens.Space.s3) {
           // The bag's own glyph, in the look's accent where one is on — the
           // object announcing itself before the sentence does.
+          // D359 / F4 · the bag is ordinary decoration, not a live competition
           CSGlyph(.bag, size: .block)
-            .foregroundStyle(cs.brand)
+            .foregroundStyle(cs.mut)
             .padding(.top, 2)
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
             Text(text).csType(.body).foregroundStyle(cs.ink)

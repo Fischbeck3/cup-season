@@ -133,7 +133,9 @@ public extension CSPalette {
               // cross-surface rule says the same qualifying competition keeps
               // its colour wherever it surfaces. A personal dial may not
               // repaint a live clash.
-              pos: pos, neg: neg, cool: cool, gold: gold, brand: brand, act: accent,
+              // F11 · `brandInk` rides with `brand`: a look may not repaint the
+              // competition band, so it may not repaint the ink on it either.
+              pos: pos, neg: neg, cool: cool, gold: gold, brand: brand, brandInk: brandInk, act: accent,
               sq0: sq0, sq1: sq1, sq2: sq2, sq3: sq3,
               panel: accent2, panelInk: CSInk.on(accent2), panelMut: CSInk.mutOn(accent2),
               leaf: leaf, leafInk: leafInk, leafMut: leafMut, leafGold: leafGold,
@@ -153,7 +155,7 @@ public extension CSPalette {
   var increasedContrast: CSPalette {
     CSPalette(bg0: bg0, bg1: bg1, bg2: bg2,
               rule: mut, ink: ink, mut: ink.opacity(CSTokens.Alpha.a88), dim: mut,
-              pos: pos, neg: neg, cool: cool, gold: gold, brand: brand, act: act,
+              pos: pos, neg: neg, cool: cool, gold: gold, brand: brand, brandInk: brandInk, act: act,
               sq0: sq0, sq1: sq1, sq2: sq2, sq3: sq3,
               panel: panel, panelInk: panelInk, panelMut: panelInk.opacity(CSTokens.Alpha.a88),
               leaf: leaf, leafInk: leafInk, leafMut: leafInk.opacity(CSTokens.Alpha.a88),

@@ -26,7 +26,8 @@ public struct CSPalette: Sendable {
   public let neg: Color  // semantic · performance down
   public let cool: Color  // semantic · cooling: falling rows — slate, not alarm (was heat.cool)
   public let gold: Color  // metal · champagne / bronze on paper — EARNED only: leads, the pot, trophies
-  public let brand: Color  // metal · ember / stamp red on paper — live, and the one primary action
+  public let brand: Color  // metal · ember / stamp red on paper — COMPETITION identity (F11): a season, a clash or an event, before, during and after play. Not an ordinary action, and never a plain booked round.
+  public let brandInk: Color  // metal · the type ON a broad ember panel, and it FLIPS between the printings because ember does. Measured: fescue on the dark theme's ember is 5.27:1 and cream is 2.99:1; on the light theme's darker ember those swap to 2.74:1 and 5.76:1. One colour for both would fail one of them, so the application board's single "dark ink" instruction holds for the dark printing only.
   public let act: Color  // metal · the ordinary action — a fescue-family green; `bg0` type on the dark ground, cream on the paper one. Identity, semantics and earned gold are not this.
   public let sq0: Color  // squad · squad slate-blue
   public let sq1: Color  // squad · squad clay
@@ -78,6 +79,7 @@ public enum CSTokens {
     cool: Color(hex: 0x7F8C95),
     gold: Color(hex: 0xD8B25A),
     brand: Color(hex: 0xE8622C),
+    brandInk: Color(hex: 0x0F1A15),
     act: Color(hex: 0x5FA271),
     sq0: Color(hex: 0x366F87),
     sq1: Color(hex: 0xB27E7C),
@@ -126,6 +128,7 @@ public enum CSTokens {
     cool: Color(hex: 0x56615B),
     gold: Color(hex: 0x795912),
     brand: Color(hex: 0xA13F0E),
+    brandInk: Color(hex: 0xF4F1E9),
     act: Color(hex: 0x1F5D3A),
     sq0: Color(hex: 0x002B40),
     sq1: Color(hex: 0x603E35),
@@ -243,7 +246,7 @@ public enum CSTokens {
   public static let leafShade = Shadow(color: Color(red: 0/255, green: 0/255, blue: 0/255, opacity: 0.22), x: 0, y: 1, blur: 0)
   public static let shadowLift = Shadow(color: Color(red: 0/255, green: 0/255, blue: 0/255, opacity: 0.55), x: 0, y: 18, blur: 44)
 
-  public static let tokenNames: [String] = ["bg0", "bg1", "bg2", "rule", "ink", "mut", "dim", "pos", "neg", "cool", "gold", "brand", "act", "sq0", "sq1", "sq2", "sq3", "panel", "panel-ink", "panel-mut", "leaf", "leaf-ink", "leaf-mut", "leaf-gold", "ceremony", "ceremony-ink", "ceremony-mut", "ceremony-brand", "ceremony-gold", "ceremony-pos", "ceremony-cool", "ceremony-sq0", "ceremony-sq1", "ceremony-sq2", "ceremony-sq3", "crest", "folio-rule", "scrim-ink", "scrim-mut", "pig0", "pig1", "pig2", "pig3", "pig4", "pig5", "r", "rc", "rs", "p", "rx", "s1", "s2", "s3", "s4", "s5", "s6", "gutter", "gutter-desk", "rail", "hair", "a08", "a16", "a24", "a56", "a88", "flat", "tight", "d1", "d2", "caps", "caps2", "agate-s", "agate", "ord", "board", "sans", "mono", "serif", "roll", "snap", "leaf-shade", "shadow-lift"]
+  public static let tokenNames: [String] = ["bg0", "bg1", "bg2", "rule", "ink", "mut", "dim", "pos", "neg", "cool", "gold", "brand", "brand-ink", "act", "sq0", "sq1", "sq2", "sq3", "panel", "panel-ink", "panel-mut", "leaf", "leaf-ink", "leaf-mut", "leaf-gold", "ceremony", "ceremony-ink", "ceremony-mut", "ceremony-brand", "ceremony-gold", "ceremony-pos", "ceremony-cool", "ceremony-sq0", "ceremony-sq1", "ceremony-sq2", "ceremony-sq3", "crest", "folio-rule", "scrim-ink", "scrim-mut", "pig0", "pig1", "pig2", "pig3", "pig4", "pig5", "r", "rc", "rs", "p", "rx", "s1", "s2", "s3", "s4", "s5", "s6", "gutter", "gutter-desk", "rail", "hair", "a08", "a16", "a24", "a56", "a88", "flat", "tight", "d1", "d2", "caps", "caps2", "agate-s", "agate", "ord", "board", "sans", "mono", "serif", "roll", "snap", "leaf-shade", "shadow-lift"]
 }
 
 public extension Color {

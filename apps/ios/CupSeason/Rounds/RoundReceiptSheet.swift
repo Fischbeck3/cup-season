@@ -45,11 +45,20 @@ struct RoundReceiptSheet: View {
   @Environment(\.dynamicTypeSize) private var typeSize
   let roundId: UUID
   let initialSeed: ReceiptSeed?
+  /// F12 · opened from the finish by "Add a photo": the receipt's own picker
+  /// is raised once, so the library is asked for only after the golfer chose
+  /// the action, and the attach/remove pipeline is the one that already ships.
+  var armPhoto: Bool = false
   /// "See the scorecard" — the hand-off to the live-round card (D92).
   var openScorecard: ((UUID) -> Void)? = nil
 
   @State private var seed: ReceiptSeed?
   @State private var enriched = false
+  @State private var armedOnce = false
+  /// F13 · `1 eagle · 2 birdies` from the round's own holes against the pars
+  /// its live round recorded — only when the round names a course. nil = no
+  /// claim (an older server, an unknown course, or simply no such holes).
+  @State private var tally: String?
   @State private var loadFailed = false
   /// **The round's own delete**, two steps, on the object it removes.
   @State private var armed = false
@@ -80,8 +89,9 @@ struct RoundReceiptSheet: View {
   @State private var reviewPhoto: UIImage?
   #endif
 
-  init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil) {
+  init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil, armPhoto: Bool = false) {
     self.roundId = roundId; self.initialSeed = seed; self.openScorecard = openScorecard
+    self.armPhoto = armPhoto
     _seed = State(initialValue: seed)
   }
 
@@ -163,6 +173,14 @@ struct RoundReceiptSheet: View {
     }
     .presentationBackground(cs.bg0)
     .task { await open() }
+    // F12 · "Add a photo" at the finish lands here with the picker already
+    // asked for — once, and only because the golfer chose that action, so the
+    // library is never asked for on arrival.
+    .task {
+      guard armPhoto, !armedOnce else { return }
+      armedOnce = true
+      openPicker()
+    }
     // The composer's own door, so the two surfaces open the same camera roll —
     // and D298 is why "the same" is now worth saying: this read `the camera
     // when the app may open it, the library otherwise`, which on a phone means
@@ -515,6 +533,7 @@ struct RoundReceiptSheet: View {
     if seed?.photoURL == nil, let path = seed?.photoPath, let url = await repo.signedURL(path) {
       seed?.photoURL = url
     }
+    if let t = try? await RoundsRepository().roundTally(roundId) { tally = t }
     if let json = try? await payload {
       var merged = (seed ?? ReceiptSeed(id: roundId)).merged(with: json)
       if merged.photoURL == nil, let path = merged.photoPath, let url = await repo.signedURL(path) { merged.photoURL = url }

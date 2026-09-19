@@ -86,8 +86,18 @@ struct ClashRows: View {
       // `season-top.png` puts 10pt between them and the shipped `s3` put 12
       // on top of each row's own height. The head keeps its `s3`.
       VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-        CSSectionHead("This week · the clash", count: through(wc, weekEnd: win.end))
-          .padding(.bottom, CSTokens.Space.s1)
+        // D359 / F4 · while the clash is OPEN it carries the one restrained
+        // ember mark Home's lead carries for the same clash — a dot, no
+        // repaint. A settled week wears none; the rows stay ink and mut.
+        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+          if !wc.settled {
+            CSGlyph(.dot, points: 23).foregroundStyle(cs.brand)
+              .accessibilityLabel("Live")
+              .csBudget(ember: 1)
+          }
+          CSSectionHead("This week · the clash", count: through(wc, weekEnd: win.end))
+        }
+        .padding(.bottom, CSTokens.Space.s1)
         side(wc.a_member, best: aB, ahead: ahead == 0)
         side(wc.b_member, best: bB, ahead: ahead == 1)
       }

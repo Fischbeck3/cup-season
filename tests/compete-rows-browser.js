@@ -26,15 +26,21 @@
     renderCompete();
     const row=id=>document.querySelector('#cmpList [data-peer="league:'+id+'"]');
     const text=(id,sel)=>row(id).querySelector(sel)?.textContent||'';
-    check(text(A,'.ps')==='2nd of 2 · 14 pts · 3 behind Jade','MW-03: the standing line is wrong: '+text(A,'.ps'));
-    check(text(A,'.pe')==='In season · Week 8 of 26','MW-03: the week is wrong: '+text(A,'.pe'));
-    check(text(A,'.pt')==='The clash closes today','MW-03: the closing clash is not the status: '+text(A,'.pt'));
+    /* F11 · the season being played leads as the BAND, and it keeps every
+       fact the plain row carried: figure once, points and gap, week, status */
+    const band=document.querySelector('#cmpList .cband');
+    check(!!band,'F11: no band for the lead season');
+    const btext=sel=>band.querySelector(sel)?.textContent||'';
+    check(btext('.cband-fig')==='2nd','the band lost the rank figure: '+btext('.cband-fig'));
+    check(btext('.cband-note')==='14 pts · 3 behind Jade','MW-03: the band said the rank twice or lost the line: '+btext('.cband-note'));
+    check(btext('.cband-meta')==='In season · Week 8 of 26 · The clash closes today','MW-03: the band lost the week or the closing clash: '+btext('.cband-meta'));
+    check(btext('.cband-state')==='Live','the band lost its state word');
     check(text(B,'.ps')==='1st of 2 · 21 pts · leading · you run it','MW-03: the leader’s line is wrong: '+text(B,'.ps'));
     check(text(B,'.pt')==='3 days left','MW-03: the last week is not the status: '+text(B,'.pt'));
     check(text(C,'.ps')==='You’re in it.' && text(C,'.pe')==='In season' && !row(C).querySelector('.pt'),'MW-03: a row with no facts invented some: '+text(C,'.ps'));
     check(!/1st|leading/.test(text(C,'.ps')),'MW-03: a missing rank was rendered as first');
     check(text(D,'.pe')==='Forming' && text(D,'.ps')==='You’re in it.','a forming league borrowed season facts');
-    check(document.querySelectorAll('#cmpList .peerrow').length===4,'the four seasons did not all render');
+    check(document.querySelectorAll('#cmpList .peerrow').length===3 && document.querySelectorAll('#cmpList .cband').length===1,'the four seasons did not all render (band + three rows)');
     check(Array.from(document.querySelectorAll('#cmpList .peerrow')).every(b=>b.getBoundingClientRect().height>=44),'a row is under the tap target');
 
     /* the empty archive: chrome on the phone, a column on the desk */

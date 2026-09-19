@@ -97,7 +97,9 @@ public struct CSRule: View {
   /// opposite of the page by construction. A mark that reads the page's `ink`
   /// while sitting on one of the other three is invisible in one theme and
   /// nobody notices until the screenshot.
-  public enum Ground: Sendable { case page, leaf, ceremony, panel }
+  /// F11 · `ember` is the competition band: a broad flat ember surface whose
+  /// ink FLIPS with the printing (`brandInk`), because ember does.
+  public enum Ground: Sendable { case page, leaf, ceremony, panel, ember }
 
   public init(_ weight: Weight = .hair, metal: Metal = .ink, inset: CGFloat = 0, over: Ground = .page) {
     self.weight = weight; self.metal = metal; self.inset = inset; self.over = over
@@ -118,6 +120,7 @@ public struct CSRule: View {
       case .page: return cs.rule
       case .leaf: return cs.leafMut
       case .panel: return cs.panelMut
+      case .ember: return cs.brandInk.opacity(CSTokens.Alpha.a24)
       case .ceremony: return CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a16)
       }
     }
@@ -127,9 +130,11 @@ public struct CSRule: View {
       case .page: return cs.ink
       case .leaf: return cs.leafInk
       case .panel: return cs.panelInk
+      case .ember: return cs.brandInk
       case .ceremony: return CSTokens.dark.ceremonyInk
       }
-    case .live: return over == .ceremony ? CSTokens.dark.ceremonyBrand : cs.brand
+    // a live rule ON an ember band would be ember on ember — it takes the band's own ink
+    case .live: return over == .ceremony ? CSTokens.dark.ceremonyBrand : (over == .ember ? cs.brandInk : cs.brand)
     // Gold ink on bone is 1.68:1 and forbidden (§2.4), so an earned rule on a
     // leaf reads the LIGHT gold — the bronze — in both themes. Named here so
     // no surface reaches for a literal.
@@ -143,6 +148,7 @@ public struct CSRule: View {
       // token rather than a reach into the other palette, so preflight 15 and
       // the single-source check both cover it.
       case .leaf, .panel: return cs.leafGold
+      case .ember: return cs.brandInk
       case .ceremony: return CSTokens.dark.ceremonyGold
       }
     }

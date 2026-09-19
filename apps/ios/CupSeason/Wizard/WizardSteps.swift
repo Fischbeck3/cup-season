@@ -100,6 +100,14 @@ struct WizardWhoStep: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
+      // D363 · the person this season was started from, said as what it is:
+      // an invitation to send at lock. Their chip below is already on; a tap
+      // there drops it, and this line goes with it.
+      if let inv = model.invitee, model.dials.invitees.contains(inv.id) {
+        Text(PlayWithCopy.seasonWith(inv.name)).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityIdentifier("wizard.with")
+      }
       if !model.buddiesLoaded {
         // §6.1 · the rows that are coming, redacted
         VStack(spacing: 0) {
@@ -311,7 +319,7 @@ struct WizardWhenStep: View {
         }
         Spacer(minLength: 8)
         DatePicker("", selection: startDate, displayedComponents: .date)
-          .labelsHidden().tint(cs.brand).frame(minHeight: 44)
+          .labelsHidden().tint(cs.act).frame(minHeight: 44)
           .accessibilityLabel(WizardCopy.firstTee.0)
       }
       .padding(.vertical, 8)

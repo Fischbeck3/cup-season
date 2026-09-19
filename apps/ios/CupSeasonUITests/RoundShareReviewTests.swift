@@ -250,9 +250,11 @@ final class ComposerWorthUITests: XCTestCase {
   }
 
   @MainActor func testWorthLinesInTheComposer() throws {
-    for (mode, expect) in [("room", "worth up to 12. Your best 4 count and you have 2."),
-                           ("full", "worth up to 7 more."),
-                           ("capped", "cannot add to your points this month"),
+    // D364 (F3) · the ceiling and the counting rule, said separately; a full
+    // month shows the replacement arithmetic (a 12 replacing a 5 adds 7).
+    for (mode, expect) in [("room", "can score up to 12, and it counts: your best 4 count and you have 2."),
+                           ("full", "lowest is a 5, so a 12 would add 7."),
+                           ("capped", "can't add to your total this month"),
                            ("open", "Every round you post this month counts."),
                            ("two", "in Sunday Cup")] {
       let app = XCUIApplication()

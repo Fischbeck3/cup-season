@@ -10,8 +10,12 @@ import CupSeasonKit
 struct BoardLinks {
   let openReceipt: (UUID) -> Void
   let openTourCard: (UUID) -> Void
-  init(openReceipt: @escaping (UUID) -> Void = { _ in }, openTourCard: @escaping (UUID) -> Void = { _ in }) {
-    self.openReceipt = openReceipt; self.openTourCard = openTourCard
+  /// The scheduled-round sheet, for a note about a booking. Defaulted so
+  /// previews and older call sites stand unchanged.
+  var openPlan: ((UUID) -> Void)? = nil
+  init(openReceipt: @escaping (UUID) -> Void = { _ in }, openTourCard: @escaping (UUID) -> Void = { _ in },
+       openPlan: ((UUID) -> Void)? = nil) {
+    self.openReceipt = openReceipt; self.openTourCard = openTourCard; self.openPlan = openPlan
   }
 }
 

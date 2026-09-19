@@ -230,11 +230,18 @@ public struct CourseBook: Codable, Sendable, Equatable, Identifiable {
 
   // MARK: - the honest line (L-32)
 
-  /// "Saved on your phone Sat Sep 5" — the ONLY sanctioned rendering of a
-  /// cached course's provenance. It is never omitted, and it never says
-  /// "updated" or "live", because it is neither.
+  /// "Available offline · saved Sat Sep 5" — the ONLY sanctioned rendering of
+  /// a cached course's provenance. It is never omitted, and it never says
+  /// "updated" or "live", because it is neither: the phone wrote a copy on
+  /// that day, and that is all it knows.
+  ///
+  /// D364 (F2) · it leads with what the copy IS FOR — the course is here with
+  /// no signal — because "Saved on your phone" beside a course's facts read
+  /// as a saved *round*, and the owner asked which of his "saved rounds" this
+  /// was. A course reference, a planned round, an unfinished round and a
+  /// posted round are four different things and each now says its own.
   public func savedLine(now: Date = Date(), calendar: Calendar = .current) -> String {
-    "Saved on your phone \(CourseBookCopy.when(savedAt, now: now, calendar: calendar))"
+    "Available offline · saved \(CourseBookCopy.when(savedAt, now: now, calendar: calendar))"
   }
 }
 
@@ -328,4 +335,13 @@ public enum CourseBookCopy {
   /// The one-line explanation of what the store IS, for the You tab's row.
   public static let what =
     "Courses you have played or planned are kept on your phone, so the tees, ratings and cards are there with no signal."
+
+  // D364 (F1) · the whole card opens on ONE tee and says how it was chosen.
+  /// The tee a plan or a round named — the golfer's own pick.
+  public static let teeIsYours = "Your tee for this round."
+  /// No tee was named, so the longest rated 18 leads — a fact about the
+  /// course, never a guess about the golfer — and the card says so.
+  public static let teeIsTheLongest = "The longest rated 18 — change tees for yours."
+  public static let changeTees = "Change tees"
+  public static let keepTees = "Keep these tees"
 }
