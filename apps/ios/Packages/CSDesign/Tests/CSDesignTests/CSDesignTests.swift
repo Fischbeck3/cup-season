@@ -61,7 +61,11 @@ import SwiftUI
     // exists so `CSRule(.heavy, metal: .earned, over: .leaf)` and the web's
     // `.csleaf .mark.won` read the same token rather than one of them reaching
     // into the other palette and the other hard-coding a hex.
-    #expect(CSTokens.tokenNames.count == 81)
+    //
+    // **83 since D359** (2026-09-14): `act`, the ordinary-action green, and
+    // `brand-ink`, the type that sits on ember — both generated from
+    // `packages/tokens/tokens.json` into both clients.
+    #expect(CSTokens.tokenNames.count == 83)
     #expect(CSTokens.dark.leafGold == CSTokens.light.leafGold, "gold on paper does not turn over")
     #expect(CSTokens.defaultTheme == .dark)
     #expect(CSTokens.Radius.r == 16 && CSTokens.Radius.rc == 10 && CSTokens.Radius.rs == 24)
