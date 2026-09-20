@@ -1,6 +1,6 @@
 # Cup Season — Launch readiness for 1 October 2026
 
-**Date:** 2026-09-20 (Saturday; launch day is Thursday 2026-10-01, eleven days
+**Date:** 2026-09-20 (Sunday; launch day is Thursday 2026-10-01, eleven days
 out) · **Question asked:** *imagine we go live October 1 — how ready are we, what
 do we build until then, and where should the app be that day and a year later.*
 The vision half is `vision-2026-10-01.md`. · **Method:** four parallel
@@ -66,9 +66,9 @@ devices carry the next most because they are what a launch *is*.
 | 5 | Onboarding & comprehension | 10 | UX 8 | C | **5** | The wizard discloses every rule and explains none; the allowance is a bare percentage; the five timed gates (profile < 2 min, join < 30 s, post < 60 s, standings < 10 s) were last run in July on v23.163; composer opened 219 times, submitted 24 (2026-09-11 read). |
 | 6 | Growth loop | 10 | — | D | **3** | Built and fail-closed; almost unexercised: 7 share links minted, 1 opened; 70 guest seats ever, 55 in rounds never finished, 1 claim. The claim journey itself passes 24/24 on the branch; the dead end is upstream (unfinished rounds mint links nobody can claim) and the signed-out door says nothing about it. |
 | 7 | Distribution currency | 10 | — | D+ | **3** | Live web = `c6acc53` (Sep 15); Friends TestFlight = build 795 (Sep 12, pre-D359 identity); PR #6 is 28 commits, 150 files ahead and carries F1–F13, the note door, the Compete repairs, telemetry. Nobody but the owner can see any of it. |
-| 8 | Platform & store | 5 | App Store 3 | B | **6.5** | Account deletion on both clients (`delete_account`, tombstone); legal page live; signing recovered (cert to 2027-09-14); 934 VALID in the Owner group. Held down by: App Review never submitted; review notes point at a season that ended 09-05; no `/support` URL; no legal entity for the copyright line. |
+| 8 | Platform & store | 5 | App Store 3 | B | **6.5** | Account deletion on both clients (`delete_account`, tombstone); legal page live; signing recovered (cert to 2027-09-14); 934 VALID in the Owner group. Held down by: App Review never submitted; review notes point at a season that ended 09-05; no `/support` URL; the operator (Fischbeck3 LLC, already Apple's signer) is named nowhere a user reads; two store docs still carry the retired 4+ age answer. |
 | 9 | Ops, observability & measurement | 5 | — | B+ | **7** | `deploy-status`, `ship.sh`, preflight (69 checks, check 50 new), db-checks (34), the read-only scorecard, attempt-keyed telemetry, founder desk. Held down by: cohort table empty (assisted vs unassisted indistinguishable), `v_growth_funnel` has no reader, no crash pipeline beyond `client_events`, the three webhooks live only in the dashboard, CI runs two of five unit files. |
-| 10 | Legal & compliance | 5 | (in App Store 3) | — | **4** | Three documents, ~40 lines total, dated July 18, no counsel: no minimum age or age gate (D192 leaves it open), no governing law, liability or dispute terms, contacts hashing (D251) undisclosed, third parties unnamed. Two money postures at once: the disclaimer's "never holds, takes no cut" and the product's D39 ledger line. |
+| 10 | Legal & compliance | 5 | (in App Store 3) | — | **4** | Three documents, 64 lines total, dated July 18, no counsel: no minimum age or age gate (D192 leaves it open), no governing law, liability or dispute terms, contacts hashing (D251) undisclosed, third parties unnamed. Two money postures at once: the disclaimer's "never holds, takes no cut" and the product's D39 ledger line. |
 | 11 | Business readiness | 5 | — | C | **4** | Free by decision (D183: until 1,000 onboarded golfers; 33 today), so not a launch blocker by plan. Held down by: the paid offer has been put to nobody; the pilot interview guide quotes July's $49–99 instead of D101's bands; the Founding League flag's `ids` set is empty (PIGL was never written in). |
 
 **Launch Readiness Index, 2026-09-20: 58 / 100.**
@@ -176,7 +176,12 @@ Verified directly this pass, beyond the coverage table:
   and `delete_round` is owner-only. The desk began *reading* the ledger on
   2026-09-13 (D355). A disputed score in a real-money league has a ledger with
   reasons and nobody who can write one. Not a launch blocker for Friends; a
-  real blocker for the competition pilot (Stage D).
+  real blocker for the competition pilot (Stage D). Priced honestly it is
+  more than one RPC: `v_individual_standings` reads no adjustments at all, so
+  a ruling in a solo league (the only structure real leagues use, D205) would
+  post to the board and move nothing; and `cup_final_race` scores the window
+  fresh and reads no ledger row, so the Final needs an explicit rule (refuse
+  and say so, or read the override). One migration, three parts.
 - **`is_league_member()` never reads `left_at` or `suspended_at`** (P1): zero
   occurrences in any of its definitions, while both columns exist and are
   written in 38 and 33 places. A member who left can still enter a Major or
@@ -315,11 +320,15 @@ Verified directly this pass, beyond the coverage table:
   and Settings, live. Account deletion is real (six iterations to
   `20261001140000`-era `delete_means_delete`), but the policy still says only
   "you may request to delete".
-- Missing for a public door: minimum age / age gate; governing law, liability
-  and dispute terms; the named third parties (Supabase, Brevo, Netlify,
-  GolfCourseAPI, Anthropic); contacts hashing disclosure; a legal entity;
-  counsel review. Two money postures in one product (disclaimer vs D39 ledger
-  line).
+- Missing for a public door: minimum age / age gate (D197 ruling 3 builds it
+  together with the terms record, deliberately after the store submission);
+  governing law, liability and dispute terms; the named third parties
+  (Supabase, Brevo, Netlify, GolfCourseAPI, Anthropic); contacts hashing
+  disclosure (D251); the operator's name (Fischbeck3 LLC exists and signs the
+  app; no user-facing page says so); counsel review. Two money postures in one
+  product (disclaimer vs D39 ledger line). Two store documents still answer
+  the age rating 4+ (`spec/appstore-runbook.md:131`,
+  `spec/appstore-launch-kit.md:40-41`) against D192's 13+.
 
 ### 3.10 · Business
 
@@ -348,27 +357,35 @@ Verified directly this pass, beyond the coverage table:
 
 | Day | Owner | Item | Done when |
 |---|---|---|---|
-| Sat 20 – Sun 21 | Codex | Review PR #6 at `6c9712d` (requested 09-19; questions 1–3 in the review package). | Findings returned or "clean". |
-| Sun 21 | Claude | Fix PR #6 review findings, if any; keep the diff narrow. | Preflight 0 · web suites PASS · Kit and app green on the Mac. |
-| Sun 21 | Owner | From the **PR #6 checkout** (not `main`): `supabase db push --linked` → `20261109090000`, `20261110090000`. Then read back: db-checks 34/34; `pilot-record.py` 13 PASS. | `deploy-status` clean; check 23 PASS. |
-| Sun 21 | Owner | Merge PR #6 → Netlify builds `main`; confirm `#obCaption` reads the merge SHA. Close PR #5 as subsumed. | Live web = branch tip. |
-| Mon 22 | Owner | `tools/ios-archive.sh --upload` from the merged tip → Owner group; install on both phones; read the build number on each device. | Two phones on the same build. |
-| Mon 22 – Tue 23 | Owner + one friend | Run `docs/pilot/owner-checks.md` in order: A1–A11, R1–R7, G1–G2. Record PASS / FAIL per row with build numbers. **This is the Friends gate.** | Every row PASS, or a FAIL list. |
-| Tue 23 – Wed 24 | Claude | Fix the FAIL list; new build if anything changed. | Re-run the failed rows only. |
-| Wed 24 | Owner | Submit the passing build for **Beta App Review**; on approval, promote to Friends. Name cohorts in `pilot_cohort_members` (`owner`, `friends`); send the Friends task sheets. | Friends on a September build; cohort rows exist. |
-| Thu 25 – Sun 28 | Friends | Rounds happen unassisted; every assisted or support contact goes in `pilot_sessions`. | Scorecard `assistance` reads true. |
-| Thu 25 – Sun 28 | Owner | Recruit 3–5 independent groups with `docs/pilot/outreach-drafts.md`; one competition group toward a lock. | Names in the private notes; `independent` cohort rows. |
-| Mon 29 | Owner + Claude | Weekly review against `gates-and-stop-conditions.md`: B→C go / no-go. | The review is written. |
+| Sun 20 – Mon 21 | Codex | Review PR #6 at `6c9712d` (requested 09-19; questions 1–3 in the review package). | Findings returned or "clean" — by Mon 21 17:00 Phoenix, or the merge goes ahead without it (§4C row 13). |
+| Mon 21 | Claude | Fix PR #6 review findings, if any; keep the diff narrow. | Preflight 0 · web suites PASS · Kit and app green on the Mac. |
+| **Sun 20 (today)** | Owner | From the **PR #6 checkout** (not `main`): `supabase db push --linked` → `20261109090000`, `20261110090000`. Both are zero-client-dependency and self-checking, so nothing is gained by holding them for the web review. Then read back: db-checks 34/34; `pilot-record.py` 13 PASS. | `deploy-status` clean; check 23 PASS. |
+| Mon 21 | Owner | Open the PR #6 Netlify deploy preview on the iPhone in Safari and walk four things: sign in · the Play-with fork (F7) · course search above the keyboard (F8) · post a round and read the recap's outcome line (F12). Then merge PR #6 → Netlify builds `main`; confirm `#obCaption` reads the merge SHA. Close PR #5 as subsumed. Rollback is a Netlify redeploy of `c6acc53`. | The four walked; live web = branch tip. |
+| Mon 21 night | Owner | `tools/ios-archive.sh --upload` from the merged tip → Owner group; **do not bump `MARKETING_VERSION`** (1.0.0 is what lets Beta App Review auto-approve, per `tools/asc.py`); install on both phones; read the build number on each device. | Two phones on the same build. |
+| Tue 22 – Wed 23 | Owner + one friend | Run `docs/pilot/owner-checks.md` in order: A1–A11, R1–R7, G1–G2. Record PASS / FAIL per row with build numbers. **This is the Friends gate.** Integrity rows (A3–A6, A8–A10, R1–R5) are hard blockers; a legibility row may ship as a known-issues line. | Every integrity row PASS, or a FAIL list. |
+| Wed 23 – Thu 24 | Claude | Fix the FAIL list; new build if anything changed. | Re-run the failed rows only. |
+| Thu 24 | Owner | Submit the passing build for **Beta App Review** (same version string: auto-approved on the record; budget one day); on approval, promote to Friends. Name cohorts in `pilot_cohort_members` (`owner`, `friends`); send the Friends task sheets. | Friends on a September build; cohort rows exist. |
+| Fri 25 – Sun 27 | Friends | Rounds happen unassisted; every assisted or support contact goes in `pilot_sessions`. | Scorecard `assistance` reads true. |
+| Fri 25 – Sun 27 | Owner | Recruit 3–5 independent groups with `docs/pilot/outreach-drafts.md`; one competition group toward a lock. Before inviting: read `rate_limit_otp` (D186 — unread; if it is the 30/hour project default the door closes on the 31st stranger) and decide the Stage C install path (§4C row 10). | Names in the private notes; `independent` cohort rows. |
+| Tue 29 | Owner + Claude | Weekly review against `gates-and-stop-conditions.md`: B→C go / no-go. Ratify the gates file with its stale A→B migration line corrected (§4C row 12). | The review is written. |
 | Thu Oct 1 | — | **Staged launch starts.** Stage B in flight, Stage C invitations out, web and database current, Friends on the reviewed build. | The morning of `vision-2026-10-01.md` §1. |
 
 ### 4B · Cheap, high-value, before October 1 (Claude unless named; none needs a new mechanic)
 
-1. **The unclaimable link says something** — on the owner's answer to Codex's
-   question 3 (default if no answer by Wed 24: stop minting a link for a round
-   that was never finished; the signed-out door keeps one sentence for links
-   already out). Small; touches an anon surface, so it rides the next push.
-2. **The allowance gloss** — one sentence in the wizard info, three words in
-   the covenant clause (09-18 decision 3). Copy only.
+1. **The unclaimable link says the true thing, on both surfaces, client-only.**
+   `guest_live_state` already returns the round's status, so the signed-out
+   door prints "this round was never finished — ask whoever ran it" and drops
+   the token when the status is `abandoned`; the signed-in claim path calls the
+   same read before `claim_round` instead of matching the "still live" raise.
+   No migration, no anon-grant change; half a day; rides the merge and the
+   Monday build. "Stop minting" is NOT the answer — the link is minted at seat
+   time because it is the guest's pencil (D85/D87/D107).
+2. **The allowance gloss** — one sentence in the wizard info, a few words in
+   the covenant clause, in R-M's sanctioned shape ("scored against your playing
+   HCP — your index at ninety-five percent"). Copy only, both clients; its own
+   small commit on `main` after the merge, never folded into PR #6 while Codex
+   reviews it. Fix the phone's "of your handicap" to "of your index" while
+   there.
 3. **"Your first counting round"** — `round_epilogue.first_counting`, one
    additive column, both clients (sprint candidate A, item 1). Small.
 4. **Founding League flag** — write PIGL's id into `app_flags.pricing.founding.ids`
@@ -388,13 +405,17 @@ Verified directly this pass, beyond the coverage table:
    before the deploy (review finding 1). Owner's push; Claude's one-line fix.
 9. **Enforce the CSP** if the deploy console is clean after the merge — one
    line in `netlify.toml`. If not clean, leave it and file what fired.
-10. **Solo minimum roster** — `lock_league` refuses a solo lock under two
-    members (D205), one guard in one new migration; skew-safe.
-11. **The covenant stops promising verification** — "attested" and "GHIN"
-    read as facts in the Standard and Cutthroat presets while nothing enforces
-    them; copy only, both clients, until the dial does something.
-12. **Gate the snake path** — hide or refuse `draft_type = 'snake'` on the
-    phone until the desk can pick, or accept it as phone-only in writing.
+10. ~~Solo minimum roster~~ — **struck.** D205 rules it: a solo league of one
+    is "a season waiting for its second"; the Pro may lock alone (D180). Not a
+    defect.
+11. ~~The covenant stops promising verification~~ — **already so.** M-15 is
+    built verbatim on both clients ("Verification is a norm the league holds,
+    not a filter Cup Season applies") and the server covenant carries no
+    attested/GHIN text. Close it in the decision log as a stated norm; nothing
+    to build.
+12. **Gate the snake path** — `lock_league` refuses `draft_type in
+    ('snake','live')` until the desk can pick; one migration, rides the Stage D
+    bundle (§4E), not launch week.
 
 ### 4C · Decisions the owner owes (each with the default if unanswered)
 
@@ -403,12 +424,17 @@ Verified directly this pass, beyond the coverage table:
 | 1 | Push the two revokes and merge PR #6 after Codex's review. | No default — nothing else in §4A happens without it. |
 | 2 | Promote to Friends only after A1–A11 and R1–R7 PASS. | Hold. |
 | 3 | The allowance gloss: yes or no. | Yes (copy, reversible). |
-| 4 | Unclaimable link: explain signed-out, or stop minting. | Stop minting; one sentence for links already out. |
-| 5 | Season two: re-ask consent and money (covenant again, `agreed_at`), or the standing agreement carries and the copy stops claiming an opt-in. | No `run_it_back` push until decided; PIGL's renewal is the forcing date. |
-| 6 | The commissioner's adjustment pen: build `adjust_points(season, member, delta, reason)` as a ledgered, board-posted RPC before Stage D, or rule that disputes are settled outside the app and say so in the covenant. | Build it before Stage D; it is §16's missing half. |
-| 7 | Email as a channel: a `season-email`-style consumer of `invites`, or drop the table. | Drop the rows from the lock flow; decide the channel in Q1. |
-| 8 | Presidents Cup content week (socials plan W10): use it or let it go. | Let it go; the plan is re-keyed to the staged launch. |
-| 9 | Age gate and the legal set: a counsel pass before Stage E. | Required before Stage E; not before Stage C. |
+| 4 | Unclaimable link: say the true thing on both surfaces (client-only), or leave today's "still out there" message. | Say it — §4B item 1. ("Stop minting" reverses D85/D87: the link is the guest's pencil.) |
+| 5 | Season two: re-ask consent and money (the covenant again, `agreed_at` per member per season — which is what spec §14.5 already says: "bylaws carry forward unlocked … the re-up moment is the renewal moment"), or the standing agreement carries and the copy stops claiming an opt-in. | Rule the re-ask; build it in the C→D window before the first STAKED run-back (Fellas wraps 2027-01-18 by the documented dates; "Who's the bitch?" at $0 wraps 2026-11-02). Now: correct the copy on both clients ("carried over", not "on it"; name the step-out door). `run_it_back` is already in production; D243's locked carry departed from §14.5 without a CONFLICT line — log it. |
+| 6 | The commissioner's adjustment pen: build `adjust_points(season, member, delta, reason)` as a ledgered, board-posted, commissioner-only RPC before Stage D — with `v_individual_standings` taught to read the ledger and an explicit Cup Final rule — or rule that disputes settle outside the app and say so in the covenant. | Build it before the first Stage D league locks (start by 2026-10-15); §9 amended from "void/edit any round" to "adjust the points, in the ledger, with a reason". Round-level void stays with D125 stage 2. |
+| 7 | Email as a channel: a `season-email`-style consumer of `invites`, or the link and code are the only invitation. | Decide link-only now (log the D-entry); touch no code before the Friends gate. Then one commit that deletes the whole pre-D111 fallback in `lockBylaws` and the two "Invites out" readers; `drop table invites` in Q1. |
+| 8 | Presidents Cup content week (socials plan W10): use it or let it go. | Let it go — the Ryder is Sunday-anchored and resolves weekly, so "daily duel results" never existed. Re-key the socials plan to pilot stages; claim the handles in one quiet half-hour (claiming is not posting); PIGL moments may still go out in the founder's own voice. |
+| 9 | The legal set: founder-written v2 before Stage C (age line 13+, the five vendors, contacts paragraph, deletion in-app, Fischbeck3 LLC named, one money posture), counsel engaged now asynchronously with a briefing packet, delivery due before Stage E; or the July stub through Stage E. | The v2 before Stage C; engage counsel now (an email and a packet, off the critical path); D197 ruling 3's age-gate schema first thing after the Friends submission, as ruled. |
+| 10 | The Stage C install path for strangers: a TestFlight **public link** (no email list, Beta App Review still applies), per-email TestFlight invites, or mobile Safari (no physical iPhone pass on record). | Public link — decide before the first outreach message goes out (Fri 25); a stranger's first friction must not be counted as a product failure. |
+| 11 | What counts as "one full competition lifecycle" at the D→E gate: a Ryder or a Major, or only a season. | Ryder/Major counts — it sets Stage E at late October; season-only puts it in winter. Say which. |
+| 12 | Ratify `docs/pilot/gates-and-stop-conditions.md` as the widening rule (it is still headed "proposed"), with its stale A→B line corrected (`20261106`/`20261107` are applied). | Ratify at the Tue 29 review. |
+| 13 | If Codex has not returned by Mon 21 17:00 Phoenix: merge PR #6 anyway after the iPhone Safari preview walk, overriding the 09-13 "Codex integrates" row for this one merge. | Merge; Codex's late findings become a narrow follow-up on `main`. |
+| 14 | Log the Stage E App Store submission date as a decision entry — the target has slipped twice without one (D186 reasoned from a September date; D194 from another). | Log it when row 11 is answered. |
 
 ### 4D · Explicitly not before October 1
 
@@ -429,10 +455,16 @@ year, none is in its launch day.
   adjustment pen before any Stage D league locks.
 - The paid offer put to five organizers with the corrected guide; answers
   recorded whatever they are (the D→E gate).
-- July's M5/M6, `is_league_member` vs `left_at`, the Major tie and pot ledger,
-  the stale lock index, the UTC tick (Cup Final opens the evening before in
-  Phoenix), the Sunday snapshot cron vs weekday-anchored weeks, the handicap
-  ceiling and rise cap — each a small migration, each before Stage D.
+- **One Stage D migration bundle**, bodies copied by script from their latest
+  definitions with a D144-style self-check, before the first competition
+  group locks (hard backstop 2026-12-21, the day before Fellas' Final window
+  opens): an `is_active_member()` helper on the consequential WRITE paths only
+  (never inside `is_league_member` itself — D197 ruling 1 keeps reads);
+  `lock_league` refusing snake/live; league-local dates from `seasons.timezone`
+  in the tick, `enter_cup_final` and `cup_final_race`; the weekly snapshot
+  moved onto the tick at the league's own week roll (and `home_dispatch`'s
+  hard-coded "since Sunday" made honest). Plus July's M5/M6, the Major tie and
+  pot ledger, the stale lock index, the handicap ceiling and rise cap.
 - Spec maintenance: amend §3.2, §9, §14.1, §15 to what runs; correct
   `ACTIVE_WORK.md`, the sprint packet and the iOS `RunItBackService` comment
   on `run_it_back` and `20261024`.
