@@ -31,6 +31,11 @@ sorting.
 ---
 
 
+### 2026-09-20 · Launch readiness for October 1 · audit, index, work list, dated vision
+
+Four parallel audits (mechanics vs spec, technical/ops, product/UX open findings, business/GTM/legal) read against `main` and PR #6. Verdict: staged launch on Oct 1 is reachable with the eleven-day list; a cold public launch is not, by the ratified gates. Launch Readiness Index 58/100 today, 70 if the list is done. New follow-ups it filed, none built: the Pro has no adjustment pen (§16's missing half); `is_league_member` ignores `left_at`; a one-member solo season can lock; the covenant promises verification nothing enforces; the Cup Final tick keys on UTC; Sunday snapshots vs weekday weeks; the snake engine is phone-only. Corrections: `run_it_back` and `20261024` are applied, not held. `spec/launch-readiness-2026-10-01.md`, `spec/vision-2026-10-01.md`.
+
+
 ### 2026-09-12 · Vision / next build · proposal drafted while signing is held
 
 The owner asked to expand the vision, inspect app/branding and make Codex/Claude ownership seamless. The vision now has a clearly marked expansion draft; original requirements remain preserved. Proposed order: complete the week of golf, deepen the existing Record, then improve group continuity. Brand proof work runs alongside the first wave. Source findings, stale-document conflicts and acceptance gates: `docs/planning/2026-09-12-next-chapter.md`. Current file ownership, task status and Claude's next bounded review prompt: `docs/planning/ACTIVE_WORK.md`.
