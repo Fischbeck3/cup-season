@@ -31,6 +31,11 @@ sorting.
 ---
 
 
+### 2026-09-21 · The launch decision points, ruled
+
+The owner ruled on all fourteen: public launch with App Store submission on Oct 1 (D371, a named CONFLICT with the proposed D→E gate), push now and merge on a deadline, Friends only after every two-phone row passes, the gloss, the true sentence on an unfinished link, season two as a re-up (October), the Pro's pen before Oct 1, link-only invitations, the socials week let go, legal v2 before submission with counsel engaged now, a TestFlight public link for strangers, the Stage D cluster brought forward whole. Entries D371–D379 are reserved in `docs/planning/2026-09-21-launch-rulings.md` until PR #6 merges; the ten-day plan is `spec/launch-readiness-2026-10-01.md` §4A.
+
+
 ### 2026-09-20 · Launch readiness for October 1 · audit, index, work list, dated vision
 
 Four parallel audits (mechanics vs spec, technical/ops, product/UX open findings, business/GTM/legal) read against `main` and PR #6. Verdict: staged launch on Oct 1 is reachable with the eleven-day list; a cold public launch is not, by the ratified gates. Launch Readiness Index 58/100 today, 70 if the list is done. New follow-ups it filed, none built: the Pro has no adjustment pen (§16's missing half — and `v_individual_standings` reads no ledger, so a solo ruling would move nothing); `is_league_member` ignores `left_at`; the Cup Final tick keys on UTC; Sunday snapshots vs weekday weeks; the snake engine is phone-only; `rate_limit_otp` (D186) is still unread before any widening. Two items first filed here were struck the same day on re-check: a one-member solo lock is D205's ruling, and the verification dial is already the M-15 norm on both clients. Corrections: `run_it_back` and `20261024` are applied, not held; 2026-09-20 is a Sunday (the first cut of §4A had the weekdays off by one). `spec/launch-readiness-2026-10-01.md`, `spec/vision-2026-10-01.md`.

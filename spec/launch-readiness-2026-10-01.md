@@ -47,6 +47,15 @@ The strongest fact in production stands: every golfer who ever posted a round
 posted again (21 of 21). The product keeps the people who get in. Launch is
 about the door.
 
+**Ruling, 2026-09-21.** The owner chose the public launch: **App Store
+submission on October 1**, open outreach the same day, a TestFlight public link
+as the phone door for strangers until Apple approves. That collides with the
+proposed D→E gate and with the verdict above; the collision is named in D371
+(`docs/planning/2026-09-21-launch-rulings.md`) and resolved at the vision level.
+The stop conditions stay in force. The index and the findings stand as measured;
+§4 below is re-sequenced to the ruling, and every decision point in §4C now
+carries its ruling instead of a default.
+
 ---
 
 ## 1 · Launch Readiness Index
@@ -353,22 +362,39 @@ Verified directly this pass, beyond the coverage table:
 
 ## 4 · Action items
 
-### 4A · Gate-clearing — must be done, in this order, before October 1
+### 4A · The ten days, re-sequenced to the rulings (public launch, submission Oct 1)
 
-| Day | Owner | Item | Done when |
+Rulings 0-B, 1-B, 2-A, 6-A-before-Oct-1, 10-A, 14 applied. "Owner" is Mac
+work; "Claude" is remote work (migrations, web client, docs, drafts). Phone
+halves are Mac work by rule 6.
+
+| Day | Who | Item | Done when |
 |---|---|---|---|
-| Sun 20 – Mon 21 | Codex | Review PR #6 at `6c9712d` (requested 09-19; questions 1–3 in the review package). | Findings returned or "clean" — by Mon 21 17:00 Phoenix, or the merge goes ahead without it (§4C row 13). |
-| Mon 21 | Claude | Fix PR #6 review findings, if any; keep the diff narrow. | Preflight 0 · web suites PASS · Kit and app green on the Mac. |
-| **Sun 20 (today)** | Owner | From the **PR #6 checkout** (not `main`): `supabase db push --linked` → `20261109090000`, `20261110090000`. Both are zero-client-dependency and self-checking, so nothing is gained by holding them for the web review. Then read back: db-checks 34/34; `pilot-record.py` 13 PASS. | `deploy-status` clean; check 23 PASS. |
-| Mon 21 | Owner | Open the PR #6 Netlify deploy preview on the iPhone in Safari and walk four things: sign in · the Play-with fork (F7) · course search above the keyboard (F8) · post a round and read the recap's outcome line (F12). Then merge PR #6 → Netlify builds `main`; confirm `#obCaption` reads the merge SHA. Close PR #5 as subsumed. Rollback is a Netlify redeploy of `c6acc53`. | The four walked; live web = branch tip. |
-| Mon 21 night | Owner | `tools/ios-archive.sh --upload` from the merged tip → Owner group; **do not bump `MARKETING_VERSION`** (1.0.0 is what lets Beta App Review auto-approve, per `tools/asc.py`); install on both phones; read the build number on each device. | Two phones on the same build. |
-| Tue 22 – Wed 23 | Owner + one friend | Run `docs/pilot/owner-checks.md` in order: A1–A11, R1–R7, G1–G2. Record PASS / FAIL per row with build numbers. **This is the Friends gate.** Integrity rows (A3–A6, A8–A10, R1–R5) are hard blockers; a legibility row may ship as a known-issues line. | Every integrity row PASS, or a FAIL list. |
-| Wed 23 – Thu 24 | Claude | Fix the FAIL list; new build if anything changed. | Re-run the failed rows only. |
-| Thu 24 | Owner | Submit the passing build for **Beta App Review** (same version string: auto-approved on the record; budget one day); on approval, promote to Friends. Name cohorts in `pilot_cohort_members` (`owner`, `friends`); send the Friends task sheets. | Friends on a September build; cohort rows exist. |
-| Fri 25 – Sun 27 | Friends | Rounds happen unassisted; every assisted or support contact goes in `pilot_sessions`. | Scorecard `assistance` reads true. |
-| Fri 25 – Sun 27 | Owner | Recruit 3–5 independent groups with `docs/pilot/outreach-drafts.md`; one competition group toward a lock. Before inviting: read `rate_limit_otp` (D186 — unread; if it is the 30/hour project default the door closes on the 31st stranger) and decide the Stage C install path (§4C row 10). | Names in the private notes; `independent` cohort rows. |
-| Tue 29 | Owner + Claude | Weekly review against `gates-and-stop-conditions.md`: B→C go / no-go. Ratify the gates file with its stale A→B migration line corrected (§4C row 12). | The review is written. |
-| Thu Oct 1 | — | **Staged launch starts.** Stage B in flight, Stage C invitations out, web and database current, Friends on the reviewed build. | The morning of `vision-2026-10-01.md` §1. |
+| **Mon 21 (today)** | Owner | From the **PR #6 checkout**: `supabase db push --linked` → `20261109090000`, `20261110090000`. Read back db-checks 34/34, `pilot-record.py` 13 PASS. | `deploy-status` clean. |
+| Mon 21, by 17:00 Phoenix | Owner | iPhone Safari walk of the PR #6 preview: sign in · Play-with · course search with the keyboard up · post a round and read the recap. Then merge PR #6 (with or without Codex — D372), close PR #5, confirm `#obCaption` = merge SHA. | Live web = branch tip. |
+| Mon 21 night | Owner | `tools/ios-archive.sh --upload` from the merged tip → Owner group; `MARKETING_VERSION` stays 1.0.0; install on both phones and read the build number on each. | Two phones, one build. |
+| Mon 21 | Claude | Rulings packet and this re-plan committed; branch rebased onto the merged `main`; `20261112090000` (D378 bundle: `is_active_member` on write paths, snake/live refused at lock, league-local dates in the tick and Final, the snapshot on the tick, `home_dispatch`'s "since Sunday") drafted with self-checks. | On the branch. |
+| Tue 22 – Wed 23 | Owner + one friend | `docs/pilot/owner-checks.md`, **every row** (A1–A11, R1–R7, G1–G2), on the Owner build. FAIL → Claude fixes → new build → re-run the failed rows. **This is the Friends gate (2-A).** | Every row PASS. |
+| Tue 22 – Wed 23 | Claude | `20261113090000` (D376: `adjust_points`, `v_individual_standings` reads the ledger, the Final refuses) + a db-checks row; `20261114090000` (anon rate limits: attempt ledger on `league_by_code`, caps on `log_growth_event` and `guest_live_*`). Web halves as separate small commits on `main`: the allowance gloss (D373), the unfinished-link sentence on both doors (D374), the run-it-back copy correction (D375-now), the Pro's ruling sheet (D376). | Preflight 0; web suites PASS; migrations apply on the Mac sandbox. |
+| Thu 24 | Owner | Beta App Review on the passing build (same version string; budget one day) → **Friends**. Name cohorts (`owner`, `friends`) in `pilot_cohort_members`; send the task sheets. Read `rate_limit_otp` and set it (D186). | Friends current; cohorts named. |
+| Thu 24 – Fri 25 | Codex · Owner | Codex reviews `20261112`–`20261114` and the web halves. Owner: `supabase db push` from a checkout carrying every file (after Codex's `20261111` is placed, in that order: migration first, `courses` redeploy after, with the `flattenTees` coercion). | Production at 251+; db-checks green. |
+| Fri 25 – Sun 27 | Owner (Mac) | Phone halves in Swift: the gloss, the unfinished-link face, the run-it-back copy, the Pro's ruling sheet; `tools/build-db.mjs` regenerates `Rpc.swift`; Kit and app suites green. | Kit/app green locally. |
+| Fri 25 – Sun 27 | Friends | Rounds unassisted; every assisted or support contact in `pilot_sessions`. | Scorecard `assistance` reads true. |
+| Fri 25 – Sun 27 | Owner + Claude | **D379:** Claude drafts the legal v2 (13+, vendors, contacts, deletion in-app, Fischbeck3 LLC, one money posture), the Contacts-label reconciliation, the review-notes refresh and the two 4+ → 13+ fixes; owner approves, confirms the entity, emails counsel the packet. Owner: 6.9" screenshots; claim the @cupseason handles. | One legal commit; counsel engaged; ASC metadata ready. |
+| Sat 26 – Sun 27 | Claude | Socials plan re-keyed (8-B); gates file amended to D371 for Tue's ratification; the email-fallback removal commit prepared for after the gate (D377); D371–D379 appended to the decision log now that PR #6 is on `main`. | Committed. |
+| Mon 28 | Owner | Full build from the tip → Owner group; **integrity rows re-run** on two phones (A3–A6, A8–A10, R1–R5) since the pen and the copy changed the app. | PASS. |
+| Tue 29 | Owner + Claude | Weekly review; ratify the amended gates (12); go/no-go for the submission. **Physical iPhone Safari pass of the public web door**: signed-out door, a claim link, an invite link, post a round. | Written. |
+| Wed 30 | Owner | Create the **TestFlight public link** for Stage C (10-A); finalize the outreach drafts with it; final App Store Connect metadata (privacy labels incl. contacts, 13+ rating, review notes). Friends get the Mon 28 build once Beta App Review clears it. | Link live; metadata complete. |
+| **Thu Oct 1** | Owner | **Submit to App Review (14).** Outreach opens: the independent groups by hand and the public link. The r/golf founder post is held until Apple approves — the store link is its CTA. First thing after submission: D197 ruling 3's age gate and terms record (one migration, both doors). | Submitted; the season starts. |
+
+**Capacity, said plainly.** The pen (D376) is three to four working days and its
+phone half is Mac time on the same weekend as the screenshots, the legal review
+and the Swift copy halves. If the phone half slips, the desk carries the pen on
+Oct 1 and the phone follows in the next build — the release record says so, and
+D234's "done" waits for it. The season-two re-ask (D375) is about a week and is
+**scheduled for October after launch week**; its forcing date is the first
+staked run-back (Fellas, 2027-01-18). The anon rate-limit migration is the cost
+D371 carried in its option text; it is in the list because the door is public.
 
 ### 4B · Cheap, high-value, before October 1 (Claude unless named; none needs a new mechanic)
 
@@ -414,63 +440,70 @@ Verified directly this pass, beyond the coverage table:
     attested/GHIN text. Close it in the decision log as a stated norm; nothing
     to build.
 12. **Gate the snake path** — `lock_league` refuses `draft_type in
-    ('snake','live')` until the desk can pick; one migration, rides the Stage D
-    bundle (§4E), not launch week.
+    ('snake','live')` until the desk can pick; in the D378 bundle
+    (`20261112090000`), before Oct 1 by ruling.
 
-### 4C · Decisions the owner owes (each with the default if unanswered)
+### 4C · The decision points, ruled 2026-09-21
 
-| # | Decision | Default if silent by Oct 1 |
-|---|---|---|
-| 1 | Push the two revokes and merge PR #6 after Codex's review. | No default — nothing else in §4A happens without it. |
-| 2 | Promote to Friends only after A1–A11 and R1–R7 PASS. | Hold. |
-| 3 | The allowance gloss: yes or no. | Yes (copy, reversible). |
-| 4 | Unclaimable link: say the true thing on both surfaces (client-only), or leave today's "still out there" message. | Say it — §4B item 1. ("Stop minting" reverses D85/D87: the link is the guest's pencil.) |
-| 5 | Season two: re-ask consent and money (the covenant again, `agreed_at` per member per season — which is what spec §14.5 already says: "bylaws carry forward unlocked … the re-up moment is the renewal moment"), or the standing agreement carries and the copy stops claiming an opt-in. | Rule the re-ask; build it in the C→D window before the first STAKED run-back (Fellas wraps 2027-01-18 by the documented dates; "Who's the bitch?" at $0 wraps 2026-11-02). Now: correct the copy on both clients ("carried over", not "on it"; name the step-out door). `run_it_back` is already in production; D243's locked carry departed from §14.5 without a CONFLICT line — log it. |
-| 6 | The commissioner's adjustment pen: build `adjust_points(season, member, delta, reason)` as a ledgered, board-posted, commissioner-only RPC before Stage D — with `v_individual_standings` taught to read the ledger and an explicit Cup Final rule — or rule that disputes settle outside the app and say so in the covenant. | Build it before the first Stage D league locks (start by 2026-10-15); §9 amended from "void/edit any round" to "adjust the points, in the ledger, with a reason". Round-level void stays with D125 stage 2. |
-| 7 | Email as a channel: a `season-email`-style consumer of `invites`, or the link and code are the only invitation. | Decide link-only now (log the D-entry); touch no code before the Friends gate. Then one commit that deletes the whole pre-D111 fallback in `lockBylaws` and the two "Invites out" readers; `drop table invites` in Q1. |
-| 8 | Presidents Cup content week (socials plan W10): use it or let it go. | Let it go — the Ryder is Sunday-anchored and resolves weekly, so "daily duel results" never existed. Re-key the socials plan to pilot stages; claim the handles in one quiet half-hour (claiming is not posting); PIGL moments may still go out in the founder's own voice. |
-| 9 | The legal set: founder-written v2 before Stage C (age line 13+, the five vendors, contacts paragraph, deletion in-app, Fischbeck3 LLC named, one money posture), counsel engaged now asynchronously with a briefing packet, delivery due before Stage E; or the July stub through Stage E. | The v2 before Stage C; engage counsel now (an email and a packet, off the critical path); D197 ruling 3's age-gate schema first thing after the Friends submission, as ruled. |
-| 10 | The Stage C install path for strangers: a TestFlight **public link** (no email list, Beta App Review still applies), per-email TestFlight invites, or mobile Safari (no physical iPhone pass on record). | Public link — decide before the first outreach message goes out (Fri 25); a stranger's first friction must not be counted as a product failure. |
-| 11 | What counts as "one full competition lifecycle" at the D→E gate: a Ryder or a Major, or only a season. | Ryder/Major counts — it sets Stage E at late October; season-only puts it in winter. Say which. |
-| 12 | Ratify `docs/pilot/gates-and-stop-conditions.md` as the widening rule (it is still headed "proposed"), with its stale A→B line corrected (`20261106`/`20261107` are applied). | Ratify at the Tue 29 review. |
-| 13 | If Codex has not returned by Mon 21 17:00 Phoenix: merge PR #6 anyway after the iPhone Safari preview walk, overriding the 09-13 "Codex integrates" row for this one merge. | Merge; Codex's late findings become a narrow follow-up on `main`. |
-| 14 | Log the Stage E App Store submission date as a decision entry — the target has slipped twice without one (D186 reasoned from a September date; D194 from another). | Log it when row 11 is answered. |
+Options and analysis: the 2026-09-21 briefing; the entries: `docs/planning/2026-09-21-launch-rulings.md` (D371–D379, reserved until PR #6 merges).
+
+| # | Decision | Ruling | What it changes |
+|---|---|---|---|
+| 0 | Launch shape | **B — public.** App Store submission Oct 1; outreach opens the same day; TestFlight public link for strangers until approval | D371. Collides with the proposed D→E gate — named, resolved at the vision level; stop conditions stay in force. Pulls forward the legal v2, the anon rate limits, `rate_limit_otp`, the review-notes refresh. |
+| 1 | Push and merge | **B** — revokes today from the PR #6 checkout; merge by Mon 21 17:00 Phoenix with or without Codex, after the iPhone Safari walk | D372. Overrides the 09-13 "Codex integrates" row for this merge. |
+| 2 | Friends gate | **A** — every row PASS, no known-issues shortcut | D372. Friends on Thu 24 if Tue–Wed passes clean. |
+| 3 | Allowance gloss | **A** — yes | D373. Own commit after the merge; phone half before the next archive. |
+| 4 | Unclaimable link | **A** — say the true thing on both doors, client-only | D374. No migration; the pencil stays (D85/D87). |
+| 5 | Season two | **A** — the covenant again, a recorded yes | D375. Amends D243, restores §14.5. Copy correction now; the build in October before Fellas wraps. |
+| 6 | Adjustment pen | **A, before Oct 1** | D376. One migration, three parts; desk sheet + phone sheet; §9 amended. |
+| 7 | Email invitations | **B** — link and code only | D377. Built after the Friends gate; table dropped in Q1. |
+| 8 | Presidents Cup week | **B** — let it go | Socials plan re-keyed; handles claimed; PIGL moments in the founder's own voice. |
+| 9 | Legal set | founder v2 before submission; counsel engaged now | D379. D197 ruling 3's age gate first thing after submission. |
+| 10 | Stage C install path | **A** — TestFlight public link | Created Wed 30; in the outreach drafts. |
+| 11 | Competition lifecycle at D→E | **A** — a Ryder or Major counts | Moot for launch while free (D183); stands as the paid-stage gate. |
+| 12 | Gates file | ratify, amended to D371 | Tue 29 review: E opened by ruling; stale A→B line corrected. |
+| 14 | Store date | **Oct 1 is the submission date** | Logged in D371 so it cannot slip a third time. |
+| D | Stage D mechanics | **address every item** | D378: (i) bands stay, recorded; (ii) closed as a norm; (iii) `is_active_member` on write paths; (iv) struck; (v) snake/live refused at lock; (vi) league-local dates; (vii) snapshot on the tick. One bundle, `20261112090000`, before Oct 1. |
 
 ### 4D · Explicitly not before October 1
 
-Captains-pick and snake-draft engines (no league has chosen them); spreadsheet
-import; a `/pricing` page or any price on any surface (D183); Stripe; a native
-Android app; a crash pipeline beyond `client_events`; "Season Wrapped"; the
-Record as chapters; the crest object; any new format. Each is in the vision's
-year, none is in its launch day.
+The season-two re-ask (D375 — October, before the first staked run-back);
+captains-pick and live-draft engines (no league has chosen them; snake is now
+refused at lock); spreadsheet import; a `/pricing` page or any price on any
+surface (D183); Stripe; a native Android app; a crash pipeline beyond
+`client_events`; "Season Wrapped"; the Record as chapters; the crest object; any
+change to §2.2's bands (D378 (i)). Each is in the vision's year, none is in its
+launch day.
 
 ### 4E · The first thirty days after (Oct 1 – Oct 31)
 
-- Weekly review every Thursday against the gates; the index re-scored in this
-  file's table each week.
-- Stage C: three to five independent groups; the composer's 1-in-9 investigated
-  with `v_post_timings` and one watched session; the timed five-gate QA run on
-  the shipped build with three testers.
-- Decisions 5, 6 built if ruled: season-two consent before PIGL renews; the
-  adjustment pen before any Stage D league locks.
-- The paid offer put to five organizers with the corrected guide; answers
-  recorded whatever they are (the D→E gate).
-- **One Stage D migration bundle**, bodies copied by script from their latest
-  definitions with a D144-style self-check, before the first competition
-  group locks (hard backstop 2026-12-21, the day before Fellas' Final window
-  opens): an `is_active_member()` helper on the consequential WRITE paths only
-  (never inside `is_league_member` itself — D197 ruling 1 keeps reads);
-  `lock_league` refusing snake/live; league-local dates from `seasons.timezone`
-  in the tick, `enter_cup_final` and `cup_final_race`; the weekly snapshot
-  moved onto the tick at the league's own week roll (and `home_dispatch`'s
-  hard-coded "since Sunday" made honest). Plus July's M5/M6, the Major tie and
-  pot ledger, the stale lock index, the handicap ceiling and rise cap.
-- Spec maintenance: amend §3.2, §9, §14.1, §15 to what runs; correct
+- **The Apple cycle.** Assume one rejection (5.3.4 on the pot, 2.1 on an empty
+  reviewer state); answer from D39's ledger language and a running walkthrough
+  league; the store goes live when Apple says. The r/golf post goes out that
+  day, not before.
+- **D197 ruling 3** first: the age gate and the terms record, one migration,
+  both sign-in doors.
+- **D375 built**: the re-up as the covenant again, `agreed_at` per member per
+  season, the agreed predicate in the scoring lens — before Fellas wraps.
+- **D377's commit**: the dead email fallback and both "Invites out" readers
+  removed; `drop table invites` queued for Q1.
+- **The phone halves that missed the Oct 1 build**, if any, in the first
+  post-launch build; the release record names which.
+- Weekly review every Tuesday against the amended gates; the index re-scored in
+  §1 each week; the stop conditions are the only thing that pauses outreach.
+- Stage C measured: three to five independent groups plus whoever the public
+  link brings; the composer's 1-in-9 investigated with `v_post_timings` and one
+  watched session; the timed five-gate QA run on the shipped build with three
+  strangers.
+- Still owed from the audit, now with a public door: July's M5/M6; the Major
+  tie and pot ledger; the stale lock index; the handicap ceiling and rise cap;
+  `homefold` and the other unit files into CI; the CSP enforced once the
+  console is clean.
+- The paid offer put to five organizers with the corrected interview guide —
+  the gate for the paid stage, not for launch (ruling 11).
+- Spec maintenance: §9, §14.5's citation, §3.2, §14.1 amended to what runs;
   `ACTIVE_WORK.md`, the sprint packet and the iOS `RunItBackService` comment
-  on `run_it_back` and `20261024`.
-- Legal: counsel pass, age line, third parties named, one money posture.
-- App Store: refresh the review notes against a live league, then submit for
-  the Stage E date, not before.
+  corrected on `run_it_back` and `20261024`.
 
 ---
 
