@@ -13,7 +13,7 @@ after a good round.
 ## A → B · Owner testing to Friends
 
 - Every row of [`owner-checks.md`](owner-checks.md) is PASS on two phones, on the build Friends would receive.
-- The migrations the candidate depends on are applied (today: `20261105090000` applied; `20261106090000` and `20261107090000` written, not applied).
+- The migrations the candidate depends on are applied (as of 2026-09-15 night: `20261105090000`–`20261107090000` applied, production at 246; the two revokes `20261109090000` and `20261110090000` are the next push — D372).
 
 ## B → C · Friends to independent groups
 
@@ -28,7 +28,16 @@ after a good round.
 - Support sessions per completed round are falling week over week.
 - At least one organizer says, unprompted, what they would do next time — and it is in the app.
 
-## D → E · Competition pilot to a limited public cohort
+## D → E · Competition pilot to the paid stage — amended 2026-09-21 (D371)
+
+**The public door opens by owner ruling on 2026-10-01**: App Store submission
+that day, open outreach the same day, a TestFlight public link for strangers
+until Apple approves. Stages A–D remain the *measurement* frame and the stop
+conditions below remain in force — they are what pauses outreach. The rows
+that follow no longer gate the public door; they gate the **paid** offer
+(D183 keeps everything free until 1,000 onboarded golfers). A Ryder or a Major
+counts as a competition lifecycle (ruling 11). Ratification of this file as
+amended is due at the 2026-09-29 weekly review (ruling 12).
 
 - At least **one full competition lifecycle** verified end to end on production data: locked, played, closed, settled, receipts opened — by a group the founder does not play in.
 - At least one organizer starts a second competition.

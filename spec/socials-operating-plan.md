@@ -1,5 +1,20 @@
 # Socials & outreach operating plan — Jul 20 → Dec 31, 2026
 
+> **Re-keyed 2026-09-21 (ruling 8-B; D371).** The August App Store launch this
+> plan was keyed to did not happen, and §8's three-week slip expired. The
+> week-by-week calendar below is **history**. What stands: the guardrails in
+> this header, the Monday ritual (§0) and the measurement plan (§7). What
+> changes: the clock is the pilot's stages (`docs/pilot/README.md`, A→E) and the
+> **App Store submission on 2026-10-01**; the W9/W10 Presidents Cup hook is
+> struck — the Ryder is Sunday-anchored and settles weekly, so "daily duel
+> results" were never something the engine could mint; brand accounts stay
+> silent until the store link exists, and the first brand post is keyed to that
+> link or to the first independent group's own share; until then only the
+> founder's own voice, about PIGL's own moments, on his personal accounts
+> (D39 ledger language; D183 no price). Claim @cupseason / @cupseasonapp /
+> @cupseasonhq where free in one quiet half-hour (channel kit §1) — claiming
+> is not posting.
+
 Growth/Launch lane · drafted 2026-07-20 · executes `spec/gtm-year1.md` per
 `spec/socials-outreach-brief.md`. **Nothing in this plan sends itself — the
 founder is the publisher of every post, email, and DM.**

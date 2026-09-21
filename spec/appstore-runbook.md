@@ -128,8 +128,11 @@ received a push, over at least one full weekend.
   scales it down for smaller classes. See decision **D1** before you shoot,
   because iPad doubles this job.
 - **Privacy nutrition labels** — see **D9**.
-- **Age rating** — answer with no gambling flags of any kind. Expected 4+.
-  See **D3** for why this question deserves care.
+- **Age rating** — on the current form (Apple retired the old questionnaire
+  in July 2025): **Contests: yes** — a season-long competition with a standings
+  table and a champion is the whole product; **Gambling: no**. Expected
+  **13+** (D192; corrected 2026-09-21 from the retired 4+ answer). See **D3**
+  for why this question deserves care.
 - **App Review notes** — reviewer credentials, plus the pre-emptive answers in
   the Rejection playbook below. Write them BEFORE you are rejected.
 - **Export compliance** — already declared in Info.plist

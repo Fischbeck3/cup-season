@@ -66,6 +66,12 @@ jobs:
       - name: sunningdale engine
         run: node tests/sunningdale.test.mjs
 
+      # The other four unit files (homefold, post-request, rating, trophycase)
+      # were never in CI: homefold drifted red for six days on main without a
+      # signal (readiness audit 2026-09-20, §3.3). Every *.test.mjs runs here.
+      - name: unit files
+        run: node --test tests/homefold.test.mjs tests/post-request.test.mjs tests/rating.test.mjs tests/trophycase.test.mjs
+
       # Run the REAL Netlify build command. stamp-version.sh fails hard on a
       # surviving __CS_VERSION__ placeholder, on an empty shell, and on any
       # allowlisted asset missing from the repo — so a broken deploy is caught

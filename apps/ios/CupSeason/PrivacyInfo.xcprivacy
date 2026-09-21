@@ -33,6 +33,19 @@
       <array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
     </dict>
     <dict>
+      <!-- D251 · the find-friends step sends salted hashes of emails and phone
+           numbers for matching and keeps nothing that does not match. Hashes
+           leave the device, so Contacts is declared; nothing is linked or kept. -->
+      <key>NSPrivacyCollectedDataType</key>
+      <string>NSPrivacyCollectedDataTypeContacts</string>
+      <key>NSPrivacyCollectedDataTypeLinked</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypeTracking</key>
+      <false/>
+      <key>NSPrivacyCollectedDataTypePurposes</key>
+      <array><string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string></array>
+    </dict>
+    <dict>
       <key>NSPrivacyCollectedDataType</key>
       <string>NSPrivacyCollectedDataTypePhotosorVideos</string>
       <key>NSPrivacyCollectedDataTypeLinked</key>

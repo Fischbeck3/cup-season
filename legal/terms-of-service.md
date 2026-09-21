@@ -1,19 +1,28 @@
 # Terms of Service
 
-**Last Updated:** July 18, 2026
+**Last Updated:** September 21, 2026
 
-By using CupSeason, you agree to use the app responsibly and respectfully.
+Cup Season is operated by Fischbeck3 LLC. By using it you agree to these terms.
 
-You are responsible for the accuracy of the information you provide and for any
-content you upload.
+**Who can use it.** You must be at least 13. A league that keeps a pot is a
+private arrangement between adults who know each other; see the Prize Pool
+Disclaimer.
 
-You retain ownership of your photos and content but grant CupSeason permission to
-display them as needed to operate the service.
+**Your account and your scores.** You are responsible for the accuracy of what
+you post — your scores most of all. A posted round is a fact in your leagues'
+records: you can delete it, and a league's Pro can rule on points with a reason
+everyone can read, but a round is never edited after the fact.
 
-CupSeason is provided "as is" without warranties. We may update, modify, or
-discontinue features at any time.
+**Your content.** You keep ownership of your photos and content. You give Cup
+Season permission to display them where the service needs to — on your card,
+your leagues' boards, and the cards you choose to share.
 
-We reserve the right to suspend or remove accounts that violate these Terms or
-misuse the platform.
+**The app.** Cup Season is provided "as is", without warranties. We may change
+or retire features. We may suspend or remove accounts that misuse the service
+or other golfers.
 
-Questions? Contact us at jerecho@fischbeck3.com
+**Disputes between golfers.** Scores, points and pots are settled inside your
+league, by its Pro and its members. Cup Season keeps the record; it does not
+arbitrate.
+
+Questions: jerecho@fischbeck3.com

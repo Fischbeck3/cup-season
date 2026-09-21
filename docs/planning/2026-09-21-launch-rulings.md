@@ -2,10 +2,10 @@
 
 The fourteen decision points in `spec/launch-readiness-2026-10-01.md` §4C were
 presented with options on 2026-09-21 and ruled the same day. This packet is the
-record until the entries below are appended to `spec/decision-log.md`: PR #6
-carries D363–D369 and is not yet merged, and D370 is Codex's, on the Mac, so
-**D371–D379 are reserved here** and go into the log at integration, after the
-merge, in this order. Format is the hierarchy-of-truth one (rule 5); a CONFLICT
+record, and the entries below were **appended to `spec/decision-log.md` on
+2026-09-21** on a branch based on PR #6's tip (so they follow D363–D369; D370 is
+Codex's, on the Mac, and its slot is left for it). If the log and this packet
+ever differ, the log wins. Format is the hierarchy-of-truth one (rule 5); a CONFLICT
 line is named wherever a ruling collides with a higher level.
 
 | # | Decision point | Ruling |

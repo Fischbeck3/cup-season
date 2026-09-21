@@ -27,7 +27,7 @@ the middle of an answer; note it and come back at the end.
 
 ## The offer
 
-11. We are considering a season pass, paid by the organiser out of the pot, roughly $49 to $99 a season depending on group size — about $5 to $8 per golfer. Would you pay that for this group? What would you expect for it?
+11. We are considering a league pass, paid by the organiser out of the pot, for a year of seasons: $59 for nine or fewer golfers, $89 for ten to thirteen, $109 for fourteen or more — about $6.50 to $7.80 a golfer a year, and the first year free (D101). Would you pay that for this group? What would you expect for it?
 12. Is there anyone you would recommend this to, and what would you tell them it is?
 
 Close: is there anything I should have asked?
