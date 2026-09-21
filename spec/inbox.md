@@ -31,6 +31,11 @@ sorting.
 ---
 
 
+### 2026-09-21 · The sandbox harness runs on Postgres 16 with two lines
+
+`tests/sim/sandbox/apply.sh` (PR #6) hardcodes Homebrew's PG17 and the chain uses the PG17-only `MAINTAIN` privilege in one revoke (`20260904183000`). A remote session ran the full chain on Ubuntu's PG16 by setting `PGBIN` and filtering the word from the psql stream on revoke/grant lines only (two `sed -E` rules beside the extension filters). Worth folding into the harness as an env override so remote sessions can validate migrations without the Mac. Lane: Ops · size: small · first question: keep PG16 as a second supported sandbox, or install PG17 in the remote image?
+
+
 ### 2026-09-21 · The launch decision points, ruled
 
 The owner ruled on all fourteen: public launch with App Store submission on Oct 1 (D371, a named CONFLICT with the proposed D→E gate), push now and merge on a deadline, Friends only after every two-phone row passes, the gloss, the true sentence on an unfinished link, season two as a re-up (October), the Pro's pen before Oct 1, link-only invitations, the socials week let go, legal v2 before submission with counsel engaged now, a TestFlight public link for strangers, the Stage D cluster brought forward whole. Entries D371–D379 are reserved in `docs/planning/2026-09-21-launch-rulings.md` until PR #6 merges; the ten-day plan is `spec/launch-readiness-2026-10-01.md` §4A.

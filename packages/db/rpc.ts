@@ -23,6 +23,7 @@ export const anonCallable = [
 
 export interface Rpc {
   "_cup_window_rounds": { args: { p_season: string }; returns: { member_id: string | null; round_id: string | null; profile_id: string | null; played_on: string | null; points: number | null; month_rank: number | null; pvi: number | null; holes_played: number | null }[] };
+  "_door_gate": { args: { p_scope: string; p_limit: number; p_window: unknown }; returns: void };
   "_join_gate": { args: { p_league: string; p_via_pro: boolean }; returns: void };
   "_late_squad": { args: { p_league: string; p_member: string }; returns: string };
   "_live_member_can": { args: { p_live_round: string }; returns: boolean };
@@ -33,6 +34,7 @@ export interface Rpc {
   "add_event_player": { args: { p_event: string; p_profile: string }; returns: string };
   "add_friend_to_league": { args: { p_league: string; p_profile: string }; returns: void };
   "add_round_comment": { args: { p_round: string; p_body: string }; returns: void };
+  "adjust_points": { args: { p_season: string; p_member: string; p_delta: number; p_reason: string; p_month?: string }; returns: Json };
   "announce": { args: { p_league: string; p_body: string }; returns: void };
   "answer_plan_followup": { args: { p_plan: string; p_answer: string; p_today?: string }; returns: Json };
   "ask_for_a_seat": { args: { p_scheduled_round: string }; returns: Json };
@@ -120,6 +122,7 @@ export interface Rpc {
   "home_feed": { args: { p_days?: number }; returns: { round_id: string | null; profile_id: string | null; golfer: string | null; marker: string | null; handle: string | null; gross: number | null; pvi: number | null; played_on: string | null; created_at: string | null; course: string | null; is_pr: boolean | null; is_first: boolean | null; is_sub80: boolean | null; is_me: boolean | null; photo_path: string | null }[] };
   "home_stories": { args: { p_days?: number; p_league?: string }; returns: { round_id: string | null; profile_id: string | null; golfer: string | null; marker: string | null; handle: string | null; gross: number | null; pvi: number | null; played_on: string | null; created_at: string | null; course: string | null; is_pr: boolean | null; is_first: boolean | null; is_sub80: boolean | null; is_me: boolean | null; photo_path: string | null; has_rating: boolean | null }[] };
   "invite_golfer": { args: { p_league: string; p_event: string; p_profile: string }; returns: string };
+  "is_active_member": { args: { p_league: string }; returns: boolean };
   "is_commissioner": { args: { p_league: string }; returns: boolean };
   "is_event_league_member": { args: { p_event: string }; returns: boolean };
   "is_event_member": { args: { p_event: string }; returns: boolean };

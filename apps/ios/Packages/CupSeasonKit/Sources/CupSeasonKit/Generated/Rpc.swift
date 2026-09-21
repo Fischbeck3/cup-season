@@ -129,6 +129,24 @@ public enum Rpc {
     }
   }
 
+  public struct adjust_points: RpcCall {
+    public static let name = "adjust_points"
+    public static let optionalArgs: [String] = ["p_month"]
+    public typealias Returns = JSONValue
+    public var p_season: UUID
+    public var p_member: UUID
+    public var p_delta: Int
+    public var p_reason: String
+    public var p_month: String?
+    public init(p_season: UUID, p_member: UUID, p_delta: Int, p_reason: String, p_month: String? = nil) {
+      self.p_season = p_season
+      self.p_member = p_member
+      self.p_delta = p_delta
+      self.p_reason = p_reason
+      self.p_month = p_month
+    }
+  }
+
   public struct announce: RpcCall {
     public static let name = "announce"
     public static let optionalArgs: [String] = []
@@ -1008,6 +1026,16 @@ public enum Rpc {
       self.p_league = p_league
       self.p_event = p_event
       self.p_profile = p_profile
+    }
+  }
+
+  public struct is_active_member: RpcCall {
+    public static let name = "is_active_member"
+    public static let optionalArgs: [String] = []
+    public typealias Returns = Bool
+    public var p_league: UUID
+    public init(p_league: UUID) {
+      self.p_league = p_league
     }
   }
 
