@@ -1392,6 +1392,9 @@
       F(full).length, 'Thirteen weeks from Sat Sep 12.');
     t('R9: the rounds that count makes "best three a month count" sayable',
       F(full).rules, 'Standard rules: honest scores, best three a month count, two a month keeps you in.');
+    t('D373: the allowance clause says what it does, in R-M\'s shape',
+      F({ ...full, handicap_allowance: 95 }).rules,
+      'Standard rules: honest scores, best three a month count, two a month keeps you in, scored against your playing HCP — your index at 95 percent.');
     t('D126: the ending is a sentence, never a dial name',
       [F(full).ending, F({ name: 'x', buyin_cents: 0, finish: 'points_table' }).ending],
       ['It ends with a four-week Cup Final between the top two.',
@@ -1516,12 +1519,18 @@
     t('D243: a member asks, and the Pro is named', csRunItBackTitle(false, 'Galen'), 'Ask Galen to run it back');
     t('D243: with no name it is still a door', csRunItBackTitle(false, null), 'Ask the Pro to run it back');
     t('D243: the Pro\'s sub promises the roster',
-      csRunItBackSub(true), 'Same crew, same rules, fresh table. Nobody re-types a code.');
+      csRunItBackSub(true), 'Same rules, fresh table. Everyone carries over — anyone can step out from the rules page.');
     t('D243: the outcome names the season and the crew',
-      csRunItBackDone(2, 6, false), 'Season 2 is on. 6 of you are on it.');
+      csRunItBackDone(2, 6, false), 'Season 2 is on. 6 carried over. Anyone can step out from the rules page.');
     t('L-12: a changed stake fires the covenant again, and says so',
       csRunItBackDone(2, 6, true),
-      'Season 2 is on. 6 of you are on it. The terms changed, so everyone reads them again.');
+      'Season 2 is on. 6 carried over. Anyone can step out from the rules page. The terms changed, so everyone reads them again.');
+    t('D375: one golfer carried over is said in the second person', csRunItBackDone(2, 1, false), 'Season 2 is on. You carried over.');
+    t('D376: the ruling toast says the delta and the new total',
+      [csRulingDone('Mike', -3, 4), csRulingDone('Mike', 1, null)],
+      ['Ruled — Mike −3 points. Now 4. It’s on the board.', 'Ruled — Mike +1 point. It’s on the board.']);
+    t('D374: the unfinished-link sentence is one producer',
+      [CS_CLAIM_UNFINISHED.startsWith('This round was never finished'), CS_CLAIM_NOT_STARTED.includes('hasn’t teed off yet')], [true, true]);
   })();
 
   /* ============ WAVE A · what a round is worth (R-K, D256) ============

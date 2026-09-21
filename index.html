@@ -5065,7 +5065,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="wizstep" data-step="1">
           <div class="eyebrow" style="margin-top:0">Pick a starting point <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">Start with a set of rules, then change the choices below. Each starting point sets how handicaps count, score expectations, rounds that count and minimum. Score expectations are a group agreement; the app does not check GHIN posting or restrict courses.</div>
+          <div class="ihelp" id="ih-preset">Start with a set of rules, then change the choices below. Each starting point sets how handicaps count, score expectations, rounds that count and minimum. Score expectations are a group agreement; the app does not check GHIN posting or restrict courses. Every round is scored against your playing HCP — your index at the starting point’s percentage: at 95 percent, an index of 10.6 is a playing HCP of 10.1.</div>
           <!-- D225 / L-16 · the cards STOP NAMING DIALS. Each is one sentence,
                and the wording is the phone's own (WizardDials.presets.lead) so
                a reword on one client fails the other (D234). Every dial is
@@ -19251,17 +19251,33 @@ function csRunItBackTitle(isPro, proFirstName){
   return 'Ask ' + (proFirstName || 'the Pro') + ' to run it back';
 }
 function csRunItBackSub(isPro){
-  return isPro ? 'Same crew, same rules, fresh table. Nobody re-types a code.'
+  /* D375 · ruled a re-up (the covenant again, a recorded yes), built in
+     October. Until then the copy says what the tap does today: everyone is
+     carried over, and anyone can step out — it never claims an opt-in. */
+  return isPro ? 'Same rules, fresh table. Everyone carries over — anyone can step out from the rules page.'
                : 'One line on the board, once. They decide when.';
 }
 function csRunItBackAskLine(firstName){ return (firstName || 'Somebody') + ' wants to run it back.'; }
 function csRunItBackDone(seasonNumber, seated, refires){
   const n = seasonNumber ? ('Season ' + seasonNumber) : 'The next season';
-  const crew = seated === 1 ? "You're on it." : (seated + ' of you are on it.');
+  const crew = seated === 1 ? 'You carried over.' : (seated + ' carried over. Anyone can step out from the rules page.');
   return refires ? (n + ' is on. ' + crew + ' The terms changed, so everyone reads them again.')
                  : (n + ' is on. ' + crew);
 }
 const CS_RUNBACK_NOT_YET = 'Running it back needs the latest update — try again shortly.';
+/* D374 · a claim link from a round nobody finished says so — one producer, both
+   doors (signed out and signed in). The pencil (D85/D87) stays: the link is
+   minted at seat time so a guest can score from their own phone. */
+const CS_CLAIM_UNFINISHED = 'This round was never finished, so there’s no card to keep. Whoever ran it can tee off again and send your link from the new round.';
+const CS_CLAIM_NOT_STARTED = 'That round hasn’t teed off yet — your card lands here when it finishes.';
+/* D376 · the Pro's pen, one producer — the phone renders the same sentences */
+const CS_RULING_WHAT = 'A ruling moves points in the ledger with a reason. It posts to the board and every golfer can open it. Rounds are never changed. Once the Final window opens the ledger is closed — the crew settles it.';
+const CS_RULING_NOT_YET = 'Rulings need the latest update — try again shortly.';
+function csRulingDone(name, delta, total){
+  const sign = delta > 0 ? '+' : '−';
+  const pts = Math.abs(delta) === 1 ? ' point' : ' points';
+  return 'Ruled — ' + name + ' ' + sign + Math.abs(delta) + pts + (total == null ? '.' : '. Now ' + total + '.') + ' It’s on the board.';
+}
 const CS_RUNBACK_ASK_SENT = "Asked. It's on the board.";
 const CS_RUNBACK_ASK_ALREADY = "You've already asked. It's on the board.";
 
@@ -20522,7 +20538,16 @@ function openMemberHist(p){
       }).join('')
       + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot.</p>':'')
     : emptyState({ icon:'⛳', line:'No rounds this season yet — post one and you\'re on the board.', ctaLabel:'Add my round', ctaGo:'record' });
-  openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
+  /* D376 · a ruling on this golfer sits in the ledger the desk already reads
+     (D355) and is part of the total in the header, so it is listed here with
+     its reason — §16: no points figure without the path that produced it. */
+  const led = (window.seasonLedger||[]).filter(a => p.mid!=null && a.member_id === p.mid && a.kind === 'override');
+  const ledRows = led.map(a => {
+    const when = a.month ? csMonthWord(String(a.month).slice(0,7)) : '';
+    const why  = a.reason || 'a ruling';
+    return `<div class="fine histrow static"><span>${esc([when, 'The Pro ruled', why].filter(Boolean).join(' · '))}</span><b class="mono" style="white-space:nowrap">${a.points>0?'+':''}${esc(String(a.points))} pts</b></div>`;
+  }).join('');
+  openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body + ledRows);
   document.getElementById('shBody')?.querySelectorAll('[data-histround]').forEach(b =>
     b.addEventListener('click', () => {
       window.qaEvent?.('cta_tapped', { door: 'standings:receipt' });
@@ -21886,7 +21911,7 @@ function renderBylaws(){
     <div class="byrow"><span>FORMAT</span><b>${STRUCT_NAMES[state.structure]}</b></div>
     <div class="byrow"><span>THE DRAW</span><b>${({random:'Random draw',assign:'The Pro picks',snake:'In turns · async',live:'Live · pick clock'})[state.draftType]}</b></div>
     <div class="byrow"><span>HOUSE RULES</span><b>${pr.name}</b></div>
-    <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored at ${ALLOW[state.preset]}% of your index</b></div>
+    <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored against your playing HCP — your index at ${ALLOW[state.preset]} percent</b></div>
     <div class="byrow"><span>SCORES</span><b>${VERIF[state.preset]}</b></div>
     <div class="byrow"><span>EACH MONTH</span><b>${capLabel()==='Unlimited' ? 'Every round counts' : capLabel()+' a month count'}</b></div>
     <div class="byrow"><span>THE MINIMUM</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
@@ -25983,8 +26008,10 @@ async function runItBack(oldLeague, membership){
     return;
   }
 
-  /* the Pro's own tap. R10 is unpushed today, so `.notYet` is a real state and
-     is NOT narrated as a failure (wave 5's three-state rule). */
+  /* the Pro's own tap. run_it_back is in production (20260928093000); `.notYet`
+     stays for an older database and is NOT narrated as a failure (wave 5's
+     three-state rule). D375 rules season two a re-up — until that lands the
+     result copy says what happened: carried over, with the step-out door named. */
   try {
     const { data, error } = await sb.rpc('run_it_back', { p_league: lid });
     if(error) throw error;
@@ -27357,14 +27384,16 @@ function csCovenantFacts(info, postedRounds){
   /* 4 · the rule. The payload's `floor` is the OTHER number; R9 brings the cap.
      D353 · an Unlimited league says "every round counts" off the payload's own
      boolean (never off an absent key), and the allowance says what every points
-     figure is scored at, in the wizard's own words ("95 percent of your index")
-     so the Pro's agreement and the joiner's covenant read alike. */
+     figure is scored at, in R-M's shape ("scored against your playing HCP —
+     your index at 95 percent", D373) so the Pro's agreement, the wizard info
+     and the joiner's covenant read alike, and a first-time golfer meets the
+     rule with its meaning attached. */
   {
     const clauses = ['honest scores'];
     if(info.every_round_counts === true) clauses.push('every round counts');
     else if(Number(info.counting_cap)) clauses.push('best ' + csWord(Number(info.counting_cap)) + ' a month count');
     if(Number(info.floor)) clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
-    if(Number(info.handicap_allowance)) clauses.push(Number(info.handicap_allowance) + ' percent of your index');
+    if(Number(info.handicap_allowance)) clauses.push('scored against your playing HCP — your index at ' + Number(info.handicap_allowance) + ' percent');
     const head = info.preset ? csCap(String(info.preset)) + ' rules: ' : 'The rules: ';
     out.push({ k:'rules', t: head + clauses.join(', ') + '.' });
   }
@@ -30058,7 +30087,7 @@ async function openMembersSheet(){
                 sqName(m.id) || null].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
       ${isPro && m.id !== CS.member.id ? `<span style="display:flex; gap:6px; flex:none; flex-wrap:wrap; justify-content:flex-end">
         <button class="mini" data-msidx="${m.id}">Set index</button>
-        ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>` : `<button class="mini" data-msbye="${m.id}">Bye</button>`}
+        ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>` : `<button class="mini" data-msbye="${m.id}">Bye</button><button class="mini" data-msrule="${m.id}">Ruling</button>`}
         <button class="mini" data-mspro="${m.id}">Make Pro</button>
       </span>` : ''}
       ${m.id === CS.member?.id ? `<button class="mini" id="msMkMine" style="flex:none">Marker here</button>` : ''}
@@ -30122,6 +30151,13 @@ async function openMembersSheet(){
       toast('Bye granted — posted to the board');
       closeSheet();
     } catch(e){ toast(humanError(e)); b.disabled = false; }
+  }));
+  /* D376 · the Pro's pen: a ruling is a ledger row with a reason, a board post
+     and a log row — never a round edit (D37, D125, D284). The server refuses
+     it once the Final window opens; the sheet says so before the tap. */
+  document.querySelectorAll('[data-msrule]').forEach(b => b.addEventListener('click', () => {
+    const m = CS.members.find(x => x.id === b.dataset.msrule);
+    window.openRulingSheet?.(m);
   }));
   document.querySelectorAll('[data-mspro]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.mspro);
@@ -30904,6 +30940,18 @@ async function claimPendingRound(){
      when it FINISHES, and firing it here would only toast "they're still out
      there" over the top of the pencil they are holding. */
   if(state.liveGuest && state.liveGuest.token===tok) return;
+  /* D374 · ask what the round is before claiming it. An abandoned round mints
+     no card: say so once and drop the token, instead of matching claim_round's
+     "still live" raise and telling a golfer forever that the group is out
+     there. A round still in setup keeps the token and says when. A token that
+     is not a guest seat (a scan partner, an already-claimed seat) raises here
+     and falls through to the claim as before. */
+  try{
+    const { data: gs, error: ge } = await sb.rpc('guest_live_state', { p_token: tok });
+    const st = !ge ? gs?.round?.status : null;
+    if(st === 'abandoned'){ try{ localStorage.removeItem('cs_claim'); }catch(_){} toast(CS_CLAIM_UNFINISHED); return; }
+    if(st === 'setup'){ toast(CS_CLAIM_NOT_STARTED); return; }
+  }catch(_){}
   /* one /?claim= funnel, two sources: tee-sheet guest cards first, then
      scanned-scorecard partner rows (photos arc) — same UX either way */
   let data=null, firstErr=null;
@@ -30942,6 +30990,41 @@ async function claimPendingRound(){
   else toast('Round claimed — the card was incomplete, so nothing posted');
 }
 window.claimPendingRound = claimPendingRound;   /* D87: the classic side claims when a guest-scored round finishes */
+
+/* D376 · the Pro's ruling sheet. One RPC (adjust_points), one producer for the
+   words (CS_RULING_WHAT / csRulingDone, classic block, shared by shape with
+   the phone). The desk reads the ledger it writes (D355), so the ruling shows
+   its work on the season page with its reason, and the board carries the post. */
+async function openRulingSheet(m){
+  if(!m){ return; }
+  if(!CS.season?.id){ toast('No season to rule on yet.'); return; }
+  const name = m.profile?.display_name || 'this golfer';
+  openSheet('A ruling', 'THE PRO RULES · LOGGED, ON THE BOARD',
+    `<div class="fine" style="margin-bottom:10px">${esc(CS_RULING_WHAT)}</div>
+     <label class="fine" for="rlDelta">Points for ${esc(name)} — up or down, 1 to 50</label>
+     <input class="f" id="rlDelta" type="number" inputmode="numeric" min="-50" max="50" step="1" placeholder="−3" autocomplete="off">
+     <label class="fine" for="rlWhy" style="margin-top:8px; display:block">Why — everyone reads this</label>
+     <input class="f" id="rlWhy" type="text" maxlength="240" placeholder="Wrong card on the 7th" autocomplete="off">
+     <button class="btn" id="rlGo" style="margin-top:12px">Record the ruling</button>`);
+  document.getElementById('rlGo')?.addEventListener('click', async () => {
+    const delta = Number(document.getElementById('rlDelta')?.value);
+    const why = String(document.getElementById('rlWhy')?.value || '').trim();
+    if(!Number.isInteger(delta) || delta === 0 || Math.abs(delta) > 50){ toast('A ruling moves between 1 and 50 points, up or down.'); return; }
+    if(why.length < 3){ toast('Say why — a ruling carries its reason.'); return; }
+    const btn = document.getElementById('rlGo'); if(btn) btn.disabled = true;
+    try{
+      const { data, error } = await sb.rpc('adjust_points', { p_season: CS.season.id, p_member: m.id, p_delta: delta, p_reason: why });
+      if(error) throw error;
+      toast(csRulingDone(name, delta, data?.member_total));
+      closeSheet();
+      await loadLeagueData();
+    }catch(e){
+      if(btn) btn.disabled = false;
+      toast(csShareKindNotDeployed(e) ? CS_RULING_NOT_YET : humanError(e, "Couldn't record the ruling."));
+    }
+  });
+}
+window.openRulingSheet = openRulingSheet;
 
 /* D241 / D253 · spend a pending `?p=` or `?plan=` token.
    It is spent HERE and not on the landing page because the write is never
@@ -31042,9 +31125,11 @@ async function safeBoot(force){
   /* D85: a claim link opened MID-ROUND is a live pencil, not a waiting card —
      the guest scores from their own phone, no account. Fail-open: any error
      (dead token, old DB) falls through to the door card below. */
+  let guestSeen = null;   /* D374 · the round behind the token, when it names a guest seat */
   if(!CS.user && claimTok && window.enterGuestLive){
     try{
       const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
+      if(!error) guestSeen = data || null;
       if(!error && data?.round?.status==='live' && window.enterGuestLive(data, claimTok)) return;
     }catch(_){}
   }
@@ -31068,6 +31153,16 @@ async function safeBoot(force){
   }
   if(!CS.user && claimTok){
     try{
+      /* D374 · a round nobody finished mints no card, ever — the first sentence a
+         stranger reads must be true. Abandoned: say so, drop the token. Setup:
+         keep the pencil and say when. Live rounds returned above. */
+      const gs = guestSeen?.round?.status;
+      if(gs === 'abandoned'){
+        try{ localStorage.removeItem('cs_claim'); }catch(_){}
+        authStatus(CS_CLAIM_UNFINISHED, 'err');
+      } else if(gs === 'setup'){
+        authStatus(CS_CLAIM_NOT_STARTED);          /* not an error: the pencil is kept */
+      } else {
       /* the door card serves both claim sources (live guests + scan partners) */
       let data=null;
       try{ ({ data } = await sb.rpc('claim_round_info', { p_token: claimTok })); }
@@ -31103,6 +31198,7 @@ async function safeBoot(force){
            drop the token. */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
         authStatus('That scorecard link has expired or was already claimed. Whoever sent it can share a fresh one from the round.', 'err');
+      }
       }
     }catch(_){}
   }
