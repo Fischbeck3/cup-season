@@ -50,6 +50,21 @@ async function gca(path: string) {
   return r.json();
 }
 
+// A number the provider sent, or null — never a string, never NaN. The
+// course-cache RPC (D370, `20261116090000_course_cache_atomic`) casts strictly:
+// a `"slope_rating": 113.5` or a `"latitude": ""` would fail the WHOLE course,
+// permanently, where the old row-by-row path skipped one bad tee. So the
+// coercion happens here, before the payload reaches SQL, and the SQL stays
+// strict (review finding 1, 2026-09-19).
+function num(v: unknown): number | null {
+  const n = typeof v === "string" ? Number(v.trim() === "" ? NaN : v) : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+function int(v: unknown): number | null {
+  const n = num(v);
+  return n == null ? null : Math.round(n);
+}
+
 // GolfCourseAPI groups tees by gender; flatten to one tagged list.
 function flattenTees(course: any) {
   const out: any[] = [];
@@ -62,20 +77,22 @@ function flattenTees(course: any) {
     // the search branch below then fills tees from our own cache / a detail fetch.
     const arr = Array.isArray(t[gender]) ? t[gender] : [];
     for (const te of arr) {
+      const holes = Array.isArray(te.holes) ? te.holes : [];
       out.push({
         gender,
         tee_name: te.tee_name ?? null,
-        course_rating: te.course_rating ?? null,
-        slope_rating: te.slope_rating ?? null,
-        bogey_rating: te.bogey_rating ?? null,
-        par_total: te.par_total ?? null,
-        total_yards: te.total_yards ?? null,
-        number_of_holes: te.number_of_holes ?? (te.holes?.length ?? null),
-        holes: (te.holes ?? []).map((h: any, i: number) => ({
-          hole_number: h.hole ?? i + 1,
-          par: h.par ?? null,
-          yardage: h.yardage ?? null,
-          handicap: h.handicap ?? null,
+        // ratings are numeric; slope, par, yards and hole count are integers
+        course_rating: num(te.course_rating),
+        slope_rating: int(te.slope_rating),
+        bogey_rating: num(te.bogey_rating),
+        par_total: int(te.par_total),
+        total_yards: int(te.total_yards),
+        number_of_holes: int(te.number_of_holes) ?? (holes.length || null),
+        holes: holes.map((h: any, i: number) => ({
+          hole_number: int(h.hole) ?? i + 1,
+          par: int(h.par),
+          yardage: int(h.yardage),
+          handicap: int(h.handicap),
         })),
       });
     }
@@ -99,8 +116,8 @@ async function fetchAndStore(admin: any, id: string): Promise<string> {
     city: c.location?.city ?? null,
     state: c.location?.state ?? null,
     country: c.location?.country ?? null,
-    latitude: c.location?.latitude ?? null,
-    longitude: c.location?.longitude ?? null,
+    latitude: num(c.location?.latitude),
+    longitude: num(c.location?.longitude),
     raw: c,
     cached_at: new Date().toISOString(),
   });
