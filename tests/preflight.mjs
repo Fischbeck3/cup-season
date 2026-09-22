@@ -3213,6 +3213,38 @@ const lint = (id, name, hits, note = '') => {
   }
 }
 
+/* 50 · a NEW table states its own grants (CC-52, db-check 23, 2026-09-18) ---
+   `pg_default_acl` hands `arwdDxtm` to `authenticated` on every new table, so
+   a migration that only ADDS the grant list it wants leaves TRUNCATE,
+   REFERENCES, TRIGGER and MAINTAIN behind — none of which row security
+   governs. 20261106090000 did exactly that and shipped two tables a signed-in
+   golfer could have emptied; db-check 23 caught it only after the push.
+   This is the same rule enforced BEFORE a push: a file that creates a table
+   in `public` must also revoke on it. */
+{
+  /* FORWARD-ONLY. Applied migrations are never edited (CLAUDE.md rule 2), so
+     linting history would report 64 tables nobody may touch — the live state
+     of those is what db-check 23 answers against production. This lints files
+     from the rule's own date onward, which is every table added from here. */
+  const RULE_FROM = '20261109000000';
+  const files = readdirSync(migDir).filter(f => f.endsWith('.sql') && f.slice(0, 14) >= RULE_FROM).sort();
+  const offenders = [];
+  for (const f of files) {
+    const src = readFileSync(join(migDir, f), 'utf8');
+    const created = [...src.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?(?:"?public"?\.)?"?([a-z0-9_]+)"?/gi)]
+      .map(m => m[1].toLowerCase());
+    if (!created.length) continue;
+    const revoked = new Set([...src.matchAll(/revoke\s+[\s\S]*?\son\s+(?:table\s+)?(?:"?public"?\.)?"?([a-z0-9_]+)"?/gi)]
+      .map(m => m[1].toLowerCase()));
+    for (const t of created) if (!revoked.has(t)) offenders.push(`${f} → ${t}`);
+  }
+  if (offenders.length) {
+    fail('new tables state their grants', `${offenders.length} table(s) created without a revoke, e.g. ${offenders.slice(0, 3).join('; ')} — write "revoke all on table … from public, anon, authenticated" then grant the exact list`);
+  } else {
+    pass('new tables state their grants', `${files.length} migration(s) since the rule: every created table revokes before it grants`);
+  }
+}
+
 /* 49 · every check in the table has something behind it (D278, IOS-053) ------
    THE FAILURE THIS WHOLE WAVE EXISTS TO PREVENT is a table and a codebase that
    disagree about what is enforced. `UI_SYSTEM` §17 lists twenty-nine checks;

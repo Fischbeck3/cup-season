@@ -18,9 +18,10 @@
   --neg:#FF6A5E;  /* performance down */
   --cool:#7F8C95;  /* cooling: falling rows — slate, not alarm (was heat.cool) */
 
-  /* metal — Two metals and only two (D269). ember = LIVE and urgent, and the identity's one hairline; gold = EARNED. The ordinary primary action is `act` (2026-09-14 owner board), which is neither metal and is deliberately kept out of their meanings. */
+  /* metal — Two metals and only two (D269). ember = COMPETITION — upcoming, live or finished — and the identity's one hairline (F11, owner-approved 2026-09-15, broadening D359's active-only rule); gold = EARNED. The ordinary primary action is `act` (2026-09-14 owner board), which is neither metal and is deliberately kept out of their meanings. */
   --gold:#D8B25A;  /* champagne / bronze on paper — EARNED only: leads, the pot, trophies */
-  --brand:#E8622C;  /* ember / stamp red on paper — live, and the one primary action */
+  --brand:#E8622C;  /* ember / stamp red on paper — COMPETITION identity (F11): a season, a clash or an event, before, during and after play. Not an ordinary action, and never a plain booked round. */
+  --brand-ink:#0F1A15;  /* the type ON a broad ember panel, and it FLIPS between the printings because ember does. Measured: fescue on the dark theme's ember is 5.27:1 and cream is 2.99:1; on the light theme's darker ember those swap to 2.74:1 and 5.76:1. One colour for both would fail one of them, so the application board's single "dark ink" instruction holds for the dark printing only. */
   --act:#5FA271;  /* the ordinary action — a fescue-family green; `bg0` type on the dark ground, cream on the paper one. Identity, semantics and earned gold are not this. */
 
   /* squad — Four squad hues, re-cut off the metals so a team colour can never be mistaken for ember or champagne (D270). */
@@ -128,6 +129,7 @@ html[data-theme="light"]{
   --cool:#56615B;
   --gold:#795912;
   --brand:#A13F0E;
+  --brand-ink:#F4F1E9;
   --act:#1F5D3A;
   --sq0:#002B40;
   --sq1:#603E35;

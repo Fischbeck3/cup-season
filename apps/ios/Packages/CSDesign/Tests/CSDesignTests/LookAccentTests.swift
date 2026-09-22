@@ -2,17 +2,20 @@ import Testing
 import SwiftUI
 @testable import CSDesign
 
-/// IOS-025 — the look's colours fall back to ember; gold is never a look's to take.
+/// IOS-025 — the look's colours fall back to the ordinary action; gold is never a look's to take.
+/// D359 (2026-09-14) moved that fallback from ember to `act`: ember marks an
+/// active competition, so a look styles the action and never the signal.
 @Suite struct LookAccentTests {
-  @Test func noLookIsEmber() {
+  @Test func noLookIsTheOrdinaryAction() {
     let la = CSLookAccent(look: nil, cs: CSTokens.dark, theme: .dark)
     #expect(!la.active)
-    #expect(la.accent == CSTokens.dark.brand)
-    #expect(la.accent2 == CSTokens.dark.brand)
+    #expect(la.accent == CSTokens.dark.act)
+    #expect(la.accent2 == CSTokens.dark.act)
+    #expect(la.accent != CSTokens.dark.brand, "D359: no look never spends ember")
     /* D278 · `wash` is deleted with `CSWash` — the product paints no
        atmosphere. The spine is the channel that carried the same colour to a
        MARK, and it is what survives. */
-    #expect(la.spine(earned: false) == CSTokens.dark.brand)
+    #expect(la.spine(earned: false) == CSTokens.dark.act)
   }
 
   @Test func aLookWearsItsThemeAccent() {
@@ -32,12 +35,12 @@ import SwiftUI
 
   // MARK: D103b — how far a look reaches
 
-  @Test func homebaseReachIsExactlyWhatItWas() {
+  @Test func homebaseReachIsQuiet() {
     let la = CSLookAccent(look: nil, cs: CSTokens.dark, theme: .dark)
-    #expect(la.tick == [CSTokens.dark.brand, CSTokens.dark.brand],
-            "D270: homebase's tick is flat ember — the gradient is deleted")
+    #expect(la.tick == [CSTokens.dark.mut, CSTokens.dark.mut],
+            "D359: homebase's tick is muted ink — flat, and not ember (D270 deleted the gradient)")
     #expect(la.eyebrow == nil, "no look: an eyebrow stays mut")
-    #expect(la.spine(earned: false) == CSTokens.dark.brand)
+    #expect(la.spine(earned: false) == CSTokens.dark.act)
     /* D278 · `washStrength` and `skyStrength` used to be pinned here. Both are
        DELETED with `CSWash` and `CSLookSky` — the product paints no
        atmosphere, so a strength for it is a number waiting to be used. If

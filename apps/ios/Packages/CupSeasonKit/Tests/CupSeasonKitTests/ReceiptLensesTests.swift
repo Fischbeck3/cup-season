@@ -58,7 +58,7 @@ import Foundation
   @Test("the served counters become the composer's sentences, the season named only when there are two")
   func servedLines() {
     let one = try! JSONDecoder().decode(JSONValue.self, from: Data(#"[{"league_name":"Fellas","cap":4,"counters":{"used":2,"worst":5}}]"#.utf8))
-    #expect(RoundWorth.servedLines(one) == ["This round is worth up to 12. Your best 4 count and you have 2."])
+    #expect(RoundWorth.servedLines(one) == ["This round can score up to 12, and it counts: your best 4 count and you have 2."])
     let two = try! JSONDecoder().decode(JSONValue.self, from: Data(#"[{"league_name":"Fellas","cap":2,"counters":{"used":2,"worst":6}},{"league_name":"Sunday Cup","cap":null,"counters":{"used":3,"worst":5}}]"#.utf8))
     let lines = RoundWorth.servedLines(two)
     #expect(lines.count == 2 && lines[0].contains("in Fellas") && lines[1].contains("in Sunday Cup") && lines[1].contains("Every round you post this month counts"))

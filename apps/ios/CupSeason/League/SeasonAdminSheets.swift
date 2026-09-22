@@ -33,7 +33,7 @@ struct NoticesRoomSection: View {
       } trail: {
         Toggle("League notices", isOn: Binding(get: { on }, set: { set($0) }))
           .labelsHidden()
-          .tint(cs.brand)
+          .tint(cs.act)
           .disabled(busy)
           .accessibilityLabel("League notices")
           .accessibilityHint(NoticesCopy.sub(on))

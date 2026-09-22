@@ -22,9 +22,13 @@ public struct PostRow: Decodable, Sendable, Equatable {
   public let member_id: UUID?
   public let round_id: UUID?
   public let live_round_id: UUID?
-  public init(id: UUID, kind: String, body: String?, created_at: Date, member_id: UUID?, round_id: UUID?, live_round_id: UUID?) {
+  /// D219's column: the booking a "put a round on the schedule" note is about.
+  public let scheduled_round_id: UUID?
+  public init(id: UUID, kind: String, body: String?, created_at: Date, member_id: UUID?, round_id: UUID?, live_round_id: UUID?,
+              scheduled_round_id: UUID? = nil) {
     self.id = id; self.kind = kind; self.body = body; self.created_at = created_at
     self.member_id = member_id; self.round_id = round_id; self.live_round_id = live_round_id
+    self.scheduled_round_id = scheduled_round_id
   }
 }
 
@@ -88,7 +92,7 @@ public struct SupabaseBoardRepository: BoardRepository {
       return q.order("created_at", ascending: false).limit(limit)
     }
     do {
-      let rows: [PostRow] = try await query("id, kind, body, created_at, member_id, round_id, live_round_id").execute().value
+      let rows: [PostRow] = try await query("id, kind, body, created_at, member_id, round_id, live_round_id, scheduled_round_id").execute().value
       return rows.reversed()
     } catch {
       let rows: [Legacy] = try await query("id, kind, body, created_at, member_id, round_id").execute().value

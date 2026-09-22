@@ -80,16 +80,20 @@ public struct BoardItem: Sendable, Identifiable, Equatable {
   public let text: String            // body
   public let roundId: UUID?
   public let liveRoundId: UUID?      // D92: a settlement row that opens the scorecard
+  /// The booking a schedule note is about — the row's door to the round sheet.
+  public var scheduledRoundId: UUID? = nil
   public var reactions: [String: ReactionState]
   public var comments: [BoardComment]
   public let isEcho: Bool            // an optimistic local row awaiting its real twin
 
   public init(id: String, postId: UUID?, kind: BoardKind, dateLabel: String, ts: Date?, who: String = "", profileId: UUID? = nil,
               memberId: UUID? = nil, ci: Int = 1, text: String, roundId: UUID? = nil, liveRoundId: UUID? = nil,
+              scheduledRoundId: UUID? = nil,
               reactions: [String: ReactionState] = [:], comments: [BoardComment] = [], isEcho: Bool = false) {
     self.id = id; self.postId = postId; self.kind = kind; self.dateLabel = dateLabel; self.ts = ts; self.who = who
     self.profileId = profileId; self.memberId = memberId; self.ci = ci; self.text = text; self.roundId = roundId
-    self.liveRoundId = liveRoundId; self.reactions = reactions; self.comments = comments; self.isEcho = isEcho
+    self.liveRoundId = liveRoundId; self.scheduledRoundId = scheduledRoundId
+    self.reactions = reactions; self.comments = comments; self.isEcho = isEcho
   }
 
   /// Chat lines react but don't thread (`comments:false`, 5160). Moments and

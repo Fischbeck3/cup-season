@@ -47,6 +47,8 @@ struct OfflineCoursesSheet: View {
   @Environment(\.dismiss) private var dismiss
   @State private var vm = OfflineCoursesModel()
   @State private var query = ""
+  /// F8 · where the course search sits in the scroll (see `CourseSearchReveal`).
+  @State private var searchTop: CGFloat = .nan
   var useTee: ((CourseHit, CourseTee) -> Void)? = nil
 
   var body: some View {
@@ -60,13 +62,18 @@ struct OfflineCoursesSheet: View {
       .padding(.horizontal, CSTokens.Space.gutter)
       .padding(.vertical, CSTokens.Space.s3)
       .background(cs.bg0)
+      ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           if vm.selected?.id == nil {
           Text("Before you lose signal").csType(.story).foregroundStyle(cs.ink)
           CSFine("Save a course while online. Check each tee below before you leave. Saving a course does not start a round.")
-          LiveCourseField(fieldIdentifier: "offline.course.search", text: $query) { hit, _ in vm.select(hit) }
+          LiveCourseField(fieldIdentifier: "offline.course.search", text: $query,
+                          onReveal: { CourseSearchReveal.run(proxy, top: searchTop) }) { hit, _ in vm.select(hit) }
             .disabled(vm.downloading)
+            // F8 · the answer arrives under this field, above the keyboard
+            .id(CourseSearchReveal.id)
+            .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
           } else {
             Button("Saved courses") { vm.selected = nil; vm.message = nil; query = "" }
               .buttonStyle(.csTertiary(.content))
@@ -117,6 +124,7 @@ struct OfflineCoursesSheet: View {
           CSFine("Course data stays on this phone. Signing out removes it. Up to \(CourseDisk.cap) recently used courses are kept; check this list before a trip.")
         }
         .padding(CSTokens.Space.gutter)
+      }
       }
       .id(vm.selected?.id ?? "saved-course-list")
       .background(cs.bg0.ignoresSafeArea())

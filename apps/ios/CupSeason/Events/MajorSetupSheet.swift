@@ -78,7 +78,7 @@ struct MajorSetupSheet: View {
       EventFieldLabel(text: "Name the jug")
       CSField("The PIGL Championship", text: $name, font: CSFont.body).accessibilityLabel("Name the jug")
       EventFieldLabel(text: "The final day")
-      DatePicker("The final day", selection: $final, displayedComponents: .date).labelsHidden().tint(cs.brand)
+      DatePicker("The final day", selection: $final, displayedComponents: .date).labelsHidden().tint(cs.act)
         .frame(maxWidth: .infinity, alignment: .leading)
       EventFieldLabel(text: "Window")
       CSSegment([2, 3, 4].map { ($0, "\($0) days") }, selection: $days)

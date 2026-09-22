@@ -43,6 +43,12 @@ struct CourseCardLeaf: View {
     let pars = holes.compactMap(\.par)
     return pars.count == holes.count && !pars.isEmpty ? pars.reduce(0, +) : nil
   }
+  /// D364 (F1) · yardage is a row when EVERY hole in the range has one; a
+  /// card with a gap says nothing rather than a row with holes in it.
+  private var yards: [Int]? {
+    let y = holes.compactMap(\.yards)
+    return y.count == holes.count && !y.isEmpty ? y : nil
+  }
 
   var body: some View {
     CSLeaf {
@@ -57,14 +63,14 @@ struct CourseCardLeaf: View {
             // TERMINOLOGY §3.1 · `SI` is an engine word and the table at :146
             // gives the ruled replacement outright: `SI 15` → **HCP 15**. The
             // column head walked past preflight 18, which greps `\bSI \d`.
-            label("Hole"); label("Par"); label("HCP")
+            label("Hole"); if yards != nil { label("Yds") }; label("Par"); label("HCP")
           }
           ScrollView(.horizontal, showsIndicators: false) { grid }
         }
       } else {
         HStack(alignment: .top, spacing: 0) {
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-            label("Hole"); label("Par"); label("HCP")   // TERMINOLOGY §3.1
+            label("Hole"); if yards != nil { label("Yds") }; label("Par"); label("HCP")   // TERMINOLOGY §3.1
           }
           grid
         }
@@ -81,41 +87,41 @@ struct CourseCardLeaf: View {
 
   private var grid: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      row(holes.map { "\($0.hole)" }, total: totalLabel, role: .columnS, ink: cs.leafMut)
+      row(holes.map { "\($0.hole)" }, total: totalLabel, role: .columnS, ink: cs.leafMut, head: "Holes")
+      if let yards {
+        // D364 (F1) · the yardage, when the card actually carries it
+        row(yards.map(String.init), total: String(yards.reduce(0, +)), role: .columnS, ink: cs.leafMut, head: "Yards")
+      }
       row(holes.map { $0.par.map(String.init) ?? "" }, total: total.map(String.init) ?? "",
-          role: .columnM, ink: cs.leafInk)
+          role: .columnM, ink: cs.leafInk, head: "Pars")
         .overlay(alignment: .top) {
           // one 1px rule between the key and the pars — a scorecard's own line
           CSRule(over: .leaf).offset(y: -CSTokens.Space.s1 - 1)
         }
-      row(holes.map { $0.si.map(String.init) ?? "" }, total: "", role: .columnS, ink: cs.leafMut)
+      row(holes.map { $0.si.map(String.init) ?? "" }, total: "", role: .columnS, ink: cs.leafMut, head: "Stroke indexes")
     }
   }
 
-  private func row(_ cells: [String], total: String, role: CSType.Role, ink: Color) -> some View {
+  private func row(_ cells: [String], total: String, role: CSType.Role, ink: Color, head: String) -> some View {
     HStack(spacing: 0) {
+      // every row shares one column width, wider when a yardage row (three
+      // digits a hole, four in the total) is on the card
       ForEach(Array(cells.enumerated()), id: \.offset) { _, c in
         Text(c).csType(role).foregroundStyle(ink)
-          .frame(width: typeSize.isA11y ? 34 : 28, height: 20)
+          .frame(width: typeSize.isA11y ? (yards != nil ? 40 : 34) : (yards != nil ? 32 : 28), height: 20)
       }
       Text(total).csType(role).foregroundStyle(ink)
-        .frame(width: typeSize.isA11y ? 38 : 32, height: 20, alignment: .trailing)
+        .frame(width: typeSize.isA11y ? 44 : (yards != nil ? 40 : 32), height: 20, alignment: .trailing)
     }
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel(spoken(cells, total: total, role: role))
+    .accessibilityLabel(spoken(cells, total: total, head: head))
   }
 
   /// **One VoiceOver element per ROW, not per cell.** The shipped card's single
   /// label for eighteen columns is the hole the audit names; three sentences
   /// ("Holes one through nine." / "Pars: four, five, three…") is what a golfer
   /// can actually follow.
-  private func spoken(_ cells: [String], total: String, role: CSType.Role) -> String {
-    let head: String
-    switch role {
-    case .columnM: head = "Pars"
-    case .columnS where cells.first == "1" || cells.first == "10": head = "Holes"
-    default: head = "Stroke indexes"
-    }
+  private func spoken(_ cells: [String], total: String, head: String) -> String {
     let body = cells.filter { !$0.isEmpty }.joined(separator: ", ")
     let tail = total.isEmpty ? "" : ". \(totalLabel) \(total)"
     return "\(head): \(body)\(tail)."
@@ -145,45 +151,87 @@ struct CourseCardLeaf: View {
 struct CourseWholeCardScreen: View {
   @Environment(\.cs) private var cs
   let book: CourseBook
-  /// The tee to open on. nil opens the first — a course page always resolves
-  /// one, so nil is a preview or a slice.
+  /// The tee to open on. nil opens the course's default (the longest rated
+  /// 18) — and the screen SAYS it did, rather than presenting it as a choice.
   var openOn: CourseBookTee?
+  /// D364 (F1) · true when `openOn` is a tee the round or plan actually named.
+  var yours: Bool = false
 
-  @State private var open: String?
+  /// The tee whose card is shown — one at a time, always.
+  @State private var chosen: String?
+  /// The other tees, revealed behind "Change tees".
+  @State private var choosing = false
 
-  private var shown: String? { open ?? openOn?.id ?? book.tees.first?.id }
+  private var selected: CourseBookTee? {
+    book.tees.first { $0.id == (chosen ?? openOn?.id) } ?? openOn ?? book.defaultTee ?? book.tees.first
+  }
+  private var others: [CourseBookTee] { book.tees.filter { $0.id != selected?.id } }
 
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+        // 1 · the course, and the copy's provenance (F2's words)
         Text(book.label).csType(.display).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
         Text(book.savedLine()).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
-        ForEach(book.tees) { tee in
-          let isOpen = tee.id == shown
-          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-            Button {
-              CSHaptic.selection()
-              // Tapping the open one closes it — the same idiom the rating
-              // rail keeps (D289): the control you already hold takes it off.
-              CSMotion.run(CSMotion.tick) { open = isOpen ? "" : tee.id }
-            } label: {
-              CSFactsLine(facts(tee), label: tee.title)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .contentShape(Rectangle())
+
+        // 2 · THE SELECTED TEE — one, with how it was chosen said out loud.
+        // D364 (F1): the screen used to loop every rated tee and expand one
+        // of them inline, so the card a golfer came for could sit under ten
+        // rating variants. The selected tee leads; the others wait behind a
+        // control, and changing tees changes the facts and the card together.
+        if let tee = selected {
+          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+            CSFactsLine(facts(tee), label: tee.title)
+              .accessibilityIdentifier("course.card.tee")
+            Text(chosen == nil && !yours ? CourseBookCopy.teeIsTheLongest
+                 : (chosen == nil ? CourseBookCopy.teeIsYours : tee.offlineStatus))
+              .csType(.agateS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+            if !others.isEmpty {
+              CSMini(choosing ? CourseBookCopy.keepTees : CourseBookCopy.changeTees) {
+                CSHaptic.selection()
+                CSMotion.run(CSMotion.tick) { choosing.toggle() }
+              }
+              .accessibilityIdentifier("course.card.change")
             }
-            .buttonStyle(.plain)
-            .accessibilityHint(isOpen ? "Hides the card" : "Shows the card")
-            .accessibilityAddTraits(isOpen ? [.isSelected] : [])
-            if isOpen {
-              CourseCardLeaf(tee: tee, title: "The front nine · \(tee.title)")
-              if tee.holes.contains(where: { $0.hole > 9 }) {
-                CourseCardLeaf(tee: tee, title: "The back nine · \(tee.title)",
-                               range: 10...18, totalLabel: "In")
+          }
+
+          // 3 · the other tees, only when asked — every rated tee, one line
+          // each, and a tap makes it the card below
+          if choosing {
+            VStack(spacing: 0) {
+              ForEach(others) { t in
+                Button {
+                  CSHaptic.selection()
+                  CSMotion.run(CSMotion.tick) { chosen = t.id; choosing = false }
+                } label: {
+                  VStack(alignment: .leading, spacing: 2) {
+                    Text(t.title).csType(.name).foregroundStyle(cs.ink)
+                    Text(t.subtitle + (t.yards.map { " · \(CourseModel.grouped($0)) yds" } ?? "")).csType(.columnS).foregroundStyle(cs.mut)
+                  }
+                  .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                  .padding(.vertical, CSTokens.Space.s2)
+                  .overlay(alignment: .bottom) { CSRule() }
+                  .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("course.card.pick")
+                .accessibilityHint("Shows this tee's facts and card")
               }
             }
           }
+
+          // 4 · the card — front, then back, for THIS tee only
+          CourseCardLeaf(tee: tee, title: "The front nine · \(tee.title)")
+          if tee.holes.contains(where: { $0.hole > 9 }) {
+            CourseCardLeaf(tee: tee, title: "The back nine · \(tee.title)",
+                           range: 10...18, totalLabel: "In")
+          }
+        } else {
+          Text(CourseBookCopy.noCard).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
         }
       }
       .padding(.horizontal, CSTokens.Space.gutter)

@@ -93,6 +93,8 @@
 # what the next push produces. New: my_month_counters(date), counting_rounds(uuid,
 # uuid, text); round_card is (uuid, uuid DEFAULT NULL). Re-take it from the live
 # database after the push, exactly as the query above says.
+# 2026-09-15: +round_tally, +start_live_round_from_plan (20261105090000, NOT yet applied — rows written by hand to the query's exact shape and verified against a disposable cluster; re-take after the push). start_live_round is UNCHANGED.
+
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
@@ -290,6 +292,7 @@ round_moments||trigger|definer|none
 round_post_status|p_request_id uuid|jsonb|definer|auth
 round_refresh_index||trigger|definer|auth
 round_scorecard|p_round uuid|jsonb|definer|auth
+round_tally|p_round uuid|jsonb|invoker|auth
 round_to_board||trigger|definer|auth
 round_worth|p_cap integer DEFAULT NULL::integer, p_used integer DEFAULT NULL::integer, p_worst numeric DEFAULT NULL::numeric|numeric|invoker|none
 rounds_no_future||trigger|invoker|none
@@ -316,6 +319,7 @@ season_email_on_complete||trigger|definer|none
 season_email_payload|p_season uuid|jsonb|definer|none
 season_scenarios|p_season uuid|jsonb|definer|auth
 season_story|p_season uuid DEFAULT NULL::uuid, p_league uuid DEFAULT NULL::uuid|jsonb|definer|auth
+seated_in|p_live_round uuid, p_profile uuid|boolean|definer|none
 set_buy_in_terms|p_league uuid, p_note text DEFAULT NULL::text, p_due_on date DEFAULT NULL::date|json|definer|auth
 set_discoverable|p_mode text|void|definer|auth
 set_email_recap|p_on boolean DEFAULT NULL::boolean|boolean|definer|auth
@@ -343,6 +347,7 @@ share_info|p_token uuid|jsonb|definer|anon,auth
 snapshot_week|p_season uuid|void|definer|none
 squad_lead_moments||trigger|definer|auth
 start_draft|p_season uuid, p_shuffle boolean DEFAULT true|uuid|definer|auth
+start_live_round_from_plan|p_scheduled_round uuid, p_league uuid DEFAULT NULL::uuid, p_course_label text DEFAULT NULL::text, p_snapshot jsonb DEFAULT NULL::jsonb, p_game text DEFAULT NULL::text, p_players jsonb DEFAULT NULL::jsonb, p_config jsonb DEFAULT '{}'::jsonb, p_api_course_id text DEFAULT NULL::text|jsonb|definer|auth
 start_live_round|p_league uuid DEFAULT NULL::uuid, p_course_id uuid DEFAULT NULL::uuid, p_tee_id uuid DEFAULT NULL::uuid, p_course_label text DEFAULT NULL::text, p_snapshot jsonb DEFAULT NULL::jsonb, p_game text DEFAULT NULL::text, p_players jsonb DEFAULT NULL::jsonb, p_config jsonb DEFAULT '{}'::jsonb, p_api_course_id text DEFAULT NULL::text|jsonb|definer|auth
 start_season|p_season uuid|void|definer|auth
 submit_feedback|p_category text, p_body text, p_context jsonb DEFAULT '{}'::jsonb|uuid|definer|auth

@@ -291,9 +291,11 @@ struct PersonPage: View {
       guard let playThem else { stageRound?(LastRoundWith.nextSaturday(), profileId); return }
       playThem(TagCandidate(id: profileId, name: model.name ?? first, marker: model.marker))
     }
+    // D363 · "Play with Alex" — the sheet behind it is headed the same way,
+    // so the door and the page it opens say one thing.
     switch tier {
-    case .primary: CSDoor(.primary("Play \(first)", take))
-    case .link: HStack { Spacer(); CSDoor(.link("Play \(first)", take)); Spacer() }
+    case .primary: CSDoor(.primary("Play with \(first)", take))
+    case .link: HStack { Spacer(); CSDoor(.link("Play with \(first)", take)); Spacer() }
     }
   }
 

@@ -550,9 +550,11 @@ public struct HomePage {
   /// D315 · the five keys the ranker's top tier is made of. A `ceremony` or an
   /// `empty` lead is NOT one of them: the night a season ends and a brand-new
   /// account are both surfaces the strip is not competing with.
-  static let competitionKeys = ["clash:", "floor:", "move:", "firsttee:", "live:", "need:"]
+  public static let competitionKeys = ["clash:", "floor:", "move:", "firsttee:", "live:", "need:"]
 
-  static func isCompetition(_ item: HomeDispatch.Item?) -> Bool {
+  /// F11 · public because the ROW now asks it: ember marks a competition, and
+  /// a plain booked round (`plan:`) is deliberately not one of these keys.
+  public static func isCompetition(_ item: HomeDispatch.Item?) -> Bool {
     guard let key = item?.key else { return false }
     return competitionKeys.contains { key.hasPrefix($0) }
   }

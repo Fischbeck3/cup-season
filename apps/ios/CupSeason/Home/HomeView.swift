@@ -439,15 +439,11 @@ struct HomeView: View {
         }
       }
       .contextMenu {
-        // "add a reaction" on a long press; same write path as the row. The
-        // icon is the drawn token now (D309) — a context menu takes a `Label`,
-        // and a `Label`'s icon is a view, so the glyph goes in directly.
+        // D365 · one act on a long press, the same write path as the control.
         if let rid = r.round_id, let state = vm.social.state(for: rid) {
-          ForEach(CSReactions.all) { rx in
-            Button { react(r, rx.key) } label: {
-              Label { Text(rx.label) } icon: { CSReactionGlyph(rx.token, size: .row) }
-            }
-            .disabled(state[rx.key]?.me == true)
+          let a = Applause.state(state)
+          Button { react(r, Applause.key) } label: {
+            Label { Text(a.me ? Applause.remove : Applause.give) } icon: { CSApplauseGlyph(points: 17, filled: a.me) }
           }
         }
       }
@@ -476,7 +472,8 @@ struct HomeView: View {
 
     case .digest(let d):
       HomeWireLine(marker: nil, text: d.body, ink: cs.ink,
-                   act: d.roundId.map { id in { presenter.receipt = id } })
+                   act: d.roundId.map { id in { presenter.receipt = id } }
+                     ?? d.planId.map { id in { presenter.scheduledRound = id } })
         .padding(.horizontal, CSTokens.Space.gutter)
 
     case .occasion(let o):
@@ -509,6 +506,10 @@ struct HomeView: View {
       guard let me = store.me else { return }
       if let error = await vm.toggle(round: r, emoji: emoji, me: me, name: me.profile?.display_name ?? "You") {
         toast.show(error, kind: .failed)
+      } else if emoji == Applause.key, let rid = r.round_id,
+                vm.social.state(for: rid)?[Applause.key]?.me == true, Applause.firstSend() {
+        // D365 · first-use feedback, once per install — and only for a GIVE
+        toast.show(Applause.sent, kind: .confirmed)
       }
     }
   }
@@ -786,6 +787,15 @@ final class HomeModel {
       dispatch = served.items
       leadSuppress = served.leadSuppress
       usedFallback = false
+      // F12 · a booking I have already PLAYED stops telling me a round is
+      // scheduled. Client-side until the server carries the link (a written,
+      // unpushed migration): my rounds, the booking's course id, its day.
+      if let uid = (self.me ?? sessionMe)?.profile?.id, dispatch.contains(where: { $0.key.hasPrefix("plan:") }) {
+        let rows = (try? await RoundsRepository().myRounds(uid)) ?? []
+        let mine = rows.map { RoundReconcile.Candidate(id: $0.id, courseId: $0.api_course_id, playedOn: $0.played_on) }
+        guard live(gen) else { return }
+        dispatch = RoundReconcile.droppingPlayedPlans(dispatch, myRounds: mine)
+      }
     }
 
     let r = await repo.load(memberships: (me ?? sessionMe).memberships)
@@ -850,7 +860,7 @@ final class HomeModel {
     catch {
       st.flip(me: name, on: had)
       social.rx[t.postId, default: [:]][emoji] = st
-      return AuthRules.human(error, fallback: "Reaction did not save.")
+      return AuthRules.human(error, fallback: emoji == Applause.key ? Applause.failed : "Reaction did not save.")
     }
   }
 }
@@ -868,10 +878,9 @@ private struct A11yReactionActions: ViewModifier {
   let toggle: (String) -> Void
   func body(content: Content) -> some View {
     if enabled {
+      // D365 · one action: applaud, or take it back
       content.accessibilityActions {
-        ForEach(CSReactions.all) { r in
-          Button(r.label) { toggle(r.key) }
-        }
+        Button(Applause.give) { toggle(Applause.key) }
       }
     } else {
       content

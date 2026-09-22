@@ -120,6 +120,60 @@ public enum ForfeitCopy {
   /// A forfeit is a fact, not a summons: no push fires (L-20/L-22).
   public static let noPush = "Nobody gets a notification. It’s on the record and that’s the point."
 
+  // MARK: - D366 (F6) · what this is, said before the fields
+
+  /// The owner, 2026-09-15: the composer looked engaging but its purpose and
+  /// place were unclear. A first-time golfer can now answer, from the sheet
+  /// alone: what the button creates, whether the other golfer has agreed,
+  /// what decides it, who confirms it, where it appears later, and whether it
+  /// touches league points. **It is honest about being record-only**: it
+  /// records an agreement made between you; it does not send a challenge.
+  /// Acceptance and competition-backed settlement are a mechanics proposal
+  /// (`docs/planning/2026-09-15-applause-and-pride-proposals.md` §3).
+  public static let sub = "RECORDED HERE, MADE BETWEEN YOU"
+  public static let purpose = "A bet for pride between golfers, kept on the record. It records an agreement you've already made — nobody is asked to accept here."
+  public static let whereLabel = "Where it lives"
+  public static let decidesLabel = "What decides it"
+  public static let decidesOptional = "optional"
+  public static let points = "It never touches league points."
+  public static let whereItShows = "It shows under Pride bets · on the record, for the people involved."
+
+  /// "You and Alex" · "You and the field — first to hit it"
+  public static func who(_ opponentName: String?) -> String {
+    opponentName.map { "You and \(CSBands.fn1($0))" } ?? "You and \(theField.lowercased()) — first to hit it"
+  }
+
+  /// The competition context the record hangs on — the one place a first-time
+  /// golfer learns this is not itself a contest.
+  public static func context(_ home: ForfeitHome, name: String? = nil) -> String {
+    context(kind: home.kind, name: name)
+  }
+  public static func context(kind: ForfeitHome.Kind, name: String? = nil) -> String {
+    switch kind {
+    case .season:  return "On \(name ?? "this season") — the result never touches its points."
+    case .moment:  return "On \(name ?? "this contest")."
+    case .plan:    return "On \(name ?? "this planned round")."
+    case .buddies: return "Between the two of you — no season or round attached."
+    case .none:    return "Say who it is with, or what it hangs on."
+    }
+  }
+
+  /// How the result is confirmed today: a tap by a party, never a scored
+  /// comparison and never an acceptance the app collected.
+  public static func confirm(_ opponentName: String?) -> String {
+    let them = opponentName.map { CSBands.fn1($0) } ?? "the other golfer"
+    return "When it's decided, either of you settles it with a tap. \(them) isn't asked to accept here — tell them yourself."
+  }
+
+  /// Every sentence the composer shows, for the sweeps: no money word, no
+  /// "forfeit", and the honesty lines present.
+  public static var all: [String] {
+    [title, sub, purpose, nameLabel, namePlaceholder, termsLabel, termsPlaceholder, whoLabel, theField,
+     whereLabel, decidesLabel, decidesOptional, settlesLabel, settlesPlaceholder, put, definition, noPush,
+     points, whereItShows, ledgerHead, who("Alex"), who(nil), confirm("Alex"), confirm(nil),
+     context(ForfeitHome(leagueId: UUID()), name: "the Fellas"), context(ForfeitHome(opponent: UUID()))]
+  }
+
   /// The words a money AMOUNT would be written in. Nothing in this product may
   /// print one on a forfeit, and `ForfeitHomeTests` asserts that none of the
   /// strings above contains any of them.

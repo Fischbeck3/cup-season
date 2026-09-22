@@ -16,15 +16,21 @@
     /* two counting rounds so far: worth up to the ceiling; best 4 count and you have 2 */
     window.myRanked=[{ played_on:month+'-03', month_rank:1, points:9 },{ played_on:month+'-10', month_rank:2, points:5 },{ played_on:'2025-01-01', month_rank:1, points:12 }];
     const two=csComposerWorthLine(month+'-20', 4);
-    check(/worth up to/.test(two) && /best 4 count and you have 2/.test(two),'capped with room: '+two);
-    /* a full month: worth up to X MORE; your worst is a 5 */
+    check(/can score up to 12/.test(two) && /best 4 count and you have 2/.test(two),'capped with room: '+two);
+    /* a full month (D364): the ceiling, the lowest counter, and what a 12 would add */
     window.myRanked=[1,2,3,4].map(i=>({ played_on:month+'-0'+i, month_rank:i, points:[9,8,7,5][i-1] }));
     const full=csComposerWorthLine(month+'-20', 4);
-    check(/more/.test(full) && /worst is a 5/.test(full),'a full month: '+full);
+    check(/lowest is a 5/.test(full) && /a 12 would add 7/.test(full),'a full month: '+full);
     /* a month already made of top-band rounds: cannot add, still builds the number */
     window.myRanked=[1,2,3,4].map(i=>({ played_on:month+'-0'+i, month_rank:i, points:12 }));
     const capped=csComposerWorthLine(month+'-20', 4);
-    check(/cannot add/.test(capped) && /builds your number/.test(capped),'top-band month: '+capped);
+    check(/can.t add to your total/.test(capped) && /builds your number/.test(capped),'top-band month: '+capped);
+    /* a nine (D364): half the band, never the eighteen-hole ceiling */
+    window.myRanked=[{ played_on:month+'-03', month_rank:1, points:9 }];
+    const side=state.post.side; state.post.side=9;
+    const nine=csComposerWorthLine(month+'-20', 4);
+    state.post.side=side;
+    check(/up to 6 as a nine/.test(nine) && !/12/.test(nine),'a nine: '+nine);
     /* uncapped: every round counts */
     window.myRanked=[{ played_on:month+'-03', month_rank:1, points:9 }];
     const open=csComposerWorthLine(month+'-20', null);
