@@ -113,11 +113,20 @@ struct DoorView: View {
     .csToasts(toasts)
     .onAppear {
       pending = PendingLink.doorLine()
+      #if DEBUG
+      if let line = DoorDev.pendingLine { pending = line }
+      #endif
       if playForge == nil {
         let play = ForgeState.shouldPlay(reduceMotion: reduceMotion)
         if play { ForgeState.markPlayed() }
         playForge = play
       }
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .csJoinCodePending)) { _ in
+      pending = PendingLink.doorLine()
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .csShareTokenPending)) { _ in
+      pending = PendingLink.doorLine()
     }
     // the flag never blocks the email field: it lands whenever it lands
     .task {
@@ -143,8 +152,13 @@ struct DoorView: View {
         Text(CSBrandCopy.tagline).csType(.lead).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityAddTraits(.isHeader)
-        Text("Golf with your people, all season.").csType(.body).foregroundStyle(cs.mut)
-        Color.clear.frame(height: 120).accessibilityHidden(true)
+        // The recipient sees why they arrived before choosing a sign-in door.
+        // The same producer follows them above the email field; no extra copy.
+        Text(pending ?? "Golf with your people, all season.")
+          .csType(.body).foregroundStyle(pending == nil ? cs.mut : cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityIdentifier("door.context")
+        Color.clear.frame(height: pending == nil && !typeSize.isAccessibilitySize ? 120 : CSTokens.Space.s5).accessibilityHidden(true)
         Button("Get started", action: enter).buttonStyle(.csPrimary())
         Button("Sign in", action: enter).buttonStyle(.csSecondary())
       }

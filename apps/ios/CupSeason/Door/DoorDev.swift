@@ -15,5 +15,9 @@ enum DoorDev {
   static let forced = args.contains("-cs_dev_door")
   static let replayForge = args.contains("-cs_dev_forge")
   static let forceApple = args.contains("-cs_dev_apple")
+  /// Visual-only context: no real invitation is stored or redeemed.
+  static var pendingLine: String? {
+    args.contains("-cs_dev_pending_join") ? "You're joining QA season. Sign in to review and join." : nil
+  }
 }
 #endif

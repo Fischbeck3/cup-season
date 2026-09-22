@@ -94,8 +94,12 @@ struct CupSeasonApp: App {
             Task {
               // A name that does not resolve leaves the generic line standing;
               // it never blocks the door and never invents a name (L-44).
-              if let n = ((try? await JoinService().leagueName(code)) ?? nil), !n.isEmpty {
+              if let n = ((try? await JoinService().leagueName(code)) ?? nil), !n.isEmpty,
+                 JoinIntent.pending()?.code == code {
                 JoinIntent.store(code, name: n)
+                // Refresh an already visible welcome/email door when its name
+                // arrives. A late response must not restore a spent/newer code.
+                NotificationCenter.default.post(name: .csJoinCodePending, object: nil)
               }
               await store.reload()
             }
