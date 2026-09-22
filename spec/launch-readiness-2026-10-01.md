@@ -375,12 +375,13 @@ halves are Mac work by rule 6.
 | Mon 21 night | Owner | `tools/ios-archive.sh --upload` from the merged tip → Owner group; `MARKETING_VERSION` stays 1.0.0; install on both phones and read the build number on each. | Two phones, one build. |
 | Mon 21 | Claude | **Done:** rulings packet and this re-plan; `20261112090000` (D378 bundle), `20261113090000` (D376 pen), `20261114090000` (D371 door counter) — each patches the live function text in place from `pg_get_functiondef` with asserted anchors and a self-check, and each is idempotent. **Validated here** on a Postgres 16 sandbox running the full 251-file chain (PR #6's harness, `MAINTAIN` filtered — production is 17): 18 functional probes pass (a ruling moves a solo total and posts; a non-Pro and the Final are refused; snake refused at lock; the tick cuts week 2 once and opens the Final on the league's day; a leaver keeps read and loses the Ryder door; the 61st lookup from one address is refused). `tests/db-checks.sql` 35/36 added, check 1 amended to three jobs. Contract rows added; `rpc.ts` and `Rpc.swift` regenerated; preflight 0. | Codex review; owner's `db push` from a checkout carrying every file. |
 | Tue 22 – Wed 23 | Owner + one friend | `docs/pilot/owner-checks.md`, **every row** (A1–A11, R1–R7, G1–G2), on the Owner build. FAIL → Claude fixes → new build → re-run the failed rows. **This is the Friends gate (2-A).** | Every row PASS. |
+| Tue 22 (done) | Claude | **D375 built**, on the owner's order: `20261115090000_season_two_is_a_re_up.sql` (the ask, the recorded yes, the agreed predicate in the lens/table/hat/start/pot/pulse/record, the covenant and `my_invites` saying the season, the Pro's ask-again) and its desk half (run-it-back copy, the season fact and the re-up frame on the covenant, the invitation title, the re-up toast, NOT IN YET + Ask again on the roster). 32 sandbox probes, idempotent re-run, db-check 37, preflight 0. Phone half in the packet §7. | Codex review; the owner's `supabase db push` with the other three; the Mac runs the Swift half. |
 | Mon 21 (done) | Claude | **Web halves built** on PR #6's tree: the allowance gloss (D373), the unfinished-link sentence on both doors (D374), the run-it-back copy (D375-now), the Pro's Ruling sheet and the receipt's ledger row (D376). The season-story line needs no change (it reads the snapshot's weekday). Pins in `tests/app-tests.js`; preflight 0. The phone halves are listed in the rulings packet §7 for the Mac. | Codex review of the branch; the Mac runs the full web suite and the Swift halves. |
 | Thu 24 | Owner | Beta App Review on the passing build (same version string; budget one day) → **Friends**. Name cohorts (`owner`, `friends`) in `pilot_cohort_members`; send the task sheets. Read `rate_limit_otp` and set it (D186). | Friends current; cohorts named. |
 | Thu 24 – Fri 25 | Codex · Owner | Codex reviews `20261112`–`20261114` and the web halves. Owner: `supabase db push` from a checkout carrying every file (after Codex's `20261111` is placed, in that order: migration first, `courses` redeploy after, with the `flattenTees` coercion). | Production at 251+; db-checks green. |
 | Fri 25 – Sun 27 | Owner (Mac) | Phone halves in Swift: the gloss, the unfinished-link face, the run-it-back copy, the Pro's ruling sheet; `tools/build-db.mjs` regenerates `Rpc.swift`; Kit and app suites green. | Kit/app green locally. |
 | Fri 25 – Sun 27 | Friends | Rounds unassisted; every assisted or support contact in `pilot_sessions`. | Scorecard `assistance` reads true. |
-| Fri 25 – Sun 27 | Owner + Claude | **D379:** Claude drafts the legal v2 (13+, vendors, contacts, deletion in-app, Fischbeck3 LLC, one money posture), the Contacts-label reconciliation, the review-notes refresh and the two 4+ → 13+ fixes; owner approves, confirms the entity, emails counsel the packet. Owner: 6.9" screenshots; claim the @cupseason handles. | One legal commit; counsel engaged; ASC metadata ready. |
+| Fri 25 – Sun 27 | Owner + Claude | **D379:** Claude drafts the legal v2 (13+, vendors, contacts, deletion in-app, Fischbeck3 LLC, one money posture), the Contacts-label reconciliation, the review-notes refresh and the two 4+ → 13+ fixes; owner approves (the entity, Fischbeck3 LLC, confirmed Sep 22), emails counsel the packet. Owner: 6.9" screenshots; claim the @cupseason handles. | One legal commit; counsel engaged; ASC metadata ready. |
 | Mon 21 (done early) | Claude | Socials plan re-keyed (8-B); gates file amended to D371 for Tue 29's ratification; D371–D379 appended to the decision log (the branch is based on PR #6's tip); `ACTIVE_WORK.md`, the store docs' age rating, the interview guide's numbers and the review notes' pricing sentence corrected; the legal v2 drafted (D379) for the owner's confirmation and counsel. Still after the gate by ruling: the email-fallback removal (D377). | Committed. |
 | Mon 28 | Owner | Full build from the tip → Owner group; **integrity rows re-run** on two phones (A3–A6, A8–A10, R1–R5) since the pen and the copy changed the app. | PASS. |
 | Tue 29 | Owner + Claude | Weekly review; ratify the amended gates (12); go/no-go for the submission. **Physical iPhone Safari pass of the public web door**: signed-out door, a claim link, an invite link, post a round. | Written. |
@@ -391,9 +392,10 @@ halves are Mac work by rule 6.
 phone half is Mac time on the same weekend as the screenshots, the legal review
 and the Swift copy halves. If the phone half slips, the desk carries the pen on
 Oct 1 and the phone follows in the next build — the release record says so, and
-D234's "done" waits for it. The season-two re-ask (D375) is about a week and is
-**scheduled for October after launch week**; its forcing date is the first
-staked run-back (Fellas, 2027-01-18). The anon rate-limit migration is the cost
+D234's "done" waits for it. The season-two re-ask (D375) was pulled forward by
+the owner on Sep 22 ("build the season two re-ask now") and its database and
+desk halves are **built** (`20261115090000`); the phone half joins the Mac
+list. Its forcing date was the first staked run-back (Fellas, 2027-01-18). The anon rate-limit migration is the cost
 D371 carried in its option text; it is in the list because the door is public.
 
 ### 4B · Cheap, high-value, before October 1 (Claude unless named; none needs a new mechanic)
@@ -467,8 +469,8 @@ Options and analysis: the 2026-09-21 briefing; the entries: `docs/planning/2026-
 
 ### 4D · Explicitly not before October 1
 
-The season-two re-ask (D375 — October, before the first staked run-back);
-captains-pick and live-draft engines (no league has chosen them; snake is now
+The re-open of the bylaws at the re-up (D375 is built; the terms still carry
+locked, named in its as-built note); captains-pick and live-draft engines (no league has chosen them; snake is now
 refused at lock); spreadsheet import; a `/pricing` page or any price on any
 surface (D183); Stripe; a native Android app; a crash pipeline beyond
 `client_events`; "Season Wrapped"; the Record as chapters; the crest object; any
@@ -483,8 +485,8 @@ launch day.
   day, not before.
 - **D197 ruling 3** first: the age gate and the terms record, one migration,
   both sign-in doors.
-- **D375 built**: the re-up as the covenant again, `agreed_at` per member per
-  season, the agreed predicate in the scoring lens — before Fellas wraps.
+- **D375's phone half** in the first post-launch build (the database and desk
+  halves shipped Sep 22); the bylaws re-open at the re-up when a Pro asks.
 - **D377's commit**: the dead email fallback and both "Invites out" readers
   removed; `drop table invites` queued for Q1.
 - **The phone halves that missed the Oct 1 build**, if any, in the first

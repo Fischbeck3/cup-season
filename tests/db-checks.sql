@@ -940,5 +940,51 @@ from (
   ) as problems
 ) t
 
+-- 37 · D375 · season two is a re-up. Every member carries a season on record,
+--     the lens and the individual table read it, the re-up doors record and
+--     say the yes, the hat and the start read the season's roster, the pot
+--     counts the yeses, and the two helpers are the engine's alone.
+union all
+select '37 · season two is a re-up (D375)',
+  case when (select count(*) from information_schema.columns
+              where table_schema = 'public' and table_name = 'league_members' and column_name = 'agreed_seasons') = 0
+         then 'PASS — the re-up is not deployed yet'
+       when problems = '' then 'PASS — every member on record; the lens, the doors, the hat, the start and the pot read it'
+       else 'FAIL — ' || problems end,
+  'league_members.agreed_seasons × v_rounds_ranked / v_individual_standings × prosrc of respond_invite, join_league, run_it_back, randomize_squads, start_season, recompute_season_payouts, invite_golfer, my_invites × helper grants'
+from (
+  select concat_ws('; ',
+    case when exists (select 1 from league_members where agreed_seasons is null or agreed_seasons = '{}')
+         then 'a member carries no season on record' end,
+    case when pg_get_viewdef('public.v_rounds_ranked'::regclass) not like '%agreed_seasons%'
+           or pg_get_viewdef('public.v_rounds_ranked'::regclass) not like '%prior_left_at%'
+         then 'v_rounds_ranked does not read the record' end,
+    case when pg_get_viewdef('public.v_individual_standings'::regclass) not like '%agreed_seasons%'
+         then 'v_individual_standings lists members who did not say yes' end,
+    case when exists (select 1 from pg_proc where pronamespace = 'public'::regnamespace
+                        and proname in ('respond_invite', 'join_league')
+                        and prosrc not like '%_agree_to_season(%') then 'a join door does not record the yes' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'run_it_back')
+              not like '%The invitations are out%' then 'run_it_back seats instead of asking' end,
+    case when exists (select 1 from pg_proc where pronamespace = 'public'::regnamespace
+                        and proname in ('randomize_squads', 'start_season')
+                        and prosrc not like '%_season_roster(p_season)%') then 'the hat or the start reads the whole league' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'recompute_season_payouts')
+              not like '%agreed_seasons%' then 'the pot counts members who did not say yes' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'invite_golfer')
+              not like '%same rules, fresh table%' then 'the Pro cannot ask again' end,
+    case when position('season_number integer, reup boolean' in
+                 (select pg_get_function_result(oid) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'my_invites')) = 0
+         then 'my_invites does not say which season' end,
+    case when has_function_privilege('authenticated', 'public._season_roster(uuid)', 'execute')
+           or has_function_privilege('authenticated', 'public._agree_to_season(uuid, uuid)', 'execute')
+           or has_function_privilege('anon', 'public._agree_to_season(uuid, uuid)', 'execute')
+         then 'a client role can reach a re-up helper' end,
+    case when not exists (select 1 from pg_trigger where tgname = 'league_members_agree_on_join'
+                             and tgrelid = 'public.league_members'::regclass and not tgisinternal)
+         then 'a fresh seat records no season' end
+  ) as problems
+) t
+
 )
 select * from checks order by check_name;

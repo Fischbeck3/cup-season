@@ -31,6 +31,21 @@ sorting.
 ---
 
 
+### 2026-09-22 · The re-up carries the bylaws locked; §14.5 says unlocked
+
+D375 is built (`20261115090000`): season two asks everyone again and records the yes. What it does not do is re-open the bylaws — `run_it_back` carries the terms locked (D243) and the run-it-back sheet on both clients sends no stake and no length, though the RPC already takes both (`p_buyin_cents`, `p_season_months`, `p_pay_note`). Spec §14.5 says *bylaws carry forward unlocked*. Two sizes: small — the sheet offers stake, length and pay note (the RPC's own three, `stake_moved` / `length_moved` already come back and the board line already says "The stake changed"); large — a real re-open of preset, cap, floor, finish and structure, which is the wizard again and a second `lock_league` door. Lane: Gameplay · size: small first · first question: does a Pro who runs it back ever want to change more than the stake and the length, or is that a new league?
+
+
+### 2026-09-22 · A joiner in the draft phase is placed by the door they came through
+
+Found while building D375. In the first season an invitation accepted during the draft phase is placed on the thinnest squad at once (`respond_invite` → `_late_squad`, which checks the season's status, not the league's phase), while a golfer who joins by the code stays loose for the hat. The re-up does the right thing on purpose — a yes before the draw stays loose, a yes after the start lands on the thinnest squad — so season two is consistent and season one is not. Nobody has reported it because most first-season rosters are code-joins. Lane: Gameplay · size: small · first question: should `_late_squad` read `leagues.phase = 'season'` (the fix is one predicate in one helper, both doors), or is placing an invitee at once a feature the Pro relies on?
+
+
+### 2026-09-22 · The round's "counts in" preview does not read the re-up record
+
+`round_detail` (20261001090000, "what a round is worth") lists the leagues a round counts in with `suspended_at is null and left_at is null` and no `agreed_seasons` predicate, so a member who has not said yes to season two sees the league in the preview while the lens (correctly) scores nothing there. Display only; the standings are right. Left out of `20261115090000` because the function has been patched in place since and the anchor needs reading first. Lane: UX · size: small · first question: add the predicate in place (the D375 helper pattern), or fold it into the next round_detail change?
+
+
 ### 2026-09-21 · The sandbox harness runs on Postgres 16 with two lines
 
 `tests/sim/sandbox/apply.sh` (PR #6) hardcodes Homebrew's PG17 and the chain uses the PG17-only `MAINTAIN` privilege in one revoke (`20260904183000`). A remote session ran the full chain on Ubuntu's PG16 by setting `PGBIN` and filtering the word from the psql stream on revoke/grant lines only (two `sed -E` rules beside the extension filters). Worth folding into the harness as an env override so remote sessions can validate migrations without the Mac. Lane: Ops · size: small · first question: keep PG16 as a second supported sandbox, or install PG17 in the remote image?

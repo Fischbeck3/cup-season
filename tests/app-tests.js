@@ -1426,7 +1426,26 @@
        csCovenantFacts(today).some(f => f.k === 'starter')],
       [true, false, false]);
     t('D225: the fact ORDER is a value both clients hold',
-      CS_COVENANT_FACTS, ['who', 'length', 'rules', 'ending', 'stake', 'ledger', 'split', 'pay', 'starter']);
+      CS_COVENANT_FACTS, ['season', 'who', 'length', 'rules', 'ending', 'stake', 'ledger', 'split', 'pay', 'starter']);
+    /* D375 · season two is a re-up: the season is the first fact; the finish is the golfer's own (L-44) */
+    t('D375: a re-up covenant says the season first, with the golfer\'s own finish',
+      [csCovenantFacts({ ...today, season_number: 2, reup: true, last_season: { number: 1, my_rank: 3, of: 8, my_points: 41 } })[0],
+       F({ ...today, season_number: 2, reup: true }).season,
+       F({ ...today, season_number: 2, reup: true, last_season: { number: 1, my_rank: 1, of: 6, my_points: 1 } }).season,
+       F(today).season],
+      [{ k: 'season', t: 'Season 2. Last season you finished 3rd of 8 with 41 points.' },
+       'Season 2.',
+       'Season 2. Last season you finished 1st of 6 with 1 point.',
+       undefined]);
+    t('D375: the re-up frame — title, eyebrow, button — at $50 and at $0',
+      [csCovenantTitle({ ...today, season_number: 2, reup: true }), csCovenantEyebrow({ ...today, season_number: 2, reup: true }),
+       csCovenantButton({ ...today, season_number: 2, reup: true }), csCovenantButton({ ...today, buyin_cents: 0, season_number: 2, reup: true }),
+       csCovenantTitle(today), csCovenantButton(today), csCovenantButton({ ...today, buyin_cents: 0 })],
+      ['Season 2 of the Fellas', 'SAME RULES — EVERYTHING BEFORE YOU TAP', 'I’m in for season 2 — $50', 'I’m in for season 2',
+       'Before you join the Fellas', 'Join — I’m in for $50', 'Join the Fellas']);
+    t('D375: a first join to a league in its second season is not framed as a re-up',
+      [csCovenantTitle({ ...today, season_number: 2, reup: false }), F({ ...today, season_number: 2, reup: false }).season],
+      ['Before you join the Fellas', 'Season 2.']);
     /* R18 · the pay note is the ONE required field above $0 */
     t('R18: above $0 with no note the publish is blocked, and $0 never is',
       [typeof csPayNoteMissing, typeof csPayNote], ['function', 'function']);
@@ -1518,14 +1537,23 @@
     t('D243: the Pro runs it back', csRunItBackTitle(true, 'Galen'), 'Run it back');
     t('D243: a member asks, and the Pro is named', csRunItBackTitle(false, 'Galen'), 'Ask Galen to run it back');
     t('D243: with no name it is still a door', csRunItBackTitle(false, null), 'Ask the Pro to run it back');
-    t('D243: the Pro\'s sub promises the roster',
-      csRunItBackSub(true), 'Same rules, fresh table. Everyone carries over — anyone can step out from the rules page.');
-    t('D243: the outcome names the season and the crew',
-      csRunItBackDone(2, 6, false), 'Season 2 is on. 6 carried over. Anyone can step out from the rules page.');
-    t('L-12: a changed stake fires the covenant again, and says so',
-      csRunItBackDone(2, 6, true),
-      'Season 2 is on. 6 carried over. Anyone can step out from the rules page. The terms changed, so everyone reads them again.');
-    t('D375: one golfer carried over is said in the second person', csRunItBackDone(2, 1, false), 'Season 2 is on. You carried over.');
+    t('D375: the Pro\'s sub says what the tap does — it asks',
+      csRunItBackSub(true), 'Same rules, fresh table. Everyone gets the invitation again — the table fills as they say yes.');
+    t('D375: the outcome counts the invitations, never a roster',
+      [csRunItBackDone(2, 6), csRunItBackDone(2, 1), csRunItBackDone(2, 0), csRunItBackDone(2, undefined)],
+      ['Season 2 is on. 6 invitations are out — the table fills as they say yes.',
+       'Season 2 is on. One invitation is out — the table fills as they say yes.',
+       'Season 2 is on. You’re in — share the code and the rest follow.',
+       'Season 2 is on.']);
+    t('D375: the member\'s yes, the already-in line and the ask-again, one producer each',
+      [csReUpDone(2), csReUpDone(null), csAlreadyInLine(2), csAskedAgain('Mike'), csAskedAgain(null)],
+      ['You’re in for season 2. Same rules — the table starts fresh.',
+       'You’re in for the new season. Same rules — the table starts fresh.',
+       'You’re already in for season 2.',
+       'Mike is asked again — it rings on their phone.',
+       'They’re asked again — it rings on their phone.']);
+    t('D375: a re-up invitation says which season',
+      [csInviteTitle({ kind:'league', reup:true, season_number:2 }), csInviteTitle({ kind:'league' })], ['Season 2 invite', 'League invite']);
     t('D376: the ruling toast says the delta and the new total',
       [csRulingDone('Mike', -3, 4), csRulingDone('Mike', 1, null)],
       ['Ruled — Mike −3 points. Now 4. It’s on the board.', 'Ruled — Mike +1 point. It’s on the board.']);
