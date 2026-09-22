@@ -755,4 +755,25 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     cal.locale = Locale(identifier: "en_US")
     #expect(ClaimDoor.line(info, calendar: cal) == "Chuck — 84 at Papago, Sat, Jul 25. Enter your email to keep it.")
   }
+
+  /// D374 · a link from a round nobody finished says so, on both doors; a round
+  /// not yet teed off keeps the pencil. The sentences are the web's, verbatim.
+  @Test func claimDoorSaysTheTrueThingBeforeItAsksForACard() {
+    func state(_ status: String) -> JSONValue { .object(["round": .object(["status": .string(status)])]) }
+    // the signed-out door
+    #expect(ClaimDoor.gate(state("abandoned")) == .unfinished(ClaimDoor.unfinishedLine))
+    #expect(ClaimDoor.gate(state("setup")) == .notStarted(ClaimDoor.notStartedLine))
+    #expect(ClaimDoor.gate(state("live")) == nil)
+    #expect(ClaimDoor.gate(state("final")) == nil)
+    // a token that is not a guest seat: the RPC raises, the door decides as before
+    #expect(ClaimDoor.gate(nil) == nil)
+    // the signed-in claim, before claim_round
+    #expect(ClaimFlow.gate(state("abandoned")) == .unfinished(toast: ClaimDoor.unfinishedLine))
+    #expect(ClaimFlow.gate(state("setup")) == .notStarted(toast: ClaimDoor.notStartedLine))
+    #expect(ClaimFlow.gate(state("final")) == nil)
+    #expect(ClaimFlow.Outcome.unfinished(toast: "x").toast == "x")
+    // the words, pinned against the web's CS_CLAIM_UNFINISHED / CS_CLAIM_NOT_STARTED
+    #expect(ClaimDoor.unfinishedLine == "This round was never finished, so there’s no card to keep. Whoever ran it can tee off again and send your link from the new round.")
+    #expect(ClaimDoor.notStartedLine == "That round hasn’t teed off yet — your card lands here when it finishes.")
+  }
 }

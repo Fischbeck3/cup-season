@@ -186,16 +186,18 @@ struct GuestPencilScreen: View {
   private func enter() async {
     store.toasts = toast
     ClaimIntent.store(token.uuidString)
-    if let d = try? await store.repo.guestState(token), d["round"]?["status"]?.string == "live",
+    // D374 · one read of the round's state serves both the pencil and the door
+    let seen: JSONValue? = try? await store.repo.guestState(token)
+    if let d = seen, d["round"]?["status"]?.string == "live",
        store.enterGuest(d, token: token, signedIn: false) {
       face = .pencil
       return
     }
-    await loadDoor()
+    await loadDoor(state: seen)
   }
 
-  private func loadDoor() async {
-    face = .door(await ClaimDoor.load(token: token))
+  private func loadDoor(state: JSONValue? = nil) async {
+    face = .door(await ClaimDoor.load(token: token, state: state))
   }
 
   private func door(_ d: ClaimDoor) -> some View {
@@ -213,6 +215,16 @@ struct GuestPencilScreen: View {
           .buttonStyle(.csSecondary())
       case .dead(let line):
         Text(line).csType(.body).foregroundStyle(cs.neg)
+        Button("Sign in") { onDoor() }
+          .buttonStyle(.csSecondary())
+      case .unfinished(let line):
+        // D374 · the true sentence, said once; the token is already gone
+        Text(line).csType(.body).foregroundStyle(cs.neg)
+        Button("Sign in") { onDoor() }
+          .buttonStyle(.csSecondary())
+      case .notStarted(let line):
+        // D374 · not an error: the pencil is kept for when they tee off
+        Text(line).csType(.body).foregroundStyle(cs.ink)
         Button("Sign in") { onDoor() }
           .buttonStyle(.csSecondary())
       }
