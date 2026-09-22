@@ -31,6 +31,11 @@ sorting.
 ---
 
 
+### 2026-09-22 · The nine days to Oct 1, sequenced after the merge; the Mac session's prompt now lives in the repo
+
+PR #6 and PR #7 merged this morning (`main` = `1e79279`; PR #5 closed as subsumed); preflight and the five unit files pass on the tip; the six migrations are recorded in production (252). The previous session wrote the execution prompt for the local Mac session outside the repository and it went with the sandbox, so it is rewritten from the tree as `docs/planning/2026-09-22-claude-october-launch-prompt.md`, beside the execution view `docs/planning/2026-09-22-october-launch-execution.md` (what is verifiably done, what is owed by day, the gates, the risks). Verified absent by grep, and owed on the Mac: every Swift half of D373–D378 (no caller of `Rpc.adjustPoints`, no unfinished-link face, no re-up copy), a build from the merged tip (934 is pre-merge), the two-phone checklist. Also owed: Codex's `20261111` then the `courses` redeploy, the review-notes re-point to a running season, the Support URL, counsel, the handles, the screenshots. Lane: Growth/Launch · size: the week · first question: does the first Owner build go up today from the web halves alone (device proof a day earlier, two archives) or wait for the Swift halves (one archive)? The plan assumes the former.
+
+
 ### 2026-09-22 · The re-up carries the bylaws locked; §14.5 says unlocked
 
 D375 is built (`20261115090000`): season two asks everyone again and records the yes. What it does not do is re-open the bylaws — `run_it_back` carries the terms locked (D243) and the run-it-back sheet on both clients sends no stake and no length, though the RPC already takes both (`p_buyin_cents`, `p_season_months`, `p_pay_note`). Spec §14.5 says *bylaws carry forward unlocked*. Two sizes: small — the sheet offers stake, length and pay note (the RPC's own three, `stake_moved` / `length_moved` already come back and the board line already says "The stake changed"); large — a real re-open of preset, cap, floor, finish and structure, which is the wizard again and a second `lock_league` door. Lane: Gameplay · size: small first · first question: does a Pro who runs it back ever want to change more than the stake and the length, or is that a new league?
