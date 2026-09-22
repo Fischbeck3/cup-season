@@ -79,6 +79,11 @@ jobs:
       - name: courses and share consent
         run: node --experimental-strip-types --test tests/courses-normalize.test.mjs tests/course-provider.test.mjs tests/share-consent-flow.test.mjs
 
+      # W6 · the weekly growth report's acquisition half: missing stays missing,
+      # the store count is never summed with TestFlight or web, no forecast.
+      - name: growth report
+        run: node --test tests/growth-report.test.mjs
+
       # Run the REAL Netlify build command. stamp-version.sh fails hard on a
       # surviving __CS_VERSION__ placeholder, on an empty shell, and on any
       # allowlisted asset missing from the repo — so a broken deploy is caught
