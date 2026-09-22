@@ -89,10 +89,14 @@ public enum HomeFallbackItems {
       else { continue }
       let who = inv["inviter"]?.string.flatMap { $0.isEmpty ? nil : CSBands.fn1($0) }
       let kind = inv["kind"]?.string
+      // D375 · a re-up says which season it is for (twin of the server's own
+      // home_dispatch item and the desk's csInviteTitle)
+      let reupSeason: Int? = (kind == "league" && inv["reup"]?.bool == true) ? inv["season_number"]?.int.flatMap { $0 > 1 ? $0 : nil } : nil
       out.append(.init(key: "invite:\(id)", tier: .closing,
                        subject: who, humanSubject: who != nil,
-                       eyebrow: "AN INVITATION",
-                       headline: "\(who ?? "A golfer") put you on \(inv["container_name"]?.string ?? "a season").",
+                       eyebrow: reupSeason.map { "SEASON \($0) INVITE" } ?? "AN INVITATION",
+                       headline: reupSeason.map { ReUpCopy.reUpLine(seasonNumber: $0, name: inv["container_name"]?.string ?? "your league") }
+                                 ?? "\(who ?? "A golfer") put you on \(inv["container_name"]?.string ?? "a season").",
                        standfirst: "See the terms before you are in.",
                        action: "See the terms",
                        route: .invite(container, kind: kind),

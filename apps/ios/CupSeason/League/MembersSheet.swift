@@ -23,7 +23,9 @@ struct MembersSheet: View {
 
   var body: some View {
     let n = model.members.count
-    SheetFrame("The roster", sub: "\(LeagueCopy.players(n)) · CODE \(model.league?.code ?? "—")") {
+    // D375 · in a second season the eyebrow counts the yeses on record
+    let inFor = model.seasonNumber > 1 ? " · \(ReUpCopy.inForLine(count: model.yesCount, seasonNumber: model.seasonNumber))" : ""
+    SheetFrame("The roster", sub: "\(LeagueCopy.players(n))\(inFor) · CODE \(model.league?.code ?? "—")") {
       VStack(spacing: 0) {
         ForEach(model.members) { m in memberRow(m) }
       }
@@ -54,7 +56,8 @@ struct MembersSheet: View {
     let isMe = m.id == model.myMember?.id
     let sub = [m.profile?.handle.map { "@\($0)" },
                m.profile?.index_current.map { "NUMBER \(CSCopy.index($0))" },   // LV-19
-               model.squadName(m.id).isEmpty ? nil : model.squadName(m.id).uppercased()].compactMap { $0 }.joined(separator: " · ")
+               model.squadName(m.id).isEmpty ? nil : model.squadName(m.id).uppercased(),
+               model.inFor(m) ? nil : ReUpCopy.notInYet].compactMap { $0 }.joined(separator: " · ")   // D375
     return VStack(alignment: .leading, spacing: 0) {
       // face + name across; "Marker here" drops under them at the accessibility sizes
       A11yStack(spacing: 12, columnSpacing: 6) {
@@ -85,20 +88,28 @@ struct MembersSheet: View {
           // LV-19 · ONE label for one act. This sheet said "Set index" here and
           // "Set the index" on the sheet it opens.
           RoomMini("Set the starter") { setIndexFor = m }
-          // D376 · the ruling sits beside the bye: both write the ledger with a
-          // reason and post to the board. The desk's button is "Ruling".
-          if model.season != nil { RoomMini("Ruling") { rulingFor = m } }
           if model.league?.phase == "setup" {
             ArmedMini("Remove", armedLabel: "Sure? Remove", busy: busy == m.id, onArm: { reason = $0 ? (m.id, removeWhy) : nil }) {
               run(m.id) { try await model.removeMember(m.id); toast.show("Removed. The board knows.", kind: .confirmed); dismiss() }
             }
             .accessibilityHint(removeWhy)
+          } else if !model.inFor(m) {
+            // D375 · no yes on record for this season: the Pro can ask again —
+            // the same invitation, re-dated, rings again (the desk's data-msask)
+            RoomMini("Ask again") {
+              let first = m.profile?.display_name?.split(separator: " ").first.map(String.init)
+              run(m.id) { try await model.askAgain(m); toast.show(ReUpCopy.askedAgain(firstName: first), kind: .confirmed) }
+            }
+            .accessibilityHint("Sends the season invitation again")
           } else {
             let mon = LeagueDates.monthLong(model.clock.today)
             ArmedMini("Grant a bye", armedLabel: "Sure? Bye for \(String(mon.prefix(3)))", busy: busy == m.id, onArm: { reason = $0 ? (m.id, byeWhy) : nil }) {
               run(m.id) { try await model.setMemberBye(member: m.id, month: LeagueDates.firstOfMonth(model.clock.today)); toast.show("Bye granted — posted to the board", kind: .confirmed); dismiss() }
             }
             .accessibilityHint(byeWhy)
+            // D376 · the ruling sits beside the bye: both write the ledger with a
+            // reason and post to the board. The desk's button is "Ruling".
+            if model.season != nil { RoomMini("Ruling") { rulingFor = m } }
           }
           ArmedMini("Make Pro", armedLabel: "Sure? Hand it off", busy: busy == m.id, onArm: { reason = $0 ? (m.id, proWhy) : nil }) {
             // the web reloads here (16995): a role change reshapes the whole room

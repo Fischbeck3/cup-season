@@ -55,19 +55,22 @@ public struct RunItBackResult: Decodable, Sendable, Equatable {
   public let season: Season?
   public let seated: Int?
   public let invited: Int?
+  /// D375 · how many invitations the tap sent (`asked`); `agreed` is the yeses
+  /// on record. Both nil on a server before 20261115090000.
+  public let asked: Int?
+  public let agreed: Int?
   public let covenant_refires: Bool?
   public let stake_moved: Bool?
   public let length_moved: Bool?
 
-  /// The sentence the golfer reads, produced once.
+  /// The sentence the golfer reads, produced once — the desk's
+  /// `csRunItBackDone`. D375 · the tap ASKS; it never claims a roster ("N of
+  /// you are on it" retired with the carried-over count). A server that said
+  /// `invited` but not `asked` (the re-emit before the rename) gets that count;
+  /// one that said neither gets the one clause true on any server.
   public var line: String {
     if already_running == true { return "This season is already open." }
-    guard let seated else {
-      let started = season?.number.map { "Season \($0) is on." } ?? "The next season is on."
-      return covenant_refires == true ? started + " The terms changed, so everyone reads them again." : started
-    }
-    return RunItBack.done(seasonNumber: season?.number, seated: seated,
-                   covenantRefires: covenant_refires ?? false)
+    return ReUpCopy.runItBackDone(seasonNumber: season?.number, asked: asked ?? invited)
   }
 }
 

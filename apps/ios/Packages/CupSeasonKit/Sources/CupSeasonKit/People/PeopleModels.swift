@@ -119,17 +119,22 @@ public struct Invite: Identifiable, Sendable, Equatable {
   public let eventKind: String?
   /// D356 · the event's stake in dollars, as stored; nil when not said.
   public let buyIn: Double?
+  /// D375 · which season a league invitation is for, and whether the golfer is
+  /// already a member being asked again (a re-up). nil on an older server.
+  public let seasonNumber: Int?
+  public let reup: Bool?
 
   public init(id: UUID, kind: String, containerId: UUID?, containerName: String, inviter: String, startsOn: String?,
-              eventKind: String? = nil, buyIn: Double? = nil) {
+              eventKind: String? = nil, buyIn: Double? = nil, seasonNumber: Int? = nil, reup: Bool? = nil) {
     self.id = id; self.kind = kind; self.containerId = containerId; self.containerName = containerName; self.inviter = inviter; self.startsOn = startsOn
-    self.eventKind = eventKind; self.buyIn = buyIn
+    self.eventKind = eventKind; self.buyIn = buyIn; self.seasonNumber = seasonNumber; self.reup = reup
   }
 
   public init?(_ r: Rpc.my_invites.Row) {
     guard let id = r.id else { return nil }
     self.init(id: id, kind: r.kind ?? "league", containerId: r.container_id, containerName: r.container_name ?? "",
-              inviter: r.inviter ?? "a golfer", startsOn: r.starts_on)
+              inviter: r.inviter ?? "a golfer", startsOn: r.starts_on, eventKind: r.event_kind, buyIn: r.buy_in,
+              seasonNumber: r.season_number, reup: r.reup)
   }
 
   /// D356 · the extended row (20261031090000), hand-declared until the
@@ -137,23 +142,27 @@ public struct Invite: Identifiable, Sendable, Equatable {
   public init?(_ r: InviteRow) {
     guard let id = r.id else { return nil }
     self.init(id: id, kind: r.kind ?? "league", containerId: r.container_id, containerName: r.container_name ?? "",
-              inviter: r.inviter ?? "a golfer", startsOn: r.starts_on, eventKind: r.event_kind, buyIn: r.buy_in)
+              inviter: r.inviter ?? "a golfer", startsOn: r.starts_on, eventKind: r.event_kind, buyIn: r.buy_in,
+              seasonNumber: r.season_number, reup: r.reup)
   }
 
   public var isLeague: Bool { kind == "league" }
   public var isMajor: Bool { eventKind == "major" }
-  /// "League invite" / "Ryder invite" / "Major invite" — and, for one the
-  /// server has not named, just "Invite" rather than a guess.
+  /// D375 · a re-up: a member asked again for season N (N > 1).
+  public var isReUp: Bool { isLeague && reup == true && (seasonNumber ?? 0) > 1 }
+  /// "League invite" / "Season 2 invite" / "Ryder invite" / "Major invite" —
+  /// and, for one the server has not named, just "Invite" rather than a guess.
   public var title: String {
-    if isLeague { return "League invite" }
+    if isLeague { return ReUpCopy.inviteTitle(reup: reup, seasonNumber: seasonNumber) }
     switch eventKind {
     case "major": return "Major invite"
     case "ryder": return "Ryder invite"
     default: return "Invite"
     }
   }
-  /// "from X · first tee YYYY-MM-DD"
+  /// "from X · first tee YYYY-MM-DD"; a re-up says what it is instead.
   public var subline: String {
+    if isReUp, let n = seasonNumber { return ReUpCopy.reUpLine(seasonNumber: n, name: containerName) }
     var s = "from \(inviter)"
     if !isLeague, let d = startsOn { s += " · first tee \(d)" }
     return s
@@ -206,10 +215,14 @@ public struct InviteRow: Decodable, Sendable {
   public let created_at: Date?
   public let event_kind: String?
   public let buy_in: Double?
+  /// D375 · `season_number` and `reup` (20261115090000); nil on an older server.
+  public let season_number: Int?
+  public let reup: Bool?
   public init(id: UUID?, kind: String?, container_id: UUID?, container_name: String?, inviter: String?, starts_on: String?,
-              created_at: Date? = nil, event_kind: String? = nil, buy_in: Double? = nil) {
+              created_at: Date? = nil, event_kind: String? = nil, buy_in: Double? = nil, season_number: Int? = nil, reup: Bool? = nil) {
     self.id = id; self.kind = kind; self.container_id = container_id; self.container_name = container_name
     self.inviter = inviter; self.starts_on = starts_on; self.created_at = created_at; self.event_kind = event_kind; self.buy_in = buy_in
+    self.season_number = season_number; self.reup = reup
   }
 }
 struct MyInvitesCall: RpcCall {

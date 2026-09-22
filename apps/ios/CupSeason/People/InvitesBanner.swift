@@ -210,13 +210,16 @@ final class InviteBannerModel {
   @discardableResult
   func respond(_ i: Invite, accept: Bool, store: SessionStore) async -> Bool? {
     busy.insert(i.id); defer { busy.remove(i.id) }
+    // D375 · a re-up's yes lands on a league already on my memberships — the
+    // toast says what the yes was for, in the desk's words (csReUpDone)
+    let wasIn = Self.landed(i, in: store.me)
     do {
       try await people.respondInvite(i.id, accept: accept)
       await count.load()
       if !accept { toasts.show(InviteCopy.declined); return true }
       await store.reload()
       let landed = Self.landed(i, in: store.me)
-      if landed { toasts.show(InviteCopy.joined); CSHaptic.success() }
+      if landed { toasts.show(i.isReUp && wasIn ? ReUpCopy.reUpDone(seasonNumber: i.seasonNumber) : InviteCopy.joined); CSHaptic.success() }
       else { toasts.show(JoinService.invitationAnswered) }
       return landed
     } catch { toasts.show(HumanError.text(error), kind: .failed); return nil }

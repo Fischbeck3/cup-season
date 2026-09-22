@@ -150,22 +150,35 @@ struct CovenantSheet: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        CSSheetHeader(title: covenant.head, sub: "EVERYTHING BEFORE YOU TAP")
-        // WHO comes before the money. The order is the producer's, not this
-        // file's — `Covenant.facts` decides it, and a fact with no read is
-        // simply not in the list (L-44).
-        ForEach(covenant.facts(postedRounds: postedRounds), id: \.0) { fact, line in
-          Text(line)
-            .font(fact == .who ? CSFont.sentenceBold : CSFont.sentence)
-            .foregroundStyle(fact == .stake ? cs.gold : cs.ink)
+        // D375 · the frame says whether this is a first join or a re-up to
+        // season N (`Covenant.head` / `.eyebrow`, twins of the desk's)
+        CSSheetHeader(title: covenant.head, sub: covenant.eyebrow)
+        if covenant.agreed == true {
+          // D375 · the yes is already on record: say so, and offer no join
+          Text(covenant.alreadyInLine)
+            .font(CSFont.sentenceBold).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityLabel(line)
+          Button("Close") { onNo() }
+            .buttonStyle(.csSecondary()).padding(.top, 8)
+        } else {
+          // WHO comes before the money — and for a re-up, the season comes
+          // before who. The order is the producer's, not this file's —
+          // `Covenant.facts` decides it, and a fact with no read is simply
+          // not in the list (L-44).
+          ForEach(covenant.facts(postedRounds: postedRounds), id: \.0) { fact, line in
+            Text(line)
+              .font(fact == .who || fact == .season ? CSFont.sentenceBold : CSFont.sentence)
+              .foregroundStyle(fact == .stake ? cs.gold : cs.ink)
+              .fixedSize(horizontal: false, vertical: true)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .accessibilityLabel(line)
+          }
+          Button(covenant.joinLabel) { onJoin() }
+            .buttonStyle(.csPrimary()).padding(.top, 8)
+          Button(Covenant.notNow) { onNo() }
+            .buttonStyle(.csSecondary())
         }
-        Button(covenant.joinLabel) { onJoin() }
-          .buttonStyle(.csPrimary()).padding(.top, 8)
-        Button(Covenant.notNow) { onNo() }
-          .buttonStyle(.csSecondary())
       }
       .padding(20)
     }

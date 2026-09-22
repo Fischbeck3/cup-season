@@ -550,9 +550,9 @@ public enum RunItBack {
   /// the one thing the old card could not promise. The member's says what their
   /// tap actually does, and it does not promise a season.
   public static func sub(isPro: Bool) -> String {
-    isPro
-      ? "Same crew, same rules, fresh table. Nobody re-types a code."
-      : "One line on the board, once. They decide when."
+    // D375 · the Pro's tap sends the invitation again; the sub never claims a
+    // roster the server has not got (twin of the desk's run-it-back sub)
+    isPro ? ReUpCopy.proSub : "One line on the board, once. They decide when."
   }
 
   /// L-20 · ONE ask, once per member per season. The key is per league so a
@@ -571,15 +571,9 @@ public enum RunItBack {
   public static let askSent = "Asked. It's on the board."
   public static let askAlready = "You've already asked. It's on the board."
 
-  /// The Pro's outcome, in the golfer's units. `invited` is only ever named
-  /// when the covenant actually re-fired — a count of zero says nothing.
-  public static func done(seasonNumber: Int?, seated: Int, covenantRefires: Bool) -> String {
-    let n = seasonNumber.map { "Season \($0)" } ?? "The next season"
-    let crew = seated == 1 ? "You're on it." : "\(seated) of you are on it."
-    return covenantRefires
-      ? "\(n) is on. \(crew) The terms changed, so everyone reads them again."
-      : "\(n) is on. \(crew)"
-  }
+  // D375 · `done(seasonNumber:seated:covenantRefires:)` retired: it claimed a
+  // roster ("N of you are on it") the re-up never seats. `RunItBackResult.line`
+  // now reads `asked` through `ReUpCopy.runItBackDone`.
 
   /// The three-valued answer this build's unpushed reads all use.
   ///

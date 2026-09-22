@@ -364,8 +364,10 @@ public final class LeagueRoomModel {
   private func loadMembers() async throws -> [LeagueRoom.Member] {
     let db = svc.client
     do {
+      // D375 · `agreed_seasons` rides the first select; the legacy select below
+      // is the skew retry for a database that does not carry the column yet
       return try await db.from("league_members")
-        .select("id, role, profile_id, joined_at, marker, profile:profiles(display_name, marker, index_current, handle, photo_path)")
+        .select("id, role, profile_id, joined_at, marker, agreed_seasons, profile:profiles(display_name, marker, index_current, handle, photo_path)")
         .eq("league_id", value: leagueId).execute().value
     } catch {
       return try await db.from("league_members")
@@ -548,6 +550,22 @@ public final class LeagueRoomModel {
   public func setMemberIndex(member: UUID, index: Double) async throws {
     _ = try await svc.call(Rpc.set_member_index(p_member: member, p_index: index))
     await refresh()
+  }
+
+  // MARK: - D375 · season two is a re-up
+
+  /// The open season's number; 0 when there is none.
+  public var seasonNumber: Int { season?.number ?? 0 }
+  /// Whether this member's yes to THIS season is on record (the desk's `inFor`).
+  public func inFor(_ m: LeagueRoom.Member) -> Bool { ReUpCopy.inFor(agreedSeasons: m.agreed_seasons, seasonNumber: seasonNumber) }
+  /// The yeses counted out of the roster.
+  public var yesCount: Int { members.filter(inFor).count }
+  /// The Pro's ask-again: the same invitation, re-dated, rings again
+  /// (`invite_golfer` on the league; D104's no-re-ping rule guards the picker's
+  /// double tap, not this tap).
+  public func askAgain(_ m: LeagueRoom.Member) async throws {
+    guard let league = league?.id else { return }
+    _ = try await svc.call(InviteGolferCall(p_league: league, p_event: nil, p_profile: m.profile_id))
   }
 
   public func setMemberBye(member: UUID, month: String) async throws {

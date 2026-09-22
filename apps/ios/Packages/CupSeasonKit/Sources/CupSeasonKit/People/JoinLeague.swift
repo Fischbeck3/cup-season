@@ -109,6 +109,20 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   public let everyRoundCounts: Bool?
   /// D353 · the last day of the season, when the payload carries it.
   public let endsOn: String?
+  /// D375 · which season this yes is for; whether the golfer is a member
+  /// being asked again (a re-up); whether the yes is already on record; and
+  /// their own finish last season when the server could compute it (L-44).
+  public let seasonNumber: Int?
+  public let reup: Bool?
+  public let agreed: Bool?
+  public let lastSeason: LastSeason?
+
+  public struct LastSeason: Sendable, Equatable {
+    public let myRank: Int?
+    public let of: Int?
+    public let myPoints: Double?
+    public init(myRank: Int?, of: Int?, myPoints: Double?) { self.myRank = myRank; self.of = of; self.myPoints = myPoints }
+  }
 
   public struct Split: Sendable, Equatable {
     public let champion: Int
@@ -123,12 +137,14 @@ public struct Covenant: Sendable, Equatable, Identifiable {
               proName: String? = nil, rosterCount: Int? = nil, rosterNames: [String] = [],
               startsOn: String? = nil, weeks: Int? = nil, countingCap: Int? = nil,
               split: Split? = nil, hasPayNote: Bool? = nil, buyInDueOn: String? = nil, phase: String? = nil,
-              handicapAllowance: Int? = nil, everyRoundCounts: Bool? = nil, endsOn: String? = nil) {
+              handicapAllowance: Int? = nil, everyRoundCounts: Bool? = nil, endsOn: String? = nil,
+              seasonNumber: Int? = nil, reup: Bool? = nil, agreed: Bool? = nil, lastSeason: LastSeason? = nil) {
     self.name = name; self.buyinCents = buyinCents; self.preset = preset; self.floor = floor; self.finish = finish
     self.proName = proName; self.rosterCount = rosterCount; self.rosterNames = rosterNames
     self.startsOn = startsOn; self.weeks = weeks; self.countingCap = countingCap
     self.split = split; self.hasPayNote = hasPayNote; self.buyInDueOn = buyInDueOn; self.phase = phase
     self.handicapAllowance = handicapAllowance; self.everyRoundCounts = everyRoundCounts; self.endsOn = endsOn
+    self.seasonNumber = seasonNumber; self.reup = reup; self.agreed = agreed; self.lastSeason = lastSeason
   }
 
   public init?(_ v: JSONValue) {
@@ -155,7 +171,14 @@ public struct Covenant: Sendable, Equatable, Identifiable {
               phase: v["phase"]?.string,
               handicapAllowance: v["handicap_allowance"]?.int,
               everyRoundCounts: v["every_round_counts"]?.bool,
-              endsOn: v["ends_on"]?.string)
+              endsOn: v["ends_on"]?.string,
+              seasonNumber: v["season_number"]?.int,
+              reup: v["reup"]?.bool,
+              agreed: v["agreed"]?.bool,
+              lastSeason: v["last_season"].flatMap { ls in
+                guard case .object = ls else { return nil }
+                return LastSeason(myRank: ls["my_rank"]?.int, of: ls["of"]?.int, myPoints: ls["my_points"]?.double)
+              })
   }
 
   /// `Math.round(buyin_cents/100)`
@@ -267,7 +290,32 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   public var potLine: String? { paid ? MoneyCopy.ledger : nil }
 
   /// The button. At $0 it names the season rather than a number.
-  public var joinLabel: String { paid ? "Join — I’m in for $\(usd)" : "Join \(name)" }
+  /// `csCovenantButton`: a re-up says which season the yes is for.
+  public var joinLabel: String {
+    if isReUp, let n = seasonNumber { return paid ? "I’m in for season \(n) — $\(usd)" : "I’m in for season \(n)" }
+    return paid ? "Join — I’m in for $\(usd)" : "Join \(name)"
+  }
+
+  // MARK: - D375 · the re-up frame (twins of csCovenantIsReUp / Title / Eyebrow)
+
+  public var isReUp: Bool { reup == true && (seasonNumber ?? 0) > 1 }
+  /// `csCovenantEyebrow`
+  public var eyebrow: String { isReUp ? "SAME RULES — EVERYTHING BEFORE YOU TAP" : "EVERYTHING BEFORE YOU TAP" }
+  /// The stop when the yes is already on record — the sheet shows this and no join.
+  public var alreadyInLine: String { ReUpCopy.alreadyIn(seasonNumber: seasonNumber) }
+  /// 0 · which season this yes is for, said first when it is not the first;
+  /// the golfer's own finish last season renders only when the server could
+  /// compute it (L-44). Twin of the desk's `csCovenantFacts` season fact.
+  public var seasonLine: String? {
+    guard let n = seasonNumber, n > 1 else { return nil }
+    var t = "Season \(n)."
+    if let ls = lastSeason, let rank = ls.myRank, rank > 0, let of = ls.of, of > 0 {
+      t += " Last season you finished \(CSCopy.ordinal(rank)) of \(of)"
+      if let p = ls.myPoints { t += " with \(CSCopy.points(p)) point\(p == 1 ? "" : "s")" }
+      t += "."
+    }
+    return t
+  }
   public static let notNow = "Not now"
 
   /// The starter clause, above $0 AND below it, whenever the joiner has fewer
@@ -293,13 +341,15 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// The head, and the order the screen draws the facts in. WHO comes before the
   /// money, and that order is a value rather than the way a View happens to be
   /// written.
-  public var head: String { "Before you join \(name)" }
-  public enum Fact: String, Sendable, Equatable, CaseIterable { case who, length, rules, ending, stake, ledger, split, pay, starter }
+  /// `csCovenantTitle`: "Season 2 of the Fellas" for a re-up, else the first-join head.
+  public var head: String { isReUp && seasonNumber != nil ? "Season \(seasonNumber!) of \(name)" : "Before you join \(name)" }
+  public enum Fact: String, Sendable, Equatable, CaseIterable { case season, who, length, rules, ending, stake, ledger, split, pay, starter }
   /// Every fact this covenant can actually say, in order. A fact with no read is
   /// simply not in the list (L-44) — which is what makes "absent facts render
   /// nothing" a test rather than a promise.
   public func facts(postedRounds: Int? = nil) -> [(Fact, String)] {
     var out: [(Fact, String)] = []
+    if let s = seasonLine { out.append((.season, s)) }
     if let s = whoLine    { out.append((.who, s)) }
     if let s = lengthLine { out.append((.length, s)) }
     if let s = rulesLine  { out.append((.rules, s)) }
