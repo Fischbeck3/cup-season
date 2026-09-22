@@ -12,8 +12,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <script>
-  /* the pre-paint theme read index.html makes: cs_theme wins, then the OS */
-  try { var t = localStorage.getItem('cs_theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  /* Match the app: dark for a new visitor; only an explicit auto follows OS. */
+  var t = 'dark';
+  try { var saved = localStorage.getItem('cs_theme'); if (['light', 'dark', 'auto'].includes(saved)) t = saved; } catch (e) {}
+  document.documentElement.dataset.theme = t;
 </script>
 <style>
   /* the palette is packages/tokens/tokens.json (D270 over D103a over D76), the
@@ -54,7 +56,7 @@
   h1{font-family:var(--board); font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); font-weight:600; margin:0 0 var(--s2);}
   .lede{font-family:var(--serif); font-weight:700; font-size:28px; line-height:1.14; letter-spacing:-.005em; margin:0 0 var(--s5);}
   nav{display:flex; gap:0 var(--s4); flex-wrap:wrap; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; margin:0 0 var(--s5); padding-bottom:var(--s3); border-bottom:var(--hair) solid var(--rule);}
-  nav a{text-decoration:none; color:var(--mut); padding:12px 0; line-height:1.2;} nav a:hover{color:var(--ink);}
+  nav a{display:flex; align-items:center; min-height:44px; text-decoration:none; color:var(--mut); padding:12px 0; line-height:1.2;} nav a:hover{color:var(--ink);}
   section{background:var(--bg1); border-radius:var(--r); padding:var(--s4); margin-bottom:var(--s4); scroll-margin-top:var(--s4);}
   h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s1);}
   h3{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:var(--s4) 0 var(--s2);}
