@@ -15,8 +15,12 @@ counts them. TestFlight installs never count; web sign-ups never count; the
 count is zero until Apple approves. Every acquisition assumption in the plan
 is labelled unverified and stays so until App Analytics has two weeks of data.
 The rounds and the repeat groups are measured by cohort every week, and the
-stop conditions pause outreach whatever the count reads. Nothing in this
-session re-decides a ruling.
+stop conditions pause outreach whatever the count reads. The owner keeps a
+weekly acquisition pipeline (prospects contacted, organizers activated, groups
+playing, first-time downloads by channel; plan §4A) and reviews it against the
+October 31 checkpoint by October 15 — you carry its four totals into the
+weekly report; you never run the outreach. Nothing in this session re-decides
+a ruling.
 
 READ FIRST, IN THIS ORDER, BEFORE TOUCHING ANYTHING
 1. CLAUDE.md — the protocol, the deploy discipline, the landmines. Rule 2 (the
@@ -60,8 +64,12 @@ MISSING EVIDENCE (could not read it; state unknown).
 - `git status`, `git log --oneline -5` on the new branch — at or after
   1e79279, clean tree.
 - `./tools/ship.sh --dry-run` — all three layers. Report whether Codex's
-  20261111090000_course_cache_atomic.sql is in the tree and, from the
-  database line, whether production carries it.
+  20261111090000_course_cache_atomic.sql is in the tree. It cannot tell you
+  whether production carries it: deploy-status subtracts the ledger from the
+  local files, so a version applied remotely with no local file reads as
+  clean. Read the ledger itself — `supabase migration list --linked`, the
+  Remote column — and report 20261111090000 as APPLIED or UNAPPLIED from that
+  read alone.
 - `node tests/preflight.mjs` — 0 failures, 0 warnings, or stop and say why.
 - The live stamp: `curl -s https://cupseason.app/ | grep -o 'v23 · [0-9a-f]*'`
   — expected 1e79279. An older SHA means Netlify has not built the merge; say
@@ -69,20 +77,37 @@ MISSING EVIDENCE (could not read it; state unknown).
 - App Store Connect, READ, not remembered: the latest builds by upload date
   and what the Owner group and the Friends group each hold today. The record
   names 934 (Owner, pre-merge, 09-16) and 795 (Friends); anything uploaded
-  since is not in the record. `tools/asc.py status <build>` reads one build;
+  since is not in the record, and this morning's merge proves nothing about
+  what was archived after it — a build from the merged tip may already exist.
+  `tools/asc.py status <build>` reads one build;
   if it cannot list builds and groups, add a `latest` command to it as a small
   tooling commit (no secrets, the same keychain items) and use that. Do not
   add a build to a group or submit anything in this step.
 - `grep -rn "adjustPoints\|CS_CLAIM_UNFINISHED\|Ask again" apps/ios --include=*.swift`
   — the phone halves: read from the tree, not from the plan.
+- The two-phone checklist: look for results — a filled row in
+  docs/pilot/owner-checks.md, a scorecard or session-log note, anything the
+  owner says. The record reads NOT RUN as of 09-16. Until results are located
+  or the owner runs it, it is MISSING EVIDENCE, never "never run".
 - `ls .well-known/ ; grep -n well-known netlify.toml stamp-version.sh` — the
   universal-links file is served; whether a reopened link lands in the app is
   MISSING EVIDENCE until a device says so (W3).
 
 THE WORK, IN THE PLAN'S §2 ORDER — one item at a time, verified, then the next
-A. 20261111, validated in the APPLIED order before it is pushed. It sorts
-   before four migrations production already carries (20261112–20261115), so
-   file order and applied order differ. (1) Read its body: if it patches in
+A. 20261111: the ledger first, then the order. (0) Read production's
+   migration ledger before anything else — `supabase migration list --linked`,
+   the Remote column (read-only; `select version from
+   supabase_migrations.schema_migrations order by version desc limit 12` says
+   the same). A clean deploy-status does not establish that the migration is
+   unapplied when the file is absent locally. If 20261111090000 is in the
+   ledger it is APPLIED: obtain the file from the Mac workspace exactly as it
+   was applied, place it in the tree under its own name, do not rename or edit
+   it (rule 2), validate that the chain still applies cleanly with it in file
+   order, and record in the handoff that the chain order and the applied order
+   differ — a fact, not a repair. The rest of this item applies only if the
+   ledger does not carry it. It sorts before four migrations production
+   already carries (20261112–20261115), so file order and applied order
+   differ. (1) Read its body: if it patches in
    place any function that 20261112–20261115 also patched (the
    pg_get_functiondef pattern), it must be rebased on the live text — say
    which functions, and rebase. (2) It has run nowhere but a sandbox, so
@@ -161,11 +186,32 @@ F. W2, the one round-sharing action, Fri 25 – Sun 27, after the owner rules
    that round and says yes on the share sheet; never another golfer's photo;
    the marker medallion stays (D59); a golfer whose findability is "nobody"
    is never on a card they did not share. Logged through log_growth_event.
+   Photo consent governs EVERY output, not only the card: the exported image;
+   the public share page (/?share=TOKEN, which draws shared/{token}.jpg as the
+   card's ground when share_info.photo is true); the link preview
+   (netlify/edge-functions/share-preview.ts, which sets og:image to the same
+   copy). Today none of them ask: PostService.shareLink reads
+   rounds.photo_path and uploads the copy to shared/{token}.jpg on its own;
+   the web's csShareLink uploads it when the listing finds none; create_share
+   re-returns the live token; share_info.photo is exists(copy). So a copy
+   uploaded once serves the page and the preview for as long as the token
+   lives. Build the consent half FIRST, whatever shape the action takes: the
+   yes or no is asked on the share sheet and carried into the mint on both
+   clients; NO means no upload, and on a reused token that already has a
+   copy, delete the copy (the storage policy lets the sharer delete their own
+   token's copy) or revoke and re-mint so a cached preview cannot keep serving
+   it; with the copy gone share_info.photo reads false, the page draws no
+   ground and the preview falls back to the brand image.
    Done when: the same artifact and the same sentence from one action on both
    clients (one producer per client, D297); a round without a photo shares the
-   card without one; declining the photo shares the card without it; the
-   share appears in v_growth_funnel; pins in tests/app-tests.js and the Kit.
-   Web half by Fri 27; phone half on the Mon 28 build.
+   card without one; declining the photo keeps it out of all three outputs —
+   the exported image, the public page, the preview — INCLUDING when the token
+   already existed with a copy (prove it: share_info for that token reads
+   photo false and the copy's URL answers 404); accepting puts it in all
+   three; a Kit test on shareLink with consent false and a copy present; a web
+   pin on the consent branch; the share appears in v_growth_funnel.
+   Consent half on both clients and the action's web half by Fri 27; the
+   action's phone half on the Mon 28 build.
 G. Fri 25 – Sun 27, alongside: whatever the checklist and Friends surfaced,
    narrowly; the CSP header flipped to enforcing ONLY if the Netlify deploy
    console shows a clean report (otherwise file what fired in spec/inbox.md
@@ -181,9 +227,16 @@ H. Mon 28 – Wed 30: the Monday build and the integrity re-run are the owner's;
    with a denominator on every number: cohort, assistance, activation (account
    → first posted round → second round; groups with a second game), sharing
    (v_growth_funnel's first reader), acquisition (cumulative first-time App
-   Store downloads against the §0 checkpoints, read by hand from App Analytics
-   until asc.py reads it; TestFlight installs and web sign-ups shown separately
-   and never summed in; zero until approval, and the report says so). Run it
+   Store downloads against the §0 checkpoints, BY CHANNEL where App Analytics'
+   sources or the owner's pipeline can attribute them, read by hand from App
+   Analytics until asc.py reads it; the owner's four pipeline totals —
+   prospects contacted, organizers activated, groups playing, downloads by
+   channel — carried in as the owner reports them, from the week of Oct 1;
+   TestFlight installs and web sign-ups shown separately and never summed in;
+   zero until approval, and the report says so). By October 15 the report
+   carries the pipeline's first two weeks against the October 31 checkpoint,
+   with the contact-to-activation and activation-to-playing rates as measured,
+   for the owner's review. Run it
    read-only: `node tools/pilot-scorecard.mjs > docs/pilot/scorecard-2026-09-29.md`,
    the week's sessions entered first, the integrity section read first; write
    the week's one line — hold · widen · stop — with the reason, at the top of
@@ -207,15 +260,22 @@ command; the owner runs it; you read the result back (deploy-status,
 db-checks, asc.py status) before calling anything done. A change touching the
 database and the client needs both pushes; say which. The owner's outreach —
 the Friends message, the independent groups, the public link, the r/golf post,
-the handles, counsel — is the plan's §4 and is not engineering: you do not
-send anything, and the drafts stay drafts with no name in them.
+the handles, counsel, the weekly acquisition pipeline — is the plan's §4 and
+§4A and is not engineering: you do not send anything, and the drafts stay
+drafts with no name in them.
+Keep implementation moving while an owner action or a production approval is
+pending. A hand-over — a push, an upload, a group add, a submission, the
+ledger read, a ruling — is not a wait: take the next item in §2 or §3 that
+does not depend on it, and return to the pending one when its result is read
+back. Never perform the owner's step yourself to unblock.
 
 RULES THAT DO NOT BEND THIS WEEK
 - No hand-edit of the version lines (`__CS_VERSION__` in index.html and
   sw.js), of any generated Swift (Tokens.swift, Markers.swift, Rpc.swift), or
   of any migration that has run — a fix is a NEW timestamped migration.
-  (20261111 has not run in production; renaming it is allowed, editing an
-  applied one is not.)
+  (Whether 20261111 has run in production is read from the ledger, never
+  assumed: an unapplied file may be renamed; an applied one is preserved
+  exactly as applied, name and body.)
 - Never "dry-run" a migration against the linked project; the wrapper applies
   it. Validate on tests/sim/sandbox/apply.sh and read the result.
 - Every new client-called RPC grants execute to authenticated and revokes from
