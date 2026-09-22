@@ -180,6 +180,10 @@ public final class LeagueRoomModel {
   public func indRow(_ memberId: UUID) -> IndRow? { indRows.first { $0.mid == memberId } }
   /// The ledger lines for one squad (reasons included), sentinel excluded.
   public func ledger(squad: UUID) -> [LeagueRoom.Adjustment] { adjustments.filter { $0.squad_id == squad && !$0.isSentinel } }
+  /// D376 · the rulings on one golfer, reasons included — the rows a member's
+  /// receipt lists so the total shows its work (§16). Solo seasons have no
+  /// squad, so this is the only surface a solo ruling appears on.
+  public func rulings(member: UUID) -> [LeagueRoom.Adjustment] { adjustments.filter { $0.member_id == member && $0.kind == "override" } }
   public var partialMonth: Bool { pulse.first?.partial ?? false }
   /// D354 · my own pulse row — the one carrying `joined_this_month` and
   /// `bye_available` for the golfer reading the page. nil until the read lands.
@@ -548,6 +552,17 @@ public final class LeagueRoomModel {
 
   public func setMemberBye(member: UUID, month: String) async throws {
     _ = try await svc.call(Rpc.set_member_bye(p_member: member, p_month: month, p_on: true))
+  }
+
+  /// D376 · the Pro's pen: `adjust_points` moves points in the ledger with a
+  /// reason, posts to the board and logs the ruling; the server checks the Pro,
+  /// the season and the Final window. Returns the member's new total when the
+  /// server says it. The room is re-read so the ledger rows and the table agree.
+  public func adjustPoints(member: UUID, delta: Int, reason: String) async throws -> Int? {
+    guard let season = season?.id else { throw RpcError(name: "adjust_points", underlying: "No season to rule on yet.", droppedArgs: []) }
+    let r = try await svc.call(Rpc.adjust_points(p_season: season, p_member: member, p_delta: delta, p_reason: reason))
+    await refresh()
+    return r["member_total"]?.int
   }
 
   public func removeMember(_ member: UUID) async throws {

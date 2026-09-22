@@ -17,6 +17,7 @@ struct MembersSheet: View {
   @State private var busy: UUID?
   @State private var reason: (UUID, String)? = nil   // the armed control's confirm sentence
   @State private var setIndexFor: LeagueRoom.Member?
+  @State private var rulingFor: LeagueRoom.Member?     // D376 · the Pro's pen
   @State private var markerOpen = false
   @State private var pending: [String] = []
 
@@ -45,6 +46,7 @@ struct MembersSheet: View {
       }
     }
     .sheet(item: $setIndexFor) { m in SetIndexSheet(member: m).environment(model).presentationDetents([.medium]) }
+    .sheet(item: $rulingFor) { m in RulingSheet(member: m).environment(model).presentationDetents([.medium, .large]) }
     .task { pending = await model.pendingInviteEmails() }
   }
 
@@ -83,6 +85,9 @@ struct MembersSheet: View {
           // LV-19 · ONE label for one act. This sheet said "Set index" here and
           // "Set the index" on the sheet it opens.
           RoomMini("Set the starter") { setIndexFor = m }
+          // D376 · the ruling sits beside the bye: both write the ledger with a
+          // reason and post to the board. The desk's button is "Ruling".
+          if model.season != nil { RoomMini("Ruling") { rulingFor = m } }
           if model.league?.phase == "setup" {
             ArmedMini("Remove", armedLabel: "Sure? Remove", busy: busy == m.id, onArm: { reason = $0 ? (m.id, removeWhy) : nil }) {
               run(m.id) { try await model.removeMember(m.id); toast.show("Removed. The board knows.", kind: .confirmed); dismiss() }
@@ -155,6 +160,49 @@ struct LeagueMarkerPicker: View {
       defer { busy = nil }
       do { try await model.setLeagueMarker(key); toast.show(key == nil ? "Back to your card marker" : "Marker set for this league") }
       catch { toast.show(roomError(error, "Could not set the marker."), kind: .failed) }
+    }
+  }
+}
+
+/// D376 · the Pro's ruling (`openRulingSheet` on the desk): points up or down,
+/// 1 to 50, and the reason everyone reads. One RPC, `adjust_points`; the
+/// server refuses a non-Pro, a closed ledger and the Final. The words are
+/// `RulingCopy`, twins of the desk's.
+struct RulingSheet: View {
+  @Environment(LeagueRoomModel.self) private var model
+  @Environment(\.toast) private var toast
+  @Environment(\.dismiss) private var dismiss
+  let member: LeagueRoom.Member
+  @State private var delta = ""
+  @State private var why = ""
+  @State private var busy = false
+  var body: some View {
+    SheetFrame(RulingCopy.title, sub: RulingCopy.eyebrow) {
+      RoomFine(RulingCopy.what)
+      RoomFine("Points for \(member.name) — up or down, 1 to 50")
+      CSField("−3", text: $delta).keyboardType(.numbersAndPunctuation)
+      RoomFine("Why — everyone reads this")
+      CSField(RulingCopy.reasonHint, text: $why)
+      Button(RulingCopy.button) {
+        let d = Int(delta.replacingOccurrences(of: "−", with: "-").replacingOccurrences(of: "+", with: "").trimmingCharacters(in: .whitespaces))
+        let reason = why.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let refusal = RulingCopy.refusal(delta: d, reason: reason) { toast.show(refusal, kind: .failed); return }
+        guard let d else { return }
+        busy = true
+        Task {
+          defer { busy = false }
+          do {
+            let total = try await model.adjustPoints(member: member.id, delta: d, reason: reason)
+            toast.show(RulingCopy.done(member.name, delta: d, total: total), kind: .confirmed)
+            dismiss()
+          } catch {
+            toast.show(ShareLinkService.kindNotDeployed(error) ? RulingCopy.notYet : roomError(error), kind: .failed)
+          }
+        }
+      }
+        .buttonStyle(.csPrimary(busy: busy))
+      Button("Close") { dismiss() }
+        .buttonStyle(.csSecondary())
     }
   }
 }

@@ -97,6 +97,7 @@ struct SquadReceiptSheet: View {
 }
 
 struct MemberHistorySheet: View {
+  @Environment(LeagueRoomModel.self) private var model
   @Environment(\.roomLinks) private var links
   @Environment(\.dismiss) private var dismiss
   @Environment(\.cs) private var cs
@@ -162,8 +163,35 @@ struct MemberHistorySheet: View {
         if row.hist.contains(where: { !$0.counting }) {
           RoomFine("These rounds stay in your record. \(LeagueCopy.countingRule(cap)) A better one took the slot.").padding(.top, 10)
         }
+        rulingRows
         if let pid = row.profileId {
           RoomMini(GolfersRoot.CardName.title(row.n)) { dismiss(); links.openTourCard(pid) }.padding(.top, 6)
+        }
+      }
+    }
+  }
+
+  /// D376 · a ruling on this golfer sits in the ledger the room already reads
+  /// and is part of the total in the header, so it is listed here with its
+  /// reason — §16: no points figure without the path that produced it. The
+  /// desk's receipt lists the same rows (`openMemberHist`).
+  @ViewBuilder private var rulingRows: some View {
+    let mid: UUID? = row.mid
+    let rulings = mid.map { model.rulings(member: $0) } ?? []
+    if !rulings.isEmpty {
+      VStack(spacing: 0) {
+        ForEach(rulings) { a in
+          A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {
+            // LINT-07 · CSType is the one tracking call site — never a bare .tracking()
+            Text(RulingCopy.ledgerLine(month: a.month, reason: a.reason))
+              .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            Spacer()
+            Text("\(a.points > 0 ? "+" : "")\(a.points) PTS").csType(.columnS).foregroundStyle(cs.ink)
+          }
+          .padding(.vertical, 10).frame(minHeight: 44)
+          .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
+          .accessibilityElement(children: .combine)
+          .accessibilityLabel("\(RulingCopy.ledgerLine(month: a.month, reason: a.reason)), \(a.points) points")
         }
       }
     }
