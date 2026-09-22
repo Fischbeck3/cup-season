@@ -21,6 +21,7 @@ Index only — files live where they live. OS layer: `../StudioOS`.
 | Oct 1 execution plan / the Mac session's prompt | `docs/planning/2026-09-22-october-launch-execution.md`, `docs/planning/2026-09-22-claude-october-launch-prompt.md` |
 | Oct 1 sprint packets: course-cache deploy · share-action proposal (D380) · timed tests | `docs/planning/2026-09-22-course-cache-deploy.md`, `docs/planning/2026-09-22-share-action-proposal.md`, `docs/pilot/timed-tests.md` |
 | Oct 1 Mac verification and remaining release gates | `docs/planning/2026-09-22-october-mac-verification.md` |
+| W6 reporting review / Claude correction prompt | `docs/planning/2026-09-22-w6-review-and-claude-prompt.md` |
 | Oct 1 release checklist (every gate, its evidence) · recipient journeys with the Storage API consent proof · the acquisition log | `docs/planning/2026-09-22-release-checklist.md`, `docs/pilot/recipient-journeys.md`, `docs/pilot/acquisition-log.md` |
 
 Role modes: `/cto` `/pm` `/support` `/release` `/growth` `/docs` ·

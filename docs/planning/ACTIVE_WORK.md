@@ -1,5 +1,20 @@
 # Cup Season · active work and ownership
 
+## W6 review · 2026-09-22 (Codex)
+
+Reviewed Claude's `5404978`, which preserves the Mac's `f49756d`. Preflight 0/0
+and all 29 Node checks pass, but W6 still needs reporting corrections before
+acceptance: the weekly assistance gate counts all completions, incomplete or
+duplicated log rows can generate false checkpoint statuses, reporting dates
+are inconsistent, activation populations differ, and malformed dates can
+crash. The attribution writer claimed absent in the inbox already exists in
+the RPC with callers on both clients; null values require diagnosis, not a
+second writer. Findings, reproductions and the next Claude prompt are in
+[the W6 review](2026-09-22-w6-review-and-claude-prompt.md). This is a
+documentation review; no product code, production data or deployment changed.
+Continue the correction pass now while owner inputs and device gates remain
+pending.
+
 ## THE RELEASE RECORD · verified 2026-09-15 night (this section is the one record; the sections below are history)
 
 Verified from the systems themselves on 2026-09-15, not from prior reports. "Implemented", "tested", "deployed" and "available to testers" are kept apart.

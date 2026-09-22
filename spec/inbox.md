@@ -37,6 +37,16 @@ Codex verified Claude's `4a171f7` in an isolated worktree and fixed the native c
 
 ### 2026-09-22 · `profiles.came_via_kind` is never written, and the cohort tables are empty
 
+**Correction from Codex's source review:** the "never written" / "no door
+writes it" diagnosis below is incorrect. `log_growth_event` already writes
+the columns on `profile_created` in migration `20260828160000`, and the web
+card-save handler plus native `CardGateView` call it with pending claim/join
+intent. DEBUG native builds intentionally skip growth logging. The reported
+null production values and empty cohort tables remain observations from
+Claude's read; this review did not reread production. Trace the existing
+path before changing it. See the six required W6 corrections and execution
+prompt in `docs/planning/2026-09-22-w6-review-and-claude-prompt.md`.
+
 Read from production while building W6: every profile's `came_via_kind` is null, so the growth report's "arrived by a link" column can only say 0 — the column exists (20260828160000) and no door writes it. And `pilot_cohort_members` / `pilot_sessions` hold 0 rows, so every cohort section reports nothing until the founder names cohorts. Lane: Growth · size: small · first question: should `log_growth_event`'s `profile_created` (or the signup trigger, from the stored `cs_claim` / `cs_code` / `cs_person` token) write `came_via_kind`, so attribution is a fact rather than a blank?
 
 
