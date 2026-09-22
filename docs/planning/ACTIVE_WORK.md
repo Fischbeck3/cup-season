@@ -20,6 +20,13 @@ Verified from the systems themselves on 2026-09-15, not from prior reports. "Imp
 - **Owed today (D372):** the two revokes pushed from the PR #6 checkout; PR #6 merged by 17:00 Phoenix after the iPhone Safari walk; a build to the Owner group; Codex pointed at the branch above.
 - Corrections to the history below: `20261024090000` is **applied** (the "held" line was a coordinator note that did not hold — `20261102090000`'s header, D353b); `index.html` has been edited by Claude since the 2026-09-13 override, and D372 records the merge override.
 
+### Addendum · 2026-09-22 (Claude, remote)
+
+- PR #6 and PR #7 (`claude/elegant-curie-x15hps`) are **merged** to `main` (05:55–05:56 Phoenix); PR #5 closed as subsumed. `main` = `1e79279`: the pilot-readiness work, the rulings, the four migrations, the web halves of D373–D376, the legal v2 set. CI now runs every unit file and the real stamp build; preflight and the five unit files pass on the tip. The 09-21 line "not yet merged" is history.
+- Production: the six migrations are recorded (252, latest `20261115090000`), read back 2026-09-22. Codex's `20261111090000` and the `courses` change remain Mac-only — the one owed database/edge item, migration first, function second.
+- Owed on the Mac, verified from the tree by grep: the Swift halves of D373 / D374 / D375 / D376 / D378 (vii) (no caller of `Rpc.adjustPoints`, no unfinished-link face, no re-up copy — `Rpc.swift` is regenerated and carries the names); a build from the merged tip (934 is `1aac23a`, pre-merge); the two-phone checklist. Live web stamp not reachable from the sandbox — confirm `v23 · 1e79279` on the Mac.
+- The execution view from today and the local session's prompt: `2026-09-22-october-launch-execution.md`, `2026-09-22-claude-october-launch-prompt.md`.
+
 ### Known issues (as of 2026-09-15)
 - A seated non-starter cannot finish a league-less round; the host (or a league member seat) must. By design (D107), told to testers. `tests/pilot/authz-flow.py` NOT VERIFIED line.
 - Historical rounds carry no par provenance and therefore show no birdie/eagle tally — including the owner's own 2026-09-15 round. Honest by design (Codex S3).

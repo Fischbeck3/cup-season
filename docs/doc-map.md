@@ -18,6 +18,7 @@ Index only — files live where they live. OS layer: `../StudioOS`.
 | QA | `spec/prelaunch-qa-2026-07-13.md`, `spec/setup-qa-findings.md` |
 | GTM / launch | `spec/gtm-year1.md`, `spec/socials-operating-plan.md` |
 | launch readiness (Oct 1) / dated vision | `spec/launch-readiness-2026-10-01.md`, `spec/vision-2026-10-01.md` |
+| Oct 1 execution plan / the Mac session's prompt | `docs/planning/2026-09-22-october-launch-execution.md`, `docs/planning/2026-09-22-claude-october-launch-prompt.md` |
 
 Role modes: `/cto` `/pm` `/support` `/release` `/growth` `/docs` ·
 briefings: `/start-day` `/end-day` · project map:
