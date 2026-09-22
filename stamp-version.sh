@@ -45,7 +45,11 @@ mkdir -p "$DIST/.well-known"
 cp .well-known/apple-app-site-association "$DIST/.well-known/"
 
 # --- stamp the COPIES (source keeps the placeholder) ------------------------
-sed -i "s/__CS_VERSION__/${SHORT}/g" "$DIST/index.html" "$DIST/sw.js"
+for file in "$DIST/index.html" "$DIST/sw.js"; do
+  # BSD sed (the Mac) and GNU sed (Netlify/CI) disagree on -i's syntax.
+  sed "s/__CS_VERSION__/${SHORT}/g" "$file" > "$file.tmp"
+  mv "$file.tmp" "$file"
+done
 
 # A surviving placeholder means the substitution missed — fail rather than
 # publish a shell whose cache key never changes.
