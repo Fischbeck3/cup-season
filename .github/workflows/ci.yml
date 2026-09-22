@@ -79,10 +79,12 @@ jobs:
       - name: courses and share consent
         run: node --experimental-strip-types --test tests/courses-normalize.test.mjs tests/course-provider.test.mjs tests/share-consent-flow.test.mjs
 
-      # W6 · the weekly growth report's acquisition half: missing stays missing,
-      # the store count is never summed with TestFlight or web, no forecast.
+      # W6 · the weekly growth report: checkpoints judged only on dated App
+      # Analytics readings, strict dates/counts/flags/CSV, one report cutoff.
+      # The SQL half (tests/pilot/scorecard-db.test.mjs) needs the sandbox chain and
+      # runs locally — CI has no database, and it would only skip here.
       - name: growth report
-        run: node --test tests/growth-report.test.mjs
+        run: node --test tests/growth-report.test.mjs tests/pilot-scorecard-cli.test.mjs
 
       # Run the REAL Netlify build command. stamp-version.sh fails hard on a
       # surviving __CS_VERSION__ placeholder, on an empty shell, and on any
