@@ -3,47 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="dark light">
 <title>Cup Season — Support</title>
 <meta name="description" content="How to get help with Cup Season, how to install the app and open a link into it, and how to delete your account.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<script>
+  /* the pre-paint theme read index.html makes: cs_theme wins, then the OS */
+  try { var t = localStorage.getItem('cs_theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <style>
+  /* the palette is packages/tokens/tokens.json (D270 over D103a over D76), the
+     same values index.html carries; a static page cannot load tokens.css (it
+     is not in the dist allowlist), so the roles it uses are re-printed here
+     by name — never a hex of its own. Dark is the printing a brand-new
+     visitor lands in; light is the almanac stock. */
   :root{
-    --bg:#EFF2EE; --panel:#fff; --ink:#182019; --mut:#52625A; --line:#E0E5DE; --gold:#9A7B18;
+    --bg0:#0F1A15; --bg1:#1A2620; --bg2:#26352E; --rule:#4A6155;
+    --ink:#F1F4EF; --mut:#9BA69D; --dim:#5E6A62;
+    --act:#5FA271; --act-ink:#0F1A15;
+    --r:16px; --rc:10px; --s1:4px; --s2:8px; --s3:12px; --s4:20px; --s5:32px; --s6:52px; --gutter:20px; --gutter-desk:40px; --hair:1px;
+    --board:'IBM Plex Sans Condensed', system-ui, sans-serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    --serif:ui-serif, 'New York', 'Iowan Old Style', Georgia, serif;
+    --agate:0.09em; --caps:0.035em;
   }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#0C0D0F; --panel:#17191C; --ink:#F0F2F3; --mut:#8E979E; --line:rgba(255,255,255,0.07); --gold:#FF5A2E; --hov:#E9A23B; }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
+      --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+      --act:#1F5D3A; --act-ink:#F4F1E9;
+    }
   }
-  :root[data-theme="light"]{ --bg:#EFF2EE; --panel:#fff; --ink:#182019; --mut:#52625A; --line:#E0E5DE; --gold:#9A7B18; --hov:#9A7B18; }
-  :root[data-theme="dark"]{ --bg:#0C0D0F; --panel:#17191C; --ink:#F0F2F3; --mut:#8E979E; --line:rgba(255,255,255,0.07); --gold:#FF5A2E; --hov:#E9A23B; }
+  :root[data-theme="light"]{
+    --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
+    --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+    --act:#1F5D3A; --act-ink:#F4F1E9;
+  }
   *{box-sizing:border-box;}
-  body{margin:0; background:var(--bg); color:var(--ink);
-    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.6;
-    -webkit-font-smoothing:antialiased;}
-  .wrap{max-width:680px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,5vw,28px) 80px;}
-  a{color:var(--gold);} a:hover{color:var(--hov,var(--gold));}
-  .home{display:inline-block; font-size:13px; color:var(--mut); text-decoration:none; margin-bottom:28px;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0; background:var(--bg0); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.45; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:640px; margin:0 auto; padding:var(--s5) var(--gutter) 72px;}
+  @media (min-width:720px){ .wrap{ padding-left:var(--gutter-desk); padding-right:var(--gutter-desk); } }
+  a{color:var(--act);}
+  .home{display:inline-block; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; color:var(--mut); text-decoration:none; margin-bottom:var(--s4); min-height:44px; line-height:44px;}
   .home:hover{color:var(--ink);}
-  h1{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); font-weight:700; margin:0 0 4px;}
-  nav{display:flex; gap:14px; flex-wrap:wrap; font-size:13px; margin:0 0 34px; padding-bottom:18px; border-bottom:1px solid var(--line);}
-  nav a{text-decoration:none;}
-  section{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:clamp(20px,4vw,32px); margin-bottom:22px; scroll-margin-top:20px;}
-  h2{font-size:clamp(20px,4vw,26px); margin:0 0 4px; letter-spacing:-.01em;}
-  h3{font-size:15px; margin:18px 0 6px;}
-  p{margin:0 0 14px;} p:last-child{margin-bottom:0;}
-  ol,ul{margin:0 0 14px; padding-left:20px;} li{margin:0 0 6px;}
-  strong,b{font-weight:650;}
-  footer{color:var(--mut); font-size:12.5px; text-align:center; margin-top:36px;}
+  h1{font-family:var(--board); font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); font-weight:600; margin:0 0 var(--s2);}
+  .lede{font-family:var(--serif); font-weight:700; font-size:28px; line-height:1.14; letter-spacing:-.005em; margin:0 0 var(--s5);}
+  nav{display:flex; gap:0 var(--s4); flex-wrap:wrap; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; margin:0 0 var(--s5); padding-bottom:var(--s3); border-bottom:var(--hair) solid var(--rule);}
+  nav a{text-decoration:none; color:var(--mut); padding:12px 0; line-height:1.2;} nav a:hover{color:var(--ink);}
+  section{background:var(--bg1); border-radius:var(--r); padding:var(--s4); margin-bottom:var(--s4); scroll-margin-top:var(--s4);}
+  h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s1);}
+  h3{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:var(--s4) 0 var(--s2);}
+  .sub{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:0 0 var(--s3);}
+  p{margin:0 0 var(--s3);} p:last-child{margin-bottom:0;}
+  ol,ul{margin:0 0 var(--s3); padding-left:var(--s4);} li{margin:0 0 var(--s2);}
+  b,strong{font-weight:650;}
+  .btn{display:block; text-align:center; background:var(--act); color:var(--act-ink); text-decoration:none; border-radius:var(--rc); padding:14px var(--s3); min-height:50px; font-family:var(--board); font-weight:700; font-size:17px; letter-spacing:.01em; margin:var(--s2) 0 var(--s3);}
+  .btn.quiet{background:var(--bg2); color:var(--ink);}
+  .btn[hidden]{display:none;}
+  .note{font-size:15px; color:var(--mut);}
+  .status{display:flex; gap:var(--s2); align-items:baseline; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; color:var(--mut); margin:0 0 var(--s3);}
+  .status i{width:8px; height:8px; border-radius:50%; background:var(--dim); flex:none; transform:translateY(-1px);}
+  hr{border:0; border-top:var(--hair) solid var(--rule); margin:var(--s4) 0;}
+  footer{color:var(--mut); font-size:13px; text-align:center; margin-top:var(--s5);}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <a class="home" href="/">← Back to Cup Season</a>
-  <h1>Cup Season · Support</h1>
+  <a class="home" href="/">← Cup Season</a>
+  <h1>Support</h1>
+  <p class="lede">One golfer answers this address. Say what you were doing and you will hear back within a day.</p>
   <nav>
     <a href="#help">Get help</a>
-    <a href="#install">Install the app</a>
+    <a href="#install">Install</a>
     <a href="#links">A link that did not open</a>
     <a href="#account">Your account</a>
     <a href="/legal.html">Legal</a>
@@ -51,20 +87,20 @@
 
   <section id="help">
     <h2>Get help</h2>
-    <p>Cup Season is built and run by one golfer in Tempe, Arizona. Write to <a href="mailto:jerecho@fischbeck3.com">jerecho@fischbeck3.com</a> and say what you were trying to do, which phone you were on, and roughly when. You will hear back within a day.</p>
+    <p>Write to <a href="mailto:jerecho@fischbeck3.com">jerecho@fischbeck3.com</a> with what you were trying to do, which phone you were on, and roughly when. Cup Season is built and run by one golfer in Tempe, Arizona; you are writing to him.</p>
     <p>If a score did not land, a round posted twice, or you can see something that is not yours, say so first — those are the things we drop everything for.</p>
   </section>
 
   <section id="install">
     <h2>Install the app</h2>
-    <p>Everything you need is at <a href="/get">cupseason.app/get</a>: the iPhone app, and the web app for any other phone.</p>
-    <p><b>If somebody sent you a link</b> — to a round, a card or a season — <b>install the app, then open the link again.</b> The link you were sent opens on the web first; once the app is on your phone, opening the same link lands inside the app. The app does not remember a link you opened before it was installed, so keep the message it came in.</p>
+    <p>Everything you need is at <a href="/get">cupseason.app/get</a>: the web app for any phone, and the iPhone app as it opens up.</p>
+    <p><b>If somebody sent you a link</b> — to a round, a card or a season — <b>install the app, then open the link again.</b> The link opens on the web first; once the app is on your phone, opening the same link lands inside it. The app does not remember a link you opened before it was installed, so keep the message it came in.</p>
   </section>
 
   <section id="links">
     <h2>A link that did not open</h2>
     <ul>
-      <li><b>It opened in the browser instead of the app.</b> That is expected before the app is installed. Install it, then open the link again from the message.</li>
+      <li><b>It opened in the browser instead of the app.</b> Expected before the app is installed. Install it, then open the link again from the message.</li>
       <li><b>It says the round was never finished.</b> There is no card to keep — whoever ran the round can tee off again and send you a new link from that round.</li>
       <li><b>It says the card was already claimed.</b> Your card is on a record already. Sign in with the same email and it is there.</li>
       <li><b>It asks you to sign in.</b> Sign in on that screen. A card or an invitation you opened while signed out is waiting for you after the code.</li>
@@ -73,20 +109,15 @@
 
   <section id="account">
     <h2>Your account</h2>
-    <p><b>Signing in.</b> There is no password. You type your email and we send a code; the code is what you type back.</p>
-    <p><b>Deleting your account.</b> In the app or on the web: Settings → Delete account. Your photos, your device tokens and your email address go at once; rounds that other golfers' standings were built from stay on the record with no name on them. The <a href="/legal.html#privacy">privacy policy</a> says exactly what is kept and why.</p>
-    <p><b>The pot.</b> Cup Season keeps the ledger; the money moves between friends. Nothing is paid through the app. See the <a href="/legal.html#pot">prize pool disclaimer</a>.</p>
+    <h3>Signing in</h3>
+    <p>There is no password. You type your email and we send a code; the code is what you type back.</p>
+    <h3>Deleting your account</h3>
+    <p>In the app or on the web: Settings → Delete account. Your photos, your device tokens and your email address go at once; rounds that other golfers' standings were built from stay on the record with no name on them. The <a href="/legal.html#privacy">privacy policy</a> says exactly what is kept and why.</p>
+    <h3>The pot</h3>
+    <p>Cup Season keeps the ledger; the money moves between friends. Nothing is paid through the app. See the <a href="/legal.html#pot">prize pool disclaimer</a>.</p>
   </section>
 
   <footer>Cup Season · cupseason.app · operated by Fischbeck3 LLC</footer>
 </div>
-<script>
-  /* match the app's chosen theme (same-origin localStorage) so the page isn't
-     jarring after the app. Falls back to the OS preference. */
-  try {
-    var t = localStorage.getItem('cs_theme');
-    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
-  } catch (e) {}
-</script>
 </body>
 </html>

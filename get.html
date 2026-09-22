@@ -3,80 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="dark light">
 <title>Cup Season — Get the app</title>
-<meta name="description" content="Get Cup Season on your iPhone, or use the web app on any phone. If somebody sent you a link, install the app and then open the link again.">
+<meta name="description" content="Get Cup Season on your phone. The web app works on any phone today; the iPhone app is in beta. If somebody sent you a link, install the app and then open the link again.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<script>
+  /* the pre-paint theme read index.html makes: cs_theme wins, then the OS */
+  try { var t = localStorage.getItem('cs_theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 <style>
+  /* the palette is packages/tokens/tokens.json (D270 over D103a over D76), the
+     same values index.html carries; a static page cannot load tokens.css (it
+     is not in the dist allowlist), so the roles it uses are re-printed here
+     by name — never a hex of its own. Dark is the printing a brand-new
+     visitor lands in; light is the almanac stock. */
   :root{
-    --bg:#EFF2EE; --panel:#fff; --ink:#182019; --mut:#52625A; --line:#E0E5DE; --gold:#9A7B18; --hot:#9A7B18; --hotInk:#fff;
+    --bg0:#0F1A15; --bg1:#1A2620; --bg2:#26352E; --rule:#4A6155;
+    --ink:#F1F4EF; --mut:#9BA69D; --dim:#5E6A62;
+    --act:#5FA271; --act-ink:#0F1A15;
+    --r:16px; --rc:10px; --s1:4px; --s2:8px; --s3:12px; --s4:20px; --s5:32px; --s6:52px; --gutter:20px; --gutter-desk:40px; --hair:1px;
+    --board:'IBM Plex Sans Condensed', system-ui, sans-serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    --serif:ui-serif, 'New York', 'Iowan Old Style', Georgia, serif;
+    --agate:0.09em; --caps:0.035em;
   }
-  @media (prefers-color-scheme: dark){
-    :root{ --bg:#0C0D0F; --panel:#17191C; --ink:#F0F2F3; --mut:#8E979E; --line:rgba(255,255,255,0.07); --gold:#FF5A2E; --hov:#E9A23B; --hot:#FF5A2E; --hotInk:#1C1208; }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
+      --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+      --act:#1F5D3A; --act-ink:#F4F1E9;
+    }
   }
-  :root[data-theme="light"]{ --bg:#EFF2EE; --panel:#fff; --ink:#182019; --mut:#52625A; --line:#E0E5DE; --gold:#9A7B18; --hov:#9A7B18; --hot:#9A7B18; --hotInk:#fff; }
-  :root[data-theme="dark"]{ --bg:#0C0D0F; --panel:#17191C; --ink:#F0F2F3; --mut:#8E979E; --line:rgba(255,255,255,0.07); --gold:#FF5A2E; --hov:#E9A23B; --hot:#FF5A2E; --hotInk:#1C1208; }
+  :root[data-theme="light"]{
+    --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
+    --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+    --act:#1F5D3A; --act-ink:#F4F1E9;
+  }
   *{box-sizing:border-box;}
-  body{margin:0; background:var(--bg); color:var(--ink);
-    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.6;
-    -webkit-font-smoothing:antialiased;}
-  .wrap{max-width:680px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,5vw,28px) 80px;}
-  a{color:var(--gold);} a:hover{color:var(--hov,var(--gold));}
-  .home{display:inline-block; font-size:13px; color:var(--mut); text-decoration:none; margin-bottom:28px;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0; background:var(--bg0); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.45; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:640px; margin:0 auto; padding:var(--s5) var(--gutter) 72px;}
+  @media (min-width:720px){ .wrap{ padding-left:var(--gutter-desk); padding-right:var(--gutter-desk); } }
+  a{color:var(--act);}
+  .home{display:inline-block; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; color:var(--mut); text-decoration:none; margin-bottom:var(--s4); min-height:44px; line-height:44px;}
   .home:hover{color:var(--ink);}
-  h1{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); font-weight:700; margin:0 0 4px;}
-  .lede{font-size:clamp(22px,4.5vw,30px); line-height:1.3; letter-spacing:-.01em; margin:0 0 30px;}
-  section{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:clamp(20px,4vw,32px); margin-bottom:22px; scroll-margin-top:20px;}
-  h2{font-size:clamp(20px,4vw,26px); margin:0 0 4px; letter-spacing:-.01em;}
-  .sub{font-size:12.5px; color:var(--mut); letter-spacing:.12em; text-transform:uppercase; margin:0 0 16px;}
-  p{margin:0 0 14px;} p:last-child{margin-bottom:0;}
-  .btn{display:block; text-align:center; background:var(--hot); color:var(--hotInk); text-decoration:none; border-radius:12px; padding:14px 12px; font-weight:600; letter-spacing:.04em; margin:6px 0 14px;}
-  .btn:hover{color:var(--hotInk); filter:brightness(1.05);}
-  .btn.quiet{background:transparent; color:var(--ink); border:1px solid var(--line);}
-  .note{font-size:13.5px; color:var(--mut);}
-  footer{color:var(--mut); font-size:12.5px; text-align:center; margin-top:36px;}
+  h1{font-family:var(--board); font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); font-weight:600; margin:0 0 var(--s2);}
+  .lede{font-family:var(--serif); font-weight:700; font-size:28px; line-height:1.14; letter-spacing:-.005em; margin:0 0 var(--s5);}
+  nav{display:flex; gap:0 var(--s4); flex-wrap:wrap; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; margin:0 0 var(--s5); padding-bottom:var(--s3); border-bottom:var(--hair) solid var(--rule);}
+  nav a{text-decoration:none; color:var(--mut); padding:12px 0; line-height:1.2;} nav a:hover{color:var(--ink);}
+  section{background:var(--bg1); border-radius:var(--r); padding:var(--s4); margin-bottom:var(--s4); scroll-margin-top:var(--s4);}
+  h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s1);}
+  h3{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:var(--s4) 0 var(--s2);}
+  .sub{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:0 0 var(--s3);}
+  p{margin:0 0 var(--s3);} p:last-child{margin-bottom:0;}
+  ol,ul{margin:0 0 var(--s3); padding-left:var(--s4);} li{margin:0 0 var(--s2);}
+  b,strong{font-weight:650;}
+  .btn{display:block; text-align:center; background:var(--act); color:var(--act-ink); text-decoration:none; border-radius:var(--rc); padding:14px var(--s3); min-height:50px; font-family:var(--board); font-weight:700; font-size:17px; letter-spacing:.01em; margin:var(--s2) 0 var(--s3);}
+  .btn.quiet{background:var(--bg2); color:var(--ink);}
+  .btn[hidden]{display:none;}
+  .note{font-size:15px; color:var(--mut);}
+  .status{display:flex; gap:var(--s2); align-items:baseline; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; color:var(--mut); margin:0 0 var(--s3);}
+  .status i{width:8px; height:8px; border-radius:50%; background:var(--dim); flex:none; transform:translateY(-1px);}
+  hr{border:0; border-top:var(--hair) solid var(--rule); margin:var(--s4) 0;}
+  footer{color:var(--mut); font-size:13px; text-align:center; margin-top:var(--s5);}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <a class="home" href="/">← Back to Cup Season</a>
-  <h1>Cup Season · Get the app</h1>
+  <a class="home" href="/">← Cup Season</a>
+  <h1>Get the app</h1>
   <p class="lede">Where amateur golf counts. Get it on your phone.</p>
+
+  <section id="web">
+    <h2>Any phone, today</h2>
+    <p class="sub">The web app</p>
+    <a class="btn" href="/">Open Cup Season</a>
+    <p class="note">Same account, same seasons, on any phone. On iPhone, Safari's share sheet offers <b>Add to Home Screen</b>; on Android, Chrome's menu offers <b>Add to Home screen</b> — either installs it like an app.</p>
+  </section>
 
   <section id="iphone">
     <h2>iPhone</h2>
-    <p class="sub">Public beta on TestFlight until the App Store listing is live</p>
-    <!-- The public TestFlight link is pasted by the owner on Wed 30 (App Store
-         Connect → TestFlight → the external group → enable the public link);
-         on approval day the same button points at the App Store listing and
-         the sub reads "On the App Store". Until then this points at TestFlight's
-         own explainer so the button is never a dead door. -->
-    <a class="btn" id="ios" href="https://testflight.apple.com/" rel="noopener">Get the iPhone beta</a>
-    <p class="note">TestFlight is Apple's own app for pre-release apps: install TestFlight first, then the Cup Season beta from the link. When Apple approves the listing, this button becomes the App Store link.</p>
-  </section>
-
-  <section id="web">
-    <h2>Any phone</h2>
-    <p class="sub">The web app, no store</p>
-    <a class="btn quiet" href="/">Open Cup Season on the web</a>
-    <p class="note">Same account, same seasons. On Android, Chrome's menu offers <b>Add to Home screen</b> and it installs like an app.</p>
+    <!-- THE ONE PLACE A STORE LINK LIVES. The owner pastes the real public
+         TestFlight invitation into data-href (App Store Connect → TestFlight →
+         the external group → enable the public link) and, on approval day, the
+         App Store link with data-label "Get it on the App Store". Until a real
+         link is here the button stays hidden and the sentence below is the
+         truth: there is nothing to tap yet. Never a generic testflight.apple.com
+         page — that is not an installation of Cup Season. -->
+    <a class="btn" id="ios" data-href="" data-label="Join the iPhone beta" hidden>Join the iPhone beta</a>
+    <p class="status" id="iosStatus"><i></i><span>In beta with the founding league</span></p>
+    <p class="note" id="iosNote">The iPhone app is being tested by the founder's own league. When the public beta opens, its invitation link appears here; when Apple approves the listing, this becomes the App Store button. Until then the web app above is the same product on the same account.</p>
   </section>
 
   <section id="link">
     <h2>Somebody sent you a link?</h2>
     <p><b>Install the app, then open the link again.</b> A link to a round, a card or a season opens on the web first. Once the app is on your phone, opening the same link from the message lands inside the app. The app does not remember a link you opened before it was installed — keep the message it came in and open it once more.</p>
-    <p class="note">No app yet, or not on iPhone? The link works on the web as it is. Sign in on that page and what you opened is waiting for you after the code.</p>
+    <p class="note">No app yet? The link works on the web as it is. Sign in on that page and what you opened is waiting for you after the code.</p>
   </section>
 
   <p class="note">Need a hand? <a href="/support">Support</a> · <a href="/legal.html">Legal</a></p>
   <footer>Cup Season · cupseason.app · operated by Fischbeck3 LLC</footer>
 </div>
 <script>
-  try {
-    var t = localStorage.getItem('cs_theme');
-    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
-  } catch (e) {}
+  /* the iPhone button exists only when a real https link has been pasted */
+  (function () {
+    var a = document.getElementById('ios'), s = document.getElementById('iosStatus'), n = document.getElementById('iosNote');
+    var href = (a && a.getAttribute('data-href') || '').trim();
+    if (!a || !/^https:\/\/(testflight\.apple\.com\/join\/|apps\.apple\.com\/)/.test(href)) return;
+    a.href = href; a.rel = 'noopener'; a.textContent = a.getAttribute('data-label') || a.textContent; a.hidden = false;
+    var store = /apps\.apple\.com/.test(href);
+    if (s) s.lastElementChild.textContent = store ? 'On the App Store' : 'Public beta on TestFlight';
+    if (n) n.textContent = store
+      ? 'The iPhone app is on the App Store. The web app above is the same product on the same account.'
+      : 'TestFlight is Apple\u2019s own app for pre-release apps: install TestFlight first, then Cup Season from the invitation. When Apple approves the listing this becomes the App Store button.';
+  })();
 </script>
 </body>
 </html>
