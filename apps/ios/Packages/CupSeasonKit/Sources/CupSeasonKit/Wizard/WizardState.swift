@@ -560,7 +560,10 @@ public enum WizardCopy {
 
   // step 1
   public static let presetEyebrow = "How serious is your league?"
-  public static let presetHelp = "A starting point for handicaps, score expectations and minimum penalties. You can change how many rounds count and the monthly minimum. Score expectations are a group agreement, not an automatic eligibility check."
+  /// D373 · the allowance is explained where a golfer first meets it, in R-M's
+  /// shape: the playing HCP IS the index under the allowance, said once, with
+  /// the worked example. Twin of the web's `#ih-preset` last sentence.
+  public static let presetHelp = "A starting point for handicaps, score expectations and minimum penalties. You can change how many rounds count and the monthly minimum. Score expectations are a group agreement, not an automatic eligibility check. Every round is scored against your playing HCP — your index at the starting point’s percentage: at 95 percent, an index of 10.6 is a playing HCP of 10.1."
   /// M-15 · the footnote under the preset cards: verification is a norm, not a filter.
   public static let verificationNote = "Verification is a norm the league holds, not a filter Cup Season applies."
   public static let fastPath = "Use these defaults"
@@ -750,7 +753,9 @@ public enum WizardCopy {
     var clauses = ["Honest scores"]
     if let c = d.capN { clauses.append("best \(numberWord(c)) a month count") }
     if d.floor > 0 { clauses.append("\(numberWord(d.floor)) a month keeps you in") }
-    clauses.append("\(Bylaws.allow[d.preset]) percent of your index")
+    // D373 · the clause says what the allowance does (twin of the covenant's
+    // `Covenant.rulesLine` and the web's `csCovenantFacts` rules clause)
+    clauses.append("scored against your playing HCP — your index at \(Bylaws.allow[d.preset]) percent")
     return clauses.joined(separator: ", ") + "."
   }
   public static let moreSettings = "More settings"

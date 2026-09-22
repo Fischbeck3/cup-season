@@ -54,7 +54,9 @@ public struct WizardAgreement: Sendable, Equatable {
       .init("The competition", d.solo ? "Everyone for themselves" : "\(WizardDials.structLabels[d.structure] ?? d.structure) · \(WizardDials.draftLabels[d.draftType] ?? d.draftType)"),
       .init("Rounds that count", d.setupCounting),
       .init("The minimum", d.solo ? "No team minimum in an individual season" : d.setupMinimum),
-      .init("Handicaps", "\(Bylaws.allow[d.preset])% of your handicap · scores turn into league points"),
+      // D373 · R-M: the two handicap nouns distinguished — it is the INDEX the
+      // allowance is applied to, and the playing HCP is the result
+      .init("Handicaps", "Scored against your playing HCP — your index at \(Bylaws.allow[d.preset]) percent · scores turn into league points"),
       .init("Score agreement", Bylaws.verif[d.preset]),
       .init("The finish", d.finish == "points_table" || d.durWeeks < 6 ? "The points leader at season end wins." : "Top two reach the final four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place.")
     ]

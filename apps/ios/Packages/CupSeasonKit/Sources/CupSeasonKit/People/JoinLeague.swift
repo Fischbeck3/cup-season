@@ -227,7 +227,9 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     if everyRoundCounts == true { clauses.append("every round counts") }
     else if let c = countingCap { clauses.append("best \(SeasonStoryCopy.word(c)) a month count") }
     if floor > 0 { clauses.append("\(SeasonStoryCopy.word(floor)) a month keeps you in") }
-    if let a = handicapAllowance { clauses.append("\(a) percent of your index") }
+    // D373 · the clause says what the allowance does, in R-M's shape — verbatim
+    // with the web's `csCovenantFacts` rules clause (tests/app-tests.js "D373")
+    if let a = handicapAllowance { clauses.append("scored against your playing HCP — your index at \(a) percent") }
     let head = presetLine.map { "\($0) rules: " } ?? "The rules: "
     return head + clauses.joined(separator: ", ") + "."
   }

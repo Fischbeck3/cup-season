@@ -7,7 +7,8 @@ import Foundation
   @Test func theAllowanceIsSaidInTheWizardsOwnWords() {
     let c = Covenant(name: "the Fellas", buyinCents: 0, preset: "standard", floor: 2, finish: nil,
                      countingCap: 3, handicapAllowance: 95)
-    #expect(c.rulesLine == "Standard rules: honest scores, best three a month count, two a month keeps you in, 95 percent of your index.")
+    // D373 · the same sentence the web pins (tests/app-tests.js "D373: the allowance clause says what it does")
+    #expect(c.rulesLine == "Standard rules: honest scores, best three a month count, two a month keeps you in, scored against your playing HCP — your index at 95 percent.")
   }
 
   @Test func unlimitedIsSaidOffTheRealBooleanNeverOffAnAbsentKey() {
