@@ -41,7 +41,7 @@ struct RoundSharePreview: View {
           if photo != nil {
             // D359 · an ordinary control takes the action colour; ember is
             // reserved for an active competition and a share sheet is not one.
-            Toggle(RoundCopy.photoInclude, isOn: $includePhoto).tint(cs.act)
+            Toggle(RoundCopy.photoInclude, isOn: $includePhoto).tint(cs.act).disabled(linking)
             // W2 · the answer governs the card, the public page and the preview
             if roundId != nil { Text(RoundCopy.photoIncludeFine).csType(.bodyS).foregroundStyle(cs.mut) }
           }
@@ -53,7 +53,8 @@ struct RoundSharePreview: View {
       .background(cs.bg0)
       .safeAreaInset(edge: .bottom) {
         Button("Share") {
-          guard let image else { return }
+          guard !linking, let image else { return }
+          let consent = includePhoto && photo != nil
           // W2 (D380) · ONE action: the card and the link leave together. The
           // link is minted with the toggle's answer, and the card that was
           // rendered — with or without the photo — is what the preview shows.
@@ -62,7 +63,7 @@ struct RoundSharePreview: View {
           Task {
             defer { linking = false }
             do {
-              let url = try await PostService().shareLink(round: roundId, includePhoto: includePhoto && photo != nil, card: image.pngData()) { data in
+              let url = try await PostService().shareLink(round: roundId, includePhoto: consent, card: image.pngData()) { data in
                 PostPhoto.compress(data: data, maxDim: 1600, quality: 0.8)
               }
               share = PostShareItem(items: [image, publicRecap.caption, url])

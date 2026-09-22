@@ -69,7 +69,8 @@ import Foundation
     let agreed = try #require(Covenant(.object(["name": .string("the Fellas"), "season_number": .number(2), "reup": .bool(true), "agreed": .bool(true)])))
     #expect(agreed.agreed == true && agreed.alreadyInLine == "You’re already in for season 2.")
     // a first join reads as it always did
-    let first = Covenant(name: "the Fellas", buyinCents: 0, preset: "standard", floor: 2, finish: nil)
+    let first = Covenant(name: "the Fellas", buyinCents: 0, preset: "standard", floor: 2, finish: nil,
+                         proName: "The host", rosterCount: 1)
     #expect(!first.isReUp && first.head == "Before you join the Fellas" && first.eyebrow == "EVERYTHING BEFORE YOU TAP"
             && first.joinLabel == "Join the Fellas" && first.seasonLine == nil && first.facts().first?.0 == .who)
     // L-44 · a finish the server could not compute renders nothing beyond the season

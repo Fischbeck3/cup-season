@@ -23,6 +23,7 @@
 
   /* W2 (D380) · photo consent on a shared round — the pure plan the mint follows */
   t('W2: a declined photo on a token that carries one re-mints', csShareConsentPlan(true, true, false), { remint:true, publishJpg:false });
+  t('W2: a declined photo replaces a PNG even if its JPEG failed', csShareConsentPlan(false, true, false), { remint:true, publishJpg:false });
   t('W2: a yes on a fresh token uploads and keeps the token', csShareConsentPlan(false, false, true), { remint:false, publishJpg:true });
   t('W2: a yes after a card went out without the photo re-mints', csShareConsentPlan(false, true, true), { remint:true, publishJpg:true });
   t('W2: no photo, no copies — nothing to do', csShareConsentPlan(false, false, false), { remint:false, publishJpg:false });

@@ -117,12 +117,16 @@ struct PostCameraPicker: UIViewControllerRepresentable {
 
 /// `UIActivityViewController` — the native share sheet for the card and the link.
 struct PostShareSheet: UIViewControllerRepresentable {
+  @Environment(\.dismiss) private var dismiss
   let items: [Any]
   var completion: ((Bool, Bool) -> Void)? = nil
   func makeUIViewController(context: Context) -> UIActivityViewController {
     let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
     controller.completionWithItemsHandler = { _, completed, _, error in
       completion?(completed, error != nil)
+      // The activity controller lives inside a SwiftUI sheet. Completing or
+      // cancelling the UIKit activity must dismiss that presentation too.
+      dismiss()
     }
     return controller
   }

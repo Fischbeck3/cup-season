@@ -9577,7 +9577,8 @@ window.shareSettlementCard = shareSettlementCard;
 function csShareConsentPlan(hadPhoto, hadCard, includePhoto){
   const inc = !!includePhoto;
   return {
-    remint: (!!hadPhoto && !inc) || (!hadPhoto && inc && !!hadCard),
+    /* A PNG may contain the photo even when its separate JPEG upload failed. */
+    remint: (!inc && (!!hadPhoto || !!hadCard)) || (!hadPhoto && inc && !!hadCard),
     publishJpg: inc,
   };
 }
@@ -9627,23 +9628,30 @@ async function csShareLink(kind, ref, text, card, opts){
       }catch(e){ try{ console.warn('[share card] link ships card-less:', e.message||e); }catch(_){} }
     }
     if(kind === 'round'){
+      const ready = await sb.rpc('can_drop_share_copy', { p_name: data + '.png' });
+      if(ready.error) throw ready.error;
+      if(ready.data !== true) throw new Error('Round sharing needs the latest update. Try again shortly.');
       /* W2 · what the token already carries, and what the answer says it should */
       const has = async (name) => {
-        const { data: head } = await sb.storage.from('shared').list('', { search: name, limit: 1 });
+        const { data: head, error } = await sb.storage.from('shared').list('', { search: name, limit: 1 });
+        if(error) throw error;   /* unknown is not proof that an old photo is absent */
         return Array.isArray(head) && head.some(o => o.name === name);
       };
-      try{
-        const plan = csShareConsentPlan(await has(data + '.jpg'), await has(data + '.png'), opts.includePhoto);
+      const plan = csShareConsentPlan(await has(data + '.jpg'), await has(data + '.png'), opts.includePhoto);
         if(plan.remint){
           /* the copies disagree with the answer: they go, the token goes, and a
              fresh token is minted — the old url stops working for everyone */
-          try{ await sb.storage.from('shared').remove([data + '.jpg', data + '.png']); }catch(_){}
+          const removed = await sb.storage.from('shared').remove([data + '.jpg', data + '.png']);
+          if(removed.error) throw removed.error;
           const r2 = await sb.rpc('revoke_share', { p_token: data });
           if(r2.error) throw r2.error;
           const r3 = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
           if(r3.error) throw r3.error;
           data = r3.data;
         }
+      /* Withdrawal is mandatory. Publishing optional new copies remains
+         best effort, after the previous token is safely retired. */
+      try{
         /* the card is the link's preview (a scraper runs no JavaScript), so it
            has to exist at a public url before the message is sent — same shape
            as the settlement card above, best effort */
@@ -9698,7 +9706,9 @@ async function csShareLink(kind, ref, text, card, opts){
    the card alone, exactly as before. `d` is the recap card's facts. */
 async function csShareRound(d, roundId, includePhoto, text){
   try{
-    d.photo = includePhoto ? (d.photo || null) : null;
+    // Do not carry a previous render's image through an opt-out or erase the
+    // caller's attachment when they share the same round again later.
+    d = { ...d, photo: includePhoto ? (d.photo || null) : null, _img: null };
     if(d.photo && typeof photoDrawable==='function'){
       try{ d._img = await photoDrawable(d.photo); }catch(_){ d._img=null; }
     }
@@ -9773,6 +9783,11 @@ async function csRevokeLink(kind, ref){
   try{
     const { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
     if(error) throw error;
+    const ready = await sb.rpc('can_drop_share_copy', { p_name: data + '.png' });
+    if(ready.error) throw ready.error;
+    if(ready.data !== true) throw new Error('Round sharing needs the latest update. Try again shortly.');
+    const removed = await sb.storage.from('shared').remove([data + '.jpg', data + '.png']);
+    if(removed.error) throw removed.error;
     const r2 = await sb.rpc('revoke_share', { p_token: data });
     if(r2.error) throw r2.error;
     toast('Link is off — the page stops working for everyone');

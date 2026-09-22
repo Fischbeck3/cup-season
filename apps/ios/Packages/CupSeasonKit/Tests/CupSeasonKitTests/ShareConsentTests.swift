@@ -12,6 +12,9 @@ import Foundation
     #expect(ShareConsent.plan(hadPhoto: true, hadCard: true, includePhoto: true) == .init(remint: false, publishPhoto: true))
     // a declined photo with no card yet: the jpg goes with the token, nothing is published
     #expect(ShareConsent.plan(hadPhoto: true, hadCard: false, includePhoto: false) == .init(remint: true, publishPhoto: false))
+    // The card upload succeeded with a photo but the separate JPEG failed.
+    // Opting out must not reuse that photo-bearing PNG.
+    #expect(ShareConsent.plan(hadPhoto: false, hadCard: true, includePhoto: false) == .init(remint: true, publishPhoto: false))
   }
 
   @Test func theWordsPromiseNothingARemintCannotDo() {

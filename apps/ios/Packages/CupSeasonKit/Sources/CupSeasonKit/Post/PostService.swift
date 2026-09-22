@@ -298,9 +298,12 @@ public struct PostService: Sendable {
   public func shareLink(round id: UUID, includePhoto: Bool, card: Data?, compress: @Sendable (Data) async -> Data?) async throws -> URL {
     var token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
     var name = token.uuidString.lowercased()
-    func has(_ file: String) async -> Bool {
-      let head = try? await db.storage.from("shared").list(path: "", options: SearchOptions(limit: 1, search: file))
-      return head?.contains(where: { $0.name == file }) ?? false
+    // The old storage helpers admitted JPEG only and hid shared copies from
+    // list(). A new client must not infer absence until the policy fix lands.
+    guard try await svc.call(Rpc.can_drop_share_copy(p_name: name + ".png")) else { throw ShareConsent.NotReady() }
+    func has(_ file: String) async throws -> Bool {
+      let head = try await db.storage.from("shared").list(path: "", options: SearchOptions(limit: 1, search: file))
+      return head.contains(where: { $0.name == file })
     }
     func put(_ file: String, _ data: Data, _ type: String) async {
       do {
@@ -310,16 +313,18 @@ public struct PostService: Sendable {
         if !(m.contains("exists") || m.contains("duplicate")) { /* best effort: the link ships without this copy */ }
       }
     }
-    let plan = ShareConsent.plan(hadPhoto: await has(name + ".jpg"), hadCard: await has(name + ".png"), includePhoto: includePhoto)
+    let plan = ShareConsent.plan(hadPhoto: try await has(name + ".jpg"), hadCard: try await has(name + ".png"), includePhoto: includePhoto)
     if plan.remint {
-      _ = try? await db.storage.from("shared").remove(paths: [name + ".jpg", name + ".png"])
+      // Consent checks and withdrawing old copies must succeed before a link
+      // can leave the app. Only publishing new optional copies is best effort.
+      _ = try await db.storage.from("shared").remove(paths: [name + ".jpg", name + ".png"])
       _ = try await svc.call(Rpc.revoke_share(p_token: token))
       token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
       name = token.uuidString.lowercased()
     }
     CSGrowth.log(.artifactShared, kind: "share", token: name)   // the share ACTION, not a render
-    if let card, !(await has(name + ".png")) { await put(name + ".png", card, "image/png") }
-    if plan.publishPhoto, !(await has(name + ".jpg")) {
+    if let card, !(try await has(name + ".png")) { await put(name + ".png", card, "image/png") }
+    if plan.publishPhoto, !(try await has(name + ".jpg")) {
       do {
         let rows: [PhotoRow] = try await db.from("rounds").select("photo_path").eq("id", value: id).limit(1).execute().value
         if let path = rows.first?.photo_path {
@@ -336,6 +341,9 @@ public struct PostService: Sendable {
   /// mints a NEW token — revoked copies stay dark.
   public func revokeLink(round id: UUID) async throws {
     let token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
+    let name = token.uuidString.lowercased()
+    guard try await svc.call(Rpc.can_drop_share_copy(p_name: name + ".png")) else { throw ShareConsent.NotReady() }
+    _ = try await db.storage.from("shared").remove(paths: [name + ".jpg", name + ".png"])
     _ = try await svc.call(Rpc.revoke_share(p_token: token))
   }
 

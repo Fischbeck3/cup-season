@@ -15,6 +15,10 @@
 import Foundation
 
 public enum ShareConsent {
+  public struct NotReady: LocalizedError, Sendable {
+    public init() {}
+    public var errorDescription: String? { "Round sharing needs the latest update. Try again shortly." }
+  }
   public struct Plan: Sendable, Equatable {
     /// The copies and the token go, and a fresh token is minted.
     public let remint: Bool
@@ -26,7 +30,9 @@ public enum ShareConsent {
   /// `hadPhoto`: a `.jpg` copy exists on the token. `hadCard`: a `.png` copy
   /// exists. `includePhoto`: the golfer's answer for this share.
   public static func plan(hadPhoto: Bool, hadCard: Bool, includePhoto: Bool) -> Plan {
-    Plan(remint: (hadPhoto && !includePhoto) || (!hadPhoto && includePhoto && hadCard),
+    // A PNG can contain the photo even if the separate JPEG upload failed.
+    // Its pixels carry no consent metadata: an opt-out must replace it too.
+    Plan(remint: (!includePhoto && (hadPhoto || hadCard)) || (!hadPhoto && includePhoto && hadCard),
          publishPhoto: includePhoto)
   }
 

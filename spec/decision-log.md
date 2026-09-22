@@ -7917,3 +7917,23 @@ Four sentences that asserted more than their payload carried. Each is the same f
 - **Tradeoffs.** One more question when a photo exists; a withdrawn photo changes the url (the old link dies — the honest outcome). **What no re-mint can do:** a preview a messaging app already saved stays with them; the fine print says so and nothing promises otherwise.
 - **CONFLICT.** None. D60 ("the photo travels") is amended, not contradicted: it travels when the golfer says so.
 
+
+**D380 · Mac verification amendment, 2026-09-22.** The initial “no server
+change” assumption did not hold: the storage helpers accepted `.jpg` only,
+and storage SELECT had no shared-copy policy. The Mac sandbox reproduced
+both limits. `20261117090000_shared_card_consent.sql` admits `.jpg` and `.png`
+under the same live-token owner write rule and adds owner-only copy reads;
+revoked copies remain readable/deletable by their owner for cleanup. No
+anonymous relation grant or endpoint is added. Both clients check PNG support
+before relying on a storage listing, so deployment skew fails visibly.
+
+A card PNG can contain the photo even if the separate JPEG failed to upload.
+An opt-out therefore replaces any existing card whose consent cannot be
+established; this may also rotate a previous photo-less link. Listing,
+removal and revocation failures stop link sharing, while publishing a new
+optional image remains best effort. Explicit revoke removes both formats.
+The web render clears a previously decoded photograph on opt-out, and the
+phone freezes the consent answer alongside the image while minting. These
+are implementation corrections to the approved consent boundary, with no
+competition-mechanic change. Real Storage API deletion remains a release
+check; external recipients' cached copies cannot be recalled.
