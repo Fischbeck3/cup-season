@@ -36,6 +36,14 @@ Verified from the systems themselves on 2026-09-15, not from prior reports. "Imp
 - **Read from production, read-only, 2026-09-22:** the ledger carries `20261109`–`20261115` and **not** `20261111`; no atomic course-cache RPC exists. The file lives only in Codex's local workspace; the packet says how to recover it under `20261116090000`.
 - **Missing evidence, still:** the live stamp (egress blocked from here); the latest TestFlight builds and both groups; any hardware run of `owner-checks.md`.
 
+### Addendum · 2026-09-22 night (Claude, remote) — the correction pass on `claude/october-launch`
+
+- Codex's build-for-testing stopped at `LiveClaim.swift:93` (an await inside `??`'s autoclosure). Fixed with an explicit conditional load; the model's no-season error is its own `LocalizedError`; the receipt's ruling rows render whether or not there is round history. **Still not natively verified** — this is the remote sandbox; the Mac runs the build and the suites next.
+- `courses/index.ts` normalization moved to `normalize.ts` and tested (6 of 6, `node --experimental-strip-types --test`, in CI): null stays null, booleans never become numbers, the hole count falls back to the holes listed, else null — no invented zeroes.
+- `/get` no longer points at Apple's generic TestFlight page; the iPhone button exists only when a real invitation or store link is pasted into its `data-href`. Both pages on the design tokens; reviewed at 390px, both themes, in headless Chromium.
+- **W2 built on both clients under the owner's ruling (Option A, D380):** one Share from a posted round, the card and the link together, the photo only on a yes, the copies following the answer on a reused token (re-mint), the preview preferring the card. Desk: preflight passes, the eight new pins pass in headless Chromium; the full in-browser suite cannot finish here (the module block's CDN is blocked). Phone: implemented, not built.
+- **Not done here, by nature:** the course-cache migration and probes from Codex's local `39c8d00`, the PG17 chain and the reapply-on-populated-sandbox test; every native build and suite; the device runs.
+
 ### Known issues (as of 2026-09-15)
 - A seated non-starter cannot finish a league-less round; the host (or a league member seat) must. By design (D107), told to testers. `tests/pilot/authz-flow.py` NOT VERIFIED line.
 - Historical rounds carry no par provenance and therefore show no birdie/eagle tally — including the owner's own 2026-09-15 round. Honest by design (Codex S3).

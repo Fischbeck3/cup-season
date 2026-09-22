@@ -104,7 +104,7 @@ branch). Phone: `PostService.shareLink`, the receipt's share control
 `photo: exists(copy)` and the storage policies already carry the design; no
 migration, no anon-surface change (the twelve stay twelve).
 
-## 3 · The one question for the owner
+## 3 · The one question for the owner — **ruled 2026-09-22: A.** Logged as D380 in `spec/decision-log.md`; built the same day on both clients.
 
 **The shape of the one action.** (A, recommended) the card image *and* the link
 in the same share sheet, with the card PNG published at mint as the link's

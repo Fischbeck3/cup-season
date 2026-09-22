@@ -31,6 +31,11 @@ sorting.
 ---
 
 
+### 2026-09-22 · The in-browser suite aborts when the module block is absent
+
+`tests/app-tests.js` references `CS` (a module-side bridge) partway through; in a sandbox where the module's CDN is blocked the suite throws `CS is not defined` after 53 passes and one module-dependent failure (`lock: lockBylaws + openLockShare bridged for QA`), so the classic-side pins after that point never run. Worth guarding the module-dependent checks with `window.CS ?` so a remote session gets the whole classic half. Lane: Ops · size: tiny · first question: guard or split the file?
+
+
 ### 2026-09-22 · `deploy-status` cannot see a migration that is applied remotely with no local file
 
 `tools/deploy-status.mjs` subtracts the ledger from the local files, so a version present in `supabase migration list`'s Remote column with no Local row reads as *clean*. It answered the wrong question about Codex's `20261111` (the ledger, read directly, says unapplied — but the tool could not have told us either way). Lane: Ops · size: small · first question: print Remote-only versions as a WARN line ("applied in production, absent here — pull the file before any push"), or refuse to say clean at all when the two lists differ?
