@@ -74,3 +74,6 @@ Copy the block for the stranger run.
 
 Nothing on this sheet is marked met from a simulator, a screen recording or
 the founder's own run.
+
+The release checklist (`docs/planning/2026-09-22-release-checklist.md`) carries
+this gate as not passed until the sheet above is filled with build numbers.

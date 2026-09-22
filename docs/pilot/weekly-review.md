@@ -1,9 +1,15 @@
 # Weekly review — thirty minutes, same day every week
 
-1. Run the scorecard, read-only, and keep the output with the date:
+1. Fill this week's row of the acquisition log first (`acquisition-log.md`
+   says where each count comes from; the store count is App Analytics'
+   first-time downloads and nothing else). Then run the report, read-only,
+   and keep the output with the date:
    ```
-   node tools/pilot-scorecard.mjs > docs/pilot/scorecard-$(date +%F).md
+   node tools/pilot-scorecard.mjs --as-of $(date +%F) --store-live false > docs/pilot/scorecard-$(date +%F).md
    ```
+   (`--store-live true` once Apple approves the listing.) The acquisition
+   section keeps first-time App Store downloads, TestFlight installs and web
+   sign-ups apart; a — is missing, not zero.
 2. Enter the week's sessions and support requests before reading the numbers (see [`session-log.md`](session-log.md)). Assisted activity is not evidence of unassisted completion.
 3. Read the **integrity** section first. Any non-zero in `bookings_with_two_live_rounds`, `double_posted_live_cards` or `live_over_24h_not_abandoned` is a stop condition until explained.
 4. Read **live_games** and **posting**: how many games started, finished, abandoned; how many finishes posted every seat; how many account-less guests claimed. Write one sentence per anomaly.

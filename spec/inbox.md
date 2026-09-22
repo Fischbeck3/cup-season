@@ -35,6 +35,11 @@ sorting.
 
 Codex verified Claude's `4a171f7` in an isolated worktree and fixed the native cancellation and photo-consent/storage defects it exposed. Native suites: 1,235 Kit + 120 design + 122 app + six UI tests passed. The recovered course-cache migration is now `20261116090000`; `20261117090000` fixes PNG permissions and owner listing. All 254 migrations applied on PG17, with populated-cache reapply and authenticated storage probes passing. Nothing deployed. The next session must keep these commits, finish W6 reporting and obtain real Storage API / physical two-phone proof, the installation URL and current Apple/live evidence. Details: `docs/planning/2026-09-22-october-mac-verification.md` and the deployment packet. Lane: Ops / launch · follow-up remains open until the release gates have evidence.
 
+### 2026-09-22 · `profiles.came_via_kind` is never written, and the cohort tables are empty
+
+Read from production while building W6: every profile's `came_via_kind` is null, so the growth report's "arrived by a link" column can only say 0 — the column exists (20260828160000) and no door writes it. And `pilot_cohort_members` / `pilot_sessions` hold 0 rows, so every cohort section reports nothing until the founder names cohorts. Lane: Growth · size: small · first question: should `log_growth_event`'s `profile_created` (or the signup trigger, from the stored `cs_claim` / `cs_code` / `cs_person` token) write `came_via_kind`, so attribution is a fact rather than a blank?
+
+
 ### 2026-09-22 · The in-browser suite aborts when the module block is absent
 
 `tests/app-tests.js` references `CS` (a module-side bridge) partway through; in a sandbox where the module's CDN is blocked the suite throws `CS is not defined` after 53 passes and one module-dependent failure (`lock: lockBylaws + openLockShare bridged for QA`), so the classic-side pins after that point never run. Worth guarding the module-dependent checks with `window.CS ?` so a remote session gets the whole classic half. Lane: Ops · size: tiny · first question: guard or split the file?
