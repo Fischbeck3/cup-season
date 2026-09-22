@@ -568,6 +568,12 @@ public final class LeagueRoomModel {
     _ = try await svc.call(InviteGolferCall(p_league: league, p_event: nil, p_profile: m.profile_id))
   }
 
+  /// D376 · the sentence the desk toasts when there is nothing to rule on.
+  public struct NoSeasonToRuleOn: LocalizedError, Sendable {
+    public init() {}
+    public var errorDescription: String? { "No season to rule on yet." }
+  }
+
   public func setMemberBye(member: UUID, month: String) async throws {
     _ = try await svc.call(Rpc.set_member_bye(p_member: member, p_month: month, p_on: true))
   }
@@ -577,7 +583,7 @@ public final class LeagueRoomModel {
   /// the season and the Final window. Returns the member's new total when the
   /// server says it. The room is re-read so the ledger rows and the table agree.
   public func adjustPoints(member: UUID, delta: Int, reason: String) async throws -> Int? {
-    guard let season = season?.id else { throw RpcError(name: "adjust_points", underlying: "No season to rule on yet.", droppedArgs: []) }
+    guard let season = season?.id else { throw NoSeasonToRuleOn() }
     let r = try await svc.call(Rpc.adjust_points(p_season: season, p_member: member, p_delta: delta, p_reason: reason))
     await refresh()
     return r["member_total"]?.int

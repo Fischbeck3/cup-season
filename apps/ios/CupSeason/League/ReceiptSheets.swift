@@ -163,10 +163,13 @@ struct MemberHistorySheet: View {
         if row.hist.contains(where: { !$0.counting }) {
           RoomFine("These rounds stay in your record. \(LeagueCopy.countingRule(cap)) A better one took the slot.").padding(.top, 10)
         }
-        rulingRows
-        if let pid = row.profileId {
-          RoomMini(GolfersRoot.CardName.title(row.n)) { dismiss(); links.openTourCard(pid) }.padding(.top, 6)
-        }
+      }
+      // D376 · the rulings are listed whether or not there is round history:
+      // a golfer with no rounds and a ruling still has a total to explain,
+      // and the header's figure is the standings' (which read the ledger).
+      rulingRows
+      if !row.hist.isEmpty, let pid = row.profileId {
+        RoomMini(GolfersRoot.CardName.title(row.n)) { dismiss(); links.openTourCard(pid) }.padding(.top, 6)
       }
     }
   }
@@ -179,6 +182,7 @@ struct MemberHistorySheet: View {
     let mid: UUID? = row.mid
     let rulings = mid.map { model.rulings(member: $0) } ?? []
     if !rulings.isEmpty {
+      CSSectionHead(row.hist.isEmpty ? "Where the points came from" : "Rulings").padding(.top, CSTokens.Space.s2)
       VStack(spacing: 0) {
         ForEach(rulings) { a in
           A11yStack(rowAlignment: .firstTextBaseline, spacing: 10, columnSpacing: 2) {

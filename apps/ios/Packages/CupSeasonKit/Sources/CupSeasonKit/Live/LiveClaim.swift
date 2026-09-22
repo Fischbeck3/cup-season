@@ -90,7 +90,10 @@ public struct ClaimDoor: Sendable, Equatable {
   public static func load(token: UUID, state: JSONValue? = nil, repo: LiveRepository = LiveRepository()) async -> ClaimDoor {
     // D374 · the first sentence a stranger reads from us must be true: a round
     // nobody finished mints no card, and the door says so instead of "expired".
-    let seen: JSONValue? = state ?? (try? await repo.guestState(token))
+    // `??` takes an autoclosure, and an autoclosure cannot await — so the
+    // conditional read is spelled out (Codex's build-for-testing, 2026-09-22).
+    let seen: JSONValue?
+    if let state { seen = state } else { seen = try? await repo.guestState(token) }
     if let face = gate(seen) {
       if case .unfinished = face { ClaimIntent.clear() }
       return ClaimDoor(face: face)
