@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Cup Season — Support</title>
+<meta name="description" content="How to get help with Cup Season, how to install the app and open a link into it, and how to delete your account.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<style>
+  :root{
+    --bg:#EFF2EE; --panel:#fff; --ink:#182019; --mut:#52625A; --line:#E0E5DE; --gold:#9A7B18;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0C0D0F; --panel:#17191C; --ink:#F0F2F3; --mut:#8E979E; --line:rgba(255,255,255,0.07); --gold:#FF5A2E; --hov:#E9A23B; }
+  }
+  :root[data-theme="light"]{ --bg:#EFF2EE; --panel:#fff; --ink:#182019; --mut:#52625A; --line:#E0E5DE; --gold:#9A7B18; --hov:#9A7B18; }
+  :root[data-theme="dark"]{ --bg:#0C0D0F; --panel:#17191C; --ink:#F0F2F3; --mut:#8E979E; --line:rgba(255,255,255,0.07); --gold:#FF5A2E; --hov:#E9A23B; }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.6;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:680px; margin:0 auto; padding:clamp(24px,5vw,56px) clamp(18px,5vw,28px) 80px;}
+  a{color:var(--gold);} a:hover{color:var(--hov,var(--gold));}
+  .home{display:inline-block; font-size:13px; color:var(--mut); text-decoration:none; margin-bottom:28px;}
+  .home:hover{color:var(--ink);}
+  h1{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); font-weight:700; margin:0 0 4px;}
+  nav{display:flex; gap:14px; flex-wrap:wrap; font-size:13px; margin:0 0 34px; padding-bottom:18px; border-bottom:1px solid var(--line);}
+  nav a{text-decoration:none;}
+  section{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:clamp(20px,4vw,32px); margin-bottom:22px; scroll-margin-top:20px;}
+  h2{font-size:clamp(20px,4vw,26px); margin:0 0 4px; letter-spacing:-.01em;}
+  h3{font-size:15px; margin:18px 0 6px;}
+  p{margin:0 0 14px;} p:last-child{margin-bottom:0;}
+  ol,ul{margin:0 0 14px; padding-left:20px;} li{margin:0 0 6px;}
+  strong,b{font-weight:650;}
+  footer{color:var(--mut); font-size:12.5px; text-align:center; margin-top:36px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="/">← Back to Cup Season</a>
+  <h1>Cup Season · Support</h1>
+  <nav>
+    <a href="#help">Get help</a>
+    <a href="#install">Install the app</a>
+    <a href="#links">A link that did not open</a>
+    <a href="#account">Your account</a>
+    <a href="/legal.html">Legal</a>
+  </nav>
+
+  <section id="help">
+    <h2>Get help</h2>
+    <p>Cup Season is built and run by one golfer in Tempe, Arizona. Write to <a href="mailto:jerecho@fischbeck3.com">jerecho@fischbeck3.com</a> and say what you were trying to do, which phone you were on, and roughly when. You will hear back within a day.</p>
+    <p>If a score did not land, a round posted twice, or you can see something that is not yours, say so first — those are the things we drop everything for.</p>
+  </section>
+
+  <section id="install">
+    <h2>Install the app</h2>
+    <p>Everything you need is at <a href="/get">cupseason.app/get</a>: the iPhone app, and the web app for any other phone.</p>
+    <p><b>If somebody sent you a link</b> — to a round, a card or a season — <b>install the app, then open the link again.</b> The link you were sent opens on the web first; once the app is on your phone, opening the same link lands inside the app. The app does not remember a link you opened before it was installed, so keep the message it came in.</p>
+  </section>
+
+  <section id="links">
+    <h2>A link that did not open</h2>
+    <ul>
+      <li><b>It opened in the browser instead of the app.</b> That is expected before the app is installed. Install it, then open the link again from the message.</li>
+      <li><b>It says the round was never finished.</b> There is no card to keep — whoever ran the round can tee off again and send you a new link from that round.</li>
+      <li><b>It says the card was already claimed.</b> Your card is on a record already. Sign in with the same email and it is there.</li>
+      <li><b>It asks you to sign in.</b> Sign in on that screen. A card or an invitation you opened while signed out is waiting for you after the code.</li>
+    </ul>
+  </section>
+
+  <section id="account">
+    <h2>Your account</h2>
+    <p><b>Signing in.</b> There is no password. You type your email and we send a code; the code is what you type back.</p>
+    <p><b>Deleting your account.</b> In the app or on the web: Settings → Delete account. Your photos, your device tokens and your email address go at once; rounds that other golfers' standings were built from stay on the record with no name on them. The <a href="/legal.html#privacy">privacy policy</a> says exactly what is kept and why.</p>
+    <p><b>The pot.</b> Cup Season keeps the ledger; the money moves between friends. Nothing is paid through the app. See the <a href="/legal.html#pot">prize pool disclaimer</a>.</p>
+  </section>
+
+  <footer>Cup Season · cupseason.app · operated by Fischbeck3 LLC</footer>
+</div>
+<script>
+  /* match the app's chosen theme (same-origin localStorage) so the page isn't
+     jarring after the app. Falls back to the OS preference. */
+  try {
+    var t = localStorage.getItem('cs_theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
+</body>
+</html>

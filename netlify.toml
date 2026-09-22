@@ -37,6 +37,22 @@
 #   share-preview.ts — per-token OG tags on /?share=TOKEN (D77/D78). Fails open:
 #   any error serves the untouched origin HTML.
 
+# W5 (launch plan §3): the installation destination and the support page are
+# told to people as /get and /support — App Store Connect's Support URL field
+# carries /support — so both resolve as 200 rewrites, never as a redirect a
+# link scanner might follow into the app shell. The files live in the dist
+# allowlist (stamp-version.sh); the service worker leaves every navigation
+# but "/" to the network, so neither page is ever served from the cached shell.
+[[redirects]]
+  from = "/get"
+  to = "/get.html"
+  status = 200
+
+[[redirects]]
+  from = "/support"
+  to = "/support.html"
+  status = 200
+
 # The service worker must never be cached — it's how new builds reach users.
 [[headers]]
   for = "/sw.js"

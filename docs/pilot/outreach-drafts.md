@@ -3,6 +3,12 @@
 Send only after the gate for that stage is passed and the owner has decided.
 Keep names out of this file; personalise in the message client.
 
+**Every message that carries a link ends with the same sentence** (W4, launch
+plan §3): *Install the app, then open the link again.* The install destination
+is `cupseason.app/get`; help is `cupseason.app/support`. Nothing promises that
+the app will remember a link opened before it was installed — it does not, and
+nothing is built to make it.
+
 ## Before recruiting from "stalled leagues"
 
 The production read on 2026-09-15 (counts only, no names) does not support the
@@ -29,11 +35,11 @@ the three single-member leagues are people who tried the wizard alone. Treat
 
 ## B · Friends (task-based, no walkthrough)
 
-> Would you and the group be up for testing something for me over the next two rounds? It is the app, on your own phones, with a one-page task sheet. I will not be there and I will not explain it — that is the point. Afterwards I ask five questions that take two minutes. If it breaks, that is what I need to know.
+> Would you and the group be up for testing something for me over the next two rounds? It is the app, on your own phones, with a one-page task sheet. I will not be there and I will not explain it — that is the point. Afterwards I ask five questions that take two minutes. If it breaks, that is what I need to know. Install the app from cupseason.app/get, then open the link again.
 
 ## C · Independent groups
 
-> I am looking for three or four groups who already play together most weeks to try Cup Season for two rounds without me involved. It books the round, scores it live on everyone's phones, and keeps the record. You would get the app, a short task sheet, and I would ask the organiser a few questions afterwards. It is free during the pilot. Interested?
+> I am looking for three or four groups who already play together most weeks to try Cup Season for two rounds without me involved. It books the round, scores it live on everyone's phones, and keeps the record. You would get the app, a short task sheet, and I would ask the organiser a few questions afterwards. It is free during the pilot. Interested? Install the app from cupseason.app/get, then open the link again.
 
 ## D · Competition groups
 

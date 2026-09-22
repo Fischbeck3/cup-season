@@ -9,7 +9,7 @@ Fill in the short form after each round: [post-round feedback](post-round-feedba
 
 ## Before you play
 
-1. Install the build you were sent and sign in with the code emailed to you.
+1. Install the build you were sent and sign in with the code emailed to you. If you were sent a link to a round, a card or a season: **install the app, then open the link again** — a link opened before the app was installed is not remembered by it.
 2. Set up your golfer card.
 3. If you organise the group: book a round for the day you are playing and tag the others. If you were tagged: answer the booking from Home.
 

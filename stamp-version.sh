@@ -35,7 +35,7 @@ echo "[stamp] build identity: $SHORT"
 DIST="dist"
 rm -rf "$DIST"
 mkdir -p "$DIST"
-cp index.html legal.html sw.js manifest.webmanifest apple-touch-icon.png \
+cp index.html legal.html get.html support.html sw.js manifest.webmanifest apple-touch-icon.png \
    favicon.svg favicon-32.png \
    icon-192.png icon-512.png icon-512-maskable.png og-image.png "$DIST/"
 cp -r brand "$DIST/brand"

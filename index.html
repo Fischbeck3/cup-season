@@ -30924,7 +30924,9 @@ async function renderShareView(tok, _testInfo){
          <span style="color:${C.mut};white-space:nowrap">${esc(fmtD(r.played_on))}</span>
          <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">${r.gross != null ? esc(String(r.gross)) : '—'}${esc(r.course ? ' · ' + String(r.course).split(' — ')[0] : '')}</span></div>`).join('')}` : ''}
       <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
-    foot.innerHTML = `<a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Get the app</a>
+    /* W5 · "Get the app" is a destination (/get: the iPhone beta or the store,
+       the web app, and install-then-reopen said once), not the root */
+    foot.innerHTML = `<a href="/get" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Get the app</a>
       <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Signing in sends ${esc(info.name)} a buddy request. They still have to say yes.</div>`;
 
   } else if(info.kind === 'plan'){

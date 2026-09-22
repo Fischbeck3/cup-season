@@ -129,7 +129,7 @@ competitor field says. Nothing in the banned list.
 
 | Field | Value | Note |
 |---|---|---|
-| Support URL | `https://cupseason.app` | **Flag:** there is no `/support` page. The repo serves `index.html` and `legal.html` only, and `netlify.toml` has no `/support` redirect. Either add a one-line redirect `/support → /legal.html` (then paste `https://cupseason.app/support`) or leave the root, which resolves. App Review requires the URL to load; both do. |
+| Support URL | `https://cupseason.app/support` | W5 (launch plan §3, 2026-09-22): a real support page — how to get help, install-then-reopen, a link that did not open, deletion in one sentence, the legal links — served as a 200 rewrite of `support.html` (`netlify.toml`), in the dist allowlist. `https://cupseason.app/get` is the installation destination. |
 | Marketing URL | `https://cupseason.app` | optional field |
 | Privacy Policy URL | `https://cupseason.app/legal.html#privacy` | the anchor `legal.html` §Privacy Policy; the same link the sign-in screen and Settings use |
 | Copyright | `2026 Jerecho Fischbeck` | **Flag:** no legal entity is named anywhere in the repo (`legal.html` says "CupSeason", the contact is a personal address). If an LLC exists, its name goes here instead. Apple's format is year then owner, no © needed. |
