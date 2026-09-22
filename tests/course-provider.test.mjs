@@ -1,0 +1,28 @@
+import {readFileSync} from 'node:fs';
+import {stripTypeScriptTypes} from 'node:module';
+import assert from 'node:assert/strict';
+import {num, int, holeCount} from '../supabase/functions/courses/normalize.ts';
+const src=readFileSync(new URL('../supabase/functions/courses/index.ts',import.meta.url),'utf8');
+const section=src.slice(src.indexOf('function flattenTees('),src.indexOf('Deno.serve('));
+const load=gca=>new Function('gca','num','int','holeCount',stripTypeScriptTypes(section)+';return {flattenTees,fetchAndStore};')(gca,num,int,holeCount);
+const {flattenTees}=load(()=>{});
+assert.deepEqual(flattenTees({tees:{male:8,female:null}}),[]);
+assert.equal(flattenTees({tees:{male:[null,{}, {tee_name:'Blue',holes:18}]}}).length,1);
+assert.deepEqual(flattenTees({tees:{male:[{tee_name:'Blue',holes:18}]}})[0].holes,[]);
+let calls=0;
+const db={rpc:async()=>{calls++;return {error:{message:'refused'}};}};
+await assert.rejects(load(async()=>({id:1,tees:{male:8}})).fetchAndStore(db,'1'),/no tee/);
+assert.equal(calls,0);
+await assert.rejects(load(async()=>({id:2})).fetchAndStore(db,'1'),/mismatched/);
+await assert.rejects(load(async()=>({id:1,tees:{male:[{tee_name:'Blue'}]}})).fetchAndStore(db,'1'),/could not be saved/);
+assert.equal(calls,1);
+let payload;
+const saved = await load(async()=>({id:1,location:{latitude:'',longitude:'-111.9'},tees:{male:[{tee_name:'Blue',course_rating:'72.4',number_of_holes:null,holes:[null,{hole:2,par:'4'}]}]}}))
+  .fetchAndStore({rpc:async(name,args)=>{ assert.equal(name,'cache_course_card'); payload=args; return {data:'1',error:null}; }},'1');
+assert.equal(saved,'1');
+assert.equal(payload.p_course.location.latitude,null);
+assert.equal(payload.p_course.location.longitude,-111.9);
+assert.equal(payload.p_tees[0].course_rating,72.4);
+assert.equal(payload.p_tees[0].number_of_holes,2);
+assert.deepEqual(payload.p_tees[0].holes[0],{hole_number:1,par:null,yardage:null,handicap:null});
+console.log('Course provider: validation, atomic RPC and normalized payload passed');

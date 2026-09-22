@@ -68,6 +68,7 @@ function flattenTees(course: any) {
     // the search branch below then fills tees from our own cache / a detail fetch.
     const arr = Array.isArray(t[gender]) ? t[gender] : [];
     for (const te of arr) {
+      if (!te || typeof te !== "object" || typeof te.tee_name !== "string" || !te.tee_name.trim()) continue;
       const holes = Array.isArray(te.holes) ? te.holes : [];
       out.push({
         gender,
@@ -80,10 +81,10 @@ function flattenTees(course: any) {
         total_yards: int(te.total_yards),
         number_of_holes: holeCount(te.number_of_holes, holes),
         holes: holes.map((h: any, i: number) => ({
-          hole_number: int(h.hole) ?? i + 1,
-          par: int(h.par),
-          yardage: int(h.yardage),
-          handicap: int(h.handicap),
+          hole_number: int(h?.hole) ?? i + 1,
+          par: int(h?.par),
+          yardage: int(h?.yardage),
+          handicap: int(h?.handicap),
         })),
       });
     }
@@ -99,44 +100,15 @@ function flattenTees(course: any) {
 async function fetchAndStore(admin: any, id: string): Promise<string> {
   const data = await gca(`/v1/courses/${encodeURIComponent(id)}`);
   const c = data?.course ?? data;
-  const cid = String(c.id ?? id);
-  await admin.from("api_courses").upsert({
-    id: cid,
-    club_name: c.club_name ?? null,
-    course_name: c.course_name ?? null,
-    city: c.location?.city ?? null,
-    state: c.location?.state ?? null,
-    country: c.location?.country ?? null,
-    latitude: num(c.location?.latitude),
-    longitude: num(c.location?.longitude),
-    raw: c,
-    cached_at: new Date().toISOString(),
-  });
-  // replace tees + holes so a re-cache is a clean refresh
-  await admin.from("api_course_tees").delete().eq("course_id", cid);
-  for (const te of flattenTees(c)) {
-    const { data: teeRow, error } = await admin
-      .from("api_course_tees")
-      .insert({
-        course_id: cid,
-        gender: te.gender,
-        tee_name: te.tee_name,
-        course_rating: te.course_rating,
-        slope_rating: te.slope_rating,
-        bogey_rating: te.bogey_rating,
-        par_total: te.par_total,
-        total_yards: te.total_yards,
-        number_of_holes: te.number_of_holes,
-      })
-      .select("id")
-      .single();
-    if (error || !teeRow) continue;
-    if (te.holes?.length) {
-      await admin
-        .from("api_course_holes")
-        .insert(te.holes.map((h: any) => ({ tee_id: teeRow.id, ...h })));
-    }
-  }
+  if (!c || String(c.id ?? "") !== id) throw new Error("Course provider returned a mismatched card");
+  const tees = flattenTees(c);
+  if (!tees.length) throw new Error("Course provider returned no tee cards");
+  // One transaction preserves the previous card if any replacement row fails.
+  // Keep the provider payload, with only SQL-bound coordinates normalized.
+  const course = { ...c, location: { ...c.location,
+    latitude: num(c.location?.latitude), longitude: num(c.location?.longitude) } };
+  const { data: cid, error } = await admin.rpc("cache_course_card", { p_course: course, p_tees: tees });
+  if (error || cid !== id) throw new Error("Course card could not be saved; please retry");
   return cid;
 }
 
