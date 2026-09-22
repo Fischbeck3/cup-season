@@ -31,9 +31,15 @@ sorting.
 ---
 
 
+### 2026-09-22 · Mac verification closed; release proof still open
+
+Codex verified Claude's `4a171f7` in an isolated worktree and fixed the native cancellation and photo-consent/storage defects it exposed. Native suites: 1,235 Kit + 120 design + 122 app + six UI tests passed. The recovered course-cache migration is now `20261116090000`; `20261117090000` fixes PNG permissions and owner listing. All 254 migrations applied on PG17, with populated-cache reapply and authenticated storage probes passing. Nothing deployed. The next session must keep these commits, finish W6 reporting and obtain real Storage API / physical two-phone proof, the installation URL and current Apple/live evidence. Details: `docs/planning/2026-09-22-october-mac-verification.md` and the deployment packet. Lane: Ops / launch · follow-up remains open until the release gates have evidence.
+
 ### 2026-09-22 · The in-browser suite aborts when the module block is absent
 
 `tests/app-tests.js` references `CS` (a module-side bridge) partway through; in a sandbox where the module's CDN is blocked the suite throws `CS is not defined` after 53 passes and one module-dependent failure (`lock: lockBylaws + openLockShare bridged for QA`), so the classic-side pins after that point never run. Worth guarding the module-dependent checks with `window.CS ?` so a remote session gets the whole classic half. Lane: Ops · size: tiny · first question: guard or split the file?
+
+Mac follow-up: the full suite completed with the module loaded, 489 passed and zero failures. This remains a remote-harness limitation, not a failing release check on the Mac.
 
 
 ### 2026-09-22 · `deploy-status` cannot see a migration that is applied remotely with no local file

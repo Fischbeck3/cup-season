@@ -1,91 +1,71 @@
-# The course-cache fix (D370): recovery, placement, validation, deployment
+# October launch — course cache and shared-card deployment packet
 
-**2026-09-22, remote session on `claude/october-launch`.** The one owed
-database and edge item before October 1, prepared here for the Mac and the
-owner. Nothing in this file was deployed.
+Updated 2026-09-22 by the Mac verification pass, on
+`codex/october-launch-mac-verification`, based on Claude's `4a171f7`.
+Nothing in this packet has been deployed by this session.
 
-## 1 · What production says — read, not remembered
+## What is ready
 
-| Question | Answer | How |
-|---|---|---|
-| Is `20261111090000_course_cache_atomic` applied? | **CONFIRMED UNAPPLIED.** The ledger runs `20261109`, `20261110`, `20261112`, `20261113`, `20261114`, `20261115`; no `20261111` row. | `select version from supabase_migrations.schema_migrations where version >= '20261109'` on the linked project, read-only, 2026-09-22 |
-| Does the atomic course-cache RPC exist in production? | **CONFIRMED ABSENT.** The only `public` functions matching `%course%` are `course_key`, `course_name_of`, `course_rating`, `course_rating_is_mine`, `my_course_books`, `my_course_ratings`, `rate_course`, `unrate_course`. | `pg_proc` joined to `pg_namespace`, read-only, same hour |
-| Is the file in the repository, on any remote branch? | **CONFIRMED ABSENT.** No ref carries a `supabase/migrations/20261111*` path after `git fetch --prune`. | `git log --all -- 'supabase/migrations/20261111*'` |
-| Where is it? | Codex's local branch `codex/live-scoring-moments-2026-09-19`, commit `39c8d00`, in `/Users/fischbeck3/cup-season-integrations` — local and unpushed on 2026-09-19 (`docs/reviews/2026-09-19-claude-review-of-codex-integrations.md`). | The review; not re-verified from here |
+- `20261116090000_course_cache_atomic.sql` was recovered byte-for-byte from
+  local commit `39c8d00` (formerly named `20261111090000`). The remote session
+  read production's ledger and function catalog on September 22 and found it
+  unapplied/absent. Recheck that evidence immediately before deployment.
+- The migration defines the standalone `cache_course_card` RPC; it does not
+  patch the functions changed by `20261112` through `20261115`.
+- `courses/index.ts` now combines that atomic RPC with the tested numeric
+  normalization. Invalid/mismatched/incomplete provider cards cannot replace
+  the cache; sparse refreshes preserve tee identity and existing holes.
+- `20261117090000_shared_card_consent.sql` fixes the W2 storage boundary:
+  owner checks admit both JPEG and PNG, and the owner can list/delete their
+  copies. Other owners remain excluded. No new anonymous RPC/table access.
+- The web and phone refuse the new round-link path until the existing owner
+  predicate recognizes PNG, so shipping a client before the migration cannot
+  treat policy-hidden objects as absent.
 
-Why `deploy-status` could not answer the first question: it subtracts the
-ledger from the local files, so a version applied remotely with no local file
-reads as *clean*. The ledger was read directly instead.
+## Local validation (PostgreSQL 17)
 
-## 2 · Recovery and placement (Mac, before any push)
+The Mac ran the complete chain: **254 applied, zero skipped**. Course-cache
+probes and shared-card storage RLS probes passed. The cache migration was
+then reapplied against that same database with a populated cache, preserving
+tee identity, holes and role grants. A second clean install is not the
+idempotence test.
 
-The file has run nowhere but a sandbox, so it may be renamed; it sorts before
-four migrations production already carries, so it **must** be renamed to keep
-file order equal to applied order (an unrenamed push would be out of order and
-the CLI would refuse it or demand its include-all flag — the rename is the
-answer, not the flag). Rule 2 forbids editing a migration that has run in
-production; this one has not.
-
-```bash
-# in the october-launch worktree, on the Mac
-SRC=/Users/fischbeck3/cup-season-integrations
-git -C "$SRC" show 39c8d00 --stat                                   # confirm the two files it carries
-git -C "$SRC" show 39c8d00:supabase/migrations/20261111090000_course_cache_atomic.sql \
-  > supabase/migrations/20261116090000_course_cache_atomic.sql      # an unused timestamp after 20261115
-git -C "$SRC" show 39c8d00:supabase/functions/courses/index.ts > /tmp/courses-codex.ts
-diff /tmp/courses-codex.ts supabase/functions/courses/index.ts     # Codex's RPC call vs this branch's coercion — merge by hand, keep both
-git -C "$SRC" show 39c8d00 --name-only | grep tests/ && \
-  git -C "$SRC" show 39c8d00:tests/course-cache-postgres.py > tests/course-cache-postgres.py   # Codex's probes, if the commit carries them
-```
-
-Before validating, read the migration's body once for the in-place patch
-pattern (`pg_get_functiondef` → replace → execute). If it patches any function
-that `20261112`–`20261115` also patched, it must be rebased on the live text
-first; say which functions in the handoff. The review of 2026-09-19 found it
-self-contained (the course-cache tables and one RPC), so this is expected to be
-a no-op check.
-
-## 3 · Validation on the sandbox chain (Mac, PG17)
+Reproduce from this checkout, with a fresh local socket/port:
 
 ```bash
-tests/sim/sandbox/apply.sh                     # the full chain: 252 on main + the renamed file = 253, 0 skipped
-python3 tests/course-cache-postgres.py         # Codex's probes against the sandbox (port from the harness)
-tests/sim/sandbox/apply.sh                     # a second run: idempotent, notices only
+mkdir -p /private/tmp/cup-season-october-mac-socket
+PORT=5493 SOCK=/private/tmp/cup-season-october-mac-socket tests/sim/sandbox/apply.sh
+/opt/homebrew/opt/postgresql@17/bin/psql -h /private/tmp/cup-season-october-mac-socket -p 5493 -U postgres -d cupseason -v ON_ERROR_STOP=1 -f tests/course-cache-checks.sql
+/opt/homebrew/opt/postgresql@17/bin/psql -h /private/tmp/cup-season-october-mac-socket -p 5493 -U postgres -d cupseason -v ON_ERROR_STOP=1 -f tests/course-cache-reapply.sql
+/opt/homebrew/opt/postgresql@17/bin/psql -h /private/tmp/cup-season-october-mac-socket -p 5493 -U postgres -d cupseason -v ON_ERROR_STOP=1 -f tests/shared-card-storage-checks.sql
+python3 tests/course-cache-postgres.py
+node --experimental-strip-types --test tests/courses-normalize.test.mjs tests/course-provider.test.mjs tests/share-consent-flow.test.mjs
 ```
 
-What "validated" means here: the chain applies in **the applied order** (the
-renamed file last), the probes pass, and the second run raises nothing. A
-"dry-run" against the linked project is never validation (CLAUDE.md, first
-landmine — the wrapper applies it).
+`course-cache-postgres.py` creates its own isolated cluster. The three SQL
+probe files above are for the local full-chain sandbox only. Never run them
+against the linked production project.
 
-The coercion on this branch (`supabase/functions/courses/index.ts`,
-`flattenTees` and the course coordinates): every rating, slope, par, yardage,
-hole count and coordinate the provider sends is coerced to a finite number or
-null before it reaches SQL, so a malformed field skips a value rather than
-failing the whole course permanently under the RPC's strict casts. It is
-independent of Codex's RPC call and merges beside it.
+## Owner deployment sequence
 
-## 4 · The deployment, in this order — the owner's, from a checkout carrying every file
+Use a reviewed checkout containing BOTH migrations and the integrated Edge
+function. Read production's ledger and pending files again. If the ledger has
+advanced, reconcile the actual pending set before any push; never rename an
+applied migration. Deploying either layer requires the owner's authorization.
 
-```bash
-./tools/ship.sh --dry-run                       # database: one owed (20261116…); edge: courses stale; client: clean
-supabase db push                                # 1 · the migration first — the RPC must exist before the function calls it
-supabase functions deploy courses               # 2 · the function second, carrying Codex's RPC call AND the coercion
-psql "$PROD_RO" -f tests/db-checks.sql          # 3 · 37 of 37 (read-only role)
-node tools/deploy-status.mjs                    # 4 · every layer clean
-```
+1. `./tools/ship.sh --dry-run` — inspect the database, Supabase Edge and client
+   separately. Two migrations are expected from this Mac pass.
+2. `supabase db push` — both the cache RPC and shared-card policies first.
+3. `supabase functions deploy courses` — only after the cache RPC exists.
+4. Read-only database checks (`tests/db-checks.sql`) and function/policy readback.
+5. Authorized merge/client deployment, including Netlify's `share-preview.ts`.
+   The Netlify preview function is deployed with the web build, separately from
+   the Supabase `courses` function.
+6. Verify a course fetch and authenticated share/photo-opt-out/revoke flows on
+   the intended release build, including public PNG/JPEG removal. Confirm the
+   actual live web stamp. Check `deploy-status` for each layer.
 
-Read back, read-only, after step 1: the RPC is in `pg_proc`; after step 2: a
-course detail fetch from the phone or the desk returns tees (a course not yet
-in `api_courses`) — that is the moment the old function would have 502'd on
-the missing RPC had the order been reversed.
-
-## 5 · Status ladder
-
-| Step | State |
-|---|---|
-| Ledger read; RPC absence confirmed | **done, 2026-09-22** |
-| File recovered into the tree under `20261116090000` | owed — Mac, from Codex's workspace |
-| Coercion in `flattenTees` | **implemented on this branch**; not run (no Deno here); the function is not redeployed |
-| Sandbox chain + probes + repeat run | owed — Mac (PG17) |
-| `db push` → `functions deploy courses` → db-checks → deploy-status | owed — owner, in that order |
+The shared-card policy change and client code are local/sandbox verified;
+real Storage API deletion and real-device link sharing remain release checks.
+Apple archives, TestFlight distribution, App Review and the two-phone gate
+remain separate owner actions. A green local suite is not device proof.
