@@ -1,5 +1,20 @@
 # Cup Season · active work and ownership
 
+## Visual UI sprint · 2026-09-22 (Codex)
+
+The owner assigned Codex the visual UI sprint and execution. Owned branch
+`codex/october-visual-ui`, isolated from the older dirty visual checkout, starts
+from `82cb92f` and preserves the Mac verification and W6 work. Codex owns web
+and native visual presentation; Claude's independent next lane remains W6
+reporting corrections. Avoid concurrent edits to the visual branch or its UI
+files. The [visual sprint](2026-09-22-visual-ui-sprint.md) inventories every
+screen family, dates six slices through September 28 and leaves September
+29–30 for human evidence and release corrections. V1 fixes entrance contrast,
+public-page theme defaults, support touch targets and native invitation
+context. Local evidence and outstanding checks are recorded in that plan.
+D358/D359/F11 govern the mark and color roles where older summary guides
+conflict. No database, Edge, production or Apple action is part of this pass.
+
 ## W6 review · 2026-09-22 (Codex)
 
 Reviewed Claude's `5404978`, which preserves the Mac's `f49756d`. Preflight 0/0
