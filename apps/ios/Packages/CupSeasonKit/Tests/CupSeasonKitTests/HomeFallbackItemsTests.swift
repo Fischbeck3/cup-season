@@ -139,10 +139,11 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
               == "Galen has one day to answer your 89.")
   }
 
-  @Test("A-4 · a movement label carries its own clock — 'since Sunday', never a bare 'held'")
+  @Test("A-4 / D378 (vii) · a movement label carries its own clock — 'this week', never a bare 'held' and never a hard-coded Sunday")
   func movementCarriesItsClock() {
     let up = HomeFallbackItems.movementItem(clashedMembership(rank: 2, prev: 4))
-    #expect(up?.headline == "You moved up 2 since Sunday.")
+    #expect(up?.headline == "You moved up 2 this week.")
+    #expect(HomeFallbackItems.movementItem(clashedMembership(rank: 4, prev: 2))?.headline == "You were passed this week.")
     #expect(up?.tier == .changed)
     // a rank that did not move raises nothing at all
     #expect(HomeFallbackItems.movementItem(clashedMembership(rank: 2, prev: 2)) == nil)

@@ -228,7 +228,9 @@ public enum HomeFallbackItems {
   }
 
   /// A-4 · a movement label carries its own clock or it does not render.
-  /// `prev_rank` is a SUNDAY snapshot, so the sentence says "since Sunday" —
+  /// `prev_rank` is the week snapshot, cut on the league's own first-tee weekday
+  /// since D378 (vii) — so the sentence says "this week", never a hard-coded
+  /// "since Sunday" (twin of the server's `home_dispatch`, `20261112090000`);
   /// a bare "held" is unwritable here by construction.
   /// R-05 · THE MONTH MINIMUM, the one item with a hard deadline and a real
   /// penalty (−5 a round, or a forfeited month). The server ranker composes it
@@ -270,8 +272,8 @@ public enum HomeFallbackItems {
     return .init(key: "move:\(m.league_id.uuidString)", tier: .changed,
                  subject: "you", humanSubject: true,
                  eyebrow: "\(m.name.uppercased()) · WEEK \(LeagueDates.week(m.season))",
-                 headline: up ? "You moved up \(prev - st.rank) since Sunday."
-                              : "You were passed since Sunday.",
+                 headline: up ? "You moved up \(prev - st.rank) this week."
+                              : "You were passed this week.",
                  standfirst: st.next_up?.name.map { "\($0) is the next one up." },
                  action: "See the table",
                  route: .season(m.league_id, pane: "table"),
