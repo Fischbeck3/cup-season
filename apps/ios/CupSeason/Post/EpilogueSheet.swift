@@ -40,7 +40,6 @@ struct EpilogueSheet: View {
   var onDone: () -> Void = {}
   @State private var share: PostShareItem?
   @State private var roundPreview = false
-  @State private var linking = false
   @State private var revoking = false
   private let svc = PostService()
 
@@ -132,9 +131,9 @@ struct EpilogueSheet: View {
           }
             .buttonStyle(.csSecondary()).padding(.top, 8)
         }
+        // W2 (D380) · the link rides the card: the preview's Share mints it with
+        // the photo answer, so the separate link button retires. Revoke stays.
         if show.epilogue.gross != nil {
-          Button(PostEpilogue.linkLabel(photoTravels: show.photoTravels)) { Task { await link() } }
-            .buttonStyle(.csSecondary(busy: linking)).padding(.top, 4)
           Button { Task { await revoke() } } label: {
             Text(PostEpilogue.revokeLabel).csType(.body).foregroundStyle(cs.mut).frame(maxWidth: .infinity, minHeight: 44)
           }
@@ -149,7 +148,7 @@ struct EpilogueSheet: View {
     .presentationDragIndicator(.visible)
     .sheet(item: $share) { PostShareSheet(items: $0.items) }
     .sheet(isPresented: $roundPreview) {
-      if let gross = show.epilogue.gross { RoundSharePreview(recap: recap(gross), photo: photo) }
+      if let gross = show.epilogue.gross { RoundSharePreview(recap: recap(gross), photo: photo, roundId: show.roundId) }
     }
     // D104: the first posted round is one of the three moments the ask may follow
     // (raised once this sheet and the composer are down); any posted round
@@ -193,15 +192,8 @@ struct EpilogueSheet: View {
                      badge: show.epilogue.earned.first.flatMap { PostRecap.badges[$0.kind] })
   }
 
-  /// `csShareLink('round', roundId, text)` — the native share sheet, the clipboard as its fallback.
-  private func link() async {
-    linking = true; defer { linking = false }
-    do {
-      let url = try await svc.shareLink(round: show.roundId) { data in PostPhoto.compress(data: data, maxDim: 1600, quality: 0.8) }
-      let text = PostEpilogue.linkText(name: store.me?.profile?.display_name, gross: show.epilogue.gross ?? 0, course: show.course)
-      share = PostShareItem(items: [text, url])
-    } catch { toast.show(HumanError.text(error, prefix: "Could not make the link."), kind: .failed) }
-  }
+  // W2 (D380) · `link()` retired: the link is minted by RoundSharePreview's
+  // Share, together with the card and the photo answer.
 
   private func revoke() async {
     revoking = true; defer { revoking = false }

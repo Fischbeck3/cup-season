@@ -106,7 +106,7 @@ struct FinishCeremonyView: View {
     .preferredColorScheme(.dark)
     .onAppear { run(); thock = true }
     .csFeedback(.posted, trigger: thock)
-    .sheet(isPresented: $showPreview) { RoundSharePreview(recap: ceremony.recap, photo: photo) }
+    .sheet(isPresented: $showPreview) { RoundSharePreview(recap: ceremony.recap, photo: photo, roundId: roundId) }
     .sheet(isPresented: $showReceipt) {
       if let roundId { RoundReceiptSheet(roundId: roundId, seed: nil) }
     }

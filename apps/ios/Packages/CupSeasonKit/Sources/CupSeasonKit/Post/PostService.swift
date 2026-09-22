@@ -286,32 +286,49 @@ public struct PostService: Sendable {
 
   private struct PhotoRow: Decodable { let photo_path: String? }
 
-  /// `create_share('round', id)` → the public page's URL. A shared round with
-  /// a photo publishes a compressed copy to `shared/{token}.jpg` — best effort,
-  /// the link works photo-less if any step misses. `compress` is the app's
-  /// JPEG downscale (1600px, q.8) — image work stays out of the kit.
-  public func shareLink(round id: UUID, compress: @Sendable (Data) async -> Data?) async throws -> URL {
-    let token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
-    let name = token.uuidString.lowercased()
+  /// `create_share('round', id)` → the public page's URL. W2 (D380): the card
+  /// that goes into the message is published to `shared/{token}.png` (the
+  /// link's preview), and the round's photo to `shared/{token}.jpg` (the public
+  /// page's ground) ONLY on `includePhoto` — never unasked. When a reused
+  /// token's copies disagree with the answer (`ShareConsent.plan`), the copies
+  /// are removed, the token revoked and a fresh one minted, so the old url
+  /// stops serving what the golfer withdrew. Every copy is best effort — the
+  /// link works without them. `compress` is the app's JPEG downscale (1600px,
+  /// q.8) — image work stays out of the kit.
+  public func shareLink(round id: UUID, includePhoto: Bool, card: Data?, compress: @Sendable (Data) async -> Data?) async throws -> URL {
+    var token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
+    var name = token.uuidString.lowercased()
+    func has(_ file: String) async -> Bool {
+      let head = try? await db.storage.from("shared").list(path: "", options: SearchOptions(limit: 1, search: file))
+      return head?.contains(where: { $0.name == file }) ?? false
+    }
+    func put(_ file: String, _ data: Data, _ type: String) async {
+      do {
+        _ = try await db.storage.from("shared").upload(file, data: data, options: FileOptions(contentType: type, upsert: false))
+      } catch {
+        let m = SupabaseService.describe(error).lowercased()
+        if !(m.contains("exists") || m.contains("duplicate")) { /* best effort: the link ships without this copy */ }
+      }
+    }
+    let plan = ShareConsent.plan(hadPhoto: await has(name + ".jpg"), hadCard: await has(name + ".png"), includePhoto: includePhoto)
+    if plan.remint {
+      _ = try? await db.storage.from("shared").remove(paths: [name + ".jpg", name + ".png"])
+      _ = try await svc.call(Rpc.revoke_share(p_token: token))
+      token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
+      name = token.uuidString.lowercased()
+    }
     CSGrowth.log(.artifactShared, kind: "share", token: name)   // the share ACTION, not a render
-    do {
-      let rows: [PhotoRow] = try await db.from("rounds").select("photo_path").eq("id", value: id).limit(1).execute().value
-      if let path = rows.first?.photo_path {
-        let head = try await db.storage.from("shared").list(path: "", options: SearchOptions(limit: 1, search: name + ".jpg"))
-        if !head.contains(where: { $0.name == name + ".jpg" }) {
+    if let card, !(await has(name + ".png")) { await put(name + ".png", card, "image/png") }
+    if plan.publishPhoto, !(await has(name + ".jpg")) {
+      do {
+        let rows: [PhotoRow] = try await db.from("rounds").select("photo_path").eq("id", value: id).limit(1).execute().value
+        if let path = rows.first?.photo_path {
           let signed = try await db.storage.from("media").createSignedURL(path: path, expiresIn: 60)
           let (data, _) = try await URLSession.shared.data(from: signed)
-          if let jpg = await compress(data) {
-            do {
-              _ = try await db.storage.from("shared").upload(name + ".jpg", data: jpg, options: FileOptions(contentType: "image/jpeg", upsert: false))
-            } catch {
-              let m = SupabaseService.describe(error).lowercased()
-              if !(m.contains("exists") || m.contains("duplicate")) { throw error }
-            }
-          }
+          if let jpg = await compress(data) { await put(name + ".jpg", jpg, "image/jpeg") }
         }
-      }
-    } catch { /* [share photo] link ships photo-less */ }
+      } catch { /* [share photo] link ships photo-less */ }
+    }
     return URL(string: "https://cupseason.app/?share=\(name)")!
   }
 

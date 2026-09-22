@@ -198,7 +198,7 @@ struct RoundReceiptSheet: View {
     .sheet(item: $share) { PostShareSheet(items: $0.items) }
     .sheet(item: $countingDoor) { CountingRoundsSheet(door: $0) }
     .sheet(isPresented: $roundPreview) {
-      if let seed, let recap = recap(seed) { RoundSharePreview(recap: recap, photo: sharePhoto) }
+      if let seed, let recap = recap(seed) { RoundSharePreview(recap: recap, photo: sharePhoto, roundId: roundId) }
     }
     #if DEBUG
     .fullScreenCover(isPresented: $artifactPreview) { artifactShot }

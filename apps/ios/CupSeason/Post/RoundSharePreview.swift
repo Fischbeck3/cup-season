@@ -8,11 +8,16 @@ import CupSeasonKit
 struct RoundSharePreview: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.toast) private var toast
   let recap: PostRecap
   let photo: UIImage?
+  /// W2 (D380) · the round the link is minted for. nil (a fixture, an older
+  /// caller) shares the card alone, as before.
+  var roundId: UUID? = nil
   @State private var image: UIImage?
   @State private var share: PostShareItem?
   @State private var includePhoto = true
+  @State private var linking = false
 
   private var publicRecap: PostRecap {
     recap.publicRoundCard
@@ -37,6 +42,8 @@ struct RoundSharePreview: View {
             // D359 · an ordinary control takes the action colour; ember is
             // reserved for an active competition and a share sheet is not one.
             Toggle(RoundCopy.photoInclude, isOn: $includePhoto).tint(cs.act)
+            // W2 · the answer governs the card, the public page and the preview
+            if roundId != nil { Text(RoundCopy.photoIncludeFine).csType(.bodyS).foregroundStyle(cs.mut) }
           }
           Text(publicRecap.caption).csType(.bodyS).foregroundStyle(cs.mut)
 
@@ -47,9 +54,26 @@ struct RoundSharePreview: View {
       .safeAreaInset(edge: .bottom) {
         Button("Share") {
           guard let image else { return }
-          share = PostShareItem(items: [image, publicRecap.caption])
+          // W2 (D380) · ONE action: the card and the link leave together. The
+          // link is minted with the toggle's answer, and the card that was
+          // rendered — with or without the photo — is what the preview shows.
+          guard let roundId else { share = PostShareItem(items: [image, publicRecap.caption]); return }
+          linking = true
+          Task {
+            defer { linking = false }
+            do {
+              let url = try await PostService().shareLink(round: roundId, includePhoto: includePhoto && photo != nil, card: image.pngData()) { data in
+                PostPhoto.compress(data: data, maxDim: 1600, quality: 0.8)
+              }
+              share = PostShareItem(items: [image, publicRecap.caption, url])
+            } catch {
+              // the link could not be minted: the card still goes, and the golfer hears why
+              toast.show(HumanError.text(error, prefix: "Could not make the link."), kind: .failed)
+              share = PostShareItem(items: [image, publicRecap.caption])
+            }
+          }
         }
-        .buttonStyle(.csPrimary()).disabled(image == nil)
+        .buttonStyle(.csPrimary(busy: linking)).disabled(image == nil)
         .accessibilityIdentifier("round.share.send")
         .padding(CSTokens.Space.gutter).background(cs.bg0)
       }

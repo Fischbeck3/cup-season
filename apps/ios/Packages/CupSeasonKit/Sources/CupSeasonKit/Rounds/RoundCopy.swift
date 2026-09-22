@@ -45,6 +45,8 @@ public enum RoundCopy {
   /// control is a switch on the phone and a pressed-state button on the desk —
   /// the shapes differ, the sentence does not (D234).
   public static let photoInclude = "Include round photo"
+  /// W2 (D380) · what the toggle governs, and the one thing it cannot undo.
+  public static let photoIncludeFine = ShareConsent.fine
 
   /// D298 · **the two doors, and one of them is the roll.** The phone offered
   /// the camera alone — `cameraAvailable` was read as a fallback rather than a
