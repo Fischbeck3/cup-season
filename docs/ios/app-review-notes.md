@@ -91,9 +91,10 @@ itself; a league can also run with no pot at all ("bragging rights").
 ## No in-app purchases
 
 There are no purchases, subscriptions, or links to purchase anything in the
-app. Every golfer's profile, index and record are free. A league's first year
-is free; a future season pass (paid on the web by the league's organiser) is
-described on one informational screen and is not sold in the binary.
+app. Every golfer's profile, index and record are free, and so is every league
+— everything is free (decision D183: free until the product has 1,000 golfers,
+then reconsidered). Nothing is sold in the binary or on the web, and no screen
+describes a price.
 
 ## User content and safety (1.2)
 

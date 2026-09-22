@@ -5065,7 +5065,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 
         <div class="wizstep" data-step="1">
           <div class="eyebrow" style="margin-top:0">Pick a starting point <button class="ibtn" data-i="preset" aria-expanded="false" aria-label="About competitiveness presets">i</button></div>
-          <div class="ihelp" id="ih-preset">Start with a set of rules, then change the choices below. Each starting point sets how handicaps count, score expectations, rounds that count and minimum. Score expectations are a group agreement; the app does not check GHIN posting or restrict courses.</div>
+          <div class="ihelp" id="ih-preset">Start with a set of rules, then change the choices below. Each starting point sets how handicaps count, score expectations, rounds that count and minimum. Score expectations are a group agreement; the app does not check GHIN posting or restrict courses. Every round is scored against your playing HCP — your index at the starting point’s percentage: at 95 percent, an index of 10.6 is a playing HCP of 10.1.</div>
           <!-- D225 / L-16 · the cards STOP NAMING DIALS. Each is one sentence,
                and the wording is the phone's own (WizardDials.presets.lead) so
                a reword on one client fails the other (D234). Every dial is
@@ -19251,17 +19251,50 @@ function csRunItBackTitle(isPro, proFirstName){
   return 'Ask ' + (proFirstName || 'the Pro') + ' to run it back';
 }
 function csRunItBackSub(isPro){
-  return isPro ? 'Same crew, same rules, fresh table. Nobody re-types a code.'
+  /* D375 · season two is a re-up (20261115090000): the tap asks everyone
+     again — the covenant on their own screen, a recorded yes — and the table
+     fills as they answer. The sub never claims a roster the server has not got. */
+  return isPro ? 'Same rules, fresh table. Everyone gets the invitation again — the table fills as they say yes.'
                : 'One line on the board, once. They decide when.';
 }
 function csRunItBackAskLine(firstName){ return (firstName || 'Somebody') + ' wants to run it back.'; }
-function csRunItBackDone(seasonNumber, seated, refires){
+function csRunItBackDone(seasonNumber, asked){
+  /* D375 · what the tap did: the season is on and N invitations are out. A Pro
+     alone is told the true thing too; a server that did not say how many it
+     asked (pre-D375) gets the one clause that is true on any server. One
+     producer; the phone renders the same sentence. */
   const n = seasonNumber ? ('Season ' + seasonNumber) : 'The next season';
-  const crew = seated === 1 ? "You're on it." : (seated + ' of you are on it.');
-  return refires ? (n + ' is on. ' + crew + ' The terms changed, so everyone reads them again.')
-                 : (n + ' is on. ' + crew);
+  if(asked == null) return n + ' is on.';
+  const a = Number(asked) || 0;
+  if(a === 0) return n + ' is on. You’re in — share the code and the rest follow.';
+  if(a === 1) return n + ' is on. One invitation is out — the table fills as they say yes.';
+  return n + ' is on. ' + a + ' invitations are out — the table fills as they say yes.';
 }
+/* D375 · the member's own yes, the already-in line and the Pro's ask-again —
+   one producer each, both clients */
+function csReUpDone(seasonNumber){
+  return (seasonNumber ? 'You’re in for season ' + seasonNumber + '.' : 'You’re in for the new season.') + ' Same rules — the table starts fresh.';
+}
+function csAlreadyInLine(seasonNumber){
+  return seasonNumber ? 'You’re already in for season ' + seasonNumber + '.' : 'You’re already in.';
+}
+function csAskedAgain(firstName){ return (firstName ? firstName + ' is' : 'They’re') + ' asked again — it rings on their phone.'; }
+const CS_NOT_IN_YET = 'NOT IN YET';
+window.csReUpDone = csReUpDone; window.csAlreadyInLine = csAlreadyInLine; window.csAskedAgain = csAskedAgain; window.CS_NOT_IN_YET = CS_NOT_IN_YET;
 const CS_RUNBACK_NOT_YET = 'Running it back needs the latest update — try again shortly.';
+/* D374 · a claim link from a round nobody finished says so — one producer, both
+   doors (signed out and signed in). The pencil (D85/D87) stays: the link is
+   minted at seat time so a guest can score from their own phone. */
+const CS_CLAIM_UNFINISHED = 'This round was never finished, so there’s no card to keep. Whoever ran it can tee off again and send your link from the new round.';
+const CS_CLAIM_NOT_STARTED = 'That round hasn’t teed off yet — your card lands here when it finishes.';
+/* D376 · the Pro's pen, one producer — the phone renders the same sentences */
+const CS_RULING_WHAT = 'A ruling moves points in the ledger with a reason. It posts to the board and every golfer can open it. Rounds are never changed. Once the Final window opens the ledger is closed — the crew settles it.';
+const CS_RULING_NOT_YET = 'Rulings need the latest update — try again shortly.';
+function csRulingDone(name, delta, total){
+  const sign = delta > 0 ? '+' : '−';
+  const pts = Math.abs(delta) === 1 ? ' point' : ' points';
+  return 'Ruled — ' + name + ' ' + sign + Math.abs(delta) + pts + (total == null ? '.' : '. Now ' + total + '.') + ' It’s on the board.';
+}
 const CS_RUNBACK_ASK_SENT = "Asked. It's on the board.";
 const CS_RUNBACK_ASK_ALREADY = "You've already asked. It's on the board.";
 
@@ -20522,7 +20555,16 @@ function openMemberHist(p){
       }).join('')
       + (hist.some(h=>!h.counting)?'<p class="fine" style="padding-top:10px">Bumped rounds still happened — a better round took their monthly slot.</p>':'')
     : emptyState({ icon:'⛳', line:'No rounds this season yet — post one and you\'re on the board.', ctaLabel:'Add my round', ctaGo:'record' });
-  openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body);
+  /* D376 · a ruling on this golfer sits in the ledger the desk already reads
+     (D355) and is part of the total in the header, so it is listed here with
+     its reason — §16: no points figure without the path that produced it. */
+  const led = (window.seasonLedger||[]).filter(a => p.mid!=null && a.member_id === p.mid && a.kind === 'override');
+  const ledRows = led.map(a => {
+    const when = a.month ? csMonthWord(String(a.month).slice(0,7)) : '';
+    const why  = a.reason || 'a ruling';
+    return `<div class="fine histrow static"><span>${esc([when, 'The Pro ruled', why].filter(Boolean).join(' · '))}</span><b class="mono" style="white-space:nowrap">${a.points>0?'+':''}${esc(String(a.points))} pts</b></div>`;
+  }).join('');
+  openSheet(p.n, `${p.r} ROUND${p.r===1?'':'S'} · ${p.pts} PTS`, body + ledRows);
   document.getElementById('shBody')?.querySelectorAll('[data-histround]').forEach(b =>
     b.addEventListener('click', () => {
       window.qaEvent?.('cta_tapped', { door: 'standings:receipt' });
@@ -21886,7 +21928,7 @@ function renderBylaws(){
     <div class="byrow"><span>FORMAT</span><b>${STRUCT_NAMES[state.structure]}</b></div>
     <div class="byrow"><span>THE DRAW</span><b>${({random:'Random draw',assign:'The Pro picks',snake:'In turns · async',live:'Live · pick clock'})[state.draftType]}</b></div>
     <div class="byrow"><span>HOUSE RULES</span><b>${pr.name}</b></div>
-    <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored at ${ALLOW[state.preset]}% of your index</b></div>
+    <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored against your playing HCP — your index at ${ALLOW[state.preset]} percent</b></div>
     <div class="byrow"><span>SCORES</span><b>${VERIF[state.preset]}</b></div>
     <div class="byrow"><span>EACH MONTH</span><b>${capLabel()==='Unlimited' ? 'Every round counts' : capLabel()+' a month count'}</b></div>
     <div class="byrow"><span>THE MINIMUM</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
@@ -22840,7 +22882,7 @@ function renderNotifications(){
   el.querySelectorAll('[data-ivacc]').forEach(b=>b.addEventListener('click',()=>window.respondInvite(b.dataset.ivacc,true)));
   el.querySelectorAll('[data-ivdet]').forEach(b=>b.addEventListener('click',()=>{
     const i=inv.find(x=>x.id===b.dataset.ivdet); if(!i) return;
-    const what = i.kind==='league' ? 'A season-long league.'
+    const what = i.kind==='league' ? ((i.reup && Number(i.season_number) > 1) ? 'The next season of your league — same rules, fresh table.' : 'A season-long league.')
                : ((window.csEventTerms ? window.csEventTerms(i)[0] : null) || 'This server hasn’t said whether it’s a Ryder or a Major yet.');
     openSheet((window.csInviteTitle||(()=>'Invite'))(i), (i.container_name||'').toUpperCase(),
       `<p class="fine">${esc(what)} Invited by ${esc(i.inviter||'a golfer')}${i.starts_on?`. First tee ${i.starts_on}.`:''}</p>
@@ -25983,13 +26025,16 @@ async function runItBack(oldLeague, membership){
     return;
   }
 
-  /* the Pro's own tap. R10 is unpushed today, so `.notYet` is a real state and
-     is NOT narrated as a failure (wave 5's three-state rule). */
+  /* the Pro's own tap. run_it_back is in production (20260928093000); `.notYet`
+     stays for an older database and is NOT narrated as a failure (wave 5's
+     three-state rule). D375 (20261115090000): the tap asks everyone again and
+     answers with `asked`; an older server answers with `invited` (a count of
+     the same thing) or with neither, and the copy says only what is true. */
   try {
     const { data, error } = await sb.rpc('run_it_back', { p_league: lid });
     if(error) throw error;
     const r = data || {};
-    toast(csRunItBackDone(r.season?.number, r.seated || 0, !!r.covenant_refires));
+    toast(csRunItBackDone(r.season?.number, r.asked ?? r.invited));
     try { localStorage.setItem('cs_last_league', lid); } catch(_){}
     await loadMemberships();
     switchView('hub');
@@ -26127,7 +26172,7 @@ async function loadLeagueData(requireRoom=false){
   /* photos arc 2 (D59): avatars + the per-league marker override ride the
      member load — retry without both on deploy skew */
   let mq = await sb.from('league_members')
-    .select('id, role, profile_id, joined_at, marker, suspended_at, profile:profiles(display_name, marker, index_current, handle, photo_path)')
+    .select('id, role, profile_id, joined_at, marker, suspended_at, agreed_seasons, profile:profiles(display_name, marker, index_current, handle, photo_path)')
     .eq('league_id', CS.league.id);
   if(mq.error){
     /* ANY error retries the legacy shape — see loadProfile: missing column
@@ -27314,7 +27359,7 @@ $('#obJoin').addEventListener('click', () => {
    the money, and a fact with no read renders NOTHING (L-44) — which is what
    makes a client that ships ahead of the migration honest rather than empty.
    `CS_COVENANT_FACTS` is the order both suites pin. */
-window.CS_COVENANT_FACTS = ['who','length','rules','ending','stake','ledger','split','pay','starter'];
+window.CS_COVENANT_FACTS = ['season','who','length','rules','ending','stake','ledger','split','pay','starter'];
 function csWord(n){
   const w=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve',
            'thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
@@ -27333,6 +27378,19 @@ function csCovenantFacts(info, postedRounds){
   const out = [];
   const usd = Math.round(Number(info.buyin_cents||0)/100), paid = usd > 0;
   const r = info.roster || null;
+  /* 0 · D375 · which season this yes is for, said first when it is not the
+     first; the golfer's own finish last season renders only when the server
+     could compute it (L-44). */
+  if(Number(info.season_number) > 1){
+    const ls = info.last_season || null;
+    let t = 'Season ' + Number(info.season_number) + '.';
+    if(ls && Number(ls.my_rank) > 0 && Number(ls.of) > 0){
+      const pts = (ls.my_points != null && ls.my_points !== '') ? Number(ls.my_points) : null;
+      t += ' Last season you finished ' + csOrdinal(Number(ls.my_rank)) + ' of ' + Number(ls.of)
+         + (pts != null ? ' with ' + pts + ' point' + (pts === 1 ? '' : 's') : '') + '.';
+    }
+    out.push({ k:'season', t });
+  }
   /* 1 · WHO comes before the money. D132's noun, DEFINED at first contact. */
   if(r && (r.pro_name || (r.names||[]).length)){
     const parts = [];
@@ -27357,14 +27415,16 @@ function csCovenantFacts(info, postedRounds){
   /* 4 · the rule. The payload's `floor` is the OTHER number; R9 brings the cap.
      D353 · an Unlimited league says "every round counts" off the payload's own
      boolean (never off an absent key), and the allowance says what every points
-     figure is scored at, in the wizard's own words ("95 percent of your index")
-     so the Pro's agreement and the joiner's covenant read alike. */
+     figure is scored at, in R-M's shape ("scored against your playing HCP —
+     your index at 95 percent", D373) so the Pro's agreement, the wizard info
+     and the joiner's covenant read alike, and a first-time golfer meets the
+     rule with its meaning attached. */
   {
     const clauses = ['honest scores'];
     if(info.every_round_counts === true) clauses.push('every round counts');
     else if(Number(info.counting_cap)) clauses.push('best ' + csWord(Number(info.counting_cap)) + ' a month count');
     if(Number(info.floor)) clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
-    if(Number(info.handicap_allowance)) clauses.push(Number(info.handicap_allowance) + ' percent of your index');
+    if(Number(info.handicap_allowance)) clauses.push('scored against your playing HCP — your index at ' + Number(info.handicap_allowance) + ' percent');
     const head = info.preset ? csCap(String(info.preset)) + ' rules: ' : 'The rules: ';
     out.push({ k:'rules', t: head + clauses.join(', ') + '.' });
   }
@@ -27401,6 +27461,9 @@ async function covenantGate(code){
     info=data; answered=true;
   }catch(_){}
   if(!answered){ toast('Could not check this league\u2019s terms \u2014 try again in a moment'); return false; }
+  /* D375 · a member whose yes to this season is already on record is told so
+     instead of being walked through a covenant they have already signed */
+  if(info && info.agreed === true){ toast(csAlreadyInLine(info.season_number)); return false; }
   return showCovenant(info);
 }
 
@@ -27496,10 +27559,27 @@ async function eventTermsGate(inv){
 }
 /* the title an invitation wears: the event's OWN kind, never a guess */
 function csInviteTitle(i){
-  if(!i || i.kind === 'league') return 'League invite';
+  /* D375 · a re-up says which season it is for; a first invitation reads as before */
+  if(!i || i.kind === 'league') return (i && i.reup && Number(i.season_number) > 1) ? ('Season ' + Number(i.season_number) + ' invite') : 'League invite';
   return i.event_kind === 'major' ? 'Major invite' : i.event_kind === 'ryder' ? 'Ryder invite' : 'Invite';
 }
 window.csInviteTitle = csInviteTitle;
+
+/* D375 · the covenant's frame — a first join, or a re-up to season N. One
+   producer each; the phone renders the same words. */
+function csCovenantIsReUp(info){ return !!(info && info.reup && Number(info.season_number) > 1); }
+function csCovenantTitle(info){
+  return csCovenantIsReUp(info) ? ('Season ' + Number(info.season_number) + ' of ' + (info.name || 'your league'))
+                                : ('Before you join ' + ((info && info.name) || 'this season'));
+}
+function csCovenantEyebrow(info){ return csCovenantIsReUp(info) ? 'SAME RULES — EVERYTHING BEFORE YOU TAP' : 'EVERYTHING BEFORE YOU TAP'; }
+function csCovenantButton(info){
+  const usd = Math.round(Number((info && info.buyin_cents) || 0) / 100);
+  if(csCovenantIsReUp(info)) return usd > 0 ? ('I’m in for season ' + Number(info.season_number) + ' — $' + usd) : ('I’m in for season ' + Number(info.season_number));
+  return usd > 0 ? ('Join — I’m in for $' + usd) : ('Join ' + ((info && info.name) || 'the season'));
+}
+window.csCovenantIsReUp = csCovenantIsReUp; window.csCovenantTitle = csCovenantTitle;
+window.csCovenantEyebrow = csCovenantEyebrow; window.csCovenantButton = csCovenantButton;
 
 function showCovenant(info){
   /* L-12 / D225 · the covenant renders at EVERY stake, INCLUDING $0. It used
@@ -27508,13 +27588,13 @@ function showCovenant(info){
      job, skipped on the most common league in the product. A FAILED read is
      still a different case and still fails closed (above). */
   if(!info) return false;
-  const usd=Math.round(Number(info.buyin_cents||0)/100);
-  const paid = usd > 0;
   const facts = csCovenantFacts(info);
   return new Promise(res=>{
-    openSheet('Before you join '+(info.name||'this season'), 'EVERYTHING BEFORE YOU TAP',
+    /* D375 · a re-up reads as one: the title names the season and the button
+       is the yes to it (csCovenantTitle / csCovenantButton, pinned) */
+    openSheet(csCovenantTitle(info), csCovenantEyebrow(info),
       facts.map((f,i)=>`<p class="${i===0?'lead':'fine'}" style="padding-top:${i===0?0:6}px${f.k==='stake'?';color:var(--gold)':''}">${esc(f.t)}</p>`).join('') + `
-      <button class="btn" id="covJoin" style="margin-top:12px">${paid?`Join — I’m in for $${usd}`:`Join ${esc(info.name||'the season')}`}</button>
+      <button class="btn" id="covJoin" style="margin-top:12px">${esc(csCovenantButton(info))}</button>
       <button class="btn dark" id="covNo" style="margin-top:8px">Not now</button>`);
     /* Code audit 2026-08-30 (SD-01) · this promise used to settle ONLY on these
        two buttons. The sheet has three other ways out — the X, the backdrop and
@@ -29177,6 +29257,9 @@ window.respondInvite = async (id, accept)=>{
        without the terms: the gate is fail-closed on a missing function and on
        an answered invitation (see covenantGateForInvite). */
     const inv = (window.myInvites||[]).find(x => x.id === id) || null;
+    /* D375 · a yes from a member already in the league is a re-up and is said
+       as one below; read BEFORE the accept moves anything */
+    const wasIn = !!(inv && inv.kind !== 'event' && (window.CS?.memberships||[]).some(m => m.league && m.league.id === inv.container_id));
     if(accept){
       /* D356 · an EVENT invitation passes its own terms — what it is, when,
          what it costs — off the payload's own facts, and a server that has
@@ -29200,7 +29283,7 @@ window.respondInvite = async (id, accept)=>{
       ? (window.myEvents||[]).some(e => e.id === inv.container_id)
       : (window.CS?.memberships||[]).some(m => m.league && m.league.id === inv.container_id));
     if(landed){
-      toast('Joined ✓');
+      toast(wasIn ? csReUpDone(inv.season_number) : 'Joined ✓');
       if(inv.kind !== 'event'){ const m = CS.memberships.find(x => x.league.id === inv.container_id); if(m) await enterLeague(m); }
     }
     else toast('That invitation was already answered — nothing changed');
@@ -30049,16 +30132,26 @@ async function openMembersSheet(){
     const q = CS.squads.find(q => (q.squad_members||[]).some(x => x.member_id === id));
     return q ? q.name.toUpperCase() : '';
   };
+  /* D375 · season two is a re-up: a member whose yes to THIS season is not on
+     record is marked, counted out of the yeses, and can be asked again by the
+     Pro. Season one marks nobody; an older database (the legacy select) has
+     no record and marks nobody either. */
+  const sn = Number(CS.season?.number) || 0;
+  const inFor = m => !(sn > 1) || !Array.isArray(m.agreed_seasons) || m.agreed_seasons.includes(sn);
+  const yesCount = CS.members.filter(inFor).length;
   const rows = CS.members.map(m => `
     <div class="check">
       ${window.face ? window.face(m.profile_id, m.mk || m.profile?.marker, 36) : `<span class="num">${mkr(m.profile?.marker || 'saguaro')}</span>`}
       <div class="tt"><b>${esc(m.profile?.display_name || '—')}${m.role==='commissioner' ? ' · <span style="color:var(--gold)">THE PRO</span>' : ''}</b>
       <small>${[m.profile?.handle ? '@'+m.profile.handle : null,
                 m.profile?.index_current != null ? 'INDEX '+fmtIdx(m.profile.index_current) : null,
-                sqName(m.id) || null].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
+                sqName(m.id) || null,
+                inFor(m) ? null : CS_NOT_IN_YET].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
       ${isPro && m.id !== CS.member.id ? `<span style="display:flex; gap:6px; flex:none; flex-wrap:wrap; justify-content:flex-end">
         <button class="mini" data-msidx="${m.id}">Set index</button>
-        ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>` : `<button class="mini" data-msbye="${m.id}">Bye</button>`}
+        ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>`
+          : !inFor(m) ? `<button class="mini" data-msask="${m.id}">Ask again</button>`
+          : `<button class="mini" data-msbye="${m.id}">Bye</button><button class="mini" data-msrule="${m.id}">Ruling</button>`}
         <button class="mini" data-mspro="${m.id}">Make Pro</button>
       </span>` : ''}
       ${m.id === CS.member?.id ? `<button class="mini" id="msMkMine" style="flex:none">Marker here</button>` : ''}
@@ -30067,7 +30160,7 @@ async function openMembersSheet(){
        the profile marker stays your global choice */
     + `<div id="msMkRow" style="display:none; grid-template-columns:repeat(4,1fr); gap:8px; margin:6px 0 2px"></div>`;
   const pending = invites.filter(i => i.status === 'sent');
-  openSheet('The roster', `${CS.members.length} GOLFER${CS.members.length===1?'':'S'} · CODE ${CS.league.code}`,
+  openSheet('The roster', `${CS.members.length} GOLFER${CS.members.length===1?'':'S'}${sn > 1 ? ` · ${yesCount} IN FOR SEASON ${sn}` : ''} · CODE ${CS.league.code}`,
     rows
     + (pending.length ? '<div class="eyebrow">Invites out</div>' + pending.map(i =>
         `<div class="fine" style="padding:3px 0">✉ ${i.email} · WAITING</div>`).join('') : '')
@@ -30122,6 +30215,24 @@ async function openMembersSheet(){
       toast('Bye granted — posted to the board');
       closeSheet();
     } catch(e){ toast(humanError(e)); b.disabled = false; }
+  }));
+  /* D376 · the Pro's pen: a ruling is a ledger row with a reason, a board post
+     and a log row — never a round edit (D37, D125, D284). The server refuses
+     it once the Final window opens; the sheet says so before the tap. */
+  document.querySelectorAll('[data-msrule]').forEach(b => b.addEventListener('click', () => {
+    const m = CS.members.find(x => x.id === b.dataset.msrule);
+    window.openRulingSheet?.(m);
+  }));
+  /* D375 · the ask-again: the same invitation, re-dated, rings again */
+  document.querySelectorAll('[data-msask]').forEach(b => b.addEventListener('click', async () => {
+    const m = CS.members.find(x => x.id === b.dataset.msask);
+    if(!m) return;
+    b.disabled = true;
+    try {
+      const { error } = await sb.rpc('invite_golfer', { p_league: CS.league.id, p_event: null, p_profile: m.profile_id });
+      if(error) throw error;
+      toast(csAskedAgain(String(m.profile?.display_name || '').trim().split(' ')[0] || null));
+    } catch(e){ toast(humanError(e, 'Could not ask again.')); b.disabled = false; }
   }));
   document.querySelectorAll('[data-mspro]').forEach(b => b.addEventListener('click', async () => {
     const m = CS.members.find(x => x.id === b.dataset.mspro);
@@ -30904,6 +31015,18 @@ async function claimPendingRound(){
      when it FINISHES, and firing it here would only toast "they're still out
      there" over the top of the pencil they are holding. */
   if(state.liveGuest && state.liveGuest.token===tok) return;
+  /* D374 · ask what the round is before claiming it. An abandoned round mints
+     no card: say so once and drop the token, instead of matching claim_round's
+     "still live" raise and telling a golfer forever that the group is out
+     there. A round still in setup keeps the token and says when. A token that
+     is not a guest seat (a scan partner, an already-claimed seat) raises here
+     and falls through to the claim as before. */
+  try{
+    const { data: gs, error: ge } = await sb.rpc('guest_live_state', { p_token: tok });
+    const st = !ge ? gs?.round?.status : null;
+    if(st === 'abandoned'){ try{ localStorage.removeItem('cs_claim'); }catch(_){} toast(CS_CLAIM_UNFINISHED); return; }
+    if(st === 'setup'){ toast(CS_CLAIM_NOT_STARTED); return; }
+  }catch(_){}
   /* one /?claim= funnel, two sources: tee-sheet guest cards first, then
      scanned-scorecard partner rows (photos arc) — same UX either way */
   let data=null, firstErr=null;
@@ -30942,6 +31065,41 @@ async function claimPendingRound(){
   else toast('Round claimed — the card was incomplete, so nothing posted');
 }
 window.claimPendingRound = claimPendingRound;   /* D87: the classic side claims when a guest-scored round finishes */
+
+/* D376 · the Pro's ruling sheet. One RPC (adjust_points), one producer for the
+   words (CS_RULING_WHAT / csRulingDone, classic block, shared by shape with
+   the phone). The desk reads the ledger it writes (D355), so the ruling shows
+   its work on the season page with its reason, and the board carries the post. */
+async function openRulingSheet(m){
+  if(!m){ return; }
+  if(!CS.season?.id){ toast('No season to rule on yet.'); return; }
+  const name = m.profile?.display_name || 'this golfer';
+  openSheet('A ruling', 'THE PRO RULES · LOGGED, ON THE BOARD',
+    `<div class="fine" style="margin-bottom:10px">${esc(CS_RULING_WHAT)}</div>
+     <label class="fine" for="rlDelta">Points for ${esc(name)} — up or down, 1 to 50</label>
+     <input class="f" id="rlDelta" type="number" inputmode="numeric" min="-50" max="50" step="1" placeholder="−3" autocomplete="off">
+     <label class="fine" for="rlWhy" style="margin-top:8px; display:block">Why — everyone reads this</label>
+     <input class="f" id="rlWhy" type="text" maxlength="240" placeholder="Wrong card on the 7th" autocomplete="off">
+     <button class="btn" id="rlGo" style="margin-top:12px">Record the ruling</button>`);
+  document.getElementById('rlGo')?.addEventListener('click', async () => {
+    const delta = Number(document.getElementById('rlDelta')?.value);
+    const why = String(document.getElementById('rlWhy')?.value || '').trim();
+    if(!Number.isInteger(delta) || delta === 0 || Math.abs(delta) > 50){ toast('A ruling moves between 1 and 50 points, up or down.'); return; }
+    if(why.length < 3){ toast('Say why — a ruling carries its reason.'); return; }
+    const btn = document.getElementById('rlGo'); if(btn) btn.disabled = true;
+    try{
+      const { data, error } = await sb.rpc('adjust_points', { p_season: CS.season.id, p_member: m.id, p_delta: delta, p_reason: why });
+      if(error) throw error;
+      toast(csRulingDone(name, delta, data?.member_total));
+      closeSheet();
+      await loadLeagueData();
+    }catch(e){
+      if(btn) btn.disabled = false;
+      toast(csShareKindNotDeployed(e) ? CS_RULING_NOT_YET : humanError(e, "Couldn't record the ruling."));
+    }
+  });
+}
+window.openRulingSheet = openRulingSheet;
 
 /* D241 / D253 · spend a pending `?p=` or `?plan=` token.
    It is spent HERE and not on the landing page because the write is never
@@ -31042,9 +31200,11 @@ async function safeBoot(force){
   /* D85: a claim link opened MID-ROUND is a live pencil, not a waiting card —
      the guest scores from their own phone, no account. Fail-open: any error
      (dead token, old DB) falls through to the door card below. */
+  let guestSeen = null;   /* D374 · the round behind the token, when it names a guest seat */
   if(!CS.user && claimTok && window.enterGuestLive){
     try{
       const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
+      if(!error) guestSeen = data || null;
       if(!error && data?.round?.status==='live' && window.enterGuestLive(data, claimTok)) return;
     }catch(_){}
   }
@@ -31068,6 +31228,16 @@ async function safeBoot(force){
   }
   if(!CS.user && claimTok){
     try{
+      /* D374 · a round nobody finished mints no card, ever — the first sentence a
+         stranger reads must be true. Abandoned: say so, drop the token. Setup:
+         keep the pencil and say when. Live rounds returned above. */
+      const gs = guestSeen?.round?.status;
+      if(gs === 'abandoned'){
+        try{ localStorage.removeItem('cs_claim'); }catch(_){}
+        authStatus(CS_CLAIM_UNFINISHED, 'err');
+      } else if(gs === 'setup'){
+        authStatus(CS_CLAIM_NOT_STARTED);          /* not an error: the pencil is kept */
+      } else {
       /* the door card serves both claim sources (live guests + scan partners) */
       let data=null;
       try{ ({ data } = await sb.rpc('claim_round_info', { p_token: claimTok })); }
@@ -31103,6 +31273,7 @@ async function safeBoot(force){
            drop the token. */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
         authStatus('That scorecard link has expired or was already claimed. Whoever sent it can share a fresh one from the round.', 'err');
+      }
       }
     }catch(_){}
   }

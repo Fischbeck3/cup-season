@@ -95,17 +95,22 @@
 # database after the push, exactly as the query above says.
 # 2026-09-15: +round_tally, +start_live_round_from_plan (20261105090000, NOT yet applied — rows written by hand to the query's exact shape and verified against a disposable cluster; re-take after the push). start_live_round is UNCHANGED.
 
+_agree_on_join||trigger|definer|none
+_agree_to_season|p_league uuid, p_profile uuid|boolean|definer|none
 _cup_window_rounds|p_season uuid|TABLE(member_id uuid, round_id uuid, profile_id uuid, played_on date, points integer, month_rank bigint, pvi numeric, holes_played integer)|definer|none
+_door_gate|p_scope text, p_limit integer, p_window interval|void|definer|none
 _join_gate|p_league uuid, p_via_pro boolean|void|definer|none
 _late_squad|p_league uuid, p_member uuid|text|definer|none
 _live_member_can|p_live_round uuid|boolean|definer|none
 _live_participant|p_live_round uuid|boolean|definer|auth
 _live_state_of|p_live_round uuid|jsonb|definer|none
+_season_roster|p_season uuid|TABLE(member_id uuid)|definer|none
 abandon_live_round|p_live_round uuid|jsonb|definer|auth
 actionable_count_of|p_profile uuid|integer|definer|none
 add_event_player|p_event uuid, p_profile uuid|uuid|definer|auth
 add_friend_to_league|p_league uuid, p_profile uuid|void|definer|auth
 add_round_comment|p_round uuid, p_body text|void|definer|auth
+adjust_points|p_season uuid, p_member uuid, p_delta integer, p_reason text, p_month date DEFAULT NULL::date|jsonb|definer|auth
 announce|p_league uuid, p_body text|void|definer|auth
 answer_plan_followup|p_plan uuid, p_answer text, p_today date DEFAULT NULL::date|jsonb|definer|auth
 ask_for_a_seat|p_scheduled_round uuid|jsonb|definer|auth
@@ -195,6 +200,7 @@ home_dispatch|p_days integer DEFAULT 21, p_today date DEFAULT NULL::date, p_caps
 home_feed|p_days integer DEFAULT 21|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text)|definer|auth
 home_stories|p_days integer DEFAULT 21, p_league uuid DEFAULT NULL::uuid|TABLE(round_id uuid, profile_id uuid, golfer text, marker text, handle text, gross integer, pvi numeric, played_on date, created_at timestamp with time zone, course text, is_pr boolean, is_first boolean, is_sub80 boolean, is_me boolean, photo_path text, has_rating boolean)|definer|auth
 invite_golfer|p_league uuid, p_event uuid, p_profile uuid|uuid|definer|auth
+is_active_member|p_league uuid|boolean|definer|auth
 is_commissioner|p_league uuid|boolean|definer|auth
 is_event_league_member|p_event uuid|boolean|definer|auth
 is_event_member|p_event uuid|boolean|definer|auth
@@ -240,7 +246,7 @@ my_actionable_count||integer|definer|auth
 my_course_books|p_limit integer DEFAULT 24|jsonb|definer|auth
 my_course_ratings||jsonb|definer|auth
 my_friends||TABLE(friendship_id uuid, profile_id uuid, handle text, display_name text, city text, marker text, index_current numeric, status text, incoming boolean)|definer|auth
-my_invites||TABLE(id uuid, kind text, container_id uuid, container_name text, inviter text, starts_on date, created_at timestamp with time zone, event_kind text, buy_in numeric)|definer|auth
+my_invites||TABLE(id uuid, kind text, container_id uuid, container_name text, inviter text, starts_on date, created_at timestamp with time zone, event_kind text, buy_in numeric, season_number integer, reup boolean)|definer|auth
 my_member_id|p_league uuid|uuid|definer|auth
 my_month_counters|p_on date DEFAULT NULL::date|jsonb|definer|auth
 my_mutes||uuid[]|definer|auth

@@ -1,16 +1,22 @@
 # Prize Pool Disclaimer
 
-CupSeason is a golf league management app for private groups who play real,
-handicapped golf together.
+**Last Updated:** September 21, 2026
 
-Any prize pool shown in the app is managed entirely by league organizers and
-participants. Prize pools are private arrangements among players who know each
-other, based on skill (real golf scores) — not a game of chance operated by
-CupSeason.
+Cup Season is a golf league app for private groups who play real, handicapped
+golf together.
 
-CupSeason does not collect, hold, transfer, or distribute money, takes no fee or
-cut of any prize pool, and is not responsible for league payouts or disputes.
+Cup Season keeps the ledger; the money moves between friends. Any pot shown in
+the app is a private arrangement among players who know each other, set up and
+settled by the league's organizer and its members. It is based on skill — real
+golf scores under a handicap — and is not a game of chance operated by Cup
+Season.
 
-Users are responsible for ensuring their leagues comply with applicable laws
-where they play. If you are unsure whether a money pool is allowed where you
-live, keep your league to bragging rights.
+Cup Season does not collect, hold, transfer or distribute money, and takes no
+fee or cut of any pot. A league's stake is capped at $200 per golfer per
+season. Cup Season is not responsible for a league's payouts or disputes.
+
+Apple is not a sponsor of, and is not involved in, any league or pot.
+
+You are responsible for making sure your league complies with the laws where
+you play. If you are unsure whether a money pot is allowed where you live, keep
+your league to bragging rights.

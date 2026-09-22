@@ -37,9 +37,11 @@ a user call.)*
 > handicap,skins,match,play,wolf,scorecard,standings,draft,tournament,buddies,trip,friends,fantasy
 
 **Category:** Sports. **Secondary:** Lifestyle (optional).
-**Age rating:** answer the questionnaire with NO gambling flags of any kind
-— the app contains no wagering, no simulated gambling, no contests run by
-us; it keeps a ledger of a friend group's own pot. Expected rating: 4+.
+**Age rating:** on the current form, **Contests: yes** — golfers compete for
+rankings, and that is the product; **Gambling: no** — the app contains no
+wagering and no simulated gambling; it keeps a ledger of a friend group's own
+pot, capped at $200 a golfer. Expected rating: **13+** (D192; corrected
+2026-09-21 from the retired 4+ answer).
 
 **Description (draft ≈2,300/4,000):**
 

@@ -18,6 +18,8 @@ the app is off-brand by definition (bible §4).
 Preferred handle everywhere: **@cupseason** · fallback order: @cupseasonapp →
 @cupseasonhq (check availability at claim time — availability was NOT
 pre-verified; claim all three where free so nobody squats the family).
+*2026-09-21 (ruling 8-B):* claim the family now, in one sitting; nothing posts
+from the brand until the store link exists. Claiming is not posting.
 
 | Channel | Claim | State at launch | Notes |
 |---|---|---|---|

@@ -43,10 +43,14 @@
 
 with checks as (
 
--- 1 · pg_cron: the four season engines are scheduled and active
+-- 1 · pg_cron: the season engines are scheduled and active. Three since
+--     20261112090000 (D378): cs-month-close, cs-daily-tick, run_event_sessions —
+--     the weekly snapshot rides the daily tick now and cs-week-snapshot is gone.
 select '1 · pg_cron jobs' as check_name,
-  case when (select count(*) from cron.job where active) >= 4
-    then 'PASS' else 'FAIL — expected >=4 active jobs, got ' ||
+  case when (select count(*) from cron.job where active) >= 3
+          and not exists (select 1 from cron.job where jobname = 'cs-week-snapshot')
+          and exists (select 1 from cron.job where jobname = 'cs-daily-tick' and active)
+    then 'PASS' else 'FAIL — expected >=3 active jobs with the tick and without cs-week-snapshot, got ' ||
       (select count(*) from cron.job where active)::text end as status,
   (select string_agg(jobname, ' · ' order by jobname) from cron.job where active) as detail
 
@@ -82,7 +86,7 @@ select '3 · authenticated RPC grants',
 from (
   select coalesce(string_agg(f, ', '), '') as missing
   from unnest(array[
-    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','create_share','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','revoke_share','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','share_info','start_live_round','start_season','submit_feedback','tour_card','transfer_pro','set_mute','my_mutes','register_device_token','join_covenant_info','set_league_marker','event_lineage','last_round_with','create_forfeit','settle_forfeit','scrap_forfeit','career_record','set_email_recap','email_unsubscribe','request_league_cancel','vote_league_cancel','withdraw_league_cancel','league_cancel_status','live_set_score','live_set_wolf','live_state','my_visitor_rounds','live_round_card','round_card','handle_available','round_holes_of','native_home','founding_ids','door_flags','my_actionable_count','league_looks','set_league_look','set_league_notify_system'
+    'abandon_live_round','add_event_player','add_round_comment','announce','assign_player','claim_round','claim_round_info','claim_scan_round','create_event','create_league','create_major','create_scan_claim','create_share','declare_round','delete_account','delete_event','delete_league','delete_round','enter_major','event_session_targets','finish_live_round','form_squads','founder_desk','founder_id','founder_note','friend_request','friend_respond','generate_pairings','home_feed','invite_golfer','join_league','league_by_code','league_pulse','major_leaderboard','mark_buy_in','my_achievements','my_friends','my_invites','my_rivalries','my_schedule','my_trophies','open_major','randomize_squads','remove_member','report_content','resolve_session','respond_invite','retag_round','revoke_share','rivalry_weeks','round_detail','round_epilogue','scan_claim_info','scratch_round','search_golfers','season_scenarios','set_discoverable','set_event_notify','set_event_team','set_handle','set_index','set_league_finish','set_member_bye','adjust_points','set_member_index','set_notify_chat','set_notify_rounds','set_profile','set_rivalry_name','set_round_rsvp','settle_major','share_info','start_live_round','start_season','submit_feedback','tour_card','transfer_pro','set_mute','my_mutes','register_device_token','join_covenant_info','set_league_marker','event_lineage','last_round_with','create_forfeit','settle_forfeit','scrap_forfeit','career_record','set_email_recap','email_unsubscribe','request_league_cancel','vote_league_cancel','withdraw_league_cancel','league_cancel_status','live_set_score','live_set_wolf','live_state','my_visitor_rounds','live_round_card','round_card','handle_available','round_holes_of','native_home','founding_ids','door_flags','my_actionable_count','league_looks','set_league_look','set_league_notify_system'
   ]) f
   where not exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.proname = f
@@ -874,6 +878,113 @@ select '34 · the after-golf band waits for a client that can answer it',
       then 'FAIL — answer_plan_followup returns void; a client cannot tell a recorded answer from an already-terminal one'
     else 'PASS — the band requires a declared capability, and an answer says what it did' end,
   'pg_get_functiondef(home_dispatch) × answer_plan_followup result type'
+
+-- 35 · D376 · the Pro's pen reaches the table. A ruling is a season_adjustments
+--     row of kind override with a member; v_individual_standings must sum it,
+--     or the board says +3 and the table does not move — work shown that is
+--     not the work. Recomputes every ruled member's total from rounds + ledger.
+union all
+select '35 · the standings views sum the ledger (D376)',
+  case when to_regprocedure('public.adjust_points(uuid,uuid,integer,text,date)') is null
+         then 'PASS — the pen is not deployed yet'
+       when bad = 0 then 'PASS — ' || ruled || ' ruled total(s), every one equal to rounds + ledger'
+       else 'FAIL — ' || bad || ' member total(s) ignore a ruling' end,
+  'v_individual_standings vs. a recomputation from v_rounds_ranked and season_adjustments'
+from (
+  select count(*) as ruled,
+         count(*) filter (where v.points <> r.pts + x.adj) as bad
+    from (select a.season_id, a.member_id, sum(a.points) as adj
+            from season_adjustments a
+           where a.kind = 'override' and a.member_id is not null
+           group by 1, 2) x
+    join v_individual_standings v on v.season_id = x.season_id and v.member_id = x.member_id
+    join league_members lm on lm.id = v.member_id
+    join league_settings ls on ls.league_id = lm.league_id
+    left join lateral (
+      select coalesce(sum(rr.points) filter (where rr.month_rank <= coalesce(ls.counting_cap, 999)), 0) as pts
+        from v_rounds_ranked rr
+       where rr.member_id = v.member_id and rr.season_id = v.season_id) r on true
+) t
+
+-- 36 · D378 / D371 · the Stage D bundle and the counted door hold in production:
+--     the three write doors read is_active_member (never is_league_member,
+--     which keeps READ for leavers); lock_league refuses snake/live; the Final
+--     and the snapshot key on the league's date; door_attempts is unreachable
+--     by any client role.
+union all
+select '36 · D378 bundle and D371 door counter',
+  case when to_regprocedure('public.is_active_member(uuid)') is null
+         then 'PASS — the bundle is not deployed yet'
+       when problems = '' then 'PASS — leavers gated on writes, snake refused, league-local Final, private door counter'
+       else 'FAIL — ' || problems end,
+  'prosrc of create_major / enter_major / create_event / lock_league / daily_season_tick / enter_cup_final / cup_final_race / snapshot_week; door_attempts privileges'
+from (
+  select concat_ws('; ',
+    case when exists (select 1 from pg_proc where pronamespace = 'public'::regnamespace
+                        and proname in ('create_major','enter_major','create_event')
+                        and prosrc like '%is_league_member(%') then 'a write door still reads is_league_member' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'is_league_member')
+              like '%left_at%' then 'is_league_member gates READ on left_at' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'lock_league')
+              not like '%Squads are drawn or placed by the Pro this season.%' then 'lock_league accepts snake/live' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'daily_season_tick')
+              not like '%perform snapshot_week(se.id);%' then 'the tick does not cut the week' end,
+    case when exists (select 1 from pg_proc where pronamespace = 'public'::regnamespace
+                        and proname in ('enter_cup_final','cup_final_race','snapshot_week')
+                        and prosrc like '%current_date%') then 'the Final or the snapshot still reads current_date' end,
+    case when to_regclass('cupseason_private.door_attempts') is not null
+          and (has_any_column_privilege('anon', 'cupseason_private.door_attempts', 'SELECT')
+            or has_any_column_privilege('authenticated', 'cupseason_private.door_attempts', 'SELECT')
+            or has_table_privilege('authenticated', 'cupseason_private.door_attempts', 'INSERT'))
+         then 'a client role can reach door_attempts' end
+  ) as problems
+) t
+
+-- 37 · D375 · season two is a re-up. Every member carries a season on record,
+--     the lens and the individual table read it, the re-up doors record and
+--     say the yes, the hat and the start read the season's roster, the pot
+--     counts the yeses, and the two helpers are the engine's alone.
+union all
+select '37 · season two is a re-up (D375)',
+  case when (select count(*) from information_schema.columns
+              where table_schema = 'public' and table_name = 'league_members' and column_name = 'agreed_seasons') = 0
+         then 'PASS — the re-up is not deployed yet'
+       when problems = '' then 'PASS — every member on record; the lens, the doors, the hat, the start and the pot read it'
+       else 'FAIL — ' || problems end,
+  'league_members.agreed_seasons × v_rounds_ranked / v_individual_standings × prosrc of respond_invite, join_league, run_it_back, randomize_squads, start_season, recompute_season_payouts, invite_golfer, my_invites × helper grants'
+from (
+  select concat_ws('; ',
+    case when exists (select 1 from league_members where agreed_seasons is null or agreed_seasons = '{}')
+         then 'a member carries no season on record' end,
+    case when pg_get_viewdef('public.v_rounds_ranked'::regclass) not like '%agreed_seasons%'
+           or pg_get_viewdef('public.v_rounds_ranked'::regclass) not like '%prior_left_at%'
+         then 'v_rounds_ranked does not read the record' end,
+    case when pg_get_viewdef('public.v_individual_standings'::regclass) not like '%agreed_seasons%'
+         then 'v_individual_standings lists members who did not say yes' end,
+    case when exists (select 1 from pg_proc where pronamespace = 'public'::regnamespace
+                        and proname in ('respond_invite', 'join_league')
+                        and prosrc not like '%_agree_to_season(%') then 'a join door does not record the yes' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'run_it_back')
+              not like '%The invitations are out%' then 'run_it_back seats instead of asking' end,
+    case when exists (select 1 from pg_proc where pronamespace = 'public'::regnamespace
+                        and proname in ('randomize_squads', 'start_season')
+                        and prosrc not like '%_season_roster(p_season)%') then 'the hat or the start reads the whole league' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'recompute_season_payouts')
+              not like '%agreed_seasons%' then 'the pot counts members who did not say yes' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'invite_golfer')
+              not like '%same rules, fresh table%' then 'the Pro cannot ask again' end,
+    case when position('season_number integer, reup boolean' in
+                 (select pg_get_function_result(oid) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'my_invites')) = 0
+         then 'my_invites does not say which season' end,
+    case when has_function_privilege('authenticated', 'public._season_roster(uuid)', 'execute')
+           or has_function_privilege('authenticated', 'public._agree_to_season(uuid, uuid)', 'execute')
+           or has_function_privilege('anon', 'public._agree_to_season(uuid, uuid)', 'execute')
+         then 'a client role can reach a re-up helper' end,
+    case when not exists (select 1 from pg_trigger where tgname = 'league_members_agree_on_join'
+                             and tgrelid = 'public.league_members'::regclass and not tgisinternal)
+         then 'a fresh seat records no season' end
+  ) as problems
+) t
 
 )
 select * from checks order by check_name;

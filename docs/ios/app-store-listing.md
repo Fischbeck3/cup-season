@@ -218,11 +218,14 @@ user's identity** and **not used for tracking**.
 | Identifiers → Device ID | `DeviceID` | App Functionality | Yes | No | the APNs push token (`device_tokens`) — push only |
 | Diagnostics → Crash Data | `CrashData` | App Functionality | Yes | No | MetricKit crash and hang reports into `client_events` (IOS-024) |
 | Usage Data → Product Interaction | `ProductInteraction` | **Analytics** | Yes | No | screens opened and taps (`client_events`, `pilot_instrumentation`) |
+| Contacts | `Contacts` | App Functionality | No | No | only when the golfer taps to find friends: salted SHA-256 hashes of emails and phone numbers are sent for matching and nothing that does not match is kept (D251). Declared 2026-09-21; **the owner files this label change at submission** (D251 clause 4). |
 
 Not collected, and do not tick: Location (course search is by name, never by
 GPS), Health & Fitness, Financial Info (the pot is a ledger of dollars typed
-by the Pro; no payment instrument exists), Contacts, Browsing/Search History,
-Purchases, Sensitive Info. Course lookups go through our own Edge Function
+by the Pro; no payment instrument exists), Browsing/Search History,
+Purchases, Sensitive Info. (Contacts moved into the table on 2026-09-21: the
+find-friends step sends hashes, which is a disclosure even though no contact
+is stored.) Course lookups go through our own Edge Function
 with the key held server-side — the third party never sees a user, so it is
 not a disclosure.
 

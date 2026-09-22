@@ -17,6 +17,7 @@ Index only — files live where they live. OS layer: `../StudioOS`.
 | session lanes | `spec/session-tracks.md` |
 | QA | `spec/prelaunch-qa-2026-07-13.md`, `spec/setup-qa-findings.md` |
 | GTM / launch | `spec/gtm-year1.md`, `spec/socials-operating-plan.md` |
+| launch readiness (Oct 1) / dated vision | `spec/launch-readiness-2026-10-01.md`, `spec/vision-2026-10-01.md` |
 
 Role modes: `/cto` `/pm` `/support` `/release` `/growth` `/docs` ·
 briefings: `/start-day` `/end-day` · project map:

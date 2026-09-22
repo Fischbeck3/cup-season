@@ -13,6 +13,13 @@ Verified from the systems themselves on 2026-09-15, not from prior reports. "Imp
 | **Edge functions** | 6 deployed, none stale, nothing pending. | `tools/deploy-status.mjs` |
 | **Newest build in Friends** | still **795**; 934's external state is READY_FOR_BETA_SUBMISSION, i.e. not submitted. Friends unchanged. | App Store Connect API |
 
+### Addendum · 2026-09-21 (Claude, remote)
+
+- The owner ruled all fourteen launch decision points — **public launch: App Store submission on 2026-10-01, open outreach the same day** (D371–D379, `docs/planning/2026-09-21-launch-rulings.md`; appended to the decision log on branch `claude/elegant-curie-x15hps`, which is based on PR #6's tip `6c9712d`). The ten-day plan is `spec/launch-readiness-2026-10-01.md` §4A.
+- On that branch, **pushed to production 2026-09-22 and not yet merged**: `20261112090000` (D378 bundle), `20261113090000` (D376, the Pro's pen), `20261114090000` (D371's door counter) and `20261115090000` (D375, season two is a re-up) — validated on a Postgres 16 sandbox running the full chain (18 + 32 functional probes), pushed by the owner with PR #6's `20261109090000` and `20261110090000`, and read back from production's ledger. Still branch-only until the merge: the web halves of D373, D374, D375 and D376; the legal v2 draft (D379), operator name confirmed; this file's corrections.
+- **Owed today (D372):** the two revokes pushed from the PR #6 checkout; PR #6 merged by 17:00 Phoenix after the iPhone Safari walk; a build to the Owner group; Codex pointed at the branch above.
+- Corrections to the history below: `20261024090000` is **applied** (the "held" line was a coordinator note that did not hold — `20261102090000`'s header, D353b); `index.html` has been edited by Claude since the 2026-09-13 override, and D372 records the merge override.
+
 ### Known issues (as of 2026-09-15)
 - A seated non-starter cannot finish a league-less round; the host (or a league member seat) must. By design (D107), told to testers. `tests/pilot/authz-flow.py` NOT VERIFIED line.
 - Historical rounds carry no par provenance and therefore show no birdie/eagle tally — including the owner's own 2026-09-15 round. Honest by design (Codex S3).
@@ -63,7 +70,7 @@ Owner requested both phone surfaces, Safari first. The historical baselines belo
 - R1 posting/setup/invitations/month facts and R4 snapshot/widget work are implemented. R2 complete-week and R3 competition chapters/event renewal remain explicitly scoped in [today's sprint](2026-09-13-today-release.md).
 - Eight reviewed migrations applied to production; readback 239 total, latest `20261101090000`, D345 absent. No Edge or Vault changes.
 - Safari `25458ff` is live and verified. Native build 835 archived; export is blocked by Apple cloud-signing permission and absence of a distribution identity. Build 815 is superseded and must not be uploaded. See [release evidence](../reviews/2026-09-13-production-release.md) for final delivery state.
-- Do not run a blanket database push: `20261024090000_the_loop_has_a_closing_act.sql` remains held pending capability protection.
+- Do not run a blanket database push: `20261024090000_the_loop_has_a_closing_act.sql` remains held pending capability protection. **[Corrected 2026-09-21: it is applied — the hold did not hold; `20261102090000` gates the band on a client capability instead. History, not instruction.]**
 
 ## Baselines and current state
 
@@ -78,7 +85,7 @@ Owner requested both phone surfaces, Safari first. The historical baselines belo
 | Responsibility | Builder / final editor | Independent review |
 |---|---|---|
 | Product journey, prototypes, native UI, accessibility | Codex | Claude checks factual/contract consistency; owner judges experience |
-| Web client `index.html` | Codex, as sole editor of the file per wave | Claude reviews the committed diff; do not split the single file between active builders |
+| Web client `index.html` | Claude, under the 2026-09-13 override and D372 (corrected 2026-09-21 — the row said Codex while every September commit was Claude's) | Codex reviews the committed diff; do not split the single file between active builders |
 | SQL migrations, grants/RLS, shared ranking and copy producers | Claude | Codex exercises actual RPCs and client compatibility |
 | Course Edge Function / selected-course contract | Claude | Codex verifies selection and failure paths |
 | RPC contract source `packages/db/contract.psv` | Claude supplies the agreed contract checkpoint | Codex reviews and runs the source generator during integration; never hand-edit generated Swift |
