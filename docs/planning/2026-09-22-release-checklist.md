@@ -63,8 +63,10 @@ evidence; engineering supplies the rest and never marks the owner's rows.
 | Gate | Evidence required | Who | State |
 |---|---|---|---|
 | Cohorts named | `pilot_cohort_members` non-empty; the Tue 29 report's cohort sections show rows | Owner | **Not passed.** Both pilot tables are empty in production as of 2026-09-22 |
-| The weekly growth report runs | `node tools/pilot-scorecard.mjs --as-of <date> --store-live false` on the Mac, saved as `docs/pilot/scorecard-<date>.md` | Owner | The five new sections executed read-only against production on 2026-09-22; the first saved report is Tue 29's |
-| The acquisition log started | `docs/pilot/acquisition-log.csv` with the week of Oct 1's row | Owner | **Not started** |
+| The weekly growth report runs | `node tools/pilot-scorecard.mjs --as-of <the Sunday the week ended> --store-live false` on the Mac, saved as `docs/pilot/scorecard-<date>.md` | Owner | **Implemented and locally tested; not accepted until the owner's first real run.** The W6 correction pass (Codex's six findings) is on `claude/october-w6-fixes`; every corrected section executed read-only on production for 2026-09-20. The first saved report is generated Tue Sep 29, dated Sun Sep 27 |
+| The acquisition log started | `docs/pilot/acquisition-log.csv` with the week ending Oct 4's rows | Owner | **Not started** |
+| App Analytics readings recorded | `docs/pilot/appstore-readings.csv` with a reading through Oct 31 (then Nov 30, Dec 31) — the only input that can mark a checkpoint met or missed | Owner | **Not possible yet** — the listing is not live |
+| The assistance gate is fed | `pilot_sessions` rows with end times and golfers or ids; no UNKNOWN week left unresolved at a review | Owner | **Not started** — 0 sessions in production |
 
 ## 7 · The written assessment (Sep 29)
 

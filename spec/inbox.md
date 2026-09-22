@@ -35,20 +35,31 @@ sorting.
 
 Codex verified Claude's `4a171f7` in an isolated worktree and fixed the native cancellation and photo-consent/storage defects it exposed. Native suites: 1,235 Kit + 120 design + 122 app + six UI tests passed. The recovered course-cache migration is now `20261116090000`; `20261117090000` fixes PNG permissions and owner listing. All 254 migrations applied on PG17, with populated-cache reapply and authenticated storage probes passing. Nothing deployed. The next session must keep these commits, finish W6 reporting and obtain real Storage API / physical two-phone proof, the installation URL and current Apple/live evidence. Details: `docs/planning/2026-09-22-october-mac-verification.md` and the deployment packet. Lane: Ops / launch · follow-up remains open until the release gates have evidence.
 
-### 2026-09-22 · `profiles.came_via_kind` is never written, and the cohort tables are empty
+### 2026-09-22 · The golfer funnel's `invited_or_opened_link` can almost never count
 
-**Correction from Codex's source review:** the "never written" / "no door
-writes it" diagnosis below is incorrect. `log_growth_event` already writes
-the columns on `profile_created` in migration `20260828160000`, and the web
-card-save handler plus native `CardGateView` call it with pending claim/join
-intent. DEBUG native builds intentionally skip growth logging. The reported
-null production values and empty cohort tables remain observations from
-Claude's read; this review did not reread production. Trace the existing
-path before changing it. See the six required W6 corrections and execution
-prompt in `docs/planning/2026-09-22-w6-review-and-claude-prompt.md`.
+`tests/pilot/scorecard.sql` → `golfer_funnel` counts a golfer as invited when a `member_invites` row names them **or** a `growth_events` `link_opened` row has them as `actor`. But `link_opened` is logged at page load, usually signed out, so `actor` is null — the second arm can only fire for someone who opens a link while already signed in. Found while correcting W6; not changed, because the fix is a definition, not a bug: the `profile_created` event's `kind`/`token` (or `profiles.came_via_*`) is the fact that ties a golfer to the link that brought them. Lane: Growth · size: small · first question: should "invited" mean *an invitation row or an attributed arrival* (`came_via_kind` not null), and is a signed-in link open worth keeping as a third arm?
 
-Read from production while building W6: every profile's `came_via_kind` is null, so the growth report's "arrived by a link" column can only say 0 — the column exists (20260828160000) and no door writes it. And `pilot_cohort_members` / `pilot_sessions` hold 0 rows, so every cohort section reports nothing until the founder names cohorts. Lane: Growth · size: small · first question: should `log_growth_event`'s `profile_created` (or the signup trigger, from the stored `cs_claim` / `cs_code` / `cs_person` token) write `came_via_kind`, so attribution is a fact rather than a blank?
+### 2026-09-22 · ~~`profiles.came_via_kind` is never written~~ — CLOSED as wrong; the cohort tables are still empty
 
+**Closed 2026-09-22 (W6 correction 6), won't build.** The original claim — that
+no door writes `came_via_kind`, and the proposal to add a writer — was wrong,
+as Codex's review said. Traced rather than assumed, in
+`docs/pilot/examples/w6-reproduction.md` §6: `log_growth_event` writes both
+columns once on `profile_created` (`20260828160000`:133–136); the web persists
+`cs_claim` / `cs_code` at load, returns at the card gate before consuming them,
+and sends the pending intent at card save (run as written in
+`tests/attribution-trace.test.mjs`); the phone does the same from
+`CardGateView` (DEBUG builds never log); the RPC, called through the
+authenticated grant in a rolled-back sandbox transaction, writes a claim and a
+join, leaves a direct arrival blank and never overwrites
+(`tests/pilot/scorecard-db.test.mjs`); it is the only writer; the deployed body
+matches the chain. Production's blanks are explained without a defect: no
+eligible account has been created since the writer shipped (first growth event
+2026-08-29; production read-only). No second writer, no backfill — existing
+accounts and direct arrivals gain no invented history. **Still open:** a real
+claim on a release build, read back from `profiles` (owner, device), and
+`pilot_cohort_members` / `pilot_sessions` hold 0 rows, so every cohort section
+reports nothing until the founder names cohorts. Lane: Growth.
 
 ### 2026-09-22 · The in-browser suite aborts when the module block is absent
 
@@ -87,7 +98,10 @@ Found while building D375. In the first season an invitation accepted during the
 `round_detail` (20261001090000, "what a round is worth") lists the leagues a round counts in with `suspended_at is null and left_at is null` and no `agreed_seasons` predicate, so a member who has not said yes to season two sees the league in the preview while the lens (correctly) scores nothing there. Display only; the standings are right. Left out of `20261115090000` because the function has been patched in place since and the anchor needs reading first. Lane: UX · size: small · first question: add the predicate in place (the D375 helper pattern), or fold it into the next round_detail change?
 
 
-### 2026-09-21 · The sandbox harness runs on Postgres 16 with two lines
+### 2026-09-21 · The sandbox harness runs on Postgres 16 with two lines — DONE 2026-09-22
+
+**Folded in** on `claude/october-w6-fixes`: `apply.sh` takes `PGBIN`, `PGDATA` and `SIM_LOG` from the environment (defaults unchanged on the Mac) and drops `MAINTAIN` from revoke/grant lines only when the server is older than 17. The W6 fixture tests ran on it. PG17 stays the reference; production is 17.
+
 
 `tests/sim/sandbox/apply.sh` (PR #6) hardcodes Homebrew's PG17 and the chain uses the PG17-only `MAINTAIN` privilege in one revoke (`20260904183000`). A remote session ran the full chain on Ubuntu's PG16 by setting `PGBIN` and filtering the word from the psql stream on revoke/grant lines only (two `sed -E` rules beside the extension filters). Worth folding into the harness as an env override so remote sessions can validate migrations without the Mac. Lane: Ops · size: small · first question: keep PG16 as a second supported sandbox, or install PG17 in the remote image?
 

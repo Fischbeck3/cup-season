@@ -49,6 +49,7 @@ amended is due at the 2026-09-29 weekly review (ruling 12).
 - Any golfer sees another golfer's data they should not (harness or report).
 - A trap screen reported by two testers.
 - A week where assisted sessions exceed unassisted completions in a cohort that is meant to be unassisted.
+  *Measured* by the report's `assistance_weekly` section (W6 correction 1): per local week and cohort, a completion is one finished real game (however many cards it posted); it is assisted when a logged session of that cohort is linked to it by group or golfer and overlaps it in time, UNKNOWN when the session evidence cannot settle it, and unassisted otherwise. An UNKNOWN week is not a pass — complete the session log and re-run. This states how the proposed condition is counted; it does not ratify it.
 - Any account-less guest's claim card exposing more than name, gross, course and date.
 
 ## Explicitly not gates
