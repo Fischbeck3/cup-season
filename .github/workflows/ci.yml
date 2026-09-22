@@ -72,6 +72,13 @@ jobs:
       - name: unit files
         run: node --test tests/homefold.test.mjs tests/post-request.test.mjs tests/rating.test.mjs tests/trophycase.test.mjs
 
+      # The courses Edge Function's numeric normalization (a TypeScript module
+      # with no Deno imports, so Node can run it with type stripping): null
+      # stays null, booleans never become numbers, a missing hole count is
+      # never an invented zero.
+      - name: courses normalization
+        run: node --experimental-strip-types --test tests/courses-normalize.test.mjs
+
       # Run the REAL Netlify build command. stamp-version.sh fails hard on a
       # surviving __CS_VERSION__ placeholder, on an empty shell, and on any
       # allowlisted asset missing from the repo — so a broken deploy is caught

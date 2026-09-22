@@ -50,20 +50,11 @@ async function gca(path: string) {
   return r.json();
 }
 
-// A number the provider sent, or null — never a string, never NaN. The
-// course-cache RPC (D370, `20261116090000_course_cache_atomic`) casts strictly:
-// a `"slope_rating": 113.5` or a `"latitude": ""` would fail the WHOLE course,
-// permanently, where the old row-by-row path skipped one bad tee. So the
-// coercion happens here, before the payload reaches SQL, and the SQL stays
-// strict (review finding 1, 2026-09-19).
-function num(v: unknown): number | null {
-  const n = typeof v === "string" ? Number(v.trim() === "" ? NaN : v) : Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-function int(v: unknown): number | null {
-  const n = num(v);
-  return n == null ? null : Math.round(n);
-}
+// Numeric normalization lives in ./normalize.ts (tested with node --test):
+// null stays null, booleans and other non-numbers become null, integers are
+// rounded from finite numbers only, and a tee's hole count falls back to the
+// holes actually listed — never to an invented zero.
+import { holeCount, int, num } from "./normalize.ts";
 
 // GolfCourseAPI groups tees by gender; flatten to one tagged list.
 function flattenTees(course: any) {
@@ -87,7 +78,7 @@ function flattenTees(course: any) {
         bogey_rating: num(te.bogey_rating),
         par_total: int(te.par_total),
         total_yards: int(te.total_yards),
-        number_of_holes: int(te.number_of_holes) ?? (holes.length || null),
+        number_of_holes: holeCount(te.number_of_holes, holes),
         holes: holes.map((h: any, i: number) => ({
           hole_number: int(h.hole) ?? i + 1,
           par: int(h.par),
