@@ -80,11 +80,12 @@ jobs:
         run: node --experimental-strip-types --test tests/courses-normalize.test.mjs tests/course-provider.test.mjs tests/share-consent-flow.test.mjs
 
       # W6 · the weekly growth report: checkpoints judged only on dated App
-      # Analytics readings, strict dates/counts/flags/CSV, one report cutoff.
-      # The SQL half (tests/pilot/scorecard-db.test.mjs) needs the sandbox chain and
+      # Analytics readings, strict dates/counts/flags/CSV, one report cutoff,
+      # and the existing attribution writer traced on the web card save. The
+      # SQL half (tests/pilot/scorecard-db.test.mjs) needs the sandbox chain and
       # runs locally — CI has no database, and it would only skip here.
       - name: growth report
-        run: node --test tests/growth-report.test.mjs tests/pilot-scorecard-cli.test.mjs
+        run: node --test tests/growth-report.test.mjs tests/pilot-scorecard-cli.test.mjs tests/attribution-trace.test.mjs
 
       # Run the REAL Netlify build command. stamp-version.sh fails hard on a
       # surviving __CS_VERSION__ placeholder, on an empty shell, and on any
