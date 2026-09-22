@@ -21,6 +21,16 @@
   t('esc: null-safe', esc(null), '');
   t('esc: number passthrough', esc(84), '84');
 
+  /* W2 (D380) · photo consent on a shared round — the pure plan the mint follows */
+  t('W2: a declined photo on a token that carries one re-mints', csShareConsentPlan(true, true, false), { remint:true, publishJpg:false });
+  t('W2: a yes on a fresh token uploads and keeps the token', csShareConsentPlan(false, false, true), { remint:false, publishJpg:true });
+  t('W2: a yes after a card went out without the photo re-mints', csShareConsentPlan(false, true, true), { remint:true, publishJpg:true });
+  t('W2: no photo, no copies — nothing to do', csShareConsentPlan(false, false, false), { remint:false, publishJpg:false });
+  t('W2: a yes that already travelled keeps everything', csShareConsentPlan(true, true, true), { remint:false, publishJpg:true });
+  t('W2: the consent words are the phone\'s', CS_SHARE_PHOTO_INCLUDE, 'Include round photo');
+  t('W2: the fine print promises nothing a re-mint cannot do', /already saved stays with them/.test(CS_SHARE_PHOTO_FINE), true);
+  t('W2: one share label', [csShareRoundLabel(true), csShareRoundLabel(false)], ['Share your first round', 'Share your round']);
+
   /* localDate — the Phoenix off-by-one landmine */
   t('localDate: local not UTC', localDate('2026-07-21').getDate(), 21);
   t('localDate: month index', localDate('2026-01-02').getMonth(), 0);

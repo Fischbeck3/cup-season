@@ -83,7 +83,9 @@ function setTitle(html: string, value: string) {
     : html.replace(/<\/head>/i, `<title>${value}</title></head>`);
 }
 
-type Meta = { title: string; desc: string; img: string; w: string; h: string };
+type Meta = { title: string; desc: string; img: string; w: string; h: string;
+  /* W2 · what to serve when `img` is a copy that did not travel */
+  fallback?: { img: string; w: string; h: string } };
 
 function metaFor(info: any, storage: string, token: string): Meta | null {
   if (!info || !info.kind) return null;
@@ -99,11 +101,16 @@ function metaFor(info: any, storage: string, token: string): Meta | null {
       desc: [when, info.holes === 9 ? 'Nine holes' : '',
              info.points != null ? `${info.points} points` : '', 'Cup Season']
         .filter(Boolean).join(' · '),
-      /* the photo already travels to the public bucket at share time (D60) —
-         when there is one it IS the preview */
-      img: info.photo ? `${storage}/${token}.jpg` : STATIC_IMG,
-      w: info.photo ? '1600' : STATIC_W,
-      h: info.photo ? '1600' : STATIC_H,
+      /* W2 (D380) · the card that went into the message is the preview
+         (shared/{token}.png, published at share time on both clients); a
+         round shared before the card travelled falls back to its photo when
+         the golfer said yes to one (D60), else the brand image. The HEAD check
+         below decides which actually exists. */
+      img: `${storage}/${token}.png`,
+      w: '1080', h: '1350',
+      fallback: info.photo
+        ? { img: `${storage}/${token}.jpg`, w: '1600', h: '1600' }
+        : { img: STATIC_IMG, w: STATIC_W, h: STATIC_H },
     };
   }
 
@@ -183,7 +190,10 @@ export default async (request: Request, context: Context) => {
     if (meta.img.endsWith('.png') && meta.img.startsWith(storage)) {
       let ok = false;
       try { ok = (await fetch(meta.img, { method: 'HEAD' })).ok; } catch { ok = false; }
-      if (!ok) { meta.img = STATIC_IMG; meta.w = STATIC_W; meta.h = STATIC_H; }
+      if (!ok) {
+        const fb = meta.fallback || { img: STATIC_IMG, w: STATIC_W, h: STATIC_H };
+        meta.img = fb.img; meta.w = fb.w; meta.h = fb.h;
+      }
     }
 
     const title = esc(oneLine(meta.title, 110));

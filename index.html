@@ -9563,14 +9563,41 @@ async function shareSettlementCard(d){
 }
 window.shareSettlementCard = shareSettlementCard;
 
+/* ---- W2 (D380) · photo consent on a shared round ----------------------------
+   A round's link carries two public copies: shared/{token}.png (the card that
+   went into the message — the link's preview) and shared/{token}.jpg (the
+   round's photo — the public page's ground). Both are snapshots on a token
+   that create_share re-returns for as long as it lives, so the golfer's answer
+   to "include your photo" has to govern a REUSED token too: when the copies
+   on the token disagree with the answer, the token is revoked and a fresh one
+   minted, and the old copies are removed first. Pure, so it is pinned in
+   tests/app-tests.js; the phone's ShareConsent.plan is its twin. What no
+   re-mint can do is take back a preview a messaging app already saved — the
+   fine print says so, and nothing here promises otherwise. */
+function csShareConsentPlan(hadPhoto, hadCard, includePhoto){
+  const inc = !!includePhoto;
+  return {
+    remint: (!!hadPhoto && !inc) || (!hadPhoto && inc && !!hadCard),
+    publishJpg: inc,
+  };
+}
+const CS_SHARE_PHOTO_INCLUDE = 'Include round photo';   /* twin of the phone's RoundCopy.photoInclude */
+const CS_SHARE_PHOTO_FINE = 'It shows on the public page and in the link’s preview. Turning it off later makes a new link; a preview a messaging app already saved stays with them.';
+function csShareRoundLabel(firstEver){ return firstEver ? 'Share your first round' : 'Share your round'; }
+window.csShareConsentPlan = csShareConsentPlan; window.csShareRoundLabel = csShareRoundLabel;
+window.CS_SHARE_PHOTO_INCLUDE = CS_SHARE_PHOTO_INCLUDE; window.CS_SHARE_PHOTO_FINE = CS_SHARE_PHOTO_FINE;
+
 /* ---- D57 · public share links — mint lazily, share like the invite link ----
    create_share verifies ownership at the database and re-mints the same live
    token per artifact; the page at /?share=TOKEN needs no account. Never called
-   in demo (callers gate) — the diorama publishes nothing. */
-async function csShareLink(kind, ref, text, card){
+   in demo (callers gate) — the diorama publishes nothing.
+   W2 · `opts` for a ROUND: { includePhoto, cardBlob } — the golfer's answer and
+   the card that goes into the message; the card and the link leave together. */
+async function csShareLink(kind, ref, text, card, opts){
   if(!window.sb || !ref){ toast('Sharing needs your real league'); return; }
+  opts = opts || {};
   try{
-    const { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
+    let { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
     if(error) throw error;
     /* D60 — the photo travels: a shared ROUND with a photo publishes a
        compressed copy to the public bucket at shared/{TOKEN}.jpg (this device
@@ -9600,12 +9627,36 @@ async function csShareLink(kind, ref, text, card){
       }catch(e){ try{ console.warn('[share card] link ships card-less:', e.message||e); }catch(_){} }
     }
     if(kind === 'round'){
+      /* W2 · what the token already carries, and what the answer says it should */
+      const has = async (name) => {
+        const { data: head } = await sb.storage.from('shared').list('', { search: name, limit: 1 });
+        return Array.isArray(head) && head.some(o => o.name === name);
+      };
       try{
-        const { data: rr } = await sb.from('rounds').select('photo_path').eq('id', ref).maybeSingle();
-        if(rr?.photo_path){
-          const { data: head } = await sb.storage.from('shared').list('', { search: data + '.jpg', limit: 1 });
-          const already = Array.isArray(head) && head.some(o => o.name === data + '.jpg');
-          if(!already){
+        const plan = csShareConsentPlan(await has(data + '.jpg'), await has(data + '.png'), opts.includePhoto);
+        if(plan.remint){
+          /* the copies disagree with the answer: they go, the token goes, and a
+             fresh token is minted — the old url stops working for everyone */
+          try{ await sb.storage.from('shared').remove([data + '.jpg', data + '.png']); }catch(_){}
+          const r2 = await sb.rpc('revoke_share', { p_token: data });
+          if(r2.error) throw r2.error;
+          const r3 = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
+          if(r3.error) throw r3.error;
+          data = r3.data;
+        }
+        /* the card is the link's preview (a scraper runs no JavaScript), so it
+           has to exist at a public url before the message is sent — same shape
+           as the settlement card above, best effort */
+        if(opts.cardBlob && !(await has(data + '.png'))){
+          const up = await sb.storage.from('shared')
+            .upload(data + '.png', opts.cardBlob, { contentType:'image/png', upsert:false });
+          if(up.error && !/exists|duplicate/i.test(up.error.message||'')) throw up.error;
+        }
+        /* the photo travels ONLY on a yes (D60 amended by D380): a compressed
+           copy to shared/{token}.jpg, the public page's ground */
+        if(plan.publishJpg && !(await has(data + '.jpg'))){
+          const { data: rr } = await sb.from('rounds').select('photo_path').eq('id', ref).maybeSingle();
+          if(rr?.photo_path){
             const { data: sg } = await sb.storage.from('media').createSignedUrl(rr.photo_path, 60);
             if(sg?.signedUrl){
               const blob = await (await fetch(sg.signedUrl)).blob();
@@ -9616,18 +9667,59 @@ async function csShareLink(kind, ref, text, card){
             }
           }
         }
-      }catch(e){ try{ console.warn('[share photo] link ships photo-less:', e.message||e); }catch(_){} }
+      }catch(e){ try{ console.warn('[share round] link ships without its copies:', e.message||e); }catch(_){} }
     }
     const url = location.origin + '/?share=' + data;
     growthEvent('artifact_shared', kind==='round' ? 'share' : kind, data, null, window.CS?.league?.id);
+    /* W2 · the card and the link leave together when the sheet can carry a file */
+    const cardFile = opts.cardBlob ? new File([opts.cardBlob], 'cup-season-round.png', { type:'image/png' }) : null;
+    if(cardFile && navigator.canShare && navigator.canShare({ files:[cardFile] })){
+      try{ await navigator.share({ files:[cardFile], text: (text ? text + ' ' : '') + url }); return; }
+      catch(e){ if(e && e.name==='AbortError') return; }
+    }
     if(navigator.share){
       try{ await navigator.share({ title:'Cup Season', text, url }); return; }
       catch(e){ if(e && e.name==='AbortError') return; }
     }
     await navigator.clipboard?.writeText((text ? text + ': ' : '') + url);
-    toast('Link copied — no account needed to view it');
+    if(cardFile){
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(opts.cardBlob); a.download='cup-season-round.png'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+      toast('Link copied · card downloaded — no account needed to view it');
+    } else {
+      toast('Link copied — no account needed to view it');
+    }
   }catch(e){ toast(humanError(e, 'Could not make the link.')); }
 }
+
+/* W2 (D380) · ONE Share action from a posted round: the recap card (with the
+   photo only on a yes) and the link, together. Demo and link-less rounds share
+   the card alone, exactly as before. `d` is the recap card's facts. */
+async function csShareRound(d, roundId, includePhoto, text){
+  try{
+    d.photo = includePhoto ? (d.photo || null) : null;
+    if(d.photo && typeof photoDrawable==='function'){
+      try{ d._img = await photoDrawable(d.photo); }catch(_){ d._img=null; }
+    }
+    const blob = await new Promise(res=>drawRecapCard(d).toBlob(res,'image/png'));
+    if(!roundId || state.demo || !window.sb){
+      const file=new File([blob],'cup-season-recap.png',{type:'image/png'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], text: text || recapText(d)}); return; }
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download='cup-season-recap.png'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+      toast('Card downloaded');
+      return;
+    }
+    await csShareLink('round', roundId, text || recapText(d), null, { includePhoto: !!includePhoto, cardBlob: blob });
+  }catch(e){
+    if(e && e.name==='AbortError') return;
+    console.warn('[share round]', e);
+    toast(humanError(e, 'Could not make the card.'));
+  }
+}
+window.csShareRound = csShareRound;
 /* D241 / D253 · the two NEW kinds. The same `create_share`, the same
    `shares_one_live` uniqueness (so a golfer has exactly ONE live person link
    and asking twice returns the same token), and a different query on the URL
@@ -9937,13 +10029,20 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
      now, and a second full-weight button beside the act would make the page
      ask two things at once (L-25 - a verb is a control, and only one of them
      is the moment's) */
-  if(epi.gross!=null && !_ceremonyOwnsShare)
-    rows.push(`<button class="btn dark" id="epiShare" style="width:100%;margin-top:14px">${firstEver?'Share your first card':'Share the card'}</button>`);
-  /* D57: the link version of the same peak — a page anyone can open, no account.
-     Real rounds only (the diorama publishes nothing). */
+  /* W2 (D380) · ONE share: the card and the link leave together. The photo
+     rides only on a yes — the row asks when there is one to ask about. Demo
+     shares the card alone (the diorama publishes nothing). */
+  if(epi.gross!=null){
+    const photoRow = (!state.demo && roundId && window._lastPostPhoto)
+      ? `<label class="fine" style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;cursor:pointer">
+           <input type="checkbox" id="epiPhotoOk" checked style="margin-top:3px;flex:none">
+           <span><b>${esc(CS_SHARE_PHOTO_INCLUDE)}</b><br>${esc(CS_SHARE_PHOTO_FINE)}</span></label>`
+      : '';
+    rows.push(photoRow + `<button class="btn dark" id="epiShare" style="width:100%;margin-top:${photoRow?'8':'14'}px">${esc(csShareRoundLabel(firstEver))}</button>`);
+  }
+  /* D57: the page anyone can open, no account — turned off from here. */
   if(epi.gross!=null && roundId && !state.demo)
-    rows.push(`<button class="btn dark" id="epiLink" style="width:100%;margin-top:8px">Share a link — no account needed</button>
-      <button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Turn off this link</button>
+    rows.push(`<button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Turn off this link</button>
       <p class="fine" style="margin:4px 0 0;text-align:center">The page stops working for everyone who has it. You can share a new link anytime.</p>`);
   /* R-C - on the desk the epilogue is a PANEL on the page, not a modal over
      it: it lands at the head of the reading column where the golfer already
@@ -9968,26 +10067,27 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     else if(door==='record' || door==='season_with' || door==='find_golfers') switchView('golfers');
     else if(door==='start_something') switchView('wizard');
   });
-  const lk=scope.querySelector('#epiLink');
-  if(lk) lk.addEventListener('click',()=>csShareLink('round', roundId,
-    `${window.CS?.profile?.display_name || 'A round'} — ${epi.gross} at ${course || 'the course'}`));
-  /* D60 consent line: when a photo will travel with the link, the button says
-     so BEFORE the tap (the tap is the publish act) */
-  if(lk && (window._lastPostPhoto || null))
-    lk.textContent = 'Share a link — card + photo';
   const rv=scope.querySelector('#epiRevoke');
   if(rv) rv.addEventListener('click',()=>csRevokeLink('round', roundId));
+  /* W2 (D380) · the one action: the recap card and the link, the photo only
+     on a yes (the checkbox is the answer; no checkbox, no photo to ask about) */
   const sh=scope.querySelector('#epiShare');
-  if(sh) sh.addEventListener('click',()=>shareRecapCard({
-    name:  state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You'),
-    marker: (state.demo ? null : window.CS?.profile?.marker) || 'saguaro',
-    gross: epi.gross, pvi: epi.pvi!=null ? Number(epi.pvi) : null,
-    points: epi.points!=null ? Number(epi.points) : null,
-    course: course || '', date: new Date(),
-    league: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
-    badge: CARD_BADGE[(epi.earned||[])[0]?.kind] || null,
-    photo: window._lastPostPhoto || null,   /* photos arc: the round's photo becomes the card's backdrop */
-  }));
+  if(sh) sh.addEventListener('click',()=>{
+    const ok = scope.querySelector('#epiPhotoOk');
+    const includePhoto = !!(ok && ok.checked);
+    window.qaEvent?.('cta_tapped', { where:'epilogue', act:'share_round', photo: includePhoto });
+    csShareRound({
+      name:  state.demo ? DEMO_ME : (window.CS?.profile?.display_name || 'You'),
+      marker: (state.demo ? null : window.CS?.profile?.marker) || 'saguaro',
+      gross: epi.gross, pvi: epi.pvi!=null ? Number(epi.pvi) : null,
+      points: epi.points!=null ? Number(epi.points) : null,
+      course: course || '', date: new Date(),
+      league: state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || null),
+      badge: CARD_BADGE[(epi.earned||[])[0]?.kind] || null,
+      photo: window._lastPostPhoto || null,   /* photos arc: the round's photo becomes the card's backdrop — on a yes */
+    }, state.demo ? null : roundId, includePhoto,
+    `${window.CS?.profile?.display_name || 'A round'} — ${epi.gross} at ${course || 'the course'}`);
+  });
 }
 /* ============ the finish screen (2.1): a posted round ends in ceremony ============
    Replaces the quick POSTED stamp for the post flow (real + demo) with a dusk-
@@ -21292,21 +21392,35 @@ async function csPaintReceiptCard(r, rid, mine){
   const slot = document.getElementById('rcptCard');
   if(!slot || !card) return;                    /* sheet closed, or no card */
   const canShare = mine && !!window.CS?.user;
+  /* W2 (D380) · one share from the receipt too: the round card and the link
+     together; the photo asked about only when the round has one */
+  const photoRow = (canShare && r.photo_path)
+    ? `<label class="fine" style="display:flex;gap:10px;align-items:flex-start;margin-top:10px;cursor:pointer">
+         <input type="checkbox" id="rcptPhotoOk" checked style="margin-top:3px;flex:none">
+         <span><b>${esc(CS_SHARE_PHOTO_INCLUDE)}</b><br>${esc(CS_SHARE_PHOTO_FINE)}</span></label>`
+    : '';
   slot.innerHTML = `<div class="eyebrow">${esc(CS_CARD.head)}</div>`
     + csRoundCardHTML(card, mine)
+    + photoRow
     + (canShare ? `<button class="mini" id="rcptCardShare" type="button" style="margin-top:8px">${esc(CS_CARD.share)}</button>` : '');
-  document.getElementById('rcptCardShare')?.addEventListener('click', ()=>{
+  document.getElementById('rcptCardShare')?.addEventListener('click', async ()=>{
     /* the artifact carries HIS name and HIS marker, and neither is in the
        payload for anybody else's round — which is why the button is his only */
     const pvi = r.pvi!=null ? Number(r.pvi)
       : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
-    shareRoundCard({
+    const d = {
       name: window.CS?.profile?.display_name || 'You',
       marker: window.CS?.profile?.marker || 'saguaro',
       gross: r.gross, pvi, points: r.points!=null?Number(r.points):null,
       course: r.course_label || '', date: r.played_on ? localDate(r.played_on) : new Date(),
       mine: true, card,
-    });
+    };
+    if(state.demo || !window.sb || !rid){ shareRoundCard(d); return; }
+    const ok = document.getElementById('rcptPhotoOk');
+    try{
+      const blob = await new Promise(res=>drawRoundCardArtifact(d).toBlob(res,'image/png'));
+      await csShareLink('round', rid, recapText(d), null, { includePhoto: !!(ok && ok.checked), cardBlob: blob });
+    }catch(e){ if(!(e && e.name==='AbortError')) toast(CS_CARD.shareFailed); }
   });
 }
 
