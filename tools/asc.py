@@ -24,8 +24,13 @@ from ~/.appstoreconnect/private_keys/.
   ASC_ISSUER_ID=... ASC_KEY_ID=... python3 asc.py <command>
 
 Commands:
-  status <build>     what ASC thinks of that build number
-  ship <build>       poll -> What to Test -> add to Friends -> SUBMIT -> read back
+  status <build>          what ASC thinks of that build number (both groups)
+  builds [n]              the latest n uploads (default 5) and which group has each   · read-only
+  groups                  the newest builds in Owner and in Friends                   · read-only
+  owner <build> "notes"   poll -> What to Test -> add to OWNER (internal) only -> read back
+                          availability. Never touches Friends, never submits for review.
+  ship <build>            poll -> What to Test -> add to Friends -> SUBMIT -> read back
+                          (EXTERNAL: Friends + Beta App Review — not for an Owner beta)
 """
 import json, os, subprocess, sys, time, urllib.request, urllib.error
 from datetime import datetime, timedelta, timezone
@@ -34,6 +39,8 @@ import jwt
 
 APP_ID = "6806251118"
 GROUP_ID = "9f8db84a-166c-4900-b196-ea2c5459e369"   # "Friends", EXTERNAL
+FRIENDS_GROUP_ID = GROUP_ID
+OWNER_GROUP_ID = "c4a784fe-22c5-4a75-bd4b-ca864b63574a"   # "Owner", INTERNAL
 BASE = "https://api.appstoreconnect.apple.com"
 
 def _keychain(service: str) -> str:
@@ -129,9 +136,124 @@ def cmd_status(number):
     show(b)
     st, d = call("GET", f"/v1/builds/{b['id']}/betaAppReviewSubmission")
     print(f"    betaReviewState   {(d.get('data') or {}).get('attributes', {}).get('betaReviewState') if st == 200 else f'({st})'}")
-    st, d = call("GET", f"/v1/betaGroups/{GROUP_ID}/builds?limit=200")
-    ids = [x["id"] for x in (d.get("data") or [])] if st == 200 else []
-    print(f"    in Friends group  {'YES' if b['id'] in ids else 'no'}  ({len(ids)} build(s) in the group)")
+    for label, gid in (("Owner", OWNER_GROUP_ID), ("Friends", FRIENDS_GROUP_ID)):
+        ids = group_build_ids(gid)
+        if ids is None:
+            print(f"    in {label:<8} group  (could not read the group)")
+        else:
+            print(f"    in {label:<8} group  {'YES' if b['id'] in ids else 'no'}  ({len(ids)} build(s) in the group)")
+
+
+def group_builds(group_id):
+    """Every build in a beta group, following pagination; None when the read fails."""
+    out, url = [], f"/v1/betaGroups/{group_id}/builds?limit=200&fields[builds]=version,processingState,uploadedDate,expired"
+    while url:
+        st, d = call("GET", url)
+        if st != 200:
+            return None
+        out.extend(d.get("data") or [])
+        url = (d.get("links") or {}).get("next")
+    return out
+
+
+def group_build_ids(group_id):
+    rows = group_builds(group_id)
+    return None if rows is None else {x["id"] for x in rows}
+
+
+def internal_state(build_id):
+    st, d = call("GET", f"/v1/builds/{build_id}/buildBetaDetail")
+    return (d.get("data") or {}).get("attributes", {}).get("internalBuildState") if st == 200 else f"({st})"
+
+
+def cmd_builds(n="5"):
+    """Read-only: the latest uploads, newest first, and which group has each."""
+    st, d = call("GET", f"/v1/builds?filter[app]={APP_ID}&sort=-uploadedDate&limit={int(n)}"
+                        "&fields[builds]=version,processingState,uploadedDate,expired")
+    if st != 200:
+        sys.exit(f"lookup failed: {st} {d}")
+    owner, friends = group_build_ids(OWNER_GROUP_ID), group_build_ids(FRIENDS_GROUP_ID)
+    for b in d.get("data") or []:
+        a = b["attributes"]
+        where = [g for g, ids in (("Owner", owner), ("Friends", friends)) if ids and b["id"] in ids]
+        print(f"  {a.get('version'):>6}  {a.get('processingState'):<11} uploaded {a.get('uploadedDate')}  "
+              f"expired={a.get('expired')}  groups: {', '.join(where) or '—'}")
+
+
+def cmd_groups():
+    """Read-only: the newest five builds each group carries."""
+    for label, gid in (("Owner (internal)", OWNER_GROUP_ID), ("Friends (external)", FRIENDS_GROUP_ID)):
+        rows = group_builds(gid)
+        if rows is None:
+            print(f"  {label}: could not read the group"); continue
+        nums = sorted((int(x["attributes"]["version"]) for x in rows
+                       if str(x["attributes"].get("version", "")).isdigit()), reverse=True)
+        print(f"  {label}: {len(rows)} build(s); newest {', '.join(map(str, nums[:5])) or '—'}")
+
+
+def cmd_owner(number, notes):
+    """The INTERNAL Owner beta: never Friends, never Beta App Review. Succeeds
+    only when the build is in Owner, internally IN_BETA_TESTING, and not in
+    Friends — an upload or a group add alone is not availability."""
+    print(f"▸ waiting for build {number} to reach VALID")
+    b = None
+    for i in range(60):                       # 60 x 30s = 30 minutes, bounded
+        b, err = find_build(number)
+        if b and b["attributes"].get("processingState") == "VALID":
+            break
+        state = b["attributes"].get("processingState") if b else "not visible yet"
+        print(f"  [{i:02d}] {state}")
+        time.sleep(30)
+    if not b or b["attributes"].get("processingState") != "VALID":
+        sys.exit("gave up waiting — re-run `status` later; nothing was distributed")
+    bid = b["id"]
+    show(b)
+
+    friends = group_build_ids(FRIENDS_GROUP_ID)
+    if friends is None:
+        sys.exit("could not read the Friends group — refusing to continue blind")
+    if bid in friends:
+        sys.exit(f"build {number} is ALREADY in Friends — stop and tell the owner; this command never removes it")
+
+    st, d = call("GET", f"/v1/builds/{bid}/betaBuildLocalizations")
+    locs = d.get("data") or []
+    if locs:
+        st, _ = call("PATCH", f"/v1/betaBuildLocalizations/{locs[0]['id']}",
+                     {"data": {"type": "betaBuildLocalizations", "id": locs[0]["id"],
+                               "attributes": {"whatsNew": notes}}})
+    else:
+        st, _ = call("POST", "/v1/betaBuildLocalizations",
+                     {"data": {"type": "betaBuildLocalizations",
+                               "attributes": {"locale": "en-US", "whatsNew": notes},
+                               "relationships": {"build": {"data": {"type": "builds", "id": bid}}}}})
+    print(f"▸ what to test -> {st}")
+
+    owner = group_build_ids(OWNER_GROUP_ID)
+    if owner is not None and bid in owner:
+        print("▸ already in Owner — no add")
+    else:
+        st, d = call("POST", f"/v1/betaGroups/{OWNER_GROUP_ID}/relationships/builds",
+                     {"data": [{"type": "builds", "id": bid}]})
+        print(f"▸ add to Owner -> {st}" + ("" if st in (201, 204) else f"  {d}"))
+
+    # READ IT BACK: membership, internal availability, and Friends untouched.
+    print("▸ reading it back")
+    state = None
+    for i in range(20):                       # up to ~5 minutes for the internal state
+        state = internal_state(bid)
+        if state == "IN_BETA_TESTING":
+            break
+        print(f"  [{i:02d}] internalBuildState {state}")
+        time.sleep(15)
+    owner, friends = group_build_ids(OWNER_GROUP_ID), group_build_ids(FRIENDS_GROUP_ID)
+    in_owner = owner is not None and bid in owner
+    in_friends = friends is None or bid in friends
+    print(f"    in Owner group     {'YES' if in_owner else 'no'}")
+    print(f"    internalBuildState {state}")
+    print(f"    in Friends group   {'YES — NOT EXPECTED' if friends is not None and bid in friends else ('unknown' if friends is None else 'no')}")
+    if not (in_owner and state == "IN_BETA_TESTING" and not in_friends):
+        sys.exit("NOT available to Owner yet — see the lines above; nothing further was changed")
+    print(f"✓ build {number} is available to the internal Owner group, and not in Friends")
 
 
 def cmd_ship(number, notes):
@@ -187,10 +309,20 @@ def cmd_ship(number, notes):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) == 2 and sys.argv[1] == "groups":
+        cmd_groups(); sys.exit(0)
+    if len(sys.argv) == 2 and sys.argv[1] == "builds":
+        cmd_builds(); sys.exit(0)
     if len(sys.argv) < 3:
         sys.exit(__doc__)
     if sys.argv[1] == "status":
         cmd_status(sys.argv[2])
+    elif sys.argv[1] == "builds":
+        cmd_builds(sys.argv[2])
+    elif sys.argv[1] == "owner":
+        if len(sys.argv) < 4:
+            sys.exit('owner <build> "What to Test" — the notes are required')
+        cmd_owner(sys.argv[2], sys.argv[3])
     elif sys.argv[1] == "ship":
         note = sys.argv[3] if len(sys.argv) > 3 else "A new build."
         cmd_ship(sys.argv[2], note)
