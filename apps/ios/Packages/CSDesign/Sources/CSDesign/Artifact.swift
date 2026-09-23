@@ -9,13 +9,18 @@ public struct CSArtifactFrame<Content: View>: View {
   }
   public var body: some View {
     VStack(alignment: .leading, spacing: 32) {
-      HStack(spacing: 24) {
-        CSBrandMark(ground: CSTokens.dark.bg0).frame(width: 112, height: 64)
-        Text("CUP SEASON").csFixed(.name, 32).tracking(3)
-        Spacer()
+      HStack(spacing: CSTokens.Space.s4) {
+        HStack(spacing: CSTokens.Space.s4) {
+          CSBrandMark(ground: CSTokens.dark.bg0).frame(width: 112, height: 64)
+          Text("CUP SEASON").csFixed(.name, 32).tracking(3)
+        }
+        .fixedSize(horizontal: true, vertical: false)
+        Spacer(minLength: CSTokens.Space.s4)
         Text(title).csFixed(.columnS, 25).textCase(.uppercase)
           .foregroundStyle(CSTokens.dark.mut)
+          .multilineTextAlignment(.trailing)
       }
+      .frame(maxWidth: .infinity, alignment: .leading)
       Rectangle().fill(CSTokens.dark.mut.opacity(CSTokens.Alpha.a24)).frame(height: 1)
       content
       Spacer(minLength: 0)

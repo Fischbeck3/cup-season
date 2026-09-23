@@ -33,10 +33,9 @@ struct HomeLead: View {
   let act: () -> Void
   var compact = false
 
-  /// `LIVE` is a clock running, and it is the item's own spine — ember means
-  /// live, and it is the eyebrow, the dot and the door's rule, which is ONE
-  /// ember object however many marks it takes to draw it.
-  private var live: Bool { item.spine == .ember }
+  /// F11 applies to the full lead as well as the compact row. The server's
+  /// ember spine also labels plain plans; those are not live competitions.
+  private var live: Bool { competition && item.spine == .ember }
   /// F11 · is this row a COMPETITION? A plain booked round is not — it is a
   /// date in a diary until something is at stake on it — so it takes neither
   /// the ember mark nor a state word, however close its date is. The key

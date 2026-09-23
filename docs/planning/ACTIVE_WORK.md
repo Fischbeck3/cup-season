@@ -1,5 +1,18 @@
 # Cup Season · active work and ownership
 
+## Tonight's Owner beta · 2026-09-22 (Codex)
+
+The owner requested a beta on their phone tonight with the recent work.
+`codex/october-visual-ui` now integrates Claude's W6 correction tip `8f632ed`
+through merge `9d9ef46`. Codex is verifying the shared field contrast, full
+Home lead color role and exported card header, then preparing the signed
+candidate. The [Owner beta packet](2026-09-22-owner-beta.md) records scope,
+evidence, remaining UI work and phone checks. Production migration/Edge
+approval is pending; the candidate is for internal Owner feedback. The
+Friends gate and public launch gates remain unchanged. The older dirty
+visual checkout has not been changed.
+
+
 ## Visual UI sprint · 2026-09-22 (Codex)
 
 The owner assigned Codex the visual UI sprint and execution. Owned branch

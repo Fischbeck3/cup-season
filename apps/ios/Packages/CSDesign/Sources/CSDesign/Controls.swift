@@ -395,7 +395,10 @@ public struct CSField: View {
       if let label {
         Text(label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
-      TextField(placeholder, text: $text)
+      // System placeholder dimming falls below the house contrast floor on
+      // both field grounds. A prompt is secondary text, so it uses opaque mut.
+      TextField(placeholder, text: $text,
+                prompt: Text(placeholder).foregroundStyle(cs.mut))
         .csType(kind == .code ? .column : .body)
         .foregroundStyle(enabled ? cs.ink : cs.mut)
         .padding(.horizontal, CSTokens.Space.s3)
