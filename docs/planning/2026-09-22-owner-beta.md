@@ -4,7 +4,7 @@
 
 Prepare the recent launch and visual work for Jerecho's phone tonight. Codex owns integration, visual corrections, local verification and the signed candidate. This is an internal **Owner** beta to collect real-device evidence. The Friends gate in D372 and the public launch checklist remain open.
 
-Candidate branch: `codex/october-visual-ui`, isolated worktree `/private/tmp/cup-season-visual-ui`. The older dirty visual checkout remains intact. Claude's W6 corrections (`8f632ed`) are integrated by `9d9ef46`; the native launch fixes, D380 sharing flow and V1 entrance fixes are all included. Exact archived commit and build will be recorded after the tree is verified and committed.
+Candidate branch: `codex/october-visual-ui`, isolated worktree `/private/tmp/cup-season-visual-ui`. The older dirty visual checkout remains intact. Claude's W6 corrections (`8f632ed`) are integrated by `9d9ef46`; the native launch fixes, D380 sharing flow and V1 entrance fixes are all included. Archived source: **`37f959e`**, **1.0.0 (986)**. Later documentation-only commits do not change that package.
 
 ## Tonight's visual corrections
 
@@ -70,4 +70,20 @@ Result bundles: `/private/tmp/cup-season-beta-final-rerun.xcresult`, `/private/t
 
 ### Candidate
 
-In progress. No build from this packet has been uploaded or distributed yet. Production approval remains pending. The archive identity and Owner group readback will be recorded when available.
+**Prepared, signed and exported; not Apple-validated, uploaded or distributed.**
+
+- Source commit: `37f959e`; build **1.0.0 (986)**, generated from commit count.
+- Archive: `/private/tmp/cup-season-visual-ui/apps/ios/build/archive/run-986-37f959e.QoXfzc/CupSeason.xcarchive`.
+- Exact IPA: `/private/tmp/cup-season-visual-ui/apps/ios/build/archive/run-986-37f959e.QoXfzc/export/Cup Season.ipa` (**19,965,012 bytes**).
+- SHA-256: `a9de87cfd14590b7cd1d838e7baf63c7b9e5bbe6fb9e160f0edbbfbdafcaf87d`.
+- App and widget signatures: `codesign --verify --deep --strict` **PASS**. Both are 1.0.0 (986), iOS 17 minimum, non-debuggable, and use the same app group. Distribution profiles expire September 14, 2027. App APNs entitlement is `production`.
+- Archive/export completed successfully using the existing local signing vault. Existing compiler warnings in unchanged sources were retained; this is not a warning-free archive claim.
+- Release-string inspection found the existing `-cs_dev_no_worth` argument check in `PostRoundModel` remains compiled outside its neighboring DEBUG block. It only suppresses the worth read when explicitly supplied; the normal phone launch does not supply it. Move that diagnostic guard wholly under DEBUG in a later code slice. The inspected visual fixture launch switches are absent from this executable. Do not claim a blanket zero-debug-string check passed.
+- Local package inspection: `/private/tmp/cup-season-beta-986-package-check.json`. Archive/export logs remain beside the archive.
+- Visual review: `/Users/fischbeck3/.codex/visualizations/2026/09/22/01a0c938-cfd8-7640-a89d-da9d1edade7e/cup-season-owner-beta-review.html` (four embedded native captures, rendered and checked in the browser).
+
+**Approval state:** automatic approval review rejected `altool --validate-app` before execution because transmitting the signed IPA to Apple needs explicit approval for this build. No package was sent. The owner has been asked to approve validation, upload and internal Owner distribution of this exact IPA. The earlier two-migration/`courses` production approval is also pending. Do not rerun the denied validation or perform dependent Apple/production writes without the corresponding answer.
+
+Owner group: `c4a784fe-22c5-4a75-bd4b-ca864b63574a`. Friends group: `9f8db84a-166c-4900-b196-ea2c5459e369` (closed to this candidate). After approval, validate this exact package, upload it without rebuilding, await VALID processing, update its What to Test, add only to Owner and read that group's build relationship back. An upload alone is not distribution, and distribution is not proof that the phone installed it.
+
+No database, Edge, Netlify production, Apple upload, group assignment, review submission or main merge was performed by this beta-preparation pass.

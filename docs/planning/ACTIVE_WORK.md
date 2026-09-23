@@ -4,9 +4,11 @@
 
 The owner requested a beta on their phone tonight with the recent work.
 `codex/october-visual-ui` now integrates Claude's W6 correction tip `8f632ed`
-through merge `9d9ef46`. Codex is verifying the shared field contrast, full
-Home lead color role and exported card header, then preparing the signed
-candidate. The [Owner beta packet](2026-09-22-owner-beta.md) records scope,
+through merge `9d9ef46`. Codex prepared and signed **1.0.0 (986)** from `37f959e` with the shared
+field contrast, full Home lead color role and exported card header fixes.
+Archive/export and signature inspection passed; Apple validation was blocked
+by automatic approval review before transmission and awaits explicit approval
+for validation, upload and internal Owner distribution. The [Owner beta packet](2026-09-22-owner-beta.md) records scope,
 evidence, remaining UI work and phone checks. Production migration/Edge
 approval is pending; the candidate is for internal Owner feedback. The
 Friends gate and public launch gates remain unchanged. The older dirty
