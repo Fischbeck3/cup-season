@@ -3,10 +3,48 @@
 2026-09-22 · Codex · reviewed `claude/october-launch-w6` at `5404978`.
 The branch contains `f49756d` and preserves the previous Mac fixes.
 
-**Disposition: W6 is implemented but needs a correction pass before its
-numbers can drive a launch or outreach decision.** The next engineering task
-is that pass now, not waiting for the September 29 report. Owner measurements,
+**Original disposition at `5404978`: W6 needed a correction pass before its
+numbers could drive a launch or outreach decision. The follow-up below closes
+the six findings at `8f632ed`.** At that tip, the next engineering task was the correction pass, without
+waiting for the September 29 report. Owner measurements,
 cohort assignments, deployments and physical tests remain separate inputs.
+
+## Follow-up disposition · corrected tip `8f632ed`
+
+The six findings below describe the old `5404978` implementation. The owner
+provided Claude's correction handoff; Codex checked its exact four commits,
+the revised implementation and the saved Mac verification evidence. The six
+requested corrections are addressed at `8f632ed`, integrated by `9d9ef46` and
+included in the signed Owner candidate **1.0.0 (986), source `37f959e`**.
+This acceptance is for the reviewed corrections; it does not establish live
+measurement, production deployment or a physical-phone result.
+
+| Finding | Corrected behavior checked |
+|---|---|
+| Assistance | One finished game per completion; assistance matched by cohort, participant/group and overlapping session window; per-week STOP/UNKNOWN logic |
+| Checkpoints | Dated App Analytics readings decide met/missed; logged weekly subtotals cannot; duplicate keys rejected |
+| Report date | Validated date and timezone feed the SQL fragments and both CSV inputs; current-state columns are labeled; future linked reports refused |
+| Eligibility | Shared eligible-golfer/real-game definitions; activation events and signup cohorts separated; account-less guest seats identified without treating every claim token as a guest |
+| Input | Real calendar dates, Sunday log weeks, whole counts, explicit flags and row diagnostics cover the reviewed malformed inputs |
+| Attribution | Existing profile-created writer retained; first-event platform labeled a proxy; release-device claim remains unproven |
+
+Mac evidence from September 22 (already run, not rerun merely because the
+handoff was pasted): **PostgreSQL 17.11**, **254 migrations applied / 0
+skipped**, **17 database tests passed / 0 failed / 0 skipped**. The integrated
+top-level Node suite passed **57**, for **74** with the database suite.
+Preflight passed with zero failures/warnings. Local logs:
+`/private/tmp/cup-season-beta-db/postgres.log`, `apply.log`, `w6-tests.log`,
+and `/private/tmp/cup-season-beta-node.log`. The disposable database was
+stopped after verification. No native/report implementation changed in this
+follow-up; the signed IPA remains byte-for-byte unchanged.
+
+Remaining measurement inputs belong to the owner: named cohorts, completed
+session logs, acquisition rows from the week ending October 4, dated App
+Analytics readings when available, and a real release-build claim trace.
+The first real report is generated Tuesday September 29, **dated Sunday
+September 27**. Do not prewrite it or replace missing observations with the
+synthetic examples. The current beta/deployment/Apple state is in the
+[Owner beta packet](2026-09-22-owner-beta.md); pending approvals remain pending.
 
 ## Evidence from this review
 

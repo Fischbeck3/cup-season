@@ -9,6 +9,15 @@ simulator fixture or a sentence in a handoff is not evidence for a device or
 production gate. The owner supplies the device, production and Apple
 evidence; engineering supplies the rest and never marks the owner's rows.
 
+**Mac evidence update, September 22:** Claude's corrected W6 tip `8f632ed`
+is integrated and passed the full PG17 chain plus 17 database tests without
+skips. The signed Owner beta is **1.0.0 (986), source `37f959e`**. See the
+[W6 follow-up review](2026-09-22-w6-review-and-claude-prompt.md) and
+[Owner beta packet](2026-09-22-owner-beta.md) for current evidence, the
+intermittent simulator UI failures and the pending Apple/production approvals.
+These records supplement the dated baseline below; they do not mark the
+owner's hardware, production or public-release rows passed.
+
 ## 1 · Code and database
 
 | Gate | Evidence required | Who | State 2026-09-22 |
@@ -63,7 +72,7 @@ evidence; engineering supplies the rest and never marks the owner's rows.
 | Gate | Evidence required | Who | State |
 |---|---|---|---|
 | Cohorts named | `pilot_cohort_members` non-empty; the Tue 29 report's cohort sections show rows | Owner | **Not passed.** Both pilot tables are empty in production as of 2026-09-22 |
-| The weekly growth report runs | `node tools/pilot-scorecard.mjs --as-of <the Sunday the week ended> --store-live false` on the Mac, saved as `docs/pilot/scorecard-<date>.md` | Owner | **Implemented and locally tested; not accepted until the owner's first real run.** The W6 correction pass (Codex's six findings) is on `claude/october-w6-fixes`; every corrected section executed read-only on production for 2026-09-20. The first saved report is generated Tue Sep 29, dated Sun Sep 27 |
+| The weekly growth report runs | `node tools/pilot-scorecard.mjs --as-of <the Sunday the week ended> --store-live false` on the Mac, saved as `docs/pilot/scorecard-<date>.md` | Owner | **Implemented and locally tested; not accepted until the owner's first real run.** The W6 correction pass at `8f632ed` is reviewed and integrated into the Owner candidate; 17/17 database tests passed on the Mac's full PG17 chain. Claude executed every corrected section read-only on production for 2026-09-20. The first saved report is generated Tue Sep 29, dated Sun Sep 27 |
 | The acquisition log started | `docs/pilot/acquisition-log.csv` with the week ending Oct 4's rows | Owner | **Not started** |
 | App Analytics readings recorded | `docs/pilot/appstore-readings.csv` with a reading through Oct 31 (then Nov 30, Dec 31) — the only input that can mark a checkpoint met or missed | Owner | **Not possible yet** — the listing is not live |
 | The assistance gate is fed | `pilot_sessions` rows with end times and golfers or ids; no UNKNOWN week left unresolved at a review | Owner | **Not started** — 0 sessions in production |
