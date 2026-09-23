@@ -20,6 +20,16 @@ One row in `pilot_sessions` per session (founder-only table, `20261106090000`):
 Until the migration is applied, keep the same columns in a private note and
 enter them afterwards. Do not put names in this repository.
 
+**How the report reads a session** (`assistance_weekly`, the stop condition's
+table): an `assisted` session covers a finished game when it is in the game's
+cohort, names the game's league, booking or live-round id in `group_key` **or**
+shares a golfer in `golfers`, and its window overlaps the game's. So write the
+**end time** and the **golfers or an id**: a session with no `ended_at`, or with
+no golfers and only a free-text group name, makes every game it overlaps
+UNKNOWN — the report will not call those games unassisted, and it will not
+clear the week until the row is completed. `observed` sessions are not
+assistance; `support` rows are counted beside it.
+
 ## Entering a session (founder, signed in)
 
 ```sql

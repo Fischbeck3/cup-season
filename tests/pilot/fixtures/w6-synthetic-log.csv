@@ -1,0 +1,12 @@
+week_ending,channel,prospects_contacted,organizers_activated,groups_playing,appstore_first_time_downloads,testflight_installs,notes
+2026-10-04,by_hand,12,3,1,40,9,SYNTHETIC — complete row
+2026-10-04,public_link,,,,25,14,SYNTHETIC — the pipeline columns are not known for a link: blank means missing
+2026-10-11,by_hand,10,2,2,85,4,SYNTHETIC
+2026-10-11,r/golf,,,,60,,SYNTHETIC — one post that week
+2026-10-18,by_hand,8,1,,,3,SYNTHETIC — downloads not split by channel this week
+2026-10-18,unattributed,,,,120,,SYNTHETIC — the week's store count unsplit
+2026-10-26,by_hand,7,1,1,95,2,SYNTHETIC — a Monday: rejected (a week is logged on the Sunday it ends)
+2026-11-01,by_hand,6,1,2,150,2,SYNTHETIC — pasted twice: both copies rejected
+2026-11-01,by_hand,6,1,2,150,2,SYNTHETIC — pasted twice: both copies rejected
+2026-11-01,public_link,,,,,,SYNTHETIC — nothing known: every cell missing
+2026-11-08,by_hand,5,1,1,90,1,SYNTHETIC — after the report date: left out

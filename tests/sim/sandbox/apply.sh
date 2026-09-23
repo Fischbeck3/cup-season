@@ -4,15 +4,17 @@
 #   → supabase/migrations/*.sql in filename order (as role postgres, ON_ERROR_STOP).
 # Never touches production. Never calls the supabase CLI.
 set -euo pipefail
-PGBIN=/opt/homebrew/opt/postgresql@17/bin
+# PGBIN: Homebrew's PG17 on the Mac by default; a remote session points it at
+# another cluster (e.g. PGBIN=/usr/lib/postgresql/16/bin). Production is 17.
+PGBIN="${PGBIN:-/opt/homebrew/opt/postgresql@17/bin}"
 SIM="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="${REPO:-$(cd "$SIM/../../.." && pwd)}"
 MIG="$REPO/supabase/migrations"
-PGDATA="$SIM/pgdata"
+PGDATA="${PGDATA:-$SIM/pgdata}"      # overridable: a remote session runs the cluster outside the repo
 PORT="${PORT:-5478}"
 SOCK="${SOCK:-/tmp/cs-sim-sock}"
 DB=cupseason
-LOG="$SIM/apply.log"
+LOG="${SIM_LOG:-$SIM/apply.log}"
 export PGHOST=$SOCK PGPORT=$PORT
 
 # skipped.txt: lines of "<migration filename>  # reason"; blank/comment lines ignored
@@ -32,12 +34,24 @@ max_connections = 50
 log_min_messages = warning
 wal_level = logical
 CONF
-"$PGBIN/pg_ctl" -D "$PGDATA" -l "$SIM/postgres.log" -w start >/dev/null
+"$PGBIN/pg_ctl" -D "$PGDATA" -l "$(dirname "$LOG")/postgres.log" -w start >/dev/null
 "$PGBIN/psql" -U sim -d postgres -v ON_ERROR_STOP=1 -q -c "create database $DB" 
 "$PGBIN/psql" -U sim -d $DB -v ON_ERROR_STOP=1 -q -f "$SIM/bootstrap.sql"
 
 : > "$LOG"
 applied=0; skipped=0
+
+# PG16 has no MAINTAIN privilege (PG17 added it); one revoke names it. On a
+# pre-17 server that word is dropped from REVOKE/GRANT lines only, in the
+# stream — the file on disk is never edited, and on PG17 this is a pass-through.
+SERVER_MAJOR=$("$PGBIN/psql" -U sim -d $DB -tAX -c "show server_version_num" | cut -c1-2)
+pg16_filter() {
+  if [ "${SERVER_MAJOR:-17}" -lt 17 ]; then
+    sed -E -e '/^[[:space:]]*(revoke|grant)[[:space:]]/I s/,[[:space:]]*maintain([[:space:]]+on)/\1/I'
+  else
+    cat
+  fi
+}
 for f in $(ls "$MIG"/*.sql | sort); do
   base=$(basename "$f")
   if [ -f "$SKIP_FILE" ] && grep -qE "^$base\b" "$SKIP_FILE"; then
@@ -49,7 +63,7 @@ for f in $(ls "$MIG"/*.sql | sort); do
       -e 's/^[[:space:]]*CREATE EXTENSION IF NOT EXISTS "supabase_vault".*$/-- [sim] supabase_vault stubbed in bootstrap.sql/I' \
       -e 's/^[[:space:]]*create extension if not exists pg_cron[[:space:]]*;.*$/-- [sim] pg_cron stubbed in bootstrap.sql/I' \
       -e 's/^[[:space:]]*create extension if not exists pg_net[[:space:]]*;.*$/-- [sim] pg_net stubbed in bootstrap.sql/I' \
-      "$f" | "$PGBIN/psql" -U postgres -d $DB -v ON_ERROR_STOP=1 -q -X --single-transaction >>"$LOG" 2>&1; then
+      "$f" | pg16_filter | "$PGBIN/psql" -U postgres -d $DB -v ON_ERROR_STOP=1 -q -X --single-transaction >>"$LOG" 2>&1; then
     echo "FAIL  $base  (see $LOG)"; tail -5 "$LOG"; exit 1
   fi
   "$PGBIN/psql" -U postgres -d $DB -q -X -c "insert into supabase_migrations.schema_migrations(version,name) values ('${base%%_*}', '${base#*_}') on conflict do nothing" >/dev/null
