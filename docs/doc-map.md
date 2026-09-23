@@ -23,6 +23,7 @@ Index only — files live where they live. OS layer: `../StudioOS`.
 | Oct 1 Mac verification and remaining release gates | `docs/planning/2026-09-22-october-mac-verification.md` |
 | Oct 1 visual UI sprint / Codex ownership and screen inventory | `docs/planning/2026-09-22-visual-ui-sprint.md` |
 | September 22 Owner phone beta / candidate, visual fixes and phone checks | `docs/planning/2026-09-22-owner-beta.md` |
+| Claude Mac handoff: finish validation, approved deployments and internal Owner distribution | `docs/planning/2026-09-22-claude-owner-beta-prompt.md` |
 | W6 reporting review / Claude correction prompt | `docs/planning/2026-09-22-w6-review-and-claude-prompt.md` |
 | Oct 1 release checklist (every gate, its evidence) · recipient journeys with the Storage API consent proof · the acquisition log | `docs/planning/2026-09-22-release-checklist.md`, `docs/pilot/recipient-journeys.md`, `docs/pilot/acquisition-log.md` |
 
