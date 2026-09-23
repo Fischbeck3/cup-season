@@ -1,6 +1,23 @@
 # Cup Season · active work and ownership
 
-## Owner beta release · 2026-09-23 (Claude, remote) — `claude/owner-beta-release` from `bedc03e`
+## Owner beta release · EXECUTED 2026-09-23 03:13–03:23 UTC (Claude, on the Mac) — `claude/owner-beta-release`
+
+Both approvals executed exactly as recorded, from a clean worktree of this
+branch (`/Users/fischbeck3/cup-season-owner-beta`), after steps 0 and 1
+matched the packet on every line. The command-by-command record with
+timestamps and read-backs is in the [Owner beta packet](2026-09-22-owner-beta.md#executed-on-the-mac--2026-09-23-0313-0323-utc).
+
+| Layer | State | Evidence |
+|---|---|---|
+| **Database** | **254 applied, none pending**, latest `20261117090000`. `20261116090000` and `20261117090000` pushed 03:16:01Z by `supabase db push` (ledger records both). | Probe read `2 · t · f · f · t · f · 1`; `tests/db-checks.sql` **37/37 PASS** against production 03:17Z |
+| **Edge** | `courses` **version 19** (03:16:40Z), deployed after the cache RPC existed. Nothing else touched. | `supabase functions list` |
+| **Owner (TestFlight, internal)** | **1.0.0 (986)** from `37f959e`, the exact validated IPA (sha256 `a9de87cf…af87d`, 19,965,012 bytes): VERIFY SUCCEEDED 03:19:02Z, uploaded **once** 03:20:31Z (delivery `80f0393a-dc5e-427d-916b-ba7c671c543a`), VALID, What to Test set, added to Owner (204). Read-back: **in Owner YES · internalBuildState IN_BETA_TESTING · in Friends no**; Owner holds 7 builds, newest 986. **Available to install; the phone is not confirmed updated until the owner reads 986 on the device.** | `tools/asc.py owner 986`, then `status 986` |
+| **Friends** | unchanged: newest **795**, 9 builds. 986's external state is READY_FOR_BETA_SUBMISSION, i.e. not submitted. | `tools/asc.py groups` |
+| **Live web** | unchanged: `v23 · 1e79279` = `origin/main`. This branch's 38 commits are **not** on main. No merge, no Netlify, no public link. | `curl` + `deploy-status` |
+
+Not done, by scope: main merge, Netlify, Friends, Beta App Review, App Store submission. Next: the phone checklist in the packet (rows 1–5), recorded PASS/FAIL by the owner.
+
+### As approved (2026-09-23 03:09 UTC, remote) — history
 
 Approved, not yet executed. The owner approved **A** (`20261116090000` +
 `20261117090000` by `supabase db push`, then `courses` only) and **B**

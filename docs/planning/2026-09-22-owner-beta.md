@@ -209,6 +209,27 @@ python3 tools/asc.py status 986      # Owner YES · internalBuildState IN_BETA_T
 
 Order: A before the share checks (see above). B does not depend on A — the app installs and runs against today's production — but the share row of the phone checklist waits for A.
 
+### Executed on the Mac · 2026-09-23 03:13–03:23 UTC
+
+Run from a clean worktree of this branch at `1470cf7` (`/Users/fischbeck3/cup-season-owner-beta`; the Supabase link had to be re-established there with `supabase link --project-ref zddbfcokmvneltrgukzf`, since a fresh worktree carries no `supabase/.temp`). Every step below is a command from the runbook; nothing outside it was run. No secret was printed.
+
+| UTC | Step | Result |
+|---|---|---|
+| 03:13:50 | **0** package | sha256 `a9de87cfd14590b7cd1d838e7baf63c7b9e5bbe6fb9e160f0edbbfbdafcaf87d` · 19,965,012 bytes · app and widget `valid on disk`, `satisfies its Designated Requirement` · 1.0.0 / 986 on both · `aps-environment` production · `get-task-allow` false. **Match.** |
+| 03:13:56 | **1** ASC | builds: 934 newest, Owner; groups: Owner newest 934 (6), Friends newest 795 (9); `status 986`: "no build 986 on the app yet". **Match.** |
+| 03:14:38 | **1** database / edge / web | ledger 254 local, **252 remote**, latest remote `20261115090000`; local-only exactly `20261116090000` (`fbde7a98…`) and `20261117090000` (`4dd55a58…`), nothing remote-only · `courses` version **18** · no `APNS_SANDBOX` among 26 secret names · `ship.sh --dry-run`: database owed (the two), edge MAYBE (courses), client owed (38 commits) · live `v23 · 1e79279` = `origin/main`, an ancestor of HEAD. **Match — the approvals transfer.** |
+| 03:15:27 | **A** `db push --dry-run` | exactly `20261116090000_course_cache_atomic.sql`, `20261117090000_shared_card_consent.sql` |
+| 03:16:01 | **A** `db push` | both applied; 03:16:06 ledger reads both as Remote (254) |
+| 03:16:38 | **A** `functions deploy courses` | deployed (`index.ts`, `normalize.ts`); 03:16:41 list reads **version 19**, 2026-09-23 03:16:40 |
+| 03:17:03 | **A** read-backs | probe: `recorded 2 · cache_service_role t · cache_authenticated f · cache_anon f · helpers_admit_png t · drop_anon f · read_policy 1` — the expected `2 · t · f · f · t · f · 1`. `tests/db-checks.sql`: **37 rows, 37 PASS**, no FAIL. |
+| 03:17:32 | **B** `altool --validate-app` | 03:19:02 **VERIFY SUCCEEDED with no errors** |
+| 03:19:2x | **B** `status 986` | still absent → upload once |
+| 03:19:27 | **B** `altool --upload-app` | 03:20:31 **UPLOAD SUCCEEDED with no errors**, Delivery UUID `80f0393a-dc5e-427d-916b-ba7c671c543a`, transferred 19,965,012 bytes |
+| 03:20:40 | **B** `asc.py owner 986 "…"` | not visible ×3 → VALID (READY_FOR_BETA_TESTING) → what to test 200 → add to Owner 204 → read-back **in Owner YES · IN_BETA_TESTING · in Friends no** (03:22:48) |
+| 03:23 | final `status 986` / `groups` / `deploy-status` | VALID · IN_BETA_TESTING · betaReviewState None · Owner YES (7 builds, newest 986) · Friends no (9, newest 795) · database clean 254 · edge clean · client still owed (main unchanged, by scope) |
+
+Not run, by scope: `asc.py ship`, Friends, Beta App Review, main merge, Netlify, any public link. Phone install is **not** confirmed by any of the above.
+
 ### Phone checklist (1.0.0 (986), after `asc.py owner` reports availability)
 
 Install from TestFlight and read the build on the phone (TestFlight → Cup Season, and You → settings). Note device, iOS, dark/light and text size. Record each line as PASS / FAIL + screenshot + last action; nothing below is pre-filled.
