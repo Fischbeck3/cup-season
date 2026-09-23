@@ -1,5 +1,24 @@
 # Cup Season · active work and ownership
 
+## Owner beta release · 2026-09-23 (Claude, remote) — `claude/owner-beta-release` from `bedc03e`
+
+Approved, not yet executed. The owner approved **A** (`20261116090000` +
+`20261117090000` by `supabase db push`, then `courses` only) and **B**
+(validate, upload once and distribute to internal **Owner** only the exact
+**1.0.0 (986)** IPA from `37f959e`, sha256 `a9de87cf…af87d`) at 2026-09-23
+03:09 UTC, after one batched question. This session ran in a remote Linux
+sandbox with no IPA, `altool`, App Store Connect key or `supabase` CLI, so
+**nothing was applied, deployed, validated, uploaded or distributed**; a local
+Mac session runs the recorded runbook under those approvals.
+
+| | State |
+|---|---|
+| **Verified here (read-only)** | Candidate unchanged: the three commits after `37f959e` are docs-only. Production ledger 252, latest `20261115090000`; pending set is exactly the two files; neither applied out of band (no `cache_course_card`, share helpers JPEG-only, no `shared_copy_read`). |
+| **Found** | Build 986 refuses to make a round link until `20261117090000` is live ("Round sharing needs the latest update") — safe, but the phone's share/photo-consent checks need A first. The live web stamp, `courses` version, secret names and App Store Connect state were not readable from the sandbox. |
+| **Added** | `tools/asc.py builds`, `groups` (read-only) and `owner <build> "notes"` (Owner-only add with VALID polling and availability read-back; refuses if Friends is unreadable or already holds the build; never submits for review), exercised against a mocked API in seven scenarios. The runbook, approvals and phone checklist are in the [Owner beta packet](2026-09-22-owner-beta.md). |
+| **Deployed / uploaded** | **Nothing.** Database, Edge, Apple and the web client are unchanged by this session. Friends and public release remain closed. |
+| **Preserved failures** | 1,508 / 1 native: the standard-phone share-cancellation check failed once (sheet visible after the close tap); small-phone and two later standard runs passed; one retry failed to open the DEBUG fixture. Not relabelled green; checklist row 1 on the phone. |
+
 ## Tonight's Owner beta · 2026-09-22 (Codex)
 
 The owner requested a beta on their phone tonight with the recent work.

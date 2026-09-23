@@ -24,8 +24,8 @@ owner's hardware, production or public-release rows passed.
 |---|---|---|---|
 | Native suites green on the release commit | Kit, design, app and focused UI counts from `xcodebuild test`, with the commit | Mac | Passed on f49756d: 1,235 / 120 / 122 / 6 (Mac verification handoff) — re-run on the RC commit |
 | Web suites green on the release commit | preflight 0/0; in-browser suite count with the module loaded; Node regressions | Mac | Passed on f49756d: preflight 0/0, 489 in-browser, 20 Node — re-run on the RC commit |
-| Migrations `20261116090000` and `20261117090000` applied | A fresh `supabase migration list --linked` read AFTER the push, both versions in the Remote column; `tests/db-checks.sql` green | Owner | **Not passed.** Both owed; production ledger last read 2026-09-22 before either existed |
-| `courses` redeployed after its RPC | `supabase functions list` showing the new version; one detail fetch from a phone returning tees for an uncached course | Owner | **Not passed.** Owed after the migration |
+| Migrations `20261116090000` and `20261117090000` applied | A fresh `supabase migration list --linked` read AFTER the push, both versions in the Remote column; `tests/db-checks.sql` green | Owner | **Not passed — approved, not executed.** Owner approved A on 2026-09-23 (Owner beta packet). Ledger re-read 2026-09-23 03:05 UTC: 252, latest `20261115090000`, exactly these two pending, neither applied out of band. Runs on the Mac |
+| `courses` redeployed after its RPC | `supabase functions list` showing the new version; one detail fetch from a phone returning tees for an uncached course | Owner | **Not passed — approved, not executed.** Part of approval A, after the migration; version not readable from the remote sandbox (last known 18) |
 | `deploy-status` clean on all three layers | The tool's output on the Mac, no `unknown` | Owner | **Not passed** |
 
 ## 2 · Devices — the two-phone gate (D372: every row PASS, no known-issues shortcut)

@@ -82,8 +82,158 @@ Result bundles: `/private/tmp/cup-season-beta-final-rerun.xcresult`, `/private/t
 - Local package inspection: `/private/tmp/cup-season-beta-986-package-check.json`. Archive/export logs remain beside the archive.
 - Visual review: `/Users/fischbeck3/.codex/visualizations/2026/09/22/01a0c938-cfd8-7640-a89d-da9d1edade7e/cup-season-owner-beta-review.html` (four embedded native captures, rendered and checked in the browser).
 
-**Approval state:** automatic approval review rejected `altool --validate-app` before execution because transmitting the signed IPA to Apple needs explicit approval for this build. No package was sent. The owner has been asked to approve validation, upload and internal Owner distribution of this exact IPA. The earlier two-migration/`courses` production approval is also pending. Do not rerun the denied validation or perform dependent Apple/production writes without the corresponding answer.
+**Approval state (superseded 2026-09-23 — see [Owner approvals](#owner-approvals--recorded-2026-09-23t030928z)):** automatic approval review rejected `altool --validate-app` before execution because transmitting the signed IPA to Apple needs explicit approval for this build. No package was sent. The owner has been asked to approve validation, upload and internal Owner distribution of this exact IPA. The earlier two-migration/`courses` production approval is also pending. Do not rerun the denied validation or perform dependent Apple/production writes without the corresponding answer.
 
 Owner group: `c4a784fe-22c5-4a75-bd4b-ca864b63574a`. Friends group: `9f8db84a-166c-4900-b196-ea2c5459e369` (closed to this candidate). After approval, validate this exact package, upload it without rebuilding, await VALID processing, update its What to Test, add only to Owner and read that group's build relationship back. An upload alone is not distribution, and distribution is not proof that the phone installed it.
 
 No database, Edge, Netlify production, Apple upload, group assignment, review submission or main merge was performed by this beta-preparation pass.
+
+## Release execution · 2026-09-23 (Claude, remote sandbox) — branch `claude/owner-beta-release`
+
+**This session ran in a remote Linux sandbox, not on the Mac.** It has no copy
+of the IPA, no Xcode/`codesign`/`altool`, no App Store Connect key, no
+`supabase` CLI, and cupseason.app is blocked by its egress policy. It therefore
+did NOT verify the package, read App Store Connect, read the `courses` version
+or secret names, read the live web stamp, apply anything or upload anything.
+Those steps are the Mac runbook below; lint is not offered in place of any of
+them. What the sandbox could check, it checked read-only.
+
+### Verified here (read-only, 2026-09-23 ~03:05 UTC)
+
+| Check | Result |
+|---|---|
+| Candidate identity | `origin/codex/october-visual-ui` = `bedc03e`. The three commits after `37f959e` (`77e91cc`, `dbd0ec6`, `bedc03e`) touch only `docs/`; `git diff 37f959e bedc03e -- apps supabase index.html sw.js tools` is empty. `8f632ed` is an ancestor of `37f959e`. **1.0.0 (986) from `37f959e` remains the candidate; nothing to rebuild.** |
+| Production migration ledger | **252** applied, latest **`20261115090000`**. Diffed against this checkout's 254 files: local-only are exactly `20261116090000_course_cache_atomic.sql` (sha256 `fbde7a98…cba19`) and `20261117090000_shared_card_consent.sql` (sha256 `4dd55a58…8fe4`); nothing is remote-only. |
+| Not applied out of band | `cache_course_card` absent; `can_write_share_copy` / `can_drop_share_copy` exist from `20261015090000` and admit **`.jpg` only**; no `shared_copy_read` policy (storage has `shared_copy_insert`, `shared_copy_delete`). |
+| Build 986 against today's production | Before it makes a round's link, `PostService.shareLink` asks `can_drop_share_copy('<token>.png')` and throws `ShareConsent.NotReady` when it says no — which production says today. **On the phone, Share → link shows "Round sharing needs the latest update. Try again shortly." until `20261117090000` is applied.** It fails safe (no copy is published and no absence is inferred), but the share, photo-consent and cancel-after-link checks need deployment A first. Course search works either way; A adds the atomic cache. |
+| Web client skew (from source; live stamp unread) | `origin/main` = `1e79279` is an ancestor of the candidate. If the live site is `main`: the public page shows a round's photo only when `shared/{token}.jpg` exists (`share_info.photo`), so an opt-out that removes the JPEG cannot leak through the old page; the link preview on `main` never uses the travelling card PNG (it shows the photo when consented, else the brand image); "Get the app" goes to `/`; `/get` and `/support` do not exist on `main`. None of this blocks the Owner phone test; publishing the web client is outside this handoff and was not done. |
+
+### Owner approvals — recorded 2026-09-23T03:09:28Z
+
+Asked once, batched, after the read-only checks above, in the owner's Claude
+session (remote sandbox `claude/owner-beta-release`). The owner's answers:
+
+- **A — APPROVED:** `supabase db push` of exactly
+  `20261116090000_course_cache_atomic.sql` and
+  `20261117090000_shared_card_consent.sql` (the only pending pair against the
+  live ledger at 252 / `20261115090000`), then `supabase functions deploy
+  courses` only, with the read-backs in step A below.
+- **B — APPROVED:** send the exact signed **1.0.0 (986)** IPA from `37f959e`
+  (sha256 `a9de87cfd14590b7cd1d838e7baf63c7b9e5bbe6fb9e160f0edbbfbdafcaf87d`,
+  19,965,012 bytes) to Apple for validation, upload it **once** if valid, then
+  add it to the internal **Owner** group only — never Friends, never external
+  review — and read back its availability.
+
+Scope limits that travel with these approvals: they cover exactly these two
+files, `courses`, and this one package. If the ledger has advanced, the
+pending set differs, or the package's checksum, size, versions, signatures or
+APNs entitlement differ from step 0, the approval does not transfer — stop
+and ask. They do not cover a main merge, Netlify production, a public link,
+Friends, Beta App Review or App Store submission.
+
+**Not executed in this session:** the sandbox cannot run them (no IPA,
+`altool`, App Store Connect key or `supabase` CLI). Applying the SQL through
+the database connector instead would skip `db push`'s ledger record (the
+first landmine in CLAUDE.md), and changing tools is not a workaround, so
+nothing was applied, deployed, validated or uploaded. A local session on
+the Mac executes the runbook below under these approvals.
+
+### Mac runbook — exact commands (a local session on the Mac)
+
+(CLI ≥2.116 prints JSON when piped, so every piped `supabase` read below passes `--output-format text`, as `tools/deploy-status.mjs` does.) Run from a clean worktree of this branch (`git fetch origin && git worktree add -b owner-beta-mac /private/tmp/cs-owner-beta origin/claude/owner-beta-release`), never the older dirty checkout. No command below prints a secret.
+
+**0 · The package (before anything is sent).**
+
+```bash
+IPA="/private/tmp/cup-season-visual-ui/apps/ios/build/archive/run-986-37f959e.QoXfzc/export/Cup Season.ipa"
+shasum -a 256 "$IPA"      # must be a9de87cfd14590b7cd1d838e7baf63c7b9e5bbe6fb9e160f0edbbfbdafcaf87d
+stat -f %z "$IPA"         # must be 19965012
+W=$(mktemp -d) && unzip -q "$IPA" -d "$W" && APP="$W/Payload/CupSeason.app"
+codesign --verify --deep --strict --verbose=2 "$APP"
+codesign --verify --strict --verbose=2 "$APP/PlugIns/CupSeasonWidgets.appex"
+for p in "$APP" "$APP/PlugIns/CupSeasonWidgets.appex"; do
+  /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' -c 'Print :CFBundleVersion' "$p/Info.plist"; done   # 1.0.0 / 986, twice
+codesign -d --entitlements :- "$APP" 2>/dev/null | plutil -p - | grep -E 'aps-environment|get-task-allow'   # "production"; get-task-allow false or absent
+```
+
+Any mismatch stops the run: a replacement package needs its own identity and its own approval.
+
+**1 · Read-only state.**
+
+```bash
+python3 tools/asc.py builds 8        # latest uploads and which group has each (expect 934 newest, Owner)
+python3 tools/asc.py groups          # Owner newest 934…, Friends newest 795
+python3 tools/asc.py status 986      # expect "no build 986 on the app yet" — if it exists, do NOT upload again
+supabase migration list --output-format text | tail -4   # Remote ends 20261115090000; Local adds 20261116090000, 20261117090000
+supabase functions list --output-format text | grep -E 'courses'   # expect version 18
+supabase secrets list --output-format text | grep -q 'APNS_SANDBOX' && echo "APNS_SANDBOX present — stop" || echo "no APNS_SANDBOX"   # names only; no value is printed
+./tools/ship.sh --dry-run            # database / edge / client, reported separately; runs nothing
+curl -s https://cupseason.app/ | grep -oE 'v23 · [0-9a-f]+' ; git rev-parse --short origin/main    # the live stamp vs main
+```
+
+**A · Database, then Edge (only with approval A).**
+
+```bash
+supabase db push --dry-run           # exactly the two files above, nothing else
+supabase db push
+supabase migration list --output-format text | tail -3   # 20261116090000 and 20261117090000 now Remote
+supabase functions deploy courses    # only after the cache RPC exists
+supabase functions list --output-format text | grep -E 'courses'   # version advanced past 18
+supabase db query --linked "select
+  (select count(*) from supabase_migrations.schema_migrations where version in ('20261116090000','20261117090000')) as recorded,
+  has_function_privilege('service_role','public.cache_course_card(jsonb,jsonb)','execute') as cache_service_role,
+  has_function_privilege('authenticated','public.cache_course_card(jsonb,jsonb)','execute') as cache_authenticated,
+  has_function_privilege('anon','public.cache_course_card(jsonb,jsonb)','execute') as cache_anon,
+  (select bool_and(position('.png' in prosrc) > 0) from pg_proc where proname in ('can_write_share_copy','can_drop_share_copy')) as helpers_admit_png,
+  has_function_privilege('anon','public.can_drop_share_copy(text)','execute') as drop_anon,
+  (select count(*) from pg_policies where schemaname='storage' and tablename='objects' and policyname='shared_copy_read') as read_policy"
+# expect: 2 · t · f · f · t · f · 1
+supabase db query --linked --output-format text -f tests/db-checks.sql   # read-only; every row PASS (the file's own header gives this form)
+```
+
+Never run `tests/course-cache-*.sql` or `tests/shared-card-storage-checks.sql` against production — they are sandbox probes.
+
+**B · Apple (only with approval B).**
+
+```bash
+export ASC_ISSUER_ID=$(security find-generic-password -a "$USER" -s cupseason-asc-issuer -w)
+export ASC_KEY_ID=$(security find-generic-password -a "$USER" -s cupseason-asc-key -w)
+xcrun altool --validate-app --type ios -f "$IPA" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+python3 tools/asc.py status 986      # still absent? then, once:
+xcrun altool --upload-app --type ios -f "$IPA" --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+python3 tools/asc.py owner 986 "Owner beta 1.0.0 (986), source 37f959e. Please check: Share — open, cancel, reopen; photo on and off on the card, the page and the link preview. Move through Home, Golfers, Play, Compete, You and settings. Find a course and tees, score, background and reopen. Open a posted receipt's points explanation. Known: one simulator run left the share sheet open after Close — check it here."
+python3 tools/asc.py status 986      # Owner YES · internalBuildState IN_BETA_TESTING · Friends no
+```
+
+`asc.py owner` (added on this branch) waits for VALID with a 30-minute bound, sets What to Test, adds the build to **Owner only**, then reads back Owner membership, `internalBuildState` and Friends. It refuses to continue if Friends cannot be read or already holds the build, never posts a Beta App Review submission, and exits non-zero unless the build is in Owner, `IN_BETA_TESTING` and absent from Friends. **Never `asc.py ship`** — Friends plus external review. If an upload's outcome is uncertain, read `asc.py status 986` before any retry; a second upload of the same build number is rejected anyway.
+
+Order: A before the share checks (see above). B does not depend on A — the app installs and runs against today's production — but the share row of the phone checklist waits for A.
+
+### Phone checklist (1.0.0 (986), after `asc.py owner` reports availability)
+
+Install from TestFlight and read the build on the phone (TestFlight → Cup Season, and You → settings). Note device, iOS, dark/light and text size. Record each line as PASS / FAIL + screenshot + last action; nothing below is pre-filled.
+
+1. **Share cancellation** (the one open automated failure): post-round → Share → cancel the system sheet → it closes and you are back where you were; open Share again → it works. Repeat twice.
+2. **Photo consent** (after A): a round with a photo — share with the photo **off**: the card, the opened link and the chat preview show no photo; share again with it **on**: the photo appears. Turn it off once more: a new link is made. A round with no photo shares cleanly.
+3. **Navigation:** sign in → Home, Golfers, Play, Compete, You → settings → back. Tabs, back buttons, sheet dismissal, keyboard; dark and light.
+4. **Scoring:** find a course and tees (a long name too) → start, enter scores → background the app and reopen → the round and scores are still there → finish.
+5. **Receipt:** open a posted round's receipt → the points explanation reads correctly; check a no-round adjustment line if you have one.
+
+Second phone, when available: the claim and invitation scripts in `docs/pilot/recipient-journeys.md`, the Storage consent reads there, and one real claim on this release build read back from `profiles.came_via_kind` (attribution cannot be proven with DEBUG).
+
+### For the Mac session — paste this
+
+```text
+Execute the approved Owner beta release on this Mac. Read
+docs/planning/2026-09-22-owner-beta.md on origin/claude/owner-beta-release,
+section "Release execution · 2026-09-23": the owner approved A (the two named
+migrations, then courses only) and B (validate, upload once and distribute to
+internal Owner only the exact 1.0.0 (986) IPA, sha256 a9de87cf…af87d). Work in
+a clean worktree of that branch. Run step 0 and step 1 first; if any identity,
+ledger or pending-set check differs, stop and ask — the approval does not
+transfer. Then A with its read-backs, then B ending in `asc.py owner 986`
+reporting Owner YES, IN_BETA_TESTING, Friends no. Never asc.py ship, never
+Friends, review, main, Netlify or a public link. Record timestamps, command
+results and read-backs in that packet and ACTIVE_WORK, push the branch, and
+tell me to install 986 from TestFlight.
+```
