@@ -73,6 +73,7 @@ final class YouModel {
                        competition: r.name,
                        qualifier: r.qualifier,
                        finish: r.finish,
+                       tied: r.tied,
                        line: r.line,
                        won: r.won,
                        spoken: "\(r.name), \(r.spoken)",

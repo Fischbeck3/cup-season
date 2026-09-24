@@ -1,5 +1,7 @@
 # Compete, with the competition in view
 
+**Selected and implemented locally:** the owner approved Scoreboard + the Book's Weeks view, with Race inside the Book, followed by normal app code and a local read-contract migration. See [the selected build](SELECTED-BUILD.md) and D381. The proposal and its original captures below are preserved as the exploration record.
+
 September 24, 2026 · local design study · owner review, not a shipping decision
 
 **Three native directions: Scoreboard, Race, and Broadsheet.** All three open the same fixture season and the same points receipts. My ranked recommendation is **Scoreboard first, Race second, Broadsheet third**. The Book is useful independently of that choice: ship its weekly table before treating a historical race as reliable.

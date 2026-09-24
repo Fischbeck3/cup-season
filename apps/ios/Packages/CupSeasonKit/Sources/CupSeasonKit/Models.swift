@@ -118,6 +118,8 @@ public struct Me: Decodable, Sendable {
   }
 
   public struct Standing: Decodable, Sendable {
+    public let points_rank: Int?
+    public let points_tied: Bool?
     public let rank: Int
     public let of: Int
     public let points: Double?
@@ -160,7 +162,8 @@ public struct Me: Decodable, Sendable {
     public init(rank: Int, of: Int, points: Double?, prev_rank: Int?, leader_squad_id: UUID?, leader_points: Double?,
                 gap_to_leader: Double?, gap_to_next: Double?, leader_name: String? = nil, runner_up_name: String? = nil,
                 runner_up_points: Double? = nil, seed: Int? = nil, finalists: [String]? = nil,
-                next_up: Neighbour? = nil, next_down: Neighbour? = nil) {
+                next_up: Neighbour? = nil, next_down: Neighbour? = nil, points_rank: Int? = nil, points_tied: Bool? = nil) {
+      self.points_rank=points_rank; self.points_tied=points_tied
       self.rank = rank; self.of = of; self.points = points; self.prev_rank = prev_rank; self.leader_squad_id = leader_squad_id
       self.leader_points = leader_points; self.gap_to_leader = gap_to_leader; self.gap_to_next = gap_to_next
       self.seed = seed; self.finalists = finalists

@@ -370,3 +370,6 @@ unregister_device_token|p_token text|void|definer|auth
 unsuspend_member|p_member uuid|void|definer|auth
 vote_league_cancel|p_league uuid, p_approve boolean|text|definer|auth
 withdraw_league_cancel|p_league uuid|text|definer|auth
+
+# D381: local authorized migration 20261118090000, unapplied remotely.
+season_book|p_league_id uuid, p_season_id uuid|jsonb|definer|auth

@@ -47,7 +47,8 @@ public enum CompeteRoot {
     public struct Rank: Sendable, Equatable {
       public let place: Int
       public let of: Int
-      public init(place: Int, of: Int) { self.place = place; self.of = of }
+      public let tied: Bool
+      public init(place: Int, of: Int, tied: Bool = false) { self.place = place; self.of = of; self.tied = tied }
     }
 
     /// Stable across loads: the object's own id, so SwiftUI keeps the row.
@@ -66,6 +67,9 @@ public enum CompeteRoot {
     /// me in. A row without one is a row without a figure, and it is quieter
     /// for it, which is `BRIEF` §7 working rather than a gap.
     public let rank: Rank?
+    public let points: Double?
+    public let pointsStanding: String?
+    public let competitionLine: String?
     public let leagueId: UUID?
     public let eventId: UUID?
     public let roundId: UUID?
@@ -77,7 +81,8 @@ public enum CompeteRoot {
     public init(id: String, kind: Kind, eyebrow: String, title: String, sub: String, clock: Int?,
                 rank: Rank? = nil,
                 leagueId: UUID? = nil, eventId: UUID? = nil, roundId: UUID? = nil,
-                state: CompetitionState? = nil) {
+                state: CompetitionState? = nil, points: Double? = nil, pointsStanding: String? = nil, competitionLine: String? = nil) {
+      self.points=points; self.pointsStanding=pointsStanding; self.competitionLine=competitionLine
       self.id = id; self.kind = kind; self.eyebrow = eyebrow; self.title = title; self.sub = sub
       self.clock = clock; self.rank = rank
       self.leagueId = leagueId; self.eventId = eventId; self.roundId = roundId
@@ -197,7 +202,19 @@ public enum CompeteRoot {
                clock: clock(m, phase: phase, today: today, calendar: calendar),
                rank: rank,
                leagueId: m.league_id,
-               state: CompetitionState.season(status: m.season?.status, phase: phase))
+               state: CompetitionState.season(status: m.season?.status, phase: phase),
+               points: { if case .season = phase { return m.standing?.points }; return nil }(),
+               pointsStanding: { if case .season = phase, let st=m.standing, let place=st.points_rank, let tied=st.points_tied { return CSCopy.ordinal(place)+(tied ? " · Tied" : "") }; return nil }(),
+               competitionLine: competitionLine(m, phase:phase))
+  }
+
+  private static func competitionLine(_ m: Me.Membership, phase: SeasonPhase) -> String? {
+    guard case .season = phase, let st=m.standing else { return nil }
+    if let gap=st.gap_to_leader, gap > 0 {
+      return "You are \(CSCopy.points(gap)) back from \(st.leader_name ?? "the lead")."
+    }
+    if st.points_rank == 1, let tied=st.points_tied { return tied ? "The lead is shared." : "You lead the season." }
+    return "The season is underway."
   }
 
   /// **A FIGURE IS ONLY DRAWN WHERE THERE IS A STANDING TO DRAW**, and the two
@@ -218,7 +235,7 @@ public enum CompeteRoot {
     switch phase {
     case .season:
       guard let st = m.standing, st.rank > 0, st.of > 0 else { return nil }
-      return Row.Rank(place: st.rank, of: st.of)
+      return Row.Rank(place: st.points_rank ?? st.rank, of: st.of, tied: st.points_tied ?? false)
     case .wrapped:
       guard let ls = m.last_season, let p = ls.my_rank, let n = ls.of, p > 0, n > 0 else { return nil }
       return Row.Rank(place: p, of: n)

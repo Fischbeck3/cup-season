@@ -7937,3 +7937,17 @@ phone freezes the consent answer alongside the image while minting. These
 are implementation corrections to the approved consent boundary, with no
 competition-mechanic change. Real Storage API deletion remains a release
 check; external recipients' cached copies cannot be recalled.
+
+
+### D381 · Scoreboard leads Compete; the Book shows the season's points
+
+**OWNER-RULED 2026-09-24**: “Build to your recommendations,” followed by “Yes go ahead” to normal app code and local, unapplied migration files. UI + read-contract level; no scoring-mechanic change. Local work only; no push, merge, rebase, remote SQL, deployment or distribution.
+
+- Scoreboard leads Compete with points, a points standing and its factual gap. Live competition earns the full ember band; upcoming/final stay neutral. Full brandInk text fixes the label contrast. The band uses monochrome brandInk contours in an empty strip; other terrain follows league livery. This selected application narrows F11's broad identity use of ember; D359's ordinary action distinction remains.
+- The Book opens to Weeks for at least ten golfers or any squad season; small solo seasons keep Rounds & points. Totals and Race remain available inside the Book. Its code types use SeasonBook…; no money or pot styling.
+- The race means **points counting today**, by played week or actual assessment week. Later best-N displacement restates earlier contributions. It is not historical standings. Unknown/outside-season assessments remain separately dated/undated entries; they are not pushed into an invented week.
+- The server returns included contributions from the existing ranked-round and standings views. Individual overrides and squad-only adjustments preserve their existing meanings. Each row verifies its receipts against its authoritative total. Any incomplete or unreconciled read is explicit, never silently truncated. Completed records name current-rule provenance where no locked rule snapshot exists.
+- Equal points have equal points rank; alphabetical display order is separate. Qualification seeds and final tiebreak outcomes remain their own facts. The shared home read gains explicit points-rank/tied fields without changing scoring, finalist seeds or champions.
+- Both clients use the same read contract and semantics, in their own phone/desk layouts (D234). The UI has loading, failure and retry states; a missing deployment does not fall back to invented fixture points.
+
+Sources: docs/design/compete-2026-09-24/PROPOSAL.md, spec §16, D359, D376. Production deployment is owed only after review and separate authorization.

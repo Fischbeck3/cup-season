@@ -25,7 +25,7 @@ struct CupSeasonApp: App {
   @ViewBuilder private var launchRoot: some View {
     #if DEBUG
     Group {
-      if CompeteExploration.on { CompeteExplorationView() } else { RootView() }
+      if CompeteSelectedFixture.on { CompeteSelectedFixtureView() } else if CompeteExploration.on { CompeteExplorationView() } else { RootView() }
     }
     #else
     RootView()
@@ -45,7 +45,7 @@ struct CupSeasonApp: App {
         // D103a) because an environment written lower down wins.
         .task(id: store.session?.user.id) {
           #if DEBUG
-          if CompeteExploration.on { return }
+          if CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           await looks.load(userId: store.session?.user.id)
         }
@@ -67,7 +67,7 @@ struct CupSeasonApp: App {
         .csToasts(toasts)
         .task {
           #if DEBUG
-          if CompeteExploration.on { return }
+          if CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           store.start()
         }
@@ -76,7 +76,7 @@ struct CupSeasonApp: App {
         }
         .task {
           #if DEBUG
-          if CompeteExploration.on { return }
+          if CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           await PushService.shared.syncOnLaunch()
         }
@@ -86,7 +86,7 @@ struct CupSeasonApp: App {
         // design set is divided by. `AppOpenGate` holds that rule.
         .onChange(of: scenePhase, initial: true) { _, phase in
           #if DEBUG
-          if CompeteExploration.on { return }
+          if CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           switch phase {
           case .active:     CSTelemetry.sceneBecameActive()
@@ -98,7 +98,7 @@ struct CupSeasonApp: App {
         // and /?plan=. The AASA claims exactly these four queries.
         .onOpenURL { url in
           #if DEBUG
-          if CompeteExploration.on { return }
+          if CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           // D155 · the Live Activity's own scheme — the one tap back from a
           // locked phone. Checked first: it carries no query to misread.

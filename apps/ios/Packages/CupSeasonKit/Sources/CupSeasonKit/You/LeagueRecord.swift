@@ -25,6 +25,7 @@ public struct LeagueRecordRow: Sendable, Identifiable, Equatable {
   /// the first tee), and the leaf then prints `line` in the finish column
   /// with no rule, which is §14.1's own stated degrade.
   public let finish: Int?
+  public let tied: Bool
   public let of: Int?
   public let won: Bool
   /// The season's year, for the leaf's first column. From `starts_on`, by
@@ -34,10 +35,10 @@ public struct LeagueRecordRow: Sendable, Identifiable, Equatable {
   public let qualifier: String?
 
   public init(id: UUID, name: String, number: Int, line: String,
-              finish: Int? = nil, of: Int? = nil, won: Bool = false,
+              finish: Int? = nil, tied: Bool = false, of: Int? = nil, won: Bool = false,
               year: Int? = nil, qualifier: String? = nil) {
     self.id = id; self.name = name; self.number = number; self.line = line
-    self.finish = finish; self.of = of; self.won = won
+    self.finish = finish; self.tied = tied; self.of = of; self.won = won
     self.year = year; self.qualifier = qualifier
   }
   /// "SEASON II · 3RD OF 12 · 41 PTS"
@@ -68,7 +69,7 @@ public enum LeagueRecord {
   /// when the season has no ranked table yet, so the leaf degrades to `line`
   /// rather than printing a place nobody computed.
   public static func finish(phase: String, season: Me.Season?, standings: [IndividualStanding],
-                            myMemberId: UUID) -> (finish: Int, of: Int, won: Bool)? {
+                            myMemberId: UUID) -> (finish: Int, of: Int, won: Bool, tied: Bool)? {
     guard let s = season, phase != "setup", phase != "draft" else { return nil }
     let rows = standings.filter { $0.season_id == s.id }.sorted { ($0.points ?? 0) > ($1.points ?? 0) }
     guard let i = rows.firstIndex(where: { $0.member_id == myMemberId }), !rows.isEmpty else { return nil }
@@ -76,7 +77,8 @@ public enum LeagueRecord {
     // a gold rule under a live table would be the product telling a golfer
     // they had won something they had not.
     let done = s.status == "complete" || phase == "complete"
-    return (i + 1, rows.count, done && i == 0)
+    let rank=StandingsMath.competitionRanks(rows.map { Int(($0.points ?? 0).rounded()) })[i]
+    return (rank, rows.count, done && s.champion_member_id == myMemberId, rows.filter { $0.points == rows[i].points }.count > 1)
   }
 
   static let romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]
@@ -103,7 +105,9 @@ public enum LeagueRecord {
     let rows = standings.filter { $0.season_id == s.id }.sorted { ($0.points ?? 0) > ($1.points ?? 0) }
     let place: String
     if let i = rows.firstIndex(where: { $0.member_id == myMemberId }) {
-      place = "\(ordUpper(i + 1)) OF \(rows.count) · \(CSCopy.points(rows[i].points ?? 0)) PTS"
+      let ranks=StandingsMath.competitionRanks(rows.map { Int(($0.points ?? 0).rounded()) })
+      let tied=ranks.filter { $0 == ranks[i] }.count > 1
+      place = "\(ordUpper(ranks[i]))\(tied ? " · TIED" : "") OF \(rows.count) · \(CSCopy.points(rows[i].points ?? 0)) PTS"
     } else { place = "—" }
     if let d = CSDate.days(from: today, to: s.starts_on, calendar: calendar), d > 0 {
       return "FIRST TEE \(firstTeeLabel(s.starts_on, calendar: calendar))"

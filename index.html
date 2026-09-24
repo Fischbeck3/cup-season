@@ -572,6 +572,65 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   .hmoment{animation:hmrise .26s cubic-bezier(.16,.84,.36,1) both;}
   @keyframes hmrise{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
 }
+/* D381: Scoreboard + the Book. Empty terrain strip; points never wear pot chrome. */
+.cband.cband-scoreboard{border-radius:0; overflow:hidden;
+  background:var(--bg1); color:var(--ink); padding:0;}
+.cband-scoreboard[data-live="true"]{background:var(--brand); color:var(--brand-ink);}
+.cband-scoreboard .cband-content{display:block; padding:var(--s4);}
+.cband-scoreboard .cband-name{font-family:var(--serif); font-size:32px; text-transform:none; letter-spacing:0;}
+.cband-scoreboard .cband-fig{font-size:64px;}
+.cband-scoreboard .cband-mid{flex-wrap:wrap;}
+.cband-scoreboard .cband-meta{opacity:1;}
+#seasonScoreboard{cursor:default;}
+#seasonScoreboard .seasoneye,#seasonScoreboard .seasonlead{color:inherit;}
+#seasonScoreboard .dot{display:none;}
+.cband-scoreboard small{display:block; font-family:var(--board); font-size:12px; font-weight:400;}
+.sb-terrain{display:block; position:relative; overflow:hidden; height:44px; color:var(--mut); pointer-events:none;}
+.cband-scoreboard[data-live="true"] .sb-terrain{color:var(--brand-ink);}
+.sb-terrain .cs-topohead{opacity:1; width:100%; height:160px; top:-56px;}
+.sb-terrain .cs-topohead .t-sur,.sb-terrain .cs-topohead .t-edge{opacity:.56; stroke-width:1;}
+.sb-door{display:block; width:100%; min-height:44px; text-align:left; border:0; border-bottom:1px solid var(--rule); background:none; color:var(--ink); font-family:var(--sans); font-size:16px; cursor:pointer;}
+.sb-door[hidden]{display:none;}
+.sb-dialog{background:var(--bg0); color:var(--ink); border:1px solid var(--rule); padding:0; width:min(1280px,96vw); max-width:96vw; height:90vh; max-height:90vh;}
+.sb-dialog::backdrop{background:var(--bg0); opacity:.8;}
+.sb-dialog header{position:relative; padding:0 var(--s4) var(--s3); border-bottom:1px solid var(--rule);}
+.sb-dialog h1{font-family:var(--serif); font-size:42px; margin:0;}
+.sb-dialog h2{font-family:var(--serif); font-size:24px; margin:var(--s3) 0;}
+.sb-dialog h3{font-family:var(--sans); font-size:16px;}
+.sb-dialog p{line-height:1.5; margin:var(--s2) 0 var(--s3);}
+.sb-dialog button,.sb-dialog select{color:var(--ink); background:var(--bg1); border:1px solid var(--rule); min-height:44px; padding:var(--s2); font:inherit; cursor:pointer;}
+.sb-dialog button:focus-visible,.sb-dialog select:focus-visible,.sb-matrix:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+.sb-dialog button:disabled{cursor:default; color:var(--mut);}
+.sb-close{position:absolute; right:var(--s4); top:var(--s3);}
+.sb-layout{display:grid; grid-template-columns:minmax(0,1fr) 320px;}
+.sb-main{padding:var(--s4); min-width:0;}
+.sb-receipts{padding:var(--s4); background:var(--bg1); border-left:1px solid var(--rule);}
+.sb-controls{display:flex; flex-wrap:wrap; gap:var(--s3); margin:var(--s3) 0;}
+.sb-controls label{display:flex; flex-direction:column; gap:var(--s1); font-family:var(--board); font-size:12px;}
+.sb-matrix{overflow:auto; max-height:60vh; border-block:1px solid var(--rule);}
+.sb-matrix table{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-variant-numeric:tabular-nums;}
+.sb-matrix th,.sb-matrix td{padding:0; border-bottom:1px solid var(--rule); background:var(--bg0); text-align:center;}
+.sb-matrix thead th{position:sticky; top:0; z-index:2; height:56px; background:var(--bg1); font:12px var(--board); padding:var(--s2);}
+.sb-matrix small{display:block; font:11px var(--board); padding-top:var(--s1);}
+.sb-matrix tr>th:first-child{position:sticky; left:0; z-index:1; width:170px; min-width:170px; max-width:170px; text-align:left; background:var(--bg1);}
+.sb-matrix thead tr>th:first-child{z-index:3;}
+.sb-matrix .sb-current{background:var(--brand); color:var(--brand-ink);}
+.sb-matrix button{border:0; background:transparent; width:100%; min-width:64px; min-height:64px; font:24px var(--board); white-space:nowrap;}
+.sb-matrix th button{text-align:left; white-space:normal; font:14px var(--sans);}
+.sb-matrix strong{display:block; font:20px var(--board); padding-top:var(--s1);}
+.sb-totals button,.sb-adjustment{display:block; text-align:left; width:100%; border:0!important; border-bottom:1px solid var(--rule)!important; background:none!important;}
+.sb-totals strong{float:right; font:32px var(--board);}
+.sb-totals small,.sb-adjustment small{display:block; color:var(--mut);}
+.sb-total{font:48px var(--board);}
+.sb-total small{font:12px var(--board);}
+.sb-entry{border-bottom:1px solid var(--rule); padding:var(--s3) 0;}
+.sb-race{width:100%; color:var(--ink); fill:var(--ink); font:12px var(--board);}
+.sb-race-path{fill:none; stroke:currentColor; stroke-width:2;}
+.sb-current-line{stroke:var(--brand); stroke-width:2;}
+@media(max-width:900px){.sb-layout{grid-template-columns:minmax(0,1fr);} .sb-receipts{border-left:0; border-top:1px solid var(--rule);} .sb-dialog{width:100vw; max-width:100vw; height:96vh; max-height:96vh;}}
+@media(max-width:600px){.sb-race text{font-size:30px;}}
+/* END D381 BOOK CSS */
+
 .cband{display:block; width:100%; text-align:left; border:0; cursor:pointer;
   background:var(--brand); color:var(--brand-ink);
   border-radius:var(--r); padding:var(--s4); margin:var(--s4) 0 0;}
@@ -5244,10 +5303,15 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
              eyebrow with the live dot, `display` 42, then the span and the
              Pro on one agate line. `hhSpan` and `hhPro` MOVED here from the
              card and kept their ids, so both setters follow them. -->
-        <div class="seasoneye league-only" id="seasonDateline"></div>
-        <h1 class="seasontitle cs-display league-only seasonhead" id="seasonTitle"></h1>
+        <div class="cband cband-scoreboard league-only" id="seasonScoreboard">
+          <div class="sb-terrain seasonhead" aria-hidden="true"></div>
+          <div class="cband-content">
+            <div class="seasoneye" id="seasonDateline"></div>
+            <h1 class="seasontitle cs-display" id="seasonTitle"></h1>
+            <div class="seasonlead" id="seasonLead"></div>
+          </div>
+        </div>
         <div class="seasondate league-only"><span id="hhSpan"></span><span id="hhPro"></span></div>
-        <div class="seasonlead league-only" id="seasonLead"></div>
         <a href="#seasonArc" class="seasonmore league-only" id="seasonMore" style="display:none">The season's story →</a>
         <!-- WAVE 11 / D280 - THE HEADER CARD IS NOT A CARD. Once the name, the
              stage, the span and the Pro moved up into the page's own head, what
@@ -6854,7 +6918,8 @@ function renderSeasonStory(){
        is open; every other stage takes the quiet printing, because a dot that
        is always on says nothing. */
     const stage = leagueStage();
-    const live = stage === 'season' || stage === 'final';
+    const live = (stage === 'season' || stage === 'final') && wk > 0;
+    document.getElementById('seasonScoreboard')?.setAttribute('data-live',String(live));
     const eye = csSeasonEyebrow(stage, wk, wt);
     dl.innerHTML = eye ? (live ? '<span class="dot" aria-hidden="true"></span>' : '') + `<span>${esc(eye)}</span>` : '';
     dl.classList.toggle('quiet', !live);
@@ -7491,6 +7556,7 @@ function renderMonthClock(hide){
 window.renderMonthClock = renderMonthClock;
 
 function renderStandings(){
+  csRenderSeasonBookDoor();
   renderClash();               /* D108: the clash chip rides the standings column */
   const el=$('#standings');
   const story=$('#standingsStory');
@@ -19023,6 +19089,121 @@ function csDaysBetween(fromISO, toISO){
    {rank, of, points, gap_to_leader, leader_name…} and `season` {week_no,
    weeks_total, days_left}. Joined by league id. A missing rank stays missing —
    the row keeps its plain sentence — and nothing here computes a point. */
+/* D381 · the Book. A read model and receipts, never a client scoring engine. */
+const SeasonBook = {
+  prominent: b => b.field_size >= 10 || b.rows.some(r=>r.kind==='squad'),
+  entries: (r,w,cumulative=false) => r.entries.filter(e=>e.week!=null && (cumulative?e.week<=w:e.week===w)),
+  validate(b,league,season){
+    if(!b || b.version!==1 || b.league_id!==league || b.season_id!==season || !Array.isArray(b.weeks) || !b.weeks.length || b.weeks.length>104 || !Array.isArray(b.rows) || !Number.isInteger(b.current_week) || b.current_week<0 || b.current_week>b.weeks.length) throw Error('The Book is not available yet. Try again shortly.');
+    const sum=xs=>xs.reduce((n,e)=>n+e.contribution,0);
+    const whole=b.coverage_complete && b.weeks.every((w,i)=>w.week===i+1) && new Set(b.rows.map(r=>r.id)).size===b.rows.length && b.rows.every(r=>
+      ['golfer','squad','contribution'].includes(r.kind) && (r.kind==='squad'?r.squad_id:r.member_id) && (r.kind!=='contribution'||r.squad_id) && r.reconciled && Array.isArray(r.entries) && Array.isArray(r.cells) &&
+      Number.isSafeInteger(r.points) && r.entries.every(e=>Number.isSafeInteger(e.contribution)&&Number.isSafeInteger(e.points)&&(e.week==null||(Number.isInteger(e.week)&&e.week>0&&e.week<=b.weeks.length))) &&
+      sum(r.entries)===r.points && new Set(r.entries.map(e=>e.id)).size===r.entries.length && sum(r.entries.filter(e=>e.week==null))===r.unplaced_points && r.cells.length===b.weeks.length && r.cells.every((c,i)=>{
+        const exact=this.entries(r,c.week), through=this.entries(r,c.week,true), future=c.week>b.current_week;
+        return c.week===i+1 && c.future===future && c.points===(future||!exact.length?null:sum(exact)) && c.cumulative===(future||!through.length?null:sum(through));
+      }));
+    if(!whole) throw Error('The points record is incomplete. Try again to load the whole season.');
+    return b;
+  },
+  label(r,c,cumulative=false){
+    if(c.future)return '•';
+    const pts=cumulative?c.cumulative:c.points, es=this.entries(r,c.week,cumulative);
+    if(pts==null)return '—';
+    if(!cumulative && es.length && es.every(e=>e.count_state==='bye'))return 'B';
+    if(!cumulative && es.length && es.every(e=>e.count_state==='dropped'))return 'D';
+    return String(pts)+(cumulative?'':(es.some(e=>!e.round_id)?'*':'')+(es.some(e=>e.count_state==='dropped')?'D':''));
+  },
+  domain(rows){const values=rows.flatMap(r=>r.cells.flatMap(c=>c.cumulative==null?[]:[c.cumulative]));return [Math.min(0,...values),Math.max(1,...values)];},
+  standing(r){return r.points_rank==null?'':climbOrd(r.points_rank)+(r.tied?' · Tied':'');},
+  rules(b){return (b.counting_cap==null?'All rounds count':'Best '+b.counting_cap+' per calendar month')+(b.participation_floor==null?'':' · minimum '+b.participation_floor);},
+};
+window.SeasonBook=SeasonBook;
+function csSeasonBookReceipt(title,entries,names={}){
+  return `<h2 tabindex="-1">${esc(title)}</h2><div class="sb-total">${entries.reduce((n,e)=>n+e.contribution,0)} <small>points</small></div>`+
+    (entries.length?entries.map(e=>`<section class="sb-entry"><h3>${esc([names[e.member_id],e.recorded_on].filter(Boolean).join(' · '))}</h3><p class="fine">${esc(e.week==null?(e.recorded_on?'Recorded '+e.recorded_on+' · outside the season weeks':'Assessment date unavailable'):'Week '+e.week)}</p><p>${e.points} points · ${e.count_state==='dropped'?'dropped':e.contribution+' included'}</p><p>${esc(e.reason)}</p>${!e.round_id&&e.affected_month?`<p class="fine">Applies to ${esc(e.affected_month.slice(0,7))}</p>`:''}${e.round_id?`<button type="button" class="sb-round" data-book-round="${esc(e.round_id)}">Open round receipt →</button>`:''}</section>`).join(''):'<p>No round or adjustment recorded for this selection.</p>');
+}
+function csSeasonBookRace(b,rows,follow){
+  const leaders=rows.slice().sort((a,b)=>b.points-a.points).slice(0,3), chosen=rows.find(r=>r.id===follow);
+  const plotted=chosen?[chosen,...leaders.filter(r=>r.id!==chosen.id).slice(0,2)]:leaders;
+  let h='<h2>Points counting today</h2><p>Points included today, grouped by week played or assessed. Later drops restate earlier weeks; this is not a historical rank chart.</p>';
+  if(plotted.some(r=>r.unplaced_points!==0))return h+'<p>Some adjustments fall outside the season weeks. Open the totals below for the complete record; a weekly curve would omit those points.</p>';
+  const [lo,hi]=SeasonBook.domain(plotted), x=w=>40+(w-1)/Math.max(1,b.weeks.length-1)*700,y=p=>240-(p-lo)/(hi-lo)*210;
+  h+=`<svg class="sb-race" viewBox="0 0 780 285" role="img" aria-label="Points counting today by week. Exact totals and receipts follow."><text x="0" y="30">${hi}</text><text x="0" y="240">${lo}</text>`;
+  if(['active','cup_final'].includes(b.status))h+=`<path class="sb-current-line" d="M${x(b.current_week)} 20V240"/>`;
+  plotted.forEach((r,i)=>{let started=false;const d=r.cells.map(c=>{if(c.future||c.cumulative==null){started=false;return '';}const segment=(started?'L':'M')+x(c.week)+' '+y(c.cumulative);started=true;return segment;}).join(' ');h+=`<path class="sb-race-path" stroke-dasharray="${i===0?'none':i===1?'4 3':'2 3'}" d="${d}"/>`;});
+  h+='<text x="40" y="275">Week 1</text><text x="740" y="275" text-anchor="end">Week '+b.weeks.length+'</text></svg><p>';
+  return h+plotted.map((r,i)=>esc(['━ ','┄ ','┈ '][i]+r.name)).join(' · ')+'</p>';
+}
+function csSeasonBookBody(b,selection){
+  const {group,squad,mode,follow}=selection;
+  const rows=b.rows.filter(r=>group==='golfer'&&squad!=='all'?r.kind==='contribution'&&r.squad_id===squad:r.kind===group);
+  const squads=b.rows.filter(r=>r.kind==='squad'), prominent=SeasonBook.prominent(b), cumulative=mode==='Totals';
+  const option=(v,t,on)=>`<option value="${esc(v)}"${on?' selected':''}>${esc(t)}</option>`;
+  let controls=squads.length?`<label>View <select id="sb-group" aria-label="View">${['squad','golfer'].map(g=>option(g,g==='squad'?'Squads':'Golfers',g===group)).join('')}</select></label>`:'';
+  if(group==='golfer'&&squads.length)controls+=`<label>Squad contributions <select id="sb-squad" aria-label="Squad contributions">${option('all','Every golfer',squad==='all')}${squads.map(s=>option(s.squad_id,s.name,squad===s.squad_id)).join('')}</select></label>`;
+  if(prominent)controls+=`<label>Display <select id="sb-mode" aria-label="Display">${['Weeks','Totals','Race'].map(m=>option(m,m,m===mode)).join('')}</select></label>`;
+  if(mode==='Race')controls+=`<label>Follow <select id="sb-follow" aria-label="Follow">${option('leaders','Leading three',follow==='leaders')}${rows.map(r=>option(r.id,r.name,r.id===follow)).join('')}</select></label>`;
+  let h=`<p>${esc(b.name)} · ${esc(SeasonBook.rules(b))}</p>${b.rules_note?`<p>${esc(b.rules_note)}</p>`:''}<div class="sb-controls">${controls}</div>`;
+  if(group==='golfer'&&squad!=='all')h+='<p>Round contributions. Squad adjustments follow below.</p>';
+  if(!b.current_week)return h+'<p>No standing yet. Weeks begin at first tee.</p>';
+  const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${esc(r.name)}<small>${esc(SeasonBook.standing(r))}</small><strong>${r.points} pts</strong></button>`;
+  if(!prominent || mode==='Race'){
+    if(mode==='Race')h+=csSeasonBookRace(b,rows,follow);
+    h+='<div class="sb-totals">'+rows.map(rowButton).join('')+'</div>';
+  }else{
+    h+=`<div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" class="${['active','cup_final'].includes(b.status)&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(w.starts_on)}</small></th>`).join('')}</tr></thead><tbody>`;
+    h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>`<td><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${c.future?'future week':(cumulative?c.cumulative:c.points)==null?'no round or adjustment recorded':(cumulative?c.cumulative:c.points)+' points '+(cumulative?'through':'in')+' week '+c.week}; open rounds and adjustments">${SeasonBook.label(r,c,cumulative)}</button></td>`).join('')}</tr>`).join('')+'</tbody></table></div><p class="fine">— No round · D Dropped · B Bye · * Adjustment · • Future week. Select a cell for its rounds and adjustments.</p>';
+  }
+  const adjustmentRows=group==='golfer'&&squad!=='all'?squads.filter(r=>r.squad_id===squad):rows;
+  if(prominent){h+='<h2>Adjustments in the totals</h2><p>'+(group==='golfer'&&squad!=='all'?'Add these squad adjustments to the round contributions above.':'Already included in the totals. Kept in their assessed week, with their reason.')+'</p>';
+    let count=0;adjustmentRows.forEach(r=>r.entries.forEach((e,i)=>{if(e.round_id)return;count++;h+=`<button type="button" class="sb-adjustment" data-book-row="${b.rows.indexOf(r)}" data-book-entry="${i}">${esc(r.name)} · ${e.week==null?'Outside season weeks':'Week '+e.week} · ${e.contribution} points<small>${esc(e.reason)}</small></button>`;}));
+    if(!count)h+='<p>No adjustments recorded for this selection.</p>';
+  }
+  return h+'<p class="fine">Points counting today</p>';
+}
+function csCloseSeasonBook(){document.getElementById('seasonBookDialog')?.close();}
+window.csCloseSeasonBook=csCloseSeasonBook;
+async function csOpenSeasonBook(league,season){
+  if(!window.CS?.user || !window.sb || state.demo)return;
+  csCloseSeasonBook();
+  const user=window.CS.user.id, dialog=document.createElement('dialog');dialog.id='seasonBookDialog';dialog.className='sb-dialog';
+  dialog.setAttribute('aria-labelledby','sb-title');
+  dialog.innerHTML='<header><div class="sb-terrain" aria-hidden="true"></div><button class="sb-close" type="button" aria-label="Close the Book">Close</button><h1 id="sb-title">the Book</h1></header><div class="sb-layout"><div class="sb-main" aria-live="polite"><p>Loading the whole season…</p></div><aside class="sb-receipts" aria-label="Rounds and adjustments"><h2>Behind the points</h2><p>Select a cell or a total to open its rounds and adjustments.</p></aside></div>';
+  document.body.appendChild(dialog);dialog.querySelector('.sb-close').onclick=()=>dialog.close();dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();window.csTopoHead?.(dialog.querySelector('.sb-terrain'));
+  const main=dialog.querySelector('.sb-main'), receipts=dialog.querySelector('.sb-receipts');
+  const selection={group:'golfer',squad:'all',mode:'Weeks',follow:'leaders'};let book;
+  const alive=()=>dialog.open&&window.CS?.user?.id===user;
+  function render(){
+    const focused=document.activeElement?.id;main.innerHTML=csSeasonBookBody(book,selection);
+    ['group','squad','mode','follow'].forEach(key=>{const el=main.querySelector('#sb-'+key);if(el)el.onchange=()=>{selection[key]=el.value;if(key==='group'||key==='squad')selection.follow='leaders';render();};});
+    if(focused)main.querySelector('#'+focused)?.focus();
+  }
+  main.addEventListener('click',e=>{
+    const button=e.target.closest('[data-book-row]');if(!button||!book||!alive())return;
+    const row=book.rows[Number(button.dataset.bookRow)], week=Number(button.dataset.bookWeek), entry=button.dataset.bookEntry;
+    const entries=entry!=null?[row.entries[Number(entry)]]:week?SeasonBook.entries(row,week,selection.mode==='Totals'):row.entries;
+    receipts.innerHTML=csSeasonBookReceipt(row.name+(week?' · Week '+week:''),entries,Object.fromEntries(book.rows.filter(r=>r.kind==='golfer').map(r=>[r.member_id,r.name])));receipts.querySelector('h2').focus();
+  });
+  receipts.addEventListener('click',e=>{const button=e.target.closest('[data-book-round]');if(button&&alive()){dialog.close();window.csOpenPostedRound?.(button.dataset.bookRound);}});
+  async function load(){
+    main.innerHTML='<p>Loading the whole season…</p>';
+    try{const {data,error}=await window.sb.rpc('season_book',{p_league_id:league,p_season_id:season});if(!alive()){dialog.close();return;}if(error)throw Error('The Book did not load. Try again.');book=SeasonBook.validate(data,league,season);selection.group=book.rows.some(r=>r.kind==='squad')?'squad':'golfer';dialog.querySelector('#sb-title').textContent=SeasonBook.prominent(book)?'the Book':'Rounds & points';render();}
+    catch(error){if(!alive())return;main.innerHTML=`<p role="alert">${esc(error.message||'The Book did not load. Try again.')}</p><button type="button" id="sb-retry">Try again</button>`;main.querySelector('#sb-retry').onclick=load;}
+  }
+  await load();
+}
+window.csOpenSeasonBook=csOpenSeasonBook;
+function csRenderSeasonBookDoor(){
+  let door=document.getElementById('seasonBookDoor');const table=document.getElementById('standings');if(!table)return;
+  if(!door){door=document.createElement('button');door.id='seasonBookDoor';door.type='button';door.className='sb-door';table.before(door);}
+  const league=window.CS?.league?.id,season=window.CS?.season?.id;
+  door.hidden=!!state.demo||!window.CS?.user||!league||!season;
+  const n=(window.indRows||[]).length, squads=(window.CS?.squads||[]).length>0;
+  door.textContent=(n>=10||squads?'Open the Book':'Rounds & points')+' →';door.onclick=()=>csOpenSeasonBook(league,season);
+}
+/* END D381 BOOK */
+
 function csCompeteFacts(){
   const d = window.homeDispatch && window.homeDispatch.me;
   const rows = d && Array.isArray(d.memberships) ? d.memberships : [];
@@ -19032,13 +19213,14 @@ function csCompeteFacts(){
 }
 function csSeasonRowFacts(f, role){
   if(!f) return null;
-  const st = f.standing || null, se = f.season || null;
-  const rank = st && Number.isFinite(Number(st.rank)) ? Number(st.rank) : null;
+  const se=f.season || null, upcoming=se && (se.week_no===0 || se.starts_on>new Date().toISOString().slice(0,10));
+  const st=upcoming?null:(f.standing || null);
+  const rank = st && st.points_rank != null && Number.isFinite(Number(st.points_rank)) ? Number(st.points_rank) : null;
   const of   = st && Number.isFinite(Number(st.of)) ? Number(st.of) : null;
   const pts  = st && st.points != null && Number.isFinite(Number(st.points)) ? Number(st.points) : null;
   const gap  = st && st.gap_to_leader != null && Number.isFinite(Number(st.gap_to_leader)) ? Number(st.gap_to_leader) : null;
   const parts = [];
-  if(rank != null && of != null) parts.push(climbOrd(rank) + ' of ' + of);
+  if(rank != null && of != null) parts.push(climbOrd(rank) + (st.points_tied ? ' · Tied' : '') + ' of ' + of);
   if(pts != null) parts.push(pts + ' pts');
   if(rank != null && of != null){
     if(rank === 1 && of > 1) parts.push('leading');
@@ -19050,7 +19232,7 @@ function csSeasonRowFacts(f, role){
   let status = null;
   if(clash && clash.closes_today) status = 'The clash closes today';
   else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
-  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank };
+  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts, standing:rank==null?null:climbOrd(rank)+(st.points_tied?' · Tied':''), story:upcoming?'No standing yet. First tee is ahead.':gap>0?'You are '+gap+' back from '+(st.leader_name||'the lead')+'.':rank===1?(st.points_tied?'You share the lead.':'You lead the field.'):'The season is underway.' };
 }
 /* F13 · A BIRDIE IS A BIRDIE. The risk in celebrating a good hole is FALSE
    recognition, so every rule here is a refusal: par must be KNOWN (an
@@ -19122,17 +19304,8 @@ window.CS_COMPETITION = CS_COMPETITION;
    ink token FLIPS with the printing (`--brand-ink`) because ember does. */
 function csCompetitionBandHtml(row){
   if(!row || !row.state) return '';
-  const fig = row.figure ? `<span class="cband-fig">${esc(row.figure)}</span>` : '';
-  /* the FIGURE carries the rank (LINT-19's one-place rule): a sub that leads
-     with "2nd of 2 · " would say it twice on the band, so the clause folds */
-  const subTxt = row.sub && row.figure ? String(row.sub).replace(new RegExp('^' + row.figure + ' of \\d+( · )?'), '') : row.sub;
-  const note = subTxt ? `<span class="cband-note">${esc(subTxt)}</span>` : '';
-  return `<button class="cband" type="button" data-cband="${esc(row.id)}"
-      aria-label="${esc([CS_COMPETITION.spoken(row.state), row.title, row.eyebrow, row.figure, row.sub].filter(Boolean).join(', '))}">
-    <span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span>
-    ${(fig||note) ? `<span class="cband-mid">${fig}${note}</span>` : ''}
-    ${(row.eyebrow||row.status) ? `<span class="cband-meta">${esc([row.eyebrow, row.status].filter(Boolean).join(' · '))}</span>` : ''}
-  </button>`;
+  const fig=row.points!=null?`<span class="cband-fig">${row.points}<small>points</small></span>`:'';
+  return `<button class="cband cband-scoreboard" data-live="${row.state==='Live'}" type="button" data-cband="${esc(row.id)}"><span class="sb-terrain" aria-hidden="true"></span><span class="cband-content"><span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span><span class="cband-mid">${fig}<span class="cband-note">${row.standing?esc(row.standing)+'<br>':''}${esc(row.story||row.sub||'')}</span></span>${row.eyebrow||row.status?`<span class="cband-meta">${esc([row.eyebrow,row.status].filter(Boolean).join(' · '))}</span>`:''}</span></button>`;
 }
 window.csCompetitionBandHtml = csCompetitionBandHtml;
 function csCompeteList(memberships, events, schedule, todayISO, facts){
@@ -19151,8 +19324,9 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
                 sub: done ? 'Wrapped. Open it for the table.'
                           : ((f && f.sub) ? f.sub : (m.role==='commissioner' ? 'You run it (the Pro).' : 'You’re in it.')),
                 status: f && f.status ? f.status : null,
-                state: CS_COMPETITION.season(lg.phase, (lg.season && lg.season.status) || null),
-                figure: (f && f.rank != null) ? (f.rank + csOrdinalSuffix(f.rank)) : null,
+                state: fm.get(lg.id)?.season?.week_no===0 ? 'Upcoming' : CS_COMPETITION.season(lg.phase, (lg.season && lg.season.status) || null),
+                points:f?.points, standing:f?.standing, story:f?.story, seasonId:fm.get(lg.id)?.season?.id, fieldSize:fm.get(lg.id)?.standing?.of||0, squads:(fm.get(lg.id)?.settings?.structure||'solo')!=='solo',
+                figure: (f && f.rank != null) ? (f.rank + csOrdinalSuffix(f.rank)+(fm.get(lg.id)?.standing?.points_tied?' · Tied':'')) : null,
                 clock: null };
     (done ? finished : live).push(row);
   });
@@ -19486,14 +19660,16 @@ function renderCompete(){
            || list.seasons.find(r => r.state) || null;
   const body = list.nothingRunning
     ? csEmptyRootHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
-    : (lead ? csCompetitionBandHtml(lead) : '')
+    : (lead ? csCompetitionBandHtml(lead)+(lead.seasonId?`<button type="button" class="sb-door" id="cmpBookDoor">${lead.fieldSize>=10||lead.squads?'Open the Book':'Rounds &amp; points'} →</button>`:'') : '')
       + `<div class="eyebrow">Your seasons</div>`
       + (list.seasons.length ? list.seasons.filter(r => !lead || r.id !== lead.id).map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
       + (list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '');
   box.innerHTML = body;
+  box.querySelectorAll(".sb-terrain").forEach(h=>window.csTopoHead?.(h));
+  box.querySelector("#cmpBookDoor")?.addEventListener("click",()=>csOpenSeasonBook(lead.leagueId,lead.seasonId));
   box.querySelector('[data-cband]')?.addEventListener('click', () => {
     const id = String(lead && lead.leagueId || '');
-    if(id) window.enterLeagueById?.(id);
+    if(id) window.csOpenSeason?.(id);
   });
   if(shelf) shelf.innerHTML = list.finished.length
     ? list.finished.map(csPeerRowHtml).join('')
@@ -27876,6 +28052,7 @@ function switcherChip(m){
   return stageLabel(m);
 }
 function goClubhouse(){
+  window.csCloseSeasonBook?.();
   CS.league = null; CS.season = null; CS.member = null;
   if(CS.chan){ try{ rtClient.removeChannel(CS.chan); }catch(e){} CS.chan = null; }
   showWelcome();
@@ -29784,7 +29961,7 @@ async function loadLeagueRecord(){
         const rows = st.filter(x => x.season_id === s.id)
                        .sort((a,b) => (b.points||0) - (a.points||0));
         const i = rows.findIndex(x => x.member_id === m.id);
-        const place = i >= 0 ? `${ord(i+1)} OF ${rows.length} · ${rows[i].points||0} PTS` : '—';
+        const place = i >= 0 ? `${ord(rows.filter(r=>(r.points||0)>(rows[i].points||0)).length+1)}${rows.filter(r=>(r.points||0)===(rows[i].points||0)).length>1?' · TIED':''} OF ${rows.length} · ${rows[i].points||0} PTS` : '—';
         const sd = localDate(s.starts_on);
         line = sd > new Date()                                   ? `FIRST TEE ${DOW[sd.getDay()].toUpperCase()} ${MOS[sd.getMonth()].toUpperCase()} ${sd.getDate()}`
              : s.status === 'cup_final'                          ? `CUP FINAL · ${place}`
@@ -31419,7 +31596,8 @@ async function safeBoot(force){
    any stray async rejection in the boot chain surfaced as an unhandledrejection
    twice). Now the initial boot is idempotent via bootResolved, so the event and
    the fallback below can't double up. A genuine later sign-in forces a boot. */
-sb.auth.onAuthStateChange((event) => {
+sb.auth.onAuthStateChange((event, session) => {
+  if(event==='SIGNED_OUT' || (CS.user && session?.user?.id && CS.user.id!==session.user.id)) window.csCloseSeasonBook?.();
   /* never call supabase methods synchronously in this callback — the client
      holds an internal auth lock here and getSession() would deadlock */
   if(event === 'SIGNED_IN'){ setTimeout(() => safeBoot(true), 0); }

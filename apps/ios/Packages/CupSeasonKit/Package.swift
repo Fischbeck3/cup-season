@@ -20,6 +20,6 @@ let package = Package(
       dependencies: [.product(name: "Supabase", package: "supabase-swift"), .product(name: "CSDesign", package: "CSDesign")],
       path: "Sources/CupSeasonKit"
     ),
-    .testTarget(name: "CupSeasonKitTests", dependencies: ["CupSeasonKit"], path: "Tests/CupSeasonKitTests"),
+    .testTarget(name: "CupSeasonKitTests", dependencies: ["CupSeasonKit"], path: "Tests/CupSeasonKitTests", resources: [.process("SeasonBookFixtures")]),
   ]
 )

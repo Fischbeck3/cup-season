@@ -341,6 +341,7 @@ public struct CSRecordLeaf: View {
     /// The place, as a FIGURE: `2` with the `ND` rider. nil where the season
     /// has no ranked table, and `line` prints instead.
     public let finish: Int?
+    public let tied: Bool
     /// The pre-formatted line the row falls back to (`FIRST TEE SAT AUG 30`,
     /// `FORMING`) — §14.1's degrade, printed in `column` rather than as a
     /// figure, so it is never mistaken for a place.
@@ -352,10 +353,10 @@ public struct CSRecordLeaf: View {
     public let open: (@MainActor @Sendable () -> Void)?
 
     public init(id: String, year: String?, competition: String, qualifier: String?,
-                finish: Int?, line: String?, won: Bool, money: String? = nil,
+                finish: Int?, tied: Bool = false, line: String?, won: Bool, money: String? = nil,
                 spoken: String = "", open: (@MainActor @Sendable () -> Void)? = nil) {
       self.id = id; self.year = year; self.competition = competition; self.qualifier = qualifier
-      self.finish = finish; self.line = line; self.won = won; self.money = money
+      self.finish = finish; self.tied = tied; self.line = line; self.won = won; self.money = money
       self.spoken = spoken.isEmpty ? competition : spoken
       self.open = open
     }
@@ -447,6 +448,7 @@ public struct CSRecordLeaf: View {
         // §1.7's one ordinal — uppercase, 0.46 em, ON THE BASELINE — and it is
         // the figure's own rider, so the profile cannot cut a second form.
         CSFigure(String(f), size: .s, label: nil, ordinal: CSOrdinal.suffix(f), over: .leaf)
+        if r.tied { Text("Tied").csType(.agateS).foregroundStyle(cs.leafInk) }
       } else if let line = r.line, !line.isEmpty {
         Text(line).csType(.columnS, caps: true).foregroundStyle(cs.leafMut)
           .lineLimit(2).multilineTextAlignment(.trailing)

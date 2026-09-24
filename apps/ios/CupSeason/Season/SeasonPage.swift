@@ -178,12 +178,18 @@ struct SeasonPage: View {
     .environment(model)
     .environment(router)
     .environment(\.roomLinks, links)
-    .refreshable { await model.refresh() }
+    .refreshable {
+      #if DEBUG
+      if CompeteSelectedFixture.on { return }
+      #endif
+      await model.refresh()
+    }
     .task(id: model.leagueId) {
       #if DEBUG
       // `-cs_dev_season_fixture [squads]` — the cut, the pot and the squad
       // table need a field, a stake and a structure the signed-in account does
       // not have. DEBUG only, never written, and the shot is a fixture.
+      if CompeteSelectedFixture.on { CompeteSelectedFixture.seed(model); return }
       if let kind = SeasonFixture.kind, !model.loaded {
         SeasonFixture.apply(model, squads: kind == "squads")
         return
@@ -278,6 +284,19 @@ struct SeasonPage: View {
           .csGutter()
           .id(SeasonPane.table.anchor)
       }
+      if let season=model.season, model.clock.currentWeek > 0 {
+        NavigationLink {
+          SeasonBookPage(leagueID:model.leagueId,seasonID:season.id,openRound:links.openReceipt)
+        } label: {
+          HStack {
+            VStack(alignment:.leading,spacing:CSTokens.Space.s1) {
+              Text(SeasonBookSnapshot.prominent(fieldSize:model.indRows.count,hasSquads:!model.bylaws.solo) ? "Open the Book" : "Rounds & points").csType(.name)
+              Text("The whole season, week by week").csType(.bodyS).foregroundStyle(cs.mut)
+            }
+            Spacer(); CSGlyph(.chevron,size:.row)
+          }.frame(minHeight:44).csGutter().padding(.vertical,CSTokens.Space.s3).contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityIdentifier("seasonBook.door")
+      }
       StandingsTableView()
       if !model.bylaws.solo && !model.indRows.isEmpty {
         CSSectionHead("Every golfer", count: SeasonBoardCopy.field(model.indRows.count))
@@ -359,67 +378,19 @@ struct SeasonHead: View {
   var body: some View {
     let stage = LeagueCopy.stage(model.clock)
     let complete = model.isComplete
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-        HStack(spacing: CSTokens.Space.s1) {
-          // **The dot IS the ember**, and LINT-18 counts it and its own eyebrow
-          // as ONE mark: both are the same clock and the eyebrow names it.
-          if !complete {
-            Circle().fill(la.accent).frame(width: 7, height: 7)
-          }
-          Text(SeasonBoardCopy.eyebrow(stage: stage,
-                                       week: model.seasonStory?.facts?.week_no ?? model.clock.currentWeek,
-                                       weeks: model.seasonStory?.facts?.weeks_total ?? model.clock.totalWeeks))
-            .csType(.agateS, caps: true)
-            .foregroundStyle(complete ? cs.gold : la.accent)
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        .csBudget(gold: complete ? 1 : 0, ember: complete ? 0 : 1)
-        Text(model.league?.name ?? "The season").csType(.displayS)
-          .foregroundStyle(cs.ink)
-          .fixedSize(horizontal: false, vertical: true)
-          .accessibilityAddTraits(.isHeader)
-          .accessibilityIdentifier("season.title")
-        Text(SeasonBoardCopy.dateline(number: model.season?.number,
-                                      span: SeasonBoardCopy.span(startsOn: model.clock.startsOn,
-                                                                 endsOn: model.clock.endsOn) ?? model.clock.spanText,
-                                      pro: model.proName,
-                                      squads: model.bylaws.solo ? nil : model.squads.count))
-          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
-          .fixedSize(horizontal: false, vertical: true)
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background {
-        CSTopoField(tint: (la.active ? la.accent : cs.mut).opacity(CSTokens.Alpha.a24))
-          .padding(.horizontal, -CSTokens.Space.gutter)
-      }
-      if let line = model.storyLine {
-        Text(line.text).csType(.story).foregroundStyle(cs.ink)
-          .fixedSize(horizontal: false, vertical: true)
-          .padding(.top, CSTokens.Space.s2)
-          .id(SeasonPane.story.anchor)
-          .accessibilityIdentifier("season.story")
-      }
-      // **QB-12 · TURN THE GAP INTO A MOVE**, and this is the chapter line's
-      // half of it (`season.md` §5: the climb's `closer` clause moves here).
-      // It rode `ClimbView`, which the table replaced, and it stopped
-      // rendering anywhere — so the app went back to telling a golfer he was
-      // four back without ever telling him one good round covers it. It speaks
-      // only when ONE round genuinely closes the gap; silence is the honest
-      // answer for a gap bigger than that.
-      if let closer = closerLine {
-        Text(closer).csType(.bodyS).foregroundStyle(cs.mut)
-          .fixedSize(horizontal: false, vertical: true)
-          .padding(.top, CSTokens.Space.s2)
-      }
+    VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
+      CompeteScoreboard(title:model.league?.name ?? "The season",
+        eyebrow:SeasonBoardCopy.eyebrow(stage:stage,week:model.seasonStory?.facts?.week_no ?? model.clock.currentWeek,
+                                      weeks:model.seasonStory?.facts?.weeks_total ?? model.clock.totalWeeks),
+        story:model.storyLine?.text ?? "", points:nil, standing:nil,
+        live:!complete && (model.clock.currentWeek > 0))
+        .id(SeasonPane.story.anchor).accessibilityIdentifier("season.title")
+      Text(SeasonBoardCopy.dateline(number:model.season?.number,
+        span:SeasonBoardCopy.span(startsOn:model.clock.startsOn,endsOn:model.clock.endsOn) ?? model.clock.spanText,
+        pro:model.proName,squads:model.bylaws.solo ? nil : model.squads.count))
+        .csType(.agateS,caps:true).foregroundStyle(cs.mut).csGutter()
+      if let closer=closerLine { Text(closer).csType(.bodyS).foregroundStyle(cs.mut).csGutter() }
     }
-    // **PAD FIRST, THEN TAKE THE MEASURE.** `.frame(maxWidth: .infinity)`
-    // followed by `.padding(.horizontal, 20)` is a block the width of the
-    // screen with twenty points added to each side — it overflows by forty, and
-    // at the reading sizes nothing is wide enough to show it. At AX3 the whole
-    // head sheared to the left edge and the month clock's ticks ran off the
-    // right. The padding goes inside the frame.
-    .csGutter()
   }
 }
 

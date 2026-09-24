@@ -31,6 +31,7 @@ struct CompeteScreen: View {
   /// the same heads, the same rows. It is `nil` in Release by construction.
   private var me: Me? {
     #if DEBUG
+    if CompeteSelectedFixture.on { return CompeteSelectedFixture.me }
     if let f = CompeteFixture.me { return f }
     #endif
     return store.me
@@ -136,7 +137,12 @@ struct CompeteScreen: View {
     // The page's own ground fills exactly the top safe area; a surface whose
     // top is a photograph or a contour uses the scrim instead (§10.3).
     .csStatusCap(cs.bg0)
-    .refreshable { await store.reload(); await countBuddies() }
+    .refreshable {
+      #if DEBUG
+      if CompeteSelectedFixture.on { return }
+      #endif
+      await store.reload(); await countBuddies()
+    }
     .task(id: store.me?.generated_at) {
       loaded = me != nil
       await countBuddies()
@@ -149,7 +155,7 @@ struct CompeteScreen: View {
   /// real account's invitations.
   @ViewBuilder private var invitations: some View {
     #if DEBUG
-    if CompeteFixture.on { EmptyView() } else { invitationsList }
+    if CompeteFixture.on || CompeteSelectedFixture.on { EmptyView() } else { invitationsList }
     #else
     invitationsList
     #endif
@@ -169,16 +175,22 @@ struct CompeteScreen: View {
   @ViewBuilder private func leadBand(_ row: CompeteRoot.Row) -> some View {
     if let state = row.state {
       Button { open(row) } label: {
-        CSCompetitionBand(title: row.title,
-                          meta: row.eyebrow,
-                          state: state.word,
-                          figure: row.rank.map { CSCopy.ordinal($0.place) },
-                          note: row.sub,
-                          spokenState: state.spoken)
+        CompeteScoreboard(title:row.title, eyebrow:row.eyebrow,
+                          story:row.competitionLine ?? row.sub,
+                          points:row.points.map(CSCopy.points), standing:row.pointsStanding,
+                          live:state == .live)
       }
       .buttonStyle(.plain)
       .padding(.top, CSTokens.Space.s4)
       .accessibilityHint("Opens the season")
+      .environment(\.csLook, look(row))
+      if let member=me?.memberships.first(where: { "league:"+$0.league_id.uuidString.lowercased() == row.id.lowercased() }), let season=member.season {
+        NavigationLink {
+          SeasonBookPage(leagueID:member.league_id,seasonID:season.id,openRound: { presenter.receipt = $0 })
+        } label: {
+          HStack { Text(SeasonBookSnapshot.prominent(fieldSize:member.standing?.of ?? 0,hasSquads:member.settings?.structure.map { $0 != "solo" } ?? false) ? "Open the Book" : "Rounds & points"); Spacer(); CSGlyph(.chevron,size:.row) }.csType(.name).frame(minHeight:44).contentShape(Rectangle())
+        }.buttonStyle(.plain)
+      }
     }
   }
 
@@ -295,7 +307,7 @@ private struct CompeteRowView: View {
   /// "2nd of 8" — the row's own standing said the way a person says it, for
   /// VoiceOver, which never hears a rule-and-figure.
   private var spokenRank: String? {
-    row.rank.map { " \(CSCopy.ordinal($0.place)) of \($0.of)." }
+    row.rank.map { " \(CSCopy.ordinal($0.place))\($0.tied ? " · Tied" : "") of \($0.of)." }
   }
 
   var body: some View {
@@ -316,7 +328,7 @@ private struct CompeteRowView: View {
           // as FLEXIBLE inside an `HStack` and takes an equal share of it —
           // the 2pt rule then runs half the page and the sentence beside it
           // breaks over four lines. The rule is the width of its column (§0.2).
-          CSFigure("\(r.place)", size: row.kind == .season ? .l : .m, label: "of \(r.of)",
+          CSFigure("\(r.place)", size: row.kind == .season ? .l : .m, label: r.tied ? "Tied · of \(r.of)" : "of \(r.of)",
                    ordinal: CSOrdinal.suffix(r.place))
             .fixedSize(horizontal: true, vertical: false)
             .frame(minWidth: 62, alignment: typeSize.isA11y ? .leading : .trailing)

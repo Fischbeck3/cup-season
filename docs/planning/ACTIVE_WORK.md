@@ -1,8 +1,10 @@
 # Cup Season · active work and ownership
 
-## Selected Compete build · 2026-09-24 (Codex) — scope clarification pending
+## Selected Compete build · 2026-09-24 (Codex) — implemented locally, verification/captures in progress
 
-Owner selected the recommendations: **Scoreboard + the Book’s Weeks view, with Race inside the Book**. Same worktree and local branch. The explicit earlier DEBUG-only / unchanged-Release boundary needs confirmation before normal app integration; no migrations, remote SQL or deployments are authorized. [Selected build and integration findings](../design/compete-2026-09-24/SELECTED-BUILD.md). Preparation fixes the prototype race’s negative/earlier-peak clipping and replaces fixed week controls with season values. The reviewed exploration gallery remains preserved at its recorded source revision. Preparation verification: **1,506 native tests passed**, preflight **0 failures / 0 warnings**, standalone Debug build green; finished AX3 Book capture confirms Week 15.
+Owner approved **Scoreboard + the Book's Weeks view, with Race inside the Book**, including normal native/web app code and one local, unapplied read-contract migration (D381). Work remains only in `/Users/fischbeck3/cup-season-compete-explore` on `codex/compete-explorations-2026-09-24`. The Book has authoritative weekly/cumulative totals, golfers/squads/contributions, named receipts and reasoned adjustment rows. Small leagues keep Rounds & points. The shared 41–41 points rank and ember-label contrast are fixed. No scoring mechanic changed.
+
+[Selected build and deployment dependency](../design/compete-2026-09-24/SELECTED-BUILD.md) · [original proposal](../design/compete-2026-09-24/PROPOSAL.md). Gallery: `/Users/fischbeck3/cup-season-compete-explorations-review/index.html`; original 564 captures remain historical, with a separate Selected build section. Everything remains unpushed. Migration `20261118090000_the_book.sql` is verified only in isolated local PostgreSQL. **Database and client deployment/distribution remain owed after separate approval; Edge: none.** The design rulings are settled; historical snapshots and very-large-field pagination remain separate future work.
 
 ## Compete explorations and the Book · 2026-09-24 (Codex) — local owner review
 
