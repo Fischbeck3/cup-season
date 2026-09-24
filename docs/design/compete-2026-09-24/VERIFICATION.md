@@ -10,6 +10,8 @@ September 24, 2026. Prototype commit **9959c620**; the brief was committed first
 | `node tests/preflight.mjs` | PASS, zero failures, zero warnings | [Complete output](evidence/preflight.txt) |
 | Debug simulator build | **BUILD SUCCEEDED** | [Build result](evidence/debug-build.txt) |
 | Release source isolation | PASS: new types disappear; startup is the original `RootView()` expression after inlining the computed property; existing fixture changes disappear | [Source audit](evidence/release-scope.txt) |
+| Gallery coverage and originals | **PASS: 564 files, all 324 required combinations, no errors** | [Capture audit](evidence/capture-audit.json) |
+| Gallery controls | PASS: side-by-side filters, expanded direction groups, original PNG links, SE AX3 disabled; no browser console errors; JavaScript syntax valid | [Visual review](evidence/visual-review.md) |
 | Contrast | Full primary and secondary ink on every text-bearing ground pass; bold topo is confined to empty strips | [Ratios](evidence/contrast.txt), [design reasoning](PROPOSAL.md#contrast-and-terrain) |
 
 The native total includes **CupSeasonKit 1,251**, **CSDesign 120**, **app 129** and **prototype UI 5**. The seven new app tests reconcile every fixture against the real room model, verify ties, count flags, byes, dropped rounds and empty/future cells. UI checks exercise horizontal scrolling with frozen names, a cell with two receipts, the dropped round's receipt, AX3 week navigation, squads/golfers and all three small-league entry paths. The fifth UI check verifies that the squad contribution filter also scopes adjustment rows.
@@ -41,9 +43,9 @@ Launch with `-cs_dev_compete_exploration scoreboard` (or `race`, `broadsheet`). 
 
 Gallery: `/Users/fischbeck3/cup-season-compete-explorations-review/index.html`.
 
-Capture production is in progress. The target is **564 original PNGs**: 376 on iPhone 17 Pro and 188 on iPhone SE (3rd generation), both on iOS 26.5. The mandatory core covers 3 directions × 6 fixtures × 3 screens × light/dark × (standard, SE, standard AX3) = **324**. The remaining **240** show Book modes, late weeks, receipts, adjustments, squad contributions and the moment below three seasons. AX3 is the additional accessibility size on the standard phone; SE uses the default Large size in both printings.
+Capture complete: **564 original PNGs**: 376 on iPhone 17 Pro and 188 on iPhone SE (3rd generation), both on iOS 26.5. The mandatory core covers 3 directions × 6 fixtures × 3 screens × light/dark × (standard, SE, standard AX3) = **324**. The remaining **240** show Book modes, late weeks, receipts, adjustments, squad contributions and the moment below three seasons. AX3 is the additional accessibility size on the standard phone; SE uses the default Large size in both printings.
 
-The original PNGs stay in the new gallery, outside Git. Capture manifests include device ids, launch arguments, sizes and SHA-256 hashes. The scripts do not crop, composite or recolour the captures. A render check rejects blank app-launch frames and requires two identical frames, half a second apart, before retaining the original PNG. Coverage, hashes and image dimensions will be audited after capture completion; visual inspection is representative, not a claim that every pixel of all 564 screens was manually inspected.
+The original PNGs stay in the new gallery, outside Git. The three direction totals are Scoreboard 216, Race 216 and Broadsheet 132; each device/type/printing configuration has 94 captures. Capture manifests include device ids, launch arguments, sizes and SHA-256 hashes. The scripts do not crop, composite or recolour the captures. A render check rejects blank app-launch frames and requires two identical frames, half a second apart, before retaining the original PNG. **The complete capture audit passed:** 324/324 mandatory combinations, 564/564 files with matching hashes and sizes, expected dimensions, and no blank frames or missing captures. See [capture-audit.json](evidence/capture-audit.json) and the [representative visual review](evidence/visual-review.md). Visual inspection is representative, not a claim that every pixel of all 564 screens was manually inspected.
 
 ```sh
 python3 docs/design/compete-2026-09-24/capture.py \
@@ -55,7 +57,7 @@ python3 docs/design/compete-2026-09-24/gallery.py
 
 The capture script resumes a manifest. Use `--surface contributions --refresh` to retake just that surface. It requires an already booted simulator with the Debug app installed. The Python environment needs Pillow for the blank-frame check only; no app dependency was added.
 
-The new isolated simulator originally could not boot because macOS had nearly exhausted its process capacity. The owner explicitly approved shutting down the default iPhone 17 Pro. Only that existing simulator was shut down. Capture devices run sequentially; other audit and QA devices were left alone.
+The new isolated simulator originally could not boot because macOS had nearly exhausted its process capacity. The owner explicitly approved shutting down the default iPhone 17 Pro. Only that existing simulator was shut down. The two new capture devices ran sequentially and are shut down after capture completion; other audit and QA devices were left alone.
 
 ## Failures encountered and corrected
 

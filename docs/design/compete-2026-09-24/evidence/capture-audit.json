@@ -1,0 +1,25 @@
+{
+  "result": "PASS",
+  "total": 564,
+  "mandatoryCore": 324,
+  "mandatoryPresent": 324,
+  "byDirection": {
+    "scoreboard": 216,
+    "race": 216,
+    "broadsheet": 132
+  },
+  "byConfiguration": {
+    "small/large/dark": 94,
+    "small/large/light": 94,
+    "standard/large/dark": 94,
+    "standard/large/light": 94,
+    "standard/ax3/dark": 94,
+    "standard/ax3/light": 94
+  },
+  "dimensions": {
+    "small 750x1334": 188,
+    "standard 1206x2622": 376
+  },
+  "errors": [],
+  "missing": []
+}

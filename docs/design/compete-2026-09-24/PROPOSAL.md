@@ -27,6 +27,8 @@ The brief explicitly asks that ember mean **live competition**. D359 says active
 
 A full-width ember lead carries the season, one factual gap sentence, a large points figure, and the table's standing. Terrain takes a broad, empty strip of the band rather than sitting behind numerals. Other seasons stay neutral and smaller. In the season room, large point columns and taller standings rows make the whole field feel consequential. The Book enters directly below the head and initially opens **Weeks**.
 
+**Proposed exception to the brief’s livery-topo rule:** the full ember band uses `brandInk` contours, keeping that band to two colours. League livery colours return in neutral heads and the Book. This is an art-direction proposal, not a contrast necessity, because the contour strip contains no text. The owner must approve this exception or require livery-coloured contours in the ember band too. Race follows livery colour on its neutral terrain and plot; Broadsheet follows it at the season head.
+
 **What earns ember:** the lead season while active; the current week header in the Book. It does not colour the Book door, ordinary navigation, missing data, a pending season, a finished season or a moment merely scheduled to happen. A champion alone earns the gold caption. Points and ranks are not coloured by performance.
 
 **41–41:** both standings rows say `1st · Tied`; the root repeats precisely that standing for you. The sentence is “Two golfers. The lead is shared.” There is no fabricated leader, gap or movement.
@@ -176,6 +178,7 @@ Capture and verification results are recorded in [VERIFICATION.md](VERIFICATION.
 
 - Which direction should proceed, and should Race first be an optional Book view?
 - Confirm the live-only ember scope in this study, or retain F11's broader upcoming/final competition identity. No new D359 exemption is required for the live-only prototypes.
+- Approve or reject Scoreboard’s monochrome contour exception inside its full ember band; the other terrain follows league livery.
 - Approve `>= 10 golfers OR squads` for the prominent Book door; decide whether small solo leagues also receive an optional full Book link.
 - Approve “counting today” reconstruction, or require actual historical snapshots. Do not approve a historical-looking chart without approving that meaning.
 - Rule the shared display relationship between points ties, qualification seeds and final tiebreaks. Recommend displaying them as separate facts rather than quietly using name order as rank.
