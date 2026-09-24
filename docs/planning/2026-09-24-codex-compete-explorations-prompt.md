@@ -1,4 +1,4 @@
-# Codex prompt · Compete explorations and the season ledger · 2026-09-24
+# Codex prompt · Compete explorations and the Book · 2026-09-24
 
 Written by Claude at the owner's request. The owner's words:
 
@@ -7,6 +7,12 @@ Written by Claude at the owner's request. The owner's words:
 >
 > I also think large leagues could use a full ledger so you can view the
 > season holistically and look at points accrued by team or individual.
+
+**Owner ruling, 2026-09-24:** the points view is called **the Book**, not the
+ledger. Use "the Book" in every screen, doc and caption. In speech it's "the
+season's Book" or "the Book". The brand already says it: *"Another one in the
+book"* (`spec/voice-and-tone.md`) and the persona who *"keeps the book"*
+(`spec/brand-canon.md`).
 
 This is an **exploration and proposal pass**. You design and prototype
 directions. You do not choose one for the owner, and you do not replace the
@@ -57,7 +63,7 @@ shipped Compete tab.
 - The web client is `index.html` at the repo root, in its own desktop-first
   shape (D234: the same sentences and payloads, but a different layout).
   `apps/mobile` is retired (D99), so ignore it. Cover the web half in the
-  proposal doc only (how each direction and the ledger would sit on the
+  proposal doc only (how each direction and the Book would sit on the
   desk). Prototype natively.
 - Points data: `v_rounds_ranked` scores each round into each league.
   `v_squad_standings` is counting rounds plus the `season_adjustments`
@@ -84,7 +90,7 @@ Read each one in `spec/decision-log.md`, `spec/brand-canon.md` and
    direction, state what earns ember and what does not.
 2. **Topo follows the livery.** The owner said on Compete, *"topo can follow
    themes"* (`apps/ios/CupSeason/Post/PostCoverView.swift` ~L271). Topo can
-   be bolder: denser, larger, carried into rows or the ledger, or used as a
+   be bolder: denser, larger, carried into rows or the Book, or used as a
    data ground. It must never lower text contrast. Measure every ink-on-ember
    and ink-on-topo pair in both printings (the `brandInk` note in
    `Tokens.swift` explains why ember flips ink between light and dark).
@@ -96,14 +102,14 @@ Read each one in `spec/decision-log.md`, `spec/brand-canon.md` and
    come from the same standing the table uses, and ties must read identically
    everywhere. If you find the root cause, write it up. Don't fix it on this
    branch unless the fix is contained to the prototype path.
-4. **"Ledger" is already taken.** In this product, "the ledger" is the pot.
-   D39's line is *"Cup Season keeps the ledger; the money moves between
-   friends."* It's verbatim canon (`spec/brand-canon.md` §3, `MoneyCopy.ledger`),
-   and `spec/design-review-2026-07-16.md` says the money ledger must never
-   share a visual system with cup points. The owner used "ledger" for the
-   points view. Use it as the working title, then propose two or three names
-   that don't collide and flag the naming for the owner to rule on. Keep the
-   points ledger visually distinct from `PotPane`.
+4. **The Book is not the pot.** "The ledger" stays the pot's word. D39's
+   line is *"Cup Season keeps the ledger; the money moves between friends."*
+   It's verbatim canon (`spec/brand-canon.md` §3, `MoneyCopy.ledger`), and
+   `spec/design-review-2026-07-16.md` says money must never share a visual
+   system with cup points. So the Book never shows money, never borrows
+   `PotPane`'s look, and never uses the word "ledger" on screen. In code,
+   name its types `SeasonBook…`, not `Book…`, because `CourseBookStore` (the
+   offline course cache) already has "book".
 5. Voice: `spec/voice-and-tone.md`. Past tense for finished weeks, true
    sentences only, and no stat that is guessed or padded.
 
@@ -125,7 +131,7 @@ Examples of the range we want, not a menu:
 For each direction, prototype these screens:
 - the Compete tab root
 - the season room's standings head
-- the ledger entry point
+- the way into the Book
 
 Draw each against these fixtures, which you add to `CompeteFixture` and
 `SeasonFixture`:
@@ -139,7 +145,7 @@ Draw each against these fixtures, which you add to `CompeteFixture` and
 Capture every screen in light and dark, on a small phone (SE class) and a
 standard phone, plus one accessibility Dynamic Type size.
 
-## Deliverable 2 · The season ledger for large leagues
+## Deliverable 2 · The Book, for large leagues
 
 This is a holistic view of the whole season. It shows points accrued, week by
 week, by individual and by team.
@@ -154,14 +160,14 @@ week, by individual and by team.
   Nothing is a number without a receipt behind it.
 - **Adjustments are rows too.** Floors, bonuses and byes from
   `season_adjustments` appear in the week they were assessed, with their
-  reason, so every total adds up on screen. Its name is "ledger" in the
-  schema, so be clear about which one you mean.
+  reason, so every total adds up on screen. The schema calls
+  `season_adjustments` a ledger; on screen they're just rows in the Book.
 - **Scale.** Show how it reads at 16 golfers × 15 weeks on a phone: frozen
   names column, horizontal weeks, and how figures abbreviate. Show dropped or
   best-N rounds, byes, and weeks with no round honestly, without zeros that
   look like scores. Read the season's scoring rules from the settings; don't
   assume them.
-- **Emphasis.** Show how ember and topo are used, and how the ledger stays
+- **Emphasis.** Show how ember and topo are used, and how the Book stays
   visually separate from the pot.
 - Prototype it natively for at least two of your directions.
 
@@ -181,11 +187,11 @@ read it (RLS: members of the league only), and an estimate of payload size at
    - each direction and its thesis
    - what earns ember, and contrast measurements
    - how each direction renders the tie
-   - the ledger design and threshold
+   - the Book's design and threshold
    - the data contracts
    - effort and risk for each direction
-   - the rulings the owner has to make (ledger name, any D359 exceptions, the
-     threshold)
+   - the rulings the owner has to make (any D359 exceptions, the threshold,
+     and what small leagues get instead of the Book)
    - a ranked recommendation with reasons
 2. A new review gallery at `~/cup-season-compete-explorations-review/index.html`,
    with real simulator captures, grouped by direction, so the owner can compare
