@@ -1,0 +1,11 @@
+The first run stalled before tests. It was interrupted with SIGINT; xcodebuild exited 75. Only the task-owned simulator was restarted. This is failed/interrupted evidence, not a passing run.
+	/tmp/cs-compete-explore-build/Logs/Test/Test-CupSeason-2026.09.24_15-09-33--0700.xcresult
+
+** TEST INTERRUPTED **
+
+erationToEnqueue:error:] (in Xcode3Core)
+ 10   -[Xcode3CommandLineBuildTool doSchemeBuildWithRunDestinations:runDestinationIdx:wantsSkip:buildActionTimingSection:timingSection:buildAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 11   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 14   XcodeBuildMain (in libxcodebuildLoader.dylib)

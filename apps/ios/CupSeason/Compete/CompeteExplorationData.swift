@@ -141,6 +141,21 @@ final class CompeteExplorationSeason {
     SeasonFixture.applyExploration(self)
   }
 }
+// The race must include every intermediate total. A later deduction can put
+// the last total below an earlier peak or below zero; neither may be clipped.
+enum SeasonBookRaceScale {
+  static func domain(rows: [[SeasonBookEntry]], currentWeek: Int) -> ClosedRange<Int> {
+    let values = rows.flatMap { entries in
+      (0...max(0, currentWeek)).map { week in
+        entries.filter { $0.week <= week }.reduce(0) { $0 + $1.contribution }
+      }
+    }
+    let low = min(0, values.min() ?? 0)
+    let high = max(0, values.max() ?? 0)
+    return low...max(low + 1, high)
+  }
+}
+
 // Presentation only: the contribution flags are authored server-like facts.
 // A dash is absence, never a zero score. Mixed counted/dropped cells retain D.
 enum SeasonBookCell {

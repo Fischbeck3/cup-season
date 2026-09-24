@@ -1,0 +1,22 @@
+{
+  "device": "DC418592-2D15-43AA-9E83-B47D918D2956",
+  "file": "/Users/fischbeck3/cup-season-compete-explorations-review/selected-preparation/finished-book-ax3-light.png",
+  "sha256": "eb4f43f44e8b21209e32bb006676e001902409ae964ecebf0fda137e1257a180",
+  "arguments": [
+    "-cs_dev_compete_exploration",
+    "scoreboard",
+    "-cs_explore_fixture",
+    "finished",
+    "-cs_explore_screen",
+    "book",
+    "-cs_explore_mode",
+    "Weeks",
+    "-cs_dev_text_size",
+    "ax3",
+    "-cs_dev_appearance",
+    "light",
+    "-cs_dev_look",
+    "none"
+  ],
+  "review": "Week 15 selected in finished season. Full names, exact week contributions, and all three Book modes remain legible."
+}

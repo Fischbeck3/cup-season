@@ -1,0 +1,11 @@
+Standalone Debug build, CODE_SIGNING_ALLOWED=NO, task-owned iPhone 17 Pro simulator.
+Full local output: /private/tmp/cs-compete-selected-debug-build.log
+
+PruneExplicitPrecompiledModules /tmp/cs-compete-selected-build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/cs-compete-selected-build/SDKExplicitPrecompiledModules
+
+PruneExplicitPrecompiledModules /tmp/cs-compete-selected-build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+** BUILD SUCCEEDED **
+

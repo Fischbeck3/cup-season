@@ -336,7 +336,7 @@ private struct SeasonBookRace: View {
   let season: CompeteExplorationSeason
   let rows: [SeasonBookRow]
   var compact = false
-  private var ceiling: Int { max(1, rows.map { season.total($0.entries) }.max() ?? 1) }
+  private var domain: ClosedRange<Int> { SeasonBookRaceScale.domain(rows: rows.map(\.entries), currentWeek: season.currentWeek) }
   var body: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       Text("POINTS COUNTING TODAY").csType(.agateS).foregroundStyle(cs.mut)
@@ -351,9 +351,9 @@ private struct SeasonBookRace: View {
         }
         if season.live { RuleMark(x: .value("Current week", season.currentWeek)).foregroundStyle(cs.brand) }
       }
-      .chartXScale(domain: 0...15).chartYScale(domain: 0...ceiling)
-      .chartXAxis { AxisMarks(values: [1, 5, 10, 15]) { _ in AxisValueLabel().foregroundStyle(cs.mut) } }
-      .chartYAxis { AxisMarks(position: .leading, values: [0, ceiling]) { _ in AxisValueLabel().foregroundStyle(cs.mut) } }
+      .chartXScale(domain: 0...season.weeks).chartYScale(domain: domain)
+      .chartXAxis { AxisMarks(values: Array(Set([1, max(1, season.weeks / 3), max(1, season.weeks * 2 / 3), season.weeks])).sorted()) { _ in AxisValueLabel().foregroundStyle(cs.mut) } }
+      .chartYAxis { AxisMarks(position: .leading, values: Array(Set([domain.lowerBound, 0, domain.upperBound])).sorted()) { _ in AxisValueLabel().foregroundStyle(cs.mut) } }
       .frame(height: compact ? 150 : 210)
       .padding(CSTokens.Space.s2)
       .background {
@@ -383,7 +383,7 @@ private struct SeasonBookView: View {
   @Environment(\.dynamicTypeSize) private var type
   @State private var teams: Bool
   @State private var mode: String
-  @State private var selectedWeek = 12
+  @State private var selectedWeek: Int
   @State private var memberFilter = CompeteExploration.argument("-cs_explore_squad", fallback: "all")
   @State private var follow = "leaders"
   @ScaledMetric(relativeTo: .body) private var rowHeight: CGFloat = 64
@@ -391,6 +391,7 @@ private struct SeasonBookView: View {
   let direction: String
   init(season: CompeteExplorationSeason, direction: String) {
     self.season = season; self.direction = direction
+    _selectedWeek = State(initialValue: max(1, min(season.currentWeek, season.weeks)))
     _teams = State(initialValue: season.squads && CompeteExploration.argument("-cs_explore_group", fallback: "squads") != "golfers")
     _mode = State(initialValue: CompeteExploration.argument("-cs_explore_mode", fallback: CompeteExploration.screen == "race" || direction == "race" ? "Race" : "Weeks"))
   }
@@ -483,7 +484,7 @@ private struct SeasonBookView: View {
       ScrollView(.horizontal) {
         VStack(spacing: 0) {
           HStack(spacing: 0) {
-            ForEach(1...15, id: \.self) { w in
+            ForEach(1...season.weeks, id: \.self) { w in
               VStack(spacing: 0) { Text("W\(w)"); Text(String(season.weekDate(w).suffix(5))) }
                 .csType(.agateS).frame(width: 64, height: 44)
                 .foregroundStyle(w == season.currentWeek && season.live ? cs.brandInk : cs.ink)
@@ -493,7 +494,7 @@ private struct SeasonBookView: View {
           }
           ForEach(rows) { row in
             HStack(spacing: 0) {
-              ForEach(1...15, id: \.self) { w in
+              ForEach(1...season.weeks, id: \.self) { w in
                 NavigationLink {
                   SeasonBookReceiptList(season: season, title: "\(row.name) · Week \(w)", entries: row.entries.filter { mode == "Totals" ? $0.week <= w : $0.week == w })
                 } label: {
@@ -518,7 +519,7 @@ private struct SeasonBookView: View {
   private var accessibleWeeks: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
       Picker("Week", selection: $selectedWeek) {
-        ForEach(1...15, id: \.self) { Text("Week \($0)").tag($0) }
+        ForEach(1...season.weeks, id: \.self) { Text("Week \($0)").tag($0) }
       }.pickerStyle(.menu).accessibilityIdentifier("explore.week.picker")
       ForEach(rows) { row in
         NavigationLink {

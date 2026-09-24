@@ -1,5 +1,9 @@
 # Cup Season · active work and ownership
 
+## Selected Compete build · 2026-09-24 (Codex) — scope clarification pending
+
+Owner selected the recommendations: **Scoreboard + the Book’s Weeks view, with Race inside the Book**. Same worktree and local branch. The explicit earlier DEBUG-only / unchanged-Release boundary needs confirmation before normal app integration; no migrations, remote SQL or deployments are authorized. [Selected build and integration findings](../design/compete-2026-09-24/SELECTED-BUILD.md). Preparation fixes the prototype race’s negative/earlier-peak clipping and replaces fixed week controls with season values. The reviewed exploration gallery remains preserved at its recorded source revision. Preparation verification: **1,506 native tests passed**, preflight **0 failures / 0 warnings**, standalone Debug build green; finished AX3 Book capture confirms Week 15.
+
 ## Compete explorations and the Book · 2026-09-24 (Codex) — local owner review
 
 On `codex/compete-explorations-2026-09-24` in `/Users/fischbeck3/cup-season-compete-explore` only. Three working DEBUG directions behind `-cs_dev_compete_exploration`: **Scoreboard** (ember points board), **Race** (points across the season on livery terrain), and **Broadsheet** (dense season/field comparison). The **Book** adds weekly and cumulative points, squads/golfers, squad contributions, a race and receipts, including dropped rounds and reasoned adjustment rows. No money. Small solo seasons get “Rounds & points.” Release keeps the shipped root and startup behavior.

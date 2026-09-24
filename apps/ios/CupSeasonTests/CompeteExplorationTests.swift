@@ -4,6 +4,18 @@ import XCTest
 import CupSeasonKit
 
 @MainActor final class CompeteExplorationTests: XCTestCase {
+  func testRaceKeepsEarlierPeaksAndNegativeAdjustmentTotalsVisible() {
+    let entries: [SeasonBookEntry] = [
+      .init(id: UUID(), member: 0, squad: nil, week: 1, points: 12, counted: true, kind: "round", reason: "Counting"),
+      .init(id: UUID(), member: 0, squad: nil, week: 2, points: -20, counted: true, kind: "override", reason: "Correction"),
+      .init(id: UUID(), member: 0, squad: nil, week: 3, points: 99, counted: false, kind: "round", reason: "Dropped"),
+      .init(id: UUID(), member: 0, squad: nil, week: 4, points: 30, counted: true, kind: "round", reason: "Later round")
+    ]
+    XCTAssertEqual(SeasonBookRaceScale.domain(rows: [entries], currentWeek: 3), -8...12)
+    XCTAssertEqual(SeasonBookRaceScale.domain(rows: [entries], currentWeek: 4), -8...22)
+    XCTAssertEqual(SeasonBookRaceScale.domain(rows: [], currentWeek: 0), 0...1)
+  }
+
   func testTieUsesTheTableStandingAndEveryTotalHasReceipts() {
     let f = CompeteFixture.exploration("tie")
     XCTAssertEqual(f.standings.map(\.pts), [41, 41])
