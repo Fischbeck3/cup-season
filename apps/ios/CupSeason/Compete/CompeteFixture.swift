@@ -133,4 +133,11 @@ enum CompeteFixture {
     }
   }
 }
+
+extension CompeteFixture {
+  static func exploration(_ kind: String) -> CompeteExplorationSeason { CompeteExplorationSeason(kind) }
+  static func explorationSeasons(_ kind: String) -> [CompeteExplorationSeason] {
+    kind == "multi" ? [exploration("field"), exploration("squads"), exploration("upcoming")] : [exploration(kind)]
+  }
+}
 #endif

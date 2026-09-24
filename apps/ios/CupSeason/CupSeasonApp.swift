@@ -21,9 +21,20 @@ struct CupSeasonApp: App {
   /// The looks (IOS-025): the personal dial + every league's curated look, one read per session.
   @State private var looks = CSDevHatch.lookStore()
 
+  // A computed view adds no container in Release: its sole expression is RootView().
+  @ViewBuilder private var launchRoot: some View {
+    #if DEBUG
+    Group {
+      if CompeteExploration.on { CompeteExplorationView() } else { RootView() }
+    }
+    #else
+    RootView()
+    #endif
+  }
+
   var body: some Scene {
     WindowGroup {
-      RootView()
+      launchRoot
         .environment(store)
         .environment(looks)
         // D302 · **THE DIAL REACHES THE APP, NOT THREE SCREENS.** `\.csLook`
@@ -32,7 +43,12 @@ struct CupSeasonApp: App {
         // picked it on. Set here it is the app's ground state; Compete and the
         // season page still set their own (a league's look beats the person's,
         // D103a) because an environment written lower down wins.
-        .task(id: store.session?.user.id) { await looks.load(userId: store.session?.user.id) }
+        .task(id: store.session?.user.id) {
+          #if DEBUG
+          if CompeteExploration.on { return }
+          #endif
+          await looks.load(userId: store.session?.user.id)
+        }
         .environment(\.csAppearance, $appearance)
         .preferredColorScheme(appearance.colorScheme)
         .csTheme()
@@ -49,16 +65,29 @@ struct CupSeasonApp: App {
         // always nil.
         .csDevTextSize(CSDevHatch.textSize)
         .csToasts(toasts)
-        .task { store.start() }
+        .task {
+          #if DEBUG
+          if CompeteExploration.on { return }
+          #endif
+          store.start()
+        }
         .onChange(of: store.session?.user.id) { before, after in
           if before != nil, before != after { Task { await LiveActivityHost.clearStale() } }
         }
-        .task { await PushService.shared.syncOnLaunch() }
+        .task {
+          #if DEBUG
+          if CompeteExploration.on { return }
+          #endif
+          await PushService.shared.syncOnLaunch()
+        }
         // One row per FOREGROUND, not per `.active`: a banner, the app
         // switcher and Face ID all bounce through `.inactive` and back, and
         // counting those as opens would inflate the number every rate in the
         // design set is divided by. `AppOpenGate` holds that rule.
         .onChange(of: scenePhase, initial: true) { _, phase in
+          #if DEBUG
+          if CompeteExploration.on { return }
+          #endif
           switch phase {
           case .active:     CSTelemetry.sceneBecameActive()
           case .background: CSTelemetry.sceneEnteredBackground()
@@ -68,6 +97,9 @@ struct CupSeasonApp: App {
         // Universal Links: /?join=CODE, /?claim=TOKEN, and — D241/D253 — /?p=
         // and /?plan=. The AASA claims exactly these four queries.
         .onOpenURL { url in
+          #if DEBUG
+          if CompeteExploration.on { return }
+          #endif
           // D155 · the Live Activity's own scheme — the one tap back from a
           // locked phone. Checked first: it carries no query to misread.
           if url.scheme == "cupseason", url.host == CSRoundActivityLink.host {

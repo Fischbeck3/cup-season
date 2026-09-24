@@ -140,4 +140,44 @@ enum SeasonFixture {
       today: "2026-09-06")
   }
 }
+
+// The exploration's table and every headline share this real room model.
+extension SeasonFixture {
+  static func applyExploration(_ f: CompeteExplorationSeason) {
+    let lid = CompeteExploration.id(900)
+    let members = f.names.indices.map { CompeteExploration.id($0 + 1) }
+    let individuals = f.names.indices.map { i in
+      LeagueRoom.IndivStanding(member_id: members[i], points: Double(f.total(f.memberEntries(i))),
+        rounds_posted: f.memberEntries(i).filter(\.round).count)
+    }
+    f.model.seed(
+      viewer: RoomViewer(id: members[1], displayName: "Jerecho", marker: "saguaro", indexCurrent: 12.4, roundsCount: 9),
+      league: .init(id: lid, name: f.title, code: "LOCAL", phase: f.finished ? "complete" : "season", commissioner_id: members[0]),
+      settings: .init(league_id: lid, preset: "custom", counting_cap: f.cap, participation_floor: f.kind == "tie" ? 0 : 2,
+        floor_penalty: "deduct", structure: f.squads ? "squads4" : "solo", finish: "points"),
+      season: .init(id: CompeteExploration.id(901), starts_on: f.upcoming ? "2026-10-05" : "2026-07-06",
+        ends_on: f.upcoming ? "2027-01-17" : "2026-10-18", status: f.finished ? "complete" : "active",
+        champion_member_id: f.finished ? members[0] : nil),
+      members: f.names.indices.map { i in
+        .init(id: members[i], role: i == 0 ? "commissioner" : "player", profile_id: members[i],
+          profile: .init(display_name: f.names[i], marker: markers[i % markers.count], index_current: nil, handle: nil))
+      },
+      squads: f.squads ? (0..<4).map { i in
+        .init(id: CompeteExploration.id(200 + i), name: ["Mudsharks", "Roadrunners", "Coyotes", "Saguaros"][i], color: i,
+          squad_members: (i * 4..<i * 4 + 4).map { .init(member_id: members[$0]) })
+      } : [],
+      squadStandings: f.squads ? (0..<4).map { i in
+        .init(squad_id: CompeteExploration.id(200 + i), points: Double(f.total(f.entries.filter { $0.member.map { $0 / 4 == i } == true || $0.squad == i })))
+      } : [],
+      indiv: individuals,
+      ranked: f.entries.filter(\.round).map { e in
+        .init(member_id: members[e.member!], round_id: e.id, pvi: nil, points: Double(e.points), month_rank: e.counted ? 1 : f.cap + 1,
+          floor_credit: 1, played_on: f.weekDate(e.week), index_at_post: nil, holes_played: 18)
+      },
+      adjustments: f.entries.filter { !$0.round }.map { e in
+        .init(id: e.id, squad_id: e.squad.map { CompeteExploration.id(200 + $0) }, member_id: e.member.map { members[$0] },
+          month: e.week == 4 ? "2026-07-01" : "2026-08-01", kind: e.kind, points: e.points, reason: e.reason)
+      }, today: f.finished ? "2026-10-20" : "2026-09-24")
+  }
+}
 #endif
