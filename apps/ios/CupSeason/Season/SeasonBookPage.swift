@@ -78,6 +78,7 @@ struct SeasonBookPage: View {
     let prominent=SeasonBookSnapshot.prominent(fieldSize:book.field_size,hasSquads:book.hasSquads)
     VStack(alignment:.leading,spacing:CSTokens.Space.s2) {
       Text(book.name).csType(.story)
+      Text("Season \(book.number) · \(book.starts_on) – \(book.ends_on)").csType(.agateS).foregroundStyle(cs.mut)
       Text(book.rules).csType(.bodyS).foregroundStyle(cs.mut)
       if let note=book.rules_note { Text(note).csType(.bodyS).foregroundStyle(cs.mut) }
       if book.hasSquads {
@@ -131,8 +132,9 @@ struct SeasonBookPage: View {
         VStack(spacing:0) {
           HStack(spacing:0) {
             ForEach(book.weeks) { w in
-              VStack(spacing:0) { Text("W\(w.week)"); Text(CSDate.short(w.starts_on)) }.csType(.agateS)
+              VStack(spacing:0) { Text("W\(w.week)"); Text(CSDate.local(w.starts_on)?.formatted(.dateTime.month(.abbreviated).day()) ?? w.starts_on) }.csType(.agateS)
                 .frame(width:width,height:44)
+                .accessibilityLabel("Week \(w.week), starting \(CSDate.short(w.starts_on))")
                 .foregroundStyle(book.live && w.week == book.current_week ? cs.brandInk : cs.ink)
                 .background(book.live && w.week == book.current_week ? cs.brand : cs.bg1)
             }

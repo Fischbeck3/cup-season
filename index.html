@@ -19144,7 +19144,7 @@ function csSeasonBookBody(b,selection){
   if(group==='golfer'&&squads.length)controls+=`<label>Squad contributions <select id="sb-squad" aria-label="Squad contributions">${option('all','Every golfer',squad==='all')}${squads.map(s=>option(s.squad_id,s.name,squad===s.squad_id)).join('')}</select></label>`;
   if(prominent)controls+=`<label>Display <select id="sb-mode" aria-label="Display">${['Weeks','Totals','Race'].map(m=>option(m,m,m===mode)).join('')}</select></label>`;
   if(mode==='Race')controls+=`<label>Follow <select id="sb-follow" aria-label="Follow">${option('leaders','Leading three',follow==='leaders')}${rows.map(r=>option(r.id,r.name,r.id===follow)).join('')}</select></label>`;
-  let h=`<p>${esc(b.name)} · ${esc(SeasonBook.rules(b))}</p>${b.rules_note?`<p>${esc(b.rules_note)}</p>`:''}<div class="sb-controls">${controls}</div>`;
+  let h=`<p>${esc(b.name)} · Season ${b.number} · ${esc(b.starts_on)} – ${esc(b.ends_on)}</p><p>${esc(SeasonBook.rules(b))}</p>${b.rules_note?`<p>${esc(b.rules_note)}</p>`:''}<div class="sb-controls">${controls}</div>`;
   if(group==='golfer'&&squad!=='all')h+='<p>Round contributions. Squad adjustments follow below.</p>';
   if(!b.current_week)return h+'<p>No standing yet. Weeks begin at first tee.</p>';
   const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${esc(r.name)}<small>${esc(SeasonBook.standing(r))}</small><strong>${r.points} pts</strong></button>`;
