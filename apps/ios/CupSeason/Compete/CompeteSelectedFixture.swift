@@ -44,6 +44,7 @@ import CupSeasonKit
 }
 
 struct CompeteSelectedFixtureView: View {
+  @Environment(\.csLookAccent) private var livery
   @State private var path: [UUID] = []
   @State private var presenter=Presenter()
   @State private var receipt: UUID?
@@ -61,6 +62,7 @@ struct CompeteSelectedFixtureView: View {
         }
       }.navigationDestination(for:UUID.self) { id in SeasonPage(leagueId:id,links:links) }
     }.environment(\.presenter,presenter)
+      .tint(livery.accent) // Match the normal MainTabView shell.
       .sheet(item:$receipt) { id in Text("Round receipt fixture · \(id.uuidString)").padding() }
   }
 }

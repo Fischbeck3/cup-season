@@ -19232,7 +19232,7 @@ function csSeasonRowFacts(f, role){
   let status = null;
   if(clash && clash.closes_today) status = 'The clash closes today';
   else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
-  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts, standing:rank==null?null:climbOrd(rank)+(st.points_tied?' · Tied':''), story:upcoming?'No standing yet. First tee is ahead.':gap>0?'You are '+gap+' back from '+(st.leader_name||'the lead')+'.':rank===1?(st.points_tied?'You share the lead.':'You lead the field.'):'The season is underway.' };
+  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts, standing:rank==null?null:climbOrd(rank)+(st.points_tied?' · Tied':''), story:upcoming?'No standing yet. First tee is ahead.':gap>0?'You are '+gap+' back from '+(st.leader_name||'the lead')+'.':rank===1?(st.points_tied?'The lead is shared.':'You lead the season.'):'The season is underway.' };
 }
 /* F13 · A BIRDIE IS A BIRDIE. The risk in celebrating a good hole is FALSE
    recognition, so every rule here is a refusal: par must be KNOWN (an
