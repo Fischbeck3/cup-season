@@ -1,0 +1,5 @@
+apps/ios/CupSeason/CupSeasonApp.swift: Release expressions match pre-prototype 788dd5b after inlining launchRoot = RootView(): PASS
+apps/ios/CupSeason/Compete/CompeteFixture.swift: Release expressions match pre-prototype 788dd5b after inlining launchRoot = RootView(): PASS
+apps/ios/CupSeason/Season/SeasonFixture.swift: Release expressions match pre-prototype 788dd5b after inlining launchRoot = RootView(): PASS
+apps/ios/CupSeason/Compete/CompeteExplorationData.swift: no declarations outside DEBUG: PASS
+apps/ios/CupSeason/Compete/CompeteExplorationView.swift: no declarations outside DEBUG: PASS

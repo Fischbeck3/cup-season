@@ -1,0 +1,12 @@
+{
+  "prototypeCommit": "9959c6204869d5720eead649397d560a026c748b",
+  "sourceSHA256": {
+    "apps/ios/CupSeason/Compete/CompeteExplorationData.swift": "f143c29bcdbedbb1c71a8debea7dedd14556ff2f031b8692ddb8d247836d3583",
+    "apps/ios/CupSeason/Compete/CompeteExplorationView.swift": "1ce96cec6c3d63db0dee38463987188d94db1a5b112867235f4b516198e873ac",
+    "apps/ios/CupSeason/Compete/CompeteFixture.swift": "3dda5fb257b82c276875638c6d8011c41c49ec22a71130449cebfaf07828afea",
+    "apps/ios/CupSeason/CupSeasonApp.swift": "8ecca98abd0feee127481f77c42b532cb9c87e29550907feda7d68e5dd0bbb25",
+    "apps/ios/CupSeason/Season/SeasonFixture.swift": "fd4d789416c88dd385b464005cf705546b6661af85609767d0e0781bcce84698",
+    "apps/ios/CupSeasonTests/CompeteExplorationTests.swift": "281da6ee4e02dc9dfc501c18abbf0a27f43a87c97135ce11ac68a797ad093b74",
+    "apps/ios/CupSeasonUITests/CompeteExplorationUITests.swift": "921a76091ebf70e51e5bab3870e80d191cf931e702c13b3d17233bb8b3149690"
+  }
+}

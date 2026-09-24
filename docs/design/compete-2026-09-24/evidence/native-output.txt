@@ -1,0 +1,73 @@
+Test Suite 'All tests' started at 2026-09-24 08:14:21.645.
+Test Suite 'CupSeasonTests.xctest' started at 2026-09-24 08:14:21.645.
+Test Suite 'AfterGolfPlanRouteTests' started at 2026-09-24 08:14:21.645.
+Test Suite 'AfterGolfPlanRouteTests' passed at 2026-09-24 08:14:21.679.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.032 (0.034) seconds
+Test Suite 'BrandArtifactTests' started at 2026-09-24 08:14:21.679.
+Test Suite 'BrandArtifactTests' passed at 2026-09-24 08:14:21.836.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.157 (0.157) seconds
+Test Suite 'CompeteExplorationTests' started at 2026-09-24 08:14:21.836.
+Test Case '-[CupSeasonTests.CompeteExplorationTests testAllSixPayloadsReconcileWithTheRealSeasonModel]' started.
+Test Case '-[CupSeasonTests.CompeteExplorationTests testAllSixPayloadsReconcileWithTheRealSeasonModel]' passed (0.160 seconds).
+Test Case '-[CupSeasonTests.CompeteExplorationTests testDroppedRoundsAreRetainedAndAdjustmentKindsAreReceipted]' started.
+Test Case '-[CupSeasonTests.CompeteExplorationTests testDroppedRoundsAreRetainedAndAdjustmentKindsAreReceipted]' passed (0.003 seconds).
+Test Case '-[CupSeasonTests.CompeteExplorationTests testFixtureCountFlagsRespectSettingsAndTheFieldIsNotAllTied]' started.
+Test Case '-[CupSeasonTests.CompeteExplorationTests testFixtureCountFlagsRespectSettingsAndTheFieldIsNotAllTied]' passed (0.010 seconds).
+Test Case '-[CupSeasonTests.CompeteExplorationTests testFourSquadsEachHaveFourGolfersAndNoLostContributions]' started.
+Test Case '-[CupSeasonTests.CompeteExplorationTests testFourSquadsEachHaveFourGolfersAndNoLostContributions]' passed (0.003 seconds).
+Test Case '-[CupSeasonTests.CompeteExplorationTests testMissingFutureByeDroppedAndMixedCellsAreDistinct]' started.
+Test Case '-[CupSeasonTests.CompeteExplorationTests testMissingFutureByeDroppedAndMixedCellsAreDistinct]' passed (0.002 seconds).
+Test Case '-[CupSeasonTests.CompeteExplorationTests testTieUsesTheTableStandingAndEveryTotalHasReceipts]' started.
+Test Case '-[CupSeasonTests.CompeteExplorationTests testTieUsesTheTableStandingAndEveryTotalHasReceipts]' passed (0.001 seconds).
+Test Case '-[CupSeasonTests.CompeteExplorationTests testUpcomingHasNoRankOrPretendRoundsAndMultiHasThreeSeasons]' started.
+Test Case '-[CupSeasonTests.CompeteExplorationTests testUpcomingHasNoRankOrPretendRoundsAndMultiHasThreeSeasons]' passed (0.005 seconds).
+Test Suite 'CompeteExplorationTests' passed at 2026-09-24 08:14:22.021.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.183 (0.185) seconds
+Test Suite 'OfflineCoursesModelTests' started at 2026-09-24 08:14:22.021.
+Test Suite 'OfflineCoursesModelTests' passed at 2026-09-24 08:14:22.025.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'RoundCardTests' started at 2026-09-24 08:14:22.025.
+Test Suite 'RoundCardTests' passed at 2026-09-24 08:14:22.033.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.006 (0.008) seconds
+Test Suite 'RoundSharePrivacyTests' started at 2026-09-24 08:14:22.033.
+Test Suite 'RoundSharePrivacyTests' passed at 2026-09-24 08:14:22.034.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'CupSeasonTests.xctest' passed at 2026-09-24 08:14:22.034.
+	 Executed 29 tests, with 0 failures (0 unexpected) in 0.382 (0.389) seconds
+Test Suite 'All tests' passed at 2026-09-24 08:14:22.034.
+	 Executed 29 tests, with 0 failures (0 unexpected) in 0.382 (0.390) seconds
+✔ Test run with 100 tests in 19 suites passed after 2.656 seconds.
+Test Suite 'Selected tests' started at 2026-09-24 08:14:28.640.
+Test Suite 'CupSeasonUITests.xctest' started at 2026-09-24 08:14:28.641.
+Test Suite 'CompeteExplorationUITests' started at 2026-09-24 08:14:28.641.
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testAccessibilityUsesWeekRowsAndSquadsCanSwitchToContributions]' started.
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testAccessibilityUsesWeekRowsAndSquadsCanSwitchToContributions]' passed (10.345 seconds).
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testAllDirectionsOpenSmallLeagueReceiptsWithoutInventingSecondPlace]' started.
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testAllDirectionsOpenSmallLeagueReceiptsWithoutInventingSecondPlace]' passed (21.802 seconds).
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testCellOpensItsReceiptAndDroppedRoundStaysVisible]' started.
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testCellOpensItsReceiptAndDroppedRoundStaysVisible]' passed (8.536 seconds).
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testHorizontalWeeksKeepNamesFixed]' started.
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testHorizontalWeeksKeepNamesFixed]' passed (9.226 seconds).
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testSquadContributionFilterAlsoScopesAdjustments]' started.
+Test Case '-[CupSeasonUITests.CompeteExplorationUITests testSquadContributionFilterAlsoScopesAdjustments]' passed (5.994 seconds).
+Test Suite 'CompeteExplorationUITests' passed at 2026-09-24 08:15:24.552.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 55.904 (55.911) seconds
+Test Suite 'CupSeasonUITests.xctest' passed at 2026-09-24 08:15:24.553.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 55.904 (55.912) seconds
+Test Suite 'Selected tests' passed at 2026-09-24 08:15:24.553.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 55.904 (55.913) seconds
+Test Suite 'All tests' started at 2026-09-24 08:15:25.778.
+Test Suite 'All tests' passed at 2026-09-24 08:15:25.779.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+✔ Test run with 120 tests in 32 suites passed after 0.077 seconds.
+Test Suite 'All tests' started at 2026-09-24 08:15:27.067.
+Test Suite 'CupSeasonKitTests.xctest' started at 2026-09-24 08:15:27.068.
+Test Suite 'RoundScorecardTests' started at 2026-09-24 08:15:27.068.
+Test Suite 'RoundScorecardTests' passed at 2026-09-24 08:15:27.128.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.057 (0.061) seconds
+Test Suite 'CupSeasonKitTests.xctest' passed at 2026-09-24 08:15:27.129.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.057 (0.061) seconds
+Test Suite 'All tests' passed at 2026-09-24 08:15:27.129.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.057 (0.062) seconds
+✔ Test run with 1235 tests in 201 suites passed after 0.885 seconds.
+** TEST SUCCEEDED **

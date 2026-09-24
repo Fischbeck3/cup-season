@@ -1,5 +1,16 @@
 # Cup Season · active work and ownership
 
+## Compete explorations and the Book · 2026-09-24 (Codex) — local owner review
+
+On `codex/compete-explorations-2026-09-24` in `/Users/fischbeck3/cup-season-compete-explore` only. Three working DEBUG directions behind `-cs_dev_compete_exploration`: **Scoreboard** (ember points board), **Race** (points across the season on livery terrain), and **Broadsheet** (dense season/field comparison). The **Book** adds weekly and cumulative points, squads/golfers, squad contributions, a race and receipts, including dropped rounds and reasoned adjustment rows. No money. Small solo seasons get “Rounds & points.” Release keeps the shipped root and startup behavior.
+
+[Proposal, ranked recommendation and owner rulings](../design/compete-2026-09-24/PROPOSAL.md) · [verification and failure history](../design/compete-2026-09-24/VERIFICATION.md). New local gallery: `/Users/fischbeck3/cup-season-compete-explorations-review/index.html`; fixture-only simulator captures cover light/dark, standard/SE and standard AX3. Native checks **1,505 passed**, preflight **0 failures / 0 warnings**, Debug build green. Brief committed first as `788dd5b`, prototypes as `9959c620`; everything is **local and unpushed**.
+
+Owner to choose the direction, live-only ember versus F11’s broader scope, the proposed **10 golfers or squads** Book threshold and small-league fallback, “counting today” versus historical snapshots, and shared points-rank / qualification-seed / final-tiebreak semantics. Recommend Scoreboard with the Book’s Weeks view, then Race, then Broadsheet. Naming is settled: **the Book**.
+
+Found and documented without changing shipped code: the home rank window splits equal points by name while the season table ties them; `LeagueRecord.finish` also uses row position. Shared `CSFigure` labels over ember fail small-text contrast. No migrations, generated assets, production data or other worktrees changed. **Database / Edge / client deploy owed by this exploration: none.** Production implementation awaits the owner’s choice and an approved read contract.
+
+
 ## Owner beta release · EXECUTED 2026-09-23 03:13–03:23 UTC (Claude, on the Mac) — `claude/owner-beta-release`
 
 Both approvals executed exactly as recorded, from a clean worktree of this

@@ -1,0 +1,32 @@
+dark | brand-ink on brand | 5.27
+dark | ink on bg0 | 16.05
+dark | ink on bg1 | 14.1
+dark | ink on bg2 | 11.6
+dark | mut on bg0 | 7.07
+dark | mut on bg1 | 6.21
+dark | brand on bg0 | 5.27
+dark | ink / oldest topo a08 over bg0 | 14.81
+dark | ink / oldest topo a56 over bg1 | 6.42
+dark | mut / oldest topo a08 over bg0 | 6.52
+dark | mut / oldest topo a56 over bg1 | 2.83
+dark | ink / teams topo a08 over bg0 | 14.63
+dark | ink / teams topo a56 over bg1 | 6.19
+dark | mut / teams topo a08 over bg0 | 6.44
+dark | mut / teams topo a56 over bg1 | 2.72
+dark | brand-ink / topo a24 over ember (no text overlap) | 3.51
+light | brand-ink on brand | 5.76
+light | ink on bg0 | 15.49
+light | ink on bg1 | 14.02
+light | ink on bg2 | 12.29
+light | mut on bg0 | 5.85
+light | mut on bg1 | 5.3
+light | brand on bg0 | 5.76
+light | ink / oldest topo a08 over bg0 | 13.57
+light | ink / oldest topo a56 over bg1 | 4.99
+light | mut / oldest topo a08 over bg0 | 5.12
+light | mut / oldest topo a56 over bg1 | 1.88
+light | ink / teams topo a08 over bg0 | 13.72
+light | ink / teams topo a56 over bg1 | 5.49
+light | mut / teams topo a08 over bg0 | 5.18
+light | mut / teams topo a56 over bg1 | 2.07
+light | brand-ink / topo a24 over ember (no text overlap) | 3.65

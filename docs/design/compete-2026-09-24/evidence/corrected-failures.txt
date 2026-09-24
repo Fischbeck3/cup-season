@@ -1,0 +1,64 @@
+cs-compete-debug-build.log
+6133: /Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeason/Compete/CompeteExplorationData.swift:136:9: error: 'self' used in property access 'upcoming' before all stored properties are initialized
+6144:     |         `- error: 'self' used in property access 'upcoming' before all stored properties are initialized
+6302: ** BUILD FAILED **
+
+cs-compete-native-tests.log
+42: 	 Executed 6 tests, with 0 failures (0 unexpected) in 0.033 (0.035) seconds
+49: 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.131 (0.131) seconds
+66: 	 Executed 7 tests, with 0 failures (0 unexpected) in 0.192 (0.194) seconds
+73: 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+98: 	 Executed 11 tests, with 0 failures (0 unexpected) in 0.007 (0.009) seconds
+103: 	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+105: 	 Executed 29 tests, with 0 failures (0 unexpected) in 0.366 (0.374) seconds
+107: 	 Executed 29 tests, with 0 failures (0 unexpected) in 0.366 (0.376) seconds
+446: /Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/CompeteExplorationUITests.swift:57: error: -[CupSeasonUITests.CompeteExplorationUITests testAllDirectionsOpenSmallLeagueReceiptsWithoutInventingSecondPlace] : XCTAssertTrue failed
+483: /Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/CompeteExplorationUITests.swift:57: error: -[CupSeasonUITests.CompeteExplorationUITests testAllDirectionsOpenSmallLeagueReceiptsWithoutInventingSecondPlace] : XCTAssertTrue failed
+520: /Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/CompeteExplorationUITests.swift:57: error: -[CupSeasonUITests.CompeteExplorationUITests testAllDirectionsOpenSmallLeagueReceiptsWithoutInventingSecondPlace] : XCTAssertTrue failed
+579: /Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/CompeteExplorationUITests.swift:23: error: -[CupSeasonUITests.CompeteExplorationUITests testCellOpensItsReceiptAndDroppedRoundStaysVisible] : XCTAssertTrue failed
+648: /Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/CompeteExplorationUITests.swift:29: error: -[CupSeasonUITests.CompeteExplorationUITests testHorizontalWeeksKeepNamesFixed] : XCTAssertTrue failed
+658: /Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/CompeteExplorationUITests.swift:30: error: -[CupSeasonUITests.CompeteExplorationUITests testHorizontalWeeksKeepNamesFixed] : Failed to get matching snapshot: No matches found for Elements matching predicate '"explore.name.member-0" IN identifiers' from input {(
+926: 	 Executed 4 tests, with 6 failures (0 unexpected) in 79.499 (79.503) seconds
+928: 	 Executed 4 tests, with 6 failures (0 unexpected) in 79.499 (79.505) seconds
+930: 	 Executed 4 tests, with 6 failures (0 unexpected) in 79.499 (79.506) seconds
+933: 	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+1278: 	 Executed 16 tests, with 0 failures (0 unexpected) in 0.044 (0.073) seconds
+1280: 	 Executed 16 tests, with 0 failures (0 unexpected) in 0.044 (0.074) seconds
+1282: 	 Executed 16 tests, with 0 failures (0 unexpected) in 0.044 (0.075) seconds
+4173: ** TEST EXECUTE FAILED **
+
+cs-compete-verified-tests.log
+396: 	 Executed 6 tests, with 0 failures (0 unexpected) in 0.027 (0.029) seconds
+406: 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.088 (0.088) seconds
+423: 	 Executed 7 tests, with 0 failures (0 unexpected) in 0.202 (0.204) seconds
+430: 	 Executed 2 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+455: 	 Executed 11 tests, with 0 failures (0 unexpected) in 0.006 (0.008) seconds
+460: 	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+462: 	 Executed 29 tests, with 0 failures (0 unexpected) in 0.327 (0.337) seconds
+464: 	 Executed 29 tests, with 0 failures (0 unexpected) in 0.327 (0.337) seconds
+885: /Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/CompeteExplorationUITests.swift:23: error: -[CupSeasonUITests.CompeteExplorationUITests testCellOpensItsReceiptAndDroppedRoundStaysVisible] : XCTAssertTrue failed
+922: 	 Executed 4 tests, with 1 failure (0 unexpected) in 51.857 (51.862) seconds
+924: 	 Executed 4 tests, with 1 failure (0 unexpected) in 51.857 (51.862) seconds
+926: 	 Executed 4 tests, with 1 failure (0 unexpected) in 51.857 (51.863) seconds
+929: 	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+1274: 	 Executed 16 tests, with 0 failures (0 unexpected) in 0.044 (0.083) seconds
+1276: 	 Executed 16 tests, with 0 failures (0 unexpected) in 0.044 (0.084) seconds
+1278: 	 Executed 16 tests, with 0 failures (0 unexpected) in 0.044 (0.085) seconds
+4165: ** TEST FAILED **
+
+cs-compete-debug-final.log
+203: /Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeason/CupSeasonApp.swift:24:24: error: failed to produce diagnostic for expression; please submit a bug report (https://swift.org/contributing/#reporting-bugs)
+207:     |                        `- error: failed to produce diagnostic for expression; please submit a bug report (https://swift.org/contributing/#reporting-bugs)
+229: ** BUILD FAILED **
+
+cs-compete-final-green.log (runner stalled before executing tests; manually interrupted for isolated simulator restart)
+dAction:isMoreDesinationsPending:actionResultBlock:title:buildLog:executionEnvironment:restorePersistedBuildResults:operationToEnqueue:error:] (in Xcode3Core)
+ 12   -[Xcode3CommandLineBuildTool doBuildForBuildAction:timingSection:colorize:colorizeFailure:error:] (in Xcode3Core)
+ 13   -[Xcode3CommandLineBuildTool _buildWithTimingSection:] (in Xcode3Core)
+ 14   -[Xcode3CommandLineBuildTool run] (in Xcode3Core)
+ 15   XcodeBuildMain (in libxcodebuildLoader.dylib)
+ 16   -[XcodebuildPreIDEHandler loadXcode3ProjectSupportAndRunXcode3CommandLineBuildToolWithArguments:] (in xcodebuild)
+ 17   -[XcodebuildPreIDEHandler runWithArguments:] (in xcodebuild)
+ 18   main (in xcodebuild)
+ 19   start (in dyld)
+
