@@ -482,6 +482,7 @@ private struct SettingsPane: View {
   @Bindable var vm: CardSettingsModel
   let openGuide: (GuideRoute) -> Void
   @State private var push = PushService.shared
+  @State private var scanConsent = ScanConsentStore.shared
   @State private var pricing = PricingFlags.hidden
   /// The Developer section, revealed by a long press on the build line.
   @State private var developer = CSDevHatch.developer
@@ -512,6 +513,20 @@ private struct SettingsPane: View {
       }
       Text("Milestones, results and month closes always come through. Round posts and chat each have their own switch.")
         .csType(.bodyS).foregroundStyle(cs.mut)
+
+      Text("Scorecard scanning").csEyebrow().padding(.top, CSTokens.Space.s4)
+      Toggle(ScanConsentCopy.setting, isOn: Binding(get: { scanConsent.allowed }, set: { value in
+        Task {
+          guard let owner = store.session?.user.id else { return }
+          let saved = await scanConsent.set(value, owner: owner)
+          if !saved { toast.show("Saved on this phone. We’ll retry syncing your choice when you reopen Settings.") }
+        }
+      })).disabled(scanConsent.busy || scanConsent.owner == nil)
+      Text(ScanConsentCopy.settingNote).csType(.bodyS).foregroundStyle(cs.mut)
+      if scanConsent.pendingSync { Text("This choice is saved on this phone; the account update is still pending.").csType(.bodyS).foregroundStyle(cs.mut) }
+      Color.clear.frame(height: 0).task(id: store.session?.user.id) {
+        if let owner = store.session?.user.id { await scanConsent.load(owner: owner) }
+      }
 
       Text("Appearance").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s4)
       CSSegment(CSAppearance.allCases.map { ($0, $0.label) }, selection: appearance)
@@ -595,7 +610,7 @@ private struct SettingsPane: View {
         .buttonStyle(.plain)
         .accessibilityHint("Asks once more before anything happens")
       } else {
-        Text("This can't be undone. Your name, photo, email and profile are removed, notifications stop, and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as \"Former member\".")
+        Text("This can't be undone. Your name, email and profile are removed, your posts and comments are cleared, your shared links stop working, and your photos are queued for removal. Notifications stop and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as \"Former member\".")
           .csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
         A11yStack(spacing: 8) {
           Button {

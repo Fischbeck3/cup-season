@@ -16,6 +16,7 @@ import CupSeasonKit
 @MainActor
 @Observable
 final class Presenter {
+  var linkConfirmation: LinkConfirmation?
   var tourCard: UUID?
   // D261 / R-N · the course used to rise here as a sheet. Wave 4 makes it a
   // PUSHED screen (§7.3: objects are pushed, actions are presented), so it
@@ -100,7 +101,7 @@ final class Presenter {
   /// Is any sheet or cover on stage? The push ask waits for a clear stage;
   /// a routed tap clears it first (D104).
   var anythingUp: Bool {
-    widgetRivalry != nil || tourCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
+    linkConfirmation != nil || widgetRivalry != nil || tourCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
       showFeedback || showDesk || showNote || declare != nil || inviteTo != nil || wizard != nil || draft != nil || runBack != nil ||
       showEventPicker || event != nil || showIntent || showWhenFork || showPickAGolfer ||
       length != nil || callout != nil || calloutReply != nil || forfeit != nil || inviteTerms != nil
@@ -112,6 +113,7 @@ final class Presenter {
   func dismissAll() -> Bool {
     receiptComment = nil; receiptFocusComments = false
     let was = anythingUp
+    linkConfirmation = nil
     widgetRivalry = nil
     tourCard = nil; receipt = nil; scorecard = nil; scheduledRound = nil; showJoin = false; showPost = false; showLive = false
     showFeedback = false; showDesk = false; showNote = false; declare = nil; inviteTo = nil; wizard = nil; draft = nil; runBack = nil

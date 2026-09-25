@@ -40,6 +40,8 @@ struct PostRoundScreen: View {
   @State private var showCamera = false
   /// D298 · the photograph's two doors. The scan has one and always did.
   @State private var askSource = false
+  @State private var askScanConsent = false
+  @State private var scanConsent = ScanConsentStore.shared
 
   var body: some View {
     Group {
@@ -89,6 +91,20 @@ struct PostRoundScreen: View {
         Button(PostPlanCopy.keep, role: .cancel) { m.planAsking = nil }
       }
     } message: { Text(PostPlanCopy.explain(model?.planAsking, typedCourse: model?.card.course ?? "")) }
+    .sheet(isPresented: $askScanConsent) {
+      ScanConsentSheet(busy: scanConsent.busy, agree: {
+        Task {
+          guard let owner = store.session?.user.id else { return }
+          await scanConsent.set(true, owner: owner)
+          guard store.session?.user.id == owner, scanConsent.permits(owner) else { return }
+          askScanConsent = false
+          // The consent sheet must leave before the camera/picker rises.
+          try? await Task.sleep(for: .milliseconds(350))
+          guard store.session?.user.id == owner else { return }
+          presentPicker(.scan)
+        }
+      }, decline: { askScanConsent = false; toast.show(ScanConsentCopy.declined) })
+    }
     .csPhotoSource(model?.photo == nil ? RoundCopy.photoAdd : RoundCopy.photoReplace,
                    isPresented: $askSource, pick: choose)
     .photosPicker(isPresented: $showLibrary, selection: $pick, matching: .images)
@@ -108,6 +124,17 @@ struct PostRoundScreen: View {
   /// one attribute: `capture="environment"` on `#postScanFile`, absent on
   /// `#postPhotoFile`. So the scan keeps the camera and the photo offers both.
   private func present(_ p: PostPickPurpose) {
+    if p == .scan {
+      Task {
+        guard let owner = store.session?.user.id else { return }
+        await scanConsent.load(owner: owner)
+        guard store.session?.user.id == owner else { return }
+        if scanConsent.permits(owner) { presentPicker(p) } else { askScanConsent = true }
+      }
+    } else { presentPicker(p) }
+  }
+
+  private func presentPicker(_ p: PostPickPurpose) {
     pickPurpose = p
     if p == .photo, RoundPhotoSource.asks(cameraAvailable: PostPhoto.cameraAvailable) {
       askSource = true
@@ -130,7 +157,9 @@ struct PostRoundScreen: View {
     guard let model else { return }
     switch pickPurpose {
     case .photo: model.photoPicked(image)
-    case .scan: await model.scanPicked(image)
+    case .scan:
+      guard scanConsent.permits(store.session?.user.id) else { toast.show(ScanConsentCopy.declined); return }
+      await model.scanPicked(image)
     }
   }
 

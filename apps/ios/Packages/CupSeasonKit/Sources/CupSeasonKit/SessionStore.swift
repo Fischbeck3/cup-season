@@ -61,7 +61,11 @@ public final class SessionStore {
   private func handle(_ event: AuthChangeEvent, _ session: Session?) async {
     let changedOwner = self.session?.user.id != session?.user.id
     if changedOwner || event == .initialSession { DispatchSnapshot.claim(owner: session?.user.id) }
-    if changedOwner, self.session != nil { state = .restoring }
+    if changedOwner, self.session != nil {
+      clearPendingActions()
+      PushService.shared.clearLocalRegistration()
+      state = .restoring
+    }
     self.session = session
     await svc.forwardRealtimeAuth(session)
     switch event {
@@ -74,6 +78,8 @@ public final class SessionStore {
         state = .signedOut
       }
     case .signedOut, .userDeleted:
+      clearPendingActions()
+      PushService.shared.clearLocalRegistration()
       state = .signedOut
     case .tokenRefreshed, .userUpdated, .passwordRecovery, .mfaChallengeVerified:
       break
@@ -172,7 +178,11 @@ public final class SessionStore {
   public func signOut() async {
     // Invalidate pending reads before waiting on auth or the network.
     session = nil
+    state = .restoring
     DispatchSnapshot.claim(owner: nil)
+    clearPendingActions()
+    // The SDK still holds this golfer's credentials while the APNs row is removed.
+    await PushService.shared.signOut()
     try? await svc.signOut()
     // OE-2 · the course books are NOT deleted here. D261's rule — a shared
     // phone does not hand one golfer's schedule and rounds to the next — is
@@ -194,6 +204,12 @@ public final class SessionStore {
     // has always cleared it on SIGNED_OUT; this is the phone catching up.
     JoinIntent.clear()
     state = .signedOut
+  }
+
+  private func clearPendingActions() {
+    SessionActionCleanup.clear()
+    ScanConsentStore.shared.reset()
+    URLCache.shared.removeAllCachedResponses()
   }
 
   public var me: Me? {

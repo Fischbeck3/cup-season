@@ -73,7 +73,7 @@ public final class SupabaseService: Sendable {
       supabaseURL: CSConfig.supabaseURL,
       supabaseKey: CSConfig.supabasePublishableKey,
       options: SupabaseClientOptions(
-        auth: .init(flowType: .implicit, emitLocalSessionAsInitialSession: true),
+        auth: .init(storage: DeviceOnlyAuthStorage(), flowType: .implicit, emitLocalSessionAsInitialSession: true),
         global: .init(headers: ["x-client-info": "cupseason-ios"], session: SupabaseService.tunedSession())
       )
     )

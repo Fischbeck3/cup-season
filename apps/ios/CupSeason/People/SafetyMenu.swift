@@ -1,37 +1,4 @@
-// Cup Season — P-17, THE SAFETY BLOCK (L-38; App Store Guideline 1.2;
-// COMPONENT_SYSTEM.md §4 P-17).
-//
-// L-38 is in the immutable wall and this redesign is exactly the kind of change
-// that loses it: `TourCardSheet` carries mute and the two-step report today,
-// and wave 5 promotes that sheet to a PAGE. Promoting it without these controls
-// drops report and block from the surface a golfer most often reaches a person
-// on. So the block is built ONCE, here, and mounted on every surface that
-// renders another golfer's content — the person page, the head-to-head page,
-// the board rows, and the peek sheet, which keeps its own copy too.
-//
-// WHAT THE MENU HOLDS, AND WHY IT IS NOT FOUR ITEMS.
-// P-17's anatomy lists report · block · hide · mute. This product has
-// `report_content`, `set_mute` and a device-local hide. It has NO block
-// mechanic, and `hide_content` is a MODERATOR verb (a Pro takes a post down),
-// not "hide this from me". L-38's own wording settles it —
-//
-//     "Report, block (mute), hide/unhide, suspend, delete account"
-//
-// — and `docs/ios/app-review-notes.md:105` already tells App Review, in terms,
-// that Mute IS the block on this app. So the menu is Mute · Hide this · Report,
-// the mute item names what it actually delivers, and NO item labelled Block is
-// drawn over a mechanic that does not exist (L-32, L-44). A real block —
-// mutual invisibility with the read policies to enforce it — is a class-C
-// mechanic with its own entry, not a menu label.
-//
-// COPY RULE: function first, no euphemism, and never a consequence the app
-// cannot deliver. "Mute" says *hide their rounds from your feeds*, not "you
-// won't hear from them". The report keeps its TWO steps — a reason, then a
-// confirmation — because one tap is an accident.
-//
-// STATES: it renders immediately and needs no data; it is never empty; a failed
-// report keeps the sheet open and says so; a failed mute reverts the row.
-
+// D392 · Block hides content and prevents requests, invites and notifications.
 import SwiftUI
 import CSDesign
 import CupSeasonKit
@@ -40,10 +7,10 @@ import CupSeasonKit
 enum SafetyCopy {
   static let more = "More actions"
   static func moreFor(_ name: String) -> String { "More actions for \(name)" }
-  static func mute(_ name: String) -> String { "Mute \(name)" }
-  static func unmute(_ name: String) -> String { "Unmute \(name)" }
-  static let muteSub = "Hide their rounds from your feeds"
-  static let unmuteSub = "Show their rounds again"
+  static func mute(_ name: String) -> String { "Block \(name.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? "this golfer")" }
+  static func unmute(_ name: String) -> String { "Unblock \(name.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? "this golfer")" }
+  static let muteSub = "You won’t see their posts, and they can’t send you requests, invites or notifications."
+  static let unmuteSub = "Their posts show again, and they can reach you again."
   static let hideThis = "Hide this"
   static let hideSub = "This one item, on this device"
   static let report = "Report"
@@ -54,8 +21,8 @@ enum SafetyCopy {
   static let reportSent = "Reported — the founder desk sees it"
   static let reportFailed = "Could not send that report."
   static let muteFailed = "Could not change that."
-  static func muted(_ name: String) -> String { "Muted. \(name)’s rounds drop off your boards." }
-  static let unmuted = "Unmuted."
+  static func muted(_ name: String) -> String { "Blocked. " + muteSub }
+  static let unmuted = "Unblocked."
   static let hidden = "Hidden here. It stays on their card."
 
   /// The reasons, in the order a reporter scans them. "Something else" is last
@@ -87,7 +54,7 @@ struct CSSafetyMenu: View {
 
   var body: some View {
     Menu {
-      Button(muted ? SafetyCopy.unmute(name) : SafetyCopy.mute(name), systemImage: muted ? "speaker.wave.2" : "speaker.slash") {
+      Button(muted ? SafetyCopy.unmute(name) : SafetyCopy.mute(name), systemImage: muted ? "person.crop.circle.badge.checkmark" : "person.crop.circle.badge.xmark") {
         Task { await toggleMute() }
       }
       if let hideThis {

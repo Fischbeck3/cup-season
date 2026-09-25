@@ -296,6 +296,8 @@ struct MainTabView: View {
   /// has a name on them. Bumped by `onOpenURL` so a link tapped while the app
   /// is already open lands at once.
   @State private var shareTick = 0
+  @State private var linkBusy = false
+  @State private var linkError: String?
   #if DEBUG
   @State private var devOpened = false
   #if DEBUG
@@ -475,7 +477,11 @@ struct MainTabView: View {
     // request from a golfer with no name on them is not a request anybody can
     // answer. `.task(id:)` on the profile is what makes the wait exact.
     .onReceive(NotificationCenter.default.publisher(for: .csShareTokenPending)) { _ in shareTick += 1 }
-    .task(id: ShareDrainKey(profile: store.me?.profile?.id, tick: shareTick)) {
+    .task(id: ShareDrainKey(profile: store.me?.profile?.id, tick: shareTick, occupied: presenter.anythingUp)) {
+      guard !presenter.anythingUp else { return }
+      // Let any previous sheet finish dismissing before presenting the next link.
+      try? await Task.sleep(for: .milliseconds(500))
+      guard !Task.isCancelled else { return }
       await drainShareTokens()
     }
     // D168 · nearby follows the APP. Foreground and opted in = discoverable to
@@ -692,6 +698,12 @@ struct MainTabView: View {
         tab = .you
         presenter.widgetRivalry = id
       }
+    }
+    .sheet(item: Binding(get: { presenter.linkConfirmation }, set: { value in
+      if value == nil { declineLink() }
+    })) { card in
+      LinkConfirmationSheet(card: card, busy: linkBusy, error: linkError,
+                            confirm: { Task { await confirmLink(card) } }, decline: declineLink)
     }
     .csSheet(item: $presenter.widgetRivalry) { id in
       RivalrySheet(opponentId: id, name: BetweenRoundsSnapshot.read()?.rivalry?.value.flatMap { $0.opponent == id ? $0.name : nil } ?? "your rival")
@@ -1000,7 +1012,7 @@ struct MainTabView: View {
   /// What the drain watches: the golfer, and a bump from `onOpenURL`. A change
   /// in either re-runs it; nothing else does, so a redraw never re-spends a
   /// token.
-  private struct ShareDrainKey: Equatable { let profile: UUID?; let tick: Int }
+  private struct ShareDrainKey: Equatable { let profile: UUID?; let tick: Int; let occupied: Bool }
 
   /// D241 / D253 · one token, one act, and the token is retired only when the
   /// server actually answered. `.notYet` means the migration has not landed:
@@ -1008,24 +1020,67 @@ struct MainTabView: View {
   /// the three-state rule wave 5 wrote down after "The board didn't load."
   /// appeared over an account whose board was simply not deployed.
   private func drainShareTokens() async {
-    guard store.me?.profile?.id != nil else { return }
-    let svc = ShareLinkService()
-    for kind in ShareIntent.allCases {
-      guard let token = kind.pending() else { continue }
-      switch await svc.redeem(token) {
-      case .notYet:
-        continue                                   // keep it; try again after the push
-      case .failed(let msg):
-        kind.clear()
-        shellToast.show(msg)
-      case .ok(let r):
-        kind.clear()
-        if let line = r.line { shellToast.show(line) }
+    guard let owner = store.session?.user.id, !presenter.anythingUp, !linkBusy else { return }
+    for kind in LinkConfirmation.Kind.allCases {
+      guard let token = LinkConfirmation.pending(kind) else { continue }
+      if kind == .claim, LiveRoundStore.shared.guest?.token == token { continue }
+      do {
+        if kind == .claim, let state = try? await LiveRepository().guestState(token),
+           let status = state["round"]?["status"]?.string, status != "final" {
+          guard !Task.isCancelled, store.session?.user.id == owner else { return }
+          if status == "abandoned" {
+            ClaimIntent.clear(ifMatching: token)
+            shellToast.show(ClaimDoor.unfinishedLine)
+          }
+          continue // The live pencil keeps its token until a finished card exists.
+        }
+        let info = try await LinkConfirmation.preview(kind: kind, token: token)
+        guard !Task.isCancelled, store.session?.user.id == owner, !presenter.anythingUp,
+              LinkConfirmation.pending(kind) == token else { return }
+        let card = LinkConfirmation(kind: kind, token: token, owner: owner, info: info ?? .null)
+        guard let info, info["claimed"]?.bool != true else { card.clear(); continue }
+        guard kind == .claim || info["kind"]?.string == kind.rawValue else { card.clear(); continue }
+        linkError = nil
+        presenter.linkConfirmation = card
+        return
+      } catch {
+        // Keep unreadable tokens. A transport failure is not an expired link.
+        guard !Task.isCancelled, store.session?.user.id == owner else { return }
+        shellToast.show(HumanError.text(error, prefix: "Could not read that link."))
+      }
+    }
+  }
+
+  private func declineLink() {
+    guard !linkBusy else { return }
+    presenter.linkConfirmation?.clear()
+    presenter.linkConfirmation = nil
+    shareTick += 1
+  }
+
+  private func confirmLink(_ card: LinkConfirmation) async {
+    guard !linkBusy, card.isCurrent(owner: store.session?.user.id) else { return }
+    linkBusy = true; linkError = nil
+    defer { linkBusy = false }
+    if card.kind == .claim {
+      let result = await ClaimFlow.consume(confirmedToken: card.token, stillAuthorized: { card.isCurrent(owner: store.session?.user.id) }, livePencilToken: LiveRoundStore.shared.guest?.token)
+      guard store.session?.user.id == card.owner else { return }
+      if case .failed(let message) = result { linkError = message; return }
+      if let line = result.toast { shellToast.show(line) }
+      presenter.linkConfirmation = nil
+      await store.reload()
+    } else {
+      switch await ShareLinkService().redeem(card.token) {
+      case .notYet: linkError = "That link isn’t ready yet. Try again shortly."; return
+      case .failed(let message): linkError = message; return
+      case .ok(let result):
+        guard store.session?.user.id == card.owner else { return }
+        card.clear()
+        presenter.linkConfirmation = nil
+        if let line = result.line { shellToast.show(line) }
         await store.reload()
-        // land where the link ended: a buddy request is Golfers', a seat is
-        // the tee sheet's. `NavSlot.of(_:)` decides, so the landing and the
-        // route map can never disagree.
-        switch r.outcome {
+        guard store.session?.user.id == card.owner else { return }
+        switch result.outcome {
         case .dead, .mine: break
         case .requested, .buddies: openGolfers()
         case .seated, .planPast:
@@ -1033,6 +1088,7 @@ struct MainTabView: View {
         }
       }
     }
+    shareTick += 1
   }
 
   /// The other cross-tab door. Requests sit at the head of the tab, so landing

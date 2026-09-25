@@ -249,8 +249,7 @@ struct GuestPencilScreen: View {
 enum LiveClaimAfterAuth {
   @MainActor
   static func run(toast: CSToastCenter) async {
-    let pencil = LiveRoundStore.shared.guest?.token
-    if let t = await ClaimFlow.consume(livePencilToken: pencil).toast { toast.show(t) }
+    NotificationCenter.default.post(name: .csShareTokenPending, object: nil)
   }
 }
 

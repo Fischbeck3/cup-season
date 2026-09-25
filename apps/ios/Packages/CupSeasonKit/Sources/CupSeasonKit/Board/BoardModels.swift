@@ -61,7 +61,11 @@ public struct BoardComment: Sendable, Equatable, Identifiable {
   public let id: UUID
   public let who: String
   public let text: String
-  public init(id: UUID = UUID(), who: String, text: String) { self.id = id; self.who = who; self.text = text }
+  public let author: UUID?
+  public let persisted: Bool
+  public init(id: UUID = UUID(), who: String, text: String, author: UUID? = nil, persisted: Bool = false) {
+    self.id = id; self.who = who; self.text = text; self.author = author; self.persisted = persisted
+  }
 }
 
 public enum BoardKind: String, Sendable { case chat, announce, round, moment, system }

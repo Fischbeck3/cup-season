@@ -98,9 +98,10 @@ struct ReactionBar: View {
   private var thread: some View {
     VStack(alignment: .leading, spacing: 6) {
       ForEach(item.comments) { c in
-        (Text(c.who + " ").font(CSType.font(.name)).foregroundStyle(cs.ink)
-          + Text(c.text).font(CSType.font(.body)).foregroundStyle(cs.ink))
-          .fixedSize(horizontal: false, vertical: true)
+        CommentSafetyRow(name: c.who, text: c.text, author: c.author,
+                         target: c.persisted && c.author != store.profileId
+                           ? CommentSafety(id: c.id, kind: .comment, author: c.author, name: c.who) : nil,
+                         refresh: { await store.load() })
       }
       HStack(spacing: 8) {
         TextField("Say something…", text: $draft)

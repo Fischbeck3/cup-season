@@ -59,12 +59,12 @@ struct WizardLockShareSheet: View {
         if let url = share.url {
           A11yStack(spacing: 8) {
             CSMini(WizardCopy.copyLink) {
-              UIPasteboard.general.string = url.absoluteString
+              PrivateLinkPasteboard.copy(url.absoluteString)
               CSHaptic.selection()
               CSGrowth.log(.artifactShared, kind: "join", token: share.code, league: share.leagueId)
             }
             CSMini(WizardCopy.copyMessage) {
-              UIPasteboard.general.string = "\(WizardCopy.inviteText(share.name)): \(url.absoluteString)"
+              PrivateLinkPasteboard.copy("\(WizardCopy.inviteText(share.name)): \(url.absoluteString)")
               CSHaptic.selection()
               CSGrowth.log(.artifactShared, kind: "join", token: share.code, league: share.leagueId)
             }

@@ -653,7 +653,7 @@ struct LiveGroupSheet: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             Spacer()
             HStack(spacing: 10) {
-            CSMini("Copy") { UIPasteboard.general.string = url.absoluteString; toast.show("Scorecard link copied", kind: .confirmed) }
+            CSMini("Copy") { PrivateLinkPasteboard.copy(url.absoluteString); toast.show("Scorecard link copied", kind: .confirmed) }
               .accessibilityLabel("Copy \(L.players[i].n)'s link")
             ShareLink(item: url, message: Text("Your scorecard link for today's round on Cup Season")) {
               Image(systemName: "square.and.arrow.up").font(.system(size: 14, weight: .semibold)).foregroundStyle(cs.ink)

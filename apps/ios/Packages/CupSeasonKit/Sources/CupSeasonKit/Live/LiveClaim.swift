@@ -19,6 +19,9 @@ public enum ClaimIntent {
     defaults.string(forKey: key).flatMap { UUID(uuidString: $0.trimmingCharacters(in: .whitespacesAndNewlines)) }
   }
   public static func clear(defaults: UserDefaults = .standard) { defaults.removeObject(forKey: key) }
+  public static func clear(ifMatching token: UUID, defaults: UserDefaults = .standard) {
+    if pending(defaults: defaults) == token { clear(defaults: defaults) }
+  }
 
   /// `/?claim=TOKEN` (17583).
   public static func token(from url: URL) -> String? {
@@ -145,31 +148,33 @@ public enum ClaimFlow {
   }
 
   /// `livePencilToken`: the token the guest pencil is holding right now, if any.
-  public static func consume(livePencilToken: UUID? = nil, repo: LiveRepository = LiveRepository(), defaults: UserDefaults = .standard) async -> Outcome {
-    guard let tok = ClaimIntent.pending(defaults: defaults) else { return .nothing }
+  @MainActor public static func consume(confirmedToken: UUID, stillAuthorized: () -> Bool = { true }, livePencilToken: UUID? = nil, repo: LiveRepository = LiveRepository(), defaults: UserDefaults = .standard) async -> Outcome {
+    guard stillAuthorized(), let tok = ClaimIntent.pending(defaults: defaults), tok == confirmedToken else { return .nothing }
     if let livePencilToken, livePencilToken == tok { return .nothing }
     // D374 · ask what the round is before claiming it. An abandoned round mints
     // no card: say so once and drop the token. A round still in setup keeps the
     // token and says when. A token that is not a guest seat raises here and
     // falls through to the claim as before.
-    if let early = gate(try? await repo.guestState(tok)) {
-      if case .unfinished = early { ClaimIntent.clear(defaults: defaults) }
+    let guestState = try? await repo.guestState(tok)
+    guard stillAuthorized(), ClaimIntent.pending(defaults: defaults) == tok else { return .nothing }
+    if let early = gate(guestState) {
+      if case .unfinished = early { ClaimIntent.clear(ifMatching: tok, defaults: defaults) }
       return early
     }
     var data: JSONValue?
     var firstErr: Error?
     do { data = try await repo.claimRound(tok) } catch {
+      guard stillAuthorized(), ClaimIntent.pending(defaults: defaults) == tok else { return .nothing }
       firstErr = error
       do { data = try await repo.claimScanRound(tok) } catch {
         let msg = ((firstErr as? RpcError)?.underlying ?? (error as? RpcError)?.underlying ?? error.localizedDescription)
         if msg.range(of: "still live|not live", options: [.regularExpression, .caseInsensitive]) != nil {
           return .stillLive(toast: stillLiveToast)
         }
-        ClaimIntent.clear(defaults: defaults)
         return .failed(toast: HumanError.text(firstErr ?? error, prefix: "Claim failed."))
       }
     }
-    ClaimIntent.clear(defaults: defaults)
+    ClaimIntent.clear(ifMatching: tok, defaults: defaults)
     if data?["already"]?.bool == true { return .already(toast: "That round is already in your rounds") }
     if data?["posted"]?.bool == true {
       let g = data?["gross"]?.int

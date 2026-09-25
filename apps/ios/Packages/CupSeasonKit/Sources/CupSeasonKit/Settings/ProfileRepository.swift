@@ -25,6 +25,7 @@ public struct ProfileRow: Decodable, Sendable {
   public let notify_rounds: Bool?
   public let photo_path: String?
   public let created_at: Date?
+  public let scan_consent_at: String?
 }
 
 public struct ProfileRepository: Sendable {
@@ -33,9 +34,15 @@ public struct ProfileRepository: Sendable {
 
   /// Named columns — `email` is sealed and a `*` would 42501.
   public func load(userId: UUID) async throws -> ProfileRow? {
-    let rows: [ProfileRow] = try await svc.client.from("profiles")
-      .select("id, display_name, handle, marker, city, home_course, index_current, index_source, ghin_number, discoverable, notify_chat, notify_rounds, photo_path, created_at")
-      .eq("id", value: userId).execute().value
+    let columns = "id, display_name, handle, marker, city, home_course, index_current, index_source, ghin_number, discoverable, notify_chat, notify_rounds, photo_path, created_at"
+    let rows: [ProfileRow]
+    do {
+      rows = try await svc.client.from("profiles").select(columns + ", scan_consent_at")
+        .eq("id", value: userId).execute().value
+    } catch {
+      rows = try await svc.client.from("profiles").select(columns)
+        .eq("id", value: userId).execute().value
+    }
     return rows.first
   }
 

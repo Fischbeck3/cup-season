@@ -157,7 +157,7 @@ public final class BoardStore {
       rxBy[k.post_id, default: [:]][e] = s
     }
     var cmBy: [UUID: [BoardComment]] = [:]
-    for c in comments { cmBy[c.post_id, default: []].append(BoardComment(who: member(c.member_id)?.name ?? "Someone", text: c.body)) }
+    for c in comments { cmBy[c.post_id, default: []].append(BoardComment(id: c.id ?? UUID(), who: member(c.member_id)?.name ?? "Someone", text: c.body, author: member(c.member_id)?.profileId, persisted: c.id != nil)) }
     for i in built.indices {
       guard let pid = built[i].postId else { continue }
       built[i].reactions = rxBy[pid] ?? [:]

@@ -104,14 +104,17 @@ struct PersonPage: View {
     // and this would rather draw nothing.
     ZStack(alignment: .topTrailing) {
       credential(l)
-      if let bag = model.bag, bag.visible, !bag.isEmpty {
+      if !c.stranger, let bag = model.bag, bag.visible, !bag.isEmpty {
         bagDoor(bag, name: l.card.profile.displayName)
       }
     }
     .padding(.top, CSTokens.Space.s3)
 
     // ── the status sentence. No round → the line is NOT DRAWN (L-44).
-    statusSentence(c)
+    if c.stranger {
+      Text("Buddies see each other’s rounds and plans.").csType(.body).foregroundStyle(cs.mut)
+        .padding(.top, CSTokens.Space.s4)
+    } else { statusSentence(c) }
 
     // ── the action. One primary, and the tier is chosen by the relationship
     // rather than by the screen.
@@ -120,15 +123,17 @@ struct PersonPage: View {
     // §D-2's order, and the spec argues for it by name: `UI_SYSTEM` §15.2
     // leaves COMPETITION out of the profile entirely and `BRIEF` §10 names it
     // as the second tier. The materials are unchanged; only the order is.
-    leagueBlock(p)
-    rivalryBlock(c, name: p.displayName)
-    formBlock(c)
-    coursesBlock(c, isMe: p.isMe)
-    bagBlock(isMe: p.isMe)
+    if !c.stranger {
+      leagueBlock(p)
+      rivalryBlock(c, name: p.displayName)
+      formBlock(c)
+      coursesBlock(c, isMe: p.isMe)
+      bagBlock(isMe: p.isMe)
+    }
 
     // ── D150's overlap sentence, returned since D150 and thrown away ever
     // since: the reason two golfers start talking.
-    if let line = CredentialCopy.overlap(model.sharedCourses) {
+    if !c.stranger, let line = CredentialCopy.overlap(model.sharedCourses) {
       Text(line).csType(.body).foregroundStyle(cs.mut)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, CSTokens.Space.s4)
@@ -209,6 +214,7 @@ struct PersonPage: View {
   /// carries one only for the viewer, so somebody else's third cell falls to
   /// their best round, which is a fact the card already holds.
   private func figures(_ c: TourCard) -> [CSCredentialGolfer.Figure] {
+    guard !c.stranger else { return [] }
     var out: [CSCredentialGolfer.Figure] = []
     if let idx = c.profile.indexCurrent {
       out.append(.init(CSCopy.index(idx), label: "Handicap index"))
@@ -626,6 +632,8 @@ final class PersonModel {
     sharedCourses = l.card.sharedCourseNames
     state = .card(l)
 
+    bag = nil; h2h = nil
+    guard !l.card.stranger else { return }
     bag = await BagService().load(id)
 
     guard !l.card.profile.isMe else { return }

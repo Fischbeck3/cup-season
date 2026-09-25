@@ -729,7 +729,7 @@ public enum WizardCopy {
   /// 3 · WHAT'S ON IT
   public static let step3 = "Make it yours."
   public static let payLabel = "How do they pay you?"
-  public static let payPlaceholder = "Venmo @galen"
+  public static let payPlaceholder = "Venmo @your-handle"
   public static let payFine = "Everyone who owes will see this. It’s the only place they can look."
   /// The one required field the wizard gains (D225).
   public static let payMissing = "They’ll need somewhere to send it."

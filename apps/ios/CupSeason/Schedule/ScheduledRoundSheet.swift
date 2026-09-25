@@ -196,9 +196,9 @@ struct ScheduledRoundSheet: View {
           ForEach(d.comments) { c in
             HStack(alignment: .top, spacing: CSTokens.Space.s3) {
               CSFace(.seeded(key: c.name, marker: c.marker, initials: Initials.of(c.name)), size: .slat)
-              (Text(c.name).bold().foregroundStyle(cs.ink) + Text(" \(c.body)").foregroundStyle(cs.mut))
-                .csType(.bodyS)
-              Spacer(minLength: 0)
+              CommentSafetyRow(name: c.name, text: c.body, author: c.profileId,
+                               target: !c.mine ? c.commentId.map { CommentSafety(id: $0, kind: .roundComment, author: c.profileId, name: c.name) } : nil,
+                               refresh: { await vm.load() })
             }
           }
         }

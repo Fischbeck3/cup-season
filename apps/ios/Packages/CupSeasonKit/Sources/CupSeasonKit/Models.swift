@@ -25,6 +25,7 @@ public struct Me: Decodable, Sendable {
     /// `CSNumberTrend` and stated in three places on purpose: this repo has
     /// already shipped the opposite once.
     public let index_prev: Double?
+    public let scan_consent_at: String?
     public let index_source: String?
     public let photo_path: String?
     public let rounds_count: Int?
@@ -46,7 +47,8 @@ public struct Me: Decodable, Sendable {
                 index_current: Double?, index_prev: Double? = nil,
                 index_source: String?, photo_path: String?, rounds_count: Int?,
                 member_since: Date?, is_founder: Bool?, last_round_on: String? = nil, last_gross: Int? = nil,
-                last_round_id: UUID? = nil, days_since_round: Int? = nil) {
+                last_round_id: UUID? = nil, days_since_round: Int? = nil, scan_consent_at: String? = nil) {
+      self.scan_consent_at = scan_consent_at
       self.id = id; self.display_name = display_name; self.handle = handle; self.marker = marker; self.city = city
       self.home_course = home_course; self.index_current = index_current
       self.index_prev = index_prev; self.index_source = index_source

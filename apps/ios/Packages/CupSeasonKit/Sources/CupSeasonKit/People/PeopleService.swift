@@ -40,7 +40,8 @@ public struct PeopleService: Sendable {
 
   /// `psSearch` (13161): one letter is enough (pilot: "M" must find @mm…).
   public func search(_ q: String) async throws -> [Person] {
-    try await svc.call(Rpc.search_golfers(p_q: q)).compactMap(Person.init)
+    guard q.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2 else { return [] }
+    return try await svc.call(Rpc.search_golfers(p_q: q)).compactMap(Person.init)
   }
 
   public func friends() async throws -> BuddyLists {

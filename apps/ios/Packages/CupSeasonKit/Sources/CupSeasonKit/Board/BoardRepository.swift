@@ -39,6 +39,7 @@ public struct PostRow: Decodable, Sendable, Equatable {
 public typealias KudoRow = BoardKudos.Row
 
 public struct CommentRow: Decodable, Sendable, Equatable {
+  public var id: UUID? = nil
   public let post_id: UUID
   public let member_id: UUID?
   public let body: String
@@ -190,7 +191,7 @@ public struct SupabaseBoardRepository: BoardRepository {
     // select('*') on post_kudos keeps it deploy-skew safe — a pre-migration
     // table (no emoji column) just defaults every row to 🔥
     async let k: [KudoRow] = db.from("post_kudos").select("*").in("post_id", values: postIds).execute().value
-    async let c: [CommentRow] = db.from("post_comments").select("post_id, member_id, body, created_at")
+    async let c: [CommentRow] = db.from("post_comments").select("id, post_id, member_id, body, created_at")
       .in("post_id", values: postIds).order("created_at", ascending: true).execute().value
     return try await (k, c)
   }

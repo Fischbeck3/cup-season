@@ -40,6 +40,9 @@ public final class PushService {
   private var pendingRegistration: CheckedContinuation<String?, Never>?
   /// Which ask a resume belongs to — a late timeout must never answer the next one.
   private var askGeneration = 0
+  private var registrationGeneration = 0
+  private var registration: Task<Void, Never>?
+  private var enabling: Task<String, Never>?
   private let svc = SupabaseService.shared
 
   private init() {
@@ -92,13 +95,26 @@ public final class PushService {
   /// try twice, then SAY so rather than swallowing it (`catch {}` was how a
   /// tester could carry a phone all weekend with the toggle reading ON and no
   /// row on the server).
-  public func syncOnLaunch() async {
+  public func syncOnLaunch(owner: UUID) async {
+    registration?.cancel()
+    let task = Task { await sync(owner: owner) }
+    registration = task
+    await task.value
+  }
+
+  private func sync(owner: UUID) async {
+    let generation = registrationGeneration
+    guard svc.client.auth.currentUser?.id == owner, !Task.isCancelled else { return }
     let settings = await UNUserNotificationCenter.current().notificationSettings()
     guard settings.authorizationStatus == .authorized else { return }
     guard let tok = await requestAppleToken() else { unconfirmed = enabled; return }
+    guard !Task.isCancelled, generation == registrationGeneration, svc.client.auth.currentUser?.id == owner else { return }
+    UserDefaults.standard.set(tok, forKey: Self.tokenKey)
     for attempt in 1...2 {
+      guard !Task.isCancelled, generation == registrationGeneration, svc.client.auth.currentUser?.id == owner else { return }
       do {
         try await svc.call(Rpc.register_device_token(p_token: tok, p_platform: Self.platform))
+        guard !Task.isCancelled, generation == registrationGeneration, svc.client.auth.currentUser?.id == owner else { return }
         UserDefaults.standard.set(tok, forKey: Self.tokenKey)
         enabled = true
         unconfirmed = false
@@ -112,6 +128,17 @@ public final class PushService {
 
   /// `enablePush` — returns the toast copy to show.
   public func enable() async -> String {
+    if let enabling { return await enabling.value }
+    let task = Task { await enableRegistration() }
+    enabling = task
+    let result = await task.value
+    enabling = nil
+    return result
+  }
+
+  private func enableRegistration() async -> String {
+    guard let owner = svc.client.auth.currentUser?.id else { return "Sign in to enable notifications." }
+    let generation = registrationGeneration
     busy = true
     defer { busy = false }
     let center = UNUserNotificationCenter.current()
@@ -122,15 +149,46 @@ public final class PushService {
     }
     guard status == .authorized else { return "Notifications blocked: allow them in Settings" }
     guard let tok = await requestAppleToken() else { return "Could not get a device token from Apple. Try again." }
+    guard generation == registrationGeneration, svc.client.auth.currentUser?.id == owner else { return "Sign in to enable notifications." }
+    UserDefaults.standard.set(tok, forKey: Self.tokenKey)
     do {
       try await svc.call(Rpc.register_device_token(p_token: tok, p_platform: Self.platform))
     } catch {
       return AuthRules.human(error, fallback: "Could not save this device.")
     }
+    guard generation == registrationGeneration, svc.client.auth.currentUser?.id == owner else { return "Notifications off on this device" }
     UserDefaults.standard.set(tok, forKey: Self.tokenKey)
     enabled = true
     unconfirmed = false
     return "Notifications on. The board will find you."
+  }
+
+  /// Wait for any outstanding launch registration before removing its row.
+  /// A server failure does not prevent the auth sign-out or local cleanup.
+  public func signOut() async {
+    registrationGeneration += 1
+    registration?.cancel()
+    enabling?.cancel()
+    finishAsk(nil)
+    await registration?.value
+    _ = await enabling?.value
+    registration = nil
+    if let token = UserDefaults.standard.string(forKey: Self.tokenKey) {
+      try? await svc.call(Rpc.unregister_device_token(p_token: token))
+    }
+    clearLocalRegistration()
+  }
+
+  public func clearLocalRegistration() {
+    registrationGeneration += 1
+    registration?.cancel()
+    enabling?.cancel()
+    finishAsk(nil)
+    UserDefaults.standard.removeObject(forKey: Self.tokenKey)
+    enabled = false; unconfirmed = false
+    #if canImport(UIKit)
+    UIApplication.shared.unregisterForRemoteNotifications()
+    #endif
   }
 
   /// `disablePush` — the row must go or the phone keeps buzzing after the
@@ -138,12 +196,7 @@ public final class PushService {
   public func disable() async -> String {
     busy = true
     defer { busy = false }
-    if let tok = UserDefaults.standard.string(forKey: Self.tokenKey) {
-      try? await svc.call(Rpc.unregister_device_token(p_token: tok))
-    }
-    UserDefaults.standard.removeObject(forKey: Self.tokenKey)
-    enabled = false
-    unconfirmed = false
+    await signOut()
     return "Notifications off on this device"
   }
 }

@@ -11,8 +11,18 @@
 import Foundation
 
 public enum CSConfig {
+  #if DEBUG
+  public static let auditBackend = UserDefaults.standard.string(forKey: "cs_audit_backend") != "prod"
+  public static let supabaseURL = auditBackend
+    ? URL(string: UserDefaults.standard.string(forKey: "cs_audit_url") ?? "http://127.0.0.1:54321")!
+    : URL(string: "https://zddbfcokmvneltrgukzf.supabase.co")!
+  public static let supabasePublishableKey = auditBackend
+    ? (UserDefaults.standard.string(forKey: "cs_audit_key") ?? "local-development-key")
+    : "sb_publishable_UoORp_4FTRWg6a7foKqxRA_N2f5kHVS"
+  #else
   public static let supabaseURL = URL(string: "https://zddbfcokmvneltrgukzf.supabase.co")!
   public static let supabasePublishableKey = "sb_publishable_UoORp_4FTRWg6a7foKqxRA_N2f5kHVS"
+  #endif
   public static let webOrigin = URL(string: "https://cupseason.app")!
   public static let legalURL = URL(string: "https://cupseason.app/legal.html")!
   /// legal.html#privacy · #terms · #pot

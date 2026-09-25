@@ -25,7 +25,7 @@ struct CupSeasonApp: App {
   @ViewBuilder private var launchRoot: some View {
     #if DEBUG
     Group {
-      if LiveIslandReviewFixture.on { LiveIslandReviewFixtureView() } else if WidgetReviewFixture.on { WidgetReviewFixtureView() } else if MorningReviewFixture.on { MorningReviewFixtureView() } else if CompeteSelectedFixture.on { CompeteSelectedFixtureView() } else if CompeteExploration.on { CompeteExplorationView() } else { RootView() }
+      if SecurityReviewFixture.on { SecurityReviewFixtureView() } else if LiveIslandReviewFixture.on { LiveIslandReviewFixtureView() } else if WidgetReviewFixture.on { WidgetReviewFixtureView() } else if MorningReviewFixture.on { MorningReviewFixtureView() } else if CompeteSelectedFixture.on { CompeteSelectedFixtureView() } else if CompeteExploration.on { CompeteExplorationView() } else { RootView() }
     }
     #else
     RootView()
@@ -45,7 +45,7 @@ struct CupSeasonApp: App {
         // D103a) because an environment written lower down wins.
         .task(id: store.session?.user.id) {
           #if DEBUG
-          if LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
+          if SecurityReviewFixture.on || LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           await looks.load(userId: store.session?.user.id)
         }
@@ -67,18 +67,19 @@ struct CupSeasonApp: App {
         .csToasts(toasts)
         .task {
           #if DEBUG
-          if LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
+          if SecurityReviewFixture.on || LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           store.start()
         }
         .onChange(of: store.session?.user.id) { before, after in
           if before != nil, before != after { Task { await LiveActivityHost.clearStale() } }
         }
-        .task {
+        .task(id: store.session?.user.id) {
           #if DEBUG
-          if LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
+          if SecurityReviewFixture.on || LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
-          await PushService.shared.syncOnLaunch()
+          guard let owner = store.session?.user.id else { return }
+          await PushService.shared.syncOnLaunch(owner: owner)
         }
         // One row per FOREGROUND, not per `.active`: a banner, the app
         // switcher and Face ID all bounce through `.inactive` and back, and
@@ -86,7 +87,7 @@ struct CupSeasonApp: App {
         // design set is divided by. `AppOpenGate` holds that rule.
         .onChange(of: scenePhase, initial: true) { _, phase in
           #if DEBUG
-          if LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
+          if SecurityReviewFixture.on || LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           switch phase {
           case .active:     CSTelemetry.sceneBecameActive()
@@ -98,7 +99,7 @@ struct CupSeasonApp: App {
         // and /?plan=. The AASA claims exactly these four queries.
         .onOpenURL { url in
           #if DEBUG
-          if LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
+          if SecurityReviewFixture.on || LiveIslandReviewFixture.on || WidgetReviewFixture.on || MorningReviewFixture.on || CompeteExploration.on || CompeteSelectedFixture.on { return }
           #endif
           // D155 · the Live Activity's own scheme — the one tap back from a
           // locked phone. New links carry the exact round and golfer; legacy

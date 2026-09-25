@@ -159,7 +159,7 @@ struct LiveRecapSheet: View {
                 checkRow(g.name, "Guest scorecard — share the link", posted: false)
                 if let t = g.token {
                   CSMini("Copy") {
-                    UIPasteboard.general.string = ClaimIntent.url(t).absoluteString
+                    PrivateLinkPasteboard.copy(ClaimIntent.url(t).absoluteString)
                     toast.show("Scorecard link copied", kind: .confirmed)
                   }
                   .accessibilityLabel("Copy \(g.name)'s scorecard link")

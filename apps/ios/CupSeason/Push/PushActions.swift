@@ -15,7 +15,7 @@ enum PushCategories {
     let cats = PushCategory.allCases.map { c in
       UNNotificationCategory(
         identifier: c.rawValue,
-        actions: c.actions.map { UNNotificationAction(identifier: $0.id, title: $0.title, options: []) },
+        actions: c.actions.map { UNNotificationAction(identifier: $0.id, title: $0.title, options: [.authenticationRequired]) },
         intentIdentifiers: [],
         options: [])
     }

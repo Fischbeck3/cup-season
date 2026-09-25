@@ -1224,8 +1224,8 @@ final class LiveRoundStore {
         guest = nil
         state.active = false; state.stage = .setup
         if status == "final" {
-          toast("Round finished — putting your card on your record")
-          Task { if let t = await ClaimFlow.consume().toast { toast(t) } }
+          toast("Round finished — your card is ready to review")
+          NotificationCenter.default.post(name: .csShareTokenPending, object: nil)
         } else { toast("That round was scrapped") }
         leaveRequested = true
         return

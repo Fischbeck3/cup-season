@@ -186,6 +186,8 @@ public struct TourCard: Sendable {
   /// D150 · the course history, and the overlap with mine.
   public let courses: [Course]
   public let sharedCourses: [SharedCourse]
+  /// D393: the face is visible, while the playing record is withheld.
+  public var stranger = false
 
   public static let privateLine = "This golfer keeps their card private, or you don’t share a league yet."
 
@@ -250,7 +252,7 @@ public struct TourCard: Sendable {
     }
     return TourCard(visible: json["visible"]?.bool ?? false, profile: profile, career: career,
                     trophies: trophies, cabinet: cabinet, bestRound: best, recent: recent, vsYou: vs,
-                    courses: courses, sharedCourses: shared)
+                    courses: courses, sharedCourses: shared, stranger: json["stranger"]?.bool ?? false)
   }
 
   /// A Postgres timestamptz as jsonb writes it (with or without fractional

@@ -466,7 +466,9 @@ public struct RoundDetail: Sendable, Equatable {
   }
   public struct Comment: Sendable, Equatable, Identifiable {
     public let name: String, marker: String?, body: String, mine: Bool, at: String?
-    public var id: String { "\(at ?? "")·\(name)·\(body)" }
+    public var commentId: UUID? = nil
+    public var profileId: UUID? = nil
+    public var id: String { commentId?.uuidString ?? "\(at ?? "")·\(name)·\(body)" }
   }
 
   public let id: UUID
@@ -519,7 +521,8 @@ public struct RoundDetail: Sendable, Equatable {
               rsvp: (v["rsvp"]?.array ?? []).map { Rsvp(profileId: $0["profile_id"]?.string.flatMap(UUID.init), name: $0["name"]?.string ?? "A golfer",
                                                         marker: $0["marker"]?.string, status: $0["status"]?.string) },
               comments: (v["comments"]?.array ?? []).map { Comment(name: $0["name"]?.string ?? "", marker: $0["marker"]?.string, body: $0["body"]?.string ?? "",
-                                                                   mine: $0["mine"]?.bool ?? false, at: $0["at"]?.string) },
+                                                                   mine: $0["mine"]?.bool ?? false, at: $0["at"]?.string,
+                                                                   commentId: $0["id"]?.string.flatMap(UUID.init), profileId: $0["profile_id"]?.string.flatMap(UUID.init)) },
               worth: (v["worth"]?.array ?? []).compactMap(RoundWorth.Counters.init),
               name: v["name"]?.string, game: v["game"]?.string)
   }
