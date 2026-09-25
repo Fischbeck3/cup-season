@@ -28,6 +28,13 @@ public struct CSRoundActivity: ActivityAttributes {
     /// rather than truncated in the widget. Optional with a default so an
     /// activity started by an older build still decodes.
     public var compact: String?
+    public var opponent: String?
+    public var result: String?
+    public var detail: String?
+    public var resultThrough: Int?
+    public var score: Int?
+    public var canScore: Bool?
+    public var saveState: String?
 
     public init(hole: Int, par: Int?, thru: Int, holes: Int, game: String?, compact: String? = nil) {
       self.hole = hole; self.par = par; self.thru = thru; self.holes = holes
@@ -37,13 +44,24 @@ public struct CSRoundActivity: ActivityAttributes {
 
   /// Fixed for the life of the round.
   public var course: String
-  public init(course: String) { self.course = course }
+  public var round: UUID?
+  public var owner: UUID?
+  public init(course: String, round: UUID? = nil, owner: UUID? = nil) {
+    self.course = course; self.round = round; self.owner = owner
+  }
 }
 
 public enum CSRoundActivityLink {
   /// Tapping the island or the lock-screen card lands back in the round.
   public static let url = URL(string: "cupseason://live")!
   public static let host = "live"
+  public static func url(round: UUID?, owner: UUID?, review: Bool = false) -> URL {
+    guard let round, let owner else { return url }
+    var link = URLComponents(); link.scheme = "cupseason"; link.host = host
+    link.queryItems = [.init(name: "round", value: round.uuidString), .init(name: "owner", value: owner.uuidString)]
+    if review { link.queryItems?.append(.init(name: "review", value: "1")) }
+    return link.url!
+  }
 }
 
 public extension Notification.Name {

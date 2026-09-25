@@ -99,6 +99,10 @@ struct LivePlayView: View {
     .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(isPresented: $showFinish) { LiveFinishSheet(store: store) }
+    .task(id: store.reviewRequested) {
+      guard store.reviewRequested == s.lr, store.reviewRequested != nil else { return }
+      store.reviewRequested = nil; showCard = true
+    }
     .sheet(isPresented: $showGroup) { LiveGroupSheet(store: store) }
     .sheet(isPresented: $showCard) {
       NavigationStack {

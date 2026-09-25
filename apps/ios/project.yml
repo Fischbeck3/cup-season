@@ -149,6 +149,8 @@ targets:
       - path: Packages/CupSeasonKit/Sources/CupSeasonKit/Home/BetweenRoundsSnapshot.swift
       - path: CupSeason/Widgets/ReplyToTeeIntent.swift
       - path: CupSeason/Widgets/BetweenRoundsWidgetView.swift
+      - path: CupSeason/Widgets/LiveScoreIntent.swift
+      - path: CupSeason/Widgets/LiveMatchActivityView.swift
       - path: CupSeason/Resources/Fonts
         buildPhase: resources
     dependencies:

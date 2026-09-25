@@ -5,8 +5,8 @@
 // finish, scrap, abandon, backing out to setup — and `clearStale()` runs on
 // rehydrate to sweep anything a crash or a force-quit left behind.
 //
-// The content is `LiveCopy.activity(_:)`, the same producer the scoreboard and
-// the card read, so the island cannot drift from the screen.
+// LiveCopy supplies the hole; LiveIsland reads the existing match engines from
+// the golfer's side. No second scoring calculation lives in the extension.
 //
 // Concurrency shape, deliberately: main-actor state holds only the activity's
 // ID — a String — and the ActivityKit calls happen in `nonisolated` functions
@@ -23,11 +23,17 @@ import CupSeasonKit
 enum LiveActivityHost {
 
   private static var currentID: String?
+  private static var updates: Task<Void, Never>?
 
-  private static func facts(_ s: LiveRoundState) -> (CSRoundActivity, CSRoundActivity.ContentState) {
+  static func facts(_ s: LiveRoundState, saveState: String? = nil) -> (CSRoundActivity, CSRoundActivity.ContentState) {
     let f = LiveCopy.activity(s)
-    return (CSRoundActivity(course: f.course),
-            .init(hole: f.hole, par: f.par, thru: f.thru, holes: f.holes, game: f.game, compact: f.compact))
+    let island = LiveIsland.facts(s)
+    var state = CSRoundActivity.ContentState(hole: f.hole, par: f.par, thru: f.thru, holes: f.holes, game: f.game, compact: island.compact)
+    state.opponent = island.opponent; state.result = island.result; state.detail = island.detail
+    state.resultThrough = island.through; state.score = island.score
+    state.canScore = island.canScore; state.saveState = saveState ?? (s.onThisPhone ? "Saved on phone" : nil)
+    let owner = s.meIndex.flatMap { s.players[$0].pid }
+    return (CSRoundActivity(course: f.course, round: s.lr, owner: owner), state)
   }
 
   /// D178 · how long a figure on the lock screen is allowed to claim it is
@@ -48,6 +54,12 @@ enum LiveActivityHost {
   /// stacking a second island.
   static func start(_ s: LiveRoundState) {
     guard ActivityAuthorizationInfo().areActivitiesEnabled, s.active, s.stage == .live else { return }
+    let previousID = currentID
+    currentID = matching(s)
+    if let previousID, previousID != currentID {
+      let previousUpdate = updates
+      Task { await previousUpdate?.value; await Self.stop(id: previousID) }
+    }
     guard currentID == nil else { update(s); return }
     let (attrs, state) = facts(s)
     do {
@@ -61,27 +73,42 @@ enum LiveActivityHost {
     }
   }
 
-  static func update(_ s: LiveRoundState) {
-    guard let id = currentID else { return }
-    guard s.active, s.stage == .live else { Task { await end() }; return }
-    let state = facts(s).1
-    Task { await Self.push(id: id, state: state) }
+  @discardableResult static func update(_ s: LiveRoundState, saveState: String? = nil) -> Task<Void, Never>? {
+    currentID = matching(s)
+    guard let id = currentID else { return nil }
+    guard s.active, s.stage == .live else { Task { await end() }; return nil }
+    let state = facts(s, saveState: saveState).1
+    let previous = updates
+    let task = Task { await previous?.value; await Self.push(id: id, state: state) }
+    updates = task
+    return task
   }
 
   /// Finish, scrap, abandon, backing out to setup — all end it.
   static func end() async {
     guard let id = currentID else { return }
     currentID = nil
+    let pending = updates; updates = nil
+    await pending?.value
     await Self.stop(id: id)
   }
 
   /// A crash or a force-quit can leave one running with no round behind it.
   /// Swept on rehydrate, before anything can tap it.
-  static func clearStale() async {
-    // Never adopt an arbitrary activity: older attributes carry no owner or round ID.
-    // The caller starts the recovered round immediately after this cleanup.
-    currentID = nil
-    for id in await Self.ids() { await Self.stop(id: id) }
+  static func clearStale(keeping state: LiveRoundState? = nil) async {
+    // New activities carry both identities, so a cold intent can keep exactly
+    // its own activity. Legacy, mismatched and signed-out activities end.
+    let keep = state.flatMap(matching)
+    currentID = keep
+    let pending = updates; updates = nil
+    await pending?.value
+    for id in await Self.ids() where id != keep { await Self.stop(id: id) }
+  }
+
+  private static func matching(_ s: LiveRoundState) -> String? {
+    guard let round = s.lr, let me = s.meIndex else { return nil }
+    let owner = s.players[me].pid
+    return Activity<CSRoundActivity>.activities.first { $0.attributes.round == round && $0.attributes.owner == owner }?.id
   }
 
   // MARK: the ActivityKit side — nonisolated, so no handle crosses an actor

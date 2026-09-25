@@ -139,6 +139,7 @@ final class LiveRoundStore {
   var guestEnded: String?
   /// the round ended remotely and the host should leave the play view
   var leaveRequested = false
+  var reviewRequested: UUID?
   var toasts: CSToastCenter?
 
   private(set) var leagueId: UUID?
@@ -154,12 +155,13 @@ final class LiveRoundStore {
   private var rehydrated = false
 
   let repo = LiveRepository()
-  let disk = LiveDisk.shared
-  let session = LiveRoundSession()
+  let disk: LiveDisk
+  let session: LiveRoundSession
   private var eventTask: Task<Void, Never>?
 
-  init(offline: OfflineRounds = .shared) {
+  init(offline: OfflineRounds = .shared, disk: LiveDisk = .shared) {
     self.offline = offline
+    self.disk = disk; self.session = LiveRoundSession(disk: disk)
     eventTask = Task { [weak self] in
       guard let self else { return }
       for await e in session.events { self.handle(e) }
@@ -167,6 +169,17 @@ final class LiveRoundStore {
   }
 
   private func toast(_ s: String) { toasts?.show(s) }
+
+  func offlineActivityRound(owner: UUID, id: UUID) throws -> LiveRoundState? {
+    guard let saved = try offline.round(owner: owner, id: id), saved.active, saved.stage == .live,
+          saved.localCompleted != true else { return nil }
+    return saved
+  }
+  func saveActivityLocal(_ state: LiveRoundState) throws { try offline.save(state) }
+  func adoptActivityRound(_ saved: LiveRoundState, owner: UUID) {
+    state = saved; myPid = owner; guest = nil; scoreOnPhone = saved.onThisPhone
+    rehydrated = true; retiredCard = false; primeMomentLedger()
+  }
 
   // MARK: - identity & the pick list (`primeRealRoster` 7388)
 
@@ -938,10 +951,10 @@ final class LiveRoundStore {
 
   private func markScore(_ pi: Int, _ h: Int) {
     state.ensureClocks()
-    LiveActivityHost.update(state)   // D155 · the island follows the card
-    let now = LiveFmt.now()
+    let now = max(LiveFmt.now(), state.scts[pi][h] + 1)
     state.scts[pi][h] = now
     persist()
+    refreshActivity()
     guard sendable, let pid = state.pmap?[safe: pi] else { return }
     let m = LiveMessage.score(pid: pid, hole0: h, strokes: state.scores[pi][h], cts: now)
     Task { await session.send(m) }
@@ -961,14 +974,19 @@ final class LiveRoundStore {
   }
 
   // D155 · walking holes moves the island too — it shows the hole you are on
-  func prevHole() { state.hole = max(0, state.hole - 1); persist(); LiveActivityHost.update(state) }
+  func prevHole() { state.hole = max(0, state.hole - 1); persist(); refreshActivity() }
   func nextHole() {
     // F13 · the stepper persists every tap, so a score passing through 3 on
     // its way to 5 has already been saved three times. LEAVING the hole is
     // the moment the score stops changing, and that — the existing advance
     // boundary, not a new "submit" — is when a birdie is real.
     commitMoment(leaving: state.hole)
-    state.hole = min(state.liveHoles - 1, state.hole + 1); persist(); LiveActivityHost.update(state)
+    state.hole = min(state.liveHoles - 1, state.hole + 1); persist(); refreshActivity()
+  }
+
+  private func refreshActivity() {
+    guard !retiredCard else { return }
+    LiveActivityHost.update(state, saveState: localSaveError != nil ? "Couldn’t save · open round" : queued > 0 || state.onThisPhone ? "Saved on phone" : nil)
   }
 
   // MARK: - S2 · joining the round that already stands for a booking
@@ -1048,7 +1066,8 @@ final class LiveRoundStore {
   /// `persistLive`: a guest phone never snapshots.
   private func persist() {
     guard guest == nil, state.active, state.lr != nil else { return }
-    if state.onThisPhone { state.ts = LiveFmt.now(); flushLocalCard(); return }
+    state.ts = max(LiveFmt.now(), state.ts + 1)
+    if state.onThisPhone { flushLocalCard(); return }
     let s = state
     Task { await disk.save(s) }
   }
@@ -1146,13 +1165,13 @@ final class LiveRoundStore {
       guard state.active else { return }
       if m.t == "finish" || m.t == "gone" { endedRemotely(m.status ?? "final"); return }
       // F13 · another phone echoing MY scores is sync, not play: arm silently.
-      if LiveMerge.apply(m, to: &state) { persist(); primeMomentLedger() }
+      if LiveMerge.apply(m, to: &state) { persist(); primeMomentLedger(); refreshActivity() }
     case .state(let d):
       guard state.active else { return }
       if let st = LiveMerge.applyState(d, to: &state) { endedRemotely(st); return }
-      persist(); primeMomentLedger()
+      persist(); primeMomentLedger(); refreshActivity()
     case .presence(let names): presence = names
-    case .queued(let n): queued = n
+    case .queued(let n): queued = n; refreshActivity()
     case .status(let s): syncStatus = s
     case .retired(let lr):
       // The strokes cannot land any more. **The STORE keeps the card, not the
@@ -1163,6 +1182,7 @@ final class LiveRoundStore {
       // state for host and guest alike, and it is fresher than the disk.
       guard state.active, state.lr == lr else { return }
       retiredCard = true
+      Task { await LiveActivityHost.end() }
       let card = state
       Task { await disk.retire(card, lr: lr) }
     }
@@ -1273,7 +1293,7 @@ final class LiveRoundStore {
     }
     if let t = out.toast, out.state?.lr != nil || out.retired { toast(t) }
     // D155 · a crash or force-quit can leave an island with no round behind it
-    await LiveActivityHost.clearStale()
+    await LiveActivityHost.clearStale(keeping: state.active ? state : nil)
     if state.active, state.stage == .live { LiveActivityHost.start(state) }
     queued = await session.queued()
     primeMomentLedger()

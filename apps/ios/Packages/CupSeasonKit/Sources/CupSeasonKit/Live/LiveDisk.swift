@@ -98,23 +98,34 @@ public actor LiveDisk {
   /// a stray snapshot would haunt a later sign-up as a round they can't own).
   public func save(_ state: LiveRoundState) {
     guard state.active, let lr = state.lr else { return }
-    var s = state
-    s.ts = LiveFmt.now()
+    try? recoverActivity(lr)
+    var incoming = state
+    if incoming.ts == 0 { incoming.ts = LiveFmt.now() }
+    let s = Self.merging(incoming, with: snapshot(lr))
     if let data = try? enc.encode(s) { try? data.write(to: snapshotURL(lr), options: .atomic) }
   }
 
   /// Every snapshot on disk, newest first.
   public func snapshots() -> [LiveRoundState] {
     let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
-    return files.filter { $0.lastPathComponent.hasPrefix("live-") }
+    for file in files where file.lastPathComponent.hasPrefix("activity-") {
+      if let journal = try? dec.decode(ActivityJournal.self, from: Data(contentsOf: file)), let id = journal.state.lr { try? recoverActivity(id) }
+    }
+    let recovered = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? files
+    let cards = recovered.filter { $0.lastPathComponent.hasPrefix("live-") }
       .compactMap { try? dec.decode(LiveRoundState.self, from: Data(contentsOf: $0)) }
       .filter { $0.lr != nil && !$0.players.isEmpty }
-      .sorted { $0.ts > $1.ts }
+    let journals = recovered.filter { $0.lastPathComponent.hasPrefix("activity-") }
+      .compactMap { try? dec.decode(ActivityJournal.self, from: Data(contentsOf: $0)).state }
+    let ids = Set((cards + journals).compactMap(\.lr))
+    return ids.compactMap { snapshot($0) }.sorted { $0.ts > $1.ts }
   }
 
   /// Snapshot of one round, if any.
   public func snapshot(_ lr: UUID) -> LiveRoundState? {
-    try? dec.decode(LiveRoundState.self, from: Data(contentsOf: snapshotURL(lr)))
+    try? recoverActivity(lr)
+    if let journal = activityJournal(lr) { return Self.merging(journal.state, with: rawSnapshot(lr)) }
+    return rawSnapshot(lr)
   }
 
   /// `clearLiveCache(keep)`: every snapshot but one.
@@ -130,9 +141,16 @@ public actor LiveDisk {
       if let keep, f == snapshotURL(keep) { continue }
       try? FileManager.default.removeItem(at: f)
     }
+    for f in files where f.lastPathComponent.hasPrefix("activity-") {
+      if let keep, f == activityURL(keep) { continue }
+      try? FileManager.default.removeItem(at: f)
+    }
   }
 
-  public func removeSnapshot(_ lr: UUID) { try? FileManager.default.removeItem(at: snapshotURL(lr)) }
+  public func removeSnapshot(_ lr: UUID) {
+    try? FileManager.default.removeItem(at: snapshotURL(lr))
+    try? FileManager.default.removeItem(at: activityURL(lr))
+  }
 
   // MARK: the unsynced card
 
@@ -162,12 +180,7 @@ public actor LiveDisk {
   /// finds NO live round on the server at all: whatever is on this phone was
   /// lost involuntarily, and a card with strokes in it is worth keeping.
   public func retireAll() {
-    let files = (try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? []
-    for f in files where f.lastPathComponent.hasPrefix("live-") {
-      if let s = try? dec.decode(LiveRoundState.self, from: Data(contentsOf: f)), let lr = s.lr {
-        retire(s, lr: lr)
-      }
-    }
+    for s in snapshots() { if let lr = s.lr { retire(s, lr: lr) } }
   }
 
   /// Every kept card, newest first.
@@ -191,15 +204,43 @@ public actor LiveDisk {
   // MARK: the write queue (`liveSync.q / saveQ`)
 
   public func queue(_ lr: UUID) -> [LiveMessage] {
-    (try? dec.decode([LiveMessage].self, from: Data(contentsOf: queueURL(lr)))) ?? []
+    try? recoverActivity(lr)
+    return Self.union(rawQueue(lr), activityJournal(lr)?.pending ?? [])
   }
 
   public func saveQueue(_ lr: UUID, _ q: [LiveMessage]) {
     let capped = Array(q.suffix(LiveDisk.queueCap))
-    if let data = try? enc.encode(capped) { try? data.write(to: queueURL(lr), options: .atomic) }
+    do {
+      try enc.encode(capped).write(to: queueURL(lr), options: .atomic)
+      if var journal = activityJournal(lr) {
+        journal.pending = journal.pending.filter { m in capped.contains { $0.t == m.t && $0.pid == m.pid && $0.h == m.h && $0.cts == m.cts } }
+        try enc.encode(journal).write(to: activityURL(lr), options: .atomic)
+        try? recoverActivity(lr)
+      }
+    } catch { /* Preserve the journal for a later retry. */ }
   }
 
   public func removeQueue(_ lr: UUID) { try? FileManager.default.removeItem(at: queueURL(lr)) }
+
+  /// Mutate the current queue on the actor, never a stale copy held over RPC.
+  public func enqueue(_ message: LiveMessage, round: UUID) {
+    saveQueue(round, Self.union(queue(round), [message]))
+  }
+  @discardableResult public func acknowledge(_ message: LiveMessage, round: UUID) -> Bool {
+    saveQueue(round, queue(round).filter { !Self.sameWrite($0, message) })
+    return !queue(round).contains { Self.sameWrite($0, message) }
+  }
+  public func retry(_ message: LiveMessage, round: UUID, limit: Int) {
+    var q = queue(round)
+    if let i = q.firstIndex(where: { Self.sameWrite($0, message) }) {
+      q[i].tries = (q[i].tries ?? 0) + 1
+      if q[i].tries! > limit { q.remove(at: i) }
+      saveQueue(round, q)
+    }
+  }
+  private static func sameWrite(_ a: LiveMessage, _ b: LiveMessage) -> Bool {
+    a.t == b.t && a.pid == b.pid && a.h == b.h && a.cts == b.cts
+  }
 
   // MARK: pending abandons (`PENDA_KEY`)
 

@@ -379,6 +379,14 @@ struct BootFailedView: View {
     // again. Coming back to the app is the moment signal has usually returned,
     // so the boot retries itself then — and the live round rehydrates with it.
     // Not while the offline scorecard is up: that screen owns the phone.
+    .task(id: LiveActivityRoute.shared.pending) {
+      guard let destination = LiveActivityRoute.shared.pending else { return }
+      LiveActivityRoute.shared.pending = nil
+      do {
+        try await LiveRoundStore.shared.openActivityRound(destination, currentOwner: { store.session?.user.id })
+        offlineLive = true
+      } catch { /* Keep the offline door visible if the exact owned card is unavailable. */ }
+    }
     .onChange(of: phase) { _, now in
       guard now == .active, !offlineLive else { return }
       Task { await store.reload() }

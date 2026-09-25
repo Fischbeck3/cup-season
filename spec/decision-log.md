@@ -4700,6 +4700,18 @@ each remains reversible on its own line.)*
 - **Tradeoffs:** a second Xcode target (widget extension) and a lifecycle to keep honest — an activity that outlives its round is worse than no activity, so ending it is wired to finish, scrap and abandon, and a stale one is cleared on launch. Live Activities are iOS 16.1+; the app targets 17+, so no floor moves.
 - **CONFLICT:** none.
 
+**UI amendment · September 25, 2026:** Owner selected “Build match first.”
+The expanded Island and Lock Screen Live Activity now add authenticated controls
+for the golfer's own score: Previous, − / +, Next, then Review round on the last
+hole. Navigation never fills a score. Compact remains a glance and an app link.
+`LiveIsland` derives the signed-in side's result from the existing engines;
+`LiveCopy` still supplies hole facts. A just-score round may show the golfer's
+gross. New activities carry round and owner identity, and cold recovery keeps
+only the matching activity. This amends the display-only layout and blanket
+launch cleanup above; competition rules and the ban on per-hole Cup points stand.
+See [IOS-083](../docs/ios/DECISIONS.md#ios-083--match-first-with-the-golfers-own-score--approved-september-25-2026)
+and [implementation/handoff](../docs/ios/match-first-live-activity.md).
+
 ### D156 · Proximity is Bluetooth, never location — and a nearby phone is a HINT, not an identity
 *(2026-08-30. New privacy surface, level 4. Owner: "Friend and location awareness? I build a round, app sees Galen and Jade are in proximity and 'Add Jade, Add Galen' populate".)*
 - **Current mechanic:** none. The picker has no idea who is standing next to you.

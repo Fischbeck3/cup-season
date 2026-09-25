@@ -458,6 +458,17 @@ struct MainTabView: View {
     .onReceive(NotificationCenter.default.publisher(for: .csOpenLiveRound)) { _ in
       presenter.showLive = true
     }
+    .task(id: LiveActivityRoute.shared.pending) {
+      guard let destination = LiveActivityRoute.shared.pending, let owner = store.me?.profile?.id else { return }
+      LiveActivityRoute.shared.pending = nil
+      guard destination.owner == owner else { return }
+      let live = LiveRoundStore.shared
+      await live.configure(me: store.me, preferredLeague: store.preferredLeague)
+      do {
+        try await live.openActivityRound(destination, currentOwner: { store.session?.user.id })
+        presenter.showLive = true
+      } catch { /* An old activity must never open a different round. */ }
+    }
     // D241 / D253 · spend a pending person or plan token. It is drained HERE,
     // not in `onOpenURL`, because a link tapped on a phone with no session has
     // to survive the whole door — email, code, golfer card — and a buddy

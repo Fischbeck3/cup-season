@@ -1381,3 +1381,24 @@ Ryder results are not blended into that number. Unknown nine totals stay absent.
 WidgetKit owns placement and notification chrome. Cached facts show their age,
 and a failed read cannot advance their clock. This supplements IOS-034's
 presentation and action scope. [Implementation and limitations](between-round-widgets.md).
+
+## IOS-083 · Match first, with the golfer's own score — approved September 25, 2026
+
+Owner selected the second Dynamic Island direction: “Build match first.”
+D155's display-only live round gains Previous / score − and + / Next in the
+expanded Island and its Lock Screen counterpart. The compact Island remains
+a glance and opens the round. Match status stays prominent and comes from the
+existing live engines; its perspective names the signed-in golfer's side.
+No Cup points, new match rules, or inferred hole scores are introduced.
+
+Navigation does not score a hole. An explicit first + uses the card's par,
+following the existing live stepper; a blank score remains blank until then.
+Only the signed-in golfer's own row can be edited here. Old activities without
+round/owner identity and guest pencils remain open-the-round surfaces. The
+last-hole action opens review; it never finishes or posts in the background.
+
+The app process authenticates, recovers the same account-owned round, and
+durably saves the score and pending existing RPC write before confirming the
+action. Cached match results say how far they are scored and pending writes
+say they are saved on the phone. Device authentication is still required.
+This is a native surface and persistence change, not a competition mechanic.

@@ -147,10 +147,8 @@ public actor LiveRoundSession {
   public func send(_ m: LiveMessage, broadcastOnly: Bool = false) async {
     if let ch = channel { try? await ch.broadcast(event: "live", message: m.wire) }
     guard !broadcastOnly, let lr else { return }
-    var q = await disk.queue(lr)
-    q.append(m)
-    await disk.saveQueue(lr, q)
-    cont.yield(.queued(min(q.count, LiveDisk.queueCap)))
+    await disk.enqueue(m, round: lr)
+    cont.yield(.queued(await disk.queue(lr).count))
     await flush()
   }
 
@@ -161,16 +159,14 @@ public actor LiveRoundSession {
     guard !flushing, let lr else { return }
     flushing = true
     defer { flushing = false }
-    var q = await disk.queue(lr)
-    while let m = q.first {
+    while self.lr == lr, let m = await disk.queue(lr).first {
       do {
         if m.t == "score", let pid = m.pid, let h = m.h {
           try await repo.setScore(lr: lr, player: pid, hole: h, strokes: m.s, cts: m.cts, guest: guest)
         } else if m.t == "wolf", let h = m.h {
           try await repo.setWolf(lr: lr, hole: h, pick: m.w ?? .null, cts: m.cts, guest: guest)
         }
-        q.removeFirst()
-        await disk.saveQueue(lr, q)
+        guard await disk.acknowledge(m, round: lr) else { break }
       } catch {
         let msg = (error as? RpcError)?.underlying ?? error.localizedDescription
         if LiveRoundSession.isDeadWrite(msg) {
@@ -189,18 +185,15 @@ public actor LiveRoundSession {
           // cannot land — but the round survives as something the golfer can
           // post himself.
           await disk.retireSnapshot(lr)
-          q.removeFirst()
-          await disk.saveQueue(lr, q)
           cont.yield(.retired(lr))
+          guard await disk.acknowledge(m, round: lr) else { break }
           continue
         }
-        q[0].tries = (m.tries ?? 0) + 1
-        if q[0].tries! > LiveRoundSession.maxTries { q.removeFirst() }
-        await disk.saveQueue(lr, q)
+        await disk.retry(m, round: lr, limit: LiveRoundSession.maxTries)
         break
       }
     }
-    cont.yield(.queued(q.count))
+    if self.lr == lr { cont.yield(.queued(await disk.queue(lr).count)) }
   }
 
   /// `/not live|final|No such|not in this|function|schema cache/i` (14812).
