@@ -1263,5 +1263,52 @@ from (
   ) as problems
 ) t
 
+-- 50 · I4 · the Book counts what the squad counts. One seat rule answers for the squad
+--     table, the Book's squad receipts and the ladder's month scores; a finished season's
+--     book keeps each line's post time; the Book says frozen and withdrawn.
+union all
+select '50 · the Book counts what the squad counts (I4)',
+  case when problems = '' then 'PASS — one seat rule for the table, the Book, the Race and a tie-break'
+       else 'FAIL — ' || problems end,
+  'pg_get_viewdef(v_squad_standings) × prosrc of season_book, close_season, enter_cup_final × season_book_rows'
+from (
+  select concat_ws('; ',
+    case when to_regprocedure('public._counts_for_seat(uuid, timestamptz)') is null then 'the seat helper is missing' end,
+    case when pg_get_viewdef('public.v_squad_standings'::regclass) not like '%_counts_for_seat%' then 'the squad table has its own seat rule' end,
+    (select string_agg(p.proname, ', ') || ' counts a round the squad does not' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace and p.proname in ('season_book', 'close_season', 'enter_cup_final')
+        and p.prosrc not like '%[I4]%'
+     having count(*) > 0),
+    case when not exists (select 1 from information_schema.columns where table_schema = 'public'
+                            and table_name = 'season_book_rows' and column_name = 'round_created_at')
+         then 'a finished season forgets when its rounds were posted' end
+  ) as problems
+) t
+
+-- 51 · I5 · a withdrawn photo is gone. Every revocation queues a cleanup obligation that
+--     only a storage check can complete; the owner reads and retries it; the service
+--     side is service-role only; nothing new is open signed out.
+union all
+select '51 · a withdrawn photo is gone, not just unlinked (I5)',
+  case when problems = '' then 'PASS — every revocation is an obligation until storage says it is gone'
+       else 'FAIL — ' || problems end,
+  'pg_trigger(shares) × share_cleanup grants × cleanup RPC grants'
+from (
+  select concat_ws('; ',
+    case when to_regclass('public.share_cleanup') is null then 'there is no cleanup obligation' end,
+    case when not exists (select 1 from pg_trigger where tgname = 'shares_queue_cleanup'
+                             and tgrelid = 'public.shares'::regclass and not tgisinternal)
+         then 'a revocation does not queue its cleanup' end,
+    case when to_regclass('public.share_cleanup') is not null
+          and (has_table_privilege('authenticated', 'public.share_cleanup', 'UPDATE')
+               or has_table_privilege('anon', 'public.share_cleanup', 'SELECT'))
+         then 'a client can write or anon can read the obligation' end,
+    case when to_regprocedure('public._share_cleanup_report(uuid, text)') is not null
+          and (has_function_privilege('authenticated', 'public._share_cleanup_report(uuid, text)', 'EXECUTE')
+               or has_function_privilege('anon', 'public.confirm_share_cleanup(uuid)', 'EXECUTE'))
+         then 'a service or owner door is open to the wrong role' end
+  ) as problems
+) t
+
 )
 select * from checks order by check_name;
