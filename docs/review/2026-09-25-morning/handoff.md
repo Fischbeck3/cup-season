@@ -1,5 +1,9 @@
 # Morning review handoff
 
+Owner approved this review on September 25 with “Looks good deploy it.” The
+build-time record below is retained; current release evidence is in
+[deployment.md](deployment.md).
+
 Branch: `codex/play-share-store-review-2026-09-25`
 
 Implementation commit: `46aad31e`. The review artifacts are in the following separate commit.

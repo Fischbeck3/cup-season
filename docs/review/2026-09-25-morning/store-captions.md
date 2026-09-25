@@ -1,6 +1,6 @@
 # App Store presentation candidates
 
-Eight RGB PNGs at **1320 × 2868**, composed from the actual app on an iPhone 17 Pro Max simulator. These are local review candidates; no upload or submission was made.
+Eight RGB PNGs at **1320 × 2868**, composed from the actual app on an iPhone 17 Pro Max simulator. Approved by the owner on September 25 and uploaded to the existing English App Store 1.0 draft. Apple reports all eight COMPLETE, with matching checksums, dimensions and order. The app remains PREPARE_FOR_SUBMISSION; see [deployment.md](deployment.md).
 
 The size is accepted for the 6.9-inch class in [Apple’s screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications), checked September 24, 2026.
 

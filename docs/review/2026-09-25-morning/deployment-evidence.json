@@ -1,0 +1,177 @@
+{
+  "verifiedAt": "2026-09-25T12:30:23.476947+00:00",
+  "native": {
+    "version": "1.0.0",
+    "build": "1022",
+    "sourceCommit": "5ecc9377d120e925a51d12628bd904981a02bc93",
+    "id": "7504a78c-4a53-409e-8cc2-9e90d3176a4d",
+    "processingState": "VALID",
+    "internalBuildState": "IN_BETA_TESTING",
+    "inOwner": true,
+    "inFriends": false,
+    "ipaBytes": 20422704,
+    "ipaSHA256": "7a9f7231e546b1e462bf2e65bf7be0ae2b02ba44cbf7444c29f624c3735f9bcd"
+  },
+  "store": {
+    "version": "fefe6c54-60fe-45b7-a62b-adec129561f8",
+    "localization": "ea3368f0-8482-48bb-aac6-a84856343f98",
+    "set": "fbf217fb-8118-4524-9b9c-64303aa2cfa9",
+    "screenshots": [
+      {
+        "id": "829c4dc6-2730-4d56-b861-811bd22f3389",
+        "fileName": "01-season.png",
+        "md5": "6d42025c60138940f02279146f8b6c38",
+        "sha256": "e85bfa4a4c0c3b90d90c1a33ba57d58169da5e37e469b769cce1f8f21cbda805",
+        "state": "COMPLETE",
+        "dimensions": {
+          "width": 1320,
+          "height": 2868
+        }
+      },
+      {
+        "id": "d6a8058c-1146-4647-a1b2-5b9b45a1807f",
+        "fileName": "02-setup.png",
+        "md5": "260ec78287f0810bd7a54d7234ea1fd5",
+        "sha256": "00e23107f4c5053839b0fffeb0eaf2a4153b01e2f09ea1bae56d4dbfa2ec9122",
+        "state": "COMPLETE",
+        "dimensions": {
+          "width": 1320,
+          "height": 2868
+        }
+      },
+      {
+        "id": "c531e0f8-4caf-42b6-891f-a34e6eb6b267",
+        "fileName": "03-live.png",
+        "md5": "bd6f9840ec011af1a37ad64932acd95a",
+        "sha256": "9f9a31bfd78b8d20d821455f0182ee22de487b8648b6465f69ea224a9f5aba0e",
+        "state": "COMPLETE",
+        "dimensions": {
+          "width": 1320,
+          "height": 2868
+        }
+      },
+      {
+        "id": "5b4dcd09-9a44-4375-bc77-dcbe5cf3ed7b",
+        "fileName": "04-share.png",
+        "md5": "0dad3cb1397aec0ca72a541fe5447648",
+        "sha256": "1589f1649721886641a0169290c08c1141e874d3e945407a2c82ebfa5a1b2185",
+        "state": "COMPLETE",
+        "dimensions": {
+          "width": 1320,
+          "height": 2868
+        }
+      },
+      {
+        "id": "8f239819-7f08-4efa-9c6e-43eb9fca0e29",
+        "fileName": "05-weeks.png",
+        "md5": "2143f65d9cb1f89d06c9cadaca191368",
+        "sha256": "3ea6045a8f4dd66310b88826140191b35b71fca687b111c57c2c942ea79ef798",
+        "state": "COMPLETE",
+        "dimensions": {
+          "width": 1320,
+          "height": 2868
+        }
+      },
+      {
+        "id": "cab5621b-bee7-4bf2-bebc-9c96d40498f2",
+        "fileName": "06-race.png",
+        "md5": "353484d19e0c5db8e43431df7492041a",
+        "sha256": "75748d5774ad5d8cc631e1dced41af256c79a3cb17e501a65dac10fdffad6032",
+        "state": "COMPLETE",
+        "dimensions": {
+          "width": 1320,
+          "height": 2868
+        }
+      },
+      {
+        "id": "a963bff1-3ec0-4a40-908f-10b78d15c730",
+        "fileName": "07-receipt.png",
+        "md5": "de81db841f3988ec21f8aff40f6ca6d9",
+        "sha256": "b2cf4848f06f56a935a9563110242d3fa7636b4e228c91a436d97640624fdd7a",
+        "state": "COMPLETE",
+        "dimensions": {
+          "width": 1320,
+          "height": 2868
+        }
+      },
+      {
+        "id": "4a905fea-9f72-4073-a83d-688b58cefedd",
+        "fileName": "08-finished.png",
+        "md5": "105799c74977f85651cce30a83eba7a9",
+        "sha256": "74e518ec03561d8af0dca25f4fc8090d279fa7e2b2f28d7cdf0b0b6345b95e07",
+        "state": "COMPLETE",
+        "dimensions": {
+          "width": 1320,
+          "height": 2868
+        }
+      }
+    ]
+  },
+  "database": {
+    "applied": 274,
+    "pending": [],
+    "latest": "20261206090000"
+  },
+  "webHTTP": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 1914197,
+      "contentType": "text/html; charset=UTF-8",
+      "stamp": "5ecc937",
+      "frameHeader": "DENY"
+    },
+    {
+      "path": "/sw.js",
+      "status": 200,
+      "bytes": 3388,
+      "contentType": "application/javascript; charset=UTF-8",
+      "stamp": "5ecc937"
+    },
+    {
+      "path": "/get",
+      "status": 200,
+      "bytes": 8894,
+      "contentType": "text/html; charset=UTF-8"
+    },
+    {
+      "path": "/support",
+      "status": 200,
+      "bytes": 8441,
+      "contentType": "text/html; charset=UTF-8"
+    },
+    {
+      "path": "/.well-known/apple-app-site-association",
+      "status": 200,
+      "bytes": 1012,
+      "contentType": "application/json"
+    },
+    {
+      "path": "/CLAUDE.md",
+      "status": 404
+    },
+    {
+      "path": "/supabase/migrations/20261206090000_withdrawal_can_finish.sql",
+      "status": 404
+    },
+    {
+      "path": "/docs/review/2026-09-25-morning/index.html",
+      "status": 404
+    }
+  ],
+  "webSourceParity": [
+    {
+      "file": "index.html",
+      "sha256": "e5b23160d505cc09bc764f10bd9ba84e692e49b4a6c38ad444b167cd09446686",
+      "matchesReviewedSource": true,
+      "normalization": "version stamp; Netlify pretty-URL rewrite of two legal anchors"
+    },
+    {
+      "file": "sw.js",
+      "sha256": "71836e6f45851604f0f4851d535518196e31b276accf1bc1b09f43b83c1a5aee",
+      "matchesReviewedSource": true,
+      "normalization": "version stamp"
+    }
+  ],
+  "ciURL": "https://github.com/Fischbeck3/cup-season/actions/runs/36134241643"
+}

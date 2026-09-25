@@ -7,7 +7,7 @@ Index only — files live where they live. OS layer: `../StudioOS`.
 | vision | `spec/product-vision-v1.0.md` (founding text + clearly marked expansion draft) |
 | next expansion / build plan | `docs/planning/2026-09-12-next-chapter.md` |
 | today release sprint | `docs/planning/2026-09-13-today-release.md` |
-| September 25 local design review: Play, sharing and App Store | `docs/review/2026-09-25-morning/index.html`, `docs/review/2026-09-25-morning/handoff.md` |
+| September 25 approved design release: Play, sharing and App Store | `docs/review/2026-09-25-morning/index.html`, `docs/review/2026-09-25-morning/deployment.md`, `docs/review/2026-09-25-morning/handoff.md` |
 | current agent ownership / queue | `docs/planning/ACTIVE_WORK.md` |
 | next-week prototype / brand proof | `docs/prototypes/next-week.html` |
 | next checkpoint / C0 disposition | `docs/reviews/2026-09-12-next-checkpoint.md` |

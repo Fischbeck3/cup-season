@@ -1,5 +1,23 @@
 # Cup Season · active work and ownership
 
+## Approved Play, sharing and App Store release · 2026-09-25 (Codex)
+
+Owner approved the morning gallery with “Looks good deploy it.” The two
+reviewed commits were fast-forwarded onto main from `afd21ce2` through
+`5ecc9377`, preserving the complete audit integration. **Web live; Owner
+TestFlight 1.0.0 (1022) available; eight approved App Store screenshots COMPLETE
+in the existing 1.0 / en-US draft.** Apple validation and upload passed; read-back
+confirms VALID, Owner YES, IN_BETA_TESTING and Friends no. The app remains
+PREPARE_FOR_SUBMISSION. The documentation follow-up changes no product source.
+
+Release preflight 0 failures / 0 warnings, both GitHub CI jobs green, all eight
+public-round variants passed against live web code with synthetic records.
+Production ledger read confirms 274/274 migrations, none pending; no database,
+Edge or secret changes by this release. Real-phone installation remains for the
+owner. [Deployment evidence and handoff](../review/2026-09-25-morning/deployment.md).
+Owned branch/workspace: `codex/play-share-store-review-2026-09-25` in
+`/private/tmp/cup-season-morning-review`; other workspaces remain untouched.
+
 ## Selected Compete release · 2026-09-24 (Codex) — database and web live; TestFlight held
 
 Owner requested “Push and deploy,” held TestFlight, then directed the Git deployment path. Remote `main` was fast-forwarded from `1e792793` to release `300266e4`; Netlify published it, verified at **2026-09-25 02:06 UTC** (September 24 in Phoenix). HTML and service worker both read `300266e`; signed-out startup, public routes, headers and the publish boundary pass. GitHub Client invariants/Migration hygiene and Supabase Preview pass. Production migration `20261118090000_the_book.sql` is applied: **255 total, none pending**, **37/37 production checks pass**. TestFlight is held; no ASC, archive, upload or Supabase Edge deployment. No merge commit or rebase; all repository work stays on the owned branch in `/Users/fischbeck3/cup-season-compete-explore`. This release-record follow-up changes documentation/evidence only. [Deployment evidence](../design/compete-2026-09-24/DEPLOYMENT.md). Earlier entries below are historical checkpoints.
