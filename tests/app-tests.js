@@ -891,8 +891,8 @@
     t('IA §6.1: one buddy is one buddy',
       csEmptyRoot('compete', { buddies: 1 }).fact, '1 buddy, and none of you is playing for anything.');
     t('L-44: with none, the fact is omitted rather than guessed', empty.fact, null);
-    t('IA §6.1: with no buddies the second door becomes Find golfers',
-      empty.doors.map(d => d.k), ['startSomething', 'findGolfers']);
+    t('IA §6.1 + L-26: with no buddies the second door becomes Find golfers, and the code door is still there',
+      empty.doors.map(d => d.k), ['startSomething', 'findGolfers', 'joinWithCode']);
     t('IA §6.1: with buddies it is the code door',
       csEmptyRoot('compete', { buddies: 3 }).doors.map(d => d.k), ['startSomething', 'joinWithCode']);
     t('IA §10.1: Golfers’ empty root, verbatim', csEmptyRoot('golfers', {}).head, 'No buddies yet.');
@@ -1436,6 +1436,30 @@
        csCovenantFacts(today, 3).some(f => f.k === 'starter'),
        csCovenantFacts(today).some(f => f.k === 'starter')],
       [true, false, false]);
+    /* L-23 · with the structure in the payload the ending says WHAT competes and
+       WHO qualifies, from the bylaws; the floor is never promised to a solo
+       season; a zero share is not an award. No structure = today's sentence. */
+    t('L-23: solo stands alone; no minimum is promised to a solo season',
+      [F({ ...full, structure: 'solo' }).ending, F({ ...full, structure: 'solo' }).rules],
+      ['Everyone plays for themselves. The top two on points meet in a four-week Cup Final.',
+       'Standard rules: honest scores, best three a month count.']);
+    t('L-23: two squads both reach the Final, the leader 10 up',
+      F({ ...full, structure: 'squads2' }).ending,
+      'Two squads, and every round you post counts toward yours. Both squads meet in a four-week Cup Final, and the squad leading on points starts it 10 up.');
+    t('L-23: larger squads send the top two; a points table has no reset',
+      [F({ ...full, structure: 'squads3' }).ending, F({ ...full, structure: 'squads4', finish: 'points_table' }).ending],
+      ['Three squads, and every round you post counts toward yours. The top two squads on points meet in a four-week Cup Final.',
+       "Four squads, and every round you post counts toward yours. The season's points decide it. No reset."]);
+    t('L-23: a season under six weeks is decided by the points table',
+      F({ ...full, structure: 'solo', weeks: 4 }).ending,
+      "Everyone plays for themselves, and the season's points decide it. No reset.");
+    t('L-23: a zero share is left out, and the points king is said once',
+      [F({ ...full, structure: 'solo', split: { champion: 100, runner_up: 0, points_king: 0 } }).split,
+       F({ ...full, structure: 'squads2' }).split],
+      ['If you take it: 100 percent to the champion.',
+       'If you take it: 60 percent to the champion, 25 to the runner-up, 15 to the points king. The points king is the golfer with the most points of their own, whatever the Final does.']);
+    t('L-23: the money sentence stays the constant in every variant',
+      [F({ ...full, structure: 'solo' }).ledger, F({ ...full, structure: 'squads4' }).ledger], [CS_LEDGER, CS_LEDGER]);
     t('D225: the fact ORDER is a value both clients hold',
       CS_COVENANT_FACTS, ['season', 'who', 'length', 'rules', 'ending', 'stake', 'ledger', 'split', 'pay', 'starter']);
     /* D375 · season two is a re-up: the season is the first fact; the finish is the golfer's own (L-44) */

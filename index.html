@@ -9722,10 +9722,13 @@ async function csDeliverLink({ text, url, cardFile, cardBlob, kindLabel }){
   }
   /* no clipboard, or the browser refused it: the link is SHOWN, never claimed as copied */
   openSheet('Your ' + (kindLabel || 'link'), 'COPY IT TO SEND IT',
-    `<input class="f" id="csLinkShown" readonly value="${esc(url)}" style="font-family:var(--mono);font-size:13px" onfocus="this.select()">`
+    `<input class="f" id="csLinkShown" readonly value="${esc(url)}" style="font-family:var(--mono);font-size:13px">`
     + (downloaded ? '<p class="fine">The card was downloaded too.</p>' : '')
     + '<p class="fine">No account is needed to open it.</p>');
-  setTimeout(() => document.getElementById('csLinkShown')?.select(), 50);
+  setTimeout(() => {
+    const f = document.getElementById('csLinkShown');
+    if(f){ f.addEventListener('focus', () => f.select()); f.select(); }
+  }, 50);
   return 'shown';
 }
 window.csDeliverLink = csDeliverLink;
@@ -14097,6 +14100,27 @@ function renderPlay(){
   }
 
   const rows=$('#playerRows'); rows.innerHTML='';
+  /* L-25 · a guest's pencil says what it is: which row is theirs, what a tap
+     does, that the card is theirs to keep — and that signing in is an option.
+     "Sign in instead" leaves the kiosk for the door; the claim link is kept, so
+     the card still lands on their account once the round finishes. */
+  const guestView = !!(state.liveGuest && !state.liveGuest.signedIn);
+  let orient = document.getElementById('guestOrient');
+  if(guestView){
+    if(!orient){
+      orient = document.createElement('div');
+      orient.id = 'guestOrient'; orient.className = 'fine';
+      orient.style.cssText = 'padding:4px 4px 12px;line-height:1.5';
+      orient.innerHTML = 'You are keeping your own card as a guest. Your row is marked <b>YOU</b>: tap + for each stroke. '
+        + 'The card is yours to keep when the round finishes. '
+        + '<button type="button" class="mini" id="guestSignIn" style="margin-left:8px">Sign in instead</button>';
+      rows.parentNode.insertBefore(orient, rows);
+      orient.querySelector('#guestSignIn').addEventListener('click', () => {
+        try{ sessionStorage.setItem('cs_guest_door', '1'); }catch(_){ }
+        location.reload();
+      });
+    }
+  } else if(orient){ orient.remove(); }
   LIVE.forEach((p,pi)=>{
     const s=state.live.scores[pi][h];
     const done=state.live.scores[pi].filter(v=>v!==null);
@@ -14106,7 +14130,7 @@ function renderPlay(){
     const row=document.createElement('div'); row.className='prow';
     row.innerHTML=`
       <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
-      <div class="nm"><b>${esc(p.n)} ${p.guest?'<span class="gtag">GUEST</span>':''}${'<span class="strokedot" title="stroke here"></span>'.repeat(
+      <div class="nm"><b>${esc(p.n)} ${(guestView && p.me) ? '<span class="gtag">YOU</span>' : (p.guest?'<span class="gtag">GUEST</span>':'')}${'<span class="strokedot" title="stroke here"></span>'.repeat(
         state.live.game==='sunningdale'
           ? (liveSolo() ? (sunnSoloStrokesAt(h)[pi]||0)
                         : (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0))   /* D74/D75: positional strokes, not SI */
@@ -14114,9 +14138,9 @@ function renderPlay(){
       <small>${state.live.game==='sunningdale' ? 'NO HCP · STRAIGHT UP' : `${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} NUMBER · ${STROKES[pi]} STROKES`}</small></div>
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
       <div class="step">
-        <button aria-label="Minus ${esc(p.n)}" data-pi="${pi}" data-d="-1">−</button>
+        <button aria-label="One stroke fewer for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="-1">−</button>
         <span class="sv${s!==null && s<PAR[h] ? ' birdie':''}">${s===null?'–':s}</span>
-        <button aria-label="Plus ${esc(p.n)}" data-pi="${pi}" data-d="1">+</button>
+        <button aria-label="One more stroke for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="1">+</button>
       </div>`;
     rows.appendChild(row);
   });
@@ -19037,7 +19061,12 @@ function csMeStrip(){
   /* 2 - LAST. The gross and the day; an older round says its date instead.
      "days since" is never printed - that is the shame line L-22 forbids. */
   const lastR = window.career && (window.career.recent||[])[0];
-  if(lastR && lastR.gross != null && lastR.played_on){
+  /* L-34 · ONE FACT, ONE PLACE: when the feed already LEADS with this very
+     round (the newest row, and it is mine), the strip's LAST stands down */
+  const feedLead = (!state.demo && (window.homeFeedRows||[])[0]) || null;
+  const feedLeadsWithIt = !!(lastR && feedLead && feedLead.is_me && feedLead.round_id === lastR.id);
+  if(feedLeadsWithIt){ /* said by the feed card */ }
+  else if(lastR && lastR.gross != null && lastR.played_on){
     slots.push({ fact:'my_last_round', label:'LAST',
                  value:`${lastR.gross} ${csDayToken(String(lastR.played_on))}`, go:'round', id:lastR.id });
   } else if(window.career && Number(window.career.rounds) === 0){
@@ -19802,8 +19831,10 @@ function csEmptyRoot(which, opts){
   return { state:'empty', head:'Nothing running.',
     fact: has ? `${n} ${n===1?'buddy':'buddies'}, and none of you is playing for anything.` : null,
     sub:'Your next competition starts here — a season, a weekend, or going head to head.',
-    doors:[{k:'startSomething', t:'Start something'},
-           has ? {k:'joinWithCode', t:'I have a code'} : {k:'findGolfers', t:'Find golfers'}] };
+    /* L-26 · the code door is promised everywhere a golfer might arrive with a
+       code, so it is always here; IA §6.1's first two doors keep their places */
+    doors: has ? [{k:'startSomething', t:'Start something'}, {k:'joinWithCode', t:'I have a code'}]
+               : [{k:'startSomething', t:'Start something'}, {k:'findGolfers', t:'Find golfers'}, {k:'joinWithCode', t:'I have a code'}] };
 }
 
 function csEmptyRootHtml(root){
@@ -23966,6 +23997,9 @@ function showProfileGate(){
   if(!$('#pfHandle').value){
     const sug = CS.profile?.handle || csHandleFromName($('#pfName').value || CS.user?.email || '');
     if(sug) $('#pfHandle').value = '@' + sug;
+    /* L-24 · a handle the golfer already HAS is theirs: editing the name never
+       overwrites it. Only a derived suggestion keeps following the name. */
+    if(CS.profile?.handle) pfHandleTouched = true;
   }
   pfCheckHandle();   /* show availability on the pre-filled suggestion right away */
   /* and the MARKER defaults from the handle, deterministically */
@@ -24359,7 +24393,14 @@ $('#pfName')?.addEventListener('input', () => {
   }
   pfCheckHandle();
 });
-$('#pfHandle')?.addEventListener('input', () => { pfHandleTouched = true; pfCheckHandle(); });
+/* L-24 · "touched" means GENUINELY edited: the handle stops following the name
+   only when it differs from what the name derives, so re-typing the suggestion
+   (or clearing back to it) hands it back to the derivation */
+$('#pfHandle')?.addEventListener('input', () => {
+  const typed = String($('#pfHandle').value || '').replace(/^@/, '').trim().toLowerCase();
+  pfHandleTouched = typed !== '' && typed !== csHandleFromName($('#pfName')?.value || '');
+  pfCheckHandle();
+});
 /* D247 · GHIN is OFF onboarding and lives on the card under You, so the
    toggle and its field are gone with the block they opened. */
 
@@ -25804,13 +25845,18 @@ window.openPeoplePicker = openPeoplePicker;
 /* D178 · exported so the guide's "‹ Card & settings" can rebuild this sheet
    rather than restore a photograph of it (every control here is wired in JS
    after openSheet, so pasted innerHTML would come back dead). */
+/* L-26 · delegated once, so the hub's code door works however often the sheet redraws */
+document.addEventListener('click', e => {
+  if(e.target && e.target.id === 'phJoin'){ if(typeof closeSheet === 'function') closeSheet(); window.openJoinSheet?.(); }
+});
 function openProfileHub(){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
   const p = CS.profile;
   phMarker = p.marker || 'saguaro';
   const leagues = (CS.memberships||[]).map(m =>
     `<div class="byrow"><span>${esc(m.league.name)}</span><b>${m.role==='commissioner'?'THE PRO · ':''}${esc(m.league.code)}</b></div>`).join('')
-    || '<p class="fine">No seasons yet. Start one or join with a code.</p>';
+    /* L-26 · the promised code door is a door, not a sentence */
+    || '<p class="fine">No seasons yet. Start one or join with a code.</p><button class="mini" type="button" id="phJoin">I have a code</button>';
   /* You-tab audit (pilot, 2026-07-17): one sheet, two intents, split by
      segment — YOUR CARD (identity: what your buddies see) | SETTINGS (this
      device & account). The old single scroll buried notifications and
@@ -27941,22 +27987,55 @@ function csCovenantFacts(info, postedRounds){
     const clauses = ['honest scores'];
     if(info.every_round_counts === true) clauses.push('every round counts');
     else if(Number(info.counting_cap)) clauses.push('best ' + csWord(Number(info.counting_cap)) + ' a month count');
-    if(Number(info.floor)) clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
+    /* L-23 · an individual season assesses no minimum, so none is promised */
+    if(Number(info.floor) && info.structure !== 'solo') clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
     if(Number(info.handicap_allowance)) clauses.push('scored against your playing HCP — your index at ' + Number(info.handicap_allowance) + ' percent');
     const head = info.preset ? csCap(String(info.preset)) + ' rules: ' : 'The rules: ';
     out.push({ k:'rules', t: head + clauses.join(', ') + '.' });
   }
-  /* the ending, in D126's own sentence rather than a dial name */
-  out.push({ k:'ending', t: info.finish==='points_table'
-    ? "The season's points decide it. No reset."
-    : 'It ends with a four-week Cup Final between the top two.' });
+  /* the ending, in D126's own sentence rather than a dial name. L-23 · with the
+     structure in the payload, the sentence says WHAT competes and WHO qualifies,
+     from the bylaws themselves (the phone's native copy carries the same facts):
+     solo stands alone; squads count together; a two-squad Final takes both, the
+     leader 10 up; larger squads send the top two; a points table has no reset;
+     a season under six weeks is a points-table season (D384). With no structure
+     in the payload (an older server) the sentence is exactly what it was. */
+  const st = info.structure || null;
+  const shortSeason = wk > 0 && wk < 6;
+  const table = info.finish === 'points_table' || shortSeason;
+  const nSq = st === 'squads2' ? 2 : st === 'squads3' ? 3 : st === 'squads4' ? 4 : 0;
+  let ending;
+  if(!st){
+    ending = table ? "The season's points decide it. No reset." : 'It ends with a four-week Cup Final between the top two.';
+  } else if(st === 'solo'){
+    ending = table ? "Everyone plays for themselves, and the season's points decide it. No reset."
+                   : 'Everyone plays for themselves. The top two on points meet in a four-week Cup Final.';
+  } else {
+    const squads = csCap(csWord(nSq || 2)) + ' squads, and every round you post counts toward yours.';
+    ending = table ? squads + " The season's points decide it. No reset."
+      : nSq === 2 ? squads + ' Both squads meet in a four-week Cup Final, and the squad leading on points starts it 10 up.'
+      : squads + ' The top two squads on points meet in a four-week Cup Final.';
+  }
+  if(st && shortSeason && info.finish !== 'points_table') ending += ' Under six weeks there is no Final.';
+  out.push({ k:'ending', t: ending });
   /* L-10 · every money line is ABOVE $0 only */
   if(paid){
     out.push({ k:'stake', t: '$' + usd + ' each.' });
     out.push({ k:'ledger', t: CS_LEDGER });          /* L-09 · the constant, never retyped */
     const sp = info.split;
-    if(sp) out.push({ k:'split', t: 'If you take it: ' + sp.champion + ' percent to the champion, '
-      + sp.runner_up + ' to the runner-up, ' + sp.points_king + ' to the points king.' });
+    if(sp){
+      /* L-23 · a zero share is not an award: it is left out, and the points king
+         is said once in plain words when it pays */
+      const shares = [[sp.champion, 'the champion'], [sp.runner_up, 'the runner-up'], [sp.points_king, 'the points king']]
+        .filter(([p]) => Number(p) > 0);
+      if(shares.length){
+        const said = shares.map(([p, who], i) => (i === 0 ? p + ' percent' : p) + ' to ' + who);
+        const line = said.length === 1 ? said[0] : said.slice(0, -1).join(', ') + ', ' + said[said.length - 1];
+        const kingNote = (info.structure && Number(sp.points_king) > 0)
+          ? ' The points king is the golfer with the most points of their own, whatever the Final does.' : '';
+        out.push({ k:'split', t: 'If you take it: ' + line + '.' + kingNote });
+      }
+    }
     const pay = info.pay || {};
     const hasNote = (pay.has_note !== undefined) ? pay.has_note : info.has_pay_note;
     const due = pay.due_on || info.buy_in_due_on;
@@ -31805,7 +31884,9 @@ async function safeBoot(force){
     try{
       const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
       if(!error) guestSeen = data || null;
-      if(!error && data?.round?.status==='live' && window.enterGuestLive(data, claimTok)) return;
+      /* L-25 · "Sign in instead" asked for the door, not the pencil, this session */
+      let wantsDoor = false; try{ wantsDoor = sessionStorage.getItem('cs_guest_door') === '1'; }catch(_){ }
+      if(!wantsDoor && !error && data?.round?.status==='live' && window.enterGuestLive(data, claimTok)) return;
     }catch(_){}
   }
   /* D87: the same pencil for a SIGNED-IN golfer who isn't in this league — the
