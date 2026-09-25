@@ -4,7 +4,8 @@
 //   - public.push_nudges INSERT     -> one row = one recipient (nudge/invite/request/rsvp)
 //   - public.friendships INSERT/UPDATE -> friend-request EMAIL + accept ping
 //     (the request PUSH rides push_nudges since D104 — see friend_request())
-// Auth: shared secret header (x-push-secret); deploy with --no-verify-jwt.
+// Auth: shared secret header (x-push-secret); deploy with --no-verify-jwt
+// (pinned in supabase/config.toml and read back by tools/ship.sh since C-05).
 //
 // Secrets required (supabase secrets set):
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, PUSH_WEBHOOK_SECRET
@@ -22,6 +23,11 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3';
+import { emailSkip, escapeHtml, mailName, nudgeAuthor, oneLine, SUBJECT_MAX, withTimeout } from './guards.ts';
+
+/* C-08 · every outbound call — web push, APNs, Brevo — gets this long and no
+   longer. A hung endpoint costs one timeout, never the whole fan-out. */
+const OUTBOUND_MS = 8000;
 
 const sb = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -206,37 +212,50 @@ async function sendTo(profileIds: string[], title: string, body: string, r: Rout
   title = clamp(title, TITLE_MAX);
   body = clamp(body, BODY_MAX);
 
+  /* C-08 · the two rails run side by side. Web push used to be awaited in full
+     BEFORE APNs, so one subscription that never answered (any golfer can
+     register any URL) kept every iPhone in the league from ringing. */
+  const [web, apns] = await Promise.allSettled([
+    sendWeb(profileIds, title, body, r),
+    sendApns(profileIds, title, body, r),
+  ]);
+  if (web.status === 'rejected') console.error(`[push] web rail failed msg=${(web.reason as Error)?.message ?? web.reason}`);
+  if (apns.status === 'rejected') console.error(`[apns] rail failed msg=${(apns.reason as Error)?.message ?? apns.reason}`);
+}
+
+async function sendWeb(profileIds: string[], title: string, body: string, r: Route) {
   const { data: subs } = await sb
     .from('push_subscriptions')
     .select('id, endpoint, p256dh, auth')
     .in('profile_id', profileIds);
   if (!subs?.length) {
     console.log(`[push] kind=${r.cs.kind} no web subs for recipients`);
-  } else {
-    /* url stays '/' deliberately: the web client routes nothing per-post, and a
-       link that lands somewhere wrong is worse than one that lands home. The
-       routed payload is APNs-only (below). */
-    const payload = JSON.stringify({ title, body, url: '/' });
-    const dead: string[] = [];
-    let sent = 0;
-    await Promise.all(subs.map(async (s) => {
-      try {
-        await webpush.sendNotification(
-          { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-          payload,
-        );
-        sent++;
-      } catch (e) {
-        const code = (e as { statusCode?: number })?.statusCode;
-        console.error(`[push] send failed code=${code} body=${(e as { body?: string })?.body ?? ''} msg=${(e as Error)?.message ?? e}`);
-        if (code === 404 || code === 410) dead.push(s.id); // subscription expired
-      }
-    }));
-    if (dead.length) await sb.from('push_subscriptions').delete().in('id', dead);
-    console.log(`[push] kind=${r.cs.kind} recipients=${profileIds.length} web sent=${sent} pruned=${dead.length}`);
+    return;
   }
-
-  await sendApns(profileIds, title, body, r);
+  /* url stays '/' deliberately: the web client routes nothing per-post, and a
+     link that lands somewhere wrong is worse than one that lands home. The
+     routed payload is APNs-only (below). */
+  const payload = JSON.stringify({ title, body, url: '/' });
+  const dead: string[] = [];
+  let sent = 0;
+  await Promise.all(subs.map(async (s) => {
+    try {
+      /* web-push's own socket timeout, and a clock over it in case the socket
+         never reports: a timeout is not a dead subscription, so it is kept */
+      await withTimeout(webpush.sendNotification(
+        { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+        payload,
+        { timeout: OUTBOUND_MS },
+      ), OUTBOUND_MS, 'web push');
+      sent++;
+    } catch (e) {
+      const code = (e as { statusCode?: number })?.statusCode;
+      console.error(`[push] send failed code=${code} body=${(e as { body?: string })?.body ?? ''} msg=${(e as Error)?.message ?? e}`);
+      if (code === 404 || code === 410) dead.push(s.id); // subscription expired
+    }
+  }));
+  if (dead.length) await sb.from('push_subscriptions').delete().in('id', dead);
+  console.log(`[push] kind=${r.cs.kind} recipients=${profileIds.length} web sent=${sent} pruned=${dead.length}`);
 }
 
 // ---- APNs (iOS arc W5 · routed since D104) ----------------------------------
@@ -319,7 +338,8 @@ async function sendApns(profileIds: string[], title: string, body: string, r: Ro
   await Promise.all(toks.map(async (t) => {
     /* already clamped by sendTo — no second, divergent budget here */
     const payload = apnsPayload(title, body, r, badges.get(String(t.profile_id)));
-    const post = (host: string) => fetch(`${host}/3/device/${t.token}`, { method: 'POST', headers, body: payload });
+    const post = (host: string) => fetch(`${host}/3/device/${t.token}`,
+      { method: 'POST', headers, body: payload, signal: AbortSignal.timeout(OUTBOUND_MS) });
     const host = hostFor(t.platform);
     try {
       const res = await post(host);
@@ -371,12 +391,15 @@ async function sendEmail(toEmail: string, toName: string, subject: string, html:
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: { 'api-key': key, 'content-type': 'application/json', accept: 'application/json' },
+      signal: AbortSignal.timeout(OUTBOUND_MS),
       body: JSON.stringify({
         // Must be an authorised sender in Brevo — default to the address your
         // auth emails already use; override with the BREVO_SENDER secret.
         sender: { name: 'Cup Season', email: Deno.env.get('BREVO_SENDER') ?? 'hello@cupseason.app' },
-        to: [{ email: toEmail, name: toName || undefined }],
-        subject,
+        /* C-01 · both of these are header text: one line, capped, at the one
+           place every email leaves from */
+        to: [{ email: toEmail, name: oneLine(toName, 70) || undefined }],
+        subject: oneLine(subject, SUBJECT_MAX),
         htmlContent: html,
       }),
     });
@@ -392,10 +415,12 @@ async function sendEmail(toEmail: string, toName: string, subject: string, html:
 }
 
 /* the handle in parentheses was plumbing leaking into a sentence, and the full
-   legal name is not how a friend refers to a friend (D77) */
+   legal name is not how a friend refers to a friend (D77). C-01 · both names
+   are golfers' own text and are escaped here, every use (code audit F7); the
+   requester's is also cut to letters (mailName), since it can be a stranger's. */
 function friendRequestEmail(toName: string, fromName: string) {
-  const greeting = toName ? `Hi ${firstName(toName)},` : 'Hi,';
-  const who = firstName(fromName);
+  const greeting = toName ? `Hi ${escapeHtml(firstName(toName))},` : 'Hi,';
+  const who = escapeHtml(mailName(fromName));
   return `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;color:#1a2620">
     <p style="font-size:16px;line-height:1.5">${greeting}</p>
     <p style="font-size:16px;line-height:1.5"><strong>${who}</strong> wants in your crew on Cup Season.</p>
@@ -421,7 +446,7 @@ Deno.serve(async (req) => {
   if (table === 'friendships') {
     const who = async (id: string) => {
       const { data } = await sb.from('profiles')
-        .select('display_name, handle, email').eq('id', id).maybeSingle();
+        .select('display_name, handle, email, deleted_at').eq('id', id).maybeSingle();
       return data;
     };
     /* the title was the literal app name on both of these — which the OS
@@ -433,8 +458,18 @@ Deno.serve(async (req) => {
          a CS_REQUEST category. This branch keeps the EMAIL only — sending the
          push here too would double it wherever this webhook is wired. */
       const [p, a] = await Promise.all([who(record.requester), who(record.addressee)]);
-      const from = firstName(p?.display_name ?? 'A golfer');
+      const from = mailName(p?.display_name);
       console.log('[push] kind=friend-request channel=email (push rides push_nudges since D104)');
+      /* C-01 · a signed email goes to a finished golfer card only — never to an
+         address somebody typed into a sign-up form (an OTP shell), a deleted
+         account, or a reserved TLD. Same rule as friend_request() (D392). */
+      const skip = emailSkip(a);
+      if (skip) return reply('email-skipped', { kind: 'friend-request', why: skip, friendship: record.id });
+      /* and a golfer who blocked the requester hears nothing from them (§5.3);
+         friend_request() absorbs that already — this is the second lock */
+      if ((await mutersOf(String(record.requester))).has(String(record.addressee))) {
+        return reply('muted', { kind: 'friend-request', channel: 'email', friendship: record.id });
+      }
       // Requests only (pilot decision) — email the person who was added.
       await sendEmail(
         a?.email ?? '', a?.display_name ?? '',
@@ -494,9 +529,12 @@ Deno.serve(async (req) => {
         { thread: 'you', collapseId: record.id });
     }
 
-    /* a muted requester / host does not ring the muter (§5.3) — the author
-       is whoever the payload names */
-    const muters = await mutersOf(pl.profile_id ? String(pl.profile_id) : null);
+    /* a muted requester / host does not ring the muter (§5.3). C-02 · the
+       author is the server-stamped sender (push_nudges.sender_id, D392), not
+       whoever the payload names: invites and live-round nudges named nobody, so
+       a mute never reached them. A system row has no sender and keeps the
+       payload's profile_id. */
+    const muters = await mutersOf(nudgeAuthor(record, pl));
     if (muters.has(String(record.profile_id))) {
       return reply('muted', { kind: nk, nudge: record.id });
     }

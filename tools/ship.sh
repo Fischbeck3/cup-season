@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Cup Season — the deploy prompt. Run it on the Mac, from the repo root.
 #
-#   ./tools/ship.sh            check, then confirm each deploy
-#   ./tools/ship.sh --dry-run  check and print, run nothing
+#   ./tools/ship.sh              check, then confirm each deploy
+#   ./tools/ship.sh --dry-run    check and print, run nothing
+#   ./tools/ship.sh --check-jwt  read verify_jwt back for the webhook functions, nothing else
 #
 # It exists because the three deploys are INDEPENDENT and forgetting one is
 # silent. It always shows all three, asks separately for each, and refuses to
@@ -19,6 +20,45 @@ BOLD=$'\033[1m'; DIM=$'\033[2m'; RED=$'\033[31m'; GRN=$'\033[32m'; OFF=$'\033[0m
 
 say()  { printf '%s\n' "$*"; }
 step() { printf '\n%s==>%s %s\n' "$BOLD" "$OFF" "$*"; }
+
+# --- C-05 · the functions that must run with verify_jwt OFF ------------------
+# Database Webhooks and pg_cron call these with a shared secret and never a JWT.
+# With verification on, the gateway 401s every call before the code runs and
+# pg_net just records it: no pushes, no emails, no photo cleanup, and no error
+# anywhere. supabase/config.toml pins them and the deploy below passes
+# --no-verify-jwt; this reads the setting BACK from the platform, because a pin
+# is a belief and `functions list` is the fact. Unreadable counts as wrong.
+NOJWT="push season-email share-cleanup"
+jwt_gate() {
+  local out
+  out="$(supabase functions list --output-format json 2>&1)" || true
+  if printf '%s' "$out" | RED="$RED" OFF="$OFF" node -e "
+    let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{
+      const {RED,OFF}=process.env, docs=[], rows=[];
+      const tryParse=t=>{try{docs.push(JSON.parse(t));return true;}catch{return false;}};
+      const a=s.search(/[[{]/), z=Math.max(s.lastIndexOf('}'),s.lastIndexOf(']'));
+      if(!tryParse(s) && !(a>=0 && tryParse(s.slice(a,z+1)))) s.split('\n').forEach(tryParse);
+      const walk=v=>{ if(Array.isArray(v)) v.forEach(walk);
+        else if(v&&typeof v==='object'){ if('verify_jwt' in v && (v.slug||v.name)) rows.push(v); Object.values(v).forEach(walk); } };
+      docs.forEach(walk);
+      let bad=0;
+      for(const fn of process.argv[1].split(' ')){
+        const r=rows.find(x=>x.slug===fn)??rows.find(x=>x.name===fn);
+        const fix='supabase functions deploy '+fn+' --no-verify-jwt';
+        if(!r){ bad++; console.log(RED+'  '+fn+': verify_jwt UNKNOWN (not readable from supabase functions list). Check it by hand; if it is on: '+fix+OFF); }
+        else if(r.verify_jwt!==false){ bad++; console.log(RED+'  '+fn+': verify_jwt='+r.verify_jwt+' (every webhook/cron call now 401s). Fix now: '+fix+OFF); }
+        else console.log('  '+fn+': verify_jwt=false');
+      }
+      process.exit(bad?1:0);
+    });" "$NOJWT"; then
+    say "${GRN}verify_jwt is off for every webhook function${OFF}"
+  else
+    say "${RED}${BOLD}JWT verification is ON (or unconfirmed) for a webhook function.${OFF}"
+    say "${RED}Pushes, emails and photo cleanup stop silently until it is off. Run the fix above.${OFF}"
+    return 1
+  fi
+}
+if [[ "${1:-}" == "--check-jwt" ]]; then step "verify_jwt"; jwt_gate; exit $?; fi
 
 # --- gate 1: preflight must pass ------------------------------------------
 step "preflight"
@@ -77,10 +117,11 @@ if have database owed; then
     say "${BOLD}Deploy the push Edge Function BEFORE the database.${OFF}"
     say "${DIM}Without its guard, the first post of the new kind fans to every${OFF}"
     say "${DIM}accepted buddy through D238's person-homed branch (L-22).${OFF}"
-    say "${DIM}  supabase functions deploy push${OFF}"
+    say "${DIM}  supabase functions deploy push --no-verify-jwt${OFF}"
     if ! confirm "Has ${BOLD}push${OFF} already been deployed?" "deployed"; then
       say "${RED}Stopping. Deploy push, then run this again.${OFF}"; exit 1
     fi
+    jwt_gate || exit 1
   fi
 fi
 
@@ -103,12 +144,18 @@ fi
 if have functions maybe; then
   step "EDGE FUNCTIONS"
   say "${DIM}Advisory: this compares a git commit time to a deploy time, not content.${OFF}"
+  DEPLOYED=0
   for fn in $(printf '%s' "$STATUS_JSON" | node -e "
     let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{
       const j=JSON.parse(s);(j.functions.stale||[]).forEach(x=>console.log(x.name));});"); do
-    if confirm "Deploy ${BOLD}$fn${OFF}?" "y"; then supabase functions deploy "$fn"; say "${GRN}$fn deployed${OFF}"
+    if confirm "Deploy ${BOLD}$fn${OFF}?" "y"; then
+      # C-05 · belt and braces with the config.toml pin (see NOJWT above)
+      if [[ " $NOJWT " == *" $fn "* ]]; then supabase functions deploy "$fn" --no-verify-jwt
+      else supabase functions deploy "$fn"; fi
+      say "${GRN}$fn deployed${OFF}"; DEPLOYED=1
     else say "${DIM}skipped $fn${OFF}"; fi
   done
+  if [[ $DEPLOYED == 1 ]]; then step "verify_jwt"; jwt_gate || exit 1; fi
 fi
 
 # --- client ----------------------------------------------------------------

@@ -19,6 +19,7 @@ function worker({due=[],expiryError=false,storageError=false,remaining=false,exp
       }
       if(name==='_share_cleanup_due')return {data:due};
       if(name==='_share_cleanup_report'){reported.push(args);return {data:remaining?'error':'completed'};}
+      if(name==='_media_cleanup_due')return {data:[]};   // D395's queue: empty here, walked in edge-security-share-cleanup
       throw Error(name);
     }};
   vm.runInNewContext(source,{createClient:()=>sb,Response,console:{log:()=>{}},Deno:{env:{get:name=>name==='SHARE_CLEANUP_SECRET'?'test-secret':'local'},serve:fn=>{handler=fn;}}});
@@ -34,7 +35,7 @@ test('a stale completed webhook never deletes or reports that token again',async
 });
 test('a scheduled empty request expires abandoned shares and removes both copies',async()=>{
   const w=worker({expireToken:'expired'});const r=await w.run();
-  assert.deepEqual(w.calls,['_expire_share_attempts','_share_cleanup_due','_share_cleanup_report']);
+  assert.deepEqual(w.calls,['_expire_share_attempts','_share_cleanup_due','_share_cleanup_report','_media_cleanup_due']);
   assert.deepEqual(w.removed,['expired.jpg','expired.png']);assert.equal((await r.json()).completed,1);
 });
 test('Storage success cannot override the database finding a remaining copy',async()=>{

@@ -385,6 +385,22 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# C-05 (security review 2026-09-25) · these three are called by Database Webhooks
+# and pg_cron, which send a shared-secret header (x-push-secret / x-cleanup-secret)
+# and never a JWT. With JWT verification on, the gateway 401s every call before the
+# code runs and pg_net just records it: no pushes, no emails, no photo cleanup.
+# Pinned here so a plain `supabase functions deploy <name>` cannot turn it back on;
+# tools/ship.sh also passes --no-verify-jwt and reads the setting back after a deploy.
+# courses / scan / weather / test-seed keep the default (true): they take user JWTs.
+[functions.push]
+verify_jwt = false
+
+[functions.season-email]
+verify_jwt = false
+
+[functions.share-cleanup]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

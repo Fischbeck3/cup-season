@@ -5,7 +5,8 @@
 // does the last mile (the golfer fixes cells, the model never posts anything).
 //
 // COST DISCIPLINE (fail closed, always before spending):
-//   1. kill switch     app_flags.scan.enabled = false  -> refuse
+//   1. kill switch     app_flags.scan.enabled not true -> refuse (a missing or
+//                      unreadable row is OFF, C-07)
 //   2. per-golfer cap  app_flags.scan.daily_per_user   -> refuse
 //   3. global cap      app_flags.scan.monthly_global   -> refuse
 //   4. API failure / credits exhausted -> { unavailable: true } with HTTP 200,
@@ -120,7 +121,10 @@ Deno.serve(async (req) => {
   const { data: flagRow } = await admin
     .from("app_flags").select("value").eq("key", "scan").maybeSingle();
   const flag = flagRow?.value ?? {};
-  if (flag.enabled === false) return soft("disabled");
+  /* C-07 · only an explicit `enabled: true` scans. A missing or unreadable row
+     used to fall through to the defaults — ON — so the kill switch worked only
+     while the row existed and said false. */
+  if (flag.enabled !== true) return soft("disabled");
   const dailyCap = Number(flag.daily_per_user ?? 5);
   const monthlyCap = Number(flag.monthly_global ?? 400);
 
@@ -128,21 +132,33 @@ Deno.serve(async (req) => {
   const monthStart = new Date();
   monthStart.setUTCDate(1); monthStart.setUTCHours(0, 0, 0, 0);
 
-  const { data: resv } = await admin.from("scan_usage")
+  const { data: resv, error: resvErr } = await admin.from("scan_usage")
     .insert({ profile_id: uid, model: MODEL, ok: false })
     .select("id").single();
   const resvId = resv?.id ?? null;
+  /* C-07 · no reservation, no paid call: a ledger that cannot be written is a
+     cap that cannot be enforced (this used to proceed, uncounted) */
+  if (resvErr || !resvId) {
+    console.error("[scan] reservation failed", resvErr?.message ?? "no id");
+    return soft("unavailable");
+  }
 
-  const [{ count: mine }, { count: all }] = await Promise.all([
+  const [{ count: mine, error: mineErr }, { count: all, error: allErr }] = await Promise.all([
     admin.from("scan_usage").select("*", { count: "exact", head: true })
       .eq("profile_id", uid).gte("created_at", dayAgo),
     admin.from("scan_usage").select("*", { count: "exact", head: true })
       .gte("created_at", monthStart.toISOString()),
   ]);
+  /* C-07 · a count that could not be read is not a zero */
+  if (mineErr || allErr || mine == null || all == null) {
+    await admin.from("scan_usage").delete().eq("id", resvId);
+    console.error("[scan] cap count failed", (mineErr ?? allErr)?.message ?? "no count");
+    return soft("unavailable");
+  }
   // counts INCLUDE this reservation, so reject when the total exceeds the cap
-  if ((mine ?? 0) > dailyCap || (all ?? 0) > monthlyCap) {
-    if (resvId) await admin.from("scan_usage").delete().eq("id", resvId);
-    return soft((mine ?? 0) > dailyCap ? "daily_cap" : "monthly_cap");
+  if (mine > dailyCap || all > monthlyCap) {
+    await admin.from("scan_usage").delete().eq("id", resvId);
+    return soft(mine > dailyCap ? "daily_cap" : "monthly_cap");
   }
 
   // -- the one paid call ----------------------------------------------------

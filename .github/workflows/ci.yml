@@ -79,6 +79,13 @@ jobs:
       - name: courses and share consent
         run: node --experimental-strip-types --test tests/courses-normalize.test.mjs tests/course-provider.test.mjs tests/share-consent-flow.test.mjs
 
+      # The Edge guards (security review 2026-09-25, D392/D395): escaped email,
+      # server-stamped mute authors, parallel push rails with timeouts, the
+      # fail-closed course and scan reservations, and the media cleanup walk.
+      # share-cleanup's own contract test rides here too; it was never in CI.
+      - name: edge security guards
+        run: node --experimental-strip-types --test tests/edge-security-push.test.mjs tests/edge-security-courses-scan.test.mjs tests/edge-security-share-cleanup.test.mjs tests/edge-security-season-email.test.mjs tests/share-cleanup.test.mjs
+
       # W6 · the weekly growth report: checkpoints judged only on dated App
       # Analytics readings, strict dates/counts/flags/CSV, one report cutoff,
       # and the existing attribution writer traced on the web card save. The

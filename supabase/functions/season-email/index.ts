@@ -2,7 +2,7 @@
 // Invoked by a Database Webhook:
 //   - public.email_queue INSERT  -> one send per season close
 // Auth: shared secret header (x-push-secret), same as the push function.
-// Deploy with --no-verify-jwt.
+// Deploy with --no-verify-jwt (pinned in supabase/config.toml since C-05).
 //
 // Secrets required (supabase secrets set):
 //   PUSH_WEBHOOK_SECRET  — shared with the push webhook
@@ -18,6 +18,7 @@
 // league physically cannot mail anyone.
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { oneLine, SUBJECT_MAX } from './header.ts';
 
 const sb = createClient(
   Deno.env.get('SUPABASE_URL')!,
@@ -131,10 +132,14 @@ async function sendEmail(to: string, name: string | null, subject: string, html:
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: { 'api-key': key, 'content-type': 'application/json', accept: 'application/json' },
+      /* sends are sequential, so one hung call would hold every recipient after it */
+      signal: AbortSignal.timeout(8000),
       body: JSON.stringify({
         sender: { name: 'Cup Season', email: Deno.env.get('BREVO_SENDER') ?? 'hello@cupseason.app' },
-        to: [{ email: to, name: name || undefined }],
-        subject,
+        /* C-11 · league and golfer names are free text and these are headers:
+           one line, capped (the HTML bodies are esc()'d throughout) */
+        to: [{ email: to, name: oneLine(name, 70) || undefined }],
+        subject: oneLine(subject, SUBJECT_MAX),
         htmlContent: html,
       }),
     });
@@ -195,11 +200,32 @@ Deno.serve(async (req) => {
   // D71: a cancellation_notices row carries a self-contained payload (the league
   // is already deleted). Handle it before the season-recap path — it has no
   // season_id.
-  if (rec.payload && Array.isArray(rec.payload.recipients)) {
-    if (rec.sent_at) return new Response('already sent', { status: 200 });
-    const league = String(rec.payload.league ?? 'your league');
+  if ((rec.payload && Array.isArray(rec.payload.recipients)) || body?.table === 'cancellation_notices') {
+    /* C-11 · the body only says WHICH notice. Who is mailed, and whether it
+       already went, is re-read from the database by id: the addresses in a
+       request body are whatever the caller wrote, and anyone holding the shared
+       secret could otherwise mail any address from our domain. */
+    const nid = String(rec.id ?? '');
+    const { data: notice, error: ne } = /^[0-9a-f-]{36}$/i.test(nid)
+      ? await sb.from('cancellation_notices').select('id, payload, sent_at').eq('id', nid).maybeSingle()
+      : { data: null, error: null };
+    if (ne) {
+      console.error(`[season-email] cancellation notice=${nid} unreadable msg=${ne.message}`);
+      return new Response('notice unreadable', { status: 500 });
+    }
+    if (!notice) {
+      console.log(`[season-email] cancellation notice=${nid || '-'} not in cancellation_notices — nothing sent`);
+      return new Response('no such notice', { status: 200 });
+    }
+    if (notice.sent_at) {
+      console.log(`[season-email] cancellation notice=${nid} already sent`);
+      return new Response('already sent', { status: 200 });
+    }
+    const np = (notice.payload ?? {}) as
+      { league?: string; recipients?: { email?: string; name?: string | null; cents?: number }[] };
+    const league = String(np.league ?? 'your league');
     let cs = 0, cf = 0;
-    for (const r of rec.payload.recipients) {
+    for (const r of Array.isArray(np.recipients) ? np.recipients : []) {
       if (!r?.email) continue;
       /* 'your buy-in' is a bare noun with no verb: from the subject alone the
          recipient cannot tell whether their money is coming back or gone, so a
@@ -213,8 +239,8 @@ Deno.serve(async (req) => {
         subj, buildCancelHtml(league, { name: r.name ?? null, cents }));
       ok ? cs++ : cf++;
     }
-    console.log(`[season-email] cancellation notice=${rec.id} sent=${cs} failed=${cf}`);
-    if (rec.id) await sb.rpc('mark_cancellation_sent', { p_id: rec.id, p_error: cf ? `${cf} failed` : null });
+    console.log(`[season-email] cancellation notice=${nid} sent=${cs} failed=${cf}`);
+    await sb.rpc('mark_cancellation_sent', { p_id: nid, p_error: cf ? `${cf} failed` : null });
     return new Response(JSON.stringify({ cancelled: true, sent: cs, failed: cf }), {
       status: 200, headers: { 'content-type': 'application/json' } });
   }

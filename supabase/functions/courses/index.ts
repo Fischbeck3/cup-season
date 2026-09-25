@@ -55,6 +55,8 @@ async function gca(path: string) {
 // rounded from finite numbers only, and a tee's hole count falls back to the
 // holes actually listed — never to an invented zero.
 import { holeCount, int, num } from "./normalize.ts";
+// C-04 · the per-request upstream cost and the ledger's verdict (./reserve.ts)
+import { reservation, SEARCH_DETAIL_FETCHES, unitsFor } from "./reserve.ts";
 
 // GolfCourseAPI groups tees by gender; flatten to one tagged list.
 function flattenTees(course: any) {
@@ -128,19 +130,6 @@ Deno.serve(async (req) => {
 
   const admin = createClient(SB_URL, SB_SERVICE);
 
-  // -- per-user daily cap (paid API — refuse before spending). Retune from the
-  //    SQL editor: update app_flags set value=... where key='courses'.
-  const { data: capRow } = await admin
-    .from("app_flags").select("value").eq("key", "courses").maybeSingle();
-  const dailyCap = Number((capRow?.value as any)?.daily_per_user ?? 150);
-  const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-  const { count: used } = await admin.from("courses_usage")
-    .select("*", { count: "exact", head: true })
-    .eq("profile_id", uid).gte("created_at", dayAgo);
-  if ((used ?? 0) >= dailyCap) {
-    return json({ error: "daily course-lookup limit reached" }, 429);
-  }
-
   let body: any;
   try {
     body = await req.json();
@@ -148,12 +137,28 @@ Deno.serve(async (req) => {
     return json({ error: "bad request body" }, 400);
   }
   const action = body?.action;
+
+  // -- C-04 · the paid-API caps (per user AND global), booked BEFORE any
+  //    upstream call. One service-role RPC counts and inserts under a lock, so
+  //    concurrent requests cannot all read the same count (the old read-then-
+  //    write let 31 of 60 through a cap of 5), and a ledger it cannot write is a
+  //    refusal, never a free pass (the old insert was fire-and-forget). Retune
+  //    from the SQL editor: app_flags 'courses' {daily_per_user, daily_global}.
+  const units = unitsFor(action, body);
+  let booked = "none";
+  if (units > 0) {
+    const { data: got, error: re } = await admin.rpc("_courses_reserve",
+      { p_profile: uid, p_action: String(action ?? ""), p_units: units });
+    const v = reservation(got, re);
+    booked = re ? `error(${re.message})` : String(got);
+    if (!v.ok) {
+      console.log(`[courses] action=${String(action ?? "")} units=${units} refused=${booked}`);
+      return json({ error: v.error }, v.status);
+    }
+  }
   // every invocation logs, so "never called" is distinguishable from "called
   // and quietly failed" (the webhook landmine, same shape)
-  console.log(`[courses] action=${String(action ?? "")} used=${used ?? 0}/${dailyCap}`);
-  // ledger = the rate-limit counter; best-effort, never blocks the response
-  admin.from("courses_usage").insert({ profile_id: uid, action: String(action ?? "") })
-    .then(() => {}, () => {});
+  console.log(`[courses] action=${String(action ?? "")} units=${units} reserve=${booked}`);
 
   try {
     if (action === "search") {
@@ -195,7 +200,7 @@ Deno.serve(async (req) => {
           }
           let fetches = 0;
           for (const c of courses) {
-            if (c.tees.length || fetches >= 3) continue;
+            if (c.tees.length || fetches >= SEARCH_DETAIL_FETCHES) continue;
             fetches++;
             try {
               await fetchAndStore(admin, c.id);
