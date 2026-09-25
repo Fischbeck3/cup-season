@@ -1,7 +1,7 @@
 import SwiftUI
 import CSDesign
 
-/// D381: points carry the display tier. Terrain never runs behind text.
+/// D381: points carry the display tier over one continuous contour ground.
 struct CompeteScoreboard: View {
   @Environment(\.cs) private var cs
   @Environment(\.csLookAccent) private var livery
@@ -13,22 +13,25 @@ struct CompeteScoreboard: View {
   let live: Bool
   private var ink: Color { live ? cs.brandInk : cs.ink }
   var body: some View {
-    VStack(alignment:.leading,spacing:0) {
-      CSTopoField(.accent,tint:(live ? cs.brandInk.opacity(CSTokens.Alpha.a24) : livery.accent.opacity(CSTokens.Alpha.a56)))
-        .frame(height:CSTokens.Space.s6).clipped().accessibilityHidden(true)
-      VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
-        Text(eyebrow).csType(.agate)
-        Text(title).csType(.display).fixedSize(horizontal:false,vertical:true)
-        if !story.isEmpty { Text(story).csType(.story).fixedSize(horizontal:false,vertical:true) }
-        if let points {
-          ViewThatFits(in:.horizontal) {
-            HStack(alignment:.firstTextBaseline,spacing:CSTokens.Space.s5) { figure(points); standingView }
-            VStack(alignment:.leading,spacing:CSTokens.Space.s3) { figure(points); standingView }
-          }
+    VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
+      Text(eyebrow).csType(.agate)
+      Text(title).csType(.display).fixedSize(horizontal:false,vertical:true)
+      if !story.isEmpty { Text(story).csType(.story).fixedSize(horizontal:false,vertical:true) }
+      if let points {
+        ViewThatFits(in:.horizontal) {
+          HStack(alignment:.firstTextBaseline,spacing:CSTokens.Space.s5) { figure(points); standingView }
+          VStack(alignment:.leading,spacing:CSTokens.Space.s3) { figure(points); standingView }
         }
-      }.padding(CSTokens.Space.gutter)
-    }.frame(maxWidth:.infinity,alignment:.leading).foregroundStyle(ink)
-      .background(live ? cs.brand : cs.bg1).multilineTextAlignment(.leading)
+      }
+    }.padding(CSTokens.Space.gutter)
+      .frame(maxWidth:.infinity,alignment:.leading).foregroundStyle(ink)
+      .background {
+        ZStack {
+          live ? cs.brand : cs.bg1
+          CSTopoField(.accent,tint:live ? cs.brandInk : livery.accent)
+            .opacity(live ? CSTokens.Alpha.a08 : CSTokens.Alpha.a24)
+        }
+      }.clipped().multilineTextAlignment(.leading)
   }
   private func figure(_ value: String) -> some View {
     VStack(alignment:.leading,spacing:CSTokens.Space.s1) {

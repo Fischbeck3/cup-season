@@ -48,10 +48,12 @@ struct SeasonBookPage: View {
   var body: some View {
     ScrollView {
       VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
-        CSBackChevron { dismiss() }.padding(.horizontal,CSTokens.Space.gutter)
-        CSTopoField(.accent,tint:livery.accent.opacity(CSTokens.Alpha.a56))
-          .frame(height:CSTokens.Space.s6).clipped().accessibilityHidden(true)
-        Text(store.snapshot.map { SeasonBookSnapshot.prominent(fieldSize:$0.field_size,hasSquads:$0.hasSquads) ? "the Book" : "Rounds & points" } ?? "the Book").csType(.display).accessibilityIdentifier("seasonBook.title").padding(.horizontal,CSTokens.Space.gutter)
+        VStack(alignment:.leading,spacing:CSTokens.Space.s3) {
+          CSBackChevron { dismiss() }
+          Text(store.snapshot.map { SeasonBookSnapshot.prominent(fieldSize:$0.field_size,hasSquads:$0.hasSquads) ? "the Book" : "Rounds & points" } ?? "the Book")
+            .csType(.display).accessibilityIdentifier("seasonBook.title")
+        }.padding(CSTokens.Space.gutter).frame(maxWidth:.infinity,alignment:.leading)
+          .background { CSTopoField(.accent,tint:livery.accent).opacity(CSTokens.Alpha.a24) }
         if let book=store.snapshot { content(book) }
         else if let error=store.error {
           VStack(alignment:.leading,spacing:CSTokens.Space.s3) {

@@ -572,11 +572,11 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   .hmoment{animation:hmrise .26s cubic-bezier(.16,.84,.36,1) both;}
   @keyframes hmrise{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
 }
-/* D381: Scoreboard + the Book. Empty terrain strip; points never wear pot chrome. */
-.cband.cband-scoreboard{border-radius:0; overflow:hidden;
+/* D381: continuous topo behind the type; points never wear pot chrome. */
+.cband.cband-scoreboard{position:relative; isolation:isolate; border-radius:0; overflow:hidden;
   background:var(--bg1); color:var(--ink); padding:0;}
 .cband-scoreboard[data-live="true"]{background:var(--brand); color:var(--brand-ink);}
-.cband-scoreboard .cband-content{display:block; padding:var(--s4);}
+.cband-scoreboard .cband-content{display:block; position:relative; padding:var(--s4);}
 .cband-scoreboard .cband-name{font-family:var(--serif); font-size:32px; text-transform:none; letter-spacing:0;}
 .cband-scoreboard .cband-fig{font-size:64px;}
 .cband-scoreboard .cband-mid{flex-wrap:wrap;}
@@ -585,15 +585,18 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 #seasonScoreboard .seasoneye,#seasonScoreboard .seasonlead{color:inherit;}
 #seasonScoreboard .dot{display:none;}
 .cband-scoreboard small{display:block; font-family:var(--board); font-size:12px; font-weight:400;}
-.sb-terrain{display:block; position:relative; overflow:hidden; height:44px; color:var(--mut); pointer-events:none;}
-.cband-scoreboard[data-live="true"] .sb-terrain{color:var(--brand-ink);}
-.sb-terrain .cs-topohead{opacity:1; width:100%; height:160px; top:-56px;}
-.sb-terrain .cs-topohead .t-sur,.sb-terrain .cs-topohead .t-edge{opacity:.56; stroke-width:1;}
+.sb-terrain{display:block; position:absolute; inset:0; overflow:hidden; color:var(--act); opacity:var(--a24); pointer-events:none;}
+.cband-scoreboard .sb-terrain{position:absolute;}
+.cband-scoreboard[data-live="true"] .sb-terrain{color:var(--brand-ink); opacity:var(--a08);}
+.sb-terrain .cs-topohead{opacity:1; width:100%; height:auto; top:0; left:0; right:auto; transform:none; z-index:0; color:inherit;}
+.sb-terrain .cs-topohead .t-sur{opacity:1; stroke-width:.5;}
+.sb-terrain .cs-topohead .t-edge{opacity:1; stroke-width:1;}
 .sb-door{display:block; width:100%; min-height:44px; text-align:left; border:0; border-bottom:1px solid var(--rule); background:none; color:var(--ink); font-family:var(--sans); font-size:16px; cursor:pointer;}
 .sb-door[hidden]{display:none;}
 .sb-dialog{background:var(--bg0); color:var(--ink); border:1px solid var(--rule); padding:0; width:min(1280px,96vw); max-width:96vw; height:90vh; max-height:90vh;}
 .sb-dialog::backdrop{background:var(--bg0); opacity:.8;}
-.sb-dialog header{position:relative; padding:0 var(--s4) var(--s3); border-bottom:1px solid var(--rule);}
+.sb-dialog header{position:relative; isolation:isolate; overflow:hidden; padding:var(--s4); border-bottom:1px solid var(--rule);}
+.sb-dialog header h1{position:relative; padding-right:96px;}
 .sb-dialog h1{font-family:var(--serif); font-size:42px; margin:0;}
 .sb-dialog h2{font-family:var(--serif); font-size:24px; margin:var(--s3) 0;}
 .sb-dialog h3{font-family:var(--sans); font-size:16px;}
@@ -6571,7 +6574,7 @@ $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v)
     const NS='http://www.w3.org/2000/svg';
     const svg=document.createElementNS(NS,'svg');
     svg.setAttribute('class','cs-topohead');
-    svg.setAttribute('viewBox','120 -20 380 300');
+    svg.setAttribute('viewBox',host.classList.contains('sb-terrain')?'0 36 420 650':'120 -20 380 300');
     svg.setAttribute('aria-hidden','true');
     const g=document.createElementNS(NS,'g');
     g.setAttribute('fill','none'); g.setAttribute('stroke','currentColor');
