@@ -20,142 +20,47 @@ import CSDesign
 struct CupSeasonWidgets: WidgetBundle {
   var body: some Widget {
     CSRoundLiveActivity()
-    CSSeasonWidget()
+    BetweenRoundsWidget(kind: .race)
+    BetweenRoundsWidget(kind: .nextTee)
+    BetweenRoundsWidget(kind: .record)
+    BetweenRoundsWidget(kind: .rivalry)
   }
 }
 
-// MARK: - IOS-034 · the glanceable surface between rounds
-//
-// Two sizes off one snapshot the APP writes into the App Group after every
-// successful `home_dispatch` (`DispatchSnapshotFeed`). The extension still
-// holds no network client and no Supabase anything: it reads eight strings
-// somebody else produced, and draws them.
-//
-// It never lies about time. `DispatchSnapshot.asOf` stamps the read, and past
-// 24 hours it says AS OF SAT · OPEN TO REFRESH and `verb(now:)` returns nil —
-// a day-old door is not offered. Money never appears: `DispatchSnapshot`
-// cannot carry the owe fact at all (L-10).
-
-struct CSSeasonEntry: TimelineEntry {
+struct BetweenRoundsEntry: TimelineEntry {
   let date: Date
-  let snapshot: DispatchSnapshot?
+  let snapshot: BetweenRoundsSnapshot?
 }
-
-struct CSSeasonProvider: TimelineProvider {
-  func placeholder(in context: Context) -> CSSeasonEntry {
-    CSSeasonEntry(date: Date(), snapshot: nil)
+struct BetweenRoundsProvider: TimelineProvider {
+  func placeholder(in context: Context) -> BetweenRoundsEntry { .init(date: Date(), snapshot: nil) }
+  func getSnapshot(in context: Context, completion: @escaping (BetweenRoundsEntry) -> Void) {
+    completion(.init(date: Date(), snapshot: BetweenRoundsSnapshot.read()))
   }
-  func getSnapshot(in context: Context, completion: @escaping (CSSeasonEntry) -> Void) {
-    completion(CSSeasonEntry(date: Date(), snapshot: DispatchSnapshot.read()))
-  }
-  func getTimeline(in context: Context, completion: @escaping (Timeline<CSSeasonEntry>) -> Void) {
-    let now = Date()
-    let snapshot = DispatchSnapshot.read()
-    let entries = (snapshot?.timelineDates(now: now) ?? [now]).map {
-      CSSeasonEntry(date: $0, snapshot: snapshot)
-    }
+  func getTimeline(in context: Context, completion: @escaping (Timeline<BetweenRoundsEntry>) -> Void) {
+    let now = Date(), snapshot = BetweenRoundsSnapshot.read()
+    let entries = (snapshot?.timelineDates(now: now) ?? [now]).map { BetweenRoundsEntry(date: $0, snapshot: snapshot) }
     completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(3600))))
   }
 }
-
-struct CSSeasonWidget: Widget {
+struct BetweenRoundsWidget: Widget {
+  let kind: BetweenRoundsKind
+  init() { kind = .race }
+  init(kind: BetweenRoundsKind) { self.kind = kind }
   var body: some WidgetConfiguration {
-    StaticConfiguration(kind: "CSSeasonWidget", provider: CSSeasonProvider()) { entry in
-      CSSeasonWidgetView(entry: entry)
+    StaticConfiguration(kind: kind.rawValue, provider: BetweenRoundsProvider()) { entry in
+      BetweenRoundsWidgetView(kind: kind, snapshot: entry.snapshot, date: entry.date)
     }
-    .configurationDisplayName("Your season")
-    .description("The season row and what is up next — as of the last time you opened the app.")
-    .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
+    .configurationDisplayName(kind.title)
+    .description(description)
+    .supportedFamilies(kind == .race || kind == .nextTee ? [.systemSmall, .systemMedium, .accessoryRectangular] : [.systemSmall, .systemMedium])
+    .contentMarginsDisabled()
   }
-}
-
-struct CSSeasonWidgetView: View {
-  @Environment(\.widgetFamily) private var family
-  let entry: CSSeasonEntry
-
-  private var ink: Color { CSTokens.dark.ink }
-  private var mut: Color { CSTokens.dark.mut }
-  private var gold: Color { CSTokens.dark.gold }
-  private var brand: Color { CSTokens.dark.brand }
-  private var bg: Color { CSTokens.dark.bg1 }
-
-  var body: some View {
-    Group {
-      if family == .accessoryRectangular { accessory }
-      else { content }
-    }
-      .privacySensitive()
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-      .containerBackground(bg, for: .widget)
-      .widgetURL(family == .accessoryRectangular ? URL(string: "cupseason://home")! :
-        (entry.snapshot?.url(now: entry.date) ?? URL(string: "cupseason://home")!))
-  }
-
-  /// A private, dated season glance. No social headline or money on the lock screen.
-  @ViewBuilder private var accessory: some View {
-    if let s = entry.snapshot {
-      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-        Text(s.isStale(now: entry.date) ? "Open to refresh" : (s.seasonRow ?? "Cup Season"))
-          .font(.headline).lineLimit(2)
-        if !s.isStale(now: entry.date), let next = s.facts.first(where: { $0.label.caseInsensitiveCompare("NEXT") == .orderedSame }) {
-          Text(next.value).font(.caption).lineLimit(1)
-        }
-        Text(s.asOf(now: entry.date)).font(.caption2).lineLimit(1)
-      }
-      .accessibilityElement(children: .combine)
-    } else {
-      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-        Text("Cup Season").font(.headline)
-        Text("Open the app to catch up.").font(.caption)
-      }
-      .accessibilityElement(children: .combine)
-    }
-  }
-
-  @ViewBuilder private var content: some View {
-    if let s = entry.snapshot {
-      VStack(alignment: .leading, spacing: family == .systemSmall ? 5 : 7) {
-        if let row = s.seasonRow {
-          Text(row.uppercased())
-            .font(.system(size: family == .systemSmall ? 9 : 10, design: .monospaced)).tracking(0.9)
-            .foregroundStyle(gold).lineLimit(family == .systemSmall ? 2 : 1).minimumScaleFactor(0.75)
-        }
-        if let head = s.leadHeadline {
-          Text(head)
-            .font(.system(size: family == .systemSmall ? 14 : 17, weight: .semibold))
-            .foregroundStyle(ink).lineLimit(family == .systemSmall ? 3 : 2).minimumScaleFactor(0.8)
-        }
-        if family == .systemMedium {
-          HStack(alignment: .top, spacing: 14) {
-            ForEach(Array(s.facts.prefix(3).enumerated()), id: \.offset) { _, f in
-              VStack(alignment: .leading, spacing: 2) {
-                Text(f.value).font(.system(size: 15, weight: .semibold, design: .monospaced)).foregroundStyle(ink)
-                  .lineLimit(1).minimumScaleFactor(0.7)
-                Text(f.label.uppercased()).font(.system(size: 9, design: .monospaced)).tracking(0.8)
-                  .foregroundStyle(mut).lineLimit(1)
-              }
-            }
-          }
-        }
-        Spacer(minLength: 0)
-        HStack(spacing: 6) {
-          if let verb = s.verb(now: entry.date) {
-            Text(verb.uppercased()).font(.system(size: 10, weight: .semibold, design: .monospaced))
-              .foregroundStyle(brand).lineLimit(1)
-            Text("·").font(.system(size: 10, design: .monospaced)).foregroundStyle(mut)
-          }
-          Text(s.asOf(now: entry.date)).font(.system(size: 9, design: .monospaced))
-            .foregroundStyle(mut).lineLimit(1).minimumScaleFactor(0.7)
-        }
-      }
-      .padding(14)
-    } else {
-      // L-32 · an empty state ends in a next move, and never pretends to be data
-      VStack(alignment: .leading, spacing: 6) {
-        Text("CUP SEASON").font(.system(size: 10, design: .monospaced)).tracking(1.1).foregroundStyle(mut)
-        Text("Open the app to fill this in.").font(.system(size: 14, weight: .semibold)).foregroundStyle(ink)
-      }
-      .padding(14)
+  private var description: String {
+    switch kind {
+    case .race: "Your place in the season, with the points and names around you."
+    case .nextTee: "Your next tee time. Reply to an invitation right here."
+    case .record: "A round to keep, from your own record."
+    case .rivalry: "The weekly clash record between you and a familiar rival."
     }
   }
 }

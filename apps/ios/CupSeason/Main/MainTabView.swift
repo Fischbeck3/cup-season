@@ -656,6 +656,35 @@ struct MainTabView: View {
     }
     #endif
     // ---- D104: a tapped notification lands here once the session is ready ----
+    .task(id: WidgetRouter.shared.pending) {
+      guard let destination = WidgetRouter.shared.pending, let owner = store.me?.profile?.id else { return }
+      WidgetRouter.shared.pending = nil
+      guard destination.owner == owner else { return }
+      guard let id = destination.id else {
+        if presenter.dismissAll() { try? await Task.sleep(for: .milliseconds(450)) }
+        switch destination.kind {
+        case .race: tab = .compete; competePath = NavigationPath()
+        case .nextTee: tab = .compete; competePath = NavigationPath(); competePath.append(CompeteRoute.schedule)
+        case .record: openPlay()
+        case .rivalry: openGolfers()
+        }
+        return
+      }
+      switch destination.kind {
+      case .race:
+        if presenter.dismissAll() { try? await Task.sleep(for: .milliseconds(450)) }
+        openCompetition(id)
+      case .nextTee: await apply(.scheduledRound(id))
+      case .record: await apply(.receipt(id))
+      case .rivalry:
+        if presenter.dismissAll() { try? await Task.sleep(for: .milliseconds(450)) }
+        tab = .you
+        presenter.widgetRivalry = id
+      }
+    }
+    .csSheet(item: $presenter.widgetRivalry) { id in
+      RivalrySheet(opponentId: id, name: BetweenRoundsSnapshot.read()?.rivalry?.value.flatMap { $0.opponent == id ? $0.name : nil } ?? "your rival")
+    }
     .task(id: router.pending) {
       guard let route = router.pending, store.me != nil else { return }
       router.pending = nil

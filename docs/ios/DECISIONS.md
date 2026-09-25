@@ -1365,3 +1365,19 @@ Logged 2026-09-12 after the fact. The surfaces, so the next session can find the
 **Named and not swept — for the owner's screenshot review, not a diff review:** the pennant on eight surfaces against LINT-28's intent (D339 open 1); the contour wallpaper on the icon tile (open 2); D286's `display` section heads on Compete are `label` again; the tab band caps its labels at `xxxLarge` (`Chrome.swift:381`) directly under a comment saying it must not; two SF Symbols on shared surfaces (`HomeLead.swift:82` `chevron.right`, `OfflineCoursesSheet.swift:132`) where `CSGlyph` is the law; five typed-uppercase strings (`ForgeView.swift:373–375`, `Artifact.swift:14`, the two "GROSS" figures, `LiveFinishViews.swift:34`, `LiveCopy.swift:337`) where `.textCase` is the one way (LINT-14 counts them at baseline, not new). Nine DEBUG hatches were added (`cs_dev_offline_trip/_owner/_network`, `_round_share_fixture`, `_share_preview/_export/_no_photo`, `_brand_export/_finish`); none removed.
 
 **Gate as Codex reported it:** preflight 0/0 with no baseline change; 1,289 tests passed on the DesignV1 pass; the offline slice's `OfflineRoundFlowTests` drive the real `LiveRoundStore` through a temp vault, a relaunch and a disk failure. Several new UI tests are capture-only (no assertion) and skip without a signed-in simulator; `BrandArtifactTests` asserts the frame constant against itself.
+
+
+## IOS-082 · Four between-round widgets — owner-approved September 25, 2026
+
+The old generic Home snapshot becomes **The Race**, alongside **Next Tee**,
+**The Record**, and **The Rivalry**. The owner approved the branded examples
+with “Build em, looks good.” IOS-034's snapshot/privacy boundary stays in place;
+existing read contracts supply the new facts. The app owns RSVP authentication
+and calls the existing RPC through an App Intent. No competition mechanic or
+backend contract changes. Race and Next Tee gain compact Lock Screen layouts.
+
+The mockup's match-play label is resolved to the actual weekly-clash record;
+Ryder results are not blended into that number. Unknown nine totals stay absent.
+WidgetKit owns placement and notification chrome. Cached facts show their age,
+and a failed read cannot advance their clock. This supplements IOS-034's
+presentation and action scope. [Implementation and limitations](between-round-widgets.md).

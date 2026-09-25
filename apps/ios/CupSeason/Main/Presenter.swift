@@ -43,6 +43,7 @@ final class Presenter {
   var receiptArmPhoto = false
   var scorecard: UUID?
   var scheduledRound: UUID?
+  var widgetRivalry: UUID?
   var showJoin = false
   var joinCode: String?
   var showPost = false
@@ -97,7 +98,7 @@ final class Presenter {
   /// Is any sheet or cover on stage? The push ask waits for a clear stage;
   /// a routed tap clears it first (D104).
   var anythingUp: Bool {
-    tourCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
+    widgetRivalry != nil || tourCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
       showFeedback || showDesk || showNote || declare != nil || inviteTo != nil || wizard != nil || draft != nil || runBack != nil ||
       showEventPicker || event != nil || showIntent || showWhenFork || showPickAGolfer ||
       length != nil || callout != nil || calloutReply != nil || forfeit != nil || inviteTerms != nil
@@ -108,6 +109,7 @@ final class Presenter {
   @discardableResult
   func dismissAll() -> Bool {
     let was = anythingUp
+    widgetRivalry = nil
     tourCard = nil; receipt = nil; scorecard = nil; scheduledRound = nil; showJoin = false; showPost = false; showLive = false
     showFeedback = false; showDesk = false; showNote = false; declare = nil; inviteTo = nil; wizard = nil; draft = nil; runBack = nil
     showEventPicker = false; event = nil

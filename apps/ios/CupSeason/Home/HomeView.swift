@@ -835,6 +835,11 @@ final class HomeModel {
     // F-2 · the digest is rebuilt inside `publishOutwards`, where the ranked
     // arrangement is in hand and the rounds it spent are known.
     publishOutwards(me: me ?? sessionMe)
+    if served != nil {
+      let widgetMe = me ?? sessionMe
+      Task { await BetweenRoundsFeed.shared.refresh(me: widgetMe,
+        preferredLeague: UserDefaults.standard.string(forKey: CSConfig.lastLeagueKey).flatMap(UUID.init)) }
+    }
   }
 
   /// Still the current load — the only state a load may write from.

@@ -146,12 +146,18 @@ targets:
       # CSRoundActivity.swift is. It imports Foundation and nothing else, so
       # the extension still depends on CSDesign alone and holds no client.
       - path: Packages/CupSeasonKit/Sources/CupSeasonKit/Home/DispatchSnapshot.swift
+      - path: Packages/CupSeasonKit/Sources/CupSeasonKit/Home/BetweenRoundsSnapshot.swift
+      - path: CupSeason/Widgets/ReplyToTeeIntent.swift
+      - path: CupSeason/Widgets/BetweenRoundsWidgetView.swift
+      - path: CupSeason/Resources/Fonts
+        buildPhase: resources
     dependencies:
       - package: CSDesign
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.cupseason.ios.widgets
         PRODUCT_NAME: CupSeasonWidgets
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) CS_WIDGET_EXTENSION"
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         TARGETED_DEVICE_FAMILY: "1"
@@ -170,6 +176,12 @@ targets:
         CFBundleDisplayName: Cup Season
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         CFBundleShortVersionString: $(MARKETING_VERSION)
+        UIAppFonts:
+          - IBMPlexMono-Regular.ttf
+          - IBMPlexMono-Medium.ttf
+          - IBMPlexMono-SemiBold.ttf
+          - IBMPlexSansCondensed-SemiBold.ttf
+          - IBMPlexSansCondensed-Bold.ttf
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
 

@@ -146,8 +146,10 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
   /// too. A widget has no door.
   public static func forget(_ defaults: UserDefaults? = UserDefaults(suiteName: CSAppGroup.id)) {
     defaults?.removeObject(forKey: CSAppGroup.snapshotKey)
+    defaults?.removeObject(forKey: BetweenRoundsSnapshot.key)
+    defaults?.set(UUID().uuidString, forKey: BetweenRoundsSnapshot.epochKey)
     #if canImport(WidgetKit)
-    WidgetCenter.shared.reloadTimelines(ofKind: "CSSeasonWidget")
+    WidgetCenter.shared.reloadAllTimelines()
     #endif
   }
 
@@ -169,7 +171,7 @@ public struct DispatchSnapshot: Codable, Sendable, Equatable {
     guard let d = defaults, let data = try? JSONEncoder().encode(self) else { return false }
     d.set(data, forKey: CSAppGroup.snapshotKey)
     #if canImport(WidgetKit)
-    WidgetCenter.shared.reloadTimelines(ofKind: "CSSeasonWidget")
+    WidgetCenter.shared.reloadAllTimelines()
     #endif
     return true
   }
