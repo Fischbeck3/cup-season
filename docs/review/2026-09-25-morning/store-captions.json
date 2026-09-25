@@ -1,0 +1,82 @@
+[
+  {
+    "file": "01-season.png",
+    "headline": "Your people.\nAll season.",
+    "caption": "A season with your own group.",
+    "source": "store-01-season-dark-large.png",
+    "size": [
+      1320,
+      2868
+    ]
+  },
+  {
+    "file": "02-setup.png",
+    "headline": "A round\nstarts here.",
+    "caption": "Choose the course, tees, group and game.",
+    "source": "store-02-setup-light-large.png",
+    "size": [
+      1320,
+      2868
+    ]
+  },
+  {
+    "file": "03-live.png",
+    "headline": "Keep the\ngroup\u2019s card.",
+    "caption": "Enter scores as the round unfolds.",
+    "source": "store-03-live-dark-large.png",
+    "size": [
+      1320,
+      2868
+    ]
+  },
+  {
+    "file": "04-share.png",
+    "headline": "Send\nthe round.",
+    "caption": "A card to share from your round.",
+    "source": "store-04-share-dark-large.png",
+    "size": [
+      1320,
+      2868
+    ]
+  },
+  {
+    "file": "05-weeks.png",
+    "headline": "The season,\nweek by week.",
+    "caption": "Open The Book to follow the record.",
+    "source": "store-05-weeks-light-large.png",
+    "size": [
+      1320,
+      2868
+    ]
+  },
+  {
+    "file": "06-race.png",
+    "headline": "See how\npoints add up.",
+    "caption": "Today's counting points, placed by week.",
+    "source": "store-06-race-dark-large.png",
+    "size": [
+      1320,
+      2868
+    ]
+  },
+  {
+    "file": "07-receipt.png",
+    "headline": "Every point\nhas a receipt.",
+    "caption": "Open a round to see its scoring details.",
+    "source": "store-07-receipt-light-large.png",
+    "size": [
+      1320,
+      2868
+    ]
+  },
+  {
+    "file": "08-finished.png",
+    "headline": "Keep\nthe season.",
+    "caption": "Return to the record after the finish.",
+    "source": "store-08-finished-dark-large.png",
+    "size": [
+      1320,
+      2868
+    ]
+  }
+]

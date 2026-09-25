@@ -1,0 +1,294 @@
+[
+  {
+    "file": "standard-setup-dark-large.png",
+    "scene": "setup",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "setup",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "f607f064b790c5aecbc2d42702eefcf2635d16598d772c1ddcdf632fc94e0a7b"
+  },
+  {
+    "file": "standard-setup-light-large.png",
+    "scene": "setup",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "setup",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "a4db6b74fdd28fb6032184952f87b1815c19b0138a2aca418205d559ef8a1b7a"
+  },
+  {
+    "file": "standard-setup-dark-AX3.png",
+    "scene": "setup",
+    "theme": "dark",
+    "textSize": "AX3",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "setup",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "AX3"
+    ],
+    "sha256": "85fe268715531b028b6a80ed90cd59c829d7d1e186bf46937fa137d1e32680d6"
+  },
+  {
+    "file": "standard-live-dark-large.png",
+    "scene": "live",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "live",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "5244a0eb5614a2177c7550adf84a721c76a5a4979c48bcc99f855b58168835f1"
+  },
+  {
+    "file": "standard-live-light-large.png",
+    "scene": "live",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "live",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "1123def80bf3049849ccbe0223c0793c9e753f17b750f0fb8757616240da7077"
+  },
+  {
+    "file": "standard-live-dark-AX3.png",
+    "scene": "live",
+    "theme": "dark",
+    "textSize": "AX3",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "live",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "AX3"
+    ],
+    "sha256": "c216d6939c9ea512505074e821e00741616cebb7e3a0dbc5a9e8daa6b3a21f68"
+  },
+  {
+    "file": "standard-share-dark-large.png",
+    "scene": "share",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "7ef0abdca0a3efdf15903dc128468b9667c2135447b021ef64b5c8eac9db7732"
+  },
+  {
+    "file": "standard-share-light-large.png",
+    "scene": "share",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "a74190566d418bc8d3a28efe5bfb03020c28186268b2b2e6ddfb45092272a3eb"
+  },
+  {
+    "file": "standard-share-dark-AX3.png",
+    "scene": "share",
+    "theme": "dark",
+    "textSize": "AX3",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "AX3"
+    ],
+    "sha256": "f2b4c7eb0bf9e2245a1742c054f988e6bbfb896202e7a355c69526c85eacd242"
+  },
+  {
+    "file": "standard-receipt-dark-large.png",
+    "scene": "receipt",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "receipt",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "d524f41ccb1ffeb6940f06fc3fdc1b0577fb1860458d9882f258f1df3eb5f6a5"
+  },
+  {
+    "file": "standard-receipt-light-large.png",
+    "scene": "receipt",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "receipt",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "e084a0b0adc644597de9299e3f0c76da8408232e27d7f74ddfb4fdc163e7c2f5"
+  },
+  {
+    "file": "standard-receipt-dark-AX3.png",
+    "scene": "receipt",
+    "theme": "dark",
+    "textSize": "AX3",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "receipt",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "AX3"
+    ],
+    "sha256": "9dcdbabe7dcf21ab3b8cc9a18c1413eb7e6633bfe77798a4ea492b1fcb5f110e"
+  },
+  {
+    "file": "standard-offline-dark-large.png",
+    "scene": "offline",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "offline",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "6f58070bac8fd61be9e731ad58a2605455941a571e0cd5c0d4f81d4f6f5f2d80"
+  },
+  {
+    "file": "standard-share-photo-dark-large.png",
+    "scene": "share-photo",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_review_photo",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "163ddcfcb82549104fc00d4c4d7e5f0a077a7e4f18d150042846347adc3a4051"
+  },
+  {
+    "file": "standard-share-long-photo-dark-large.png",
+    "scene": "share-long-photo",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_review_long",
+      "-cs_review_photo",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "5bbae3112e05d9edea4a83a5d1f2e33e34ab5cd21e80ba47f56b52391171b08b"
+  },
+  {
+    "file": "standard-share-long-dark-large.png",
+    "scene": "share-long",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_review_long",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "183d5278b197bdfa14a23b6b0ea4ef64e1250a5e6e957a1007ef38a0fe00ba45"
+  }
+]

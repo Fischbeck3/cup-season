@@ -1,0 +1,255 @@
+[
+  {
+    "file": "small-setup-dark-large.png",
+    "scene": "setup",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "setup",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "6efe7d48579811dddfbd4ba9bf34b5c6c65c5b466564164264385e1cb998b4f9"
+  },
+  {
+    "file": "small-setup-light-large.png",
+    "scene": "setup",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "setup",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "dbed1227c5b6749b6b560930b91ba53d71053127c1266249f1a3415db6747229"
+  },
+  {
+    "file": "small-setup-dark-AX3.png",
+    "scene": "setup",
+    "theme": "dark",
+    "textSize": "AX3",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "setup",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "AX3"
+    ],
+    "sha256": "16bc43794bc8bbfc69de8b7659b486c3d5cd4af20a740ebc7c4306014c5c87b6"
+  },
+  {
+    "file": "small-live-dark-large.png",
+    "scene": "live",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "live",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "5afb8ff8ffbffb1386ccb83b109eccf4dae6136c8295f517eb89d45cf8a0a293"
+  },
+  {
+    "file": "small-live-light-large.png",
+    "scene": "live",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "live",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "70541f1c6d99158a046207b16071675b4b7a6d05461e952533fe4cb50c248a87"
+  },
+  {
+    "file": "small-live-dark-AX3.png",
+    "scene": "live",
+    "theme": "dark",
+    "textSize": "AX3",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "live",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "AX3"
+    ],
+    "sha256": "6f7e823d38c44cb1605039484d6c245ed0bb817e1eabd0cf8ff416f005b82fc6"
+  },
+  {
+    "file": "small-share-dark-large.png",
+    "scene": "share",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "034464a13e5017eeba4c47d25d1d55ea2972ebc335f99dd9fd6e896a09e8debc"
+  },
+  {
+    "file": "small-share-light-large.png",
+    "scene": "share",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "bff93dc1ad2871d6952fde2a3e2b9a93af3abf02a191060b00f3ad1d394d2ff8"
+  },
+  {
+    "file": "small-share-dark-AX3.png",
+    "scene": "share",
+    "theme": "dark",
+    "textSize": "AX3",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "AX3"
+    ],
+    "sha256": "7a9a88a651c823b2b6534d623a92e615293a065d6fbf9662af59db0384ec9bd2"
+  },
+  {
+    "file": "small-receipt-dark-large.png",
+    "scene": "receipt",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "receipt",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "76f0b7d027c06e701da420efa24c87908b1aa7bcf00fd4da8dc2c07cb9d4454d"
+  },
+  {
+    "file": "small-receipt-light-large.png",
+    "scene": "receipt",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "receipt",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "0f11a17fac76e07a21925ce7ad8b4da5b1573749c964a243a1b900895fa4d09c"
+  },
+  {
+    "file": "small-receipt-dark-AX3.png",
+    "scene": "receipt",
+    "theme": "dark",
+    "textSize": "AX3",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "receipt",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "AX3"
+    ],
+    "sha256": "ff8682bbe6cfe7832ff60ab68155469f13596e419244dab6ec4b4331c95238f0"
+  },
+  {
+    "file": "small-offline-dark-large.png",
+    "scene": "offline",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "offline",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "fb3886de8bbfe1356a9639bc9e1272aca29b4c103ef9722d41cfa5bec7093242"
+  },
+  {
+    "file": "small-share-photo-dark-large.png",
+    "scene": "share-photo",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_review_photo",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "285e862146c31ecaa2dce5bf9c3b7edf635b46c74209c616a3f00a1ac4d0589b"
+  }
+]

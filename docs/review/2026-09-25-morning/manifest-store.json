@@ -1,0 +1,160 @@
+[
+  {
+    "file": "store-01-season-dark-large.png",
+    "scene": "01-season",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_compete_selected",
+      "-cs_selected_fixture",
+      "squads",
+      "-cs_selected_screen",
+      "season",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "1066f59c77885dc147c4542f733fda843fdca65968c5327654990b473d8b6a56"
+  },
+  {
+    "file": "store-02-setup-light-large.png",
+    "scene": "02-setup",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "setup",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "98551a24669417a928fb5ab55efe526c692be4abe0df535984bf285e4d43d94b"
+  },
+  {
+    "file": "store-03-live-dark-large.png",
+    "scene": "03-live",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "score",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "51cfcd39440ffd0bdb94c6ce251bfc7ce5c0f531325b8ef3d6c01cc8f00dbf39"
+  },
+  {
+    "file": "store-04-share-dark-large.png",
+    "scene": "04-share",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "share",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "de738a8c2a585dfbab0c88fbcb2019f08e06311fc1ace4c189af3aa139840ab3"
+  },
+  {
+    "file": "store-05-weeks-light-large.png",
+    "scene": "05-weeks",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_compete_selected",
+      "-cs_selected_fixture",
+      "squads",
+      "-cs_selected_screen",
+      "book",
+      "-cs_selected_group",
+      "golfers",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "0a6c46c5f7420ce9394fd52c0a7bd5ffcb43e924e2739cc2c5a405c070579d4d"
+  },
+  {
+    "file": "store-06-race-dark-large.png",
+    "scene": "06-race",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_compete_selected",
+      "-cs_selected_fixture",
+      "squads",
+      "-cs_selected_screen",
+      "book",
+      "-cs_selected_group",
+      "golfers",
+      "-cs_selected_mode",
+      "Race",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "983a35a42679d78c4f2d9be89b0e65d01e455ae9230ce655c71b1a31c0f3409e"
+  },
+  {
+    "file": "store-07-receipt-light-large.png",
+    "scene": "07-receipt",
+    "theme": "light",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_morning_review",
+      "-cs_review_scene",
+      "receipt",
+      "-cs_dev_appearance",
+      "light",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "fa4f43ac22bf435d43faad722855f8c8ff6224e632489e8b8db96dc6fde786fc"
+  },
+  {
+    "file": "store-08-finished-dark-large.png",
+    "scene": "08-finished",
+    "theme": "dark",
+    "textSize": "large",
+    "arguments": [
+      "-cs_dev_compete_selected",
+      "-cs_selected_fixture",
+      "finished",
+      "-cs_selected_screen",
+      "season",
+      "-cs_dev_appearance",
+      "dark",
+      "-cs_dev_look",
+      "none",
+      "-cs_dev_text_size",
+      "large"
+    ],
+    "sha256": "6d23f4a02a783e9f3005495cc3fb27b0f83b281d08a02802e08cd0bbf7d27965"
+  }
+]
