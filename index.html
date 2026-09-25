@@ -22724,8 +22724,9 @@ function renderPhase(){
   /* D386 · only when someone is waiting, and only for the Pro: say so, and a link
      to seat them in the roster. Otherwise the row stays exactly as it was. */
   {
-    const sn = Number(CS.season?.number) || 0;
-    const waiting = (CS.member?.role === 'commissioner' && window.csUnseated)
+    /* classic block: CS is the module's, reached through window (it is undefined at first paint) */
+    const sn = Number(window.CS?.season?.number) || 0;
+    const waiting = (window.CS?.member?.role === 'commissioner' && window.csUnseated)
       ? window.csUnseated(m => !(sn > 1) || !Array.isArray(m.agreed_seasons) || m.agreed_seasons.includes(sn)) : [];
     const row = hd && hd.closest('.check');
     let seat = document.getElementById('hubSeatBtn');
@@ -28016,7 +28017,6 @@ function csCovenantFacts(info, postedRounds){
       : nSq === 2 ? squads + ' Both squads meet in a four-week Cup Final, and the squad leading on points starts it 10 up.'
       : squads + ' The top two squads on points meet in a four-week Cup Final.';
   }
-  if(st && shortSeason && info.finish !== 'points_table') ending += ' Under six weeks there is no Final.';
   out.push({ k:'ending', t: ending });
   /* L-10 · every money line is ABOVE $0 only */
   if(paid){
