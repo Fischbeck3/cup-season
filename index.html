@@ -20694,10 +20694,10 @@ function renderCareer(){
       b.disabled = true;
       try{
         /* D385 §1 · the public copies go first, while the round still names them */
-        await csWithdrawRoundLinks(b.dataset.delr);
+        const w = await csWithdrawRoundLinks(b.dataset.delr);
         const { error } = await window.sb.rpc('delete_round', { p_round: b.dataset.delr });
         if(error) throw error;
-        toast('Round deleted');
+        toast(w.ok ? 'Round deleted' : 'Round deleted. ' + CS_SHARE_CLEANUP.pending);
         if(window.loadCareer) await window.loadCareer();
         if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
         if(window.loadHome) window.loadHome();
@@ -21131,16 +21131,53 @@ async function csReclaimPhotoObject(path, keeping){
    token again. The server revokes (clear_round_photo, set_round_photo on a
    replace, delete_round); this removes the copies through the Storage API,
    under shared_copy_delete, for every token withdraw_round_shares hands back
-   (revoked ones included). Best effort by design: the golfer's own act is
-   never blocked by the cleanup. The phone's twin is `ShareWithdrawal`. */
+   (revoked ones included). The golfer's own act is never blocked by the
+   cleanup, and since 20261201090000 a failed cleanup is never silent either:
+   the SERVER confirms each token (confirm_share_cleanup counts what Storage
+   still holds — a Storage call reporting success is not proof), anything not
+   confirmed is returned as `pending`, and the caller says so. The server's
+   share-cleanup sweep finishes whatever a client leaves, and
+   csRetryShareCleanup tries again on the next signed-in load. The phone's twin
+   is `ShareWithdrawal`; the contract is docs/planning/2026-09-24-share-cleanup-contract.md. */
+const CS_SHARE_CLEANUP = {
+  pending: 'The photo is off its link. A public copy is still being removed; Cup Season keeps trying until it is gone.',
+};
+window.CS_SHARE_CLEANUP = CS_SHARE_CLEANUP;
+async function csRemoveShareCopies(tokens){
+  const pending = [];
+  if(!tokens.length) return pending;
+  try{ await sb.storage.from('shared').remove(tokens.flatMap(t => [t + '.jpg', t + '.png'])); }catch(_){ }
+  for(const t of tokens){
+    try{
+      const { data, error } = await sb.rpc('confirm_share_cleanup', { p_token: t });
+      /* an older database without the obligation cannot confirm: never claim it did */
+      if(error || data?.status !== 'completed') pending.push(t);
+    }catch(_){ pending.push(t); }
+  }
+  return pending;
+}
 async function csWithdrawRoundLinks(rid){
-  if(!rid || !window.sb) return;
+  if(!rid || !window.sb) return { ok:true, pending:[] };
   try{
     const { data, error } = await sb.rpc('withdraw_round_shares', { p_round: rid });
-    if(error || !Array.isArray(data) || !data.length) return;
-    await sb.storage.from('shared').remove(data.flatMap(t => [t + '.jpg', t + '.png']));
+    if(error) return { ok:false, pending:[] };
+    const tokens = Array.isArray(data) ? data : [];
+    const pending = await csRemoveShareCopies(tokens);
+    return { ok: pending.length === 0, pending };
+  }catch(_){ return { ok:false, pending:[] }; }
+}
+/* the retry path: on a signed-in load, once, finish what an earlier session left */
+async function csRetryShareCleanup(){
+  if(!window.sb || !window.CS?.user || window.__csCleanupTried) return;
+  window.__csCleanupTried = true;
+  try{
+    const { data, error } = await sb.rpc('my_share_cleanup');
+    if(error || !Array.isArray(data)) return;
+    const open = data.filter(r => r.status !== 'completed').map(r => r.token);
+    if(open.length) await csRemoveShareCopies(open);
   }catch(_){ }
 }
+window.csRetryShareCleanup = csRetryShareCleanup;
 async function csAttachRoundPhoto(rid, file, oldPath){
   if(!rid || !window.sb || !window.CS?.user) return { ok:false, note:CS_PHOTO.failed };
   let path = null;
@@ -21156,9 +21193,10 @@ async function csAttachRoundPhoto(rid, file, oldPath){
     const { error } = await sb.rpc('set_round_photo', { p_round: rid, p_photo_path: path });
     if(error) throw error;
     await csReclaimPhotoObject(oldPath, path);
-    if(oldPath && oldPath !== path) await csWithdrawRoundLinks(rid);   /* D385 §2 */
+    /* D385 §2 · a replace retires the old link; say so if its copy is still up */
+    const w = (oldPath && oldPath !== path) ? await csWithdrawRoundLinks(rid) : { ok:true, pending:[] };
     const { data: s } = await sb.storage.from('media').createSignedUrl(path, 3600);
-    return { ok:true, path, url: s?.signedUrl || null };
+    return { ok:true, path, url: s?.signedUrl || null, note: w.ok ? null : CS_SHARE_CLEANUP.pending };
   }catch(e){
     try{ await sb.storage.from('media').remove([path]); }catch(_){ }
     return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.failed };
@@ -21172,8 +21210,8 @@ async function csRemoveRoundPhoto(rid, oldPath){
     const { error } = await sb.rpc('clear_round_photo', { p_round: rid });
     if(error) throw error;
     await csReclaimPhotoObject(oldPath, null);
-    await csWithdrawRoundLinks(rid);                                    /* D385 §1 */
-    return { ok:true };
+    const w = await csWithdrawRoundLinks(rid);                          /* D385 §1 */
+    return { ok:true, note: w.ok ? null : CS_SHARE_CLEANUP.pending };
   }catch(e){
     return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.removeFailed };
   }
@@ -21359,6 +21397,7 @@ function csWireReceiptPhoto(r, rid, stampOf, opts){
     r.photo_path=out.path; r.photo_url=out.url;
     if(window.roundCache && window.roundCache[rid]) Object.assign(window.roundCache[rid], { photo_path:out.path, photo_url:out.url });
     paint();
+    if(out.note) toast(out.note);   /* the old link's public copy is not confirmed gone yet */
   };
   clr?.addEventListener('click', async ()=>{
     if(busy) return;
@@ -21376,6 +21415,7 @@ function csWireReceiptPhoto(r, rid, stampOf, opts){
     r.photo_path=null; r.photo_url=null;
     if(window.roundCache && window.roundCache[rid]) Object.assign(window.roundCache[rid], { photo_path:null, photo_url:null });
     paint();
+    if(out.note) toast(out.note);   /* off its link, but the public copy is not confirmed gone yet */
   });
 }
 
@@ -29759,6 +29799,8 @@ window.renderAlbum = renderAlbum;
    empty feed if the RPC isn't deployed yet. */
 async function loadHome(){
   if(!CS.user){ window.homeFeedRows=[]; window.leagueEnds={}; csSignedClear(); window.myCounters=null; if(window.renderHomeHub) window.renderHomeHub(); return; }
+  /* D385 · once a session, finish any public-copy cleanup an earlier one left (never blocks Home) */
+  window.csRetryShareCleanup?.();
   try {
     const ids = (CS.memberships||[]).map(m=>m.league.id);
     if(ids.length){
