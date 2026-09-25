@@ -1,0 +1,6 @@
+dark | full brandInk over a08 brandInk contour on ember | 4.62:1
+dark | full ink over a24 livery contour on bg0, worst wrap | 9.76:1
+dark | full ink over a24 livery contour on bg1, worst wrap | 8.49:1
+light | full brandInk over a08 brandInk contour on ember | 4.97:1
+light | full ink over a24 livery contour on bg0, worst oldest | 10.20:1
+light | full ink over a24 livery contour on bg1, worst oldest | 9.35:1

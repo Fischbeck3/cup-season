@@ -1,5 +1,9 @@
 # Cup Season · active work and ownership
 
+## Compete topo correction · 2026-09-24 (Codex) — local review
+
+Owner requested text over continuous topo after spotting the clipped ember strip. `d837a8c0` replaces the strip with a full background in the native/web Scoreboard and Book heading; D381 amended. Contrast: **4.62:1 dark / 4.97:1 light** over the strongest ember stroke. Debug build, four Book UI tests, 58 Node tests and preflight pass. The selected gallery's 36 simulator captures are refreshed; the preceding version is preserved in `selected-before-topo/`. [Evidence](../design/compete-2026-09-24/SELECTED-VERIFICATION.md#owner-topo-correction--september-24). Same isolated branch/worktree; local commits only. No database, Edge or client deployment performed, and no additional deployment requirement introduced.
+
 ## Selected Compete build · 2026-09-24 (Codex) — built and verified locally
 
 Owner approved **Scoreboard + the Book's Weeks view, with Race inside the Book**, including normal native/web app code and one local, unapplied read-contract migration (D381). Work remains only in `/Users/fischbeck3/cup-season-compete-explore` on `codex/compete-explorations-2026-09-24`. The Book has authoritative weekly/cumulative totals, golfers/squads/contributions, named receipts and reasoned adjustment rows. Small leagues keep Rounds & points. The shared 41–41 points rank and ember-label contrast are fixed. No scoring mechanic changed.

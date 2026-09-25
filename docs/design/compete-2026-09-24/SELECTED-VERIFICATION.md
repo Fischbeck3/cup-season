@@ -2,6 +2,16 @@
 
 September 24, 2026. Branch `codex/compete-explorations-2026-09-24`, only in `/Users/fischbeck3/cup-season-compete-explore`. Normal native/web implementation was authorized by the owner and recorded in D381. Nothing was pushed, remotely applied, deployed or distributed.
 
+## Owner topo correction · September 24
+
+Source `d837a8c0`: removed the fixed-height contour strip. Scoreboard text and figures now sit over one continuous terrain background, clipped only at the panel boundary. The Book heading follows the same treatment. Native and web use the same width-based contour geometry and canonical alpha steps. D381 records the owner's amendment.
+
+At the darkest/lightest contour stroke under the text, full brandInk on ember measures **4.62:1 dark / 4.97:1 light** at a08. Neutral headers use a24 livery contours; the worst full-ink contrast across every configured livery is **8.49:1**. [Reproducible measurement](measure-selected-topo.py) · [results](evidence/selected-topo/contrast.txt).
+
+Rechecked after this correction: **Debug build passed**, **4 Book UI tests passed**, **58 Node tests passed**, and **preflight 0 failures / 0 warnings**. Domain/design packages were unchanged; their passing results below remain applicable. [UI summary](evidence/selected-topo/book-ui.json) · [UI output](evidence/selected-topo/book-ui-output.txt) · [Debug](evidence/selected-topo/debug-build.txt) · [Node](evidence/selected-topo/node-tests.txt) · [preflight](evidence/selected-topo/preflight.txt).
+
+All 36 selected simulator captures were refreshed from this commit. The earlier selected gallery is preserved at `~/cup-season-compete-explorations-review/selected-before-topo/`. Browser checks cover both printings and the Book header at 375 points; four updated web captures show the two Scoreboards, the Book matrix/receipts and Race. No scoring, RPC, migration or deployment change is part of this visual correction.
+
 ## Source and result
 
 - `49c219ea`: Scoreboard, the Book, shared points rank, local read migration, fixtures and tests.
@@ -36,7 +46,7 @@ Browser checks use the real production rendering functions with a disconnected s
 
 ## Captures
 
-[Selected capture manifest](evidence/selected-build-captures.json): **36 unedited simulator PNGs**, SHA-256 checked, all from `f5f2a5db`. Twenty-eight are iPhone 17 Pro, eight are iPhone SE. Both printings are represented; standard-phone AX3 captures cover the root, golfer Book and receipts. Subjects include the 41–41 tie, several seasons, season room, 16 golfers, four squads, weekly and cumulative points, Race, receipts, upcoming and completed states.
+[Selected capture manifest](evidence/selected-build-captures.json): **36 unedited simulator PNGs**, SHA-256 checked, all from `d837a8c0`. Twenty-eight are iPhone 17 Pro, eight are iPhone SE. Both printings are represented; standard-phone AX3 captures cover the root, golfer Book and receipts. Subjects include the 41–41 tie, several seasons, season room, 16 golfers, four squads, weekly and cumulative points, Race, receipts, upcoming and completed states.
 
 The actual production renderers are entered through the DEBUG-only `-cs_dev_compete_selected` hatch and synthetic payloads returned by the local SQL implementation. The hatch skips normal auth startup, push and telemetry. Its navigation shell now inherits the same tint as MainTabView; this fixed system-blue menu controls that appeared only in the first capture harness. The Book's short week dates no longer truncate; the full season date span is visible. Native captures and desktop browser captures are labeled separately.
 
