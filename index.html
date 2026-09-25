@@ -4149,6 +4149,29 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
     scroll-behavior:auto !important;
   }
 }
+
+/* D359 / D380 · the recipient reads the same round record as the native card.
+   The page uses the viewer's printing; the exported PNG keeps its fixed face. */
+#shareView.sv-round { background:var(--bg0); color:var(--ink); }
+.sv-round .sv-page { max-width:600px; margin:auto; padding:var(--s5) var(--gutter) var(--s6); text-align:left; }
+.sv-round .sv-signature { display:flex; gap:var(--s3); align-items:center; padding-bottom:var(--s4); border-bottom:var(--hair) solid var(--rule); }
+.sv-round .sv-signature svg { width:64px; height:37px; flex-shrink:0; }
+.sv-round .sv-signature .cs-col-s { margin-left:auto; text-align:right; color:var(--mut); }
+.sv-round #svCard { margin-top:var(--s5); }
+.sv-round .sv-date { color:var(--mut); margin-top:var(--s3); }
+.sv-round .sv-photo { display:block; width:100%; aspect-ratio:3/2; object-fit:cover; margin-top:var(--s4); }
+.sv-round .sv-score { display:flex; align-items:baseline; gap:var(--s3); margin:var(--s5) 0 var(--s4); }
+.sv-round .sv-score .cs-fig-xl { font-size:clamp(56px,14vw,104px); }
+.sv-round .sv-score .cs-col-s { color:var(--mut); }
+.sv-round .sv-golfer { display:flex; align-items:center; gap:var(--s3); }
+.sv-round .sv-golfer svg { width:28px; height:28px; flex-shrink:0; }
+.sv-round .sv-golfer span,.sv-round h1 { overflow-wrap:anywhere; }
+.sv-round .sv-band { margin-top:var(--s3); }
+.sv-round #svFoot { margin-top:var(--s6); padding-top:var(--s4); border-top:var(--hair) solid var(--rule); }
+.sv-round .sv-signoff { margin-bottom:var(--s5); color:var(--mut); }
+.sv-round .sv-action { display:block; padding:var(--s3) var(--s4); min-height:44px; background:var(--act); color:var(--bg0); border-radius:var(--rc); text-align:center; text-decoration:none; }
+.sv-round .sv-action:focus-visible { outline:3px solid var(--ink); outline-offset:4px; }
+
 </style>
 <script>
 /* theme, pre-paint — runs before any content renders so there is no flash.
@@ -31497,41 +31520,32 @@ async function renderShareView(tok, _testInfo){
   if(info.kind === 'round'){
     const pviSane = info.pvi != null && isFinite(info.pvi) && Math.abs(Number(info.pvi)) <= 30;
     document.title = `${info.name} — ${info.gross} at ${info.course} · Cup Season`;
-    card.style.borderColor = 'rgba(255,90,46,.38)';   /* live layer: ember frame (D76) */
-    /* SF-6 at share scale: the gross flips in — hand-authored cells on the
-       entry-board pattern (settled base + `both`), deterministic decoys, no JS
-       after render. sfFlip keyframes live in the app CSS this page shares. */
-    const flap = (s) => '<span class="svfw">' + String(s).split('').map((ch, i) => {
-      if(ch < '0' || ch > '9') return '<span>' + esc(ch) + '</span>';
-      const b = ch.charCodeAt(0) - 48;
-      const d = [1,2,3].map(k => { let x = (b + k*7 + i*3) % 10; if(x === b) x = (x+1) % 10; return x; }).join('&#10;');
-      return `<span class="svfc"><i style="--d:${(0.15 + i*0.08).toFixed(2)}s" data-d="${d}&#10;">` + esc(ch) + '</i></span>';
-    }).join('') + '</span>';
-    /* D60: a traveled photo becomes the card's ground — dark wash for the ink,
-       the marker as a corner medallion (it replaces the big top circle). The
-       payload is URL-free; the page builds the public path from its own token. */
+    wrap.classList.add('sv-round');
+    wrap.style.background = 'var(--bg0)'; wrap.style.color = 'var(--ink)';
+    const page = wrap.firstElementChild;
+    page.className = 'sv-page'; page.removeAttribute('style');
+    const signature = page.firstElementChild;
+    signature.className = 'sv-signature'; signature.removeAttribute('style');
+    // Reuse the generated mark paths already used by the web artifacts.
+    signature.innerHTML = `<svg viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>
+      <span class="cs-name">Cup Season</span><span class="cs-col-s">ROUND RECORD</span>`;
+    card.removeAttribute('style'); card.setAttribute('role', 'article');
+    card.setAttribute('aria-label', 'Round record');
+    // Consent is carried by the public payload. Never load the photo on opt-out.
     const pub = info.photo ? `${SUPABASE_URL}/storage/v1/object/public/shared/${encodeURIComponent(String(tok||''))}.jpg` : null;
-    const m2 = (window.MARKERS || {})[info.marker];
-    const medal = pub && m2 ? `<span style="position:absolute;right:12px;bottom:12px;width:30px;height:30px;border-radius:50%;background:rgba(12,13,15,.55);display:flex;align-items:center;justify-content:center">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="${C.hot}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${m2.p}"/></svg></span>` : '';
-    const inner = `
-      ${pub ? '' : markerSvg(info.marker)}
-      <div style="letter-spacing:.18em;font-size:16px;font-weight:600">${esc(String(info.name).toUpperCase())}</div>
-      <div style="font-family:${SERIF};font-size:104px;font-weight:700;line-height:1.15;margin:10px 0 2px">${flap(String(info.gross))}</div>
-      ${info.holes === 9 ? `<div style="font-size:11px;color:${C.mut};letter-spacing:.14em">NINE HOLES</div>` : ''}
-      ${pviSane ? `<div style="color:${C.hot};letter-spacing:.16em;font-size:14.5px;font-weight:600;margin-top:10px">${esc(theirs(bandName(Number(info.pvi))).toUpperCase())}</div>
-      <div style="font-family:${SERIF};color:${pub ? 'rgba(240,242,243,.85)' : C.mut};font-size:14px;margin-top:6px">${esc(theirs(vsPhrase(Number(info.pvi))))}</div>` : ''}
-      <div style="border-top:1px solid rgba(255,255,255,.14);margin:18px 40px 0"></div>
-      <div style="letter-spacing:.12em;font-size:13px;margin-top:16px">${esc(String(info.course || 'A ROUND').toUpperCase())}</div>
-      <div style="color:${pub ? 'rgba(240,242,243,.75)' : C.mut};font-size:11.5px;letter-spacing:.12em;margin-top:8px">${esc(fmtD(info.played_on))}${info.points != null ? ` · <span style="color:${C.warm}">${esc(String(info.points))} PTS</span>` : ''}</div>`;
-    if(pub){
-      card.style.position = 'relative'; card.style.overflow = 'hidden'; card.style.padding = '30px 18px';
-      card.innerHTML = `<img src="${pub}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,13,15,.82),rgba(12,13,15,.58) 45%,rgba(12,13,15,.86))"></div>
-        <div style="position:relative">${inner}</div>${medal}`;
-    } else {
-      card.innerHTML = inner;
-    }
+    const mark = (window.MARKERS || {})[info.marker];
+    const glyph = mark ? `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${mark.p}"/></svg>` : '';
+    card.innerHTML = `<h1 class="cs-lead">${esc(String(info.course || 'A round'))}</h1>
+      <p class="sv-date cs-col-s">${esc(fmtD(info.played_on))}${info.holes === 9 ? ' · NINE HOLES' : ''}</p>
+      ${pub ? `<img class="sv-photo" src="${pub}" alt="Round photograph shared by ${esc(String(info.name || 'the golfer'))}">` : ''}
+      <div class="sv-score"><span class="cs-fig-xl">${esc(String(info.gross))}</span><span class="cs-col-s">GROSS</span></div>
+      <div class="sv-golfer">${glyph}<span class="cs-name">${esc(String(info.name || 'A golfer'))}</span></div>
+      ${pviSane ? `<p class="sv-band cs-story">${esc(theirs(bandName(Number(info.pvi))).toUpperCase())}</p>` : ''}`;
+    // A missing copy must not leave a broken-image icon or obscure the record.
+    card.querySelector('.sv-photo')?.addEventListener('error', event => { event.currentTarget.remove(); });
+    foot.removeAttribute('style');
+    foot.innerHTML = `<p class="sv-signoff cs-col-s">${esc(window.CS_BRAND.taglineCaps)}<br>cupseason.app</p>
+      <a class="sv-action cs-name" href="/">Play with your people</a>`;
   } else if(info.kind === 'settlement'){
     const r = info.result || {};
     /* D74 amendment: the mode was absent from this map, so every Sunningdale

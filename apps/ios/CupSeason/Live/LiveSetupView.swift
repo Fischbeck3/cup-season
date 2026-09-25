@@ -30,21 +30,16 @@ struct LiveSetupView: View {
     ScrollViewReader { proxy in
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        Text("Set up the round").csType(.agate, caps: true).foregroundStyle(cs.mut)
         if let sr = store.plan, !store.planDismissed, !store.scoreOnPhone { planBridge(sr) }
         Toggle("Score on this phone", isOn: Binding(get: { store.scoreOnPhone }, set: { store.useLocalScoring($0) }))
           .disabled(store.busy)
         if store.scoreOnPhone {
-          CSFine("No signal needed. Keep scores here, then review and post your own round when you reconnect. No group sync or automatic posting.")
+          CSFine("No signal needed. Review and post when you reconnect. No group sync or automatic posting.")
         }
         if let error = store.localSaveError { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }
         courseCard(proxy)
         if !store.scoreOnPhone { foursomeCard; gameCard; nearbyCard }
         else { CSFine("Your round only. Choose the actual tees and pars before you leave service.") }
-        Button("Tee off") { teeOffTaps += 1; Task { await store.teeOff() } }
-          .buttonStyle(.csPrimary(busy: store.busy))
-          .disabled(store.busy)
-          .padding(.top, CSTokens.Space.s2)
         if !phoneCards.isEmpty {
           // D364 (F2) · an unfinished round says it is one: resume, then post
           CSSectionHead("Unfinished rounds", count: "\(phoneCards.count)")
@@ -62,6 +57,22 @@ struct LiveSetupView: View {
     }
     }
     .background(cs.bg0)
+    .safeAreaInset(edge: .bottom, spacing: 0) {
+      Button("Tee off") { teeOffTaps += 1; Task { await store.teeOff() } }
+        .buttonStyle(.csPrimary(busy: store.busy))
+        .disabled(store.busy)
+        .accessibilityIdentifier("live.setup.teeOff")
+        .padding(CSTokens.Space.gutter)
+        .background(cs.bg0)
+    }
+    .toolbar {
+      ToolbarItemGroup(placement: .keyboard) {
+        Spacer()
+        Button("Close keyboard") {
+          UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+      }
+    }
     .task(id: store.state.lr) { phoneCards = store.localCards() }
     // D168 · advertising now follows the APP, not this screen — it starts here
     // and in the tab shell whenever the app is foreground and the golfer has
@@ -77,7 +88,7 @@ struct LiveSetupView: View {
     .csNearbyInvite(store)
     .csFeedback(.teeOff, trigger: teeOffTaps)
     .scrollDismissesKeyboard(.interactively)
-    .navigationTitle("Score it live")
+    .navigationTitle("Set up the round")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(isPresented: $showCard) { LiveCardSheet(store: store) }
     .sheet(isPresented: $showPicker) { LiveRosterPickerSheet(store: store) }
@@ -117,9 +128,6 @@ struct LiveSetupView: View {
   private func courseCard(_ proxy: ScrollViewProxy) -> some View {
     section {
         CSSectionHead("The course")
-        Button("Save courses for offline") { showOfflineCourses = true }
-          .buttonStyle(.csTertiary(.content))
-          .accessibilityIdentifier("offline.courses.open")
         LiveCourseField(localOnly: store.scoreOnPhone, text: Binding(get: { store.state.course.label }, set: { v in
           if store.state.course.label != v { store.state.course.courseId = nil; store.state.course.note = nil; store.state.course.parsCourse = nil; store.state.course.parsVerified = false }
           store.state.course.label = v
@@ -148,6 +156,9 @@ struct LiveSetupView: View {
           .frame(maxWidth: typeSize.isA11y ? .infinity : 220, alignment: .leading)
         CSFine(store.state.course.note ?? LiveCourseCard.standardNote)
         CSMini("Enter the pars") { showCard = true }
+        Button("Save courses for offline") { showOfflineCourses = true }
+          .buttonStyle(.csTertiary(.content))
+          .accessibilityIdentifier("offline.courses.open")
     }
   }
 
@@ -190,13 +201,13 @@ struct LiveSetupView: View {
           }
         }
         CSFine(store.leagueId == nil
-          ? "Pick who plays with who under the game — pairings, stakes, the lot. Every complete card posts to its golfer at the finish; account-less guests play every game, post nothing. Leave index blank for an estimated 18."
-          : "Pick who plays with who under the game — pairings, stakes, the lot. League members post to the season; guests play every game, post nothing, no account needed. Leave index blank for an estimated 18.")
+          ? "Complete cards post to their golfers at the finish. Guests without accounts play every game; their rounds do not post. A blank number uses an estimated 18."
+          : "League members post to the season. Guests play every game without an account; their rounds do not post. A blank number uses an estimated 18.")
     }
   }
 
   private var slots: some View {
-    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: typeSize.isA11y ? 1 : 2), spacing: 8) {
+    LazyVGrid(columns: typeSize.isA11y ? [GridItem(.flexible())] : [GridItem(.adaptive(minimum: 280))], spacing: 8) {
       ForEach(0..<4, id: \.self) { k in
         if k < store.sel.count, store.sel[k] < store.roster.count {
           let idx = store.sel[k]
@@ -375,7 +386,8 @@ struct LiveSlotChip: View {
         // display name, truncated — `JERECHO F…` in a tile with room — where
         // Home's wire, the receipt, the season's clash rows and (since D324)
         // a course's rounds all say "You". `player.me` was already on the row.
-        Text(player.me ? "You" : player.n).csType(.name).foregroundStyle(cs.ink).lineLimit(1)
+        Text(player.me ? "You" : player.n).csType(.name).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
         Text("\(player.est ? "Est " : "")\(LiveFmt.idx(player.i)) playing HCP")
           .csType(.agateS, caps: true).foregroundStyle(cs.mut)
       }
@@ -409,11 +421,19 @@ struct LiveCourtView: View {
 
   var body: some View {
     let T = store.courtTeams
-    // the two zones side by side; one over the other at the accessibility sizes (a seat chip needs the width)
-    A11yStack(alignment: .center, rowAlignment: .top, spacing: 8) {
-      zone(0, "Team A", T[0])
-      Text("vs").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, typeSize.isA11y ? 0 : 28)
-      zone(1, "Team B", T[1])
+    // A seat needs room for its name, playing HCP and remove target.
+    // The old two-column phone court left only a few letters for the name.
+    ViewThatFits(in: .horizontal) {
+      if !typeSize.isA11y {
+        HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+          zone(0, "Team A", T[0]).frame(minWidth: 280)
+          zone(1, "Team B", T[1]).frame(minWidth: 280)
+        }
+      }
+      VStack(spacing: CSTokens.Space.s3) {
+        zone(0, "Team A", T[0])
+        zone(1, "Team B", T[1])
+      }
     }
   }
 

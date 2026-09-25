@@ -28,6 +28,13 @@ struct RoundSharePreview: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
+          if photo != nil {
+            // D359 · an ordinary control takes the action colour; ember is
+            // reserved for an active competition and a share sheet is not one.
+            Toggle(RoundCopy.photoInclude, isOn: $includePhoto).tint(cs.act).disabled(linking)
+            // W2 · the answer governs the card, the public page and the preview
+            if roundId != nil { Text(RoundCopy.photoIncludeFine).csType(.bodyS).foregroundStyle(cs.mut) }
+          }
           if let image {
             Image(uiImage: image).resizable().scaledToFit()
               // The identifier names the composition that was actually
@@ -39,14 +46,15 @@ struct RoundSharePreview: View {
           } else {
             Text("Couldn’t create your round card. Close and try again.").csType(.body)
           }
-          if photo != nil {
-            // D359 · an ordinary control takes the action colour; ember is
-            // reserved for an active competition and a share sheet is not one.
-            Toggle(RoundCopy.photoInclude, isOn: $includePhoto).tint(cs.act).disabled(linking)
-            // W2 · the answer governs the card, the public page and the preview
-            if roundId != nil { Text(RoundCopy.photoIncludeFine).csType(.bodyS).foregroundStyle(cs.mut) }
+          DisclosureGroup {
+            Text(publicRecap.caption).csType(.bodyS).foregroundStyle(cs.mut)
+              .frame(maxWidth: .infinity, alignment: .leading)
+          } label: {
+            Text("Message included with the card").csType(.bodyS).foregroundStyle(cs.ink)
+              .frame(minHeight: 44)
           }
-          Text(publicRecap.caption).csType(.bodyS).foregroundStyle(cs.mut)
+          .tint(cs.act)
+          .accessibilityIdentifier("round.share.message")
 
         }
         .padding(CSTokens.Space.gutter)
@@ -93,6 +101,7 @@ struct RoundSharePreview: View {
     .onChange(of: includePhoto) { _, _ in render() }
     .sheet(item: $share) { item in
       PostShareSheet(items: item.items) { completed, failed in
+        share = nil
         if let prepared = attempt {
           attempt = nil
           Task {
@@ -108,9 +117,12 @@ struct RoundSharePreview: View {
   private func render() {
     image = RecapCardView.render(publicRecap, photo: includePhoto ? photo : nil)
     #if DEBUG
-    if ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") || ProcessInfo.processInfo.arguments.contains("-cs_dev_share_preview") || ProcessInfo.processInfo.arguments.contains("-cs_dev_share_export"),
+    if MorningReviewFixture.on || ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") || ProcessInfo.processInfo.arguments.contains("-cs_dev_share_preview") || ProcessInfo.processInfo.arguments.contains("-cs_dev_share_export"),
        let png = image?.pngData() {
       let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+      if MorningReviewFixture.on, let fixturePhoto = photo?.pngData() {
+        try? fixturePhoto.write(to: folder.appendingPathComponent("review-photo.png"))
+      }
       try? png.write(to: folder.appendingPathComponent(includePhoto && photo != nil ? "round-share-with-photo.png" : "round-share-no-photo.png"))
     }
     #endif

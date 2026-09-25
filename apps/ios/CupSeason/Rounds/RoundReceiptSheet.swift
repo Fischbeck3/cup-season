@@ -149,6 +149,9 @@ struct RoundReceiptSheet: View {
             }
             if let linkNote { Text(linkNote).csType(.bodyS).foregroundStyle(cs.mut) }
             Color.clear.frame(height: 0).task(id: roundPreview) {
+              #if DEBUG
+              if MorningReviewFixture.on { return }
+              #endif
               do { publicLink = try await PostService().shareStatus(round: roundId) }
               catch { linkNote = "Could not check this round’s public link. You can retry turning it off." }
             }
@@ -546,6 +549,9 @@ struct RoundReceiptSheet: View {
   }
 
   private func open() async {
+    #if DEBUG
+    if MorningReviewFixture.on { enriched = true; return }
+    #endif
     loadFailed = false
     if seed == nil, let cached = await ReceiptCache.shared.get(roundId) { seed = cached }
     let repo = RoundsRepository()

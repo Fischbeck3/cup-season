@@ -246,6 +246,19 @@ final class LiveRoundStore {
   /// nearby, plus a fake invitation two seconds later, so both halves of D158's
   /// handshake can be looked at on one simulator. Nothing here touches the
   /// server or the Bluetooth transport.
+  func seedMorningReview(live: Bool) {
+    seedDevRound()
+    roster = state.players
+    roster[0].locked = true
+    sel = Array(roster.indices)
+    rosterPrimed = true
+    state.course.label = "Encanto Golf Course"
+    state.course.tee = "Blue"
+    state.course.rating = 70.2
+    state.course.slope = 119
+    if !live { state.stage = .setup; state.active = false }
+  }
+
   private func seedDevNearby() {
     var me = LivePlayer(n: "You", i: 8.4, ci: 1, guest: false, me: true, locked: true, team: "—")
     me.pid = UUID()
@@ -762,6 +775,9 @@ final class LiveRoundStore {
 
   func teeOff() async {
     guard !busy, !state.active else { return }
+    #if DEBUG
+    if MorningReviewFixture.on { return }
+    #endif
     if scoreOnPhone { teeOffLocally(); return }
     let g = state.game
     if let problem = g.teeOffProblem(players: sel.count) { toast(problem); return }
@@ -1284,6 +1300,9 @@ final class LiveRoundStore {
   // MARK: - finish (9109–9177)
 
   func finish(casual: Bool) async -> Bool {
+    #if DEBUG
+    if MorningReviewFixture.on { return false }
+    #endif
     guard !busy else { return false }
     if state.onThisPhone {
       let kept = keepLocalRound()

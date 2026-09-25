@@ -307,7 +307,11 @@ public struct CSSlat<Trailing: View>: View {
             trailing.fixedSize(horizontal: true, vertical: false)
               .frame(minWidth: CSSlatMetrics.trailingWidth(at: measure), alignment: .trailing)
           } else {
-            trailing.frame(width: variant.trailingWidth(at: measure), alignment: .trailing)
+            // A three-digit leader must remain one number. Reserve the
+            // normal column, then let a larger figure borrow from the name.
+            trailing.fixedSize(horizontal: true, vertical: false)
+              .padding(.leading, CSTokens.Space.s2)
+              .frame(minWidth: variant.trailingWidth(at: measure), alignment: .trailing)
           }
         }
       }

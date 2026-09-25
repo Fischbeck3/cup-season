@@ -170,6 +170,7 @@ struct LivePlayView: View {
       if !badge.isEmpty && store.localSaveError == nil {
         Text(badge).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           .accessibilityAddTraits(.updatesFrequently)
+          .accessibilityIdentifier("live.sync.status")
       }
     }
     .csBudget(ember: 1)
