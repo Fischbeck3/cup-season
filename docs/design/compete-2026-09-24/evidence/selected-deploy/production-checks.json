@@ -1,0 +1,187 @@
+[
+  {
+    "check_name": "1 \u00b7 pg_cron jobs",
+    "detail": "cs-daily-tick \u00b7 cs-month-close \u00b7 run_event_sessions",
+    "status": "PASS"
+  },
+  {
+    "check_name": "10 \u00b7 anon table seal",
+    "detail": "relations + columns + default acls all clean of anon/PUBLIC",
+    "status": "PASS"
+  },
+  {
+    "check_name": "11 \u00b7 views run as reader",
+    "detail": "security_invoker required on any public view granted to anon/authenticated",
+    "status": "PASS"
+  },
+  {
+    "check_name": "12 \u00b7 engine functions unreachable",
+    "detail": "close_month \u00b7 award_event_trophies \u00b7 award_season_trophies \u2014 no execute for anon/authenticated",
+    "status": "PASS"
+  },
+  {
+    "check_name": "13 \u00b7 profiles server-owned",
+    "detail": "no insert/update/delete grant (table or column) to anon/authenticated \u00b7 no write policy on profiles",
+    "status": "PASS"
+  },
+  {
+    "check_name": "14 \u00b7 live tables read-only",
+    "detail": "no write grant/policy for authenticated on the four live tables \u00b7 claim_token unreadable",
+    "status": "PASS"
+  },
+  {
+    "check_name": "15 \u00b7 lock health",
+    "detail": "lock_ok 0 \u00b7 lock_fail 0 \u00b7 7 days",
+    "status": "PASS"
+  },
+  {
+    "check_name": "16 \u00b7 formation invariant",
+    "detail": "leagues in phase=season whose squads do not cover the roster",
+    "status": "PASS"
+  },
+  {
+    "check_name": "17 \u00b7 band boundaries",
+    "detail": "cup_points half-open bands, \u00a72.2",
+    "status": "PASS"
+  },
+  {
+    "check_name": "18 \u00b7 one relationship per embed",
+    "detail": "a client-embedded table with two paths to one target = PGRST201 on every unqualified embed",
+    "status": "PASS"
+  },
+  {
+    "check_name": "19 \u00b7 rounds INSERT is column-scoped",
+    "detail": "gross rating nine_rating slope holes_played source played_on course_label api_course_id season_id photo_path",
+    "status": "PASS \u2014 11 payload columns, engine columns sealed"
+  },
+  {
+    "check_name": "2 \u00b7 anon function surface",
+    "detail": "expected claim_round_info, scan_claim_info, league_by_code, founder_id, share_info, join_covenant_info, email_unsubscribe, guest_live_state, guest_live_set_score, guest_live_set_wolf, door_flags, log_growth_event",
+    "status": "PASS"
+  },
+  {
+    "check_name": "20 \u00b7 a deleted round leaves the ledger true",
+    "detail": "the number follows the ledger both ways ONCE THE ENGINE HAS ONE (round_refresh_index returns early while handicap_index() is null \u2014 under three live rounds the index the deleted round earned stands until the next post) \u00b7 the board keeps the sentence \u00b7 every medal has its round",
+    "status": "PASS"
+  },
+  {
+    "check_name": "21 \u00b7 posts INSERT is column-scoped",
+    "detail": "league_id season_id kind member_id body",
+    "status": "PASS \u2014 5 chat columns, server columns sealed"
+  },
+  {
+    "check_name": "22 \u00b7 founder/owner guards fail closed",
+    "detail": "is distinct from, never <>",
+    "status": "PASS \u2014 no `auth.uid() <>` anywhere in public"
+  },
+  {
+    "check_name": "23 \u00b7 TRUNCATE is not a client verb",
+    "detail": "RLS does not cover TRUNCATE",
+    "status": "PASS \u2014 no TRUNCATE/REFERENCES/TRIGGER/MAINTAIN for authenticated or anon"
+  },
+  {
+    "check_name": "24 \u00b7 round_players is read-only to clients",
+    "detail": "writes go through post_round only",
+    "status": "PASS \u2014 authenticated may SELECT and nothing else; anon holds nothing; RLS on"
+  },
+  {
+    "check_name": "25 \u00b7 a leaver stops scoring forward-only",
+    "detail": "r.created_at < lm.left_at",
+    "status": "PASS \u2014 the forward-only cut is in the lens, beside the suspension's"
+  },
+  {
+    "check_name": "26 \u00b7 a post can be homed on a person",
+    "detail": "posts.profile_id + posts_profile_read + post_kudos(post_id, profile_id, emoji)",
+    "status": "PASS \u2014 homed, readable, and reactable without a league"
+  },
+  {
+    "check_name": "27 \u00b7 the person link keeps the anon surface at twelve",
+    "detail": "shares.kind = person \u00b7 share_info branch \u00b7 redeem_share to authenticated only",
+    "status": "PASS \u2014 the card is anon, the buddy request is not"
+  },
+  {
+    "check_name": "28 \u00b7 the plan link keeps the anon surface at twelve",
+    "detail": "shares.kind = plan \u00b7 share_info branch \u00b7 the seat is taken inside redeem_share",
+    "status": "PASS \u2014 one plan, one seat, and D69 untouched"
+  },
+  {
+    "check_name": "29 \u00b7 a forfeit has no money column, and exactly one home",
+    "detail": "forfeits.league_id nullable \u00b7 event_id \u00b7 scheduled_round_id \u00b7 party_b",
+    "status": "PASS \u2014 four homes, one at a time, and no amount anywhere"
+  },
+  {
+    "check_name": "3 \u00b7 authenticated RPC grants",
+    "detail": "99 names extracted from the web client + handle_available, round_holes_of, native_home (IOS-009) + founding_ids, door_flags + my_actionable_count (D104)",
+    "status": "PASS \u2014 all 105 granted"
+  },
+  {
+    "check_name": "30 \u00b7 callout_mutes is sealed, and a callout scores nothing",
+    "detail": "callout_mutes revoked from all \u00b7 call_out / respond_callout to authenticated",
+    "status": "PASS \u2014 sealed, authenticated-only, and league_id null"
+  },
+  {
+    "check_name": "31 \u00b7 what a round is worth, and it is a ceiling",
+    "detail": "round_worth(cap,used,worst) \u00b7 the table in 20261001090000's header",
+    "status": "PASS \u2014 12 / 6 / 0 / null / 12, and no anon execute"
+  },
+  {
+    "check_name": "32 \u00b7 a storage policy reads nothing the golfer cannot",
+    "detail": "pg_policies(storage.objects) \u00d7 public relations authenticated cannot select",
+    "status": "PASS \u2014 every storage policy reads only what the caller may"
+  },
+  {
+    "check_name": "33 \u00b7 a plan seats the host who declared it",
+    "detail": "scheduled_rounds(play_on >= today) \u00d7 round_rsvp",
+    "status": "PASS \u2014 every future plan has its host on the sheet"
+  },
+  {
+    "check_name": "34 \u00b7 the after-golf band waits for a client that can answer it",
+    "detail": "pg_get_functiondef(home_dispatch) \u00d7 answer_plan_followup result type",
+    "status": "PASS \u2014 the band requires a declared capability, and an answer says what it did"
+  },
+  {
+    "check_name": "35 \u00b7 the standings views sum the ledger (D376)",
+    "detail": "v_individual_standings vs. a recomputation from v_rounds_ranked and season_adjustments",
+    "status": "PASS \u2014 0 ruled total(s), every one equal to rounds + ledger"
+  },
+  {
+    "check_name": "36 \u00b7 D378 bundle and D371 door counter",
+    "detail": "prosrc of create_major / enter_major / create_event / lock_league / daily_season_tick / enter_cup_final / cup_final_race / snapshot_week; door_attempts privileges",
+    "status": "PASS \u2014 leavers gated on writes, snake refused, league-local Final, private door counter"
+  },
+  {
+    "check_name": "37 \u00b7 season two is a re-up (D375)",
+    "detail": "league_members.agreed_seasons \u00d7 v_rounds_ranked / v_individual_standings \u00d7 prosrc of respond_invite, join_league, run_it_back, randomize_squads, start_season, recompute_season_payouts, invite_golfer, my_invites \u00d7 helper grants",
+    "status": "PASS \u2014 every member on record; the lens, the doors, the hat, the start and the pot read it"
+  },
+  {
+    "check_name": "4 \u00b7 dead policies stay dead",
+    "detail": "members_self on league_members \u00b7 rounds_owner_update on rounds",
+    "status": "PASS"
+  },
+  {
+    "check_name": "5 \u00b7 check constraints current",
+    "detail": "season_adjustments kinds \u00b7 rounds sources \u00b7 feedback categories",
+    "status": "PASS"
+  },
+  {
+    "check_name": "6 \u00b7 RLS enabled",
+    "detail": "profiles, rounds, league_members, posts, post_comments, trophies, events, pilot_feedback, content_reports, scheduled_rounds, live_scores",
+    "status": "PASS"
+  },
+  {
+    "check_name": "7 \u00b7 media bucket limits",
+    "detail": "limit 8388608 \u00b7 mimes 3",
+    "status": "PASS"
+  },
+  {
+    "check_name": "8 \u00b7 data sanity",
+    "detail": "rounds without profiles \u00b7 month_closed uniqueness",
+    "status": "PASS"
+  },
+  {
+    "check_name": "9 \u00b7 profiles column grants",
+    "detail": "email (20260718172300) + contact_hash (C-11) sealed \u00b7 every other column needs its own grant",
+    "status": "PASS"
+  }
+]

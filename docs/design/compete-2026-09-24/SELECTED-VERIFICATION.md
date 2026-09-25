@@ -1,6 +1,6 @@
 # Selected Compete build · verification
 
-September 24, 2026. Branch `codex/compete-explorations-2026-09-24`, only in `/Users/fischbeck3/cup-season-compete-explore`. Normal native/web implementation was authorized by the owner and recorded in D381. Nothing was pushed, remotely applied, deployed or distributed.
+September 24, 2026. Branch `codex/compete-explorations-2026-09-24`, only in `/Users/fischbeck3/cup-season-compete-explore`. Normal native/web implementation was authorized by the owner and recorded in D381. The owner later authorized push and deployment, then excluded TestFlight. The branch is pushed and the production database is updated. See [deployment status and production checks](DEPLOYMENT.md); the local verification below remains the build/capture record.
 
 ## Owner topo correction · September 24
 
@@ -70,4 +70,4 @@ The local database reproduction is `tests/fixtures/season-book/run.sh`; see its 
 
 The Book reports points counting today. It does not claim immutable historical standings or locked historical rules. An outside-week contribution remains in the totals/receipts and prevents a misleading race curve. The RPC explicitly refuses reads beyond 104 weeks, 200 golfers, 10,000 rounds or 10,000 adjustments. A missing RPC produces a load error with retry. These are documented product limits, not open implementation failures.
 
-The local migration `20261118090000_the_book.sql` remains unapplied remotely. Database review/application must precede client shipment. Web deployment and native distribution remain separately unauthorized; no Edge change is owed. D381 settles the design rulings. Historical snapshots and larger-field pagination would be separate work.
+Migration `20261118090000_the_book.sql` is now applied in production under the owner’s subsequent “Push and deploy” instruction. All 37 production checks pass. The [deployment record](DEPLOYMENT.md) tracks the web release separately; TestFlight is explicitly excluded. No Supabase Edge change is owed. D381 settles the design rulings. Historical snapshots and larger-field pagination would be separate work.

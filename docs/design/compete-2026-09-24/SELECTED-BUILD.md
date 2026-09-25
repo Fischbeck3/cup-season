@@ -1,6 +1,6 @@
 # Selected Compete build · September 24, 2026
 
-The owner selected **Scoreboard for Compete, the Book opening to Weeks, and Race inside the Book**, then explicitly approved normal app code and local, unapplied migration files with “Yes go ahead.” D381 records that authorization. This supersedes the exploration's unchanged-Release and no-migration boundaries for the selected implementation. This work remains local to `codex/compete-explorations-2026-09-24` in `/Users/fischbeck3/cup-season-compete-explore`. Nothing was pushed or deployed.
+The owner selected **Scoreboard for Compete, the Book opening to Weeks, and Race inside the Book**, then explicitly approved normal app code and local, unapplied migration files with “Yes go ahead.” D381 records that authorization. This supersedes the exploration's unchanged-Release and no-migration boundaries for the selected implementation. Work stays on `codex/compete-explorations-2026-09-24` in `/Users/fischbeck3/cup-season-compete-explore`. The owner subsequently requested “Push and deploy,” then excluded TestFlight. The branch is pushed and the database migration is applied. See the current [deployment record](DEPLOYMENT.md) for web status; native distribution is held.
 
 ## What is built
 
@@ -14,11 +14,11 @@ Race explicitly means **points counting today**, grouped by week played or asses
 
 ## One standing
 
-The earlier 41–41 discrepancy came from `native_home` including names in its rank window, and `LeagueRecord` using array position. The local migration separates alphabetical display order from points rank and adds `points_rank` / `points_tied`. Compete, the Book, the existing points table and You now use equal ranks for equal points. You records a win only for an explicitly recorded champion. Qualification seeds and final tiebreak outcomes are separate facts; no scoring or playoff mechanic changed. An older home payload without explicit points-rank fields leaves the new hero's standing absent.
+The earlier 41–41 discrepancy came from `native_home` including names in its rank window, and `LeagueRecord` using array position. The migration separates alphabetical display order from points rank and adds `points_rank` / `points_tied`. Compete, the Book, the existing points table and You now use equal ranks for equal points. You records a win only for an explicitly recorded champion. Qualification seeds and final tiebreak outcomes are separate facts; no scoring or playoff mechanic changed. An older home payload without explicit points-rank fields leaves the new hero's standing absent.
 
 ## Read contract and deployment dependency
 
-Local migration: `supabase/migrations/20261118090000_the_book.sql`. RPC: `season_book(p_league_id uuid, p_season_id uuid) → jsonb`, version 1. It is stable/read-only and security-definer with a fixed search path; public/anon execution is revoked. Only an active, unsuspended league member who agreed to that season can read it. Unknown seasons, mismatched league/season pairs and unauthorized requests have the same denial. No table, scoring view, round or adjustment is changed.
+Applied production migration: `supabase/migrations/20261118090000_the_book.sql` (immutable after application). RPC: `season_book(p_league_id uuid, p_season_id uuid) → jsonb`, version 1. It is stable/read-only and security-definer with a fixed search path; public/anon execution is revoked. Only an active, unsuspended league member who agreed to that season can read it. Unknown seasons, mismatched league/season pairs and unauthorized requests have the same denial. No table, scoring view, round or adjustment is changed.
 
 The envelope includes league/season identity, current-rule provenance, timezone, dates, current week, settings, field size, weeks, a coverage flag and rows. Rows have identity/scope, name, points standing, total, unplaced points, exact weekly/cumulative cells, and complete source entries. Each entry carries its round/adjustment id, member/squad, played/assessed date and week, affected month, raw points, included contribution, count state and reason. Null assessment weeks stay outside the weekly axis. Week boundaries derive from the season and its timezone.
 
@@ -26,7 +26,7 @@ Scoring comes from the existing views: `v_rounds_ranked`, `v_individual_standing
 
 The measured synthetic 16-golfer × 15-week solo read is **85,350 bytes / about 4 KB gzip**. Four squads plus individuals and contributions is **257,117 bytes / about 10 KB gzip**, including 193 real scored rounds and repeated scoped receipts. The fresh local PostgreSQL 17 run measured **31 ms solo / 59 ms squads**, including local `psql` startup; this is not a production latency claim.
 
-The RPC and home-rank patch are **unapplied remotely**. A missing deployment produces a real load error and retry. No Edge deployment is needed. Database review/application must precede shipping the clients. Native distribution and web deployment remain separately unauthorized.
+The RPC and home-rank patch are **applied in production**; all 37 database checks pass. The Book authenticated grant, anon/public denial, fixed search path and home tie field were verified. No Supabase Edge deployment is needed. [Web release status](DEPLOYMENT.md) is tracked separately. The owner explicitly held TestFlight.
 
 ## Verification and evidence
 
@@ -36,4 +36,4 @@ New captures use the actual production renderers through the DEBUG-only `-cs_dev
 
 ## Remaining decisions
 
-The design selections are settled by D381: Scoreboard; live-only ember; monochrome contours on ember; ten golfers or squads; small-league Rounds & points; and a race of points counting today. No new product ruling is needed to review this build. A locked historical rules/standings snapshot and pagination beyond the stated Book bounds would be separate future work. Deployment and distribution require separate authorization.
+The design selections are settled by D381: Scoreboard; live-only ember; monochrome contours on ember; ten golfers or squads; small-league Rounds & points; and a race of points counting today. No new product ruling is needed to review this build. A locked historical rules/standings snapshot and pagination beyond the stated Book bounds would be separate future work. Web/database deployment is authorized; TestFlight remains excluded. See [deployment status](DEPLOYMENT.md).

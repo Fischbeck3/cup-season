@@ -1,0 +1,12 @@
+[
+  {
+    "url": "https://cupseason.app/",
+    "status": 200,
+    "identity": "v23 \u00b7 1e79279"
+  },
+  {
+    "url": "https://cupseason.app/sw.js",
+    "status": 200,
+    "identity": "const VERSION = '1e79279'"
+  }
+]

@@ -1,0 +1,44 @@
+​
+Netlify Build
+────────────────────────────────────────────────────────────────
+​
+❯ Version
+  @netlify/build 37.1.0
+​
+❯ Flags
+  dry: false
+  offline: true
+​
+❯ Current directory
+  /Users/fischbeck3/cup-season-compete-explore
+​
+❯ Config file
+  /Users/fischbeck3/cup-season-compete-explore/netlify.toml
+​
+❯ Context
+  production
+​
+build.command from netlify.toml
+────────────────────────────────────────────────────────────────
+​
+$ bash ./stamp-version.sh
+[stamp] build identity: d9cfe2b
+[stamp] dist    : apple-touch-icon.png brand favicon-32.png favicon.svg get.html icon-192.png icon-512-maskable.png icon-512.png index.html legal.html manifest.webmanifest og-image.png support.html sw.js
+[stamp] index   : v23 · d9cfe2b
+[stamp] sw.js   : VERSION = 'd9cfe2b'
+[stamp] ok
+​
+(build.command completed in 110ms)
+​
+Edge Functions bundling
+────────────────────────────────────────────────────────────────
+​
+Packaging Edge Functions from netlify/edge-functions directory:
+ - share-preview
+​
+(Edge Functions bundling completed in 11.2s)
+​
+Netlify Build Complete
+────────────────────────────────────────────────────────────────
+​
+(Netlify Build completed in 11.3s)

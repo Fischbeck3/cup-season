@@ -1,5 +1,9 @@
 # Cup Season · active work and ownership
 
+## Selected Compete release · 2026-09-24 (Codex) — pushed; database live; web awaiting login
+
+Owner requested “Push and deploy,” then “Not test flight yet.” The owned branch `codex/compete-explorations-2026-09-24` is pushed at code candidate `d9cfe2b`. Production migration `20261118090000_the_book.sql` is applied: **255 total, none pending**, **37/37 production checks pass**, authenticated-only Book execution and home tie fields verified. Netlify's production build passes, including share-preview; **web publication is waiting for Netlify authentication**. TestFlight is held; no ASC, archive, upload, Supabase Edge deployment, main merge or rebase. All repository work stays in `/Users/fischbeck3/cup-season-compete-explore`. [Deployment status and evidence](../design/compete-2026-09-24/DEPLOYMENT.md). Earlier entries below are historical checkpoints.
+
 ## Compete topo correction · 2026-09-24 (Codex) — local review
 
 Owner requested text over continuous topo after spotting the clipped ember strip. `d837a8c0` replaces the strip with a full background in the native/web Scoreboard and Book heading; D381 amended. Contrast: **4.62:1 dark / 4.97:1 light** over the strongest ember stroke. Debug build, four Book UI tests, 58 Node tests and preflight pass. The selected gallery's 36 simulator captures are refreshed; the preceding version is preserved in `selected-before-topo/`. [Evidence](../design/compete-2026-09-24/SELECTED-VERIFICATION.md#owner-topo-correction--september-24). Same isolated branch/worktree; local commits only. No database, Edge or client deployment performed, and no additional deployment requirement introduced.

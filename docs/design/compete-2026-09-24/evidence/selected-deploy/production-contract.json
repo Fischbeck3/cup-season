@@ -1,0 +1,16 @@
+[
+  {
+    "anon_execute": false,
+    "authenticated_execute": true,
+    "config": [
+      "search_path=public"
+    ],
+    "function_name": "season_book(uuid,uuid)",
+    "home_points_tied": true,
+    "latest_migration": "20261118090000",
+    "migration_count": 255,
+    "public_execute": false,
+    "security_definer": true,
+    "volatility": "s"
+  }
+]
