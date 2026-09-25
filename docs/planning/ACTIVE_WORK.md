@@ -1,5 +1,16 @@
 # Cup Season · active work and ownership
 
+## Widgets and Match first release · 2026-09-25 (Codex)
+
+Owner requested “merge and deploy.” The two approved commits, `cbcc55db` and
+`d468ed40`, fast-forwarded main from `70d68bcb`. **Owner TestFlight 1.0.0 (1025)
+is available**: VALID, Owner YES, IN_BETA_TESTING, Friends no, and What to Test
+verified. Netlify serves the merged source; GitHub CI and preflight pass.
+No database or Edge deployment. Work stayed on
+`codex/between-round-widgets-2026-09-25` in the isolated temporary checkout;
+the dirty visual workspace was untouched. Physical-device installation and
+system-hosted interaction checks remain. [Deployment evidence](../ios/widgets-match-first-deployment.md).
+
 ## Approved Play, sharing and App Store release · 2026-09-25 (Codex)
 
 Owner approved the morning gallery with “Looks good deploy it.” The two

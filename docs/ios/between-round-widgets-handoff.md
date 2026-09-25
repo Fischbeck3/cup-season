@@ -1,5 +1,9 @@
 # Between-round widgets handoff · September 25, 2026
 
+Release update: This records the original widget commit. The subsequent Match
+first implementation and these widgets are now merged into main and available
+in **Owner TestFlight 1.0.0 (1025)**. [Deployment evidence](widgets-match-first-deployment.md).
+
 **Branch:** `codex/between-round-widgets-2026-09-25`, based on `origin/main`
 at `70d68bcb`. Isolated checkout: `/private/tmp/cup-season-between-round-widgets`.
 The preexisting, dirty visual-refresh workspace was left untouched.
@@ -61,8 +65,8 @@ in the task's visualization directory under `native-widget-review/`.
 
 **Edge deploy owed:** None.
 
-**Client deploy owed:** A new native app + widget extension build. No web
-deployment is needed. This branch has not been pushed or distributed.
+**Client deploy owed:** None within the approved Owner release; build 1025
+contains the app and widget extension. Netlify has published the merged commit.
 
 **Open questions / risks:** Physical-device checks remain for system-hosted
 RSVP with the app suspended/terminated, account authentication, and Lock Screen
@@ -72,6 +76,5 @@ build or tests. Widgets refresh from app-authored cached reads; they are not
 push-updated standings. Large accessibility sizes intentionally omit secondary
 details; long labels may truncate.
 
-**Recommended next step:** Review the native captures and complete the device
-interaction checks before native distribution. Choose a Dynamic Island design
-direction before implementing its new live-round controls.
+**Recommended next step:** Install build 1025 from Owner TestFlight and complete
+the device interaction checks for the widgets and Match first controls.

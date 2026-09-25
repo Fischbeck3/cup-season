@@ -85,8 +85,9 @@ xcodebuild -project CupSeason.xcodeproj -scheme CupSeason \
 
 **Database deploy owed:** None. **Edge deploy owed:** None.
 
-**Client deploy owed:** Native app and widget extension build. No web deployment.
-The branch has not been pushed or distributed.
+**Client deploy owed:** None within the approved Owner release. The branch is
+merged into main and **1.0.0 (1025)** is available in Owner TestFlight.
+[Deployment evidence](widgets-match-first-deployment.md).
 
 **Open questions / risks:** A physical-device check remains for actual expanded
 Island/Lock Screen placement, intent execution while suspended or terminated,
@@ -97,8 +98,8 @@ from the app and interaction-time reconcile, without a server-push ActivityKit
 service. They can lag when the app is suspended. The existing 45-minute stale
 date offers “Open to refresh.”
 
-**Recommended next step:** Complete those system-hosted checks on an iPhone
-before distributing the native build.
+**Recommended next step:** Install build 1025 from Owner TestFlight and complete
+those system-hosted checks on an iPhone before wider distribution.
 
 Platform references: [LiveActivityIntent](https://developer.apple.com/documentation/appintents/liveactivityintent),
 [widget and Live Activity interactivity](https://developer.apple.com/documentation/widgetkit/adding-interactivity-to-widgets-and-live-activities),

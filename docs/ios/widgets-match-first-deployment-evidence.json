@@ -1,0 +1,64 @@
+{
+  "native": {
+    "sourceCommit": "d468ed408f0cc280568ece91ccc30f0bf9015d47",
+    "build": "1025",
+    "version": "1.0.0",
+    "ipa": "apps/ios/build/archive/run-1025-d468ed40.cTZiE5/export/Cup Season.ipa",
+    "ipaBytes": 21261156,
+    "ipaSHA256": "6bc52351d749fef3e7594409a4057fc1f838104ff6d209b7b6c1306a1d4c4d22",
+    "bundles": [
+      {
+        "id": "app.cupseason.ios",
+        "build": "1025",
+        "signature": "verified",
+        "productionAPNs": "production",
+        "appGroups": [
+          "group.app.cupseason.shared"
+        ]
+      },
+      {
+        "id": "app.cupseason.ios.widgets",
+        "build": "1025",
+        "signature": "verified",
+        "productionAPNs": null,
+        "appGroups": [
+          "group.app.cupseason.shared"
+        ]
+      }
+    ],
+    "validationPassed": true,
+    "uploadSucceeded": true,
+    "verifiedAt": "2026-09-25T17:06:34.170196+00:00",
+    "buildID": "260065cd-67a7-4a5a-af93-a35ea77b09fa",
+    "processingState": "VALID",
+    "internalBuildState": "IN_BETA_TESTING",
+    "inOwner": true,
+    "inFriends": false,
+    "testNotesVerified": true
+  },
+  "web": {
+    "verifiedAt": "2026-09-25T17:00:14.406745+00:00",
+    "expectedSHA": "d468ed4",
+    "pages": [
+      {
+        "path": "/?release_verify=d468ed4",
+        "status": 200,
+        "expectedStampPresent": true,
+        "rawPlaceholderPresent": false
+      },
+      {
+        "path": "/sw.js?release_verify=d468ed4",
+        "status": 200,
+        "expectedStampPresent": true,
+        "rawPlaceholderPresent": false
+      }
+    ]
+  },
+  "ci": {
+    "commit": "d468ed408f0cc280568ece91ccc30f0bf9015d47",
+    "result": "success",
+    "url": "https://github.com/Fischbeck3/cup-season/actions/runs/36164234982"
+  },
+  "databaseDeploy": "none",
+  "edgeDeploy": "none"
+}
