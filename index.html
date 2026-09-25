@@ -7603,7 +7603,28 @@ function renderStandings(){
   const isYou = t => !!(solo && myRung && t.id === myRung);
   const nameOf = t => `<b style="${solo?'':`color:${SQHEX[t.ci]}`}">${isYou(t) ? 'You' : esc(t.name)}</b>`;
   const beOf   = t => isYou(t) ? 'are ' : '';
-  if(story){
+  /* L-03 / L-16 · A FINISHED SEASON IS THE FINAL TABLE. The crown is stored
+     (seasons.champion_* / runnerup_*): the champion is first and the runner-up
+     second whatever the points say — a Cup Final can be won from below — and
+     everyone else follows by points, ties shared (the server's `_final_place`,
+     the phone's final table). No cut, no "N back", no chase: nothing is left to
+     chase. Live seasons are untouched. */
+  const settled = !state.demo && window.CS?.season?.status === 'complete';
+  const S_ = window.CS?.season || {};
+  const champId = settled ? (solo ? S_.champion_member_id : S_.champion_squad_id) : null;
+  const runId   = settled ? (solo ? S_.runnerup_member_id : S_.runnerup_squad_id) : null;
+  const crowned = settled && champId && teams.some(t => t.id === champId);
+  const shown = crowned
+    ? [...teams.filter(t => t.id === champId), ...teams.filter(t => runId && t.id === runId && t.id !== champId),
+       ...teams.filter(t => t.id !== champId && t.id !== runId)]
+    : teams;
+  const fixedN = crowned ? shown.filter(t => t.id === champId || t.id === runId).length : 0;
+  if(settled){ const eb = $('#standingsEyebrow'); if(eb) eb.textContent = 'The final table'; }
+  if(story && crowned){
+    const c = shown[0], r2 = fixedN > 1 ? shown[1] : null;
+    story.innerHTML = `${nameOf(c)} won the season.` + (r2 ? ` ${nameOf(r2)} ${isYou(r2) ? 'were' : 'was'} runner-up.` : '');
+  } else if(story && settled){ story.innerHTML = 'The season is over. This is how it finished.'; }
+  if(story && !settled){
     const a=teams[0], b=teams[1]; let txt='';
     if(!b){ txt = a.pts>0 ? `${nameOf(a)} ${beOf(a)}out front — waiting on a challenger.` : ''; }
     else if(a.pts===0 && b.pts===0){ txt=''; }
@@ -7662,13 +7683,14 @@ function renderStandings(){
      which is the one thing a points table may not do. It is computed over the
      column the table actually PRINTS, so what a golfer sees and what the rail
      says can never disagree. `StandingsMath.competitionRanks` is the twin. */
-  const ranks = teams.map((t,i)=> i > 0 && teams[i-1].pts === t.pts ? null : i + 1);
+  /* a finished season: the crowned rows hold 1 and 2; the field ranks by points after them */
+  const ranks = shown.map((t,i)=> i < fixedN ? i + 1 : (i > fixedN && shown[i-1].pts === t.pts ? null : i + 1));
   ranks.forEach((v,i)=>{ if(v === null) ranks[i] = ranks[i-1]; });
   /* The seats this season actually has, from the one function that knows -
      `climbCut`, which the climb has read since D24. */
   const cutK = Math.max(1, climbCut(window.scenarios && window.scenarios.meta).K);
-  const tiedAt = i => (i > 0 && ranks[i-1] === ranks[i]) || (i+1 < ranks.length && ranks[i+1] === ranks[i]);
-  teams.forEach((t,i)=>{
+  const tiedAt = i => i >= fixedN && ((i > fixedN && ranks[i-1] === ranks[i]) || (i+1 < ranks.length && ranks[i+1] === ranks[i]));
+  shown.forEach((t,i)=>{
     const ti=teams.indexOf(t);
     const arr=series[ti]||[];
     const dwk=arr.length>1 ? arr[arr.length-1]-arr[arr.length-2] : 0;
@@ -7686,7 +7708,7 @@ function renderStandings(){
        not an em dash either: a dash reads as a value, which is the thing
        "empty" was protecting against. A held row prints ONE mark; `— —`
        reads as a rendering error. */
-    const gap = (leadPts - t.pts) > 0 ? '+' + (leadPts - t.pts) : '';
+    const gap = (!settled && (leadPts - t.pts) > 0) ? '+' + (leadPts - t.pts) : '';   /* nothing to chase once it is over */
     const d = pr!=null ? pr-i : null;
     const mvH = d==null ? ''
       : d>0 ? `<span class="mv"><i class="tri up"></i>${d}</span>`
@@ -7710,7 +7732,9 @@ function renderStandings(){
     /* A tie outranks the count: it is the only thing on the row that explains
        why two positions read the same, and a shared numeral with nothing
        saying so looks like a rendering error. */
-    const clause = tiedAt(i) ? 'Tied'
+    const clause = (crowned && t.id === champId) ? 'Champion'
+      : (crowned && runId && t.id === runId) ? 'Runner-up'
+      : tiedAt(i) ? 'Tied'
       : solo
       ? ((t.sub||0)===0 ? 'No rounds yet' : (t.sub||0)+' round'+(t.sub===1?'':'s'))
       : 'Capt. '+esc(t.cap);
@@ -7738,7 +7762,7 @@ function renderStandings(){
        seats — one for a points table, one for a squad-level squads2 season —
        so the desk's own two renderers disagreed with each other about the
        same season. One function decides; both read it. */
-    if(i===cutK-1 && (state.finish||'cup_final')==='cup_final' && teams.length>cutK)
+    if(!settled && i===cutK-1 && (state.finish||'cup_final')==='cup_final' && teams.length>cutK)
       html+=`<tr class="cutrow"><td colspan="${deskCols?6:4}"><span>${esc(csCutLabel(cutK))}</span><i></i></td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
@@ -16020,7 +16044,13 @@ function renderStats(){
   }
   /* D3: the month is a fill meter, not prose about "caps" — four slots you
      can see filling. A better round always bumps the worst one that counts. */
-  if(capN===Infinity){
+  if(!state.demo && window.CS?.season?.status === 'complete'){
+    /* L-16 · a finished season has no month to fill: the tile says what counted, once */
+    const mine = (window.indRows||[]).find(x => x.mid === window.CS?.member?.id);
+    const n = mine ? (mine.r || 0) : 0;
+    $('#statCount').innerHTML = fmtN(n)+' <small>round'+(Number(n)===1?'':'s')+'</small>';
+    $('#statCountD').textContent = 'Season complete · the lines are final';
+  } else if(capN===Infinity){
     /* D357 · this printed `credits` — `floor_credit`, the MINIMUM's unit, in
        which a nine is a half — under the caption "every round counts". Two
        different rules, one number. `my.counting` is the count of rounds the
@@ -16033,7 +16063,8 @@ function renderStats(){
       `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;${i<used?'background:var(--pos)':'border:1px solid var(--dim);opacity:.55'}"></span>`).join('');
     $('#statCount').innerHTML = fmtN(used)+' <small>/ '+capN+'</small><span style="display:block;margin-top:4px;line-height:1">'+dots+'</span>';
   }
-  $('#statCountD').textContent=curMonth()+(capN===Infinity?' · every round counts':' · your best '+capN+' count');
+  if(!(!state.demo && window.CS?.season?.status === 'complete'))
+    $('#statCountD').textContent=curMonth()+(capN===Infinity?' · every round counts':' · your best '+capN+' count');
   /* D76: month pressure — the meter burns down under your number; its tip is
      this screen's one pulse. Device-local month math, same construction as the
      deadline strip above — never new Date('YYYY-MM-DD') (UTC-midnight landmine). */
@@ -18966,6 +18997,17 @@ function csMeSeasonRow(){
   }
   const i = myId!=null ? teams.findIndex(t=>t.id===myId) : -1;
   if(i<0) return null;
+  /* L-03 / L-16 · a finished season says where it FINISHED, from the stored
+     crown, and chases nobody: no "leads by", no "back of", no Final clause. */
+  if(CS.season?.status === 'complete'){
+    const cId = solo ? CS.season.champion_member_id : CS.season.champion_squad_id;
+    const rId = solo ? CS.season.runnerup_member_id : CS.season.runnerup_squad_id;
+    const who = solo ? null : teams[i].name.toUpperCase();
+    const place = myId === cId ? 'CHAMPION' : myId === rId ? 'RUNNER-UP' : 'FINISHED';
+    const parts = [String(CS.league.name||'').toUpperCase(), who ? `${who} · ${place}` : place];
+    if(place === 'FINISHED' && cId){ const c = teams.find(t => t.id === cId); if(c) parts.push(`${String(c.name).toUpperCase()} WON IT`); }
+    return { text: parts.join(' · '), parts };
+  }
   const parts=[String(CS.league.name||'').toUpperCase()];
   const rank=`${climbOrd(i+1).toUpperCase()} OF ${teams.length}`;
   parts.push(solo ? rank : [teams[i].name.toUpperCase(), rank].join(' '));
@@ -19323,10 +19365,18 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
     const latestN = Math.max(0, ...((lg.seasons||[]).map(x => Number(x.number) || 0)));
     const notYes = !done && latestN > 1 && Array.isArray(m.agreed_seasons) && !m.agreed_seasons.includes(latestN);
     if(notYes){
+      /* D389 · the renewal's own state: a PENDING invitation opens its terms; with
+         none, the league's code opens them until the first tee; once the season
+         has started without a yes (declined, lapsed) it never appears as live. */
+      const latestS = (lg.seasons||[]).find(x => Number(x.number) === latestN);
+      const inv = (window.myInvites||[]).find(x => x.kind === 'league' && x.container_id === lg.id);
+      const started = !!(latestS && latestS.starts_on && localDate(latestS.starts_on) <= localDate(today));
+      if(!inv && started) return;
       live.push({ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
                   eyebrow: 'Season ' + latestN, title: lg.name || 'A season',
                   sub: 'Season ' + latestN + ' is open. Say yes to play it.',
-                  status: null, state: 'Upcoming', figure: null, clock: null });
+                  status: null, state: 'Upcoming', figure: null, clock: null,
+                  terms: inv ? { inviteId: inv.id } : { code: lg.code } });
       return;
     }
     const f = !done && lg.phase==='season' ? csSeasonRowFacts(fm.get(lg.id), m.role) : null;
@@ -19682,9 +19732,15 @@ function renderCompete(){
   box.innerHTML = body;
   box.querySelectorAll(".sb-terrain").forEach(h=>window.csTopoHead?.(h));
   box.querySelector("#cmpBookDoor")?.addEventListener("click",()=>csOpenSeasonBook(lead.leagueId,lead.seasonId));
+  /* D389 · an unanswered season opens its TERMS; an accepted one opens the season */
+  const openRow = (row, id) => {
+    if(row && row.terms && row.terms.inviteId && window.respondInvite) return window.respondInvite(row.terms.inviteId, true);
+    if(row && row.terms && row.terms.code && window.openJoinSheet) return window.openJoinSheet(row.terms.code);
+    if(id) window.csOpenSeason?.(id);
+  };
   box.querySelector('[data-cband]')?.addEventListener('click', () => {
     const id = String(lead && lead.leagueId || '');
-    if(id) window.csOpenSeason?.(id);
+    openRow(lead, id);
   });
   if(shelf) shelf.innerHTML = list.finished.length
     ? list.finished.map(csPeerRowHtml).join('')
@@ -19700,7 +19756,7 @@ function renderCompete(){
       /* WA2 · the same arrival Home's season item takes. This row had the
          pattern first: clicking another league changed the context and left
          Compete open, so it took two clicks to reach the season. */
-      if(kind==='league'){ window.csOpenSeason?.(id); }
+      if(kind==='league'){ openRow(list.seasons.find(r => r.leagueId === id), id); }
       else if(kind==='event') window.openEvent?.(id);
       else switchView('schedule');
     }));
@@ -22500,6 +22556,24 @@ function renderPhase(){
     : p==='setup' ? 'OPENS WHEN THE SEASON STARTS'
     : p==='draft' ? 'SQUADS DRAWING'
     : 'Complete · squads are set';
+  /* D386 · only when someone is waiting, and only for the Pro: say so, and a link
+     to seat them in the roster. Otherwise the row stays exactly as it was. */
+  {
+    const sn = Number(CS.season?.number) || 0;
+    const waiting = (CS.member?.role === 'commissioner' && window.csUnseated)
+      ? window.csUnseated(m => !(sn > 1) || !Array.isArray(m.agreed_seasons) || m.agreed_seasons.includes(sn)) : [];
+    const row = hd && hd.closest('.check');
+    let seat = document.getElementById('hubSeatBtn');
+    if(waiting.length && row){
+      hd.textContent = `${waiting.length} not on a squad yet`;
+      if(!seat){
+        seat = document.createElement('button');
+        seat.className = 'mini'; seat.id = 'hubSeatBtn'; seat.textContent = 'Seat';
+        seat.addEventListener('click', () => window.openMembersSheet?.());
+        row.appendChild(seat);
+      }
+    } else if(seat){ seat.remove(); }
+  }
   renderRosterDoor();     /* D180: who can still get in with the code */
   renderLeagueMeta();
   renderCalendar();
@@ -26320,7 +26394,7 @@ async function loadMemberships(){
     /* D389 · the member's yeses and the league's season numbers ride along,
        so Compete never tells a golfer they are in a season they have not
        said yes to (launch audit L-18). */
-    .select('id, role, index_current, agreed_seasons, league:leagues(id,name,code,phase,sandbox,seasons(number))')
+    .select('id, role, index_current, agreed_seasons, league:leagues(id,name,code,phase,sandbox,seasons(number,starts_on))')
     .eq('profile_id', CS.user.id);
   if(error && /agreed_seasons|seasons/.test(error.message||'')){
     ({ data, error } = await sb
@@ -26434,6 +26508,12 @@ async function runItBack(oldLeague, membership){
     toast(csRunItBackDone(r.season?.number, r.asked ?? r.invited));
     try { localStorage.setItem('cs_last_league', lid); } catch(_){}
     await loadMemberships();
+    /* L-19 · the room reloads onto the NEW season: without this the Pro kept
+       looking at the finished one ("SEASON COMPLETE", the link still offered) */
+    const fresh = (window.CS?.memberships || []).find(m => m.league?.id === lid);
+    if(fresh) await enterLeague(fresh, false);
+    else if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
+    if(window.loadHome) window.loadHome();
     switchView('hub');
   } catch(e){
     toast(csShareKindNotDeployed(e) ? CS_RUNBACK_NOT_YET : humanError(e, "Couldn't start the next season."));
@@ -28101,7 +28181,10 @@ function openEventPicker(){
 }
 /* join-by-code, self-contained — the hub's join box hides for members, so the
    Clubhouse sheet carries its own */
-function openJoinSheet(){
+function openJoinSheet(prefill){
+  /* D389 · a season-two golfer with no invitation re-ups by the league's code:
+     the sheet opens with it filled in, and Join shows the covenant as always */
+  setTimeout(() => { const f = document.getElementById('jCode'); if(f && prefill && !f.value) f.value = String(prefill).toUpperCase(); }, 0);
   openSheet('Join with a code', 'Got a league code?', `
     <input class="f" id="jCode" placeholder="LEAGUE CODE" autocomplete="off" style="font-family:var(--sans); text-transform:uppercase">
     <button class="btn" id="jGo" style="margin-top:12px">Join</button>
@@ -30459,6 +30542,35 @@ document.getElementById('calList')?.addEventListener('click', async (e) => {
 });
 
 /* ---------- members & invites: the clubhouse roster ---------- */
+/* D386 · who can be seated by the Pro right now: a squads season under way, a
+   golfer who said yes to it, and no squad yet (a seat once taken is not moved) */
+function csUnseated(inFor){
+  if(state.demo || !CS.league || state.structure === 'solo' || CS.league.phase !== 'season') return [];
+  if(!CS.season || CS.season.status !== 'active' || !(CS.squads||[]).length) return [];
+  const seated = new Set();
+  (CS.squads||[]).forEach(q => (q.squad_members||[]).forEach(x => seated.add(x.member_id)));
+  return (CS.members||[]).filter(m => !seated.has(m.id) && !m.left_at && (!inFor || inFor(m)));
+}
+window.csUnseated = csUnseated;
+function csCanSeat(m, inFor){
+  return CS.member?.role === 'commissioner' && csUnseated(inFor).some(x => x.id === m.id);
+}
+function csOpenSeatSheet(m){
+  const who = m.profile?.display_name || 'this golfer';
+  openSheet('Seat ' + who, 'ROUNDS COUNT FOR THE SQUAD FROM TODAY',
+    (CS.squads||[]).map(q => `<button class="btn dark" data-seatsq="${q.id}" style="margin-top:8px">${esc(q.name)} · ${(q.squad_members||[]).length} golfer${(q.squad_members||[]).length===1?'':'s'}</button>`).join(''));
+  document.querySelectorAll('[data-seatsq]').forEach(b => b.addEventListener('click', async () => {
+    document.querySelectorAll('[data-seatsq]').forEach(x => x.disabled = true);
+    try{
+      const { error } = await sb.rpc('assign_player', { p_squad: b.dataset.seatsq, p_member: m.id });
+      if(error) throw error;
+      const q = (CS.squads||[]).find(x => x.id === b.dataset.seatsq);
+      toast(`${who} is on ${q ? q.name : 'the squad'}. Their rounds count for it from today.`);
+      closeSheet();
+      await loadLeagueData();
+    }catch(e){ document.querySelectorAll('[data-seatsq]').forEach(x => x.disabled = false); toast(humanError(e, 'Could not seat them.')); }
+  }));
+}
 async function openMembersSheet(){
   if(state.demo || !CS.league){ toast('The demo roster is scenery. Join a real league'); return; }
   const isPro = CS.member?.role === 'commissioner';
@@ -30491,6 +30603,7 @@ async function openMembersSheet(){
                 inFor(m) ? null : CS_NOT_IN_YET].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
       ${isPro && m.id !== CS.member.id ? `<span style="display:flex; gap:6px; flex:none; flex-wrap:wrap; justify-content:flex-end">
         <button class="mini" data-msidx="${m.id}">Set index</button>
+        ${csCanSeat(m, inFor) ? `<button class="mini" data-msseat="${m.id}">Seat</button>` : ''}
         ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>`
           : !inFor(m) ? `<button class="mini" data-msask="${m.id}">Ask again</button>`
           : `<button class="mini" data-msbye="${m.id}">Bye</button><button class="mini" data-msrule="${m.id}">Ruling</button>`}
@@ -30564,6 +30677,12 @@ async function openMembersSheet(){
   document.querySelectorAll('[data-msrule]').forEach(b => b.addEventListener('click', () => {
     const m = CS.members.find(x => x.id === b.dataset.msrule);
     window.openRulingSheet?.(m);
+  }));
+  /* D386 / L-07 · a golfer with no squad in a season under way: the Pro seats
+     them (assign_player allows exactly this, D382 §2); it counts from today */
+  document.querySelectorAll('[data-msseat]').forEach(b => b.addEventListener('click', () => {
+    const m = CS.members.find(x => x.id === b.dataset.msseat);
+    if(m) csOpenSeatSheet(m);
   }));
   /* D375 · the ask-again: the same invitation, re-dated, rings again */
   document.querySelectorAll('[data-msask]').forEach(b => b.addEventListener('click', async () => {
