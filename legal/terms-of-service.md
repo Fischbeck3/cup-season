@@ -1,6 +1,6 @@
 # Terms of Service
 
-**Last Updated:** September 21, 2026
+**Last Updated:** September 25, 2026
 
 Cup Season is operated by Fischbeck3 LLC. By using it you agree to these terms.
 
@@ -16,6 +16,15 @@ everyone can read, but a round is never edited after the fact.
 **Your content.** You keep ownership of your photos and content. You give Cup
 Season permission to display them where the service needs to — on your card,
 your leagues' boards, and the cards you choose to share.
+
+**No objectionable content, no abuse.** Cup Season has zero tolerance for
+objectionable content and for abusive users. Don't post anything hateful,
+harassing, threatening, sexually explicit or violent, don't impersonate
+anyone, and don't use the app to bother another golfer. You can report any
+post, comment, photo or golfer from the app. We review reports within 24
+hours, remove the offending content, and remove the accounts that posted it.
+**Block** stops a golfer from contacting you: you won't see their posts, and
+they can't send you requests, invites or notifications.
 
 **The app.** Cup Season is provided "as is", without warranties. We may change
 or retire features. We may suspend or remove accounts that misuse the service

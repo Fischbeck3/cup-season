@@ -2346,6 +2346,11 @@ body.guestlive #onboard{display:none !important;}
   border-top:1px solid var(--rule); line-height:1.5;
 }
 .crow b{color:var(--ink); font-weight:600; margin-right:6px;}
+/* R8 · a comment's own door to Report and Block (csOpenCommentSafety) — quiet
+   ink, a thumb-sized target, and never on your own line */
+.crmore{background:none; border:0; padding:0 4px; margin:0 0 0 8px; color:var(--mut); font:inherit; line-height:1.5; min-width:32px; min-height:32px; cursor:pointer;}
+.crow .crmore{float:right;}
+.crow2 .crmore{margin-left:auto; flex:none;}
 .cinput{display:flex; gap:8px; margin-top:8px;}
 .cinput input{flex:1; min-height:40px; font-family:var(--sans); font-weight:500;}
 /* reactions — the crew's vocabulary. present reactions read as counted chips;
@@ -3351,7 +3356,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-roster .who{text-align:center;}
 /* D262 / R-O · the bag. The desk's half is DESKTOP-FIRST (R-C): on a 1440 the
    bag and the sideline sit side by side, because the whole question the
-   sideline answers ("is Galen bringing the new driver?") is a comparison, and
+   sideline answers ("is Alex bringing the new driver?") is a comparison, and
    a comparison down one column is not one. Under 900px they stack. */
 .bagcols{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start;}
 @media (max-width:900px){ .bagcols{grid-template-columns:1fr; gap:10px;} }
@@ -5300,7 +5305,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                live with a stake and nowhere to send it (L-41). -->
           <div id="payNoteRow" style="display:none">
             <label class="f" for="payNote">How do they pay you?</label>
-            <input class="f" id="payNote" placeholder="Venmo @galen" style="font-family:var(--sans); font-size:16px;">
+            <input class="f" id="payNote" placeholder="Venmo @your-handle" style="font-family:var(--sans); font-size:16px;">
             <p class="fine" id="payNoteFine" style="padding-top:4px">Everyone who owes will see this. It's the only place they can look.</p>
           </div>
           <div class="setrow">
@@ -6389,6 +6394,18 @@ function paintLedgerLines(root){
 window.paintLedgerLines = paintLedgerLines;
 const CS_STAKE_MAX = 200;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+/* D-04 (security review 2026-09-25) · a URL inside CSS url('...') inside a
+   style="" attribute has TWO parsers to get past, and esc() answers only the
+   first: the attribute decodes &#39; (or a stored &apos;) back to ' before CSS
+   reads the string, so an object key carrying ' ( ) could close the url() and
+   write declarations of its own over the whole board. Percent-encode what can
+   end a CSS string or a url() — storage decodes the key, so a real address is
+   unchanged, and no key either client mints carries one — THEN escape for the
+   attribute, so an entity stays text. Every photo painted as a background goes
+   through here. */
+function csCssUrl(u){
+  return esc(String(u ?? '').replace(/['"()\\\s]/g, c => ({ "'":'%27', '"':'%22', '(':'%28', ')':'%29', '\\':'%5C' }[c] || encodeURIComponent(c))));
+}
 /* F-003: users should never read raw Postgres/PostgREST jargon. Map known
    error classes to a plain sentence; the raw text still lands in the console
    (and, for uncaught errors, client_events via the global handler). Classic
@@ -6985,7 +7002,7 @@ function csSeasonArcLine(a){
   return null;
 }
 
-/* FELLAS · WEEK 7 OF 26 · SEASON LIVE — one row, one vocabulary (D120), and
+/* THE SUNDAY CUP · WEEK 7 OF 26 · SEASON LIVE — one row, one vocabulary (D120), and
    the week said ONCE on the page (L-34). */
 function csSeasonDateline(name, stageKey, week, weeks){
   const parts = [];
@@ -7970,7 +7987,7 @@ const easeCaps = s => {
 
    The viewer's own name resolves to `You` in the subject seat and `you` in
    every other, and SECOND PERSON TAKES ITS COPULA — the elision that carries a
-   third-person clause ("Galen has posted six weeks running") gains its own
+   third-person clause ("Alex has posted six weeks running") gains its own
    verb rather than printing "You has posted". The only name it will ever touch
    is the viewer's own. */
 const CS_COPULA = { has:'have', is:'are', was:'were', does:'do',
@@ -8141,7 +8158,7 @@ function socialBar(f, fi, opts){
     : '';
   const cmBtn = talkDoor || (comments ? `<button class="rxcm" data-c="${fi}" title="Comments" aria-label="Comments" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${cm.length?` ${cm.length}`:''}</button>` : '');
   const thread = (comments && !talkDoor) ? `<div class="cthread" id="${ns}th${fi}" style="display:none">
-      ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
+      ${cm.map((c,ci)=>`<div class="crow">${c.id && !c.mine ? `<button class="crmore" type="button" data-cmore="${fi}:${ci}" aria-label="More actions for ${esc(c.w)}’s comment">⋯</button>` : ''}<b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
       <div class="cinput">
         <input class="f" placeholder="Say something…" data-i="${fi}">
         <button class="mini" data-s="${fi}">Send</button>
@@ -8255,7 +8272,7 @@ async function fetchSocial(pids){
   try{
     ([{ data: kud }, { data: cmt }] = await Promise.all([
       window.sb.from('post_kudos').select('*').in('post_id', pids),
-      window.sb.from('post_comments').select('post_id, member_id, body, created_at')
+      window.sb.from('post_comments').select('id, post_id, member_id, body, created_at')
         .in('post_id', pids).order('created_at', { ascending:true }),
     ]));
   }catch(e){ console.warn('[social]', e); return; }
@@ -8272,7 +8289,10 @@ async function fetchSocial(pids){
                ?? (k.profile_id===myPid ? (window.CS?.profile?.display_name || 'You') : null)
                ?? 'Someone');
   });
-  (cmt||[]).forEach(c=>{ (cmBy[c.post_id]||=[]).push({ w:window.memName?.(c.member_id) ?? 'Someone', t:c.body }); });
+  /* R8 · a comment carries its own id (report_content's p_comment) and its
+     author's profile (set_mute — Block), so the thread can offer both */
+  (cmt||[]).forEach(c=>{ (cmBy[c.post_id]||=[]).push({ id:c.id||null, w:window.memName?.(c.member_id) ?? 'Someone', t:c.body,
+    pid:(window.CS?.members||[]).find(m=>m.id===c.member_id)?.profile_id || null, mine:!!(mine && c.member_id===mine) }); });
   feed.forEach(f=>{ if(f.post_id){ f.rx = rxBy[f.post_id] || {}; f.cm = cmBy[f.post_id] || []; } });
   /* D391 · the round posts' conversation doors, on their own read */
   const rids = feed.filter(f=>f.roundpost && f.rid).map(f=>f.rid);
@@ -8316,6 +8336,53 @@ async function reportPost(f){
     }catch(e){ if(go) go.disabled = false; toast(humanError(e, 'Could not send the report.')); }
   });
 }
+/* R8 (S7, Guideline 1.2) · a comment gets the two doors a post has. Report
+   goes to the founder desk — report_content takes p_kind 'comment' (a board
+   comment) or 'round_comment' (a plan's) with the comment's own id — and
+   Block runs set_mute (CS_BLOCK: the RPC keeps its name, the golfer reads
+   what it does). One sheet for both threads; `after` lets the plan sheet
+   redraw itself without the blocked golfer's lines. */
+function csOpenCommentSafety(c){
+  if(!c || !c.id) return;
+  if(state.demo || !window.sb){ toast('Sign in to report a comment'); return; }
+  const kind = c.kind === 'round_comment' ? 'round_comment' : 'comment';
+  const first = csFirstName(c.name);
+  const canBlock = !!c.pid && c.pid !== window.CS?.profile?.id;
+  const blocked = canBlock && window.MUTED instanceof Set && window.MUTED.has(c.pid);
+  openSheet((first || 'A golfer') + '’s comment', CS_BLOCK.eyebrow, `
+    <div class="eyebrow" style="margin-top:0">Report</div>
+    <p class="fine" style="padding-top:0">Your note goes to the founder desk with the comment.</p>
+    <input class="f" id="crptWhy" placeholder="Say what’s wrong…" autocomplete="off" maxlength="500" style="font-family:var(--sans)">
+    <button class="btn" id="crptGo" style="margin-top:8px">Send the report</button>
+    ${canBlock ? `<div class="eyebrow" style="margin-top:20px">Block</div>
+    <button class="btn dark" id="crptBlock">${esc(csBlockVerb(first, blocked))}</button>
+    <p class="fine" style="padding:4px 0 0">${esc(blocked ? CS_BLOCK.undoWhat : CS_BLOCK.what)}</p>` : ''}`);
+  document.getElementById('crptGo')?.addEventListener('click', async () => {
+    const go = document.getElementById('crptGo'); if(go) go.disabled = true;
+    const reason = (document.getElementById('crptWhy')?.value || '').slice(0,500);
+    try{
+      const { error } = await window.sb.rpc('report_content', { p_post: null, p_reason: reason, p_kind: kind, p_comment: c.id });
+      if(error) throw error;
+      closeSheet();
+      toast('Reported — thanks. We’ll take a look.');
+      try{ if(typeof qaEvent==='function') qaEvent('content_reported', { comment: c.id, kind }); }catch(_){}
+    }catch(e){ if(go) go.disabled = false; toast(humanError(e, 'Could not send the report.')); }
+  });
+  document.getElementById('crptBlock')?.addEventListener('click', async () => {
+    const b = document.getElementById('crptBlock'); if(b) b.disabled = true;
+    const on = !blocked;
+    const { error } = await window.sb.rpc('set_mute', { p_profile: c.pid, p_on: on });
+    if(error){ if(b) b.disabled = false; toast(humanError(error, 'Could not change that.')); return; }
+    window.MUTED = window.MUTED instanceof Set ? window.MUTED : new Set();
+    on ? window.MUTED.add(c.pid) : window.MUTED.delete(c.pid);
+    closeSheet();
+    toast(on ? csBlockDone(first) : CS_BLOCK.undone);
+    /* their posts and comments leave on the next read (the read policies
+       drop a blocked author), so read again rather than wait for one */
+    if(typeof c.after === 'function') c.after();
+    else Promise.resolve(window.loadStandingsAndFeed ? window.loadStandingsAndFeed() : window.refreshSocial?.()).catch(() => {});
+  });
+}
 window.refreshSocial = refreshSocial;
 /* (retired with the tray, D310: picking a chip once closed its own tray — this covers
    the other two closes bullet 2 asks for, tap-out and Escape, and also means
@@ -8354,6 +8421,12 @@ function wireSocial(el, ns){
   }));
   el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.report]; if(f) reportPost(f);
+  }));
+  /* R8 · a comment's ⋯ — Report it, or Block the golfer who wrote it */
+  el.querySelectorAll('[data-cmore]').forEach(b=>b.addEventListener('click',()=>{
+    const [fi, ci]=String(b.dataset.cmore).split(':').map(Number);
+    const c=feed[fi]?.cm?.[ci]; if(!c || !c.id) return;
+    csOpenCommentSafety({ kind:'comment', id:c.id, pid:c.pid, name:c.w });
   }));
   el.querySelectorAll('[data-c]').forEach(b=>b.addEventListener('click',()=>{
     const t=el.querySelector('#'+ns+'th'+b.dataset.c); if(!t) return;
@@ -8795,7 +8868,7 @@ function renderFeedFull(force){
         const sfNew = window._sfRid && f.rid===window._sfRid;
         if(sfNew) sfHit=true;
         el.insertAdjacentHTML('beforeend',`
-        <div class="fcard${r.photo_url?' has-photo':''}"><div class="round${r.photo_url?' has-photo room-dusk tap':''}"${r.photo_url?` data-rcpt="${r.id}" aria-label="${esc(f.who||'—')} — open the round" style="background-image:url('${esc(r.photo_url)}')"`:''}>
+        <div class="fcard${r.photo_url?' has-photo':''}"><div class="round${r.photo_url?' has-photo room-dusk tap':''}"${r.photo_url?` data-rcpt="${r.id}" aria-label="${esc(f.who||'—')} — open the round" style="background-image:url('${csCssUrl(r.photo_url)}')"`:''}>
           <span class="bar" style="background:${SQHEX[f.ci]}"></span>
           <div class="body">
             <div class="l1" style="display:flex; align-items:center; gap:8px">${window.face?window.face(r.profile_id, memberMarker(r.profile_id), 22):''}<span>${esc(f.who||'—')}</span></div>
@@ -9241,7 +9314,7 @@ async function openBuyInTerms(){
   openSheet('How the crew pays you', '', `
     <p class="fine" style="padding:0 0 12px">${CS_LEDGER}</p>
     <label class="f" for="biNote">Your words — a handle, an app, cash at the turn</label>
-    <input class="f" id="biNote" maxlength="140" placeholder="Venmo @casey" value="${esc(cur)}">
+    <input class="f" id="biNote" maxlength="140" placeholder="Venmo @your-handle" value="${esc(cur)}">
     <label class="f" for="biDue" style="margin-top:10px">In by (optional)</label>
     <input class="f" id="biDue" type="date" value="${esc(due)}">
     <p class="fine" style="padding:8px 0 0">Every member sees this on the Pot tab.</p>
@@ -9451,8 +9524,8 @@ function drawRecapCard(d){
   }
   ctr((d.name||'A GOLFER').toUpperCase(), 372, `700 50px ${BOARD}`, INK, 2);
   /* D60a: no league line on the card — the artifact is about the golfer, and
-     league names are in-joke space (pilot: "Who's the bitch?" on a PNG headed
-     for strangers). Callers may still pass d.league; it stays undrawn. */
+     league names are in-joke space (pilot: a league's in-joke name on a PNG
+     headed for strangers). Callers may still pass d.league; it stays undrawn. */
   /* the hero number — serif, the memory-and-honor voice */
   ctr(String(d.gross), 760, `700 300px ${BOARD}`, INK);
   /* band renders only on a SANE vs — a rating-less post recalcs to a nonsense
@@ -9658,8 +9731,8 @@ function drawSettlementCard(d){
     try{ x.letterSpacing=(ls||0)+'px'; }catch(e){}
     x.textAlign='center'; x.fillText(txt,W/2,y);
     try{ x.letterSpacing='0px'; }catch(e){} };
-  /* side names are user data of unknown length ("Jerecho Fischbeck & Jade
-     Smith" is 30 chars) — shrink to fit rather than letting the canvas run the
+  /* side names are user data of unknown length (two full names joined by
+     "&" run past 30 chars) — shrink to fit rather than letting the canvas run the
      text off the panel, which is silent and unrecoverable in a PNG */
   const fit=(txt,y,size,font,fill,ls,max,weight)=>{
     let s=size; const wt=weight||600;
@@ -10312,7 +10385,7 @@ function csNextAct(epi, ctx){
   if(!epi || epi.pvi==null) return { key:'no_points', sentence:CS_NO_POINTS_NOTE, label:'Done', door:'done', ref:null };
   return { key:'on_the_board', sentence:'That is in your rounds.', label:'Done', door:'done', ref:null };
 }
-/* D239 - "Played with Galen - he hasn't confirmed yet." A tag is never a vouch
+/* D239 - "Played with Alex - he hasn't confirmed yet." A tag is never a vouch
    (L-19): the line says who, and whether they have answered, and nothing about
    attestation. */
 function csPlayedWithLine(people){
@@ -11588,12 +11661,25 @@ $('#postPhotoFile')?.addEventListener('change',async e=>{
   try{ setPostPhoto(await compressPhoto(f,1600,.82)); }
   catch(_){ toast('Couldn’t read that image'); }
 });
-$('#postScanBtn')?.addEventListener('click',()=>$('#postScanFile')?.click());
-$('#postScanFile')?.addEventListener('change',async e=>{
+/* R9 (S8) · nothing reaches the scan without the golfer's yes. The ask comes
+   at the TAP, before the camera, so the picker can open inside the tap on
+   "Scan with Claude" (csAskScanConsent); a file that arrives some other way
+   still asks before it is sent. */
+$('#postScanBtn')?.addEventListener('click',()=>{
+  if(csScanConsented()) $('#postScanFile')?.click();
+  else csAskScanConsent(() => $('#postScanFile')?.click());
+});
+$('#postScanFile')?.addEventListener('change',e=>{
   const f=e.target.files?.[0]; e.target.value=''; if(!f) return;
+  if(csScanConsented()) csRunScan(f);
+  else csAskScanConsent(() => csRunScan(f));
+});
+async function csRunScan(f){
   const btn=$('#postScanBtn'); const was=btn.innerHTML;
   btn.disabled=true; btn.textContent='Reading the card…';
   try{
+    /* the yes is on the profile before the photo leaves (a no-op once written) */
+    try{ await csScanConsentWrite; }catch(_){}
     /* 2200px keeps handwritten digits legible for the model; ~½MB upload */
     const shot=await compressPhoto(f,2200,.9);
     const { data, error } = await window.sb.functions.invoke('scan',
@@ -11612,7 +11698,7 @@ $('#postScanFile')?.addEventListener('change',async e=>{
     scanPickRow(data.scan);
   }catch(_){ toast('Scan didn’t come back — type your nines in'); }
   finally{ btn.disabled=false; btn.innerHTML=was; }
-});
+}
 function scanPickRow(scan){
   if(scan.players.length===1){ scanApply(scan,0); return; }
   openSheet('Whose card is this?','TAP YOUR ROW',
@@ -13403,7 +13489,9 @@ function liveRoundEndedRemotely(status){
       state.live.active=false; state.live.stage='setup';
       renderPlay(); renderResumeBanner();
       if(status==='final'){
-        toast('Round finished — putting your card on your record');
+        /* R5 · the card is ASKED about now (claimPendingRound's sheet), so
+           this line no longer says it is being put anywhere */
+        toast('Round finished');
         window.claimPendingRound?.();
       } else toast('That round was scrapped');
       switchView('home');
@@ -17579,8 +17667,8 @@ function feedRow(r, idx, stamp){
    being small and grey. `leagues` is the fold's ruling — one moment fanned to
    two leagues carries BOTH names and prints once (DF-04). */
 function momentRow(p, stamp, leagues){
-  /* the league is named only when the fold MERGED one — "Fellas & Who's the
-     bitch?" is the answer to "why is this here once and not twice"; on a
+  /* the league is named only when the fold MERGED one — "League A & League
+     B" is the answer to "why is this here once and not twice"; on a
      moment that only ever belonged to one league it is noise, because the
      wire is already this golfer's own circle. */
   const names = (leagues||[]).map(s=>s&&s.name).filter(Boolean);
@@ -17882,7 +17970,7 @@ function csHomeFold(input){
 
   return { buckets, notes };
 }
-/* `HomeWireNotes.line`, on the desk (D285). "Fellas & Who's the bitch? · 14
+/* `HomeWireNotes.line`, on the desk (D285). "League A & League B · 14
    league notes" — past two leagues the names stop being an aid and become the
    wall again, so it counts them instead. */
 function csNotesLine(n){
@@ -18043,7 +18131,7 @@ function renderHomeDigest(){
     if(rest.length){
       const m=rest[0];
       /* D311 · a reaction is a word, not a verb. This built
-         "Jade 🔥’d your 90" — a glyph used as a verb, which no language does,
+         "Alex 🔥’d your 90" — a glyph used as a verb, which no language does,
          and which D309 makes impossible anyway: you cannot verb a drawn
          azalea. One authored sentence per token; an unknown key falls to the
          neutral line rather than naming a reaction it cannot read. */
@@ -19067,7 +19155,7 @@ function renderHomeRounds(){
   if(state.demo){
     head.style.display='';
     box.innerHTML = homeRoundCard({mine:true, _whenTxt:'IN 2 DAYS', course_label:'Papago GC', tee_time:'07:40', rsvp_in:3, comment_n:2, marker:'saguaro'}, true)
-      + homeRoundCard({_whenTxt:'SATURDAY', display_name:'Galen', is_friend:true, course_label:'Encanto GC', rsvp_in:2, marker:'saguaro'}, true);
+      + homeRoundCard({_whenTxt:'SATURDAY', display_name:'Logan', is_friend:true, course_label:'Encanto GC', rsvp_in:2, marker:'saguaro'}, true);
     return;
   }
   const today=new Date(); today.setHours(0,0,0,0);
@@ -19946,6 +20034,122 @@ const CS_RUNBACK_NOT_YET = 'Running it back needs the latest update — try agai
    minted at seat time so a guest can score from their own phone. */
 const CS_CLAIM_UNFINISHED = 'This round was never finished, so there’s no card to keep. Whoever ran it can tee off again and send your link from the new round.';
 const CS_CLAIM_NOT_STARTED = 'That round hasn’t teed off yet — your card lands here when it finishes.';
+/* F3's sentence for a claim link nothing answers — both doors now say it */
+const CS_CLAIM_DEAD = 'That scorecard link has expired or was already claimed. Whoever sent it can share a fresh one from the round.';
+
+/* R5 (security review 2026-09-25, S5 / D-05) · A LINK NEVER ACTS ON ITS OWN.
+   `?p=`, `?plan=` and `?claim=` spent their token the moment a boot found it:
+   a stranger's card became a buddy request (or accepted the one they had
+   already sent), a stranger's plan took a seat, a stranger's scorecard posted
+   to your record — and the golfer heard about it afterwards, in a toast. The
+   card asks first, built only from the read-only preview (share_info,
+   claim_round_info, scan_claim_info); the act is unchanged and runs only on
+   the yes. One producer; the phone renders the same sentences. */
+const CS_LINK_ASK = {
+  eyebrow: 'FROM A LINK YOU OPENED',
+  no: 'Not now',
+  person: { title: 'A buddy link', yes: 'Add as a buddy', note: 'Buddies see each other’s rounds and plans.' },
+  plan:   { title: 'A plan link', yes: 'Take the seat' },
+  claim:  { title: 'A scorecard link', yes: 'Add it to my record', note: 'It posts to your rounds and counts in your seasons.' },
+};
+function csLinkName(s, dflt){ return String(s == null ? '' : s).trim() || dflt; }
+function csFirstName(s){ return String(s == null ? '' : s).trim().split(/\s+/)[0] || ''; }
+function csLinkAskPerson(name){ return 'Add ' + csLinkName(name, 'this golfer') + ' as a buddy?'; }
+function csLinkAskPlan(host, course, day){
+  return csLinkName(host, 'A golfer') + '’s round at ' + csLinkName(course, 'the course') + (day ? ' on ' + day : '') + ' — take a seat?';
+}
+function csLinkPlanNote(host){ return 'Taking the seat puts you down as in and sends ' + csLinkName(host, 'the host') + ' a buddy request.'; }
+function csLinkAskClaim(gross, course){
+  const at = csLinkName(course, 'the course'), g = csLinkName(gross, '');
+  return (g ? 'Add this ' + g + ' at ' + at : 'Add this card from ' + at) + ' to your record?';
+}
+
+/* R8 (S7, Guideline 1.2) · MUTE BECOMES BLOCK, and it is one real thing. The
+   RPC keeps its name on both clients (set_mute / my_mutes), but the server
+   now also refuses a blocked golfer's buddy requests, invites, seats and
+   pushes — so the golfer reads the word for what happens, and the sentence
+   under it says all of it. One producer; the phone renders the same words. */
+const CS_BLOCK = {
+  eyebrow: 'BLOCK · REPORT',
+  what: 'You won’t see their posts, and they can’t send you requests, invites or notifications.',
+  undoWhat: 'Their posts show again, and they can reach you again.',
+  undone: 'Unblocked.',
+};
+function csBlockVerb(first, blocked){ return (blocked ? 'Unblock ' : 'Block ') + csLinkName(first, 'this golfer'); }
+function csBlockDone(first){ const f = csLinkName(first, ''); return (f ? f + ' is blocked. ' : 'Blocked. ') + CS_BLOCK.what; }
+
+/* R9 (S8) · Guideline 5.1.2(i) as revised in November 2025: explicit
+   permission before personal data goes to a third-party AI. A scorecard photo
+   carries names and handwriting, so the first scan asks, once; the yes lives on
+   the profile (`scan_consent_at`) and in Settings, where it can be taken back.
+   One producer; the phone renders the same sentences. */
+const CS_SCAN_CONSENT = {
+  title: 'Scan with Claude?',
+  eyebrow: 'ASKED ONCE · CHANGE IT IN SETTINGS',
+  what: 'Scanning sends this photo to Anthropic’s Claude to read the scores. It isn’t used to train their models.',
+  yes: 'Scan with Claude',
+  no: 'Type it in',
+  typed: 'Nothing was sent — type your nines in',
+  setting: 'Scorecard scanning with Claude',
+  settingNote: 'A scan sends the scorecard photo to Anthropic’s Claude to read the scores. It isn’t used to train their models. Off means the next scan asks first.',
+  settingFailed: 'Couldn’t change that — try again.',
+};
+/* The yes is the PROFILE's. A device flag stands in only where the profile
+   cannot take it — the column not deployed yet, or set_scan_consent failing —
+   so a golfer who said yes can still scan; any answer the profile does take
+   clears the flag, and signing out forgets it (csForgetOnSignOut). */
+const CS_SCAN_CONSENT_KEY = 'cs_scan_consent';
+let csScanYesThisVisit = false;    /* the sheet's yes, before its write lands */
+let csScanConsentWrite = null;     /* that write — the scan waits on it */
+function csScanConsented(){
+  if(csScanYesThisVisit || window.CS?.profile?.scan_consent_at) return true;
+  try{ return localStorage.getItem(CS_SCAN_CONSENT_KEY) === '1'; }catch(_){ return false; }
+}
+/* Resolves true when the switch is where the golfer put it. Deploy skew: a
+   missing column or function (or ANY error) keeps a yes on this device; a no
+   the profile would not take is reported, because the profile still says yes. */
+async function csSetScanConsent(on){
+  on = !!on;
+  if(!on) csScanYesThisVisit = false;
+  const p = window.CS?.profile || null;
+  let saved = false;
+  if(window.sb && !state.demo){
+    try{
+      /* returns true when consent is ON after the call */
+      const { data, error } = await window.sb.rpc('set_scan_consent', { p_on: on });
+      saved = !error && data === on;
+    }catch(_){ saved = false; }
+  }
+  if(saved){
+    if(p) p.scan_consent_at = on ? (p.scan_consent_at || new Date().toISOString()) : null;
+    try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
+    return true;
+  }
+  if(on){ try{ localStorage.setItem(CS_SCAN_CONSENT_KEY, '1'); }catch(_){} return true; }
+  try{ localStorage.removeItem(CS_SCAN_CONSENT_KEY); }catch(_){}
+  return !(p && p.scan_consent_at);
+}
+/* The first scan asks before any photo leaves the device. The picker opens
+   INSIDE the tap on the yes — a file input will not open after an await — and
+   the yes is written while the golfer frames the card. "Type it in" sends
+   nothing and hands the golfer back to the gross box. */
+function csAskScanConsent(proceed){
+  openSheet(CS_SCAN_CONSENT.title, CS_SCAN_CONSENT.eyebrow, `
+    <p class="lead" style="padding-top:0">${esc(CS_SCAN_CONSENT.what)}</p>
+    <button class="btn" id="scnYes" style="margin-top:12px">${esc(CS_SCAN_CONSENT.yes)}</button>
+    <button class="btn dark" id="scnNo" style="margin-top:8px">${esc(CS_SCAN_CONSENT.no)}</button>`);
+  document.getElementById('scnYes')?.addEventListener('click', () => {
+    csScanYesThisVisit = true;
+    csScanConsentWrite = csSetScanConsent(true);
+    closeSheet();
+    if(typeof proceed === 'function') proceed();
+  });
+  document.getElementById('scnNo')?.addEventListener('click', () => {
+    closeSheet();
+    toast(CS_SCAN_CONSENT.typed);
+    document.getElementById('inGross')?.focus?.();
+  });
+}
 /* D376 · the Pro's pen, one producer — the phone renders the same sentences */
 const CS_RULING_WHAT = 'A ruling moves points in the ledger with a reason. It posts to the board and every golfer can open it. Rounds are never changed. Once the Final window opens the ledger is closed — the crew settles it.';
 const CS_RULING_NOT_YET = 'Rulings need the latest update — try again shortly.';
@@ -24523,9 +24727,18 @@ window.MARKERS = MARKERS; /* classic recap-card canvas draws the marker PATH —
 async function loadProfile(){
   /* photos arc 2 (D59): photo_path rides the select — retry without it on
      deploy skew (client ahead of the migration) */
+  /* R9 · scan_consent_at rides it too, one step further out: its column grant
+     lands with its own migration, and a missing grant fails the WHOLE select
+     (42501, no column named), so ANY error drops just it first */
   let q = await sb.from('profiles')
-    .select('id, display_name, city, home_course, index_current, index_source, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at, photo_path')
+    .select('id, display_name, city, home_course, index_current, index_source, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at, photo_path, scan_consent_at')
     .eq('id', CS.user.id).maybeSingle();
+  if(q.error){
+    try{ console.warn('[loadProfile] scan consent select failed, retrying without it:', q.error.message||q.error); }catch(_){}
+    q = await sb.from('profiles')
+      .select('id, display_name, city, home_course, index_current, index_source, marker, notify_chat, notify_rounds, handle, discoverable, ghin_number, created_at, photo_path')
+      .eq('id', CS.user.id).maybeSingle();
+  }
   if(q.error){
     /* ANY error retries the legacy shape — a sealed table's missing column
        grant fails as 42501 "permission denied" WITHOUT naming the column
@@ -25468,7 +25681,7 @@ function openNameRivalry(oppId, oppName, cur){
    phone's twin is `CSCredential` in CSDesign/Person.swift, and every value
    below comes from tokens.json through tokens.css. */
 
-/* @galenm - Mesa, AZ - Papago. Handle, city, home course. `est. Jul 2026` is
+/* @alex - Phoenix, AZ - Papago. Handle, city, home course. `est. Jul 2026` is
    NOT in it: the founding fact is already the gold slot, and a third telling
    is the duplication YRS-21 names. The phone's twin is
    `CredentialCopy.identity`. Uppercased by the ROLE, in CSS, never here. */
@@ -25807,13 +26020,16 @@ async function openTourCard(profileId){
   /* W4 (iOS arc, Guideline 1.2): mute lives on the card — the one place you
      already are when someone's posts are the problem. Enforcement is the RLS
      policy (their board posts/comments vanish for you on the next read);
-     this button is the switch, not the filter. */
+     this button is the switch, not the filter. R8 · it reads Block now, and
+     says what it does (CS_BLOCK) — the server also stops their requests,
+     invites, seats and pushes; set_mute keeps its name. */
   let muteHtml='';
   if(!p.is_me){
     const muted = window.MUTED instanceof Set && window.MUTED.has(profileId);
-    muteHtml = `<button class="mini" id="tcMute" style="margin-top:16px; color:var(--mut)">${muted?'Unmute':'Mute'}</button>`;
+    muteHtml = `<button class="mini" id="tcMute" style="margin-top:16px; color:var(--mut)">${esc(csBlockVerb(csFirstName(p.display_name), muted))}</button>
+      <p class="fine" style="padding:4px 0 0">${esc(muted ? CS_BLOCK.undoWhat : CS_BLOCK.what)}</p>`;
   }
-  /* D197 · the Pro's suspend, directly under Mute — deliberately, because they
+  /* D197 · the Pro's suspend, directly under Block — deliberately, because they
      are the same gesture at two scopes: mute is what a golfer does for
      themselves, suspend is what the Pro does for the room. It renders only for
      the Pro of the league you are currently in, never on yourself, and never on
@@ -25902,7 +26118,7 @@ async function openTourCard(profileId){
       window.MUTED = window.MUTED instanceof Set ? window.MUTED : new Set();
       on ? window.MUTED.add(profileId) : window.MUTED.delete(profileId);
       closeSheet();
-      toast(on ? 'Muted. Their posts drop off your boards.' : 'Unmuted.');
+      toast(on ? csBlockDone(csFirstName(p.display_name)) : CS_BLOCK.undone);
       window.refreshSocial?.();
     }catch(e){ mb.disabled=false; toast(humanError(e, 'Could not change that.')); }
   });
@@ -26027,7 +26243,7 @@ function csH2HParse(j){
     rivalryName: j.rivalry_name || null,
   };
 }
-/* "You lead 6-5." / "Galen leads 6-5." / "All square, 5-5." Nothing decided,
+/* "You lead 6-5." / "Alex leads 6-5." / "All square, 5-5." Nothing decided,
    no sentence - a record of nought is not a headline (L-44). */
 function csH2HHeadline(h){
   if(!h || !h.settled) return null;
@@ -26078,10 +26294,12 @@ window.csH2HStandfirst = csH2HStandfirst; window.csH2HFacetSub = csH2HFacetSub;
 window.csH2HUsesHeuristic = csH2HUsesHeuristic; window.csH2HPersonClause = csH2HPersonClause;
 
 /* ---------- P-17, the safety block (L-38, Guideline 1.2) ----------
-   Mute - Hide this - Report, and no item named Block over a mechanic that does
-   not exist: L-38's own wording is "Report, block (mute), hide/unhide", and
-   `docs/ios/app-review-notes.md:105` already tells App Review that Mute IS the
-   block here. The report keeps its TWO steps. */
+   Block - Report. This used to refuse an item named Block "over a mechanic
+   that does not exist" and said Mute; R8 (security review 2026-09-25) made the
+   mechanic exist — the server now stops a blocked golfer's requests, invites,
+   seats and pushes as well as their posts — so the item says Block and the
+   line under it says all of that (CS_BLOCK). set_mute keeps its name. The
+   report keeps its TWO steps. */
 const CS_SAFETY_REASONS = ['A made-up score','Harassment or abuse','An inappropriate photo','Spam','Something else'];
 function csSafetyMenuHtml(profileId, name){
   if(!profileId || profileId === window.CS?.user?.id) return '';
@@ -26097,9 +26315,10 @@ function csWireSafety(root){
 }
 function csOpenSafety(pid, name){
   const muted = window.MUTED instanceof Set && window.MUTED.has(pid);
-  openSheet(name || 'This golfer', 'MUTE · HIDE · REPORT', `
-    <button class="btn dark" id="sfMute" style="margin-top:4px">${muted ? '🔈 Unmute' : '🔇 Mute'} ${esc(name || '')}</button>
-    <p class="fine" style="padding:4px 0 10px">${muted ? 'Show their rounds again.' : 'Hide their rounds from your feeds.'}</p>
+  const first = csFirstName(name);
+  openSheet(name || 'This golfer', CS_BLOCK.eyebrow, `
+    <button class="btn dark" id="sfMute" style="margin-top:4px">${esc(csBlockVerb(first, muted))}</button>
+    <p class="fine" style="padding:4px 0 10px">${esc(muted ? CS_BLOCK.undoWhat : CS_BLOCK.what)}</p>
     <div class="eyebrow">Report</div>
     <p class="fine" style="padding-top:0">Pick a reason, then confirm. It goes to the founder desk. Nothing is sent until you confirm.</p>
     <div id="sfReasons">${CS_SAFETY_REASONS.map((r,i)=>`<button class="mini" type="button" data-sfr="${i}" style="margin:0 6px 6px 0">${esc(r)}</button>`).join('')}</div>
@@ -26118,7 +26337,7 @@ function csOpenSafety(pid, name){
     const { error } = await sb.rpc('set_mute', { p_profile: pid, p_on: on });
     if(error){ toast(humanError(error, 'Could not change that.')); return; }
     if(window.MUTED instanceof Set){ on ? window.MUTED.add(pid) : window.MUTED.delete(pid); }
-    toast(on ? `Muted. ${name || 'Their'} rounds drop off your boards.` : 'Unmuted.');
+    toast(on ? csBlockDone(first) : CS_BLOCK.undone);
     closeSheet?.();
   });
   send?.addEventListener('click', async () => {
@@ -26588,6 +26807,11 @@ function openProfileHub(){
     </div>
     <p class="fine" style="padding-left:0">Milestones, results and month closes always come through. Round posts and chat each have their own switch.</p>
 
+    <!-- R9 (S8) · the scan's yes, taken back where the other switches live -->
+    <div class="eyebrow" style="margin-top:20px">Scorecard scanning</div>
+    <button class="mini" id="phScanTog">${esc(CS_SCAN_CONSENT.setting)}: —</button>
+    <p class="fine" style="padding-left:0">${esc(CS_SCAN_CONSENT.settingNote)}</p>
+
     <div class="eyebrow" style="margin-top:20px">Appearance</div>
     <div style="display:flex; gap:6px;" id="phTheme">
       <button class="mini" data-th="dark">Charcoal</button>
@@ -26770,7 +26994,8 @@ function openProfileHub(){
        holds, so leaving the web tab would silently sign them out of the phone
        too, and getting back in costs an OTP against a project-wide cap. Sign
        out of THIS surface. (ship audit 2026-08-31) */
-    await sb.auth.signOut({ scope: 'local' });
+    /* S16 · and this device's notifications and waiting links go with it */
+    await csSignOut({ scope: 'local' });
     location.reload();
   });
 
@@ -26791,8 +27016,9 @@ function openProfileHub(){
       const { error } = await sb.rpc('delete_account');
       if(error) throw error;
       /* deliberately GLOBAL, unlike the other three: the account is being torn
-         down, so every session it holds should die with it. */
-      await sb.auth.signOut();
+         down, so every session it holds should die with it. (S16 · this
+         browser's push subscription is dropped on the way out, too) */
+      await csSignOut();
       window.location.replace(window.location.pathname);
     } catch(e) {
       btn.disabled = false; btn.textContent = 'Delete permanently';
@@ -26863,6 +27089,18 @@ function openProfileHub(){
     if(error) toast(humanError(error, 'Could not update.'));
     else { CS.profile.notify_chat = next; chatLabel(); }
     chatBtn.disabled = false;
+  });
+  /* R9 · the scan's yes, revocable. Off means the next scan asks again; the
+     skew rules (a device flag where the profile cannot take it) live in
+     csSetScanConsent, so this switch and the sheet can never disagree. */
+  const scanTog = $('#phScanTog');
+  const scanLabel = () => { if(scanTog) scanTog.textContent = CS_SCAN_CONSENT.setting + ': ' + (csScanConsented() ? 'ON' : 'OFF'); };
+  scanLabel();
+  scanTog?.addEventListener('click', async () => {
+    scanTog.disabled = true;
+    if(!(await csSetScanConsent(!csScanConsented()))) toast(CS_SCAN_CONSENT.settingFailed);
+    scanLabel();
+    scanTog.disabled = false;
   });
   /* D68: the season-end email. set_email_recap reads with no argument and
      writes with one, so the same RPC paints the label and flips it. Skew-safe:
@@ -27201,6 +27439,51 @@ async function disablePush(){
     await sub.unsubscribe();
   }
   toast('Notifications off on this device');
+}
+
+/* S16 (security review 2026-09-25; D-08 in part) · SIGNING OUT TAKES THIS
+   DEVICE'S NOTIFICATIONS AND WAITING LINKS WITH IT. The next golfer on this
+   browser must not get the last one's pushes (chat text included), or be
+   walked into a buddy, a plan, a scorecard or a league a link was meant for.
+   The row goes first, while the session can still delete it (RLS: your own
+   rows); the browser's subscription goes either way, so a row the delete
+   missed dies on its next send (push prunes 404/410). Best effort and
+   time-boxed: a push service that never answers must not keep a golfer from
+   signing out. getRegistration, not serviceWorker.ready — `ready` never
+   settles on a page with no worker. */
+const CS_SIGN_OUT_KEYS = ['cs_claim', 'cs_person', 'cs_plan', 'cs_code', 'cs_code_name', 'cs_scan_consent'];
+function csForgetOnSignOut(){
+  for(const k of CS_SIGN_OUT_KEYS){ try{ localStorage.removeItem(k); }catch(_){} }
+  try{ sessionStorage.removeItem('cs_guest_door'); }catch(_){}
+}
+async function csBrowserPushSub(){
+  if(!('serviceWorker' in navigator)) return null;
+  const reg = await navigator.serviceWorker.getRegistration();
+  return (reg && reg.pushManager) ? reg.pushManager.getSubscription() : null;
+}
+async function csPushSignOut(){
+  const P = nativePush();
+  if(P){
+    const tok = localStorage.getItem(APNS_KEY) || '';
+    if(tok){
+      const { error } = await sb.rpc('unregister_device_token', { p_token: tok });
+      if(error) console.warn('[push] sign-out unregister failed:', error.message);
+    }
+    try{ localStorage.removeItem(APNS_KEY); }catch(_){}
+    await P.removeAllListeners().catch(() => {});
+    return;
+  }
+  const sub = await csBrowserPushSub();
+  if(!sub) return;
+  const { error } = await sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+  if(error) console.warn('[push] sign-out delete failed:', error.message);
+  await sub.unsubscribe().catch(() => {});
+}
+async function csSignOut(opts){
+  csForgetOnSignOut();
+  try{ await Promise.race([csPushSignOut(), new Promise(r => setTimeout(r, 3000))]); }
+  catch(e){ console.warn('[push] sign-out cleanup failed:', e); }
+  return sb.auth.signOut(opts);
 }
 
 /* ---------- course memory: your last courses, one tap on quick post ---------- */
@@ -30750,7 +31033,7 @@ async function renderAlbum(){
         html += `<div class="almonth">${MON[Number(m)-1]||''} ${y}</div>`;
         lastMo = mo;
       }
-      html += `<button class="alcell" data-alr="${r.id}" style="background-image:url('${u.replace(/'/g,'%27')}')" aria-label="${(window.esc||String)(nameOf(r.profile_id))} — ${r.gross??''} at ${(window.esc||String)(r.course_label||'the course')}, ${r.played_on||''}"></button>`;
+      html += `<button class="alcell" data-alr="${r.id}" style="background-image:url('${csCssUrl(u)}')" aria-label="${(window.esc||String)(nameOf(r.profile_id))} — ${r.gross??''} at ${(window.esc||String)(r.course_label||'the course')}, ${r.played_on||''}"></button>`;
     });
     if(!shown){ empty(); return; }
     box.innerHTML = html;
@@ -31243,9 +31526,15 @@ async function openRoundSheet(id){
   if(state.demo || !window.sb){ toast('Sign in to open a round'); return; }
   openSheet('Round', 'Loading…', '<p class="fine" style="padding:10px 0">Loading the round…</p>');
   let d=null;
+  /* R8 · the thread's ids and authors, read beside the round (csPlanCommentIds) */
+  const threadRead = sb.from('round_comments').select('id, profile_id, body, created_at')
+    .eq('round_id', id).order('created_at', { ascending: true }).then(r => r, () => ({ error: true }));
   try{
     const { data, error } = await sb.rpc('round_detail', { p_round:id });
     if(error) throw error; d=data;
+    if(d && Array.isArray(d.comments) && d.comments.length){
+      try{ d.comments = csPlanCommentIds(d.comments, await threadRead); }catch(_){ /* the thread as round_detail sent it */ }
+    }
   }catch(e){
     /* deploy-skew: round_detail not live yet — fall back to the schedule row */
     const sr=[...(window.mySchedule||[]), ...(window.watchAll||[])].find(x=>x.id===id);
@@ -31265,6 +31554,48 @@ document.addEventListener('click', e => {
 window.renderRoundSheet = (id,d)=>renderRoundSheet(id,d);   /* bridge (classic wiring + testability) */
 window.openRetagSheet = openRetagSheet;   /* classic calendar (renderCalendar) opens it too — must be bridged */
 window.openDeclareSheet = openDeclareSheet;   /* D63: the whisper's Stage-it tap lives classic-side */
+
+/* R8 (S7) · a plan comment is reported by its own id, and a blocked golfer's
+   lines leave the thread. round_detail is a definer read: its comments carry
+   neither the comment's id nor its author, and it ignores the mute and the
+   takedown that round_comments' own read policy applies. The direct read IS
+   that policy, so it supplies both — and a line the policy withholds is
+   dropped, but only when every row the policy returned found its twin (same
+   words, same second), so a join that misfires can never blank a thread. */
+function csEpochSec(ts){
+  const m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-]\d{2}(?::?\d{2})?)?$/.exec(String(ts || ''));
+  if(!m) return null;
+  let t = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]) / 1000;
+  if(m[7] && m[7] !== 'Z'){
+    const z = /^([+-])(\d{2}):?(\d{2})?$/.exec(m[7]);
+    if(!z) return null;
+    t -= (z[1] === '-' ? -1 : 1) * (Number(z[2]) * 3600 + Number(z[3] || 0) * 60);
+  }
+  return t;
+}
+function csPlanCommentIds(comments, res){
+  if(!Array.isArray(comments) || !comments.length) return comments || [];
+  if(comments.every(c => c && c.id)) return comments;     /* a round_detail that already carries them */
+  const rows = (res && !res.error && Array.isArray(res.data)) ? res.data : null;
+  if(!rows) return comments;                              /* no read, no change */
+  const key = (body, at) => { const t = csEpochSec(at); return t == null ? null : t + '|' + String(body ?? ''); };
+  const pool = new Map();
+  for(const r of rows){
+    const k = key(r.body, r.created_at);
+    if(k == null) return comments;
+    if(!pool.has(k)) pool.set(k, []);
+    pool.get(k).push(r);
+  }
+  let matched = 0;
+  const out = comments.map(c => {
+    const k = key(c.body, c.at);
+    const hit = (k != null && pool.has(k)) ? pool.get(k).shift() : null;
+    if(!hit) return c;
+    matched++;
+    return Object.assign({}, c, { id: hit.id, profile_id: hit.profile_id });
+  });
+  return matched === rows.length ? out.filter(c => c.id) : out;
+}
 
 function renderRoundSheet(id, d){
   window.__roundSheetData = Object.assign({ id }, d);
@@ -31318,9 +31649,11 @@ function renderRoundSheet(id, d){
   const rivHtml = riv ? `<div class="rivchip">◇ ${riv} · <em>one more round.</em></div>` : '';
 
   const comments=d.comments||[];
-  const cHtml = comments.length ? comments.map(c=>`<div class="crow2">
+  /* R8 · a line somebody else wrote carries its ⋯ (Report, Block) once
+     csPlanCommentIds has given it an id */
+  const cHtml = comments.length ? comments.map((c,ci)=>`<div class="crow2">
       <span class="num">${M(c.marker||'saguaro')}</span>
-      <div><b>${esc(c.name||'')}</b> <span class="t">${esc(c.body||'')}</span></div></div>`).join('')
+      <div><b>${esc(c.name||'')}</b> <span class="t">${esc(c.body||'')}</span></div>${c.id && !c.mine ? `<button class="crmore" type="button" data-rcmore="${ci}" aria-label="More actions for ${esc(c.name||'this golfer')}’s comment">⋯</button>` : ''}</div>`).join('')
     : '<p class="fine" style="padding:2px 0; opacity:.7">No messages yet — kick it off.</p>';
 
   /* D253 · THE PLAN LINK. Three screens promised a weekend invite link that no
@@ -31352,6 +31685,10 @@ function renderRoundSheet(id, d){
 
   loadRoundWeather(d);
   const reload=()=>openRoundSheet(id);
+  $('#shBody').querySelectorAll('[data-rcmore]').forEach(b=>b.addEventListener('click',()=>{
+    const c=comments[+b.dataset.rcmore]; if(!c || !c.id) return;
+    csOpenCommentSafety({ kind:'round_comment', id:c.id, pid:c.profile_id||null, name:c.name||'', after: reload });
+  }));
   $('#shBody').querySelectorAll('[data-rsvp]').forEach(b=>b.addEventListener('click', async()=>{
     b.disabled=true;
     try{ const {error}=await sb.rpc('set_round_rsvp',{p_round:id,p_status:b.dataset.rsvp}); if(error) throw error; reload(); }
@@ -31504,7 +31841,7 @@ async function openMembersSheet(){
   openSheet('The roster', `${CS.members.length} GOLFER${CS.members.length===1?'':'S'}${sn > 1 ? ` · ${yesCount} IN FOR SEASON ${sn}` : ''} · CODE ${CS.league.code}`,
     rows
     + (pending.length ? '<div class="eyebrow">Invites out</div>' + pending.map(i =>
-        `<div class="fine" style="padding:3px 0">✉ ${i.email} · WAITING</div>`).join('') : '')
+        `<div class="fine" style="padding:3px 0">✉ ${esc(i.email)} · WAITING</div>`).join('') : '')
     + (isPro ? `<button class="btn" id="msAdd" style="margin-top:14px">Add golfers</button>` : '')
     + `<button class="btn dark" id="msShare" style="margin-top:10px">Share the invite link</button>`);
   document.getElementById('msAdd')?.addEventListener('click', () => { closeSheet(); window.openInvitePicker?.({ league: CS.league.id }); });
@@ -31859,7 +32196,7 @@ $('#wCreate').addEventListener('click', () => {
 });
 
 $('#wOut').addEventListener('click', async () => {
-  await sb.auth.signOut({ scope: 'local' });   /* this surface only — see #phOut */
+  await csSignOut({ scope: 'local' });   /* this surface only — see #phOut */
   location.reload();
 });
 
@@ -32086,8 +32423,9 @@ if(shareParam){ window._csShareView = true; window.growthEvent?.('link_opened', 
    The token is also STORED, exactly as `?claim=` is, because the page it
    lands on is a door: whoever taps it has no account, and the buddy request
    (and, for a plan, the seat) is spent AFTER they sign in and have a name on
-   them. `redeem_share` is authenticated-only, so this page never learns who
-   the card is about beyond what it draws. */
+   them — and, since R5, only when they say yes on the card that asks.
+   `redeem_share` is authenticated-only, so this page never learns who the
+   card is about beyond what it draws. */
 const CS_SHARE_LINKS = [{ q:'p', kind:'person', key:'cs_person' }, { q:'plan', kind:'plan', key:'cs_plan' }];
 window.CS_SHARE_LINKS = CS_SHARE_LINKS;
 for(const L of CS_SHARE_LINKS){
@@ -32265,7 +32603,7 @@ async function renderShareView(tok, _testInfo){
     /* W5 · "Get the app" is a destination (/get: the iPhone beta or the store,
        the web app, and install-then-reopen said once), not the root */
     foot.innerHTML = `<a href="/get" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Get the app</a>
-      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Signing in sends ${esc(info.name)} a buddy request. They still have to say yes.</div>`;
+      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Sign in and you’ll be asked first. Nothing goes to ${esc(info.name)} until you say yes.</div>`;
 
   } else if(info.kind === 'plan'){
     /* D253 · the day, the course and who is in. Not the note — the host wrote
@@ -32280,7 +32618,7 @@ async function renderShareView(tok, _testInfo){
     card.style.borderColor = 'rgba(255,90,46,.38)';
     const who = (info.who || []);
     /* a name is singular, a list takes "and" — the same conjugation bug that
-       produced "Galen lead by 4" on the season page */
+       produced "Alex lead by 4" on the season page */
     const whoTxt = who.length <= 1 ? who.join('')
                  : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
     card.innerHTML = `
@@ -32291,7 +32629,7 @@ async function renderShareView(tok, _testInfo){
         : `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">Just ${esc(info.host)} so far.</div>`}
       <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
     foot.innerHTML = `<a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Take the seat</a>
-      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Signing in puts you down for this round and sends ${esc(info.host)} a buddy request.</div>`;
+      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Sign in and you’ll be asked first. The seat, and a buddy request to ${esc(info.host)}, wait for your yes.</div>`;
 
   } else if(info.kind === 'recap'){
     /* "— the season" is a section header, not news. The champion is the news;
@@ -32365,6 +32703,109 @@ function csOpenPendingRound(){
   try{ p = JSON.parse(sessionStorage.getItem('cs_open_round') || 'null'); sessionStorage.removeItem('cs_open_round'); }catch(_){}
   if(p && p.round) window.csOpenPostedRound?.(p.round, { focusComment: p.comment || null, focusTalk: true, fresh: true });
 }
+
+/* R5 (security review 2026-09-25, S5 / D-05) · ONE ASK AT A TIME, AND NEVER
+   OVER A SHEET THE GOLFER IS USING. The end of safeBoot spends the claim and
+   the share links side by side, and the covenant, a season ceremony or the
+   typed-card offer may hold the sheet when they arrive — so each ask queues
+   behind the last and behind any open sheet, and an ask whose body another
+   sheet replaced waits and asks again rather than reading that sheet's close
+   as a "no". Resolves true (the yes), false (Not now, the X, the backdrop,
+   Escape — the safe answer to a sheet you did not mean to open is "change
+   nothing") or null (it never reached the golfer; the caller keeps the token
+   for the next boot). */
+let csLinkAskQueue = Promise.resolve();
+const csLinkAsking = new Set();   /* tokens with a card up or queued — a second boot path must not ask twice */
+function csLinkAsk(card){
+  const run = () => csLinkAskOnce(card);
+  const p = csLinkAskQueue.then(run, run);
+  csLinkAskQueue = p.then(() => null, () => null);
+  return p;
+}
+function csSheetIdle(){
+  return new Promise(resolve => {
+    const sheet = document.getElementById('sheet');
+    if(!sheet || typeof MutationObserver !== 'function'){ resolve(false); return; }
+    /* a sheet that closes only to open the next one gets its turn first */
+    const settle = () => setTimeout(() => { if(sheet.classList.contains('open')) wait(); else resolve(true); }, 400);
+    const wait = () => {
+      const obs = new MutationObserver(() => { if(!sheet.classList.contains('open')){ obs.disconnect(); settle(); } });
+      obs.observe(sheet, { attributes: true, attributeFilter: ['class'] });
+    };
+    if(sheet.classList.contains('open')) wait(); else settle();
+  });
+}
+async function csLinkAskOnce(card){
+  for(let tries = 0; tries < 4; tries++){
+    if(!(await csSheetIdle())) return null;
+    const answer = await new Promise(resolve => {
+      /* the title and eyebrow are textContent (openSheet); every sentence in
+         the body is the SENDER's text run through esc(); `mark` is the SVG
+         mkr() draws from the MARKERS table, never the marker string itself */
+      openSheet(card.title, CS_LINK_ASK.eyebrow, `<div id="lnkAsk">
+        <p class="lead" style="padding-top:0">${card.mark ? card.mark + ' ' : ''}${esc(card.ask)}</p>
+        ${card.facts ? `<p class="fine" style="padding-top:4px">${esc(card.facts)}</p>` : ''}
+        ${card.note ? `<p class="fine" style="padding-top:4px">${esc(card.note)}</p>` : ''}
+        <button class="btn" id="lnkYes" style="margin-top:12px">${esc(card.yes)}</button>
+        <button class="btn dark" id="lnkNo" style="margin-top:8px">${esc(CS_LINK_ASK.no)}</button>
+      </div>`);
+      const sheet = document.getElementById('sheet'), body = document.getElementById('shBody');
+      const root = document.getElementById('lnkAsk');
+      let done = false;
+      const obs = new MutationObserver(() => {
+        if(!root || !root.isConnected) finish('lost');          /* another sheet took the body */
+        else if(!sheet.classList.contains('open')) finish(false);
+      });
+      function finish(v){ if(done) return; done = true; obs.disconnect(); resolve(v); }
+      obs.observe(sheet, { attributes: true, attributeFilter: ['class'] });
+      if(body) obs.observe(body, { childList: true });
+      document.getElementById('lnkYes')?.addEventListener('click', () => { finish(true); closeSheet(); });
+      document.getElementById('lnkNo')?.addEventListener('click', () => { finish(false); closeSheet(); });
+    });
+    if(answer !== 'lost') return answer;
+  }
+  return null;
+}
+/* R5 · the card, from the preview alone. Every line is a fact the preview
+   returned — a line it did not carry is left out, never guessed (L-44). */
+function csLinkDay(iso){ return /^\d{4}-\d{2}-\d{2}$/.test(String(iso || '')) ? csDowMonDay(iso) : ''; }
+function csLinkCard(kind, info){
+  const i = info || {};
+  if(kind === 'person'){
+    const n = Number(i.rounds_n || 0);
+    return { title: CS_LINK_ASK.person.title, yes: CS_LINK_ASK.person.yes, note: CS_LINK_ASK.person.note,
+             mark: mkr(i.marker), ask: csLinkAskPerson(i.name),
+             facts: n > 0 ? n + (n === 1 ? ' round' : ' rounds') + ' posted' + (i.best != null ? ', best ' + i.best : '') + '.' : '' };
+  }
+  if(kind === 'plan'){
+    const who = (Array.isArray(i.who) ? i.who : []).map(String);
+    const whoTxt = who.length <= 1 ? who.join('') : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
+    const tee = i.tee ? fmtTee(i.tee) : '';
+    /* the SHORT course name, as the landing card prints it */
+    return { title: CS_LINK_ASK.plan.title, yes: CS_LINK_ASK.plan.yes, note: csLinkPlanNote(i.host),
+             mark: mkr(i.marker), ask: csLinkAskPlan(i.host, String(i.course || '').split(' — ')[0], csLinkDay(i.play_on)),
+             facts: [tee ? tee + ' tee' : '', who.length ? whoTxt + (who.length === 1 ? ' is in.' : ' are in.') : ''].filter(Boolean).join(' · ') };
+  }
+  return { title: CS_LINK_ASK.claim.title, yes: CS_LINK_ASK.claim.yes, note: CS_LINK_ASK.claim.note,
+           mark: '', ask: csLinkAskClaim(i.gross, i.course_label),
+           facts: [i.guest_name ? 'Scored as ' + i.guest_name : '', csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
+}
+/* R5 · what a claim link is, before anything is claimed. The two sources
+   answer a token they do not know differently — claim_round_info with null,
+   scan_claim_info with a raise — so DEAD is said only when both have
+   answered, and a preview that could not be read at all (no signal) keeps
+   the token for the next boot rather than guessing. */
+async function csClaimPreview(tok){
+  try{
+    const r1 = await sb.rpc('claim_round_info', { p_token: tok });
+    if(r1.error) return { unknown: true };
+    if(r1.data) return { info: r1.data };
+    const r2 = await sb.rpc('scan_claim_info', { p_token: tok });
+    if(r2.data) return { info: r2.data };
+    if(r2.error && !/not recognized/i.test(String(r2.error.message || ''))) return { unknown: true };
+    return { dead: true };
+  }catch(_){ return { unknown: true }; }
+}
 async function claimPendingRound(){
   let tok=null; try{ tok=localStorage.getItem('cs_claim'); }catch(_){}
   if(!tok || !CS.user || !CS.profile?.marker) return;
@@ -32372,18 +32813,44 @@ async function claimPendingRound(){
      when it FINISHES, and firing it here would only toast "they're still out
      there" over the top of the pencil they are holding. */
   if(state.liveGuest && state.liveGuest.token===tok) return;
-  /* D374 · ask what the round is before claiming it. An abandoned round mints
-     no card: say so once and drop the token, instead of matching claim_round's
-     "still live" raise and telling a golfer forever that the group is out
-     there. A round still in setup keeps the token and says when. A token that
-     is not a guest seat (a scan partner, an already-claimed seat) raises here
-     and falls through to the claim as before. */
+  if(csLinkAsking.has(tok)) return;   /* R5 · its card is already up, or queued */
+  csLinkAsking.add(tok);
+  const drop = () => { try{ localStorage.removeItem('cs_claim'); }catch(_){} };
   try{
-    const { data: gs, error: ge } = await sb.rpc('guest_live_state', { p_token: tok });
-    const st = !ge ? gs?.round?.status : null;
-    if(st === 'abandoned'){ try{ localStorage.removeItem('cs_claim'); }catch(_){} toast(CS_CLAIM_UNFINISHED); return; }
-    if(st === 'setup'){ toast(CS_CLAIM_NOT_STARTED); return; }
-  }catch(_){}
+    /* D374 · ask what the round is before claiming it. An abandoned round mints
+       no card: say so once and drop the token, instead of matching claim_round's
+       "still live" raise and telling a golfer forever that the group is out
+       there. A round still in setup keeps the token and says when. A token that
+       is not a guest seat (a scan partner, an already-claimed seat) raises here
+       and falls through to the preview. */
+    try{
+      const { data: gs, error: ge } = await sb.rpc('guest_live_state', { p_token: tok });
+      const st = !ge ? gs?.round?.status : null;
+      if(st === 'abandoned'){ drop(); toast(CS_CLAIM_UNFINISHED); return; }
+      if(st === 'setup'){ toast(CS_CLAIM_NOT_STARTED); return; }
+      /* R5 · still being played: nothing to ask about yet. D86's sentence,
+         said without calling the claim to hear it; the token is kept */
+      if(st === 'live'){ toast('They’re still out there — your card lands here when the round finishes'); return; }
+    }catch(_){}
+    /* R5 · the golfer says yes before anything is claimed */
+    const pv = await csClaimPreview(tok);
+    if(pv.unknown) return;                                /* could not look — kept for the next boot */
+    if(pv.dead){ drop(); toast(CS_CLAIM_DEAD); return; }  /* a dead link asks nothing */
+    /* a card already claimed needs no question: the claim below cannot write
+       anything — it answers "already yours" or refuses — so it runs as before */
+    if(!pv.info.claimed){
+      const yes = await csLinkAsk(csLinkCard('claim', pv.info));
+      if(yes === null) return;                            /* never reached the golfer — kept */
+      if(!yes){ drop(); return; }                         /* Not now — the link is spent, nothing claimed */
+      /* signed out, or spent in another tab, while the card was up */
+      let still=null; try{ still=localStorage.getItem('cs_claim'); }catch(_){}
+      if(still !== tok || !CS.user) return;
+    }
+    await csClaimAct(tok);
+  } finally { csLinkAsking.delete(tok); }
+}
+/* the act, unchanged by R5 — it runs only after the yes */
+async function csClaimAct(tok){
   /* one /?claim= funnel, two sources: tee-sheet guest cards first, then
      scanned-scorecard partner rows (photos arc) — same UX either way */
   let data=null, firstErr=null;
@@ -32464,7 +32931,8 @@ window.openRulingSheet = openRulingSheet;
    `public, anon`, so the signed-out card never learns the profile id behind
    it. And a buddy request from a golfer with no name on them is not a request
    anybody can answer — hence "after the golfer card", the same rule the claim
-   funnel follows.
+   funnel follows. R5 · and never on its own: the card (csLinkAsk) asks first,
+   from share_info, and redeem_share runs only on the yes.
 
    THREE answers, not two. `PGRST202` / "does not exist" means the migration
    has not landed: the token is KEPT and nothing is said, because nothing is
@@ -32495,28 +32963,58 @@ async function redeemPendingShares(){
   if(state.demo || !window.sb || !CS.user || !CS.profile?.marker) return;
   for(const L of (window.CS_SHARE_LINKS || [])){
     let tok=null; try{ tok=localStorage.getItem(L.key); }catch(_){}
-    if(!tok) continue;
-    let data=null;
+    if(!tok || csLinkAsking.has(tok)) continue;      /* R5 · its card is already up, or queued */
+    csLinkAsking.add(tok);
+    const drop = () => { try{ localStorage.removeItem(L.key); }catch(_){} };
     try{
-      const r = await sb.rpc('redeem_share', { p_token: tok });
-      if(r.error) throw r.error;
-      data = r.data;
-    }catch(e){
-      const msg=String((e&&e.message)||'');
-      /* not deployed yet — keep the token, say nothing, try again next boot */
-      if(/PGRST202|does not exist|schema cache|42883/i.test(msg)) continue;
-      try{ localStorage.removeItem(L.key); }catch(_){}
-      toast(humanError(e, 'Could not open that link.'));
-      continue;
-    }
-    try{ localStorage.removeItem(L.key); }catch(_){}
-    const line = csShareLine(L.kind, data);
-    if(line) toast(line);
-    if(data && data.kind){
-      /* repaint what the token changed, if that surface is on screen */
-      if(data.kind === 'person') window.renderPeopleRequests?.();
-      if(data.kind === 'plan') window.loadSchedule?.();
-    }
+      /* R5 · the preview first. share_info is the read the landing card drew,
+         so the question says what the link said, and nothing is spent until
+         the golfer says yes. A read that fails keeps the token for next boot. */
+      let info=null;
+      try{
+        const r = await sb.rpc('share_info', { p_token: tok });
+        if(r.error) continue;
+        info = r.data;
+      }catch(_){ continue; }
+      /* a dead link (or a token of another kind): no card, the same line as before */
+      if(!info || info.kind !== L.kind){ drop(); toast(csShareLine(L.kind, null)); continue; }
+      /* your own card: nothing to ask and nothing to do — redeem_share's 'self'
+         was silent too. Never an act on this guess, so a copied name gains nothing */
+      if(L.kind === 'person' && info.name === CS.profile?.display_name && info.marker === CS.profile?.marker){ drop(); continue; }
+      /* a day already played has no seat to take: no question, and the line
+         redeem_share would have answered with */
+      if(L.kind === 'plan' && /^\d{4}-\d{2}-\d{2}$/.test(String(info.play_on || '')) && info.play_on < csTodayISO()){
+        drop(); toast(csShareLine('plan', { kind: 'plan', seat: 'past' })); continue;
+      }
+      const yes = await csLinkAsk(csLinkCard(L.kind, info));
+      if(yes === null) continue;                      /* never reached the golfer — kept */
+      if(!yes){ drop(); continue; }                   /* Not now — the link is spent, nothing sent */
+      /* signed out, or spent in another tab, while the card was up */
+      let still=null; try{ still=localStorage.getItem(L.key); }catch(_){}
+      if(still !== tok || !CS.user) continue;
+      /* the act, unchanged by R5 — it runs only after the yes */
+      let data=null;
+      try{
+        const r = await sb.rpc('redeem_share', { p_token: tok });
+        if(r.error) throw r.error;
+        data = r.data;
+      }catch(e){
+        const msg=String((e&&e.message)||'');
+        /* not deployed yet — keep the token, say nothing, try again next boot */
+        if(/PGRST202|does not exist|schema cache|42883/i.test(msg)) continue;
+        drop();
+        toast(humanError(e, 'Could not open that link.'));
+        continue;
+      }
+      drop();
+      const line = csShareLine(L.kind, data);
+      if(line) toast(line);
+      if(data && data.kind){
+        /* repaint what the token changed, if that surface is on screen */
+        if(data.kind === 'person') window.renderPeopleRequests?.();
+        if(data.kind === 'plan') window.loadSchedule?.();
+      }
+    } finally { csLinkAsking.delete(tok); }
   }
 }
 window.redeemPendingShares = redeemPendingShares;
@@ -32524,7 +33022,7 @@ window.redeemPendingShares = redeemPendingShares;
 if(new URLSearchParams(window.location.search).has('exit')){
   /* ?exit is the dev/QA reset hatch. Global scope made it a remote logout for
      every device the golfer owns — including a phone mid-round. */
-  sb.auth.signOut({ scope: 'local' }).finally(() => window.location.replace(window.location.pathname));
+  csSignOut({ scope: 'local' }).finally(() => window.location.replace(window.location.pathname));
 }
 
 let booting = false;
@@ -32631,7 +33129,7 @@ async function safeBoot(force){
            plainly (same answer for every bad token — nothing to enumerate) and
            drop the token. */
         try{ localStorage.removeItem('cs_claim'); }catch(_){}
-        authStatus('That scorecard link has expired or was already claimed. Whoever sent it can share a fresh one from the round.', 'err');
+        authStatus(CS_CLAIM_DEAD, 'err');
       }
       }
     }catch(_){}
@@ -32653,7 +33151,20 @@ sb.auth.onAuthStateChange((event, session) => {
      holds an internal auth lock here and getSession() would deadlock */
   if(event === 'SIGNED_IN'){ setTimeout(() => safeBoot(true), 0); }
   else if(event === 'INITIAL_SESSION'){ setTimeout(() => safeBoot(false), 0); }
-  else if(event === 'SIGNED_OUT'){ bootResolved=false; CS.user=null; CS.league=null; try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); }catch(_){}; backToDoor(); }
+  else if(event === 'SIGNED_OUT'){
+    bootResolved=false; CS.user=null; CS.league=null;
+    try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); localStorage.removeItem('cs_scan_consent'); }catch(_){}
+    /* S16 · a session that ended ANY way (another tab, an expired or revoked
+       token) takes this browser's push subscription with it. No row delete
+       here — there is no session left to delete with, and no Supabase call may
+       run inside this callback — so the endpoint dies and push prunes the row
+       on its next 410. The claim, person and plan tokens are cleared by the
+       explicit sign-out (csSignOut), not here: a dead session can end at the
+       same boot as a link just opened, and every one of them asks first now
+       (R5), so a survivor walks nobody into anything. */
+    if(!nativePush()) setTimeout(() => { csBrowserPushSub().then(s => s && s.unsubscribe()).catch(() => {}); }, 0);
+    backToDoor();
+  }
 });
 
 /* iOS standalone PWA resume: iOS suspends the page's WebSocket while the app is
