@@ -1310,5 +1310,52 @@ from (
   ) as problems
 ) t
 
+-- 52 · I5b · one share, one attempt (Codex's native contract). The three lifecycle RPCs
+--     are authenticated-only, the attempt ledger and shares stay unreadable to clients,
+--     and the reclaimer is service-role only.
+union all
+select '52 · one share, one attempt (I5b)',
+  case when problems = '' then 'PASS — prepare / finish / status, owner-only, never reactivating'
+       else 'FAIL — ' || problems end,
+  'grants of prepare_round_share, finish_round_share, round_share_status, _expire_share_attempts × share_attempts, shares'
+from (
+  select concat_ws('; ',
+    case when to_regprocedure('public.prepare_round_share(uuid, boolean, uuid)') is null
+           or to_regprocedure('public.finish_round_share(uuid, boolean)') is null
+           or to_regprocedure('public.round_share_status(uuid)') is null then 'a lifecycle RPC is missing'
+         when not has_function_privilege('authenticated', 'public.prepare_round_share(uuid, boolean, uuid)', 'EXECUTE')
+           or has_function_privilege('anon', 'public.prepare_round_share(uuid, boolean, uuid)', 'EXECUTE')
+           or has_function_privilege('authenticated', 'public._expire_share_attempts(uuid)', 'EXECUTE')
+         then 'a lifecycle grant is wrong' end,
+    case when to_regclass('public.share_attempts') is not null
+          and (has_table_privilege('authenticated', 'public.share_attempts', 'SELECT')
+               or has_table_privilege('authenticated', 'public.shares', 'SELECT'))
+         then 'a client can read shares or the attempt ledger directly' end
+  ) as problems
+) t
+
+-- 53 · the phone's payload and the Final (Codex's contract, I6). native_home carries
+--     renewal_status and in_season beside the Book's points standing and S3's final
+--     placement; the Final's surfaces read cup_finalists for their seeds.
+union all
+select '53 · the phone reads the season it is in, and the Final its own seeds (contract, I6)',
+  case when problems = '' then 'PASS — renewal_status, in_season, final_place; seeds from cup_finalists'
+       else 'FAIL — ' || problems end,
+  'prosrc of native_home, season_scenarios, season_story, join_covenant_info'
+from (
+  select concat_ws('; ',
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'native_home')
+              not like '%''renewal_status''%'
+           or (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'native_home')
+              not like '%''points_tied''%'
+           or (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'native_home')
+              not like '%''final_place''%' then 'native_home lost a contract field' end,
+    (select string_agg(p.proname, ', ') || ' reads the live table for the Final''s seeds' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace and p.proname in ('season_scenarios', 'season_story')
+        and p.prosrc not like '%[I6]%'
+     having count(*) > 0)
+  ) as problems
+) t
+
 )
 select * from checks order by check_name;

@@ -121,11 +121,16 @@ def steps(setup, reads, user):
     """Several reads in ONE rolled-back transaction as `user`; each read is wrapped in
     pg_temp.try so an expected refusal comes back as {"error": …} instead of aborting."""
     who = f"select set_config('sim.uid', '{bid(user)}', true); set local role authenticated;"
-    body = ' '.join(f"select 'OUT:' || pg_temp.try($q${r}$q$)::text;" for r in reads)
+    body = ' '.join((f"select 'OUT:' || pg_temp.run($q${r[1:]}$q$)::text;" if r.startswith('!')
+                     else f"select 'OUT:' || pg_temp.try($q${r}$q$)::text;") for r in reads)
     out = sql(f"""begin; create function pg_temp.try(q text) returns jsonb language plpgsql as $f$
                   declare r jsonb; begin execute 'select (' || q || ')::jsonb' into r; return r;
                   exception when others then return jsonb_build_object('error', sqlerrm); end $f$;
+                  create function pg_temp.run(q text) returns jsonb language plpgsql as $f$
+                  begin execute q; return jsonb_build_object('ok', true);
+                  exception when others then return jsonb_build_object('error', sqlerrm); end $f$;
                   grant execute on function pg_temp.try(text) to authenticated;
+                  grant execute on function pg_temp.run(text) to authenticated;
                   {setup}; {who} {body} rollback;""")
     return [json.loads(l[4:]) for l in out.splitlines() if l.startswith('OUT:')]
 R = bid(20201)   # golfer 2's round, week 1
@@ -176,6 +181,58 @@ check('renewal: a declined invitation reads declined', renewal(INV('declined')) 
 check('renewal: a lapsed invitation reads expired', renewal(INV('lapsed')) == ('expired', False), renewal(INV('lapsed')))
 check('renewal: a yes on record reads accepted and in season',
       renewal(f"update league_members set agreed_seasons = '{{1,2}}' where id = '{bid(11102)}'") == ('accepted', True))
+
+# ── I6 · the Cup Final names its own seeds ───────────────────────────────────────────────
+# League 100 in a Final whose drawn seeds are the two squads at the BOTTOM of the live table.
+FINAL = f"""update league_settings set finish = 'cup_final' where league_id = '{bid(100)}';
+  update seasons set status = 'cup_final', ends_on = current_date + 20 where id = '{bid(200)}';
+  insert into cup_finalists (season_id, squad_id, seed, head_start, seed_rung)
+  select '{bid(200)}', x.squad_id, row_number() over (order by x.points asc), 0, null
+    from (select squad_id, points from v_squad_standings where season_id = '{bid(200)}' order by points asc limit 2) x"""
+scen = tx(FINAL, f"public.season_scenarios('{bid(200)}')", user=2)
+seeded = {r['id'] for r in scen['rows'] if r.get('seed')}
+table_top = {r['id'] for r in sorted(scen['rows'], key=lambda r: -r['points'])[:2]}
+check('I6 scenarios: locked, and the clinched rows are exactly the drawn seeds',
+      scen['meta']['locked'] and {r['id'] for r in scen['rows'] if r['clinched']} == seeded and len(seeded) == 2, scen['meta'])
+check('I6 scenarios: the live table\'s top two are not called seeds', not (table_top & seeded) and all(
+      r['eliminated'] for r in scen['rows'] if r['id'] in table_top), [(r['name'], r['points'], r.get('seed')) for r in scen['rows']])
+check('I6 scenarios: meta names the seeds in order, and rank stays the points rank',
+      [s_['seed'] for s_ in scen['meta']['seeds']] == [1, 2] and min(r['rank'] for r in scen['rows'] if r['id'] in table_top) == 1)
+story = tx(FINAL, f"public.season_story('{bid(200)}', null)", user=2)
+fin_ = story.get('facts', story).get('final') if isinstance(story, dict) else None
+fin_ = fin_ or next((v for k, v in story.items() if isinstance(v, dict) and 'seats' in v), None) if isinstance(story, dict) else None
+check('I6 story: the Final facts carry locked, the drawn seeds and the race',
+      fin_ is not None and fin_.get('locked') and len(fin_.get('seeds', [])) == 2 and fin_.get('race') is not None, str(fin_)[:300])
+
+# ── S1–S12 re-verified on the combined chain (main + every repair) ───────────────────────
+PRO = 1   # profile 1 is every fixture league's Pro
+s1 = steps('', [f"(select to_jsonb(count(*)) from seasons where id = '{bid(200)}')",
+                f"!update seasons set status = 'complete' where id = '{bid(200)}'",
+                f"!insert into season_adjustments (season_id, member_id, month, kind, points) values ('{bid(200)}', '{bid(11002)}', '2026-08-01', 'override', 40)"], user=PRO)
+check('S1: the Pro reads the season but cannot rewrite it or the ledger directly',
+      s1[0] == 1 and 'permission denied' in s1[1].get('error', '') and 'permission denied' in s1[2].get('error', ''), s1)
+late = tx(f"update seasons set status = 'complete' where id = '{bid(203)}'; " +
+          f"insert into rounds (id, profile_id, course_label, played_on, holes_played, gross, rating, slope, index_at_post, differential, created_at) values ('{bid(29990)}', '{bid(2)}', 'Late', '2026-08-01', 18, 70, 72, 113, 12, -2, now())",
+          f"(select jsonb_build_object('booked', (select count(*) from season_book_rows where season_id = '{bid(203)}'), 'late_in_lens', exists (select 1 from v_rounds_ranked where season_id = '{bid(203)}' and round_id = '{bid(29990)}')))")
+check('S2: a completed season is booked, and a round posted after the close never enters it', late['booked'] > 0 and not late['late_in_lens'], late)
+short = tx(f"update seasons set ends_on = starts_on + 27, status = 'active' where id = '{bid(201)}'; update league_settings set finish = 'cup_final' where league_id = '{bid(101)}'",
+           f"(select jsonb_build_object('guard', position('[D384]' in pg_get_functiondef('public.daily_season_tick'::regproc)) > 0))")
+check('S4: the tick carries the short-season guard', short['guard'])
+s6 = tx('', "(select jsonb_build_object('lock', position('for update' in pg_get_functiondef('public.claim_round'::regproc)) > 0, 'trim', position('[S6]' in pg_get_functiondef('public.guest_live_state'::regproc)) > 0))")
+check('S6: a claim locks its seat and a spent guest link shows its status only', s6['lock'] and s6['trim'])
+TROPHY = f"""update seasons set status = 'complete', champion_member_id = '{bid(11101)}', points_king_member_id = '{bid(11101)}' where id = '{bid(201)}';
+  insert into posts (league_id, season_id, kind, body) values ('{bid(101)}', '{bid(201)}', 'system', 'closed');
+  insert into seasons (id, league_id, number, starts_on, ends_on, status, champion_member_id, points_king_member_id)
+  values ('{bid(292)}', '{bid(101)}', 2, '2026-10-19', '2026-11-29', 'active', null, null);
+  update seasons set status = 'complete', champion_member_id = '{bid(11101)}', points_king_member_id = '{bid(11101)}' where id = '{bid(292)}';
+  select public.award_season_trophies('{bid(201)}'); select public.award_season_trophies('{bid(292)}')"""
+tro = tx(TROPHY, f"(select to_jsonb(count(*)) from trophies where profile_id = '{bid(1)}' and league_id = '{bid(101)}' and placement = 'winner')")
+check('S8: two seasons won in one year are two Champion trophies', tro == 2, tro)
+rc = tx('', f"(select public.round_card('{bid(20201)}'))", user=2)
+check('S10: the receipt explains a round with the league\'s own number', 'pvi' in rc and '[D387]' in sql("select pg_get_functiondef('public.round_card'::regproc)"), str(rc)[:120])
+nine = tx(f"insert into rounds (id, profile_id, course_label, played_on, holes_played, gross, rating, slope, index_at_post, differential, created_at) values ('{bid(29991)}', '{bid(17)}', 'Nine', current_date - 1, 9, 38, 35, 113, 12, 3, now())",
+          f"(select to_jsonb(bool_or(is_sub80)) from public.home_stories(21, null) where round_id = '{bid(29991)}')", user=17)
+check('S12: a nine-hole 38 is not "Under 80 for the first time"', nine is False or nine is None, nine)
 
 print(f"{sum(ok for _, ok in checks)}/{len(checks)} repair checks passed")
 sys.exit(0 if all(ok for _, ok in checks) else 1)
