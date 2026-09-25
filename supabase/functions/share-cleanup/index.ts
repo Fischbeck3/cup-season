@@ -61,6 +61,11 @@ Deno.serve(async (req) => {
     if (rec?.token && rec?.status !== 'completed') first = String(rec.token);
   } catch { /* a scheduled or manual call carries no body */ }
 
+  // abandoned share preparations (a sheet the app never reported back) are reclaimed first,
+  // which revokes their never-completed tokens and so queues their cleanup (20261202090000)
+  const { error: xe } = await sb.rpc('_expire_share_attempts', { p_ref: null });
+  if (xe) console.log('[share-cleanup] could not reclaim abandoned preparations:', xe.message);
+
   const { data: due, error } = await sb.rpc('_share_cleanup_due', { p_limit: 50 });
   if (error) {
     console.log('[share-cleanup] could not read the queue:', error.message);

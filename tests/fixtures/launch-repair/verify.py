@@ -116,5 +116,66 @@ check('I4 two seasons: season one is unchanged by a season-two seat',
 other = tx(SEAT, f"public.season_book('{bid(101)}','{bid(201)}')", user=2)
 check('I4: another league is untouched by the seat', other['coverage_complete'] and all(r['points'] == 41 for r in other['rows']))
 
+# ── I5b · one share, one attempt (Codex's native contract) ──────────────────────────────
+def steps(setup, reads, user):
+    """Several reads in ONE rolled-back transaction as `user`; each read is wrapped in
+    pg_temp.try so an expected refusal comes back as {"error": …} instead of aborting."""
+    who = f"select set_config('sim.uid', '{bid(user)}', true); set local role authenticated;"
+    body = ' '.join(f"select 'OUT:' || pg_temp.try($q${r}$q$)::text;" for r in reads)
+    out = sql(f"""begin; create function pg_temp.try(q text) returns jsonb language plpgsql as $f$
+                  declare r jsonb; begin execute 'select (' || q || ')::jsonb' into r; return r;
+                  exception when others then return jsonb_build_object('error', sqlerrm); end $f$;
+                  grant execute on function pg_temp.try(text) to authenticated;
+                  {setup}; {who} {body} rollback;""")
+    return [json.loads(l[4:]) for l in out.splitlines() if l.startswith('OUT:')]
+R = bid(20201)   # golfer 2's round, week 1
+PHOTO = f"update rounds set photo_path = '{bid(2)}/photo.jpg' where id = '{R}'"
+A = lambda n: 'a0000000-0000-4000-8000-' + str(n).zfill(12)
+prep = lambda att, inc: f"public.prepare_round_share('{R}', {str(inc).lower()}, '{A(att)}')"
+fin = lambda att, done: f"public.finish_round_share('{A(att)}', {str(done).lower()})"
+stat = f"public.round_share_status('{R}')"
+s = steps(PHOTO, [prep(1, True), fin(1, True), stat,                      # 0-2 first share, completed
+                  prep(2, True), fin(2, False), stat,                     # 3-5 reuse, then cancel the reuse
+                  prep(3, False), stat, fin(3, False), stat,              # 6-9 consent change, then cancel it
+                  prep(1, True), fin(1, True), fin(3, True)], user=2)     # 10-12 idempotence, late ack
+t1 = s[0]['token']
+check('I5b first share: a new token, created, photo included', s[0]['created'] and s[0]['include_photo'], s[0])
+check('I5b completion makes the link durable', s[1]['active'] and s[2]['token'] == t1 and not s[2]['cleanup_pending'], (s[1], s[2]))
+check('I5b same consent reuses the completed link', s[3]['token'] == t1 and s[3]['created'] is False, s[3])
+check('I5b cancelling a REUSED link leaves it live', s[4]['state'] == 'cancelled' and s[5]['token'] == t1, (s[4], s[5]))
+check('I5b a changed consent rotates: new token, old queued for cleanup',
+      s[6]['created'] and s[6]['token'] != t1 and s[6].get('rotated') and s[7]['cleanup_pending'] and s[7]['token'] is None, (s[6], s[7]))
+check('I5b cancelling a NEW token retires only it', s[8]['state'] == 'cancelled' and not s[8]['active']
+      and any(c['token'] == s[6]['token'] for c in s[9]['cleanup']), (s[8], s[9]))
+check('I5b prepare and finish are idempotent on the attempt', s[10]['token'] == t1 and s[10]['state'] == 'completed' and s[11]['state'] == 'completed', (s[10], s[11]))
+check('I5b a late ack never reactivates a cancelled link', s[12]['state'] == 'cancelled' and not s[12]['active'], s[12])
+
+c = steps(PHOTO, [prep(21, True), prep(22, True)], user=2)
+check('I5b a second attempt never borrows or revokes an open one', 'already being shared' in c[1].get('error', ''), c)
+EXPIRE = PHOTO + f"; select public.prepare_round_share('{R}', true, '{A(31)}'); update share_attempts set lease_expires_at = now() - interval '1 minute' where attempt_id = '{A(31)}'"
+e = steps(EXPIRE.replace("select public.prepare", "select set_config('sim.uid','" + bid(2) + "',true); select public.prepare"), [prep(32, True), fin(31, True), stat], user=2)
+check('I5b an abandoned preparation is reclaimed when its lease lapses', e[0].get('created') and e[1]['state'] == 'expired' and not e[1]['active'], e[:2])
+w = steps(PHOTO, [prep(41, True), f"(select to_jsonb(public.clear_round_photo('{R}')))", fin(41, True), stat], user=2)
+check('I5b a withdrawal during a preparation is never undone by its completion', w[2]['active'] is False and w[3]['token'] is None and w[3]['cleanup_pending'], w[2:])
+LEGACY = PHOTO + f"; insert into shares (kind, ref_id, created_by) values ('round', '{R}', '{bid(2)}')"
+g = steps(LEGACY, [prep(51, False)], user=2)
+check('I5b a legacy link with unrecorded consent is rotated, not guessed', g[0].get('created') and g[0].get('rotated'), g)
+o = steps(PHOTO, [prep(61, True), stat], user=3)
+check('I5b another golfer can neither prepare nor read my round\'s share', 'error' in o[0] and 'error' in o[1], o)
+
+# ── the payload fields · renewal_status beside in_season ─────────────────────────────────
+S2 = f"""insert into seasons (id, league_id, number, starts_on, ends_on, status) values ('{bid(291)}', '{bid(101)}', 2, current_date + 10, current_date + 80, 'active');
+         update seasons set status = 'complete' where id = '{bid(201)}'"""
+def renewal(extra):
+    h = tx(S2 + '; ' + extra, 'public.native_home()', user=2)
+    m = next(x for x in h['memberships'] if x['league_id'] == bid(101))
+    return m.get('renewal_status'), m.get('in_season')
+check('renewal: an unanswered season two with no invitation is pending, not in season', renewal('select 1') == ('pending', False), renewal('select 1'))
+INV = lambda st: f"insert into member_invites (league_id, profile_id, invited_by, status) values ('{bid(101)}', '{bid(2)}', '{bid(1)}', '{st}')"
+check('renewal: a declined invitation reads declined', renewal(INV('declined')) == ('declined', False), renewal(INV('declined')))
+check('renewal: a lapsed invitation reads expired', renewal(INV('lapsed')) == ('expired', False), renewal(INV('lapsed')))
+check('renewal: a yes on record reads accepted and in season',
+      renewal(f"update league_members set agreed_seasons = '{{1,2}}' where id = '{bid(11102)}'") == ('accepted', True))
+
 print(f"{sum(ok for _, ok in checks)}/{len(checks)} repair checks passed")
 sys.exit(0 if all(ok for _, ok in checks) else 1)
