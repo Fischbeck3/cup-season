@@ -184,7 +184,7 @@ struct SeasonPage: View {
       #endif
       await model.refresh()
     }
-    .task(id: model.leagueId) {
+    .task(id: store.me?.generated_at) {
       #if DEBUG
       // `-cs_dev_season_fixture [squads]` — the cut, the pot and the squad
       // table need a field, a stake and a structure the signed-in account does
@@ -195,8 +195,8 @@ struct SeasonPage: View {
         return
       }
       #endif
-      guard !model.loaded, let me = store.me, let v = RoomViewer(me) else { return }
-      await model.load(viewer: v)
+      guard let me = store.me, let v = RoomViewer(me) else { return }
+      if model.loaded { await model.refresh() } else { await model.load(viewer: v) }
       // D66: a finished season announces itself ONCE per member, after the data is in
       if model.ceremonyDue {
         try? await Task.sleep(for: .milliseconds(400))
@@ -278,8 +278,8 @@ struct SeasonPage: View {
         // `StandingsMath`'s absolute rule survives the move: no clock, no
         // claim — with none the head falls back to the field count and the
         // movement column does not render either.
-        CSSectionHead(model.bylaws.solo ? "The table" : "The squads",
-                      count: StandingsMath.movedSince(model.priorSince)
+        CSSectionHead(model.isComplete ? "The final table" : model.bylaws.solo ? "The table" : "The squads",
+                      count: model.isComplete ? "\(CSCopy.spelled(model.indRows.count)) golfers" : StandingsMath.movedSince(model.priorSince)
                         ?? (model.bylaws.solo ? fieldCount : SeasonBoardCopy.sides(model.teams.count)))
           .csGutter()
           .id(SeasonPane.table.anchor)
@@ -297,14 +297,17 @@ struct SeasonPage: View {
           }.frame(minHeight:44).csGutter().padding(.vertical,CSTokens.Space.s3).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityIdentifier("seasonBook.door")
       }
+      if model.isPro, !model.solo, !model.isComplete, !model.pool.isEmpty, !model.squads.isEmpty {
+        CSDoor(.link("Seat \(model.pool.count) unseated golfer\(model.pool.count == 1 ? "" : "s")") { router.open(.members) }).csGutter()
+      }
       StandingsTableView()
       if !model.bylaws.solo && !model.indRows.isEmpty {
-        CSSectionHead("Every golfer", count: SeasonBoardCopy.field(model.indRows.count))
+        CSSectionHead("Every golfer", count: model.isComplete ? "\(CSCopy.spelled(model.indRows.count)) golfers" : SeasonBoardCopy.field(model.indRows.count))
           .csGutter()
           .padding(.top, CSTokens.Space.s4)
         GolferTableView()
       }
-      endgame
+      if !model.isComplete { endgame }
     }
   }
 

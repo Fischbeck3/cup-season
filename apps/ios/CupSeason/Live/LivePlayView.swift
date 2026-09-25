@@ -140,7 +140,9 @@ struct LivePlayView: View {
   /// sync badge rides under it and only when it has something to say: a round
   /// held on a phone with no signal says so (D-offline).
   private var eyebrow: some View {
-    let badge = LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued, retired: store.retiredCard)
+    let badge = s.lr != nil && !s.onThisPhone && store.syncStatus != "SUBSCRIBED" && !store.retiredCard
+      ? "SAVED ON THIS PHONE · WAITING TO SYNC"
+      : LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued, retired: store.retiredCard)
     return VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
       // At the accessibility sizes the dot, the place and the setup link stop
       // fighting for one row: the eyebrow is already the longest line on the
@@ -240,7 +242,7 @@ struct LivePlayView: View {
           CSFace(LiveFaces.model(p), size: .list)
           VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: CSTokens.Space.s2) {
-              Text(r.name).csType(.name).foregroundStyle(cs.ink)
+              Text(p.me ? "You" : r.name).csType(.name).foregroundStyle(cs.ink)
                 .lineLimit(typeSize.isA11y ? nil : 1).truncationMode(.tail)
               if r.guest { Text("Guest").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
               // the strokes a golfer gets on THIS hole, drawn rather than said
@@ -293,7 +295,7 @@ struct LivePlayView: View {
       }
       .frame(width: 54)
       .accessibilityElement(children: .ignore)
-      .accessibilityLabel("Hole \(s.hole + 1), \(r.score.map { "\($0) stroke\($0 == 1 ? "" : "s")" } ?? "not scored")")
+      .accessibilityLabel("\(r.name), hole \(s.hole + 1), \(r.score.map { "\($0) stroke\($0 == 1 ? "" : "s")" } ?? "not scored")")
       .accessibilityAddTraits(.updatesFrequently)
       stepTarget("+", pi: pi, by: 1)
     }

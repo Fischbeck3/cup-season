@@ -236,6 +236,7 @@ struct CompeteScreen: View {
 
   /// Every row is a door, and the object decides which one.
   private func open(_ row: CompeteRoot.Row) {
+    if let code = row.invitationCode { presenter.join(code: code); return }
     if let id = row.leagueId { push(.season(id, pane: .table)); store.preferredLeague = id }
     // D325 · an event is an object and objects are pushed (§7.3). This line
     // and the one above it were the whole bug: two adjacent rows in one list,

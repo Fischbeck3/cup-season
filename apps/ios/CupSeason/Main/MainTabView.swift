@@ -1233,6 +1233,7 @@ struct MainTabView: View {
               openCompetition: { presenter.showPost = false; openCompetition($0) },
               openTourCard: { presenter.showPost = false; presenter.tourCard = $0 },
               startSomething: { presenter.showPost = false; presenter.showIntent = true },
+              joinWithCode: { presenter.join(code: nil) },
               postKept: { postKept($0) })
   }
 

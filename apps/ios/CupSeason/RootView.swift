@@ -11,6 +11,10 @@ struct RootView: View {
   @State private var pendingJoin: String?
   /// A guest pencil's "keep it" tap: show the door over the pending claim.
   @State private var guestDoor = false
+  /// L-06 · bumped when a claim link lands while the app is open, so the
+  /// signed-out branch re-reads `ClaimIntent.pending()` (a stored token alone
+  /// never re-renders anything).
+  @State private var claimTick = 0
   /// D233 · the CREW STEP stands where the tabs will, once, between the card
   /// and first Home. `CrewFlag` decides on the way INTO `.ready`.
   ///
@@ -34,6 +38,7 @@ struct RootView: View {
       case .restoring:
         BootingView(step: "Signing you back in")
       case .signedOut:
+        let _ = claimTick   // L-06 · a claim that lands while open re-reads the branch below
         // R1 · the Home-state hatch renders HERE, as a branch of the root's own
         // ZStack, not as an `.overlay`. Inside an overlay the scroll view took
         // its content's IDEAL width — zero — and every control came out 16pt
@@ -57,6 +62,7 @@ struct RootView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let t = ClaimIntent.pending(), !guestDoor {
           GuestPencilScreen(token: t, onDoor: { guestDoor = true })
+            .id("\(t)-\(claimTick)")   // L-06 · a new link is a new pencil
         } else {
           DoorView()
         }
@@ -90,6 +96,10 @@ struct RootView: View {
             .onReceive(NotificationCenter.default.publisher(for: .csJoinCodePending)) { _ in
               if pendingJoin == nil, let j = JoinIntent.pending() { pendingJoin = j.code }
             }
+            // L-06 · a claim link tapped with the tabs up lands the card now
+            .onReceive(NotificationCenter.default.publisher(for: .csClaimTokenPending)) { _ in
+              Task { await LiveClaimAfterAuth.run(toast: toast) }
+            }
             .csSheet(item: $pendingJoin) { code in
               JoinLeagueFlow(code: code) { id in
                 JoinIntent.clear(ifMatching: code)
@@ -110,6 +120,12 @@ struct RootView: View {
     }
     .csAnimation(CSMotion.rise, value: stateKey)
     .csAnimation(CSMotion.rise, value: crewing)
+    // L-06 · signed out, a claim link tapped with the app open shows the
+    // guest pencil at once (the signed-in half runs in the `.ready` branch)
+    .onReceive(NotificationCenter.default.publisher(for: .csClaimTokenPending)) { _ in
+      guestDoor = false
+      claimTick += 1
+    }
     // D233: decided once per arrival in `.ready` — after the card, or on a
     // restored session — never on a reload while the tabs are up. The flag is
     // written on the DECISION, so a crash mid-screen never traps anyone; a
@@ -296,7 +312,9 @@ struct BootFailedView: View {
   @State private var snapshot: DispatchSnapshot? = nil
   @State private var courses = false
   @State private var offlineLive = false
+  @State private var savedLive: LiveRoundState?
   @State private var askSignOut = false
+  @Environment(\.scenePhase) private var phase
 
   private var signedIn: Bool { store.session != nil }
 
@@ -310,12 +328,23 @@ struct BootFailedView: View {
 
         if signedIn {
           if let owner = store.session?.user.id, let golfer = OfflineGolfer.read(owner: owner) {
-            Button("Score on this phone") {
-              LiveRoundStore.shared.prepareOffline(golfer)
-              offlineLive = true
-            }.buttonStyle(.csSecondary())
-            Text("Start or continue an offline scorecard. Review and post when you reconnect.")
-              .csType(.bodyS).foregroundStyle(cs.mut)
+            if let savedLive {
+              Button("Continue your saved round") {
+                Task {
+                  await LiveRoundStore.shared.resumeSavedRound(savedLive, golfer: golfer)
+                  offlineLive = true
+                }
+              }.buttonStyle(.csSecondary())
+              Text("Scores stay on this phone until they sync. This continues the same round.")
+                .csType(.bodyS).foregroundStyle(cs.mut)
+            } else {
+              Button("Score on this phone") {
+                LiveRoundStore.shared.prepareOffline(golfer)
+                offlineLive = true
+              }.buttonStyle(.csSecondary())
+              Text("Start or continue an offline scorecard. Review and post when you reconnect.")
+                .csType(.bodyS).foregroundStyle(cs.mut)
+            }
           }
           if let s = snapshot { lastKnown(s) }
           Button { courses = true } label: {
@@ -339,7 +368,21 @@ struct BootFailedView: View {
       .frame(maxWidth: .infinity)
     }
     .background(cs.bg0.ignoresSafeArea())
-    .task { snapshot = DispatchSnapshot.read() }
+    .task {
+      snapshot = DispatchSnapshot.read()
+      if let owner = store.session?.user.id {
+        savedLive = LiveRehydrator.savedRound(await LiveDisk.shared.snapshots(), owner: owner,
+                                             abandoned: Set(await LiveDisk.shared.pendingAbandons()))
+      }
+    }
+    // L-08 · a boot that failed with no signal used to wait for a tap on Try
+    // again. Coming back to the app is the moment signal has usually returned,
+    // so the boot retries itself then — and the live round rehydrates with it.
+    // Not while the offline scorecard is up: that screen owns the phone.
+    .onChange(of: phase) { _, now in
+      guard now == .active, !offlineLive else { return }
+      Task { await store.reload() }
+    }
     .fullScreenCover(isPresented: $offlineLive) {
       LiveRoundHost(links: LiveLinks(done: { offlineLive = false }))
     }

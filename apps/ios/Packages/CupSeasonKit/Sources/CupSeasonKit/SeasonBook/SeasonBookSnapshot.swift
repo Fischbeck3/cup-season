@@ -58,6 +58,7 @@ public struct SeasonBookSnapshot: Codable, Sendable {
     public let kind: String
     public let points: Int
     public let contribution: Int
+    public let withdrawn: Bool?
     public let count_state: String
     public let reason: String
     public var isRound: Bool { round_id != nil }

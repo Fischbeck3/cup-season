@@ -262,7 +262,9 @@ struct SeasonBookReceipts: View {
             Text("\(entry.points) points · \(entry.count_state == "dropped" ? "dropped" : "\(entry.contribution) included")").csType(.body)
             Text(entry.reason).csType(.bodyS).foregroundStyle(cs.mut)
             if !entry.isRound,let month=entry.affected_month { Text("Applies to \(String(month.prefix(7)))").csType(.agateS).foregroundStyle(cs.mut) }
-            if let round=entry.round_id {
+            if entry.withdrawn == true {
+              Text("Round withdrawn. Its recorded points remain in this season’s Book.").csType(.bodyS).foregroundStyle(cs.mut)
+            } else if let round=entry.round_id {
               CSDoor(.link("Open round receipt") { openRound(round) })
             }
           }.padding(.vertical,CSTokens.Space.s3).frame(maxWidth:.infinity,alignment:.leading).overlay(alignment:.bottom) { CSRule() }

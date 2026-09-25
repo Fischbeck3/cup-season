@@ -12,6 +12,7 @@ import Foundation
 
 public struct LeagueRecordRow: Sendable, Identifiable, Equatable {
   public let id: UUID
+  public let leagueId: UUID
   public let name: String
   public let number: Int
   public let line: String
@@ -36,8 +37,8 @@ public struct LeagueRecordRow: Sendable, Identifiable, Equatable {
 
   public init(id: UUID, name: String, number: Int, line: String,
               finish: Int? = nil, tied: Bool = false, of: Int? = nil, won: Bool = false,
-              year: Int? = nil, qualifier: String? = nil) {
-    self.id = id; self.name = name; self.number = number; self.line = line
+              year: Int? = nil, qualifier: String? = nil, leagueId: UUID? = nil) {
+    self.id = id; self.leagueId = leagueId ?? id; self.name = name; self.number = number; self.line = line
     self.finish = finish; self.tied = tied; self.of = of; self.won = won
     self.year = year; self.qualifier = qualifier
   }
@@ -81,6 +82,56 @@ public enum LeagueRecord {
     return (rank, rows.count, done && s.champion_member_id == myMemberId, rows.filter { $0.points == rows[i].points }.count > 1)
   }
 
+  /// **Launch audit S3 · the record reads the crown.** One row per season the
+  /// golfer said yes to, from `my_league_record()`, whose `place` is the
+  /// server's `_final_place`: on a finished season the champion is 1st and the
+  /// other finalist 2nd whatever the table says (L-03), and a live tie shares
+  /// its place (L-15). Nothing here sorts a table. Oldest first, as the
+  /// membership path returned them, so the leaf's `reversed()` still reads
+  /// newest first.
+  public static func rows(from json: JSONValue, today: String = CSDate.today(),
+                          calendar: Calendar = .current) -> [LeagueRecordRow] {
+    let items = json.array ?? []
+    let rows: [LeagueRecordRow] = items.compactMap { r in
+      guard let sid = r["season_id"]?.string.flatMap(UUID.init(uuidString:)),
+            let lid = r["league_id"]?.string.flatMap(UUID.init(uuidString:)) else { return nil }
+      let n = r["number"]?.int ?? 1
+      let status = r["status"]?.string ?? "active"
+      let phase = r["phase"]?.string ?? "season"
+      let startsOn = r["starts_on"]?.string ?? ""
+      let solo = (r["structure"]?.string ?? "solo") == "solo"
+      let place = r["place"]?.int, of = r["of"]?.int
+      let tied = r["tied"]?.bool ?? false, won = r["won"]?.bool ?? false
+      let pts = r["points"]?.double
+      let done = status == "complete"
+      let line: String
+      if !done && phase == "setup" { line = formingLine }
+      else if !done && phase == "draft" { line = drawingLine }
+      else if !done, let d = CSDate.days(from: today, to: startsOn, calendar: calendar), d > 0 {
+        line = "FIRST TEE \(firstTeeLabel(startsOn, calendar: calendar))"
+      } else {
+        var where_ = "—"
+        if let place, let of {
+          let unit = solo ? "" : " SQUADS"
+          where_ = (tied ? "TIED " : "") + "\(ordUpper(place)) OF \(of)\(unit)"
+          if solo, let pts { where_ += " · \(CSCopy.points(pts)) PTS" }
+        }
+        line = done ? "FINISHED \(where_)" : status == "cup_final" ? "CUP FINAL · \(where_)" : where_
+      }
+      let beforeFirstTee = (CSDate.days(from: today, to: startsOn, calendar: calendar) ?? 0) > 0
+      let ranked = done || (!(phase == "setup" || phase == "draft") && !beforeFirstTee)
+      return LeagueRecordRow(id: sid, name: r["league_name"]?.string ?? "", number: n, line: line,
+                             finish: ranked ? place : nil, tied: tied, of: ranked ? of : nil, won: won,
+                             year: year(startsOn), qualifier: spelledSeason(n), leagueId: lid)
+    }
+    return rows.reversed()
+  }
+
+  /// Y-09 · the stage words are `LeagueCopy.Stage`'s; the record's case is
+  /// upper, set once here for both the membership path and the season rows.
+  static let formingLine = LeagueCopy.Stage.forming.label.uppercased()
+  static let drawingLine = LeagueCopy.Stage.drawing.label.uppercased()
+
   static let romanNumerals = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"]
   public static func roman(_ n: Int) -> String { (0..<romanNumerals.count).contains(n) && n > 0 ? romanNumerals[n] : String(n) }
 
@@ -100,8 +151,8 @@ public enum LeagueRecord {
     // other value of `line` is upper ("3RD OF 12 · 41 PTS"), and `sub`
     // concatenates them into one mono line, so a natural-case stage would put
     // "SEASON I · Forming" beside "SEASON II · 3RD OF 12 · 41 PTS" in one list.
-    guard let s = season, phase != "setup" else { return LeagueCopy.Stage.forming.label.uppercased() }
-    if phase == "draft" { return LeagueCopy.Stage.drawing.label.uppercased() }
+    guard let s = season, phase != "setup" else { return formingLine }
+    if phase == "draft" { return drawingLine }
     let rows = standings.filter { $0.season_id == s.id }.sorted { ($0.points ?? 0) > ($1.points ?? 0) }
     let place: String
     if let i = rows.firstIndex(where: { $0.member_id == myMemberId }) {

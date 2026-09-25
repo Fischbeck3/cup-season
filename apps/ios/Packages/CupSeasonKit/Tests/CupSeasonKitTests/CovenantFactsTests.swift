@@ -67,7 +67,7 @@ import Foundation
   /// printed rather than assumed.
   @Test func theSplitAnswersWhatFiftyDollarsBuys() {
     let s = try? #require(Self.full.splitLine)
-    #expect(s == "If you take it: 60 percent to the champion, 25 to the runner-up, 15 to the points king.")
+    #expect(s == "The split: 60 percent to the champion; 25 percent to the runner-up; 15 percent to the Points King, the individual season-points leader.")
     let free = Covenant(name: "x", buyinCents: 0, preset: nil, floor: 0, finish: nil,
                         split: .init(champion: 60, runnerUp: 25, pointsKing: 15))
     #expect(free.splitLine == nil)

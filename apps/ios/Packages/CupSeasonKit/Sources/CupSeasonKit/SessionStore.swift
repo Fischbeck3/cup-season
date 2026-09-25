@@ -84,6 +84,7 @@ public final class SessionStore {
   public func reload() async {
     guard let uid = session?.user.id else { state = .signedOut; return }
     guard !loading else { return }
+    Task { await RoundShareAcknowledgements.shared.drain(owner: uid, svc: svc) }
     loading = true
     defer {
       loading = false

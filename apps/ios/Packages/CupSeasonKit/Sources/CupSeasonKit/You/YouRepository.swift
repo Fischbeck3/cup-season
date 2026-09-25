@@ -146,6 +146,11 @@ public struct YouRepository: Sendable {
 
   public func loadLeagueRecord(me: Me) async throws -> [LeagueRecordRow] {
     guard !me.memberships.isEmpty else { return [] }
+    do {
+      return LeagueRecord.rows(from: try await svc.call(Rpc.my_league_record()))
+    } catch {
+      guard (error as? RpcError)?.isMissingFunction == true else { throw error }
+    }
     let seasonIds = me.memberships.compactMap { $0.season?.id }
     let standings = try await rounds.individualStandings(seasonIds: seasonIds)
     return me.memberships.map { m in

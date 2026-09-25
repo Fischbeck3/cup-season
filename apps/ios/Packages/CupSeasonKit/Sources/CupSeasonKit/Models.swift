@@ -260,6 +260,8 @@ public struct Me: Decodable, Sendable {
         self.champion_is_me = champion_is_me; self.my_rank = my_rank; self.of = of
       }
     }
+    public let renewal_status: String?
+    public let in_season: Bool?
     public let last_season: LastSeason?
     /// v3 · `home_clash(league_id)`, inlined so Home stops making a second RPC
     /// per league for a fact that belongs to this payload. nil unless I am in
@@ -289,12 +291,12 @@ public struct Me: Decodable, Sendable {
     public init(league_id: UUID, name: String, code: String?, phase: String, sandbox: Bool?, role: String, member_id: UUID, marker: String?,
                 commissioner_name: String?, settings: Settings?, season: Season?, squad: Squad?, standing: Standing?, pulse: Pulse?,
                 buy_in: BuyIn? = nil, roster: Int? = nil, members: Int? = nil,
-                pro_name: String? = nil, last_season: LastSeason? = nil, clash: Clash? = nil) {
+                pro_name: String? = nil, last_season: LastSeason? = nil, clash: Clash? = nil, in_season: Bool? = nil, renewal_status: String? = nil) {
       self.league_id = league_id; self.name = name; self.code = code; self.phase = phase; self.sandbox = sandbox; self.role = role
       self.member_id = member_id; self.marker = marker; self.commissioner_name = commissioner_name; self.settings = settings
       self.season = season; self.squad = squad; self.standing = standing; self.pulse = pulse; self.buy_in = buy_in
       self.roster = roster; self.members = members
-      self.pro_name = pro_name; self.last_season = last_season; self.clash = clash
+      self.pro_name = pro_name; self.last_season = last_season; self.clash = clash; self.in_season = in_season; self.renewal_status = renewal_status
     }
 
     /// The stake in cents — 0 for a bragging-rights league (D70).

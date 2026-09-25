@@ -373,3 +373,12 @@ withdraw_league_cancel|p_league uuid|text|definer|auth
 
 # D381: local authorized migration 20261118090000, unapplied remotely.
 season_book|p_league_id uuid, p_season_id uuid|jsonb|definer|auth
+_book_season||trigger|definer|none
+_final_place|p_season uuid, p_unit uuid|integer|definer|none
+my_league_record||jsonb|definer|auth
+withdraw_round_shares|p_round uuid|text[]|definer|auth
+
+# Native audit integration: Claude implements these additive RPCs before release.
+prepare_round_share|p_round uuid, p_include_photo boolean, p_attempt uuid|jsonb|definer|auth
+finish_round_share|p_attempt uuid, p_completed boolean|jsonb|definer|auth
+round_share_status|p_round uuid|jsonb|definer|auth

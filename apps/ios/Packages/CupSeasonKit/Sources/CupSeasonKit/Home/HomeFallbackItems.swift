@@ -319,6 +319,14 @@ public enum HomeFallbackItems {
                    action: "See how it ended", route: .season(m.league_id, pane: nil),
                    leagueId: m.league_id, spine: .gold, at: last.ended_on)
     }
+    if status == "cup_final" {
+      return .init(key: "chapter:\(m.league_id.uuidString)", tier: .chapter,
+                   subject: m.name, humanSubject: false, eyebrow: m.name,
+                   headline: "The Cup Final is underway.",
+                   standfirst: SeasonFacts.finalLine(m, weeksLeft: max(1, LeagueDates.weeksTotal(m.season) - LeagueDates.week(m.season))),
+                   action: "Open the Final", route: .season(m.league_id, pane: nil),
+                   leagueId: m.league_id, spine: .mut)
+    }
     guard let leader = SeasonFacts.clean(st.leader_name) else { return nil }
     let week = LeagueDates.week(m.season)
     let of = LeagueDates.weeksTotal(m.season)

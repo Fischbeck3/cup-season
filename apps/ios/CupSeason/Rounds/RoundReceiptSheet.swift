@@ -84,6 +84,9 @@ struct RoundReceiptSheet: View {
   @State private var roundPreview = false
   @State private var sharePhoto: UIImage?
   @State private var shareBusy = false
+  @State private var publicLink: JSONValue?
+  @State private var linkNote: String?
+  @State private var revokingLink = false
   #if DEBUG
   @State private var artifactPreview = false
   @State private var reviewPhoto: UIImage?
@@ -131,6 +134,24 @@ struct RoundReceiptSheet: View {
               Task { await previewRound(r) }
             }
             .accessibilityIdentifier("round.share.preview")
+            if publicLink?["token"]?.string != nil || publicLink?["cleanup_pending"]?.bool == true || linkNote != nil {
+              Button(publicLink?["cleanup_pending"]?.bool == true || linkNote != nil ? "Retry turning off this link" : "Turn off this link") {
+                Task {
+                  revokingLink = true
+                  defer { revokingLink = false }
+                  do {
+                    try await PostService().revokeLink(round: roundId)
+                    publicLink = try await PostService().shareStatus(round: roundId)
+                    linkNote = publicLink?["cleanup_pending"]?.bool == true ? "The link is off. Public image cleanup is pending." : nil
+                  } catch { linkNote = HumanError.text(error, prefix: "Could not finish turning off the link.") }
+                }
+              }.buttonStyle(.csSecondary()).disabled(revokingLink)
+            }
+            if let linkNote { Text(linkNote).csType(.bodyS).foregroundStyle(cs.mut) }
+            Color.clear.frame(height: 0).task(id: roundPreview) {
+              do { publicLink = try await PostService().shareStatus(round: roundId) }
+              catch { linkNote = "Could not check this round’s public link. You can retry turning it off." }
+            }
           }
           scorecard(r)
             #if DEBUG
@@ -372,7 +393,7 @@ struct RoundReceiptSheet: View {
       await ReceiptCache.shared.put([next])
       CSHaptic.success()
     } catch {
-      photoNote = (error as? RoundPhotoFailure) == .needsPush
+      photoNote = error is ShareWithdrawal.CleanupPending ? error.localizedDescription : (error as? RoundPhotoFailure) == .needsPush
         ? RoundCopy.photoNeedsPush : RoundCopy.photoFailed
     }
   }
@@ -391,7 +412,7 @@ struct RoundReceiptSheet: View {
       await ReceiptCache.shared.put([next])
       CSHaptic.success()
     } catch {
-      photoNote = (error as? RoundPhotoFailure) == .needsPush
+      photoNote = error is ShareWithdrawal.CleanupPending ? error.localizedDescription : (error as? RoundPhotoFailure) == .needsPush
         ? RoundCopy.photoNeedsPush : RoundCopy.photoRemoveFailed
     }
   }

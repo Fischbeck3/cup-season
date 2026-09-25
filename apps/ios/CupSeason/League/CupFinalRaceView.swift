@@ -48,14 +48,16 @@ struct CupFinalRaceView: View {
   private func row(_ i: Int, _ f: CupFinalRace.Finalist, capN: Int?) -> some View {
     let team = model.teams.first { $0.id == f.teamId }
     let name = team?.name ?? f.name
-    let lead = i == 0 && f.total > 0
+    let position = StandingsMath.competitionRanks((model.cupRace?.race ?? []).map { Int($0.total.rounded()) })
+    let rank = position.indices.contains(i) ? position[i] : i + 1
+    let lead = rank == 1 && f.total > 0
     let mine = f.teamId != nil && f.teamId == model.myTeamId
-    let sub = (f.head_start > 0 ? "Starts +\(CSCopy.points(f.head_start)) · top seed · " : "")
+    let sub = "Seed \(f.seed) · " + (f.head_start > 0 ? "Starts +\(CSCopy.points(f.head_start)) · top seed · " : "")
       + "Window \(CSCopy.points(f.window_points)) pts · \(f.rounds_used) round\(f.rounds_used == 1 ? "" : "s")"
       + ((capN ?? 10000) < 10000 ? " of \(capN!)" : "")
     let leader = model.cupRace?.race.first?.total ?? f.total
     return Button { router.open(.finalist(f)) } label: {
-      CSSlat(rank: f.seed,
+      CSSlat(rank: rank,
              field: lead ? .earned : (mine ? .mine : .none),
              face: face(f),
              name: mine && (team?.solo ?? false) ? "You" : name,

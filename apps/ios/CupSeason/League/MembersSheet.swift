@@ -29,6 +29,21 @@ struct MembersSheet: View {
       VStack(spacing: 0) {
         ForEach(model.members) { m in memberRow(m) }
       }
+      if model.isPro, !model.solo, !model.isComplete, !model.pool.isEmpty, !model.squads.isEmpty {
+        Text("Unseated golfers").csEyebrow()
+        RoomFine("Choose a squad for each golfer. Earlier rounds stay on their individual record.")
+        ForEach(model.pool) { m in
+          HStack {
+            Text(m.name).csType(.name)
+            Spacer()
+            Menu("Choose squad") {
+              ForEach(model.squads) { squad in
+                Button(squad.name) { run(m.id) { try await model.assignToSquad(member: m.id, squad: squad.id) } }
+              }
+            }.disabled(busy != nil)
+          }.frame(minHeight: 44)
+        }
+      }
       if markerOpen { LeagueMarkerPicker(busy: $busy) }
       if !pending.isEmpty {
         Text("Invites out").csEyebrow()

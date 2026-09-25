@@ -9,90 +9,67 @@ import CupSeasonKit
 
 struct SquadReceiptSheet: View {
   @Environment(LeagueRoomModel.self) private var model
-  @Environment(RoomRouter.self) private var router
+  @Environment(\.roomLinks) private var links
   @Environment(\.cs) private var cs
-  @Environment(\.dynamicTypeSize) private var typeSize
+  @State private var book = SeasonBookStore()
+  @State private var selected: SeasonBookSnapshot.Row?
   let team: Team
 
+  private var squad: SeasonBookSnapshot.Row? {
+    book.snapshot?.rows.first { $0.kind == "squad" && $0.squad_id == team.id }
+  }
+  private var contributions: [SeasonBookSnapshot.Row] {
+    (book.snapshot?.rows ?? []).filter { $0.kind == "contribution" && $0.squad_id == team.id }
+      .sorted { $0.points > $1.points }
+  }
+  private var names: [UUID: String] {
+    Dictionary(model.members.map { ($0.id, $0.name) }, uniquingKeysWith: { a, _ in a })
+  }
+
   var body: some View {
-    let rows = model.indRows.filter { r in model.squads.first { $0.id == team.id }?.seats(r.mid) ?? false }.sorted { $0.pts > $1.pts }
-    let ledger = model.ledger(squad: team.id)
-    let breakdown = SquadReceiptBreakdown(total: team.pts, roundContributions: rows.map(\.pts), ledgerPoints: ledger.map(\.points))
-    let fromRounds = breakdown.rounds
-    SheetFrame(team.name, sub: "\(team.cap.isEmpty ? "" : "CAPT. \(team.cap.uppercased()) · ")\(rows.count) GOLFERS · \(CSCopy.points(team.pts)) PTS") {
-      // §6 · **the same leaf as the round's receipt.** One receipt shape in the
-      // product: label rows on hairlines, the arithmetic quieter than the
-      // answer, and the total under a 2pt `leafInk` rule ending in a figure.
-      CSLeaf(padding: CSTokens.Space.s3) {
-        HStack(alignment: .firstTextBaseline) {
-          Text("What this squad is worth").csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
-          Spacer(minLength: CSTokens.Space.s2)
-          Text("\(rows.count) golfers").csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
-        }
-        RoomMathRow(k: "Rounds that count", v: CSCopy.points(fromRounds))
-        ForEach(ledger) { a in
-          RoomMathRow(k: ledgerLabel(a), v: (a.points > 0 ? "+" : "") + String(a.points))
-        }
-        if breakdown.unexplained != 0 {
-          RoomMathRow(k: "Breakdown not yet available", v: (breakdown.unexplained > 0 ? "+" : "") + CSCopy.points(breakdown.unexplained))
-        }
-        RoomMathRow(k: "Total", v: CSCopy.points(team.pts), total: true)
-      }
-      if breakdown.unexplained != 0 {
-        RoomFine("The breakdown is incomplete. The total is from the standings; close and reopen the season to refresh.")
-      }
-      // the table's Trend column (web 4547) lives here on the phone, as
-      // promised in StandingsTableView — on the PAGE, not on the leaf: a leaf
-      // holds a grid, and a sparkline is not one.
-      if let s = model.series[team.id], s.count >= 2 {
-        HStack {
-          Text("Trend").csType(.agateS, caps: true).foregroundStyle(cs.mut)
-          Spacer()
-          RoomTrendBars(values: s)
-        }
-        .padding(.vertical, CSTokens.Space.s2)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Trend, \(s.suffix(7).map { CSCopy.points($0) }.joined(separator: ", ")) over the last \(min(7, s.count)) weeks")
-      }
-      CSSectionHead("Who built it").padding(.top, CSTokens.Space.s2)
-      VStack(spacing: 0) {
-        ForEach(rows) { p in
-          Button { router.open(.member(p)) } label: {
-            A11yStack(spacing: 10, columnSpacing: 4) {
-              HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 3).fill(cs.squad(p.ci)).frame(width: 10, height: 10)
-                VStack(alignment: .leading, spacing: 2) {
-                  Text(p.n).csType(.name).foregroundStyle(cs.ink)
-                  // QB-17 · the row is one golfer's average; only my own row
-                  // may say "your". `IndRow.me` has always known which.
-                  Text("\(p.r) ROUND\(p.r == 1 ? "" : "S") · AVG vs \(p.me ? "your" : "their") number \(p.r > 0 ? StandingsMath.sgn(p.avg) : "—")")
-                    .font(CSFont.label).tracking(0.8).foregroundStyle(cs.mut)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-              }
-              Spacer()
-              Text(CSCopy.points(p.pts) + (typeSize.isA11y ? " PTS" : "")).csType(.columnM).foregroundStyle(cs.ink)
-            }
-            .padding(.vertical, 10).frame(minHeight: 48).contentShape(Rectangle())
-            .overlay(alignment: .bottom) { Rectangle().fill(cs.rule).frame(height: 1) }
+    SheetFrame(team.name, sub: "Squad points") {
+      if let squad {
+        // The Book owns eligibility, caps and adjustments. Individual totals
+        // include pre-seat rounds and must never be summed into a squad receipt.
+        CSLeaf(padding: CSTokens.Space.s3) {
+          RoomMathRow(k: "Rounds that count", v: String(squad.entries.filter(\.isRound).reduce(0) { $0 + $1.contribution }))
+          ForEach(squad.entries.filter { !$0.isRound }) { entry in
+            RoomMathRow(k: entry.reason, v: (entry.contribution > 0 ? "+" : "") + String(entry.contribution))
           }
-          .buttonStyle(.plain)
-          .accessibilityLabel("\(p.n), \(p.r) round\(p.r == 1 ? "" : "s"), \(CSCopy.points(p.pts)) points")
-          .accessibilityHint("Opens their rounds")
+          RoomMathRow(k: "Total", v: String(squad.points), total: true)
         }
-        if rows.isEmpty { RoomFine("No rounds posted yet — the squad is waiting on its first round that counts.").padding(.vertical, 8) }
+        CSDoor(.link("Every round and adjustment") { selected = squad })
+        CSSectionHead("Who built it")
+        ForEach(contributions) { row in
+          Button { selected = row } label: {
+            HStack {
+              Text(row.name).csType(.name)
+              Spacer()
+              CSFigure(String(row.points), size: .m, label: "points")
+            }.frame(minHeight: 44).contentShape(Rectangle())
+          }.buttonStyle(.plain)
+            .accessibilityLabel("\(row.name), \(row.points) squad points")
+            .accessibilityHint("Opens the contributions to this squad")
+        }
+        RoomFine("These are the points each golfer contributed to this squad. Their individual record keeps their other rounds.")
+      } else {
+        CSFigure(CSCopy.points(team.pts), size: .l, label: "squad points")
+        RoomFine(book.error ?? (book.loading ? "Loading the rounds and adjustments…" : "The squad’s points record is unavailable."))
+        Button("Try again") { Task { await load() } }.buttonStyle(.csSecondary()).disabled(book.loading)
       }
-      RoomFine("Squad points = everyone's rounds that count + bonuses & penalties. Tap any golfer for the rounds behind their points.").padding(.top, 6)
+    }
+    .task { await load() }
+    .sheet(item: $selected) { row in
+      SeasonBookReceipts(title: row.name, entries: row.entries, names: names, openRound: links.openReceipt)
     }
   }
 
-  /// "Aug · Dave · 1 round short of the floor" — month · who · reason (§14.2).
-  private func ledgerLabel(_ a: LeagueRoom.Adjustment) -> String {
-    var parts: [String] = []
-    if let m = a.month { parts.append(LeagueDates.monDay(m).split(separator: " ").first.map(String.init) ?? m) }
-    if let mid = a.member_id { parts.append(model.memName(mid)) }
-    parts.append(a.reason ?? a.kind.replacingOccurrences(of: "_", with: " "))
-    return parts.joined(separator: " · ")
+  private func load() async {
+    #if DEBUG
+    if CompeteSelectedFixture.on { book.seed(CompeteSelectedFixture.book(model.leagueId)); return }
+    #endif
+    guard let season = model.season else { return }
+    await book.load(league: model.leagueId, season: season.id)
   }
 }
 

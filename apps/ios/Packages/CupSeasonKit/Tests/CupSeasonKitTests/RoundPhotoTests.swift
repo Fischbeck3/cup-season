@@ -18,6 +18,14 @@ import Foundation
   /// the set `SupabaseService.call` may DROP on a first failure — a retry that
   /// dropped `p_photo_path` would attach nothing and report success, and one
   /// that dropped `p_round` would be a call with no round at all.
+  @Test("D384 · a withdrawal removes both public copies of every token, and nothing else")
+  func withdrawalCopyPaths() {
+    #expect(ShareWithdrawal.copyPaths([]) == [])
+    #expect(ShareWithdrawal.copyPaths(["a", "b"]) == ["a.jpg", "a.png", "b.jpg", "b.png"])
+    #expect(Rpc.withdraw_round_shares.name == "withdraw_round_shares")
+    #expect(Rpc.withdraw_round_shares.optionalArgs.isEmpty)
+  }
+
   @Test("nothing on either photo call is droppable")
   func nothingIsDroppable() {
     #expect(SetRoundPhotoCall.optionalArgs.isEmpty)

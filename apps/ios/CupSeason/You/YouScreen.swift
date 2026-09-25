@@ -77,7 +77,7 @@ final class YouModel {
                        line: r.line,
                        won: r.won,
                        spoken: "\(r.name), \(r.spoken)",
-                       open: { open(r.id) })
+                       open: { open(r.leagueId) })
     }
   }
 }

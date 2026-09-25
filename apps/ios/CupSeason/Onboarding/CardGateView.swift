@@ -220,11 +220,14 @@ struct CardGateView: View {
   private var handleRow: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(OnboardingCopy.handleLabel).csType(.agate, caps: true).foregroundStyle(cs.mut)
-      CSField("handle", text: $handle)
+      CSField("handle", text: Binding(get: { handle }, set: { value in
+        handleTouched = true
+        handle = value.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "_" }
+      }))
         .textInputAutocapitalization(.never).autocorrectionDisabled()
         .onChange(of: handle) { _, new in
           let clean = new.lowercased().filter { $0.isLetter || $0.isNumber || $0 == "_" }
-          if clean != new { handle = clean } else if !clean.isEmpty { handleTouched = true }
+          if clean != new { handle = clean }
           checkHandle(clean)
         }
       Text(OnboardingCopy.handleRule).csType(.bodyS).foregroundStyle(cs.mut)

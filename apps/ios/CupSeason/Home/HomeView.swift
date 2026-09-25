@@ -109,7 +109,7 @@ struct HomeView: View {
           // that is the repetition D315 was written about, arriving from the
           // fix for it. The money leaves Home entirely: it is on the season row
           // that owes it, in Compete (D318).
-          let payload = strip.without([.myNumber, .myMoney])
+          let payload = strip.without(page.repeatsLastRound(strip) ? [.myNumber, .myMoney, .myLastRound] : [.myNumber, .myMoney])
           let above = page.leadIsCompetition ? payload.leading : payload
           let below = page.leadIsCompetition ? payload.trailing : nil
           if !above.isEmpty && !page.leadIsCompetition {

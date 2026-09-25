@@ -479,14 +479,14 @@ public struct WizardLockCall: RpcCall {
       p_handicap_allowance: Bylaws.allow[d.preset],
       p_verification: WizardDials.verificationKeys[d.preset],
       p_counting_cap: d.capN,
-      p_participation_floor: d.floor,
+      p_participation_floor: d.solo ? 0 : d.floor,   // L-23 · an individual season assesses no minimum
       p_floor_penalty: WizardDials.penaltyKeys[d.preset],
       p_season_format: "points",
       p_structure: d.structure,
       p_buyin_cents: d.stake * 100,
       p_season_months: WizardDials.durMonths(d.durWeeks),
       p_draft_type: d.draftType,
-      p_finish: d.finish,
+      p_finish: d.durWeeks < 6 ? "points_table" : d.finish,   // D383 · the server stores the same
       p_payout_champ: d.payout[0],
       p_payout_runnerup: d.payout[1],
       p_payout_king: d.payout[2],

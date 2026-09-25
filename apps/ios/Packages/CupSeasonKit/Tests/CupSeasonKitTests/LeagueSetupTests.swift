@@ -12,6 +12,37 @@ import Testing
     #expect(d == expected)
   }
 
+  @Test func aSoloSeasonPromisesNoMinimum() {   // launch audit L-23
+    var solo = WizardDials(structure: "solo"); solo.floor = 2
+    #expect(WizardLockCall(solo, leagueId: UUID(), name: "X").args.p_participation_floor == 0)
+    var squads = WizardDials(structure: "squads2"); squads.floor = 2
+    #expect(WizardLockCall(squads, leagueId: UUID(), name: "X").args.p_participation_floor == 2)
+  }
+
+  @Test func aRulingIsCountedOnceOnTheSquadReceipt() {   // launch audit L-22
+    let sq = UUID(), a = UUID(), b = UUID()
+    // Ana's rounds are worth 10; the Pro ruled −3 on her (it sits in her
+    // individual 7 AND on the squad ledger); Ben's rounds are worth 5
+    let ruling = LeagueRoom.Adjustment(id: UUID(), squad_id: sq, member_id: a, month: "2026-08-01",
+                                       kind: "override", points: -3, reason: "Wrong tees")
+    let b1 = SquadReceiptBreakdown(total: 12, members: [(a, 7), (b, 5)], ledger: [ruling])
+    #expect(b1.rounds == 15 && b1.knownAdjustments == -3 && b1.unexplained == 0)
+    // the old arithmetic printed a phantom +3
+    let old = SquadReceiptBreakdown(total: 12, roundContributions: [7, 5], ledgerPoints: [-3])
+    #expect(old.unexplained == 3)
+  }
+
+  @Test func shortSeasonsAreSentAsPointsTableSeasons() {   // D383
+    for weeks in [2, 3, 4, 5] {
+      let d = WizardDials(durWeeks: weeks, finish: "cup_final")
+      #expect(d.preparedForReview(squadsChosen: nil).finish == "points_table")
+      #expect(WizardLockCall(d, leagueId: UUID(), name: "X").args.p_finish == "points_table")
+    }
+    let six = WizardDials(durWeeks: 6, finish: "cup_final")
+    #expect(six.preparedForReview(squadsChosen: nil).finish == "cup_final")
+    #expect(WizardLockCall(six, leagueId: UUID(), name: "X").args.p_finish == "cup_final")
+  }
+
   @Test func explicitSquadsSurviveEvenWhileInvitationsArePending() {
     for structure in ["squads2", "squads3", "squads4"] {
       let d = WizardDials(structure: structure)

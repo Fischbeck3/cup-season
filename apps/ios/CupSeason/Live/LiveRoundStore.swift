@@ -172,6 +172,17 @@ final class LiveRoundStore {
 
   /// Called by the host with what the session knows. Primes the roster for
   /// the league Home leads with; never wipes an in-progress round.
+  func resumeSavedRound(_ saved: LiveRoundState, golfer: OfflineGolfer) async {
+    guard let safe = LiveRehydrator.savedRound([saved], owner: golfer.id),
+          let round = safe.lr, let code = safe.code else { return }
+    await session.prepareSavedRound(round, code: code)
+    myPid = golfer.id; myName = golfer.name; myIndex = golfer.index; myMarker = golfer.marker
+    state = safe; guest = nil; syncStatus = "OFFLINE"; presence = []; scoreOnPhone = false; rehydrated = true
+    queued = await session.queued()
+    // The first paint and all scoring use the original round and disk queue.
+    Task { await joinSync() }
+  }
+
   func configure(me: Me?, preferredLeague: UUID?) async {
     #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("-cs_dev_offline_trip") {
@@ -189,9 +200,10 @@ final class LiveRoundStore {
     }
     #endif
     if let owner = myPid, let next = me?.profile?.id, owner != next {
+      await session.leave()
       state = .fresh(); scoreOnPhone = false; rosterPrimed = false; rehydrated = false
     }
-    if me == nil, scoreOnPhone { return }
+    if me == nil, scoreOnPhone || (state.active && myPid != nil) { return }
     let m = me?.memberships.first { $0.league_id == preferredLeague } ?? me?.memberships.first
     myPid = me?.profile?.id
     myName = me?.profile?.display_name

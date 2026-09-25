@@ -60,4 +60,9 @@ public extension Notification.Name {
   /// makes a link tapped while the app is ALREADY open and signed in present
   /// the covenant at once, exactly once, rather than on the next cold start.
   static let csJoinCodePending = Notification.Name("cs.joinCodePending")
+  /// Launch audit L-06 · a `?claim=` token was just stored by `onOpenURL`. The
+  /// join's twin: signed out, the root re-reads the pending claim and shows the
+  /// guest pencil; signed in, it runs `LiveClaimAfterAuth` at once rather than
+  /// on the next cold start.
+  static let csClaimTokenPending = Notification.Name("cs.claimTokenPending")
 }

@@ -213,6 +213,12 @@ public struct HomePage {
   /// once on the page, keyed by item key. Empty when nothing repeats.
   public let wireContext: [String: String]
 
+  public func repeatsLastRound(_ strip: MeStripCopy.Strip) -> Bool {
+    guard let first = rows.first(where: { if case .digest = $0.body { return false }; return true }), case .round(let row, _) = first.body,
+          let round = row.round_id else { return false }
+    return strip.slots.contains { $0.fact == .myLastRound && $0.door == .receipt(round) }
+  }
+
   public var wireTitle: String { firstRound ? HomeFirstRound.eyebrow : "The wire" }
 
   /// **Does the wire run under datelines?** (D287.) True only on the branch

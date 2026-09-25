@@ -88,6 +88,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   public let preset: String?
   public let floor: Int
   public let finish: String?
+  public let structure: String?
 
   // R9
   public let proName: String?
@@ -138,7 +139,8 @@ public struct Covenant: Sendable, Equatable, Identifiable {
               startsOn: String? = nil, weeks: Int? = nil, countingCap: Int? = nil,
               split: Split? = nil, hasPayNote: Bool? = nil, buyInDueOn: String? = nil, phase: String? = nil,
               handicapAllowance: Int? = nil, everyRoundCounts: Bool? = nil, endsOn: String? = nil,
-              seasonNumber: Int? = nil, reup: Bool? = nil, agreed: Bool? = nil, lastSeason: LastSeason? = nil) {
+              seasonNumber: Int? = nil, reup: Bool? = nil, agreed: Bool? = nil, lastSeason: LastSeason? = nil, structure: String? = nil) {
+    self.structure = structure
     self.name = name; self.buyinCents = buyinCents; self.preset = preset; self.floor = floor; self.finish = finish
     self.proName = proName; self.rosterCount = rosterCount; self.rosterNames = rosterNames
     self.startsOn = startsOn; self.weeks = weeks; self.countingCap = countingCap
@@ -178,7 +180,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
               lastSeason: v["last_season"].flatMap { ls in
                 guard case .object = ls else { return nil }
                 return LastSeason(myRank: ls["my_rank"]?.int, of: ls["of"]?.int, myPoints: ls["my_points"]?.double)
-              })
+              }, structure: v["structure"]?.string)
   }
 
   /// `Math.round(buyin_cents/100)`
@@ -249,7 +251,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     var clauses: [String] = ["honest scores"]
     if everyRoundCounts == true { clauses.append("every round counts") }
     else if let c = countingCap { clauses.append("best \(SeasonStoryCopy.word(c)) a month count") }
-    if floor > 0 { clauses.append("\(SeasonStoryCopy.word(floor)) a month keeps you in") }
+    if floor > 0, structure != "solo" { clauses.append("\(SeasonStoryCopy.word(floor)) a month keeps you in") }
     // D373 · the clause says what the allowance does, in R-M's shape — verbatim
     // with the web's `csCovenantFacts` rules clause (tests/app-tests.js "D373")
     if let a = handicapAllowance { clauses.append("scored against your playing HCP — your index at \(a) percent") }
@@ -259,9 +261,13 @@ public struct Covenant: Sendable, Equatable, Identifiable {
 
   /// The ending, in D126's own words rather than a dial name.
   public var endingLine: String {
-    finish == "points_table"
-      ? "The season's points decide it. No reset."
-      : "It ends with a four-week Cup Final between the top two."
+    if finish == "points_table" { return "The season's points decide it. No reset." }
+    if finish == "cup_final", structure == "squads2" { return "Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start." }
+    if finish == "cup_final", let structure {
+      return structure == "solo" ? "The top two golfers qualify for a four-week Cup Final, scored fresh." : "The top two squads qualify for a four-week Cup Final, scored fresh."
+    }
+    if finish == "cup_final" { return "It ends with a four-week Cup Final between the top two." }
+    return "The season’s ending will appear here when its rules are set."
   }
 
   /// 5 · "If you take it: sixty percent to the champion, twenty-five to the
@@ -269,7 +275,11 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// is the Pro's own, printed rather than assumed.
   public var splitLine: String? {
     guard paid, let s = split else { return nil }
-    return "If you take it: \(s.champion) percent to the champion, \(s.runnerUp) to the runner-up, \(s.pointsKing) to the points king."
+    var awards: [String] = []
+    if s.champion > 0 { awards.append("\(s.champion) percent to the champion") }
+    if s.runnerUp > 0 { awards.append("\(s.runnerUp) percent to the runner-up") }
+    if s.pointsKing > 0 { awards.append("\(s.pointsKing) percent to the Points King, the individual season-points leader") }
+    return awards.isEmpty ? nil : "The split: " + awards.joined(separator: "; ") + "."
   }
 
   /// 6 · that there is somewhere to send it. A BOOLEAN and a DATE — never the
@@ -343,7 +353,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// written.
   /// `csCovenantTitle`: "Season 2 of the Fellas" for a re-up, else the first-join head.
   public var head: String { isReUp && seasonNumber != nil ? "Season \(seasonNumber!) of \(name)" : "Before you join \(name)" }
-  public enum Fact: String, Sendable, Equatable, CaseIterable { case season, who, length, rules, ending, stake, ledger, split, pay, starter }
+  public enum Fact: String, Sendable, Equatable, CaseIterable { case season, who, length, structure, rules, ending, stake, ledger, split, pay, starter }
   /// Every fact this covenant can actually say, in order. A fact with no read is
   /// simply not in the list (L-44) — which is what makes "absent facts render
   /// nothing" a test rather than a promise.
@@ -352,6 +362,9 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     if let s = seasonLine { out.append((.season, s)) }
     if let s = whoLine    { out.append((.who, s)) }
     if let s = lengthLine { out.append((.length, s)) }
+    if let structure {
+      out.append((.structure, structure == "solo" ? "Every golfer plays for their own place." : structure == "squads2" ? "Two squads. Your round points contribute to your squad’s season." : "Squads compete together. Your round points contribute to your squad’s season."))
+    }
     if let s = rulesLine  { out.append((.rules, s)) }
     out.append((.ending, endingLine))
     if let s = stakeLine  { out.append((.stake, s)) }

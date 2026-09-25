@@ -166,7 +166,12 @@ public final class LeagueRoomModel {
   }
   public var awards: StandingsMath.Awards? { StandingsMath.awards(indRows) }
   public var establishedIndex: Bool { viewer?.indexCurrent != nil }
-  public var pool: [LeagueRoom.Member] { members.filter { m in !squads.contains { $0.seats(m.id) } } }
+  public func assignToSquad(member: UUID, squad: UUID) async throws {
+    _ = try await svc.call(Rpc.assign_player(p_squad: squad, p_member: member))
+    await refresh()
+  }
+
+  public var pool: [LeagueRoom.Member] { members.filter { m in inFor(m) && m.suspended_at == nil && m.left_at == nil && !squads.contains { $0.seats(m.id) } } }
   public var proName: String {
     (members.first { $0.isPro }?.profile?.display_name) ?? (isPro ? viewer?.displayName : nil) ?? "—"
   }
@@ -367,7 +372,7 @@ public final class LeagueRoomModel {
       // D375 · `agreed_seasons` rides the first select; the legacy select below
       // is the skew retry for a database that does not carry the column yet
       return try await db.from("league_members")
-        .select("id, role, profile_id, joined_at, marker, agreed_seasons, profile:profiles(display_name, marker, index_current, handle, photo_path)")
+        .select("id, role, profile_id, joined_at, marker, agreed_seasons, suspended_at, left_at, profile:profiles(display_name, marker, index_current, handle, photo_path)")
         .eq("league_id", value: leagueId).execute().value
     } catch {
       return try await db.from("league_members")

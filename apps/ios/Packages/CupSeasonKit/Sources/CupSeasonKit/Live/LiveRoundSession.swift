@@ -62,6 +62,13 @@ public actor LiveRoundSession {
     return await disk.queue(lr).count
   }
 
+  /// Bind disk writes before opening the offline card. No network required.
+  public func prepareSavedRound(_ round: UUID, code: String) async {
+    if lr != round { await leave() }
+    lr = round; self.code = code; guest = nil
+    cont.yield(.queued(await disk.queue(round).count))
+  }
+
   /// `join(lr, code, guestTok)`.
   public func join(lr: UUID, code: String, guest guestToken: UUID?, name: String, presenceKey: String) async {
     if channel != nil, self.lr == lr { return }

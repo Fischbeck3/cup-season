@@ -111,11 +111,13 @@ public enum LeagueRoom {
     public let profile: Profile?
     /// D375 · the seasons this member said yes to (20261115090000). nil = an
     /// older database or the legacy select — no record, so nobody is marked.
+    public let suspended_at: Date?
+    public let left_at: Date?
     public let agreed_seasons: [Int]?
     public init(id: UUID, role: String, profile_id: UUID, joined_at: Date? = nil, marker: String? = nil, profile: Profile? = nil,
-                agreed_seasons: [Int]? = nil) {
+                agreed_seasons: [Int]? = nil, suspended_at: Date? = nil, left_at: Date? = nil) {
       self.id = id; self.role = role; self.profile_id = profile_id; self.joined_at = joined_at; self.marker = marker; self.profile = profile
-      self.agreed_seasons = agreed_seasons
+      self.agreed_seasons = agreed_seasons; self.suspended_at = suspended_at; self.left_at = left_at
     }
     /// Effective marker: league override → profile choice → the floor (14300).
     public var mk: String { marker ?? profile?.marker ?? "saguaro" }

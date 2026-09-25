@@ -29,6 +29,7 @@ struct PostLinks {
   /// competition, so the funnel the brief describes — casual golf into a
   /// season — had no mouth at the place people actually press.
   var startSomething: () -> Void = {}
+  var joinWithCode: () -> Void = {}
   /// D-offline · post a card this phone kept because the server abandoned its
   /// round before the strokes landed. It seeds the composer; it never posts.
   var postKept: (KeptCard) -> Void = { _ in }
@@ -141,6 +142,7 @@ private struct PostCoverStack: View {
                           sub: "Put it on the schedule; your buddies and your seasons see it.", last: true) { showPlan = true }
           }
           .padding(.top, 12)
+          CSDoor(.link("Join with a code") { close(); links.joinWithCode() })
 
           // **THE ROUND THIS PHONE IS STILL HOLDING.**
           //

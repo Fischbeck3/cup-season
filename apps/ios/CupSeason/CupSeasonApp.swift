@@ -136,7 +136,12 @@ struct CupSeasonApp: App {
               await store.reload()
             }
           }
-          else if let claim = ClaimIntent.token(from: url) { ClaimIntent.store(claim); CSGrowth.log(.linkOpened, kind: "claim", token: claim) }   // consumed by the tee sheet (wave 4)
+          else if let claim = ClaimIntent.token(from: url) {
+            ClaimIntent.store(claim); CSGrowth.log(.linkOpened, kind: "claim", token: claim)   // consumed by the tee sheet (wave 4)
+            // L-06 · a link tapped while the app is open used to wait for the
+            // next cold start; the root consumes it now, as the join does.
+            NotificationCenter.default.post(name: .csClaimTokenPending, object: nil)
+          }
           // D241 / D253 · the token is STORED, never spent here: a link tapped
           // on a phone with no session must survive the whole door — email,
           // code, golfer card — and be spent once the golfer has a name on

@@ -185,6 +185,9 @@ public struct RoundsRepository: Sendable {
   /// profile's stored index is refreshed server-side, inside `delete_round`
   /// (the migration is Y-19's other half); the caller reloads to read it.
   public func deleteRound(_ id: UUID) async throws {
+    // D384 §1 · the public copies go FIRST, while the round still names them;
+    // delete_round then revokes whatever links are left
+    try await ShareWithdrawal.withdraw(round: id, svc: svc)
     _ = try await svc.call(Rpc.delete_round(p_round: id))
   }
 

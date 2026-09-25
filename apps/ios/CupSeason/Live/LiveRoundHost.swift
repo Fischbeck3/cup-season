@@ -166,7 +166,16 @@ struct GuestPencilScreen: View {
         BootingView(step: "Finding your card")
       case .pencil:
         if store.state.active, store.guest?.token == token {
-          NavigationStack { LivePlayView(store: store, links: LiveLinks()) }
+          NavigationStack {
+            LivePlayView(store: store, links: LiveLinks())
+              .safeAreaInset(edge: .top) {
+                VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+                  Text("Your group’s live scorecard. Find YOU and use + or − to enter strokes.")
+                    .csType(.bodyS).foregroundStyle(cs.mut)
+                  Button("Sign in to keep this round") { onDoor() }.buttonStyle(.csSecondary())
+                }.padding(CSTokens.Space.gutter).background(cs.bg0)
+              }
+          }
         } else {
           BootingView(step: "Finding your card")
         }

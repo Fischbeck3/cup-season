@@ -286,65 +286,59 @@ public struct PostService: Sendable {
 
   private struct PhotoRow: Decodable { let photo_path: String? }
 
-  /// `create_share('round', id)` → the public page's URL. W2 (D380): the card
-  /// that goes into the message is published to `shared/{token}.png` (the
-  /// link's preview), and the round's photo to `shared/{token}.jpg` (the public
-  /// page's ground) ONLY on `includePhoto` — never unasked. When a reused
-  /// token's copies disagree with the answer (`ShareConsent.plan`), the copies
-  /// are removed, the token revoked and a fresh one minted, so the old url
-  /// stops serving what the golfer withdrew. Every copy is best effort — the
-  /// link works without them. `compress` is the app's JPEG downscale (1600px,
-  /// q.8) — image work stays out of the kit.
-  public func shareLink(round id: UUID, includePhoto: Bool, card: Data?, compress: @Sendable (Data) async -> Data?) async throws -> URL {
-    var token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
-    var name = token.uuidString.lowercased()
-    // The old storage helpers admitted JPEG only and hid shared copies from
-    // list(). A new client must not infer absence until the policy fix lands.
-    guard try await svc.call(Rpc.can_drop_share_copy(p_name: name + ".png")) else { throw ShareConsent.NotReady() }
-    func has(_ file: String) async throws -> Bool {
-      let head = try await db.storage.from("shared").list(path: "", options: SearchOptions(limit: 1, search: file))
-      return head.contains(where: { $0.name == file })
-    }
-    func put(_ file: String, _ data: Data, _ type: String) async {
-      do {
-        _ = try await db.storage.from("shared").upload(file, data: data, options: FileOptions(contentType: type, upsert: false))
-      } catch {
-        let m = SupabaseService.describe(error).lowercased()
-        if !(m.contains("exists") || m.contains("duplicate")) { /* best effort: the link ships without this copy */ }
+  /// Prepare a server-owned share attempt with explicit photo consent. A
+  /// completed token with unchanged consent is reused. New public artifacts
+  /// belong to the attempt until the native sheet confirms completion; failed
+  /// preparation cancels them and the server lease covers a process exit.
+  /// Image compression stays in the app target.
+  public func prepareShare(round id: UUID, includePhoto: Bool, card: Data?, compress: @Sendable (Data) async -> Data?) async throws -> RoundShareAttempt {
+    guard let owner = await svc.currentSession()?.user.id else { throw ShareConsent.NotReady() }
+    let attemptID = UUID()
+    let reply = try await svc.call(Rpc.prepare_round_share(p_round: id, p_include_photo: includePhoto, p_attempt: attemptID))
+    let attempt = try RoundShareAttempt(reply: reply, attempt: attemptID, includePhoto: includePhoto, owner: owner)
+    // Existing links already have consent and their original public artifacts.
+    guard attempt.created else { return attempt }
+    let name = attempt.token.uuidString.lowercased()
+    do {
+      if let card {
+        _ = try await db.storage.from("shared").upload(name + ".png", data: card,
+              options: FileOptions(contentType: "image/png", upsert: false))
       }
-    }
-    let plan = ShareConsent.plan(hadPhoto: try await has(name + ".jpg"), hadCard: try await has(name + ".png"), includePhoto: includePhoto)
-    if plan.remint {
-      // Consent checks and withdrawing old copies must succeed before a link
-      // can leave the app. Only publishing new optional copies is best effort.
-      _ = try await db.storage.from("shared").remove(paths: [name + ".jpg", name + ".png"])
-      _ = try await svc.call(Rpc.revoke_share(p_token: token))
-      token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
-      name = token.uuidString.lowercased()
-    }
-    CSGrowth.log(.artifactShared, kind: "share", token: name)   // the share ACTION, not a render
-    if let card, !(try await has(name + ".png")) { await put(name + ".png", card, "image/png") }
-    if plan.publishPhoto, !(try await has(name + ".jpg")) {
-      do {
+      if includePhoto {
         let rows: [PhotoRow] = try await db.from("rounds").select("photo_path").eq("id", value: id).limit(1).execute().value
         if let path = rows.first?.photo_path {
           let signed = try await db.storage.from("media").createSignedURL(path: path, expiresIn: 60)
-          let (data, _) = try await URLSession.shared.data(from: signed)
-          if let jpg = await compress(data) { await put(name + ".jpg", jpg, "image/jpeg") }
+          let (data, response) = try await URLSession.shared.data(from: signed)
+          guard (response as? HTTPURLResponse)?.statusCode == 200,
+                let jpg = await compress(data) else { throw ShareConsent.NotReady() }
+          _ = try await db.storage.from("shared").upload(name + ".jpg", data: jpg,
+                options: FileOptions(contentType: "image/jpeg", upsert: false))
         }
-      } catch { /* [share photo] link ships photo-less */ }
+      }
+      return attempt
+    } catch {
+      // The lease is also reclaimed server-side if this acknowledgement cannot land.
+      try? await finishShare(attempt, completed: false)
+      throw error
     }
-    return URL(string: "https://cupseason.app/?share=\(name)")!
   }
 
-  /// `csRevokeLink`: re-mint the live token, then kill it. A fresh share later
-  /// mints a NEW token — revoked copies stay dark.
+  public func finishShare(_ attempt: RoundShareAttempt, completed: Bool) async throws {
+    await RoundShareAcknowledgements.shared.record(owner: attempt.owner, attempt: attempt.id, completed: completed)
+    guard await svc.currentSession()?.user.id == attempt.owner else { throw ShareConsent.NotReady() }
+    _ = try await svc.call(Rpc.finish_round_share(p_attempt: attempt.id, p_completed: completed))
+    await RoundShareAcknowledgements.shared.acknowledged(attempt.id)
+    if completed { CSGrowth.log(.artifactShared, kind: "share", token: attempt.token.uuidString.lowercased()) }
+  }
+
+  public func shareStatus(round id: UUID) async throws -> JSONValue {
+    try await svc.call(Rpc.round_share_status(p_round: id))
+  }
+
+  /// Revoke existing tokens without minting one. Revocation precedes Storage
+  /// removal; a failure remains visible and retryable, with server cleanup owed.
   public func revokeLink(round id: UUID) async throws {
-    let token = try await svc.call(Rpc.create_share(p_kind: "round", p_ref: id))
-    let name = token.uuidString.lowercased()
-    guard try await svc.call(Rpc.can_drop_share_copy(p_name: name + ".png")) else { throw ShareConsent.NotReady() }
-    _ = try await db.storage.from("shared").remove(paths: [name + ".jpg", name + ".png"])
-    _ = try await svc.call(Rpc.revoke_share(p_token: token))
+    try await ShareWithdrawal.withdraw(round: id, svc: svc)
   }
 
   // MARK: - the scan (6590–6618)

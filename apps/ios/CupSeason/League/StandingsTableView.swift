@@ -39,9 +39,9 @@ struct StandingsTableView: View {
   /// nil = the whole board; a set = the window's rows plus where the ellipsis
   /// goes. **Per BOARD, not per row** — one grammar down the column.
   private var window: (rows: [Int], hidden: [Int: Int])? {
-    let n = model.teams.count
-    guard n > 10, !wholeField else { return nil }
-    let mine = model.myTeamId.flatMap { id in model.teams.firstIndex { $0.id == id } }
+    let n = teams.count
+    guard !model.isComplete, n > 10, !wholeField else { return nil }
+    let mine = model.myTeamId.flatMap { id in teams.firstIndex { $0.id == id } }
     // **THE WINDOW IS THE CLIMB'S WINDOW, AND K IS NOT ALWAYS TWO.**
     // `ClimbMath.items` opened on the leader, the two rungs either side of the
     // cut and the viewer ±1; retyping that as `Set([0, 1, 2])` hard-coded a
@@ -67,6 +67,11 @@ struct StandingsTableView: View {
   /// squad-level `squads2` season, `meta.k ?? 2` otherwise — and everything on
   /// this board that draws a line reads it: the window, the cut's row and the
   /// cut's sentence.
+  private var champion: UUID? { model.solo ? model.season?.champion_member_id : model.season?.champion_squad_id }
+  private var runnerUp: UUID? { model.solo ? model.season?.runnerup_member_id : model.season?.runnerup_squad_id }
+  private var teams: [Team] {
+    model.isComplete ? FinalTable.ordered(model.teams, champion: champion, runnerUp: runnerUp) : model.teams
+  }
   private var K: Int { max(1, ClimbMath.cut(model.scenarios?.meta).K) }
 
   /// **04 · 04 · 06 — competition rank, not the array index** (§3's second hard
@@ -74,10 +79,9 @@ struct StandingsTableView: View {
   /// read `04` and `05` — the same figure in the PTS column with two different
   /// positions beside it, which is the one thing a points table may not do. The
   /// rank is computed over the column the table actually prints.
-  private var ranks: [Int] { StandingsMath.competitionRanks(model.teams.map { Int($0.pts.rounded()) }) }
+  private var ranks: [Int] { model.isComplete ? FinalTable.ranks(teams, champion: champion, runnerUp: runnerUp) : StandingsMath.competitionRanks(teams.map { Int($0.pts.rounded()) }) }
 
   var body: some View {
-    let teams = model.teams
     if teams.isEmpty {
       empty
     } else {
@@ -95,7 +99,7 @@ struct StandingsTableView: View {
                          // §1.4a · the top table of a squads season ranks
                          // SQUADS, and a squad has no face and no given name.
                          nameHead: teams.allSatisfy(\.solo) ? "Golfer" : "Squad",
-                         hasFaces: teams.allSatisfy(\.solo)) { k, abbreviate in
+                         hasFaces: teams.allSatisfy(\.solo), showsGap: !model.isComplete) { k, abbreviate in
           let i = indices[k]
           if let n = hidden[i] { ellipsis(n) }
           row(i, teams[i], rank: rk.indices.contains(i) ? rk[i] : i + 1,
@@ -125,8 +129,8 @@ struct StandingsTableView: View {
 
   /// A Cup-Final concept, meaningless for a points table or a field of two.
   private var cutLabel: String? {
-    guard model.bylaws.finish == "cup_final", model.teams.count > K else { return nil }
-    return SeasonBoardCopy.cut(k: K)
+    guard !model.isComplete, model.bylaws.finish == "cup_final", teams.count > K else { return nil }
+    return model.bylaws.structure == "squads2" ? "TOP SEED · +10" : SeasonBoardCopy.cut(k: K)
   }
   /// The cut draws after the **Kth row of the board**, wherever the window put
   /// it — a cut drawn after a hidden row is a cut drawn nowhere, and a cut
@@ -145,9 +149,9 @@ struct StandingsTableView: View {
   /// the table and the sentence went with it. It rides the board's foot, where
   /// a cut would be if there were one to draw.
   private var hollowFinal: String? {
-    let n = model.teams.count
-    guard n > 0, model.bylaws.finish == "cup_final", K >= n else { return nil }
-    return ClimbMath.note(teams: model.teams, scenarios: model.scenarios)
+    let n = teams.count
+    guard !model.isComplete, model.bylaws.structure != "squads2", n > 0, model.bylaws.finish == "cup_final", K >= n else { return nil }
+    return ClimbMath.note(teams: teams, scenarios: model.scenarios)
   }
 
   // MARK: a row
@@ -169,7 +173,7 @@ struct StandingsTableView: View {
     // pot) against §15.4's whitelisted pair. That is a true statement about a
     // rare season rather than a rendering rule, and `CSBudgetProbe` reports it
     // honestly rather than the code hiding a tie to make a budget.
-    let leader = rank == 1
+    let leader = model.isComplete ? t.id == champion : rank == 1
     let pr = model.priorRank[t.id]
     // **WAVE 10 · NO SPLIT-FLAP AT THE ACCESSIBILITY SIZES.** The flip draws
     // the numeral as an OVERLAY over the whole row, and at AX3 the row is
@@ -188,7 +192,7 @@ struct StandingsTableView: View {
              sub: clause(i, t, mine: mine, tied: tied),
              squad: squad(t),
              movement: movement(t, at: i),
-             gap: SeasonBoardCopy.gap(leader: model.teams.first?.pts ?? t.pts, row: t.pts),
+             gap: model.isComplete ? nil : SeasonBoardCopy.gap(leader: teams.first?.pts ?? t.pts, row: t.pts),
              variant: leader ? .leader : .table,
              axFacts: axFacts(t, at: i, leader: leader),
              railHidesNumeral: flips) {
@@ -256,6 +260,7 @@ struct StandingsTableView: View {
   }
 
   private func clause(_ i: Int, _ t: Team, mine: Bool, tied: Bool) -> String {
+    if model.isComplete { return t.id == champion ? "Champion" : t.id == runnerUp ? "Runner-up" : tied ? "Tied on season points" : "" }
     let story = model.seasonStory
     let row = story?.table.first { $0.id == t.id.uuidString.lowercased() || $0.id == t.id.uuidString }
     let run = story?.facts?.leader?.run_weeks
@@ -291,7 +296,7 @@ struct StandingsTableView: View {
     // nothing behind it. `priorRank` and `priorSince` come from the same
     // snapshots on real data; the guard is what keeps them together when
     // something else supplies one and not the other.
-    guard model.priorSince != nil, let pr = model.priorRank[t.id] else { return nil }
+    guard !model.isComplete, model.priorSince != nil, let pr = model.priorRank[t.id] else { return nil }
     let d = pr - i
     if d > 0 { return .up(d) }
     if d < 0 { return .down(-d) }
@@ -308,6 +313,7 @@ struct StandingsTableView: View {
   /// on the page to say which was the gap, which the movement and which the
   /// total. `Movement.long` has existed since Wave 7 and nothing consumed it.
   private func axFacts(_ t: Team, at i: Int, leader: Bool) -> [String] {
+    if model.isComplete { return ["\(CSCopy.points(t.pts)) season points"] }
     var out: [String] = []
     if let m = StandingsMath.movement(delta: model.priorRank[t.id].map { $0 - i },
                                       since: model.priorSince) {
@@ -320,7 +326,7 @@ struct StandingsTableView: View {
     // a direction welded on — the defect `Movement.long` exists to prevent,
     // one column to the left.
     if leader { out.append("leading") }
-    else if let g = SeasonBoardCopy.gapSpoken(leader: model.teams.first?.pts ?? t.pts, row: t.pts) {
+    else if let g = SeasonBoardCopy.gapSpoken(leader: teams.first?.pts ?? t.pts, row: t.pts) {
       out.append(g)
     }
     out.append("\(CSCopy.points(t.pts)) points")
@@ -355,10 +361,10 @@ struct StandingsTableView: View {
   /// SF-6 · rank flips on a FRESH data load only, consumed here so a re-render
   /// stays static. R-11 · the rank-up haptic, once, and only if YOUR row moved.
   private func armTheFlip() {
-    guard model.freshStandings else { return }
+    guard !model.isComplete, model.freshStandings else { return }
     flipOnce = true
     model.freshStandings = false
-    if let my = model.myTeamId, let i = model.teams.firstIndex(where: { $0.id == my }),
+    if let my = model.myTeamId, let i = teams.firstIndex(where: { $0.id == my }),
        let pr = model.priorRank[my], pr > i {
       CSHaptic.impact(.light)
     }
@@ -463,7 +469,7 @@ struct GolferTableView: View {
   var body: some View {
     let rows = model.indRows
     let rk = StandingsMath.competitionRanks(rows.map { Int($0.pts.rounded()) })
-    CSStandingsBoard(count: rows.count, names: rows.map(\.n)) { i, abbreviate in
+    CSStandingsBoard(count: rows.count, names: rows.map(\.n), showsGap: !model.isComplete) { i, abbreviate in
       let p = rows[i]
       let tied = (i > 0 && rk[i - 1] == rk[i]) || (i + 1 < rk.count && rk[i + 1] == rk[i])
       Button { router.open(.member(p)) } label: {
@@ -474,12 +480,12 @@ struct GolferTableView: View {
                sub: clause(p, tied: tied),
                squad: p.sq.isEmpty ? nil : (cs.squad(p.ci), squadName(p.mid) ?? p.sq),
                movement: nil,
-               gap: SeasonBoardCopy.gap(leader: rows.first?.pts ?? p.pts, row: p.pts),
+               gap: model.isComplete ? nil : SeasonBoardCopy.gap(leader: rows.first?.pts ?? p.pts, row: p.pts),
                variant: rk[i] == 1 ? .leader : .table,
                // WAVE 10 · with the heads hidden at AX3 the row says its own
                // facts. There is no movement here by design (the snapshot
                // holds squads, not golfers), so the line is two clauses.
-               axFacts: [rk[i] == 1 ? "leading"
+               axFacts: model.isComplete ? ["\(CSCopy.points(p.pts)) season points"] : [rk[i] == 1 ? "leading"
                          : (SeasonBoardCopy.gapSpoken(leader: rows.first?.pts ?? p.pts, row: p.pts) ?? ""),
                          "\(CSCopy.points(p.pts)) points"]) {
           CSFigure(CSCopy.points(p.pts), size: rk[i] == 1 ? .l : .m, label: nil)
@@ -502,7 +508,8 @@ struct GolferTableView: View {
   }
 
   private func clause(_ p: IndRow, tied: Bool) -> String {
-    SeasonBoardCopy.clause(isLeader: false, runSince: nil, runWeeks: nil,
+    if model.isComplete { return tied ? "Tied on season points" : "Season points" }
+    return SeasonBoardCopy.clause(isLeader: false, runSince: nil, runWeeks: nil,
                            isMe: p.me, counted: model.myMonth.map { Int($0.counting) },
                            cap: p.me ? model.bylaws.cap : nil,
                            rounds: p.r, solo: true, left: false, tied: tied)

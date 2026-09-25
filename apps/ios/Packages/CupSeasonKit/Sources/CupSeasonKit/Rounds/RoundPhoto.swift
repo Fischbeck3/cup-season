@@ -144,6 +144,7 @@ public struct RoundPhotoService: Sendable {
   /// server may not delete a storage object, so whoever knows the old path has
   /// to reclaim it.
   public func attach(_ roundId: UUID, jpeg: Data, uid: UUID, replacing oldPath: String? = nil) async throws -> String {
+    if let oldPath, !oldPath.isEmpty { try await ShareWithdrawal.withdraw(round: roundId, svc: svc) }
     let path = RoundPhotoService.objectPath(uid: uid)
     do {
       _ = try await svc.client.storage.from("media")
@@ -165,6 +166,7 @@ public struct RoundPhotoService: Sendable {
   /// that drops the reference, and the platform will not allow that** (D303) —
   /// it drops the reference and `reclaim` takes the object out afterwards.
   public func remove(_ roundId: UUID, object path: String? = nil) async throws {
+    try await ShareWithdrawal.withdraw(round: roundId, svc: svc)
     do { _ = try await svc.call(ClearRoundPhotoCall(p_round: roundId)) }
     catch { throw RoundPhotoService.translate(error) }
     await reclaim(path, keeping: nil)

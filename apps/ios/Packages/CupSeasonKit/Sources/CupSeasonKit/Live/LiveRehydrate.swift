@@ -88,6 +88,17 @@ public enum LiveRehydrator {
   /// A still-'live' round older than this is an abandoned one (7657).
   public static let maxAge: TimeInterval = 2 * 24 * 3600
 
+  /// An account may resume only its own recent, active, non-abandoned card.
+  public static func savedRound(_ snapshots: [LiveRoundState], owner: UUID,
+                                abandoned: Set<UUID> = [], now: Int64 = LiveFmt.now()) -> LiveRoundState? {
+    snapshots.sorted { $0.ts > $1.ts }.first { s in
+      guard let id = s.lr, s.active, s.stage == .live, !s.onThisPhone,
+            s.code != nil, !abandoned.contains(id), s.ts > 0,
+            now >= s.ts, Double(now - s.ts) / 1000 < maxAge else { return false }
+      return s.players.contains { $0.me && $0.pid == owner }
+    }
+  }
+
   static func idxByName(_ players: [LivePlayer]) -> (String) -> Int? {
     { nm in players.firstIndex { $0.n == nm } }
   }
@@ -223,7 +234,7 @@ public enum LiveRehydrator {
     // 1) LOCAL-FIRST — resume from this device's full snapshot, no network.
     var out = Outcome()
     var resumed = false
-    if var local = await disk.snapshots().first(where: { $0.lr != nil && !dead.contains($0.lr!) }) {
+    if let owner = myPid, var local = savedRound(await disk.snapshots(), owner: owner, abandoned: dead) {
       local.stage = .live; local.active = true
       local.hole = max(0, min(local.liveHoles - 1, local.hole))
       local.ensureClocks()

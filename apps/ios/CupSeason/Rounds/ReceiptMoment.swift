@@ -51,7 +51,9 @@ struct ReceiptMoment: View {
             .accessibilityLabel("\(gross) gross" + (holes.map { ", \($0) holes" } ?? ""))
         }
         if let sentence {
-          Text(sentence).csType(.story).foregroundStyle(ink)
+          // L-13 · the producer marks its figure `{2.5}`; CSFigureRun sets the
+          // run in the board face and never renders (or speaks) the braces
+          CSFigureRun(sentence, role: .story).foregroundStyle(ink)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: typeSize.isA11y ? .infinity : 300, alignment: .leading)
             .padding(.top, CSTokens.Space.s2)

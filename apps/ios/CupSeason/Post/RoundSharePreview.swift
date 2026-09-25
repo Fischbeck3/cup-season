@@ -18,6 +18,7 @@ struct RoundSharePreview: View {
   @State private var share: PostShareItem?
   @State private var includePhoto = true
   @State private var linking = false
+  @State private var attempt: RoundShareAttempt?
 
   private var publicRecap: PostRecap {
     recap.publicRoundCard
@@ -63,10 +64,11 @@ struct RoundSharePreview: View {
           Task {
             defer { linking = false }
             do {
-              let url = try await PostService().shareLink(round: roundId, includePhoto: consent, card: image.pngData()) { data in
+              let prepared = try await PostService().prepareShare(round: roundId, includePhoto: consent, card: image.pngData()) { data in
                 PostPhoto.compress(data: data, maxDim: 1600, quality: 0.8)
               }
-              share = PostShareItem(items: [image, publicRecap.caption, url])
+              attempt = prepared
+              share = PostShareItem(items: [image, publicRecap.caption, prepared.url])
             } catch {
               // the link could not be minted: the card still goes, and the golfer hears why
               toast.show(HumanError.text(error, prefix: "Could not make the link."), kind: .failed)
@@ -79,7 +81,8 @@ struct RoundSharePreview: View {
         .padding(CSTokens.Space.gutter).background(cs.bg0)
       }
       .navigationTitle("Share round").navigationBarTitleDisplayMode(.inline)
-      .csCloseButton { dismiss() }
+      .csCloseButton { if !linking { dismiss() } }
+      .interactiveDismissDisabled(linking)
     }
     .task {
       #if DEBUG
@@ -90,6 +93,13 @@ struct RoundSharePreview: View {
     .onChange(of: includePhoto) { _, _ in render() }
     .sheet(item: $share) { item in
       PostShareSheet(items: item.items) { completed, failed in
+        if let prepared = attempt {
+          attempt = nil
+          Task {
+            do { try await PostService().finishShare(prepared, completed: completed && !failed) }
+            catch { toast.show("The share status will retry when connected.", kind: .failed) }
+          }
+        }
         CSTelemetry.event(failed ? "round_share_failed" : completed ? "round_share_completed" : "round_share_cancelled")
       }
     }

@@ -70,6 +70,7 @@ public enum CompeteRoot {
     public let points: Double?
     public let pointsStanding: String?
     public let competitionLine: String?
+    public let invitationCode: String?
     public let leagueId: UUID?
     public let eventId: UUID?
     public let roundId: UUID?
@@ -81,7 +82,8 @@ public enum CompeteRoot {
     public init(id: String, kind: Kind, eyebrow: String, title: String, sub: String, clock: Int?,
                 rank: Rank? = nil,
                 leagueId: UUID? = nil, eventId: UUID? = nil, roundId: UUID? = nil,
-                state: CompetitionState? = nil, points: Double? = nil, pointsStanding: String? = nil, competitionLine: String? = nil) {
+                state: CompetitionState? = nil, points: Double? = nil, pointsStanding: String? = nil, competitionLine: String? = nil, invitationCode: String? = nil) {
+      self.invitationCode = invitationCode
       self.points=points; self.pointsStanding=pointsStanding; self.competitionLine=competitionLine
       self.id = id; self.kind = kind; self.eyebrow = eyebrow; self.title = title; self.sub = sub
       self.clock = clock; self.rank = rank
@@ -127,6 +129,19 @@ public enum CompeteRoot {
     var live: [Row] = [], done: [Row] = []
 
     for m in me.memberships {
+      // A league membership is not acceptance of its next season.
+      if m.in_season == false, (m.season?.number ?? 1) > 1 {
+        // Invitations belong before the first tee. Expired/declined memberships
+        // do not masquerade as a live competition or a completed result.
+        if m.renewal_status != "declined", m.renewal_status != "expired", let starts = m.season?.starts_on, starts > today, let code = m.code {
+          live.append(Row(id: "league:\(m.league_id.uuidString)", kind: .season,
+                          eyebrow: "SEASON \(m.season?.number ?? 2) · INVITED", title: m.name,
+                          sub: "Read the terms and decide whether to run it back.",
+                          clock: CSDate.days(from: today, to: starts, calendar: calendar),
+                          state: .upcoming, invitationCode: code))
+        }
+        continue
+      }
       let phase = SeasonPhase.of(m, today: today)
       let row = seasonRow(m, phase: phase, today: today, calendar: calendar)
       if case .wrapped = phase { done.append(row) } else { live.append(row) }
@@ -328,9 +343,8 @@ public enum CompeteRoot {
   /// IA §6.1's empty root, verbatim, with its one conditional true fact.
   ///
   /// With buddies and nothing running the fact is real and is used; with no
-  /// buddies it is OMITTED rather than guessed at, and the second door becomes
-  /// Find golfers — because "I have a code" is no use to somebody nobody has
-  /// sent one to.
+  /// buddies it is omitted rather than guessed at. The code door stays:
+  /// a golfer invited from outside the app may have no buddies here yet.
   public static func empty(buddies: Int?) -> EmptyRoot {
     let hasBuddies = (buddies ?? 0) > 0
     let counted = hasBuddies
@@ -354,6 +368,6 @@ public enum CompeteRoot {
       head: counted ?? "Nothing running.",
       fact: nil,
       sub: "Your next competition starts here — a season, a weekend, or going head to head.",
-      doors: [.startSomething, hasBuddies ? .joinWithCode : .findGolfers])
+      doors: [.startSomething, .joinWithCode])
   }
 }
