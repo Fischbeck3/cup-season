@@ -373,12 +373,24 @@ withdraw_league_cancel|p_league uuid|text|definer|auth
 
 # D381: local authorized migration 20261118090000, unapplied remotely.
 season_book|p_league_id uuid, p_season_id uuid|jsonb|definer|auth
-_book_season||trigger|definer|none
-_final_place|p_season uuid, p_unit uuid|integer|definer|none
-my_league_record||jsonb|definer|auth
-withdraw_round_shares|p_round uuid|text[]|definer|auth
 
-# Native audit integration: Claude implements these additive RPCs before release.
-prepare_round_share|p_round uuid, p_include_photo boolean, p_attempt uuid|jsonb|definer|auth
+# Launch-audit integration (claude/audit-integration-2026-09-24): implemented by migrations
+# 20261118100000–20261204090000 and verified on a full-chain local stack; NOT yet in production.
+_book_season||trigger|definer|none
+_counts_for_seat|p_round uuid, p_seat timestamp with time zone|boolean|definer|auth
+_dollars|p_cents numeric|text|invoker|none
+_expire_share_attempts|p_ref uuid DEFAULT NULL::uuid|integer|definer|none
+_final_place|p_season uuid, p_unit uuid|integer|definer|none
+_queue_share_cleanup||trigger|definer|none
+_share_cleanup_due|p_limit integer DEFAULT 50|SETOF uuid|definer|none
+_share_cleanup_report|p_token uuid, p_error text DEFAULT NULL::text|text|definer|none
+_share_copies_remaining|p_token uuid|integer|definer|none
+cache_course_card|p_course jsonb, p_tees jsonb|text|definer|none
+confirm_share_cleanup|p_token uuid|jsonb|definer|auth
 finish_round_share|p_attempt uuid, p_completed boolean|jsonb|definer|auth
+my_league_record||jsonb|definer|auth
+my_share_cleanup||jsonb|definer|auth
+prepare_round_share|p_round uuid, p_include_photo boolean, p_attempt uuid|jsonb|definer|auth
+retry_share_cleanup|p_token uuid|jsonb|definer|auth
 round_share_status|p_round uuid|jsonb|definer|auth
+withdraw_round_shares|p_round uuid|text[]|definer|auth

@@ -7603,7 +7603,28 @@ function renderStandings(){
   const isYou = t => !!(solo && myRung && t.id === myRung);
   const nameOf = t => `<b style="${solo?'':`color:${SQHEX[t.ci]}`}">${isYou(t) ? 'You' : esc(t.name)}</b>`;
   const beOf   = t => isYou(t) ? 'are ' : '';
-  if(story){
+  /* L-03 / L-16 · A FINISHED SEASON IS THE FINAL TABLE. The crown is stored
+     (seasons.champion_* / runnerup_*): the champion is first and the runner-up
+     second whatever the points say — a Cup Final can be won from below — and
+     everyone else follows by points, ties shared (the server's `_final_place`,
+     the phone's final table). No cut, no "N back", no chase: nothing is left to
+     chase. Live seasons are untouched. */
+  const settled = !state.demo && window.CS?.season?.status === 'complete';
+  const S_ = window.CS?.season || {};
+  const champId = settled ? (solo ? S_.champion_member_id : S_.champion_squad_id) : null;
+  const runId   = settled ? (solo ? S_.runnerup_member_id : S_.runnerup_squad_id) : null;
+  const crowned = settled && champId && teams.some(t => t.id === champId);
+  const shown = crowned
+    ? [...teams.filter(t => t.id === champId), ...teams.filter(t => runId && t.id === runId && t.id !== champId),
+       ...teams.filter(t => t.id !== champId && t.id !== runId)]
+    : teams;
+  const fixedN = crowned ? shown.filter(t => t.id === champId || t.id === runId).length : 0;
+  if(settled){ const eb = $('#standingsEyebrow'); if(eb) eb.textContent = 'The final table'; }
+  if(story && crowned){
+    const c = shown[0], r2 = fixedN > 1 ? shown[1] : null;
+    story.innerHTML = `${nameOf(c)} won the season.` + (r2 ? ` ${nameOf(r2)} ${isYou(r2) ? 'were' : 'was'} runner-up.` : '');
+  } else if(story && settled){ story.innerHTML = 'The season is over. This is how it finished.'; }
+  if(story && !settled){
     const a=teams[0], b=teams[1]; let txt='';
     if(!b){ txt = a.pts>0 ? `${nameOf(a)} ${beOf(a)}out front — waiting on a challenger.` : ''; }
     else if(a.pts===0 && b.pts===0){ txt=''; }
@@ -7662,13 +7683,14 @@ function renderStandings(){
      which is the one thing a points table may not do. It is computed over the
      column the table actually PRINTS, so what a golfer sees and what the rail
      says can never disagree. `StandingsMath.competitionRanks` is the twin. */
-  const ranks = teams.map((t,i)=> i > 0 && teams[i-1].pts === t.pts ? null : i + 1);
+  /* a finished season: the crowned rows hold 1 and 2; the field ranks by points after them */
+  const ranks = shown.map((t,i)=> i < fixedN ? i + 1 : (i > fixedN && shown[i-1].pts === t.pts ? null : i + 1));
   ranks.forEach((v,i)=>{ if(v === null) ranks[i] = ranks[i-1]; });
   /* The seats this season actually has, from the one function that knows -
      `climbCut`, which the climb has read since D24. */
   const cutK = Math.max(1, climbCut(window.scenarios && window.scenarios.meta).K);
-  const tiedAt = i => (i > 0 && ranks[i-1] === ranks[i]) || (i+1 < ranks.length && ranks[i+1] === ranks[i]);
-  teams.forEach((t,i)=>{
+  const tiedAt = i => i >= fixedN && ((i > fixedN && ranks[i-1] === ranks[i]) || (i+1 < ranks.length && ranks[i+1] === ranks[i]));
+  shown.forEach((t,i)=>{
     const ti=teams.indexOf(t);
     const arr=series[ti]||[];
     const dwk=arr.length>1 ? arr[arr.length-1]-arr[arr.length-2] : 0;
@@ -7686,7 +7708,7 @@ function renderStandings(){
        not an em dash either: a dash reads as a value, which is the thing
        "empty" was protecting against. A held row prints ONE mark; `— —`
        reads as a rendering error. */
-    const gap = (leadPts - t.pts) > 0 ? '+' + (leadPts - t.pts) : '';
+    const gap = (!settled && (leadPts - t.pts) > 0) ? '+' + (leadPts - t.pts) : '';   /* nothing to chase once it is over */
     const d = pr!=null ? pr-i : null;
     const mvH = d==null ? ''
       : d>0 ? `<span class="mv"><i class="tri up"></i>${d}</span>`
@@ -7710,7 +7732,9 @@ function renderStandings(){
     /* A tie outranks the count: it is the only thing on the row that explains
        why two positions read the same, and a shared numeral with nothing
        saying so looks like a rendering error. */
-    const clause = tiedAt(i) ? 'Tied'
+    const clause = (crowned && t.id === champId) ? 'Champion'
+      : (crowned && runId && t.id === runId) ? 'Runner-up'
+      : tiedAt(i) ? 'Tied'
       : solo
       ? ((t.sub||0)===0 ? 'No rounds yet' : (t.sub||0)+' round'+(t.sub===1?'':'s'))
       : 'Capt. '+esc(t.cap);
@@ -7738,7 +7762,7 @@ function renderStandings(){
        seats — one for a points table, one for a squad-level squads2 season —
        so the desk's own two renderers disagreed with each other about the
        same season. One function decides; both read it. */
-    if(i===cutK-1 && (state.finish||'cup_final')==='cup_final' && teams.length>cutK)
+    if(!settled && i===cutK-1 && (state.finish||'cup_final')==='cup_final' && teams.length>cutK)
       html+=`<tr class="cutrow"><td colspan="${deskCols?6:4}"><span>${esc(csCutLabel(cutK))}</span><i></i></td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
@@ -9665,9 +9689,123 @@ window.CS_SHARE_PHOTO_INCLUDE = CS_SHARE_PHOTO_INCLUDE; window.CS_SHARE_PHOTO_FI
    in demo (callers gate) — the diorama publishes nothing.
    W2 · `opts` for a ROUND: { includePhoto, cardBlob } — the golfer's answer and
    the card that goes into the message; the card and the link leave together. */
+/* D385 §5 · DELIVERY IS WHAT HAPPENED, not what was minted. One hand-off for
+   every link: the system sheet when the browser has one (`shared` on success,
+   `cancelled` on the golfer's own cancel), else the clipboard (`copied` only
+   when the write resolved), else the link shown in a sheet to copy by hand
+   (`shown`). Nothing here claims "copied" or "sent" that did not happen. */
+async function csDeliverLink({ text, url, cardFile, cardBlob, kindLabel }){
+  if(cardFile && navigator.canShare && navigator.canShare({ files:[cardFile] })){
+    try{ await navigator.share({ files:[cardFile], text: (text ? text + ' ' : '') + url }); return 'shared'; }
+    catch(e){ if(e && e.name==='AbortError') return 'cancelled'; }
+  }
+  if(navigator.share){
+    try{ await navigator.share({ title:'Cup Season', text, url }); return 'shared'; }
+    catch(e){ if(e && e.name==='AbortError') return 'cancelled'; }
+  }
+  let copied = false;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    try{ await navigator.clipboard.writeText((text ? text + ': ' : '') + url); copied = true; }catch(_){ copied = false; }
+  }
+  let downloaded = false;
+  if(cardFile && cardBlob){
+    try{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(cardBlob); a.download='cup-season-round.png'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+      downloaded = true;
+    }catch(_){ downloaded = false; }
+  }
+  if(copied){
+    toast(downloaded ? 'Link copied · card downloaded — no account needed to view it' : 'Link copied — no account needed to view it');
+    return 'copied';
+  }
+  /* no clipboard, or the browser refused it: the link is SHOWN, never claimed as copied */
+  openSheet('Your ' + (kindLabel || 'link'), 'COPY IT TO SEND IT',
+    `<input class="f" id="csLinkShown" readonly value="${esc(url)}" style="font-family:var(--mono);font-size:13px">`
+    + (downloaded ? '<p class="fine">The card was downloaded too.</p>' : '')
+    + '<p class="fine">No account is needed to open it.</p>');
+  setTimeout(() => {
+    const f = document.getElementById('csLinkShown');
+    if(f){ f.addEventListener('focus', () => f.select()); f.select(); }
+  }, 50);
+  return 'shown';
+}
+window.csDeliverLink = csDeliverLink;
+
+/* D385 §3–§5 · ONE SHARE, ONE ATTEMPT (docs/planning/2026-09-24-share-cleanup-contract.md,
+   Codex's native contract). The server decides reuse vs a new link from the
+   recorded consent; copies are uploaded only for a link it just made; the
+   golfer's real outcome is acknowledged, so a cancelled sheet retires only what
+   this attempt minted and never a link someone already has. An acknowledgement
+   that did not reach the server is kept and retried on the next load; if the
+   page dies before it knows the outcome, the server's lease reclaims the link. */
+const CS_SHARE_ACKS = 'cs_share_acks';
+function csShareAcks(){ try{ return JSON.parse(localStorage.getItem(CS_SHARE_ACKS) || '[]'); }catch(_){ return []; } }
+function csShareAcksSet(list){ try{ localStorage.setItem(CS_SHARE_ACKS, JSON.stringify(list.slice(-20))); }catch(_){ } }
+async function csFinishShare(attempt, completed){
+  csShareAcksSet([...csShareAcks().filter(a => a.attempt !== attempt), { attempt, completed }]);
+  try{
+    const { error } = await sb.rpc('finish_round_share', { p_attempt: attempt, p_completed: completed });
+    if(!error) csShareAcksSet(csShareAcks().filter(a => a.attempt !== attempt));
+    return !error;
+  }catch(_){ return false; }
+}
+async function csRetryShareAcks(){
+  if(!window.sb || !window.CS?.user) return;
+  for(const a of csShareAcks()) await csFinishShare(a.attempt, !!a.completed);
+}
+window.csRetryShareAcks = csRetryShareAcks;
+async function csShareRoundLink(ref, text, opts){
+  const attempt = (crypto.randomUUID ? crypto.randomUUID() : null);
+  if(!attempt) return null;   /* no attempt id: the legacy path below */
+  const prep = await sb.rpc('prepare_round_share', { p_round: ref, p_include_photo: !!opts.includePhoto, p_attempt: attempt });
+  if(prep.error){
+    if(csMissingFn(prep.error)) return null;   /* an older database: the legacy path */
+    toast(humanError(prep.error, 'Could not make the link.'));
+    return 'error';
+  }
+  const tok = prep.data?.token, created = !!prep.data?.created, withPhoto = !!prep.data?.include_photo;
+  if(!tok){ toast('Could not make the link.'); return 'error'; }
+  if(created){
+    /* the copies belong to the NEW link only; a reused link keeps its original artifact */
+    try{
+      if(opts.cardBlob){
+        const up = await sb.storage.from('shared').upload(tok + '.png', opts.cardBlob, { contentType:'image/png', upsert:false });
+        if(up.error && !/exists|duplicate/i.test(up.error.message||'')) throw up.error;
+      }
+      if(withPhoto){
+        const { data: rr } = await sb.from('rounds').select('photo_path').eq('id', ref).maybeSingle();
+        if(rr?.photo_path){
+          const { data: sg } = await sb.storage.from('media').createSignedUrl(rr.photo_path, 60);
+          if(sg?.signedUrl){
+            const blob = await (await fetch(sg.signedUrl)).blob();
+            const jpg = await window.compressPhoto(blob, 1600, .8);
+            const up = await sb.storage.from('shared').upload(tok + '.jpg', jpg, { contentType:'image/jpeg', upsert:false });
+            if(up.error && !/exists|duplicate/i.test(up.error.message||'')) throw up.error;
+          }
+        }
+      }
+    }catch(e){ try{ console.warn('[share round] link ships without its copies:', e.message||e); }catch(_){} }
+  }
+  const url = location.origin + '/?share=' + tok;
+  const cardFile = opts.cardBlob ? new File([opts.cardBlob], 'cup-season-round.png', { type:'image/png' }) : null;
+  const how = await csDeliverLink({ text, url, cardFile, cardBlob: opts.cardBlob, kindLabel: 'round link' });
+  const delivered = how !== 'cancelled';
+  await csFinishShare(attempt, delivered);
+  if(delivered) growthEvent('artifact_shared', 'share', tok, null, window.CS?.league?.id);
+  return how;
+}
+
 async function csShareLink(kind, ref, text, card, opts){
   if(!window.sb || !ref){ toast('Sharing needs your real league'); return; }
   opts = opts || {};
+  if(kind === 'round'){
+    try{
+      const how = await csShareRoundLink(ref, text, opts);
+      if(how) return;          /* handled — shared, copied, shown, cancelled or refused */
+    }catch(e){ toast(humanError(e, 'Could not make the link.')); return; }
+  }
   try{
     let { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
     if(error) throw error;
@@ -9749,26 +9887,12 @@ async function csShareLink(kind, ref, text, card, opts){
       }catch(e){ try{ console.warn('[share round] link ships without its copies:', e.message||e); }catch(_){} }
     }
     const url = location.origin + '/?share=' + data;
-    growthEvent('artifact_shared', kind==='round' ? 'share' : kind, data, null, window.CS?.league?.id);
     /* W2 · the card and the link leave together when the sheet can carry a file */
     const cardFile = opts.cardBlob ? new File([opts.cardBlob], 'cup-season-round.png', { type:'image/png' }) : null;
-    if(cardFile && navigator.canShare && navigator.canShare({ files:[cardFile] })){
-      try{ await navigator.share({ files:[cardFile], text: (text ? text + ' ' : '') + url }); return; }
-      catch(e){ if(e && e.name==='AbortError') return; }
-    }
-    if(navigator.share){
-      try{ await navigator.share({ title:'Cup Season', text, url }); return; }
-      catch(e){ if(e && e.name==='AbortError') return; }
-    }
-    await navigator.clipboard?.writeText((text ? text + ': ' : '') + url);
-    if(cardFile){
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(opts.cardBlob); a.download='cup-season-round.png'; a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-      toast('Link copied · card downloaded — no account needed to view it');
-    } else {
-      toast('Link copied — no account needed to view it');
-    }
+    let how;
+    try{ how = await csDeliverLink({ text, url, cardFile, cardBlob: opts.cardBlob }); }
+    catch(_){ how = 'shown'; }
+    if(how !== 'cancelled') growthEvent('artifact_shared', kind==='round' ? 'share' : kind, data, null, window.CS?.league?.id);
   }catch(e){ toast(humanError(e, 'Could not make the link.')); }
 }
 
@@ -9794,6 +9918,8 @@ async function csShareRound(d, roundId, includePhoto, text){
       return;
     }
     await csShareLink('round', roundId, text || recapText(d), null, { includePhoto: !!includePhoto, cardBlob: blob });
+    await csUpdateRoundLinkControl(document.getElementById('rcptCardRevoke'),roundId);
+    await csUpdateRoundLinkControl(document.getElementById('epiRevoke'),roundId,document.getElementById('epiRevokeWrap'));
   }catch(e){
     if(e && e.name==='AbortError') return;
     console.warn('[share round]', e);
@@ -9835,14 +9961,11 @@ async function csShareIntentLink(kind, ref, text){
     return { ok:false };
   }
   const url = location.origin + '/?' + (kind === 'person' ? 'p' : 'plan') + '=' + data;
+  /* D385 §5 · `how` is what actually happened; a cancel is not a delivery */
+  const how = await csDeliverLink({ text, url, kindLabel: kind === 'person' ? 'card link' : 'plan link' });
+  if(how === 'cancelled') return { ok:false, cancelled:true, url };
   growthEvent('artifact_shared', kind, data);
-  if(navigator.share){
-    try{ await navigator.share({ title:'Cup Season', text, url }); return { ok:true, url }; }
-    catch(e){ if(e && e.name==='AbortError') return { ok:true, url }; }
-  }
-  try{ await navigator.clipboard?.writeText((text ? text + ' ' : '') + url); toast('Link copied — no account needed to open it'); }
-  catch(_){ toast(url); }
-  return { ok:true, url };
+  return { ok:true, url, how };
 }
 window.csShareIntentLink = csShareIntentLink;
 
@@ -9852,11 +9975,27 @@ window.csShareIntentLink = csShareIntentLink;
 async function csRevokeLink(kind, ref){
   if(!window.sb || !ref) return;
   try{
+    /* D385 §3 · turning off a ROUND link never mints one first: the status read
+       names the live link, or says there is none. The copies go, the token is
+       revoked, and the server confirms the copies are gone (or keeps trying). */
+    if(kind === 'round'){
+      const withdrawal = await sb.rpc('withdraw_round_shares', { p_round: ref });
+      if(!withdrawal.error){
+        const tokens = Array.isArray(withdrawal.data) ? withdrawal.data : [];
+        if(!tokens.length){ toast('There is no live link to turn off.'); return {ok:true,pending:[]}; }
+        const pending = await csRemoveShareCopies(tokens);
+        toast(pending.length ? 'Link is off. ' + CS_SHARE_CLEANUP.pending : 'Link is off — the page stops working for everyone');
+        return { ok: pending.length === 0, pending };
+      }
+      if(!csMissingFn(withdrawal.error)) throw withdrawal.error;
+    }
     const { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
     if(error) throw error;
-    const ready = await sb.rpc('can_drop_share_copy', { p_name: data + '.png' });
-    if(ready.error) throw ready.error;
-    if(ready.data !== true) throw new Error('Round sharing needs the latest update. Try again shortly.');
+    if(kind === 'round'){
+      const ready = await sb.rpc('can_drop_share_copy', { p_name: data + '.png' });
+      if(ready.error) throw ready.error;
+      if(ready.data !== true) throw new Error('Round sharing needs the latest update. Try again shortly.');
+    }
     const removed = await sb.storage.from('shared').remove([data + '.jpg', data + '.png']);
     if(removed.error) throw removed.error;
     const r2 = await sb.rpc('revoke_share', { p_token: data });
@@ -9864,6 +10003,26 @@ async function csRevokeLink(kind, ref){
     toast('Link is off — the page stops working for everyone');
   }catch(e){ toast(humanError(e, 'Could not revoke.')); }
 }
+/* D385 §3 · the round's live link, for drawing "Turn off this link" only when there is one */
+async function csRoundLinkLive(rid){
+  if(!window.sb || !rid) return false;
+  try{
+    const { data, error } = await sb.rpc('round_share_status', { p_round: rid });
+    if(error) return csMissingFn(error) ? null : false;   /* null: an older database cannot say */
+    return !!data?.token;
+  }catch(_){ return false; }
+}
+window.csRoundLinkLive = csRoundLinkLive;
+async function csUpdateRoundLinkControl(button, rid, wrapper=button){
+  if(!button || !wrapper || !window.sb) return;
+  try{
+    const { data, error } = await sb.rpc('round_share_status', { p_round: rid });
+    if(error) return; // keep a failed operation visible and retryable
+    wrapper.style.display = data?.token || data?.cleanup_pending ? '' : 'none';
+    button.textContent = data?.token ? 'Turn off this link' : 'Retry image cleanup';
+  }catch(_){ }
+}
+
 /* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
    Reads round_epilogue() JSON into a private sheet shown over home right after
    a post: the round's meaning (band + points), what it earned, and any rivalry
@@ -10127,9 +10286,11 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     rows.push(photoRow + `<button class="btn dark" id="epiShare" style="width:100%;margin-top:${photoRow?'8':'14'}px">${esc(csShareRoundLabel(firstEver))}</button>`);
   }
   /* D57: the page anyone can open, no account — turned off from here. */
+  /* D385 §3 · drawn hidden, shown only when the round HAS a live link (an older
+     database that cannot say shows it, as before) */
   if(epi.gross!=null && roundId && !state.demo)
-    rows.push(`<button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Turn off this link</button>
-      <p class="fine" style="margin:4px 0 0;text-align:center">The page stops working for everyone who has it. You can share a new link anytime.</p>`);
+    rows.push(`<div id="epiRevokeWrap" style="display:none"><button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Turn off this link</button>
+      <p class="fine" style="margin:4px 0 0;text-align:center">The page stops working for everyone who has it. You can share a new link anytime.</p></div>`);
   /* R-C - on the desk the epilogue is a PANEL on the page, not a modal over
      it: it lands at the head of the reading column where the golfer already
      is, and the act is a control they can walk away from. Below 960 (and
@@ -10154,7 +10315,10 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     else if(door==='start_something') switchView('wizard');
   });
   const rv=scope.querySelector('#epiRevoke');
-  if(rv) rv.addEventListener('click',()=>csRevokeLink('round', roundId));
+  if(rv){
+    rv.addEventListener('click', async ()=>{ rv.disabled=true; await csRevokeLink('round', roundId); await csUpdateRoundLinkControl(rv,roundId,scope.querySelector('#epiRevokeWrap')); rv.disabled=false; });
+    csUpdateRoundLinkControl(rv,roundId,scope.querySelector('#epiRevokeWrap'));
+  }
   /* W2 (D380) · the one action: the recap card and the link, the photo only
      on a yes (the checkbox is the answer; no checkbox, no photo to ask about) */
   const sh=scope.querySelector('#epiShare');
@@ -13946,6 +14110,27 @@ function renderPlay(){
   }
 
   const rows=$('#playerRows'); rows.innerHTML='';
+  /* L-25 · a guest's pencil says what it is: which row is theirs, what a tap
+     does, that the card is theirs to keep — and that signing in is an option.
+     "Sign in instead" leaves the kiosk for the door; the claim link is kept, so
+     the card still lands on their account once the round finishes. */
+  const guestView = !!(state.liveGuest && !state.liveGuest.signedIn);
+  let orient = document.getElementById('guestOrient');
+  if(guestView){
+    if(!orient){
+      orient = document.createElement('div');
+      orient.id = 'guestOrient'; orient.className = 'fine';
+      orient.style.cssText = 'padding:4px 4px 12px;line-height:1.5';
+      orient.innerHTML = 'You are keeping your own card as a guest. Your row is marked <b>YOU</b>: tap + for each stroke. '
+        + 'The card is yours to keep when the round finishes. '
+        + '<button type="button" class="mini" id="guestSignIn" style="margin-left:8px">Sign in instead</button>';
+      rows.parentNode.insertBefore(orient, rows);
+      orient.querySelector('#guestSignIn').addEventListener('click', () => {
+        try{ sessionStorage.setItem('cs_guest_door', '1'); }catch(_){ }
+        location.reload();
+      });
+    }
+  } else if(orient){ orient.remove(); }
   LIVE.forEach((p,pi)=>{
     const s=state.live.scores[pi][h];
     const done=state.live.scores[pi].filter(v=>v!==null);
@@ -13955,7 +14140,7 @@ function renderPlay(){
     const row=document.createElement('div'); row.className='prow';
     row.innerHTML=`
       <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
-      <div class="nm"><b>${esc(p.n)} ${p.guest?'<span class="gtag">GUEST</span>':''}${'<span class="strokedot" title="stroke here"></span>'.repeat(
+      <div class="nm"><b>${esc(p.n)} ${(guestView && p.me) ? '<span class="gtag">YOU</span>' : (p.guest?'<span class="gtag">GUEST</span>':'')}${'<span class="strokedot" title="stroke here"></span>'.repeat(
         state.live.game==='sunningdale'
           ? (liveSolo() ? (sunnSoloStrokesAt(h)[pi]||0)
                         : (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0))   /* D74/D75: positional strokes, not SI */
@@ -13963,9 +14148,9 @@ function renderPlay(){
       <small>${state.live.game==='sunningdale' ? 'NO HCP · STRAIGHT UP' : `${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} NUMBER · ${STROKES[pi]} STROKES`}</small></div>
       <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
       <div class="step">
-        <button aria-label="Minus ${esc(p.n)}" data-pi="${pi}" data-d="-1">−</button>
+        <button aria-label="One stroke fewer for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="-1">−</button>
         <span class="sv${s!==null && s<PAR[h] ? ' birdie':''}">${s===null?'–':s}</span>
-        <button aria-label="Plus ${esc(p.n)}" data-pi="${pi}" data-d="1">+</button>
+        <button aria-label="One more stroke for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="1">+</button>
       </div>`;
     rows.appendChild(row);
   });
@@ -16020,7 +16205,13 @@ function renderStats(){
   }
   /* D3: the month is a fill meter, not prose about "caps" — four slots you
      can see filling. A better round always bumps the worst one that counts. */
-  if(capN===Infinity){
+  if(!state.demo && window.CS?.season?.status === 'complete'){
+    /* L-16 · a finished season has no month to fill: the tile says what counted, once */
+    const mine = (window.indRows||[]).find(x => x.mid === window.CS?.member?.id);
+    const n = mine ? (mine.r || 0) : 0;
+    $('#statCount').innerHTML = fmtN(n)+' <small>round'+(Number(n)===1?'':'s')+'</small>';
+    $('#statCountD').textContent = 'Season complete · the lines are final';
+  } else if(capN===Infinity){
     /* D357 · this printed `credits` — `floor_credit`, the MINIMUM's unit, in
        which a nine is a half — under the caption "every round counts". Two
        different rules, one number. `my.counting` is the count of rounds the
@@ -16033,7 +16224,8 @@ function renderStats(){
       `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;${i<used?'background:var(--pos)':'border:1px solid var(--dim);opacity:.55'}"></span>`).join('');
     $('#statCount').innerHTML = fmtN(used)+' <small>/ '+capN+'</small><span style="display:block;margin-top:4px;line-height:1">'+dots+'</span>';
   }
-  $('#statCountD').textContent=curMonth()+(capN===Infinity?' · every round counts':' · your best '+capN+' count');
+  if(!(!state.demo && window.CS?.season?.status === 'complete'))
+    $('#statCountD').textContent=curMonth()+(capN===Infinity?' · every round counts':' · your best '+capN+' count');
   /* D76: month pressure — the meter burns down under your number; its tip is
      this screen's one pulse. Device-local month math, same construction as the
      deadline strip above — never new Date('YYYY-MM-DD') (UTC-midnight landmine). */
@@ -18879,7 +19071,12 @@ function csMeStrip(){
   /* 2 - LAST. The gross and the day; an older round says its date instead.
      "days since" is never printed - that is the shame line L-22 forbids. */
   const lastR = window.career && (window.career.recent||[])[0];
-  if(lastR && lastR.gross != null && lastR.played_on){
+  /* L-34 · ONE FACT, ONE PLACE: when the feed already LEADS with this very
+     round (the newest row, and it is mine), the strip's LAST stands down */
+  const feedLead = (!state.demo && (window.homeFeedRows||[])[0]) || null;
+  const feedLeadsWithIt = !!(lastR && feedLead && feedLead.is_me && feedLead.round_id === lastR.id);
+  if(feedLeadsWithIt){ /* said by the feed card */ }
+  else if(lastR && lastR.gross != null && lastR.played_on){
     slots.push({ fact:'my_last_round', label:'LAST',
                  value:`${lastR.gross} ${csDayToken(String(lastR.played_on))}`, go:'round', id:lastR.id });
   } else if(window.career && Number(window.career.rounds) === 0){
@@ -18966,6 +19163,17 @@ function csMeSeasonRow(){
   }
   const i = myId!=null ? teams.findIndex(t=>t.id===myId) : -1;
   if(i<0) return null;
+  /* L-03 / L-16 · a finished season says where it FINISHED, from the stored
+     crown, and chases nobody: no "leads by", no "back of", no Final clause. */
+  if(CS.season?.status === 'complete'){
+    const cId = solo ? CS.season.champion_member_id : CS.season.champion_squad_id;
+    const rId = solo ? CS.season.runnerup_member_id : CS.season.runnerup_squad_id;
+    const who = solo ? null : teams[i].name.toUpperCase();
+    const place = myId === cId ? 'CHAMPION' : myId === rId ? 'RUNNER-UP' : 'FINISHED';
+    const parts = [String(CS.league.name||'').toUpperCase(), who ? `${who} · ${place}` : place];
+    if(place === 'FINISHED' && cId){ const c = teams.find(t => t.id === cId); if(c) parts.push(`${String(c.name).toUpperCase()} WON IT`); }
+    return { text: parts.join(' · '), parts };
+  }
   const parts=[String(CS.league.name||'').toUpperCase()];
   const rank=`${climbOrd(i+1).toUpperCase()} OF ${teams.length}`;
   parts.push(solo ? rank : [teams[i].name.toUpperCase(), rank].join(' '));
@@ -19124,7 +19332,7 @@ const SeasonBook = {
 window.SeasonBook=SeasonBook;
 function csSeasonBookReceipt(title,entries,names={}){
   return `<h2 tabindex="-1">${esc(title)}</h2><div class="sb-total">${entries.reduce((n,e)=>n+e.contribution,0)} <small>points</small></div>`+
-    (entries.length?entries.map(e=>`<section class="sb-entry"><h3>${esc([names[e.member_id],e.recorded_on].filter(Boolean).join(' · '))}</h3><p class="fine">${esc(e.week==null?(e.recorded_on?'Recorded '+e.recorded_on+' · outside the season weeks':'Assessment date unavailable'):'Week '+e.week)}</p><p>${e.points} points · ${e.count_state==='dropped'?'dropped':e.contribution+' included'}</p><p>${esc(e.reason)}</p>${!e.round_id&&e.affected_month?`<p class="fine">Applies to ${esc(e.affected_month.slice(0,7))}</p>`:''}${e.round_id?`<button type="button" class="sb-round" data-book-round="${esc(e.round_id)}">Open round receipt →</button>`:''}</section>`).join(''):'<p>No round or adjustment recorded for this selection.</p>');
+    (entries.length?entries.map(e=>`<section class="sb-entry"><h3>${esc([names[e.member_id],e.recorded_on].filter(Boolean).join(' · '))}</h3><p class="fine">${esc(e.week==null?(e.recorded_on?'Recorded '+e.recorded_on+' · outside the season weeks':'Assessment date unavailable'):'Week '+e.week)}</p><p>${e.points} points · ${e.count_state==='dropped'?'dropped':e.contribution+' included'}</p><p>${esc(e.reason)}</p>${!e.round_id&&e.affected_month?`<p class="fine">Applies to ${esc(e.affected_month.slice(0,7))}</p>`:''}${e.round_id&&!e.withdrawn?`<button type="button" class="sb-round" data-book-round="${esc(e.round_id)}">Open round receipt →</button>`:''}</section>`).join(''):'<p>No round or adjustment recorded for this selection.</p>');
 }
 function csSeasonBookRace(b,rows,follow){
   const leaders=rows.slice().sort((a,b)=>b.points-a.points).slice(0,3), chosen=rows.find(r=>r.id===follow);
@@ -19317,6 +19525,26 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
   const fm = facts || csCompeteFacts();
   (memberships||[]).forEach(m=>{
     const lg=m.league||m, done = (lg.phase==='complete');
+    /* D389 · season two is only for yeses: a golfer whose yes to the league's
+       latest season is not on record sees an invitation, not "Live · You're in
+       it." (L-18). Season one, or a row without the record, asks nothing. */
+    const latestN = Math.max(0, ...((lg.seasons||[]).map(x => Number(x.number) || 0)));
+    const notYes = !done && latestN > 1 && Array.isArray(m.agreed_seasons) && !m.agreed_seasons.includes(latestN);
+    if(notYes){
+      /* D389 · the renewal's own state: a PENDING invitation opens its terms; with
+         none, the league's code opens them until the first tee; once the season
+         has started without a yes (declined, lapsed) it never appears as live. */
+      const latestS = (lg.seasons||[]).find(x => Number(x.number) === latestN);
+      const inv = (window.myInvites||[]).find(x => x.kind === 'league' && x.container_id === lg.id);
+      const started = !!(latestS && latestS.starts_on && localDate(latestS.starts_on) <= localDate(today));
+      if(!inv && started) return;
+      live.push({ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
+                  eyebrow: 'Season ' + latestN, title: lg.name || 'A season',
+                  sub: 'Season ' + latestN + ' is open. Say yes to play it.',
+                  status: null, state: 'Upcoming', figure: null, clock: null,
+                  terms: inv ? { inviteId: inv.id } : { code: lg.code } });
+      return;
+    }
     const f = !done && lg.phase==='season' ? csSeasonRowFacts(fm.get(lg.id), m.role) : null;
     const row={ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
                 eyebrow: done ? 'Season complete' : (lg.phase==='season' ? ((f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
@@ -19613,8 +19841,10 @@ function csEmptyRoot(which, opts){
   return { state:'empty', head:'Nothing running.',
     fact: has ? `${n} ${n===1?'buddy':'buddies'}, and none of you is playing for anything.` : null,
     sub:'Your next competition starts here — a season, a weekend, or going head to head.',
-    doors:[{k:'startSomething', t:'Start something'},
-           has ? {k:'joinWithCode', t:'I have a code'} : {k:'findGolfers', t:'Find golfers'}] };
+    /* L-26 · the code door is promised everywhere a golfer might arrive with a
+       code, so it is always here; IA §6.1's first two doors keep their places */
+    doors: has ? [{k:'startSomething', t:'Start something'}, {k:'joinWithCode', t:'I have a code'}]
+               : [{k:'startSomething', t:'Start something'}, {k:'findGolfers', t:'Find golfers'}, {k:'joinWithCode', t:'I have a code'}] };
 }
 
 function csEmptyRootHtml(root){
@@ -19670,9 +19900,15 @@ function renderCompete(){
   box.innerHTML = body;
   box.querySelectorAll(".sb-terrain").forEach(h=>window.csTopoHead?.(h));
   box.querySelector("#cmpBookDoor")?.addEventListener("click",()=>csOpenSeasonBook(lead.leagueId,lead.seasonId));
+  /* D389 · an unanswered season opens its TERMS; an accepted one opens the season */
+  const openRow = (row, id) => {
+    if(row && row.terms && row.terms.inviteId && window.respondInvite) return window.respondInvite(row.terms.inviteId, true);
+    if(row && row.terms && row.terms.code && window.openJoinSheet) return window.openJoinSheet(row.terms.code);
+    if(id) window.csOpenSeason?.(id);
+  };
   box.querySelector('[data-cband]')?.addEventListener('click', () => {
     const id = String(lead && lead.leagueId || '');
-    if(id) window.csOpenSeason?.(id);
+    openRow(lead, id);
   });
   if(shelf) shelf.innerHTML = list.finished.length
     ? list.finished.map(csPeerRowHtml).join('')
@@ -19688,7 +19924,7 @@ function renderCompete(){
       /* WA2 · the same arrival Home's season item takes. This row had the
          pattern first: clicking another league changed the context and left
          Compete open, so it took two clicks to reach the season. */
-      if(kind==='league'){ window.csOpenSeason?.(id); }
+      if(kind==='league'){ openRow(list.seasons.find(r => r.leagueId === id), id); }
       else if(kind==='event') window.openEvent?.(id);
       else switchView('schedule');
     }));
@@ -20681,9 +20917,11 @@ function renderCareer(){
       if(!confirm('Delete this round? ' + CS_ROUND_DELETE)) return;
       b.disabled = true;
       try{
+        /* D385 §1 · the public copies go first, while the round still names them */
+        const w = await csWithdrawRoundLinks(b.dataset.delr);
         const { error } = await window.sb.rpc('delete_round', { p_round: b.dataset.delr });
         if(error) throw error;
-        toast('Round deleted');
+        toast(w.ok ? 'Round deleted' : 'Round deleted. ' + CS_SHARE_CLEANUP.pending);
         if(window.loadCareer) await window.loadCareer();
         if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
         if(window.loadHome) window.loadHome();
@@ -21111,6 +21349,59 @@ async function csReclaimPhotoObject(path, keeping){
   if(!path || path === keeping || !window.sb) return;
   try{ await sb.storage.from('media').remove([path]); }catch(_){ }
 }
+/* D385 · a withdrawn photo is withdrawn (launch audit L-05). Removing,
+   replacing or deleting used to leave the public copies — shared/{token}.jpg
+   and .png — served at their urls, and after a delete nothing could learn the
+   token again. The server revokes (clear_round_photo, set_round_photo on a
+   replace, delete_round); this removes the copies through the Storage API,
+   under shared_copy_delete, for every token withdraw_round_shares hands back
+   (revoked ones included). The golfer's own act is never blocked by the
+   cleanup, and since 20261201090000 a failed cleanup is never silent either:
+   the SERVER confirms each token (confirm_share_cleanup counts what Storage
+   still holds — a Storage call reporting success is not proof), anything not
+   confirmed is returned as `pending`, and the caller says so. The server's
+   share-cleanup sweep finishes whatever a client leaves, and
+   csRetryShareCleanup tries again on the next signed-in load. The phone's twin
+   is `ShareWithdrawal`; the contract is docs/planning/2026-09-24-share-cleanup-contract.md. */
+const CS_SHARE_CLEANUP = {
+  pending: 'The photo is off its link. A public copy is still being removed; Cup Season keeps trying until it is gone.',
+};
+window.CS_SHARE_CLEANUP = CS_SHARE_CLEANUP;
+async function csRemoveShareCopies(tokens){
+  const pending = [];
+  if(!tokens.length) return pending;
+  try{ await sb.storage.from('shared').remove(tokens.flatMap(t => [t + '.jpg', t + '.png'])); }catch(_){ }
+  for(const t of tokens){
+    try{
+      const { data, error } = await sb.rpc('confirm_share_cleanup', { p_token: t });
+      /* an older database without the obligation cannot confirm: never claim it did */
+      if(error || data?.status !== 'completed') pending.push(t);
+    }catch(_){ pending.push(t); }
+  }
+  return pending;
+}
+async function csWithdrawRoundLinks(rid){
+  if(!rid || !window.sb) return { ok:true, pending:[] };
+  try{
+    const { data, error } = await sb.rpc('withdraw_round_shares', { p_round: rid });
+    if(error) return { ok:false, pending:[] };
+    const tokens = Array.isArray(data) ? data : [];
+    const pending = await csRemoveShareCopies(tokens);
+    return { ok: pending.length === 0, pending };
+  }catch(_){ return { ok:false, pending:[] }; }
+}
+/* the retry path: on a signed-in load, once, finish what an earlier session left */
+async function csRetryShareCleanup(){
+  if(!window.sb || !window.CS?.user || window.__csCleanupTried) return;
+  window.__csCleanupTried = true;
+  try{
+    const { data, error } = await sb.rpc('my_share_cleanup');
+    if(error || !Array.isArray(data)) return;
+    const open = data.filter(r => r.status !== 'completed').map(r => r.token);
+    if(open.length) await csRemoveShareCopies(open);
+  }catch(_){ }
+}
+window.csRetryShareCleanup = csRetryShareCleanup;
 async function csAttachRoundPhoto(rid, file, oldPath){
   if(!rid || !window.sb || !window.CS?.user) return { ok:false, note:CS_PHOTO.failed };
   let path = null;
@@ -21126,8 +21417,10 @@ async function csAttachRoundPhoto(rid, file, oldPath){
     const { error } = await sb.rpc('set_round_photo', { p_round: rid, p_photo_path: path });
     if(error) throw error;
     await csReclaimPhotoObject(oldPath, path);
+    /* D385 §2 · a replace retires the old link; say so if its copy is still up */
+    const w = (oldPath && oldPath !== path) ? await csWithdrawRoundLinks(rid) : { ok:true, pending:[] };
     const { data: s } = await sb.storage.from('media').createSignedUrl(path, 3600);
-    return { ok:true, path, url: s?.signedUrl || null };
+    return { ok:true, path, url: s?.signedUrl || null, note: w.ok ? null : CS_SHARE_CLEANUP.pending };
   }catch(e){
     try{ await sb.storage.from('media').remove([path]); }catch(_){ }
     return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.failed };
@@ -21141,7 +21434,8 @@ async function csRemoveRoundPhoto(rid, oldPath){
     const { error } = await sb.rpc('clear_round_photo', { p_round: rid });
     if(error) throw error;
     await csReclaimPhotoObject(oldPath, null);
-    return { ok:true };
+    const w = await csWithdrawRoundLinks(rid);                          /* D385 §1 */
+    return { ok:true, note: w.ok ? null : CS_SHARE_CLEANUP.pending };
   }catch(e){
     return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.removeFailed };
   }
@@ -21327,6 +21621,7 @@ function csWireReceiptPhoto(r, rid, stampOf, opts){
     r.photo_path=out.path; r.photo_url=out.url;
     if(window.roundCache && window.roundCache[rid]) Object.assign(window.roundCache[rid], { photo_path:out.path, photo_url:out.url });
     paint();
+    if(out.note) toast(out.note);   /* the old link's public copy is not confirmed gone yet */
   };
   clr?.addEventListener('click', async ()=>{
     if(busy) return;
@@ -21344,6 +21639,7 @@ function csWireReceiptPhoto(r, rid, stampOf, opts){
     r.photo_path=null; r.photo_url=null;
     if(window.roundCache && window.roundCache[rid]) Object.assign(window.roundCache[rid], { photo_path:null, photo_url:null });
     paint();
+    if(out.note) toast(out.note);   /* off its link, but the public copy is not confirmed gone yet */
   });
 }
 
@@ -21598,7 +21894,14 @@ async function csPaintReceiptCard(r, rid, mine){
   slot.innerHTML = `<div class="eyebrow">${esc(CS_CARD.head)}</div>`
     + csRoundCardHTML(card, mine)
     + photoRow
-    + (canShare ? `<button class="mini" id="rcptCardShare" type="button" style="margin-top:8px">${esc(CS_CARD.share)}</button>` : '');
+    + (canShare ? `<button class="mini" id="rcptCardShare" type="button" style="margin-top:8px">${esc(CS_CARD.share)}</button>`
+        /* D385 §3 · the receipt's own labelled way to take the link down, shown only when one is live */
+        + ` <button class="mini" id="rcptCardRevoke" type="button" style="margin-top:8px;display:none">Turn off this link</button>` : '');
+  const rcRevoke = document.getElementById('rcptCardRevoke');
+  if(rcRevoke && rid && !state.demo){
+    csUpdateRoundLinkControl(rcRevoke,rid);
+    rcRevoke.addEventListener('click', async ()=>{ rcRevoke.disabled=true; await csRevokeLink('round',rid); await csUpdateRoundLinkControl(rcRevoke,rid); rcRevoke.disabled=false; });
+  }
   document.getElementById('rcptCardShare')?.addEventListener('click', async ()=>{
     /* the artifact carries HIS name and HIS marker, and neither is in the
        payload for anybody else's round — which is why the button is his only */
@@ -21616,6 +21919,7 @@ async function csPaintReceiptCard(r, rid, mine){
     try{
       const blob = await new Promise(res=>drawRoundCardArtifact(d).toBlob(res,'image/png'));
       await csShareLink('round', rid, recapText(d), null, { includePhoto: !!(ok && ok.checked), cardBlob: blob });
+      await csUpdateRoundLinkControl(rcRevoke,rid);
     }catch(e){ if(!(e && e.name==='AbortError')) toast(CS_CARD.shareFailed); }
   });
 }
@@ -21922,12 +22226,18 @@ function showSquadReal(t){
   const q=(window.CS?.squads||[]).find(x=>x.id===t.id);
   const ids=new Set((q?.squad_members||[]).map(x=>x.member_id));
   const rows=(window.indRows||[]).filter(r=>ids.has(r.mid)).sort((a,b)=>b.pts-a.pts);
-  const fromRounds=rows.reduce((a,r)=>a+r.pts,0);
   /* D355 · every ledger row, with its reason — then only what is actually left
      over. `total − rounds` used to be printed as "the ledger" whether or not a
      ledger row explained it. The phone's twin is `SquadReceiptBreakdown`. */
   const led = window.seasonLedger === null ? null
             : (window.seasonLedger||[]).filter(a => a.squad_id === t.id);
+  /* Launch audit L-22 · rounds only, then the ledger once. A member's points
+     already carry their own rulings (override, D376), and the same ruling is a
+     squad ledger row: summing member points counted it twice and printed a
+     phantom "+3". Each member's rounds are their points less their overrides. */
+  const ovr = mid => (led||[]).filter(a => a.member_id === mid && a.kind === 'override')
+                              .reduce((a,r)=>a+Number(r.points||0),0);
+  const fromRounds=rows.reduce((a,r)=>a+r.pts-ovr(r.mid),0);
   const known = (led||[]).reduce((a,r)=>a+Number(r.points||0),0);
   const rest = Math.round((t.pts - fromRounds - known) * 1e6) / 1e6;
   let h=`<div class="mathrow"><span>Rounds that count</span><b>${fromRounds}</b></div>`;
@@ -22422,6 +22732,25 @@ function renderPhase(){
     : p==='setup' ? 'OPENS WHEN THE SEASON STARTS'
     : p==='draft' ? 'SQUADS DRAWING'
     : 'Complete · squads are set';
+  /* D386 · only when someone is waiting, and only for the Pro: say so, and a link
+     to seat them in the roster. Otherwise the row stays exactly as it was. */
+  {
+    /* classic block: CS is the module's, reached through window (it is undefined at first paint) */
+    const sn = Number(window.CS?.season?.number) || 0;
+    const waiting = (window.CS?.member?.role === 'commissioner' && window.csUnseated)
+      ? window.csUnseated(m => !(sn > 1) || !Array.isArray(m.agreed_seasons) || m.agreed_seasons.includes(sn)) : [];
+    const row = hd && hd.closest('.check');
+    let seat = document.getElementById('hubSeatBtn');
+    if(waiting.length && row){
+      hd.textContent = `${waiting.length} not on a squad yet`;
+      if(!seat){
+        seat = document.createElement('button');
+        seat.className = 'mini'; seat.id = 'hubSeatBtn'; seat.textContent = 'Seat';
+        seat.addEventListener('click', () => window.openMembersSheet?.());
+        row.appendChild(seat);
+      }
+    } else if(seat){ seat.remove(); }
+  }
   renderRosterDoor();     /* D180: who can still get in with the code */
   renderLeagueMeta();
   renderCalendar();
@@ -23680,6 +24009,9 @@ function showProfileGate(){
   if(!$('#pfHandle').value){
     const sug = CS.profile?.handle || csHandleFromName($('#pfName').value || CS.user?.email || '');
     if(sug) $('#pfHandle').value = '@' + sug;
+    /* L-24 · a handle the golfer already HAS is theirs: editing the name never
+       overwrites it. Only a derived suggestion keeps following the name. */
+    if(CS.profile?.handle) pfHandleTouched = true;
   }
   pfCheckHandle();   /* show availability on the pre-filled suggestion right away */
   /* and the MARKER defaults from the handle, deterministically */
@@ -23864,7 +24196,9 @@ async function csCrewTake(key){
        (say nothing is wrong), failed (say so). */
     const r = await csShareIntentLink('person', window.CS?.profile?.id,
       "Come and play. Cup Season keeps score for a group of friends — every round, against everyone's playing HCP.");
-    if(r?.ok && st) st.textContent = 'Link copied. Text it to one of them.';
+    /* D385 §5 · say what happened: sent through the sheet, copied, or shown to copy */
+    if(r?.ok && st) st.textContent = r.how === 'copied' ? 'Link copied. Text it to one of them.'
+      : r.how === 'shared' ? 'Sent.' : 'Copy the link and text it to one of them.';
     return;
   }
   if(key === 'contacts'){ csCrewConsent(); return; }
@@ -24071,7 +24405,14 @@ $('#pfName')?.addEventListener('input', () => {
   }
   pfCheckHandle();
 });
-$('#pfHandle')?.addEventListener('input', () => { pfHandleTouched = true; pfCheckHandle(); });
+/* L-24 · "touched" means GENUINELY edited: the handle stops following the name
+   only when it differs from what the name derives, so re-typing the suggestion
+   (or clearing back to it) hands it back to the derivation */
+$('#pfHandle')?.addEventListener('input', () => {
+  const typed = String($('#pfHandle').value || '').replace(/^@/, '').trim().toLowerCase();
+  pfHandleTouched = typed !== '' && typed !== csHandleFromName($('#pfName')?.value || '');
+  pfCheckHandle();
+});
 /* D247 · GHIN is OFF onboarding and lives on the card under You, so the
    toggle and its field are gone with the block they opened. */
 
@@ -25516,13 +25857,18 @@ window.openPeoplePicker = openPeoplePicker;
 /* D178 · exported so the guide's "‹ Card & settings" can rebuild this sheet
    rather than restore a photograph of it (every control here is wired in JS
    after openSheet, so pasted innerHTML would come back dead). */
+/* L-26 · delegated once, so the hub's code door works however often the sheet redraws */
+document.addEventListener('click', e => {
+  if(e.target && e.target.id === 'phJoin'){ if(typeof closeSheet === 'function') closeSheet(); window.openJoinSheet?.(); }
+});
 function openProfileHub(){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
   const p = CS.profile;
   phMarker = p.marker || 'saguaro';
   const leagues = (CS.memberships||[]).map(m =>
     `<div class="byrow"><span>${esc(m.league.name)}</span><b>${m.role==='commissioner'?'THE PRO · ':''}${esc(m.league.code)}</b></div>`).join('')
-    || '<p class="fine">No seasons yet. Start one or join with a code.</p>';
+    /* L-26 · the promised code door is a door, not a sentence */
+    || '<p class="fine">No seasons yet. Start one or join with a code.</p><button class="mini" type="button" id="phJoin">I have a code</button>';
   /* You-tab audit (pilot, 2026-07-17): one sheet, two intents, split by
      segment — YOUR CARD (identity: what your buddies see) | SETTINGS (this
      device & account). The old single scroll buried notifications and
@@ -26239,8 +26585,17 @@ async function loadMemberships(){
      rather than fail the whole boot on a count. */
   let { data, error } = await sb
     .from('league_members')
-    .select('id, role, index_current, league:leagues(id,name,code,phase,sandbox)')
+    /* D389 · the member's yeses and the league's season numbers ride along,
+       so Compete never tells a golfer they are in a season they have not
+       said yes to (launch audit L-18). */
+    .select('id, role, index_current, agreed_seasons, league:leagues(id,name,code,phase,sandbox,seasons(number,starts_on))')
     .eq('profile_id', CS.user.id);
+  if(error && /agreed_seasons|seasons/.test(error.message||'')){
+    ({ data, error } = await sb
+      .from('league_members')
+      .select('id, role, index_current, league:leagues(id,name,code,phase,sandbox)')
+      .eq('profile_id', CS.user.id));
+  }
   if(error && /sandbox/.test(error.message||'')){
     ({ data, error } = await sb
       .from('league_members')
@@ -26347,6 +26702,12 @@ async function runItBack(oldLeague, membership){
     toast(csRunItBackDone(r.season?.number, r.asked ?? r.invited));
     try { localStorage.setItem('cs_last_league', lid); } catch(_){}
     await loadMemberships();
+    /* L-19 · the room reloads onto the NEW season: without this the Pro kept
+       looking at the finished one ("SEASON COMPLETE", the link still offered) */
+    const fresh = (window.CS?.memberships || []).find(m => m.league?.id === lid);
+    if(fresh) await enterLeague(fresh, false);
+    else if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
+    if(window.loadHome) window.loadHome();
     switchView('hub');
   } catch(e){
     toast(csShareKindNotDeployed(e) ? CS_RUNBACK_NOT_YET : humanError(e, "Couldn't start the next season."));
@@ -27257,9 +27618,9 @@ async function lockBylaws(){
      half-locked league (prod held one in exactly that state). lock_league()
      does all four atomically and is idempotent on locked_at, so a retry after
      an ambiguous failure returns the standing truth instead of minting a
-     second season. The old path stays as the fallback for deploy skew — a
-     client on Netlify can reach a database that has not taken the migration
-     yet, and must still lock (CLAUDE.md: neither order breaks a live user). */
+     second season. The old client-side path is gone (D382): the database no
+     longer lets a client write those tables, and a server without
+     lock_league refuses plainly instead of half-locking. */
   const note = (window.csPayNote?.() || '');
   const lockViaRpc = async (withNote) => {
     const starts = seasonStartDate(), ends = seasonEndDate();
@@ -27270,14 +27631,16 @@ async function lockBylaws(){
       p_handicap_allowance:  [100,95,90][state.preset],
       p_verification:        ['honor','attested','ghin'][state.preset],
       p_counting_cap:        capDB(),
-      p_participation_floor: state.floor,
+      p_participation_floor: state.structure === 'solo' ? 0 : state.floor,   /* L-23 · no minimum in an individual season */
       p_floor_penalty:       ['none','deduct','forfeit'][state.preset],
       p_season_format:       fmtKeyForLock(),
       p_structure:           state.structure,
       p_buyin_cents:         state.stake * 100,
       p_season_months:       durMonths(state.durWeeks),
       p_draft_type:          state.draftType,
-      p_finish:              state.finish || 'cup_final',
+      /* D384 · under six weeks the points table decides (ih-finish says so);
+         send what the Pro was shown — the server stores the same */
+      p_finish:              state.durWeeks < 6 ? 'points_table' : (state.finish || 'cup_final'),
       p_payout_champ:        (state.payout||[60,25,15])[0],
       p_payout_runnerup:     (state.payout||[60,25,15])[1],
       p_payout_king:         (state.payout||[60,25,15])[2],
@@ -27316,7 +27679,7 @@ async function lockBylaws(){
     /* R18 · the note is a NEW argument on a function that exists. If the
        twenty-argument shape is not deployed yet, retry the nineteen and NAME
        the miss — a note that goes quiet is the exact defect the note exists to
-       fix. Only after that does the pre-D111 path come into play. */
+       fix. Only after that is the season refused (D382). */
     if(note && missingFn(err)){
       try {
         const r = await lockViaRpc(false);
@@ -27324,113 +27687,16 @@ async function lockBylaws(){
         return r;
       } catch(err2){ if(!missingFn(err2)) throw err2; }
     }
-    /* only fall back when the FUNCTION is missing (skew). A real refusal —
-       "Only the Pro can lock the bylaws." — must reach the golfer, not be
-       retried through a path with weaker checks. */
+    /* a real refusal — "Only the Pro can lock the bylaws." — reaches the
+       golfer as it is; only a missing FUNCTION (skew) gets the plain line. */
     if(!missingFn(err)) throw err;
     window.qaEvent?.('lock_rpc_absent', { msg: String(err?.message||err).slice(0,120) });
   }
-  let emails = state.emails.filter(e => e.includes('@'));
-
-  const { error: e1 } = await sb.from('league_settings').update({
-    preset:              ['casual','standard','cutthroat'][state.preset],
-    handicap_allowance:  [100,95,90][state.preset],
-    verification:        ['honor','attested','ghin'][state.preset],
-    counting_cap:        capDB(),
-    participation_floor: state.floor,
-    floor_penalty:       ['none','deduct','forfeit'][state.preset],
-    season_format:       fmtKeyForLock(),
-    structure:           state.structure,
-    buyin_cents:         state.stake * 100,
-    season_months:       durMonths(state.durWeeks),
-    draft_type:          state.draftType,
-    finish:              state.finish || 'cup_final',
-    payout_champ:        (state.payout||[60,25,15])[0],
-    payout_runnerup:     (state.payout||[60,25,15])[1],
-    payout_king:         (state.payout||[60,25,15])[2],
-    locked_at:           new Date().toISOString(),
-  }).eq('league_id', CS.league.id);
-  /* deploy skew: `finish` lands with migration 008 — if it isn't there yet,
-     retry without it so a lock never fails on column absence */
-  if(e1 && /finish/.test(e1.message||'')){
-    const retry = {
-      preset:['casual','standard','cutthroat'][state.preset],
-      handicap_allowance:[100,95,90][state.preset],
-      verification:['honor','attested','ghin'][state.preset],
-      counting_cap:capDB(), participation_floor:state.floor,
-      floor_penalty:['none','deduct','forfeit'][state.preset],
-      season_format:fmtKeyForLock(), structure:state.structure,
-      buyin_cents:state.stake*100, season_months:durMonths(state.durWeeks),
-      draft_type:state.draftType,
-      payout_champ:(state.payout||[60,25,15])[0], payout_runnerup:(state.payout||[60,25,15])[1],
-      payout_king:(state.payout||[60,25,15])[2], locked_at:new Date().toISOString(),
-    };
-    const { error: e1b } = await sb.from('league_settings').update(retry).eq('league_id', CS.league.id);
-    if(e1b) throw e1b;
-  } else if(e1) throw e1;
-
-  if(emails.length){
-    const { error: eInv } = await sb.from('invites').insert(
-      emails.map(email => ({ league_id: CS.league.id, email }))
-    );
-    if(eInv){
-      /* the lock still stands; the addresses just didn't land */
-      toast(humanError(eInv, "Invites didn't send \u2014 add them from the roster."));
-      emails = [];
-    }
-  }
-
-  /* D97: the wizard used to stage in-app golfers here and fire invite_golfer
-     for each at lock. That staging UI was deleted on 2026-07-21 and inviting
-     moved to the post-lock share screen, so this loop had nothing to iterate.
-     invite_golfer itself is untouched — the members sheet still calls it. */
-
-  const starts = seasonStartDate();
-  const ends   = seasonEndDate();
-  const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  let seasonRow;
-  const { data: existing } = await sb.from('seasons')
-    .select('id, starts_on, ends_on').eq('league_id', CS.league.id)
-    .eq('number', 1).maybeSingle();
-  if(existing){
-    seasonRow = existing;   /* retap after a partial lock — reuse, never duplicate */
-  } else {
-    const { data: created, error: e2 } = await sb.from('seasons').insert({
-      league_id: CS.league.id, number: 1,
-      starts_on: iso(starts),
-      ends_on:   iso(ends),
-    }).select().single();
-    if(e2) throw e2;
-    seasonRow = created;
-  }
-  CS.season = seasonRow;
-  state.seasonStart = iso(starts);
-  state.seasonEnd   = iso(ends);
-
-  /* squads exist from lock; members join, then draw/assign fills them */
-  if(state.structure !== 'solo'){
-    const { error: e3 } = await sb.rpc('form_squads', { p_season: seasonRow.id });
-    if(e3) throw e3;
-  }
-
-  const nextPhase = state.structure === 'solo' ? 'season' : 'draft';
-  const name = ($('#setName').value || '').trim() || CS.league.name;
-  /* supabase-js never throws on a DB error: a dropped {error} here left the
-     Pro looking at a "locked" league that reverted to setup on next boot. */
-  const { error: e4 } = await sb.from('leagues').update({ phase: nextPhase, name }).eq('id', CS.league.id);
-  if(e4) throw e4;
-  CS.league.name = name;
-  $('#leagueName').textContent = name;
-  $('#sideLeague').textContent = name;
-  state.phase = nextPhase;
-  renderPhase();
-  /* D97 deleted the staged-invitee array but left `invited: staged.length`
-     here. Because every write above had already COMMITTED, the ReferenceError
-     landed in the caller's catch and told the Pro "Lock failed" about a league
-     the server had just locked — for 25 days, in prod (blind audit TOP-1,
-     `lock_ok` = 1 all-time vs 11 `lock_fail`). Never return a value the
-     function does not own; the caller asks the server what happened. */
-  return { emails: emails.length, nextPhase };
+  /* D382 · the pre-D111 path wrote seasons, leagues and league_settings
+     straight from the client. Those doors are closed at the database now,
+     and lock_league has been in production since 20260829220000, so a
+     server without it gets the same plain refusal create_league_once gives. */
+  throw new Error('Starting a season isn\u2019t available on this server yet. Nothing was locked \u2014 try again after the update.');
 }
 
 /* ---------- wire the UI ---------- */
@@ -27733,22 +27999,54 @@ function csCovenantFacts(info, postedRounds){
     const clauses = ['honest scores'];
     if(info.every_round_counts === true) clauses.push('every round counts');
     else if(Number(info.counting_cap)) clauses.push('best ' + csWord(Number(info.counting_cap)) + ' a month count');
-    if(Number(info.floor)) clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
+    /* L-23 · an individual season assesses no minimum, so none is promised */
+    if(Number(info.floor) && info.structure !== 'solo') clauses.push(csWord(Number(info.floor)) + ' a month keeps you in');
     if(Number(info.handicap_allowance)) clauses.push('scored against your playing HCP — your index at ' + Number(info.handicap_allowance) + ' percent');
     const head = info.preset ? csCap(String(info.preset)) + ' rules: ' : 'The rules: ';
     out.push({ k:'rules', t: head + clauses.join(', ') + '.' });
   }
-  /* the ending, in D126's own sentence rather than a dial name */
-  out.push({ k:'ending', t: info.finish==='points_table'
-    ? "The season's points decide it. No reset."
-    : 'It ends with a four-week Cup Final between the top two.' });
+  /* the ending, in D126's own sentence rather than a dial name. L-23 · with the
+     structure in the payload, the sentence says WHAT competes and WHO qualifies,
+     from the bylaws themselves (the phone's native copy carries the same facts):
+     solo stands alone; squads count together; a two-squad Final takes both, the
+     leader 10 up; larger squads send the top two; a points table has no reset;
+     a season under six weeks is a points-table season (D384). With no structure
+     in the payload (an older server) the sentence is exactly what it was. */
+  const st = info.structure || null;
+  const shortSeason = wk > 0 && wk < 6;
+  const table = info.finish === 'points_table' || shortSeason;
+  const nSq = st === 'squads2' ? 2 : st === 'squads3' ? 3 : st === 'squads4' ? 4 : 0;
+  let ending;
+  if(!st){
+    ending = table ? "The season's points decide it. No reset." : 'It ends with a four-week Cup Final between the top two.';
+  } else if(st === 'solo'){
+    ending = table ? "Everyone plays for themselves, and the season's points decide it. No reset."
+                   : 'Everyone plays for themselves. The top two on points meet in a four-week Cup Final.';
+  } else {
+    const squads = csCap(csWord(nSq || 2)) + ' squads, and every round you post counts toward yours.';
+    ending = table ? squads + " The season's points decide it. No reset."
+      : nSq === 2 ? squads + ' Both squads meet in a four-week Cup Final, and the squad leading on points starts it 10 up.'
+      : squads + ' The top two squads on points meet in a four-week Cup Final.';
+  }
+  out.push({ k:'ending', t: ending });
   /* L-10 · every money line is ABOVE $0 only */
   if(paid){
     out.push({ k:'stake', t: '$' + usd + ' each.' });
     out.push({ k:'ledger', t: CS_LEDGER });          /* L-09 · the constant, never retyped */
     const sp = info.split;
-    if(sp) out.push({ k:'split', t: 'If you take it: ' + sp.champion + ' percent to the champion, '
-      + sp.runner_up + ' to the runner-up, ' + sp.points_king + ' to the points king.' });
+    if(sp){
+      /* L-23 · a zero share is not an award: it is left out, and the points king
+         is said once in plain words when it pays */
+      const shares = [[sp.champion, 'the champion'], [sp.runner_up, 'the runner-up'], [sp.points_king, 'the points king']]
+        .filter(([p]) => Number(p) > 0);
+      if(shares.length){
+        const said = shares.map(([p, who], i) => (i === 0 ? p + ' percent' : p) + ' to ' + who);
+        const line = said.length === 1 ? said[0] : said.slice(0, -1).join(', ') + ', ' + said[said.length - 1];
+        const kingNote = (info.structure && Number(sp.points_king) > 0)
+          ? ' The points king is the golfer with the most points of their own, whatever the Final does.' : '';
+        out.push({ k:'split', t: 'If you take it: ' + line + '.' + kingNote });
+      }
+    }
     const pay = info.pay || {};
     const hasNote = (pay.has_note !== undefined) ? pay.has_note : info.has_pay_note;
     const due = pay.due_on || info.buy_in_due_on;
@@ -28109,7 +28407,10 @@ function openEventPicker(){
 }
 /* join-by-code, self-contained — the hub's join box hides for members, so the
    Clubhouse sheet carries its own */
-function openJoinSheet(){
+function openJoinSheet(prefill){
+  /* D389 · a season-two golfer with no invitation re-ups by the league's code:
+     the sheet opens with it filled in, and Join shows the covenant as always */
+  setTimeout(() => { const f = document.getElementById('jCode'); if(f && prefill && !f.value) f.value = String(prefill).toUpperCase(); }, 0);
   openSheet('Join with a code', 'Got a league code?', `
     <input class="f" id="jCode" placeholder="LEAGUE CODE" autocomplete="off" style="font-family:var(--sans); text-transform:uppercase">
     <button class="btn" id="jGo" style="margin-top:12px">Join</button>
@@ -29807,6 +30108,9 @@ window.renderAlbum = renderAlbum;
    empty feed if the RPC isn't deployed yet. */
 async function loadHome(){
   if(!CS.user){ window.homeFeedRows=[]; window.leagueEnds={}; csSignedClear(); window.myCounters=null; if(window.renderHomeHub) window.renderHomeHub(); return; }
+  /* D385 · once a session, finish any public-copy cleanup an earlier one left (never blocks Home) */
+  window.csRetryShareCleanup?.();
+  window.csRetryShareAcks?.();   /* a share outcome the server never heard, from an earlier session */
   try {
     const ids = (CS.memberships||[]).map(m=>m.league.id);
     if(ids.length){
@@ -29943,6 +30247,43 @@ async function loadLeagueRecord(){
       .in('league_id', ids).order('number', { ascending:false });
     /* D208 · "Played in" reads the same rows — one query, two answers */
     window.leagueSeasons = seas || [];
+    /* Launch audit S3 · THE RECORD READS THE CROWN. One row per season the
+       golfer said yes to, from my_league_record(), whose place is the
+       server's _final_place: a finished season's champion is 1st and the
+       other finalist 2nd whatever the table says (L-03), a live tie shares
+       its place (L-15), and season one survives Run it back (L-21). The
+       phone's twin is LeagueRecord.rows(from:). The table sort below is the
+       declared fallback for a database without the function (skew only). */
+    const rec = await sb.rpc('my_league_record');
+    if(!rec.error && Array.isArray(rec.data)){
+      const ordR = n => { const s=['TH','ST','ND','RD'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+      window.leagueRecord = rec.data.slice().reverse().map(r => {
+        const done = r.status === 'complete', solo = (r.structure || 'solo') === 'solo';
+        let line;
+        if(!done && r.phase === 'setup') line = STAGE_LABEL.forming;
+        else if(!done && r.phase === 'draft') line = STAGE_LABEL.drawing;
+        else {
+          const sd = localDate(r.starts_on);
+          let where = '—';
+          if(r.place != null && r.of != null){
+            where = (r.tied ? 'TIED ' : '') + `${ordR(r.place)} OF ${r.of}` + (solo ? '' : ' SQUADS');
+            if(solo && r.points != null) where += ` · ${r.points} PTS`;
+          }
+          line = !done && sd > new Date() ? `FIRST TEE ${DOW[sd.getDay()].toUpperCase()} ${MOS[sd.getMonth()].toUpperCase()} ${sd.getDate()}`
+               : done                      ? `FINISHED ${where}`
+               : r.status === 'cup_final'  ? `CUP FINAL · ${where}`
+               : where;
+        }
+        const ranked = done || !(r.phase === 'setup' || r.phase === 'draft');
+        return { id: r.league_id, league_id: r.league_id, season_id: r.season_id,
+                 name: r.league_name, number: r.number || 1, line,
+                 year: r.starts_on ? Number(String(r.starts_on).slice(0, 4)) : null,
+                 finish: ranked ? r.place : null, of: ranked ? r.of : null, won: !!r.won };
+      });
+      renderIndStats();
+      return;
+    }
+    if(rec.error && !csMissingFn(rec.error)) throw rec.error;
     const latest = new Map();
     (seas||[]).forEach(s => { if(!latest.has(s.league_id)) latest.set(s.league_id, s); });
     const sids = [...latest.values()].map(s => s.id);
@@ -30428,6 +30769,35 @@ document.getElementById('calList')?.addEventListener('click', async (e) => {
 });
 
 /* ---------- members & invites: the clubhouse roster ---------- */
+/* D386 · who can be seated by the Pro right now: a squads season under way, a
+   golfer who said yes to it, and no squad yet (a seat once taken is not moved) */
+function csUnseated(inFor){
+  if(state.demo || !CS.league || state.structure === 'solo' || CS.league.phase !== 'season') return [];
+  if(!CS.season || CS.season.status !== 'active' || !(CS.squads||[]).length) return [];
+  const seated = new Set();
+  (CS.squads||[]).forEach(q => (q.squad_members||[]).forEach(x => seated.add(x.member_id)));
+  return (CS.members||[]).filter(m => !seated.has(m.id) && !m.left_at && (!inFor || inFor(m)));
+}
+window.csUnseated = csUnseated;
+function csCanSeat(m, inFor){
+  return CS.member?.role === 'commissioner' && csUnseated(inFor).some(x => x.id === m.id);
+}
+function csOpenSeatSheet(m){
+  const who = m.profile?.display_name || 'this golfer';
+  openSheet('Seat ' + who, 'ROUNDS COUNT FOR THE SQUAD FROM TODAY',
+    (CS.squads||[]).map(q => `<button class="btn dark" data-seatsq="${q.id}" style="margin-top:8px">${esc(q.name)} · ${(q.squad_members||[]).length} golfer${(q.squad_members||[]).length===1?'':'s'}</button>`).join(''));
+  document.querySelectorAll('[data-seatsq]').forEach(b => b.addEventListener('click', async () => {
+    document.querySelectorAll('[data-seatsq]').forEach(x => x.disabled = true);
+    try{
+      const { error } = await sb.rpc('assign_player', { p_squad: b.dataset.seatsq, p_member: m.id });
+      if(error) throw error;
+      const q = (CS.squads||[]).find(x => x.id === b.dataset.seatsq);
+      toast(`${who} is on ${q ? q.name : 'the squad'}. Their rounds count for it from today.`);
+      closeSheet();
+      await loadLeagueData();
+    }catch(e){ document.querySelectorAll('[data-seatsq]').forEach(x => x.disabled = false); toast(humanError(e, 'Could not seat them.')); }
+  }));
+}
 async function openMembersSheet(){
   if(state.demo || !CS.league){ toast('The demo roster is scenery. Join a real league'); return; }
   const isPro = CS.member?.role === 'commissioner';
@@ -30460,6 +30830,7 @@ async function openMembersSheet(){
                 inFor(m) ? null : CS_NOT_IN_YET].filter(Boolean).join(' · ') || 'GOLFER'}</small></div>
       ${isPro && m.id !== CS.member.id ? `<span style="display:flex; gap:6px; flex:none; flex-wrap:wrap; justify-content:flex-end">
         <button class="mini" data-msidx="${m.id}">Set index</button>
+        ${csCanSeat(m, inFor) ? `<button class="mini" data-msseat="${m.id}">Seat</button>` : ''}
         ${CS.league.phase === 'setup' ? `<button class="mini" data-msrm="${m.id}">Remove</button>`
           : !inFor(m) ? `<button class="mini" data-msask="${m.id}">Ask again</button>`
           : `<button class="mini" data-msbye="${m.id}">Bye</button><button class="mini" data-msrule="${m.id}">Ruling</button>`}
@@ -30533,6 +30904,12 @@ async function openMembersSheet(){
   document.querySelectorAll('[data-msrule]').forEach(b => b.addEventListener('click', () => {
     const m = CS.members.find(x => x.id === b.dataset.msrule);
     window.openRulingSheet?.(m);
+  }));
+  /* D386 / L-07 · a golfer with no squad in a season under way: the Pro seats
+     them (assign_player allows exactly this, D382 §2); it counts from today */
+  document.querySelectorAll('[data-msseat]').forEach(b => b.addEventListener('click', () => {
+    const m = CS.members.find(x => x.id === b.dataset.msseat);
+    if(m) csOpenSeatSheet(m);
   }));
   /* D375 · the ask-again: the same invitation, re-dated, rings again */
   document.querySelectorAll('[data-msask]').forEach(b => b.addEventListener('click', async () => {
@@ -31518,7 +31895,9 @@ async function safeBoot(force){
     try{
       const { data, error } = await sb.rpc('guest_live_state', { p_token: claimTok });
       if(!error) guestSeen = data || null;
-      if(!error && data?.round?.status==='live' && window.enterGuestLive(data, claimTok)) return;
+      /* L-25 · "Sign in instead" asked for the door, not the pencil, this session */
+      let wantsDoor = false; try{ wantsDoor = sessionStorage.getItem('cs_guest_door') === '1'; }catch(_){ }
+      if(!wantsDoor && !error && data?.round?.status==='live' && window.enterGuestLive(data, claimTok)) return;
     }catch(_){}
   }
   /* D87: the same pencil for a SIGNED-IN golfer who isn't in this league — the

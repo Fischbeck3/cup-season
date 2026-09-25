@@ -10,9 +10,16 @@ struct SeasonBookTests {
     return try JSONDecoder().decode(SeasonBookSnapshot.self,from:JSONSerialization.data(withJSONObject:json))
   }
   @Test func realSQLPayloadsValidate() throws {
-    for name in ["squads","tie","upcoming","finished"] {
+    for name in ["squads","tie","upcoming","finished","audit-live","audit-withdrawn"] {
       let b=try book(name);try b.validate(league:b.league_id,season:b.season_id)
     }
+  }
+  @Test func integratedFrozenBookKeepsWithdrawnContributionsAndLiveBookSeatEligibility() throws {
+    let live=try book("audit-live"), frozen=try book("audit-withdrawn")
+    let withdrawn=try #require(frozen.rows.flatMap(\.entries).first { $0.withdrawn == true })
+    #expect(withdrawn.contribution > 0 && withdrawn.reason.contains("Withdrawn by the golfer"))
+    #expect(frozen.rules_note?.contains("closed with") == true)
+    for b in [live,frozen] { try b.validate(league:b.league_id,season:b.season_id) }
   }
   @Test func rejectsWrongSeasonVersionAndPartialRead() throws {
     let b=try book();#expect(throws:SeasonBookReadError.self) { try b.validate(league:b.league_id,season:UUID()) }

@@ -986,5 +986,376 @@ from (
   ) as problems
 ) t
 
+-- 38 · D382 · the record book has one door. No client role writes seasons,
+--     the ledger, squads, seats, buy-ins or the Pro's log, nor edits or deletes
+--     a league (INSERT on leagues stays: leagues_create binds the creator); no
+--     write policy survives on those tables; assign_player refuses in the Final
+--     and after the close, and never moves a seated golfer once under way.
+union all
+select '38 · the record book has one door (D382)',
+  case when problems = '' then 'PASS — the Pro writes through the pen, and a Final''s squads hold'
+       else 'FAIL — ' || problems end,
+  'relacl × pg_policies on seasons, season_adjustments, squads, squad_members, buy_ins, commissioner_log, leagues × prosrc of assign_player'
+from (
+  select concat_ws('; ',
+    (select 'a client role writes: ' || string_agg(format('%s %s %s', c.relname, a.grantee::regrole, a.privilege_type), ', ')
+       from pg_class c, lateral aclexplode(c.relacl) a
+      where c.oid in ('public.seasons'::regclass, 'public.season_adjustments'::regclass,
+                      'public.squads'::regclass, 'public.squad_members'::regclass,
+                      'public.buy_ins'::regclass, 'public.commissioner_log'::regclass,
+                      'public.leagues'::regclass)
+        and a.grantee <> 0
+        and a.grantee::regrole::text in ('authenticated', 'anon')
+        and a.privilege_type in ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')
+        and not (c.relname = 'leagues' and a.privilege_type = 'INSERT')
+     having count(*) > 0),
+    (select 'a write policy survives: ' || string_agg(tablename || '.' || policyname, ', ')
+       from pg_policies
+      where schemaname = 'public'
+        and tablename in ('seasons', 'season_adjustments', 'squads', 'squad_members',
+                          'buy_ins', 'commissioner_log', 'leagues')
+        and cmd <> 'SELECT'
+        and not (tablename = 'leagues' and cmd = 'INSERT')
+     having count(*) > 0),
+    case when coalesce((select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'assign_player'), '')
+              not like '%se.status in (''cup_final'', ''complete'')%'
+           or coalesce((select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'assign_player'), '')
+              not like '%v_started and v_seated%'
+         then 'assign_player has no phase rule' end
+  ) as problems
+) t
+
+-- 39 · D383 · a finished season keeps its book. Every complete season has a
+--     book; the lens reads a booked season from it and never from live rounds;
+--     the close writes it on every path (the trigger); no client role writes
+--     it or reaches the trigger function; post_round never stamps a complete
+--     season; run_it_back refuses a first tee inside the previous season.
+union all
+select '39 · a finished season keeps its book (D383)',
+  case when to_regclass('public.season_books') is null then 'PASS — the book is not deployed yet'
+       when problems = '' then 'PASS — every finished season reads from its book, and the close writes it'
+       else 'FAIL — ' || problems end,
+  'seasons(complete) × season_books × pg_get_viewdef(v_rounds_ranked) × pg_trigger × prosrc of post_round, run_it_back'
+from (
+  select case when to_regclass('public.season_books') is null then '' else concat_ws('; ',
+    (select count(*) || ' complete season(s) with no book' from seasons s
+      where s.status = 'complete' and not exists (select 1 from season_books b where b.season_id = s.id)
+     having count(*) > 0),
+    case when pg_get_viewdef('public.v_rounds_ranked'::regclass) not like '%season_book_rows%'
+           or pg_get_viewdef('public.v_rounds_ranked'::regclass) not like '%season_books bk%'
+         then 'the lens scores finished seasons live' end,
+    case when not exists (select 1 from pg_trigger where tgname = 'seasons_book_on_close'
+                             and tgrelid = 'public.seasons'::regclass and not tgisinternal)
+         then 'the close does not write the book' end,
+    case when has_any_column_privilege('authenticated', 'public.season_book_rows', 'INSERT')
+           or has_any_column_privilege('authenticated', 'public.season_books', 'INSERT')
+           or has_table_privilege('anon', 'public.season_book_rows', 'SELECT')
+           or has_function_privilege('authenticated', 'public._book_season()', 'EXECUTE')
+         then 'a client role can reach the book' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'post_round')
+              like '%''active'', ''cup_final'', ''complete''%' then 'post_round stamps a complete season' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'run_it_back')
+              not like '%[D383]%' then 'run_it_back accepts an overlapping first tee' end
+  ) end as problems
+) t
+
+-- 40 · D384 · a season shorter than six weeks is a points-table season. The
+--     tick and enter_cup_final never take one into a Final, lock_league stores
+--     the table for one, set_league_finish refuses a Final for one, and no live
+--     short season still promises a Final or sits in one.
+union all
+select '40 · a short season is a table season (D384)',
+  case when problems = '' then 'PASS — under six weeks, the points table decides everywhere'
+       else 'FAIL — ' || problems end,
+  'prosrc of enter_cup_final, daily_season_tick, lock_league, set_league_finish × live seasons under 42 days'
+from (
+  select concat_ws('; ',
+    (select string_agg(p.proname, ', ') || ' has no length guard' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace
+        and p.proname in ('enter_cup_final', 'daily_season_tick', 'lock_league', 'set_league_finish')
+        and p.prosrc not like '%[D384]%'
+     having count(*) > 0),
+    (select count(*) || ' live short season(s) promise or play a Final'
+       from seasons s join league_settings ls on ls.league_id = s.league_id
+      where s.status in ('active', 'cup_final') and s.ends_on - s.starts_on + 1 < 42
+        and (s.status = 'cup_final' or (coalesce(ls.finish, 'cup_final') = 'cup_final'
+             and s.number = (select max(s2.number) from seasons s2 where s2.league_id = s.league_id)))
+     having count(*) > 0)
+  ) as problems
+) t
+
+-- 41 · D385 · a withdrawn photo is withdrawn. Remove, replace and delete
+--     revoke the round's links on the server; withdraw_round_shares hands the
+--     caller's tokens back for the client to remove the copies (authenticated
+--     only); share_info reads a photo only while the round carries one.
+union all
+select '41 · a withdrawn photo is withdrawn (D385)',
+  case when problems = '' then 'PASS — remove, replace and delete revoke; the client can find every copy'
+       else 'FAIL — ' || problems end,
+  'prosrc of clear_round_photo, set_round_photo, delete_round, share_info × withdraw_round_shares grants'
+from (
+  select concat_ws('; ',
+    (select string_agg(p.proname, ', ') || ' does not revoke' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace
+        and p.proname in ('clear_round_photo', 'set_round_photo', 'delete_round', 'share_info')
+        and p.prosrc not like '%[D385]%'
+     having count(*) > 0),
+    case when to_regprocedure('public.withdraw_round_shares(uuid)') is null
+         then 'withdraw_round_shares is missing'
+         when not has_function_privilege('authenticated', 'public.withdraw_round_shares(uuid)', 'EXECUTE')
+           or has_function_privilege('anon', 'public.withdraw_round_shares(uuid)', 'EXECUTE')
+         then 'withdraw_round_shares is wrongly granted' end
+  ) as problems
+) t
+
+-- 42 · launch audit S6 · one card, one claim. claim_round and claim_scan_round
+--     lock the seat they read (L-09), and signed-out guest_live_state returns
+--     only the status of a finished or claimed seat (L-27), still anon.
+union all
+select '42 · one card, one claim; a finished link shows its status only (S6)',
+  case when problems = '' then 'PASS — claims lock their seat, and a spent link tells nothing'
+       else 'FAIL — ' || problems end,
+  'prosrc of claim_round, claim_scan_round, guest_live_state'
+from (
+  select concat_ws('; ',
+    (select string_agg(p.proname, ', ') || ' reads its seat without a lock' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace and p.proname in ('claim_round', 'claim_scan_round')
+        and p.prosrc not like '%for update%'
+     having count(*) > 0),
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'guest_live_state')
+              not like '%[S6]%' then 'guest_live_state returns a finished round' end,
+    case when not has_function_privilege('anon', 'public.guest_live_state(uuid)', 'EXECUTE')
+         then 'guest_live_state lost its anon grant' end
+  ) as problems
+) t
+
+-- 43 · launch audit S3 · the record names the champion. `_final_place` is the
+--     one answer (crown-aware when complete, tie-aware while live), engine-only;
+--     native_home's standing reads it and never breaks a points tie by name;
+--     my_league_record is the record both clients print.
+union all
+select '43 · the record names the champion (S3)',
+  case when problems = '' then 'PASS — one place producer, crown-aware and tie-aware, on both clients'
+       else 'FAIL — ' || problems end,
+  'to_regprocedure(_final_place, my_league_record) × prosrc of native_home × grants'
+from (
+  select concat_ws('; ',
+    case when to_regprocedure('public._final_place(uuid, uuid)') is null then '_final_place is missing'
+         when has_function_privilege('authenticated', 'public._final_place(uuid, uuid)', 'EXECUTE')
+         then '_final_place is reachable by a client' end,
+    case when to_regprocedure('public.my_league_record()') is null then 'my_league_record is missing'
+         when not has_function_privilege('authenticated', 'public.my_league_record()', 'EXECUTE')
+         then 'my_league_record is not granted' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'native_home')
+              not like '%_final_place%' then 'native_home ranks a finished season by the table' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'native_home')
+              like '%over w as rk%' then 'native_home breaks a points tie by name' end
+  ) as problems
+) t
+
+-- 44 · D390 · a trophy per season. The year key is gone, league trophies are
+--     unique per season, and the award writes the season.
+union all
+select '44 · a trophy per season (D390)',
+  case when problems = '' then 'PASS — two seasons in one year are two trophies'
+       else 'FAIL — ' || problems end,
+  'pg_indexes(trophies) × prosrc of award_season_trophies'
+from (
+  select concat_ws('; ',
+    case when to_regclass('public.trophies_league_uq') is not null then 'league trophies are still keyed by year' end,
+    case when to_regclass('public.trophies_league_season_uq') is null then 'league trophies have no season key' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'award_season_trophies')
+              not like '%se.league_id, yr, se.id%' then 'the award does not write the season' end
+  ) as problems
+) t
+
+-- 45 · D388 · §14.3's ladder everywhere. The crown, the King and the seeds
+--     count months won head to head among the tied, on §3.3's month score, and
+--     one coin per contender serves the crown and the King.
+union all
+select '45 · the ladder is head to head (D388)',
+  case when problems = '' then 'PASS — h2h months won on the §3.3 month, one coin per tie'
+       else 'FAIL — ' || problems end,
+  'prosrc of close_season, enter_cup_final'
+from (
+  select concat_ws('; ',
+    (select string_agg(p.proname, ', ') || ' counts months against the whole field' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace and p.proname in ('close_season', 'enter_cup_final')
+        and p.prosrc not like '%[D388]%'
+     having count(*) > 0),
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'close_season')
+              not like '%update _king k set coin = c.coin from _coin c%' then 'the crown and the King flip separate coins' end
+  ) as problems
+) t
+
+-- 46 · D386 · a late joiner gets a seat. join_league and respond_invite seat a
+--     joiner once the league is in season; _late_squad stays out of the draft
+--     and the Final; a seat taken under way counts forward only.
+union all
+select '46 · a late joiner gets a seat (D386)',
+  case when problems = '' then 'PASS — seated on the thinnest squad, counted from the seat'
+       else 'FAIL — ' || problems end,
+  'prosrc of join_league, _late_squad, assign_player × pg_get_viewdef(v_squad_standings)'
+from (
+  select concat_ws('; ',
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'join_league')
+              not like '%_late_squad(%' then 'a code join is never seated' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = '_late_squad')
+              not like '%[D386]%' then '_late_squad seats before the draw' end,
+    case when pg_get_viewdef('public.v_squad_standings'::regclass) not like '%seated_at%'
+         then 'a late seat counts backwards' end
+  ) as problems
+) t
+
+-- 47 · D387 · the result explains itself. round_card's scalars are a league's
+--     own number (never an allowance nobody scored), native_home's last season
+--     includes the one that just finished and reads the seat, and the
+--     settlement post prints the ledger's money.
+union all
+select '47 · the receipt uses the league''s number (D387)',
+  case when problems = '' then 'PASS — one number per lens, the champion named, the money exact'
+       else 'FAIL — ' || problems end,
+  'prosrc of round_card, native_home, close_season'
+from (
+  select concat_ws('; ',
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'round_card')
+              not like '%[D387]%' then 'round_card explains with an allowance nobody scored' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'native_home')
+              like '%lm9.squad_id%' then 'native_home joins a column that does not exist' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'close_season')
+              like '%/ 100.0)%' then 'the settlement post rounds the money' end
+  ) as problems
+) t
+
+-- 48 · D389 · season two is only for yeses. Re-up invitations can lapse and
+--     the first tee lapses them; the clash and the owed list read the season's
+--     roster; native_home says whether the golfer is in the current season.
+union all
+select '48 · season two is only for yeses (D389)',
+  case when problems = '' then 'PASS — invitations lapse at the first tee; nobody outside the season is paired or owes'
+       else 'FAIL — ' || problems end,
+  'member_invites status check × prosrc of daily_season_tick, open_week_clash, close_season, native_home'
+from (
+  select concat_ws('; ',
+    case when not exists (select 1 from pg_constraint where conrelid = 'public.member_invites'::regclass
+                            and pg_get_constraintdef(oid) like '%lapsed%') then 'an invitation cannot lapse' end,
+    (select string_agg(p.proname, ', ') || ' reads the whole league' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace
+        and p.proname in ('daily_season_tick', 'open_week_clash', 'close_season', 'native_home')
+        and p.prosrc not like '%[D389]%'
+     having count(*) > 0)
+  ) as problems
+) t
+
+-- 49 · launch audit S12 · the first screens say what is so. "Under 80" means
+--     eighteen holes; a solo season stores no floor to promise.
+union all
+select '49 · the first screens say what they mean (S12)',
+  case when problems = '' then 'PASS — no nine-hole "Under 80", no solo minimum'
+       else 'FAIL — ' || problems end,
+  'prosrc of home_stories, lock_league'
+from (
+  select concat_ws('; ',
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'home_stories')
+              not like '%rk.holes_played = 18%' then 'a nine-hole round can read as Under 80' end,
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'lock_league')
+              not like '%[S12]%' then 'a solo season can promise a minimum' end
+  ) as problems
+) t
+
+-- 50 · I4 · the Book counts what the squad counts. One seat rule answers for the squad
+--     table, the Book's squad receipts and the ladder's month scores; a finished season's
+--     book keeps each line's post time; the Book says frozen and withdrawn.
+union all
+select '50 · the Book counts what the squad counts (I4)',
+  case when problems = '' then 'PASS — one seat rule for the table, the Book, the Race and a tie-break'
+       else 'FAIL — ' || problems end,
+  'pg_get_viewdef(v_squad_standings) × prosrc of season_book, close_season, enter_cup_final × season_book_rows'
+from (
+  select concat_ws('; ',
+    case when to_regprocedure('public._counts_for_seat(uuid, timestamptz)') is null then 'the seat helper is missing' end,
+    case when pg_get_viewdef('public.v_squad_standings'::regclass) not like '%_counts_for_seat%' then 'the squad table has its own seat rule' end,
+    (select string_agg(p.proname, ', ') || ' counts a round the squad does not' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace and p.proname in ('season_book', 'close_season', 'enter_cup_final')
+        and p.prosrc not like '%[I4]%'
+     having count(*) > 0),
+    case when not exists (select 1 from information_schema.columns where table_schema = 'public'
+                            and table_name = 'season_book_rows' and column_name = 'round_created_at')
+         then 'a finished season forgets when its rounds were posted' end
+  ) as problems
+) t
+
+-- 51 · I5 · a withdrawn photo is gone. Every revocation queues a cleanup obligation that
+--     only a storage check can complete; the owner reads and retries it; the service
+--     side is service-role only; nothing new is open signed out.
+union all
+select '51 · a withdrawn photo is gone, not just unlinked (I5)',
+  case when problems = '' then 'PASS — every revocation is an obligation until storage says it is gone'
+       else 'FAIL — ' || problems end,
+  'pg_trigger(shares) × share_cleanup grants × cleanup RPC grants'
+from (
+  select concat_ws('; ',
+    case when to_regclass('public.share_cleanup') is null then 'there is no cleanup obligation' end,
+    case when not exists (select 1 from pg_trigger where tgname = 'shares_queue_cleanup'
+                             and tgrelid = 'public.shares'::regclass and not tgisinternal)
+         then 'a revocation does not queue its cleanup' end,
+    case when to_regclass('public.share_cleanup') is not null
+          and (has_table_privilege('authenticated', 'public.share_cleanup', 'UPDATE')
+               or has_table_privilege('anon', 'public.share_cleanup', 'SELECT'))
+         then 'a client can write or anon can read the obligation' end,
+    case when to_regprocedure('public._share_cleanup_report(uuid, text)') is not null
+          and (has_function_privilege('authenticated', 'public._share_cleanup_report(uuid, text)', 'EXECUTE')
+               or has_function_privilege('anon', 'public.confirm_share_cleanup(uuid)', 'EXECUTE'))
+         then 'a service or owner door is open to the wrong role' end
+  ) as problems
+) t
+
+-- 52 · I5b · one share, one attempt (Codex's native contract). The three lifecycle RPCs
+--     are authenticated-only, the attempt ledger and shares stay unreadable to clients,
+--     and the reclaimer is service-role only.
+union all
+select '52 · one share, one attempt (I5b)',
+  case when problems = '' then 'PASS — prepare / finish / status, owner-only, never reactivating'
+       else 'FAIL — ' || problems end,
+  'grants of prepare_round_share, finish_round_share, round_share_status, _expire_share_attempts × share_attempts, shares'
+from (
+  select concat_ws('; ',
+    case when to_regprocedure('public.prepare_round_share(uuid, boolean, uuid)') is null
+           or to_regprocedure('public.finish_round_share(uuid, boolean)') is null
+           or to_regprocedure('public.round_share_status(uuid)') is null then 'a lifecycle RPC is missing'
+         when not has_function_privilege('authenticated', 'public.prepare_round_share(uuid, boolean, uuid)', 'EXECUTE')
+           or has_function_privilege('anon', 'public.prepare_round_share(uuid, boolean, uuid)', 'EXECUTE')
+           or has_function_privilege('authenticated', 'public._expire_share_attempts(uuid)', 'EXECUTE')
+         then 'a lifecycle grant is wrong' end,
+    case when to_regclass('public.share_attempts') is not null
+          and (has_table_privilege('authenticated', 'public.share_attempts', 'SELECT')
+               or has_table_privilege('authenticated', 'public.shares', 'SELECT'))
+         then 'a client can read shares or the attempt ledger directly' end
+  ) as problems
+) t
+
+-- 53 · the phone's payload and the Final (Codex's contract, I6). native_home carries
+--     renewal_status and in_season beside the Book's points standing and S3's final
+--     placement; the Final's surfaces read cup_finalists for their seeds.
+union all
+select '53 · the phone reads the season it is in, and the Final its own seeds (contract, I6)',
+  case when problems = '' then 'PASS — renewal_status, in_season, final_place; seeds from cup_finalists'
+       else 'FAIL — ' || problems end,
+  'prosrc of native_home, season_scenarios, season_story, join_covenant_info'
+from (
+  select concat_ws('; ',
+    case when (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'native_home')
+              not like '%''renewal_status''%'
+           or (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'native_home')
+              not like '%''points_tied''%'
+           or (select prosrc from pg_proc where pronamespace = 'public'::regnamespace and proname = 'native_home')
+              not like '%''final_place''%' then 'native_home lost a contract field' end,
+    (select string_agg(p.proname, ', ') || ' reads the live table for the Final''s seeds' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace and p.proname in ('season_scenarios', 'season_story')
+        and p.prosrc not like '%[I6]%'
+     having count(*) > 0)
+  ) as problems
+) t
+
 )
 select * from checks order by check_name;

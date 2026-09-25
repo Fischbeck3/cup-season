@@ -110,18 +110,34 @@ struct NativeAuditRepairTests {
   @Test func withdrawalNeverCallsFailedCleanupSuccessAndRetriesBothCopies() async {
     let denied = WithdrawalProbe(failRevoke: true)
     do {
-      try await ShareWithdrawal.perform(revoke: { try await denied.revoke() }, remove: { try await denied.remove($0) })
+      try await ShareWithdrawal.perform(revoke: { try await denied.revoke() }, remove: { try await denied.remove($0) }, confirm: { _ in true })
       Issue.record("Revocation failure was swallowed")
     } catch { #expect(error is WithdrawalProbe.Failure) }
     #expect(await denied.events == ["revoke"])
     let offline = WithdrawalProbe(failRevoke: false)
     for _ in 0..<2 {
       do {
-        try await ShareWithdrawal.perform(revoke: { try await offline.revoke() }, remove: { try await offline.remove($0) })
+        try await ShareWithdrawal.perform(revoke: { try await offline.revoke() }, remove: { try await offline.remove($0) }, confirm: { _ in true })
         Issue.record("Storage failure was swallowed")
       } catch { #expect(error is ShareWithdrawal.CleanupPending) }
     }
     #expect(await offline.events == ["revoke", "token.jpg", "token.png", "revoke", "token.jpg", "token.png"])
+  }
+
+  @Test func successfulStorageRemovalStillRequiresServerConfirmation() async throws {
+    for confirmed in [false, true] {
+      do {
+        try await ShareWithdrawal.perform(revoke: { ["token"] }, remove: { _ in }, confirm: { _ in confirmed })
+        #expect(confirmed)
+      } catch {
+        #expect(!confirmed && error is ShareWithdrawal.CleanupPending)
+      }
+    }
+    do {
+      try await ShareWithdrawal.perform(revoke: { ["token"] }, remove: { _ in },
+        confirm: { _ in throw WithdrawalProbe.Failure.unavailable })
+      Issue.record("Confirmation failure was swallowed")
+    } catch { #expect(error is ShareWithdrawal.CleanupPending) }
   }
 
 }

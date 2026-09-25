@@ -27,16 +27,27 @@ public enum ShareWithdrawal {
 
   public static func withdraw(round: UUID, svc: SupabaseService = .shared) async throws {
     try await perform(revoke: { try await svc.call(Rpc.withdraw_round_shares(p_round: round)) },
-                      remove: { paths in _ = try await svc.client.storage.from("shared").remove(paths: paths) })
+                      remove: { paths in _ = try await svc.client.storage.from("shared").remove(paths: paths) },
+                      confirm: { token in
+                        guard let id = UUID(uuidString: token) else { return false }
+                        let result = try await svc.call(Rpc.confirm_share_cleanup(p_token: id))
+                        return result["status"]?.string == "completed" && result["remaining"]?.int == 0
+                      })
   }
 
   /// Revocation errors must stop the operation; byte-removal errors remain
   /// distinguishable from success and may be retried with the same paths.
   static func perform(revoke: @Sendable () async throws -> [String],
-                      remove: @Sendable ([String]) async throws -> Void) async throws {
+                      remove: @Sendable ([String]) async throws -> Void,
+                      confirm: @Sendable (String) async throws -> Bool) async throws {
     let tokens = try await revoke()
     guard !tokens.isEmpty else { return }
-    do { try await remove(copyPaths(tokens)) }
+    do {
+      try await remove(copyPaths(tokens))
+      for token in tokens {
+        guard try await confirm(token) else { throw CleanupPending() }
+      }
+    }
     catch { throw CleanupPending() }
   }
 }
