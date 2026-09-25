@@ -31,6 +31,48 @@ sorting.
 ---
 
 
+### 2026-09-24 · S12 and S5b: the first screens' copy, and the share sheet's rulings, are the phone's and desk's
+
+Launch audit S12 and S5b (`claude/launch-repair-2026-09-24`). The database halves are built: "Under 80" needs 18 holes (L-28), a solo season stores and sends no floor (L-23), and D385's server side (withdraw on remove, replace and delete) is done. What remains is copy and views:
+- **L-23:** the covenant needs pinned strings per bylaw combination (solo / squads2 / squads3+, $0 / staked, short season), saying squads or draw, "top two", Points King, index and playing HCP beside the stake; `Covenant.facts` (`JoinLeague.swift`) has no structure fact. Copy is the owner's to approve.
+- **L-24:** the card handle freezes at the first letter (`CardGateView.swift:227`), so a field should count as touched only when it differs from the name-derived handle.
+- **L-25:** the guest's live card needs one orienting line, "Sign in instead", YOU on the guest's row, and names in the score labels.
+- **L-26:** the join-with-a-code door goes on Play and on the empty Compete (or Home's gloss changes).
+- **L-34:** the Home strip's LAST goes quiet when the feed leads with the same round.
+- **D385 §3–§5:** a labelled "Turn off this link" on the receipt when a live link exists; a re-share keeps a photo-less link whose consent hasn't changed; a cancelled share sheet removes what it minted and revokes the token (both clients' share flows: `PostService.shareLink`, `csShareIntentLink`).
+
+Lane: Phone + desk (Codex), with the owner on the covenant copy · size: medium · first question: who writes the pinned covenant strings, the owner or Codex from the rules?
+
+### 2026-09-24 · S11's phone half: Compete says "in it" only to a yes, the season page reloads, and an invitation can be declined
+
+Launch audit S11 (`claude/launch-repair-2026-09-24`, D389): the database and web halves are built. Re-up invitations lapse at the first tee, the clash and the settlement's owed list read the season roster, and the web's Compete shows a golfer who hasn't said yes to season two an Upcoming band ("Season 2 is open. Say yes to play it.") instead of "Live · You're in it". `native_home` membership rows now carry `in_season` for the phone. Three phone items remain, all SwiftUI:
+- **L-18:** the Compete row reads `in_season` and, when false, shows the Upcoming invitation band, not Live.
+- **L-19:** `SeasonPage` loads its `LeagueRoomModel` once (`.task(id:)` guarded by `loaded`), so it should reload on return and after a post or Run it back.
+- **L-20:** Compete never draws the Invitations list; `InvitesBanner` loads only when the list is already non-empty, so it should load unconditionally and show Decline.
+
+Lane: Phone (Codex) · size: small · first question: should the Upcoming band's tap open the covenant (the yes) or the season page?
+
+### 2026-09-24 · S7 leftovers: the Pro's view of stragglers, and the tie ladder's month score for a late seat
+
+Launch audit S7 (`claude/launch-repair-2026-09-24`, D386) seats late joiners automatically. Every join path does it once the league is in season (a code join before the first tee, a Pro's invitation or a season-two yes after it), the migration seated those already waiting, and a seat taken under way counts forward only in `v_squad_standings`. Two things remain:
+- **The Pro's straggler view:** the phone's formation screen (`DraftNightScreen.swift:108-114,134`) and the web's `renderFormation` show the pool only during the draft. With automatic seating the pool is normally empty, but a Pro should still see and seat anyone left over, since `assign_player` allows seating an unseated member while active. UI on both clients.
+- **The ladder:** the tie ladder's month scores (D388, in `close_season` / `enter_cup_final`) read members' rounds directly, so a late joiner's pre-seat rounds can enter a regular-season month score that is used only to break an exact tie. The Final's window can't include them, because the seat always comes before the Final. A small SQL follow-up applies the same `seated_at` cut there.
+
+Lane: Phone + desk (Codex) and Gameplay SQL (Claude) · size: small each · first question: should the straggler row sit on the season page or in the Pro's pen?
+
+### 2026-09-24 · S3's view halves: a finished season still frames itself live, and the Final narrates the old race
+
+Launch audit S3 (`claude/launch-repair-2026-09-24`): the record half is built on both clients. `my_league_record()` and `native_home`'s standing now read the crown and share ties, and `LeagueRecord.rows(from:)` / the web `loadLeagueRecord` print them. Three view-level items remain, all SwiftUI or desk layout:
+- **L-16:** `StandingsTableView.cutLabel` and `SeasonPage.table` need an `isComplete` guard ("The final table", no cut row, no "0 of 3 counting", champion badged). The web equivalents are around `index.html:7536-7550` and ~15970.
+- **L-17:** `HomeFallbackItems.chapterItem` needs a `cup_final` branch through `SeasonFacts.finalLine`, and `CupFinalRaceView` should print race position, not the seed, under POS. `season_scenarios` and `season_story` should seed from `cup_finalists`, not the live table (those two are SQL, Claude's).
+- **D383:** a receipt tapped from a finished table's line whose round the golfer deleted has no round to open, so it should say "This round was withdrawn by the golfer; it still counts in the finished table."
+
+Lane: Phone + desk (Codex) with the two SQL producers (Claude) · size: medium · first question: does the complete-season table keep its per-row "N back" gaps, or read as a plain final order?
+
+### 2026-09-24 · L-08's "Continue your live round" door is the one S6 item not built
+
+Launch audit S6 (`claude/launch-repair-2026-09-24`): after the app dies with no signal, the boot fails and the live round in progress is hidden behind `BootFailedView`, whose only live door is "Score on this phone" (a new local card). The repair branch built half of the fix: the boot now retries itself when the app returns to the foreground, so the round rehydrates once signal is back. The other half is not built: a **"Continue your live round"** button on `BootFailedView`, shown when `LiveDisk.shared.snapshots()` holds an active round for this golfer. It would open `LiveRoundHost` over that snapshot in queue-only mode (strokes go to the disk queue and flush on reconnect), never through `prepareOffline`, which switches to a local card and is the double-post risk the audit named. It was held back because `rehydrate` needs `myPid`, which only `configure(me:)` sets, and a failed boot has no `me`. The mode needs a device with airplane mode to prove, not a simulator proxy. Lane: Phone (Codex: SwiftUI + `LiveRoundStore`) · size: medium · first question: should queue-only mode take the golfer id from `OfflineGolfer.read(owner:)`, and what does the pencil show for other players' strokes that it can't sync?
+
 ### 2026-09-22 · Mac verification closed; release proof still open
 
 Codex verified Claude's `4a171f7` in an isolated worktree and fixed the native cancellation and photo-consent/storage defects it exposed. Native suites: 1,235 Kit + 120 design + 122 app + six UI tests passed. The recovered course-cache migration is now `20261116090000`; `20261117090000` fixes PNG permissions and owner listing. All 254 migrations applied on PG17, with populated-cache reapply and authenticated storage probes passing. Nothing deployed. The next session must keep these commits, finish W6 reporting and obtain real Storage API / physical two-phone proof, the installation URL and current Apple/live evidence. Details: `docs/planning/2026-09-22-october-mac-verification.md` and the deployment packet. Lane: Ops / launch · follow-up remains open until the release gates have evidence.

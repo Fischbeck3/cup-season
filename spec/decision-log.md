@@ -7953,3 +7953,120 @@ check; external recipients' cached copies cannot be recalled.
 **Release authorization amendment, 2026-09-24:** the owner subsequently said “Push and deploy,” then “Not test flight yet.” This authorizes pushing the owned branch and deploying the database/web implementation. TestFlight/native distribution remains excluded. The subsequent instruction “You should be able to push through git repo” selects the existing Git → Netlify deployment path: advance remote `main` by a non-forced fast-forward from the owned worktree. No other worktree is touched; no merge commit or rebase is needed. Actual results are recorded in `docs/design/compete-2026-09-24/DEPLOYMENT.md`.
 
 Sources: docs/design/compete-2026-09-24/PROPOSAL.md, spec §16, D359, D376.
+
+---
+
+**Launch-audit rulings, reconciled onto main · 2026-09-24.** The launch-audit repair branch (`claude/launch-repair-2026-09-24`, `4d7ef398`) recorded its rulings as D381–D389 while main recorded **D381 · Scoreboard leads Compete; the Book shows the season's points**. Both stand. Main's D381 keeps its number; the repair rulings are renumbered **D382–D390** below, in the same order and with the same text, and every reference in their migrations, db-checks and code comments was renumbered with them (D381→D382 … D389→D390). The owner's instructions behind them, in order: *"Build with your recommendations"* (2026-09-24, on the audit's decision walk-through: D382–D389 and the D371 amendment), then *"Prompt claude to build what they own and build what you own"*, following Codex's recommendations in `docs/reviews/2026-09-24-audit-design-reconciliation.md` (on the Codex review branch), which include the per-season trophies (D390). D390 was never put to the owner as a reward-layer ruling in its own right, so it stays marked PROPOSED: built under that instruction, pending the owner's confirmation.
+### D382 · The record book has one door: the Pro changes a season only through the pen, and a seat moves only before the start
+
+**OWNER-RULED 2026-09-24** ("Build with your recommendations"; proposed the same day, launch audit S1, L-01) · Security + mechanic level · AMENDS the Pro's powers (D50, D106, D376) · built on `claude/launch-repair-2026-09-24` (`20261118100000`; the file first carried `20261118090000`, which the applied Book migration already holds), NOT pushed
+
+- **Current mechanic.** Every legitimate change to a season, its ledger, its squads and its pot goes through a SECURITY DEFINER RPC that checks, logs and posts (`adjust_points`, `mark_buy_in`, `lock_league`, `close_season`…). Beside those doors the baseline left the old ones open: the RLS policies `seasons_write`, `adj_write`, `squads_write`, `squadm_write`, `buyins_write`, `leagues_update` and `clog_add`, with `authenticated` holding INSERT/UPDATE/DELETE on each table. With her own session and the public key, a Pro could PATCH or DELETE a completed season, reopen it for the engine to re-crown, insert ledger rows with no reason, post or log, forge the `month_closed` sentinel, rewrite squads and buy-ins, edit the league's phase or Pro, and write log lines in her own name. `assign_player` checks only that the caller is the Pro, so one call inside a Cup Final changed who `close_season` crowned, and it would seat a member of another league.
+- **Problem.** The record book is only as honest as its weakest door (CLAUDE.md: writes with game consequences go through security-definer RPCs; §16; the transparency rule). No shipped client uses the direct doors. The web's one use is the pre-D111 lock fallback, dead since `lock_league` reached production in August.
+- **Decision (ruled as proposed).**
+  1. Drop the seven write policies and revoke INSERT, UPDATE and DELETE from `authenticated` and `anon` on `seasons`, `season_adjustments`, `squads`, `squad_members`, `buy_ins` and `commissioner_log`, and UPDATE and DELETE on `leagues`. SELECT stays as it is. `leagues` INSERT stays (`leagues_create` binds the row to its creator, and creation already runs through `create_league_once`). The bylaws stay behind `settings_write`, which already refuses once `locked_at` is set.
+  2. `assign_player` gets a phase rule. **Before the start** (not kicked off and the league's local date is before `starts_on`), the Pro may seat or move anyone. **Once the season is active**, she may seat only a member of this league with no squad this season. That is the late joiner (L-07), and the seating is logged as before. **In the Cup Final or after the close**, it refuses. The member must belong to the season's league.
+  3. The web's pre-D111 lock fallback is deleted. A server without `lock_league` gets the same plain refusal league creation already gives, and no longer goes around the pen.
+  4. db-checks 38 is the tripwire: no client role holds a write verb on these tables, no write policy exists on them, and `assign_player` carries its phase rule.
+- **Principle served.** Every points figure has a path back to rounds and adjustments that were checked, logged and posted; the Pro's powers are the ones the product shows her.
+- **Benefit.** A finished season can only be changed by the engine. A Pro's ruling always carries a reason, a ledger row and a post. A Final's squads are the squads the Final was drawn from.
+- **Tradeoffs.** Once the season starts, the Pro can't move a seated golfer between squads. Today no client offers that move, and D106's squads are fixed once drawn. Clients older than August that still depend on the lock fallback can't lock; production has no such client. Late joiners still need S7 for automatic seating and the Pro's pool view.
+- **CONFLICT.** None found. If the owner wants active-season moves (e.g. a mid-season rebalance), that becomes its own logged power with a reason and a post, not a reopened door.
+
+### D383 · A finished season keeps its book: the table the crown was read from is the table forever
+
+**OWNER-RULED 2026-09-24** ("Build with your recommendations") · launch audit S2, L-02 + L-33 · Mechanic level (which rounds count after a close) · built on `claude/launch-repair-2026-09-24` (`20261119090000`), NOT pushed
+
+- **Current mechanic.** The lens (`v_rounds_ranked`) scored a complete season live from `rounds`, by date. After the crown, a member could move the finished table and the Points King by posting a round dated inside the season (1, 30 or 366 days later), deleting a counted round, posting for another league on an overlapping date, or inserting one directly. The stored crown stayed put, so the ceremony and the table named different winners. `post_round` still stamped complete seasons, and `run_it_back` accepted a first tee inside the previous season, so a round in the overlap fanned into both.
+- **Problem.** §14.4 says the close crowns, and §16 says every figure has a path to the rounds that produced it. A table that keeps moving after the crown breaks both, and the golfer reads two different champions.
+- **Decision.**
+  1. **The book.** When a season turns complete, a trigger copies its lens rows into `season_book_rows` and marks `season_books`. From then on the lens reads a booked season from its book, never from live rounds, whatever path completed it.
+  2. **A delete is a void, not a refusal.** The golfer's delete still removes the round from their card, their index and their record (`delete_round` unchanged). The finished table keeps the line it closed with.
+  3. **The crown stands.** Seasons already complete are booked from the lens cut at the moment the crown was read: the season's last `system` post, which `close_season` writes in the same transaction. A season with no close post is booked as it stands. A round deleted after a close, before this change, cannot be recovered; prod-exposure Q1/Q1b says whether any was.
+  4. `post_round` stops stamping complete seasons. `run_it_back` refuses a first tee on or before the previous season's last day (both clients send no date, and the server default already starts after it).
+- **Principle served.** §14.4 (the close crowns); §16 (a figure with a path to its rounds: the book is that path, frozen); one champion in every place.
+- **Benefit.** No member action after the close can change a finished table, the King or the Cup Final race. The golfer keeps full control of their own record.
+- **Tradeoffs.** A league-mate can still read a deleted round's scoring line (points, pvi, differential) through the finished table, because the table keeps it. No photo, course or note is kept. A receipt tapped from a booked line whose round was deleted has no round to open; the clients must say so (S3 follow-up). An operator who moves a season out of complete drops its book, and it is scored live again.
+- **CONFLICT.** None. D50/D139 (grace, then the close) are made true rather than changed.
+
+### D384 · A season shorter than six weeks is a points-table season, on the server, on both clients, and for the seasons already in play
+
+**OWNER-RULED 2026-09-24** ("Build with your recommendations") · launch audit S4, L-04 · Mechanic level · AMENDS D126/D143/D206 in effect
+
+- **Current mechanic.** Both clients tell a Pro who picks 2–5 weeks that "the points leader at season end wins", but they send `p_finish = cup_final`, and `lock_league` stores it. The tick opens the Final at `ends_on − 27`: day 2 at 4 weeks, day 9 at 5 weeks, before the first tee at 2–3 weeks. Seeds are then decided by coin flip; the real tick crowned a 10-point coin-flip finalist over a 41-point leader.
+- **Problem.** The Pro is told one ending and the season plays another. The ending played is a coin flip.
+- **Decision.**
+  1. **Under 42 days, the finish is the points table.** `lock_league` stores it whatever the client sends, and the tick never enters a Final for a season under 42 days. Both clients coerce the review and covenant to match (`index.html:5168`'s own sentence).
+  2. **Seasons already in play.** Every live season under 42 days whose finish is `cup_final` becomes a points-table season, with a board post saying why. Any that already entered a coin-flip Final return to active, and their finalists are cleared. At every length in that range the Final opens before the first tee or inside week 2.
+- **Principle served.** The covenant is the contract: what the Pro agreed to is what is played.
+- **Benefit.** No coin-flip champions; the review, the covenant and the engine agree.
+- **Tradeoffs.** A Pro who wanted a Final in a short season can't have one; the Final needs its four weeks plus a regular season to seed from.
+- **CONFLICT.** None. `index.html:5168` already stated this rule; the server now enforces it.
+
+### D385 · A withdrawn photo is withdrawn, a replaced one retires its link, and a cancelled share publishes nothing
+
+**OWNER-RULED 2026-09-24** ("Build with your recommendations") · launch audit S5a + S5b, L-05, D-3, D-4, D-10 · IA + privacy level · AMENDS D60(a) and D380
+
+- **Current mechanic.** Removing a round's photo left the byte-identical copy publicly served, with `share_info.photo = true`. Deleting the round left both public copies (`shared/{token}.jpg|png`) at their urls permanently, with no client able to reach them. Replace kept the old photo on the old link (D60(a)). The receipt has no labelled way to turn a link off. A re-share could rotate a photo-less link for no reason. Cancelling the share sheet still published.
+- **Decision.**
+  1. **Remove and delete withdraw.** Removing the photo or deleting the round removes `{token}.jpg` and `{token}.png` through the Storage API and revokes the token. `share_info.photo` also requires `rounds.photo_path`, so a missed file never shows a photo.
+  2. **Replace retires the old link** (amends D60(a)/D380). The old copies go and the token is revoked; the next share mints fresh.
+  3. **The receipt gets a labelled "Turn off this link"** where a live link exists.
+  4. **A re-share keeps a photo-less link** whose consent hasn't changed. There is nothing private in it to rotate.
+  5. **Cancelling the sheet publishes nothing.** Copies minted for a share that was cancelled are removed, and the token is revoked.
+- **Principle served.** D380's own words: "a withdrawn yes cannot be served from the old url".
+- **Tradeoffs.** A friend who saved the old link finds it dead after a replace or a cancel. What a messaging app already cached cannot be recalled, and the fine print says so.
+- **CONFLICT.** D60(a) is amended, not contradicted: the photo travels while the golfer says yes.
+
+### D386 · A late joiner gets a seat: from the day they are seated, on the thinnest squad
+
+**OWNER-RULED 2026-09-24** ("Build with your recommendations") · launch audit S7, L-07, L-32 · Mechanic level · builds on D382 §2
+
+- **Current mechanic.** A member who joins a squads league after formation sits on no squad all season, and the Pro can't seat them on the phone.
+- **Decision.**
+  1. A genuine join after formation seats the member automatically on the **thinnest squad**, with a logged coin toss between equally thin squads, and posts it to the board. Draft-phase invitations stay loose for the draw.
+  2. **Not retroactive.** Rounds posted before the seat don't count for the squad. The member's own record and index keep them.
+  3. The Pro sees the unseated pool on both clients and can seat a straggler (D382 §2 allows seating an unseated member while active).
+- **Principle served.** Everyone in a league plays for something (§15); no retroactive swing in a squad race.
+- **Tradeoffs.** A late joiner's earlier rounds don't help their squad. D180's floor-window joins are left as they stand; the first question is whether a join inside a floor window should waive that month's floor.
+- **CONFLICT.** None.
+
+### D387 · The receipt explains each league's verdict with that league's own number
+
+**OWNER-RULED 2026-09-24** ("Build with your recommendations") · launch audit S10, L-12, L-13, L-14, L-22 · Explanation level · AMENDS D362
+
+- **Current mechanic.** The receipt explained points with `index_at_post − differential` (2.5 on the owner's Sep 16 82, on 986) while the engine scored `playing_index − differential` (2.0, with the league's allowance). Raw `{2.5}` braces reached the screen and VoiceOver. Home never names the champion.
+- **Decision.** Every receipt verdict is the lens's own: `round_card` reads the lens, and the receipt passes its league. A round that counts in two leagues gives each league's verdict with that league's number (D362's `contributions`, now the only producer). D324's single number is used only where no league is in context. `CSFigureRun` renders the figure with a clean accessibility label. The day after a crown, Home names the champion on both clients.
+- **Principle served.** §16; D324 "one round, one number" per lens.
+- **Tradeoffs.** A round in two leagues with different allowances reads two numbers, labelled by league.
+- **CONFLICT.** None. D362 is amended, not reversed.
+
+### D388 · Ties are broken by §14.3's ladder everywhere, with floor penalties counted in their month
+
+**OWNER-RULED 2026-09-24** ("Build with your recommendations") · launch audit S9, L-11, L-29, L-31 · Mechanic level · reaffirms §14.3 and §3.3
+
+- **Current mechanic.** The engine's tie ladder isn't §14.3's head-to-head, and it ignores floor penalties. It reaches solo seeds and table crowns with 3+ golfers, and the Points King in every league with 3+ members (squads2 included). It fires only on an exact tie at a deciding line; it had never fired in production as of Sep 12.
+- **Decision.** §14.3 stands: **head-to-head months won → best single month → fewest rounds used → logged coin flip**, with floor penalties counted in the month they were assessed (§3.3). One coin per tie. The same ladder serves seeds, crowns and the Points King.
+- **Schedule.** By the audit's rule this is P0 now that §14.3 stands. It is built in the batch right after the S1–S4 database gate and before the Friends build, because a tie at a deciding line is rare and it had never fired in production.
+- **Tradeoffs.** A tie decided today by the old ladder is not recomputed.
+- **CONFLICT.** None; the engine is brought to the spec.
+
+### D389 · A season-two invitation lapses at season two's first tee
+
+**OWNER-RULED 2026-09-24** ("Build with your recommendations") · launch audit S11, L-18, L-19, L-20 · IA level · builds on D375
+
+- **Decision.** A member who has not said yes to season two by its first tee is not in it: the invitation lapses, and they are shown as having stepped out. Until then they see an invitation with Decline, never "Live" or "You're in it". The clash and the settlement's "owed" list use the season's roster, so nobody outside the season is paired or named as owing.
+- **Principle served.** D375 (season two is a re-up, a recorded yes).
+- **CONFLICT.** None.
+
+**D371 · amendment, OWNER-RULED 2026-09-24** ("Build with your recommendations"; option (b) of the launch audit REPORT §5). Submission stays **October 1**. The database fixes S1, S2, S4 and S5a are pushed to production first, because they protect every client. The client halves (S3, S6 and the rest) ride the next build. Revisit this if the prod-exposure queries show real leagues already affected. Option (a), slipping the date, stays open until then.
+
+### D390 · A trophy per season: two seasons in one year are two trophies
+
+**PROPOSED 2026-09-24** (built under the owner's "Build with your recommendations"; launch audit S8, L-10; not among the rulings walked through, so the owner confirms it) · Reward level · built on `claude/launch-repair-2026-09-24` (`20261124090000`), NOT pushed
+
+- **Current mechanic.** League trophies were unique on (league, golfer, placement, year of `ends_on`), and the award inserted with `on conflict do nothing`. A second season ending in the same calendar year silently dropped the repeat champion's, runner-up's and Points King's trophies, and `career_record` and the trophy case under-counted. Run it back (D243/D375) makes two seasons in one year ordinary.
+- **Decision (proposed).** League trophies are keyed by season (`trophies.season_id`). Existing trophies find their season. The trophies the year key dropped are awarded now, only for seasons with a genuine close post, so no crown written through the pre-S1 direct doors is backfilled into anyone's case.
+- **Principle served.** §14.4/§14.5: every season's result is kept.
+- **Tradeoffs.** A golfer can now hold two "Champion 2026" trophies from one league; the trophy case shows the season on each.
+- **CONFLICT.** None.
