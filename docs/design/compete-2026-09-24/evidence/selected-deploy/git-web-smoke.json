@@ -1,0 +1,75 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "content_type": "text/html; charset=UTF-8",
+    "checked_at": "2026-09-25T02:08:46.914572+00:00",
+    "byte_equal": false,
+    "sha256": "2bb13199b443eceed7ca4a3a59ccacbc8dbc66a221f95259fe5312a666c255cf",
+    "matches_source_after_netlify_pretty_url_normalization": true,
+    "frame_options": "DENY",
+    "content_type_options": "nosniff"
+  },
+  {
+    "path": "/sw.js",
+    "status": 200,
+    "content_type": "application/javascript; charset=UTF-8",
+    "checked_at": "2026-09-25T02:08:47.347678+00:00",
+    "byte_equal": true,
+    "sha256": "27b972a3aa2f4d012807d160fcb40a21a799ef18486a7eadb1a6e35200724372",
+    "cache_control": "no-cache,no-store,must-revalidate"
+  },
+  {
+    "path": "/get",
+    "status": 200,
+    "content_type": "text/html; charset=UTF-8",
+    "checked_at": "2026-09-25T02:08:47.733758+00:00",
+    "byte_equal": false,
+    "sha256": "b3fc7a72b3b611dd1d9b9854749bce6cb212a42a05252516ac5644dc391140f5",
+    "matches_source_after_netlify_pretty_url_normalization": true
+  },
+  {
+    "path": "/support",
+    "status": 200,
+    "content_type": "text/html; charset=UTF-8",
+    "checked_at": "2026-09-25T02:08:48.065507+00:00",
+    "byte_equal": false,
+    "sha256": "0f5ad689a98536ecdd4eb464c6391ceccb3333500bd68a255d75e082da4f3577",
+    "matches_source_after_netlify_pretty_url_normalization": true
+  },
+  {
+    "path": "/legal",
+    "status": 200,
+    "content_type": "text/html; charset=UTF-8",
+    "checked_at": "2026-09-25T02:08:48.502629+00:00",
+    "byte_equal": true,
+    "sha256": "c9800087d119d4e2109a25752e240d8efd44ded569a79b97261785ec5e4e7c81",
+    "matches_source_after_netlify_pretty_url_normalization": true
+  },
+  {
+    "path": "/manifest.webmanifest",
+    "status": 200,
+    "content_type": "application/octet-stream",
+    "checked_at": "2026-09-25T02:08:48.882628+00:00",
+    "valid_json": true
+  },
+  {
+    "path": "/.well-known/apple-app-site-association",
+    "status": 200,
+    "content_type": "application/json",
+    "checked_at": "2026-09-25T02:08:49.326165+00:00",
+    "valid_json": true
+  },
+  {
+    "path": "/CLAUDE.md",
+    "status": 404,
+    "content_type": "text/html; charset=utf-8",
+    "checked_at": "2026-09-25T02:08:49.559191+00:00"
+  },
+  {
+    "path": "/supabase/migrations/20261118090000_the_book.sql",
+    "status": 404,
+    "content_type": "text/html; charset=utf-8",
+    "checked_at": "2026-09-25T02:08:49.936833+00:00"
+  }
+]

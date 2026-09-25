@@ -1,0 +1,190 @@
+{
+  "conclusion": "success",
+  "headSha": "300266e4be55c38515288a6aa2d251a3e13d6a4b",
+  "jobs": [
+    {
+      "completedAt": "2026-09-25T02:06:10Z",
+      "conclusion": "success",
+      "databaseId": 107914281378,
+      "name": "Client invariants",
+      "startedAt": "2026-09-25T02:05:54Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-25T02:05:56Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-25T02:05:55Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:05:59Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-09-25T02:05:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:00Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@v4",
+          "number": 3,
+          "startedAt": "2026-09-25T02:05:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:01Z",
+          "conclusion": "success",
+          "name": "install dev deps",
+          "number": 4,
+          "startedAt": "2026-09-25T02:06:00Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:04Z",
+          "conclusion": "success",
+          "name": "preflight",
+          "number": 5,
+          "startedAt": "2026-09-25T02:06:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:04Z",
+          "conclusion": "success",
+          "name": "sunningdale engine",
+          "number": 6,
+          "startedAt": "2026-09-25T02:06:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:04Z",
+          "conclusion": "success",
+          "name": "unit files",
+          "number": 7,
+          "startedAt": "2026-09-25T02:06:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:04Z",
+          "conclusion": "success",
+          "name": "courses and share consent",
+          "number": 8,
+          "startedAt": "2026-09-25T02:06:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:06Z",
+          "conclusion": "success",
+          "name": "growth report",
+          "number": 9,
+          "startedAt": "2026-09-25T02:06:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:06Z",
+          "conclusion": "success",
+          "name": "build (stamp-version.sh)",
+          "number": 10,
+          "startedAt": "2026-09-25T02:06:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:06Z",
+          "conclusion": "success",
+          "name": "dist stays untracked",
+          "number": 11,
+          "startedAt": "2026-09-25T02:06:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:06Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@v4",
+          "number": 21,
+          "startedAt": "2026-09-25T02:06:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:07Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 22,
+          "startedAt": "2026-09-25T02:06:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:07Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 23,
+          "startedAt": "2026-09-25T02:06:07Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Fischbeck3/cup-season/actions/runs/36084838146/job/107914281378"
+    },
+    {
+      "completedAt": "2026-09-25T02:06:36Z",
+      "conclusion": "success",
+      "databaseId": 107914281516,
+      "name": "Migration hygiene",
+      "startedAt": "2026-09-25T02:06:30Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-25T02:06:31Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-25T02:06:30Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:34Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@v4",
+          "number": 2,
+          "startedAt": "2026-09-25T02:06:31Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:34Z",
+          "conclusion": "success",
+          "name": "no edits to existing migrations",
+          "number": 3,
+          "startedAt": "2026-09-25T02:06:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:34Z",
+          "conclusion": "success",
+          "name": "migration filenames follow YYYYMMDDHHMMSS_slug.sql",
+          "number": 4,
+          "startedAt": "2026-09-25T02:06:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:34Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@v4",
+          "number": 8,
+          "startedAt": "2026-09-25T02:06:34Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-25T02:06:34Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 9,
+          "startedAt": "2026-09-25T02:06:34Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Fischbeck3/cup-season/actions/runs/36084838146/job/107914281516"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/Fischbeck3/cup-season/actions/runs/36084838146"
+}

@@ -1,6 +1,6 @@
 # Selected Compete build · September 24, 2026
 
-The owner selected **Scoreboard for Compete, the Book opening to Weeks, and Race inside the Book**, then explicitly approved normal app code and local, unapplied migration files with “Yes go ahead.” D381 records that authorization. This supersedes the exploration's unchanged-Release and no-migration boundaries for the selected implementation. Work stays on `codex/compete-explorations-2026-09-24` in `/Users/fischbeck3/cup-season-compete-explore`. The owner subsequently requested “Push and deploy,” then excluded TestFlight. The branch is pushed and the database migration is applied. See the current [deployment record](DEPLOYMENT.md) for web status; native distribution is held.
+The owner selected **Scoreboard for Compete, the Book opening to Weeks, and Race inside the Book**, then explicitly approved normal app code and local, unapplied migration files with “Yes go ahead.” D381 records that authorization. This supersedes the exploration's unchanged-Release and no-migration boundaries for the selected implementation. Work stays on `codex/compete-explorations-2026-09-24` in `/Users/fischbeck3/cup-season-compete-explore`. The owner subsequently requested “Push and deploy,” then excluded TestFlight. The branch is pushed, the database migration is applied, and the web implementation is live through Git → Netlify. See the [deployment record](DEPLOYMENT.md); native distribution is held.
 
 ## What is built
 

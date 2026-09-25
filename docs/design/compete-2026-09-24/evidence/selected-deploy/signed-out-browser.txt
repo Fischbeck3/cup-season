@@ -1,0 +1,6 @@
+2026-09-25 02:09 UTC · https://cupseason.app/ · fresh in-app browser tab
+Signed-out screen visible: “Any time. Anywhere.”, “Golf with your people, all season.”, Continue with email, I have a league code.
+Version visible: v23 · 300266e.
+No account sign-in or form submission performed.
+Console errors: none.
+Console warning: Supabase auth-js 2.112.4 reports that the existing lock option is deprecated and will be removed in v3. No startup failure observed.

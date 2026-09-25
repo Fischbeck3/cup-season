@@ -1,6 +1,6 @@
 # Compete, with the competition in view
 
-**Selected and implemented:** the owner approved Scoreboard + the Book's Weeks view, with Race inside the Book, followed by normal app code and a read-contract migration. The branch is now pushed and the database applied; [deployment status](DEPLOYMENT.md) tracks web publishing. TestFlight is held. See [the selected build](SELECTED-BUILD.md) and D381. The proposal and its original captures below are preserved as the exploration record.
+**Selected and implemented:** the owner approved Scoreboard + the Book's Weeks view, with Race inside the Book, followed by normal app code and a read-contract migration. The branch is pushed, the database applied, and the web app deployed through Git → Netlify; [release evidence](DEPLOYMENT.md) records the result. TestFlight is held. See [the selected build](SELECTED-BUILD.md) and D381. The proposal and its original captures below are preserved as the exploration record.
 
 September 24, 2026 · local design study · owner review, not a shipping decision
 

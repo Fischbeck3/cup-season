@@ -1,8 +1,8 @@
 # Cup Season · active work and ownership
 
-## Selected Compete release · 2026-09-24 (Codex) — pushed; database live; web awaiting login
+## Selected Compete release · 2026-09-24 (Codex) — database and web live; TestFlight held
 
-Owner requested “Push and deploy,” then “Not test flight yet.” The owned branch `codex/compete-explorations-2026-09-24` is pushed at code candidate `d9cfe2b`. Production migration `20261118090000_the_book.sql` is applied: **255 total, none pending**, **37/37 production checks pass**, authenticated-only Book execution and home tie fields verified. Netlify's production build passes, including share-preview; **web publication is waiting for Netlify authentication**. TestFlight is held; no ASC, archive, upload, Supabase Edge deployment, main merge or rebase. All repository work stays in `/Users/fischbeck3/cup-season-compete-explore`. [Deployment status and evidence](../design/compete-2026-09-24/DEPLOYMENT.md). Earlier entries below are historical checkpoints.
+Owner requested “Push and deploy,” held TestFlight, then directed the Git deployment path. Remote `main` was fast-forwarded from `1e792793` to release `300266e4`; Netlify published it, verified at **2026-09-25 02:06 UTC** (September 24 in Phoenix). HTML and service worker both read `300266e`; signed-out startup, public routes, headers and the publish boundary pass. GitHub Client invariants/Migration hygiene and Supabase Preview pass. Production migration `20261118090000_the_book.sql` is applied: **255 total, none pending**, **37/37 production checks pass**. TestFlight is held; no ASC, archive, upload or Supabase Edge deployment. No merge commit or rebase; all repository work stays on the owned branch in `/Users/fischbeck3/cup-season-compete-explore`. This release-record follow-up changes documentation/evidence only. [Deployment evidence](../design/compete-2026-09-24/DEPLOYMENT.md). Earlier entries below are historical checkpoints.
 
 ## Compete topo correction · 2026-09-24 (Codex) — local review
 

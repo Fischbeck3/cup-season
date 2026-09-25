@@ -1,6 +1,6 @@
 # Selected Compete build · verification
 
-September 24, 2026. Branch `codex/compete-explorations-2026-09-24`, only in `/Users/fischbeck3/cup-season-compete-explore`. Normal native/web implementation was authorized by the owner and recorded in D381. The owner later authorized push and deployment, then excluded TestFlight. The branch is pushed and the production database is updated. See [deployment status and production checks](DEPLOYMENT.md); the local verification below remains the build/capture record.
+September 24, 2026. Branch `codex/compete-explorations-2026-09-24`, only in `/Users/fischbeck3/cup-season-compete-explore`. Normal native/web implementation was authorized by the owner and recorded in D381. The owner later authorized push and deployment, then excluded TestFlight. The branch is pushed, the production database is updated, and the web app is live through Git → Netlify. See [deployment evidence and production checks](DEPLOYMENT.md); the local verification below remains the build/capture record.
 
 ## Owner topo correction · September 24
 

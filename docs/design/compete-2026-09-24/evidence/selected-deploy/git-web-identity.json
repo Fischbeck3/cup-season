@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://cupseason.app/",
+    "status": 200,
+    "sha": "300266e",
+    "checked_at": "2026-09-25T02:06:33.676485+00:00"
+  },
+  {
+    "url": "https://cupseason.app/sw.js",
+    "status": 200,
+    "sha": "300266e",
+    "checked_at": "2026-09-25T02:06:34.039764+00:00"
+  }
+]
