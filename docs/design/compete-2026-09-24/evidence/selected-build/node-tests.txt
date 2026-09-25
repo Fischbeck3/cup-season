@@ -1,0 +1,237 @@
+✔ a pending claim is sent as the claim, with its token (7.187041ms)
+✔ a pending join is sent as the join, with its code (1.059667ms)
+✔ a claim wins over a join, as on the phone (0.861875ms)
+✔ a direct arrival sends no kind and no token — nothing to attribute (1.304333ms)
+✔ the intents are still pending when the card is saved (4.776ms)
+✔ the phone sends the same three shapes from the same moment (read, not run: native work runs locally) (1.619459ms)
+✔ there is exactly one writer of profiles.came_via_* (80.7135ms)
+Course provider: validation, atomic RPC and normalized payload passed
+(node:69902) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tests/course-provider.test.mjs (173.621917ms)
+✔ null and undefined stay null — a missing fact is never a zero (2.168041ms)
+✔ booleans and other non-numeric types become null, never 0 or 1 (0.403542ms)
+✔ finite numbers pass; NaN and infinities do not (0.085375ms)
+✔ numeric strings are numbers; empty and non-numeric strings are null (0.0585ms)
+✔ integers round from finite numbers only (0.062916ms)
+✔ the hole count: the number said, else the holes listed, else null (0.248125ms)
+✔ review case 1: only Oct 4 logged, 100 downloads, report Nov 1 → unverified, not missed (13.933875ms)
+✔ review case 2: the same row pasted twice is rejected with an actionable message, never summed to 600 (0.877667ms)
+✔ review case 3: 450 through Oct 25 and 100 in the week ending Nov 1 cannot decide Oct 31 (0.480708ms)
+✔ a dated App Analytics reading decides it: met on or before the date, missed on or after (0.734959ms)
+✔ no reading at all: open before the date, unverified after it — never missing-as-zero (0.081042ms)
+✔ a reading dated after the report date is left out and said so (0.076667ms)
+✔ duplicate reading dates are rejected; a falling cumulative blocks every checkpoint (0.177333ms)
+✔ coverage says which weeks are missing; blank is missing, a written 0 is zero (0.192708ms)
+✔ weeks sum across channels; the store count is never summed with TestFlight or web (46.195542ms)
+✔ downloads by channel are subtotals from rows that carry the number, through the report date (1.058416ms)
+✔ a backdated report leaves out later log rows and says how many (1.808375ms)
+✔ only a real calendar date is a date, and a log week ends on a Sunday (0.594333ms)
+✔ mondayOf never throws, and maps a Sunday to its ISO week Monday (0.296834ms)
+✔ a count is digits only — no exponent, hex, sign, decimal or unit (0.294208ms)
+✔ CSV: quoted commas and quotes parse; an unterminated quote and a wrong cell count are reported, not guessed (0.659ms)
+✔ the header must be exact: a missing or repeated column refuses the file (0.478625ms)
+✔ a channel is a lowercase name; blank is unattributed (0.252625ms)
+✔ --store-live is exactly true or false (0.636375ms)
+✔ store-live false with any App Store count is a contradiction, and no checkpoint is judged on it (1.011542ms)
+✔ nothing in the module throws on hostile input (3.395792ms)
+✔ the render labels subtotals, readings and missing weeks, and does not forecast (0.823542ms)
+  PASS  a moment fanned to two leagues is one moment
+  PASS  and the survivor carries BOTH league names
+  PASS  two rounds are two moments, alike or not
+  PASS  a round-less moment folds on its body inside 48h
+  PASS  and does NOT fold outside it
+  PASS  the round is drawn and its moment is not told again
+  PASS  and the survivor is the ROUND, never the line
+  PASS  the slat keeps the gross the line never had
+  PASS  a moment whose round is absent still speaks
+  PASS  a spent round takes its moment with it, and neither returns
+  PASS  a spent round is dropped, and so is the post about it
+  PASS  the unspent round survives
+  PASS  a league note is never a row
+  PASS  four notes across two leagues count as the two notes they are
+  PASS  and print as one line
+  PASS  the line opens the newest note’s board
+  PASS  one league, one note — singular
+  PASS  past two leagues the names become a count
+  PASS  and a nameless league still reads
+  PASS  four buckets, in the wire’s order
+  PASS  and their datelines
+  PASS  six days back is still this week
+  PASS  seven is earlier
+  PASS  a row under TODAY never says Today
+  PASS  inside a group, only the first of a run carries the date
+  PASS  newest first inside a bucket
+  PASS  and the source index rides along for the reaction strip
+  PASS  nothing in, nothing out — and no crash
+  PASS  an undated row files under earlier
+  PASS  and prints no stamp it cannot vouch for
+
+PASS — 30 passed, 0 failed
+✔ tests/homefold.test.mjs (83.927834ms)
+✔ a report date is a real calendar date (179.559125ms)
+✔ a report is never dated ahead of today, except a labelled synthetic run (104.513083ms)
+✔ --synthetic never touches the linked project (33.811208ms)
+✔ the time zone is an IANA zone the runtime knows (118.499ms)
+✔ flags are strict: unknown, repeated, valueless or conflicting flags are refused (328.893125ms)
+✔ a malformed log is reported row by row and the report still renders (49.791625ms)
+✔ the acquisition half obeys the report date and the checkpoint rule, in JSON too (45.364292ms)
+✔ no reading is said as no reading: every checkpoint open or unverified, never a zero (88.257333ms)
+✔ the SQL has one clock: no now(), current_date or current_timestamp anywhere (1.131584ms)
+  PASS  no record: mint, freeze, write, send
+  PASS  a record that cannot be read STOPS — it is never minted over
+  PASS  a record without an envelope keeps its id: this card is sent under it
+  PASS  an accepted record finishes the intent
+  PASS  an accepted record finishes even over an edited card — the edit is a correction elsewhere
+  PASS  the same card replays the frozen envelope
+  PASS  the photo path is an upload output and does not make it a different card
+  PASS  a different gross under an unresolved id is an AMENDMENT under the same id
+  PASS  a changed partner list is an amendment
+  PASS  hole scores are part of the envelope
+  PASS  there is no plan that rotates the id
+  PASS  matching is by value, not by key or partner order
+  PASS  nothing matches nothing
+  PASS  two golfers, two records
+  PASS  a signed-out key never collides with an account
+  PASS  the draft key is per golfer
+  PASS  my own recent draft restores
+  PASS  another golfer’s draft is never shown
+  PASS  a legacy unowned draft is OFFERED, not shown or deleted
+  PASS  a day-old draft with nothing pending ages out
+  PASS  a day-old draft behind a PENDING post attempt is its recovery envelope and never ages out
+  PASS  the stamped date alone is not a draft
+  PASS  no draft, nothing to do
+  PASS  a Major with a stake says the stake and the ledger
+  PASS  a free Ryder says no buy-in and no ledger
+  PASS  an older server gives no terms — and no terms is no door
+  PASS  a Major is titled a Major
+  PASS  an unnamed one is not guessed into a Ryder
+  PASS  a league is a league
+  PASS  the gross is one of the typed fields
+  PASS  inF9 is one of the typed fields
+  PASS  inB9 is one of the typed fields
+  PASS  inRating is one of the typed fields
+  PASS  inSlope is one of the typed fields
+  PASS  inCourse is one of the typed fields
+  PASS  the date is NOT typed work — a stamp is the machine’s
+  PASS  the saved fields are the typed ones plus the date
+  PASS  and the date is saved
+  PASS  a gross-only card is work — this is the R2 reproduction, as an assertion
+  PASS  the stamped date alone is not work
+  PASS  a date the golfer chose is work
+  PASS  a touched grid is work
+  PASS  inGross alone is work
+  PASS  inF9 alone is work
+  PASS  inB9 alone is work
+  PASS  inRating alone is work
+  PASS  inSlope alone is work
+  PASS  inCourse alone is work
+
+48 passed, 0 failed
+✔ tests/post-request.test.mjs (91.715916ms)
+  PASS  zero fills nothing
+  PASS  five fills five whole stars and no gap after the last
+  PASS  four and a half is four whole steps plus half a GLYPH
+  PASS  half a star is half the first glyph
+  PASS  above five clamps to five
+  PASS  below zero clamps to zero
+  PASS  nothing clamps to zero
+  PASS  a rail with no `rate` is a picture and is hidden from the reader
+  PASS  and it carries no target at all
+  PASS  a rail with `rate` is a control and is NOT hidden
+  PASS  ten half-star targets, one per half
+  PASS  the first target is half a star and the last is five — a rail cannot be dragged to zero
+  PASS  and each target says its own value, singular at one
+  PASS  both draw at the same size
+  PASS  and only the outline tone differs
+  PASS  the unrated rail says so in a class, not in a size
+  PASS  no gold on the rail at 0
+  PASS  no gold on the rail at 0.5
+  PASS  no gold on the rail at 2.5
+  PASS  no gold on the rail at 4.5
+  PASS  no gold on the rail at 5
+
+PASS — 21 passed, 0 failed
+✔ tests/rating.test.mjs (77.699375ms)
+PASS actual RPC fixtures reconcile in both clients
+PASS wrong season, stale version and truncated cells fail visibly
+PASS small tied field stays equal and uses Rounds & points
+PASS multiple receipts and dropped rounds are retained
+PASS contribution filter keeps the selected squad adjustments
+PASS outside-week points do not become a fabricated race
+PASS negative running totals and earlier peaks fit the race
+PASS names and reasons are escaped, and the Book contains no pot fields
+8 Book checks passed
+✔ tests/season-book.test.mjs (124.073833ms)
+✔ opt-out retires a photo-bearing PNG even when no JPEG exists (4.933292ms)
+✔ failList cannot share the old token after an opt-out (0.601333ms)
+✔ failRemove cannot share the old token after an opt-out (0.742ms)
+✔ failRevoke cannot share the old token after an opt-out (0.528917ms)
+✔ a fresh photo-less share keeps its token (0.3955ms)
+✔ explicit revoke deletes both public copies before retiring the token (1.133667ms)
+✔ client deployed before PNG policy support cannot share an old token (0.303833ms)
+✔ opting out clears a previous decoded image without mutating the source round (0.961625ms)
+PASS — 27 assertions
+✔ tests/sunningdale.test.mjs (84.393208ms)
+  PASS  every trophy row is hardware
+  PASS  the Ryder is hardware
+  PASS  a non-trophy kind is never hardware
+  PASS  sub_100 is a best
+  PASS  sub_90 is a best
+  PASS  sub_80 is a best
+  PASS  personal_best is a best
+  PASS  low_round is a best
+  PASS  most_improved is a best
+  PASS  first_round is along the way
+  PASS  streak_4 is along the way
+  PASS  streak_8 is along the way
+  PASS  streak_12 is along the way
+  PASS  an unknown kind falls to the quiet shelf
+  PASS  a null kind falls to the quiet shelf
+  PASS  hardware draws at 44pt
+  PASS  a best draws at 28pt
+  PASS  the quiet shelf draws at 28pt
+  PASS  a Cup outranks a broken 80
+  PASS  the three heads
+  PASS  a date is a month and a day
+  PASS  the first of the month is not the last of the one before
+  PASS  a timestamp is cut to its date
+  PASS  nothing produces nothing
+  PASS  a null date produces nothing
+  PASS  an unparseable date produces nothing, never NaN
+  PASS  the round in hand names its course
+  PASS  no round in hand keeps the figure and the date
+  PASS  no figure anywhere leaves the date alone
+  PASS  no figure and no date is nothing at all
+  PASS  no date at all is the figure alone
+  PASS  the round outranks the snapshot
+  PASS  a personal best keeps the house name for its figure
+  PASS  a personal best never borrows the threshold's sentence
+  PASS  and the two never read the same on one round
+  PASS  no round id, no round
+  PASS  an id with nothing behind it is null, not undefined
+  PASS  the id finds its round
+  PASS  the id is compared as a string
+  PASS  four marks
+  PASS  and each one is a mark the case really draws
+  PASS  the threshold carries its numeral, so it is a mark and not a shape
+  PASS  no dingbat in the empty (§5.2)
+  PASS  low_round keeps its mark
+  PASS  most_improved keeps its mark
+  PASS  and both would land on BESTS the day one fires
+  PASS  most improved is a scoring award, not a participation one
+  PASS  no two achievements share a glyph
+  PASS  ten kinds are mapped
+  PASS  only a BESTS slat carries a round id into the cell
+  PASS  and the door is that id
+
+PASS — 51 passed, 0 failed
+✔ tests/trophycase.test.mjs (86.852583ms)
+ℹ tests 58
+ℹ suites 0
+ℹ pass 58
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1063.239458

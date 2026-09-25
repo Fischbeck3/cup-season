@@ -1,0 +1,19 @@
+Test Case '-[CupSeasonUITests.SeasonBookUITests testAccessibilityUsesWeekPickerAndRaceCanBeSelected]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testAccessibilityUsesWeekPickerAndRaceCanBeSelected]' passed (9.553 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealMatrixFreezesNamesAndOpensIncludedAndDroppedReceipts]' started.
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealMatrixFreezesNamesAndOpensIncludedAndDroppedReceipts]' passed (9.650 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealRootUsesTheSameTieAndOpensTheBookDoor]' started.
+/Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/SeasonBookUITests.swift:28: error: -[CupSeasonUITests.SeasonBookUITests testRealRootUsesTheSameTieAndOpensTheBookDoor] : XCTAssertTrue failed
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealRootUsesTheSameTieAndOpensTheBookDoor]' failed (10.833 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead]' started.
+/Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/SeasonBookUITests.swift:18: error: -[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead] : XCTAssertTrue failed
+Test Case '-[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead]' failed (18.672 seconds).
+	 Executed 9 tests, with 2 failures (0 unexpected) in 99.686 (99.696) seconds
+	 Executed 9 tests, with 2 failures (0 unexpected) in 99.686 (99.698) seconds
+** TEST FAILED **
+
+/Users/fischbeck3/cup-season-compete-explore/apps/ios/CupSeasonUITests/SeasonBookUITests.swift:20:51: error: value of type 'XCUIElement' has no member 'count'
+   |                                                  `- error: value of type 'XCUIElement' has no member 'count'
+Testing failed:
+
+Cold-start run interrupted before tests; full log: /private/tmp/cs-season-book-work/native-tests-stalled.log

@@ -1,0 +1,3 @@
+** BUILD SUCCEEDED **
+Final source: f5f2a5db
+Full log: /private/tmp/cs-season-book-work/debug-tint-final.log

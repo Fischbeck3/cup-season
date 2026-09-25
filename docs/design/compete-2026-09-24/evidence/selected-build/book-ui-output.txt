@@ -1,0 +1,28 @@
+The new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.
+If you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.
+
+Check https://github.com/supabase/supabase-swift/pull/822 for more information.
+    t =     3.34s Waiting 15.0s for "seasonBook.title" StaticText to exist
+    t =     4.41s     Checking `Expect predicate `existsNoRetry == 1` for object "seasonBook.title" StaticText`
+    t =     4.42s         Checking existence of `"seasonBook.title" StaticText`
+    t =     4.48s Find the "seasonBook.title" StaticText
+    t =     4.50s Checking existence of `"seasonBook.mode" SegmentedControl`
+    t =     4.51s Get number of matches for: Elements matching predicate '"1st · Tied" IN identifiers'
+    t =     4.52s Tear Down
+Test Case '-[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead]' passed (4.738 seconds).
+Test Suite 'SeasonBookUITests' passed at 2026-09-24 17:01:23.169.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 32.803 (32.807) seconds
+Test Suite 'CupSeasonUITests.xctest' passed at 2026-09-24 17:01:23.170.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 32.803 (32.809) seconds
+Test Suite 'Selected tests' passed at 2026-09-24 17:01:23.170.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 32.803 (32.810) seconds
+2026-09-24 17:01:23.591 xcodebuild[72218:22797413] [MT] IDETestOperationsObserverDebug: 41.748 elapsed -- Testing started completed.
+2026-09-24 17:01:23.591 xcodebuild[72218:22797413] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-24 17:01:23.591 xcodebuild[72218:22797413] [MT] IDETestOperationsObserverDebug: 41.748 sec, +41.748 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/cs-season-book-work/BookFinal.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

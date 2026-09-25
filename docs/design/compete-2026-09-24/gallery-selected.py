@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Publish the local selected-build gallery without altering exploration evidence."""
+import hashlib,html,json,shutil
+from pathlib import Path
+root=Path(__file__).resolve().parents[3];gallery=Path.home()/'cup-season-compete-explorations-review';out=gallery/'selected'
+rows=[]
+for phone,count in [('standard',28),('small',8)]:
+ shots=json.loads((out/f'manifest-{phone}.json').read_text());assert len(shots)==count
+ for r in shots:assert hashlib.sha256((out/r['file']).read_bytes()).hexdigest()==r['sha256']
+ rows+=shots
+assert len({r['source'] for r in rows})==1
+source=rows[0]['source'];assert len({r['file'] for r in rows})==36
+labels={'root-tie':'Compete · shared 41-point lead','root-multi':'Compete · several seasons','season-squads':'Season room · squads','weeks-squads':'The Book · squad weeks','weeks-golfers':'The Book · 16 golfers','totals':'Cumulative totals','race':'Points counting today','receipt':'Included and dropped round receipts','small-tie':'Small league · Rounds & points','upcoming':'Before first tee','finished':'Completed · current-rule provenance'}
+body=[]
+for title,match in [('Scoreboard',lambda r:r['surface'].startswith('root') or r['surface']=='season-squads'),('the Book',lambda r:not r['surface'].startswith('root') and r['surface']!='season-squads')]:
+ body.append('<section><h2>'+title+'</h2><div class="grid">')
+ for r in filter(match,rows):
+  body.append('<figure data-phone="'+r['phone']+'" data-printing="'+r['printing']+'" data-type="'+r['type']+'"><a href="'+r['file']+'"><img loading="lazy" src="'+r['file']+'" alt="'+html.escape(labels[r['surface']]+', '+r['phone']+', '+r['printing']+', '+r['type'])+'"></a><figcaption><b>'+labels[r['surface']]+'</b><br>'+r['phone']+' · '+r['printing']+' · '+r['type']+'</figcaption></figure>')
+ body.append('</div></section>')
+page='''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Selected build · Scoreboard + the Book</title><style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;padding:32px;background:#0F1A15;color:#F1F4EF;font:16px/1.5 system-ui}main{max-width:1280px;margin:auto}h1{font-size:clamp(32px,5vw,56px);line-height:1.1}h2{font-size:28px;margin-top:48px}a{color:inherit}p{max-width:850px;color:#9BA69D}nav{display:flex;gap:24px;flex-wrap:wrap;border-block:1px solid #4A6155;padding:16px 0}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:24px;align-items:start}figure{margin:0}img{width:100%;height:auto;display:block;border:1px solid #4A6155}figcaption{padding-top:12px;font-size:13px;color:#9BA69D}figcaption b{color:#F1F4EF}.filters{display:flex;gap:16px;flex-wrap:wrap;margin:24px 0}select{background:#1A2620;color:#F1F4EF;min-height:44px;border:1px solid #4A6155;padding:8px;font:inherit}.desktop{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:700px){body{padding:20px}.desktop{grid-template-columns:1fr}}figure[hidden]{display:none}
+</style><main><p>SEPTEMBER 24, 2026 · BUILT LOCALLY · FIXTURES ONLY</p><h1>Scoreboard + the Book</h1><p>The selected implementation: a louder points board, the whole season in Weeks, Totals and Race, and a receipt behind every total. These are the actual native renderers. No production account or deployment was used.</p><nav><a href="../index.html#compare">Original three directions</a><a href="web.html">Try the disconnected web build</a><a href="SELECTED-BUILD.md">Build and read contract</a><a href="SELECTED-VERIFICATION.md">Checks and limitations</a></nav><p>36 new simulator captures · iPhone 17 Pro and SE · both printings · accessibility AX3 on the standard phone. Source <code>'''+source[:8]+'''</code>. Tap a capture for the unedited PNG. The original 564 exploration captures remain unchanged.</p><div class="filters"><label>Phone <select id="phone"><option value="">Both</option><option>standard</option><option>small</option></select></label><label>Printing <select id="printing"><option value="">Both</option><option>dark</option><option>light</option></select></label><label>Text <select id="type"><option value="">Both</option><option>default</option><option>ax3</option></select></label></div>'''+''.join(body)+'''<section><h2>At the desk</h2><p>The same read in a wide matrix with receipts beside it. These browser captures use real web rendering functions with a disconnected synthetic RPC. The native simulator captures above are separate.</p><div class="desktop"><figure><a href="web-light-receipt.png"><img src="web-light-receipt.png" alt="Desktop Book matrix and named receipts"></a><figcaption>Light · matrix and named receipts</figcaption></figure><figure><a href="web-light-race.png"><img src="web-light-race.png" alt="Desktop running points race"></a><figcaption>Light · running points included today</figcaption></figure></div></section></main><script>for(const id of ['phone','printing','type'])document.getElementById(id).onchange=()=>{for(const f of document.querySelectorAll('figure[data-phone]'))f.hidden=['phone','printing','type'].some(k=>document.getElementById(k).value&&f.dataset[k]!==document.getElementById(k).value);};</script></html>'''
+(out/'index.html').write_text(page)
+for name in ['SELECTED-BUILD.md','SELECTED-VERIFICATION.md']:shutil.copyfile(root/'docs/design/compete-2026-09-24'/name,out/name)
+index=gallery/'index.html';s=index.read_text();banner='<p id="selected-build-link" style="padding:20px;border-bottom:1px solid currentColor"><a href="selected/index.html">Selected build: Scoreboard + the Book · 36 new simulator captures →</a></p>'
+if 'id="selected-build-link"' not in s:
+ if '<body>' in s:s=s.replace('<body>','<body>'+banner,1)
+ else:s=s.replace('</style>','</style>'+banner,1)
+index.write_text(s)
+evidence=root/'docs/design/compete-2026-09-24/evidence';(evidence/'selected-build-captures.json').write_text(json.dumps(rows,indent=2)+'\n')
+print('Verified 36 capture hashes from '+source+'; wrote '+str(out/'index.html'))

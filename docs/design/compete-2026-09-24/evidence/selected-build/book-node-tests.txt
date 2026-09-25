@@ -1,0 +1,9 @@
+PASS actual RPC fixtures reconcile in both clients
+PASS wrong season, stale version and truncated cells fail visibly
+PASS small tied field stays equal and uses Rounds & points
+PASS multiple receipts and dropped rounds are retained
+PASS contribution filter keeps the selected squad adjustments
+PASS outside-week points do not become a fabricated race
+PASS negative running totals and earlier peaks fit the race
+PASS names and reasons are escaped, and the Book contains no pot fields
+8 Book checks passed

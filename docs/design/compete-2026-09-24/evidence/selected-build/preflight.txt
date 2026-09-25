@@ -1,0 +1,71 @@
+  PASS  version placeholders — index 4 · sw 1
+  PASS  rpc grant coverage — 148 client RPCs all granted
+  PASS  window.* bridge coverage — 414 bridged names all assigned
+  PASS  sw shell within dist allowlist — 4 assets
+  PASS  otp maxlength — no code input below 8
+  PASS  script blocks parse — 4 blocks clean
+  PASS  html helper params escaped — every HTML template helper escapes its parameters (1 reviewed exception)
+  PASS  dist allowlist files exist — 13 files
+  PASS  aasa universal links — 3F7BK4WVH8.app.cupseason.ios
+  PASS  design tokens single-source — 83 tokens agree with the client
+  PASS  rpc exists in database — 148 client RPCs, 275 in the snapshot
+  PASS  native palette purity — apps/mobile absent — skipped
+  PASS  native otp discipline — apps/mobile absent — skipped
+  PASS  native rpc grants — apps/mobile absent — skipped
+  PASS  swift palette purity — 468 files; every colour is a token or a web-verbatim conversion
+  PASS  swift otp discipline — auth routed through SupabaseService
+  PASS  swift rpc grants — 156 phone RPCs, all granted
+  PASS  free identifiers — 4 blocks, no undeclared name (self-test ok)
+  PASS  join paths carry consent — 5 join path(s), 5 covenant gate(s)
+  PASS  stage vocabulary shared — 6 stages agree across both clients
+  PASS  postgrest embeds name their FK — live_round_players embeds are disambiguated
+  PASS  nobody stamps their own platform — 468 Swift file(s) + index.html — one stamp per client
+  PASS  the declared fallback exists — HomeFallbackItems is in the Home target and Home calls it
+  PASS  every nav destination resolves — 7 nav item(s) + 5 alias(es) → live panes
+  PASS  report and block survive the redesign — 3 phone surface(s) + 2 web page(s) reach P-17
+  PASS  the anon surface is exactly twelve — 12 function(s), and CLAUDE.md names the same 12
+  PASS  one vocabulary, one lint per law — 43 laws · 351 Swift file(s) + index.html + 269 live SQL definitions
+  PASS  one band table, three renderers — 12 case(s) · SQL, CSBands and bandName() agree
+  PASS  no unresolvable RPC overload — 276 function name(s) after the pending push · score_round, lock_league and declare_round are the three this would have caught
+  PASS  one epilogue table, two clients — 8 milestone(s) agree, and no two say the same thing
+  PASS  the 11px floor holds — 67 grandfathered rule(s), and no new one
+  PASS  one worth-of-a-round producer, three renderers — RoundWorth.gain · csRoundWorth · public.round_worth
+  PASS  the phone holds the 11pt floor — 13 type role(s), every face resolves, no sheet pinned to a height
+  PASS  one easing, and reduced motion rests on the frame — CSMotion on the phone · a backstop and no overshoot on the web
+  PASS  the two clients agree on the five words — 5 slot(s) × the sidebar and the bar
+  PASS  one Home-state fixture set, and none of it ships — 15 state(s) · generated for the phone, fetched by the web, absent from dist
+  PASS  the gloss says playing HCP, the five bands do not — 371 Swift file(s) + index.html + the live SQL generators · 5 band(s) held to spec §2.2
+  PASS  the bag says one sentence on both clients — 5 fragment(s) × 2 producer(s) · cap 14 on both
+  PASS  LINT-05 · every radius is one of the five — 99 at baseline, and none new · r 16 · rc 10 · rs 24 · p 3 · rx 28
+  PASS  LINT-01 · no face named by string outside the type file — zero, and held there · CSType holds the four names, read from the files’ own name table
+  PASS  LINT-03 · no bare system font outside the type file — 38 at baseline, and none new · nine roles, fourteen symbols — no surface may name a size
+  PASS  LINT-04 · no colour invented in Swift — zero, and held there · every value comes from tokens.json; the three DEBUG fixtures are exempt by name
+  PASS  LINT-09 · no border outside the four outlines the system allows — 23 at baseline, and none new · focus ring · face ring · leaf edge (light) · the scorecard marks
+  PASS  LINT-10 · no container shape drawn outside CSDesign — 252 at baseline, and none new · band · rule · rail · panel · leaf · object — on both clients
+  PASS  LINT-12 · no emoji on a shared surface — 35 at baseline, and none new · AP-5 as amended · a mark others see is drawn · the epilogue and a golfer’s own typed text may be a glyph
+  PASS  LINT-13 · no typed arrow in a produced string — zero, and held there · movement is a drawn mark; a link’s arrow is absorbed into its underline
+  PASS  BRAND-01 · the door and the head say what CS_BRAND says — zero, and held there · edit CS_BRAND and the markup together
+  PASS  BRAND-02 · a look styles the action, never the signal — give the look its own colour; ember, gold, pos/neg, ink and the ground are roles
+  PASS  LINT-14 · case is a role’s job, never a string’s — 140 at baseline, and none new · .textCase(.uppercase) is the one way
+  PASS  LINT-22 · no spinner inside content — zero, and held there · loading is the destination’s own geometry, redacted
+  PASS  LINT-25 · one dismiss verb, and it is Close — zero, and held there · Close, a toolbar tertiary at topBarTrailing, never ember
+  PASS  LINT-28 · the pennant is reserved — the tab band and the app icon, and nowhere else
+  PASS  LINT-29 · `dim` is never a word — zero, and held there · dimText is the tier that passes AA
+  PASS  LINT-30 · nothing new is written against a retired component — zero, and held there · band · rule · panel · leaf · CSFigure · CSEmpty · CSRule · the three ButtonStyles
+  PASS  LINT-31 · every face is keyed to a golfer, not to a glyph — zero, and held there · Waves 1, 3 and 8 plumb the id through the four rows that lack it
+  PASS  one credential, two clients — CSCredential + csCredentialHtml · one identity line, no est. · one contour seed · no wash
+  PASS  one settlement card, two clients — the ceremony ramp on both canvases · no typed hex on the phone · Charter retired
+  PASS  LINT-06 · every space is one of the ten — 1192 left of 1193 — lower the baseline to 1192 in this commit · s1 4 · s2 8 · s3 12 · s4/gutter 20 · s5 32 · desk 40 · rail 44 · s6 52 · hair 1
+  PASS  LINT-07 · one tracking call site, and it multiplies — 201 at baseline, and none new · tracking is a ratio of the scaled size — CSType is the one call site, and the desk’s nine are the track group
+  PASS  LINT-11 · gold never touches a control — zero, and held there · the rail, the leaf’s earned rule and the pot — never a button’s chrome
+  PASS  LINT-19 · a panel holds a figure, never a sentence — zero, and held there · more than 12 characters, or a space, and it is a card again
+  PASS  LINT-20 · a leaf always holds a grid — zero, and held there · the receipt, the scorecard and the ledger — never a paragraph
+  PASS  LINT-21 · every empty state has a door — zero, and held there · primary · link · elsewhere, and the compiler enforces it
+  PASS  LINT-23 · the ledger line is one constant, and one form — zero, and held there · MoneyCopy.ledger on the phone · CS_LEDGER on the desk · 4 standalone printing(s), all agateS
+  PASS  LINT-24 · a pushed screen names itself once — zero, and held there · CSPageHeader is the name; navigationTitle("") is the answer
+  PASS  LINT-26 · a round’s photograph is never an avatar — zero, and held there · the ladder’s top rung is credited and full-bleed, not cropped to 38pt
+  PASS  LINT-27 · the design’s own copy uses the shipped vocabulary — 26 at baseline, and none new · 4696 specimen(s) across UI_SYSTEM, 7 surface specs and 8 mockup(s)
+  PASS  new tables state their grants — 9 migration(s) since the rule: every created table revokes before it grants
+  PASS  every check in §17 has something behind it — 29 declared · 25 grepped here · 6 carried by a test
+
+PASS — 0 failure(s), 0 warning(s)

@@ -1,0 +1,37 @@
+    t =     6.57s         Checking existence of `"seasonBook.title" StaticText`
+    t =     6.61s Find the "seasonBook.title" StaticText
+    t =     6.62s Tear Down
+Test Case '-[CupSeasonUITests.SeasonBookUITests testRealRootUsesTheSameTieAndOpensTheBookDoor]' passed (6.851 seconds).
+Test Case '-[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead]' started.
+    t =     0.00s Start Test at 2026-09-24 16:56:15.353
+    t =     0.03s Set Up
+    t =     0.03s Open app.cupseason.ios
+    t =     0.04s     Launch app.cupseason.ios
+    t =     0.04s         Terminate app.cupseason.ios:70487
+2026-09-24 16:56:16.495 xcodebuild[70045:22775832] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-09-24 16:56:16.495 xcodebuild[70045:22775832] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.36s         Setting up automation session
+    t =     2.10s         Wait for app.cupseason.ios to idle
+<unknown>:0: warning: -[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead] : Initial session emitted after attempting to refresh the local stored session.
+This is incorrect behavior and will be fixed in the next major release since it's a breaking change.
+To opt-in to the new behavior now, set `emitLocalSessionAsInitialSession: true` in your AuthClient configuration.
+The new behavior ensures that the locally stored session is always emitted, regardless of its validity or expiration.
+If you rely on the initial session to opt users in, you need to add an additional check for `session.isExpired` in the session.
+
+Check https://github.com/supabase/supabase-swift/pull/822 for more information.
+    t =     3.48s Waiting 15.0s for "seasonBook.title" StaticText to exist
+    t =     4.55s     Checking `Expect predicate `existsNoRetry == 1` for object "seasonBook.title" StaticText`
+    t =     4.55s         Checking existence of `"seasonBook.title" StaticText`
+    t =     4.61s Find the "seasonBook.title" StaticText
+    t =     4.62s Checking existence of `"seasonBook.mode" SegmentedControl`
+    t =     4.63s Get number of matches for: Elements matching predicate '"1st · Tied" IN identifiers'
+    t =     4.64s Tear Down
+Test Case '-[CupSeasonUITests.SeasonBookUITests testSmallTieUsesTwoEqualPointsRanksAndTheCompactRead]' passed (4.861 seconds).
+Test Suite 'SeasonBookUITests' passed at 2026-09-24 16:56:20.214.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 34.033 (34.038) seconds
+Test Suite 'CupSeasonUITests.xctest' passed at 2026-09-24 16:56:20.216.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 34.033 (34.040) seconds
+Test Suite 'Selected tests' passed at 2026-09-24 16:56:20.216.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 34.033 (34.042) seconds
+
+All four tests finished; xcodebuild did not finalize its report after several minutes. Interrupted only the owned xcodebuild process, then reran with diagnostic collection disabled. Full log: /private/tmp/cs-season-book-work/native-book-tint-final.log

@@ -1,0 +1,13 @@
+2026-09-24 16:40:43.972 appintentsmetadataprocessor[65223:22734269] warning: Metadata extraction skipped, no AppIntents.framework dependency found
+Test Suite 'All tests' started at 2026-09-24 16:40:49.875.
+Test Suite 'CupSeasonKitTests.xctest' started at 2026-09-24 16:40:49.878.
+Test Suite 'RoundScorecardTests' started at 2026-09-24 16:40:49.878.
+Test Suite 'RoundScorecardTests' passed at 2026-09-24 16:40:49.945.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.023 (0.067) seconds
+Test Suite 'CupSeasonKitTests.xctest' passed at 2026-09-24 16:40:49.946.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.023 (0.068) seconds
+Test Suite 'All tests' passed at 2026-09-24 16:40:49.946.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.023 (0.071) seconds
+✔ Test run with 1245 tests in 202 suites passed after 0.923 seconds.
+** TEST SUCCEEDED **
+Full log: /private/tmp/cs-season-book-work/kit-final.log

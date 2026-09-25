@@ -1,0 +1,6 @@
+Local test evidence: /private/tmp/cs-season-book-final-VWGLma
+squads 36 rows 257117 bytes 10599 gzip bytes 59 ms
+tie 2 rows 12804 bytes 1368 gzip bytes 20 ms
+upcoming 16 rows 19420 bytes 1008 gzip bytes 19 ms
+finished 16 rows 85350 bytes 4091 gzip bytes 31 ms
+PASS: membership isolation, role grants, all cells and totals, adjustment scope/date, duplicate-week receipts, drops, ties, finished provenance and native_home parity
