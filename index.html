@@ -9689,9 +9689,120 @@ window.CS_SHARE_PHOTO_INCLUDE = CS_SHARE_PHOTO_INCLUDE; window.CS_SHARE_PHOTO_FI
    in demo (callers gate) — the diorama publishes nothing.
    W2 · `opts` for a ROUND: { includePhoto, cardBlob } — the golfer's answer and
    the card that goes into the message; the card and the link leave together. */
+/* D385 §5 · DELIVERY IS WHAT HAPPENED, not what was minted. One hand-off for
+   every link: the system sheet when the browser has one (`shared` on success,
+   `cancelled` on the golfer's own cancel), else the clipboard (`copied` only
+   when the write resolved), else the link shown in a sheet to copy by hand
+   (`shown`). Nothing here claims "copied" or "sent" that did not happen. */
+async function csDeliverLink({ text, url, cardFile, cardBlob, kindLabel }){
+  if(cardFile && navigator.canShare && navigator.canShare({ files:[cardFile] })){
+    try{ await navigator.share({ files:[cardFile], text: (text ? text + ' ' : '') + url }); return 'shared'; }
+    catch(e){ if(e && e.name==='AbortError') return 'cancelled'; }
+  }
+  if(navigator.share){
+    try{ await navigator.share({ title:'Cup Season', text, url }); return 'shared'; }
+    catch(e){ if(e && e.name==='AbortError') return 'cancelled'; }
+  }
+  let copied = false;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    try{ await navigator.clipboard.writeText((text ? text + ': ' : '') + url); copied = true; }catch(_){ copied = false; }
+  }
+  let downloaded = false;
+  if(cardFile && cardBlob){
+    try{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(cardBlob); a.download='cup-season-round.png'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+      downloaded = true;
+    }catch(_){ downloaded = false; }
+  }
+  if(copied){
+    toast(downloaded ? 'Link copied · card downloaded — no account needed to view it' : 'Link copied — no account needed to view it');
+    return 'copied';
+  }
+  /* no clipboard, or the browser refused it: the link is SHOWN, never claimed as copied */
+  openSheet('Your ' + (kindLabel || 'link'), 'COPY IT TO SEND IT',
+    `<input class="f" id="csLinkShown" readonly value="${esc(url)}" style="font-family:var(--mono);font-size:13px" onfocus="this.select()">`
+    + (downloaded ? '<p class="fine">The card was downloaded too.</p>' : '')
+    + '<p class="fine">No account is needed to open it.</p>');
+  setTimeout(() => document.getElementById('csLinkShown')?.select(), 50);
+  return 'shown';
+}
+window.csDeliverLink = csDeliverLink;
+
+/* D385 §3–§5 · ONE SHARE, ONE ATTEMPT (docs/planning/2026-09-24-share-cleanup-contract.md,
+   Codex's native contract). The server decides reuse vs a new link from the
+   recorded consent; copies are uploaded only for a link it just made; the
+   golfer's real outcome is acknowledged, so a cancelled sheet retires only what
+   this attempt minted and never a link someone already has. An acknowledgement
+   that did not reach the server is kept and retried on the next load; if the
+   page dies before it knows the outcome, the server's lease reclaims the link. */
+const CS_SHARE_ACKS = 'cs_share_acks';
+function csShareAcks(){ try{ return JSON.parse(localStorage.getItem(CS_SHARE_ACKS) || '[]'); }catch(_){ return []; } }
+function csShareAcksSet(list){ try{ localStorage.setItem(CS_SHARE_ACKS, JSON.stringify(list.slice(-20))); }catch(_){ } }
+async function csFinishShare(attempt, completed){
+  csShareAcksSet([...csShareAcks().filter(a => a.attempt !== attempt), { attempt, completed }]);
+  try{
+    const { error } = await sb.rpc('finish_round_share', { p_attempt: attempt, p_completed: completed });
+    if(!error) csShareAcksSet(csShareAcks().filter(a => a.attempt !== attempt));
+    return !error;
+  }catch(_){ return false; }
+}
+async function csRetryShareAcks(){
+  if(!window.sb || !window.CS?.user) return;
+  for(const a of csShareAcks()) await csFinishShare(a.attempt, !!a.completed);
+}
+window.csRetryShareAcks = csRetryShareAcks;
+async function csShareRoundLink(ref, text, opts){
+  const attempt = (crypto.randomUUID ? crypto.randomUUID() : null);
+  if(!attempt) return null;   /* no attempt id: the legacy path below */
+  const prep = await sb.rpc('prepare_round_share', { p_round: ref, p_include_photo: !!opts.includePhoto, p_attempt: attempt });
+  if(prep.error){
+    if(csMissingFn(prep.error)) return null;   /* an older database: the legacy path */
+    toast(humanError(prep.error, 'Could not make the link.'));
+    return 'error';
+  }
+  const tok = prep.data?.token, created = !!prep.data?.created, withPhoto = !!prep.data?.include_photo;
+  if(!tok){ toast('Could not make the link.'); return 'error'; }
+  if(created){
+    /* the copies belong to the NEW link only; a reused link keeps its original artifact */
+    try{
+      if(opts.cardBlob){
+        const up = await sb.storage.from('shared').upload(tok + '.png', opts.cardBlob, { contentType:'image/png', upsert:false });
+        if(up.error && !/exists|duplicate/i.test(up.error.message||'')) throw up.error;
+      }
+      if(withPhoto){
+        const { data: rr } = await sb.from('rounds').select('photo_path').eq('id', ref).maybeSingle();
+        if(rr?.photo_path){
+          const { data: sg } = await sb.storage.from('media').createSignedUrl(rr.photo_path, 60);
+          if(sg?.signedUrl){
+            const blob = await (await fetch(sg.signedUrl)).blob();
+            const jpg = await window.compressPhoto(blob, 1600, .8);
+            const up = await sb.storage.from('shared').upload(tok + '.jpg', jpg, { contentType:'image/jpeg', upsert:false });
+            if(up.error && !/exists|duplicate/i.test(up.error.message||'')) throw up.error;
+          }
+        }
+      }
+    }catch(e){ try{ console.warn('[share round] link ships without its copies:', e.message||e); }catch(_){} }
+  }
+  const url = location.origin + '/?share=' + tok;
+  const cardFile = opts.cardBlob ? new File([opts.cardBlob], 'cup-season-round.png', { type:'image/png' }) : null;
+  const how = await csDeliverLink({ text, url, cardFile, cardBlob: opts.cardBlob, kindLabel: 'round link' });
+  const delivered = how !== 'cancelled';
+  await csFinishShare(attempt, delivered);
+  if(delivered) growthEvent('artifact_shared', 'share', tok, null, window.CS?.league?.id);
+  return how;
+}
+
 async function csShareLink(kind, ref, text, card, opts){
   if(!window.sb || !ref){ toast('Sharing needs your real league'); return; }
   opts = opts || {};
+  if(kind === 'round'){
+    try{
+      const how = await csShareRoundLink(ref, text, opts);
+      if(how) return;          /* handled — shared, copied, shown, cancelled or refused */
+    }catch(e){ toast(humanError(e, 'Could not make the link.')); return; }
+  }
   try{
     let { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
     if(error) throw error;
@@ -9773,26 +9884,12 @@ async function csShareLink(kind, ref, text, card, opts){
       }catch(e){ try{ console.warn('[share round] link ships without its copies:', e.message||e); }catch(_){} }
     }
     const url = location.origin + '/?share=' + data;
-    growthEvent('artifact_shared', kind==='round' ? 'share' : kind, data, null, window.CS?.league?.id);
     /* W2 · the card and the link leave together when the sheet can carry a file */
     const cardFile = opts.cardBlob ? new File([opts.cardBlob], 'cup-season-round.png', { type:'image/png' }) : null;
-    if(cardFile && navigator.canShare && navigator.canShare({ files:[cardFile] })){
-      try{ await navigator.share({ files:[cardFile], text: (text ? text + ' ' : '') + url }); return; }
-      catch(e){ if(e && e.name==='AbortError') return; }
-    }
-    if(navigator.share){
-      try{ await navigator.share({ title:'Cup Season', text, url }); return; }
-      catch(e){ if(e && e.name==='AbortError') return; }
-    }
-    await navigator.clipboard?.writeText((text ? text + ': ' : '') + url);
-    if(cardFile){
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(opts.cardBlob); a.download='cup-season-round.png'; a.click();
-      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
-      toast('Link copied · card downloaded — no account needed to view it');
-    } else {
-      toast('Link copied — no account needed to view it');
-    }
+    let how;
+    try{ how = await csDeliverLink({ text, url, cardFile, cardBlob: opts.cardBlob }); }
+    catch(_){ how = 'shown'; }
+    if(how !== 'cancelled') growthEvent('artifact_shared', kind==='round' ? 'share' : kind, data, null, window.CS?.league?.id);
   }catch(e){ toast(humanError(e, 'Could not make the link.')); }
 }
 
@@ -9859,14 +9956,11 @@ async function csShareIntentLink(kind, ref, text){
     return { ok:false };
   }
   const url = location.origin + '/?' + (kind === 'person' ? 'p' : 'plan') + '=' + data;
+  /* D385 §5 · `how` is what actually happened; a cancel is not a delivery */
+  const how = await csDeliverLink({ text, url, kindLabel: kind === 'person' ? 'card link' : 'plan link' });
+  if(how === 'cancelled') return { ok:false, cancelled:true, url };
   growthEvent('artifact_shared', kind, data);
-  if(navigator.share){
-    try{ await navigator.share({ title:'Cup Season', text, url }); return { ok:true, url }; }
-    catch(e){ if(e && e.name==='AbortError') return { ok:true, url }; }
-  }
-  try{ await navigator.clipboard?.writeText((text ? text + ' ' : '') + url); toast('Link copied — no account needed to open it'); }
-  catch(_){ toast(url); }
-  return { ok:true, url };
+  return { ok:true, url, how };
 }
 window.csShareIntentLink = csShareIntentLink;
 
@@ -9876,11 +9970,29 @@ window.csShareIntentLink = csShareIntentLink;
 async function csRevokeLink(kind, ref){
   if(!window.sb || !ref) return;
   try{
+    /* D385 §3 · turning off a ROUND link never mints one first: the status read
+       names the live link, or says there is none. The copies go, the token is
+       revoked, and the server confirms the copies are gone (or keeps trying). */
+    if(kind === 'round'){
+      const st = await sb.rpc('round_share_status', { p_round: ref });
+      if(!st.error){
+        const tok = st.data?.token;
+        if(!tok){ toast('There is no live link to turn off.'); return; }
+        const r2 = await sb.rpc('revoke_share', { p_token: tok });
+        if(r2.error) throw r2.error;
+        const pending = await csRemoveShareCopies([tok]);
+        toast(pending.length ? 'Link is off. ' + CS_SHARE_CLEANUP.pending : 'Link is off — the page stops working for everyone');
+        return;
+      }
+      if(!csMissingFn(st.error)) throw st.error;   /* an older database: the path below */
+    }
     const { data, error } = await sb.rpc('create_share', { p_kind: kind, p_ref: ref });
     if(error) throw error;
-    const ready = await sb.rpc('can_drop_share_copy', { p_name: data + '.png' });
-    if(ready.error) throw ready.error;
-    if(ready.data !== true) throw new Error('Round sharing needs the latest update. Try again shortly.');
+    if(kind === 'round'){
+      const ready = await sb.rpc('can_drop_share_copy', { p_name: data + '.png' });
+      if(ready.error) throw ready.error;
+      if(ready.data !== true) throw new Error('Round sharing needs the latest update. Try again shortly.');
+    }
     const removed = await sb.storage.from('shared').remove([data + '.jpg', data + '.png']);
     if(removed.error) throw removed.error;
     const r2 = await sb.rpc('revoke_share', { p_token: data });
@@ -9888,6 +10000,16 @@ async function csRevokeLink(kind, ref){
     toast('Link is off — the page stops working for everyone');
   }catch(e){ toast(humanError(e, 'Could not revoke.')); }
 }
+/* D385 §3 · the round's live link, for drawing "Turn off this link" only when there is one */
+async function csRoundLinkLive(rid){
+  if(!window.sb || !rid) return false;
+  try{
+    const { data, error } = await sb.rpc('round_share_status', { p_round: rid });
+    if(error) return csMissingFn(error) ? null : false;   /* null: an older database cannot say */
+    return !!data?.token;
+  }catch(_){ return false; }
+}
+window.csRoundLinkLive = csRoundLinkLive;
 /* ---- M2 / D17 · the post-round epilogue — the poster hears it first ----
    Reads round_epilogue() JSON into a private sheet shown over home right after
    a post: the round's meaning (band + points), what it earned, and any rivalry
@@ -10151,9 +10273,11 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     rows.push(photoRow + `<button class="btn dark" id="epiShare" style="width:100%;margin-top:${photoRow?'8':'14'}px">${esc(csShareRoundLabel(firstEver))}</button>`);
   }
   /* D57: the page anyone can open, no account — turned off from here. */
+  /* D385 §3 · drawn hidden, shown only when the round HAS a live link (an older
+     database that cannot say shows it, as before) */
   if(epi.gross!=null && roundId && !state.demo)
-    rows.push(`<button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Turn off this link</button>
-      <p class="fine" style="margin:4px 0 0;text-align:center">The page stops working for everyone who has it. You can share a new link anytime.</p>`);
+    rows.push(`<div id="epiRevokeWrap" style="display:none"><button class="cs-tskip" id="epiRevoke" type="button" style="width:100%;margin-top:6px">Turn off this link</button>
+      <p class="fine" style="margin:4px 0 0;text-align:center">The page stops working for everyone who has it. You can share a new link anytime.</p></div>`);
   /* R-C - on the desk the epilogue is a PANEL on the page, not a modal over
      it: it lands at the head of the reading column where the golfer already
      is, and the act is a control they can walk away from. Below 960 (and
@@ -10178,7 +10302,10 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
     else if(door==='start_something') switchView('wizard');
   });
   const rv=scope.querySelector('#epiRevoke');
-  if(rv) rv.addEventListener('click',()=>csRevokeLink('round', roundId));
+  if(rv){
+    rv.addEventListener('click', async ()=>{ await csRevokeLink('round', roundId); const w=scope.querySelector('#epiRevokeWrap'); if(w) w.style.display='none'; });
+    csRoundLinkLive(roundId).then(live => { const w=scope.querySelector('#epiRevokeWrap'); if(w && live !== false) w.style.display=''; });
+  }
   /* W2 (D380) · the one action: the recap card and the link, the photo only
      on a yes (the checkbox is the answer; no checkbox, no photo to ask about) */
   const sh=scope.querySelector('#epiShare');
@@ -21726,7 +21853,14 @@ async function csPaintReceiptCard(r, rid, mine){
   slot.innerHTML = `<div class="eyebrow">${esc(CS_CARD.head)}</div>`
     + csRoundCardHTML(card, mine)
     + photoRow
-    + (canShare ? `<button class="mini" id="rcptCardShare" type="button" style="margin-top:8px">${esc(CS_CARD.share)}</button>` : '');
+    + (canShare ? `<button class="mini" id="rcptCardShare" type="button" style="margin-top:8px">${esc(CS_CARD.share)}</button>`
+        /* D385 §3 · the receipt's own labelled way to take the link down, shown only when one is live */
+        + ` <button class="mini" id="rcptCardRevoke" type="button" style="margin-top:8px;display:none">Turn off this link</button>` : '');
+  const rcRevoke = document.getElementById('rcptCardRevoke');
+  if(rcRevoke && rid && !state.demo){
+    csRoundLinkLive(rid).then(live => { if(live === true) rcRevoke.style.display=''; });
+    rcRevoke.addEventListener('click', async ()=>{ rcRevoke.disabled = true; await csRevokeLink('round', rid); rcRevoke.style.display='none'; rcRevoke.disabled = false; });
+  }
   document.getElementById('rcptCardShare')?.addEventListener('click', async ()=>{
     /* the artifact carries HIS name and HIS marker, and neither is in the
        payload for anybody else's round — which is why the button is his only */
@@ -24016,7 +24150,9 @@ async function csCrewTake(key){
        (say nothing is wrong), failed (say so). */
     const r = await csShareIntentLink('person', window.CS?.profile?.id,
       "Come and play. Cup Season keeps score for a group of friends — every round, against everyone's playing HCP.");
-    if(r?.ok && st) st.textContent = 'Link copied. Text it to one of them.';
+    /* D385 §5 · say what happened: sent through the sheet, copied, or shown to copy */
+    if(r?.ok && st) st.textContent = r.how === 'copied' ? 'Link copied. Text it to one of them.'
+      : r.how === 'shared' ? 'Sent.' : 'Copy the link and text it to one of them.';
     return;
   }
   if(key === 'contacts'){ csCrewConsent(); return; }
@@ -29884,6 +30020,7 @@ async function loadHome(){
   if(!CS.user){ window.homeFeedRows=[]; window.leagueEnds={}; csSignedClear(); window.myCounters=null; if(window.renderHomeHub) window.renderHomeHub(); return; }
   /* D385 · once a session, finish any public-copy cleanup an earlier one left (never blocks Home) */
   window.csRetryShareCleanup?.();
+  window.csRetryShareAcks?.();   /* a share outcome the server never heard, from an earlier session */
   try {
     const ids = (CS.memberships||[]).map(m=>m.league.id);
     if(ids.length){
