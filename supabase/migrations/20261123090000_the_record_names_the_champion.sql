@@ -19,9 +19,16 @@
 --       a member (solo) or a squad (squads).
 --   2 · `my_league_record()` — one row per season the caller said yes to,
 --       every field both clients print, from `_final_place`.
---   3 · native_home: the standing's `rank` is tie-aware and, on a complete
---       season, the final place; it carries `tied`; the last-season block's
---       `my_rank` is the final place too.
+--   3 · native_home keeps POINTS STANDING and FINAL PLACEMENT apart. The Book
+--       (20261118090000, D381) already made `rank` tie-aware and added
+--       `points_rank` / `points_tied`, which Scoreboard reads; those stay
+--       exactly as they are. Beside them the standing gains `final_place`
+--       (null until the season is complete), `is_champion` and `is_runner_up`
+--       from the stored crown. The last-season block's `my_rank` becomes the
+--       place the golfer finished, and the table rank is kept as
+--       `my_points_rank`.
+--   (Reworked 2026-09-24 against main: the first version rewrote `rank` itself
+--    and its anchors predate the Book, so it aborted.)
 
 -- ── 1 · where a unit finished ───────────────────────────────────────────────
 create or replace function public._final_place(p_season uuid, p_unit uuid)
@@ -128,58 +135,61 @@ end $$;
 revoke all on function public.my_league_record() from public, anon;
 grant execute on function public.my_league_record() to authenticated;
 
--- ── 3 · native_home reads the same answer ───────────────────────────────────
+-- ── 3 · native_home: final placement beside the points standing ───────────
 do $patch$
 declare v_def text; v_parts text[]; v_a text; v_n integer;
 begin
   v_def := pg_get_functiondef('public.native_home'::regproc);
   if position('[S3]' in v_def) > 0 then
-    raise notice '[S3] native_home already reads the crown';
+    raise notice '[S3] native_home already carries the final placement';
     return;
   end if;
 
-  -- 3a · the rank has its own points-only window (a tie shares its rank), and
-  --      each row knows how many share its points
-  v_a := E'rank()       over w as rk,\n                   count(*)     over ()  as of_n,';
+  -- 3a · after the Book's points fields, in both standing blocks (squads, then solo)
+  v_a := $a$'rank',             st.rk, 'points_rank', st.rk, 'points_tied', st.tied,$a$;
   v_parts := string_to_array(v_def, v_a);
   if coalesce(array_length(v_parts, 1), 0) <> 3 then
-    raise exception '[S3] native_home rank anchor found % times; expected twice', coalesce(array_length(v_parts, 1), 0) - 1;
+    raise exception '[S3] native_home points-standing anchor found % times; expected twice', coalesce(array_length(v_parts, 1), 0) - 1;
   end if;
-  v_def := v_parts[1]
-    || E'rank() over (order by vs.points desc) as rk,  -- [S3] L-15: a tie shares its rank\n'
-    || E'                   count(*) over (partition by vs.points) as tie_n,\n'
-    || E'                   count(*)     over ()  as of_n,'
-    || v_parts[2]
-    || E'rank() over (order by vi.points desc) as rk,  -- [S3] L-15: a tie shares its rank\n'
-    || E'                   count(*) over (partition by vi.points) as tie_n,\n'
-    || E'                   count(*)     over ()  as of_n,'
+  v_def := v_parts[1] || v_a || $b$
+            -- [S3] L-03 · the RESULT, apart from the points standing: from the stored crown
+            'final_place',      case when v_season->>'status' = 'complete'
+                                     then public._final_place(v_season_id, st.squad_id) end,
+            'is_champion',      v_season->>'status' = 'complete'
+                                and st.squad_id = (v_season->>'champion_squad_id')::uuid,
+            'is_runner_up',     v_season->>'status' = 'complete'
+                                and st.squad_id = (select s9.runnerup_squad_id from seasons s9 where s9.id = v_season_id),$b$
+    || v_parts[2] || v_a || $b$
+            -- [S3] L-03 · the RESULT, apart from the points standing: from the stored crown
+            'final_place',      case when v_season->>'status' = 'complete'
+                                     then public._final_place(v_season_id, st.member_id) end,
+            'is_champion',      v_season->>'status' = 'complete'
+                                and st.member_id = (v_season->>'champion_member_id')::uuid,
+            'is_runner_up',     v_season->>'status' = 'complete'
+                                and st.member_id = (select s9.runnerup_member_id from seasons s9 where s9.id = v_season_id),$b$
     || v_parts[3];
 
-  -- 3b · on a complete season the rank IS the final place; `tied` rides along
-  v_a := $a$'rank',             st.rk,$a$;
-  v_parts := string_to_array(v_def, v_a);
-  if coalesce(array_length(v_parts, 1), 0) <> 3 then
-    raise exception '[S3] native_home rank key found % times; expected twice', coalesce(array_length(v_parts, 1), 0) - 1;
-  end if;
-  v_def := v_parts[1]
-    || $b$'rank',             case when v_season->>'status' = 'complete'
-                                   then public._final_place(v_season_id, st.squad_id) else st.rk end,  -- [S3] L-03
-            'tied',             coalesce(v_season->>'status', '') <> 'complete' and st.tie_n > 1,$b$
-    || v_parts[2]
-    || $b$'rank',             case when v_season->>'status' = 'complete'
-                                   then public._final_place(v_season_id, st.member_id) else st.rk end,  -- [S3] L-03
-            'tied',             coalesce(v_season->>'status', '') <> 'complete' and st.tie_n > 1,$b$
-    || v_parts[3];
-
-  -- 3c · the last season's `my_rank` is where the golfer finished, not the table
-  v_a := $a$when v_solo then (select vi2.rk from (
+  -- 3b · the last season: `my_rank` is where the golfer FINISHED; the table rank stays readable
+  v_a := $a$        'my_rank',        case
+                            when v_solo then (select vi2.rk from (
                                    select vi.member_id, rank() over (order by vi.points desc) as rk
                                      from v_individual_standings vi where vi.season_id = s2.id) vi2
-                                  where vi2.member_id = m.member_id)$a$;
+                                  where vi2.member_id = m.member_id)
+                            else null::bigint
+                          end,$a$;
   v_n := (length(v_def) - length(replace(v_def, v_a, ''))) / length(v_a);
   if v_n <> 1 then raise exception '[S3] native_home my_rank anchor found % times; expected once', v_n; end if;
-  v_def := replace(v_def, v_a,
-    $b$when v_solo then public._final_place(s2.id, m.member_id)::bigint  -- [S3] L-03$b$);
+  v_def := replace(v_def, v_a, $b$        'my_rank',        case   -- [S3] L-03 · the place finished, from the crown
+                            when v_solo then public._final_place(s2.id, m.member_id)::bigint
+                            else null::bigint
+                          end,
+        'my_points_rank', case
+                            when v_solo then (select vi2.rk from (
+                                   select vi.member_id, rank() over (order by vi.points desc) as rk
+                                     from v_individual_standings vi where vi.season_id = s2.id) vi2
+                                  where vi2.member_id = m.member_id)
+                            else null::bigint
+                          end,$b$);
 
   execute v_def;
 end $patch$;
@@ -194,6 +204,11 @@ begin
   end if;
   if position('over w as rk' in v_def) > 0 then
     raise exception '[S3] native_home still breaks a points tie by name';
+  end if;
+  -- the Book's points standing survives untouched (Scoreboard reads it)
+  if (length(v_def) - length(replace(v_def, $q$'points_rank', st.rk, 'points_tied', st.tied$q$, ''))) / length($q$'points_rank', st.rk, 'points_tied', st.tied$q$) <> 2
+     or position($q$'final_place'$q$ in v_def) = 0 or position($q$'my_points_rank'$q$ in v_def) = 0 then
+    raise exception '[S3] native_home lost the points standing or lacks the final placement';
   end if;
   if has_function_privilege('authenticated', 'public._final_place(uuid, uuid)', 'EXECUTE')
      or not has_function_privilege('authenticated', 'public.my_league_record()', 'EXECUTE')
