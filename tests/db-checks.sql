@@ -436,7 +436,8 @@ select '17 · band boundaries',
 --     exists for exactly this failure, watched it happen and said PASS,
 --     because it names `live_round_players` and nothing else.
 --     A schema fact cannot be checked from source; it is checked here.
---     SCOPED to tables a client embeds, and five pairs are ACCEPTED by name:
+--     SCOPED to tables a client embeds, and seven pairs are ACCEPTED by name
+--     (the two post_comments pairs are explained below):
 --     rounds (posted_by, D125a), live_round_players (guest paths),
 --     content_reports (read only via moderation_queue), round_comments
 --     (queried by neither client) and posts (see below) all carry two paths
@@ -470,6 +471,27 @@ select '17 · band boundaries',
 --     `posts_hidden_by_fkey` must be dropped first, which is what D199 did to
 --     `league_members_suspended_by_fkey`: when a pair is reduced, the AUDIT
 --     foreign key goes and the semantic one stays.
+--
+--     POST_COMMENTS BECAME TWO PAIRS WITH D391 (20261207090000, 2026-09-25) AND
+--     BOTH ARE ACCEPTED BY NAME. `post_comments.profile_id -> profiles` (the
+--     author of a round-thread comment) sits beside the takedown audit column
+--     `hidden_by -> profiles` — the posts/rounds shape again; and `parent_id` /
+--     `root_id -> post_comments` are the reply graph, a self-reference twice.
+--     Verified 2026-09-25 across index.html, every Swift source, the netlify
+--     functions and the edge functions: every client read of post_comments
+--     selects SCALAR columns (index.html feed social + Home digest,
+--     BoardRepository.swift:193, HomeSocial.swift:205); the inserts return
+--     nothing; nothing embeds post_comments from posts, rounds or profiles; and
+--     the round thread is read only through posted_round_thread (a definer RPC,
+--     no PostgREST embed at all). Nothing embeds, so nothing is ambiguous.
+--     THE HAZARD, STATED: an author embed written the obvious way —
+--     `post_comments.select('..., profiles(...)')` — or a reply embed
+--     `post_comments(...)` from its parent fails with PGRST201 on both clients.
+--     It must NAME the relationship (`profiles!post_comments_profile_id_fkey`,
+--     `post_comments!post_comments_parent_id_fkey`). Preflight's check 21b
+--     ("post_comments embeds name their FK") fails the push on any unqualified
+--     embed in a post_comments read, or of post_comments from anywhere, in every
+--     client and function source — so this acceptance cannot rot silently.
 union all
 select '18 · one relationship per embed',
   case when not exists (
@@ -482,7 +504,8 @@ select '18 · one relationship per embed',
        and (c.conrelid::regclass::text, c.confrelid::regclass::text) not in (
              ('rounds','profiles'), ('live_round_players','profiles'),
              ('content_reports','profiles'), ('round_comments','profiles'),
-             ('posts','profiles'))
+             ('posts','profiles'),
+             ('post_comments','profiles'), ('post_comments','post_comments'))
      group by c.conrelid, c.confrelid having count(*) > 1)
     then 'PASS'
     else 'FAIL — ' || coalesce((
@@ -497,7 +520,8 @@ select '18 · one relationship per embed',
                  and (c.conrelid::regclass::text, c.confrelid::regclass::text) not in (
                        ('rounds','profiles'), ('live_round_players','profiles'),
                        ('content_reports','profiles'), ('round_comments','profiles'),
-                       ('posts','profiles'))
+                       ('posts','profiles'),
+                       ('post_comments','profiles'), ('post_comments','post_comments'))
                group by 1,2 having count(*) > 1) x), '?') end,
   'a client-embedded table with two paths to one target = PGRST201 on every unqualified embed'
 

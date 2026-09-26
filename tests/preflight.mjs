@@ -711,6 +711,53 @@ else {
         ' — PostgREST returns 300 PGRST201; use live_round_players!live_round_players_live_round_id_fkey(...)');
 }
 
+// ---- 21b · post_comments embeds name their FK (D391) ------------------------
+// db-checks 18 ACCEPTS `post_comments -> profiles x2` (profile_id beside the
+// hidden_by audit column) and `post_comments -> post_comments x2` (parent_id,
+// root_id) because nothing embeds them. That acceptance is only true while it
+// stays true, so this guard makes it a build fact: in every client and function
+// source, a read of post_comments may embed only by naming the FK, and an embed
+// OF post_comments from any table must name its FK too.
+{
+  const files = [join(root, 'index.html')];
+  const walk = (d, ok) => { if (!existsSync(d)) return;
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      const f = join(d, e.name);
+      if (e.isDirectory()) { if (!/node_modules|\.build|build|Generated/.test(e.name)) walk(f, ok); }
+      else if (ok.test(e.name)) files.push(f);
+    } };
+  walk(join(root, 'apps', 'ios'), /\.swift$/);
+  walk(join(root, 'netlify'), /\.(m?js|ts)$/);
+  walk(join(root, 'supabase', 'functions'), /\.(m?js|ts)$/);
+  const scan = (text) => {
+    const bad = [];
+    // a select on post_comments: every embed in its column list names a FK
+    for (const m of text.matchAll(/from\(\s*["']post_comments["']\s*\)(?:(?!from\(|;)[\s\S]){0,240}?\.select\(\s*(["'`])([\s\S]*?)\1/g)) {
+      for (const e of m[2].matchAll(/([A-Za-z_][A-Za-z_0-9]*)(!?)([A-Za-z_0-9]*)\s*\(/g)) {
+        if (e[2] !== '!' || !e[3]) bad.push(`post_comments.select embeds ${e[1]}( without !fk`);
+      }
+    }
+    // post_comments embedded from anywhere else
+    // (the table as a token — never the tail of an FK name like post_comments_profile_id_fkey)
+    for (const e of text.matchAll(/(?<![!A-Za-z_0-9])post_comments(?:(!)([A-Za-z_0-9]*))?\s*\(/g)) {
+      if (e[1] !== '!' || !e[2]) bad.push('post_comments( embedded without !fk');
+    }
+    return bad;
+  };
+  const offenders = [];
+  for (const f of files) for (const b of scan(readFileSync(f, 'utf8'))) offenders.push(`${f.slice(root.length + 1)}: ${b}`);
+  // the self-test: a guard that cannot fail is not a guard
+  const selfBad = scan(`db.from("post_comments").select("id, body, profiles(display_name)")`).length === 1
+    && scan(`sb.from('posts').select('id, post_comments(id, body)')`).length === 1
+    && scan(`sb.from('post_comments').select('id, author:profiles!post_comments_profile_id_fkey(display_name)')`).length === 0
+    && scan(`sb.from('post_comments').select('post_id, member_id, body, created_at')`).length === 0;
+  if (!selfBad) offenders.push('self-test failed: 21b no longer tells a qualified embed from an unqualified one');
+  offenders.length === 0
+    ? pass('post_comments embeds name their FK', `${files.length} source(s) · db-checks 18's two accepted post_comments pairs are unembedded`)
+    : fail('post_comments embeds name their FK', [...new Set(offenders)].join(' · ') +
+        ' — PostgREST returns 300 PGRST201; name it: profiles!post_comments_profile_id_fkey(...) / post_comments!post_comments_parent_id_fkey(...)');
+}
+
 /* 22 · nobody stamps their own platform (D234) -----------------------------
    `platform` was hand-written in four Swift call sites and nowhere else, and
    the web wrote it in none, so no row in `client_events` could be split by
