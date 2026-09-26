@@ -425,3 +425,7 @@ remove_posted_round_comment|p_comment uuid|jsonb|definer|auth
 set_round_thread_state|p_round uuid, p_state text|jsonb|definer|auth
 set_social_notify_prefs|p_own_round boolean DEFAULT NULL::boolean, p_replies boolean DEFAULT NULL::boolean, p_followed boolean DEFAULT NULL::boolean|jsonb|definer|auth
 social_notify_prefs||jsonb|definer|auth
+#
+# 2026-09-26 · D391 correction (20261209090000, not yet pushed): the Courses front door.
+# Taken from a disposable cluster with the full chain applied (tests/social-course-database.mjs).
+course_home||jsonb|definer|auth

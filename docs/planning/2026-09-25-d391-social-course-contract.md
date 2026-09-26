@@ -19,6 +19,7 @@ on screen.
 Migrations (not yet deployed; Codex deploys after review):
 - `20261207090000_the_round_keeps_its_conversation.sql` — comments, threads, notifications, prefs
 - `20261208090000_a_course_keeps_its_circle.sql` — `course_page`, `posted_rounds_social`
+- `20261209090000_course_home_from_the_circle.sql` — `course_home` (v1.4, the Courses front door)
 
 ## 0 · Shared objects
 
@@ -310,6 +311,33 @@ Nines appear in history and the hole filter but are never compared (see above).
 People order: `best_in_selection.gross` asc (nulls last), then name. Everyone in the
 circle with ≥1 visible round at the course appears (any tee), including me.
 
+## 5b · Courses front door — `course_home()` → jsonb (v1.4)
+
+The landing of the Courses tab: every course the circle has played. Read-only, security
+definer, `authenticated` only (anon/public revoked). Same scope as `course_page`: circle,
+not void, gross posted, owner not deleted, no mute either way, `api_course_id` non-empty
+and matched exactly (an id with stray whitespace isn't listed).
+```json
+{ "ok": true,
+  "courses": [
+    { "api_course_id": "string", "name": "string", "city": "string|null", "state": "string|null",
+      "friends_total": 1, "people_total": 3, "rounds_total": 72, "latest_played_on": "YYYY-MM-DD",
+      "people": [ { "person": { ...person }, "relation": "friend|league|event|me" } ] } ],
+  "courses_total": 114, "limit": 100 }
+```
+- Signed out (no uid): `{ "ok": false, "reason": "signed_out" }`. No circle rounds:
+  `{ "ok": true, "courses": [], "courses_total": 0, "limit": 100 }`.
+- Order `latest_played_on` desc, then `api_course_id` asc. All eligible courses are grouped
+  BEFORE the 100 limit; `courses_total` counts every one of them.
+- Counts are the truth over the whole scope and reproduce on `course_page` for that id
+  (Σ `people[].rounds_total`, `people_total`). `friends_total` = golfers whose relation is
+  `friend`.
+- `name` = `course_name_of(id, latest non-blank round label)`, else `"Unnamed course"`.
+  `city`/`state` come from the cache row only (null when uncached, never invented).
+- `people`: at most 4, one per golfer; friends, then league mates, then event mates (each
+  most recent first), the viewer last (so the viewer shows only when fewer than 4 others).
+- No gross, score, best or photo. Imagery/metadata load from the existing per-course sources.
+
 ## 6 · Web deep link
 `/?round=<round_id>&comment=<comment_id>` opens the round thread with that comment
 highlighted (web client handles it after sign-in).
@@ -370,3 +398,11 @@ highlighted (web client handles it after sign-in).
   Tests: `node tests/social-course-database.mjs` → 102 assertions (209/210-comment thread
   with old and new focus, hidden/foreign/made-up/muted focus undisclosed, 60+ notifications
   at ONE timestamp paged with the pair cursor, tee layouts, nines).
+- **v1.4 · 2026-09-26 · the Courses front door (D391 correction).** New read-only
+  `course_home()` (§5b), migration `20261209090000_course_home_from_the_circle.sql`
+  (not yet pushed; nothing applied is edited). Courses opens on the circle's courses with
+  catalogue search; the old offline inventory stays, secondary. Generated Swift:
+  `Rpc.course_home()`. Tests: `node tests/social-course-database.mjs` → 128 assertions
+  (friend outside the league, viewer last, one row per stable id, void/deleted/muted/
+  stranger-only courses absent, stranger's counts reveal nobody, empty, signed out, anon
+  denied, 114 courses capped at 100 with the true total, counts equal `course_page`'s).

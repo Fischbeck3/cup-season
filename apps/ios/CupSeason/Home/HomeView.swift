@@ -97,9 +97,7 @@ struct HomeView: View {
             .padding(.horizontal, CSTokens.Space.gutter)
 
           HStack {
-            NavigationLink { CoursesScreen() } label: {
-              Text("Courses").csType(.bodyS)
-            }
+            CourseHomeLink()
             Spacer()
             if !inbox.missing { Button { activity = true } label: {
               HStack(spacing: CSTokens.Space.s2) {

@@ -16,13 +16,8 @@ struct SocialBlendReview: View {
         RoundReceiptSheet(roundId: SocialBlendFixture.roundID, seed: nil, focusComments: true)
       } else {
         NavigationStack {
-          ScrollView {
-            VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
-              Text("North Grove").csType(.display)
-              Text("Example records · UI review").csType(.agateS).foregroundStyle(cs.mut)
-              CourseCircleSection(courseId: "fixture-north-grove", courseName: "North Grove")
-            }.padding(CSTokens.Space.gutter)
-          }.background(cs.bg0)
+          VStack { CourseHomeLink() }
+            .frame(maxWidth: .infinity, maxHeight: .infinity).background(cs.bg0)
         }
       }
     }

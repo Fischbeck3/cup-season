@@ -49,16 +49,7 @@ struct CourseScreen: View {
     ScrollViewReader { proxy in
     ScrollView {
       VStack(alignment: .leading, spacing: 0) {
-        if let book = vm.book {
-          page(book)
-        } else if vm.loading {
-          // **Loading is the destination's own geometry, redacted** (§13.2) —
-          // never a spinner inside content. The shipped
-          // `CSFine("Looking for this course on your phone…")` is deleted.
-          page(CourseModel.placeholder(vm.label)).csRedacted(true)
-        } else {
-          neverKept
-        }
+        page(vm.book ?? vm.summaryBook)
       }
       .padding(.bottom, CSTokens.Space.s6)
       .csPage("course")
@@ -148,26 +139,28 @@ struct CourseScreen: View {
                mine: vm.rating.mine,
                onSet: vm.courseId == nil ? nil : { v in Task { await vm.set(v) } },
                rate: { rating = true })
-      facts(book)
       said
-      quote
       if let courseId = vm.courseId {
-        CourseCircleSection(courseId: courseId, courseName: vm.title) { legacySocial = true }
+        CourseCircleSection(courseId: courseId, courseName: vm.title,
+                            unavailable: { legacySocial = true },
+                            loaded: { vm.socialCourse = $0.json["course"] })
           .id("course-rounds")
       }
       if legacySocial { friends; rounds(book) }
+      facts(book)
+      quote
       // **D322 · HALF A CARD IS NEITHER REFERENCE NOR SUMMARY.** The owner:
       // *"why show the front nine scorecard?"* — a fair question, and the
       // honest answer is that nine of eighteen holes is an arbitrary half. The
       // whole card is one tap away and always was; the leaf was a preview of
       // something the reader can simply open. The DOOR stays and moves to the
       // foot, where reference belongs.
+      Button("Put it on the plan") {
+        presenter.declare = DeclarePrefill(course: vm.title, courseId: vm.courseId)
+      }
+      .buttonStyle(.csTertiary(.content))
+      .accessibilityIdentifier("course.plan")
       if vm.book != nil {
-        Button("Put it on the plan") {
-          presenter.declare = DeclarePrefill(course: vm.title, courseId: vm.courseId)
-        }
-        .buttonStyle(.csTertiary(.content))
-        .accessibilityIdentifier("course.plan")
         NavigationLink { CourseWholeCardScreen(book: book, openOn: vm.tee(in: book), yours: vm.teeIsYours) } label: { Text("The whole card") }
           .buttonStyle(.csTertiary(.content))
           .accessibilityIdentifier("course.wholecard")
@@ -191,7 +184,7 @@ struct CourseScreen: View {
   }
 
   @ViewBuilder private func coursePlate(_ book: CourseBook) -> some View {
-    CSCoursePlate(eyebrow: vm.eyebrow(book), name: vm.headline(book),
+    CSCoursePlate(eyebrow: vm.book == nil ? nil : vm.eyebrow(book), name: vm.headline(book),
                   course: vm.secondLine(book), place: book.place,
                   credit: vm.page.hero?.credit,
                   reserve: vm.rung(book) == .card ? 140 : 0) {
@@ -360,27 +353,6 @@ struct CourseScreen: View {
     }
   }
 
-  /// §4 · the course is not on this phone and there is no signal. The name at
-  /// `display`, `CourseBookCopy.neverKept` verbatim, and the one door that
-  /// both works offline and makes the book arrive next time.
-  private var neverKept: some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-      back.padding(.leading, -(CSTokens.Space.gutter - 10))
-      Text(vm.title).csType(.display).foregroundStyle(cs.ink)
-        .fixedSize(horizontal: false, vertical: true)
-      Text(CourseBookCopy.neverKept).csType(.body).foregroundStyle(cs.mut)
-        .fixedSize(horizontal: false, vertical: true)
-      CSDoor(.primary("Put it on the plan") {
-        presenter.declare = DeclarePrefill(course: vm.label, courseId: vm.courseId)
-      })
-      if let courseId = vm.courseId {
-        CourseCircleSection(courseId: courseId, courseName: vm.title)
-      }
-    }
-    .padding(.horizontal, CSTokens.Space.gutter)
-    .padding(.top, CSTokens.Space.s2)
-  }
-
 }
 
 // MARK: - A round posted here
@@ -476,6 +448,7 @@ final class CourseModel {
   let label: String
   var book: CourseBook?
   var page = CoursePageAnswer()
+  var socialCourse: JSONValue?
   var rating = CourseRating.none
   var loading = true
   var picked: String?
@@ -503,7 +476,16 @@ final class CourseModel {
     self.wantRating = rating
   }
 
-  var title: String { book?.label ?? (label.isEmpty ? "Course" : label) }
+  var title: String { book?.label ?? socialCourse?["name"]?.string ?? (label.isEmpty ? "Course" : label) }
+
+  /// A real course does not need an offline scorecard to have a page. This
+  /// header carries only known metadata; it is never written as a saved book.
+  var summaryBook: CourseBook {
+    CourseBook(id: courseId ?? "", clubName: title, courseName: nil,
+               city: socialCourse?["city"]?.string, state: socialCourse?["state"]?.string,
+               tees: [], planned: false, played: false,
+               nextPlayOn: nil, lastPlayedOn: nil, savedAt: Date(), usedAt: Date())
+  }
 
   /// **The ladder, decided in one place** (§10.1). A surface asks which rung it
   /// is on rather than working it out twice — once to draw and once to lay out.
@@ -542,6 +524,9 @@ final class CourseModel {
   }
 
   func load(me: UUID?) async {
+    #if DEBUG
+    if SocialBlendFixture.enabled { loading = false; return }
+    #endif
     loading = true
     let answer = await store.book(courseId)
     book = answer.book
