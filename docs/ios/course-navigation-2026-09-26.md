@@ -37,12 +37,30 @@ Database deploy owed: None.
 
 Edge deploy owed: None.
 
-Client deploy owed: This correction is installed in the review simulator only.
-Owner TestFlight remains build 1042 until a new native release is uploaded.
+Client deploy owed: None. The correction is available in Owner TestFlight
+**1.0.0 (1044)** and installed in the review simulator.
+
+Release record:
+
+- Source `0aaa7f1e5a78e4c0d1dadf07fbb72d3501f98ea2` was pushed to the owned
+  branch and `main`. [CI passed](https://github.com/Fischbeck3/cup-season/actions/runs/36253607053).
+- Archive/export, app and widget version checks, signature verification and
+  Apple validation passed. Production APNs is set and debugging is disabled.
+- IPA SHA-256: `2ef85b46a78a852dabf58b01343a0952f85ae70181a2436416d6826614ff83ff`.
+- Apple upload succeeded, delivery/build ID
+  `8de33944-5266-474c-81ac-30c2248ebb80`. Read-back confirmed **VALID**,
+  **Owner YES**, **IN_BETA_TESTING**, **Friends no**. What to Test saved (200),
+  Owner add succeeded (204). No external beta or App Store submission.
+- The automatic web deployment serves the release source stamp, HTTP 200;
+  this native-only fix adds no web, database or Edge behavior.
+- Signed IPA, UI test results, screenshot, logs and structured release evidence
+  are preserved privately at
+  `~/cup-season-audit-private/course-navigation-2026-09-26/build-1044/`.
 
 Open questions / risks: The earlier fixture bypassed the faulty receipt load,
 so its passing tests did not establish that this route worked. The new tests
 exercise that path, and the exact reported live round was verified separately.
 
-Recommended next step: Continue feedback in the signed-in simulator, currently
-open to Papago, then include this correction in the next native release.
+Recommended next step: Update to TestFlight 1044. Open Galen's Papago round from
+Home, then tap **View course** below the points. The simulator remains signed in
+and open to Papago for continued feedback.
