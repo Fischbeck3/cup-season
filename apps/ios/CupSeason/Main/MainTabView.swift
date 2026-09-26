@@ -371,7 +371,7 @@ struct MainTabView: View {
           .navigationDestination(for: CourseSheetRef.self) { c in
             CourseScreen(courseId: c.id, label: c.label)
           }
-          .navigationDestination(for: CoursesRoute.self) { _ in CoursesScreen() }
+          .navigationDestination(for: CoursesRoute.self) { _ in CourseHomeScreen() }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.home.label, systemImage: "house") }
@@ -388,7 +388,7 @@ struct MainTabView: View {
           .navigationDestination(for: CourseSheetRef.self) { c in
             CourseScreen(courseId: c.id, label: c.label)
           }
-          .navigationDestination(for: CoursesRoute.self) { _ in CoursesScreen() }
+          .navigationDestination(for: CoursesRoute.self) { _ in CourseHomeScreen() }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.compete.label, systemImage: "flag") }
@@ -409,7 +409,7 @@ struct MainTabView: View {
           .navigationDestination(for: CourseSheetRef.self) { c in
             CourseScreen(courseId: c.id, label: c.label)
           }
-          .navigationDestination(for: CoursesRoute.self) { _ in CoursesScreen() }
+          .navigationDestination(for: CoursesRoute.self) { _ in CourseHomeScreen() }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.golfers.label, systemImage: "person.2") }
@@ -435,7 +435,7 @@ struct MainTabView: View {
           .navigationDestination(for: CourseSheetRef.self) { c in
             CourseScreen(courseId: c.id, label: c.label)
           }
-          .navigationDestination(for: CoursesRoute.self) { _ in CoursesScreen() }
+          .navigationDestination(for: CoursesRoute.self) { _ in CourseHomeScreen() }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.you.label, systemImage: "person.text.rectangle") }

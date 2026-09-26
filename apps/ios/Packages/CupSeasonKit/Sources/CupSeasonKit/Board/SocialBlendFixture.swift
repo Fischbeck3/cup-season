@@ -49,6 +49,10 @@ public actor SocialBlendFixture {
     case "set_social_notify_prefs":
       for key in Array(prefs.keys) { if let value = params["p_" + key] { prefs[key] = value } }
       return .object(prefs)
+    case "course_home":
+      return json("""
+      {"ok":true,"courses_total":1,"limit":100,"courses":[{"api_course_id":"fixture-north-grove","name":"North Grove","city":"Oak Valley","state":"CA","friends_total":1,"people_total":1,"rounds_total":2,"latest_played_on":"2026-09-20","people":[{"person":{"id":"\(Self.personID)","name":"Theo Park","marker":"lonetree"},"relation":"friend"}]}]}
+      """)
     case "course_page":
       let holes = params["p_holes"]?.int ?? 18
       let tee = params["p_tee"]?.string ?? "white@70.1/124"
@@ -61,12 +65,12 @@ public actor SocialBlendFixture {
       [{"round_id":"\(round)","gross":72,"holes":18,"played_on":"2026-09-20","tee_name":"White","in_selection":true},
        {"round_id":"55555555-5555-4555-8555-555555555555","gross":78,"holes":18,"played_on":"2026-09-10","tee_name":"White","in_selection":true}]
       """)
-      return .object(["ok": .bool(true), "selection": .object(["tee_key": .string(tee), "tee_name": .string(teeName), "holes": .number(Double(holes))]),
+      return .object(["ok": .bool(true), "course": .object(["name": .string("North Grove"), "city": .string("Oak Valley"), "state": .string("CA")]), "selection": .object(["tee_key": .string(tee), "tee_name": .string(teeName), "holes": .number(Double(holes))]),
         "scope": .object(["best_label": .string("Your circle best"), "note": .string("From your rounds, your friends' rounds and the rounds of the golfers in your seasons, Ryders and Majors. Not an official course record.")]),
         "best": best, "my_best": .null, "unknown_tee_rounds": .number(1),
         "best_unavailable": holes == 9 ? .string("nine_side_unrecorded") : .null,
         "tees": json("[{\"key\":\"white@70.1/124\",\"name\":\"White\"},{\"key\":\"blue@72.0/130\",\"name\":\"Blue\"}]"),
-        "people": .array([.object(["person": author, "relation": .string("friend"), "rounds_total": .number(2),
+        "people": .array([.object(["person": author, "relation": .string("friend"), "rounds_total": .number(2), "latest_played_on": .string("2026-09-20"),
           "best_in_selection": holes == 18 ? .object(["gross": .number(Double(score)), "round_id": .string(round)]) : .null, "rounds": history])])])
     default: return .null
     }

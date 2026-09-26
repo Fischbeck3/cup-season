@@ -34,7 +34,7 @@ posted rounds and relationships; it never seeds the example into live data.
 
 Claude implemented and reviewed the web/backend contract on his isolated branch;
 Codex integrated commits `882b1956` and `3de8d4c0` and built the native surfaces.
-The shared contract is [D391 v1.3](../planning/2026-09-25-d391-social-course-contract.md).
+The shared contract is [D391 v1.4](../planning/2026-09-25-d391-social-course-contract.md).
 
 Released September 26, 2026 UTC (September 25 in Arizona):
 
@@ -110,3 +110,26 @@ Recommended next step: Install **1029** through Owner TestFlight; open a course,
 choose a friend's score, add a comment/reply and follow the resulting Activity
 item back to the conversation. Verify lock-screen delivery before enabling the
 comment-push producer.
+
+
+## Course-home correction · 2026-09-26
+
+The owner found the Courses interface missing in TestFlight 1029. The Home door
+opened `CoursesScreen`, the offline inventory, and the social review fixture
+rendered `CourseCircleSection` directly. That verification never exercised the
+real course-home or full course-page navigation.
+
+`CourseHomeScreen` now lists the actual places played by the viewer's circle,
+with friends, round counts and catalogue search. Home and the signed-in Courses
+routes open it; Saved for offline and the boot-recovery path retain the existing
+inventory. A course page renders its real header and circle history without a
+local course book. The circle best and golfer histories precede scorecard facts;
+rating remains the first action per D322. No public record, scoring change or
+fictional production data was introduced.
+
+The review fixture now enters through the same `CourseHomeLink` as Home, then
+uses the production CourseHomeScreen and CourseScreen. UI regression coverage
+includes list → course → golfer → round, search → unsaved course at AX3, and
+nine-hole best exclusion, alongside the existing conversation checks.
+
+Release evidence is recorded after Apple processing below.

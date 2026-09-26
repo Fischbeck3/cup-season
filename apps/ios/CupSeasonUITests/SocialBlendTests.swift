@@ -7,10 +7,48 @@ final class SocialBlendTests: XCTestCase {
       "-cs_dev_look", "none", "-cs_dev_text_size", size]
     if scene == "activity" { app.launchArguments.append("-cs_social_activity") }
     if scene == "comments" { app.launchArguments.append("-cs_social_comments") }
-    app.launch(); return app
+    app.launch()
+    if scene == "course" {
+      let courses = app.buttons["home.courses"]
+      XCTAssertTrue(courses.waitForExistence(timeout: 15)); courses.tap()
+      let course = app.buttons["courses.open.fixture-north-grove"]
+      XCTAssertTrue(course.waitForExistence(timeout: 15))
+      capture(app, "courses-home-" + appearance)
+      course.tap()
+    }
+    return app
   }
   @MainActor private func capture(_ app: XCUIApplication, _ name: String) {
     let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = name; shot.lifetime = .keepAlways; add(shot)
+  }
+
+  @MainActor private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+    for _ in 0..<8 {
+      if element.isHittable { return }
+      app.swipeUp()
+    }
+  }
+
+  @MainActor func testCourseSearchOpensUnsavedCoursePageAtAccessibilitySize() {
+    let app = launch("search", size: "accessibility3")
+    let courses = app.buttons["home.courses"]
+    XCTAssertTrue(courses.waitForExistence(timeout: 15)); courses.tap()
+    let search = app.textFields["courses.search"]
+    XCTAssertTrue(search.waitForExistence(timeout: 10))
+    search.tap(); search.typeText("North")
+    let course = app.buttons["courses.search.fixture-north-grove"]
+    XCTAssertTrue(course.waitForExistence(timeout: 10)); course.tap()
+    let tee = app.buttons["course.social.tee"]
+    XCTAssertTrue(tee.waitForExistence(timeout: 10)); reveal(tee, in: app)
+    capture(app, "course-real-page-ax3")
+    app.swipeUp()
+    capture(app, "course-best-ax3")
+    let person = app.buttons["course.golfer.11111111-1111-4111-8111-111111111111"]
+    reveal(person, in: app)
+    capture(app, "course-golfers-ax3")
+    XCTAssertTrue(person.isHittable); person.tap()
+    XCTAssertTrue(app.buttons["course.round.22222222-2222-4222-8222-222222222222"].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.staticTexts["Nothing is kept on this phone yet."].exists)
   }
 
   @MainActor func testCourseGolferHistoryOpensSourceRound() {
@@ -18,6 +56,7 @@ final class SocialBlendTests: XCTestCase {
     let person = app.buttons["course.golfer.11111111-1111-4111-8111-111111111111"]
     XCTAssertTrue(person.waitForExistence(timeout: 15))
     capture(app, "course-light")
+    reveal(person, in: app)
     person.tap()
     let round = app.buttons["course.round.22222222-2222-4222-8222-222222222222"]
     XCTAssertTrue(round.waitForExistence(timeout: 5)); round.tap()
@@ -28,6 +67,7 @@ final class SocialBlendTests: XCTestCase {
   @MainActor func testNineHoleSelectionDoesNotKeepEighteenHoleBest() {
     let app = launch()
     XCTAssertTrue(app.buttons["course.social.tee"].waitForExistence(timeout: 15))
+    reveal(app.buttons["18 holes"], in: app)
     app.buttons["18 holes"].tap()
     app.buttons["9 holes"].tap()
     XCTAssertTrue(app.staticTexts["Nines aren't compared: which nine was played isn't recorded. They stay in each golfer's history."].waitForExistence(timeout: 5))

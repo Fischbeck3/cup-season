@@ -9,6 +9,7 @@ struct CourseCircleSection: View {
   let courseId: String
   let courseName: String
   var unavailable: () -> Void = {}
+  var loaded: (CourseCirclePage) -> Void = { _ in }
   @State private var page: CourseCirclePage?
   @State private var loading = true
   @State private var missing = false
@@ -19,14 +20,14 @@ struct CourseCircleSection: View {
   var body: some View {
     if !missing {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-        CSSectionHead("The rounds here")
         if let page {
           if !page.people.isEmpty {
             selection(page)
             best(page)
+            CSSectionHead("Who’s played here")
             Picker("Golfers", selection: $friendsOnly) {
-              Text("Your circle").tag(false)
-              Text("Friends").tag(true)
+              Text("Friends · \(page.people.filter { $0.relation == "friend" }.count)").tag(true)
+              Text("Your circle · \(page.people.count)").tag(false)
             }.pickerStyle(.segmented).accessibilityIdentifier("course.people.scope")
             let people = page.people.filter { !friendsOnly || $0.relation == "friend" }
             if people.isEmpty {
@@ -39,7 +40,7 @@ struct CourseCircleSection: View {
                   CSFace(.init(id: golfer.id, marker: golfer.person.marker, isViewer: golfer.relation == "me"), size: .slat, name: golfer.person.name)
                   VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
                     Text(golfer.relation == "me" ? "You" : golfer.person.name).csType(.social).foregroundStyle(cs.ink)
-                    Text("\(golfer.count) \(golfer.count == 1 ? "round" : "rounds") · \(relation(golfer.relation))")
+                    Text(golferDetail(golfer))
                       .csType(.agateS).foregroundStyle(cs.mut)
                   }.frame(maxWidth: .infinity, alignment: .leading)
                   if let score = golfer.best {
@@ -55,6 +56,8 @@ struct CourseCircleSection: View {
               .buttonStyle(.plain)
               .accessibilityIdentifier("course.golfer.\(golfer.id.uuidString)")
             }
+            Text(page.json["scope"]?["note"]?.string ?? "From the rounds visible to you.")
+              .csType(.bodyS).foregroundStyle(cs.mut)
             if let unknown = page.json["unknown_tee_rounds"]?.int, unknown > 0 {
               Text("\(unknown) \(unknown == 1 ? "round has" : "rounds have") no confirmed tee. Those scores stay in the history and do not set a best.")
                 .csType(.bodyS).foregroundStyle(cs.mut)
@@ -106,33 +109,52 @@ struct CourseCircleSection: View {
   @ViewBuilder private func best(_ page: CourseCirclePage) -> some View {
     if let gross = page.best {
       CSRule()
+      Text(page.json["scope"]?["best_label"]?.string ?? "Your circle best")
+        .csType(.agate, caps: true).foregroundStyle(cs.mut)
       HStack(alignment: .top, spacing: CSTokens.Space.s4) {
-        CSFigure("\(gross)", size: .l, label: page.json["scope"]?["best_label"]?.string ?? "Your circle best")
-        if let mine = page.myBest, let round = page.json["my_best"]?["round_id"]?.string.flatMap(UUID.init) {
-          Button { presenter.receipt = round } label: { CSFigure("\(mine)", size: .m, label: "Your best") }
-            .buttonStyle(.plain).accessibilityHint("Opens your round")
-        }
+        Text("\(gross)").csType(.figureL).foregroundStyle(cs.ink)
+          .accessibilityIdentifier("course.circle.best")
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          ForEach(Array((page.json["best"]?["holders"]?.array ?? []).enumerated()), id: \.offset) { _, holder in
+            if let person = SocialPerson(holder["person"]), let round = holder["round_id"]?.string.flatMap(UUID.init) {
+              Button { presenter.receipt = round } label: {
+                VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+                  HStack {
+                    Text(person.name).csType(.social)
+                    CSGlyph(.chevron, size: .inline)
+                  }
+                  Text(holder["played_on"]?.string.map { LeagueDates.dowMonDay($0) } ?? "").csType(.agateS).foregroundStyle(cs.mut)
+                }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).foregroundStyle(cs.ink)
+              }.buttonStyle(.plain).accessibilityHint("Opens the round that set this best")
+            }
+          }
+        }.frame(maxWidth: .infinity, alignment: .leading)
       }
       Text(page.selectionLine).csType(.agateS).foregroundStyle(cs.mut)
-      ForEach(Array((page.json["best"]?["holders"]?.array ?? []).enumerated()), id: \.offset) { _, holder in
-        if let person = SocialPerson(holder["person"]), let round = holder["round_id"]?.string.flatMap(UUID.init) {
-          Button { presenter.receipt = round } label: {
-            HStack {
-              Text(person.name).csType(.social)
-              Spacer()
-              Text(holder["played_on"]?.string.map { LeagueDates.dowMonDay($0) } ?? "").csType(.agateS)
-              CSGlyph(.chevron, size: .inline)
-            }.foregroundStyle(cs.ink).frame(minHeight: 44)
-          }
-          .buttonStyle(.plain).accessibilityHint("Opens the round that set this best")
-        }
+      if page.json["best"]?["tied"]?.bool == true {
+        Text("Shared best").csType(.bodyS).foregroundStyle(cs.mut)
       }
-      Text(page.json["scope"]?["note"]?.string ?? "From the rounds visible to you.").csType(.bodyS).foregroundStyle(cs.mut)
+      if let mine = page.myBest, let round = page.json["my_best"]?["round_id"]?.string.flatMap(UUID.init) {
+        CSRule()
+        Button { presenter.receipt = round } label: {
+          HStack(spacing: CSTokens.Space.s3) {
+            Text("Your best here").csType(.social).frame(maxWidth: .infinity, alignment: .leading)
+            Text("\(mine)").csType(.figureM)
+            CSGlyph(.chevron, size: .inline)
+          }.foregroundStyle(cs.ink).frame(minHeight: 44)
+        }.buttonStyle(.plain).accessibilityHint("Opens your round")
+      }
     } else {
       Text(page.json["best_unavailable"]?.string == "nine_side_unrecorded"
         ? "Nines aren't compared: which nine was played isn't recorded. They stay in each golfer's history."
         : "No comparable score from these tees yet.").csType(.bodyS).foregroundStyle(cs.mut)
     }
+  }
+  private func golferDetail(_ golfer: CourseCircleGolfer) -> String {
+    var parts = ["\(golfer.count) \(golfer.count == 1 ? "round" : "rounds")"]
+    if let latest = golfer.latest { parts.append("last \(LeagueDates.monDay(latest))") }
+    else { parts.append(relation(golfer.relation)) }
+    return parts.joined(separator: " · ")
   }
   private func relation(_ value: String) -> String {
     switch value { case "me": "Your rounds"; case "friend": "Friend"; case "event": "In your Ryders and Majors"; default: "In your seasons" }
@@ -147,7 +169,11 @@ struct CourseCircleSection: View {
         "p_tee": tee.map(JSONValue.string) ?? .null, "p_holes": holes.map { .number(Double($0)) } ?? .null])
       guard stamp == generation, account == session.session?.user.id else { return }
       guard json["ok"]?.bool == true else { page = nil; error = "This course’s rounds are not available."; return }
-      page = CourseCirclePage(json); error = nil
+      let first = page == nil
+      let answer = CourseCirclePage(json)
+      page = answer; error = nil
+      if first { friendsOnly = answer.people.contains { $0.relation == "friend" } }
+      loaded(answer)
     } catch {
       guard stamp == generation else { return }
       if (error as? RpcError)?.isMissingFunction == true { missing = true; unavailable() }
