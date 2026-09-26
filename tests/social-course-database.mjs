@@ -9,7 +9,8 @@
 // void rounds, a deleted golfer, a reply parent from the wrong round, duplicate retries
 // (sequential and concurrent), notification ownership, preference and thread-mute
 // filtering, legacy league-board comments staying league-only, moderation, the dark
-// push switch, and a course best that sits OUTSIDE the latest 60 rounds.
+// push switch, a course best that sits OUTSIDE the latest 60 rounds, and the Courses
+// front door (course_home) over the same circle.
 
 import { readFileSync, readdirSync, mkdtempSync, mkdirSync, rmSync } from 'node:fs';
 import { spawnSync, spawn } from 'node:child_process';
@@ -364,6 +365,94 @@ try {
   } while (cur && pages < 10);
   ok(seen.length === want && new Set(seen).size === want, `every notification appears exactly once across ${pages} pages`);
   ok(!sql(`select count(*) from pg_proc where proname = 'my_notifications'`).includes('2'), 'exactly one my_notifications (no overload)');
+
+  // ---- 10 · the Courses front door: every course the circle has played -------------
+  // State carried in: a has 70 live rounds at C (+1 void), f (friend, no league) 1, l
+  // (league) 1, u (stranger) 1, b (muted by a) 1; d is deleted; a has 4 at C2.
+  const X = '00000000-0000-4000-8000-0000000000c1', Y = '00000000-0000-4000-8000-0000000000c2';
+  const C3 = 'C-9003', C4 = 'C-9004', C5 = 'C-9005', C6 = 'C-9006', C7 = 'C-9007', C8 = 'C-9008';
+  sql(`insert into auth.users(id, email) values ('${X}','x@example.test'),('${Y}','y@example.test');
+    update profiles set display_name = upper(left(split_part(email,'@',1),1)) || ' Fixture', marker = 'saguaro',
+                        handle = split_part(email,'@',1) || '_fx' where id in ('${X}','${Y}');
+    insert into friendships(requester, addressee, status) values ('${U.a}','${X}','accepted'),('${Y}','${U.a}','accepted');
+    insert into api_courses(id, club_name, course_name, city, state, country) values
+      ('${C8}','Fixture Links','Fixture Links','Dunesville','OR','USA');
+    insert into rounds(profile_id, gross, rating, slope, holes_played, course_label, api_course_id, played_on, index_at_post, voided) values
+      ('${U.d}',80,70.0,120,18,'Deleted Only GC','${C3}',current_date-1,10.0,false),   -- deleted owner only
+      ('${U.u}',80,70.0,120,18,'Stranger Only GC','${C4}',current_date-1,10.0,false),  -- stranger only
+      ('${U.b}',80,70.0,120,18,'Muted Only GC','${C5}',current_date-1,10.0,false),     -- muted only
+      ('${U.a}',80,70.0,120,18,'Void Only GC','${C6}',current_date-1,12.0,true),       -- void only
+      ('${U.f}',79,70.0,120,18,'Uncached Heath · Blue','${C7}',current_date-20,9.0,false), -- friend outside league, no cache row
+      ('${U.f}',81,70.0,120,18,'Uncached Heath · Blue','${C7}',current_date-10,9.0,false),
+      ('${U.a}',85,70.0,120,18,'Uncached Heath · Blue','${C7}',current_date-15,12.0,false),   -- same stable course
+      ('${U.a}',77,70.0,120,18,'Uncached Heath · Blue',' ${C7} ',current_date-5,12.0,false),  -- padded: not a stable id
+      ('${U.a}',80,70.0,120,18,'Blank Id GC','',current_date,12.0,false),                -- no stable id
+      ('${U.a}',80,70.0,120,18,'Space Id GC','   ',current_date,12.0,false),
+      ('${U.a}',80,70.0,120,18,'No Id GC',null,current_date,12.0,false),
+      ('${U.a}',88,70.0,120,18,'Fixture Links','${C8}',current_date-30,12.0,false),
+      ('${U.l}',87,70.0,120,18,'Fixture Links','${C8}',current_date-31,6.0,false),
+      ('${X}',  86,70.0,120,18,'Fixture Links','${C8}',current_date-32,8.0,false),
+      ('${Y}',  85,70.0,120,18,'Fixture Links','${C8}',current_date-33,8.0,false),
+      ('${U.f}',84,70.0,120,18,'Fixture Links','${C8}',current_date-34,9.0,false),
+      ('${U.f}',83,70.0,120,18,'Fixture Links','${C8}',current_date-35,9.0,false);`);
+
+  const ch = j('a', `course_home()`);
+  const ids = ch.courses.map(c => c.api_course_id);
+  ok(ch.ok === true && ch.limit === 100 && ch.courses_total === ch.courses.length, 'course_home answers ok with its limit and a true total');
+  ok(JSON.stringify(ids) === JSON.stringify([C, C2, C7, C8]), 'courses ordered by latest played, newest first: ' + ids.join(','));
+  ok(![C3, C4, C5, C6].some(c => ids.includes(c)), 'deleted-only, stranger-only, muted-only and void-only courses are not listed');
+  ok(ch.courses.every(c => c.api_course_id && c.api_course_id.trim() === c.api_course_id), 'blank or missing course ids never make a row');
+  const home = ch.courses.find(c => c.api_course_id === C);
+  ok(home.rounds_total === 72 && home.people_total === 3 && home.friends_total === 1,
+     'C counts are truthful: 70 of mine + friend + league mate; void, stranger and muted left out');
+  const homePage = j('a', `course_page('${C}')`);
+  ok(homePage.people.reduce((n, p) => n + p.rounds_total, 0) === home.rounds_total && homePage.people_total === home.people_total,
+     'C’s counts match course_page exactly (same scope)');
+  ok(home.name === 'Fixture Oaks' && home.city === 'Testville' && home.state === 'CA', 'a cached course names itself from the cache');
+  ok(JSON.stringify(home.people.map(p => [p.person.id, p.relation])) === JSON.stringify([[U.f, 'friend'], [U.l, 'league'], [U.a, 'me']]),
+     'faces: friend, then league mate, the viewer last');
+  const heath = ch.courses.find(c => c.api_course_id === C7);
+  ok(heath.rounds_total === 3 && heath.people_total === 2 && heath.people.length === 2, 'the same stable id is ONE course, one face per golfer; a padded id is not counted');
+  const heathPage = j('a', `course_page('${C7}')`);
+  ok(heathPage.people.reduce((n, p) => n + p.rounds_total, 0) === heath.rounds_total
+     && heathPage.people_total === heath.people_total, 'the front door’s counts match the course page it opens');
+  ok(heath.name === 'Uncached Heath' && heath.city === null && heath.state === null, 'an uncached course falls back to its round label, no invented city');
+  ok(heath.latest_played_on === sql(`select (current_date-10)::text`), 'latest_played_on is the newest eligible round');
+  const links = ch.courses.find(c => c.api_course_id === C8);
+  ok(links.people_total === 5 && links.friends_total === 3 && links.rounds_total === 6, 'five golfers at the links, three of them friends');
+  ok(links.people.length === 4 && links.people.slice(0, 3).every(p => p.relation === 'friend')
+     && links.people[3].relation === 'league' && !links.people.some(p => p.person.id === U.a),
+     'faces cap at four, friends first; the viewer yields their seat');
+  ok(!JSON.stringify(ch).match(/"gross"|"photo|"differential"|"score"/), 'no gross, score or photo leaves the front door');
+
+  const chf = j('f', `course_home()`);
+  const fHome = chf.courses.find(c => c.api_course_id === C);
+  ok(fHome.rounds_total === 71 && fHome.people_total === 2 && !fHome.people.some(p => p.person.id === U.l),
+     'a friend with no league sees a’s rounds but never a’s league mate');
+  ok(fHome.people[0].person.id === U.a && fHome.people[0].relation === 'friend', 'to f, a is a friend');
+
+  const chu = j('u', `course_home()`);
+  ok(JSON.stringify(chu.courses.map(c => c.api_course_id).sort()) === JSON.stringify([C, C4]), 'a stranger lists only courses they played themself');
+  ok(chu.courses.find(c => c.api_course_id === C).rounds_total === 1 && chu.courses.find(c => c.api_course_id === C).people_total === 1,
+     'and their counts reveal nobody else’s round');
+  ok(!j('b', `course_home()`).courses.some(c => c.people.some(p => p.person.id === U.a)), 'the muted golfer never sees the muter at any course');
+
+  const empty = j('z', `course_home()`);
+  ok(empty.ok === true && empty.courses.length === 0 && empty.courses_total === 0 && empty.limit === 100, 'a golfer with no circle rounds gets an honest empty list');
+  U.none = '';
+  const out = j('none', `course_home()`);
+  ok(out.ok === false && out.reason === 'signed_out' && !('courses' in out), 'no uid: signed_out, nothing listed');
+  as('anon', `select course_home();`, { expectError: 'permission denied' }); ok(true, 'anon cannot execute course_home');
+
+  // the limit holds after grouping, and the total still counts everything
+  sql(`insert into rounds(profile_id, gross, rating, slope, holes_played, course_label, api_course_id, played_on, index_at_post)
+         select '${U.f}', 80, 70.0, 120, 18, 'Bulk GC', 'B-' || lpad(g::text, 4, '0'), current_date - 100, 9.0
+           from generate_series(1, 110) g, generate_series(1, 2) twice;`);
+  const big = j('a', `course_home()`);
+  ok(big.courses.length === 100 && big.courses_total === 114, 'the page caps at 100 courses; the total counts all 114');
+  ok(big.courses.slice(4).every((c, i, a) => i === 0 || a[i - 1].api_course_id < c.api_course_id)
+     && big.courses[4].rounds_total === 2, 'same-day courses break the tie by id, each grouped before the limit');
+  ok(!sql(`select count(*) from pg_proc where proname = 'course_home'`).includes('2'), 'exactly one course_home');
 
   console.log(`\nALL PASS (${passed})`);
 } catch (e) {
