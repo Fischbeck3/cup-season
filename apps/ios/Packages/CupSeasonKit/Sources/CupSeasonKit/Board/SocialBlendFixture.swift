@@ -19,6 +19,15 @@ public actor SocialBlendFixture {
     let author = json("{\"id\":\"\(Self.personID)\",\"name\":\"Theo Park\",\"marker\":\"lonetree\"}")
     let round = Self.roundID.uuidString
     switch name {
+    case "round_card":
+      if ProcessInfo.processInfo.arguments.contains("-cs_social_card_unavailable") {
+        throw RpcError(name: name, underlying: "That round is not yours to read.", droppedArgs: [])
+      }
+      // Match the real scoring payload: it names the course but omits its id.
+      // UI tests must exercise the receipt's production enrichment path.
+      return json("""
+      {"id":"\(round)","profile_id":"\(Self.personID)","gross":79,"played_on":"2026-09-24","course_label":"North Grove","holes_played":18,"is_mine":false,"points":5}
+      """)
     case "report_content":
       guard params["p_kind"]?.string == "comment", params["p_comment"]?.string == "33333333-3333-4333-8333-333333333333", params["p_reason"]?.string?.isEmpty == false else {
         throw RpcError(name: name, underlying: "Wrong comment report target.", droppedArgs: [])
@@ -32,7 +41,11 @@ public actor SocialBlendFixture {
       blocked = true
       return .null
     case "posted_round_thread":
-      if blocked { return .object(["ok": .bool(false)]) }
+      if blocked || ProcessInfo.processInfo.arguments.contains("-cs_social_round_unavailable") {
+        return .object(["ok": .bool(false)])
+      }
+      let course: JSONValue = ProcessInfo.processInfo.arguments.contains("-cs_social_course_missing")
+        ? .null : .object(["api_course_id": .string("fixture-north-grove"), "name": .string("North Grove")])
       let first = json("""
       {"id":"33333333-3333-4333-8333-333333333333","body":"Did the putt on 18 drop?","created_at":"2026-09-25T17:02:11Z","is_mine":false,"can_reply":true,"origin":"round"}
       """)
@@ -41,7 +54,7 @@ public actor SocialBlendFixture {
         "thread": .object(["state": .string(state)]), "comments": .array(comments),
         "round": .object(["id": .string(round), "owner": author, "gross": .number(79), "holes": .number(18),
           "played_on": .string("2026-09-24"), "is_mine": .bool(false),
-          "course": .object(["api_course_id": .string("fixture-north-grove"), "name": .string("North Grove")])])])
+          "course": course])])
     case "add_posted_round_comment":
       if params["p_body"]?.string == "Offline check" {
         throw RpcError(name: name, underlying: "The connection was lost.", droppedArgs: [])

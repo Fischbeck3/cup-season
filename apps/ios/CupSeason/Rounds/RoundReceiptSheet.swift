@@ -138,7 +138,7 @@ struct RoundReceiptSheet: View {
           if let courseId {
             NavigationLink { CourseScreen(courseId: courseId, label: r.courseLabel) } label: {
               HStack {
-                Text("Who’s played here").csType(.bodyS)
+                Text("View course").csType(.bodyS)
                 Spacer()
                 CSGlyph(.chevron, size: .inline)
               }
@@ -146,6 +146,8 @@ struct RoundReceiptSheet: View {
               .frame(minHeight: 44)
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("round.course")
+            .accessibilityHint("Opens the course page, golfers and scores")
           }
           if enriched, r.profileId == store.session?.user.id, recap(r) != nil {
             CSMini("Share round", glyph: .share, busy: shareBusy) {
@@ -587,12 +589,7 @@ struct RoundReceiptSheet: View {
 
   private func open() async {
     #if DEBUG
-    if SocialBlendFixture.enabled {
-      seed = ReceiptSeed(id: roundId, profileId: UUID(uuidString: "11111111-1111-4111-8111-111111111111"),
-        gross: 79, playedOn: "2026-09-24", courseLabel: "North Grove", holesPlayed: 18, isMine: false)
-      enriched = true; return
-    }
-    if MorningReviewFixture.on { enriched = true; return }
+    if MorningReviewFixture.on && !SocialBlendFixture.enabled { enriched = true; return }
     #endif
     loadFailed = false
     let socialRecord = try? await RoundSocialService().thread(roundId)
@@ -600,6 +597,9 @@ struct RoundReceiptSheet: View {
       seed = nil; card = nil; courseId = nil; enriched = true; loadFailed = true
       return
     }
+    // The conversation identifies the course. The league-scoring receipt
+    // does not carry api_course_id, so loading its figures must not erase it.
+    courseId = socialRecord?.courseId
     if seed == nil, let cached = await ReceiptCache.shared.get(roundId) { seed = cached }
     let repo = RoundsRepository()
     // the second pass: one read, then redraw in place
@@ -609,7 +609,7 @@ struct RoundReceiptSheet: View {
     }
     if let t = try? await RoundsRepository().roundTally(roundId) { tally = t }
     if let json = try? await payload {
-      courseId = json["api_course_id"]?.string
+      courseId = courseId ?? json["api_course_id"]?.string
       var merged = (seed ?? ReceiptSeed(id: roundId)).merged(with: json)
       if merged.photoURL == nil, let path = merged.photoPath, let url = await repo.signedURL(path) { merged.photoURL = url }
       seed = merged

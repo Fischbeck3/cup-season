@@ -115,6 +115,9 @@ public struct RoundsRepository: Sendable {
   /// F13 · the receipt's factual tally line, or nil when nothing can honestly
   /// be claimed. Facts only — never a streak label (D368).
   public func roundTally(_ id: UUID) async throws -> String? {
+    #if DEBUG
+    if SocialBlendFixture.enabled { return nil }
+    #endif
     let v: JSONValue = try await svc.call(Rpc.round_tally(p_round: id))
     guard v["known"]?.bool == true else { return nil }
     let e = v["eagles"]?.int ?? 0, b = v["birdies"]?.int ?? 0
@@ -125,6 +128,11 @@ public struct RoundsRepository: Sendable {
   }
 
   public func roundCard(_ id: UUID, league: UUID? = nil) async throws -> JSONValue {
+    #if DEBUG
+    if SocialBlendFixture.enabled {
+      return try await SocialBlendFixture.shared.response(Rpc.round_card.name, ["p_round": .string(id.uuidString)])
+    }
+    #endif
     if let league {
       if let v = try? await svc.call(Rpc.round_card(p_round: id, p_league: league)) { return v }
     }

@@ -488,7 +488,7 @@ struct HomeView: View {
               if !people.isEmpty {
                 CSFaceRow(people.map { .init(id: $0.id, marker: $0.marker) }, style: .overlapped)
               }
-              Text("Who’s played here").csType(.bodyS)
+              Text("View course").csType(.bodyS)
               Spacer()
               CSGlyph(.chevron, size: .inline)
             }
@@ -498,7 +498,8 @@ struct HomeView: View {
           }
           .buttonStyle(.plain)
           .padding(.horizontal, CSTokens.Space.gutter)
-          .accessibilityLabel("Who’s played at \(r.course ?? "this course")")
+          .accessibilityLabel("View course: \(course["name"]?.string ?? r.course ?? "this course")")
+          .accessibilityIdentifier("home.round.course.\(rid.uuidString)")
         }
       }
       .contextMenu {

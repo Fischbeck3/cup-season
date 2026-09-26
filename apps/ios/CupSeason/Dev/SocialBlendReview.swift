@@ -9,11 +9,12 @@ struct SocialBlendReview: View {
   @State private var inbox = SocialInboxStore()
   private var activity: Bool { ProcessInfo.processInfo.arguments.contains("-cs_social_activity") }
   private var conversation: Bool { ProcessInfo.processInfo.arguments.contains("-cs_social_comments") }
+  private var receipt: Bool { ProcessInfo.processInfo.arguments.contains("-cs_social_receipt") }
   var body: some View {
     Group {
       if activity { SocialActivitySheet(inbox: inbox) }
-      else if conversation {
-        RoundReceiptSheet(roundId: SocialBlendFixture.roundID, seed: nil, focusComments: true)
+      else if conversation || receipt {
+        RoundReceiptSheet(roundId: SocialBlendFixture.roundID, seed: nil, focusComments: conversation)
       } else {
         NavigationStack {
           VStack { CourseHomeLink() }

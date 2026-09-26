@@ -1,12 +1,14 @@
 import XCTest
 
 final class SocialBlendTests: XCTestCase {
-  @MainActor private func launch(_ scene: String = "course", appearance: String = "dark", size: String = "large") -> XCUIApplication {
+  @MainActor private func launch(_ scene: String = "course", appearance: String = "dark", size: String = "large", arguments: [String] = []) -> XCUIApplication {
     let app = XCUIApplication()
     app.launchArguments = ["-cs_dev_social_review", "-cs_dev_appearance", appearance,
       "-cs_dev_look", "none", "-cs_dev_text_size", size]
     if scene == "activity" { app.launchArguments.append("-cs_social_activity") }
     if scene == "comments" { app.launchArguments.append("-cs_social_comments") }
+    if scene == "receipt" { app.launchArguments.append("-cs_social_receipt") }
+    app.launchArguments += arguments
     app.launch()
     if scene == "course" {
       let courses = app.buttons["home.courses"]
@@ -27,6 +29,38 @@ final class SocialBlendTests: XCTestCase {
       if element.isHittable { return }
       app.swipeUp()
     }
+  }
+
+  @MainActor func testReceiptKeepsCourseWhenScoringCardOmitsItsID() {
+    let app = launch("receipt")
+    let course = app.buttons["round.course"]
+    XCTAssertTrue(course.waitForExistence(timeout: 15))
+    reveal(course, in: app)
+    capture(app, "receipt-course-door")
+    course.tap()
+    XCTAssertTrue(app.buttons["course.social.tee"].waitForExistence(timeout: 10))
+    XCTAssertTrue(app.buttons["course.golfer.11111111-1111-4111-8111-111111111111"].exists)
+  }
+
+  @MainActor func testFriendReceiptOpensCourseWithoutLeagueScoringAccess() {
+    let app = launch("receipt", arguments: ["-cs_social_card_unavailable"])
+    let course = app.buttons["round.course"]
+    XCTAssertTrue(course.waitForExistence(timeout: 15))
+    reveal(course, in: app); course.tap()
+    XCTAssertTrue(app.buttons["course.social.tee"].waitForExistence(timeout: 10))
+  }
+
+  @MainActor func testReceiptDoesNotInventCourseFromItsLabel() {
+    let app = launch("receipt", arguments: ["-cs_social_course_missing"])
+    XCTAssertTrue(app.textFields["round.comment.draft"].waitForExistence(timeout: 15))
+    XCTAssertFalse(app.buttons["round.course"].exists)
+  }
+
+  @MainActor func testUnavailableRoundCannotOpenItsCourse() {
+    let app = launch("receipt", arguments: ["-cs_social_round_unavailable"])
+    XCTAssertTrue(app.staticTexts["Couldn’t load this round."].waitForExistence(timeout: 15))
+    XCTAssertFalse(app.buttons["round.course"].exists)
+    XCTAssertFalse(app.textFields["round.comment.draft"].exists)
   }
 
   @MainActor func testCourseSearchOpensUnsavedCoursePageAtAccessibilitySize() {
