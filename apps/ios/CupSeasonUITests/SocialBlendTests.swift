@@ -77,12 +77,12 @@ final class SocialBlendTests: XCTestCase {
 
   @MainActor func testPostedCommentReportsItsIdentityAndBlocksItsAuthor() {
     let app = launch("comments")
-    let actions = app.buttons["round.comment.actions.33333333-3333-4333-8333-333333333333"]
+    let actions = app.buttons["Actions for Theo Park’s comment"]
     XCTAssertTrue(actions.waitForExistence(timeout: 15)); actions.tap()
     app.buttons["Report comment"].tap()
     let reason = app.buttons["Harassment or abuse"]
     XCTAssertTrue(reason.waitForExistence(timeout: 5)); reason.tap()
-    app.buttons["Send report"].tap()
+    app.buttons["SEND REPORT"].tap()
     XCTAssertTrue(actions.waitForExistence(timeout: 5)); actions.tap()
     app.buttons["Block Theo"].tap()
     XCTAssertTrue(app.staticTexts["This conversation is no longer available."].waitForExistence(timeout: 5))

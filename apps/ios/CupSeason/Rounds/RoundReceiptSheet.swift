@@ -90,6 +90,7 @@ struct RoundReceiptSheet: View {
   @State private var linkNote: String?
   @State private var revokingLink = false
   @State private var courseId: String?
+  @State private var commentScrollTask: Task<Void, Never>?
   #if DEBUG
   @State private var artifactPreview = false
   @State private var reviewPhoto: UIImage?
@@ -198,7 +199,15 @@ struct RoundReceiptSheet: View {
           if enriched && !loadFailed {
             RoundConversation(roundId: roundId, focusComment: focusComment) { id in
               if focusComments || focusComment != nil {
-                proxy.scrollTo(id ?? "round-comments", anchor: .top)
+                // A notification can finish loading while its sheet is still
+                // presenting. Scroll once the comment and the sheet have their
+                // final layout, especially at accessibility text sizes.
+                commentScrollTask?.cancel()
+                commentScrollTask = Task { @MainActor in
+                  do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
+                  guard !Task.isCancelled else { return }
+                  proxy.scrollTo(id ?? "round-comments", anchor: .top)
+                }
               }
             }
             .id("round-comments")
@@ -223,6 +232,7 @@ struct RoundReceiptSheet: View {
       .csCloseButton { dismiss() }
     }
     .presentationBackground(cs.bg0)
+    .onDisappear { commentScrollTask?.cancel() }
     .task { await open() }
     // F12 · "Add a photo" at the finish lands here with the picker already
     // asked for — once, and only because the golfer chose that action, so the
