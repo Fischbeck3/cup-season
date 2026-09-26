@@ -79,4 +79,90 @@ and security scenario fixtures intentionally create a future plan without its
 host RSVP. These are not waived production invariants. Production health must
 pass all 58 checks after deployment.
 
-Final complete native counts and release evidence are recorded below when done.
+## Native verification
+
+Both complete runs, iPhone 17 Pro and iPhone SE, passed **1,465 / 1,465 each**,
+with zero failures or skips: 1,316 Kit tests (16 XCTest + 1,300 Swift Testing), 138 app tests, five
+security UI tests and six social UI tests. The six include the original four
+plus the real course-search route at accessibility size and comment Report/Block.
+Screenshots confirm the course home, course best/history, and exact-comment
+landing; light, dark and AX3 are covered.
+
+## Release evidence
+
+- Native source: `62d38103e9c5070669fc1713ec72b7c5a191821a`; marketing version
+  **1.0.0**, build **1042**. Release archive and export succeeded.
+- App/widget bundle identities and build versions match. `codesign --verify
+  --deep --strict` passed; app uses production APNs and disables debug entitlement.
+- IPA SHA-256: `d81a2a36c4e65904873d7fee3ad805b1cb9f14acad6a396a014f25c047a98ec7`.
+- Database: security migration **20261210090000** applied, **278** total;
+  **58/58 production health checks pass**, including cron and host-RSVP checks.
+- Edge: **push 40**, **season-email 14**, **share-cleanup 3**, **courses 21**,
+  **scan 9**, all ACTIVE. The first three read back `verify_jwt=false`;
+  courses and scan retain JWT verification.
+- Source pushed to the owned branch and main. [GitHub CI passed](https://github.com/Fischbeck3/cup-season/actions/runs/36215814144).
+- Live web caption `v23 · 62d3810`, HTTP 200, boot complete, zero console errors
+  and no horizontal overflow. Deployment status reports database, functions and
+  client clean, with no owed or unknown layer.
+
+Apple package validation and upload passed with no errors. Build UUID
+`83eecc45-76c3-4cf9-8bf1-5b12fd67bc41` reached `VALID`. What to Test saved (HTTP
+200), Owner assignment succeeded (204), and a fresh read confirmed **Owner YES,
+IN_BETA_TESTING, Friends NO**. Build **1.0.0 (1042)** is available to the owner.
+Both signed bundles also contain their privacy manifests, shared-preferences
+reason, and the five declared purpose strings are present in the app.
+
+
+## Device acceptance and owner operations
+
+The remaining device acceptance checks require the owner's phone: account A
+sign-out to B sign-in with actual APNs delivery, authenticated lock-screen
+actions, and widget/StandBy redaction under the owner's privacy settings. They
+are included in TestFlight's What to Test notes. Simulators and fixture tests do
+not establish those behaviors, and no production accounts or real notifications
+were created just to satisfy a test. An actual scan-provider upload was not made.
+
+App Store privacy-label reconciliation and the separate audit's provider/account
+operations remain owner work. This is an Owner beta, with no external beta
+review or App Store submission.
+
+
+## Handoff
+
+Branch: `codex/security-social-integration-2026-09-26` (source also on main).
+
+Goal: combine the rebased security changes with the social/course interface and
+ship a verified Owner TestFlight build.
+
+What changed: native consent/account protections, comment Report/Block,
+production course-home RPC wiring, and notification focus after sheet layout.
+
+Files changed: the native cherry-pick's 46 files, the preserved main course-home
+changes, `RoundSocial.swift`, `SocialBlendFixture.swift`, `RoundConversation.swift`,
+`RoundReceiptSheet.swift`, `SocialBlendTests.swift`, the generated RPC contract,
+this handoff, and the unapplied security migration's filename.
+
+Verification run: clean complete Pro and SE runs, 1,465 tests each; 107 Node
+checks; 128 social database assertions; 41 security scenarios; preflight;
+web smoke on desktop/mobile; 58 production database checks; signed archive,
+Apple validation, and TestFlight availability readback. Earlier unsuccessful
+attempts and the local fixture limits are described above.
+
+Database deploy owed: none for this release.
+
+Edge deploy owed: none for this release.
+
+Client deploy owed: none; web live and Owner TestFlight 1042 available.
+
+Open questions / risks: only the physical-device acceptance checks and separate
+owner/provider audit operations described above; no unresolved implementation
+or automated-test blocker remains for this beta.
+
+Recommended next step: install build 1042, open **Home → Courses**, choose a
+course, and try friend score history and the comment notification flow.
+
+Private verification evidence is retained at
+`~/cup-season-audit-private/security-2026-09-25/codex-social-integration-1042/`,
+including both final `.xcresult` bundles, signatures, deployment responses,
+production health, and Owner availability. The closing documentation commit
+does not change the native binary built from `62d38103`.
