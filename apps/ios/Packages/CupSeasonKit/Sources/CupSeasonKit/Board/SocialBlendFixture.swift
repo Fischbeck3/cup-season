@@ -10,6 +10,8 @@ public actor SocialBlendFixture {
   private static let personID = "11111111-1111-4111-8111-111111111111"
   private var extra: [JSONValue] = []
   private var read = false
+  private var blocked = false
+  private var reported = false
   private var state = "none"
   private var prefs: [String: JSONValue] = ["own_round": .bool(true), "replies": .bool(true), "followed": .bool(true)]
   private func json(_ text: String) -> JSONValue { try! JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)) }
@@ -17,7 +19,20 @@ public actor SocialBlendFixture {
     let author = json("{\"id\":\"\(Self.personID)\",\"name\":\"Theo Park\",\"marker\":\"lonetree\"}")
     let round = Self.roundID.uuidString
     switch name {
+    case "report_content":
+      guard params["p_kind"]?.string == "comment", params["p_comment"]?.string == "33333333-3333-4333-8333-333333333333", params["p_reason"]?.string?.isEmpty == false else {
+        throw RpcError(name: name, underlying: "Wrong comment report target.", droppedArgs: [])
+      }
+      reported = true
+      return .null
+    case "set_mute":
+      guard params["p_profile"]?.string == Self.personID, params["p_on"]?.bool == true, reported else {
+        throw RpcError(name: name, underlying: "The report or block target did not match.", droppedArgs: [])
+      }
+      blocked = true
+      return .null
     case "posted_round_thread":
+      if blocked { return .object(["ok": .bool(false)]) }
       let first = json("""
       {"id":"33333333-3333-4333-8333-333333333333","body":"Did the putt on 18 drop?","created_at":"2026-09-25T17:02:11Z","is_mine":false,"can_reply":true,"origin":"round"}
       """)

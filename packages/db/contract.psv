@@ -95,7 +95,7 @@
 # database after the push, exactly as the query above says.
 # 2026-09-15: +round_tally, +start_live_round_from_plan (20261105090000, NOT yet applied — rows written by hand to the query's exact shape and verified against a disposable cluster; re-take after the push). start_live_round is UNCHANGED.
 #
-# 2026-09-25: + set_scan_consent (security review Batch A, 20261209090000). Only the
+# 2026-09-25: + set_scan_consent (security review Batch A, 20261210090000). Only the
 # client-callable addition is taken; the migration's other new functions are internal
 # (no grants) and the full refresh against production is the next deploy's job.
 

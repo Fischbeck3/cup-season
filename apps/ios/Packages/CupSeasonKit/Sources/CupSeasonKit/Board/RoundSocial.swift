@@ -94,9 +94,6 @@ public struct SocialNotice: Sendable, Equatable, Identifiable {
 public struct RoundSocialService: Sendable {
   public init() {}
   public func request(_ name: String, _ params: [String: JSONValue] = [:]) async throws -> JSONValue {
-    #if DEBUG
-    if SocialBlendFixture.enabled { return try await SocialBlendFixture.shared.response(name, params) }
-    #endif
     switch name {
     case "posted_round_thread": return try await call(Rpc.posted_round_thread.self, params)
     case "add_posted_round_comment": return try await call(Rpc.add_posted_round_comment.self, params)
@@ -107,13 +104,26 @@ public struct RoundSocialService: Sendable {
     case "notification_badge": return try await call(Rpc.notification_badge.self, params)
     case "social_notify_prefs": return try await call(Rpc.social_notify_prefs.self, params)
     case "set_social_notify_prefs": return try await call(Rpc.set_social_notify_prefs.self, params)
+    case "course_home": return try await call(Rpc.course_home.self, params)
     case "course_page": return try await call(Rpc.course_page.self, params)
     case "posted_rounds_social": return try await call(Rpc.posted_rounds_social.self, params)
     default: throw RpcError(name: name, underlying: "Unknown social request.", droppedArgs: [])
     }
   }
   private func call<C: RpcCall>(_ endpoint: C.Type, _ params: [String: JSONValue]) async throws -> JSONValue where C.Returns == JSONValue {
-    try await SupabaseService.shared.callJSON(endpoint, params: .object(params))
+    #if DEBUG
+    if SocialBlendFixture.enabled { return try await SocialBlendFixture.shared.response(C.name, params) }
+    #endif
+    return try await SupabaseService.shared.callJSON(endpoint, params: .object(params))
+  }
+  private func write<C: RpcCall>(_ endpoint: C.Type, _ params: [String: JSONValue]) async throws where C.Returns == RpcVoid {
+    #if DEBUG
+    if SocialBlendFixture.enabled {
+      _ = try await SocialBlendFixture.shared.response(C.name, params)
+      return
+    }
+    #endif
+    _ = try await SupabaseService.shared.callJSON(endpoint, params: .object(params))
   }
   public func thread(_ id: UUID, focus: UUID? = nil) async throws -> PostedRoundThread {
     var params: [String: JSONValue] = ["p_round": .string(id.uuidString)]
@@ -140,7 +150,10 @@ public struct RoundSocialService: Sendable {
     _ = try await request("remove_posted_round_comment", ["p_comment": .string(comment.uuidString)])
   }
   public func report(_ comment: UUID, reason: String) async throws {
-    _ = try await SupabaseService.shared.callJSON(Rpc.report_content.self, params: .object([
-      "p_kind": .string("comment"), "p_comment": .string(comment.uuidString), "p_reason": .string(reason)]))
+    try await write(Rpc.report_content.self, [
+      "p_kind": .string("comment"), "p_comment": .string(comment.uuidString), "p_reason": .string(reason)])
+  }
+  public func block(_ profile: UUID) async throws {
+    try await write(Rpc.set_mute.self, ["p_profile": .string(profile.uuidString), "p_on": .bool(true)])
   }
 }

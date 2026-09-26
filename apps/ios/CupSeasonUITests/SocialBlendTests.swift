@@ -75,6 +75,20 @@ final class SocialBlendTests: XCTestCase {
     capture(app, "course-nine-empty")
   }
 
+  @MainActor func testPostedCommentReportsItsIdentityAndBlocksItsAuthor() {
+    let app = launch("comments")
+    let actions = app.buttons["round.comment.actions.33333333-3333-4333-8333-333333333333"]
+    XCTAssertTrue(actions.waitForExistence(timeout: 15)); actions.tap()
+    app.buttons["Report comment"].tap()
+    let reason = app.buttons["Harassment or abuse"]
+    XCTAssertTrue(reason.waitForExistence(timeout: 5)); reason.tap()
+    app.buttons["Send report"].tap()
+    XCTAssertTrue(actions.waitForExistence(timeout: 5)); actions.tap()
+    app.buttons["Block Theo"].tap()
+    XCTAssertTrue(app.staticTexts["This conversation is no longer available."].waitForExistence(timeout: 5))
+    XCTAssertFalse(app.textFields["round.comment.draft"].exists)
+  }
+
   @MainActor func testFailedCommentPreservesDraftThenReplyPosts() {
     let app = launch("comments")
     let draft = app.textFields["round.comment.draft"]

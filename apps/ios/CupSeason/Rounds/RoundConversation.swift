@@ -106,10 +106,10 @@ struct RoundConversation: View {
           Button("Remove comment", role: .destructive) { Task { await remove(item) } }
         } else {
           Button("Report comment") { report = item }
-          Button("Mute \(CourseNames.first(item.author.name))") {
+          Button("Block \(CourseNames.first(item.author.name))") {
             Task {
-              do { try await TourCardRepository().setMute(item.author.id, on: true); await load() }
-              catch { self.error = HumanError.text(error, prefix: "Could not mute this golfer.") }
+              do { try await service.block(item.author.id); await load() }
+              catch { self.error = HumanError.text(error, prefix: "Could not block this golfer.") }
             }
           }
         }
@@ -117,6 +117,7 @@ struct RoundConversation: View {
         CSGlyph(.more, size: .inline).foregroundStyle(cs.mut).frame(width: 44, height: 44)
       }
       .accessibilityLabel("Actions for \(item.author.name)’s comment")
+      .accessibilityIdentifier("round.comment.actions.\(item.id.uuidString)")
     }
     .padding(.vertical, CSTokens.Space.s2)
     .padding(.horizontal, item.id == focusComment ? CSTokens.Space.s2 : 0)
