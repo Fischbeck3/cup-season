@@ -1381,5 +1381,131 @@ from (
   ) as problems
 ) t
 
+-- 54 · D392 (security review 2026-09-25) · a visitor's card posts only with their say-so.
+--     No live round may put a card on a golfer who never joined, didn't claim, doesn't know
+--     the finisher and didn't say IN to the round's booking. Rows before the rule are counted
+--     too: production had none on 2026-09-25, so any row is new.
+union all
+select '54 · a visitor''s card posts only with their say-so (D392)',
+  case when problems = '' then 'PASS — finish asks for the say-so; no card on a stranger who never joined'
+       else 'FAIL — ' || problems end,
+  'finish_live_round prosrc; rounds × live_round_players'
+from (
+  select concat_ws('; ',
+    case when (select prosrc from pg_proc where oid = 'public.finish_live_round(uuid,jsonb,boolean,jsonb)'::regprocedure)
+              not like '%[D392]%' then 'finish_live_round lost the [D392] condition' end,
+    (select count(*) || ' card(s) posted to a stranger who never joined' from rounds r
+       join live_round_players p on p.live_round_id = r.live_round_id and p.guest_profile_id = r.profile_id
+       join live_rounds lr on lr.id = r.live_round_id
+      where r.source = 'live' and r.posted_by is distinct from r.profile_id and p.joined_at is null
+        and not public._connected(coalesce(lr.starter_profile_id, r.posted_by), r.profile_id)
+        and not exists (select 1 from scheduled_rounds sr where sr.id = lr.scheduled_round_id
+                          and (sr.profile_id = r.profile_id
+                               or exists (select 1 from round_rsvp rv where rv.round_id = sr.id
+                                            and rv.profile_id = r.profile_id and rv.status = 'in')))
+     having count(*) > 0)
+  ) as problems
+) t
+
+-- 55 · D393 · a stranger reaches you through one guarded door. The push_nudges guard is
+--     installed and enabled, stays off the API, and every producer that can reach a stranger
+--     carries its gate.
+union all
+select '55 · a stranger reaches you through one guarded door (D393)',
+  case when problems = '' then 'PASS — guard enabled; friend_request, invite_golfer, start_live_round, create_* gated'
+       else 'FAIL — ' || problems end,
+  'pg_trigger push_nudges_guard; prosrc markers; grants on the helpers'
+from (
+  select concat_ws('; ',
+    case when not exists (select 1 from pg_trigger where tgrelid = 'public.push_nudges'::regclass
+                            and tgname = 'push_nudges_guard' and tgenabled <> 'D') then 'push_nudges_guard missing or disabled' end,
+    (select string_agg(p.proname, ', ') || ' lost [D393]' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace
+        and p.proname in ('friend_request','friend_respond','unfriend','invite_golfer','start_live_round',
+                          'create_league','create_event','create_major','join_league','create_share')
+        and p.prosrc not like '%[D393]%'
+     having count(*) > 0),
+    (select string_agg(p.proname, ', ') || ' callable by clients' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace
+        and p.proname in ('_nudge_guard','_reach_ok','_reach_gate','_connected','_seatable_guest','_clean_text')
+        and (has_function_privilege('authenticated', p.oid, 'EXECUTE') or has_function_privilege('anon', p.oid, 'EXECUTE'))
+     having count(*) > 0)
+  ) as problems
+) t
+
+-- 56 · D394 · findable is not readable. Search, contact matching and the tour card give a
+--     stranger the card face; search and contacts never return an unfinished card.
+union all
+select '56 · findable is not readable (D394)',
+  case when problems = '' then 'PASS — search, contacts and the tour card show strangers the card face'
+       else 'FAIL — ' || problems end,
+  'prosrc of search_golfers, match_contacts, tour_card'
+from (
+  select concat_ws('; ',
+    (select string_agg(p.proname, ', ') || ' lost [D394]' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace
+        and p.proname in ('search_golfers','match_contacts','tour_card')
+        and p.prosrc not like '%[D394]%'
+     having count(*) > 0),
+    (select string_agg(p.proname, ', ') || ' can return an unfinished card' from pg_proc p
+      where p.pronamespace = 'public'::regnamespace
+        and p.proname in ('search_golfers','match_contacts')
+        and p.prosrc not like '%handle is not null%'
+     having count(*) > 0)
+  ) as problems
+) t
+
+-- 57 · D395 + D396 · the card never sets a scored number; deletion takes words and photos.
+--     The media queue must drain: a deletion still pending after a day means the share-cleanup
+--     function isn't processing it (deploy B4, and check its cron).
+union all
+select '57 · the card leaves a scored number alone; deletion takes words and photos (D395, D396)',
+  case when problems = '' then 'PASS — set_profile guarded; delete_account queues media; the queue drains'
+       else 'FAIL — ' || problems end,
+  'prosrc of set_profile, delete_account; account_media_cleanup'
+from (
+  select concat_ws('; ',
+    case when (select prosrc from pg_proc where oid = 'public.set_profile(text,text,text,numeric,text,text,text,text)'::regprocedure)
+              not like '%[D395]%' then 'set_profile lost [D395]' end,
+    case when (select prosrc from pg_proc where oid = 'public.delete_account()'::regprocedure)
+              not like '%[D396]%' then 'delete_account lost [D396]' end,
+    case when to_regclass('public.account_media_cleanup') is null then 'account_media_cleanup is missing'
+         when exists (select 1 from pg_constraint where conrelid = 'public.account_media_cleanup'::regclass and contype = 'f')
+           then 'account_media_cleanup has a foreign key (its rows must outlive a deleted profile)' end,
+    (select count(*) || ' account media cleanup(s) pending for more than a day' from public.account_media_cleanup
+      where status <> 'completed' and requested_at < now() - interval '1 day'
+     having count(*) > 0),
+    (select count(*) || ' profile(s) with an index outside -10..54' from profiles
+      where index_current > 54 or index_current < -10
+     having count(*) > 0)
+  ) as problems
+) t
+
+-- 58 · doors the clients never use stay shut (security review 2026-09-25, Batch A §7, §9–§11).
+union all
+select '58 · closed doors: plans, push endpoints, league codes, service-only helpers',
+  case when problems = '' then 'PASS'
+       else 'FAIL — ' || problems end,
+  'grants on scheduled_rounds; push_subscriptions constraint; leagues index; helper grants; scan consent'
+from (
+  select concat_ws('; ',
+    case when has_table_privilege('authenticated', 'public.scheduled_rounds', 'INSERT')
+           or has_table_privilege('authenticated', 'public.scheduled_rounds', 'UPDATE')
+         then 'scheduled_rounds takes direct writes again' end,
+    case when not exists (select 1 from pg_constraint where conrelid = 'public.push_subscriptions'::regclass
+                            and conname = 'push_subscriptions_endpoint_service') then 'push endpoint constraint missing' end,
+    case when not exists (select 1 from pg_indexes where schemaname = 'public' and tablename = 'leagues'
+                            and indexdef ilike '%unique%upper(code)%') then 'leagues has no case-insensitive unique code' end,
+    case when has_function_privilege('authenticated', 'public._courses_reserve(uuid,text,integer)', 'EXECUTE')
+           or has_function_privilege('authenticated', 'public._media_cleanup_due(integer)', 'EXECUTE')
+           or has_function_privilege('authenticated', 'public._media_cleanup_report(uuid,text)', 'EXECUTE')
+         then 'a service-only helper is callable by clients' end,
+    case when not has_function_privilege('authenticated', 'public.set_scan_consent(boolean)', 'EXECUTE')
+           or has_function_privilege('anon', 'public.set_scan_consent(boolean)', 'EXECUTE')
+           or not has_column_privilege('authenticated', 'public.profiles', 'scan_consent_at', 'SELECT')
+         then 'scan consent grants are wrong' end
+  ) as problems
+) t
+
 )
 select * from checks order by check_name;

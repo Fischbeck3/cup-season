@@ -94,6 +94,10 @@
 # uuid, text); round_card is (uuid, uuid DEFAULT NULL). Re-take it from the live
 # database after the push, exactly as the query above says.
 # 2026-09-15: +round_tally, +start_live_round_from_plan (20261105090000, NOT yet applied — rows written by hand to the query's exact shape and verified against a disposable cluster; re-take after the push). start_live_round is UNCHANGED.
+#
+# 2026-09-25: + set_scan_consent (security review Batch A, 20261209090000). Only the
+# client-callable addition is taken; the migration's other new functions are internal
+# (no grants) and the full refresh against production is the next deploy's job.
 
 _agree_on_join||trigger|definer|none
 _agree_to_season|p_league uuid, p_profile uuid|boolean|definer|none
@@ -346,6 +350,7 @@ set_profile|p_name text, p_city text DEFAULT NULL::text, p_home text DEFAULT NUL
 set_rivalry_name|p_opponent uuid, p_name text|void|definer|auth
 set_round_photo|p_round uuid, p_photo_path text|jsonb|definer|auth
 set_round_rsvp|p_round uuid, p_status text|void|definer|auth
+set_scan_consent|p_on boolean|boolean|definer|auth
 settle_forfeit|p_id uuid, p_winner uuid DEFAULT NULL::uuid, p_note text DEFAULT NULL::text|void|definer|auth
 settle_major|p_session uuid|void|definer|auth
 settle_week_clash|p_season uuid, p_week integer|jsonb|definer|none

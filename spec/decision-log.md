@@ -8107,3 +8107,67 @@ Sources: docs/design/compete-2026-09-24/PROPOSAL.md, spec §16, D359, D376.
 2. **A known tee is one layout, not one name.** A round's tee is known only when the cached tees at its exact rating/slope resolve to ONE (tee name, gender, number of holes), each stated by the cache. The picker's label may narrow by name, but a name never settles two layouts (a men's and a women's White at one rating/slope, an 18-hole and a 9-hole card of one name). Those rounds stay in history with no tee and are never compared.
 - **Principle served.** §16 (the best names a round that is honestly comparable) and L-44 (nothing invented).
 - **Tradeoff.** A league that plays nines sees their history but no nine-hole best until a side is recorded, which would be a separate decision. **CONFLICT.** None.
+
+### D392 · A visitor's card posts to their record only with their say-so
+
+**RECOMMENDED 2026-09-25, built on the owner's go** ("Permissions granted", security review R1) · Mechanic level · amends D107 §4 (which closed D88's known gap)
+
+- **Current mechanic.** D107 §4: at finish, every complete card posts to its golfer's profile. That includes a visitor seated by profile (`guest_profile_id`), whether or not the visitor ever opened the round.
+- **Problem.** The seat is chosen by the starter alone. So a round, its points in every league the visitor plays in, and the handicap index it moves can land on a golfer who never joined, never claimed and may not know the starter. D107 meant "a claimed visitor's card now posts"; the code posts an unclaimed one too.
+- **Decision.** A visitor's card posts at finish only when one of these holds: the visitor is the finisher, joined the round from their own phone (`joined_at`), already knows the starter (buddies, league-mates or event-mates), or said IN to (or hosts) the booking the round was teed up from. Otherwise it takes the claim-link path, exactly as before D107: the finisher gets the card's claim link and the visitor adds it themselves. A seat by profile follows the same circle, plus any finished golfer who is findable and hasn't blocked the starter (D88's doorbell).
+- **Principle served.** §16 (a round is a fact about the golfer who played it) and #1 (the group plays together). The doorbell and the door (D88) are unchanged.
+- **Benefit.** Every round on a record was put there by its golfer or by someone they know. Production on 2026-09-25 had 15 visitor seats: 9 known to the starter, and 6 not, all 6 of whom joined from their own phone. None would have been affected.
+- **Tradeoffs.** A stranger met on the tee who never opens the app gets a claim link rather than an automatic post: one more tap, for that case only.
+- **CONFLICT.** None upward. It amends D107 §4 back to its stated intent.
+
+### D393 · A stranger reaches you through one guarded door
+
+**RECOMMENDED 2026-09-25, built on the owner's go** (security review R2) · Mechanic/IA level · touches D86, D88, D104
+
+- **Current mechanic.**
+  - Buddy requests, league and event invites, and live-round seats by profile each notify any golfer with no relationship check and no rate.
+  - A declined or withdrawn buddy request can be sent again immediately; each send is an email and a push.
+  - Notification text carries free text the sender typed: a league name, an event name, a course label.
+  - A muted sender is still delivered on every kind whose payload doesn't name them.
+- **Problem.** Once the app is open to the public, "anyone can ring anyone, as often as they like, with any words" becomes a harassment and phishing channel. The words ride our name and our email sender.
+- **Decision.**
+  1. Every notification row records its real sender, stamped by the server.
+  2. A golfer who has blocked the sender (the mute list) never hears from them.
+  3. Notifications between golfers who don't know each other are capped per sender and per recipient. They carry fixed words and a cleaned first name, never text the sender typed.
+  4. Buddy requests: about 20 new golfers a day. After a decline or withdrawal, a repeat within 30 days is quietly absorbed. A golfer whose card isn't finished can't be requested.
+  5. Invites and live-round seats by profile reach a stranger only if that golfer is findable (`discoverable` is not `nobody`) and hasn't blocked the sender.
+  6. League and event creation are capped per day.
+  7. Names are cleaned of control characters and capped.
+- **Principle served.** "Only meaningful ones, no spam" (D88), and #2 Low Friction for the people who do know each other: nothing changes between buddies, league-mates and event-mates.
+- **Benefit.** The doorbell stays for the golfer standing next to you (D88), while an unknown account can't turn it into a bullhorn.
+- **Tradeoffs.** A very social golfer can hit a daily cap. A declined requester can't ask again for a month.
+- **CONFLICT.** None upward.
+
+### D394 · Findable is not readable: what a stranger sees
+
+**RECOMMENDED 2026-09-25, built on the owner's go** (security review R3) · IA level · refines D150
+
+- **Current mechanic.** `discoverable='everyone'` (the default) made a golfer's name, @handle, marker, city, home course, index, recent rounds and profile id readable to any signed-in stranger through search, contact matching and the tour card.
+- **Decision.** Keep `everyone` as the default, and keep search and contact matching working, but let `everyone` mean *findable*: a stranger sees name, @handle and marker. City, home course, index and rounds stay for buddies, league-mates and event-mates. Search needs at least two characters, only finds finished cards, and is rate-limited, as is contact matching.
+- **Principle served.** Growth through the crew (search, contacts, the doorbell) without a public directory of where people play and how good they are.
+- **Tradeoffs.** A stranger's tour card shows less until you connect.
+- **CONFLICT.** None. `nobody` still hides a golfer everywhere, as it does today.
+
+### D395 · The golfer card never sets a scored number
+
+**RECOMMENDED 2026-09-25, built on the owner's go** (security review R4) · Mechanic level · aligns `set_profile` with `set_index`
+
+- **Decision.** Once a golfer's index comes from their scores (three posted rounds), `set_profile` leaves it alone, the same rule `set_index` already enforces. Before that, a typed starter must lie between +10 (−10) and 54.
+- **Principle served.** §2 (the index is the engine's) and §16.
+- **CONFLICT.** None.
+
+### D396 · Deleting your account removes your words and your photos
+
+**RECOMMENDED 2026-09-25, built on the owner's go** (security review R10) · IA/privacy level
+
+- **Current mechanic.** Deletion anonymised the profile but left photos in storage, public share images at their links, the text of posts and comments, and the sign-in email.
+- **Decision.**
+  - Deletion removes your photos (queued and confirmed through the storage API), withdraws every share you made, blanks your posts and comments to "[removed]", and scrubs the sign-in email.
+  - Your posted rounds stay in the leagues you played, under "Former member", so standings and receipts stay true (§16).
+  - The privacy policy says exactly this.
+- **CONFLICT.** None.

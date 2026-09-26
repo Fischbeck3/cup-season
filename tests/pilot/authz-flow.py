@@ -285,6 +285,12 @@ else:
     expect(n3 in ("0", "1"), "another golfer replaying my request id cannot touch my round (request ids are per owner)", "unrelated rounds=" + n3)
 
 # ── 10 · league-less games post through the same finish ─────────────────────
+# D392/D393 (2026-09-25): a card posts to a golfer the starter knows, who joined,
+# or who said IN to the booking — so the four golfers here play as buddies. The
+# stranger's side (seated, never joined → a claim link, not a post) is proved in
+# tests/pilot/reach-flow.py.
+for p in (S, I, U):
+    sql(f"insert into friendships(requester, addressee, status, responded_at) values ('{H}','{p}','accepted',now()) on conflict do nothing;", role=None)
 for game, n in (("match", 2), ("wolf", 4), ("skins", 3)):
     ps = [{"guest_name": f"G{i}", "guest_index": 10.0 + i, "guest_profile": [H, S, I, U][i]} for i in range(n)]
     cfg = {"match": {"stake": 5, "side_a": ["G0"], "side_b": ["G1"]}, "wolf": {"stake": 2, "order": ["G0","G1","G2","G3"]}, "skins": {"stake": 1}}[game]
