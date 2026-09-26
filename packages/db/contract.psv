@@ -394,3 +394,27 @@ prepare_round_share|p_round uuid, p_include_photo boolean, p_attempt uuid|jsonb|
 retry_share_cleanup|p_token uuid|jsonb|definer|auth
 round_share_status|p_round uuid|jsonb|definer|auth
 withdraw_round_shares|p_round uuid|text[]|definer|auth
+#
+# 2026-09-25 · D391 (20261207090000 + 20261208090000, not yet pushed): the posted-round
+# conversation, the in-app inbox, notification switches and the course page. Taken from a
+# disposable cluster with the full chain applied (tests/social-course-database.mjs).
+_notification_live|p_recipient uuid, p_round uuid, p_comment uuid, p_actor uuid|boolean|definer|none
+_posted_round_visible|p_viewer uuid, p_round uuid|boolean|definer|none
+_round_comment_json|p_id uuid|jsonb|definer|none
+_round_tee|p_api_course text, p_label text, p_rating numeric, p_slope integer|TABLE(tee_key text, tee_name text, gender text)|definer|none
+_round_thread_rows|p_round uuid|TABLE(id uuid, parent_id uuid, root_id uuid, author uuid, body text, created_at timestamp with time zone, origin text)|definer|none
+_social_blocked|p_a uuid, p_b uuid|boolean|definer|none
+_social_circle|p_viewer uuid|TABLE(pid uuid, relation text)|definer|none
+_social_in_circle|p_viewer uuid, p_other uuid|boolean|definer|none
+_social_person|p_profile uuid|jsonb|definer|none
+add_posted_round_comment|p_round uuid, p_body text, p_parent uuid DEFAULT NULL::uuid, p_client_id uuid DEFAULT NULL::uuid|jsonb|definer|auth
+course_page|p_course_id text, p_tee text DEFAULT NULL::text, p_holes integer DEFAULT NULL::integer|jsonb|definer|auth
+mark_notifications_read|p_ids uuid[] DEFAULT NULL::uuid[], p_all boolean DEFAULT false|jsonb|definer|auth
+my_notifications|p_before timestamp with time zone DEFAULT NULL::timestamp with time zone, p_limit integer DEFAULT 30|jsonb|definer|auth
+notification_badge||jsonb|definer|auth
+posted_round_thread|p_round uuid|jsonb|definer|auth
+posted_rounds_social|p_rounds uuid[]|jsonb|definer|auth
+remove_posted_round_comment|p_comment uuid|jsonb|definer|auth
+set_round_thread_state|p_round uuid, p_state text|jsonb|definer|auth
+set_social_notify_prefs|p_own_round boolean DEFAULT NULL::boolean, p_replies boolean DEFAULT NULL::boolean, p_followed boolean DEFAULT NULL::boolean|jsonb|definer|auth
+social_notify_prefs||jsonb|definer|auth

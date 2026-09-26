@@ -4172,6 +4172,79 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .sv-round .sv-action { display:block; padding:var(--s3) var(--s4); min-height:44px; background:var(--act); color:var(--bg0); border-radius:var(--rc); text-align:center; text-decoration:none; }
 .sv-round .sv-action:focus-visible { outline:3px solid var(--ink); outline-offset:4px; }
 
+/* D391 · the round's conversation, the inbox and the course's circle. Rules and
+   spacing only — no new container shape, no colour outside the tokens. */
+.hdrbell{background:none; border:0; cursor:pointer; padding:var(--s2); color:var(--mut); display:flex; align-items:center; justify-content:center; position:relative; min-width:44px; min-height:44px;}
+.hdrbell[hidden]{display:none;}
+.hdrbell:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.hdrbell-n{position:absolute; top:0; right:0; min-width:16px; color:var(--act); font:700 11px/16px var(--board); text-align:center;}
+.hdrbell-n[hidden]{display:none;}
+.cs-sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap;}
+.cs-talk{margin-top:var(--s5); padding-top:var(--s4); border-top:var(--hair) solid var(--rule);}
+.cs-talk-head{display:flex; align-items:center; justify-content:space-between; gap:var(--s3);}
+.cs-talk-head .cs-agate-s{color:var(--mut);}
+.cs-talk-list{display:flex; flex-direction:column;}
+.cs-talk-c{display:flex; gap:var(--s3); padding:var(--s3) 0; border-bottom:var(--hair) solid var(--rule);}
+.cs-talk-c.is-reply{padding-left:var(--s5);}
+.cs-talk-c.is-target{box-shadow:inset 2px 0 0 var(--act); padding-left:var(--s3);}
+.cs-talk-c.is-reply.is-target{padding-left:var(--s5);}
+.cs-talk-c:focus{outline:none;}
+.cs-talk-c:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.cs-talk-body{min-width:0; flex:1;}
+.cs-talk-who{display:flex; flex-wrap:wrap; gap:var(--s2); align-items:baseline;}
+.cs-talk-who .cs-agate-s,.cs-talk-to{color:var(--mut);}
+.cs-talk-text{margin:var(--s1) 0 0; white-space:pre-wrap; overflow-wrap:anywhere;}
+.cs-talk-acts{display:flex; flex-wrap:wrap; gap:var(--s2); margin-top:var(--s1);}
+.cs-talk-acts .mini{background:none; color:var(--mut); padding:0 var(--s2); margin-left:calc(var(--s2) * -1);}
+.cs-talk-acts .mini + .mini{margin-left:0;}
+.cs-talk-acts .mini:hover{background:none; color:var(--ink);}
+.cs-talk-rep{display:flex; flex-direction:column; gap:var(--s2); margin-top:var(--s2);}
+.cs-talk-rep[hidden]{display:none;}
+.cs-talk-compose{margin-top:var(--s4); display:flex; flex-direction:column; gap:var(--s2);}
+.cs-talk-compose label{color:var(--mut);}
+textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans);}
+.cs-talk-send{display:flex; align-items:center; justify-content:space-between; gap:var(--s3);}
+.cs-talk-send .fine{padding:0;}
+.cs-talk-send .btn{width:auto; flex:none; padding:0 var(--s4);}
+.cs-talk-err{color:var(--neg); margin:0;}
+.cs-talk-err:empty{display:none;}
+.cs-talk-ctx{display:flex; align-items:center; justify-content:space-between; gap:var(--s3);}
+.cs-talk-door,.hfr-course{display:flex; width:100%; align-items:center; gap:var(--s3); padding:var(--s3) 0; background:none; border:0; border-bottom:var(--hair) solid var(--rule); color:var(--ink); text-align:left; cursor:pointer; min-height:44px; font:inherit;}
+.cs-talk-door > span:first-child,.hfr-course > span.cs-grow{display:flex; flex-direction:column; flex:1; min-width:0;}
+.cs-talk-door .cs-agate-s,.hfr-course .cs-agate-s{color:var(--mut);}
+.cs-talk-door:focus-visible,.hfr-course:focus-visible,.hfr-talk:focus-visible,.cs-inbox-n:focus-visible,.cs-cp-r:focus-visible,.cs-cp-p > summary:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.hfr-course{border-bottom:0; border-top:var(--hair) solid var(--rule); padding:var(--s2) 0 0; margin-top:var(--s2);}
+.hfr-faces{display:flex;}
+.hfr-faces .fc + .fc{margin-left:calc(var(--s2) * -1);}
+.hfr-talk{display:inline-flex; align-items:center; gap:var(--s1); background:none; border:0; color:var(--mut); cursor:pointer; min-height:44px; min-width:44px; padding:0 var(--s2); font:inherit;}
+.cs-cp-filters{display:flex; gap:var(--s3); flex-wrap:wrap; margin-bottom:var(--s4);}
+.cs-cp-filters label{display:flex; flex-direction:column; gap:var(--s1); flex:1; min-width:140px; color:var(--mut);}
+.cs-cp-best{padding:var(--s4) 0; border-top:2px solid var(--rule); border-bottom:var(--hair) solid var(--rule);}
+.cs-cp-bestrow{display:flex; align-items:baseline; gap:var(--s3); margin:var(--s2) 0;}
+.cs-cp-best .cs-agate-s,.cs-cp-mine .cs-agate-s{color:var(--mut);}
+.cs-cp-acts{display:flex; flex-wrap:wrap; gap:var(--s2); margin-top:var(--s2);}
+.cs-cp-mine{display:flex; align-items:center; justify-content:space-between; gap:var(--s3); padding:var(--s3) 0; border-bottom:var(--hair) solid var(--rule);}
+.cs-cp-mine > span{display:flex; flex-direction:column;}
+.cs-cp-p{border-bottom:var(--hair) solid var(--rule);}
+.cs-cp-p > summary{display:flex; align-items:center; gap:var(--s3); padding:var(--s3) 0; cursor:pointer; min-height:44px; list-style:none;}
+.cs-cp-p > summary::-webkit-details-marker{display:none;}
+.cs-cp-pn{display:flex; flex-direction:column; flex:1; min-width:0;}
+.cs-cp-pn .cs-agate-s{color:var(--mut);}
+.cs-cp-hist{display:flex; flex-direction:column; padding-bottom:var(--s3);}
+.cs-cp-r{display:grid; grid-template-columns:minmax(64px,auto) 1fr auto; gap:var(--s3); align-items:baseline; padding:var(--s2) 0; background:none; border:0; color:var(--ink); text-align:left; cursor:pointer; min-height:44px; font:inherit;}
+.cs-cp-r .cs-agate-s{color:var(--mut);}
+.cs-inbox-n{display:flex; width:100%; gap:var(--s3); align-items:flex-start; padding:var(--s3) 0; background:none; border:0; border-bottom:var(--hair) solid var(--rule); color:var(--ink); text-align:left; cursor:pointer; font:inherit;}
+.cs-inbox-copy{display:flex; flex-direction:column; gap:var(--s1); flex:1; min-width:0;}
+.cs-inbox-copy .cs-agate-s{color:var(--mut);}
+.cs-inbox-q{overflow-wrap:anywhere;}
+.cs-inbox-n.is-unread .cs-inbox-line{font-weight:600;}
+.cs-inbox-dot{width:8px; height:8px; flex:none; margin-top:var(--s2); color:var(--act);}
+.cs-inbox-bar{display:flex; justify-content:flex-end; gap:var(--s2); padding-bottom:var(--s2);}
+.cs-inbox-pref{display:flex; gap:var(--s3); align-items:center; justify-content:space-between; padding:var(--s3) 0; border-bottom:var(--hair) solid var(--rule); min-height:44px; cursor:pointer;}
+.cs-inbox-pref > span{display:flex; flex-direction:column;}
+.cs-inbox-pref .cs-body-s{color:var(--mut);}
+.cs-inbox-pref input{width:22px; height:22px; flex:none; accent-color:var(--act);}
+
 </style>
 <script>
 /* theme, pre-paint — runs before any content renders so there is no flash.
@@ -4517,6 +4590,14 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
           style="background:none; border:0; cursor:pointer; padding:6px; color:var(--mut); display:flex;">
           <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2"/></svg>
+        </button>
+        <!-- D391 · the inbox: replies and comments on your rounds. HIDDEN until
+             notification_badge answers, so a database without the migration
+             never shows a door to nothing (deploy skew). -->
+        <button class="hdrbell" id="hdrBell" type="button" aria-label="Notifications" title="Notifications" hidden>
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>
+          <span class="hdrbell-n" id="hdrBellN" aria-hidden="true" hidden></span>
         </button>
         <!-- league name + week live in the Clubhouse header and the Home hub now;
              kept here (hidden) so existing setters never null-ref -->
@@ -8048,8 +8129,18 @@ function socialBar(f, fi, opts){
   const ns=(opts&&opts.ns)||'';
   const rx=ensureRx(f); const cm=f.cm||(f.cm=[]);
   const chips=rxChipsHtml(rx,'data-rx',fi);
-  const cmBtn = comments ? `<button class="rxcm" data-c="${fi}" title="Comments" aria-label="Comments" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${cm.length?` ${cm.length}`:''}</button>` : '';
-  const thread = comments ? `<div class="cthread" id="${ns}th${fi}" style="display:none">
+  /* D391 · a round post's conversation is the ROUND's, and it lives on the
+     receipt: the button becomes a door with the round's own count (which
+     already folds this board's comments in). Chat lines and every other post
+     keep the inline league thread below. Until posted_rounds_social answers,
+     nothing changes. */
+  const tk = (f.roundpost && f.rid && window.csTalkSocial) ? window.csTalkSocial[f.rid] : null;
+  const talkN = tk ? (Number(tk.comment_count)||0) : 0;
+  const talkDoor = (tk && comments)
+    ? `<button class="rxcm" data-talk-open="${esc(f.rid)}" aria-label="${talkN ? talkN + ' comment' + (talkN===1?'':'s') + ', open the conversation' : 'Comment on this round'}"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${talkN?` ${talkN}`:''}</button>`
+    : '';
+  const cmBtn = talkDoor || (comments ? `<button class="rxcm" data-c="${fi}" title="Comments" aria-label="Comments" aria-expanded="false"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${cm.length?` ${cm.length}`:''}</button>` : '');
+  const thread = (comments && !talkDoor) ? `<div class="cthread" id="${ns}th${fi}" style="display:none">
       ${cm.map(c=>`<div class="crow"><b>${esc(c.w)}</b>${esc(c.t)}</div>`).join('')}
       <div class="cinput">
         <input class="f" placeholder="Say something…" data-i="${fi}">
@@ -8183,6 +8274,9 @@ async function fetchSocial(pids){
   });
   (cmt||[]).forEach(c=>{ (cmBy[c.post_id]||=[]).push({ w:window.memName?.(c.member_id) ?? 'Someone', t:c.body }); });
   feed.forEach(f=>{ if(f.post_id){ f.rx = rxBy[f.post_id] || {}; f.cm = cmBy[f.post_id] || []; } });
+  /* D391 · the round posts' conversation doors, on their own read */
+  const rids = feed.filter(f=>f.roundpost && f.rid).map(f=>f.rid);
+  if(rids.length && window.csTalkFetch) window.csTalkFetch(rids).then(ok=>{ if(ok) rerenderFeeds(); });
 }
 /* realtime nudge: a reaction/comment landed elsewhere — re-pull just the
    social layer (board + Home strips) and repaint, no standings refetch */
@@ -8254,6 +8348,9 @@ function wireSocial(el, ns){
   }));
   el.querySelectorAll('[data-rxpeople]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.rxpeople]; if(f) openApplausePeople(ensureRx(f));
+  }));
+  el.querySelectorAll('[data-talk-open]').forEach(b=>b.addEventListener('click',()=>{
+    window.csOpenPostedRound?.(b.dataset.talkOpen, { focusTalk:true });
   }));
   el.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{
     const f=feed[+b.dataset.report]; if(f) reportPost(f);
@@ -17165,6 +17262,9 @@ async function fetchHomeSocial(){
   if(state.demo || !window.sb || !window.CS?.user) return;
   const rids=[...new Set((window.homeFeedRows||[]).map(r=>r.round_id).filter(Boolean))];
   if(!rids.length) return;
+  /* D391 · the doors ride their own read and repaint the wire when it lands;
+     a server without it leaves the wire exactly as it was */
+  csTalkFetch(rids).then(ok=>{ if(ok && typeof renderHomeFeed==='function') renderHomeFeed(); });
   try{
     /* D238 · `profile_id` may not be on `posts` yet. ANY error retries the
        legacy shape — a 42501 never names its column (CLAUDE.md). */
@@ -17273,6 +17373,12 @@ function wireHomeSocial(box){
   box.querySelectorAll('[data-hrxpeople]').forEach(b=>b.addEventListener('click',()=>{
     const r=rows[+b.dataset.hrxpeople]; const rx=r && homeRxOf(r); if(rx) openApplausePeople(rx);
   }));
+  /* D391 · the conversation door and the course door */
+  box.querySelectorAll('[data-hftalk]').forEach(b=>b.addEventListener('click',()=>{
+    const r=rows.find(x=>String(x.round_id)===b.dataset.hftalk);
+    if(r) openRoundReceipt(r, { focusTalk:true }); else csOpenPostedRound(b.dataset.hftalk, { focusTalk:true });
+  }));
+  box.querySelectorAll('[data-hfcourse]').forEach(b=>b.addEventListener('click',()=>csOpenCoursePeople(b.dataset.hfcourse)));
 }
 /* photos arc 2 (D59): one face for every identity chip — the avatar when the
    signed URL is in the map, ALWAYS the marker otherwise. No silhouette state.
@@ -17405,6 +17511,13 @@ function feedRow(r, idx, stamp){
   const vp = r.is_me ? vp0 : theirs(vp0);   /* crew rows speak third person */
   const rx = idx!==undefined ? homeRxOf(r) : null;
   const social = rx ? `<div class="hrx">${homeRxChipsHtml(rx,idx)}</div>` : '';
+  /* D391 · two doors off the round, both read from posted_rounds_social and
+     both absent until it answers: the conversation (a count, never a thread
+     inline — the thread lives on the receipt) and the course's circle */
+  const tk = (idx!==undefined && r.round_id && window.csTalkSocial) ? window.csTalkSocial[r.round_id] : null;
+  const talk = tk ? `<button type="button" class="hfr-talk" data-hftalk="${esc(r.round_id)}" aria-label="${tk.comment_count ? esc(String(tk.comment_count)) + ' comment' + (tk.comment_count===1?'':'s') + ', open the conversation' : 'Comment on this round'}"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${tk.comment_count ? `<span class="cs-agate-s">${esc(String(tk.comment_count))}</span>` : ''}</button>` : '';
+  const cf = tk && tk.course && Array.isArray(tk.course.faces) ? tk.course.faces : [];
+  const courseDoor = cf.length ? `<button type="button" class="hfr-course" data-hfcourse="${esc(tk.course.api_course_id)}"><span class="hfr-faces" aria-hidden="true">${cf.map(p=>face(p.id, p.marker, 22)).join('')}</span><span class="cs-grow"><span class="cs-body-s">${esc(csTalkNames(cf.map(p=>csTalkFirst(p.name))) + (cf.length===1 ? ' has' : ' have') + ' played here')}</span><span class="cs-agate-s">See their rounds and your circle’s best</span></span><span aria-hidden="true">›</span></button>` : '';
   const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
   /* SF-6: the arrival — the round just posted renders its gross as split-flap
      cells; renderHomeFeed arms them and retires the flag after insertion */
@@ -17423,7 +17536,7 @@ function feedRow(r, idx, stamp){
         <div class="hsg">${grossH}${vp?`<small>${vp}</small>`:''}</div>
         <span class="hsmedal" aria-hidden="true">${mkSvg}</span>
       </div>
-      ${social?`<div class="hsfoot">${social}</div>`:''}</div>`;
+      ${(social||talk)?`<div class="hsfoot">${social}${talk}</div>`:''}${courseDoor}</div>`;
   }
 
   /* D360 · A ROUND WITHOUT A PHOTOGRAPH IS A COMPACT SCORECARD, complete and
@@ -17452,8 +17565,10 @@ function feedRow(r, idx, stamp){
       </g></svg>
     </div>
     ${story?`<p class="hfr-story cs-body-s">${esc(story)}</p>`:''}
+    ${courseDoor}
     <div class="hfr-foot">
       ${social||'<span></span>'}
+      ${talk}
       <span class="hfr-go cs-agate-s" aria-hidden="true">Receipt ›</span>
     </div></div>`;
 }
@@ -21769,7 +21884,11 @@ window.csReceiptVerdict = csReceiptVerdict;
 async function csOpenPostedRound(id, opts){
   const rid = (id && typeof id === 'object') ? (id.id || id.round_id) : id;
   if(!rid) return false;
-  const intent = (opts && opts.photoIntent) ? { photoIntent:true } : {};
+  const intent = Object.assign({},
+    (opts && opts.photoIntent) ? { photoIntent:true } : {},
+    /* D391 · a notification opens the exact comment; a door opens the conversation */
+    (opts && opts.focusComment) ? { focusComment:opts.focusComment } : {},
+    (opts && opts.focusTalk) ? { focusTalk:true } : {});
   const cached = (window.roundCache||{})[rid];
   if(cached){ openRoundReceipt(cached, intent); return true; }            /* instant, then enriched */
   if(state.demo || !window.sb){ openRoundReceipt({ id: rid }, intent); return true; }
@@ -21784,6 +21903,10 @@ async function csOpenPostedRound(id, opts){
     openRoundReceipt(row, Object.assign({ carded:true }, intent));
     return true;
   }catch(e){
+    /* D391 · `round_card` is league-scoped; a friend outside the league reads
+       the round through its conversation instead, and sees no points */
+    const alt = await csRoundFromThread(rid);
+    if(alt){ openRoundReceipt(alt, Object.assign({ carded:true }, intent)); return true; }
     closeSheet();
     toast(humanError(e, 'Couldn\u2019t open that round.'));
     return false;
@@ -21870,7 +21993,8 @@ function openRoundReceipt(x, opts){
     <div class="eyebrow">The receipt</div>
     <div id="rcptBody" class="rcpt-leaf">
       <div class="rcpt-cap"><span>What this round was worth</span><span>${esc(line.split(' \u00b7 ').pop()||'')}</span></div>
-      ${roundCardBody(r, pvi, capN)}</div>`);
+      ${roundCardBody(r, pvi, capN)}</div>
+    <div id="rcptTalk"></div>`);
   if(canPhoto) csWireReceiptPhoto(r, rid, stampOf);
   /* D362 · one delegated listener for the door to the rounds that count: the
      leaf is repainted when `round_card` lands, so the listener lives on the
@@ -21891,6 +22015,8 @@ function openRoundReceipt(x, opts){
      supply something a posted round can no longer supply (16: a round is not
      mutated, and holes are not a photograph). */
   if(rid && window.sb && !state.demo) csPaintReceiptCard(r, rid, mineOf(r));
+  /* D391 · the round's one conversation, under its receipt */
+  if(rid && window.sb && !state.demo) csPaintRoundTalk(rid, opts && opts.focusComment, !!(opts && opts.focusTalk));
   if(!r.photo_url && r.photo_path && window.sb && !state.demo){
     window.sb.storage.from('media').createSignedUrl(r.photo_path, 3600).then(({data})=>{
       const hb=document.getElementById('rcptHero');
@@ -21945,6 +22071,466 @@ async function csPaintReceiptCard(r, rid, mine){
       await csUpdateRoundLinkControl(rcRevoke,rid);
     }catch(e){ if(!(e && e.name==='AbortError')) toast(CS_CARD.shareFailed); }
   });
+}
+
+/* ================= D391 · a posted round keeps one conversation =============
+   One thread per POSTED round (posted_round_thread and its siblings; the
+   contract is in the D391 handoff). It lives on the round's own receipt — the
+   element closest to the round — and the Home wire, the board and the inbox are
+   DOORS to it, never second copies of it. Three rules, the same three the
+   phone keeps:
+     · every word a golfer typed goes through esc(), and a comment is text;
+     · a failed send KEEPS the draft (and the reply target) on screen;
+     · a server that predates the migration hides the door — a read that did
+       not happen is not an empty conversation (L-32).
+   The scheduled-round thread (`round_comments`, `add_round_comment`) is a
+   different object and is untouched. */
+const CS_TALK = {
+  head:'Conversation', empty:'The conversation is yours to start.',
+  add:'Add a comment', reply:'Your reply', placeholder:'Something for the crew…',
+  send:'Comment', sendReply:'Reply', needText:'Add a comment first.',
+  failed:'Comment did not send.', sent:'Comment added.', readFailed:'Couldn’t load the conversation.',
+  follow:'Follow', following:'Following', mute:'Mute conversation', unmute:'Unmute conversation',
+  mutedHint:'This conversation is muted.', followHint:'Updates from this conversation are on.',
+  replyHint:'You’ll be notified of replies to you.', offHint:'Reply notifications are off in settings.',
+  reported:'Reported — thanks. We’ll take a look.', removeArm:'Tap again to remove',
+  courseSub:'Who of yours has played here, and your circle’s best',
+};
+const CS_INBOX = {
+  title:'Notifications', empty:'You’re all caught up.', markAll:'Mark all read', more:'Show older',
+  prefsHead:'Keep me in the conversation',
+  prefs:[['own_round','Comments on my rounds','When someone joins the conversation on a round you posted.'],
+         ['replies','Replies to me','When someone replies directly to one of your comments.'],
+         ['followed','Conversations I follow','New comments in threads you’ve chosen to follow.']],
+  prefsNote:'Muted conversations stay quiet. You won’t be notified of your own comments.',
+  /* the three sentences both clients print (contract §3) */
+  line: n => {
+    const who = csTalkFirst(n && n.actor && n.actor.name);
+    return n.kind==='reply' ? `${who} replied to your comment.`
+         : n.kind==='own_round' ? `${who} commented on your round.`
+         : `${who} commented in a conversation you follow.`;
+  },
+};
+const CS_RELATION = { me:'You', friend:'Friend', league:'In your seasons', event:'In your Ryders and Majors' };
+function csTalkFirst(name){ return String(name||'').trim().split(/\s+/)[0] || 'Someone'; }
+/* "Theo", "Theo and Mara", "Theo, Mara and Alex" — CourseNames.list's twin */
+function csTalkNames(n){ return n.length<2 ? (n[0]||'') : n.slice(0,-1).join(', ') + ' and ' + n[n.length-1]; }
+/* the server does not have D391 yet: hide the door instead of failing at it */
+function csTalkSkew(e){
+  const m = String((e && ((e.code||'') + ' ' + (e.message||''))) || '');
+  return /PGRST202|42883|could not find the function|function .* does not exist|schema cache/i.test(m);
+}
+/* round id → { text, parent, clientId, clientFor }. Survives a repaint and a
+   failed send; cleared only when the server says the comment landed. */
+const csTalkDrafts = new Map();
+function csTalkDraft(rid){
+  let d = csTalkDrafts.get(rid);
+  if(!d){ d = { text:'', parent:null, clientId:null, clientFor:null }; csTalkDrafts.set(rid, d); }
+  return d;
+}
+/* round id → the posted_rounds_social row (count + course door) */
+window.csTalkSocial = window.csTalkSocial || {};
+/* "Now" · "12m" · "2h" · "Sep 20" — the thread reads like a record */
+function csTalkWhen(ts){
+  const t = Date.parse(ts); if(!Number.isFinite(t)) return '';
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if(s < 60) return 'Now';
+  if(s < 3600) return Math.floor(s/60) + 'm';
+  if(s < 86400) return Math.floor(s/3600) + 'h';
+  const d = new Date(t);
+  return `${MOS[d.getMonth()]} ${d.getDate()}`;
+}
+/* a played_on day, built by hand (never new Date('YYYY-MM-DD')) */
+function csTalkDay(iso){
+  const d = iso ? localDate(String(iso).slice(0,10)) : null;
+  if(!d || isNaN(d)) return '';
+  const y = d.getFullYear() !== new Date().getFullYear() ? `, ${d.getFullYear()}` : '';
+  return `${MOS[d.getMonth()]} ${d.getDate()}${y}`;
+}
+function csTalkUuid(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
+  const h = [...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+  return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+}
+/* the doors' counts and course faces for a set of posted rounds. False when
+   the read did not happen (skew, signal) — callers keep what they drew. */
+async function csTalkFetch(rids){
+  rids = [...new Set((rids||[]).filter(Boolean).map(String))].slice(0, 60);
+  if(!rids.length || state.demo || !window.sb || !window.CS?.user) return false;
+  try{
+    const { data, error } = await window.sb.rpc('posted_rounds_social', { p_rounds: rids });
+    if(error) throw error;
+    ((data && data.items) || []).forEach(it => { if(it && it.round_id) window.csTalkSocial[it.round_id] = it; });
+    return true;
+  }catch(_){ return false; }
+}
+window.csTalkFetch = csTalkFetch;
+
+/* roots oldest first, each followed by its replies oldest first; a reply whose
+   root is gone stands on its own */
+function csTalkOrder(list){
+  const ids = new Set(list.map(c=>c.id));
+  const out = [];
+  list.filter(c=>!c.root_id || !ids.has(c.root_id)).forEach(r=>{
+    out.push([r, false]);
+    list.filter(c=>c.root_id===r.id && c.id!==r.id).forEach(c=>out.push([c, true]));
+  });
+  return out;
+}
+function csTalkRow(c, child, focusId){
+  const a = c.author || {};
+  const name = a.name || 'A golfer';
+  const first = csTalkFirst(name);
+  const target = !!focusId && c.id === focusId;
+  const acts = [
+    c.can_reply ? `<button type="button" class="mini" data-talk-reply="${esc(c.id)}" aria-label="Reply to ${esc(first)}’s comment">Reply</button>` : '',
+    (c.is_mine && c.origin==='round')
+      ? `<button type="button" class="mini" data-talk-remove="${esc(c.id)}">Remove</button>`
+      : (!c.is_mine ? `<button type="button" class="mini" data-talk-report="${esc(c.id)}" aria-label="Report ${esc(first)}’s comment">Report</button>` : ''),
+  ].join('');
+  return `<article class="cs-talk-c${child?' is-reply':''}${target?' is-target':''}" id="talk-c-${esc(c.id)}" tabindex="-1" aria-label="Comment by ${esc(name)}${target?(c.is_mine?', just added':', opened from a notification'):''}">
+    ${face(a.id, a.marker, 28)}
+    <div class="cs-talk-body">
+      <div class="cs-talk-who"><b class="cs-social">${esc(name)}</b><span class="cs-agate-s">${esc(csTalkWhen(c.created_at))}</span></div>
+      ${c.reply_to ? `<div class="cs-agate-s cs-talk-to">To ${esc(csTalkFirst(c.reply_to.name))}</div>` : ''}
+      <p class="cs-body-s cs-talk-text">${esc(c.body)}</p>
+      ${acts ? `<div class="cs-talk-acts">${acts}</div>` : ''}
+      <div class="cs-talk-rep" data-talk-repbox="${esc(c.id)}" hidden></div>
+    </div>
+  </article>`;
+}
+
+/* the conversation's slot on the receipt: read, then draw */
+async function csPaintRoundTalk(rid, focusId, scrollTo){
+  const slot = document.getElementById('rcptTalk');
+  if(!slot || !rid || state.demo || !window.sb || !window.CS?.user) return;
+  slot.dataset.rid = rid;
+  let d = null;
+  try{
+    const { data, error } = await window.sb.rpc('posted_round_thread', { p_round: rid });
+    if(error) throw error;
+    d = data;
+  }catch(e){
+    if(!slot.isConnected || slot.dataset.rid !== rid) return;
+    if(csTalkSkew(e)){ slot.innerHTML = ''; return; }
+    slot.innerHTML = `<p class="fine">${esc(CS_TALK.readFailed)} <button type="button" class="mini" data-talk-retry>Try again</button></p>`;
+    slot.querySelector('[data-talk-retry]')?.addEventListener('click', ()=>csPaintRoundTalk(rid, focusId, scrollTo));
+    return;
+  }
+  if(!slot.isConnected || slot.dataset.rid !== rid) return;
+  if(!d || !d.ok){ slot.innerHTML = ''; return; }
+  if(window.csTalkSocial[rid]) window.csTalkSocial[rid].comment_count = d.count;
+  slot.__talk = d;
+  csTalkRender(slot, rid, focusId);
+  const el = focusId ? document.getElementById('talk-c-' + focusId) : null;
+  if(el){ el.scrollIntoView({ block:'center' }); el.focus({ preventScroll:true }); }
+  else if(scrollTo) slot.scrollIntoView({ block:'start' });
+}
+window.csPaintRoundTalk = csPaintRoundTalk;
+
+function csTalkRender(slot, rid, focusId){
+  const d = slot.__talk; if(!d) return;
+  const dr = csTalkDraft(rid);
+  const list = Array.isArray(d.comments) ? d.comments : [];
+  const parent = dr.parent ? list.find(c=>c.id===dr.parent && c.can_reply) : null;
+  if(dr.parent && !parent) dr.parent = null;
+  const th = d.thread || {}, pr = d.notify_prefs || {};
+  const hint = th.muted ? CS_TALK.mutedHint
+    : (th.following && pr.followed !== false) ? CS_TALK.followHint
+    : pr.replies !== false ? CS_TALK.replyHint : CS_TALK.offHint;
+  const course = d.round && d.round.course;
+  const door = course && course.api_course_id && course.name
+    ? `<button type="button" class="cs-talk-door" data-talk-course="${esc(course.api_course_id)}"><span><b class="cs-name">${esc(course.name)}</b><span class="cs-agate-s">${esc(CS_TALK.courseSub)}</span></span><span aria-hidden="true">›</span></button>`
+    : '';
+  slot.innerHTML = `<section class="cs-talk" aria-labelledby="talkHead">
+    ${door}
+    <div class="cs-talk-head">
+      <h3 class="eyebrow" id="talkHead">${esc(CS_TALK.head)}<span class="cs-agate-s"> · ${esc(String(d.count || 0))}</span></h3>
+      <button type="button" class="mini" data-talk-follow aria-pressed="${th.following?'true':'false'}">${esc(th.following ? CS_TALK.following : CS_TALK.follow)}</button>
+    </div>
+    <div class="cs-talk-list">${list.length ? csTalkOrder(list).map(([c,ch])=>csTalkRow(c, ch, focusId)).join('') : `<p class="fine">${esc(CS_TALK.empty)}</p>`}</div>
+    <div class="cs-talk-compose">
+      ${parent ? `<div class="cs-talk-ctx"><span class="cs-agate-s">Replying to ${esc(csTalkFirst(parent.author && parent.author.name))}</span><button type="button" class="mini" data-talk-cancel aria-label="Cancel reply">Cancel</button></div>` : ''}
+      <label class="cs-agate-s" for="talkDraft">${esc(parent ? CS_TALK.reply : CS_TALK.add)}</label>
+      <textarea id="talkDraft" class="f cs-talk-input" maxlength="500" rows="3" placeholder="${esc(CS_TALK.placeholder)}">${esc(dr.text)}</textarea>
+      <div class="cs-talk-send"><span class="fine" id="talkHint">${esc(hint)}</span><button type="button" class="btn" id="talkSend">${esc(parent ? CS_TALK.sendReply : CS_TALK.send)}</button></div>
+      <p class="fine cs-talk-err" id="talkErr" role="alert"></p>
+      <div><button type="button" class="mini" data-talk-mute aria-pressed="${th.muted?'true':'false'}">${esc(th.muted ? CS_TALK.unmute : CS_TALK.mute)}</button></div>
+    </div>
+  </section>`;
+  const ta = slot.querySelector('#talkDraft');
+  ta?.addEventListener('input', ()=>{ dr.text = ta.value; });
+  slot.querySelector('#talkSend')?.addEventListener('click', ()=>csTalkSend(slot, rid));
+  slot.querySelector('[data-talk-cancel]')?.addEventListener('click', ()=>{ dr.parent = null; csTalkRender(slot, rid); slot.querySelector('#talkDraft')?.focus(); });
+  slot.querySelectorAll('[data-talk-reply]').forEach(b=>b.addEventListener('click', ()=>{
+    dr.parent = b.dataset.talkReply; csTalkRender(slot, rid);
+    slot.querySelector('#talkDraft')?.focus();
+  }));
+  slot.querySelector('[data-talk-follow]')?.addEventListener('click', ()=>csTalkState(slot, rid, th.following ? 'none' : 'following'));
+  slot.querySelector('[data-talk-mute]')?.addEventListener('click', ()=>csTalkState(slot, rid, th.muted ? 'none' : 'muted'));
+  slot.querySelector('[data-talk-course]')?.addEventListener('click', e=>csOpenCoursePeople(e.currentTarget.dataset.talkCourse));
+  slot.querySelectorAll('[data-talk-remove]').forEach(b=>b.addEventListener('click', ()=>csTalkRemove(slot, rid, b)));
+  slot.querySelectorAll('[data-talk-report]').forEach(b=>b.addEventListener('click', ()=>csTalkReportForm(slot, b.dataset.talkReport)));
+}
+
+async function csTalkSend(slot, rid){
+  const dr = csTalkDraft(rid);
+  const ta = slot.querySelector('#talkDraft'), err = slot.querySelector('#talkErr'), btn = slot.querySelector('#talkSend');
+  if(ta) dr.text = ta.value;
+  const text = dr.text.trim();
+  if(!text){ if(err) err.textContent = CS_TALK.needText; ta?.focus(); return; }
+  /* one idempotency key per (draft, words): a retry of the same words is the
+     same comment on the server; edited words are a new comment */
+  if(!dr.clientId || dr.clientFor !== text + '\u0000' + (dr.parent||'')){
+    dr.clientId = csTalkUuid(); dr.clientFor = text + '\u0000' + (dr.parent||'');
+  }
+  if(btn) btn.disabled = true;
+  if(err) err.textContent = '';
+  try{
+    const { data, error } = await window.sb.rpc('add_posted_round_comment',
+      { p_round: rid, p_body: text, p_parent: dr.parent || null, p_client_id: dr.clientId });
+    if(error) throw error;
+    if(!data || !data.ok) throw new Error(CS_TALK.failed);
+    csTalkDrafts.delete(rid);
+    if(window.csTalkSocial[rid]) window.csTalkSocial[rid].comment_count = data.count;
+    toast(CS_TALK.sent);
+    await csPaintRoundTalk(rid, data.comment && data.comment.id);
+  }catch(e){
+    /* the draft, the reply target and the key all stay: nothing typed is lost */
+    if(btn) btn.disabled = false;
+    if(err) err.textContent = humanError(e, CS_TALK.failed);
+  }
+}
+async function csTalkState(slot, rid, next){
+  try{
+    const { error } = await window.sb.rpc('set_round_thread_state', { p_round: rid, p_state: next });
+    if(error) throw error;
+    const d = slot.__talk;
+    if(d){ d.thread = { state: next, following: next==='following', muted: next==='muted' }; csTalkRender(slot, rid); }
+  }catch(e){ toast(humanError(e, 'That setting did not save.')); }
+}
+async function csTalkRemove(slot, rid, b){
+  if(!b.dataset.armed){ b.dataset.armed = '1'; b.textContent = CS_TALK.removeArm; return; }
+  b.disabled = true;
+  try{
+    const { error } = await window.sb.rpc('remove_posted_round_comment', { p_comment: b.dataset.talkRemove });
+    if(error) throw error;
+    await csPaintRoundTalk(rid);
+  }catch(e){ b.disabled = false; toast(humanError(e, 'Could not remove that comment.')); }
+}
+/* the report is inline: a sheet here would replace the round it is about */
+function csTalkReportForm(slot, cid){
+  const box = slot.querySelector(`[data-talk-repbox="${CSS.escape(cid)}"]`); if(!box) return;
+  if(!box.hidden){ box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  box.innerHTML = `<label class="cs-agate-s" for="talkRep-${esc(cid)}">What’s wrong with it?</label>
+    <input class="f" id="talkRep-${esc(cid)}" maxlength="500" autocomplete="off">
+    <div class="cs-talk-acts"><button type="button" class="mini" data-talk-repgo>Send the report</button><button type="button" class="mini" data-talk-repno>Cancel</button></div>`;
+  const inp = box.querySelector('input');
+  inp?.focus();
+  box.querySelector('[data-talk-repno]')?.addEventListener('click', ()=>{ box.hidden = true; box.innerHTML = ''; });
+  box.querySelector('[data-talk-repgo]')?.addEventListener('click', async e=>{
+    const go = e.currentTarget; go.disabled = true;
+    try{
+      const { error } = await window.sb.rpc('report_content', { p_kind:'comment', p_comment: cid, p_reason: (inp?.value || '').slice(0,500) });
+      if(error) throw error;
+      box.hidden = true; box.innerHTML = '';
+      toast(CS_TALK.reported);
+    }catch(err){ go.disabled = false; toast(humanError(err, 'Could not send the report.')); }
+  });
+}
+
+/* a friend outside the league cannot read `round_card` (it is league-scoped),
+   but may read the round through its conversation — the same facts the wire
+   already showed them, and never a point */
+async function csRoundFromThread(rid){
+  try{
+    const { data, error } = await window.sb.rpc('posted_round_thread', { p_round: rid });
+    if(error || !data || !data.ok || !data.round) return null;
+    const r = data.round;
+    return { id: rid, profile_id: r.owner && r.owner.id, gross: r.gross, holes_played: r.holes,
+             played_on: r.played_on, course_label: (r.course && r.course.label) || '', photo_path: r.photo_path || null };
+  }catch(_){ return null; }
+}
+
+/* ---- the inbox ------------------------------------------------------------ */
+function csBadgeSet(n){
+  const b = document.getElementById('hdrBell'), c = document.getElementById('hdrBellN');
+  if(!b || !c) return;
+  const k = Math.max(0, Number(n) || 0);
+  b.hidden = false;
+  c.textContent = k > 9 ? '9+' : String(k);
+  c.hidden = !k;
+  b.setAttribute('aria-label', k ? `Notifications, ${k} unread` : 'Notifications');
+}
+async function csBadgeRefresh(){
+  if(state.demo || !window.sb || !window.CS?.user) return;
+  try{
+    const { data, error } = await window.sb.rpc('notification_badge');
+    if(error) throw error;
+    csBadgeSet(data && data.unread);
+  }catch(e){
+    if(csTalkSkew(e)){ const b = document.getElementById('hdrBell'); if(b) b.hidden = true; }
+  }
+}
+window.csBadgeRefresh = csBadgeRefresh;
+const csInbox = { items:[], next:null, prefs:null };
+async function csOpenInbox(){
+  if(state.demo || !window.sb || !window.CS?.user) return;
+  openSheet(CS_INBOX.title, 'COMMENTS', `<p class="fine">Loading…</p>`);
+  csInbox.items = []; csInbox.next = null;
+  try{
+    const [a, b] = await Promise.all([
+      window.sb.rpc('my_notifications', { p_before: null, p_limit: 30 }),
+      window.sb.rpc('social_notify_prefs'),
+    ]);
+    if(a.error) throw a.error;
+    csInbox.items = (a.data && a.data.items) || [];
+    csInbox.next = (a.data && a.data.next_before) || null;
+    csInbox.prefs = (!b.error && b.data) ? b.data : null;
+    csBadgeSet(a.data && a.data.unread);
+  }catch(e){
+    $('#shBody').innerHTML = `<p class="fine">${esc(humanError(e, 'Couldn’t load notifications.'))}</p>`;
+    return;
+  }
+  csInboxRender();
+}
+window.csOpenInbox = csOpenInbox;
+function csInboxRender(){
+  const body = $('#shBody'); if(!body) return;
+  const items = csInbox.items, unread = items.some(n=>!n.read);
+  const row = n => `<button type="button" class="cs-inbox-n${n.read?'':' is-unread'}" data-inbox="${esc(n.id)}">
+      ${face(n.actor && n.actor.id, n.actor && n.actor.marker, 32)}
+      <span class="cs-inbox-copy">
+        <span class="cs-body-s cs-inbox-line">${esc(CS_INBOX.line(n))}${n.read ? '' : '<span class="cs-sr"> Unread.</span>'}</span>
+        ${n.excerpt ? `<span class="cs-story cs-inbox-q">“${esc(n.excerpt)}”</span>` : ''}
+        <span class="cs-agate-s">${[n.course_name, csTalkWhen(n.created_at)].filter(Boolean).map(esc).join(' · ')}</span>
+      </span>
+      ${n.read ? '' : '<svg class="cs-inbox-dot" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>'}
+    </button>`;
+  const p = csInbox.prefs;
+  const prefs = p ? `<h3 class="eyebrow" style="margin-top:var(--s5)">${esc(CS_INBOX.prefsHead)}</h3>`
+    + CS_INBOX.prefs.map(([k, name, sub]) => `<label class="cs-inbox-pref"><span><b class="cs-name">${esc(name)}</b><span class="cs-body-s">${esc(sub)}</span></span>`
+      + `<input type="checkbox" data-pref="${esc(k)}"${p[k] !== false ? ' checked' : ''}></label>`).join('')
+    + `<p class="fine">${esc(CS_INBOX.prefsNote)}</p>` : '';
+  body.innerHTML = (unread ? `<div class="cs-inbox-bar"><button type="button" class="mini" data-inbox-all>${esc(CS_INBOX.markAll)}</button></div>` : '')
+    + (items.length ? items.map(row).join('') : `<p class="fine">${esc(CS_INBOX.empty)}</p>`)
+    + (csInbox.next ? `<div class="cs-inbox-bar"><button type="button" class="mini" data-inbox-more>${esc(CS_INBOX.more)}</button></div>` : '')
+    + prefs;
+  body.querySelectorAll('[data-inbox]').forEach(b=>b.addEventListener('click', ()=>{
+    const n = csInbox.items.find(x=>x.id===b.dataset.inbox); if(n) csOpenNotification(n);
+  }));
+  body.querySelector('[data-inbox-all]')?.addEventListener('click', async e=>{
+    e.currentTarget.disabled = true;
+    try{
+      const { data, error } = await window.sb.rpc('mark_notifications_read', { p_all: true });
+      if(error) throw error;
+      csInbox.items.forEach(n=>{ n.read = true; });
+      csBadgeSet(data && data.unread);
+      csInboxRender();
+    }catch(err){ toast(humanError(err, 'That did not save.')); csInboxRender(); }
+  });
+  body.querySelector('[data-inbox-more]')?.addEventListener('click', async e=>{
+    e.currentTarget.disabled = true;
+    try{
+      const { data, error } = await window.sb.rpc('my_notifications', { p_before: csInbox.next, p_limit: 30 });
+      if(error) throw error;
+      csInbox.items = csInbox.items.concat((data && data.items) || []);
+      csInbox.next = (data && data.next_before) || null;
+    }catch(err){ toast(humanError(err, 'Couldn’t load older notifications.')); }
+    csInboxRender();
+  });
+  body.querySelectorAll('input[data-pref]').forEach(inp=>inp.addEventListener('change', async ()=>{
+    const k = inp.dataset.pref, on = inp.checked;
+    inp.disabled = true;
+    try{
+      const { data, error } = await window.sb.rpc('set_social_notify_prefs', { ['p_' + k]: on });
+      if(error) throw error;
+      csInbox.prefs = data || Object.assign({}, csInbox.prefs, { [k]: on });
+    }catch(err){ inp.checked = !on; toast(humanError(err, 'That setting did not save.')); }
+    inp.disabled = false;
+  }));
+}
+/* open = read it, then go to the exact comment */
+function csOpenNotification(n){
+  if(!n.read){
+    n.read = true;
+    window.sb.rpc('mark_notifications_read', { p_ids: [n.id] })
+      .then(({ data }) => { if(data) csBadgeSet(data.unread); }).catch(()=>{});
+  }
+  csOpenPostedRound(n.round_id, { focusComment: n.comment_id, focusTalk: true });
+}
+document.getElementById('hdrBell')?.addEventListener('click', ()=>csOpenInbox());
+
+/* ---- the course's circle -------------------------------------------------- */
+function csCpTee(t){ return (t && t.name ? t.name : 'Tee') + (t && t.gender==='female' ? ' · Women’s' : ''); }
+async function csOpenCoursePeople(courseId, tee, holes){
+  if(!courseId || state.demo || !window.sb || !window.CS?.user) return;
+  const seq = (csOpenCoursePeople.seq = (csOpenCoursePeople.seq || 0) + 1);
+  openSheet('The course', 'YOUR CIRCLE', `<p class="fine">Loading who of yours has played it…</p>`);
+  let d = null;
+  try{
+    const { data, error } = await window.sb.rpc('course_page',
+      { p_course_id: String(courseId), p_tee: tee || null, p_holes: holes ? Number(holes) : null });
+    if(error) throw error;
+    d = data;
+  }catch(e){
+    if(seq !== csOpenCoursePeople.seq) return;
+    $('#shBody').innerHTML = `<p class="fine">${esc(csTalkSkew(e) ? 'This needs the latest update — try again shortly.' : humanError(e, 'Couldn’t load the course.'))}</p>`;
+    return;
+  }
+  if(seq !== csOpenCoursePeople.seq) return;
+  if(!d || !d.ok){ $('#shBody').innerHTML = `<p class="fine">Nothing to show for this course.</p>`; return; }
+  csCoursePeopleRender(String(courseId), d);
+}
+window.csOpenCoursePeople = csOpenCoursePeople;
+function csCoursePeopleRender(courseId, d){
+  const sel = d.selection || {}, tees = d.tees || [], ho = d.holes_options || [], scope = d.scope || {};
+  const selTee = tees.find(t=>t.key===sel.tee_key) || null;
+  const title = (d.course && d.course.name) || 'The course';
+  $('#shTitle').textContent = title;
+  $('#shSub').textContent = [d.course && d.course.city, d.course && d.course.state].filter(Boolean).join(', ').toUpperCase() || 'YOUR CIRCLE';
+  const holeChoices = [18, 9].filter(h => h === sel.holes || ho.some(o=>o.holes===h));
+  const filters = tees.length ? `<div class="cs-cp-filters">
+      <label><span class="cs-agate-s">Tees</span><select class="f" data-cp-tee>${tees.map(t=>`<option value="${esc(t.key)}"${t.key===sel.tee_key?' selected':''}>${esc(csCpTee(t))}${tees.filter(x=>csCpTee(x)===csCpTee(t)).length>1 ? ' · ' + esc(String(t.rating)) + '/' + esc(String(t.slope)) : ''}</option>`).join('')}</select></label>
+      <label><span class="cs-agate-s">Round</span><select class="f" data-cp-holes>${holeChoices.map(h=>`<option value="${h}"${h===sel.holes?' selected':''}>${h} holes</option>`).join('')}</select></label>
+    </div>` : '';
+  const b = d.best;
+  const holders = b ? (b.holders || []) : [];
+  const names = [...new Set(holders.map(h=>h.person && h.person.name).filter(Boolean))];
+  const best = b ? `<div class="cs-cp-best">
+      <div class="eyebrow">${esc(scope.best_label || 'Your circle best')} · gross</div>
+      <div class="cs-cp-bestrow"><span class="cs-fig-l">${esc(String(b.gross))}</span>
+        <div><div class="cs-name">${esc(names.join(' & '))}</div>
+        <div class="cs-agate-s">${esc([b.tied ? 'Shared best' : csTalkDay(holders[0] && holders[0].played_on), selTee ? csCpTee(selTee) + ' tees' : null, `${sel.holes} holes`].filter(Boolean).join(' · '))}</div></div></div>
+      <div class="cs-cp-acts">${holders.map(h=>`<button type="button" class="mini" data-cp-round="${esc(h.round_id)}">Open ${esc(csTalkFirst(h.person && h.person.name))}’s round${b.tied ? ' · ' + esc(csTalkDay(h.played_on)) : ''}</button>`).join('')}</div>
+      <p class="cs-agate-s">${esc(`${b.eligible_rounds} round${b.eligible_rounds===1?'':'s'} compared · ${scope.label || 'Your circle'}`)}</p>
+    </div>`
+    : `<p class="fine">${tees.length ? 'No scores from your circle on these tees for this round length yet.' : 'No round here has a tee we can prove yet, so there is no best to compare.'}</p>`;
+  const m = d.my_best;
+  const mine = m ? `<div class="cs-cp-mine"><span><b class="cs-name">Your best here</b><span class="cs-agate-s">${esc(`${m.rounds} round${m.rounds===1?'':'s'} on these tees`)}</span></span>`
+    + `<button type="button" class="mini" data-cp-round="${esc(m.round_id)}" aria-label="Open your best round, ${esc(String(m.gross))}"><span class="cs-fig-s">${esc(String(m.gross))}</span></button></div>` : '';
+  const people = (d.people || []).map(p=>{
+    const pe = p.person || {}, bs = p.best_in_selection;
+    const sub = [CS_RELATION[p.relation] || null, `${p.rounds_total} round${p.rounds_total===1?'':'s'}`, p.latest_played_on ? 'last ' + csTalkDay(p.latest_played_on) : null].filter(Boolean).join(' · ');
+    const hist = (p.rounds || []).map(r=>`<button type="button" class="cs-cp-r" data-cp-round="${esc(r.round_id)}">
+        <span>${esc(csTalkDay(r.played_on))}</span>
+        <span class="cs-agate-s">${esc([r.tee_name ? r.tee_name + ' tees' : 'Tee not recorded', `${r.holes} holes`].join(' · '))}</span>
+        <span class="cs-fig-s">${esc(String(r.gross))}</span></button>`).join('');
+    const more = p.rounds_total > (p.rounds || []).length ? `<p class="fine">The ${(p.rounds||[]).length} most recent of ${p.rounds_total}.</p>` : '';
+    return `<details class="cs-cp-p"><summary>${face(pe.id, pe.marker, 28)}<span class="cs-cp-pn"><b class="cs-name">${esc(pe.name || 'A golfer')}</b><span class="cs-agate-s">${esc(sub)}</span></span>${bs ? `<span class="cs-fig-s" aria-label="Best on these tees ${esc(String(bs.gross))}">${esc(String(bs.gross))}</span>` : ''}</summary><div class="cs-cp-hist">${hist}${more}</div></details>`;
+  }).join('');
+  const unknown = Number(d.unknown_tee_rounds || 0);
+  $('#shBody').innerHTML = filters + best + mine
+    + `<h3 class="eyebrow" style="margin-top:var(--s5)">Who’s played here<span class="cs-agate-s"> · ${esc(String(d.people_total || 0))}</span></h3>`
+    + (people || `<p class="fine">Nobody in your circle has posted a round here yet.</p>`)
+    + `<p class="fine">${esc(scope.note || '')}${unknown ? ` ${unknown} round${unknown===1?'':'s'} without a tee we can prove ${unknown===1?'is':'are'} listed but never compared.` : ''}</p>`;
+  const body = $('#shBody');
+  const reopen = () => csOpenCoursePeople(courseId, body.querySelector('[data-cp-tee]')?.value || null, body.querySelector('[data-cp-holes]')?.value || null);
+  body.querySelector('[data-cp-tee]')?.addEventListener('change', reopen);
+  body.querySelector('[data-cp-holes]')?.addEventListener('change', reopen);
+  body.querySelectorAll('[data-cp-round]').forEach(el=>el.addEventListener('click', ()=>csOpenPostedRound(el.dataset.cpRound, { focusTalk: false })));
 }
 
 /* ================= drill-down receipts ================= */
@@ -31712,6 +32298,23 @@ if(claimParam){
   history.replaceState(null, '', window.location.pathname);
   window.growthEvent?.('link_opened', 'claim', claimParam.trim());
 }
+/* D391 · /?round=<id>&comment=<id> — a notification's own link. Held until
+   the signed-in boot and opened once; a malformed id is dropped, never sent. */
+{
+  const q = new URLSearchParams(window.location.search);
+  const rr = q.get('round'), cc = q.get('comment');
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if(rr && uuid.test(rr)){
+    try{ sessionStorage.setItem('cs_open_round', JSON.stringify({ round: rr, comment: (cc && uuid.test(cc)) ? cc : null })); }catch(_){}
+    q.delete('round'); q.delete('comment');
+    history.replaceState(null, '', window.location.pathname + (q.toString() ? '?' + q.toString() : ''));
+  }
+}
+function csOpenPendingRound(){
+  let p = null;
+  try{ p = JSON.parse(sessionStorage.getItem('cs_open_round') || 'null'); sessionStorage.removeItem('cs_open_round'); }catch(_){}
+  if(p && p.round) window.csOpenPostedRound?.(p.round, { focusComment: p.comment || null, focusTalk: true });
+}
 async function claimPendingRound(){
   let tok=null; try{ tok=localStorage.getItem('cs_claim'); }catch(_){}
   if(!tok || !CS.user || !CS.profile?.marker) return;
@@ -31985,6 +32588,8 @@ async function safeBoot(force){
   }
   if(CS.user) claimPendingRound();
   if(CS.user) redeemPendingShares();
+  /* D391 · the inbox's count, and a notification link that brought us here */
+  if(CS.user){ window.csBadgeRefresh?.(); csOpenPendingRound(); }
 }
 /* supabase-js emits INITIAL_WEEK once on load — that drives the first boot.
    The old code ALSO called safeBoot() directly at the bottom of the script, so
@@ -32012,6 +32617,7 @@ document.addEventListener('visibilitychange', () => {
   if(!CS.user || (Date.now() - csHiddenAt) < 2500) return;
   if(CS.league){ subscribeLeague().then(() => window.loadStandingsAndFeed && window.loadStandingsAndFeed()).catch(() => {}); }
   loadInvites().then(() => window.renderNotifications && window.renderNotifications()).catch(() => {});
+  window.csBadgeRefresh?.();
 });
 
 /* Fallback: if INITIAL_WEEK never arrives (auth transport stall), boot

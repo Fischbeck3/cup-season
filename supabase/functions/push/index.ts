@@ -109,11 +109,18 @@ type CsKind =
      therefore land Home. */
   | 'rank_change' | 'clash_pressure' | 'callout' | 'clash_verdict' | 'index_live'
   | 'tee_tomorrow' | 'season_countdown' | 'friend_round' | 'seat_open'
-  | 'season_cancel';
+  | 'season_cancel'
+  /* D391 · a comment on a posted round. The row is written by
+     add_posted_round_comment only while app_flags.social_comment_push is on
+     (seeded OFF), so this vocabulary ships before anything sends one — the same
+     order as D248. The phone opens the thread at comment_id and reads the
+     in-app notification notification_id. */
+  | 'comment';
 
 const CS_ID_KEYS = [
   'league_id', 'post_id', 'round_id', 'live_round_id', 'event_id',
   'profile_id', 'scheduled_round_id', 'request_id', 'invite_id',
+  'comment_id', 'notification_id',
 ] as const;
 type CsIdKey = typeof CS_ID_KEYS[number];
 
@@ -130,6 +137,7 @@ const D248_IDS: Record<string, CsIdKey[]> = {
   friend_round:     ['round_id', 'post_id', 'profile_id'],
   seat_open:        ['scheduled_round_id', 'profile_id'],
   season_cancel:    ['league_id'],
+  comment:          ['round_id', 'comment_id', 'notification_id', 'profile_id'],
 };
 type Cs = { v: 1; kind: CsKind } & Partial<Record<CsIdKey, string>>;
 type Category = 'CS_REQUEST' | 'CS_RSVP' | 'CS_INVITE';
