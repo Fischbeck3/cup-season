@@ -121,7 +121,7 @@ try {
   ok(j('f', `posted_round_thread('20000000-0000-4000-8000-0000000000ff')`).reason === 'not_visible', 'unknown round answers exactly like an invisible one');
   as('anon', `select posted_round_thread('${R.a1}');`, { expectError: 'permission denied' }); ok(true, 'anon cannot execute the thread read');
   const th0 = j('f', `posted_round_thread('${R.a1}')`);
-  ok(th0.round.course.tee_name === 'White' && th0.round.course.tee_key === 'white@70.1/124', 'thread round carries its proven tee');
+  ok(th0.round.course.tee_name === 'White' && th0.round.course.tee_key === 'white:male:18@70.1/124', 'thread round carries its proven tee');
 
   // ---- 2 · commenting, idempotency, notifications ----------------------------
   const k1 = '30000000-0000-4000-8000-000000000001';
@@ -255,7 +255,7 @@ try {
          ('20000000-0000-4000-8000-0000000000a3','${U.a}',65,70.1,124,18,'Fixture Oaks','${C}',current_date-3,12.0);`);
   const cp = j('a', `course_page('${C}')`);
   ok(cp.ok && cp.scope.best_label === 'Your circle best' && /Not an official course record/.test(cp.scope.note), 'the scope is labelled as the circle, never a record');
-  ok(cp.selection.tee_key === 'white@70.1/124' && cp.selection.holes === 18, 'default selection: White, 18 holes');
+  ok(cp.selection.tee_key === 'white:male:18@70.1/124' && cp.selection.holes === 18, 'default selection: White, 18 holes');
   ok(cp.best.gross === 70 && cp.best.tied === true && cp.best.holders.length === 2, 'the best (70) sits OUTSIDE the latest 60 and is a shared tie');
   ok(cp.best.holders[0].round_id === '20000000-0000-4000-8000-0000000000a0' && cp.best.holders[1].round_id === R.f1, 'tie holders ordered first-posted first, each with its source round');
   ok(!cp.people.some(p => p.person.id === U.u || p.person.id === U.b), 'unrelated and muted golfers are absent');
@@ -266,13 +266,18 @@ try {
   ok(aRow.rounds.some(r => r.round_id === '20000000-0000-4000-8000-0000000000a3' && r.tee_key === null && r.tee_name === null), 'ambiguous round shows with no tee');
   ok(cp.my_best.gross === 70 && cp.my_best.rounds === 66, 'my best is the old 70 with the true count');
   ok(cp.people.find(p => p.person.id === U.l).best_in_selection === null, 'a Blue round is not in the White best');
-  ok(cp.tees.some(t => t.key === 'blue@72.3/131' && t.rounds === 1), 'Blue is offered as a filter');
-  const blue = j('a', `course_page('${C}', 'blue@72.3/131', 18)`);
+  ok(cp.tees.some(t => t.key === 'blue:male:18@72.3/131' && t.rounds === 1), 'Blue is offered as a filter');
+  const blue = j('a', `course_page('${C}', 'blue:male:18@72.3/131', 18)`);
   ok(blue.best.gross === 68 && blue.best.holders[0].person.id === U.l, 'the Blue filter gives the league mate’s 68');
-  const nine = j('a', `course_page('${C}', 'white@70.1/124', 9)`);
-  ok(nine.best.gross === 38 && nine.selection.holes === 9, 'nines compare only with nines');
+  const nine = j('a', `course_page('${C}', 'white:male:18@70.1/124', 9)`);
+  ok(nine.selection.holes === 9 && nine.best === null && nine.my_best === null
+     && nine.best_unavailable === 'nine_side_unrecorded'
+     && nine.people.every(p => p.best_in_selection === null), 'a nine has no side on record, so it has no best, and says why');
+  ok(nine.people.find(p => p.person.id === U.a).rounds.some(r => r.holes === 9 && r.gross === 38 && r.in_selection),
+     'the nine stays in history and in the filter');
+  ok(cp.best_unavailable === null, 'eighteen-hole bests say nothing is unavailable');
   const bogus = j('a', `course_page('${C}', 'made-up', 7)`);
-  ok(bogus.selection.tee_key === 'white@70.1/124' && bogus.selection.holes === 18, 'an invalid selection falls back to the default');
+  ok(bogus.selection.tee_key === 'white:male:18@70.1/124' && bogus.selection.holes === 18, 'an invalid selection falls back to the default');
   const fp = j('f', `course_page('${C}')`);
   ok(fp.people.some(p => p.person.id === U.a && p.relation === 'friend') && !fp.people.some(p => p.person.id === U.l), 'a friend with no league sees a (friend) but not a’s league mate');
   ok(j('u', `course_page('${C}')`).people.every(p => p.person.id === U.u), 'an unrelated golfer sees only themself');
@@ -283,6 +288,82 @@ try {
   ok(soc.items.length === 1 && soc.items[0].round_id === R.a1, 'only visible rounds come back');
   ok(soc.items[0].comment_count === j('f', `posted_round_thread('${R.a1}')`).count, 'the door’s count equals the thread’s');
   ok(soc.items[0].course.api_course_id === C && soc.items[0].course.faces.every(x => x.id !== U.f) && soc.items[0].course.faces.some(x => x.id === U.a), 'the course door names circle faces, never the viewer');
+
+
+  // ---- 7 · a tee is ONE layout: name alone never settles gender or hole count -----
+  const C2 = 'C-9002';
+  sql(`insert into api_courses(id, club_name, course_name) values ('${C2}','Fixture Pines','Fixture Pines');
+    insert into api_course_tees(course_id, gender, tee_name, course_rating, slope_rating, number_of_holes) values
+      ('${C2}','male','White',70.1,124,18), ('${C2}','female','White',70.1,124,18),
+      ('${C2}',null,'Gold',68.0,118,18),    ('${C2}',null,'Gold',68.0,118,9),
+      ('${C2}',null,'Silver',66.0,110,18),
+      ('${C2}','male','Black',74.0,135,18);
+    insert into rounds(profile_id, gross, rating, slope, holes_played, course_label, api_course_id, played_on, index_at_post) values
+      ('${U.a}',80,70.1,124,18,'Fixture Pines · White','${C2}',current_date-9,12.0),
+      ('${U.a}',81,68.0,118,18,'Fixture Pines · Gold','${C2}',current_date-9,12.0),
+      ('${U.a}',82,66.0,110,18,'Fixture Pines · Silver','${C2}',current_date-9,12.0),
+      ('${U.a}',88,74.0,135,18,'Fixture Pines','${C2}',current_date-9,12.0);`);
+  const pines = j('a', `course_page('${C2}')`);
+  ok(pines.unknown_tee_rounds === 3, 'men’s/women’s White, a genderless 18/9 Gold and a genderless Silver stay UNKNOWN');
+  ok(pines.tees.length === 1 && pines.tees[0].key === 'black:male:18@74.0/135', 'only the one-layout Black is a known tee');
+  ok(pines.best.gross === 88 && pines.best.eligible_rounds === 1, 'unknown-tee rounds never reach the best, even with lower grosses');
+  ok(pines.people[0].rounds.filter(r => r.tee_key === null).length === 3, 'unknown-tee rounds stay in history');
+
+  // ---- 8 · more than 200 comments: the newest page, and any visible focus -----------
+  const BIG = '20000000-0000-4000-8000-0000000000b1';
+  const cid = n => `50000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+  sql(`insert into rounds(id, profile_id, gross, rating, slope, holes_played, course_label, api_course_id, played_on, index_at_post)
+         values ('${BIG}','${U.a}',85,70.1,124,18,'Fixture Oaks · White','${C}',current_date-1,12.0);
+       insert into post_comments(id, round_id, profile_id, body, created_at)
+         select ('50000000-0000-4000-8000-' || lpad(g::text, 12, '0'))::uuid, '${BIG}', '${U.f}', 'c' || g,
+                now() - interval '1 day' + g * interval '1 second'
+           from generate_series(1, 210) g;
+       update post_comments set parent_id = '${cid(1)}', root_id = '${cid(1)}' where id = '${cid(5)}';
+       update post_comments set hidden_at = now(), hidden_by = '${U.z}', hidden_reason = 'test' where id = '${cid(3)}';`);
+  const plain = j('l', `posted_round_thread('${BIG}')`);
+  ok(plain.count === 209 && plain.comments.length === 200 && plain.page.truncated === true && plain.page.focus_id === null,
+     'a 209-comment thread returns its newest 200 and says it is truncated');
+  ok(plain.comments.at(-1).id === cid(210) && !plain.comments.some(c => c.id === cid(1)),
+     'the page is the NEWEST 200, in display order');
+  ok(plain.comments.every((c, i, a) => i === 0 || a[i - 1].created_at <= c.created_at), 'display order is oldest first');
+  const oldF = j('l', `posted_round_thread('${BIG}', '${cid(5)}')`);
+  ok(oldF.page.focus_id === cid(5) && oldF.comments.some(c => c.id === cid(5)) && oldF.comments.some(c => c.id === cid(1))
+     && oldF.comments.length === 202, 'an OLD focus comes back with its root, outside the page');
+  ok(oldF.comments.find(c => c.id === cid(5)).reply_to.id === cid(1), 'the old focus still names its parent');
+  const fresh = j('a', `add_posted_round_comment('${BIG}', 'number two hundred and ten')`);
+  const newF = j('a', `posted_round_thread('${BIG}', '${fresh.comment.id}')`);
+  ok(newF.count === 210 && newF.page.focus_id === fresh.comment.id && newF.comments.at(-1).id === fresh.comment.id,
+     'a NEW focus (comment 210) is in the thread it was just sent to');
+  const hid = j('l', `posted_round_thread('${BIG}', '${cid(3)}')`);
+  const other = j('l', `posted_round_thread('${BIG}', '${c1.comment.id}')`);
+  const made = j('l', `posted_round_thread('${BIG}', '50000000-0000-4000-8000-ffffffffffff')`);
+  const base2 = j('l', `posted_round_thread('${BIG}')`);
+  const sameAs = x => JSON.stringify(x.comments.map(c => c.id)) === JSON.stringify(base2.comments.map(c => c.id))
+                      && x.page.focus_id === null && x.count === base2.count;
+  ok(sameAs(hid) && sameAs(other) && sameAs(made), 'a hidden, foreign or made-up focus is answered exactly like no focus');
+  sql(`insert into mutes(muter, muted) values ('${U.l}','${U.f}')`);
+  const mutedF = j('l', `posted_round_thread('${BIG}', '${cid(200)}')`);
+  ok(mutedF.page.focus_id === null && !mutedF.comments.some(c => c.id === cid(200)), 'a focus by a golfer you muted is not disclosed');
+  sql(`delete from mutes where muter = '${U.l}' and muted = '${U.f}'`);
+  ok(j('u', `posted_round_thread('${BIG}', '${cid(5)}')`).reason === 'not_visible', 'a focus never opens an invisible round');
+  ok(!sql(`select count(*) from pg_proc where proname = 'posted_round_thread'`).includes('2'), 'exactly one posted_round_thread (no overload)');
+
+  // ---- 9 · the inbox cursor holds across identical timestamps ----------------------
+  for (let i = 0; i < 18; i++) j('l', `add_posted_round_comment('${BIG}', 'from l ${i}')`);
+  for (let i = 0; i < 18; i++) j('f', `add_posted_round_comment('${BIG}', 'from f ${i}')`);
+  sql(`update social_notifications set created_at = '2026-09-20 12:00:00+00' where recipient = '${U.a}'`);
+  const want = Number(sql(`select count(*) from social_notifications n where n.recipient = '${U.a}'
+                             and public._notification_live(n.recipient, n.round_id, n.comment_id, n.actor)`));
+  ok(want > 35, 'more live notifications than a page, all at one timestamp (' + want + ')');
+  const seen = []; let cur = null, pages = 0;
+  do {
+    const pg = cur ? j('a', `my_notifications('${cur.at}', 30, '${cur.id}')`) : j('a', `my_notifications(null, 30)`);
+    pg.items.forEach(i => seen.push(i.id)); pages++;
+    cur = pg.next_before ? { at: pg.next_before, id: pg.next_before_id } : null;
+    if (cur) ok(cur.id && pg.items.at(-1).id === cur.id, 'the cursor is the last row’s (created_at, id)');
+  } while (cur && pages < 10);
+  ok(seen.length === want && new Set(seen).size === want, `every notification appears exactly once across ${pages} pages`);
+  ok(!sql(`select count(*) from pg_proc where proname = 'my_notifications'`).includes('2'), 'exactly one my_notifications (no overload)');
 
   console.log(`\nALL PASS (${passed})`);
 } catch (e) {

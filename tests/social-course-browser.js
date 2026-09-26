@@ -41,7 +41,11 @@
                round_id:R1, comment_id:C2, excerpt:'Caught the left edge.', course_name:'FIXTURE Oaks', round_owner_name:'You',
                link:{ kind:'round_comment', round_id:R1, comment_id:C2, web:`/?round=${R1}&comment=${C2}` } }];
   let prefs={ own_round:true, replies:true, followed:true };
-  const coursePage=(tee,holes)=>({ ok:true,
+  const coursePage=(tee,holes)=> holes===9 ? { ok:true, course:{ api_course_id:'fx-1', name:'FIXTURE Oaks' },
+      scope:{ key:'circle', label:'Your circle', best_label:'Your circle best', note:'Not an official course record.' },
+      selection:{ tee_key:'white@70.1/124', tee_name:'White', holes:9 }, tees:[{ key:'white@70.1/124', name:'White', gender:'male', rating:70.1, slope:124, rounds:2 }],
+      holes_options:[{ holes:18, rounds:4 },{ holes:9, rounds:1 }], unknown_tee_rounds:0, best:null, best_unavailable:'nine_side_unrecorded', my_best:null, people_total:0, people:[] }
+    : ({ ok:true, best_unavailable:null,
     course:{ api_course_id:'fx-1', name:'FIXTURE Oaks', city:'Testville', state:'CA', country:'USA' },
     scope:{ key:'circle', label:'Your circle', best_label:'Your circle best', note:'From your rounds, your friends’ rounds and the rounds of the golfers in your seasons, Ryders and Majors. Not an official course record.' },
     selection:{ tee_key: tee||'white@70.1/124', tee_name: tee==='blue@72.3/131'?'Blue':'White', holes: holes||18 },
@@ -56,6 +60,9 @@
               rounds:[{ round_id:R1, played_on:'2025-11-01', gross:70, holes:18, tee_key:'white@70.1/124', tee_name:'White', has_photo:false, in_selection:true }] },
             { person:person(MARA,'Mara Fixture'), relation:'league', rounds_total:2, latest_played_on:'2026-09-01', best_in_selection:null,
               rounds:[{ round_id:R1, played_on:'2026-09-01', gross:81, holes:18, tee_key:null, tee_name:null, has_photo:false, in_selection:false }] }] });
+  const GONE='10000000-0000-4000-8000-0000000000ee';
+  const older={ id:'30000000-0000-4000-8000-000000000002', kind:'own_round', created_at:notes[0].created_at, read:true, read_at:iso(1), actor:person(THEO,'Theo Fixture'),
+                round_id:R1, comment_id:C1, excerpt:'Same ball?', course_name:'FIXTURE Oaks', round_owner_name:'You', link:{ kind:'round_comment', round_id:R1, comment_id:C1 } };
   const SKEW={ code:'PGRST202', message:'Could not find the function public.x in the schema cache' };
   const rpc=async(name,args)=>{
     calls.push([name, JSON.parse(JSON.stringify(args||{}))]);
@@ -67,7 +74,8 @@
     switch(name){
       case 'posted_rounds_social': return { data:{ items:(args.p_rounds||[]).filter(id=>id===R1).map(id=>({ round_id:id, comment_count:comments.length, can_comment:true, thread_state:thread.state,
         course:{ api_course_id:'fx-1', name:'FIXTURE Oaks', circle_golfers:3, faces:[person(THEO,'Theo Fixture'), person(MARA,'Mara Fixture')] } })) }, error:null };
-      case 'posted_round_thread': return { data:{ ok:true, round:{ id:R1, owner:person(ME,'You Fixture'), is_mine:true, gross:84, holes:18, played_on:'2026-09-20',
+      case 'posted_round_thread': if(args.p_round===GONE) return { data:{ ok:false, reason:'not_visible' }, error:null };
+        return { data:{ ok:true, page:{ newest:comments.length, limit:200, truncated:false, focus_id:args.p_focus||null }, round:{ id:R1, owner:person(ME,'You Fixture'), is_mine:true, gross:84, holes:18, played_on:'2026-09-20',
           course:{ api_course_id:'fx-1', name:'FIXTURE Oaks', label:'FIXTURE Oaks · White', tee_name:'White', tee_key:'white@70.1/124' }, photo_path:null },
           can_comment:true, comment_block_reason:null, thread, notify_prefs:prefs, count:comments.length, comments }, error:null };
       case 'add_posted_round_comment': {
@@ -78,7 +86,9 @@
         return { data:{ ok:true, replayed:false, comment:c, count:comments.length }, error:null }; }
       case 'set_round_thread_state': thread={ state:args.p_state, following:args.p_state==='following', muted:args.p_state==='muted' }; return { data:{ ok:true, state:args.p_state }, error:null };
       case 'notification_badge': return { data:{ unread:notes.filter(n=>!n.read).length }, error:null };
-      case 'my_notifications': return { data:{ ok:true, unread:notes.filter(n=>!n.read).length, items:notes, next_before:null }, error:null };
+      case 'my_notifications': return args.p_before
+          ? { data:{ ok:true, unread:notes.filter(n=>!n.read).length, items:[older], next_before:null, next_before_id:null }, error:null }
+          : { data:{ ok:true, unread:notes.filter(n=>!n.read).length, items:notes, next_before:notes[0].created_at, next_before_id:N1 }, error:null };
       case 'mark_notifications_read': notes.forEach(n=>{ if(args.p_all || (args.p_ids||[]).includes(n.id)) n.read=true; }); return { data:{ ok:true, unread:notes.filter(n=>!n.read).length }, error:null };
       case 'social_notify_prefs': return { data:prefs, error:null };
       case 'set_social_notify_prefs': return { data:prefs, error:null };
@@ -154,7 +164,13 @@
     const bell=document.getElementById('hdrBell');
     check(!bell.hidden && bell.getAttribute('aria-label')==='Notifications, 1 unread' && document.getElementById('hdrBellN').textContent==='1','the bell is not counting');
     bell.click();
-    const item=await until(()=>document.querySelector('#shBody [data-inbox]'));
+    await until(()=>document.querySelector('#shBody [data-inbox]'));
+    /* the composite cursor: "Show older" carries (created_at, id), and a row it already has is not doubled */
+    document.querySelector('#shBody [data-inbox-more]').click();
+    await until(()=>document.querySelectorAll('#shBody [data-inbox]').length===2 && !document.querySelector('#shBody [data-inbox-more]'));
+    const more=calls.filter(c=>c[0]==='my_notifications').at(-1)[1];
+    check(more.p_before===notes[0].created_at && more.p_before_id===N1 && more.p_limit===30,'"Show older" did not send the composite cursor: '+JSON.stringify(more));
+    const item=document.querySelector('#shBody [data-inbox="'+N1+'"]');
     check(item.textContent.includes('Mara replied to your comment.') && item.textContent.includes('“Caught the left edge.”') && item.textContent.includes('Unread'),'the inbox sentence is wrong: '+item.textContent.replace(/\s+/g,' '));
     /* a preference that fails reverts */
     const pref=document.querySelector('#shBody input[data-pref="followed"]');
@@ -162,6 +178,7 @@
     pref.click();
     await until(()=>!pref.disabled && pref.checked===true);
     item.click();
+    await until(()=>calls.some(c=>c[0]==='posted_round_thread' && c[1].p_focus===C2));
     const target=await until(()=>document.querySelector(`#rcptTalk #talk-c-${C2}.is-target`));
     check(calls.some(c=>c[0]==='mark_notifications_read' && (c[1].p_ids||[]).includes(N1)),'opening did not mark it read');
     check(document.activeElement===target && /opened from a notification/.test(target.getAttribute('aria-label')),'the notification did not open the exact comment');
@@ -180,7 +197,27 @@
     check(body.querySelector('.cs-cp-r').textContent.includes('White tees'),'history row does not carry its tee');
     const teeSel=body.querySelector('[data-cp-tee]'); teeSel.value='blue@72.3/131'; teeSel.dispatchEvent(new Event('change'));
     await until(()=>calls.some(c=>c[0]==='course_page' && c[1].p_tee==='blue@72.3/131') && document.querySelector('#shBody .cs-cp-best .cs-fig-l')?.textContent==='68');
+    /* a nine: no best, and the sheet says why */
+    const holesSel=document.querySelector('#shBody [data-cp-holes]');
+    holesSel.innerHTML+='<option value="9">9 holes</option>'; holesSel.value='9'; holesSel.dispatchEvent(new Event('change'));
+    await until(()=>/Nines aren’t compared/.test(document.getElementById('shBody').textContent));
+    check(!document.querySelector('#shBody .cs-cp-best') && !document.querySelector('#shBody .cs-cp-mine'),'a nine drew a best');
     out.course='ok';
+
+    /* ── 4b · the new doors never open a cached receipt; a friend with no league opens the facts ── */
+    window.roundCache=window.roundCache||{};
+    window.roundCache[GONE]={ id:GONE, gross:61, points:12, course_label:'Stale cache', played_on:'2026-09-01' };
+    const opened=await csOpenPostedRound(GONE, { fresh:true });
+    check(opened===false && !window.roundCache[GONE] && toasts.includes('That round isn’t available any more.'),'a voided/muted round opened from the cache');
+    check(!/Stale cache/.test(document.getElementById('shBody').textContent) || !document.getElementById('sheet').classList.contains('open'),'the stale receipt is on screen');
+    window.roundCache[R1]={ id:R1, gross:99, points:40, course_label:'Stale cache' };
+    await csOpenPostedRound(R1, { fresh:true });
+    await until(()=>document.querySelector('#rcptTalk .cs-talk'));
+    check(calls.some(c=>c[0]==='round_card' && c[1].p_round===R1),'the league card was not asked');
+    const sheetText=document.getElementById('shBody').textContent;
+    check(/84/.test(document.querySelector('#rcptHero').textContent) && !/Stale cache/.test(sheetText),'the receipt did not come from the gate');
+    check(!document.querySelector('#shBody .rcpt-figs .p'),'points shown to a golfer with no shared league');
+    check(!window.roundCache[R1] || window.roundCache[R1].points!==40,'the stale cached card survived');
 
     /* ── 5 · deploy skew: nothing drawn that the server cannot answer ── */
     skew=true; window.csTalkSocial={};

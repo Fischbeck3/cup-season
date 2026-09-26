@@ -14,7 +14,8 @@
 -- record. No existing consent publishes a stranger's gross app-wide (`discoverable` is a
 -- search gate; no round carries an audience). Best = same api_course_id, same KNOWN tee
 -- (_round_tee, never guessed), same hole count, not void, owner not deleted, no mute
--- either way. Ties are shared and every holder's round is returned. Gross only — no
+-- either way. Ties are shared and every holder's round is returned.
+-- Nines are never compared (no side is recorded); they stay in history. (D391 amended.) Gross only — no
 -- scoring rule, points figure or band moves.
 
 create index if not exists rounds_api_course_played
@@ -92,29 +93,35 @@ begin
            (x->>'created_at')::timestamptz created_at, (x->>'photo')::boolean photo,
            x->>'tee_key' tee_key, x->>'tee_name' tee_name, x->>'gender' gender,
            (x->>'rating')::numeric rating, (x->>'slope')::int slope,
-           (x->>'tee_key' is not null and x->>'tee_key' = v_tee and (x->>'holes')::int = v_holes) sel
+           (x->>'tee_key' is not null and x->>'tee_key' = v_tee and (x->>'holes')::int = v_holes) sel,
+           -- D391 (amended) · ELIGIBLE for a best: in the selection AND eighteen holes.
+           -- No round records WHICH nine was played (quick posts carry no holes, and
+           -- both clients number a nine's hole rows 1..9 whichever side it was), so a
+           -- front 34 and a back 34 are not comparable; nines stay in history only.
+           (x->>'tee_key' is not null and x->>'tee_key' = v_tee and (x->>'holes')::int = v_holes
+            and v_holes = 18) elig
       from jsonb_array_elements(v_rows) x
   ),
-  best as (select min(gross) g, count(*) n from rw where sel),
+  best as (select min(gross) g, count(*) n from rw where elig),
   holders as (
     select coalesce(jsonb_agg(jsonb_build_object('round_id', rw.id,
                       'person', public._social_person(rw.pid), 'played_on', rw.played_on)
                     order by rw.played_on, rw.created_at, rw.id), '[]'::jsonb) j,
            count(*) n
-      from rw, best where rw.sel and rw.gross = best.g
+      from rw, best where rw.elig and rw.gross = best.g
   ),
   mine as (
     select (select jsonb_build_object('gross', m.gross, 'round_id', m.id, 'played_on', m.played_on)
-              from rw m where m.sel and m.pid = v
+              from rw m where m.elig and m.pid = v
              order by m.gross, m.played_on, m.created_at limit 1) j,
-           (select count(*) from rw m where m.sel and m.pid = v) n
+           (select count(*) from rw m where m.elig and m.pid = v) n
   ),
   people as (
     select rw.pid, min(rw.rel) rel, count(*) total, max(rw.played_on) latest,
            (select jsonb_build_object('gross', b.gross, 'round_id', b.id, 'played_on', b.played_on)
-              from rw b where b.pid = rw.pid and b.sel
+              from rw b where b.pid = rw.pid and b.elig
              order by b.gross, b.played_on, b.created_at limit 1) best_sel,
-           (select min(b.gross) from rw b where b.pid = rw.pid and b.sel) best_g,
+           (select min(b.gross) from rw b where b.pid = rw.pid and b.elig) best_g,
            (select coalesce(jsonb_agg(jsonb_build_object(
                      'round_id', h.id, 'played_on', h.played_on, 'gross', h.gross, 'holes', h.holes,
                      'tee_key', h.tee_key, 'tee_name', h.tee_name, 'has_photo', h.photo,
@@ -145,6 +152,9 @@ begin
                         from unnest(array[18, 9]) h
                        where exists (select 1 from rw where rw.tee_key = v_tee and rw.holes = h)),
     'unknown_tee_rounds', (select count(*) from rw where tee_key is null),
+    -- D391 (amended) · why `best` is null when it is null for a reason other than
+    -- "nobody has one yet": a nine has no side on record, so it has no best.
+    'best_unavailable', case when v_holes = 9 then 'nine_side_unrecorded' end,
     'best', (select case when best.n = 0 then null else jsonb_build_object(
                 'gross', best.g, 'tied', holders.n > 1, 'eligible_rounds', best.n,
                 'holders', holders.j) end from best, holders),

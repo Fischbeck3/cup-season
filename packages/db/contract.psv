@@ -398,6 +398,8 @@ withdraw_round_shares|p_round uuid|text[]|definer|auth
 # 2026-09-25 · D391 (20261207090000 + 20261208090000, not yet pushed): the posted-round
 # conversation, the in-app inbox, notification switches and the course page. Taken from a
 # disposable cluster with the full chain applied (tests/social-course-database.mjs).
+# Release review (same day): posted_round_thread gains p_focus and my_notifications gains
+# p_before_id, both DEFAULTED; the old signatures are dropped in the migration (no overload).
 _notification_live|p_recipient uuid, p_round uuid, p_comment uuid, p_actor uuid|boolean|definer|none
 _posted_round_visible|p_viewer uuid, p_round uuid|boolean|definer|none
 _round_comment_json|p_id uuid|jsonb|definer|none
@@ -410,9 +412,9 @@ _social_person|p_profile uuid|jsonb|definer|none
 add_posted_round_comment|p_round uuid, p_body text, p_parent uuid DEFAULT NULL::uuid, p_client_id uuid DEFAULT NULL::uuid|jsonb|definer|auth
 course_page|p_course_id text, p_tee text DEFAULT NULL::text, p_holes integer DEFAULT NULL::integer|jsonb|definer|auth
 mark_notifications_read|p_ids uuid[] DEFAULT NULL::uuid[], p_all boolean DEFAULT false|jsonb|definer|auth
-my_notifications|p_before timestamp with time zone DEFAULT NULL::timestamp with time zone, p_limit integer DEFAULT 30|jsonb|definer|auth
+my_notifications|p_before timestamp with time zone DEFAULT NULL::timestamp with time zone, p_limit integer DEFAULT 30, p_before_id uuid DEFAULT NULL::uuid|jsonb|definer|auth
 notification_badge||jsonb|definer|auth
-posted_round_thread|p_round uuid|jsonb|definer|auth
+posted_round_thread|p_round uuid, p_focus uuid DEFAULT NULL::uuid|jsonb|definer|auth
 posted_rounds_social|p_rounds uuid[]|jsonb|definer|auth
 remove_posted_round_comment|p_comment uuid|jsonb|definer|auth
 set_round_thread_state|p_round uuid, p_state text|jsonb|definer|auth

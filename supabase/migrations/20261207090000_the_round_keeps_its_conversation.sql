@@ -206,15 +206,21 @@ $$;
 
 -- A round's tee, NEVER INVENTED (L-44). `rounds` has no tee column. The tee is known
 -- only when the round's api course has cached tees at exactly its (rating, slope) and
--- the match is unambiguous: the tee the picker's label names after its last " · "
--- among those candidates, else the single distinct tee name among them.
+-- those candidates resolve to ONE layout — one (tee name, gender, number of holes).
+-- The picker's label (after its last " · ") may narrow the candidates by name, but a
+-- name never settles a tie on its own: a White (men's) and a White (women's) at the
+-- same rating/slope, or an 18-hole and a 9-hole card of one name, are two layouts and
+-- the round's tee stays UNKNOWN. Unknown rounds keep their place in history and are
+-- never compared. The key is opaque to clients: name:gender:holes@rating/slope.
 create or replace function public._round_tee(p_api_course text, p_label text,
                                               p_rating numeric, p_slope integer)
 returns table (tee_key text, tee_name text, gender text)
 language sql stable security definer set search_path to 'public'
 as $$
   with cand as (
-    select btrim(t.tee_name) as nm, t.gender
+    select btrim(t.tee_name) as nm, lower(btrim(t.tee_name)) as lnm,
+           nullif(lower(btrim(coalesce(t.gender, ''))), '') as g,
+           t.number_of_holes as nh
       from api_course_tees t
      where p_api_course is not null
        and t.course_id = p_api_course
@@ -225,19 +231,24 @@ as $$
     select lower(btrim(regexp_replace(p_label, '^.* · ', ''))) as s
      where position(' · ' in coalesce(p_label, '')) > 0
   ),
-  named as (select * from cand where lower(cand.nm) = (select s from suffix)),
-  chosen as (
+  named as (select * from cand where cand.lnm = (select s from suffix)),
+  pool as (
     select * from named
     union all
-    select * from cand
-     where not exists (select 1 from named)
-       and (select count(distinct lower(nm)) from cand) = 1
+    select * from cand where not exists (select 1 from named)
+  ),
+  layouts as (
+    select distinct lnm, coalesce(g, '?') as g, coalesce(nh::text, '?') as nh from pool
   )
-  select lower(min(c.nm)) || '@' || (p_rating::numeric(4,1))::text || '/' || p_slope::text,
-         min(c.nm),
-         case when count(distinct coalesce(c.gender, '')) = 1 then min(c.gender) end
-    from chosen c
-  having count(*) > 0;
+  select min(p.lnm) || ':' || min(coalesce(p.g, '?')) || ':' || min(coalesce(p.nh::text, '?'))
+           || '@' || (p_rating::numeric(4,1))::text || '/' || p_slope::text,
+         min(p.nm),
+         min(p.g)
+    from pool p
+  having count(*) > 0
+     and (select count(*) from layouts) = 1
+     -- a layout whose gender or hole count the cache does not state is not a layout
+     and bool_and(p.g is not null and p.nh is not null);
 $$;
 
 -- The rows of one posted round's conversation that the CALLER may read: round-keyed
@@ -297,7 +308,11 @@ as $$
 $$;
 revoke all on function public._round_comment_json(uuid) from public, anon, authenticated;
 
-create or replace function public.posted_round_thread(p_round uuid)
+-- v1 was (p_round uuid) and returned the OLDEST 200 rows, so comment 201 — the one just
+-- sent, the one a notification names — could never appear. Dropped and re-created with
+-- a DEFAULTED p_focus so every old call still resolves and no overload exists.
+drop function if exists public.posted_round_thread(uuid);
+create or replace function public.posted_round_thread(p_round uuid, p_focus uuid default null)
 returns jsonb
 language plpgsql stable security definer set search_path to 'public'
 as $$
@@ -307,6 +322,8 @@ declare
   v_state text;
   v_rows jsonb;
   v_count int;
+  v_page int;
+  v_focus uuid;
   v_tee record;
   v_prefs jsonb;
 begin
@@ -319,24 +336,35 @@ begin
   select * into v_tee from public._round_tee(r.api_course_id, r.course_label, r.rating, r.slope);
   select s.state into v_state from round_thread_states s where s.profile_id = v and s.round_id = p_round;
 
-  select count(*)::int into v_count from public._round_thread_rows(p_round);
-  select coalesce(jsonb_agg(j order by (j->>'created_at')::timestamptz, j->>'id'), '[]'::jsonb) into v_rows
-    from (
-      select jsonb_build_object(
-               'id', t.id, 'round_id', p_round,
-               'parent_id', t.parent_id, 'root_id', t.root_id,
-               'reply_to', (select jsonb_build_object('id', pt.id, 'name', pp.display_name)
-                              from public._round_thread_rows(p_round) pt
-                              join profiles pp on pp.id = pt.author
-                             where pt.id = t.parent_id and pt.origin = 'round'),
-               'author', public._social_person(t.author),
-               'body', t.body, 'created_at', t.created_at, 'origin', t.origin,
-               'is_mine', t.author = v,
-               'can_reply', t.origin = 'round') as j
-        from public._round_thread_rows(p_round) t
-       order by t.created_at, t.id
-       limit 200
-    ) s;
+  -- the NEWEST 200 visible rows, plus — when asked — a visible focus and its visible
+  -- parent and root, so a notification always opens its exact comment. A focus the
+  -- caller cannot see (hidden, muted, deleted author, another round, made up) is
+  -- simply not there: the answer is the same as a call without it.
+  with t as materialized (select * from public._round_thread_rows(p_round)),
+  newest as (select t.id from t order by t.created_at desc, t.id desc limit 200),
+  f as (select t.* from t where p_focus is not null and t.id = p_focus),
+  want as (
+    select id from newest
+    union select id from f
+    union select t.id from t join f on t.id = f.parent_id
+    union select t.id from t join f on t.id = f.root_id
+  )
+  select (select count(*) from t)::int,
+         (select count(*) from newest)::int,
+         (select id from f),
+         coalesce(jsonb_agg(jsonb_build_object(
+           'id', t.id, 'round_id', p_round,
+           'parent_id', t.parent_id, 'root_id', t.root_id,
+           'reply_to', (select jsonb_build_object('id', pt.id, 'name', pp.display_name)
+                          from t pt join profiles pp on pp.id = pt.author
+                         where pt.id = t.parent_id and pt.origin = 'round'),
+           'author', public._social_person(t.author),
+           'body', t.body, 'created_at', t.created_at, 'origin', t.origin,
+           'is_mine', t.author = v,
+           'can_reply', t.origin = 'round')
+           order by t.created_at, t.id), '[]'::jsonb)
+    into v_count, v_page, v_focus, v_rows
+    from t join want w on w.id = t.id;
 
   select jsonb_build_object('own_round', coalesce(sp.own_round, true),
                             'replies',   coalesce(sp.replies, true),
@@ -362,6 +390,9 @@ begin
                                  'muted', coalesce(v_state = 'muted', false)),
     'notify_prefs', v_prefs,
     'count', v_count,
+    'page', jsonb_build_object('newest', v_page, 'limit', 200,
+                               'truncated', v_count > v_page,
+                               'focus_id', v_focus),
     'comments', v_rows);
 end $$;
 
@@ -593,26 +624,35 @@ as $$
      and public._notification_live(n.recipient, n.round_id, n.comment_id, n.actor);
 $$;
 
+-- v1 paged by created_at alone while sorting by (created_at, id): rows sharing a
+-- timestamp across a page edge were skipped for good. The cursor is now the pair.
+-- p_before alone (a v1 client) keeps its old meaning. Dropped and re-created with the
+-- new argument DEFAULTED so old calls resolve and no overload exists.
+drop function if exists public.my_notifications(timestamptz, integer);
 create or replace function public.my_notifications(p_before timestamptz default null,
-                                                   p_limit integer default 30)
+                                                   p_limit integer default 30,
+                                                   p_before_id uuid default null)
 returns jsonb
 language plpgsql stable security definer set search_path to 'public'
 as $$
 declare
   v uuid := auth.uid();
   v_lim int := least(greatest(coalesce(p_limit, 30), 1), 50);
-  v_items jsonb; v_n int;
+  v_items jsonb; v_more boolean; v_last_at timestamptz; v_last_id uuid;
 begin
   if v is null then return jsonb_build_object('ok', false, 'reason', 'signed_out'); end if;
   with page as (
     select n.*
       from social_notifications n
      where n.recipient = v
-       and (p_before is null or n.created_at < p_before)
+       and (p_before is null
+            or (p_before_id is null and n.created_at < p_before)
+            or (p_before_id is not null and (n.created_at, n.id) < (p_before, p_before_id)))
        and public._notification_live(v, n.round_id, n.comment_id, n.actor)
      order by n.created_at desc, n.id desc
      limit v_lim + 1
-  )
+  ),
+  pg as (select page.*, row_number() over (order by page.created_at desc, page.id desc) rn from page)
   select coalesce(jsonb_agg(jsonb_build_object(
            'id', pg.id, 'kind', pg.kind, 'created_at', pg.created_at,
            'read', pg.read_at is not null, 'read_at', pg.read_at,
@@ -625,9 +665,11 @@ begin
                                       'comment_id', pg.comment_id,
                                       'web', '/?round=' || pg.round_id || '&comment=' || pg.comment_id))
            order by pg.created_at desc, pg.id desc) filter (where pg.rn <= v_lim), '[]'::jsonb),
-         count(*)
-    into v_items, v_n
-    from (select page.*, row_number() over (order by page.created_at desc, page.id desc) rn from page) pg
+         bool_or(pg.rn > v_lim),
+         (array_agg(pg.created_at order by pg.rn desc) filter (where pg.rn <= v_lim))[1],
+         (array_agg(pg.id order by pg.rn desc) filter (where pg.rn <= v_lim))[1]
+    into v_items, v_more, v_last_at, v_last_id
+    from pg
     join post_comments c on c.id = pg.comment_id
     join rounds r on r.id = pg.round_id
     join profiles o on o.id = r.profile_id;
@@ -636,9 +678,8 @@ begin
     'ok', true,
     'unread', (public.notification_badge()->>'unread')::int,
     'items', v_items,
-    'next_before', case when v_n > v_lim
-                        then (select min((i->>'created_at')::timestamptz) from jsonb_array_elements(v_items) i)
-                        end);
+    'next_before',    case when coalesce(v_more, false) then v_last_at end,
+    'next_before_id', case when coalesce(v_more, false) then v_last_id end);
 end $$;
 
 create or replace function public.mark_notifications_read(p_ids uuid[] default null,
@@ -657,23 +698,23 @@ begin
 end $$;
 
 -- ─────────────────────────────────────────────── grants (L-04)
-revoke all on function public.posted_round_thread(uuid)                            from public, anon;
+revoke all on function public.posted_round_thread(uuid, uuid)                      from public, anon;
 revoke all on function public.add_posted_round_comment(uuid, text, uuid, uuid)     from public, anon;
 revoke all on function public.remove_posted_round_comment(uuid)                    from public, anon;
 revoke all on function public.set_round_thread_state(uuid, text)                   from public, anon;
 revoke all on function public.social_notify_prefs()                                from public, anon;
 revoke all on function public.set_social_notify_prefs(boolean, boolean, boolean)   from public, anon;
 revoke all on function public.notification_badge()                                 from public, anon;
-revoke all on function public.my_notifications(timestamptz, integer)               from public, anon;
+revoke all on function public.my_notifications(timestamptz, integer, uuid)         from public, anon;
 revoke all on function public.mark_notifications_read(uuid[], boolean)             from public, anon;
-grant execute on function public.posted_round_thread(uuid)                          to authenticated;
+grant execute on function public.posted_round_thread(uuid, uuid)                    to authenticated;
 grant execute on function public.add_posted_round_comment(uuid, text, uuid, uuid)   to authenticated;
 grant execute on function public.remove_posted_round_comment(uuid)                  to authenticated;
 grant execute on function public.set_round_thread_state(uuid, text)                 to authenticated;
 grant execute on function public.social_notify_prefs()                              to authenticated;
 grant execute on function public.set_social_notify_prefs(boolean, boolean, boolean) to authenticated;
 grant execute on function public.notification_badge()                               to authenticated;
-grant execute on function public.my_notifications(timestamptz, integer)             to authenticated;
+grant execute on function public.my_notifications(timestamptz, integer, uuid)       to authenticated;
 grant execute on function public.mark_notifications_read(uuid[], boolean)           to authenticated;
 
 -- ─────────────────────────────────────────────── 9 · moderation reaches the new rows
@@ -783,10 +824,10 @@ do $chk$
 declare f text;
 begin
   foreach f in array array[
-    'public.posted_round_thread(uuid)', 'public.add_posted_round_comment(uuid,text,uuid,uuid)',
+    'public.posted_round_thread(uuid,uuid)', 'public.add_posted_round_comment(uuid,text,uuid,uuid)',
     'public.remove_posted_round_comment(uuid)', 'public.set_round_thread_state(uuid,text)',
     'public.social_notify_prefs()', 'public.set_social_notify_prefs(boolean,boolean,boolean)',
-    'public.notification_badge()', 'public.my_notifications(timestamptz,integer)',
+    'public.notification_badge()', 'public.my_notifications(timestamptz,integer,uuid)',
     'public.mark_notifications_read(uuid[],boolean)'] loop
     if not has_function_privilege('authenticated', f, 'EXECUTE')
        or has_function_privilege('anon', f, 'EXECUTE') then

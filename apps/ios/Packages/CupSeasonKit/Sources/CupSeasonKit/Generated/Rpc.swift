@@ -1613,13 +1613,15 @@ public enum Rpc {
 
   public struct my_notifications: RpcCall {
     public static let name = "my_notifications"
-    public static let optionalArgs: [String] = ["p_before", "p_limit"]
+    public static let optionalArgs: [String] = ["p_before", "p_limit", "p_before_id"]
     public typealias Returns = JSONValue
     public var p_before: Date?
     public var p_limit: Int?
-    public init(p_before: Date? = nil, p_limit: Int? = nil) {
+    public var p_before_id: UUID?
+    public init(p_before: Date? = nil, p_limit: Int? = nil, p_before_id: UUID? = nil) {
       self.p_before = p_before
       self.p_limit = p_limit
+      self.p_before_id = p_before_id
     }
   }
 
@@ -1854,11 +1856,13 @@ public enum Rpc {
 
   public struct posted_round_thread: RpcCall {
     public static let name = "posted_round_thread"
-    public static let optionalArgs: [String] = []
+    public static let optionalArgs: [String] = ["p_focus"]
     public typealias Returns = JSONValue
     public var p_round: UUID
-    public init(p_round: UUID) {
+    public var p_focus: UUID?
+    public init(p_round: UUID, p_focus: UUID? = nil) {
       self.p_round = p_round
+      self.p_focus = p_focus
     }
   }
 

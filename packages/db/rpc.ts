@@ -197,7 +197,7 @@ export interface Rpc {
   "my_member_id": { args: { p_league: string }; returns: string };
   "my_month_counters": { args: { p_on?: string }; returns: Json };
   "my_mutes": { args: Record<string, never>; returns: string[] };
-  "my_notifications": { args: { p_before?: string; p_limit?: number }; returns: Json };
+  "my_notifications": { args: { p_before?: string; p_limit?: number; p_before_id?: string }; returns: Json };
   "my_open_tags": { args: { p_limit?: number }; returns: { round_id: string | null; played_on: string | null; course_label: string | null; gross: number | null; by_name: string | null; by_profile: string | null; tagged_at: string | null }[] };
   "my_rivalries": { args: Record<string, never>; returns: { opponent: string | null; display_name: string | null; handle: string | null; marker: string | null; wins: number | null; losses: number | null; ties: number | null; meetings: number | null; lead: string | null; duel_wins: number | null; duel_losses: number | null; duel_halves: number | null; rivalry_name: string | null }[] };
   "my_schedule": { args: { p_from: string; p_to: string }; returns: { id: string | null; profile_id: string | null; display_name: string | null; marker: string | null; play_on: string | null; course_label: string | null; note: string | null; tee_time: string | null; mine: boolean | null; is_friend: boolean | null; shared_league: boolean | null; tagged_names: string[] | null; tagged_me: boolean | null; course_id: string | null; rsvp_in: number | null; my_rsvp: string | null; comment_n: number | null; name: string | null; game: string | null; tagged_pids: string[] | null; rsvp: Json | null }[] };
@@ -217,7 +217,7 @@ export interface Rpc {
   "post_round": { args: { p_gross: number; p_rating: number; p_slope: number; p_holes_played?: number; p_nine_rating?: number; p_course_id?: string; p_course_label?: string; p_played_on?: string; p_photo_path?: string; p_played_with?: string[] }; returns: Json };
   "post_round_once": { args: { p_request_id: string; p_payload: Json; p_hole_scores: number[]; p_played_with: string[] }; returns: Json };
   "post_week_comeback": { args: { p_season: string; p_week: number }; returns: void };
-  "posted_round_thread": { args: { p_round: string }; returns: Json };
+  "posted_round_thread": { args: { p_round: string; p_focus?: string }; returns: Json };
   "posted_rounds_social": { args: { p_rounds: string[] }; returns: Json };
   "prepare_round_share": { args: { p_round: string; p_include_photo: boolean; p_attempt: string }; returns: Json };
   "randomize_squads": { args: { p_season: string }; returns: void };
