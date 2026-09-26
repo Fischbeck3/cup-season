@@ -36,19 +36,77 @@ Claude implemented and reviewed the web/backend contract on his isolated branch;
 Codex integrated commits `882b1956` and `3de8d4c0` and built the native surfaces.
 The shared contract is [D391 v1.3](../planning/2026-09-25-d391-social-course-contract.md).
 
-The release candidate passes preflight (0 failures, 0 warnings), all 102 social
-database assertions against the full disposable migration chain, and the web
-integration walk at 1440/390 px (no console errors or horizontal overflow).
-Before deployment, production's 53 read-only invariant checks pass and the dry
-run names exactly migrations `20261207090000` and `20261208090000`.
+Released September 26, 2026 UTC (September 25 in Arizona):
 
-Native UI verification covers course history → source round, nine-hole filtering,
-failed-send draft retention, and activity → exact comment. Final small-phone and
-accessibility captures and deployment identities are recorded at release closeout.
-External distribution and App Store submission are outside this release.
+- Web implementation `26696a808ace8b837f0f905331ce833406f8a502` is on `main`
+  and the owned release branch. Netlify serves `26696a8` in HTML and the service
+  worker, HTTP 200 with no version placeholders. The signed-out browser door
+  renders that stamp. A subsequent documentation-only closeout advances the
+  stamp without changing product code.
+- Database migrations `20261207090000` and `20261208090000` applied. Production
+  has 276 migrations, no pending migrations, 11 authenticated-only social RPCs,
+  and sealed notification/preferences/thread-state tables.
+- The `push` Edge function is deployed and ACTIVE, version **39**.
+- Native **1.0.0 (1029)** is available in **Owner TestFlight**. Exact source:
+  `4754eb77c621ad6a7c26c66b254b61bff86a0c6f`. Archive/export and Apple validation
+  succeeded; the app and widget both carry build 1029, signatures verify,
+  APNs is production and debugging entitlement is off. One upload succeeded,
+  delivery `8234169f-a980-4d42-b4de-6a11e5b33686`. Read-back: **VALID**,
+  **Owner YES**, **IN_BETA_TESTING**, **Friends no**. What to Test saved (200);
+  Owner group add succeeded (204). No external review or App Store submission.
+- [Structured deployment evidence](social-course-blend-evidence.json).
+
+Verification: preflight **0 failures / 0 warnings**; **102** social database
+assertions against the full disposable migration chain; **53/53** production
+invariants; web integration at **1440/390 px** with no console errors or horizontal
+overflow; **1,289** domain and **120** design tests; **four** social UI tests on
+iPhone SE, including **AX3** notification → exact comment. Small-phone light and
+dark captures were visually inspected. The UI tests also cover course history
+→ source round, nine-hole filtering, and failed-send draft retention.
+[GitHub CI passed](https://github.com/Fischbeck3/cup-season/actions/runs/36211519085).
+
+Release review caught a false positive in database check 18: the new author and
+reply foreign keys intentionally give `post_comments` two paths to profiles and
+to itself. Claude audited both clients and function sources; all reads use
+scalar columns or the definer RPC, with no ambiguous embed. The check now accepts
+only those two exact pairs, and preflight 21b scans **510** sources to reject a
+future unqualified embed. No applied migration was changed to resolve it.
 
 Comment activity is persistent in-app. The optional lock-screen producer remains
 disabled by `app_flags.social_comment_push.enabled=false` until actual-device
 delivery is verified. Nine-hole rounds remain in history but do not set bests:
 the existing round record does not identify which nine was played. Tee keys are
 opaque and comparisons require a unique known layout, including gender and holes.
+
+## Handoff
+
+Branch: `codex/social-course-blend-2026-09-26`, pushed and integrated into `main`.
+
+Goal: Ship the approved social/round-posting and course-history blend.
+
+What changed: Posted-round conversations and replies; persistent comment activity,
+read state and notification preferences; course doors from rounds; friends and
+circle histories; scoped best scores with source rounds; privacy and moderation.
+
+Files changed: `index.html`; the two new migrations; `supabase/functions/push/index.ts`;
+DB contract plus generated clients; native Home, receipt, course, Activity and push
+surfaces; domain/design components and tests; D391 and shared contract documentation.
+The existing dirty visual workspace was not changed.
+
+Verification run: The database, web, native and release checks above.
+
+Database deploy owed: None.
+
+Edge deploy owed: None.
+
+Client deploy owed: None for web or the internal Owner release.
+
+Open questions / risks: Real-device comment-push delivery is unverified and its
+producer stays off. In-app comment activity is live. North Grove examples remain
+debug-only fixtures, never production records. TestFlight availability does not
+establish installation on the owner's phone.
+
+Recommended next step: Install **1029** through Owner TestFlight; open a course,
+choose a friend's score, add a comment/reply and follow the resulting Activity
+item back to the conversation. Verify lock-screen delivery before enabling the
+comment-push producer.

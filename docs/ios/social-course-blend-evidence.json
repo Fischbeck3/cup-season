@@ -1,0 +1,103 @@
+{
+  "date_utc": "2026-09-26",
+  "branch": "codex/social-course-blend-2026-09-26",
+  "native": {
+    "source": "4754eb77c621ad6a7c26c66b254b61bff86a0c6f",
+    "build": "1029",
+    "version": "1.0.0",
+    "ipa": "apps/ios/build/archive/run-1029-4754eb77.DiLid9/export/Cup Season.ipa",
+    "sha256": "f44fca5aa810fcc1ed95c69fba1ba99346ffb0e255efd5af089d6d4785b84c54",
+    "bundle_ids": [
+      "app.cupseason.ios.widgets",
+      "app.cupseason.ios"
+    ],
+    "signature_verified": true,
+    "aps_environment": "production",
+    "get_task_allow": false
+  },
+  "web": {
+    "source": "26696a808ace8b837f0f905331ce833406f8a502",
+    "expected_stamp": "26696a8",
+    "surfaces": {
+      "/": {
+        "status": 200,
+        "bytes": 1958207,
+        "stamp_matches": true,
+        "placeholder_absent": true
+      },
+      "/sw.js": {
+        "status": 200,
+        "bytes": 3388,
+        "stamp_matches": true,
+        "placeholder_absent": true
+      }
+    }
+  },
+  "database": {
+    "comment_focus_arg": "p_round uuid, p_focus uuid DEFAULT NULL::uuid",
+    "latest_migration": "20261208090000",
+    "migration_count": 276,
+    "notification_pair_cursor": "p_before timestamp with time zone DEFAULT NULL::timestamp with time zone, p_limit integer DEFAULT 30, p_before_id uuid DEFAULT NULL::uuid",
+    "push_flag": {
+      "enabled": false,
+      "note": "D391 \u00b7 flip once the phone routes kind=comment (PushKind) and the push Edge function carrying it is deployed."
+    },
+    "rpc_auth_only": true,
+    "rpc_count": 11,
+    "tables_rpc_only": true,
+    "pending_migrations": 0
+  },
+  "edge": {
+    "name": "push",
+    "version": 39,
+    "status": "ACTIVE"
+  },
+  "verification": {
+    "preflight_failures": 0,
+    "preflight_warnings": 0,
+    "social_database_assertions": 102,
+    "production_invariant_checks": 53,
+    "production_invariant_failures": 0,
+    "native_domain_tests": 1289,
+    "native_design_tests": 120,
+    "small_phone_social_ui_tests": 4,
+    "small_phone": "iPhone SE (3rd generation)",
+    "accessibility_size": "AX3",
+    "web_widths": [
+      1440,
+      390
+    ],
+    "web_console_errors": 0,
+    "web_horizontal_overflow": false,
+    "production_browser": "Signed-out door renders release stamp 26696a8",
+    "ci": "https://github.com/Fischbeck3/cup-season/actions/runs/36211519085",
+    "relationship_guard_sources": 510,
+    "screenshots": {
+      "small_phone_course": {
+        "sha256": "203cf15371f5fa07de669bda5b1e7dc49abbd38e59b7a517b03ae1b042cbb053",
+        "inspection": "passed"
+      },
+      "small_phone_comment_AX3": {
+        "sha256": "4dde7f5e81f0bb6de7dda938c527e305effb92c4154f00552046d885d1999cfe",
+        "inspection": "passed"
+      }
+    }
+  },
+  "apple": {
+    "validation": "SUCCEEDED",
+    "upload": "SUCCEEDED",
+    "delivery_uuid": "8234169f-a980-4d42-b4de-6a11e5b33686",
+    "owner_distribution": "available",
+    "processing_state": "VALID",
+    "internal_build_state": "IN_BETA_TESTING",
+    "owner_group": true,
+    "friends_group": false,
+    "what_to_test_http_status": 200,
+    "owner_add_http_status": 204
+  },
+  "limits": [
+    "Comment push producer remains disabled pending actual-device delivery verification.",
+    "Nine-hole rounds remain in history; bests require a confirmed eighteen-hole tee comparison.",
+    "Fictional North Grove fixtures are debug-only and were never written to production."
+  ]
+}
