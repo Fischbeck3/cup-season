@@ -144,6 +144,7 @@ struct RoundReceiptSheet: View {
               }
               .foregroundStyle(cs.ink)
               .frame(minHeight: 44)
+              .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("round.course")

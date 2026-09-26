@@ -50,6 +50,15 @@ final class SocialBlendTests: XCTestCase {
     XCTAssertTrue(app.buttons["course.social.tee"].waitForExistence(timeout: 10))
   }
 
+  @MainActor func testReceiptCourseLinkRespondsAcrossTheRow() {
+    let app = launch("receipt")
+    let course = app.buttons["round.course"]
+    XCTAssertTrue(course.waitForExistence(timeout: 15))
+    reveal(course, in: app)
+    course.coordinate(withNormalizedOffset: CGVector(dx: 0.65, dy: 0.5)).tap()
+    XCTAssertTrue(app.buttons["course.social.tee"].waitForExistence(timeout: 10))
+  }
+
   @MainActor func testReceiptDoesNotInventCourseFromItsLabel() {
     let app = launch("receipt", arguments: ["-cs_social_course_missing"])
     XCTAssertTrue(app.textFields["round.comment.draft"].waitForExistence(timeout: 15))

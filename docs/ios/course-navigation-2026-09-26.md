@@ -64,3 +64,28 @@ exercise that path, and the exact reported live round was verified separately.
 Recommended next step: Update to TestFlight 1044. Open Galen's Papago round from
 Home, then tap **View course** below the points. The simulator remains signed in
 and open to Papago for continued feedback.
+
+## Follow-up: receipt touch area
+
+The owner reported the route still failed after updating. A read-only check of
+their paired iPhone confirmed build 1044 was installed. A new UI regression
+reproduced a second defect: an ordinary tap at 65% of the course row's width
+did not navigate. The earlier element-based tap activated the text instead and
+passed. The failed run's hierarchy exposed only an 18-point-tall element even
+though the label layout reserved 44 points.
+
+The receipt link now defines its entire rectangular label as its touch area,
+matching the existing Home course link. This changes no layout, course identity,
+data access or scoring. The regression retains the previously failing tap.
+
+Files changed: `RoundReceiptSheet.swift`, `SocialBlendTests.swift`, this handoff.
+
+Verification: The new coordinate-tap test failed before the correction. All
+11 social UI tests pass after it, including the same coordinate tap, with zero
+failures. Preflight passes with zero failures and zero warnings. Evidence:
+`/tmp/cs-course-tap-area.xcresult` (before), `/tmp/cs-course-tap-fixed.xcresult`
+(after), `/tmp/cs-course-tap-preflight.log`.
+
+Database / Edge deploy owed: None.
+
+Client deploy owed: Follow-up native build pending verification and upload.
