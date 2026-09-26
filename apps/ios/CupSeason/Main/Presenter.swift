@@ -38,6 +38,8 @@ final class Presenter {
   /// page does not read a whole profile to print one word.
   var bagOfName: String?
   var receipt: UUID?
+  var receiptComment: UUID?
+  var receiptFocusComments = false
   /// F12 · raise the receipt's own photo picker once on open ("Add a photo"
   /// from the finish). Cleared by the sheet the moment it fires.
   var receiptArmPhoto = false
@@ -108,6 +110,7 @@ final class Presenter {
   /// waits for the curtain before raising the next sheet).
   @discardableResult
   func dismissAll() -> Bool {
+    receiptComment = nil; receiptFocusComments = false
     let was = anythingUp
     widgetRivalry = nil
     tourCard = nil; receipt = nil; scorecard = nil; scheduledRound = nil; showJoin = false; showPost = false; showLive = false

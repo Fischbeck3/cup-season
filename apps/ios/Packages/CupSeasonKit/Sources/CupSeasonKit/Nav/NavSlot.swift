@@ -95,7 +95,7 @@ public extension NavSlot {
     switch route {
     // The receipt, the scorecard and the plan are SHEETS over wherever you
     // were, and a tap from the lock screen lands you on Home under them.
-    case .receipt, .scorecard, .scheduledRound: .home
+    case .receipt, .comment, .scorecard, .scheduledRound: .home
     // O-06 · the board is a season's board, and a season lives in Compete.
     // `chat`, `announce`, `moment` and `system` all arrive here.
     case .board: .compete

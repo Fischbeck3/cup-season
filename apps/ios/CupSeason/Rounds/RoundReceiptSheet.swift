@@ -49,6 +49,8 @@ struct RoundReceiptSheet: View {
   /// is raised once, so the library is asked for only after the golfer chose
   /// the action, and the attach/remove pipeline is the one that already ships.
   var armPhoto: Bool = false
+  var focusComments: Bool = false
+  var focusComment: UUID? = nil
   /// "See the scorecard" — the hand-off to the live-round card (D92).
   var openScorecard: ((UUID) -> Void)? = nil
 
@@ -87,14 +89,17 @@ struct RoundReceiptSheet: View {
   @State private var publicLink: JSONValue?
   @State private var linkNote: String?
   @State private var revokingLink = false
+  @State private var courseId: String?
   #if DEBUG
   @State private var artifactPreview = false
   @State private var reviewPhoto: UIImage?
   #endif
 
-  init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil, armPhoto: Bool = false) {
+  init(roundId: UUID, seed: ReceiptSeed?, openScorecard: ((UUID) -> Void)? = nil, armPhoto: Bool = false,
+       focusComments: Bool = false, focusComment: UUID? = nil) {
     self.roundId = roundId; self.initialSeed = seed; self.openScorecard = openScorecard
     self.armPhoto = armPhoto
+    self.focusComments = focusComments; self.focusComment = focusComment
     _seed = State(initialValue: seed)
   }
 
@@ -107,8 +112,8 @@ struct RoundReceiptSheet: View {
     let r = seed ?? ReceiptSeed(id: roundId)
     let rows = ReceiptRows.build(r, capN: capN, viewerId: store.session?.user.id)
     NavigationStack {
-      ScrollView {
-        ScrollViewReader { proxy in
+      ScrollViewReader { proxy in
+        ScrollView {
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
           if r.gross != nil {
             // D360 · the desk's brand moment, on the phone: the photograph is
@@ -129,6 +134,18 @@ struct RoundReceiptSheet: View {
             photo(r)
           }
           photoActions(r)
+          if let courseId {
+            NavigationLink { CourseScreen(courseId: courseId, label: r.courseLabel) } label: {
+              HStack {
+                Text("Who’s played here").csType(.bodyS)
+                Spacer()
+                CSGlyph(.chevron, size: .inline)
+              }
+              .foregroundStyle(cs.ink)
+              .frame(minHeight: 44)
+            }
+            .buttonStyle(.plain)
+          }
           if enriched, r.profileId == store.session?.user.id, recap(r) != nil {
             CSMini("Share round", glyph: .share, busy: shareBusy) {
               Task { await previewRound(r) }
@@ -178,11 +195,21 @@ struct RoundReceiptSheet: View {
             Text("Couldn’t load this round.").csType(.body).foregroundStyle(cs.mut)
             CSDoor(.link("Try again") { Task { await open() } })
           }
-          CSSectionHead("The receipt")
-          ReceiptLeaf(caption: "What this round was worth",
-                      dateline: r.playedOn.map { RivalryCopy.monthDay($0) },
-                      rows: rows)
-          foot(rows)
+          if enriched && !loadFailed {
+            RoundConversation(roundId: roundId, focusComment: focusComment) { id in
+              if focusComments || focusComment != nil {
+                proxy.scrollTo(id ?? "round-comments", anchor: .top)
+              }
+            }
+            .id("round-comments")
+          }
+          if !rows.isEmpty {
+            CSSectionHead("The receipt")
+            ReceiptLeaf(caption: "What this round was worth",
+                        dateline: r.playedOn.map { RivalryCopy.monthDay($0) },
+                        rows: rows)
+            foot(rows)
+          }
           remove(r)
         }
         .padding(.horizontal, CSTokens.Space.gutter)
@@ -550,9 +577,19 @@ struct RoundReceiptSheet: View {
 
   private func open() async {
     #if DEBUG
+    if SocialBlendFixture.enabled {
+      seed = ReceiptSeed(id: roundId, profileId: UUID(uuidString: "11111111-1111-4111-8111-111111111111"),
+        gross: 79, playedOn: "2026-09-24", courseLabel: "North Grove", holesPlayed: 18, isMine: false)
+      enriched = true; return
+    }
     if MorningReviewFixture.on { enriched = true; return }
     #endif
     loadFailed = false
+    let socialRecord = try? await RoundSocialService().thread(roundId)
+    if let socialRecord, !socialRecord.visible {
+      seed = nil; card = nil; courseId = nil; enriched = true; loadFailed = true
+      return
+    }
     if seed == nil, let cached = await ReceiptCache.shared.get(roundId) { seed = cached }
     let repo = RoundsRepository()
     // the second pass: one read, then redraw in place
@@ -562,10 +599,21 @@ struct RoundReceiptSheet: View {
     }
     if let t = try? await RoundsRepository().roundTally(roundId) { tally = t }
     if let json = try? await payload {
+      courseId = json["api_course_id"]?.string
       var merged = (seed ?? ReceiptSeed(id: roundId)).merged(with: json)
       if merged.photoURL == nil, let path = merged.photoPath, let url = await repo.signedURL(path) { merged.photoURL = url }
       seed = merged
     } else {
+      // Friends outside a league can read the round's social record without
+      // inheriting access to the league's scoring receipt.
+      if let thread = socialRecord, thread.visible, let round = thread.round {
+        courseId = thread.courseId
+        seed = ReceiptSeed(id: roundId,
+          profileId: round["owner"]?["id"]?.string.flatMap(UUID.init),
+          gross: round["gross"]?.int, playedOn: round["played_on"]?.string,
+          courseLabel: thread.courseName, holesPlayed: round["holes"]?.int,
+          isMine: round["is_mine"]?.bool, marker: round["owner"]?["marker"]?.string)
+      }
       loadFailed = seed?.gross == nil
     }
     enriched = true

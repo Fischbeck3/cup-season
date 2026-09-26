@@ -42,6 +42,7 @@ public enum PushPolicy: Sendable, Equatable {
 /// `cs.kind` — one per sentence the board can say.
 public enum PushKind: String, Sendable, CaseIterable {
   case round, chat, announce, moment, system, settlement
+  case comment
   case live_open, nudge, invite, request, rsvp, event
   // ---- D248 · nine nudges and one notice ---------------------------------
   case rank_change, clash_pressure, callout, clash_verdict, index_live
@@ -106,15 +107,18 @@ public struct PushPayload: Sendable, Equatable {
   public let scheduledRoundId: UUID?
   public let requestId: UUID?
   public let inviteId: UUID?
+  public let commentId: UUID?
+  public let notificationId: UUID?
   /// `aps.category` — present only when the notification is actionable (§3).
   public let category: String?
 
   public init(kind: PushKind?, leagueId: UUID? = nil, postId: UUID? = nil, roundId: UUID? = nil, liveRoundId: UUID? = nil,
               eventId: UUID? = nil, profileId: UUID? = nil, scheduledRoundId: UUID? = nil, requestId: UUID? = nil,
-              inviteId: UUID? = nil, category: String? = nil) {
+              inviteId: UUID? = nil, category: String? = nil, commentId: UUID? = nil, notificationId: UUID? = nil) {
     self.kind = kind; self.leagueId = leagueId; self.postId = postId; self.roundId = roundId; self.liveRoundId = liveRoundId
     self.eventId = eventId; self.profileId = profileId; self.scheduledRoundId = scheduledRoundId; self.requestId = requestId
     self.inviteId = inviteId; self.category = category
+    self.commentId = commentId; self.notificationId = notificationId
   }
 
   /// The whole `userInfo` (`aps` + `cs`). Nil when `cs` is absent or its `v`
@@ -132,7 +136,8 @@ public struct PushPayload: Sendable, Equatable {
     self.init(kind: (cs["kind"] as? String).flatMap(PushKind.init(rawValue:)),
               leagueId: id("league_id"), postId: id("post_id"), roundId: id("round_id"), liveRoundId: id("live_round_id"),
               eventId: id("event_id"), profileId: id("profile_id"), scheduledRoundId: id("scheduled_round_id"),
-              requestId: id("request_id"), inviteId: id("invite_id"), category: category)
+              requestId: id("request_id"), inviteId: id("invite_id"), category: category,
+              commentId: id("comment_id"), notificationId: id("notification_id"))
   }
 
   /// `v` arrives as a number from APNs and as a string from some senders.
@@ -148,6 +153,7 @@ public struct PushPayload: Sendable, Equatable {
 /// Where a tap lands (§2). Every case names a Presenter field or a tab path.
 public enum PushRoute: Sendable, Equatable {
   case receipt(UUID)
+  case comment(round: UUID, comment: UUID?, notification: UUID?)
   case scorecard(UUID)
   case board(UUID)
   case live(UUID)
@@ -165,6 +171,8 @@ public enum PushRoute: Sendable, Equatable {
     guard let kind = p.kind else { return .home }
     switch kind {
     case .round: return p.roundId.map(PushRoute.receipt) ?? .home
+    case .comment:
+      return p.roundId.map { .comment(round: $0, comment: p.commentId, notification: p.notificationId) } ?? .home
     case .settlement: return p.liveRoundId.map(PushRoute.scorecard) ?? .home
     case .chat, .announce, .moment, .system: return p.leagueId.map(PushRoute.board) ?? .home
     case .live_open: return p.liveRoundId.map(PushRoute.live) ?? .home
@@ -201,6 +209,7 @@ public enum PushRoute: Sendable, Equatable {
   public var name: String {
     switch self {
     case .receipt: "receipt"
+    case .comment: "round_comment"
     case .scorecard: "scorecard"
     case .board: "board"
     case .live: "live"

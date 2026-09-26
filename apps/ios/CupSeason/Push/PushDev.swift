@@ -102,7 +102,7 @@ enum PushDev {
       if leagueId == nil { leagueId = preferred ?? me?.memberships.first?.league_id }
     case .rank_change, .clash_verdict, .season_countdown, .season_cancel, .chat, .announce, .moment, .system:
       if leagueId == nil { leagueId = preferred ?? me?.memberships.first?.league_id }
-    case .round, .friend_round:
+    case .round, .friend_round, .comment:
       if roundId == nil { roundId = await firstRound() }
     case .live_open, .settlement:
       if liveRoundId == nil { liveRoundId = me?.live_round?.id }
@@ -118,7 +118,7 @@ enum PushDev {
     return PushPayload(kind: kind, leagueId: leagueId, postId: p.postId, roundId: roundId, liveRoundId: liveRoundId,
                        eventId: eventId, profileId: profileId, scheduledRoundId: scheduledRoundId,
                        requestId: requestId, inviteId: inviteId,
-                       category: p.category ?? defaultCategory(kind))
+                       category: p.category ?? defaultCategory(kind), commentId: p.commentId, notificationId: p.notificationId)
   }
 
   /// §3's actionable categories, so a shorthand payload also exercises the

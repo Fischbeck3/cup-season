@@ -167,6 +167,14 @@ public final class SupabaseService: Sendable {
     }
   }
 
+  /// Exact, generated-contract endpoint with structural JSON arguments. Social
+  /// writes must retain their idempotency/reply fields, and pagination cursors
+  /// must keep the server's fractional-second timestamp verbatim.
+  public func callJSON<C: RpcCall>(_ endpoint: C.Type, params: JSONValue) async throws -> C.Returns {
+    do { return try await invoke(C.name, params: params, as: C.Returns.self) }
+    catch { throw RpcError(name: C.name, underlying: Self.describe(error), droppedArgs: []) }
+  }
+
   private func invoke<R: Decodable & Sendable>(_ name: String, params: some Encodable & Sendable, as: R.Type) async throws -> R {
     if R.self == RpcVoid.self {
       try await client.rpc(name, params: params).execute()

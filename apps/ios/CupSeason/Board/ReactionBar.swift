@@ -53,7 +53,7 @@ struct ReactionBar: View {
           } label: {
             HStack(spacing: CSTokens.Space.s1) {
               CSGlyph(.comment, size: .inline)
-              if !item.comments.isEmpty { Text("\(item.comments.count)").csType(.agateS) }
+              if item.roundId == nil && !item.comments.isEmpty { Text("\(item.comments.count)").csType(.agateS) }
             }
             .foregroundStyle(cs.mut)
             .padding(.horizontal, CSTokens.Space.s3).frame(minWidth: 36, minHeight: 28)
@@ -62,12 +62,16 @@ struct ReactionBar: View {
             .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
-          .accessibilityLabel(item.comments.isEmpty ? "Comments" : "Comments, \(item.comments.count)")
+          .accessibilityLabel(item.roundId != nil || item.comments.isEmpty ? "Comments" : "Comments, \(item.comments.count)")
           .accessibilityHint(threadOpen ? "Hides the thread" : "Shows the thread")
           .accessibilityAddTraits(threadOpen ? [.isSelected] : [])
         }
       }
-      if item.threads && threadOpen { thread }
+      if item.threads && threadOpen {
+        if let roundId = item.roundId {
+          RoundConversation(roundId: roundId)
+        } else { thread }
+      }
     }
     .padding(.top, 6)
     .sheet(isPresented: $reporting) { ReportSheet(item: item, store: store) }

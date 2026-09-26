@@ -51,10 +51,14 @@ struct HomeView: View {
   @Environment(\.openGolfers) private var openGolfers
   @Environment(\.cs) private var cs
   @Environment(\.toast) private var toast
+  @Environment(\.scenePhase) private var scenePhase
   let links: CSLinks
   /// A row is a door. The tap pushes onto the tab's own path.
   var push: (HomeRoute) -> Void = { _ in }
   @State private var vm = HomeModel()
+  @State private var activity = false
+  @State private var discussion: RoundDiscussionDoor?
+  @State private var inbox = SocialInboxStore()
   /// D229 · Home has NO open league. The key is the payload's stamp.
   private var loadKey: HomeModel.LoadKey { .init(generated: store.me?.generated_at) }
 
@@ -91,6 +95,27 @@ struct HomeView: View {
                      trend: CSNumberTrend(current: me.profile?.index_current,
                                           previous: me.profile?.index_prev))
             .padding(.horizontal, CSTokens.Space.gutter)
+
+          HStack {
+            NavigationLink { CoursesScreen() } label: {
+              Text("Courses").csType(.bodyS)
+            }
+            Spacer()
+            if !inbox.missing { Button { activity = true } label: {
+              HStack(spacing: CSTokens.Space.s2) {
+                CSGlyph(.bell, size: .inline)
+                Text("Activity").csType(.bodyS)
+                if inbox.unread > 0 { Text("\(inbox.unread)").csType(.agate).foregroundStyle(cs.brand) }
+              }
+              .frame(minHeight: 44)
+            }
+            .accessibilityLabel(inbox.unread > 0 ? "Activity, \(inbox.unread) unread" : "Activity")
+            .accessibilityIdentifier("home.activity")
+            }
+          }
+          .buttonStyle(.plain)
+          .foregroundStyle(cs.ink)
+          .padding(.horizontal, CSTokens.Space.gutter)
 
           // 2 · THE LEAD, in one of its three forms.
           lead(page, me: me)
@@ -168,9 +193,11 @@ struct HomeView: View {
       await store.reload()
       HomePhotoStore.shared.retryMisses()   // a pull is a golfer asking again
       await vm.load(me: store.me, key: loadKey)
+      await inbox.load()
     }
     .task(id: loadKey) {
       await vm.load(me: store.me, key: loadKey)
+      await inbox.load()
       // D361 · a path the wire no longer carries is a photograph removed or
       // replaced; its memory goes with it. Everything else is kept as it was.
       HomePhotoStore.shared.reconcile(paths: vm.rounds.compactMap(\.photo_path))
@@ -178,7 +205,13 @@ struct HomeView: View {
     .onChange(of: store.session?.user.id) { _, _ in
       // sign-out or an account change: no picture and no credential survives
       HomePhotoStore.shared.clear()
+      inbox.clear()
+      discussion = nil
+      activity = false
       Task { await SignedURLCache.shared.clear() }
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active { Task { await inbox.load() } }
     }
     .navigationTitle("")
     .toolbar(.hidden, for: .navigationBar)
@@ -190,6 +223,10 @@ struct HomeView: View {
     // The page's own ground fills exactly the top safe area; a surface whose
     // top is a photograph or a contour uses the scrim instead (§10.3).
     .csStatusCap(cs.bg0)
+    .csSheet(isPresented: $activity) { SocialActivitySheet(inbox: inbox) }
+    .csSheet(item: $discussion) { door in
+      RoundReceiptSheet(roundId: door.roundId, seed: nil, focusComments: true)
+    }
   }
 
   /// §13.3 · the read did not land and there is something on screen. The
@@ -432,10 +469,38 @@ struct HomeView: View {
         }
         if let rid = r.round_id, let state = vm.social.state(for: rid) {
           // one fact, one place: a record's identity row already carries the day
-          HomeWireReactions(state: state, day: url == nil ? nil : HomeWireCopy.dayMarker(r.played_on)) { emoji in
+          HomeWireReactions(state: state, day: url == nil ? nil : HomeWireCopy.dayMarker(r.played_on),
+                            commentCount: vm.roundSocial[rid]?["comment_count"]?.int,
+                            openComments: vm.roundSocial[rid] == nil ? nil : { discussion = RoundDiscussionDoor(roundId: rid) }) { emoji in
             react(r, emoji)
           }
           .padding(.horizontal, CSTokens.Space.gutter)
+        } else if let rid = r.round_id, vm.roundSocial[rid] != nil {
+          Button { discussion = RoundDiscussionDoor(roundId: rid) } label: {
+            Label("Comments", systemImage: "bubble.left").csType(.bodyS)
+              .foregroundStyle(cs.ink).frame(minHeight: 44)
+          }
+          .buttonStyle(.plain).padding(.horizontal, CSTokens.Space.gutter)
+        }
+        if let rid = r.round_id, let course = vm.roundSocial[rid]?["course"],
+           let courseId = course["api_course_id"]?.string, !courseId.isEmpty {
+          NavigationLink { CourseScreen(courseId: courseId, label: r.course) } label: {
+            HStack(spacing: CSTokens.Space.s2) {
+              let people = (course["faces"]?.array ?? []).compactMap(SocialPerson.init)
+              if !people.isEmpty {
+                CSFaceRow(people.map { .init(id: $0.id, marker: $0.marker) }, style: .overlapped)
+              }
+              Text("Who’s played here").csType(.bodyS)
+              Spacer()
+              CSGlyph(.chevron, size: .inline)
+            }
+            .foregroundStyle(cs.mut)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          .padding(.horizontal, CSTokens.Space.gutter)
+          .accessibilityLabel("Who’s played at \(r.course ?? "this course")")
         }
       }
       .contextMenu {
@@ -625,6 +690,7 @@ final class HomeModel {
   var feedFailed = false
   var loading = false
   var social = HomeSocial.Snapshot()
+  var roundSocial: [UUID: JSONValue] = [:]
   private var markRead = false
   /// D252 · `app_flags.ios.major`, read once per model and only when a card
   /// that sells a Major is actually in its window. nil = not read yet.
@@ -832,6 +898,20 @@ final class HomeModel {
                                      currentLeague: nil, me: (me ?? sessionMe).profile?.id)
     guard live(gen) else { return }
     social = snap
+    do {
+      let ids = rounds.compactMap(\.round_id).prefix(60).map { JSONValue.string($0.uuidString) }
+      let extra = try await RoundSocialService().request("posted_rounds_social", ["p_rounds": .array(ids)])
+      guard live(gen) else { return }
+      var next: [UUID: JSONValue] = [:]
+      for item in extra["items"]?.array ?? [] {
+        if let id = item["round_id"]?.string.flatMap(UUID.init) { next[id] = item }
+      }
+      roundSocial = next
+    } catch {
+      guard live(gen) else { return }
+      // Never retain a social affordance after its visibility cannot be checked.
+      roundSocial = [:]
+    }
     // F-2 · the digest is rebuilt inside `publishOutwards`, where the ranked
     // arrangement is in hand and the rounds it spent are known.
     publishOutwards(me: me ?? sessionMe)

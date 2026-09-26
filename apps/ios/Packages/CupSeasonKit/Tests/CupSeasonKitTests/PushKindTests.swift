@@ -77,7 +77,8 @@ import Foundation
       #expect(k.policy == .delivery, Comment(rawValue: k.rawValue))
       #expect(!PushKind.d248.contains(k), Comment(rawValue: k.rawValue))
     }
-    #expect(PushKind.allCases.count == 22)
+    #expect(PushKind.comment.policy == .delivery)
+    #expect(PushKind.allCases.count == 23)
   }
 
   // MARK: - L-21 / L-22 · what is deliberately not sent
@@ -139,6 +140,16 @@ import Foundation
       #expect(r == .home, Comment(rawValue: "\(k.rawValue) → \(r.name)"))
     }
     #expect(PushRoute.from(PushPayload(kind: nil)) == .home)
+  }
+
+  @Test func commentPushRetainsItsExactDestination() {
+    let round = UUID(), comment = UUID(), notice = UUID()
+    let payload = PushPayload(cs: ["v": 1, "kind": "comment", "round_id": round.uuidString,
+      "comment_id": comment.uuidString, "notification_id": notice.uuidString])
+    #expect(payload != nil)
+    #expect(PushRoute.from(payload!) == .comment(round: round, comment: comment, notification: notice))
+    #expect(NavSlot.of(PushRoute.from(payload!)) == .home)
+    #expect(PushRoute.from(PushPayload(kind: .comment)) == .home)
   }
 
   @Test func everyRouteHasASlotAndAName() {

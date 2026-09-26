@@ -774,11 +774,15 @@ struct MainTabView: View {
     // Wave 8 owns the same line at the product's other sheets.
     .csSheet(item: $presenter.receipt) {
       RoundReceiptSheet(roundId: $0, seed: nil, openScorecard: { presenter.scorecard = $0 },
-                        armPhoto: presenter.receiptArmPhoto)
+                        armPhoto: presenter.receiptArmPhoto,
+                        focusComments: presenter.receiptFocusComments, focusComment: presenter.receiptComment)
         .csDevTextSize(CSDevHatch.textSize)
         .task { presenter.receiptArmPhoto = false }
     }
     .csSheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
+    .onChange(of: presenter.receipt) { _, id in
+      if id == nil { presenter.receiptComment = nil; presenter.receiptFocusComments = false }
+    }
     .csSheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }
     .csSheet(item: $presenter.declare) { DeclareRoundSheet(prefill: $0, leagueId: store.preferredLeague) { _ in } }
     .csSheet(isPresented: $presenter.showJoin) {
@@ -926,6 +930,11 @@ struct MainTabView: View {
     tab = Tab(NavSlot.of(route))
     switch route {
     case .receipt(let id): presenter.receipt = id
+    case .comment(let round, let comment, let notification):
+      presenter.receiptComment = comment; presenter.receiptFocusComments = true; presenter.receipt = round
+      if let notification {
+        _ = try? await RoundSocialService().request("mark_notifications_read", ["p_ids": .array([.string(notification.uuidString)])])
+      }
     case .scorecard(let id): presenter.scorecard = id
     // A board is a season's board, and a season is Compete's (route map §13.2).
     case .board(let league):

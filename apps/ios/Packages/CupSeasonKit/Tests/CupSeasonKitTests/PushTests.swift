@@ -17,6 +17,7 @@ private func userInfo(kind: String, v: Any = 1, category: String? = nil, _ ids: 
   @Test func everyKindLandsWhereTheContractSays() {
     let cases: [(String, [String: UUID], PushRoute)] = [
       ("round", ["round_id": R, "league_id": L], .receipt(R)),
+      ("comment", ["round_id": R, "comment_id": P, "notification_id": IV], .comment(round: R, comment: P, notification: IV)),
       ("settlement", ["live_round_id": LR, "league_id": L], .scorecard(LR)),
       ("chat", ["league_id": L, "post_id": P], .board(L)),
       ("announce", ["league_id": L, "post_id": P], .board(L)),
@@ -35,16 +36,16 @@ private func userInfo(kind: String, v: Any = 1, category: String? = nil, _ ids: 
       #expect(p != nil, "\(kind) decodes")
       #expect(p.map(PushRoute.from) == want, "\(kind) → \(want)")
     }
-    // The twelve DELIVERY kinds this contract shipped with, plus D248's ten
+    // The original twelve DELIVERY kinds plus D391's comment, and D248's ten
     // (nine nudges and one transactional notice). The split is what the count
     // is really asserting, so it is asserted as a split.
-    #expect(PushKind.allCases.filter { $0.policy == .delivery }.count == 12)
+    #expect(PushKind.allCases.filter { $0.policy == .delivery }.count == 13)
     #expect(PushKind.d248.count == 10)
-    #expect(PushKind.allCases.count == 22)
+    #expect(PushKind.allCases.count == 23)
   }
 
   @Test func missingIdsLandHome() {
-    for kind in ["round", "settlement", "chat", "announce", "moment", "system", "live_open", "nudge", "event", "rsvp"] {
+    for kind in ["round", "comment", "settlement", "chat", "announce", "moment", "system", "live_open", "nudge", "event", "rsvp"] {
       #expect(PushPayload(userInfo: userInfo(kind: kind)).map(PushRoute.from) == .home, Comment(rawValue: kind))
     }
     // the two that need no id still land where they belong

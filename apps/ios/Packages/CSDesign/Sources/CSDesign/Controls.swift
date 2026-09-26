@@ -367,14 +367,16 @@ public struct CSField: View {
   let limit: Int?
   let kind: Kind
   let loading: Bool
+  let multiline: Bool
   @FocusState private var focused: Bool
 
   public init(label: String? = nil, placeholder: String = "", text: Binding<String>,
               caption: String? = nil, error: String? = nil, limit: Int? = nil,
-              kind: Kind = .prose, loading: Bool = false) {
+              kind: Kind = .prose, loading: Bool = false, multiline: Bool = false) {
     self.label = label; self.placeholder = placeholder; _text = text
     self.caption = caption; self.error = error; self.limit = limit
     self.kind = kind; self.loading = loading
+    self.multiline = multiline
   }
 
   /// The shipped positional form, kept so ~20 call sites keep working while
@@ -398,7 +400,8 @@ public struct CSField: View {
       // System placeholder dimming falls below the house contrast floor on
       // both field grounds. A prompt is secondary text, so it uses opaque mut.
       TextField(placeholder, text: $text,
-                prompt: Text(placeholder).foregroundStyle(cs.mut))
+                prompt: Text(placeholder).foregroundStyle(cs.mut), axis: multiline ? .vertical : .horizontal)
+        .lineLimit(multiline ? 2...6 : 1...1)
         .csType(kind == .code ? .column : .body)
         .foregroundStyle(enabled ? cs.ink : cs.mut)
         .padding(.horizontal, CSTokens.Space.s3)

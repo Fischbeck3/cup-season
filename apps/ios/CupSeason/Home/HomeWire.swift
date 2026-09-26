@@ -327,11 +327,25 @@ struct HomeWireReactions: View {
   @Environment(\.cs) private var cs
   let state: [String: ReactionState]
   let day: String?
+  var commentCount: Int? = nil
+  var openComments: (() -> Void)? = nil
   let onToggle: (String) -> Void
 
   var body: some View {
     HStack(spacing: CSTokens.Space.s4) {
       ApplauseControl(state: Applause.state(state)) { onToggle(Applause.key) }
+      if let openComments {
+        Button(action: openComments) {
+          HStack(spacing: CSTokens.Space.s1) {
+            CSGlyph(.comment, size: .inline)
+            Text(commentCount.map { $0 > 0 ? "\($0) comments" : "Comments" } ?? "Comments").csType(.bodyS)
+          }
+          .foregroundStyle(cs.ink)
+          .frame(minHeight: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("home.round.comments")
+      }
       Spacer(minLength: CSTokens.Space.s2)
       if let day {
         Text(day).csType(.agateS, caps: true).foregroundStyle(cs.mut).accessibilityHidden(true)

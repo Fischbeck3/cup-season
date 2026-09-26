@@ -37,6 +37,7 @@ struct CourseScreen: View {
   @Environment(\.dismiss) private var dismiss
   @State private var vm: CourseModel
   @State private var rating = false
+  @State private var legacySocial = false
 
   /// D364 (F1) · `tee`/`rating` name the round's own tee, so the page and the
   /// whole card open on it rather than on the longest.
@@ -150,8 +151,11 @@ struct CourseScreen: View {
       facts(book)
       said
       quote
-      friends
-      rounds(book).id("course-rounds")
+      if let courseId = vm.courseId {
+        CourseCircleSection(courseId: courseId, courseName: vm.title) { legacySocial = true }
+          .id("course-rounds")
+      }
+      if legacySocial { friends; rounds(book) }
       // **D322 · HALF A CARD IS NEITHER REFERENCE NOR SUMMARY.** The owner:
       // *"why show the front nine scorecard?"* — a fair question, and the
       // honest answer is that nine of eighteen holes is an arbitrary half. The
@@ -200,7 +204,7 @@ struct CourseScreen: View {
       // image and onto the page's own ground. A figure standing on the page
       // takes the page's device — the rule-and-figure — and the 44pt-grown
       // numeral gets the measure instead of a 64pt tile.
-      if let best = vm.page.myBest {
+      if legacySocial, let best = vm.page.myBest {
         if typeSize.isA11y {
           CSFigure("\(best)", size: .m, label: "Your best")
         } else {
@@ -369,6 +373,9 @@ struct CourseScreen: View {
       CSDoor(.primary("Put it on the plan") {
         presenter.declare = DeclarePrefill(course: vm.label, courseId: vm.courseId)
       })
+      if let courseId = vm.courseId {
+        CourseCircleSection(courseId: courseId, courseName: vm.title)
+      }
     }
     .padding(.horizontal, CSTokens.Space.gutter)
     .padding(.top, CSTokens.Space.s2)

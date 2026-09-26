@@ -7,7 +7,7 @@ import CupSeasonKit
 /// The composition root bypasses auth, push, links, and launch telemetry.
 /// Setup does not create a round; no round ID is supplied to sharing.
 @MainActor enum MorningReviewFixture {
-  static var on: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_morning_review") || ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") }
+  static var on: Bool { ProcessInfo.processInfo.arguments.contains("-cs_dev_morning_review") || ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") || SocialBlendFixture.enabled }
   static var scene: String { CompeteSelectedFixture.arg("-cs_review_scene", ProcessInfo.processInfo.arguments.contains("-cs_dev_round_share_fixture") ? "share" : "setup") }
   static var long: Bool { ProcessInfo.processInfo.arguments.contains("-cs_review_long") }
   static var photo: UIImage? { (ProcessInfo.processInfo.arguments.contains("-cs_review_photo") || ProcessInfo.processInfo.arguments.contains("-cs_dev_share_photo")) ? ReceiptPhotoDev.image : nil }
@@ -36,7 +36,9 @@ import CupSeasonKit
 struct MorningReviewFixtureView: View {
   @State private var store = MorningReviewFixture.liveStore()
   var body: some View {
-    if MorningReviewFixture.scene == "receipt" {
+    if SocialBlendFixture.enabled {
+      SocialBlendReview()
+    } else if MorningReviewFixture.scene == "receipt" {
       RoundReceiptSheet(roundId: MorningReviewFixture.receiptID, seed: MorningReviewFixture.receipt)
         .allowsHitTesting(false) // Capture-only receipt; no pretend accepted writes.
     } else if MorningReviewFixture.scene == "share" {
