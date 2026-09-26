@@ -232,11 +232,13 @@ begin
         when 'request' then v_first || ' wants in your crew'
         when 'invite'  then v_first || ' invited you'
         when 'nudge'   then v_first || ' started a live round with you'
+        when 'comment' then v_first || ' commented on a round'
         else v_first || ' on Cup Season' end;
       new.body := case new.kind
         when 'request' then 'Their rounds land in your feed'
         when 'invite'  then 'Open Cup Season to see the invitation'
         when 'nudge'   then 'Open the app to score it with them'
+        when 'comment' then 'Open Cup Season to read it'
         else 'Open Cup Season to see it' end;
     end if;
   end if;
