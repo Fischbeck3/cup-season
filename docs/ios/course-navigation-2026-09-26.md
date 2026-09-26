@@ -38,9 +38,9 @@ Database deploy owed: None.
 Edge deploy owed: None.
 
 Client deploy owed: None. The correction is available in Owner TestFlight
-**1.0.0 (1044)** and installed in the review simulator.
+**1.0.0 (1046)** and installed in the review simulator.
 
-Release record:
+Initial release record (1044):
 
 - Source `0aaa7f1e5a78e4c0d1dadf07fbb72d3501f98ea2` was pushed to the owned
   branch and `main`. [CI passed](https://github.com/Fischbeck3/cup-season/actions/runs/36253607053).
@@ -61,7 +61,7 @@ Open questions / risks: The earlier fixture bypassed the faulty receipt load,
 so its passing tests did not establish that this route worked. The new tests
 exercise that path, and the exact reported live round was verified separately.
 
-Recommended next step: Update to TestFlight 1044. Open Galen's Papago round from
+Recommended next step: Update to TestFlight 1046. Open Galen's Papago round from
 Home, then tap **View course** below the points. The simulator remains signed in
 and open to Papago for continued feedback.
 
@@ -86,6 +86,25 @@ failures. Preflight passes with zero failures and zero warnings. Evidence:
 `/tmp/cs-course-tap-area.xcresult` (before), `/tmp/cs-course-tap-fixed.xcresult`
 (after), `/tmp/cs-course-tap-preflight.log`.
 
+The defect was also reproduced on Galen's real Papago receipt with an ordinary
+pointer tap: the row's middle did nothing, and its text opened the course.
+After installing the final Release-configuration simulator build, the same
+middle-of-row tap opened Papago with Galen's 86, tee selection and golfer history.
+The existing login was retained, and production interaction was read-only.
+
 Database / Edge deploy owed: None.
 
-Client deploy owed: Follow-up native build pending verification and upload.
+Client deploy owed: None. **1.0.0 (1046)** is available in Owner TestFlight.
+
+Follow-up release record:
+
+- Source: `812578dacc7429e784943f0d1cefa2df599bbe3f`, pushed to main and the
+  owned branch. [CI passed](https://github.com/Fischbeck3/cup-season/actions/runs/36259975258).
+- Archive/export, signature and app/widget version checks, and Apple validation
+  passed. Production APNs is set and debugging is disabled.
+- IPA SHA-256: `7ddb1861bc647cbe8ee18d2bb096eca2fb2c643f328c5ea5b831d7640071c97d`.
+- Upload delivery/build ID: `ee7eecbb-189a-44f3-804b-769a2a1c5347`.
+  Independent read-back: **VALID**, **Owner YES**, **IN_BETA_TESTING**,
+  **Friends no**. What to Test describes the corrected full-row touch area.
+- Private evidence, signed IPA and before/after tests:
+  `~/cup-season-audit-private/course-navigation-2026-09-26/build-1046/`.
