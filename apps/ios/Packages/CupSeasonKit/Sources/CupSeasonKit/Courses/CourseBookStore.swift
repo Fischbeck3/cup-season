@@ -14,9 +14,8 @@
 //       a round can be added in the car park and posted when the signal
 //       returns. `search(_:)` is the offline half of the picker.
 //
-// WRITE-THROUGH, NOT A SECOND FETCHER. Every read that succeeds against the
-// network is handed to `keep(...)`, so the store fills itself from ordinary
-// use as well as from `my_course_books`. Nothing here invents a course, and a
+// Course-card acquisition and write-through live here, so the store fills
+// itself from ordinary use as well as from `my_course_books`. Nothing here invents a course, and a
 // read that fails returns `.failed`, never `[]` dressed as "no courses" (L-32:
 // a failed read is never an empty screen).
 
@@ -150,6 +149,10 @@ public struct CourseBookStore: Sendable {
   /// your phone" as a nameless row. The course arrives properly on the next
   /// `refresh()`, which brings its card with it.
   public func keepCard(courseId: String, teeName: String?, holes: [CourseHole]) async {
+    await Self.keepCard(courseId: courseId, teeName: teeName, holes: holes, disk: disk)
+  }
+
+  static func keepCard(courseId: String, teeName: String?, holes: [CourseHole], disk: CourseDisk) async {
     guard !holes.isEmpty, let old = await disk.book(courseId) else { return }
     guard old.tees.contains(where: { $0.teeName == teeName }) else { return }
     // A longer card always wins; so does one that carries stroke indexes over
@@ -174,31 +177,11 @@ public struct CourseBookStore: Sendable {
   /// Selecting a course before a trip keeps every available tee's actual
   /// hole data in one read. Missing pars remain missing, never par-four guesses.
   public func prepare(_ hit: CourseHit) async -> CourseBook? {
-    await ScheduleService(svc).cacheCourse(hit.id)
-    struct Hole: Decodable { let hole_number: Int; let par: Int?; let handicap: Int? }
-    struct Tee: Decodable {
-      let tee_name: String?; let gender: String?; let course_rating: Double?; let slope_rating: Int?
-      let number_of_holes: Int?; let api_course_holes: [Hole]?
-    }
-    guard let rows: [Tee] = try? await svc.client.from("api_course_tees")
-      .select("tee_name,gender,course_rating,slope_rating,number_of_holes,api_course_holes(hole_number,par,handicap)")
-      .eq("course_id", value: hit.id).execute().value, !rows.isEmpty else { return nil }
-    let old = await disk.book(hit.id)
-    let tees = rows.compactMap { row -> CourseBookTee? in
-      guard row.course_rating != nil, row.slope_rating != nil else { return nil }
-      let prior = old?.tees.first { $0.teeName == row.tee_name && $0.gender == row.gender }
-      let holes = (row.api_course_holes ?? []).sorted { $0.hole_number < $1.hole_number }
-        .map { CourseHole(hole: $0.hole_number, par: $0.par, si: $0.handicap) }
-      return CourseBookTee(teeName: row.tee_name, gender: row.gender, rating: row.course_rating,
-                           slope: row.slope_rating, holesCount: row.number_of_holes,
-                           parTotal: prior?.parTotal, yards: prior?.yards, holes: holes.isEmpty ? prior?.holes ?? [] : holes)
-    }
-    guard !tees.isEmpty else { return nil }
-    let book = CourseBook(id: hit.id, clubName: old?.clubName ?? hit.label, courseName: old?.courseName,
-                           city: old?.city, state: old?.state, tees: tees,
-                           planned: old?.planned ?? false, played: old?.played ?? false,
-                           nextPlayOn: old?.nextPlayOn, lastPlayedOn: old?.lastPlayedOn)
-    return try? await disk.saveVerified(book)
+    await Self.prepare(hit, disk: disk, cacheCourse: { await ScheduleService(svc).cacheCourse($0) }, readTees: { id in
+      try await svc.client.from("api_course_tees")
+        .select("tee_name,gender,course_rating,slope_rating,number_of_holes,api_course_holes(hole_number,par,handicap)")
+        .eq("course_id", value: id).execute().value
+    })
   }
 
   // MARK: - the reads
@@ -248,12 +231,20 @@ public struct CourseBookStore: Sendable {
   /// path stands; it never substitutes another tee's card. `rating` is passed
   /// through so two tees sharing a name can be told apart.
   public func card(courseId: String?, teeName: String?, rating: Double? = nil, want: Int) async -> [(par: Int, handicap: Int)]? {
+    await Self.card(courseId: courseId, teeName: teeName, rating: rating, want: want, disk: disk)
+  }
+
+  static func card(courseId: String?, teeName: String?, rating: Double?, want: Int, disk: CourseDisk) async -> [(par: Int, handicap: Int)]? {
     guard let id = courseId, let b = await disk.book(id) else { return nil }
     return b.tee(named: teeName, holes: want, rating: rating)?.card(want: want)
   }
 
   /// The pars alone — the composer's `teePars`, from the phone.
   public func pars(courseId: String?, teeName: String?, rating: Double?) async -> (pars: [Int], nine: Bool)? {
+    await Self.pars(courseId: courseId, teeName: teeName, rating: rating, disk: disk)
+  }
+
+  static func pars(courseId: String?, teeName: String?, rating: Double?, disk: CourseDisk) async -> (pars: [Int], nine: Bool)? {
     guard let id = courseId, let b = await disk.book(id) else { return nil }
     // NW-3 · strict on the NAME, narrowed by the rating. No `?? defaultTee`.
     guard let tee = b.tee(named: teeName, rating: rating) else { return nil }

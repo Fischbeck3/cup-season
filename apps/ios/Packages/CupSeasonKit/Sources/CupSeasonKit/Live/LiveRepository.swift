@@ -308,9 +308,6 @@ public struct LiveRepository: Sendable {
 
   // MARK: the course card (6900–6934)
 
-  private struct TeeRow: Decodable { let id: String; let tee_name: String?; let number_of_holes: Int? }
-  private struct HoleRow: Decodable { let hole_number: Int?; let par: Int?; let handicap: Int? }
-
   /// The per-hole par + stroke index for a picked tee, wanting `holes` (18 or 9).
   /// nil when neither the server nor the phone has a usable card (the typed
   /// path stands).
@@ -322,13 +319,7 @@ public struct LiveRepository: Sendable {
   /// card since), the answer is written through to the phone, and a failed or
   /// empty read falls back to the book instead of leaving the card blank.
   public func courseHoles(courseId: String, teeName: String?, rating: Double? = nil, want: Int) async -> [(par: Int, handicap: Int)]? {
-    if let live = await liveCourseHoles(courseId: courseId, teeName: teeName, want: want) {
-      await CourseBookStore(svc).keepCard(
-        courseId: courseId, teeName: teeName,
-        holes: live.enumerated().map { CourseHole(hole: $0.offset + 1, par: $0.element.par, si: $0.element.handicap) })
-      return live
-    }
-    return await savedCourseHoles(courseId: courseId, teeName: teeName, rating: rating, want: want)
+    await CourseBookStore(svc).courseHoles(courseId: courseId, teeName: teeName, rating: rating, want: want)
   }
 
   /// The phone's own card, with NO network in it at all.
@@ -342,16 +333,6 @@ public struct LiveRepository: Sendable {
   /// `CourseBookStore`'s own header says the pattern is.
   public func savedCourseHoles(courseId: String, teeName: String?, rating: Double? = nil, want: Int) async -> [(par: Int, handicap: Int)]? {
     await CourseBookStore(svc).card(courseId: courseId, teeName: teeName, rating: rating, want: want)
-  }
-
-  private func liveCourseHoles(courseId: String, teeName: String?, want: Int) async -> [(par: Int, handicap: Int)]? {
-    guard let tees: [TeeRow] = try? await svc.client.from("api_course_tees").select("id, tee_name, number_of_holes").eq("course_id", value: courseId).execute().value else { return nil }
-    let row = tees.first { $0.tee_name == teeName && $0.number_of_holes == want } ?? tees.first { $0.tee_name == teeName }
-    guard let row else { return nil }
-    guard let holes: [HoleRow] = try? await svc.client.from("api_course_holes").select("hole_number, par, handicap").eq("tee_id", value: row.id)
-      .order("hole_number", ascending: true).execute().value, !holes.isEmpty else { return nil }
-    guard holes.allSatisfy({ $0.par.map { (3...6).contains($0) } ?? false }) else { return nil }
-    return holes.map { (par: $0.par!, handicap: $0.handicap ?? 0) }
   }
 
   // MARK: the pick list (7398)
