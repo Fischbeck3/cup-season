@@ -13,7 +13,10 @@ struct RoundConversation: View {
   @Environment(SessionStore.self) private var session
   let roundId: UUID
   var focusComment: UUID? = nil
+  var initialThread: PostedRoundThread? = nil
+  var initialAccount: UUID? = nil
   var onLoaded: (String?) -> Void = { _ in }
+  @State private var usedInitialThread = false
   @State private var thread: PostedRoundThread?
   @State private var draft = ""
   @State private var replying: SocialComment?
@@ -78,7 +81,7 @@ struct RoundConversation: View {
           if thread == nil { Button("Try again") { Task { await load() } }.buttonStyle(.csTertiary(.content)) }
         }
       }
-      .task(id: session.session?.user.id) { await load() }
+      .task(id: session.session?.user.id) { await open() }
       .csSheet(item: $report) { comment in CommentReportSheet(comment: comment) }
     }
   }
@@ -147,6 +150,25 @@ struct RoundConversation: View {
     }
   }
 
+  private func open() async {
+    if !usedInitialThread {
+      usedInitialThread = true
+      if initialAccount == session.session?.user.id, let initialThread {
+        await present(initialThread, focus: focusComment)
+        loading = false
+        return
+      }
+    }
+    await load()
+  }
+
+  private func present(_ answer: PostedRoundThread, focus: UUID?) async {
+    thread = answer; error = nil
+    await Task.yield()
+    guard !Task.isCancelled else { return }
+    onLoaded(focus.flatMap { id in answer.comments.contains { $0.id == id } ? id.uuidString : nil })
+  }
+
   private func load(focus: UUID? = nil) async {
     let account = session.session?.user.id
     loading = true
@@ -154,11 +176,10 @@ struct RoundConversation: View {
     do {
       let target = focus ?? focusComment
       let answer = try await service.thread(roundId, focus: target)
-      guard account == session.session?.user.id else { thread = nil; return }
-      thread = answer; error = nil
-      await Task.yield()
-      onLoaded(target.flatMap { id in answer.comments.contains { $0.id == id } ? id.uuidString : nil })
+      guard !Task.isCancelled, account == session.session?.user.id else { thread = nil; return }
+      await present(answer, focus: target)
     } catch {
+      guard !Task.isCancelled, account == session.session?.user.id else { return }
       if (error as? RpcError)?.isMissingFunction == true { unavailable = true }
       else { self.error = HumanError.text(error, prefix: "Could not load comments.") }
     }

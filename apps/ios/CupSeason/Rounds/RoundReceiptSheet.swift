@@ -90,6 +90,9 @@ struct RoundReceiptSheet: View {
   @State private var linkNote: String?
   @State private var revokingLink = false
   @State private var courseId: String?
+  @State private var conversation: PostedRoundThread?
+  @State private var loadAccount: UUID?
+  @State private var loadGeneration: UUID?
   @State private var commentScrollTask: Task<Void, Never>?
   #if DEBUG
   @State private var artifactPreview = false
@@ -200,7 +203,8 @@ struct RoundReceiptSheet: View {
             CSDoor(.link("Try again") { Task { await open() } })
           }
           if enriched && !loadFailed {
-            RoundConversation(roundId: roundId, focusComment: focusComment) { id in
+            RoundConversation(roundId: roundId, focusComment: focusComment,
+                              initialThread: conversation, initialAccount: loadAccount) { id in
               if focusComments || focusComment != nil {
                 // A notification can finish loading while its sheet is still
                 // presenting. Scroll once the comment and the sheet have their
@@ -236,7 +240,7 @@ struct RoundReceiptSheet: View {
     }
     .presentationBackground(cs.bg0)
     .onDisappear { commentScrollTask?.cancel() }
-    .task { await open() }
+    .task(id: store.session?.user.id) { await open() }
     // F12 · "Add a photo" at the finish lands here with the picker already
     // asked for — once, and only because the golfer chose that action, so the
     // library is never asked for on arrival.
@@ -592,55 +596,45 @@ struct RoundReceiptSheet: View {
     #if DEBUG
     if MorningReviewFixture.on && !SocialBlendFixture.enabled { enriched = true; return }
     #endif
-    loadFailed = false
-    let socialRecord = try? await RoundSocialService().thread(roundId)
-    if let socialRecord, !socialRecord.visible {
-      seed = nil; card = nil; courseId = nil; enriched = true; loadFailed = true
-      return
+    let account = store.session?.user.id
+    let generation = UUID()
+    if loadGeneration != nil && loadAccount != account {
+      seed = nil; card = nil; courseId = nil; tally = nil; conversation = nil; enriched = false
     }
-    // The conversation identifies the course. The league-scoring receipt
-    // does not carry api_course_id, so loading its figures must not erase it.
-    courseId = socialRecord?.courseId
-    if seed == nil, let cached = await ReceiptCache.shared.get(roundId) { seed = cached }
-    let repo = RoundsRepository()
-    // the second pass: one read, then redraw in place
-    async let payload = repo.roundCard(roundId)
-    if seed?.photoURL == nil, let path = seed?.photoPath, let url = await repo.signedURL(path) {
-      seed?.photoURL = url
-    }
-    if let t = try? await RoundsRepository().roundTally(roundId) { tally = t }
-    if let json = try? await payload {
-      courseId = courseId ?? json["api_course_id"]?.string
-      var merged = (seed ?? ReceiptSeed(id: roundId)).merged(with: json)
-      if merged.photoURL == nil, let path = merged.photoPath, let url = await repo.signedURL(path) { merged.photoURL = url }
-      seed = merged
-    } else {
-      // Friends outside a league can read the round's social record without
-      // inheriting access to the league's scoring receipt.
-      if let thread = socialRecord, thread.visible, let round = thread.round {
-        courseId = thread.courseId
-        seed = ReceiptSeed(id: roundId,
-          profileId: round["owner"]?["id"]?.string.flatMap(UUID.init),
-          gross: round["gross"]?.int, playedOn: round["played_on"]?.string,
-          courseLabel: thread.courseName, holesPlayed: round["holes"]?.int,
-          isMine: round["is_mine"]?.bool, marker: round["owner"]?["marker"]?.string)
+    loadAccount = account; loadGeneration = generation; loadFailed = false
+    for await update in ReceiptLoader().updates(for: roundId, seed: seed, focusComment: focusComment) {
+      guard !Task.isCancelled, loadGeneration == generation, store.session?.user.id == account else { return }
+      switch update {
+      case .preview(let preview): seed = preview
+      case .unavailable:
+        seed = nil; card = nil; courseId = nil; tally = nil; conversation = nil
+        enriched = true; loadFailed = true
+      case .details(let details):
+        seed = details.seed; courseId = details.courseId; conversation = details.conversation
+        if let value = details.tally { tally = value }
+        enriched = true; loadFailed = details.failed
+        if seed?.gross != nil { CSTelemetry.event("receipt_viewed") }
+        #if DEBUG
+        await applyReceiptHatches()
+        #endif
+      case .scorecard(let loaded):
+        #if DEBUG
+        if RoundCardDev.card != nil { continue }
+        #endif
+        card = loaded
       }
-      loadFailed = seed?.gross == nil
     }
-    enriched = true
-    if seed?.gross != nil { CSTelemetry.event("receipt_viewed") }
-    #if DEBUG
+  }
+
+  #if DEBUG
+  private func applyReceiptHatches() async {
     // `-cs_dev_receipt_lenses <one|two|bumped|uncapped>` · D362's lenses on
     // whichever round the receipt opened, so the rows and the doors can be
     // photographed before the migration lands. Overrides `contributions` and
     // nothing else; writes nothing.
     applyLensesHatch()
-    #endif
-    #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("-cs_dev_share_preview"), let r = seed,
        r.profileId == store.session?.user.id { await previewRound(r) }
-    #endif
-    #if DEBUG
     if (ProcessInfo.processInfo.arguments.contains("-cs_dev_brand_export") || ProcessInfo.processInfo.arguments.contains("-cs_dev_brand_finish")),
        let r = seed, mine(r), let recap = recap(r) {
       var image: UIImage?
@@ -654,8 +648,6 @@ struct RoundReceiptSheet: View {
         try? png.write(to: folder.appendingPathComponent("brand-round-review.png"))
       }
     }
-    #endif
-    #if DEBUG
     applyPhotoHatch()
     // `-cs_dev_photo_menu` — the source menu, OPEN, on its own guard rather
     // than inside `applyPhotoHatch`'s: the one thing D298 changed IS a menu,
@@ -669,11 +661,8 @@ struct RoundReceiptSheet: View {
       if RoundCardDev.artifact { artifactPreview = true }
       return
     }
-    #endif
-    // The card is the round showing off, never a fact the receipt depends on:
-    // it arrives after everything else and its absence is silent.
-    card = await RoundScorecardService().load(roundId, gross: seed?.gross, holesPlayed: seed?.holesPlayed)
   }
+  #endif
 
   #if DEBUG
   /// `-cs_dev_card_artifact` — the share PNG, on screen, because `simctl`
