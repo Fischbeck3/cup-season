@@ -15,6 +15,25 @@ sections (§2.2, §14.0) when making competition-model decisions.
 
 ---
 
+## Agent skills
+
+### Issue tracker
+
+For engineering tickets and implementation specs, use GitHub Issues; keep raw
+follow-ups in `spec/inbox.md`. Before tracker work, read
+`docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Before triaging issues, read the five default role mappings in
+`docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Use one shared domain context across web, iOS, and backend. Before architecture
+reviews (including `improve-codebase-architecture`) or domain modeling, read
+`docs/agents/domain.md` for the existing canon and optional glossary/ADR layout.
+
 ## Working protocol (non-negotiable)
 
 1. **Talk first.** Design decisions are logged (see rule 5). Code is written
