@@ -122,6 +122,12 @@ Each was reproduced on this branch before it changed; WX's line numbers were at 
 | X16 | Home (league-less) | the desk never asked `home_dispatch` without a league, so S1/S2 missed the phone's lead (D234) | fixed · verified | c72d6a72 |
 | X17 | Courses | the lead plate cut a four-line name; the card scrolled in one 514px row with its key; the sentence was a clipped one-line input named only by its placeholder; long names stood one word a line | fixed · verified | 95531942 · course-leaf 122/122 |
 | X18 | Home (league-less) | the install nudge (D186: shown once, 3.4s after landing league-less) overlays the top 76px of Home until dismissed | **named barrier · owner** | its timing is D186's; moving it in-flow shifts the page under the reader. Options for the owner: keep; in-flow at the head of Home; or after the first round |
+| X19 | Card & settings | the chosen ball marker and the chosen appearance were a green word (`.mini` has no border, so the border cue never drew); the appearance buttons had no pressed state | fixed · verified | the chosen pill (`.mini.sel`) + aria-pressed · tests/selection-rows-browser.mjs 42/42 |
+| X20 | Wizard | the step rail was ember (a D76 sweep); D359 and the phone's WizardDots make it ink | fixed · verified | selection-rows |
+| X21 | Wizard review | a long value squeezed its label to one word a line ("HOW / SCORES / COUNT") | fixed · verified | selection-rows (text line boxes) |
+| X22 | Schedule | the crew's plans printed the rivalry record and "ON THE SCHEDULE" in gold, Home's round cards the tee time (gold means earned; the phone prints ink); the desk calendar's square days were ~170px | fixed · verified | selection-rows |
+| X23 | Public settlement / dead link | the way in ("Play this with your crew") was ember while the public round's is the action green (D359) | fixed · verified (source) | the dark printing of `act` on the ceremony ground |
+| X24 | Schedule at 320 CSS | seven days inside the card compute 37px at 320 | **named exception** | below every supported iPhone (375pt SE is the floor, where days are 44.4); WCAG 2.5.8 AA (24px) holds and days stay square |
 
 ## 5 · Coverage, detector, panel, critique, audit, human
 

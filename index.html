@@ -2118,9 +2118,10 @@ body.guestlive #onboard{display:none !important;}
 .wizstepname{color:var(--mut); margin:0 0 6px;}
 .wizdots{display:flex; gap:6px; margin-bottom:14px;}
 .wizdots i{height:4px; flex:1; border-radius:99px; background:var(--bg2);}
-/* D76 sweep: progress is momentum, not an outcome — the rail is ember, never
-   --pos. (--pos is the pre-D76 accent; it was doing generic chrome duty.) */
-.wizdots i.on{background:var(--brand);}
+/* D359 (supersedes the D76 sweep's ember rail): three steps of a form are
+   not a contest, so the rail is INK, as the phone's WizardDots are — never
+   --pos, and no longer ember */
+.wizdots i.on{background:var(--ink);}
 /* Stage 3a: desktop wizard — steps left, a live "your league so far" panel on
    the right that fills in as the Pro turns the dials. Mobile is untouched: the
    aside hides and the bylaws live in step 3's review as before. */
@@ -2602,7 +2603,11 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   border-top:1px solid var(--rule); color:var(--mut); letter-spacing:.04em;
 }
 .byrow:first-child{border-top:none;}
-.byrow b{color:var(--ink); font-weight:600; text-align:right;}
+/* the label keeps its own measure: a long value (the review's "Scored against
+   your playing HCP — your index at 95 percent") used to squeeze it to one
+   word a line ("HOW / SCORES / COUNT") at 375 */
+.byrow > :first-child{flex:none; max-width:45%;}
+.byrow b{color:var(--ink); font-weight:600; text-align:right; min-width:0;}
 
 /* ============ v8: message board, live setup, live banner ============ */
 .datesep{
@@ -3537,6 +3542,10 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .calhd{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--mut); text-align:center; padding:2px 0 6px;}
 .calcell{position:relative; aspect-ratio:1; border-radius:8px; background:var(--bg2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:var(--mono); font-size:12.5px; color:var(--mut); border:1px solid transparent; cursor:default;}
 .calcell.blank{background:none;}
+/* the desk's calendar is a desk calendar: seven wide days on short rows. At
+   1280 a square day was ~170px, six rows a thousand pixels of mostly empty
+   tiles (D234: the same month, the desk's own shape) */
+@media (min-width:960px){ .calcell{aspect-ratio:auto; min-height:72px;} }
 .calcell.today{border-color:var(--pos); color:var(--ink);}
 .calcell.tap{cursor:pointer;}
 .calcell.tap:hover{border-color:var(--rule);}
@@ -19554,7 +19563,7 @@ function homeRoundCard(sr, demo){
   const who = sr.mine ? 'You' : esc(sr.display_name||sr.who||'A golfer');
   const rel = sr.mine ? '' : (sr.shared_league?'IN YOUR SEASONS':(sr.is_friend?'BUDDY':''));
   const tee = sr.tee_time ? fmtTee(sr.tee_time) : '';
-  const bits = [ sr.course_label?esc(sr.course_label.toUpperCase()):null, tee?`<span style="color:var(--gold)">${tee}</span>`:null ].filter(Boolean).join(' · ');
+  const bits = [ sr.course_label?esc(sr.course_label.toUpperCase()):null, tee?`<span style="color:var(--ink)">${tee}</span>`:null ].filter(Boolean).join(' · ');   /* a tee time is a fact, ink as the watch list prints it; gold means earned (D359) */
   const inN = sr.rsvp_in||0, cN = sr.comment_n||0;
   return `<div class="hround${demo?'':' tap'}"${demo?'':` data-hround="${sr.id}"`}>
     <span class="num">${M(sr.marker||'saguaro')}</span>
@@ -25947,7 +25956,10 @@ let phMarker = null;
 function renderPhMarkers(){
   const grid = $('#phMarkers'); if(!grid) return;
   grid.innerHTML = Object.keys(MARKERS).map(k =>
-    `<button class="mini" data-phmk="${k}" aria-pressed="${k===phMarker?'true':'false'}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===phMarker?'border-color:var(--pos);color:var(--pos);':''}">${mkr(k)}<span style="font-size:11px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
+    /* the chosen marker is the chosen pill (.mini.sel, ink), not a green word:
+       `.mini` has no border, so the old border-colour never drew and colour
+       was the only cue (WCAG 1.4.1) — and pos is not a selection (D359) */
+    `<button class="mini${k===phMarker?' sel':''}" data-phmk="${k}" aria-pressed="${k===phMarker?'true':'false'}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;">${mkr(k)}<span style="font-size:11px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
   grid.querySelectorAll('[data-phmk]').forEach(b => b.addEventListener('click', () => {
     phMarker = b.dataset.phmk; renderPhMarkers();
   }));
@@ -27610,10 +27622,11 @@ function openProfileHub(){
   if(themeBox){
     const mark = () => {
       let cur = 'dark'; try { cur = localStorage.getItem('cs_theme') || 'dark'; } catch(_){}  /* D76: must match applyTheme's default or the toggle highlights the wrong pill */
+      /* the chosen pill, said to a screen reader too (it had no pressed state) */
       themeBox.querySelectorAll('[data-th]').forEach(b => {
         const on = b.dataset.th === cur;
-        b.style.borderColor = on ? 'var(--pos)' : '';
-        b.style.color = on ? 'var(--pos)' : '';
+        b.classList.toggle('sel', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
     };
     mark();
@@ -30795,7 +30808,9 @@ function rivalryTag(pid){
   }
   if(!rec) return null;
   const nm = r.rivalry_name ? `“${esc(r.rivalry_name)}” · ` : '';
-  return `<span style="color:var(--gold)">${nm}${rec}</span>`;
+  /* ink, as the phone prints it (ScheduleScreen): a head-to-head record is a
+     fact, and gold means earned (D359) */
+  return `<span style="color:var(--ink)">${nm}${rec}</span>`;
 }
 /* others' upcoming rounds, nearest first — the rows the Watch List shows */
 function watchRows(){
@@ -30828,7 +30843,7 @@ function renderWatchList(){
       <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
       <div class="tt"><b>${esc(sr.display_name)} <span class="fine" style="padding:0; color:var(--mut); letter-spacing:.06em">${rel}</span></b>
       <small>${bits}</small></div>
-      ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--gold); flex:none">ON THE SCHEDULE</span>`
+      ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--ink); flex:none">ON THE SCHEDULE</span>`
         : `<button class="mini" data-imin="${i}" style="flex:none">I’m in</button>`}
     </div>`;
   }).join('');
@@ -33070,7 +33085,7 @@ async function renderShareView(tok, _testInfo){
      live layer and speak ember/warm. */
   /* WAVE 8 · the `ceremony` ramp (D277). `warm` was deleted from the palette
      in Wave 0a and survived here because this view is built from a string. */
-  const C = { bg:'#0A0E0C', panel:'#0A0E0C', ink:'#F1F4EF', mut:'#9BA69D', gold:'#D8B25A', hot:'#E8622C', warm:'#D8B25A' };
+  const C = { bg:'#0A0E0C', panel:'#0A0E0C', ink:'#F1F4EF', mut:'#9BA69D', gold:'#D8B25A', hot:'#E8622C', warm:'#D8B25A', act:'#5FA271' };   /* act: the dark printing of the ordinary action (tokens.json metal.act) */
   const MONO = "'IBM Plex Mono',ui-monospace,Menlo,monospace";
   const SERIF = "ui-serif,'New York',Georgia,serif";
   const wrap = document.createElement('div');
@@ -33108,7 +33123,7 @@ async function renderShareView(tok, _testInfo){
      of us, and "Start your crew's season" asks a stranger for a commitment
      before they know what the thing is. The CTA points at what they just saw. */
   foot.innerHTML = `<div style="color:${C.mut};font-size:12px;letter-spacing:.08em;margin-bottom:12px">Cup Season — real rounds, real crews</div>
-    <a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Play this with your crew</a>`;
+    <a href="/" style="display:block;background:${C.act};color:${C.bg};text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Play this with your crew</a>`;   /* D359 · the way in is an ordinary action: the action green, as the public round's "Play with your people" is — ember is the match's, not the door's */
   if(!info || !info.kind){
     /* "Nothing here." reads as a broken app to someone who was sent a link in
        good faith. Say what happened and what to do about it. */
