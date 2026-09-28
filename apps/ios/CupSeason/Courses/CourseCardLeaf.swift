@@ -1,7 +1,7 @@
 // Cup Season — the front nine, printed on a leaf (`surfaces/course.md` §2.6).
 //
-// A sheet of scorecard paper set into the page: three rows — HOLE · PAR · SI —
-// with a tenth **Out** column. It passes §3.3's test (*a leaf must contain a
+// A sheet of scorecard paper set into the page: the rows HOLE · YDS · PAR ·
+// HCP (YDS only when every hole carries one) with a tenth **Out** column. It passes §3.3's test (*a leaf must contain a
 // grid*) and it is the cheapest unmistakably-golf object in the system.
 //
 // IT IS ALSO THE AIRPLANE-MODE PAYOFF. This block draws entirely from
@@ -14,12 +14,22 @@
 // rather than a guess and the leaf prints `CourseBookCopy.noCard` — never
 // eighteen par 4s, never a row of dashes pretending to be a card.
 //
-// D-5 · AT AX3 THE LEAF SCROLLS SIDEWAYS WITH ITS ROW LABELS PINNED. §16.3
-// says column heads hide at the accessibility sizes; the HOLE row is not a
-// column head, it is the key the other two rows are read against, and hiding
-// it makes the card unreadable. The shipped `CourseCardSheet`'s horizontal
-// scroller is the one region of that screen the audit praised, and it survives
-// here for exactly that reason.
+// D-5 · WHEN THE CARD DOES NOT FIT, IT SCROLLS SIDEWAYS WITH ITS ROW LABELS
+// PINNED. §16.3 says column heads hide at the accessibility sizes; the HOLE row
+// is not a column head, it is the key the other rows are read against, and
+// hiding it makes the card unreadable.
+//
+// F06 (2026-09-28) · AND "DOES NOT FIT" IS MEASURED, NOT ASSUMED. The card
+// used to decide by type size alone — scroll at AX, never below — with every
+// row 20pt tall and every column a fixed 28, 32, 34 or 40. The rows' type
+// grows and a 20pt row does not, so at AX3 the numerals overran their rows
+// and printed `4…5…1…` in columns too narrow to hold them; and at the
+// ordinary size a nine with yardage needed 30 + 9 × 32 + 40 = 358pt plus the
+// leaf's 24 — wider than the whole card on an SE, which clipped the Out
+// column off the phone's edge. Now every row is as tall as its own type,
+// every column as wide as its widest figure, and `ViewThatFits` prints the
+// whole card when the measure holds it and scrolls it, key pinned, when it
+// does not — at every size, on every phone.
 
 import SwiftUI
 import CSDesign
@@ -27,7 +37,6 @@ import CupSeasonKit
 
 struct CourseCardLeaf: View {
   @Environment(\.cs) private var cs
-  @Environment(\.dynamicTypeSize) private var typeSize
   let tee: CourseBookTee?
   let title: String
   /// The front nine by default; the whole-card screen asks for the back.
@@ -50,6 +59,19 @@ struct CourseCardLeaf: View {
     return y.count == holes.count && !y.isEmpty ? y : nil
   }
 
+  /// The printed rows, top to bottom. `par` is the only row in leaf INK — it is
+  /// what the others are read toward — and the rest are in the leaf's `mut`.
+  enum Row: CaseIterable {
+    case hole, yards, par, hcp
+    /// TERMINOLOGY §3.1 · `SI` is an engine word and the table gives the ruled
+    /// replacement outright: `SI 15` → **HCP 15**.
+    var key: String {
+      switch self { case .hole: "Hole"; case .yards: "Yds"; case .par: "Par"; case .hcp: "HCP" }
+    }
+    var role: CSType.Role { self == .par ? .columnM : .columnS }
+  }
+  private var rows: [Row] { yards == nil ? [.hole, .par, .hcp] : Row.allCases }
+
   var body: some View {
     CSLeaf {
       Text(title).csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
@@ -57,74 +79,161 @@ struct CourseCardLeaf: View {
       if holes.isEmpty {
         Text(CourseBookCopy.noCard).csType(.bodyS).foregroundStyle(cs.leafMut)
           .fixedSize(horizontal: false, vertical: true)
-      } else if typeSize.isA11y {
-        HStack(alignment: .top, spacing: 0) {
-          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-            // TERMINOLOGY §3.1 · `SI` is an engine word and the table at :146
-            // gives the ruled replacement outright: `SI 15` → **HCP 15**. The
-            // column head walked past preflight 18, which greps `\bSI \d`.
-            label("Hole"); if yards != nil { label("Yds") }; label("Par"); label("HCP")
-          }
-          ScrollView(.horizontal, showsIndicators: false) { grid }
-        }
       } else {
-        HStack(alignment: .top, spacing: 0) {
-          VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-            label("Hole"); if yards != nil { label("Yds") }; label("Par"); label("HCP")   // TERMINOLOGY §3.1
+        // The whole card on the measure when it fits; otherwise the key stays
+        // where it is and the columns scroll past it. `ViewThatFits` asks the
+        // first form for its IDEAL width — the key, every column at its widest
+        // figure, the total — so the choice is the real type at the real size
+        // against the real measure, never a breakpoint.
+        //
+        // Three forms, tried in order: the card with an s2 gutter between its
+        // figures; the same card set closer, s1 between figures, which is what
+        // lets a nine with three-digit yardage print whole on an SE and a 17
+        // Pro at the reading size; and, when neither fits, the s2 card in a
+        // scroller.
+        ViewThatFits(in: .horizontal) {
+          HStack(alignment: .top, spacing: 0) { key; columns(fill: true, gap: CSTokens.Space.s2) }
+          HStack(alignment: .top, spacing: 0) { key; columns(fill: true, gap: CSTokens.Space.s1) }
+          HStack(alignment: .top, spacing: 0) {
+            key
+            ScrollView(.horizontal) {
+              HStack(alignment: .top, spacing: 0) { columns(fill: false, gap: CSTokens.Space.s2) }
+            }
+            .scrollIndicatorsFlash(onAppear: true)
+            .accessibilityIdentifier("course.card.scroll")
           }
-          grid
         }
       }
     }
   }
 
-  /// The row labels sit in a fixed 26pt leading column, so the three rows line
-  /// up against one edge whatever the numerals do.
-  private func label(_ s: String) -> some View {
-    Text(s).csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
-      .frame(width: 30, height: 20, alignment: .leading)
-  }
+  // MARK: the key
 
-  private var grid: some View {
+  /// HOLE · YDS · PAR · HCP, one label per row, each as tall as its row's own
+  /// figure so the rows line up across the pinned key and the grid. Hidden
+  /// from VoiceOver: every column says its own facts, label included.
+  private var key: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-      row(holes.map { "\($0.hole)" }, total: totalLabel, role: .columnS, ink: cs.leafMut, head: "Holes")
-      if let yards {
-        // D364 (F1) · the yardage, when the card actually carries it
-        row(yards.map(String.init), total: String(yards.reduce(0, +)), role: .columnS, ink: cs.leafMut, head: "Yards")
-      }
-      row(holes.map { $0.par.map(String.init) ?? "" }, total: total.map(String.init) ?? "",
-          role: .columnM, ink: cs.leafInk, head: "Pars")
-        .overlay(alignment: .top) {
-          // one 1px rule between the key and the pars — a scorecard's own line
-          CSRule(over: .leaf).offset(y: -CSTokens.Space.s1 - 1)
+      ForEach(rows, id: \.self) { r in
+        ZStack(alignment: .leading) {
+          // every key label shares the widest label's width
+          ForEach(rows, id: \.self) { t in widthOnly(Text(t.key).csType(.agateS, caps: true)) }
+          heightOnly(Text("0").csType(r.role))
+          Text(r.key).csType(.agateS, caps: true).foregroundStyle(cs.leafMut).fixedSize()
         }
-      row(holes.map { $0.si.map(String.init) ?? "" }, total: "", role: .columnS, ink: cs.leafMut, head: "Stroke indexes")
+      }
     }
+    .padding(.trailing, CSTokens.Space.s2)
+    .accessibilityHidden(true)
   }
 
-  private func row(_ cells: [String], total: String, role: CSType.Role, ink: Color, head: String) -> some View {
-    HStack(spacing: 0) {
-      // every row shares one column width, wider when a yardage row (three
-      // digits a hole, four in the total) is on the card
-      ForEach(Array(cells.enumerated()), id: \.offset) { _, c in
-        Text(c).csType(role).foregroundStyle(ink)
-          .frame(width: typeSize.isA11y ? (yards != nil ? 40 : 34) : (yards != nil ? 32 : 28), height: 20)
+  // MARK: the columns
+
+  /// The nine hole columns and the total. `fill` lets the hole columns share
+  /// the measure's spare width when the whole card fits; inside the scroller
+  /// they keep their own width, which is their widest figure plus `gap`.
+  @ViewBuilder private func columns(fill: Bool, gap: CGFloat) -> some View {
+    ForEach(Array(holes.enumerated()), id: \.offset) { i, h in
+      VStack(spacing: CSTokens.Space.s2) {
+        ForEach(rows, id: \.self) { r in
+          cell(value(r, h, i), r, templates: holeTemplates, alignment: .center, fill: fill, gap: gap)
+        }
       }
-      Text(total).csType(role).foregroundStyle(ink)
-        .frame(width: typeSize.isA11y ? 44 : (yards != nil ? 40 : 32), height: 20, alignment: .trailing)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(spokenHole(h, i))
+      .accessibilityIdentifier("course.card.hole.\(h.hole)")
+    }
+    VStack(spacing: CSTokens.Space.s2) {
+      ForEach(rows, id: \.self) { r in
+        cell(totalValue(r), r, templates: totalTemplates, alignment: .trailing, fill: false, gap: gap)
+      }
     }
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel(spoken(cells, total: total, head: head))
+    .accessibilityLabel(spokenTotal)
+    .accessibilityIdentifier("course.card.total")
   }
 
-  /// **One VoiceOver element per ROW, not per cell.** The shipped card's single
-  /// label for eighteen columns is the hole the audit names; three sentences
-  /// ("Holes one through nine." / "Pars: four, five, three…") is what a golfer
-  /// can actually follow.
-  private func spoken(_ cells: [String], total: String, head: String) -> String {
-    let body = cells.filter { !$0.isEmpty }.joined(separator: ", ")
-    let tail = total.isEmpty ? "" : ". \(totalLabel) \(total)"
-    return "\(head): \(body)\(tail)."
+  /// One figure in its row's role. The hidden templates make every cell of a
+  /// column exactly as wide as that column's widest figure in ANY row — so the
+  /// columns are even and the par rule runs unbroken across them — and the
+  /// hidden key label makes the row as tall as its label, so the pinned key
+  /// and the grid share every baseline.
+  private func cell(_ s: String, _ r: Row, templates: [Row: String], alignment: Alignment,
+                    fill: Bool, gap: CGFloat) -> some View {
+    ZStack(alignment: alignment) {
+      ForEach(rows, id: \.self) { t in widthOnly(Text(templates[t] ?? "").csType(t.role)) }
+      heightOnly(Text(r.key).csType(.agateS, caps: true))
+      Text(s).csType(r.role).foregroundStyle(r == .par ? cs.leafInk : cs.leafMut).fixedSize()
+    }
+    // half the gutter each side, so two figures stand `gap` apart
+    .padding(.horizontal, gap / 2)
+    .frame(maxWidth: fill ? .infinity : nil, alignment: alignment)
+    .overlay(alignment: .top) {
+      // one 1px rule between the key rows and the pars — a scorecard's own line
+      if r == .par { CSRule(over: .leaf).offset(y: -CSTokens.Space.s1 - 1) }
+    }
+  }
+
+  /// The widest figure each row can print in a hole column: the digits of
+  /// its largest value, in the row's own face.
+  private var holeTemplates: [Row: String] {
+    func digits(_ ns: [Int]) -> String { String(repeating: "8", count: max(1, ns.map { String($0).count }.max() ?? 1)) }
+    return [.hole: digits(holes.map(\.hole)), .yards: digits(yards ?? []),
+            .par: digits(holes.compactMap(\.par)), .hcp: digits(holes.compactMap(\.si))]
+  }
+  /// The total column prints the label, the yardage and the par; each row's
+  /// template is its own string, so the column is as wide as its widest.
+  private var totalTemplates: [Row: String] {
+    Dictionary(uniqueKeysWithValues: rows.map { ($0, totalValue($0)) })
+  }
+
+  private func value(_ r: Row, _ h: CourseHole, _ i: Int) -> String {
+    switch r {
+    case .hole: "\(h.hole)"
+    case .yards: yards.map { String($0[i]) } ?? ""
+    case .par: h.par.map(String.init) ?? ""
+    case .hcp: h.si.map(String.init) ?? ""
+    }
+  }
+  private func totalValue(_ r: Row) -> String {
+    switch r {
+    case .hole: totalLabel
+    case .yards: yards.map { String($0.reduce(0, +)) } ?? ""
+    case .par: total.map(String.init) ?? ""
+    case .hcp: ""
+    }
+  }
+
+  // MARK: VoiceOver
+
+  /// **One VoiceOver element per HOLE, read down its column** — the way a
+  /// golfer reads a card: hole three, its length, its par, how hard it plays.
+  /// It was one element per ROW ("Pars: four, five, three…"), which asks a
+  /// listener to hold nine numbers and count along to the hole they wanted.
+  /// Abbreviations spell themselves out (TERMINOLOGY §6): HCP is "handicap".
+  private func spokenHole(_ h: CourseHole, _ i: Int) -> String {
+    var facts: [String] = []
+    if let y = yards?[i] { facts.append("\(y) yards") }
+    if let p = h.par { facts.append("par \(p)") }
+    if let si = h.si { facts.append("handicap \(si)") }
+    return "Hole \(h.hole)" + (facts.isEmpty ? "" : ". " + facts.joined(separator: ", ")) + "."
+  }
+  private var spokenTotal: String {
+    var facts: [String] = []
+    if let y = yards { facts.append("\(y.reduce(0, +)) yards") }
+    if let t = total { facts.append("par \(t)") }
+    return totalLabel + (facts.isEmpty ? "" : ". " + facts.joined(separator: ", ")) + "."
+  }
+
+  // MARK: measuring probes
+
+  /// A hidden copy that contributes its WIDTH to the cell and nothing else.
+  private func widthOnly(_ t: some View) -> some View {
+    t.fixedSize().frame(height: 0).hidden()
+  }
+  /// A hidden copy that contributes its HEIGHT to the cell and nothing else.
+  private func heightOnly(_ t: some View) -> some View {
+    t.fixedSize().frame(width: 0).hidden()
   }
 }
 
