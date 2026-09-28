@@ -37,6 +37,9 @@ enum SyntheticBoot {
       SyntheticSeam.seedSession(userId: world.me.id, email: world.me.email)
     }
     seedDevice(world)
+    // The system keeps Live Activities across launches and reinstalls; a
+    // synthetic launch starts with none (and `LiveActivityHost` starts none).
+    Task { @MainActor in await LiveActivityHost.clearStale() }
     SyntheticSeam.log("ready scenario=\(scenario.rawValue) route=\(route ?? "-") anchor=\(world.anchor) viewer=\(world.me.handle)")
   }
 

@@ -53,6 +53,12 @@ enum LiveActivityHost {
   /// Tee-off. Idempotent: a second call on a running round updates instead of
   /// stacking a second island.
   static func start(_ s: LiveRoundState) {
+    #if DEBUG
+    // S2/C3 · a synthetic launch leaves nothing on the system's own surfaces:
+    // no real activity carries fixture names past the launch that made it (the
+    // island is reviewed through `-cs_dev_island`'s host instead).
+    if SyntheticSeam.on { return }
+    #endif
     guard ActivityAuthorizationInfo().areActivitiesEnabled, s.active, s.stage == .live else { return }
     let previousID = currentID
     currentID = matching(s)
