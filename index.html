@@ -1268,6 +1268,12 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .calc .trio b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums;}
 .calc .trio span{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}   /* F14 · 11px is the floor (UI_SYSTEM §16.2) */
+.bandsdoor{width:100%; min-height:44px; background:none; border:0; cursor:pointer; padding:0 2px; text-align:left;}
+.bandsdoor svg{width:14px; height:14px; transition:transform .15s ease;}
+.bandsdoor[aria-expanded="true"] svg{transform:rotate(180deg);}
+.bandsdoor:hover{color:var(--ink);}
+.bandsdoor:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+#postBandsCard[hidden]{display:none;}
 .bands{width:100%; border-collapse:collapse; font-size:12.5px;}
 .bands td{padding:9px 2px; border-top:1px solid var(--rule); color:var(--mut);}
 .bands tr:first-child td{border-top:none;}
@@ -5217,8 +5223,12 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <!-- painted by recalc() from seasonNote('long') — never retyped here (D297) -->
               <p class="fine" id="calcSeason" style="padding:8px 0 0"></p>
             </div>
-            <div class="eyebrow">Point bands</div>
-            <div class="card">
+            <!-- F09 · the bands are a named disclosure. A golfer with no league has
+                 a number to see and nothing to be ranked in, so the table waits
+                 behind the question it answers; in a live season it stays open.
+                 Painted by csRenderComposerEyebrow; the golfer's own toggle wins. -->
+            <button type="button" class="eyebrow bandsdoor" id="postBandsDoor" aria-expanded="true" aria-controls="postBandsCard">How points work <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+            <div class="card" id="postBandsCard">
               <!-- D210 / Q-20 · the engine's own names and points (bandName /
                    cup_points), with the guide's non-overlapping edges. The old
                    table named bands the engine does not have and said "1–3"
@@ -6603,7 +6613,26 @@ function csRenderComposerEyebrow(){
   if(pe) pe.textContent = csComposerEyebrow();
   const cn = document.getElementById('postCountingNote');
   if(cn) cn.textContent = csCountingNote();
+  /* F09 · before a gross is typed the figure's label already says what the
+     golfer's round can do — recalc() paints the same three labels once it runs */
+  const ss = seasonState();
+  const k = document.querySelector('.calc .k');
+  if(k && !state.lastPost) k.textContent = ss === 'live' ? 'League points this round'
+                                         : ss === 'no_league' ? 'This round would score' : 'This round';
+  const door = document.getElementById('postBandsDoor'), card = document.getElementById('postBandsCard');
+  if(door && card && !door.dataset.touched){
+    const open = ss === 'live';
+    door.setAttribute('aria-expanded', String(open));
+    card.hidden = !open;
+  }
 }
+document.getElementById('postBandsDoor')?.addEventListener('click', e => {
+  const door = e.currentTarget, card = document.getElementById('postBandsCard');
+  const open = door.getAttribute('aria-expanded') !== 'true';
+  door.dataset.touched = '1';
+  door.setAttribute('aria-expanded', String(open));
+  if(card) card.hidden = !open;
+});
 window.csComposerEyebrow = csComposerEyebrow;
 window.csRenderComposerEyebrow = csRenderComposerEyebrow;
 
