@@ -50,20 +50,44 @@ struct EventRoomScreen: View {
           } else {
             RyderRoomView(model: model, room: room, links: links, back: { dismiss() })
           }
+        } else if model.unavailable {
+          // S8 · the room's row came back empty: removed, or this golfer is
+          // not on its roster. The read did not fail, so there is nothing to
+          // try again — the one door is the way back to where he came from.
+          // The desk says the same two sentences.
+          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+            Text(EventRoomCopy.brow).csType(.agate, caps: true).foregroundStyle(cs.mut)
+              .accessibilityHidden(true)
+            Text(EventRoomCopy.unavailableHead).csType(.lead).foregroundStyle(cs.ink)
+              .fixedSize(horizontal: false, vertical: true)
+              .accessibilityLabel(EventRoomCopy.unavailableSpoken)
+              .accessibilityAddTraits(.isHeader)
+            Text(EventRoomCopy.unavailableWhy).csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+            CSDoor(.primary(EventRoomCopy.back, { dismiss() }))
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .csGutter()
+          .padding(.top, 72)
+          .accessibilityIdentifier("event.unavailable")
         } else if let err = model.error {
           // §7.3 · only a room with NOTHING cached speaks: one `lead` line, one
           // `body` line, and **Try again** as the primary. The
           // `CSCard(spine: cs.neg)` went with the card.
           VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-            Text("The room didn't load.").csType(.lead).foregroundStyle(cs.ink)
+            Text(EventRoomCopy.failedHead).csType(.lead).foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
+              .accessibilityAddTraits(.isHeader)
             Text(err).csType(.bodyS).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
-            CSDoor(.primary("Try again", { Task { await model.load() } }))
-            CSDoor(.link("Close", { dismiss() }))
+            CSDoor(.primary(EventRoomCopy.retry, { Task { await model.load() } }))
+            // S8 · the safe return names where it goes (the desk's words)
+            CSDoor(.link(EventRoomCopy.back, { dismiss() }))
           }
+          .frame(maxWidth: .infinity, alignment: .leading)
           .csGutter()
           .padding(.top, 72)
+          .accessibilityIdentifier("event.failed")
         } else {
           // §7.1 · **loading is the destination's own geometry, redacted** — the
           // plate paints immediately, the rail draws its cells and its rule, and
@@ -130,4 +154,17 @@ struct EventRoomScreen: View {
       .padding(.top, CSTokens.Space.s4)
     }
   }
+}
+
+/// S8 · the room's words when there is no room to draw. One producer, and the
+/// desk says the same sentences (`index.html`, the room's failed and
+/// unavailable plates). §4.36: a Ryder or a Major, never "event", in product text.
+enum EventRoomCopy {
+  static let failedHead = "The room didn't load."
+  static let retry = "Try again"
+  static let brow = "The room"
+  static let unavailableHead = "Not open to you"
+  static let unavailableSpoken = "This room isn’t open to you"
+  static let unavailableWhy = "It may have been removed, or you’re not on its roster."
+  static let back = "Back to Compete"
 }

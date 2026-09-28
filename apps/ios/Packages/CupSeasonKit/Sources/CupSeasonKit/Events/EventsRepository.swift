@@ -107,6 +107,16 @@ public struct EventsRepository: Sendable {
   }
   private struct ScoreRaw: Decodable { let team_id: UUID?; let points: Double? }
 
+  /// S8 · the room's own row came back EMPTY: `.single()` found no row this
+  /// golfer may read — it was removed, or RLS keeps it from somebody who is
+  /// not on its roster (PostgREST PGRST116, HTTP 406). That is a fact about
+  /// the room, not a failed read, so it is never offered a retry. Any other
+  /// error — a dropped signal, a refused server — is a read that failed.
+  public static func isUnavailable(_ error: Error) -> Bool {
+    if let e = error as? PostgrestError { return e.code == "PGRST116" }
+    return false
+  }
+
   /// `loadEvent(id)` — the room, or a throw (the web logs and leaves "No event loaded.").
   public func load(_ id: UUID) async throws -> EventRoom {
     async let ev: EventRow = db.from("events").select("*").eq("id", value: id).single().execute().value
