@@ -355,8 +355,28 @@ struct RoundReceiptSheet: View {
         if let photoNote {
           Text(photoNote).csType(.bodyS).foregroundStyle(cs.neg)
             .fixedSize(horizontal: false, vertical: true)
+        } else if let missing = RoundPhotoNote.line(slot: slot, seen: photoSeen(r)) {
+          // S9 · the round has a photograph the moment could not show: say so
+          // once, beside the two controls that act on it
+          Text(missing).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("receipt.photo.unavailable")
         }
       }
+    }
+  }
+
+  /// S9 · what the moment made of the round's picture, read from the same
+  /// store it draws from (`HomePhotoStore`, keyed by path, D361).
+  private func photoSeen(_ r: ReceiptSeed) -> RoundPhotoNote.Seen {
+    switch HomePhotoStore.shared.state(for: r.photoPath) {
+    case .loaded: return .shown
+    case .loading: return .loading
+    case .failed(let prior): return prior == nil ? .missing : .shown
+    case .removed: return .missing
+    // no credential yet is only a verdict once the receipt has finished its
+    // reads — before that the URL may simply not have arrived
+    case .none: return enriched && r.photoURL == nil ? .missing : .loading
     }
   }
 

@@ -39,6 +39,11 @@ public enum RoundCopy {
   public static let photoRemove = "Remove photo"
   /// The armed half of the two-tap. Never an alert (IOS-003 §4).
   public static let photoRemoveArmed = "Sure?"
+  /// S9 · the owner's receipt, when the round HAS a photograph that cannot be
+  /// shown (the file is gone, or it could not be fetched or signed). Replace
+  /// and Remove stay beside it; this is the fact, never an ask, and nobody
+  /// else's receipt says it — theirs is the record, as D361 draws it.
+  public static let photoUnavailable = "This round\u{2019}s photo couldn\u{2019}t be opened."
 
   /// **The seventh sentence** · the artifact that leaves the app asks before
   /// it carries the photograph, and the desk asks in the same words. The
