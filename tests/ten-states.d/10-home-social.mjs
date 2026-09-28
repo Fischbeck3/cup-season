@@ -113,23 +113,25 @@ const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
   }
 })
 
-/* (b2) S1 / S2 signed in, as the web really paints them: no ranked lead (the
-   dispatch is never requested), the hero card owns the first move */
-const heroShown = (re) => async (page) => page.evaluate((re) => {
-  const lead = (document.getElementById('homeLead') || {}).innerText || ''
-  const hero = document.getElementById('homeHero')
-  if (lead.trim()) return 'a ranked lead rendered for a league-less golfer: ' + JSON.stringify(lead.slice(0, 80))
-  if (!hero || !hero.innerText.trim()) return 'the hero card is empty'
-  if (window.homeDispatch) return 'the dispatch was read -- the league-less path changed; re-check the finding'
-  return new RegExp(re).test(hero.innerText.replace(/\s+/g, ' ')) ? true : 'the hero reads ' + JSON.stringify(hero.innerText.slice(0, 120))
+/* (b2) S1 / S2 signed in. Since c72d6a72 the desk asks home_dispatch for a
+   league-less golfer too (D234: the phone's lead, one producer), so the LEAD
+   owns the first move and the hero stands down behind it (L-34). WX's finding
+   E recorded the old path, where the dispatch was never requested. */
+const leadShown = (re) => async (page) => page.evaluate((re) => {
+  const lead = ((document.getElementById('homeLead') || {}).innerText || '').replace(/\s+/g, ' ')
+  const hero = ((document.getElementById('homeHero') || {}).innerText || '').trim()
+  if (!window.homeDispatch) return 'the dispatch was never read for a league-less golfer'
+  if (!lead.trim()) return 'no lead rendered for a league-less golfer'
+  if (hero) return 'the hero did not stand down behind the lead: ' + JSON.stringify(hero.slice(0, 80))
+  return new RegExp(re, 'i').test(lead) ? true : 'the lead reads ' + JSON.stringify(lead.slice(0, 120))
 }, re)
 const HOME_LEAGUELESS = [
-  { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the hero card; home_dispatch is never requested',
-    drive: async (page) => { await until(page, () => /Post your first round/.test((document.getElementById('homeHero') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(heroShown('YOUR CARD.*Post your first round'), meStripShown) },
-  { family: 'home', id: 'league-less-rounds_no_buddies', variant: 'rounds_no_league', title: 'Home signed in, S2 rounds and no buddies (no league): the hero card; home_dispatch is never requested',
-    drive: async (page) => { await until(page, () => /Find your buddies/.test((document.getElementById('homeHero') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(heroShown('YOUR CARD.*Find your buddies'), meStripShown, async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'my own rounds are not in the feed')) },
+  { family: 'home', id: 'league-less-brand_new', variant: 'brand_new', title: 'Home signed in, S1 brand-new (no league): the dispatch lead; the hero stands down',
+    drive: async (page) => { await until(page, () => /first round/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
+    expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripShown) },
+  { family: 'home', id: 'league-less-rounds_no_buddies', variant: 'rounds_no_league', title: 'Home signed in, S2 rounds and no buddies (no league): the dispatch lead; the hero stands down',
+    drive: async (page) => { await until(page, () => /nobody has seen it/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
+    expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown, async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'my own rounds are not in the feed')) },
 ]
 
 /* (c) the dispatch this world's own facts produce. The expectation is
