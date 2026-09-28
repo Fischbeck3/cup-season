@@ -4,7 +4,21 @@
   const check=(ok,label)=>{ if(!ok) throw new Error(label); };
   const out={ width: innerWidth };
   window.csPaintTopoHeads();
-  const heads=Array.from(document.querySelectorAll('.cmphead, .seasonhead'));
+  /* D381, owner amendment 2026-09-24 · the season page's head is now the
+     Scoreboard band (index.html #seasonScoreboard: `.sb-terrain.seasonhead`),
+     and its terrain is the band's CONTINUOUS background — "topo runs
+     continuously behind the Scoreboard text and figures … the Book heading
+     uses the same background treatment", judged by that ruling's own contrast
+     rule (4.62:1 dark / 4.97:1 light over the strongest stroke). Built in
+     49c219ea / d837a8c0, eleven days after this I-3 check was written for the
+     quiet head it replaced. I-3 governs the quiet interior heads; the band is
+     checked below for what D381 requires of it. */
+  const band=document.querySelector('.sb-terrain.seasonhead');
+  if(band){
+    check(band.getAttribute('aria-hidden')==='true','D381: the band terrain is announced');
+    check(getComputedStyle(band).pointerEvents==='none' || getComputedStyle(band.closest('.cband')).pointerEvents!=='none','D381: the band terrain takes input');
+  }
+  const heads=Array.from(document.querySelectorAll('.cmphead, .seasonhead:not(.sb-terrain)'));
   check(heads.length>=2,'I-3: the interior heads are gone: '+heads.length);
   const withTopo=heads.filter(h=>h.querySelector(':scope > .cs-topohead'));
   check(withTopo.length===heads.length,'I-3: '+(heads.length-withTopo.length)+' of '+heads.length+' page heads carry no terrain');
