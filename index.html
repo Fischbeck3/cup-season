@@ -1601,6 +1601,12 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .cred .cfoot{flex:1 1 auto; padding:20px; display:flex; flex-direction:column; justify-content:space-between;}
 .cred .cfigs{display:flex; align-items:flex-start; position:relative;}
 .cred .cfigs .cfig{flex:0 0 33.333%; min-width:0;}
+/* three figures take MEASURED columns, the phone's columnWidths: a column is as
+   wide as its own label, so "BEST · MESQUITE WASH" has the room "ROUNDS" does
+   not use, and only the last yields — the ellipsis fires when the three
+   genuinely exceed the card, never a word early */
+.cred .cfigs:has(> .cfig:nth-of-type(3)) .cfig{flex:0 0 auto; padding-right:var(--s4);}
+.cred .cfigs:has(> .cfig:nth-of-type(3)) .cfig:nth-of-type(3){flex:0 1 auto; padding-right:0;}
 .cred .cfigs .cfig b{display:block; font-family:var(--board); font-weight:700; font-size:27px; line-height:1;
   font-variant-numeric:tabular-nums; color:var(--ceremony-ink);}
 .cred .cfigs .cfig b i{font-style:normal; font-size:12px; letter-spacing:.05em; text-transform:uppercase;}
