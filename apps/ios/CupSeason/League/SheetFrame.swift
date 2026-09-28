@@ -33,6 +33,8 @@ struct SheetFrame<Content: View>: View {
           VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
             Text(title).csType(.displayS).foregroundStyle(dusk ? CSTokens.dark.ink : cs.ink)
               .fixedSize(horizontal: false, vertical: true)
+              // F03 · the sheet's title is its heading (the rotor and its name)
+              .accessibilityAddTraits(.isHeader)
             if !sub.isEmpty {
               Text(sub).csType(.agate, caps: true).foregroundStyle(dusk ? CSTokens.dark.mut : cs.mut)
                 .fixedSize(horizontal: false, vertical: true)

@@ -119,7 +119,10 @@ struct RoundReceiptSheet: View {
           if r.gross != nil {
             // D360 · the desk's brand moment, on the phone: the photograph is
             // its ground when there is one, so the separate photo slot goes.
+            // F03 · the sheet's title is its heading: what VoiceOver's heading
+            // rotor lands on, and the name the sheet is read by
             Text(mine(r) ? "Your round" : "The round").csType(.displayS, caps: true).foregroundStyle(cs.ink)
+              .accessibilityAddTraits(.isHeader)
             // one fact, one place: the dateline already names the course on the
             // phone, so the moment's own course line stands down when it does
             ReceiptMoment(dateline: dateline(r),
