@@ -1235,7 +1235,11 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
      picture again (`.has-photo`), because then it is not optional furniture,
      it is the round's own image. */
   .postcam{width:100%; flex-direction:row; align-items:center; gap:10px;}
-  .postcam .postplate{width:auto; flex:1; height:44px;}
+  /* I09 · the plate and the scan share a row while both fit, and the scan takes
+     its own line when they do not (a 320 screen in the fallback face ran the
+     row 2px off the page — inherited) */
+  .postcam{flex-wrap:wrap;}
+  .postcam .postplate{width:auto; flex:1 1 150px; min-width:0; height:44px;}
   .postcam .postplate .plate{border-radius:var(--rc); justify-content:flex-start; padding:0 12px;}
   .postcam .postplate .ph{flex-direction:row; gap:8px;}
   .postcam #postScanBtn{flex:none; margin:0;}
