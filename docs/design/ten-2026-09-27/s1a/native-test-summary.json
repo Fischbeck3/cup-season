@@ -1,0 +1,16 @@
+{
+  "totalTestCount": 1574,
+  "passedTests": 1573,
+  "failedTests": 1,
+  "skippedTests": 0,
+  "testFailures": [
+    {
+      "failureText": "Caught error: Unspecified Keychain error: -34018.",
+      "targetName": "CupSeasonTests",
+      "testIdentifier": 49,
+      "testIdentifierString": "DeviceOnlyAuthStorageTests/existingSDKSessionMigratesWithoutLosingItsBytes()",
+      "testIdentifierURL": "test://com.apple.xcode/CupSeason/CupSeasonTests/DeviceOnlyAuthStorageTests/existingSDKSessionMigratesWithoutLosingItsBytes()",
+      "testName": "existingSDKSessionMigratesWithoutLosingItsBytes()"
+    }
+  ]
+}

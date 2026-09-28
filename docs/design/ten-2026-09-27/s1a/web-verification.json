@@ -1,0 +1,345 @@
+{
+  "sourceSHA256": "32f458977a5aa5fab74346433c605c3e923204cdfb5ee0664139d66604be7c30",
+  "labelObservations": [
+    {
+      "file": "door--375--dark.png",
+      "kind": "door",
+      "width": 375,
+      "height": 667,
+      "theme": "dark",
+      "evidence": {
+        "labels": [
+          "Email"
+        ],
+        "type": "email",
+        "autocomplete": "email",
+        "inputmode": "email",
+        "labelColor": "rgb(155, 166, 157)",
+        "mut": "#9BA69D",
+        "labelVisible": true,
+        "overflow": 0
+      },
+      "sha256": "fd2adbaf1a38e6842cf1cf380b01254eb3e9ee280ebe18457822d0b78d963957"
+    },
+    {
+      "file": "door-short--375--dark.png",
+      "kind": "door",
+      "width": 375,
+      "height": 380,
+      "theme": "dark",
+      "evidence": {
+        "top": 331.265625,
+        "bottom": 377.265625,
+        "height": 46,
+        "hit": true
+      },
+      "scope": "Short viewport proxy; not an iPhone keyboard",
+      "sha256": "0f9faea61e69edd126b0dd39a78614ff061f193e5b99f3e1e784f1865e8084bd"
+    },
+    {
+      "file": "door--375--light.png",
+      "kind": "door",
+      "width": 375,
+      "height": 667,
+      "theme": "light",
+      "evidence": {
+        "labels": [
+          "Email"
+        ],
+        "type": "email",
+        "autocomplete": "email",
+        "inputmode": "email",
+        "labelColor": "rgb(87, 95, 87)",
+        "mut": "#575F57",
+        "labelVisible": true,
+        "overflow": 0
+      },
+      "sha256": "b9f9384dc8a421e89ea7a861ef21194c5cdfab616429167d12195342b3c04809"
+    },
+    {
+      "file": "door-short--375--light.png",
+      "kind": "door",
+      "width": 375,
+      "height": 380,
+      "theme": "light",
+      "evidence": {
+        "top": 331.265625,
+        "bottom": 377.265625,
+        "height": 46,
+        "hit": true
+      },
+      "scope": "Short viewport proxy; not an iPhone keyboard",
+      "sha256": "3dcded2b511adb5ec4f11988ac4759fe407122b7f1a92514737d30016fa2a256"
+    },
+    {
+      "file": "door--402--dark.png",
+      "kind": "door",
+      "width": 402,
+      "height": 874,
+      "theme": "dark",
+      "evidence": {
+        "labels": [
+          "Email"
+        ],
+        "type": "email",
+        "autocomplete": "email",
+        "inputmode": "email",
+        "labelColor": "rgb(155, 166, 157)",
+        "mut": "#9BA69D",
+        "labelVisible": true,
+        "overflow": 0
+      },
+      "sha256": "da0abaa9b4b5afd2d81eafdd0d1e2f1229534ac4f2ab37aa11138da8b51dca6d"
+    },
+    {
+      "file": "door-short--402--dark.png",
+      "kind": "door",
+      "width": 402,
+      "height": 380,
+      "theme": "dark",
+      "evidence": {
+        "top": 331.265625,
+        "bottom": 377.265625,
+        "height": 46,
+        "hit": true
+      },
+      "scope": "Short viewport proxy; not an iPhone keyboard",
+      "sha256": "2ace8c5f8cca1deb447ba1d5fb85677ff67f027fdc66386ffb9b749fba1f2525"
+    },
+    {
+      "file": "door--402--light.png",
+      "kind": "door",
+      "width": 402,
+      "height": 874,
+      "theme": "light",
+      "evidence": {
+        "labels": [
+          "Email"
+        ],
+        "type": "email",
+        "autocomplete": "email",
+        "inputmode": "email",
+        "labelColor": "rgb(87, 95, 87)",
+        "mut": "#575F57",
+        "labelVisible": true,
+        "overflow": 0
+      },
+      "sha256": "22c2db4bdcc6a84fd977eb5e180fd3f691b00ed2ea88f314f2aa0a702b6150c7"
+    },
+    {
+      "file": "door-short--402--light.png",
+      "kind": "door",
+      "width": 402,
+      "height": 380,
+      "theme": "light",
+      "evidence": {
+        "top": 331.265625,
+        "bottom": 377.265625,
+        "height": 46,
+        "hit": true
+      },
+      "scope": "Short viewport proxy; not an iPhone keyboard",
+      "sha256": "348c0388485a7dbdde14d360593f84d216c324965dfd332487b6f6af8c3b8319"
+    },
+    {
+      "file": "door--1280--dark.png",
+      "kind": "door",
+      "width": 1280,
+      "height": 1000,
+      "theme": "dark",
+      "evidence": {
+        "labels": [
+          "Email"
+        ],
+        "type": "email",
+        "autocomplete": "email",
+        "inputmode": "email",
+        "labelColor": "rgb(155, 166, 157)",
+        "mut": "#9BA69D",
+        "labelVisible": true,
+        "overflow": 0
+      },
+      "sha256": "fb9c6df598cb94f8bf813200facc171dde72e21b97b3fd06c7eb3d6a268638e4"
+    },
+    {
+      "file": "door--1280--light.png",
+      "kind": "door",
+      "width": 1280,
+      "height": 1000,
+      "theme": "light",
+      "evidence": {
+        "labels": [
+          "Email"
+        ],
+        "type": "email",
+        "autocomplete": "email",
+        "inputmode": "email",
+        "labelColor": "rgb(87, 95, 87)",
+        "mut": "#575F57",
+        "labelVisible": true,
+        "overflow": 0
+      },
+      "sha256": "2357def5b4ebca18eb016fdaf95fd0342c64ffabe3bff96bf93ac9dc9902581a"
+    }
+  ],
+  "tests": [
+    {
+      "kind": "door",
+      "width": 375,
+      "theme": "dark",
+      "suite": "brand-door-browser",
+      "passed": true
+    },
+    {
+      "kind": "door",
+      "width": 375,
+      "theme": "light",
+      "suite": "brand-door-browser",
+      "passed": true
+    },
+    {
+      "kind": "door",
+      "width": 402,
+      "theme": "dark",
+      "suite": "brand-door-browser",
+      "passed": true
+    },
+    {
+      "kind": "door",
+      "width": 402,
+      "theme": "light",
+      "suite": "brand-door-browser",
+      "passed": true
+    },
+    {
+      "kind": "door",
+      "width": 1280,
+      "theme": "dark",
+      "suite": "brand-door-browser",
+      "passed": true
+    },
+    {
+      "kind": "door",
+      "width": 1280,
+      "theme": "light",
+      "suite": "brand-door-browser",
+      "passed": true
+    }
+  ],
+  "wideBaselineComparison": [
+    {
+      "target": "door",
+      "version": "baseline",
+      "theme": "dark",
+      "width": 1600,
+      "suite": {
+        "passed": false,
+        "message": "page.evaluate: Error: the terrain is not at page scale\n    at check (eval at evaluate (:311:30), <anonymous>:6:43)\n    at eval (eval at evaluate (:311:30), <anonymous>:60:5)\n    at async <anonymous>:337:30"
+      }
+    },
+    {
+      "target": "door",
+      "version": "baseline",
+      "theme": "light",
+      "width": 1600,
+      "suite": {
+        "passed": false,
+        "message": "page.evaluate: Error: the terrain is not at page scale\n    at check (eval at evaluate (:311:30), <anonymous>:6:43)\n    at eval (eval at evaluate (:311:30), <anonymous>:60:5)\n    at async <anonymous>:337:30"
+      }
+    },
+    {
+      "target": "door",
+      "version": "after",
+      "theme": "dark",
+      "width": 1600,
+      "suite": {
+        "passed": false,
+        "message": "page.evaluate: Error: the terrain is not at page scale\n    at check (eval at evaluate (:311:30), <anonymous>:6:43)\n    at eval (eval at evaluate (:311:30), <anonymous>:60:5)\n    at async <anonymous>:337:30"
+      }
+    },
+    {
+      "target": "door",
+      "version": "after",
+      "theme": "light",
+      "width": 1600,
+      "suite": {
+        "passed": false,
+        "message": "page.evaluate: Error: the terrain is not at page scale\n    at check (eval at evaluate (:311:30), <anonymous>:6:43)\n    at eval (eval at evaluate (:311:30), <anonymous>:60:5)\n    at async <anonymous>:337:30"
+      }
+    }
+  ],
+  "initialEntryCaptures": [
+    {
+      "file": "door-initial--375--dark.png",
+      "kind": "door-initial",
+      "width": 375,
+      "height": 667,
+      "theme": "dark",
+      "scope": "Fresh initial email entry; no prior browser-suite mutations",
+      "sha256": "d3d94c34d5419e053a6f890d645ef49e7583967103aa6b9ce1c14f647a74144b"
+    },
+    {
+      "file": "door-initial--375--light.png",
+      "kind": "door-initial",
+      "width": 375,
+      "height": 667,
+      "theme": "light",
+      "scope": "Fresh initial email entry; no prior browser-suite mutations",
+      "sha256": "93ed82d1aa1923d40625f23f11928786a198467e144c345474184229a993e27c"
+    },
+    {
+      "file": "door-initial--402--dark.png",
+      "kind": "door-initial",
+      "width": 402,
+      "height": 874,
+      "theme": "dark",
+      "scope": "Fresh initial email entry; no prior browser-suite mutations",
+      "sha256": "c1450c95f15e9d4ac7c3693b973c71abbaeecec6268820319731d4ea7e13aa31"
+    },
+    {
+      "file": "door-initial--402--light.png",
+      "kind": "door-initial",
+      "width": 402,
+      "height": 874,
+      "theme": "light",
+      "scope": "Fresh initial email entry; no prior browser-suite mutations",
+      "sha256": "e9b0e10edcc48bc127746ebe00587d5f77f0e0e0789ddaafe1ae953307be0634"
+    },
+    {
+      "file": "door-initial--1280--dark.png",
+      "kind": "door-initial",
+      "width": 1280,
+      "height": 1000,
+      "theme": "dark",
+      "scope": "Fresh initial email entry; no prior browser-suite mutations",
+      "sha256": "b31a2599f623e9fbbe5fb7e221e9c87e358650639b13e065d00067d290ffb955"
+    },
+    {
+      "file": "door-initial--1280--light.png",
+      "kind": "door-initial",
+      "width": 1280,
+      "height": 1000,
+      "theme": "light",
+      "scope": "Fresh initial email entry; no prior browser-suite mutations",
+      "sha256": "a683e5fa6f3946477361df6cfaae342d10f63ed5a82256a3923e205f2d3496ca"
+    },
+    {
+      "file": "door-initial--1600--dark.png",
+      "kind": "door-initial",
+      "width": 1600,
+      "height": 1000,
+      "theme": "dark",
+      "scope": "Fresh initial email entry; no prior browser-suite mutations",
+      "sha256": "cfb6cfda0ee09eaa79492590f195c22efb1e618eff100e8d3766f88c4c080faf"
+    },
+    {
+      "file": "door-initial--1600--light.png",
+      "kind": "door-initial",
+      "width": 1600,
+      "height": 1000,
+      "theme": "light",
+      "scope": "Fresh initial email entry; no prior browser-suite mutations",
+      "sha256": "f8614e19a092917d437ee546b9246c19f18461f2637cccb43841ea865d124a70"
+    }
+  ]
+}

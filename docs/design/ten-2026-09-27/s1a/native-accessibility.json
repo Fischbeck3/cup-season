@@ -1,0 +1,219 @@
+{
+  "baseline": [
+    {
+      "after": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "large",
+      "theme": "dark",
+      "visibleEmailLabel": true,
+      "evidence": "/Users/fischbeck3/cup-season-ten-gallery/native-approved-verification/observed-17pro-large/6C67C9B6-C385-447E-BF84-2213132B8CE5.json",
+      "phone": "17pro"
+    },
+    {
+      "after": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "AX3",
+      "theme": "dark",
+      "visibleEmailLabel": true,
+      "evidence": "/Users/fischbeck3/cup-season-ten-gallery/native-approved-verification/observed-17pro-AX3/C93772C7-9D21-48F1-BDD9-050EC5337D6D.json",
+      "phone": "17pro"
+    },
+    {
+      "after": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "AX3",
+      "theme": "light",
+      "visibleEmailLabel": true,
+      "evidence": "/Users/fischbeck3/cup-season-ten-gallery/native-approved-verification/observed-17pro-AX3/5145F1BE-2093-4555-87CC-D8AEB3122AF9.json",
+      "phone": "17pro"
+    },
+    {
+      "after": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "AX3",
+      "theme": "dark",
+      "visibleEmailLabel": true,
+      "evidence": "/Users/fischbeck3/cup-season-ten-gallery/native-approved-verification/observed-se3-AX3/771DC5EA-8D44-4241-8917-CE992FA5055E.json",
+      "phone": "se3"
+    },
+    {
+      "after": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "AX3",
+      "theme": "light",
+      "visibleEmailLabel": true,
+      "evidence": "/Users/fischbeck3/cup-season-ten-gallery/native-approved-verification/observed-se3-AX3/2BE09FFE-9F66-42FB-B46C-1C9D6F24F7A6.json",
+      "phone": "se3"
+    }
+  ],
+  "after": [
+    {
+      "after": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "large",
+      "theme": "light",
+      "visibleEmailLabel": true,
+      "phone": "se3"
+    },
+    {
+      "after": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "large",
+      "theme": "dark",
+      "visibleEmailLabel": true,
+      "phone": "se3"
+    },
+    {
+      "after": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "AX3",
+      "theme": "light",
+      "visibleEmailLabel": true,
+      "phone": "se3"
+    },
+    {
+      "after": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "AX3",
+      "theme": "dark",
+      "visibleEmailLabel": true,
+      "phone": "se3"
+    },
+    {
+      "after": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "large",
+      "theme": "light",
+      "visibleEmailLabel": true,
+      "phone": "17pro"
+    },
+    {
+      "after": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "large",
+      "theme": "dark",
+      "visibleEmailLabel": true,
+      "phone": "17pro"
+    },
+    {
+      "after": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "AX3",
+      "theme": "light",
+      "visibleEmailLabel": true,
+      "phone": "17pro"
+    },
+    {
+      "after": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "fixture@example.com"
+      },
+      "before": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "value": "you@example.com"
+      },
+      "size": "AX3",
+      "theme": "dark",
+      "visibleEmailLabel": true,
+      "phone": "17pro"
+    }
+  ]
+}

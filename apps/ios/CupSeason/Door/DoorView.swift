@@ -227,6 +227,7 @@ struct DoorView: View {
     VStack(alignment: .leading, spacing: 10) {
       Text("Email").csType(.agate, caps: true).foregroundStyle(cs.mut)
       CSField("you@example.com", text: $vm.email)
+        .accessibilityLabel("Email")
         .keyboardType(.emailAddress)
         .textContentType(.emailAddress)
         .textInputAutocapitalization(.never)

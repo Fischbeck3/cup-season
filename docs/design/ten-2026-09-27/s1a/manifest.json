@@ -1,0 +1,93 @@
+{
+  "slice": "S1a",
+  "sourceBaseline": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "sourceHashes": {
+    "index.html": {
+      "before": "89ab6377912701644e6bba29aace5bc9f71577b2b960037e699fd7c4a7997b58",
+      "after": "32f458977a5aa5fab74346433c605c3e923204cdfb5ee0664139d66604be7c30"
+    },
+    "apps/ios/CupSeason/Door/DoorView.swift": {
+      "before": "663c67de1f4d70fcd890051e69a7c952b0d1410e8a81518d342027b1681a07e3",
+      "after": "b11b905d9e2a92d58c7a838d85c8f090a2a2ae87d4e2674f3ac7dac6719a85e7"
+    }
+  },
+  "privacy": "Only synthetic/empty fixture captures; no real accounts or entered addresses in images.",
+  "captures": [
+    {
+      "file": "web-before-375-dark.png",
+      "sha256": "18399dc7ba1b9ac2857ad4d5e2a544219ef6e45c3c8ceae3da4d6edc9dcd7ea8",
+      "client": "web",
+      "stage": "before",
+      "width": 375,
+      "theme": "dark",
+      "state": "fresh initial email entry; empty; no authentication sent"
+    },
+    {
+      "file": "web-after-375-dark.png",
+      "sha256": "d3d94c34d5419e053a6f890d645ef49e7583967103aa6b9ce1c14f647a74144b",
+      "client": "web",
+      "stage": "after",
+      "width": 375,
+      "theme": "dark",
+      "state": "fresh initial email entry; empty; no authentication sent"
+    },
+    {
+      "file": "web-before-1600-light.png",
+      "sha256": "d34b2ae04ea364f222dbf79e031860283970f0880d1ff94018fef4aa17aa45a5",
+      "client": "web",
+      "stage": "before",
+      "width": 1600,
+      "theme": "light",
+      "state": "fresh initial email entry; empty; no authentication sent"
+    },
+    {
+      "file": "web-after-1600-light.png",
+      "sha256": "f8614e19a092917d437ee546b9246c19f18461f2637cccb43841ea865d124a70",
+      "client": "web",
+      "stage": "after",
+      "width": 1600,
+      "theme": "light",
+      "state": "fresh initial email entry; empty; no authentication sent"
+    },
+    {
+      "file": "ios-before-se3-dark-AX3.png",
+      "sha256": "c036afe41925ae76966f54eb82d2b95e2bc9148827152ab74ab62c9d37e21a05",
+      "client": "ios",
+      "stage": "before",
+      "phone": "se3",
+      "theme": "dark",
+      "textSize": "AX3",
+      "state": "empty email; keyboard visible; synthetic invitation; 9:41"
+    },
+    {
+      "file": "ios-after-se3-dark-AX3.png",
+      "sha256": "c036afe41925ae76966f54eb82d2b95e2bc9148827152ab74ab62c9d37e21a05",
+      "client": "ios",
+      "stage": "after",
+      "phone": "se3",
+      "theme": "dark",
+      "textSize": "AX3",
+      "state": "empty email; keyboard visible; synthetic invitation; 9:41"
+    },
+    {
+      "file": "ios-before-17pro-light-large.png",
+      "sha256": "2ab590d4b66422bb84d3b1ab3ecc03fbba25d001ad888e4149a7f4ff7622dcc4",
+      "client": "ios",
+      "stage": "before",
+      "phone": "17pro",
+      "theme": "light",
+      "textSize": "large",
+      "state": "empty email; keyboard visible; synthetic invitation; 9:41"
+    },
+    {
+      "file": "ios-after-17pro-light-large.png",
+      "sha256": "2ab590d4b66422bb84d3b1ab3ecc03fbba25d001ad888e4149a7f4ff7622dcc4",
+      "client": "ios",
+      "stage": "after",
+      "phone": "17pro",
+      "theme": "light",
+      "textSize": "large",
+      "state": "empty email; keyboard visible; synthetic invitation; 9:41"
+    }
+  ]
+}

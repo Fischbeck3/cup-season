@@ -3065,6 +3065,9 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
 .onboard #obDoor .btn.quiet:hover{background:var(--bg1);}
 .joinbox{display:none; gap:8px; margin-top:9px;}
 .joinbox.open{display:flex;}
+/* The email label stays above its field and action at every width. */
+#emailbox.open{display:grid; grid-template-columns:minmax(0,1fr) auto;}
+#emailbox label.f{grid-column:1 / -1; margin:0; color:var(--mut);}
 .joinbox input{
   /* min-width:0 · a flex item's default minimum is its placeholder's width, and
      "LEAGUE CODE" in tracked mono pushed the Join button past a 320 viewport */
@@ -4392,6 +4395,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     <div id="obDoor">
     <button class="btn" id="obEmail">Continue with email</button>
     <div class="joinbox" id="emailbox">
+      <label class="f" for="obEmailIn">Email</label>
       <input id="obEmailIn" class="email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email">
       <button class="btn" id="obEmailGo">Go</button>
     </div>
