@@ -160,8 +160,9 @@ final class SyntheticBackend: @unchecked Sendable {
     let r = SynthRequest(request, body)
     let key = r.label
 
-    // 1 · no signal
-    if world.scenario == .offline {
+    // 1 · no signal. The one exemption is the course books the boot seeds
+    // (`SyntheticBoot`): books a phone kept on an earlier, connected day.
+    if world.scenario == .offline, key != "rpc/my_course_books" {
       let back = reconnectAfter.map { Date().timeIntervalSince(booted) >= $0 } ?? false
       if !back {
         SyntheticSeam.log("OFFLINE \(key)")

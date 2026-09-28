@@ -29,6 +29,17 @@ extension SyntheticWorld {
     case "join_covenant_for_invite", "join_covenant_info": return SynthOut.json(covenant())
     case "respond_invite": return SynthOut.void
     case "my_actionable_count", "mark_actionable_seen": return SynthOut.json(hasSeasons ? 1 : 0)
+    // The signed-out door and the two links a recipient can tap.
+    case "door_flags": return SynthOut.json(["apple_sign_in": false])
+    case "league_by_code":
+      return SynthOut.json(r.string("p_code") == Self.inviteCode ? Self.inviteLeagueName as Any : NSNull() as Any)
+    case "guest_live_state":
+      return SynthOut.json(["round": ["status": "final", "course_label": courses[0].name]])
+    case "claim_round_info":
+      guard r.string("p_token")?.lowercased() == Self.claimToken.uuidString.lowercased() else { return SynthOut.json(NSNull()) }
+      return SynthOut.json(["guest_name": "Quinn", "gross": 88, "course_label": "\(courses[0].name) · White", "played_on": day(-2),
+                            "claimed": false, "host": person(2).name, "holes_played": 18])
+    case "scan_claim_info": return SynthOut.json(NSNull())
     default: return nil
     }
   }
@@ -47,12 +58,31 @@ extension SyntheticWorld {
         let ids = Set(r.filterList("round_id").map { $0.lowercased() })
         return SynthOut.rows(feedRounds.filter { ids.contains($0.ids) }.map(roundPost), r)
       }
-      if r.query["league_id"] != nil { return SynthOut.rows(leaguePosts(Set(r.filterList("league_id").map { $0.lowercased() })), r) }
+      if r.query["league_id"] != nil {
+        // Home asks without chat and round posts (`kind=neq.…`); the board asks for all of them.
+        let excluded = Set((r.query["kind"] ?? []).filter { $0.hasPrefix("neq.") }.map { String($0.dropFirst(4)) })
+        let rows = leaguePosts(Set(r.filterList("league_id").map { $0.lowercased() }))
+          .filter { !excluded.contains(($0["kind"] as? String) ?? "") }
+          .sorted { ($0["created_at"] as? String ?? "") > ($1["created_at"] as? String ?? "") }
+        return SynthOut.rows(rows, r)
+      }
       if r.query["profile_id"] != nil { return SynthOut.rows(personPosts(), r) }
       return SynthOut.rows([], r)
     case "post_kudos":
       let ids = Set(r.filterList("post_id").map { $0.lowercased() })
       return SynthOut.rows(kudos().filter { ids.contains(($0["post_id"] as? String) ?? "") }, r)
+    case "post_comments" where (r.query["select"]?.first ?? "").hasPrefix("id,post_id"):
+      // The board's comments: two on the week's opening post.
+      let ids = Set(r.filterList("post_id").map { $0.lowercased() })
+      let rows: [[String: Any]] = leagues.flatMap { l -> [[String: Any]] in
+        let post = fids(21_000 + l.n)
+        guard ids.contains(post) else { return [] }
+        return [["id": fids(22_000 + l.n), "post_id": post, "member_id": l.memberIds(3), "body": "Two weeks to catch him.",
+                 "created_at": stamp(-1, 8, 30)],
+                ["id": fids(22_100 + l.n), "post_id": post, "member_id": l.memberIds(pro(l)), "body": "Post them and see.",
+                 "created_at": stamp(-1, 9, 5)]]
+      }
+      return SynthOut.rows(rows, r)
     case "post_comments" where (r.query["select"]?.first ?? "").hasPrefix("post_id,member_id"):
       let ids = Set(r.filterList("post_id").map { $0.lowercased() })
       let mine = myRounds.filter { ids.contains(postId(for: $0)) }
@@ -184,7 +214,18 @@ extension SyntheticWorld {
 
   func leaguePosts(_ ids: Set<String>) -> [[String: Any]] {
     leagues.filter { ids.contains($0.ids) }.flatMap { l -> [[String: Any]] in
-      [
+      let roundPosts: [[String: Any]] = feedRounds.filter { l.memberOrder.contains($0.owner.n) }.prefix(4).map { x in
+        ["id": postId(for: x), "league_id": l.ids, "kind": "round", "member_id": l.memberIds(x.owner.n),
+         "body": "\(x.owner.name) posted \(x.gross) at \(x.course.name).", "created_at": stamp(x.day, 17, 41),
+         "live_round_id": NSNull(), "round_id": x.ids, "scheduled_round_id": NSNull(), "profile_id": NSNull()]
+      }
+      let chat: [[String: Any]] = [
+        ["id": fids(21_200 + l.n), "league_id": l.ids, "kind": "chat", "member_id": l.memberIds(4), "body": "Who is in for the early tee on Saturday?",
+         "created_at": stamp(-1, 12, 10), "live_round_id": NSNull(), "round_id": NSNull(), "scheduled_round_id": NSNull(), "profile_id": NSNull()],
+        ["id": fids(21_300 + l.n), "league_id": l.ids, "kind": "chat", "member_id": l.memberIds(me.n), "body": "In. Blue tees this time.",
+         "created_at": stamp(-1, 12, 24), "live_round_id": NSNull(), "round_id": NSNull(), "scheduled_round_id": NSNull(), "profile_id": NSNull()],
+      ]
+      return roundPosts + chat + [
         ["id": fids(21_000 + l.n), "league_id": l.ids, "kind": "system", "member_id": NSNull(),
          "body": "Week \(l.week) opened. \(person(l.members[0]).first) leads by \(Int(l.points[0] - l.points[1])).",
          "created_at": stamp(-1, 6), "live_round_id": NSNull(), "round_id": NSNull(), "scheduled_round_id": NSNull(), "profile_id": NSNull()],

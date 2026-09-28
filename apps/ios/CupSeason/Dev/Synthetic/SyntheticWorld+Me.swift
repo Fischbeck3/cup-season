@@ -95,14 +95,16 @@ extension SyntheticWorld {
   }
 
   func profileJSON() -> [String: Any] {
-    let card = scenario != .cardGate
+    let card = cardDone
     let mine = myRounds
     let last = mine.first
     return [
       "id": me.ids,
-      "display_name": card ? me.name : "avery.fixture",
-      "handle": card ? me.handle : NSNull(),
-      "marker": card ? me.marker : NSNull(),
+      // Until the card is made, the signup trigger's own guess (D325): the
+      // email's local part, which the gate knows not to pre-fill.
+      "display_name": card ? state.get("name", me.name) : "fixture_avery",
+      "handle": card ? state.get("handle", me.handle) : NSNull(),
+      "marker": card ? state.get("marker", me.marker) : NSNull(),
       "city": card ? me.city : NSNull(),
       "home_course": card ? courses[0].name : NSNull(),
       "index_current": hasRounds ? me.index : NSNull(),

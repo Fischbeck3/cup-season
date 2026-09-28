@@ -159,7 +159,7 @@ public final class SyntheticTransport: URLProtocol {
     let body = Self.body(of: request)
     guard let responder = SyntheticSeam.responder else {
       SyntheticSeam.log("MISS no-responder \(request.httpMethod ?? "GET") \(request.url?.absoluteString ?? "-")")
-      client?.urlProtocol(self, didFailWithError: URLError(.cannotConnectToHost))
+      client?.urlProtocol(self, didFailWithError: Self.error(.cannotConnectToHost, request.url))
       return
     }
     let reply = responder(request, body)
@@ -177,13 +177,13 @@ public final class SyntheticTransport: URLProtocol {
   private func deliver(_ reply: SyntheticReply, for request: URLRequest) {
     guard !cancelled.get() else { return }
     if let code = reply.error {
-      client?.urlProtocol(self, didFailWithError: URLError(code))
+      client?.urlProtocol(self, didFailWithError: Self.error(code, request.url))
       return
     }
     guard let url = request.url,
           let response = HTTPURLResponse(url: url, statusCode: reply.status, httpVersion: "HTTP/1.1", headerFields: reply.headers)
     else {
-      client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
+      client?.urlProtocol(self, didFailWithError: Self.error(.badServerResponse, request.url))
       return
     }
     client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
@@ -192,6 +192,23 @@ public final class SyntheticTransport: URLProtocol {
   }
 
   public override func stopLoading() { cancelled.set(true) }
+
+  /// A transport error dressed the way the system's own loader dresses one:
+  /// with its localized sentence and the failing URL. A bare `URLError(code)`
+  /// describes itself with the task's random identifiers instead, and copy
+  /// that matches words in an error's description would read noise.
+  static func error(_ code: URLError.Code, _ url: URL?) -> URLError {
+    let sentence: String
+    switch code {
+    case .notConnectedToInternet: sentence = "The Internet connection appears to be offline."
+    case .timedOut: sentence = "The request timed out."
+    case .cannotConnectToHost: sentence = "Could not connect to the server."
+    default: sentence = "The network connection was lost."
+    }
+    var info: [String: Any] = [NSLocalizedDescriptionKey: sentence]
+    if let url { info[NSURLErrorFailingURLErrorKey] = url; info[NSURLErrorFailingURLStringErrorKey] = url.absoluteString }
+    return URLError(code, userInfo: info)
+  }
 
   /// URLSession hands a protocol its body as a STREAM, never `httpBody`.
   private static func body(of request: URLRequest) -> Data? {

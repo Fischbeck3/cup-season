@@ -53,6 +53,16 @@ enum SyntheticBoot {
   private static func seedDevice(_ world: SyntheticWorld) {
     let d = UserDefaults.standard
     if route != "crew" && route != "crewstep" { d.set(true, forKey: CSConfig.crewKey) }
+    if world.scenario == .offline {
+      // What an earlier connected launch would have left on this phone: the
+      // golfer for the offline scorecard, and the course books.
+      OfflineGolfer(id: world.me.id, name: world.me.name, index: world.me.index, marker: world.me.marker).keep()
+      let owner = world.me.id
+      Task.detached(priority: .utility) {
+        await CourseBookStore().claim(owner)
+        _ = await CourseBookStore().refresh()
+      }
+    }
     switch route {
     case "invite", "join":
       // A tapped /?join= link, stored exactly as `onOpenURL` stores one.
