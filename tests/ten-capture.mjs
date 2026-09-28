@@ -80,7 +80,8 @@ const SHORT = { width: 375, height: 380 }
 const require = createRequire(import.meta.url)
 const { chromium } = require(PW)
 
-const selected = STATES.filter((s) => (!ONLY.length || ONLY.includes(s.family)) && (!ONLY_STATES.length || ONLY_STATES.includes(s.id) || ONLY_STATES.includes(`${s.family}/${s.id}`)))
+/* `probe: true` states are defect probes, not gallery states: they run only when their family is named in --only */
+const selected = STATES.filter((s) => (!ONLY.length ? !s.probe : ONLY.includes(s.family)) && (!ONLY_STATES.length || ONLY_STATES.includes(s.id) || ONLY_STATES.includes(`${s.family}/${s.id}`)))
 if (flag('list')) {
   for (const s of STATES) console.log(`${s.family.padEnd(14)} ${s.id.padEnd(34)} ${s.variant || ''}${s.short ? ' +short' : ''}${s.desk ? ' desk-only' : ''}`)
   process.exit(0)

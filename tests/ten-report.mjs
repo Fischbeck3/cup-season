@@ -12,6 +12,7 @@
  *   3. fixture gaps: every Supabase request the world did not answer. */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
+import { execFileSync } from 'node:child_process'
 
 const args = process.argv.slice(2)
 const arg = (k, d = null) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d }
@@ -19,7 +20,12 @@ const manPath = resolve(arg('manifest', 'manifest.json'))
 const man = JSON.parse(readFileSync(manPath, 'utf8'))
 const root = resolve(arg('root', man.root || '.'))
 let src = []
-try { src = readFileSync(join(root, 'index.html'), 'utf8').split('\n') } catch { /* no source */ }
+/* the source lines come from the exact commit the run served when it was a
+   snapshot (--ref), else from the working tree the run read */
+try {
+  if (man.ref && man.gitSha) src = execFileSync('git', ['-C', root, 'show', `${man.gitSha}:index.html`], { encoding: 'utf8', maxBuffer: 64 << 20 }).split('\n')
+  else src = readFileSync(join(root, 'index.html'), 'utf8').split('\n')
+} catch { /* no source */ }
 
 const norm = (t) => String(t || '')
   .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z/g, '<ts>')

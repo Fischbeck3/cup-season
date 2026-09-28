@@ -332,7 +332,10 @@ export function worldApi(W) {
       const v = await h(args || {}, W)
       return v === undefined ? GAP : { __value: v }
     },
-    async table(name) {
+    async table(name, { params } = {}) {
+      /* a failure scoped to one query shape: { table, match(queryString) => bool, error } */
+      const qs = new URLSearchParams(params || []).toString()
+      for (const w of (W.errors.when || [])) if (w.table === name && (!w.match || w.match(decodeURIComponent(qs)))) return w.error
       if (W.errors.table && W.errors.table[name]) return W.errors.table[name]
       const rows = W.tables[name]
       if (!rows) return GAP
