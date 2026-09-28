@@ -298,7 +298,12 @@ export function worldApi(W) {
     async auth(what, { method, body }) {
       if (W.errors.auth && W.errors.auth[what.split('?')[0]]) return W.errors.auth[what.split('?')[0]]
       if (what.startsWith('user')) return session ? { body: session.user } : { status: 401, body: { code: 401, msg: 'no session' } }
-      if (what.startsWith('token')) return session ? { body: session } : { status: 400, body: { error: 'invalid_grant', error_description: 'fixture: no session' } }
+      if (what.startsWith('token')) {
+        if (!session) return { status: 400, body: { error: 'invalid_grant', error_description: 'fixture: no session' } }
+        /* a refresh answers with a fresh year-long session for the same user */
+        const fresh = sessionFor({ ...W, V: { ...W.V, sessionTtl: 86400 * 365 } })
+        return { body: fresh }
+      }
       if (what.startsWith('otp')) return { body: {} }
       if (what.startsWith('verify')) return { status: 403, body: { code: 403, error_code: 'otp_expired', msg: 'Token has expired or is invalid' } }
       if (what.startsWith('logout')) return { status: 204, raw: { status: 204, body: '' } }
@@ -356,11 +361,14 @@ function b64url(o) { return Buffer.from(JSON.stringify(o)).toString('base64url')
 export function sessionFor(W) {
   if (!W.V.session) return null
   const p = PEOPLE[0]
-  const exp = Math.floor(Date.parse(CAPTURE_NOW) / 1000) + 86400 * 365
+  /* `sessionTtl` (seconds) lets a probe hand the client a session that is
+     about to expire, so the refresh path runs against the world */
+  const ttl = W.V.sessionTtl != null ? W.V.sessionTtl : 86400 * 365
+  const exp = Math.floor(Date.parse(CAPTURE_NOW) / 1000) + ttl
   const token = b64url({ alg: 'HS256', typ: 'JWT' }) + '.' + b64url({ sub: uid(1), role: 'authenticated', aud: 'authenticated', exp, iat: exp - 86400 * 365, email: p.email, session_id: 'fixture-session' }) + '.fixture-signature-not-valid'
   const user = { id: uid(1), aud: 'authenticated', role: 'authenticated', email: p.email, email_confirmed_at: '2026-03-01T19:00:00Z',
     app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: {}, created_at: '2026-03-01T19:00:00Z', updated_at: '2026-09-01T19:00:00Z' }
-  return { access_token: token, token_type: 'bearer', expires_in: 86400 * 365, expires_at: exp, refresh_token: 'fixture-refresh-token', user }
+  return { access_token: token, token_type: 'bearer', expires_in: ttl, expires_at: exp, refresh_token: 'fixture-refresh-token', user }
 }
 
 /* a quiet, obviously-synthetic "photograph": a course-green gradient with

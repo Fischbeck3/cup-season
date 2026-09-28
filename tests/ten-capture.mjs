@@ -159,6 +159,15 @@ async function captureOne(browser, state, vp, theme, cdn) {
       for (const [k, v] of Object.entries(ls || {})) localStorage.setItem(k, v)
     } catch (_) {}
   }, { theme, session, ls: state.localStorage || {} })
+  /* instrumentation only: count navigator.locks.request calls (the
+     origin-wide lock CLAUDE.md warns about); calls pass straight through */
+  await context.addInitScript(() => {
+    try {
+      const L = navigator.locks
+      window.__tenLocks = 0
+      if (L && L.request) { const orig = L.request.bind(L); L.request = function (...a) { window.__tenLocks++; return orig(...a) } }
+    } catch (_) {}
+  })
   const page = await context.newPage()
   const cdp = await context.newCDPSession(page)
   await cdp.send('Runtime.enable')
@@ -190,6 +199,7 @@ async function captureOne(browser, state, vp, theme, cdn) {
     await page.waitForTimeout(state.pause || 250)
     result.assert = await assertRoute(page, state)
     result.geometry = await page.evaluate(() => ({ overflowX: Math.max(0, document.documentElement.scrollWidth - innerWidth), docH: document.documentElement.scrollHeight })).catch(() => null)
+    result.locks = await page.evaluate(() => window.__tenLocks).catch(() => null)
   } catch (e) {
     result.assert = { ok: false, detail: 'driver: ' + String(e.message || e).split('\n')[0] }
   }
@@ -298,7 +308,8 @@ async function main() {
       route: { ok: cap.result.assert.ok, detail: cap.result.assert.detail, activeView: cap.result.assert.facts ? cap.result.assert.facts.view : null, door: cap.result.assert.facts ? cap.result.assert.facts.obShown : null },
       console: summary, messages: msgs, pageErrors: cap.exceptions, fixtureGaps: cap.gaps, blockedRequests: cap.blocked,
       requestStorm: cap.storm.hit, supabaseRequests: cap.log.filter((e) => e.path || e.ws).length,
-      geometry: cap.result.geometry, swClear: cap.result.swClear || null,
+      geometry: cap.result.geometry, swClear: cap.result.swClear || null, navigatorLocksRequests: cap.result.locks,
+      authRequests: cap.log.filter((e) => (e.path || '').startsWith('/auth/v1/')).map((e) => `${e.method} ${e.path}${(e.query || '').slice(0, 40)} -> ${e.result}`),
       gitSha, indexDirty: gitDirty, indexSha256Served: cap.served['/'] || cap.served['/index.html'] || null, indexSha256Disk: diskIndexSha,
       capturedAt: new Date().toISOString(), ms: cap.ms,
     }

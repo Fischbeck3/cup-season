@@ -20,4 +20,10 @@ export default [
     prepare: async (W) => { W.errors.when = [{ table: 'league_members', match: (q) => /league_id=eq\./.test(q), error: [] }] },
     drive: async (page) => { await page.evaluate(() => window.switchView('play')); await page.waitForTimeout(3000) },
     expect: { view: 'view-play' } },
+  /* PROBE 3 · auth refresh on boot. The session in storage expires in 5 s,
+     so auth-js refreshes it against the world during the boot. With or
+     without the client's `lock` option the boot must still reach Home; the
+     manifest records authRequests and navigatorLocksRequests. */
+  { family: 'probe', id: 'auth-refresh-on-boot', variant: 'member', probe: true, world: { sessionTtl: 5 },
+    expect: { view: 'view-home' } },
 ]
