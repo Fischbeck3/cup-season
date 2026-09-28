@@ -673,7 +673,10 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 }
 .cs-topohead .t-sur{stroke-width:1.2; opacity:.08;}
 .cs-topohead .t-edge{stroke-width:1.2; opacity:.16;}
-@media(max-width:460px){ .cs-topohead{width:min(52%, 180px); right:-18px;} }
+/* I06 · on the phone the terrain bleeds exactly to the screen's edge — the
+   .wrap gutter is 16px, and at -18px it ran 2px past a 320–402px viewport and
+   made every page head scroll sideways */
+@media(max-width:460px){ .cs-topohead{width:min(52%, 180px); right:-16px;} }
 /* L-32 · the empty root, one shape for both destinations */
 .cmphead{display:flex; align-items:baseline; gap:14px; margin:0 0 6px;}
 /* WAVE 11 / D280 - a page names itself in the DISPLAY role, not the serif.
