@@ -3451,7 +3451,11 @@ body:not(.noleague) #hubLeagueless{display:none;}
 #homeLead:not(:empty){margin:0 0 14px;}
 /* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
 .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
-.calhd{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--mut); text-align:center; padding:2px 0 6px;}
+/* F15 · on a phone the grid reaches into its card's padding so every day is a
+   44px target (at 375 it computed 43); the legend and the card keep theirs */
+@media (max-width:480px){ .calgrid{margin:0 calc(-1 * var(--s2));} }
+button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); font-size:12.5px; color:var(--mut);}
+.calhd{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--mut); text-align:center; padding:2px 0 6px;}
 .calcell{position:relative; aspect-ratio:1; border-radius:8px; background:var(--bg2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:var(--mono); font-size:12.5px; color:var(--mut); border:1px solid transparent; cursor:default;}
 .calcell.blank{background:none;}
 .calcell.today{border-color:var(--pos); color:var(--ink);}
@@ -24019,7 +24023,14 @@ function renderCalendar(){
     const tappable = items.length || (canPlan && !isPast);
     const dots=items.slice(0,3).map(it=>
       `<i class="caldot ${it.kind==='rd' ? (it.sr && (it.sr.tagged_me || (it.sr.shared_league && !it.sr.mine)) ? 'lgm' : 'rd') : 'lg'}" style="margin:0"></i>`).join('');
-    html+=`<div class="calcell${isToday?' today':''}${items.length?' has':''}${tappable?' tap':''}${canPlan&&!isPast&&!items.length?' plan':''}" data-cd="${d}">${d}<span class="caldots">${dots}</span></div>`;
+    /* F15 · a day you can act on is a BUTTON, named for its date and what it
+       holds; it was a div with a click handler, so no keyboard could reach it */
+    const cls = `calcell${isToday?' today':''}${items.length?' has':''}${tappable?' tap':''}${canPlan&&!isPast&&!items.length?' plan':''}`;
+    const dayName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
+    const said = dayName + (isToday ? ', today' : '') + (items.length ? `, ${items.length} on the schedule` : (canPlan && !isPast ? ', put a round on this day' : ''));
+    html += tappable
+      ? `<button type="button" class="${cls}" data-cd="${d}" aria-label="${esc(said)}">${d}<span class="caldots" aria-hidden="true">${dots}</span></button>`
+      : `<div class="${cls}" data-cd="${d}">${d}<span class="caldots" aria-hidden="true">${dots}</span></div>`;
   }
   grid.innerHTML=html;
   grid.querySelectorAll('.calcell.tap').forEach(c=>c.addEventListener('click',()=>{
