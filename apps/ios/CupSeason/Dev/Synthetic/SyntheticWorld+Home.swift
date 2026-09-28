@@ -36,8 +36,13 @@ extension SyntheticWorld {
   func homeTable(_ t: String, _ r: SynthRequest) -> SyntheticReply? {
     switch t {
     case "app_flags":
-      return SynthOut.rows([["key": "ios", "value": ["major": true, "min_build": 0]]], r)
+      switch r.filter("key") {
+      case "ios": return SynthOut.rows([["key": "ios", "value": ["major": true, "min_build": 0]]], r)
+      case "scan": return SynthOut.rows([["key": "scan", "value": ["enabled": false]]], r)
+      default: return SynthOut.rows([], r)     // pricing and the rest: the hidden stub
+      }
     case "posts":
+      if r.query["event_id"] != nil { return SynthOut.rows(event(r.filter("event_id")).map(eventPosts) ?? [], r) }
       if r.query["round_id"] != nil {
         let ids = Set(r.filterList("round_id").map { $0.lowercased() })
         return SynthOut.rows(feedRounds.filter { ids.contains($0.ids) }.map(roundPost), r)
@@ -205,23 +210,27 @@ extension SyntheticWorld {
   /// `league_members` by member id (applause names) or by league (rosters).
   func leagueMemberRows(_ r: SynthRequest) -> [[String: Any]] {
     let ids = Set(r.filterList("id").map { $0.lowercased() })
-    let byLeague = r.filter("league_id")?.lowercased()
+    let leagueIDs = Set(r.filterList("league_id").map { $0.lowercased() })
     let byProfile = r.filter("profile_id")?.lowercased()
     var out: [[String: Any]] = []
     for l in leagues {
-      if let byLeague, byLeague != l.ids { continue }
-      for pn in l.members {
+      if !leagueIDs.isEmpty && !leagueIDs.contains(l.ids) { continue }
+      for pn in l.memberOrder {
         let mid = l.memberIds(pn)
         let p = person(pn)
         if !ids.isEmpty && !ids.contains(mid) { continue }
         if let byProfile, byProfile != p.ids { continue }
         out.append(["id": mid, "league_id": l.ids, "profile_id": p.ids,
-                    "role": l.n == 1_002 && pn == me.n ? "commissioner" : "member",
+                    "role": pn == pro(l) ? "commissioner" : "player", "agreed_seasons": [1, 2],
+                    "suspended_at": NSNull(), "left_at": NSNull(),
                     "marker": p.marker, "display_name": p.name, "joined_at": stamp(-60, 12),
-                    "profile": ["id": p.ids, "display_name": p.name, "marker": p.marker, "handle": p.handle]])
+                    "leagues": ["name": l.name, "code": l.code],
+                    "profile": ["id": p.ids, "display_name": p.name, "marker": p.marker, "handle": p.handle,
+                                "index_current": p.index, "photo_path": NSNull()] as [String: Any]])
       }
     }
-    return out
+    let limit = Int(r.query["limit"]?.first ?? "") ?? out.count
+    return Array(out.prefix(limit))
   }
 
   // MARK: the inbox

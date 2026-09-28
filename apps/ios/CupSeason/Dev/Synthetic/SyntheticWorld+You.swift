@@ -37,16 +37,13 @@ extension SyntheticWorld {
 
   func youTable(_ t: String, _ r: SynthRequest) -> SyntheticReply? {
     switch t {
-    case "rounds":
-      let owner = r.filter("profile_id")?.lowercased()
-      let rows = rounds.filter { owner == nil || $0.owner.ids == owner }.sorted { $0.day > $1.day }
-      return SynthOut.rows(rows.map(roundRow), r)
     case "v_rounds_ranked": return SynthOut.rows(rankedRows(r), r)
     case "v_individual_standings":
       let seasons = Set(r.filterList("season_id").map { $0.lowercased() })
       return SynthOut.rows(leagues.filter { seasons.isEmpty || seasons.contains($0.seasonIds) }.flatMap { l in
-        l.members.enumerated().map { i, pn in
-          ["season_id": l.seasonIds, "member_id": l.memberIds(pn), "points": l.points[i], "rounds_posted": max(2, 9 - i)] as [String: Any]
+        l.members.enumerated().map { i, pn -> [String: Any] in
+          ["season_id": l.seasonIds, "member_id": l.memberIds(pn), "points": l.points[i],
+           "rounds_posted": entries(l)[pn, default: []].filter { $0.round != nil }.count] as [String: Any]
         }
       }, r)
     default: return nil
@@ -94,27 +91,35 @@ extension SyntheticWorld {
   // MARK: rounds and lenses
 
   func roundRow(_ x: SynthRound) -> [String: Any] {
-    ["id": x.ids, "profile_id": x.owner.ids, "gross": x.gross, "differential": x.differential,
-     "index_at_post": x.owner.n == me.n ? ((me.index + Double(-x.day) / 120) * 10).rounded() / 10 : x.owner.index,
-     "played_on": day(x.day), "course_label": x.course.name, "holes_played": x.holes,
-     "api_course_id": x.course.key, "photo_path": x.photoPath ?? NSNull()]
+    let t = x.teeData
+    return ["id": x.ids, "profile_id": x.owner.ids, "gross": x.gross, "differential": x.differential,
+            "index_at_post": x.owner.n == me.n ? ((me.index + Double(-x.day) / 120) * 10).rounded() / 10 : x.owner.index,
+            "played_on": day(x.day), "course_label": "\(x.course.name) · \(t.name)", "holes_played": x.holes,
+            "api_course_id": x.course.key, "photo_path": x.photoPath ?? NSNull(), "rating": t.rating, "slope": t.slope,
+            "voided": false]
   }
 
-  /// `v_rounds_ranked`: one row per round per season the golfer is in.
+  /// `v_rounds_ranked`: one row per round per season the golfer is in —
+  /// from the same entries the Book prints, so the two cannot disagree.
   func rankedRows(_ r: SynthRequest) -> [[String: Any]] {
     let byProfile = r.filter("profile_id")?.lowercased()
     let bySeason = r.filter("season_id")?.lowercased()
     var out: [[String: Any]] = []
     for l in leagues {
       if let bySeason, bySeason != l.seasonIds { continue }
-      let starts = seasonDates(l).starts
-      for x in rounds where x.day >= starts && l.members.contains(x.owner.n) {
-        if let byProfile, byProfile != x.owner.ids { continue }
-        let rank = 1 + (x.n % 4)
-        out.append(["member_id": l.memberIds(x.owner.n), "season_id": l.seasonIds, "round_id": x.ids,
-                    "pvi": x.pvi, "points": x.points ?? 5, "month_rank": rank, "floor_credit": x.holes == 9 ? 0.5 : 1,
-                    "played_on": day(x.day), "index_at_post": x.owner.index, "holes_played": x.holes,
-                    "profile_id": x.owner.ids])
+      for (pn, list) in entries(l) {
+        if let byProfile, byProfile != person(pn).ids { continue }
+        let rounds = list.filter { $0.round != nil }
+        let byMonth = Dictionary(grouping: rounds, by: { $0.day.map { self.monthKey($0) } ?? "" })
+        for e in rounds {
+          let peers = (byMonth[e.day.map { monthKey($0) } ?? ""] ?? []).sorted { $0.points > $1.points }
+          let rank = (peers.firstIndex { $0.id == e.id } ?? 0) + 1
+          let x = round(e.round)
+          out.append(["member_id": l.memberIds(pn), "season_id": l.seasonIds, "round_id": e.round ?? NSNull(),
+                      "pvi": x?.pvi ?? Double(e.points - 7) / 2, "points": e.points, "month_rank": rank,
+                      "floor_credit": (x?.holes ?? 18) == 9 ? 0.5 : 1, "played_on": e.day.map { day($0) } ?? day(0),
+                      "index_at_post": person(pn).index, "holes_played": x?.holes ?? 18, "profile_id": person(pn).ids])
+        }
       }
     }
     return out.sorted { ($0["played_on"] as? String ?? "") > ($1["played_on"] as? String ?? "") }

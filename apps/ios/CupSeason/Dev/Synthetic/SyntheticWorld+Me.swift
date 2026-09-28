@@ -13,11 +13,16 @@ struct SynthLeague: Sendable {
   let solo: Bool
   let finish: String           // "cup_final" | "points_table"
   let buyinCents: Int
-  let members: [Int]           // person numbers, in table order (rank 1 first)
-  let points: [Double]         // same order
+  let memberOrder: [Int]       // roster order (squads are drawn from it)
+  let targets: [Int: Int]      // season totals of the golfers the table invents
   let weeksTotal: Int
   let week: Int                // current week (1-based)
   let status: String           // "active" | "cup_final" | "complete"
+  /// Filled from the entries (`SyntheticWorld.buildLeagues`): table order,
+  /// rank 1 first, and the matching points — so the Book, the season page and
+  /// `native_home` can never disagree.
+  var members: [Int] = []
+  var points: [Double] = []
   var id: UUID { fid(n) }
   var ids: String { fids(n) }
   var seasonN: Int { n + 100 }
@@ -26,19 +31,30 @@ struct SynthLeague: Sendable {
 }
 
 extension SyntheticWorld {
-  /// The seasons in this world. Empty unless the scenario is about one.
-  var leagues: [SynthLeague] {
+  /// The seasons in this world, built once at init. Empty unless the
+  /// scenario is about one.
+  func buildLeagues() -> [SynthLeague] {
     guard hasSeasons else { return [] }
     let final = scenario == .seasonFinal, done = scenario == .ceremony
     let status = done ? "complete" : final ? "cup_final" : "active"
-    return [
+    var base = [
       SynthLeague(n: 1_001, name: "Fixture Cup League", code: "FIXCUP", solo: true, finish: "cup_final", buyinCents: 4_000,
-                  members: [2, 4, 1, 3, 9, 6, 5, 7], points: [55, 47, 41, 38, 33, 29, 22, 14],
+                  memberOrder: [2, 1, 4, 3, 9, 6, 5, 7],
+                  targets: [2: 58, 4: 47, 3: 38, 9: 33, 6: 29, 5: 22, 7: 14],
                   weeksTotal: 13, week: done ? 13 : final ? 11 : 6, status: status),
       SynthLeague(n: 1_002, name: "Placeholder Squads League", code: "FIXSQD", solo: false, finish: "points_table", buyinCents: 0,
-                  members: [6, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12], points: [31, 28, 27, 25, 22, 21, 19, 18, 16, 12, 10, 7],
+                  memberOrder: [6, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12],
+                  targets: [6: 31, 2: 27, 3: 25, 4: 22, 5: 21, 7: 19, 8: 18, 9: 16, 10: 12, 11: 10, 12: 7],
                   weeksTotal: 10, week: done ? 10 : 4, status: done ? "complete" : "active"),
     ]
+    for i in base.indices {
+      let all = entries(base[i])
+      let table = base[i].memberOrder.map { pn in (pn, all[pn, default: []].reduce(0) { $0 + $1.contribution }) }
+        .sorted { $0.1 != $1.1 ? $0.1 > $1.1 : $0.0 < $1.0 }
+      base[i].members = table.map(\.0)
+      base[i].points = table.map { Double($0.1) }
+    }
+    return base
   }
 
   func league(_ ids: String?) -> SynthLeague? { leagues.first { $0.ids == ids?.lowercased() || $0.seasonIds == ids?.lowercased() } }
@@ -54,8 +70,16 @@ extension SyntheticWorld {
     [(6_001, "Team Placeholder", 0), (6_002, "Team Stub", 1), (6_003, "Team Sample", 2)]
   }
   func squadOf(_ person: Int, in l: SynthLeague) -> Int? {
-    guard !l.solo, let i = l.members.firstIndex(of: person) else { return nil }
+    guard !l.solo, let i = l.memberOrder.firstIndex(of: person) else { return nil }
     return squadNames[i % 3].n
+  }
+  /// Squad points: the sum of the members' contributions.
+  func squadTable(_ l: SynthLeague) -> [(n: Int, name: String, color: Int, points: Double)] {
+    squadNames.map { s in
+      let pts = l.memberOrder.enumerated().filter { squadOf($0.element, in: l) == s.n }
+        .compactMap { pn in l.members.firstIndex(of: pn.element).map { l.points[$0] } }.reduce(0, +)
+      return (s.n, s.name, s.color, pts)
+    }.sorted { $0.points > $1.points }
   }
 
   // MARK: native_home
@@ -125,24 +149,29 @@ extension SyntheticWorld {
     var squad: Any = NSNull()
     if !l.solo, let sq = squadOf(me.n, in: l), let s = squadNames.first(where: { $0.n == sq }) {
       squad = ["id": fids(s.n), "name": s.name, "color": s.color]
-      standing["rank"] = 2; standing["leader_name"] = squadNames[0].name
-      standing["runner_up_name"] = s.name; standing["leader_squad_id"] = fids(squadNames[0].n)
-      standing["points"] = 104; standing["leader_points"] = 112; standing["gap_to_leader"] = 8
-      standing["gap_to_next"] = 8; standing["runner_up_points"] = 104
-      standing["next_up"] = ["name": squadNames[0].name, "points": 112]
-      standing["next_down"] = ["name": squadNames[2].name, "points": 96]
+      let t = squadTable(l)
+      let at = t.firstIndex { $0.n == s.n } ?? 0
+      standing["rank"] = at + 1; standing["of"] = t.count
+      standing["points"] = t[at].points; standing["leader_points"] = t[0].points
+      standing["leader_name"] = t[0].name; standing["leader_squad_id"] = fids(t[0].n)
+      standing["gap_to_leader"] = t[0].points - t[at].points
+      standing["gap_to_next"] = at > 0 ? t[at - 1].points - t[at].points : NSNull()
+      standing["runner_up_name"] = t[1].name; standing["runner_up_points"] = t[1].points
+      standing["next_up"] = at > 0 ? ["name": t[at - 1].name, "points": t[at - 1].points] as Any : NSNull() as Any
+      standing["next_down"] = at + 1 < t.count ? ["name": t[at + 1].name, "points": t[at + 1].points] as Any : NSNull() as Any
+      standing["points_rank"] = at + 1; standing["prev_rank"] = at + 1
     }
-    if l.status == "cup_final" {
-      standing["seed"] = rank <= 4 ? rank : NSNull()
-      standing["finalists"] = l.members.prefix(4).map { person($0).first }
+    if l.status == "cup_final" {   // the Final seats two (D138)
+      standing["seed"] = rank <= 2 ? rank as Any : NSNull() as Any
+      standing["finalists"] = l.members.prefix(2).map { person($0).first }
     }
     let stake = l.buyinCents > 0
     return [
       "league_id": l.ids, "name": l.name, "code": l.code, "phase": done ? "complete" : "season", "sandbox": false,
-      "role": l.n == 1_002 ? "commissioner" : "member", "member_id": l.memberIds(me.n), "marker": me.marker,
+      "role": pro(l) == me.n ? "commissioner" : "player", "member_id": l.memberIds(me.n), "marker": me.marker,
       "commissioner_name": l.n == 1_002 ? me.name : person(2).name,
       "settings": [
-        "structure": l.solo ? "solo" : "squads", "preset": "standard", "counting_cap": 4, "participation_floor": 2,
+        "structure": l.solo ? "solo" : "squads3", "preset": "standard", "counting_cap": 4, "participation_floor": 2,
         "floor_penalty": "minus_three", "handicap_allowance": 100, "buyin_cents": l.buyinCents,
         "payout_champ": stake ? 60 : 0, "payout_runnerup": stake ? 25 : 0, "payout_king": stake ? 15 : 0,
         "finish": l.finish, "locked_at": stamp(d.starts - 10, 19),
@@ -156,7 +185,7 @@ extension SyntheticWorld {
                          "collected_cents": (l.members.count - 2) * l.buyinCents] as [String: Any] : NSNull(),
       "roster": l.members.count, "members": l.members.count,
       "pro_name": l.n == 1_002 ? me.first : person(2).first,
-      "renewal_status": NSNull(), "in_season": !done,
+      "renewal_status": NSNull(), "in_season": true,
       "last_season": ["number": 1, "ended_on": day(d.starts - 30), "champion_name": person(6).first,
                       "champion_is_me": false, "my_rank": 3, "of": l.members.count] as [String: Any],
       "clash": NSNull(),

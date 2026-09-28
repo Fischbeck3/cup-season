@@ -56,8 +56,10 @@ struct SynthRound: Sendable {
   var pr = false
   var sub80 = false
   var first = false
-  var id: UUID { fid(n) }
-  var ids: String { fids(n) }
+  /// A Book entry's round carries the entry's own id.
+  var overrideID: String? = nil
+  var id: UUID { overrideID.flatMap(UUID.init(uuidString:)) ?? fid(n) }
+  var ids: String { overrideID ?? fids(n) }
   /// The tee the round was played from, and the differential it produced
   /// (the server's figure, written down — nothing here scores a round).
   var teeData: (name: String, rating: Double, slope: Int, yards: Int) {
@@ -96,6 +98,7 @@ final class SyntheticWorld: @unchecked Sendable {
   let people: [SynthPerson]
   let courses: [SynthCourse]
   private(set) var rounds: [SynthRound] = []
+  private(set) var leagues: [SynthLeague] = []
   /// Mutable fixture state a write can change (a comment added, a setting flipped).
   let state = SynthState()
 
@@ -134,6 +137,7 @@ final class SyntheticWorld: @unchecked Sendable {
                   tees: [("Gold", 33.8, 112, 2950)]),
     ]
     rounds = buildRounds()
+    leagues = buildLeagues()
   }
 
   func person(_ n: Int) -> SynthPerson { people.first { $0.n == n } ?? me }
@@ -206,12 +210,21 @@ final class SyntheticWorld: @unchecked Sendable {
                             points: o.0 >= -38 ? 7 : nil, counts: o.0 >= -38, pvi: Double(84 - o.1) / 2,
                             sub80: o.1 < 80, first: i == older.count - 1))
     }
-    if scenario == .solo { out = out.map { var r = $0; r.points = nil; return r } }
+    // Points follow the bands (the server's `cup_points`, written down):
+    // beat the number by 3+ is 12, by 1+ is 9, played to it is 7, within 3
+    // is 6, anything else 5. A solo golfer's rounds carry no season points.
+    out = out.map { var r = $0; r.points = scenario == .solo ? nil : (r.points == nil ? nil : Self.band(r.pvi)); return r }
     return out
   }
 
+  /// The round's season points: the Kit's own `cupPoints` (the band table
+  /// the server's `cup_points` is held to), never a second table.
+  static func band(_ pvi: Double) -> Double { Double(CSBands.cupPoints(pvi)) }
+
   var myRounds: [SynthRound] { rounds.filter { $0.owner.n == me.n } }
-  func round(id: UUID) -> SynthRound? { rounds.first { $0.id == id } }
+  func round(id: UUID) -> SynthRound? {
+    rounds.first { $0.id == id } ?? bookRound(id.uuidString.lowercased())
+  }
   func round(_ ids: String?) -> SynthRound? { ids.flatMap(UUID.init(uuidString:)).flatMap { round(id: $0) } }
 
   // MARK: the router's entry
