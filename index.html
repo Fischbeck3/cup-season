@@ -30571,6 +30571,12 @@ window.loadMyEvents = loadMyEvents;
 
 async function loadEvent(id){
   if(!CS.user) return;
+  /* S8 · the room knows which of four things it is showing: opening, a read that
+     failed (retryable), a room that is not open to this golfer (0 rows: removed,
+     or not on its roster — a retry cannot change that), or the room itself. A
+     room already on screen for this same id stays up while it refreshes. */
+  const had = window.CS_EVENT && window.CS_EVENT.event && String(window.CS_EVENT.event.id) === String(id) ? window.CS_EVENT : null;
+  if(!had){ window.CS_EVENT = { id, state:'loading' }; window.renderEvent?.(); }
   try {
     const [ev, tm, pl, ss, du, sc] = await Promise.all([
       sb.from('events').select('*').eq('id', id).single(),
@@ -30580,6 +30586,13 @@ async function loadEvent(id){
       sb.from('event_duels').select('*').eq('event_id', id),
       sb.from('v_event_scoreboard').select('team_id, points').eq('event_id', id),
     ]);
+    /* supabase-js resolves {error} and never throws on a refused read */
+    if(ev.error || !ev.data){
+      const gone = !ev.error || ev.error.code === 'PGRST116';
+      if(had && !gone){ had.refreshFailed = true; window.renderEvent?.(); return; }
+      window.CS_EVENT = { id, state: gone ? 'unavailable' : 'failed', error: ev.error || null };
+      window.renderEvent?.(); return;
+    }
     const scoreboard = {}; (sc.data||[]).forEach(r => scoreboard[r.team_id] = Number(r.points));
     /* the Major's surfaces: the live board (definer read — rounds RLS is
        owner-only) and the frozen cards once settled. Skew-safe: a missing RPC
@@ -30620,6 +30633,7 @@ async function loadEvent(id){
       evPosts = ps || [];
     }catch(_){ /* pre-migration deploy skew — board just stays empty */ }
     window.CS_EVENT = {
+      id, state:'ready',
       event: ev.data,
       teams: tm.data || [],
       players: (pl.data||[]).map(p => ({ id:p.id, profile_id:p.profile_id, team_id:p.team_id,
@@ -30640,9 +30654,15 @@ async function loadEvent(id){
        otherwise half-shout — learn them so easeCaps restores them */
     window.csLearnNames?.([...(tm.data||[]).map(t=>t.name), ev.data?.name]);
     window.renderEvent?.();
-  } catch(e){ console.warn('[event]', e); }
+  } catch(e){
+    console.warn('[event]', e);
+    if(had){ had.refreshFailed = true; window.renderEvent?.(); return; }
+    window.CS_EVENT = { id, state:'failed', error:e };
+    window.renderEvent?.();
+  }
 }
-window.openEvent = async (id) => { await loadEvent(id); switchView('event'); };
+/* the view opens at once on the room's own redacted plate, then the read fills it */
+window.openEvent = async (id) => { const go = loadEvent(id); switchView('event'); await go; };
 
 /* ---------- The Ryder: create an event + organizer actions ---------- */
 function nextSundayISO(){
