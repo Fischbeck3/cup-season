@@ -1327,6 +1327,11 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 }
 .payer.paid .tick{background:var(--pos); border-color:var(--pos); color:var(--bg0);}
 .payer:not(.paid){color:var(--mut);}
+/* F10 · a record with nothing in it says so once, at Recent rounds, with the
+   one next step; the sections about what a record HOLDS wait for it */
+#view-stats[data-record="empty"] [data-rec="some"],
+#view-stats[data-record="failed"] [data-rec="some"],
+#view-stats[data-courses-empty] [data-courses]{display:none;}
 .fine{font-size:13px; color:var(--mut); line-height:1.6; padding:10px 2px 0;}
 .fine b{color:var(--ink);}
 
@@ -4812,21 +4817,21 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              the case's top strip now; the objects sit under them. The money
              stays D39's frame — what friends settled between themselves,
              never a balance the app holds. -->
-        <div class="eyebrow">Trophies</div>
+        <div class="eyebrow" data-rec="some">Trophies</div>
         <!-- D291 · neither of these is a card any more. The record was four
              bordered tiles and the case sat inside a `.room-dusk` left over
              from the tile era — a class that re-asserts the dusk INK and no
              ground, so in the light theme the whole case was near-white type
              on paper. Both are slats on the page's own ground now (§32). -->
-        <div id="careerRecord" style="text-align:left; margin-bottom:16px"></div>
-        <div id="trophyCase" style="margin-bottom:14px"></div>
+        <div id="careerRecord" data-rec="some" style="text-align:left; margin-bottom:16px"></div>
+        <div id="trophyCase" data-rec="some" style="margin-bottom:14px"></div>
 
         <!-- "Lifetime" -> "All time": same rows, a name that states the scope
              out loud. It shares two row LABELS with "This season" below, and
              until now the only thing telling them apart was a small grey sub
              four sections away. -->
-        <div class="eyebrow">All time</div>
-        <div class="stats">
+        <div class="eyebrow" data-rec="some">All time</div>
+        <div class="stats" data-rec="some">
           <!-- Y-14 · no "All time" sub: the eyebrow above this row already
                says the scope (brand canon 3 - one fact, one place). Y-14 also
                puts these three rows in the SAME order and under the SAME names
@@ -4889,9 +4894,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              ratings and slopes and its card, side by side — which is the read
              R-C says the desk should lean into. It works with no connection
              because it is drawn from what this device kept, and it says so. -->
-        <div class="grouphead">Your courses</div>
-        <p class="fine" id="youCoursesWhat" style="padding:0 0 8px"></p>
-        <div id="youCourses" style="text-align:left"></div>
+        <div class="grouphead" data-courses>Your courses</div>
+        <p class="fine" id="youCoursesWhat" data-courses style="padding:0 0 8px"></p>
+        <div id="youCourses" data-courses style="text-align:left"></div>
 
         <!-- D177: "How it works" moved off this page into the ⚙ Card &
              settings sheet (#setGuide). It is reference material — the same
@@ -15942,6 +15947,10 @@ function renderCourseBooks(){
   const box = $('#youCourses'); if(!box) return;
   const what = $('#youCoursesWhat'); if(what) what.textContent = CS_COURSE_COPY.what;
   const books = csCourseAll();
+  /* F10 · with no rounds and nothing kept, the courses section is one more
+     statement of absence under the record's own; it waits with the record */
+  const view = $('#view-stats');
+  if(view) view.toggleAttribute('data-courses-empty', !books.length && view.dataset.record === 'empty');
   if(!books.length){
     box.innerHTML = '<p class="fine">Nothing kept yet. Post a round or put one on the schedule and its course comes with you.</p>';
     return;
@@ -21407,7 +21416,27 @@ function renderCareer(){
   const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
   const sign = v => (v>=0?'+':'') + v.toFixed(1);
   const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent, CS_FORM_KEY) : '';
-  if(!c){ ['#clR','#clBest','#clAvg','#clPlayed'].forEach(id=>set(id,'—')); const yr=$('#youRecent'); if(yr) yr.innerHTML=''; return; }
+  /* F10 · the page knows which of four things it is showing: still loading, a
+     read that failed, a record with nothing in it yet, or a record */
+  const view = $('#view-stats');
+  const holds = !!c && (c.rounds > 0 || (window.trophies||[]).length > 0 || (window.achievements||[]).length > 0);
+  const recState = state.demo ? 'some'
+    : (!c && window.careerState === 'failed') ? 'failed'
+    : !c ? 'loading'
+    : holds ? 'some' : 'empty';
+  if(view) view.dataset.record = recState;
+  if(typeof renderCourseBooks === 'function') renderCourseBooks();
+  if(!c){
+    ['#clR','#clBest','#clAvg','#clPlayed'].forEach(id=>set(id,'—'));
+    const yr=$('#youRecent');
+    if(yr) yr.innerHTML = recState === 'failed'
+      ? `<div class="tempty" role="status"><h4 class="cs-name">Your rounds didn’t load</h4>`
+        + `<p class="cs-body-s">Nothing is lost — the read failed, not the record.</p>`
+        + `<button type="button" class="mini" id="youRecentRetry" style="margin-top:10px">Try again</button></div>`
+      : '';
+    $('#youRecentRetry')?.addEventListener('click', () => { const b=$('#youRecentRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadCareer?.(); });
+    return;
+  }
   set('#clR', c.rounds);
   set('#clBest', c.best!=null ? sign(c.best) : '—');
   set('#clAvg',  c.avg !=null ? sign(c.avg)  : '—');
@@ -21456,7 +21485,8 @@ function renderCareer(){
         }).join('')
       : `<div class="tempty"><h4 class="cs-name">No rounds yet</h4>`
         + `<p class="cs-body-s">Your record fills as you play — every round, every course, forever.</p>`
-        + `<p class="cs-agate-s" style="padding-top:10px"><a href="#" data-empty-go="record" style="color:var(--mut); text-decoration:underline; text-underline-offset:3px">Post your first round</a></p></div>`;
+        /* F10 · the one next step is a real control (LINT-21: every empty state has a door) */
+        + `<button type="button" class="mini" data-empty-go="record" style="margin-top:10px">Post your first round</button></div>`;
     /* the whole row opens the receipt (photos arc 2: the sheet carries the
        photograph — no bare image tabs), and the × stays the × */
     yr.querySelectorAll('[data-rcpt-i]').forEach(b=>{
@@ -31149,7 +31179,7 @@ async function loadCareerRecord(){
 window.loadCareerRecord = loadCareerRecord;
 
 async function loadCareer(){
-  if(!CS.user){ window.career = null; if(window.renderCareer) window.renderCareer(); return; }
+  if(!CS.user){ window.career = null; window.careerState = 'none'; if(window.renderCareer) window.renderCareer(); return; }
   try{
     /* D289 · `api_course_id` joins the select — one word, and NO migration:
        `rounds` carries no column-level grants (the freeze is on `profiles`),
@@ -31219,7 +31249,13 @@ async function loadCareer(){
         pvi:  figures[r.id] ?? null,
         beat: figures[r.id]!=null ? figures[r.id] >= 1 : null })),
     };
-  }catch(e){ window.career = window.career || null; }
+    window.careerState = 'ready';
+  }catch(e){
+    /* F10 · a refused read is NOT an empty record: keep what was showing and
+       say the read failed, with the way to try again */
+    window.career = window.career || null;
+    window.careerState = window.career ? 'ready' : 'failed';
+  }
   if(window.renderCareer) window.renderCareer();
   /* WA3 · the card is refreshed whenever the count lands, not only while the
      index is still building. The establishing meter ("2 of 3") was the only
