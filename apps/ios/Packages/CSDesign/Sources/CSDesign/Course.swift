@@ -642,7 +642,7 @@ public struct CSFactsLine: View {
         if i > 0 {
           Text("·").csType(.agateS).foregroundStyle(cs.mut.opacity(CSTokens.Alpha.a56))
         }
-        HStack(alignment: .firstTextBaseline, spacing: 3) {
+        HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s1) {
           Text(f.value).csType(.figureS).foregroundStyle(cs.ink)
           Text(f.unit).csType(.agateS, caps: true).foregroundStyle(cs.mut)
         }

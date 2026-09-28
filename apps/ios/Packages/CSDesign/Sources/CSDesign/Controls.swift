@@ -192,7 +192,7 @@ public struct CSTertiaryStyle: ButtonStyle {
 
   @ViewBuilder
   private func block(_ configuration: Configuration, pressed: Bool, hugs: Bool) -> some View {
-    VStack(alignment: .leading, spacing: 3) {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
       configuration.label.csType(.nameS).lineLimit(hugs ? 1 : nil)
       Rectangle().fill(rule(pressed)).frame(height: placement.weight)
     }
@@ -593,7 +593,7 @@ public struct CSDoorRow: View {
   private var line: some View {
     A11yStack(rowAlignment: .firstTextBaseline,
               spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
-      VStack(alignment: .leading, spacing: 3) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
         Text(verb).csType(.nameS).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
         // a lit choice is an ordinary selection, not a competition signal

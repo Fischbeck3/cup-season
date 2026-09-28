@@ -126,7 +126,7 @@ struct ScheduleScreen: View {
 
   private func daySheet(_ d: DaySheet) -> some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         CSSheetHeader(title: ScheduleDates.long(d.iso), sub: "\(d.items.count) ON THE SCHEDULE")
         ForEach(Array(d.items.enumerated()), id: \.offset) { _, it in
           switch it {
@@ -179,7 +179,7 @@ struct ScheduleScreen: View {
   }
 
   private func ownerActions(_ sr: ScheduledRound, id: UUID) -> some View {
-    HStack(spacing: 6) {
+    HStack(spacing: CSTokens.Space.s2) {
       CSMini("", glyph: .plus) { day = nil; retag = RetagRequest(roundId: id, iso: sr.play_on ?? vm.today, courseLabel: sr.course_label, tagged: []) }
         .accessibilityLabel("Edit group")
       CSArmedButton(label: "✕", armedLabel: "Sure?", busy: vm.busy.contains(id)) {
@@ -198,7 +198,7 @@ struct ScheduleScreen: View {
     } else {
       ForEach(rows) { sr in
         RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(listBits(sr))) {
-          HStack(spacing: 6) {
+          HStack(spacing: CSTokens.Space.s2) {
             Text(sr.play_on.map { ScheduleDates.whenDays($0, today: vm.today) } ?? "").csType(.agateS, caps: true).foregroundStyle(cs.mut)
             if sr.isMine, let id = sr.id {
               CSMini("", glyph: .plus) { retag = RetagRequest(roundId: id, iso: sr.play_on ?? vm.today, courseLabel: sr.course_label, tagged: []) }
@@ -234,7 +234,7 @@ struct ScheduleScreen: View {
         VStack(spacing: 0) {
           ForEach(Array(vm.weekLines.enumerated()), id: \.element.id) { i, w in
             CSRow(last: i == vm.weekLines.count - 1) {
-              HStack(spacing: 10) {
+              HStack(spacing: CSTokens.Space.s3) {
                 Text(w.text).csType(.bodyS).foregroundStyle(cs.mut)
                 Spacer()
                 Text(w.points).csType(.columnM).foregroundStyle(cs.ink)
@@ -399,7 +399,7 @@ struct ScheduleMonthGrid: View {
   }
 
   private func legend(_ c: Color, _ t: String) -> some View {
-    HStack(spacing: 5) { Circle().fill(c).frame(width: 6, height: 6); Text(t).csType(.agateS, caps: true).foregroundStyle(cs.mut) }
+    HStack(spacing: CSTokens.Space.s1) { Circle().fill(c).frame(width: 6, height: 6); Text(t).csType(.agateS, caps: true).foregroundStyle(cs.mut) }
   }
 
   private func dot(_ k: CalendarItem.Dot) -> Color {
@@ -414,7 +414,7 @@ struct ScheduleMonthGrid: View {
     let isPast = iso < today
     let tappable = !items.isEmpty || !isPast
     return Button { open(d) } label: {
-      VStack(spacing: 3) {
+      VStack(spacing: CSTokens.Space.s1) {
         // on the panel the ink inverts — a `mut` numeral on bone is the light
         // theme's worst contrast, and today's cell is the one that must read
         Text("\(d)").csType(.columnS)
