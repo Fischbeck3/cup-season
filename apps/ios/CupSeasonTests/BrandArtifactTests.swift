@@ -29,12 +29,8 @@ final class BrandArtifactTests: XCTestCase {
   /// artifact at all, and the golfer's facts stay. Photo, no-photo and the
   /// long synthetic name. The photograph is a drawn stand-in: no face, no place.
   @MainActor func testRoundShareExportSaysTheBandOnce() throws {
-    let photo = UIGraphicsImageRenderer(size: CGSize(width: 1600, height: 1200)).image { ctx in
-      UIColor(red: 0.29, green: 0.43, blue: 0.31, alpha: 1).setFill()
-      ctx.fill(CGRect(x: 0, y: 0, width: 1600, height: 1200))
-      UIColor(red: 0.19, green: 0.29, blue: 0.21, alpha: 1).setFill()
-      ctx.fill(CGRect(x: 0, y: 800, width: 1600, height: 400))
-    }
+    // the build's one drawn stand-in photograph (greyscale, no place, no face)
+    let photo = ReceiptPhotoDev.image
     let short = PostRecap(name: "Avery Fixture", marker: "saguaro", gross: 84, pvi: 0.4, points: 9,
                           course: "North Grove (fixture)", date: "2026-09-20", badge: "PERSONAL BEST")
     let long = PostRecap(name: "Maximilian Placeholder-Worthington", marker: "weebridge", gross: 79, pvi: 2.1, points: 11,
