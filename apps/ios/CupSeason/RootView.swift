@@ -142,6 +142,26 @@ struct RootView: View {
       if CrewFlag.take(me) { crewing = true }
     }
     #if DEBUG
+    // ---- S2/C3 · synthetic root marks (one block) ----------------------------
+    // The roots that live here rather than behind the tabs, named for the
+    // capture runner's route check. Draws nothing; synthetic launches only.
+    .overlay(alignment: .topLeading) {
+      if SyntheticSeam.on {
+        Group {
+          switch store.state {
+          case .restoring: Color.clear.csScreenMark("restoring")
+          case .signedOut: Color.clear.csScreenMark(ClaimIntent.pending() != nil && !guestDoor ? "claimpencil" : "door")
+          case .cardGate: Color.clear.csScreenMark("cardgate")
+          case .ready: if crewing { Color.clear.csScreenMark("crew") }
+          case .mustUpdate: Color.clear.csScreenMark("mustupdate")
+          case .failed: Color.clear.csScreenMark("bootfailed")
+          }
+        }
+        .frame(width: 1, height: 1)
+        .allowsHitTesting(false)
+      }
+    }
+    // ---- end S2/C3 -------------------------------------------------------------
     // `-cs_dev_photo_probe_home` · measure the Home photograph path, once, on
     // a signed-in simulator. Writes Documents/photo-probe.json; changes nothing.
     .task(id: store.session?.user.id) {

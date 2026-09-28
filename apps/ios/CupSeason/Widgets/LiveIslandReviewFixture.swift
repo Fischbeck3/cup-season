@@ -10,12 +10,16 @@ import CupSeasonKit
   static func sample() -> LiveRoundState {
     var me = LivePlayer(n: "You", i: 0, ci: 1, guest: false, me: true, locked: true, mk: nil)
     me.pid = owner
-    var other = LivePlayer(n: variant == "long" ? "Alexandra Montgomery-Williams" : "Galen", i: 0, ci: 2, guest: false)
+    // S2/C3 · under `-cs_dev_synthetic` the opponent and the course are the
+    // synthetic world's invented ones, so the shot is usable as evidence.
+    let synthetic = SyntheticSeam.on
+    var other = LivePlayer(n: variant == "long" ? (synthetic ? "Maximilian Placeholder-Worthington" : "Alexandra Montgomery-Williams")
+                             : (synthetic ? "Blake" : "Galen"), i: 0, ci: 2, guest: false)
     other.pid = UUID()
     var s = LiveRoundState.fresh(players: [me, other])
     s.lr = UUID(); s.code = "PREVIEW"; s.pmap = [UUID(), UUID()]
     s.active = true; s.stage = .live; s.game = .match; s.hole = 2
-    s.course.label = "Papago · sample round"
+    s.course.label = synthetic ? "North Grove (fixture) · sample round" : "Papago · sample round"
     s.course.save(front: [4,4,3,5,4,4,4,3,5], back: [4,4,3,4,5,4,3,4,5], nine: false)
     s.scores[0][0] = 4; s.scores[1][0] = 5; s.scores[1][1] = 4
     s.scts[0][0] = 1; s.scts[1][0] = 1; s.scts[1][1] = 1
@@ -84,6 +88,7 @@ struct LiveIslandReviewFixtureView: View {
         if let error { Text(error).csType(.bodyS) }
       }.padding(CSTokens.Space.s4)
     }.background(cs.bg1).accessibilityIdentifier("islandReview")
+    .csScreenMark("island")   // S2/C3 · synthetic launches only (Dev/Synthetic)
   }
 }
 #endif

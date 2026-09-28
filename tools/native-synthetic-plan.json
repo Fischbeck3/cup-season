@@ -1,0 +1,897 @@
+[
+ {
+  "name": "home-populated",
+  "family": "home",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "home"
+ },
+ {
+  "name": "home-empty",
+  "family": "home",
+  "state": "empty",
+  "scenario": "brand-new",
+  "route": "home",
+  "root": "home"
+ },
+ {
+  "name": "home-solo",
+  "family": "home",
+  "state": "populated-no-season",
+  "scenario": "solo",
+  "route": "home",
+  "root": "home"
+ },
+ {
+  "name": "home-loading",
+  "family": "home",
+  "state": "loading",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "home",
+  "extra": [
+   "-cs_synth_delay",
+   "11"
+  ],
+  "settle": 3
+ },
+ {
+  "name": "home-failed",
+  "family": "home",
+  "state": "failed-read",
+  "scenario": "failures",
+  "route": "home",
+  "root": "home",
+  "settle": 3
+ },
+ {
+  "name": "home-long",
+  "family": "home",
+  "state": "long-names",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "home",
+  "extra": [
+   "-cs_synth_long"
+  ]
+ },
+ {
+  "name": "boot-offline",
+  "family": "home",
+  "state": "offline",
+  "scenario": "offline",
+  "route": "home",
+  "root": "bootfailed",
+  "settle": 3
+ },
+ {
+  "name": "boot-mustupdate",
+  "family": "home",
+  "state": "forced-update",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "mustupdate",
+  "extra": [
+   "-cs_synth_must_update"
+  ]
+ },
+ {
+  "name": "you-populated",
+  "family": "identity",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "you",
+  "root": "you"
+ },
+ {
+  "name": "you-empty",
+  "family": "identity",
+  "state": "empty",
+  "scenario": "brand-new",
+  "route": "you",
+  "root": "you"
+ },
+ {
+  "name": "you-failed",
+  "family": "identity",
+  "state": "failed-read",
+  "scenario": "failures",
+  "route": "you",
+  "root": "you",
+  "settle": 3
+ },
+ {
+  "name": "tourcard",
+  "family": "identity",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "tourcard",
+  "root": "tourcard"
+ },
+ {
+  "name": "tourcard-other",
+  "family": "identity",
+  "state": "other-golfer",
+  "scenario": "season-live",
+  "route": "tourcard",
+  "detail": "other",
+  "root": "tourcard"
+ },
+ {
+  "name": "person",
+  "family": "identity",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "person",
+  "root": "person"
+ },
+ {
+  "name": "person-me",
+  "family": "identity",
+  "state": "own-page",
+  "scenario": "season-live",
+  "route": "person",
+  "detail": "me",
+  "root": "person"
+ },
+ {
+  "name": "bag",
+  "family": "identity",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "bag",
+  "root": "bag"
+ },
+ {
+  "name": "record",
+  "family": "history",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "record",
+  "root": "record"
+ },
+ {
+  "name": "record-empty",
+  "family": "history",
+  "state": "empty",
+  "scenario": "brand-new",
+  "route": "record",
+  "root": "record"
+ },
+ {
+  "name": "album",
+  "family": "history",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "album",
+  "root": "album"
+ },
+ {
+  "name": "album-failed",
+  "family": "history",
+  "state": "failed-read",
+  "scenario": "failures",
+  "route": "album",
+  "root": "album",
+  "settle": 3
+ },
+ {
+  "name": "receipt-photo",
+  "family": "history",
+  "state": "photo",
+  "scenario": "season-live",
+  "route": "receipt",
+  "root": "receipt",
+  "settle": 3
+ },
+ {
+  "name": "receipt-nophoto",
+  "family": "history",
+  "state": "no-photo",
+  "scenario": "season-live",
+  "route": "receipt-nophoto",
+  "root": "receipt"
+ },
+ {
+  "name": "receipt-broken",
+  "family": "history",
+  "state": "broken-photo",
+  "scenario": "season-live",
+  "route": "receipt-broken",
+  "root": "receipt",
+  "settle": 3
+ },
+ {
+  "name": "receipt-withdrawn",
+  "family": "history",
+  "state": "withdrawn-photo",
+  "scenario": "season-live",
+  "route": "receipt-withdrawn",
+  "root": "receipt"
+ },
+ {
+  "name": "season",
+  "family": "season",
+  "state": "live-solo",
+  "scenario": "season-live",
+  "route": "season",
+  "root": "season"
+ },
+ {
+  "name": "season-squads",
+  "family": "season",
+  "state": "live-squads",
+  "scenario": "season-live",
+  "route": "season",
+  "detail": "squads",
+  "root": "season"
+ },
+ {
+  "name": "season-final",
+  "family": "season",
+  "state": "cup-final",
+  "scenario": "season-final",
+  "route": "season",
+  "root": "season"
+ },
+ {
+  "name": "season-ceremony",
+  "family": "season",
+  "state": "ceremony",
+  "scenario": "ceremony",
+  "route": "ceremony",
+  "root": "contains:took the Cup Final",
+  "settle": 4
+ },
+ {
+  "name": "season-failed",
+  "family": "season",
+  "state": "failed-read",
+  "scenario": "failures",
+  "route": "season",
+  "root": "season",
+  "settle": 3
+ },
+ {
+  "name": "season-loading",
+  "family": "season",
+  "state": "loading",
+  "scenario": "season-live",
+  "route": "season",
+  "root": "season",
+  "extra": [
+   "-cs_synth_delay",
+   "11"
+  ],
+  "settle": 3
+ },
+ {
+  "name": "pot",
+  "family": "season",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "pot",
+  "root": "season",
+  "settle": 3
+ },
+ {
+  "name": "story",
+  "family": "season",
+  "state": "season-story",
+  "scenario": "season-live",
+  "route": "story",
+  "root": "text:The story",
+  "settle": 2
+ },
+ {
+  "name": "rules",
+  "family": "rules",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "rules",
+  "root": "text:The rules",
+  "settle": 2
+ },
+ {
+  "name": "board",
+  "family": "golfers",
+  "state": "season-board",
+  "scenario": "season-live",
+  "route": "board",
+  "root": "board"
+ },
+ {
+  "name": "compete",
+  "family": "competition",
+  "state": "scoreboard",
+  "scenario": "season-live",
+  "route": "compete",
+  "root": "compete"
+ },
+ {
+  "name": "compete-empty",
+  "family": "competition",
+  "state": "empty",
+  "scenario": "brand-new",
+  "route": "compete",
+  "root": "compete"
+ },
+ {
+  "name": "compete-final",
+  "family": "competition",
+  "state": "cup-final",
+  "scenario": "season-final",
+  "route": "compete",
+  "root": "compete"
+ },
+ {
+  "name": "intent",
+  "family": "competition",
+  "state": "intent",
+  "scenario": "season-live",
+  "route": "intent",
+  "root": "intent"
+ },
+ {
+  "name": "book",
+  "family": "competition",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "book",
+  "root": "book"
+ },
+ {
+  "name": "book-squads",
+  "family": "competition",
+  "state": "squads",
+  "scenario": "season-live",
+  "route": "book",
+  "detail": "squads",
+  "root": "book"
+ },
+ {
+  "name": "book-failed",
+  "family": "competition",
+  "state": "failed-read",
+  "scenario": "failures",
+  "route": "book",
+  "root": "book",
+  "settle": 3
+ },
+ {
+  "name": "event-live",
+  "family": "events",
+  "state": "ryder-live",
+  "scenario": "event-live",
+  "route": "event",
+  "root": "event"
+ },
+ {
+  "name": "event-complete",
+  "family": "events",
+  "state": "ryder-complete",
+  "scenario": "event-live",
+  "route": "event-complete",
+  "root": "event"
+ },
+ {
+  "name": "event-major",
+  "family": "events",
+  "state": "major-live",
+  "scenario": "event-live",
+  "route": "major",
+  "root": "event"
+ },
+ {
+  "name": "event-missing",
+  "family": "events",
+  "state": "unavailable",
+  "scenario": "event-live",
+  "route": "event-missing",
+  "root": "event"
+ },
+ {
+  "name": "event-picker",
+  "family": "events",
+  "state": "picker",
+  "scenario": "event-live",
+  "route": "events",
+  "root": "eventpicker"
+ },
+ {
+  "name": "golfers",
+  "family": "golfers",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "golfers",
+  "root": "golfers"
+ },
+ {
+  "name": "golfers-empty",
+  "family": "golfers",
+  "state": "empty",
+  "scenario": "brand-new",
+  "route": "golfers",
+  "root": "golfers"
+ },
+ {
+  "name": "headtohead",
+  "family": "golfers",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "headtohead",
+  "root": "headtohead"
+ },
+ {
+  "name": "schedule",
+  "family": "schedule",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "schedule",
+  "root": "schedule"
+ },
+ {
+  "name": "schedule-empty",
+  "family": "schedule",
+  "state": "empty",
+  "scenario": "brand-new",
+  "route": "schedule",
+  "root": "schedule"
+ },
+ {
+  "name": "plan",
+  "family": "schedule",
+  "state": "planned-round",
+  "scenario": "season-live",
+  "route": "plan",
+  "root": "plan"
+ },
+ {
+  "name": "courses",
+  "family": "courses",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "courses",
+  "root": "courses"
+ },
+ {
+  "name": "course",
+  "family": "courses",
+  "state": "course-home",
+  "scenario": "season-live",
+  "route": "course",
+  "root": "course"
+ },
+ {
+  "name": "coursecard",
+  "family": "courses",
+  "state": "kept",
+  "scenario": "season-live",
+  "route": "coursecard",
+  "root": "course",
+  "settle": 3
+ },
+ {
+  "name": "coursecard-never",
+  "family": "courses",
+  "state": "never-kept",
+  "scenario": "season-live",
+  "route": "coursecard",
+  "detail": "never",
+  "root": "course"
+ },
+ {
+  "name": "settings",
+  "family": "settings",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": "settings",
+  "root": "settings"
+ },
+ {
+  "name": "post-cover",
+  "family": "post",
+  "state": "cover",
+  "scenario": "season-live",
+  "route": "post",
+  "root": "post"
+ },
+ {
+  "name": "composer",
+  "family": "post",
+  "state": "composer",
+  "scenario": "season-live",
+  "route": "postround",
+  "root": "composer"
+ },
+ {
+  "name": "composer-keyboard",
+  "family": "post",
+  "state": "keyboard",
+  "scenario": "season-live",
+  "route": "postround",
+  "root": "composer",
+  "step": "keyboard"
+ },
+ {
+  "name": "composer-first",
+  "family": "post",
+  "state": "first-round",
+  "scenario": "brand-new",
+  "route": "postround",
+  "root": "composer"
+ },
+ {
+  "name": "live-setup",
+  "family": "play",
+  "state": "setup",
+  "scenario": "season-live",
+  "route": "live",
+  "root": "live"
+ },
+ {
+  "name": "invite-signedout",
+  "family": "claim-invite",
+  "state": "invite-door",
+  "scenario": "signed-out",
+  "route": "invite",
+  "root": "door"
+ },
+ {
+  "name": "invite-signedin",
+  "family": "claim-invite",
+  "state": "invite-covenant",
+  "scenario": "season-live",
+  "route": "invite",
+  "root": "contains:Before you join",
+  "settle": 4
+ },
+ {
+  "name": "claim-signedout",
+  "family": "claim-invite",
+  "state": "claim-pencil",
+  "scenario": "signed-out",
+  "route": "claim",
+  "root": "claimpencil"
+ },
+ {
+  "name": "claim-signedin",
+  "family": "claim-invite",
+  "state": "claim-confirm",
+  "scenario": "season-live",
+  "route": "claim",
+  "root": "link",
+  "settle": 4
+ },
+ {
+  "name": "cardgate",
+  "family": "onboarding",
+  "state": "card-gate",
+  "scenario": "card-gate",
+  "route": "home",
+  "root": "cardgate"
+ },
+ {
+  "name": "crew",
+  "family": "onboarding",
+  "state": "crew-step",
+  "scenario": "brand-new",
+  "route": "crew",
+  "root": "crew"
+ },
+ {
+  "name": "widget-CSSeasonWidget",
+  "family": "widgets",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": null,
+  "root": "widget",
+  "extra": [
+   "-cs_dev_widgets",
+   "-cs_widget_kind",
+   "CSSeasonWidget",
+   "-cs_widget_state",
+   "full"
+  ],
+  "settle": 3
+ },
+ {
+  "name": "widget-CSNextTeeWidget",
+  "family": "widgets",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": null,
+  "root": "widget",
+  "extra": [
+   "-cs_dev_widgets",
+   "-cs_widget_kind",
+   "CSNextTeeWidget",
+   "-cs_widget_state",
+   "full"
+  ],
+  "settle": 3
+ },
+ {
+  "name": "widget-CSRecordWidget",
+  "family": "widgets",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": null,
+  "root": "widget",
+  "extra": [
+   "-cs_dev_widgets",
+   "-cs_widget_kind",
+   "CSRecordWidget",
+   "-cs_widget_state",
+   "full"
+  ],
+  "settle": 3
+ },
+ {
+  "name": "widget-CSRivalryWidget",
+  "family": "widgets",
+  "state": "populated",
+  "scenario": "season-live",
+  "route": null,
+  "root": "widget",
+  "extra": [
+   "-cs_dev_widgets",
+   "-cs_widget_kind",
+   "CSRivalryWidget",
+   "-cs_widget_state",
+   "full"
+  ],
+  "settle": 3
+ },
+ {
+  "name": "widget-empty",
+  "family": "widgets",
+  "state": "empty",
+  "scenario": "brand-new",
+  "route": null,
+  "root": "widget",
+  "extra": [
+   "-cs_dev_widgets",
+   "-cs_widget_kind",
+   "CSSeasonWidget",
+   "-cs_widget_state",
+   "empty"
+  ]
+ },
+ {
+  "name": "island-long",
+  "family": "widgets",
+  "state": "live-activity-long",
+  "scenario": "season-live",
+  "route": null,
+  "root": "island",
+  "extra": [
+   "-cs_dev_island",
+   "-cs_island_state",
+   "long"
+  ]
+ },
+ {
+  "name": "island-missed",
+  "family": "widgets",
+  "state": "live-activity-missed",
+  "scenario": "season-live",
+  "route": null,
+  "root": "island",
+  "extra": [
+   "-cs_dev_island",
+   "-cs_island_state",
+   "missed"
+  ]
+ },
+ {
+  "name": "island-closed",
+  "family": "widgets",
+  "state": "live-activity-closed",
+  "scenario": "season-live",
+  "route": null,
+  "root": "island",
+  "extra": [
+   "-cs_dev_island",
+   "-cs_island_state",
+   "closed"
+  ]
+ },
+ {
+  "name": "event-failed",
+  "family": "events",
+  "state": "failed-read",
+  "scenario": "failures",
+  "route": "event",
+  "root": "event",
+  "settle": 3
+ },
+ {
+  "name": "whenfork",
+  "family": "competition",
+  "state": "when-fork",
+  "scenario": "season-live",
+  "route": "whenfork",
+  "root": "contains:Two ways"
+ },
+ {
+  "name": "wizard",
+  "family": "wizard",
+  "state": "first-step",
+  "scenario": "season-live",
+  "route": "wizard",
+  "root": "wizard"
+ },
+ {
+  "name": "declare",
+  "family": "schedule",
+  "state": "declare",
+  "scenario": "season-live",
+  "route": "declare",
+  "root": "declare"
+ },
+ {
+  "name": "course-wholecard",
+  "family": "courses",
+  "state": "whole-card",
+  "scenario": "season-live",
+  "route": "course",
+  "root": "id:course.card.tee",
+  "step": "tap:course.wholecard",
+  "settle": 2
+ },
+ {
+  "name": "golfers-search",
+  "family": "golfers",
+  "state": "keyboard",
+  "scenario": "season-live",
+  "route": "golfers",
+  "root": "golfers",
+  "step": "keyboard"
+ },
+ {
+  "name": "look-fall-home",
+  "family": "looks",
+  "state": "look-fall",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "home",
+  "extra": [
+   "-cs_dev_look",
+   "fall"
+  ]
+ },
+ {
+  "name": "look-fall-season",
+  "family": "looks",
+  "state": "look-fall",
+  "scenario": "season-live",
+  "route": "season",
+  "root": "season",
+  "extra": [
+   "-cs_dev_look",
+   "fall"
+  ]
+ },
+ {
+  "name": "look-fall-compete",
+  "family": "looks",
+  "state": "look-fall",
+  "scenario": "season-live",
+  "route": "compete",
+  "root": "compete",
+  "extra": [
+   "-cs_dev_look",
+   "fall"
+  ]
+ },
+ {
+  "name": "look-fall-you",
+  "family": "looks",
+  "state": "look-fall",
+  "scenario": "season-live",
+  "route": "you",
+  "root": "you",
+  "extra": [
+   "-cs_dev_look",
+   "fall"
+  ]
+ },
+ {
+  "name": "look-cupfinal-home",
+  "family": "looks",
+  "state": "look-cupfinal",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "home",
+  "extra": [
+   "-cs_dev_look",
+   "cupfinal"
+  ]
+ },
+ {
+  "name": "look-cupfinal-season",
+  "family": "looks",
+  "state": "look-cupfinal",
+  "scenario": "season-live",
+  "route": "season",
+  "root": "season",
+  "extra": [
+   "-cs_dev_look",
+   "cupfinal"
+  ]
+ },
+ {
+  "name": "look-cupfinal-compete",
+  "family": "looks",
+  "state": "look-cupfinal",
+  "scenario": "season-live",
+  "route": "compete",
+  "root": "compete",
+  "extra": [
+   "-cs_dev_look",
+   "cupfinal"
+  ]
+ },
+ {
+  "name": "look-cupfinal-you",
+  "family": "looks",
+  "state": "look-cupfinal",
+  "scenario": "season-live",
+  "route": "you",
+  "root": "you",
+  "extra": [
+   "-cs_dev_look",
+   "cupfinal"
+  ]
+ },
+ {
+  "name": "look-teams-home",
+  "family": "looks",
+  "state": "look-teams",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "home",
+  "extra": [
+   "-cs_dev_look",
+   "teams"
+  ]
+ },
+ {
+  "name": "look-teams-season",
+  "family": "looks",
+  "state": "look-teams",
+  "scenario": "season-live",
+  "route": "season",
+  "root": "season",
+  "extra": [
+   "-cs_dev_look",
+   "teams"
+  ]
+ },
+ {
+  "name": "look-teams-compete",
+  "family": "looks",
+  "state": "look-teams",
+  "scenario": "season-live",
+  "route": "compete",
+  "root": "compete",
+  "extra": [
+   "-cs_dev_look",
+   "teams"
+  ]
+ },
+ {
+  "name": "look-teams-you",
+  "family": "looks",
+  "state": "look-teams",
+  "scenario": "season-live",
+  "route": "you",
+  "root": "you",
+  "extra": [
+   "-cs_dev_look",
+   "teams"
+  ]
+ }
+]

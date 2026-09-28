@@ -13,10 +13,12 @@ import Foundation
 public enum CSConfig {
   #if DEBUG
   public static let auditBackend = UserDefaults.standard.string(forKey: "cs_audit_backend") != "prod"
-  public static let supabaseURL = auditBackend
+  // `-cs_dev_synthetic` (SyntheticSeam) wins over both: an `.invalid` host the
+  // in-process transport answers, so a fixture launch can reach no backend.
+  public static let supabaseURL = SyntheticSeam.on ? SyntheticSeam.supabaseURL : auditBackend
     ? URL(string: UserDefaults.standard.string(forKey: "cs_audit_url") ?? "http://127.0.0.1:54321")!
     : URL(string: "https://zddbfcokmvneltrgukzf.supabase.co")!
-  public static let supabasePublishableKey = auditBackend
+  public static let supabasePublishableKey = SyntheticSeam.on ? SyntheticSeam.publishableKey : auditBackend
     ? (UserDefaults.standard.string(forKey: "cs_audit_key") ?? "local-development-key")
     : "sb_publishable_UoORp_4FTRWg6a7foKqxRA_N2f5kHVS"
   #else
