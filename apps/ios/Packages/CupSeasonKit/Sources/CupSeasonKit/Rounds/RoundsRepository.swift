@@ -89,6 +89,13 @@ public struct IndividualStanding: Decodable, Sendable, Equatable {
 }
 
 /// A league mate as the album and the receipt medallion need them.
+/// F16 · the album's rounds carry photographs and none could be signed: the
+/// read failed, whatever the storage said. Never an empty album.
+public struct AlbumUnsignable: Error, LocalizedError, Equatable {
+  public init() {}
+  public var errorDescription: String? { "The photographs could not be opened." }
+}
+
 public struct LeagueMate: Sendable, Equatable {
   public let profileId: UUID
   public let displayName: String?
@@ -225,6 +232,10 @@ public struct RoundsRepository: Sendable {
 
   /// Every league round photo, newest first, 60 at most, each with its signed
   /// URL. Rows whose signing failed are dropped (the web skips them too).
+  ///
+  /// F16 · rounds that carry photographs, not ONE of which could be signed,
+  /// are a failed read, never an empty album — the desk's `renderAlbum`
+  /// treats the same case the same way. It throws `AlbumUnsignable`.
   public func albumRounds(profileIds: [UUID]) async throws -> [RoundRow] {
     guard !profileIds.isEmpty else { return [] }
     var rows: [RoundRow] = try await db.from("rounds").select(Self.roundCols + ", photo_path")
@@ -232,7 +243,9 @@ public struct RoundsRepository: Sendable {
       .order("played_on", ascending: false).limit(60).execute().value
     let urls = await signedURLs(rows.compactMap(\.photo_path))
     for i in rows.indices { if let p = rows[i].photo_path { rows[i].photo_url = urls[p] } }
-    return rows.filter { $0.photo_url != nil }
+    let signed = rows.filter { $0.photo_url != nil }
+    if !rows.isEmpty && signed.isEmpty { throw AlbumUnsignable() }
+    return signed
   }
 
   // MARK: - the season lens (14480) and the league record (16587)
