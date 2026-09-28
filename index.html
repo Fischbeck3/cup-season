@@ -1959,6 +1959,16 @@ body.guestlive #onboard{display:none !important;}
    a full-bleed ceremony plate, figures on ONE rule, and two NAMED GROUPS. */
 .evcard{background:var(--ceremony); color:var(--ceremony-ink); padding:26px 22px 22px; margin:0 0 20px;
         border-radius:0; position:relative; overflow:hidden;}
+.cs-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
+.evrec .evcard h1{font-size:34px; line-height:1.06;}
+@media (min-width:900px){ .evrec{max-width:760px;} }
+.evrec .evcard h1:focus{outline:none;}
+@media (min-width:900px){ .evrec .evcard h1{font-size:44px;} }
+.evrec-why{font-family:var(--sans); font-size:15px; line-height:1.5; color:var(--ceremony-mut); margin:14px 0 0; max-width:44ch;}
+.evrec-doors{display:flex; flex-direction:column; gap:var(--s2); align-items:stretch; margin:0 0 var(--s5);}
+.evrec-doors .cs-tskip{margin:0 auto;}
+@media (min-width:760px){ .evrec-doors{flex-direction:row; align-items:center;} .evrec-doors .btn{width:auto; min-width:200px; padding:0 var(--s5);} .evrec-doors .cs-tskip{margin:0;} }
+.evcard-redacted .evsk{display:block; border-radius:var(--p); background:color-mix(in srgb, var(--ceremony-ink) 10%, transparent);}
 .evcard .evbrow{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:.1em;
                 text-transform:uppercase; color:var(--ceremony-mut); display:flex; align-items:center; gap:6px;}
 .evcard .evbrow.live{color:var(--ceremony-brand);}
@@ -24130,10 +24140,63 @@ function csPigment(id){
    names: guard nothing, bridge explicitly. */
 window.csPigment = csPigment;
 function evHalf(n){ const w=Math.floor(n), h=(n-w)>=0.5; return (w||!h?String(w):'')+(h?'½':''); }
+/* S8 · WHEN THE ROOM CANNOT OPEN, THE ROOM SAYS SO. The recovery was one grey
+   line ("That didn't open — head back…") on an empty page: the panel's lowest
+   primary row (5.70). It is now the room's own plate — the dark ground every
+   event opens on, in the board voice — saying what happened in the phone's
+   words (EventRoomScreen: "The room didn't load."), one line of why, and the
+   doors beneath it: Try again only where a read can still succeed, and the way
+   back to Compete, where a golfer's events live. */
+const CS_EVENT_RECOVERY = {
+  /* §4.36 · a Ryder or a Major, never "an event": the room is named as a room */
+  brow: 'The room',
+  /* the plate reads as one board message, brow over head — THE ROOM / DIDN'T
+     LOAD — which is the phone's "The room didn't load." said once */
+  failed: 'Didn\u2019t load',
+  unavailable: 'Not open to you',
+  unavailableWhy: 'It may have been removed, or you\u2019re not on its roster.',
+  none: 'Nothing open here',
+  noneWhy: 'Your Ryders and Majors live in Compete.',
+  retry: 'Try again',
+  back: 'Back to Compete',
+};
+function csEventRecoveryHtml(E){
+  const R = CS_EVENT_RECOVERY;
+  const kind = !E ? 'none' : E.state;
+  const head = kind === 'failed' ? R.failed : kind === 'unavailable' ? R.unavailable : R.none;
+  const why = kind === 'failed' ? humanError(E.error) : kind === 'unavailable' ? R.unavailableWhy : R.noneWhy;
+  return `<section class="evrec" aria-labelledby="evrecHead">
+    <div class="evcard">
+      <div class="evbrow" aria-hidden="true">${esc(R.brow)}</div>
+      <h1 id="evrecHead" tabindex="-1"><span class="cs-sr">${esc(R.brow)} </span>${esc(head)}</h1>
+      <p class="evrec-why" role="status">${esc(why)}</p>
+    </div>
+    <div class="evrec-doors">
+      ${kind === 'failed' ? `<button class="btn" type="button" id="evRetry">${esc(R.retry)}</button>` : ''}
+      <button class="${kind === 'failed' ? 'cs-tskip' : 'btn'}" type="button" data-go-compete>${esc(R.back)}</button>
+    </div>
+  </section>`;
+}
 function renderEvent(){
   const el=$('#eventBody'); if(!el) return;
   const E=window.CS_EVENT;
-  if(!E || !E.event){ el.innerHTML='<p class="fine" style="padding:12px 4px">That didn’t open — head back and try it again from Home.</p>'; return; }
+  if(E && E.state==='loading'){
+    el.innerHTML = `<section class="evrec" aria-busy="true" aria-label="Opening the room">
+      <div class="evcard evcard-redacted" aria-hidden="true"><div class="evbrow">${esc(CS_EVENT_RECOVERY.brow)}</div>
+        <span class="evsk" style="width:72%;height:34px;margin-top:14px"></span><span class="evsk" style="width:44%;height:12px;margin-top:14px"></span></div>
+      ${skeletonRows(2)}</section>`;
+    return;
+  }
+  if(!E || !E.event){
+    el.innerHTML = csEventRecoveryHtml(E);
+    $('#evRetry')?.addEventListener('click', e => {
+      const b = e.currentTarget; b.disabled = true; b.textContent = 'Trying\u2026';
+      /* the loader is the module's; the classic block reaches it through its bridge */
+      window.openEvent?.(E.id);
+    });
+    el.querySelector('[data-go-compete]')?.addEventListener('click', () => switchView('compete'));
+    return;
+  }
   if(E.event.kind==='major'){ renderMajorRoom(el, E); return; }
   const ev=E.event, teams=E.teams||[], players=E.players||[], sessions=E.sessions||[], duels=E.duels||[];
   const A=teams.find(t=>t.slot===0)||teams[0]||{name:'Team A',color:0,id:'a'};
