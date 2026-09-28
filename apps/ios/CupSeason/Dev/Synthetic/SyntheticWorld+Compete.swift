@@ -209,7 +209,9 @@ extension SyntheticWorld {
         "id": e.id, "round_id": e.round ?? NSNull(), "member_id": l.memberIds(e.person), "squad_id": squadID ?? NSNull(),
         "week": e.week ?? NSNull(), "recorded_on": e.day.map { day($0) } ?? NSNull(),
         "affected_month": e.day.map { monthKey($0) } ?? NSNull(), "kind": e.kind, "points": e.points,
-        "contribution": e.contribution, "withdrawn": false, "count_state": e.state, "reason": e.reason,
+        // Avery took the round with the withdrawn photograph back out of the
+        // Book's receipt path: its points stay, its receipt door does not.
+        "contribution": e.contribution, "withdrawn": e.round == fids(4_005), "count_state": e.state, "reason": e.reason,
       ]
     }
     let cells: [[String: Any]] = (1...l.weeksTotal).map { w in

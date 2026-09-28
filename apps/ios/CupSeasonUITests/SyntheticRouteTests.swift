@@ -44,6 +44,19 @@ final class SyntheticRouteTests: XCTestCase {
     for _ in 0..<swipes where !e.isHittable { app.swipeUp() }
   }
 
+  /// Waits until an element stops moving (a sheet or pager still sliding in
+  /// would otherwise be photographed mid-flight), for at most `limit` seconds.
+  @MainActor private func settle(_ e: XCUIElement, limit: Double = 6) {
+    var last = e.frame
+    let end = Date().addingTimeInterval(limit)
+    while Date() < end {
+      Thread.sleep(forTimeInterval: 0.6)
+      let now = e.frame
+      if now == last { return }
+      last = now
+    }
+  }
+
   @MainActor private func attach(_ app: XCUIApplication, _ name: String) {
     let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
     shot.name = name
@@ -135,9 +148,13 @@ final class SyntheticRouteTests: XCTestCase {
   /// label a new check should wait on. Skips without the variable.
   @MainActor func testDumpAccessibility() throws {
     guard let spec = ProcessInfo.processInfo.environment["CS_FX_DUMP"] else { throw XCTSkip("no CS_FX_DUMP") }
+    // "<scenario> <route|-> [detail|-] [extra launch arguments…]"
     let parts = spec.split(separator: " ").map(String.init)
-    let app = launch(parts[0], parts.count > 1 ? parts[1] : nil, parts.count > 2 ? parts[2] : nil)
+    let route = parts.count > 1 && parts[1] != "-" ? parts[1] : nil
+    let detail = parts.count > 2 && parts[2] != "-" ? parts[2] : nil
+    let app = launch(parts[0], route, detail, extra: Array(parts.dropFirst(3)))
     Thread.sleep(forTimeInterval: 8)
+    for _ in 0..<(Int(ProcessInfo.processInfo.environment["CS_FX_DUMP_SWIPES"] ?? "") ?? 0) { app.swipeUp() }
     let tree = XCTAttachment(string: app.debugDescription)
     tree.name = "tree__" + parts.joined(separator: "_")
     tree.lifetime = .keepAlways
@@ -343,5 +360,34 @@ final class SyntheticRouteTests: XCTestCase {
     button(app, "Try again").tap()
     XCTAssertTrue(mark(app, "home").waitForExistence(timeout: 20))
     attach(app, "flow__reconnected")
+  }
+
+  /// A live round finishes for the whole group and lands on the recap. The
+  /// round is the dev round (`-cs_dev_live`) drawn over the tabs; controls in
+  /// that host report "not hittable" to the runner even when they are drawn
+  /// in the open, so its taps go to the element's centre.
+  @MainActor func testLiveFinishToRecap() {
+    let app = launch("season-live", nil, extra: ["-cs_dev_live"])
+    let finish = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Finish the round")).firstMatch
+    XCTAssertTrue(app.staticTexts["HOLE 15"].waitForExistence(timeout: 30))
+    app.swipeUp(); app.swipeUp()
+    XCTAssertTrue(finish.waitForExistence(timeout: 10))
+    finish.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    let casual = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "This one was casual")).firstMatch
+    XCTAssertTrue(casual.waitForExistence(timeout: 10))
+    Thread.sleep(forTimeInterval: 1)
+    attach(app, "flow__live-finish-sheet")
+    // The sheet's primary sits directly above its casual button.
+    let primary = app.buttons.allElementsBoundByIndex
+      .filter { ($0.label.hasPrefix("Finish the round") || $0.label.hasPrefix("Post ")) && $0.frame.maxY <= casual.frame.minY + 1 }
+      .max { $0.frame.minY < $1.frame.minY }
+    XCTAssertNotNil(primary)
+    primary?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    // The takeover's own count line ("3 cards to the season"), which nothing
+    // before the finish draws.
+    let recap = app.staticTexts.matching(NSPredicate(format: "label MATCHES[c] %@", "[0-9]+ cards? (to the season|posted)")).firstMatch
+    XCTAssertTrue(recap.waitForExistence(timeout: 15))
+    settle(recap)
+    attach(app, "flow__live-recap")
   }
 }

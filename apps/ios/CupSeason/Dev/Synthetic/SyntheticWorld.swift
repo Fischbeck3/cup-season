@@ -236,6 +236,7 @@ final class SyntheticWorld: @unchecked Sendable {
     case .table(let t): return table(t, r)
     case .storageSign, .storageObject: return storage(r)
     case .function(let f): return function(f, r)
+    case .broadcast: return r.method == "POST" ? SyntheticReply(status: 202, body: Data()) : nil
     case .asset: return nil
     }
   }

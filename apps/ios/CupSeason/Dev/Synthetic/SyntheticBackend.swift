@@ -21,6 +21,9 @@ struct SynthRequest: @unchecked Sendable {
     case storageObject(bucket: String, path: String)
     case function(String)
     case auth(String)
+    /// Realtime's REST broadcast (a live round telling the group's other
+    /// phones, when its channel is not joined). A write: answered, reaches nothing.
+    case broadcast(String)
     case asset(String)
   }
   let method: String
@@ -61,6 +64,7 @@ struct SynthRequest: @unchecked Sendable {
     }
     else if p.hasPrefix("/functions/v1/") { kind = .function(tail(after: "/functions/v1/")) }
     else if p.hasPrefix("/auth/v1/") { kind = .auth(tail(after: "/auth/v1/")) }
+    else if p.hasPrefix("/realtime/v1/api/broadcast") { kind = .broadcast(tail(after: "/realtime/v1/api/broadcast")) }
     else { kind = .asset(url.absoluteString) }
   }
 
@@ -95,6 +99,7 @@ struct SynthRequest: @unchecked Sendable {
     case .storageObject(let b, let p): "storage/object/\(b)/\(p)"
     case .function(let f): "functions/\(f)"
     case .auth(let a): "auth/\(a)"
+    case .broadcast: "realtime/broadcast"
     case .asset(let u): "asset \(u)"
     }
   }
@@ -209,7 +214,7 @@ final class SyntheticBackend: @unchecked Sendable {
     case .table(let t): return t.components(separatedBy: "?").first ?? t
     case .storageSign, .storageObject: return "storage"
     case .function(let f): return f
-    case .auth, .asset: return nil
+    case .auth, .broadcast, .asset: return nil
     }
   }
 

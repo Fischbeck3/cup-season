@@ -313,6 +313,9 @@ final class LiveRoundStore {
     course.label = synthetic ? "North Grove (fixture) — Blue" : "Encanto GC — Blue"
     var st = LiveRoundState.fresh(players: players, course: course)
     st.stage = .live; st.active = true; st.game = .match; st.hole = 14
+    // S2/C3 · a synthetic round has an id, so its finish runs the real path
+    // (answered on the device by the fixture) and reaches the recap.
+    if synthetic { st.lr = fid(4_950); st.code = "FIXTURE" }
     st.teams = [[0, 1], [2, 3]]
     // …and TWO of the four are already in on the 15th, so one screenshot holds
     // both states of the score object AND the number-to-beat block, which does
