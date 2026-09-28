@@ -162,6 +162,20 @@ async function captureOne(browser, state, vp, theme, cdn) {
   /* instrumentation only: count navigator.locks.request calls (the
      origin-wide lock CLAUDE.md warns about); calls pass straight through */
   await context.addInitScript(() => {
+    /* instrumentation only: route-fulfilled requests leave no Resource Timing
+       entry, so a state that must prove a read happened reads this list; the
+       wrapper records the URL, method and status and changes nothing */
+    try {
+      window.__tenNet = []
+      const f = window.fetch.bind(window)
+      window.fetch = async function (input, init) {
+        const url = typeof input === 'string' ? input : (input && input.url) || String(input)
+        const method = (init && init.method) || (input && input.method) || 'GET'
+        const rec = { url: String(url).slice(0, 300), method, status: null }
+        if (window.__tenNet.length < 3000) window.__tenNet.push(rec)
+        try { const r = await f(input, init); rec.status = r.status; return r } catch (e) { rec.status = 'failed'; throw e }
+      }
+    } catch (_) {}
     try {
       const L = navigator.locks
       window.__tenLocks = 0
