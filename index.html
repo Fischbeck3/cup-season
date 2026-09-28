@@ -2711,6 +2711,9 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .sheet .grab{width:36px; height:4px; border-radius:99px; background:var(--rule); margin:0 auto 14px;}
 .sheet h3{font-size:18px; font-weight:700; letter-spacing:-.01em; padding-right:28px;}
+/* F03 · a layer's title and the page heading take focus so a screen reader
+   starts at the top; they are not controls, so they draw no ring */
+#shTitle:focus, #bfTitle:focus, #finish:focus, h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, h3[tabindex="-1"]:focus{outline:none;}
 .sheet .sub{font-family:var(--mono); font-size:11.5px; color:var(--dim); letter-spacing:.1em; text-transform:uppercase; margin-top:3px;}
 .sheet .x{position:absolute; top:14px; right:14px; border:none; background:none; color:var(--dim); font-size:20px; cursor:pointer; padding:4px;}
 /* WAVE 7 - THE RECEIPT IS PRINTED ON A LEAF (leaderboard.md 6). A receipt is a
@@ -5833,7 +5836,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 </div>
 
 <!-- ============ TAB BAR (mobile) ============ -->
-<div id="boardFull" role="dialog" aria-label="League board">
+<div id="boardFull" role="dialog" aria-modal="true" aria-label="League board">
   <header class="bf-hdr">
     <div><b id="bfTitle" class="mono">THE BOARD</b><small id="bfSub"></small></div>
     <button class="mini" id="bfClose" aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
@@ -8942,6 +8945,140 @@ function renderFeedFull(force){
      top — prevTop still wins whenever this isn't an open/follow moment. */
   requestAnimationFrame(()=>{ el.scrollTop = (force||atBottom) ? (dg?0:el.scrollHeight) : prevTop; });
 }
+/* F03 · ONE MODAL LIFECYCLE for the three layers that cover the page: the
+   shared sheet, the full board and the post ceremony. The sheet said
+   aria-modal and did none of what that promises. Focus stayed on the control
+   behind it (the header search); seven Tab stops later a keyboard golfer was
+   still walking the page the sheet was hiding; closing it dropped focus on
+   <body>. What "open" means now, for every layer:
+   - the rest of the page is `inert` (unfocusable, out of the accessibility
+     tree), except the toast and the error bar, which must still announce;
+   - focus moves in: to a control marked [data-autofocus], else the title;
+   - Tab and Shift+Tab wrap inside the layer, whether it holds 0, 1 or many
+     controls;
+   - Escape closes the TOP layer, and only it;
+   - closing returns focus to the control that opened the layer. If a
+     re-render took that control away, focus goes to its replacement (same id
+     or data key); failing that, to the page's own heading.
+   Isolation is RECOMPUTED from the set of open layers each time rather than
+   undone step by step. So a sheet over the board, or the epilogue sheet that
+   opens behind the ceremony, can open and close in any order, and the page
+   always ends exactly as open-ness says. The Book is a real <dialog>
+   (showModal) and the browser does all of this for it; it is never managed
+   here, so there are never two traps. The door is a page, not a layer: a
+   sheet over it isolates it like any other page content. */
+const csModal = (() => {
+  const ORDER = ['finish', 'sheet', 'boardFull'];   /* the stack, top first: z 1100 · 200 · 44 */
+  const LIVE = new Set(['toast', 'errbar']);
+  const FOCUSABLE = 'a[href],area[href],button,input:not([type="hidden"]),select,textarea,iframe,summary,[contenteditable]:not([contenteditable="false"]),[tabindex]';
+  const open = new Map();        /* layer id → { invoker, keys } */
+  const inerted = new Set();     /* only what THIS made inert is ever released by it */
+  const byId = (id) => document.getElementById(id);
+  const shown = (id) => !!byId(id)?.classList.contains('open');
+  const top = () => ORDER.find(id => open.has(id) && shown(id)) || null;
+  const usable = (n) => !!n && n.isConnected && !n.disabled && !n.closest('[inert],[hidden]')
+    && n.getClientRects().length > 0 && getComputedStyle(n).visibility !== 'hidden';
+  const tabbables = (root) => [...root.querySelectorAll(FOCUSABLE)].filter(n => n.tabIndex >= 0 && usable(n));
+  /* the keys a re-render would give the invoker's replacement, most specific
+     first: its id, then each data-* value (feed rows, round cards and chips
+     are keyed by one) */
+  function keysOf(n){
+    if(!n || n === document.body || n === document.documentElement) return [];
+    const keys = n.id ? ['#' + CSS.escape(n.id)] : [];
+    for(const a of n.attributes){
+      if(a.name.startsWith('data-') && a.value) keys.push(`${n.localName}[${a.name}="${CSS.escape(a.value)}"]`);
+    }
+    return keys;
+  }
+  function isolate(){
+    const id = top(), layer = id && byId(id);
+    for(const c of document.body.children){
+      const want = !!layer && c !== layer && !c.contains(layer) && !LIVE.has(c.id)
+        && !['SCRIPT', 'STYLE', 'TEMPLATE', 'LINK', 'DIALOG'].includes(c.tagName);
+      if(want && !c.inert){ c.inert = true; inerted.add(c); }
+      else if(!want && inerted.has(c)){ c.inert = false; inerted.delete(c); }
+    }
+  }
+  function landing(id){
+    const layer = byId(id); if(!layer) return null;
+    const asked = [...layer.querySelectorAll('[data-autofocus]')].find(usable);
+    if(asked) return asked;
+    const title = id === 'sheet' ? byId('shTitle') : id === 'boardFull' ? byId('bfTitle') : layer;
+    if(title && !title.hasAttribute('tabindex')) title.setAttribute('tabindex', '-1');
+    return title;
+  }
+  const enter = (id) => landing(id)?.focus({ preventScroll: true });
+  /* the page's own heading, when nothing better survives */
+  function fallback(){
+    const door = byId('onboard');
+    const page = door && !door.classList.contains('hide') && door.style.display !== 'none'
+      ? door : document.querySelector('.view.active');
+    const h = page && [...page.querySelectorAll('h1,h2,h3')].find(usable);
+    if(!h) return null;
+    if(!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
+    return h;
+  }
+  function returnTo(rec, within){
+    if(!rec) return null;
+    if(usable(rec.invoker) && within.contains(rec.invoker)) return rec.invoker;
+    for(const k of rec.keys){
+      const n = [...document.querySelectorAll(k)].find(m => usable(m) && within.contains(m));
+      if(n) return n;
+    }
+    return null;
+  }
+  function opened(id){
+    const layer = byId(id); if(!layer) return;
+    if(!open.has(id)){
+      const a = document.activeElement;
+      const invoker = a && a !== document.body && !layer.contains(a) ? a : null;
+      open.set(id, { invoker, keys: keysOf(invoker) });
+    }
+    isolate();
+    /* a layer that opened BEHIND a higher one (the epilogue sheet under the
+       ceremony) waits; it takes focus when the higher one closes */
+    if(top() === id) enter(id);
+  }
+  function closed(id){
+    if(!open.has(id)) return;
+    const wasTop = !ORDER.slice(0, ORDER.indexOf(id)).some(h => open.has(h) && shown(h));
+    const rec = open.get(id); open.delete(id);
+    isolate();
+    if(!wasTop) return;               /* it closed behind another layer: focus is not its to move */
+    const under = top();
+    if(under){ const n = returnTo(rec, byId(under)); n ? n.focus({ preventScroll: true }) : enter(under); return; }
+    (returnTo(rec, document.body) || fallback())?.focus({ preventScroll: true });
+  }
+  /* a re-render that removes the focused control drops focus on <body>
+     without firing focusout; put it back inside the top layer */
+  const watch = new MutationObserver(() => {
+    const id = top();
+    if(id && (!document.activeElement || document.activeElement === document.body)) enter(id);
+  });
+  ORDER.forEach(id => { const n = byId(id); if(n) watch.observe(n, { childList: true, subtree: true }); });
+  document.addEventListener('keydown', (e) => {
+    const id = top(); if(!id) return;
+    if(e.key === 'Escape' && !e.defaultPrevented){
+      /* the ceremony keeps its own capture-phase Escape (it must also stop the
+         sheet under it from closing on the same keypress) */
+      if(id === 'sheet') closeSheet();
+      else if(id === 'boardFull') closeBoardFull();
+      return;
+    }
+    if(e.key !== 'Tab' || e.altKey || e.ctrlKey || e.metaKey) return;
+    const layer = byId(id), list = tabbables(layer), a = document.activeElement;
+    if(!list.length){ e.preventDefault(); enter(id); return; }
+    if(!layer.contains(a)){ e.preventDefault(); (e.shiftKey ? list[list.length - 1] : list[0]).focus(); return; }
+    /* wrap when nothing tabbable lies beyond the focused element in that
+       direction; this covers the title too, which is focusable but not tabbable */
+    const beyond = list.filter(n => n !== a && (e.shiftKey
+      ? (a.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_PRECEDING)
+      : (a.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING)));
+    if(!beyond.length){ e.preventDefault(); (e.shiftKey ? list[list.length - 1] : list[0]).focus(); }
+  });
+  return { opened, closed, top };
+})();
+window.csModal = csModal;
 /* iOS: overflow:hidden alone doesn't stop the page BEHIND a fixed overlay from
    scroll-chaining — the sheet "slides around" while you scroll it, and focusing
    a date input scrolls the body and shoves the whole layer off-screen (pilot,
@@ -8994,10 +9131,12 @@ function openBoardFull(){
   renderFeedFull(true);
   $('#boardFull').classList.add('open');
   lockBody();
+  csModal.opened('boardFull');
 }
 function closeBoardFull(){
   $('#boardFull').classList.remove('open');
   unlockBody();
+  csModal.closed('boardFull');
 }
 $('#bfOpen').addEventListener('click',e=>{ e.preventDefault(); openBoardFull(); });
 $('#bfClose').addEventListener('click',closeBoardFull);
@@ -10602,6 +10741,7 @@ function finishCeremony(o){
   el.classList.remove('open'); void el.offsetWidth;   /* restart the stagger on a second post */
   el.setAttribute('aria-hidden','false'); el.classList.add('open');
   lockBody();
+  csModal.opened('finish');
   _ceremonyOwnsShare=true;   /* the ceremony owns the share this post — the epilogue defers its own button */
   try{ if(navigator.vibrate) navigator.vibrate([10,38,10]); }catch(_){}   /* the stamp's thock */
 }
@@ -10612,6 +10752,7 @@ function finishDismiss(){
   /* the epilogue sheet may have opened behind the curtain — unlockBody only
      releases when no other layer is holding the freeze */
   unlockBody();
+  csModal.closed('finish');   /* the epilogue sheet under it, if any, now takes focus */
 }
 (function wireFinish(){
   const el=document.getElementById('finish'); if(!el) return;
@@ -12229,7 +12370,7 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
     } else if(e.key==='Enter' && i>=0){
       e.preventDefault();
       opts[i].dispatchEvent(new MouseEvent('mousedown', { bubbles:true, cancelable:true }));
-    } else if(e.key==='Escape'){ hide(); }
+    } else if(e.key==='Escape'){ e.preventDefault(); hide(); }   /* F03 · closes the list only, never the sheet around it */
   });
 }
 attachCourseSearch('#inCourse', '#inRating', '#inSlope', async ({ course, tee, cached }) => {
@@ -23029,6 +23170,11 @@ function openSheet(title, sub, bodyHtml){
   $('#shTitle').textContent=title;
   $('#shSub').textContent=sub;
   $('#shBody').innerHTML=bodyHtml;
+  /* F03 · a dialog is named by its title; a sheet opened without one is named
+     by its sub-line, so no modal is ever announced as an unnamed dialog */
+  const named=String(title||'').trim();
+  if(named){ $('#sheet').setAttribute('aria-labelledby','shTitle'); $('#sheet').removeAttribute('aria-label'); }
+  else { $('#sheet').removeAttribute('aria-labelledby'); $('#sheet').setAttribute('aria-label', String(sub||'').trim() || 'Details'); }
   $('#sheet').classList.add('open');
   $('#sheet').classList.remove('room-dusk');   /* sheets are utility by default; ceremonies re-add after openSheet */
   lockBody();
@@ -23042,18 +23188,20 @@ function openSheet(title, sub, bodyHtml){
       const [who,idx]=b.dataset.round.split('|');
       showRound(who, +idx);
     }));
+  csModal.opened('sheet');   /* F03 · a replacement keeps the first opener; focus moves to the new title */
 }
 function closeSheet(){
   $('#sheet').classList.remove('open');
   /* drop any keyboard-fit inline sizing so the next open starts clean */
   const p=$('#sheet .panel'); if(p){ p.style.maxHeight=''; p.style.bottom=''; }
   unlockBody();
+  csModal.closed('sheet');   /* F03 · focus goes back to whatever opened it */
 }
 $('#shClose').addEventListener('click',closeSheet);
 $('#sheet').addEventListener('click',e=>{ if(e.target.id==='sheet') closeSheet(); });
 /* iOS: a drag that starts on the backdrop must not pan the page behind */
 $('#sheet').addEventListener('touchmove',e=>{ if(e.target.id==='sheet') e.preventDefault(); },{passive:false});
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
+/* Escape is csModal's: it closes the top layer only (F03) */
 
 /* squad → its arithmetic */
 function showSquad(name){
