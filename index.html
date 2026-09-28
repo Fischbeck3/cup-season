@@ -619,6 +619,9 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .sb-matrix thead tr>th:first-child{z-index:3;}
 .sb-matrix .sb-current{background:var(--brand); color:var(--brand-ink);}
 .sb-matrix button{border:0; background:transparent; width:100%; min-width:64px; min-height:64px; font:24px var(--board); white-space:nowrap;}
+/* F11 · the status marks are a record note beside the figure, not digits of it */
+.sb-matrix .sb-marks{display:inline-block; margin-left:var(--s1); font:600 11px/1 var(--board); letter-spacing:.06em; color:var(--mut); transform:translateY(-.7em);}
+.sb-key{margin:var(--s2) 0 var(--s2);}
 .sb-matrix th button{text-align:left; white-space:normal; font:14px var(--sans);}
 .sb-matrix strong{display:block; font:20px var(--board); padding-top:var(--s1);}
 .sb-totals button,.sb-adjustment{display:block; text-align:left; width:100%; border:0!important; border-bottom:1px solid var(--rule)!important; background:none!important;}
@@ -19743,13 +19746,29 @@ const SeasonBook = {
     if(!whole) throw Error('The points record is incomplete. Try again to load the whole season.');
     return b;
   },
-  label(r,c,cumulative=false){
-    if(c.future)return '•';
+  /* F11 · a cell is TWO things: its figure and its status marks. "33D" read as
+     a number; the figure and the marks are now drawn apart, and `label` stays
+     their concatenation for every caller that wants the compact string.
+     Twin: SeasonBookSnapshot.parts / .label on the phone. */
+  parts(r,c,cumulative=false){
+    if(c.future)return { fig:'•', marks:'' };
     const pts=cumulative?c.cumulative:c.points, es=this.entries(r,c.week,cumulative);
-    if(pts==null)return '—';
-    if(!cumulative && es.length && es.every(e=>e.count_state==='bye'))return 'B';
-    if(!cumulative && es.length && es.every(e=>e.count_state==='dropped'))return 'D';
-    return String(pts)+(cumulative?'':(es.some(e=>!e.round_id)?'*':'')+(es.some(e=>e.count_state==='dropped')?'D':''));
+    if(pts==null)return { fig:'—', marks:'' };
+    if(!cumulative && es.length && es.every(e=>e.count_state==='bye'))return { fig:'B', marks:'' };
+    if(!cumulative && es.length && es.every(e=>e.count_state==='dropped'))return { fig:'D', marks:'' };
+    return { fig:String(pts), marks: cumulative?'':(es.some(e=>!e.round_id)?'*':'')+(es.some(e=>e.count_state==='dropped')?'D':'') };
+  },
+  label(r,c,cumulative=false){ const p=this.parts(r,c,cumulative); return p.fig+p.marks; },
+  /* F11 · what a cell SAYS to a screen reader — the phone's sentence verbatim
+     (SeasonBookSnapshot.spoken), so a mark is never only a letter */
+  spoken(r,c,cumulative=false){
+    if(c.future)return 'Future week';
+    const pts=cumulative?c.cumulative:c.points;
+    if(pts==null)return 'No round or adjustment recorded';
+    const es=this.entries(r,c.week,cumulative);
+    return pts+' points '+(cumulative?'through':'in')+' week '+c.week
+      +(es.some(e=>e.count_state==='dropped')?'; dropped rounds retained in receipt':'')
+      +(es.some(e=>!e.round_id)?'; adjustment or bye recorded':'');
   },
   domain(rows){const values=rows.flatMap(r=>r.cells.flatMap(c=>c.cumulative==null?[]:[c.cumulative]));return [Math.min(0,...values),Math.max(1,...values)];},
   standing(r){return r.points_rank==null?'':climbOrd(r.points_rank)+(r.tied?' · Tied':'');},
@@ -19789,8 +19808,10 @@ function csSeasonBookBody(b,selection){
     if(mode==='Race')h+=csSeasonBookRace(b,rows,follow);
     h+='<div class="sb-totals">'+rows.map(rowButton).join('')+'</div>';
   }else{
+    /* F11 · the key sits ABOVE the grid, beside the Display control that changes what a cell holds; below a long table it was out of the first view */
+    if(!cumulative) h+='<p class="sb-key fine">— No round · <b>D</b> Dropped · <b>B</b> Bye · <b>*</b> Adjustment · • Future week. Select a cell for its rounds and adjustments.</p>';
     h+=`<div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" class="${['active','cup_final'].includes(b.status)&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(w.starts_on)}</small></th>`).join('')}</tr></thead><tbody>`;
-    h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>`<td><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${c.future?'future week':(cumulative?c.cumulative:c.points)==null?'no round or adjustment recorded':(cumulative?c.cumulative:c.points)+' points '+(cumulative?'through':'in')+' week '+c.week}; open rounds and adjustments">${SeasonBook.label(r,c,cumulative)}</button></td>`).join('')}</tr>`).join('')+'</tbody></table></div><p class="fine">— No round · D Dropped · B Bye · * Adjustment · • Future week. Select a cell for its rounds and adjustments.</p>';
+    h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div>';
   }
   const adjustmentRows=group==='golfer'&&squad!=='all'?squads.filter(r=>r.squad_id===squad):rows;
   if(prominent){h+='<h2>Adjustments in the totals</h2><p>'+(group==='golfer'&&squad!=='all'?'Add these squad adjustments to the round contributions above.':'Already included in the totals. Kept in their assessed week, with their reason.')+'</p>';
