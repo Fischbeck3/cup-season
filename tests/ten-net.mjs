@@ -131,7 +131,9 @@ function evalCond(row, col, expr) {
   if (expr.startsWith('not.')) { neg = true; expr = expr.slice(4) }
   const dot = expr.indexOf('.')
   const op = dot < 0 ? expr : expr.slice(0, dot)
-  const arg = dot < 0 ? '' : decodeURIComponent(expr.slice(dot + 1))
+  /* URLSearchParams already decoded the value once; a second decode throws on
+     a literal `%` (an ilike pattern) -- PostgREST reads it as given */
+  const arg = dot < 0 ? '' : expr.slice(dot + 1)
   const r = testOp(getPath(row, col), op, arg)
   return neg ? !r : r
 }

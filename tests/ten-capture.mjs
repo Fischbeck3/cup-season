@@ -204,7 +204,7 @@ async function captureOne(browser, state, vp, theme, cdn) {
   page.on('pageerror', (e) => exceptions.push({ text: String(e.message).slice(0, 600), stack: String(e.stack || '').split('\n').slice(0, 6).join(' <- ') }))
 
   const t0 = Date.now()
-  const result = { assert: { ok: false, detail: 'not run' } }
+  const result = { assert: { ok: false, detail: 'not run' }, artifacts: [] }
   try {
     await page.goto(base + (state.url || '/'), { waitUntil: 'load', timeout: 30000 })
     if (!state.noSwClear) {
@@ -216,7 +216,7 @@ async function captureOne(browser, state, vp, theme, cdn) {
       })
     }
     await (state.settle ? state.settle(page) : settleDefault(page, state))
-    if (state.drive) await state.drive(page, { world, hold, vp, theme })
+    if (state.drive) await state.drive(page, { world, hold, vp, theme, out: OUT, artifacts: result.artifacts })
     await page.evaluate(() => document.fonts && document.fonts.ready).catch(() => {})
     await page.waitForTimeout(state.pause || 250)
     result.assert = await assertRoute(page, state)
@@ -310,7 +310,12 @@ async function main() {
     try {
       cap = await captureOne(browser, state, vp, theme, cdn)
       const fullPage = state.fullPage !== false && !(vp.tag === '375x380')
-      if (state.shot) await cap.page.locator(state.shot).first().screenshot({ path: join(OUT, file), animations: 'disabled', caret: 'hide', timeout: 30000 })
+      /* an element shot is the object alone: the app's fixed chrome (the top
+         bar, the tab bar, the install nudge, a toast) is hidden for the
+         instant of the capture only -- position:fixed would otherwise paint
+         over whatever part of the element sits under it */
+      if (state.shot) await cap.page.locator(state.shot).first().screenshot({ path: join(OUT, file), animations: 'disabled', caret: 'hide', timeout: 30000,
+        style: 'header.hdr, nav.tabbar, #installNudge, .toast { visibility: hidden !important; }' })
       else await cap.page.screenshot({ path: join(OUT, file), fullPage, animations: 'disabled', caret: 'hide', timeout: 30000 })
     } catch (e) {
       slots[i] = { file: null, family: state.family, state: state.id, viewport: vp, theme, error: String(e.message || e).split('\n')[0] }
@@ -331,6 +336,7 @@ async function main() {
       console: summary, messages: msgs, pageErrors: cap.exceptions, fixtureGaps: cap.gaps, blockedRequests: cap.blocked,
       requestStorm: cap.storm.hit, supabaseRequests: cap.log.filter((e) => e.path || e.ws).length,
       geometry: cap.result.geometry, swClear: cap.result.swClear || null, navigatorLocksRequests: cap.result.locks,
+      artifacts: (cap.result.artifacts || []).map((f) => { try { const b = readFileSync(f); return { file: f.startsWith(OUT) ? f.slice(OUT.length + 1) : f, sha256: sha(b), bytes: b.length } } catch { return { file: f, missing: true } } }),
       authRequests: cap.log.filter((e) => (e.path || '').startsWith('/auth/v1/')).map((e) => `${e.method} ${e.path}${(e.query || '').slice(0, 40)} -> ${e.result}`),
       gitSha, indexDirty: gitDirty, indexSha256Served: cap.served['/'] || cap.served['/index.html'] || null, indexSha256Disk: diskIndexSha,
       capturedAt: new Date().toISOString(), ms: cap.ms,
