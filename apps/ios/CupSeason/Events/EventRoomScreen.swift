@@ -54,39 +54,23 @@ struct EventRoomScreen: View {
           // S8 · the room's row came back empty: removed, or this golfer is
           // not on its roster. The read did not fail, so there is nothing to
           // try again — the one door is the way back to where he came from.
-          // The desk says the same two sentences.
-          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-            Text(EventRoomCopy.brow).csType(.agate, caps: true).foregroundStyle(cs.mut)
-              .accessibilityHidden(true)
-            Text(EventRoomCopy.unavailableHead).csType(.lead).foregroundStyle(cs.ink)
-              .fixedSize(horizontal: false, vertical: true)
-              .accessibilityLabel(EventRoomCopy.unavailableSpoken)
-              .accessibilityAddTraits(.isHeader)
-            Text(EventRoomCopy.unavailableWhy).csType(.bodyS).foregroundStyle(cs.mut)
-              .fixedSize(horizontal: false, vertical: true)
+          // It is said on the room's own plate, the ground every Ryder and
+          // Major opens on, so the golfer knows where he is: THE ROOM / NOT
+          // OPEN TO YOU, and the desk's two sentences.
+          recovery(head: EventRoomCopy.unavailableHead, spoken: EventRoomCopy.unavailableSpoken,
+                    why: EventRoomCopy.unavailableWhy) {
             CSDoor(.primary(EventRoomCopy.back, { dismiss() }))
           }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .csGutter()
-          .padding(.top, 72)
           .accessibilityIdentifier("event.unavailable")
         } else if let err = model.error {
-          // §7.3 · only a room with NOTHING cached speaks: one `lead` line, one
-          // `body` line, and **Try again** as the primary. The
-          // `CSCard(spine: cs.neg)` went with the card.
-          VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-            Text(EventRoomCopy.failedHead).csType(.lead).foregroundStyle(cs.ink)
-              .fixedSize(horizontal: false, vertical: true)
-              .accessibilityAddTraits(.isHeader)
-            Text(err).csType(.bodyS).foregroundStyle(cs.mut)
-              .fixedSize(horizontal: false, vertical: true)
+          // §7.3 · only a room with NOTHING cached speaks. S8 · on its own
+          // plate: THE ROOM / DIDN'T LOAD — "The room didn't load." said once
+          // — one line of why, **Try again** as the primary, and the way back.
+          recovery(head: EventRoomCopy.failedPlate, spoken: EventRoomCopy.failedHead, why: err) {
             CSDoor(.primary(EventRoomCopy.retry, { Task { await model.load() } }))
-            // S8 · the safe return names where it goes (the desk's words)
+            // the safe return names where it goes (the desk's words)
             CSDoor(.link(EventRoomCopy.back, { dismiss() }))
           }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .csGutter()
-          .padding(.top, 72)
           .accessibilityIdentifier("event.failed")
         } else {
           // §7.1 · **loading is the destination's own geometry, redacted** — the
@@ -138,6 +122,27 @@ struct EventRoomScreen: View {
     .csAssertBudget("event-room")
   }
 
+  /// S8 · a room with nothing to show, said on the room's own plate: the
+  /// brow names the place, the title says what happened, the why and the
+  /// doors follow on the page's ground. The plate keeps its back chevron, as
+  /// every room's plate does.
+  private func recovery<Doors: View>(head: String, spoken: String, why: String,
+                                     @ViewBuilder doors: () -> Doors) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      EventTitleCard(eyebrow: EventRoomCopy.brow, live: false, title: head, dateline: [],
+                     back: { dismiss() }, spokenTitle: spoken)
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        Text(why).csType(.body).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+        doors()
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .csGutter()
+      .padding(.top, CSTokens.Space.s4)
+    }
+    .accessibilityElement(children: .contain)
+  }
+
   /// The room's own shape with no facts in it. Nothing here is a spinner and
   /// nothing here is a fabricated name — the redaction blanks the type.
   private var placeholder: some View {
@@ -161,6 +166,8 @@ struct EventRoomScreen: View {
 /// unavailable plates). §4.36: a Ryder or a Major, never "event", in product text.
 enum EventRoomCopy {
   static let failedHead = "The room didn't load."
+  /// the plate's title under the brow "The room" — the same sentence, said once
+  static let failedPlate = "Didn\u{2019}t load"
   static let retry = "Try again"
   static let brow = "The room"
   static let unavailableHead = "Not open to you"
