@@ -81,7 +81,7 @@ const PUBLIC_ROUND = [
   share('long-name-nine', SHARE.roundLong, { round: true, text: 'NINE HOLES[\\s\\S]*Indigo Longname-Fixturington', photos: 0, cta: 'Play with your people' }),
   share('escaped-name', SHARE.roundEscaped, { round: true, text: '<img src=x onerror=', photos: 0, cta: 'Play with your people' }),
   share('no-band', SHARE.roundNoBand, { round: true, text: 'Jules Sandbox', photos: 0, band: false, cta: 'Play with your people' }),
-  share('broken-photo', SHARE.roundBroken, { round: true, text: 'Harper Examplar', photos: 0, cta: 'Play with your people' }, { world: { flags: { brokenPhotos: true } } }),
+  share('broken-photo', SHARE.roundBroken, { round: true, text: 'Harper Examplar', photos: 0, cta: 'Play with your people' }, { world: { flags: { brokenPhotos: true } }, expectConsole: [/status of 404/] }),
   share('dead-link', SHARE.dead, { text: 'This link is dead', cta: 'Play this with your crew' }),
   share('settlement', SHARE.settlement, { text: 'MATCH PLAY[\\s\\S]*Blake & Devon beat Casey & Gray 3&2', cta: 'Play this with your crew', title: '^MATCH PLAY at ' }),
   share('recap', SHARE.recap, { text: 'NORTH GROVE \\(FIXTURE\\)[\\s\\S]*Fixture Javelinas[\\s\\S]*IN PLAY', cta: 'Play this with your crew' }),
