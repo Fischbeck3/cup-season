@@ -21,11 +21,20 @@ struct CupSeasonApp: App {
   /// The looks (IOS-025): the personal dial + every league's curated look, one read per session.
   @State private var looks = CSDevHatch.lookStore()
 
+  #if DEBUG
+  /// `-cs_dev_synthetic <scenario>` · the fixture seam's app half. The
+  /// initializers above have already built `SupabaseService.shared` (and, in a
+  /// synthetic launch, cleaned the sandbox); this seeds the invented session
+  /// and installs the router before the first `.task` can make a request.
+  /// Release has no explicit initializer at all.
+  init() { SyntheticBoot.install() }
+  #endif
+
   // A computed view adds no container in Release: its sole expression is RootView().
   @ViewBuilder private var launchRoot: some View {
     #if DEBUG
     Group {
-      if SecurityReviewFixture.on { SecurityReviewFixtureView() } else if LiveIslandReviewFixture.on { LiveIslandReviewFixtureView() } else if WidgetReviewFixture.on { WidgetReviewFixtureView() } else if MorningReviewFixture.on { MorningReviewFixtureView() } else if CompeteSelectedFixture.on { CompeteSelectedFixtureView() } else if CompeteExploration.on { CompeteExplorationView() } else { RootView() }
+      if SecurityReviewFixture.on { SecurityReviewFixtureView() } else if LiveIslandReviewFixture.on { LiveIslandReviewFixtureView() } else if WidgetReviewFixture.on { if SyntheticSeam.on { SyntheticWidgetReview() } else { WidgetReviewFixtureView() } } else if MorningReviewFixture.on { MorningReviewFixtureView() } else if CompeteSelectedFixture.on { CompeteSelectedFixtureView() } else if CompeteExploration.on { CompeteExplorationView() } else { RootView() }
     }
     #else
     RootView()

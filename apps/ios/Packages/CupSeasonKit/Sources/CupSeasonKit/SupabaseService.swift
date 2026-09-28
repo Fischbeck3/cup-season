@@ -64,8 +64,18 @@ public final class SupabaseService: Sendable {
     c.waitsForConnectivity = false
     #if DEBUG
     if ProcessInfo.processInfo.arguments.contains("-cs_dev_offline_network") { c.protocolClasses = [OfflineReviewTransport.self] }
+    if SyntheticSeam.on { c.protocolClasses = [SyntheticTransport.self] }
     #endif
     return URLSession(configuration: c)
+  }
+
+  /// The Keychain in every build a golfer runs; the in-memory synthetic store
+  /// only in a DEBUG simulator launched with `-cs_dev_synthetic`.
+  private static func authStorage() -> any AuthLocalStorage {
+    #if DEBUG
+    if SyntheticSeam.on { SyntheticSeam.prepareSandboxOnce(); return SyntheticSeam.authStorage }
+    #endif
+    return DeviceOnlyAuthStorage()
   }
 
   private init() {
@@ -73,7 +83,7 @@ public final class SupabaseService: Sendable {
       supabaseURL: CSConfig.supabaseURL,
       supabaseKey: CSConfig.supabasePublishableKey,
       options: SupabaseClientOptions(
-        auth: .init(storage: DeviceOnlyAuthStorage(), flowType: .implicit, emitLocalSessionAsInitialSession: true),
+        auth: .init(storage: SupabaseService.authStorage(), flowType: .implicit, emitLocalSessionAsInitialSession: true),
         global: .init(headers: ["x-client-info": "cupseason-ios"], session: SupabaseService.tunedSession())
       )
     )

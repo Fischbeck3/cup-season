@@ -214,7 +214,39 @@ enum HomeRoute: Hashable { case schedule }
 /// table and a pot — opened with two different navigation models, one with a
 /// back chevron and one with a Close. §7.3: objects are pushed, actions are
 /// presented, and an event room is unambiguously an object.
-enum CompeteRoute: Hashable { case season(UUID, pane: SeasonPane), board(UUID), schedule, album(UUID), event(UUID) }
+enum CompeteRoute: Hashable {
+  case season(UUID, pane: SeasonPane), board(UUID), schedule, album(UUID), event(UUID)
+  #if DEBUG
+  /// S2/C3 · `-cs_dev_open book` in a synthetic launch: the season's Book,
+  /// pushed over its season page. The product reaches it from a row on that
+  /// page (`seasonBook.door`); this is the same page, one push, no finger.
+  case devBook(league: UUID, season: UUID)
+  #endif
+}
+
+#if DEBUG
+/// S2/C3 · the `cs.screen.<name>` a pushed destination wears.
+extension CompeteRoute {
+  var devMark: String {
+    switch self {
+    case .season: "season"
+    case .board: "board"
+    case .schedule: "schedule"
+    case .album: "album"
+    case .event: "event"
+    case .devBook: "book"
+    }
+  }
+}
+extension GolfersRoute {
+  var devMark: String {
+    switch self {
+    case .person: "person"
+    case .headToHead: "headtohead"
+    }
+  }
+}
+#endif
 
 /// Golfers' own stack (IOS-028, filled by IOS-032). Wave 3 declared only what
 /// it could land on; wave 5 adds the two pages the design draws, because a
@@ -365,15 +397,29 @@ struct MainTabView: View {
       // ---- 1 · HOME. The dispatch. One push: the calendar. ----
       NavigationStack(path: $homePath) {
         HomeView(links: csLinks, push: { homePath.append($0) })
+          #if DEBUG
+          .csScreenMark("home")
+          #endif
           .navigationDestination(for: HomeRoute.self) { r in
             switch r {
             case .schedule: ScheduleScreen(links: csLinks)
+              #if DEBUG
+              .csScreenMark("schedule")
+              #endif
             }
           }
           .navigationDestination(for: CourseSheetRef.self) { c in
             CourseScreen(courseId: c.id, label: c.label)
+              #if DEBUG
+              .csScreenMark("course")
+              #endif
           }
-          .navigationDestination(for: CoursesRoute.self) { _ in CourseHomeScreen() }
+          .navigationDestination(for: CoursesRoute.self) { _ in
+            CourseHomeScreen()
+              #if DEBUG
+              .csScreenMark("courses")
+              #endif
+          }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.home.label, systemImage: "house") }
@@ -386,11 +432,27 @@ struct MainTabView: View {
         CompeteScreen(links: csLinks,
                       push: { competePath.append($0) },
                       openGolfers: { openGolfers() })
-          .navigationDestination(for: CompeteRoute.self) { r in competeDestination(r) }
+          #if DEBUG
+          .csScreenMark("compete")
+          #endif
+          .navigationDestination(for: CompeteRoute.self) { r in
+            competeDestination(r)
+              #if DEBUG
+              .csScreenMark(r.devMark)
+              #endif
+          }
           .navigationDestination(for: CourseSheetRef.self) { c in
             CourseScreen(courseId: c.id, label: c.label)
+              #if DEBUG
+              .csScreenMark("course")
+              #endif
           }
-          .navigationDestination(for: CoursesRoute.self) { _ in CourseHomeScreen() }
+          .navigationDestination(for: CoursesRoute.self) { _ in
+            CourseHomeScreen()
+              #if DEBUG
+              .csScreenMark("courses")
+              #endif
+          }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.compete.label, systemImage: "flag") }
@@ -407,11 +469,27 @@ struct MainTabView: View {
                       openPerson: { openPerson($0) },
                       openHeadToHead: { golfersPath.append(GolfersRoute.headToHead($0)) },
                       openRound: { presenter.scheduledRound = $0 })
-          .navigationDestination(for: GolfersRoute.self) { r in golfersDestination(r) }
+          #if DEBUG
+          .csScreenMark("golfers")
+          #endif
+          .navigationDestination(for: GolfersRoute.self) { r in
+            golfersDestination(r)
+              #if DEBUG
+              .csScreenMark(r.devMark)
+              #endif
+          }
           .navigationDestination(for: CourseSheetRef.self) { c in
             CourseScreen(courseId: c.id, label: c.label)
+              #if DEBUG
+              .csScreenMark("course")
+              #endif
           }
-          .navigationDestination(for: CoursesRoute.self) { _ in CourseHomeScreen() }
+          .navigationDestination(for: CoursesRoute.self) { _ in
+            CourseHomeScreen()
+              #if DEBUG
+              .csScreenMark("courses")
+              #endif
+          }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.golfers.label, systemImage: "person.2") }
@@ -420,9 +498,15 @@ struct MainTabView: View {
       // ---- 5 · YOU. The card, the number, the record. ----
       NavigationStack(path: $youPath) {
         YouScreen(leagueId: store.preferredLeague, links: youLinks)
+          #if DEBUG
+          .csScreenMark("you")
+          #endif
           .navigationDestination(for: YouRoute.self) { r in
             switch r {
             case .settings: CardAndSettingsScreen()
+              #if DEBUG
+              .csScreenMark("settings")
+              #endif
             case .addGhin: CardAndSettingsScreen(focus: .ghin)
             // D232 · the record is a DESTINATION, not a section
             // Wave 3 · a name on the record IS a record: the row opens the
@@ -432,12 +516,23 @@ struct MainTabView: View {
                                        tab = .golfers
                                        golfersPath.append(GolfersRoute.headToHead(id))
                                      })
+              #if DEBUG
+              .csScreenMark("record")
+              #endif
             }
           }
           .navigationDestination(for: CourseSheetRef.self) { c in
             CourseScreen(courseId: c.id, label: c.label)
+              #if DEBUG
+              .csScreenMark("course")
+              #endif
           }
-          .navigationDestination(for: CoursesRoute.self) { _ in CourseHomeScreen() }
+          .navigationDestination(for: CoursesRoute.self) { _ in
+            CourseHomeScreen()
+              #if DEBUG
+              .csScreenMark("courses")
+              #endif
+          }
       }
       .toolbar(.hidden, for: .tabBar)
       .tabItem { Label(NavSlot.you.label, systemImage: "person.text.rectangle") }
@@ -515,9 +610,18 @@ struct MainTabView: View {
     #if DEBUG
     // Developer hatch: `-cs_dev_open <place>` lands a simulator on a screen
     // without a finger. DEBUG-only; the shipped build has no such door.
+    // S2/C3 · in a `-cs_dev_synthetic` launch every place resolves against the
+    // synthetic world instead (`openSynthetic` below).
     .task(id: store.me?.generated_at) {
       let a = ProcessInfo.processInfo.arguments
-      guard !devOpened, store.me != nil, let i = a.firstIndex(of: "-cs_dev_open"), i + 1 < a.count else { return }
+      guard SyntheticSeam.on, !devOpened, store.me != nil, let i = a.firstIndex(of: "-cs_dev_open"), i + 1 < a.count else { return }
+      try? await Task.sleep(for: .seconds(1.5))
+      devOpened = true
+      await openSynthetic(a[i + 1], i + 2 < a.count ? a[i + 2] : nil)
+    }
+    .task(id: store.me?.generated_at) {
+      let a = ProcessInfo.processInfo.arguments
+      guard !SyntheticSeam.on, !devOpened, store.me != nil, let i = a.firstIndex(of: "-cs_dev_open"), i + 1 < a.count else { return }
       try? await Task.sleep(for: .seconds(2))
       devOpened = true
       switch a[i + 1] {
@@ -704,6 +808,9 @@ struct MainTabView: View {
     })) { card in
       LinkConfirmationSheet(card: card, busy: linkBusy, error: linkError,
                             confirm: { Task { await confirmLink(card) } }, decline: declineLink)
+        #if DEBUG
+        .csScreenMark("link")
+        #endif
     }
     .csSheet(item: $presenter.widgetRivalry) { id in
       RivalrySheet(opponentId: id, name: BetweenRoundsSnapshot.read()?.rivalry?.value.flatMap { $0.opponent == id ? $0.name : nil } ?? "your rival")
@@ -756,10 +863,18 @@ struct MainTabView: View {
                    playThem: { presenter.tourCard = nil; presenter.length = $0 })
           .csCloseButton { presenter.tourCard = nil }
       }
+      #if DEBUG
+      .csScreenMark("tourcard")
+      #endif
     }
     /* D262 · R-O · the bag. The You row that opens it is drawn only once its
        read has answered, so this sheet is never reachable without one. */
-    .csSheet(isPresented: $presenter.showBag) { BagSheet() }
+    .csSheet(isPresented: $presenter.showBag) {
+      BagSheet()
+        #if DEBUG
+        .csScreenMark("bag")
+        #endif
+    }
     // D312 · the bag as a place. Its own stack so the page keeps a back
     // affordance if it ever grows one, and `Close` per LINT-25.
     .csSheet(item: $presenter.bagOf) { id in
@@ -789,19 +904,35 @@ struct MainTabView: View {
                         armPhoto: presenter.receiptArmPhoto,
                         focusComments: presenter.receiptFocusComments, focusComment: presenter.receiptComment)
         .csDevTextSize(CSDevHatch.textSize)
+        #if DEBUG
+        .csScreenMark("receipt")
+        #endif
         .task { presenter.receiptArmPhoto = false }
     }
     .csSheet(item: $presenter.scorecard) { ScorecardSheet(liveRoundId: $0) }
     .onChange(of: presenter.receipt) { _, id in
       if id == nil { presenter.receiptComment = nil; presenter.receiptFocusComments = false }
     }
-    .csSheet(item: $presenter.scheduledRound) { ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks) }
-    .csSheet(item: $presenter.declare) { DeclareRoundSheet(prefill: $0, leagueId: store.preferredLeague) { _ in } }
+    .csSheet(item: $presenter.scheduledRound) {
+      ScheduledRoundSheet(roundId: $0, leagueId: store.preferredLeague, links: csLinks)
+        #if DEBUG
+        .csScreenMark("plan")
+        #endif
+    }
+    .csSheet(item: $presenter.declare) {
+      DeclareRoundSheet(prefill: $0, leagueId: store.preferredLeague) { _ in }
+        #if DEBUG
+        .csScreenMark("declare")
+        #endif
+    }
     .csSheet(isPresented: $presenter.showJoin) {
       JoinLeagueFlow(code: presenter.joinCode) { id in
         Task { await store.reload() }
         openCompetition(id)
       }
+      #if DEBUG
+      .csScreenMark("join")
+      #endif
     }
     .csSheet(isPresented: $presenter.showFeedback) {
       FeedbackSheet(screen: presenter.feedbackScreen, leagueId: store.preferredLeague,
@@ -814,7 +945,12 @@ struct MainTabView: View {
       PeoplePickerSheet(mode: .invite(.league(lid), share: m.flatMap { mm in mm.code.map { (name: mm.name, code: $0) } }),
                         onDone: { presenter.inviteTo = nil })
     }
-    .csSheet(isPresented: $presenter.showEventPicker) { EventPickerSheet(links: eventLinks) }
+    .csSheet(isPresented: $presenter.showEventPicker) {
+      EventPickerSheet(links: eventLinks)
+        #if DEBUG
+        .csScreenMark("eventpicker")
+        #endif
+    }
     // D325 · the cover is gone; the room is a pushed screen. This host stays
     // only so the DEV hatch and any deep link that has no stack of its own can
     // still raise it — nothing in the product sets `presenter.event` now.
@@ -837,10 +973,18 @@ struct MainTabView: View {
       NavigationStack {
         WizardScreen(existingLeagueId: t.existingLeagueId, links: wizardLinks, initialStep: t.initialStep, invitee: t.invitee)
       }
+      #if DEBUG
+      .csScreenMark("wizard")
+      #endif
     }
     // D225 · the intent sheet. Every "Start something" lands here first, and
     // nothing is minted by opening it.
-    .csSheet(isPresented: $presenter.showIntent) { IntentSheet(take: takeIntent, joinWithCode: { presenter.join(code: nil) }) }
+    .csSheet(isPresented: $presenter.showIntent) {
+      IntentSheet(take: takeIntent, joinWithCode: { presenter.join(code: nil) })
+        #if DEBUG
+        .csScreenMark("intent")
+        #endif
+    }
     #if DEBUG
     // `-cs_dev_open_play` — the ⊕ cover, on launch, for a simulator with no finger.
     .task { if CSDevHatch.openPlay { presenter.postOnComposer = false; presenter.showPost = true } }
@@ -898,8 +1042,16 @@ struct MainTabView: View {
     }
     .csCover(isPresented: $presenter.showPost) {
       PostCoverView(startOnComposer: presenter.postOnComposer, links: postLinks)
+        #if DEBUG
+        .csScreenMark(presenter.postOnComposer ? "composer" : "post")
+        #endif
     }
-    .csCover(isPresented: $presenter.showLive) { LiveRoundHost(links: liveLinks) }
+    .csCover(isPresented: $presenter.showLive) {
+      LiveRoundHost(links: liveLinks)
+        #if DEBUG
+        .csScreenMark("live")
+        #endif
+    }
   }
 
   /// The band's five slots. The glyphs are the product's own drawn family at
@@ -1099,6 +1251,79 @@ struct MainTabView: View {
   }
 
   #if DEBUG
+  /// S2/C3 · `-cs_dev_open <place> [detail]` in a synthetic launch. Every id is
+  /// the SYNTHETIC world's (`fid`), never "the first buddy this account has",
+  /// and the two hatches that drew a pre-seam fixture (the ceremony, the
+  /// epilogue) take the product's own path instead. A place this does not know
+  /// logs a MISS and leaves the shell where it is — the capture then fails its
+  /// root check rather than photographing Home as something else.
+  private func openSynthetic(_ place: String, _ detail: String?) async {
+    let solo = fid(1_001), squads = fid(1_002)
+    let league = detail == "squads" ? squads : (store.me?.memberships.first { $0.league_id == solo }?.league_id ?? store.me?.memberships.first?.league_id)
+    let blake = fid(2)
+    switch place {
+    case "home": tab = .home
+    case "compete", "clubhouse", "scoreboard": tab = .compete
+    case "golfers", "people", "board-friends": tab = .golfers; golfersPath = NavigationPath()
+    case "you": tab = .you
+    case "season", "ceremony": if let league { openCompetition(league, pane: .table) }
+    case "pot": if let league { openCompetition(league, pane: .pot) }
+    case "board": if let league { openCompetition(league, pane: .board) }
+    case "album": if let league { openCompetition(league, pane: .album) }
+    case "story", "rules":
+      guard let league else { break }
+      openCompetition(league, pane: .table)
+      try? await Task.sleep(for: .milliseconds(1200))
+      competePath.append(place == "story" ? SeasonSubRoute.story(league) : SeasonSubRoute.rules(league))
+    case "book":
+      guard let league, let season = store.me?.memberships.first(where: { $0.league_id == league })?.season?.id else { break }
+      openCompetition(league, pane: .table)
+      competePath.append(CompeteRoute.devBook(league: league, season: season))
+    case "schedule": tab = .compete; competePath = NavigationPath(); competePath.append(CompeteRoute.schedule)
+    case "event", "ryder": openEvent(fid(5_001))
+    case "event-complete": openEvent(fid(5_002))
+    case "major": openEvent(fid(5_003))
+    case "event-missing": openEvent(fid(5_999))
+    case "events", "eventpicker": presenter.showEventPicker = true
+    case "intent": presenter.showIntent = true
+    case "person": openPerson(detail == "me" ? (store.me?.profile?.id ?? blake) : blake)
+    case "headtohead", "h2h": tab = .golfers; golfersPath = NavigationPath(); golfersPath.append(GolfersRoute.headToHead(blake))
+    case "settings": tab = .you; youPath = NavigationPath(); youPath.append(YouRoute.settings)
+    case "record": tab = .you; youPath = NavigationPath(); youPath.append(YouRoute.record)
+    case "courses": tab = .you; openCourse(nil)
+    case "course": tab = .you; openCourse(CourseSheetRef(id: "fixture-north-grove", label: "North Grove (fixture)"))
+    case "coursecard":
+      tab = .you
+      var kept: [CourseBook] = []
+      for _ in 0..<12 where kept.isEmpty && detail != "never" {
+        kept = await CourseBookStore().kept()
+        if kept.isEmpty { try? await Task.sleep(for: .milliseconds(400)) }
+      }
+      let book = kept.first
+      openCourse(CourseSheetRef(id: book?.id ?? "never-kept", label: book?.label ?? "A course you have not played"))
+    case "receipt": presenter.receipt = fid(4_001)
+    case "receipt-nophoto": presenter.receipt = fid(4_002)
+    case "receipt-broken": presenter.receipt = fid(4_003)
+    case "receipt-withdrawn": presenter.receipt = fid(4_005)
+    case "receipt-other": presenter.receipt = fid(4_101)
+    case "plan": presenter.scheduledRound = fid(7_001)
+    case "declare": presenter.declare = DeclarePrefill()
+    case "tourcard": presenter.tourCard = detail == "other" ? blake : store.me?.profile?.id
+    case "bag": presenter.showBag = true
+    case "post": presenter.postOnComposer = false; presenter.showPost = true
+    case "postround", "composer": presenter.postOnComposer = true; presenter.showPost = true
+    case "live": presenter.showLive = true
+    case "wizard": presenter.wizard = .init(existingLeagueId: nil)
+    case "whenfork": presenter.showWhenFork = true
+    case "forfeit": presenter.forfeit = .init(home: ForfeitHome(leagueId: detail == "league" ? league : nil), opponentName: nil)
+    case "feedback": presenter.feedbackScreen = "you"; presenter.showFeedback = true
+    // Handled before the tabs exist: the boot stored the link (SyntheticBoot),
+    // and the shell drains it exactly as it drains a tapped one.
+    case "invite", "join", "claim", "card", "crew": break
+    default: SyntheticSeam.log("MISS route=\(place) — no synthetic place by that name")
+    }
+  }
+
   /// The first golfer the hatch can land on: a buddy if there is one, else
   /// somebody in a shared league. Nothing is invented — if the account knows
   /// nobody, the hatch lands on the tab root and says so by showing it.
@@ -1181,6 +1406,10 @@ struct MainTabView: View {
     // chevron from the stack; the `NavigationStack` the cover wrapped it in
     // goes with the cover.
     case .event(let id): EventRoomScreen(eventId: id, links: eventLinks)
+    #if DEBUG
+    case .devBook(let league, let season):
+      SeasonBookPage(leagueID: league, seasonID: season, openRound: { presenter.receipt = $0 })
+    #endif
     }
   }
 

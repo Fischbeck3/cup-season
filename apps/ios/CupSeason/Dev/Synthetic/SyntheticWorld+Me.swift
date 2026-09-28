@@ -1,0 +1,182 @@
+// Cup Season — synthetic `native_home()` (the boot read) and the other reads a
+// signed-in boot makes before any screen: `founding_ids`, `league_looks`.
+
+#if DEBUG
+import Foundation
+import CupSeasonKit
+
+/// A synthetic season, as `native_home` and the season reads both describe it.
+struct SynthLeague: Sendable {
+  let n: Int
+  let name: String
+  let code: String
+  let solo: Bool
+  let finish: String           // "cup_final" | "points_table"
+  let buyinCents: Int
+  let members: [Int]           // person numbers, in table order (rank 1 first)
+  let points: [Double]         // same order
+  let weeksTotal: Int
+  let week: Int                // current week (1-based)
+  let status: String           // "active" | "cup_final" | "complete"
+  var id: UUID { fid(n) }
+  var ids: String { fids(n) }
+  var seasonN: Int { n + 100 }
+  var seasonIds: String { fids(seasonN) }
+  func memberIds(_ person: Int) -> String { fids(n * 100 + person) }
+}
+
+extension SyntheticWorld {
+  /// The seasons in this world. Empty unless the scenario is about one.
+  var leagues: [SynthLeague] {
+    guard hasSeasons else { return [] }
+    let final = scenario == .seasonFinal, done = scenario == .ceremony
+    let status = done ? "complete" : final ? "cup_final" : "active"
+    return [
+      SynthLeague(n: 1_001, name: "Fixture Cup League", code: "FIXCUP", solo: true, finish: "cup_final", buyinCents: 4_000,
+                  members: [2, 4, 1, 3, 9, 6, 5, 7], points: [55, 47, 41, 38, 33, 29, 22, 14],
+                  weeksTotal: 13, week: done ? 13 : final ? 11 : 6, status: status),
+      SynthLeague(n: 1_002, name: "Placeholder Squads League", code: "FIXSQD", solo: false, finish: "points_table", buyinCents: 0,
+                  members: [6, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12], points: [31, 28, 27, 25, 22, 21, 19, 18, 16, 12, 10, 7],
+                  weeksTotal: 10, week: done ? 10 : 4, status: done ? "complete" : "active"),
+    ]
+  }
+
+  func league(_ ids: String?) -> SynthLeague? { leagues.first { $0.ids == ids?.lowercased() || $0.seasonIds == ids?.lowercased() } }
+
+  /// The season's calendar, from the league's week and length.
+  func seasonDates(_ l: SynthLeague) -> (starts: Int, ends: Int, weekEnds: Int) {
+    let starts = -((l.week - 1) * 7 + 3)                 // three days into this week
+    return (starts, starts + l.weeksTotal * 7 - 1, starts + l.week * 7 - 1)
+  }
+
+  /// Squads for the squads league: three sides of four.
+  var squadNames: [(n: Int, name: String, color: Int)] {
+    [(6_001, "Team Placeholder", 0), (6_002, "Team Stub", 1), (6_003, "Team Sample", 2)]
+  }
+  func squadOf(_ person: Int, in l: SynthLeague) -> Int? {
+    guard !l.solo, let i = l.members.firstIndex(of: person) else { return nil }
+    return squadNames[i % 3].n
+  }
+
+  // MARK: native_home
+
+  func meRPC(_ name: String, _ r: SynthRequest) -> SyntheticReply? {
+    switch name {
+    case "native_home": return SynthOut.json(nativeHome())
+    case "founding_ids": return SynthOut.json(["founder": NSNull(), "members": [String]()])
+    case "founder_id": return SynthOut.json(NSNull())
+    case "league_looks": return SynthOut.json([String: Any]())
+    default: return nil
+    }
+  }
+
+  func profileJSON() -> [String: Any] {
+    let card = scenario != .cardGate
+    let mine = myRounds
+    let last = mine.first
+    return [
+      "id": me.ids,
+      "display_name": card ? me.name : "avery.fixture",
+      "handle": card ? me.handle : NSNull(),
+      "marker": card ? me.marker : NSNull(),
+      "city": card ? me.city : NSNull(),
+      "home_course": card ? courses[0].name : NSNull(),
+      "index_current": hasRounds ? me.index : NSNull(),
+      "index_prev": hasRounds ? 13.1 : NSNull(),
+      "index_source": hasRounds ? "app" : "manual",
+      "photo_path": NSNull(),
+      "rounds_count": mine.count,
+      "member_since": stamp(-200, 10),
+      "is_founder": false,
+      "last_round_on": last.map { day($0.day) } ?? NSNull(),
+      "last_gross": last?.gross ?? NSNull(),
+      "last_round_id": last?.ids ?? NSNull(),
+      "days_since_round": last.map { -$0.day } ?? NSNull(),
+      "scan_consent_at": NSNull(),
+    ]
+  }
+
+  func membershipJSON(_ l: SynthLeague) -> [String: Any] {
+    let d = seasonDates(l)
+    let rank = (l.members.firstIndex(of: me.n) ?? 0) + 1
+    let myPoints = l.points[rank - 1]
+    let done = l.status == "complete"
+    var season: [String: Any] = [
+      "id": l.seasonIds, "number": 2, "starts_on": day(d.starts), "ends_on": day(d.ends), "status": l.status,
+      "timezone": "America/Phoenix", "grace_hours": 36,
+      "champion_squad_id": NSNull(), "champion_member_id": done ? l.memberIds(l.members[0]) : NSNull(),
+      "points_king_member_id": done ? l.memberIds(l.members[0]) : NSNull(), "tiebreak_rung": NSNull(),
+      "week_no": l.week, "weeks_total": l.weeksTotal, "week_ends_on": day(d.weekEnds),
+      "days_to_first_tee": NSNull(), "days_left": max(0, d.ends),
+      "final_opens_on": l.finish == "cup_final" ? day(d.ends - 27) : NSNull(),
+    ]
+    if done { season["days_left"] = 0 }
+    let up = rank > 1 ? ["name": person(l.members[rank - 2]).first, "points": l.points[rank - 2]] as [String: Any] : nil
+    let down = rank < l.members.count ? ["name": person(l.members[rank]).first, "points": l.points[rank]] as [String: Any] : nil
+    var standing: [String: Any] = [
+      "rank": rank, "of": l.solo ? l.members.count : 3, "points": myPoints, "prev_rank": rank + 1,
+      "leader_squad_id": NSNull(), "leader_points": l.points[0], "gap_to_leader": l.points[0] - myPoints,
+      "gap_to_next": rank > 1 ? l.points[rank - 2] - myPoints : NSNull(),
+      "leader_name": person(l.members[0]).first, "runner_up_name": person(l.members[1]).first,
+      "runner_up_points": l.points[1], "seed": NSNull(), "finalists": NSNull(),
+      "next_up": up ?? NSNull(), "next_down": down ?? NSNull(),
+      "points_rank": rank, "points_tied": false,
+    ]
+    var squad: Any = NSNull()
+    if !l.solo, let sq = squadOf(me.n, in: l), let s = squadNames.first(where: { $0.n == sq }) {
+      squad = ["id": fids(s.n), "name": s.name, "color": s.color]
+      standing["rank"] = 2; standing["leader_name"] = squadNames[0].name
+      standing["runner_up_name"] = s.name; standing["leader_squad_id"] = fids(squadNames[0].n)
+      standing["points"] = 104; standing["leader_points"] = 112; standing["gap_to_leader"] = 8
+      standing["gap_to_next"] = 8; standing["runner_up_points"] = 104
+      standing["next_up"] = ["name": squadNames[0].name, "points": 112]
+      standing["next_down"] = ["name": squadNames[2].name, "points": 96]
+    }
+    if l.status == "cup_final" {
+      standing["seed"] = rank <= 4 ? rank : NSNull()
+      standing["finalists"] = l.members.prefix(4).map { person($0).first }
+    }
+    let stake = l.buyinCents > 0
+    return [
+      "league_id": l.ids, "name": l.name, "code": l.code, "phase": done ? "complete" : "season", "sandbox": false,
+      "role": l.n == 1_002 ? "commissioner" : "member", "member_id": l.memberIds(me.n), "marker": me.marker,
+      "commissioner_name": l.n == 1_002 ? me.name : person(2).name,
+      "settings": [
+        "structure": l.solo ? "solo" : "squads", "preset": "standard", "counting_cap": 4, "participation_floor": 2,
+        "floor_penalty": "minus_three", "handicap_allowance": 100, "buyin_cents": l.buyinCents,
+        "payout_champ": stake ? 60 : 0, "payout_runnerup": stake ? 25 : 0, "payout_king": stake ? 15 : 0,
+        "finish": l.finish, "locked_at": stamp(d.starts - 10, 19),
+      ] as [String: Any],
+      "season": season,
+      "squad": squad,
+      "standing": standing,
+      "pulse": ["credits": 2, "floor": 2, "at_floor": true, "partial": false, "joined_this_month": false, "bye_available": true],
+      "buy_in": stake ? ["paid": true, "note": "Pay the Pro before week 2.", "due_on": day(d.starts + 7),
+                         "players": l.members.count, "paid_count": l.members.count - 2,
+                         "collected_cents": (l.members.count - 2) * l.buyinCents] as [String: Any] : NSNull(),
+      "roster": l.members.count, "members": l.members.count,
+      "pro_name": l.n == 1_002 ? me.first : person(2).first,
+      "renewal_status": NSNull(), "in_season": !done,
+      "last_season": ["number": 1, "ended_on": day(d.starts - 30), "champion_name": person(6).first,
+                      "champion_is_me": false, "my_rank": 3, "of": l.members.count] as [String: Any],
+      "clash": NSNull(),
+    ]
+  }
+
+  func nativeHome() -> [String: Any] {
+    var out: [String: Any] = [
+      "profile": profileJSON(),
+      "memberships": leagues.map { membershipJSON($0) },
+      "invites": [Any](),
+      "live_round": NSNull(),
+      "upcoming_rounds": upcomingRounds(),
+      "events": eventsForMe(),
+      "open_duels": [Any](),
+      "flags": ["ios": ["min_build": 0]],
+      "generated_at": stamp(0, 7, 30),
+    ]
+    if scenario == .brandNew || scenario == .cardGate { out["upcoming_rounds"] = [Any]() }
+    return out
+  }
+}
+#endif
