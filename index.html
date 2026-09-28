@@ -1384,6 +1384,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   padding:9px 6px; border-radius:8px; white-space:nowrap; min-height:44px;
 }
 .seg button.on{background:var(--bg1); color:var(--ink); border:1px solid var(--rule);}
+/* five games do not fit one row of a phone ("Sunningdale Rules" ran 35px past
+   the edge at 375 once labels stopped breaking): the game control wraps */
+#gameSeg{flex-wrap:wrap;} #gameSeg button{flex:1 1 auto;}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
 #albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); padding:10px 2px 2px;}
@@ -1733,7 +1736,10 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   .playgrid > .pgentry {grid-column:1; grid-row:1;}
   .playgrid > .pgfinish{grid-column:1; grid-row:2;}
   .playgrid > .pggames {grid-column:2; grid-row:1 / span 2;}
+  /* a round with no side game is one reading column, not a column and a void */
+  .playgrid:has(> .pggames[data-games="0"]){grid-template-columns:minmax(0,760px);}
 }
+.pggames[data-games="0"]{display:none;}
 /* D152 · the card view. Read-only by design: nothing here needs to be
    thumb-sized, which is what makes an 18-column grid honest in 390px of height.
    Below 740 the toggle is not offered at all — eighteen columns cannot be read
@@ -1826,6 +1832,9 @@ table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size
 .scoreboard.stuck{padding:8px 12px;}
 .scoreboard.stuck .sb-hero{font-size:13.5px;}
 .scoreboard.stuck .sb-sub{display:none;}
+/* ...except when scores are waiting to sync: the stuck face is the one you see
+   while scoring, so "8 queued" hid exactly when it mattered */
+.scoreboard.stuck .sb-sub.is-queued{display:block; margin-top:4px;}
 /* the guest pencil: only the live round exists — no nav, no tabs, no chrome */
 body.guestlive header.hdr, body.guestlive nav.tabbar{display:none !important;}
 body.guestlive #onboard{display:none !important;}
@@ -1851,14 +1860,17 @@ body.guestlive #onboard{display:none !important;}
    product, and all three blind reviewers filed it. */
 .holestrip{margin-top:10px;}
 .holestrip .cells{display:flex; align-items:center;}
-.holestrip .cells i{flex:1; min-width:20px; height:22px; display:flex; align-items:center; justify-content:center;}
+/* eighteen holes share the width: a 20px floor per hole needed 360px, more
+   than the scoreboard holds at 375, so the strip ran out of its card; a hole's
+   13px mark fits in ~17px */
+.holestrip .cells i{flex:1; min-width:0; height:22px; display:flex; align-items:center; justify-content:center;}
 .holestrip .cells i s{display:block; text-decoration:none; border:1.7px solid var(--ink); width:13px; height:13px;}
 .holestrip .cells i.under s{border-radius:50%;}
 .holestrip .cells i.level s{width:4px; height:4px; border:none; background:var(--ink); border-radius:50%;}
 .holestrip .cells i.open s{width:9px; height:1px; border:none; background:var(--mut);}
 .holestrip .rule{height:1px; background:var(--rule);}
 .holestrip .ticks{display:flex;}
-.holestrip .ticks i{flex:1; min-width:20px; height:2px;}
+.holestrip .ticks i{flex:1; min-width:0; height:2px;}
 .holestrip .ticks i.cur{background:var(--brand);}
 .holestrip .key{display:flex; align-items:center; gap:14px; margin-top:6px;
   font-family:var(--board); font-size:11px; letter-spacing:.08em; color:var(--mut);}
@@ -13949,6 +13961,7 @@ window.liveSyncBadge = function(){
   const n=Math.max(1,(state.livePresence||[]).length);
   const q=window.liveSync?.queued?.()||0;
   el.textContent = `${n} scoring · ${q ? q+' queued' : 'synced'}`;
+  el.classList.toggle('is-queued', q > 0);
 };
 /* the guest pencil: a claim link opened MID-ROUND. Token is identity — no
    account, no name pick. The same link claims the card after the finish.
@@ -14678,10 +14691,12 @@ function renderPlay(){
   $('#wolfCard').style.display  = state.live.game==='wolf'  ? 'block':'none';
   const sc=$('#skinsCard'); if(sc) sc.style.display = state.live.game==='skins' ? 'block':'none';
   $('#settleCard').style.display= (state.live.game==='wolf'||state.live.game==='skins') ? 'block':'none';
+  /* a just-score round announced "Side games · tracked live…" over nothing */
+  const pg=document.querySelector('.pggames'); if(pg) pg.dataset.games = (state.live.game && state.live.game!=='score') ? '1' : '0';
 
   const h=state.live.hole;
   $('#holeNum').textContent='HOLE '+(h+1);
-  $('#holeMeta').textContent=`PAR ${PAR[h]}` + (SI ? ` · SI ${SI[h]}` : '');
+  $('#holeMeta').textContent=`PAR ${PAR[h]}` + (SI ? ` · HCP ${SI[h]}` : '');   /* TERMINOLOGY §3.1: SI is an engine word; the phone's LiveCopy prints HCP */
 
   /* D153b · prominence tracks the round; the wording does not editorialise
      about it. Finishing early is legitimate — rained out, quit after nine —
