@@ -365,6 +365,8 @@ export function worldApi(W) {
       const h = W.handlers[name]
       if (!h) return GAP
       const v = await h(args || {}, W)
+      /* a handler may answer the way the SQL raises: { __error, status, code } */
+      if (v && typeof v === 'object' && !Array.isArray(v) && typeof v.__error === 'string') return v
       return v === undefined ? GAP : { __value: v }
     },
     async table(name, { params } = {}) {
