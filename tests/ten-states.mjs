@@ -79,16 +79,16 @@ const CORE = [
 
   /* ------------------------------------------------------------ home */
   { family: 'home', id: 'member', variant: 'member', expect: { view: 'view-home' } },
-  { family: 'explore', id: 'stats', variant: 'member', drive: go('stats'), expect: { view: 'view-stats' } },
-  { family: 'explore', id: 'record', variant: 'member', drive: go('record'), expect: { view: 'view-record' } },
-  { family: 'explore', id: 'hub', variant: 'member', drive: go('hub'), expect: { view: 'view-hub' } },
-  { family: 'explore', id: 'compete', variant: 'member', drive: go('compete'), expect: { view: 'view-compete' } },
-  { family: 'explore', id: 'golfers', variant: 'member', drive: go('golfers'), expect: { view: 'view-golfers' } },
-  { family: 'explore', id: 'schedule', variant: 'member', drive: go('schedule'), expect: { view: 'view-schedule' } },
-  { family: 'explore', id: 'play', variant: 'member', drive: go('play'), expect: { view: 'view-play' } },
-  { family: 'explore', id: 'post', variant: 'member', drive: go('post'), expect: { view: 'view-post' } },
-  { family: 'explore', id: 'wizard', variant: 'pro_setup', expect: { view: 'view-wizard' } },
-  { family: 'explore', id: 'event', variant: 'member', drive: go('event'), expect: { view: 'view-event' } },
+  { probe: true, family: 'explore', id: 'stats', variant: 'member', drive: go('stats'), expect: { view: 'view-stats' } },
+  { probe: true, family: 'explore', id: 'record', variant: 'member', drive: go('record'), expect: { view: 'view-record' } },
+  { probe: true, family: 'explore', id: 'hub', variant: 'member', drive: go('hub'), expect: { view: 'view-hub' } },
+  { probe: true, family: 'explore', id: 'compete', variant: 'member', drive: go('compete'), expect: { view: 'view-compete' } },
+  { probe: true, family: 'explore', id: 'golfers', variant: 'member', drive: go('golfers'), expect: { view: 'view-golfers' } },
+  { probe: true, family: 'explore', id: 'schedule', variant: 'member', drive: go('schedule'), expect: { view: 'view-schedule' } },
+  { probe: true, family: 'explore', id: 'play', variant: 'member', drive: go('play'), expect: { view: 'view-play' } },
+  { probe: true, family: 'explore', id: 'post', variant: 'member', drive: go('post'), expect: { view: 'view-post' } },
+  { probe: true, family: 'explore', id: 'wizard', variant: 'pro_setup', expect: { view: 'view-wizard' } },
+  { probe: true, family: 'explore', id: 'event', variant: 'member', drive: go('event'), expect: { view: 'view-event' } },
 ]
 
 export const STATES = [...CORE, ...(await familyModules())]

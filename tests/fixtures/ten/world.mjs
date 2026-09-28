@@ -319,6 +319,14 @@ export function worldApi(W) {
         }
         return { body: { signedURL: `/object/sign/${bucketPath}?token=fixture` } }
       }
+      /* an upload (the composer's photo, a shared card's public copy) is
+         accepted and remembered; nothing leaves this machine */
+      if (/^object\/(?!sign\/|public\/|authenticated\/|list\/)/.test(path) && (method === 'POST' || method === 'PUT')) {
+        const key = path.replace(/^object\//, '')
+        ;(W.uploads ||= []).push(key)
+        return { body: { Key: key, Id: 'fixture-upload-' + W.uploads.length } }
+      }
+      if (/^object\//.test(path) && method === 'DELETE') return { body: [] }
       if (/^object\/(sign|public|authenticated)\//.test(path) || /^render\/image\//.test(path)) {
         if (W.flags.brokenPhotos || /broken/.test(path)) return { status: 404, raw: { status: 404, contentType: 'application/json', body: '{"error":"not_found"}' } }
         return { raw: { status: 200, contentType: 'image/svg+xml', body: fixturePhotoSvg(path) } }

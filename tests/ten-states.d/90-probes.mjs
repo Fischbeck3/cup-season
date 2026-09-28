@@ -26,4 +26,11 @@ export default [
      manifest records authRequests and navigatorLocksRequests. */
   { family: 'probe', id: 'auth-refresh-on-boot', variant: 'member', probe: true, world: { sessionTtl: 5 },
     expect: { view: 'view-home' } },
+  /* PROBE 4 · Home alone (no Play) while the roster read succeeds EMPTY: the
+     forming hero kicks loadLeagueData() whenever CS.members is empty
+     (index.html "THE ROSTER MAY NOT HAVE LANDED"); does Home loop too? */
+  { family: 'probe', id: 'home-roster-read-empty', variant: 'member', probe: true, requestLimit: 800,
+    prepare: async (W) => { W.errors.when = [{ table: 'league_members', match: (q) => /league_id=eq\./.test(q), error: [] }] },
+    drive: async (page) => { await page.waitForTimeout(4000) },
+    expect: { view: 'view-home' } },
 ]
