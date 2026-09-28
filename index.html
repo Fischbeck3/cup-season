@@ -1373,7 +1373,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .seg button{
   flex:1; border:none; background:none; cursor:pointer;
   font-size:12px; font-weight:600; color:var(--mut);
-  padding:9px 6px; border-radius:8px;
+  padding:9px 6px; border-radius:8px; white-space:nowrap; min-height:44px;
 }
 .seg button.on{background:var(--bg1); color:var(--ink); border:1px solid var(--rule);}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
@@ -2184,8 +2184,12 @@ body.guestlive #onboard{display:none !important;}
 .pgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(52px,1fr)); gap:6px;}
 .pcell{background:var(--bg2); border:0.5px solid var(--rule); border-radius:9px; padding:5px 2px 6px; text-align:center;}
 .pcell .pn{display:block; font-size:11px; color:var(--mut); letter-spacing:.04em;}
-.pcell .prow{display:flex; align-items:center; justify-content:center; gap:3px; margin-top:2px;}
-.pcell .prow button{width:19px; height:19px; border:0.5px solid var(--rule); background:var(--bg); border-radius:6px; color:var(--ink); font-size:14px; line-height:1; padding:0; cursor:pointer;}
+.pcell .prow{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; margin-top:2px;}
+/* the per-hole steppers (the scan's confirm grid) were 19 x 19 on an undefined
+   --bg; stacked plus-over-minus they are 44 x 44 inside the 52px cell, on the
+   page's own raised ground, and never share a hit area with a neighbour */
+.pcell .prow button{width:44px; height:44px; border:1px solid var(--rule); background:var(--bg1); border-radius:var(--rc); color:var(--ink); font-size:18px; line-height:1; padding:0; cursor:pointer;}
+.pcell .prow button:focus-visible{outline:2px solid var(--act); outline-offset:1px;}
 .pcell .ps{min-width:18px; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
 .pcell.bird .ps{color:var(--pos);} .pcell.bog .ps{color:var(--mut);} .pcell.eag .ps{color:var(--gold);}
 .wiznav{display:flex; gap:8px; margin-top:16px;}
@@ -2336,7 +2340,7 @@ body.guestlive #onboard{display:none !important;}
    one action (D27/D81 — a hero has ONE move; this is a quiet link under it). */
 /* D126 · the endgame sentence under the seat line — a second voice, not a
    second headline (D94: one fact per tile; this explains the fact above it). */
-.chart-note .endgame-line{display:block; margin-top:5px; font-family:var(--fs); font-size:11.5px;
+.chart-note .endgame-line{display:block; margin-top:5px; font-size:11.5px;
   line-height:1.45; letter-spacing:0; text-transform:none; color:var(--mut);}
 .hhero .hh-sub{display:flex; align-items:center; justify-content:center; min-height:38px; margin-top:8px;
   width:100%; background:transparent; border:0; color:var(--mut); font-size:12.5px; text-decoration:underline;
@@ -11048,9 +11052,9 @@ function renderPostHoles(){
       const par=state.post.pars[i], sc=state.post.scores[i];
       const cls = sc<=par-2?'eag':sc<par?'bird':sc>par?'bog':'';
       return `<div class="pcell ${cls}"><span class="pn">${i+1} · P${par}</span>
-        <div class="prow"><button type="button" data-phm="${i}" aria-label="Minus hole ${i+1}">−</button>
+        <div class="prow"><button type="button" data-php="${i}" aria-label="Plus hole ${i+1}">+</button>
         <span class="ps">${sc}</span>
-        <button type="button" data-php="${i}" aria-label="Plus hole ${i+1}">+</button></div></div>`;
+        <button type="button" data-phm="${i}" aria-label="Minus hole ${i+1}">−</button></div></div>`;
     };
     $('#postHoleGridF').innerHTML=`<div class="pgrid">${[...Array(9).keys()].map(cell).join('')}</div>`;
     const bg=$('#postHoleGridB');
