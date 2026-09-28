@@ -1,5 +1,5 @@
 /* D339 · the web half — the welcome composition. Serve this checkout, open
-   /?exit, evaluate with web-verify.mjs at 320, 390 and 1440, and at a short
+   /?exit, evaluate with web-verify.mjs at 320, 390, 1440 and 1600, and at a short
    height (--height 560). Signed out. Every auth send is refused by a stub, so
    the walk never sends a real code. */
 (async function(){
@@ -57,7 +57,18 @@
           'the terrain is not at the quiet end of the ramp: '+getComputedStyle(sur).opacity+'/'+getComputedStyle(edge).opacity);
     check(getComputedStyle(terr).pointerEvents==='none','the terrain takes input');
     const tr=terr.getBoundingClientRect(); check(tr.right>=innerWidth-1 && tr.top<=0,'the terrain is not anchored to the upper right: '+JSON.stringify({r:tr.right,t:tr.top}));
-    check(tr.width>=innerWidth*0.6,'the terrain is not at page scale');
+    /* D339 · PAGE SCALE ON THE PHONE, EDITORIAL SCALE ON THE DESK AND NO
+       LARGER. 8f85dac built the terrain as `max(100%, 520px)` with
+       `min(62vw, 900px)` on the desk ("editorial scale on the desk and no
+       larger", its commit message; the handoff's `min(62vw, 900px)`), and
+       wrote this check beside it as `innerWidth*0.6` alone -- the 62vw arm
+       without the 900 cap of the same commit. It was only ever run at 320,
+       390 and 1440, where the cap cannot bind, so it failed every desk wider
+       than 1500 (I01: 1600, both themes). The owner board (2026-09-14) keeps
+       the contours out of the reading, which is what the cap does on a wide
+       desk. Both halves of the one rule are asserted. */
+    check(tr.width>=Math.min(innerWidth*0.6, 900)-1,'the terrain is not at page scale: '+Math.round(tr.width));
+    check(tr.width<=900+1,'the terrain is past editorial scale: '+Math.round(tr.width));
     /* the Forge is gone: no crest, no seared wordmark, no fuse, no glow, no delayed entrance */
     for(const s of ['.ob-crest','.obsw','.obfw','.ob-ember','.obtr','.ob-mark']) check(!q(s),'a Forge remnant is still on the door: '+s);
     check(!Array.from(document.querySelectorAll('svg path')).some(p=>(p.getAttribute('d')||'').startsWith(TRACER)),'the Tracer is still drawn somewhere');
