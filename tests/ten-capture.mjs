@@ -91,6 +91,9 @@ function git(root, ...a) { try { return execFileSync('git', ['-C', root, ...a], 
 const gitSha = git(ROOT_ARG, 'rev-parse', REF || 'HEAD')
 const gitDirty = REF ? false : (git(ROOT_ARG, 'status', '--porcelain', '--', 'index.html') || '').length > 0
 const harnessSha = git(HERE, 'rev-parse', 'HEAD')
+/* the harness's own uncommitted files: a capture made with a dirty fixture
+   module says so, so a gallery never claims provenance it does not have */
+const harnessDirty = (git(HERE, 'status', '--porcelain', '--', '.') || '').split('\n').filter(Boolean)
 const diskIndexSha = sha(readFileSync(join(ROOT, 'index.html')))
 
 /* classify one console line: `injected` when the state said it would provoke
@@ -371,7 +374,7 @@ async function main() {
     stop()
   }
   const manifest = {
-    harness: 'tests/ten-capture.mjs', harnessGitSha: harnessSha, root: ROOT_ARG, ref: REF, servedFrom: SNAPSHOT ? 'git archive snapshot of ' + REF : 'working tree', gitSha, indexDirty: gitDirty, indexSha256Disk: diskIndexSha,
+    harness: 'tests/ten-capture.mjs', harnessGitSha: harnessSha, harnessDirty, root: ROOT_ARG, ref: REF, servedFrom: SNAPSHOT ? 'git archive snapshot of ' + REF : 'working tree', gitSha, indexDirty: gitDirty, indexSha256Disk: diskIndexSha,
     indexSha256DiskAfter: SNAPSHOT ? diskIndexSha : sha(readFileSync(join(ROOT, 'index.html'))), captureClock: CAPTURE_NOW, port: PORT, serverPid: srv.pid,
     serve: SERVE, widths: WIDTHS, themes: THEMES, dsf: DSF, cdn: cdn.stats, startedAt: new Date(t0).toISOString(), finishedAt: new Date().toISOString(),
     serviceWorkers: 'blocked per context (Playwright serviceWorkers:block); registrations unregistered and caches cleared after load',
