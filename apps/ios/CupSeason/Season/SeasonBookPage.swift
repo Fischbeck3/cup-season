@@ -16,6 +16,9 @@ struct SeasonBookPage: View {
   @State private var follow = "leaders"
   @State private var week = 1
   @ScaledMetric(relativeTo: .body) private var rowHeight = 64.0
+  /// F11 · how far a cell's status marks sit above the figure's baseline — a
+  /// record note beside the number, never another digit of it.
+  @ScaledMetric(relativeTo: .caption2) private var marksLift = 5.0
   let leagueID: UUID
   let seasonID: UUID
   let openRound: @MainActor (UUID) -> Void
@@ -95,6 +98,16 @@ struct SeasonBookPage: View {
       }
       if prominent { Picker("Display",selection:$mode) { ForEach(["Weeks","Totals","Race"],id:\.self) { Text($0).tag($0) } }
         .pickerStyle(.segmented).accessibilityIdentifier("seasonBook.mode") }
+      // F11 · the key sits directly ABOVE the grid, beside the Display control
+      // that changes what a cell holds. Under a long table it was out of the
+      // first view. It explains the marks, so it shows only where marks are
+      // drawn: the week grid. Totals carry none, Race has no cells, and the
+      // accessibility list speaks every status in words.
+      if book.current_week > 0 && prominent && mode == "Weeks" && !type.isAccessibilitySize {
+        Text("— No round · D Dropped · B Bye · * Adjustment · • Future week. Tap a cell for its rounds and adjustments.")
+          .csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal:false,vertical:true)
+          .accessibilityIdentifier("seasonBook.key")
+      }
     }.padding(.horizontal,CSTokens.Space.gutter)
     if book.current_week == 0 {
       Text("No standing yet. Weeks begin at first tee.").csType(.story).padding(CSTokens.Space.gutter)
@@ -108,8 +121,6 @@ struct SeasonBookPage: View {
     else if type.isAccessibilitySize { accessible(book,visible) }
     else { matrix(book,visible) }
     if book.current_week > 0 && prominent {
-      Text("— No round · D Dropped · B Bye · * Adjustment · • Future week. Tap a cell for its rounds and adjustments.")
-        .csType(.bodyS).foregroundStyle(cs.mut).padding(.horizontal,CSTokens.Space.gutter)
       adjustments(book,visible)
     }
     Text("Points counting today")
@@ -145,15 +156,29 @@ struct SeasonBookPage: View {
             HStack(spacing:0) {
               ForEach(row.cells,id:\.week) { cell in
                 NavigationLink { receipts("\(row.name) · Week \(cell.week)",SeasonBookSnapshot.selectedEntries(row,week:cell.week,cumulative:mode == "Totals")) } label: {
-                  Text(SeasonBookSnapshot.label(row:row,cell:cell,cumulative:mode == "Totals")).csType(.columnM)
+                  cellFace(SeasonBookSnapshot.parts(row:row,cell:cell,cumulative:mode == "Totals"))
                     .frame(width:width,height:rowHeight).overlay(alignment:.bottom) { CSRule() }.contentShape(Rectangle())
                 }.buttonStyle(.plain).disabled(cell.future)
+                  // F11 · the cell SAYS its status: a mark is never only a letter
                   .accessibilityLabel("\(row.name), \(SeasonBookSnapshot.spoken(row:row,cell:cell,cumulative:mode == "Totals"))")
+                  .accessibilityHint(cell.future ? "" : "Opens its rounds and adjustments")
                   .accessibilityIdentifier("seasonBook.cell.\(row.id).\(cell.week)")
               }
             }
           }
         }
+      }
+    }
+  }
+  /// F11 · the figure in the column face, its marks beside it in the smaller
+  /// agate role and `mut`, lifted off the baseline. The marks are hidden from
+  /// assistive tech: the cell's own label already says them in words.
+  private func cellFace(_ p: SeasonBookSnapshot.CellParts) -> some View {
+    HStack(alignment:.firstTextBaseline,spacing:CSTokens.Space.s1) {
+      Text(p.fig).csType(.columnM)
+      if !p.marks.isEmpty {
+        Text(p.marks).csType(.agateS).foregroundStyle(cs.mut).baselineOffset(marksLift)
+          .accessibilityHidden(true)
       }
     }
   }
