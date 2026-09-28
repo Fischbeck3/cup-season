@@ -40,15 +40,15 @@ Owners:
 | F05 | P1 | Autumn Light action 4.312:1 | source + computed | Autumn look, Light, primary button | `tokens.json` looks.autumn; `CSTheme` act resolution; `CSPrimaryStyle` | native (web `act` regression) | N1 | — | smallest role-preserving fix at token/role source; regenerate | every look × both appearances × normal/pressed/busy/disabled + increased contrast ≥4.5:1 | open | |
 | F06 | P1 | Course card compact/AX3 | source arithmetic | course card 9/18, AX3, 375 | `CourseCardLeaf` rows `height:20`, grid; `CSLeaf` padding | native + web course card | N1 (web: root) | FX for route | intrinsic row height; fit/scroll from available width; pinned row labels | 9/18, no yards, long tee, first/last col, SE3/17Pro, themes, default/AX3, VO order | open | |
 | F07 | P2 | AX3 live context displaces scoring | captures | SE3 AX3 live | `LivePlayView` header/legend | native (web live check) | N2 | — | current hole/golfer scoring first; disclose secondary | first controls reachable without scroll; sync truth kept | open | |
-| F08 | P2 | Tee/Rating/Slope lose labels | captures | live setup filled, AX3 | `LiveSetupView` tee fields | native (web setup check) | N2 | — | persistent individual labels inline + stacked | each value identifiable visually + programmatically | open | |
+| F08 | P2 | Tee/Rating/Slope lose labels | captures | live setup filled, AX3 | `LiveSetupView` tee fields | native (web setup check) | N2 | — | persistent individual labels inline + stacked | each value identifiable visually + programmatically | fixed · verified (web); native → N2 | 9b4570a5 · tests/live-setup-labels-browser.mjs (320/375/402/1280 × themes) |
 | F09 | P2 | First-round composer explains league math | capture | web composer, no league | composer points panel/bands | web (native `PostRoundScreen` check) | root | — | task + short consequence first; bands behind named help | no league prerequisite implied; help focus; populated league keeps context | fixed · verified (web); native check → N2 | cfbc81f0 · tests/composer-first-round-browser.mjs 48/48 |
 | F10 | P2 | Empty profile repeats absence | capture | You with 0 rounds | web You/stats renderers; `YouScreen`, `ProfileBlocks` | both | root / N3 | FX | one identity + one next step; reveal sections as data arrives | empty/no-league/one-round/populated/error truthful | fixed · verified (web); native → N2 | 539d271b · tests/you-record-states-browser.mjs 44/44 |
 | F11 | P2 | Book cells read "33D" | capture | Book squads | web Book cell renderer; `SeasonBookPage` | both | root / N3 | FX | separate status marker; key near control; unambiguous AX name | §16 drilldown exact; compact + desktop | fixed · verified (web); native → N2 | 9c7e135a · tests/book-cells-browser.mjs 28/28 (receipt 9 = 9) |
 | F12 | P2 | Compete empty repeats invitation | capture | Compete empty | web Compete empty; `CompeteScreen` | both | root / N3 | FX | one primary Start something by the empty action | no route loss; one accessible action | fixed · verification pending (web capture); native → N2 | 8e0254d0 · compete-rows-browser.js passes 320/390/1440 |
 | F13 | P2 | Share artifact repeats band | capture | round share output | web share renderer; `RecapCardView` | both | root / N2 | — | say band once; facts + pennant kept | exported artifacts photo/no-photo/long; consent/cancel/withdraw | fixed · verified (web artifact); native parity → N2 | 8e0254d0 · tests/share-artifact-browser.mjs 81/81 |
 | F14 | P2 | Tiny composer labels; 18px wizard help | source + capture | composer; wizard `.ibtn` | `.calc .trio span`; `.ibtn` | web | root | — | readable ink/size; honest 44×44 hit regions | measured non-overlapping bounds every wizard step; names/focus/expanded | fixed · verified | 4b520f0b · tests/wizard-help-targets-browser.mjs 102/102 |
-| F15 | P2 | Compact calendar days 41pt | source arithmetic | Schedule at 375 | `ScheduleScreen` grid | native (web calendar check) | N1 | FX | reclaim spacing or compact arrangement | actual 44×44 hit bounds, no shared hit space, AX3 | open | |
-| F16 | P2 | Album read failure shown empty | source | Album read fails | `AlbumScreen` state enum/catch | native (web record photo check) | N2 | FX | failed state + retry; keep items on refresh failure | empty/loading/fail/offline/retry/refresh-fail distinct | open | |
+| F15 | P2 | Compact calendar days 41pt | source arithmetic | Schedule at 375 | `ScheduleScreen` grid | native (web calendar check) | N1 | FX | reclaim spacing or compact arrangement | actual 44×44 hit bounds, no shared hit space, AX3 | fixed · verified (web); native → N1 | 0208e254 · calendar days are 44px buttons, named, keyboard-reachable |
+| F16 | P2 | Album read failure shown empty | source | Album read fails | `AlbumScreen` state enum/catch | native (web record photo check) | N2 | FX | failed state + retry; keep items on refresh failure | empty/loading/fail/offline/retry/refresh-fail distinct | fixed · verified (web); native → N2 | a7e4ae8a · tests/calendar-album-browser.mjs 66/66 |
 | F17 | P2 | Spacing debt 1,176 | exact LINT-06 | preflight extractor | `tests/preflight.mjs` LINT-06 | both | N1 / root | — | shared-source role adoption only | fresh count + per-file deltas; ratchet lowered only after verification | open | |
 | F18 | P3 | Colored blurred ordinary-action shadow | source | any `.btn` | `.btn:not(.dark):not(.gold):not(.apple)` | web | root | — | remove glow; keep zero-blur selection cues | all button states legible/interactive; no replacement glow | fixed · verified | 77fee9c6 · no coloured blur on .btn; carry pulse halo removed |
 
@@ -61,8 +61,8 @@ Owners:
 | R03 | Home occasion Dismiss 24px, 2.77/2.61 | assessment B | `.ho-x` | root | 44×44 non-overlapping; ink ≥3:1 non-text | bounds; contrast; name; dismissal | fixed · verification pending (Home capture) | 77fee9c6 · 44px mut dismiss |
 | R04 | Home helper prose uses dim | assessments A+B | `.fine` in Home helper contexts | root | opaque `mut` in those contexts only | ≥4.5:1 both themes; dim uses traced | fixed · verified (source + contrast) | bc52e497 · .fine and 151 other text sites dim→mut |
 | R05 | Buddy link wears ember | assessment A | `data-gopeople` link | root | ordinary `act` text-link grammar | competition signals remain ember | fixed · verification pending (Home capture) | 77fee9c6 |
-| R06 | 375px NEXT helper truncates | assessment A | Home deck NEXT caption | root | reproduce on complete fixtures; fix truncation | full text at 375 both themes | open | |
-| R07 | Competing content-level next actions | assessment A | Home desktop setup row vs rival story | root | reproduce on complete fixtures; one primary next move | recorded state; no fixed-nav false positive | open | |
+| R06 | 375px NEXT helper truncates | assessment A | Home deck NEXT caption | root | reproduce on complete fixtures; fix truncation | full text at 375 both themes | fixed · verified | 5fb4272b · tile lines whole at 320/375/402/1280 |
+| R07 | Competing content-level next actions | assessment A | Home desktop setup row vs rival story | root | reproduce on complete fixtures; one primary next move | recorded state; no fixed-nav false positive | fixed · verified | 5fb4272b (no disabled board tile) · 58bc3462 (desk: lead before the doors) |
 
 ## 3 · Structural and program slices
 
@@ -83,6 +83,9 @@ Owners:
 | I04 | Console output: missing career/schedule fixture read models, worker blocking, Supabase lock-option deprecation (also live in production) | open | |
 | I05 | Release archive: 83 warning instances across 21 messages | open | |
 | I06 | `compete-rows-browser.js` fails at baseline: Compete overflows 2px at 320–402 (page-head terrain `right:-18px` in a 16px gutter) | fixed · verified | 68f7e8cf; passes 320/390/1440 × themes |
+| I08 | `season-setup-browser.js` flaked at 320 on baseline and HEAD: standings nowrap cells widen the table in the fallback face | fixed · verified | a7ab6588; 12/12 fonts blocked + loaded |
+| I09 | `post-hierarchy-browser.js` fails at 320 with fonts blocked on baseline: composer photo/scan row overflow | fixed · verified | f1b4b351; 12/12 twice |
+| I10 | `round-record-browser.js` height budget flakes 1/12 at 320 light, fonts blocked (course name wraps a third line mid font-swap); geometry identical to baseline (206px) | open · test flake, not a regression | recorded |
 | I07 | `interior-brand-browser.js` fails at baseline: I-3 treated D381's Scoreboard band as a quiet head | fixed · verified (stale test, cited) | 95eb5049; D381 owner amendment 2026-09-24 |
 
 ## 4b · Web systemic passes
@@ -91,6 +94,9 @@ Owners:
 |---|---|---|
 | dim is never a word (UI_SYSTEM §16.1): 152 text sites dim→mut, faded words opaque | bc52e497 | preflight 0/0; every web suite green |
 | Ember audit (D359): ordinary links, selections, heads, tags, the armed Save move to act/mut/ink; 25 remaining ember sites are live/competition/identity | f0297c27 | every web suite green |
+
+| 11px floor (§16.2): 63 sub-11px rules raised; BELOW_11 ratchet held at 0 | e39c9b61, 6f5a3be2 | every page suite green in scope |
+| Door code fields named like Email (F01 twins): Sign-in code, League code | 81c749c1 | door-residuals 120/120 |
 
 ## 5 · Coverage, detector, panel, critique, audit, human
 
