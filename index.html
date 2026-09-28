@@ -2469,7 +2469,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 /* D94 · the tile row: three destinations, one glance each. Deliberately small —
    they are doors, not dashboards. The hero above them carries the loud move;
    these carry the quiet "where do I go". */
-.hometiles{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin:10px 0 4px;}
+.hometiles{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:8px; margin:10px 0 4px;}   /* as many equal doors as there are, never an empty slot */
 .htile{
   background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
   padding:10px 9px; text-align:left; cursor:pointer; position:relative; overflow:hidden;
@@ -2477,12 +2477,15 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 }
 .htile::before{content:""; position:absolute; left:0; top:10px; bottom:10px; width:2px;
   border-radius:2px; background:var(--acc,var(--dim));}
-.htile .t{font-family:var(--mono); font-size:8.5px; letter-spacing:.14em;
+.htile .t{font-family:var(--mono); font-size:11px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--mut);}
 .htile .v{font-family:var(--serif); font-size:17px; color:var(--ink); line-height:1;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.htile .s{font-family:var(--mono); font-size:9px; letter-spacing:.1em; color:var(--mut);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.htile .s{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mut); line-height:1.3;
+  /* R06 · a tile's line is an instruction ("PUT A ROUND ON THE SCHEDULE"); at
+     375 it was cut to "PUT A ROUND O…". It wraps now — the words stay whole
+     and the tile grows, never the other way round */
+  white-space:normal; overflow-wrap:anywhere;}
 .htile:hover{border-color:var(--acc,var(--rule));}
 .htile:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* D93 · a section head that carries a way through. renderHomeRounds clears the
@@ -16972,7 +16975,10 @@ function renderHomeTiles(){
     : { t:'Board', v: fresh?String(fresh):'Open', s: fresh?'NEW TODAY':'THE LEAGUE',
         go:()=>switchView('board'), acc:'var(--dim)' };
 
-  const tiles=[league, ...(meOwnsNext ? [] : [nextT]), board];
+  /* R07 · L-32: a door that does not open is not offered. With no league the
+     board tile was a disabled "— · LEAGUE ONLY" — one more thing on Home that
+     asked for attention and could not be answered. It waits for a league. */
+  const tiles=[league, ...(meOwnsNext ? [] : [nextT]), ...(lgName ? [board] : [])];
   box.innerHTML=`<div class="hometiles">${tiles.map((x,i)=>
     `<button class="htile" data-htile="${i}" type="button" style="--acc:${x.acc}"${x.go?'':' disabled'}>
        <span class="t">${x.t}</span><span class="v">${x.v}</span><span class="s">${x.s}</span>
