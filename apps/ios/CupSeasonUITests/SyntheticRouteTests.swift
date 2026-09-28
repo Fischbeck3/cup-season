@@ -29,11 +29,28 @@ final class SyntheticRouteTests: XCTestCase {
     let app = XCUIApplication()
     var args = ["-cs_dev_synthetic", scenario]
     if let route { args += ["-cs_dev_open", route] + (detail.map { [$0] } ?? []) }
-    args += ["-cs_dev_appearance", theme, "-cs_dev_look", "none"]
+    args += ["-cs_dev_appearance", theme] + (extra.contains("-cs_dev_look") ? [] : ["-cs_dev_look", "none"])
     if let size { args += ["-cs_dev_text_size", size] }
     app.launchArguments = args + extra
     app.launch()
+    // Every synthetic launch draws at least one `cs.screen.*` mark (the boot's
+    // own states are marked). The first launch straight after xcodebuild
+    // reinstalls the app has been seen to come up WITHOUT its launch arguments:
+    // a plain DEBUG boot on the local default backend, no seam, the door. That
+    // is the harness failing, not the screen: relaunch once, and say so in the
+    // results. A second miss is left to fail the test.
+    if !anyMark(app).waitForExistence(timeout: 15) {
+      XCTContext.runActivity(named: "relaunch · the synthetic seam did not engage on the first launch") { _ in
+        attach(app, "relaunch__seam-absent")
+        app.terminate()
+        app.launch()
+      }
+    }
     return app
+  }
+
+  @MainActor private func anyMark(_ app: XCUIApplication) -> XCUIElement {
+    app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "cs.screen.")).firstMatch
   }
 
   @MainActor private func mark(_ app: XCUIApplication, _ root: String) -> XCUIElement {
@@ -42,6 +59,19 @@ final class SyntheticRouteTests: XCTestCase {
 
   @MainActor private func reveal(_ e: XCUIElement, in app: XCUIApplication, swipes: Int = 8) {
     for _ in 0..<swipes where !e.isHittable { app.swipeUp() }
+  }
+
+  /// Waits until an element stops moving (a sheet or pager still sliding in
+  /// would otherwise be photographed mid-flight), for at most `limit` seconds.
+  @MainActor private func settle(_ e: XCUIElement, limit: Double = 6) {
+    var last = e.frame
+    let end = Date().addingTimeInterval(limit)
+    while Date() < end {
+      Thread.sleep(forTimeInterval: 0.6)
+      let now = e.frame
+      if now == last { return }
+      last = now
+    }
   }
 
   @MainActor private func attach(_ app: XCUIApplication, _ name: String) {
@@ -79,6 +109,12 @@ final class SyntheticRouteTests: XCTestCase {
     for entry in plan {
       for theme in themes {
         let app = launch(entry.scenario, entry.route, entry.detail, theme: theme, size: size, extra: entry.extra ?? [])
+        // `tap:<identifier>` walks one push first and the root is checked
+        // after it; `keyboard` focuses the first field once the root is up.
+        if let step = entry.step, step.hasPrefix("tap:") {
+          let target = app.descendants(matching: .any)[String(step.dropFirst(4))]
+          if target.waitForExistence(timeout: 30) { reveal(target, in: app); target.tap() }
+        }
         let root = locate(app, entry.root)
         let found = root.waitForExistence(timeout: 30)
         if found, entry.step == "keyboard" {
@@ -88,7 +124,10 @@ final class SyntheticRouteTests: XCTestCase {
           _ = app.keyboards.firstMatch.waitForExistence(timeout: 6)
         }
         Thread.sleep(forTimeInterval: entry.settle ?? 2.0)
-        let value = found ? ((root.value as? String) ?? "") : ""
+        // The counters are the router's, not the screen's: every mark carries
+        // the same pair, so a root located by text reads them off any mark.
+        let anyOne = anyMark(app)
+        let value = found ? ((root.value as? String) ?? (anyOne.exists ? (anyOne.value as? String) : nil) ?? "") : ""
         let verdict = found ? "PASS" : "FAIL"
         let counters = value.replacingOccurrences(of: "=", with: "-").replacingOccurrences(of: " ", with: "_")
         attach(app, "fx__\(entry.name)__\(theme)__\(size)__\(verdict)__\(counters)")
@@ -126,9 +165,13 @@ final class SyntheticRouteTests: XCTestCase {
   /// label a new check should wait on. Skips without the variable.
   @MainActor func testDumpAccessibility() throws {
     guard let spec = ProcessInfo.processInfo.environment["CS_FX_DUMP"] else { throw XCTSkip("no CS_FX_DUMP") }
+    // "<scenario> <route|-> [detail|-] [extra launch arguments…]"
     let parts = spec.split(separator: " ").map(String.init)
-    let app = launch(parts[0], parts.count > 1 ? parts[1] : nil, parts.count > 2 ? parts[2] : nil)
+    let route = parts.count > 1 && parts[1] != "-" ? parts[1] : nil
+    let detail = parts.count > 2 && parts[2] != "-" ? parts[2] : nil
+    let app = launch(parts[0], route, detail, extra: Array(parts.dropFirst(3)))
     Thread.sleep(forTimeInterval: 8)
+    for _ in 0..<(Int(ProcessInfo.processInfo.environment["CS_FX_DUMP_SWIPES"] ?? "") ?? 0) { app.swipeUp() }
     let tree = XCTAttachment(string: app.debugDescription)
     tree.name = "tree__" + parts.joined(separator: "_")
     tree.lifetime = .keepAlways
@@ -275,5 +318,93 @@ final class SyntheticRouteTests: XCTestCase {
     retry.tap()
     XCTAssertTrue(retry.waitForNonExistence(timeout: 15))
     attach(app, "flow__season-retried")
+  }
+
+  @MainActor private func button(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+    app.buttons.matching(NSPredicate(format: "label ==[c] %@", label)).firstMatch
+  }
+
+  /// A card the composer can post: a gross, and the rating and slope.
+  @MainActor private func fillCard(_ app: XCUIApplication) {
+    let gross = app.textFields["Your gross"].firstMatch
+    XCTAssertTrue(gross.waitForExistence(timeout: 10))
+    if !app.keyboards.firstMatch.exists { gross.tap() }
+    gross.typeText("84")
+    let fold = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Rating not set")).firstMatch
+    if fold.waitForExistence(timeout: 3) { fold.tap() }
+    let rating = app.textFields["Rating"].firstMatch
+    XCTAssertTrue(rating.waitForExistence(timeout: 5))
+    rating.tap(); rating.typeText("70.1")
+    let slope = app.textFields["Slope"].firstMatch
+    slope.tap(); slope.typeText("124")
+    app.swipeDown()
+  }
+
+  /// Posting fails at the server: the composer keeps the card and says why.
+  @MainActor func testPostingFailureKeepsTheCard() {
+    let app = launch("season-live", "postround", extra: ["-cs_synth_post_fail"])
+    XCTAssertTrue(mark(app, "composer").waitForExistence(timeout: 30))
+    fillCard(app)
+    let post = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "add my round")).allElementsBoundByIndex
+      .max { $0.frame.minY < $1.frame.minY }
+    XCTAssertNotNil(post)
+    post?.tap()
+    let why = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Fix the card")).firstMatch
+    XCTAssertTrue(why.waitForExistence(timeout: 10))
+    attach(app, "flow__post-failed")
+    XCTAssertTrue(mark(app, "composer").exists)
+    XCTAssertEqual(app.textFields["Your gross"].firstMatch.value as? String, "84")
+  }
+
+  /// Posting lands: the finish ceremony rises with the round's receipt door.
+  @MainActor func testPostingLandsOnTheCeremony() {
+    let app = launch("season-live", "postround")
+    XCTAssertTrue(mark(app, "composer").waitForExistence(timeout: 30))
+    fillCard(app)
+    let post = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "add my round")).allElementsBoundByIndex
+      .max { $0.frame.minY < $1.frame.minY }
+    post?.tap()
+    XCTAssertTrue(button(app, "View receipt").waitForExistence(timeout: 15))
+    attach(app, "flow__finish-ceremony")
+  }
+
+  /// No signal at boot, then the signal comes back and one retry lands.
+  @MainActor func testOfflineThenReconnect() {
+    let app = launch("offline", "home", extra: ["-cs_synth_reconnect_after", "6"])
+    XCTAssertTrue(mark(app, "bootfailed").waitForExistence(timeout: 30))
+    attach(app, "flow__offline")
+    Thread.sleep(forTimeInterval: 6)
+    button(app, "Try again").tap()
+    XCTAssertTrue(mark(app, "home").waitForExistence(timeout: 20))
+    attach(app, "flow__reconnected")
+  }
+
+  /// A live round finishes for the whole group and lands on the recap. The
+  /// round is the dev round (`-cs_dev_live`) drawn over the tabs; controls in
+  /// that host report "not hittable" to the runner even when they are drawn
+  /// in the open, so its taps go to the element's centre.
+  @MainActor func testLiveFinishToRecap() {
+    let app = launch("season-live", nil, extra: ["-cs_dev_live"])
+    let finish = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Finish the round")).firstMatch
+    XCTAssertTrue(app.staticTexts["HOLE 15"].waitForExistence(timeout: 30))
+    app.swipeUp(); app.swipeUp()
+    XCTAssertTrue(finish.waitForExistence(timeout: 10))
+    finish.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    let casual = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "This one was casual")).firstMatch
+    XCTAssertTrue(casual.waitForExistence(timeout: 10))
+    Thread.sleep(forTimeInterval: 1)
+    attach(app, "flow__live-finish-sheet")
+    // The sheet's primary sits directly above its casual button.
+    let primary = app.buttons.allElementsBoundByIndex
+      .filter { ($0.label.hasPrefix("Finish the round") || $0.label.hasPrefix("Post ")) && $0.frame.maxY <= casual.frame.minY + 1 }
+      .max { $0.frame.minY < $1.frame.minY }
+    XCTAssertNotNil(primary)
+    primary?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    // The takeover's own count line ("3 cards to the season"), which nothing
+    // before the finish draws.
+    let recap = app.staticTexts.matching(NSPredicate(format: "label MATCHES[c] %@", "[0-9]+ cards? (to the season|posted)")).firstMatch
+    XCTAssertTrue(recap.waitForExistence(timeout: 15))
+    settle(recap)
+    attach(app, "flow__live-recap")
   }
 }

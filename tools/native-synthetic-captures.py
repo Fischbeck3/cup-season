@@ -109,6 +109,7 @@ for phone, udid in devices.items():
         log = out / f'ui-{phone}-{size}-{stamp}.log'
         cmd = ['xcodebuild', 'test-without-building', '-xctestrun', str(cfg),
                '-destination', f'platform=iOS Simulator,id={udid}', '-parallel-testing-enabled', 'NO',
+               '-collect-test-diagnostics', 'never',
                '-only-testing:CupSeasonUITests/SyntheticRouteTests/testCapturePlan', '-resultBundlePath', str(result)]
         with log.open('w') as f:
             status = subprocess.run(cmd, stdout=f, stderr=subprocess.STDOUT).returncode

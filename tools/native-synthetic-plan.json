@@ -32,7 +32,7 @@
   "root": "home",
   "extra": [
    "-cs_synth_delay",
-   "60"
+   "11"
   ],
   "settle": 3
  },
@@ -64,6 +64,17 @@
   "route": "home",
   "root": "bootfailed",
   "settle": 3
+ },
+ {
+  "name": "boot-mustupdate",
+  "family": "home",
+  "state": "forced-update",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "mustupdate",
+  "extra": [
+   "-cs_synth_must_update"
+  ]
  },
  {
   "name": "you-populated",
@@ -251,7 +262,7 @@
   "root": "season",
   "extra": [
    "-cs_synth_delay",
-   "60"
+   "11"
   ],
   "settle": 3
  },
@@ -654,7 +665,7 @@
   "state": "live-activity-long",
   "scenario": "season-live",
   "route": null,
-  "root": "id:islandReview",
+  "root": "island",
   "extra": [
    "-cs_dev_island",
    "-cs_island_state",
@@ -667,7 +678,7 @@
   "state": "live-activity-missed",
   "scenario": "season-live",
   "route": null,
-  "root": "id:islandReview",
+  "root": "island",
   "extra": [
    "-cs_dev_island",
    "-cs_island_state",
@@ -680,11 +691,207 @@
   "state": "live-activity-closed",
   "scenario": "season-live",
   "route": null,
-  "root": "id:islandReview",
+  "root": "island",
   "extra": [
    "-cs_dev_island",
    "-cs_island_state",
    "closed"
+  ]
+ },
+ {
+  "name": "event-failed",
+  "family": "events",
+  "state": "failed-read",
+  "scenario": "failures",
+  "route": "event",
+  "root": "event",
+  "settle": 3
+ },
+ {
+  "name": "whenfork",
+  "family": "competition",
+  "state": "when-fork",
+  "scenario": "season-live",
+  "route": "whenfork",
+  "root": "contains:Two ways"
+ },
+ {
+  "name": "wizard",
+  "family": "wizard",
+  "state": "first-step",
+  "scenario": "season-live",
+  "route": "wizard",
+  "root": "wizard"
+ },
+ {
+  "name": "declare",
+  "family": "schedule",
+  "state": "declare",
+  "scenario": "season-live",
+  "route": "declare",
+  "root": "declare"
+ },
+ {
+  "name": "course-wholecard",
+  "family": "courses",
+  "state": "whole-card",
+  "scenario": "season-live",
+  "route": "course",
+  "root": "id:course.card.tee",
+  "step": "tap:course.wholecard",
+  "settle": 2
+ },
+ {
+  "name": "golfers-search",
+  "family": "golfers",
+  "state": "keyboard",
+  "scenario": "season-live",
+  "route": "golfers",
+  "root": "golfers",
+  "step": "keyboard"
+ },
+ {
+  "name": "look-fall-home",
+  "family": "looks",
+  "state": "look-fall",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "home",
+  "extra": [
+   "-cs_dev_look",
+   "fall"
+  ]
+ },
+ {
+  "name": "look-fall-season",
+  "family": "looks",
+  "state": "look-fall",
+  "scenario": "season-live",
+  "route": "season",
+  "root": "season",
+  "extra": [
+   "-cs_dev_look",
+   "fall"
+  ]
+ },
+ {
+  "name": "look-fall-compete",
+  "family": "looks",
+  "state": "look-fall",
+  "scenario": "season-live",
+  "route": "compete",
+  "root": "compete",
+  "extra": [
+   "-cs_dev_look",
+   "fall"
+  ]
+ },
+ {
+  "name": "look-fall-you",
+  "family": "looks",
+  "state": "look-fall",
+  "scenario": "season-live",
+  "route": "you",
+  "root": "you",
+  "extra": [
+   "-cs_dev_look",
+   "fall"
+  ]
+ },
+ {
+  "name": "look-cupfinal-home",
+  "family": "looks",
+  "state": "look-cupfinal",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "home",
+  "extra": [
+   "-cs_dev_look",
+   "cupfinal"
+  ]
+ },
+ {
+  "name": "look-cupfinal-season",
+  "family": "looks",
+  "state": "look-cupfinal",
+  "scenario": "season-live",
+  "route": "season",
+  "root": "season",
+  "extra": [
+   "-cs_dev_look",
+   "cupfinal"
+  ]
+ },
+ {
+  "name": "look-cupfinal-compete",
+  "family": "looks",
+  "state": "look-cupfinal",
+  "scenario": "season-live",
+  "route": "compete",
+  "root": "compete",
+  "extra": [
+   "-cs_dev_look",
+   "cupfinal"
+  ]
+ },
+ {
+  "name": "look-cupfinal-you",
+  "family": "looks",
+  "state": "look-cupfinal",
+  "scenario": "season-live",
+  "route": "you",
+  "root": "you",
+  "extra": [
+   "-cs_dev_look",
+   "cupfinal"
+  ]
+ },
+ {
+  "name": "look-teams-home",
+  "family": "looks",
+  "state": "look-teams",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "home",
+  "extra": [
+   "-cs_dev_look",
+   "teams"
+  ]
+ },
+ {
+  "name": "look-teams-season",
+  "family": "looks",
+  "state": "look-teams",
+  "scenario": "season-live",
+  "route": "season",
+  "root": "season",
+  "extra": [
+   "-cs_dev_look",
+   "teams"
+  ]
+ },
+ {
+  "name": "look-teams-compete",
+  "family": "looks",
+  "state": "look-teams",
+  "scenario": "season-live",
+  "route": "compete",
+  "root": "compete",
+  "extra": [
+   "-cs_dev_look",
+   "teams"
+  ]
+ },
+ {
+  "name": "look-teams-you",
+  "family": "looks",
+  "state": "look-teams",
+  "scenario": "season-live",
+  "route": "you",
+  "root": "you",
+  "extra": [
+   "-cs_dev_look",
+   "teams"
   ]
  }
 ]

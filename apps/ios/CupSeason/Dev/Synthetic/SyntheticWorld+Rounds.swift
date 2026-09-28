@@ -58,6 +58,13 @@ extension SyntheticWorld {
       return SynthOut.json(["token": NSNull(), "include_photo": NSNull(), "cleanup_pending": false, "cleanup": [Any](), "preparing": false])
     case "round_post_status": return SynthOut.json(NSNull())
     case "live_round_card": return SynthOut.json(["round": NSNull(), "players": [Any]()])
+    case "finish_live_round":
+      return SynthOut.json(["posted": [["name": me.name, "gross": 84, "holes": 18, "round_id": fids(4_902), "profile_id": me.ids],
+                                       ["name": person(2).name, "gross": 81, "holes": 18, "round_id": fids(4_903), "profile_id": person(2).ids],
+                                       ["name": person(3).name, "gross": 88, "holes": 18, "round_id": fids(4_904), "profile_id": person(3).ids]],
+                            "guests": [["name": "Quinn", "claim_token": Self.claimToken.uuidString.lowercased()]],
+                            "skipped": [Any](), "casual": false])
+    case "abandon_live_round": return SynthOut.void
     case "add_posted_round_comment":
       let body = r.string("p_body") ?? ""
       let comment: [String: Any] = ["id": r.string("p_client_id") ?? fids(8_050), "author": ["id": me.ids, "name": me.name, "marker": me.marker],

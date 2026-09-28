@@ -21,6 +21,9 @@ struct SynthRequest: @unchecked Sendable {
     case storageObject(bucket: String, path: String)
     case function(String)
     case auth(String)
+    /// Realtime's REST broadcast (a live round telling the group's other
+    /// phones, when its channel is not joined). A write: answered, reaches nothing.
+    case broadcast(String)
     case asset(String)
   }
   let method: String
@@ -61,6 +64,7 @@ struct SynthRequest: @unchecked Sendable {
     }
     else if p.hasPrefix("/functions/v1/") { kind = .function(tail(after: "/functions/v1/")) }
     else if p.hasPrefix("/auth/v1/") { kind = .auth(tail(after: "/auth/v1/")) }
+    else if p.hasPrefix("/realtime/v1/api/broadcast") { kind = .broadcast(tail(after: "/realtime/v1/api/broadcast")) }
     else { kind = .asset(url.absoluteString) }
   }
 
@@ -95,6 +99,7 @@ struct SynthRequest: @unchecked Sendable {
     case .storageObject(let b, let p): "storage/object/\(b)/\(p)"
     case .function(let f): "functions/\(f)"
     case .auth(let a): "auth/\(a)"
+    case .broadcast: "realtime/broadcast"
     case .asset(let u): "asset \(u)"
     }
   }
@@ -188,8 +193,10 @@ final class SyntheticBackend: @unchecked Sendable {
       return SynthOut.error("Could not load this right now.", code: "FX500", status: 500)
     }
 
-    // 4 · a held read shows the loading geometry
-    if !isWrite, delay > 0 { reply.delay = delay }
+    // 4 · a held read shows the loading geometry — the screen's own reads,
+    // never the boot's (a held boot is the boot screen, not the destination)
+    // (capped under the tuned session's 12s timeout: longer is a failure, not a load)
+    if !isWrite, delay > 0, !Self.bootReads.contains(readName(r) ?? "") { reply.delay = min(delay, 11) }
     SyntheticSeam.log("\(isWrite ? "WRITE" : "HIT") \(key) \(reply.status)\(isWrite ? " (answered on device)" : "")")
     return reply
   }
@@ -200,15 +207,19 @@ final class SyntheticBackend: @unchecked Sendable {
   /// after that failure (the client's own immediate fallbacks do not count)
   /// and at least four seconds after boot (the first screen's own reloads do
   /// not count). `-cs_synth_fail a,b` narrows the failing reads to those.
-  private func shouldFail(_ r: SynthRequest) -> Bool {
-    let name: String
+  /// The read's name for the policies: an RPC, a table, "storage" or a function.
+  private func readName(_ r: SynthRequest) -> String? {
     switch r.kind {
-    case .rpc(let n): name = n
-    case .table(let t): name = t.components(separatedBy: "?").first ?? t
-    case .storageSign, .storageObject: name = "storage"
-    case .function(let f): name = f
-    case .auth, .asset: return false
+    case .rpc(let n): return n
+    case .table(let t): return t.components(separatedBy: "?").first ?? t
+    case .storageSign, .storageObject: return "storage"
+    case .function(let f): return f
+    case .auth, .broadcast, .asset: return nil
     }
+  }
+
+  private func shouldFail(_ r: SynthRequest) -> Bool {
+    guard let name = readName(r) else { return false }
     if let list = failList {
       guard list.contains(name) || list.contains("all") else { return false }
     } else {

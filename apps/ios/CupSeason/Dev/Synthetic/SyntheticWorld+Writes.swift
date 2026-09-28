@@ -37,6 +37,7 @@ extension SyntheticWorld {
     case .rpc(let name): return Self.writeNames.contains(name)
     case .table: return r.method != "GET" && r.method != "HEAD"
     case .storageObject: return r.method == "POST" || r.method == "PUT" || r.method == "DELETE"
+    case .broadcast: return true
     default: return false
     }
   }

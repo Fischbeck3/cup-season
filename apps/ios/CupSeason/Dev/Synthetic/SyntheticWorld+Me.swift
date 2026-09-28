@@ -203,7 +203,9 @@ extension SyntheticWorld {
       "upcoming_rounds": upcomingRounds(),
       "events": eventsForMe(),
       "open_duels": [Any](),
-      "flags": ["ios": ["min_build": 0]],
+      // `-cs_synth_must_update`: the server asks for a build this one is not
+      // (the forced-update gate, IOS-009).
+      "flags": ["ios": ["min_build": ProcessInfo.processInfo.arguments.contains("-cs_synth_must_update") ? 999_999 : 0]],
       "generated_at": stamp(0, 7, 30),
     ]
     if scenario == .brandNew || scenario == .cardGate { out["upcoming_rounds"] = [Any]() }

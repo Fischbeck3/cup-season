@@ -299,17 +299,23 @@ final class LiveRoundStore {
     // a screenshot of four initials would be a picture of the degrade rather
     // than of the design. They are invented golfers on an invented round; the
     // marks are invented with them, and nothing here touches the server.
-    let players = [("You", 8.4, 0, false, "saguaro"), ("Danny", 12.1, 1, false, "lonetree"),
-                   ("Chuck", 6.2, 2, false, "dunes"), ("Gary", 18.0, 3, true, "beer")]
+    // S2/C3 · under `-cs_dev_synthetic` the three are the synthetic world's
+    // invented golfers and the course its fixture course.
+    let synthetic = SyntheticSeam.on
+    let players = [("You", 8.4, 0, false, "saguaro"), (synthetic ? "Blake" : "Danny", 12.1, 1, false, "lonetree"),
+                   (synthetic ? "Casey" : "Chuck", 6.2, 2, false, "dunes"), (synthetic ? "Quinn" : "Gary", 18.0, 3, true, "beer")]
       .map { LivePlayer(id: $0.0, n: $0.0, i: $0.1, ci: $0.3 ? -1 : $0.2, guest: $0.3,
                         me: $0.0 == "You", mk: $0.4) }
     var course = LiveCourseCard()
     course.pars = [4,4,3,5,4,4,3,4,5, 4,3,4,5,4,4,3,4,5]
     course.si   = [5,11,17,1,7,13,15,3,9, 6,18,12,2,8,14,16,4,10]
     course.siEst = false
-    course.label = "Encanto GC — Blue"
+    course.label = synthetic ? "North Grove (fixture) — Blue" : "Encanto GC — Blue"
     var st = LiveRoundState.fresh(players: players, course: course)
     st.stage = .live; st.active = true; st.game = .match; st.hole = 14
+    // S2/C3 · a synthetic round has an id, so its finish runs the real path
+    // (answered on the device by the fixture) and reaches the recap.
+    if synthetic { st.lr = fid(4_950); st.code = "FIXTURE" }
     st.teams = [[0, 1], [2, 3]]
     // …and TWO of the four are already in on the 15th, so one screenshot holds
     // both states of the score object AND the number-to-beat block, which does
