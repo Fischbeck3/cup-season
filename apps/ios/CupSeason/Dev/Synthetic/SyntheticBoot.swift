@@ -10,6 +10,8 @@
 //   -cs_synth_delay <seconds>       hold every read (the loading geometry)
 //   -cs_synth_reconnect_after <s>   offline, then back (offline scenario)
 //   -cs_synth_long                  the viewer's own name is the long one
+//   -cs_synth_post_fail             the server refuses a posted round
+//   -cs_synth_must_update           the forced-update gate (min build above this one)
 //
 // Every identity here is invented and says so: "Avery Fixture", handle
 // `fixture_avery`, `@example.invalid`, "North Grove (fixture)". Nothing in this

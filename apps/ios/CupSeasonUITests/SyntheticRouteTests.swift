@@ -33,7 +33,24 @@ final class SyntheticRouteTests: XCTestCase {
     if let size { args += ["-cs_dev_text_size", size] }
     app.launchArguments = args + extra
     app.launch()
+    // Every synthetic launch draws at least one `cs.screen.*` mark (the boot's
+    // own states are marked). The first launch straight after xcodebuild
+    // reinstalls the app has been seen to come up WITHOUT its launch arguments:
+    // a plain DEBUG boot on the local default backend, no seam, the door. That
+    // is the harness failing, not the screen: relaunch once, and say so in the
+    // results. A second miss is left to fail the test.
+    if !anyMark(app).waitForExistence(timeout: 15) {
+      XCTContext.runActivity(named: "relaunch · the synthetic seam did not engage on the first launch") { _ in
+        attach(app, "relaunch__seam-absent")
+        app.terminate()
+        app.launch()
+      }
+    }
     return app
+  }
+
+  @MainActor private func anyMark(_ app: XCUIApplication) -> XCUIElement {
+    app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "cs.screen.")).firstMatch
   }
 
   @MainActor private func mark(_ app: XCUIApplication, _ root: String) -> XCUIElement {
@@ -109,8 +126,8 @@ final class SyntheticRouteTests: XCTestCase {
         Thread.sleep(forTimeInterval: entry.settle ?? 2.0)
         // The counters are the router's, not the screen's: every mark carries
         // the same pair, so a root located by text reads them off any mark.
-        let anyMark = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "cs.screen.")).firstMatch
-        let value = found ? ((root.value as? String) ?? (anyMark.exists ? (anyMark.value as? String) : nil) ?? "") : ""
+        let anyOne = anyMark(app)
+        let value = found ? ((root.value as? String) ?? (anyOne.exists ? (anyOne.value as? String) : nil) ?? "") : ""
         let verdict = found ? "PASS" : "FAIL"
         let counters = value.replacingOccurrences(of: "=", with: "-").replacingOccurrences(of: " ", with: "_")
         attach(app, "fx__\(entry.name)__\(theme)__\(size)__\(verdict)__\(counters)")

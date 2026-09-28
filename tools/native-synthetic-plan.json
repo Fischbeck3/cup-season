@@ -66,6 +66,17 @@
   "settle": 3
  },
  {
+  "name": "boot-mustupdate",
+  "family": "home",
+  "state": "forced-update",
+  "scenario": "season-live",
+  "route": "home",
+  "root": "mustupdate",
+  "extra": [
+   "-cs_synth_must_update"
+  ]
+ },
+ {
   "name": "you-populated",
   "family": "identity",
   "state": "populated",
