@@ -1265,7 +1265,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   margin-top:16px; padding-top:14px; border-top:1px solid var(--rule);
 }
 .calc .trio b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums;}
-.calc .trio span{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}
+.calc .trio span{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}   /* F14 · 11px is the floor (UI_SYSTEM §16.2) */
 .bands{width:100%; border-collapse:collapse; font-size:12.5px;}
 .bands td{padding:9px 2px; border-top:1px solid var(--rule); color:var(--mut);}
 .bands tr:first-child td{border-top:none;}
@@ -2597,19 +2597,29 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 }
 .rlab:first-child{margin-top:0;}
 .ibtn{
+  position:relative;
   display:inline-grid; place-items:center; width:18px; height:18px; margin-left:6px;
   border-radius:50%; border:1px solid var(--rule); background:var(--bg2);
   color:var(--mut); font-family:var(--mono); font-size:11.5px; font-weight:600;
   cursor:pointer; vertical-align:middle; padding:0; text-transform:lowercase;
 }
-.ibtn:hover{color:var(--ink); border-color:var(--dim);}
+/* F14 · the glyph stays an 18px mark beside its label; the TARGET is 44px. The
+   invisible reach is centred on the glyph and adds nothing to the line box, so
+   the eyebrow keeps its rhythm and the label beside it is not pushed. */
+.ibtn::after{content:""; position:absolute; left:50%; top:50%; width:44px; height:44px; transform:translate(-50%,-50%);}
+.ibtn:hover{color:var(--ink); border-color:var(--mut);}
+/* F14 · a heading that carries a help control is a 44px row, so the reach ends
+   at the row's own edge and never covers the first card under it. The top
+   margin gives back what the row gained; the rhythm moves by a few pixels. */
+.eyebrow:has(> .ibtn){min-height:44px; margin-top:13px; margin-bottom:0;}
 .ibtn:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
-/* D76 sweep: open/closed is an interaction state, not an outcome — ember, not
-   --pos. Toggle and panel move together or an opened help shows two metals. */
-.ibtn[aria-expanded="true"]{color:var(--brand); border-color:var(--brand);}
+/* D359 · open/closed is an ordinary interaction state — act, never the
+   competition ember (the D76 sweep's ember predates D359). The panel is tied to
+   its toggle by sitting directly under it, not by a coloured side stripe. */
+.ibtn[aria-expanded="true"]{color:var(--act); border-color:var(--act);}
 .ihelp{
   display:none; font-size:12px; color:var(--mut); line-height:1.65;
-  background:var(--bg1); border:1px solid var(--rule); border-left:3px solid var(--brand);
+  background:var(--bg1); border:1px solid var(--rule);
   border-radius:10px; padding:11px 13px; margin:2px 0 10px;
 }
 .ihelp.open{display:block; animation:vin .18s ease both;}
@@ -24704,7 +24714,7 @@ function csRenderPayNote(){
     fine.textContent = csPayNoteMissing()
       ? "They'll need somewhere to send it."
       : "Everyone who owes will see this. It's the only place they can look.";
-    fine.style.color = csPayNoteMissing() ? 'var(--brand)' : '';
+    fine.style.color = csPayNoteMissing() ? 'var(--neg)' : '';   /* a missing field is a validation state (neg, as .ob-status.err), never the competition ember */
   }
   const btn = document.getElementById('lockBtn');
   if(btn){ btn.disabled = csPayNoteMissing(); btn.style.opacity = csPayNoteMissing() ? 0.5 : ''; }
