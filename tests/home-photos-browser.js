@@ -63,7 +63,10 @@
   /* ── 3 · a re-sign whose new URL misses: the last good picture stays ───── */
   csSignedForget('fixture/second.png');
   load([A,BAD]);
-  await until(()=>imgs()[1] && imgs()[1].getAttribute('src')===second, 4000);
+  /* wait for the last good picture to PAINT, not just for its src to return:
+     restoring src is itself a load, and checking `complete` the same tick
+     raced it (the flake the I04 lock change exposed at 320, 2026-09-28) */
+  await until(()=>imgs()[1] && imgs()[1].getAttribute('src')===second && loaded().length===2, 4000).catch(()=>{});
   check(imgs().length===2 && loaded().length===2,'a transient miss on refresh removed the second photograph');
   check(imgs()[0].getAttribute('src')===first,'the first was touched by the second\'s miss');
   out.transientKeepsLastGood=true;

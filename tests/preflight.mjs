@@ -101,6 +101,20 @@ const warn = (name, note) => { warns++; console.log(`~ WARN  ${name} — ${note}
     : fail('otp maxlength', `found maxlength ${bad.join(', ')} on a one-time-code input`);
 }
 
+/* 5b · the auth lock (I04, 2026-09-28). No `lock` option is safe ONLY while
+   the pinned auth-js is lockless (2.112.4 was probed: tests/ten-lock-probe.mjs).
+   An older auth-js defaulted to navigatorLock in browsers — the origin-wide
+   landmine in CLAUDE.md — so a pin moved below it must bring the pass-through
+   back, and this fails until it does. */
+{
+  const pin = (html.match(/@supabase\/supabase-js@(\d+)\.(\d+)\.(\d+)/) || []).slice(1).map(Number);
+  const lockless = pin.length === 3 && (pin[0] > 2 || (pin[0] === 2 && (pin[1] > 112 || (pin[1] === 112 && pin[2] >= 4))));
+  const lockOpt = /\block\s*:\s*\(/.test(html);
+  (lockless && !lockOpt) || (!lockless && lockOpt)
+    ? pass('auth lock matches the pin', lockless ? `supabase-js ${pin.join('.')} is lockless; no lock option` : `supabase-js ${pin.join('.')} keeps the pass-through`)
+    : fail('auth lock matches the pin', lockless ? 'a lock option is back on a lockless auth-js: it re-arms the deprecated in-lock queue and warns on every load' : `supabase-js ${pin.join('.') || '(no pin found)'} may default to navigatorLock — restore the pass-through lock`);
+}
+
 /* 6 · script blocks parse (classic + module) ------------------------------- */
 {
   const blocks = [...html.matchAll(/<script(\s+type="module")?\s*>([\s\S]*?)<\/script>/g)]

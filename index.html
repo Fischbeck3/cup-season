@@ -593,7 +593,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .sb-terrain .cs-topohead .t-edge{opacity:1; stroke-width:1;}
 .sb-door{display:block; width:100%; min-height:44px; text-align:left; border:0; border-bottom:1px solid var(--rule); background:none; color:var(--ink); font-family:var(--sans); font-size:16px; cursor:pointer;}
 .sb-door[hidden]{display:none;}
-.sb-dialog{background:var(--bg0); color:var(--ink); border:1px solid var(--rule); padding:0; width:min(1280px,96vw); max-width:96vw; height:90vh; max-height:90vh;}
+.sb-dialog{background:var(--bg0); color:var(--ink); border:1px solid var(--rule); padding:0; margin:auto; width:min(1280px,96vw); max-width:96vw; height:90vh; max-height:90vh;}   /* margin:auto — the reset's `*{margin:0}` cancelled the modal's own centring and pinned the Book top-left on the desk */
 .sb-dialog::backdrop{background:var(--bg0); opacity:.8;}
 .sb-dialog header{position:relative; isolation:isolate; overflow:hidden; padding:var(--s4); border-bottom:1px solid var(--rule);}
 .sb-dialog header h1{position:relative; padding-right:96px;}
@@ -741,6 +741,11 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .wrap{max-width:1120px; margin:0 auto; padding:0 16px;}
 @media(min-width:960px){ .wrap{max-width:1264px; padding:0 var(--gutter-desk);} }
 
+/* the sticky bar owns the top 60px on a phone, so anything scrolled to "start"
+   (a season section from setRoomSeg, a focused control) stops below it
+   instead of under it — the pot and rules heads used to land behind the bar,
+   and a focused field near the top could be covered (WCAG 2.4.11) */
+@media (max-width:959px){ html{scroll-padding-top:calc(60px + env(safe-area-inset-top) + var(--s2));} }
 /* header */
 .hdr{
   position:sticky; top:0; z-index:20;
@@ -1313,6 +1318,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .potgrid{display:block;}
 @media(min-width:960px){
   .potgrid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:22px; align-items:start;}
+  /* in the desk's 340 aside (D280 moves the pot there) the two columns left
+     each payout tile ~45px and the money ellipsised to "$7…": one column */
+  #deskPotSlot .potgrid{display:block;}
 }
 .purse{
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
@@ -1994,7 +2002,7 @@ body.guestlive #onboard{display:none !important;}
 .evside .nm{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.12em;
             text-transform:uppercase; color:var(--ceremony-mut); margin-top:8px;}
 .evside.b .nm{text-align:right;}
-.evside .discs{display:flex; gap:10px; margin-top:10px;}
+.evside .discs{display:flex; flex-wrap:wrap; gap:12px 10px; margin-top:10px;}   /* four 44px discs need 206px; a side has ~155 at 375, so they wrap inside it rather than over the other team */
 .evside.b .discs{justify-content:flex-end;}
 .evside .who{text-align:center;}
 .evside .who .d{width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
@@ -2291,14 +2299,17 @@ body.guestlive #onboard{display:none !important;}
 .rs-lbl .n{color:var(--pos); font-weight:600;}
 .rsvppill{font-family:var(--board); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; padding:0 8px; min-height:24px; display:inline-flex; align-items:center; border-radius:var(--p); flex:none; align-self:center; background:var(--bg2);}
 .rsvppill.in{color:var(--pos); background:rgba(78,197,132,.14);}
-.rsvppill.maybe{color:var(--gold); background:rgba(212,178,62,.16);}
+.rsvppill.maybe{color:var(--ink); background:var(--bg2);}   /* gold means earned (D359); a maybe is the neutral voice */
 .rsvppill.out{color:var(--mut); background:var(--bg2);}
 .rsvppill.none{color:var(--mut); background:var(--bg2);}
 .rsvpset{display:flex; gap:7px; margin-top:10px;}
-.rbtn{flex:1; font-size:12.5px; font-weight:600; color:var(--mut); border:1px solid var(--rule); border-radius:9px; padding:9px; background:var(--panel);}
-.rbtn.on.in{color:#fff; background:var(--pos); border-color:var(--pos);}
-.rbtn.on.maybe{color:#3a2c07; background:var(--gold); border-color:var(--gold);}
-.rbtn.on.out{color:var(--ink); background:var(--bg2); border-color:var(--rule);}
+/* the RSVP set. Unchosen, a button reads on the sheet's own ground (it was
+   `mut` on the figure tile: 1.9:1 in dark). Chosen, it IS the tile, the
+   selected state every chip in the product uses (.selchip.on). One chosen
+   look, not three colours: white on the fairway green failed AA, and gold
+   means earned (D359), which a maybe is not. */
+.rbtn{flex:1; min-height:44px; font-size:12.5px; font-weight:600; color:var(--mut); border:1px solid var(--rule); border-radius:9px; padding:9px; background:transparent;}
+.rbtn.on{color:var(--panel-ink); background:var(--panel); border-color:var(--panel);}
 .rs-thread{display:flex; flex-direction:column; gap:8px;}
 .crow2{display:flex; gap:9px; align-items:flex-start; font-size:13px;}
 .crow2 b{font-weight:600;} .crow2 .t{color:var(--mut);}
@@ -2310,8 +2321,12 @@ body.guestlive #onboard{display:none !important;}
 /* D81 hero — ONE card, dispatched on lifecycle. Ember spine = live states,
    champagne spine + figure = earned (rank 1, the wrapped season). The figure
    is the serif number idiom the standings already speak. */
+/* ON THE RAISED SURFACE, NOT THE PANEL. D270 re-cut `--panel` as the figure
+   tile (cream in dark, near-black in light) and this card kept it, so every
+   hero printed page ink on it: near-white on cream in the default theme, near
+   black on near black in light. The hero is a surface; the panel is a tile. */
 .hhero{position:relative; overflow:hidden; text-align:left; padding:15px 16px; margin:0 0 12px;
-  background:var(--panel); border:1px solid var(--rule); border-radius:var(--r);}
+  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);}
 .hhero::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brand);}
 .hhero.earned::before{background:var(--gold);}
 .hhero .hh-top{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
@@ -2331,10 +2346,19 @@ body.guestlive #onboard{display:none !important;}
 .hhero .hh-bar{flex:1; height:5px; border-radius:99px; background:var(--bg2); overflow:hidden;}
 .hhero .hh-bar i{display:block; height:100%; border-radius:99px; background:var(--brand);}
 .hhero .hh-bar i.ok{background:var(--pos);}
+/* D359 · the hero's one move is an ordinary action (post a round, find your
+   buddies, start a season, run it back): the ACTION GREEN, as `.btn` is, and
+   no coloured glow (F18) */
 .hhero .hh-cta{display:flex; align-items:center; justify-content:center; min-height:44px; margin-top:12px;
-  border-radius:var(--rc); background:var(--brand); color:#fff; font-size:14px; font-weight:600; width:100%;
-  box-shadow:0 8px 22px -12px color-mix(in srgb, var(--brand) 20%, transparent), inset 0 1px 0 rgba(255,255,255,.2);}
+  border-radius:var(--rc); background:var(--act); color:var(--bg0); font-size:14px; font-weight:600; width:100%;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2);}
 .hhero .hh-cta.q{background:var(--bg2); color:var(--ink); border:1px solid var(--rule); box-shadow:none;}
+/* D359 · a hero that is not a contest (the league-less ladder, a league still
+   forming) spends no ember: the spine is furniture, the emphasis is ink and
+   the progress is the action green */
+.hhero.calm::before{background:var(--mut);}
+.hhero.calm .hh-line em{color:var(--ink);}
+.hhero.calm .hh-bar i{background:var(--act);}
 /* D119 · the member's second move: present, but never competing with the hero's
    one action (D27/D81 — a hero has ONE move; this is a quiet link under it). */
 /* D126 · the endgame sentence under the seat line — a second voice, not a
@@ -2371,7 +2395,7 @@ body.guestlive #onboard{display:none !important;}
 .hocc .ho-x:focus-visible{outline:2px solid var(--act); outline-offset:-6px;}
 .hocc .ho-k, .hocc h4{padding-right:36px;}
 /* Home "Coming up" rich cards (round-object arc Stage 6) */
-.hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--panel); border:1px solid var(--rule); border-radius:11px;}
+.hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--bg1); border:1px solid var(--rule); border-radius:11px;}   /* a surface, not the figure tile (see .hhero) */
 .hround.tap{cursor:pointer;} .hround.tap:active{transform:scale(.99);}
 .hround .num{flex:none;}
 .hr-body{flex:1; min-width:0;}
@@ -3309,15 +3333,20 @@ body.noleague .league-only{display:none !important;}
 body:not(.noleague) #hubLeagueless{display:none;}
 /* Up Next strip — what's coming, one glance, hides when empty */
 #homeUpNext:not(:empty){display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;}
-.upchip{display:inline-flex; align-items:center; gap:8px; border:0;
-  background:var(--bg2); border-radius:var(--p); padding:0 13px; white-space:nowrap;}
-.upchip .k{font-family:var(--mono); font-size:11px; letter-spacing:.09em; color:var(--mut); text-transform:uppercase;}
-.upchip b{font-size:12.5px; font-weight:600; color:var(--ink);}
+/* a chip holds to the column: a long "Next round" course used to push every
+   populated member Home 154px sideways at 375 (nowrap). The VALUE wraps
+   inside the chip, whole (never an ellipsis: "NEXT truncation" is the
+   residual this closes); the key and the chevron never break. */
+.upchip{display:inline-flex; align-items:center; gap:8px; border:0; max-width:100%;
+  background:var(--bg2); border-radius:var(--p); padding:6px 13px;}
+.upchip .k{font-family:var(--mono); font-size:11px; letter-spacing:.09em; color:var(--mut); text-transform:uppercase; white-space:nowrap; flex:none;}
+.upchip b{font-size:12.5px; font-weight:600; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
 /* D176: a chip is a button now. Min-height keeps the tap target honest on a
    phone; amber is spent only inside three days, where it means something. */
-.upchip{min-height:36px; cursor:pointer; font-family:var(--sans); text-align:left;}
+.upchip{min-height:44px; cursor:pointer; font-family:var(--sans); text-align:left;}   /* §16.2 · 44, not 36 */
 .upchip[data-upgo]:hover{border-color:var(--rule);}
-.upchip .ch{color:var(--brand); font-size:14px; line-height:1; margin-left:-2px;}
+.upchip .ch{color:var(--mut); font-size:14px; line-height:1; margin-left:-2px; flex:none;}   /* D359 · a way in is furniture */
+.upchip.hot .ch{color:var(--brand);}
 .upchip.hot{border-color:color-mix(in srgb, var(--brand) 70%, transparent);}
 .upchip.hot .k{color:var(--brand);}
 /* D177 · a GROUP head: one level above .eyebrow, for a page that needs a spine
@@ -3512,12 +3541,15 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .calcell.tap{cursor:pointer;}
 .calcell.tap:hover{border-color:var(--rule);}
 .calcell.tap:active{transform:scale(.94);}
-.calcell.plan:hover{border-color:var(--gold); color:var(--ink);}
+.calcell.plan:hover{border-color:var(--act); color:var(--ink);}
 .caldots{display:flex; gap:3px; height:5px;}
-.caldot{display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--dim); vertical-align:middle; margin-right:4px;}
-.caldot.rd{background:var(--pos);}
-.caldot.lgm{background:var(--gold);}
-.caldot.lg{background:var(--dim);}
+/* the legend's three marks, the phone's own (N1, F15): a plan is the action
+   green, a round in your seasons is ink, a season date is mut. Gold means
+   earned (D359) and `dim` missed the 3:1 a mark that carries meaning needs. */
+.caldot{display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--mut); vertical-align:middle; margin-right:4px;}
+.caldot.rd{background:var(--act);}
+.caldot.lgm{background:var(--ink);}
+.caldot.lg{background:var(--mut);}
 #boardCard .composer{position:static; background:none; padding:10px 0 2px;}
 #hubLeagueless .btn{text-align:left;}
 #hubLeagueless .btn{width:100%;}
@@ -6608,7 +6640,21 @@ function setRoomSeg(r){
   if(r==='album') window.renderAlbum?.();   /* module-side (needs sb) — guard the boundary */
   const el = document.getElementById('room-'+r);
   if(el && typeof el.scrollIntoView === 'function'){
-    try { el.scrollIntoView({ behavior:'smooth', block:'start' }); } catch(_){ el.scrollIntoView(); }
+    /* Reduce Motion jumps. Otherwise it glides and then SETTLES: the root's
+       scroll-padding keeps "start" below the sticky bar, but the glide's target
+       is fixed when it begins, and a section re-laying out above it while it
+       runs left the head up to 14px under the bar. */
+    const calm = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    try { el.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block:'start' }); } catch(_){ el.scrollIntoView(); }
+    if(!calm){
+      let done = false;
+      const settle = () => {
+        if(done) return; done = true; window.removeEventListener('scrollend', settle);
+        const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+        if(Math.abs(el.getBoundingClientRect().top - pad) > 2) el.scrollIntoView({ block:'start' });
+      };
+      window.addEventListener('scrollend', settle); setTimeout(settle, 900);
+    }
   }
 }
 /* D222 · THE ROUTER'S OWN ALIAS TABLE, in one place.
@@ -7372,7 +7418,7 @@ function climbCut(meta){
   /* {K, line} — how many advance and what the cut line is called */
   if(meta){
     if(meta.finish==='points_table') return {K:1, line:'CROWN LINE'};
-    if(meta.level==='squad' && meta.structure==='squads2') return {K:1, line:'TOP SEED · +10'};
+    if(meta.level==='squad' && meta.structure==='squads2') return {K:1, line:'TOP SEED · +10', seed:true};
     return {K:meta.k||2, line:'CUT LINE'};
   }
   return {K:2, line:'CUT LINE'};   /* demo / pre-scenarios: matches the standings cutrow */
@@ -7678,7 +7724,11 @@ function renderCupRace(){
   const fins=(race.finalists||[]).slice()
     .sort((a,b)=>(Number(b.total)-Number(a.total)) || (a.seed-b.seed));
   const dl=Number(race.days_left)||0;
-  const capTxt=(race.cap_n && Number(race.cap_n)<10000) ? ' OF '+race.cap_n : '';
+  /* no " OF <cap>" beside the count: the cap is per GOLFER per calendar MONTH,
+     so beside a squad's pooled rounds it read "4 ROUNDS OF 3", and a window
+     that straddles two months lets one golfer count more than it says. The
+     phone prints the count alone; the cap's own sentence is the server's
+     cap_note, in the finalist's receipt. */
   let html=`<tr><th colspan="3" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 IN THE FINAL BY ${esc(String(race.seed_rung).toUpperCase())}`:''}</th></tr>`;
   fins.forEach((f,i)=>{
     const id=f.squad_id||f.member_id, t=teams.find(x=>x.id===id);
@@ -7686,7 +7736,7 @@ function renderCupRace(){
     const head=Number(f.head_start)||0, wp=Number(f.window_points)||0, tot=Number(f.total)||0, ru=Number(f.rounds_used)||0;
     html+=`<tr class="tap ${i===0&&tot>0?'lead':''}" data-fin="${f.seed}">
       <td class="rk mono">S${f.seed}</td>
-      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[ci]}"></span><div><div class="tn">${esc(name)}</div><div class="tc">${head?`STARTS +${head} \u00b7 TOP SEED \u00b7 `:''}WINDOW ${wp} PTS \u00b7 ${ru} ROUND${ru===1?'':'S'}${capTxt}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[ci]}"></span><div><div class="tn">${esc(name)}</div><div class="tc">${head?`STARTS +${head} \u00b7 TOP SEED \u00b7 `:''}WINDOW ${wp} PTS \u00b7 ${ru} ROUND${ru===1?'':'S'}</div></div></div></td>
       <td class="num pts">${tot}</td>
     </tr>`;
   });
@@ -7948,7 +7998,8 @@ function renderStandings(){
   ranks.forEach((v,i)=>{ if(v === null) ranks[i] = ranks[i-1]; });
   /* The seats this season actually has, from the one function that knows -
      `climbCut`, which the climb has read since D24. */
-  const cutK = Math.max(1, climbCut(window.scenarios && window.scenarios.meta).K);
+  const cutOf = climbCut(window.scenarios && window.scenarios.meta);
+  const cutK = Math.max(1, cutOf.K);
   const tiedAt = i => i >= fixedN && ((i > fixedN && ranks[i-1] === ranks[i]) || (i+1 < ranks.length && ranks[i+1] === ranks[i]));
   shown.forEach((t,i)=>{
     const ti=teams.indexOf(t);
@@ -8023,7 +8074,10 @@ function renderStandings(){
        so the desk's own two renderers disagreed with each other about the
        same season. One function decides; both read it. */
     if(!settled && i===cutK-1 && (state.finish||'cup_final')==='cup_final' && teams.length>cutK)
-      html+=`<tr class="cutrow"><td colspan="${deskCols?6:4}"><span>${esc(csCutLabel(cutK))}</span><i></i></td></tr>`;
+      /* a two-squad season has no cut: BOTH squads play the Final and the
+         leader carries +10 in (enter_cup_final), so its line is the seed,
+         word for word the phone's StandingsTableView — never "top one plays" */
+      html+=`<tr class="cutrow"><td colspan="${deskCols?6:4}"><span>${esc(cutOf.seed ? 'Top seed · +10' : csCutLabel(cutK))}</span><i></i></td></tr>`;
   });
   flipRows(el, 'data-squad', ()=>{ el.innerHTML=html; });
   sfGo(el);   /* SF-6: arm any freshly wrapped ranks — no-op on a static render */
@@ -9714,6 +9768,34 @@ const CARD_BADGE = {
    composition above it and passes the top it wants; nothing else moves. */
 const CS_MARK_PATH_A = 'M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z';
 const CS_MARK_PATH_B = 'M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z';
+/* AN ARTIFACT'S COURSE LINE FITS ITS CANVAS, by the phone's own rule
+   (RecapCardView: `.lineLimit(2).minimumScaleFactor(0.65)`): at each size from
+   the design size down to 65%, one line if it holds, else two; an ellipsis
+   only when two lines at 65% still cannot. A long club-and-course name used to
+   run off both edges of the 1080 canvas and through the card's own border.
+   `twoMax` caps the size two lines may take where the band under them is
+   fixed. Returns { px, lines }; each canvas places its own lines. */
+function csFitCourseLines(x, text, o){
+  const big = o.px, small = Math.round(o.px * 0.65), twoMax = o.twoMax || o.px;
+  const wide = (t, px) => { x.font = `${o.weight} ${px}px ${o.face}`; try{ x.letterSpacing = (o.ls||0) + 'px'; }catch(e){}
+    const w = x.measureText(t).width; try{ x.letterSpacing = '0px'; }catch(e){} return w; };
+  const words = String(text).split(/\s+/).filter(Boolean);
+  const split = px => { let a = '', i = 0;
+    for(; i < words.length; i++){ const t = a ? a + ' ' + words[i] : words[i]; if(a && wide(t, px) > o.maxW) break; a = t; }
+    return [a, words.slice(i).join(' ')]; };
+  for(let px = big; px >= small; px -= 2){
+    if(wide(text, px) <= o.maxW) return { px, lines:[String(text)] };
+    if(px > twoMax) continue;
+    const [a, b] = split(px);
+    if(b && wide(a, px) <= o.maxW && wide(b, px) <= o.maxW) return { px, lines:[a, b] };
+  }
+  const px = Math.min(small, twoMax);
+  const clip = t => { while(t.length > 1 && wide(t + '\u2026', px) > o.maxW) t = t.slice(0, -1).trimEnd(); return t + '\u2026'; };
+  let [a, b] = split(px);
+  if(wide(a, px) > o.maxW) a = clip(a);
+  if(b && wide(b, px) > o.maxW) b = clip(b);
+  return { px, lines: b ? [a, b] : [a] };
+}
 function csArtifactSignature(x, W, top, opts){
   const o = opts || {};
   const INK = o.ink || '#F1F4EF', MUT = o.mut || '#9BA69D';
@@ -9822,11 +9904,20 @@ function drawRecapCard(d){
   if(d.badge) ctr(d.badge, 972, `600 31px ${BOARD}`, GOLD, 5);
   x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
   x.beginPath(); x.moveTo(280,1020); x.lineTo(W-280,1020); x.stroke();
-  ctr((d.course||'A ROUND').toUpperCase(), 1084, `700 40px ${BOARD}`, INK, 2);
+  /* one line on the date's own rule, or two that start 14px under the hairline
+     and push the date down (the signature still clears it) */
+  const cl=csFitCourseLines(x, (d.course||'A ROUND').toUpperCase(), { px:40, weight:700, face:BOARD, ls:2, maxW:W-192 });
+  let whenY=1134;
+  if(cl.lines.length===1) ctr(cl.lines[0], 1084, `700 ${cl.px}px ${BOARD}`, INK, 2);
+  else {
+    const y1=1034+Math.round(cl.px*.72), y2=y1+Math.round(cl.px*1.12);
+    ctr(cl.lines[0], y1, `700 ${cl.px}px ${BOARD}`, INK, 2); ctr(cl.lines[1], y2, `700 ${cl.px}px ${BOARD}`, INK, 2);
+    whenY=Math.max(1134, y2+40);
+  }
   const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const dt=d.date||new Date();
   const when=`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`+(d.points!=null?` · ${d.points} PTS`:'');
-  ctr(when, 1134, `600 29px ${BOARD}`, MUT, 4);
+  ctr(when, whenY, `600 29px ${BOARD}`, MUT, 4);
   csArtifactSignature(x, W, 1180, { ink:INK, mut:MUT });
   return cv;
 }
@@ -9868,7 +9959,8 @@ function drawRoundCardArtifact(d){
     x.stroke(path); x.restore();
   }
   ctr((d.name||'A GOLFER').toUpperCase(), 292, `700 38px ${BOARD}`, INK, 7);
-  ctr((d.course||'A ROUND').toUpperCase(), 348, `600 32px ${BOARD}`, MUT, 4);
+  { const cl=csFitCourseLines(x, (d.course||'A ROUND').toUpperCase(), { px:32, weight:600, face:BOARD, ls:4, maxW:W-192 });
+    cl.lines.forEach((t,i)=>ctr(t, 348+i*Math.round(cl.px*1.12), `600 ${cl.px}px ${BOARD}`, MUT, 4)); }
 
   /* THE CARD, folded. 96 + 9x80 + 120 = 936, inside 1080 with 72 either side,
      and positioned by its CENTRE so a card with no par row stays in the middle
@@ -10100,7 +10192,10 @@ function drawSettlementCard(d){
   ctr(String(d.money||'').toUpperCase(), 1010, `600 30px ${BOARD}`, GOLD, 5);
   x.strokeStyle='#8B8F8B'; x.lineWidth=1;
   x.beginPath(); x.moveTo(280,1060); x.lineTo(W-280,1060); x.stroke();
-  ctr((d.course||'A ROUND').toUpperCase(), 1124, `700 40px ${BOARD}`, INK, 2);
+  { const cl=csFitCourseLines(x, (d.course||'A ROUND').toUpperCase(), { px:40, weight:700, face:BOARD, ls:2, maxW:W-192, twoMax:38 });
+    if(cl.lines.length===1) ctr(cl.lines[0], 1124, `700 ${cl.px}px ${BOARD}`, INK, 2);
+    else { const y1=1074+Math.round(cl.px*.72);
+      cl.lines.forEach((t,i)=>ctr(t, y1+i*Math.round(cl.px*1.12), `700 ${cl.px}px ${BOARD}`, INK, 2)); } }
   const DW=['SUN','MON','TUE','WED','THU','FRI','SAT'], MO=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const dt=d.date||new Date();
   ctr(`${DW[dt.getDay()]} · ${MO[dt.getMonth()]} ${dt.getDate()}`, 1174, `600 27px ${BOARD}`, MUT, 4);
@@ -13302,7 +13397,10 @@ function primeRealRoster(){
      empty list means the load never ran) — fetch it, then re-prime so the
      picker fills with league mates */
   if(window.CS?.league && !(window.CS.members||[]).length && window.loadLeagueData){
-    window.loadLeagueData().then(()=>{ if(!(state.live && state.live.active)) primeRealRoster(); });
+    /* ...and only re-prime when the roster actually arrived: a read that
+       comes back empty (a golfer removed mid-session, RLS) or fails would
+       re-enter this branch forever — ~800 requests in 2.5s (I04 / WX C) */
+    window.loadLeagueData().then(()=>{ if((window.CS.members||[]).length && !(state.live && state.live.active)) primeRealRoster(); });
   }
   /* pilot: buddy chips no longer auto-crowd the picker — the chips lead with
      the LEAGUE; buddies (and anyone else) arrive through the app-wide search
@@ -17408,7 +17506,7 @@ function renderHomeHero(){
        This round builds your number" at the exact moment it matters (~:6214). */
     const subStep = (!isPro && stage !== 'season' && stage !== 'final' && stage !== 'complete')
       ? { label:'Add my round', go:()=>switchView('record') } : null;
-    box.innerHTML = heroCard('', `${esc(lgName||'Your league')} · ${STAGE_LABEL[stage].toLowerCase()}`,
+    box.innerHTML = heroCard(starter ? '' : 'calm', `${esc(lgName||'Your league')} · ${STAGE_LABEL[stage].toLowerCase()}`,
       dd!=null && !starter ? `<div class="hh-fig"><span class="hh-pos">${dd}</span><span class="hh-ord">day${dd===1?'':'s'}</span></div>` : '',
       starter ? `The season's on. <em>Rounds count from today.</em>`
               /* an unnamed, one-person league is a half-finished thing and the
@@ -17445,7 +17543,7 @@ function renderHomeHero(){
 
   if(force==='rung7' || (!force && rounds===0)){
     seen('rung7');
-    box.innerHTML = heroCard('', 'Your card',
+    box.innerHTML = heroCard('calm', 'Your card',
       '', `Three rounds and your index goes live. <em>Nothing else needed.</em>`,
       `<span>Index</span><span class="hh-bar"><i style="width:3%"></i></span><span>0 of 3</span>`,
       `<button class="hh-cta" data-hpost type="button">Post your first round</button>`);
@@ -17455,7 +17553,7 @@ function renderHomeHero(){
   if(force==='rung6' || (!force && buddies===0)){
     const est = idx!=null;
     seen('rung6');
-    box.innerHTML = heroCard('', `Your card · ${rounds} round${rounds===1?'':'s'}`,
+    box.innerHTML = heroCard('calm', `Your card · ${rounds} round${rounds===1?'':'s'}`,
       est?`<div class="hh-fig"><span class="hh-pos">${fmtIdx(idx)}</span><span class="hh-ord">index</span></div>`:'',
       est ? `Established. <em>Nobody's seen it</em> — you haven't added a buddy yet.`
           : `${3-Math.min(rounds,2)} more and your index is live. <em>Play anywhere.</em>`,
@@ -17467,7 +17565,7 @@ function renderHomeHero(){
   /* rung 5 — buddies exist; four fills a league */
   const enough = buddies>=4;
   seen('rung5');
-  box.innerHTML = heroCard('', 'Your buddies',
+  box.innerHTML = heroCard('calm', 'Your buddies',
     `<div class="hh-fig"><span class="hh-pos">${buddies}</span><span class="hh-ord">${enough?`budd${buddies===1?'y':'ies'}`:'of 4'}</span></div>`,
     enough ? `<b>Two is a season. Four opens squads.</b> <em>You have ${buddies}.</em>`
            : `<b>Two is a season. Four opens squads.</b>`,   /* the figure and the bar carry the count; a tail that said rounds count at four contradicted the sentence before it */
@@ -19980,9 +20078,20 @@ function csCompeteFacts(){
   rows.forEach(m => { if(m && m.league_id) map.set(m.league_id, m); });
   return map;
 }
+/* a season is UPCOMING until its first tee. native_home clamps week_no to 1
+   and says how far off the tee is with days_to_first_tee, so `week_no===0`
+   alone printed "Live" and "Week 1 of 12" a week before anyone could play —
+   the phone calls that phase preseason (started, first tee ahead). The date
+   test is LOCAL: toISOString() is UTC, a day ahead every Phoenix evening. */
+function csSeasonUpcoming(se){
+  if(!se) return false;
+  if(se.week_no===0) return true;
+  if(se.days_to_first_tee!=null && Number(se.days_to_first_tee) > 0) return true;
+  return !!(se.starts_on && String(se.starts_on).slice(0,10) > isoOf(new Date()));
+}
 function csSeasonRowFacts(f, role){
   if(!f) return null;
-  const se=f.season || null, upcoming=se && (se.week_no===0 || se.starts_on>new Date().toISOString().slice(0,10));
+  const se=f.season || null, upcoming=csSeasonUpcoming(se);
   const st=upcoming?null:(f.standing || null);
   const rank = st && st.points_rank != null && Number.isFinite(Number(st.points_rank)) ? Number(st.points_rank) : null;
   const of   = st && Number.isFinite(Number(st.of)) ? Number(st.of) : null;
@@ -19996,12 +20105,13 @@ function csSeasonRowFacts(f, role){
     else if(gap != null && gap > 0 && st.leader_name) parts.push(gap + ' behind ' + String(st.leader_name).split(' ')[0]);
   }
   let eyebrow = null;
-  if(se && se.week_no != null && se.weeks_total != null) eyebrow = 'Week ' + se.week_no + ' of ' + se.weeks_total;
+  if(upcoming) eyebrow = STAGE_LABEL.preseason;
+  else if(se && se.week_no != null && se.weeks_total != null) eyebrow = 'Week ' + se.week_no + ' of ' + se.weeks_total;
   const clash = f.clash || null;
   let status = null;
   if(clash && clash.closes_today) status = 'The clash closes today';
   else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
-  return { sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts, standing:rank==null?null:climbOrd(rank)+(st.points_tied?' · Tied':''), story:upcoming?'No standing yet. First tee is ahead.':gap>0?'You are '+gap+' back from '+(st.leader_name||'the lead')+'.':rank===1?(st.points_tied?'The lead is shared.':'You lead the season.'):'The season is underway.' };
+  return { upcoming, sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts, standing:rank==null?null:climbOrd(rank)+(st.points_tied?' · Tied':''), story:upcoming?'No standing yet. First tee is ahead.':gap>0?'You are '+gap+' back from '+(st.leader_name||'the lead')+'.':rank===1?(st.points_tied?'The lead is shared.':'You lead the season.'):'The season is underway.' };
 }
 /* F13 · A BIRDIE IS A BIRDIE. The risk in celebrating a good hole is FALSE
    recognition, so every rule here is a refusal: par must be KNOWN (an
@@ -20078,7 +20188,7 @@ function csCompetitionBandHtml(row){
 }
 window.csCompetitionBandHtml = csCompetitionBandHtml;
 function csCompeteList(memberships, events, schedule, todayISO, facts){
-  const today = todayISO || new Date().toISOString().slice(0,10);
+  const today = todayISO || isoOf(new Date());
   const live=[], moments=[], finished=[];
   const fm = facts || csCompeteFacts();
   (memberships||[]).forEach(m=>{
@@ -20105,7 +20215,7 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
     }
     const f = !done && lg.phase==='season' ? csSeasonRowFacts(fm.get(lg.id), m.role) : null;
     const row={ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
-                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? ((f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
+                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? (f && f.upcoming ? f.eyebrow : (f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
                 title: lg.name || 'A season',
                 /* L-44 · a finished season says it is finished. The champion's
                    NAME is a fact the boot's membership rows do not carry, so it
@@ -20113,7 +20223,7 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
                 sub: done ? 'Wrapped. Open it for the table.'
                           : ((f && f.sub) ? f.sub : (m.role==='commissioner' ? 'You run it (the Pro).' : 'You’re in it.')),
                 status: f && f.status ? f.status : null,
-                state: fm.get(lg.id)?.season?.week_no===0 ? 'Upcoming' : CS_COMPETITION.season(lg.phase, (lg.season && lg.season.status) || null),
+                state: (f ? f.upcoming : csSeasonUpcoming(fm.get(lg.id)?.season)) ? 'Upcoming' : CS_COMPETITION.season(lg.phase, (lg.season && lg.season.status) || null),
                 points:f?.points, standing:f?.standing, story:f?.story, seasonId:fm.get(lg.id)?.season?.id, fieldSize:fm.get(lg.id)?.standing?.of||0, squads:(fm.get(lg.id)?.settings?.structure||'solo')!=='solo',
                 figure: (f && f.rank != null) ? (f.rank + csOrdinalSuffix(f.rank)+(fm.get(lg.id)?.standing?.points_tied?' · Tied':'')) : null,
                 clock: null };
@@ -20122,7 +20232,9 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
   (events||[]).forEach(e=>{
     const done = e.status==='complete';
     const row={ id:'event:'+e.id, kind:'moment', eventId:e.id,
-                eyebrow: done ? 'Final' : (e.starts_on ? csDayToken(e.starts_on) : 'Forming'),
+                /* the phone's eventEyebrow: the day, else the status's own word —
+                   a live Ryder read "Forming" because no date had been selected */
+                eyebrow: done ? 'Final' : e.starts_on ? csDayToken(e.starts_on) : (CS_COMPETITION.event(e.status) === 'Live' ? 'Live' : 'Forming'),
                 title: e.name || 'A moment',
                 sub: csMomentLine(e.kind, e.status, e.mine !== false),
                 state: CS_COMPETITION.event(e.status),
@@ -24406,7 +24518,11 @@ function renderEvent(){
   const rchain=(E.lineage||[]).filter(r=>r.kind!=='major');
   if(rchain.length>1){
     const pos=rchain.findIndex(r=>r.event_id===ev.id)+1;
-    const rpriors=rchain.filter(r=>r.status==='complete' && r.event_id!==ev.id);
+    /* the record THROUGH this edition: every finished edition up to and
+       including the one on screen. Counting only the others printed "The 1st
+       Ryder · all square 0–0" beside that edition's own 7–5; a live edition
+       is not finished, so it still reads the record coming in. */
+    const rpriors=(pos>0 ? rchain.slice(0, pos) : rchain).filter(r=>r.status==='complete');
     let aW=0,bW=0;
     rpriors.forEach(r=>{ if(r.winner_shared){aW+=.5;bW+=.5;} else if(r.winner_slot===0)aW++; else if(r.winner_slot===1)bW++; });
     const series = aW===bW ? `all square ${evHalf(aW)}–${evHalf(bW)}`
@@ -24467,7 +24583,10 @@ function renderEvent(){
     ds.forEach(d=>{
       const a=pById(d.a_player), b=pById(d.b_player);
       const aw=d.result==='a', bw=d.result==='b', hv=d.result==='halve', pend=d.result==='pending';
-      const mid = pend?'vs':hv?'halved':(aw||bw)?'def.':'vs';
+      /* the sentence is TRUE whichever side won: team A always stands on the
+         left, so a B win read "A def. B" with only the loser's tone saying
+         otherwise. Now it reads "A lost to B". */
+      const mid = pend?'vs':hv?'halved':aw?'def.':bw?'lost to':'vs';
       const sgn=v=>(v>=0?'+':'')+Number(v).toFixed(1);
       let pvi = (d.a_pvi!=null||d.b_pvi!=null)
         ? `${d.a_pvi!=null?sgn(d.a_pvi):'–'} / ${d.b_pvi!=null?sgn(d.b_pvi):'–'}` : '';
@@ -25088,9 +25207,16 @@ const SUPABASE_URL  = 'https://zddbfcokmvneltrgukzf.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_UoORp_4FTRWg6a7foKqxRA_N2f5kHVS';
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
-    /* pass-through lock: avoids navigator.locks, which is origin-wide across
-       tabs — one wedged background tab would otherwise freeze every tab */
-    lock: (_name, _timeout, fn) => fn(),
+    /* NO `lock` OPTION (I04, 2026-09-28). The pinned auth-js (2.112.4)
+       coordinates refreshes without a lock: `this.lock` stays null unless the
+       option is passed, and its navigatorLock is exported, never defaulted,
+       so navigator.locks (origin-wide: one wedged tab would freeze every tab)
+       is still never touched. The old pass-through only re-armed the
+       deprecated in-lock queue and printed a deprecation warning on every
+       load. tests/ten-lock-probe.mjs is the evidence: 0 lock requests, and a
+       second tab boots past a zombie tab holding the auth lock. Preflight
+       ties this to the pin; an OLDER auth-js defaulted to navigatorLock in
+       browsers, so moving the pin below 2.112.4 needs the pass-through back. */
     /* Session fixation (ship audit 2026-08-31): left at the default `true`,
        supabase-js reads an access/refresh token pair out of the URL FRAGMENT
        and adopts it as the session. Cup Season has no link-based auth flow at
@@ -26905,7 +27031,10 @@ async function openPerson(profileId){
   try{
     const [cr, hr] = await Promise.all([
       sb.rpc('tour_card', { p_profile: profileId }),
-      sb.rpc('head_to_head', { p_opponent: profileId }).catch(() => ({ data: null })),
+      /* a PostgREST builder is a thenable with no .catch — calling it threw
+         while this array was being built, so NEITHER read was ever sent and
+         every golfer's page read "A golfer · Couldn't pull that card" */
+      sb.rpc('head_to_head', { p_opponent: profileId }).then(r => r, () => ({ data: null })),
     ]);
     card = cr.data;
     h2h = hr && hr.data ? csH2HParse(hr.data) : null;
@@ -28714,8 +28843,12 @@ async function subscribeLeague(){
   if(CS.chan){ try{ rtClient.removeChannel(CS.chan); }catch(e){} CS.chan = null; }
   if(!CS.league) return;
   try {
+    /* the realtime client never holds a session (persistSession:false; its
+       token arrives by setAuth below), so it takes its own storage key: the
+       shared default made auth-js warn "Multiple GoTrueClient instances"
+       on every league entry (I04) */
     if(!rtClient) rtClient = createClient(SUPABASE_URL, SUPABASE_KEY,
-      { auth: { persistSession:false, autoRefreshToken:false, lock:(_n,_t,fn)=>fn() } });
+      { auth: { persistSession:false, autoRefreshToken:false, detectSessionInUrl:false, storageKey:'cs-realtime' } });
     const { data:{ session } } = await sb.auth.getSession();
     if(session) rtClient.realtime.setAuth(session.access_token);
   } catch(e){ console.warn('[realtime] setup', e); }
@@ -28792,7 +28925,7 @@ const liveSync = {
     this.lr=lr; this.code=code; this.guest=guestTok||null;
     try{
       if(!rtClient) rtClient = createClient(SUPABASE_URL, SUPABASE_KEY,
-        { auth: { persistSession:false, autoRefreshToken:false, lock:(_n,_t,fn)=>fn() } });
+        { auth: { persistSession:false, autoRefreshToken:false, detectSessionInUrl:false, storageKey:'cs-realtime' } });
       if(!this.guest){
         const { data:{ session } } = await sb.auth.getSession();
         if(session) rtClient.realtime.setAuth(session.access_token);
@@ -30723,7 +30856,7 @@ async function loadMyEvents(){
   if(!CS.user){ window.myEvents = []; return; }
   try {
     const { data } = await sb.from('event_players')
-      .select('event:events(id, name, status, kind)').eq('profile_id', CS.user.id);
+      .select('event:events(id, name, status, kind, starts_on)').eq('profile_id', CS.user.id);
     window.myEvents = (data||[]).map(r => r.event).filter(Boolean).map(e => ({...e, mine:true}));
   } catch(e){ window.myEvents = []; }
   /* the crew's attached events too (spectator reads, the Major's enter path) —
@@ -30733,7 +30866,7 @@ async function loadMyEvents(){
     const lids = (CS.memberships||[]).map(m => m.league.id);
     if(lids.length){
       const { data: att } = await sb.from('events')
-        .select('id, name, status, kind, league_id').in('league_id', lids).neq('status','complete');
+        .select('id, name, status, kind, league_id, starts_on').in('league_id', lids).neq('status','complete');
       const seen = new Set((window.myEvents||[]).map(e => e.id));
       (att||[]).forEach(e => { if(!seen.has(e.id)) window.myEvents.push({...e, mine:false}); });
     }
