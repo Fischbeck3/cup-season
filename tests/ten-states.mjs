@@ -30,11 +30,11 @@ async function familyModules() {
 
 const CORE = [
   /* ------------------------------------------------------------ door */
-  { family: 'door', id: 'initial', variant: 'signed_out', url: '/?exit', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } } },
-  { family: 'door', id: 'email', variant: 'signed_out', url: '/?exit', short: true,
+  { family: 'door', id: 'initial', variant: 'signed_out', url: '/', expect: { door: true, selectors: { '#obEmail': 'visible', '#obJoin': 'visible' } } },
+  { family: 'door', id: 'email', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obEmail'); await until(page, () => document.querySelector('#emailbox').classList.contains('open')) },
     expect: { door: true, selectors: { '#obEmailIn': 'visible', '#obEmailGo': 'visible' } } },
-  { family: 'door', id: 'sending', variant: 'signed_out', url: '/?exit', short: true,
+  { family: 'door', id: 'sending', variant: 'signed_out', url: '/', short: true,
     hold: (e) => e.method === 'POST' && /\/auth\/v1\/otp/.test(e.path),
     drive: async (page) => {
       await click(page, '#obEmail'); await page.fill('#obEmailIn', 'avery.fixture@example.invalid')
@@ -42,15 +42,15 @@ const CORE = [
       await until(page, () => /Sending/.test(document.getElementById('obStatus').textContent))
     },
     expect: { door: true, selectors: { '#obStatus': 'text:Sending', '#obEmailGo': 'visible' } } },
-  { family: 'door', id: 'code-entry', variant: 'signed_out', url: '/?exit', short: true,
+  { family: 'door', id: 'code-entry', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => {
       await click(page, '#obEmail'); await page.fill('#obEmailIn', 'avery.fixture@example.invalid')
       await click(page, '#obEmailGo')
       await until(page, () => document.querySelector('#codebox').classList.contains('open'))
     },
     expect: { door: true, selectors: { '#obCodeIn': 'visible', '#obStatus': 'text:Sent to' } } },
-  { family: 'door', id: 'code-error', variant: 'signed_out', url: '/?exit', short: true,
-    expectConsole: [/^\[cs\] (That code|Code didn|The code|That sign-in|Something went wrong)/, /status of 403/],
+  { family: 'door', id: 'code-error', variant: 'signed_out', url: '/', short: true,
+    expectConsole: [/^\[cs\] (That code|Code didn|The code|That sign-in|Something went wrong)/, /^\[cs\] error: Code didn/, /status of 403/],
     drive: async (page) => {
       await click(page, '#obEmail'); await page.fill('#obEmailIn', 'avery.fixture@example.invalid')
       await click(page, '#obEmailGo')
@@ -59,7 +59,7 @@ const CORE = [
       await until(page, () => /err/.test(document.getElementById('obStatus').className))
     },
     expect: { door: true, selectors: { '#obStatus.err': 'visible' } } },
-  { family: 'door', id: 'send-failed', variant: 'signed_out', url: '/?exit', short: true,
+  { family: 'door', id: 'send-failed', variant: 'signed_out', url: '/', short: true,
     world: { errors: { auth: { otp: { status: 429, body: { code: 429, error_code: 'over_email_send_rate_limit', msg: 'email rate limit exceeded' } } } } },
     expectConsole: [/^\[cs\] Too many sign-in emails/, /status of 429/],
     drive: async (page) => {
@@ -68,18 +68,14 @@ const CORE = [
       await until(page, () => /err/.test(document.getElementById('obStatus').className))
     },
     expect: { door: true, selectors: { '#obStatus.err': 'visible' } } },
-  { family: 'door', id: 'league-code', variant: 'signed_out', url: '/?exit', short: true,
+  { family: 'door', id: 'league-code', variant: 'signed_out', url: '/', short: true,
     drive: async (page) => { await click(page, '#obJoin'); await until(page, () => document.querySelector('#joinbox').classList.contains('open')) },
     expect: { door: true, selectors: { '#joinCode': 'visible' } } },
 
   /* ---------------------------------------------------- onboarding gate */
   { family: 'onboarding', id: 'card-gate', variant: 'no_card', short: true,
-    expect: { allowDoor: true, check: null },
-    check: async (page) => page.evaluate(() => {
-      const g = document.querySelector('#profileGate, #pgGate, .pgate, [data-gate="card"], #obCard')
-      const any = [...document.querySelectorAll('input, button')].filter((e) => e.offsetParent !== null).length
-      return g || any ? true : 'the golfer-card gate did not render'
-    }) },
+    /* the gate lives on the door overlay (#obProfile inside #onboard) */
+    expect: { door: true, selectors: { '#obProfile': 'visible', '#pfSave': 'visible', '#obDoor': 'hidden' } } },
 
   /* ------------------------------------------------------------ home */
   { family: 'home', id: 'member', variant: 'member', expect: { view: 'view-home' } },

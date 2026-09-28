@@ -150,9 +150,10 @@ async function captureOne(browser, state, vp, theme, cdn) {
   await cdp.send('Runtime.enable')
   cdp.on('Runtime.consoleAPICalled', (e) => {
     const frames = (e.stackTrace && e.stackTrace.callFrames) || []
-    const own = frames.find((f) => /127\.0\.0\.1/.test(f.url))
+    const ownFrames = frames.filter((f) => /127\.0\.0\.1/.test(f.url) && /\/(index\.html)?$/.test(f.url.replace(/\?.*$/, '')))
+    const own = ownFrames[0]
     const text = (e.args || []).map((a) => a.value !== undefined ? (typeof a.value === 'string' ? a.value : JSON.stringify(a.value)) : (a.description || a.unserializableValue || '')).join(' ')
-    messages.push({ level: e.type, text: text.slice(0, 1200), src: frames[0] ? `${frames[0].url.replace(base, '')}:${frames[0].lineNumber + 1}` : null, indexLine: own ? own.lineNumber + 1 : null, via: 'console' })
+    messages.push({ level: e.type, text: text.slice(0, 1200), src: frames[0] ? `${frames[0].url.replace(base, '')}:${frames[0].lineNumber + 1}` : null, indexLine: own ? own.lineNumber + 1 : null, indexFrames: ownFrames.slice(0, 4).map((f) => `${f.functionName || '(anon)'}:${f.lineNumber + 1}`), via: 'console' })
   })
   page.on('console', (m) => { if (m.type() === 'error' && /^Failed to load resource/.test(m.text())) messages.push({ level: 'error', text: m.text(), url: m.location().url, src: 'network', indexLine: null, via: 'network' }) })
   page.on('pageerror', (e) => exceptions.push({ text: String(e.message).slice(0, 600), stack: String(e.stack || '').split('\n').slice(0, 6).join(' <- ') }))
@@ -178,8 +179,8 @@ async function captureOne(browser, state, vp, theme, cdn) {
   } catch (e) {
     result.assert = { ok: false, detail: 'driver: ' + String(e.message || e).split('\n')[0] }
   }
-  if (hold && !hold.released) hold.release()
-  return { page, context, cdp, world, log, gaps, blocked, messages, exceptions, aborted, served, storm, result, ms: Date.now() - t0 }
+  /* a held request (the "sending" state) stays held until after the screenshot */
+  return { page, context, cdp, world, log, gaps, blocked, messages, exceptions, aborted, served, storm, result, hold, ms: Date.now() - t0 }
 }
 
 async function settleDefault(page, state) {
@@ -263,6 +264,7 @@ async function main() {
           if (cap) await cap.context.close().catch(() => {})
           continue
         }
+        if (cap.hold && !cap.hold.released) cap.hold.release()
         await cap.page.waitForTimeout(50)
         const buf = readFileSync(join(OUT, file))
         const msgs = cap.messages.map((m) => ({ ...m, category: classify(state, m, cap.aborted) }))
