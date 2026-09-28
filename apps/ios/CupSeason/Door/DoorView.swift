@@ -235,10 +235,14 @@ struct DoorView: View {
         .submitLabel(.go)
         .focused($focus, equals: .email)
         .onSubmit { send() }
-      Button("Continue with email") { send() }
+      // R02 · the submit names what it does — it sends the code — in the
+      // desk's words. "Continue with email" was the chooser's phrase again,
+      // one step after the golfer had already chosen email.
+      Button(vm.busy ? DoorCopy.sending : DoorCopy.sendCode) { send() }
         .buttonStyle(.csPrimary(busy: vm.busy))
         .padding(.top, CSTokens.Space.s2)
         .id(DoorLayout.action)
+        .accessibilityIdentifier("door.email.send")
       if flags.appleSignIn {
         DoorAppleButton(
           onToken: { token, nonce, name in Task { await vm.apple(idToken: token, nonce: nonce, appleName: name) } },
@@ -246,7 +250,9 @@ struct DoorView: View {
           .padding(.top, 4)
           .disabled(vm.busy)
       }
-      Text("One code, no password.")
+      // R02 · the ONE other fact beside the action: there is no password. The
+      // button already says a code is coming, so this line does not say it again.
+      Text(DoorCopy.noPassword)
         .csType(.bodyS).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
       haveACode
     }
@@ -545,4 +551,14 @@ final class DoorModel {
       }
     }
   }
+}
+
+/// R02 · the email stage's words, in one place and the desk's: the action
+/// says what it does (`#obEmailGo` reads "Send code", busy "Sending…"), and
+/// the one fact beside it is that there is no password. Code-only, 8 digits —
+/// the flow itself is unchanged.
+enum DoorCopy {
+  static let sendCode = "Send code"
+  static let sending = "Sending\u{2026}"
+  static let noPassword = "No password needed."
 }
