@@ -1,5 +1,7 @@
 # Approved build · September 28, 2026
 
+**Shipping update:** The owner subsequently said “Ship it.” See [DEPLOYMENT.md](DEPLOYMENT.md) for the authorized release and actual layer-specific results. The build-time authorization statements below are historical.
+
 The recommended S1a/S1b repairs are implemented and locally committed, separately selectable from release candidate `5fabf861`. The owner’s **“Build recommended”** also approves the compiled context, corrections to stale summaries, existing-canon precedence and optional consented content direction. Structural work stays post-launch. No push, merge, deploy, Apple action, new dependency, brand replacement or new decision was performed.
 
 **This is not launch clearance or a 10/10 claim.** The selected defects are fixed; inherited test failures, console warnings, missing state evidence and owner/human gates remain open. No release gate was weakened to claim green.

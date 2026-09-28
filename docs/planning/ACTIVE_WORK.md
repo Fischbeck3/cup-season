@@ -1,5 +1,23 @@
 # Cup Season · active work and ownership
 
+## Impeccable selected repairs · shipping authorized · 2026-09-28 (Codex)
+
+The owner said **“Ship it”** after reviewing the local S1a/S1b handoff and its
+known verification limits. Owned release branch: `codex/ten-ship-2026-09-28`,
+isolated in `/Users/fischbeck3/cup-season-ten-ship`, based on fresh main
+`5fabf861`. It carries the approved program documentation and only the two
+reviewed product fixes. The source branches remain independently available.
+
+Authorized delivery: fast-forward main and publish web through Netlify;
+archive, validate, upload and distribute native to internal Owner TestFlight.
+No database or Edge change is required. App Store submission, Friends/external
+distribution and broader design work remain outside this narrow delivery.
+The original dirty checkout and all other active workspaces remain untouched.
+
+[Release record](../design/ten-2026-09-27/DEPLOYMENT.md) tracks the exact candidate,
+checks, layer-specific read-backs and remaining device/human limitations.
+
+
 ## Impeccable ten · approved narrow builds · 2026-09-28 (Codex)
 
 The owner's “Build recommended” selects S1a (email label) and S1b (Home
