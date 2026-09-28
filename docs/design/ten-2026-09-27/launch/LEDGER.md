@@ -79,13 +79,13 @@ Owners:
 |---|---|---|---|
 | I01 | `tests/brand-door-browser.js`: 1600px terrain ≥60% of width vs 900px CSS cap (both themes) | fixed · verified (stale test, cited) | fd38b3cc: the test copied only the 62vw arm of 8f85dac9's `min(62vw, 900px)`; passes 320/390/1440/1600/1920 × themes |
 | I02 | `DeviceOnlyAuthStorageTests.existingSDKSessionMigratesWithoutLosingItsBytes()`: -34018 in an unsigned simulator host | fixed · verified (N1) | 379e6daf: simulator hosts sign ad hoc with the app's entitlements (`CODE_SIGN_IDENTITY[sdk=iphonesimulator*]: "-"`); A/B on 14b7f4e4; full non-UI suite 1601/0. Lane note: never build test hosts with `CODE_SIGNING_ALLOWED=NO` |
-| I03 | Full authenticated UI never run (no safe state injection) | open | needs S2 |
+| I03 | Full authenticated UI never run (no safe state injection) | in progress · **blocked · owner** for the integrated run | FX's seam, flows and route tests are merged (31e99c7d); at FX's SHA the non-UI suite and SyntheticRouteTests are green. The full native capture matrix at the integrated SHA (4112a3f0) was **denied by the permission classifier** ("Modify Shared Resources") at `xcodebuild build-for-testing` in a fresh worktree; not worked around. The owner runs, or allows, FX's five commands (in its report) |
 | I04 | Console output: missing career/schedule fixture read models, worker blocking, Supabase lock-option deprecation (also live in production) | fixed · verified (web; clean-run count pending) | 09ead060: no `lock` option on the pinned lockless auth-js 2.112.4 (WX tests/ten-lock-probe.mjs: 0 navigator.locks requests; a second tab boots past a zombie tab holding the auth lock); the realtime client takes its own storage key (no "Multiple GoTrueClient"); preflight `auth lock matches the pin`. The fixture read models were WX's (fixed in the harness). What remains in `normal` is the `[boot]`/`[realtime]` breadcrumbs CLAUDE.md keeps |
 | I05 | Release archive: 83 warning instances across 21 messages | open | |
 | I06 | `compete-rows-browser.js` fails at baseline: Compete overflows 2px at 320–402 (page-head terrain `right:-18px` in a 16px gutter) | fixed · verified | 68f7e8cf; passes 320/390/1440 × themes |
 | I08 | `season-setup-browser.js` flaked at 320 on baseline and HEAD: standings nowrap cells widen the table in the fallback face | fixed · verified | a7ab6588; 12/12 fonts blocked + loaded |
 | I09 | `post-hierarchy-browser.js` fails at 320 with fonts blocked on baseline: composer photo/scan row overflow | fixed · verified | f1b4b351; 12/12 twice |
-| I10 | `round-record-browser.js` height budget flakes 1/12 at 320 light, fonts blocked (course name wraps a third line mid font-swap); geometry identical to baseline (206px) | open · test flake, not a regression | recorded |
+| I10 | `round-record-browser.js` height budget flakes 1/12 at 320 light, fonts blocked (course name wraps a third line mid font-swap); geometry identical to baseline (206px) | fixed · verified (test recalibrated, cited) | 45d599f5: the height caps were read in whatever face had loaded (the page suites fetch Google Fonts live). The test now loads every declared face before measuring; in real faces the record is 206 (390) / 226 (320) on the pre-program baseline 1b5916b2 and on HEAD alike; the caps are those +4px; 3/3 green at 320/390/1440 |
 | I07 | `interior-brand-browser.js` fails at baseline: I-3 treated D381's Scoreboard band as a quiet head | fixed · verified (stale test, cited) | 95eb5049; D381 owner amendment 2026-09-24 |
 
 ## 4b · Web systemic passes
@@ -128,6 +128,15 @@ Each was reproduced on this branch before it changed; WX's line numbers were at 
 | X22 | Schedule | the crew's plans printed the rivalry record and "ON THE SCHEDULE" in gold, Home's round cards the tee time (gold means earned; the phone prints ink); the desk calendar's square days were ~170px | fixed · verified | selection-rows |
 | X23 | Public settlement / dead link | the way in ("Play this with your crew") was ember while the public round's is the action green (D359) | fixed · verified (source) | the dark printing of `act` on the ceremony ground |
 | X24 | Schedule at 320 CSS | seven days inside the card compute 37px at 320 | **named exception** | below every supported iPhone (375pt SE is the floor, where days are 44.4); WCAG 2.5.8 AA (24px) holds and days stay square |
+| X25 | Golfer credential | fixed thirds truncated "BEST · MESQUITE WASH…" a word early | fixed · verified | f23431f6 · measured columns, the phone's Person.columnWidths |
+| X26 | Season climb (two squads) | the seat line said "TOP 1 ADVANCE TO THE CUP FINAL"; both squads play, the leader carries +10 | fixed · verified (web); native → N2 | 49ee7d42 · StandingsMath.note has the same bug |
+| X27 | Standings story | squad names in the squad palette as text, ~2.3:1 on the light theme's paper | fixed · verified | 49ee7d42 · ink name, colour on a swatch |
+| X28 | Plan share page | "Take the seat" was ember | fixed · verified (source) | 49ee7d42 · the dark printing of `act` |
+| X29 | Receipts, record, Cup Final rounds, board cards, album | round dates printed raw (2026-09-27) and read digit by digit | fixed · verified | 45d599f5 · csRoundDay "Sun Sep 27" |
+| X30 | The Book | head and week columns printed ISO dates | fixed · verified (web); native head → N2 | 45d599f5 · "Jul 6 – Oct 18, 2026", columns named for screen readers |
+| X31 | Live scoring | setup scrolled sideways 35px at 375 (the game control, after d2fb1b55's nowrap); the stuck board hid "N queued"; a just-score round announced side games over nothing (and an empty desk column); the hole read "SI"; the hole strip overflowed 1px | fixed · verified | 9d84c483 · WX play family 48/48, 0 overflow rows |
+| X32 | Native · forced-update gate | the must-update screen shows "needs build N" and no way to update (FX) | open · native lane | a door that does not open is not offered (L-32) |
+| X33 | Native · dev strings | the DEBUG `-cs_dev_bar_waiting` option embeds the owner's real name; `-cs_dev_no_worth` ships in Release | → N2 | FX release-proof otherwise clean: 0 seam strings, 0 synthetic symbols |
 
 ## 5 · Coverage, detector, panel, critique, audit, human
 
