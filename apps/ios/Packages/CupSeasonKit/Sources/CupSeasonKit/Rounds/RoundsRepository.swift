@@ -88,7 +88,6 @@ public struct IndividualStanding: Decodable, Sendable, Equatable {
   }
 }
 
-/// A league mate as the album and the receipt medallion need them.
 /// F16 · the album's rounds carry photographs and none could be signed: the
 /// read failed, whatever the storage said. Never an empty album.
 public struct AlbumUnsignable: Error, LocalizedError, Equatable {
@@ -96,6 +95,7 @@ public struct AlbumUnsignable: Error, LocalizedError, Equatable {
   public var errorDescription: String? { "The photographs could not be opened." }
 }
 
+/// A league mate as the album and the receipt medallion need them.
 public struct LeagueMate: Sendable, Equatable {
   public let profileId: UUID
   public let displayName: String?
