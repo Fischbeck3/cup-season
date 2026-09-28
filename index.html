@@ -1967,7 +1967,6 @@ body.guestlive #onboard{display:none !important;}
    a full-bleed ceremony plate, figures on ONE rule, and two NAMED GROUPS. */
 .evcard{background:var(--ceremony); color:var(--ceremony-ink); padding:26px 22px 22px; margin:0 0 20px;
         border-radius:0; position:relative; overflow:hidden;}
-.cs-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;}
 .evrec .evcard h1{font-size:34px; line-height:1.06;}
 @media (min-width:900px){ .evrec{max-width:760px;} }
 .evrec .evcard h1:focus{outline:none;}
@@ -3346,8 +3345,13 @@ body:not(.noleague) #hubLeagueless{display:none;}
    sideways. `min-width:0` hands the scroll back to the leaf, which already
    owns one. */
 .cs-course>div{min-width:0;}
+/* a 2.6:1 plate is the SHAPE, never a cap on the name: `overflow:hidden` made
+   the plate a scroll container, which switches off aspect-ratio's content
+   minimum, so a four-line course name at 375 lost its first line and the
+   "on your schedule" line off the plate's top edge. `clip` crops the drawing
+   the same way and lets the plate grow to hold its words. */
 .cs-plate{position:relative; aspect-ratio:2.6/1; background:var(--ceremony);
-  overflow:hidden; display:flex; align-items:flex-end;}
+  overflow:hidden; overflow:clip; display:flex; align-items:flex-end;}
 .cs-plate .cs-plate-copy{position:relative; z-index:2; padding:var(--s4);
   display:flex; align-items:flex-end; gap:var(--s3); width:100%;}
 .cs-plate .cs-scrim{position:absolute; inset:0; z-index:1;
@@ -3366,13 +3370,28 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-facts{display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--s2); margin-top:var(--s4);}
 .cs-facts .u{color:var(--mut);}
 .cs-facts .sep{color:var(--mut); opacity:var(--a56);}
+/* F06 (web half) · THE CARD FOLDS, LIKE A REAL ONE. The leaf printed all
+   eighteen holes in one row, 514px, so it scrolled on every phone and even in
+   the desk's 340 column, and its HOLE / PAR / HCP key scrolled away from the
+   figures it names. Now the front nine and the back, each with its OUT / IN
+   column, one above the other (the phone's whole-card shape): figures on an
+   s1 gutter that widens when the measure allows, so a nine with yardage
+   prints whole at 375, 402 and in the desk column. Where a nine still cannot
+   fit (320), the figures scroll under a key that stays put. The scroller is
+   INSIDE the leaf's padding, so the pinned key rests where it started. */
 .cs-leaf{background:var(--leaf); color:var(--leaf-ink);
-  border-radius:var(--p); padding:var(--s3); overflow-x:auto;}
-.cs-leaf table{border-collapse:collapse; font-family:var(--mono); font-size:12px; white-space:nowrap;}
-.cs-leaf th{text-align:left; padding:2px 8px 2px 0; color:var(--leaf-mut); font-weight:400;}
-.cs-leaf td{padding:2px 6px; text-align:right; min-width:22px; color:var(--leaf-mut);}
-.cs-leaf tr.par td{color:var(--leaf-ink); font-weight:500;}
-.cs-leaf tr.par{border-top:1px solid color-mix(in srgb, var(--leaf-ink) 20%, transparent);}
+  border-radius:var(--p); padding:var(--s3);}
+.cs-leaf-cap{color:var(--leaf-mut); padding-bottom:6px;}
+.cs-nines{overflow-x:auto; overscroll-behavior-x:contain;}
+.cs-nines table{border-collapse:separate; border-spacing:0; width:100%;
+  font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.cs-nines table + table{margin-top:var(--s3);}
+.cs-nines th, .cs-nines td{padding:2px 0 2px var(--s1); text-align:right; font-weight:400; color:var(--leaf-mut);}
+.cs-nines th[scope="row"]{position:sticky; left:0; z-index:1; background:var(--leaf);
+  text-align:left; padding:2px var(--s2) 2px 0;}
+.cs-nines .tot{padding-left:var(--s2);}
+.cs-nines tr.par > *{border-top:1px solid color-mix(in srgb, var(--leaf-ink) 20%, transparent);}
+.cs-nines tr.par td{color:var(--leaf-ink); font-weight:500;}
 /* D289 · the rail is a CONTROL. The fill is a second copy of the same five
    stars behind a clipping window whose width IS the value, so setting a rating
    is a width change and §22's 180ms left-to-right sweep is the transition on
@@ -3396,11 +3415,22 @@ body:not(.noleague) #hubLeagueless{display:none;}
 @media (max-width:420px){ .cs-rating .cs-stars{--star:44px;} }
 .cs-rating-rule{height:2px; background:var(--ink); margin:12px 0 8px;}
 .cs-rating-act{margin-top:var(--s4);}
-.cs-note{display:block; width:100%; margin-top:var(--s3); padding:8px 0;
+/* the sentence shows WHOLE. It was a one-line <input>, which cropped a saved
+   note mid-word at 375 and in the desk's 340 column. Now a textarea that grows
+   with its words: the wrap is a one-cell grid whose ::after is an invisible
+   copy of the text, so the field is as tall as the sentence even while the
+   page it sits on is hidden (no measuring, no field-sizing support needed). */
+.cs-note-block{margin-top:var(--s3);}
+.cs-note-lab{display:block; color:var(--mut);}
+.cs-note-wrap{display:grid; font-family:var(--serif); font-size:19px; line-height:1.34;}
+.cs-note-wrap::after{content:attr(data-value) " "; white-space:pre-wrap; overflow-wrap:anywhere;
+  visibility:hidden; grid-area:1/1; padding:8px 0; border-bottom:1px solid transparent;}
+.cs-note{grid-area:1/1; display:block; width:100%; margin:0; padding:8px 0; resize:none; overflow:hidden;
   background:none; border:0; border-bottom:1px solid var(--rule); color:var(--ink);
-  font-family:var(--serif); font-size:19px; line-height:1.34;}
+  -webkit-appearance:none; appearance:none; font:inherit; overflow-wrap:anywhere;}
 .cs-note::placeholder{color:var(--mut); font-family:var(--sans); font-size:15px;}
-.cs-note:focus{outline:none; border-bottom-color:var(--ink);}
+.cs-note:focus{outline:none; border-bottom-color:var(--act); box-shadow:0 1px 0 var(--act);}
+.cs-note-why{padding-top:6px;}
 .cs-said{margin:var(--s3) 0 0; padding:0;}
 .cs-said p{margin:0;}
 /* §5.4 · the record. A row is a rule, a plate and three lines — never a card
@@ -3409,7 +3439,11 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-krow{border-top:1px solid var(--rule); padding:var(--s4) 0 var(--s5); cursor:pointer;}
 .cs-krow:focus-visible{outline:2px solid var(--ink); outline-offset:4px;}
 .cs-krow.is-quiet{padding:var(--s3) 0 var(--s4);}
-.cs-krow-head{display:flex; align-items:flex-start; justify-content:space-between; gap:var(--s3);}
+.cs-krow-head{display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:var(--s3);}
+/* a phone gives the NAME the measure: the rail sat beside it and took 170 of
+   343px, so a long course name stood one word to a line. Where the name and
+   the rail cannot share a line at a readable width, the rail goes under it. */
+.cs-krow-head > div:first-child{flex:1 1 240px; min-width:0;}
 .cs-krow-rate{display:flex; align-items:center; gap:var(--s2); flex:0 0 auto; white-space:nowrap;}
 /* D290 · the plan's own course block. No card and no box: a rule at the top,
    the drawing, and three figures on a rule of their own (§9.2, §32). */
@@ -15920,9 +15954,17 @@ function csRatingBlock(id, opts){
       + `Your buddies ${one(fr)} <span style="color:var(--mut)">(${frn})</span></p>` : '';
   const rail = csStarsSvg(mine || 0, mine == null, { size: o.size || 48, rate: id });
   const mineLab = mine != null ? `Your rating · ${one(mine)}` : 'Not yours yet';
+  /* the phone's own words for the field (RateCourseSheet: label, placeholder,
+     caption), so the label stays when the placeholder has gone and the golfer
+     is told who reads it */
+  const nid = 'csnote-' + String(id).replace(/[^\w-]/g, '');
+  const said0 = r && r.note ? r.note : '';
   const note = mine != null
-    ? `<input class="cs-note" type="text" maxlength="140" data-csnote="${esc(String(id))}"`
-      + ` value="${esc(r && r.note ? r.note : '')}" placeholder="What did you think? One line.">`
+    ? `<div class="cs-note-block"><label class="cs-note-lab cs-agate-s" for="${nid}">What you thought</label>`
+      + `<div class="cs-note-wrap" data-value="${esc(said0)}">`
+      + `<textarea class="cs-note" id="${nid}" rows="1" maxlength="140" data-csnote="${esc(String(id))}"`
+      + ` aria-describedby="${nid}-why" placeholder="Best muni in the state\u2026">${esc(said0)}</textarea></div>`
+      + `<p class="fine cs-note-why" id="${nid}-why">Optional. One line, and your buddies see it on the course.</p></div>`
     : '';
   const theirs = (r && Array.isArray(r.notes) ? r.notes : []).filter(x=>x && x.note).slice(0,3).map(x=>
     `<blockquote class="cs-said"><p class="cs-story">“${esc(x.note)}”</p>`
@@ -15953,13 +15995,34 @@ function csBookTee(b){
   return pool.slice().sort((x,y)=>(y.total_yards||0)-(x.total_yards||0))[0] || null;
 }
 window.csTeeKey = csTeeKey;
-/* the card's rows: HOLE, YDS when every hole carries one, PAR, HCP */
-function csCardRows(holes, tr){
-  const yds = holes.length && holes.every(h=>h.yards);
-  return tr('HOLE', holes.map(h=>h.hole))
-    + (yds ? tr('YDS', holes.map(h=>h.yards)) : '')
-    + tr('PAR', holes.map(h=>h.par!=null?h.par:''), 'par')
-    + tr('HCP', holes.map(h=>h.si!=null?h.si:''));   /* TERMINOLOGY §3.1 */
+/* F06 (web half) · the course's card, on its leaf: the front nine and the
+   back, each a table with its OUT / IN column (the phone's whole-card shape,
+   in the desk's own markup). Rows: HOLE, YDS when every hole of THAT nine
+   carries one (D364 F1), PAR, HCP (TERMINOLOGY §3.1). A screen reader walks
+   it as a table, so every figure is announced under its hole ("Hole 3") and
+   its row's word, with the abbreviations spelled out (TERMINOLOGY §6). */
+function csCourseLeafHtml(holes, title){
+  const nines = [[1,9,'Out','The front nine'],[10,18,'In','The back nine']]
+    .map(([lo,hi,tot,name])=>({ tot, name, hs:holes.filter(h=>h.hole>=lo && h.hole<=hi) }))
+    .filter(n=>n.hs.length);
+  const sum = xs => xs.every(v=>v!=null && v!=='') ? String(xs.reduce((a,b)=>a+Number(b),0)) : '';
+  const tables = nines.map(n=>{
+    const yds = n.hs.every(h=>h.yards);
+    const row = (key, spoken, cells, tot, cls) =>
+      `<tr${cls?` class="${esc(cls)}"`:''}><th scope="row"${spoken?` aria-label="${esc(spoken)}"`:''}>${esc(key)}</th>`
+      + cells.map(c=>`<td>${esc(c==null?'':String(c))}</td>`).join('')
+      + `<td class="tot">${esc(tot)}</td></tr>`;
+    return `<table><caption class="cs-sr">${esc(n.name)}</caption>`
+      + `<thead><tr><th scope="row">HOLE</th>`
+      + n.hs.map(h=>`<th scope="col" aria-label="Hole ${esc(String(h.hole))}">${esc(String(h.hole))}</th>`).join('')
+      + `<th scope="col" class="tot">${n.tot.toUpperCase()}</th></tr></thead><tbody>`
+      + (yds ? row('YDS', 'Yards', n.hs.map(h=>h.yards), sum(n.hs.map(h=>h.yards))) : '')
+      + row('PAR', '', n.hs.map(h=>h.par), sum(n.hs.map(h=>h.par)), 'par')
+      + row('HCP', 'Handicap', n.hs.map(h=>h.si), '')
+      + `</tbody></table>`;
+  }).join('');
+  return `<div class="cs-leaf">${title?`<div class="cs-leaf-cap cs-agate-s">${esc(title)}</div>`:''}`
+    + `<div class="cs-nines">${tables}</div></div>`;
 }
 /* the tee picker on a course record — every rated tee, the chosen one selected */
 function csTeePickerHtml(b, tee){
@@ -16030,13 +16093,9 @@ function renderCourseBooks(){
         : b.last_played_on ? `last ${dmd(b.last_played_on)}` : null
     ].filter(Boolean).join(' · ');
 
-    const tr = (head, cells, cls) =>
-      `<tr class="${cls||''}"><th>${esc(head)}</th>${cells.map(c=>`<td>${esc(String(c))}</td>`).join('')}</tr>`;
     const leaf = holes.length
       ? `<details class="cs-cardleaf"><summary class="cs-agate-s">The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</summary>`
-        + `<div class="cs-leaf"><table>`
-        + csCardRows(holes, tr)
-        + `</table></div></details>`
+        + csCourseLeafHtml(holes) + `</details>`
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
 
     /* ONE RAIL PER ROW. The rail trails the name — your star where you have
@@ -16105,13 +16164,8 @@ function renderCourseBooks(){
     const label = [tee ? (tee.tee_name||'Tee') : null,
                    hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
                    csCourseSavedLine(b)].filter(Boolean).join(' · ');
-    const tr = (head2, cells, cls) =>
-      `<tr class="${cls||''}"><th>${esc(head2)}</th>${cells.map(c=>`<td>${esc(String(c))}</td>`).join('')}</tr>`;
     const leaf = holes.length
-      ? `<div class="cs-leaf"><div class="cs-agate-s" style="color:var(--leaf-mut);padding-bottom:6px">`
-        + `The card · ${esc(tee ? (tee.tee_name||'Tee') : '')}</div><table>`
-        + csCardRows(holes, tr)
-        + `</table></div>`
+      ? csCourseLeafHtml(holes, `The card · ${tee ? (tee.tee_name||'Tee') : ''}`)
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
     return `<section class="cs-course">
       <div>
@@ -16231,11 +16285,15 @@ function csCourseBooksWire(box){
       csCourseRowRepaint(box, id);
     });
   });
-  box.querySelectorAll('input[data-csnote]').forEach(inp=>{
+  box.querySelectorAll('textarea[data-csnote]').forEach(inp=>{
+    const wrap = inp.parentElement;
+    inp.addEventListener('input', ()=>{ if(wrap) wrap.dataset.value = inp.value; });
     const save = async ()=>{
       const id = inp.dataset.csnote, r = csRatingOf(id);
       if(!r || r.mine == null) return;
-      const v = inp.value.trim().slice(0,140);
+      /* one line: a pasted line break is a space */
+      const v = inp.value.replace(/\s*\n\s*/g, ' ').trim().slice(0,140);
+      if(inp.value !== v){ inp.value = v; if(wrap) wrap.dataset.value = v; }
       if(v === String(r.note||'')) return;
       inp.disabled = true;
       const out = await csRateCourse(id, r.mine, v);
@@ -16244,7 +16302,7 @@ function csCourseBooksWire(box){
       toast(v ? 'Saved' : 'Sentence removed');
     };
     inp.addEventListener('blur', save);
-    inp.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); inp.blur(); } });
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.isComposing){ e.preventDefault(); inp.blur(); } });
   });
 }
 /* one row's figures, after a write. Never the whole list: re-sorting under the
@@ -16265,7 +16323,7 @@ function csCourseRowRepaint(box, id){
   if(mine) mine.textContent = r.mine != null ? `Your rating · ${one(r.mine)}` : 'Not yours yet';
   /* the note field arrives with the first rating and leaves with the last */
   const block = box.querySelector(`[data-csrow="${CSS.escape(String(id))}"]`);
-  const field = block && block.querySelector('input[data-csnote]');
+  const field = block && block.querySelector('.cs-note-block');
   if(block && r.mine != null && !field){ renderCourseBooks(); }
   else if(field && r.mine == null){ field.remove(); }
 }
@@ -16316,11 +16374,9 @@ function csPlanCourseHtml(courseId, want){
   const sum = list => list.reduce((a,h)=>a + (h.par||0), 0);
   const out = sum(holes.slice(0,9)), inn = sum(holes.slice(9,18));
   const turn = (out && inn) ? `Out ${out} · In ${inn}` : '';
-  const tr = (head, cells, cls) =>
-    `<tr class="${cls||''}"><th>${esc(head)}</th>${cells.map(c=>`<td>${esc(String(c))}</td>`).join('')}</tr>`;
   const cardHtml = hasCard
     ? `<details class="cs-cardleaf" data-cs-scorecard="1"><summary class="cs-agate-s">View scorecard</summary>`
-      + `<div class="cs-leaf"><table>${csCardRows(holes, tr)}</table></div></details>`
+      + csCourseLeafHtml(holes) + `</details>`
     : `<p class="fine" style="padding:8px 0">${esc(CS_COURSE_COPY.noCard)}</p>`;
 
   const hist = csCourseHistoryLine(b);
