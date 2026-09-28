@@ -30,6 +30,19 @@ settings:
     # the failed expo run:ios was missing.
     DEVELOPMENT_TEAM: 3F7BK4WVH8
     CODE_SIGN_STYLE: Automatic
+    # I02 (the ten program, 2026-09-28) · A SIMULATOR BUILD IS SIGNED TO RUN
+    # LOCALLY, WITH THE APP'S OWN ENTITLEMENTS. The simulator keychain answers
+    # only a process that carries an application-identifier, and
+    # `DeviceOnlyAuthStorageTests` failed with -34018 (errSecMissingEntitlement)
+    # on a test host built with CODE_SIGNING_ALLOWED=NO, which strips every
+    # entitlement. "-" is the ad-hoc identity: no certificate, no account and
+    # no private key, so a headless build never stops to ask for one — the
+    # usual reason for reaching for CODE_SIGNING_ALLOWED=NO — while Xcode
+    # still embeds the simulated entitlements (application-identifier
+    # 3F7BK4WVH8.app.cupseason.ios, the app group, associated domains). Device
+    # builds keep Automatic signing with the team above; this line has no
+    # iphoneos form. Build simulator tests WITHOUT CODE_SIGNING_ALLOWED=NO.
+    CODE_SIGN_IDENTITY[sdk=iphonesimulator*]: "-"
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     ENABLE_USER_SCRIPT_SANDBOXING: YES

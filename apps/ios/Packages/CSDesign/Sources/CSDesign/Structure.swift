@@ -441,7 +441,7 @@ public struct CSRecordLeaf: View {
   }
 
   @ViewBuilder private func finishCell(_ r: Row) -> some View {
-    VStack(alignment: .trailing, spacing: 3) {
+    VStack(alignment: .trailing, spacing: CSTokens.Space.s1) {
       if r.won {
         Text("Won").csType(.nameS, caps: true).foregroundStyle(cs.leafInk)
       } else if let f = r.finish {

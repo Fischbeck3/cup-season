@@ -241,6 +241,13 @@ struct RootView: View {
           .background(cs.bg0.ignoresSafeArea())
       }
     }
+    // ── N1 review route (ten program, 2026-09-28) ─────────────────────────
+    // `-cs_dev_n1 <route>`: one real surface on invented data, over the root
+    // — see Dev/N1ReviewFixture.swift. DEBUG only, and it writes nothing.
+    #if DEBUG
+    .overlay { if let r = N1Review.route { N1ReviewView(route: r) } }
+    #endif
+    // ── end N1 review route ───────────────────────────────────────────────
     #endif
   }
 

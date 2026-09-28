@@ -157,7 +157,10 @@ public extension CSPalette {
               rule: mut, ink: ink, mut: ink.opacity(CSTokens.Alpha.a88), dim: mut,
               pos: pos, neg: neg, cool: cool, gold: gold, brand: brand, brandInk: brandInk, act: act,
               sq0: sq0, sq1: sq1, sq2: sq2, sq3: sq3,
-              panel: panel, panelInk: panelInk, panelMut: panelInk.opacity(CSTokens.Alpha.a88),
+              // on a look's panel the default label may already be the full
+              // ink (`CSInk.mutOn`), and ink at a88 would then read WORSE —
+              // Increase Contrast may never step a label down
+              panel: panel, panelInk: panelInk, panelMut: CSInk.steppedUp(panelInk, from: panelMut, on: panel),
               leaf: leaf, leafInk: leafInk, leafMut: leafInk.opacity(CSTokens.Alpha.a88),
               // gold on paper is already the darkest gold the system owns —
               // it does not step up, and stepping it toward ink would make the
@@ -319,7 +322,43 @@ public enum CSInk {
   /// The metadata voice on that same panel, taken from the SAME theme as the
   /// ink — a dark ink with a light theme's mut beside it is two decisions
   /// disagreeing on one object.
+  ///
+  /// **AND NEVER BELOW AA** (F05, 2026-09-28). The theme's `panelMut` was cut
+  /// for the theme's OWN panel (6.31:1 on bone, 7.75:1 on ink). On a look's
+  /// saturated second colour it read 1.82–4.43:1 in eighteen of twenty-two
+  /// pairs — the `OF EIGHT` under Home's rank was the quietest word on the
+  /// screen, and under Claret on paper nearly invisible. Where the mut cannot
+  /// carry a word on this colour, the label takes the ink, and the tier is
+  /// carried by size and case instead of by a dimmer tone — §16.1's own rule
+  /// for the tier below `mut`.
   public static func mutOn(_ ground: Color) -> Color {
-    prefersDarkInk(ground) ? CSTokens.dark.panelMut : CSTokens.light.panelMut
+    let mut = prefersDarkInk(ground) ? CSTokens.dark.panelMut : CSTokens.light.panelMut
+    guard let r = contrast(mut, ground), r < 4.5 else { return mut }
+    return on(ground)
+  }
+
+  /// Increase Contrast's step for the panel's label: the ink at `a88`, which
+  /// is §16.5's substitution — unless the label the default printing already
+  /// chose reads better on this panel (a look whose label had to take the full
+  /// ink, above). The setting may never read worse than the default it is
+  /// stepping up from.
+  public static func steppedUp(_ ink: Color, from label: Color, on ground: Color) -> Color {
+    let stepped = CSOpaque.composite(ink, CSTokens.Alpha.a88, over: ground)
+    guard let up = contrast(stepped, ground), let was = contrast(label, ground), up < was
+    else { return ink.opacity(CSTokens.Alpha.a88) }
+    return label
+  }
+
+  /// **A SEMANTIC MARK ON A PANEL** (F05): the up and down triangles inside
+  /// Home's rank chip. The token has two printings; this takes whichever
+  /// reads on THIS ground — the bone panel of the dark room keeps the paper
+  /// printing it always had, the ink panel of the light room takes the dusk
+  /// one (the paper green on it was 2.75:1) — and where neither printing
+  /// reaches the 3:1 a mark needs, the panel's own ink: the triangle's SHAPE
+  /// already says which way (§16.4), and a mark nobody can see says nothing.
+  public static func mark(dark: Color, light: Color, on ground: Color) -> Color {
+    guard let d = contrast(dark, ground), let l = contrast(light, ground) else { return light }
+    guard max(d, l) >= 3 else { return on(ground) }
+    return d >= l ? dark : light
   }
 }

@@ -68,7 +68,7 @@ public extension View {
 }
 
 #Preview("A11yStack · reading vs accessibility") {
-  VStack(alignment: .leading, spacing: 24) {
+  VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
     A11yStack {
       Text("Galen Ross").font(CSFont.subhead)
       Spacer()

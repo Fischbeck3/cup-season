@@ -210,14 +210,14 @@ public struct CSFigureRun: View {
 public struct CSMovement: View {
   @Environment(\.cs) private var cs
   public enum State: Equatable, Sendable { case up(Int), down(Int), held }
-  /// **A movement mark inside a panel is on BONE, in both themes.**
+  /// **A movement mark inside a panel is on the PANEL's colour, not the page's.**
   ///
   /// The panel is the opposite of the page by construction, so the page's own
   /// `ink` numeral would be near-white on bone in charcoal — invisible — and
   /// the dark theme's `pos` is a bright green cut for a dark ground. Both take
-  /// the panel's own values, and the triangle takes the LIGHT green for the
-  /// same reason `CSRule` gives an earned rule on a leaf the light gold: a
-  /// bone tile is a light surface whichever room it is standing in.
+  /// the panel's own values. The panel is bone in the dark room, INK in the
+  /// light room and a look's second colour under a look (D313), so the
+  /// triangle's printing is measured against it (`markColor`), never assumed.
   public enum Ground: Sendable { case page, panel }
   let state: State
   let over: Ground
@@ -236,17 +236,29 @@ public struct CSMovement: View {
   }
 
   @ViewBuilder private var mark: some View {
+    let tint = Self.markColor(state, over: over, cs: cs)
     switch state {
-    case .up:
-      CSTriangle(up: true)
-        .fill(over == .panel ? CSTokens.light.pos : cs.pos).frame(width: 9, height: 7)
-    case .down:
-      CSTriangle(up: false)
-        .fill(over == .panel ? CSTokens.light.cool : cs.cool).frame(width: 9, height: 7)
+    case .up: CSTriangle(up: true).fill(tint).frame(width: 9, height: 7)
+    case .down: CSTriangle(up: false).fill(tint).frame(width: 9, height: 7)
     // `mut`, never `rule`: at 2pt and 2.30:1 in light a `rule` bar is neither
     // a shape nor visible, and "held" becomes indistinguishable from "no data".
-    case .held:
-      Rectangle().fill(over == .panel ? cs.panelMut : cs.mut).frame(width: 9, height: 2)
+    case .held: Rectangle().fill(tint).frame(width: 9, height: 2)
+    }
+  }
+
+  /// The mark's colour. On the page, the page's own semantic tokens. On a
+  /// panel, the printing that reads on THAT panel (`CSInk.mark`): the "bone in
+  /// both themes" premise above holds for the dark room only — the light
+  /// room's panel is ink, and a look's panel is its own colour — so the choice
+  /// is measured, not assumed. `PanelInkTests` holds it.
+  static func markColor(_ state: State, over: Ground, cs: CSPalette) -> Color {
+    switch (state, over) {
+    case (.up, .page): cs.pos
+    case (.down, .page): cs.cool
+    case (.held, .page): cs.mut
+    case (.up, .panel): CSInk.mark(dark: CSTokens.dark.pos, light: CSTokens.light.pos, on: cs.panel)
+    case (.down, .panel): CSInk.mark(dark: CSTokens.dark.cool, light: CSTokens.light.cool, on: cs.panel)
+    case (.held, .panel): cs.panelMut
     }
   }
 

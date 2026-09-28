@@ -19,7 +19,7 @@ import SwiftUI
 
 // MARK: - The three tiers
 
-/// 50pt, `rc` 10, `brand` fill, `bg0` label. The screen's one live action.
+/// 50pt, `rc` 10, `act` fill, `bg0` label. The screen's one primary (D359).
 public struct CSPrimaryStyle: ButtonStyle {
   @Environment(\.cs) private var cs
   @Environment(\.isEnabled) private var enabled
@@ -34,21 +34,35 @@ public struct CSPrimaryStyle: ButtonStyle {
 
   public func makeBody(configuration: Configuration) -> some View {
     let pressed = configuration.isPressed || held
+    let paint = Self.paint(cs, enabled: enabled, pressed: pressed, busy: busy)
     return ZStack {
       configuration.label
         .csType(.name)
-        .opacity(busy ? 0 : (pressed ? 0.92 : 1))
+        .opacity(paint.inkOpacity)
       // never a spinner: three mono dots that tally, so the control says it is
       // working without borrowing the loading language of a whole screen
-      if busy { CSTallyDots(tint: enabled ? cs.bg0 : cs.mut) }
+      if busy { CSTallyDots(tint: paint.ink) }
     }
     .frame(maxWidth: .infinity, minHeight: 50)
-    .foregroundStyle(enabled ? cs.bg0 : cs.mut)
-    .background(fill(pressed),
+    .foregroundStyle(paint.ink)
+    .background(paint.fill,
                 in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
     // the primary is `act` now, so it spends no ember (D305/D313 amendment)
     .csBudget(ember: 0)
     .csAnimation(CSMotion.snap, value: configuration.isPressed)
+  }
+
+  /// **Every state's paint, resolved in ONE place** (F05, 2026-09-28): the
+  /// fill, the ink the words and the busy tally are set in, and how much of
+  /// the words shows. The body draws exactly this, and `ActionInkTests`
+  /// measures exactly this for every look, both printings and Increase
+  /// Contrast — so a state cannot pass the test and paint something else.
+  struct Paint {
+    let fill: Color
+    let ink: Color
+    /// 1 at rest, the spec's 92% while pressed, 0 while busy (the tally
+    /// replaces the words and is drawn at full strength in `ink`).
+    let inkOpacity: Double
   }
 
   /// **THE ORDINARY PRIMARY IS GREEN** (D305/D313 amendment, 2026-09-14):
@@ -60,9 +74,20 @@ public struct CSPrimaryStyle: ButtonStyle {
   /// **A disabled primary is never coloured at all.** It falls to `bg1` with a
   /// `mut` label — because a control that cannot be used should not be wearing
   /// the colour that means "this is the live thing you can do now".
-  private func fill(_ pressed: Bool) -> Color {
-    guard enabled else { return cs.bg1 }
-    return pressed ? cs.act.opacity(1 - CSTokens.Alpha.a16) : cs.act
+  ///
+  /// **A PRESS MOVES THE FILL AWAY FROM ITS WORDS** (F05). §7.1 gives the press
+  /// a16 of movement and the words 92%. It was drawn as `act` at 84% OPACITY,
+  /// and the words are `bg0` — the page — so a fill that thinned toward the
+  /// page thinned toward its own label: the pressed primary read 4.12:1 in the
+  /// dark room and 4.33:1 on paper with no look at all, and 3.05:1 under Fall
+  /// on paper. It now takes a16 of `ink`, which is the far side of the label
+  /// in both printings — darker on paper, brighter at dusk — composited to one
+  /// opaque colour, so the ratio no longer depends on what the button stands on.
+  static func paint(_ cs: CSPalette, enabled: Bool, pressed: Bool, busy: Bool) -> Paint {
+    guard enabled else { return Paint(fill: cs.bg1, ink: cs.mut, inkOpacity: busy ? 0 : 1) }
+    return Paint(fill: pressed ? CSOpaque.composite(cs.ink, CSTokens.Alpha.a16, over: cs.act) : cs.act,
+                 ink: cs.bg0,
+                 inkOpacity: busy ? 0 : (pressed ? 0.92 : 1))
   }
 }
 
@@ -167,7 +192,7 @@ public struct CSTertiaryStyle: ButtonStyle {
 
   @ViewBuilder
   private func block(_ configuration: Configuration, pressed: Bool, hugs: Bool) -> some View {
-    VStack(alignment: .leading, spacing: 3) {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
       configuration.label.csType(.nameS).lineLimit(hugs ? 1 : nil)
       Rectangle().fill(rule(pressed)).frame(height: placement.weight)
     }
@@ -568,7 +593,7 @@ public struct CSDoorRow: View {
   private var line: some View {
     A11yStack(rowAlignment: .firstTextBaseline,
               spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s2) {
-      VStack(alignment: .leading, spacing: 3) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
         Text(verb).csType(.nameS).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
         // a lit choice is an ordinary selection, not a competition signal

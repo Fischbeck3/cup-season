@@ -34,7 +34,7 @@ struct ScheduleScreen: View {
         Text("Yours, your buddies’, your seasons’").csType(.agate, caps: true).foregroundStyle(cs.mut)
         watch
         calendarHeader
-        grid
+        ScheduleMonthGrid(month: vm.month, byDay: vm.byDay, today: vm.today) { d in open(day: d) }
         Text("Tap any day.").csType(.bodyS).foregroundStyle(cs.mut)
           .frame(maxWidth: .infinity).multilineTextAlignment(.center)
         Button("Put a round on the schedule") { declare = DeclarePrefill() }.buttonStyle(.csPrimary())
@@ -113,74 +113,20 @@ struct ScheduleScreen: View {
     }
   }
 
-  private var grid: some View {
-    calendarGrid {
-      VStack(spacing: 8) {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
-          ForEach(ScheduleDates.dow, id: \.self) { d in
-            Text(String(d.prefix(1))).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-          }
-          ForEach(0..<vm.month.leadingBlanks, id: \.self) { _ in Color.clear.frame(height: 44) }
-          ForEach(1...vm.month.daysInMonth, id: \.self) { d in cell(d) }
-        }
-        HStack(spacing: 12) {
-          // **A LEGEND KEY IS TAXONOMY, AND TAXONOMY IS NEVER GOLD** (§4,
-          // D269: gold reachable from a legend key is gold as chrome). The
-          // three channels are the live metal, ink and `mut` — three tones a
-          // golfer can tell apart without one of them being the earned one.
-          legend(cs.act, "ON THE SCHEDULE"); legend(cs.ink, "IN YOUR SEASONS"); legend(cs.mut, "SEASON DATE")
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 4)
-      }
-    }
-  }
-
-  private func legend(_ c: Color, _ t: String) -> some View {
-    HStack(spacing: 5) { Circle().fill(c).frame(width: 6, height: 6); Text(t).csType(.agateS, caps: true).foregroundStyle(cs.mut) }
-  }
-
-  private func dot(_ k: CalendarItem.Dot) -> Color {
-    // D359 / F4 · a routine plan is not competition: the ordinary colour, never ember
-    switch k { case .round: cs.act; case .leagueMate: cs.ink; case .season: cs.mut }
-  }
-
-  private func cell(_ d: Int) -> some View {
+  /// A day was tapped: an empty day opens a new plan on it, a day with
+  /// something on it opens the day. The grid draws; the screen decides.
+  private func open(day d: Int) {
     let iso = vm.month.iso(d)
     let items = vm.byDay[d] ?? []
-    let isToday = iso == vm.today
-    let isPast = iso < vm.today
-    let tappable = !items.isEmpty || !isPast
-    return Button {
-      if items.isEmpty { declare = DeclarePrefill(iso: iso) }
-      else { day = DaySheet(iso: iso, items: items, canAdd: !isPast) }
-    } label: {
-      VStack(spacing: 3) {
-        // on the panel the ink inverts — a `mut` numeral on bone is the light
-        // theme's worst contrast, and today's cell is the one that must read
-        Text("\(d)").csType(.columnS)
-          .foregroundStyle(isToday ? cs.panelInk : (isPast && items.isEmpty ? cs.mut : cs.ink))
-        HStack(spacing: 2) {
-          ForEach(Array(items.prefix(3).enumerated()), id: \.offset) { _, it in Circle().fill(dot(it.dot)).frame(width: 5, height: 5) }
-        }
-        .frame(height: 6)
-      }
-      .frame(maxWidth: .infinity, minHeight: 44)
-      // today is the panel, not an ember outline — a day is not a live action
-      .background(isToday ? cs.panel : .clear,
-                  in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
-      .contentShape(Rectangle())
-    }
-    .buttonStyle(.plain)
-    .disabled(!tappable)
-    .accessibilityLabel("\(ScheduleDates.long(iso))\(items.isEmpty ? "" : ", \(items.count) on the schedule")")
+    if items.isEmpty { declare = DeclarePrefill(iso: iso) }
+    else { day = DaySheet(iso: iso, items: items, canAdd: iso >= vm.today) }
   }
 
   // MARK: the day sheet (12093–12130)
 
   private func daySheet(_ d: DaySheet) -> some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         CSSheetHeader(title: ScheduleDates.long(d.iso), sub: "\(d.items.count) ON THE SCHEDULE")
         ForEach(Array(d.items.enumerated()), id: \.offset) { _, it in
           switch it {
@@ -233,7 +179,7 @@ struct ScheduleScreen: View {
   }
 
   private func ownerActions(_ sr: ScheduledRound, id: UUID) -> some View {
-    HStack(spacing: 6) {
+    HStack(spacing: CSTokens.Space.s2) {
       CSMini("", glyph: .plus) { day = nil; retag = RetagRequest(roundId: id, iso: sr.play_on ?? vm.today, courseLabel: sr.course_label, tagged: []) }
         .accessibilityLabel("Edit group")
       CSArmedButton(label: "✕", armedLabel: "Sure?", busy: vm.busy.contains(id)) {
@@ -252,7 +198,7 @@ struct ScheduleScreen: View {
     } else {
       ForEach(rows) { sr in
         RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(listBits(sr))) {
-          HStack(spacing: 6) {
+          HStack(spacing: CSTokens.Space.s2) {
             Text(sr.play_on.map { ScheduleDates.whenDays($0, today: vm.today) } ?? "").csType(.agateS, caps: true).foregroundStyle(cs.mut)
             if sr.isMine, let id = sr.id {
               CSMini("", glyph: .plus) { retag = RetagRequest(roundId: id, iso: sr.play_on ?? vm.today, courseLabel: sr.course_label, tagged: []) }
@@ -288,7 +234,7 @@ struct ScheduleScreen: View {
         VStack(spacing: 0) {
           ForEach(Array(vm.weekLines.enumerated()), id: \.element.id) { i, w in
             CSRow(last: i == vm.weekLines.count - 1) {
-              HStack(spacing: 10) {
+              HStack(spacing: CSTokens.Space.s3) {
                 Text(w.text).csType(.bodyS).foregroundStyle(cs.mut)
                 Spacer()
                 Text(w.points).csType(.columnM).foregroundStyle(cs.ink)
@@ -387,13 +333,137 @@ extension ScheduleScreen {
     .buttonStyle(.plain)
     .accessibilityLabel(back ? "Previous month" : "Next month")
   }
+}
 
-  /// The month grid sits on the raised ground with no border — a card round a
-  /// calendar is a container with no job (non-negotiable 1).
-  @ViewBuilder func calendarGrid<C: View>(@ViewBuilder _ c: () -> C) -> some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) { c() }
-      .padding(CSTokens.Space.s3)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background(cs.bg1)
+// MARK: - the month grid (F15)
+
+/// **One month, seven columns, and every day a 44 × 44 target** (F15,
+/// 2026-09-28).
+///
+/// The grid laid seven flexible columns across the band with a 4pt gap between
+/// each, so on a 375pt phone the page's two 20s, the band's two 12s and six 4s
+/// left (375 − 40 − 24 − 24) / 7 = **41pt** a day — a `minHeight: 44` on a
+/// 41pt-wide target is not a 44pt target. The columns now touch: seven days
+/// share the band's whole width, 44.4pt each at 375 and 48.3 at 402, and each
+/// day's tap region is its own column, edge to edge, so two dates never share
+/// a point of hit space and none has less than 44. The 4pt the eye saw between
+/// tiles is kept where it was visible — today's panel is inset s1/2 a side
+/// inside its own target — so the drawing does not change and the target does.
+struct ScheduleMonthGrid: View {
+  @Environment(\.cs) private var cs
+  let month: CalendarMonth
+  let byDay: [Int: [CalendarItem]]
+  let today: String
+  let open: (Int) -> Void
+
+  var body: some View {
+    // The month grid sits on the raised ground with no border — a card round a
+    // calendar is a container with no job (non-negotiable 1).
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      VStack(spacing: 8) {
+        // **A MONTH IS A GRID OF WEEKS, LAID OUT WHOLE.** It was a
+        // `LazyVGrid`, and on a real phone the band measured it at one height
+        // and drew it at another on some launches — the band's ground stopped
+        // short of the weekday letters and the last legend key (F15's capture
+        // round). Six weeks of seven days is nothing to be lazy about: a
+        // `Grid` sizes what it draws, every time. It also retires the lazy
+        // grid's key collision, which keyed the leading blanks 0, 1, 2… like
+        // the 1st, 2nd, 3rd and dropped a mid-week month's first days
+        // (September 2026 drew no 1st, May 2026 no 1st to 4th): each week is
+        // its own row now, and a blank is a place in a row, not a key.
+        Grid(horizontalSpacing: 0, verticalSpacing: 4) {
+          GridRow {
+            ForEach(ScheduleDates.dow, id: \.self) { d in
+              Text(String(d.prefix(1))).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                .frame(maxWidth: .infinity)
+            }
+          }
+          ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
+            GridRow {
+              ForEach(0..<7, id: \.self) { i in
+                if let d = week[i] { cell(d) } else { Color.clear.frame(maxWidth: .infinity, minHeight: 44) }
+              }
+            }
+          }
+        }
+        // **A LEGEND KEY IS TAXONOMY, AND TAXONOMY IS NEVER GOLD** (§4,
+        // D269: gold reachable from a legend key is gold as chrome). The
+        // three channels are the live metal, ink and `mut` — three tones a
+        // golfer can tell apart without one of them being the earned one.
+        //
+        // The keys are a COLUMN, one to a line, at every size (F15). In one
+        // row they broke `SCHEDULE` into `SCHEDU/LE` and `SEASON` into
+        // `SEASO/N` at AX3; and both a row-or-column `ViewThatFits` and a
+        // wrapping flow here were measured by the band at one width and
+        // drawn at another on a real phone — the last key printed under
+        // the band, on some launches and not others. A column's height does
+        // not depend on the width it is offered, so the band always holds it.
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) { legends }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.top, 4)
+      }
+    }
+    .padding(CSTokens.Space.s3)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(cs.bg1)
+  }
+
+  /// The month as weeks of seven places: the leading blanks, the days, and
+  /// the blanks that close the last week.
+  private var weeks: [[Int?]] {
+    let places: [Int?] = Array(repeating: nil, count: month.leadingBlanks) + (1...month.daysInMonth).map { Optional($0) }
+    return stride(from: 0, to: places.count, by: 7).map { i in
+      let week = Array(places[i..<min(i + 7, places.count)])
+      return week + Array(repeating: nil, count: 7 - week.count)
+    }
+  }
+
+  @ViewBuilder private var legends: some View {
+    legend(cs.act, "ON THE SCHEDULE"); legend(cs.ink, "IN YOUR SEASONS"); legend(cs.mut, "SEASON DATE")
+  }
+
+  private func legend(_ c: Color, _ t: String) -> some View {
+    HStack(spacing: CSTokens.Space.s1) { Circle().fill(c).frame(width: 6, height: 6); Text(t).csType(.agateS, caps: true).foregroundStyle(cs.mut) }
+  }
+
+  private func dot(_ k: CalendarItem.Dot) -> Color {
+    // D359 / F4 · a routine plan is not competition: the ordinary colour, never ember
+    switch k { case .round: cs.act; case .leagueMate: cs.ink; case .season: cs.mut }
+  }
+
+  private func cell(_ d: Int) -> some View {
+    let iso = month.iso(d)
+    let items = byDay[d] ?? []
+    let isToday = iso == today
+    let isPast = iso < today
+    let tappable = !items.isEmpty || !isPast
+    return Button { open(d) } label: {
+      VStack(spacing: CSTokens.Space.s1) {
+        // on the panel the ink inverts — a `mut` numeral on bone is the light
+        // theme's worst contrast, and today's cell is the one that must read
+        Text("\(d)").csType(.columnS)
+          .foregroundStyle(isToday ? cs.panelInk : (isPast && items.isEmpty ? cs.mut : cs.ink))
+        HStack(spacing: 2) {
+          ForEach(Array(items.prefix(3).enumerated()), id: \.offset) { _, it in Circle().fill(dot(it.dot)).frame(width: 5, height: 5) }
+        }
+        .frame(height: 6)
+      }
+      .frame(maxWidth: .infinity, minHeight: 44)
+      // today is the panel, not an ember outline — a day is not a live action.
+      // The panel is inset inside the day's own target, so the tile keeps the
+      // gap the eye knew while the target keeps the whole column.
+      .background {
+        if isToday {
+          RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous)
+            .fill(cs.panel)
+            .padding(.horizontal, CSTokens.Space.s1 / 2)
+        }
+      }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .disabled(!tappable)
+    .accessibilityLabel("\(ScheduleDates.long(iso))\(items.isEmpty ? "" : ", \(items.count) on the schedule")")
+    .accessibilityIdentifier("schedule.day.\(d)")
   }
 }
