@@ -32,48 +32,90 @@ public actor LiveRoundSession {
   public nonisolated let events: AsyncStream<Event>
   private let cont: AsyncStream<Event>.Continuation
 
-  private let svc: SupabaseService
+  private let svc: SupabaseService?
   private let disk: LiveDisk
-  private let repo: LiveRepository
+  private let delivery: any LiveDelivery
+  private let authorizationEpoch: @Sendable () -> String?
 
+  /// Capture before an authorized action suspends. A queued action cannot
+  /// silently adopt the credentials of a later sign-in, even for the same owner.
+  public struct Authorization: Sendable { fileprivate let epoch: String? }
+  public nonisolated func captureAuthorization() -> Authorization {
+    Authorization(epoch: authorizationEpoch())
+  }
+
+  struct Binding: Equatable, Sendable {
+    let round: UUID
+    let code: String
+    let guest: UUID?
+    let generation: UUID
+    let epoch: String?
+  }
+  private var binding: Binding?
   private var channel: RealtimeChannelV2?
   private var tokens: [RealtimeSubscription] = []
-  private var lr: UUID?
-  private var code: String?
-  private var guest: UUID?
-  private var flushing = false
+  private var flushing: UUID?
+  private var submittedCard: LiveRoundState?
   private var present: [String: String] = [:]
   public private(set) var subStatus: String?
   /// Drop a write after this many failed tries — a poisoned write must not dam the queue (14815).
   public static let maxTries = 40
 
   public init(svc: SupabaseService = .shared, disk: LiveDisk = .shared) {
-    self.svc = svc; self.disk = disk; repo = LiveRepository(svc)
-    var c: AsyncStream<Event>.Continuation!
-    events = AsyncStream(bufferingPolicy: .unbounded) { c = $0 }
-    cont = c
+    self.svc = svc; self.disk = disk
+    delivery = LiveRPCDelivery(repo: LiveRepository(svc))
+    authorizationEpoch = { UserDefaults(suiteName: CSAppGroup.id)?.string(forKey: BetweenRoundsSnapshot.epochKey) }
+    let stream = AsyncStream<Event>.makeStream(bufferingPolicy: .unbounded)
+    events = stream.stream; cont = stream.continuation
   }
 
-  public var isJoined: Bool { channel != nil }
-  public var currentRound: UUID? { lr }
+  /// Tests exercise delivery through the real session without auth or a socket.
+  init(disk: LiveDisk, delivery: any LiveDelivery,
+       authorizationEpoch: @escaping @Sendable () -> String? = { nil }) {
+    svc = nil; self.disk = disk; self.delivery = delivery; self.authorizationEpoch = authorizationEpoch
+    let stream = AsyncStream<Event>.makeStream(bufferingPolicy: .unbounded)
+    events = stream.stream; cont = stream.continuation
+  }
+
+  private func isCurrent(_ value: Binding) -> Bool {
+    binding == value && authorizationEpoch() == value.epoch
+  }
+  public var isJoined: Bool { channel != nil && binding.map(isCurrent) == true }
+  public var currentRound: UUID? { binding.flatMap { isCurrent($0) ? $0.round : nil } }
 
   public func queued() async -> Int {
-    guard let lr else { return 0 }
-    return await disk.queue(lr).count
+    guard let value = binding, isCurrent(value) else { return 0 }
+    let count = await disk.queue(value.round).count
+    return isCurrent(value) ? count : 0
+  }
+
+  /// Bind before the first suspension. Disposing an old socket cannot erase a
+  /// newer binding, even when the same round is reopened under a new account epoch.
+  @discardableResult
+  func bind(round: UUID, code: String, guest: UUID?) async -> Binding? {
+    let previous = detach()
+    let value = Binding(round: round, code: code, guest: guest, generation: UUID(), epoch: authorizationEpoch())
+    binding = value
+    await disconnect(previous)
+    return isCurrent(value) ? value : nil
+  }
+
+  private func savedBinding(_ round: UUID, code: String) async -> Binding? {
+    if let value = binding, isCurrent(value), value.round == round, value.code == code, value.guest == nil { return value }
+    return await bind(round: round, code: code, guest: nil)
   }
 
   /// Bind disk writes before opening the offline card. No network required.
   public func prepareSavedRound(_ round: UUID, code: String) async {
-    if lr != round { await leave() }
-    lr = round; self.code = code; guest = nil
-    cont.yield(.queued(await disk.queue(round).count))
+    guard let value = await savedBinding(round, code: code) else { return }
+    await publishQueued(value)
   }
 
-  /// `join(lr, code, guestTok)`.
+  /// `join(lr, code, guestTok)`; production keeps the dedicated Realtime client.
   public func join(lr: UUID, code: String, guest guestToken: UUID?, name: String, presenceKey: String) async {
-    if channel != nil, self.lr == lr { return }
-    await leave()
-    self.lr = lr; self.code = code; guest = guestToken
+    if channel != nil, let value = binding, isCurrent(value), value.round == lr,
+       value.code == code, value.guest == guestToken { return }
+    guard let svc, let value = await bind(round: lr, code: code, guest: guestToken) else { return }
     let topic = "live-\(lr.uuidString.lowercased())-\(code)"
     let ch = svc.realtime.realtimeV2.channel(topic) { cfg in
       cfg.broadcast = BroadcastJoinConfig(acknowledgeBroadcasts: false, receiveOwnBroadcasts: false)
@@ -83,13 +125,13 @@ public actor LiveRoundSession {
     tokens.append(ch.onBroadcast(event: "live") { [weak self] json in
       guard let self else { return }
       let payload = json["payload"].flatMap(LiveRoundSession.jsonValue) ?? .null
-      Task { await self.receive(payload) }
+      Task { await self.receive(payload, in: value) }
     })
     tokens.append(ch.onPresenceChange { [weak self] action in
       guard let self else { return }
       let joins = action.joins.compactMapValues { $0.state["n"]?.stringValue }
       let leaves = Array(action.leaves.keys)
-      Task { await self.presence(joins: joins, leaves: leaves) }
+      Task { await self.presence(joins: joins, leaves: leaves, in: value) }
     })
     tokens.append(ch.onStatusChange { [weak self] s in
       guard let self else { return }
@@ -99,101 +141,157 @@ public actor LiveRoundSession {
       case .unsubscribing: "UNSUBSCRIBING"
       case .unsubscribed: "CLOSED"
       }
-      Task { await self.status(name) }
+      Task { await self.status(name, in: value) }
     })
     do {
       try await ch.subscribeWithError()
+      guard isCurrent(value) else { return }
       await ch.track(state: ["n": .string(name)])
-      await status("SUBSCRIBED")
-      await flush()
-      await reconcile()
+      guard isCurrent(value) else { return }
+      status("SUBSCRIBED", in: value)
+      _ = await synchronize(value, onlyWhenEmpty: false)
     } catch {
+      guard isCurrent(value) else { return }
       print("[livesync] \(topic) CHANNEL_ERROR — \(error.localizedDescription)")
-      await status("CHANNEL_ERROR")
+      status("CHANNEL_ERROR", in: value)
     }
   }
 
-  private func status(_ s: String) {
+  private func status(_ s: String, in value: Binding) {
+    guard isCurrent(value) else { return }
     print("[livesync] \(s)")
     subStatus = s
     cont.yield(.status(s))
   }
 
-  public func leave() async {
-    tokens.forEach { $0.cancel() }
-    tokens.removeAll()
-    if let ch = channel {
-      await ch.untrack()
-      await svc.realtime.realtimeV2.removeChannel(ch)
-    }
-    channel = nil; lr = nil; code = nil; guest = nil; subStatus = nil
+  private func detach() -> RealtimeChannelV2? {
+    let previous = channel
+    tokens.forEach { $0.cancel() }; tokens.removeAll()
+    channel = nil; binding = nil; submittedCard = nil; subStatus = nil
     present = [:]
     cont.yield(.presence([]))
+    return previous
   }
+  private func disconnect(_ previous: RealtimeChannelV2?) async {
+    guard let previous, let svc else { return }
+    await previous.untrack()
+    await svc.realtime.realtimeV2.removeChannel(previous)
+  }
+  public func leave() async { await disconnect(detach()) }
 
-  private func receive(_ payload: JSONValue) {
-    guard let m = LiveMessage(wire: payload) else { return }
+  private func receive(_ payload: JSONValue, in value: Binding) {
+    guard isCurrent(value), let m = LiveMessage(wire: payload) else { return }
     cont.yield(.message(m))
   }
-
-  private func presence(joins: [String: String], leaves: [String]) {
+  private func presence(joins: [String: String], leaves: [String], in value: Binding) {
+    guard isCurrent(value) else { return }
     for k in leaves { present[k] = nil }
     for (k, n) in joins { present[k] = n }
     cont.yield(.presence(Array(present.values)))
   }
 
-  /// Broadcast now; queue the durable write unless `broadcastOnly` (finish /
-  /// gone — the RPC that matters already ran or is about to).
-  public func send(_ m: LiveMessage, broadcastOnly: Bool = false) async {
-    if let ch = channel { try? await ch.broadcast(event: "live", message: m.wire) }
-    guard !broadcastOnly, let lr else { return }
-    await disk.enqueue(m, round: lr)
-    cont.yield(.queued(await disk.queue(lr).count))
-    await flush()
+  /// App edits stay optimistic. Snapshot preservation and delivery now travel
+  /// together; guest cards are retained in memory only, never normal snapshots.
+  public func submit(_ card: LiveRoundState, message: LiveMessage, guest: UUID?) async {
+    guard card.active, let round = card.lr else { return }
+    let value = binding
+    if let value, isCurrent(value), value.round == round, value.guest == guest {
+      submittedCard = LiveDisk.merging(card, with: submittedCard)
+    }
+    // An edit before the channel is bound still keeps its host snapshot, as
+    // persistLive always did. The explicit round prevents cross-round delivery.
+    if guest == nil { await disk.save(card) }
+    guard let value, isCurrent(value), value.round == round, value.guest == guest else { return }
+    await transmit(message, in: value, broadcastOnly: false)
   }
 
-  /// Drain the queue in order. A permanently un-landable write (the round
-  /// closed, bad args, an old DB with no RPC yet) is dropped; a network miss
-  /// keeps its entry, counts a try, and backs off until the next trigger.
+  public func send(_ message: LiveMessage, round: UUID, broadcastOnly: Bool = false) async {
+    guard let value = binding, isCurrent(value), value.round == round else { return }
+    await transmit(message, in: value, broadcastOnly: broadcastOnly)
+  }
+  private func transmit(_ message: LiveMessage, in value: Binding, broadcastOnly: Bool) async {
+    guard isCurrent(value) else { return }
+    if let ch = channel { try? await ch.broadcast(event: "live", message: message.wire) }
+    guard !broadcastOnly, isCurrent(value) else { return }
+    await disk.enqueue(message, round: value.round)
+    guard isCurrent(value) else { return }
+    await publishQueued(value)
+    _ = await flush(value)
+  }
+
+  /// A flush belongs to one binding. A suspended old RPC cannot block a new
+  /// round's flush, nor clear its ownership when the old request returns.
   public func flush() async {
-    guard !flushing, let lr else { return }
-    flushing = true
-    defer { flushing = false }
-    while self.lr == lr, let m = await disk.queue(lr).first {
+    guard let value = binding, isCurrent(value) else { return }
+    _ = await flush(value)
+  }
+  private struct FlushOutcome { var retired = false }
+  private func flush(_ value: Binding) async -> FlushOutcome? {
+    guard isCurrent(value), flushing != value.generation else { return nil }
+    var outcome = FlushOutcome()
+    flushing = value.generation
+    defer { if flushing == value.generation { flushing = nil } }
+    while isCurrent(value) {
+      let next = await disk.queue(value.round).first
+      guard isCurrent(value) else { return nil }
+      guard let message = next else { break }
       do {
-        if m.t == "score", let pid = m.pid, let h = m.h {
-          try await repo.setScore(lr: lr, player: pid, hole: h, strokes: m.s, cts: m.cts, guest: guest)
-        } else if m.t == "wolf", let h = m.h {
-          try await repo.setWolf(lr: lr, hole: h, pick: m.w ?? .null, cts: m.cts, guest: guest)
-        }
-        guard await disk.acknowledge(m, round: lr) else { break }
+        try await delivery.write(message, round: value.round, guest: value.guest)
+        guard isCurrent(value) else { return nil }
+        guard await disk.acknowledge(message, round: value.round) else { break }
       } catch {
-        let msg = (error as? RpcError)?.underlying ?? error.localizedDescription
-        if LiveRoundSession.isDeadWrite(msg) {
-          // **THE CARD IS KEPT BEFORE THE STROKE IS DROPPED.**
-          //
-          // A dead write is un-landable and dropping it is right — but the
-          // commonest way to get one is not a bad argument, it is the daily
-          // tick abandoning the round twenty-four hours after tee-off
-          // (`20260904180000:40-43`), which raises "Round is not live" and
-          // matches this regex. A golfer who scored eighteen holes with no
-          // signal and drained on Tuesday had every stroke he typed removed
-          // here, one `removeFirst()` at a time, in silence.
-          //
-          // The snapshot is written through on every stroke, so retiring it
-          // keeps the whole card. The queue entries still go — they genuinely
-          // cannot land — but the round survives as something the golfer can
-          // post himself.
-          await disk.retireSnapshot(lr)
-          cont.yield(.retired(lr))
-          guard await disk.acknowledge(m, round: lr) else { break }
+        guard isCurrent(value) else { return nil }
+        let text = (error as? RpcError)?.underlying ?? error.localizedDescription
+        if Self.isDeadWrite(text) {
+          // Keep the card before dropping an un-landable stroke. Preserve the
+          // existing fullest-card retirement policy and app-store fallback.
+          let saved = await disk.snapshot(value.round)
+          guard isCurrent(value) else { return nil }
+          if let latest = submittedCard.map({ LiveDisk.merging($0, with: saved) }) ?? saved {
+            await disk.retire(latest, lr: value.round)
+          }
+          guard isCurrent(value) else { return nil }
+          outcome.retired = true
+          cont.yield(.retired(value.round))
+          guard await disk.acknowledge(message, round: value.round) else { break }
           continue
         }
-        await disk.retry(m, round: lr, limit: LiveRoundSession.maxTries)
+        await disk.retry(message, round: value.round, limit: Self.maxTries)
         break
       }
     }
-    if self.lr == lr { cont.yield(.queued(await disk.queue(lr).count)) }
+    await publishQueued(value)
+    return isCurrent(value) ? outcome : nil
+  }
+
+  private func publishQueued(_ value: Binding) async {
+    let count = await disk.queue(value.round).count
+    guard isCurrent(value) else { return }
+    cont.yield(.queued(count))
+  }
+
+  /// Reconnect/foreground keeps the existing unconditional reconcile policy.
+  @discardableResult
+  public func synchronize(round: UUID) async -> Int? {
+    guard let value = binding, isCurrent(value), value.round == round else { return nil }
+    return await synchronize(value, onlyWhenEmpty: false)
+  }
+
+  /// Activity edits are already in the atomic journal. This path never enqueues
+  /// them again, and reconciles only once their queue has drained.
+  @discardableResult
+  public func syncSavedRound(_ round: UUID, code: String, authorization: Authorization) async -> Int? {
+    guard authorization.epoch == authorizationEpoch(),
+          let value = await savedBinding(round, code: code),
+          value.epoch == authorization.epoch, isCurrent(value) else { return nil }
+    return await synchronize(value, onlyWhenEmpty: true)
+  }
+  private func synchronize(_ value: Binding, onlyWhenEmpty: Bool) async -> Int? {
+    guard let outcome = await flush(value), isCurrent(value) else { return nil }
+    let count = await disk.queue(value.round).count
+    guard isCurrent(value) else { return nil }
+    if !onlyWhenEmpty || (count == 0 && !outcome.retired) { await reconcile(value) }
+    return isCurrent(value) ? count : nil
   }
 
   /// `/not live|final|No such|not in this|function|schema cache/i` (14812).
@@ -201,20 +299,24 @@ public actor LiveRoundSession {
     message.range(of: "not live|final|No such|not in this|function|schema cache", options: [.regularExpression, .caseInsensitive]) != nil
   }
 
-  /// The reconcile pull — `live_state` / `guest_live_state`.
   public func reconcile() async {
-    guard let lr else { return }
+    guard let value = binding, isCurrent(value) else { return }
+    await reconcile(value)
+  }
+  private func reconcile(_ value: Binding) async {
     do {
-      let d = guest != nil ? try await repo.guestState(guest!) : try await repo.state(lr)
-      cont.yield(.state(d))
+      let state = try await delivery.read(round: value.round, guest: value.guest)
+      guard isCurrent(value) else { return }
+      cont.yield(.state(state))
     } catch {
-      print("[livesync] reconcile \(error.localizedDescription)")
+      if isCurrent(value) { print("[livesync] reconcile \(error.localizedDescription)") }
     }
   }
 
   /// D86 · tee-off's doorbell: one broadcast on the LEAGUE channel, which
   /// every open app in the league already subscribes to. Fire-and-forget.
   public func announceOpen(league: UUID, lr: UUID) async {
+    guard let svc else { return }
     let ch = svc.realtime.realtimeV2.channel("lg-" + league.uuidString)
     try? await ch.httpSend(event: "live_open", message: ["lr": .string(lr.uuidString.lowercased())])
   }

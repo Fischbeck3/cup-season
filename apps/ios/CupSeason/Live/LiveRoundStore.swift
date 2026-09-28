@@ -953,11 +953,9 @@ final class LiveRoundStore {
     state.ensureClocks()
     let now = max(LiveFmt.now(), state.scts[pi][h] + 1)
     state.scts[pi][h] = now
-    persist()
+    let message = state.pmap?[safe: pi].map { LiveMessage.score(pid: $0, hole0: h, strokes: state.scores[pi][h], cts: now) }
+    persist(message)
     refreshActivity()
-    guard sendable, let pid = state.pmap?[safe: pi] else { return }
-    let m = LiveMessage.score(pid: pid, hole0: h, strokes: state.scores[pi][h], cts: now)
-    Task { await session.send(m) }
   }
 
   func setWolf(_ pick: LiveWolfPick?) {
@@ -966,11 +964,8 @@ final class LiveRoundStore {
     state.ensureClocks()
     let now = LiveFmt.now()
     state.wcts[h] = now
-    persist()
+    persist(.wolf(hole0: h, pick: pick, cts: now))
     CSHaptic.selection()
-    guard sendable else { return }
-    let m = LiveMessage.wolf(hole0: h, pick: pick, cts: now)
-    Task { await session.send(m) }
   }
 
   // D155 · walking holes moves the island too — it shows the hole you are on
@@ -1064,12 +1059,17 @@ final class LiveRoundStore {
   private var sendable: Bool { state.active && state.code != nil }
 
   /// `persistLive`: a guest phone never snapshots.
-  private func persist() {
-    guard guest == nil, state.active, state.lr != nil else { return }
-    state.ts = max(LiveFmt.now(), state.ts + 1)
+  private func persist(_ message: LiveMessage? = nil) {
+    guard state.active, state.lr != nil else { return }
+    if guest == nil { state.ts = max(LiveFmt.now(), state.ts + 1) }
     if state.onThisPhone { flushLocalCard(); return }
     let s = state
-    Task { await disk.save(s) }
+    if let message, sendable {
+      let token = guest?.token
+      Task { await session.submit(s, message: message, guest: token) }
+    } else if guest == nil {
+      Task { await disk.save(s) }
+    }
   }
 
   // MARK: - sync (D85)
@@ -1115,9 +1115,10 @@ final class LiveRoundStore {
         self.wasOffline = !up
         // Only on the EDGE from down to up, so a Wi-Fi/cellular flap does not
         // spin the queue, and never while there is nothing to send.
-        guard cameBack, self.state.active, self.state.lr != nil else { return }
-        if await self.session.isJoined { await self.session.flush(); await self.session.reconcile() }
+        guard cameBack, self.state.active, let round = self.state.lr else { return }
+        if await self.session.isJoined { await self.session.synchronize(round: round) }
         else { await self.joinSync() }
+        guard self.state.lr == round else { return }
         self.queued = await self.session.queued()
       }
     }
@@ -1142,8 +1143,10 @@ final class LiveRoundStore {
       // own phone resumes from its LOCAL snapshot; only the invited golfer,
       // who has no snapshot and depends entirely on the server, saw nothing.
       if !(state.active && state.stage == .live) { await refreshLive() }
-      if await session.isJoined { await session.flush(); await session.reconcile() }
+      guard let round = state.lr else { return }
+      if await session.isJoined { await session.synchronize(round: round) }
       else { await joinSync() }
+      guard state.lr == round else { return }
       queued = await session.queued()
     }
   }
@@ -1340,7 +1343,7 @@ final class LiveRoundStore {
       let out = try await repo.finish(lr: lr, cards: LiveCopy.cards(state), casual: casual, result: casual ? nil : result?.json)
       CSTelemetry.event("live_finish_result", ["attempt_id": .string(finishAttempt), "live_round_id": .string(lr.uuidString.lowercased()),
                                              "posted": .number(Double(out.posted.count)), "skipped": .number(Double(out.skipped.count)), "already_final": .bool(out.alreadyFinal)])
-      if sendable { await session.send(.finish(cts: LiveFmt.now()), broadcastOnly: true) }
+      if sendable, let round = state.lr { await session.send(.finish(cts: LiveFmt.now()), round: round, broadcastOnly: true) }
       await session.leave()
       await disk.removeSnapshot(lr)
       await disk.removeQueue(lr)
@@ -1377,7 +1380,7 @@ final class LiveRoundStore {
       return
     }
     await LiveActivityHost.end()          // D155 · nothing outlives its round
-    if sendable { await session.send(.gone(cts: LiveFmt.now()), broadcastOnly: true) }
+    if sendable, let round = state.lr { await session.send(.gone(cts: LiveFmt.now()), round: round, broadcastOnly: true) }
     await session.leave()
     if let lr = state.lr {
       do { try await repo.abandon(lr) } catch {

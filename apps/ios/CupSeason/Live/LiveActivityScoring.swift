@@ -58,17 +58,15 @@ extension LiveRoundStore {
   }
 
   func syncActivity(round: UUID, owner: UUID, currentOwner: @MainActor () async -> UUID?) async {
+    let authorization = session.captureAuthorization()
     guard state.active, state.lr == round, !state.onThisPhone, !retiredCard,
           let code = state.code, await currentOwner() == owner else { return }
-    await session.prepareSavedRound(round, code: code)
-    guard state.lr == round, await currentOwner() == owner else { return }
-    // Already persisted by commitActivity; do not enqueue a duplicate. The
-    // existing RPC flush handles network failure and terminal round statuses.
-    await session.flush()
+    // The session owns flushing this already-journaled edit and reconciling
+    // after a successful drain. It never enqueues the activity write again.
+    guard let count = await session.syncSavedRound(round, code: code, authorization: authorization) else { return }
     guard state.lr == round, !retiredCard, await currentOwner() == owner else { return }
-    queued = await session.queued()
+    queued = count
     await LiveActivityHost.update(state, saveState: queued > 0 ? "Saved on phone" : nil)?.value
-    if queued == 0 { await session.reconcile() }
   }
 }
 
