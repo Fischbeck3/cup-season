@@ -177,6 +177,11 @@ public enum YouCopy {
   /// Y-17 · the quiet line over a partial load, and its one door
   public static let partialLine = "Some of your card did not load."
   public static let retry = "Retry"
+  /// F10 · the record's own place when the ROUNDS read failed — the desk's
+  /// words (`renderCareer`): a failed read is never "no rounds".
+  public static let roundsFailed = "Your rounds didn\u{2019}t load"
+  public static let roundsFailedLine = "Nothing is lost \u{2014} the read failed, not the record."
+  public static let tryAgain = "Try again"
   /// Y-28 · the block did not come back at all. A dash under "across counting
   /// rounds" says the opposite of why it is a dash.
   public static let didNotLoad = "Did not load"

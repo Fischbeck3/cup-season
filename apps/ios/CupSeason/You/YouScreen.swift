@@ -82,6 +82,29 @@ final class YouModel {
   }
 }
 
+/// F10 · what the You page knows about the golfer's record — and nothing it
+/// does not. The sections about what a record HOLDS (form, rivals, trophies,
+/// courses) wait for `.some`; `.empty` says so once, with the one next step;
+/// `.failed` says the read failed, with Try again, and is never "no rounds".
+enum YouRecord: Equatable {
+  /// the first load has not answered
+  case loading
+  /// the rounds read failed and nothing on the page knows the record
+  case failed
+  /// the rounds read answered: none yet
+  case empty
+  /// the record, with this many rounds
+  case some(Int)
+
+  static func of(loaded: Bool, career: Career?, failed: [String], cardRecent: Int) -> YouRecord {
+    guard loaded else { return .loading }
+    if let career { return career.rounds == 0 ? .empty : .some(career.rounds) }
+    // the career read failed; the card's own recent rounds still prove a record
+    if cardRecent > 0 { return .some(cardRecent) }
+    return failed.contains("career") ? .failed : .loading
+  }
+}
+
 struct YouScreen: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
@@ -97,10 +120,18 @@ struct YouScreen: View {
     store.me?.memberships.first { $0.league_id == leagueId && $0.standing != nil }
       ?? store.me?.memberships.first { $0.standing != nil }
   }
+  /// F10 · which of four things the page is showing — a first load still
+  /// out, a rounds read that failed, a record with nothing in it yet, or a
+  /// record. The sections that are about what a record HOLDS wait for one,
+  /// and a failed read never reads as "no rounds".
+  private var recordState: YouRecord {
+    YouRecord.of(loaded: model.loaded, career: model.data.career, failed: model.data.failed,
+                 cardRecent: model.card?.recent.count ?? 0)
+  }
   /// Y-29 · a card with no rounds on it. Only once the rounds read has
   /// ANSWERED: a career read that failed is nil too, and a failed read is not
   /// an empty card.
-  private var noRounds: Bool { model.loaded && model.data.career.map { $0.rounds == 0 } == true }
+  private var noRounds: Bool { recordState == .empty }
 
   var body: some View {
     ScrollViewReader { proxy in
@@ -116,8 +147,10 @@ struct YouScreen: View {
           statusSentence(p)
 
           // Y-17 · one quiet line when a block did not load; the rest of the
-          // page is whole, and this is the way to ask again.
-          if model.failed { retryLine.padding(.top, CSTokens.Space.s3) }
+          // page is whole, and this is the way to ask again. F10 · when it is
+          // the ROUNDS that failed, the record's own place says so with its
+          // own Try again, and this line stands down — one retry, not two.
+          if model.failed && recordState != .failed { retryLine.padding(.top, CSTokens.Space.s3) }
 
           Group {
             if let m = league {
@@ -330,8 +363,10 @@ struct YouScreen: View {
       if all.count > 2, let open = links.openRecord {
         CSDoor(.link("Every rival", open)).padding(.top, CSTokens.Space.s3)
       }
-    } else if model.loaded && !noRounds {
+    } else if case .some = recordState, !model.data.failed.contains("rivalries") {
       // §11 · no rivals → one empty at 56pt with the door that finds some.
+      // F10 · only when the rivalries read ANSWERED with none: a read that
+      // failed is not "nobody yet", and the retry line above says so.
       ProfileHead("Rivals")
       CSEmpty(glyph: .people,
               eyebrow: "Nobody yet",
@@ -349,14 +384,33 @@ struct YouScreen: View {
       ProfileFormRow(rounds: recent).id("you-form")
     } else if noRounds {
       // §11 · nothing on the card yet: ONE empty state, not three sections
-      // each saying "not yet" in its own words.
+      // each saying "not yet" in its own words. F10 · and not twice in this
+      // one: the fact line repeated the headline word for word. The card's
+      // `0` is the one statement of absence; this says what comes next, and
+      // its door is a real control (LINT-21).
       CSEmpty(glyph: .scorecard,
               eyebrow: "The first card",
               headline: "Your record fills as you play.",
-              fact: YouCopy.noRoundsLine,
+              fact: nil,
               door: .primary(YouCopy.postFirst, links.postRound))
         .padding(.top, CSTokens.Space.s5)
         .id("you-form")
+    } else if recordState == .failed {
+      // F10 · a failed rounds read is never "no rounds": the record's own
+      // place says the read failed, that nothing is lost, and how to ask again.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
+        Text(YouCopy.roundsFailed).csType(.lead).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityAddTraits(.isHeader)
+        Text(YouCopy.roundsFailedLine).csType(.bodyS).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+        CSDoor(.primary(YouCopy.tryAgain) { Task { await reload() } })
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.top, CSTokens.Space.s5)
+      .accessibilityElement(children: .contain)
+      .accessibilityIdentifier("you.record.failed")
+      .id("you-form")
     }
   }
 
@@ -448,12 +502,15 @@ struct YouScreen: View {
     A11yStack(rowAlignment: .firstTextBaseline, spacing: 0, columnSpacing: 4) {
       Text(YouCopy.partialLine + " ").csType(.bodyS).foregroundStyle(cs.mut)
       Button { Task { await reload() } } label: {
-        Text(YouCopy.retry).csType(.bodyS).foregroundStyle(cs.ink).underline().a11yHitSlop()
+        // F10 · a 44pt target around the same quiet word (§16.2; it measured 42)
+        Text(YouCopy.retry).csType(.bodyS).foregroundStyle(cs.ink).underline()
+          .frame(minWidth: 44, minHeight: 44)
+          .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
       .accessibilityLabel("Retry loading your card")
     }
-    .frame(minHeight: 28)
+    .frame(minHeight: 44)
   }
 }
 
