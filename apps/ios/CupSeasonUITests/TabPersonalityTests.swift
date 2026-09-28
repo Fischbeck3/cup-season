@@ -36,7 +36,7 @@ final class WelcomeDoorTests: XCTestCase {
       XCTAssertTrue(door.isHittable)
       door.tap()
       XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10))
-      XCTAssertTrue(app.buttons.element(matching: NSPredicate(format: "label CONTAINS[c] %@", "Continue with email")).exists)
+      XCTAssertTrue(app.buttons.element(matching: NSPredicate(format: "label CONTAINS[c] %@", "Send code")).exists)
       app.terminate()
     }
   }

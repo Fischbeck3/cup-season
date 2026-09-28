@@ -19,7 +19,7 @@ final class VisualEntranceTests: XCTestCase {
       XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10))
       // Showing context must not consume the invitation or replace the auth flow.
       XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "You're joining QA season.")).firstMatch.exists)
-      let continueButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Continue with email")).firstMatch
+      let continueButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] %@", "Send code")).firstMatch
       for _ in 0..<5 where !continueButton.isHittable { app.swipeUp() }
       XCTAssertTrue(continueButton.isHittable)
       capture(app, "invited-email-\(theme)-\(size)")
