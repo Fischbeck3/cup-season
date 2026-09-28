@@ -1632,7 +1632,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   text-transform:uppercase; color:var(--folio-rule);}
 /* pilot: "Save card is hard to find when a change is made" — the button ARMS
    the moment the card changes: fairway fill, one soft rise. Disarms on save. */
-.mini.armed{background:var(--brand); color:#fff; border-color:var(--brand); font-weight:700; animation:csRise .35s var(--roll) both;}
+.mini.armed{background:var(--act); color:var(--bg0); border-color:var(--act); font-weight:700; animation:csRise .35s var(--roll) both;}   /* D359 · the armed Save is the ordinary action: the fairway fill its comment always promised */
 /* a chosen pill inverts to ink (the phone's `CalloutSheet` pill) — an ordinary selected state, never ember (D359) */
 .mini.sel{background:var(--ink); color:var(--bg0); border-color:var(--ink);}
 @media (prefers-reduced-motion: reduce){ .mini.armed{animation:none;} }
@@ -1754,7 +1754,7 @@ table.hcard td.bog{color:var(--mut);}
 .hchg-row{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:17px; padding:2px 0 10px;}
 .hchg-was{color:var(--mut); text-decoration:line-through;}
 .hchg-arrow{color:var(--mut);}
-.hchg-now{color:var(--brand);}
+.hchg-now{color:var(--ink);}   /* D359 · a new handle is news, not a competition */
 .hchg-list{margin:0 0 14px; padding:0 0 0 18px; color:var(--ink); font-size:13px; line-height:1.55;}
 .hchg-list li{margin:0 0 7px;}
 .hchg-list b{font-weight:600;}
@@ -2115,7 +2115,7 @@ body.guestlive #onboard{display:none !important;}
 .startdoor b{font-family:var(--serif); font-size:16px; font-weight:700;}
 .startdoor small{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut);}
 .startjoin{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:10px; padding:11px; background:var(--bg2); border:1px solid var(--rule); border-radius:12px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
-@media(hover:hover){ .startdoor:hover, .startjoin:hover{border-color:var(--brand);} }
+@media(hover:hover){ .startdoor:hover, .startjoin:hover{border-color:var(--act);} }
 .startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* D41: run-it-back — the settled season, gold-washed, above the cold-start doors */
 .runback{border:1px solid color-mix(in srgb, var(--gold) 42%, var(--rule)); border-radius:14px; padding:14px; margin-bottom:12px;
@@ -2324,9 +2324,9 @@ body.guestlive #onboard{display:none !important;}
    art carries the wink (famous-golf-wing rule: oblique, never named). */
 .hocc{position:relative; overflow:hidden; text-align:left; padding:13px 14px; margin:0 0 12px;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);}
-.hocc::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brand);}
+.hocc::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--mut);}   /* D359 · a seasonal suggestion is not an active competition; the earned variant keeps its gold */
 .hocc.earned::before{background:var(--gold);}
-.hocc .ho-k{font-family:var(--mono); font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--brand); margin-bottom:7px;}
+.hocc .ho-k{font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--mut); margin-bottom:7px;}
 .hocc.earned .ho-k{color:var(--gold);}
 .hocc h4{font-family:var(--serif); font-size:18px; font-weight:700; margin:0 0 5px; color:var(--ink); line-height:1.2; letter-spacing:-.01em;}
 .hocc p{margin:0; font-size:12.5px; line-height:1.5; color:var(--mut);}
@@ -2519,11 +2519,12 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 .momrow{
   font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
   color:var(--ink); text-align:left; padding:10px 13px; margin-bottom:8px;
-  border:1px solid rgba(232,98,44,.32); border-left:3px solid var(--brand);
-  border-radius:12px; background:linear-gradient(180deg, rgba(232,98,44,.10), rgba(232,98,44,.03));
+  /* a live moment keeps its ember rail; the wash behind it (a pre-D270 ember
+     gradient, and a green one in light) is gone — the page's own ground */
+  border:1px solid var(--rule); border-left:3px solid var(--brand);
+  border-radius:12px; background:var(--bg1);
 }
 .momrow b{color:var(--brand); font-weight:600; margin-right:6px;}
-html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .echips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px;}
 .echip{
   display:flex; align-items:center; gap:7px;
@@ -2573,7 +2574,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
   border-radius:var(--p); padding:0 13px; min-height:28px; cursor:pointer; margin:0 6px 6px 0;
 }
 .selchip.on{color:var(--panel-ink); background:var(--panel);}
-.selchip.on .gtag{background:var(--bg0); color:var(--brand);}
+.selchip.on .gtag{background:var(--bg0); color:var(--ink);}
 .selchip:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .selchip[disabled]{cursor:default; color:var(--mut); background:var(--bg1);}   /* UI_SYSTEM §16.1: a disabled chip's label is mut on bg1, never a faded word */
 .livebanner{
@@ -2659,7 +2660,7 @@ html[data-theme="light"] .momrow{background:rgba(21,116,63,.06);}
 .crtzone{flex:1; border:1.5px dashed var(--rule); border-radius:13px; padding:8px;
   min-height:116px; display:flex; flex-direction:column; gap:8px;
   transition:border-color .15s, background .15s;}
-.crtzone.hot{border-color:var(--brand); background:color-mix(in srgb, var(--brand) 20%, transparent); border-style:solid;}
+.crtzone.hot{border-color:var(--act); background:var(--bg2); border-style:solid;}   /* a drop target is an ordinary state (D359) */
 .crtzone h5{font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; color:var(--mut);
   text-transform:uppercase; text-align:center; padding:2px 0 0; margin:0; font-weight:500;}
 .crtvs{align-self:center; font-family:var(--mono); font-size:10px; color:var(--mut); padding-top:52px; flex:none;}
@@ -2876,7 +2877,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 }
 .fbcat{ font-family:var(--sans); font-size:12px; color:var(--mut); background:var(--bg1);
   border:1px solid var(--rule); border-radius:99px; padding:6px 12px; cursor:pointer; }
-.fbcat.on{ color:var(--ink); border-color:var(--brand); background:rgba(232,98,44,.12); }
+.fbcat.on{ color:var(--ink); border-color:var(--act); background:var(--bg2); }
 .ftag{ display:inline-flex; align-items:center; gap:2px; font-family:var(--mono); font-size:10px;
   letter-spacing:.04em; color:var(--gold); background:rgba(216,178,90,.12);  /* founder = earned → champagne */
   border:1px solid rgba(216,178,90,.34); border-radius:99px; padding:1px 6px; vertical-align:middle; white-space:nowrap; }
@@ -3236,7 +3237,7 @@ body.noleague .league-only{display:none !important;}
 .seasonctl:empty{display:none;}
 .seasonlead{font-family:var(--serif); font-size:21px; line-height:1.34; color:var(--ink); margin:0 0 8px; text-align:left;}
 @media(max-width:720px){ .seasonlead{font-size:20px;} }
-.seasonmore{display:inline-block; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--brand); margin:0 0 16px; text-decoration:none;}
+.seasonmore{display:inline-block; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--act); margin:0 0 16px; text-decoration:none;}
 .endgamefoot{font-size:12.5px; line-height:1.55; color:var(--mut); text-align:left; padding:8px 0 0; margin:0;}
 .arcrow{border-bottom:1px solid var(--rule); padding:9px 0; text-align:left;}
 .arcrow .aw{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--mut);}   /* LV-17 */
@@ -3266,7 +3267,7 @@ body.noleague .league-only{display:none !important;}
 .prow .pmeta small{font-size:13px; color:var(--mut);}
 .prow .pact{flex:none; display:flex; gap:6px;}
 .ptag{flex:none; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--mut); padding:2px 8px; white-space:nowrap;}
-.ptag.ok{color:var(--pos);} .ptag.pos{color:var(--brand);}
+.ptag.ok{color:var(--pos);} .ptag.pos{color:var(--act);}   /* "Wants to add you" is a request to answer, not a contest */
 body:not(.noleague) #hubLeagueless{display:none;}
 /* Up Next strip — what's coming, one glance, hides when empty */
 #homeUpNext:not(:empty){display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;}
@@ -3286,8 +3287,8 @@ body:not(.noleague) #hubLeagueless{display:none;}
    moment), a heavier rule, and real air above so the eye reads a break. Two on
    a page is a spine; four is a table of contents. */
 .grouphead{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--brand); margin:26px 0 7px;
-  padding-bottom:7px; border-bottom:1px solid var(--rule);}
+  text-transform:uppercase; color:var(--mut); margin:26px 0 7px;
+  padding-bottom:7px; border-bottom:1px solid var(--rule);}   /* D359 · a section head is furniture: mut, never the competition ember */
 .grouphead:first-child{margin-top:0;}
 /* D261 / R-N · the desk's course archive. The card scrolls INSIDE its own
    container — the page never scrolls sideways (IA §4.2, and preflight 39's
@@ -3412,11 +3413,6 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .bagsince{font-family:var(--serif); font-size:16px; line-height:1.45; color:var(--ink); padding:2px 0 10px;}
 /* D180 · a standing notice row — amber, an icon, room to breathe. Used where
    the app reports a state the golfer chose, never to scold them for it. */
-.warnrow{display:flex; gap:8px; align-items:flex-start; padding:10px 12px 10px 11px;
-  margin:0 0 10px; border-radius:var(--rc); line-height:1.45;
-  background:color-mix(in srgb, var(--brand) 9%, transparent);
-  border:1px solid color-mix(in srgb, var(--brand) 45%, transparent); color:var(--ink);}
-.warnrow > span:first-child{color:var(--brand); flex:none;}
 /* D177 · the buddies invite-link door */
 .pdoorlink{display:flex; flex-direction:column; align-items:flex-start; gap:2px; width:100%;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--rc);
@@ -3424,27 +3420,12 @@ body:not(.noleague) #hubLeagueless{display:none;}
   font-family:var(--sans); color:var(--ink);}
 .pdoorlink span{font-size:13.5px; font-weight:600;}
 .pdoorlink small{font-family:var(--mono); font-size:10px; letter-spacing:.1em; color:var(--mut);}
-.pdoorlink::after{content:'→'; position:absolute; right:13px; color:var(--brand);}
+.pdoorlink::after{content:'→'; position:absolute; right:13px; color:var(--act);}
 .pdoorlink{position:relative;}
 /* D176: the lead card — ember, because every face of it is something still
    running (a clash mid-week, a month not yet closed, a table that just moved).
    Gold would be wrong: nothing on this card is earned yet. */
 #homeLead:not(:empty){margin:0 0 14px;}
-.leadcard{background:var(--bg1); border:1px solid var(--rule); border-left:3px solid var(--brand);
-  border-radius:var(--r); padding:13px 15px; text-align:left;}
-.leadcard .eb{font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase;
-  color:var(--brand); display:block; margin-bottom:6px;}
-.leadcard .ln{font-size:15px; font-weight:600; color:var(--ink); line-height:1.35;}
-.leadcard .sides{display:flex; align-items:flex-start; gap:12px; margin-top:9px;}
-.leadcard .sd{flex:1; min-width:0;}
-.leadcard .sd.r{text-align:right;}
-.leadcard .sd .nm{font-size:13px; font-weight:600; color:var(--ink);}
-.leadcard .sd .bs{font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:2px;}
-.leadcard .sd.ahead .bs{color:var(--pos);}
-.leadcard .vs{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--mut); padding-top:3px;}
-.leadcard .act{display:inline-flex; align-items:center; gap:6px; margin-top:10px; min-height:34px;
-  background:none; border:0; padding:0; cursor:pointer;
-  font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--brand);}
 /* the calendar is SOCIAL, not league-gated — friends' rounds show either way */
 .calgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
 .calhd{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--mut); text-align:center; padding:2px 0 6px;}
@@ -3481,7 +3462,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 
 /* D76 heat grammar — temperature is semantic, never decorative. Stable=slate,
    climbing=warm, climbing hard=hot, falling=cool (slate, never red-means-bad). */
-.heatwarm{color:var(--brand);} .heathot{color:var(--brand);} .heatcool{color:var(--cool);}
+.heatwarm{color:var(--ink);} .heathot{color:var(--ink);} .heatcool{color:var(--cool);}   /* D359 applied (F4): form is ink */
 .streaktag{font-family:var(--mono); font-size:9.5px; letter-spacing:.08em; display:inline-block;
   border:1px solid currentColor; border-radius:4px; padding:1px 5px;}
 /* THE MONTH CLOCK (Wave 5, season.md 1.2) — it replaces the press meter, a
@@ -5185,7 +5166,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <div id="postHolesWrap" style="margin-top:10px; display:none">
                 <div id="postHoleGridF"></div>
                 <div id="postHoleGridB" style="margin-top:6px"></div>
-                <p class="fine" style="padding-top:6px">Each hole starts on par — tap to adjust only what you didn't. <a href="#" id="postSetPars" style="color:var(--brand)">Set the pars →</a></p>
+                <p class="fine" style="padding-top:6px">Each hole starts on par — tap to adjust only what you didn't. <a href="#" id="postSetPars" style="color:var(--act)">Set the pars →</a></p>
                 <!-- the scan's escape hatch: a bad read never traps anyone in the
                      grid — one tap back to the two-number card (course/date/photo
                      survive; only the model's numbers are scrapped) -->
@@ -5275,7 +5256,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div id="commishChip" class="prow" style="margin-top:6px; cursor:default">
               <span class="pmk">◆</span>
               <span class="pmeta"><b>You</b><small>You run this league</small></span>
-              <span class="ptag" style="color:var(--brand)">THE PRO</span>
+              <span class="ptag">THE PRO</span>
             </div>
             <!-- D363 · the person "Start a season" was tapped from: an invitation
                  to send at lock, never a seat. Painted by renderWizardWith(). -->
@@ -5374,7 +5355,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <button data-s="squads4" class="on">4 Squads</button>
           </div>
           <p class="fine" id="structNote">4 squads · best with 8 or more.</p>
-          <p class="fine" id="structFit" style="padding-top:0; color:var(--brand)"></p>
+          <p class="fine" id="structFit" style="padding-top:0; color:var(--ink)"></p>
           <div class="eyebrow">How squads fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how squads fill">i</button></div>
           <div class="ihelp" id="ih-draft">How squads get filled. <b>Random draw</b> shuffles everyone and announces the reveal to the board, so nobody can rig the hat. <b>The Pro picks</b> lets you place golfers yourself, for groups who picked teams in the group chat.</div>
           <div class="seg" id="draftSeg">
@@ -12625,7 +12606,7 @@ function renderPot(){
         payBox.innerHTML = `<b>${esc(note)}</b>${dueTxt?` · by ${esc(dueTxt)}`:''}`
           + (isPro ? ' <a href="#" data-payedit style="color:var(--mut); text-decoration:underline">edit</a>' : '');
       } else if(isPro){
-        payBox.innerHTML = `<a href="#" data-payedit style="color:var(--brand); text-decoration:underline">Say how the crew pays you</a> — they can't guess.`;
+        payBox.innerHTML = `<a href="#" data-payedit style="color:var(--act); text-decoration:underline">Say how the crew pays you</a> — they can't guess.`;
       } else {
         payBox.innerHTML = `The Pro hasn't posted how to pay yet — ask them in the board.`;
       }
@@ -19426,12 +19407,12 @@ function renderRequestsInto(box){
   const list = state.demo ? DEMO_REQUESTS : (window.homeRequests||[]);
   if(!list.length){ box.innerHTML=''; return; }
   box.innerHTML =
-    `<div class="eyebrow" style="margin-top:0; color:var(--brand)">Buddy request${list.length>1?'s':''}</div>` +
+    `<div class="eyebrow" style="margin-top:0; color:var(--act)">Buddy request${list.length>1?'s':''}</div>` +
     list.map(f=>{
       const mk = face(f.profile_id, f.marker, 36);
       const name = esc(f.display_name||'A golfer');
       const h = f.handle ? '@'+esc(f.handle) : '';
-      return `<div class="check" style="border-color:var(--brand)">${mk}
+      return `<div class="check" style="border-color:var(--act)">${mk}
         <div class="tt"><b>${name}${founderTag(f.profile_id, f.display_name)}</b><small>${h}${h?' · ':''}wants to be golf buddies</small></div>
         <span style="display:flex; gap:6px; flex:none">
           <button class="mini" data-hreqacc="${f.friendship_id}">Accept</button>
@@ -20562,7 +20543,7 @@ function renderGolfers(){
        empty state ends in a next move rather than in a full stop. */
     soon.innerHTML = rows.length
       ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(csDayToken(sr.play_on))} ${esc(String(sr.course_label||'').split(' — ')[0])}</div>`).join('')
-      : '<p class="fine" style="padding:0">Nobody has a round on the schedule. <a href="#" id="glfSoonPlan" style="color:var(--brand)">Plan one →</a></p>';
+      : '<p class="fine" style="padding:0">Nobody has a round on the schedule. <a href="#" id="glfSoonPlan" style="color:var(--act)">Plan one →</a></p>';
     soon.querySelector('#glfSoonPlan')?.addEventListener('click', e=>{ e.preventDefault(); window.openDeclareSheet?.(); });
   }
 }
@@ -25082,7 +25063,7 @@ function pfPaintBands(){
   const box = document.getElementById('pfBands');
   if(!box) return;
   box.innerHTML = CS_SCORE_BANDS.map(b =>
-    `<button class="mini" type="button" role="radio" data-band="${b.key}" aria-checked="${b.key===pfBand}" style="min-height:44px;padding:0 14px;${b.key===pfBand?'border-color:var(--brand);color:var(--brand);':''}">${esc(b.title)}</button>`).join('');
+    `<button class="mini" type="button" role="radio" data-band="${b.key}" aria-checked="${b.key===pfBand}" style="min-height:44px;padding:0 14px;${b.key===pfBand?'border-color:var(--act);color:var(--ink);':''}">${esc(b.title)}</button>`).join('');
   box.querySelectorAll('[data-band]').forEach(btn => btn.addEventListener('click', () => {
     pfBand = btn.dataset.band;
     try{ if(navigator.vibrate) navigator.vibrate(10); }catch(_){}
@@ -25149,7 +25130,7 @@ function showProfileGate(){
   grid.setAttribute('role','radiogroup');
   grid.setAttribute('aria-label','Ball marker');
   grid.innerHTML = Object.keys(MARKERS).map(k =>
-    `<button class="mini" data-mk="${k}" role="radio" aria-checked="${k===pfMarker}" tabindex="${k===pfMarker?0:-1}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--brand);color:var(--brand);':''}">${mkr(k)}<span style="font-size:10.5px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
+    `<button class="mini" data-mk="${k}" role="radio" aria-checked="${k===pfMarker}" tabindex="${k===pfMarker?0:-1}" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;${k===pfMarker?'border-color:var(--act);color:var(--ink);':''}">${mkr(k)}<span style="font-size:11px;letter-spacing:.06em">${MARKERS[k].n.toUpperCase()}</span></button>`).join('');
   grid.style.display = pfMarkerOpen ? 'grid' : 'none';
   csPaintMarkerRow();
   grid.querySelectorAll('[data-mk]').forEach(b => b.addEventListener('click', () => {
@@ -25558,7 +25539,7 @@ function refreshWhoChip(){
          Creation stays lean (principle 2) — the card offers it quietly here
          instead, landing on the same field they'd have wanted at signup. */
       $('#youAnchor').innerHTML = (since ? esc(since)+' · ' : '')
-        + '<a href="#" id="youAddGhin" style="color:var(--brand)">add your GHIN</a>';
+        + '<a href="#" id="youAddGhin" style="color:inherit; text-decoration:underline; text-underline-offset:2px">add your GHIN</a>';   /* the credential is a dark object in both themes: the folio's own ink, underlined */
       $('#youAddGhin')?.addEventListener('click', e => {
         e.preventDefault(); openProfileHub();
         setTimeout(() => { const g=document.getElementById('phGhin');
@@ -25759,7 +25740,7 @@ async function renderCrewPeople(){
       }));
     }
     document.getElementById('crReq').innerHTML = reqs.length
-      ? `<div class="eyebrow" style="color:var(--brand)">Requests · ${reqs.length}</div>`+reqs.map(f=>psRow(f,
+      ? `<div class="eyebrow" style="color:var(--act)">Requests · ${reqs.length}</div>`+reqs.map(f=>psRow(f,
          `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>`)).join('') : '';
     /* L-34 · one fact, one place. With the destination's empty root on screen
        saying "No buddies yet.", this section said it a second time three rows
@@ -27042,7 +27023,7 @@ function openProfileHub(){
       <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px">
       <button class="mini" id="phIdxGo">Update index</button>
     </div>
-    <p class="fine" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--brand)">How scoring works →</a></p>
+    <p class="fine" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works →</a></p>
 
     <div class="eyebrow" style="margin-top:20px">Your seasons</div>
     ${leagues}
@@ -27452,7 +27433,7 @@ function renderProChip(){
     `<span class="pmk">${p.marker ? mkr(p.marker) : '◆'}</span>
      <span class="pmeta"><b>${esc(p.display_name || 'You')}</b>
        <small>${esc(handle)} · you run this league</small></span>
-     <span class="ptag" style="color:var(--brand)">THE PRO</span>`;
+     <span class="ptag">THE PRO</span>`;
 }
 window.renderProChip = renderProChip;
 
@@ -29597,19 +29578,24 @@ function openEventPicker(){
      F-16 · ember is the metal of LIVE (L-25), and the foot sentence agrees
      with the length of the list. */
   openSheet('Start something short', 'A few weeks, its own trophy', `
-    <div class="check tap" data-evstyle="ryder" style="cursor:pointer; border-color:var(--brand)">
+    <div class="check tap" data-evstyle="ryder" role="button" tabindex="0" style="cursor:pointer">
       <span class="num">⚔️</span><div class="tt"><b>The Ryder</b><small>Two teams. Each week you play one opponent, scored against your playing HCP. First team past halfway wins</small></div>
-      <span class="fine" style="padding:0; color:var(--brand)">LIVE</span></div>
-    <div class="check tap" data-evstyle="major" style="cursor:pointer; border-color:var(--brand)">
+      <span class="go" aria-hidden="true">→</span></div>
+    <div class="check tap" data-evstyle="major" role="button" tabindex="0" style="cursor:pointer">
       <span class="num">🏆</span><div class="tt"><b>A Major</b><small>A championship window — the best round takes the jug</small></div>
-      <span class="fine" style="padding:0; color:var(--brand)">LIVE</span></div>
+      <span class="go" aria-hidden="true">→</span></div>
     <p class="fine">Every one of these awards a trophy.</p>
   `);
-  $('#shBody').querySelectorAll('[data-evstyle]').forEach(b => b.addEventListener('click', () => {
-    const s = b.dataset.evstyle;
-    if(s === 'ryder'){ closeSheet(); if(window.openRyderSetup) window.openRyderSetup(); return; }
-    if(s === 'major'){ closeSheet(); if(window.openMajorSetup) window.openMajorSetup(); return; }
-  }));
+  $('#shBody').querySelectorAll('[data-evstyle]').forEach(b => {
+    const go = () => {
+      const s = b.dataset.evstyle;
+      if(s === 'ryder'){ closeSheet(); if(window.openRyderSetup) window.openRyderSetup(); return; }
+      if(s === 'major'){ closeSheet(); if(window.openMajorSetup) window.openMajorSetup(); return; }
+    };
+    b.addEventListener('click', go);
+    /* a row that is a button opens by keyboard too */
+    b.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } });
+  });
 }
 /* join-by-code, self-contained — the hub's join box hides for members, so the
    Clubhouse sheet carries its own */
@@ -30106,7 +30092,7 @@ function csTakeIntent(go){
 function openWhenFork(){
   openSheet('When are you playing?', 'TWO WAYS, AND BOTH WORK', `
     <button class="startjoin" id="csw-now" type="button" style="margin:0 0 2px; width:100%; text-align:left; display:block; padding:12px 14px">
-      <b style="display:block; color:var(--brand)">Right now</b><small style="display:block; color:var(--mut)">score it live, hole by hole</small></button>
+      <b style="display:block; color:var(--act)">Right now</b><small style="display:block; color:var(--mut)">score it live, hole by hole</small></button>
     <button class="startjoin" id="csw-day" type="button" style="margin:0; width:100%; text-align:left; display:block; padding:12px 14px">
       <b style="display:block">A day this week</b><small style="display:block; color:var(--mut)">put it on the schedule</small></button>`);
   document.getElementById('csw-now')?.addEventListener('click', ()=>{ closeSheet(); switchView('play'); });
@@ -32291,7 +32277,7 @@ function openLeagueWelcome(name){
     <p class="fine" style="padding:0 0 10px"><b>You can't hurt your ${solo===false?'squad':'standing'} by playing badly.</b> Only by not playing. Every posted round scores — a rough day is still points on the board.</p>
     <p class="fine" style="padding:0 0 10px"><b>Rounds score against your playing HCP.</b> Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.</p>
     <p class="fine" style="padding:0 0 12px"><b>The pot lives on the books.</b> ${CS_LEDGER} The settlement card shows who owes what.</p>
-    <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--brand)">How scoring works →</a></p>
+    <p class="fine" style="padding:0 0 12px"><a href="#" onclick="openScoringHelp();return false" style="color:var(--act)">How scoring works →</a></p>
     <div style="border-top:1px solid var(--rule); padding-top:12px">
       <p class="fine" style="padding:0 0 8px"><b>Who else plays with you?</b> Any member's link works — yours included.</p>
       <button class="btn dark" id="cvShare">Share the invite link</button>
