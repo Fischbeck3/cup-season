@@ -43,6 +43,8 @@ struct LivePlayView: View {
   /// so it opens on a course with no signal. In a wide window the CARD toggle
   /// is the same door and this link becomes it.
   @State private var showCard = false
+  /// F07 · the course, tee and rating disclosure at the accessibility sizes.
+  @State private var detailsOpen = false
   /// D152 · portrait enters, landscape reads. Offered only when the window is
   /// wide enough for eighteen columns to be legible; a rotation back to portrait
   /// drops it, so nobody can be stranded on a view they cannot leave.
@@ -118,18 +120,27 @@ struct LivePlayView: View {
   private var portrait: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
-        eyebrow.csGutter()
-        holeHeader.csGutter()
-        // F13 · the good hole, said once, under the header — the next-hole
-        // target above it is never covered and never waits.
-        if let m = store.moment {
-          LiveHoleMomentView(data: m).csGutter().padding(.top, CSTokens.Space.s2)
+        if typeSize.isA11y {
+          // F07 · AT THE ACCESSIBILITY SIZES THE SCORING LEADS. On an SE at
+          // AX3 the course line, the setup link, the sync badge, the hole and
+          // the strip's stacked key filled the screen before the first golfer,
+          // and the first − / + needed a scroll. Now: the live mark and its
+          // sync truth (never hidden), the hole, the golfers' controls; then
+          // the strip, and the course, tee and rating behind a named
+          // disclosure with the setup link inside it. Nothing is removed.
+          liveTruth.csGutter()
+          holeHeader.csGutter()
+          moments
+          players
+          strip.csGutter()
+          roundDetails.csGutter()
+        } else {
+          eyebrow.csGutter()
+          holeHeader.csGutter()
+          moments
+          strip.csGutter()
+          players
         }
-        if let t = store.momentTally {
-          LiveMomentTally(line: t).csGutter().padding(.top, CSTokens.Space.s1)
-        }
-        strip.csGutter()
-        VStack(spacing: 0) { ForEach(s.players.indices, id: \.self) { playerRow($0) } }
         matchState
         toWinBlock
         gameBlocks.csGutter()
@@ -139,14 +150,88 @@ struct LivePlayView: View {
     }
   }
 
+  /// F13 · the good hole, said once, under the header — the next-hole target
+  /// above it is never covered and never waits.
+  @ViewBuilder private var moments: some View {
+    if let m = store.moment {
+      LiveHoleMomentView(data: m).csGutter().padding(.top, CSTokens.Space.s2)
+    }
+    if let t = store.momentTally {
+      LiveMomentTally(line: t).csGutter().padding(.top, CSTokens.Space.s1)
+    }
+  }
+
+  private var players: some View {
+    VStack(spacing: 0) { ForEach(s.players.indices, id: \.self) { playerRow($0) } }
+  }
+
+  /// The sync badge's sentence, or "" when there is nothing to say. A round
+  /// held on a phone with no signal says so (D-offline), at every size.
+  private var syncBadge: String {
+    s.lr != nil && !s.onThisPhone && store.syncStatus != "SUBSCRIBED" && !store.retiredCard
+      ? "SAVED ON THIS PHONE · WAITING TO SYNC"
+      : LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued, retired: store.retiredCard)
+  }
+
+  /// F07 · the accessibility sizes' first line: the live mark (the screen's
+  /// one ember, D381), then the sync truth and any save failure — the facts
+  /// that change what a golfer should trust, so they are never disclosed.
+  private var liveTruth: some View {
+    let badge = syncBadge
+    return VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s2) {
+        Circle().fill(cs.brand).frame(width: 7, height: 7)
+        Text("Live").csType(.agate, caps: true).foregroundStyle(cs.brand)
+      }
+      .accessibilityElement(children: .combine)
+      if let error = store.localSaveError {
+        Text(error).csType(.bodyS).foregroundStyle(cs.neg)
+          .fixedSize(horizontal: false, vertical: true)
+        Button("Retry saving scores") { store.flushLocalCard() }.buttonStyle(.csSecondary())
+      }
+      if !badge.isEmpty && store.localSaveError == nil {
+        Text(badge).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityAddTraits(.updatesFrequently)
+          .accessibilityIdentifier("live.sync.status")
+      }
+    }
+    .csBudget(ember: 1)
+    .accessibilityElement(children: .contain)
+  }
+
+  /// F07 · the course, tee and rating, and the way back to setup, behind one
+  /// named disclosure at the accessibility sizes. Closed by default: the
+  /// golfer set these up; the hole in front of him is what he came for.
+  private var roundDetails: some View {
+    DisclosureGroup(isExpanded: $detailsOpen) {
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+        Text(s.onThisPhone ? s.course.localPlace : s.course.place)
+          .csType(.agate, caps: true).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
+          .accessibilityIdentifier("live.round.place")
+        if !store.isPencilOnly && !s.onThisPhone {
+          Button("Change setup") { store.backToSetup() }.buttonStyle(.csTertiary(.content))
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.top, CSTokens.Space.s2)
+    } label: {
+      Text("Course & tee").csType(.name).foregroundStyle(cs.ink)
+        .frame(minHeight: 44, alignment: .leading)
+        // on the label, not the group: a group's identifier would overwrite
+        // the identifiers of everything it discloses
+        .accessibilityIdentifier("live.round.details")
+    }
+    .tint(cs.act)
+  }
+
   /// §5.2 · a 7pt `brand` dot and one line: `LIVE · PAPAGO · BLUE · 71.2 / 128`.
   /// **One line, never wrapped** — the tail is dropped before it orphans. The
   /// sync badge rides under it and only when it has something to say: a round
   /// held on a phone with no signal says so (D-offline).
   private var eyebrow: some View {
-    let badge = s.lr != nil && !s.onThisPhone && store.syncStatus != "SUBSCRIBED" && !store.retiredCard
-      ? "SAVED ON THIS PHONE · WAITING TO SYNC"
-      : LiveCopy.syncBadge(s, presence: store.presence, queued: store.queued, retired: store.retiredCard)
+    let badge = syncBadge
     return VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
       // At the accessibility sizes the dot, the place and the setup link stop
       // fighting for one row: the eyebrow is already the longest line on the

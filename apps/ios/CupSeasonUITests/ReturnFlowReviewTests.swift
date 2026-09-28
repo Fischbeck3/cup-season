@@ -19,7 +19,7 @@ final class ReturnFlowReviewTests: XCTestCase {
     XCTAssertTrue(lockup.exists)
     XCTAssertEqual(lockup.frame.midX, app.frame.midX, accuracy: 2)
     capture(app.screenshot(), name: "sign-in-settled")
-    XCTAssertTrue(app.buttons.element(matching: NSPredicate(format: "label CONTAINS[c] %@", "Continue with email")).isHittable)
+    XCTAssertTrue(app.buttons.element(matching: NSPredicate(format: "label CONTAINS[c] %@", "Send code")).isHittable)
     XCUIDevice.shared.press(.home)
     let homeSettled = expectation(description: "home animation settled")
     DispatchQueue.main.asyncAfter(deadline: .now() + 3) { homeSettled.fulfill() }
@@ -42,7 +42,7 @@ final class ReturnFlowReviewTests: XCTestCase {
       let settled = expectation(description: "keyboard settled")
       DispatchQueue.main.asyncAfter(deadline: .now() + 4) { settled.fulfill() }
       await fulfillment(of: [settled], timeout: 6)
-      let action = app.buttons.element(matching: NSPredicate(format: "label CONTAINS[c] %@", "Continue with email"))
+      let action = app.buttons.element(matching: NSPredicate(format: "label CONTAINS[c] %@", "Send code"))
       for _ in 0..<5 where !action.isHittable { app.swipeUp() }
       XCTAssertTrue(action.isHittable)
       capture(app.screenshot(), name: "golf-sign-in-light-" + size)

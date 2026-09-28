@@ -36,6 +36,9 @@ struct EventTitleCard<Field: View>: View {
   /// Existing course-context gate. `nil` keeps the bare ceremony ground.
   let seed: String?
   let back: (() -> Void)?
+  /// S8 · what VoiceOver says for the title when the plate's two lines are
+  /// one sentence ("The room" over "Didn't load"). `nil` reads the title.
+  var spokenTitle: String? = nil
   @ViewBuilder let field: Field
 
   var body: some View {
@@ -69,6 +72,7 @@ struct EventTitleCard<Field: View>: View {
           if let title {
             Text(title).csType(.displayS).foregroundStyle(CSTokens.dark.ceremonyInk)
               .fixedSize(horizontal: false, vertical: true)
+              .accessibilityLabel(spokenTitle ?? title)
               .accessibilityAddTraits(.isHeader)
               .accessibilityIdentifier("event.title")
           }
@@ -114,9 +118,9 @@ struct EventTitleCard<Field: View>: View {
 
 extension EventTitleCard where Field == EmptyView {
   init(eyebrow: String, live: Bool, title: String?, dateline: [String],
-       seed: String? = nil, back: (() -> Void)? = nil) {
+       seed: String? = nil, back: (() -> Void)? = nil, spokenTitle: String? = nil) {
     self.init(eyebrow: eyebrow, live: live, title: title, dateline: dateline,
-              seed: seed, back: back, field: { EmptyView() })
+              seed: seed, back: back, spokenTitle: spokenTitle, field: { EmptyView() })
   }
 }
 

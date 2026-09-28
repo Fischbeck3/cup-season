@@ -14,6 +14,9 @@ final class EventRoomModel {
   var room: EventRoom?
   var loaded = false
   var error: String?
+  /// S8 · the room's row came back empty — removed, or not on its roster.
+  /// A fact about the room, not a failed read, so the screen offers no retry.
+  var unavailable = false
   var busy = Set<String>()
   /// Duel ids whose chip changed since the last load — the taunt landed.
   var risen = Set<UUID>()
@@ -21,12 +24,17 @@ final class EventRoomModel {
   /// #15: team names + the event name are proper nouns the all-caps engine
   /// posts would otherwise half-shout — learned so `easeCaps` restores them.
   var names = BoardText.NameRegistry()
+  /// The room's read, injected so its three outcomes are tests.
+  private let read: @MainActor (UUID) async throws -> EventRoom
 
-  init(eventId: UUID) { self.eventId = eventId }
+  init(eventId: UUID, read: (@MainActor (UUID) async throws -> EventRoom)? = nil) {
+    self.eventId = eventId
+    self.read = read ?? { id in try await EventsRepository().load(id) }
+  }
 
   func load() async {
     do {
-      let r = try await repo.load(eventId)
+      let r = try await read(eventId)
       var rises = Set<UUID>()
       var seen: [UUID: String] = [:]
       for d in r.duels {
@@ -41,10 +49,22 @@ final class EventRoomModel {
       names.learn(r.teams.map(\.name) + [r.event.name])
       room = r
       error = nil
+      unavailable = false
       await PushDuelReminder.sync(room: r)   // D104 §7: tonight's reminder, planned from this load
 
     } catch {
-      if room == nil { self.error = BoardText.humanError(error) }
+      // A failed REFRESH keeps the open room on screen; only a room with
+      // nothing to show says what happened — and a room this golfer may not
+      // read is said as that, never as a read to try again.
+      if room == nil {
+        if EventsRepository.isUnavailable(error) {
+          unavailable = true
+          self.error = nil
+        } else {
+          unavailable = false
+          self.error = BoardText.humanError(error)
+        }
+      }
     }
     loaded = true
   }

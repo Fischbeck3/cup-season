@@ -119,7 +119,10 @@ struct RoundReceiptSheet: View {
           if r.gross != nil {
             // D360 · the desk's brand moment, on the phone: the photograph is
             // its ground when there is one, so the separate photo slot goes.
+            // F03 · the sheet's title is its heading: what VoiceOver's heading
+            // rotor lands on, and the name the sheet is read by
             Text(mine(r) ? "Your round" : "The round").csType(.displayS, caps: true).foregroundStyle(cs.ink)
+              .accessibilityAddTraits(.isHeader)
             // one fact, one place: the dateline already names the course on the
             // phone, so the moment's own course line stands down when it does
             ReceiptMoment(dateline: dateline(r),
@@ -352,8 +355,28 @@ struct RoundReceiptSheet: View {
         if let photoNote {
           Text(photoNote).csType(.bodyS).foregroundStyle(cs.neg)
             .fixedSize(horizontal: false, vertical: true)
+        } else if let missing = RoundPhotoNote.line(slot: slot, seen: photoSeen(r)) {
+          // S9 · the round has a photograph the moment could not show: say so
+          // once, beside the two controls that act on it
+          Text(missing).csType(.bodyS).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("receipt.photo.unavailable")
         }
       }
+    }
+  }
+
+  /// S9 · what the moment made of the round's picture, read from the same
+  /// store it draws from (`HomePhotoStore`, keyed by path, D361).
+  private func photoSeen(_ r: ReceiptSeed) -> RoundPhotoNote.Seen {
+    switch HomePhotoStore.shared.state(for: r.photoPath) {
+    case .loaded: return .shown
+    case .loading: return .loading
+    case .failed(let prior): return prior == nil ? .missing : .shown
+    case .removed: return .missing
+    // no credential yet is only a verdict once the receipt has finished its
+    // reads — before that the URL may simply not have arrived
+    case .none: return enriched && r.photoURL == nil ? .missing : .loading
     }
   }
 

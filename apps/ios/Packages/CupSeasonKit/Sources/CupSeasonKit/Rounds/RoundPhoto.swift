@@ -80,6 +80,19 @@ public enum RoundPhotoSlot: Sendable, Equatable {
   }
 }
 
+/// S9 · what the owner's receipt says about a photograph it cannot show.
+/// A round that carries one (`.present`) whose picture is gone or could not
+/// be fetched says so once, beside Replace and Remove; a picture on screen,
+/// or on its way, says nothing, and neither does anyone else's receipt.
+public enum RoundPhotoNote {
+  /// What the receipt could make of the round's picture this time.
+  public enum Seen: Sendable, Equatable { case shown, loading, missing }
+  public static func line(slot: RoundPhotoSlot, seen: Seen) -> String? {
+    guard slot == .present, seen == .missing else { return nil }
+    return RoundCopy.photoUnavailable
+  }
+}
+
 /// **WHERE A PHOTOGRAPH COMES FROM, AND THE ROLL IS NEVER NOT OFFERED** (D298).
 ///
 /// The owner, on build 748: *"when I open a posted round I cant add a photo

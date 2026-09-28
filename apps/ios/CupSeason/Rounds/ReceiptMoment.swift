@@ -36,7 +36,11 @@ struct ReceiptMoment: View {
 
   var body: some View {
     ZStack(alignment: .topLeading) {
-      ground
+      // S9 · the ground is the picture, not a sentence: VoiceOver reads the
+      // moment's words, and a filled photograph's own frame (wider than the
+      // card, clipped only in drawing) no longer stretches the moment's focus
+      // ring off the side of the screen
+      ground.accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 0) {
         if let course, !course.isEmpty {
           Text(course).csType(.agateS, caps: true).foregroundStyle(ink.opacity(0.86))
@@ -78,6 +82,8 @@ struct ReceiptMoment: View {
     }
     .task(id: photoURL) { photos.load(path: photoPath, url: photoURL) }
     .accessibilityElement(children: .combine)
+    // the desk's alt: a moment over a photograph says it has one
+    .accessibilityValue(onPhoto ? "Round photo" : "")
     .accessibilityIdentifier(onPhoto ? "receipt.moment.photo" : "receipt.moment")
   }
 

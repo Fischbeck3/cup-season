@@ -109,14 +109,30 @@ public struct SeasonBookSnapshot: Codable, Sendable {
   public static func selectedEntries(_ row: Row, week: Int, cumulative: Bool) -> [Entry] {
     row.entries.filter { entry in entry.week.map { cumulative ? $0 <= week : $0 == week } ?? false }
   }
-  public static func label(row: Row, cell: Cell, cumulative: Bool) -> String {
-    if cell.future { return "•" }
+  /// F11 · a cell is TWO things: its figure and its status marks. Drawn as one
+  /// string at one size, "33D" read as a number. The page draws `fig` in the
+  /// column figure and `marks` beside it as a small record note; `label` stays
+  /// their concatenation for every caller that wants the compact string.
+  /// Twin: `SeasonBook.parts` / `.label` on the desk.
+  public struct CellParts: Sendable, Equatable {
+    /// The figure, or the one symbol that stands in for it (`•`, `—`, `B`, `D`).
+    public let fig: String
+    /// Status marks beside a figure (`*` adjustment, `D` dropped), or "".
+    public let marks: String
+    public init(fig: String, marks: String) { self.fig = fig; self.marks = marks }
+  }
+  public static func parts(row: Row, cell: Cell, cumulative: Bool) -> CellParts {
+    if cell.future { return CellParts(fig: "•", marks: "") }
     let selected = selectedEntries(row, week: cell.week, cumulative: cumulative)
-    guard let points = cumulative ? cell.cumulative : cell.points else { return "—" }
-    if !cumulative && !selected.isEmpty && selected.allSatisfy({ $0.count_state == "bye" }) { return "B" }
-    if !cumulative && !selected.isEmpty && selected.allSatisfy({ $0.count_state == "dropped" }) { return "D" }
+    guard let points = cumulative ? cell.cumulative : cell.points else { return CellParts(fig: "—", marks: "") }
+    if !cumulative && !selected.isEmpty && selected.allSatisfy({ $0.count_state == "bye" }) { return CellParts(fig: "B", marks: "") }
+    if !cumulative && !selected.isEmpty && selected.allSatisfy({ $0.count_state == "dropped" }) { return CellParts(fig: "D", marks: "") }
     let flags = cumulative ? "" : (selected.contains { !$0.isRound } ? "*" : "") + (selected.contains { $0.count_state == "dropped" } ? "D" : "")
-    return String(points) + flags
+    return CellParts(fig: String(points), marks: flags)
+  }
+  public static func label(row: Row, cell: Cell, cumulative: Bool) -> String {
+    let p = parts(row: row, cell: cell, cumulative: cumulative)
+    return p.fig + p.marks
   }
   public static func spoken(row: Row, cell: Cell, cumulative: Bool) -> String {
     if cell.future { return "Future week" }

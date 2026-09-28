@@ -143,14 +143,29 @@ struct LiveSetupView: View {
         .id(CourseSearchReveal.id)
         .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
         fieldLabel("Tee & rating — off the scorecard")
-        // three fields across; stacked (and the tee field full-width) at the accessibility sizes
+        // three fields across; stacked (and the tee field full-width) at the accessibility sizes.
+        // F08 · each field keeps its OWN visible label once it is filled: a
+        // placeholder is gone the moment the tee fills, and "Blue · 70.2 ·
+        // 123" left the slope unnamed. The label is drawn once, above its
+        // field, and the field's accessible name is the same word. An empty
+        // field shows a dash (the desk's placeholder), so it never looks filled.
         A11yStack(spacing: 8) {
-          CSField("Tee", text: Binding(get: { store.state.course.tee }, set: { store.state.course.tee = $0 }), font: CSFont.body)
-            .frame(width: typeSize.isA11y ? nil : 96).accessibilityLabel("Tee")
-          CSField("Rating", text: $ratingText).keyboardType(.decimalPad).accessibilityLabel("Rating")
-            .onChange(of: ratingText) { _, v in store.state.course.rating = Double(v.replacingOccurrences(of: ",", with: ".")) }
-          CSField("Slope", text: $slopeText).keyboardType(.numberPad).accessibilityLabel("Slope")
-            .onChange(of: slopeText) { _, v in store.state.course.slope = Int(v) }
+          teeDetail("Tee") {
+            CSField("\u{2014}", text: Binding(get: { store.state.course.tee }, set: { store.state.course.tee = $0 }), font: CSFont.body)
+              .accessibilityLabel("Tee")
+              .accessibilityIdentifier("live.setup.tee")
+          }
+          .frame(width: typeSize.isA11y ? nil : 96)
+          teeDetail("Rating") {
+            CSField("\u{2014}", text: $ratingText).keyboardType(.decimalPad).accessibilityLabel("Rating")
+              .accessibilityIdentifier("live.setup.rating")
+              .onChange(of: ratingText) { _, v in store.state.course.rating = Double(v.replacingOccurrences(of: ",", with: ".")) }
+          }
+          teeDetail("Slope") {
+            CSField("\u{2014}", text: $slopeText).keyboardType(.numberPad).accessibilityLabel("Slope")
+              .accessibilityIdentifier("live.setup.slope")
+              .onChange(of: slopeText) { _, v in store.state.course.slope = Int(v) }
+          }
         }
         LiveSeg(options: [(18, "18 holes"), (9, "9 holes")], selected: store.state.holes) { store.setHoles($0) }
           .frame(maxWidth: typeSize.isA11y ? .infinity : 220, alignment: .leading)
@@ -174,6 +189,18 @@ struct LiveSetupView: View {
 
   private func fieldLabel(_ s: String) -> some View {
     Text(s).csType(.agate, caps: true).foregroundStyle(cs.mut)
+  }
+
+  /// F08 · one tee detail: its persistent label over its field. The label is
+  /// hidden from VoiceOver because the field already carries the same word as
+  /// its name — read once, not twice.
+  private func teeDetail<F: View>(_ label: String, @ViewBuilder field: () -> F) -> some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      Text(label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        .lineLimit(1)
+        .accessibilityHidden(true)
+      field()
+    }
   }
 
   // MARK: the foursome (3004–3020; 8720–8817)
