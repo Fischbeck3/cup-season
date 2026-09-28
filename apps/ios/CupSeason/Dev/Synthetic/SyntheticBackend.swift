@@ -137,9 +137,10 @@ final class SyntheticBackend: @unchecked Sendable {
   let world: SyntheticWorld
   private let lock = NSLock()
   private let booted = Date()
-  /// failures policy: when each read last failed, and which ones are spent.
+  /// failures policy: when each read last failed, and whether the golfer's
+  /// first retry has happened.
   private var lastFail: [String: Date] = [:]
-  private var spent: Set<String> = []
+  private var recovered = false
 
   init(world: SyntheticWorld) { self.world = world }
 
@@ -180,7 +181,7 @@ final class SyntheticBackend: @unchecked Sendable {
 
     // 3 · one failure per read, then the retry lands
     if !isWrite, shouldFail(r) {
-      SyntheticSeam.log("FAIL \(key) (first attempt; the retry succeeds)")
+      SyntheticSeam.log("FAIL \(key) (fails until the first retry)")
       SyntheticStats.record(miss: false)
       // 500, not 503: the SDK retries a GET on 503/520 by itself, and the
       // failure has to reach the screen for its retry to be the golfer's.
@@ -193,9 +194,12 @@ final class SyntheticBackend: @unchecked Sendable {
     return reply
   }
 
-  /// `failures`: a read fails on its first attempt — and on any retry the
-  /// client fires within a second of that (the skew retry) — and succeeds on
-  /// the next attempt. Named reads only when `-cs_synth_fail` names them.
+  /// `failures`: every read fails — the route's first load shows its failed
+  /// state — until the golfer's first retry, after which everything answers.
+  /// A retry is a read of something that already failed, at least a second
+  /// after that failure (the client's own immediate fallbacks do not count)
+  /// and at least four seconds after boot (the first screen's own reloads do
+  /// not count). `-cs_synth_fail a,b` narrows the failing reads to those.
   private func shouldFail(_ r: SynthRequest) -> Bool {
     let name: String
     switch r.kind {
@@ -211,13 +215,14 @@ final class SyntheticBackend: @unchecked Sendable {
       guard world.scenario == .failures, !Self.bootReads.contains(name) else { return false }
     }
     lock.lock(); defer { lock.unlock() }
-    if spent.contains(name) { return false }
-    if let last = lastFail[name] {
-      if Date().timeIntervalSince(last) < 1.0 { lastFail[name] = Date(); return true }
-      spent.insert(name)
+    if recovered { return false }
+    let now = Date()
+    if let last = lastFail[name], now.timeIntervalSince(last) >= 1.0, now.timeIntervalSince(booted) >= 4.0 {
+      recovered = true
+      SyntheticSeam.log("RECOVERED on retry of \(name)")
       return false
     }
-    lastFail[name] = Date()
+    lastFail[name] = now
     return true
   }
 }
