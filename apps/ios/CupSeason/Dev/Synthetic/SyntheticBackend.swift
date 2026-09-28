@@ -188,8 +188,10 @@ final class SyntheticBackend: @unchecked Sendable {
       return SynthOut.error("Could not load this right now.", code: "FX500", status: 500)
     }
 
-    // 4 · a held read shows the loading geometry
-    if !isWrite, delay > 0 { reply.delay = delay }
+    // 4 · a held read shows the loading geometry — the screen's own reads,
+    // never the boot's (a held boot is the boot screen, not the destination)
+    // (capped under the tuned session's 12s timeout: longer is a failure, not a load)
+    if !isWrite, delay > 0, !Self.bootReads.contains(readName(r) ?? "") { reply.delay = min(delay, 11) }
     SyntheticSeam.log("\(isWrite ? "WRITE" : "HIT") \(key) \(reply.status)\(isWrite ? " (answered on device)" : "")")
     return reply
   }
@@ -200,15 +202,19 @@ final class SyntheticBackend: @unchecked Sendable {
   /// after that failure (the client's own immediate fallbacks do not count)
   /// and at least four seconds after boot (the first screen's own reloads do
   /// not count). `-cs_synth_fail a,b` narrows the failing reads to those.
-  private func shouldFail(_ r: SynthRequest) -> Bool {
-    let name: String
+  /// The read's name for the policies: an RPC, a table, "storage" or a function.
+  private func readName(_ r: SynthRequest) -> String? {
     switch r.kind {
-    case .rpc(let n): name = n
-    case .table(let t): name = t.components(separatedBy: "?").first ?? t
-    case .storageSign, .storageObject: name = "storage"
-    case .function(let f): name = f
-    case .auth, .asset: return false
+    case .rpc(let n): return n
+    case .table(let t): return t.components(separatedBy: "?").first ?? t
+    case .storageSign, .storageObject: return "storage"
+    case .function(let f): return f
+    case .auth, .asset: return nil
     }
+  }
+
+  private func shouldFail(_ r: SynthRequest) -> Bool {
+    guard let name = readName(r) else { return false }
     if let list = failList {
       guard list.contains(name) || list.contains("all") else { return false }
     } else {

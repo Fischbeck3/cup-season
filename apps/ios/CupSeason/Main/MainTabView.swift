@@ -1273,7 +1273,9 @@ struct MainTabView: View {
     case "story", "rules":
       guard let league else { break }
       openCompetition(league, pane: .table)
-      try? await Task.sleep(for: .milliseconds(1200))
+      // The pages are the season page's own destinations: they resolve only
+      // once that page is on the stack and has finished its push.
+      try? await Task.sleep(for: .milliseconds(2500))
       competePath.append(place == "story" ? SeasonSubRoute.story(league) : SeasonSubRoute.rules(league))
     case "book":
       guard let league, let season = store.me?.memberships.first(where: { $0.league_id == league })?.season?.id else { break }

@@ -29,7 +29,7 @@ final class SyntheticRouteTests: XCTestCase {
     let app = XCUIApplication()
     var args = ["-cs_dev_synthetic", scenario]
     if let route { args += ["-cs_dev_open", route] + (detail.map { [$0] } ?? []) }
-    args += ["-cs_dev_appearance", theme, "-cs_dev_look", "none"]
+    args += ["-cs_dev_appearance", theme] + (extra.contains("-cs_dev_look") ? [] : ["-cs_dev_look", "none"])
     if let size { args += ["-cs_dev_text_size", size] }
     app.launchArguments = args + extra
     app.launch()
@@ -79,6 +79,12 @@ final class SyntheticRouteTests: XCTestCase {
     for entry in plan {
       for theme in themes {
         let app = launch(entry.scenario, entry.route, entry.detail, theme: theme, size: size, extra: entry.extra ?? [])
+        // `tap:<identifier>` walks one push first and the root is checked
+        // after it; `keyboard` focuses the first field once the root is up.
+        if let step = entry.step, step.hasPrefix("tap:") {
+          let target = app.descendants(matching: .any)[String(step.dropFirst(4))]
+          if target.waitForExistence(timeout: 30) { reveal(target, in: app); target.tap() }
+        }
         let root = locate(app, entry.root)
         let found = root.waitForExistence(timeout: 30)
         if found, entry.step == "keyboard" {
@@ -88,7 +94,10 @@ final class SyntheticRouteTests: XCTestCase {
           _ = app.keyboards.firstMatch.waitForExistence(timeout: 6)
         }
         Thread.sleep(forTimeInterval: entry.settle ?? 2.0)
-        let value = found ? ((root.value as? String) ?? "") : ""
+        // The counters are the router's, not the screen's: every mark carries
+        // the same pair, so a root located by text reads them off any mark.
+        let anyMark = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "cs.screen.")).firstMatch
+        let value = found ? ((root.value as? String) ?? (anyMark.exists ? (anyMark.value as? String) : nil) ?? "") : ""
         let verdict = found ? "PASS" : "FAIL"
         let counters = value.replacingOccurrences(of: "=", with: "-").replacingOccurrences(of: " ", with: "_")
         attach(app, "fx__\(entry.name)__\(theme)__\(size)__\(verdict)__\(counters)")
@@ -275,5 +284,64 @@ final class SyntheticRouteTests: XCTestCase {
     retry.tap()
     XCTAssertTrue(retry.waitForNonExistence(timeout: 15))
     attach(app, "flow__season-retried")
+  }
+
+  @MainActor private func button(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+    app.buttons.matching(NSPredicate(format: "label ==[c] %@", label)).firstMatch
+  }
+
+  /// A card the composer can post: a gross, and the rating and slope.
+  @MainActor private func fillCard(_ app: XCUIApplication) {
+    let gross = app.textFields["Your gross"].firstMatch
+    XCTAssertTrue(gross.waitForExistence(timeout: 10))
+    if !app.keyboards.firstMatch.exists { gross.tap() }
+    gross.typeText("84")
+    let fold = app.buttons.containing(NSPredicate(format: "label BEGINSWITH %@", "Rating not set")).firstMatch
+    if fold.waitForExistence(timeout: 3) { fold.tap() }
+    let rating = app.textFields["Rating"].firstMatch
+    XCTAssertTrue(rating.waitForExistence(timeout: 5))
+    rating.tap(); rating.typeText("70.1")
+    let slope = app.textFields["Slope"].firstMatch
+    slope.tap(); slope.typeText("124")
+    app.swipeDown()
+  }
+
+  /// Posting fails at the server: the composer keeps the card and says why.
+  @MainActor func testPostingFailureKeepsTheCard() {
+    let app = launch("season-live", "postround", extra: ["-cs_synth_post_fail"])
+    XCTAssertTrue(mark(app, "composer").waitForExistence(timeout: 30))
+    fillCard(app)
+    let post = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "add my round")).allElementsBoundByIndex
+      .max { $0.frame.minY < $1.frame.minY }
+    XCTAssertNotNil(post)
+    post?.tap()
+    let why = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Fix the card")).firstMatch
+    XCTAssertTrue(why.waitForExistence(timeout: 10))
+    attach(app, "flow__post-failed")
+    XCTAssertTrue(mark(app, "composer").exists)
+    XCTAssertEqual(app.textFields["Your gross"].firstMatch.value as? String, "84")
+  }
+
+  /// Posting lands: the finish ceremony rises with the round's receipt door.
+  @MainActor func testPostingLandsOnTheCeremony() {
+    let app = launch("season-live", "postround")
+    XCTAssertTrue(mark(app, "composer").waitForExistence(timeout: 30))
+    fillCard(app)
+    let post = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "add my round")).allElementsBoundByIndex
+      .max { $0.frame.minY < $1.frame.minY }
+    post?.tap()
+    XCTAssertTrue(button(app, "View receipt").waitForExistence(timeout: 15))
+    attach(app, "flow__finish-ceremony")
+  }
+
+  /// No signal at boot, then the signal comes back and one retry lands.
+  @MainActor func testOfflineThenReconnect() {
+    let app = launch("offline", "home", extra: ["-cs_synth_reconnect_after", "6"])
+    XCTAssertTrue(mark(app, "bootfailed").waitForExistence(timeout: 30))
+    attach(app, "flow__offline")
+    Thread.sleep(forTimeInterval: 6)
+    button(app, "Try again").tap()
+    XCTAssertTrue(mark(app, "home").waitForExistence(timeout: 20))
+    attach(app, "flow__reconnected")
   }
 }

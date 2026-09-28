@@ -88,6 +88,7 @@ struct LiveIslandReviewFixtureView: View {
         if let error { Text(error).csType(.bodyS) }
       }.padding(CSTokens.Space.s4)
     }.background(cs.bg1).accessibilityIdentifier("islandReview")
+    .csScreenMark("island")   // S2/C3 · synthetic launches only (Dev/Synthetic)
   }
 }
 #endif
