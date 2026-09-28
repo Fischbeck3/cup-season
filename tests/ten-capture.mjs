@@ -355,6 +355,8 @@ async function main() {
       artifacts: (cap.result.artifacts || []).map((f) => { try { const b = readFileSync(f); return { file: f.startsWith(OUT) ? f.slice(OUT.length + 1) : f, sha256: sha(b), bytes: b.length } } catch { return { file: f, missing: true } } }),
       authRequests: cap.log.filter((e) => (e.path || '').startsWith('/auth/v1/')).map((e) => `${e.method} ${e.path}${(e.query || '').slice(0, 40)} -> ${e.result}`),
       gitSha, indexDirty: gitDirty, indexSha256Served: cap.served['/'] || cap.served['/index.html'] || null, indexSha256Disk: diskIndexSha,
+      /* a state that is not the app (get/support/legal) records the page it did serve */
+      documentsServed: Object.keys(cap.served).length ? cap.served : null,
       capturedAt: new Date().toISOString(), ms: cap.ms,
     }
     slots[i] = row
