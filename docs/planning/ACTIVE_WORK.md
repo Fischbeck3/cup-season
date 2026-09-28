@@ -1,5 +1,31 @@
 # Cup Season · active work and ownership
 
+## Impeccable ten baseline and checkpoint · 2026-09-27 (Codex) — active, documentation and evidence only
+
+Owned lane: `codex/impeccable-ten-2026-09-27`, isolated worktree
+`/Users/fischbeck3/cup-season-ten`, cut from fresh `origin/main` at `5fabf861`.
+The [owner request](2026-09-27-impeccable-ten-prompt.md) authorizes Phases 0–3:
+compiled Impeccable context, fixture-only captures, independent critiques and
+scoring, technical audits, and a ranked plan. **No product source changes.**
+Stop at the checkpoint for the owner's “build it” and named scope. Nothing enters
+the October 1 build by implication; visual freeze remains September 30 (D371).
+No push, merge, deployment, Apple action, dependency, brand-asset change or
+ratification is authorized. Every deploy owed is **none**.
+
+Root owns this branch. Capture sub-agents read source and write only isolated
+local evidence; they do not mutate this branch. The old dirty visual checkout
+is read-only design input and remains untouched. Representative synthetic
+evidence and the checkpoint will live in `docs/design/ten-2026-09-27/`; the full
+gallery stays outside the public repository.
+
+Collision review: ACTIVE_WORK still claims the September 22 visual lane over
+`index.html`, CSDesign and native views; newer worktrees include course/Home,
+social and native-audit lanes. Their presence is not proof they are running,
+and this documentation lane does not take their implementation ownership.
+Resolve the live owner at the checkpoint before any source slice. Port 8791
+is occupied by another worktree; capture tooling must not stop that server.
+
+
 ## Widgets and Match first release · 2026-09-25 (Codex)
 
 Owner requested “merge and deploy.” The two approved commits, `cbcc55db` and
