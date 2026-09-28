@@ -21080,7 +21080,12 @@ function renderPulse(){
   }
 }
 async function loadPulse(){
-  if(!CS.user || !CS.league || state.demo){ window.leaguePulse=[]; if(window.renderPulse) renderPulse(); return; }
+  if(!CS.user || !CS.league || state.demo){ window.leaguePulse=[]; if(window.renderPulse) renderPulse();
+    /* the LEAD is the golfer's, not the league's (home_dispatch takes no
+       league): a league-less golfer asks for it too, so the desk leads with
+       the phone's own sentence (D234) rather than never requesting it */
+    if(CS.user && !state.demo && window.refreshHomeLead) window.refreshHomeLead();
+    return; }
   try{ const {data}=await sb.rpc('league_pulse',{p_league:CS.league.id}); window.leaguePulse=data||[]; }
   catch(_){ window.leaguePulse=window.leaguePulse||[]; }
   if(window.renderPulse) renderPulse();
