@@ -1,0 +1,365 @@
+{
+  "lane": "N1",
+  "program": "ten before launch, 2026-09-28",
+  "note": "A small synthetic subset of the N1 gallery. Every frame is the DEBUG review route -cs_dev_n1 on invented data (Dev/N1ReviewFixture.swift): no real name, handle, email, round or course. The full gallery (both phones x dark/light x large/AX3 x six routes, before and after) is outside the repo at /Users/fischbeck3/cup-season-claude-ten-gallery/n1/ with a manifest row per capture.",
+  "gallery": {
+    "after": {
+      "captures": 48,
+      "candidateShas": [
+        "ca5a4945"
+      ],
+      "failed": []
+    },
+    "before": {
+      "captures": 48,
+      "candidateShas": [
+        "972df49f"
+      ],
+      "failed": []
+    },
+    "confirm-a7ff7649": {
+      "captures": 48,
+      "candidateShas": [
+        "a7ff7649"
+      ],
+      "failed": [
+        {
+          "file": "17pro-calendar-dark-large.png",
+          "candidateSha": "a7ff7649",
+          "status": "FAILED (visual): the flowed legend drew its second row under the band (band measured for one row). Fixed in ca5a4945 (Grid month + legend column)."
+        }
+      ]
+    },
+    "gridcheck-1": {
+      "captures": 4,
+      "candidateShas": [
+        "monthgrid-wip"
+      ],
+      "failed": []
+    },
+    "gridcheck-2": {
+      "captures": 4,
+      "candidateShas": [
+        "monthgrid-wip"
+      ],
+      "failed": []
+    },
+    "gridcheck-3": {
+      "captures": 4,
+      "candidateShas": [
+        "monthgrid-wip"
+      ],
+      "failed": []
+    },
+    "inspect-379e6daf": {
+      "captures": 24,
+      "candidateShas": [
+        "379e6daf"
+      ],
+      "failed": [
+        {
+          "file": "17pro-calendar-dark-large.png",
+          "candidateSha": "379e6daf",
+          "status": "FAILED (visual): the legend drew as a column under a band measured for a row; SEASON DATE printed below the band into \"Tap any day.\" Fixed in a2f275c4."
+        },
+        {
+          "file": "17pro-calendar-light-large.png",
+          "candidateSha": "379e6daf",
+          "status": "FAILED (visual): the legend drew as a column under a band measured for a row; SEASON DATE printed below the band into \"Tap any day.\" Fixed in a2f275c4."
+        }
+      ]
+    },
+    "legendcheck-1": {
+      "captures": 4,
+      "candidateShas": [
+        "legendcolumn-wip"
+      ],
+      "failed": [
+        {
+          "file": "17pro-calendar-light-large.png",
+          "candidateSha": "legendcolumn-wip",
+          "status": "FAILED (visual): the band (bg1) drew short of the weekday letters \u2014 measured at one height, drawn at another under the LazyVGrid. Fixed in ca5a4945 (Grid month)."
+        }
+      ]
+    },
+    "legendcheck-2": {
+      "captures": 4,
+      "candidateShas": [
+        "legendcolumn-wip"
+      ],
+      "failed": [
+        {
+          "file": "17pro-calendar-light-large.png",
+          "candidateSha": "legendcolumn-wip",
+          "status": "FAILED (visual): the band (bg1) drew short of the weekday letters \u2014 measured at one height, drawn at another under the LazyVGrid. Fixed in ca5a4945 (Grid month)."
+        }
+      ]
+    }
+  },
+  "subset": [
+    {
+      "finding": "F05",
+      "file": "before-17pro-actions-light-large.png",
+      "sha256": "d04d48d64c661e0bb956f0f7e448d555fba3abc88c99b0a571b08fa6a9e1c442",
+      "bytes": 117534,
+      "phase": "before",
+      "candidateSha": "972df49f",
+      "route": "actions",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "fall",
+      "phone": "17pro",
+      "device": "138864A8-3DCC-4F4E-8AE9-223E4B61B7A5",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "light",
+      "textSize": "large",
+      "systemContentSize": "large",
+      "command": "xcrun simctl launch --terminate-running-process 138864A8-3DCC-4F4E-8AE9-223E4B61B7A5 app.cupseason.ios -cs_dev_n1 actions -cs_dev_appearance light -cs_dev_look fall -cs_dev_text_size large -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually: shows the pre-fix state \u2014 F05: Fall light resting label 4.31:1; pressed fill thins toward the label"
+    },
+    {
+      "finding": "F05",
+      "file": "after-17pro-actions-light-large.png",
+      "sha256": "72cc486aaf252687bedd3b1f301f4a9f709d8c27fc8fd787a9f0d346509b858e",
+      "bytes": 117842,
+      "phase": "after",
+      "candidateSha": "ca5a4945",
+      "route": "actions",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "fall",
+      "phone": "17pro",
+      "device": "138864A8-3DCC-4F4E-8AE9-223E4B61B7A5",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "light",
+      "textSize": "large",
+      "systemContentSize": "large",
+      "command": "xcrun simctl launch --terminate-running-process 138864A8-3DCC-4F4E-8AE9-223E4B61B7A5 app.cupseason.ios -cs_dev_n1 actions -cs_dev_appearance light -cs_dev_look fall -cs_dev_text_size large -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually (final round)"
+    },
+    {
+      "finding": "F05",
+      "file": "before-se3-actions-dark-AX3.png",
+      "sha256": "42edaaf0bd07b6d4580c39260bfa4d118deed61269681de3065c22c4232623ff",
+      "bytes": 79847,
+      "phase": "before",
+      "candidateSha": "972df49f",
+      "route": "actions",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "fall",
+      "phone": "se3",
+      "device": "886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "dark",
+      "textSize": "AX3",
+      "systemContentSize": "accessibility-extra-large",
+      "command": "xcrun simctl launch --terminate-running-process 886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2 app.cupseason.ios -cs_dev_n1 actions -cs_dev_appearance dark -cs_dev_look fall -cs_dev_text_size AX3 -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually: shows the pre-fix state \u2014 F05: Fall light resting label 4.31:1; pressed fill thins toward the label"
+    },
+    {
+      "finding": "F05",
+      "file": "after-se3-actions-dark-AX3.png",
+      "sha256": "154c2d737f09b7f6499dd9d8494b84800b0f2410be4cbf7cb17b9e585bb7e394",
+      "bytes": 80246,
+      "phase": "after",
+      "candidateSha": "ca5a4945",
+      "route": "actions",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "fall",
+      "phone": "se3",
+      "device": "886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "dark",
+      "textSize": "AX3",
+      "systemContentSize": "accessibility-extra-large",
+      "command": "xcrun simctl launch --terminate-running-process 886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2 app.cupseason.ios -cs_dev_n1 actions -cs_dev_appearance dark -cs_dev_look fall -cs_dev_text_size AX3 -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually (final round)"
+    },
+    {
+      "finding": "F06",
+      "file": "before-se3-course18-dark-large.png",
+      "sha256": "53deabd4134b4ca45b024a2703535eecc51e01f55b7e68217399f71383ae59b4",
+      "bytes": 119994,
+      "phase": "before",
+      "candidateSha": "972df49f",
+      "route": "course18",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "none",
+      "phone": "se3",
+      "device": "886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "dark",
+      "textSize": "large",
+      "systemContentSize": "large",
+      "command": "xcrun simctl launch --terminate-running-process 886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2 app.cupseason.ios -cs_dev_n1 course18 -cs_dev_appearance dark -cs_dev_look none -cs_dev_text_size large -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually: shows the pre-fix state \u2014 F06: fixed 20pt rows / fixed columns; AX3 figures truncated (4\u20265\u20261\u2026); SE width overflow"
+    },
+    {
+      "finding": "F06",
+      "file": "after-se3-course18-dark-large.png",
+      "sha256": "96b8410b25244c465bc9258a4edd04a25a4cb2fcec417b8963479969571d6a11",
+      "bytes": 122224,
+      "phase": "after",
+      "candidateSha": "ca5a4945",
+      "route": "course18",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "none",
+      "phone": "se3",
+      "device": "886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "dark",
+      "textSize": "large",
+      "systemContentSize": "large",
+      "command": "xcrun simctl launch --terminate-running-process 886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2 app.cupseason.ios -cs_dev_n1 course18 -cs_dev_appearance dark -cs_dev_look none -cs_dev_text_size large -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually (final round)"
+    },
+    {
+      "finding": "F06",
+      "file": "before-17pro-course18-light-AX3.png",
+      "sha256": "e3f210fcb4cf9b3d313976e344bb678b9cf2fc48ec1e965f4fa0490ec86e87c4",
+      "bytes": 230924,
+      "phase": "before",
+      "candidateSha": "972df49f",
+      "route": "course18",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "none",
+      "phone": "17pro",
+      "device": "138864A8-3DCC-4F4E-8AE9-223E4B61B7A5",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "light",
+      "textSize": "AX3",
+      "systemContentSize": "accessibility-extra-large",
+      "command": "xcrun simctl launch --terminate-running-process 138864A8-3DCC-4F4E-8AE9-223E4B61B7A5 app.cupseason.ios -cs_dev_n1 course18 -cs_dev_appearance light -cs_dev_look none -cs_dev_text_size AX3 -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually: shows the pre-fix state \u2014 F06: fixed 20pt rows / fixed columns; AX3 figures truncated (4\u20265\u20261\u2026); SE width overflow"
+    },
+    {
+      "finding": "F06",
+      "file": "after-17pro-course18-light-AX3.png",
+      "sha256": "461977f01b3ae3174ef13a5265bdb8908b6a0e93d4f51827e515a9e997250565",
+      "bytes": 228354,
+      "phase": "after",
+      "candidateSha": "ca5a4945",
+      "route": "course18",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "none",
+      "phone": "17pro",
+      "device": "138864A8-3DCC-4F4E-8AE9-223E4B61B7A5",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "light",
+      "textSize": "AX3",
+      "systemContentSize": "accessibility-extra-large",
+      "command": "xcrun simctl launch --terminate-running-process 138864A8-3DCC-4F4E-8AE9-223E4B61B7A5 app.cupseason.ios -cs_dev_n1 course18 -cs_dev_appearance light -cs_dev_look none -cs_dev_text_size AX3 -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually (final round)"
+    },
+    {
+      "finding": "F15",
+      "file": "before-se3-calendar-light-large.png",
+      "sha256": "74fb0bbd2eb6f70f95c5c98299efd00c9490bb41ac814729ab209c283a716e7f",
+      "bytes": 92255,
+      "phase": "before",
+      "candidateSha": "972df49f",
+      "route": "calendar",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "none",
+      "phone": "se3",
+      "device": "886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "light",
+      "textSize": "large",
+      "systemContentSize": "large",
+      "command": "xcrun simctl launch --terminate-running-process 886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2 app.cupseason.ios -cs_dev_n1 calendar -cs_dev_appearance light -cs_dev_look none -cs_dev_text_size large -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually: shows the pre-fix state \u2014 F15: 41pt-wide day targets at 375; the 1st missing (lazy-grid key collision); AX3 legend words broken"
+    },
+    {
+      "finding": "F15",
+      "file": "after-se3-calendar-light-large.png",
+      "sha256": "69ae4e39b945f1b0ba0ce1523a9a4dc679417ab2127c89529c5563a06638e0a8",
+      "bytes": 84897,
+      "phase": "after",
+      "candidateSha": "ca5a4945",
+      "route": "calendar",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "none",
+      "phone": "se3",
+      "device": "886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "light",
+      "textSize": "large",
+      "systemContentSize": "large",
+      "command": "xcrun simctl launch --terminate-running-process 886BC5F5-8B22-40FC-B9EF-66BFAB68FDF2 app.cupseason.ios -cs_dev_n1 calendar -cs_dev_appearance light -cs_dev_look none -cs_dev_text_size large -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually (final round)"
+    },
+    {
+      "finding": "F15",
+      "file": "before-17pro-calendar-dark-AX3.png",
+      "sha256": "01c6b71490f226a3bc0f241b503ffbedfb0992b60b58e35f684e017f918b2a82",
+      "bytes": 231583,
+      "phase": "before",
+      "candidateSha": "972df49f",
+      "route": "calendar",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "none",
+      "phone": "17pro",
+      "device": "138864A8-3DCC-4F4E-8AE9-223E4B61B7A5",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "dark",
+      "textSize": "AX3",
+      "systemContentSize": "accessibility-extra-large",
+      "command": "xcrun simctl launch --terminate-running-process 138864A8-3DCC-4F4E-8AE9-223E4B61B7A5 app.cupseason.ios -cs_dev_n1 calendar -cs_dev_appearance dark -cs_dev_look none -cs_dev_text_size AX3 -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually: shows the pre-fix state \u2014 F15: 41pt-wide day targets at 375; the 1st missing (lazy-grid key collision); AX3 legend words broken"
+    },
+    {
+      "finding": "F15",
+      "file": "after-17pro-calendar-dark-AX3.png",
+      "sha256": "6489bdc3a96106fc50886c3519229bed8b0152b5ebcbe745bc406975c6c72e68",
+      "bytes": 230217,
+      "phase": "after",
+      "candidateSha": "ca5a4945",
+      "route": "calendar",
+      "fixture": "Dev/N1ReviewFixture.swift (invented data)",
+      "look": "none",
+      "phone": "17pro",
+      "device": "138864A8-3DCC-4F4E-8AE9-223E4B61B7A5",
+      "runtime": "iOS 26.5 (23F77)",
+      "xcode": "27.0 (27A266a)",
+      "theme": "dark",
+      "textSize": "AX3",
+      "systemContentSize": "accessibility-extra-large",
+      "command": "xcrun simctl launch --terminate-running-process 138864A8-3DCC-4F4E-8AE9-223E4B61B7A5 app.cupseason.ios -cs_dev_n1 calendar -cs_dev_appearance dark -cs_dev_look none -cs_dev_text_size AX3 -cs_dev_offline_network",
+      "settled": true,
+      "viewed": true,
+      "status": "verified visually (final round)"
+    }
+  ]
+}
