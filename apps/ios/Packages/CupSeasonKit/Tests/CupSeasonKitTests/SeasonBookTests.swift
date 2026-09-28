@@ -43,6 +43,57 @@ struct SeasonBookTests {
     #expect(SeasonBookSnapshot.label(row:mine,cell:mine.cells[11],cumulative:false).contains("D"))
     #expect(SeasonBookSnapshot.label(row:mine,cell:mine.cells[14],cumulative:false)=="•")
   }
+  /// F11 · a cell is its figure and its status marks, drawn apart. "33D" read
+  /// as a number; `parts` keeps the figure a figure and the marks a note, and
+  /// `label` stays their concatenation for every caller that wants the string.
+  @Test func aCellIsAFigureWithItsMarksBesideIt() throws {
+    let b=try book(), mine=try #require(b.rows.first { $0.kind == "golfer" && $0.mine })
+    let dropped=SeasonBookSnapshot.parts(row:mine,cell:mine.cells[11],cumulative:false)
+    #expect(Int(dropped.fig) != nil && dropped.marks.contains("D"))
+    #expect(SeasonBookSnapshot.label(row:mine,cell:mine.cells[11],cumulative:false) == dropped.fig + dropped.marks)
+    #expect(SeasonBookSnapshot.parts(row:mine,cell:mine.cells[14],cumulative:false) == .init(fig:"•",marks:""))
+    // Totals carry no marks: a running total is not a week's status
+    #expect(SeasonBookSnapshot.parts(row:mine,cell:mine.cells[11],cumulative:true).marks.isEmpty)
+    var sawStar=false, sawD=false
+    for name in ["squads","tie","upcoming","finished","audit-live","audit-withdrawn"] {
+      let book=try book(name)
+      for row in book.rows { for cell in row.cells { for cumulative in [false,true] {
+        let p=SeasonBookSnapshot.parts(row:row,cell:cell,cumulative:cumulative)
+        let spoken=SeasonBookSnapshot.spoken(row:row,cell:cell,cumulative:cumulative)
+        #expect(SeasonBookSnapshot.label(row:row,cell:cell,cumulative:cumulative) == p.fig + p.marks)
+        #expect(p.marks.allSatisfy { $0 == "*" || $0 == "D" })
+        if cumulative { #expect(p.marks.isEmpty) }
+        // the marks are a NOTE, never another digit of the figure
+        if !p.marks.isEmpty { #expect(Int(p.fig) != nil) }
+        // …and the cell says each one in words (its accessible name)
+        if p.marks.contains("D") { sawD=true; #expect(spoken.contains("dropped rounds retained in receipt")) }
+        if p.marks.contains("*") { sawStar=true; #expect(spoken.contains("adjustment or bye recorded")) }
+        // §16 · the figure IS the cell, and the cell's receipts add up to it
+        if let figure=Int(p.fig) {
+          let points=cumulative ? cell.cumulative : cell.points
+          #expect(figure == points)
+          let receipts=SeasonBookSnapshot.selectedEntries(row,week:cell.week,cumulative:cumulative)
+          #expect(receipts.reduce(0) { $0+$1.contribution } == figure)
+        }
+      } } }
+    }
+    #expect(sawStar && sawD)
+  }
+  @Test func aCellThatIsOnlyAStatusStandsAlone() throws {
+    let b=try book()
+    let cells=b.rows.flatMap { row in row.cells.map { (row,$0) } }
+    let allDropped=try #require(cells.first { row,cell in
+      let es=SeasonBookSnapshot.selectedEntries(row,week:cell.week,cumulative:false)
+      return !cell.future && cell.points != nil && !es.isEmpty && es.allSatisfy { $0.count_state == "dropped" }
+    })
+    #expect(SeasonBookSnapshot.parts(row:allDropped.0,cell:allDropped.1,cumulative:false) == .init(fig:"D",marks:""))
+    // a past week with nothing in it (the live audit Book carries some)
+    let live=try book("audit-live")
+    let empty=live.rows.flatMap { row in row.cells.map { (row,$0) } }
+    let none=try #require(empty.first { !$0.1.future && $0.1.points == nil })
+    #expect(SeasonBookSnapshot.parts(row:none.0,cell:none.1,cumulative:false) == .init(fig:"—",marks:""))
+    #expect(SeasonBookSnapshot.spoken(row:none.0,cell:none.1,cumulative:false) == "No round or adjustment recorded")
+  }
   @Test func tiesAndThresholdAgreeWithTheBoard() throws {
     let b=try book("tie");#expect(b.rows.allSatisfy { $0.points==41 && $0.standing=="1st · Tied" })
     #expect(!SeasonBookSnapshot.prominent(fieldSize:2,hasSquads:false))
