@@ -25,7 +25,8 @@
  * the realtime socket are answered in-process or aborted and logged as a
  * fixture gap. Test-only; tests/ is not in the dist allowlist. */
 import { createRequire } from 'node:module'
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs'
+import { mkdirSync, writeFileSync, readFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join, resolve, dirname } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -39,7 +40,19 @@ const args = process.argv.slice(2)
 const arg = (k, d = null) => { const i = args.indexOf('--' + k); return i >= 0 && i + 1 < args.length && !args[i + 1].startsWith('--') ? args[i + 1] : d }
 const flag = (k) => args.includes('--' + k)
 
-const ROOT = resolve(arg('root', resolve(HERE, '..')))
+const ROOT_ARG = resolve(arg('root', resolve(HERE, '..')))
+/* --ref <commit>: serve a `git archive` snapshot of that commit instead of the
+   working tree, so a run is one consistent source even while another session
+   edits the checkout. The snapshot lives under the OS temp dir and is removed
+   at exit. */
+const REF = arg('ref', null)
+let ROOT = ROOT_ARG
+let SNAPSHOT = null
+if (REF) {
+  SNAPSHOT = mkdtempSync(join(tmpdir(), 'ten-snapshot-'))
+  execFileSync('bash', ['-c', `git -C "${ROOT_ARG}" archive --format=tar "${REF}" | tar -x -C "${SNAPSHOT}"`])
+  ROOT = SNAPSHOT
+}
 const PORT = parseInt(arg('port', '8802'), 10)
 const OUT = resolve(arg('out', '/Users/fischbeck3/cup-season-claude-ten-gallery/wx/run'))
 const ONLY = (arg('only', '') || '').split(',').filter(Boolean)
@@ -74,8 +87,8 @@ if (flag('list')) {
 }
 
 function git(root, ...a) { try { return execFileSync('git', ['-C', root, ...a], { encoding: 'utf8' }).trim() } catch { return null } }
-const gitSha = git(ROOT, 'rev-parse', 'HEAD')
-const gitDirty = (git(ROOT, 'status', '--porcelain', '--', 'index.html') || '').length > 0
+const gitSha = git(ROOT_ARG, 'rev-parse', REF || 'HEAD')
+const gitDirty = REF ? false : (git(ROOT_ARG, 'status', '--porcelain', '--', 'index.html') || '').length > 0
 const harnessSha = git(HERE, 'rev-parse', 'HEAD')
 const diskIndexSha = sha(readFileSync(join(ROOT, 'index.html')))
 
@@ -238,7 +251,7 @@ async function assertRoute(page, state) {
 async function main() {
   mkdirSync(OUT, { recursive: true })
   const srv = SERVE === 'route' ? { pid: null, base: `http://127.0.0.1:${PORT}` } : await startStaticServer({ root: ROOT, port: PORT })
-  const stop = () => { stopStaticServer(srv) }
+  const stop = () => { stopStaticServer(srv); if (SNAPSHOT) { try { rmSync(SNAPSHOT, { recursive: true, force: true }) } catch { /* temp */ } } }
   process.on('SIGINT', () => { stop(); process.exit(130) })
   process.on('SIGTERM', () => { stop(); process.exit(143) })
   const browser = await chromium.launch({ headless: true, executablePath: CHROME, args: ['--hide-scrollbars', '--force-color-profile=srgb', '--font-render-hinting=none'] })
@@ -246,54 +259,67 @@ async function main() {
   const rows = []
   const t0 = Date.now()
   console.log(`ten-capture · root ${ROOT} @ ${gitSha ? gitSha.slice(0, 10) : '?'}${gitDirty ? ' (index.html dirty)' : ''} · ${selected.length} state(s) · ${SERVE === 'route' ? 'served in-process (no port bound)' : `server pid ${srv.pid} on :${PORT}`}`)
-  try {
-    for (const state of selected) {
-      const vps = []
-      const widths = state.desk ? WIDTHS.filter((w) => w >= 1280) : state.phoneOnly ? WIDTHS.filter((w) => w < 900) : WIDTHS
-      for (const w of widths) vps.push({ width: w, height: state.height || HEIGHTS[w] || 1000, tag: String(w) })
-      if (state.short) vps.push({ ...SHORT, tag: '375x380' })
-      for (const vp of vps) for (const theme of (state.themes || THEMES)) {
-        const file = `${state.family}--${state.id}--${vp.tag}--${theme}.png`
-        let cap
-        try {
-          cap = await captureOne(browser, state, vp, theme, cdn)
-          await cap.page.screenshot({ path: join(OUT, file), fullPage: state.fullPage !== false && !(vp.tag === '375x380'), animations: 'disabled', caret: 'hide', timeout: 30000 })
-        } catch (e) {
-          rows.push({ file: null, family: state.family, state: state.id, viewport: vp, theme, error: String(e.message || e).split('\n')[0] })
-          console.log(`  ERROR ${file}: ${String(e.message || e).split('\n')[0]}`)
-          if (cap) await cap.context.close().catch(() => {})
-          continue
-        }
-        if (cap.hold && !cap.hold.released) cap.hold.release()
-        await cap.page.waitForTimeout(50)
-        const buf = readFileSync(join(OUT, file))
-        const msgs = cap.messages.map((m) => ({ ...m, category: classify(state, m, cap.aborted) }))
-        const summary = { total: msgs.length, byLevel: {}, byCategory: {}, exceptions: cap.exceptions.length }
-        for (const m of msgs) { summary.byLevel[m.level] = (summary.byLevel[m.level] || 0) + 1; summary.byCategory[m.category] = (summary.byCategory[m.category] || 0) + 1 }
-        const row = {
-          file, sha256: sha(buf), bytes: buf.length, family: state.family, state: state.id, title: state.title || null,
-          variant: state.variant || 'member', viewport: { width: vp.width, height: vp.height }, theme, dsf: DSF,
-          route: { ok: cap.result.assert.ok, detail: cap.result.assert.detail, activeView: cap.result.assert.facts ? cap.result.assert.facts.view : null, door: cap.result.assert.facts ? cap.result.assert.facts.obShown : null },
-          console: summary, messages: msgs, pageErrors: cap.exceptions, fixtureGaps: cap.gaps, blockedRequests: cap.blocked,
-          requestStorm: cap.storm.hit, supabaseRequests: cap.log.filter((e) => e.path || e.ws).length,
-          geometry: cap.result.geometry, swClear: cap.result.swClear || null,
-          gitSha, indexDirty: gitDirty, indexSha256Served: cap.served['/'] || cap.served['/index.html'] || null, indexSha256Disk: diskIndexSha,
-          capturedAt: new Date().toISOString(), ms: cap.ms,
-        }
-        rows.push(row)
-        const mark = row.route.ok ? 'ok  ' : 'FAIL'
-        console.log(`  ${mark} ${file}  view=${row.route.activeView} gaps=${cap.gaps.length} normal=${summary.byCategory.normal || 0} exc=${cap.exceptions.length}${row.route.ok ? '' : '  -- ' + row.route.detail}`)
-        if (flag('explore')) writeFileSync(join(OUT, file.replace(/\.png$/, '.requests.json')), JSON.stringify(cap.log, null, 1))
-        await cap.context.close().catch(() => {})
-      }
+  /* the job list: every state x viewport x theme, in catalogue order; a pool
+     of --workers contexts runs them (each capture still gets its own fresh
+     context); rows are written back in job order so manifests diff cleanly */
+  const jobs = []
+  for (const state of selected) {
+    const widths = state.desk ? WIDTHS.filter((w) => w >= 1280) : state.phoneOnly ? WIDTHS.filter((w) => w < 900) : WIDTHS
+    const vps = widths.map((w) => ({ width: w, height: state.height || HEIGHTS[w] || 1000, tag: String(w) }))
+    if (state.short) vps.push({ ...SHORT, tag: '375x380' })
+    for (const vp of vps) for (const theme of (state.themes || THEMES)) jobs.push({ state, vp, theme, i: jobs.length })
+  }
+  const slots = new Array(jobs.length)
+  let next = 0
+  async function runJob({ state, vp, theme, i }) {
+    const file = `${state.family}--${state.id}--${vp.tag}--${theme}.png`
+    let cap
+    try {
+      cap = await captureOne(browser, state, vp, theme, cdn)
+      const fullPage = state.fullPage !== false && !(vp.tag === '375x380')
+      if (state.shot) await cap.page.locator(state.shot).first().screenshot({ path: join(OUT, file), animations: 'disabled', caret: 'hide', timeout: 30000 })
+      else await cap.page.screenshot({ path: join(OUT, file), fullPage, animations: 'disabled', caret: 'hide', timeout: 30000 })
+    } catch (e) {
+      slots[i] = { file: null, family: state.family, state: state.id, viewport: vp, theme, error: String(e.message || e).split('\n')[0] }
+      console.log(`  ERROR ${file}: ${String(e.message || e).split('\n')[0]}`)
+      if (cap) { if (cap.hold && !cap.hold.released) cap.hold.release(); await cap.context.close().catch(() => {}) }
+      return
     }
+    if (cap.hold && !cap.hold.released) cap.hold.release()
+    await cap.page.waitForTimeout(50)
+    const buf = readFileSync(join(OUT, file))
+    const msgs = cap.messages.map((m) => ({ ...m, category: classify(state, m, cap.aborted) }))
+    const summary = { total: msgs.length, byLevel: {}, byCategory: {}, exceptions: cap.exceptions.length }
+    for (const m of msgs) { summary.byLevel[m.level] = (summary.byLevel[m.level] || 0) + 1; summary.byCategory[m.category] = (summary.byCategory[m.category] || 0) + 1 }
+    const row = {
+      file, sha256: sha(buf), bytes: buf.length, family: state.family, state: state.id, title: state.title || null,
+      variant: state.variant || 'member', url: state.url || '/', viewport: { width: vp.width, height: vp.height }, theme, dsf: DSF,
+      route: { ok: cap.result.assert.ok, detail: cap.result.assert.detail, activeView: cap.result.assert.facts ? cap.result.assert.facts.view : null, door: cap.result.assert.facts ? cap.result.assert.facts.obShown : null },
+      console: summary, messages: msgs, pageErrors: cap.exceptions, fixtureGaps: cap.gaps, blockedRequests: cap.blocked,
+      requestStorm: cap.storm.hit, supabaseRequests: cap.log.filter((e) => e.path || e.ws).length,
+      geometry: cap.result.geometry, swClear: cap.result.swClear || null,
+      gitSha, indexDirty: gitDirty, indexSha256Served: cap.served['/'] || cap.served['/index.html'] || null, indexSha256Disk: diskIndexSha,
+      capturedAt: new Date().toISOString(), ms: cap.ms,
+    }
+    slots[i] = row
+    const mark = row.route.ok ? 'ok  ' : 'FAIL'
+    console.log(`  ${mark} ${file}  view=${row.route.activeView} gaps=${cap.gaps.length} normal=${summary.byCategory.normal || 0} exc=${cap.exceptions.length}${row.requestStorm ? ' STORM' : ''}${row.route.ok ? '' : '  -- ' + row.route.detail}`)
+    if (flag('explore')) writeFileSync(join(OUT, file.replace(/\.png$/, '.requests.json')), JSON.stringify(cap.log, null, 1))
+    await cap.context.close().catch(() => {})
+  }
+  try {
+    const WORKERS = Math.max(1, parseInt(arg('workers', '1'), 10) || 1)
+    await Promise.all(Array.from({ length: Math.min(WORKERS, jobs.length || 1) }, async () => {
+      while (next < jobs.length) { const j = jobs[next++]; await runJob(j) }
+    }))
+    rows.push(...slots.filter(Boolean))
   } finally {
     await browser.close().catch(() => {})
     stop()
   }
   const manifest = {
-    harness: 'tests/ten-capture.mjs', harnessGitSha: harnessSha, root: ROOT, gitSha, indexDirty: gitDirty, indexSha256Disk: diskIndexSha,
-    indexSha256DiskAfter: sha(readFileSync(join(ROOT, 'index.html'))), captureClock: CAPTURE_NOW, port: PORT, serverPid: srv.pid,
+    harness: 'tests/ten-capture.mjs', harnessGitSha: harnessSha, root: ROOT_ARG, ref: REF, servedFrom: SNAPSHOT ? 'git archive snapshot of ' + REF : 'working tree', gitSha, indexDirty: gitDirty, indexSha256Disk: diskIndexSha,
+    indexSha256DiskAfter: SNAPSHOT ? diskIndexSha : sha(readFileSync(join(ROOT, 'index.html'))), captureClock: CAPTURE_NOW, port: PORT, serverPid: srv.pid,
     serve: SERVE, widths: WIDTHS, themes: THEMES, dsf: DSF, cdn: cdn.stats, startedAt: new Date(t0).toISOString(), finishedAt: new Date().toISOString(),
     serviceWorkers: 'blocked per context (Playwright serviceWorkers:block); registrations unregistered and caches cleared after load',
     network: 'every *.supabase.co request and the realtime socket answered in-process from tests/fixtures/ten or aborted as a fixture gap; esm.sh and Google Fonts replayed from the local record/replay cache; anything else aborted',
