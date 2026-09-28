@@ -31388,8 +31388,22 @@ async function renderAlbum(){
   const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const empty = () => { box.innerHTML =
     '<p class="fine" style="padding:8px 2px">Photos land here when rounds carry them — add one from the Post card.</p>'; };
+  /* F16 · a read that failed is not an empty album: say it failed, keep any
+     photographs already on screen, and offer the read again. The sentence is
+     the phone's AlbumScreen twin. */
+  const failed = (e) => {
+    if(box.querySelector('.alcell')){
+      box.querySelector('.alfail')?.remove();
+      box.insertAdjacentHTML('afterbegin', `<p class="fine alfail" role="status" style="grid-column:1/-1; padding:4px 2px 8px">The album didn’t refresh. <button type="button" class="cs-tskip" id="albumRetry" style="display:inline-flex; margin:0">Try again</button></p>`);
+    } else {
+      box.innerHTML = `<div class="tempty" role="status" style="grid-column:1/-1"><h4 class="cs-name">The album didn’t load</h4>`
+        + `<p class="cs-body-s">${esc(humanError(e))}</p>`
+        + `<button type="button" class="mini" id="albumRetry" style="margin-top:10px">Try again</button></div>`;
+    }
+    document.getElementById('albumRetry')?.addEventListener('click', e2 => { const b=e2.currentTarget; b.disabled=true; b.textContent='Loading…'; renderAlbum(); });
+  };
   if(!window.sb || !CS?.user || !CS?.league){ empty(); return; }
-  box.innerHTML = '<p class="fine" style="padding:8px 2px">Opening the album…</p>';
+  if(!box.querySelector('.alcell')) box.innerHTML = '<p class="fine" style="padding:8px 2px">Opening the album…</p>';
   try {
     const pids = (CS.members||[]).map(m => m.profile_id).filter(Boolean);
     if(!pids.length){ empty(); return; }
@@ -31399,8 +31413,9 @@ async function renderAlbum(){
       .order('played_on', { ascending: false }).limit(60);
     if(error) throw error;
     if(!(rows||[]).length){ empty(); return; }
-    const { data: signed } = await sb.storage.from('media')
+    const { data: signed, error: signErr } = await sb.storage.from('media')
       .createSignedUrls(rows.map(r => r.photo_path), 3600);
+    if(signErr) throw signErr;   /* rounds with photographs, none signable: a failure, not an empty album */
     const url = {}; (signed||[]).forEach(s => { if(s?.signedUrl) url[s.path] = s.signedUrl; });
     const nameOf = pid => {
       const m = (CS.members||[]).find(m => m.profile_id === pid);
@@ -31419,13 +31434,13 @@ async function renderAlbum(){
       }
       html += `<button class="alcell" data-alr="${r.id}" style="background-image:url('${csCssUrl(u)}')" aria-label="${(window.esc||String)(nameOf(r.profile_id))} — ${r.gross??''} at ${(window.esc||String)(r.course_label||'the course')}, ${r.played_on||''}"></button>`;
     });
-    if(!shown){ empty(); return; }
+    if(!shown){ failed(new Error('Photos could not be opened')); return; }
     box.innerHTML = html;
     box.querySelectorAll('[data-alr]').forEach(b => b.addEventListener('click', () => {
       const r = byId[b.dataset.alr];
       if(r && window.openRoundReceipt) window.openRoundReceipt(r);
     }));
-  } catch(e){ empty(); }
+  } catch(e){ failed(e); }
 }
 window.renderAlbum = renderAlbum;
 
