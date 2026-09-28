@@ -1150,7 +1150,7 @@ th.deskonly, td.deskonly{display:none;}
 .frow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .frow + .frow{margin-top:10px;}
 .frow.one{grid-template-columns:1fr;}
-label.f{
+label.f, legend.f, .teefield > span.f{
   display:block; font-family:var(--mono); font-size:11px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--mut); margin-bottom:6px;
 }
@@ -2386,6 +2386,14 @@ body.guestlive #onboard{display:none !important;}
 .crow .crmore{float:right;}
 .crow2 .crmore{margin-left:auto; flex:none;}
 .cinput{display:flex; gap:8px; margin-top:8px;}
+/* F08 web · the tee, its rating and its slope, each under its own name */
+.teefields{border:0; padding:0; margin:0; min-width:0;}
+.teefields legend{padding:0; margin-bottom:var(--s2);}
+.teegrid{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr); gap:var(--s2);}
+.teefield{display:flex; flex-direction:column; gap:var(--s1); min-width:0;}
+.teefield > span.f{margin:0;}
+.teefield input{min-height:44px; font-family:var(--sans); font-weight:500; width:100%;}
+@media (max-width:340px){ .teegrid{grid-template-columns:1fr 1fr;} .teefield:first-child{grid-column:1 / -1;} }
 .cinput input{flex:1; min-height:40px; font-family:var(--sans); font-weight:500;}
 /* reactions — the crew's vocabulary. present reactions read as counted chips;
    ＋ opens the palette. one row per (member, emoji), so a round can collect a
@@ -4980,12 +4988,18 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <label class="f" for="lrCourse">Course</label>
             <input class="f" id="lrCourse" value="Encanto GC" placeholder="Search a course, or type your own" autocomplete="off" style="font-family:var(--sans);">
             <div style="height:12px"></div>
-            <label class="f">Tee & rating — off the scorecard</label>
-            <div class="cinput" style="margin-top:8px">
-              <input class="f" id="lrTee" value="Blue" placeholder="Tee" style="font-family:var(--sans); flex:none; width:86px;">
-              <input class="f" id="lrRate" type="number" step="0.1" value="70.2" placeholder="Rating" inputmode="decimal">
-              <input class="f" id="lrSlope" type="number" value="123" placeholder="Slope" inputmode="numeric">
-            </div>
+            <!-- F08 web · each value keeps its own name once filled: three
+                 persistent labels, each tied to its input, under the group's
+                 one line. The inputs were placeholders only — filled, nothing
+                 said which number was the slope, and none had an accessible name. -->
+            <fieldset class="teefields">
+              <legend class="f">Tee &amp; rating — off the scorecard</legend>
+              <div class="teegrid">
+                <label class="teefield"><span class="f">Tee</span><input class="f" id="lrTee" value="Blue" placeholder="—" autocomplete="off"></label>
+                <label class="teefield"><span class="f">Rating</span><input class="f" id="lrRate" type="number" step="0.1" value="70.2" placeholder="—" inputmode="decimal"></label>
+                <label class="teefield"><span class="f">Slope</span><input class="f" id="lrSlope" type="number" value="123" placeholder="—" inputmode="numeric"></label>
+              </div>
+            </fieldset>
             <!-- D73: playing a nine? the whole round — scorecard, match/wolf/skins
                  settlement, the posted score — adapts to 9. Auto-set to 9 when a
                  9-hole tee is picked. -->
