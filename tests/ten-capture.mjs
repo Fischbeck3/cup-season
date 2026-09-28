@@ -385,6 +385,29 @@ async function main() {
     },
     rows,
   }
+  /* --merge: fold this run's rows into the manifest already in --out
+     (a re-run of some states, or a later family against the SAME --ref);
+     a row is replaced by (family, state, viewport, theme). Every row keeps
+     its own gitSha and served index.html hash, and `runs` lists each run. */
+  if (flag('merge') && existsSync(join(OUT, 'manifest.json'))) {
+    const prev = JSON.parse(readFileSync(join(OUT, 'manifest.json'), 'utf8'))
+    const key = (r) => `${r.family}|${r.state}|${r.viewport && r.viewport.width}x${r.viewport && r.viewport.height}|${r.theme}`
+    const mine = new Set(rows.map(key))
+    const merged = (prev.rows || []).filter((r) => !mine.has(key(r))).concat(rows)
+    const order = new Map(STATES.map((st, i) => [`${st.family}|${st.id}`, i]))
+    merged.sort((a, b) => ((order.get(`${a.family}|${a.state}`) ?? 1e9) - (order.get(`${b.family}|${b.state}`) ?? 1e9)) || String(a.file).localeCompare(String(b.file)))
+    manifest.runs = [...(prev.runs || [{ gitSha: prev.gitSha, ref: prev.ref, startedAt: prev.startedAt, finishedAt: prev.finishedAt, harnessGitSha: prev.harnessGitSha, captures: (prev.rows || []).length }]),
+      { gitSha, ref: REF, startedAt: manifest.startedAt, finishedAt: manifest.finishedAt, harnessGitSha: harnessSha, captures: rows.length }]
+    manifest.rows = merged
+    manifest.gitShas = [...new Set(merged.map((r) => r.gitSha))]
+    manifest.counts = {
+      captures: merged.filter((r) => r.file).length, errors: merged.filter((r) => !r.file).length,
+      routeFailed: merged.filter((r) => r.file && !r.route.ok).length,
+      withGaps: merged.filter((r) => r.fixtureGaps && r.fixtureGaps.length).length,
+      withPageErrors: merged.filter((r) => r.pageErrors && r.pageErrors.length).length,
+      storms: merged.filter((r) => r.requestStorm).length,
+    }
+  }
   writeFileSync(join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 1))
   console.log(`\n${manifest.counts.captures} capture(s), ${manifest.counts.routeFailed} route failure(s), ${manifest.counts.errors} error(s), ${manifest.counts.withGaps} with fixture gaps, ${manifest.counts.withPageErrors} with page errors · ${((Date.now() - t0) / 1000).toFixed(0)}s · manifest ${join(OUT, 'manifest.json')}`)
   if (manifest.indexSha256DiskAfter !== diskIndexSha) console.log('WARNING: index.html changed on disk during the run; per-row indexSha256Served says which bytes each capture saw.')
