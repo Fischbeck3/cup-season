@@ -369,10 +369,13 @@ struct EmptyRootView: View {
             CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string(String(describing: d))])
             take(d)
           } label: {
-            // D359 / F4 · the first door is an ordinary action: act, never ember.
-            // L-25 · the rest are quiet and equally present.
-            // D359 / F4 · the first door is an ordinary action: act, never ember (the desk agrees)
-            Text(d.title.uppercased()).csEyebrow(i == 0 ? cs.act : cs.mut).a11yHitSlop()
+            // D359 / F4 · the first door is an ordinary action: act, never ember
+            // (the desk agrees). L-25 · the rest are quiet and equally present.
+            // F12 · the door is the empty state's ONE start, and its target is
+            // an honest 44pt tall (§16.2) — the hit slop measured 40.
+            Text(d.title.uppercased()).csEyebrow(i == 0 ? cs.act : cs.mut)
+              .frame(minHeight: 44, alignment: .leading)
+              .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
           .accessibilityLabel(d.title)
