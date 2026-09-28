@@ -2609,6 +2609,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   border-top:1px solid var(--rule); color:var(--mut); letter-spacing:.04em;
 }
 .byrow:first-child{border-top:none;}
+.sqdot{display:inline-block; width:.62em; height:.62em; border-radius:2px; margin-right:.32em; vertical-align:.04em;}
 /* the label keeps its own measure: a long value (the review's "Scored against
    your playing HCP — your index at 95 percent") used to squeeze it to one
    word a line ("HOW / SCORES / COUNT") at 375 */
@@ -7662,7 +7663,13 @@ function renderClimb(){
                         : 'The table below is how the season finished.')
         + `</span>`;
     } else {
-    const seatLine = K>=n
+    /* a two-squad season has no cut: BOTH squads play the Final and the leader
+       carries +10 in (enter_cup_final). K is 1 there only because the climb
+       draws the SEED line, and this said "TOP 1 ADVANCE TO THE CUP FINAL" —
+       the phone's own sentence is JoinLeague's squads2 line. */
+    const seatLine = cut.seed
+      ? 'BOTH SQUADS PLAY THE CUP FINAL · THE LEADER CARRIES +10'
+      : K>=n
       ? (n<=1 ? 'NOBODY TO RACE YET' : `EVERYONE ADVANCES — ${n} CONTENDER${n===1?'':'S'}, ${K} SEAT${K===1?'':'S'}`)
       : `TOP ${K} ${meta && meta.finish==='points_table' ? '— THE POINTS KING' : 'ADVANCE TO THE CUP FINAL'}`;
     /* D235 · the endgame sentence used to be repeated here. It is one fact,
@@ -7926,7 +7933,11 @@ function renderStandings(){
             : ((window.CS.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS.member.id))||{}).id || null)
     : null;
   const isYou = t => !!(solo && myRung && t.id === myRung);
-  const nameOf = t => `<b style="${solo?'':`color:${SQHEX[t.ci]}`}">${isYou(t) ? 'You' : esc(t.name)}</b>`;
+  /* a squad's NAME is ink and its colour rides a swatch before it: the squad
+     palette as text was ~2.3:1 on the light theme's paper (#FB8B4B on
+     #F4F1E9) — identity kept, the sentence readable in both themes */
+  const nameOf = t => solo ? `<b>${isYou(t) ? 'You' : esc(t.name)}</b>`
+    : `<b><i class="sqdot" aria-hidden="true" style="background:${SQHEX[t.ci]}"></i>${isYou(t) ? 'You' : esc(t.name)}</b>`;
   const beOf   = t => isYou(t) ? 'are ' : '';
   /* L-03 / L-16 · A FINISHED SEASON IS THE FINAL TABLE. The crown is stored
      (seasons.champion_* / runnerup_*): the champion is first and the runner-up
@@ -33274,7 +33285,7 @@ async function renderShareView(tok, _testInfo){
         ? `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.</div>`
         : `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">Just ${esc(info.host)} so far.</div>`}
       <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
-    foot.innerHTML = `<a href="/" style="display:block;background:${C.hot};color:#1C1208;text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Take the seat</a>
+    foot.innerHTML = `<a href="/" style="display:block;background:${C.act};color:${C.bg};text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Take the seat</a>
       <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Sign in and you’ll be asked first. The seat, and a buddy request to ${esc(info.host)}, wait for your yes.</div>`;
 
   } else if(info.kind === 'recap'){
