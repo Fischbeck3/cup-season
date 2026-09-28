@@ -15,16 +15,21 @@
  *   event_session_targets 20260716150000
  *   event_lineage         20260724100000
  *
- * install(W) also repairs ONE world shape in this module's scope:
+ * install(W) also repairs TWO world shapes in this module's scope:
  * `standings_snapshots.standings` is `{ squads:[v_squad_standings rows],
  * individuals:[v_individual_standings rows] }` in production (snapshot_week,
  * 20260831130000); the core world wrote a flat array with invented points. The
  * snapshots are rebuilt here from the rounds, week by week, with the month cap
- * applied as of each capture date.
+ * applied as of each capture date. And home_dispatch's membership standings
+ * gain D381's `points_rank` / `points_tied` where rpc/10 leaves them out
+ * (standingRanks). It adds the two empty tables a season read names that the
+ * core world lacks: season_payouts and cup_finalists.
  *
  * The named exports are the world transforms the competition states run in
- * prepare(W): a Cup Final, a Book world adopted from a synthetic envelope, the
- * event rooms. They mutate only the capture's own world. */
+ * prepare(W): a Book world adopted from a synthetic envelope (adoptBook, read
+ * at the capture clock by bookAt), close_season's crown (crownSeason), the
+ * Cup Final seed lock (cupFinalOn) and two editions of a Ryder (ryderWorld).
+ * They mutate only the capture's own world. */
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -406,7 +411,8 @@ export function majorLeaderboard(W, eventId) {
 export function eventSessionTargets(W, sessionId) {
   const s = T_(W, 'event_sessions').find((x) => x.id === sessionId); if (!s || s.status !== 'open') return []
   const e = eventById(W, s.event_id); if (!e) return []
-  const side = (pid) => { const p = eventPlayer(W, pid); const b = p && bestIn(W, p.profile_id, s.opens_on, s.closes_on, e.allowance ?? 100).best; return b ? b.pvi : null }
+  /* numeric in SQL: exact; rounded here only to shed binary-float noise */
+  const side = (pid) => { const p = eventPlayer(W, pid); const b = p && bestIn(W, p.profile_id, s.opens_on, s.closes_on, e.allowance ?? 100).best; return b ? Math.round(b.pvi * 1e4) / 1e4 : null }
   return T_(W, 'event_duels').filter((d) => d.session_id === s.id).map((d) => ({ duel_id: d.id, a_pvi: side(d.a_player), b_pvi: side(d.b_player) }))
 }
 export function eventLineage(W, eventId) {
@@ -509,9 +515,36 @@ export function withHomeMemberships(W, override = null) {
   }
 }
 
+/* ============================================ D381 · THE STANDING'S OWN RANK */
+/* 20261118090000 patches native_home in place so every membership's standing
+   carries `points_rank` (rank() over points, ties share it) and `points_tied`.
+   Compete's Scoreboard reads exactly those two (index.html csSeasonRowFacts);
+   the home_dispatch producer in rpc/10 predates the patch and answers without
+   them, so the band lost its "2nd · Tied of 4" line. Added here from the same
+   standings views the table reads -- only where a standing lacks them, and only
+   for a season this world holds (a Home-state payload is left as it came). */
+export function standingRanks(W, m) {
+  const st = m && m.standing
+  if (!st || st.points_rank !== undefined || !m.season || !m.season.id) return
+  const se = seasonById(W, m.season.id); if (!se) return
+  const solo = (settingsOf(W, se.league_id).structure || 'squads2') === 'solo'
+  const key = solo ? m.member_id : (m.squad && m.squad.id)
+  const table = solo
+    ? T_(W, 'v_individual_standings').filter((v) => v.season_id === se.id).map((v) => ({ id: v.member_id, points: Number(v.points || 0) }))
+    : T_(W, 'v_squad_standings').filter((v) => v.season_id === se.id).map((v) => ({ id: v.squad_id, points: Number(v.points || 0) }))
+  const mine = table.find((x) => x.id === key); if (!mine) return
+  st.points_rank = 1 + table.filter((x) => x.points > mine.points).length
+  st.points_tied = table.filter((x) => x.points === mine.points).length > 1
+}
+
 /* ============================================================ INSTALL */
 export default function install(W) {
   rebuildSnapshots(W)
+  /* read by enterLeague for a complete season, and by the scenario/race
+     producers; the core world has neither table */
+  W.tables.season_payouts ||= []
+  W.tables.cup_finalists ||= []
+  const prevDispatch = W.handlers.home_dispatch
   const H = {
     season_story: (a, W2) => seasonStory(W2, a),
     season_scenarios: (a, W2) => seasonScenarios(W2, a.p_season),
@@ -526,6 +559,12 @@ export default function install(W) {
      honest empty (no thread counts, no course circle) only where no other
      module answers it. */
   if (!W.handlers.posted_rounds_social) H.posted_rounds_social = () => ({ items: [] })
+  if (prevDispatch) H.home_dispatch = async (a, W2) => {
+    const out = await prevDispatch(a, W2)
+    const ms = out && out.me && Array.isArray(out.me.memberships) ? out.me.memberships : null
+    if (ms) ms.forEach((m) => standingRanks(W2, m))
+    return out
+  }
   return H
 }
 
@@ -538,5 +577,315 @@ export const ids = {
   duel: (n) => `f8400000-0000-4000-8000-${String(n).padStart(12, '0')}`,
   card: (n) => `f8500000-0000-4000-8000-${String(n).padStart(12, '0')}`,
   post: (n) => `f7000000-0000-4000-8000-${String(n).padStart(12, '0')}`,
+  person: (n) => `f1000000-0000-4000-8000-${String(9000 + n).padStart(12, '0')}`,
 }
-export { readFileSync, TEN }
+
+/* ------------------------------------------------------------------ the Book */
+/* The four synthetic envelopes (tests/fixtures/ten/book-*.synthetic.json, the
+   renamed copies of the D381 fixtures). A Book state ADOPTS one: the world
+   gains that league, season, roster, squads, ledger and standings under the
+   envelope's own ids, so the page behind the dialog, Compete's Scoreboard and
+   the Book itself read one set of facts. The files are read, never written. */
+export const BOOKS = ['upcoming', 'squads', 'tie', 'finished']
+export function readBook(name) {
+  const b = JSON.parse(readFileSync(join(TEN, `book-${name}.synthetic.json`), 'utf8'))
+  delete b._ten
+  return b
+}
+/* The same envelope as season_book would answer it on `today`: the
+   20261118090000 this_week rule (the dates alone -- never the status) and every
+   cell re-derived from the row's entries by the rule SeasonBook.validate
+   checks. No entry is added, moved or dropped: a Book read on the capture
+   clock (Monday of week 13, before anyone has played it) of the season the
+   envelope recorded on its generation day (week 12). */
+export function bookAt(b, today, generatedAt = null) {
+  const out = JSON.parse(JSON.stringify(b))
+  const tw = today < out.starts_on ? 0 : Math.min(out.weeks.length, Math.floor(diffDays(today, out.starts_on) / 7) + 1)
+  const sum = (xs) => xs.reduce((s, e) => s + e.contribution, 0)
+  out.current_week = tw
+  if (generatedAt) out.generated_at = generatedAt
+  for (const r of out.rows) r.cells = out.weeks.map((w) => {
+    const exact = r.entries.filter((e) => e.week === w.week), through = r.entries.filter((e) => e.week != null && e.week <= w.week), future = w.week > tw
+    return { week: w.week, future, points: future || !exact.length ? null : sum(exact), cumulative: future || !through.length ? null : sum(through) }
+  })
+  return out
+}
+const MARKER_POOL = ['saguaro', 'lighthouse', 'lonetree', 'island', 'dunes', 'shark', 'pews', 'jug', 'thistle', 'beer', 'no2']
+const slug = (s) => String(s).toLowerCase().replace(/[^a-z]+/g, '.').replace(/^\.+|\.+$/g, '')
+/* a cast golfer keeps their own profile; a name from cast.TEN_NAME_POOL (the
+   legacy fixture's renamed people) gets one synthetic profile, once */
+function profileFor(W, name) {
+  const cast = W.cast.PEOPLE.find((p) => p.name === name)
+  if (cast) return profileById(W, W.ids.uid(cast.n))
+  const had = T_(W, 'profiles').find((x) => x.display_name === name)
+  if (had) return had
+  const n = (W._bookPeople = (W._bookPeople || 0) + 1)
+  const p = { id: ids.person(n), display_name: name, city: null, home_course: null, index_current: r1(6 + ((n * 37) % 190) / 10), index_source: 'auto',
+    marker: MARKER_POOL[n % MARKER_POOL.length], notify_chat: true, notify_rounds: true, handle: slug(name), discoverable: true, ghin_number: null,
+    created_at: '2026-06-01T19:00:00Z', photo_path: null, scan_consent_at: null, email: `${slug(name)}@example.invalid` }
+  T_(W, 'profiles').push(p)
+  return p
+}
+/* the band table (tests/fixtures/bands.json) read backwards: a PvI inside each
+   points band, stepped down a hundredth per place so the month order the
+   envelope's count_state implies (counting first, best first) is the order
+   the cap applies. The envelope carries points, not PvI; nothing on a Book
+   surface prints this figure. */
+const BAND_PVI = { 12: 3.6, 9: 1.8, 7: 0.2, 6: -1.8, 5: -3.8 }
+const r2 = (x) => Math.round(x * 100) / 100
+export function adoptBook(W, b, { status = null, finish = 'points_table' } = {}) {
+  const T = W.tables, uid = W.ids.uid
+  const L = b.league_id, S = b.season_id, st = status || b.status
+  const home = JSON.parse(readFileSync(join(TEN, 'book-home.synthetic.json'), 'utf8'))
+  const hm = (home.memberships || []).find((m) => m.league_id === L) || {}
+  const hs = hm.settings || {}
+  const golfers = b.rows.filter((r) => r.kind === 'golfer'), squads = b.rows.filter((r) => r.kind === 'squad'), contribs = b.rows.filter((r) => r.kind === 'contribution')
+  if (!golfers.some((r) => r.mine && r.name === (profileById(W, W.me) || {}).display_name)) throw new Error(`adoptBook: ${b.name} does not seat the viewer`)
+  const pro = uid(2)   /* book-home: every Book league is run by Blake Sample */
+  T.leagues.push({ id: L, name: b.name, code: hm.code || null, phase: st === 'complete' ? 'complete' : 'season', sandbox: false, created_by: pro, created_at: `${addDays(b.starts_on, -21)}T18:00:00Z` })
+  T.league_settings.push({ league_id: L, preset: hs.preset || 'standard', handicap_allowance: hs.handicap_allowance ?? 100, verification: 'attested',
+    counting_cap: b.counting_cap, participation_floor: b.participation_floor, floor_penalty: hs.floor_penalty || 'deduct', season_format: 'points',
+    buyin_cents: hs.buyin_cents ?? 0, season_months: Math.max(1, Math.round(b.weeks.length / 4.3)), sim_rounds_allowed: true, nine_hole_allowed: true,
+    /* book-home carries locked_at null for a league in play; a season has a lock */
+    locked_at: `${addDays(b.starts_on, -7)}T18:00:00Z`, structure: b.structure, draft_type: 'random',
+    payout_champ: hs.payout_champ ?? 60, payout_runnerup: hs.payout_runnerup ?? 25, payout_king: hs.payout_king ?? 15, finish })
+  T.seasons.push({ id: S, league_id: L, number: b.number, starts_on: b.starts_on, ends_on: b.ends_on, status: st, champion_squad_id: null, champion_member_id: null,
+    runnerup_squad_id: null, runnerup_member_id: null, points_king_member_id: null, champion_score: null, runnerup_score: null, tiebreak_rung: null, pot_cents: 0, collected_cents: 0 })
+  for (const r of golfers) {
+    const p = profileFor(W, r.name)
+    T.league_members.push({ id: r.member_id, league_id: L, profile_id: p.id, role: p.id === pro ? 'commissioner' : 'player', index_current: p.index_current,
+      joined_at: `${addDays(b.starts_on, -14)}T18:00:00Z`, marker: null, suspended_at: null, agreed_seasons: [b.number] })
+  }
+  /* squads: colours in id order (book-home paints mine, the …300 squad, 0);
+     the envelope names no captain, so the top contributor carries the armband */
+  squads.slice().sort((a, c) => (a.squad_id < c.squad_id ? -1 : 1)).forEach((q, i) => {
+    const mem = contribs.filter((c) => c.squad_id === q.squad_id)
+    const cap = mem.slice().sort((a, c) => c.points - a.points || String(a.name).localeCompare(String(c.name)))[0]
+    T.squads.push({ id: q.squad_id, season_id: S, league_id: L, name: q.name, color: i % 4, captain_member_id: cap ? cap.member_id : null })
+    for (const c of mem) T.squad_members.push({ squad_id: q.squad_id, member_id: c.member_id })
+  })
+  for (const r of golfers) T.v_individual_standings.push({ season_id: S, league_id: L, member_id: r.member_id, profile_id: memberById(W, r.member_id).profile_id,
+    points: r.points, rounds_posted: r.entries.filter((e) => e.round_id).length })
+  for (const q of squads) T.v_squad_standings.push({ season_id: S, squad_id: q.squad_id, points: q.points })
+  /* the ledger, once per adjustment id; a squad row carries the raw reason,
+     a golfer row appends the individual-total clause the Book adds */
+  const seen = new Set()
+  for (const r of [...squads, ...golfers]) for (const e of r.entries) {
+    if (e.round_id || seen.has(e.id)) continue
+    seen.add(e.id)
+    T.season_adjustments.push({ id: e.id.replace(/^adjustment:/, ''), season_id: S, squad_id: e.squad_id, member_id: e.member_id, month: e.affected_month,
+      kind: e.kind, points: e.points, reason: String(e.reason || '').replace(/ Does not change the individual points total\.$/, ''),
+      created_by: null, created_at: `${e.recorded_on || b.starts_on}T19:00:00Z` })
+  }
+  /* every round the envelope counts or drops, as v_rounds_ranked holds it */
+  for (const r of golfers) {
+    const m = memberById(W, r.member_id)
+    const byMonth = {}
+    for (const e of r.entries.filter((x) => x.round_id)) (byMonth[e.affected_month || monthStart(e.recorded_on)] ||= []).push(e)
+    for (const list of Object.values(byMonth)) {
+      list.sort((a, c) => (a.count_state === 'counting' ? 0 : 1) - (c.count_state === 'counting' ? 0 : 1) || c.points - a.points || (a.recorded_on < c.recorded_on ? -1 : a.recorded_on > c.recorded_on ? 1 : 0))
+      const counting = list.filter((e) => e.count_state === 'counting').length
+      if (b.counting_cap != null && counting !== Math.min(b.counting_cap, list.length)) throw new Error(`adoptBook: ${r.name} ${list[0].affected_month} counts ${counting} of ${list.length}`)
+      list.forEach((e, i) => {
+        if (BAND_PVI[e.points] == null) throw new Error(`adoptBook: no band holds ${e.points} points`)
+        const pvi = r2(BAND_PVI[e.points] - 0.01 * i)
+        T.v_rounds_ranked.push({ round_id: e.round_id, season_id: S, league_id: L, member_id: r.member_id, profile_id: m.profile_id, pvi, points: e.points,
+          band: W.cast.bandOf(pvi), month_rank: i + 1, floor_credit: 1, played_on: e.recorded_on, index_at_post: m.index_current, holes_played: 18, gross: null, course_label: null })
+      })
+    }
+  }
+  rebuildSnapshots(W, [S])
+  /* a complete season was crowned when it was recorded complete: the envelope's own generation time */
+  if (st === 'complete') crownSeason(W, S, tsz(b.generated_at))
+  W.book = bookAt(b, W.today, tsz(W.now))
+  W.book.status = st
+  W.notes.push(`book: adopted ${b.name} (${L}) at week ${W.book.current_week}, status ${st}`)
+  return { league: L, season: S, book: W.book }
+}
+
+/* ------------------------------------------------------------ the crown */
+/* close_season's crown for a season that ends on the points table
+   (20261012090000): the table's own points, then months won, best single
+   month, fewest rounds used -- each over the counting rounds -- and the rung
+   that separated a level top two; the Points King on the same ladder over
+   every member. The last rung is random() in SQL; here the coin lands for the
+   lower id, every run, and the rung is recorded as the coin flip it was. The
+   board is told in that function's own sentence, stamped `at` (the moment
+   the season was recorded complete). */
+export function crownSeason(W, seasonId, at) {
+  const se = seasonById(W, seasonId); if (!se) throw new Error('crownSeason: no season ' + seasonId)
+  const ls = settingsOf(W, se.league_id)
+  if ((ls.finish || 'cup_final') === 'cup_final') throw new Error('crownSeason: a Cup Final crowns from its window; not modelled')
+  const solo = ls.structure === 'solo', cap = ls.counting_cap == null ? 10000 : Number(ls.counting_cap)
+  const rr = T_(W, 'v_rounds_ranked').filter((r) => r.season_id === se.id && r.month_rank <= cap)
+  const squadOf = (mid) => (squadsOf(W, se.id).find((q) => squadMembers(W, q.id).includes(mid)) || {}).id || null
+  const ladderOf = (cids, cidOf, scoreOf) => {
+    const months = {}
+    for (const r of rr) { const c = cidOf(r.member_id); if (!c) continue; const k = c + '|' + monthOf(r.played_on); months[k] = (months[k] || 0) + r.points }
+    const byMon = {}
+    for (const [k, v] of Object.entries(months)) { const [c, mon] = k.split('|'); (byMon[mon] ||= []).push({ c, v }) }
+    return cids.map((c) => {
+      const mine = Object.entries(months).filter(([k]) => k.startsWith(c + '|'))
+      const won = mine.filter(([k, v]) => { const mon = k.split('|')[1]; return v > Math.max(-1, ...byMon[mon].filter((x) => x.c !== c).map((x) => x.v)) }).length
+      return { c, score: scoreOf(c), won, best: mine.length ? Math.max(...mine.map(([, v]) => v)) : 0, used: rr.filter((r) => cidOf(r.member_id) === c).length }
+    }).sort((a, b) => b.score - a.score || b.won - a.won || b.best - a.best || a.used - b.used || (a.c < b.c ? -1 : 1))
+  }
+  const rungOf = (a, b) => (!b || a.score !== b.score ? null : a.won !== b.won ? 'months won' : a.best !== b.best ? 'best single month' : a.used !== b.used ? 'fewest rounds used' : 'coin flip')
+  const memberIds = T_(W, 'league_members').filter((m) => m.league_id === se.league_id).map((m) => m.id)
+  const indPts = (c) => Number((T_(W, 'v_individual_standings').find((i) => i.season_id === se.id && i.member_id === c) || {}).points || 0)
+  const ranked = solo ? ladderOf(memberIds, (m) => m, indPts)
+    : ladderOf(squadsOf(W, se.id).map((q) => q.id), squadOf, (c) => Number((T_(W, 'v_squad_standings').find((s) => s.season_id === se.id && s.squad_id === c) || {}).points || 0))
+  const king = ladderOf(memberIds, (m) => m, indPts)
+  const [c1, c2] = ranked, [k1, k2] = king
+  const rung = rungOf(c1, c2), kingRung = rungOf(k1, k2)
+  Object.assign(se, { status: 'complete', champion_squad_id: solo ? null : c1.c, champion_member_id: solo ? c1.c : null, runnerup_squad_id: solo ? null : (c2 || {}).c || null,
+    runnerup_member_id: solo ? (c2 || {}).c || null : null, points_king_member_id: k1.c, champion_score: c1.score, runnerup_score: c2 ? c2.score : null, tiebreak_rung: rung, king_rung: kingRung })
+  const L = leagueById(W, se.league_id); if (L) L.phase = 'complete'
+  const nm = (c) => (solo ? memberName(W, c) : (T_(W, 'squads').find((q) => q.id === c) || {}).name) || 'The champion'
+  const say = (r) => (r === 'months won' ? 'months won this season' : r)
+  const body = 'Season complete: ' + nm(c1.c) + (solo ? ' takes' : ' take') + ' the Cup' + (c2 ? ` ${c1.score}–${c2.score}` : '')
+    + (rung ? '. Tiebreak: ' + say(rung) : '') + (memberName(W, k1.c) ? '. Points King: ' + memberName(W, k1.c) + (kingRung ? ` (tiebreak: ${say(kingRung)})` : '') : '') + '.'
+  T_(W, 'posts').push({ id: ids.post(951), league_id: se.league_id, season_id: se.id, profile_id: null, kind: 'system', member_id: null, body, created_at: at,
+    round_id: null, live_round_id: null, scheduled_round_id: null })
+  W.notes.push('crown: ' + body)
+  return { champion: c1, runner_up: c2 || null, king: k1, rung, king_rung: kingRung, body }
+}
+
+/* ------------------------------------------------------------ the Cup Final */
+/* the daily tick's seed lock (20260828170100 enter_cup_final) as it ran on
+   ends_on − 27: the table as of that morning, the top two seeded (a squads2
+   top seed carries a 10-point head start), the season flipped to cup_final
+   and the board told, in 20260930093000's words. A tie on the seed line would
+   need the §14.3 ladder, which this world does not model -- it refuses. */
+export function cupFinalOn(W, seasonId) {
+  const se = seasonById(W, seasonId); if (!se) throw new Error('cupFinalOn: no season ' + seasonId)
+  const ls = settingsOf(W, se.league_id)
+  const solo = ls.structure === 'solo'
+  const lock = addDays(se.ends_on, -27)
+  if (W.today < lock) throw new Error(`cupFinalOn: the window opens ${lock}, after the capture clock`)
+  ls.finish = 'cup_final'
+  se.status = 'cup_final'
+  const asOf = standingsAsOf(W, se, lock)
+  const rows = (solo ? asOf.individuals : asOf.squads).slice().sort((a, b) => b.points - a.points)
+  if (rows.length > 2 && (rows[0].points === rows[1].points || rows[1].points === rows[2].points)) throw new Error('cupFinalOn: the seed line is tied')
+  W.tables.cup_finalists = T_(W, 'cup_finalists').filter((c) => c.season_id !== se.id).concat(rows.slice(0, 2).map((r, i) => ({
+    season_id: se.id, squad_id: solo ? null : r.squad_id, member_id: solo ? r.member_id : null, seed: i + 1,
+    head_start: !solo && ls.structure === 'squads2' && i === 0 ? 10 : 0, seed_rung: null })))
+  T_(W, 'posts').push({ id: ids.post(950), league_id: se.league_id, season_id: se.id, profile_id: null, kind: 'system', member_id: null,
+    body: 'The Cup Final is live. Four weeks, scored fresh, and the Final is set.', created_at: `${lock}T07:15:00+00:00`, round_id: null, live_round_id: null, scheduled_round_id: null })
+  if (W.book && W.book.season_id === se.id) W.book.status = 'cup_final'
+  W.notes.push(`cup final: ${se.id} seeded ${rows.slice(0, 2).map((r) => r.squad_id || r.member_id).join(', ')} as of ${lock}`)
+  return W.tables.cup_finalists.filter((c) => c.season_id === se.id)
+}
+
+/* ---------------------------------------------------------------- the Ryder */
+/* Two editions of one Ryder attached to North Grove, organised by its Pro:
+   the first is complete, the second -- its rematch (lineage_id) -- is live in
+   its third week. Pairings rotate the same eight golfers; every closed week is
+   resolved by resolve_session's own rule (20261012090000: the best PvI in the
+   window at the event allowance, a missing card loses, two missing halve),
+   the cup is decided by its clinch/points rule, and every board line is the
+   sentence that function writes. The open week's chips are
+   event_session_targets over the same rounds. */
+const evhalf = (n) => (n - Math.floor(n) >= 0.5 ? Math.floor(n) + '½' : String(Math.floor(n)))
+const r4 = (x) => (x == null ? null : Math.round(x * 1e4) / 1e4)
+export function ryderWorld(W) {
+  const T = W.tables, uid = W.ids.uid, league = W.ids.lid(1)
+  const TEAMS = [{ slot: 0, name: 'Fixture Hawks', color: 2, roster: [8, 1, 4, 5] }, { slot: 1, name: 'Fixture Bobcats', color: 3, roster: [2, 3, 6, 7] }]
+  const EDITIONS = [
+    { n: 1, starts_on: '2026-08-13', lineage_id: null, created_at: '2026-08-06T18:00:00Z' },
+    { n: 2, starts_on: '2026-09-10', lineage_id: ids.event(11), created_at: '2026-09-04T18:00:00Z' },
+  ]
+  const NAME = 'The North Grove Ryder (fixture)'
+  const out = {}
+  for (const ed of EDITIONS) {
+    const E = ids.event(10 + ed.n)
+    const ev = { id: E, name: NAME, created_by: uid(2), league_id: league, kind: 'ryder', status: 'live', starts_on: ed.starts_on, session_count: 3, session_weeks: 1,
+      draw_rule: 'team_pvi', defender_team_id: null, allowance: 100, winner_team_id: null, created_at: ed.created_at, lineage_id: ed.lineage_id,
+      buy_in: 0, pot_split: 'places', decided_by: null, tz: 'America/Phoenix', course_id: null, course_label: null }
+    T.events.push(ev)
+    const teams = TEAMS.map((t) => ({ id: ids.team(ed.n * 10 + t.slot), event_id: E, slot: t.slot, name: t.name, color: t.color, captain_player_id: ids.eplayer(ed.n * 100 + t.roster[0]) }))
+    T.event_teams.push(...teams)
+    const players = TEAMS.flatMap((t, ti) => t.roster.map((pn, i) => ({ id: ids.eplayer(ed.n * 100 + pn), event_id: E, profile_id: uid(pn), team_id: teams[ti].id,
+      role: i === 0 ? 'captain' : 'player', seed: i + 1, benched_count: 0, created_at: ed.created_at, notify_target: false, exhibition: false })))
+    T.event_players.push(...players)
+    const side = (slot) => players.filter((p) => p.team_id === teams[slot].id)
+    const nameOf = (p) => firstname((profileById(W, p.profile_id) || {}).display_name)
+    const sessions = [], duels = [], posts = []
+    let pa = 0, pb = 0, decided = false
+    for (let k = 0; k < 3; k++) {
+      const opens = addDays(ed.starts_on, 7 * k), closes = addDays(ed.starts_on, 7 * k + 6)
+      const status = closes < W.today ? 'closed' : opens <= W.today ? 'open' : 'upcoming'
+      const s = { id: ids.session(ed.n * 10 + k + 1), event_id: E, session_no: k + 1, opens_on: opens, closes_on: closes, status, weight: 1 }
+      sessions.push(s)
+      if (status === 'upcoming') continue
+      posts.push({ body: `Week ${k + 1} is up. 4 clashes — find yours.`, at: `${opens}T07:20:00+00:00` })
+      const A = side(0), B = side(1)
+      const ds = A.map((a, i) => ({ id: ids.duel(ed.n * 100 + (k + 1) * 10 + i + 1), event_id: E, session_id: s.id, a_player: a.id, b_player: B[(i + k) % 4].id,
+        a_round: null, b_round: null, a_pvi: null, b_pvi: null, a_points: 0, b_points: 0, result: 'pending', resolved_at: null }))
+      duels.push(...ds)
+      if (status !== 'closed') continue
+      const lines = []
+      for (const d of ds) {
+        const a = players.find((p) => p.id === d.a_player), b = players.find((p) => p.id === d.b_player)
+        const ba = bestIn(W, a.profile_id, opens, closes, ev.allowance).best, bb = bestIn(W, b.profile_id, opens, closes, ev.allowance).best
+        d.a_round = ba ? ba.r.id : null; d.b_round = bb ? bb.r.id : null
+        d.a_pvi = ba ? r4(ba.pvi) : null; d.b_pvi = bb ? r4(bb.pvi) : null
+        if (d.a_pvi == null && d.b_pvi == null) { d.result = 'halve'; d.a_points = 0.5; d.b_points = 0.5 }
+        else if (d.b_pvi == null || (d.a_pvi != null && d.a_pvi > d.b_pvi)) { d.result = 'a'; d.a_points = 1 }
+        else if (d.a_pvi == null || d.b_pvi > d.a_pvi) { d.result = 'b'; d.b_points = 1 }
+        else { d.result = 'halve'; d.a_points = 0.5; d.b_points = 0.5 }
+        d.resolved_at = `${addDays(closes, 1)}T07:20:00+00:00`
+        const by = d.a_pvi != null && d.b_pvi != null ? ' by ' + Math.abs(d.a_pvi - d.b_pvi).toFixed(1) : ''
+        lines.push(d.result === 'a' ? `${nameOf(a)} beat ${nameOf(b)}${by}` : d.result === 'b' ? `${nameOf(b)} beat ${nameOf(a)}${by}` : `${nameOf(a)} and ${nameOf(b)} halved`)
+        pa += d.a_points; pb += d.b_points
+      }
+      const score = pa === pb ? `All square, ${evhalf(pa)}–${evhalf(pb)}` : pa > pb ? `${teams[0].name} lead ${evhalf(pa)}–${evhalf(pb)}` : `${teams[1].name} lead ${evhalf(pb)}–${evhalf(pa)}`
+      posts.push({ body: `${score} after week ${k + 1}. ${lines.join(' · ')}.`, at: `${addDays(closes, 1)}T07:20:00+00:00` })
+      /* the clinch / completion rule; a decided cup is never re-decided (D146) */
+      const mTotal = 4 * ev.session_count
+      const allClosed = k === 2
+      if (!decided && (Math.max(pa, pb) > mTotal / 2 || (allClosed && pa !== pb))) {
+        decided = true; ev.status = 'complete'; ev.winner_team_id = pa > pb ? teams[0].id : teams[1].id
+      } else if (!decided && allClosed) {
+        const tot = (slot) => duels.reduce((s2, d) => s2 + (slot === 0 ? (d.a_pvi || 0) : (d.b_pvi || 0)), 0)
+        const sa = tot(0), sb = tot(1)
+        decided = true; ev.status = 'complete'; ev.decided_by = sa === sb ? 'shared cup' : 'total PvI'; ev.winner_team_id = sa > sb ? teams[0].id : sb > sa ? teams[1].id : null
+      }
+      if (decided && !ev._posted) {
+        ev._posted = true
+        const rec = players.map((p) => {
+          const mine = duels.filter((d) => d.result !== 'pending' && (d.a_player === p.id || d.b_player === p.id))
+          const w = mine.filter((d) => (d.a_player === p.id && d.result === 'a') || (d.b_player === p.id && d.result === 'b')).length
+          const l = mine.filter((d) => (d.a_player === p.id && d.result === 'b') || (d.b_player === p.id && d.result === 'a')).length
+          const h = mine.filter((d) => d.result === 'halve').length
+          return { p, w, l, h, tot: mine.reduce((s2, d) => s2 + ((d.a_player === p.id ? d.a_pvi : d.b_pvi) || 0), 0) }
+        }).sort((x, y) => y.w - x.w || y.tot - x.tot)[0]
+        const hi = Math.max(pa, pb), lo = Math.min(pa, pb)
+        const win = teams.find((t) => t.id === ev.winner_team_id)
+        const head = !win ? `${teams[0].name} and ${teams[1].name} share ${NAME}, ${evhalf(pa)}–${evhalf(pb)}.`
+          : ev.decided_by ? `Level at ${evhalf(hi)}–${evhalf(lo)} — ${win.name} take ${NAME} on ${ev.decided_by}.`
+          : `${win.name} take ${NAME} ${evhalf(hi)}–${evhalf(lo)}.`
+        posts.push({ body: `${head}${rec ? ` ${nameOf(rec.p)} is MVP at ${rec.w}-${rec.l}-${rec.h}.` : ''}`, at: `${addDays(closes, 1)}T07:21:00+00:00` })
+      }
+    }
+    delete ev._posted
+    T.event_sessions.push(...sessions)
+    T.event_duels.push(...duels)
+    posts.forEach((p, i) => T_(W, 'posts').push({ id: ids.post(960 + ed.n * 10 + i), league_id: null, event_id: E, profile_id: null, kind: 'system', member_id: null,
+      body: p.body, created_at: p.at, round_id: null, live_round_id: null, scheduled_round_id: null }))
+    out[ed.n] = ev
+  }
+  /* v_event_scoreboard, as the view sums it: each duel's points to its side's team */
+  W.tables.v_event_scoreboard = []
+  for (const ev of T.events) {
+    const pts = {}
+    for (const d of T.event_duels.filter((x) => x.event_id === ev.id)) {
+      const a = eventPlayer(W, d.a_player), b = eventPlayer(W, d.b_player)
+      if (a && a.team_id) pts[a.team_id] = (pts[a.team_id] || 0) + d.a_points
+      if (b && b.team_id) pts[b.team_id] = (pts[b.team_id] || 0) + d.b_points
+    }
+    for (const [team_id, points] of Object.entries(pts)) W.tables.v_event_scoreboard.push({ event_id: ev.id, team_id, points })
+  }
+  return { first: out[1], rematch: out[2] }
+}

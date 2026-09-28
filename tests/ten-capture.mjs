@@ -270,7 +270,7 @@ async function assertRoute(page, state) {
   for (const [sel, want] of Object.entries(exp.selectors || {})) {
     const got = await page.evaluate(([sel, want]) => {
       const el = document.querySelector(sel)
-      if (!el) return { ok: false, why: 'missing ' + sel }
+      if (!el) return want === 'hidden' ? { ok: true } : { ok: false, why: 'missing ' + sel }   /* absent counts as hidden */
       const r = el.getBoundingClientRect(), cs = getComputedStyle(el)
       const visible = r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'
       if (want === 'visible' && !visible) return { ok: false, why: sel + ' not visible' }
