@@ -460,28 +460,20 @@ struct MainTabView: View {
     .onReceive(NotificationCenter.default.publisher(for: .csOpenLiveRound)) { _ in
       presenter.showLive = true
     }
-    .task(id: LiveActivityRoute.shared.pending) {
-      guard let destination = LiveActivityRoute.shared.pending, let owner = store.me?.profile?.id else { return }
-      LiveActivityRoute.shared.pending = nil
-      guard destination.owner == owner else { return }
-      let live = LiveRoundStore.shared
-      await live.configure(me: store.me, preferredLeague: store.preferredLeague)
-      do {
-        try await live.openActivityRound(destination, currentOwner: { store.session?.user.id })
-        presenter.showLive = true
-      } catch { /* An old activity must never open a different round. */ }
+    .task(id: LiveActivityRoute.shared.pending) { drainActivityRoute() }
+    .task(id: store.me?.profile?.id) {
+      drainWidgetRoute(); drainPushRoute(); drainActivityRoute()
     }
+    .onChange(of: store.session?.user.id) { _, _ in presenter.cancelHandoff() }
+    .onDisappear { presenter.cancelHandoff() }
     // D241 / D253 · spend a pending person or plan token. It is drained HERE,
     // not in `onOpenURL`, because a link tapped on a phone with no session has
     // to survive the whole door — email, code, golfer card — and a buddy
     // request from a golfer with no name on them is not a request anybody can
     // answer. `.task(id:)` on the profile is what makes the wait exact.
     .onReceive(NotificationCenter.default.publisher(for: .csShareTokenPending)) { _ in shareTick += 1 }
-    .task(id: ShareDrainKey(profile: store.me?.profile?.id, tick: shareTick, occupied: presenter.anythingUp)) {
-      guard !presenter.anythingUp else { return }
-      // Let any previous sheet finish dismissing before presenting the next link.
-      try? await Task.sleep(for: .milliseconds(500))
-      guard !Task.isCancelled else { return }
+    .task(id: ShareDrainKey(profile: store.me?.profile?.id, tick: shareTick, occupied: !stageIsClear)) {
+      guard await presenter.waitForClearStage(isCurrent: { stageIsClear }) else { return }
       await drainShareTokens()
     }
     // D168 · nearby follows the APP. Foreground and opted in = discoverable to
@@ -673,32 +665,7 @@ struct MainTabView: View {
     }
     #endif
     // ---- D104: a tapped notification lands here once the session is ready ----
-    .task(id: WidgetRouter.shared.pending) {
-      guard let destination = WidgetRouter.shared.pending, let owner = store.me?.profile?.id else { return }
-      WidgetRouter.shared.pending = nil
-      guard destination.owner == owner else { return }
-      guard let id = destination.id else {
-        if presenter.dismissAll() { try? await Task.sleep(for: .milliseconds(450)) }
-        switch destination.kind {
-        case .race: tab = .compete; competePath = NavigationPath()
-        case .nextTee: tab = .compete; competePath = NavigationPath(); competePath.append(CompeteRoute.schedule)
-        case .record: openPlay()
-        case .rivalry: openGolfers()
-        }
-        return
-      }
-      switch destination.kind {
-      case .race:
-        if presenter.dismissAll() { try? await Task.sleep(for: .milliseconds(450)) }
-        openCompetition(id)
-      case .nextTee: await apply(.scheduledRound(id))
-      case .record: await apply(.receipt(id))
-      case .rivalry:
-        if presenter.dismissAll() { try? await Task.sleep(for: .milliseconds(450)) }
-        tab = .you
-        presenter.widgetRivalry = id
-      }
-    }
+    .task(id: WidgetRouter.shared.pending) { drainWidgetRoute() }
     .sheet(item: Binding(get: { presenter.linkConfirmation }, set: { value in
       if value == nil { declineLink() }
     })) { card in
@@ -708,11 +675,7 @@ struct MainTabView: View {
     .csSheet(item: $presenter.widgetRivalry) { id in
       RivalrySheet(opponentId: id, name: BetweenRoundsSnapshot.read()?.rivalry?.value.flatMap { $0.opponent == id ? $0.name : nil } ?? "your rival")
     }
-    .task(id: router.pending) {
-      guard let route = router.pending, store.me != nil else { return }
-      router.pending = nil
-      await apply(route)
-    }
+    .task(id: router.pending) { drainPushRoute() }
     // ---- D104 §4: the badge is the actionable count; recompute on foreground and around the live round ----
     .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await PushBadge.refresh() } } }
     // D179 · opening the live round IS seeing it; closing it just recounts.
@@ -721,9 +684,9 @@ struct MainTabView: View {
     }
     // ---- D104 §6: the contextual ask, raised only on a clear stage ----
     .task(id: ask.pending) { await drainAsk() }
-    .onChange(of: presenter.anythingUp) { _, up in
-      guard !up else { return }
-      Task { try? await Task.sleep(for: .milliseconds(500)); await drainAsk() }   // let the curtain close first
+    .task(id: stageIsClear) {
+      guard await presenter.waitForClearStage(isCurrent: { stageIsClear }) else { return }
+      await drainAsk()
     }
     .csSheet(item: $ask.presented) { PushPromptSheet(reason: $0) }
     #if DEBUG
@@ -929,13 +892,67 @@ struct MainTabView: View {
 
   // MARK: push (D104)
 
-  /// One function lands every route (push-contract §2). Whatever is on stage
-  /// comes down first, so the destination can rise; unknown → Home, never a
-  /// blank.
-  private func apply(_ route: PushRoute) async {
-    if case .live = route {} else if presenter.dismissAll() {
-      try? await Task.sleep(for: .milliseconds(450))   // the curtain closes before the next sheet
+  private var stageIsClear: Bool { presenter.stageIsClear && ask.presented == nil }
+
+  private func drainPushRoute() {
+    guard let route = router.pending, store.me != nil else { return }
+    router.pending = nil
+    apply(route)
+  }
+
+  private func drainActivityRoute() {
+    guard let destination = LiveActivityRoute.shared.pending, let owner = store.me?.profile?.id else { return }
+    LiveActivityRoute.shared.pending = nil
+    guard destination.owner == owner else { return }
+    presenter.handoff(dismissExisting: false, isCurrent: { store.session?.user.id == owner }, prepare: {
+      let live = LiveRoundStore.shared
+      await live.configure(me: store.me, preferredLeague: store.preferredLeague)
+      do {
+        try await live.openActivityRound(destination, currentOwner: { store.session?.user.id })
+        return true
+      } catch { return false }
+    }, present: { presenter.showLive = true })
+  }
+
+  private func drainWidgetRoute() {
+    guard let destination = WidgetRouter.shared.pending, let owner = store.me?.profile?.id else { return }
+    WidgetRouter.shared.pending = nil
+    guard destination.owner == owner else { return }
+    if let id = destination.id {
+      switch destination.kind {
+      case .nextTee: apply(.scheduledRound(id)); return
+      case .record: apply(.receipt(id)); return
+      case .race, .rivalry: break
+      }
     }
+    presenter.handoff(isCurrent: { store.me?.profile?.id == owner }) {
+      if let id = destination.id {
+        switch destination.kind {
+        case .race: openCompetition(id)
+        case .rivalry: tab = .you; presenter.widgetRivalry = id
+        case .nextTee, .record: break
+        }
+      } else {
+        switch destination.kind {
+        case .race: tab = .compete; competePath = NavigationPath()
+        case .nextTee: tab = .compete; competePath = NavigationPath(); competePath.append(CompeteRoute.schedule)
+        case .record: openPlay()
+        case .rivalry: openGolfers()
+        }
+      }
+    }
+  }
+
+  /// NavSlot still owns destination mapping; Presenter owns the handoff.
+  private func apply(_ route: PushRoute) {
+    guard let owner = store.me?.profile?.id else { return }
+    let dismiss: Bool = if case .live = route { false } else { true }
+    presenter.handoff(dismissExisting: dismiss, isCurrent: { store.me?.profile?.id == owner }) {
+      land(route)
+    }
+  }
+
+  private func land(_ route: PushRoute) {
     // D222 · the SLOT is decided once, in the Kit, so a route that lands on a
     // destination that no longer exists is a failing `RouteMapTests` case and
     // not a blank screen. What happens INSIDE the slot is this switch's job.
@@ -945,7 +962,7 @@ struct MainTabView: View {
     case .comment(let round, let comment, let notification):
       presenter.receiptComment = comment; presenter.receiptFocusComments = true; presenter.receipt = round
       if let notification {
-        _ = try? await RoundSocialService().request("mark_notifications_read", ["p_ids": .array([.string(notification.uuidString)])])
+        Task { _ = try? await RoundSocialService().request("mark_notifications_read", ["p_ids": .array([.string(notification.uuidString)])]) }
       }
     case .scorecard(let id): presenter.scorecard = id
     // A board is a season's board, and a season is Compete's (route map §13.2).
@@ -978,8 +995,10 @@ struct MainTabView: View {
   /// The ask rises only when nothing else is presented (§6: never inside
   /// another sheet's presentation).
   private func drainAsk() async {
-    guard ask.pending != nil, !presenter.anythingUp, ask.presented == nil, router.pending == nil else { return }
-    await ask.presentIfDue()
+    guard let owner = store.me?.profile?.id else { return }
+    await ask.presentIfDue(while: {
+      store.me?.profile?.id == owner && stageIsClear && router.pending == nil
+    })
   }
 
   // MARK: links
@@ -1020,7 +1039,7 @@ struct MainTabView: View {
   /// the three-state rule wave 5 wrote down after "The board didn't load."
   /// appeared over an account whose board was simply not deployed.
   private func drainShareTokens() async {
-    guard let owner = store.session?.user.id, !presenter.anythingUp, !linkBusy else { return }
+    guard let owner = store.session?.user.id, stageIsClear, !linkBusy else { return }
     for kind in LinkConfirmation.Kind.allCases {
       guard let token = LinkConfirmation.pending(kind) else { continue }
       if kind == .claim, LiveRoundStore.shared.guest?.token == token { continue }
@@ -1035,7 +1054,7 @@ struct MainTabView: View {
           continue // The live pencil keeps its token until a finished card exists.
         }
         let info = try await LinkConfirmation.preview(kind: kind, token: token)
-        guard !Task.isCancelled, store.session?.user.id == owner, !presenter.anythingUp,
+        guard !Task.isCancelled, store.session?.user.id == owner, stageIsClear,
               LinkConfirmation.pending(kind) == token else { return }
         let card = LinkConfirmation(kind: kind, token: token, owner: owner, info: info ?? .null)
         guard let info, info["claimed"]?.bool != true else { card.clear(); continue }

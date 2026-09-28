@@ -14,6 +14,15 @@ import CupSeasonKit
 @Observable
 final class PushAsk {
   static let shared = PushAsk()
+  @ObservationIgnored private let authorization: @MainActor () async -> PushAskPolicy.Status
+
+  init(authorization: @escaping @MainActor () async -> PushAskPolicy.Status = {
+    switch await UNUserNotificationCenter.current().notificationSettings().authorizationStatus {
+    case .notDetermined: .undetermined
+    case .authorized, .provisional, .ephemeral: .authorized
+    default: .denied
+    }
+  }) { self.authorization = authorization }
 
   /// A moment happened; the shell will present when the stage is clear.
   private(set) var pending: PushAskReason?
@@ -24,17 +33,13 @@ final class PushAsk {
     if pending == nil { pending = reason }
   }
 
-  /// Called by the shell with nothing else presented. Consumes `pending`
-  /// whether or not the sheet shows — a moment asks once.
-  func presentIfDue() async {
-    guard let reason = pending else { return }
+  /// A route may arrive while system settings are being read. Keep the moment
+  /// pending in that case; it can ask when the next clear stage arrives.
+  func presentIfDue(while stageIsClear: @MainActor () -> Bool) async {
+    guard let reason = pending, stageIsClear() else { return }
+    let status = await authorization()
+    guard !Task.isCancelled, pending == reason, stageIsClear() else { return }
     pending = nil
-    let s = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
-    let status: PushAskPolicy.Status = switch s {
-    case .notDetermined: .undetermined
-    case .authorized, .provisional, .ephemeral: .authorized
-    default: .denied
-    }
     let declined = UserDefaults.standard.object(forKey: PushAskPolicy.declinedKey) as? Date
     var due = PushAskPolicy.shouldAsk(status: status, declinedAt: declined)
     #if DEBUG

@@ -16,6 +16,60 @@ import CupSeasonKit
 @MainActor
 @Observable
 final class Presenter {
+  @ObservationIgnored private let settle: @MainActor (Duration) async throws -> Void
+  @ObservationIgnored private var incoming: Task<Void, Never>?
+  @ObservationIgnored private var generation = 0
+  private(set) var isTransitioning = false
+
+  init(settle: @escaping @MainActor (Duration) async throws -> Void = { try await Task.sleep(for: $0) }) {
+    self.settle = settle
+  }
+
+  /// Incoming routes own their task: clearing a router's pending value must
+  /// not cancel its own dismissal. A newer route invalidates the older handoff.
+  @discardableResult
+  func handoff(dismissExisting: Bool = true,
+               isCurrent: @escaping @MainActor () -> Bool,
+               prepare: @escaping @MainActor () async -> Bool = { true },
+               present: @escaping @MainActor () -> Void) -> Task<Void, Never> {
+    let wasTransitioning = isTransitioning
+    cancelHandoff()
+    let ticket = generation
+    guard isCurrent() else { return Task {} }
+    let needsSettle = dismissExisting && (dismissAll() || wasTransitioning)
+    isTransitioning = true
+    let task = Task { @MainActor in
+      defer {
+        if generation == ticket { incoming = nil; isTransitioning = false }
+      }
+      do {
+        if needsSettle { try await settle(.milliseconds(450)) }
+        guard !Task.isCancelled, generation == ticket, isCurrent() else { return }
+        guard await prepare(), !Task.isCancelled, generation == ticket, isCurrent() else { return }
+        present()
+      } catch { /* Cancellation leaves the new route or account in charge. */ }
+    }
+    incoming = task
+    return task
+  }
+
+  func cancelHandoff() {
+    generation += 1
+    incoming?.cancel(); incoming = nil
+    isTransitioning = false
+  }
+
+  var stageIsClear: Bool { !anythingUp && !isTransitioning }
+
+  /// Passive presentations wait for the same curtain as incoming routes.
+  /// Re-check after every later read as well, using stageIsClear.
+  func waitForClearStage(isCurrent: @MainActor () -> Bool) async -> Bool {
+    guard stageIsClear, isCurrent() else { return false }
+    let ticket = generation
+    do { try await settle(.milliseconds(500)) } catch { return false }
+    return !Task.isCancelled && ticket == generation && stageIsClear && isCurrent()
+  }
+
   var linkConfirmation: LinkConfirmation?
   var tourCard: UUID?
   // D261 / R-N · the course used to rise here as a sheet. Wave 4 makes it a
@@ -101,7 +155,7 @@ final class Presenter {
   /// Is any sheet or cover on stage? The push ask waits for a clear stage;
   /// a routed tap clears it first (D104).
   var anythingUp: Bool {
-    linkConfirmation != nil || widgetRivalry != nil || tourCard != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
+    linkConfirmation != nil || widgetRivalry != nil || tourCard != nil || showBag || bagOf != nil || receipt != nil || scorecard != nil || scheduledRound != nil || showJoin || showPost || showLive ||
       showFeedback || showDesk || showNote || declare != nil || inviteTo != nil || wizard != nil || draft != nil || runBack != nil ||
       showEventPicker || event != nil || showIntent || showWhenFork || showPickAGolfer ||
       length != nil || callout != nil || calloutReply != nil || forfeit != nil || inviteTerms != nil
@@ -115,6 +169,8 @@ final class Presenter {
     let was = anythingUp
     linkConfirmation = nil
     widgetRivalry = nil
+    showBag = false; bagOf = nil; bagOfName = nil
+    receiptArmPhoto = false
     tourCard = nil; receipt = nil; scorecard = nil; scheduledRound = nil; showJoin = false; showPost = false; showLive = false
     showFeedback = false; showDesk = false; showNote = false; declare = nil; inviteTo = nil; wizard = nil; draft = nil; runBack = nil
     showEventPicker = false; event = nil
