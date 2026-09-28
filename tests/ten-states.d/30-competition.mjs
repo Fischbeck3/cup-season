@@ -412,7 +412,7 @@ const EVENTS = [
       ryderWorld(W)
       W.errors.when = [...(W.errors.when || []), { table: 'events', match: (q) => q.includes('id=eq.' + E_LIVE), error: { __error: 'fixture: the event read failed', status: 503 } }]
     },
-    expectConsole: [/status of 503/, /\[event\]/],
+    expectConsole: [/status of 503/, /\[event\]/, /^\[cs\] error: fixture: the event read failed/],
     drive: async (page) => {
       await eventFromCompete(page, `#cmpList [data-peer="event:${E_LIVE}"]`, E_LIVE).catch(() => {})
       await until(page, () => !!window.CS_EVENT && window.CS_EVENT.state === 'failed' && !!document.getElementById('evRetry'), null, 15000)
