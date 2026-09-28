@@ -683,7 +683,9 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .cmphead h2{font-family:var(--board); font-size:42px; font-weight:700; line-height:.98;
   text-transform:uppercase; letter-spacing:calc(var(--d1) * 1em); margin:0; flex:1;}
 @media(max-width:720px){ .cmphead h2{font-size:34px;} }
-.cmphead a{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--act); text-decoration:none;}
+.cmphead a{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--act); text-decoration:none;
+  display:inline-flex; align-items:center; min-height:44px;}   /* a 44px target around the same small caps (UI_SYSTEM §16.2) */
+.cmphead a[hidden]{display:none;}
 .emptyroot{padding:6px 0 2px;}
 .emptyroot h3{font-family:var(--serif); font-size:22px; margin:0 0 8px; font-weight:700;}
 .emptyroot .fact{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin:0 0 6px;}
@@ -9704,7 +9706,11 @@ function drawRecapCard(d){
     /* third person on the artifact — its audience is the group chat, and the
        golfer's name is right above (same rule as the share page) */
     ctr(theirs(bandName(Number(d.pvi))).toUpperCase(), 850, `600 46px ${BOARD}`, GOLD, 6);
-    ctr(theirs(vsPhrase(Number(d.pvi))), 906, `400 31px ${SERIF}`, MUT);
+    /* F13 · the band is said ONCE on the artifact, as the phone's RecapCardView
+       says it. The sentence under it ("played to their playing HCP" under PLAYED
+       TO IT) repeated the band in smaller type; the margin it can add rides in
+       the caption that travels with the card (recapText), exactly as on the
+       phone. */
   }
   if(d.badge) ctr(d.badge, 972, `600 31px ${BOARD}`, GOLD, 5);
   x.strokeStyle='rgba(255,255,255,.1)'; x.lineWidth=1;
@@ -10581,7 +10587,12 @@ function showEpilogue(epi, course, firstEver, roundId, ctx){
   const pvi = epi.pvi!=null ? Number(epi.pvi) : null;
   if(pvi!=null){
     /* D326 · no mark. The flag said "golf" on a golf app, over the best fact. */
-    rows.push(`<div class="check"><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b><small>${esc(vsPhrase(pvi))}${epiCounting(epi.month_rank)}</small></div></div>`);
+    /* F13 · one fact once: "Played to it" already says what "played to your
+       playing HCP" would; the sentence stays only where it adds the margin
+       (the phone's PostEpilogue.rows reads the same rule) */
+    const said = Math.abs(pvi) >= 1 ? vsPhrase(pvi) : '';
+    const sub = (said + epiCounting(epi.month_rank)).replace(/^ \u00b7 /, '').replace(/^ · /, '');
+    rows.push(`<div class="check"><div class="tt"><b>${esc(bandName(pvi))}${epi.points!=null?` · ${epi.points} pts`:''}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`);
   }
   (epi.earned||[]).forEach(a=>{
     /* D329 · the fallback is the CASE's fallback, on both clients. A kind this
@@ -20385,9 +20396,14 @@ function csEmptyRootDoors(box, take){
 function renderCompete(){
   const box=document.getElementById('cmpList'), shelf=document.getElementById('cmpFinished');
   if(!box) return;
+  /* F12 · one fact, one place (D360). An empty Compete offers Start something
+     at the empty state's own doors, closest to the decision; the head's link
+     said it a second time. It stands down until there is a list to head. */
+  const headStart = document.getElementById('cmpStart');
   if(!window.CS?.user){
     box.innerHTML = csEmptyRootHtml(csEmptyRoot('compete', { buddies:0 }));
     if(shelf) shelf.innerHTML='';
+    if(headStart) headStart.hidden = true;
     csEmptyRootDoors(box, take);
     return;
   }
@@ -20407,6 +20423,7 @@ function renderCompete(){
       + (list.seasons.length ? list.seasons.filter(r => !lead || r.id !== lead.id).map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
       + (list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '');
   box.innerHTML = body;
+  if(headStart) headStart.hidden = !!list.nothingRunning;
   box.querySelectorAll(".sb-terrain").forEach(h=>window.csTopoHead?.(h));
   box.querySelector("#cmpBookDoor")?.addEventListener("click",()=>csOpenSeasonBook(lead.leagueId,lead.seasonId));
   /* D389 · an unanswered season opens its TERMS; an accepted one opens the season */
