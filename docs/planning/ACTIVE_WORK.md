@@ -1,21 +1,28 @@
 # Cup Season · active work and ownership
 
-## Impeccable selected repairs · shipping authorized · 2026-09-28 (Codex)
+## Impeccable selected repairs · web and Owner TestFlight shipped · 2026-09-28 (Codex)
 
-The owner said **“Ship it”** after reviewing the local S1a/S1b handoff and its
-known verification limits. Owned release branch: `codex/ten-ship-2026-09-28`,
-isolated in `/Users/fischbeck3/cup-season-ten-ship`, based on fresh main
-`5fabf861`. It carries the approved program documentation and only the two
-reviewed product fixes. The source branches remain independently available.
+The owner said **“Ship it”** after the local S1a/S1b handoff and its known
+verification limits. Owned release branch: `codex/ten-ship-2026-09-28`, isolated
+in `/Users/fischbeck3/cup-season-ten-ship`. Fresh main `5fabf861` fast-forwarded
+to release `cf6d0663`; only the two reviewed product fixes and approved program
+documentation were integrated. Web is live; **Owner TestFlight 1.0.0 (1053)
+is available**, VALID, IN_BETA_TESTING, Owner YES, Friends no. Exact test notes
+were verified. The App Store 1.0 draft remains PREPARE_FOR_SUBMISSION.
 
-Authorized delivery: fast-forward main and publish web through Netlify;
-archive, validate, upload and distribute native to internal Owner TestFlight.
-No database or Edge change is required. App Store submission, Friends/external
-distribution and broader design work remain outside this narrow delivery.
-The original dirty checkout and all other active workspaces remain untouched.
+Release preflight has 0 failures/warnings, all 105 CI tests and 27 scoring
+assertions pass, both GitHub CI jobs succeed, production HTTP/Email semantics
+pass, and Apple archive/export/validation/upload succeed. Recorded inherited
+test failures, console/compiler warnings and human/device gaps remain open.
+No database or Edge deployment is required. No App Store submission, external
+distribution or broader design implementation occurred. The original dirty
+checkout and other workspaces remain untouched. The documentation-only
+follow-up preserves the exact product source used for build 1053.
 
-[Release record](../design/ten-2026-09-27/DEPLOYMENT.md) tracks the exact candidate,
-checks, layer-specific read-backs and remaining device/human limitations.
+[Release record](../design/ten-2026-09-27/DEPLOYMENT.md) includes artifact identity,
+layer-specific read-backs and remaining limitations. The next action is the
+owner's real-phone check using the existing human task sheet. Earlier entries
+below are historical build and planning checkpoints.
 
 
 ## Impeccable ten · approved narrow builds · 2026-09-28 (Codex)

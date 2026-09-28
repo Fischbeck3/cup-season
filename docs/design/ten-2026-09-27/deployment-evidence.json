@@ -1,0 +1,257 @@
+{
+  "source_commit": "cf6d0663dd14f0bc16e4fa8552fdadf79cbb334e",
+  "baseline_commit": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "branch": "codex/ten-ship-2026-09-28",
+  "authorization": "Owner said Ship it after the reviewed S1a/S1b build handoff. Scope: main/Netlify and internal Owner TestFlight.",
+  "local_checks": {
+    "preflight": {
+      "failures": 0,
+      "warnings": 0
+    },
+    "node_ci_tests": {
+      "passed": 105,
+      "failed": 0
+    },
+    "sunningdale_assertions": {
+      "passed": 27
+    },
+    "stamp_version": "cf6d066"
+  },
+  "github_ci": {
+    "run_id": 36376341114,
+    "url": "https://github.com/Fischbeck3/cup-season/actions/runs/36376341114",
+    "conclusion": "success",
+    "jobs": {
+      "Client invariants": "success",
+      "Migration hygiene": "success"
+    }
+  },
+  "web": {
+    "checked_at": "2026-09-28T04:07:38.991863+00:00",
+    "checks": [
+      {
+        "path": "/",
+        "status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "version": [
+          [
+            "cf6d066",
+            ""
+          ],
+          [
+            "cf6d066",
+            ""
+          ]
+        ],
+        "headers": {
+          "X-Frame-Options": "DENY",
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+          "Cache-Control": "public,max-age=0,must-revalidate"
+        },
+        "email_label": true,
+        "home_bg1": true
+      },
+      {
+        "path": "/sw.js",
+        "status": 200,
+        "content_type": "application/javascript; charset=UTF-8",
+        "version": [
+          [
+            "",
+            "cf6d066"
+          ]
+        ],
+        "headers": {
+          "X-Frame-Options": "DENY",
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "strict-origin-when-cross-origin",
+          "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+          "Cache-Control": "no-cache,no-store,must-revalidate"
+        }
+      },
+      {
+        "path": "/get",
+        "status": 200,
+        "content_type": "text/html; charset=UTF-8"
+      },
+      {
+        "path": "/support",
+        "status": 200,
+        "content_type": "text/html; charset=UTF-8"
+      },
+      {
+        "path": "/legal.html",
+        "status": 200,
+        "content_type": "text/html; charset=UTF-8"
+      },
+      {
+        "path": "/.well-known/apple-app-site-association",
+        "status": 200,
+        "content_type": "application/json",
+        "aasa": {
+          "applinks": {
+            "details": [
+              {
+                "appIDs": [
+                  "3F7BK4WVH8.app.cupseason.ios"
+                ],
+                "components": [
+                  {
+                    "/": "/",
+                    "?": {
+                      "claim": "?*"
+                    },
+                    "comment": "Guest claim links open the app so a round can be adopted natively."
+                  },
+                  {
+                    "/": "/",
+                    "?": {
+                      "join": "?*"
+                    },
+                    "comment": "League invite links open the app straight into the join covenant."
+                  },
+                  {
+                    "/": "/",
+                    "?": {
+                      "p": "?*"
+                    },
+                    "comment": "D241 - a golfer's own card. The app mints the buddy request; signed out, the web renders the card."
+                  },
+                  {
+                    "/": "/",
+                    "?": {
+                      "plan": "?*"
+                    },
+                    "comment": "D253 - a weekend. The app takes the seat and mints the buddy request to the host."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "path": "/AGENTS.md",
+        "status": 404,
+        "content_type": "text/html; charset=utf-8"
+      },
+      {
+        "path": "/docs/design/ten-2026-09-27/README.md",
+        "status": 404,
+        "content_type": "text/html; charset=utf-8"
+      },
+      {
+        "path": "/supabase/migrations/20260101000000_secret.sql",
+        "status": 404,
+        "content_type": "text/html; charset=utf-8"
+      }
+    ]
+  },
+  "artifact_comparison": {
+    "published_html_matches_build_except_two_equivalent_pretty_url_anchors": true,
+    "changes": "Only the Terms/Privacy anchors are serialized/repointed from /legal.html to /legal by hosting. Their other attributes are equal; all remaining HTML bytes match.",
+    "checks": [
+      {
+        "path": "/supabase/migrations/20261210090000_reach_needs_a_relationship.sql",
+        "status": 404
+      },
+      {
+        "path": "/legal",
+        "status": 200
+      }
+    ]
+  },
+  "browser_smoke": {
+    "version": "cf6d066",
+    "initial_state": "signed out",
+    "email_label": "Email",
+    "accessibility_name": "EMAIL",
+    "email_container_display": "grid",
+    "errors_observed": 0,
+    "warning": "Supabase auth-js lock-option deprecation remains present.",
+    "auth_submitted": false,
+    "service_worker_note": "New verification tab reported the intended release version; no authenticated session was reset."
+  },
+  "native_signing": {
+    "checked_at": "2026-09-28T04:11:28.867133+00:00",
+    "source": "cf6d0663dd14f0bc16e4fa8552fdadf79cbb334e",
+    "ipa_sha256": "f0dfcb7535f493710093b7e3f89c1bf8a6984c70afbef0cebd16904cb51bfb9c",
+    "ipa_bytes": 22050486,
+    "bundles": [
+      {
+        "bundle": "app.cupseason.ios",
+        "version": "1.0.0",
+        "build": "1053",
+        "signature_valid": true,
+        "get_task_allow": false,
+        "aps_environment": "production",
+        "application_groups": [
+          "group.app.cupseason.shared"
+        ],
+        "profile_expiration": "2027-09-14 19:29:07"
+      },
+      {
+        "bundle": "app.cupseason.ios.widgets",
+        "version": "1.0.0",
+        "build": "1053",
+        "signature_valid": true,
+        "get_task_allow": false,
+        "aps_environment": null,
+        "application_groups": [
+          "group.app.cupseason.shared"
+        ],
+        "profile_expiration": "2027-09-14 19:29:07"
+      }
+    ],
+    "check_correction": "Initial verification used an incorrect assumed app-group name. Rerun compares signed entitlements to the canonical source; no source, signing or artifact change.",
+    "archive": {
+      "result": "ARCHIVE SUCCEEDED",
+      "errors": 0,
+      "warning_instances": 83,
+      "distinct_warning_messages": 21,
+      "note": "Warnings retained in local archive.log; this is not a warning-free native build."
+    }
+  },
+  "apple_validation": {
+    "success": true,
+    "errors": 0
+  },
+  "delivery": {
+    "database": "No changes or deploy in this release; linked global status unavailable in this isolated worktree.",
+    "edge": "No changes or deploy in this release; linked global status unavailable in this isolated worktree.",
+    "web": "Live",
+    "native": "Owner TestFlight 1.0.0 (1053) available; no Friends distribution or App Store submission"
+  },
+  "retained_limits": [
+    "1600px Door terrain assertion fails at baseline and after.",
+    "One unsigned-simulator keychain entitlement test fails at baseline and after.",
+    "Full authenticated UI, physical-device and human tasks remain unproven.",
+    "Fixture console output and live Supabase deprecation warning remain recorded.",
+    "No App Store submission or Friends distribution."
+  ],
+  "apple_upload": {
+    "success": true,
+    "delivery_uuid": "e0b4db37-3be1-4bc0-9710-49c40ac122fe",
+    "bytes": 22050486
+  },
+  "apple_readback": {
+    "checked_at": "2026-09-28T04:16:01.335981+00:00",
+    "build": "1053",
+    "build_id": "e0b4db37-3be1-4bc0-9710-49c40ac122fe",
+    "processing_state": "VALID",
+    "expired": false,
+    "internal_build_state": "IN_BETA_TESTING",
+    "owner_group": true,
+    "friends_group": false,
+    "what_to_test_verified": true,
+    "what_to_test": "Email entry: VoiceOver should announce Email before and after typing. On a small iPhone, check larger text, keyboard focus, and completing sign-in with the 8-digit code. This build includes the approved Email accessibility repair. Physical-device VoiceOver and full sign-in/recovery checks still need verification.",
+    "app_store_versions": [
+      {
+        "version": "1.0",
+        "state": "PREPARE_FOR_SUBMISSION"
+      }
+    ]
+  }
+}
