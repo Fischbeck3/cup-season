@@ -3124,9 +3124,9 @@ html[data-theme="light"] .hdrmark{color:var(--ink);}
 .onboard #obDoor .btn.quiet:hover{background:var(--bg1);}
 .joinbox{display:none; gap:8px; margin-top:9px;}
 .joinbox.open{display:flex;}
-/* The email label stays above its field and action at every width. */
-#emailbox.open{display:grid; grid-template-columns:minmax(0,1fr) auto;}
-#emailbox label.f{grid-column:1 / -1; margin:0; color:var(--mut);}
+/* Every door field's label stays above its field and action at every width. */
+#emailbox.open, #codebox.open, #joinbox.open{display:grid; grid-template-columns:minmax(0,1fr) auto;}
+#emailbox label.f, #codebox label.f, #joinbox label.f{grid-column:1 / -1; margin:0; color:var(--mut);}
 .joinbox input{
   /* min-width:0 · a flex item's default minimum is its placeholder's width, and
      "LEAGUE CODE" in tracked mono pushed the Join button past a 320 viewport */
@@ -4455,7 +4455,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <button class="btn" id="obEmailGo">Send code</button>
     </div>
     <div class="joinbox" id="codebox">
-      <input id="obCodeIn" inputmode="numeric" maxlength="10" placeholder="CODE FROM EMAIL" autocomplete="one-time-code">
+      <!-- the code field is named the way Email is (F01's twin): a persistent
+           label tied to the input, so a typed code never leaves an unnamed box -->
+      <label class="f" for="obCodeIn">Sign-in code</label>
+      <input id="obCodeIn" inputmode="numeric" maxlength="10" placeholder="8 digits" autocomplete="one-time-code">
       <button class="btn" id="obCodeGo">Verify</button>
     </div>
     <div class="ob-status" id="obStatus" role="status" aria-live="polite"></div>
@@ -4463,7 +4466,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
     <button class="btn quiet" id="obJoin">I have a league code</button>
       <div class="joinbox" id="joinbox">
-      <input id="joinCode" placeholder="LEAGUE CODE" maxlength="8" autocomplete="off">
+      <label class="f" for="joinCode">League code</label>
+      <input id="joinCode" maxlength="8" autocomplete="off">
       <button class="btn" id="joinGo">Join</button>
     </div>
 <!-- D83: the demo season retired — the door sells with its own splash -->
@@ -29179,7 +29183,8 @@ $('#obEmailGo').addEventListener('click', async () => {
     CS.reviewerMode = true; CS.pendingEmail = email;
     const ci = $('#obCodeIn');
     ci.type = 'password'; ci.removeAttribute('inputmode'); ci.removeAttribute('maxlength');
-    ci.placeholder = 'REVIEW PASSWORD'; ci.value = '';
+    ci.placeholder = ''; ci.value = '';
+    const cl = document.querySelector('label[for="obCodeIn"]'); if(cl) cl.textContent = 'Review password';
     $('#codebox').classList.add('open'); ci.focus();
     authStatus('Review access: enter the password from the notes.','ok');
     return;
