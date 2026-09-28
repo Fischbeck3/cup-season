@@ -316,7 +316,19 @@ async function main() {
          over whatever part of the element sits under it */
       if (state.shot) await cap.page.locator(state.shot).first().screenshot({ path: join(OUT, file), animations: 'disabled', caret: 'hide', timeout: 30000,
         style: 'header.hdr, nav.tabbar, #installNudge, .toast { visibility: hidden !important; }' })
-      else await cap.page.screenshot({ path: join(OUT, file), fullPage, animations: 'disabled', caret: 'hide', timeout: 30000 })
+      else {
+        await cap.page.screenshot({ path: join(OUT, file), fullPage, animations: 'disabled', caret: 'hide', timeout: 30000 })
+        /* a full-page image paints position:fixed chrome (the tab bar) where
+           it sat in the FIRST viewport, i.e. mid-page on a long phone page.
+           The first screen -- exactly what the golfer sees on arrival -- is
+           kept beside it whenever the page is taller than the viewport. */
+        const tall = fullPage && await cap.page.evaluate((h) => document.documentElement.scrollHeight > h + 2, vp.height).catch(() => false)
+        if (tall && !flag('no-first-screen')) {
+          await cap.page.evaluate(() => window.scrollTo(0, 0)).catch(() => {})
+          await cap.page.screenshot({ path: join(OUT, file.replace(/\.png$/, '--first.png')), fullPage: false, animations: 'disabled', caret: 'hide', timeout: 30000 })
+          cap.firstScreen = file.replace(/\.png$/, '--first.png')
+        }
+      }
     } catch (e) {
       slots[i] = { file: null, family: state.family, state: state.id, viewport: vp, theme, error: String(e.message || e).split('\n')[0] }
       console.log(`  ERROR ${file}: ${String(e.message || e).split('\n')[0]}`)
@@ -336,6 +348,7 @@ async function main() {
       console: summary, messages: msgs, pageErrors: cap.exceptions, fixtureGaps: cap.gaps, blockedRequests: cap.blocked,
       requestStorm: cap.storm.hit, supabaseRequests: cap.log.filter((e) => e.path || e.ws).length,
       geometry: cap.result.geometry, swClear: cap.result.swClear || null, navigatorLocksRequests: cap.result.locks,
+      firstScreen: cap.firstScreen ? (() => { const b = readFileSync(join(OUT, cap.firstScreen)); return { file: cap.firstScreen, sha256: sha(b), bytes: b.length } })() : null,
       artifacts: (cap.result.artifacts || []).map((f) => { try { const b = readFileSync(f); return { file: f.startsWith(OUT) ? f.slice(OUT.length + 1) : f, sha256: sha(b), bytes: b.length } } catch { return { file: f, missing: true } } }),
       authRequests: cap.log.filter((e) => (e.path || '').startsWith('/auth/v1/')).map((e) => `${e.method} ${e.path}${(e.query || '').slice(0, 40)} -> ${e.result}`),
       gitSha, indexDirty: gitDirty, indexSha256Served: cap.served['/'] || cap.served['/index.html'] || null, indexSha256Disk: diskIndexSha,
