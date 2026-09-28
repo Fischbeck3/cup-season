@@ -333,6 +333,32 @@ import CSDesign
     #expect(rows[3] == .line(icon: "", title: "You lead Ed 3–1 all-time · 1 halved", sub: "“The Feud” · your clash this week counted"))
   }
 
+  /// F13 · the band is said once. "Played to it" already says "played to your
+  /// playing HCP", so the sentence under it stays only when it adds a margin
+  /// (|vs| >= 1) — the desk's `showEpilogue` reads the same rule — and a
+  /// counting suffix that loses its lead-in loses its separator too.
+  @Test func theBandIsSaidOnceAndTheMarginStays() {
+    func sub(_ pvi: Double, rank: Int?, cap: Int? = 4) -> String {
+      guard case .line(_, _, let s)? = PostEpilogue(gross: 84, pvi: pvi, points: 7, monthRank: rank).rows(cap: cap, firstEver: false).first else { return "∅" }
+      return s
+    }
+    // played to it: no repeat, and the counting clause stands on its own
+    #expect(sub(0.4, rank: 2) == "counts #2 this month")
+    #expect(sub(-0.6, rank: 5) == "outside your best 4 this month, for now")
+    #expect(sub(0.4, rank: nil) == "")
+    #expect(sub(0.99, rank: 1, cap: nil) == "counts this month")
+    // a margin is a new fact, and it keeps its sentence and its separator
+    #expect(sub(2.4, rank: 2) == "beat your playing HCP by 2.4 · counts #2 this month")
+    #expect(sub(1.0, rank: nil) == "beat your playing HCP by 1.0")
+    #expect(sub(-1.0, rank: 3) == "1.0 over your playing HCP · counts #3 this month")
+    #expect(sub(-4.2, rank: nil) == "4.2 over your playing HCP")
+    // the band itself is untouched
+    guard case .line(_, let title, _)? = PostEpilogue(gross: 84, pvi: 0.4, points: 7, monthRank: 2).rows(cap: 4, firstEver: false).first else {
+      Issue.record("no band row"); return
+    }
+    #expect(title == "Played to it · 7 pts")
+  }
+
   @Test func countingCopy() {
     #expect(PostEpilogue.counting(rank: 5, cap: 4) == " · outside your best 4 this month, for now")
     #expect(PostEpilogue.counting(rank: 5, cap: nil) == " · counts this month")
