@@ -68,6 +68,29 @@ import CupSeasonKit
     }
   }
 
+  /// The legend stays inside its band at every width and size: every key is
+  /// drawn above whatever follows the grid. A row-or-column switch here once
+  /// drew three stacked keys in a band measured for one row.
+  @Test("the legend's keys stay inside the band, above what follows it")
+  func legendStaysInsideTheBand() throws {
+    for width in [CGFloat(375), 402] {
+      for size in [DynamicTypeSize.large, .xxxLarge, .accessibility3] {
+        let (month, today) = Self.months[0]
+        let h = HostedLayout(VStack(spacing: 0) { Self.grid(month, today: today); Text("After the band") },
+                             width: width, typeSize: size)
+        defer { h.tearDown() }
+        let after = try #require(h.elements.first { $0.label == "After the band" })
+        for key in ["ON THE SCHEDULE", "IN YOUR SEASONS", "SEASON DATE"] {
+          let k = try #require(h.elements.first { $0.label.localizedCaseInsensitiveCompare(key) == .orderedSame },
+                               "\(width) \(size): the \(key) key is drawn")
+          #expect(k.frame.maxY <= after.frame.minY - 20 + 0.5,
+                  "\(width) \(size): \(key) ends at \(k.frame.maxY), the band's foot must clear it before \(after.frame.minY)")
+          #expect(k.frame.maxX <= width - 20 - CSTokens.Space.s3 + 0.5, "\(width) \(size): \(key) stays inside the band")
+        }
+      }
+    }
+  }
+
   @Test("no two days share hit space, and each week reads left to right")
   func daysNeverOverlap() throws {
     for width in [CGFloat(375), 402] {

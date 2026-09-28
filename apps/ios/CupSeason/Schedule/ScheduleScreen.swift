@@ -378,15 +378,15 @@ struct ScheduleMonthGrid: View {
         // three channels are the live metal, ink and `mut` — three tones a
         // golfer can tell apart without one of them being the earned one.
         //
-        // It is a row while the row fits the band and a column when it does
-        // not (F15): at AX3 three keys on one line broke `SCHEDULE` into
-        // `SCHEDU/LE` and `SEASON` into `SEASO/N`.
-        ViewThatFits(in: .horizontal) {
-          HStack(spacing: 12) { legends }
-          VStack(alignment: .leading, spacing: CSTokens.Space.s2) { legends }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 4)
+        // The keys FLOW (F15): each key is one unbreakable unit and a key
+        // that does not fit the line starts the next one. Three keys in one
+        // row broke `SCHEDULE` into `SCHEDU/LE` and `SEASON` into `SEASO/N`
+        // at AX3, and a row-or-column `ViewThatFits` here drew the column
+        // while the band had been measured for the row, so the last key
+        // printed under the band. A layout sizes what it places.
+        FlowLayout(spacing: CSTokens.Space.s3) { legends }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.top, 4)
       }
     }
     .padding(CSTokens.Space.s3)
