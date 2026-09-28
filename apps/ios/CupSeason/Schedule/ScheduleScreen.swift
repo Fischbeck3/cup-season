@@ -361,30 +361,44 @@ struct ScheduleMonthGrid: View {
     // calendar is a container with no job (non-negotiable 1).
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       VStack(spacing: 8) {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 4) {
-          ForEach(ScheduleDates.dow, id: \.self) { d in
-            Text(String(d.prefix(1))).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        // **A MONTH IS A GRID OF WEEKS, LAID OUT WHOLE.** It was a
+        // `LazyVGrid`, and on a real phone the band measured it at one height
+        // and drew it at another on some launches — the band's ground stopped
+        // short of the weekday letters and the last legend key (F15's capture
+        // round). Six weeks of seven days is nothing to be lazy about: a
+        // `Grid` sizes what it draws, every time. It also retires the lazy
+        // grid's key collision, which keyed the leading blanks 0, 1, 2… like
+        // the 1st, 2nd, 3rd and dropped a mid-week month's first days
+        // (September 2026 drew no 1st, May 2026 no 1st to 4th): each week is
+        // its own row now, and a blank is a place in a row, not a key.
+        Grid(horizontalSpacing: 0, verticalSpacing: 4) {
+          GridRow {
+            ForEach(ScheduleDates.dow, id: \.self) { d in
+              Text(String(d.prefix(1))).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                .frame(maxWidth: .infinity)
+            }
           }
-          // **A BLANK IS NEVER A DAY.** The lazy grid keys its children across
-          // both `ForEach`es, and the blanks were keyed 0, 1, 2… — the same
-          // keys as the 1st, 2nd, 3rd — so a month that opens mid-week lost
-          // its first days: September 2026 drew no 1st, May 2026 no 1st to
-          // 4th. Blanks are keyed below zero, where no date lives.
-          ForEach((0..<month.leadingBlanks).map { -1 - $0 }, id: \.self) { _ in Color.clear.frame(height: 44) }
-          ForEach(1...month.daysInMonth, id: \.self) { d in cell(d) }
+          ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
+            GridRow {
+              ForEach(0..<7, id: \.self) { i in
+                if let d = week[i] { cell(d) } else { Color.clear.frame(maxWidth: .infinity, minHeight: 44) }
+              }
+            }
+          }
         }
         // **A LEGEND KEY IS TAXONOMY, AND TAXONOMY IS NEVER GOLD** (§4,
         // D269: gold reachable from a legend key is gold as chrome). The
         // three channels are the live metal, ink and `mut` — three tones a
         // golfer can tell apart without one of them being the earned one.
         //
-        // The keys FLOW (F15): each key is one unbreakable unit and a key
-        // that does not fit the line starts the next one. Three keys in one
-        // row broke `SCHEDULE` into `SCHEDU/LE` and `SEASON` into `SEASO/N`
-        // at AX3, and a row-or-column `ViewThatFits` here drew the column
-        // while the band had been measured for the row, so the last key
-        // printed under the band. A layout sizes what it places.
-        FlowLayout(spacing: CSTokens.Space.s3) { legends }
+        // The keys are a COLUMN, one to a line, at every size (F15). In one
+        // row they broke `SCHEDULE` into `SCHEDU/LE` and `SEASON` into
+        // `SEASO/N` at AX3; and both a row-or-column `ViewThatFits` and a
+        // wrapping flow here were measured by the band at one width and
+        // drawn at another on a real phone — the last key printed under
+        // the band, on some launches and not others. A column's height does
+        // not depend on the width it is offered, so the band always holds it.
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) { legends }
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.top, 4)
       }
@@ -392,6 +406,16 @@ struct ScheduleMonthGrid: View {
     .padding(CSTokens.Space.s3)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(cs.bg1)
+  }
+
+  /// The month as weeks of seven places: the leading blanks, the days, and
+  /// the blanks that close the last week.
+  private var weeks: [[Int?]] {
+    let places: [Int?] = Array(repeating: nil, count: month.leadingBlanks) + (1...month.daysInMonth).map { Optional($0) }
+    return stride(from: 0, to: places.count, by: 7).map { i in
+      let week = Array(places[i..<min(i + 7, places.count)])
+      return week + Array(repeating: nil, count: 7 - week.count)
+    }
   }
 
   @ViewBuilder private var legends: some View {

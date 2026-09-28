@@ -87,6 +87,17 @@ import CupSeasonKit
                   "\(width) \(size): \(key) ends at \(k.frame.maxY), the band's foot must clear it before \(after.frame.minY)")
           #expect(k.frame.maxX <= width - 20 - CSTokens.Space.s3 + 0.5, "\(width) \(size): \(key) stays inside the band")
         }
+        // one key to a line, in order, on one left edge — a height that does
+        // not depend on the width the band is offered
+        let keys = ["ON THE SCHEDULE", "IN YOUR SEASONS", "SEASON DATE"].compactMap { key in
+          h.elements.first { $0.label.localizedCaseInsensitiveCompare(key) == .orderedSame }?.frame
+        }
+        #expect(keys.count == 3)
+        if keys.count == 3 {
+          #expect(keys[0].maxY <= keys[1].minY + 0.5 && keys[1].maxY <= keys[2].minY + 0.5,
+                  "\(width) \(size): the keys stack")
+          #expect(abs(keys[0].minX - keys[2].minX) < 0.6, "\(width) \(size): on one left edge")
+        }
       }
     }
   }
