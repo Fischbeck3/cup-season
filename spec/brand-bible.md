@@ -5,7 +5,7 @@ Version 1.0 · Growth/Launch lane · 2026-07-17
 **What this is:** the operating manual for how the brand shows up in the world —
 positioning, messaging, the asset system, the storefront, content, email, press.
 It **builds on** `spec/brand-canon.md` and never repeats it: the canon says who
-we are (promise, palette, voice laws, guardrails, the mark brief); this bible
+we are (promise, palette, voice laws, guardrails, the production mark and its history); this bible
 says what we *do* with that. Strategy lives in `spec/gtm-year1.md`; where the
 bible touches strategy it points, not duplicates.
 
@@ -103,11 +103,17 @@ boilerplate. (Canon §3 as amended; GTM failure mode #5.)
 ### Core identity — status
 | Asset | State | Source of truth |
 |---|---|---|
-| Palette, type, motion, radii | **SHIPPED** (v23.131 tokens) | canon §4 |
-| The mark + family | **OPEN** — five territories under exploration | canon §6 brief; execution = design lane; regen checklist in `brand/README.md` |
+| Palette, type, motion, radii | **SHIPPED** — current token source and UI_SYSTEM amendments | `packages/tokens/tokens.json`; canon §4 current application |
+| The mark + family | **PRODUCTION CS PENNANT** — D358 | canon §6 amendment; generated from the pennant source |
 | Illustration style | Direction set, nothing drawn: engraved/stamped/printed metaphors, never glassy app-fashion (the archive test) | canon §5 |
 | Iconography | Roots in the four objects (Crew/Cup/Rivalry/Record); mono-weight line icons, one-color survivable | canon §5 |
 | Photography | Rules set (real crews, munis, morning/dusk light), **no library yet** — shoot PIGL first | canon §7 |
+
+**Current roles — D358/D359 and later amendments.** Ordinary actions use `act`,
+competition/identity uses scoped ember, gold is earned, and secondary text is
+opaque `mut`. A native look styles `act`, never the competition signal.
+Read [brand-canon.md §4 current application](brand-canon.md#4-the-visual-system) for the D368
+hole-moment exception and D381 live-only full-band rule; read tokens for values.
 
 ### Social templates — the rule before the list
 **The product already makes our best templates.** The settlement card, the
@@ -133,8 +139,8 @@ Every template passes the GTM §3 shareable rule: (a) flatters the sharer,
 | **Founding League invite** | Seed the panel | "Founding League №N of 10" · what it means · the soft obligation |
 
 Template *specs* live here; template *files* are a design-lane deliverable
-after the mark decision (no point building 8 templates around a mark that may
-change).
+using the D358 production pennant. New template work still needs its own scope;
+the mark decision is no longer a blocker.
 
 ## 5. The storefront
 
@@ -284,17 +290,17 @@ are ready now:
 
 ## 11. Next steps (sequenced; owner in brackets)
 
-1. **Pick the mark territory** (canon §6 board; the ⭐ Marker is the
-   recommendation) → design lane executes → regenerate `brand/` family per its
-   README. Blocks: templates (§4), press assets (§10), landing hero polish.
-   **[user decides · design lane builds]**
+1. **Use the production pennant** (D358; canon §6 amendment). The former
+   mark-selection blocker is closed. Scope new templates and press applications
+   around the generated family; replacing the mark needs a separate decision.
+   **[design lane]**
 2. **Run the timed QA + start Founding-Pro recruiting** — same 8–10 people,
    one motion (§7 weeks 1–2). Nothing in this bible matters more. **[user]**
 3. **Landing page** per §5 brief. Unblocks press kit link, founding wall,
    guest FAQ. **[UX/design lane; copy is in this doc]**
 4. **Artifact-loop instrumentation** (GTM experiment №1). **[eng lane]**
 5. **Press kit assembly** — boilerplate/bio/facts above are final-draft; needs
-   the founder photo + post-mark assets. **[user + design lane]**
+   the founder photo + approved pennant applications. **[user + design lane]**
 6. **Email infra decision** (Brevo campaigns vs other) then the Pro-onboarding
    sequence first — it mirrors white-glove and scales it. **[user decides]**
 7. **Focus groups → pricing → landing pricing section gets real numbers +

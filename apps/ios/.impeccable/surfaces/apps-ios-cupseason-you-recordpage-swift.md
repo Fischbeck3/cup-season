@@ -7,7 +7,7 @@ related_targets: []
 
 # history · ios
 
-Mode: **Operate**. This is a compiled surface brief for the existing world, pending the program checkpoint; it is not a redesign approval.
+Mode: **Operate**. This is a compiled surface brief for the existing world, approved at the program checkpoint; it is not a redesign approval.
 
 ## Scope and task
 

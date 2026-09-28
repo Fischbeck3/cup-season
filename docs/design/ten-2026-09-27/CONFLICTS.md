@@ -1,6 +1,8 @@
 # Conflicts and proposed rulings
 
-All entries below are **PROPOSED D-next**, unnumbered and unratified. Nothing has been appended to the decision log. D396 is the latest entry at source baseline `5fabf861`. Later source decisions outrank copied summaries. This file proposes presentation/governance corrections; it changes no competition rule.
+The proposals below preserve the checkpoint record. The owner’s “Build recommended” approves C1’s stale-summary maintenance, C2/C5’s existing-canon precedence and compiled context, C4’s optional consented-content direction, and C6’s two selected local branches. C3 stays post-launch. No new D-number or competition decision is ratified.
+
+Original checkpoint status: all entries were **PROPOSED D-next**, unnumbered and unratified. Nothing has been appended to the decision log. D396 is the latest entry at source baseline `5fabf861`. Later source decisions outrank copied summaries. This file proposes presentation/governance corrections; it changes no competition rule.
 
 ## PROPOSED D-next · C1 · Correct the stale entry-point summaries
 

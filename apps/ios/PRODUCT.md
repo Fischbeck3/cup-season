@@ -2,7 +2,7 @@
 
 <!-- impeccable:product-schema 1 -->
 
-Compiled phone scope, 2026-09-27. Inherits the [root shared product truth](../../PRODUCT.md); canonical repository sources win every conflict. Owner interview: [program request](../../docs/planning/2026-09-27-impeccable-ten-prompt.md). Pending checkpoint approval, not new authority.
+Compiled phone scope, 2026-09-27. Inherits the [root shared product truth](../../PRODUCT.md); canonical repository sources win every conflict. Owner interview: [program request](../../docs/planning/2026-09-27-impeccable-ten-prompt.md). Approved with “Build recommended”; this compilation remains subordinate to canon.
 
 ## Platform
 

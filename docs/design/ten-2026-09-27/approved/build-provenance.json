@@ -1,0 +1,79 @@
+{
+  "baseline": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "commits": {
+    "door": "a4101f71c0b90a7613bcd41dffc26a292df143e8",
+    "home": "f884696b5630882e765c487c4df5982f0cfd94ff"
+  },
+  "critiques": [
+    {
+      "id": "web-door",
+      "slug": "index-html",
+      "write": "/Users/fischbeck3/cup-season-ten-door/.impeccable/critique/2026-09-28T03-51-29Z__index-html.md",
+      "snapshot": "2026-09-28T03-51-29Z__index-html.md",
+      "trend": [
+        {
+          "target": "web-door",
+          "total_score": 21,
+          "max_score": 28,
+          "na_heuristics": "",
+          "p0_count": 0,
+          "p1_count": 0,
+          "target_identity": "file:/Users/fischbeck3/cup-season-ten-door/index.html",
+          "target_fingerprint": "sha256:32f458977a5aa5fab74346433c605c3e923204cdfb5ee0664139d66604be7c30",
+          "target_path": "/Users/fischbeck3/cup-season-ten-door/index.html",
+          "timestamp": "2026-09-28T03-51-29Z",
+          "slug": "index-html"
+        }
+      ],
+      "closed": false,
+      "remaining_p2": 2
+    },
+    {
+      "id": "web-home",
+      "slug": "index-html",
+      "write": "/Users/fischbeck3/cup-season-ten-home/.impeccable/critique/2026-09-28T03-53-31Z__index-html.md",
+      "snapshot": "2026-09-28T03-53-31Z__index-html.md",
+      "trend": [
+        {
+          "target": "web-home",
+          "total_score": 16,
+          "max_score": 24,
+          "na_heuristics": "",
+          "p0_count": 0,
+          "p1_count": 0,
+          "target_identity": "file:/Users/fischbeck3/cup-season-ten-home/index.html",
+          "target_fingerprint": "sha256:2c7d9388991af0ccc48e8167fb21071b8171712ac507cdd254001edf3802db0a",
+          "target_path": "/Users/fischbeck3/cup-season-ten-home/index.html",
+          "timestamp": "2026-09-28T03-53-31Z",
+          "slug": "index-html"
+        }
+      ],
+      "closed": false,
+      "remaining_p2": 3,
+      "packaging_note": "Reissued once to avoid identical snapshot file paths between independently selectable branches; duplicate unstaged artifact removed, no second assessment."
+    },
+    {
+      "id": "native-door",
+      "slug": "apps-ios-cupseason-door-doorview-swift",
+      "write": "/Users/fischbeck3/cup-season-ten-door/.impeccable/critique/2026-09-28T03-51-29Z__apps-ios-cupseason-door-doorview-swift.md",
+      "snapshot": "2026-09-28T03-51-29Z__apps-ios-cupseason-door-doorview-swift.md",
+      "trend": [
+        {
+          "target": "native-door",
+          "total_score": 24,
+          "max_score": 28,
+          "na_heuristics": "",
+          "p0_count": 0,
+          "p1_count": 0,
+          "target_identity": "file:/Users/fischbeck3/cup-season-ten-door/apps/ios/CupSeason/Door/DoorView.swift",
+          "target_fingerprint": "sha256:b11b905d9e2a92d58c7a838d85c8f090a2a2ae87d4e2674f3ac7dac6719a85e7",
+          "target_path": "/Users/fischbeck3/cup-season-ten-door/apps/ios/CupSeason/Door/DoorView.swift",
+          "timestamp": "2026-09-28T03-51-29Z",
+          "slug": "apps-ios-cupseason-door-doorview-swift"
+        }
+      ],
+      "closed": true,
+      "remaining_p2": 0
+    }
+  ]
+}

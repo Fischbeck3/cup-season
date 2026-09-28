@@ -1,5 +1,7 @@
 # Cup Season · the ten checkpoint
 
+**Current disposition — September 28:** The owner said “Build recommended.” S1a/S1b and the recommended documentation corrections are implemented on independent local branches. See [BUILD.md](BUILD.md) for current source, evidence and open gates. The original checkpoint text below is preserved as history; its stop instruction has been satisfied only for the selected scope.
+
 Phases 0–3 are prepared for the owner’s review. **Stop here until “build it” and named scope.** Nothing is selected for October 1 by implication. Product source remains 5fabf861; the old dirty checkout is untouched.
 
 - [Baseline and complete requested coverage](BASELINE.md): capture-only panel, partial critique totals, audit scores, launch evidence gaps.

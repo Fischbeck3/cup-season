@@ -1,5 +1,7 @@
 # Ranked plan · proposals only
 
+**Current disposition — September 28:** The owner said “Build recommended.” S1a/S1b and the recommended documentation corrections are implemented on independent local branches. See [BUILD.md](BUILD.md) for current source, evidence and open gates. The original checkpoint text below is preserved as history; its stop instruction has been satisfied only for the selected scope.
+
 No source fix is authorized. The owner must name launch items and say **“build it”**. PRE-FREEZE SAFE means small/reversible launch work or an evidence gate; it does not place the item in October 1. Selected code items get separate branches from the release owner’s candidate, finished by September29 for review. Visual freeze is September30. All other work waits until after launch. No source edits, push, merge, deploy, Apple action, dependency or decision ratification is included here.
 
 Rank prioritizes proven user impact and verifiability. Evidence work comes before changes to uncaptured states. S1a/S1b are the recommended launch selection; S1 is optional because it expands the reviewed surface. Shared source causes are addressed before broad per-screen polish. Each slice retains §16, the money sentence, five destinations, terminology, mechanics and photo consent. Both client halves are reviewed; a correct counterpart receives verification rather than a gratuitous edit.

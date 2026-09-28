@@ -9,11 +9,10 @@ it invents nothing at the vision or principles level. In the hierarchy of truth
 this doc lives at the **UI level**, governed by `product-vision-v1.0.md` and the
 founding prospectus above it. Any future designer starts here.
 
-**What's decided:** the promise, the voice, the palette + its one rule, the type
-system, the motion signature, the guardrails.
-**What's open:** the mark (§6 is the exploration brief — Jerecho is explicitly
-not set on any logo), merch beyond the Founding hats, and the photography
-library (nothing shot yet).
+**What's decided:** the promise, voice, current token roles, type system,
+motion, guardrails and the production CS pennant (D358).
+**What's open:** new merchandise applications and the consented photography
+library. Historical mark explorations in §6 are superseded for production.
 
 ---
 
@@ -98,7 +97,20 @@ rule), sportsbook framing (odds, action, units), corporate golf-speak
 ("synergy scramble"). The crew's own vocabulary (already in reactions) beats
 any invented slang.
 
-## 4. The visual system (LIVE — re-cut by D270, verified 2026-09-07)
+## 4. The visual system
+
+### Current application — corrected 2026-09-28
+
+**Current roles — D358/D359, UI_SYSTEM F11, D368 and D381.** The CS pennant is the production mark. Ordinary actions, focus and selected states use `act`; a native look substitutes its action accent for `act`, not `brand`. Ember marks competition and the identity hairline. D381 limits Compete’s full ember band to live competition; upcoming/final bands stay neutral. D368 retains the narrow earned hole-moment exception. Gold is earned only. Secondary text uses opaque `mut`. Grounds, semantic colors, identity pigments and ceremony colors retain their protected roles. Read `packages/tokens/tokens.json` for values and UI_SYSTEM’s amendments for application; this summary introduces no palette.
+
+This is a summary of existing ratified decisions, corrected under the owner's
+“Build recommended” instruction. It changes no token or decision. The compiled
+root DESIGN.md is generated from the token source and UI_SYSTEM.
+
+### Historical palette snapshot — September 7, 2026
+
+The dated table below is retained as history. It is superseded where it differs
+from the current token source or the current roles above; do not build from it.
 
 > **AMENDED 2026-09-07 (the repair pass, D283).** This section was written
 > against the v23.131 palette and was still headed LIVE eight commits after
@@ -194,7 +206,7 @@ Consequences:
   not in this worktree) — the roll-out is canon now, the rest adopt as the
   design lane reaches them.
 
-## 6. The mark (OPEN — this section is the exploration brief)
+## 6. The mark (production pennant; historical exploration below)
 
 **THE PRODUCTION MARK IS THE CS PENNANT — owner-ratified 2026-09-14 (D358).**
 A cream flag with cut CS counters over a curved ridge: cream on deep fescue,
@@ -208,6 +220,8 @@ mastheads, the app icon, boot and shared artifacts, **sparingly**; it is not a
 generic action icon. This closes the open production-mark question and D339's
 icon-tile question, and it supersedes the Tracer paragraphs below, which stay
 as history.
+
+### Historical exploration — superseded by D358
 
 **Former master asset (historical, superseded by the pennant) — verified 2026-09-11:** `brand/mark.svg` is the **Tracer**,
 a tapered ball flight landing in a flagged cup, as described in `brand/README.md`.

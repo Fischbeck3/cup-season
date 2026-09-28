@@ -1,32 +1,29 @@
 # Cup Season · active work and ownership
 
-## Impeccable ten baseline and checkpoint · 2026-09-27 (Codex) — checkpoint ready, awaiting owner scope
+## Impeccable ten · approved narrow builds · 2026-09-28 (Codex)
 
-Owned lane: `codex/impeccable-ten-2026-09-27`, isolated worktree
-`/Users/fischbeck3/cup-season-ten`, cut from fresh `origin/main` at `5fabf861`.
-The [owner request](2026-09-27-impeccable-ten-prompt.md) authorizes Phases 0–3:
-compiled Impeccable context, fixture-only captures, independent critiques and
-scoring, technical audits, and a ranked plan. **No product source changes.**
-Stop at the checkpoint for the owner's “build it” and named scope. Nothing enters
-the October 1 build by implication; visual freeze remains September 30 (D371).
-No push, merge, deployment, Apple action, dependency, brand-asset change or
-ratification is authorized. Every deploy owed is **none**.
+The owner's “Build recommended” selects S1a (email label) and S1b (Home
+contrast), compiled context, stale-summary corrections and the existing canon
+exceptions. Structural work stays post-launch. No push, merge, deployment,
+Apple action, dependency, production asset replacement or new decision is
+approved. The optional content direction authorizes no outreach or uploads.
 
-Root owns this branch. Capture sub-agents read source and write only isolated
-local evidence; they do not mutate this branch. The old dirty visual checkout
-is read-only design input and remains untouched. Representative synthetic
-evidence and the checkpoint will live in `docs/design/ten-2026-09-27/`; the full
-gallery stays outside the public repository.
+- Documentation: `codex/impeccable-ten-2026-09-27`, `/Users/fischbeck3/cup-season-ten`.
+- S1a: `codex/ten-door-label-2026-09-28`, `/Users/fischbeck3/cup-season-ten-door`.
+- S1b: `codex/ten-home-contrast-2026-09-28`, `/Users/fischbeck3/cup-season-ten-home`.
 
-Collision review: ACTIVE_WORK still claims the September 22 visual lane over
-`index.html`, CSDesign and native views; newer worktrees include course/Home,
-social and native-audit lanes. Their presence is not proof they are running,
-and this documentation lane does not take their implementation ownership.
-Resolve the live owner at the checkpoint before any source slice. Port 8791
-is occupied by another worktree; capture tooling must not stop that server.
+Both fix branches start independently at freshly fetched `origin/main`
+`5fabf861`, the recorded Owner TestFlight1046 release. No other active Cup
+Season implementation task was visible in the app; older source lanes and
+workspaces remain untouched. Root owns these branches for this task. The
+release owner can select either narrow commit after verification. September29
+completion and September30 freeze remain binding. The old dirty checkout and
+unrelated8791 server are untouched.
 
-
-Checkpoint: [baseline](../design/ten-2026-09-27/BASELINE.md), [ranked plan](../design/ten-2026-09-27/PLAN.md), and [five questions](../design/ten-2026-09-27/QUESTIONS.md) are ready. Product source remains at5fabf861. No source slice is active; await the owner’s named launch selection and “build it.” Full local gallery: `/Users/fischbeck3/cup-season-ten-gallery/index.html`. Coverage and human-proof gaps remain explicit; this is not launch clearance.
+[Checkpoint](../design/ten-2026-09-27/BASELINE.md), [plan](../design/ten-2026-09-27/PLAN.md),
+and [approval/build record](../design/ten-2026-09-27/BUILD.md) track the evidence.
+Human/device gates remain unproven. No deployment is owed without a separate
+shipping instruction.
 
 
 ## Widgets and Match first release · 2026-09-25 (Codex)

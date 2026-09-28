@@ -2,7 +2,7 @@
 
 <!-- impeccable:product-schema 1 -->
 
-Compiled context, 2026-09-27, from source baseline `5fabf861` and the [owner interview](docs/planning/2026-09-27-impeccable-ten-prompt.md). This is a cited view of existing canon, not a new authority. Vision → principles → information architecture → mechanics → UI → implementation; ratified decisions and canonical sources win conflicts. Approval of this compilation is pending the program checkpoint.
+Compiled context, 2026-09-27, from source baseline `5fabf861` and the [owner interview](docs/planning/2026-09-27-impeccable-ten-prompt.md). This is a cited view of existing canon, not a new authority. Vision → principles → information architecture → mechanics → UI → implementation; ratified decisions and canonical sources win conflicts. The owner approved this compilation with “Build recommended” on September 27 (September 28 UTC).
 
 ## Platform
 
@@ -34,7 +34,7 @@ Phone use is interrupted, outdoors and one-handed; desk use allows season readin
 - UI says **the Pro**, **Run it back**, and named performance bands; no PvI/differential, sportsbook language, corporate golf language, hype or streak shame. One fact, one place. [AGENTS §10](AGENTS.md), [D360](spec/decision-log.md).
 - Shared round conversation, guarded findability and circle-scoped course bests follow D391–D396. A nine without recorded side cannot claim a comparable best. Share/photo consent and cancellation semantics follow D380/D385. [Decision log](spec/decision-log.md).
 - Source generation stays at its source: tokens, RPC contracts, marker tables and the pennant source. No dependency, brand replacement, mechanics or data changes are authorized by this program. [AGENTS §6](AGENTS.md), [owner request](docs/planning/2026-09-27-impeccable-ten-prompt.md).
-- October 1 remains submission/public launch; September 30 is visual freeze. The program's source changes require a later explicit “build it” with named scope; no launch inclusion is implied. [D371](spec/decision-log.md), [visual sprint](docs/planning/2026-09-22-visual-ui-sprint.md).
+- October 1 remains submission/public launch; September 30 is visual freeze. Only the owner-selected S1a/S1b repairs are approved for local release-candidate branches. Shipping requires separate approval. [D371](spec/decision-log.md), [visual sprint](docs/planning/2026-09-22-visual-ui-sprint.md).
 
 ## Brand Commitments
 
@@ -54,4 +54,4 @@ WCAG AA contrast in both themes; 44pt/px touch targets; Dynamic Type through AX3
 
 ## Open decisions
 
-Content acquisition and consent plan, launch-safe slices, stale-doc corrections and tool/canon conflicts await the checkpoint. Broader evidence budgets beyond the requested matrix are (inferred — confirm). No inference here ratifies a rule.
+The owner selected S1a/S1b, the compiled context and stale-summary corrections, existing canon precedence, and optional consented content. Structural work remains post-launch; no content outreach, acquisition, account mutation or publishing is authorized. Broader evidence budgets beyond the requested matrix are (inferred — confirm). No inference here ratifies a rule.

@@ -5,7 +5,7 @@
 
 **Creative North Star: “The tournament board, printed.”** [UI_SYSTEM §0.1](docs/ui-overhaul-2026-09-06/UI_SYSTEM.md).
 
-The tournament board and its almanac: bands, rules, rank rails and a few meaningful objects. The brand is proud, warm, quietly ceremonial and competitive without hype. Dark is the trophy room at dusk; light is the morning tee sheet. [Brand canon §§1–3](spec/brand-canon.md), UI_SYSTEM §§0,2,15. This compiled scan is not a new design authority; approval is pending. The token-native frontmatter is an exact copy of tokens.json, including its source notes and historical amendments; later D-entries govern meaning. No invented ramps or new primitive values are generated.
+The tournament board and its almanac: bands, rules, rank rails and a few meaningful objects. The brand is proud, warm, quietly ceremonial and competitive without hype. Dark is the trophy room at dusk; light is the morning tee sheet. [Brand canon §§1–3](spec/brand-canon.md), UI_SYSTEM §§0,2,15. This compiled scan is not a new design authority; the owner approved the compilation with “Build recommended.” The token-native frontmatter is an exact copy of tokens.json, including its source notes and historical amendments; later D-entries govern meaning. No invented ramps or new primitive values are generated.
 
 ## Colors
 

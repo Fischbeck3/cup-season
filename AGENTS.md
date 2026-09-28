@@ -261,19 +261,17 @@ The canonical visual source is:
 
 Do not invent hex values, radii, type scales, or motion curves when a token exists.
 
-**Current native looks — 2026-09-11 (D305, amended by D313).** Ember is the default
-live/action color. In the current iOS implementation, the selected look substitutes its
-`accent` for `brand`; `accent2` supplies the specified two-color tick, section-rule treatment,
-and panel, with readable panel ink resolved by the theme. This does not assert an equivalent
-web look picker or theme substitution. Page grounds, earned gold, semantic colors (`pos`,
-`neg`, `cool`), identity pigments and ceremony colors retain their protected roles.
-See `spec/decision-log.md` D305/D313 and `apps/ios/Packages/CSDesign/Sources/CSDesign/Theme.swift`.
+**Current roles — D358/D359 and later amendments.** Ordinary actions use `act`,
+competition/identity uses scoped ember, gold is earned, and secondary text is
+opaque `mut`. A native look styles `act`, never the competition signal.
+Read [spec/brand-canon.md §4 current application](spec/brand-canon.md#4-the-visual-system) for the D368
+hole-moment exception and D381 live-only full-band rule; read tokens for values.
 
-High-level laws (ember is the default action color):
+High-level laws:
 
 - Dark room: green-black, not gray-black
 - Light room: warm almanac paper, not sterile white
-- Ember = live + the one primary action
+- Ordinary actions use `act`; apply ember only under the named competition/identity rules above
 - Champagne gold = earned only
 - Gold on ordinary buttons, tabs, or navigation is a defect
 - No glow, wash, glass, or generic sports gradients
@@ -291,18 +289,12 @@ For visual work, read `DESIGN_SYSTEM.md` in this repo if present, then verify ag
 
 ## 12. Brand mark status
 
-The brand mark is **not final**.
-
-The repository explicitly treats the mark as an open design problem.
-
-Current working exploration from the owner:
-- no cactus / desert identity
-- stay close to the actual Cup Season UI language
-- topo / contour accents are relevant support graphics
-- a pennant / season marker / CS direction is being explored
-- this exploration is **not canon until explicitly approved and committed as such**
-
-Do not replace production assets just because a concept exists in a design exploration.
+The **CS pennant is the production mark** (D358). Its source is
+`brand/candidates/testflight-pennant/source.json`; `tools/build-beta-mark.sh`
+generates the web and native families. Identity may sign the welcome,
+mastheads, icon, boot and shared artifacts. Use it sparingly; an action or
+achievement glyph is not a brand signature. Former mark explorations remain
+historical design input. Any replacement still requires explicit approval.
 
 ---
 
