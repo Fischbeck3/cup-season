@@ -32877,7 +32877,7 @@ async function boot(){
     const { data:{ session } } = await sb.auth.getSession();
     if(!session){ bootTrace('no session in storage — showing the door'); return; }
     CS.user = session.user;
-    bootTrace('session \u2713 ' + (CS.user.email||''));
+    bootTrace('session \u2713');   /* the breadcrumb stays (CLAUDE.md); the golfer's email address does not ride along in every console */
 
     bootStep = 'profile';
     await loadProfile();
