@@ -1,0 +1,551 @@
+{
+  "sourceSHA256": "2c7d9388991af0ccc48e8167fb21071b8171712ac507cdd254001edf3802db0a",
+  "normalAndEarned": [
+    {
+      "file": "home--375--dark.png",
+      "kind": "home",
+      "width": 375,
+      "height": 667,
+      "theme": "dark",
+      "earned": false,
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture",
+      "sha256": "0a0c6dd2ebf02cb516f23356da06e35ab5d30619db1ed05be7401c7a2fc62cf9"
+    },
+    {
+      "file": "home-earned--375--dark.png",
+      "kind": "home",
+      "width": 375,
+      "height": 667,
+      "theme": "dark",
+      "earned": true,
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture; earned CSS variant toggled for token-pair verification",
+      "sha256": "f3dd4d09ced6e492bd605e0ee62226e3b43ebc5a04235061bf7a17ef35f857ea"
+    },
+    {
+      "file": "home--375--light.png",
+      "kind": "home",
+      "width": 375,
+      "height": 667,
+      "theme": "light",
+      "earned": false,
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture",
+      "sha256": "ecfa22fb7b1bab92a6ed4ed487fa3e28099c9933e92dce6048e378b3142ae180"
+    },
+    {
+      "file": "home-earned--375--light.png",
+      "kind": "home",
+      "width": 375,
+      "height": 667,
+      "theme": "light",
+      "earned": true,
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture; earned CSS variant toggled for token-pair verification",
+      "sha256": "d5cfe8462c8e4f9a29ed825b7a6b4a6e5240b8039f843df5d81bc497aa133d1c"
+    },
+    {
+      "file": "home--402--dark.png",
+      "kind": "home",
+      "width": 402,
+      "height": 874,
+      "theme": "dark",
+      "earned": false,
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture",
+      "sha256": "aacfc663a7d468b24c82f966c355af3817a01fb7deb29f0421517f401eeb5aa3"
+    },
+    {
+      "file": "home-earned--402--dark.png",
+      "kind": "home",
+      "width": 402,
+      "height": 874,
+      "theme": "dark",
+      "earned": true,
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture; earned CSS variant toggled for token-pair verification",
+      "sha256": "8b97b3effa7d8634f7cdf0dbe01ab780ba7676b8ddaab1578aaa9dab3f8a552a"
+    },
+    {
+      "file": "home--402--light.png",
+      "kind": "home",
+      "width": 402,
+      "height": 874,
+      "theme": "light",
+      "earned": false,
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture",
+      "sha256": "552afe923c0b29f4214845431e439948b997ecea9e91ae88fcd4ddb9f57753d5"
+    },
+    {
+      "file": "home-earned--402--light.png",
+      "kind": "home",
+      "width": 402,
+      "height": 874,
+      "theme": "light",
+      "earned": true,
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture; earned CSS variant toggled for token-pair verification",
+      "sha256": "03ab7e2e023d3b4e10f3d805c648a2ed20f4656bd0449865bb1a81ca6975328a"
+    },
+    {
+      "file": "home--1280--dark.png",
+      "kind": "home",
+      "width": 1280,
+      "height": 1000,
+      "theme": "dark",
+      "earned": false,
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture",
+      "sha256": "37dc6c41f56fb20d297b1f14697b8ef81b6eea9e2fe12f4dc765d27f27404cdb"
+    },
+    {
+      "file": "home-earned--1280--dark.png",
+      "kind": "home",
+      "width": 1280,
+      "height": 1000,
+      "theme": "dark",
+      "earned": true,
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture; earned CSS variant toggled for token-pair verification",
+      "sha256": "0cb03452945cd2851bb0e2b677a7ce36c57966c42ac96a0dc4f8d0f1a36cce41"
+    },
+    {
+      "file": "home--1280--light.png",
+      "kind": "home",
+      "width": 1280,
+      "height": 1000,
+      "theme": "light",
+      "earned": false,
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture",
+      "sha256": "96b04ab870c7d0b1aea4c1fdc40ab1af4463e40637f827144b1721de9d697e5f"
+    },
+    {
+      "file": "home-earned--1280--light.png",
+      "kind": "home",
+      "width": 1280,
+      "height": 1000,
+      "theme": "light",
+      "earned": true,
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture; earned CSS variant toggled for token-pair verification",
+      "sha256": "3149aca33e5f52b3440a5d417207224a50fe7fc286db830a67e4ba12a277239a"
+    },
+    {
+      "file": "home--1600--dark.png",
+      "kind": "home",
+      "width": 1600,
+      "height": 1000,
+      "theme": "dark",
+      "earned": false,
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture",
+      "sha256": "935596e7194a4f8f86b2b772f4c06a4a5865b63af401b888e6d47627aad4ea8f"
+    },
+    {
+      "file": "home-earned--1600--dark.png",
+      "kind": "home",
+      "width": 1600,
+      "height": 1000,
+      "theme": "dark",
+      "earned": true,
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture; earned CSS variant toggled for token-pair verification",
+      "sha256": "b2dd20b05bfa8869a0745d7a610203eb0ee6dbacdb42f67197f1d46f1557f5db"
+    },
+    {
+      "file": "home--1600--light.png",
+      "kind": "home",
+      "width": 1600,
+      "height": 1000,
+      "theme": "light",
+      "earned": false,
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture",
+      "sha256": "b08eb4b3220cfd47f09dbc4b5078ba35ec797b93229f8cab55cc321d5e67bd6e"
+    },
+    {
+      "file": "home-earned--1600--light.png",
+      "kind": "home",
+      "width": 1600,
+      "height": 1000,
+      "theme": "light",
+      "earned": true,
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "scope": "Existing event_live fixture; earned CSS variant toggled for token-pair verification",
+      "sha256": "70688f792eafd894489dc42dc0d310170d3e244beb8e48ae22060e1f83d95e1c"
+    }
+  ],
+  "beforeAfter": [
+    {
+      "target": "home",
+      "version": "baseline",
+      "width": 375,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(233, 236, 227)",
+        "heading": 1.0770941708765893,
+        "body": 2.1082164389342366,
+        "action": 2.8275525594926387,
+        "actionColor": "rgb(232, 98, 44)",
+        "act": "#5FA271",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "baseline",
+      "width": 375,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(20, 26, 22)",
+        "heading": 1.0100444048570354,
+        "body": 2.6741128914245853,
+        "action": 2.7186869418250685,
+        "actionColor": "rgb(161, 63, 14)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "baseline",
+      "width": 402,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(233, 236, 227)",
+        "heading": 1.0770941708765893,
+        "body": 2.1082164389342366,
+        "action": 2.8275525594926387,
+        "actionColor": "rgb(232, 98, 44)",
+        "act": "#5FA271",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "baseline",
+      "width": 402,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(20, 26, 22)",
+        "heading": 1.0100444048570354,
+        "body": 2.6741128914245853,
+        "action": 2.7186869418250685,
+        "actionColor": "rgb(161, 63, 14)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "baseline",
+      "width": 1280,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(233, 236, 227)",
+        "heading": 1.0770941708765893,
+        "body": 2.1082164389342366,
+        "action": 2.8275525594926387,
+        "actionColor": "rgb(232, 98, 44)",
+        "act": "#5FA271",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "baseline",
+      "width": 1280,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(20, 26, 22)",
+        "heading": 1.0100444048570354,
+        "body": 2.6741128914245853,
+        "action": 2.7186869418250685,
+        "actionColor": "rgb(161, 63, 14)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "baseline",
+      "width": 1600,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(233, 236, 227)",
+        "heading": 1.0770941708765893,
+        "body": 2.1082164389342366,
+        "action": 2.8275525594926387,
+        "actionColor": "rgb(232, 98, 44)",
+        "act": "#5FA271",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "baseline",
+      "width": 1600,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(20, 26, 22)",
+        "heading": 1.0100444048570354,
+        "body": 2.6741128914245853,
+        "action": 2.7186869418250685,
+        "actionColor": "rgb(161, 63, 14)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "after",
+      "width": 375,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "after",
+      "width": 375,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "after",
+      "width": 402,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "after",
+      "width": 402,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "after",
+      "width": 1280,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "after",
+      "width": 1280,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "after",
+      "width": 1600,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      }
+    },
+    {
+      "target": "home",
+      "version": "after",
+      "width": 1600,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      }
+    }
+  ]
+}

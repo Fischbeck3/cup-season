@@ -1,0 +1,26 @@
+{
+  "dark": {
+    "ink": {
+      "foreground": "#F1F4EF",
+      "background": "#0F1A15",
+      "contrast": 16.054677277480597
+    },
+    "mut": {
+      "foreground": "#9BA69D",
+      "background": "#0F1A15",
+      "contrast": 7.07021644043754
+    }
+  },
+  "light": {
+    "ink": {
+      "foreground": "#151B17",
+      "background": "#F4F1E9",
+      "contrast": 15.491165238025864
+    },
+    "mut": {
+      "foreground": "#575F57",
+      "background": "#F4F1E9",
+      "contrast": 5.851198288434374
+    }
+  }
+}

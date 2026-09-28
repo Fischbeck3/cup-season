@@ -1,0 +1,41 @@
+  PASS  a moment fanned to two leagues is one moment
+  PASS  and the survivor carries BOTH league names
+  PASS  two rounds are two moments, alike or not
+  PASS  a round-less moment folds on its body inside 48h
+  PASS  and does NOT fold outside it
+  PASS  the round is drawn and its moment is not told again
+  PASS  and the survivor is the ROUND, never the line
+  PASS  the slat keeps the gross the line never had
+  PASS  a moment whose round is absent still speaks
+  PASS  a spent round takes its moment with it, and neither returns
+  PASS  a spent round is dropped, and so is the post about it
+  PASS  the unspent round survives
+  PASS  a league note is never a row
+  PASS  four notes across two leagues count as the two notes they are
+  PASS  and print as one line
+  PASS  the line opens the newest note’s board
+  PASS  one league, one note — singular
+  PASS  past two leagues the names become a count
+  PASS  and a nameless league still reads
+  PASS  four buckets, in the wire’s order
+  PASS  and their datelines
+  PASS  six days back is still this week
+  PASS  seven is earlier
+  PASS  a row under TODAY never says Today
+  PASS  inside a group, only the first of a run carries the date
+  PASS  newest first inside a bucket
+  PASS  and the source index rides along for the reaction strip
+  PASS  nothing in, nothing out — and no crash
+  PASS  an undated row files under earlier
+  PASS  and prints no stamp it cannot vouch for
+
+PASS — 30 passed, 0 failed
+✔ tests/homefold.test.mjs (50.570625ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58.02325

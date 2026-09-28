@@ -1,0 +1,774 @@
+{
+  "sourceSHA256": "2c7d9388991af0ccc48e8167fb21071b8171712ac507cdd254001edf3802db0a",
+  "rows": [
+    {
+      "file": "home-state-brand_new--375--dark.png",
+      "kind": "home",
+      "stateId": "brand_new",
+      "width": 375,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 638.15625,
+        "bottom": 665.15625,
+        "viewport": 667,
+        "hit": false
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "42447357b828cac620e18d8e8f5c8dc8fb5b90af8a8066da7e13d731ae53c151"
+    },
+    {
+      "file": "home-state-brand_new--375--light.png",
+      "kind": "home",
+      "stateId": "brand_new",
+      "width": 375,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 638.15625,
+        "bottom": 665.15625,
+        "viewport": 667,
+        "hit": false
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "26810c1da929ee0193b7754adda2e3c6b719a2bad73dfac8397c52c3b6464742"
+    },
+    {
+      "file": "home-state-brand_new--402--dark.png",
+      "kind": "home",
+      "stateId": "brand_new",
+      "width": 402,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 638.15625,
+        "bottom": 665.15625,
+        "viewport": 874,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "52f385a1e171790eea2b7f5f6941f815c436ebe9e159eb5094a973128866b1aa"
+    },
+    {
+      "file": "home-state-brand_new--402--light.png",
+      "kind": "home",
+      "stateId": "brand_new",
+      "width": 402,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 638.15625,
+        "bottom": 665.15625,
+        "viewport": 874,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "9607fd316fad7716559917053926788d7de753dce70242241f94ef82e1573ed5"
+    },
+    {
+      "file": "home-state-brand_new--1280--dark.png",
+      "kind": "home",
+      "stateId": "brand_new",
+      "width": 1280,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 483.109375,
+        "bottom": 510.109375,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "28eb895fd35bad9b484e56ea8cf4d266d907e38a4233d7413bedb479349b3ac4"
+    },
+    {
+      "file": "home-state-brand_new--1280--light.png",
+      "kind": "home",
+      "stateId": "brand_new",
+      "width": 1280,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 483.109375,
+        "bottom": 510.109375,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "998bc6c7e3cf93f709288b6d09efff9a261b6793a11542d6558886f671f676dc"
+    },
+    {
+      "file": "home-state-brand_new--1600--dark.png",
+      "kind": "home",
+      "stateId": "brand_new",
+      "width": 1600,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 458.46875,
+        "bottom": 485.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "387fdf5ae49a196ea5202129a27a1d8c6333b6de72f4c9d7b3a1988e79b37eb8"
+    },
+    {
+      "file": "home-state-brand_new--1600--light.png",
+      "kind": "home",
+      "stateId": "brand_new",
+      "width": 1600,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 458.46875,
+        "bottom": 485.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "110687f9b77cc769f74fe361d8b5405d108875cc51c198d444acfe3630d09c25"
+    },
+    {
+      "file": "home-state-between_seasons--375--dark.png",
+      "kind": "home",
+      "stateId": "between_seasons",
+      "width": 375,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 388.75,
+        "bottom": 415.75,
+        "viewport": 667,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "1bde5259f0ded9c482817ce1b546dec583a18369a4ccf694db11919296a02341"
+    },
+    {
+      "file": "home-state-between_seasons--375--light.png",
+      "kind": "home",
+      "stateId": "between_seasons",
+      "width": 375,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 388.75,
+        "bottom": 415.75,
+        "viewport": 667,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "b44cbae529617b551186598dc46e27d8b638a78b85c60bf5dea0bea4f1e1a829"
+    },
+    {
+      "file": "home-state-between_seasons--402--dark.png",
+      "kind": "home",
+      "stateId": "between_seasons",
+      "width": 402,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 671.75,
+        "bottom": 698.75,
+        "viewport": 874,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "dafc8977c786d61deb20328fa1146213b073300efef21f38ef5713291dc75dfa"
+    },
+    {
+      "file": "home-state-between_seasons--402--light.png",
+      "kind": "home",
+      "stateId": "between_seasons",
+      "width": 402,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 671.75,
+        "bottom": 698.75,
+        "viewport": 874,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "db479ac52bb953aa6f7e8251fa9bae0875c9172d360c4a7ffb804aeb51d229ba"
+    },
+    {
+      "file": "home-state-between_seasons--1280--dark.png",
+      "kind": "home",
+      "stateId": "between_seasons",
+      "width": 1280,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 512.46875,
+        "bottom": 539.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "a9a9f507cb889893cd167b08ba31eb036d3a63819921978a00ce8a341d644ff3"
+    },
+    {
+      "file": "home-state-between_seasons--1280--light.png",
+      "kind": "home",
+      "stateId": "between_seasons",
+      "width": 1280,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 512.46875,
+        "bottom": 539.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "bc890e5b19cd59c1a031d98179f7b591ce29bb89286dcb0f5e8dcc2a78894054"
+    },
+    {
+      "file": "home-state-between_seasons--1600--dark.png",
+      "kind": "home",
+      "stateId": "between_seasons",
+      "width": 1600,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 512.46875,
+        "bottom": 539.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "c6649b358604b471ade96265fd553a1c765651ab8b8c133ef95ab174e8bc0be5"
+    },
+    {
+      "file": "home-state-between_seasons--1600--light.png",
+      "kind": "home",
+      "stateId": "between_seasons",
+      "width": 1600,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 512.46875,
+        "bottom": 539.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "c344e1576d6db526a6483848b42680618c37d6db101282ae24f7663bd25c77eb"
+    },
+    {
+      "file": "home-state-preseason--375--dark.png",
+      "kind": "home",
+      "stateId": "preseason",
+      "width": 375,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 639.796875,
+        "bottom": 666.796875,
+        "viewport": 667,
+        "hit": false
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "d79eab9f6b95e2ff33fb9a238903f014a914398dfddde039ddd8272e077c23da"
+    },
+    {
+      "file": "home-state-preseason--375--light.png",
+      "kind": "home",
+      "stateId": "preseason",
+      "width": 375,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 639.796875,
+        "bottom": 666.796875,
+        "viewport": 667,
+        "hit": false
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "5c8b5be09c8203f36cb5c1e96352f6f3aacfbd514d81b62124d0ec0626fcc27d"
+    },
+    {
+      "file": "home-state-preseason--402--dark.png",
+      "kind": "home",
+      "stateId": "preseason",
+      "width": 402,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 662.796875,
+        "bottom": 689.796875,
+        "viewport": 874,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "6f7e35854dd71274750670bcff7295abec9abca2976a60b35ec3e83b544e0981"
+    },
+    {
+      "file": "home-state-preseason--402--light.png",
+      "kind": "home",
+      "stateId": "preseason",
+      "width": 402,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 662.796875,
+        "bottom": 689.796875,
+        "viewport": 874,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "73e424210a3c202112d95bb2a3783e107cecababea77df626d5bdcb633868a52"
+    },
+    {
+      "file": "home-state-preseason--1280--dark.png",
+      "kind": "home",
+      "stateId": "preseason",
+      "width": 1280,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 483.109375,
+        "bottom": 510.109375,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "b09779a0c2ca459c9d513111fe4bbd3b014e7dfed2e4b2ee34a5c54c88b5fcfa"
+    },
+    {
+      "file": "home-state-preseason--1280--light.png",
+      "kind": "home",
+      "stateId": "preseason",
+      "width": 1280,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 483.109375,
+        "bottom": 510.109375,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "f88e5ed2527802357820e0b699dbfd405c70a4651af88c18c0641951544556b2"
+    },
+    {
+      "file": "home-state-preseason--1600--dark.png",
+      "kind": "home",
+      "stateId": "preseason",
+      "width": 1600,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 483.109375,
+        "bottom": 510.109375,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "23ecc22c37be11f8c92cc687113573be0d75d93fdd383518d4e2969e65640fa0"
+    },
+    {
+      "file": "home-state-preseason--1600--light.png",
+      "kind": "home",
+      "stateId": "preseason",
+      "width": 1600,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 483.109375,
+        "bottom": 510.109375,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "915e481703f1762623b350d4b770c2cae9beeae58a43810e6a873107f035e6cd"
+    },
+    {
+      "file": "home-state-ceremony_night--375--dark.png",
+      "kind": "home",
+      "stateId": "ceremony_night",
+      "width": 375,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 606.25,
+        "bottom": 633.25,
+        "viewport": 667,
+        "hit": false
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "31f3440ac6134a9480d6ec85c8713293f9fca78943b1bf5112c730ba9d7a9249"
+    },
+    {
+      "file": "home-state-ceremony_night--375--light.png",
+      "kind": "home",
+      "stateId": "ceremony_night",
+      "width": 375,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 606.25,
+        "bottom": 633.25,
+        "viewport": 667,
+        "hit": false
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "e6bdcf94b926a580be6a3cd9d7d715ed2d2e317e6021710d5b646a2deb40c1ee"
+    },
+    {
+      "file": "home-state-ceremony_night--402--dark.png",
+      "kind": "home",
+      "stateId": "ceremony_night",
+      "width": 402,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 606.25,
+        "bottom": 633.25,
+        "viewport": 874,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "ca0165ebb951dc281abc8e08aa01fb621667cf1ced830666415d3cf3b6441092"
+    },
+    {
+      "file": "home-state-ceremony_night--402--light.png",
+      "kind": "home",
+      "stateId": "ceremony_night",
+      "width": 402,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 606.25,
+        "bottom": 633.25,
+        "viewport": 874,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "6b17b7d0f64c49042559d4c4d983e40d3408696f9eb2750b6ffd9c7cadc1c00e"
+    },
+    {
+      "file": "home-state-ceremony_night--1280--dark.png",
+      "kind": "home",
+      "stateId": "ceremony_night",
+      "width": 1280,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 458.46875,
+        "bottom": 485.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "ea22b0a2a4d499c157c7ed283e26cfeb910133d1dac63b33cbbe91f8ca855f8b"
+    },
+    {
+      "file": "home-state-ceremony_night--1280--light.png",
+      "kind": "home",
+      "stateId": "ceremony_night",
+      "width": 1280,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 458.46875,
+        "bottom": 485.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "cc6f0ad23bf418f5ed5147ad5f1a423e79e6ed52a28a0aa321ced6554dbb3acf"
+    },
+    {
+      "file": "home-state-ceremony_night--1600--dark.png",
+      "kind": "home",
+      "stateId": "ceremony_night",
+      "width": 1600,
+      "theme": "dark",
+      "evidence": {
+        "bg": "rgb(26, 38, 32)",
+        "heading": 14.103189138365336,
+        "body": 6.210813084890504,
+        "action": 5.136390369581683,
+        "actionColor": "rgb(95, 162, 113)",
+        "act": "#5FA271",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 458.46875,
+        "bottom": 485.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "0f35a32d92b77257168bd91b0d261d4c984d7b1a085d3a78b28606976ba0ed5f"
+    },
+    {
+      "file": "home-state-ceremony_night--1600--light.png",
+      "kind": "home",
+      "stateId": "ceremony_night",
+      "width": 1600,
+      "theme": "light",
+      "evidence": {
+        "bg": "rgb(234, 230, 219)",
+        "heading": 14.02136929904002,
+        "body": 5.296038792657301,
+        "action": 6.271688252703478,
+        "actionColor": "rgb(31, 93, 58)",
+        "act": "#1F5D3A",
+        "overflow": 0
+      },
+      "reach": {
+        "top": 458.46875,
+        "bottom": 485.46875,
+        "viewport": 1000,
+        "hit": true
+      },
+      "scope": "Existing safe dispatch/profile fixture; remaining read models empty. Native/authenticated path not exercised.",
+      "sha256": "9915bccc74a580f4ecf58242be4f1834fde4235c36e40ebff0a71dd0585a26cc"
+    }
+  ],
+  "failure": []
+}

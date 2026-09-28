@@ -1,0 +1,73 @@
+{
+  "slice": "S1b",
+  "sourceBaseline": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "sourceHashes": {
+    "index.html": {
+      "before": "89ab6377912701644e6bba29aace5bc9f71577b2b960037e699fd7c4a7997b58",
+      "after": "2c7d9388991af0ccc48e8167fb21071b8171712ac507cdd254001edf3802db0a"
+    }
+  },
+  "privacy": "Only synthetic/empty fixture captures; no real accounts or entered addresses in images.",
+  "captures": [
+    {
+      "file": "web-before-375-dark.png",
+      "sha256": "ee21e804a235fc114f40718f71eb7ee27442f2aa4480026e6e89a455a8764360",
+      "client": "web",
+      "stage": "before",
+      "width": 375,
+      "theme": "dark",
+      "state": "existing event_live fixture; focused occasion crop",
+      "limit": "Compact capture includes fixed navigation; use desktop for the complete card. No mobile action-reachability claim from this crop."
+    },
+    {
+      "file": "web-after-375-dark.png",
+      "sha256": "ef175eced289215ba56b1af957d56dab37f2ebcaf95c898110e94b5a7e45644c",
+      "client": "web",
+      "stage": "after",
+      "width": 375,
+      "theme": "dark",
+      "state": "existing event_live fixture; focused occasion crop",
+      "limit": "Compact capture includes fixed navigation; use desktop for the complete card. No mobile action-reachability claim from this crop."
+    },
+    {
+      "file": "web-before-375-light.png",
+      "sha256": "2b5e4e383f71d0239f5c01be0ca73d0e3647f6ec574d239bab8d0a076ba4a713",
+      "client": "web",
+      "stage": "before",
+      "width": 375,
+      "theme": "light",
+      "state": "existing event_live fixture; focused occasion crop",
+      "limit": "Compact capture includes fixed navigation; use desktop for the complete card. No mobile action-reachability claim from this crop."
+    },
+    {
+      "file": "web-after-375-light.png",
+      "sha256": "0388ba23cfad364e873c8a465e05767ae0de15557920e725b6d8d1305327421f",
+      "client": "web",
+      "stage": "after",
+      "width": 375,
+      "theme": "light",
+      "state": "existing event_live fixture; focused occasion crop",
+      "limit": "Compact capture includes fixed navigation; use desktop for the complete card. No mobile action-reachability claim from this crop."
+    },
+    {
+      "file": "web-before-1600-light.png",
+      "sha256": "988fe045c96f392f5557b54055f371bc8f9e6e34d46364f1aaf98aca79222458",
+      "client": "web",
+      "stage": "before",
+      "width": 1600,
+      "theme": "light",
+      "state": "existing event_live fixture; focused occasion crop",
+      "limit": "Compact capture includes fixed navigation; use desktop for the complete card. No mobile action-reachability claim from this crop."
+    },
+    {
+      "file": "web-after-1600-light.png",
+      "sha256": "845382486e763293be2ca27f4c26786af8de25374d701134d2a0ee1a8fd983bb",
+      "client": "web",
+      "stage": "after",
+      "width": 1600,
+      "theme": "light",
+      "state": "existing event_live fixture; focused occasion crop",
+      "limit": "Compact capture includes fixed navigation; use desktop for the complete card. No mobile action-reachability claim from this crop."
+    }
+  ]
+}

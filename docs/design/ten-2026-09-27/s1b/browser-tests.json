@@ -1,0 +1,98 @@
+[
+  {
+    "width": 375,
+    "theme": "dark",
+    "suite": "home-hierarchy-browser.js",
+    "passed": true
+  },
+  {
+    "width": 375,
+    "theme": "dark",
+    "suite": "home-repetition-browser.js",
+    "passed": true
+  },
+  {
+    "width": 375,
+    "theme": "light",
+    "suite": "home-hierarchy-browser.js",
+    "passed": true
+  },
+  {
+    "width": 375,
+    "theme": "light",
+    "suite": "home-repetition-browser.js",
+    "passed": true
+  },
+  {
+    "width": 402,
+    "theme": "dark",
+    "suite": "home-hierarchy-browser.js",
+    "passed": true
+  },
+  {
+    "width": 402,
+    "theme": "dark",
+    "suite": "home-repetition-browser.js",
+    "passed": true
+  },
+  {
+    "width": 402,
+    "theme": "light",
+    "suite": "home-hierarchy-browser.js",
+    "passed": true
+  },
+  {
+    "width": 402,
+    "theme": "light",
+    "suite": "home-repetition-browser.js",
+    "passed": true
+  },
+  {
+    "width": 1280,
+    "theme": "dark",
+    "suite": "home-hierarchy-browser.js",
+    "passed": true
+  },
+  {
+    "width": 1280,
+    "theme": "dark",
+    "suite": "home-repetition-browser.js",
+    "passed": true
+  },
+  {
+    "width": 1280,
+    "theme": "light",
+    "suite": "home-hierarchy-browser.js",
+    "passed": true
+  },
+  {
+    "width": 1280,
+    "theme": "light",
+    "suite": "home-repetition-browser.js",
+    "passed": true
+  },
+  {
+    "width": 1600,
+    "theme": "dark",
+    "suite": "home-hierarchy-browser.js",
+    "passed": true
+  },
+  {
+    "width": 1600,
+    "theme": "dark",
+    "suite": "home-repetition-browser.js",
+    "passed": true
+  },
+  {
+    "width": 1600,
+    "theme": "light",
+    "suite": "home-hierarchy-browser.js",
+    "passed": true
+  },
+  {
+    "width": 1600,
+    "theme": "light",
+    "suite": "home-repetition-browser.js",
+    "passed": true
+  }
+]
