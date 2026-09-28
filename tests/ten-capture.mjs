@@ -178,7 +178,15 @@ async function captureOne(browser, state, vp, theme, cdn) {
     const text = (e.args || []).map((a) => a.value !== undefined ? (typeof a.value === 'string' ? a.value : JSON.stringify(a.value)) : (a.description || a.unserializableValue || '')).join(' ')
     messages.push({ level: e.type, text: text.slice(0, 1200), src: frames[0] ? `${frames[0].url.replace(base, '')}:${frames[0].lineNumber + 1}` : null, indexLine: own ? own.lineNumber + 1 : null, indexFrames: ownFrames.slice(0, 4).map((f) => `${f.functionName || '(anon)'}:${f.lineNumber + 1}`), via: 'console' })
   })
-  page.on('console', (m) => { if (m.type() === 'error' && /^Failed to load resource/.test(m.text())) messages.push({ level: 'error', text: m.text(), url: m.location().url, src: 'network', indexLine: null, via: 'network' }) })
+  /* browser-originated lines (network failures, deprecations, interventions,
+     CSP, violations) arrive on the Log domain, never as console API calls */
+  await cdp.send('Log.enable')
+  cdp.on('Log.entryAdded', ({ entry }) => {
+    if (entry.source === 'console-api') return
+    messages.push({ level: entry.level === 'warning' ? 'warning' : entry.level, text: String(entry.text || '').slice(0, 1200), url: entry.url || null,
+      src: entry.source === 'network' ? 'network' : `browser:${entry.source}${entry.url ? ' ' + entry.url.replace(base, '') + (entry.lineNumber != null ? ':' + (entry.lineNumber + 1) : '') : ''}`,
+      indexLine: entry.url && entry.url.replace(/\?.*$/, '').replace(base, '').match(/^\/(index\.html)?$/) && entry.lineNumber != null ? entry.lineNumber + 1 : null, via: 'browser' })
+  })
   page.on('pageerror', (e) => exceptions.push({ text: String(e.message).slice(0, 600), stack: String(e.stack || '').split('\n').slice(0, 6).join(' <- ') }))
 
   const t0 = Date.now()
