@@ -232,7 +232,14 @@ public struct PostEpilogue: Sendable, Equatable {
       let title = CSBands.bandName(pvi) + (points.map { " · \(CSCopy.points($0)) pts" } ?? "")
       // D326 · no mark. The flag said "golf" on a golf app, stamped over the
       // best fact the screen has. The band and the number lead the row now.
-      rows.append(.line(icon: "", title: title, sub: CSBands.vsPhrase(pvi) + Self.counting(rank: monthRank, cap: cap)))
+      // F13 · one fact once: "Played to it" already says what "played to your
+      // playing HCP" would. The sentence stays only where it adds the margin
+      // (|vs| >= 1), and a counting suffix that loses its lead-in loses its
+      // separator. The desk's `showEpilogue` reads the same rule.
+      let said = abs(pvi) >= 1 ? CSBands.vsPhrase(pvi) : ""
+      var sub = said + Self.counting(rank: monthRank, cap: cap)
+      if sub.hasPrefix(" · ") { sub = String(sub.dropFirst(3)) }
+      rows.append(.line(icon: "", title: title, sub: sub))
     }
     for a in earned {
       // **D329 · THE FALLBACK IS THE CASE'S FALLBACK.** A kind this build has
