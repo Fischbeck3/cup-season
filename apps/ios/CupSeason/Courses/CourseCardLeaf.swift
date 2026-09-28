@@ -72,6 +72,15 @@ struct CourseCardLeaf: View {
   }
   private var rows: [Row] { yards == nil ? [.hole, .par, .hcp] : Row.allCases }
 
+  /// The whole card on the measure when it fits; otherwise the key stays where
+  /// it is and the columns scroll past it. `ViewThatFits` asks each form for
+  /// its IDEAL width — the key, every column at its widest figure, the total —
+  /// so the choice is the real type at the real size against the real measure,
+  /// never a breakpoint. Three forms, tried in order: the card with an s2
+  /// gutter between its figures; the same card set closer, s1 between figures,
+  /// which is what lets a nine with three-digit yardage print whole on an SE
+  /// and a 17 Pro at the reading size; and, when neither fits, the s2 card in
+  /// a scroller with the key pinned outside it.
   var body: some View {
     CSLeaf {
       Text(title).csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
@@ -80,17 +89,6 @@ struct CourseCardLeaf: View {
         Text(CourseBookCopy.noCard).csType(.bodyS).foregroundStyle(cs.leafMut)
           .fixedSize(horizontal: false, vertical: true)
       } else {
-        // The whole card on the measure when it fits; otherwise the key stays
-        // where it is and the columns scroll past it. `ViewThatFits` asks the
-        // first form for its IDEAL width — the key, every column at its widest
-        // figure, the total — so the choice is the real type at the real size
-        // against the real measure, never a breakpoint.
-        //
-        // Three forms, tried in order: the card with an s2 gutter between its
-        // figures; the same card set closer, s1 between figures, which is what
-        // lets a nine with three-digit yardage print whole on an SE and a 17
-        // Pro at the reading size; and, when neither fits, the s2 card in a
-        // scroller.
         ViewThatFits(in: .horizontal) {
           HStack(alignment: .top, spacing: 0) { key; columns(fill: true, gap: CSTokens.Space.s2) }
           HStack(alignment: .top, spacing: 0) { key; columns(fill: true, gap: CSTokens.Space.s1) }
