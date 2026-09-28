@@ -1,5 +1,7 @@
 # Cup Season · the ten checkpoint
 
+**Authorized scope — September 28, later (supersedes every earlier "post-launch" or "stop" label here):** The owner directed that all remaining findings ship before launch. The whole remaining program is pre-launch work under [launch/LEDGER.md](launch/LEDGER.md), and the historical text below is preserved as it stood.
+
 **Current disposition — September 28:** The owner approved “Build recommended,” then “Ship it.” S1a/S1b and approved documentation corrections are integrated on main. Web is live; internal Owner TestFlight **1.0.0 (1053)** is available. See [DEPLOYMENT.md](DEPLOYMENT.md) for release proof and [BUILD.md](BUILD.md) for repair evidence and retained gates. The original checkpoint text below is preserved as history; broader work still needs named scope.
 
 Phases 0–3 are prepared for the owner’s review. **Stop here until “build it” and named scope.** Nothing is selected for October 1 by implication. Product source remains 5fabf861; the old dirty checkout is untouched.

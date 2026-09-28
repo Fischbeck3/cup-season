@@ -1,5 +1,22 @@
 # Cup Season · active work and ownership
 
+## Impeccable ten · the whole program before launch · 2026-09-28 (Claude, on the Mac)
+
+The owner's direction on September 28 was *"Prompt claude to address other findings. Be extremely specific to meet our 10/10 expectation. We ship all before launch."* Under it, every remaining finding is pre-launch scope, alongside the fresh residuals, missing families and states, detector candidates, per-cell barriers and inherited failures from the September 27–28 program. Findings F03–F18 are included, and so are the Door and Home residuals, fixtures (S2/C3), S8, S9 and the evidence gates.
+- **Delivery:** verified web on main/Netlify and an internal **Owner** TestFlight build.
+- **Outside this lane:** App Store submission, Friends/external TestFlight, database/Edge, secrets, dependencies, the production mark/icon, outreach and new gameplay decisions.
+- **Held for the owner:** the push to main and the TestFlight upload wait for the owner's yes in chat on a verified candidate.
+
+**Owned integration branch:** `claude/ten-before-launch-2026-09-28` at `/Users/fischbeck3/cup-season-claude-ten`, cut from origin/main `1b5916b2`.
+- **Integrator:** the root session. It is the only writer of `index.html` and `legal.html`.
+- **CSDesign/tokens** have exactly one owner, sub-lane N1.
+- **Sub-lanes:** each has its own branch and worktree, `claude/ten-<lane>-2026-09-28` at `/Users/fischbeck3/cup-season-claude-ten-<lane>`. They are integrated only by the root session.
+- **Simulators:** task-created clones only; the owner's signed-in simulators are never used.
+- **Web evidence:** served on 127.0.0.1:8801. Ports 8791/8793/8794/8799 belong to other lanes.
+- **Not touched:** the old dirty checkout and every other lane's worktree.
+
+The ledger is [docs/design/ten-2026-09-27/launch/LEDGER.md](../design/ten-2026-09-27/launch/LEDGER.md). Human gates stay owner-run.
+
 ## Impeccable selected repairs · web and Owner TestFlight shipped · 2026-09-28 (Codex)
 
 The owner said **“Ship it”** after the local S1a/S1b handoff and its known
