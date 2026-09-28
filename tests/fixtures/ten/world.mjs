@@ -194,11 +194,30 @@ export function makeWorld(variantName = 'member', overrides = {}) {
   T.v_squad_standings.forEach((s) => { s.points += T.season_adjustments.filter((a) => a.squad_id === s.squad_id).reduce((a, x) => a + x.points, 0) })
   T.week_clashes = inLeague.has(1) ? [{ id: 'fb000000-0000-4000-8000-000000000001', season_id: sid(1, 1), week_no: 8, a_member: mid(1, 1), b_member: mid(1, 4),
     opened_at: W.at(-1, 7, 0), settled_at: null, winner_member: null, a_best: 1.3, b_best: 0.4 }] : []
+  /* the weekly snapshots the cron records, DERIVED: each squad's counting
+     points from the rounds played up to that week's end (ledger rows dated
+     inside it included), ranked -- so the season story and the movement
+     labels read the same history the table does */
   T.standings_snapshots = []
-  if (inLeague.has(1)) for (let w = 1; w <= 7; w++) {
-    T.standings_snapshots.push({ season_id: sid(1, 1), week_no: w, captured_at: `${addDays('2026-08-09', w * 7)}T07:10:00-07:00`,
-      standings: T.squads.filter((q) => q.season_id === sid(1, 1)).map((q, i) => ({ squad_id: q.id, rank: ((w + i) % 2) + 1, points: 20 * w + i * 7 })) })
+  const L1 = leagues.find((x) => x.n === 1)
+  if (inLeague.has(1) && L1 && L1.season) {
+    const squads1 = T.squads.filter((q) => q.season_id === sid(1, 1))
+    for (let w = 1; w <= 7; w++) {
+      const cut = addDays(L1.season.starts_on, w * 7 - 1)
+      const pts = squads1.map((q) => {
+        const ids = T.squad_members.filter((x) => x.squad_id === q.id).map((x) => x.member_id)
+        const rr = T.v_rounds_ranked.filter((x) => x.season_id === sid(1, 1) && ids.includes(x.member_id) && x.played_on <= cut && (cap(L1) == null || x.month_rank <= cap(L1)))
+        const adj = T.season_adjustments.filter((a) => a.squad_id === q.id && a.kind !== 'month_closed' && String(a.created_at).slice(0, 10) <= cut)
+        return { squad_id: q.id, points: rr.reduce((a, x) => a + x.points, 0) + adj.reduce((a, x) => a + x.points, 0) }
+      }).sort((a, b) => b.points - a.points || a.squad_id.localeCompare(b.squad_id))
+      T.standings_snapshots.push({ season_id: sid(1, 1), week_no: w, captured_at: `${addDays(L1.season.starts_on, w * 7)}T07:10:00-07:00`,
+        standings: pts.map((x, i) => ({ ...x, rank: i + 1 })) })
+    }
   }
+  /* a month rank computed over the whole month can rank a round against one
+     played after the snapshot; the snapshot is a fixture of the table's
+     shape, not a replay of the cron -- close enough for a capture, and never
+     contradicting who leads now */
 
   /* ---- the board ---- */
   T.posts = []; T.post_kudos = []; T.post_comments = []
@@ -216,7 +235,10 @@ export function makeWorld(variantName = 'member', overrides = {}) {
   if (inLeague.has(1)) {
     T.posts.push({ id: pid(900), league_id: lid(1), profile_id: uid(2), kind: 'announce', member_id: mid(1, 2), body: 'Week 8: floors close Tuesday. Post what you played.', created_at: W.at(-2, 18, 5), round_id: null, live_round_id: null, scheduled_round_id: null })
     T.posts.push({ id: pid(901), league_id: lid(1), profile_id: uid(3), kind: 'chat', member_id: mid(1, 3), body: 'Anyone up for Saguaro Flats on Saturday? Tee sheet opens Wednesday.', created_at: W.at(-1, 12, 40), round_id: null, live_round_id: null, scheduled_round_id: null })
-    T.posts.push({ id: pid(902), league_id: lid(1), profile_id: null, kind: 'moment', member_id: null, body: 'FIXTURE WRENS TAKE THE LEAD IN WEEK 8', created_at: W.at(-1, 20, 0), round_id: null, live_round_id: null, scheduled_round_id: null })
+    /* the board's moment says what the table says: whoever leads now */
+    const lead = T.v_squad_standings.filter((x) => x.season_id === sid(1, 1)).sort((a, b) => b.points - a.points)[0]
+    const leadName = lead ? (T.squads.find((q) => q.id === lead.squad_id) || {}).name : null
+    if (leadName) T.posts.push({ id: pid(902), league_id: lid(1), profile_id: null, kind: 'moment', member_id: null, body: `${leadName.toUpperCase()} LEAD THE TABLE INTO WEEK 8`, created_at: W.at(-1, 20, 0), round_id: null, live_round_id: null, scheduled_round_id: null })
     const myPost = T.posts.find((p) => p.kind === 'round' && p.profile_id === W.me)
     if (myPost) {
       T.post_kudos.push({ post_id: myPost.id, member_id: mid(1, 2), emoji: '🔥', created_at: W.at(0, 7, 5) }, { post_id: myPost.id, member_id: mid(1, 3), emoji: '👏', created_at: W.at(0, 7, 20) })

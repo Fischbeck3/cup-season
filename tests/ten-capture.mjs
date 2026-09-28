@@ -91,6 +91,9 @@ function git(root, ...a) { try { return execFileSync('git', ['-C', root, ...a], 
 const gitSha = git(ROOT_ARG, 'rev-parse', REF || 'HEAD')
 const gitDirty = REF ? false : (git(ROOT_ARG, 'status', '--porcelain', '--', 'index.html') || '').length > 0
 const harnessSha = git(HERE, 'rev-parse', 'HEAD')
+/* the harness's own uncommitted files: a capture made with a dirty fixture
+   module says so, so a gallery never claims provenance it does not have */
+const harnessDirty = (git(HERE, 'status', '--porcelain', '--', '.') || '').split('\n').filter(Boolean)
 const diskIndexSha = sha(readFileSync(join(ROOT, 'index.html')))
 
 /* classify one console line: `injected` when the state said it would provoke
@@ -267,7 +270,7 @@ async function assertRoute(page, state) {
   for (const [sel, want] of Object.entries(exp.selectors || {})) {
     const got = await page.evaluate(([sel, want]) => {
       const el = document.querySelector(sel)
-      if (!el) return { ok: false, why: 'missing ' + sel }
+      if (!el) return want === 'hidden' ? { ok: true } : { ok: false, why: 'missing ' + sel }   /* absent counts as hidden */
       const r = el.getBoundingClientRect(), cs = getComputedStyle(el)
       const visible = r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none'
       if (want === 'visible' && !visible) return { ok: false, why: sel + ' not visible' }
@@ -352,6 +355,8 @@ async function main() {
       artifacts: (cap.result.artifacts || []).map((f) => { try { const b = readFileSync(f); return { file: f.startsWith(OUT) ? f.slice(OUT.length + 1) : f, sha256: sha(b), bytes: b.length } } catch { return { file: f, missing: true } } }),
       authRequests: cap.log.filter((e) => (e.path || '').startsWith('/auth/v1/')).map((e) => `${e.method} ${e.path}${(e.query || '').slice(0, 40)} -> ${e.result}`),
       gitSha, indexDirty: gitDirty, indexSha256Served: cap.served['/'] || cap.served['/index.html'] || null, indexSha256Disk: diskIndexSha,
+      /* a state that is not the app (get/support/legal) records the page it did serve */
+      documentsServed: Object.keys(cap.served).length ? cap.served : null,
       capturedAt: new Date().toISOString(), ms: cap.ms,
     }
     slots[i] = row
@@ -371,7 +376,7 @@ async function main() {
     stop()
   }
   const manifest = {
-    harness: 'tests/ten-capture.mjs', harnessGitSha: harnessSha, root: ROOT_ARG, ref: REF, servedFrom: SNAPSHOT ? 'git archive snapshot of ' + REF : 'working tree', gitSha, indexDirty: gitDirty, indexSha256Disk: diskIndexSha,
+    harness: 'tests/ten-capture.mjs', harnessGitSha: harnessSha, harnessDirty, root: ROOT_ARG, ref: REF, servedFrom: SNAPSHOT ? 'git archive snapshot of ' + REF : 'working tree', gitSha, indexDirty: gitDirty, indexSha256Disk: diskIndexSha,
     indexSha256DiskAfter: SNAPSHOT ? diskIndexSha : sha(readFileSync(join(ROOT, 'index.html'))), captureClock: CAPTURE_NOW, port: PORT, serverPid: srv.pid,
     serve: SERVE, widths: WIDTHS, themes: THEMES, dsf: DSF, cdn: cdn.stats, startedAt: new Date(t0).toISOString(), finishedAt: new Date().toISOString(),
     serviceWorkers: 'blocked per context (Playwright serviceWorkers:block); registrations unregistered and caches cleared after load',
@@ -384,6 +389,29 @@ async function main() {
       storms: rows.filter((r) => r.requestStorm).length,
     },
     rows,
+  }
+  /* --merge: fold this run's rows into the manifest already in --out
+     (a re-run of some states, or a later family against the SAME --ref);
+     a row is replaced by (family, state, viewport, theme). Every row keeps
+     its own gitSha and served index.html hash, and `runs` lists each run. */
+  if (flag('merge') && existsSync(join(OUT, 'manifest.json'))) {
+    const prev = JSON.parse(readFileSync(join(OUT, 'manifest.json'), 'utf8'))
+    const key = (r) => `${r.family}|${r.state}|${r.viewport && r.viewport.width}x${r.viewport && r.viewport.height}|${r.theme}`
+    const mine = new Set(rows.map(key))
+    const merged = (prev.rows || []).filter((r) => !mine.has(key(r))).concat(rows)
+    const order = new Map(STATES.map((st, i) => [`${st.family}|${st.id}`, i]))
+    merged.sort((a, b) => ((order.get(`${a.family}|${a.state}`) ?? 1e9) - (order.get(`${b.family}|${b.state}`) ?? 1e9)) || String(a.file).localeCompare(String(b.file)))
+    manifest.runs = [...(prev.runs || [{ gitSha: prev.gitSha, ref: prev.ref, startedAt: prev.startedAt, finishedAt: prev.finishedAt, harnessGitSha: prev.harnessGitSha, captures: (prev.rows || []).length }]),
+      { gitSha, ref: REF, startedAt: manifest.startedAt, finishedAt: manifest.finishedAt, harnessGitSha: harnessSha, captures: rows.length }]
+    manifest.rows = merged
+    manifest.gitShas = [...new Set(merged.map((r) => r.gitSha))]
+    manifest.counts = {
+      captures: merged.filter((r) => r.file).length, errors: merged.filter((r) => !r.file).length,
+      routeFailed: merged.filter((r) => r.file && !r.route.ok).length,
+      withGaps: merged.filter((r) => r.fixtureGaps && r.fixtureGaps.length).length,
+      withPageErrors: merged.filter((r) => r.pageErrors && r.pageErrors.length).length,
+      storms: merged.filter((r) => r.requestStorm).length,
+    }
   }
   writeFileSync(join(OUT, 'manifest.json'), JSON.stringify(manifest, null, 1))
   console.log(`\n${manifest.counts.captures} capture(s), ${manifest.counts.routeFailed} route failure(s), ${manifest.counts.errors} error(s), ${manifest.counts.withGaps} with fixture gaps, ${manifest.counts.withPageErrors} with page errors · ${((Date.now() - t0) / 1000).toFixed(0)}s · manifest ${join(OUT, 'manifest.json')}`)
