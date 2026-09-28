@@ -1,0 +1,3 @@
+Full interaction probe stays local at /Users/fischbeck3/cup-season-ten-gallery/web/interaction-evidence.json.
+Verified generic sheet opened with focus on hdrSearch behind the sheet; seven Tab stops remained outside before Close.
+Reduced viewport proxies kept Go/Add my round scrollable and hit-test reachable. These are not physical keyboard/VoiceOver passes.

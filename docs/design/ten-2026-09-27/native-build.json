@@ -1,0 +1,33 @@
+{
+  "sourceCommit": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "sourceArchiveFidelity": "All tracked apps/ios blobs matched original Git object hashes; zero changes/missing files",
+  "xcode": "27.0 / 27A266a",
+  "simulatorRuntime": "iOS 26.5 / 23F77",
+  "sdk": "iOS Simulator 27.0",
+  "appBundleID": "app.cupseason.ios",
+  "sourceCodeChanges": "none",
+  "testHarness": "Local-only TenCaptureTests.swift added outside repository; exercises existing fixture routes",
+  "codeSigning": "CODE_SIGNING_ALLOWED=NO",
+  "dependencies": "Reused copied existing Swift SourcePackages; automatic resolution disabled; no new dependency",
+  "devices": {
+    "se3": {
+      "udid": "C49F562F-1ACB-4664-897C-99D2B7649E12",
+      "logicalSize": [
+        375,
+        667
+      ]
+    },
+    "17pro": {
+      "udid": "BD7B199C-7C75-4958-B0D1-038A488FDD33",
+      "logicalSize": [
+        402,
+        874
+      ]
+    }
+  },
+  "harnesses": {
+    "capture-ten-native.py": "375cdb57b78a9d437ea020caade05a8a6e6055f00bfcac9d39b58208fe8ee789",
+    "run-ten-ui.py": "6a3a504be81a749860bc6130d3a6ff03c3e8f00793d466d897a9e49ef979e1f6",
+    "build-source/apps/ios/CupSeasonUITests/TenCaptureTests.swift": "545e09b7e7fe564944ffede0517d8933bec12c9061d83891276f96d262a483e3"
+  }
+}

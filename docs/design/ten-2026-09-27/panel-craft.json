@@ -1,0 +1,2176 @@
+{
+  "lens": "craft",
+  "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "rows": [
+    {
+      "id": "ios/door",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 6,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Welcome, invited welcome, invited email entry and simulator software-keyboard/menu states in dark/light, default/AX3 and both phones. No auth submission, code entry or acceptance proved.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/door.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-door-light-AX3.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-door-invited.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-door-email.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-door-keyboard.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-invited-light-AX3.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-email-light-AX3.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-keyboard-dark-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Welcome reads clearly, but invited copy directs sign-in while the SE AX3 first view presents only Get Started.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "AX3 invitation prose dominates the welcome and email composition; email action wraps to two large lines.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "SE AX3 invited welcome pushes Sign In beyond the shown view; email action sits immediately against the keyboard.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Themes track well; invitation and enlarged keyboard states have markedly different balance from the default welcome.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Flag and contours identify the world, while the promise remains broad.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Strong entrance, but invited AX3 action visibility and keyboard-adjacent spacing need refinement.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Core entry text is readable; the enlarged invitation and email field consume nearly all non-keyboard space.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "The invitation is warm but conveys little specific lived golf texture.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Large repeated invitation context displaces the alternative sign-in action and supporting email information at AX3.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Simulator keyboard keeps email and Continue visible, but invited SE AX3 Sign In is outside the shown view. Hardware reach, focus and completion remain unproved.",
+          "evidence_needed_to_10": "Recapture a more balanced SE AX3 invited welcome; test scrolling, sign-in reach, typing, focus order and VoiceOver on hardware. Simulator keyboard images prove layout only."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Supplemental invited/email/keyboard captures incorporated. The welcome Sign In visibility concern is limited to the shown initial viewport, not a claim that scrolling cannot reach it."
+    },
+    {
+      "id": "ios/play-cover",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 6,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 7,
+        "E": 6,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Populated morning Play setup plus focused rating input with simulator numeric keyboard. No posted-round composer, tee-off transaction or hardware use proved.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-setup.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-setup-light-AX3.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-setup-keyboard.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-setup-keyboard-dark-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Tee Off stays clear; AX3 setup metadata dominates the first viewport.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Course value truncates at AX3; stacked tee numbers lose the compact table relationship.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "AX3 keyboard view scrolls course content beneath the title and places Tee Off between focused rating and remaining setup context; spatial grouping feels crowded.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Themes track well; compact and enlarged field grouping feel materially different.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Board labels provide identity, but the form is chiefly generic input furniture.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Course truncation and heavy enlarged labels keep the form short of exemplary finish.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "AX3 course identity is incomplete in the visible field.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "It communicates readiness competently, with little sense of the upcoming shared round.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "At AX3 little of the group appears before scrolling; the first task could be more economical.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Numeric keyboard and Tee Off remain visible in simulator captures; AX3 neighboring setup values are outside the shown area. Hardware reach, focus and field traversal remain unproved.",
+          "evidence_needed_to_10": "Show coherent enlarged field grouping with keyboard present, then verify field traversal, dismissal, scrolling, focus and VoiceOver on hardware."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Supplemental real simulator software-keyboard geometry incorporated. No score is inferred for hardware keyboard behavior, submission, or unseen setup fields."
+    },
+    {
+      "id": "ios/live",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 9,
+        "P": 8,
+        "R": 7,
+        "E": 8,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Live hole-15 scoring and queued-offline visual states only. morning-kept is active on-phone scoring, not a completed/resume state. Other score behavior is unproved.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-live.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-offline.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-live-dark-large.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-live-dark-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Hole and scores lead well at default; at AX3 metadata pushes score entry below the initial SE viewport.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Condensed figures are strong, but secondary score summaries truncate and AX3 legend stacks heavily.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Default rows align cleanly; enlarged headers take a disproportionate vertical share.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Same palette and score rows persist, but initial task visibility differs sharply by text size.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Score rail, markers and restrained live ember are distinctive; finer legend handling remains unresolved.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Strong tournament-board finish, limited by truncation and oversized ancillary AX3 material.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "A default player summary and course header are ellipsized; semantic legend relies on very small default detail.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Match status supplies tension, but its placement falls well below the enlarged first view.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Default carries four players efficiently; enlarged metadata displaces the main interaction.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Default steppers look generous; SE AX3 scoring controls start below the capture. Actual one-handed/outdoor use remains unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "ios/share-card",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-share.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/share-long-photo.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-long-photo-light-AX3.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-share-dark-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Gross score leads well; long/photo AX3 preview consumes the view before the message row.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "The exported preview stays small while surrounding AX3 controls become very large.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "No-photo card has a large empty lower field; photo/long variants crowd the bottom preview edge.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Fixed artifact palette is coherent across UI themes, but preview/control scale balance varies.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Serif course, condensed record and subtle contours are identifiable; signature composition could be stronger.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Careful type pairing is present, but the abstract fixture and preview cropping limit the made-object impression.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Preview metadata remains fine print at enlarged UI text size.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Synthetic record conveys accomplishment, but no real moment is visible.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "No-photo card leaves much unused space; long photo cards push contextual controls below the initial view.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Visible Share action is large; message row is cut at the viewport edge in SE AX3, with scroll/consent/share behavior unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A real round moment, optionally pictured, could deepen emotional specificity.",
+          "legitimate_source": "Consented actual-round photo and the golfer's existing truthful round record."
+        },
+        {
+          "dimension": "P",
+          "needs": "Judge real image crop and tonal integration rather than the abstract fixture.",
+          "legitimate_source": "Optional consented actual-round photo; no stock testimonial or invented golfer."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "ios/wizard",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 6,
+        "M": 7
+      },
+      "scope": "Existing structure-step fixture only. Fixture-identification chrome is not treated as product copy. No full setup/agreement/lock journey scored.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/wizard.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-wizard-dark-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Intro and recommendation compete with the rule controls; AX3 first view contains almost no setting.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Type roles are well separated, though enlarged lead and questions form a wall of large text.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Long instruction blocks stretch the vertical rhythm before the adjustable values.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Themes remain coherent; control proximity changes substantially with enlarged type.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Story serif and board prompts fit the identity; setting explanations still feel administrative.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Well composed default rows, but the enlarged flow needs more deliberate editorial compression.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Default support text is muted; AX3 improves size while increasing reading burden.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "The group-chat promise helps; the visible experience quickly becomes rule administration.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Explanatory paragraphs repeat the setting concept and dominate the initial enlarged view.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Steppers look operable at default; enlarged setting reach and progression require scroll/device evidence.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "ios/sheets",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Covenant and Pro ruling sheets only; score the shown default/enlarged composition, not unseen scrolling or submission.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/covenant.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/ruling.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-ruling-light-AX3.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-covenant-dark-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Covenant acceptance reads at default; ruling AX3 first view stops within its explanatory paragraph.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Covenant serif is humane but the bold introductory paragraphs compete at enlarged sizes.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Half-height ruling sheet reserves much space above content while enlarged fields move out of view.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Sheet materials are consistent; covenant and ruling have very different visible action density.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Money in gold and generic ruling furniture weaken otherwise clear story/record roles.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Default sheets are calm; enlarged presentation looks insufficiently composed for the available height.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Text itself is legible; the initial AX3 ruling view cannot expose the form context together.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Season return has warmth; ruling presentation is neutral and text-heavy.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "A substantial enlarged first view is consumed before any ruling input becomes visible.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Only top portions of AX3 sheets are shown; visible geometry warrants a scroll, keyboard and submit-reach check.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "ios/widgets",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 6,
+        "Sp": 7,
+        "C": 8,
+        "B": 6,
+        "P": 6,
+        "R": 6,
+        "E": 6,
+        "D": 7,
+        "M": null
+      },
+      "scope": "Four production widget views in empty state, inside app review host. Host title and surrounding blank page are not scored as widget UI. Populated/system-host states not scored.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSSeasonWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSNextTeeWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSRecordWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSRivalryWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSSeasonWidget-light-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Empty-state instruction is clear in medium previews but loses its message in small ones.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Small AX3 previews ellipsize the action phrase; the record face becomes monotonous.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Simple insets are consistent, but large blank areas coexist with clipped small text.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Four empty widgets reuse a clear pattern, with little differentiation beyond title.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Palette and record lettering fit; repeated generic open-app copy carries limited individual character.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Visible ellipses in empty messages prevent finished miniature composition.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Small enlarged variants cut off the actual instruction.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Empty state is polite but has little reassurance beyond opening the app.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Empty-state density is reasonable; small variants spend scarce space on titles before the instruction.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Null: review-host previews cannot establish home-screen/lock-screen widget geometry or interaction. Need real system-host captures and device testing.",
+          "evidence_needed_to_10": "Null: review-host previews cannot establish home-screen/lock-screen widget geometry or interaction. Need real system-host captures and device testing."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "ios/live-activity",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": null
+      },
+      "scope": "Long-name compact and expanded production Live Activity views inside review host only. Host headings not scored as product UI; system placement and behavior unknown.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/island-long.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-island-long-dark-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Match status and next-hole action read clearly, but three progress references require close interpretation.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Board type is strong; expanded secondary labels are much smaller than the score.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Expanded panel aligns well; score-entry controls and navigation sit tightly together.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Compact and expanded forms share roles; their information relationship could be more immediately explicit.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Ember, condensed score and restrained grounds fit the live identity; graphic specificity is modest.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Clean miniature panel; complete finish must be assessed in the real host.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Short labels read, but long opponent identity is abbreviated and small progress metadata needs host-scale review.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "One-up status creates tension; the synthetic view gives no actual round context beyond status.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Useful density overall; multiple hole/progress labels make the expanded state more demanding.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Null: this is an in-app review host, not the Lock Screen or Dynamic Island. Need actual host captures, taps, accessibility and human use.",
+          "evidence_needed_to_10": "Null: this is an in-app review host, not the Lock Screen or Dynamic Island. Need actual host captures, taps, accessibility and human use."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "ios/round-receipt",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Synthetic read-only receipt, comments, missing scoring/course and unavailable-round states. Morning comments are unavailable; no comment transaction or course navigation proved.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-receipt.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-comments.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt-unavailable.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt-no-scoring.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt-course-missing.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-comments-light-AX3.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-receipt-light-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Score and story lead; comments, points and duplicate receipt information form several secondary tiers.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Serif story works well; AX3 comment date and Reply become competing large blocks.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Hero and points spacing is generous, but large text moves social content far below the score.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Themes and error variants share a clear system; point display repeats across hero-adjacent and receipt areas.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Paper receipt, story sentence and record labels are strong; error composition is more generic.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "The round object feels considered; oversized empty hero space in the social variant limits finish.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Default receipt labels are very small; enlarged replies and dates need more economical wrapping.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Specific score meaning helps; synthetic conversation cannot prove a lived social moment.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Social hero has much blank space; points appear in more than one secondary block.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Comment controls visibly reflow, but keyboard, bottom reach and error-recovery interaction remain unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Real existing round context could supply the personal meaning that fixtures cannot establish.",
+          "legitimate_source": "Consented actual-round content and already recorded season/round history; optional photo."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "ios/social-activity",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Single synthetic reply notification only; no populated feed or mark-read/settings behavior scored.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-activity.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-activity-dark-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Activity and one reply are clear, but Mark All Read is visually prominent relative to the only item.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Type roles are readable; enlarged metadata has nearly the weight of the reply.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Large upper whitespace separates the close control from the list; tiny gear feels optically detached.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Both themes preserve list roles; gear and close have different visual emphasis.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Marker and record metadata help; the list itself has limited Cup-specific character.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Solid sparse notification surface, with toolbar alignment and microcontrols still needing refinement.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Reply text is legible; default timestamp/course lines are relatively small.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "A concrete reply gives warmth, but a synthetic single row cannot establish ongoing social life.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "One notification is efficiently represented; upper actions occupy more space than the list needs.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Small gear appearance and reply-row interaction need target and VoiceOver evidence.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Meaningful real replies could deepen the social feeling without manufacturing activity.",
+          "legitimate_source": "Existing consented friend conversation attached to actual rounds."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "ios/credential-private",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 5,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 5,
+        "R": 5,
+        "E": 6,
+        "D": 7,
+        "M": null
+      },
+      "scope": "Private credential placeholder only. No score transferred to a filled tour-card or identity surface.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/credential-private.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-credential-private-light-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Private status is clear, but the large empty card and tiny interrupted signature leave a weak focal order.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "At default size a horizontal stroke crosses the Cup Season signature; enlarged variant changes that relationship.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "The signature is positioned awkwardly relative to its rule and the otherwise spacious card.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Dark/light card geometry matches; default versus AX3 signature treatment diverges.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Marker and credential material are recognizable; restrained identity is limited by the signature defect.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "The visible strike across the signature and heavy light-theme shadow prevent premium finish.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "The default signature is visibly crossed by a line.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Privacy is quiet and respectful, but the object currently feels blank rather than intentionally withheld.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Empty private content is appropriate; the remaining status/signature could better explain the object visually.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Null: a static private placeholder has no visible interaction surface from which to score mobile interaction. Need intended host and controls.",
+          "evidence_needed_to_10": "Null: a static private placeholder has no visible interaction surface from which to score mobile interaction. Need intended host and controls."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/door",
+      "status": "scored",
+      "scores": {
+        "H": 9,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 7,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Welcome, email-entry and reduced-CSS-height proxy states only. Version token is a local baseline artifact, not a deployment claim.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/door--1280--light.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/door-email-short-viewport--375--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Main promise and entry are clear; desktop side proofs create a second visual agenda.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Serif headline is strong; email placeholder and fine record labels are weak at intended size.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Mobile whitespace feels deliberate; short viewport brings input to the very bottom edge.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Themes track, but desktop proof panels and mobile spare entrance express different content density.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Contours, story type and board examples are distinctive; the entrance remains broad in emotional detail.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Polished landing composition, with faint input/secondary text and unfinished-looking version token visible in baseline.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Email placeholder and secondary legal/record type are low prominence in both themes.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "The promise invites belonging, while captured desktop examples remain synthetic.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Desktop examples provide context; mobile offers little beyond promise and entry.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Short-viewport proxy leaves input tight to bottom; real keyboard, focus and entry completion are unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/home",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 6,
+        "B": 8,
+        "P": 6,
+        "R": 5,
+        "E": 7,
+        "D": 6,
+        "M": 7
+      },
+      "scope": "Dispatch lead/deck fixtures only; other account read models empty. Scores describe this visible combination, not populated-account Home.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/02-home-states-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/02-home-states-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--375--dark.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1600--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Editorial lead is clear; start/join buttons, promo and small summary cards compete for attention.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Lead serif is strong; small, widely tracked metadata and faint promo heading reduce assurance.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Main lead has rhythm, but stacked empty summary panels and the promotion fragment the lower view.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Promo reverses ground color without preserving readable ink between themes.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Story-led dispatch fits Cup Season; supporting generic mini cards weaken the editorial voice.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Near-invisible promo headline and uneven secondary hierarchy are conspicuous finish defects.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Dark capture shows pale promo text on pale ground; light capture has dark text on dark promo ground.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Scenario-specific leads add life; empty supporting read models are explicitly a fixture limit.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Several empty facts and promotional actions repeat around a sparse dispatch.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Phone band is coherent; visible lower content crosses the fixed band in full-page captures, requiring actual scroll/reach verification.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A truthful populated social dispatch would show whether the composition feels lived in.",
+          "legitimate_source": "Existing consented friend rounds and season history, not invented faces or activity."
+        },
+        {
+          "dimension": "D",
+          "needs": "Populated read-model evidence is needed to judge full-account density separately from these fixtures.",
+          "legitimate_source": "Existing actual-account rounds/season history captured with consent."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/composer",
+      "status": "scored",
+      "scores": {
+        "H": 6,
+        "T": 7,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 6,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "First-round/empty composer and reduced-height proxy only. No score entry, validation, keyboard or post transaction scored.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--375--light.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--1280--dark.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/composer-short-viewport--375--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Install banner dominates the upper entry, while gross entry appears as a lone dash.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Record labels are very fine and weak; score input needs clearer typographic affordance.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Large empty input panel and scoring placeholder give similar weight to absent values.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Theme mapping is stable, though graphite cards feel less connected to the surrounding green-black shell.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Board metadata is recognizable; nested form cards overpower the more specific editorial language.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Banner intrusion, low-contrast labels and undifferentiated empty score area need refinement.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Gross label, back link and point-band support text are faint.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "The capture communicates procedure more than confidence in preserving a round.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "A blank score panel and explanatory points section occupy substantial space before useful entered data.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Short-height capture spends most initial space on install banner and band; real keyboard and scroll-to-entry evidence required.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/play-cover",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 7,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 7
+      },
+      "scope": "Empty setup form only. Not the separate Play menu captured under the record filename; no live flow scored.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--375--light.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--1280--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Course/group/game order is clear; long explanation competes with the actual fields.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Tiny tracked section labels and subdued body copy reduce field scanning confidence.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Desktop fields stretch widely, while mobile group explanations create a long setup stack.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Grouping remains consistent across themes but wide inputs and narrow chips have uneven visual balance.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Golf vocabulary is specific; form cards remain visually generic.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Orderly form with substantial finish remaining in contrast and proportion.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Helper text and default field labels are too subdued, especially dark desktop.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Competent preparation, with little visual anticipation of the round.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Repeated explanations around group filling lengthen the path to the final action.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Visible fields are substantial; game chips and guest row need device target/keyboard checks.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/you",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 7,
+        "B": 8,
+        "P": 7,
+        "R": 6,
+        "E": 7,
+        "D": 6,
+        "M": 7
+      },
+      "scope": "New synthetic golfer in You renderer with no real rounds/photos. Full profile/real record unobserved.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--375--dark.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1280--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Credential establishes identity, then several empty sections compete equally for attention.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Credential figures are strong; small tracked gray metadata becomes faint in the rest of the page.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Desktop card is narrow while following rows span nearly the full canvas, weakening composition.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Palette is coherent, but credential shadow/material and ordinary blocks have divergent visual intensity.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Personal marker and contour credential provide specificity; supporting stats panels feel generic.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "The identity object is considered, but repeated empty panels and low-contrast details reduce finish.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Trophy silhouettes and secondary record text are barely visible in the dark capture.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Identity framing has promise; zero-round fixture cannot establish personal history or pride.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Empty trophies, all-time boxes, recent rounds and courses repeat absence over a long page.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Visible phone band remains readable; full scroll/credential actions and target sizes need device verification.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A real identity and actual memories could establish the emotional ceiling of this layout.",
+          "legitimate_source": "Consented existing golfer profile/photo and real round/season history; photos optional."
+        },
+        {
+          "dimension": "D",
+          "needs": "Populated record evidence is needed for a separate density judgment.",
+          "legitimate_source": "Existing real round history, without asking golfers to track additional information."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/record",
+      "status": "not scored",
+      "scores": {
+        "H": null,
+        "T": null,
+        "Sp": null,
+        "C": null,
+        "B": null,
+        "P": null,
+        "R": null,
+        "E": null,
+        "D": null,
+        "M": null
+      },
+      "scope": "Not captured: app-record-empty resolves to Play menu, not History/Record.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg"
+      ],
+      "blockers": {
+        "capture": "Need a valid Record/History capture. Do not substitute the visible Play menu or sibling You surface."
+      },
+      "content_ceilings": [],
+      "notes": "Wrong-scene provenance verified against the visible PLAY heading; no UI score assigned."
+    },
+    {
+      "id": "web/compete",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Empty Compete only; no populated season, event, leaderboard or competition mechanics scored.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1280--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Heading and empty-state statement are clear; Start Something is repeated at two nearby levels.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Story/board pairing works; thin tracked action labels lack decisive visual weight.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Empty view is calm, but the separated code action and duplicated start link weaken grouping.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Themes and navigation roles are stable; action emphasis could be more consistent.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Condensed title and story sentence fit; the empty state has limited competitive character.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Orderly but under-resolved action hierarchy and muted text keep it below premium finish.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Description and action labels are subdued, particularly dark desktop.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "It explains absence but gives little feeling of a season about to begin.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Repeated start action adds no information; otherwise appropriately sparse for an empty state.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Custom band geometry looks workable; small text actions and noted 2px overflow need phone verification.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/golfers",
+      "status": "scored",
+      "scores": {
+        "H": 6,
+        "T": 7,
+        "Sp": 6,
+        "C": 7,
+        "B": 6,
+        "P": 6,
+        "R": 5,
+        "E": 6,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Unavailable board/error plus invitation/search controls only; no actual golfer list or relationship flow captured.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--1280--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Load failure leads, then another board failure competes with invitation and search.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Heading is clear; tiny muted secondary labels and support text weaken scanning.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Invite row text sits against the left edge with less inset than adjacent search control.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Shared shell is stable; invite/search padding and type treatments differ noticeably.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Marker language is absent from this error fixture; result is mostly generic form structure.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Near-flush invitation copy and weak contrast look unfinished.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Error explanation, board status and small secondary text are very faint.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Copy is reassuring but the visual state is dry and fragmented.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Useful recovery and search remain visible, but duplicated failure messaging consumes attention.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Invite inset, small recovery link and reported 2px overflow need narrow-device validation.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/schedule",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 6,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 7
+      },
+      "scope": "Empty September calendar only; no scheduled-round cards or planning interaction scored.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--1280--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Calendar dominates clearly; schedule action and empty explanation become subordinate beneath it.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Dates and legend are small relative to the enormous desktop day cells.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Desktop cells expand into large empty tiles without improving legibility.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Mobile and desktop reuse the same pattern; scale balance is less controlled on desktop.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Record labels fit, but the calendar itself looks generic and block-heavy.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Aligned grid is competent; oversized desktop cells and muted dates reduce finish.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Weekday/date/legend contrast is weak in dark mode.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "The empty month communicates utility but little anticipation.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Unoccupied calendar cells consume most desktop space while adding little information.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Phone dates look compact and desktop targets ample; date selection, keyboard and scroll remain unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/wizard",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 7,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Initial league-name/Pro step only; not the full setup agreement or lock journey.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--1280--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "First-step form is clear; desktop summary contains several small competing facts.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Type roles are strong, but preview metadata and league-name placeholder are fine/long.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Form and summary align well; mobile loses the preview context visible on desktop.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Theme roles are stable; wide summary and narrow initial form need equal refinement.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Tiny season diagram and story/board pairing give specific character.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "One of the cleaner forms, with remaining polish in summary legibility and long input treatment.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "League-name example is clipped and preview metadata is low contrast.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Season preview adds anticipation; the captured step is still chiefly administrative.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Useful limited first step; some preview details are too small to earn their space.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Next/Cancel are generous; keyboard, actual next step and focus behavior are unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/events",
+      "status": "scored",
+      "scores": {
+        "H": 5,
+        "T": 7,
+        "Sp": 6,
+        "C": 7,
+        "B": 5,
+        "P": 5,
+        "R": 5,
+        "E": 5,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Unavailable-route error only. No event room, gameplay, event moment or populated event score assigned.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--375--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Fallback contains no strong error heading or visually prominent return action.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Small muted sentence carries the whole state with little typographic hierarchy.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "A short sentence floats in a very large empty canvas.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Shell remains consistent; recovery state has less structure than other captured errors.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Only the surrounding shell carries Cup Season identity.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "The fallback reads as unfinished recovery UI rather than a deliberately composed state.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Muted error text and small Home back link are weak.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Little reassurance or sense of recovery is communicated visually.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Sparse state is acceptable, but the only useful next step is visually understated.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Back target is small in appearance; actual return/focus behavior unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/settings",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Your-card editor and settings sheet captures only; no persistence, scan consent, notification or account-deletion behavior scored.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/06-profile-settings-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/settings--1280--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Sections are clear; notification and scanning buttons mix state and action with similar visual weight.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Condensed labels work, but long explanations and small tracked metadata vary in emphasis.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Desktop sheet is composed; mobile marker grid and longer settings stack approach the lower viewport abruptly.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Shared sheet and segment styles are consistent, though state buttons are less visually explicit.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Custom markers add identity; most settings remain conventional utility furniture.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Orderly sheet, limited by faint body copy and crowded marker-label wrapping.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Support paragraphs and secondary metadata are too pale in light mode.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Respectful utility tone, with identity strongest only in the marker selector.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Explanations are useful, but several large blocks repeat facts carried in button labels.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Visible controls mostly look ample; marker grid, closing, scrolling and keyboard/focus need human/device checks.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/course",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 6,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Existing course-circle read fixture only; no full course editorial page, rating, navigation or filter transaction proved.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/07-round-course-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--375--dark.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--1280--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Best score leads, but course identity is a small utility heading above several filters.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Condensed scores are effective; small caps metadata outweighs the modest course title.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Sections align; a large gap below filters delays the course record.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Themes and list roles are coherent; record/title hierarchy could be more consistent with the editorial surface.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "It reads primarily as a circle leaderboard, with little editorial sense of place.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Clean read sheet, but anonymous-looking title treatment and faint supporting rows limit finish.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Main scores are clear; group labels and explanatory provenance are faint.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Friends' rounds offer social meaning, but the synthetic place has little visible character.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Four-round comparison is efficiently communicated; repeated 70 values could be grouped more decisively.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Filters and record buttons look substantial; bottom content and modal scroll behavior need device verification.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Optional real course/round imagery could give the editorial surface a truthful sense of place.",
+          "legitimate_source": "Consented actual-course or actual-round photograph and existing course record."
+        },
+        {
+          "dimension": "P",
+          "needs": "Assess intentional image integration only if genuine imagery is available.",
+          "legitimate_source": "Optional consented actual course imagery; no invented course photography."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/book",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 6,
+        "C": 6,
+        "B": 8,
+        "P": 6,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Safe squad overview/race, upcoming and error states only. Receipt-named phone capture is still overview; no selected receipt behavior inferred. Named individual fields excluded.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/05-season-book-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/05-season-book-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--1280--light.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--375--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Book title and table are clear; explanatory copy and disconnected detail panel compete with the table.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Large numbers scan well; attached drop letters make some cells visually ambiguous.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Phone table is clipped horizontally; large fixed first column leaves little weekly context.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Squared controls and pane borders feel less integrated with other captured surfaces.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Ledger presentation fits the archive identity; control finish lacks the same specificity.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Table typography has authority, but raw selects, harsh close outline and narrow crop need refinement.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Values are readable, but number-plus-letter markers and tiny date headings need more separation.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "It can make a season feel recorded; fixture totals alone cannot establish memory.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Desktop has useful density; phone exposes only a fraction of the weekly story.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Horizontal discovery and receipt selection are unproved; visible phone crop and lower modal boundary need touch/scroll checks.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A real completed season and its meaningful adjustments would establish archive feeling.",
+          "legitimate_source": "Already recorded season/round/adjustment history with consent; no invented achievements."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/share-card",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 7,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": null
+      },
+      "scope": "Single static synthetic exported card only. This actual image contains no course photograph; no sharing transaction or consent persistence scored.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/share-card-output.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Gross score dominates; several successive identity and brand blocks compete below.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Strong figure, but broad sans capitals flatten the intended record/story distinction.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Top marker and identity are separated from score by a large gap.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Gold border, marker and result are coherent, but treatment differs from the quieter public-round record.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "The marker and motto identify Cup Season; poster geometry is less specifically almanac-like.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Readable keepsake, though oversized branding and generic framing reduce bespoke feel.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Core score reads well; muted explanatory line is less clear at thumbnail scale.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "It celebrates a round, but synthetic record offers no actual memory.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Identity, result explanation and brand stack consume much of the card around one score.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Null: exported raster artifact has no interactive/mobile control geometry. Need the actual share-preview and sharing surface for M.",
+          "evidence_needed_to_10": "Null: exported raster artifact has no interactive/mobile control geometry. Need the actual share-preview and sharing surface for M."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A truthful actual round could turn the poster into a personal keepsake.",
+          "legitimate_source": "Existing real round/course/date/points with consent; optional actual-round image."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/public-round",
+      "status": "scored",
+      "scores": {
+        "H": 9,
+        "T": 8,
+        "Sp": 8,
+        "C": 9,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Public synthetic record, abstract image, long text, absent band and failed-image fallback only; no claim, invite or share-link lifecycle inferred.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/03-public-round-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/03-public-round-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/public-round--1280--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Record hierarchy is strong; large photo variant displaces score below the first narrow view.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Serif course and board score fit; all-cap result line is less refined than surrounding text.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Rules and margins are orderly; photo/no-photo balance varies substantially.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Fallback and long-text variants retain coherent alignment; exact image crop behavior remains fixture-limited.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Quiet record treatment is distinctive, though the no-photo middle can feel generic.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Well finished record page; abstract image cannot demonstrate photographic art direction.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Core information is clear; date and gross metadata are comparatively fine.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Round result has meaning, but the synthetic identity/image cannot convey lived memory.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Sparse no-photo record is purposeful; photo dominates more than the score in narrow capture.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "CTA appears ample; long-photo scroll, keyboard focus and actual link behavior remain unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Real round imagery or personal record would add truthful emotional specificity.",
+          "legitimate_source": "Consented actual-round photograph and actual golfer/round record."
+        },
+        {
+          "dimension": "P",
+          "needs": "Validate real photo crop and tonal treatment rather than the abstract drawn fixture.",
+          "legitimate_source": "Optional consented actual-round image, never fabricated imagery presented as a real round."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/get",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 7,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Get-app information page only. Desktop crop is a viewing aid from get--1280--light.png; no installation tested.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/04-read-get-support-legal-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/get--375--light.png",
+        "/private/tmp/craft-get-desktop.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Primary install/open action is clear; detailed link instructions become the longest visual section.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Readable body and strong serif title; dense bold inline passages make hierarchy uneven.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Comfortable insets and gaps; several large rounded panels make the long page repetitive.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Dark/light roles are stable; visual treatment is more card-heavy than record surfaces.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Type pairing expresses the brand, but uniform rounded blocks are generic.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Clean useful page; paragraph rhythm could be more deliberately edited.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Good body readability; small beta label and footer are subdued.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Human tone is welcoming, but instructional volume tempers momentum.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Link/install explanation is lengthy relative to the single next action.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Button geometry is clear; links, text resizing and install handoff need device/accessibility proof.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/support",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 7,
+        "P": 8,
+        "R": 8,
+        "E": 8,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Support information page, top/middle and desktop portions plus full-page contact view. Contact data intentionally omitted from output; no sending or link activation.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/04-read-get-support-legal-1.jpg",
+        "/private/tmp/craft-support-dark-top.png",
+        "/private/tmp/craft-support-light-middle.png",
+        "/private/tmp/craft-support-desktop.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Support promise leads well; long problem sections have similar weight beneath it.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Readable body and sensible emphasis; some bold runs are long and visually heavy.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Good narrow reading measure; repeated rounded sections make a long continuous stack.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Consistent support/get language; legal link leads to visibly different system in captured family.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Personal golf tone and typography are specific; card shapes remain generic.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Careful text page with room to refine section rhythm and jump navigation.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Main prose is strong; compact jump labels and secondary account labels deserve a larger-text check.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Personal service voice creates reassurance; visual structure could make recovery feel faster.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Useful detail is present, but long installation and link explanations are dense to scan.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Text links/jump links need phone target, keyboard-focus and screen-reader proof.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/legal",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 8,
+        "C": 5,
+        "B": 5,
+        "P": 6,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Visual craft of legal document only; no legal accuracy judgment. Contact data omitted. Crops are viewing aids, not altered evidence.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/04-read-get-support-legal-1.jpg",
+        "/private/tmp/craft-legal-dark-top.png",
+        "/private/tmp/craft-legal-light-middle.png",
+        "/private/tmp/craft-legal-desktop.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Policy sections are explicit; long subsections need stronger scan landmarks within each large panel.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Plain sans text is readable but sheds the story/board/record distinction of related information pages.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Paragraph spacing is sound; very long rounded panels flatten the pacing.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Cool light ground, white panels and gold links diverge from warm support/get styling.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Brand specificity is weak beyond the name; ordinary gold navigation conflicts with the stated earned-gold role.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Legible policy layout, but visual-system divergence reads as a separate template.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Comfortable body measure; long bullets demand sustained reading and small top links need checking.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Plain language feels candid; template-like presentation limits continuity of trust.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Necessary detail is dense; stronger internal scanning could reduce the long-page burden.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Top anchors are small text targets; keyboard, reflow and screen-reader navigation remain unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/round-receipt",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Synthetic read-only round modal and post-receipt celebration. Conversation unavailable in the shown modal; no posting/sharing transaction proved.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/07-round-course-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--1280--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Hero result is strong; post-receipt shares attention among photo, share and return actions.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Serif score/story is refined; tiny receipt labels and muted failure copy weaken the lower tier.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Desktop sheet is balanced; phone modal terminates within a long underlying page capture.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Receipt and post celebration share palette but use noticeably different composition and type emphasis.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Paper accounting strip and story result fit the brand; celebration is more generic poster-like.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Considered round object, limited by small lower detail and faint comment failure.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Main result reads well; unavailable conversation line is particularly low contrast.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "It marks accomplishment; synthetic result and failed conversation limit social meaning.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Compact accounting is useful; repeated outcome words in hero and receipt require sharper roles.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Modal geometry looks plausible; focus, scroll containment and share/recovery actions are unproved.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Real round context and genuine conversation could deepen the captured emotional moment.",
+          "legitimate_source": "Existing actual round and consented conversation; optional consented actual-round image."
+        }
+      ],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    },
+    {
+      "id": "web/web-desk",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 6,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Auxiliary shared desktop shell only, excluded from product aggregate to avoid duplicate screen counting. Empty fixture content is not populated-account evidence.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1600--dark.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1280--dark.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1280--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Sidebar hierarchy is clear; persistent empty identity/status material competes with sparse content.",
+          "evidence_needed_to_10": "Recapture the same state with the dominant task, supporting facts and recovery/action order unambiguous at narrow and large sizes."
+        },
+        "T": {
+          "reason": "Board navigation fits; small low-contrast secondary metadata weakens the supporting rail.",
+          "evidence_needed_to_10": "Show the same text with resolved scale, wrapping and family roles in dark/light and default/enlarged text."
+        },
+        "Sp": {
+          "reason": "Sidebar width is stable; content is sometimes concentrated in the upper canvas or unevenly stretched.",
+          "evidence_needed_to_10": "Show consistent margins, optical alignment and section rhythm at narrow and wide sizes, including enlarged text where applicable."
+        },
+        "C": {
+          "reason": "Primary shell is coherent across themes; content components vary in material and density.",
+          "evidence_needed_to_10": "Show the same component roles and state hierarchy consistently across the captured themes and size variants."
+        },
+        "B": {
+          "reason": "Custom sidebar and story/record roles feel recognizably Cup Season.",
+          "evidence_needed_to_10": "Show a more fully resolved expression of the approved story/board/record language without adding decorative content."
+        },
+        "P": {
+          "reason": "Shell looks deliberate, but faint metadata and uneven content balance prevent exemplary finish.",
+          "evidence_needed_to_10": "Show a finished recapture resolving the stated detail; genuine optional content may help only where the content ceiling specifies it."
+        },
+        "R": {
+          "reason": "Secondary navigation/status text is notably dim in dark mode.",
+          "evidence_needed_to_10": "Show readable secondary information and controls in both themes at intended viewing size; validate contrast and enlarged text."
+        },
+        "E": {
+          "reason": "Quiet clubhouse atmosphere is present; fixtures cannot demonstrate a lived-in desktop season.",
+          "evidence_needed_to_10": "Show the captured state communicating its intended feeling through truthful content, emphasis and composition; no fabricated people or achievements."
+        },
+        "D": {
+          "reason": "Rail holds useful destinations, but empty summary and large vacant content regions weaken the captured balance.",
+          "evidence_needed_to_10": "Show the same state with each visible item earning its space and important information easy to scan; do not manufacture missing data."
+        },
+        "M": {
+          "reason": "Desktop screenshots cannot prove keyboard navigation, focus visibility, zoom or touchpad interaction.",
+          "evidence_needed_to_10": "Show resolved visible geometry, then verify on a phone with actual keyboard/scroll, VoiceOver, focus order and human target/reach testing; screenshots cannot prove these."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Only visible craft is scored. No transaction, accessibility or unseen workflow result is inferred."
+    }
+  ]
+}

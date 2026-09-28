@@ -1,0 +1,156 @@
+[
+  {
+    "look": "opener",
+    "mode": "dark",
+    "background": "#2E9E5B",
+    "foreground": "#0F1A15",
+    "ratio": 5.223504139790797
+  },
+  {
+    "look": "opener",
+    "mode": "light",
+    "background": "#1F7A47",
+    "foreground": "#F4F1E9",
+    "ratio": 4.730507797428541
+  },
+  {
+    "look": "may",
+    "mode": "dark",
+    "background": "#8FA0BA",
+    "foreground": "#0F1A15",
+    "ratio": 6.705655926852741
+  },
+  {
+    "look": "may",
+    "mode": "light",
+    "background": "#5A6B85",
+    "foreground": "#F4F1E9",
+    "ratio": 4.79952848257004
+  },
+  {
+    "look": "test",
+    "mode": "dark",
+    "background": "#6087C1",
+    "foreground": "#0F1A15",
+    "ratio": 4.863015796632055
+  },
+  {
+    "look": "test",
+    "mode": "light",
+    "background": "#2C4C7C",
+    "foreground": "#F4F1E9",
+    "ratio": 7.650494037605973
+  },
+  {
+    "look": "fourth",
+    "mode": "dark",
+    "background": "#DA5B69",
+    "foreground": "#0F1A15",
+    "ratio": 4.8193343608927215
+  },
+  {
+    "look": "fourth",
+    "mode": "light",
+    "background": "#B22234",
+    "foreground": "#F4F1E9",
+    "ratio": 5.866625708359886
+  },
+  {
+    "look": "oldest",
+    "mode": "dark",
+    "background": "#D06275",
+    "foreground": "#0F1A15",
+    "ratio": 4.82308327645846
+  },
+  {
+    "look": "oldest",
+    "mode": "light",
+    "background": "#8A2432",
+    "foreground": "#F4F1E9",
+    "ratio": 7.820463684607493
+  },
+  {
+    "look": "teams",
+    "mode": "dark",
+    "background": "#5885DB",
+    "foreground": "#0F1A15",
+    "ratio": 4.913781826553292
+  },
+  {
+    "look": "teams",
+    "mode": "light",
+    "background": "#1E4FA3",
+    "foreground": "#F4F1E9",
+    "ratio": 6.884593585178112
+  },
+  {
+    "look": "fall",
+    "mode": "dark",
+    "background": "#D08A3C",
+    "foreground": "#0F1A15",
+    "ratio": 6.262305813083518
+  },
+  {
+    "look": "fall",
+    "mode": "light",
+    "background": "#A6601F",
+    "foreground": "#F4F1E9",
+    "ratio": 4.312457787381723
+  },
+  {
+    "look": "holidays",
+    "mode": "dark",
+    "background": "#339561",
+    "foreground": "#0F1A15",
+    "ratio": 4.760677689392909
+  },
+  {
+    "look": "holidays",
+    "mode": "light",
+    "background": "#1E5A3A",
+    "foreground": "#F4F1E9",
+    "ratio": 7.214833486224524
+  },
+  {
+    "look": "fresh",
+    "mode": "dark",
+    "background": "#8FA0BA",
+    "foreground": "#0F1A15",
+    "ratio": 6.705655926852741
+  },
+  {
+    "look": "fresh",
+    "mode": "light",
+    "background": "#5A6B85",
+    "foreground": "#F4F1E9",
+    "ratio": 4.79952848257004
+  },
+  {
+    "look": "cupfinal",
+    "mode": "dark",
+    "background": "#E8622C",
+    "foreground": "#0F1A15",
+    "ratio": 5.271536501244772
+  },
+  {
+    "look": "cupfinal",
+    "mode": "light",
+    "background": "#A8420F",
+    "foreground": "#F4F1E9",
+    "ratio": 5.391065786238587
+  },
+  {
+    "look": "wrap",
+    "mode": "dark",
+    "background": "#D8B25A",
+    "foreground": "#0F1A15",
+    "ratio": 8.851979495433845
+  },
+  {
+    "look": "wrap",
+    "mode": "light",
+    "background": "#7A5A12",
+    "foreground": "#F4F1E9",
+    "ratio": 5.640188664233961
+  }
+]

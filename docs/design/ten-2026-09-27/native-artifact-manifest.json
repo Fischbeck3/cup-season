@@ -1,0 +1,226 @@
+[
+  {
+    "file": "artifact-17pro-morning-share-dark-AX3.png",
+    "sha256": "f3c3b64d89d3427be2e5be6eac94bd98019b2753934b500d312b2e072d59bf00",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-morning-share-dark-large.png",
+    "sha256": "f3c3b64d89d3427be2e5be6eac94bd98019b2753934b500d312b2e072d59bf00",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-morning-share-light-AX3.png",
+    "sha256": "f3c3b64d89d3427be2e5be6eac94bd98019b2753934b500d312b2e072d59bf00",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-morning-share-light-large.png",
+    "sha256": "f3c3b64d89d3427be2e5be6eac94bd98019b2753934b500d312b2e072d59bf00",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-long-dark-AX3.png",
+    "sha256": "33188fd15dc62c0e1d89d60bdd91c7219f0782bd41b3861b390f1840359fcb7f",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-long-dark-large.png",
+    "sha256": "33188fd15dc62c0e1d89d60bdd91c7219f0782bd41b3861b390f1840359fcb7f",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-long-light-AX3.png",
+    "sha256": "33188fd15dc62c0e1d89d60bdd91c7219f0782bd41b3861b390f1840359fcb7f",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-long-light-large.png",
+    "sha256": "33188fd15dc62c0e1d89d60bdd91c7219f0782bd41b3861b390f1840359fcb7f",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-long-photo-dark-AX3.png",
+    "sha256": "f910677c1b313becf7ca3c78b5192383c87fb02220486f9363211be8c336d1f6",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-long-photo-dark-large.png",
+    "sha256": "f910677c1b313becf7ca3c78b5192383c87fb02220486f9363211be8c336d1f6",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-long-photo-light-AX3.png",
+    "sha256": "f910677c1b313becf7ca3c78b5192383c87fb02220486f9363211be8c336d1f6",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-long-photo-light-large.png",
+    "sha256": "f910677c1b313becf7ca3c78b5192383c87fb02220486f9363211be8c336d1f6",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-photo-dark-AX3.png",
+    "sha256": "15e1a94d89a5fd5b67a4be9cba49febd361895627733db24ce2929e2eb782037",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-photo-dark-large.png",
+    "sha256": "15e1a94d89a5fd5b67a4be9cba49febd361895627733db24ce2929e2eb782037",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-photo-light-AX3.png",
+    "sha256": "15e1a94d89a5fd5b67a4be9cba49febd361895627733db24ce2929e2eb782037",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-17pro-share-photo-light-large.png",
+    "sha256": "15e1a94d89a5fd5b67a4be9cba49febd361895627733db24ce2929e2eb782037",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-morning-share-dark-AX3.png",
+    "sha256": "f3c3b64d89d3427be2e5be6eac94bd98019b2753934b500d312b2e072d59bf00",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-morning-share-dark-large.png",
+    "sha256": "f3c3b64d89d3427be2e5be6eac94bd98019b2753934b500d312b2e072d59bf00",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-morning-share-light-AX3.png",
+    "sha256": "f3c3b64d89d3427be2e5be6eac94bd98019b2753934b500d312b2e072d59bf00",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-morning-share-light-large.png",
+    "sha256": "f3c3b64d89d3427be2e5be6eac94bd98019b2753934b500d312b2e072d59bf00",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-long-dark-AX3.png",
+    "sha256": "33188fd15dc62c0e1d89d60bdd91c7219f0782bd41b3861b390f1840359fcb7f",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-long-dark-large.png",
+    "sha256": "33188fd15dc62c0e1d89d60bdd91c7219f0782bd41b3861b390f1840359fcb7f",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-long-light-AX3.png",
+    "sha256": "33188fd15dc62c0e1d89d60bdd91c7219f0782bd41b3861b390f1840359fcb7f",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-long-light-large.png",
+    "sha256": "33188fd15dc62c0e1d89d60bdd91c7219f0782bd41b3861b390f1840359fcb7f",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-long-photo-dark-AX3.png",
+    "sha256": "47c8527c964f96292f55c29bc7e9f54e9a6732b33d0ef44ffeee44b9e058bc88",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-long-photo-dark-large.png",
+    "sha256": "47c8527c964f96292f55c29bc7e9f54e9a6732b33d0ef44ffeee44b9e058bc88",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-long-photo-light-AX3.png",
+    "sha256": "47c8527c964f96292f55c29bc7e9f54e9a6732b33d0ef44ffeee44b9e058bc88",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-long-photo-light-large.png",
+    "sha256": "47c8527c964f96292f55c29bc7e9f54e9a6732b33d0ef44ffeee44b9e058bc88",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-photo-dark-AX3.png",
+    "sha256": "62c7f856359ad209aa230baffb0a89ee70170e4701137b3a39f21b5e7441e739",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-photo-dark-large.png",
+    "sha256": "62c7f856359ad209aa230baffb0a89ee70170e4701137b3a39f21b5e7441e739",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-photo-light-AX3.png",
+    "sha256": "62c7f856359ad209aa230baffb0a89ee70170e4701137b3a39f21b5e7441e739",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  },
+  {
+    "file": "artifact-se3-share-photo-light-large.png",
+    "sha256": "62c7f856359ad209aa230baffb0a89ee70170e4701137b3a39f21b5e7441e739",
+    "source": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+    "publicEligible": true,
+    "identityProvenance": "MorningReviewFixture invented recap; source-rendered share artifact"
+  }
+]

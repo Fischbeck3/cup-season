@@ -1,0 +1,361 @@
+{
+  "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "candidate_count": 214,
+  "raw_local_path": "/private/tmp/cup-ten-detector.json",
+  "files": {
+    "index.html": {
+      "exit_code": 2,
+      "count": 205,
+      "rules": [
+        {
+          "rule": "all-caps-body",
+          "count": 17,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "canon_exception_pending_semantics",
+          "reason": "Short agate/record labels and factual stamps are intentional. Detector lengths alone do not establish an uppercase body passage. Do not erase fact-bearing labels; separately verify readability and actual long prose.",
+          "snippets": [
+            "text-transform: uppercase on 40 chars of body text",
+            "text-transform: uppercase on 50 chars of body text",
+            "text-transform: uppercase on 32 chars of body text",
+            "text-transform: uppercase on 38 chars of body text",
+            "text-transform: uppercase on 41 chars of body text",
+            "text-transform: uppercase on 56 chars of body text",
+            "text-transform: uppercase on 39 chars of body text",
+            "text-transform: uppercase on 55 chars of body text",
+            "text-transform: uppercase on 49 chars of body text",
+            "text-transform: uppercase on 51 chars of body text",
+            "text-transform: uppercase on 35 chars of body text",
+            "text-transform: uppercase on 65 chars of body text"
+          ]
+        },
+        {
+          "rule": "broken-image",
+          "count": 1,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "false_positive",
+          "reason": "index.html:5092 #postPhotoImg intentionally has display:none until photo assignment. No-src static slot is not a displayed broken image; public broken-photo fixture shows fallback.",
+          "snippets": [
+            "<img> with no src attribute"
+          ]
+        },
+        {
+          "rule": "cramped-padding",
+          "count": 1,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "unresolved",
+          "reason": "Static evaluator may miss dynamic and clamp padding. Captured view geometry and actual CSS win; no blanket cramped-container defect.",
+          "snippets": [
+            "<section> \"view\": children flush against bg on right/left (no inset)"
+          ]
+        },
+        {
+          "rule": "dark-glow",
+          "count": 11,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "mixed_true_and_false_positive",
+          "reason": "True CSS colored blurred shadow on ordinary primary .btn at3519 and contextual CTA at2302 violates no-glow canon. Inset zero-blur selection stripes such as .preset.sel at1660 are semantic selection marks, not glow. Detector supplies no candidate selector for the 11 items, so exact allocation remains unresolved.",
+          "snippets": [
+            "Colored box-shadow glow (#5fa271) on dark background",
+            "Colored box-shadow glow (#e8622c) on dark page"
+          ]
+        },
+        {
+          "rule": "em-dash-overuse",
+          "count": 1,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "false_positive_as_ux_defect",
+          "reason": "Whole-file punctuation count across hidden views or long legal prose does not establish a usability defect. No copy rewrite justified by this count.",
+          "snippets": [
+            "41 em-dashes in body text"
+          ]
+        },
+        {
+          "rule": "gpt-thin-border-wide-shadow",
+          "count": 2,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "unresolved",
+          "reason": "Some objects/paper/sheets legitimately use boundaries and depth. Generic border+shadow counting does not establish visual harm. Inspect the state before attributing it.",
+          "snippets": [
+            "1px border + 18px shadow blur",
+            "1px border + 44px shadow blur"
+          ]
+        },
+        {
+          "rule": "low-contrast",
+          "count": 125,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "unresolved_per_candidate",
+          "reason": "A real accessibility concern, not waived by canon. Detector emits line 0 and scans static markup across hidden views; default black samples are not reliable runtime evidence. Visible inverse-panel failure and dim-label ink are corroborated independently below. Do not equate 125 candidates to 125 visible failures.",
+          "snippets": [
+            "3.2:1 (need 4.5:1) \u2014 text #5e6a62 on #0f1a15",
+            "1.2:1 (need 3:1) \u2014 text #000000 on #0f1a15",
+            "2.8:1 (need 4.5:1) \u2014 text #5e6a62 on #1a2620",
+            "1.2:1 (need 4.5:1) \u2014 text #000000 on #0f1a15",
+            "3.4:1 (need 4.5:1) \u2014 text #e8622c on #ffffff",
+            "1.3:1 (need 4.5:1) \u2014 text #000000 on #1a2620",
+            "3.2:1 (need 4.5:1) \u2014 text #665f59 on #0a0908",
+            "2.9:1 (need 4.5:1) \u2014 text #665f59 on #191614",
+            "2.5:1 (need 4.5:1) \u2014 text #9ba69d on #ffffff",
+            "2.3:1 (need 4.5:1) \u2014 text #5e6a62 on #26352e",
+            "1.3:1 (need 3:1) \u2014 text #000000 on #1a2620",
+            ":hover state 1.2:1 (need 4.5:1) \u2014 text #5e6a62 on #4a6155"
+          ]
+        },
+        {
+          "rule": "pulsing-dot",
+          "count": 1,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "true_source_motion_candidate",
+          "reason": "index.html:1916-1917 .optcard .livedot infinitely animates. Reduce Motion backstop exists at4149. This is not proof of harmful flashing; review whether the status really is live rather than a menu offering live scoring.",
+          "snippets": [
+            ".optcard .livedot \u2014 7x7px dot with infinite \"cs-livedot\" animation"
+          ]
+        },
+        {
+          "rule": "side-tab",
+          "count": 19,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "mixed_canon_exception",
+          "reason": "Rails and signal stripes are an intentional part of the tournament-board grammar; no blanket side-tab penalty. Verify decorative card chrome separately. Native D269 band is not a defect. Source includes .hocc:2320, .purse:1299, .pro:1669, .gamecard:1852, .preset.sel:1660.",
+          "snippets": [
+            "border-left: 3px + border-radius: 10px",
+            ".purse::before \u2014 absolute 3.5px pseudo-element stripe (left: 0)",
+            ".pro::before \u2014 absolute 3.5px pseudo-element stripe (left: 0)",
+            ".gamecard::before \u2014 absolute 3.5px pseudo-element stripe (left: 0)",
+            ".optcard::before \u2014 absolute 3.5px pseudo-element stripe (left: 0)",
+            ".phasehero::before \u2014 absolute 3.5px pseudo-element stripe (left: 0)",
+            ".nextcard::before \u2014 absolute 3.5px pseudo-element stripe (left: 0)",
+            ".ontheline::before \u2014 absolute 3.5px pseudo-element stripe (left: 0)",
+            ".hhero::before \u2014 absolute 3px pseudo-element stripe (left: 0)",
+            ".hocc::before \u2014 absolute 3px pseudo-element stripe (left: 0)",
+            ".livebanner::before \u2014 absolute 3.5px pseudo-element stripe (left: 0)",
+            ".ob-pcard::before \u2014 absolute 3px pseudo-element stripe (left: 0)",
+            ".preset.sel \u2014 inset box-shadow 3px stripe (left)"
+          ]
+        },
+        {
+          "rule": "skipped-heading",
+          "count": 1,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "unresolved_static_combined_dom",
+          "reason": "Static single-file app contains headings for many inactive views. H1\u2192H4 across those views is not a proven active-page heading-order failure. Active accessibility-tree checks needed.",
+          "snippets": [
+            "<h1> \"The Sunday Cup\" followed by <h4> \"Score it live \u2014 you and the group, hole by hole\" (missing h2)"
+          ]
+        },
+        {
+          "rule": "tiny-text",
+          "count": 10,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "unresolved",
+          "reason": "11/11.5px record labels are not automatically body prose. Need each rendered selector/state before changing a canonical role.",
+          "snippets": [
+            "11.5px body text",
+            "11px body text"
+          ]
+        },
+        {
+          "rule": "undersized-ui-text",
+          "count": 8,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "true_pattern_partial_capture",
+          "reason": "Functional 10px labels exist at1268 (.calc .trio span) and trophy classes. Labels carry legitimate facts but their necessity does not waive legibility. Composer capture corroborates the tiny gross/HCP metadata; trophy populated states are not captured.",
+          "snippets": [
+            "10px functional text \"Gross\" (below 11px floor)",
+            "10px functional text \"your playing HCP\" (below 11px floor)",
+            "10px functional text \"Points King\" (below 11px floor)",
+            "10px functional text \"Most Improved\" (below 11px floor)",
+            "10px functional text \"Iron Man\" (below 11px floor)",
+            "10px functional text \"Champion\" (below 11px floor)",
+            "10px functional text \"Runner-up\" (below 11px floor)"
+          ]
+        },
+        {
+          "rule": "wide-tracking",
+          "count": 8,
+          "file": "index.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "canon_exception_pending_semantics",
+          "reason": "Record/agate tracking is pinned in the type system; no blanket penalty. Long explanatory prose using that style deserves local review, but line0/no selector cannot identify each instance.",
+          "snippets": [
+            "letter-spacing: 0.08em on body text",
+            "letter-spacing: 0.06em on body text"
+          ]
+        }
+      ],
+      "source_fingerprint": "89ab6377912701644e6bba29aace5bc9f71577b2b960037e699fd7c4a7997b58"
+    },
+    "get.html": {
+      "exit_code": 2,
+      "count": 2,
+      "rules": [
+        {
+          "rule": "all-caps-body",
+          "count": 1,
+          "file": "get.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "false_positive_canon",
+          "reason": "One32-character uppercase beta-status label, not body prose; fact-bearing record label at13px is intentional. No violation established.",
+          "snippets": [
+            "text-transform: uppercase on 32 chars of body text"
+          ]
+        },
+        {
+          "rule": "cream-palette",
+          "count": 1,
+          "file": "get.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "false_positive_canon",
+          "reason": "Warm almanac paper #F4F1E9 is explicitly canonical, not an accidental generic palette. get/support correctly carry dark-first prepaint logic.",
+          "snippets": [
+            "cream/beige page background rgb(244, 241, 233)"
+          ]
+        }
+      ],
+      "source_fingerprint": "959c6f7bec3c60ee54cf4fd659c8b465ac7d2b757972b2774f32530d776f6f55"
+    },
+    "support.html": {
+      "exit_code": 2,
+      "count": 2,
+      "rules": [
+        {
+          "rule": "cream-palette",
+          "count": 1,
+          "file": "support.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "false_positive_canon",
+          "reason": "Warm almanac paper #F4F1E9 is explicitly canonical, not an accidental generic palette. get/support correctly carry dark-first prepaint logic.",
+          "snippets": [
+            "cream/beige page background rgb(244, 241, 233)"
+          ]
+        },
+        {
+          "rule": "tight-leading",
+          "count": 1,
+          "file": "support.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "false_positive_role",
+          "reason": "support.html:57 .lede is a 28px serif display lead at1.14, not body prose. Body at50 is17px/1.45; captured lead is readable. Generic 1.3 floor misclassifies the role.",
+          "snippets": [
+            "line-height 1.14x (need >=1.3)"
+          ]
+        }
+      ],
+      "source_fingerprint": "c6a755f16eb74a8ddbdd3925ddd12d538b62e5f6e0480aea5203091ad9e5d6ce"
+    },
+    "legal.html": {
+      "exit_code": 2,
+      "count": 5,
+      "rules": [
+        {
+          "rule": "cramped-padding",
+          "count": 3,
+          "file": "legal.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "false_positive",
+          "reason": "legal.html:31 sets padding:clamp(20px,4vw,32px). Captures show inset content. Static evaluator did not resolve clamp, so all3 zero-padding reports are false positives.",
+          "snippets": [
+            "<section>: children flush against border+bg on top/right (no inset)",
+            "<section>: children flush against border+bg on top/right/left (no inset)"
+          ]
+        },
+        {
+          "rule": "em-dash-overuse",
+          "count": 1,
+          "file": "legal.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "false_positive_as_ux_defect",
+          "reason": "Whole-file punctuation count across hidden views or long legal prose does not establish a usability defect. No copy rewrite justified by this count.",
+          "snippets": [
+            "16 em-dashes in body text"
+          ]
+        },
+        {
+          "rule": "flat-type-hierarchy",
+          "count": 1,
+          "file": "legal.html",
+          "detector_lines": [
+            0
+          ],
+          "line_note": "All emitted lines are0: unavailable, not a real source-line citation. Corroborated source anchors are separate.",
+          "status": "false_positive_role",
+          "reason": "legal.html:28 small h1 is an eyebrow; section h2 at32 is20\u201326px. The detector comparison omits the effective section role. Palette/contrast defects are separate.",
+          "snippets": [
+            "Role sizes: h1 13px, body 16px, h3 16px (largest adjacent step 1.23:1; target 1.25:1)"
+          ]
+        }
+      ],
+      "source_fingerprint": "3beb8d3d16aef72af0e0dc3516a966484db5350ac32599989a97f9e1aaab3fc2"
+    }
+  },
+  "closure": "Incomplete: many candidates remain unresolved. No product source changed; this is a baseline, not detector clearance."
+}

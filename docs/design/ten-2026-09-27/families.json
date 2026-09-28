@@ -1,0 +1,264 @@
+[
+  {
+    "id": "door",
+    "mode": "Persuade",
+    "character": "A confident first invitation; understand the product and continue with a code-only sign-in.",
+    "surfaces": [
+      "door",
+      "onboarding"
+    ],
+    "native": "apps/ios/CupSeason/Door/DoorView.swift",
+    "web": "index.html#door"
+  },
+  {
+    "id": "home",
+    "mode": "Operate",
+    "character": "Home is social: the relevant person, round or next action leads; one fact appears once.",
+    "surfaces": [
+      "home"
+    ],
+    "native": "apps/ios/CupSeason/Home/HomeView.swift",
+    "web": "index.html#view-home"
+  },
+  {
+    "id": "play",
+    "mode": "Operate",
+    "character": "The round is immediate and legible outdoors; scoring and the card carry the moment.",
+    "surfaces": [
+      "play-cover",
+      "live",
+      "scorecard"
+    ],
+    "native": "apps/ios/CupSeason/Live/LiveRoundHost.swift",
+    "web": "index.html#view-play"
+  },
+  {
+    "id": "post",
+    "mode": "Operate",
+    "character": "Post a real round with little work; course, score, confirmation and honest recovery stay legible.",
+    "surfaces": [
+      "composer",
+      "live-recap",
+      "ceremony"
+    ],
+    "native": "apps/ios/CupSeason/Post/PostRoundScreen.swift",
+    "web": "index.html#view-post",
+    "evidence_note": "Native critique includes auxiliary round-receipt evidence only. Composer, post transaction, recap and ceremony remain not captured/not scored."
+  },
+  {
+    "id": "share",
+    "mode": "Persuade",
+    "character": "A truthful artifact of a real round earns the invitation; photo consent and cancellation remain explicit.",
+    "surfaces": [
+      "share-card"
+    ],
+    "native": "apps/ios/CupSeason/Post/RecapCardView.swift",
+    "web": "index.html#share-card"
+  },
+  {
+    "id": "public-round",
+    "mode": "Persuade",
+    "character": "The recipient recognizes the round and sees a clear next step with only the public facts. ",
+    "surfaces": [
+      "public-round"
+    ],
+    "native": null,
+    "web": "index.html#public-round"
+  },
+  {
+    "id": "claim-invite",
+    "mode": "Persuade",
+    "character": "Say what belongs to the recipient and what joining does; unfinished or unavailable links say the true thing.",
+    "surfaces": [
+      "claim",
+      "invite"
+    ],
+    "native": "apps/ios/CupSeason/People/Links.swift",
+    "web": "index.html#claim-invite"
+  },
+  {
+    "id": "identity",
+    "mode": "Operate",
+    "character": "Profile is identity: a golfer and their accumulated record, not a dashboard of anonymous metrics.",
+    "surfaces": [
+      "tour-card",
+      "you",
+      "person",
+      "bag"
+    ],
+    "native": "apps/ios/CupSeason/You/YouScreen.swift",
+    "web": "index.html#view-you"
+  },
+  {
+    "id": "golfers",
+    "mode": "Operate",
+    "character": "Friends and their golf; social context and readable identities without fabricated faces.",
+    "surfaces": [
+      "golfers",
+      "head-to-head",
+      "board"
+    ],
+    "native": "apps/ios/CupSeason/Golfers/GolfersScreen.swift",
+    "web": "index.html#view-golfers"
+  },
+  {
+    "id": "history",
+    "mode": "Operate",
+    "character": "History is archive: dates, places and a readable record that can be opened and explained.",
+    "surfaces": [
+      "record"
+    ],
+    "native": "apps/ios/CupSeason/You/RecordPage.swift",
+    "web": "index.html#view-record"
+  },
+  {
+    "id": "season",
+    "mode": "Operate",
+    "character": "Season is narrative: where this competition stands, why, and the path from totals to rounds.",
+    "surfaces": [
+      "season",
+      "leaderboard",
+      "season-story",
+      "pot"
+    ],
+    "native": "apps/ios/CupSeason/Season/SeasonPage.swift",
+    "web": "index.html#view-season"
+  },
+  {
+    "id": "competition",
+    "mode": "Operate",
+    "character": "The Scoreboard supplies the live moment; the Book holds the season. Follow D381 state colors and Book eligibility.",
+    "surfaces": [
+      "compete",
+      "intent",
+      "scoreboard",
+      "book"
+    ],
+    "native": "apps/ios/CupSeason/Compete/CompeteScreen.swift",
+    "web": "index.html#view-compete"
+  },
+  {
+    "id": "events",
+    "mode": "Operate",
+    "character": "Event is moment: the matchup and present consequence lead; no sportsbook language.",
+    "surfaces": [
+      "events"
+    ],
+    "native": "apps/ios/CupSeason/Events/EventRoomScreen.swift",
+    "web": "index.html#view-event"
+  },
+  {
+    "id": "schedule",
+    "mode": "Operate",
+    "character": "Arrange real golf with friends with a clear next action and an honest empty state.",
+    "surfaces": [
+      "plan",
+      "schedule"
+    ],
+    "native": "apps/ios/CupSeason/Schedule/ScheduleScreen.swift",
+    "web": "index.html#view-schedule"
+  },
+  {
+    "id": "wizard",
+    "mode": "Operate",
+    "character": "The Pro can understand the agreement and set up a season without decoding scoring jargon.",
+    "surfaces": [
+      "wizard"
+    ],
+    "native": "apps/ios/CupSeason/Wizard/WizardScreen.swift",
+    "web": "index.html#view-wizard"
+  },
+  {
+    "id": "courses",
+    "mode": "Operate",
+    "character": "Course is editorial: a place, its course card and the golf played there; imagery follows truthful provenance.",
+    "surfaces": [
+      "course",
+      "courses"
+    ],
+    "native": "apps/ios/CupSeason/Courses/CourseHomeScreen.swift",
+    "web": "index.html#course-home"
+  },
+  {
+    "id": "settings",
+    "mode": "Operate",
+    "character": "Make personal choices, understand privacy and recover without losing work; ordinary actions use act.",
+    "surfaces": [
+      "settings",
+      "sheets"
+    ],
+    "native": "apps/ios/CupSeason/Settings/CardAndSettingsScreen.swift",
+    "web": "index.html#settings"
+  },
+  {
+    "id": "widgets",
+    "mode": "Operate",
+    "character": "Glanceable state and an appropriate return to the round; never imply an action succeeded without proof.",
+    "surfaces": [
+      "widgets",
+      "live-activity"
+    ],
+    "native": "apps/ios/CupSeason/Widgets/BetweenRoundsWidgetView.swift",
+    "web": null
+  },
+  {
+    "id": "rules",
+    "mode": "Read",
+    "character": "Answer how the competition works and how figures arise; one reading path with clear wayfinding.",
+    "surfaces": [
+      "rules"
+    ],
+    "native": "apps/ios/CupSeason/Season/SeasonRulesPage.swift",
+    "web": "index.html#rules"
+  },
+  {
+    "id": "get",
+    "mode": "Persuade",
+    "character": "Explain the next install step truthfully, with no invented customer evidence.",
+    "surfaces": [
+      "get"
+    ],
+    "native": null,
+    "web": "get.html"
+  },
+  {
+    "id": "support",
+    "mode": "Read",
+    "character": "Help a golfer recover, find the right contact and understand the next step.",
+    "surfaces": [
+      "support"
+    ],
+    "native": null,
+    "web": "support.html"
+  },
+  {
+    "id": "legal",
+    "mode": "Read",
+    "character": "Readable commitments and clear navigation; this program audits layout, not legal sufficiency.",
+    "surfaces": [
+      "legal"
+    ],
+    "native": null,
+    "web": "legal.html"
+  },
+  {
+    "id": "store-images",
+    "mode": "Persuade",
+    "character": "Show the real product and its job without fabricated players or success claims.",
+    "surfaces": [
+      "app-store-screenshots"
+    ],
+    "native": null,
+    "web": null
+  },
+  {
+    "id": "web-desk",
+    "mode": "Operate",
+    "character": "The season at a desk: sidebar and a useful wide body, independently composed under D234.",
+    "surfaces": [
+      "web-desk"
+    ],
+    "native": null,
+    "web": "index.html#desktop-shell"
+  }
+]

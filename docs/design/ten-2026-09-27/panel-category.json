@@ -1,0 +1,2164 @@
+{
+  "lens": "category",
+  "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "rows": [
+    {
+      "id": "ios/door",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 9,
+        "B": 9,
+        "P": 8,
+        "R": 8,
+        "E": 8,
+        "D": 8,
+        "M": 6
+      },
+      "scope": "Welcome, invited welcome, and email-entry simulator software-keyboard states across both devices/themes/default and AX3; no auth transaction, code/error states, or human use.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/door.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-door-invited.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-door-email.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-door-keyboard.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-email-light-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Invitation and email context become large AX3 blocks; invited SE3 welcome shows only the first of its two entry actions.",
+          "evidence_needed_for_10": "A clear narrow AX3 progression with all entry routes discoverable and context balanced against the active field."
+        },
+        "T": {
+          "reason": "Serif headline is distinctive, but AX3 supporting copy and condensed actions feel mechanically enlarged.",
+          "evidence_needed_for_10": "Equally deliberate text relationships at default and AX3."
+        },
+        "Sp": {
+          "reason": "Invited SE3 AX3 pushes Sign In outside the captured first screen; email action meets the keyboard edge.",
+          "evidence_needed_for_10": "Comfortable invitation and keyboard-open layouts across narrow and tall devices."
+        },
+        "C": {
+          "reason": "Theme translation is coherent, but default and AX3 action proportions diverge sharply.",
+          "evidence_needed_for_10": "Matching visual rhythm across size variants."
+        },
+        "B": {
+          "reason": "The pennant and contour establish authorship, while the central promise remains broad.",
+          "evidence_needed_for_10": "Visible expression of the season-specific experience without more decorative branding."
+        },
+        "P": {
+          "reason": "The lower half is mostly empty at default size and compressed at AX3.",
+          "evidence_needed_for_10": "A deliberate responsive composition across both extremes."
+        },
+        "R": {
+          "reason": "Small default supporting copy and subdued contrast are weaker than the headline.",
+          "evidence_needed_for_10": "Full-size outdoor-readable secondary copy in both themes."
+        },
+        "E": {
+          "reason": "The invitation is warm but abstract; no visible season consequence grounds it.",
+          "evidence_needed_for_10": "A concise truthful season proposition that feels personal without invented social proof."
+        },
+        "D": {
+          "reason": "The generous canvas communicates only a short promise and two routes.",
+          "evidence_needed_for_10": "Clearer useful first-use context within the same quiet composition."
+        },
+        "M": {
+          "reason": "Simulator keyboard shows email field/action above the keyboard, but invited SE3 AX3 loses its secondary action from the first view; human and accessible behavior remain unknown.",
+          "evidence_needed_for_10": "Actual-device and VoiceOver entry/scroll/back/code-flow checks, including large text and keyboard dismissal."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Supplement proves simulator software-keyboard geometry only. It does not establish successful authentication or physical-device usability."
+    },
+    {
+      "id": "ios/play-cover",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 7,
+        "E": 6,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Initial round setup and rating-field simulator software-keyboard state only; no start transaction or posted-round composer.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-setup.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-setup-light-AX3.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-setup-keyboard.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-setup-keyboard-light-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "The form spends the first screen on setup fields while the group and game are below it.",
+          "evidence_needed_for_10": "Captures showing the setup essentials and next action as a concise sequence."
+        },
+        "T": {
+          "reason": "AX3 expands labels into several lines while the course field still ellipsizes.",
+          "evidence_needed_for_10": "Long course identities readable at the largest text setting."
+        },
+        "Sp": {
+          "reason": "Fixed Tee Off remains prominent while AX3 content ends visibly beneath its band.",
+          "evidence_needed_for_10": "Scroll-position captures proving comfortable field-to-action spacing."
+        },
+        "C": {
+          "reason": "Default tee inputs share a row, AX3 stacks them without equally clear individual labels.",
+          "evidence_needed_for_10": "Both arrangements preserving field identity and rhythm."
+        },
+        "B": {
+          "reason": "The paper/green language is present, but most of this scene reads as a generic form.",
+          "evidence_needed_for_10": "More authored prioritization of the golf setup, using the existing visual language."
+        },
+        "P": {
+          "reason": "Manual-looking fields and truncated identity prevent effortless consumer-product finish.",
+          "evidence_needed_for_10": "Complete legible course selection and reviewed setup state."
+        },
+        "R": {
+          "reason": "Course identity truncates at AX3, and small default helper copy carries practical information.",
+          "evidence_needed_for_10": "Readable selected course and helper copy on the narrow device in both themes."
+        },
+        "E": {
+          "reason": "The captured setup is administrative; the group and impending round have little visible presence.",
+          "evidence_needed_for_10": "A truthful ready-to-play state using the actual chosen course and group."
+        },
+        "D": {
+          "reason": "Several helper lines and links precede the group; setup requires considerable vertical scanning.",
+          "evidence_needed_for_10": "Useful information concentrated around each field and the next decision."
+        },
+        "M": {
+          "reason": "Keyboard supplement keeps focused rating and Tee Off visible, but at SE3 AX3 nearby form context is displaced and the close-keyboard control overlays the hole selector region.",
+          "evidence_needed_for_10": "Actual device and VoiceOver focus/scroll/dismissal checks through course, tee, rating, group, and start review."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "Simulator keyboard evidence is included. No claim is made about hardware use, accessibility order, or successful starting/persistence."
+    },
+    {
+      "id": "ios/live",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 9,
+        "P": 7,
+        "R": 7,
+        "E": 8,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Active hole-15 scoring, phone scoring, and queued offline status only; morning-kept is active scoring.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-live.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-offline.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-live-dark-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "At AX3 course/status/header consume nearly the whole SE3 screen before the score controls.",
+          "evidence_needed_for_10": "AX3 capture keeping current hole, match state, and scoring action quickly discoverable."
+        },
+        "T": {
+          "reason": "Condensed numbers work at default size; enlarged metadata becomes a long block at AX3.",
+          "evidence_needed_for_10": "Purposeful typographic hierarchy at every supported text size."
+        },
+        "Sp": {
+          "reason": "Default layout has balanced rows, but large-text header spacing delays the first row substantially.",
+          "evidence_needed_for_10": "Narrow-device large-text composition with tighter informational grouping."
+        },
+        "C": {
+          "reason": "The scoring language is coherent, but some default cumulative record text truncates while other rows fit.",
+          "evidence_needed_for_10": "Long record labels fitting consistently for all players."
+        },
+        "B": {
+          "reason": "Hole rail, markers, and match language feel authored; the upper status stack lacks the same economy.",
+          "evidence_needed_for_10": "A compact, equally distinctive live status treatment."
+        },
+        "P": {
+          "reason": "Visible ellipses and large-text first-screen imbalance keep this short of the strongest live sports tools.",
+          "evidence_needed_for_10": "Refined narrow/default and AX3 live states without lost relevant context."
+        },
+        "R": {
+          "reason": "Small metadata and truncated cumulative text compete with strong score numerals.",
+          "evidence_needed_for_10": "Clear metadata and full essential totals under narrow and high-text conditions."
+        },
+        "E": {
+          "reason": "The match state conveys a real contest, but its consequence sits below the input rows.",
+          "evidence_needed_for_10": "Readable current stakes and outcomes in the immediate scoring context."
+        },
+        "D": {
+          "reason": "Default is efficient; AX3 spends most of a screen on status and legend.",
+          "evidence_needed_for_10": "Equal task usefulness per view at large text without reducing accessibility."
+        },
+        "M": {
+          "reason": "Screenshot plus/minus geometry cannot prove scoring latency or queued persistence, and AX3 action access is weak.",
+          "evidence_needed_for_10": "Human/device scoring, VoiceOver, haptic, offline queue/reconnect, and restore evidence."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Actual match progression and meaningful outcome context",
+          "legitimate_source": "Existing round and match records; no additional during-play tracking"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/share-card",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 9,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Synthetic share preview and drawn-image variants only; no completed share or consent persistence.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-share.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/share-long-photo.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-share-dark-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "The round score is strong, but the message-disclosure row competes with the preview at AX3.",
+          "evidence_needed_for_10": "Preview, message, and share action balanced on the narrow large-text screen."
+        },
+        "T": {
+          "reason": "The export type remains small while surrounding interface text scales dramatically.",
+          "evidence_needed_for_10": "Readable preview detail and proportional AX3 interface."
+        },
+        "Sp": {
+          "reason": "The message row is partly hidden at the bottom of the SE3 AX3 capture.",
+          "evidence_needed_for_10": "Full scrolled view showing unobscured disclosure text and footer spacing."
+        },
+        "C": {
+          "reason": "Dark export on light UI is coherent, but preview and interface adapt differently at AX3.",
+          "evidence_needed_for_10": "Consistent legibility and layout behavior across both themes and sizes."
+        },
+        "B": {
+          "reason": "The archival round language is specific; the outcome phrasing supplies little individuality.",
+          "evidence_needed_for_10": "More precise earned round context from available records."
+        },
+        "P": {
+          "reason": "The drawn placeholder and sparse default export cannot establish premium photo handling.",
+          "evidence_needed_for_10": "Optional actual-round photo variants with deliberate crops and a strong no-photo layout."
+        },
+        "R": {
+          "reason": "Small export labels lose prominence within the phone preview.",
+          "evidence_needed_for_10": "Full-resolution exported and phone-sized shared-card readability evidence."
+        },
+        "E": {
+          "reason": "The card records a score but little of the remembered occasion.",
+          "evidence_needed_for_10": "Meaningful round context or optional consented photography of that actual round."
+        },
+        "D": {
+          "reason": "A large blank expanse separates outcome and signature in the no-photo preview.",
+          "evidence_needed_for_10": "A more intentional no-photo composition using existing round facts."
+        },
+        "M": {
+          "reason": "AX3 message content meets the fixed action band; share-sheet/consent behavior is absent.",
+          "evidence_needed_for_10": "Device scrolling, accessible disclosure, actual share sheet, and consent-state evidence."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A remembered place or round context",
+          "legitimate_source": "Optional consented actual-round photo or existing round outcome"
+        },
+        {
+          "dimension": "P",
+          "needs": "Photo crop and export quality proof",
+          "legitimate_source": "Optional consented actual-round image, never stock imagery"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/wizard",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Captured structure step only; no complete setup, agreement, or locking journey.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/wizard.jpg"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Long explanatory material and multiple numeric choices sit at similar emphasis.",
+          "evidence_needed_for_10": "A captured step with one clear decision and progressive detail."
+        },
+        "T": {
+          "reason": "Three voices are present, but AX3 stacked headings and explanation dominate.",
+          "evidence_needed_for_10": "A clear large-text rhythm between question, selection, and explanation."
+        },
+        "Sp": {
+          "reason": "Default controls are compact; AX3 introductory material fills almost all SE3 height.",
+          "evidence_needed_for_10": "Narrow AX3 views through the step with the active choice and continuation legible."
+        },
+        "C": {
+          "reason": "The same decision reads very differently across text sizes.",
+          "evidence_needed_for_10": "Equivalent decision clarity across sizes and themes."
+        },
+        "B": {
+          "reason": "Golf-season language gives character, while the control stack still feels configuration-heavy.",
+          "evidence_needed_for_10": "An authored sequence that preserves that voice through the actual choices."
+        },
+        "P": {
+          "reason": "Small default helper copy and sprawling AX3 presentation lack final refinement.",
+          "evidence_needed_for_10": "Polished initial and continuation states at both size extremes."
+        },
+        "R": {
+          "reason": "Default explanatory copy is small and subdued despite explaining important consequences.",
+          "evidence_needed_for_10": "Easily readable consequence copy at default size."
+        },
+        "E": {
+          "reason": "The group-chat opening has warmth; the captured step quickly becomes rules administration.",
+          "evidence_needed_for_10": "More direct connection between each selected rule and the friends season it creates."
+        },
+        "D": {
+          "reason": "Explanation-to-decision ratio is high in both layouts.",
+          "evidence_needed_for_10": "Essential decision context presented with less scanning."
+        },
+        "M": {
+          "reason": "Dropdown and steppers are visible but their usable focus/scroll behavior is unproved.",
+          "evidence_needed_for_10": "Device and VoiceOver completion of this step at AX3, including the next action."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "ios/sheets",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Covenant and ruling sheets only, including AX3; no submission or full sheet system proof.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/covenant.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/ruling.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-covenant-light-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Covenant terms lead appropriately, but the AX3 agreement action is far beyond the first view; ruling fields are similarly displaced.",
+          "evidence_needed_for_10": "Full narrow large-text sheet sequence with clear progression to the action."
+        },
+        "T": {
+          "reason": "Strong serif narrative becomes a very large block in the covenant; ruling explanation has little internal emphasis.",
+          "evidence_needed_for_10": "Typography that retains meaningful emphasis throughout enlarged terms."
+        },
+        "Sp": {
+          "reason": "Default covenant has a large blank lower half while AX3 requires substantial scrolling.",
+          "evidence_needed_for_10": "Balanced layouts and demonstrated comfortable end-of-scroll action placement."
+        },
+        "C": {
+          "reason": "Both sheets share materials, but their content/action structures feel substantially different.",
+          "evidence_needed_for_10": "Consistent sheet navigation and action placement across terms and ruling forms."
+        },
+        "B": {
+          "reason": "The ledger and season voice is specific, though presentation remains mostly text plus buttons.",
+          "evidence_needed_for_10": "More deliberate record hierarchy using existing rules, lines, and typography."
+        },
+        "P": {
+          "reason": "The default terms block and expanded text lack the fine pacing of a finished agreement surface.",
+          "evidence_needed_for_10": "Polished typography and action sequence in complete sheet captures."
+        },
+        "R": {
+          "reason": "Default ruling explanation is small and dim; it carries consequential information.",
+          "evidence_needed_for_10": "Readable terms and consequences in both themes."
+        },
+        "E": {
+          "reason": "Covenant recalls prior season results, while the ruling is appropriately sober but visually flat.",
+          "evidence_needed_for_10": "A clear sense of renewal and confidence in the record, grounded in actual history."
+        },
+        "D": {
+          "reason": "The default covenant underuses space and the ruling requires reading a long explanation before its fields.",
+          "evidence_needed_for_10": "Tighter relationship between context, input, and resulting action."
+        },
+        "M": {
+          "reason": "Captures omit bottom actions at AX3 and all submit semantics.",
+          "evidence_needed_for_10": "Human/device scrolling, keyboard, VoiceOver, dismissal, and confirmation checks."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "ios/widgets",
+      "status": "scored",
+      "scores": {
+        "H": 6,
+        "T": 6,
+        "Sp": 6,
+        "C": 7,
+        "B": 6,
+        "P": 5,
+        "R": 5,
+        "E": 5,
+        "D": 5,
+        "M": null
+      },
+      "scope": "Four empty widget views inside an app review host only; ignore review-host headings and surrounding canvas.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSSeasonWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSNextTeeWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSRecordWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSRivalryWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSSeasonWidget-light-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Small empty tiles put title and generic instruction at similar emphasis.",
+          "evidence_needed_for_10": "A tile that makes its empty condition and next useful action immediately clear."
+        },
+        "T": {
+          "reason": "AX3 instruction truncates in small formats; inline format switches visual voice.",
+          "evidence_needed_for_10": "Complete, deliberate type treatment in each supported family."
+        },
+        "Sp": {
+          "reason": "Text occupies a corner of larger empty tiles while small tiles cannot fit it.",
+          "evidence_needed_for_10": "Empty-state composition tailored to each widget family."
+        },
+        "C": {
+          "reason": "The four widgets repeat one generic fallback despite different jobs.",
+          "evidence_needed_for_10": "Equally consistent but purpose-specific empty states."
+        },
+        "B": {
+          "reason": "Brand relies on color and title; the empty content could belong to many apps.",
+          "evidence_needed_for_10": "A concise Cup Season-specific empty-state reason or next step."
+        },
+        "P": {
+          "reason": "Ellipsized fallback instructions prevent a finished glanceable impression.",
+          "evidence_needed_for_10": "Each supported family rendered cleanly in its actual system host."
+        },
+        "R": {
+          "reason": "Small AX3 tiles visibly cut off their instruction.",
+          "evidence_needed_for_10": "Readable full instruction or equivalent concise meaning at all supported sizes."
+        },
+        "E": {
+          "reason": "The fallback conveys no anticipation, achievement, or rivalry even within an empty-state scope.",
+          "evidence_needed_for_10": "A warm, truthful invitation relevant to that widget\u2019s role."
+        },
+        "D": {
+          "reason": "The only useful payload is an instruction to open the app.",
+          "evidence_needed_for_10": "A more informative empty state using available state, without fabricated data."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "M is null: actual system-host geometry and interaction are absent. Populated widget quality remains unscored; empty content is the scored product state."
+    },
+    {
+      "id": "ios/live-activity",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 8,
+        "D": 8,
+        "M": null
+      },
+      "scope": "Compact and expanded production views rendered in an app review host; no lock-screen or Dynamic Island evidence.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/island-long.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-island-long-light-AX3.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Match state leads well, but progress, current hole, and next-hole labels require interpretation together.",
+          "evidence_needed_for_10": "Actual-host capture with unambiguous current-versus-next state."
+        },
+        "T": {
+          "reason": "Strong result and condensed metadata work, but small default expanded metadata is subordinate to several controls.",
+          "evidence_needed_for_10": "Actual-size system capture proving equally deliberate metadata readability."
+        },
+        "Sp": {
+          "reason": "The expanded panel packs score controls and navigation tightly.",
+          "evidence_needed_for_10": "System-host capture with clear touch separation and breathing room."
+        },
+        "C": {
+          "reason": "Compact and expanded views share the match result, but reveal different amounts of hole context.",
+          "evidence_needed_for_10": "Consistent orientation across actual compact, expanded, and lock-screen presentations."
+        },
+        "B": {
+          "reason": "Match-first and ember make this specific; the compact pill carries little additional authorship.",
+          "evidence_needed_for_10": "Recognizable, useful compact expression within real system constraints."
+        },
+        "P": {
+          "reason": "The review host cannot establish the finish of a shipped system experience.",
+          "evidence_needed_for_10": "Real lock-screen and Dynamic Island captures through normal state changes."
+        },
+        "R": {
+          "reason": "Default ancillary text is small; review-host scaling cannot prove outdoor system readability.",
+          "evidence_needed_for_10": "Actual device daylight and large-text readability evidence."
+        },
+        "E": {
+          "reason": "One-up creates immediate stakes, but only one static moment is visible.",
+          "evidence_needed_for_10": "Actual round progression showing meaningful changes and outcomes."
+        },
+        "D": {
+          "reason": "The visible payload is efficient but current-hole and navigation context could be more immediate.",
+          "evidence_needed_for_10": "System-state sequence that demonstrates rapid glance comprehension."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "M is null: review-host controls do not establish actual Dynamic Island or lock-screen geometry, touch availability, VoiceOver, or update behavior."
+    },
+    {
+      "id": "ios/round-receipt",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 9,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Read-only synthetic round, conversation, missing-course, no-scoring, and unavailable/error states only.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-receipt.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-comments.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt-unavailable.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt-no-scoring.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt-course-missing.jpg"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Large round panel dominates while points and conversation are distant; unavailable state puts Add a photo before the failure.",
+          "evidence_needed_for_10": "Clear hierarchy for both successful receipt and recovery state."
+        },
+        "T": {
+          "reason": "Strong score numerals contrast with tiny default record labels and an oversized AX3 story block.",
+          "evidence_needed_for_10": "Readable metadata and proportionate large-text narrative."
+        },
+        "Sp": {
+          "reason": "The no-story receipt leaves substantial empty card area; at AX3 the card fills almost the first screen.",
+          "evidence_needed_for_10": "Purposeful no-story composition and balanced expanded-text layout."
+        },
+        "C": {
+          "reason": "Round variants mostly align, but missing data/error states change the action hierarchy noticeably.",
+          "evidence_needed_for_10": "Consistent presence and order of only relevant actions in each captured variant."
+        },
+        "B": {
+          "reason": "Receipt paper, result story, and markers are distinctive; repeated slogan is louder than some actual detail.",
+          "evidence_needed_for_10": "Round facts carrying the identity with less generic signature emphasis."
+        },
+        "P": {
+          "reason": "Unavailable round still exposes a photo action and delete row, which weakens the sense of a resolved state.",
+          "evidence_needed_for_10": "A deliberate failed-load surface with a clear recovery priority."
+        },
+        "R": {
+          "reason": "Default metadata/comment timestamps are small, while large-text receipt labels wrap densely.",
+          "evidence_needed_for_10": "Comfortable full-size reading in both extremes."
+        },
+        "E": {
+          "reason": "Outcome sentence and real conversation structure suggest memory, but much of the card remains anonymous score space.",
+          "evidence_needed_for_10": "Actual round context or consented photograph plus genuine conversation when present."
+        },
+        "D": {
+          "reason": "Large card and separate points block repeat the record before the receipt/conversation.",
+          "evidence_needed_for_10": "More useful round context within the same vertical budget."
+        },
+        "M": {
+          "reason": "Comment editing, keyboard, focus, navigation, and recovery are not exercised.",
+          "evidence_needed_for_10": "Device/VoiceOver receipt navigation and comment-entry evidence, including errors."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Actual-round meaning or conversation",
+          "legitimate_source": "Existing real round records and consented real comments/photos"
+        },
+        {
+          "dimension": "D",
+          "needs": "A meaningful points explanation where applicable",
+          "legitimate_source": "Existing ledger/adjustments, not inferred standings math"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/social-activity",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Single synthetic unread-reply notification; default and AX3 across both devices/themes.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-activity.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-activity-dark-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Mark all read is prominent relative to the single actual reply.",
+          "evidence_needed_for_10": "The conversation clearly leading over housekeeping actions."
+        },
+        "T": {
+          "reason": "Default timestamp and course context are very small; AX3 metadata grows much more visibly.",
+          "evidence_needed_for_10": "Purposeful readable metadata at both sizes."
+        },
+        "Sp": {
+          "reason": "The title/housekeeping block consumes considerable vertical space before the notification.",
+          "evidence_needed_for_10": "More direct relation between Activity and its first item."
+        },
+        "C": {
+          "reason": "The unread dot, marker, and record text align, but the size response changes the item\u2019s rhythm substantially.",
+          "evidence_needed_for_10": "A consistent notification hierarchy across text sizes."
+        },
+        "B": {
+          "reason": "Markers and record typography provide identity; the notification sentence is otherwise conventional.",
+          "evidence_needed_for_10": "A more authored yet clear golf-context notification composition."
+        },
+        "P": {
+          "reason": "The single row is clean, but multi-item, read, and long-reply handling are unproved.",
+          "evidence_needed_for_10": "A robust safe fixture set for the same notification surface."
+        },
+        "R": {
+          "reason": "Default ancillary context is small and muted.",
+          "evidence_needed_for_10": "Readable course/time context at real phone size and both themes."
+        },
+        "E": {
+          "reason": "The reply supplies a human moment, but one synthetic item cannot establish a living social experience.",
+          "evidence_needed_for_10": "Consented actual interactions or representative existing history."
+        },
+        "D": {
+          "reason": "The one-item screen is necessarily sparse, with housekeeping occupying disproportionate space.",
+          "evidence_needed_for_10": "Efficient one-item composition and evidence of the real multi-item state."
+        },
+        "M": {
+          "reason": "Visible row and settings affordance do not establish tap targets or navigation behavior.",
+          "evidence_needed_for_10": "Device/VoiceOver open-reply, mark-read, back, and notification-order checks."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Actual social texture",
+          "legitimate_source": "Existing consented reply/activity history"
+        },
+        {
+          "dimension": "D",
+          "needs": "Real activity history when present",
+          "legitimate_source": "Already-recorded notifications; no manufactured engagement"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/credential-private",
+      "status": "scored",
+      "scores": {
+        "H": 6,
+        "T": 5,
+        "Sp": 7,
+        "C": 6,
+        "B": 7,
+        "P": 5,
+        "R": 5,
+        "E": 6,
+        "D": 6,
+        "M": null
+      },
+      "scope": "Private credential placeholder only; no filled card, profile, or identity quality inferred.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/credential-private.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-credential-private-light-large.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "A very large blank card gives little explanation beyond Private.",
+          "evidence_needed_for_10": "A deliberate privacy state whose purpose is immediately understood."
+        },
+        "T": {
+          "reason": "Default footer branding is visibly crossed by a horizontal line.",
+          "evidence_needed_for_10": "Clean unobstructed footer type at default and AX3."
+        },
+        "Sp": {
+          "reason": "The card\u2019s large blank field and heavy light-theme shadow overpower its small privacy label.",
+          "evidence_needed_for_10": "A balanced intentionally private composition."
+        },
+        "C": {
+          "reason": "Footer treatment differs materially between default and AX3; light and dark edge treatment also differ strongly.",
+          "evidence_needed_for_10": "Equivalent clean credential rendering in all variants."
+        },
+        "B": {
+          "reason": "Marker and signature give identity, but the blank private object is only weakly differentiated by function.",
+          "evidence_needed_for_10": "A clearer branded privacy state using existing elements."
+        },
+        "P": {
+          "reason": "Crossed footer type and heavy shadow undermine the crafted-object impression.",
+          "evidence_needed_for_10": "Clean rendered edges, signature, and restrained depth."
+        },
+        "R": {
+          "reason": "The footer is visually struck through at default size.",
+          "evidence_needed_for_10": "Legible unobstructed identifying text."
+        },
+        "E": {
+          "reason": "Privacy is communicated sparsely and feels closer to missing content than intentional discretion.",
+          "evidence_needed_for_10": "A respectful, explicit private-state treatment without revealing identity."
+        },
+        "D": {
+          "reason": "Almost all visible area is blank without explaining the access state.",
+          "evidence_needed_for_10": "A concise useful explanation appropriate to private content."
+        }
+      },
+      "content_ceilings": [],
+      "notes": "M is null: no interactive controls are present in this static private-state evidence. A filled credential must be separately captured and scored."
+    },
+    {
+      "id": "web/door",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 9,
+        "P": 8,
+        "R": 7,
+        "E": 8,
+        "D": 8,
+        "M": 6
+      },
+      "scope": "Welcome, email entry, and reduced-CSS-viewport entry; no code/auth success states or real keyboard.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/door--1280--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Desktop flanking score examples compete with the simple central entry choice.",
+          "evidence_needed_for_10": "A clear first-use gaze sequence across narrow and desktop layouts."
+        },
+        "T": {
+          "reason": "Main serif promise is strong; mono examples and fine labels are much smaller and dimmer.",
+          "evidence_needed_for_10": "Readable supporting typography at normal viewing size."
+        },
+        "Sp": {
+          "reason": "Desktop uses broad side gaps; short mobile viewport places the email row at the capture edge.",
+          "evidence_needed_for_10": "Balanced wide layout and complete short-height input/action composition."
+        },
+        "C": {
+          "reason": "Mobile removes the supporting example boards that establish the product on desktop.",
+          "evidence_needed_for_10": "Equivalent useful product understanding at both widths."
+        },
+        "B": {
+          "reason": "Contour, pennant, and board typography are authored; the mobile promise remains broad.",
+          "evidence_needed_for_10": "A more specific truthful season proposition within the existing identity."
+        },
+        "P": {
+          "reason": "Muted examples and low-contrast email placeholder weaken otherwise composed entry.",
+          "evidence_needed_for_10": "Refined readable first-use states including entry validation."
+        },
+        "R": {
+          "reason": "Fine print, example labels, and empty email text are visually subdued.",
+          "evidence_needed_for_10": "Comfortable default-size reading in both themes."
+        },
+        "E": {
+          "reason": "The friend-season promise is appealing but more tangible on desktop than mobile.",
+          "evidence_needed_for_10": "Equal sense of the season opportunity without invented social proof."
+        },
+        "D": {
+          "reason": "Desktop carries contextual boards; mobile uses a large empty middle.",
+          "evidence_needed_for_10": "More useful invitation context within the same simple mobile entry."
+        },
+        "M": {
+          "reason": "Reduced viewport only approximates keyboard conditions and the entry is at its lower edge.",
+          "evidence_needed_for_10": "Actual phone keyboard, focus, code-entry, VoiceOver, and return-flow evidence."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/home",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 6,
+        "B": 8,
+        "P": 6,
+        "R": 5,
+        "E": 7,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Dispatch lead/deck fixtures only; unrelated account read models are empty and cannot establish populated Home quality.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/02-home-states-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/02-home-states-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--375--dark.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--1600--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "The authored lead competes with join/start prompts and a promotion before much social substance.",
+          "evidence_needed_for_10": "A coherent ordering around the current dispatch and its most useful next action."
+        },
+        "T": {
+          "reason": "Editorial lead is confident, but metadata and helper labels are small and faint.",
+          "evidence_needed_for_10": "Supporting text given equal reading care to the lead."
+        },
+        "Sp": {
+          "reason": "Desktop distributes sparse content among three regions; phone stacks several detached rails and boxes.",
+          "evidence_needed_for_10": "Purposeful spacing for this partial/empty state at both widths."
+        },
+        "C": {
+          "reason": "Promotion panels invert color without carrying sufficiently legible text in either theme.",
+          "evidence_needed_for_10": "Correct readable panel ink in dark and light captures."
+        },
+        "B": {
+          "reason": "The dispatch voice feels specific, but generic empty modules dilute its social character.",
+          "evidence_needed_for_10": "A more coherent authored empty/partial Home with fewer generic placeholders."
+        },
+        "P": {
+          "reason": "Near-invisible promotion copy is a visible finish defect.",
+          "evidence_needed_for_10": "Clean theme contrast plus harmonious content modules."
+        },
+        "R": {
+          "reason": "The light promotion on dark has near-white headline; dark promotion on light has very dark text.",
+          "evidence_needed_for_10": "Legible panel text and secondary text in both themes."
+        },
+        "E": {
+          "reason": "State-specific lead carries feeling, but the rest of the fixture is socially empty.",
+          "evidence_needed_for_10": "Genuine permitted friend-round/activity material when available; no fabricated faces."
+        },
+        "D": {
+          "reason": "Multiple empty/status modules repeat low-information states around the lead.",
+          "evidence_needed_for_10": "Useful empty-state content and populated-account capture before broader Home claims."
+        },
+        "M": {
+          "reason": "Phone band is visible, but full-page images cannot prove scrolling clearance or navigation operation.",
+          "evidence_needed_for_10": "Real-device navigation, scrolling, text zoom, keyboard, and accessible order evidence."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A real social season around the dispatch",
+          "legitimate_source": "Existing consented league history, buddy rounds, and optional actual-round photos"
+        },
+        {
+          "dimension": "D",
+          "needs": "Populated Home evidence beyond dispatch fixtures",
+          "legitimate_source": "Existing account read models from an authorized safe capture"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/composer",
+      "status": "scored",
+      "scores": {
+        "H": 6,
+        "T": 6,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 6,
+        "R": 5,
+        "E": 6,
+        "D": 6,
+        "M": 5
+      },
+      "scope": "Empty first-round composer and reduced-viewport proxy only; no successful post transaction or real keyboard.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/composer-short-viewport--375--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Install notice, blank gross field, photo action, and scoring explanation compete before basic round entry is complete.",
+          "evidence_needed_for_10": "Entry essentials visibly prioritized over secondary prompts and scoring education."
+        },
+        "T": {
+          "reason": "Small spaced labels and low-contrast fields make the main form feel less immediate than its large dash.",
+          "evidence_needed_for_10": "Distinct readable field labels and entry values."
+        },
+        "Sp": {
+          "reason": "The phone navigation band occupies much of the short viewport through the form region.",
+          "evidence_needed_for_10": "Real keyboard-open capture with field and action comfortably visible."
+        },
+        "C": {
+          "reason": "Mixed green and nearly black panels separate related parts of one posting task.",
+          "evidence_needed_for_10": "Clear consistent form grouping in both themes."
+        },
+        "B": {
+          "reason": "Points language is specific, but nested form-card treatment overwhelms the almanac character.",
+          "evidence_needed_for_10": "A more authored posting form using existing type and rule vocabulary."
+        },
+        "P": {
+          "reason": "The empty state feels like a calculator awaiting inputs, with visually weak entry cues.",
+          "evidence_needed_for_10": "A polished first-use sequence including focused, complete, and failed states."
+        },
+        "R": {
+          "reason": "Dark default field labels, helper copy, and reset link are faint.",
+          "evidence_needed_for_10": "Readable field and explanatory text at phone size."
+        },
+        "E": {
+          "reason": "Little visible acknowledgment connects this form to a real round worth remembering.",
+          "evidence_needed_for_10": "Existing-round context once entered and optional actual-round imagery, without extra tracking."
+        },
+        "D": {
+          "reason": "A large empty scoring panel and full points table precede any useful entered information.",
+          "evidence_needed_for_10": "Progressive useful scoring detail tied to actual entered data."
+        },
+        "M": {
+          "reason": "Short-height proxy shows severe competition for the input area; keyboard behavior is unproved.",
+          "evidence_needed_for_10": "Actual phone keyboard and VoiceOver post flow, including error recovery and persistence."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/play-cover",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 6,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 6,
+        "R": 5,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Empty live-round setup form only; no live scoring or start transaction.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--375--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Course, group, guest, game, and explanatory sections require a long scan before Tee Off.",
+          "evidence_needed_for_10": "A clearer essential setup sequence and a complete ready-to-play review."
+        },
+        "T": {
+          "reason": "Widely spaced micro-labels and small body text dominate the setup.",
+          "evidence_needed_for_10": "Readable field/supporting typography at phone size."
+        },
+        "Sp": {
+          "reason": "Nested panels and helper paragraphs lengthen the narrow form substantially.",
+          "evidence_needed_for_10": "Less structural overhead around the same required choices."
+        },
+        "C": {
+          "reason": "Fields, guest chips, group slots, and game tabs use several competing container treatments.",
+          "evidence_needed_for_10": "A consistent clear treatment of related setup controls."
+        },
+        "B": {
+          "reason": "Golf-specific labels help, but the presentation mostly reads as a generic configuration form.",
+          "evidence_needed_for_10": "A stronger round/group focus using existing visual vocabulary."
+        },
+        "P": {
+          "reason": "The form shows uneven line wrapping and subdued empty controls.",
+          "evidence_needed_for_10": "A fully refined narrow and desktop setup with meaningful filled values."
+        },
+        "R": {
+          "reason": "Course placeholder, field labels, and explanatory paragraphs are low contrast in dark.",
+          "evidence_needed_for_10": "Comfortable reading of every essential instruction in both themes."
+        },
+        "E": {
+          "reason": "The visible state is administrative and gives little feeling of going out with friends.",
+          "evidence_needed_for_10": "A ready-to-play state from real chosen course/group data."
+        },
+        "D": {
+          "reason": "Long explanations surround sparse required information.",
+          "evidence_needed_for_10": "Clearer grouping and progressive help for the same task."
+        },
+        "M": {
+          "reason": "Five game choices are compressed into one narrow segmented control.",
+          "evidence_needed_for_10": "Device tests for tap accuracy, keyboard, scrolling, and accessible selection states."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/you",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 8,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 5,
+        "M": 6
+      },
+      "scope": "You renderer for a new synthetic golfer with no rounds or real photos; not a full profile/record judgment.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--375--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Identity card leads clearly, but feedback, buddies, trophies, all-time, rounds, and courses compete below.",
+          "evidence_needed_for_10": "A stronger progression from identity to the next meaningful first-round action."
+        },
+        "T": {
+          "reason": "Strong card name contrasts with tiny record labels and several spaced mono headings.",
+          "evidence_needed_for_10": "Readable metadata without losing the three-voice hierarchy."
+        },
+        "Sp": {
+          "reason": "Repeated empty sections create a long page and a large gap before recent rounds.",
+          "evidence_needed_for_10": "More intentional spacing for a new golfer state."
+        },
+        "C": {
+          "reason": "Credential object and ordinary content panels have substantially different density and depth.",
+          "evidence_needed_for_10": "A coherent transition from the card to the surrounding record."
+        },
+        "B": {
+          "reason": "The credential is distinctive; the rest is a familiar stack of empty metrics.",
+          "evidence_needed_for_10": "Identity carried through record/story composition using existing facts."
+        },
+        "P": {
+          "reason": "Heavy card shadow and repeated blank metric panels reduce the made-for-this feel.",
+          "evidence_needed_for_10": "Refined private object rendering and a purposeful zero-history layout."
+        },
+        "R": {
+          "reason": "Muted all-time metadata and course explanation are difficult relative to the strong card.",
+          "evidence_needed_for_10": "Legible supporting record text in dark and light."
+        },
+        "E": {
+          "reason": "A synthetic identity with zero history cannot demonstrate a meaningful golfer record.",
+          "evidence_needed_for_10": "Optional consented actual profile imagery and genuine earned history."
+        },
+        "D": {
+          "reason": "Zero rounds, no-counts, empty trophies, and no recent rounds repeat absence.",
+          "evidence_needed_for_10": "A concise new-golfer state; genuine history when available."
+        },
+        "M": {
+          "reason": "Visible phone band and card/settings route are untested; long page requires substantial scrolling.",
+          "evidence_needed_for_10": "Real-device scroll/zoom, navigation, focus, and VoiceOver evidence."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Personal and earned identity",
+          "legitimate_source": "Consented actual profile photo if chosen; existing real rounds and awards"
+        },
+        {
+          "dimension": "D",
+          "needs": "Accumulated record evidence",
+          "legitimate_source": "Existing real round/league history, never invented achievements"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/record",
+      "status": "not scored",
+      "scores": {
+        "H": null,
+        "T": null,
+        "Sp": null,
+        "C": null,
+        "B": null,
+        "P": null,
+        "R": null,
+        "E": null,
+        "D": null,
+        "M": null
+      },
+      "scope": "History/record is not captured. The file named app-record-empty resolves to the Play chooser.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg"
+      ],
+      "blockers": {},
+      "content_ceilings": [],
+      "notes": "Wrong scene excluded. Capture metadata correction confirmed visually; do not infer History quality from Play."
+    },
+    {
+      "id": "web/compete",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Nothing-running empty state only; no season, event, or head-to-head competition room.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--375--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Start something appears both beside the title and below the explanation.",
+          "evidence_needed_for_10": "A single unmistakable primary route for this empty state."
+        },
+        "T": {
+          "reason": "Headline has good contrast; action labels are small, widely spaced record text.",
+          "evidence_needed_for_10": "Actions as readable and intentional as the headline."
+        },
+        "Sp": {
+          "reason": "Several small links sit widely separated above a large empty field.",
+          "evidence_needed_for_10": "Deliberate empty-state grouping and action spacing."
+        },
+        "C": {
+          "reason": "Theme treatment is coherent, but title action and body action duplicate one intent.",
+          "evidence_needed_for_10": "A consistent one-action hierarchy across breakpoints."
+        },
+        "B": {
+          "reason": "Season language and contour help, but this is a conventional empty screen.",
+          "evidence_needed_for_10": "A more specific authored invitation to the existing competition choices."
+        },
+        "P": {
+          "reason": "Duplicated action and unexplained open space keep the state from feeling fully resolved.",
+          "evidence_needed_for_10": "A finished empty-state composition across mobile/desktop."
+        },
+        "R": {
+          "reason": "Supporting copy and small mono actions are subdued.",
+          "evidence_needed_for_10": "Readable explanation and routes in both themes."
+        },
+        "E": {
+          "reason": "Nothing running is clear but offers little anticipation of competing with friends.",
+          "evidence_needed_for_10": "A warmer truthful invitation, without fake activity."
+        },
+        "D": {
+          "reason": "The same start action is repeated while little useful choice guidance is provided.",
+          "evidence_needed_for_10": "Concise distinct purposes for the available routes."
+        },
+        "M": {
+          "reason": "Two start targets and reported 2px overflow leave geometry polish outstanding.",
+          "evidence_needed_for_10": "Corrected narrow geometry plus actual touch, keyboard, and VoiceOver route checks."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/golfers",
+      "status": "scored",
+      "scores": {
+        "H": 6,
+        "T": 6,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 5,
+        "R": 5,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Golfer/board load-error state with invite/search/empty upcoming sections; no populated golfer network.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--375--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Top failure, board failure, invitation, search, and empty schedule all compete in one screen.",
+          "evidence_needed_for_10": "A clear recovery priority while retaining useful independent actions."
+        },
+        "T": {
+          "reason": "Many micro-headings and weak supporting labels reduce the clarity of the simple recovery message.",
+          "evidence_needed_for_10": "More readable, quieter section labels and a clear retry action."
+        },
+        "Sp": {
+          "reason": "Invitation row text sits close to its edges and sections are tightly stacked.",
+          "evidence_needed_for_10": "Comfortable internal padding and separation for independent tasks."
+        },
+        "C": {
+          "reason": "Load-error and empty-schedule messages look alike despite different certainty.",
+          "evidence_needed_for_10": "Consistent distinction between unavailable data and known empty state."
+        },
+        "B": {
+          "reason": "Warm recovery language is specific; surrounding controls feel generic.",
+          "evidence_needed_for_10": "Authored recovery grouping using the existing surface character."
+        },
+        "P": {
+          "reason": "Duplicated failure and crowded invitation row feel unresolved.",
+          "evidence_needed_for_10": "A coherent finished failed-load layout with independent functions clearly presented."
+        },
+        "R": {
+          "reason": "Dark muted supporting text is faint throughout.",
+          "evidence_needed_for_10": "Readable descriptions, placeholders, and error explanation."
+        },
+        "E": {
+          "reason": "The apologetic copy reassures, but the visible social surface contains only errors and absence.",
+          "evidence_needed_for_10": "A confident helpful recovery state; actual permitted social history separately captured."
+        },
+        "D": {
+          "reason": "Several empty/unavailable sections repeat lack of content without clarifying their relation.",
+          "evidence_needed_for_10": "Useful information about what can still be done and what retry affects."
+        },
+        "M": {
+          "reason": "Narrow invitation/search geometry and 2px overflow need verification.",
+          "evidence_needed_for_10": "Corrected geometry and device/keyboard/VoiceOver invite-search-retry evidence."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/schedule",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 6,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 6,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Empty monthly calendar only; no populated schedule or event planning flow.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--375--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Calendar grid dominates while the useful schedule action and empty explanation sit lower.",
+          "evidence_needed_for_10": "A better balance between calendar orientation and the immediate empty-state action."
+        },
+        "T": {
+          "reason": "Month, weekday, and legend type are small and faint against the large grid.",
+          "evidence_needed_for_10": "Readable calendar labels at normal phone viewing size."
+        },
+        "Sp": {
+          "reason": "The grid and multi-line legend push the main action to the fixed band region.",
+          "evidence_needed_for_10": "Complete action clearance on a narrow viewport."
+        },
+        "C": {
+          "reason": "Calendar labels, empty explanation, and top headings repeat context in different visual styles.",
+          "evidence_needed_for_10": "Consistent concise calendar context."
+        },
+        "B": {
+          "reason": "Record labels fit the brand, but the large generic calendar box carries little golf character.",
+          "evidence_needed_for_10": "A more authored schedule composition using actual existing round/season data when present."
+        },
+        "P": {
+          "reason": "The empty grid and muted legend feel like an unfinished utility surface.",
+          "evidence_needed_for_10": "Refined empty and populated schedule treatments."
+        },
+        "R": {
+          "reason": "Small day numbers and muted legend/context reduce quick scanning.",
+          "evidence_needed_for_10": "Clear date and status reading in both themes."
+        },
+        "E": {
+          "reason": "The empty month provides little sense of the next shared round.",
+          "evidence_needed_for_10": "A useful truthful invitation to plan, with real upcoming rounds when present."
+        },
+        "D": {
+          "reason": "Large blank date grid and three legend entries carry little current value.",
+          "evidence_needed_for_10": "A more efficient empty-month composition; populated state separately captured."
+        },
+        "M": {
+          "reason": "Date tiles are compact and the primary action meets the phone band.",
+          "evidence_needed_for_10": "Device tap/scroll/focus evidence and actual date-selection flow."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/wizard",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 8,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 6,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Initial league-name step only; no rules/agreement/lock journey.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--375--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Step indicator is clear, but the large role panel gets almost the same emphasis as the only input.",
+          "evidence_needed_for_10": "A cleaner first-decision hierarchy."
+        },
+        "T": {
+          "reason": "Tiny uppercase labels contrast with readable controls.",
+          "evidence_needed_for_10": "More legible label hierarchy at phone size."
+        },
+        "Sp": {
+          "reason": "The panel and action spacing is solid, though the desktop step is small within a large shell.",
+          "evidence_needed_for_10": "Equally composed wide-screen step layout."
+        },
+        "C": {
+          "reason": "Role panel, main form, and preview use different nested treatments.",
+          "evidence_needed_for_10": "Coherent form-to-preview relationship across widths."
+        },
+        "B": {
+          "reason": "The Pro wording is specific; the name-entry step otherwise feels conventional.",
+          "evidence_needed_for_10": "Stronger existing brand voice in the decision context."
+        },
+        "P": {
+          "reason": "The placeholder clips and dark labels are faint.",
+          "evidence_needed_for_10": "Clean readable first-step rendering and focused/filled/error variants."
+        },
+        "R": {
+          "reason": "Input label and instruction line are subdued on dark.",
+          "evidence_needed_for_10": "Readable setup context in both themes."
+        },
+        "E": {
+          "reason": "Name and Pro establish ownership, but the captured moment conveys little shared-season anticipation.",
+          "evidence_needed_for_10": "A purposeful invitation using truthful group/season context."
+        },
+        "D": {
+          "reason": "The step has appropriate low complexity, but the role card repeats obvious ownership.",
+          "evidence_needed_for_10": "The same clarity with every element contributing to the decision."
+        },
+        "M": {
+          "reason": "Large buttons look usable, but typing, keyboard, focus, and next-step behavior are absent.",
+          "evidence_needed_for_10": "Actual keyboard and accessible progression through the initial step."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/events",
+      "status": "scored",
+      "scores": {
+        "H": 5,
+        "T": 5,
+        "Sp": 5,
+        "C": 6,
+        "B": 5,
+        "P": 4,
+        "R": 4,
+        "E": 5,
+        "D": 4,
+        "M": 5
+      },
+      "scope": "Unavailable-route error only. Event room gameplay and normal event surface are not captured.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--375--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Only a faint back link and faint failure sentence identify the state.",
+          "evidence_needed_for_10": "A clear error heading and a prominent recovery action."
+        },
+        "T": {
+          "reason": "Error text and back link are both low-emphasis utility type.",
+          "evidence_needed_for_10": "Readable type with a distinct state/action hierarchy."
+        },
+        "Sp": {
+          "reason": "The tiny error cluster sits in an otherwise empty full screen.",
+          "evidence_needed_for_10": "Deliberate failed-route composition at phone and desktop sizes."
+        },
+        "C": {
+          "reason": "This route failure is much less structured than the other captured error surfaces.",
+          "evidence_needed_for_10": "Consistent recovery presentation within the app."
+        },
+        "B": {
+          "reason": "Almost no event or product character survives beyond the shell.",
+          "evidence_needed_for_10": "A restrained but authored recovery state."
+        },
+        "P": {
+          "reason": "The captured failure resembles a fallback line rather than a finished screen.",
+          "evidence_needed_for_10": "A complete, intentional route-error treatment."
+        },
+        "R": {
+          "reason": "Dark error copy and back link are especially faint.",
+          "evidence_needed_for_10": "Easily readable failure and recovery text."
+        },
+        "E": {
+          "reason": "The sentence gives little reassurance beyond asking the user to go back.",
+          "evidence_needed_for_10": "Helpful, calm recovery language and orientation."
+        },
+        "D": {
+          "reason": "The state provides minimal useful information and no obvious retry control.",
+          "evidence_needed_for_10": "A clear useful next step grounded in the actual recovery path."
+        },
+        "M": {
+          "reason": "Small back affordance is the only visible recovery route.",
+          "evidence_needed_for_10": "Clear touch target plus verified device, keyboard, and VoiceOver recovery."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/settings",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 8,
+        "P": 7,
+        "R": 6,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Profile-card editing and settings sheets only; no saved changes or permission outcomes.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/06-profile-settings-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/settings--1280--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Settings uses several chip groups and long explanations at similar weight.",
+          "evidence_needed_for_10": "Clearer separation of current state, action, and supporting detail."
+        },
+        "T": {
+          "reason": "Metadata headings are tiny relative to controls and body.",
+          "evidence_needed_for_10": "Readable headings with deliberate roles throughout the sheet."
+        },
+        "Sp": {
+          "reason": "Profile marker grid is dense on phone; settings uses wide desktop chip rows.",
+          "evidence_needed_for_10": "Consistent comfortable control spacing across sheet widths."
+        },
+        "C": {
+          "reason": "On/off values are button labels, appearance uses selected chips, and destructive actions use plain links.",
+          "evidence_needed_for_10": "More consistent visible state/action grammar."
+        },
+        "B": {
+          "reason": "Custom markers are distinctive, but ordinary settings mostly use generic chip/card patterns.",
+          "evidence_needed_for_10": "Authored structure through the existing rails and typography."
+        },
+        "P": {
+          "reason": "Large modal and muted helper text lack final polish; small close control is visually weak.",
+          "evidence_needed_for_10": "Clean complete sheet rendering and focused/saved/error states."
+        },
+        "R": {
+          "reason": "Dark helper text and light metadata are subdued.",
+          "evidence_needed_for_10": "Comfortable reading of settings explanations and state at default size."
+        },
+        "E": {
+          "reason": "Card personalization offers ownership, but settings communication is mostly procedural.",
+          "evidence_needed_for_10": "Clear confident explanations that make the golfer feel in control."
+        },
+        "D": {
+          "reason": "Several explanations and repeated section rules lengthen the sheet.",
+          "evidence_needed_for_10": "Useful concise copy close to its relevant action."
+        },
+        "M": {
+          "reason": "Small close icon, dense marker choices, and scrollable sheet are not behavior-tested.",
+          "evidence_needed_for_10": "Device keyboard, focus trap, dismissal, VoiceOver, and state persistence evidence."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/course",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 7,
+        "E": 6,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Course-circle read fixture only: tees, round length, shared best, personal best, and who played; no full course editorial surface.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/07-round-course-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--375--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Course identity is small while a repeated gross best dominates several sections.",
+          "evidence_needed_for_10": "Stronger place identity and a clear sequence from context to circle record."
+        },
+        "T": {
+          "reason": "Condensed board values work, but course title and location have limited editorial presence.",
+          "evidence_needed_for_10": "More deliberate course/record type hierarchy within the approved voices."
+        },
+        "Sp": {
+          "reason": "Large gap before circle best contrasts with tightly stacked record rows below.",
+          "evidence_needed_for_10": "Balanced spacing between filters and the course story."
+        },
+        "C": {
+          "reason": "Repeated score treatments differ between shared-best and personal-best rows.",
+          "evidence_needed_for_10": "A coherent record comparison hierarchy."
+        },
+        "B": {
+          "reason": "Markers and record text are specific, but the place itself has little visible character.",
+          "evidence_needed_for_10": "An authored course presentation from legitimate course identity/content."
+        },
+        "P": {
+          "reason": "This reads as a useful course leaderboard sheet, not yet a crafted place experience.",
+          "evidence_needed_for_10": "Refined course identity and better pacing of circle records."
+        },
+        "R": {
+          "reason": "Secondary round counts and tiny location text are comparatively weak.",
+          "evidence_needed_for_10": "Comfortable metadata readability in both themes."
+        },
+        "E": {
+          "reason": "No visible place imagery or course story connects the numbers to a remembered setting.",
+          "evidence_needed_for_10": "Optional actual-course imagery or factual editorial context, with genuine round memories."
+        },
+        "D": {
+          "reason": "Several sections repeat the same best score while course context is sparse.",
+          "evidence_needed_for_10": "More distinct useful context for each visible section."
+        },
+        "M": {
+          "reason": "Filters and round links are visible but scrolling, selection, and accessible sheet behavior are unproved.",
+          "evidence_needed_for_10": "Real device and VoiceOver filter/open-round/back evidence."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A factual sense of the course as a place",
+          "legitimate_source": "Optional consented actual-course/actual-round photos and verified course identity"
+        },
+        {
+          "dimension": "P",
+          "needs": "Editorial course material when available",
+          "legitimate_source": "Owned/licensed course imagery or consented player photographs; no stock substitute"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/book",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 6,
+        "C": 6,
+        "B": 8,
+        "P": 6,
+        "R": 7,
+        "E": 6,
+        "D": 7,
+        "M": 5
+      },
+      "scope": "Safe squad overview, race, upcoming, and error layouts only. Named detail fields not assessed. Receipt-named phone capture remains overview; receipt-selection behavior unknown.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/05-season-book-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/05-season-book-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--375--dark.png",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-race--1280--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Large Book heading leads, but controls and explanatory paragraphs delay the standings on phone.",
+          "evidence_needed_for_10": "Faster route from archive identity to the relevant totals."
+        },
+        "T": {
+          "reason": "Serif title and board numbers work; long explanations use generic body styling.",
+          "evidence_needed_for_10": "A clearer record-versus-explanation typography hierarchy."
+        },
+        "Sp": {
+          "reason": "The narrow table shows only a few columns and a clipped next column, with surrounding shell visible below.",
+          "evidence_needed_for_10": "Intentional narrow table viewport and clear modal bounds."
+        },
+        "C": {
+          "reason": "Squared utility controls and sheet construction depart from the surrounding app\u2019s control rhythm.",
+          "evidence_needed_for_10": "Consistent interaction styling while preserving the archive character."
+        },
+        "B": {
+          "reason": "The Book metaphor and record rules are specific; utility chrome weakens the almanac feel.",
+          "evidence_needed_for_10": "More authored controls and record navigation in the existing language."
+        },
+        "P": {
+          "reason": "Narrow table clipping and exposed underlying shell reduce the finished archive impression.",
+          "evidence_needed_for_10": "A clean phone archive presentation and complete detail transition evidence."
+        },
+        "R": {
+          "reason": "The totals are strong, but compact dates and drop annotations need more explanation/space.",
+          "evidence_needed_for_10": "Readable week/date/status meaning at phone size."
+        },
+        "E": {
+          "reason": "The record is mathematically informative but carries little visible season narrative.",
+          "evidence_needed_for_10": "Actual historical context from existing league rounds and adjustments."
+        },
+        "D": {
+          "reason": "Desktop is useful; phone sacrifices several columns and spends much height on explanation.",
+          "evidence_needed_for_10": "Efficient phone comparison and an accessible path to full records."
+        },
+        "M": {
+          "reason": "Horizontal table use, modal scrolling, and receipt selection are not proved.",
+          "evidence_needed_for_10": "Device/keyboard/VoiceOver table navigation, visible column affordance, and selected-receipt evidence."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Meaningful season history",
+          "legitimate_source": "Existing legitimate league/round/adjustment history, not invented proof"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/share-card",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 6,
+        "B": 8,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": null
+      },
+      "scope": "Single static synthetic exported bitmap; no share interface, photo crop, or transaction evidence.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/share-card-output.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Score leads strongly, but marker, identity, result label, result sentence, and signature all demand attention.",
+          "evidence_needed_for_10": "A cleaner hierarchy with one clear round story beneath the score."
+        },
+        "T": {
+          "reason": "Heavy uppercase type dominates nearly every line; serif sentence feels appended.",
+          "evidence_needed_for_10": "More deliberate three-voice balance in the export."
+        },
+        "Sp": {
+          "reason": "Large spaces separate identity and score while signature content packs tightly at the bottom.",
+          "evidence_needed_for_10": "More intentional vertical rhythm at shared-phone size."
+        },
+        "C": {
+          "reason": "This ornate gold-bordered centered export differs strongly from the restrained native/public round cards.",
+          "evidence_needed_for_10": "A coherent round-share family across captured surfaces."
+        },
+        "B": {
+          "reason": "Marker and pennant are recognizable, but gold framing reads as generic achievement decoration.",
+          "evidence_needed_for_10": "Brand specificity through truthful earned context and record composition."
+        },
+        "P": {
+          "reason": "The giant score is clear, but repeated outcome wording and heavy framing reduce refinement.",
+          "evidence_needed_for_10": "A carefully edited, proportioned export."
+        },
+        "R": {
+          "reason": "Core score reads easily; subordinate record lines need shared-size proof.",
+          "evidence_needed_for_10": "Readability in the actual exported-to-messaging size."
+        },
+        "E": {
+          "reason": "The score is celebrated without much individual occasion or consequence.",
+          "evidence_needed_for_10": "A truthful round story or optional actual-round image."
+        },
+        "D": {
+          "reason": "Outcome label and sentence repeat the same idea.",
+          "evidence_needed_for_10": "Each line contributing distinct real context."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A remembered occasion beyond the score",
+          "legitimate_source": "Actual round facts or optional consented actual-round photography"
+        }
+      ],
+      "notes": "M is null: a static bitmap has no interaction geometry to score. Sharing, export fidelity, and consent behavior are unknown."
+    },
+    {
+      "id": "web/public-round",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 9,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Synthetic public round, no-band, long-name/course, drawn-photo, and failed-photo fallback states; no identity or live link transaction claims.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/03-public-round-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/03-public-round-2.jpg"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Score and course lead well, though photo variant pushes outcome and acquisition action far down.",
+          "evidence_needed_for_10": "Balanced photo and no-photo hierarchy at narrow width."
+        },
+        "T": {
+          "reason": "Long identity wraps acceptably, but small date/gross labels remain subordinate.",
+          "evidence_needed_for_10": "Complete readability of contextual labels at shared-phone size."
+        },
+        "Sp": {
+          "reason": "No-photo view has a large gap before signature while photo view becomes long.",
+          "evidence_needed_for_10": "Equally deliberate pacing in both content variants."
+        },
+        "C": {
+          "reason": "Fallback is graceful, but the public layout differs materially from the exported web share card.",
+          "evidence_needed_for_10": "A coherent visible round-card language across public/export surfaces."
+        },
+        "B": {
+          "reason": "The paper record and course-led treatment are specific; generic footer signature uses space.",
+          "evidence_needed_for_10": "Stronger identity from round facts rather than repeated slogan."
+        },
+        "P": {
+          "reason": "Drawn fixture cannot prove photographic crop quality or a premium real-place experience.",
+          "evidence_needed_for_10": "Optional actual-round photo and no-photo states with equally polished composition."
+        },
+        "R": {
+          "reason": "Small muted metadata is less readable than the excellent score and title.",
+          "evidence_needed_for_10": "Consistent record-label readability at actual phone size."
+        },
+        "E": {
+          "reason": "Score and band communicate outcome but little of the remembered day.",
+          "evidence_needed_for_10": "Actual round meaning or optional consented photography."
+        },
+        "D": {
+          "reason": "No-band state has limited context; footer and acquisition action occupy a large share.",
+          "evidence_needed_for_10": "More distinct useful round facts without invented story."
+        },
+        "M": {
+          "reason": "Visible action is generous but long/photo content, zoom, focus, and link behavior are untested.",
+          "evidence_needed_for_10": "Device/keyboard/VoiceOver public-link reading and action evidence."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Actual remembered round context",
+          "legitimate_source": "Existing real round facts or optional consented actual-round photo"
+        },
+        {
+          "dimension": "P",
+          "needs": "Real photo crop proof",
+          "legitimate_source": "Optional actual-round image, never stock photography"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/get",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Public installation information page in both themes and mobile/desktop; no installation action exercised.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/04-read-get-support-legal-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/get--375--dark.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "The primary web action is clear, but install/link explanations form lengthy competing blocks.",
+          "evidence_needed_for_10": "A shorter first-action path with secondary instructions clearly subordinate."
+        },
+        "T": {
+          "reason": "Voice separation is good; body-heavy final block loses the concise sports-product rhythm.",
+          "evidence_needed_for_10": "Better paced instructional typography."
+        },
+        "Sp": {
+          "reason": "Three substantial cards create a long mobile document.",
+          "evidence_needed_for_10": "More economical spacing and disclosure for secondary instructions."
+        },
+        "C": {
+          "reason": "It follows public-page materials, but repeats app-link instructions also present in support.",
+          "evidence_needed_for_10": "A concise consistent installation explanation across public surfaces."
+        },
+        "B": {
+          "reason": "The opening sounds like Cup Season, while the long instructions could belong to any PWA.",
+          "evidence_needed_for_10": "Brand voice maintained through practical action guidance."
+        },
+        "P": {
+          "reason": "Beta-status and link-behavior explanation make the page feel transitional.",
+          "evidence_needed_for_10": "A finished installation state using current truthful distribution availability."
+        },
+        "R": {
+          "reason": "Body is readable, but secondary gray copy and small footer are comparatively weak.",
+          "evidence_needed_for_10": "Comfortable reading of all necessary instructions."
+        },
+        "E": {
+          "reason": "The invitation is clear, but much of the page concerns installation mechanics.",
+          "evidence_needed_for_10": "Faster return from technical instructions to the shared-golf purpose."
+        },
+        "D": {
+          "reason": "Long conditional install/link prose repeats multiple paths.",
+          "evidence_needed_for_10": "More concise useful guidance for the visitor\u2019s current device."
+        },
+        "M": {
+          "reason": "Large action looks usable; actual device installation, deep-link return, and keyboard access are unproved.",
+          "evidence_needed_for_10": "Device-specific installation/link and accessibility evidence."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/support",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 8,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Public support document only; contact details were viewed locally and are not reproduced.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/04-read-get-support-legal-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/support--375--light.png",
+        "/private/tmp/category-support--375--light-top.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Warm opening is strong, but long text blocks make individual answers slow to locate.",
+          "evidence_needed_for_10": "Faster visible question-to-answer navigation."
+        },
+        "T": {
+          "reason": "Body is readable; long bold troubleshooting leads accumulate visual weight.",
+          "evidence_needed_for_10": "More deliberate scan hierarchy across long answer groups."
+        },
+        "Sp": {
+          "reason": "Large rounded sections create a long phone scroll.",
+          "evidence_needed_for_10": "More economical but readable grouping for related answers."
+        },
+        "C": {
+          "reason": "Public page is coherent, though troubleshooting and account instructions have uneven density.",
+          "evidence_needed_for_10": "Consistent answer structure and spacing."
+        },
+        "B": {
+          "reason": "The human support promise is distinctive; box construction is comparatively generic.",
+          "evidence_needed_for_10": "Authored support layout using the established rules and type."
+        },
+        "P": {
+          "reason": "Long prose-heavy page is credible but lacks the refinement of rapid self-service help.",
+          "evidence_needed_for_10": "Clean focused navigation and complete linked-answer states."
+        },
+        "R": {
+          "reason": "Mostly strong readability, with small top links/footer and dense bullet groups.",
+          "evidence_needed_for_10": "Easy reading and navigation at narrow width and enlarged text."
+        },
+        "E": {
+          "reason": "Human ownership offers trust, but the page spends considerable time explaining friction.",
+          "evidence_needed_for_10": "Equally warm, confident, concise recovery guidance."
+        },
+        "D": {
+          "reason": "Several installation and link explanations overlap.",
+          "evidence_needed_for_10": "Less repeated prose and quicker access to the exact recovery step."
+        },
+        "M": {
+          "reason": "Text links and long-document navigation are visible but not tested.",
+          "evidence_needed_for_10": "Actual keyboard/VoiceOver anchors, zoom, contact-link, and back-navigation evidence."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/legal",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 8,
+        "C": 6,
+        "B": 5,
+        "P": 6,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Public legal document presentation only, not a legal-accuracy review; no contact details reproduced.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/04-read-get-support-legal-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/legal--375--dark.png",
+        "/private/tmp/category-legal--375--dark-top.png",
+        "/private/tmp/category-legal--375--light-top.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Section anchors help, but the long document offers little persistent orientation.",
+          "evidence_needed_for_10": "Clear section location and return/navigation affordances through the document."
+        },
+        "T": {
+          "reason": "Readable generic sans styling lacks the brand\u2019s carefully assigned record/story voices.",
+          "evidence_needed_for_10": "A deliberate legal-document typographic hierarchy within the approved identity."
+        },
+        "Sp": {
+          "reason": "Paragraph rhythm is good; very long cards still create substantial uninterrupted scroll.",
+          "evidence_needed_for_10": "Clearer long-document grouping without increasing clutter."
+        },
+        "C": {
+          "reason": "Light page is cool pale/white and uses gold navigation, unlike warm paper public pages.",
+          "evidence_needed_for_10": "Consistent public-page materials and action-color roles."
+        },
+        "B": {
+          "reason": "Beyond the product name, this looks like a generic policy page.",
+          "evidence_needed_for_10": "Brand-specific document structure while preserving sober readability."
+        },
+        "P": {
+          "reason": "The legal surface feels visually separate from Get and Support.",
+          "evidence_needed_for_10": "A fully integrated public-document treatment."
+        },
+        "R": {
+          "reason": "Main body is readable; small anchor/header text and long narrow lists are less comfortable.",
+          "evidence_needed_for_10": "Enlarged-text and keyboard-readable navigation with comfortable paragraph measure."
+        },
+        "E": {
+          "reason": "Plain-language wording supports trust, but visual separation weakens the sense of one product.",
+          "evidence_needed_for_10": "A calmer consistent trust surface, without decorative claims."
+        },
+        "D": {
+          "reason": "Content is usefully explicit, but finding a specific long-form section requires a lot of scrolling.",
+          "evidence_needed_for_10": "Better navigable document structure within the same content."
+        },
+        "M": {
+          "reason": "Only static anchor/document geometry is known.",
+          "evidence_needed_for_10": "Actual keyboard, screen-reader headings, zoom, anchor jumps, and back navigation evidence."
+        }
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/round-receipt",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 7,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Synthetic read-only round sheet with unavailable conversation and post-receipt moment; no posting/sharing transaction proof.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/07-round-course-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--375--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Result leads clearly, but signature and receipt repeat outcome before recovery copy.",
+          "evidence_needed_for_10": "A clearer relationship between round story, evidence, and conversation state."
+        },
+        "T": {
+          "reason": "Strong score and serif result contrast with tiny receipt labels and fine metadata.",
+          "evidence_needed_for_10": "Readable record labels throughout the sheet."
+        },
+        "Sp": {
+          "reason": "Round sheet uses substantial space between result and receipt; post moment is very small on desktop.",
+          "evidence_needed_for_10": "Purposeful spacing at phone and desktop sizes."
+        },
+        "C": {
+          "reason": "Read-only sheet and full-screen post receipt use markedly different compositions and accent emphasis.",
+          "evidence_needed_for_10": "A coherent result-to-record transition across both states."
+        },
+        "B": {
+          "reason": "Receipt paper and result language are distinctive; generic signature content repeats.",
+          "evidence_needed_for_10": "Identity carried more by round facts and record hierarchy."
+        },
+        "P": {
+          "reason": "Failed conversation and sparse standalone post view limit the finished impression.",
+          "evidence_needed_for_10": "Refined recovery and completed post-to-record state sequence."
+        },
+        "R": {
+          "reason": "Receipt metadata and muted conversation error are small.",
+          "evidence_needed_for_10": "Clear explanatory record and error text in both themes."
+        },
+        "E": {
+          "reason": "Outcome is meaningful, but no actual conversation or remembered occasion is captured.",
+          "evidence_needed_for_10": "Existing real conversation/context or optional consented round imagery."
+        },
+        "D": {
+          "reason": "Round/result appears in several formats before new context arrives.",
+          "evidence_needed_for_10": "Each visible block adding distinct record or social value."
+        },
+        "M": {
+          "reason": "Sheet scrolling, sharing, photo consent, conversation retry, and back behavior are absent.",
+          "evidence_needed_for_10": "Actual device/keyboard/VoiceOver result and receipt-flow evidence."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Real social or round memory",
+          "legitimate_source": "Existing consented conversation, real round context, or optional actual-round photo"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/web-desk",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 6,
+        "C": 7,
+        "B": 8,
+        "P": 6,
+        "R": 6,
+        "E": 6,
+        "D": 5,
+        "M": 6
+      },
+      "scope": "Auxiliary desktop-shell judgment from Home, Compete-empty, and You-empty captures; exclude from product aggregate.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--1600--light.png"
+      ],
+      "blockers": {
+        "H": {
+          "reason": "Sidebar is clear, but sparse content spreads across a wide center and right rail.",
+          "evidence_needed_for_10": "A stronger desktop reading path for these actual empty/partial states."
+        },
+        "T": {
+          "reason": "Small condensed nav and fine metadata lose presence at desktop distance.",
+          "evidence_needed_for_10": "Desktop-readable supporting type while retaining hierarchy."
+        },
+        "Sp": {
+          "reason": "Large unoccupied lower canvas and disconnected regions feel undercomposed.",
+          "evidence_needed_for_10": "Intentional empty/partial-state width and vertical proportions."
+        },
+        "C": {
+          "reason": "Persistent sidebar is coherent; body density and panel treatment vary sharply between screens.",
+          "evidence_needed_for_10": "Consistent desktop composition across the captured surfaces."
+        },
+        "B": {
+          "reason": "Sidebar, record type, and warm room are specific; empty body modules dilute the effect.",
+          "evidence_needed_for_10": "Brand character carried through complete desktop empty-state design."
+        },
+        "P": {
+          "reason": "Low-contrast promotion and tiny isolated content regions prevent premium finish.",
+          "evidence_needed_for_10": "Readable panels and a deliberate wide-screen layout."
+        },
+        "R": {
+          "reason": "Sidebar metadata and several body helper lines are faint.",
+          "evidence_needed_for_10": "Comfortable desktop reading in both themes."
+        },
+        "E": {
+          "reason": "The shell has character, but these sparse fixtures cannot show a socially alive desktop experience.",
+          "evidence_needed_for_10": "Authorized real season/round history within a complete desktop state."
+        },
+        "D": {
+          "reason": "Most screen area carries no useful information while relevant material is concentrated in small clusters.",
+          "evidence_needed_for_10": "Better use of desktop space for the actual state without fake filler."
+        },
+        "M": {
+          "reason": "Desktop screenshot geometry cannot establish keyboard, hover, focus, resizing, or accessible navigation.",
+          "evidence_needed_for_10": "Keyboard/VoiceOver, zoom, resize, and route-state evidence."
+        }
+      },
+      "content_ceilings": [
+        {
+          "dimension": "D",
+          "needs": "Complete desktop populated-state proof",
+          "legitimate_source": "Existing authorized league and round read models; no artificial activity"
+        }
+      ],
+      "notes": ""
+    }
+  ],
+  "method": "Independent category judgment from the supplied screenshots, contact sheets, and capture metadata only. No product source, external references, other judges, or earlier audits were consulted. 10 means comparable to the best consumer sports experiences within the approved Cup Season identity; sparse content is evaluated only as the captured state, never as proof of normal-state quality.",
+  "limits": "All requested surfaces/client combinations without a valid row remain not captured/not scored. Native five-destination shell, unseen full profile/history/season/event experiences, system-host widgets/Live Activity, and real human/device behavior are unknown. Contact details and person identities are not transcribed. Full-page web captures freeze a fixed navigation band at capture viewport position; they do not alone prove permanently inaccessible underlying content.",
+  "evidence_updates": "Final same-source native invited/email/keyboard/setup-keyboard supplement was reviewed. Metadata correction: web/record is a wrong-scene Play capture and is not scored. Book receipt selection is unknown, and native morning-kept remains live phone scoring.",
+  "null_cells": "M is null for the static web share export, private native credential with no controls, and review-host widgets/Live Activity where actual system interaction geometry is absent. These are not neutral or perfect scores."
+}

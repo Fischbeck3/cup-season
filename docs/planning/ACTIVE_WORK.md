@@ -1,6 +1,6 @@
 # Cup Season · active work and ownership
 
-## Impeccable ten baseline and checkpoint · 2026-09-27 (Codex) — active, documentation and evidence only
+## Impeccable ten baseline and checkpoint · 2026-09-27 (Codex) — checkpoint ready, awaiting owner scope
 
 Owned lane: `codex/impeccable-ten-2026-09-27`, isolated worktree
 `/Users/fischbeck3/cup-season-ten`, cut from fresh `origin/main` at `5fabf861`.
@@ -24,6 +24,9 @@ social and native-audit lanes. Their presence is not proof they are running,
 and this documentation lane does not take their implementation ownership.
 Resolve the live owner at the checkpoint before any source slice. Port 8791
 is occupied by another worktree; capture tooling must not stop that server.
+
+
+Checkpoint: [baseline](../design/ten-2026-09-27/BASELINE.md), [ranked plan](../design/ten-2026-09-27/PLAN.md), and [five questions](../design/ten-2026-09-27/QUESTIONS.md) are ready. Product source remains at5fabf861. No source slice is active; await the owner’s named launch selection and “build it.” Full local gallery: `/Users/fischbeck3/cup-season-ten-gallery/index.html`. Coverage and human-proof gaps remain explicit; this is not launch clearance.
 
 
 ## Widgets and Match first release · 2026-09-25 (Codex)

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-28T02:48:43.504513+00:00",
+  "title": "Design System: Cup Season",
+  "extensions": {},
+  "components": [],
+  "narrative": {
+    "northStar": "The tournament board, printed.",
+    "overview": "Compiled from the existing token source and UI_SYSTEM; canonical decisions win.",
+    "keyCharacteristics": [
+      "bands",
+      "rules",
+      "rank rail",
+      "printed record"
+    ],
+    "rules": [
+      "Canonical sources win conflicts.",
+      "No new token values or generated tonal ramps are authorized."
+    ],
+    "dos": [],
+    "donts": []
+  }
+}

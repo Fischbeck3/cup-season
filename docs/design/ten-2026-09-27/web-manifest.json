@@ -1,0 +1,3571 @@
+{
+  "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "baseURL": "http://127.0.0.1:8792",
+  "sourceHashes": {
+    "index.html": "89ab6377912701644e6bba29aace5bc9f71577b2b960037e699fd7c4a7997b58",
+    "get.html": "959c6f7bec3c60ee54cf4fd659c8b465ac7d2b757972b2774f32530d776f6f55",
+    "support.html": "c6a755f16eb74a8ddbdd3925ddd12d538b62e5f6e0480aea5203091ad9e5d6ce",
+    "legal.html": "3beb8d3d16aef72af0e0dc3516a966484db5350ac32599989a97f9e1aaab3fc2",
+    "packages/tokens/tokens.json": "fbce2c1938471a510456db44adebf658fcaf65452be66db83157802915773278",
+    "tests/fixtures/home-states.json": "d9ed1f2f5990fe0a789222cac6556b5b1262cc18276ea3b43d2289f8f26b9afc",
+    "tests/social-course-browser.js": "645cc187fd00923eaed9063d96fed7262dbdb1c8136a109911ebf85880717406",
+    "tests/round-record-browser.js": "0ebfad341190e100467180ab6809eb899e01e08c6b2856cb6c4b26e9c301ec76",
+    "tests/round-photo-browser.js": "a5deecf652434e02b31afdbd53750e15966d3ad734caf40b7b9ed94e46e4cffd",
+    "docs/review/2026-09-25-morning/capture-web.cjs": "ff2e32bccddf3997770e44a4acba520245c1854ebfab54b9aa3542efd7933ee9"
+  },
+  "serviceWorkers": "blocked; registrations unregistered and caches cleared per isolated context",
+  "privacy": "Only commit-eligible fixture captures; no extracted visible text or control labels. Public contact pages excluded.",
+  "screenshots": [
+    {
+      "file": "door--375--dark.png",
+      "sha256": "feabf2308e7f8ac40516f19902d984388fa61acff229859ca0a22a04b3ae1089",
+      "bytes": 48152,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Signed-out production route /"
+    },
+    {
+      "file": "door--375--light.png",
+      "sha256": "8a64a24b1055bc160914637ecf7b3a164c8f34dd7e1cac567db753c518ddc0e2",
+      "bytes": 50306,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Signed-out production route /"
+    },
+    {
+      "file": "door--402--dark.png",
+      "sha256": "f8aeb17894c88be095dbb271d9c852530e2fd658bb41fc6e2b2633defcb6c76e",
+      "bytes": 51467,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Signed-out production route /"
+    },
+    {
+      "file": "door--402--light.png",
+      "sha256": "adea2601b2422cadcc0aa3da4b4a8b88c632bf1cd2dfd684b07a135e43f0f977",
+      "bytes": 53962,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Signed-out production route /"
+    },
+    {
+      "file": "door--1280--dark.png",
+      "sha256": "7b27a4f2b2b721bc233400d7bff29db69134891b1184cc8db6b1faa5069aa70e",
+      "bytes": 117897,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Signed-out production route /"
+    },
+    {
+      "file": "door--1280--light.png",
+      "sha256": "736029e3a3fe53687171a72fc945018bcedaf2d20aee181bd7310ffaa2dd3f4a",
+      "bytes": 116866,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Signed-out production route /"
+    },
+    {
+      "file": "door--1600--dark.png",
+      "sha256": "517bf7db7228d290dcf3c286f59198ccb0b7b2d63bb0dc5e75ccae75f8e6e7d7",
+      "bytes": 123984,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Signed-out production route /"
+    },
+    {
+      "file": "door--1600--light.png",
+      "sha256": "8a329ad8164f571b6f41c12f3758939e7e6e0c1edf02961b8fec318b825015d8",
+      "bytes": 123069,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Signed-out production route /"
+    },
+    {
+      "file": "door-email--375--dark.png",
+      "sha256": "18399dc7ba1b9ac2857ad4d5e2a544219ef6e45c3c8ceae3da4d6edc9dcd7ea8",
+      "bytes": 46656,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Production door opened email entry; no auth sent"
+    },
+    {
+      "file": "door-email--375--light.png",
+      "sha256": "cc328f547c795cc24d4c38b02a10dd13905f62507cd42bf5582c441f6339d92e",
+      "bytes": 48832,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Production door opened email entry; no auth sent"
+    },
+    {
+      "file": "door-email--402--dark.png",
+      "sha256": "05ea4cdfedaff639957d27f05d9cc9f6e3bb58a6758dd91a43e1abdd2489bfa6",
+      "bytes": 51047,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Production door opened email entry; no auth sent"
+    },
+    {
+      "file": "door-email--402--light.png",
+      "sha256": "9956a6a7ee0006cf3f60bad8daf1b9f24d647fc5243c42ad2aabff4a0e46d179",
+      "bytes": 53664,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Production door opened email entry; no auth sent"
+    },
+    {
+      "file": "door-email--1280--dark.png",
+      "sha256": "e2d4e0281e6dea604bdc67f164e4c529d59ea0fa58b79cf91bf347e7d6ed93cb",
+      "bytes": 117187,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Production door opened email entry; no auth sent"
+    },
+    {
+      "file": "door-email--1280--light.png",
+      "sha256": "1030fc07cf72bcd442a0690e6c10725fcdd5424728345e3074f5de66cd739c3e",
+      "bytes": 116347,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Production door opened email entry; no auth sent"
+    },
+    {
+      "file": "door-email--1600--dark.png",
+      "sha256": "64030ef188a543379c492cca1a4abd335c158e6c6f755d2737cbde51cbe70153",
+      "bytes": 123386,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Production door opened email entry; no auth sent"
+    },
+    {
+      "file": "door-email--1600--light.png",
+      "sha256": "d34b2ae04ea364f222dbf79e031860283970f0880d1ff94018fef4aa17aa45a5",
+      "bytes": 122801,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Production door opened email entry; no auth sent"
+    },
+    {
+      "file": "door-email-short-viewport--375--dark.png",
+      "sha256": "9a3df5307a8628c79e697eac35230d388a53301ce4a9a7cb20fa447cae31c5e8",
+      "bytes": 34848,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 380
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Reduced viewport proxy for keyboard; no native software keyboard claimed"
+    },
+    {
+      "file": "door-email-short-viewport--375--light.png",
+      "sha256": "265d32ed29db79b8bebf9d7ef5e571ba64fb699694c444b3fa154aefea2d7bcb",
+      "bytes": 36384,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 380
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Reduced viewport proxy for keyboard; no native software keyboard claimed"
+    },
+    {
+      "file": "door-email-short-viewport--402--dark.png",
+      "sha256": "6e38b62d9358e52c0fa8e8e4a23e43292a1e49fbdd1b8c9cf46b7d612dfc6e2c",
+      "bytes": 36221,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 380
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Reduced viewport proxy for keyboard; no native software keyboard claimed"
+    },
+    {
+      "file": "door-email-short-viewport--402--light.png",
+      "sha256": "9a3d5a2840e57100d1c9f9d89c2752333cda64d8a006217de721dd70dcc4e5bd",
+      "bytes": 37903,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 380
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Reduced viewport proxy for keyboard; no native software keyboard claimed"
+    },
+    {
+      "file": "public-round--375--dark.png",
+      "sha256": "7b7559b7b40f0391a8b7adde885a0aa42cf16779e1fbffcad4141b7ae87cb1be",
+      "bytes": 29527,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture"
+    },
+    {
+      "file": "public-round--375--light.png",
+      "sha256": "1ef99278f2940e2ca0aa30dbfdb0f746d42bedfa9d9fd92ebe6a7c59a5c574b5",
+      "bytes": 29749,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture"
+    },
+    {
+      "file": "public-round--402--dark.png",
+      "sha256": "fa2e3ab6cf7eaff983123d4c899184eba92eed69f111780d97a1c9047070f95f",
+      "bytes": 30486,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture"
+    },
+    {
+      "file": "public-round--402--light.png",
+      "sha256": "532accc113033974bb8a83acb9590e0e2ab44b24fbe9257ccbc0010c34250260",
+      "bytes": 30753,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture"
+    },
+    {
+      "file": "public-round--1280--dark.png",
+      "sha256": "25fb21176e00c8419303822f72f58609043431096aba675c375fbb308cbae95b",
+      "bytes": 36464,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture"
+    },
+    {
+      "file": "public-round--1280--light.png",
+      "sha256": "ced6b11327d7b9584b9a4042710ef9af1a46e47c611c28205b35e65fa60a9b2a",
+      "bytes": 36756,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture"
+    },
+    {
+      "file": "public-round--1600--dark.png",
+      "sha256": "884e33291d4b5a849951e36d963913ee8f3a1ddc0b03648b1e58e30cbc8737bd",
+      "bytes": 37784,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture"
+    },
+    {
+      "file": "public-round--1600--light.png",
+      "sha256": "2613029010fc9a4743a8212b1040abecad85d2f6441dd407a49b7fc919f33893",
+      "bytes": 38090,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture"
+    },
+    {
+      "file": "get--375--dark.png",
+      "sha256": "fcca03a3f6e4be8267be62648fb187fa5cc5be18c745fe4f832f546b9bec2389",
+      "bytes": 118999,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Production static page /get.html (Python server has no Netlify extension rewrite)"
+    },
+    {
+      "file": "get--375--light.png",
+      "sha256": "974d1ca8aa360c6b45301de070a3bdecbba6d748781fcb9aedfee44c5f3f05ad",
+      "bytes": 118573,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Production static page /get.html (Python server has no Netlify extension rewrite)"
+    },
+    {
+      "file": "get--402--dark.png",
+      "sha256": "a8218be365ec7e2c81f3a4c254f909ca485494b202a38d855207ed210cbffa47",
+      "bytes": 117533,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Production static page /get.html (Python server has no Netlify extension rewrite)"
+    },
+    {
+      "file": "get--402--light.png",
+      "sha256": "3879a046d444794198abd1eb6763d4b8681790620c55af239fe2e563d41766bd",
+      "bytes": 117249,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Production static page /get.html (Python server has no Netlify extension rewrite)"
+    },
+    {
+      "file": "get--1280--dark.png",
+      "sha256": "bf5562425349868b7503e8cf459683d2f5af6a93c73ab1cdf607bcfddc56d9d0",
+      "bytes": 133526,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Production static page /get.html (Python server has no Netlify extension rewrite)"
+    },
+    {
+      "file": "get--1280--light.png",
+      "sha256": "0054af9c046fb4a0e0053d83ba791d81a5df8f0a5548df14d9e9064837d93ba3",
+      "bytes": 134553,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Production static page /get.html (Python server has no Netlify extension rewrite)"
+    },
+    {
+      "file": "get--1600--dark.png",
+      "sha256": "f8a8d93472a8c491c05012dc5a97bfa985dc19b246e226693730a70c8ce60e57",
+      "bytes": 136673,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "Production static page /get.html (Python server has no Netlify extension rewrite)"
+    },
+    {
+      "file": "get--1600--light.png",
+      "sha256": "9f3afc5d2eaa1d4f53217c1c87b32c7e0c91cd99f1a2574e44e89fc2748fa80e",
+      "bytes": 137751,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "Production static page /get.html (Python server has no Netlify extension rewrite)"
+    },
+    {
+      "file": "public-round-photo--375--dark.png",
+      "sha256": "3630a913aecb9d7b5d9fc848c1ff9565c191e879165d620628a64cdd4eb87606",
+      "bytes": 26578,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-photo--375--light.png",
+      "sha256": "0fa49e0bca23bb7018d417b85123cca5eda620aaf99d471831c96b23b506db0f",
+      "bytes": 26744,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-photo--402--dark.png",
+      "sha256": "0bdf4ff43601c2d2e86b4088dba7aa703520644db51365aface231cdd44ed2b2",
+      "bytes": 33162,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-photo--402--light.png",
+      "sha256": "bca6f1a6d2da2695985d59b0cdaa64ff9e4d2215b291b509d56a4ba5ad7a53e2",
+      "bytes": 33440,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-photo--1280--dark.png",
+      "sha256": "fd942007720445e0ee4988fe7b4c0f87ba2874129915be2efa98e3e8b0ab0287",
+      "bytes": 41400,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-photo--1280--light.png",
+      "sha256": "0d7cef3a83e95f4974ed7d5c46a3f4ea68efe62136285eaf394d75bff43dc2cf",
+      "bytes": 41739,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-photo--1600--dark.png",
+      "sha256": "a0586d5a1808935753b8eabd9812a1eb035a387dc1408eee9071036af323d04c",
+      "bytes": 42845,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-photo--1600--light.png",
+      "sha256": "00dcf7d9a953e9742fa4f2c1e1b273f5238748aff463b0857b414a43e8402268",
+      "bytes": 43180,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-long--375--dark.png",
+      "sha256": "39d2544abe5f2c7dfef2c386feb78f1c4c4ffebf24f192b82846603b1ff9d998",
+      "bytes": 41907,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-long--375--light.png",
+      "sha256": "73bcd4035280e3e3c059ea72bae51ebd51830fe51d4d4d6f21e38618ec3c703a",
+      "bytes": 42077,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-long--402--dark.png",
+      "sha256": "39559a4674de66316e9eb2431bd378f205f38df64527ec4aacd59606faeaea45",
+      "bytes": 41589,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-long--402--light.png",
+      "sha256": "f5518cdcc59af17e78059d5dec7775142058c591956bfb2b2c6a0255607e92ac",
+      "bytes": 42050,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-long--1280--dark.png",
+      "sha256": "ef491dc67ac645740fdfb75de2b334827029dcb3b0413d2256a23260537b5b41",
+      "bytes": 47564,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-long--1280--light.png",
+      "sha256": "218cf181bbf9336201f29b708d95b927de938b4c13020ef97772029c1191ee91",
+      "bytes": 48018,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-long--1600--dark.png",
+      "sha256": "09149ad4cbf3189191ca935323ac4847f6447d822f30454a55482fb6c311b462",
+      "bytes": 49304,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-long--1600--light.png",
+      "sha256": "3fc8ca496f23d6fd4a2103275c9494da0d8c75290e763e99b4843e691e16b398",
+      "bytes": 49740,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-no-band--375--dark.png",
+      "sha256": "3f6006a6dda0a0069ea587412aa7b4500e86798ca82a8f86072e0c8754cb63eb",
+      "bytes": 25146,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-no-band--375--light.png",
+      "sha256": "e97d98c9406d6badd75ad67f33533723c8a260e3af5995aab91dbbb25c51e412",
+      "bytes": 25339,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-no-band--402--dark.png",
+      "sha256": "57a3b15f3deaf8ed6587dccfe633cf51def46cb8ba9993bb34825df4c4d72c7c",
+      "bytes": 26093,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-no-band--402--light.png",
+      "sha256": "cb256ad8204d0c9734e20e4efcc162479926ef866bcb2605bfeb88b53c304736",
+      "bytes": 26332,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-no-band--1280--dark.png",
+      "sha256": "cfd1522d9dd3e88a014c0e8a341329bb92afa2504980ef3bb41513a594c551ea",
+      "bytes": 32236,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-no-band--1280--light.png",
+      "sha256": "a2f7a2647e934146747fe35e8c7f5da53bc3350d0988788f34f8180c8fe7e5b8",
+      "bytes": 32521,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-no-band--1600--dark.png",
+      "sha256": "dd8aa145f0a632487d3d17b7fdb1f4e4265b4bac6c8c05ae2d489045a2b3f1ca",
+      "bytes": 33413,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-no-band--1600--light.png",
+      "sha256": "d8fa9996f6131be86f41ab9bedd7334fe12f0117291dc81f56d37b8d1dd2597a",
+      "bytes": 33687,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-broken-photo--375--dark.png",
+      "sha256": "7b7559b7b40f0391a8b7adde885a0aa42cf16779e1fbffcad4141b7ae87cb1be",
+      "bytes": 29527,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-broken-photo--375--light.png",
+      "sha256": "1ef99278f2940e2ca0aa30dbfdb0f746d42bedfa9d9fd92ebe6a7c59a5c574b5",
+      "bytes": 29749,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-broken-photo--402--dark.png",
+      "sha256": "fa2e3ab6cf7eaff983123d4c899184eba92eed69f111780d97a1c9047070f95f",
+      "bytes": 30486,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-broken-photo--402--light.png",
+      "sha256": "532accc113033974bb8a83acb9590e0e2ab44b24fbe9257ccbc0010c34250260",
+      "bytes": 30753,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-broken-photo--1280--dark.png",
+      "sha256": "25fb21176e00c8419303822f72f58609043431096aba675c375fbb308cbae95b",
+      "bytes": 36464,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-broken-photo--1280--light.png",
+      "sha256": "ced6b11327d7b9584b9a4042710ef9af1a46e47c611c28205b35e65fa60a9b2a",
+      "bytes": 36756,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-broken-photo--1600--dark.png",
+      "sha256": "884e33291d4b5a849951e36d963913ee8f3a1ddc0b03648b1e58e30cbc8737bd",
+      "bytes": 37784,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "public-round-broken-photo--1600--light.png",
+      "sha256": "2613029010fc9a4743a8212b1040abecad85d2f6441dd407a49b7fc919f33893",
+      "bytes": 38090,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch"
+    },
+    {
+      "file": "book-squads--375--dark.png",
+      "sha256": "96528bb7c4e997e153fa595776382b258a659e1d794a35b30b934aaa6fbe2fb2",
+      "bytes": 53800,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-squads--375--light.png",
+      "sha256": "7e8192569b816f0aab123b83a8837739e1854997137faaba787247357a4cfe35",
+      "bytes": 54351,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-squads--402--dark.png",
+      "sha256": "254ce6e9f244c43a64f119f17a709c9bdf320992ef53682d50dbac43dd693866",
+      "bytes": 72804,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-squads--402--light.png",
+      "sha256": "3dde4832ed90789c401f8556184d333ad42cc00480a871402a22afaa580c1c1d",
+      "bytes": 74027,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-squads--1280--dark.png",
+      "sha256": "5226a7a9e67fe76dc6619b5d61bf6358847785f6c7f30267261e895a5843983a",
+      "bytes": 128344,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-squads--1280--light.png",
+      "sha256": "8d1888d4e64df76a4097157ade5c495910f23c8416371fa5f3e92f6689fe9e04",
+      "bytes": 130183,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-squads--1600--dark.png",
+      "sha256": "635e4716979c203d6faf7767cb88f221f5cf07e55e675de3483739cde4c4bc34",
+      "bytes": 135539,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-squads--1600--light.png",
+      "sha256": "ce6ca79b16f6cfc30c03e11985cc3ba2e633ac194caa4210284319db02ca4402",
+      "bytes": 137594,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-squads-receipt--375--dark.png",
+      "sha256": "ceaea427d1d8a678d92e4a64a6ec76a505ccf1c54b753fafbce125b3c684332a",
+      "bytes": 53855,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; first row opens source rounds and adjustments"
+    },
+    {
+      "file": "book-squads-receipt--375--light.png",
+      "sha256": "e8d7c580bb327cd828f0511468c67e71df0ca5d8c4f02addbb2a9c514e235ae4",
+      "bytes": 54429,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; first row opens source rounds and adjustments"
+    },
+    {
+      "file": "book-squads-receipt--402--dark.png",
+      "sha256": "b5ee6832dfd65a846f6ddfa4739e428a996511efaf92ebd5e883d8c717c8a720",
+      "bytes": 72851,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; first row opens source rounds and adjustments"
+    },
+    {
+      "file": "book-squads-receipt--402--light.png",
+      "sha256": "46057a02142567cb83d908567a51e4287318f90910053f4484f622e300c0ac3e",
+      "bytes": 74096,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; first row opens source rounds and adjustments"
+    },
+    {
+      "file": "book-squads-receipt--1280--dark.png",
+      "sha256": "c867f56907d9e629f736fae02b15e905bdf80f13a15f83381c5447a416291ac6",
+      "bytes": 163605,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; first row opens source rounds and adjustments"
+    },
+    {
+      "file": "book-squads-receipt--1280--light.png",
+      "sha256": "d2056bebfcfc9709976f1eda841a8b25994fa5c0466179cd2b20048c3d7b68dc",
+      "bytes": 166028,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; first row opens source rounds and adjustments"
+    },
+    {
+      "file": "book-squads-receipt--1600--dark.png",
+      "sha256": "5e1025f05d85f350333acc03e5edce04dce2f491b6ef70354aaadad02d8582f1",
+      "bytes": 171999,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; first row opens source rounds and adjustments"
+    },
+    {
+      "file": "book-squads-receipt--1600--light.png",
+      "sha256": "42d25d5258afa3cdbacf7f089393db75e53a32a305fbf661606109056b952191",
+      "bytes": 174472,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; first row opens source rounds and adjustments"
+    },
+    {
+      "file": "book-squads-race--375--dark.png",
+      "sha256": "a32095291e5e0e0520664d32b67106783b68a74be8dd87c72c41f4bc1b44885e",
+      "bytes": 67869,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; Race display"
+    },
+    {
+      "file": "book-squads-race--375--light.png",
+      "sha256": "bf286483f22986af19da2b4843683a517d9b5cee4e265d9f4707b75256f62e0d",
+      "bytes": 68781,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; Race display"
+    },
+    {
+      "file": "book-squads-race--402--dark.png",
+      "sha256": "779252cf8c9ddbac671eaa85004a563d34e01709602dcd4dca32347d6ef05118",
+      "bytes": 74971,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; Race display"
+    },
+    {
+      "file": "book-squads-race--402--light.png",
+      "sha256": "95c61a0f139966839156220aa22c46025ca9d86e8c3229405aa362b9de1a4bf9",
+      "bytes": 77003,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; Race display"
+    },
+    {
+      "file": "book-squads-race--1280--dark.png",
+      "sha256": "efa1f46fddb250e16993add2940685dd4dcf1755f9ee29050b2ba8b9f9b796ea",
+      "bytes": 147229,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; Race display"
+    },
+    {
+      "file": "book-squads-race--1280--light.png",
+      "sha256": "54086cac223b0059f8ebfaddee7a698453fbaed3146aa63868323c116f84ed0b",
+      "bytes": 149747,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; Race display"
+    },
+    {
+      "file": "book-squads-race--1600--dark.png",
+      "sha256": "cf3cfcb438a9592d2b7f5131ce1412ec64eb3fc33f8779a2fe8a124f70054f36",
+      "bytes": 154090,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; Race display"
+    },
+    {
+      "file": "book-squads-race--1600--light.png",
+      "sha256": "762c8e2975366f8e6264d0278e207626c513fe70df1bfb5e0a77fb82c9d10d39",
+      "bytes": 156814,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/squads.json; Race display"
+    },
+    {
+      "file": "book-upcoming--375--dark.png",
+      "sha256": "2109d252f1560ac2bded28988c946ad4ed4ed9184b95ca415eb941745726f3aa",
+      "bytes": 48438,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/upcoming.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-upcoming--375--light.png",
+      "sha256": "cc8d50e36b442ba4d82a731943dea9d52f6eba51379b0836db9f4aea2215dfe4",
+      "bytes": 49007,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/upcoming.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-upcoming--402--dark.png",
+      "sha256": "d03f758ce0cdc5f4f6823f76347d242db127a2e6639af9709796daa91c12c1e5",
+      "bytes": 44125,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/upcoming.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-upcoming--402--light.png",
+      "sha256": "dd6afe6fe89610186823208a2c21c4d6849f5d9e7adbdbd444963cb8bf65c0ea",
+      "bytes": 44955,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/upcoming.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-upcoming--1280--dark.png",
+      "sha256": "2b376cee081b2703a3c6ee7a795212f9387a6c18346775179aa3e58ed622ec02",
+      "bytes": 54911,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/upcoming.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-upcoming--1280--light.png",
+      "sha256": "8178b5aec591e81b986d4ebc595e09539f8fe80e81131378717d2d78d86df70e",
+      "bytes": 55878,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/upcoming.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-upcoming--1600--dark.png",
+      "sha256": "39ceb9f69d6bdc8888087b4a26efe402c9aacbe05d37b8098d0642d53aeae005",
+      "bytes": 60223,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/upcoming.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-upcoming--1600--light.png",
+      "sha256": "4afc4b6447a6d21adfee5343a914b3845352a858dfc85ec1952d883f1a1fe9a7",
+      "bytes": 61806,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/upcoming.json; current production csOpenSeasonBook"
+    },
+    {
+      "file": "book-error--375--dark.png",
+      "sha256": "f1781d1d57be1f01a2d20fc5470af08487689fb55ab096ca9bc5aea57830ac17",
+      "bytes": 36673,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/build-review.py failure toggle"
+    },
+    {
+      "file": "book-error--375--light.png",
+      "sha256": "c6472fd7e946049f8db9d05f6ef85e28e00ab87ded2f0d90d4e7a62ab28d0a23",
+      "bytes": 37126,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/build-review.py failure toggle"
+    },
+    {
+      "file": "book-error--402--dark.png",
+      "sha256": "6d916e46f92553962e1ebabbf33d1062ea41e0c2942385e9db4641ed44a188ca",
+      "bytes": 32200,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/build-review.py failure toggle"
+    },
+    {
+      "file": "book-error--402--light.png",
+      "sha256": "1793498c1202434b946016c67c587e15a031f3b7c93c090fece2f6d98e003bb5",
+      "bytes": 32917,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/build-review.py failure toggle"
+    },
+    {
+      "file": "book-error--1280--dark.png",
+      "sha256": "25b4558903ecbc93bd83431a09e1a962a23e4b032ca5ededa20801aabc7b4a09",
+      "bytes": 43254,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/build-review.py failure toggle"
+    },
+    {
+      "file": "book-error--1280--light.png",
+      "sha256": "6e0d9ec08d6421ad7e31b5a629b528113067703e5bba1af78c8fe53545030e7a",
+      "bytes": 44205,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/build-review.py failure toggle"
+    },
+    {
+      "file": "book-error--1600--dark.png",
+      "sha256": "98fa13ef5dea51f6f3fe9ffe4ef28582dd72c3ac9f3f9ae9662fd47dd21e0a3f",
+      "bytes": 48108,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/build-review.py failure toggle"
+    },
+    {
+      "file": "book-error--1600--light.png",
+      "sha256": "94547b07e7fe929c3fdaf88c77f4cafd27cde828523184c28d973a2d5ef7bcc0",
+      "bytes": 49355,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/season-book/build-review.py failure toggle"
+    },
+    {
+      "file": "share-card-output.png",
+      "sha256": "1b72a4cb3c0361417e23a6e3bbe512f790a737a7e12f5a1aefb07c492dfd6e3a",
+      "bytes": 110931,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": "native canvas dimensions",
+      "theme": "fixed artifact palette",
+      "kind": "production-canvas-artifact",
+      "provenance": "tests/round-photo-browser.js exact fixture through drawRecapCard; no share sent"
+    },
+    {
+      "file": "home-brand-new--375--dark.png",
+      "sha256": "49c5c7cb7856b6d83a50fe171cddef17d561fb5ca24d5ff28275bbd6320d881a",
+      "bytes": 65566,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked"
+    },
+    {
+      "file": "home-brand-new--375--light.png",
+      "sha256": "68de83b003c0eda4a4a7793b1d75f7c6a8dca41bd933b08d6cf984ce278fc51f",
+      "bytes": 64504,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked"
+    },
+    {
+      "file": "home-brand-new--402--dark.png",
+      "sha256": "8bc5447140083bb40825b800f469247002ea6b45cb0cbeeaa51161b599f69df3",
+      "bytes": 70702,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked"
+    },
+    {
+      "file": "home-brand-new--402--light.png",
+      "sha256": "da991fc41f56865b6bcd27c09d8d553cb12595bc21a171bdd3c0ebdb7340b6d3",
+      "bytes": 69995,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked"
+    },
+    {
+      "file": "home-brand-new--1280--dark.png",
+      "sha256": "272d036acd192413bdb8dd2c78ac8d7dd35a05c9f9353deb6d848d4524528ccd",
+      "bytes": 84487,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked"
+    },
+    {
+      "file": "home-brand-new--1280--light.png",
+      "sha256": "c9fcad7b4ce88f2d2c9d1c129147af1eff179e535417c88b553c067e3bb83370",
+      "bytes": 84109,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked"
+    },
+    {
+      "file": "home-brand-new--1600--dark.png",
+      "sha256": "31addffca39eab2a1144dc403794bde98a551556bd011a6d7442e5aef72d2ca6",
+      "bytes": 85798,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked"
+    },
+    {
+      "file": "home-brand-new--1600--light.png",
+      "sha256": "52f91144be9754e400461fc5dbd6d1307e59b63da4b0e2e94de25d53edfa0f11",
+      "bytes": 85407,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked"
+    },
+    {
+      "file": "composer-first-round--375--dark.png",
+      "sha256": "7ba5152b418a1cee809a0d76bd742103aaff3bd417a8b9de7014a2e724184c46",
+      "bytes": 74752,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture plus existing composer; no post submitted"
+    },
+    {
+      "file": "composer-first-round--375--light.png",
+      "sha256": "9184907f3032c7878c731eefa286c9695c3f2d938fdb40d6a764626db5e5dada",
+      "bytes": 62710,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture plus existing composer; no post submitted"
+    },
+    {
+      "file": "composer-first-round--402--dark.png",
+      "sha256": "a19b2d348fc57058960c089a691cdfd138b5b15ff1845965dddbad62bc9c8de7",
+      "bytes": 69466,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture plus existing composer; no post submitted"
+    },
+    {
+      "file": "composer-first-round--402--light.png",
+      "sha256": "c1366da0ff04fc4260a37b48bcb7b79aaa8fcce953efe0f0d532275a8adff458",
+      "bytes": 58973,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture plus existing composer; no post submitted"
+    },
+    {
+      "file": "composer-first-round--1280--dark.png",
+      "sha256": "c9bab1f852f2dfe229923a942e103adf1faa7a5e980a368433e4f768028c60a0",
+      "bytes": 94596,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture plus existing composer; no post submitted"
+    },
+    {
+      "file": "composer-first-round--1280--light.png",
+      "sha256": "8f6fcd392ed618a5fd44a09033b839e8f9674a041d785bccbe577e8cf5aaf485",
+      "bytes": 80869,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture plus existing composer; no post submitted"
+    },
+    {
+      "file": "composer-first-round--1600--dark.png",
+      "sha256": "ae03ce44d521427a5d616d07040cd53dad73718b82cd0c962b61be6b1fe9b75f",
+      "bytes": 97206,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture plus existing composer; no post submitted"
+    },
+    {
+      "file": "composer-first-round--1600--light.png",
+      "sha256": "b468ab50951227510d167249429c123f04525d6d8f1b83d4af33b4a377d5ae82",
+      "bytes": 83178,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture plus existing composer; no post submitted"
+    },
+    {
+      "file": "composer-short-viewport--375--dark.png",
+      "sha256": "1b1a2ae8864c64f30d85aaaf473f2808f2e04b85981738fe9ebcec1f2e5576c6",
+      "bytes": 73790,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 380
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture; reduced viewport proxy for keyboard, no native software keyboard claimed"
+    },
+    {
+      "file": "composer-short-viewport--375--light.png",
+      "sha256": "a356e3636f34269c5890b26555a34ea996c8ecd5061c97466021f0de2578afbc",
+      "bytes": 63235,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 380
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture; reduced viewport proxy for keyboard, no native software keyboard claimed"
+    },
+    {
+      "file": "composer-short-viewport--402--dark.png",
+      "sha256": "8f2c76714bbc4c1438f8612c3638e5ca94779f61a8b7c12dd938e0a9150fb854",
+      "bytes": 73878,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 380
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture; reduced viewport proxy for keyboard, no native software keyboard claimed"
+    },
+    {
+      "file": "composer-short-viewport--402--light.png",
+      "sha256": "9fcc567911ae246db7af0c3405ce5007331feacc1c14fade4f9710632bffa1fa",
+      "bytes": 62909,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 380
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture; reduced viewport proxy for keyboard, no native software keyboard claimed"
+    },
+    {
+      "file": "home-rounds_no_buddies--375--dark.png",
+      "sha256": "b69378af2a203a6b9ff8ecc03aebd9365bceb94225bd1e5cd7fcf50ff5edaff5",
+      "bytes": 65193,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#rounds_no_buddies; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-rounds_no_buddies--375--light.png",
+      "sha256": "97895dfd81d4af8a44630778f665d3f4a7b21e13f60c5e9cc08ec7acfc659075",
+      "bytes": 64464,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#rounds_no_buddies; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-rounds_no_buddies--402--dark.png",
+      "sha256": "6f9a298ab780b2edd1325a7476c0d8705aca8204d853d85407ead2674f648728",
+      "bytes": 70160,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#rounds_no_buddies; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-rounds_no_buddies--402--light.png",
+      "sha256": "e7e57dd520f6f968dbdfe1e643241b6289307dfc66e1f8e5fcdac9f3c328b456",
+      "bytes": 69793,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#rounds_no_buddies; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-rounds_no_buddies--1280--dark.png",
+      "sha256": "201746182975400a8bb1ea4e3b1ce7c1aba4e2e74ec9b851b11f7d2497385264",
+      "bytes": 83991,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#rounds_no_buddies; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-rounds_no_buddies--1280--light.png",
+      "sha256": "dbd8350ec157121a674683750b02bf0b35ba130c63c2ca6b813414eb2acd6833",
+      "bytes": 83845,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#rounds_no_buddies; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-rounds_no_buddies--1600--dark.png",
+      "sha256": "622c2396957b69be052b0f7b42f2811b7f71d7804abeb2b5b30e8417b2e61549",
+      "bytes": 86318,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#rounds_no_buddies; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-rounds_no_buddies--1600--light.png",
+      "sha256": "d23baf3a5318b59326ca0dcfc53ad3aec24c1007ecdbdac09b92115383d0d581",
+      "bytes": 86119,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#rounds_no_buddies; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-event_live--375--dark.png",
+      "sha256": "055f4df53d9c22cd916fd6468bbf8c7d892fce114c1fd30efbba74be502cc925",
+      "bytes": 67697,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-event_live--375--light.png",
+      "sha256": "199f1029b0db2e18eb21537ab98272671b032fb73acb22fff06da6ab9023050e",
+      "bytes": 66980,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-event_live--402--dark.png",
+      "sha256": "0e2808121207a8b6f314098a9c3f3438d479a418528a48a95bf2dcbed37901eb",
+      "bytes": 72755,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-event_live--402--light.png",
+      "sha256": "45a9d605f1c47bb1a28872452f8c3b45dd2b76aabe5112a04e498af0ca4090f1",
+      "bytes": 72322,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-event_live--1280--dark.png",
+      "sha256": "462307cad58146c9371114ae8fef5b68ef04b3ec4a874bc938d358d1bdc15013",
+      "bytes": 93263,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-event_live--1280--light.png",
+      "sha256": "b720942f5e1eacadc1cac1e15ed710829815f71e33f8942ec61841f8f9443e6d",
+      "bytes": 92975,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-event_live--1600--dark.png",
+      "sha256": "3505aee679729e6278efcf88e658a370fe791b9726288a2afd188ceee5ff627d",
+      "bytes": 95245,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-event_live--1600--light.png",
+      "sha256": "3fb0cfe618e4b7552cae3c9e04df5097321bfd29bc96406c8b29ddda003d5c47",
+      "bytes": 94871,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-between_seasons--375--dark.png",
+      "sha256": "19fb120f646157ba975bcef5ce6530ea8069ba872783817ff7ea4b7f075c29cc",
+      "bytes": 65829,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#between_seasons; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-between_seasons--375--light.png",
+      "sha256": "a4fa55afc4ee821d04b3fc6070170e7ccefeaf206b9e0218c861e0c01f202414",
+      "bytes": 65138,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#between_seasons; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-between_seasons--402--dark.png",
+      "sha256": "61ce100a8f3b005b994e252eca5060e78548a48a544d6a07f9aecbbe381435ac",
+      "bytes": 71589,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#between_seasons; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-between_seasons--402--light.png",
+      "sha256": "22827f59e8767a9c8e2793b15e3e7587da1f97070763f59abab9cbad123cfdfa",
+      "bytes": 70566,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#between_seasons; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-between_seasons--1280--dark.png",
+      "sha256": "2a0cf20b0e10f2b3846962d12483c3dc3fe152855a4bbd1f18637c80efea5b81",
+      "bytes": 86158,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#between_seasons; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-between_seasons--1280--light.png",
+      "sha256": "6895bf4c5c780a84b5ceda9c7f2142355ebfd1d5ea6db5e90f0d1b2dd3926d3e",
+      "bytes": 85882,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#between_seasons; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-between_seasons--1600--dark.png",
+      "sha256": "ed98ae40c778a3c8101407a4f8966e9cb514a9513aaea65c0254ac20bc8aeeb7",
+      "bytes": 88640,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#between_seasons; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-between_seasons--1600--light.png",
+      "sha256": "4a01e1887b348369d6d9c71916f897315147bd7725343b779b39f5b0bca7ca2d",
+      "bytes": 88358,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#between_seasons; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-ceremony_night--375--dark.png",
+      "sha256": "11c46197afb88556a81ba815ef62e63c5173eee5a6970304ef7cdb5667792a44",
+      "bytes": 67566,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#ceremony_night; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-ceremony_night--375--light.png",
+      "sha256": "57d1417193ded45af1511a4dc347b3e23eedd3ffca57044db99fd805ce8dd44a",
+      "bytes": 66975,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#ceremony_night; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-ceremony_night--402--dark.png",
+      "sha256": "b72f0b0e7b69969cd017e121d44c882429eb58b80053b5b8cc39ef5464a094c9",
+      "bytes": 66457,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#ceremony_night; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-ceremony_night--402--light.png",
+      "sha256": "c8a99dca9cabb5cd4ea2c1fd912186c9400188b9effbd3b79d0c6e77cf014de2",
+      "bytes": 66153,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#ceremony_night; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-ceremony_night--1280--dark.png",
+      "sha256": "141ac762d1ec8bf115a875ebe0f3793ec5fbc73fb304cd1851047191396f74de",
+      "bytes": 81617,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#ceremony_night; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-ceremony_night--1280--light.png",
+      "sha256": "f3cd98b63b9f336a2922fa3ff98e9c207b5c61cd2092f3d31b20760851473a42",
+      "bytes": 81407,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#ceremony_night; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-ceremony_night--1600--dark.png",
+      "sha256": "9d6fb2279f29926f2e6ab3af2c5d38f5c413738e90febffe663c5cbb57d994cb",
+      "bytes": 83997,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#ceremony_night; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-ceremony_night--1600--light.png",
+      "sha256": "81cfb455c4433151e9b5bcb254aa853f171aed5e98e18dfc10a1493e5e179d15",
+      "bytes": 83767,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#ceremony_night; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-preseason--375--dark.png",
+      "sha256": "b0be453bc6d3c68d393a9b674473dd459946ff1c8f74d70330ba355407f48da8",
+      "bytes": 64912,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#preseason; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-preseason--375--light.png",
+      "sha256": "1e61fc550008d98aea95666fb2c8ee13becc466e44705a6b43cd418ba71b1769",
+      "bytes": 64799,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#preseason; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-preseason--402--dark.png",
+      "sha256": "00adb1365b5e730164828566dab64fc2a17f6e5792bb6c6c5bb416f9fbeede58",
+      "bytes": 71873,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#preseason; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-preseason--402--light.png",
+      "sha256": "c87d6c9b0a324aa0f3702fd3b3825b4b23c63c7aa6673553bc5d06b3ac3907db",
+      "bytes": 71438,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#preseason; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-preseason--1280--dark.png",
+      "sha256": "fdf1f398e4e7594243fbd0e2f96df3230fbaa0345ee98ae2887c9a5a387d2db2",
+      "bytes": 87279,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#preseason; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-preseason--1280--light.png",
+      "sha256": "353e489228287f77c135900d109ef5dbab671fdd91685db8be65bb542923ed80",
+      "bytes": 87093,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#preseason; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-preseason--1600--dark.png",
+      "sha256": "c59555e87642f51ca71826ab7e403e5ca3ae7accf25fda38401678ca5e7b5ce1",
+      "bytes": 89829,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#preseason; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "home-preseason--1600--light.png",
+      "sha256": "db8f3244deb65098a4e23c066f4b423338435e86a03f3e92b30cadb02b6ac73d",
+      "bytes": 89675,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#preseason; exact dispatch and profile; missing other read models remain empty"
+    },
+    {
+      "file": "app-post-empty--375--dark.png",
+      "sha256": "4bb81c8d2e5a85e8c5365baedaca3e445b42b27ebbab96d5b25d84d77f9a3d3a",
+      "bytes": 67372,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route post; backend reads refused"
+    },
+    {
+      "file": "app-post-empty--375--light.png",
+      "sha256": "3080fa2abd8a1d11ea17782ac11d022b34d0f3f6becc27df8016119bfa0cdc22",
+      "bytes": 55676,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route post; backend reads refused"
+    },
+    {
+      "file": "app-post-empty--402--dark.png",
+      "sha256": "a57cdbddfe3a8922526b299665cb1306c75d780e5d261d0c8a03f39cc6c47701",
+      "bytes": 62712,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route post; backend reads refused"
+    },
+    {
+      "file": "app-post-empty--402--light.png",
+      "sha256": "f5c0a3ab37070bb3056fb67e9b71511dc06360525efe12fbde148717edf5f399",
+      "bytes": 52392,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route post; backend reads refused"
+    },
+    {
+      "file": "app-post-empty--1280--dark.png",
+      "sha256": "f10737a4e01f383cacc092c8fd259e9a0d3f962044ab1c522bf2ea0fb865d4d3",
+      "bytes": 88256,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route post; backend reads refused"
+    },
+    {
+      "file": "app-post-empty--1280--light.png",
+      "sha256": "758d91d3b76dd2415e730dbe63ac1d82a8056563b56430440c7e13bd55a17b83",
+      "bytes": 74732,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route post; backend reads refused"
+    },
+    {
+      "file": "app-post-empty--1600--dark.png",
+      "sha256": "a6ab0315571e946e839d7af66f7127b0e2008633b65697c655e8b8f8a50dbc29",
+      "bytes": 90701,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route post; backend reads refused"
+    },
+    {
+      "file": "app-post-empty--1600--light.png",
+      "sha256": "642f6589d42720504f93b2244fdfee9179bb376100d1daaa603159d4d95ceb07",
+      "bytes": 76848,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route post; backend reads refused"
+    },
+    {
+      "file": "app-compete-empty--375--dark.png",
+      "sha256": "1062047d902b4162fcacd4d5f94af97dcfce1d2b31dfabd778c8a037acba2b18",
+      "bytes": 30845,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused"
+    },
+    {
+      "file": "app-compete-empty--375--light.png",
+      "sha256": "3494b966f8467cf41480946b34b551e56dd48c04d4c8c800bb5e0958dad85f2b",
+      "bytes": 31209,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused"
+    },
+    {
+      "file": "app-compete-empty--402--dark.png",
+      "sha256": "f89a0e8fa346a0b09fb4cc5616632fd29b38b5439f62af014797f5f3cc3b73b9",
+      "bytes": 32122,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused"
+    },
+    {
+      "file": "app-compete-empty--402--light.png",
+      "sha256": "750698065434d808dec7464f2a382b3ad38009e69ce9141cef563cee8e1646b9",
+      "bytes": 32467,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused"
+    },
+    {
+      "file": "app-compete-empty--1280--dark.png",
+      "sha256": "01435b5f504ede154ae0b4f33b45054609cf187d6bdd4d657f362bb762fc5627",
+      "bytes": 59020,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused"
+    },
+    {
+      "file": "app-compete-empty--1280--light.png",
+      "sha256": "280f772b1cfce5328569ea5902fbc2bda14d34e5b9344ba256c1b84c6cc1968b",
+      "bytes": 60746,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused"
+    },
+    {
+      "file": "app-compete-empty--1600--dark.png",
+      "sha256": "64b928a29d345cef44e9b99909b9c26af4dc4b966ee80c51bc5105c0a2fbb3ca",
+      "bytes": 61014,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused"
+    },
+    {
+      "file": "app-compete-empty--1600--light.png",
+      "sha256": "1d075213f1c0da13b46ecb4b2934c85c14b193be96e63de24dd3ee48a2295115",
+      "bytes": 62655,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused"
+    },
+    {
+      "file": "app-golfers-empty--375--dark.png",
+      "sha256": "ca15ddf324efdc3eacc7f27b383095176023e4633e042df6dda1779def5626cf",
+      "bytes": 45717,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused"
+    },
+    {
+      "file": "app-golfers-empty--375--light.png",
+      "sha256": "883be655f049c956b4ae35194d3ced19da54dc91253c04845349fba2e60fbadc",
+      "bytes": 46673,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused"
+    },
+    {
+      "file": "app-golfers-empty--402--dark.png",
+      "sha256": "f27020a8ce971b8b3498afbcadeef0ae910bcd0ec66a22b03e676f18b83b1776",
+      "bytes": 47468,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused"
+    },
+    {
+      "file": "app-golfers-empty--402--light.png",
+      "sha256": "9639915ecb2ad3ad49fb9b78b4a9abde9a89c716191f6626f56e91b532f7ffa4",
+      "bytes": 48446,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused"
+    },
+    {
+      "file": "app-golfers-empty--1280--dark.png",
+      "sha256": "b868c5a4b60e8689e88199bc1caca60b954750778cd8166628b07010fa500901",
+      "bytes": 72394,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused"
+    },
+    {
+      "file": "app-golfers-empty--1280--light.png",
+      "sha256": "8462c6da485fc39ef5969b4dae2cd46f4d872cd661e64f5897614ca77233f6da",
+      "bytes": 74778,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused"
+    },
+    {
+      "file": "app-golfers-empty--1600--dark.png",
+      "sha256": "14c8eacda431c8d3da37211bdab10a53143e0b166342c8e4c38c110e5fb5dbe8",
+      "bytes": 74850,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused"
+    },
+    {
+      "file": "app-golfers-empty--1600--light.png",
+      "sha256": "630c8d51e0a7d6f71bedf77f670e986780dbcec07d63b09ef0825202c9acce05",
+      "bytes": 77198,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused"
+    },
+    {
+      "file": "app-stats-empty--375--dark.png",
+      "sha256": "1aa5d1e5ab339dbae545fa9ae4df247d4c7ed7cb8bb9acccbaec7a8b46a9e200",
+      "bytes": 114239,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused"
+    },
+    {
+      "file": "app-stats-empty--375--light.png",
+      "sha256": "b6e4aea30f507c937409a66809d3ef474910e4292ee5a8d5f7eaa269ddc3086f",
+      "bytes": 112419,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused"
+    },
+    {
+      "file": "app-stats-empty--402--dark.png",
+      "sha256": "0cafcd2e472bf70c213f1e610b3fb607fc58604cd2b1746cef5b697c1197d25f",
+      "bytes": 112370,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused"
+    },
+    {
+      "file": "app-stats-empty--402--light.png",
+      "sha256": "c7cdbff44808d8d65b167de862f5d9287fa9c2a35d03373b635347b4c46fad8f",
+      "bytes": 110841,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused"
+    },
+    {
+      "file": "app-stats-empty--1280--dark.png",
+      "sha256": "948a7f55bb6a6b5e3d9c94d4dac76a128ae62b75826f690bf02f0b263061e4ea",
+      "bytes": 135223,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused"
+    },
+    {
+      "file": "app-stats-empty--1280--light.png",
+      "sha256": "043861805ce8290e22d683a02397bedeb2a9ea8c9b5ffaa3ccda8165024f1f52",
+      "bytes": 133004,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused"
+    },
+    {
+      "file": "app-stats-empty--1600--dark.png",
+      "sha256": "95cd9d8c9044b677f554787cbe23b2202e78f6d802347834784a7f7414ea2178",
+      "bytes": 136064,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused"
+    },
+    {
+      "file": "app-stats-empty--1600--light.png",
+      "sha256": "10643c3087eadf1d729a508019298e243dad30cf46bd775cffe41b0270e612b2",
+      "bytes": 136171,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused"
+    },
+    {
+      "file": "app-schedule-empty--375--dark.png",
+      "sha256": "5cb4b4b3aa6bd1b498a01fa6b6e098629e6c35f05de69b83e54ee06f92ead174",
+      "bytes": 54416,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused"
+    },
+    {
+      "file": "app-schedule-empty--375--light.png",
+      "sha256": "fe24091f809cd4dc53e5a1fa8d429a91bbd24f3588be9cecca58b93f77a01357",
+      "bytes": 46650,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused"
+    },
+    {
+      "file": "app-schedule-empty--402--dark.png",
+      "sha256": "966931fb2f6e54c4b23f85f4421d338bbbe1c3578ad4404e953ee0201f31d346",
+      "bytes": 55886,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused"
+    },
+    {
+      "file": "app-schedule-empty--402--light.png",
+      "sha256": "81a38024412a3b6bca023322679b03e6bbdce1cb07ed460e13c9f558c7b44cd3",
+      "bytes": 47361,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused"
+    },
+    {
+      "file": "app-schedule-empty--1280--dark.png",
+      "sha256": "850b26645decb2c92230e7de206465bc4d1d9e4ab90e402d2f25338a84e175e6",
+      "bytes": 90405,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused"
+    },
+    {
+      "file": "app-schedule-empty--1280--light.png",
+      "sha256": "85e3aa59432e34ec0dd49c83fcd4cc18dae5bd7e8306205320c7288365fa6083",
+      "bytes": 67173,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused"
+    },
+    {
+      "file": "app-schedule-empty--1600--dark.png",
+      "sha256": "d326ca12ad513d56519218e59e768bee4339774b4ab5c6111100c83bb08329a9",
+      "bytes": 96866,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused"
+    },
+    {
+      "file": "app-schedule-empty--1600--light.png",
+      "sha256": "c99404d3e4315cf342586fd98427fa4504c95810c3d273bfc9d88547cca4317d",
+      "bytes": 70498,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused"
+    },
+    {
+      "file": "app-play-empty--375--dark.png",
+      "sha256": "2808325537a1b0c49020e0d68914f338e0106392146db963d3433d7810ab77a7",
+      "bytes": 111645,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused"
+    },
+    {
+      "file": "app-play-empty--375--light.png",
+      "sha256": "fa42731e783719b80a7ff8886f11226f87f6e70eb04f0ce83aa688509a5df83d",
+      "bytes": 88140,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused"
+    },
+    {
+      "file": "app-play-empty--402--dark.png",
+      "sha256": "7754074e716f566eb23db06a3186dfd7af51d9f995ac356af4f43c0b1cfc78fc",
+      "bytes": 113481,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused"
+    },
+    {
+      "file": "app-play-empty--402--light.png",
+      "sha256": "dbcc28d5e859abdb43716eb6204456719c3f52adc3abeaf0391462aac6d37024",
+      "bytes": 88298,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused"
+    },
+    {
+      "file": "app-play-empty--1280--dark.png",
+      "sha256": "22767d09bd3b3793916d3f2202d81ba68ef67bd464dc6c462a2a0f20e6e54615",
+      "bytes": 136953,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused"
+    },
+    {
+      "file": "app-play-empty--1280--light.png",
+      "sha256": "9aa61d183082df8b74ee4aef66d656ad4e798cd0e1590768d986b85806d2f2a8",
+      "bytes": 108974,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused"
+    },
+    {
+      "file": "app-play-empty--1600--dark.png",
+      "sha256": "2c7b07107b94cdab337490533d0a53101c4ea0a341d5a1e4921b34075c62e79c",
+      "bytes": 140760,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused"
+    },
+    {
+      "file": "app-play-empty--1600--light.png",
+      "sha256": "cfb37cb2fcba3ca4427096a44f19daa5e316edcc75bf2cb37597c101dec3a9af",
+      "bytes": 110913,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused"
+    },
+    {
+      "file": "app-wizard-empty--375--dark.png",
+      "sha256": "c8e0f5b6eba64d496e64c07db04ea023b81697fc65e52987422499282032a39d",
+      "bytes": 33449,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused"
+    },
+    {
+      "file": "app-wizard-empty--375--light.png",
+      "sha256": "05a8509e64d061a7497a893e313ff13fbb5ec17710713e5512a6ef215d11a6c1",
+      "bytes": 31406,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused"
+    },
+    {
+      "file": "app-wizard-empty--402--dark.png",
+      "sha256": "612324a9dd6c076170f2a593fa3323bfefc7eeca8f0c74b877ed58c34b4a149f",
+      "bytes": 35225,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused"
+    },
+    {
+      "file": "app-wizard-empty--402--light.png",
+      "sha256": "afeba04257d8ef5b5293b7a131b27525559970722b0be321c9c36508534d7fe1",
+      "bytes": 33218,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused"
+    },
+    {
+      "file": "app-wizard-empty--1280--dark.png",
+      "sha256": "2eed4950f081cb5a1ca51a70171f7289dfd2e5bc298c0d0c7f4fe92a73fe6d91",
+      "bytes": 88066,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused"
+    },
+    {
+      "file": "app-wizard-empty--1280--light.png",
+      "sha256": "a3580c98c906c6cb496af4f5b7b8e49e948b532884939e5a8d3ca3c871a719c2",
+      "bytes": 80861,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused"
+    },
+    {
+      "file": "app-wizard-empty--1600--dark.png",
+      "sha256": "63a9fd690589e02b22ca4bfe388cccb1c7b4e83c78c9203e1ae424be2a7e4500",
+      "bytes": 90634,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused"
+    },
+    {
+      "file": "app-wizard-empty--1600--light.png",
+      "sha256": "4bdfaa078ccdfde09f0ad76a6eff6a3dd8e2215a1ab7f6569530e9fe492e8c81",
+      "bytes": 83187,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused"
+    },
+    {
+      "file": "app-event-empty--375--dark.png",
+      "sha256": "6a62a1602f117ac10d626160d194098d8002090c02c0b68ca480a3ba502749da",
+      "bytes": 14347,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route event; backend reads refused"
+    },
+    {
+      "file": "app-event-empty--375--light.png",
+      "sha256": "89c39cbdfcb8e8b75c7775361fb45f600a604807e2749c68d3f08bdb0c036e29",
+      "bytes": 14620,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route event; backend reads refused"
+    },
+    {
+      "file": "app-event-empty--402--dark.png",
+      "sha256": "3ea5c4c41c3adc7d8f02637049bd2edd22081fd7960b99013a77141517205116",
+      "bytes": 15459,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route event; backend reads refused"
+    },
+    {
+      "file": "app-event-empty--402--light.png",
+      "sha256": "cc0e851967631ab54dfba706f59bfec5e59b6f4638c1be9c87da1b5a75722a7d",
+      "bytes": 15686,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route event; backend reads refused"
+    },
+    {
+      "file": "app-event-empty--1280--dark.png",
+      "sha256": "e5825ae366b38283aaf005ebb78e8c0cc425c180f6826ff46d355a018cea41f3",
+      "bytes": 32694,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route event; backend reads refused"
+    },
+    {
+      "file": "app-event-empty--1280--light.png",
+      "sha256": "5d5220f7bf50f3472743bfdbeeaa7e4caf04fe03febf958c353369b67ea6e73e",
+      "bytes": 33095,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route event; backend reads refused"
+    },
+    {
+      "file": "app-event-empty--1600--dark.png",
+      "sha256": "feb54a0d1c47ca8c5d37804038b958d0c78d5c5a1fd2712c4cbaf53746575a03",
+      "bytes": 34151,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route event; backend reads refused"
+    },
+    {
+      "file": "app-event-empty--1600--light.png",
+      "sha256": "bb1d9ae10dbfb1609d61c45030c7cda0b4cff2ae972267c1e82a769054bdc3fc",
+      "bytes": 34519,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route event; backend reads refused"
+    },
+    {
+      "file": "profile-card-settings--375--dark.png",
+      "sha256": "7f5240d1efacb2f58f80bce7d5d05fe905a49213c0aadc24b64ab55e5106dfad",
+      "bytes": 50691,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production Card & settings sheet"
+    },
+    {
+      "file": "profile-card-settings--375--light.png",
+      "sha256": "336f621b945417d2c47054f7d4950a678bd7a290b0e28b3cee9bf82836472775",
+      "bytes": 51892,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production Card & settings sheet"
+    },
+    {
+      "file": "profile-card-settings--402--dark.png",
+      "sha256": "8fe28312380d75de45cc4b06b10f67be73c82b4a08a234c417b72506b8bca7ce",
+      "bytes": 56870,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production Card & settings sheet"
+    },
+    {
+      "file": "profile-card-settings--402--light.png",
+      "sha256": "1c8ffb0a96e9368d422107074f980d1d4d1a755cb17c8793312dafeeda695b51",
+      "bytes": 58747,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production Card & settings sheet"
+    },
+    {
+      "file": "profile-card-settings--1280--dark.png",
+      "sha256": "2a18a5b99eb28e02f0ca402c17ca77630ea9f8d3579f4c66a42a475f664ce0e1",
+      "bytes": 110174,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production Card & settings sheet"
+    },
+    {
+      "file": "profile-card-settings--1280--light.png",
+      "sha256": "4704c0569f90a6beb72bf00372d5843aca167ecb30c99db7dc820963576db35f",
+      "bytes": 114530,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production Card & settings sheet"
+    },
+    {
+      "file": "profile-card-settings--1600--dark.png",
+      "sha256": "94384b1a6cfbce2a2c75544e89c423866b6632f8487537ac02e5f0e69f1240e1",
+      "bytes": 128482,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production Card & settings sheet"
+    },
+    {
+      "file": "profile-card-settings--1600--light.png",
+      "sha256": "98e03c1d9b3be582fe383e66e0509dd840a1a1be95154034224c616e07c05a45",
+      "bytes": 133179,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production Card & settings sheet"
+    },
+    {
+      "file": "settings--375--dark.png",
+      "sha256": "c6c163a5150408168626cf1742c319c7786cef8cc1d6869c9115674026a1a778",
+      "bytes": 57019,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production settings segment"
+    },
+    {
+      "file": "settings--375--light.png",
+      "sha256": "7f9e61ccf61b2ad1efe5edeb53df132bf5fa4f8d6ab94dc96d878721d80d5a88",
+      "bytes": 58995,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production settings segment"
+    },
+    {
+      "file": "settings--402--dark.png",
+      "sha256": "7d394cf1107479eb6834670d340e0d347f7a64d7b6174c5de37560f99081af1a",
+      "bytes": 64458,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production settings segment"
+    },
+    {
+      "file": "settings--402--light.png",
+      "sha256": "e9c41c2568427d0cef11fda7dd27e3890cea51fb146542ca3c07ad7908c50934",
+      "bytes": 67786,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production settings segment"
+    },
+    {
+      "file": "settings--1280--dark.png",
+      "sha256": "79460255e50d5fd3760b12a6a47856d32caa2efca10550ffca3bd1faf1e9c72c",
+      "bytes": 116261,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production settings segment"
+    },
+    {
+      "file": "settings--1280--light.png",
+      "sha256": "26b3148539b7b835c0d3e2b726a523b6075651f77d2a30879a8051fe928c6bca",
+      "bytes": 122741,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production settings segment"
+    },
+    {
+      "file": "settings--1600--dark.png",
+      "sha256": "19035c0d3ca875acf22cf1ff23a106d21e3a7c37d67c5a5265bf39850b5056f3",
+      "bytes": 130027,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production settings segment"
+    },
+    {
+      "file": "settings--1600--light.png",
+      "sha256": "d8703b0394492d534538e21b2981ce6cf6acd44328ebb509a4c0170edd73d632",
+      "bytes": 135290,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "brand_new fixture identity; production settings segment"
+    },
+    {
+      "file": "round-receipt--375--dark.png",
+      "sha256": "5b7648328a701fcf95817c06e85092e2a5901d85f17c40c45f8b21d07db36576",
+      "bytes": 133431,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/round-record-browser.js reference row opened through its card"
+    },
+    {
+      "file": "round-receipt--375--light.png",
+      "sha256": "4879bfd94c0efa075a94f13b8bfd2a5b00ac0116adb53e4e1cf62ab94c44b27d",
+      "bytes": 134027,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/round-record-browser.js reference row opened through its card"
+    },
+    {
+      "file": "round-receipt--402--dark.png",
+      "sha256": "35cd947fd300abbdae5146055bb34af1d6929a776e6abd977fea3863ba6fb4a2",
+      "bytes": 141144,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/round-record-browser.js reference row opened through its card"
+    },
+    {
+      "file": "round-receipt--402--light.png",
+      "sha256": "eeafe8814a5c46df986bb39b055fb1442c49783b89f8f8dab22b3431fb6cde05",
+      "bytes": 142675,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/round-record-browser.js reference row opened through its card"
+    },
+    {
+      "file": "round-receipt--1280--dark.png",
+      "sha256": "d1bf9a511f97aa962f2e2b5d6c41a3838bfaed1221f2433f18b367f33c2a2045",
+      "bytes": 169643,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/round-record-browser.js reference row opened through its card"
+    },
+    {
+      "file": "round-receipt--1280--light.png",
+      "sha256": "d4ce2f14f658863454e7d9c0852935874ae6a10216c94efd2a7328c07d721e38",
+      "bytes": 172698,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/round-record-browser.js reference row opened through its card"
+    },
+    {
+      "file": "round-receipt--1600--dark.png",
+      "sha256": "c8ddb627986ab1c20e4976043b5e606f24269c77ef88b63d8912c14bd51b33eb",
+      "bytes": 193609,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/round-record-browser.js reference row opened through its card"
+    },
+    {
+      "file": "round-receipt--1600--light.png",
+      "sha256": "ade35c75c51381a59744c0be5350cde0e0312b06bd65e9888c2269325452b261",
+      "bytes": 195454,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/round-record-browser.js reference row opened through its card"
+    },
+    {
+      "file": "course-circle--375--dark.png",
+      "sha256": "9bd3a2e15bc8cd4e09014694a3c021b11765aadb714f9016d896417216d823fd",
+      "bytes": 54279,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/social-course-browser.js coursePage fixture; current production route"
+    },
+    {
+      "file": "course-circle--375--light.png",
+      "sha256": "1f804333efa919d09088debf4bc2960493bc08eac9a16530591823ba2109091c",
+      "bytes": 55691,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/social-course-browser.js coursePage fixture; current production route"
+    },
+    {
+      "file": "course-circle--402--dark.png",
+      "sha256": "f1920bddc94783e05172237c11a225779a40531c02389df2173d98303b909ca7",
+      "bytes": 61661,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/social-course-browser.js coursePage fixture; current production route"
+    },
+    {
+      "file": "course-circle--402--light.png",
+      "sha256": "214c83f16ced39d2ee23b99d5f4cb2cc006603a946cefd304870f1357ef9e390",
+      "bytes": 68890,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/social-course-browser.js coursePage fixture; current production route"
+    },
+    {
+      "file": "course-circle--1280--dark.png",
+      "sha256": "75f60fa88e6091b21a0b6171f82ec2c79fa51bbc595b032993cedc6cfe28a259",
+      "bytes": 117975,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/social-course-browser.js coursePage fixture; current production route"
+    },
+    {
+      "file": "course-circle--1280--light.png",
+      "sha256": "3a040b9321d0d71f369d7f9368d653cfafad42f023b7bd14045f4e7bb2e53457",
+      "bytes": 124374,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/social-course-browser.js coursePage fixture; current production route"
+    },
+    {
+      "file": "course-circle--1600--dark.png",
+      "sha256": "38be8e9a2192cdcf0bb5c7c3e51ad496508b2b839856c931fcf539949192167f",
+      "bytes": 130115,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/social-course-browser.js coursePage fixture; current production route"
+    },
+    {
+      "file": "course-circle--1600--light.png",
+      "sha256": "2c5f2017aea6f6b4b4c446702b24ed79847c0f3b265638dce680c2114946f882",
+      "bytes": 134665,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/social-course-browser.js coursePage fixture; current production route"
+    },
+    {
+      "file": "post-receipt--375--dark.png",
+      "sha256": "62bee8c7a8e7bdd5e14b6484e93502d7e0b9dab59ff506d5e0fb85389b8d62dc",
+      "bytes": 30523,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/round-photo-browser.js exact finishCeremony fixture without photo; settled after 3200ms; no post submitted"
+    },
+    {
+      "file": "post-receipt--375--light.png",
+      "sha256": "b284ce360020445d8592f6a5093b903d2372dddf6a0ce7519736296b76320d52",
+      "bytes": 30569,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/round-photo-browser.js exact finishCeremony fixture without photo; settled after 3200ms; no post submitted"
+    },
+    {
+      "file": "post-receipt--402--dark.png",
+      "sha256": "147a133160a5b8a64a7f041197baf53c1caf79865c626783325ce966068935cd",
+      "bytes": 23187,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/round-photo-browser.js exact finishCeremony fixture without photo; settled after 3200ms; no post submitted"
+    },
+    {
+      "file": "post-receipt--402--light.png",
+      "sha256": "c5186d5f21dd5eb504801de204f64d7e1984d3086b41e0064321dcb8ca3cd0eb",
+      "bytes": 23187,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/round-photo-browser.js exact finishCeremony fixture without photo; settled after 3200ms; no post submitted"
+    },
+    {
+      "file": "post-receipt--1280--dark.png",
+      "sha256": "82058aa80fa948dd03c40de621c7b248684d8c6a1f330bd396f493adf3b269be",
+      "bytes": 27158,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/round-photo-browser.js exact finishCeremony fixture without photo; settled after 3200ms; no post submitted"
+    },
+    {
+      "file": "post-receipt--1280--light.png",
+      "sha256": "b8f81e77aef0f57da47a992bee55f68d5c6b7d1152008f525f7c0f56ae2b31d1",
+      "bytes": 27155,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/round-photo-browser.js exact finishCeremony fixture without photo; settled after 3200ms; no post submitted"
+    },
+    {
+      "file": "post-receipt--1600--dark.png",
+      "sha256": "bb299f28412224735b053c50fc7a7ad0e59f508e366137919fbf62d28cab673a",
+      "bytes": 28319,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "dark",
+      "kind": "screen",
+      "provenance": "tests/round-photo-browser.js exact finishCeremony fixture without photo; settled after 3200ms; no post submitted"
+    },
+    {
+      "file": "post-receipt--1600--light.png",
+      "sha256": "bb299f28412224735b053c50fc7a7ad0e59f508e366137919fbf62d28cab673a",
+      "bytes": 28319,
+      "buildSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      },
+      "theme": "light",
+      "kind": "screen",
+      "provenance": "tests/round-photo-browser.js exact finishCeremony fixture without photo; settled after 3200ms; no post submitted"
+    }
+  ],
+  "excluded_invalid": {
+    "count": 8,
+    "scene": "app-record-empty",
+    "reason": "Actual rendered page was Play, not History; excluded from scoring and representative gallery."
+  }
+}

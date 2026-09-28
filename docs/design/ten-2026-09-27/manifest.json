@@ -1,0 +1,1216 @@
+{
+  "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "purpose": "Representative subset, not complete matrix. All screenshots fixture-only or data-free; no account captures. Full local galleries remain outside repo.",
+  "full_local_gallery": "/Users/fischbeck3/cup-season-ten-gallery/index.html",
+  "sourceHashes": {
+    "index.html": "89ab6377912701644e6bba29aace5bc9f71577b2b960037e699fd7c4a7997b58",
+    "get.html": "959c6f7bec3c60ee54cf4fd659c8b465ac7d2b757972b2774f32530d776f6f55",
+    "support.html": "c6a755f16eb74a8ddbdd3925ddd12d538b62e5f6e0480aea5203091ad9e5d6ce",
+    "legal.html": "3beb8d3d16aef72af0e0dc3516a966484db5350ac32599989a97f9e1aaab3fc2",
+    "packages/tokens/tokens.json": "fbce2c1938471a510456db44adebf658fcaf65452be66db83157802915773278",
+    "tests/fixtures/home-states.json": "d9ed1f2f5990fe0a789222cac6556b5b1262cc18276ea3b43d2289f8f26b9afc",
+    "tests/social-course-browser.js": "645cc187fd00923eaed9063d96fed7262dbdb1c8136a109911ebf85880717406",
+    "tests/round-record-browser.js": "0ebfad341190e100467180ab6809eb899e01e08c6b2856cb6c4b26e9c301ec76",
+    "tests/round-photo-browser.js": "a5deecf652434e02b31afdbd53750e15966d3ad734caf40b7b9ed94e46e4cffd",
+    "docs/review/2026-09-25-morning/capture-web.cjs": "ff2e32bccddf3997770e44a4acba520245c1854ebfab54b9aa3542efd7933ee9"
+  },
+  "files": [
+    {
+      "file": "captures/web-door--375--dark.png",
+      "sha256": "feabf2308e7f8ac40516f19902d984388fa61acff229859ca0a22a04b3ae1089",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "door",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "Signed-out production route /",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-door--375--light.png",
+      "sha256": "8a64a24b1055bc160914637ecf7b3a164c8f34dd7e1cac567db753c518ddc0e2",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "door",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "Signed-out production route /",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-door--1280--dark.png",
+      "sha256": "7b27a4f2b2b721bc233400d7bff29db69134891b1184cc8db6b1faa5069aa70e",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "door",
+      "theme": "dark",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "fixture": "Signed-out production route /",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-door-email--375--dark.png",
+      "sha256": "18399dc7ba1b9ac2857ad4d5e2a544219ef6e45c3c8ceae3da4d6edc9dcd7ea8",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "door-email",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "Production door opened email entry; no auth sent",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-door-email--375--light.png",
+      "sha256": "cc328f547c795cc24d4c38b02a10dd13905f62507cd42bf5582c441f6339d92e",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "door-email",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "Production door opened email entry; no auth sent",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-public-round--375--dark.png",
+      "sha256": "7b7559b7b40f0391a8b7adde885a0aa42cf16779e1fbffcad4141b7ae87cb1be",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "public-round",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-public-round--375--light.png",
+      "sha256": "1ef99278f2940e2ca0aa30dbfdb0f746d42bedfa9d9fd92ebe6a7c59a5c574b5",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "public-round",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "docs/review/2026-09-25-morning/capture-web.cjs base no-photo fixture",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-get--375--dark.png",
+      "sha256": "fcca03a3f6e4be8267be62648fb187fa5cc5be18c745fe4f832f546b9bec2389",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "get",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "Production static page /get.html (Python server has no Netlify extension rewrite)",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-get--375--light.png",
+      "sha256": "974d1ca8aa360c6b45301de070a3bdecbba6d748781fcb9aedfee44c5f3f05ad",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "get",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "Production static page /get.html (Python server has no Netlify extension rewrite)",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-public-round-long--375--dark.png",
+      "sha256": "39d2544abe5f2c7dfef2c386feb78f1c4c4ffebf24f192b82846603b1ff9d998",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "public-round-long",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-public-round-long--375--light.png",
+      "sha256": "73bcd4035280e3e3c059ea72bae51ebd51830fe51d4d4d6f21e38618ec3c703a",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "public-round-long",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "docs/review/2026-09-25-morning/capture-web.cjs corresponding patch",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-book-squads--375--dark.png",
+      "sha256": "96528bb7c4e997e153fa595776382b258a659e1d794a35b30b934aaa6fbe2fb2",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "book-squads",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-book-squads--375--light.png",
+      "sha256": "7e8192569b816f0aab123b83a8837739e1854997137faaba787247357a4cfe35",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "book-squads",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-book-squads--1280--dark.png",
+      "sha256": "5226a7a9e67fe76dc6619b5d61bf6358847785f6c7f30267261e895a5843983a",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "book-squads",
+      "theme": "dark",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "fixture": "tests/fixtures/season-book/squads.json; current production csOpenSeasonBook",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-book-error--375--dark.png",
+      "sha256": "f1781d1d57be1f01a2d20fc5470af08487689fb55ab096ca9bc5aea57830ac17",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "book-error",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/season-book/build-review.py failure toggle",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-book-error--375--light.png",
+      "sha256": "c6472fd7e946049f8db9d05f6ef85e28e00ab87ded2f0d90d4e7a62ab28d0a23",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "book-error",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/season-book/build-review.py failure toggle",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-share-card-output.png",
+      "sha256": "1b72a4cb3c0361417e23a6e3bbe512f790a737a7e12f5a1aefb07c492dfd6e3a",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "share-card-output",
+      "theme": "fixed artifact palette",
+      "viewport": "native canvas dimensions",
+      "fixture": "tests/round-photo-browser.js exact fixture through drawRecapCard; no share sent",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-home-brand-new--375--dark.png",
+      "sha256": "49c5c7cb7856b6d83a50fe171cddef17d561fb5ca24d5ff28275bbd6320d881a",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "home-brand-new",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-home-brand-new--375--light.png",
+      "sha256": "68de83b003c0eda4a4a7793b1d75f7c6a8dca41bd933b08d6cf984ce278fc51f",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "home-brand-new",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new; exact profile and dispatch; remaining reads blocked",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-composer-first-round--375--dark.png",
+      "sha256": "7ba5152b418a1cee809a0d76bd742103aaff3bd417a8b9de7014a2e724184c46",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "composer-first-round",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "brand_new fixture plus existing composer; no post submitted",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-composer-first-round--375--light.png",
+      "sha256": "9184907f3032c7878c731eefa286c9695c3f2d938fdb40d6a764626db5e5dada",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "composer-first-round",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "brand_new fixture plus existing composer; no post submitted",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-home-event_live--375--dark.png",
+      "sha256": "055f4df53d9c22cd916fd6468bbf8c7d892fce114c1fd30efbba74be502cc925",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "home-event_live",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-home-event_live--375--light.png",
+      "sha256": "199f1029b0db2e18eb21537ab98272671b032fb73acb22fff06da6ab9023050e",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "home-event_live",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-home-event_live--1280--dark.png",
+      "sha256": "462307cad58146c9371114ae8fef5b68ef04b3ec4a874bc938d358d1bdc15013",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "home-event_live",
+      "theme": "dark",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "fixture": "tests/fixtures/home-states.json#event_live; exact dispatch and profile; missing other read models remain empty",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-compete-empty--375--dark.png",
+      "sha256": "1062047d902b4162fcacd4d5f94af97dcfce1d2b31dfabd778c8a037acba2b18",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-compete-empty",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-compete-empty--375--light.png",
+      "sha256": "3494b966f8467cf41480946b34b551e56dd48c04d4c8c800bb5e0958dad85f2b",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-compete-empty",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route compete; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-golfers-empty--375--dark.png",
+      "sha256": "ca15ddf324efdc3eacc7f27b383095176023e4633e042df6dda1779def5626cf",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-golfers-empty",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-golfers-empty--375--light.png",
+      "sha256": "883be655f049c956b4ae35194d3ced19da54dc91253c04845349fba2e60fbadc",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-golfers-empty",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route golfers; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-stats-empty--375--dark.png",
+      "sha256": "1aa5d1e5ab339dbae545fa9ae4df247d4c7ed7cb8bb9acccbaec7a8b46a9e200",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-stats-empty",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-stats-empty--375--light.png",
+      "sha256": "b6e4aea30f507c937409a66809d3ef474910e4292ee5a8d5f7eaa269ddc3086f",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-stats-empty",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route stats; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-schedule-empty--375--dark.png",
+      "sha256": "5cb4b4b3aa6bd1b498a01fa6b6e098629e6c35f05de69b83e54ee06f92ead174",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-schedule-empty",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-schedule-empty--375--light.png",
+      "sha256": "fe24091f809cd4dc53e5a1fa8d429a91bbd24f3588be9cecca58b93f77a01357",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-schedule-empty",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route schedule; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-play-empty--375--dark.png",
+      "sha256": "2808325537a1b0c49020e0d68914f338e0106392146db963d3433d7810ab77a7",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-play-empty",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-play-empty--375--light.png",
+      "sha256": "fa42731e783719b80a7ff8886f11226f87f6e70eb04f0ce83aa688509a5df83d",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-play-empty",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route play; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-wizard-empty--375--dark.png",
+      "sha256": "c8e0f5b6eba64d496e64c07db04ea023b81697fc65e52987422499282032a39d",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-wizard-empty",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-app-wizard-empty--375--light.png",
+      "sha256": "05a8509e64d061a7497a893e313ff13fbb5ec17710713e5512a6ef215d11a6c1",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "app-wizard-empty",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/fixtures/home-states.json#brand_new identity; empty authenticated route wizard; backend reads refused",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-settings--375--dark.png",
+      "sha256": "c6c163a5150408168626cf1742c319c7786cef8cc1d6869c9115674026a1a778",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "settings",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "brand_new fixture identity; production settings segment",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-settings--375--light.png",
+      "sha256": "7f9e61ccf61b2ad1efe5edeb53df132bf5fa4f8d6ab94dc96d878721d80d5a88",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "settings",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "brand_new fixture identity; production settings segment",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-course-circle--375--dark.png",
+      "sha256": "9bd3a2e15bc8cd4e09014694a3c021b11765aadb714f9016d896417216d823fd",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "course-circle",
+      "theme": "dark",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/social-course-browser.js coursePage fixture; current production route",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/web-course-circle--375--light.png",
+      "sha256": "1f804333efa919d09088debf4bc2960493bc08eac9a16530591823ba2109091c",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "web",
+      "state": "course-circle",
+      "theme": "light",
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "fixture": "tests/social-course-browser.js coursePage fixture; current production route",
+      "scope": "Captured fixture state only; Home has empty auxiliary read models."
+    },
+    {
+      "file": "captures/ios-se3-door-dark-large.png",
+      "sha256": "643b77fb3da098ff8615a360f89603bc8dfb857d8710b82baef7613cdfdb2419",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "door",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_door",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "No personal data; signed-out isolated simulator",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-door-light-AX3.png",
+      "sha256": "b610b0b86be01a3c4a2db701bc17bc14417c31fd7cfbd8d2a5264d1c0bab76ca",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "door",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_door",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "No personal data; signed-out isolated simulator",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-morning-setup-dark-large.png",
+      "sha256": "6efe7d48579811dddfbd4ba9bf34b5c6c65c5b466564164264385e1cb998b4f9",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "morning-setup",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "setup",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented records; LiveRoundStore.seedDevRound explicitly invented golfers",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-morning-setup-light-AX3.png",
+      "sha256": "08ea13a166c4c91f18c9586dd18abbd45e7aaf65d191d5a3e8edc77fb550b1df",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "morning-setup",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "setup",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented records; LiveRoundStore.seedDevRound explicitly invented golfers",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-morning-live-dark-large.png",
+      "sha256": "5afb8ff8ffbffb1386ccb83b109eccf4dae6136c8295f517eb89d45cf8a0a293",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "morning-live",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "live",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented records; LiveRoundStore.seedDevRound explicitly invented golfers",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-morning-live-light-AX3.png",
+      "sha256": "a5db97de92559549fb2e84bdece66f9cad8bbdcb014e7b2f19018f55e35c1365",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "morning-live",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "live",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented records; LiveRoundStore.seedDevRound explicitly invented golfers",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-morning-share-dark-large.png",
+      "sha256": "034464a13e5017eeba4c47d25d1d55ea2972ebc335f99dd9fd6e896a09e8debc",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "morning-share",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "share",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented records; LiveRoundStore.seedDevRound explicitly invented golfers",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-morning-share-light-AX3.png",
+      "sha256": "8abb5942cef1d0c1047442a7e66b55212aa5baa6dbface6e3eb91507eaf9168a",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "morning-share",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "share",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented records; LiveRoundStore.seedDevRound explicitly invented golfers",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-morning-offline-dark-large.png",
+      "sha256": "fb3886de8bbfe1356a9639bc9e1272aca29b4c103ef9722d41cfa5bec7093242",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "morning-offline",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "offline",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented records; LiveRoundStore.seedDevRound explicitly invented golfers",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-morning-offline-light-AX3.png",
+      "sha256": "ee9c79ed7ecd5a234dddaf93044a93d828643768e93d5efb6b8c6b47368134fb",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "morning-offline",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "offline",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented records; LiveRoundStore.seedDevRound explicitly invented golfers",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch at composition root; full-matrix visual review confirms size change"
+    },
+    {
+      "file": "captures/ios-se3-share-long-photo-dark-large.png",
+      "sha256": "9ddb45c73bdb740e8bc187912a4fbaa481e987a20cc8e464e2244816b484e0d7",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "share-long-photo",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "share",
+        "-cs_review_long",
+        "-cs_review_photo",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented record; drawn fixture photograph, no face",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-social-receipt-dark-large.png",
+      "sha256": "0ed8e44bc36519bd9979bc94aa97acee3c54760eee8616bf3f547a1adf53f869",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "social-receipt",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_social_review",
+        "-cs_social_receipt",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "SocialBlendFixture: synthetic in-memory responses, Theo Park / North Grove, no I/O",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-wizard-dark-large.png",
+      "sha256": "f82f3f4cb789f48a347a0b448ab33106b20457190b86f07de82e51d5e672c185",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "wizard",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_wizard_fixture",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "Saturday Regulars synthetic fixture; fixtureMode blocks creation and invitations",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-covenant-dark-large.png",
+      "sha256": "3ba5faefbd1bb6dc1724768a804033dc3fbb57cbe0a1ca4f66b84675d364e6d0",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "covenant",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_launch_sheets",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "LaunchSheetFixture QA season / QA host; no server data or write",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-widget-empty-CSNextTeeWidget-dark-large.png",
+      "sha256": "25e77f80962ebc1bd6ef2323e5bd51a3c02cc07587abbfb5972937538e34b361",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "widget-empty-CSNextTeeWidget",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_widgets",
+        "-cs_widget_kind",
+        "CSNextTeeWidget",
+        "-cs_widget_state",
+        "empty",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "WidgetReviewFixture nil snapshot; no personal data",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-island-long-dark-large.png",
+      "sha256": "5ddc7c5838a2779538517f97575bb54bcb6092b4c9d87e2d33a64f39995f60d4",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "island-long",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_island",
+        "-cs_island_state",
+        "long",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "LiveIslandReviewFixture long synthetic name Alexandra Montgomery-Williams, invented round",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-share-long-photo-light-AX3.png",
+      "sha256": "2be9a5cf5615db0a35b339097741bb08d170da7ac60b85c4086288a11c0dd0fe",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "share-long-photo",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "share",
+        "-cs_review_long",
+        "-cs_review_photo",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "MorningReviewFixture invented record; drawn fixture photograph, no face",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-social-receipt-light-AX3.png",
+      "sha256": "bacee14e3b596e5cc8459aafbf1b56ceb83deedd0ca62747ca55f24cfdca5954",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "social-receipt",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_social_review",
+        "-cs_social_receipt",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "SocialBlendFixture: synthetic in-memory responses, Theo Park / North Grove, no I/O",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-wizard-light-AX3.png",
+      "sha256": "4b9eee0a14739c34676a36bb495d477fff79d979def66b867c6a961a96802a0f",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "wizard",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_wizard_fixture",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "Saturday Regulars synthetic fixture; fixtureMode blocks creation and invitations",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-covenant-light-AX3.png",
+      "sha256": "5ca62b96c8df8894bbc558d11f2edcbbfc496a1f14e40792207caedcce74bdd3",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "covenant",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_launch_sheets",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "LaunchSheetFixture QA season / QA host; no server data or write",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-widget-empty-CSNextTeeWidget-light-AX3.png",
+      "sha256": "c607e2e3437da83b7fe21a9d0950943f8975e28cffc105bbb58fc71217d0f161",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "widget-empty-CSNextTeeWidget",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_widgets",
+        "-cs_widget_kind",
+        "CSNextTeeWidget",
+        "-cs_widget_state",
+        "empty",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "WidgetReviewFixture nil snapshot; no personal data",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-island-long-light-AX3.png",
+      "sha256": "b14f352c34d303de04aa5a90d0e0bebb4b52de35fe30e296a8a0f61b3fcf97ae",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "island-long",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_island",
+        "-cs_island_state",
+        "long",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "LiveIslandReviewFixture long synthetic name Alexandra Montgomery-Williams, invented round",
+      "validation": "verified intended fixture surface by image/text check",
+      "typeProvenance": "app DEBUG hatch + system setting"
+    },
+    {
+      "file": "captures/ios-se3-door-keyboard-dark-large.png",
+      "sha256": "6d8df23fb24563497bc9337a41aa50c9266e255e1e188174dbc9436ce18d32c8",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "door-keyboard",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_pending_join",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "QA invitation context / declared invented Morning fixture; no account or form submission",
+      "validation": "XCTest waited for intended fixture field/keyboard; screenshot matrix visually reviewed",
+      "typeProvenance": "App hatch plus system content size; supplemental XCTest"
+    },
+    {
+      "file": "captures/ios-se3-setup-keyboard-dark-large.png",
+      "sha256": "e668d822518f51f6e4cd72028f53b34b7e0e18c94edefb79078cfc08d149bd43",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "setup-keyboard",
+      "theme": "dark",
+      "device": "se3",
+      "textSize": "large",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "setup",
+        "-cs_dev_appearance",
+        "dark",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "large",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "QA invitation context / declared invented Morning fixture; no account or form submission",
+      "validation": "XCTest waited for intended fixture field/keyboard; screenshot matrix visually reviewed",
+      "typeProvenance": "App hatch plus system content size; supplemental XCTest"
+    },
+    {
+      "file": "captures/ios-se3-door-keyboard-light-AX3.png",
+      "sha256": "4a44e29347337d56838f94318288c86ee93ddcf6f7ff54d948d2aed5c942c6bf",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "door-keyboard",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_pending_join",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "QA invitation context / declared invented Morning fixture; no account or form submission",
+      "validation": "XCTest waited for intended fixture field/keyboard; screenshot matrix visually reviewed",
+      "typeProvenance": "App hatch plus system content size; supplemental XCTest"
+    },
+    {
+      "file": "captures/ios-se3-setup-keyboard-light-AX3.png",
+      "sha256": "cd61d71e4f93796dd8e2eed30e6b09060cafc5552b38e32b113734af270a8f95",
+      "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+      "client": "ios",
+      "state": "setup-keyboard",
+      "theme": "light",
+      "device": "se3",
+      "textSize": "AX3",
+      "arguments": [
+        "-cs_dev_morning_review",
+        "-cs_review_scene",
+        "setup",
+        "-cs_dev_appearance",
+        "light",
+        "-cs_dev_look",
+        "none",
+        "-cs_dev_text_size",
+        "AX3",
+        "-cs_dev_offline_network"
+      ],
+      "fixture": "QA invitation context / declared invented Morning fixture; no account or form submission",
+      "validation": "XCTest waited for intended fixture field/keyboard; screenshot matrix visually reviewed",
+      "typeProvenance": "App hatch plus system content size; supplemental XCTest"
+    }
+  ]
+}

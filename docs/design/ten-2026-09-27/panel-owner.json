@@ -1,0 +1,1374 @@
+{
+  "lens": "owner",
+  "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "rows": [
+    {
+      "id": "ios/door",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 9,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/door.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-door-email.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-door-keyboard.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-door-invited.jpg"
+      ],
+      "blockers": {
+        "H": "At AX3 the invited lead pushes Sign in out of the captured small-phone view; bring the returning golfer path into a visibly discoverable sequence.",
+        "T": "The large invitation paragraph dominates the serif promise and all-caps buttons; establish a more economical large-text rhythm.",
+        "Sp": "Large empty intervals at default size become action pressure at AX3; tune the layout to available height.",
+        "C": "The same visual grammar survives both themes, but invited and generic entry have unequal action visibility; demonstrate parity.",
+        "B": "The pennant, paper and green ground are distinctive, but the invitation could speak more directly to the golfer joining; tighten state-specific copy.",
+        "P": "The entry feels considered, yet oversized invitation text and crowded keyboard presentation interrupt its finish; refine those exact states.",
+        "R": "Default secondary copy is small and muted, while AX3 invitation text is verbose; improve scan speed at both ends.",
+        "E": "The season promise is warm but abstract; a truthful invitation context could make the moment personal without invented faces.",
+        "D": "Entry spends substantial height on the promise before authentication; keep the minimum helpful context and immediate next step.",
+        "M": "Keyboard and small-phone captures show competing text and actions; show a complete sign-in pass on device at AX3, including VoiceOver, focus, dismissal and persistence."
+      },
+      "content_ceilings": [],
+      "notes": "Only opening, invitation and email/keyboard states; no successful authentication is established."
+    },
+    {
+      "id": "ios/play-cover",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 6,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-setup.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/supplemental-setup-keyboard.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-setup-keyboard-light-AX3.png"
+      ],
+      "blockers": {
+        "H": "Course/rating explanation occupies the first screen before group choices; prioritize the few decisions needed to tee off.",
+        "T": "AX3 labels and course value expand or truncate heavily; balance readable labels with the actual field values.",
+        "Sp": "The keyboard view visibly places Tee off between fields and lower controls; demonstrate a stable action/field relationship.",
+        "C": "Default columns become stacked fields at AX3, but context and labels are less clear; preserve the same information relationships.",
+        "B": "The palette and record labels fit, but the page reads as setup administration; make the golf action feel immediate with existing vocabulary.",
+        "P": "The blurred content behind the title and truncated course diminish finish; resolve those large-text details.",
+        "R": "Rating and slope depend on a shared label at large size; keep each value understandable when separated.",
+        "E": "The moment before golf feels procedural; use the actual selected course and group as the emotional anchor.",
+        "D": "Several setup explanations compete with the low-work promise; progressively disclose help while keeping necessary choices clear.",
+        "M": "Visible keyboard compression needs an end-to-end small-phone setup demonstration, with VoiceOver, field focus and saved setup; screenshots cannot prove them."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A real selected course and actual playing group, without extra tracking work.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/live",
+      "status": "scored",
+      "scores": {
+        "H": 6,
+        "T": 7,
+        "Sp": 6,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 8,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Active live scoring, on-phone scoring and queued offline states. The filename morning-kept means scoreOnPhone at hole15, NOT completed/resume. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-live.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-score.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-offline.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-kept.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-live-dark-AX3.png"
+      ],
+      "blockers": {
+        "H": "At SE3 AX3 the scoring controls sit below a screen of course metadata and legend; make current-hole entry the first useful action.",
+        "T": "The large mono metadata takes more visual weight than the golfer entry; restrain its wrapping while preserving readable text.",
+        "Sp": "AX3 spends most vertical space above the first player row; compact the header and legend relationship.",
+        "C": "Both themes retain the hole and scoring grammar, but default and AX3 afford radically different effort; equalize task priority.",
+        "B": "Ember live status and board numerals fit; simplify the metadata so the app feels like golf rather than instrumentation.",
+        "P": "Default scoring looks useful, but the AX3 first screen cannot deliver the core action; a finished large-text composition is needed.",
+        "R": "The default per-player sublabels and legend are tiny; prove quick reading outdoors with more legible supporting details.",
+        "E": "The match state and hole-winning prompts create stakes, but a still image cannot establish the lived rhythm; validate with real golfers during a real round.",
+        "D": "The repeated current-card/legend/status information displaces scoring at AX3; remove repetition and keep useful consequence close to entry.",
+        "M": "Need device/human evidence for thumb scoring, accidental taps, VoiceOver, haptics, offline queue persistence and recovery; static queued copy does not prove delivery."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Observed real-round use and actual match consequence, with no added shot tracking.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": "morning-kept is active phone scoring at hole 15, not a resume or completion state."
+    },
+    {
+      "id": "ios/share-card",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 6,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-share.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/share-photo.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/share-long.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/share-long-photo.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-photo-dark-AX3.png"
+      ],
+      "blockers": {
+        "H": "Score and course are clear, but optional photo and preview push the message row out at small AX3; keep the review sequence obvious.",
+        "T": "The export has a strong number but tiny metadata; verify its supporting text at actual shared-image viewing size.",
+        "Sp": "The SE3 photo preview competes with the fixed Share action; reduce unused preview space or show a complete scrollable review.",
+        "C": "Theme treatment is stable, but the card scale and message visibility vary sharply; make the review affordances consistent.",
+        "B": "The record language is strong; replace generic slogan dominance with actual round consequence when available.",
+        "P": "The abstract image establishes a slot only, while the large-text preview feels squeezed; prove the intended composition using a real optional photograph.",
+        "R": "Date, author and gross labels are very small inside the card; lift secondary legibility without making it noisy.",
+        "E": "The synthetic score and abstract picture do not establish a memory worth keeping; real consented round imagery and context are needed.",
+        "D": "There is considerable empty card area and little season meaning; add only truthful consequence already available.",
+        "M": "Need device evidence of the share sheet, final exported crop, optional-photo consent, VoiceOver and persistence; a visible Share button is not a completed share."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A voluntary photograph or genuine memory from the actual round.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "P",
+          "needs": "Real photo/crop quality in the exported artifact, with a strong no-photo version.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "D",
+          "needs": "True season effect or record context where the shared round actually has one.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/wizard",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Only captured initial/structure step; not entire setup agreement/lock journey. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/wizard.jpg"
+      ],
+      "blockers": {
+        "H": "The first step mixes cadence, recommendation and multiple numeric policies; emphasize the decision the Pro must make now.",
+        "T": "Large text turns the introduction into a tall block; make the headline/deck/question scale more economical.",
+        "Sp": "At AX3 the cadence choice alone fills the visible page; show a clear continuation and sensible grouping.",
+        "C": "The two themes align, but the recommendation and current settings show different values without a strong relationship; clarify which is active.",
+        "B": "Group-chat language is appropriate, though mechanics prose is heavy; preserve the voice while reducing setup burden.",
+        "P": "The initial step looks functional rather than effortlessly guided; demonstrate the selected recommendation and next state.",
+        "R": "Default explanation text is small, and AX3 creates long wrapping; use concise readable help.",
+        "E": "The promise gives the group something to play for, but no actual group is visible; genuine setup context would make it less abstract.",
+        "D": "The screen explains many mechanics before a simple choice settles; disclose detail at the relevant choice.",
+        "M": "Only an initial step is captured; prove the complete setup, accessible steppers and agreement/lock journey on device."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Actual group context during a real season setup, without fabricated members.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/sheets",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Covenant and Pro ruling sheets only; not all sheets/submit semantics. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/covenant.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/ruling.jpg"
+      ],
+      "blockers": {
+        "H": "The covenant and ruling front-load long prose before actions; bring the decision and consequence into a clearer hierarchy.",
+        "T": "AX3 bold serif paragraphs carry too much equal weight; distinguish summary, rules and disclosure.",
+        "Sp": "Ruling content begins well below the sheet top and consumes the available height; improve use of the presented sheet.",
+        "C": "Common palette holds, but ruling and covenant feel different in density; use consistent decision/summary/action structure.",
+        "B": "The Pro and ledger language protects the product values; make the record feel less like a terms screen.",
+        "P": "Large-text continuation and submission are unobserved; show polished complete sheets in the same state.",
+        "R": "Default covenant paragraphs are tightly packed; improve the short factual scan without hiding required terms.",
+        "E": "Past-season placement gives the covenant meaning, but fixture history cannot establish a real renewal moment; use true accumulated history.",
+        "D": "Useful consequences are present but buried in prose; summarize the material terms once each.",
+        "M": "Need actual sheet scrolling, keyboard, VoiceOver, dismissal and submit/confirmation evidence; only static presented portions are captured."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A genuine returning-season record and actual group participation.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/widgets",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 6,
+        "R": 7,
+        "E": 5,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Empty production view in app review host; system-host rendering/interaction not captured. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSSeasonWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSNextTeeWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSRecordWidget.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/widget-empty-CSRivalryWidget.jpg"
+      ],
+      "blockers": {
+        "H": "The empty widgets repeat their title and open instruction with little state distinction; clarify what opening resolves.",
+        "T": "AX3 small-widget text ellipsizes; use concise size-specific copy that stays complete.",
+        "Sp": "Small variants are cramped while medium variants are mostly empty; compose each supported size deliberately.",
+        "C": "All four families share a clear grammar but also the same generic empty message; make each absence understandable.",
+        "B": "The almanac typography fits, but the empty content does not express race, tee, record and rivalry differently; retain truthful distinctions.",
+        "P": "Review-host previews cannot establish system-host polish, and several messages truncate; capture actual installed sizes.",
+        "R": "Truncated small-widget instructions undermine instant reading; show complete meaningful text in each size.",
+        "E": "The captured empty widgets have little reason to glance back; actual upcoming golf or season consequence is needed before judging their full emotional value.",
+        "D": "The only data is an open prompt; assess useful glance density again with real available records, without inventing a populated state.",
+        "M": "Actual home/lock-screen hosting, refresh behavior, tap destination and accessibility are unknown; verify on devices with real WidgetKit timelines."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Actual forthcoming golf, season movement or rivalry history.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "D",
+          "needs": "Genuine available records in each widget family.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": "Scores apply only to empty production views in an app review host; populated widgets and actual system hosting are not scored."
+    },
+    {
+      "id": "ios/live-activity",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 8,
+        "D": 8,
+        "M": 6
+      },
+      "scope": "Long invented-name production view in review host; NOT actual lock screen or Dynamic Island. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/island-long.jpg"
+      ],
+      "blockers": {
+        "H": "The compact match state is clear; prove current-hole versus completed-hole context at an actual glance.",
+        "T": "Expanded metadata is very small relative to the match figure; improve supporting text within true system size limits.",
+        "Sp": "The expanded controls are crowded at the right edge; verify spacing in the actual Dynamic Island and lock-screen regions.",
+        "C": "Compact and expanded forms share meaning, but the review host does not prove system variant consistency; capture all real regions.",
+        "B": "Match-first presentation fits the product; resolve the generic review framing before judging actual brand presence.",
+        "P": "The view is clean but host-only evidence stops short of native polish; demonstrate the installed activity under system constraints.",
+        "R": "Tiny hole/progress labels need real-glance readability evidence, especially outside.",
+        "E": "The match advantage creates useful tension; observe a real player glancing during golf to establish that it feels alive.",
+        "D": "The visible match, hole and entry controls are useful; verify that the system size preserves all essential context.",
+        "M": "No actual lock screen or Dynamic Island was captured; require on-device hosting, VoiceOver, interaction, haptics, background updates and persistence evidence."
+      },
+      "content_ceilings": [],
+      "notes": "Only the long-name review-host production view is scored; not an actual system Live Activity."
+    },
+    {
+      "id": "ios/round-receipt",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Synthetic read-only receipt states. Morning core receipt includes unavailable comments; Social fixture supplies synthetic conversation. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-receipt.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-comments.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt-unavailable.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt-no-scoring.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-receipt-course-missing.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-comments-light-AX3.png"
+      ],
+      "blockers": {
+        "H": "The large card and slogan precede the points receipt; make what the round did to the season more immediate.",
+        "T": "Serif story and board numerals work, but AX3 metadata and repeated headings expand excessively; refine the relative scale.",
+        "Sp": "AX3 uses almost a full screen for one short round story; bring score and consequence into a tighter relationship.",
+        "C": "Missing-course and no-scoring variants remain coherent, but unavailable state exposes photo/delete before a loaded record; clarify the recovery hierarchy.",
+        "B": "The receipt idea is product-specific, yet the repeated brand slogan occupies useful narrative space; give that space to the actual round.",
+        "P": "Visible comments failure and large-text lower content need a more finished recovery/review experience.",
+        "R": "Timestamps and tiny overflow controls in default/AX3 mixtures are hard to scan; improve the secondary-action legibility.",
+        "E": "The reply suggests real golf conversation, but synthetic conversation and absent real photography limit emotional judgment; use actual consented round history.",
+        "D": "Points appear as a headline and again in the receipt; clarify when the receipt adds provenance rather than repetition.",
+        "M": "Need real receipt scrolling, comment keyboard/reply, VoiceOver, retry, destructive-action confirmation and persistence evidence; static controls prove only geometry."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Voluntary round photography and genuine comments connected to actual golf.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "D",
+          "needs": "Actual round-to-points provenance and season movement.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "P",
+          "needs": "A real photo and true record can test the keepsake quality beyond synthetic previews.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/social-activity",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/social-activity.jpg"
+      ],
+      "blockers": {
+        "H": "The reply and course are clear, but the settings glyph and mark-all action compete with a single item; establish primary opening behavior.",
+        "T": "The single reply scales well, while date and course wrap with similar emphasis; refine their supporting hierarchy.",
+        "Sp": "The page is deliberately sparse, but the small settings affordance sits isolated; align it with a clear control group.",
+        "C": "Theme and text scaling are coherent; demonstrate a mixed list of read/unread items before claiming complete consistency.",
+        "B": "Golf-specific reply context helps; make the activity feel connected to the round through an unmistakable destination cue.",
+        "P": "One notification is a limited stress case; show a finished populated list and long-content handling.",
+        "R": "The settings/overflow-sized glyph is visually tiny; improve its discoverability without inflating the reply.",
+        "E": "The captured reply is only synthetic evidence of social warmth; actual friend conversation is required for a top score.",
+        "D": "One item is appropriately concise; evidence of real mixed activity is needed to judge whether the list remains useful without noise.",
+        "M": "Need device proof of opening the intended round, read-state persistence, VoiceOver and reachable controls; screenshots show no completed interaction."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Genuine golfer replies and actual shared rounds.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "D",
+          "needs": "A true mixed activity history rather than fabricated notification volume.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "ios/credential-private",
+      "status": "scored",
+      "scores": {
+        "H": 6,
+        "T": 5,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 5,
+        "R": 5,
+        "E": 4,
+        "D": 5,
+        "M": 6
+      },
+      "scope": "Private credential placeholder only. Not a filled tour-card score. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/credential-private.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-credential-private-light-large.png"
+      ],
+      "blockers": {
+        "H": "The private placeholder gives no explanation beyond Private; make the state and available next step immediately understandable.",
+        "T": "The lower wordmark is crossed by a horizontal line in default-size captures; correct that collision.",
+        "Sp": "A large nearly empty credential and pronounced shadow dominate the page; refine placeholder proportions.",
+        "C": "The wordmark collision changes with text size; establish stable layout across default and AX3.",
+        "B": "The dark credential has identity, but the heavy shadow and isolated gold marker need a clearer role; preserve the approved material language.",
+        "P": "The visible line/wordmark collision and broad shadow prevent a crafted finish; resolve those artifacts in the placeholder.",
+        "R": "Brand text is visually struck through at default size; make all visible text cleanly readable.",
+        "E": "The private blank card does not communicate belonging or reassurance; add a truthful private-state explanation, without revealing hidden identity.",
+        "D": "Nearly all card area is empty and provides little meaning; add only the essential state information.",
+        "M": "No interaction is evident beyond the placeholder; establish the intended accessible read order and any real next action on device."
+      },
+      "content_ceilings": [],
+      "notes": "Private placeholder only. This is not a score of a filled Tour Card or the real golfer identity surface."
+    },
+    {
+      "id": "web/door",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 9,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/door--1280--light.png"
+      ],
+      "blockers": {
+        "H": "The main promise and email action are clear, but short-height email shows little room below the field; keep the task complete in constrained height.",
+        "T": "Story serif works well; fine mono demonstration labels and legal metadata need stronger readability.",
+        "Sp": "Desktop balance is intentional, while mobile has a long empty interval before entry; make spacing respond to the immediate task.",
+        "C": "Both themes hold together; demonstrate the email/error/code steps with equal clarity before assigning a complete-system score.",
+        "B": "The distinctive golf board and season examples establish the world; a more specific truthful entry context would strengthen the promise.",
+        "P": "The exposed unstamped version token and weak short-height finish reduce polish; verify a clean production-state capture.",
+        "R": "Desktop example metadata and muted entry-field text are small; make the supporting record details comfortably readable.",
+        "E": "The demonstrated season has warmth, but fixture people and scores do not establish authentic belonging; use genuine consented material if showcasing proof.",
+        "D": "The desktop examples clarify the product; mobile only communicates a broad promise, so demonstrate the value with minimal useful context.",
+        "M": "Need actual mobile keyboard, focus, code entry, VoiceOver and authentication persistence evidence; a shortened viewport alone is not keyboard proof."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Real permissioned round/season examples when the Door presents social proof.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/home",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 6,
+        "C": 7,
+        "B": 8,
+        "P": 6,
+        "R": 6,
+        "E": 7,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Dispatch lead/deck fixtures only; unrelated server read models empty. Not a populated-account Home proof. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/02-home-states-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/02-home-states-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1280--dark.png"
+      ],
+      "blockers": {
+        "H": "The useful dispatch lead competes with Start something, code entry, promotion and empty facts; make the next golfer action unmistakable.",
+        "T": "Serif leads are strong, but many tiny mono labels and pale supporting lines dilute hierarchy; strengthen the useful supporting level.",
+        "Sp": "The desk is sparse while the phone stacks repeated empty sections; tailor spacing to each surface purpose.",
+        "C": "The promotion panel has very weak light-on-light ink in dark mode and weak dark ink in the other theme; resolve panel-ink consistency.",
+        "B": "The dispatch voice feels like a season, but generic competition promotion interrupts the golfer story; prioritize their actual golf.",
+        "P": "Low-contrast promotion and repeated empty context keep the screen from feeling finished; resolve those visible details.",
+        "R": "The promotion title and several metadata lines are difficult to read; correct contrast in both themes.",
+        "E": "The event and completed-season lead copy carries emotion; a populated real Home is needed to establish social life and memory.",
+        "D": "Empty league/board/round/buddy signals repeat alongside multiple entry points; consolidate each fact and show actual relevant rounds when available.",
+        "M": "The mobile navigation crosses content in full-page captures; demonstrate safe scrolling, focus, hit targets and keyboard/VoiceOver on actual devices. Network persistence remains unproven."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "True friend activity and accumulated season narrative around the dispatch lead.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "D",
+          "needs": "A real populated-account read model, without inventing extra feed items.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "P",
+          "needs": "Optional consented round/course imagery that supports actual memories rather than filling empty space.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        }
+      ],
+      "notes": "Dispatch lead/deck fixtures only; unrelated read models are empty. The screenshots do not prove populated-account Home behavior."
+    },
+    {
+      "id": "web/composer",
+      "status": "scored",
+      "scores": {
+        "H": 6,
+        "T": 7,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 6,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 5
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/composer-short-viewport--375--light.png"
+      ],
+      "blockers": {
+        "H": "An install notice and optional photo compete with score/course entry; let the essential factual entry lead.",
+        "T": "Fine uppercase labels surround a large empty score; improve the label/value relationship and entry affordance.",
+        "Sp": "The short-height capture places the fixed band across the form, with the add action beneath it; show a compact usable entry viewport.",
+        "C": "The score preview and band table form a second visual system of cards; simplify around the shared form grammar.",
+        "B": "The record labels fit, but heavy panel chrome makes a quick golf post feel like a dashboard; reduce nonessential framing.",
+        "P": "The install overlay and obscured form context lower confidence; a clean completed entry state is needed.",
+        "R": "Default muted labels, placeholders and fine explanatory copy need clearer contrast and size.",
+        "E": "The captured empty composer is mechanical; show the actual round result immediately after a low-effort post to establish the emotional payoff.",
+        "D": "Point preview, band table and multiple placeholders exceed the information needed to enter a score; disclose scoring detail when useful.",
+        "M": "Visible short-height obstruction requires actual keyboard/scroll verification, plus accessible inputs, validation and successful persisted posting on device."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A genuine low-effort round post and its true season consequence.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/play-cover",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 8,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--375--dark.png"
+      ],
+      "blockers": {
+        "H": "The empty setup asks for course, group and game through a long stack; clarify the minimum path to simply tee off.",
+        "T": "Important form details are small mono text; improve the readable hierarchy between labels, explanation and values.",
+        "Sp": "The phone separates group selection from its explanation with the fixed band in the capture; prove a continuous usable scroll sequence.",
+        "C": "Nested cards and input pills create several competing boundaries; unify grouping around meaningful setup decisions.",
+        "B": "Golf vocabulary is grounded, but the dense explanatory form undercuts the low-friction promise; use less instruction at entry.",
+        "P": "The long setup and subdued placeholders feel functional; make the simple one-golfer path visibly effortless.",
+        "R": "Explanations and placeholder text are low contrast on the dark panels; improve practical outdoor legibility.",
+        "E": "The empty setup conveys no immediate anticipation beyond Tee off; a real selected course/group would provide that context.",
+        "D": "Guest explanations and game rules dominate more space than the fields; progressively reveal them at the relevant choice.",
+        "M": "Need keyboard, course search, accessible selection, actual scroll clearance and saved round creation on a phone; screenshots cannot prove them."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A real selected course and actual group before play, without new tracking requirements.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/you",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 6,
+        "R": 6,
+        "E": 6,
+        "D": 5,
+        "M": 6
+      },
+      "scope": "New synthetic golfer with no real rounds/photos. This is the You renderer; full profile/real record unobserved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg"
+      ],
+      "blockers": {
+        "H": "The credential leads well, but zeros, trophy absence and no-round messages repeat; give a new golfer one clear next step.",
+        "T": "Credential numerals have character, while the long lower record uses tiny labels; improve readable record typography.",
+        "Sp": "The empty record extends far down the phone despite sparse information; compress repeated absence.",
+        "C": "Card and record share the system but visual importance varies between large credential and small empty panels; rebalance.",
+        "B": "The personal marker and credential fit identity; make the new-golfer state feel like a beginning instead of a missing report.",
+        "P": "Only a synthetic empty identity is visible; a real earned record and cleaner empty state are needed to judge top-level finish.",
+        "R": "Lower metadata and muted zero-state text are small; strengthen readability across the long scroll.",
+        "E": "The empty card cannot establish personal meaning; actual golfer identity and earned history are needed, with optional consented photography.",
+        "D": "Zero rounds, empty trophies, absent history and course help say the same thing repeatedly; consolidate absence and foreground one action.",
+        "M": "Need accessible credential reading, full record scroll, settings opening and persisted profile changes on device; no full profile interaction is captured."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Optional consented golfer photography and true personal/league history.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "P",
+          "needs": "A genuine earned record to assess the credential and trophy presentation.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "D",
+          "needs": "Actual rounds and courses, without fabricating a full profile.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": "Only a new synthetic golfer with no real rounds or photos; no filled identity or real record is scored."
+    },
+    {
+      "id": "web/record",
+      "status": "not scored",
+      "scores": {
+        "H": null,
+        "T": null,
+        "Sp": null,
+        "C": null,
+        "B": null,
+        "P": null,
+        "R": null,
+        "E": null,
+        "D": null,
+        "M": null
+      },
+      "scope": "Not captured, not scored: app-record-empty files resolve to Play and cannot establish History.",
+      "evidence_viewed": [],
+      "blockers": {},
+      "content_ceilings": [],
+      "notes": "No History captures. Filenames app-record-empty resolve to Play; that content was not used to rate History."
+    },
+    {
+      "id": "web/compete",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 6,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg"
+      ],
+      "blockers": {
+        "H": "Start something appears both beside the title and in the body; give one primary route with clear supporting choices.",
+        "T": "Large heading is clear, but sparse small uppercase links are weakly differentiated; give action text more readable weight.",
+        "Sp": "Empty space is calm, yet the code option is stranded below other choices; group the next steps together.",
+        "C": "Theme parity is good; eliminate duplicated creation affordance for a consistent action hierarchy.",
+        "B": "The competition voice is plain and appropriate; make the empty state feel like an invitation to real friends with a specific next step.",
+        "P": "The empty state is competent but generic; refine action grouping and demonstrate the first successful transition.",
+        "R": "Muted descriptive copy and thin small action labels need stronger contrast and scanning ease.",
+        "E": "Nothing running is honest but emotionally flat; actual current competition will be needed to judge the season experience.",
+        "D": "The empty state contains duplicate creation links; use the limited content once and make every option useful.",
+        "M": "Need device evidence for create/join flows, accessible link targets, navigation and persistence; the captured empty screen proves only visible geometry."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "True active or upcoming competition with the golfer\u2019s actual group.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/golfers",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 7,
+        "P": 6,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg"
+      ],
+      "blockers": {
+        "H": "The failure message competes with board, invite, search and schedule sections; make recovery versus available tasks clear.",
+        "T": "Section metadata is small and muted; strengthen useful headings and input cues.",
+        "Sp": "Several short empty/error sections create a fragmented screen; combine related unavailable information.",
+        "C": "The page says it could not load yet displays unrelated empty claims; distinguish unavailable data from known emptiness.",
+        "B": "The reassuring voice fits friends playing golf, but multiple empty sections feel administrative; center the real social task.",
+        "P": "The error plus generic empty schedule lowers confidence; show a coherent recoverable state.",
+        "R": "Search, help and metadata are low contrast; improve actual readable task labels.",
+        "E": "The captured error cannot establish friendship or belonging; assess those against genuine friend records once captured.",
+        "D": "Board failure, no scheduled rounds and invitation copy crowd the same error state; keep only trustworthy and useful information.",
+        "M": "Need device evidence for retry, search keyboard, inviting, VoiceOver and persisted relationship changes; no completed recovery is shown."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Actual friend rounds and relationships, not fabricated social proof.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "D",
+          "needs": "A successfully loaded real golfer list and current plans.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": "Captured route is an error/partial state; no populated Golfers screen is scored."
+    },
+    {
+      "id": "web/schedule",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg"
+      ],
+      "blockers": {
+        "H": "The empty month grid dominates while the useful planning action sits below it; make the first real plan easier to reach.",
+        "T": "Tiny weekday/date/legend text needs more readable emphasis; preserve the calendar scan.",
+        "Sp": "The fixed band meets the planning button in the capture; show complete action clearance at common phone heights.",
+        "C": "The calendar is consistent between themes, but auxiliary legend and title levels are weak; tighten their shared hierarchy.",
+        "B": "The schedule is recognizably branded but generic; real golf plans should supply the place and people.",
+        "P": "The empty grid is serviceable; refine legend contrast and primary-action placement for a finished experience.",
+        "R": "Dark date numbers and legend text are subdued; improve quick outdoor readability.",
+        "E": "An empty month cannot demonstrate anticipation; use actual planned golf and true season dates for emotional assessment.",
+        "D": "An entire empty grid has little immediate value; prioritize next real golf when available and keep month browsing secondary.",
+        "M": "Need device evidence of date targets, month navigation, planning keyboard, VoiceOver and saved plan visibility; screenshots prove none of the behavior."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Real upcoming golf with actual course and group.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "D",
+          "needs": "True plans and season dates already collected.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/wizard",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Only captured initial/structure step; not entire setup agreement/lock journey. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-3.jpg"
+      ],
+      "blockers": {
+        "H": "The first step is clear, but league-name placeholder examples are long and clip; help the Pro understand the field quickly.",
+        "T": "The progress label is fine and widely spaced; make the current step easier to read without adding prose.",
+        "Sp": "The form is compact, while desktop preview is small and distant; connect the name decision to its visible result.",
+        "C": "Both themes align; show later steps before claiming consistency across the full agreement flow.",
+        "B": "The Pro vocabulary fits, but the first step feels conventional; let the actual chosen league identity create character.",
+        "P": "The static initial form is clean but insufficient to certify a polished whole wizard; show validation and preview response.",
+        "R": "Placeholder text and step metadata need stronger contrast and shorter examples.",
+        "E": "The league is still anonymous in the capture; actual group naming and agreed season context would supply the meaning.",
+        "D": "The step is appropriately narrow; prove that subsequent steps maintain that restraint without repeated mechanics.",
+        "M": "Only step one is captured; require keyboard, validation, accessible progress and full agreement/lock/persistence evidence on device."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A real group creating its own season; no fabricated members or league history.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/events",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 8,
+        "C": 7,
+        "B": 7,
+        "P": 6,
+        "R": 6,
+        "E": 5,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Unavailable-route error state only; no event room gameplay captured. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-3.jpg"
+      ],
+      "blockers": {
+        "H": "The error identifies a route problem but offers only Home; provide a clear retry or known recovery route if available.",
+        "T": "The only explanatory sentence is small and low contrast; make the recovery instruction prominent.",
+        "Sp": "The sparse layout is appropriate to failure, but the message is distant from its navigation action; connect them.",
+        "C": "The shell is consistent, while this error treatment is thinner than other retry states; standardize actionable recovery.",
+        "B": "The calm voice fits, but little product context survives; explain the failed destination in familiar terms.",
+        "P": "The capture feels unfinished as a recovery screen; give it a deliberate readable recovery action.",
+        "R": "The failure sentence is difficult to see in dark mode; strengthen its contrast.",
+        "E": "This failed-route state supplies no event moment; score only its reassurance and require actual event evidence for emotional judgment.",
+        "D": "The message is concise, but a little more specific recoverable context would be useful without invented event facts.",
+        "M": "Need proof that the visible return route works with focus, VoiceOver and retained context; actual event gameplay is wholly uncaptured."
+      },
+      "content_ceilings": [],
+      "notes": "Only unavailable-route error state. Event room, moment, gameplay and results are not captured or rated."
+    },
+    {
+      "id": "web/settings",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/06-profile-settings-1.jpg"
+      ],
+      "blockers": {
+        "H": "Card and Settings tabs are useful, but identity customization occupies many rows before the full form is visible; group the essential identity first.",
+        "T": "Marker labels and consent explanations are small; give them a clearer readable hierarchy.",
+        "Sp": "The phone sheet shows a dense marker grid and limited lower context; verify comfortable scrolling and completion.",
+        "C": "The two tabs share styling, but toggle buttons communicate state through compact labels; use a consistently obvious selected-state treatment.",
+        "B": "Personal markers are distinctive; maintain identity richness without letting choices outweigh the golfer\u2019s actual record.",
+        "P": "The sheet is carefully grouped but dense; polish the selected states and complete lower action region.",
+        "R": "Tiny marker names and muted explanatory copy need stronger legibility.",
+        "E": "Customization offers a sense of ownership; optional authentic identity and a true golfer record are needed to judge personal attachment.",
+        "D": "Many equally weighted marker choices dominate; show the current choice clearly and keep necessary settings easy to find.",
+        "M": "Need device evidence for sheet reach, toggle announcements, keyboard, consent choices and persisted changes; static labels do not prove state behavior."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Optional consented profile imagery and actual golfer identity where supported.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/course",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "scope": "Existing course-circle read fixture; only what the screenshot actually shows can be scored. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/07-round-course-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--375--dark.png"
+      ],
+      "blockers": {
+        "H": "Tee filters and a shared best lead clearly, but the course itself is mostly a label; give actual place context suitable to an editorial course surface.",
+        "T": "Condensed score and record labels work; supporting date/filter text needs more comfortable reading.",
+        "Sp": "The sheet has a large gap after filters and a crowded lower list; rebalance the narrative and record blocks.",
+        "C": "The shared-best and personal-best rows repeat the same visible number; make their distinct meanings clear without repetition.",
+        "B": "The place reads as a stat panel rather than a golf course; use actual course story and approved editorial language.",
+        "P": "The sheet is orderly but lacks the material specificity of a place; prove the composition with real optional course imagery and details.",
+        "R": "Small shared-best metadata and lower rows are subdued; improve quick understanding of whose result the number describes.",
+        "E": "Real places and shared memories could make this compelling; a course-circle fixture alone does not establish that feeling.",
+        "D": "Repeated best scores outweigh the tiny set of rounds; let real course/round history provide useful variety when available.",
+        "M": "Need device evidence for filters, opening the correct receipt, sheet scrolling and VoiceOver; visible full-page capture does not establish unobstructed interaction."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Optional consented actual course or round photography and authentic shared memories.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "P",
+          "needs": "Real place imagery and truthful course context to assess editorial craft.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "D",
+          "needs": "True accumulated course rounds and comparisons rather than repeated sparse fixture facts.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/book",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 6,
+        "C": 7,
+        "B": 8,
+        "P": 6,
+        "R": 7,
+        "E": 6,
+        "D": 8,
+        "M": 5
+      },
+      "scope": "Safe squad rows plus upcoming/error/receipt/race; individual named fields excluded for fixture provenance. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/05-season-book-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/05-season-book-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--375--light.png"
+      ],
+      "blockers": {
+        "H": "Desktop total-to-receipt relationship is useful; phone gives table chrome and season metadata precedence over the selected record.",
+        "T": "The Book title has character, but dates and dense table headers become hard to scan; refine the record typography.",
+        "Sp": "The phone reveals only a few weekly columns and rows within its visible window; improve usable space and scrolling cues.",
+        "C": "Weeks and Race have markedly different density, and empty/error states keep instructions for unavailable cells; make each state internally coherent.",
+        "B": "The Book is a strong almanac concept; long technical caveats should not dominate the golfer\u2019s reading experience.",
+        "P": "Phone clipping, visible underlying navigation and plain boxed controls reduce craft; make the reader feel deliberately composed.",
+        "R": "Weekly labels and appended markers such as D need a clearly available explanation; improve scan readability without hiding provenance.",
+        "E": "The ledger supports trust, but fixture totals cannot carry genuine season memory; true accumulated rounds and adjustments are needed.",
+        "D": "Desktop contains useful transparent detail, while the phone hides most of it; make the same provenance accessible with less navigation effort.",
+        "M": "Need actual horizontal/vertical scrolling, sticky headers, receipt opening, focus and VoiceOver table evidence; the phone screenshot alone shows cropped content and cannot establish usability."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Actual accumulated season history and meaningful rounds behind the totals.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "D",
+          "needs": "True round/adjustment provenance with complete selected receipt evidence.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": "Only safe squad rows and upcoming/error/receipt/race captures; no excluded individual identity fields are used."
+    },
+    {
+      "id": "web/share-card",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 6,
+        "B": 6,
+        "P": 6,
+        "R": 8,
+        "E": 6,
+        "D": 6,
+        "M": null
+      },
+      "scope": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/share-card-output.png"
+      ],
+      "blockers": {
+        "H": "The score leads strongly, but oversized identity and brand blocks compete with the round meaning; rebalance the keepsake hierarchy.",
+        "T": "The nearly all-sans artifact loses the strong story/board/record distinction; refine typography within the approved system.",
+        "Sp": "Large gaps and the dominant marker consume space that could carry real round context; tighten the composition.",
+        "C": "This gold-framed export differs substantially from the restrained public round and native record card; reconcile the shared artifact family.",
+        "B": "Gold frame and generic centered emblem feel more like a certificate than the current round-record world; use gold only for earned meaning.",
+        "P": "The fixture artifact is legible but generic; establish a crafted keepsake with real optional round imagery and fewer repeated phrases.",
+        "R": "The primary number is excellent; secondary date/points and subdued sentence need more balanced contrast.",
+        "E": "The band statement is repeated and synthetic data lacks personal memory; use a true round and optional consented photograph.",
+        "D": "The score-band meaning is repeated twice while season effect has little context; state each fact once and add only true available consequence.",
+        "M": "Not assessable from a standalone raster export: no visible interactive geometry. Need the real mobile sharing/review flow plus device accessibility, consent and persistence evidence for M."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "A true round with optional consented photography, not a drawn placeholder.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "P",
+          "needs": "Real image treatment and the no-photo variant at actual export size.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "D",
+          "needs": "Actual season consequence where one exists, without repeating the band label.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": "M is null because the sole evidence is a raster output with no interaction surface. This is not a claim of neutral or perfect usability."
+    },
+    {
+      "id": "web/public-round",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/03-public-round-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/03-public-round-2.jpg"
+      ],
+      "blockers": {
+        "H": "Course, score and band read clearly; make the link from a round record to playing with friends more concrete without extra promotion.",
+        "T": "The serif course and large score are strong; refine tiny metadata and long-author wrapping at mobile size.",
+        "Sp": "No-photo variants have large blank intervals; tune the vertical rhythm while keeping the record calm.",
+        "C": "Long and broken-photo variants retain structure well; verify comparable polish with varied real media and names.",
+        "B": "The record feels like Cup Season, but the generic footer slogan adds less than a real factual memory; strengthen specificity.",
+        "P": "The photo slot contains abstract fixture art; top-tier craft requires real photo/crop evidence and equally strong no-photo presentation.",
+        "R": "Fine gray record labels could be more readable; validate outdoor and actual shared-link text sizes.",
+        "E": "The page shows a result, but a drawn image cannot create a real-place memory; optional consented actual round photography is needed.",
+        "D": "Gross and band supply useful basics, but there is little true context for what the round meant; assess with legitimate available history.",
+        "M": "Need real mobile opening, image loading, broken-image recovery, accessible order and CTA destination evidence; static success/fallback frames do not prove behavior."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Optional actual round/course photography with consent and true round context.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "P",
+          "needs": "Real crops in normal, long-title and no-photo states.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "D",
+          "needs": "Only genuine share-appropriate round/season context.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web/get",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/04-read-get-support-legal-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/get--375--light.png"
+      ],
+      "blockers": {
+        "H": "The Open action leads well, but platform status and link instructions compete below; help the golfer choose their immediate path.",
+        "T": "Headlines and body have clear jobs; long platform paragraphs need a tighter reading rhythm.",
+        "Sp": "Large rounded sections create a long phone page; compact guidance around the single current task.",
+        "C": "The page matches Support well; maintain equally clear action styling across platform and deep-link states.",
+        "B": "The tone is grounded, but implementation explanations dominate the lower half; translate them into shorter golfer instructions.",
+        "P": "The page is finished-looking but burdened by operational explanation; improve the instruction flow.",
+        "R": "Body reading is solid; smaller status/footer text needs the same confidence as the primary action.",
+        "E": "The promise is modest and believable, but getting installed remains a chore in the copy; make the return to real golf feel nearer.",
+        "D": "The link section repeats installation/reopen details; make the few required steps easier to grasp once.",
+        "M": "Need actual installation, deep-link reopen, keyboard/VoiceOver and cross-browser device evidence; screenshots establish only instructions and visible controls."
+      },
+      "content_ceilings": [],
+      "notes": ""
+    },
+    {
+      "id": "web/support",
+      "status": "scored",
+      "scores": {
+        "H": 9,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 9,
+        "E": 8,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/04-read-get-support-legal-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/support--1280--light.png"
+      ],
+      "blockers": {
+        "H": "The human response promise and sections are clear; make the most urgent score/account problems instantly findable.",
+        "T": "Serif lead and condensed headings work well; reduce long uniformly weighted paragraphs for faster scanning.",
+        "Sp": "The reading measure is comfortable, but large rounded blocks make a long phone document; refine within-section spacing.",
+        "C": "The support page is coherent; align its navigation and reading treatment with Legal for one support family.",
+        "B": "The golfer-run voice builds trust; keep operational instructions concise enough to feel like help rather than a manual.",
+        "P": "The page feels careful but can be more direct around recovery steps; make each common problem immediately actionable.",
+        "R": "Reading is strong, but anchor navigation is compact; verify small-phone line wrapping and accessible link clarity.",
+        "E": "The human support promise is reassuring; top confidence requires evidence that the described help/recovery path works for actual golfers.",
+        "D": "The detail is useful, though install and link instructions overlap; avoid making the same reader learn the same rule twice.",
+        "M": "Need phone anchor navigation, mail-link handling, accessible headings/links and actual recovery-path evidence; the screenshot cannot certify behavior."
+      },
+      "content_ceilings": [],
+      "notes": "No local contact name, handle or email has been transcribed. Visual/information assessment only; no judgment of legal correctness or support delivery."
+    },
+    {
+      "id": "web/legal",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 6,
+        "B": 6,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "scope": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/04-read-get-support-legal-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/legal--1280--dark.png"
+      ],
+      "blockers": {
+        "H": "Policy sections are easy to distinguish, but the long first section dominates; add better scan landmarks within the existing truthful text.",
+        "T": "Generic sans reading differs from the more intentional Support typography; apply the established reading hierarchy.",
+        "Sp": "The long page is orderly, but dense bullet and paragraph blocks need more deliberate breathing room.",
+        "C": "Legal uses gray-black panels and a different type character from the green/paper support world; bring it into the shared reading system.",
+        "B": "The page is serviceable but visually generic; strengthen brand continuity without decorating legal content.",
+        "P": "The format feels like an attached policy template; refine its reading architecture to the same finish as Support.",
+        "R": "Text is readable, but small update metadata and compact anchors need clearer treatment on phone.",
+        "E": "Plain explanations support trust; the document could feel more confidently owned through consistent voice and visual continuity.",
+        "D": "The factual detail is appropriate to this reading surface; improve navigation through it rather than removing necessary content.",
+        "M": "Need mobile zoom/reflow, anchor focus, screen-reader heading order and link testing; screenshots do not certify accessibility."
+      },
+      "content_ceilings": [],
+      "notes": "Only visual reading structure is rated, not legal adequacy. No local name, handle or email has been transcribed."
+    },
+    {
+      "id": "web/round-receipt",
+      "status": "scored",
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 7,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "scope": "Synthetic read-only receipt states. Morning core receipt includes unavailable comments; Social fixture supplies synthetic conversation. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-3.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/07-round-course-1.jpg"
+      ],
+      "blockers": {
+        "H": "The posting result emphasizes the number and earned points well, but Share dominates returning to the board; make the season continuation clear.",
+        "T": "The celebratory score and serif sentence work; fine receipt metadata needs stronger readability.",
+        "Sp": "The post result has generous blank space and the detail sheet is tight; tune each state while keeping the round/consequence together.",
+        "C": "The post result and opened receipt use noticeably different visual treatment; give them a clearer common record identity.",
+        "B": "The round-to-points connection is strong; keep celebration proportional and let the factual result carry it.",
+        "P": "The comments failure and fixture-only outcome limit finish; demonstrate a complete loaded receipt and recovery state.",
+        "R": "Tiny receipt text and the small board-return link need more readable emphasis.",
+        "E": "The immediate score-and-points result creates a good payoff, but real golf and authentic conversation are needed for a memory score of 10.",
+        "D": "The receipt offers provenance, while the share view repeats outcome language; show how true season consequence adds useful meaning.",
+        "M": "Need successful post persistence, accessible modal focus, dismissal, photo opt-in, share-sheet and board-return evidence on device."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "Optional consented round imagery and genuine conversation around a real result.",
+          "legitimate_source": "Optional consented photography from the golfer, their round or the actual course; factual rounds and true accumulated league history. No invented people, testimonials or moments."
+        },
+        {
+          "dimension": "D",
+          "needs": "True posted-round receipt and season consequence.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": "Synthetic read-only receipt and posting-result captures; no successful live post transaction is proved."
+    },
+    {
+      "id": "web/web-desk",
+      "status": "scored",
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "scope": "Shared desktop shell evidence; auxiliary row excluded from product aggregate to avoid counting same screens twice. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions.",
+      "evidence_viewed": [
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/01-launch-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-1.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/contacts/08-app-empty-2.jpg",
+        "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1280--dark.png"
+      ],
+      "blockers": {
+        "H": "The sidebar gives the desk a proper navigation spine, but utility actions can outrank the main Home lead; keep reading priority clear.",
+        "T": "Sidebar record labels and utility links are small and muted; strengthen the desk reading scale.",
+        "Sp": "Large unused desktop regions coexist with clustered narrow cards; use the space for actual reading/admin content when present.",
+        "C": "The sidebar is stable, but contrast defects within Home promotion break the otherwise consistent shell; fix panel ink.",
+        "B": "The desk appropriately differs from the phone band; make the central reading surfaces as distinctive as the navigation.",
+        "P": "The shell feels considered, but empty fixtures and low-contrast panel details do not demonstrate a finished populated desk.",
+        "R": "Muted navigation and metadata require more readable contrast; prove focus/selected-state clarity.",
+        "E": "An empty desk cannot convey the lived season; actual record and friend history are needed to assess its emotional usefulness.",
+        "D": "The captured center content is sparse and repeats sidebar facts; one fact should live in its most useful place.",
+        "M": "This row is desktop shell geometry only; need keyboard, focus, resize and screen-reader evidence. It cannot certify mobile interaction or network persistence."
+      },
+      "content_ceilings": [
+        {
+          "dimension": "E",
+          "needs": "True season and personal history suited to desk reading.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        },
+        {
+          "dimension": "D",
+          "needs": "Actual populated records and administration states, without duplicate facts.",
+          "legitimate_source": "True accumulated rounds, league history and consented golfer contributions already collected by Cup Season; no invented activity."
+        }
+      ],
+      "notes": "Auxiliary desktop shell row only; exclude from product aggregate to avoid double counting. M describes visible desktop interaction geometry, not a phone score."
+    }
+  ],
+  "method": "Independent capture-only owner/product-fit assessment; no source, prior scorecard, other panel, A/B material or owner approval inferred. Scores are integers. Full M needs device/human evidence for VoiceOver, haptics and network persistence. Contact-sheet files listed were actually viewed; individual files listed were enlarged separately. Missing requested surfaces remain not captured/not scored, never inferred from siblings. Synthetic imagery is not real course photography. Empty/error states are assessed only as those states.",
+  "missing_requested_surfaces": "Every requested surface/client without a row is not captured/not scored or not applicable to that client; never infer its score from a sibling. iPhone-only widgets/Live Activity have no web equivalent. Public/static documents are web, opened by native link. Current store artifacts have no recapture in this baseline."
+}

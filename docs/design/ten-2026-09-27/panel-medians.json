@@ -1,0 +1,937 @@
+{
+  "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "method": "Median of three fresh capture-only scorers; numeric only when all three score; aggregate excludes auxiliary rows, missing cells never zero. Means describe captured-state subset, not whole product or a comparable longitudinal change.",
+  "rows": [
+    {
+      "id": "ios/door",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 9,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 6
+      },
+      "mean": 7.7,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Welcome, invited welcome, and email-entry simulator software-keyboard states across both devices/themes/default and AX3; no auth transaction, code/error states, or human use.",
+        "craft": "Welcome, invited welcome, invited email entry and simulator software-keyboard/menu states in dark/light, default/AX3 and both phones. No auth submission, code entry or acceptance proved.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/play-cover",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 6,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 7,
+        "E": 6,
+        "D": 7,
+        "M": 6
+      },
+      "mean": 6.8,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Initial round setup and rating-field simulator software-keyboard state only; no start transaction or posted-round composer.",
+        "craft": "Populated morning Play setup plus focused rating input with simulator numeric keyboard. No posted-round composer, tee-off transaction or hardware use proved.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/live",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 9,
+        "P": 7,
+        "R": 7,
+        "E": 8,
+        "D": 7,
+        "M": 6
+      },
+      "mean": 7.4,
+      "verdict": "polish",
+      "scope": "Active live scoring, on-phone scoring and queued offline states. The filename morning-kept means scoreOnPhone at hole15, NOT completed/resume.",
+      "judge_scopes": {
+        "category": "Active hole-15 scoring, phone scoring, and queued offline status only; morning-kept is active scoring.",
+        "craft": "Live hole-15 scoring and queued-offline visual states only. morning-kept is active on-phone scoring, not a completed/resume state. Other score behavior is unproved.",
+        "owner": "Active live scoring, on-phone scoring and queued offline states. The filename morning-kept means scoreOnPhone at hole15, NOT completed/resume. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/share-card",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "mean": 7.4,
+      "verdict": "polish",
+      "scope": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof.",
+      "judge_scopes": {
+        "category": "Synthetic share preview and drawn-image variants only; no completed share or consent persistence.",
+        "craft": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof.",
+        "owner": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/wizard",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 6,
+        "M": 7
+      },
+      "mean": 7.1,
+      "verdict": "polish",
+      "scope": "Only captured initial/structure step; not entire setup agreement/lock journey.",
+      "judge_scopes": {
+        "category": "Captured structure step only; no complete setup, agreement, or locking journey.",
+        "craft": "Existing structure-step fixture only. Fixture-identification chrome is not treated as product copy. No full setup/agreement/lock journey scored.",
+        "owner": "Only captured initial/structure step; not entire setup agreement/lock journey. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/sheets",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "mean": 7.1,
+      "verdict": "polish",
+      "scope": "Covenant and Pro ruling sheets only; not all sheets/submit semantics.",
+      "judge_scopes": {
+        "category": "Covenant and ruling sheets only, including AX3; no submission or full sheet system proof.",
+        "craft": "Covenant and Pro ruling sheets only; score the shown default/enlarged composition, not unseen scrolling or submission.",
+        "owner": "Covenant and Pro ruling sheets only; not all sheets/submit semantics. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/widgets",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 6,
+        "Sp": 7,
+        "C": 8,
+        "B": 6,
+        "P": 6,
+        "R": 6,
+        "E": 5,
+        "D": 6,
+        "M": null
+      },
+      "mean": null,
+      "verdict": "partial dimensions; no overall verdict",
+      "scope": "Empty production view in app review host; system-host rendering/interaction not captured.",
+      "judge_scopes": {
+        "category": "Four empty widget views inside an app review host only; ignore review-host headings and surrounding canvas.",
+        "craft": "Four production widget views in empty state, inside app review host. Host title and surrounding blank page are not scored as widget UI. Populated/system-host states not scored.",
+        "owner": "Empty production view in app review host; system-host rendering/interaction not captured. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/live-activity",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 8,
+        "D": 8,
+        "M": null
+      },
+      "mean": null,
+      "verdict": "partial dimensions; no overall verdict",
+      "scope": "Long invented-name production view in review host; NOT actual lock screen or Dynamic Island.",
+      "judge_scopes": {
+        "category": "Compact and expanded production views rendered in an app review host; no lock-screen or Dynamic Island evidence.",
+        "craft": "Long-name compact and expanded production Live Activity views inside review host only. Host headings not scored as product UI; system placement and behavior unknown.",
+        "owner": "Long invented-name production view in review host; NOT actual lock screen or Dynamic Island. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/round-receipt",
+      "aggregate": false,
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "mean": 7.3,
+      "verdict": "polish",
+      "scope": "Synthetic read-only receipt states. Morning core receipt includes unavailable comments; Social fixture supplies synthetic conversation.",
+      "judge_scopes": {
+        "category": "Read-only synthetic round, conversation, missing-course, no-scoring, and unavailable/error states only.",
+        "craft": "Synthetic read-only receipt, comments, missing scoring/course and unavailable-round states. Morning comments are unavailable; no comment transaction or course navigation proved.",
+        "owner": "Synthetic read-only receipt states. Morning core receipt includes unavailable comments; Social fixture supplies synthetic conversation. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/social-activity",
+      "aggregate": false,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "mean": 7.7,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Single synthetic unread-reply notification; default and AX3 across both devices/themes.",
+        "craft": "Single synthetic reply notification only; no populated feed or mark-read/settings behavior scored.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "ios/credential-private",
+      "aggregate": false,
+      "scores": {
+        "H": 6,
+        "T": 5,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 5,
+        "R": 5,
+        "E": 6,
+        "D": 6,
+        "M": null
+      },
+      "mean": null,
+      "verdict": "partial dimensions; no overall verdict",
+      "scope": "Private credential placeholder only. Not a filled tour-card score.",
+      "judge_scopes": {
+        "category": "Private credential placeholder only; no filled card, profile, or identity quality inferred.",
+        "craft": "Private credential placeholder only. No score transferred to a filled tour-card or identity surface.",
+        "owner": "Private credential placeholder only. Not a filled tour-card score. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/door",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 9,
+        "P": 8,
+        "R": 7,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "mean": 7.8,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Welcome, email entry, and reduced-CSS-viewport entry; no code/auth success states or real keyboard.",
+        "craft": "Welcome, email-entry and reduced-CSS-height proxy states only. Version token is a local baseline artifact, not a deployment claim.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/home",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 8,
+        "Sp": 7,
+        "C": 6,
+        "B": 8,
+        "P": 6,
+        "R": 5,
+        "E": 7,
+        "D": 6,
+        "M": 6
+      },
+      "mean": 6.6,
+      "verdict": "polish",
+      "scope": "Dispatch lead/deck fixtures only; unrelated server read models empty. Not a populated-account Home proof.",
+      "judge_scopes": {
+        "category": "Dispatch lead/deck fixtures only; unrelated account read models are empty and cannot establish populated Home quality.",
+        "craft": "Dispatch lead/deck fixtures only; other account read models empty. Scores describe this visible combination, not populated-account Home.",
+        "owner": "Dispatch lead/deck fixtures only; unrelated server read models empty. Not a populated-account Home proof. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/composer",
+      "aggregate": true,
+      "scores": {
+        "H": 6,
+        "T": 7,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 6,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 5
+      },
+      "mean": 6.2,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Empty first-round composer and reduced-viewport proxy only; no successful post transaction or real keyboard.",
+        "craft": "First-round/empty composer and reduced-height proxy only. No score entry, validation, keyboard or post transaction scored.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/play-cover",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 7,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "mean": 6.6,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Empty live-round setup form only; no live scoring or start transaction.",
+        "craft": "Empty setup form only. Not the separate Play menu captured under the record filename; no live flow scored.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/you",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 8,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 5,
+        "M": 6
+      },
+      "mean": 6.6,
+      "verdict": "polish",
+      "scope": "New synthetic golfer with no real rounds/photos. This is the You renderer; full profile/real record unobserved.",
+      "judge_scopes": {
+        "category": "You renderer for a new synthetic golfer with no rounds or real photos; not a full profile/record judgment.",
+        "craft": "New synthetic golfer in You renderer with no real rounds/photos. Full profile/real record unobserved.",
+        "owner": "New synthetic golfer with no real rounds/photos. This is the You renderer; full profile/real record unobserved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/record",
+      "aggregate": true,
+      "scores": {
+        "H": null,
+        "T": null,
+        "Sp": null,
+        "C": null,
+        "B": null,
+        "P": null,
+        "R": null,
+        "E": null,
+        "D": null,
+        "M": null
+      },
+      "mean": null,
+      "verdict": "not scored",
+      "scope": "Not captured, not scored: app-record-empty files resolve to Play and cannot establish History.",
+      "judge_scopes": {
+        "category": "History/record is not captured. The file named app-record-empty resolves to the Play chooser.",
+        "craft": "Not captured: app-record-empty resolves to Play menu, not History/Record.",
+        "owner": "Not captured, not scored: app-record-empty files resolve to Play and cannot establish History."
+      }
+    },
+    {
+      "id": "web/compete",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 7,
+        "M": 7
+      },
+      "mean": 6.9,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Nothing-running empty state only; no season, event, or head-to-head competition room.",
+        "craft": "Empty Compete only; no populated season, event, leaderboard or competition mechanics scored.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/golfers",
+      "aggregate": true,
+      "scores": {
+        "H": 6,
+        "T": 7,
+        "Sp": 6,
+        "C": 7,
+        "B": 7,
+        "P": 6,
+        "R": 5,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "mean": 6.2,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Golfer/board load-error state with invite/search/empty upcoming sections; no populated golfer network.",
+        "craft": "Unavailable board/error plus invitation/search controls only; no actual golfer list or relationship flow captured.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/schedule",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 7,
+        "B": 7,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "mean": 6.6,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Empty monthly calendar only; no populated schedule or event planning flow.",
+        "craft": "Empty September calendar only; no scheduled-round cards or planning interaction scored.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/wizard",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "mean": 7.6,
+      "verdict": "polish",
+      "scope": "Only captured initial/structure step; not entire setup agreement/lock journey.",
+      "judge_scopes": {
+        "category": "Initial league-name step only; no rules/agreement/lock journey.",
+        "craft": "Initial league-name/Pro step only; not the full setup agreement or lock journey.",
+        "owner": "Only captured initial/structure step; not entire setup agreement/lock journey. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/events",
+      "aggregate": true,
+      "scores": {
+        "H": 5,
+        "T": 7,
+        "Sp": 6,
+        "C": 7,
+        "B": 5,
+        "P": 5,
+        "R": 5,
+        "E": 5,
+        "D": 6,
+        "M": 6
+      },
+      "mean": 5.7,
+      "verdict": "redesign",
+      "scope": "Unavailable-route error state only; no event room gameplay captured.",
+      "judge_scopes": {
+        "category": "Unavailable-route error only. Event room gameplay and normal event surface are not captured.",
+        "craft": "Unavailable-route error only. No event room, gameplay, event moment or populated event score assigned.",
+        "owner": "Unavailable-route error state only; no event room gameplay captured. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/settings",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 6,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "mean": 7.2,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Profile-card editing and settings sheets only; no saved changes or permission outcomes.",
+        "craft": "Your-card editor and settings sheet captures only; no persistence, scan consent, notification or account-deletion behavior scored.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/course",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 7,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 6
+      },
+      "mean": 7,
+      "verdict": "polish",
+      "scope": "Existing course-circle read fixture; only what the screenshot actually shows can be scored.",
+      "judge_scopes": {
+        "category": "Course-circle read fixture only: tees, round length, shared best, personal best, and who played; no full course editorial surface.",
+        "craft": "Existing course-circle read fixture only; no full course editorial page, rating, navigation or filter transaction proved.",
+        "owner": "Existing course-circle read fixture; only what the screenshot actually shows can be scored. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/book",
+      "aggregate": true,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 6,
+        "C": 6,
+        "B": 8,
+        "P": 6,
+        "R": 7,
+        "E": 6,
+        "D": 7,
+        "M": 5
+      },
+      "mean": 6.5,
+      "verdict": "polish",
+      "scope": "Safe squad rows plus upcoming/error/receipt/race; individual named fields excluded for fixture provenance.",
+      "judge_scopes": {
+        "category": "Safe squad overview, race, upcoming, and error layouts only. Named detail fields not assessed. Receipt-named phone capture remains overview; receipt-selection behavior unknown.",
+        "craft": "Safe squad overview/race, upcoming and error states only. Receipt-named phone capture is still overview; no selected receipt behavior inferred. Named individual fields excluded.",
+        "owner": "Safe squad rows plus upcoming/error/receipt/race; individual named fields excluded for fixture provenance. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/share-card",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 7,
+        "C": 6,
+        "B": 7,
+        "P": 7,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": null
+      },
+      "mean": null,
+      "verdict": "partial dimensions; no overall verdict",
+      "scope": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof.",
+      "judge_scopes": {
+        "category": "Single static synthetic exported bitmap; no share interface, photo crop, or transaction evidence.",
+        "craft": "Single static synthetic exported card only. This actual image contains no course photograph; no sharing transaction or consent persistence scored.",
+        "owner": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/public-round",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "mean": 7.7,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Synthetic public round, no-band, long-name/course, drawn-photo, and failed-photo fallback states; no identity or live link transaction claims.",
+        "craft": "Public synthetic record, abstract image, long text, absent band and failed-image fallback only; no claim, invite or share-link lifecycle inferred.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/get",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "mean": 7.7,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Public installation information page in both themes and mobile/desktop; no installation action exercised.",
+        "craft": "Get-app information page only. Desktop crop is a viewing aid from get--1280--light.png; no installation tested.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/support",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 8,
+        "C": 8,
+        "B": 8,
+        "P": 8,
+        "R": 8,
+        "E": 8,
+        "D": 7,
+        "M": 7
+      },
+      "mean": 7.8,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Public support document only; contact details were viewed locally and are not reproduced.",
+        "craft": "Support information page, top/middle and desktop portions plus full-page contact view. Contact data intentionally omitted from output; no sending or link activation.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/legal",
+      "aggregate": true,
+      "scores": {
+        "H": 8,
+        "T": 7,
+        "Sp": 8,
+        "C": 6,
+        "B": 5,
+        "P": 6,
+        "R": 8,
+        "E": 7,
+        "D": 8,
+        "M": 7
+      },
+      "mean": 7,
+      "verdict": "polish",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "judge_scopes": {
+        "category": "Public legal document presentation only, not a legal-accuracy review; no contact details reproduced.",
+        "craft": "Visual craft of legal document only; no legal accuracy judgment. Contact data omitted. Crops are viewing aids, not altered evidence.",
+        "owner": "Score only the captured states; no unseen state is proved. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/round-receipt",
+      "aggregate": false,
+      "scores": {
+        "H": 8,
+        "T": 8,
+        "Sp": 7,
+        "C": 7,
+        "B": 8,
+        "P": 7,
+        "R": 7,
+        "E": 7,
+        "D": 7,
+        "M": 7
+      },
+      "mean": 7.3,
+      "verdict": "polish",
+      "scope": "Synthetic read-only receipt states. Morning core receipt includes unavailable comments; Social fixture supplies synthetic conversation.",
+      "judge_scopes": {
+        "category": "Synthetic read-only round sheet with unavailable conversation and post-receipt moment; no posting/sharing transaction proof.",
+        "craft": "Synthetic read-only round modal and post-receipt celebration. Conversation unavailable in the shown modal; no posting/sharing transaction proved.",
+        "owner": "Synthetic read-only receipt states. Morning core receipt includes unavailable comments; Social fixture supplies synthetic conversation. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    },
+    {
+      "id": "web/web-desk",
+      "aggregate": false,
+      "scores": {
+        "H": 7,
+        "T": 7,
+        "Sp": 7,
+        "C": 8,
+        "B": 8,
+        "P": 7,
+        "R": 6,
+        "E": 6,
+        "D": 6,
+        "M": 6
+      },
+      "mean": 6.8,
+      "verdict": "polish",
+      "scope": "Shared desktop shell evidence; auxiliary row excluded from product aggregate to avoid counting same screens twice.",
+      "judge_scopes": {
+        "category": "Auxiliary desktop-shell judgment from Home, Compete-empty, and You-empty captures; exclude from product aggregate.",
+        "craft": "Auxiliary shared desktop shell only, excluded from product aggregate to avoid duplicate screen counting. Empty fixture content is not populated-account evidence.",
+        "owner": "Shared desktop shell evidence; auxiliary row excluded from product aggregate to avoid counting same screens twice. Owner/product-fit lens; only visible captured states. Contact sheets are representative views, not proof of unseen interactions."
+      }
+    }
+  ],
+  "dimension_means": {
+    "H": 7.3076923076923075,
+    "T": 7.3076923076923075,
+    "Sp": 7.076923076923077,
+    "C": 7.461538461538462,
+    "B": 7.5,
+    "P": 6.923076923076923,
+    "R": 6.769230769230769,
+    "E": 6.653846153846154,
+    "D": 6.8076923076923075,
+    "M": 6.3478260869565215
+  },
+  "dimension_denominators": {
+    "H": 26,
+    "T": 26,
+    "Sp": 26,
+    "C": 26,
+    "B": 26,
+    "P": 26,
+    "R": 26,
+    "E": 26,
+    "D": 26,
+    "M": 23
+  },
+  "complete_row_mean": 7.008695652173913,
+  "complete_row_count": 23,
+  "disagreements": [
+    {
+      "id": "ios/live",
+      "dimension": "H",
+      "category": 8,
+      "craft": 8,
+      "owner": 6,
+      "median": 8,
+      "reading": "Keep the median 8; use the lower owner reading as the verification gate: At SE3 AX3 the scoring controls sit below a screen of course metadata and legend; make current-hole entry the first useful action. The higher category reading recognizes a relative strength within this captured state: At AX3 course/status/header consume nearly the whole SE3 screen before the score controls. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "ios/widgets",
+      "dimension": "B",
+      "category": 6,
+      "craft": 6,
+      "owner": 8,
+      "median": 6,
+      "reading": "Keep the median 6; use the lower category reading as the verification gate: Brand relies on color and title; the empty content could belong to many apps. The higher owner reading recognizes a relative strength within this captured state: The almanac typography fits, but the empty content does not express race, tee, record and rivalry differently; retain truthful distinctions. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "ios/widgets",
+      "dimension": "R",
+      "category": 5,
+      "craft": 6,
+      "owner": 7,
+      "median": 6,
+      "reading": "Keep the median 6; use the lower category reading as the verification gate: Small AX3 tiles visibly cut off their instruction. The higher owner reading recognizes a relative strength within this captured state: Truncated small-widget instructions undermine instant reading; show complete meaningful text in each size. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "ios/widgets",
+      "dimension": "D",
+      "category": 5,
+      "craft": 7,
+      "owner": 6,
+      "median": 6,
+      "reading": "Keep the median 6; use the lower category reading as the verification gate: The only useful payload is an instruction to open the app. The higher craft reading recognizes a relative strength within this captured state: Empty-state density is reasonable; small variants spend scarce space on titles before the instruction. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "ios/credential-private",
+      "dimension": "E",
+      "category": 6,
+      "craft": 6,
+      "owner": 4,
+      "median": 6,
+      "reading": "Keep the median 6; use the lower owner reading as the verification gate: The private blank card does not communicate belonging or reassurance; add a truthful private-state explanation, without revealing hidden identity. The higher category reading recognizes a relative strength within this captured state: Privacy is communicated sparsely and feels closer to missing content than intentional discretion. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "ios/credential-private",
+      "dimension": "D",
+      "category": 6,
+      "craft": 7,
+      "owner": 5,
+      "median": 6,
+      "reading": "Keep the median 6; use the lower owner reading as the verification gate: Nearly all card area is empty and provides little meaning; add only the essential state information. The higher craft reading recognizes a relative strength within this captured state: Empty private content is appropriate; the remaining status/signature could better explain the object visually. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "web/events",
+      "dimension": "H",
+      "category": 5,
+      "craft": 5,
+      "owner": 7,
+      "median": 5,
+      "reading": "Keep the median 5; use the lower category reading as the verification gate: Only a faint back link and faint failure sentence identify the state. The higher owner reading recognizes a relative strength within this captured state: The error identifies a route problem but offers only Home; provide a clear retry or known recovery route if available. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "web/events",
+      "dimension": "T",
+      "category": 5,
+      "craft": 7,
+      "owner": 7,
+      "median": 7,
+      "reading": "Keep the median 7; use the lower category reading as the verification gate: Error text and back link are both low-emphasis utility type. The higher craft reading recognizes a relative strength within this captured state: Small muted sentence carries the whole state with little typographic hierarchy. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "web/events",
+      "dimension": "Sp",
+      "category": 5,
+      "craft": 6,
+      "owner": 8,
+      "median": 6,
+      "reading": "Keep the median 6; use the lower category reading as the verification gate: The tiny error cluster sits in an otherwise empty full screen. The higher owner reading recognizes a relative strength within this captured state: The sparse layout is appropriate to failure, but the message is distant from its navigation action; connect them. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "web/events",
+      "dimension": "B",
+      "category": 5,
+      "craft": 5,
+      "owner": 7,
+      "median": 5,
+      "reading": "Keep the median 5; use the lower category reading as the verification gate: Almost no event or product character survives beyond the shell. The higher owner reading recognizes a relative strength within this captured state: The calm voice fits, but little product context survives; explain the failed destination in familiar terms. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "web/events",
+      "dimension": "P",
+      "category": 4,
+      "craft": 5,
+      "owner": 6,
+      "median": 5,
+      "reading": "Keep the median 5; use the lower category reading as the verification gate: The captured failure resembles a fallback line rather than a finished screen. The higher owner reading recognizes a relative strength within this captured state: The capture feels unfinished as a recovery screen; give it a deliberate readable recovery action. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "web/events",
+      "dimension": "R",
+      "category": 4,
+      "craft": 5,
+      "owner": 6,
+      "median": 5,
+      "reading": "Keep the median 5; use the lower category reading as the verification gate: Dark error copy and back link are especially faint. The higher owner reading recognizes a relative strength within this captured state: The failure sentence is difficult to see in dark mode; strengthen its contrast. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "web/events",
+      "dimension": "D",
+      "category": 4,
+      "craft": 6,
+      "owner": 7,
+      "median": 6,
+      "reading": "Keep the median 6; use the lower category reading as the verification gate: The state provides minimal useful information and no obvious retry control. The higher owner reading recognizes a relative strength within this captured state: The message is concise, but a little more specific recoverable context would be useful without invented event facts. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "web/share-card",
+      "dimension": "B",
+      "category": 8,
+      "craft": 7,
+      "owner": 6,
+      "median": 7,
+      "reading": "Keep the median 7; use the lower owner reading as the verification gate: Gold frame and generic centered emblem feel more like a certificate than the current round-record world; use gold only for earned meaning. The higher category reading recognizes a relative strength within this captured state: Marker and pennant are recognizable, but gold framing reads as generic achievement decoration. Neither reading establishes unseen behavior or a complete workflow."
+    },
+    {
+      "id": "web/web-desk",
+      "dimension": "D",
+      "category": 5,
+      "craft": 7,
+      "owner": 6,
+      "median": 6,
+      "reading": "Keep the median 6; use the lower category reading as the verification gate: Most screen area carries no useful information while relevant material is concentrated in small clusters. The higher craft reading recognizes a relative strength within this captured state: Rail holds useful destinations, but empty summary and large vacant content regions weaken the captured balance. Neither reading establishes unseen behavior or a complete workflow."
+    }
+  ]
+}

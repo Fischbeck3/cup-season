@@ -1,0 +1,4677 @@
+{
+  "sourceSHA": "5fabf861c4bee83e2492769f8e76ab3f9cda8281",
+  "rules": "Scores from captures alone, no prior scores/audits/source. Empty/error/partial state scores must say so. Missing actual surface is not captured/not scored. Screenshot usability is limited to visible geometry. No real person names/handles/emails transcribed.",
+  "rows": [
+    {
+      "id": "ios/door",
+      "client": "ios",
+      "surface": "door",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-door-dark-large.png",
+          "scene": "door",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "643b77fb3da098ff8615a360f89603bc8dfb857d8710b82baef7613cdfdb2419"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-door-dark-AX3.png",
+          "scene": "door",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "1ad7bbe275e93ac1aff4e7b7515ce3c7bbd3683c9bb0a766c714067df374a202"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-door-light-AX3.png",
+          "scene": "door",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "b610b0b86be01a3c4a2db701bc17bc14417c31fd7cfbd8d2a5264d1c0bab76ca"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-door-light-large.png",
+          "scene": "door",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "3f3d737b0f500aa7a620f5299ac9748c512eb500be85f8f790015ea7eb2f336a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-door-dark-large.png",
+          "scene": "door",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "602e84e9524b384b28967b217a070d3898d6b883708da0ed6f0cb5d23dd46564"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-door-dark-AX3.png",
+          "scene": "door",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "4fbf02107a3e17e338b02eaab6b3e915ac0f7ac985dade6ae2ffc1edbddc8057"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-door-light-large.png",
+          "scene": "door",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "e9f48ce1d172495654f5d3ed873aefb6c4580602d937997399fe89456dc2039a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-door-light-AX3.png",
+          "scene": "door",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "c2ae2708abbc046863238103708e5e9281d516bbbaa8e9e18174c3d4602cc8d7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-keyboard-light-large.png",
+          "scene": "door-keyboard",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "efdeb713ba77c7f5aac0340c51256da8f8a51fe1fb90f9bbce2e7a9737674a73"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-email-light-large.png",
+          "scene": "door-email",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "eadafeebfe0e9e121d633025fe96de7a8268f3a703cd086803442877e158e698"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-invited-light-large.png",
+          "scene": "door-invited",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "107909c238221103a367dbcfc2451668e8a97f2ddece0304b1d735c27f9e4e8d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-keyboard-dark-large.png",
+          "scene": "door-keyboard",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "6d8df23fb24563497bc9337a41aa50c9266e255e1e188174dbc9436ce18d32c8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-email-dark-large.png",
+          "scene": "door-email",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "6a81ed768a57d0419307470960f2ccab367ceb9ee69bb89af2339d741ad11a0d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-invited-dark-large.png",
+          "scene": "door-invited",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "ec01266c70df4451c9b3d70279ad64b24d23d3a2d9bb5c775a597f5972f9cf7e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-keyboard-light-AX3.png",
+          "scene": "door-keyboard",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "4a44e29347337d56838f94318288c86ee93ddcf6f7ff54d948d2aed5c942c6bf"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-email-light-AX3.png",
+          "scene": "door-email",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "0da528334596bee7bdbe8c8d36256b82daab1b31b729ec7abc4c291295a30b51"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-invited-light-AX3.png",
+          "scene": "door-invited",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "c77999f5070aa16983e0a957eca52a852ff9d33e10525d7b8bb0976aa75149d6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-keyboard-dark-AX3.png",
+          "scene": "door-keyboard",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "cabbd108449daa4e40b4604e27681f0c6074ff33d8f982a8c2ab5e5ea4649ac6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-email-dark-AX3.png",
+          "scene": "door-email",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "c036afe41925ae76966f54eb82d2b95e2bc9148827152ab74ab62c9d37e21a05"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-door-invited-dark-AX3.png",
+          "scene": "door-invited",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "a75b9a9451a0aedc76a6cb86ab668bb9ea15a292b067cccadcf389213b86c9a2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-keyboard-light-large.png",
+          "scene": "door-keyboard",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "64cf610bc97ddade30ac108ec8025f0d864c0270f40272e7e6f8db39e6a4b5fb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-email-light-large.png",
+          "scene": "door-email",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "2ab590d4b66422bb84d3b1ab3ecc03fbba25d001ad888e4149a7f4ff7622dcc4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-invited-light-large.png",
+          "scene": "door-invited",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "cab72439566d9e72e249c2d65e15bc36ab9f59027477ba716c639051f06e95ec"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-keyboard-dark-large.png",
+          "scene": "door-keyboard",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "7105e7014d877a52c8c9f755cf1910caea2a38692463cb0cf92103237e1dcc07"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-email-dark-large.png",
+          "scene": "door-email",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "c72ec6a9a0601a338fe4043e282f62934de35407ee4c85540d27973f1b7f00e4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-invited-dark-large.png",
+          "scene": "door-invited",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "c651e0b75b09287d6ede3c106f517a4d24ced62d801c0e357b6cd50eefe72614"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-keyboard-light-AX3.png",
+          "scene": "door-keyboard",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "0414a403adde910c6a56c8b387d46e6bd6a1736105692d9b2e63135751f8c347"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-email-light-AX3.png",
+          "scene": "door-email",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "eaed6d62e9415a054504fef07fea66ee1759f42663922adcf822eb31175d7250"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-invited-light-AX3.png",
+          "scene": "door-invited",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "786491d6f542a10343913d4a20aaac81d786218427264b1448401190d9558227"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-keyboard-dark-AX3.png",
+          "scene": "door-keyboard",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "a5286bb7c540164ef5e0f8f8548255429a06b432e6b473f6cd63c35791b12622"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-email-dark-AX3.png",
+          "scene": "door-email",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "5dbeb22c1b3206c5847e1138945f9c79d6a1d683672cf12b9558cf53519ca6be"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-door-invited-dark-AX3.png",
+          "scene": "door-invited",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "9c702944e232e1e595cb823b374e17c5ec56318779538bcc05a44df29a3d6761"
+        }
+      ]
+    },
+    {
+      "id": "ios/play-cover",
+      "client": "ios",
+      "surface": "play-cover",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-setup-dark-large.png",
+          "scene": "morning-setup",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "6efe7d48579811dddfbd4ba9bf34b5c6c65c5b466564164264385e1cb998b4f9"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-setup-dark-AX3.png",
+          "scene": "morning-setup",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "16bc43794bc8bbfc69de8b7659b486c3d5cd4af20a740ebc7c4306014c5c87b6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-setup-light-large.png",
+          "scene": "morning-setup",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "dbed1227c5b6749b6b560930b91ba53d71053127c1266249f1a3415db6747229"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-setup-light-AX3.png",
+          "scene": "morning-setup",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "08ea13a166c4c91f18c9586dd18abbd45e7aaf65d191d5a3e8edc77fb550b1df"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-setup-dark-large.png",
+          "scene": "morning-setup",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "f607f064b790c5aecbc2d42702eefcf2635d16598d772c1ddcdf632fc94e0a7b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-setup-dark-AX3.png",
+          "scene": "morning-setup",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "85fe268715531b028b6a80ed90cd59c829d7d1e186bf46937fa137d1e32680d6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-setup-light-large.png",
+          "scene": "morning-setup",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "a4db6b74fdd28fb6032184952f87b1815c19b0138a2aca418205d559ef8a1b7a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-setup-light-AX3.png",
+          "scene": "morning-setup",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "cb2054ed2d9907e7587b7501234387027c28860ccf36fb31d5c0986e348d7588"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-setup-keyboard-light-large.png",
+          "scene": "setup-keyboard",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "91d33f2caf02476e2f019db2b4b0ac2a333f608b735c2d565cc9327156173c21"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-setup-keyboard-dark-large.png",
+          "scene": "setup-keyboard",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "e668d822518f51f6e4cd72028f53b34b7e0e18c94edefb79078cfc08d149bd43"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-setup-keyboard-light-AX3.png",
+          "scene": "setup-keyboard",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "cd61d71e4f93796dd8e2eed30e6b09060cafc5552b38e32b113734af270a8f95"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/se3-setup-keyboard-dark-AX3.png",
+          "scene": "setup-keyboard",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "a2bc46e22ed22f88a0ebeb821a0829bbf9a80eb23b213d6c0e5b1a06c4b74d5a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-setup-keyboard-light-large.png",
+          "scene": "setup-keyboard",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "1753f315e329d2199d7f3d94b83efe7815cf5cda6baa19b8826a435006f2b516"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-setup-keyboard-dark-large.png",
+          "scene": "setup-keyboard",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "a6c7db6f317a0674bd97746171521fb37078dfb99736af1744df246cbb1453f6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-setup-keyboard-light-AX3.png",
+          "scene": "setup-keyboard",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "6f05e0ebf019e6f6a7317d608aa71a4dadb6aef29d8cd02d2a8fb65976a9b6c3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/supplemental/17pro-setup-keyboard-dark-AX3.png",
+          "scene": "setup-keyboard",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "cfdc1e2aaf98a085804837eb2a2f7951192f05c5b91f4b9069e8a4c0e715d6bd"
+        }
+      ]
+    },
+    {
+      "id": "ios/live",
+      "client": "ios",
+      "surface": "live",
+      "scope": "Active live scoring, on-phone scoring and queued offline states. The filename morning-kept means scoreOnPhone at hole15, NOT completed/resume.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-live-dark-large.png",
+          "scene": "morning-live",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "5afb8ff8ffbffb1386ccb83b109eccf4dae6136c8295f517eb89d45cf8a0a293"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-live-dark-AX3.png",
+          "scene": "morning-live",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "6f7e823d38c44cb1605039484d6c245ed0bb817e1eabd0cf8ff416f005b82fc6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-live-light-large.png",
+          "scene": "morning-live",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "70541f1c6d99158a046207b16071675b4b7a6d05461e952533fe4cb50c248a87"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-live-light-AX3.png",
+          "scene": "morning-live",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "a5db97de92559549fb2e84bdece66f9cad8bbdcb014e7b2f19018f55e35c1365"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-score-dark-large.png",
+          "scene": "morning-score",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "9f63d2ae26f470ea7a83a2aab6b48a65255b07f9fb59450cf5e5b2e4488831c9"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-score-dark-AX3.png",
+          "scene": "morning-score",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "6f7e823d38c44cb1605039484d6c245ed0bb817e1eabd0cf8ff416f005b82fc6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-score-light-large.png",
+          "scene": "morning-score",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "a686e690e7799152b1d1da9ec69ed846746e86d28ceebba868c825e3715f7fce"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-score-light-AX3.png",
+          "scene": "morning-score",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "a5db97de92559549fb2e84bdece66f9cad8bbdcb014e7b2f19018f55e35c1365"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-offline-dark-large.png",
+          "scene": "morning-offline",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "fb3886de8bbfe1356a9639bc9e1272aca29b4c103ef9722d41cfa5bec7093242"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-offline-dark-AX3.png",
+          "scene": "morning-offline",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "b508b88e89bda2f1ded19f077191ae9c101b1c4d1b8c975d98c6fb5f21e078bd"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-offline-light-large.png",
+          "scene": "morning-offline",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "46e6ff889d4508543abe4e8468273ed0b7d60741210af0d0ec285103726aa310"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-offline-light-AX3.png",
+          "scene": "morning-offline",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "ee9c79ed7ecd5a234dddaf93044a93d828643768e93d5efb6b8c6b47368134fb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-kept-dark-large.png",
+          "scene": "morning-kept",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "5afb8ff8ffbffb1386ccb83b109eccf4dae6136c8295f517eb89d45cf8a0a293"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-kept-dark-AX3.png",
+          "scene": "morning-kept",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "6f7e823d38c44cb1605039484d6c245ed0bb817e1eabd0cf8ff416f005b82fc6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-kept-light-large.png",
+          "scene": "morning-kept",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "70541f1c6d99158a046207b16071675b4b7a6d05461e952533fe4cb50c248a87"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-kept-light-AX3.png",
+          "scene": "morning-kept",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "a5db97de92559549fb2e84bdece66f9cad8bbdcb014e7b2f19018f55e35c1365"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-live-dark-large.png",
+          "scene": "morning-live",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "5244a0eb5614a2177c7550adf84a721c76a5a4979c48bcc99f855b58168835f1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-live-dark-AX3.png",
+          "scene": "morning-live",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "c216d6939c9ea512505074e821e00741616cebb7e3a0dbc5a9e8daa6b3a21f68"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-live-light-large.png",
+          "scene": "morning-live",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "1123def80bf3049849ccbe0223c0793c9e753f17b750f0fb8757616240da7077"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-live-light-AX3.png",
+          "scene": "morning-live",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "011e5960ddbfab5bd4ff714360e60f7c65219541d1c8c6227467530345849c3f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-score-dark-large.png",
+          "scene": "morning-score",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "eb664643be15dcafd106a965fac7be1182b1bc5138805ea413efe2b6234301f0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-score-dark-AX3.png",
+          "scene": "morning-score",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "c216d6939c9ea512505074e821e00741616cebb7e3a0dbc5a9e8daa6b3a21f68"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-score-light-large.png",
+          "scene": "morning-score",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "35b2b0d0013f1130dcfc13fe57f4a50c68950a4f70a57531172c6940758a77b0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-score-light-AX3.png",
+          "scene": "morning-score",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "011e5960ddbfab5bd4ff714360e60f7c65219541d1c8c6227467530345849c3f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-offline-dark-large.png",
+          "scene": "morning-offline",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "6f58070bac8fd61be9e731ad58a2605455941a571e0cd5c0d4f81d4f6f5f2d80"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-offline-dark-AX3.png",
+          "scene": "morning-offline",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "f05cb74bc05c08913f38af1aa03170f97a1e0497ae7880ddc4c9ca98a29c6cf0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-offline-light-large.png",
+          "scene": "morning-offline",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "2278e8eaabdfe9804eb99f8d800e5cf295d274865ffe2cdefd4e4fcf63eade91"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-offline-light-AX3.png",
+          "scene": "morning-offline",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "046cb77234057b5654282ae4abc66fdec9c91c8cd197d98a216d0af1bb6055ac"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-kept-dark-large.png",
+          "scene": "morning-kept",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "5244a0eb5614a2177c7550adf84a721c76a5a4979c48bcc99f855b58168835f1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-kept-dark-AX3.png",
+          "scene": "morning-kept",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "c216d6939c9ea512505074e821e00741616cebb7e3a0dbc5a9e8daa6b3a21f68"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-kept-light-AX3.png",
+          "scene": "morning-kept",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "011e5960ddbfab5bd4ff714360e60f7c65219541d1c8c6227467530345849c3f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-kept-light-large.png",
+          "scene": "morning-kept",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "1123def80bf3049849ccbe0223c0793c9e753f17b750f0fb8757616240da7077"
+        }
+      ]
+    },
+    {
+      "id": "ios/share-card",
+      "client": "ios",
+      "surface": "share-card",
+      "scope": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-share-dark-large.png",
+          "scene": "morning-share",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "034464a13e5017eeba4c47d25d1d55ea2972ebc335f99dd9fd6e896a09e8debc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-share-dark-AX3.png",
+          "scene": "morning-share",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "7a9a88a651c823b2b6534d623a92e615293a065d6fbf9662af59db0384ec9bd2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-share-light-large.png",
+          "scene": "morning-share",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "bff93dc1ad2871d6952fde2a3e2b9a93af3abf02a191060b00f3ad1d394d2ff8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-share-light-AX3.png",
+          "scene": "morning-share",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "8abb5942cef1d0c1047442a7e66b55212aa5baa6dbface6e3eb91507eaf9168a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-photo-dark-AX3.png",
+          "scene": "share-photo",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "2323a6b01751605a35b84e967d39edc9b6017a86c4d695f321c2d429f744a2e7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-photo-dark-large.png",
+          "scene": "share-photo",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "285e862146c31ecaa2dce5bf9c3b7edf635b46c74209c616a3f00a1ac4d0589b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-photo-light-large.png",
+          "scene": "share-photo",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "12969d5f0319d8bfbff7dcc272774208d10373742d92b6f95e64cf4d0c7c00db"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-photo-light-AX3.png",
+          "scene": "share-photo",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "0aa96743d5127aa124bacc551d2de8626f5b0fc9387392cb9a79964fe0e3e927"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-long-dark-large.png",
+          "scene": "share-long",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "6b8a3b3bcf45b60d4db980b82f8c67327d04fc4a708ce42651cb2254addbdb5a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-long-dark-AX3.png",
+          "scene": "share-long",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "41537572b6140732725fd6a9f9eddb092418bd8d67cd8b88957544cb71eec711"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-long-light-large.png",
+          "scene": "share-long",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "c8587eb4d1508a9c879dc40b194a80f1a99b210255dcf1624ce43027c0c13240"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-long-light-AX3.png",
+          "scene": "share-long",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "9dc9d463789c72e6d66fda171ff0e28bdb9d8ab10e5250d59aaa8d2714e1372b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-long-photo-dark-large.png",
+          "scene": "share-long-photo",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "9ddb45c73bdb740e8bc187912a4fbaa481e987a20cc8e464e2244816b484e0d7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-long-photo-light-large.png",
+          "scene": "share-long-photo",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "867969415427fc41c0f2abe77584b71b41d592b8d738b9a1f267772609e3e91a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-long-photo-dark-AX3.png",
+          "scene": "share-long-photo",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "a9275aa9c1e4c5c6d394cfb8a63ba3856b13bce57339d23403c5ed4bff4f8af6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-share-long-photo-light-AX3.png",
+          "scene": "share-long-photo",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "2be9a5cf5615db0a35b339097741bb08d170da7ac60b85c4086288a11c0dd0fe"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-share-dark-large.png",
+          "scene": "morning-share",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "7ef0abdca0a3efdf15903dc128468b9667c2135447b021ef64b5c8eac9db7732"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-share-dark-AX3.png",
+          "scene": "morning-share",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "07a32ad4a0fb39415f202eb57fd843923bdfdaea5fb35fc1b09a119b62d06571"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-share-light-large.png",
+          "scene": "morning-share",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "a74190566d418bc8d3a28efe5bfb03020c28186268b2b2e6ddfb45092272a3eb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-share-light-AX3.png",
+          "scene": "morning-share",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "20fa04028b7337a310160e5ada50c666c338fd01760d5c02583186c1eb26dc69"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-photo-dark-large.png",
+          "scene": "share-photo",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "163ddcfcb82549104fc00d4c4d7e5f0a077a7e4f18d150042846347adc3a4051"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-photo-dark-AX3.png",
+          "scene": "share-photo",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "5201a76e861d778553dcb9a4cfe7052b27a739496eb298db08b285397626b233"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-photo-light-large.png",
+          "scene": "share-photo",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "5a9a38e25edfded06b57d1051bb53dab4e9d886237c0c4b3c98c3660932c29f4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-photo-light-AX3.png",
+          "scene": "share-photo",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "3efad2cfb2eab5f77e24fa8539e7e38370d5b04c48a590ca7a76c05086ccc0df"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-long-dark-large.png",
+          "scene": "share-long",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "183d5278b197bdfa14a23b6b0ea4ef64e1250a5e6e957a1007ef38a0fe00ba45"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-long-dark-AX3.png",
+          "scene": "share-long",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "df0d9f234378f81c7fc84cf1d3ce0e1c12968e944c32d941c6535241ebed90d4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-long-light-large.png",
+          "scene": "share-long",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "84ea8bf174a91effcd24c4891267efcbbfb14d0251fe96227114ad00623f9d6a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-long-photo-dark-large.png",
+          "scene": "share-long-photo",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "5bbae3112e05d9edea4a83a5d1f2e33e34ab5cd21e80ba47f56b52391171b08b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-long-photo-light-large.png",
+          "scene": "share-long-photo",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "9ddc6117934a3ea7f3698a74b5bd344923feffb8fe2e323845fc4445c23ac2bc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-long-light-AX3.png",
+          "scene": "share-long",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "607d5f1091dced9f723dec2b15cac1e8e7fa80356d0713b47d4fa3e22ab98ead"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-long-photo-dark-AX3.png",
+          "scene": "share-long-photo",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "62c281c9d7e8e121a0b34bb69827aa6e72c732454ef1bd988d0b86198c2290f0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-share-long-photo-light-AX3.png",
+          "scene": "share-long-photo",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "e07306231b237007fe22ad8023cfc57aa7e73710c1fe5a1d67bcd5f60e541f44"
+        }
+      ]
+    },
+    {
+      "id": "ios/wizard",
+      "client": "ios",
+      "surface": "wizard",
+      "scope": "Only captured initial/structure step; not entire setup agreement/lock journey.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-wizard-dark-large.png",
+          "scene": "wizard",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "f82f3f4cb789f48a347a0b448ab33106b20457190b86f07de82e51d5e672c185"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-wizard-light-large.png",
+          "scene": "wizard",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "946fa1654685639a8d7dcd6bfad2948a8c0f8663f46c88a327234056f5d89a66"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-wizard-dark-AX3.png",
+          "scene": "wizard",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "a6ad7e40177659ac0780739cc800eaafc96ff8de7c3a55ef472596c905f53238"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-wizard-light-AX3.png",
+          "scene": "wizard",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "4b9eee0a14739c34676a36bb495d477fff79d979def66b867c6a961a96802a0f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-wizard-dark-large.png",
+          "scene": "wizard",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "42083ba1a2b47d01b6b6dc951b82c7f78fce9e4a9f618a2c3e2d1b9ea7fd293f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-wizard-light-large.png",
+          "scene": "wizard",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "ecb8bbd31681ce6f9e701bb2d91717483186031f71b4f9e78c69b9fe758b7879"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-wizard-dark-AX3.png",
+          "scene": "wizard",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "23d9db8f8264a5262a4683f6f86ecc0f40a2e776729d6a71c4ba1d4e983a1d47"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-wizard-light-AX3.png",
+          "scene": "wizard",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "f2e2a8165d957054d97462f17ea5e340d665926afc430cb40af374aab93c0a12"
+        }
+      ]
+    },
+    {
+      "id": "ios/sheets",
+      "client": "ios",
+      "surface": "sheets",
+      "scope": "Covenant and Pro ruling sheets only; not all sheets/submit semantics.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-covenant-dark-large.png",
+          "scene": "covenant",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "3ba5faefbd1bb6dc1724768a804033dc3fbb57cbe0a1ca4f66b84675d364e6d0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-covenant-light-large.png",
+          "scene": "covenant",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "342558646fe08ed4ef8e0e33fc875b22809de6f226a91c2e62d1adfb9fc040cb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-ruling-dark-large.png",
+          "scene": "ruling",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "ee94ce725fc0550d91a202d1ee359b649be9e33fe2d2ed41775a2f2789203d1f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-ruling-light-large.png",
+          "scene": "ruling",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "43f1fae92c6b800fad79d84cccd36916a10651d61baeef21cb8c251672793630"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-covenant-dark-AX3.png",
+          "scene": "covenant",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "3e6f354e3054494cff9f4738cce4c0f16a76af496e456f820ec6cfc835f40f64"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-covenant-light-AX3.png",
+          "scene": "covenant",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "5ca62b96c8df8894bbc558d11f2edcbbfc496a1f14e40792207caedcce74bdd3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-ruling-dark-AX3.png",
+          "scene": "ruling",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "1ee830f82a30981a80b513bcf2dec8a1f0477398a1ca0146fa8055f47a4b905f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-ruling-light-AX3.png",
+          "scene": "ruling",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "5127ee4e1002a261dbeae386edb9e38acff164887fd329de8f3e45b793a520bc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-covenant-dark-large.png",
+          "scene": "covenant",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "03fb4d9dc2168d8886ed6d57635c2fceb5876371fea3a2f2e712d975fca2b86c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-covenant-light-large.png",
+          "scene": "covenant",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "707e217fd6f4c9e3c74fb5c53f4ceaebd47e2b6dbdc3558e8cba68765bce824a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-ruling-dark-large.png",
+          "scene": "ruling",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "2a89e7d396ac66252629a95b4fe21b61bd12be3a9adb2dd9df246c2c4ea0f884"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-ruling-light-large.png",
+          "scene": "ruling",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "3b9594bbb8f404117ddff268f2ccaba25be08dd812d57c2820cf599f2128a0ff"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-covenant-dark-AX3.png",
+          "scene": "covenant",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "f7c136f1f0d36e4096d94e866579e4cc151fe99b09a58fcaadd1297c7fc81a50"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-covenant-light-AX3.png",
+          "scene": "covenant",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "0e00b302e229ed5d01f2640afcb1f44a9c530351bddca7bed9433ee3fc9e838b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-ruling-dark-AX3.png",
+          "scene": "ruling",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "e52c0f22c7ab934dbd78d0ede4b389bf0bed9baea8074aa76731a59556e98293"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-ruling-light-AX3.png",
+          "scene": "ruling",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "573e88e3f20d0ab01c530f3b3126ebb09af7b3ca7dc7a5719faeaf927b0a8fc1"
+        }
+      ]
+    },
+    {
+      "id": "ios/widgets",
+      "client": "ios",
+      "surface": "widgets",
+      "scope": "Empty production view in app review host; system-host rendering/interaction not captured.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSSeasonWidget-dark-large.png",
+          "scene": "widget-empty-CSSeasonWidget",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "0dabda44d72a4925eb5c6cd0c5bfd8326d98ab62be45aa90174a732b11be9fb0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSSeasonWidget-light-large.png",
+          "scene": "widget-empty-CSSeasonWidget",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "cd4a5ff4760039e3e4869fbc63297a9c8082fc3d8d8d39d9435cac7008cbe6f1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSNextTeeWidget-dark-large.png",
+          "scene": "widget-empty-CSNextTeeWidget",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "25e77f80962ebc1bd6ef2323e5bd51a3c02cc07587abbfb5972937538e34b361"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSNextTeeWidget-light-large.png",
+          "scene": "widget-empty-CSNextTeeWidget",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "cf39bf2dc054ac0c78e51f2611d290fc5bfcae706e23a55ac583da6d01b18eda"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSRecordWidget-dark-large.png",
+          "scene": "widget-empty-CSRecordWidget",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "fd881362b66760d756c6ff281347f961cc10b3fd13a4d0b903b80249369d8ece"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSRecordWidget-light-large.png",
+          "scene": "widget-empty-CSRecordWidget",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "a23611fdb03bd2fc9cb6bf51d9b638ea02f0d54af4d87acb3a62623482284dd8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSRivalryWidget-dark-large.png",
+          "scene": "widget-empty-CSRivalryWidget",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "1437b26df4e3f64154974c7eb45a16fc212a06d4fb3926901cdde386b23b3d6f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSRivalryWidget-light-large.png",
+          "scene": "widget-empty-CSRivalryWidget",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "a42a598c957743857172c7a5aeccf73e5f21425b3a69d3a7a02f9aeaa0a299b7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSSeasonWidget-dark-AX3.png",
+          "scene": "widget-empty-CSSeasonWidget",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "999ad4dd2ae9c6f9da605a222e82525da7b466bfc548bd53dd0f042b9fec2662"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSSeasonWidget-light-AX3.png",
+          "scene": "widget-empty-CSSeasonWidget",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "8395d59c821dd95d3e9a1201ae1fcd8cd73793baa9f5ea201d8ff91eb8aed4cd"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSNextTeeWidget-dark-AX3.png",
+          "scene": "widget-empty-CSNextTeeWidget",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "18a7f26c6f70a2fdf81c87f4e6e3cdb418cb831f2eb4dbed4d4d10c157c58048"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSNextTeeWidget-light-AX3.png",
+          "scene": "widget-empty-CSNextTeeWidget",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "c607e2e3437da83b7fe21a9d0950943f8975e28cffc105bbb58fc71217d0f161"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSRecordWidget-dark-AX3.png",
+          "scene": "widget-empty-CSRecordWidget",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "9a4a683f60d16f9c723f51d1ca2f485fd74fa143e5b184db661ac01b5b604114"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSRecordWidget-light-AX3.png",
+          "scene": "widget-empty-CSRecordWidget",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "23324b316e547e580ade8d17794e19fdc5afc18b71b7d7449c216d6eb95a6879"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSRivalryWidget-dark-AX3.png",
+          "scene": "widget-empty-CSRivalryWidget",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "7878e68b99b61c95bf50e7af69b9b39ea7d76184ebf566907c4612a3533a1a95"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-widget-empty-CSRivalryWidget-light-AX3.png",
+          "scene": "widget-empty-CSRivalryWidget",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "48503f6ae816e20750134909baeef0134fc92fc8138d013736d5ca72671203f9"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSSeasonWidget-dark-large.png",
+          "scene": "widget-empty-CSSeasonWidget",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "342f47f13a2058310610758d15f5f31c478b45ef4ae42abae31bf242251bed6c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSSeasonWidget-light-large.png",
+          "scene": "widget-empty-CSSeasonWidget",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "a6293451f5bc545935c3a615e347b259429ea6008ec60d74527482dea830a7f0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSNextTeeWidget-dark-large.png",
+          "scene": "widget-empty-CSNextTeeWidget",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "2b81651ae9c4745887f609e070338997682dd4820fd30a177ccb29221ebec7e7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSNextTeeWidget-light-large.png",
+          "scene": "widget-empty-CSNextTeeWidget",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "6e1b04c06fe65b521b6e8ebb927e6f669432a38b0c30ecef7470677f7c4f8132"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSRecordWidget-dark-large.png",
+          "scene": "widget-empty-CSRecordWidget",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "8fcc331126c94b9e9d8495d52103483494087cdd78c0068152b7e7bac78e8950"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSRecordWidget-light-large.png",
+          "scene": "widget-empty-CSRecordWidget",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "d9dc9f1cb5e64877d170fba88e3d881a2e0ad51aa9c60456ee850120edfa8a5e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSRivalryWidget-dark-large.png",
+          "scene": "widget-empty-CSRivalryWidget",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "1ba7e0d34f5f06342e499ee3ee1cb7792e9d9884f18ad81d4459d8ccae886d6a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSRivalryWidget-light-large.png",
+          "scene": "widget-empty-CSRivalryWidget",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "4edbd25ef2d845a426fe4c064215cad35e468ad82e3907f937e76c6d3671ffda"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSSeasonWidget-dark-AX3.png",
+          "scene": "widget-empty-CSSeasonWidget",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "5b1ab4744e5791479f7ef0e5089c6e5a5b49ace08feaec17ec758a7d08b2f781"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSSeasonWidget-light-AX3.png",
+          "scene": "widget-empty-CSSeasonWidget",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "56636f0b84e1aa75b8fc9b14354ddaac0a84ccd20b1da9963e184fc2cd8a7247"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSNextTeeWidget-dark-AX3.png",
+          "scene": "widget-empty-CSNextTeeWidget",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "c8053a091007e2e180263ce1cc4a15522609ab57f3046533845d7bcc05c54488"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSNextTeeWidget-light-AX3.png",
+          "scene": "widget-empty-CSNextTeeWidget",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "47691a2bd8f0bc14be2ed568f40c02720aa2251287b6117f14f4f730594d1c07"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSRecordWidget-dark-AX3.png",
+          "scene": "widget-empty-CSRecordWidget",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "c5cdf69fc4134ce551987d03c6c8300e4cc1fbaf4cd17cfeeb4ba772a504caf4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSRecordWidget-light-AX3.png",
+          "scene": "widget-empty-CSRecordWidget",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "7efb4ce03a1f89933bc1e06238a724b35840d6a36df369f4748ba255897ee630"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSRivalryWidget-dark-AX3.png",
+          "scene": "widget-empty-CSRivalryWidget",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "b104b9c7ec45d7890027a886a9e2eba95863db812a1cdb75c7dd4647b49809bf"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-widget-empty-CSRivalryWidget-light-AX3.png",
+          "scene": "widget-empty-CSRivalryWidget",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "187a379832947f76fd865abc9abefa5d0241ac08117bcbb2a5106213571ae7fa"
+        }
+      ]
+    },
+    {
+      "id": "ios/live-activity",
+      "client": "ios",
+      "surface": "live-activity",
+      "scope": "Long invented-name production view in review host; NOT actual lock screen or Dynamic Island.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-island-long-dark-large.png",
+          "scene": "island-long",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "5ddc7c5838a2779538517f97575bb54bcb6092b4c9d87e2d33a64f39995f60d4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-island-long-light-large.png",
+          "scene": "island-long",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "5964dac8d26bc359af70e24cf003f907fce3c593e5d06506ab8c413127f135fe"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-island-long-dark-AX3.png",
+          "scene": "island-long",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "889b1d4f6cbcca4baa63a129bfdd7c58f76ed4a63b4fe583fe59fb0eb0b03d7c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-island-long-light-AX3.png",
+          "scene": "island-long",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "b14f352c34d303de04aa5a90d0e0bebb4b52de35fe30e296a8a0f61b3fcf97ae"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-island-long-dark-large.png",
+          "scene": "island-long",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "d7e48a8fb484f1e6517515cd334c4b59548f7e9327f6f53b8c7d9feb95313a5e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-island-long-light-large.png",
+          "scene": "island-long",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "c7c4267e17994c21c6f7377d2c3d4a74b9fdd5e0a84547993463e2f192fd1edc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-island-long-dark-AX3.png",
+          "scene": "island-long",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "1711b339b90dabbd065549fae71bbe03e7c3e97c08949be8de341938c4e19041"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-island-long-light-AX3.png",
+          "scene": "island-long",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "282e2364ce04b8f74de6179171a7dadcc858d01469f4783f9c106ee231108159"
+        }
+      ]
+    },
+    {
+      "id": "ios/round-receipt",
+      "client": "ios",
+      "surface": "round-receipt",
+      "scope": "Synthetic read-only receipt states. Morning core receipt includes unavailable comments; Social fixture supplies synthetic conversation.",
+      "aggregate": false,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-receipt-dark-large.png",
+          "scene": "morning-receipt",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "76f0b7d027c06e701da420efa24c87908b1aa7bcf00fd4da8dc2c07cb9d4454d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-receipt-dark-AX3.png",
+          "scene": "morning-receipt",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "ff8682bbe6cfe7832ff60ab68155469f13596e419244dab6ec4b4331c95238f0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-receipt-light-large.png",
+          "scene": "morning-receipt",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "0f11a17fac76e07a21925ce7ad8b4da5b1573749c964a243a1b900895fa4d09c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-receipt-light-AX3.png",
+          "scene": "morning-receipt",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "de4c768f0d93ecce3a7612a5db2b88525f1f5f5f2363c667e517e8637b8d0f18"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-dark-large.png",
+          "scene": "social-receipt",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "0ed8e44bc36519bd9979bc94aa97acee3c54760eee8616bf3f547a1adf53f869"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-light-large.png",
+          "scene": "social-receipt",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "5bf34d82139194cfc4c87e0a555a941aeb30e42a0956f0e7dfd903f0cb49fc9c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-comments-dark-large.png",
+          "scene": "social-comments",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "5e1ca9e5a415c53c6956efa31d473fcde5c1a0eeadad0f0bb8c6acebfabb6454"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-comments-light-large.png",
+          "scene": "social-comments",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "57dc540d7c1a26cde9b0c7fa33edd3833a7cb9c13456da63ffeb1e2c41c6a1c6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-unavailable-dark-large.png",
+          "scene": "social-receipt-unavailable",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "0f2cf8adb23d1b542e5804e8a8049ec63afa61fae18a647026203e6109b0da89"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-unavailable-light-large.png",
+          "scene": "social-receipt-unavailable",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "348703342fc63c09c5f44e0d08a6f3c046cf0601d30b0f32e48c430f4e9887be"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-no-scoring-dark-large.png",
+          "scene": "social-receipt-no-scoring",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "61f3dfe16f8e84d84cf10002d96df0576f34b0114ccc3a800906c2ba4c677190"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-no-scoring-light-large.png",
+          "scene": "social-receipt-no-scoring",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "4f0cecc82e54cbd904d9d74af10ccaa732bbe07517a59e8e177f083647a3cbba"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-course-missing-dark-large.png",
+          "scene": "social-receipt-course-missing",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "aaceb5b9802db313c1ed4c35ff1f07025b8825f5bdaeada34c9e8398c4ca8974"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-course-missing-light-large.png",
+          "scene": "social-receipt-course-missing",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "38813094ce63860d96a23d784e7b2f92c2ce4485c08f4c54a9ae03223248539b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-dark-AX3.png",
+          "scene": "social-receipt",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "36b46811c1a781137a270ebdb490e611295c1dc14cc49681c613a54781b096ea"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-light-AX3.png",
+          "scene": "social-receipt",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "bacee14e3b596e5cc8459aafbf1b56ceb83deedd0ca62747ca55f24cfdca5954"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-comments-dark-AX3.png",
+          "scene": "social-comments",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "127a001123c5d6e80d92dd2d1f609ac66158698a18098e0f5f0189353a9976b0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-comments-light-AX3.png",
+          "scene": "social-comments",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "f4162850b7a5a14dd0973a3a61dff7715bd185600fddad7efb16f3ceeced2dac"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-unavailable-dark-AX3.png",
+          "scene": "social-receipt-unavailable",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "a8a49d13f3f2f50fc7a657650dca1072b654822f7d6a2a7d326dd01502e2c39b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-unavailable-light-AX3.png",
+          "scene": "social-receipt-unavailable",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "4127328cdf1a8e65ba57a4c4d0ef0ee0ff7a16b5ad7b3b1f99673e3c9b54440f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-no-scoring-dark-AX3.png",
+          "scene": "social-receipt-no-scoring",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "df39675f4eb7c9e9bc409389549aecfb71774f77d7f1eccd6c226ba641b739da"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-no-scoring-light-AX3.png",
+          "scene": "social-receipt-no-scoring",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "6ca1850e659a6021e3fda8f7ea6f300e0823b9649fbcd94c5faa5af16a061162"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-course-missing-dark-AX3.png",
+          "scene": "social-receipt-course-missing",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "36b46811c1a781137a270ebdb490e611295c1dc14cc49681c613a54781b096ea"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-receipt-course-missing-light-AX3.png",
+          "scene": "social-receipt-course-missing",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "bacee14e3b596e5cc8459aafbf1b56ceb83deedd0ca62747ca55f24cfdca5954"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-receipt-dark-large.png",
+          "scene": "morning-receipt",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "58c128b126da766cb7a4b31680d6eb56563ad267015f58dc3171676608121eff"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-receipt-dark-AX3.png",
+          "scene": "morning-receipt",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "9dcdbabe7dcf21ab3b8cc9a18c1413eb7e6633bfe77798a4ea492b1fcb5f110e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-receipt-light-large.png",
+          "scene": "morning-receipt",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "a2e1d6cafc79bd0b34e92872d28514e2c2f6a4fb44025865fd09acc7b21b1ee3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-morning-receipt-light-AX3.png",
+          "scene": "morning-receipt",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "925fcc32206f85df7078ea9761f4c45ad794e96993659854d88763285726f14e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-dark-large.png",
+          "scene": "social-receipt",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "cfa15058e9d1e350be19af79648c172c66473694c4b9d5dacd58b493fb46ffa1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-light-large.png",
+          "scene": "social-receipt",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "1e39065ac187dd5cbe00ab4c1629cf47bfd76db961237f4ae61875d73cceee26"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-comments-dark-large.png",
+          "scene": "social-comments",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "42d29d74ec57055be86bfdd7e92132780db401b36f5b3be7d900154ff0051084"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-comments-light-large.png",
+          "scene": "social-comments",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "5e1e1493211124aa3279cfbc5f78e6d74ffb4de91c35b75e9b2a6bab765f5591"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-unavailable-dark-large.png",
+          "scene": "social-receipt-unavailable",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "be342a313339e08eed8a911a3ea55cbf7fc9226270c5e39826cebf85558e6848"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-unavailable-light-large.png",
+          "scene": "social-receipt-unavailable",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "463a1fe6aef903354bf2d0fa565f842ad101fe4fe3ad779086fea842e5916776"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-no-scoring-dark-large.png",
+          "scene": "social-receipt-no-scoring",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "522ef6303befaec8e32ae85f229905ddadb20c881aa3e072f59a6b4721e1666f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-no-scoring-light-large.png",
+          "scene": "social-receipt-no-scoring",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "9ed27cb4db2f9d58cf3eec7c31bb404372f40d26b9004b806e92bafadccee44f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-course-missing-dark-large.png",
+          "scene": "social-receipt-course-missing",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "bbfd9f809b304faffd9fab7549cb195319957183ee9b403c89d48a100d618bea"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-course-missing-light-large.png",
+          "scene": "social-receipt-course-missing",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "cadbaaf8f51505895853ab96a8004b6c1fc583061c872e0660a293c8b2105b8b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-dark-AX3.png",
+          "scene": "social-receipt",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "b3a31addd0ee6f28f201a651b85e454ee6c9b7aca158aec23e45a14570372be6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-light-AX3.png",
+          "scene": "social-receipt",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "1f87bf06873125d42a96fcedcbfee31cdb38c9c2e7790337138732eea6414e2d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-comments-dark-AX3.png",
+          "scene": "social-comments",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "0e5e09e0106a7b138c3af059e2b00bbdbe93eddd0aeb98aab16b0f522cca6c99"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-comments-light-AX3.png",
+          "scene": "social-comments",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "861a95ffbf734eb69ff962f7385a24834b30b476e06885fcfaced728642b85d4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-unavailable-dark-AX3.png",
+          "scene": "social-receipt-unavailable",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "74f07cea2b49839a43df916fdb73202a967dffa37aba55955bc8b4f921c743c3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-unavailable-light-AX3.png",
+          "scene": "social-receipt-unavailable",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "a38c7a7d09dff910e41113a54146cbff68ee1801c7d0377c20df90d83b1ae1a1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-no-scoring-dark-AX3.png",
+          "scene": "social-receipt-no-scoring",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "97f545843339fe887d812de0cf3b3dc48958fb0487adc69436ddc08d999e786e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-no-scoring-light-AX3.png",
+          "scene": "social-receipt-no-scoring",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "04e60be9ce108f3b70e9e01e3f3164651cd42d4bf17114c50d586f7d91881215"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-course-missing-dark-AX3.png",
+          "scene": "social-receipt-course-missing",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "66a4f8be4c31b07fc4884ce3adb47038b7174655af14f4c26053802f38f2af2c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-receipt-course-missing-light-AX3.png",
+          "scene": "social-receipt-course-missing",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "b1dc4aaf7f743cb4b9658de8f8ca7a2f40255c381ecf5e4d22704ac6230c1a2f"
+        }
+      ]
+    },
+    {
+      "id": "ios/social-activity",
+      "client": "ios",
+      "surface": "social-activity",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": false,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-activity-dark-large.png",
+          "scene": "social-activity",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "03451960f73f51817921d1ac1bffd77b11307ca3d5b13026e7bf73ed0e8c8892"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-activity-light-large.png",
+          "scene": "social-activity",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "7902d9ad7c1968d5b2c0516a8ee2b20ffd3f9649253c2194dc6a78b43ca1d1b3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-activity-dark-AX3.png",
+          "scene": "social-activity",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "367802792ae6feb09b0fa186fe80fc110fdd4d6bed62ca9706b6613cef263d3a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-social-activity-light-AX3.png",
+          "scene": "social-activity",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "51b34bdf4d627e16ca632f6c14cae35925833811dfa1f84c0763f559f11c9535"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-activity-dark-large.png",
+          "scene": "social-activity",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "aacc6954d2e6020970cd46bb197245c24360e576a7a3d94f07010492a40e7be4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-activity-light-large.png",
+          "scene": "social-activity",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "f589f1eb14e872314da73c0ce3f340c18bc6f247be4fa48772cda1a37e654e19"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-activity-dark-AX3.png",
+          "scene": "social-activity",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "3930f6c21baf84747de55649128783217edf5ce642e06873a3e58956506ab080"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-social-activity-light-AX3.png",
+          "scene": "social-activity",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "d9661f1ea732fd5531de19a693bef25bea03af4865819c51b027f9987d3e760a"
+        }
+      ]
+    },
+    {
+      "id": "ios/credential-private",
+      "client": "ios",
+      "surface": "credential-private",
+      "scope": "Private credential placeholder only. Not a filled tour-card score.",
+      "aggregate": false,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-credential-private-dark-large.png",
+          "scene": "credential-private",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "f431198969aac77a2173a976bc08bba463fa13d3008c39f15d1c5d1efaa50c95"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-credential-private-light-large.png",
+          "scene": "credential-private",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "large",
+          "sha256": "22acb1a4353947a8e67841bcaed3186347d319efce1798d76ecc95375c6fd2b5"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-credential-private-dark-AX3.png",
+          "scene": "credential-private",
+          "theme": "dark",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "ebe3d065bc1ac1fe9ab4a33bfe1d76706f7149a47cc326cf914f5d369b54b1e6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-credential-private-light-AX3.png",
+          "scene": "credential-private",
+          "theme": "light",
+          "device": "se3",
+          "text_size": "AX3",
+          "sha256": "fc390b746e2c0811b969069000f52c1cd111bcf3c08eb59ebf09b5fffa63908e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-credential-private-dark-large.png",
+          "scene": "credential-private",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "9554d7897b65fda3a5d8e7eb74833bc52625d317ab629aa9dffe50dd83586e7a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-credential-private-light-large.png",
+          "scene": "credential-private",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "large",
+          "sha256": "ab49685d7e0cdb943c3b780961ee55dd450561d39bde14207c7a786b7b9caf7f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-credential-private-dark-AX3.png",
+          "scene": "credential-private",
+          "theme": "dark",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "a27b32cc8fad77542875d8bbe65df8b9c87bebb40265665a58b8df315c5eaeb8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/native/captures/17pro-credential-private-light-AX3.png",
+          "scene": "credential-private",
+          "theme": "light",
+          "device": "17pro",
+          "text_size": "AX3",
+          "sha256": "0ee268d2797ed8ff75a1935308001cfdbaeb03cd8ffa8a7f251b6286d941d5bf"
+        }
+      ]
+    },
+    {
+      "id": "web/door",
+      "client": "web",
+      "surface": "door",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door--375--dark.png",
+          "scene": "door",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "feabf2308e7f8ac40516f19902d984388fa61acff229859ca0a22a04b3ae1089"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door--375--light.png",
+          "scene": "door",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "8a64a24b1055bc160914637ecf7b3a164c8f34dd7e1cac567db753c518ddc0e2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door--402--dark.png",
+          "scene": "door",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "f8aeb17894c88be095dbb271d9c852530e2fd658bb41fc6e2b2633defcb6c76e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door--402--light.png",
+          "scene": "door",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "adea2601b2422cadcc0aa3da4b4a8b88c632bf1cd2dfd684b07a135e43f0f977"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door--1280--dark.png",
+          "scene": "door",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "7b27a4f2b2b721bc233400d7bff29db69134891b1184cc8db6b1faa5069aa70e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door--1280--light.png",
+          "scene": "door",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "736029e3a3fe53687171a72fc945018bcedaf2d20aee181bd7310ffaa2dd3f4a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door--1600--dark.png",
+          "scene": "door",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "517bf7db7228d290dcf3c286f59198ccb0b7b2d63bb0dc5e75ccae75f8e6e7d7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door--1600--light.png",
+          "scene": "door",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "8a329ad8164f571b6f41c12f3758939e7e6e0c1edf02961b8fec318b825015d8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email--375--dark.png",
+          "scene": "door-email",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "18399dc7ba1b9ac2857ad4d5e2a544219ef6e45c3c8ceae3da4d6edc9dcd7ea8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email--375--light.png",
+          "scene": "door-email",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "cc328f547c795cc24d4c38b02a10dd13905f62507cd42bf5582c441f6339d92e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email--402--dark.png",
+          "scene": "door-email",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "05ea4cdfedaff639957d27f05d9cc9f6e3bb58a6758dd91a43e1abdd2489bfa6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email--402--light.png",
+          "scene": "door-email",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "9956a6a7ee0006cf3f60bad8daf1b9f24d647fc5243c42ad2aabff4a0e46d179"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email--1280--dark.png",
+          "scene": "door-email",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "e2d4e0281e6dea604bdc67f164e4c529d59ea0fa58b79cf91bf347e7d6ed93cb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email--1280--light.png",
+          "scene": "door-email",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "1030fc07cf72bcd442a0690e6c10725fcdd5424728345e3074f5de66cd739c3e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email--1600--dark.png",
+          "scene": "door-email",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "64030ef188a543379c492cca1a4abd335c158e6c6f755d2737cbde51cbe70153"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email--1600--light.png",
+          "scene": "door-email",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "d34b2ae04ea364f222dbf79e031860283970f0880d1ff94018fef4aa17aa45a5"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email-short-viewport--375--dark.png",
+          "scene": "door-email-short-viewport",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "9a3df5307a8628c79e697eac35230d388a53301ce4a9a7cb20fa447cae31c5e8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email-short-viewport--375--light.png",
+          "scene": "door-email-short-viewport",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "265d32ed29db79b8bebf9d7ef5e571ba64fb699694c444b3fa154aefea2d7bcb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email-short-viewport--402--dark.png",
+          "scene": "door-email-short-viewport",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "6e38b62d9358e52c0fa8e8e4a23e43292a1e49fbdd1b8c9cf46b7d612dfc6e2c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/door-email-short-viewport--402--light.png",
+          "scene": "door-email-short-viewport",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "9a3d5a2840e57100d1c9f9d89c2752333cda64d8a006217de721dd70dcc4e5bd"
+        }
+      ]
+    },
+    {
+      "id": "web/home",
+      "client": "web",
+      "surface": "home",
+      "scope": "Dispatch lead/deck fixtures only; unrelated server read models empty. Not a populated-account Home proof.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--375--dark.png",
+          "scene": "home-brand-new",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "49c5c7cb7856b6d83a50fe171cddef17d561fb5ca24d5ff28275bbd6320d881a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--375--light.png",
+          "scene": "home-brand-new",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "68de83b003c0eda4a4a7793b1d75f7c6a8dca41bd933b08d6cf984ce278fc51f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--402--dark.png",
+          "scene": "home-brand-new",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "8bc5447140083bb40825b800f469247002ea6b45cb0cbeeaa51161b599f69df3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--402--light.png",
+          "scene": "home-brand-new",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "da991fc41f56865b6bcd27c09d8d553cb12595bc21a171bdd3c0ebdb7340b6d3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1280--dark.png",
+          "scene": "home-brand-new",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "272d036acd192413bdb8dd2c78ac8d7dd35a05c9f9353deb6d848d4524528ccd"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1280--light.png",
+          "scene": "home-brand-new",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "c9fcad7b4ce88f2d2c9d1c129147af1eff179e535417c88b553c067e3bb83370"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1600--dark.png",
+          "scene": "home-brand-new",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "31addffca39eab2a1144dc403794bde98a551556bd011a6d7442e5aef72d2ca6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1600--light.png",
+          "scene": "home-brand-new",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "52f91144be9754e400461fc5dbd6d1307e59b63da4b0e2e94de25d53edfa0f11"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-rounds_no_buddies--375--dark.png",
+          "scene": "home-rounds_no_buddies",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "b69378af2a203a6b9ff8ecc03aebd9365bceb94225bd1e5cd7fcf50ff5edaff5"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-rounds_no_buddies--375--light.png",
+          "scene": "home-rounds_no_buddies",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "97895dfd81d4af8a44630778f665d3f4a7b21e13f60c5e9cc08ec7acfc659075"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-rounds_no_buddies--402--dark.png",
+          "scene": "home-rounds_no_buddies",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "6f9a298ab780b2edd1325a7476c0d8705aca8204d853d85407ead2674f648728"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-rounds_no_buddies--402--light.png",
+          "scene": "home-rounds_no_buddies",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "e7e57dd520f6f968dbdfe1e643241b6289307dfc66e1f8e5fcdac9f3c328b456"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-rounds_no_buddies--1280--dark.png",
+          "scene": "home-rounds_no_buddies",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "201746182975400a8bb1ea4e3b1ce7c1aba4e2e74ec9b851b11f7d2497385264"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-rounds_no_buddies--1280--light.png",
+          "scene": "home-rounds_no_buddies",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "dbd8350ec157121a674683750b02bf0b35ba130c63c2ca6b813414eb2acd6833"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-rounds_no_buddies--1600--dark.png",
+          "scene": "home-rounds_no_buddies",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "622c2396957b69be052b0f7b42f2811b7f71d7804abeb2b5b30e8417b2e61549"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-rounds_no_buddies--1600--light.png",
+          "scene": "home-rounds_no_buddies",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "d23baf3a5318b59326ca0dcfc53ad3aec24c1007ecdbdac09b92115383d0d581"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-event_live--375--dark.png",
+          "scene": "home-event_live",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "055f4df53d9c22cd916fd6468bbf8c7d892fce114c1fd30efbba74be502cc925"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-event_live--375--light.png",
+          "scene": "home-event_live",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "199f1029b0db2e18eb21537ab98272671b032fb73acb22fff06da6ab9023050e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-event_live--402--dark.png",
+          "scene": "home-event_live",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "0e2808121207a8b6f314098a9c3f3438d479a418528a48a95bf2dcbed37901eb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-event_live--402--light.png",
+          "scene": "home-event_live",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "45a9d605f1c47bb1a28872452f8c3b45dd2b76aabe5112a04e498af0ca4090f1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-event_live--1280--dark.png",
+          "scene": "home-event_live",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "462307cad58146c9371114ae8fef5b68ef04b3ec4a874bc938d358d1bdc15013"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-event_live--1280--light.png",
+          "scene": "home-event_live",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "b720942f5e1eacadc1cac1e15ed710829815f71e33f8942ec61841f8f9443e6d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-event_live--1600--dark.png",
+          "scene": "home-event_live",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "3505aee679729e6278efcf88e658a370fe791b9726288a2afd188ceee5ff627d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-event_live--1600--light.png",
+          "scene": "home-event_live",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "3fb0cfe618e4b7552cae3c9e04df5097321bfd29bc96406c8b29ddda003d5c47"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-between_seasons--375--dark.png",
+          "scene": "home-between_seasons",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "19fb120f646157ba975bcef5ce6530ea8069ba872783817ff7ea4b7f075c29cc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-between_seasons--375--light.png",
+          "scene": "home-between_seasons",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "a4fa55afc4ee821d04b3fc6070170e7ccefeaf206b9e0218c861e0c01f202414"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-between_seasons--402--dark.png",
+          "scene": "home-between_seasons",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "61ce100a8f3b005b994e252eca5060e78548a48a544d6a07f9aecbbe381435ac"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-between_seasons--402--light.png",
+          "scene": "home-between_seasons",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "22827f59e8767a9c8e2793b15e3e7587da1f97070763f59abab9cbad123cfdfa"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-between_seasons--1280--dark.png",
+          "scene": "home-between_seasons",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "2a0cf20b0e10f2b3846962d12483c3dc3fe152855a4bbd1f18637c80efea5b81"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-between_seasons--1280--light.png",
+          "scene": "home-between_seasons",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "6895bf4c5c780a84b5ceda9c7f2142355ebfd1d5ea6db5e90f0d1b2dd3926d3e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-between_seasons--1600--dark.png",
+          "scene": "home-between_seasons",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "ed98ae40c778a3c8101407a4f8966e9cb514a9513aaea65c0254ac20bc8aeeb7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-between_seasons--1600--light.png",
+          "scene": "home-between_seasons",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "4a01e1887b348369d6d9c71916f897315147bd7725343b779b39f5b0bca7ca2d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-ceremony_night--375--dark.png",
+          "scene": "home-ceremony_night",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "11c46197afb88556a81ba815ef62e63c5173eee5a6970304ef7cdb5667792a44"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-ceremony_night--375--light.png",
+          "scene": "home-ceremony_night",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "57d1417193ded45af1511a4dc347b3e23eedd3ffca57044db99fd805ce8dd44a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-ceremony_night--402--dark.png",
+          "scene": "home-ceremony_night",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "b72f0b0e7b69969cd017e121d44c882429eb58b80053b5b8cc39ef5464a094c9"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-ceremony_night--402--light.png",
+          "scene": "home-ceremony_night",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "c8a99dca9cabb5cd4ea2c1fd912186c9400188b9effbd3b79d0c6e77cf014de2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-ceremony_night--1280--dark.png",
+          "scene": "home-ceremony_night",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "141ac762d1ec8bf115a875ebe0f3793ec5fbc73fb304cd1851047191396f74de"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-ceremony_night--1280--light.png",
+          "scene": "home-ceremony_night",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "f3cd98b63b9f336a2922fa3ff98e9c207b5c61cd2092f3d31b20760851473a42"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-ceremony_night--1600--dark.png",
+          "scene": "home-ceremony_night",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "9d6fb2279f29926f2e6ab3af2c5d38f5c413738e90febffe663c5cbb57d994cb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-ceremony_night--1600--light.png",
+          "scene": "home-ceremony_night",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "81cfb455c4433151e9b5bcb254aa853f171aed5e98e18dfc10a1493e5e179d15"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--375--dark.png",
+          "scene": "home-preseason",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "b0be453bc6d3c68d393a9b674473dd459946ff1c8f74d70330ba355407f48da8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--375--light.png",
+          "scene": "home-preseason",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "1e61fc550008d98aea95666fb2c8ee13becc466e44705a6b43cd418ba71b1769"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--402--dark.png",
+          "scene": "home-preseason",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "00adb1365b5e730164828566dab64fc2a17f6e5792bb6c6c5bb416f9fbeede58"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--402--light.png",
+          "scene": "home-preseason",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "c87d6c9b0a324aa0f3702fd3b3825b4b23c63c7aa6673553bc5d06b3ac3907db"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--1280--dark.png",
+          "scene": "home-preseason",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "fdf1f398e4e7594243fbd0e2f96df3230fbaa0345ee98ae2887c9a5a387d2db2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--1280--light.png",
+          "scene": "home-preseason",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "353e489228287f77c135900d109ef5dbab671fdd91685db8be65bb542923ed80"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--1600--dark.png",
+          "scene": "home-preseason",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "c59555e87642f51ca71826ab7e403e5ca3ae7accf25fda38401678ca5e7b5ce1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-preseason--1600--light.png",
+          "scene": "home-preseason",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "db8f3244deb65098a4e23c066f4b423338435e86a03f3e92b30cadb02b6ac73d"
+        }
+      ]
+    },
+    {
+      "id": "web/composer",
+      "client": "web",
+      "surface": "composer",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--375--dark.png",
+          "scene": "composer-first-round",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "7ba5152b418a1cee809a0d76bd742103aaff3bd417a8b9de7014a2e724184c46"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--375--light.png",
+          "scene": "composer-first-round",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "9184907f3032c7878c731eefa286c9695c3f2d938fdb40d6a764626db5e5dada"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--402--dark.png",
+          "scene": "composer-first-round",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "a19b2d348fc57058960c089a691cdfd138b5b15ff1845965dddbad62bc9c8de7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--402--light.png",
+          "scene": "composer-first-round",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "c1366da0ff04fc4260a37b48bcb7b79aaa8fcce953efe0f0d532275a8adff458"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--1280--dark.png",
+          "scene": "composer-first-round",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "c9bab1f852f2dfe229923a942e103adf1faa7a5e980a368433e4f768028c60a0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--1280--light.png",
+          "scene": "composer-first-round",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "8f6fcd392ed618a5fd44a09033b839e8f9674a041d785bccbe577e8cf5aaf485"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--1600--dark.png",
+          "scene": "composer-first-round",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "ae03ce44d521427a5d616d07040cd53dad73718b82cd0c962b61be6b1fe9b75f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--1600--light.png",
+          "scene": "composer-first-round",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "b468ab50951227510d167249429c123f04525d6d8f1b83d4af33b4a377d5ae82"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-short-viewport--375--dark.png",
+          "scene": "composer-short-viewport",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "1b1a2ae8864c64f30d85aaaf473f2808f2e04b85981738fe9ebcec1f2e5576c6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-short-viewport--375--light.png",
+          "scene": "composer-short-viewport",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "a356e3636f34269c5890b26555a34ea996c8ecd5061c97466021f0de2578afbc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-short-viewport--402--dark.png",
+          "scene": "composer-short-viewport",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "8f2c76714bbc4c1438f8612c3638e5ca94779f61a8b7c12dd938e0a9150fb854"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/composer-short-viewport--402--light.png",
+          "scene": "composer-short-viewport",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "9fcc567911ae246db7af0c3405ce5007331feacc1c14fade4f9710632bffa1fa"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-post-empty--375--dark.png",
+          "scene": "app-post-empty",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "4bb81c8d2e5a85e8c5365baedaca3e445b42b27ebbab96d5b25d84d77f9a3d3a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-post-empty--375--light.png",
+          "scene": "app-post-empty",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "3080fa2abd8a1d11ea17782ac11d022b34d0f3f6becc27df8016119bfa0cdc22"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-post-empty--402--dark.png",
+          "scene": "app-post-empty",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "a57cdbddfe3a8922526b299665cb1306c75d780e5d261d0c8a03f39cc6c47701"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-post-empty--402--light.png",
+          "scene": "app-post-empty",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "f5c0a3ab37070bb3056fb67e9b71511dc06360525efe12fbde148717edf5f399"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-post-empty--1280--dark.png",
+          "scene": "app-post-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "f10737a4e01f383cacc092c8fd259e9a0d3f962044ab1c522bf2ea0fb865d4d3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-post-empty--1280--light.png",
+          "scene": "app-post-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "758d91d3b76dd2415e730dbe63ac1d82a8056563b56430440c7e13bd55a17b83"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-post-empty--1600--dark.png",
+          "scene": "app-post-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "a6ab0315571e946e839d7af66f7127b0e2008633b65697c655e8b8f8a50dbc29"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-post-empty--1600--light.png",
+          "scene": "app-post-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "642f6589d42720504f93b2244fdfee9179bb376100d1daaa603159d4d95ceb07"
+        }
+      ]
+    },
+    {
+      "id": "web/play-cover",
+      "client": "web",
+      "surface": "play-cover",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--375--dark.png",
+          "scene": "app-play-empty",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "2808325537a1b0c49020e0d68914f338e0106392146db963d3433d7810ab77a7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--375--light.png",
+          "scene": "app-play-empty",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "fa42731e783719b80a7ff8886f11226f87f6e70eb04f0ce83aa688509a5df83d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--402--dark.png",
+          "scene": "app-play-empty",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "7754074e716f566eb23db06a3186dfd7af51d9f995ac356af4f43c0b1cfc78fc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--402--light.png",
+          "scene": "app-play-empty",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "dbcc28d5e859abdb43716eb6204456719c3f52adc3abeaf0391462aac6d37024"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--1280--dark.png",
+          "scene": "app-play-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "22767d09bd3b3793916d3f2202d81ba68ef67bd464dc6c462a2a0f20e6e54615"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--1280--light.png",
+          "scene": "app-play-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "9aa61d183082df8b74ee4aef66d656ad4e798cd0e1590768d986b85806d2f2a8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--1600--dark.png",
+          "scene": "app-play-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "2c7b07107b94cdab337490533d0a53101c4ea0a341d5a1e4921b34075c62e79c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-play-empty--1600--light.png",
+          "scene": "app-play-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "cfb37cb2fcba3ca4427096a44f19daa5e316edcc75bf2cb37597c101dec3a9af"
+        }
+      ]
+    },
+    {
+      "id": "web/you",
+      "client": "web",
+      "surface": "you",
+      "scope": "New synthetic golfer with no real rounds/photos. This is the You renderer; full profile/real record unobserved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--375--dark.png",
+          "scene": "app-stats-empty",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "1aa5d1e5ab339dbae545fa9ae4df247d4c7ed7cb8bb9acccbaec7a8b46a9e200"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--375--light.png",
+          "scene": "app-stats-empty",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "b6e4aea30f507c937409a66809d3ef474910e4292ee5a8d5f7eaa269ddc3086f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--402--dark.png",
+          "scene": "app-stats-empty",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "0cafcd2e472bf70c213f1e610b3fb607fc58604cd2b1746cef5b697c1197d25f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--402--light.png",
+          "scene": "app-stats-empty",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "c7cdbff44808d8d65b167de862f5d9287fa9c2a35d03373b635347b4c46fad8f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1280--dark.png",
+          "scene": "app-stats-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "948a7f55bb6a6b5e3d9c94d4dac76a128ae62b75826f690bf02f0b263061e4ea"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1280--light.png",
+          "scene": "app-stats-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "043861805ce8290e22d683a02397bedeb2a9ea8c9b5ffaa3ccda8165024f1f52"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1600--dark.png",
+          "scene": "app-stats-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "95cd9d8c9044b677f554787cbe23b2202e78f6d802347834784a7f7414ea2178"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1600--light.png",
+          "scene": "app-stats-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "10643c3087eadf1d729a508019298e243dad30cf46bd775cffe41b0270e612b2"
+        }
+      ]
+    },
+    {
+      "id": "web/record",
+      "client": "web",
+      "surface": "record",
+      "scope": "Not captured, not scored: app-record-empty files resolve to Play and cannot establish History.",
+      "aggregate": true,
+      "captures": []
+    },
+    {
+      "id": "web/compete",
+      "client": "web",
+      "surface": "compete",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--375--dark.png",
+          "scene": "app-compete-empty",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "1062047d902b4162fcacd4d5f94af97dcfce1d2b31dfabd778c8a037acba2b18"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--375--light.png",
+          "scene": "app-compete-empty",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "3494b966f8467cf41480946b34b551e56dd48c04d4c8c800bb5e0958dad85f2b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--402--dark.png",
+          "scene": "app-compete-empty",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "f89a0e8fa346a0b09fb4cc5616632fd29b38b5439f62af014797f5f3cc3b73b9"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--402--light.png",
+          "scene": "app-compete-empty",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "750698065434d808dec7464f2a382b3ad38009e69ce9141cef563cee8e1646b9"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1280--dark.png",
+          "scene": "app-compete-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "01435b5f504ede154ae0b4f33b45054609cf187d6bdd4d657f362bb762fc5627"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1280--light.png",
+          "scene": "app-compete-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "280f772b1cfce5328569ea5902fbc2bda14d34e5b9344ba256c1b84c6cc1968b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1600--dark.png",
+          "scene": "app-compete-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "64b928a29d345cef44e9b99909b9c26af4dc4b966ee80c51bc5105c0a2fbb3ca"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1600--light.png",
+          "scene": "app-compete-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "1d075213f1c0da13b46ecb4b2934c85c14b193be96e63de24dd3ee48a2295115"
+        }
+      ]
+    },
+    {
+      "id": "web/golfers",
+      "client": "web",
+      "surface": "golfers",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--375--dark.png",
+          "scene": "app-golfers-empty",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "ca15ddf324efdc3eacc7f27b383095176023e4633e042df6dda1779def5626cf"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--375--light.png",
+          "scene": "app-golfers-empty",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "883be655f049c956b4ae35194d3ced19da54dc91253c04845349fba2e60fbadc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--402--dark.png",
+          "scene": "app-golfers-empty",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "f27020a8ce971b8b3498afbcadeef0ae910bcd0ec66a22b03e676f18b83b1776"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--402--light.png",
+          "scene": "app-golfers-empty",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "9639915ecb2ad3ad49fb9b78b4a9abde9a89c716191f6626f56e91b532f7ffa4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--1280--dark.png",
+          "scene": "app-golfers-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "b868c5a4b60e8689e88199bc1caca60b954750778cd8166628b07010fa500901"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--1280--light.png",
+          "scene": "app-golfers-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "8462c6da485fc39ef5969b4dae2cd46f4d872cd661e64f5897614ca77233f6da"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--1600--dark.png",
+          "scene": "app-golfers-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "14c8eacda431c8d3da37211bdab10a53143e0b166342c8e4c38c110e5fb5dbe8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-golfers-empty--1600--light.png",
+          "scene": "app-golfers-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "630c8d51e0a7d6f71bedf77f670e986780dbcec07d63b09ef0825202c9acce05"
+        }
+      ]
+    },
+    {
+      "id": "web/schedule",
+      "client": "web",
+      "surface": "schedule",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--375--dark.png",
+          "scene": "app-schedule-empty",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "5cb4b4b3aa6bd1b498a01fa6b6e098629e6c35f05de69b83e54ee06f92ead174"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--375--light.png",
+          "scene": "app-schedule-empty",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "fe24091f809cd4dc53e5a1fa8d429a91bbd24f3588be9cecca58b93f77a01357"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--402--dark.png",
+          "scene": "app-schedule-empty",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "966931fb2f6e54c4b23f85f4421d338bbbe1c3578ad4404e953ee0201f31d346"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--402--light.png",
+          "scene": "app-schedule-empty",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "81a38024412a3b6bca023322679b03e6bbdce1cb07ed460e13c9f558c7b44cd3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--1280--dark.png",
+          "scene": "app-schedule-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "850b26645decb2c92230e7de206465bc4d1d9e4ab90e402d2f25338a84e175e6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--1280--light.png",
+          "scene": "app-schedule-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "85e3aa59432e34ec0dd49c83fcd4cc18dae5bd7e8306205320c7288365fa6083"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--1600--dark.png",
+          "scene": "app-schedule-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "d326ca12ad513d56519218e59e768bee4339774b4ab5c6111100c83bb08329a9"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-schedule-empty--1600--light.png",
+          "scene": "app-schedule-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "c99404d3e4315cf342586fd98427fa4504c95810c3d273bfc9d88547cca4317d"
+        }
+      ]
+    },
+    {
+      "id": "web/wizard",
+      "client": "web",
+      "surface": "wizard",
+      "scope": "Only captured initial/structure step; not entire setup agreement/lock journey.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--375--dark.png",
+          "scene": "app-wizard-empty",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "c8e0f5b6eba64d496e64c07db04ea023b81697fc65e52987422499282032a39d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--375--light.png",
+          "scene": "app-wizard-empty",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "05a8509e64d061a7497a893e313ff13fbb5ec17710713e5512a6ef215d11a6c1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--402--dark.png",
+          "scene": "app-wizard-empty",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "612324a9dd6c076170f2a593fa3323bfefc7eeca8f0c74b877ed58c34b4a149f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--402--light.png",
+          "scene": "app-wizard-empty",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "afeba04257d8ef5b5293b7a131b27525559970722b0be321c9c36508534d7fe1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--1280--dark.png",
+          "scene": "app-wizard-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "2eed4950f081cb5a1ca51a70171f7289dfd2e5bc298c0d0c7f4fe92a73fe6d91"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--1280--light.png",
+          "scene": "app-wizard-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "a3580c98c906c6cb496af4f5b7b8e49e948b532884939e5a8d3ca3c871a719c2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--1600--dark.png",
+          "scene": "app-wizard-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "63a9fd690589e02b22ca4bfe388cccb1c7b4e83c78c9203e1ae424be2a7e4500"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-wizard-empty--1600--light.png",
+          "scene": "app-wizard-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "4bdfaa078ccdfde09f0ad76a6eff6a3dd8e2215a1ab7f6569530e9fe492e8c81"
+        }
+      ]
+    },
+    {
+      "id": "web/events",
+      "client": "web",
+      "surface": "events",
+      "scope": "Unavailable-route error state only; no event room gameplay captured.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--375--dark.png",
+          "scene": "app-event-empty",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "6a62a1602f117ac10d626160d194098d8002090c02c0b68ca480a3ba502749da"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--375--light.png",
+          "scene": "app-event-empty",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "89c39cbdfcb8e8b75c7775361fb45f600a604807e2749c68d3f08bdb0c036e29"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--402--dark.png",
+          "scene": "app-event-empty",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "3ea5c4c41c3adc7d8f02637049bd2edd22081fd7960b99013a77141517205116"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--402--light.png",
+          "scene": "app-event-empty",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "cc0e851967631ab54dfba706f59bfec5e59b6f4638c1be9c87da1b5a75722a7d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--1280--dark.png",
+          "scene": "app-event-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "e5825ae366b38283aaf005ebb78e8c0cc425c180f6826ff46d355a018cea41f3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--1280--light.png",
+          "scene": "app-event-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "5d5220f7bf50f3472743bfdbeeaa7e4caf04fe03febf958c353369b67ea6e73e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--1600--dark.png",
+          "scene": "app-event-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "feb54a0d1c47ca8c5d37804038b958d0c78d5c5a1fd2712c4cbaf53746575a03"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-event-empty--1600--light.png",
+          "scene": "app-event-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "bb1d9ae10dbfb1609d61c45030c7cda0b4cff2ae972267c1e82a769054bdc3fc"
+        }
+      ]
+    },
+    {
+      "id": "web/settings",
+      "client": "web",
+      "surface": "settings",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/profile-card-settings--375--dark.png",
+          "scene": "profile-card-settings",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "7f5240d1efacb2f58f80bce7d5d05fe905a49213c0aadc24b64ab55e5106dfad"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/profile-card-settings--375--light.png",
+          "scene": "profile-card-settings",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "336f621b945417d2c47054f7d4950a678bd7a290b0e28b3cee9bf82836472775"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/profile-card-settings--402--dark.png",
+          "scene": "profile-card-settings",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "8fe28312380d75de45cc4b06b10f67be73c82b4a08a234c417b72506b8bca7ce"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/profile-card-settings--402--light.png",
+          "scene": "profile-card-settings",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "1c8ffb0a96e9368d422107074f980d1d4d1a755cb17c8793312dafeeda695b51"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/profile-card-settings--1280--dark.png",
+          "scene": "profile-card-settings",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "2a18a5b99eb28e02f0ca402c17ca77630ea9f8d3579f4c66a42a475f664ce0e1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/profile-card-settings--1280--light.png",
+          "scene": "profile-card-settings",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "4704c0569f90a6beb72bf00372d5843aca167ecb30c99db7dc820963576db35f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/profile-card-settings--1600--dark.png",
+          "scene": "profile-card-settings",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "94384b1a6cfbce2a2c75544e89c423866b6632f8487537ac02e5f0e69f1240e1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/profile-card-settings--1600--light.png",
+          "scene": "profile-card-settings",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "98e03c1d9b3be582fe383e66e0509dd840a1a1be95154034224c616e07c05a45"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/settings--375--dark.png",
+          "scene": "settings",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "c6c163a5150408168626cf1742c319c7786cef8cc1d6869c9115674026a1a778"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/settings--375--light.png",
+          "scene": "settings",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "7f9e61ccf61b2ad1efe5edeb53df132bf5fa4f8d6ab94dc96d878721d80d5a88"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/settings--402--dark.png",
+          "scene": "settings",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "7d394cf1107479eb6834670d340e0d347f7a64d7b6174c5de37560f99081af1a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/settings--402--light.png",
+          "scene": "settings",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "e9c41c2568427d0cef11fda7dd27e3890cea51fb146542ca3c07ad7908c50934"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/settings--1280--dark.png",
+          "scene": "settings",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "79460255e50d5fd3760b12a6a47856d32caa2efca10550ffca3bd1faf1e9c72c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/settings--1280--light.png",
+          "scene": "settings",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "26b3148539b7b835c0d3e2b726a523b6075651f77d2a30879a8051fe928c6bca"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/settings--1600--dark.png",
+          "scene": "settings",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "19035c0d3ca875acf22cf1ff23a106d21e3a7c37d67c5a5265bf39850b5056f3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/settings--1600--light.png",
+          "scene": "settings",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "d8703b0394492d534538e21b2981ce6cf6acd44328ebb509a4c0170edd73d632"
+        }
+      ]
+    },
+    {
+      "id": "web/course",
+      "client": "web",
+      "surface": "course",
+      "scope": "Existing course-circle read fixture; only what the screenshot actually shows can be scored.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--375--dark.png",
+          "scene": "course-circle",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "9bd3a2e15bc8cd4e09014694a3c021b11765aadb714f9016d896417216d823fd"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--375--light.png",
+          "scene": "course-circle",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "1f804333efa919d09088debf4bc2960493bc08eac9a16530591823ba2109091c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--402--dark.png",
+          "scene": "course-circle",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "f1920bddc94783e05172237c11a225779a40531c02389df2173d98303b909ca7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--402--light.png",
+          "scene": "course-circle",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "214c83f16ced39d2ee23b99d5f4cb2cc006603a946cefd304870f1357ef9e390"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--1280--dark.png",
+          "scene": "course-circle",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "75f60fa88e6091b21a0b6171f82ec2c79fa51bbc595b032993cedc6cfe28a259"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--1280--light.png",
+          "scene": "course-circle",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "3a040b9321d0d71f369d7f9368d653cfafad42f023b7bd14045f4e7bb2e53457"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--1600--dark.png",
+          "scene": "course-circle",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "38be8e9a2192cdcf0bb5c7c3e51ad496508b2b839856c931fcf539949192167f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/course-circle--1600--light.png",
+          "scene": "course-circle",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "2c5f2017aea6f6b4b4c446702b24ed79847c0f3b265638dce680c2114946f882"
+        }
+      ]
+    },
+    {
+      "id": "web/book",
+      "client": "web",
+      "surface": "book",
+      "scope": "Safe squad rows plus upcoming/error/receipt/race; individual named fields excluded for fixture provenance.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--375--dark.png",
+          "scene": "book-squads",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "96528bb7c4e997e153fa595776382b258a659e1d794a35b30b934aaa6fbe2fb2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--375--light.png",
+          "scene": "book-squads",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "7e8192569b816f0aab123b83a8837739e1854997137faaba787247357a4cfe35"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--402--dark.png",
+          "scene": "book-squads",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "254ce6e9f244c43a64f119f17a709c9bdf320992ef53682d50dbac43dd693866"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--402--light.png",
+          "scene": "book-squads",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "3dde4832ed90789c401f8556184d333ad42cc00480a871402a22afaa580c1c1d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--1280--dark.png",
+          "scene": "book-squads",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "5226a7a9e67fe76dc6619b5d61bf6358847785f6c7f30267261e895a5843983a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--1280--light.png",
+          "scene": "book-squads",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "8d1888d4e64df76a4097157ade5c495910f23c8416371fa5f3e92f6689fe9e04"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--1600--dark.png",
+          "scene": "book-squads",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "635e4716979c203d6faf7767cb88f221f5cf07e55e675de3483739cde4c4bc34"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--1600--light.png",
+          "scene": "book-squads",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "ce6ca79b16f6cfc30c03e11985cc3ba2e633ac194caa4210284319db02ca4402"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-receipt--375--dark.png",
+          "scene": "book-squads-receipt",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "ceaea427d1d8a678d92e4a64a6ec76a505ccf1c54b753fafbce125b3c684332a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-receipt--375--light.png",
+          "scene": "book-squads-receipt",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "e8d7c580bb327cd828f0511468c67e71df0ca5d8c4f02addbb2a9c514e235ae4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-receipt--402--dark.png",
+          "scene": "book-squads-receipt",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "b5ee6832dfd65a846f6ddfa4739e428a996511efaf92ebd5e883d8c717c8a720"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-receipt--402--light.png",
+          "scene": "book-squads-receipt",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "46057a02142567cb83d908567a51e4287318f90910053f4484f622e300c0ac3e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-receipt--1280--dark.png",
+          "scene": "book-squads-receipt",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "c867f56907d9e629f736fae02b15e905bdf80f13a15f83381c5447a416291ac6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-receipt--1280--light.png",
+          "scene": "book-squads-receipt",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "d2056bebfcfc9709976f1eda841a8b25994fa5c0466179cd2b20048c3d7b68dc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-receipt--1600--dark.png",
+          "scene": "book-squads-receipt",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "5e1025f05d85f350333acc03e5edce04dce2f491b6ef70354aaadad02d8582f1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-receipt--1600--light.png",
+          "scene": "book-squads-receipt",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "42d25d5258afa3cdbacf7f089393db75e53a32a305fbf661606109056b952191"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-race--375--dark.png",
+          "scene": "book-squads-race",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "a32095291e5e0e0520664d32b67106783b68a74be8dd87c72c41f4bc1b44885e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-race--375--light.png",
+          "scene": "book-squads-race",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "bf286483f22986af19da2b4843683a517d9b5cee4e265d9f4707b75256f62e0d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-race--402--dark.png",
+          "scene": "book-squads-race",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "779252cf8c9ddbac671eaa85004a563d34e01709602dcd4dca32347d6ef05118"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-race--402--light.png",
+          "scene": "book-squads-race",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "95c61a0f139966839156220aa22c46025ca9d86e8c3229405aa362b9de1a4bf9"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-race--1280--dark.png",
+          "scene": "book-squads-race",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "efa1f46fddb250e16993add2940685dd4dcf1755f9ee29050b2ba8b9f9b796ea"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-race--1280--light.png",
+          "scene": "book-squads-race",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "54086cac223b0059f8ebfaddee7a698453fbaed3146aa63868323c116f84ed0b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-race--1600--dark.png",
+          "scene": "book-squads-race",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "cf3cfcb438a9592d2b7f5131ce1412ec64eb3fc33f8779a2fe8a124f70054f36"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads-race--1600--light.png",
+          "scene": "book-squads-race",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "762c8e2975366f8e6264d0278e207626c513fe70df1bfb5e0a77fb82c9d10d39"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-upcoming--375--dark.png",
+          "scene": "book-upcoming",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "2109d252f1560ac2bded28988c946ad4ed4ed9184b95ca415eb941745726f3aa"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-upcoming--375--light.png",
+          "scene": "book-upcoming",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "cc8d50e36b442ba4d82a731943dea9d52f6eba51379b0836db9f4aea2215dfe4"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-upcoming--402--dark.png",
+          "scene": "book-upcoming",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "d03f758ce0cdc5f4f6823f76347d242db127a2e6639af9709796daa91c12c1e5"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-upcoming--402--light.png",
+          "scene": "book-upcoming",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "dd6afe6fe89610186823208a2c21c4d6849f5d9e7adbdbd444963cb8bf65c0ea"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-upcoming--1280--dark.png",
+          "scene": "book-upcoming",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "2b376cee081b2703a3c6ee7a795212f9387a6c18346775179aa3e58ed622ec02"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-upcoming--1280--light.png",
+          "scene": "book-upcoming",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "8178b5aec591e81b986d4ebc595e09539f8fe80e81131378717d2d78d86df70e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-upcoming--1600--dark.png",
+          "scene": "book-upcoming",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "39ceb9f69d6bdc8888087b4a26efe402c9aacbe05d37b8098d0642d53aeae005"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-upcoming--1600--light.png",
+          "scene": "book-upcoming",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "4afc4b6447a6d21adfee5343a914b3845352a858dfc85ec1952d883f1a1fe9a7"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-error--375--dark.png",
+          "scene": "book-error",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "f1781d1d57be1f01a2d20fc5470af08487689fb55ab096ca9bc5aea57830ac17"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-error--375--light.png",
+          "scene": "book-error",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "c6472fd7e946049f8db9d05f6ef85e28e00ab87ded2f0d90d4e7a62ab28d0a23"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-error--402--dark.png",
+          "scene": "book-error",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "6d916e46f92553962e1ebabbf33d1062ea41e0c2942385e9db4641ed44a188ca"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-error--402--light.png",
+          "scene": "book-error",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "1793498c1202434b946016c67c587e15a031f3b7c93c090fece2f6d98e003bb5"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-error--1280--dark.png",
+          "scene": "book-error",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "25b4558903ecbc93bd83431a09e1a962a23e4b032ca5ededa20801aabc7b4a09"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-error--1280--light.png",
+          "scene": "book-error",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "6e0d9ec08d6421ad7e31b5a629b528113067703e5bba1af78c8fe53545030e7a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-error--1600--dark.png",
+          "scene": "book-error",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "98fa13ef5dea51f6f3fe9ffe4ef28582dd72c3ac9f3f9ae9662fd47dd21e0a3f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/book-error--1600--light.png",
+          "scene": "book-error",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "94547b07e7fe929c3fdaf88c77f4cafd27cde828523184c28d973a2d5ef7bcc0"
+        }
+      ]
+    },
+    {
+      "id": "web/share-card",
+      "client": "web",
+      "surface": "share-card",
+      "scope": "Existing synthetic preview/export. Abstract drawn fixture image is not course photography; no share transaction/consent persistence proof.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/share-card-output.png",
+          "scene": "share-card-output",
+          "theme": "fixed artifact palette",
+          "device": null,
+          "text_size": "default",
+          "sha256": "1b72a4cb3c0361417e23a6e3bbe512f790a737a7e12f5a1aefb07c492dfd6e3a"
+        }
+      ]
+    },
+    {
+      "id": "web/public-round",
+      "client": "web",
+      "surface": "public-round",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round--375--dark.png",
+          "scene": "public-round",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "7b7559b7b40f0391a8b7adde885a0aa42cf16779e1fbffcad4141b7ae87cb1be"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round--375--light.png",
+          "scene": "public-round",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "1ef99278f2940e2ca0aa30dbfdb0f746d42bedfa9d9fd92ebe6a7c59a5c574b5"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round--402--dark.png",
+          "scene": "public-round",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "fa2e3ab6cf7eaff983123d4c899184eba92eed69f111780d97a1c9047070f95f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round--402--light.png",
+          "scene": "public-round",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "532accc113033974bb8a83acb9590e0e2ab44b24fbe9257ccbc0010c34250260"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round--1280--dark.png",
+          "scene": "public-round",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "25fb21176e00c8419303822f72f58609043431096aba675c375fbb308cbae95b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round--1280--light.png",
+          "scene": "public-round",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "ced6b11327d7b9584b9a4042710ef9af1a46e47c611c28205b35e65fa60a9b2a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round--1600--dark.png",
+          "scene": "public-round",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "884e33291d4b5a849951e36d963913ee8f3a1ddc0b03648b1e58e30cbc8737bd"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round--1600--light.png",
+          "scene": "public-round",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "2613029010fc9a4743a8212b1040abecad85d2f6441dd407a49b7fc919f33893"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-photo--375--dark.png",
+          "scene": "public-round-photo",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "3630a913aecb9d7b5d9fc848c1ff9565c191e879165d620628a64cdd4eb87606"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-photo--375--light.png",
+          "scene": "public-round-photo",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "0fa49e0bca23bb7018d417b85123cca5eda620aaf99d471831c96b23b506db0f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-photo--402--dark.png",
+          "scene": "public-round-photo",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "0bdf4ff43601c2d2e86b4088dba7aa703520644db51365aface231cdd44ed2b2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-photo--402--light.png",
+          "scene": "public-round-photo",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "bca6f1a6d2da2695985d59b0cdaa64ff9e4d2215b291b509d56a4ba5ad7a53e2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-photo--1280--dark.png",
+          "scene": "public-round-photo",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "fd942007720445e0ee4988fe7b4c0f87ba2874129915be2efa98e3e8b0ab0287"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-photo--1280--light.png",
+          "scene": "public-round-photo",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "0d7cef3a83e95f4974ed7d5c46a3f4ea68efe62136285eaf394d75bff43dc2cf"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-photo--1600--dark.png",
+          "scene": "public-round-photo",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "a0586d5a1808935753b8eabd9812a1eb035a387dc1408eee9071036af323d04c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-photo--1600--light.png",
+          "scene": "public-round-photo",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "00dcf7d9a953e9742fa4f2c1e1b273f5238748aff463b0857b414a43e8402268"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-long--375--dark.png",
+          "scene": "public-round-long",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "39d2544abe5f2c7dfef2c386feb78f1c4c4ffebf24f192b82846603b1ff9d998"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-long--375--light.png",
+          "scene": "public-round-long",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "73bcd4035280e3e3c059ea72bae51ebd51830fe51d4d4d6f21e38618ec3c703a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-long--402--dark.png",
+          "scene": "public-round-long",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "39559a4674de66316e9eb2431bd378f205f38df64527ec4aacd59606faeaea45"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-long--402--light.png",
+          "scene": "public-round-long",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "f5518cdcc59af17e78059d5dec7775142058c591956bfb2b2c6a0255607e92ac"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-long--1280--dark.png",
+          "scene": "public-round-long",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "ef491dc67ac645740fdfb75de2b334827029dcb3b0413d2256a23260537b5b41"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-long--1280--light.png",
+          "scene": "public-round-long",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "218cf181bbf9336201f29b708d95b927de938b4c13020ef97772029c1191ee91"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-long--1600--dark.png",
+          "scene": "public-round-long",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "09149ad4cbf3189191ca935323ac4847f6447d822f30454a55482fb6c311b462"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-long--1600--light.png",
+          "scene": "public-round-long",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "3fc8ca496f23d6fd4a2103275c9494da0d8c75290e763e99b4843e691e16b398"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-no-band--375--dark.png",
+          "scene": "public-round-no-band",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "3f6006a6dda0a0069ea587412aa7b4500e86798ca82a8f86072e0c8754cb63eb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-no-band--375--light.png",
+          "scene": "public-round-no-band",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "e97d98c9406d6badd75ad67f33533723c8a260e3af5995aab91dbbb25c51e412"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-no-band--402--dark.png",
+          "scene": "public-round-no-band",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "57a3b15f3deaf8ed6587dccfe633cf51def46cb8ba9993bb34825df4c4d72c7c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-no-band--402--light.png",
+          "scene": "public-round-no-band",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "cb256ad8204d0c9734e20e4efcc162479926ef866bcb2605bfeb88b53c304736"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-no-band--1280--dark.png",
+          "scene": "public-round-no-band",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "cfd1522d9dd3e88a014c0e8a341329bb92afa2504980ef3bb41513a594c551ea"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-no-band--1280--light.png",
+          "scene": "public-round-no-band",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "a2f7a2647e934146747fe35e8c7f5da53bc3350d0988788f34f8180c8fe7e5b8"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-no-band--1600--dark.png",
+          "scene": "public-round-no-band",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "dd8aa145f0a632487d3d17b7fdb1f4e4265b4bac6c8c05ae2d489045a2b3f1ca"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-no-band--1600--light.png",
+          "scene": "public-round-no-band",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "d8fa9996f6131be86f41ab9bedd7334fe12f0117291dc81f56d37b8d1dd2597a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-broken-photo--375--dark.png",
+          "scene": "public-round-broken-photo",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "7b7559b7b40f0391a8b7adde885a0aa42cf16779e1fbffcad4141b7ae87cb1be"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-broken-photo--375--light.png",
+          "scene": "public-round-broken-photo",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "1ef99278f2940e2ca0aa30dbfdb0f746d42bedfa9d9fd92ebe6a7c59a5c574b5"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-broken-photo--402--dark.png",
+          "scene": "public-round-broken-photo",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "fa2e3ab6cf7eaff983123d4c899184eba92eed69f111780d97a1c9047070f95f"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-broken-photo--402--light.png",
+          "scene": "public-round-broken-photo",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "532accc113033974bb8a83acb9590e0e2ab44b24fbe9257ccbc0010c34250260"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-broken-photo--1280--dark.png",
+          "scene": "public-round-broken-photo",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "25fb21176e00c8419303822f72f58609043431096aba675c375fbb308cbae95b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-broken-photo--1280--light.png",
+          "scene": "public-round-broken-photo",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "ced6b11327d7b9584b9a4042710ef9af1a46e47c611c28205b35e65fa60a9b2a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-broken-photo--1600--dark.png",
+          "scene": "public-round-broken-photo",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "884e33291d4b5a849951e36d963913ee8f3a1ddc0b03648b1e58e30cbc8737bd"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/public-round-broken-photo--1600--light.png",
+          "scene": "public-round-broken-photo",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "2613029010fc9a4743a8212b1040abecad85d2f6441dd407a49b7fc919f33893"
+        }
+      ]
+    },
+    {
+      "id": "web/get",
+      "client": "web",
+      "surface": "get",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/get--375--dark.png",
+          "scene": "get",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "fcca03a3f6e4be8267be62648fb187fa5cc5be18c745fe4f832f546b9bec2389"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/get--375--light.png",
+          "scene": "get",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "974d1ca8aa360c6b45301de070a3bdecbba6d748781fcb9aedfee44c5f3f05ad"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/get--402--dark.png",
+          "scene": "get",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "a8218be365ec7e2c81f3a4c254f909ca485494b202a38d855207ed210cbffa47"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/get--402--light.png",
+          "scene": "get",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "3879a046d444794198abd1eb6763d4b8681790620c55af239fe2e563d41766bd"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/get--1280--dark.png",
+          "scene": "get",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "bf5562425349868b7503e8cf459683d2f5af6a93c73ab1cdf607bcfddc56d9d0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/get--1280--light.png",
+          "scene": "get",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "0054af9c046fb4a0e0053d83ba791d81a5df8f0a5548df14d9e9064837d93ba3"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/get--1600--dark.png",
+          "scene": "get",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "f8a8d93472a8c491c05012dc5a97bfa985dc19b246e226693730a70c8ce60e57"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/get--1600--light.png",
+          "scene": "get",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "9f3afc5d2eaa1d4f53217c1c87b32c7e0c91cd99f1a2574e44e89fc2748fa80e"
+        }
+      ]
+    },
+    {
+      "id": "web/support",
+      "client": "web",
+      "surface": "support",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/support--375--dark.png",
+          "scene": "support",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "fa8c31fe414ebdc0976ca750b075424512794fff805951a956445926fbb283b1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/support--375--light.png",
+          "scene": "support",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "82d8d10a5f2b11c7a38e4ee9ca98383d9acbc3be9a2702728fc2516bde114ca0"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/support--402--dark.png",
+          "scene": "support",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "a89881e3b9d084822af8aa5d6fcec179d2d5a0fdebea07a0fa0bcf6c223ceeda"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/support--402--light.png",
+          "scene": "support",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "1b9663b82c3a60244eac81e046f027b34fddf668bb276edbd7dc145c1d9fe709"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/support--1280--dark.png",
+          "scene": "support",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "8e261abe416c51e4789cfa1a2efde6b32920800dfc9b35c75ab3a518194be654"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/support--1280--light.png",
+          "scene": "support",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "4dfc2c4713395af8b7eb16d3e811644b00e7284d66a0d82f4acc04af8f2a5a5b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/support--1600--dark.png",
+          "scene": "support",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "8d0ff5a6740e8975f90f60c5974b97078b62037e0a70e67337afb05d0fdc8f81"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/support--1600--light.png",
+          "scene": "support",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "d9a18e087fccec18fd82070cebbfcd8cb328794198ea8de7e2fccb3192cc7d71"
+        }
+      ]
+    },
+    {
+      "id": "web/legal",
+      "client": "web",
+      "surface": "legal",
+      "scope": "Score only the captured states; no unseen state is proved.",
+      "aggregate": true,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/legal--375--dark.png",
+          "scene": "legal",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "9c61bc8a6cb60839538b1ed1af08f06640f573716475902c99998a10e53a7ad5"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/legal--375--light.png",
+          "scene": "legal",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "72d218a0776e063381d98632d5b772833c47f55859eccc59d8bbaf7f4efaa724"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/legal--402--dark.png",
+          "scene": "legal",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "3a72f8b0968eb9f460b1e73832e9946f9a956ed9be9ccaf4eefb3ed96d75e78b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/legal--402--light.png",
+          "scene": "legal",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "93641a76e5b31d721c53273e193227d4bc2e3417675d56ea2ce4a9c9a0087a2e"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/legal--1280--dark.png",
+          "scene": "legal",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "58de101bf0aadf04a5cc97293f27af007ef70c70d09adc2a0db1940ebacfe51c"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/legal--1280--light.png",
+          "scene": "legal",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "5d41a33b7598e32702eed1278604bbc8bd54152ec0b28270d2133348b5e96905"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/legal--1600--dark.png",
+          "scene": "legal",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "01f580756a6b41e68d3c655c9f17542546a299b0b209bb2b69388c9ceeb8a796"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/legal--1600--light.png",
+          "scene": "legal",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "74db1e889d65b17da71d5a5a53d98316f69864d832fff952135f7b28677fca69"
+        }
+      ]
+    },
+    {
+      "id": "web/round-receipt",
+      "client": "web",
+      "surface": "round-receipt",
+      "scope": "Synthetic read-only receipt states. Morning core receipt includes unavailable comments; Social fixture supplies synthetic conversation.",
+      "aggregate": false,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--375--dark.png",
+          "scene": "round-receipt",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "5b7648328a701fcf95817c06e85092e2a5901d85f17c40c45f8b21d07db36576"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--375--light.png",
+          "scene": "round-receipt",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "4879bfd94c0efa075a94f13b8bfd2a5b00ac0116adb53e4e1cf62ab94c44b27d"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--402--dark.png",
+          "scene": "round-receipt",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "35cd947fd300abbdae5146055bb34af1d6929a776e6abd977fea3863ba6fb4a2"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--402--light.png",
+          "scene": "round-receipt",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "eeafe8814a5c46df986bb39b055fb1442c49783b89f8f8dab22b3431fb6cde05"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--1280--dark.png",
+          "scene": "round-receipt",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "d1bf9a511f97aa962f2e2b5d6c41a3838bfaed1221f2433f18b367f33c2a2045"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--1280--light.png",
+          "scene": "round-receipt",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "d4ce2f14f658863454e7d9c0852935874ae6a10216c94efd2a7328c07d721e38"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--1600--dark.png",
+          "scene": "round-receipt",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "c8ddb627986ab1c20e4976043b5e606f24269c77ef88b63d8912c14bd51b33eb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/round-receipt--1600--light.png",
+          "scene": "round-receipt",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "ade35c75c51381a59744c0be5350cde0e0312b06bd65e9888c2269325452b261"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/post-receipt--375--dark.png",
+          "scene": "post-receipt",
+          "theme": "dark",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "62bee8c7a8e7bdd5e14b6484e93502d7e0b9dab59ff506d5e0fb85389b8d62dc"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/post-receipt--375--light.png",
+          "scene": "post-receipt",
+          "theme": "light",
+          "device": 375,
+          "text_size": "default",
+          "sha256": "b284ce360020445d8592f6a5093b903d2372dddf6a0ce7519736296b76320d52"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/post-receipt--402--dark.png",
+          "scene": "post-receipt",
+          "theme": "dark",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "147a133160a5b8a64a7f041197baf53c1caf79865c626783325ce966068935cd"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/post-receipt--402--light.png",
+          "scene": "post-receipt",
+          "theme": "light",
+          "device": 402,
+          "text_size": "default",
+          "sha256": "c5186d5f21dd5eb504801de204f64d7e1984d3086b41e0064321dcb8ca3cd0eb"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/post-receipt--1280--dark.png",
+          "scene": "post-receipt",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "82058aa80fa948dd03c40de621c7b248684d8c6a1f330bd396f493adf3b269be"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/post-receipt--1280--light.png",
+          "scene": "post-receipt",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "b8f81e77aef0f57da47a992bee55f68d5c6b7d1152008f525f7c0f56ae2b31d1"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/post-receipt--1600--dark.png",
+          "scene": "post-receipt",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "bb299f28412224735b053c50fc7a7ad0e59f508e366137919fbf62d28cab673a"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/post-receipt--1600--light.png",
+          "scene": "post-receipt",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "bb299f28412224735b053c50fc7a7ad0e59f508e366137919fbf62d28cab673a"
+        }
+      ]
+    },
+    {
+      "id": "web/web-desk",
+      "client": "web",
+      "surface": "web-desk",
+      "scope": "Shared desktop shell evidence; auxiliary row excluded from product aggregate to avoid counting same screens twice.",
+      "aggregate": false,
+      "captures": [
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1280--dark.png",
+          "scene": "home-brand-new",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "272d036acd192413bdb8dd2c78ac8d7dd35a05c9f9353deb6d848d4524528ccd"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1280--light.png",
+          "scene": "home-brand-new",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "c9fcad7b4ce88f2d2c9d1c129147af1eff179e535417c88b553c067e3bb83370"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1600--dark.png",
+          "scene": "home-brand-new",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "31addffca39eab2a1144dc403794bde98a551556bd011a6d7442e5aef72d2ca6"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--1600--light.png",
+          "scene": "home-brand-new",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "52f91144be9754e400461fc5dbd6d1307e59b63da4b0e2e94de25d53edfa0f11"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1280--dark.png",
+          "scene": "app-compete-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "01435b5f504ede154ae0b4f33b45054609cf187d6bdd4d657f362bb762fc5627"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1280--light.png",
+          "scene": "app-compete-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "280f772b1cfce5328569ea5902fbc2bda14d34e5b9344ba256c1b84c6cc1968b"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1600--dark.png",
+          "scene": "app-compete-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "64b928a29d345cef44e9b99909b9c26af4dc4b966ee80c51bc5105c0a2fbb3ca"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--1600--light.png",
+          "scene": "app-compete-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "1d075213f1c0da13b46ecb4b2934c85c14b193be96e63de24dd3ee48a2295115"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1280--dark.png",
+          "scene": "app-stats-empty",
+          "theme": "dark",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "948a7f55bb6a6b5e3d9c94d4dac76a128ae62b75826f690bf02f0b263061e4ea"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1280--light.png",
+          "scene": "app-stats-empty",
+          "theme": "light",
+          "device": 1280,
+          "text_size": "default",
+          "sha256": "043861805ce8290e22d683a02397bedeb2a9ea8c9b5ffaa3ccda8165024f1f52"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1600--dark.png",
+          "scene": "app-stats-empty",
+          "theme": "dark",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "95cd9d8c9044b677f554787cbe23b2202e78f6d802347834784a7f7414ea2178"
+        },
+        {
+          "file": "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--1600--light.png",
+          "scene": "app-stats-empty",
+          "theme": "light",
+          "device": 1600,
+          "text_size": "default",
+          "sha256": "10643c3087eadf1d729a508019298e243dad30cf46bd775cffe41b0270e612b2"
+        }
+      ]
+    }
+  ],
+  "requested_surfaces": [
+    "tour-card",
+    "you",
+    "season",
+    "play-cover",
+    "intent",
+    "leaderboard",
+    "person",
+    "home",
+    "record",
+    "live",
+    "course",
+    "compete",
+    "settings",
+    "season-story",
+    "door",
+    "golfers",
+    "head-to-head",
+    "plan",
+    "wizard",
+    "schedule",
+    "board",
+    "composer",
+    "bag",
+    "events",
+    "pot",
+    "sheets",
+    "onboarding",
+    "web-desk",
+    "scoreboard",
+    "book",
+    "courses",
+    "widgets",
+    "live-activity",
+    "share-card",
+    "public-round",
+    "claim",
+    "invite",
+    "get",
+    "support",
+    "legal",
+    "rules",
+    "app-store-screenshots",
+    "scorecard",
+    "live-recap",
+    "ceremony"
+  ],
+  "missing": "Every requested surface/client without a row is not captured/not scored or not applicable to that client; never infer its score from a sibling. iPhone-only widgets/Live Activity have no web equivalent. Public/static documents are web, opened by native link. Current store artifacts have no recapture in this baseline.",
+  "contact_sheets": {
+    "web": "/Users/fischbeck3/cup-season-ten-gallery/web/contact-manifest.json",
+    "ios": "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets"
+  },
+  "coverage_notes": [
+    "/Users/fischbeck3/cup-season-ten-gallery/web/coverage.md",
+    "/Users/fischbeck3/cup-season-ten-gallery/native/CAPTURE-NOTES.md"
+  ]
+}

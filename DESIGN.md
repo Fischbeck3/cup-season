@@ -1,0 +1,680 @@
+<!-- Generated from packages/tokens/tokens.json and docs/ui-overhaul-2026-09-06/UI_SYSTEM.md (read through later decisions); to change the system, change its source and regenerate this record rather than edit it. -->
+
+---
+{
+  "$schema": "cup-season tokens v1",
+  "meta": {
+    "decision": "D270 The palette is re-printed (2026-09-06) over D103a Fescue (2026-08-27) over D76 Charcoal bones; extracted 2026-08-26 under D98 (Phase A1)",
+    "source": "Extracted from index.html, which remains the live web client. This file is now the SOURCE OF TRUTH: preflight check 10 fails if the two disagree, so a colour changed in one place and not the other cannot ship.",
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "default": "dark",
+    "note": "A token with no `light` value is theme-independent BY DESIGN and must NOT be given one without a decision-log entry. Three families are deliberately pinned in both themes: the geometry (radius, space, alpha, track), the type/motion/shadow stacks, and the `object` ramp \u2014 a physical object does not re-print when the room's lights change (D266, D270)."
+  },
+  "groups": {
+    "ground": {
+      "note": "Surfaces, darkest to raised. D270: bg0 is 49% further from black than D103b's (dE 10.28 at chroma 6.35), so the fescue is nameable; the light theme is warm almanac stock, not a paler dark. `line2` is deleted and `line` is renamed `rule` \u2014 the system has ONE hairline and no border token.",
+      "tokens": {
+        "bg0": {
+          "dark": "#0F1A15",
+          "note": "page \u2014 fescue (green-black) / almanac stock",
+          "light": "#F4F1E9"
+        },
+        "bg1": {
+          "dark": "#1A2620",
+          "note": "surface",
+          "light": "#EAE6DB"
+        },
+        "bg2": {
+          "dark": "#26352E",
+          "note": "raised / inputs",
+          "light": "#DED8C8"
+        },
+        "rule": {
+          "dark": "#4A6155",
+          "note": "the ONE hairline \u2014 2.66:1 on bg0, and there is no border token",
+          "light": "#A9A08A"
+        }
+      }
+    },
+    "text": {
+      "tokens": {
+        "ink": {
+          "dark": "#F1F4EF",
+          "light": "#151B17"
+        },
+        "mut": {
+          "dark": "#9BA69D",
+          "light": "#575F57"
+        },
+        "dim": {
+          "dark": "#5E6A62",
+          "light": "#8B9089"
+        }
+      }
+    },
+    "semantic": {
+      "note": "SEMANTIC ONLY \u2014 performance up/down, a falling row. Never decorative, and NEVER money: D273 puts money in `ink`, the pot in `gold`, and the sign in a word. D270 \u00b7 four light inks are 1-6% darker than the design table printed them, because `bg2` is now warm almanac stock (#DED8C8) rather than the old cool #E5EAE4 and the table's values landed at 4.48 / 4.28 / 4.17 / 4.08 : 1 on it. D211 / Y-32 is repo law and a hex in a table is not: gold #7A5A12->#795912, brand #A8420F->#A13F0E, pos #0B7340->#0A6D3C, cool #5D6862->#56615B, and all four now clear 4.5:1 on bg0, bg1 AND bg2. Hue is unchanged; only value moved.",
+      "tokens": {
+        "pos": {
+          "dark": "#4EC584",
+          "note": "performance up \u2014 SEMANTIC only (de-neoned mint)",
+          "light": "#0A6D3C"
+        },
+        "neg": {
+          "dark": "#FF6A5E",
+          "note": "performance down",
+          "light": "#B02A20"
+        },
+        "cool": {
+          "dark": "#7F8C95",
+          "note": "cooling: falling rows \u2014 slate, not alarm (was heat.cool)",
+          "light": "#56615B"
+        }
+      }
+    },
+    "metal": {
+      "note": "Two metals and only two (D269). ember = COMPETITION \u2014 upcoming, live or finished \u2014 and the identity's one hairline (F11, owner-approved 2026-09-15, broadening D359's active-only rule); gold = EARNED. The ordinary primary action is `act` (2026-09-14 owner board), which is neither metal and is deliberately kept out of their meanings.",
+      "tokens": {
+        "gold": {
+          "dark": "#D8B25A",
+          "note": "champagne / bronze on paper \u2014 EARNED only: leads, the pot, trophies",
+          "light": "#795912"
+        },
+        "brand": {
+          "dark": "#E8622C",
+          "note": "ember / stamp red on paper \u2014 COMPETITION identity (F11): a season, a clash or an event, before, during and after play. Not an ordinary action, and never a plain booked round.",
+          "light": "#A13F0E"
+        },
+        "brand-ink": {
+          "dark": "#0F1A15",
+          "note": "the type ON a broad ember panel, and it FLIPS between the printings because ember does. Measured: fescue on the dark theme's ember is 5.27:1 and cream is 2.99:1; on the light theme's darker ember those swap to 2.74:1 and 5.76:1. One colour for both would fail one of them, so the application board's single \"dark ink\" instruction holds for the dark printing only.",
+          "light": "#F4F1E9"
+        },
+        "act": {
+          "dark": "#5FA271",
+          "note": "the ordinary action \u2014 a fescue-family green; `bg0` type on the dark ground, cream on the paper one. Identity, semantics and earned gold are not this.",
+          "light": "#1F5D3A"
+        }
+      }
+    },
+    "squad": {
+      "note": "Four squad hues, re-cut off the metals so a team colour can never be mistaken for ember or champagne (D270).",
+      "tokens": {
+        "sq0": {
+          "dark": "#366F87",
+          "note": "squad slate-blue",
+          "light": "#002B40"
+        },
+        "sq1": {
+          "dark": "#B27E7C",
+          "note": "squad clay",
+          "light": "#603E35"
+        },
+        "sq2": {
+          "dark": "#97B999",
+          "note": "squad sage",
+          "light": "#4C705D"
+        },
+        "sq3": {
+          "dark": "#EDD4FA",
+          "note": "squad lilac",
+          "light": "#8B88A8"
+        }
+      }
+    },
+    "object": {
+      "note": "D266 \u00b7 the three containers, and the inks that ride on them. The PANEL inverts between the printings (it is a chip of the other theme's paper); the LEAF does not (it is a scorecard, and scorecards are cream in every light); the CEREMONY ramp is pinned in BOTH themes because a physical object does not re-print. The last four are the off-palette literals four surface specs had written inline, named here so preflight 15 passes.",
+      "tokens": {
+        "panel": {
+          "dark": "#E9ECE3",
+          "note": "the panel: one opaque tile, <=96x96, one figure or one word",
+          "light": "#141A16"
+        },
+        "panel-ink": {
+          "dark": "#0B120E",
+          "note": "the figure on the panel",
+          "light": "#F4F1E9"
+        },
+        "panel-mut": {
+          "dark": "#4C574F",
+          "note": "the agate label under it",
+          "light": "#A6AEA5"
+        },
+        "leaf": {
+          "dark": "#EFEADD",
+          "note": "the leaf: a sheet of scorecard paper, and it must hold a grid",
+          "light": "#FFFDF7"
+        },
+        "leaf-ink": {
+          "dark": "#1A1B14",
+          "note": "scorecard ink \u2014 the same in both printings, and it has no colour",
+          "light": "#1A1B14"
+        },
+        "leaf-mut": {
+          "dark": "#57605A",
+          "note": "the leaf column heads",
+          "light": "#5A625A"
+        },
+        "leaf-gold": {
+          "dark": "#795912",
+          "note": "gold ON PAPER \u2014 the light theme's gold, pinned in BOTH printings, because the leaf does not invert and dark gold at 2pt on bone is a pale smear (profile.md D-6). It is a RULE only; gold ink on a leaf is 1.68:1 and stays forbidden.",
+          "light": "#795912"
+        },
+        "ceremony": {
+          "dark": "#0A0E0C",
+          "note": "the honour room \u2014 pinned in both themes",
+          "light": "#0A0E0C"
+        },
+        "ceremony-ink": {
+          "dark": "#F1F4EF",
+          "light": "#F1F4EF"
+        },
+        "ceremony-mut": {
+          "dark": "#9BA69D",
+          "light": "#9BA69D"
+        },
+        "ceremony-brand": {
+          "dark": "#E8622C",
+          "light": "#E8622C"
+        },
+        "ceremony-gold": {
+          "dark": "#D8B25A",
+          "light": "#D8B25A"
+        },
+        "ceremony-pos": {
+          "dark": "#4EC584",
+          "light": "#4EC584"
+        },
+        "ceremony-cool": {
+          "dark": "#7F8C95",
+          "light": "#7F8C95"
+        },
+        "ceremony-sq0": {
+          "dark": "#366F87",
+          "light": "#366F87"
+        },
+        "ceremony-sq1": {
+          "dark": "#B27E7C",
+          "light": "#B27E7C"
+        },
+        "ceremony-sq2": {
+          "dark": "#97B999",
+          "light": "#97B999"
+        },
+        "ceremony-sq3": {
+          "dark": "#EDD4FA",
+          "light": "#EDD4FA"
+        },
+        "crest": {
+          "dark": "#33463B",
+          "note": "the crest plate behind a medallion",
+          "light": "#33463B"
+        },
+        "folio-rule": {
+          "dark": "#8B8F8B",
+          "note": "the folio hairline on an object, which is not the page rule",
+          "light": "#8B8F8B"
+        },
+        "scrim-ink": {
+          "dark": "#F1F4EF",
+          "note": "type over a photograph \u2014 the photo is the ground, not the theme",
+          "light": "#F1F4EF"
+        },
+        "scrim-mut": {
+          "dark": "#CBD2C8",
+          "light": "#CBD2C8"
+        }
+      }
+    },
+    "pigment": {
+      "note": "D271 \u00b7 the six discs a face is drawn on, chosen deterministically from the golfer's id and frozen with the glyph. A pigment carries NO meaning \u2014 two golfers with the same marker become two different coins, and nothing is implied by which.",
+      "tokens": {
+        "pig0": {
+          "dark": "#492D2C",
+          "light": "#FDDAD8"
+        },
+        "pig1": {
+          "dark": "#473C28",
+          "light": "#E6D8C2"
+        },
+        "pig2": {
+          "dark": "#293B2B",
+          "light": "#D6EBD7"
+        },
+        "pig3": {
+          "dark": "#1F4648",
+          "light": "#BEE4E7"
+        },
+        "pig4": {
+          "dark": "#293B4E",
+          "light": "#D9EAFF"
+        },
+        "pig5": {
+          "dark": "#4E3C4F",
+          "light": "#EED9EE"
+        }
+      }
+    },
+    "radius": {
+      "note": "Five radii. `p` is the panel's corner \u2014 the tile is nearly square, because a figure in a rounded box reads as a button.",
+      "tokens": {
+        "r": {
+          "dark": "16px",
+          "note": "objects"
+        },
+        "rc": {
+          "dark": "10px",
+          "note": "controls: buttons, inputs, minis"
+        },
+        "rs": {
+          "dark": "24px",
+          "note": "sheets"
+        },
+        "p": {
+          "dark": "3px",
+          "note": "the panel"
+        },
+        "rx": {
+          "dark": "28px",
+          "note": "the credential and the settlement card \u2014 the two artefacts"
+        }
+      }
+    },
+    "space": {
+      "note": "One spacing scale, and it is the only one. `rail` is the 44pt rank rail \u2014 the signature \u2014 and `hair` is the hairline's width, so a rule is never 0.5 on one client and 1 on the other.",
+      "tokens": {
+        "s1": {
+          "dark": "4px"
+        },
+        "s2": {
+          "dark": "8px"
+        },
+        "s3": {
+          "dark": "12px"
+        },
+        "s4": {
+          "dark": "20px"
+        },
+        "s5": {
+          "dark": "32px"
+        },
+        "s6": {
+          "dark": "52px"
+        },
+        "gutter": {
+          "dark": "20px",
+          "note": "the phone measure"
+        },
+        "gutter-desk": {
+          "dark": "40px",
+          "note": "the desk measure (R-C / D234)"
+        },
+        "rail": {
+          "dark": "44px",
+          "note": "the rank rail"
+        },
+        "hair": {
+          "dark": "1px"
+        }
+      }
+    },
+    "alpha": {
+      "note": "The five opacities anything in the system is allowed to be. Bare numbers, not percentages.",
+      "tokens": {
+        "a08": {
+          "dark": 0.08
+        },
+        "a16": {
+          "dark": 0.16
+        },
+        "a24": {
+          "dark": 0.24
+        },
+        "a56": {
+          "dark": 0.56
+        },
+        "a88": {
+          "dark": 0.88
+        }
+      }
+    },
+    "track": {
+      "note": "Letterspacing, as a RATIO of the rendered point size \u2014 never a length, so it holds at AX3. D268 resolves the group at nine values: UI_SYSTEM 1.2's table asks for eight and 1.7's ordinal for a ninth, which the four names that section proposes cannot express.",
+      "tokens": {
+        "flat": {
+          "dark": 0,
+          "note": "body, prose, anything set in a sentence"
+        },
+        "tight": {
+          "dark": -0.01,
+          "note": "the column face at size"
+        },
+        "d1": {
+          "dark": 0.005,
+          "note": "display"
+        },
+        "d2": {
+          "dark": 0.01,
+          "note": "display, small"
+        },
+        "caps": {
+          "dark": 0.035,
+          "note": "a name in caps"
+        },
+        "caps2": {
+          "dark": 0.04,
+          "note": "a name in caps, small"
+        },
+        "agate-s": {
+          "dark": 0.08,
+          "note": "agate, small (11pt \u2014 the floor)"
+        },
+        "agate": {
+          "dark": 0.09,
+          "note": "agate \u2014 the metadata voice"
+        },
+        "ord": {
+          "dark": 0.05,
+          "note": "the ordinal suffix on a figure"
+        }
+      }
+    },
+    "type": {
+      "note": "Four voices (D268): BOARD is the brand's own \u2014 IBM Plex Sans Condensed, bundled; sans is prose; mono keeps what print gave it (columns of figures, codes, handles, times); serif is memory and honour. Charter is retired \u2014 it has no display cut, no optical sizes, one weight step, and must be addressed by PostScript string, which is D258's defect class.",
+      "tokens": {
+        "board": {
+          "dark": "'IBM Plex Sans Condensed', system-ui, sans-serif",
+          "note": "the figure, the rail, every title \u2014 bundled, and a stack does not load a face"
+        },
+        "sans": {
+          "dark": "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif"
+        },
+        "mono": {
+          "dark": "'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace"
+        },
+        "serif": {
+          "dark": "ui-serif, 'New York', 'Iowan Old Style', Georgia, serif"
+        }
+      }
+    },
+    "motion": {
+      "note": "Two easings. `roll` is the putt dying at the hole \u2014 arrivals and settles. `snap` is a control answering a finger, and it is the only thing allowed to be fast.",
+      "tokens": {
+        "roll": {
+          "dark": "cubic-bezier(.16,.84,.36,1)"
+        },
+        "snap": {
+          "dark": "cubic-bezier(.2,0,0,1)",
+          "note": "presses, chips, the tab band"
+        }
+      }
+    },
+    "shadow": {
+      "note": "Two shadows, and neither of them is depth for its own sake: the lifted sheet, and the single dark line under a leaf that says it is a piece of paper. `shadow-rest` is deleted \u2014 it had zero references.",
+      "tokens": {
+        "leaf-shade": {
+          "dark": "0 1px 0 rgba(0,0,0,.22)",
+          "note": "the leaf sits on the page"
+        },
+        "shadow-lift": {
+          "dark": "0 18px 44px -12px rgba(0,0,0,.55)"
+        }
+      }
+    }
+  },
+  "looks": {
+    "note": "D103a \u2014 the looks: a bounded override set a calendar window or a league phase turns on. accent/accent2 only. Never ground, ink, pos/neg, cool, heat, squads or gold \u2014 those are semantic or earned, and a look that tinted them would make the app lie about whether you went up or down. D313: accent2 finally REACHES something (the masthead tick, the section rule's far half, and the panel \u2014 the chosen state); the emoji `motif` is RETIRED, it rendered only in the look-picker rows; Two Teams' accent2 moved #D33A4A to #C23544, the one look whose second colour carried legible ink neither way on a panel. Windows are m1,d1,m2,d2; odd_years marks the biennial team match. D103b: dark accents lifted so every eyebrow passes 4.5:1 on bg0 and bg1. D270: a look tints THE RAIL AND THE EYEBROW ONLY, never a ground; the accents that pointed at `pine`, `fire` or `dawn` now point at tokens that still exist. D359 (owner-ratified 2026-09-14) makes the old prose rule ENFORCED, and resolves the three looks that broke it. A CALENDAR look \u2014 a personal livery on a date window \u2014 may style an ordinary action and may take no reserved value: not the competition ember, not earned gold, not pos/neg, not ink or the ground. `fresh`'s accent2 was literally `ink` in both themes; it is now a pale silver (#D6DCD4 / #3A423B), which is the look's own idea rather than the text colour. The two PHASE looks are named exemptions with their reason: `cupfinal` takes ember because a Cup Final IS the active competition the ember marks, and `wrap` takes gold because a wrapped season IS the earning gold is reserved for. `cupfinal`'s SECOND accent was gold as well, and that one is resolved rather than exempted: the far half of the tick is not an earning, so everyone in the phase wore gold whether they had earned anything or not. It is a deeper ember now (#D2603A / #8C3609) \u2014 the phase's own colour at two volumes. They are the signal, not a style over it. BRAND-02 in tests/preflight.mjs holds all of this.",
+    "all": [
+      {
+        "key": "opener",
+        "name": "Azaleas",
+        "eyebrow": "The opener",
+        "window": [
+          3,
+          28,
+          4,
+          13
+        ],
+        "accent": {
+          "dark": "#2E9E5B",
+          "light": "#1F7A47"
+        },
+        "accent2": {
+          "dark": "#E96A93",
+          "light": "#B8456E"
+        }
+      },
+      {
+        "key": "may",
+        "name": "Silver",
+        "eyebrow": "The May one",
+        "window": [
+          5,
+          8,
+          5,
+          24
+        ],
+        "accent": {
+          "dark": "#8FA0BA",
+          "light": "#5A6B85"
+        },
+        "accent2": {
+          "dark": "#B8C2CC",
+          "light": "#7C8893"
+        }
+      },
+      {
+        "key": "test",
+        "name": "The Test",
+        "eyebrow": "The hardest test",
+        "window": [
+          6,
+          8,
+          6,
+          22
+        ],
+        "accent": {
+          "dark": "#6087C1",
+          "light": "#2C4C7C"
+        },
+        "accent2": {
+          "dark": "#C8102E",
+          "light": "#A50E26"
+        }
+      },
+      {
+        "key": "fourth",
+        "name": "Stars",
+        "eyebrow": "The Fourth",
+        "window": [
+          6,
+          28,
+          7,
+          6
+        ],
+        "accent": {
+          "dark": "#DA5B69",
+          "light": "#B22234"
+        },
+        "accent2": {
+          "dark": "#5B5AA0",
+          "light": "#3C3B6E"
+        }
+      },
+      {
+        "key": "oldest",
+        "name": "Claret",
+        "eyebrow": "Links",
+        "window": [
+          7,
+          10,
+          7,
+          24
+        ],
+        "accent": {
+          "dark": "#D06275",
+          "light": "#8A2432"
+        },
+        "accent2": {
+          "dark": "#B9A96B",
+          "light": "#8A7C48"
+        }
+      },
+      {
+        "key": "teams",
+        "name": "Two Teams",
+        "eyebrow": "Two teams",
+        "window": [
+          9,
+          18,
+          10,
+          5
+        ],
+        "odd_years": true,
+        "accent": {
+          "dark": "#5885DB",
+          "light": "#1E4FA3"
+        },
+        "accent2": {
+          "dark": "#C23544",
+          "light": "#B22234"
+        }
+      },
+      {
+        "key": "fall",
+        "name": "Fall",
+        "eyebrow": "The season's turning",
+        "window": [
+          10,
+          1,
+          11,
+          20
+        ],
+        "accent": {
+          "dark": "#D08A3C",
+          "light": "#A6601F"
+        },
+        "accent2": {
+          "dark": "#8C5A2B",
+          "light": "#6B4420"
+        }
+      },
+      {
+        "key": "holidays",
+        "name": "Evergreen",
+        "eyebrow": "The holidays",
+        "window": [
+          12,
+          1,
+          12,
+          26
+        ],
+        "accent": {
+          "dark": "#339561",
+          "light": "#1E5A3A"
+        },
+        "accent2": {
+          "dark": "#C4394B",
+          "light": "#A52A3A"
+        }
+      },
+      {
+        "key": "fresh",
+        "name": "Fresh",
+        "eyebrow": "A fresh table",
+        "window": [
+          12,
+          27,
+          1,
+          15
+        ],
+        "accent": {
+          "dark": "#8FA0BA",
+          "light": "#5A6B85"
+        },
+        "accent2": {
+          "dark": "#D6DCD4",
+          "light": "#3A423B"
+        }
+      },
+      {
+        "key": "cupfinal",
+        "name": "Cup Final",
+        "eyebrow": "Four weeks, scored fresh",
+        "phase": "cup_final",
+        "accent": {
+          "dark": "#E8622C",
+          "light": "#A8420F"
+        },
+        "accent2": {
+          "dark": "#D2603A",
+          "light": "#8C3609"
+        }
+      },
+      {
+        "key": "wrap",
+        "name": "The Wrap",
+        "eyebrow": "Season wrapped",
+        "phase": "wrapped",
+        "accent": {
+          "dark": "#D8B25A",
+          "light": "#7A5A12"
+        },
+        "accent2": {
+          "dark": "#33463B",
+          "light": "#33463B"
+        }
+      }
+    ]
+  }
+}
+---
+
+# Design System: Cup Season
+
+## Overview
+
+**Creative North Star: “The tournament board, printed.”** [UI_SYSTEM §0.1](docs/ui-overhaul-2026-09-06/UI_SYSTEM.md).
+
+The tournament board and its almanac: bands, rules, rank rails and a few meaningful objects. The brand is proud, warm, quietly ceremonial and competitive without hype. Dark is the trophy room at dusk; light is the morning tee sheet. [Brand canon §§1–3](spec/brand-canon.md), UI_SYSTEM §§0,2,15. This compiled scan is not a new design authority; approval is pending. The token-native frontmatter is an exact copy of tokens.json, including its source notes and historical amendments; later D-entries govern meaning. No invented ramps or new primitive values are generated.
+
+## Colors
+
+Use the project's roles without renaming them: `act` for ordinary actions; ember (`brand`) for competition and the approved identity hairline (D359/F11); `gold` earned only; opaque `mut` for secondary text; `pos`, `neg`, `cool` for their semantic jobs; `bg0`/`bg1`/`bg2` grounds, identity pigments and pinned ceremony inks for their own surfaces. D381 limits the full Scoreboard competition band to live state. D368's short earned-play-moment stroke is a named exception; it does not recolor the score grid. No opacity on secondary words. [Token notes](packages/tokens/tokens.json), [D358–D368/D381](spec/decision-log.md), UI_SYSTEM §16.
+
+A personal look styles `act` under D359; it never broadly substitutes for `brand`, grounds, ink, earned gold or semantic colors. The `cupfinal` and `wrap` phase exceptions are explicitly named in tokens. Light is a designed paper printing, and ceremony objects retain their own ink ramp in both themes.
+
+## Typography
+
+Board: IBM Plex Sans Condensed for names, figures and agate. Story: system serif for a deliberate sentence. Record: IBM Plex Mono for codes, times and columns. Functional prose/inputs: system sans. The fonts and their roles are incumbent decisions, not a license to add a face. Source growth policy: `apps/ios/Packages/CSDesign/Sources/CSDesign/Type.swift`; qualitative roles: UI_SYSTEM §1. No numeric type values absent from tokens.json are added to frontmatter. An agate label remains only if it carries an independent fact; repeating its heading violates D360.
+
+## Layout
+
+Native preserves its five destinations and phone hierarchy; web uses the desktop sidebar and wide two-column body (D234, UI_SYSTEM §14). Use the `space` scale and structural constants from the frontmatter. Reflow meaning at AX3 rather than shrinking the same row. Home is social, Profile identity, Course editorial, Season narrative, Event a moment, History an archive (BRIEF §31; UI_SYSTEM §15). Surface strategy is in family briefs.
+
+## Elevation & Depth
+
+Most structure is type, rules, rails, bands and whitespace. A panel holds one figure/word, a leaf holds a printed grid, and an object is an artifact worth keeping. Shadow values are only the source `shadow` group. No generic card stack, glow, glass, wash or decorative gradient. [UI_SYSTEM §§3,10–11](docs/ui-overhaul-2026-09-06/UI_SYSTEM.md).
+
+## Shapes
+
+Use the exact `radius` and `space` tokens. Drawn score marks are rings/boxes, not a semantic heat map. Pigment and marker identity stay consistent across surfaces. The CS pennant is the production mark (D358), sparingly signing identity; do not change it or its generated assets. Canonical component implementations resolve historical geometry conflicts, which the checkpoint records rather than silently normalizing.
+
+## Components
+
+Ordinary primary actions use `act`; secondary actions use the existing shared styles; gold never paints control chrome (D359, UI_SYSTEM §7 as amended). Fields pair labels, values and adjacent validation. Keep safe focus/keyboard paths. Native tab band is D269's ratified structure; desktop sidebar is D234's. Every points figure retains its receipt path (§16). State components preserve cached content on read failure and identify missing data honestly. Exported round artifacts honor D380/D385's consent and cancellation boundaries.
+
+## Do's and Don'ts
+
+- **Do** keep one fact in its closest useful place (D360).
+- **Do** preserve the literal ledger sentence and UI_SYSTEM §16A.1 placement.
+- **Do** use real, consented photographs when present and the existing drawn/marker fallback when absent; never fabricate faces or lift scores with invented content.
+- **Do** preserve 44pt targets, readable text in both themes, Dynamic Type, VoiceOver and Reduce Motion.
+- **Don't** treat old “ember = primary action” or “mark open” summaries as current authority.
+- **Don't** let a skill default silently reverse ratified type, navigation, color, dark-first or copy laws.
+- **Don't** introduce bounce, glow, glass, sports gradients or gamification (BRIEF §33; UI_SYSTEM §11).
+
+This record contains no unsourced new aesthetic choice. Any future unsourced direction must be labeled **PROPOSED** and sent to the checkpoint.

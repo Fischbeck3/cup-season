@@ -1,0 +1,1060 @@
+[
+  {
+    "target": "door/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-door.md",
+    "score": "19/28",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0,
+      "P3": 1
+    },
+    "trend": "[\n  {\n    \"target\": \"door/web\",\n    \"total_score\": 19,\n    \"max_score\": 28,\n    \"na_heuristics\": \"7,10\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#door\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-door\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-door",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "door/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-door-doorview-swift.md",
+    "score": "24/32",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"door/native\",\n    \"total_score\": 24,\n    \"max_score\": 32,\n    \"na_heuristics\": 7,\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Door/DoorView.swift\",\n    \"target_fingerprint\": \"sha256:663c67de1f4d70fcd890051e69a7c952b0d1410e8a81518d342027b1681a07e3\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Door/DoorView.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-door-doorview-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-door-doorview-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "home/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-home.md",
+    "score": "17/28",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"home/web\",\n    \"total_score\": 17,\n    \"max_score\": 28,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-home\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-home\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-home",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "home/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-home-homeview-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"home/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Home/HomeView.swift\",\n    \"target_fingerprint\": \"sha256:996ceee92ef471999c4757155efb9b03b8d502ce577d9d995d0f976266c9692b\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Home/HomeView.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-home-homeview-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-home-homeview-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "play/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-play.md",
+    "score": "19/28",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 1
+    },
+    "trend": "[\n  {\n    \"target\": \"play/web\",\n    \"total_score\": 19,\n    \"max_score\": 28,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-play\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-play\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-play",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "play/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-live-liveroundhost-swift.md",
+    "score": "24/36",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 2,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"play/native\",\n    \"total_score\": 24,\n    \"max_score\": 36,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Live/LiveRoundHost.swift\",\n    \"target_fingerprint\": \"sha256:0a045a4004588800c94afc1e3b0cad8244dc2328588ac345c339c0f008871e92\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Live/LiveRoundHost.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-live-liveroundhost-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-live-liveroundhost-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "post/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-post.md",
+    "score": "21/32",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 2,
+      "P3": 1
+    },
+    "trend": "[\n  {\n    \"target\": \"post/web\",\n    \"total_score\": 21,\n    \"max_score\": 32,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-post\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-post\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-post",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "post/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-post-postroundscreen-swift.md",
+    "score": "24/32",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"post/native\",\n    \"total_score\": 24,\n    \"max_score\": 32,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Post/PostRoundScreen.swift\",\n    \"target_fingerprint\": \"sha256:4b64b41c38fe9c09fe2fea81a0f804b0e3c6efa3abc4f895a39786d7a0f591ca\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Post/PostRoundScreen.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-post-postroundscreen-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-post-postroundscreen-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "share/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-share-card.md",
+    "score": "10/16",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 1,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"share/web\",\n    \"total_score\": 10,\n    \"max_score\": 16,\n    \"na_heuristics\": \"7,10\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#share-card\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-share-card\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-share-card",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "share/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-post-recapcardview-swift.md",
+    "score": "21/28",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"share/native\",\n    \"total_score\": 21,\n    \"max_score\": 28,\n    \"na_heuristics\": \"7,10\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Post/RecapCardView.swift\",\n    \"target_fingerprint\": \"sha256:f9530d98fa2a9478cb375407fd6c25bd67bdd18368f3918edd944ebec724c302\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Post/RecapCardView.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-post-recapcardview-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-post-recapcardview-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "public-round/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-public-round.md",
+    "score": "25/32",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"public-round/web\",\n    \"total_score\": 25,\n    \"max_score\": 32,\n    \"na_heuristics\": \"7,10\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#public-round\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-public-round\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-public-round",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "claim-invite/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-claim-invite.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"claim-invite/web\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#claim-invite\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-claim-invite\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-claim-invite",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "claim-invite/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-people-links-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"claim-invite/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/People/Links.swift\",\n    \"target_fingerprint\": \"sha256:2316cde31eab343c02e3cf40805b8d349567d8faefb818e7d56064c481ccad00\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/People/Links.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-people-links-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-people-links-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "identity/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-you.md",
+    "score": "18/28",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 1,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"identity/web\",\n    \"total_score\": 18,\n    \"max_score\": 28,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-you\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-you\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-you",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "identity/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-you-youscreen-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"identity/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/You/YouScreen.swift\",\n    \"target_fingerprint\": \"sha256:e09af24bfda03beab2cb5cb7ae4e300a8ecef73e2a19aa90f499bf779e650506\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/You/YouScreen.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-you-youscreen-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-you-youscreen-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "golfers/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-golfers.md",
+    "score": "23/32",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"golfers/web\",\n    \"total_score\": 23,\n    \"max_score\": 32,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-golfers\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-golfers\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-golfers",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "golfers/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-golfers-golfersscreen-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"golfers/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Golfers/GolfersScreen.swift\",\n    \"target_fingerprint\": \"sha256:61971d5d86329b9cd43ed44d093734f43ed66ed28793e0120e48db400c16a2d4\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Golfers/GolfersScreen.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-golfers-golfersscreen-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-golfers-golfersscreen-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "history/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-record.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"history/web\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-record\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-record\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-record",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "history/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-you-recordpage-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 1,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"history/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/You/RecordPage.swift\",\n    \"target_fingerprint\": \"sha256:3c7ebdfeac6fe543df9542f438f91a959a6cc944b0355f6f1349eb8dcfce6a39\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/You/RecordPage.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-you-recordpage-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-you-recordpage-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "season/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-season.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"season/web\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-season\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-season\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-season",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "season/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-season-seasonpage-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"season/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Season/SeasonPage.swift\",\n    \"target_fingerprint\": \"sha256:2e5a2c64e6f64c4a4683e06f304c298bdc7d2b077ad4340ba198b08024247543\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Season/SeasonPage.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-season-seasonpage-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-season-seasonpage-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "competition/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-compete.md",
+    "score": "25/36",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 2,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"competition/web\",\n    \"total_score\": 25,\n    \"max_score\": 36,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-compete\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-compete\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-compete",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "competition/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-compete-competescreen-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"competition/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Compete/CompeteScreen.swift\",\n    \"target_fingerprint\": \"sha256:f809c2a52009a5210bcf6f154b9905d74242dfb0ba5e7ca2775ea600d608e925\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Compete/CompeteScreen.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-compete-competescreen-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-compete-competescreen-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "events/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-event.md",
+    "score": "20/28",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"events/web\",\n    \"total_score\": 20,\n    \"max_score\": 28,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-event\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-event\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-event",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "events/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__apps-ios-cupseason-events-eventroomscreen-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"events/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Events/EventRoomScreen.swift\",\n    \"target_fingerprint\": \"sha256:195644bfe2ee03071785d0aecc2bdbbdd621af972bd262b4d71fb243faa29f92\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Events/EventRoomScreen.swift\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"apps-ios-cupseason-events-eventroomscreen-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-events-eventroomscreen-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "schedule/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-13Z__index-html-view-schedule.md",
+    "score": "21/28",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"schedule/web\",\n    \"total_score\": 21,\n    \"max_score\": 28,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-schedule\",\n    \"timestamp\": \"2026-09-28T03-17-13Z\",\n    \"slug\": \"index-html-view-schedule\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-schedule",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "schedule/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__apps-ios-cupseason-schedule-schedulescreen-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 1,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"schedule/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Schedule/ScheduleScreen.swift\",\n    \"target_fingerprint\": \"sha256:ee925a32b1c12c5c33be54c0f56c841d8f54a0bb0bf0cb34ad97dad594c0af11\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Schedule/ScheduleScreen.swift\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"apps-ios-cupseason-schedule-schedulescreen-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-schedule-schedulescreen-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "wizard/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__index-html-view-wizard.md",
+    "score": "21/28",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 1,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"wizard/web\",\n    \"total_score\": 21,\n    \"max_score\": 28,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#view-wizard\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"index-html-view-wizard\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-view-wizard",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "wizard/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__apps-ios-cupseason-wizard-wizardscreen-swift.md",
+    "score": "21/28",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"wizard/native\",\n    \"total_score\": 21,\n    \"max_score\": 28,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Wizard/WizardScreen.swift\",\n    \"target_fingerprint\": \"sha256:af426c457f1c17b69d2292917a04dd17b48a455cf5b03df796c41fed56934cc6\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Wizard/WizardScreen.swift\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"apps-ios-cupseason-wizard-wizardscreen-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-wizard-wizardscreen-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "courses/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__index-html-course-home.md",
+    "score": "24/32",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"courses/web\",\n    \"total_score\": 24,\n    \"max_score\": 32,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#course-home\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"index-html-course-home\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-course-home",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "courses/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__apps-ios-cupseason-courses-coursehomescreen-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"courses/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Courses/CourseHomeScreen.swift\",\n    \"target_fingerprint\": \"sha256:080e5e7b2adc790a766a634f173b065fc81685a685a6aa9abab86d7d43498fda\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Courses/CourseHomeScreen.swift\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"apps-ios-cupseason-courses-coursehomescreen-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-courses-coursehomescreen-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "settings/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__index-html-settings.md",
+    "score": "22/32",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"settings/web\",\n    \"total_score\": 22,\n    \"max_score\": 32,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#settings\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"index-html-settings\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-settings",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "settings/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__ason-settings-cardandsettingsscreen-swift-60ae2dbe.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"settings/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Settings/CardAndSettingsScreen.swift\",\n    \"target_fingerprint\": \"sha256:6fb9c69829d071fa4c88936bd541686bed58d76671c1220efe58d37af687748c\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Settings/CardAndSettingsScreen.swift\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"ason-settings-cardandsettingsscreen-swift-60ae2dbe\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "ason-settings-cardandsettingsscreen-swift-60ae2dbe",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "widgets/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__son-widgets-betweenroundswidgetview-swift-7bbf52d7.md",
+    "score": "15/24",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"widgets/native\",\n    \"total_score\": 15,\n    \"max_score\": 24,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Widgets/BetweenRoundsWidgetView.swift\",\n    \"target_fingerprint\": \"sha256:d97cb6186541816591aca7500614eec7f6aa9aea7804a226531c668a1614ed1d\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Widgets/BetweenRoundsWidgetView.swift\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"son-widgets-betweenroundswidgetview-swift-7bbf52d7\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "son-widgets-betweenroundswidgetview-swift-7bbf52d7",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "rules/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__index-html-rules.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"rules/web\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#rules\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"index-html-rules\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-rules",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "rules/native",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__apps-ios-cupseason-season-seasonrulespage-swift.md",
+    "score": "not scored",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"rules/native\",\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Season/SeasonRulesPage.swift\",\n    \"target_fingerprint\": \"sha256:a5df3415b2c2dc4446783e5a80fdab43f586e886d2a7e6e5e6010c930d7542ad\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Season/SeasonRulesPage.swift\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"apps-ios-cupseason-season-seasonrulespage-swift\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "apps-ios-cupseason-season-seasonrulespage-swift",
+      "slug_status": "helper exit 0",
+      "cli_detector": "No Swift detector supported; source plus genuine simulator-capture fallback.",
+      "browser_status": "Not applicable to native; simulator captures only.",
+      "visibility": "No native app UI operated by B.",
+      "overlay_injection": "Not applicable; no Swift/browser overlay claimed.",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "B started no simulator/server and changed no device state.",
+      "supplemental_review": "Final safe/supplemental manifests validated; named contact-sheet subset inspected. Native keyboard exists; widget/Activity host proof remains absent. No new verified finding."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "get/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__get-html.md",
+    "score": "24/32",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"get/web\",\n    \"total_score\": 24,\n    \"max_score\": 32,\n    \"na_heuristics\": \"7,10\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/get.html\",\n    \"target_fingerprint\": \"sha256:959c6f7bec3c60ee54cf4fd659c8b465ac7d2b757972b2774f32530d776f6f55\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/get.html\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"get-html\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "get-html",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on get.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "support/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__support-html.md",
+    "score": "26/32",
+    "counts": {
+      "P0": 0,
+      "P1": 0,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"support/web\",\n    \"total_score\": 26,\n    \"max_score\": 32,\n    \"na_heuristics\": \"7,10\",\n    \"p0_count\": 0,\n    \"p1_count\": 0,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/support.html\",\n    \"target_fingerprint\": \"sha256:c6a755f16eb74a8ddbdd3925ddd12d538b62e5f6e0480aea5203091ad9e5d6ce\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/support.html\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"support-html\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "support-html",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on support.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "legal/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__legal-html.md",
+    "score": "20/28",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"legal/web\",\n    \"total_score\": 20,\n    \"max_score\": 28,\n    \"na_heuristics\": \"7,10\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/legal.html\",\n    \"target_fingerprint\": \"sha256:3beb8d3d16aef72af0e0dc3516a966484db5350ac32599989a97f9e1aaab3fc2\",\n    \"target_path\": \"/Users/fischbeck3/cup-season-ten/legal.html\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"legal-html\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "legal-html",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on legal.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  },
+  {
+    "target": "web-desk/web",
+    "path": "/Users/fischbeck3/cup-season-ten/.impeccable/critique/2026-09-28T03-17-14Z__index-html-desktop-shell.md",
+    "score": "20/28",
+    "counts": {
+      "P0": 0,
+      "P1": 1,
+      "P2": 0,
+      "P3": 0
+    },
+    "trend": "[\n  {\n    \"target\": \"web-desk/web\",\n    \"total_score\": 20,\n    \"max_score\": 28,\n    \"na_heuristics\": \"\",\n    \"p0_count\": 0,\n    \"p1_count\": 1,\n    \"target_identity\": \"file:/Users/fischbeck3/cup-season-ten/index.html#desktop-shell\",\n    \"timestamp\": \"2026-09-28T03-17-14Z\",\n    \"slug\": \"index-html-desktop-shell\"\n  }\n]",
+    "run_notes": {
+      "ignore_list": "No root or apps/ios .impeccable/critique/ignore.md exists.",
+      "assessment_independence": "B ran in isolated /root/assessment_b; no Assessment A findings or prior critique were read. Technical audit source evidence consulted only after independent CLI. No technical-audit scores used in this assessment.",
+      "temp_cleanup": "Raw JSON, slug results, and assessment outputs intentionally retained in /private/tmp for parent synthesis; no temporary overlay scripts/server created. Parent may remove these after consuming.",
+      "target_slug": "index-html-desktop-shell",
+      "slug_status": "helper exit 0",
+      "cli_detector": "Completed once on index.html; exit2; counts refer to entire markup file, not this fragment.",
+      "browser_status": "partial; fresh native IAB tab created at http://127.0.0.1:8792/ and visually inspected at 1280x720; read-only DOM geometry succeeded. Navigation to get.html failed with net::ERR_FAILED; no route bypass attempted. Other live routes use existing capture/source fallback.",
+      "visibility": "Created with visible:false; never requested presentation. Visibility capability get not called.",
+      "overlay_injection": "not performed; no detector ran inside the page; no user-visible overlay exists",
+      "live_server_cleanup": "Impeccable live-server not started because mutable injection unavailable. Existing source server 8792 PID9456 is parent-owned and left untouched as instructed; 8791 untouched.",
+      "browser_cleanup": "close() attempted, but browser policy blocked operations on the generated data: error page; tab not marked deliverable/handoff and should receive normal temporary-tab cleanup. No viewport override. No new server to stop."
+    },
+    "persistence": "write succeeded; temporary body deleted; trend read once"
+  }
+]

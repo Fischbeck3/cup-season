@@ -1,0 +1,398 @@
+[
+  {
+    "id": "F01",
+    "priority": "P1",
+    "title": "Email entry has no persistent or programmatic label",
+    "families": [
+      "door/web"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/web/door-email--375--light.png",
+      "/Users/fischbeck3/cup-season-ten-gallery/web/door-email-short-viewport--375--dark.png",
+      "Fresh isolated IAB tab: email text field was unnamed in AX tree; read-only DOM inspection found no label and no aria-label."
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/index.html:4395"
+    ],
+    "why": "A screen-reader user reaches an unnamed field; the placeholder is also the only visible email cue and disappears during entry.",
+    "remedy": "Give the field a persistent Email label associated through for/id; preserve the existing code-only auth behavior.",
+    "command": "$impeccable harden",
+    "instruments": [
+      "A01"
+    ]
+  },
+  {
+    "id": "F02",
+    "priority": "P1",
+    "title": "Home occasion panel uses page ink on an inverted panel",
+    "families": [
+      "home/web",
+      "web-desk/web"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/web/home-event_live--1600--dark.png",
+      "/Users/fischbeck3/cup-season-ten-gallery/web/home-brand-new--375--light.png"
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/index.html:2318",
+      "/Users/fischbeck3/cup-season-ten/index.html:2324"
+    ],
+    "why": "The dark capture has nearly white heading on pale panel; the light capture reverses into dark text on dark panel. The opportunity cannot be read reliably.",
+    "remedy": "Render this prose on its page ground, or use the existing paired panel ink for every text role. Keep the ordinary action on act under D359.",
+    "command": "$impeccable harden",
+    "instruments": [
+      "A02",
+      "B-W1"
+    ],
+    "corroboration": "The occasion panel background uses panel, but heading uses ink and body mut. Dark heading #F1F4EF on #E9ECE3 is1.077:1; Light heading #151B17 on #141A16 is1.010:1. Body is2.108:1 dark and2.674:1 light. Both-theme captures visibly lose the title. This is a real token-role mismatch; correct inverse ink or rethink the container within canon. Home lead fixture limits do not explain this static CSS failure."
+  },
+  {
+    "id": "F03",
+    "priority": "P1",
+    "title": "Generic sheet leaves keyboard focus behind the visible task",
+    "families": [
+      "settings/web",
+      "courses/web",
+      "post/web",
+      "identity/web"
+    ],
+    "evidence": [
+      "web/interaction-evidence.json"
+    ],
+    "files": [
+      "index.html:5959",
+      "index.html:23024",
+      "index.html:23042"
+    ],
+    "why": "Recorded opening leaves focus on hdrSearch outside the sheet; seven subsequent Tab targets remain outside before Close. Source has no initial focus, trap, background inertness, or restoration. Book uses a real dialog and must not inherit this finding.",
+    "remedy": "Give the shared sheet host an explicit focus lifecycle and background isolation, preserving its existing sheet geometry and nested-sheet behavior.",
+    "command": "$impeccable harden",
+    "instruments": [
+      "B-W2"
+    ],
+    "verification": "verified source and recorded keyboard trace"
+  },
+  {
+    "id": "F04",
+    "priority": "P1",
+    "title": "Legal leaves the shared paper and action palette",
+    "families": [
+      "legal/web"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/web/legal--375--light.png",
+      "/Users/fischbeck3/cup-season-ten-gallery/web/legal--375--dark.png",
+      "/private/tmp/cup-ten-a-legal--375--light-top.png",
+      "/private/tmp/cup-ten-a-legal--375--dark-top.png"
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/legal.html:12",
+      "/Users/fischbeck3/cup-season-ten/legal.html:25"
+    ],
+    "why": "Legal switches to cool white/gray cards and gold or orange ordinary navigation while Get and Support retain the shared warm paper/green-black system. Reading remains clear, but the transition looks like a different product.",
+    "remedy": "Use existing ground/ink/act tokens for the standalone document shell, retaining its prose layout and all legal text.",
+    "command": "$impeccable polish",
+    "instruments": [
+      "A09",
+      "B-W3"
+    ],
+    "corroboration": "#9A7B18 on page #EFF2EE is3.564:1; on white panels4.023:1. These normal-sized links require4.5:1. Legal also retains old palette/OS default; get/support use canonical dark-first palette. Preserve legal wording."
+  },
+  {
+    "id": "F05",
+    "priority": "P1",
+    "title": "Autumn Light action text is below AA",
+    "families": [
+      "settings/native"
+    ],
+    "evidence": [],
+    "files": [
+      "packages/tokens/tokens.json:555",
+      "apps/ios/Packages/CSDesign/Sources/CSDesign/Theme.swift:138",
+      "apps/ios/Packages/CSDesign/Sources/CSDesign/Controls.swift:39"
+    ],
+    "why": "Technical-audit source evidence: Autumn Light accent becomes act; ordinary17pt semibold button ink on it is4.312:1. Canon does not waive contrast. No native detector or capture claim.",
+    "remedy": "Resolve action ink/paint in the token system for this pair; verify every look in both appearances, including pressed and busy states.",
+    "command": "$impeccable colorize",
+    "instruments": [
+      "B-N1"
+    ],
+    "verification": "source/computed-only; no alternate-look capture"
+  },
+  {
+    "id": "F06",
+    "priority": "P1",
+    "title": "Whole course-card row geometry conflicts with AX3 and compact width",
+    "families": [
+      "courses/native"
+    ],
+    "evidence": [],
+    "files": [
+      "apps/ios/CupSeason/Courses/CourseCardLeaf.swift:60",
+      "apps/ios/CupSeason/Courses/CourseCardLeaf.swift:85",
+      "apps/ios/CupSeason/Courses/CourseCardLeaf.swift:111"
+    ],
+    "why": "Technical-audit source evidence:20pt fixed rows hold scaling type; ordinary-size9-hole content plus leaf padding needs382pt before page gutters. No safe full-grid capture available to B; do not score unobserved rendering.",
+    "remedy": "Let row height follow measured text; choose a horizontal grid or fit strategy from available width at all type sizes, with pinned row labels.",
+    "command": "$impeccable adapt",
+    "instruments": [
+      "B-N2"
+    ],
+    "verification": "source arithmetic only; not rendered in inspected captures"
+  },
+  {
+    "id": "F07",
+    "priority": "P2",
+    "title": "AX3 live-round context displaces the scoring controls",
+    "families": [
+      "play/native"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-live.jpg",
+      "/Users/fischbeck3/cup-season-ten-gallery/native/captures/se3-morning-offline-light-AX3.png"
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Live/LivePlayView.swift:119",
+      "/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Live/LivePlayView.swift:145"
+    ],
+    "why": "On SE3 AX3, course/tee/rating, setup, sync status, hole header and the stacked score legend fill almost the entire screen before the first golfer; the first plus/minus controls require a scroll.",
+    "remedy": "At accessibility sizes place the current hole and current golfer controls before secondary course/tee metadata and strip legend, or disclose those secondary details. Preserve full text scaling and truthful sync status.",
+    "command": "$impeccable adapt",
+    "instruments": [
+      "A03"
+    ]
+  },
+  {
+    "id": "F08",
+    "priority": "P2",
+    "title": "Filled tee details lose their visible individual labels",
+    "families": [
+      "play/native"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/native/contact-sheets/morning-setup.jpg"
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/apps/ios/CupSeason/Live/LiveSetupView.swift:148"
+    ],
+    "why": "The setup displays a tee word followed by two bare numbers. AX3 stacks them into separate rows, but the collective Tee & rating heading still does not identify the slope value. Accessibility labels exist in source; this finding is visual recognition.",
+    "remedy": "Keep compact visible Tee, Rating and Slope labels associated with the filled fields, especially in the AX3 stacked form.",
+    "command": "$impeccable clarify",
+    "instruments": [
+      "A04"
+    ]
+  },
+  {
+    "id": "F09",
+    "priority": "P2",
+    "title": "First-round composer spends most of its length explaining league math",
+    "families": [
+      "post/web"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/web/composer-first-round--375--dark.png"
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/index.html:5064"
+    ],
+    "why": "A brand-new golfer has no league, yet the screen continues from an empty score into a league-points panel and all five point bands. The core course/score task competes with explanation that does not yet apply to their competition.",
+    "remedy": "For the no-league first-round state, keep the course/score task and a short consequence sentence visible; disclose the existing point-band explanation from a named help control. Do not change scoring.",
+    "command": "$impeccable distill",
+    "instruments": [
+      "A05"
+    ]
+  },
+  {
+    "id": "F10",
+    "priority": "P2",
+    "title": "Empty profile repeats the absence of a record",
+    "families": [
+      "identity/web"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/web/app-stats-empty--375--light.png"
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/index.html:4790",
+      "/Users/fischbeck3/cup-season-ten/index.html:4817",
+      "/Users/fischbeck3/cup-season-ten/index.html:21354"
+    ],
+    "why": "The credential shows zero rounds, then an empty trophy case, four empty statistics, another no-rounds section and an empty courses section. The golfer must pass several statements of absence before the next useful action.",
+    "remedy": "Keep the identity card and one first-round next step; reveal the record sections as data arrives, using the existing record grammar and without removing access to relevant actions.",
+    "command": "$impeccable distill",
+    "instruments": [
+      "A06"
+    ]
+  },
+  {
+    "id": "F11",
+    "priority": "P2",
+    "title": "Book status letters merge visually into point totals",
+    "families": [
+      "competition/web"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--375--dark.png",
+      "/Users/fischbeck3/cup-season-ten-gallery/web/book-squads--1280--light.png"
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/index.html:19574"
+    ],
+    "why": "Cells read as 33D, 22D or 16*D at the same typographic scale. The key explaining Dropped appears below the table, out of the narrow first viewport. A first-time reader must decode what is points and what is a status.",
+    "remedy": "Give the existing status marker visual separation and a smaller record role; place a compact legend next to the display selector or provide the status in the cell accessible name. Preserve the exact Book semantics and receipt path.",
+    "command": "$impeccable clarify",
+    "instruments": [
+      "A07"
+    ]
+  },
+  {
+    "id": "F12",
+    "priority": "P2",
+    "title": "Compete empty state repeats its primary invitation",
+    "families": [
+      "competition/web"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/web/app-compete-empty--375--light.png"
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/index.html:5706"
+    ],
+    "why": "Start something appears beside the title and again beneath the empty story. Two equal invitations dilute the one useful decision on a screen with little content.",
+    "remedy": "Keep the primary Start something at the empty-state action group and let the farther title action go quiet for this state, following one fact, one place.",
+    "command": "$impeccable distill",
+    "instruments": [
+      "A08"
+    ]
+  },
+  {
+    "id": "F13",
+    "priority": "P2",
+    "title": "The web round-share artifact repeats its performance band",
+    "families": [
+      "share/web"
+    ],
+    "evidence": [
+      "/Users/fischbeck3/cup-season-ten-gallery/web/share-card-output.png"
+    ],
+    "files": [
+      "/Users/fischbeck3/cup-season-ten/index.html:9647"
+    ],
+    "why": "The central band label and immediately following sentence both say the golfer played to their handicap. The repetition takes space from the course/date facts and makes the share artifact more explanatory than memorable.",
+    "remedy": "Use one existing named-band sentence for this branch of the share renderer, preserving all factual public fields and the approved pennant.",
+    "command": "$impeccable distill",
+    "instruments": [
+      "A10"
+    ]
+  },
+  {
+    "id": "F14",
+    "priority": "P2",
+    "title": "Small functional labels and help controls need local accessibility repair",
+    "families": [
+      "post/web",
+      "wizard/web"
+    ],
+    "evidence": [
+      "web/contacts/01-launch-2.jpg",
+      "web/contacts/08-app-empty-3.jpg"
+    ],
+    "files": [
+      "index.html:1268",
+      "index.html:2598",
+      "index.html:5240",
+      "index.html:5276"
+    ],
+    "why": "Composer gross/HCP labels are10px; record semantics are legitimate but size and dim ink remain weak. Wizard .ibtn has18\u00d718px target with dim on bg2 about2.28:1; target needs local44px hit region and visible ink. Only first wizard step captured; later-step hitbox is source evidence, not tested interaction.",
+    "remedy": "Keep the small visual glyph if desired but give it an honest44px hit region and readable token ink without colliding with its label.",
+    "command": "$impeccable adapt",
+    "instruments": [
+      "B-W4"
+    ],
+    "verification": "source verified; composer label capture corroborated; later wizard steps not captured"
+  },
+  {
+    "id": "F15",
+    "priority": "P2",
+    "title": "Compact calendar columns are narrower than44pt",
+    "families": [
+      "schedule/native"
+    ],
+    "evidence": [],
+    "files": [
+      "apps/ios/CupSeason/Schedule/ScheduleScreen.swift:119",
+      "apps/ios/CupSeason/Schedule/ScheduleScreen.swift:168"
+    ],
+    "why": "At375pt, 40 outer +24 inner padding +24 total column gaps yields41pt day width. minHeight44 does not fix width. This is a guidance gap, not a recorded mistap.",
+    "remedy": "Reclaim horizontal spacing or provide a compact date-selection arrangement whose actual hit bounds meet 44pt.",
+    "command": "$impeccable adapt",
+    "instruments": [
+      "B-N3"
+    ],
+    "verification": "source arithmetic only; no safe rendered schedule"
+  },
+  {
+    "id": "F16",
+    "priority": "P2",
+    "title": "Album read failure is shown as empty",
+    "families": [
+      "history/native"
+    ],
+    "evidence": [],
+    "files": [
+      "apps/ios/CupSeason/Rounds/AlbumScreen.swift:107"
+    ],
+    "why": "Technical-audit source evidence: catch enters .empty, offering no truthful failure/retry. Missing fixture means no visual score.",
+    "remedy": "Add a truthful failed state with retry and preserve already loaded items during a refresh failure.",
+    "command": "$impeccable harden",
+    "instruments": [
+      "B-N4"
+    ],
+    "verification": "source only; not captured"
+  },
+  {
+    "id": "F17",
+    "priority": "P2",
+    "title": "Spacing-token adoption is still a large ratcheted debt",
+    "families": [
+      "system/shared"
+    ],
+    "evidence": [
+      "Fresh exact LINT-06 extraction:332 native +844 index.html =1,176 off-scale spacing values. The current baseline is1,193; ROAD_TO_TEN reported1,206. This rule counts disallowed numeric values per source line, not all literal spacing, and excludes generated/test directories according to the repository extractor. Report data is in cup-ten-spacing.json."
+    ],
+    "files": [
+      "tests/preflight.mjs:2905",
+      "tests/preflight-baselines.json:11"
+    ],
+    "why": "Repeated local spacing decisions keep repairs from propagating consistently and make each responsive adjustment expensive; counts alone do not prove1,176 visible defects.",
+    "remedy": "Pay down literals by touched shared components and measured surface repairs; do not replace every number mechanically or conflate drawing geometry with spacing.",
+    "command": "$impeccable layout",
+    "instruments": [
+      "audit/S-01"
+    ],
+    "verification": "source count, not visible defect count"
+  },
+  {
+    "id": "F18",
+    "priority": "P3",
+    "title": "Ordinary actions retain a colored blurred shadow",
+    "families": [
+      "door/web",
+      "post/web",
+      "play/web"
+    ],
+    "evidence": [
+      "web/contacts/01-launch-2.jpg"
+    ],
+    "files": [
+      "index.html:3519"
+    ],
+    "why": "Primary .btn uses0 8px22px -12px colored act shadow. No-glow rule is explicit; do not remove legitimate zero-blur selection marks merely to clear detector.",
+    "remedy": "Remove colored blurred ordinary-action shadow; keep legitimate zero-blur selection marks.",
+    "command": "$impeccable polish",
+    "instruments": [
+      "B-W5"
+    ],
+    "verification": "source verified; visible effect subtle"
+  }
+]
