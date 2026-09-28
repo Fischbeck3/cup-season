@@ -184,4 +184,21 @@ import Foundation
     #expect(RoundCopy.photoFromCamera == "Take one now")
     #expect(RoundCopy.photoFromLibrary != RoundCopy.photoFromCamera)
   }
+
+  // MARK: - S9 · a photograph the receipt cannot show
+
+  /// The owner's round carries a photograph the moment could not show: the
+  /// receipt says so once, and only then. A picture on screen or on its way,
+  /// a round with none, and anyone else's round say nothing.
+  @Test func theOwnerHearsOnceWhenTheirPhotoCannotBeShown() {
+    let present = RoundPhotoSlot.for(isMine: true, photoPath: "rounds/u/r.jpg")
+    #expect(RoundPhotoNote.line(slot: present, seen: .missing) == RoundCopy.photoUnavailable)
+    #expect(RoundPhotoNote.line(slot: present, seen: .shown) == nil)
+    #expect(RoundPhotoNote.line(slot: present, seen: .loading) == nil)
+    #expect(RoundPhotoNote.line(slot: .offer, seen: .missing) == nil)
+    #expect(RoundPhotoNote.line(slot: RoundPhotoSlot.for(isMine: false, photoPath: "rounds/u/r.jpg"), seen: .missing) == nil)
+    // a fact, never an ask: it does not send the golfer off to add or replace
+    let line = RoundCopy.photoUnavailable.lowercased()
+    #expect(!line.contains("add") && !line.contains("replace") && !line.contains("try"))
+  }
 }
