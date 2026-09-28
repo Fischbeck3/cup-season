@@ -7786,7 +7786,7 @@ function showFinalist(f){
   const capNote=(window.cupRace&&window.cupRace.cap_note)||null;
   if(capNote) h+=`<div class="fine">${esc(capNote)}</div>`;
   h+= rounds.length
-    ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(String(r.played_on))}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs your playing HCP \u00b7 ${r.points} PTS</b></div>`).join('')
+    ? rounds.map(r=>`<div class="fine" style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>${esc(csRoundDay(r.played_on)).toUpperCase()}${r.holes_played===9?' \u00b7 9 HOLES':''}${f.squad_id?' \u00b7 '+esc(String(r.golfer||'')).toUpperCase():''}</span><b class="mono" style="white-space:nowrap">${sgn(r.pvi)} vs your playing HCP \u00b7 ${r.points} PTS</b></div>`).join('')
     : `<p class="fine">No rounds in the window yet.</p>`;
   h+=`<p class="fine" style="padding-top:12px">Only rounds inside the four-week window count here, up to the monthly cap. The weeks before it decided who is in; this is the race.</p>`;
   openSheet(name, `SEED ${f.seed} \u00b7 ${tot} PTS IN THE FINAL`, h);
@@ -9091,7 +9091,7 @@ function renderFeedFull(force){
           <span class="bar" style="background:${SQHEX[f.ci]}"></span>
           <div class="body">
             <div class="l1" style="display:flex; align-items:center; gap:8px">${window.face?window.face(r.profile_id, memberMarker(r.profile_id), 22):''}<span>${esc(f.who||'—')}</span></div>
-            <div class="l2">${esc(csCourse(r.course_label)||'somewhere out there')} · ${r.holes_played||18} holes · ${r.played_on||''}</div>
+            <div class="l2">${esc(csCourse(r.course_label)||'somewhere out there')} · ${r.holes_played||18} holes${r.played_on?' · '+esc(csRoundDay(r.played_on)):''}</div>
             <div class="rline">${sfNew?sfWrap(String(r.gross)):r.gross} GROSS${r.pvi!=null?` · ${(r.profile_id && r.profile_id===window.CS?.user?.id ? bandName(Number(r.pvi)) : theirs(bandName(Number(r.pvi)))).toUpperCase()}`:''}</div>
             <div class="rline">${counting}</div>
             ${stk>=2?`<div class="rline"><span class="streaktag ${stk>=3?'heathot':'heatwarm'}">${stk} STRAIGHT UNDER</span></div>`:''}
@@ -12972,6 +12972,16 @@ function seasonEndDate(){                       // start + N whole weeks → sam
   return new Date(s.getFullYear(), s.getMonth(), s.getDate() + state.durWeeks*7);
 }
 function isoOf(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+/* a round's date as a golfer reads it, local: "Sun Sep 27", with the year only
+   when it is not this one. Receipts, the record and the Cup Final's rounds
+   printed the raw 2026-09-27 (and a screen reader read it digit by digit). */
+function csRoundDay(iso){
+  const d = localDate(String(iso||'').slice(0,10));
+  if(isNaN(d)) return String(iso||'');
+  const y = d.getFullYear() !== new Date().getFullYear() ? ', ' + d.getFullYear() : '';
+  return `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}${y}`;
+}
+window.csRoundDay = csRoundDay;
 /* D213 / M-17 · the clash week rolls on floor((today − starts_on)/7), keyed to
    the first-tee weekday (D108) — so a Wednesday league's week closes on a
    Tuesday, and "Week closes Sun" named a day nothing happened on. Sunday is
@@ -20035,7 +20045,11 @@ function csSeasonBookBody(b,selection){
   if(group==='golfer'&&squads.length)controls+=`<label>Squad contributions <select id="sb-squad" aria-label="Squad contributions">${option('all','Every golfer',squad==='all')}${squads.map(s=>option(s.squad_id,s.name,squad===s.squad_id)).join('')}</select></label>`;
   if(prominent)controls+=`<label>Display <select id="sb-mode" aria-label="Display">${['Weeks','Totals','Race'].map(m=>option(m,m,m===mode)).join('')}</select></label>`;
   if(mode==='Race')controls+=`<label>Follow <select id="sb-follow" aria-label="Follow">${option('leaders','Leading three',follow==='leaders')}${rows.map(r=>option(r.id,r.name,r.id===follow)).join('')}</select></label>`;
-  let h=`<p>${esc(b.name)} · Season ${b.number} · ${esc(b.starts_on)} – ${esc(b.ends_on)}</p><p>${esc(SeasonBook.rules(b))}</p>${b.rules_note?`<p>${esc(b.rules_note)}</p>`:''}<div class="sb-controls">${controls}</div>`;
+  /* dates as a golfer reads them, local (never toISOString's UTC day): "Jul 6"
+     — the Book printed raw 2026-07-06 in its head and on every week column */
+  const day = iso => { const d = localDate(String(iso||'').slice(0,10)); return isNaN(d) ? String(iso||'') : `${MOS[d.getMonth()]} ${d.getDate()}`; };
+  const yr = iso => String(iso||'').slice(0,4);
+  let h=`<p>${esc(b.name)} · Season ${b.number} · ${esc(day(b.starts_on))} – ${esc(day(b.ends_on))}${yr(b.ends_on) ? ', ' + esc(yr(b.ends_on)) : ''}</p><p>${esc(SeasonBook.rules(b))}</p>${b.rules_note?`<p>${esc(b.rules_note)}</p>`:''}<div class="sb-controls">${controls}</div>`;
   if(group==='golfer'&&squad!=='all')h+='<p>Round contributions. Squad adjustments follow below.</p>';
   if(!b.current_week)return h+'<p>No standing yet. Weeks begin at first tee.</p>';
   const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${esc(r.name)}<small>${esc(SeasonBook.standing(r))}</small><strong>${r.points} pts</strong></button>`;
@@ -20045,7 +20059,7 @@ function csSeasonBookBody(b,selection){
   }else{
     /* F11 · the key sits ABOVE the grid, beside the Display control that changes what a cell holds; below a long table it was out of the first view */
     if(!cumulative) h+='<p class="sb-key fine">— No round · <b>D</b> Dropped · <b>B</b> Bye · <b>*</b> Adjustment · • Future week. Select a cell for its rounds and adjustments.</p>';
-    h+=`<div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" class="${['active','cup_final'].includes(b.status)&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(w.starts_on)}</small></th>`).join('')}</tr></thead><tbody>`;
+    h+=`<div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}" class="${['active','cup_final'].includes(b.status)&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
     h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div>';
   }
   const adjustmentRows=group==='golfer'&&squad!=='all'?squads.filter(r=>r.squad_id===squad):rows;
@@ -21987,7 +22001,7 @@ async function csOpenCountingRounds(member, season, month, leagueName){
   const rule = cap!=null && cap>0 ? `Best ${cap} count each month` : 'Every round counts';
   const rows = rounds.map(x => {
     const tag = x.counting ? `<b class="mono">${esc(String(x.points))}</b>` : `<b class="mono">${esc(String(x.points))} · BUMPED</b>`;
-    const inner = `<span>${esc(String(x.played_on||''))}${x.holes_played===9?' · 9 HOLES':''} · ${esc(String(x.gross??''))} at ${esc(String(x.course_label||'course not recorded'))}</span>${tag}`;
+    const inner = `<span>${esc(x.played_on ? csRoundDay(x.played_on) : '')}${x.holes_played===9?' · 9 HOLES':''} · ${esc(String(x.gross??''))} at ${esc(String(x.course_label||'course not recorded'))}</span>${tag}`;
     return x.round_id
       ? `<button type="button" class="histrow fine${x.counting?'':' cut'}" data-histround="${esc(x.round_id)}">${inner}<span class="cv" aria-hidden="true">›</span></button>`
       : `<div class="fine histrow static">${inner}</div>`;
@@ -22520,7 +22534,7 @@ async function enrichRoundReceipt(rid, seed){
     /* the header learns the course it was missing */
     const sub=document.getElementById('shSub');
     if(sub && r.course_label){
-      sub.textContent=[r.course_label, (r.holes_played||18)+' holes', r.played_on||'']
+      sub.textContent=[r.course_label, (r.holes_played||18)+' holes', r.played_on?csRoundDay(r.played_on):'']
         .filter(Boolean).join(' · ').toUpperCase();
     }
     const ttl=document.getElementById('shTitle');
@@ -22665,7 +22679,7 @@ function openRoundReceipt(x, opts){
   const pvi = r.pvi!=null ? Number(r.pvi)
     : (r.index_at_post!=null && r.differential!=null ? Number(r.index_at_post)-Number(r.differential) : null);
   const capN=capNum();
-  const line=[r.course_label||'somewhere out there', (r.holes_played||18)+' holes', r.played_on||''].filter(Boolean).join(' · ');
+  const line=[r.course_label||'somewhere out there', (r.holes_played||18)+' holes', r.played_on?csRoundDay(r.played_on):''].filter(Boolean).join(' · ');
   /* D59 (2c): the poster's marker medallion rides the photo — attribution */
   const stampOf = () => r.profile_id && window.mkr
     ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : '';
@@ -31690,7 +31704,7 @@ async function renderAlbum(){
         html += `<div class="almonth">${MON[Number(m)-1]||''} ${y}</div>`;
         lastMo = mo;
       }
-      html += `<button class="alcell" data-alr="${r.id}" style="background-image:url('${csCssUrl(u)}')" aria-label="${(window.esc||String)(nameOf(r.profile_id))} — ${r.gross??''} at ${(window.esc||String)(r.course_label||'the course')}, ${r.played_on||''}"></button>`;
+      html += `<button class="alcell" data-alr="${r.id}" style="background-image:url('${csCssUrl(u)}')" aria-label="${(window.esc||String)(nameOf(r.profile_id))} — ${r.gross??''} at ${(window.esc||String)(r.course_label||'the course')}, ${(window.esc||String)(window.csRoundDay ? window.csRoundDay(r.played_on) : (r.played_on||''))}"></button>`;
     });
     if(!shown){ failed(new Error('Photos could not be opened')); return; }
     box.innerHTML = html;

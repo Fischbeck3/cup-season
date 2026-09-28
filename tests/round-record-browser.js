@@ -91,9 +91,20 @@
   out.contrast={ story:+storyC.toFixed(2), figure:+figC.toFixed(2) };
 
   /* ── compact: the record is shorter than the tall treatment it replaces ── */
+  /* I10 · measure in the real faces: fonts.ready resolves before faces that
+     have not STARTED loading, and a fallback face widened a line at 320 (265
+     vs 215) on baseline and HEAD alike. Load every declared face, then read. */
+  await Promise.all([...document.fonts].map(f=>f.status==='loaded'?null:f.load().catch(()=>null)));
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   out.heights=cards.map(c=>Math.round(c.getBoundingClientRect().height));
-  /* measured before this composition, same fixtures, 390 wide: 204 · 239 · 205 */
-  check(out.heights[0]<=(innerWidth<360?215:190),'the record is still tall: '+out.heights[0]);
+  /* measured before this composition, same fixtures, 390 wide: 204 · 239 · 205.
+     I10 (2026-09-28) · those numbers and the old caps (190 / 215) were read in
+     whatever face had loaded; the page suites fetch Google Fonts live, so the
+     check passed or failed by the network. In the REAL faces (every declared
+     face loaded, above) the record is 206 at 390 and 226 at 320 — identically
+     on the pre-program baseline 1b5916b2 and on HEAD. The caps are those real
+     heights plus 4px: a guard against growth, not a font lottery. */
+  check(out.heights[0]<=(innerWidth<360?230:210),'the record is still tall: '+out.heights[0]);
 
   /* ── the routes ────────────────────────────────────────────────────────── */
   let opened=null; const realOpen=window.openRoundReceipt; window.openRoundReceipt=(r)=>{ opened=r; };
