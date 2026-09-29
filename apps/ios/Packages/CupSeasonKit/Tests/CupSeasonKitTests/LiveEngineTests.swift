@@ -513,7 +513,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
   @Test func skinsAndWolfCards() {
     let s = round(["Ed", "Mitch", "Blake"], indices: [0, 0, 0], scores: [S(4, 3, 4), S(4, 4, 4), S(4, 4, 4)], game: .skins, stake: 5)
     let k = LiveCopy.skinsCard(s)!
-    #expect(k.status == "HOLE 4 WORTH 2 SKINS" && k.hot && k.meta == "THRU 3 · LOW NET TAKES IT · $5/SKIN")
+    #expect(k.status == "HOLE 4 WORTH 2 SKINS" && k.hot && k.meta == "Thru 3 · low net takes it · $5/skin")
     #expect(LiveCopy.scoreboard(s, presence: []).hero == "ED 2 · 2 CARRIED OVER")
     var w = round(["Chuck", "Gary", "Jerecho", "Logan"], indices: [0, 0, 0, 0], scores: [S(4), S(4), S(3), S(4)], game: .wolf, stake: 2, wolfOrder: [2, 0, 3, 1])
     w.hole = 16

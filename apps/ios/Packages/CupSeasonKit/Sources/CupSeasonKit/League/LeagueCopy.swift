@@ -284,7 +284,9 @@ public enum LeagueCopy {
   /// `#draftPoolSub` (12647–12648).
   public static func draftPoolSub(pool: Int, members n: Int, min: Int) -> String {
     let short = max(0, min - n)
-    return "\(players(pool)) NOT ON A SQUAD YET" + (short > 0 ? " · \(short) MORE TO TEE OFF" : "")
+    // OB2-02 · typed as said; the line's agate role sets the caps (76b1935d).
+    // `players()` keeps its capitals for the rows whose role has none.
+    return "\(pool) golfer\(pool == 1 ? "" : "s") not on a squad yet" + (short > 0 ? " · \(short) more to tee off" : "")
   }
 
   /// `#hubDraftSub` (12034–12037).
@@ -300,7 +302,7 @@ public enum LeagueCopy {
   /// `#kickoffHero` (12024–12030).
   public static func kickoff(_ c: RoomClock) -> (tee: String, count: String) {
     let d = c.daysToTee
-    return ("First tee \(c.firstTeeText)", "KICKS OFF IN \(d) DAY\(d == 1 ? "" : "S") · SQUADS ARE SET")
+    return ("First tee \(c.firstTeeText)", "Kicks off in \(d) day\(d == 1 ? "" : "s") · squads are set")   // OB2-02 · typed as said
   }
 
   /// The danger zone (12688–12703).

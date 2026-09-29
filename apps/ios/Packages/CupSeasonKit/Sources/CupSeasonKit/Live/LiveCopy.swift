@@ -143,7 +143,8 @@ public enum LiveCopy {
     let status = sk.thru >= H
       ? (sk.carry > 1 ? "DONE · \(sk.carry - 1) SKIN\(sk.carry == 2 ? "" : "S") NEVER CLAIMED" : "DONE · EVERY SKIN CLAIMED")
       : "HOLE \(sk.thru + 1) WORTH \(sk.carry) SKIN\(sk.carry == 1 ? "" : "S")"
-    let meta = "THRU \(sk.thru) · LOW NET TAKES IT" + (s.stake > 0 ? " · $\(LiveFmt.js(s.stake))/SKIN" : " · NO MONEY ON IT")
+    // OB2-02 · typed as said; the card's agate role sets the caps (76b1935d)
+    let meta = "Thru \(sk.thru) · low net takes it" + (s.stake > 0 ? " · $\(LiveFmt.js(s.stake))/skin" : " · no money on it")
     return SkinsCard(status: status, meta: meta, hot: sk.thru < H && sk.carry >= 2, won: sk.won, pts: sk.pts)
   }
 

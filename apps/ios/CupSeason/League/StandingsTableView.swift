@@ -110,7 +110,7 @@ struct StandingsTableView: View {
             .fixedSize(horizontal: false, vertical: true)
             .csGutter()
             .padding(.top, CSTokens.Space.s3)
-            .accessibilityLabel(hollow.capitalized)
+            .accessibilityLabel(hollow)   // OB2-02 · the words as said; the role sets the caps
         }
         if window != nil {
           HStack {
@@ -379,8 +379,10 @@ struct ScenarioLineView: View {
   let parts: [ScenarioPart]
   var body: some View {
     if parts.isEmpty { EmptyView() } else {
+      // OB2-02 (root's ruling) · the clinch line is a sentence: sentence
+      // case, a name in its own case (UI_SYSTEM §1.3)
       Text(parts.map(\.text).joined())
-        .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+        .csType(.agateS, caps: false).foregroundStyle(cs.mut)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityLabel(parts.map(\.text).joined())
     }
