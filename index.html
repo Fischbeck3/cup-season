@@ -31590,6 +31590,10 @@ function openPeoplePicker(opts){
     <div id="ppList" style="margin-top:10px"></div>
     ${opts.footerBtn ? `<button class="btn dark" id="ppFooter" style="margin-top:12px">${esc(opts.footerBtn.label)}</button>` : ''}
     ${opts.note ? `<p class="fine">${esc(opts.note)}</p>` : ''}`);
+  /* TEN / W6 · root's ruling (a TP-11 leftover): the picker's sub is a
+     sentence ("Search by name or @handle to add buddies"), so it reads in the
+     phrase form of its role, never in agate caps */
+  $('#shSub').classList.add('is-phrase');
   const listBox=document.getElementById('ppList');
   if(opts.footerBtn) document.getElementById('ppFooter')?.addEventListener('click', ()=>opts.footerBtn.onClick());
   const actionFor=(r)=>{

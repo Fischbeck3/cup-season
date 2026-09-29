@@ -783,7 +783,17 @@ const PICKER = [
       await page.waitForTimeout(500)
     },
     expect: { view: 'view-home', sheet: '^Find golfers$', selectors: { '#ppFind': 'visible', '#ppList .prow': 'visible' } },
-    check: isRow('#ppList .prow', "the picker's buddy row") },
+    /* TEN / W6 · root's ruling (a TP-11 leftover): the picker's sub is a sentence ("Search by name or @handle to add buddies"),
+       set in its role's phrase form, sentence case, never agate caps */
+    check: async (page) => {
+      const row = await isRow('#ppList .prow', "the picker's buddy row")(page)
+      if (row !== true) return row
+      return page.evaluate(() => {
+        const s = document.getElementById('shSub'), t = (s && s.textContent || '').trim()
+        if (!/^Search by name or @handle/.test(t)) return 'the picker’s sub reads ' + JSON.stringify(t)
+        return getComputedStyle(s).textTransform === 'none' ? true : 'the picker’s sub is a sentence set in agate caps'
+      })
+    } },
 ]
 
 /* TEN / W6 · root's ruling · below about 380px the draw room's squads stack one card a row, as the phone's draw room does
