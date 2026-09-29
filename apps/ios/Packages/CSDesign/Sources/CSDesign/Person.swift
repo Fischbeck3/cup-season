@@ -776,6 +776,9 @@ public struct CSCredential<Plate: View>: View {
         .foregroundStyle(CSTokens.dark.ceremonyInk)
         .lineLimit(2)
         .fixedSize(horizontal: false, vertical: true)
+        // F03 · the card names the page or sheet it heads — the tour card, the
+        // person page, You — so its name is the heading VoiceOver lands on
+        .accessibilityAddTraits(.isHeader)
       if identity, !golfer.identity.isEmpty {
         // **WAVE 10 · A LINE OF CLAUSES BREAKS ON ITS SEPARATORS; IT DOES NOT
         // TRUNCATE** (§16.3, the `agate` row). `@JERECHO · PHOENIX, AZ ·
