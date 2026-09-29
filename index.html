@@ -4342,6 +4342,12 @@ body:not(.noleague) #hubLeagueless{display:none;}
   width:calc(var(--star) / 2); padding:0; margin:0; border:0; background:none;
   cursor:pointer; -webkit-appearance:none; appearance:none;}
 .cs-stars .csh:focus-visible{outline:2px solid var(--ink); outline-offset:2px; border-radius:var(--p);}
+/* AW2-19 · §16.2 · the rail between its −½ / +½ pair: bare glyphs in the
+   figure face at 44 × 44, the way RateCourseSheet draws them */
+.cs-rate-ctl{display:flex; align-items:center; gap:var(--s3);}
+.cs-step{flex:none; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center;
+  padding:0; margin:0; background:none; border:0; color:var(--ink); cursor:pointer; -webkit-appearance:none; appearance:none;}
+.cs-step[aria-disabled="true"]{color:var(--mut); cursor:default;}
 @media (prefers-reduced-motion:reduce){ .cs-stars .csr-fill{transition:none;} }
 /* the aggregate: a figure, a 2pt rule under both it and the rail, one agate
    line. NO GOLD IN ANY STATE — an average of opinions is not earned. */
@@ -17966,6 +17972,13 @@ function csStarsSvg(value, unrated, opts){
     + taps + `</span>`;
 }
 
+/* AW2-19 · the −½ / +½ pair's one bound rule (RateCourseSheet's): − stops at
+   ½ and has nothing to take from an unrated course; + stops at 5. At a bound
+   the button says so with aria-disabled and keeps its focus — `disabled`
+   dropped a keyboard golfer's focus to <body> on the step that reached it. */
+function csStepOff(mine, dir){
+  return dir < 0 ? !(mine != null && mine > 0.5) : (mine != null && mine >= 5);
+}
 /* §5.2 · the aggregate — one figure, one rule, one line. NO GOLD IN ANY STATE:
    an average of opinions is not earned (§2.4), and the number's weight comes
    from its size and its rule. Null, never zero, never a dash (L-44). */
@@ -17990,7 +18003,14 @@ function csRatingBlock(id, opts){
   const theirLine = (fr != null && frn > 0)
     ? `<p class="cs-body-s" data-csfr="${esc(String(id))}" style="padding-top:4px">`
       + `Your buddies ${one(fr)} <span style="color:var(--mut)">(${frn})</span></p>` : '';
-  const rail = csStarsSvg(mine || 0, mine == null, { size: o.size || 48, rate: id });
+  /* AW2-19 · §16.2's carve-out, whole: a half star's target is legal below 44
+     only beside a −½ / +½ pair at 44 — RateCourseSheet's pair, its glyphs, its
+     bounds (½ to 5; a step never takes a rating off, the tap on your own value
+     does). With the pair beside it the rail draws at the sheet's 40. */
+  const step = dir => `<button type="button" class="cs-step cs-fig-s" data-csstep="${esc(String(id))}" data-csdir="${dir}"`
+    + ` aria-label="${dir < 0 ? 'Half a star less' : 'Half a star more'}" aria-disabled="${csStepOff(mine, dir)}">${dir < 0 ? '−' : '+'}</button>`;
+  const rail = `<div class="cs-rate-ctl">${step(-1)}`
+    + csStarsSvg(mine || 0, mine == null, { size: o.size || 40, rate: id }) + `${step(1)}</div>`;
   const mineLab = mine != null ? `Your rating · ${one(mine)}` : 'Not yours yet';
   /* the phone's own words for the field (RateCourseSheet: label, placeholder,
      caption), so the label stays when the placeholder has gone and the golfer
@@ -18228,7 +18248,7 @@ function renderCourseBooks(){
         ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
       </div>
-      <div>${csRatingBlock(b.id, { size:48 })}${leaf}</div>
+      <div>${csRatingBlock(b.id, { size:40 })}${leaf}</div>
     </section>`;
   };
 
@@ -18345,6 +18365,30 @@ function csCourseBooksWire(box){
         return;
       }
       csCourseRowRepaint(box, id);
+      /* the first rating redraws the block (the note field arrives with it):
+         the focus goes to the same target in the new drawing, not to <body> */
+      if(!btn.isConnected) box.querySelector(`button[data-csrate="${CSS.escape(id)}"][data-csval="${btn.dataset.csval}"]`)?.focus();
+    });
+  });
+  /* AW2-19 · the −½ / +½ pair beside the rail */
+  box.querySelectorAll('button[data-csstep]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.csstep, dir = Number(btn.dataset.csdir);
+      const had = csRatingOf(id);
+      const mineNow = had && had.mine != null ? Number(had.mine) : null;
+      if(csStepOff(mineNow, dir)) return;
+      const cur = mineNow != null ? mineNow : 0;
+      const v = Math.min(5, Math.max(0.5, cur + dir * 0.5));
+      const fill = btn.closest('.cs-rate-ctl')?.querySelector('.csr-fill');
+      if(fill) fill.style.width = csStarsWidth(v);   /* the sweep */
+      const out = await csRateCourse(id, v);
+      if(!out){
+        if(fill) fill.style.width = csStarsWidth(cur);
+        toast('Could not save that rating');
+        return;
+      }
+      csCourseRowRepaint(box, id);
+      if(!btn.isConnected) box.querySelector(`button[data-csstep="${CSS.escape(id)}"][data-csdir="${dir}"]`)?.focus();
     });
   });
   box.querySelectorAll('textarea[data-csnote]').forEach(inp=>{
@@ -18383,6 +18427,10 @@ function csCourseRowRepaint(box, id){
     ? `Your buddies ${one(r.friends)} <span style="color:var(--mut)">(${r.friends_count})</span>` : '';
   const mine = box.querySelector(`[data-csmine="${CSS.escape(String(id))}"]`);
   if(mine) mine.textContent = r.mine != null ? `Your rating · ${one(r.mine)}` : 'Not yours yet';
+  /* the pair's bounds follow the rating: − stops at ½, + at 5 */
+  box.querySelectorAll(`button[data-csstep="${CSS.escape(String(id))}"]`).forEach(b=>{
+    b.setAttribute('aria-disabled', String(csStepOff(r.mine != null ? Number(r.mine) : null, Number(b.dataset.csdir))));
+  });
   /* the note field arrives with the first rating and leaves with the last */
   const block = box.querySelector(`[data-csrow="${CSS.escape(String(id))}"]`);
   const field = block && block.querySelector('.cs-note-block');
