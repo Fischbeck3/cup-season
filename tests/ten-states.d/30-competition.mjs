@@ -145,6 +145,14 @@ const SEASON = [
     drive: async (page) => { await toSeasonViaBand(page); await page.evaluate(() => window.scrollTo(0, 0)); await scrollSettled(page) },
     expect: { view: 'view-hub', selectors: { '#seasonScoreboard': 'visible', '#seasonDateline': 'text:Week 8 of 13', '#seasonLead': 'visible' } },
     check: all(onNorthGrove, inViewport('#seasonScoreboard', 'the season head'),
+      /* TEN / W8 · W7-028 [B2-season-24]: the story link carries no typed arrow (AW2-08) and its second channel is the rule beneath it (§16.4) */
+      async (page) => page.evaluate(() => {
+        const a = document.getElementById('seasonMore'), r = a.getBoundingClientRect()
+        if (!(r.width > 0)) return 'the story link is not drawn'
+        const cs = getComputedStyle(a), i = document.createElement('i'); i.style.color = 'var(--act)'; a.appendChild(i); const act = getComputedStyle(i).color; i.remove()
+        if (/[\u2192\u2197\u2190]/.test(a.textContent)) return `the story link carries a typed arrow: ${JSON.stringify(a.textContent)}`
+        return cs.borderBottomWidth === '2px' && cs.borderBottomColor === act ? true : `the story link has no 2px act rule under it (${cs.borderBottomWidth} ${cs.borderBottomColor})`
+      }),
       has('#seasonLead', 'Fixture (Javelinas|Wrens)', 'the story line'),
       async (page) => page.evaluate(() => window.seasonStory && window.seasonStory.season && window.seasonStory.season.id === 'f4000000-0000-4000-8000-000000000011' ? true : 'season_story did not answer for North Grove')) },
   { family: 'season', id: 'leaderboard', variant: 'member', title: 'The season page, the table: two squads, the clash, every golfer', fullPage: false,
