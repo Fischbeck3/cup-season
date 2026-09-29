@@ -161,7 +161,7 @@ struct CrewStep: View {
           .buttonStyle(.csPrimary())
         Button { consent = false } label: {
           Text(OnboardingCopy.contactsDecline).csType(.bodyS).foregroundStyle(cs.mut)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       }

@@ -153,7 +153,7 @@ struct DeclareRoundSheet: View {
     return Button { CSHaptic.selection(); vm.game = g } label: {
       Text(PlanCopy.gameLabelFor(g)).csType(.agateS, caps: true).lineLimit(1).minimumScaleFactor(0.9)
         .foregroundStyle(on ? cs.panelInk : cs.mut)
-        .padding(.horizontal, CSTokens.Space.s2).frame(maxWidth: .infinity, minHeight: 44)
+        .padding(.horizontal, CSTokens.Space.s2).frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
         .background(on ? cs.panel : cs.bg2,
                     in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
     }

@@ -15,7 +15,7 @@ struct CommentSafetyRow: View {
       VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
         if let author {
           NavigationLink { PersonPage(profileId: author) } label: {
-            Text(name).csType(.name).foregroundStyle(cs.ink).frame(minHeight: 44, alignment: .leading)
+            Text(name).csType(.name).foregroundStyle(cs.ink).frame(minHeight: 44, alignment: .leading).contentShape(Rectangle())
           }.buttonStyle(.plain).accessibilityLabel("Open \(name)’s golfer page")
         } else { Text(name).csType(.name).foregroundStyle(cs.ink) }
         Text(text).csType(.bodyS).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)

@@ -242,7 +242,9 @@ struct PotPane: View {
         Text(amount).csType(.columnM).csTabular().foregroundStyle(cs.leafInk)
           .frame(width: typeSize.isA11y ? nil : 64, alignment: .trailing)
       }
-      .frame(minHeight: 29)
+      // N4-081 · 36 + the row's 4 above and below is a whole 44pt target;
+      // it was 29, a 37pt row (§16.2)
+      .frame(minHeight: 36)
       .padding(.vertical, CSTokens.Space.s1)
       .contentShape(Rectangle())
       .opacity(busy ? 0.5 : 1)
@@ -388,7 +390,7 @@ struct FlowSeg: View {
           Text(l).csType(.columnS).foregroundStyle(selection == k ? cs.bg0 : cs.ink)
             .padding(.horizontal, 12).frame(minHeight: 36).frame(maxWidth: .infinity)
             .background(selection == k ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
-            .frame(minHeight: 44)
+            .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       }

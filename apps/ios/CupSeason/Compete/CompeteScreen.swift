@@ -112,7 +112,7 @@ struct CompeteScreen: View {
               CSGlyph(.chevron, size: .row)
             }
             .padding(.horizontal, CSTokens.Space.s4)
-            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
           }
           .buttonStyle(.csPrimary())
           .padding(.top, CSTokens.Space.s3)

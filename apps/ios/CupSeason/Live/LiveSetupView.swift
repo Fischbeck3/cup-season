@@ -48,7 +48,7 @@ struct LiveSetupView: View {
               VStack(alignment: .leading, spacing: 4) {
                 Text(card.line).csType(.name)
                 Text([card.playedOn, "Not posted · resume it here"].compactMap { $0 }.joined(separator: " · ")).csType(.bodyS)
-              }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+              }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
             }.buttonStyle(.plain)
           }
         }

@@ -205,7 +205,7 @@ struct WizardWhoStep: View {
           .buttonStyle(.csPrimary())
         Button { contacts.consent = false } label: {
           Text(OnboardingCopy.contactsDecline).csType(.bodyS).foregroundStyle(cs.mut)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       }
@@ -404,7 +404,7 @@ struct WizardStakeStep: View {
           Text(WizardCopy.moreSettings).csType(.nameS)
           Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold)).rotationEffect(.degrees(model.showDials ? 180 : 0))
         }
-        .foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 44)
+        .foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 44).contentShape(Rectangle())
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
       }
       .buttonStyle(.plain)

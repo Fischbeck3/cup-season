@@ -79,7 +79,7 @@ struct LookRoomSection: View {
           LookSwatch(spec: current, size: 16)
           Text(current?.name ?? "Calendar").csType(.columnS).foregroundStyle(cs.mut)
         }
-        .frame(minHeight: 44)
+        .frame(minHeight: 44).contentShape(Rectangle())
       }
       .tint(cs.mut)
       .padding(.top, 4)

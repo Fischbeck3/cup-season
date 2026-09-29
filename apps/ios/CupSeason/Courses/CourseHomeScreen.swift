@@ -59,7 +59,7 @@ struct CourseHomeScreen: View {
             Text("Saved for offline").csType(.bodyS)
             Spacer()
             CSGlyph(.chevron, size: .inline)
-          }.frame(minHeight: 44).foregroundStyle(cs.ink)
+          }.frame(minHeight: 44).contentShape(Rectangle()).foregroundStyle(cs.ink)
         }.buttonStyle(.plain).accessibilityIdentifier("courses.offline")
       }
       .padding(CSTokens.Space.gutter)

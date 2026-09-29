@@ -46,7 +46,9 @@ struct LiveNowBar: View {
           }
           .foregroundStyle(cs.bg0)
           .padding(.horizontal, 16)
-          .frame(maxWidth: .infinity, minHeight: 34)
+          // N4-081 · the bar is a door on every tab while a round is live: a
+          // whole 44pt target (§16.2), not 34
+          .frame(maxWidth: .infinity, minHeight: 44)
           .background(cs.brand)
           .contentShape(Rectangle())
         }

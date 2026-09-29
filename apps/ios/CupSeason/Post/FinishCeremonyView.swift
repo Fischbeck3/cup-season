@@ -94,7 +94,7 @@ struct FinishCeremonyView: View {
         }
         .buttonStyle(.plain).padding(.top, 26).opacity(stage >= 5 ? 1 : 0)
         Button(action: onBack) {
-          Text(PostCeremony.backLabel).font(CSFont.subhead.weight(.medium)).foregroundStyle(eyebrowInk).frame(minHeight: 44).padding(.horizontal, 12)
+          Text(PostCeremony.backLabel).font(CSFont.subhead.weight(.medium)).foregroundStyle(eyebrowInk).frame(minHeight: 44).contentShape(Rectangle()).padding(.horizontal, 12)
         }
         .buttonStyle(.plain).padding(.top, 8).opacity(stage >= 5 ? 1 : 0)
         Text(CSBrandCopy.tagline).csType(.agateS, caps: true)

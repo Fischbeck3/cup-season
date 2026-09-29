@@ -220,7 +220,7 @@ struct LivePlayView: View {
       .padding(.top, CSTokens.Space.s2)
     } label: {
       Text("Course & tee").csType(.name).foregroundStyle(cs.ink)
-        .frame(minHeight: 44, alignment: .leading)
+        .frame(minHeight: 44, alignment: .leading).contentShape(Rectangle())
         // on the label, not the group: a group's identifier would overwrite
         // the identifiers of everything it discloses
         .accessibilityIdentifier("live.round.details")
