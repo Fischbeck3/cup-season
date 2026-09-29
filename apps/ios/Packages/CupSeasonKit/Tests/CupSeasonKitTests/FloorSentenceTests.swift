@@ -6,6 +6,7 @@
 // is the producer Home and the pot use; the phone says the same words.
 
 import Testing
+import Foundation
 @testable import CupSeasonKit
 
 @Suite("Q-27 · the floor sentence")
@@ -38,5 +39,46 @@ struct FloorSentenceTests {
     #expect(solo?.body.contains("no squad to dock") == true)
     #expect(SeasonRules.sections(Bylaws(floor: 0), clock: clock, pro: nil, members: 8)
       .contains { $0.head == "What you owe the season" } == false)
+  }
+
+  /// N4 · the scoring guide said the minimum in its own words ("the penalty
+  /// bites from the second miss"). With a league in hand it now says the
+  /// league's minimum in this sentence; the league-less reader, who has no
+  /// number, keeps the paragraph that describes both structures.
+  @Test("the scoring guide states a league's minimum in the floor sentence")
+  func scoringGuide() {
+    func counts(_ s: [GuideCopy.ScoringSection]) -> String? { s.first { $0.eyebrow == "What counts" }?.paragraphs.first }
+    let squads = GuideCopy.Minimum(floor: 2, preset: 1, structure: "squads2")
+    let p = counts(GuideCopy.scoring(solo: false, minimum: squads))
+    #expect(p?.contains(LeagueCopy.floorSentence(floor: 2, preset: 1, structure: "squads2")) == true)
+    #expect(p?.contains("the penalty bites from the second miss") == false)
+    #expect(p?.hasPrefix("Your best rounds each month count for your squad") == true)
+    let solo = GuideCopy.Minimum(floor: 2, preset: 1, structure: "solo")
+    let q = counts(GuideCopy.scoring(solo: true, minimum: solo))
+    #expect(q?.contains(LeagueCopy.floorSentence(floor: 2, preset: 1, structure: "solo")) == true)
+    #expect(q?.contains("for your squad") == false)
+    // the league's structure decides the covenant too, whatever `solo` said
+    #expect(GuideCopy.scoring(solo: nil, minimum: solo).flatMap(\.paragraphs).contains { $0.contains("hurt your standing") })
+    #expect(GuideCopy.scoring(solo: nil, minimum: squads).flatMap(\.paragraphs).contains { $0.contains("hurt your squad") })
+    // no minimum at all is said in the sentence, too
+    let none = GuideCopy.Minimum(floor: 0, preset: 1, structure: "squads2")
+    #expect(counts(GuideCopy.scoring(solo: false, minimum: none))?.contains("No minimum") == true)
+    // the league-less reader: no number to state, both structures described
+    let leagueless = counts(GuideCopy.scoring(solo: nil))
+    #expect(leagueless?.contains("In a squad league") == true)
+    #expect(leagueless?.contains("In a solo league") == true)
+    #expect(leagueless?.contains("Post ") == false)
+  }
+
+  @Test("a membership's settings give the minimum the way the room's bylaws do")
+  func minimumFromSettings() throws {
+    let s = try JSONDecoder().decode(Me.Settings.self,
+      from: Data(#"{"structure":"squads3","preset":"cutthroat","participation_floor":3}"#.utf8))
+    #expect(GuideCopy.Minimum(s) == GuideCopy.Minimum(floor: 3, preset: 2, structure: "squads3"))
+    let noFloor = try JSONDecoder().decode(Me.Settings.self, from: Data(#"{"structure":"solo"}"#.utf8))
+    #expect(GuideCopy.Minimum(noFloor) == nil)
+    #expect(GuideCopy.Minimum(nil) == nil)
+    #expect(GuideCopy.Minimum(Bylaws(floor: 2, presetIdx: 0, structure: "solo"))
+            == GuideCopy.Minimum(floor: 2, preset: 0, structure: "solo"))
   }
 }

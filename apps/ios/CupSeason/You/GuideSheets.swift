@@ -28,17 +28,31 @@ struct ScoringHelpSheet: View {
   /// hand (the welcome, the room); nil falls back to the preferred league, and
   /// with no league at all the floor paragraph covers both structures.
   var solo: Bool? = nil
+  /// Q-27 · the league's minimum, so "What counts" states it in the one floor
+  /// sentence. Pass it with `solo` from the same league; when neither is
+  /// passed both come from the preferred league, so they never describe two.
+  var minimum: GuideCopy.Minimum? = nil
+
+  private var preferred: Me.Membership? {
+    guard let store, let me = store.me else { return nil }
+    return me.memberships.first { $0.league_id == store.preferredLeague } ?? me.memberships.first
+  }
 
   private var structureSolo: Bool? {
     if let solo { return solo }
-    guard let store, let me = store.me else { return nil }
-    let m = me.memberships.first { $0.league_id == store.preferredLeague } ?? me.memberships.first
-    return m?.settings?.structure.map { $0 == "solo" }
+    if let minimum { return minimum.solo }
+    return preferred?.settings?.structure.map { $0 == "solo" }
+  }
+
+  private var leagueMinimum: GuideCopy.Minimum? {
+    if let minimum { return minimum }
+    guard solo == nil else { return nil }   // a caller's league, not the preferred one
+    return GuideCopy.Minimum(preferred?.settings)
   }
 
   var body: some View {
     SliceSheet(title: GuideCopy.scoringTitle, sub: GuideCopy.scoringSub) {
-      ForEach(GuideCopy.scoring(solo: structureSolo)) { s in
+      ForEach(GuideCopy.scoring(solo: structureSolo, minimum: leagueMinimum)) { s in
         if !s.eyebrow.isEmpty { Text(s.eyebrow).csEyebrow().padding(.top, 6) }
         ForEach(Array(s.paragraphs.enumerated()), id: \.offset) { _, p in Fine(markdown: p) }
         if !s.bands.isEmpty {

@@ -132,7 +132,8 @@ final class JoinModel {
   func welcome(from me: Me?) {
     let m = me?.memberships.first { $0.league_id == joinedId }
     welcome = LeagueWelcome(name: m?.name ?? leagueName ?? "the league", code: m?.code, buyinCents: m?.settings?.buyin_cents ?? 0,
-                            solo: m?.settings?.structure.map { $0 == "solo" })
+                            solo: m?.settings?.structure.map { $0 == "solo" },
+                            minimum: GuideCopy.Minimum(m?.settings))
   }
 }
 
@@ -196,6 +197,8 @@ struct LeagueWelcome: Identifiable, Equatable {
   let buyinCents: Int
   /// D205 · true = a solo league (no squad to hurt, no floor to dock); nil = not known yet.
   var solo: Bool? = nil
+  /// Q-27 · the league's minimum, for the scoring guide's one floor sentence.
+  var minimum: GuideCopy.Minimum? = nil
   var id: String { name }
   var usd: Int { Int((Double(buyinCents) / 100).rounded()) }
 }
@@ -240,7 +243,7 @@ struct LeagueWelcomeSheet: View {
     .background(cs.bg0)
     .presentationDetents([.large])
     .presentationDragIndicator(.visible)
-    .sheet(isPresented: $scoring) { ScoringHelpSheet(solo: welcome.solo).presentationDetents([.large]) }
+    .sheet(isPresented: $scoring) { ScoringHelpSheet(solo: welcome.solo, minimum: welcome.minimum).presentationDetents([.large]) }
   }
 
   private func rule(_ b: String, _ rest: String) -> some View {
