@@ -928,6 +928,17 @@
 
     /* D252 · the moment row's noun and state — never a countdown (L-22) */
     t('D252: a moment names the noun and the state', csMomentLine('major', 'live', true), 'A Major · Live');
+    /* TEN / W6 · root's ruling (2026-09-29): the live sync line says WHEN, in
+       the phone's words (LiveCopy.closesText, 7b9c17e4) — the server abandons
+       an unfinished round 24 hours after tee-off */
+    {
+      const T0 = Date.UTC(2026, 8, 27, 15, 0, 0), H = 3600000
+      t('the live window clause is the phone\u2019s, word for word',
+        [csLiveClosesText({ startedAt: T0 }, T0 + H), csLiveClosesText({ startedAt: T0 }, T0 + 18 * H),
+         csLiveClosesText({ startedAt: T0 }, T0 + 23.5 * H), csLiveClosesText({ startedAt: T0 }, T0 + 24 * H),
+         csLiveClosesText({ startedAt: T0 }, T0 + 30 * H), csLiveClosesText({}, T0), csLiveClosesText(null, T0)],
+        ['closes in 23h', 'closes in 6h', 'closes within the hour', 'past its window', 'past its window', null, null])
+    }
     t('D252: one you have not joined says the door is open',
       csMomentLine('ryder', 'setup', false), 'The Ryder · open to you');
   })();

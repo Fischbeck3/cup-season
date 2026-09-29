@@ -15050,6 +15050,7 @@ function buildLiveSnapshot(){
     holes:L.holes||18, rating9:!!L.rating9, mode:L.mode||'teams',   /* D73/D75: a resumed nine stays a nine; a solo game stays solo */
     pmap:L.pmap||null, guestTokens:L.guestTokens||{},
     code:L.code||null, scts:L.scts||null, wcts:L.wcts||null,   /* D85: channel key + per-cell write clocks ride the snapshot */
+    startedAt:L.startedAt||null,   /* TEN / W6 · the window's start survives a refresh */
     mine:L.mine!==false, host:L.host||null,   /* D86: whose round — the banner's two faces survive a refresh */
     visitor:!!L.visitor,   /* D88 */
     scores:L.scores, wolf:L.wolf, hole:L.hole,
@@ -15107,7 +15108,7 @@ function applyLiveSnapshot(s){
   const wolf = (Array.isArray(s.wolf) && s.wolf.length===18) ? s.wolf.slice() : Array(18).fill(null);
   const holes = s.holes===9 ? 9 : 18;   /* D73 */
   const hole = Number.isInteger(s.hole) ? Math.max(0,Math.min(holes-1,s.hole)) : 0;
-  state.live = { stage:'live', active:true, game:s.game||'score', stake:Number(s.stake)||0,
+  state.live = { stage:'live', active:true, startedAt:Number(s.startedAt)||null, game:s.game||'score', stake:Number(s.stake)||0,
     wolfOrder:s.wolfOrder||null, holes, rating9:!!s.rating9, mode:s.mode||'teams', hole, scores, wolf, lr:s.lr, league_id:s.league_id||null,
     pmap:s.pmap||null, guestTokens:s.guestTokens||{},
     code:s.code||null,   /* D85 */
@@ -15164,7 +15165,7 @@ function applyServerRound(mine, myPid){
     wolfOrder = ord.length===LIVE.length ? ord : [0,1,2,3];
   }
   const _srvHoles = snap.holes===9 ? 9 : 18;   /* D73: the started round's hole count rides the server snapshot */
-  state.live = { stage:'live', active:true, game, stake:Number(cfg.stake ?? cfg.unit)||0, wolfOrder,   /* sunningdale's cfg calls it unit */
+  state.live = { stage:'live', active:true, startedAt:csLiveStartedAt(mine), game, stake:Number(cfg.stake ?? cfg.unit)||0, wolfOrder,   /* sunningdale's cfg calls it unit */
     holes:_srvHoles, rating9:false, mode:(cfg.mode==='solo'?'solo':'teams'),   /* D75: a solo game resumes solo */
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:mine.join_code||null,   /* D85 */
@@ -15529,6 +15530,24 @@ window.liveRecvPresence = function(names){
   state.livePresence = Array.isArray(names)?names:[];
   window.liveSyncBadge?.();
 };
+/* TEN / W6 · the phone's window clause, word for word (LiveCopy.closesText at
+   7b9c17e4): the server abandons an unfinished round twenty-four hours after
+   tee-off, and a stroke still on this phone then can never land. Null when
+   the round carries no tee-off time — a deadline nobody can compute is not
+   one to print (L-44); past the window it says so rather than counting into
+   the negative. */
+function csLiveClosesText(L, now){
+  const started = Number(L && L.startedAt) || 0;
+  if(!started) return null;
+  const left = (started + 24 * 3600000) - (now != null ? now : Date.now());
+  if(left <= 0) return 'past its window';
+  const hours = Math.floor(left / 3600000);
+  if(hours < 1) return 'closes within the hour';
+  return `closes in ${hours}h`;
+}
+window.csLiveClosesText = csLiveClosesText;
+/* the tee-off time a server row carries (the moment the window counts from) */
+function csLiveStartedAt(row){ const t = row && row.started_at ? Date.parse(row.started_at) : NaN; return isFinite(t) ? t : null; }
 window.liveSyncBadge = function(){
   const el=document.getElementById('sbSub'); if(!el) return;
   const L=state.live;
@@ -15541,9 +15560,14 @@ window.liveSyncBadge = function(){
      scores were safe on this phone, or when they would go. The count is the
      scores (distinct golfer-hole cells), not the messages; a wolf pick waiting
      alone is saved without a number */
-  el.textContent = cells
-    ? `${cells} score${cells===1?'':'s'} saved on this phone; ${cells===1?'it sends':'they send'} when you have signal.`
-    : q ? 'Saved on this phone; it sends when you have signal.'
+  /* TEN / W6 · and when: the phone's window clause rides the sentence
+     (csLiveClosesText). Past the window "they send when you have signal" is
+     no longer true, so it is not said. */
+  const closes = csLiveClosesText(L), past = closes === 'past its window';
+  const saved = cells ? `${cells} score${cells===1?'':'s'} saved on this phone` : 'Saved on this phone';
+  const sends = cells ? (cells===1?'it sends':'they send') : 'it sends';
+  el.textContent = (cells || q)
+    ? (past ? `${saved} · ${closes}` : `${saved}; ${sends} when you have signal` + (closes ? ` · ${closes}` : '.'))
     : (n>1 ? `${n} phones scoring · every score sent` : 'Every score sent');
   el.classList.toggle('is-queued', q > 0);
 };
@@ -15590,7 +15614,7 @@ function enterGuestLive(d, token, opts){
     wolfOrder = ord.length===LIVE.length ? ord : [0,1,2,3];
   }
   const _holes = snap.holes===9 ? 9 : 18;
-  state.live = { stage:'live', active:true, game, stake:Number(cfg.stake ?? cfg.unit)||0, wolfOrder,
+  state.live = { stage:'live', active:true, startedAt:csLiveStartedAt(d.round), game, stake:Number(cfg.stake ?? cfg.unit)||0, wolfOrder,
     holes:_holes, rating9:false, mode:(cfg.mode==='solo'?'solo':'teams'),
     hole:0, scores:LIVE.map(()=>Array(18).fill(null)), wolf:Array(18).fill(null),
     scts:LIVE.map(()=>Array(18).fill(0)), wcts:Array(18).fill(0), code:d.round.join_code||null,
@@ -17126,6 +17150,10 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
       if(error){ qaEvent('live_start_failed', { attempt_id:_attempt, via_plan:viaPlan, reason:'error' }); throw error; }
       qaEvent('live_start_succeeded', { attempt_id:_attempt, via_plan:viaPlan, live_round_id:data.live_round_id });
       state.live.lr = data.live_round_id;
+      /* TEN / W6 · the server abandons an unfinished round 24h from here; the
+         card carries the moment so the sync line can SAY that deadline
+         (LiveRoundStore.start stamps it at the same point) */
+      state.live.startedAt = Date.now();
       state.live.code = data.join_code || null;   /* D85: null on an old DB — sync quietly off, the pencil still works */
       const byPos=(data.players||[]).slice().sort((a,b)=>a.position-b.position);
       state.live.pmap = byPos.map(pl=>pl.id);
