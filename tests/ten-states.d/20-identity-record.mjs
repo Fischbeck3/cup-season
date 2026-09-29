@@ -100,7 +100,17 @@ const YOU = [
       /* TEN / W8 · W7-009: an empty record says the first round is missing and holds the door, so the sidebar's sentence and door stand down */
       standsDown(['#sideMe .mesay', '#sideMe [data-mego="add_round"]']),
       /* TEN / W8 · W7-055: an empty record has one section, so no index */
-      youIndex(0), youBuilding('none')) },
+      youIndex(0), youBuilding('none'),
+      /* the sidebar's foot stays pinned to the column's bottom when its block
+         stands down: display:none took #sideMe's margin-top:auto with it (B's
+         find on 51211947; W7-030's check, col.bottom − foot.bottom ≤ 48) */
+      async (page) => page.evaluate(() => {
+        if (innerWidth < 960) return true
+        const col = document.querySelector('aside.side'), foot = col && col.querySelector('.foot')
+        if (!col || !foot) return 'no sidebar foot at the desk'
+        const gap = col.getBoundingClientRect().bottom - foot.getBoundingClientRect().bottom
+        return gap <= 48 ? true : `the sidebar's foot floats ${Math.round(gap)}px above the column's bottom`
+      })) },
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^1$' } },
     check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youFormGrammar('ONE OF FIVE')) },
