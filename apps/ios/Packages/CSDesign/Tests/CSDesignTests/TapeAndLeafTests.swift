@@ -12,18 +12,22 @@ import SwiftUI
 
 @Suite struct TapeTests {
 
-  /// The tick is 17 × 16 at the design's own count, and shrinks rather than
-  /// wrapping. **Two rows would be two chronologies on one page.**
-  @Test func theTickShrinksRatherThanWrapping() {
+  /// W3 twin · one SQUARE per meeting, 16 at the design's own count, with a
+  /// gap — and it shrinks (the gap first gives way) rather than wrapping.
+  /// **Two rows would be two chronologies on one page.**
+  @Test func theSquareShrinksRatherThanWrapping() {
     let eleven = (0..<11).map { CSTape.Meeting(id: $0, viewer: $0 % 2 == 0) }
     let tape = CSTape(meetings: eleven, key: "One square is one win.")
     // 285pt of measure across eleven meetings — the profile's own case
-    #expect(tape.slotWidth(285) > 17)          // room to spare, so the tick caps at 17
-    #expect(tape.tick(285) == 17)
+    #expect(tape.tick(285) == 16)
+    #expect(tape.gap(285) == CSTokens.Space.s1, "four wins never abut as one bar")
+    #expect(tape.fits(285))
     // a rivalry four times as long still fits on one rule
     let long = (0..<44).map { CSTape.Meeting(id: $0, viewer: true) }
     let big = CSTape(meetings: long, key: "One square is one win.")
-    #expect(big.tick(285) >= 6 && big.tick(285) < 17)
+    #expect(big.tick(285) >= 4 && big.tick(285) < 16)
+    #expect(big.gap(285) >= 1)
+    #expect(big.fits(285))
   }
 
   /// **A halved meeting belongs to neither row.** It is drawn as a flat bar on
