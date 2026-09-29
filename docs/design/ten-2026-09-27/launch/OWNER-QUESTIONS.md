@@ -2,11 +2,11 @@
 
 | | |
 |---|---|
-| **Measured at** | the round-1 evidence: web `9d84c483` (captures at `02636007` and `9d84c483`) and native `4112a3f0`. Source and canon were read at `de3eaf35`, and the web's current behaviour at `4a703402` wherever a lane changed it. |
+| **Measured at** | the round-1 evidence: web `9d84c483` (captures at `02636007` and `9d84c483`) and native `4112a3f0`. Source and canon were read at `de3eaf35`, and the web's current behaviour at `4a703402` wherever a lane changed it. Round 2 (session D): web `ed8e6837`, served as `272c2da1`. |
 | **Status read at** | **`7b9c17e4`**, live on the web since 03:53 MST on 2026-09-29, with Owner TestFlight 1335 from the same SHA (04:04). That covers every lane (W1–W6), E's native phase 1 (`6716b0ed`) and phase 2 set 1 (`146401bb`), and root's fixes through `7b9c17e4`. Earlier ships were `272c2da1` and 1328 (`41cf8050`). |
-| **Date** | 2026-09-28 |
-| **Assessors** | The owner rules; this memo, by session C (docs), only recommends. The evidence behind it: the panel's **category**, **craft** and **owner** judges, critiques **A** and **B**, audit **AW** and detector **DX**, plus the questions lanes W2–W5, session B and N2 forwarded through root. Four read-only research passes gathered the canon; none of them scored anything. |
-| **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/` (`panel/`, `critique-A/`, `critique-B/`, `audit-web/`, `detector/`, `SESSIONS.md` §C) and root's messages of 2026-09-28 |
+| **Date** | 2026-09-28; round 2 added 2026-09-29 |
+| **Assessors** | The owner rules; this memo, by session C (docs), only recommends. The evidence behind it: the panel's **category**, **craft** and **owner** judges, critiques **A** and **B**, audit **AW** and detector **DX**, plus the questions lanes W2–W5, session B and N2 forwarded through root. Four read-only research passes gathered the canon; none of them scored anything. Round 2: critiques **A2** and **B2**, audit **AW2**, detector **DX2** and six delta checkers (**G1–G6**), all run by session D, and the three judges re-run by root. |
+| **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/` (`panel/`, `critique-A/`, `critique-B/`, `audit-web/`, `detector/`, `SESSIONS.md` §C) and root's messages of 2026-09-28 and 2026-09-29 · round 2: `…/evidence/r2-fd27ace4/` and D's report `…/evidence/sessions/D-report.md` |
 
 **How to read it.** Each question gives:
 - the question in one line;
@@ -58,13 +58,13 @@ Settled items are recorded as settled, with the commit that settled them. A defe
 ## Rule these first
 These block work in flight or define the gate.
 0. **Q31, the phone's default look on launch day** (§0 above).
-1. **Q9, how the gate counts ceilings.** Round 2 is scored on the answer.
-2. **X38, public privacy.** The one data exposure, and it needs a migration.
+1. **Q9, how the gate counts ceilings.** Round 2 was scored without it, and 14 of its delta cells cite it. Round 3 is scored on the answer.
+2. **X38, public privacy.** The one data exposure, and it needs a migration. Round 2's critique A2 raises the settlement page as a P1.
    - **X42 (§D)** is round 2's top open item (category P0, owner P1). It needs a migration written and your `db push`.
 3. **X37, the owner and the pilot crew in the product.** Real people on a public page and in a public repo.
 4. **Q24 and Q25, the wordmark and the button label.** Session B's lockup and CTA grammar have landed everywhere else; the Door and the in-app `.btn` wait on these.
 5. **Q1, the recap's double strip.** Lane N4 is on the recap now.
-6. **X36, X40, Q7, Q23 and Q5.** Words that must read the same on both clients.
+6. **X36, Q39, X40, Q7, Q23 and Q5.** Words that must read the same on both clients. X36 is the only round-1 P0/P1 with no fix anywhere.
 7. **Q2's TERMINOLOGY amendment.** The nine two-squad defects can start without it.
 
 ## Summary
@@ -84,10 +84,10 @@ These block work in flight or define the gate.
 | Q6 | A specimen on the phone Door (the desk wings are fixed: labelled, and still since 7141516f) | decision | Keep the phone Door as it is; real permissioned examples later | after launch |
 | Q7 | The line that signs the Door and shared artifacts | decision | "Where amateur golf counts", by the vision's own rule | freeze |
 | Q8 | One colour for round points | settled (W4, UI_SYSTEM §2.4) | — | — |
-| Q9 | How the gate counts content, genre and device-or-human cells | decision | Every defect cell to 9; name each ceiling per cell; report two means | before round 2 |
+| Q9 | How the gate counts content, genre and device-or-human cells | decision | Every defect cell to 9; name each ceiling per cell; report two means | before round 3 |
 | Q10 | Home: an upcoming Ryder, the clash holder, the crown | decision | After launch, with Q4's item | after launch |
 | Q11 | Season context on a public round | decision | No; rule it with X38 | with X38 |
-| Q12 | Structural performance before Oct 1 | decision | Home's single render and the fonts now; code splitting after, as a named exception | freeze |
+| Q12 | Structural performance before Oct 1 | decision | Home's single render (AW2-01, now a P1) and the fonts now; code splitting after, as a named exception | freeze |
 | Q13 | An already-claimed card | settled (W4, 5d536f41) | The phone's twin (N4) | — |
 | Q14 | X18, the install nudge | decision (B25 is fixed, 6c5f251b) | In the page on league-less Home | freeze |
 | Q15 | May a lane re-lay a ruled sentence? | decision | Layout yes; one-line D364 amendment; the covenant in three heads | freeze |
@@ -114,8 +114,24 @@ These block work in flight or define the gate.
 | Q36 | Does a live moment keep an ember rail? | decision | Retire it; the dot and eyebrow say live | freeze |
 | Q37 | Whose words, when canon names none (DEC-COPY) | decision | The Kit's, where it is the older producer | any time |
 | Q38 | The composer's "what a round can add": before a gross, or only after? | decision (parity) | Both halves on both clients: the ceiling before a gross, the card's arithmetic after | freeze |
+| Q39 | The record's "+2.4 vs your playing HCP": words, or a sign under a head? | decision (parity) | Words on every record line on both clients (D1, Q-23); the sign only in the receipt's arithmetic | freeze |
 
 "freeze" means before the Sep 30 visual freeze, because the answer changes words or layout on both clients.
+
+**What each question still holds open in round 2.** Session D's checkers name the question that blocks each item they left open at `ed8e6837` (`r2-fd27ace4/delta/`):
+
+| Question | Open delta items that cite it |
+|---|---|
+| Q9 | 14 cells: category support P, E, D; legal H, P, E, D; settings B, E, D; rules P; craft legal E; settings B, E |
+| X36 | 6: the owner judge's P1 (`pdef:owner:5`), and the category identity C, golfers C and play D, and owner golfers C and R cells |
+| Q5 | 5 cells: craft Door R; owner Door C and P, settings P, desk B |
+| Q6 | 5 cells: category Door B; craft Door B and D; owner Door P and E |
+| X42 | 5: critique B's schedule and desk P0 items, the category judge's P1, and the category schedule C and play D cells |
+| Q24 | 4 cells: category Door T and C; craft Door C and public-round C |
+| Q10, Q15 | 3 cells each |
+| Q17, Q28, X39 | 2 cells each |
+| Q4, Q7, Q8, Q11, Q19, Q22, Q26, X38, X40 | 1 cell each |
+| X41 | 1 cell (category home C); its four P0 items are resolved on the web |
 
 ## A · The ledger's questions (LEDGER §4f, X36–X40)
 
@@ -176,7 +192,7 @@ These block work in flight or define the gate.
 - The parity defects need no ruling and go to lanes: the phone's "‹FIRST› LEADS" against the web's THEY LEAD, and the phone fallback's contradictory lead (N4).
 - So does `head_to_head`'s season-week dedupe, a migration the owner pushes when convenient.
 
-**Round 2:** the owner judge raises it again as a P1, "unchanged since round 1", and the category judge as a P2 (PANEL.md, Round 2). Critique B2 adds the head-to-head's "Ten meetings": the server counts a week once per shared season, so two shared seasons count one week twice. That is the season-week dedupe `head_to_head` needs, a migration (§D) under options (1) and (4).
+**Round 2:** the owner judge raises it again as a P1, "unchanged since round 1", and the category judge as a P2 (PANEL.md, Round 2). Critique A2 raises it twice, on identity and on golfers (P1s; CRITIQUE CQ2-08). Session D's delta finds it the only round-1 P0/P1 with no fix anywhere (`pdef:owner:5`). Critique B2 adds the head-to-head's "Ten meetings": the server counts a week once per shared season, so two shared seasons count one week twice. That is the season-week dedupe `head_to_head` needs, a migration (§D) under options (1) and (4).
 
 **Blocked until ruled:** the owner judge's P1 (PANEL.md #15, and round 2's); the "weekly clash" wording on both clients; You's rivalry row on the phone, which opens a page with a different number.
 
@@ -284,6 +300,11 @@ These block work in flight or define the gate.
   - The game (the sides, the result, the strip) stays public, as D57 and D60a intend.
   - Who owes whom money is between friends (the brand's money sentence: "the money moves between friends").
   - If the owner reads the settlement as fully shoutable, S1 alone is the ruled alternative.
+
+**Round 2.** Critique A2 raises the settlement page as a P1: "A settled match publishes three non-sharing golfers' names, scores and debts" (`public-round--settlement--375--light.png`; CRITIQUE CQ2-07).
+- A2's fix is either of two things. One: show a non-sharing golfer by first name with no figure, keep the result and the strip, and keep the money line in the app. Two: ask each golfer once, and mask them on a no.
+- Either way, A2 adds "Shared by ‹first name›".
+- That is S2 with a credit line, or S3. It does not change the recommendation.
 
 **Blocked until ruled:** the `share_info` migration and its `db push`; the share controls' disclosure copy on both clients; the phone revoke path; the craft public-round D cell (Q11) and the claim-invite privacy cells, which the panel "recorded, not scored".
 
@@ -531,6 +552,8 @@ Rows 1–4 and 6–9 are client copy for the web (root/W6) and N4. Row 5 is a mi
 - Settings is where UI_SYSTEM already puts it.
 - "How it works" can hold it later, if the owner prefers it there to Settings' foot.
 
+**Round 2:** the build stamp still sits on the Door's face and in every sidebar foot. Five delta cells stay open on this question: craft Door R, and owner Door C and P, settings P and desk B.
+
 **Blocked until ruled:** the owner Door C and P cells, settings P and desk B; preflight's placeholder count.
 
 ## C · Found in the round-1 evidence, or forwarded by the lanes
@@ -560,6 +583,8 @@ What is left is a design choice for the phone. Round 2's category judge still ma
 - **(c) Later: real permissioned examples** (consent and an anon SECURITY DEFINER producer, so a migration and the owner's `db push`).
 
 **Recommendation: (a) for Oct 1, then (c).** The P1 is gone. A phone specimen is new design on both clients two days before freeze, and the phone Door's job is the sign-in, which root already tuned (dd01225d). Session B's wordmark work ([WM], Q24) is also landing on the Door.
+
+**Round 2:** five delta cells stay open on this question: category Door B, craft Door B and D, and owner Door P and E.
 
 **Blocked until ruled:** the phone Door's B, D, E and P cells with craft and owner.
 
@@ -616,9 +641,9 @@ What is left is a design choice for the phone. Round 2's category judge still ma
 - **(b) Hold every defect cell to 9, and name the rest per cell.** Content ceilings go in CONTENT-CEILINGS.md with their source, genre ceilings go as named exceptions, and device-or-human cells go to HUMAN.md rows whose result decides them. The mean is reported twice: over all cells, and over cells without a named ceiling.
 - **(c) Re-score genre pages against their genre** (a legal page against the best legal pages), which asks the judges to change their lens mid-program.
 
-**Recommendation: (b).** It uses the categories the assessors already wrote, it keeps "no defect below 9" absolute, and it makes the remaining gap an honest list rather than a moving score. Root should give the judges the ruling before round 2, so the native half and round 2 are scored the same way.
+**Recommendation: (b).** It uses the categories the assessors already wrote, it keeps "no defect below 9" absolute, and it makes the remaining gap an honest list rather than a moving score. **Round 2 was scored without a ruling:** 14 of the delta's open cells cite this question (the summary's table). Root should give the judges the ruling before round 3.
 
-**Blocked until ruled:** what "gate met" means for every row, and so the launch call; how round 2 is read.
+**Blocked until ruled:** what "gate met" means for every row, and so the launch call; how rounds 2 and 3 are read.
 
 ### Q10 · Home's missing moments: an upcoming Ryder, the clash holder, the crown
 **The question.** Home's ranker has no event item, the week's clash hides who holds it ("You and Devon are both in."), and a crowning is text only. Which of these should Home say, and when?
@@ -661,27 +686,33 @@ What is left is a design choice for the phone. Round 2's category judge still ma
 **Blocked until ruled:** the craft public-round D cell only.
 
 ### Q12 · Structural performance before Oct 1?
-**The question.** AW's two performance items are structural. Do they ship before launch, or stand as named exceptions with a date?
+**The question.** The audit's performance items are structural. Do they ship before launch, or stand as named exceptions with a date?
 
 **Evidence.**
-- AW P2-11: its Door flash is fixed (69f40d1f), and W3 removed one of Home's three re-lays (a buddy request no longer tops Home, e8108e59). But Home still renders in stages; CLS was 0.55 at 375 at `9d84c483` and has not been re-measured.
-- AW P3-25: one 2.05 MB document, 508 KB brotli, parsed by every visitor, with every view resident.
-- Performance is 2/4 in AUDIT.md, and the audit gate is 18/20.
+- **AW2-01, a P1 in round 2** (`ed8e6837`): a signed-in cold open of Home still jumps, at CLS 0.43–0.80 at 375 (0.798 at 1× and at 4× CPU). An interim season card paints and vanishes, and 14 Home containers take 83 `innerHTML` writes in about 50 ms.
+- Round 1's P2-11 is fixed in part: the Door no longer flashes (69f40d1f), and W3 removed one of Home's three re-lays (e8108e59).
+- **AW2-12, a P2** (round 1's P3-25): one 2.26 MB document, about 778 KB of it comments, plus 291 KB of supabase-js. Every visit parses it, the Door and the public links included.
+- Performance is still 2/4 in AW2 (AUDIT.md §5), and the audit gate is 18/20.
 
 **Canon.**
 - The owner's direction: "We ship all before launch."
-- SESSIONS §1: implementation ready Sep 29, freeze Sep 30.
+- SESSIONS §1: implementation ready Sep 29, freeze Sep 30. SESSIONS §2: no new dependencies.
 - CLAUDE.md: "A future split into real modules is welcome; preserve the boot semantics." The classic↔module boundary is a named landmine.
 - AW itself labels code splitting "structural, post-launch".
 
 **Options.**
-- **(a) Both before launch.** It is a restructure of the boot on a two-day clock, and the boot is where CLAUDE.md's landmines are.
-- **(b) The cheap half now, the split after.** Render Home once in its final slot order (or reserve the slots), and self-host or preload the two Plex faces, before freeze; code splitting gets a post-launch date as a named exception.
+- **(a) Both before launch.** It is a restructure of the boot on a one-day clock, and the boot is where CLAUDE.md's landmines are.
+- **(b) The jump now, the split after.**
+  - AW2's fix for the jump: hold Home until `home_dispatch` and the ME read have both answered, reserve the lead's height, render the containers once, and never paint the fallback season card when a lead is coming. Its target is CLS below 0.1 at 375 and at 4× CPU.
+  - Self-host or preload the two Plex faces.
+  - Code splitting, and AW2's comment stripping at build, get a post-launch date as named exceptions.
 - **(c) Both after launch,** as named exceptions.
 
-**Recommendation: (b).** The layout shift is what a golfer sees on every open; the parse cost is invisible at 1× CPU (FCP 88–152 ms). A boot restructure two days before freeze risks the single failure a launch cannot absorb.
+**Recommendation: (b).**
+- The jump is what a golfer sees on every signed-in open, and round 2 made it a P1. The parse cost is invisible at 1× CPU.
+- Stripping comments safely from inline scripts needs a parser, which is a new dependency, and it would sit in the deploy path (`stamp-version.sh`) the day before freeze.
 
-**Blocked until ruled:** AW's performance dimension, and with it the 18/20 gate.
+**Blocked until ruled:** AW2's performance dimension and its P1 (AW2-01), and with them the 18/20 gate.
 
 ### Q13 · An already-claimed card (settled in lane W4; recorded)
 **Status: settled, no ruling needed unless the owner disagrees.** A kept scorecard landed on the plain Door with no sentence (`links--claim-used--375--dark.png` was byte-identical to `door--initial--375--dark.png`), and the judges split on it: category "by design", craft "a decision", owner a defect. W4's `5d536f41` (merged at `b8a61266`) now says: "That scorecard is already on a golfer's record. If it's yours, sign in with the same email and it's in your rounds." It is not an error, and it reveals no more than the dead-token line does. The harness now pins that line instead of the silence.
@@ -947,6 +978,8 @@ Each needs a decision entry, and (1) needs the README's sentence restated as the
 - It matches the phone's Door with no native change.
 - It clears one of the Door's three serif lines.
 
+**Round 2:** the Door still sets the name in the serif, while the header and the public round now share the lockup. Four delta cells stay open on this question: category Door T and C, and craft Door C and public-round C.
+
 **Blocked until ruled:** the web Door's name; the §1.4 serif count on the Door.
 
 ### Q25 · The product-wide `.btn` label role
@@ -1186,6 +1219,42 @@ At accessibility sizes the phone's `CSSideRoster` (the two named groups of UI_SY
 
 **Blocked until ruled:** the composer's worth line on both clients.
 
+### Q39 · The record's "+2.4 vs your playing HCP": words, or a sign under a head?
+**The question.** The record prints the comparison as a signed figure: "SEP 27 · +2.4 VS YOUR PLAYING HCP" under Recent rounds, and signed figures for All time's best and average. Critique B2 raises it as a P1 (CRITIQUE CQ2-12): plus means the golfer beat the figure, and nothing on the page says so. Should the record use words, as the composer and the receipt now do, or keep the sign and state the direction in a head?
+
+**Evidence.**
+- **B2's history P1** (`record--populated--1280--dark.png`): no head says plus is better. The same 84 reads "Beat your playing HCP by 2.4" on its own receipt.
+- **The web's producers:**
+  - the Recent rounds line is `sign(fig)+' vs your playing HCP'`, and `#clBest` and `#clAvg` use the same local `sign()` (`index.html:23936–24004` at `7b9c17e4`);
+  - the words already exist: `vsShort` ("beat by 2.4", "played to it", "2.6 over") and `vsPhrase` ("beat your playing HCP by 2.4").
+- **The phone:**
+  - it signs its career figures too (`TourCard.bestText` and `avgText`, through `RoundCopy.signed`), naming the lens once in the section's eyebrow ("Career · vs your playing HCP");
+  - it states the direction only for the old figures: "against your playing HCP, + is better" (`careerSignsLine`);
+  - its words producers exist too: `CSBands.vsShort` and `vsPhrase`.
+- **The friends board's form lens** is the one web surface with a head: "Vs playing HCP · plus is better". AW2-15 flags that head as tracked caps on a phrase.
+
+**Canon.**
+- D1: the display is words ("beat your number by 1.4"); PvI stays the engine's currency.
+- D2: a round card shows two numbers, and the signed figures live in the receipt.
+- Q-23, the blind audit's sign sweep: "One vocabulary, no signs".
+  - The product's own note (`index.html:10871–10875`) records six of seven blind testers misreading the signed form.
+  - Phase 1 put words on the form, the standings, the member tile and the receipt.
+  - Phase 2 (C-11 in the remediation plan) listed the remaining signed sites, among them the member history and the tour card's average.
+- D260 and R-M rule the noun ("playing HCP"), not the sign.
+
+**Options.**
+- **(a) Words on every record line, on both clients.** `vsShort` for figures and tiles, and `vsPhrase` in sentences. The sign stays only in the receipt's arithmetic row (D2). This finishes Q-23's phase 2 on the record, and the phone's Tour Card follows with `CSBands`.
+- **(b) Keep the sign, and state the direction once in each head** ("vs your playing HCP · plus is better"), on both clients, as the friends board does.
+- **(c) Leave it as it is.**
+
+**Recommendation: (a).**
+- D1 and Q-23 already chose words for the display, and the blind testers' misreading is the product's own evidence.
+- The words' producers exist on both clients.
+- Under (b), the golfer still has to carry a rule from one screen to another.
+- The rivalry and callout lines, where a signed figure is the score to beat, are a separate question. This one does not block them.
+
+**Blocked until ruled:** the record's Recent rounds line and All time figures on the web; the phone's Tour Card career figures; B2's history P1.
+
 ## D · Owner actions owed (not questions)
 
 These need the owner's hands, not a ruling.
@@ -1201,6 +1270,7 @@ These need the owner's hands, not a ruling.
   - It is CQ-04 and a category P1.
 - **Human proof.** HUMAN.md's gates are NOT RUN: G1–G4 need three people who have never opened Cup Season, on their own phones, and D1–D13 are the owner's device checks, including finishing a live round (D12) and the album's retry (D13). No capture or test can pass them.
 - **Pushes and deploys.** Web `7b9c17e4` has been live since 03:53 MST on 2026-09-29, and Owner TestFlight 1335 came from the same SHA at 04:04 (LEDGER §4i, HUMAN §0). Earlier: web `272c2da1`, and TestFlight 1328 from `41cf8050`. No database change has shipped with any of them. Every further push, `db push`, functions deploy and upload waits on the owner's yes to root.
+- **Round 3.** Session D re-measures on the owner's word, at the next candidate: `7b9c17e4` plus sessions B's and E's next sets. Every fix after `ed8e6837` is verification pending until then.
 - **A database item behind X36:** `head_to_head`'s season facet counts a week once per shared season, so two shared seasons count one week twice. The head-to-head's "Ten meetings" comes from that (critique B2). The dedupe to one per calendar week is a migration.
 - **Three defects found or raised again while writing this memo.**
   - The `?cs_home_state` hatch lifted the Door on any host (X37). Found by C from the code; root confirmed it on a prod-like server (`cf401dee` lifted the Door). **Fixed (45d40eb3):** the Door stays up, with the shell inert, unless the hatch's fixture is served. The exposure is live on cupseason.app until the ship.

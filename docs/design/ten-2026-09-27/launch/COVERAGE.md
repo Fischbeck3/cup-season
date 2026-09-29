@@ -1,12 +1,12 @@
-# Coverage · what the round-1 evidence captured, and what it did not
+# Coverage · what the evidence captured in rounds 1 and 2, and what it did not
 
 | | |
 |---|---|
-| **Measured at** | web **`9d84c483`**: 886 captures taken at `02636007`, whose web client renders those families byte-identically, and 256 taken at `9d84c483`. Native **`4112a3f0`**, the same native tree as `cf401dee` and Owner TestFlight 1.0.0 (1180). |
+| **Measured at** | web **`9d84c483`**: 886 captures taken at `02636007`, whose web client renders those families byte-identically, and 256 taken at `9d84c483`. Native **`4112a3f0`**, the same native tree as `cf401dee` and Owner TestFlight 1.0.0 (1180). Round 2: web **`ed8e6837`** (served as `272c2da1`), from captures at `fd27ace4` and `ed8e6837` (§3). |
 | **Status read at** | **`7b9c17e4`**, live on the web since 03:53 MST on 2026-09-29, with Owner TestFlight 1335 from the same SHA. Round 2's gallery is `root/harness-fd27ace4/` (1,126 captures), plus `root/harness-ed8e6837/` (356 rows) for home, compete, desk, courses and you. Round 2's fixes after `ed8e6837` (`7141516f`, `09beefd3`, `3d3b9e55`, `c1b70890`, `41cf8050`) were verified by their own harness runs, not by a gallery. |
-| **Date** | 2026-09-28 |
-| **Assessors** | No assessor scored coverage. The captures came from WX's web harness (`tests/ten-capture.mjs`) and FX's native capture tool (`tools/native-synthetic-captures.py`). The gaps in §1.5 are quoted from the assessors' own scope notes: judges **category**, **craft** and **owner**, critiques **A** and **B**, audit **AW** and detector **DX**. |
-| **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/root/harness-9d84c483/manifest.json` (and its PNGs, `--first.png` crops, `artifacts/`, `merge.log`) · `~/cup-season-claude-ten-gallery/native-4112/manifest.json`, `failed.json`, `logs/summary.txt`, `logs/matrix.log`, `flows/README.md` · the assessors' scope fields in `~/cup-season-claude-ten-gallery/evidence/{panel,critique-A,critique-B}/` |
+| **Date** | 2026-09-28; round 2 added 2026-09-29 |
+| **Assessors** | No assessor scored coverage. The captures came from WX's web harness (`tests/ten-capture.mjs`) and FX's native capture tool (`tools/native-synthetic-captures.py`). The gaps in §1.5 are quoted from the assessors' own scope notes: judges **category**, **craft** and **owner**, critiques **A** and **B**, audit **AW** and detector **DX**. Round 2's galleries are session D's capture and root's recapture (§3). |
+| **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/root/harness-9d84c483/manifest.json` (and its PNGs, `--first.png` crops, `artifacts/`, `merge.log`) · `~/cup-season-claude-ten-gallery/native-4112/manifest.json`, `failed.json`, `logs/summary.txt`, `logs/matrix.log`, `flows/README.md` · the assessors' scope fields in `~/cup-season-claude-ten-gallery/evidence/{panel,critique-A,critique-B}/` · round 2: `…/root/harness-fd27ace4/manifest.json` (with `provenance.json`), `…/root/harness-ed8e6837/manifest.json`, `…/evidence/r2-fd27ace4/sidebar-diff.json` and `…/r2-fd27ace4/diag/` |
 
 Written by session C (docs), which re-captured nothing and changed no product code. `~/cup-season-claude-ten-gallery/` is the local evidence gallery, and the evidence stays outside git.
 
@@ -20,6 +20,7 @@ Written by session C (docs), which re-captured nothing and changed no product co
 | Half | Assessed SHA | Captures | States | Matrix | Open |
 |---|---|---:|---:|---|---|
 | Web | `9d84c483` | 1,142, plus 482 first-screen crops and 24 exported share artifacts | 141 in 22 families | 375, 402, 1280, 1600 × dark, light, plus a 375×380 keyboard proxy for 16 states | 320 CSS, `auto` theme, tablet widths; about 150 named states (§1.5); 4 captures that prove less than their names (§1.4) |
+| Web, round 2 | `ed8e6837` (with `fd27ace4`) | 1,482 (1,126 + 356), plus 644 first-screen crops | 142 in 22 families, all captured | as round 1 | PAR-01 and PAR-03, which no fixture reaches; the same widths and themes as round 1; the identical pairs in §3.3 |
 | Native | `4112a3f0` | 752 (all four passes) plus 14 flow screenshots | 77 family states (94 capture names) in 18 families | iPhone 17 Pro (402pt) and SE 3 (375pt) × large and AX3 × dark and light | the Door, wizard steps 2–3 and live scoring are not captured; 48 flagged rows (`story`'s runner check on 8, unread counters on 40), all rendering by session A's verdicts and the judges'; one real defect among them (N4-114); 4 byte-identical pairs (§2.4) |
 
 ---
@@ -70,7 +71,7 @@ Viewports: 375×667, 402×874, 1280×1000 and 1600×1000 at DSF 1, and 375×380 
 ### 1.3 Which rows were captured at which SHA
 - **At `9d84c483` (32 states, 256 captures):** `play` (8), `book` (8), `record` (5), `golfers` (5), `you` (4), `receipt` (2).
 - **At `02636007` (109 states, 886 captures):** everything else. That is `door`, `onboarding`, `home`, `composer`, `share`, `season`, `compete`, `events`, `public-round`, `links`, `schedule`, `wizard`, `courses`, `settings`, `static` and `desk`.
-- **Nothing in this file is captured after `9d84c483`.** Every fix listed in CRITIQUE.md, AUDIT.md and DETECTOR.md is un-captured until round 2: session D is capturing `fd27ace4`, the web ship candidate, as `harness-fd27ace4`. That covers root's 38471687, 735a63ec, 69f40d1f, dd01225d, b263fd74, 65db32a0, d15b5f18, d7a5a07d, 65a1a11a, 8aaab412, 45d40eb3, 6c5f251b and b82eabd9, and the lane merges e8108e59, f46086b4, b8a61266, 4a703402, 1e9eb856 and f6cb4760. The lanes' own harness runs (W1 164, W2 150, W3 316, W4 340 and W5 140 captures, per their merge messages) and W6's 43 green suites are their verification, not the gallery.
+- **Round 1 (this section) is captured at `9d84c483` and earlier.** Round 2's galleries capture `fd27ace4` and `ed8e6837` (§3). They cover root's 38471687, 735a63ec, 69f40d1f, dd01225d, b263fd74, 65db32a0, d15b5f18, d7a5a07d, 65a1a11a, 8aaab412, 45d40eb3, 6c5f251b and b82eabd9, and the lane merges e8108e59, f46086b4, b8a61266, 4a703402, 1e9eb856 and f6cb4760. The lanes' own harness runs (W1 164, W2 150, W3 316, W4 340 and W5 140 captures, per their merge messages) and W6's 43 green suites were their verification before round 2. Fixes after `ed8e6837` (7141516f, 09beefd3, 3d3b9e55, c1b70890, 41cf8050, dcafca7f and 7b9c17e4) are verified by their own harness runs and probes, not by a gallery.
 
 ### 1.4 Captures that prove less than their names
 Found by grouping the manifest's `sha256` across states. A byte-identical pair proves one rendering.
@@ -79,9 +80,9 @@ Found by grouping the manifest's `sha256` across states. A byte-identical pair p
 |---|---|---|---|
 | `home/pro` = `home/member` | 4 of 8: all desk cells (1280, 1600 × both themes); the phone cells differ | The Pro's desk Home is the member's Home, pixel for pixel. | decision (OWNER-QUESTIONS Q4) |
 | `home/member-populated` = `home/member` | 8 of 8 | Two harness states render one page; `member-populated` adds no coverage. | open (harness) |
-| `record/populated`, `record/photos-none`, `record/photo-broken` = `you/populated` (and `courses/books`, `desk/you`) | 8 of 8 | The record lives on You (`view-stats`), and the populated world shows no photograph in the first place. The two photo states passed their checks ("no photograph", "no broken image") without ever drawing a fallback. The owner judge: "the photo states are not captured". | harness fixed (1e9eb856: f8e84dec): both states now open the latest round's receipt, where the photograph lives, and check its no-photo and 404 fallbacks. `record--photo-credited` now proves the golfer's own photo is uncredited (8aaab412). Proof comes with round 2's gallery. |
-| `share/recap-no-photo` = `share/recap-photo` | 8 of 8 at 02636007 | A product defect, not a harness gap: the no-photo ceremony offered "Include round photo" (critique B P1 · owner P1). | fixed (38471687), un-captured |
-| `links/claim-used` = `door/initial` | 6 of 8 (the 1280 cells differ) | An already-claimed card landed on the plain Door with no sentence. The harness expected that silence, and the judges split: category "by design", craft "a decision", owner a defect (R 6). | fixed (b8a61266): the kept scorecard now says so, and the harness pins the line (5d536f41). Recorded as Q13 in OWNER-QUESTIONS. |
+| `record/populated`, `record/photos-none`, `record/photo-broken` = `you/populated` (and `courses/books`, `desk/you`) | 8 of 8 | The record lives on You (`view-stats`), and the populated world shows no photograph in the first place. The two photo states passed their checks ("no photograph", "no broken image") without ever drawing a fallback. The owner judge: "the photo states are not captured". | harness fixed (1e9eb856: f8e84dec): both states now open the latest round's receipt, where the photograph lives, and check its no-photo and 404 fallbacks. `record--photo-credited` now proves the golfer's own photo is uncredited (8aaab412). Round 2: `record/photo-broken` and `record/photos-none` are identical in 5 of 8 cells (§3.3). |
+| `share/recap-no-photo` = `share/recap-photo` | 8 of 8 at 02636007 | A product defect, not a harness gap: the no-photo ceremony offered "Include round photo" (critique B P1 · owner P1). | fixed (38471687); round 2's two states differ in all 8 cells |
+| `links/claim-used` = `door/initial` | 6 of 8 (the 1280 cells differ) | An already-claimed card landed on the plain Door with no sentence. The harness expected that silence, and the judges split: category "by design", craft "a decision", owner a defect (R 6). | fixed (b8a61266): the kept scorecard now says so, and the harness pins the line (5d536f41). Recorded as Q13 in OWNER-QUESTIONS. Round 2's two states differ in all 8 cells. |
 | `record/photo-withdrawn` = `public-round/dead-link` | 8 of 8 | By design: the harness defines the withdrawn photo's public link as dead ("This link is dead"). The withdrawn state on the golfer's own record is not captured. | open (harness) |
 | `desk/golfers` = `golfers/list` | 4 of 4 | Expected: the desk state is the same page at desk width. | — |
 
@@ -197,7 +198,7 @@ The failures world's read counters (for example `home-failed` "fails=21" and `yo
 ### 2.5 Native evidence after `4112a3f0` (outside the matrix)
 - **`launch/n1/`** in git: 12 synthetic before/after shots and `contrast-f05.json`, from N1's lane.
 - **`launch/n2/`** in git: 31 synthetic before/after shots with a SHA-256 `MANIFEST.json`. They cover F08, F10, F11, F12, F13, F16, R02, S8, S9, X35, the Form row and the recap, on N2's tree.
-- **Neither is the merged native tree.** N2 tested only its own tree. Phase 0 of lane N4 (session E) builds and tests `de3eaf35` before any archive (LEDGER §4g). Until that run reports, every native row stays measured at `4112a3f0`.
+- **Neither is the merged native tree.** N2 tested only its own tree. Lane N4 (session E) has since built and tested the merged tree for TestFlight 1324, 1328 and 1335. It captured 80 synthetic before/after pairs of its own targets (`~/cup-season-claude-ten-gallery/n4/before/`, `after/`; E-report). The gallery holds no later native matrix, so every native row stays measured at `4112a3f0`.
 
 ### 2.6 Native gaps (all open)
 - **native/door:** the whole row.
@@ -209,3 +210,34 @@ The failures world's read counters (for example `home-failed` "fails=21" and `yo
 - **Single-round You:** no scenario exists (FX gap, LEDGER §4g).
 - **The album's refresh-failure and offline routes:** unit-tested only (LEDGER §4g).
 - **Device-or-human, never from a capture:** VoiceOver order and speech, haptics, Live Activity on a Lock Screen, outdoor light, finishing a live round on a device (HUMAN.md D12), and the album retry on a device (D13).
+
+## 3 · Web, round 2 (`fd27ace4` and `ed8e6837`)
+
+### 3.1 Where the galleries came from
+- **`root/harness-fd27ace4/`** is session D's full capture, from 22:55 to 23:33 MST on 2026-09-28.
+  - 1,150 rows: 1,126 captures of 139 states in 22 families, and 24 errors.
+  - 0 route failures, 0 page errors, 0 fixture gaps and 0 sideways overflow.
+  - `provenance.json` proves every row at `fd27ace4`.
+- **`root/harness-ed8e6837/`** is root's recapture of home, compete, desk, courses and you at `ed8e6837`: 356 captures of 47 states, with no errors.
+- **The other families' `fd27ace4` rows stand for `ed8e6837`.** Only `index.html` differs between the two. The desk rail differs only by glyph antialiasing (`r2-fd27ace4/sidebar-diff.json`), and root's same-environment A/B shows the main column pixel-identical (`r2-fd27ace4/diag/root-ab-desk-season/RESULT.md`).
+- **Matrix:** 375×667, 402×874, 1280×1000 and 1600×1000 in dark and light, plus the 375×380 proxy (34 captures). There are 406 first-screen crops at `fd27ace4` and 238 at `ed8e6837`.
+- **Snapshots:** `candidate-fd27ace4/` was served pinned on 127.0.0.1:8826 during the round, and session D has since stopped that server at root's request. `candidate-ed8e6837/` was read in-process.
+
+### 3.2 States
+- **142 states in 22 families:** round 1's 141, plus `receipt/photo-unavailable`.
+- **All 142 are captured.** The three course-card states (`courses/card-18`, `card-9-no-yardage` and `card-long-tee`) timed out 24 times at `fd27ace4`, behind the regression that 5df6d4cc fixed. `harness-ed8e6837` captures all three.
+- **Not reachable in the fixture world:** PAR-01 (the ME strip at rank 3 or lower) and PAR-03 (a season in its Cup Final). Root's in-page probe is their only evidence (`r2-fd27ace4/diag/par01-probe.md`).
+- **The same limits as round 1:** no capture at 320 CSS, in the `auto` theme or at tablet widths. AW2 probed 8 widths from 320 to 1600 itself; those are measurements, not captures.
+
+### 3.3 Captures that prove less than their names
+Grouped by `sha256` across states, over the round-2 set (`harness-ed8e6837` for its five families, `harness-fd27ace4` for the rest).
+
+| States | Identical cells | What it means | Status |
+|---|---|---|---|
+| `home/member-populated` = `home/member` | 8 of 8 | As in round 1: two harness states render one page. | open (harness) |
+| `home/pro` = `home/member` | 4 of 8, all desk cells | As in round 1: the Pro's desk Home is the member's. | decision (OWNER-QUESTIONS Q4) |
+| `record/populated` = `you/populated` | 4 of 8, all phone cells | The record still lives on You. The desk cells come from different galleries, whose rails differ. | as round 1 |
+| `record/photo-broken` = `record/photos-none` | 5 of 8 (402 dark and every desk cell) | In those cells a broken photograph renders exactly as no photograph: the fallback shows no broken image, and the two states prove one rendering. | open (harness) |
+| `record/photo-withdrawn` = `public-round/dead-link` | 8 of 8 | By design, as in round 1. The withdrawn state on the golfer's own record is still not captured. | open (harness) |
+
+**Now proven by capture:** `share/recap-no-photo` and `share/recap-photo` differ in all 8 cells (38471687), and so do `links/claim-used` and `door/initial` (b8a61266). The desk states that equal their phone family at desk width (`desk/home`, `desk/you`) are expected.
