@@ -538,7 +538,7 @@ const BOOK = [
       await bookFromSeason(page)
     },
     expect: { view: 'view-hub', selectors: { '#seasonBookDialog .sb-matrix': 'visible' } },
-    check: all(bookIs({ title: 'The Book', head: 'This record uses the league’s current scoring rules; a locked historical rule snapshot is not available.' }),
+    check: all(bookIs({ title: 'The Book', head: 'These are the lines the season closed with. Later rule changes, posts and deletions do not move them.' }),
       async (page) => page.evaluate(() => {
         const rows = document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr').length
         if (rows !== 16) return `${rows} golfer rows, expected 16`

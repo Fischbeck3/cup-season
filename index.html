@@ -1770,12 +1770,18 @@ button.payer{cursor:pointer;}
    a scroller that runs past its edge says so, as W5's segments do (data-more,
    csBookEdge) — the trailing edge fades while there is more to the right */
 /* TEN / W6 · critique A2 (P1): "Change setup" mid-round no longer strands the
-   round. The round is HELD — the same live round, its scores and its channel —
-   and its setup keeps only what changes in place (the course, the tee, the
-   rating and slope, the holes and the pars). The group and the game were
-   seated on the server at tee-off, so they are not offered, and Tee off (a
-   NEW round) gives way to "Back to the round". */
+   round. The round is HELD — the same live round, its scores and its channel.
+   The group and the game were seated on the server at tee-off, so they are not
+   offered, and Tee off (a NEW round) gives way to "Back to the round".
+   TEN / W7-003 [X02] · the course, the tee, the rating and slope, the holes and
+   the pars were set at tee-off too (live_rounds.course_snapshot, which
+   finish_live_round posts from), and nothing carries an edit made here, so
+   they are shown locked, never offered (csLockHeldSetup). A locked value is
+   mut on bg1 at full strength (UI_SYSTEM §16.1: never a faded word). */
 #playSetup.is-held .lrgroup, #playSetup.is-held .lrgame, #playSetup.is-held #teeOffBtn, #playSetup.is-held #planBridge{display:none !important;}
+#playSetup.is-held input.f:disabled{background:var(--bg1); color:var(--mut); -webkit-text-fill-color:var(--mut); opacity:1; cursor:default;}
+#playSetup.is-held .seg button:disabled{color:var(--mut); cursor:default;}
+#playSetup.is-held .mini:disabled{background:var(--bg1); color:var(--mut); cursor:default; box-shadow:none;}
 .lrheld{color:var(--ink); margin:0 0 var(--s3);}
 .lrback{margin:0 0 var(--s4);}   /* the way back is on the first screen, under the line that says the round is held */
 #gameSeg[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);}
@@ -1994,7 +2000,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   color:var(--ceremony-ink); background:var(--ceremony); box-shadow:var(--shadow-lift);}
 /* the plate: a golfer's photograph, or the crest over their home course's
    contour. NEVER a gradient wash - it is not one of the three legal states. */
-/* W7-057 · the plate GIVES UP the pixels a long record needs: 58% of the card
+/* W7-061 [B2-history-10] · the plate GIVES UP the pixels a long record needs: 58% of the card
    while the record half fits in its 42%, less when a best's course wraps to a
    third line (AW2-22's wrap pushed the folio out of the fixed-ratio card and
    clipped it at 375, 402 and 1280). The name and medallion ride its bottom. */
@@ -16834,11 +16840,13 @@ function renderPlay(){
   if(setup && document.body.classList.contains('cardview')) setCardView(false);
   $('#playSetup').style.display = setup ? 'block':'none';
   $('#playLive').style.display  = setup ? 'none':'block';
-  /* TEN / W6 · a held round (Change setup mid-play) keeps its setup to what
-     changes in place, says so, and offers the way back instead of Tee off;
-     a plan is never re-applied over it */
+  /* TEN / W6 · a held round (Change setup mid-play) says so and offers the way
+     back instead of Tee off; a plan is never re-applied over it.
+     TEN / W7-003 [X02] · its course, tee, rating, slope, holes and pars are
+     shown locked: the server posts the round on the tee-off snapshot */
   const held = setup && !!(state.live.active && state.live.held);
   $('#playSetup').classList.toggle('is-held', held);
+  csLockHeldSetup(held);
   { const hl=$('#lrHeld'); if(hl){ hl.hidden=!held; hl.textContent = held ? csLiveHeldLine(state.live) : ''; } }
   { const bk=$('#lrBackToRound'); if(bk) bk.hidden=!held; }
   if(setup){ if(!held){ if(window.csLivePlan) csApplyLivePlan(); renderPlanBridge(); } renderRoster(); renderLiveBanner(); return; }
@@ -17716,16 +17724,35 @@ $('#lrBackToRound').addEventListener('click',()=>{
   renderPlay();
   csLiveRest();   /* the same rest as tee off: "nearest" could park the hole header under the stuck board */
 });
-/* the held round's line: what stays, and what can change here */
+/* the held round's line: what stays, and why its setup does not change here.
+   TEN / W7-003 [X02] · it said "Change the course, the tee or the holes here",
+   but no edit made here reaches the server: finish_live_round posts on the
+   tee-off snapshot, so a corrected tee posted the old rating and a nine chosen
+   after an eighteen tee-off posted nobody. The way to change them is the
+   control the round already has, "Scrap this round". LiveCopy.heldLine is the
+   phone's twin. */
 function csLiveHeldLine(L){
   const scored = (L && Array.isArray(L.scores) && L.scores.length)
     ? L.scores[0].map((_,h)=>L.scores.some(row=>row && row[h]!=null)).filter(Boolean).length : 0;
   return (scored
     ? `Your round is still on, and its ${scored} ${scored===1?'hole scored stays':'holes scored stay'} with it.`
     : 'Your round is still on.')
-    + ' Change the course, the tee or the holes here.';
+    + ' The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.';
 }
 window.csLiveHeldLine = csLiveHeldLine;
+/* TEN / W7-003 [X02] · while a round is held, the setup's record-bearing
+   controls (course, tee, rating, slope, the 9/18 switch, the pars) are
+   disabled: they show what the round is playing and offer no edit. Only the
+   locks this sets are lifted, so a control some other path disabled stays
+   disabled. The server-side change (a live_set_setup RPC, W7-004) comes after
+   launch. */
+function csLockHeldSetup(held){
+  ['#lrCourse','#lrTee','#lrRate','#lrSlope','#editCard'].map(s=>$(s)).concat([...$$('#lrHoles button')]).forEach(el=>{
+    if(!el) return;
+    if(held){ if(!el.disabled){ el.disabled=true; el.dataset.heldLock='1'; } }
+    else if(el.dataset.heldLock){ el.disabled=false; delete el.dataset.heldLock; }
+  });
+}
 /* real live-round finish: confirm → finish_live_round → recap (checkpoint 1) */
 /* the match's outcome, computed from the same hole data everything else reads —
    never a second source of truth. Called once, at finish. */
@@ -21514,8 +21541,11 @@ function csFallbackItems(){
        names the competition and nothing else; each branch says the clock in
        exactly one sentence. The idle branch had none once the eyebrow let go
        of it, so its standfirst carries it now. The server's clash item is the
-       same move (20261211100000, held for the owner's db push). */
-    if(yields){ hl=`Your clash with ${them} is open.`; sf=`Best round of the week takes it. The week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
+       same move (20261211100000, held for the owner's db push).
+       Root's ruling on the idle day: an idle clash says its idle words on
+       every day, the last included. It fell to "both in" on its last day,
+       which nobody had earned. D216's yield is the tier alone, below. */
+    if(idle){ hl=`Your clash with ${them} is open.`; sf=`Best round of the week takes it. The week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
     else if(theirs && !mine){ hl=`${them} posted ${theirs.gross!=null?'{'+theirs.gross+'}':'a round'}.`; sf=`That is the number, and the week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
     else if(mine && !theirs){ hl=`${them} has ${c.closes_today?'today':c.days_left===1?'one day':'{'+c.days_left+'} days'} to answer your ${mine.gross!=null?'{'+mine.gross+'}':'round'}.`;
                               sf='Your round is the number to beat.'; act='See the receipt';
@@ -22662,7 +22692,8 @@ const SeasonBook = {
   },
   domain(rows){const values=rows.flatMap(r=>r.cells.flatMap(c=>c.cumulative==null?[]:[c.cumulative]));return [Math.min(0,...values),Math.max(1,...values)];},
   standing(r){return r.points_rank==null?'':climbOrd(r.points_rank)+(r.tied?' · Tied':'');},
-  rules(b){return (b.counting_cap==null?'All rounds count':'Best '+b.counting_cap+' per calendar month')+(b.participation_floor==null?'':' · minimum '+b.participation_floor);},
+  /* W7-120 [A2-competition-4] · the minimum names its unit, "minimum 2 rounds" (the phone's SeasonBookSnapshot.rules moves with it) */
+  rules(b){return (b.counting_cap==null?'All rounds count':'Best '+b.counting_cap+' per calendar month')+(b.participation_floor==null?'':' · minimum '+b.participation_floor+(b.participation_floor===1?' round':' rounds'));},
 };
 window.SeasonBook=SeasonBook;
 function csSeasonBookReceipt(title,entries,names={},opts={}){
@@ -22780,7 +22811,7 @@ function csSeasonBookBody(b,selection){
     /* F11 · the key sits ABOVE the grid, beside the Display control that changes what a cell holds; below a long table it was out of the first view */
     /* W5 · the key is a legend strip: each mark beside its word, never split
        across a line end, and the one instruction on its own line under it */
-    if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span><span class="sb-key-i"><b>D</b> Dropped</span><span class="sb-key-i"><b>B</b> Bye</span><span class="sb-key-i"><b>*</b> Adjustment</span><span class="sb-key-i">• Future week</span><span class="sb-key-hint">Select a cell for its rounds and adjustments.</span></p>';
+    if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span><span class="sb-key-i"><b>D</b> Dropped</span><span class="sb-key-i"><b>B</b> Bye</span><span class="sb-key-i"><b>*</b> Adjustment</span>'+(b.weeks.some(w=>w.week>b.current_week)?'<span class="sb-key-i">• Future week</span>':'')+'<span class="sb-key-hint">Select a cell for its rounds and adjustments.</span></p>';
     h+=`<div class="sb-matrix-wrap"><div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" data-week="${w.week}" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}${live&&w.week===b.current_week?', this week':''}" class="${live&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
     h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td${live&&c.week===b.current_week?' class="sb-now"':''}><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div></div>';
   }
@@ -36788,9 +36819,25 @@ function showWelcome(){
    ASKED. share_info's `who` is every tagged golfer who has not said no — an
    unanswered tag counts (the_plan_link.sql, X42; the in-app producer already
    says ASKED, f46086b4). Until the database half is pushed, the page says only
-   what the payload supports: they are on the plan. When `who` carries only an
-   explicit yes, this is the one line to turn back to "in". */
-function csPlanWhoLine(whoTxt, n){ return whoTxt + (n === 1 ? ' is' : ' are') + ' on the plan.'; }
+   what the payload supports: they are on the plan.
+   TEN / W7-001 [X42] · the database half sends `who_in` beside `who`: the
+   tagged golfers who said yes, an explicit yes and nothing else. When the
+   payload carries it, the line says who is IN, and nothing when nobody is yet
+   (the landing then says "Just <host> so far."). An older payload, with no
+   `who_in` key, keeps "on the plan". Keyed on the payload, so the page tells
+   the truth in either deploy order. One producer for both readers: the
+   landing and the signed-in link ask. */
+function csPlanNames(names){ return names.length <= 1 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]; }
+function csPlanWhoLine(info){
+  const i = info || {};
+  if(Array.isArray(i.who_in)){
+    const inn = i.who_in.map(String);
+    return inn.length ? csPlanNames(inn) + (inn.length === 1 ? ' is' : ' are') + ' in.' : '';
+  }
+  const who = (Array.isArray(i.who) ? i.who : []).map(String);
+  return who.length ? csPlanNames(who) + (who.length === 1 ? ' is' : ' are') + ' on the plan.' : '';
+}
+window.csPlanWhoLine = csPlanWhoLine;
 
 function hideWelcome(){
   $('#obWelcome').style.display = 'none';
@@ -37386,16 +37433,15 @@ async function renderShareView(tok, _testInfo){
     document.title = `Golf at ${venue} — Cup Season`;
     wrap.classList.add('sv-plan');
     kind('A round');
-    const who = (info.who || []);
     /* a name is singular, a list takes "and" — the same conjugation bug that
-       produced "Alex lead by 4" on the season page */
-    const whoTxt = who.length <= 1 ? who.join('')
-                 : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
+       produced "Alex lead by 4" on the season page (csPlanWhoLine; W7-001:
+       who is IN once the payload can say it) */
+    const whoLine = csPlanWhoLine(info);
     card.className = 'sv-short';
     card.innerHTML = `<div class="sv-head">
         <p class="sv-eb cs-agate">${esc(fmtD(info.play_on))}${info.tee ? ` · <span style="text-transform:none">${esc(fmtTee(info.tee))}</span>` : ''}</p>
         <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
-        <p class="sv-where cs-body-s">${who.length ? esc(csPlanWhoLine(whoTxt, who.length)) : `Just ${esc(info.host)} so far.`}</p>
+        <p class="sv-where cs-body-s">${whoLine ? esc(whoLine) : `Just ${esc(info.host)} so far.`}</p>
       </div>` +
       foot({ cta: 'Take the seat', primary: true,
              note: `Sign in and you’ll be asked first. The seat, and a buddy request to ${info.host}, wait for your yes.` });
@@ -37664,19 +37710,19 @@ function csLinkCard(kind, info){
              facts: n > 0 ? n + (n === 1 ? ' round' : ' rounds') + ' posted' + (i.best != null ? ', best ' + i.best : '') + '.' : '' };
   }
   if(kind === 'plan'){
-    const who = (Array.isArray(i.who) ? i.who : []).map(String);
-    const whoTxt = who.length <= 1 ? who.join('') : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
     const tee = i.tee ? fmtTee(i.tee) : '';
-    /* the SHORT course name, as the landing card prints it */
+    /* the SHORT course name, as the landing card prints it; the who-line is the
+       landing's own producer (W7-001: who is IN once the payload can say it) */
     return { title: CS_LINK_ASK.plan.title, yes: CS_LINK_ASK.plan.yes, note: csLinkPlanNote(i.host),
              mark: mkr(i.marker), ask: csLinkAskPlan(i.host, String(i.course || '').split(' — ')[0], csLinkDay(i.play_on)),
-             facts: [tee ? tee + ' tee' : '', who.length ? csPlanWhoLine(whoTxt, who.length) : ''].filter(Boolean).join(' · ') };
+             facts: [tee ? tee + ' tee' : '', csPlanWhoLine(i)].filter(Boolean).join(' · ') };
   }
   const rest = String(i.course_label || '').split(' — ').slice(1).join(' — ');
   return { title: CS_LINK_ASK.claim.title, yes: CS_LINK_ASK.claim.yes, note: CS_LINK_ASK.claim.note,
            mark: '', ask: csLinkAskClaim(i.gross, i.course_label),
            facts: [i.guest_name ? 'Scored as ' + i.guest_name : '', rest, csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
 }
+window.csLinkCard = csLinkCard;
 /* R5 · what a claim link is, before anything is claimed. The two sources
    answer a token they do not know differently — claim_round_info with null,
    scan_claim_info with a raise — so DEAD is said only when both have

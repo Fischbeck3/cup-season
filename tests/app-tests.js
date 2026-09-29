@@ -724,6 +724,20 @@
     t('AW2-05: mine in, theirs not: the headline keeps the clock', [mineC.headline, mineC.standfirst], ['Galen has {5} days to answer your {89}.', 'Your round is the number to beat.']);
     t('AW2-05: both in: the standfirst keeps the clock', bothC.standfirst, 'The week closes in 5 days. Best round takes it.');
     t('AW2-05: the clock is said once in each branch', [idleC, theirsC, mineC, bothC].map(clocks), [1, 1, 1, 1]);
+    /* root's ruling on AW2-05's idle day: an idle clash says its idle words on
+       every day, the last included, and never "both in" when neither has
+       posted. D216's yield is the tier alone: coming while more than a day
+       is left, closing again on the last-call day. */
+    const idleTomorrow = clashOf(null, null, 1);
+    window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: 0, closes_today: true,
+      rivalry: 'The Fixture Derby', them_name: 'Galen Ward', mine: null, theirs: null };
+    const idleToday = csFallbackItems()[0];
+    t('AW2-05: an idle clash on its last day says its idle words, never \u201cboth in\u201d',
+      [idleTomorrow.headline, idleTomorrow.standfirst, idleToday.headline, idleToday.standfirst],
+      ['Your clash with Galen is open.', 'Best round of the week takes it. The week closes tomorrow.',
+       'Your clash with Galen is open.', 'Best round of the week takes it. The week closes today.']);
+    t('AW2-05: D216\u2019s yield is the tier alone: coming while it yields, closing on the last-call day',
+      [idleC.tier, idleTomorrow.tier, idleToday.tier, bothC.tier], ['coming', 'closing', 'closing', 'closing']);
     window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: 5, closes_today: false, rivalry: '', them_name: 'Galen Ward', mine: null, theirs: null };
     t('AW2-05: with no rivalry the eyebrow is the league’s name, or THE CLASH alone', csFallbackItems()[0].eyebrow,
       window.CS?.league?.name ? `${window.CS.league.name.toUpperCase()} · THE CLASH` : 'THE CLASH');
@@ -978,12 +992,14 @@
     }
     /* TEN / W6 · the held round's line (18a279bd) agrees with its count: one
        hole scored STAYS, three holes scored STAY, and none says only that the
-       round is still on. The phone's twin prints the same three. */
-    t('the held round\u2019s line agrees with its count',
+       round is still on. The phone's twin prints the same three.
+       TEN / W7-003 [X02] · and it says why the setup is locked, and the way to
+       change it, instead of inviting an edit the server never receives. */
+    t('the held round\u2019s line agrees with its count, and says why its setup is locked',
       [csLiveHeldLine({ scores: [[4, null, null]] }), csLiveHeldLine({ scores: [[4, 5, 3], [5, null, 4]] }), csLiveHeldLine({ scores: [[null, null]] })],
-      ['Your round is still on, and its 1 hole scored stays with it. Change the course, the tee or the holes here.',
-       'Your round is still on, and its 3 holes scored stay with it. Change the course, the tee or the holes here.',
-       'Your round is still on. Change the course, the tee or the holes here.'])
+      ['Your round is still on, and its 1 hole scored stays with it. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.',
+       'Your round is still on, and its 3 holes scored stay with it. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.',
+       'Your round is still on. The course, tee and holes were set at tee-off. To change them, scrap this round and tee off again.'])
     t('D252: one you have not joined says the door is open',
       csMomentLine('ryder', 'setup', false), 'The Ryder · open to you');
   })();
@@ -1339,6 +1355,25 @@
       csShareLine('plan', { kind:'plan', seat:'host', result:'host' }), null);
     t('D253: a seat word from the future lands on the conservative truth',
       csShareLine('plan', { kind:'plan', seat:'waitlisted' }), 'You’re already down for that round.');
+    /* TEN / W7-001 [X42] · the public plan's who-line says IN only for an
+       explicit yes, and only when the payload can say so: `who_in` present
+       (the database half pushed) names who said yes, or nothing when nobody
+       has; an older payload, with no `who_in`, keeps "on the plan". The
+       landing and the signed-in link ask read the one producer. */
+    t('X42: who is in is an explicit yes, once the payload carries it',
+      [csPlanWhoLine({ who: ['Avery', 'Devon'], who_in: ['Devon'] }),
+       csPlanWhoLine({ who: ['Avery', 'Devon', 'Jules'], who_in: ['Avery', 'Devon', 'Jules'] }),
+       csPlanWhoLine({ who: ['Avery', 'Devon'], who_in: [] }),
+       csPlanWhoLine({ who: ['Avery', 'Devon'] }),
+       csPlanWhoLine({ who: ['Devon'] }),
+       csPlanWhoLine({ who: [] }),
+       csPlanWhoLine(null)],
+      ['Devon is in.', 'Avery, Devon and Jules are in.', '', 'Avery and Devon are on the plan.', 'Devon is on the plan.', '', '']);
+    t('X42: the signed-in link ask says the same, beside the tee',
+      [csLinkCard('plan', { host: 'Blake', tee: '08:10', course: 'Mesquite Wash', who: ['Avery', 'Devon'], who_in: ['Devon'] }).facts,
+       csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'], who_in: [] }).facts,
+       csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'] }).facts],
+      [fmtTee('08:10') + ' tee · Devon is in.', '', 'Avery and Devon are on the plan.']);
 
     /* L-32 · a kind the CHECK does not admit yet is NOT an error the golfer
        caused, and the row removes itself rather than offering a door that fails */
