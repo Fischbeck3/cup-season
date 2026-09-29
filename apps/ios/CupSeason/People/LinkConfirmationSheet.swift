@@ -16,7 +16,7 @@ struct LinkConfirmationSheet: View {
         VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
           Text(LinkConfirmation.eyebrow).csEyebrow()
           if card.kind != .claim { CSFace(.seeded(key: card.name, marker: card.marker, initials: Initials.of(card.name)), size: .slat) }
-          Text(card.question).csType(.lead).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
+          CSFigureRun(card.questionMarked, role: .lead).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
           if let facts = card.facts, !facts.isEmpty {
             Text(facts).csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
               .accessibilityIdentifier("link-facts")

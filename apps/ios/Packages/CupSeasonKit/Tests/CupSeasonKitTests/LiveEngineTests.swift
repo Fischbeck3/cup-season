@@ -771,14 +771,14 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let info: JSONValue = .object(["guest_name": .string("Sam Fixture"), "gross": .number(84), "course_label": .string("Papago"), "played_on": .string("2026-07-25")])
     var cal = Calendar(identifier: .gregorian)
     cal.locale = Locale(identifier: "en_US")
-    #expect(ClaimDoor.line(info) == "Sam Fixture — 84 at Papago.")
+    #expect(ClaimDoor.line(info) == "Sam Fixture — {84} at Papago.")
     #expect(ClaimDoor.subLine(info, calendar: cal) == "Sat, Jul 25")
     // W4 · the club goes in the sentence; the course, tee and day go beneath
     // it (the web's csClaimLanding, pinned by the links harness)
     let club: JSONValue = .object(["guest_name": .string("Avery Fixture"), "gross": .number(91),
                                    "course_label": .string("Mesquite Wash Golf Club (fixture) — Mesquite Wash · Black"),
                                    "played_on": .string("2026-09-27")])
-    #expect(ClaimDoor.line(club) == "Avery Fixture — 91 at Mesquite Wash Golf Club (fixture).")
+    #expect(ClaimDoor.line(club) == "Avery Fixture — {91} at Mesquite Wash Golf Club (fixture).")
     #expect(ClaimDoor.subLine(club, calendar: cal) == "Mesquite Wash · Black · Sun, Sep 27")
     // no name and no gross read as the web's fallbacks; nothing beneath is nil
     let bare: JSONValue = .object(["course_label": .string("Papago")])

@@ -224,7 +224,8 @@ struct GuestPencilScreen: View {
       switch d.face {
       case .waiting(let line):
         VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
-          Text(line).csType(.story).foregroundStyle(cs.ink)
+          // N4-045 · the gross is a figure run, never the sentence's serif
+          CSFigureRun(line, role: .story).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
           // the course and tee after the club, then the day — the sentence
           // carries only the club now

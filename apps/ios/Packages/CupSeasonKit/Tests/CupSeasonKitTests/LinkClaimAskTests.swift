@@ -15,6 +15,8 @@ import Foundation
     let c = card(["guest_name": .string("Avery Fixture"), "gross": .number(91),
                   "course_label": .string("Mesquite Wash Golf Club (fixture) — Mesquite Wash · Black")])
     #expect(c.question == "Add this 91 at Mesquite Wash Golf Club (fixture) to your record?")
+    // N4-045 · the sheet sets the gross as a figure run; the words are the same
+    #expect(c.questionMarked == "Add this {91} at Mesquite Wash Golf Club (fixture) to your record?")
     #expect(c.facts == "Scored as Avery Fixture · Mesquite Wash · Black")
   }
 

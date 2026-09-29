@@ -39,7 +39,7 @@ public enum ClaimIntent {
 /// The door card for a finished claim (17700–17727).
 public struct ClaimDoor: Sendable, Equatable {
   public enum Face: Sendable, Equatable {
-    /// "NAME — 84 at CLUB." — the course, tee
+    /// "NAME — {84} at CLUB." — the course, tee
     /// and day ride `sub`, beneath it (W4)
     case waiting(String)
     /// already kept — said (`usedLine`, not an error), token dropped (W4: it
@@ -87,12 +87,14 @@ public struct ClaimDoor: Sendable, Equatable {
   /// the whole label ran a dash-joined triple into the sentence. The course,
   /// tee and day go to `subLine`, beneath it.
   ///
-  /// N4-040 · the sentence asks for nothing — "Enter your email to keep
+  /// N4-040 / N4-045 · it is the web's head exactly now: the gross is marked
+  /// as its figure run (`CSFigureRun`; §1.4, a number is never set in the
+  /// serif), and the sentence asks for nothing — "Enter your email to keep
   /// it." stood on a screen with no field. The button says the next step.
   public static func line(_ data: JSONValue) -> String {
     let name = data["guest_name"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "Your scorecard"
     let gross = data["gross"]?.int.flatMap { $0 == 0 ? nil : $0 }
-    return "\(name) — \(gross.map { "\($0) at " } ?? "")\(label(data).club)."
+    return "\(name) — \(gross.map { "{\($0)} at " } ?? "")\(label(data).club)."
   }
 
   /// N4-040 · the waiting face's act, saying what it does next, and the way
