@@ -115,9 +115,17 @@ struct CourseScreen: View {
     }
     .buttonStyle(.plain)
     .padding(.leading, CSTokens.Space.gutter - 10)
-    .padding(.top, 46)
+    .padding(.top, Self.backTop)
     .accessibilityLabel("Back")
   }
+
+  /// The navigation row: the chevron's inset from the plate's top edge, then
+  /// its 44pt target.
+  private static let backTop: CGFloat = 46
+  /// N4-153 · the drawn card's bars start UNDER the navigation row. At 52
+  /// they began beside the chevron, and the first holes' bars ran under it.
+  private static let barsTop = backTop + 44 + CSTokens.Space.s2
+  private static let barsHeight: CGFloat = 88
 
   // MARK: - the page
 
@@ -187,7 +195,7 @@ struct CourseScreen: View {
     CSCoursePlate(eyebrow: vm.book == nil ? nil : vm.eyebrow(book), name: vm.headline(book),
                   course: vm.secondLine(book), place: book.place,
                   credit: vm.page.hero?.credit,
-                  reserve: vm.rung(book) == .card ? 140 : 0) {
+                  reserve: vm.rung(book) == .card ? Self.barsTop + Self.barsHeight : 0) {
       // D-9 · the plate spends one of the two panels, and it is **absent**
       // — not dashed — when you have not played here.
       //
@@ -233,9 +241,9 @@ struct CourseScreen: View {
         CSTokens.dark.ceremony
         VStack(spacing: 0) {
           CSDrawnCard(holes, scale: .hero)
-            .frame(height: 88)
+            .frame(height: Self.barsHeight)
             .padding(.horizontal, CSTokens.Space.gutter)
-            .padding(.top, 52)
+            .padding(.top, Self.barsTop)
           Spacer(minLength: 0)
         }
         .csCeremony()
