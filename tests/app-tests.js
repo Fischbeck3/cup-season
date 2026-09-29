@@ -977,9 +977,10 @@
     t('N4-063: the Golfers root’s sub and its one buddy definition',
       [csEmptyRoot('golfers', {}).sub, csEmptyRoot('golfers', {}).def],
       ['Add the people you actually play with.', 'Buddies see each other’s rounds, and either of you can pull the other into a season.']);
-    /* R-G's contacts door is D251, wave 8 — not sold before it opens */
-    t('L-32: Golfers does not sell the contacts door yet',
-      csEmptyRoot('golfers', {}).doors.map(d => d.t), ['Find golfers', 'Text someone a link']);
+    /* R-G's contacts door is D251, wave 8 — not sold before it opens. W7-085 · and ONE act: the link. 'Find golfers' was a second door to the search field under the root,
+       so the field (headed Find golfers) is the find door */
+    t('L-32 + W7-085: Golfers does not sell the contacts door yet, and its one act is the link',
+      csEmptyRoot('golfers', {}).doors.map(d => d.t), ['Text someone a link']);
 
     /* IA §8.4 rule 1 · no seat count, anywhere */
     t('a plan names who is on it', csPlanLine({ tagged_names: ['Galen'] }), 'You and Galen.');

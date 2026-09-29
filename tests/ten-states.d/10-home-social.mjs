@@ -262,6 +262,18 @@ const GOLFERS = [
         const f = getComputedStyle(def).fontFamily.split(',')[0]
         if (/mono|serif|new york|georgia/i.test(f) && !/sans/i.test(f)) return `the definition is set in ${f}`
         return (root.innerText.match(/see each other/gi) || []).length === 1 ? true : 'the definition is said more than once'
+      }),
+      /* TEN / W8 · W7-085 [A2-golfers-12]: the empty root has ONE act, the link, as the primary; 'Find golfers' was a second door to the search field under it, which is the find door;
+         and nothing on the page types an arrow */
+      async (page) => page.evaluate(() => {
+        const root = document.getElementById('glfRoot'), doors = [...root.querySelectorAll('.doors button')], field = document.getElementById('crFind')
+        if (doors.map((d) => d.textContent.trim()).join('|') !== 'Text someone a link') return `the root's doors read ${JSON.stringify(doors.map((d) => d.textContent.trim()))}, expected the link alone`
+        if (!doors[0].classList.contains('btn')) return 'the link is not the primary'
+        const r = field && field.getBoundingClientRect(), d = doors[0].getBoundingClientRect()
+        if (!r || !(r.width > 0)) return 'the search field is not drawn under the root'
+        if (r.top < d.bottom - 1) return 'the search field is not under the root\u2019s act'
+        const t = document.getElementById('view-golfers').innerText
+        return /[\u2192\u203a]/.test(t) ? 'the page types an arrow' : true
       })) },
   /* EXPECTED TO FAIL on current source: the tap lands on the person page,
      which reads "Couldn't pull that card" for everyone (the builder .catch

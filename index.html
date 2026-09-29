@@ -23812,8 +23812,10 @@ function csEmptyRoot(which, opts){
     return { state:'empty', head:'No buddies yet.', fact:null,
       sub:'Add the people you actually play with.', def: CS_BUDDY_DEFINITION,
       /* R-G's contacts door is D251, wave 8. A door that does not open is the
-         one thing not permitted (L-32/L-44). */
-      doors:[{k:'findGolfers', t:'Find golfers'}, {k:'personLink', t:'Text someone a link'}] };
+         one thing not permitted (L-32/L-44).
+         W7-085 · ONE act: 'Find golfers' focused the search field a few lines below it, so the page offered two doors to one field. The empty root's act is the
+         link; the field under it (#crFind, headed 'Find golfers') is the find door. */
+      doors:[{k:'personLink', t:'Text someone a link'}] };
   }
   const n = o.buddies;
   const has = (n||0) > 0;
@@ -29978,14 +29980,10 @@ async function renderCrewPeople(){
     const bare = !buds.length && !reqs.length && !out.length;
     if(root){
       root.innerHTML = bare ? csEmptyRootHtml(csEmptyRoot('golfers', {})) : '';
-      /* TEN · each door does what it says: "Text someone a link" focused the
-         SEARCH field like "Find golfers" did. It opens the invite now, and the
-         separate "Bring someone in" section stands down while the root is up,
-         so the empty page offers its two acts once each, not twice. */
-      if(bare) root.querySelectorAll('[data-erdoor]').forEach(b=>b.addEventListener('click',()=>{
-        if(b.dataset.erdoor==='personLink'){ document.getElementById('glfInviteBtn')?.click(); return; }
-        document.getElementById('crFind')?.focus();
-      }));
+      /* TEN · each door does what it says: "Text someone a link" opens the invite, and the
+         separate "Bring someone in" section stands down while the root is up. W7-085 · the root's ONE door
+         is that link; finding a golfer is the search field under it, not a second door to it. */
+      if(bare) root.querySelectorAll('[data-erdoor="personLink"]').forEach(b=>b.addEventListener('click',()=>{ document.getElementById('glfInviteBtn')?.click(); }));
       const pl=document.getElementById('glfPersonLink'); if(pl) pl.hidden = bare;
     }
     /* TEN · one request block: the head block (#peopleRequests) owns what it
