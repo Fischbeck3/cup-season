@@ -1714,7 +1714,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    `ink`, which is 1.11:1 on ceremony in the light printing - and the folio. */
 .cred .cfoot{flex:1 1 auto; padding:20px; display:flex; flex-direction:column; justify-content:space-between;}
 .cred .cfigs{display:flex; align-items:flex-start; position:relative;}
-.cred .cfigs .cfig{flex:0 0 33.333%; min-width:0;}
+.cred .cfigs .cfig{flex:0 0 33.333%; min-width:0; padding-right:var(--s3); box-sizing:border-box;}   /* two labels at the SE width ran together, "HANDICAP INDEX ROUNDS" (critique-B P3) */
 /* three figures take MEASURED columns, the phone's columnWidths: a column is as
    wide as its own label, so "BEST · MESQUITE WASH" has the room "ROUNDS" does
    not use, and only the last yields — the ellipsis fires when the three
@@ -2120,13 +2120,13 @@ body.guestlive #onboard{display:none !important;}
 .evrec-doors .cs-tskip{margin:0 auto;}
 @media (min-width:760px){ .evrec-doors{flex-direction:row; align-items:center;} .evrec-doors .btn{width:auto; min-width:200px; padding:0 var(--s5);} .evrec-doors .cs-tskip{margin:0;} }
 .evcard-redacted .evsk{display:block; border-radius:var(--p); background:color-mix(in srgb, var(--ceremony-ink) 10%, transparent);}
-.evcard .evbrow{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:.1em;
+.evcard .evbrow{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);
                 text-transform:uppercase; color:var(--ceremony-mut); display:flex; align-items:center; gap:6px;}
 .evcard .evbrow.live{color:var(--ceremony-brand);}
 .evcard .evbrow .dot{width:7px; height:7px; border-radius:50%; background:var(--ceremony-brand); flex:none;}
 .evcard h1{font-family:var(--board); font-size:42px; line-height:1.02; font-weight:700; letter-spacing:.005em;
            text-transform:uppercase; margin:12px 0 0; color:var(--ceremony-ink);}
-.evcard .evdate{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:.1em;
+.evcard .evdate{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);
                 text-transform:uppercase; color:var(--ceremony-mut); margin-top:12px; line-height:1.5;}
 /* 15.5a - the side is carried by the ROSTER, never by a key. Two named groups,
    each under a full-width 3pt rule in its squad colour, and every disc rings in
@@ -2135,7 +2135,7 @@ body.guestlive #onboard{display:none !important;}
 .evsides{display:flex; gap:20px; margin-top:20px;}
 .evside{flex:1; min-width:0;}
 .evside .rule{height:3px; border-radius:0;}
-.evside .nm{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.12em;
+.evside .nm{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);
             text-transform:uppercase; color:var(--ceremony-mut); margin-top:8px;}
 .evside.b .nm{text-align:right;}
 .evside .discs{display:flex; flex-wrap:wrap; gap:12px 10px; margin-top:10px;}   /* four 44px discs need 206px; a side has ~155 at 375, so they wrap inside it rather than over the other team */
@@ -2144,44 +2144,85 @@ body.guestlive #onboard{display:none !important;}
 .evside .who .d{width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center;
                 font-size:19px; box-sizing:border-box;}
 .evside .who small{display:block; margin-top:6px; font-family:var(--board); font-size:11px; font-weight:600;
-                   letter-spacing:.1em; text-transform:uppercase; color:var(--ceremony-mut);}
+                   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--ceremony-mut);}
 .evside .who.me small{color:var(--ceremony-ink);}
-/* the rule-and-figure, at the size of a scoreboard: the metal is the state */
-.evrail{display:flex; gap:10px; align-items:flex-end;}
-.evrail .cell{flex:1; min-width:0;}
-.evrail .tick{width:26px; height:3px; margin-bottom:8px;}
-.evrail .fig{font-family:var(--board); font-size:56px; font-weight:700; line-height:1;
-             font-variant-numeric:tabular-nums; color:var(--ink);}
-.evrail .fig sup{font-size:.56em; vertical-align:.34em; font-weight:700;}
-.evrule{height:2px; background:var(--ink); margin:8px 0 6px;}
-.evrule.live{background:var(--brand);}
-.evlabels{display:flex; gap:10px;}
-.evlabels span{flex:1; min-width:0; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.12em;
-               text-transform:uppercase; color:var(--mut);}
-.evlabels span.live{color:var(--brand);}
-.evclinch{margin:12px 0 0; color:var(--mut);}
+/* THE SCORE RIDES THE PLATE (2026-09-28): each side's figure under its name,
+   ceremony ink while it is played, the winner's in the earned gold at the end.
+   It sat on a rule below the plate, under the fold at 375. */
+.evside .fig{font-family:var(--board); font-size:48px; font-weight:700; line-height:1; margin-top:var(--s2);
+             font-variant-numeric:tabular-nums; color:var(--ceremony-ink);}
+.evside .fig sup{font-size:.56em; vertical-align:.34em; font-weight:700;}
+.evside .fig.won{color:var(--ceremony-gold);}
+@media (min-width:900px){ .evside .fig{font-size:64px;} }
+.evside.b .fig{text-align:right;}
+/* §16.1 · the plate is a ceremony object: every token resolves to its DARK
+   value inside it, the pigments too. In the light printing the discs took the
+   paper pigments under ceremony-ink glyphs, and the golfers' marks vanished
+   (craft C/R, critique-B P2). These are tokens.json's dark pigment values. */
+.evcard{--pig0:#492D2C; --pig1:#473C28; --pig2:#293B2B; --pig3:#1F4648; --pig4:#293B4E; --pig5:#4E3C4F;}
+.evclinch{margin:0; color:var(--mut);}
 .evstake{margin:12px 0 0; display:flex; align-items:baseline; gap:8px;}
 .evstake b{font-family:var(--board); font-size:20px; font-weight:700; color:var(--gold);}
-.evstake span{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:.1em;
+.evstake span{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);
               text-transform:uppercase; color:var(--mut);}
 .evsess{margin-top:20px;}
 .evsesshd{display:flex; align-items:center; gap:10px; font-family:var(--board); font-size:12px; font-weight:600;
-          letter-spacing:.12em; text-transform:uppercase; color:var(--mut); margin:0 0 4px;}
+          letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin:0 0 4px;}
 .evsesshd i{flex:1; height:1px; background:var(--rule); font-style:normal;}
 /* the clash - 2 lines, one rule on its top edge, NO RAIL (D-4: a pairing has
    no rank, and a rail painted with a half-point would mean two things) */
 .evclash{border-top:1px solid var(--rule); padding:12px 0 8px;}
 .evclash .top{display:flex; align-items:center; gap:8px;}
-.evclash .nm{font-family:var(--board); font-size:15px; font-weight:600; letter-spacing:.02em; text-transform:uppercase;
+.evclash .nm{font-family:var(--board); font-size:15px; font-weight:600; letter-spacing:calc(var(--caps2) * 1em); text-transform:uppercase;
              min-width:0; overflow-wrap:anywhere;}   /* a side's name wraps whole */
 .evclash .nm.b{text-align:right;}
 .evclash .nm.lost{color:var(--mut);}
-.evclash .mid{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+.evclash .mid{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
               color:var(--mut); flex:none;}
 .evclash .figs{display:flex; margin-top:6px; padding:0 38px;}
 .evclash .figs span{flex:1; font-family:var(--board); font-size:20px; font-weight:700; font-variant-numeric:tabular-nums;}
 .evclash .figs span.b{text-align:right;}
-.evclash .figs span.none{color:var(--mut);}
+.evclash .figs span.none{color:var(--mut); font-size:11px; font-weight:600; align-self:center;}
+/* §16A.3 · the column of figures under the pairings says what it is, once */
+.evfighd{color:var(--mut); text-transform:none; letter-spacing:calc(var(--agate-s) * 1em); padding:var(--s1) 0 var(--s2);}
+/* a closed week is one line — its result — with its clashes behind it */
+.evweek > summary{list-style:none; cursor:pointer; min-height:44px; margin:0;}
+.evweek > summary::-webkit-details-marker{display:none;}
+.evweek > summary::after{content:''; width:8px; height:8px; flex:none; border-right:1.5px solid var(--mut);
+  border-bottom:1.5px solid var(--mut); transform:rotate(45deg); margin:0 var(--s1) var(--s1) 0;}
+.evweek[open] > summary::after{transform:rotate(-135deg); margin-bottom:0;}
+.evweek > summary:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.evweek .evwk-res{color:var(--ink); text-transform:none; letter-spacing:calc(var(--agate) * 1em);}
+/* the rosters: a ruled table a side, one W–L–H head, faces on hairlines */
+.evroster{margin-top:var(--s5);}
+.evroster .evsesshd span:last-child{flex:none;}
+.evroster-rule{height:3px; width:44px; margin:0 0 var(--s2);}
+.evrrow{display:grid; grid-template-columns:30px minmax(0,1fr) 28px 28px 28px; gap:var(--s3); align-items:center;
+  min-height:44px; padding:var(--s1) 0; border-top:1px solid var(--rule);}
+.evrrow .d{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;}
+.evrrow .nm{min-width:0; display:flex; flex-direction:column;}
+.evrrow .nm b{color:var(--ink); font-size:15px; overflow-wrap:anywhere;}
+.evrrow .nm small{color:var(--mut);}
+.evrrow .cs-col-m{text-align:right; color:var(--ink);}
+.evrrow-hd{border-top:0; min-height:0; padding:0 0 var(--s1); color:var(--mut);}
+.evrrow-hd span{text-align:right;}
+/* the board: the engine's story on rules, in the sentence face */
+.evboard{margin-top:var(--s5);}
+.evpost{color:var(--ink); padding:var(--s2) 0; border-top:1px solid var(--rule); margin:0;}
+.evseries{color:var(--mut);}
+/* THE DESK'S OWN SHAPE (D234, §14.1) — the plate across the body, the weeks in
+   the reading column, the rosters and the board in the 340 aside */
+@media(min-width:960px){
+  .evroom{display:grid; grid-template-columns:minmax(0,1fr) 340px; column-gap:var(--gutter-desk);
+    grid-template-areas:"card card" "main aside"; align-items:start;}
+  .evroom > .evcard{grid-area:card;}
+  .evroom > .evmain{grid-area:main; min-width:0;}
+  .evroom > .evaside{grid-area:aside; min-width:0;}
+  .evroom > .evaside > section:first-child{margin-top:0;}
+  /* a pairing is a head-to-head: each name takes its half, so a golfer's
+     figure sits under their own name and not ~550px from it (category D) */
+  .evroom .evclash .nm{flex:1 1 0;}
+}
 .evclash .d{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
             font-size:14px; flex:none;}
 @media (min-width:900px){ .evcard h1{font-size:52px;} .evrail .fig{font-size:64px;} }
@@ -2441,20 +2482,22 @@ body.guestlive #onboard{display:none !important;}
 .rsheet .rs-course .meta{display:block; font-size:11px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
 .rsheet .rs-course .place{display:block; font-size:11.5px; color:var(--mut); margin-top:1px;}
 .rs-when{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
-.teechip{font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); background:var(--bg2); border:0; border-radius:var(--p); padding:0 10px; min-height:28px; display:inline-flex; align-items:center;}
 /* the weather chip spent GOLD on a forecast — a metal that means EARNED */
 .wxchip{font-family:var(--board); font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); background:var(--bg2); border:0; border-radius:var(--p); padding:0 10px; min-height:28px; display:inline-flex; align-items:center; gap:6px;}
 .wxchip .sun{color:var(--gold);} .wxchip b{color:var(--ink);}
 .rs-note{font-style:italic; color:var(--mut); font-size:13px; margin-top:10px;}
-.rivchip{margin-top:12px; border:1px solid rgba(212,178,62,.34); background:rgba(212,178,62,.08); border-radius:10px; padding:9px 11px; font-size:13px;}
-.rivchip em{font-style:italic; color:var(--mut);}
-.rs-lbl{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut); margin:16px 0 8px; display:flex; justify-content:space-between;}
-.rs-lbl .n{color:var(--pos); font-weight:600;}
-.rsvppill{font-family:var(--board); font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; padding:0 8px; min-height:24px; display:inline-flex; align-items:center; border-radius:var(--p); flex:none; align-self:center; background:var(--bg2);}
-.rsvppill.in{color:var(--pos); background:rgba(78,197,132,.14);}
-.rsvppill.maybe{color:var(--ink); background:var(--bg2);}   /* gold means earned (D359); a maybe is the neutral voice */
-.rsvppill.out{color:var(--mut); background:var(--bg2);}
-.rsvppill.none{color:var(--mut); background:var(--bg2);}
+.rs-riv{margin-top:12px; color:var(--mut);}
+/* the sheet's labels are the agate role (§1.4: mono never sets a section
+   label), and the count beside WHO'S IN is a count, in ink — `pos` is a
+   performance semantic, not a tally */
+.rs-lbl{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); margin:16px 0 8px; display:flex; justify-content:space-between;}
+.rs-lbl .n{color:var(--ink);}
+.rshost{color:var(--mut); margin-left:4px;}
+/* the answer is a word, not a pill: IN in ink, the rest mut (the phone's
+   ScheduledRoundSheet) — a green wash for "in" and grey fills for the rest were
+   colour carrying a state a word already carries */
+.rsvppill{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; font-weight:600; flex:none; align-self:center; color:var(--mut);}
+.rsvppill.in{color:var(--ink);}
 .rsvpset{display:flex; gap:7px; margin-top:10px;}
 /* the RSVP set. Unchosen, a button reads on the sheet's own ground (it was
    `mut` on the figure tile: 1.9:1 in dark). Chosen, it IS the tile, the
@@ -3201,6 +3244,9 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 /* the entry rides at the foot of a tall phone and simply follows the statement on a short one */
 .onboard #obDoor{margin-top:auto; padding-top:52px;}
 .onboard #obProfile, .onboard #obWelcome, .onboard #obCrew{text-align:left;}
+/* the Save rides the foot only where there is room: in a short window (the
+   keyboard up) a pinned bar would sit on the field being typed into */
+@media (min-height:560px){ .onboard #obProfile .pfsave{position:sticky; bottom:0; z-index:2; background:var(--bg0); padding:var(--s2) 0;} }
 /* D247 · these three frames are left-aligned, so their standfirst is too —
    `.ob-hero p` centres itself with `margin:auto` for the DOOR, and under a
    left-aligned title that reads as a stray indent. */
@@ -3538,10 +3584,129 @@ body:not(.noleague) #hubLeagueless{display:none;}
    rather than a list. Brand at rest (a group head is structure, not an accent
    moment), a heavier rule, and real air above so the eye reads a break. Two on
    a page is a spine; four is a table of contents. */
-.grouphead{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--mut); margin:26px 0 7px;
-  padding-bottom:7px; border-bottom:1px solid var(--rule);}   /* D359 · a section head is furniture: mut, never the competition ember */
+/* §1.4 · a section label is the agate board face, never mono (it was mono
+   11.5 at .14em) */
+.grouphead{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);
+  text-transform:uppercase; color:var(--mut); margin:32px 0 8px;
+  padding-bottom:8px; border-bottom:1px solid var(--rule);}   /* D359 · a section head is furniture: mut, never the competition ember */
 .grouphead:first-child{margin-top:0;}
+/* ── You, tiered (W2 2026-09-28) ─────────────────────────────────────────
+   Below the desk the two columns dissolve into ONE column in the phone's own
+   order (YouScreen): the card and the form, the golf, the seasons, the bag,
+   the courses, and the doors that are not golf at the foot. */
+.youbody{display:flex; flex-direction:column;}
+.youmain, .youaside{display:contents;}
+.you-id{order:1;} .you-golf{order:2;} .you-seasons{order:3;} .you-bag{order:4;}
+.you-courses{order:5;} .you-doors{order:6; margin-top:var(--s5);}
+/* THE DESK'S OWN SHAPE (D234, §14.1, AW P2-15): identity, form and the golf
+   in the reading column; buddies and the record in the 340 aside. It was the
+   phone column stretched to 5,041px. */
+@media(min-width:960px){
+  .youbody{display:grid; grid-template-columns:minmax(0,1fr) 340px; column-gap:var(--gutter-desk); align-items:start;}
+  .youmain, .youaside{display:block; min-width:0;}
+  .you-doors{margin-top:0;}
+  .youaside .you-seasons > :first-child{margin-top:var(--s5);}
+  #view-stats .cred{max-width:440px;}
+  /* the aside is 340 wide: its figures sit two to a row */
+  .youaside .youstrip{grid-template-columns:1fr 1fr;}
+}
+/* figures on a rule — the credential's grammar for the all-time and season
+   figures (§1.6/§9.2): a board figure, a 2pt rule, an agate label. They were
+   bordered tiles with serif numerals and mono label stacks. */
+.youstrip{display:grid; grid-template-columns:1fr 1fr; gap:var(--s4) var(--s3); margin:var(--s2) 0 0;}
+@media(min-width:600px){ .youstrip{grid-template-columns:repeat(4, minmax(0,1fr));} }
+.youfig{min-width:0;}
+.youfig[hidden], .youstrip[hidden]{display:none;}
+.youfig b{display:block; color:var(--ink);}
+.youfig i{display:block; height:2px; background:var(--ink); margin:var(--s2) 0;}
+.youfig small{display:block; color:var(--mut); overflow-wrap:anywhere;}
+.youfig .youfig-sub{margin-top:2px;}
+.youscope{color:var(--mut); margin:var(--s3) 0 0;}
+.youscope[hidden], .youscope [hidden]{display:none;}
+/* rivalries as rows on rules: a face, the opponent, the record as a figure */
+.yriv{display:grid; grid-template-columns:30px minmax(0,1fr) auto; gap:var(--s3); align-items:center;
+  min-height:44px; padding:var(--s3) 0; border-top:1px solid var(--rule); cursor:pointer;}
+.yriv:last-child{border-bottom:1px solid var(--rule);}
+.yriv:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
+@media(hover:hover){ .yriv:hover{background:var(--bg1);} }
+.yriv-mk{display:flex;}
+.yriv-txt{min-width:0; display:flex; flex-direction:column; gap:2px;}
+.yriv-txt b{color:var(--ink); overflow-wrap:anywhere;}
+.yriv-txt small{color:var(--mut);}
+.yriv-name{color:var(--mut);}
+.yriv-rec{display:flex; flex-direction:column; align-items:flex-end; gap:2px;}
+.yriv-rec .cs-fig-s{color:var(--ink);}
+.yriv-rec .cs-agate-s{color:var(--mut);}
+/* the bag and the courses wait behind their doors; the door says what is in
+   there before it opens */
+.youdoor{margin-top:var(--s5);}
+.youdoor[hidden]{display:none;}
+.youdoor > .youdoor-sum{display:flex; align-items:baseline; gap:var(--s3); min-height:44px; padding:var(--s2) 0;
+  border-bottom:1px solid var(--rule); cursor:pointer; list-style:none;}
+.youdoor > .youdoor-sum::-webkit-details-marker{display:none;}
+.youdoor > .youdoor-sum::after{content:''; margin-left:auto; align-self:center; width:8px; height:8px; flex:none;
+  border-right:1.5px solid var(--mut); border-bottom:1.5px solid var(--mut); transform:rotate(45deg);}
+.youdoor[open] > .youdoor-sum::after{transform:rotate(-135deg);}
+.youdoor > .youdoor-sum:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.youdoor-h{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);
+  text-transform:uppercase; color:var(--mut); flex:none;}
+.youdoor-n{color:var(--mut); min-width:0; overflow-wrap:anywhere;}
+.youdoor[open] > .youdoor-sum{margin-bottom:var(--s3);}
+#youBagLine{margin-top:var(--s3);}
+/* the doors that are not golf are rows on rules, not bordered cards; a
+   waiting request is said in words, in the ordinary-action colour */
+#view-stats .youdoor-row{background:none; border:0; border-top:1px solid var(--rule); border-radius:0;
+  padding:var(--s3) 0; margin:0; min-height:52px;}
+#view-stats .you-doors .youdoor-row:last-of-type{border-bottom:1px solid var(--rule);}
+#view-stats .youdoor-row.has-req small{color:var(--act);}
+/* §1.4 [MO] · a door's gloss is a sentence, so it is sans — the shared
+   `.check .tt small` sets it in tracked mono */
+#view-stats .youdoor-row .tt small, #youGuide .check .tt small{font-family:var(--sans); font-size:13px; letter-spacing:0; line-height:1.4;}
+/* the Every season leaf: a season's own line sits under its name */
+#lgRec .csleaf .qual{display:block; margin:2px 0 0;}
+/* the course facts' separators are opaque mut (§16.1: dim/faded is never a
+   word) — they were `mut` at .56 opacity, 3.09:1 */
+#view-stats .cs-facts .sep{opacity:1;}
+/* ── Card & settings (W2 2026-09-28) ─────────────────────────────────────
+   Once the card has a change to save, its Save rides the foot of the sheet —
+   it sat below fourteen markers, a photo row and the handle at 375 */
+#phPaneCard #phSave.armed{position:sticky; bottom:var(--s3); z-index:2;}
+   A setting is a switch row: the name left, the state right — a track that
+   fills with the action colour and a knob that moves (two channels, §16.4). */
+.phsws{margin:0;}
+.phsws[hidden]{display:none;}
+.phsw{display:flex; align-items:center; gap:var(--s3); width:100%; min-height:52px; padding:var(--s2) 0;
+  background:none; border:0; border-top:1px solid var(--rule); color:var(--ink); text-align:left; cursor:pointer; font:inherit;}
+.phsws > .phsw:last-child{border-bottom:1px solid var(--rule);}
+.phsw:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.phsw:disabled{cursor:progress;}
+.phsw-t{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px;}
+.phsw-t b{font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ink);}
+.phsw-t small{font-family:var(--sans); font-size:13px; line-height:1.4; color:var(--mut);}
+.phsw-k{position:relative; flex:none; width:44px; height:26px; border-radius:999px; box-sizing:border-box;
+  border:1.5px solid var(--mut); transition:background-color .15s var(--snap), border-color .15s var(--snap);}
+.phsw-k::after{content:''; position:absolute; top:3px; left:3px; width:17px; height:17px; border-radius:50%;
+  background:var(--mut); transition:transform .15s var(--snap), background-color .15s var(--snap);}
+.phsw[aria-checked="true"] .phsw-k{background:var(--act); border-color:var(--act);}
+.phsw[aria-checked="true"] .phsw-k::after{transform:translateX(18px); background:var(--bg0);}
+@media (prefers-reduced-motion: reduce){ .phsw-k, .phsw-k::after{transition:none;} }
+/* a quiet account action is a link on the page, not a filled or outlined
+   button (§16A.5 — one primary per surface) */
+.phlink{display:flex; align-items:center; width:100%; min-height:44px; padding:0; background:none; border:0;
+  border-top:1px solid var(--rule); color:var(--ink); font:inherit; font-family:var(--sans); font-size:15px; font-weight:600;
+  text-align:left; cursor:pointer;}
+.phlink-neg{color:var(--neg); border-bottom:1px solid var(--rule);}
+.phlink:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+/* ONE CHOSEN STATE (owner H, category C, critique-B P3): in the marker grid,
+   the findable pills and the appearance pills, hover and focus never fill a
+   tile — only `.sel` does. The shared `.mini:hover` filled `rule` and
+   `.mini:focus-visible` filled `bg1`, and either read as a second choice beside
+   the chosen ink tile. Hover draws a ring, and only where hover exists. */
+#phMarkers .mini:not(.sel):hover, #phDisc .mini:not(.sel):hover, #phTheme .mini:not(.sel):hover,
+#phMarkers .mini:not(.sel):focus-visible, #phDisc .mini:not(.sel):focus-visible, #phTheme .mini:not(.sel):focus-visible{background:var(--bg2);}
+@media (hover:hover){
+  #phMarkers .mini:not(.sel):hover, #phDisc .mini:not(.sel):hover, #phTheme .mini:not(.sel):hover{box-shadow:inset 0 0 0 1.5px var(--mut);}
+}
 /* D261 / R-N · the desk's course archive. The card scrolls INSIDE its own
    container — the page never scrolls sideways (IA §4.2, and preflight 39's
    web twin asserts it at 320px). Nothing here declares below the 11px floor. */
@@ -3758,6 +3923,100 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .caldot.rd{background:var(--act);}
 .caldot.lgm{background:var(--ink);}
 .caldot.lg{background:var(--mut);}
+/* §16.4 · colour is never the only channel: a round you are on is a filled
+   disc, a round in your seasons a ring, a season date a bar. Three kinds that
+   were one dot in three tints (critique-B P2). */
+#view-schedule .caldot, #sheet .schrow .caldot{box-sizing:border-box; width:7px; height:7px;}
+#view-schedule .caldot.lgm, #sheet .schrow .caldot.lgm{background:transparent; border:1.5px solid var(--ink);}
+#view-schedule .caldot.lg, #sheet .schrow .caldot.lg{width:9px; height:2px; border-radius:0;}
+#view-schedule .caldots{height:7px; align-items:center;}
+/* ── the schedule (2026-09-28): a head, the next round, one list, the grid ── */
+.schhead{margin:0 0 var(--s4);}
+.schhead h1{margin:0; color:var(--ink);}
+.schhead p{color:var(--mut); margin-top:var(--s1);}
+.schplans > .btn{margin:var(--s3) 0 0;}
+.schnav{display:flex; align-items:center;}
+.schnav-ctl{margin-left:auto; display:flex; gap:var(--s2); align-items:center;}
+.schnav-ctl b{min-width:84px; text-align:center; color:var(--ink);}
+.schnav .schprev-ic{transform:rotate(90deg);}
+.schnav .schnext-ic{transform:rotate(-90deg);}
+.schlegend{display:flex; gap:var(--s3); flex-wrap:wrap; padding:var(--s2) 0 0; color:var(--mut);}
+.schlegend span{display:inline-flex; align-items:center; gap:var(--s2);}
+.schlegend[hidden], .schlegend span[hidden]{display:none;}
+.schlegend .caldot{margin:0;}
+/* the next round: its tee time as a figure on a rule (§1.6), the course as it
+   is called, who has answered, and the host's own words */
+.schnext{display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:var(--s3); align-items:start;
+  padding:var(--s3) 0 var(--s4); border-bottom:1px solid var(--rule); cursor:pointer;}
+.schnext:focus-visible{outline:2px solid var(--act); outline-offset:4px;}
+.schnext-k{grid-column:1 / -1; color:var(--mut);}
+.schnext-fig{grid-column:1; margin-top:var(--s3);}
+.schnext-fig b{display:block; color:var(--ink);}
+.schnext-fig i{display:block; width:120px; height:2px; background:var(--ink); margin:var(--s2) 0;}
+.schnext-fig small{display:block; color:var(--mut);}
+.schnext-what{grid-column:1 / -1; margin-top:var(--s3); min-width:0;}
+.schnext-what .cs-social{display:block; color:var(--ink); overflow-wrap:anywhere;}
+.schnext-what .cs-body-s{color:var(--mut); margin-top:var(--s1);}
+.schnext-what .cs-story{color:var(--ink); margin-top:var(--s2);}
+.schnext-riv{color:var(--mut); margin-top:var(--s1);}
+.schnext-slot{grid-column:2; grid-row:2; align-self:end;}
+.schnone{padding:var(--s2) 0 var(--s1);}
+.schnone .cs-name{margin:0; color:var(--ink);}
+.schnone .cs-body-s, p.schnone{color:var(--mut); margin-top:var(--s1);}
+/* ONE ROW PER PLAN, on a rule, no card. The day over the tee time leads (a
+   tee sheet reads down its times); the name shares its line with the right
+   slot, whose width is fixed and which holds the action OR the state; the
+   course, one quiet line and the note run under both. */
+.schlist{margin:0;}
+.schrow{display:grid; grid-template-columns:64px minmax(0,1fr) auto;
+  grid-template-areas:"when name slot" "when rest rest"; column-gap:var(--s3); row-gap:2px;
+  align-items:start; padding:var(--s3) 0; border-top:1px solid var(--rule); cursor:pointer; text-align:left;}
+.schrow:last-child{border-bottom:1px solid var(--rule);}
+.schrow:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
+@media(hover:hover){ .schrow:hover{background:var(--bg1);} }
+.schrow-when{grid-area:when; display:flex; flex-direction:column; gap:var(--s1); padding-top:var(--s1); min-width:0;}
+.schrow-when .cs-agate-s{color:var(--mut);}
+.schrow-when .cs-fig-s{color:var(--ink);}
+.schrow-name{grid-area:name; align-self:center; min-width:0; color:var(--ink); overflow-wrap:anywhere;}
+.schrow-slot{grid-area:slot; min-width:92px; display:flex; justify-content:flex-end; align-items:center;}
+.schrow-slot .mini{min-width:92px;}
+.schrow-chip{display:inline-flex; align-items:center; justify-content:center; min-width:92px; min-height:44px; padding:0 var(--s2);
+  border:1px solid var(--rule); border-radius:var(--rc); color:var(--mut);
+  font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; text-align:center;}
+.schrow-chip.is-in{color:var(--ink);}
+.schrow-rest{grid-area:rest; min-width:0; display:flex; flex-direction:column; gap:var(--s1);}
+.schrow-course{font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ink); overflow-wrap:anywhere;}
+.schrow-rest .cs-agate-s{color:var(--mut); line-height:1.45; overflow-wrap:anywhere;}
+.schrow-note{font-family:var(--sans); font-size:14px; line-height:1.45; color:var(--mut); font-style:italic; overflow-wrap:anywhere;}
+.schrow-acts{display:flex; gap:var(--s2); flex-wrap:wrap; margin-top:var(--s2);}
+.schrow .schcancel.is-armed{color:var(--neg);}
+.schrow.is-date{grid-template-areas:"when name name"; cursor:default; align-items:center;}
+.schrow.is-date .schrow-when{align-items:center; padding-top:0;}
+/* the season's week-by-week, behind its door (it belongs to the season page) */
+.schweeks{margin-top:var(--s4);}
+.schweeks[hidden]{display:none;}
+.schweeks > summary{cursor:pointer; list-style:none; min-height:44px; margin:0;}
+.schweeks > summary::-webkit-details-marker{display:none;}
+.schweeks > summary::after{content:''; width:8px; height:8px; margin-left:var(--s2); border-right:1.5px solid var(--mut);
+  border-bottom:1.5px solid var(--mut); transform:rotate(45deg); flex:none;}
+.schweeks[open] > summary::after{transform:rotate(-135deg);}
+.schweeks > summary:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.schwk{display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:var(--s3); align-items:baseline;
+  padding:var(--s2) 0; border-top:1px solid var(--rule);}
+.schwk .cs-body-s{color:var(--ink); overflow-wrap:anywhere;}
+.schwk .cs-fig-s{color:var(--ink);}
+.schwk-hd{color:var(--mut); border-top:0; padding-top:0;}
+.schwk-hd span:last-child{text-align:right;}
+/* THE DESK'S OWN SHAPE (D234, UI_SYSTEM §14.1): the calendar in the reading
+   column, the plans in the 340 aside. It was the phone column stretched to
+   960px (owner D, craft D, AW P2-15). */
+@media(min-width:960px){
+  #view-schedule .schbody{display:grid; grid-template-columns:minmax(0,1fr) 340px; column-gap:var(--gutter-desk); align-items:start;}
+  #view-schedule .schcal{grid-column:1; grid-row:1; min-width:0;}
+  #view-schedule .schplans{grid-column:2; grid-row:1; min-width:0;}
+  #view-schedule .schcal > .schnav{margin-top:0;}
+  #view-schedule .schplans .eyebrow{margin-top:var(--s5);}
+}
 #boardCard .composer{position:static; background:none; padding:10px 0 2px;}
 #hubLeagueless .btn{text-align:left;}
 #hubLeagueless .btn{width:100%;}
@@ -4821,7 +5080,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
          the desk and the phone cannot word the same question two ways. -->
     <div id="obProfile" style="display:none">
       <div class="ob-hero" style="margin-bottom:18px">
-        <div class="lockbadge" style="color:var(--pos); border-color:rgba(78,197,132,.35); background:rgba(78,197,132,.07)">✓ SIGNED IN</div>
+        <!-- a signed-in state is a fact, not a performance: `mut` on no wash
+             (`pos` is performance-up only, D270), and no typed check mark -->
+        <div class="lockbadge" style="color:var(--mut); border-color:var(--rule); background:none">SIGNED IN</div>
         <h1 style="font-size:30px" id="pfTitle"></h1>
         <p style="margin-top:10px" id="pfSubtitle"></p>
       </div>
@@ -4842,10 +5103,13 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)" id="pfMarkerNote"></p>
       <div style="height:16px"></div>
       <label class="f" for="pfHandle" id="pfHandleLabel"></label>
-      <input class="f" id="pfHandle" autocomplete="off" placeholder="@jerecho" style="font-family:var(--sans); font-size:16px;">
+      <input class="f" id="pfHandle" autocomplete="off" placeholder="@yourname" style="font-family:var(--sans); font-size:16px;">
       <p class="fine" style="margin:6px 2px 0; padding:0; color:var(--mut)" id="pfHandleRule"></p>
       <div style="height:16px"></div>
-      <button class="btn" id="pfSave">Save my card</button>
+      <!-- the card's one action stays in reach: at 375 it sat under the fold,
+           below the handle (category M). It rides the foot of the window until
+           the form's own end reaches it. -->
+      <div class="pfsave"><button class="btn" id="pfSave">Save my card</button></div>
       <p class="fine" style="margin:8px 2px 0; padding:0; color:var(--mut)" id="pfGhinNote"></p>
       <div class="ob-caption" id="pfStatus" style="margin-top:10px"></div>
     </div>
@@ -5104,6 +5368,20 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
       <!-- STATS -->
       <section class="view" id="view-stats">
+        <!-- W2 2026-09-28 · THE PAGE IS TIERED, AND THE DESK HAS ITS OWN SHAPE.
+             The owner, craft and category judges and critique-B read the same
+             thing: settings, feedback and buddies rows came before any golf,
+             and then eleven sections at one weight ran to 6,410px (5,041 on a
+             desk that stretched the phone column). The order is the phone's own
+             (YouScreen): the card and the form, then the golf, then the
+             seasons, then the bag and the courses behind their doors, and the
+             doors that are not golf at the foot. On the desk (D234, §14.1) the
+             same blocks sit in two columns — identity, form and golf on the
+             left; buddies and the record on the right. `.youmain` and
+             `.youaside` dissolve into one ordered column below the desk. -->
+        <div class="youbody">
+        <div class="youmain">
+        <div class="you-id">
         <!-- C4: your own credential — same object your buddies see on your Tour Card -->
         <!-- IOS-047 - YOUR OWN CARD IS THE SAME OBJECT your buddies see:
              one chrome, one ratio, one meta string. The charcoal panel with a
@@ -5136,11 +5414,96 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              facts that are permanent -->
         <div id="youForm"></div>
         <div class="ctros" id="youTros" style="text-align:left; margin:10px 0 14px"></div>
-        <button class="mini" id="youProfile" style="margin-bottom:14px">Card and settings</button>
-        <!-- F8: feedback pill retired from floating chrome (de-AI scrub) — same
-             handler (window.openFeedback via #pilotChip id), quiet row right by
-             the card/settings entry instead of hovering over every screen. -->
-        <button type="button" id="pilotChip" style="display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 14px; margin-bottom:14px; cursor:pointer; color:var(--ink); font-family:var(--sans); font-size:13.5px; font-weight:600;">Tell us how it's going<span style="margin-left:auto; color:var(--mut); font-weight:400">→</span></button>
+        </div>
+
+        <!-- ══ D177 · YOUR GOLF ═══════════════════════════════════════════
+             The page carried FIVE sections about your history under FOUR
+             names, interleaved with people and with the app's manual. Two
+             group heads give it a spine, and they group by SCOPE rather than
+             by league — because only ONE section below is league-scoped.
+             `my_rivalries` takes no league argument and the league record is
+             a row per membership, so an "In <league>" head would have been a
+             lie over two of its three children. -->
+        <div class="you-golf">
+        <!-- the group heads ("Your golf", "Your seasons") gave a 6,410px page a
+             spine; on a tiered page each landed directly on its first section's
+             own head — two stacked heads with nothing between (critique-B P3) -->
+        <!-- the recent five lead the golf: the golf you just played is the
+             first thing a golfer looks for on their own page, and an empty
+             record's one next step sits here, right under the card -->
+        <h3 class="eyebrow">Recent rounds</h3>
+        <div id="youRecent" style="text-align:left"></div>
+        <!-- D177: the "Add my round" button that sat here is gone. The ⊕ is a
+             permanent tab an inch below it, and this is a page about the past. -->
+
+        <!-- D67 + D177: "The record" (silverware counts + the money) and the
+             display case (the same trophies as OBJECTS) were two sections
+             about one subject, adjacent, under different names. The counts are
+             the case's top strip now; the objects sit under them. The money
+             stays D39's frame — what friends settled between themselves,
+             never a balance the app holds. -->
+        <h3 class="eyebrow" data-rec="some">Trophies</h3>
+        <!-- D291 · neither of these is a card any more. The record was four
+             bordered tiles and the case sat inside a `.room-dusk` left over
+             from the tile era — a class that re-asserts the dusk INK and no
+             ground, so in the light theme the whole case was near-white type
+             on paper. Both are slats on the page's own ground now (§32). -->
+        <div id="careerRecord" data-rec="some" style="text-align:left; margin-bottom:16px"></div>
+        <div id="trophyCase" data-rec="some" style="margin-bottom:14px"></div>
+
+        <!-- "Lifetime" -> "All time": same rows, a name that states the scope
+             out loud. THE FIGURES SIT ON A RULE, the credential's own grammar
+             (§1.6, §9.2) — they were four bordered tiles with serif numerals
+             and a mono label stack, under a card that already says the count
+             (craft T/Sp, category B, critique-B P2). The scope line is said
+             once, under the strip, not under each figure. -->
+        <h3 class="eyebrow" data-rec="some">All time</h3>
+        <div class="youstrip" data-rec="some" id="youAllTime">
+          <div class="youfig"><b class="cs-fig-m" id="clR">—</b><i></i><small class="cs-agate-s">Rounds posted</small></div>
+          <div class="youfig"><b class="cs-fig-m" id="clBest">—</b><i></i><small class="cs-agate-s">Best vs your playing HCP</small></div>
+          <div class="youfig"><b class="cs-fig-m" id="clAvg">—</b><i></i><small class="cs-agate-s">Avg vs your playing HCP</small></div>
+          <div class="youfig"><b class="cs-fig-m" id="clPlayed">—</b><i></i><small class="cs-agate-s">Competitions played</small></div>
+        </div>
+        <p class="youscope cs-agate-s is-phrase" data-rec="some"><span id="clAvgSub">across rounds that count</span></p>
+        </div>
+
+        <!-- ══ D261 / R-N · YOUR COURSES ═══════════════════════════════════
+             The desk's half of the offline course store. It works with no
+             connection because it is drawn from what this device kept, and
+             it says so. BEHIND ITS DOOR (owner Sp/D, craft D): the full book
+             repeated the courses page inline — plates, facts and whole
+             scorecards — and ran the page to 6,410px. -->
+        <div class="you-courses">
+        <details class="youdoor" id="youCoursesDoor" data-courses>
+          <summary class="youdoor-sum"><span class="youdoor-h">Your courses</span><span class="youdoor-n cs-agate-s is-phrase" id="youCoursesN"></span></summary>
+          <p class="fine" id="youCoursesWhat" data-courses style="padding:0 0 8px"></p>
+          <div id="youCourses" data-courses style="text-align:left"></div>
+        </details>
+        </div>
+        </div>
+
+        <div class="youaside">
+        <!-- ══ THE DOORS THAT ARE NOT THE GOLF ═════════════════════════════
+             The phone keeps them at the page's foot in one rule-bounded block
+             (YouScreen `doors`); on the desk they head the right column, where
+             the buddies door is one reach from the card. Feedback is the
+             quietest of the three and comes last. -->
+        <div class="you-doors">
+        <!-- D93 · D222 promoted the buddies list to the GOLFERS destination;
+             this is the door to it. The door reports before you open it. -->
+        <button class="check tap youdoor-row" id="youPeopleGo" style="width:100%; text-align:left">
+          <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span>
+          <div class="tt"><b>Your buddies</b><small id="youPeopleCount">Find golfers, see who you play with</small></div>
+          <span class="go" aria-hidden="true">→</span>
+        </button>
+        <button class="check tap youdoor-row" id="youProfile" style="width:100%; text-align:left">
+          <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg></span>
+          <div class="tt"><b>Card &amp; settings</b><small>Your card, notifications and your account</small></div>
+          <span class="go" aria-hidden="true">→</span>
+        </button>
+        <!-- F8 → W2 2026-09-28: "Tell us how it's going" is the app's, not the
+             golfer's identity (owner H: "move feedback into Settings"); it
+             lives in the Settings pane of Card & settings now (#phFeedback). -->
         <!-- the founder's desk: hidden for everyone but the owner; the SERVER
              is the gate (founder_desk/founder_note refuse non-founders) — this
              display toggle is courtesy, not security -->
@@ -5152,123 +5515,62 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           </div>
           <p class="fine" style="padding:6px 0 0">Notes land in the feedback ledger · the desk shows signups, activity, errors, feedback.</p>
         </div>
-        <!-- IA P3: the You page IS the public profile — card, case, record.
-             Everything editable + app settings live behind the ⚙. The
-             "Build your crew" card is gone (redundant with Crew · People). -->
-        <!-- D93: buddies left this page. IA P5 put them here and split the
-             relationship three ways (list on You, requests on Home, search in
-             the header). D222 promoted the list to the GOLFERS destination;
-             this is the door to it.
-             D177 moved it to the TOP: it is the only DOOR on a page that is
-             otherwise all reading, and it sat seventh. You do not scroll past
-             your own trophy case to reach a person. -->
-        <div class="eyebrow" style="margin-top:0">Your buddies</div>
-        <button class="check tap" id="youPeopleGo" style="width:100%; text-align:left">
-          <span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span>
-          <div class="tt"><b>Your buddies</b><small id="youPeopleCount">Find golfers, see who you play with</small></div>
-          <span class="go" aria-hidden="true">→</span>
-        </button>
-
         <!-- D63: last round with — the reunion whisper. Threshold-fired only,
              one name, in-app only; dismiss is 90 days of quiet (device-local). -->
         <div id="lrwCard" style="margin:14px 0"></div>
-
-        <!-- ══ D177 · YOUR GOLF ═══════════════════════════════════════════
-             The page carried FIVE sections about your history under FOUR
-             names, interleaved with people and with the app's manual. Two
-             group heads give it a spine, and they group by SCOPE rather than
-             by league — because only ONE section below is league-scoped.
-             `my_rivalries` takes no league argument and the league record is
-             a row per membership, so an "In <league>" head would have been a
-             lie over two of its three children. -->
-        <div class="grouphead">Your golf</div>
-
-        <!-- D67 + D177: "The record" (silverware counts + the money) and the
-             display case (the same trophies as OBJECTS) were two sections
-             about one subject, adjacent, under different names. The counts are
-             the case's top strip now; the objects sit under them. The money
-             stays D39's frame — what friends settled between themselves,
-             never a balance the app holds. -->
-        <div class="eyebrow" data-rec="some">Trophies</div>
-        <!-- D291 · neither of these is a card any more. The record was four
-             bordered tiles and the case sat inside a `.room-dusk` left over
-             from the tile era — a class that re-asserts the dusk INK and no
-             ground, so in the light theme the whole case was near-white type
-             on paper. Both are slats on the page's own ground now (§32). -->
-        <div id="careerRecord" data-rec="some" style="text-align:left; margin-bottom:16px"></div>
-        <div id="trophyCase" data-rec="some" style="margin-bottom:14px"></div>
-
-        <!-- "Lifetime" -> "All time": same rows, a name that states the scope
-             out loud. It shares two row LABELS with "This season" below, and
-             until now the only thing telling them apart was a small grey sub
-             four sections away. -->
-        <div class="eyebrow" data-rec="some">All time</div>
-        <div class="stats" data-rec="some">
-          <!-- Y-14 · no "All time" sub: the eyebrow above this row already
-               says the scope (brand canon 3 - one fact, one place). Y-14 also
-               puts these three rows in the SAME order and under the SAME names
-               as "This season" below, so the two panels stop drifting. -->
-          <div class="stat"><div class="k">Rounds posted</div><div class="v" id="clR">—</div></div>
-          <div class="stat"><div class="k">Best vs your playing HCP</div><div class="v" id="clBest">—</div><div class="d fl" id="clBestSub">across rounds that count</div></div>
-          <div class="stat"><div class="k">Avg vs your playing HCP</div><div class="v" id="clAvg">—</div><div class="d fl" id="clAvgSub">across rounds that count</div></div>
-          <div class="stat"><div class="k">Leagues &amp; events</div><div class="v" id="clPlayed">—</div><div class="d fl">Played in</div></div>
         </div>
-
-        <div class="eyebrow">Recent rounds</div>
-        <div id="youRecent" style="text-align:left"></div>
-        <!-- D177: the "Add my round" button that sat here is gone. The ⊕ is a
-             permanent tab an inch below it, and this is a page about the past. -->
 
         <!-- ══ D177 · YOUR SEASONS ════════════════════════════════════════ -->
         <!-- D185: the head carries the class too. D178 recorded gating it on
              its children, but the children's class had no rule, so both the
              head and the dashes under it shipped to golfers with no league. -->
-        <div class="grouphead league-only">Your seasons</div>
-
-        <div class="league-only">
-          <div class="eyebrow">This season · <span id="youSeasonLg">your league</span></div>
-          <div class="stats">
-            <div class="stat"><div class="k">Rounds posted</div><div class="v" id="msR">—</div></div>
-            <div class="stat"><div class="k">Best vs your playing HCP</div><div class="v" id="msBest">—</div><div class="d fl" id="msBestSub">across rounds that count</div></div>
-            <div class="stat"><div class="k">Avg vs your playing HCP</div><div class="v" id="msAvg">—</div><div class="d fl" id="msAvgSub">across rounds that count</div></div>
-            <div class="stat"><div class="k">Index move</div><div class="v" id="msDelta">—</div><div class="d up" id="msDeltaSub">Season to date</div></div>
-          </div>
-        </div>
-
-        <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3).
-             D177 names the scope: my_rivalries takes no league argument, so
-             this is every opponent in every league — and it sits beside a
-             season-scoped strip, which would otherwise lend it the wrong one. -->
-        <div class="eyebrow league-only" id="youRivalsHead">Rivalries · all leagues</div>
-        <div id="youRivals" class="league-only" style="text-align:left"></div>
+        <div class="you-seasons">
 
         <!-- D177: "League record" was the THIRD heading here meaning "record",
              and the only one that was not one — it is a season-by-season list
              of where you finished, in every league you have played. -->
-        <div class="eyebrow" id="lgRecHead" style="display:none">Every season</div>
+        <h3 class="eyebrow" id="lgRecHead" style="display:none">Every season</h3>
         <div id="lgRec" style="display:none; margin-bottom:14px"></div>
+
+        <div class="league-only">
+          <h3 class="eyebrow"><span>This season · <span id="youSeasonLg">your league</span></span></h3>
+          <!-- ALL TIME and THIS SEASON printed the same three figures for a
+               golfer in their first season (owner C, category C, critique-B);
+               when they agree only the figure that is the season's own, the
+               index move, is drawn here (csYouStripsDedupe) -->
+          <div class="youstrip" id="youThisSeason">
+            <div class="youfig"><b class="cs-fig-m" id="msR">—</b><i></i><small class="cs-agate-s">Rounds posted</small></div>
+            <div class="youfig"><b class="cs-fig-m" id="msBest">—</b><i></i><small class="cs-agate-s">Best vs your playing HCP</small></div>
+            <div class="youfig"><b class="cs-fig-m" id="msAvg">—</b><i></i><small class="cs-agate-s">Avg vs your playing HCP</small></div>
+            <div class="youfig"><b class="cs-fig-m" id="msDelta">—</b><i></i><small class="cs-agate-s">Index move</small><small class="youfig-sub cs-agate-s is-phrase" id="msDeltaSub">Season to date</small></div>
+          </div>
+          <p class="youscope cs-agate-s is-phrase"><span id="msAvgSub">across rounds that count</span><span id="msBestSub" hidden></span></p>
+          <p class="youscope cs-agate-s is-phrase" id="msSame" hidden>Every round you have posted is in this season, so its figures are the ones above.</p>
+        </div>
+
+        <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3).
+             D177 names the scope: my_rivalries takes no league argument, so
+             this is every opponent in every season. -->
+        <h3 class="eyebrow league-only" id="youRivalsHead">Rivalries · every season</h3>
+        <div id="youRivals" class="league-only" style="text-align:left"></div>
+        </div>
 
         <!-- ══ D262 / R-O · YOUR BAG ═══════════════════════════════════════
              Fourteen clubs in your own words, the sideline beside them, the
              ball under both — and the line the feature exists for at the top.
-             There is NO EQUIPMENT DATABASE behind these fields: two free-text
-             boxes per club and nothing else (R-O's written refusal).
-             The whole section is drawn only once `bag_of` has ANSWERED, so a
-             database this migration has not reached renders nothing at all
-             rather than an empty bag somebody might fill in twice. -->
-        <div class="grouphead" id="youBagHead" style="display:none">Your bag</div>
-        <div id="youBag" style="display:none; text-align:left"></div>
-
-                <!-- ══ D261 / R-N · YOUR COURSES ═══════════════════════════════════
-             The desk's half of the offline course store. On the phone this is
-             a lookup you reach when the signal is gone; on a 1440 it is the
-             ARCHIVE — every course you have played or planned, its tees, its
-             ratings and slopes and its card, side by side — which is the read
-             R-C says the desk should lean into. It works with no connection
-             because it is drawn from what this device kept, and it says so. -->
-        <div class="grouphead" data-courses>Your courses</div>
-        <p class="fine" id="youCoursesWhat" data-courses style="padding:0 0 8px"></p>
-        <div id="youCourses" data-courses style="text-align:left"></div>
+             There is NO EQUIPMENT DATABASE behind these fields (R-O's written
+             refusal). The whole section is drawn only once `bag_of` has
+             ANSWERED. Its line and its count lead; the clubs wait behind the
+             door (owner Sp, craft D). -->
+        <div class="you-bag">
+        <details class="youdoor" id="youBagDoor" hidden>
+          <summary class="youdoor-sum"><span class="youdoor-h" id="youBagHead">Your bag</span><span class="youdoor-n cs-agate-s is-phrase" id="youBagN"></span></summary>
+          <div id="youBag" style="text-align:left"></div>
+        </details>
+        <p class="bagsince" id="youBagLine" hidden></p>
+        </div>
+        </div>
+        </div>
 
         <!-- D177: "How it works" moved off this page into the ⚙ Card &
              settings sheet (#setGuide). It is reference material — the same
@@ -6240,31 +6542,51 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <!-- SCHEDULE (D93) — a destination, not a segment -->
       <section class="view" id="view-schedule">
         <a href="#" class="backlink" data-go="home">← Home</a>
-        <div class="eyebrow" style="margin-top:0">Yours, your buddies’, your seasons’</div>
-        <div id="room-schedule">
-        <div class="eyebrow" id="calWatchHead" style="margin-top:0; display:none">In your crew's plans</div>
-        <div id="calWatch" style="display:none; margin-bottom:6px"></div>
-        <div class="eyebrow" style="display:flex; align-items:center; margin-top:0">The calendar
-          <span style="margin-left:auto; display:flex; gap:8px; align-items:center;">
-            <button class="mini" id="calPrev" aria-label="Previous month">←</button>
-            <b class="mono" id="calTitle" style="font-size:12.5px; letter-spacing:.1em; min-width:72px; text-align:center">—</b>
-            <button class="mini" id="calNext" aria-label="Next month">→</button>
+        <!-- THE PAGE SAYS WHAT IT IS (owner + craft + critique-B, 2026-09-28).
+             It opened on two stacked mono eyebrows — "Yours, your buddies’,
+             your seasons’" over "In your crew's plans" — and nothing on the
+             first screen said Schedule, the word the sidebar and the phone's
+             navigation title use. One head, the scope as one sentence. -->
+        <header class="schhead">
+          <h1 class="cs-display-s">The schedule</h1>
+          <p class="cs-body-s">Your rounds, and the ones your seasons have planned.</p>
+        </header>
+        <div id="room-schedule" class="schbody">
+        <!-- the desk's 340 aside and the phone's first screen: what is coming,
+             nearest first, one row per plan (it was two lists, and a plan could
+             print in both with different facts) -->
+        <div class="schplans">
+          <div id="schNext"></div>
+          <button class="btn" id="calDeclare">Put a round on the schedule</button>
+          <h2 class="eyebrow" id="calWatchHead" style="display:none">Coming up</h2>
+          <div id="calWatch" style="display:none"></div>
+        </div>
+        <div class="schcal">
+        <div class="eyebrow schnav">The calendar
+          <span class="schnav-ctl">
+            <button class="mini" id="calPrev" aria-label="Previous month"><svg class="ic schprev-ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+            <b class="cs-agate" id="calTitle">—</b>
+            <button class="mini" id="calNext" aria-label="Next month"><svg class="ic schnext-ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
           </span>
         </div>
         <div class="card" style="text-align:left; padding:12px">
           <div class="calgrid" id="calGrid"></div>
-          <div class="fine" style="padding:8px 0 0; display:flex; gap:12px; flex-wrap:wrap">
-            <span><i class="caldot rd"></i> ON THE SCHEDULE</span>
-            <span><i class="caldot lgm"></i> IN YOUR SEASONS</span>
-            <span><i class="caldot lg"></i> SEASON DATE</span>
+          <!-- §16.4 · a mark's kind is its SHAPE as well as its colour -->
+          <div class="schlegend cs-agate-s" id="calLegend">
+            <span><i class="caldot rd" aria-hidden="true"></i>Your rounds</span>
+            <span><i class="caldot lgm" aria-hidden="true"></i>In your seasons</span>
+            <span><i class="caldot lg" aria-hidden="true"></i>Season dates</span>
           </div>
         </div>
         <p class="fine" style="text-align:center; padding:9px 0 2px">Tap any day.</p>
-        <button class="btn" id="calDeclare" style="margin-top:8px">Put a round on the schedule</button>
-        <div class="eyebrow">On the schedule</div>
-        <div id="calList"></div>
-        <div class="eyebrow" id="calWeeksHead">Week by week</div>
-        <div class="card" id="calWeeks" style="text-align:left"></div>
+        <!-- a season's week-by-week table belongs to the season page; until it
+             lives there it waits behind a door here instead of trailing the
+             plans (owner, craft, critique-B) -->
+        <details class="schweeks" id="calWeeksWrap">
+          <summary class="eyebrow" id="calWeeksHead">Week by week</summary>
+          <div id="calWeeks" style="text-align:left"></div>
+        </details>
+        </div>
         </div>
       </section>
     </div>
@@ -16525,6 +16847,8 @@ function renderCourseBooks(){
   const box = $('#youCourses'); if(!box) return;
   const what = $('#youCoursesWhat'); if(what) what.textContent = CS_COURSE_COPY.what;
   const books = csCourseAll();
+  /* the door says how many before it opens */
+  const kept = $('#youCoursesN'); if(kept) kept.textContent = books.length ? `${books.length} kept` : 'none kept yet';
   /* F10 · with no rounds and nothing kept, the courses section is one more
      statement of absence under the record's own; it waits with the record */
   const view = $('#view-stats');
@@ -17012,18 +17336,24 @@ function csBagRowEdit(it, where, i){
     + '</div>';
 }
 function renderBag(){
-  const head = $('#youBagHead'), box = $('#youBag');
-  if(!head || !box) return;
+  const door = $('#youBagDoor'), box = $('#youBag'), line = $('#youBagLine'), count = $('#youBagN');
+  if(!door || !box) return;
   const bag = CS_BAG.data;
   /* the read has not answered: the section does not exist */
-  if(!bag){ head.style.display = 'none'; box.style.display = 'none'; return; }
-  head.style.display = ''; box.style.display = '';
+  if(!bag){ door.hidden = true; if(line) line.hidden = true; return; }
+  door.hidden = false;
+  /* BEHIND ITS DOOR (2026-09-28): the line the feature exists for and the
+     bag's count stay on the page; the clubs open on a tap, and editing opens
+     the door by itself */
+  if(CS_BAG.editing) door.open = true;
   const d = CS_BAG.editing ? CS_BAG.draft : { clubs: bag.clubs || [], sideline: bag.sideline || [], ball: (bag.ball && bag.ball.label) || '' };
   const since = csBagSince(bag.since, true);
+  if(line){ line.textContent = since || ''; line.hidden = !since; }
+  if(count) count.textContent = csBagSummary(bag) || 'Nothing in it yet';
   const rows = (list, where) => (list.length
     ? list.map((it, i) => CS_BAG.editing ? csBagRowEdit(it, where, i) : csBagRowRead(it)).join('')
     : '<p class="fine">' + (where === 'clubs' ? 'Nothing in the bag yet.' : 'Nothing on the sideline.') + '</p>');
-  let html = since ? '<p class="bagsince">' + esc(since) + '</p>' : '';
+  let html = '';
   if(!CS_BAG.editing && !(d.clubs.length || d.sideline.length || d.ball)){
     html += '<p class="fine">' + esc(CS_BAG_COPY.emptyMine) + '</p>';
   }
@@ -17377,14 +17707,18 @@ function csRecordLeaf(rows){
   if(!rows || !rows.length) return '';
   const ord = n => { const s=['TH','ST','ND','RD'], v=n%100; return s[(v-20)%10]||s[v]||s[0]; };
   const body = rows.map(r => {
+    /* a finished season takes the finish figure and, on the podium, its rule;
+       one still being played says so in the column and where it stands in its
+       own line — a live place is not a finish (owner R, 2026-09-28) */
     const mark = r.won ? '<span class="mark won"></span>'
                : (r.finish && r.finish<=3 ? '<span class="mark pod"></span>' : '');
     const finish = r.won ? '<b class="cs-name-s">WON</b>'
                  : (r.finish ? `<b class="cs-fig-s">${r.finish}<span class="cs-agate-s">${ord(r.finish)}</span></b>`
-                             : `<span class="cs-col-s">${esc(r.line||'')}</span>`);
+                             : `<span class="cs-agate-s">${r.live ? 'In play' : 'Not yet'}</span>`);
+    const sub = r.finish || r.won ? r.qualifier : [r.qualifier, r.line].filter(Boolean).join(' \u00b7 ');
     return `<tr${r.id?` data-season="${esc(r.id)}" role="button" tabindex="0" style="cursor:pointer"`:''}>
       <td class="cs-col-s" style="width:42px">${esc(r.year||'')}</td>
-      <td><span class="cs-social">${esc(r.name)}</span>${r.qualifier?`<span class="qual cs-agate-s">${esc(r.qualifier)}</span>`:''}</td>
+      <td><span class="cs-social">${esc(r.name)}</span>${sub?`<span class="qual cs-agate-s is-phrase">${esc(sub)}</span>`:''}</td>
       <td class="r" style="width:64px">${finish}${mark}</td>
     </tr>`;
   }).join('');
@@ -17401,9 +17735,10 @@ function renderLeagueRecord(){
   if(state.demo){
     const rk=[...PLAYERS].sort((a,b)=>b.pts-a.pts);
     const i=rk.findIndex(p=>p.me);
+    /* the diorama's season is being played: a line, not a finish */
     rows=[{name:'The Sunday Cup', number:1, year:new Date().getFullYear(),
-           finish:i>=0?i+1:null, of:rk.length, won:false,
-           line:`WK ${currentWeek()} / ${totalWeeks()} · ${i>=0?ordU(i+1)+' OF '+rk.length+' · '+rk[i].pts+' PTS':'—'}`}];
+           finish:null, of:rk.length, won:false, live:true,
+           line:`Week ${currentWeek()} of ${totalWeeks()}${i>=0?' · '+ordU(i+1).toLowerCase()+' of '+rk.length+' · '+rk[i].pts+' pts':''} · in season`}];
   } else rows=window.leagueRecord||[];
   if(!rows.length){ hd.style.display='none'; el.style.display='none'; return; }
   hd.style.display=''; el.style.display='';
@@ -17412,9 +17747,10 @@ function renderLeagueRecord(){
     id: r.id || r.league_id || null,
     year: r.year || null,
     name: r.name,
-    qualifier: 'SEASON ' + (ROMAN[r.number]||r.number),
+    qualifier: 'Season ' + (ROMAN[r.number]||r.number),
     finish: r.finish != null ? Number(r.finish) : null,
     won: !!r.won,
+    live: !!r.live,
     line: r.line,
   }));
   el.innerHTML = csRecordLeaf(leafRows);
@@ -20085,7 +20421,10 @@ function paintBuddyDoor(){
   const n=(window.homeRequests||[]).length;
   el.textContent = n ? `${n} request${n===1?'':'s'} waiting` : 'Find golfers, see who you play with';
   const btn=$('#youPeopleGo');
-  if(btn) btn.style.borderColor = n ? 'color-mix(in srgb, var(--brand) 55%, transparent)' : '';
+  /* D359/F11 · a waiting request is an ordinary action: `act`, never the
+     competition ember (critique-B P2, owner C, category C) — and it is said
+     in words; the row is a row on a rule now, not a bordered card */
+  if(btn) btn.classList.toggle('has-req', !!n);
 }
 /* TEN · ONE OWNER PER FACT, THE PHONE'S RULE. `home_dispatch` carries a buddy
    request (`friend:<requester>`) and an invitation (`invite:<id>`) as items of
@@ -22163,7 +22502,10 @@ function formRowHtml(recent, caption){
   if(!Array.isArray(recent) || !recent.length) return '';
   const cols = recent.slice(0, 5).reverse();             /* oldest first */
   if(!cols.some(r => r && r.gross != null)) return '';
-  const best = cols.filter(r => r && r.gross != null && !csFormNine(r)).map(r => r.gross).sort((a, b) => a - b)[0];
+  /* a best needs a field: with fewer than two comparable (18-hole) rounds the
+     gold marked a "best of one" — gold means earned (D359, critique-B P1) */
+  const comparable = cols.filter(r => r && r.gross != null && !csFormNine(r)).map(r => r.gross);
+  const best = comparable.length >= 2 ? comparable.sort((a, b) => a - b)[0] : null;
   let seen = false;
   const head = `<div class="dsec"><span>Form</span><i></i><span>${cols.length >= 5 ? 'Last five' : esc(csCapFirst(csSpelled(cols.length))) + ' of five'}</span></div>`;
   const body = cols.map(r => {
@@ -22207,6 +22549,27 @@ window.playedInCount = playedInCount;
    `YouCopy.acrossCounting` — one wording for "how many rounds is this read
    off", on both panels and on both figures in each. */
 function countingScope(n){ return 'across '+n+' round'+(n===1?' that counts':'s that count'); }
+/* ONE FACT, ONE PLACE (owner C, category C, critique-B P2). In a golfer's
+   first season ALL TIME and THIS SEASON printed the same three figures one
+   under the other. When the season's rounds, best and average are the
+   all-time ones, the season keeps only its own figure (the index move) and
+   says why in one line. Read off what is on the page, so it can never
+   disagree with it. */
+function csYouStripsDedupe(){
+  const t = id => { const el = $(id); return el ? el.textContent.trim() : ''; };
+  const same = t('#clR') !== '' && t('#clR') !== '—' && t('#clR') === t('#msR')
+    && t('#clBest') === t('#msBest') && t('#clAvg') === t('#msAvg');
+  ['#msR','#msBest','#msAvg'].forEach(id => { const c = $(id)?.closest('.youfig'); if(c) c.hidden = same || t(id) === '—'; });
+  const dc = $('#msDelta')?.closest('.youfig'); if(dc) dc.hidden = t('#msDelta') === '—';
+  const scope = $('#msAvgSub')?.closest('.youscope');
+  if(scope) scope.hidden = same;
+  const note = $('#msSame'); if(note) note.hidden = !same;
+  /* a strip with nothing drawn in it is not drawn (the scope line still says
+     "No rounds count yet") */
+  const strip = $('#youThisSeason');
+  if(strip) strip.hidden = ![...strip.querySelectorAll('.youfig')].some(c => !c.hidden);
+}
+window.csYouStripsDedupe = csYouStripsDedupe;
 function renderCareer(){
   /* diorama form is fabricated coherently (index 12.4: beat = 12.4−diff ≥ 1) */
   const c = state.demo
@@ -22235,7 +22598,9 @@ function renderCareer(){
     const yr=$('#youRecent');
     if(yr) yr.innerHTML = recState === 'failed'
       ? `<div class="tempty" role="status"><h4 class="cs-name">Your rounds didn’t load</h4>`
-        + `<p class="cs-body-s">Nothing is lost — the read failed, not the record.</p>`
+        /* critique-B P3 · the trophies and the all-time figures wait on this
+           read, and the page said nothing about their going */
+        + `<p class="cs-body-s">Nothing is lost — the read failed, not the record. Your trophies and all-time figures come back with it.</p>`
         + `<button type="button" class="mini" id="youRecentRetry" style="margin-top:10px">Try again</button></div>`
       : '';
     $('#youRecentRetry')?.addEventListener('click', () => { const b=$('#youRecentRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadCareer?.(); });
@@ -22252,6 +22617,11 @@ function renderCareer(){
   set('#clAvgSub', clScope);
   set('#clBestSub', clScope);
   set('#clPlayed', state.demo ? c.played : playedInCount());
+  /* a figure with no data is ABSENT, never a dash in a numeral seat (§9.9,
+     critique-B P2): a one-round golfer's best and average wait for a round
+     that counts, and the scope line under the strip says so */
+  ['#clBest','#clAvg'].forEach(id => { const b = $(id), cell = b && b.closest('.youfig'); if(cell) cell.hidden = b.textContent.trim() === '—'; });
+  csYouStripsDedupe();
   const yr=$('#youRecent'); if(yr){
     /* D291 · RECENT ROUNDS — `formRowHtml`'s big brother, and the other half
        of "trophies and recent rounds also not engaging". The row was a 13.5px
@@ -22289,8 +22659,11 @@ function renderCareer(){
         }).join('')
       : `<div class="tempty"><h4 class="cs-name">No rounds yet</h4>`
         + `<p class="cs-body-s">Your record fills as you play — every round, every course, forever.</p>`
-        /* F10 · the one next step is a real control (LINT-21: every empty state has a door) */
-        + `<button type="button" class="mini" data-empty-go="record" style="margin-top:10px">Post your first round</button></div>`;
+        /* F10 · the one next step is a real control (LINT-21: every empty state
+           has a door). A-5: one verb opens the composer — "Add my round" — and
+           on an empty record it is the page's one primary, in the action colour,
+           right under the card (critique-B P2, owner C) */
+        + `<button type="button" class="btn" data-empty-go="record" style="margin-top:12px">Add my round</button></div>`;
     /* the whole row opens the receipt (photos arc 2: the sheet carries the
        photograph — no bare image tabs), and the × stays the × */
     yr.querySelectorAll('[data-rcpt-i]').forEach(b=>{
@@ -22409,6 +22782,7 @@ function renderIndStatsReal(){
     $('#awImpS').textContent='Most Improved';
     $('#awIronS').textContent='Iron Man';
     $('#indTable').innerHTML='<tr><td class="fine" style="padding:12px 4px">The race fills in once your league season is live and rounds land.</td></tr>';
+    csYouStripsDedupe();
     return;
   }
   const me=rows.find(p=>p.me);
@@ -22430,6 +22804,7 @@ function renderIndStatsReal(){
   /* Y-14 · "Needs 2 rounds" read as nonsense beside "Rounds posted 17";
      it means two rounds in THIS season. */
   $('#msDeltaSub').textContent = (!me || me.d==null) ? 'Needs 2 rounds this season' : 'Season to date';
+  csYouStripsDedupe();
 
   /* award tiles are narrow — first names only, so the row never wraps */
   const fn=n=>(n||'—').trim().split(/\s+/)[0];
@@ -24761,17 +25136,75 @@ function renderRosterDoor(){
   });
 }
 window.renderRosterDoor = renderRosterDoor;
-/* ---------- the calendar tab: month by month, social first ----------
+/* ── THE PLAN'S STATE, SAID ONCE FOR THE WHOLE SCHEDULE (2026-09-28) ────────
+   critique-B P0: the list printed YOU'RE IN, and the public card "Avery and
+   Devon are in.", for a golfer who had been asked and never answered — while
+   the plan's own sheet said NO REPLY. Two definitions of "in" were printing
+   contradictory facts about a real person's commitment. There is one now:
+   `in` is an explicit yes and nothing else. A tag with no answer is `asked`,
+   the server's own word (`my_schedule.rsvp[].status`, G7: the state of the
+   invitation, never a verdict on the man); the host is in by declaring it.
+   The phone's twin is `PlanSeat.isIn / isAsked` (PlanIdentity.swift); its
+   ScheduleScreen still keys YOU'RE IN on `tagged_me` (lines 80/100/170). */
+function csPlanMe(sr){
+  if(!sr) return null;
+  if(sr.mine) return 'host';
+  if(!sr.tagged_me) return null;
+  const r = String(sr.my_rsvp || '');
+  return (r === 'in' || r === 'maybe' || r === 'out') ? r : 'asked';
+}
+const CS_PLAN_ME = { in:'You’re in', maybe:'Maybe', out:'You’re out', asked:'Asked' };
+/* A-7 · the tag names the crew ("IN THE FELLAS"), never the retired compound.
+   `my_schedule` says only THAT a season is shared (`shared_league`), never
+   which, so the name is read from rosters this client already holds: the
+   league on screen, or the one league the golfer is in. Where neither can
+   answer, the section head's own words stand rather than a guessed name. */
+function csPlanCrew(sr){
+  if(!sr || sr.mine || !sr.shared_league) return null;
+  const C = window.CS || {};
+  if(C.league && Array.isArray(C.members) && C.members.some(m => m && m.profile_id === sr.profile_id)) return C.league.name || null;
+  const ms = (Array.isArray(C.memberships) ? C.memberships : []).filter(m => m && m.league && !m.league.sandbox);
+  return ms.length === 1 ? (ms[0].league.name || null) : null;
+}
+function csPlanRel(sr){
+  if(!sr || sr.mine) return null;
+  if(sr.is_friend) return 'Buddy';
+  const crew = csPlanCrew(sr);
+  return crew ? 'In ' + crew : (sr.shared_league ? 'In your seasons' : null);
+}
+/* the course as the golfer calls it: the picker writes `club — course · tee`,
+   and the tee belongs to the plan's own sheet, not to a row */
+function csPlanCourse(label){
+  const s = String(label || '').trim();
+  if(!s) return '';
+  return csCourse(s.split(' · ')[0]);
+}
+/* the rest of the group, first names, the viewer left out */
+function csPlanWith(sr){
+  const me = window.CS?.user?.id || null;
+  const myName = window.CS?.profile?.display_name || null;
+  const rs = Array.isArray(sr && sr.rsvp) ? sr.rsvp : null;
+  const names = rs
+    ? rs.filter(x => x && Number(x.ord) === 1 && x.profile_id !== me).map(x => x.display_name)
+    : ((sr && sr.tagged_names) || []).filter(n => n && n !== myName);
+  const f = names.filter(Boolean).map(n => String(n).trim().split(/\s+/)[0]);
+  if(!f.length) return null;
+  return 'with ' + (f.length < 2 ? f[0] : f.slice(0, -1).join(', ') + ' and ' + f[f.length - 1]);
+}
+window.csPlanMe = csPlanMe; window.csPlanRel = csPlanRel; window.csPlanCourse = csPlanCourse; window.csPlanWith = csPlanWith;
+
+/* ---------- the calendar: month by month, social first ----------
    Days carry (a) rounds on the books — yours, friends', league mates' (the
    my_schedule RPC does the visibility math) and (b) season dates from EVERY
-   league you're in (window.leagueSpans). A league mate's round glows gold:
-   the "Logan's playing Pebble — get something on the books" loop. */
+   league you're in (window.leagueSpans). The plans themselves are listed once,
+   above the grid, by renderWatchList (the module's, because the rivalry tag
+   and the tee-time producer live there). */
 function calFirst(y,m){ return new Date(y,m,1); }
 function renderCalendar(){
   const grid=$('#calGrid'); if(!grid) return;
   const now=new Date(); now.setHours(0,0,0,0);
   const cur=window.calCursor || (window.calCursor={y:now.getFullYear(), m:now.getMonth()});
-  $('#calTitle').textContent = `${MOS[cur.m].toUpperCase()} ${cur.y}`;
+  $('#calTitle').textContent = `${MOS[cur.m]} ${cur.y}`;
 
   /* gather this month's items, keyed by day-of-month */
   const byDay={};
@@ -24780,9 +25213,9 @@ function renderCalendar(){
   if(inLeague){
     const s=seasonS(), e=seasonE(), cf=cupFinalStart();
     const lgName = state.demo ? 'The Sunday Cup' : (window.CS?.league?.name || 'Your league');
-    add(s,  {kind:'lg', t:`${lgName} — first tee`, gold:true});
-    add(cf, {kind:'lg', t:`${lgName} — Cup Final begins`, gold:true});
-    add(e,  {kind:'lg', t:`${lgName} — season ends, cup decided`, gold:true});
+    add(s,  {kind:'lg', t:`${lgName} — first tee`});
+    add(cf, {kind:'lg', t:`${lgName} — Cup Final begins`});
+    add(e,  {kind:'lg', t:`${lgName} — season ends, cup decided`});
     const first=calFirst(cur.y, cur.m);
     if(first>s && first<=e) add(first, {kind:'lg', t:`${MOS[(cur.m+11)%12]} closes — minimums & bonuses assessed`});
     for(let d=1; d<=31; d++){
@@ -24794,17 +25227,21 @@ function renderCalendar(){
   (window.leagueSpans||[]).forEach(ls=>{
     if(!state.demo && window.CS?.league && ls.league_id===window.CS.league.id) return;
     add(new Date(ls.starts_on+'T00:00:00'), {kind:'lg', t:`${ls.name} — first tee`});
-    add(new Date(ls.ends_on+'T00:00:00'),   {kind:'lg', t:`${ls.name} — season ends`, gold:true});
+    add(new Date(ls.ends_on+'T00:00:00'),   {kind:'lg', t:`${ls.name} — season ends`});
   });
-  /* League Room calendar is LEAGUE-scoped (pilot feedback #3): your rounds,
+  /* the calendar is LEAGUE-scoped (pilot feedback #3): your rounds,
      league-mates', and any you're tagged in — a pure buddy you share no league
-     with lives on Home, not in a specific league's room. (shared_league is the
-     best proxy until scheduled rounds carry a league — see spec/scheduled-rounds-arc.md.) */
+     with lives on Home. (shared_league is the best proxy until scheduled rounds
+     carry a league — see spec/scheduled-rounds-arc.md.) */
   (window.mySchedule||[]).filter(sr => sr.mine || sr.shared_league || sr.tagged_me).forEach(sr=>{
     add(new Date(sr.play_on+'T00:00:00'), {kind:'rd', sr});
   });
 
-  /* the grid */
+  /* the grid. A mark's kind is its shape as well as its colour (§16.4): a
+     round you are on is a filled disc, a round in your seasons a ring, a
+     season date a bar — a declined booking is not yours, whoever booked it */
+  const markOf = it => it.kind!=='rd' ? 'lg'
+    : (it.sr && (it.sr.mine || (it.sr.tagged_me && it.sr.my_rsvp !== 'out'))) ? 'rd' : 'lgm';
   const firstDow=calFirst(cur.y,cur.m).getDay();
   const days=new Date(cur.y, cur.m+1, 0).getDate();
   const pad2=n=>String(n).padStart(2,'0');
@@ -24817,8 +25254,7 @@ function renderCalendar(){
     const isToday = cur.y===now.getFullYear() && cur.m===now.getMonth() && d===now.getDate();
     const isPast = new Date(cur.y,cur.m,d) < now;
     const tappable = items.length || (canPlan && !isPast);
-    const dots=items.slice(0,3).map(it=>
-      `<i class="caldot ${it.kind==='rd' ? (it.sr && (it.sr.tagged_me || (it.sr.shared_league && !it.sr.mine)) ? 'lgm' : 'rd') : 'lg'}" style="margin:0"></i>`).join('');
+    const dots=items.slice(0,3).map(it=>`<i class="caldot ${markOf(it)}" style="margin:0"></i>`).join('');
     /* F15 · a day you can act on is a BUTTON, named for its date and what it
        holds; it was a div with a click handler, so no keyboard could reach it */
     const cls = `calcell${isToday?' today':''}${items.length?' has':''}${tappable?' tap':''}${canPlan&&!isPast&&!items.length?' plan':''}`;
@@ -24829,97 +25265,70 @@ function renderCalendar(){
       : `<div class="${cls}" data-cd="${d}">${d}<span class="caldots" aria-hidden="true">${dots}</span></div>`;
   }
   grid.innerHTML=html;
+  /* the legend lists only the marks this month carries */
+  const kinds = new Set(Object.values(byDay).flat().map(markOf));
+  const lg = $('#calLegend');
+  if(lg) lg.querySelectorAll('.caldot').forEach(i => { const k = ['rd','lgm','lg'].find(c => i.classList.contains(c)); i.parentElement.hidden = !kinds.has(k); });
+  if(lg) lg.hidden = !kinds.size;
   grid.querySelectorAll('.calcell.tap').forEach(c=>c.addEventListener('click',()=>{
     const d=Number(c.dataset.cd), items=byDay[d]||[], iso=isoOf(d);
     const isPast = new Date(cur.y,cur.m,d) < now;
     const canAdd = canPlan && !isPast;
     if(!items.length){ if(canAdd) openDeclareSheet(iso); return; }
     const dowName = `${DOW[new Date(cur.y,cur.m,d).getDay()]} ${MOS[cur.m]} ${d}`;
-    openSheet(dowName, `${items.length} ON THE SCHEDULE`,
-      items.map(it=> it.kind==='rd'
-        ? `<div class="check tap" data-roundopen="${it.sr.id}"><span class="num">${window.mkr?.(it.sr.marker||'saguaro')||'⛳'}</span><div class="tt"><b>${it.sr.mine?'You':esc(it.sr.display_name)}${it.sr.tee_time?' · <span style="color:var(--ink)">'+fmtTee(it.sr.tee_time)+'</span>':''}${it.sr.tagged_me?' · <span style="color:var(--ink)">YOU’RE IN</span>':(it.sr.shared_league&&!it.sr.mine?' · <span style="color:var(--ink)">IN YOUR SEASONS</span>':'')}</b><small>${[it.sr.course_label?esc(it.sr.course_label.toUpperCase()):null, (it.sr.tagged_names||[]).length?'WITH '+esc(it.sr.tagged_names.join(' & ').toUpperCase()):null, it.sr.note?'“'+esc(it.sr.note)+'”':null].filter(Boolean).join(' · ')||'ON THE SCHEDULE'}</small></div>${it.sr.mine?'<span style="display:flex; gap:6px; flex:none; margin-left:auto"><button class="mini" data-retag="'+it.sr.id+'" title="Edit group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="'+it.sr.id+'" title="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>':''}</div>`
-        : `<div class="check"><span class="num">⛳</span><div class="tt"><b style="${it.gold?'color:var(--gold)':''}">${esc(it.t)}</b></div></div>`
-      ).join('')
+    /* the day's plans are the schedule's own rows (window.csPlanRowHtml, the
+       module's producer); a season date is a date, set in ink — the gold that
+       painted it meant "earned" (D359), and the phone's day sheet is ink too */
+    const rows = items.map(it => it.kind==='rd'
+        ? (window.csPlanRowHtml ? window.csPlanRowHtml(it.sr, { day:true }) : '')
+        : `<div class="schrow is-date"><span class="schrow-when"><i class="caldot lg" aria-hidden="true"></i></span><span class="schrow-name cs-social">${esc(it.t)}</span></div>`).join('');
+    const n = items.filter(it => it.kind==='rd').length;
+    openSheet(dowName, n ? `${n} on the schedule` : 'Season dates',
+      `<div class="schlist">${rows}</div>`
       + (canAdd ? `<button class="btn dark" id="dayAdd" style="margin-top:12px"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Put your round on this day</button>` : ''));
     if(canAdd) document.getElementById('dayAdd')?.addEventListener('click', ()=>{ closeSheet(); openDeclareSheet(iso); });
     /* manage your own round straight from the day sheet (pilot: cancel/edit was
-       only in the list below the grid, hard to find). Change the date = cancel
-       here, then re-add on the right day. */
-    $('#shBody')?.querySelectorAll('[data-retag]').forEach(b=>b.addEventListener('click',()=>{ closeSheet(); openRetagSheet(b.dataset.retag); }));
-    $('#shBody')?.querySelectorAll('[data-scratch]').forEach(b=>b.addEventListener('click', async()=>{
-      b.disabled=true;
-      try{ const {error}=await sb.rpc('scratch_round',{p_id:b.dataset.scratch}); if(error) throw error;
-        closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList();
-      }catch(e){ toast(humanError(e, 'Scratch failed.')); b.disabled=false; }
-    }));
-    /* tap the round (not its ✕/＋) to open the full round object */
-    $('#shBody')?.querySelectorAll('[data-roundopen]').forEach(el=>el.addEventListener('click',(e)=>{
-      if(e.target.closest('button')) return;
-      closeSheet(); if(window.openRoundSheet) window.openRoundSheet(el.dataset.roundopen);
-    }));
+       only in the list below the grid, hard to find); one wiring for the day
+       sheet and the list */
+    window.csPlanRowsWire?.($('#shBody'), { sheet:true });
   }));
 
-  /* the on-the-books list: this month's rounds with the social framing */
-  const list=$('#calList');
-  if(list){
-    const rows=(window.mySchedule||[])
-      .filter(sr => sr.mine || sr.shared_league || sr.tagged_me)   /* League Room = league-scoped (pilot #3) */
-      .filter(sr=>{ const d=new Date(sr.play_on+'T00:00:00'); return d.getFullYear()===cur.y && d.getMonth()===cur.m && d>=now; })
-      .map(sr=>{
-        const d=new Date(sr.play_on+'T00:00:00');
-        const n=Math.round((d-now)/864e5);
-        const when = n===0?'TODAY':n===1?'TOMORROW':n+' DAYS';
-        const withTxt=(sr.tagged_names||[]).length?' · WITH '+esc(sr.tagged_names.join(' & ').toUpperCase()):'';
-        return `<div class="check">
-          <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-          <div class="tt"><b>${sr.mine?'You':esc(sr.display_name)}${sr.tee_time?' · <span style="color:var(--ink)">'+fmtTee(sr.tee_time)+'</span>':''}${sr.tagged_me?' · <span style="color:var(--ink)">YOU’RE IN</span>':(sr.shared_league&&!sr.mine?' · <span style="color:var(--ink)">IN YOUR SEASONS</span>':(sr.is_friend&&!sr.mine?' · <span style="color:var(--mut)">BUDDY</span>':''))}</b>
-          <small>${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}${sr.course_label?' · '+esc(sr.course_label.toUpperCase()):''}${withTxt}${sr.note?' · “'+esc(sr.note)+'”':''}</small></div>
-          <span style="display:flex; gap:6px; align-items:center; flex:none">
-            <b class="mono" style="font-size:11.5px; color:var(--mut); letter-spacing:.06em">${when}</b>
-            ${sr.mine?`<button class="mini" data-retag="${sr.id}" title="Tag your group"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg></button><button class="mini" data-scratch="${sr.id}" aria-label="Cancel this round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:''}
-          </span>
-        </div>`;
-      }).join('');
-    list.innerHTML = rows || `<p class="fine" style="padding:6px 0">Nothing on the schedule for ${MOS[cur.m]}${state.demo?' (scheduling is a real-account thing)':''}. ${!state.demo?'Put one up: buddies and the crews you play with see it the moment you do.':''}</p>`;
-  }
-
-  /* week-by-week history (league seasons only) */
-  const wkEl=$('#calWeeks'), wkHd=$('#calWeeksHead');
+  /* week-by-week history (league seasons only), behind its door */
+  const wkEl=$('#calWeeks'), wkWrap=$('#calWeeksWrap');
   const showWk = inLeague;
-  if(wkHd) wkHd.style.display = showWk?'':'none';
-  if(wkEl){
-    wkEl.style.display = showWk?'':'none';
-    if(showWk){
-      const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
-      if(!hist.length){
-        wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
-          ? 'The demo skips the archive. Real seasons record every Sunday night.'
-          : 'Nothing recorded yet: the first week closes Sunday night, and every week lands here for the season.')+'</p>';
-      } else {
-        /* D234 · a SOLO season forms no squads, so `standings.squads` is []
-           and every week of a solo archive rendered as a bare "WK 3" with no
-           leader, no gap and no points — three of the six in-season leagues in
-           prod. snapshot_week writes BOTH halves of the payload; read the one
-           this season has. `teams` carries the season's own rows either way
-           (squads, or the individual race with `solo:true` and `id` = member
-           id), so one nameOf serves both. */
-        const solo = !!(teams.length && teams[0].solo);
-        const nameOf=id=>{ const t=teams.find(t=>t.id===id); return t?t.name:'—'; };
-        wkEl.innerHTML = hist.slice().reverse().map(sn=>{
+  if(wkWrap) wkWrap.hidden = !showWk;
+  if(wkEl && showWk){
+    const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
+    if(!hist.length){
+      wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
+        ? 'The demo skips the archive. Real seasons record every Sunday night.'
+        : 'Nothing recorded yet: the first week closes Sunday night, and every week lands here for the season.')+'</p>';
+    } else {
+      /* D234 · a SOLO season forms no squads, so `standings.squads` is []
+         and every week of a solo archive rendered as a bare "WK 3" with no
+         leader, no gap and no points — three of the six in-season leagues in
+         prod. snapshot_week writes BOTH halves of the payload; read the one
+         this season has. `teams` carries the season's own rows either way
+         (squads, or the individual race with `solo:true` and `id` = member
+         id), so one nameOf serves both. */
+      const solo = !!(teams.length && teams[0].solo);
+      const nameOf=id=>{ const t=teams.find(t=>t.id===id); return t?t.name:'—'; };
+      /* a sentence per week in the sentence face and the points in the
+         board's (§1.4 — this was a column of mono caps sentences), under ONE
+         head that names the figure column (§16A.3) */
+      wkEl.innerHTML = `<div class="schwk schwk-hd cs-agate-s"><span>Week</span><span>Who led</span><span>Pts</span></div>`
+        + hist.slice().reverse().map(sn=>{
           const rows=((sn.standings && (solo ? sn.standings.individuals : sn.standings.squads))||[])
             .slice().sort((a,b)=>b.points-a.points);
           const lead=rows[0], second=rows[1];
           const leadId = lead ? (solo ? lead.member_id : lead.squad_id) : null;
           const gap=lead&&second ? lead.points-second.points : null;
-          return `<div class="fine" style="display:flex; justify-content:space-between; gap:10px; padding:5px 0;">
-            <span><b class="mono" style="color:var(--ink)">WK ${sn.week_no}</b>${lead?' · '+esc(nameOf(leadId)).toUpperCase()+' LED':''}${gap!=null?(gap===0?' · TIED AT THE TOP':' · BY '+gap):''}</span>
-            <b class="mono">${lead?lead.points+' PTS':''}</b>
-          </div>`;
+          const said = lead ? esc(nameOf(leadId)) + (gap!=null ? (gap===0 ? ', tied at the top' : ' by ' + gap) : '') : 'No rounds that week';
+          return `<div class="schwk"><span class="cs-fig-s">${sn.week_no}</span><span class="cs-body-s">${said}</span><b class="cs-fig-s">${lead?lead.points:''}</b></div>`;
         }).join('');
-      }
     }
   }
-  window.renderWatchList && window.renderWatchList();   /* crew's plans ride atop the grid */
+  window.renderWatchList && window.renderWatchList();   /* the plans ride above the grid */
 }
 $('#calPrev').addEventListener('click',()=>{
   const c=window.calCursor||{y:new Date().getFullYear(), m:new Date().getMonth()};
@@ -24994,10 +25403,36 @@ function csEventRecoveryHtml(E){
     </div>
   </section>`;
 }
+/* ── THE ROOM'S WAY BACK (critique-B P2, category C) ─────────────────────────
+   The header said "← Home" above plates whose own door said "Back to Compete",
+   and the room is entered from Compete. The link follows where the room was
+   opened from (switchView renders the room BEFORE it swaps the views, so the
+   view still active on a first render is the one it came from), and a plate
+   that carries its own door takes the header's away — one way back, not two. */
+function csEventBack(showHeader){
+  const active = document.querySelector('.view.active');
+  if(active && active.id !== 'view-event') window._evFrom = active.id === 'view-compete' ? 'compete' : 'home';
+  const back = document.querySelector('#view-event .backlink');
+  if(!back) return;
+  const from = window._evFrom === 'compete' ? 'compete' : 'home';
+  back.dataset.go = from;
+  back.textContent = from === 'compete' ? '← Compete' : '← Home';
+  back.hidden = !showHeader;
+}
+/* §9.1 · A SURNAME IS NEVER CUT: the given name yields to an initial first,
+   for the WHOLE board at once (detector TP-04, 2026-09-28). At a phone's
+   width two names share one line with "lost to" between them, and full
+   names were being ellipsised mid-surname ("CASEY PLACEHO…"). */
+function csClashShort(n){
+  const p = String(n || '').trim().split(/\s+/);
+  return p.length > 1 ? `${p[0][0]}. ${p.slice(1).join(' ')}` : (p[0] || '');
+}
+const CS_CLASH_NARROW = '(max-width: 480px)';
 function renderEvent(){
   const el=$('#eventBody'); if(!el) return;
   const E=window.CS_EVENT;
   if(E && E.state==='loading'){
+    csEventBack(true);
     el.innerHTML = `<section class="evrec" aria-busy="true" aria-label="Opening the room">
       <div class="evcard evcard-redacted" aria-hidden="true"><div class="evbrow">${esc(CS_EVENT_RECOVERY.brow)}</div>
         <span class="evsk" style="width:72%;height:34px;margin-top:14px"></span><span class="evsk" style="width:44%;height:12px;margin-top:14px"></span></div>
@@ -25005,15 +25440,17 @@ function renderEvent(){
     return;
   }
   if(!E || !E.event){
+    csEventBack(false);   /* the plate's own door is the way back */
     el.innerHTML = csEventRecoveryHtml(E);
     $('#evRetry')?.addEventListener('click', e => {
-      const b = e.currentTarget; b.disabled = true; b.textContent = 'Trying\u2026';
+      const b = e.currentTarget; b.disabled = true; b.textContent = 'Trying…';
       /* the loader is the module's; the classic block reaches it through its bridge */
       window.openEvent?.(E.id);
     });
     el.querySelector('[data-go-compete]')?.addEventListener('click', () => switchView('compete'));
     return;
   }
+  csEventBack(true);
   if(E.event.kind==='major'){ renderMajorRoom(el, E); return; }
   const ev=E.event, teams=E.teams||[], players=E.players||[], sessions=E.sessions||[], duels=E.duels||[];
   const A=teams.find(t=>t.slot===0)||teams[0]||{name:'Team A',color:0,id:'a'};
@@ -25023,8 +25460,15 @@ function renderEvent(){
   const rc=tid=>players.filter(p=>p.team_id===tid).length;
   const P=Math.min(rc(A.id),rc(B.id)), M=P*(ev.session_count||sessions.length||1), clinch=M/2+0.5;
   const aP=pts(A.id), bP=pts(B.id);
-  const sw=c=>`<span class="sw" style="background:${SQHEX[c]??SQHEX[0]}"></span>`;
   const wkNo=sessions.filter(s=>s.status==='closed').length;
+  /* the board abbreviates as one, and only where two full names cannot share
+     a line; the row's accessible name keeps every name whole */
+  const narrow = typeof matchMedia === 'function' && matchMedia(CS_CLASH_NARROW).matches;
+  const shown = n => narrow ? csClashShort(n) : String(n || '');
+  if(!window._evNarrowWatch && typeof matchMedia === 'function'){
+    window._evNarrowWatch = true;
+    try{ matchMedia(CS_CLASH_NARROW).addEventListener('change', () => { if(document.getElementById('view-event')?.classList.contains('active')) renderEvent(); }); }catch(_){}
+  }
 
   /* CASE BELONGS TO THE ROLE (UI_SYSTEM 1.3). These producers shipped
      "Live · wk 2/3" beside "NAME TAKES THE CUP" — one string shouted by the
@@ -25032,26 +25476,26 @@ function renderEvent(){
      uppercases. The Swift twins are RyderMath.statusChip / .clinchLine. */
   const winnerName = ev.winner_team_id ? (ev.winner_team_id===A.id?A.name:B.name) : null;
   let statusChip = ev.status==='complete'
-    ? (winnerName ? esc(winnerName)+' take the cup' : 'Shared \u2014 both names on it')
+    ? (winnerName ? esc(winnerName)+' take the cup' : 'Shared — both names on it')
     : ev.status==='setup' ? 'Forming'
-    : `Live \u00b7 week ${Math.min(wkNo+1,ev.session_count)} of ${ev.session_count}`;
+    : `Live · week ${Math.min(wkNo+1,ev.session_count)} of ${ev.session_count}`;
   let clinchLine = ev.status==='complete'
-    ? (winnerName ? `Final. ${esc(winnerName)} took it ${evHalf(Math.max(aP,bP))}\u2013${evHalf(Math.min(aP,bP))}.`
-                  : `Final. It was shared, ${evHalf(aP)}\u2013${evHalf(bP)}.`)
+    ? (winnerName ? `Final. ${esc(winnerName)} took it ${evHalf(Math.max(aP,bP))}–${evHalf(Math.min(aP,bP))}.`
+                  : `Final. It was shared, ${evHalf(aP)}–${evHalf(bP)}.`)
     : `First to ${evHalf(clinch)}. ${esc(A.name)} need ${evHalf(Math.max(0,clinch-aP))}, ${esc(B.name)} need ${evHalf(Math.max(0,clinch-bP))}.`;
 
-  /* A COUNTDOWN IS NOT A SCORE (15.5a). The rail carries the two side scores;
+  /* A COUNTDOWN IS NOT A SCORE (15.5a). The two side scores ride the plate;
      the deadline lives in the live eyebrow with the other time facts. */
   const openS = sessions.find(s2=>s2.status==='open') || null;
   const live = ev.status!=='complete' && ev.status!=='setup';
   let brow = statusChip;
   if(live && openS){
     const dd=Math.round((new Date(openS.closes_on+'T00:00:00') - new Date().setHours(0,0,0,0))/864e5);
-    if(dd>=0) brow += dd===0 ? ' \u00b7 closes tonight' : ` \u00b7 ${dd} day${dd===1?'':'s'} left`;
+    if(dd>=0) brow += dd===0 ? ' · closes tonight' : ` · ${dd} day${dd===1?'':'s'} left`;
   }
   if(ev.status==='complete'){
     const lastC = sessions.map(s2=>s2.closes_on).sort().pop();
-    brow = 'Final' + (lastC ? ' \u00b7 ' + csEvDowMonDay(lastC) : '');
+    brow = 'Final' + (lastC ? ' · ' + csEvDowMonDay(lastC) : '');
   }
 
   /* the dateline: ONE block, and the field size belongs to it (finding 4) */
@@ -25059,7 +25503,7 @@ function renderEvent(){
   const closesAll = sessions.map(s2=>s2.closes_on).sort().pop();
   const spelled=n=>['zero','one','two','three','four','five','six','seven','eight','nine','ten'][n]||String(n);
   const dateBits=[];
-  if(opensAll && closesAll) dateBits.push(`${csEvDowMonDay(opensAll)} \u2013 ${csEvDowMonDay(closesAll)}`);
+  if(opensAll && closesAll) dateBits.push(`${csEvDowMonDay(opensAll)} – ${csEvDowMonDay(closesAll)}`);
   if(players.length) dateBits.push(`${spelled(players.length)} playing`);
 
   /* 15.5a - two NAMED groups, each disc ringed in its side's colour while
@@ -25070,43 +25514,42 @@ function renderEvent(){
       box-shadow:0 0 0 2.5px ${ring}">${window.mkr?.(p.marker||'saguaro')||''}</div>
       <small>${me?'You':esc((p.name||'').split(' ')[0])}</small></div>`;
   };
-  const sideHtml=(t,cls)=>{
+  /* THE SCORE IS IN THE HEAD (owner H, category H, critique-B P2). At 375 the
+     plate filled the first screen and the score — the one thing the room is
+     for — began under the tab band. Each side's figure now sits under its
+     name, on the plate, and the metal is the state: ceremony ink while it is
+     being played, the winner's figure in the earned gold at the end (one gold
+     object). Every golfer is drawn: "+1 MORE" hid a golfer a side on a
+     1600px plate with room to spare; only a big side folds its tail. */
+  const sideHtml=(t,cls,v)=>{
     const roster=players.filter(p=>p.team_id===t.id).sort((x,y)=>x.seed-y.seed);
     const ring=CEREMONY_SQ[(t.color??0)%4];
-    const shown=roster.slice(0,3), more=roster.length-shown.length;
+    const cap = roster.length <= 6 ? roster.length : 5;
+    const shownR=roster.slice(0,cap), more=roster.length-shownR.length;
+    const w=Math.floor(v), h=(v-w)>=0.5;
+    const won = ev.status==='complete' && ev.winner_team_id===t.id;
+    const fig = ev.status==='setup' ? '' : `<div class="fig${won?' won':''}">${(w||!h)?w:''}${h?'<sup>½</sup>':''}</div>`;
     return `<div class="evside ${cls}"><div class="rule" style="background:${ring}"></div>
-      <div class="nm">${esc(t.name)}</div>
-      <div class="discs">${shown.map(p=>disc(p,ring)).join('')}${more>0
+      <div class="nm">${esc(t.name)}</div>${fig}
+      <div class="discs">${shownR.map(p=>disc(p,ring)).join('')}${more>0
         ? `<div class="who"><div class="d" style="background:rgba(241,244,239,.16); box-shadow:0 0 0 2.5px ${ring}">+${more}</div><small>more</small></div>` : ''}</div></div>`;
   };
 
-  let html=`<div class="evcard">
+  let card=`<div class="evcard">
       <div class="evbrow${live?' live':''}">${live?'<span class="dot"></span>':''}${brow}</div>
       <h1>${esc(ev.name)}</h1>
-      ${players.length?`<div class="evsides">${sideHtml(A,'a')}${sideHtml(B,'b')}</div>`:''}
-      ${dateBits.length?`<div class="evdate">${dateBits.join(' \u00b7 ')}</div>`:''}
+      ${players.length?`<div class="evsides">${sideHtml(A,'a',aP)}${sideHtml(B,'b',bP)}</div>`:''}
+      ${dateBits.length?`<div class="evdate">${dateBits.join(' · ')}</div>`:''}
     </div>`;
 
-  /* the score and the clock: figures on ONE rule, and the metal is the state */
-  /* 6.2 - the winner's cell paints GOLD at complete and the pot goes to ink:
-     the pot has been paid, and the RESULT is now the earned thing. One gold
-     object per viewport in both states. */
-  const railCell=(t,v)=>{
-    const w=Math.floor(v), h=(v-w)>=0.5;
-    const won = ev.status==='complete' && ev.winner_team_id===t.id;
-    return `<div class="cell"><div class="tick" style="background:${SQ[(t.color??0)%4]}"></div>
-      <div class="fig"${won?' style="color:var(--gold)"':''}>${(w||!h)?w:''}${h?'<sup>\u00bd</sup>':''}</div></div>`;
-  };
+  let main='';
   if(ev.status!=='setup'){
-    html+=`<div class="evrail">${railCell(A,aP)}${railCell(B,bP)}</div>
-      <div class="evrule${live?' live':''}"></div>
-      <div class="evlabels"><span>${esc(A.name)}</span><span>${esc(B.name)}</span></div>
-      <p class="evclinch">${clinchLine}</p>`;
+    main+=`<p class="evclinch">${clinchLine}</p>`;
     if(Number(ev.buy_in||0)>0){
       /* the pot is the surface's ONE gold object, and it is gold ink on a
          NUMERAL — never a fill, never a chip */
-      html+=`<div class="evstake"><b${ev.status==='complete'?' style="color:var(--ink)"':''}>${mjMoney(Number(ev.buy_in)*players.length)}</b>
-        <span>The pot \u00b7 ${ev.pot_split==='wta'?'winner takes all':'60/25/15'} \u00b7 best round each week</span></div>`;
+      main+=`<div class="evstake"><b${ev.status==='complete'?' style="color:var(--ink)"':''}>${mjMoney(Number(ev.buy_in)*players.length)}</b>
+        <span>The pot · ${ev.pot_split==='wta'?'winner takes all':'60/25/15'} · best round each week</span></div>`;
     }
   }
 
@@ -25122,41 +25565,53 @@ function renderEvent(){
     const rpriors=(pos>0 ? rchain.slice(0, pos) : rchain).filter(r=>r.status==='complete');
     let aW=0,bW=0;
     rpriors.forEach(r=>{ if(r.winner_shared){aW+=.5;bW+=.5;} else if(r.winner_slot===0)aW++; else if(r.winner_slot===1)bW++; });
-    const series = aW===bW ? `all square ${evHalf(aW)}–${evHalf(bW)}`
-      : aW>bW ? `${esc(A.name)} hold the Ryder ${evHalf(aW)}–${evHalf(bW)}`
-              : `${esc(B.name)} hold the Ryder ${evHalf(bW)}–${evHalf(aW)}`;
+    const hi = Math.max(aW,bW), lo = Math.min(aW,bW), rec = `${evHalf(hi)}–${evHalf(lo)}`;
+    const leader = aW>bW ? A.name : bW>aW ? B.name : null;
+    const series = leader ? `${esc(leader)} hold the Ryder ${rec}` : `all square ${rec}`;
     const last=rpriors[rpriors.length-1]||null;
-    const hold = (ev.status!=='complete' && last)
-      ? (last.winner_shared ? ' · the cup is shared'
-         : last.winner_slot===0 ? ` · ${esc(A.name)} hold it`
-         : last.winner_slot===1 ? ` · ${esc(B.name)} hold it` : '')
-      : '';
+    /* THE HOLDER IS SAID ONCE (owner C, category C): "Fixture Hawks hold the
+       Ryder 1–0 · Fixture Hawks hold it" was one fact twice. The holder and
+       the record ride one clause when they agree, and both are named only
+       when they do not (a shared cup, or a series all square). */
+    let line = series;
+    if(ev.status!=='complete' && last){
+      const holder = last.winner_shared ? null : last.winner_slot===0 ? A.name : last.winner_slot===1 ? B.name : null;
+      if(last.winner_shared) line = `${series} · the cup is shared`;
+      else if(holder && holder===leader) line = `${esc(holder)} hold it, ${rec}`;
+      else if(holder) line = `${series} · ${esc(holder)} hold it`;
+    }
     /* gold is EARNED, and a series in progress has earned nothing (D-6) */
-    if(pos>0) html+=`<p class="fine" style="padding:8px 0 0">The ${nthUp(pos).toLowerCase()} Ryder · ${series}${hold}</p>`;
+    if(pos>0) main+=`<p class="fine evseries" style="padding:8px 0 0">The ${nthUp(pos).toLowerCase()} Ryder · ${line}</p>`;
   }
   if(ev.status==='complete'){
     /* D62: the rematch tap — benches re-invited, series line follows */
-    html+=`<div style="margin:2px 0 8px"><button class="btn dark" style="width:100%" onclick="window.ryderRunBack()">Run it back</button></div>`;
+    main+=`<div style="margin:12px 0 8px"><button class="btn dark" style="width:100%" onclick="window.ryderRunBack()">Run it back</button></div>`;
   }
 
   /* how it scores — everyone sees the rule, not just the organizer */
-  html += `<p class="fine" style="padding:0 0 6px">${P>0
+  main += `<p class="fine" style="padding:0 0 6px">${P>0
     ? `Each week pairs everyone 1‑on‑1; the best round that week against your playing HCP wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
     : `Each week pairs everyone 1‑on‑1; the best round that week against your playing HCP wins the point, a tie splits it. Add golfers to both teams to set the target.`}</p>`;
 
   /* organizer controls — the event's creator runs the roster + sessions */
   const meU=window.CS?.user?.id, iAmOrg = ev.created_by===meU;
-  /* the opt-in taunt (batch-3 #17): a standing target push must be CHOSEN */
+  /* the opt-in taunt (batch-3 #17): a standing target push must be CHOSEN.
+     It names this week's opponent — "Tell me when he posts" assumed a gender
+     the product has no business assuming (category C, critique-B P2) */
   const meP=players.find(p=>p.profile_id===meU);
   if(meP && ev.status!=='complete'){
-    html+=`<div style="margin:10px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">${meP.notify_target?'Mute the taunts':'Tell me when he posts'}</button>
+    const myDuel = openS ? duels.find(d=>d.session_id===openS.id && (d.a_player===meP.id || d.b_player===meP.id)) : null;
+    const opp = myDuel ? pById(myDuel.a_player===meP.id ? myDuel.b_player : myDuel.a_player) : null;
+    const oppFirst = opp && opp.name && opp.name!=='—' ? String(opp.name).trim().split(/\s+/)[0] : null;
+    const ask = oppFirst ? `Tell me when ${esc(oppFirst)} posts` : 'Tell me when my opponent posts';
+    main+=`<div style="margin:10px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">${meP.notify_target?'Mute the taunts':ask}</button>
       <p class="fine" style="padding:4px 0 0">${meP.notify_target?'You hear it the moment your opponent posts.':'Nothing pings you until you ask for it.'}</p></div>`;
   }
   const unassigned = players.filter(p=>!p.team_id);
   if(iAmOrg){
-    html+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Invite golfers</button></div>`;
+    main+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Invite golfers</button></div>`;
     if(unassigned.length){
-      html+=`<div class="eyebrow">Unassigned</div>`+unassigned.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
+      main+=`<div class="eyebrow">Unassigned</div>`+unassigned.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
         <div class="tt"><b>${esc(p.name)}</b></div>
         <span style="display:flex;gap:6px;flex:none">
           <button class="mini" onclick="window.ryderAssign('${p.id}','${A.id}')">→ ${esc(A.name)}</button>
@@ -25167,15 +25622,29 @@ function renderEvent(){
 
   /* sessions, newest first */
   /* S5-02: before anything closes, Session 1 is the story — read top-down.
-     Once results exist, newest-first puts the live session on top. */
+     Once results exist, newest-first puts the live session on top.
+     A CLOSED WEEK IS ONE LINE (craft H): its result, with its clashes behind
+     the line, so a finished week no longer runs the length of the room
+     before a roster appears. The open week — the one still being played —
+     stays open. */
   const anyClosed = sessions.some(s=>s.status==='closed');
   sessions.slice().sort((a,b)=> anyClosed ? b.session_no-a.session_no : a.session_no-b.session_no).forEach(s=>{
     const ds=duels.filter(d=>d.session_id===s.id);
     const d0=new Date(s.opens_on+'T00:00:00'), d1=new Date(s.closes_on+'T00:00:00');
     const when=`${MOS[d0.getMonth()]} ${d0.getDate()} – ${MOS[d1.getMonth()]} ${d1.getDate()}`;
-    /* a section names its count ONCE, in the slot beside the rule (16A.2) */
-    html+=`<div class="evsess"><div class="evsesshd">Week ${s.session_no} · ${when}<i></i>${s.status}</div>`;
-    if(!ds.length){ html+=`<div class="fine" style="padding:2px 0">Pairings not set.</div>`; }
+    const closed = s.status==='closed';
+    let wa=0, wb=0;
+    ds.forEach(d=>{ if(d.result==='a') wa++; else if(d.result==='b') wb++; else if(d.result==='halve'){ wa+=.5; wb+=.5; } });
+    const result = !ds.length ? 'No pairings'
+      : wa===wb ? `Halved ${evHalf(wa)}–${evHalf(wb)}`
+      : `${esc(wa>wb?A.name:B.name)} ${evHalf(Math.max(wa,wb))}–${evHalf(Math.min(wa,wb))}`;
+    let body='';
+    if(!ds.length){ body+=`<div class="fine" style="padding:2px 0">Pairings not set.</div>`; }
+    else {
+      /* §16A.3 · the figures under each pairing are the round against each
+         golfer's playing HCP, higher winning — said once over the column */
+      body+=`<div class="evfighd cs-agate-s">Round vs playing HCP · higher wins</div>`;
+    }
     const waiting=[];   /* the nag list: who hasn't posted in an open session */
     ds.forEach(d=>{
       const a=pById(d.a_player), b=pById(d.b_player);
@@ -25206,52 +25675,80 @@ function renderEvent(){
       /* the two figures sit under their OWN names — the single 11px chip in a
          fourth column is what made the score of a live competition smaller
          than the label above it. Colour is never the only channel: the result
-         is the WORD and the loser's tone. */
+         is the WORD and the loser's tone. A figure nobody has posted says so
+         in words ("—" read as a value). */
       const half=(pvi||'').split(' / ');
-      const cell=(v,cls)=>v===undefined?'' :`<span class="${cls}${v==='—'||v==='–'?' none':''}">${v||''}</span>`;
-      const dsc=(p,me)=>`<span class="d" style="background:${csPigment(p.profile_id||p.id)}">${window.mkr?.(p.marker||'saguaro')||''}</span>`;
-      html+=`<div class="evclash${pvRose?' pvrise':''}">
-        <div class="top">${dsc(a)}<span class="nm a${bw?' lost':''}">${esc(a.name)}</span>
+      const none = closed ? 'No round' : 'Not yet';
+      const cell=(v,cls)=>v===undefined?'' : (v==='—'||v==='–')
+        ? `<span class="${cls} none cs-agate-s">${none}</span>` : `<span class="${cls}">${v||''}</span>`;
+      const dsc=(p)=>`<span class="d" style="background:${csPigment(p.profile_id||p.id)}">${window.mkr?.(p.marker||'saguaro')||''}</span>`;
+      /* one spoken sentence per pairing, every name whole (the board may show
+         initials), the result as a verb and each figure named */
+      const spoken = pend || mid==='vs' ? 'versus' : hv ? 'halved with' : aw ? 'beat' : 'lost to';
+      const figSaid = v => (v===undefined || v==='') ? '' : (v==='—'||v==='–') ? none.toLowerCase() : v;
+      const said = `${a.name} ${spoken} ${b.name}` + (pvi ? `, ${figSaid(half[0])} to ${figSaid(half[1])}` : '');
+      body+=`<div class="evclash${pvRose?' pvrise':''}" role="group" aria-label="${esc(said)}">
+        <div class="top" aria-hidden="true">${dsc(a)}<span class="nm a${bw?' lost':''}">${esc(shown(a.name))}</span>
           <span class="mid">${mid}</span>
-          <span class="nm b${aw?' lost':''}">${esc(b.name)}</span>${dsc(b)}</div>
-        ${pvi?`<div class="figs">${cell(half[0],'a')}${cell(half[1],'b')}</div>`:''}
+          <span class="nm b${aw?' lost':''}">${esc(shown(b.name))}</span>${dsc(b)}</div>
+        ${pvi?`<div class="figs" aria-hidden="true">${cell(half[0],'a')}${cell(half[1],'b')}</div>`:''}
       </div>`;
     });
     if(s.status==='open' && waiting.length){
-      const d1=new Date(s.closes_on+'T00:00:00');
-      const days=Math.max(0, Math.round((d1-new Date().setHours(0,0,0,0))/864e5));
-      html+=`<div class="fine" style="padding:4px 0 0">Still to post: <b>${waiting.map(esc).join(', ')}</b> · ${days===0?'closes tonight':days+'d left'}.</div>`;
+      const d1b=new Date(s.closes_on+'T00:00:00');
+      const days=Math.max(0, Math.round((d1b-new Date().setHours(0,0,0,0))/864e5));
+      body+=`<div class="fine" style="padding:4px 0 0">Still to post: <b>${waiting.map(esc).join(', ')}</b> · ${days===0?'closes tonight':days+(days===1?' day':' days')+' left'}.</div>`;
     }
     if(iAmOrg){
-      if(!ds.length) html+=`<button class="mini" onclick="window.ryderPair('${s.id}')" style="margin-top:4px">Generate pairings</button>`;
-      else if(s.status!=='closed') html+=`<button class="mini" onclick="window.ryderResolve('${s.id}')" style="margin-top:4px">Score this week</button>`;
+      if(!ds.length) body+=`<button class="mini" onclick="window.ryderPair('${s.id}')" style="margin-top:4px">Generate pairings</button>`;
+      else if(s.status!=='closed') body+=`<button class="mini" onclick="window.ryderResolve('${s.id}')" style="margin-top:4px">Score this week</button>`;
     }
-    html+=`</div>`;
+    /* a section names its count ONCE, in the slot beside the rule (16A.2) — and
+       a state is not a count, so "open" rides the label */
+    main += closed
+      ? `<details class="evsess evweek"><summary class="evsesshd"><span>Week ${s.session_no} · ${when}</span><i></i><span class="evwk-res">${result}</span></summary>${body}</details>`
+      : `<div class="evsess"><div class="evsesshd"><span>Week ${s.session_no} · ${when}${s.status==='open'?' · open':''}</span><i></i></div>${body}</div>`;
   });
 
-  /* rosters with each player's duel record */
+  /* THE ROSTERS: one ruled table a side, its W–L–H head said once (owner P,
+     craft T, category Sp) — eight bordered cards each repeated the mono legend
+     "1-0-1 · wins · losses · halved". A captain is a role, a quiet agate word,
+     never the earned gold (D359). */
   const recOf=pid=>{ let w=0,l=0,h=0;
     duels.forEach(d=>{ if(d.result==='pending') return;
       if(d.a_player===pid){ d.result==='a'?w++:d.result==='b'?l++:h++; }
       else if(d.b_player===pid){ d.result==='b'?w++:d.result==='a'?l++:h++; } });
-    return `${w}-${l}-${h}`; };
+    return [w,l,h]; };
+  let aside='';
   [A,B].forEach(t=>{
     const roster=players.filter(p=>p.team_id===t.id).sort((x,y)=>x.seed-y.seed);
-    html+=`<div class="evsesshd" style="margin-top:18px">${esc(t.name)}<i></i>${roster.length}</div>
-      <div class="rule" style="height:3px; width:44px; background:${SQ[(t.color??0)%4]}; margin:0 0 8px"></div>`;
-    html+=roster.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
-      <div class="tt"><b>${esc(p.name)}${p.role==='captain'?' · <span style="color:var(--gold)">CAPTAIN</span>':''}</b>
-      <small>${recOf(p.id)} · wins · losses · halved</small></div></div>`).join('') || '<div class="fine" style="padding:2px 0">No one assigned yet.</div>';
+    aside+=`<section class="evroster" aria-label="${esc(t.name)}">
+      <div class="evsesshd"><span>${esc(t.name)}</span><i></i><span>${roster.length}</span></div>
+      <div class="evroster-rule" style="background:${SQ[(t.color??0)%4]}"></div>`;
+    aside+= roster.length
+      ? `<div class="evrrow evrrow-hd cs-agate-s" aria-hidden="true"><span></span><span></span><span>W</span><span>L</span><span>H</span></div>`
+        + roster.map(p=>{ const [w,l,h]=recOf(p.id);
+          return `<div class="evrrow" aria-label="${esc(`${p.name}${p.role==='captain'?', captain':''}: ${w} won, ${l} lost, ${h} halved`)}">
+            <span class="d" style="background:${csPigment(p.profile_id||p.id)}" aria-hidden="true">${window.mkr?.(p.marker||'saguaro')||''}</span>
+            <span class="nm" aria-hidden="true"><b class="cs-social">${esc(p.name)}</b>${p.role==='captain'?'<small class="cs-agate-s">Captain</small>':''}</span>
+            <span class="cs-col-m" aria-hidden="true">${w}</span><span class="cs-col-m" aria-hidden="true">${l}</span><span class="cs-col-m" aria-hidden="true">${h}</span></div>`; }).join('')
+      : '<div class="fine" style="padding:2px 0">No one assigned yet.</div>';
+    aside+=`</section>`;
   });
 
-  /* the event board: the engine's story — pairings, results, the cup */
+  /* the event board: the engine's story — pairings, results, the cup. On
+     rules, in the sentence face; the gold stripe and the ◆ dingbat were a
+     metal and a glyph on routine notes (D359, §5.2) */
   const posts=E.posts||[];
   if(posts.length){
-    html+=`<div class="eyebrow" style="margin-top:14px">The board</div>`;
-    html+=posts.map(p=>`<div class="sysrow">◆ ${esc(easeCaps(p.body||''))}</div>`).join('');
+    aside+=`<section class="evboard"><div class="evsesshd"><span>The board</span><i></i></div>`
+      + posts.map(p=>`<p class="evpost cs-body-s">${esc(easeCaps(p.body||''))}</p>`).join('') + `</section>`;
   }
 
-  el.innerHTML=html;
+  /* THE DESK'S OWN SHAPE (D234, §14.1): the plate across the body, the weeks
+     in the reading column, the rosters and the board in the 340 aside — it
+     was one column 960 wide with a golfer's figure ~550px from their name */
+  el.innerHTML=`<div class="evroom">${card}<div class="evmain">${main}</div><aside class="evaside">${aside}</aside></div>`;
 }
 window.renderEvent=renderEvent;
 
@@ -25301,12 +25798,16 @@ function renderMajorRoom(el, E){
         : 'FORMING')
     : daysLeft>0 ? `LIVE · ${daysLeft}D LEFT` : daysLeft===0 ? 'THE FINAL DAY' : 'WAITING TO SETTLE';
 
+  /* D359 · the metals mean one thing each: a live window is ember (the
+     competition signal), the jug won is the one gold object, and a length or
+     a lineage is neither — they sat in gold on the room's head */
+  const chipTone = complete && champ ? 'var(--gold)' : (ev.status==='live' && daysLeft!=null && daysLeft>=0) ? 'var(--brand)' : 'var(--mut)';
   let html=`<div class="eyebrow" style="margin-top:0; display:flex; align-items:center">${esc(ev.name)}
-    <span class="fine" style="margin-left:auto; padding:0; color:var(--gold)">${statusChip}</span></div>
+    <span class="fine" style="margin-left:auto; padding:0; color:${chipTone}">${statusChip}</span></div>
     <div class="card evscore">
       <div style="text-align:center; padding:4px 0 2px">
         <div style="font-size:34px; line-height:1">🏆</div>
-        <div style="font-family:var(--mono); font-size:13px; letter-spacing:.14em; color:var(--gold); margin-top:6px">A MAJOR · ${days} DAYS</div>
+        <div class="cs-agate" style="color:var(--mut); margin-top:6px">A Major · ${days} days</div>
         <div class="fine" style="padding:4px 0 0">${when} · ${board.length} PLAYING${board.length!==contendersIn?` · ${board.length-contendersIn} NOT COUNTING THIS YEAR`:''}</div>
         <div class="fine" style="padding:2px 0 0">${buyIn>0
           ? `BUY-IN ${mjMoney(buyIn)} · POT ${mjMoney(pot)} · ${ev.pot_split==='wta'?'WINNER TAKES ALL':'60 / 25 / 15'}`
@@ -25320,7 +25821,7 @@ function renderMajorRoom(el, E){
   const priors=chain.filter(r=>r.status==='complete' && r.event_id!==ev.id && r.champion);
   const lastChamp=priors.length?priors[priors.length-1]:null;
   if(chain.length>1 && myPos>0){
-    html+=`<div class="fine" style="text-align:center; padding:0 0 6px; color:var(--gold)">THE ${nthUp(myPos)} ANNUAL${lastChamp&&!complete?` · ${esc(lastChamp.champion).toUpperCase()} DEFENDS`:''}</div>`;
+    html+=`<div class="fine" style="text-align:center; padding:0 0 6px; color:var(--mut)">The ${nthUp(myPos).toLowerCase()} annual${lastChamp&&!complete?` · ${esc(lastChamp.champion)} defends`:''}</div>`;
   }
 
   html += `<p class="fine" style="padding:0 0 6px">Your best 18-hole card inside the window, scored against your playing HCP. Post as many as the weekend allows — the best one stands.</p>`;
@@ -25420,13 +25921,16 @@ function renderMajorRoom(el, E){
     </div>
   </div>`;
 
-  /* the event board: the window narrating itself */
+  /* the event board: the window narrating itself, on rules (as the Ryder's) */
+  let aside='';
   if(posts.length){
-    html+=`<div class="eyebrow" style="margin-top:14px">The board</div>`;
-    html+=posts.map(p=>`<div class="sysrow">◆ ${esc(easeCaps(p.body||''))}</div>`).join('');
+    aside+=`<section class="evboard"><div class="evsesshd"><span>The board</span><i></i></div>`
+      + posts.map(p=>`<p class="evpost cs-body-s">${esc(easeCaps(p.body||''))}</p>`).join('') + `</section>`;
   }
 
-  el.innerHTML=html;
+  /* the desk's own shape (D234): the board of cards in the reading column,
+     the window's story in the aside */
+  el.innerHTML=`<div class="evroom"><div class="evmain">${html}</div><aside class="evaside">${aside}</aside></div>`;
   el.querySelectorAll('[data-mjrnd]').forEach(x=>x.addEventListener('click',()=>{
     if(x.dataset.mjrnd && window.openRoundSheet) window.openRoundSheet(x.dataset.mjrnd);
   }));
@@ -26037,9 +26541,13 @@ function showProfileGate(){
   const dn = CS.profile?.display_name || '';
   if(dn && !csIsDerivedName(dn, CS.user?.email) && !$('#pfName').value) $('#pfName').value = dn;
   /* the handle DEFAULTS from the name (`csHandleFromName`, the phone's own
-     derivation), and the golfer can still edit it */
+     derivation), and the golfer can still edit it. NEVER FROM THE EMAIL
+     (owner M, critique-B P2): with the name empty it fell back to the address,
+     domain and all — "@averyfixtureexamplei is available ✓" — the first thing
+     the gate showed a stranger-visible handle (D394) made from their inbox.
+     With no name there is no suggestion until one is typed. */
   if(!$('#pfHandle').value){
-    const sug = CS.profile?.handle || csHandleFromName($('#pfName').value || CS.user?.email || '');
+    const sug = CS.profile?.handle || csHandleFromName($('#pfName').value || '');
     if(sug) $('#pfHandle').value = '@' + sug;
     /* L-24 · a handle the golfer already HAS is theirs: editing the name never
        overwrites it. Only a derived suggestion keeps following the name. */
@@ -26330,18 +26838,20 @@ document.getElementById('obCrewGo')?.addEventListener('click', () => leaveCrewSt
 /* D82: the guide sheets — the orientation's content, reopenable forever.
    Copy is grounded in the shipped labels; the model taught here must never
    drift from the doors that teach themselves.
-   Y-05 · verbatim with the phone's `GuideCopy.sheets`, with ONE deliberate
-   exception: the Clubhouse switcher. The phone pages between leagues by swipe
-   (D203); this client still switches with the chips up top (renderClubGroups),
-   and a door sentence names the door THAT client ships. Mirroring "swipe
-   sideways" here would write a fresh lie. Everything else is word for word. */
+   Y-05 · verbatim with the phone's `GuideCopy.sheets`, except where a
+   sentence names a door, because a door sentence names the door THAT client
+   ships: the Clubhouse switcher (the phone swipes, D203; this client switches
+   with the chips up top), the Play tab (the phone's ⊕ sits mid-bar and takes a
+   long press; this client's is a tab — it said "Record", a place the
+   navigation does not have, critique-B P2), and You's Card & settings (the
+   phone's gear up top; this page's door). Everything else is word for word. */
 const GUIDE = {
   places: ['The five places','FOUR PLACES AND ONE VERB', `
     <p class="fine" style="padding:0 0 10px"><b>Home</b> is what is happening and what you can do about it — your four numbers up top, then the one thing worth your attention, then your buddies' rounds.</p>
     <p class="fine" style="padding:0 0 10px"><b>Compete</b> is everything you are playing for, side by side: your seasons, your weekends and your matches. Finished ones fold under the list rather than disappearing.</p>
-    <p class="fine" style="padding:0 0 10px"><b>Record</b> is a verb rather than a place: add a round you played, score one live, or put a tee time up.</p>
+    <p class="fine" style="padding:0 0 10px"><b>Play</b> is a verb rather than a place: add a round you played, score one live, or put a tee time up.</p>
     <p class="fine" style="padding:0 0 10px"><b>Golfers</b> is the people — anybody waiting on you, your buddies, and the ones you play with but have not added yet.</p>
-    <p class="fine" style="padding:0 0 12px"><b>You</b> is your card, your record and your trophies. The gear up top opens Card &amp; settings, which runs everything else.</p>`],
+    <p class="fine" style="padding:0 0 12px"><b>You</b> is your card, your record and your trophies. Its Card &amp; settings door runs everything else.</p>`],
   games: ['Seasons, matches and weekends','WHAT YOU CAN PLAY FOR', `
     <p class="fine" style="padding:0 0 10px"><b>A season.</b> Weeks or months, squads or solo, every round you post counts toward a table, and the endgame settles it: a Cup Final or the points table.</p>
     <p class="fine" style="padding:0 0 10px"><b>A Ryder or a Major.</b> A weekend or a few weeks, its own little trophy: the Ryder (two teams, one clash a week), or a Major (one window, every card on one board, one name on the jug).</p>
@@ -26355,6 +26865,14 @@ const GUIDE = {
     <p class="fine" style="padding:0 0 10px"><b>An invite link</b> carries a league's code — whoever opens it reviews the league and joins if they're in.</p>
     <p class="fine" style="padding:0 0 12px"><b>A claim link</b> hands one round to a guest you played with, so the round posts to their rounds. No league, no buddy — just the round.</p>`],
 };
+/* the guide's rows are buttons to a keyboard too (role="button", tabindex 0):
+   Enter and Space open them through the same click path */
+document.addEventListener('keydown', (e) => {
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const row = e.target && e.target.closest && e.target.closest('#youGuide [data-guide]');
+  if(!row || row !== e.target) return;
+  e.preventDefault(); row.click();
+});
 /* D177 · the guide moved into the Card & settings SHEET, which is built at
    open time — a load-time getElementById would bind to nothing. Delegate from
    the document so it works wherever the rows are rendered. */
@@ -26431,8 +26949,8 @@ $('#pfName')?.addEventListener('input', () => {
     document.querySelectorAll('#pfMarkers [data-mk]').forEach(b => {
       const on = b.dataset.mk === pfMarker;
       b.setAttribute('aria-checked', String(on));
-      b.style.borderColor = on ? 'var(--brand)' : '';
-      b.style.color = on ? 'var(--brand)' : '';
+      b.style.borderColor = on ? 'var(--act)' : '';   /* the grid's first paint is act (D359); this repaint was ember */
+      b.style.color = on ? 'var(--ink)' : '';
     });
   }
   pfCheckHandle();
@@ -26460,20 +26978,10 @@ function refreshWhoChip(){
     [p.handle ? '@'+p.handle : null, p.city, p.home_course].filter(Boolean).join(' · ');
   if($('#youAnchor')){
     const since = estSince(p.created_at);
-    if(p.ghin_number){
-      $('#youAnchor').textContent = ['GHIN '+p.ghin_number, since].filter(Boolean).join(' · ');
-    } else {
-      /* pilot: a new golfer went looking for GHIN at account creation.
-         Creation stays lean (principle 2) — the card offers it quietly here
-         instead, landing on the same field they'd have wanted at signup. */
-      $('#youAnchor').innerHTML = (since ? esc(since)+' · ' : '')
-        + '<a href="#" id="youAddGhin" style="color:inherit; text-decoration:underline; text-underline-offset:2px">add your GHIN</a>';   /* the credential is a dark object in both themes: the folio's own ink, underlined */
-      $('#youAddGhin')?.addEventListener('click', e => {
-        e.preventDefault(); openProfileHub();
-        setTimeout(() => { const g=document.getElementById('phGhin');
-          if(g){ g.scrollIntoView({block:'center'}); g.focus({preventScroll:true}); } }, 60);
-      });
-    }
+    /* the folio is the object's serial, not a to-do (critique-B P3, §6.5): the
+       "add your GHIN" prompt that sat in it moved to where the field is —
+       Card & settings, one door down this page */
+    $('#youAnchor').textContent = [p.ghin_number ? 'GHIN '+p.ghin_number : null, since].filter(Boolean).join(' · ');
   }
   /* IOS-047 · the figure strip. **A slot with no figure is ABSENT** - the
      index cell is dropped while the number is still building rather than
@@ -26494,7 +27002,7 @@ function refreshWhoChip(){
     const rounds = known ? Number(window.career.rounds) : null;
     const cells = [];
     if(p.index_current != null) cells.push([fmtIdx(p.index_current), 'Handicap index']);
-    cells.push([rounds == null ? '\u2014' : String(rounds), 'Rounds']);
+    cells.push([rounds == null ? '\u2014' : String(rounds), rounds === 1 ? 'Round' : 'Rounds']);   /* "1 ROUNDS" on every first card */
     figs.innerHTML = cells.map(([v, l]) =>
       `<div class="cfig"><b>${esc(v)}</b><small>${esc(l)}</small></div>`).join('')
       + `<span class="crule" style="width:${(cells.length * 33.333).toFixed(2)}%"></span>`;
@@ -26716,8 +27224,10 @@ async function renderRivalries(){
       r.meetings?`${r.meetings} week${r.meetings===1?'':'s'} head-to-head`:null,
       dTot?`Ryder clashes ${r.duel_wins}–${r.duel_losses}${r.duel_halves?'–'+r.duel_halves:''}`:null,
     ].filter(Boolean).join(' · ');
-    /* M3: a christened rivalry wears its name in gold, above the opponent */
-    const named=r.rivalry_name?`<span class="cs-agate-s" style="color:var(--gold); display:block; margin-bottom:2px">${esc(r.rivalry_name)}</span>`:'';
+    /* M3: a christened rivalry wears its name above the opponent — in the
+       agate role and `mut`: a nickname is not a trophy, and gold means earned
+       (D359; critique-B P2) */
+    const named=r.rivalry_name?`<span class="yriv-name cs-agate-s">${esc(r.rivalry_name)}</span>`:'';
     /* DD-17 · **a losing record is set in the same ink as a winning one.**
        The `.rivrec` tiers rendered a trailing record in the dim tier and a
        leading one in mint — the app greying out your losses, with colour as
@@ -26725,13 +27235,14 @@ async function renderRivalries(){
        survives colour blindness (§16.4). And the `→` is gone with every other
        typed arrow: a row whose whole surface is the target carries no chevron
        (§D-8, LINT-13). */
-    return `<div class="prow" data-tc="${r.opponent}" role="button" tabindex="0">
-      <span class="pmk">${mkr(r.marker||'saguaro')}</span>
-      <span class="pmeta">${named}<b class="cs-name">${esc(r.display_name||'—')}</b><small class="cs-agate-s is-phrase">${facets}</small></span>
-      <span style="display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex:none;">
-        <span class="cs-fig-s" style="color:var(--ink)">${rec}</span>
-        <span class="cs-agate-s" style="color:var(--mut)">${csLeadFor(r.lead)}</span>
-      </span></div>`;
+    /* A ROW ON A RULE, NOT A CARD (detector TP-22, craft Sp, owner P): the
+       rivalry rows were bordered `.prow` cards whose content sat 0px from their
+       own left border, under hairline lists — two spacing systems on one page.
+       The opponent is a face (their pigment and mark), the record a figure. */
+    return `<div class="yriv" data-tc="${r.opponent}" role="button" tabindex="0">
+      <span class="yriv-mk">${window.face ? window.face(r.opponent, r.marker, 30) : mkr(r.marker||'saguaro')}</span>
+      <span class="yriv-txt">${named}<b class="cs-social">${esc(r.display_name||'—')}</b><small class="cs-agate-s is-phrase">${facets}</small></span>
+      <span class="yriv-rec"><span class="cs-fig-s">${rec}</span><span class="cs-agate-s">${csLeadFor(r.lead)}</span></span></div>`;
   }).join('');
 }
 /* THE MEETING TAPE — chart 5 (§9.10), and the head-to-head's signature. One
@@ -26957,9 +27468,13 @@ function csCredentialHtml(profileId, card){
      ships a dingbat, which LINT-12 fails; the slot takes the words and the
      ROLE does the uppercasing. */
   const slot = (profileId && profileId === window.FOUNDER_ID) ? 'Founder' : null;
-  const rec0 = (card.recent || [])[0];
-  const credit = photo && rec0 && rec0.played_on
-    ? `${String(p.display_name || '').split(' ')[0] || 'Their'}’s round · ${csDayToken(rec0.played_on)}` : '';
+  /* A PROFILE PHOTO IS NOT A ROUND'S (critique-B P1, 2026-09-28). The plate
+     here is the golfer's own photograph (`avatarUrl`), and it was credited to
+     the newest round on the card — "BLAKE'S ROUND · SAT", a provenance the
+     product made up. §10.1 keeps a credit for a round photograph, from that
+     round; a golfer's own picture carries none. The phone's twin still credits
+     it (PersonPage.swift `credit(_:name:)`). */
+  const credit = '';
   const seed = p.home_course || String(profileId);
   const plate = photo
     ? `<img src="${esc(photo)}" alt="">`
@@ -27912,6 +28427,20 @@ window.openPeoplePicker = openPeoplePicker;
 document.addEventListener('click', e => {
   if(e.target && e.target.id === 'phJoin'){ if(typeof closeSheet === 'function') closeSheet(); window.openJoinSheet?.(); }
 });
+/* A SETTING IS A SWITCH (W2 2026-09-28): a row, its name on the left and its
+   state on the right, `role="switch"` + `aria-checked` — the phone's Toggle
+   row. They were text buttons whose only state was a trailing word. */
+function phSwitch(id, label, sub){
+  return `<button type="button" class="phsw" role="switch" id="${id}" aria-checked="false" aria-labelledby="${id}L"${sub ? ` aria-describedby="${id}D"` : ''}>
+    <span class="phsw-t"><b id="${id}L">${esc(label)}</b>${sub ? `<small id="${id}D">${esc(sub)}</small>` : ''}</span>
+    <span class="phsw-k" aria-hidden="true"></span></button>`;
+}
+function phSwitchSet(el, on){ if(el) el.setAttribute('aria-checked', on ? 'true' : 'false'); }
+/* D396 · what deleting an account does, said before the button, verbatim with
+   the phone (CardAndSettingsScreen): the words and the photographs go and the
+   shared links stop, the rounds stay so nobody else's table breaks. The web's
+   sentence named one photo and said nothing of posts, comments or links. */
+const CS_DELETE_ACCOUNT = 'This can\u2019t be undone. Your name, email and profile are removed, your posts and comments are cleared, your shared links stop working, and your photos are queued for removal. Notifications stop and your login is closed for good. Rounds you\u2019ve posted stay in the record so nobody else\u2019s standings or pot break \u2014 you\u2019ll just show as \u201cFormer member\u201d.';
 function openProfileHub(){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
   const p = CS.profile;
@@ -27947,12 +28476,13 @@ function openProfileHub(){
     </div>
     <div class="frow" style="margin-top:10px">
       <div><label class="f" for="phHandle">Handle · moves once / 60 days</label><input class="f" id="phHandle" style="font-family:var(--sans)"></div>
-      <div><label class="f">Findable by</label><div id="phDisc" style="display:flex; gap:6px; margin-top:6px;">
-        <button class="mini" data-disc="everyone">All</button>
-        <button class="mini" data-disc="friends">Buddies</button>
-        <button class="mini" data-disc="nobody">Nobody</button>
+      <div><label class="f" id="phDiscL">Findable by</label><div id="phDisc" role="group" aria-labelledby="phDiscL" style="display:flex; gap:6px; margin-top:6px;">
+        <button class="mini" data-disc="everyone" aria-pressed="false">All</button>
+        <button class="mini" data-disc="friends" aria-pressed="false">Buddies</button>
+        <button class="mini" data-disc="nobody" aria-pressed="false">Nobody</button>
       </div></div>
     </div>
+    <p class="fine" id="phDiscSaid" style="padding-left:0"></p>
     <label class="f" for="phGhin" style="display:block; margin-top:8px">GHIN # · optional</label>
     <input class="f" id="phGhin" inputmode="numeric" placeholder="e.g. 1234567" style="font-family:var(--sans); max-width:180px">
     <p class="fine" style="padding-left:0">A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.</p>
@@ -27971,39 +28501,63 @@ function openProfileHub(){
 
     </div>
     <div id="phPaneSettings" style="display:none">
-    <div class="eyebrow" style="margin-top:0">Notifications</div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button class="mini" id="phPushTog">Enable on this device</button>
-      <button class="mini" id="phRoundsTog">Round posts: —</button>
-      <button class="mini" id="phChatTog">Chat: —</button>
-      <button class="mini" id="phMailTog">Season email: —</button>
+    <!-- W2 2026-09-28 · WHAT A GOLFER CHANGES OFTEN COMES FIRST, THE ACCOUNT
+         AT THE FOOT (owner D, craft H, category H). The preferences were text
+         buttons carrying their state as a word ("Round posts: ON"), in ragged
+         rows beside an action ("Enable on this device"); each is a real switch
+         now — a row, its name on the left and its state on the right, with
+         role="switch" and aria-checked (owner T/M, craft C, category C,
+         critique-B P2). Every notification lives here: the three conversation
+         switches that only the inbox sheet carried join them (owner C). -->
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:0">Notifications</div>
+    <div class="phsws" id="phNotify">
+      ${phSwitch('phPushTog', 'This device', 'Notifications on this browser')}
+      ${phSwitch('phRoundsTog', 'Round posts', 'When someone in your seasons posts a round')}
+      ${phSwitch('phChatTog', 'Chat', 'Messages on your seasons’ boards')}
+      ${phSwitch('phMailTog', 'Season email', 'The recap when a season ends')}
     </div>
-    <p class="fine" style="padding-left:0">Milestones, results and month closes always come through. Round posts and chat each have their own switch.</p>
+    <div class="phsws" id="phTalk" hidden></div>
+    <p class="fine" style="padding-left:0">Milestones, results and month closes always come through.</p>
 
     <!-- R9 (S8) · the scan's yes, taken back where the other switches live -->
-    <div class="eyebrow" style="margin-top:20px">Scorecard scanning</div>
-    <button class="mini" id="phScanTog">${esc(CS_SCAN_CONSENT.setting)}: —</button>
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:20px">Scorecard scanning</div>
+    <div class="phsws">${phSwitch('phScanTog', CS_SCAN_CONSENT.setting, '')}</div>
     <p class="fine" style="padding-left:0">${esc(CS_SCAN_CONSENT.settingNote)}</p>
 
-    <div class="eyebrow" style="margin-top:20px">Appearance</div>
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:20px">Appearance</div>
     <div style="display:flex; gap:6px;" id="phTheme">
       <button class="mini" data-th="dark">Charcoal</button>
       <button class="mini" data-th="light">Light</button>
       <button class="mini" data-th="auto">Match device</button>
     </div>
 
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:24px">How it works</div>
+    <div id="youGuide" style="text-align:left; margin-bottom:14px">
+      <div class="check tap" data-guide="places" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>The five places</b><small>Home · Compete · Play · Golfers · You</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="games" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Seasons, matches and weekends</b><small>What you can play for</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="posting" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="buddies" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <div class="check tap" data-guide="scoring" role="button" tabindex="0" style="cursor:pointer"><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
+      <!-- owner H · "Tell us how it's going" is the app's, not the golfer's
+           card: it moved here from the You page -->
+      ${(typeof PILOT !== 'undefined' && PILOT) ? `<button type="button" class="check tap" id="phFeedback" style="width:100%; text-align:left; cursor:pointer"><div class="tt"><b>Tell us how it’s going</b><small>A line to the people who make this</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></button>` : ''}
+    </div>
+
     <!-- D183: free until a thousand golfers. Says what is true and promises
          nothing structural (D39) — no "at launch", no "the pilot" (D132). -->
-    <div class="eyebrow" style="margin-top:20px">Membership</div>
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:24px">Membership</div>
     <div class="byrow"><span>PLAN</span><b>FREE</b></div>
     <p class="fine" style="padding-left:0">Everything is free — every season, every match, every round. No trial, nothing to enter.</p>
 
-    <button class="btn dark" id="phOut" style="margin-top:16px">Sign out</button>
-
-    <div class="eyebrow" style="margin-top:24px">Your account</div>
-    <a href="#" id="phDelete" class="fine" style="color:var(--neg); padding-left:0; display:inline-flex; align-items:center; min-height:44px">Delete my account</a>
+    <div class="eyebrow" role="heading" aria-level="3" style="margin-top:24px">Your account</div>
+    <!-- §16A.5 · one primary per surface and the alternative is a link: Sign
+         out was a full-width outlined button, the loudest thing on the pane -->
+    <button type="button" class="phlink" id="phOut">Sign out of this browser</button>
+    <button type="button" class="phlink phlink-neg" id="phDelete">Delete my account</button>
     <div id="phDelConfirm" style="display:none; margin-top:8px">
-      <p class="fine" style="padding-left:0">This can't be undone. Your name, photo, email and profile are removed, notifications stop, and your login is closed for good. Rounds you've posted stay in the record so nobody else's standings or pot break — you'll just show as "Former member".</p>
+      <!-- D396 · the confirm says everything deletion does: the words and the
+           photos go, every share link is withdrawn, the rounds stay -->
+      <p class="fine" style="padding-left:0">${esc(CS_DELETE_ACCOUNT)}</p>
       <div style="display:flex; gap:8px; margin-top:10px">
         <button class="btn" id="phDelYes" style="background:var(--neg); color:var(--bg0); box-shadow:none; flex:1">Delete permanently</button>
         <button class="mini" id="phDelNo">Cancel</button>
@@ -28014,14 +28568,6 @@ function openProfileHub(){
          never shows once you're pinned + signed in). Stamped at deploy — the
          same __CS_VERSION__ substitution as the caption; NEVER hand-edit. -->
     <p class="fine" style="padding-left:0; margin-top:24px">Cup Season · v23 · __CS_VERSION__</p>
-    <div class="eyebrow">How it works</div>
-    <div id="youGuide" style="text-align:left; margin-bottom:14px">
-      <div class="check tap" data-guide="places" style="cursor:pointer"><span class="num">◱</span><div class="tt"><b>The five places</b><small>Home · Compete · Record · Golfers · You</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="games" style="cursor:pointer"><span class="num">⛳</span><div class="tt"><b>Seasons, matches and weekends</b><small>What you can play for</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="posting" style="cursor:pointer"><span class="num">✎</span><div class="tt"><b>Posting a round</b><small>Basic, live, and the scan</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="buddies" style="cursor:pointer"><span class="num">◆</span><div class="tt"><b>Buddies, invites and claims</b><small>Three different links, three jobs</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-      <div class="check tap" data-guide="scoring" style="cursor:pointer"><span class="num">◷</span><div class="tt"><b>How scoring works</b><small>How rounds become points</small></div><span class="fine" style="padding:0; color:var(--mut)">→</span></div>
-    </div>
     <p class="fine" style="padding-left:0; margin-top:6px"><a href="/legal.html#privacy" target="_blank" rel="noopener" style="color:var(--mut)">Privacy</a> · <a href="/legal.html#terms" target="_blank" rel="noopener" style="color:var(--mut)">Terms</a> · <a href="/legal.html#pot" target="_blank" rel="noopener" style="color:var(--mut)">The pot (legal)</a></p>
     </div>
   `);
@@ -28181,7 +28727,7 @@ function openProfileHub(){
   });
   $('#phDelNo')?.addEventListener('click', () => {
     $('#phDelConfirm').style.display = 'none';
-    $('#phDelete').style.display = 'inline-block';
+    $('#phDelete').style.display = '';
   });
   $('#phDelYes')?.addEventListener('click', async () => {
     const btn = $('#phDelYes'); btn.disabled = true; btn.textContent = 'Deleting…';
@@ -28198,17 +28744,32 @@ function openProfileHub(){
       toast(humanError(e, 'Could not delete the account.'));
     }
   });
+  /* the feedback door moved here from You (owner H) — the same handler */
+  $('#phFeedback')?.addEventListener('click', () => { closeSheet(); window.openFeedback?.(); });
 
-  /* discoverability: highlight current, tap to switch */
-  const discPaint = () => $('#phDisc').querySelectorAll('[data-disc]').forEach(b => {
-    const on = b.dataset.disc === (CS.profile?.discoverable || 'everyone');
-    b.style.borderColor = on ? 'var(--pos)' : '';
-    b.style.color = on ? 'var(--pos)' : '';
-  });
+  /* FINDABLE BY SAYS WHAT IT IS (owner R, critique-B P2): the chosen option is
+     the chosen pill with aria-pressed — as X19 made the marker and the
+     appearance — and the value is said in words under the row. It painted a
+     border `.mini` never draws, in `pos`, which is not a selection (D359). */
+  const DISC_SAID = { everyone:'Anyone signed in can find you by name or @handle.',
+    friends:'Only your buddies can find you.', nobody:'Nobody can find you by search.' };
+  const discPaint = () => {
+    /* the column is text with 'everyone' as its default; anything else (an old
+       payload, a fixture's boolean) reads as that default, so a choice is
+       always drawn */
+    const raw = CS.profile?.discoverable;
+    const cur = (typeof raw === 'string' && DISC_SAID[raw]) ? raw : 'everyone';
+    $('#phDisc').querySelectorAll('[data-disc]').forEach(b => {
+      const on = b.dataset.disc === cur;
+      b.classList.toggle('sel', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    const said = $('#phDiscSaid'); if(said) said.textContent = DISC_SAID[cur] || '';
+  };
   discPaint();
   $('#phDisc').querySelectorAll('[data-disc]').forEach(b => b.addEventListener('click', async () => {
     const { error } = await sb.rpc('set_discoverable', { p_mode: b.dataset.disc });
-    if(error) return toast(humanError(error, 'Could not update.'));
+    if(error) return toast(humanError(error, 'Could not change who can find you.'));
     CS.profile.discoverable = b.dataset.disc; discPaint();
   }));
 
@@ -28235,61 +28796,90 @@ function openProfileHub(){
     }));
   }
 
-  /* notifications: reflect current state, then toggle on tap */
+  /* notifications: each switch shows where it stands, and a tap that the
+     server refuses says what did not change and leaves the switch where it was */
   const pushBtn = $('#phPushTog'), chatBtn = $('#phChatTog'), roundsBtn = $('#phRoundsTog');
-  const chatLabel = () => { chatBtn.textContent = 'Chat: ' + ((CS.profile?.notify_chat ?? true) ? 'ON' : 'OFF'); };
-  const roundsLabel = () => { if(roundsBtn) roundsBtn.textContent = 'Round posts: ' + ((CS.profile?.notify_rounds ?? true) ? 'ON' : 'OFF'); };
-  chatLabel(); roundsLabel();
+  const chatPaint = () => phSwitchSet(chatBtn, CS.profile?.notify_chat ?? true);
+  const roundsPaint = () => phSwitchSet(roundsBtn, CS.profile?.notify_rounds ?? true);
+  chatPaint(); roundsPaint();
   roundsBtn?.addEventListener('click', async () => {
     roundsBtn.disabled = true;
     const next = !(CS.profile?.notify_rounds ?? true);
     const { error } = await sb.rpc('set_notify_rounds', { p_on: next });
-    if(error) toast(humanError(error, 'Could not update.'));
-    else { if(CS.profile) CS.profile.notify_rounds = next; roundsLabel(); }
+    if(error) toast(humanError(error, 'Round posts didn’t change — try again.'));
+    else { if(CS.profile) CS.profile.notify_rounds = next; roundsPaint(); }
     roundsBtn.disabled = false;
   });
-  getPushSub().then(sub => { if(sub) pushBtn.textContent = 'Disable on this device'; });
-  pushBtn.addEventListener('click', async () => {
+  getPushSub().then(sub => phSwitchSet(pushBtn, !!sub));
+  pushBtn?.addEventListener('click', async () => {
     pushBtn.disabled = true;
     const sub = await getPushSub();
-    if(sub){ await disablePush(); pushBtn.textContent = 'Enable on this device'; }
-    else if(await enablePush()){ pushBtn.textContent = 'Disable on this device'; }
+    if(sub){ await disablePush(); }
+    else { await enablePush(); }
+    phSwitchSet(pushBtn, !!(await getPushSub()));
     pushBtn.disabled = false;
   });
-  chatBtn.addEventListener('click', async () => {
+  chatBtn?.addEventListener('click', async () => {
     chatBtn.disabled = true;
     const next = !(CS.profile?.notify_chat ?? true);
     const { error } = await sb.rpc('set_notify_chat', { p_on: next });
-    if(error) toast(humanError(error, 'Could not update.'));
-    else { CS.profile.notify_chat = next; chatLabel(); }
+    if(error) toast(humanError(error, 'Chat didn’t change — try again.'));
+    else { CS.profile.notify_chat = next; chatPaint(); }
     chatBtn.disabled = false;
   });
+  /* ONE NOTIFICATIONS SECTION (owner C): the three conversation switches the
+     inbox sheet carries are read and written here through the same RPCs
+     (social_notify_prefs / set_social_notify_prefs, D391), with the inbox's
+     own words. Skew-safe: an older server answers nothing and they stay out. */
+  const talk = $('#phTalk');
+  if(talk && typeof CS_INBOX !== 'undefined' && window.sb){
+    sb.rpc('social_notify_prefs').then(({ data, error }) => {
+      if(error || !data || !talk.isConnected) return;
+      talk.innerHTML = CS_INBOX.prefs.map(([k, name, sub]) => phSwitch('phTalk_' + k, name, sub)).join('');
+      talk.hidden = false;
+      CS_INBOX.prefs.forEach(([k]) => {
+        const el = document.getElementById('phTalk_' + k);
+        phSwitchSet(el, data[k] !== false);
+        el?.addEventListener('click', async () => {
+          const on = el.getAttribute('aria-checked') !== 'true';
+          el.disabled = true;
+          try{
+            const { data: d2, error: e2 } = await sb.rpc('set_social_notify_prefs', { ['p_' + k]: on });
+            if(e2) throw e2;
+            phSwitchSet(el, (d2 && d2[k] != null) ? d2[k] !== false : on);
+            if(typeof csInbox !== 'undefined' && csInbox) csInbox.prefs = d2 || Object.assign({}, csInbox.prefs || {}, { [k]: on });
+          }catch(err){ toast(humanError(err, 'That didn’t change — try again.')); }
+          el.disabled = false;
+        });
+      });
+    }).catch(() => {});
+  }
   /* R9 · the scan's yes, revocable. Off means the next scan asks again; the
      skew rules (a device flag where the profile cannot take it) live in
      csSetScanConsent, so this switch and the sheet can never disagree. */
   const scanTog = $('#phScanTog');
-  const scanLabel = () => { if(scanTog) scanTog.textContent = CS_SCAN_CONSENT.setting + ': ' + (csScanConsented() ? 'ON' : 'OFF'); };
-  scanLabel();
+  const scanPaint = () => phSwitchSet(scanTog, csScanConsented());
+  scanPaint();
   scanTog?.addEventListener('click', async () => {
     scanTog.disabled = true;
     if(!(await csSetScanConsent(!csScanConsented()))) toast(CS_SCAN_CONSENT.settingFailed);
-    scanLabel();
+    scanPaint();
     scanTog.disabled = false;
   });
   /* D68: the season-end email. set_email_recap reads with no argument and
-     writes with one, so the same RPC paints the label and flips it. Skew-safe:
-     before the migration the call fails and the button just hides itself. */
+     writes with one, so the same RPC paints the switch and flips it. Skew-safe:
+     before the migration the call fails and the switch just hides itself. */
   const mailBtn = $('#phMailTog');
   if(mailBtn){
-    const paint = on => { mailBtn.textContent = 'Season email: ' + (on ? 'ON' : 'OFF'); mailBtn.dataset.on = on ? '1' : ''; };
+    const paint = on => phSwitchSet(mailBtn, on);
     sb.rpc('set_email_recap', {}).then(({ data, error }) => {
       if(error) mailBtn.style.display = 'none'; else paint(data !== false);
     }).catch(()=>{ mailBtn.style.display = 'none'; });
     mailBtn.addEventListener('click', async () => {
       mailBtn.disabled = true;
-      const next = !mailBtn.dataset.on;
+      const next = mailBtn.getAttribute('aria-checked') !== 'true';
       const { data, error } = await sb.rpc('set_email_recap', { p_on: next });
-      if(error) toast(humanError(error, 'Could not update.'));
+      if(error) toast(humanError(error, 'Season email didn’t change — try again.'));
       else paint(data !== false);
       mailBtn.disabled = false;
     });
@@ -31446,50 +32036,183 @@ function rivalryTag(pid){
      fact, and gold means earned (D359) */
   return `<span style="color:var(--ink)">${nm}${rec}</span>`;
 }
-/* others' upcoming rounds, nearest first — the rows the Watch List shows */
-function watchRows(){
+/* ── THE SCHEDULE'S ONE LIST (owner, craft, critique-B · 2026-09-28) ──────────
+   Every plan the page can show, nearest first, from BOTH reads: the 14-day
+   window (watchAll — it survives calendar paging) and the calendar's month
+   (mySchedule). They were two lists, "In your crew's plans" and "On the
+   schedule", and a plan in both printed twice with different facts (L-34);
+   the month list also dropped next Saturday on the 28th because it followed
+   the calendar. League-scoped as the page always was (pilot #3): your plans,
+   plans you are tagged in, and your seasons' — a pure buddy's lives on Home. */
+function csUpcomingPlans(){
   const today = new Date(); today.setHours(0,0,0,0);
-  return (window.watchAll||[])
-    /* League Room watch list = league-mates' plans (+ rounds you're tagged in);
-       pure buddies stay on Home. (pilot #3) */
-    .filter(sr => sr.mine === false && (sr.shared_league || sr.tagged_me))
-    .filter(sr => { const d = localDate(sr.play_on); return !isNaN(d) && d >= today; })
-    .sort((a,b)=> a.play_on < b.play_on ? -1 : a.play_on > b.play_on ? 1 : 0);
+  const seen = new Set(), out = [];
+  [...(window.watchAll||[]), ...(window.mySchedule||[])].forEach(sr => {
+    if(!sr || !sr.id || seen.has(sr.id)) return;
+    if(!(sr.mine || sr.shared_league || sr.tagged_me)) return;
+    const d = localDate(sr.play_on); if(isNaN(d) || d < today) return;
+    seen.add(sr.id); out.push(sr);
+  });
+  const key = r => String(r.play_on) + ' ' + String(r.tee_time || '99');
+  return out.sort((a,b) => key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0);
+}
+window.csUpcomingPlans = csUpcomingPlans;
+function csPlanDay(iso){
+  const d = localDate(iso); if(isNaN(d)) return '';
+  const t = new Date(); t.setHours(0,0,0,0);
+  const n = Math.round((d - t)/864e5);
+  return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`;
+}
+/* ONE ROW PER PLAN — the day over the tee time as a figure (a tee sheet reads
+   down its times), the host by name, the course as it is called, ONE quiet
+   line in sentence case, and the host's note in their own words. The right
+   slot has one width and holds the action OR the state, never a button on one
+   row and a word on the next. This was six to eleven lines of 11px mono caps
+   sentences per plan (§1.4 — mono never carries a sentence). */
+function csPlanRowHtml(sr, o){
+  o = o || {};
+  const me = csPlanMe(sr);
+  const tee = fmtTee(sr.tee_time);
+  const who = sr.mine ? 'You' : (sr.display_name || 'A golfer');
+  const course = csPlanCourse(sr.course_label);
+  const riv = (!sr.mine && typeof rivalryTag === 'function') ? rivalryTag(sr.profile_id) : null;
+  /* the slot says the state when it is settled (in, out) and offers the act
+     when it is not; the quiet line names an open state so it is never silent */
+  const openState = (me === 'asked' || me === 'maybe') ? CS_PLAN_ME[me] : null;
+  const quiet = [openState ? esc(openState) : null, csPlanRel(sr) ? esc(csPlanRel(sr)) : null,
+                 csPlanWith(sr) ? esc(csPlanWith(sr)) : null, riv].filter(Boolean).join(' · ');
+  const slot = me === 'host' ? ''
+    : (me === 'in' || me === 'out')
+      ? `<span class="schrow-chip${me==='in'?' is-in':''}">${esc(CS_PLAN_ME[me])}</span>`
+      : `<button type="button" class="mini" data-imin="${esc(sr.id)}">I’m in</button>`;
+  /* your own plan: its two acts, LABELLED (they were a bare + and ×), and the
+     cancel asks once more before it pulls the plan from everyone tagged */
+  const acts = sr.mine
+    ? `<span class="schrow-acts"><button type="button" class="mini" data-retag="${esc(sr.id)}">Invite</button>`
+      + `<button type="button" class="mini schcancel" data-scratch="${esc(sr.id)}">Cancel</button></span>` : '';
+  const said = [who, csPlanDay(sr.play_on), tee, course].filter(Boolean).join(', ');
+  return `<div class="schrow" data-wopen="${esc(sr.id)}" role="button" tabindex="0" aria-label="${esc(said)}">
+    <span class="schrow-when">${o.day ? '' : `<span class="cs-agate-s">${esc(csPlanDay(sr.play_on))}</span>`}${tee ? `<b class="cs-fig-s">${esc(tee)}</b>` : ''}</span>
+    <b class="schrow-name cs-social">${esc(who)}</b>
+    <span class="schrow-slot">${slot}</span>
+    <span class="schrow-rest">
+      ${course ? `<span class="schrow-course">${esc(course)}</span>` : ''}
+      ${quiet ? `<small class="cs-agate-s is-phrase">${quiet}</small>` : ''}
+      ${sr.note ? `<span class="schrow-note">“${esc(sr.note)}”</span>` : ''}
+      ${acts}
+    </span>
+  </div>`;
+}
+window.csPlanRowHtml = csPlanRowHtml;
+/* one wiring for the list, the lead and the day sheet */
+function csPlanRowsWire(root, o){
+  if(!root) return;
+  o = o || {};
+  const find = id => [...(window.watchAll||[]), ...(window.mySchedule||[])].find(x => x && String(x.id) === String(id)) || null;
+  const reload = () => { loadSchedule(); if(window.loadWatchList) loadWatchList(); };
+  root.querySelectorAll('[data-wopen]').forEach(el => {
+    const go = e => { if(e.target.closest('button')) return; if(o.sheet) closeSheet(); openRoundSheet(el.dataset.wopen); };
+    el.addEventListener('click', go);
+    el.addEventListener('keydown', e => { if(e.target !== el) return; if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(e); } });
+  });
+  root.querySelectorAll('[data-imin]').forEach(b => b.addEventListener('click', async () => {
+    const sr = find(b.dataset.imin); if(!sr) return;
+    /* tagged: "I'm in" is the same answer the plan's sheet gives (set_round_rsvp,
+       D69 — the RSVP is for the invited). Not tagged: your own round that day
+       tagging the host, two rounds and one outing (D17). */
+    if(sr.tagged_me){
+      b.disabled = true;
+      try{ const { error } = await sb.rpc('set_round_rsvp', { p_round: sr.id, p_status: 'in' }); if(error) throw error;
+        toast(CS_PLAN_ME.in); if(o.sheet) closeSheet(); reload(); }
+      catch(e){ toast(humanError(e, 'RSVP did not save.')); b.disabled = false; }
+      return;
+    }
+    if(o.sheet) closeSheet();
+    openDeclareSheet(sr.play_on, { course: sr.course_label||'', tee: sr.tee_time||'',
+      tagPids: [sr.profile_id], hostName: sr.display_name });
+  }));
+  root.querySelectorAll('[data-retag]').forEach(b => b.addEventListener('click', () => { if(o.sheet) closeSheet(); openRetagSheet(b.dataset.retag); }));
+  root.querySelectorAll('[data-scratch]').forEach(b => b.addEventListener('click', async () => {
+    /* §7.1 · destructive, armed: the first tap asks, the second does it */
+    if(b.dataset.armed !== '1'){
+      b.dataset.armed = '1'; b.classList.add('is-armed'); b.textContent = 'Sure? Cancel for everyone';
+      setTimeout(() => { if(b.isConnected && b.dataset.armed === '1' && !b.disabled){ b.dataset.armed = ''; b.classList.remove('is-armed'); b.textContent = 'Cancel'; } }, 4000);
+      return;
+    }
+    b.disabled = true;
+    try{ const { error } = await sb.rpc('scratch_round', { p_id: b.dataset.scratch }); if(error) throw error;
+      if(o.sheet) closeSheet(); toast('Round cancelled'); reload(); }
+    catch(e){ toast(humanError(e, 'That did not cancel.')); b.disabled = false; }
+  }));
+}
+window.csPlanRowsWire = csPlanRowsWire;
+/* "Blake is in · Casey is asked" — who has answered, in the words the plan's
+   sheet uses (PlanIdentity.askedLine is the phone's half) */
+function csPlanAnswers(sr){
+  const me = window.CS?.user?.id || null;
+  const rs = Array.isArray(sr && sr.rsvp) ? sr.rsvp.filter(x => x && Number(x.ord) === 1 && x.profile_id !== me) : [];
+  const first = n => String(n || '').trim().split(/\s+/)[0];
+  const list = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+  const inN = rs.filter(x => x.status === 'in').map(x => first(x.display_name));
+  const asked = rs.filter(x => x.status !== 'in' && x.status !== 'out').map(x => first(x.display_name));
+  const bits = [];
+  if(inN.length) bits.push(list(inN) + (inN.length === 1 ? ' is in' : ' are in'));
+  if(asked.length) bits.push(list(asked) + (asked.length === 1 ? ' is asked' : ' are asked'));
+  return bits.join(' · ') || csPlanWith(sr);
+}
+/* NOTHING SAID A ROUND WAS COMING (owner E, craft E, category H). The next
+   round you are on — yours, or booked with you and not declined: `isMyPlan`,
+   the one predicate Home's Next tile and the phone's chips share (D219) —
+   leads the page with its tee time as a figure. */
+function csRenderPlanLead(rows){
+  const box = $('#schNext'); if(!box) return;
+  const next = rows.find(r => isMyPlan(r)) || null;
+  if(!next){
+    /* §16A.7 · the page carries its own drawn object (the calendar), so the
+       empty state is the fact and the door beside it: the primary under it */
+    box.innerHTML = rows.length
+      ? `<p class="schnone cs-body-s">Nothing of yours on the schedule yet. Put one up, or say you’re in on one below.</p>`
+      : `<div class="schnone"><h2 class="cs-name">Nothing on the schedule yet</h2><p class="cs-body-s">Put a round up and your buddies and your seasons see it the moment you do.</p></div>`;
+    return;
+  }
+  const me = csPlanMe(next);
+  const d = localDate(next.play_on);
+  const tee = fmtTee(next.tee_time);
+  const t = new Date(); t.setHours(0,0,0,0);
+  const n = Math.round((d - t)/864e5);
+  const away = n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${n} days`;
+  const date = `${DOW[d.getDay()]} ${MOS[d.getMonth()]} ${d.getDate()}`;
+  const who = next.mine ? null : (next.display_name ? `${String(next.display_name).split(/\s+/)[0]}’s round` : null);
+  const answers = csPlanAnswers(next);
+  /* someone else's round leads with the head-to-head too (owner E: "lead each
+     card with the person and the rivalry"), in ink as the rows print it */
+  const riv = (!next.mine && typeof rivalryTag === 'function') ? rivalryTag(next.profile_id) : null;
+  const slot = (me === 'asked' || me === 'maybe') ? `<button type="button" class="mini" data-imin="${esc(next.id)}">I’m in</button>` : '';
+  box.innerHTML = `<section class="schnext" data-wopen="${esc(next.id)}" role="button" tabindex="0" aria-label="${esc(['Your next round', date, tee, csPlanCourse(next.course_label)].filter(Boolean).join(', '))}">
+    <div class="schnext-k cs-agate">Your next round · ${esc(date)}</div>
+    <div class="schnext-fig"><b class="cs-fig-l">${esc(tee || String(d.getDate()))}</b><i></i><small class="cs-agate-s">${esc(tee ? 'Tee time · ' + away : MOS[d.getMonth()] + ' · ' + away)}</small></div>
+    <div class="schnext-what">
+      <b class="cs-social">${esc(csPlanCourse(next.course_label) || 'A round')}</b>
+      <p class="cs-body-s">${esc([who, me === 'asked' || me === 'maybe' ? CS_PLAN_ME[me] : null, answers].filter(Boolean).join(' · '))}</p>
+      ${riv ? `<p class="schnext-riv cs-agate-s is-phrase">${riv}</p>` : ''}
+      ${next.note ? `<p class="cs-story">“${esc(next.note)}”</p>` : ''}
+    </div>
+    ${slot ? `<div class="schnext-slot">${slot}</div>` : ''}
+  </section>`;
+  csPlanRowsWire(box);
+  return next;
 }
 function renderWatchList(){
   const box = $('#calWatch'), head = $('#calWatchHead');
   if(!box || !head) return;
-  if(state.demo){ box.style.display='none'; head.style.display='none'; return; }
-  const rows = watchRows();
-  if(!rows.length){ box.style.display='none'; head.style.display='none'; return; }
+  if(state.demo){ box.style.display='none'; head.style.display='none'; const n=$('#schNext'); if(n) n.innerHTML=''; return; }
+  const all = csUpcomingPlans();
+  const lead = csRenderPlanLead(all);
+  const rows = all.filter(r => r !== lead);
+  if(!rows.length){ box.style.display='none'; head.style.display='none'; box.innerHTML=''; return; }
   head.style.display=''; box.style.display='';
-  box.innerHTML = rows.slice(0,6).map((sr,i)=>{
-    const d = localDate(sr.play_on);
-    const n = Math.round((d - new Date().setHours(0,0,0,0))/864e5);
-    const when = n===0?'TODAY':n===1?'TOMORROW':`${DOW[d.getDay()].toUpperCase()} ${MOS[d.getMonth()].toUpperCase()} ${d.getDate()}`;
-    const rel = sr.is_friend ? 'BUDDY' : 'IN YOUR SEASONS';
-    const bits = [ when, sr.course_label?esc(sr.course_label.toUpperCase()):null,
-      sr.tee_time?`<span style="color:var(--ink)">${fmtTee(sr.tee_time)}</span>`:null,
-      rivalryTag(sr.profile_id),   /* M4/#7: the head-to-head, before the round */
-      sr.tagged_me?'<span style="color:var(--ink)">YOU’RE IN</span>':null,
-      sr.note?'“'+esc(sr.note)+'”':null ].filter(Boolean).join(' · ');
-    return `<div class="check tap" data-wopen="${sr.id}">
-      <span class="num">${window.mkr?.(sr.marker||'saguaro')||'⛳'}</span>
-      <div class="tt"><b>${esc(sr.display_name)} <span class="fine" style="padding:0; color:var(--mut); letter-spacing:.06em">${rel}</span></b>
-      <small>${bits}</small></div>
-      ${sr.tagged_me ? `<span class="fine" style="padding:0; color:var(--ink); flex:none">ON THE SCHEDULE</span>`
-        : `<button class="mini" data-imin="${i}" style="flex:none">I’m in</button>`}
-    </div>`;
-  }).join('');
-  box.querySelectorAll('[data-imin]').forEach(b=>b.addEventListener('click',()=>{
-    const sr = rows[+b.dataset.imin]; if(!sr) return;
-    openDeclareSheet(sr.play_on, { course: sr.course_label||'', tee: sr.tee_time||'',
-      tagPids: [sr.profile_id], hostName: sr.display_name });
-  }));
-  /* tap a crew member's plan (not the "I'm in" button) to open the round object */
-  box.querySelectorAll('[data-wopen]').forEach(el=>el.addEventListener('click',(e)=>{
-    if(e.target.closest('button')) return; openRoundSheet(el.dataset.wopen);
-  }));
+  box.innerHTML = `<div class="schlist">${rows.map(sr => csPlanRowHtml(sr)).join('')}</div>`;
+  csPlanRowsWire(box);
 }
 window.renderWatchList = renderWatchList;
 
@@ -32472,29 +33195,34 @@ async function loadLeagueRecord(){
        declared fallback for a database without the function (skew only). */
     const rec = await sb.rpc('my_league_record');
     if(!rec.error && Array.isArray(rec.data)){
-      const ordR = n => { const s=['TH','ST','ND','RD'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+      const ordR = n => { const s=['th','st','nd','rd'], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+      /* A SEASON STILL BEING PLAYED HAS NO FINISH (owner R, 2026-09-28). The
+         record printed two live seasons as "1ST"/"2ND" under FINISH, with the
+         podium mark a finished season earns — the table's place today called
+         a result. The FINISH column is a finished season's; a live one says
+         where it stands in its own line, in sentence case (§1.3 — a slat's
+         sub-line is a phrase). The phone's twin, LeagueRecord.rows(from:),
+         still ranks a live season (LeagueRecord.swift `ranked`). */
       window.leagueRecord = rec.data.slice().reverse().map(r => {
         const done = r.status === 'complete', solo = (r.structure || 'solo') === 'solo';
-        let line;
-        if(!done && r.phase === 'setup') line = STAGE_LABEL.forming;
-        else if(!done && r.phase === 'draft') line = STAGE_LABEL.drawing;
-        else {
-          const sd = localDate(r.starts_on);
-          let where = '—';
-          if(r.place != null && r.of != null){
-            where = (r.tied ? 'TIED ' : '') + `${ordR(r.place)} OF ${r.of}` + (solo ? '' : ' SQUADS');
-            if(solo && r.points != null) where += ` · ${r.points} PTS`;
-          }
-          line = !done && sd > new Date() ? `FIRST TEE ${DOW[sd.getDay()].toUpperCase()} ${MOS[sd.getMonth()].toUpperCase()} ${sd.getDate()}`
-               : done                      ? `FINISHED ${where}`
-               : r.status === 'cup_final'  ? `CUP FINAL · ${where}`
-               : where;
+        const sd = localDate(r.starts_on);
+        const forming = !done && (r.phase === 'setup' || r.phase === 'draft');
+        const before = !done && !forming && sd > new Date();
+        let where = null;
+        if(r.place != null && r.of != null){
+          where = (r.tied ? 'tied ' : '') + `${ordR(r.place)} of ${r.of}` + (solo ? '' : ' squads');
+          if(solo && r.points != null) where += ` · ${r.points} pts`;
         }
-        const ranked = done || !(r.phase === 'setup' || r.phase === 'draft');
+        const line = !done && r.phase === 'setup' ? STAGE_LABEL.forming
+             : !done && r.phase === 'draft'       ? STAGE_LABEL.drawing
+             : before                             ? `First tee ${DOW[sd.getDay()]} ${MOS[sd.getMonth()]} ${sd.getDate()}`
+             : done                               ? (where ? 'Finished ' + where : 'Finished')
+             : [r.status === 'cup_final' ? 'Cup Final' : null, where, 'in season'].filter(Boolean).join(' · ');
         return { id: r.league_id, league_id: r.league_id, season_id: r.season_id,
                  name: r.league_name, number: r.number || 1, line,
                  year: r.starts_on ? Number(String(r.starts_on).slice(0, 4)) : null,
-                 finish: ranked ? r.place : null, of: ranked ? r.of : null, won: !!r.won };
+                 finish: done ? r.place : null, of: done ? r.of : null, won: !!r.won,
+                 live: !done && !forming && !before };
       });
       renderIndStats();
       return;
@@ -32887,11 +33615,19 @@ function renderRoundSheet(id, d){
 
   const rsvp = d.rsvp||[];
   const inN = rsvp.filter(r=>r.status==='in').length;
-  const rsvpRows = rsvp.length ? rsvp.map(r=>`<div class="check">
+  /* WHO'S IN, in the phone's words (ScheduledRoundSheet.answer): HOST is a role,
+     so it is a quiet agate tag and never the earned metal (D359); a seat with
+     no answer is ASKED — the state of the invitation (G7), and the one word the
+     schedule's list now prints too — and the host, who did the asking, prints
+     no answer at all rather than a word that is untrue about them. */
+  const rsvpRows = rsvp.length ? rsvp.map(r=>{
+      const host = r.profile_id===d.profile_id;
+      const word = ({in:'In',maybe:'Maybe',out:'Out'})[r.status] || (host ? '' : 'Asked');
+      return `<div class="check">
       <span class="num">${M(r.marker||'saguaro')}</span>
-      <div class="tt"><b>${esc(r.name||'A golfer')}${r.profile_id===d.profile_id?' <span class="fine" style="padding:0; color:var(--gold)">HOST</span>':''}</b></div>
-      <span class="rsvppill ${r.status||'none'}">${({in:'In',maybe:'Maybe',out:'Out'})[r.status]||'No reply'}</span>
-    </div>`).join('') : '<p class="fine" style="padding:2px 0">Just you so far — tag your group.</p>';
+      <div class="tt"><b>${esc(r.name||'A golfer')}${host?' <span class="rshost cs-agate-s">Host</span>':''}</b></div>
+      ${word?`<span class="rsvppill ${r.status||'none'}">${word}</span>`:''}
+    </div>`; }).join('') : '<p class="fine" style="padding:2px 0">Just you so far — tag your group.</p>';
   const myR=d.my_rsvp;
   /* D69: RSVP is for the invited. The In/Maybe/Can't controls show only to the
      host or a tagged player; everyone else still SEES the round and who's in,
@@ -32919,8 +33655,11 @@ function renderRoundSheet(id, d){
   const worthHtml = csRoundWorthLines(d.worth, 'This round')
     .map(w => `<p class="fine" style="padding:2px 0">${esc(w)}</p>`).join('');
 
+  /* the head-to-head, in ink as the list prints it (X22: gold means earned,
+     and a rival's lead is neither) — no dingbat, no unexplained "one more
+     round." */
   const riv = (!d.mine && typeof rivalryTag==='function') ? rivalryTag(d.profile_id) : null;
-  const rivHtml = riv ? `<div class="rivchip">◇ ${riv} · <em>one more round.</em></div>` : '';
+  const rivHtml = riv ? `<p class="rs-riv cs-agate-s is-phrase">${riv}</p>` : '';
 
   const comments=d.comments||[];
   /* R8 · a line somebody else wrote carries its ⋯ (Report, Block) once
@@ -32940,10 +33679,15 @@ function renderRoundSheet(id, d){
      <button class="mbtn2" id="rrGroup">Edit group</button>
      <button class="mbtn2 warn" id="rrScratch">Cancel round</button></div>` : '';
 
+  /* EACH FACT ONCE (critique-B P3, owner C). The tee time is the sheet's own
+     sub-line, so the chip that printed it again under the course is gone; the
+     course block names the tee, its yards and its rating and slope, so the
+     head keeps those only when there is no block to say them. */
+  const courseBlock = typeof csPlanCourseHtml==='function' ? csPlanCourseHtml(d.course_id, d.course && d.course.tee) : '';
   const body = `<div class="rsheet">
-    <div class="rs-course"><b>${esc(courseName)}</b>${meta?`<span class="meta mono">${meta}</span>`:''}${place?`<span class="place">${esc(place)}</span>`:''}</div>
-    <div class="rs-when"><span class="teechip mono">${tee?tee+' tee':'Tee TBD'}</span><span class="wxchip mono" id="rsWx" style="display:none"></span></div>
-    ${typeof csPlanCourseHtml==='function' ? csPlanCourseHtml(d.course_id, d.course && d.course.tee) : ''}
+    <div class="rs-course"><b>${esc(courseName)}</b>${meta && !courseBlock?`<span class="meta cs-agate-s">${meta}</span>`:''}${place?`<span class="place">${esc(place)}</span>`:''}</div>
+    <div class="rs-when"><span class="wxchip mono" id="rsWx" style="display:none"></span></div>
+    ${courseBlock}
     ${worthHtml}
     ${d.note?`<div class="rs-note">“${esc(d.note)}”</div>`:''}
     ${rivHtml}
@@ -33024,19 +33768,7 @@ async function openRetagSheet(id){
   });
 }
 
-/* scratch/retag your own declared round (list is classic-rendered — delegate) */
-document.getElementById('calList')?.addEventListener('click', async (e) => {
-  const rt = e.target?.dataset?.retag;
-  if(rt){ openRetagSheet(rt); return; }
-  const id = e.target?.dataset?.scratch; if(!id) return;
-  e.target.disabled = true;
-  try {
-    const { error } = await sb.rpc('scratch_round', { p_id: id });
-    if(error) throw error;
-    toast('Scratched');
-    loadSchedule(); loadWatchList();
-  } catch(err){ toast(humanError(err, 'Scratch failed.')); e.target.disabled = false; }
-});
+/* the list's own rows carry their Invite and Cancel now (csPlanRowsWire) */
 
 /* ---------- members & invites: the clubhouse roster ---------- */
 /* D386 · who can be seated by the Pro right now: a squads season under way, a
