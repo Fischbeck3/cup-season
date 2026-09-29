@@ -1974,7 +1974,11 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   color:var(--ceremony-ink); background:var(--ceremony); box-shadow:var(--shadow-lift);}
 /* the plate: a golfer's photograph, or the crest over their home course's
    contour. NEVER a gradient wash - it is not one of the three legal states. */
-.cred .cplate{position:relative; flex:0 0 58%; overflow:hidden; background:var(--ceremony);}
+/* W7-057 · the plate GIVES UP the pixels a long record needs: 58% of the card
+   while the record half fits in its 42%, less when a best's course wraps to a
+   third line (AW2-22's wrap pushed the folio out of the fixed-ratio card and
+   clipped it at 375, 402 and 1280). The name and medallion ride its bottom. */
+.cred .cplate{position:relative; flex:1 1 0; min-height:0; overflow:hidden; background:var(--ceremony);}
 .cred .cplate img{width:100%; height:100%; object-fit:cover; display:block;}
 .cred .cplate .ccont{position:absolute; inset:0; width:100%; height:100%;}
 .cred .cplate .ccont path{fill:none; stroke:var(--ceremony-ink); stroke-opacity:var(--a24); stroke-width:1.2;}
@@ -2008,7 +2012,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   overflow-wrap:anywhere;}   /* the identity line wraps whole */
 /* the record half: one to three figures on ONE ceremony-ink rule - never
    `ink`, which is 1.11:1 on ceremony in the light printing - and the folio. */
-.cred .cfoot{flex:1 1 auto; padding:20px; display:flex; flex-direction:column; justify-content:space-between;}
+.cred .cfoot{flex:0 0 auto; min-height:42%; padding:20px; display:flex; flex-direction:column; justify-content:space-between;}
 .cred .cfigs{display:flex; align-items:flex-start; position:relative;}
 .cred .cfigs .cfig{flex:0 0 33.333%; min-width:0; padding-right:var(--s3); box-sizing:border-box;}   /* two labels at the SE width ran together, "HANDICAP INDEX ROUNDS" (critique-B P3) */
 /* three figures take MEASURED columns, the phone's columnWidths: a column is as
