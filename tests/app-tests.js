@@ -402,8 +402,11 @@
     state.structure = 'solo';
     window.openScoringHelp();
     const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
-    t('D205: a solo league is told the minimum is a habit',
-      /In a solo league the monthly minimum is a habit/.test(so), true);
+    /* TEN / W6 · with a league in hand the minimum is `floorSentence`'s, the
+       one producer Home, the pot and the rules print (E's twin: GuideCopy →
+       LeagueCopy.floorSentence) — for a solo league, "…a habit, not a penalty". */
+    t('D205: a solo league is told the minimum, from the one producer',
+      so.indexOf(floorSentence()) >= 0 && /habit, not a penalty|No minimum/.test(so), true);
     state.structure = wasStruct;
     document.querySelector('#sheet')?.classList.remove('open');
     if (window.CS) window.CS.league = wasLeague;

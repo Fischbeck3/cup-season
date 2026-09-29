@@ -33754,7 +33754,7 @@ async function openDeclareSheet(prefillISO, opts){
   const joining = opts.hostName ? `You're in — your own round goes on the schedule alongside ${esc(opts.hostName)}.` : '';
   openSheet(opts.hostName ? 'Get in on it' : 'Put a round on the schedule',
     opts.hostName ? 'YOUR ROUND POSTS AND SCORES ON ITS OWN — YOU BOTH SHOW ON THE DAY' : 'BUDDIES AND YOUR SEASONS SEE IT THE MOMENT YOU POST',
-    `${joining ? `<p class="fine" style="padding:0 0 10px; color:var(--gold)">${joining}</p>` : ''}
+    `${joining ? `<p class="fine" style="padding:0 0 10px; color:var(--ink)">${joining}</p>` : ''}
      <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap">
        <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drDate">Day</label><input class="f" id="drDate" type="date" value="${iso}"></div>
        <div style="flex:1 1 150px; min-width:150px"><label class="f" for="drTee" style="color:var(--ink)">Tee time · optional</label><input class="f" id="drTee" type="time" step="300" value="${teeVal}"></div>
@@ -34429,10 +34429,17 @@ function openScoringHelp(){
   const covenant = solo === false
     ? `<b>You can't hurt your squad by playing badly — only by not playing.</b>`
     : `<b>You can't hurt your standing by playing badly — only by not playing.</b>`;
+  /* TEN / W6 · ONE PRODUCER FOR THE MINIMUM (L-34; E's twin of GuideCopy →
+     LeagueCopy.floorSentence). With a league in hand the paragraph said the
+     minimum in its own words — "Miss it once and your bye covers you" — beside
+     `floorSentence`, which Home, the pot and the rules already print with the
+     league's real number, penalty and waiver. It says that sentence now. With
+     no league in hand there is no minimum to state, so the general account
+     stays. */
   const counts = solo === true
-    ? `Your best rounds each month count — a better round always bumps the worst one that counts. In a solo league the monthly minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in <b>The rules</b>.`
+    ? `Your best rounds each month count — a better round always bumps the worst one that counts. ${esc(floorSentence())} Your league's exact numbers are in <b>The rules</b>.`
     : solo === false
-    ? `Your best rounds each month count for your squad — a better round always bumps the worst one that counts — and everyone owes a minimum number of rounds a month so nobody coasts. Miss it once and your <b>bye</b> covers you automatically — life happens; the penalty bites from the second miss. Your league's exact numbers are in <b>The rules</b>.`
+    ? `Your best rounds each month count for your squad — a better round always bumps the worst one that counts. ${esc(floorSentence())} Your league's exact numbers are in <b>The rules</b>.`
     : `Your best rounds each month count — a better round always bumps the worst one that counts. In a squad league everyone owes a minimum number of rounds a month so nobody coasts: miss it once and your <b>bye</b> covers you automatically — life happens; the penalty bites from the second miss. In a solo league that minimum is a habit, not a penalty — there's no squad to dock. Your league's exact numbers are in <b>The rules</b>.`;
   openSheet('How scoring works', 'HANDICAPS · CUP POINTS · THE MONEY', `
     <div class="eyebrow" style="margin-top:0">Your index</div>
