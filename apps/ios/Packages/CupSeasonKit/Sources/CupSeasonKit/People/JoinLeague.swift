@@ -157,7 +157,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     guard case .object = v else { return nil }
     let roster = v["roster"]
     let sp = v["split"]
-    self.init(name: v["name"]?.string ?? "this league",
+    self.init(name: v["name"]?.string ?? Covenant.unnamed,
               buyinCents: v["buyin_cents"]?.int ?? Int(v["buyin_cents"]?.string ?? "") ?? 0,
               preset: v["preset"]?.string,
               floor: v["floor"]?.int ?? Int(v["floor"]?.string ?? "") ?? 0,
@@ -416,7 +416,13 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// money, and that order is a value rather than the way a View happens to be
   /// written.
   /// `csCovenantTitle`: "Season 2 of the Fellas" for a re-up, else the first-join head.
-  public var head: String { isReUp && seasonNumber != nil ? "Season \(seasonNumber!) of \(name)" : "Before you join \(name)" }
+  public var head: String {
+    isReUp && seasonNumber != nil ? "Season \(seasonNumber!) of \(name == Covenant.unnamed ? "your league" : name)" : "Before you join \(name)"
+  }
+  /// N4-211 · a payload with no name reads "this season", as the web's
+  /// `csCovenantTitle` falls back ("Before you join this season"), and a
+  /// re-up with no name "Season 2 of your league"; "this league" was a third word
+  public static let unnamed = "this season"
   /// W4 · `joining` (the clock) is declared last because it sits outside the
   /// pinned order (the web's `CS_COVENANT_FACTS`): `facts(today:)` splices it
   /// in after the length, as the web's sheet splices `csCovenantClock`.
