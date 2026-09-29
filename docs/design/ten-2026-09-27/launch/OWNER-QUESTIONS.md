@@ -1191,13 +1191,13 @@ At accessibility sizes the phone's `CSSideRoster` (the two named groups of UI_SY
 These need the owner's hands, not a ruling.
 
 - **X41 · Broke 80 on a nine.**
-  - The server half: a new migration is needed (none exists at `de3eaf35`). It makes `home_feed.is_sub80`, its prior-window check and every other sub-80 producer require `holes_played = 18`. The owner applies it with `supabase db push`.
-  - The client half: the web guard is lane W3's, and the phone's `HomeWireCopy` guard is lane N4's.
+  - The server half: a new migration is needed (none exists at `7b9c17e4`). It makes `home_feed.is_sub80`, its prior-window check and every other sub-80 producer require `holes_played = 18`. The owner applies it with `supabase db push`.
+  - The client half is built on both clients: the web's guard (e8108e59, with "9 HOLES" from 2dce66e6) and the phone's `HomeWireCopy` guard (5404441a, merged in 146401bb).
   - With the client guard in place, either deploy order is safe (CLAUDE.md, deploy-skew safety).
   - It is critique's CQ-01 and the category judge's P0.
 - **X42 · The public plan's "in".**
   - The server half: a new migration so that `the_plan_link`'s public card counts only an explicit yes as in (today `coalesce(rsvp,'in') <> 'out'`). The owner runs `supabase db push`.
-  - The client half: the in-app producer is lane W2's.
+  - The client half: the web has one producer for "in" (`csPlanMe`, 57325028), and its public card says "on the plan", which is all its payload supports until X42 (09beefd3). The phone's `ScheduleScreen` still keys YOU'RE IN on `tagged_me` at `7b9c17e4` (N4).
   - It is CQ-04 and a category P1.
 - **Human proof.** HUMAN.md's gates are NOT RUN: G1–G4 need three people who have never opened Cup Season, on their own phones, and D1–D13 are the owner's device checks, including finishing a live round (D12) and the album's retry (D13). No capture or test can pass them.
 - **Pushes and deploys.** Web `7b9c17e4` has been live since 03:53 MST on 2026-09-29, and Owner TestFlight 1335 came from the same SHA at 04:04 (LEDGER §4i, HUMAN §0). Earlier: web `272c2da1`, and TestFlight 1328 from `41cf8050`. No database change has shipped with any of them. Every further push, `db push`, functions deploy and upload waits on the owner's yes to root.

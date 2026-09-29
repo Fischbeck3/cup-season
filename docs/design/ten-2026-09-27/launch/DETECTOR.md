@@ -96,10 +96,10 @@ Each is DX's element, rule, measurement and minimal fix at `f88f538d`, with its 
 | TP-21 | P3 | `.tslatx small`, the trophy sub-line | text-overflow · 50 | The ellipsis removes the date along with the course name | only the course name truncates | **fixed (38471687)**: `.tslatx b` and `small` wrap whole (`overflow-wrap:anywhere`) instead |
 | TP-22 | P3 | `.prow` | cramped-padding · 184 | A bordered card whose content sits 0px from its left border | delete the card rule | **fixed (f46086b4)**: "Rivalries are rows on rules with faces (no 0-inset card)" (35b4f475) |
 
-**Tally at `fd27ace4`:** 22 true positives. Every fixed item is verification pending until DX2.
+**Tally at `7b9c17e4`:** 22 true positives. Every fixed item is verification pending until DX2.
 - **fixed: 19.** TP-01, 02, 03, 04, 05, 06, 07, 08, 10, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22.
 - **fixed in part: 3.**
-  - TP-09: `.squad.onclock` and `.momrow` remain.
+  - TP-09: `.squad.onclock` (an inset 3px shadow) and `.momrow` (a 3px ember left border) remain at `7b9c17e4`; `.momrow` is Q36.
   - TP-11: 21 caps producers, the next wave (P3).
   - TP-20: the desk prose measure, the next wave (P3).
 - **open: 0.**

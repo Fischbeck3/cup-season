@@ -135,7 +135,7 @@ Each judge's mean of the 22 rows per dimension. The owner judge's JSON carries n
 
 | # | Judge | Pri | Row | Defect (the judge's words, shortened) | Captures | Status at `de3eaf35` |
 |---|---|---|---|---|---|---|
-| 1 | category | **P0** | home | A nine-hole 43 is announced "Broke 80 for the first time." on Home, the golfer's own feed and every buddy's. `home_feed.is_sub80` has no `holes_played = 18` guard (`20261020090000_one_round_one_number.sql`). | `home--league-less-rounds_no_buddies--375--dark.png` | **fixed in part (e8108e59).** The web claims sub-80 only for a round known to be 18 holes, and a known nine reads "9 HOLES" (2dce66e6). **Open:** the server half, X41 (owner's `db push`), and the phone's guard (N4). |
+| 1 | category | **P0** | home | A nine-hole 43 is announced "Broke 80 for the first time." on Home, the golfer's own feed and every buddy's. `home_feed.is_sub80` has no `holes_played = 18` guard (`20261020090000_one_round_one_number.sql`). | `home--league-less-rounds_no_buddies--375--dark.png` | **fixed in part (e8108e59).** The web claims sub-80 only for a round known to be 18 holes, and a known nine reads "9 HOLES" (2dce66e6). **Open:** the server half, X41 (owner's `db push`). The phone's guard is fixed too (146401bb: 5404441a). |
 | 2 | category | P1 | home | The Home photo round card is broken at every width and theme: the reactions foot is an opaque band across the photograph, the icons stack, and the course door is clipped (`.hsfoot`). | `home--member--375--dark.png`, `home--member--1280--dark.png` | **fixed (e8108e59)**: a plate on a bottom-anchored scrim, with one foot row under it (2dce66e6) |
 | 3 | category | P1 | wizard | Desk wizard step 3 "Review the rules" shows no rules (`#bylawsReview` hidden at ≥1100px). | `wizard--step-3-review--1280--light.png` | **fixed (38471687)**: the review shows on the desk |
 | 4 | category | P1 | identity/history | EVERY SEASON prints live seasons under FINISH as "1ST"/"2ND" with the podium rule, a standing presented as a finish (`csRecordLeaf`). | `you--populated--375--dark.png`, `record--populated--375--dark.png` | **fixed (f46086b4)**: a live season has no finish; it reads "In play" with its standing in its own line, and the podium mark is a finished season's (35b4f475) |
@@ -151,9 +151,9 @@ Each judge's mean of the 22 rows per dimension. The owner judge's JSON carries n
 | 14 | owner | P1 | wizard | On the desk, "Review the rules" shows no rules, and the aside reads "FORMING — THE RULES AREN'T SET YET". | `wizard--step-3-review--1280--light.png` | **fixed (38471687)** (as #3). The aside's "forming" line is open, verification pending: W5's merge (`4a703402`) reworked the portrait without naming it. |
 | 15 | owner | P1 | golfers/identity/schedule | The rivalry verdict contradicts itself: "3–4 · THEY LEAD" on You and "leads 4–3" on the plan, but "All square, 5–5" on the person page. | `you--populated--375--dark.png`, `golfers--person--375--dark.png` | **decision X36** (OWNER-QUESTIONS). W3 changed the person page's words ("All square between you, 5–5.", 3324ae89), but which facet each surface shows is still the question. |
 
-**Tally at `fd27ace4`:** 15 defects. Every fix is verification pending.
+**Tally at `7b9c17e4`:** 15 defects. Every fix is verification pending.
 - **fixed: 12.** #2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14. #11 keeps the preflight check as a residual; #14 keeps the aside's "forming" line.
-- **fixed in part: 2.** #1 and #6, each waiting on a database item (X41, X42) and N4.
+- **fixed in part: 2.** #1 waits on X41 alone, since its phone half is fixed (5404441a). #6 waits on X42 and N4.
 - **decision: 1.** #15 (X36).
 
 The judges' P2 and P3 defects (category 22 + 16, craft 23 + 10, owner 23 + 22) are listed in their `.md` files. Lanes W1–W5 were briefed on them, and they are re-measured in round 2.

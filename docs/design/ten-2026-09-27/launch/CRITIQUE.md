@@ -19,7 +19,7 @@ Written by session C (docs). Scores, titles and captures are the assessors'; the
 **Status words:**
 - *fixed (sha)*: the commit message or diff shows the fix; for a lane, the sha is the lane's merge and the lane's own commit names the item. **Every fix is verification pending** until round 2 (session D) re-measures it on the final SHA.
 - *fixed in part (sha)*: the rest is named.
-- *in lane Wn*: the surface belongs to that lane (LEDGER §4f), and no commit at `fd27ace4` shows the fix. At `fd27ace4`, every lane has merged.
+- *in lane Wn*: the surface belongs to that lane (LEDGER §4f), and no commit at `7b9c17e4` shows the fix. At `7b9c17e4`, every lane has merged.
 - *decision Xnn*: the question is in OWNER-QUESTIONS.md.
 - *open*: no lane owns the surface and no commit fixes it.
 - *open, verification pending*: when unsure.
@@ -110,10 +110,10 @@ Entries are merged where A and B, or a target and B's desk cross-reference, desc
 | CQ-24 | P1 | "Delete permanently" fails contrast in the default dark theme (2.81:1). | A settings · B settings, desk | `settings--delete-confirm--375--dark.png` | `#phDelYes` inline `background:var(--neg); color:#fff` | **fixed (38471687)** (DX TP-07). W2's 35b4f475 also makes the confirm say what D396 does, word for word with the phone. |
 | CQ-25 | P1 | The score steppers are 36px: the round's most-touched control is below the 44px floor. | B play | `play--scoring--402--dark.png` | `.step button{width:36px;height:36px}` | **fixed (38471687)**: steppers among the 44px targets; the gap between − and + is open, verification pending |
 
-**Tally at `fd27ace4`:** 25 distinct defects (4 P0, 21 P1). Every fixed item is verification pending until round 2.
+**Tally at `7b9c17e4`:** 25 distinct defects (4 P0, 21 P1). Every fixed item is verification pending until round 2.
 - **fixed: 23.** Every P1, and the P0s CQ-02 and CQ-03. CQ-10 keeps one residual: no preflight check for duplicate top-level functions.
 - **fixed in part: 2.** Both are P0s whose web half is fixed:
-  - CQ-01 waits on X41 (the owner's `db push`) and N4;
+  - CQ-01 waits on X41 (the owner's `db push`) alone, since its phone half is fixed (5404441a);
   - CQ-04 waits on X42 and N4.
 - **open: 0.**
 
