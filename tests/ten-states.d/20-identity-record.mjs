@@ -448,6 +448,27 @@ const COMPOSER = [
       const pts = document.getElementById('calcPts').textContent.trim()
       return w.slope.blocked === null && pts !== '\u2013' && pts !== '' ? true : 'the answered card does not score: ' + JSON.stringify({ blocked: w.slope.blocked, pts })
     }) },
+  /* TEN / W6 · K077 [A2-post-10] · Add my round with nothing entered: the
+     refusal is the action's answer, above the button and tied to it
+     (#postErr), as the phone's refuse(). It is never a toast (§13.4: the
+     toast confirms the golfer's own action). */
+  { family: 'composer', id: 'nothing-entered', variant: 'member', title: 'Composer · Add my round with nothing entered (the refusal stands above the button, no toast)',
+    drive: async (page) => {
+      await toComposer(page)
+      await click(page, '#postBtn')
+      await until(page, () => { const e = document.getElementById('postErr'), t = document.getElementById('toast'); return (!!e && !e.hidden) || (!!t && t.classList.contains('show')) }, null, 6000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-post', selectors: { '#postErr': 'text:^Enter your gross first$' } },
+    check: async (page) => page.evaluate(() => {
+      const t = document.getElementById('toast')
+      if (t.classList.contains('show') && /gross/i.test(t.textContent)) return 'the refusal left on a toast: ' + JSON.stringify(t.textContent)
+      const b = document.getElementById('postBtn')
+      if (b.getAttribute('aria-describedby') !== 'postErr') return 'Add my round is not described by its refusal'
+      const e = document.getElementById('postErr').getBoundingClientRect(), r = b.getBoundingClientRect()
+      if (!(e.bottom <= r.top + 1)) return 'the refusal does not stand above the button'
+      return e.top >= 0 && e.bottom <= innerHeight ? true : 'the refusal is off screen'
+    }) },
   /* a tee picked from the course search: the course, the rating and the slope
      arrive together, so nothing blocks and the preview scores the card */
   { family: 'composer', id: 'tee-picked', variant: 'member', title: 'Composer · a gross and a tee picked from the course search (no block)',

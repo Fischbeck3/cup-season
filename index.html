@@ -13869,7 +13869,12 @@ $('#postBtn').addEventListener('click', async ()=>{
       window.qaEvent?.('post_blocked', { reason: 'no_rating' });
       return;
     }
-    toast('Enter your gross first');
+    /* TEN / W6 · K077 [A2-post-10] · the last blocked post that toasted. A
+       refusal is the action's answer, not a confirmation (§13.4: the toast
+       confirms the golfer's own action), so it stands above Add my round,
+       tied to it, until the card changes. The phone's tapPost refuses the
+       same way (refuse(PostCalc.Blocked.noCard.message)). */
+    csPostRefused('Enter your gross first');
     window.qaEvent?.('post_blocked', { reason: 'no_card' });
     return;
   }
