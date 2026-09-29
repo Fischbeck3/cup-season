@@ -15184,14 +15184,10 @@ function syncWizSegs(){
 }
 // D346: an explicit suggestion changes only the two named rules.
 function csUseBusyFriends(settings){ settings.cap=0; settings.floor=0; }
+/* W7-167 · the wizard has no minimum sentence of its own any more: the dial's foot and the review say the season page's sentence (floorSentence, the one producer), so a Pro reads on the dial what a
+   golfer reads on the rules page: 'squad', not 'team', one cutthroat consequence, and the same closing clause about partial months */
 function csSetupMinimum(settings){
-  if(settings.structure==='solo') return 'No team penalty in an individual season.';
-  if(!settings.floor) return 'Play when you can. No points lost for playing less.';
-  if(settings.preset===0) return 'A target for the group. No points penalty under these rules.';
-  const penalty=settings.preset===2
-    ? 'After that, that golfer’s counting points for the month are removed from the team total.'
-    : 'After that, the team loses 5 points per round short.';
-  return 'One missed minimum is forgiven each season. '+penalty+' Partial months are exempt.';
+  return floorSentence({ floor:settings.floor, preset:settings.preset, structure:settings.structure });
 }
 function csRenderSetupMinimum(){
   const consequence=document.getElementById('setupMinimumConsequence');
@@ -27644,8 +27640,7 @@ function renderBylaws(){
     <div class="byrow"><span>How scores count</span><b>Scored against your playing HCP — your index at ${ALLOW[state.preset]} percent</b></div>
     <div class="byrow"><span>Scores</span><b>${VERIF[state.preset]}</b></div>
     <div class="byrow"><span>Each month</span><b>${esc(csCountingRule(capDB()))}</b></div>
-    <div class="byrow"><span>The minimum</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
-    ${state.structure!=='solo' && state.floor>0 ? `<div class="byrow"><span>If you miss it</span><b>${esc(csSetupMinimum(state))}</b></div>` : ''}
+    <div class="byrow"><span>The minimum</span><b>${esc(csSetupMinimum(state))}</b></div>   <!-- W7-167 · one row: floorSentence opens with the count and closes with what a miss costs, so 'If you miss it' is not a second row -->
     ${state.stake===0
       ? `<div class="byrow"><span>Buy-in</span><b>None · bragging rights</b></div>`
       : `<div class="byrow"><span>Buy-in</span><b>${fmt$(state.stake)} / golfer</b></div>

@@ -259,6 +259,21 @@ const lengthInWeeks = async (page) => page.evaluate(() => {
   const m = shown.match(/\b\d+ mo\b/)
   return m ? `the wizard still prints a length as '${m[0]}'` : true
 })
+/* TEN / W8 · W7-167 [A2-wizard-3] · the wizard has no minimum sentence of its own: the dial's foot and the review's ONE 'The minimum' row say the season page's sentence (floorSentence), with 'squad' where the
+   product says squad, and there is no second 'If you miss it' row */
+const minimumOnce = async (page) => page.evaluate(() => {
+  const want = floorSentence({ floor: state.floor, preset: state.preset, structure: state.structure })
+  const foot = document.getElementById('setupMinimumConsequence'), shown = (el) => el && el.getBoundingClientRect().width > 0
+  if (shown(foot) && foot.textContent.trim() !== want) return `the dial's foot reads ${JSON.stringify(foot.textContent.trim())}, not the season page's sentence`
+  const rows = [...document.querySelectorAll('#bylawsReview .byrow')].filter(shown)
+  if (rows.length) {
+    const mins = rows.filter((r) => /^The minimum$/i.test(r.firstElementChild.textContent.trim()))
+    if (mins.length !== 1 || mins[0].querySelector('b').textContent.trim() !== want) return `the review's minimum reads ${JSON.stringify(mins[0] && mins[0].querySelector('b').textContent.trim())}`
+    if (rows.some((r) => /If you miss it/i.test(r.firstElementChild.textContent))) return "the review still has an 'If you miss it' row"
+  }
+  const said = [foot, ...rows].filter(Boolean).map((e) => e.textContent).join(' ')
+  return /\bteam\b/i.test(said) ? "the wizard's minimum still says 'team' where the product says 'squad'" : (shown(foot) || rows.length ? true : 'no minimum is drawn on this step')
+})
 /* TEN / W8 · W7-104 [A2-wizard-5, A2-desk-19] · a missing pay note is said in ink, as the phone says it, before the Pro has tried to start: 'add how they pay you' in the Money group's summary,
    the field's line and the review's 'Not set yet' are not the error red (neg is for a refusal, not a field not yet filled); the disabled Start and its reason stay */
 const payNoteInk = async (page) => page.evaluate(() => {
@@ -320,7 +335,7 @@ const WIZARD = [
     expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } },
     /* TEN / W6 · delta G6: a dial's value is one figure; at 375 and 402 the
        narrowed column broke it ("Best / 4", "2 / / mo") */
-    check: all(payNoteInk, lengthInWeeks, async (page) => page.evaluate(() => {
+    check: all(payNoteInk, lengthInWeeks, minimumOnce, async (page) => page.evaluate(() => {
       const broken = [...document.querySelectorAll('#wizDials .setrow .val')].filter((v) => v.offsetParent !== null)
         .filter((v) => { const cs = getComputedStyle(v), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25; return v.getBoundingClientRect().height > lh * 1.5 })
         .map((v) => JSON.stringify(v.textContent.trim()))
@@ -333,7 +348,7 @@ const WIZARD = [
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
       await click(page, '#wizFastPath'); await wizAt(page, 2); await page.waitForTimeout(600)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone, payNoteInk, lengthInWeeks) },
+    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone, payNoteInk, lengthInWeeks, minimumOnce) },
 ]
 
 /* --------------------------------------------- COURSES & THE COURSE CARD */

@@ -416,6 +416,12 @@
     window.openScoringHelp();
     const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
     /* W7-093 [A2-rules-2] · the floor sentence names WHICH months are waived (the edge months close_month waives), not 'Short months', which no page defines */
+    /* W7-167 · the wizard's dial foot and review say the season page's sentence: one producer, 'squad' and never 'team' */
+    t('W7-167: the wizard\'s minimum sentence is floorSentence\'s, in every preset and structure',
+      [[0,1,2].map(pr => csSetupMinimum({ floor:2, preset:pr, structure:'squads4' })), csSetupMinimum({ floor:0, preset:1, structure:'squads2' }), csSetupMinimum({ floor:3, preset:1, structure:'solo' })],
+      [[0,1,2].map(pr => floorSentence({ floor:2, preset:pr, structure:'squads4' })), floorSentence({ floor:0, preset:1, structure:'squads2' }), floorSentence({ floor:3, preset:1, structure:'solo' })]);
+    t('W7-167: and it never says team where the product says squad',
+      [0,1,2].some(pr => /\bteam\b/i.test(csSetupMinimum({ floor:2, preset:pr, structure:'squads4' }))), false);
     t('W7-093: floorSentence ends on the edge months and never says "Short months"',
       [floorSentence({ floor:2, preset:1, structure:'squads2' }), /Short months/.test(floorSentence({ floor:2, preset:1, structure:'squads2' }))],
       ['Post 2 rounds a month. Miss once and your season bye covers it automatically; from the second miss your squad loses 5 points for every round you\'re short. A partial first or last month has no minimum.', false]);
