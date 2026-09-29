@@ -88,8 +88,17 @@ const youFormGrammar = (slot) => async (page) => page.evaluate((slot) => {
   const t = head.innerText.replace(/\s+/g, ' ').trim()
   if (t !== (slot ? `FORM · LAST FIVE ${slot}` : 'FORM · LAST FIVE')) return `You's Form head reads ${JSON.stringify(t)}`
   const days = [...document.querySelectorAll('#youForm .dfcol small')].map((e) => e.innerText.trim())
-  const bad = days.filter((d) => !/^[A-Z]{3} \d{1,2}( · NINE)?$/.test(d))
-  return days.length && !bad.length ? true : `the Form columns mix day forms: ${JSON.stringify(days)}`
+  const bad = days.filter((d) => !/^[A-Z]{3} \d{1,2}( · NINE)?( · BEST)?$/.test(d))
+  if (!days.length || bad.length) return `the Form columns mix day forms: ${JSON.stringify(days)}`
+  /* TEN / W8 · W7-111 [A2-identity-7]: the row is not one role=img (a screen reader lost every number in it); each column is named by its own facts, and the best has a word as well as a hue */
+  const row = document.querySelector('#youForm .dform'), cols = [...document.querySelectorAll('#youForm .dfcol')], won = cols.filter((c) => c.classList.contains('won'))
+  if (row.getAttribute('role') === 'img') return 'the Form row is still one image'
+  const unnamed = cols.filter((c) => !/^\d+, [A-Z][a-z]+ \d{1,2}/.test(c.getAttribute('aria-label') || ''))
+  if (unnamed.length) return `${unnamed.length} Form column(s) are not named by their own facts: ${JSON.stringify(unnamed[0].getAttribute('aria-label'))}`
+  if (won.length && !won.every((c) => /best of the five/.test(c.getAttribute('aria-label')) && /BEST/.test(c.querySelector('small').innerText))) return 'the best is marked by hue alone'
+  const rows = [...document.querySelectorAll('#youRecent .yrow')].filter((r) => r.getBoundingClientRect().width > 0)
+  const thin = rows.filter((r) => !/, \d+, [A-Z][a-z]{2} \d{1,2}/.test(r.getAttribute('aria-label') || ''))
+  return thin.length ? `a Recent rounds row is named 'course, gross' only: ${JSON.stringify(thin[0].getAttribute('aria-label'))}` : true
 }, slot)
 
 /* the sidebar's foot stays pinned to the column's bottom when its block stands down: display:none took #sideMe's margin-top:auto with it

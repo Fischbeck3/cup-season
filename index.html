@@ -24892,10 +24892,15 @@ function formRowHtml(recent, caption, opts){
      mixed 'TODAY', a weekday and a month-day in one row ('TUE', 'SEP 15'), and typed the capitals itself */
   const body = cols.map(r => {
     const gold = !seen && best != null && r && !csFormNine(r) && r.gross === best; if(gold) seen = true;
-    return `<div class="dfcol${gold ? ' won' : ''}"><b>${r && r.gross != null ? r.gross : '—'}</b><i></i>`
-         + `<small>${esc(csMonthDay(r && r.played_on || ''))}${csFormNine(r) ? ' · nine' : ''}</small></div>`;
+    /* W7-111 · each column is named by its OWN facts (the phone's CredentialCopy.formSpoken): '84, September 27', ', nine holes' for a nine, ', best of the five' for the
+       best. The row was one role=img named 'Form, last 5 rounds', so a screen reader lost every number in it; and the best was marked by its hue alone, so the word
+       'best' is the second, visible channel (in the date line, as 'nine' is) */
+    const said = [r && r.gross != null ? String(r.gross) : 'no score', r && r.played_on ? csSpokenDay(r.played_on) : ''].filter(Boolean).join(', ')
+               + (csFormNine(r) ? ', nine holes' : '') + (gold ? ', best of the five' : '');
+    return `<div class="dfcol${gold ? ' won' : ''}" role="group" aria-label="${esc(said)}"><b aria-hidden="true">${r && r.gross != null ? r.gross : '—'}</b><i aria-hidden="true"></i>`
+         + `<small aria-hidden="true">${esc(csMonthDay(r && r.played_on || ''))}${csFormNine(r) ? ' · nine' : ''}${gold ? ' · best' : ''}</small></div>`;
   }).join('');
-  return head + `<div class="dform" role="img" aria-label="Form, last ${cols.length} rounds">${body}</div>`;
+  return head + `<div class="dform">${body}</div>`;
 }
 /* the one wording for what a lit dot means — web twin of `YouCopy.formKey` */
 const CS_FORM_KEY = 'Your last five rounds, oldest first — a lit dot beat your playing HCP.';
@@ -25044,7 +25049,9 @@ function renderCareer(){
                        r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
           const bk = bookOf(r.api_course_id);
           const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
-          return `<div class="yrow" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${course}, ${esc(String(r.gross??''))}">
+          /* W7-111 · the row is named by its own facts, not 'course, gross': the day, the score and what it was against your number, and a nine says so */
+          const spoken = [course, r.gross != null ? String(r.gross) : null, r.played_on ? csMonthDay(r.played_on) : null, fig != null ? vsPhrase(fig) : null, r.holes_played===9 ? 'nine holes' : null].filter(Boolean).join(', ');
+          return `<div class="yrow" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${spoken}">
             <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s is-phrase">${esc(sub)}</small>`:''}</span>
             ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
             <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;

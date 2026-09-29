@@ -479,7 +479,11 @@
        CredentialCopy.formDate), never csDayToken's TODAY / weekday / month-day mix, and a nine says so; on You the head is
        an eyebrow that carries the window and counts only under five rounds; the person page keeps its rule-and-slot head */
     box.innerHTML = formRowHtml(rec);
-    t('W7-047: the columns print the month and day', [...box.querySelectorAll('.dfcol small')].map(e=>e.textContent), ['Sep 6','Sep 7','Sep 8','Sep 9','Sep 10']);
+    t('W7-047: the columns print the month and day (W7-111: the best says so in words, a second channel beside its hue)', [...box.querySelectorAll('.dfcol small')].map(e=>e.textContent), ['Sep 6','Sep 7 · best','Sep 8','Sep 9','Sep 10']);
+    /* W7-111 · no role=img on the row (it hid every number from a screen reader); each column is named by its own facts, the best 'best of the five', a nine 'nine holes' */
+    t('W7-111: the Form row is not one image, and each column names its own facts',
+      [box.querySelector('.dform').getAttribute('role'), [...box.querySelectorAll('.dfcol')].map(e=>e.getAttribute('aria-label'))],
+      [null, ['85, September 6','79, September 7, best of the five','90, September 8','79, September 9','84, September 10']]);
     const withNine = rec.map((r,i)=> i===0 ? Object.assign({}, r, {holes_played:9}) : r);
     box.innerHTML = formRowHtml(withNine);
     t('W7-047: a nine says so in the column', (box.querySelectorAll('.dfcol small')[4] || {}).textContent, 'Sep 10 · nine');
