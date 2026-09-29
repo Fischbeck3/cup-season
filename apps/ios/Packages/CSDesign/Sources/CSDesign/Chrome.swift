@@ -44,6 +44,7 @@ public struct CSGlyph: View {
     case scheduleSheet    // nothing is scheduled
     case rack             // no trophies yet
     case bag              // nothing in the bag
+    case scoreboard       // nothing is running (N4-112)
 
     /// One 24 × 24 path, stroked. Round caps, round joins, no fill.
     var path: String {
@@ -78,6 +79,13 @@ public struct CSGlyph: View {
       case .emptyRail: "M3.5 4h5.5v16H3.5zM12 7h8.5M12 12h8.5M12 17h8.5"
       case .scheduleSheet: "M4 5.5h16V21H4zM4 10.5h16M8.5 3v4.5M15.5 3v4.5M8 14.5h3M13 14.5h3"
       case .rack: "M4 20.5h16M6.5 20.5V8.5h11v12M6.5 13h11M10 8.5V4h4v4.5"
+      // N4-112 · **AN EMPTY SCOREBOARD**: two rows, each a name not yet
+      // written and a score box with nothing in it — the web's Compete empty
+      // object (`.cmpempty-obj`), redrawn at this family's one stroke. The
+      // web's single figure slot and dashes read as a card with a chip at
+      // 1.7, which is a payment card on a product with a pot; two rows of
+      // name and box read as a board.
+      case .scoreboard: "M1.8 4.2h20.4v15.6H1.8zM4.8 8.4h7.4M4.8 15.6h7.4M15 6.6h4.4v3.6H15zM15 13.8h4.4v3.6H15z"
       // **A GOLF BAG, NOT A TOTE.** The first drawing was a body with a
       // handle arching over it and three ticks above — which is a handbag,
       // and the owner said so on sight: *"Bag needs to look more like a golf
