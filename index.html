@@ -31341,7 +31341,9 @@ function openProfileHub(){
   /* dirty-state: any card change arms Save (delegates survive the marker grid
      re-render); photo add/remove save instantly and never arm */
   let told = false;   /* W7-042 · the guard below has said its sentence for the edits so far */
-  const phArm = () => { const b=$('#phSave'); told = false;
+  const phArm = () => { const b=$('#phSave');
+    /* an edit made after the question is a NEW pending edit: the next way out asks about it again, and the line that asked is cleared (root's ruling, both clients) */
+    if(told){ told = false; const st=$('#phStatus'); if(st && st.textContent === CS_CARD_UNSAVED) st.textContent = ''; }
     if(b && !b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Save changes'; } };
   ['phName','phCity','phHome','phGhin','phHandle'].forEach(id=>$('#'+id)?.addEventListener('input', phArm));
   /* W7-042 · Findable-by saves on the tap (set_discoverable) and says so under the row (#phDiscSaid), so it

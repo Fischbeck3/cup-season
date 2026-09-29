@@ -325,6 +325,25 @@ const SETTINGS = [
     },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
     check: all(unsavedSaid, stillTheHub) },
+  /* (3) once per PENDING EDIT (root's ruling, both clients): an edit made after the question is a new pending edit. The line that asked is cleared by the next input, and the
+     next way out asks about it again (the sheet stays, the sentence is back); no stopwatch */
+  { family: 'settings', id: 'card-unsaved-rearm', variant: 'member', fullPage: false, title: 'Card & settings · an edit after the question clears it, and the next dismissal asks again',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#shClose'); await page.waitForTimeout(300)
+      await page.evaluate(() => { window.__w8 = { asked: document.getElementById('phStatus').textContent } })
+      await page.locator('#phName').fill('Avery Fixtured'); await page.waitForTimeout(200)
+      await page.evaluate(() => { window.__w8.cleared = document.getElementById('phStatus').textContent })
+      await page.waitForTimeout(4500)   /* well past the old four-second window: nothing times out */
+      await click(page, '#shClose'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: all(unsavedSaid, stillTheHub, async (page) => page.evaluate((want) => {
+      const w = window.__w8
+      if (w.asked !== want) return `the first dismissal said ${JSON.stringify(w.asked)}`
+      return w.cleared === '' ? true : `a new edit did not clear the question: ${JSON.stringify(w.cleared)}`
+    }, CARD_UNSAVED)) },
   /* (2) every way out of an armed card asks once: a guide row (it REPLACES the sheet, and its way back rebuilds the hub from the saved profile, so the edits
      are gone), the scoring note under the index, Tell us, Sign out. The first move keeps the sheet and says why; the same move again goes through. */
   { family: 'settings', id: 'card-unsaved-guide', variant: 'member', fullPage: false, title: 'Card & settings · a card edit is pending and a guide row is tapped from Settings (kept, brought back to the card, and told)',
