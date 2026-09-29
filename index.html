@@ -25055,7 +25055,8 @@ function renderCareer(){
         /* critique-B P3 · the trophies and the all-time figures wait on this
            read, and the page said nothing about their going */
         + `<p class="cs-body-s">Nothing is lost — the read failed, not the record. Your trophies and all-time figures come back with it.</p>`
-        + `<button type="button" class="mini" id="youRecentRetry" style="margin-top:10px">Try again</button></div>`
+        /* W7-101 · the failed read's ONE act is the primary, as the phone draws it (CSDoor .primary), not a secondary .mini cut by the tab band on the first screen */
+        + `<button type="button" class="btn" id="youRecentRetry" style="margin-top:10px">Try again</button></div>`
       : '';
     $('#youRecentRetry')?.addEventListener('click', () => { const b=$('#youRecentRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadCareer?.(); });
     return;

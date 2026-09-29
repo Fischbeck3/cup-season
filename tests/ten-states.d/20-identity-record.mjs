@@ -137,6 +137,15 @@ const liveLine = async (page) => page.evaluate(() => {
 const failedYou = async (page) => page.evaluate(() => {
   const dashed = [...document.querySelectorAll('#youFigs .cfig')].filter((c) => c.querySelector('b').textContent.trim() === '\u2014')
   if (dashed.length) return `the card prints ${dashed.length} figure(s) as a dash: ${JSON.stringify(dashed.map((c) => c.textContent.replace(/\s+/g, ' ').trim()))}`
+  /* TEN / W8 · W7-101 [A2-identity-12] · the failed read's one act, Try again, is the primary (.btn) and at least half of it clears the tab band on the first screen */
+  const b = document.getElementById('youRecentRetry')
+  if (!b) return 'the failed read has no Try again'
+  if (!b.classList.contains('btn')) return 'Try again is not the primary'
+  if (innerWidth < 960) {
+    const band = document.querySelector('nav.tabbar'), top = band ? band.getBoundingClientRect().top : innerHeight, r = b.getBoundingClientRect()
+    const shown = Math.max(0, Math.min(r.bottom, top) - Math.max(r.top, 0))
+    if (shown < r.height / 2) return `Try again is ${Math.round(shown)} of ${Math.round(r.height)}px above the tab band on the first screen`
+  }
   return true
 })
 /* ------------------------------------------------------------------ YOU */
