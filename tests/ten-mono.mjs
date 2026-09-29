@@ -82,3 +82,44 @@ export const noRetiredGlyph = () => async (page) => page.evaluate(() => {
   }
   return bad.length ? 'a retired glyph is on the page (§5.2): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
 })
+
+/* TEN / W6 · AW2-13 · the retired shapes (UI_SYSTEM §3, §8): no pill ("there
+ * is no pill" — a radius is one of the five, and `p` is 3px), no spine (a
+ * card's coloured left edge), and no glass (the header and the tab bar sit on
+ * the page's own ground, opaque, with no backdrop blur). `noRetiredShape()`
+ * reads every VISIBLE element: a pill is 8–48px tall (a 44px chip counts), wider
+ * than tall, and
+ * rounded to half its height; a spine is a left border wider than the other
+ * three; glass is a translucent or blurred .hdr or .tabbar. */
+export const noRetiredShape = () => async (page) => page.evaluate(() => {
+  const bad = []
+  /* rgb(), rgba() and color(srgb … / a), which color-mix() computes to */
+  const alpha = (c) => { c = c || ''; const sl = /\/\s*([0-9.]+)\s*\)\s*$/.exec(c); if (sl) return parseFloat(sl[1]); const m = /rgba?\(([^)]+)\)/.exec(c); if (!m) return /^color\(/.test(c) ? 1 : 0; const v = m[1].split(','); return v[3] !== undefined ? parseFloat(v[3]) : 1 }
+  for (const el of document.querySelectorAll('body *')) {
+    const r = el.getBoundingClientRect()
+    if (!(r.width > 0 && r.height > 0)) continue
+    const cs = getComputedStyle(el)
+    if (cs.visibility === 'hidden' || cs.display === 'none') continue
+    const rad = parseFloat(cs.borderTopLeftRadius) || 0
+    if (r.height >= 8 && r.height <= 48 && r.width > r.height * 1.2 && rad >= r.height / 2 - 0.5) {
+      bad.push(`a pill: ${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}.${[...el.classList].slice(0, 2).join('.')} (${Math.round(r.width)}×${Math.round(r.height)}, r${Math.round(rad)})`)
+    }
+    /* a spine is a coloured left edge ON A CARD: a boxed or filled element. A
+       transparent edge is no mark, and a bare row's left rule (the desk nav's
+       selection mark) is not a card's spine */
+    const bl = parseFloat(cs.borderLeftWidth) || 0, bt = parseFloat(cs.borderTopWidth) || 0
+    const boxed = bt > 0 || alpha(cs.backgroundColor) > 0
+    if (bl >= 2 && bl > bt && cs.borderLeftStyle !== 'none' && alpha(cs.borderLeftColor) > 0 && boxed && r.height > 16) bad.push(`a spine: ${el.tagName.toLowerCase()}.${[...el.classList].slice(0, 2).join('.')} (${bl}px)`)
+  }
+  for (const sel of ['.hdr', '.tabbar']) {
+    const el = document.querySelector(sel); if (!el) continue
+    const r = el.getBoundingClientRect(); if (!(r.width > 0 && r.height > 0)) continue
+    const cs = getComputedStyle(el), a = alpha(cs.backgroundColor)
+    const blur = (cs.backdropFilter && cs.backdropFilter !== 'none') || (cs.webkitBackdropFilter && cs.webkitBackdropFilter !== 'none')
+    /* glass is a bar that floats over the page: blurred, or see-through while
+       it is stuck (the desk's static header on the page's own ground is not) */
+    const floats = cs.position === 'sticky' || cs.position === 'fixed'
+    if (blur || (floats && a < 1)) bad.push(`glass: ${sel} (alpha ${a}${blur ? ', blurred' : ''})`)
+  }
+  return bad.length ? 'a retired shape (§3, §8): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
+})

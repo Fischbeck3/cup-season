@@ -18,7 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
-import { notMono, readsAsWritten, noRetiredGlyph } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -309,7 +309,9 @@ const GOLFERS = [
        unit are agateS; only the margin's figure keeps mono (the column role) */
     notMono(['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep'], ['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep']),
     /* TEN / W6 · AW2-08: the report control is a word, not ⚑; no retired glyph on the board */
-    noRetiredGlyph()) },
+    noRetiredGlyph(),
+    /* TEN / W6 · AW2-13: the reaction bar's controls and the tags are not pills, and the system row has no spine */
+    noRetiredShape()) },
 ]
 
 export default [...HOME_HATCH, ...HOME_DISPATCH, ...HOME_LEAGUELESS, ...HOME_WORLD, ...GOLFERS]

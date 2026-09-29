@@ -9,7 +9,7 @@
  *
  * The group is the synthetic cast of North Grove (fixture): Avery Fixture
  * (me), Devon Testwell, Blake Sample, Casey Placeholder. */
-import { notMono, readsAsWritten, noRetiredGlyph } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -207,7 +207,8 @@ export default [
        never mono (§1.4) */
     notMono(['#view-play .backlink', '.tabbar .tab'], ['#view-play .backlink', { sel: '.tabbar .tab', below: 960 }]),
     /* TEN / W6 · AW2-08: the back link's arrow is the drawn chevron */
-    noRetiredGlyph()) },
+    noRetiredGlyph(),
+    noRetiredShape()) },
 
   /* a Match Play single, $5 a side, through four */
   { family: 'play', id: 'match-scoring', variant: 'member', title: 'Live round · Match Play singles with Devon, $5, through four',

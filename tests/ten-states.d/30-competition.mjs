@@ -20,7 +20,7 @@
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -152,7 +152,9 @@ const SEASON = [
       noSerifFigure(['#standingsStory', '#lineAmt'], ['#standingsStory .cfrun', '#lineAmt']),
       /* TEN / W6 · AW2-08: no retired glyph on the season page, and its span is an en dash */
       noRetiredGlyph(),
-      readsAsWritten([['#hhSpan', ' \u2013 ', true]])) },
+      readsAsWritten([['#hhSpan', ' \u2013 ', true]]),
+      /* TEN / W6 · AW2-13: no pill (the jump chips), no spine, no glass */
+      noRetiredShape()) },
   { family: 'season', id: 'story', variant: 'member', title: 'The season page, the story: the arc of weeks and the archive', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: async (page) => {

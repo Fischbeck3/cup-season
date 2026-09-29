@@ -15,7 +15,7 @@ const go = (v) => async (page) => { await page.evaluate((v) => window.switchView
 import { readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { notMono, noRetiredGlyph } from './ten-mono.mjs'
+import { notMono, noRetiredGlyph, noRetiredShape } from './ten-mono.mjs'
 const HERE = dirname(fileURLToPath(import.meta.url))
 
 /* Family modules: tests/ten-states.d/<family>.mjs, each `export default [ ...states ]`.
@@ -94,7 +94,8 @@ const CORE = [
     } },
 
   /* ------------------------------------------------------------ home */
-  { family: 'home', id: 'member', variant: 'member', expect: { view: 'view-home' } },
+  /* TEN / W6 · AW2-13: the header and the tab bar sit on the page's own ground — no glass */
+  { family: 'home', id: 'member', variant: 'member', expect: { view: 'view-home' }, check: noRetiredShape() },
   { probe: true, family: 'explore', id: 'stats', variant: 'member', drive: go('stats'), expect: { view: 'view-stats' } },
   { probe: true, family: 'explore', id: 'record', variant: 'member', drive: go('record'), expect: { view: 'view-record' } },
   { probe: true, family: 'explore', id: 'hub', variant: 'member', drive: go('hub'), expect: { view: 'view-hub' } },

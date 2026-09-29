@@ -331,8 +331,8 @@ html[data-theme="light"] .card, html[data-theme="light"] .stat{
   border-color:var(--rule);
   box-shadow:none;
 }
-html[data-theme="light"] .hdr{background:color-mix(in srgb, var(--bg0) 88%, transparent);}
-html[data-theme="light"] .tabbar{background:color-mix(in srgb, var(--bg0) 92%, transparent); border-top:1px solid var(--rule);}
+html[data-theme="light"] .hdr{background:var(--bg0);}
+html[data-theme="light"] .tabbar{background:var(--bg0); border-top:1px solid var(--rule);}
 html[data-theme="light"] .msgrow, html[data-theme="light"] .sysrow{background:var(--bg1);}
 *{box-sizing:border-box; margin:0; padding:0;}
 /* `hidden` always means hidden. A component's own display (flex, grid) outranks
@@ -656,7 +656,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
    F11's competition-only ember role and to D267's neutral scorecard: the
    grid itself is NOT repainted — this sits beside it and then leaves. */
 .hmoment{display:inline-flex; align-items:baseline; gap:var(--s2);
-  border-left:2px solid var(--brand); padding:var(--s1) 0 var(--s1) var(--s2);}
+  padding:var(--s1) 0;}   /* TEN / W6 · AW2-13: the brand spine is retired — the word carries the moment */
 .hmoment .w{font-family:var(--board); font-size:15px; letter-spacing:calc(var(--caps2) * 1em);
   text-transform:uppercase; color:var(--brand);}
 .hmoment.eagle .w{font-size:18px;}
@@ -974,14 +974,12 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
   /* ...and the fixed tab bar owns the bottom ~64px: a control focused near the
      foot of a page was scrolled to sit under it (critique B at 402) */
   scroll-padding-bottom:calc(64px + env(safe-area-inset-bottom) + var(--s2));} }
-/* header · its ground is the page's own (--bg0 at 86%), so the dark bar reads
-   fescue like the page under it, never the retired D76 charcoal it kept after
-   the ground changed (the light printing's .hdr/.tabbar mix the same way) */
+/* header · its ground is the page's own. TEN / W6 · AW2-13: --bg0 itself,
+   opaque — the 86% mix and the blur made glass of it, a retired surface
+   (UI_SYSTEM §3); the rule under it is the edge */
 .hdr{
   position:sticky; top:0; z-index:20;
-  background:color-mix(in srgb, var(--bg0) 86%, transparent);
-  backdrop-filter:blur(16px) saturate(1.3);
-  -webkit-backdrop-filter:blur(16px) saturate(1.3);
+  background:var(--bg0);
   border-bottom:1px solid var(--rule);
   padding-top:env(safe-area-inset-top);
 }
@@ -2678,7 +2676,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 /* MW-06 · the step's name above its rail */
 .wizstepname{color:var(--mut); margin:0 0 6px;}
 .wizdots{display:flex; gap:6px; margin-bottom:14px;}
-.wizdots i{height:4px; flex:1; border-radius:99px; background:var(--bg2);}
+.wizdots i{height:4px; flex:1; border-radius:var(--p); background:var(--bg2);}
 /* D359 (supersedes the D76 sweep's ember rail): three steps of a form are
    not a contest, so the rail is INK, as the phone's WizardDots are — never
    --pos, and no longer ember */
@@ -2990,7 +2988,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .hhero .hh-pos{font-family:var(--board); font-size:40px; font-weight:700; line-height:.94; color:var(--ink); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums;}
 .hhero.earned .hh-pos{color:var(--gold);}
 .hhero .hh-ord{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--ord) * 1em); text-transform:uppercase; color:var(--mut); align-self:baseline;}
-.hhero .hh-move{display:inline-flex; align-items:center; gap:4px; border-radius:99px; padding:3px 9px; margin-left:auto;
+.hhero .hh-move{display:inline-flex; align-items:center; gap:4px; border-radius:var(--p); padding:3px 9px; margin-left:auto;
   font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); background:rgba(78,197,132,.13); color:var(--pos);}
 .hhero .hh-move.dn{background:rgba(255,95,86,.12); color:var(--neg);}
 .hhero .hh-move.flat{background:var(--bg2); color:var(--mut);}
@@ -2999,8 +2997,8 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .hhero.earned .hh-line em{color:var(--gold);}
 .hhero .hh-foot{display:flex; align-items:center; gap:var(--s2); margin-top:var(--s3); padding-top:var(--s3); border-top:1px solid var(--rule);
   font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
-.hhero .hh-bar{flex:1; height:5px; border-radius:99px; background:var(--bg2); overflow:hidden;}
-.hhero .hh-bar i{display:block; height:100%; border-radius:99px; background:var(--brand);}
+.hhero .hh-bar{flex:1; height:5px; border-radius:var(--p); background:var(--bg2); overflow:hidden;}
+.hhero .hh-bar i{display:block; height:100%; border-radius:var(--p); background:var(--brand);}
 .hhero .hh-bar i.ok{background:var(--pos);}
 /* D359 · the hero's one move is an ordinary action (post a round, find your
    buddies, start a season, run it back): the ACTION GREEN, as `.btn` is, and
@@ -3056,7 +3054,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .hr-body b{font-size:12.5px; display:block; letter-spacing:.02em;}
 .hr-body small{display:block; color:var(--mut); font-size:11.5px; overflow-wrap:anywhere;}   /* the course wraps whole */
 .hr-side{display:flex; align-items:center; gap:7px; flex:none;}
-.hr-in{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--pos); background:rgba(78,197,132,.14); border-radius:99px; padding:3px 8px;}
+.hr-in{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--pos); background:rgba(78,197,132,.14); border-radius:var(--p); padding:3px 8px;}
 .hr-c{font-size:11px; color:var(--mut);}
 .hr-wx{font-size:11px; color:var(--mut);}
 .cthread{margin-top:10px;}
@@ -3118,7 +3116,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .rxcm{
   font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--mut);
   background:var(--bg2); border:1px solid var(--rule);
-  border-radius:99px; padding:5px 11px; cursor:pointer; line-height:1;
+  border-radius:var(--p); padding:5px 11px; cursor:pointer; line-height:1;
 }
 /* D310 · the tray's "+" is gone and `.rxadd` now dresses exactly one control:
    the report flag. The class keeps its name because renaming it would touch
@@ -3128,7 +3126,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
      Tracer's pennant becomes a word (UI_SYSTEM §5.2) — and a word is agate */
   font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);
   background:var(--bg2); border:1px solid var(--rule);
-  border-radius:99px; cursor:pointer; line-height:1;
+  border-radius:var(--p); cursor:pointer; line-height:1;
   display:inline-flex; align-items:center; justify-content:center;
   padding:0 11px; height:26px;
 }
@@ -3199,7 +3197,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .sysrow{
   font-family:var(--sans); font-size:12.5px; letter-spacing:.01em; line-height:1.5;
   color:var(--mut); text-align:left; padding:10px 13px; margin-bottom:8px;
-  border:1px solid var(--rule); border-left:3px solid rgba(233,190,98,.5);
+  border:1px solid var(--rule);   /* TEN / W6 · AW2-13: the 3px gold spine is retired (UI_SYSTEM retires spines; gold is earned, D359) */
   border-radius:12px; background:var(--bg1);
 }
 /* D92 · a settled game is a door. The row keeps its quiet clubhouse-note voice
@@ -3485,7 +3483,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   .sheet .panel{ max-height:88dvh; }
   @media(min-width:760px){ .sheet .panel{ max-height:82dvh; } }
 }
-.sheet .grab{width:36px; height:4px; border-radius:99px; background:var(--rule); margin:0 auto 14px;}
+.sheet .grab{width:36px; height:4px; border-radius:var(--p); background:var(--rule); margin:0 auto 14px;}
 /* TEN / W6 · ONE WAY TO CLOSE (lanes' needs-root; LINT-25's one dismiss).
    · The drag pill is a PHONE affordance: the desk opens a sheet as a dialog
      and nothing there is dragged.
@@ -3683,11 +3681,11 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
    SAVED) keep theirs. */
 #draftLock.lockbadge{font-family:var(--sans); font-size:13px; font-weight:400; letter-spacing:var(--flat); text-transform:none;}
 .fbcat{ font-family:var(--sans); font-size:12px; color:var(--mut); background:var(--bg1);
-  border:1px solid var(--rule); border-radius:99px; padding:6px 12px; cursor:pointer; }
+  border:1px solid var(--rule); border-radius:var(--p); padding:6px 12px; cursor:pointer; }
 .fbcat.on{ color:var(--ink); border-color:var(--act); background:var(--bg2); }
 .ftag{ display:inline-flex; align-items:center; gap:2px; font-family:var(--board); font-size:11px; font-weight:600;   /* TEN / W6 · AW2-06: a tag, agateS */
   letter-spacing:calc(var(--agate-s) * 1em); color:var(--gold); background:rgba(216,178,90,.12);  /* founder = earned → champagne */
-  border:1px solid rgba(216,178,90,.34); border-radius:99px; padding:1px 6px; vertical-align:middle; white-space:nowrap; }
+  border:1px solid rgba(216,178,90,.34); border-radius:var(--p); padding:1px 6px; vertical-align:middle; white-space:nowrap; }
 #errbar{
   position:fixed; left:0; right:0; bottom:0; z-index:999; display:none;
   font-family:var(--mono); font-size:12px; line-height:1.6; letter-spacing:.02em;
@@ -3704,9 +3702,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
      the bar onto a second row and the ⊕ landed on top of a label. */
   display:grid; grid-template-columns:repeat(4,1fr);
   padding:7px 8px calc(9px + env(safe-area-inset-bottom));
-  background:color-mix(in srgb, var(--bg0) 90%, transparent);   /* the page's ground, as .hdr */
-  backdrop-filter:blur(18px) saturate(1.3);
-  -webkit-backdrop-filter:blur(18px) saturate(1.3);
+  background:var(--bg0);   /* the page's own ground, as .hdr — opaque, no glass (AW2-13) */
   border-top:1px solid var(--rule);
 }
 @media(min-width:960px){ .tabbar{display:none;} }
@@ -3727,7 +3723,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .toast{
   position:fixed; left:50%; bottom:92px; transform:translateX(-50%) translateY(12px);
   background:var(--ink); color:var(--bg0); font-size:13px; font-weight:600;
-  padding:11px 18px; border-radius:99px; opacity:0; pointer-events:none;
+  padding:11px 18px; border-radius:var(--p); opacity:0; pointer-events:none;
   /* above the sheets (z 200) — "Card saved" was firing invisibly behind an
      open sheet (pilot feedback, 2026-07-17). TEN / W6 · and above EVERY layer:
      at 1000 it sat under the finish ceremony (#finish, 1100), so the share
@@ -4244,7 +4240,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .phsw-t{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px;}
 .phsw-t b{font-family:var(--sans); font-size:15px; font-weight:600; color:var(--ink);}
 .phsw-t small{font-family:var(--sans); font-size:13px; line-height:1.4; color:var(--mut);}
-.phsw-k{position:relative; flex:none; width:44px; height:26px; border-radius:999px; box-sizing:border-box;
+.phsw-k{position:relative; flex:none; width:44px; height:26px; border-radius:var(--p); box-sizing:border-box;
   border:1.5px solid var(--mut); transition:background-color .15s var(--snap), border-color .15s var(--snap);}
 .phsw-k::after{content:''; position:absolute; top:3px; left:3px; width:17px; height:17px; border-radius:50%;
   background:var(--mut); transition:transform .15s var(--snap), background-color .15s var(--snap);}
@@ -4609,7 +4605,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 ::selection{background:color-mix(in srgb, var(--act) 32%, transparent);}   /* not a pre-token ember: selecting text is not competition (D359) */
 *{scrollbar-width:thin; scrollbar-color:var(--rule) transparent;}
 *::-webkit-scrollbar{width:8px; height:8px;}
-*::-webkit-scrollbar-thumb{background:var(--rule); border-radius:99px;}
+*::-webkit-scrollbar-thumb{background:var(--rule); border-radius:var(--p);}
 *::-webkit-scrollbar-track{background:transparent;}
 
 /* D76 heat grammar — temperature is semantic, never decorative. Stable=slate,
@@ -5185,7 +5181,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .seasonjump::-webkit-scrollbar{display:none;}
 .seasonjump button{
   flex:none; min-height:44px; padding:0 12px; cursor:pointer;
-  background:none; border:1px solid var(--rule); border-radius:999px; color:var(--mut);
+  background:none; border:1px solid var(--rule); border-radius:var(--p); color:var(--mut);
   /* TEN / W6 · AW2-06: a chip's label is `agateS` in caps, never mono (§1.4) */
   font-family:var(--board); font-size:11px; font-weight:600;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
