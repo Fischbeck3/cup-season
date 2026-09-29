@@ -1528,6 +1528,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfr-title{position:relative; isolation:isolate; display:flex; align-items:flex-end; justify-content:space-between; gap:var(--s3);
   margin-top:var(--s2); padding-bottom:var(--s1); border-bottom:1px solid var(--rule);}
 .hfr-title>b{flex:1; min-width:0; color:var(--ink); overflow-wrap:anywhere; text-wrap:balance; padding-bottom:var(--s1);}
+.hfr-title .hfr-tee{color:var(--mut);}
 .hfr-topo{position:absolute; left:34%; top:50%; transform:translateY(-50%); width:min(30%, 130px); height:auto; z-index:-1; pointer-events:none; color:var(--mut);}
 .hfr-topo .t-sur{stroke-width:1.2; opacity:.08;}
 .hfr-topo .t-edge{stroke-width:1.2; opacity:.16;}
@@ -1539,20 +1540,40 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfr-foot .hrx{margin-top:0;}
 .hfr-go{flex:none; color:var(--mut);}
 
-/* B1: a photo-backed round IS the card — dusk wash, serif gross, marker medal */
-.hfcard.hfstory{padding:0; position:relative; overflow:hidden; border-radius:var(--r); min-height:220px; display:flex; flex-direction:column; justify-content:space-between; color:#F4F6F2; border:none;}
-.hfcard.hfstory .hsbg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
-.hfcard.hfstory::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,14,12,.55), rgba(10,14,12,.05) 40%, rgba(10,14,12,.72));}
-.hstop,.hsbot,.hsfoot{position:relative; z-index:2;}
-.hstop{display:flex; align-items:center; gap:10px; padding:12px 14px;}
-.hstop .hsid b{display:block; font-size:14.5px; font-weight:650; letter-spacing:-.01em; text-shadow:0 1px 6px rgba(0,0,0,.4);}
-.hstop .hsid small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; opacity:.85; margin-top:2px;}
-.hsbot{display:flex; align-items:flex-end; justify-content:space-between; padding:0 14px 12px;}
-.hsg{font-family:var(--serif); font-size:44px; line-height:.95; text-shadow:0 2px 10px rgba(0,0,0,.45);}
-.hsg small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; opacity:.9; margin-top:4px; text-shadow:none;}
-.hsmedal{width:30px; height:30px; flex:none; border-radius:50%; background:rgba(10,14,12,.55); display:flex; align-items:center; justify-content:center; color:var(--scrim-ink);}
+/* TEN P1 · THE PHOTOGRAPHED ROUND. The row is the record's (a rule above,
+   the story, the course's circle and the one foot row below, on the page's
+   own ground); the photograph is its PLATE — the one object on the wire with
+   a radius (§10.1 rung 1). The plate sits on the pinned ceremony ground, so
+   the scrim ink always has its dark ground even before the picture paints or
+   if it never does (TP-03: it measured 1.19–3.23:1 in light with the photo
+   withheld). The copy reverses out of the plate's foot on §10.3's
+   bottom-anchored `.title` scrim — scrim-ink for the name and the figure,
+   scrim-mut for the course line and the unit, both measured on the scrim's
+   darkest band. `clip`, not `hidden`: a long name grows the plate rather than
+   losing its first line off the top (the `.cs-plate` lesson). */
+.hfcard.hfstory{border-top:1px solid var(--rule); padding:var(--s3) 0 var(--s1); margin:0;}
+.hsplate{position:relative; isolation:isolate; overflow:hidden; overflow:clip;
+  border-radius:var(--r);
+  width:100%; aspect-ratio:2.1/1; min-height:168px; display:flex; align-items:flex-end;   /* a definite width: min-height must never widen the plate through the ratio */
+  background:var(--ceremony); color:var(--scrim-ink);}
+.hsplate .hsbg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2;}
+.hsplate::after{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(to bottom, transparent 0%,
+    color-mix(in srgb, var(--ceremony) 24%, transparent) 44%,
+    color-mix(in srgb, var(--ceremony) 72%, transparent) 72%,
+    color-mix(in srgb, var(--ceremony) 88%, transparent) 100%);}
+.hscopy{display:flex; align-items:flex-end; gap:var(--s3); width:100%; padding:var(--s3);}
+.hsid{flex:1; min-width:0;}
+.hsid b{display:block; color:var(--scrim-ink); overflow-wrap:anywhere;}
+.hsid small{display:block; color:var(--scrim-mut); overflow-wrap:anywhere;}
+.hsid .hsday{white-space:nowrap;}   /* "Sep 26" is one fact, never "Sep / 26" */
+.hsg{flex:none; display:flex; align-items:baseline; gap:var(--s2);}
+.hsg>b{color:var(--scrim-ink);}
+.hsg>span{color:var(--scrim-mut);}
+.hsmedal{position:absolute; top:var(--s3); right:var(--s3); width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; color:var(--scrim-ink);
+  background:color-mix(in srgb, var(--ceremony) 56%, transparent);}
 .hsmedal svg{width:16px; height:16px;}
-.hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--rule);}
 /* D288 · WEIGHT 5 — a moment that is not a round is a LINE, not a card.
    `.hfcard.quiet` was `bg2` plus a DASHED edge, which is a quiet thing made
    loud by being drawn twice; a quiet thing is quiet by being small and grey
@@ -17848,7 +17869,7 @@ window.OCCASIONS = OCCASIONS; window.occInWindow = occInWindow;   /* QA bridge �
 const DEMO_FEED = [
   {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true,
    rx:{'azalea':{n:2,me:false,who:['Rosa','Marco']},'rake':{n:1,me:false,who:['Marco']}}},
-  {golfer:'Rosa',  marker:'azalea',  gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true,
+  {golfer:'Rosa',  marker:'azalea',  gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true, holes_played:18,   /* the milestone is an 18-hole fact (csSub80) */
    rx:{'eagle':{n:1,me:false,who:['Diego']}}},
   {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true,
    rx:{'jug':{n:1,me:false,who:['Rosa']}}},
@@ -18040,11 +18061,36 @@ function memberMarker(pid){
   const m = (window.CS?.members||[]).find(m => m.profile_id === pid);
   return m ? (m.mk || m.marker || m.profile?.marker || 'saguaro') : 'saguaro';
 }
+/* TEN P0 · A GROSS MILESTONE IS AN EIGHTEEN-HOLE FACT. `home_feed.is_sub80` is
+   `gross < 80` with no hole count (20261020090000:110), so a nine-hole 43 was
+   announced as "broke 80 for the first time" on the golfer's own record, and
+   to their buddies. The row carries NO hole count either, so the client reads
+   it where it already holds it — the row itself if a later server adds it, the
+   board's round cache, the golfer's own career rows — and the claim is made
+   only when the round is KNOWN to be eighteen holes. Unknown claims nothing
+   (L-44): a missed celebration is recoverable, a false one is not. The server
+   half (`is_sub80` requiring holes_played = 18, as the board's moment already
+   does) is owed separately. */
+function csRoundHoles(r){
+  if(!r) return null;
+  const own = r.holes_played != null ? r.holes_played : r.holes;
+  if(own != null && isFinite(Number(own))) return Number(own);
+  const id = r.round_id || r.id || null;
+  const c = id && window.roundCache ? window.roundCache[id] : null;
+  if(c && c.holes_played != null && isFinite(Number(c.holes_played))) return Number(c.holes_played);
+  const rows = window.career && Array.isArray(window.career.rows) ? window.career.rows : null;
+  const mine = id && rows ? rows.find(x => x && x.id === id) : null;
+  if(mine && mine.holes_played != null && isFinite(Number(mine.holes_played))) return Number(mine.holes_played);
+  return null;
+}
+function csSub80(r){ return !!(r && r.is_sub80 && csRoundHoles(r) === 18); }
+/* a nine says it is a nine, beside its figure, wherever the client knows it */
+function csGrossUnit(r){ const h = csRoundHoles(r); return h != null && h < 18 ? `GROSS · ${h} HOLES` : 'GROSS'; }
 /* D340 · HomeWireCopy.roundDetail's copy cases, kept on both clients. */
 function homeRoundDetail(r){
   if(r.gross==null) return '';
   if(r.is_pr) return 'a personal best.';
-  if(r.is_sub80) return 'broke 80 for the first time.';
+  if(csSub80(r)) return 'broke 80 for the first time.';
   if(r.is_first) return r.is_me ? 'your first round posted.' : 'their first round posted.';
   if(r.pvi!=null){ const phrase=vsPhrase(Number(r.pvi)); return (r.is_me ? phrase : theirs(phrase))+'.'; }
   return '';
@@ -18133,20 +18179,14 @@ function wireHomePhotos(box){
     if(img.complete){ if(img.naturalWidth===0) failed(); else if(path) csLastGoodPhoto.set(path, img.getAttribute('src')); }
   });
 }
-function feedRow(r, idx, stamp){
+function feedRow(r, idx, stamp, opts){
   /* A2 scorecard rail + B1 photo takeover (owner pick, feed boards 2026-07-23):
-     the face carries the name, the serif gross carries the score — the same
-     number language as the receipt. A photo-backed round becomes the card
-     itself. Whole card opens the receipt; face + reactions keep their taps. */
+     the face carries the name, the figure carries the score. A photo-backed
+     round is a plate; every other round is the D360 record. Whole card opens
+     the receipt; face + reactions keep their taps. */
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
   const course = esc((r.course||'').trim() || 'Course not recorded');
-  const pviN = r.gross!=null && r.pvi!=null ? Number(r.pvi) : null;
-  const milestone = r.gross==null ? null : r.is_pr ? 'Personal best'
-    : r.is_sub80 ? 'Broke 80 — first time'
-    : r.is_first ? 'First round posted' : null;
-  const vp0 = pviN!=null ? vsPhrase(pviN) : '';
-  const vp = r.is_me ? vp0 : theirs(vp0);   /* crew rows speak third person */
   const rx = idx!==undefined ? homeRxOf(r) : null;
   const social = rx ? `<div class="hrx">${homeRxChipsHtml(rx,idx)}</div>` : '';
   /* D391 · two doors off the round, both read from posted_rounds_social and
@@ -18155,26 +18195,54 @@ function feedRow(r, idx, stamp){
   const tk = (idx!==undefined && r.round_id && window.csTalkSocial) ? window.csTalkSocial[r.round_id] : null;
   const talk = tk ? `<button type="button" class="hfr-talk" data-hftalk="${esc(r.round_id)}" aria-label="${tk.comment_count ? esc(String(tk.comment_count)) + ' comment' + (tk.comment_count===1?'':'s') + ', open the conversation' : 'Comment on this round'}"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${tk.comment_count ? `<span class="cs-agate-s">${esc(String(tk.comment_count))}</span>` : ''}</button>` : '';
   const cf = tk && tk.course && Array.isArray(tk.course.faces) ? tk.course.faces : [];
-  const courseDoor = cf.length ? `<button type="button" class="hfr-course" data-hfcourse="${esc(tk.course.api_course_id)}"><span class="hfr-faces" aria-hidden="true">${cf.map(p=>face(p.id, p.marker, 22)).join('')}</span><span class="cs-grow"><span class="cs-body-s">${esc(csTalkNames(cf.map(p=>csTalkFirst(p.name))) + (cf.length===1 ? ' has' : ' have') + ' played here')}</span><span class="cs-agate-s">See their rounds and your circle’s best</span></span><span aria-hidden="true">›</span></button>` : '';
+  /* L-34 · the course's circle is a fact about the COURSE, not the round: the
+     same "Casey, Blake and Jules have played here" printed under every round at
+     that course ran Home to 5,860px. The wire prints it once per course per
+     section, on the newest round there (`renderHomeFeed` decides which), and
+     the receipt and the course page keep it for every round. The gloss is a
+     door's phrase, so it reads in sentence case (§1.3, is-phrase). */
+  const showCourse = !(opts && opts.course === false);
+  const courseDoor = showCourse && cf.length ? `<button type="button" class="hfr-course" data-hfcourse="${esc(tk.course.api_course_id)}"><span class="hfr-faces" aria-hidden="true">${cf.map(p=>face(p.id, p.marker, 22)).join('')}</span><span class="cs-grow"><span class="cs-body-s">${esc(csTalkNames(cf.map(p=>csTalkFirst(p.name))) + (cf.length===1 ? ' has' : ' have') + ' played here')}</span><span class="cs-agate-s is-phrase">See their rounds and your circle’s best</span></span><span aria-hidden="true">›</span></button>` : '';
   const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
   /* SF-6: the arrival — the round just posted renders its gross as split-flap
      cells; renderHomeFeed arms them and retires the flag after insertion */
   const sfNew = window._sfRid && r.round_id===window._sfRid && r.gross!=null;
   const grossH = sfNew ? sfWrap(String(r.gross)) : (r.gross??'');
+  /* D360 · ONE story per round, photographed or not, from one producer */
+  const story = homeRoundStory(r);
+  const foot = `<div class="hfr-foot">
+      ${social||'<span></span>'}
+      ${talk}
+      <span class="hfr-go cs-agate-s" aria-hidden="true">Receipt ›</span>
+    </div>`;
 
   if(r.photo_url && !homeFailedPhotos.has(r.photo_url)){
-    /* B1: the round as a story card — dusk wash, serif gross, marker medal */
+    /* TEN P1 · THE PHOTOGRAPHED ROUND, REPAIRED. The picture is a PLATE: the
+       golfer, the course and the gross reverse out of its foot on §10.3's
+       bottom-anchored `.title` scrim, in the board face (§1.4 — the serif 82
+       is gone), on the pinned ceremony ground so the scrim ink holds while
+       the picture loads or if it never arrives. Everything that is not the
+       picture sits UNDER it, on the page's own ground, in the record's own
+       grammar: the one story, the course's circle, and ONE foot row —
+       applause · comment · Receipt ›. The foot used to live inside the
+       photograph as an opaque bg1 band with the course door after it, so the
+       band sliced the picture in two, the picture resumed under the door
+       (whose label could not be read on it), the two controls stacked in the
+       band, and nothing said Receipt. The marker medal keeps the plate's top
+       corner, as the board's stamp does. */
     return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
-      <img class="hsbg" src="${esc(r.photo_url)}" data-path="${esc(r.photo_path||'')}" alt="" loading="lazy" decoding="async">
-      <div class="hstop">
-        ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
-        <div class="hsid"><b>${whoTag}</b><small>${course} · ${dfmtShort(r.played_on)}${milestone?' · '+milestone:''}</small></div>
-      </div>
-      <div class="hsbot">
-        <div class="hsg">${grossH}${vp?`<small>${vp}</small>`:''}</div>
+      <div class="hsplate">
+        <img class="hsbg" src="${esc(r.photo_url)}" data-path="${esc(r.photo_path||'')}" alt="" loading="lazy" decoding="async">
         <span class="hsmedal" aria-hidden="true">${mkSvg}</span>
+        <div class="hscopy">
+          ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
+          <div class="hsid"><b class="cs-social">${whoTag}</b><small class="cs-agate-s is-phrase">${course}${r.played_on?` · <span class="hsday">${esc(dfmtShort(r.played_on))}</span>`:''}</small></div>
+          ${r.gross!=null?`<div class="hsg"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
+        </div>
       </div>
-      ${(social||talk)?`<div class="hsfoot">${social}${talk}</div>`:''}${courseDoor}</div>`;
+      ${story?`<p class="hfr-story cs-body-s">${esc(story)}</p>`:''}
+      ${courseDoor}
+      ${foot}</div>`;
   }
 
   /* D360 · A ROUND WITHOUT A PHOTOGRAPH IS A COMPACT SCORECARD, complete and
@@ -18186,8 +18254,15 @@ function feedRow(r, idx, stamp){
      treatment it replaces: one rule, not a heavy bar; the figure at `l`, not
      `xl`; the story in body, not the serif. No placeholder for the picture
      that is not there, and no decorative ember. */
-  const story = homeRoundStory(r);
   const day = stamp ? csDayToken(stamp) : dfmtShort(r.played_on);
+  /* TEN · THE COURSE IS THE TITLE, IN TITLE CASE. Condensed caps are the
+     board's voice (§1.3: caps only on the board); on the wire they set the
+     fixture's 100-character club at six lines and outweighed the golfer and
+     the score. The name wraps whole (never a clamp); the tee after its last
+     " · " steps down to mut, so the club reads first. */
+  const cl = (r.course||'').trim(), cut = cl.lastIndexOf(' · ');
+  const title = !cl ? 'Course not recorded'
+    : cut > 0 ? `${esc(cl.slice(0, cut))}<span class="hfr-tee"> · ${esc(cl.slice(cut + 3))}</span>` : esc(cl);
   return `<div class="hfcard hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
     <div class="hfr-id">
       ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,32)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,32)}</span>`}
@@ -18195,8 +18270,8 @@ function feedRow(r, idx, stamp){
       ${day?`<span class="hfr-day cs-agate-s">${esc(day)}</span>`:''}
     </div>
     <div class="hfr-title">
-      <b class="cs-name">${r.course ? course : 'Course not recorded'}</b>
-      ${r.gross!=null?`<div class="hfr-gross"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">GROSS</span></div>`:''}
+      <b class="cs-social">${title}</b>
+      ${r.gross!=null?`<div class="hfr-gross"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
       <svg class="hfr-topo" viewBox="120 -20 380 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
         <path class="t-sur" d="M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z"/>
         <path class="t-edge" d="M 336 57 C 358 38 386 42 395 60 C 404 77 391 91 386 107 C 380 125 385 145 366 153 C 346 162 316 151 309 132 C 303 115 318 106 320 90 C 322 77 324 66 336 57 Z"/>
@@ -18204,11 +18279,7 @@ function feedRow(r, idx, stamp){
     </div>
     ${story?`<p class="hfr-story cs-body-s">${esc(story)}</p>`:''}
     ${courseDoor}
-    <div class="hfr-foot">
-      ${social||'<span></span>'}
-      ${talk}
-      <span class="hfr-go cs-agate-s" aria-hidden="true">Receipt ›</span>
-    </div></div>`;
+    ${foot}</div>`;
 }
 /* D288 · WEIGHT 5 — a league moment is a LINE (VISUAL_PASS §1c). It was a
    44pt face, a bold sentence and a mono sub-line inside a dashed `bg2` card,
@@ -18584,14 +18655,14 @@ function dgBest(items){
   const recent=items.filter(i=> i.kind==='round' && !(i.r && i.r.round_id && spent.has(String(i.r.round_id)))
                                 && (now - dgTime(i.t)) <= 14*864e5);
   if(!recent.length) return null;
-  const rank=i=> i.r.is_pr?4 : i.r.is_sub80?3 : i.r.is_first?2 : 1;
+  const rank=i=> i.r.is_pr?4 : csSub80(i.r)?3 : i.r.is_first?2 : 1;
   return recent.slice().sort((a,b)=>
     rank(b)-rank(a) || (Number(b.r.pvi||0)-Number(a.r.pvi||0)) || dgTime(b.t)-dgTime(a.t))[0];
 }
 function dgLine(i){
   const r=i.r, who=dgWho(r), course=esc(r.course||'a round');
   if(r.is_pr)    return `<b>${who}</b> set a personal best — ${r.gross} at ${course}`;
-  if(r.is_sub80) return `<b>${who}</b> broke 80 — ${r.gross} at ${course}`;
+  if(csSub80(r)) return `<b>${who}</b> broke 80 — ${r.gross} at ${course}`;
   if(r.is_first) return `<b>${who}</b> posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`;
   return `<b>${who}</b> posted ${r.gross} at ${course}`;
 }
@@ -18667,7 +18738,7 @@ function renderHomeDigest(){
     }
     const bits=[];
     if(rounds.length) bits.push(`<b>${rounds.length} round${rounds.length>1?'s':''}</b>`);
-    const pr=rounds.find(i=>i.r.is_pr), s80=rounds.find(i=>i.r.is_sub80), fst=rounds.find(i=>i.r.is_first);
+    const pr=rounds.find(i=>i.r.is_pr), s80=rounds.find(i=>csSub80(i.r)), fst=rounds.find(i=>i.r.is_first);
     if(pr)  bits.push(`a personal best from ${dgWho(pr.r)}`);
     if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
     if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
@@ -18743,7 +18814,17 @@ function renderHomeFeed(){
   const CAP=8;
   let html='';
   fold.buckets.forEach(b=>{
-    const rows=b.items.map(x=> x.kind==='round' ? feedRow(x.r, x.i, x.stamp) : momentRow(x.p, x.stamp, x.leagues));
+    /* L-34 · one course's circle per course per section, on its newest round
+       (the fold already orders each section newest first) */
+    const seenCourse=new Set();
+    const rows=b.items.map(x=>{
+      if(x.kind!=='round') return momentRow(x.p, x.stamp, x.leagues);
+      const tk=(window.csTalkSocial && x.r.round_id) ? window.csTalkSocial[x.r.round_id] : null;
+      const cid=tk && tk.course && tk.course.api_course_id!=null ? String(tk.course.api_course_id) : null;
+      const first=!cid || !seenCourse.has(cid);
+      if(cid) seenCourse.add(cid);
+      return feedRow(x.r, x.i, x.stamp, { course:first });
+    });
     html += `<div class="feedsec cs-display-s">${b.label}</div>`;
     if(rows.length<=CAP+1) html += rows.join('');
     else html += rows.slice(0,CAP).join('')
@@ -18928,9 +19009,9 @@ function homeLead(){
      in Phoenix, which is the landmine this file already records. */
   const nowD=new Date(), pad2=n=>String(n).padStart(2,'0');
   const today=`${nowD.getFullYear()}-${pad2(nowD.getMonth()+1)}-${pad2(nowD.getDate())}`;
-  const m=(window.homeFeedRows||[]).find(r=>!r.is_me && r.played_on===today && (r.is_pr||r.is_sub80||r.is_first));
+  const m=(window.homeFeedRows||[]).find(r=>!r.is_me && r.played_on===today && (r.is_pr||csSub80(r)||r.is_first));
   if(m){
-    const line = m.is_pr?'\ud83d\udd25 Personal best' : m.is_sub80?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round posted';
+    const line = m.is_pr?'\ud83d\udd25 Personal best' : csSub80(m)?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round posted';
     return { eb:'Around your buddies', ln:`${esc((m.golfer||'A golfer').split(' ')[0])} \u2014 ${line}`,
              act:'See the round', go:()=> m.round_id && window.openRoundSheet ? window.openRoundSheet(m.round_id) : switchView('home') };
   }
@@ -19112,7 +19193,7 @@ function csFallbackItems(){
   /* the circle's freshest round — the one CIRCLE item, never mine */
   const r = (window.homeFeedRows||[]).find(x => !x.is_me && x.gross != null);
   if(r){
-    const mile = r.is_pr ? 'A personal best.' : r.is_sub80 ? 'Under 80 for the first time.' : r.is_first ? 'Their first round posted.' : null;
+    const mile = r.is_pr ? 'A personal best.' : csSub80(r) ? 'Under 80 for the first time.' : r.is_first ? 'Their first round posted.' : null;
     push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile?'gold':'mut',
            eyebrow:'AROUND YOUR BUDDIES',
            headline:`${(r.golfer||'A golfer').split(' ')[0]} posted ${r.gross}${r.course?` at ${r.course}`:''}.`,
