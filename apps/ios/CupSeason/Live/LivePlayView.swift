@@ -343,10 +343,9 @@ struct LivePlayView: View {
             }
             // `2 STROKES · 55 THRU 14` fits one line in the 162pt column at
             // 402 (see `scoreObject`); an SE's column is 123, so there the
-            // facts take a second line inside the row's 70 rather than an
-            // ellipsis over the thru count
-            Text(r.sub).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-              .fixedSize(horizontal: false, vertical: true)
+            // facts break on their separator (`2 STROKES` / `55 THRU 14`)
+            // inside the row's 70 rather than an ellipsis over the thru count
+            CSClauseLine(r.sub, role: .agateS, caps: true, colour: cs.mut)
           }
           .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
         }
