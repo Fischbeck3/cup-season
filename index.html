@@ -3935,18 +3935,29 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .tab:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
 
 /* ============ toast ============ */
+/* TEN / W6 · K077 [A2-post-10] · UI_SYSTEM §13.4: the toast is ONE shape, and
+   it is not a pill. It is a 46pt block, `rc` 10, `bg2` fill, `body` 15 in `ink`,
+   with a 3pt leading rail (::before). The rail is `rule` for the neutral kind,
+   which every toast the web says is (the phone's CSToastCenter.Kind.neutral,
+   which carries no glyph). It was an ink capsule in 13px semibold, centred:
+   the "same grey pill" §13.4 retires. The block is as wide as its sentence, up
+   to the old 86% (the phone's hugs its text up to the gutters); at auto width
+   a fixed box that starts at 50% wrapped at half the screen. */
 .toast{
   position:fixed; left:50%; bottom:92px; transform:translateX(-50%) translateY(12px);
-  background:var(--ink); color:var(--bg0); font-size:13px; font-weight:600;
-  padding:11px 18px; border-radius:var(--p); opacity:0; pointer-events:none;
+  background:var(--bg2); color:var(--ink);
+  font-family:var(--sans); font-size:15px; font-weight:400; line-height:1.45;
+  display:flex; align-items:center; box-sizing:border-box; min-height:46px; width:max-content;
+  padding:var(--s2) var(--s3); border-radius:var(--rc); opacity:0; pointer-events:none;
   /* above the sheets (z 200) — "Card saved" was firing invisibly behind an
      open sheet (pilot feedback, 2026-07-17). TEN / W6 · and above EVERY layer:
      at 1000 it sat under the finish ceremony (#finish, 1100), so the share
      path's "Card downloaded · caption copied" painted behind the card it was
      about (critique-B share), and under the public covers (99999). A toast is
      the system talking; nothing sits on top of it. */
-  max-width:86%; text-align:center; z-index:100000;   /* AW2-23 · the transition is the roll-out's below (opacity + transform), never `all` */
+  max-width:86%; text-align:left; z-index:100000;   /* AW2-23 · the transition is the roll-out's below (opacity + transform), never `all` */
 }
+.toast::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--rule);}
 @media(min-width:960px){ .toast{bottom:28px;} }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
