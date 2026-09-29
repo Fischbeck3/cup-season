@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were critiqued from `9d84c483` captures; every other family from `02636007`, which renders them byte-identically (COVERAGE.md §1.1). |
-| **Status read at** | **`41cf8050`**, shipping as web plus TestFlight 1328: every web lane (W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402`, W1 `1e9eb856`, W6 `f6cb4760`), E's native phase 1 (`6716b0ed`), and root's fixes through `41cf8050`, including round 2's (`7141516f`, `09beefd3`, `3d3b9e55`, `c1b70890`). Plus `9d84c483..cf401dee`. |
+| **Status read at** | **`7b9c17e4`**, live on the web since 03:53 MST on 2026-09-29; Owner TestFlight 1335 was built from the same SHA (04:04). That covers every web lane, E's native phase 1 (`6716b0ed`) and phase 2 set 1 (`146401bb`), and root's fixes through `7b9c17e4`, round 2's included. |
 | **Date** | 2026-09-28 |
 | **Assessors** | critique **A** and critique **B**. Each ran Impeccable 4.3.1's `critique` independently and never saw the other's work. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/critique-A/` and `…/critique-B/` (one `.md` per target, plus `summary.json`) · the brief `~/cup-season-claude-ten-gallery/evidence/CRITIQUE-PROMPT.md` · captures in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/` |
@@ -84,7 +84,7 @@ Entries are merged where A and B, or a target and B's desk cross-reference, desc
 
 | # | Pri | Defect | Where (A · B) | Captures (first cited) | Element | Status at `de3eaf35` |
 |---|---|---|---|---|---|---|
-| CQ-01 | **P0** | A nine-hole 43 is announced "Broke 80 for the first time." | A home · B home, desk | `home--league-less-rounds_no_buddies--375--dark.png` | `homeRoundDetail` ← `home_feed.is_sub80` (no 18-hole guard, `20261020090000_one_round_one_number.sql`) | **fixed in part (e8108e59).** The web makes a sub-80 claim only when the round is known to be 18 holes, and a known nine reads "9 HOLES" (2dce66e6). **Open:** the server half is X41 (owner's `db push`); the phone's `HomeWireCopy` guard goes to N4. |
+| CQ-01 | **P0** | A nine-hole 43 is announced "Broke 80 for the first time." | A home · B home, desk | `home--league-less-rounds_no_buddies--375--dark.png` | `homeRoundDetail` ← `home_feed.is_sub80` (no 18-hole guard, `20261020090000_one_round_one_number.sql`) | **fixed in part (e8108e59).** The web makes a sub-80 claim only when the round is known to be 18 holes, and a known nine reads "9 HOLES" (2dce66e6). The phone's guard is fixed too (146401bb: 5404441a): the claim waits for a round known to be eighteen holes, and a known nine reads "GROSS · 9 HOLES". **Open:** the server half, X41 (owner's `db push`). |
 | CQ-02 | **P0** | Golfer rows and board stripes wear the other squad's colour. | B season, desk | `desk--season--1280--dark.png` | `#indTable .sw` and board stripes, fed by list position rather than `squads.color` | **fixed (69f40d1f)**: `squads.color`, resolved as the squad rows are; the tag is the squad's name |
 | CQ-03 | **P0** | A 53–53 tie is ranked 01/02, and one Points King is picked by average vs playing HCP. | B season, desk | `desk--season--1280--dark.png` | `#indTable` rank, `#awKing = rows[0]` | **fixed (69f40d1f)**: tied golfers share a rank (T01), and no Points King is crowned by average (D136) |
 | CQ-04 | **P0** | "YOU'RE IN" / "Avery and Devon are in." for a golfer who hasn't answered. | B schedule, desk | `schedule--populated--1280--dark.png`, `schedule--plan-landing--375--dark.png` | `renderWatchList` on `tagged_me`; `the_plan_link.sql` `coalesce(rsvp,'in')` | **fixed in part (f46086b4).** There is one producer for "in" (`csPlanMe`, 57325028): an unanswered tag reads ASKED and offers I'm in. The public card now says "on the plan", not "in", which is what its payload supports (09beefd3, round 2's P0). **Open:** X42 (`20260921100000_the_plan_link.sql:222`, owner's `db push`), so the card can say "in" truthfully; and the phone's `ScheduleScreen` still keys YOU'RE IN on `tagged_me` (N4). |
@@ -157,17 +157,27 @@ These are A's list, which folds in its audit (AN) and parity (PX) passes. Each c
 |---|---|---|---|---|
 | P0 (B) / P1 (A) | The Form row gilds a nine-hole 43 as the best of the last five, and does not say it is a nine | `17pro/tourcard-dark-large.png` | `ProfileFormRow` (`ProfileBlocks.swift:130` at 4112) | **fixed (74997409, in de3eaf35)**; in TestFlight 1324 |
 | P1 (A) | The forced-update wall has no door, clips its instruction at SE3 AX3, and prints the build as "999,999" | `se3/boot-mustupdate-light-AX3.png` | `MustUpdateView` (`RootView.swift:481-489`) | open · N4-010 (not in E's phase 1) |
-| P1 (B) | A refused post shows the golfer nothing: the failure toast draws behind the composer's full-screen cover | `flows/flow__post-failed.png` | the app-root toast host; the composer cover has none (`MainTabView.swift:1047`) | open · N4-020. The web twin is fixed (CQ-09). |
-| P1 (AN, B) | At AX3 the composer scrolls the gross field off the top while the keypad types into it | `17pro/composer-light-AX3.png` | `scrollTo("worth", anchor: .bottom)` (`PostRoundScreen.swift:251`) | open · N4-021 |
+| P1 (B) | A refused post shows the golfer nothing: the failure toast draws behind the composer's full-screen cover | `flows/flow__post-failed.png` | the app-root toast host; the composer cover has none (`MainTabView.swift:1047`) | **fixed (146401bb: 678b1868)**: the refusal is said inline above Add my round, in W1's words, and every cover has its own toast host. In TestFlight 1335. |
+| P1 (AN, B) | At AX3 the composer scrolls the gross field off the top while the keypad types into it | `17pro/composer-light-AX3.png` | `scrollTo("worth", anchor: .bottom)` (`PostRoundScreen.swift:251`) | **fixed (146401bb: bf67db31)**: at the accessibility sizes the gross field anchors at the top of the scroll; a UI test fails on `de3eaf35` and passes on both phones. In TestFlight 1335. |
 | P1 (B) | With the keyboard up, the tab band rides on it; at SE3 AX3 no search result fits | `se3/golfers-search-dark-AX3.png` | `CSTabBand` with no keyboard exclusion (`MainTabView.swift:363`) | open · N4-060 |
-| P1 (AN) | Text over round photographs fails AA in both themes (2.0:1 to 3.4:1) | `17pro/course-dark-large.png`, `17pro/receipt-photo-dark-large.png` | the course eyebrow and credit (`Course.swift:573`, `:519`); the receipt dateline at 86% opacity (`ReceiptMoment.swift:46`) | open · N4-070 |
+| P1 (AN) | Text over round photographs fails AA in both themes (2.0:1 to 3.4:1) | `17pro/course-dark-large.png`, `17pro/receipt-photo-dark-large.png` | the course eyebrow and credit (`Course.swift:573`, `:519`); the receipt dateline at 86% opacity (`ReceiptMoment.swift:46`) | open · N4-070. Root has ruled the fix from canon (OWNER-QUESTIONS §E): an inset 3:2 plate with its copy on the card ground (UI_SYSTEM §10.3), on both clients. Not built at `7b9c17e4`. |
 | P1 (PX) | The join covenant's structure and ending sentences differ from the web in every structured branch | `17pro/invite-signedin-dark-large.png` | `JoinLeague.endingLine` vs the web's covenant | **fixed in part (f6cb4760: 8b87a90d)**: the web now prints the phone's ending word for word, with the structure as its own fact. **Open:** D384's short season on the phone (N4-200), and the Final's words (DEC-01, Q35). |
 | P1 (PX) | The ME strip's season row at rank 3 or lower: the web drops the endgame clause and adds "X LEADS BY n" | `17pro/home-loading-dark-large.png` | web `csMeSeasonRow` vs `MeStripCopy.swift:464` | open, verification pending (a web move; W6's `57ca5eee` reworked the row without naming it) |
 | P1 (PX) | Compete's row during the Cup Final: the web never says Cup Final, and draws the table's rank | `17pro/compete-final-dark-large.png` | web `csCompeteList` vs `CompeteRoot.swift:201` | open, verification pending (a web move) |
 
-**Tally:** 9 P0/P1.
-- **fixed: 1.**
-- **fixed in part: 1.**
-- **open: 7.** Five are N4's; two are web moves awaiting round 2's read.
+**Tally at `7b9c17e4`:** 9 P0/P1.
+- **fixed: 3.** The Form row, N4-020 and N4-021; the last two came in E's phase 2 set 1.
+- **fixed in part: 1.** The covenant.
+- **open: 5.**
+  - N4-010, the forced-update wall.
+  - N4-060, the tab band on the keyboard.
+  - N4-070, text over photographs (fix ruled, not built).
+  - The two web moves, which await round 2's read.
 
-E's phase 1 (`6716b0ed`) fixed N1's accessibility items and N2's leftovers, not these. They are N4 phase 2's.
+## 6 · Round 2 critiques (A2 and B2), so far
+Session D's full results are pending. Root forwarded B2's findings so far:
+- **P0, fixed (dcafca7f):** live scoring said "8 scores saved on this phone" on a card holding 6. The badge now counts distinct unsent cells.
+- **P0, fixed (dcafca7f):** in week 8 of 13, the roster card said the Pro "can still add a golfer until the halfway turn" after the turn had passed (D161). The server's own date now decides the sentence.
+- **P1, fixed (dcafca7f):** the season album's heading sat over an empty grid.
+- **The head-to-head's "Ten meetings":** the server counts a week once per shared season. That is a database item behind X36.
+- **The ceremony's Share sends the card without the link** (D380). It is a defect, not a decision, and it is in session B's queue; dcafca7f names it as the next wave.
