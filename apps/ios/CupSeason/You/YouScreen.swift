@@ -74,7 +74,10 @@ final class YouModel {
                        qualifier: r.qualifier,
                        finish: r.finish,
                        tied: r.tied,
-                       line: r.line,
+                       // W2 · a live season is in play: no finish, no mark, and its line
+                       // says where it stands, under the name
+                       line: r.finishWord ?? r.line,
+                       standing: r.live ? r.line : nil,
                        won: r.won,
                        spoken: "\(r.name), \(r.spoken)",
                        open: { open(r.leagueId) })

@@ -25,6 +25,10 @@ public struct LeagueRecordRow: Sendable, Identifiable, Equatable {
   /// nil where the season has not been ranked yet (forming, drawing, before
   /// the first tee), and the leaf then prints `line` in the finish column
   /// with no rule, which is §14.1's own stated degrade.
+  ///
+  /// W2 · and nil while the season is still being PLAYED (`live`). A place
+  /// today is not a result: it took the finish figure and the podium mark a
+  /// finished season earns (owner R, 2026-09-28).
   public let finish: Int?
   public let tied: Bool
   public let of: Int?
@@ -34,20 +38,30 @@ public struct LeagueRecordRow: Sendable, Identifiable, Equatable {
   public let year: Int?
   /// The season's own qualifier, `SEASON ONE`, for the competition column.
   public let qualifier: String?
+  /// W2 · a season under way — past its first tee, not forming, not drawing,
+  /// not finished. It has no finish; `line` says where it stands.
+  public let live: Bool
 
   public init(id: UUID, name: String, number: Int, line: String,
               finish: Int? = nil, tied: Bool = false, of: Int? = nil, won: Bool = false,
-              year: Int? = nil, qualifier: String? = nil, leagueId: UUID? = nil) {
+              year: Int? = nil, qualifier: String? = nil, leagueId: UUID? = nil, live: Bool = false) {
     self.id = id; self.leagueId = leagueId ?? id; self.name = name; self.number = number; self.line = line
     self.finish = finish; self.tied = tied; self.of = of; self.won = won
-    self.year = year; self.qualifier = qualifier
+    self.year = year; self.qualifier = qualifier; self.live = live
   }
   /// "SEASON II · 3RD OF 12 · 41 PTS"
   public var sub: String { "SEASON \(LeagueRecord.roman(number)) · \(line)" }
+  /// W2 · what the FINISH column says for a season still being played:
+  /// `In play` (`csRecordLeaf`), while `line` says where it stands under the
+  /// name. nil for every other row, which prints what it prints today.
+  public var finishWord: String? { live ? "In play" : nil }
   /// Y-33 · what VoiceOver says: "Season 2, 3rd of 12 · 41 pts". A roman "II"
   /// is read as letters, and so is every upper-case token in `line` ("PTS"
   /// becomes "P T S") — the numeral gets its digit and the rest its own case.
-  public var spoken: String { "Season \(number), \(line.lowercased())" }
+  /// A live season says it is in play before it says where it stands.
+  public var spoken: String {
+    "Season \(number), " + (finishWord.map { "\($0.lowercased()), " } ?? "") + line.lowercased()
+  }
 }
 
 public enum LeagueRecord {
@@ -104,25 +118,37 @@ public enum LeagueRecord {
       let tied = r["tied"]?.bool ?? false, won = r["won"]?.bool ?? false
       let pts = r["points"]?.double
       let done = status == "complete"
+      let forming = !done && (phase == "setup" || phase == "draft")
+      let beforeFirstTee = !done && !forming && (CSDate.days(from: today, to: startsOn, calendar: calendar) ?? 0) > 0
+      // W2 · A SEASON STILL BEING PLAYED HAS NO FINISH (owner R, 2026-09-28).
+      // The record printed two live seasons as "1ST"/"2ND" under FINISH, with
+      // the podium mark a finished season earns — the table's place today
+      // called a result. The finish is a finished season's; a live one reads
+      // "In play" (`finishWord`) and says where it stands in its own line.
+      let live = !done && !forming && !beforeFirstTee
       let line: String
       if !done && phase == "setup" { line = formingLine }
       else if !done && phase == "draft" { line = drawingLine }
-      else if !done, let d = CSDate.days(from: today, to: startsOn, calendar: calendar), d > 0 {
+      else if beforeFirstTee {
         line = "FIRST TEE \(firstTeeLabel(startsOn, calendar: calendar))"
       } else {
-        var where_ = "—"
+        var where_: String? = nil
         if let place, let of {
           let unit = solo ? "" : " SQUADS"
-          where_ = (tied ? "TIED " : "") + "\(ordUpper(place)) OF \(of)\(unit)"
-          if solo, let pts { where_ += " · \(CSCopy.points(pts)) PTS" }
+          var w = (tied ? "TIED " : "") + "\(ordUpper(place)) OF \(of)\(unit)"
+          if solo, let pts { w += " · \(CSCopy.points(pts)) PTS" }
+          where_ = w
         }
-        line = done ? "FINISHED \(where_)" : status == "cup_final" ? "CUP FINAL · \(where_)" : where_
+        // the web's words (`loadLeagueRecord`), in this line's case
+        if done { line = where_.map { "FINISHED \($0)" } ?? "FINISHED" }
+        else {
+          let parts: [String?] = [status == "cup_final" ? "CUP FINAL" : nil, where_, "IN SEASON"]
+          line = parts.compactMap { $0 }.joined(separator: " · ")
+        }
       }
-      let beforeFirstTee = (CSDate.days(from: today, to: startsOn, calendar: calendar) ?? 0) > 0
-      let ranked = done || (!(phase == "setup" || phase == "draft") && !beforeFirstTee)
       return LeagueRecordRow(id: sid, name: r["league_name"]?.string ?? "", number: n, line: line,
-                             finish: ranked ? place : nil, tied: tied, of: ranked ? of : nil, won: won,
-                             year: year(startsOn), qualifier: spelledSeason(n), leagueId: lid)
+                             finish: done ? place : nil, tied: tied, of: done ? of : nil, won: won,
+                             year: year(startsOn), qualifier: spelledSeason(n), leagueId: lid, live: live)
     }
     return rows.reversed()
   }
