@@ -148,9 +148,10 @@ struct HomeWireBand: View {
         .contentShape(Rectangle())
         .onTapGesture { openPerson() }
       VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-        // §1.3 · a person in a wire row is never caps.
+        // §1.3 · a person in a wire row is never caps. A long name WRAPS WHOLE
+        // (never an ellipsis): the band printed `Maximilian Placeholder-Wor…`.
         Text(name).csType(.social).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.ink)
-          .lineLimit(1).truncationMode(.tail)
+          .fixedSize(horizontal: false, vertical: true)
         Text(line).csType(.bodyS).foregroundStyle(onPhoto ? CSTokens.dark.scrimInk : cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
@@ -240,8 +241,9 @@ struct HomeWireSlat: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open golfer card: \(name)")
+        // a long name wraps whole, as on the band above
         Text(name).csType(.social).foregroundStyle(cs.ink)
-          .lineLimit(1).truncationMode(.tail)
+          .fixedSize(horizontal: false, vertical: true)
           .frame(maxWidth: .infinity, alignment: .leading)
         if let day = HomeWireCopy.dayMarker(row.played_on) {
           Text(day).csType(.agateS, caps: true).foregroundStyle(cs.mut)
@@ -338,10 +340,14 @@ struct HomeWireReactions: View {
         Button(action: openComments) {
           HStack(spacing: CSTokens.Space.s1) {
             CSGlyph(.comment, size: .inline)
-            Text(commentCount.map { $0 > 0 ? "\($0) comments" : "Comments" } ?? "Comments").csType(.bodyS)
+            // `1 comment`, never `1 comments` — the Kit counts, the view prints
+            Text(HomeWireCopy.commentsDoor(commentCount)).csType(.bodyS)
           }
           .foregroundStyle(cs.ink)
-          .frame(minHeight: 44)
+          .frame(minWidth: 44, minHeight: 44)
+          // the frame is not the target until something shapes it (see
+          // `CSTertiaryStyle`): without this the door was its 18pt words
+          .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("home.round.comments")
