@@ -163,6 +163,20 @@ const onScreen = (re, what) => async (page) => page.evaluate(({ re, what }) => {
   const t = ['homeLead', 'homeDeck'].map((i) => (document.getElementById(i) || {}).innerText || '').join(' ').replace(/\s+/g, ' ')
   return new RegExp(re).test(t) ? true : `${what} is not on Home`
 }, { re, what })
+/* TEN / W8 · W7-075 [A2-home-13, B2-home-12] · one day, one format: every round on Home's wire prints its day as HomeWireCopy.dayMarker does (Today, a weekday inside six days, else 'Sep 25'), on the record's
+   line and on the photo plate alike; a stamped card said 'FRI' over an unstamped card that said 'SEP 25' for the same Friday */
+const dayMarkers = async (page) => page.evaluate(() => {
+  const rows = window.homeFeedRows || [], cards = [...document.querySelectorAll('[data-hfr]')]
+  let checked = 0
+  for (const c of cards) {
+    const r = rows[+c.dataset.hfr]; if (!r || !r.played_on) continue
+    const el = c.querySelector('.hfr-day, .hsday'); if (!el) continue
+    checked++
+    const want = window.csDayMarker(r.played_on)
+    if (el.textContent.trim().toLowerCase() !== want.toLowerCase()) return `a round of ${r.played_on} prints its day as ${JSON.stringify(el.textContent.trim())}, not the marker ${JSON.stringify(want)}`
+  }
+  return checked ? true : 'no round card on Home carries a day'
+})
 const feedHasRounds = async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'the circle feed drew no rounds')
 
 const HOME_WORLD = [
@@ -171,7 +185,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, dayMarkers,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',

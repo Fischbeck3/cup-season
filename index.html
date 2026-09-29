@@ -20805,7 +20805,7 @@ function feedRow(r, idx, stamp, opts){
         <span class="hsmedal" aria-hidden="true">${mkSvg}</span>
         <div class="hscopy">
           ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
-          <div class="hsid"><b class="cs-social">${whoTag}</b><small class="cs-agate-s is-phrase">${course}${r.played_on?` · <span class="hsday">${esc(dfmtShort(r.played_on))}</span>`:''}</small></div>
+          <div class="hsid"><b class="cs-social">${whoTag}</b><small class="cs-agate-s is-phrase">${course}${r.played_on?` · <span class="hsday">${esc(csDayMarker(r.played_on))}</span>`:''}</small></div>
           ${r.gross!=null?`<div class="hsg"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
         </div>
       </div>
@@ -20823,7 +20823,7 @@ function feedRow(r, idx, stamp, opts){
      treatment it replaces: one rule, not a heavy bar; the figure at `l`, not
      `xl`; the story in body, not the serif. No placeholder for the picture
      that is not there, and no decorative ember. */
-  const day = stamp ? csDayToken(stamp) : dfmtShort(r.played_on);
+  const day = csDayMarker(r.played_on);   /* W7-075 · ONE day format for every round (HomeWireCopy.dayMarker: Today, a weekday inside six days, else 'Sep 25'): a stamped card said 'FRI' over an unstamped one that said 'SEP 25' for the same Friday */
   /* TEN · THE COURSE IS THE TITLE, IN TITLE CASE. Condensed caps are the
      board's voice (§1.3: caps only on the board); on the wire they set the
      fixture's 100-character club at six lines and outweighed the golfer and
