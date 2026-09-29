@@ -38,10 +38,13 @@ public struct FriendsBoard: Sendable, Equatable {
       switch self { case .form: "Form"; case .handicap: "Handicap" }
     }
     /// The section's own sub, which names the window the figures cover.
-    public func caption(days: Int) -> String {
+    /// The window beside the head: `AMONG YOUR BUDDIES · LAST 30 DAYS`. The
+    /// handicap lens has no window to state, so the head stands alone (the
+    /// chosen lens is the chosen chip).
+    public func caption(days: Int) -> String? {
       switch self {
       case .form:     "LAST \(days) DAYS"
-      case .handicap: "HANDICAP INDEX"
+      case .handicap: nil
       }
     }
   }
@@ -199,7 +202,11 @@ public struct FriendsBoard: Sendable, Equatable {
 
   // MARK: - The copy
 
-  public static let head = "THE BOARD"
+  /// W3 twin (A-3) · "the board" is the season's thread, and this is not it:
+  /// the ranking is AMONG YOUR BUDDIES, and the form lens says its window
+  /// (`caption`), because a figure over an unstated period is a claim nobody
+  /// can check (owner R; the web's friends board eyebrow).
+  public static let head = "AMONG YOUR BUDDIES"
   /// L-22, said where a golfer can read it: this is a list, not a score.
   public static let note = "Your buddies, by how they are playing. No badges, no streaks — just rounds."
   /// The empty root, which still ends in a next move (L-32).
@@ -211,7 +218,7 @@ public struct FriendsBoard: Sendable, Equatable {
   }
   /// The board is not the whole tab, so a FAILED read says so in one line
   /// rather than replacing the tab with an error (P-11's error column).
-  public static let didNotLoad = "The board didn’t load."
+  public static let didNotLoad = "The ranking didn’t load."
 
   // MARK: - Decoding
 

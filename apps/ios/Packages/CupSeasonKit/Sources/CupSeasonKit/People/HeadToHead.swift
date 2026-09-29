@@ -287,6 +287,13 @@ public enum HeadToHeadCopy {
   /// "He has beaten you six times out of eleven." Nil when nothing is decided.
   public static func personClause(_ h: HeadToHead) -> String? {
     guard h.record.settled > 0 else { return nil }
+    // W3 twin · a level record is said as level. "Blake has beaten you five
+    // times out of ten" framed a 5–5 as a loss, over a record the same page
+    // calls all square (owner E; the web's csH2HPersonClause).
+    if h.lead == .even, h.record.wins == h.record.losses {
+      let ties = h.record.ties > 0 ? "–\(h.record.ties)" : ""
+      return "All square between you, \(h.record.wins)–\(h.record.losses)\(ties)."
+    }
     if h.record.losses > 0 {
       return "\(h.opponent.name) has beaten you \(spelled(h.record.losses)) \(h.record.losses == 1 ? "time" : "times") out of \(spelled(h.record.settled))."
     }

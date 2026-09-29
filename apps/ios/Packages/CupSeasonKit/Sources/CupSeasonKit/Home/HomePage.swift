@@ -106,7 +106,10 @@ public struct HomeWireRow: Identifiable {
     /// page's reading size in `ink`, and `stamp` is the item's own clock.
     case item(HomeDispatch.Item, stamp: String?)
     /// Weight 5 · one quiet line, with its date at the trailing edge.
-    case line(marker: String?, text: String, door: HomeWireDoor?)
+    /// `fromPro` · W3 twin: the Pro's note says whose it is, as the board
+    /// does ("From the Pro") — an unattributed imperative read as the app's
+    /// own voice, beside the app's own month clock (critique-B P3).
+    case line(marker: String?, text: String, door: HomeWireDoor?, fromPro: Bool = false)
     /// **Weight 3b · a bag change, as an object** (D312). The one wire row
     /// whose door opens a PLACE rather than a round, so it is drawn as a card
     /// with the bag's own glyph rather than as a sentence in the run.
@@ -427,7 +430,8 @@ public struct HomePage {
           let body: HomeWireRow.Body =
             p.kind == "bag" && p.profile_id != nil
               ? .bag(text: text, marker: marker, door: item.door.map(HomeWireDoor.feed))
-              : .line(marker: marker, text: text, door: item.door.map(HomeWireDoor.feed))
+              : .line(marker: marker, text: text, door: item.door.map(HomeWireDoor.feed),
+                      fromPro: p.kind == "announce")
           rows.append((sort: distance(day),
                        row: HomeWireRow(id: item.id, body: body, period: per)))
         case .notes(let n):
@@ -581,10 +585,10 @@ public struct HomePage {
         if said[p] == stamp { return HomeWireRow(id: row.id, body: .item(i, stamp: nil), period: p) }
         said[p] = stamp
         return row
-      case .line(let marker, let text, let door):
+      case .line(let marker, let text, let door, let fromPro):
         guard let marker else { return row }
         if said[p] == marker {
-          return HomeWireRow(id: row.id, body: .line(marker: nil, text: text, door: door), period: p)
+          return HomeWireRow(id: row.id, body: .line(marker: nil, text: text, door: door, fromPro: fromPro), period: p)
         }
         said[p] = marker
         return row

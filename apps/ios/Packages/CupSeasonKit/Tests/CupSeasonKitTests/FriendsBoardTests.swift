@@ -254,7 +254,12 @@ private let board = """
   }
 
   @Test func theCaptionNamesTheWindow() {
+    // W3 twin (A-3) · the ranking is among your buddies, and the form lens
+    // says its window; the handicap lens has none to state
+    #expect(FriendsBoard.head == "AMONG YOUR BUDDIES")
     #expect(FriendsBoard.Lens.form.caption(days: 30) == "LAST 30 DAYS")
-    #expect(FriendsBoard.Lens.handicap.caption(days: 30) == "HANDICAP INDEX")
+    #expect(FriendsBoard.Lens.handicap.caption(days: 30) == nil)
+    #expect(FriendsBoard.didNotLoad == "The ranking didn’t load.")
+    #expect(GolfersRoot.Section.board.head == "AMONG YOUR BUDDIES")
   }
 }

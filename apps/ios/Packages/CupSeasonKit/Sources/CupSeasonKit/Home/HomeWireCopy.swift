@@ -33,6 +33,18 @@ public enum HomeWireCopy {
     r.is_sub80 == true && holes == 18
   }
 
+  /// W3 twin · **THE COURSE IS THE TITLE, IN TITLE CASE**, and the tee after
+  /// its last ` · ` steps down so the club reads first (the web's `.hfr-tee`).
+  /// Condensed caps set a long club at six lines and outweighed the golfer and
+  /// the score. `North Grove (fixture) · Blue` → club `North Grove (fixture)`,
+  /// tee `Blue`; a name with no ` · ` is all club.
+  public static func courseTitle(_ course: String) -> (club: String, tee: String?) {
+    let c = course.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let r = c.range(of: " · ", options: .backwards), r.lowerBound > c.startIndex else { return (c, nil) }
+    let tee = String(c[r.upperBound...])
+    return (String(c[..<r.lowerBound]), tee.isEmpty ? nil : tee)
+  }
+
   /// `csGrossUnit` · a nine says it is a nine, beside its figure, wherever the
   /// client knows it: `43` over `GROSS · 9 HOLES`.
   public static func grossUnit(holes: Int?) -> String {

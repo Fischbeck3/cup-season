@@ -92,7 +92,7 @@ struct FriendsBoardSection: View {
   /// HCP ·`) wrapped the slot to two lines and pushed the rule off its own row,
   /// and the FRAME belongs over the column anyway (§16A.3, blind review 5) —
   /// which is where it now is.
-  private func headCount(_ b: FriendsBoard) -> String { lens.caption(days: b.days) }
+  private func headCount(_ b: FriendsBoard) -> String? { lens.caption(days: b.days) }
 
   /// §16A.3 · **the column says which way is good, over the column.**
   ///

@@ -269,3 +269,16 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     #expect(HomeWireCopy.commentsDoor(-1) == "Comments")
   }
 }
+
+/// W3 twin · the course is the title and the tee after its last ` · ` steps
+/// down, so the club reads first.
+@Suite struct CourseTitleTests {
+  @Test func theTeeStepsDownAfterTheLastSeparator() {
+    let blue = HomeWireCopy.courseTitle("North Grove (fixture) · Blue")
+    #expect(blue.club == "North Grove (fixture)" && blue.tee == "Blue")
+    #expect(HomeWireCopy.courseTitle("North Grove · South · Blue").club == "North Grove · South")
+    let bare = HomeWireCopy.courseTitle("North Grove (fixture)")
+    #expect(bare.club == "North Grove (fixture)" && bare.tee == nil)
+    #expect(HomeWireCopy.courseTitle("  North Grove  ").club == "North Grove")
+  }
+}
