@@ -16097,14 +16097,30 @@ function showLiveRecap(d, result, lrId){
      recap sheet wears .room-dusk (a fixed dark ceremony surface for every
      viewer), so the strip's own colors land correctly in either theme. */
   if(result?.holes?.cells?.length){
-    const hl = holeHighlights(result.holes, { hot: result.holes.hot });
+    /* W1 · the in-app key is the strip's own key, the one the public card
+       prints (W4's holeStripKey: every kind in words, each with the shape it
+       keys, from the strip's own colours), and the strip is one image with one
+       spoken sentence (holeStripSummary). It painted a pre-D270 #FF5A2E swatch
+       naming one side only. Both helpers live beside renderHoleStrip in this
+       same script and are guarded by `typeof` (they arrive with W4's strip);
+       without them the key falls back to the strip's own colour, never a
+       literal. The closing hole is said once, by the strip's foot. */
+    const H = result.holes, hotK = String(H.hot);
+    const sideName = k => k==='a' ? (result.side_a||null) : k==='b' ? (result.side_b||null) : null;
+    const names = H.mode==='sides'
+      ? { hot: sideName(hotK) || H.legend || null, other: sideName(hotK==='a' ? 'b' : hotK==='b' ? 'a' : '') }
+      : { hot: H.legend || null, other: H.mode==='wolf' ? 'The field' : 'Everyone else' };
+    const said = typeof holeStripSummary === 'function' ? holeStripSummary(H, { hot: H.hot, names }) : '';
+    const hl = holeHighlights(H, { hot: H.hot }).filter(t => !/^CLOSED OUT ON/.test(t));
+    const key = typeof holeStripKey === 'function'
+      ? holeStripKey(H, { hot: H.hot, names })
+      : (H.legend ? `<p aria-hidden="true" style="margin:9px 0 0;font-family:var(--board);font-weight:600;font-size:12px;letter-spacing:calc(var(--agate) * 1em);color:var(--mut)">
+           <span style="display:inline-block;width:10px;height:14px;border-radius:2px;background:${STRIP_HOT};margin-right:6px;vertical-align:-2px"></span>${esc(String(H.legend))} won</p>` : '');
     rows.push(`<div style="padding:2px 2px 0">
-      ${renderHoleStrip(result.holes, { hot: result.holes.hot, margin:'6px 0 0' })}
-      ${result.holes.legend ? `<div style="margin-top:9px;font-size:11px;letter-spacing:.12em;color:#8E979E">
-           <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#FF5A2E;margin-right:6px;vertical-align:middle"></span>${esc(String(result.holes.legend).toUpperCase())}
-         </div>` : ''}
+      ${renderHoleStrip(H, { hot: H.hot, margin:'6px 0 0', label: said })}
+      ${key}
       ${hl.length ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${
-        hl.map(t=>`<span style="font-size:11px;letter-spacing:.06em;color:var(--mut);background:var(--bg2);border-radius:var(--p);padding:4px 9px">${esc(t)}</span>`).join('')
+        hl.map(t=>`<span style="font-family:var(--board);font-weight:600;font-size:12px;letter-spacing:calc(var(--agate) * 1em);color:var(--mut);background:var(--bg2);border-radius:var(--p);padding:4px 9px">${esc(t)}</span>`).join('')
       }</div>` : ''}
     </div>`);
   }
