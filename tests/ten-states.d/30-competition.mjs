@@ -720,6 +720,43 @@ const bookStartEdge = async (page) => page.evaluate(() => {
   if (innerWidth >= 1440 && dlg.getBoundingClientRect().width < 1500) return `the Book is ${Math.round(dlg.getBoundingClientRect().width)}px wide at ${innerWidth}px`
   return true
 })
+/* the Cup Final's race of the golfers, from the season page (W5: the Book's controls are segments, one component, UI_SYSTEM §7.2, each chosen by its button) */
+async function raceDrive(page) {
+  await toSeasonViaBand(page)
+  await until(page, () => { const w = document.getElementById('cupRaceWrap'); return !!w && w.style.display !== 'none' && document.querySelectorAll('#cupRace tr').length >= 2 }, null, 10000)
+  await bookFromSeason(page)
+  await click(page, '#seasonBookDialog #sb-group [data-v="golfer"]')
+  await until(page, () => !!document.querySelector('#seasonBookDialog #sb-mode'))
+  await click(page, '#seasonBookDialog #sb-mode [data-v="Race"]')
+  await until(page, () => !!document.querySelector('#seasonBookDialog svg.sb-race'))
+  await page.waitForTimeout(300)
+}
+/* TEN / W8 · W7-131 [A2-competition-5] · the Race display reads heading, CHART, sentence (the four-line paragraph stood between the controls and the chart), and Follow (up to 17 names) is one
+   closed disclosure, so the chart's first half is in the first screen at every width */
+const raceOrder = async (page) => page.evaluate(() => {
+  const main = document.querySelector('#seasonBookDialog .sb-main'), h2 = main.querySelector('h2'), svg = main.querySelector('svg.sb-race')
+  const said = [...main.querySelectorAll('p')].find((p) => /^Each golfer’s points as they count today/.test(p.textContent))
+  if (!h2 || !svg || !said) return 'the Race lacks its heading, chart or sentence'
+  const after = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+  if (!after(h2, svg) || !after(svg, said)) return 'the Race does not read heading, chart, sentence'
+  const f = main.querySelector('details.sb-follow')
+  if (!f) return 'Follow is not a disclosure'
+  if (f.open) return 'the Follow disclosure opens already open'
+  const top = svg.getBoundingClientRect().top, half = svg.getBoundingClientRect().height / 2
+  if (top + half > innerHeight) return `the chart starts ${Math.round(top)}px down a ${innerHeight}px screen: its first half is not in view`
+  return true
+})
+/* the pick: Follow closes, its summary names the golfer and holds the focus, and the chart's first line is theirs */
+const followPicked = async (page) => page.evaluate(() => {
+  const f = document.querySelector('#seasonBookDialog details.sb-follow'), sum = f && f.querySelector('summary'), pick = window.__followPick
+  if (!f || !pick) return 'no Follow pick was made'
+  if (f.open) return 'the Follow disclosure stayed open after a pick'
+  if (sum.textContent.trim() !== `Follow · ${pick}`) return `the summary reads ${JSON.stringify(sum.textContent.trim())}, not Follow · ${pick}`
+  if (document.activeElement !== sum) return `the focus is on ${document.activeElement && (document.activeElement.id || document.activeElement.tagName)}, not on the Follow summary`
+  const lead = document.querySelector('#seasonBookDialog .sb-race-lab.is-lead')
+  if (!lead || !lead.textContent.startsWith(pick)) return `the chart's first line reads ${JSON.stringify(lead && lead.textContent)}, not ${pick}`
+  return true
+})
 const BOOK = [
   { family: 'book', id: 'upcoming', variant: 'rounds_no_league', title: 'The Book before the first tee (The Autumn Fixture Cup, week 0 of 15), from the Scoreboard', fullPage: false,
     prepare: adopt('upcoming'), localStorage: BOOK_LS('upcoming'),
@@ -769,20 +806,9 @@ const BOOK = [
      outside the season weeks, and the Book says so rather than drop it) */
   { family: 'book', id: 'race', variant: 'rounds_no_league', title: 'The Book in the Cup Final: the race of the golfers, from the season page (cup_final_race behind)', fullPage: false,
     prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
-    drive: async (page) => {
-      await toSeasonViaBand(page)
-      await until(page, () => { const w = document.getElementById('cupRaceWrap'); return !!w && w.style.display !== 'none' && document.querySelectorAll('#cupRace tr').length >= 2 }, null, 10000)
-      await bookFromSeason(page)
-      /* W5 · the Book's controls are segments (one component, UI_SYSTEM
-         §7.2), not native selects: each is chosen by its button */
-      await click(page, '#seasonBookDialog #sb-group [data-v="golfer"]')
-      await until(page, () => !!document.querySelector('#seasonBookDialog #sb-mode'))
-      await click(page, '#seasonBookDialog #sb-mode [data-v="Race"]')
-      await until(page, () => !!document.querySelector('#seasonBookDialog svg.sb-race'))
-      await page.waitForTimeout(300)
-    },
-    expect: { view: 'view-hub', selectors: { '#seasonBookDialog svg.sb-race': 'visible', '#seasonBookDialog #sb-follow': 'visible' } },
-    check: all(bookIs({ title: 'The Book' }),
+    drive: raceDrive,
+    expect: { view: 'view-hub', selectors: { '#seasonBookDialog svg.sb-race': 'visible', '#seasonBookDialog .sb-follow > summary': 'text:^Follow · Leading three$' } },
+    check: all(bookIs({ title: 'The Book' }), raceOrder, tertiaryDoor('#seasonBookDialog .sb-follow > summary'),
       has('#cupRace', 'Fixture Quail[\\s\\S]*Fixture Wrens|Fixture Wrens[\\s\\S]*Fixture Quail', 'the Cup Final race behind the Book'),
       async (page) => page.evaluate(() => {
         const svg = document.querySelector('#seasonBookDialog svg.sb-race')
@@ -790,6 +816,20 @@ const BOOK = [
         if (!svg.querySelector('.sb-current-line')) return 'no current-week line in the Cup Final'
         return window.CS && window.CS.season && window.CS.season.status === 'cup_final' ? true : 'the season is not in its Cup Final'
       })) },
+  /* W7-131 · the same race after a pick: Follow is opened, the second golfer chosen, and the disclosure closes on their name with the focus on its summary */
+  { family: 'book', id: 'race-follow', variant: 'rounds_no_league', title: 'The Book in the Cup Final: the race following one golfer (Follow opened, a golfer picked)', fullPage: false,
+    prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
+    drive: async (page) => {
+      await raceDrive(page)
+      await click(page, '#seasonBookDialog .sb-follow > summary')
+      await until(page, () => document.querySelector('#seasonBookDialog details.sb-follow').open)
+      await page.evaluate(() => { window.__followPick = document.querySelectorAll('#seasonBookDialog #sb-follow [data-v]')[2].textContent.trim() })
+      await click(page, '#seasonBookDialog #sb-follow [data-v]:nth-of-type(3)')
+      await until(page, () => !document.querySelector('#seasonBookDialog details.sb-follow').open && !!document.querySelector('#seasonBookDialog svg.sb-race'))
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-hub', selectors: { '#seasonBookDialog svg.sb-race': 'visible', '#seasonBookDialog .sb-follow > summary': 'visible' } },
+    check: all(bookIs({ title: 'The Book' }), followPicked, tertiaryDoor('#seasonBookDialog .sb-follow > summary')) },
   { family: 'book', id: 'tie', variant: 'rounds_no_league', title: 'Rounds & points, two golfers level at the top (The Saturday Fixture Cup), from the Scoreboard', fullPage: false,
     prepare: adopt('tie'), localStorage: BOOK_LS('tie'),
     drive: bookFromCompete,

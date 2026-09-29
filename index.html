@@ -774,6 +774,11 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .sb-controls{display:flex; flex-wrap:wrap; gap:var(--s3) var(--s5); margin:var(--s3) 0;}
 .sb-ctl{display:flex; flex-direction:column; gap:var(--s1); min-width:0; max-width:100%;}
 .sb-ctl.is-wide{flex:1 1 100%;}
+/* W7-131 · Follow: a closed disclosure whose summary is the Book's link in content (.sb-round: ink, 2px mut rule) in a 44px row; the strip opens under it */
+.sb-follow{flex:1 1 100%; min-width:0;}
+.sb-follow > summary{display:flex; align-items:center; list-style:none; min-height:44px; cursor:pointer;}
+.sb-follow > summary::-webkit-details-marker{display:none;}
+.sb-follow > summary:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
 .sb-ctl-k{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
 /* W5 · ONE segment component (UI_SYSTEM §7.2) — the Book's four controls and
    the wizard's dials wear it: a 44px row with no pill, agate labels in mut on
@@ -22911,8 +22916,10 @@ function csSeasonBookReceipt(title,entries,names={},opts={}){
 function csSeasonBookRace(b,rows,follow,width){
   const leaders=rows.slice().sort((a,b)=>b.points-a.points||String(a.name).localeCompare(String(b.name))).slice(0,3), chosen=rows.find(r=>r.id===follow);
   const plotted=chosen?[chosen,...leaders.filter(r=>r.id!==chosen.id).slice(0,2)]:leaders;
-  let h='<h2>Points counting today</h2><p>Each golfer’s points as they count today, week by week. A better round later in a month can push an earlier one out, so a past week can change.</p>';
-  if(plotted.some(r=>r.unplaced_points!==0))return h+'<p>Some adjustments fall outside the season weeks. Open the totals below for the complete record; a weekly curve would omit those points.</p>';
+  /* W7-131 · the heading, then the chart, then the sentence: on a phone the four-line paragraph stood between the controls and the chart, and the chart began ~590px down a 667px screen */
+  const said='<p>Each golfer’s points as they count today, week by week. A better round later in a month can push an earlier one out, so a past week can change.</p>';
+  let h='<h2>Points counting today</h2>';
+  if(plotted.some(r=>r.unplaced_points!==0))return h+said+'<p>Some adjustments fall outside the season weeks. Open the totals below for the complete record; a weekly curve would omit those points.</p>';
   const W=Math.max(280,Math.min(1200,Math.round(Number(width)||780))), H=W<520?232:280;
   const [lo,hi]=SeasonBook.domain(plotted), n=b.weeks.length;
   const est=t=>Math.ceil(String(t).length*6.8)+14;                     /* the label's run at 12px, board face */
@@ -22934,7 +22941,7 @@ function csSeasonBookRace(b,rows,follow,width){
   const over=labs.length?labs[labs.length-1].ly-(H-B):0; if(over>0)labs.forEach(l=>{l.ly-=over;});
   labs.forEach(l=>{h+=`<path class="sb-race-tie" d="M${(l.x+3).toFixed(1)} ${l.y.toFixed(1)}L${X1+4} ${(l.ly-4).toFixed(1)}"/><text class="sb-race-lab${l.i===0?' is-lead':''}" x="${X1+8}" y="${l.ly.toFixed(1)}">${esc(l.t)}</text>`;});
   h+=`<text class="sb-race-axis" x="${L}" y="${H-8}">Week 1</text><text class="sb-race-axis" x="${X1}" y="${H-8}" text-anchor="end">Week ${n}</text></svg>`;
-  return h;
+  return h+said;
 }
 /* W5 · the crown on a finished Book. The read carries no champion, so it is
    named only from the stored crown the season itself holds (CS.season, when
@@ -22964,7 +22971,11 @@ function csSeasonBookBody(b,selection){
   let controls=squads.length?seg('sb-group','View',[['squad','Squads'],['golfer','Golfers']],group):'';
   if(prominent)controls+=seg('sb-mode','Display',[['Weeks','Weeks'],['Totals','Totals'],['Race','Race']],mode);
   if(group==='golfer'&&squads.length)controls+=seg('sb-squad','Squad',[['all','Every golfer'],...squads.map(s=>[s.squad_id,s.name])],squad,true);
-  if(mode==='Race')controls+=seg('sb-follow','Follow',[['leaders','Leading three'],...rows.map(r=>[r.id,r.name])],follow,true);
+  /* W7-131 · Follow (up to 17 names) is one closed disclosure on every width: its summary is a 44px link in content that says who the chart follows, and the strip opens under it */
+  if(mode==='Race'){
+    const opts=[['leaders','Leading three'],...rows.map(r=>[r.id,r.name])], on=opts.find(([v])=>v===follow)||opts[0];
+    controls+=`<details class="sb-follow"><summary class="sb-round">Follow · ${esc(on[1])}</summary><div class="cs-seg is-scroll" id="sb-follow" role="group" aria-label="Follow">${opts.map(([v,t])=>`<button type="button" data-v="${esc(v)}" aria-pressed="${v===on[0]}">${esc(t)}</button>`).join('')}</div></details>`;
+  }
   /* dates as a golfer reads them, local (never toISOString's UTC day): "Jul 6"
      — the Book printed raw 2026-07-06 in its head and on every week column */
   const day = iso => { const d = localDate(String(iso||'').slice(0,10)); return isNaN(d) ? String(iso||'') : `${MOS[d.getMonth()]} ${d.getDate()}`; };
@@ -23082,10 +23093,16 @@ async function csOpenSeasonBook(league,season){
     const keyOf={'sb-group':'group','sb-squad':'squad','sb-mode':'mode','sb-follow':'follow'};
     main.querySelectorAll('.cs-seg').forEach(g=>{
       const key=keyOf[g.id];if(!key)return;
-      g.querySelectorAll('button[data-v]').forEach(btn=>btn.onclick=()=>{if(selection[key]===btn.dataset.v)return;selection[key]=btn.dataset.v;if(key==='group'||key==='squad')selection.follow='leaders';render();});
+      g.querySelectorAll('button[data-v]').forEach(btn=>btn.onclick=()=>{
+        if(selection[key]===btn.dataset.v){ const d=key==='follow'&&btn.closest('.sb-follow'); if(d){ d.open=false; d.querySelector('summary')?.focus(); } return; }   /* W7-131 · the chosen name again still closes Follow */
+        selection[key]=btn.dataset.v;if(key==='group'||key==='squad')selection.follow='leaders';render();});
       if(g.classList.contains('is-scroll'))csBookEdge(g,g);
     });
-    if(focusKey)main.querySelector(`#${focusKey.seg} [data-v="${CSS.escape(focusKey.v||'')}"]`)?.focus();
+    /* W7-131 · a pick in Follow closes the disclosure (the render rebuilt it closed), so the focus goes to its summary: a button inside a closed details cannot take it */
+    const follows=main.querySelector('.sb-follow');
+    if(follows)follows.addEventListener('toggle',()=>{ if(follows.open)follows.querySelector('#sb-follow')?.dispatchEvent(new Event('scroll')); });   /* the strip's edge fade is measured while it is drawn */
+    if(focusKey&&focusKey.seg==='sb-follow')follows?.querySelector('summary')?.focus();
+    else if(focusKey)main.querySelector(`#${focusKey.seg} [data-v="${CSS.escape(focusKey.v||'')}"]`)?.focus();
     else if(focused)main.querySelector('#'+CSS.escape(focused))?.focus();
     const matrix=main.querySelector('.sb-matrix');
     /* the receipts column settles FIRST: it narrows the grid, and a scroll
