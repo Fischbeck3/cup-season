@@ -471,6 +471,21 @@
     box.innerHTML = formRowHtml(rec.slice(0,2));
     t('§9.7: fewer rounds have no fabricated slots', box.querySelectorAll('.dfcol').length, 2);
     t('§9.7: missing scores cannot draw form', formRowHtml([{beat:true}]), '');
+    /* W7-047 · a column's day is the month and day, as Recent rounds prints the same round (csMonthDay; the phone's
+       CredentialCopy.formDate), never csDayToken's TODAY / weekday / month-day mix, and a nine says so; on You the head is
+       an eyebrow that carries the window and counts only under five rounds; the person page keeps its rule-and-slot head */
+    box.innerHTML = formRowHtml(rec);
+    t('W7-047: the columns print the month and day', [...box.querySelectorAll('.dfcol small')].map(e=>e.textContent), ['Sep 6','Sep 7','Sep 8','Sep 9','Sep 10']);
+    const withNine = rec.map((r,i)=> i===0 ? Object.assign({}, r, {holes_played:9}) : r);
+    box.innerHTML = formRowHtml(withNine);
+    t('W7-047: a nine says so in the column', (box.querySelectorAll('.dfcol small')[4] || {}).textContent, 'Sep 10 · nine');
+    box.innerHTML = formRowHtml(rec, null, { head:'eyebrow' });
+    t('W7-047: You draws the eyebrow head with the window in the label and no slot at five', (box.querySelector('h2.eyebrow') || {}).innerHTML, 'Form · last five');
+    t('W7-047: the eyebrow head replaces the rule-and-slot head', box.querySelector('.dsec'), null);
+    box.innerHTML = formRowHtml(rec.slice(0,2), null, { head:'eyebrow' });
+    t('W7-047: under five the slot counts and nothing else', (box.querySelector('h2.eyebrow span') || {}).textContent, 'Two of five');
+    box.innerHTML = formRowHtml(rec);
+    t('W7-047: the person page keeps its rule-and-slot head', (box.querySelector('.dsec') || {}).textContent, 'FormLast five');
   })();
 
   /* ══ D126 · the endgame sentence, one fixture on both clients ═════════════

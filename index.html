@@ -24695,7 +24695,7 @@ window.renderCareerRecord = renderCareerRecord;
    takes the gold from an 84 (the craft panel caught exactly that), and it
    says it is a nine under its date */
 const csFormNine = (r) => !!r && Number(r.holes_played) === 9;
-function formRowHtml(recent, caption){
+function formRowHtml(recent, caption, opts){
   if(!Array.isArray(recent) || !recent.length) return '';
   const cols = recent.slice(0, 5).reverse();             /* oldest first */
   if(!cols.some(r => r && r.gross != null)) return '';
@@ -24704,11 +24704,21 @@ function formRowHtml(recent, caption){
   const comparable = cols.filter(r => r && r.gross != null && !csFormNine(r)).map(r => r.gross);
   const best = comparable.length >= 2 ? comparable.sort((a, b) => a - b)[0] : null;
   let seen = false;
-  const head = `<div class="dsec"><span>Form</span><i></i><span>${cols.length >= 5 ? 'Last five' : esc(csCapFirst(csSpelled(cols.length))) + ' of five'}</span></div>`;
+  const under = cols.length < 5 ? esc(csCapFirst(csSpelled(cols.length))) + ' of five' : '';
+  /* W7-047 · on You the head speaks the page's grammar (UI_SYSTEM §8, §16A.2, D286: one section-head idiom): an
+     eyebrow whose label carries the window ('Form · last five', OWNER-QUESTIONS Q21: the window moves into the
+     label) and whose right slot takes a count and nothing else ('Two of five', only under five rounds). The
+     person page keeps its rule-and-slot head. */
+  const head = opts && opts.head === 'eyebrow'
+    ? `<h2 class="eyebrow">Form · last five${under ? `<span>${under}</span>` : ''}</h2>`
+    : `<div class="dsec"><span>Form</span><i></i><span>${cols.length >= 5 ? 'Last five' : under}</span></div>`;
+  /* W7-047 · each column's day is the month and day, as the Recent rounds rows below print the same round
+     (csMonthDay; the phone's CredentialCopy.formDate always does), and its caps are the role's: csDayToken
+     mixed 'TODAY', a weekday and a month-day in one row ('TUE', 'SEP 15'), and typed the capitals itself */
   const body = cols.map(r => {
     const gold = !seen && best != null && r && !csFormNine(r) && r.gross === best; if(gold) seen = true;
     return `<div class="dfcol${gold ? ' won' : ''}"><b>${r && r.gross != null ? r.gross : '—'}</b><i></i>`
-         + `<small>${esc(csDayToken(r && r.played_on || ''))}${csFormNine(r) ? ' · NINE' : ''}</small></div>`;
+         + `<small>${esc(csMonthDay(r && r.played_on || ''))}${csFormNine(r) ? ' · nine' : ''}</small></div>`;
   }).join('');
   return head + `<div class="dform" role="img" aria-label="Form, last ${cols.length} rounds">${body}</div>`;
 }
@@ -24779,7 +24789,7 @@ function renderCareer(){
     : window.career;
   const set = (id,v)=>{ const el=$(id); if(el) el.textContent=v; };
   const sign = v => (v>=0?'+':'') + v.toFixed(1);
-  const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent, CS_FORM_KEY) : '';
+  const yf=$('#youForm'); if(yf) yf.innerHTML = c ? formRowHtml(c.recent, CS_FORM_KEY, { head:'eyebrow' }) : '';
   /* F10 · the page knows which of four things it is showing: still loading, a
      read that failed, a record with nothing in it yet, or a record */
   const view = $('#view-stats');
