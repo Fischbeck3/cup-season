@@ -14568,7 +14568,9 @@ const CS_COURSE_COPY = {
   readFailed: 'Could not reach the course list. What this device has kept is below.',
   searchOffline: 'No signal — searching the courses on this device. The full list needs a connection.',
   noCard: 'No hole card saved for this tee. Pars and stroke indexes come down the first time you play it with a signal.',
-  what: 'Courses you have played or planned are kept on this device, so the tees, ratings and cards are there with no signal.'
+  what: 'Courses you have played or planned are kept on this device, so the tees, ratings and cards are there with no signal.',
+  /* W7-098 · how the tee on show was chosen, said while it is the DEFAULT (no tee named): the phone's CourseBookCopy.teeIsTheLongest, one wording */
+  teeIsTheLongest: 'The longest rated 18 — change tees for yours.'
 };
 function csCourseAll(){
   try{
@@ -18925,6 +18927,11 @@ function renderCourseBooks(){
     const label = [tee ? (tee.tee_name||'Tee') : null,
                    hardest ? `the ${hardest.hole}${csOrdinalSuffix(hardest.hole)} plays hardest` : null,
                    csCourseSavedLine(b)].filter(Boolean).join(' · ');
+    /* W7-098 · while no tee has been NAMED the longest rated 18 leads, and the record says so (the phone does): said only where it is true and useful, i.e. the tee on show is an 18 and the picker is drawn
+       (two or more rated tees); a pick, or a nine-hole course, prints nothing extra */
+    const ratedTees = (b.tees||[]).filter(t=>t.course_rating!=null && t.slope_rating!=null);
+    const longestSaid = (!(window.CS_COURSE_TEE||{})[String(b.id)] && tee && (tee.number_of_holes||18)===18 && ratedTees.length >= 2)
+      ? `<p class="cs-body-s" style="color:var(--mut);padding-top:4px">${esc(CS_COURSE_COPY.teeIsTheLongest)}</p>` : '';
     const leaf = holes.length
       ? csCourseLeafHtml(holes, `The card · ${tee ? (tee.tee_name||'Tee') : ''}`)
       : `<p class="fine">${esc(CS_COURSE_COPY.noCard)}</p>`;
@@ -18942,6 +18949,7 @@ function renderCourseBooks(){
         </div>
         <div class="cs-facts">${factLine}</div>
         <p class="cs-agate-s is-phrase" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
+        ${longestSaid}
         ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
         ${csCourseDoorHtml(String(b.id), CS_COURSE_CIRCLE.by[String(b.id)])}

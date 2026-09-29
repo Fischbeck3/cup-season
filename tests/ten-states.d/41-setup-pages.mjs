@@ -402,7 +402,16 @@ const rowYours = async (page) => page.evaluate(() => {
   }
   return true
 })
-const courseCard = (id, courseId, title, want, circle = true) => ({
+/* TEN / W8 · W7-098 [A2-courses-5] · the course record says how its tee was chosen while the tee on show is the default ('The longest rated 18 — change tees for yours.', the phone's words), under the facts line
+   and above the tee picker; a picked tee, a nine-hole course or a course with one rated tee prints nothing extra */
+const teeSaid = (want) => async (page) => page.evaluate((want) => {
+  const sec = document.querySelector('#youCourses .cs-course'), said = sec && [...sec.querySelectorAll('p')].find((p) => p.textContent.trim() === 'The longest rated 18 \u2014 change tees for yours.')
+  if (!sec) return 'no course record is drawn'
+  if (!!said !== want) return want ? 'the default tee is showing and the record does not say how it was chosen' : 'the record still says the tee is the longest rated 18'
+  if (said) { const facts = sec.querySelector('.cs-facts'), sel = sec.querySelector('select[data-cstee]'); if (!(facts.compareDocumentPosition(said) & Node.DOCUMENT_POSITION_FOLLOWING) || (sel && !(said.compareDocumentPosition(sel) & Node.DOCUMENT_POSITION_FOLLOWING))) return 'the sentence is not between the facts and the tee picker' }
+  return true
+}, want)
+const courseCard = (id, courseId, title, want, circle = true, tee = false) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
     await toCourses(page)
@@ -414,7 +423,7 @@ const courseCard = (id, courseId, title, want, circle = true) => ({
   },
   expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
   check: all(async (page) => page.evaluate((cid) => String(window.CS_COURSE_LEAD) === String(cid) ? true : `the lead course is ${window.CS_COURSE_LEAD}, expected ${cid}`, courseId),
-    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel),
+    has('#youCourses', want, 'the course card'), courseCircle(circle), mineLabel, teeSaid(tee)),
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
@@ -422,7 +431,7 @@ const COURSES = [
     /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
        the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
        select's whole value (plus its arrow) fits at every width. */
-    check: all(courseBookWide, rowYours, async (page) => page.evaluate(() => {
+    check: all(courseBookWide, rowYours, teeSaid(true), async (page) => page.evaluate(() => {
       const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
       const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
       c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
@@ -433,6 +442,14 @@ const COURSES = [
   courseCard('card-18', COURSE.wash, 'Course card · an 18-hole card (Mesquite Wash, Black)', 'Mesquite Wash'),
   courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek', false),
   courseCard('card-long-tee', COURSE.long, 'Course card · the longest course and tee name', 'Whispering Fixture Pines'),
+  /* W7-098 · a tee picked from the lead's list: the sentence about the default goes (the books state's lead, Saguaro Flats, has several rated tees) */
+  { family: 'courses', id: 'books-picked', variant: 'member', title: 'Courses · a tee picked from the lead\u2019s list (the default\u2019s sentence goes)',
+    drive: async (page) => {
+      await toCourses(page)
+      await page.evaluate(() => { const s = document.querySelector('#youCourses select[data-cstee]'); const o = [...s.options].find((x) => x.value !== s.value); s.value = o.value; s.dispatchEvent(new Event('change', { bubbles: true })) })
+      await page.waitForTimeout(600)
+    },
+    expect: { view: 'view-stats', selectors: { '#youCourses select[data-cstee]': 'visible' } }, check: teeSaid(false) },
 ]
 
 /* ------------------------------------------------ SETTINGS & THE SHEETS */
