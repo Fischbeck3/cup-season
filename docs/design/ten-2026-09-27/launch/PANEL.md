@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were judged from their `9d84c483` captures; every other family from `02636007`, whose web client renders them byte-identically (COVERAGE.md §1.1). Native **`4112a3f0`**, Owner TestFlight 1.0.0 (1180), judged from `native-4112/` (COVERAGE.md §2). |
-| **Status read at** | **`4a703402`** (root's fixes, N2's merge, and lanes W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266` and W5 `4a703402`; W1 and W6 had not merged) |
+| **Status read at** | **`8aaab412`** (root's fixes, N2's merge, and lanes W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402` and W1 `1e9eb856`; only W6 had not merged) |
 | **Date** | 2026-09-28 |
 | **Assessors** | the **category**, **craft** and **owner** judges: three fresh agents that wrote no code. Their calibration stays with root, which runs the same three on the native half and on round 2. |
 | **Raw evidence (outside git)** | Web: `~/cup-season-claude-ten-gallery/evidence/panel/{category,craft,owner}.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/`. Native: `…/evidence/panel/{category,craft,owner}-native.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/native-4112/`. |
@@ -79,14 +79,14 @@ Each judge's mean of the 22 rows per dimension. The owner judge's JSON carries n
 | 8 | craft | P1 | settings | "Delete permanently" is white on `#FF6A5E`, 2.81:1 in the default dark theme. | `settings--delete-confirm--375--dark.png` | **fixed (38471687)** |
 | 9 | craft | P1 | play | Light desk live scoring: the selected HOLE segment is 2.37:1. | `play--scoring--1280--light.png` | **fixed (38471687)** |
 | 10 | craft | P1 | identity | The Form row gilds the nine-hole 43 against 18-hole grosses. | `you--populated--375--dark.png` | **fixed (38471687)** (as #5) |
-| 11 | owner | P1 | post | The composer prints "+1.4" over "YOUR PLAYING HCP", so a 14.2 golfer reads a plus handicap on every post. A second top-level `vsShort` shadowed the words form. | `composer--filled--375--dark.png` | **fixed (38471687)**: the figure reads "beat by 1.4" again, and the signed form is `vsSigned`, used only on the clash and the receipt row. **Open:** the label still reads "your playing HCP" rather than R-M's "vs your playing HCP" (`index.html:5503` at `de3eaf35`; lane W1, not merged), and no preflight check catches a duplicate top-level function. |
+| 11 | owner | P1 | post | The composer prints "+1.4" over "YOUR PLAYING HCP", so a 14.2 golfer reads a plus handicap on every post. A second top-level `vsShort` shadowed the words form. | `composer--filled--375--dark.png` | **fixed (38471687, 1e9eb856)**: the figure reads "beat by 1.4" again, and the signed form is `vsSigned`, used only on the clash and the receipt row. The label now reads "vs your playing HCP" (R-M; 1e9eb856: 84983c4c). **Open:** no preflight check catches a duplicate top-level function. |
 | 12 | owner | P1 | share | The finish ceremony offers "Include round photo" on rounds with no photograph (`.finish-photoopt{display:flex}` beats `hidden`). | `share--recap-no-photo--375--dark.png` | **fixed (38471687)**: `[hidden]` always hides |
 | 13 | owner | P1 | claim-invite | A join code that resolves to no league tells a stranger "You're invited. Sign in to review the league before you join." | `links--join-unavailable--375--dark.png` | **fixed (38471687)**: "No league with that code. Check with your Pro.", from one producer |
 | 14 | owner | P1 | wizard | On the desk, "Review the rules" shows no rules, and the aside reads "FORMING — THE RULES AREN'T SET YET". | `wizard--step-3-review--1280--light.png` | **fixed (38471687)** (as #3). The aside's "forming" line is open, verification pending: W5's merge (`4a703402`) reworked the portrait without naming it. |
 | 15 | owner | P1 | golfers/identity/schedule | The rivalry verdict contradicts itself: "3–4 · THEY LEAD" on You and "leads 4–3" on the plan, but "All square, 5–5" on the person page. | `you--populated--375--dark.png`, `golfers--person--375--dark.png` | **decision X36** (OWNER-QUESTIONS). W3 changed the person page's words ("All square between you, 5–5.", 3324ae89), but which facet each surface shows is still the question. |
 
-**Tally at `4a703402`:** 15 defects. Every fix is verification pending.
-- **fixed: 12.** #2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14. #11 and #14 keep residuals.
+**Tally at `8aaab412`:** 15 defects. Every fix is verification pending.
+- **fixed: 12.** #2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14. #11 keeps the preflight check as a residual; #14 keeps the aside's "forming" line.
 - **fixed in part: 2.** #1 and #6, each waiting on a database item (X41, X42) and N4.
 - **decision: 1.** #15 (X36).
 
@@ -167,7 +167,7 @@ No judge raised a P0. The six P1 entries are four distinct defects.
 |---|---|---|---|---|---|
 | N-1 | category, craft | identity | FORM gilds a nine-hole 43 as the best of the last five beside 18-hole grosses, and VoiceOver calls it "their best" (craft); the web's twin defect | `17pro/tourcard-dark-large.png`, `17pro/person-me-dark-large.png` | **fixed (de3eaf35)**: N2's 74997409: a nine never takes the gold, and a nine says so; tests ab3d1cac. Not in 1180; verification pending. |
 | N-2 | category | history | The record prints two LIVE seasons (week 6 of 13, week 4 of 10) under FINISH as "2ND" with the podium rule; the web's twin defect | `17pro/record-dark-large.png`, `se3/record-light-large.png` | open · in lane N4. The web twin is fixed (f46086b4: "In play"). |
-| N-3 | craft | post | A refused or failed post shows no message: the composer's toast is drawn by the app-root host beneath the Play full-screen cover, for every composer failure (`PostRoundModel.swift:541`, `CupSeasonApp.swift:76`, `MainTabView.swift:1043`) | `flows/flow__post-failed.png` | open · in lane N4. The web twin (the refusal is a vanishing toast) is CQ-09, in lane W1. |
+| N-3 | craft | post | A refused or failed post shows no message: the composer's toast is drawn by the app-root host beneath the Play full-screen cover, for every composer failure (`PostRoundModel.swift:541`, `CupSeasonApp.swift:76`, `MainTabView.swift:1043`) | `flows/flow__post-failed.png` | open · in lane N4. The web twin, CQ-09, is fixed at 1e9eb856 (an inline refusal that keeps focus). |
 | N-4 | craft, owner | post | At AX3 the composer scrolls the focused gross field off screen with the keypad up, and content slides under the status bar: the golfer types a score they cannot see | `17pro/composer-light-AX3.png`, `se3/composer-dark-AX3.png` | open · in lane N4 |
 
 The judges' P2 and P3 counts: category 19 + 12, craft 24 + 5, owner 7 + 17. They are listed in the `-native.md` files.
