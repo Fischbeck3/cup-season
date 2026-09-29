@@ -767,10 +767,22 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     ClaimIntent.clear(defaults: d)
     #expect(ClaimIntent.pending(defaults: d) == nil)
     #expect(ClaimIntent.url(t).absoluteString == "https://cupseason.app/?claim=\(t.uuidString.lowercased())")
-    let info: JSONValue = .object(["guest_name": .string("Chuck"), "gross": .number(84), "course_label": .string("Papago"), "played_on": .string("2026-07-25")])
+    let info: JSONValue = .object(["guest_name": .string("Sam Fixture"), "gross": .number(84), "course_label": .string("Papago"), "played_on": .string("2026-07-25")])
     var cal = Calendar(identifier: .gregorian)
     cal.locale = Locale(identifier: "en_US")
-    #expect(ClaimDoor.line(info, calendar: cal) == "Chuck — 84 at Papago, Sat, Jul 25. Enter your email to keep it.")
+    #expect(ClaimDoor.line(info) == "Sam Fixture — 84 at Papago. Enter your email to keep it.")
+    #expect(ClaimDoor.subLine(info, calendar: cal) == "Sat, Jul 25")
+    // W4 · the club goes in the sentence; the course, tee and day go beneath
+    // it (the web's csClaimLanding, pinned by the links harness)
+    let club: JSONValue = .object(["guest_name": .string("Avery Fixture"), "gross": .number(91),
+                                   "course_label": .string("Mesquite Wash Golf Club (fixture) — Mesquite Wash · Black"),
+                                   "played_on": .string("2026-09-27")])
+    #expect(ClaimDoor.line(club) == "Avery Fixture — 91 at Mesquite Wash Golf Club (fixture). Enter your email to keep it.")
+    #expect(ClaimDoor.subLine(club, calendar: cal) == "Mesquite Wash · Black · Sun, Sep 27")
+    // no name and no gross read as the web's fallbacks; nothing beneath is nil
+    let bare: JSONValue = .object(["course_label": .string("Papago")])
+    #expect(ClaimDoor.line(bare) == "Your scorecard — Papago. Enter your email to keep it.")
+    #expect(ClaimDoor.subLine(bare, calendar: cal) == nil)
   }
 
   /// D374 · a link from a round nobody finished says so, on both doors; a round
@@ -789,8 +801,11 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(ClaimFlow.gate(state("setup")) == .notStarted(toast: ClaimDoor.notStartedLine))
     #expect(ClaimFlow.gate(state("final")) == nil)
     #expect(ClaimFlow.Outcome.unfinished(toast: "x").toast == "x")
-    // the words, pinned against the web's CS_CLAIM_UNFINISHED / CS_CLAIM_NOT_STARTED
-    #expect(ClaimDoor.unfinishedLine == "This round was never finished, so there’s no card to keep. Whoever ran it can tee off again and send your link from the new round.")
-    #expect(ClaimDoor.notStartedLine == "That round hasn’t teed off yet — your card lands here when it finishes.")
+    // the words, pinned against the web's CS_CLAIM_UNFINISHED / CS_CLAIM_NOT_STARTED /
+    // CS_CLAIM_USED and D86's toast (W4: the holes are the scorecard, T-01)
+    #expect(ClaimDoor.unfinishedLine == "This round was never finished, so there’s no scorecard to keep. Whoever ran it can tee off again and send your link from the new round.")
+    #expect(ClaimDoor.notStartedLine == "That round hasn’t teed off yet. Open this link again once it tees off to keep your own score, or once it finishes to keep your scorecard.")
+    #expect(ClaimDoor.usedLine == "That scorecard is already on a golfer’s record. If it’s yours, sign in with the same email and it’s in your rounds.")
+    #expect(ClaimFlow.stillLiveToast == "They’re still out there — your scorecard comes to your rounds when the round finishes")
   }
 }
