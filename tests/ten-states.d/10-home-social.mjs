@@ -301,6 +301,59 @@ const HOME_WORLD = [
       if (st.compareDocumentPosition(document.querySelector('#homeLead .csedn')) & Node.DOCUMENT_POSITION_PRECEDING) return 'the stale line is not above the lead'
       return true
     }) },
+  /* TEN / W7-038 [A2-home-9] · UI_SYSTEM §13.3, D220: a failed circle read is
+     never an empty wire. */
+  /* (a) nothing was ever read and the wire has nothing to show (the circle's
+     read and the league's moments both fail): the shared failed root, with Try
+     again that reads again, and never "No rounds from your buddies yet". With
+     moments in hand, the wire draws them (the phone's rule: failed AND empty) */
+  { family: 'home', id: 'feed-failed', variant: 'member', title: 'Home · the wire’s reads fail with nothing read before: the failed root, Try again',
+    world: { errors: { rpc: { home_feed: { __error: 'fixture: the circle could not be read', status: 503, code: 'XX000' } },
+      /* a 500, not a 503: the client library retries a GET on 503 with a
+         backoff, so a 503 here keeps the wire in its skeleton for 15s+ */
+      table: { posts: { __error: 'fixture: the moments could not be read', status: 500 } } } },
+    expectConsole: [/status of 50[03]/],
+    drive: async (page) => {
+      await until(page, () => !!document.querySelector('#homeFeed .emptyroot [data-erdoor="retry"]'), null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-home', selectors: { '#homeFeed .emptyroot [data-erdoor="retry"]': 'visible' } },
+    check: async (page) => {
+      const n = await page.evaluate(() => {
+        const t = (document.getElementById('homeFeed').innerText || '').replace(/\s+/g, ' ')
+        if (/No rounds from your buddies yet/i.test(t)) return 'a failed read says the wire is empty'
+        if (!/Couldn’t load this\./.test(t) || !/That is us, not you/.test(t)) return 'the failed root does not speak: ' + JSON.stringify(t.slice(0, 160))
+        return (window.__tenNet || []).filter((e) => /\/rpc\/home_feed/.test(e.url)).length
+      })
+      if (typeof n !== 'number') return n
+      await click(page, '#homeFeed [data-erdoor="retry"]')
+      await until(page, (k) => (window.__tenNet || []).filter((e) => /\/rpc\/home_feed/.test(e.url)).length > k, n, 8000).catch(() => {})
+      return page.evaluate((k) => (window.__tenNet || []).filter((e) => /\/rpc\/home_feed/.test(e.url)).length > k ? true : 'Try again did not read the circle again', n)
+    } },
+  /* (b) a good read, then a refresh that fails: the rows stay, every door
+     live, under "As of <day time> · couldn’t refresh" in the agate role */
+  { family: 'home', id: 'feed-stale', variant: 'member', title: 'Home · a circle refresh fails after a good read: the rows stay, AS OF … · COULDN’T REFRESH',
+    expectConsole: [/status of 503/],
+    drive: async (page, ctx) => {
+      await homePainted(page)
+      await until(page, () => document.querySelectorAll('#homeFeed [data-hfr]').length > 0, null, 10000)
+      await page.evaluate(() => { window.__keptRows = document.querySelectorAll('#homeFeed [data-hfr]').length })
+      ctx.world.handlers.home_feed = () => ({ __error: 'fixture: the refresh failed', status: 503, code: 'XX000' })
+      await page.evaluate(() => window.loadHome())
+      await until(page, () => !!document.querySelector('#homeFeed .homestale'), null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-home', selectors: { '#homeFeed .homestale': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const st = document.querySelector('#homeFeed .homestale'), t = st.textContent.trim()
+      if (!/^As of (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) · couldn’t refresh$/.test(t)) return 'the stale line reads ' + JSON.stringify(t)
+      if (getComputedStyle(st).textTransform !== 'uppercase') return 'the stale line is not the agate role'
+      const rows = document.querySelectorAll('#homeFeed [data-hfr]').length
+      if (rows !== window.__keptRows) return `the rows were not kept: ${window.__keptRows} before, ${rows} after`
+      if (/No rounds from your buddies yet/i.test(document.getElementById('homeFeed').innerText)) return 'a failed refresh says the wire is empty'
+      const first = document.querySelector('#homeFeed [data-hfr]')
+      return st.compareDocumentPosition(first) & Node.DOCUMENT_POSITION_FOLLOWING ? true : 'the stale line is not above the rows'
+    }) },
 ]
 
 /* --------------------------------------------------------------- golfers */

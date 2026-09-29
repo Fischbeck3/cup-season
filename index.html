@@ -21401,11 +21401,29 @@ function renderHomeFeed(){
     if(img.complete && img.naturalWidth > 0 && img.getAttribute('data-path'))
       keep.set(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'), img);
   });
+  /* TEN / W7-038 [A2-home-9] · UI_SYSTEM §13.3, D220: a failed read is never
+     an empty one. With nothing to show at all, the shared failed root speaks
+     ("Couldn’t load this.") with Try again, which reads again; kept rows stay,
+     every door live, under "As of Fri 6:12 PM · couldn’t refresh". The league's
+     own moments still draw when only the circle's read failed (the phone's
+     rule: failed AND empty is the failed root, HomeView's feedFailed). */
+  const feedFailed = !state.demo && !!window.homeFeedFailed;
+  if(feedFailed && !html){
+    box.innerHTML = csEmptyRootHtml(csEmptyRoot('home', { failed: true }));
+    box.querySelector('[data-erdoor="retry"]')?.addEventListener('click', (e) => {
+      e.currentTarget.disabled = true; e.currentTarget.textContent = 'Trying\u2026';
+      qaEvent('cta_tapped', { door: 'home_feed_retry' });
+      window.loadHome?.();   /* the module's loader, bridged (it repaints Home when it lands) */
+    });
+    return;
+  }
+  const staleFeed = feedFailed && window.homeFeedStaleAt
+    ? `<p class="homestale cs-agate-s" role="status">${esc(csStaleLine(window.homeFeedStaleAt))}</p>` : '';
   /* TEN / W6 · the empty wire is a sentence WITH A DOOR (LINT-21), and the
      door is true to the golfer's life: `csWireEmpty`, below. */
   const we = html ? null : csWireEmpty();
-  box.innerHTML = html
-    || `<p class="cs-body wire-empty">${esc(we.head)}</p><div class="hstart"><a href="#" ${we.table ? 'data-wiretable' : 'data-gopeople'}>${esc(we.door)}</a></div>`;
+  box.innerHTML = staleFeed + (html
+    || `<p class="cs-body wire-empty">${esc(we.head)}</p><div class="hstart"><a href="#" ${we.table ? 'data-wiretable' : 'data-gopeople'}>${esc(we.door)}</a></div>`);
   box.querySelectorAll('img.hsbg').forEach(img => {
     const old = keep.get(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'));
     if(old) img.replaceWith(old);
@@ -36009,8 +36027,23 @@ async function loadHome(){
       window.leagueEnds = ends;
     } else window.leagueEnds = {};
   } catch(e){ window.leagueEnds = window.leagueEnds||{}; }
-  try { const { data } = await sb.rpc('home_feed', { p_days: 21 }); window.homeFeedRows = data || []; }
-  catch(e){ window.homeFeedRows = window.homeFeedRows||[]; }
+  /* TEN / W7-038 [A2-home-9] · a failed circle read keeps the rows it had.
+     supabase-js resolves an error with data null, so `data || []` wrote the
+     last good rows over with nothing, and the wire told a golfer who has
+     rounds "No rounds from your buddies yet". Now the kept rows stay under the
+     dateline (renderHomeFeed), and the flag clears on the next good read. The
+     same golfer's rows only: a new sign-in never sees the last one's. */
+  if(window.homeFeedFor !== CS.user.id){
+    window.homeFeedFor = CS.user.id; window.homeFeedFailed = false; window.homeFeedStaleAt = null; window.homeFeedAt = null;
+    if(window.homeFeedRows && window.homeFeedRows.length) window.homeFeedRows = undefined;
+  }
+  try { const { data, error } = await sb.rpc('home_feed', { p_days: 21 }); if(error) throw error;
+        window.homeFeedRows = data || []; window.homeFeedFailed = false; window.homeFeedStaleAt = null; window.homeFeedAt = new Date(); }
+  catch(e){
+    window.homeFeedFailed = true;
+    window.homeFeedStaleAt = (window.homeFeedRows && window.homeFeedRows.length) ? (window.homeFeedAt || new Date()) : null;
+    if(window.homeFeedRows === undefined) window.homeFeedRows = [];
+  }
   /* #13: courses and cross-league names shout too — the circle feed is the one
      place the client sees golfers from leagues it hasn't loaded a roster for */
   window.csLearnNames?.((window.homeFeedRows||[]).flatMap(r => [r.course, r.golfer]));   /* #8: home_feed columns are `course`/`golfer` — the other two keys were always undefined */
