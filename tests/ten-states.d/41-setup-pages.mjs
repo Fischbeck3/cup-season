@@ -478,13 +478,19 @@ const SETTINGS = [
       await page.waitForTimeout(500)
     },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#youGuide': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => {
+      /* TEN / W8 · W7-033 (E5's aside): a ruled row does not lift on hover (the global .check:hover moved it 1px) */
+      await page.locator('#youGuide .check').first().hover(); await page.waitForTimeout(300)
+      const lift = await page.evaluate(() => getComputedStyle(document.querySelector('#youGuide .check')).transform)
+      await page.mouse.move(2, 2)
+      return lift === 'none' ? true : `a ruled guide row lifts on hover (${lift})`
+    }, async (page) => page.evaluate(() => {
       const rows = [...document.querySelectorAll('#youGuide .check')]
       if (rows.length < 5) return `the guide has ${rows.length} rows`
       const bad = rows.filter((r) => { const cs = getComputedStyle(r); return cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(cs.borderTopLeftRadius) > 0 || cs.borderLeftWidth !== '0px' || cs.borderTopWidth !== '1px' })
       if (bad.length) return `${bad.length} guide row(s) are boxed: ${JSON.stringify(bad[0].innerText.slice(0, 30))}`
       return rows.some((r) => /[\u2192\u203a\u2197]/.test(r.textContent)) ? 'a guide row carries a typed arrow' : true
-    }) },
+    })) },
   /* a destructive confirmation, opened and NOT confirmed */
   { family: 'settings', id: 'delete-confirm', variant: 'member', fullPage: false, title: 'Card & settings · Delete my account, the confirmation (not confirmed)',
     drive: async (page) => {

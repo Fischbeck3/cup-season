@@ -4928,6 +4928,9 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 @media(hover:hover){
   .check:hover{border-color:var(--rule); transform:translateY(-1px);}
 }
+/* W7-033 (E5's aside) · a RULED row is a slat: it does not lift on hover (the rule between rows is its only line and it does not move). The lift is for the boxed rows that
+   still exist; the Settings guide's rows and the season page's League rows are slats */
+#youGuide .check:hover, #view-hub .check:hover{transform:none;}
 
 /* THE ORDINARY PRIMARY ACTION IS `act` (owner board, 2026-09-14; D359): ember is
    competition, gold is earned, and the everyday control is neither. TEN / W6 ·
