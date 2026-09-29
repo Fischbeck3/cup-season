@@ -18,7 +18,8 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     #expect(StandingsMath.story([team(a, "Squad 1", 30), team(b, "Squad 2", 18)]).text == "Squad 1 lead by 12. Squad 2 a good weekend back.")
   }
   @Test func pointsBackPastFifteen() {
-    #expect(StandingsMath.story([team(a, "Squad 1", 40), team(b, "Squad 2", 20)]).text == "Squad 1 lead by 20. Squad 2 20 back.")
+    // AW2-04 · the gap is said once: "20 back" restated "lead by 20"
+    #expect(StandingsMath.story([team(a, "Squad 1", 40), team(b, "Squad 2", 20)]).text == "Squad 1 lead by 20.")
   }
   @Test func deadHeat() {
     #expect(StandingsMath.story([team(a, "Squad 1", 20), team(b, "Squad 2", 20)]).text == "Dead heat — Squad 1 and Squad 2 level at 20.")

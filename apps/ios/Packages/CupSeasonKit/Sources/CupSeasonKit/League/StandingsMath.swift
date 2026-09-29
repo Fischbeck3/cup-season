@@ -155,7 +155,9 @@ public enum StandingsStory: Sendable, Equatable {
   case none
   case outFront(Team)
   case deadHeat(Team, Team, pts: Double)
-  case lead(Team, Team, margin: Double, back: String)
+  /// `back` is the runner-up's own clause, and only when a weekend can close
+  /// the gap (AW2-04): past that, "lead by 34" has said the gap already.
+  case lead(Team, Team, margin: Double, back: String?)
 
   /// The sentence, plain. Views colour the names.
   ///
@@ -189,8 +191,11 @@ public enum StandingsStory: Sendable, Equatable {
     case .deadHeat(let a, let b, let pts):
       return "Dead heat — \(Self.displayName(a, viewer: viewer)) and \(Self.displayName(b, viewer: viewer)) level at \(CSCopy.points(pts))."
     case .lead(let a, let b, let m, let back):
-      return "\(Self.displayName(a, viewer: viewer)) \(Self.leads(a, viewer: viewer)) by \(CSCopy.points(m)). "
-        + "\(Self.displayName(b, viewer: viewer)) \(Self.isYou(b, viewer) ? "are " : "")\(back)."
+      // AW2-04 · a two-row story has one gap, and it is said once ("lead by
+      // 34"); a gap a weekend can close is a different fact, so it stays. The
+      // web's standings story (1eda6fec), word for word.
+      return "\(Self.displayName(a, viewer: viewer)) \(Self.leads(a, viewer: viewer)) by \(CSCopy.points(m))."
+        + (back.map { " \(Self.displayName(b, viewer: viewer)) \(Self.isYou(b, viewer) ? "are " : "")\($0)." } ?? "")
     }
   }
 
@@ -416,7 +421,7 @@ public enum StandingsMath {
     if a.pts == 0 && b.pts == 0 { return .none }
     let m = a.pts - b.pts
     if m == 0 { return .deadHeat(a, b, pts: a.pts) }
-    return .lead(a, b, margin: m, back: m <= 15 ? "a good weekend back" : "\(CSCopy.points(m)) back")
+    return .lead(a, b, margin: m, back: m <= 15 ? "a good weekend back" : nil)
   }
 
   /// The award tiles (11266–11275). First names only — the tiles are narrow.
