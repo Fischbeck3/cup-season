@@ -50,6 +50,29 @@ final class N4ShellUITests: N2UITestCase {
     }
   }
 
+  /// N4-002 · at SE3 AX3 both Door actions fell below the first screen, and
+  /// on the 17 Pro they floated mid-screen. They are pinned in the bottom
+  /// inset now: whole, and on the first screen, at the reading size and AX3.
+  /// A signed-out simulator is the Door; a signed-in one skips.
+  @MainActor func testTheDoorsTwoActionsAreWholeOnTheFirstScreen() throws {
+    for size in ["large", "AX3"] {
+      let app = XCUIApplication()
+      app.launchArguments = ["-cs_dev_appearance", "dark", "-cs_dev_look", "none", "-cs_dev_text_size", size]
+      app.launch()
+      let start = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "get started")).firstMatch
+      guard start.waitForExistence(timeout: 20) else { app.terminate(); throw XCTSkip("Requires a signed-out simulator (the Door)") }
+      let signIn = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "sign in")).firstMatch
+      let screen = app.windows.firstMatch.frame
+      for b in [start, signIn] {
+        XCTAssertTrue(b.exists && b.isHittable, "\(size): \(b.label) is a target on the first screen")
+        XCTAssertGreaterThanOrEqual(b.frame.minY, screen.minY, "\(size): \(b.label) starts on the screen — \(b.frame)")
+        XCTAssertLessThanOrEqual(b.frame.maxY, screen.maxY, "\(size): \(b.label) is whole — \(b.frame)")
+      }
+      attach(app, "n4-002-door-\(size)")
+      app.terminate()
+    }
+  }
+
   /// N4-133 · the schedule's plan rows opened on a tap gesture and were not
   /// buttons to VoiceOver. The person is each row's one button now (as
   /// PersonRow's is), labelled with the row's words, and it opens the plan.

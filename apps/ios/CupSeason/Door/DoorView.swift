@@ -158,14 +158,27 @@ struct DoorView: View {
           .csType(.body).foregroundStyle(pending == nil ? cs.mut : cs.ink)
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityIdentifier("door.context")
-        Color.clear.frame(height: pending == nil && !typeSize.isAccessibilitySize ? 120 : CSTokens.Space.s5).accessibilityHidden(true)
-        Button("Get started", action: enter).buttonStyle(.csPrimary())
-        Button("Sign in", action: enter).buttonStyle(.csSecondary())
       }
       .padding(CSTokens.Space.gutter)
       .padding(.top, CSTokens.Space.s6)
       .frame(maxWidth: 440, alignment: .leading)
       .frame(maxWidth: .infinity)
+    }
+    // N4-002 · **THE DOOR'S TWO ACTIONS ARE PINNED.** At SE3 AX3 both fell
+    // below the first screen (a sheared sliver showed), and on the 17 Pro they
+    // floated mid-screen under a 120pt spacer. They sit in the bottom inset
+    // now — whole on the first screen at every size, in the thumb zone — and
+    // the tagline and the sentence scroll above them (UI_SYSTEM §13.2a).
+    .safeAreaInset(edge: .bottom, spacing: 0) {
+      VStack(spacing: CSTokens.Space.s3) {
+        Button("Get started", action: enter).buttonStyle(.csPrimary())
+        Button("Sign in", action: enter).buttonStyle(.csSecondary())
+      }
+      .padding(.horizontal, CSTokens.Space.gutter)
+      .padding(.vertical, CSTokens.Space.s3)
+      .frame(maxWidth: 440)
+      .frame(maxWidth: .infinity)
+      .background(cs.bg0)
     }
   }
 
