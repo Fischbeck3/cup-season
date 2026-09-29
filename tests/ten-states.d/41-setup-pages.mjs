@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -145,6 +145,38 @@ const SCHEDULE = [
     },
     expect: { view: 'view-schedule', sheet: true, selectors: { '#rtTeeUp': 'visible' } },
     check: all(planSheetPrimary(false), async (page) => page.evaluate(() => /^You\b/.test(document.querySelector('.rs-who .check .tt b').innerText) || [...document.querySelectorAll('.rs-who .check')].some((r) => /^You\b/.test(r.innerText) && /In/i.test(r.innerText)) ? true : 'the viewer\'s seat does not read You · In')) },
+  /* TEN / W8 · W7-049 [B2-schedule-3] · the host's own plan: Tee it up is the primary, the two harmless acts are 44 boxes, and 'Cancel round' is one named, quiet, ARMED
+     tertiary link beneath them: the first tap asks ('Sure? Cancel for everyone') and cancels nothing */
+  { family: 'schedule', id: 'plan-sheet-host', variant: 'member', fullPage: false, title: 'A plan · Avery’s own Wednesday, Cancel round tapped once (armed, not confirmed)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.evaluate((id) => window.openRoundSheet(id), PLAN.mine)
+      await until(page, () => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !!document.getElementById('rrScratch') }, null, 10000)
+      await page.locator('#rrScratch').scrollIntoViewIfNeeded()
+      await click(page, '#rrScratch'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-schedule', sheet: true, selectors: { '#rrScratch': 'text:^Sure\\? Cancel for everyone$' } },
+    check: all(planSheetPrimary(false), tertiaryDoor('#rrScratch'), async (page) => page.evaluate(() => {
+      const b = document.getElementById('rrScratch'), boxes = [...document.querySelectorAll('.managebar2 .mbtn2')]
+      if (!b.classList.contains('is-armed')) return 'the first tap did not arm Cancel round'
+      if (!document.getElementById('sheet').classList.contains('open') || !document.getElementById('rrScratch')) return 'the first tap cancelled the round'
+      if (boxes.length !== 2 || boxes.some((x) => x.getBoundingClientRect().height < 43.5)) return `the manage bar has ${boxes.length} boxes, some under 44px`
+      return b.getBoundingClientRect().top >= boxes[0].getBoundingClientRect().bottom - 1 ? true : 'Cancel round is not apart from (beneath) the two harmless acts'
+    })) },
+  /* ...and in the schedule's own list: your plan's 'Cancel round' is the tertiary link apart from Invite, and its first tap only asks */
+  { family: 'schedule', id: 'cancel-armed', variant: 'member', title: 'Schedule · Cancel round on my own plan tapped once (armed, not confirmed)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.locator('[data-scratch]').first().scrollIntoViewIfNeeded()
+      await click(page, '[data-scratch]'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-schedule', selectors: { '[data-scratch]': 'text:^Sure\\? Cancel for everyone$' } },
+    check: all(async (page) => page.evaluate(() => { const b = document.querySelector('[data-scratch]'), row = b.closest('.schrow'); return b.classList.contains('is-armed') && row ? true : 'the first tap did not arm the cancel' }),
+      async (page) => page.evaluate(() => {
+        const b = document.querySelector('[data-scratch]'), inv = b.parentElement.querySelector('[data-retag]')
+        if (getComputedStyle(b).textDecorationLine.indexOf('underline') < 0 || parseFloat(getComputedStyle(b).textDecorationThickness) !== 2) return 'the row cancel is not the tertiary link'
+        return b.getBoundingClientRect().height >= 43.5 && inv && !inv.classList.contains('lrcasual') ? true : 'the cancel is not 44 tall, or is not a different tier from Invite'
+      })) },
   { family: 'schedule', id: 'plan-landing', variant: 'signed_out', url: `/?plan=${SHARE.plan}`, title: 'The /?plan= landing a recipient opens',
     settle: async (page) => { await page.waitForSelector('#shareView', { timeout: 15000 }); await until(page, () => !/Opening the card/.test((document.getElementById('svCard') || {}).textContent || ''), null, 15000); await page.waitForTimeout(400) },
     expect: { overlay: true, selectors: { '#svCard': 'visible' } },
