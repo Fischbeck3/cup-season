@@ -214,3 +214,17 @@ import Foundation
     #expect(moved.rulesLine == "Custom rules, built on Standard: honest scores, one a month keeps you in.")
   }
 }
+
+/// N4-200 · D384 on the phone: a season shorter than six weeks is a
+/// points-table season, whatever its stored finish says.
+@Suite struct CovenantShortSeasonTests {
+  @Test func aSeasonUnderSixWeeksEndsOnThePointsTable() {
+    let five = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final", weeks: 5, structure: "solo")
+    #expect(five.endingLine == "The season's points decide it. No reset.")
+    let six = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final", weeks: 6, structure: "solo")
+    #expect(six.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh.")
+    // no length in the payload is not a short season
+    let unknown = Covenant(name: "x", buyinCents: 0, preset: "standard", floor: 2, finish: "cup_final", structure: "solo")
+    #expect(unknown.endingLine == "The top two golfers qualify for a four-week Cup Final, scored fresh.")
+  }
+}

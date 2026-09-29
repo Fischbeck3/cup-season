@@ -312,7 +312,12 @@ public struct Covenant: Sendable, Equatable, Identifiable {
 
   /// The ending, in D126's own words rather than a dial name.
   public var endingLine: String {
-    if finish == "points_table" { return "The season's points decide it. No reset." }
+    // N4-200 · D384: a season shorter than six weeks is a points-table
+    // season, on the server and on both clients (the web's csCovenantFacts
+    // `shortSeason`). The phone promised a four-week Cup Final to a
+    // five-week season. The words stay the phone's (root's covenant ruling).
+    let shortSeason = (weeks ?? 0) > 0 && (weeks ?? 0) < 6
+    if finish == "points_table" || shortSeason { return "The season's points decide it. No reset." }
     if finish == "cup_final", structure == "squads2" { return "Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start." }
     if finish == "cup_final", let structure {
       return structure == "solo" ? "The top two golfers qualify for a four-week Cup Final, scored fresh." : "The top two squads qualify for a four-week Cup Final, scored fresh."
