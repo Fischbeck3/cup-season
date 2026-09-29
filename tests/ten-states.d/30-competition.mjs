@@ -768,6 +768,15 @@ async function raceDrive(page) {
 }
 /* TEN / W8 · W7-131 [A2-competition-5] · the Race display reads heading, CHART, sentence (the four-line paragraph stood between the controls and the chart), and Follow (up to 17 names) is one
    closed disclosure, so the chart's first half is in the first screen at every width */
+/* TEN / W8 · W7-124 [A2-competition-17] · the Race's end label starts at week N's own point (as 'Week 1' does), so it lies right of the 'Now' rule and never sits under it: 'Week 15' centred under
+   'Now · W13' read as if week 13 were week 15 */
+const raceEndLabel = async (page) => page.evaluate(() => {
+  const svg = document.querySelector('#seasonBookDialog svg.sb-race'), now = svg && svg.querySelector('.sb-current-line')
+  const end = svg && [...svg.querySelectorAll('.sb-race-axis')].find((t) => /^Week \d+$/.test(t.textContent) && t.textContent !== 'Week 1')
+  if (!svg || !now || !end) return 'the race has no end label or no Now rule'
+  const l = end.getBoundingClientRect(), n = now.getBoundingClientRect()
+  return l.left >= n.right - 0.5 ? true : `the end label (${Math.round(l.left)}-${Math.round(l.right)}) runs under the Now rule at ${Math.round(n.left)}`
+})
 const raceOrder = async (page) => page.evaluate(() => {
   const main = document.querySelector('#seasonBookDialog .sb-main'), h2 = main.querySelector('h2'), svg = main.querySelector('svg.sb-race')
   const said = [...main.querySelectorAll('p')].find((p) => /^Each golfer’s points as they count today/.test(p.textContent))
@@ -843,7 +852,7 @@ const BOOK = [
     prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
     drive: raceDrive,
     expect: { view: 'view-hub', selectors: { '#seasonBookDialog svg.sb-race': 'visible', '#seasonBookDialog .sb-follow > summary': 'text:^Follow · Leading three$' } },
-    check: all(bookIs({ title: 'The Book' }), raceOrder, tertiaryDoor('#seasonBookDialog .sb-follow > summary'),
+    check: all(bookIs({ title: 'The Book' }), raceOrder, raceEndLabel, tertiaryDoor('#seasonBookDialog .sb-follow > summary'),
       has('#cupRace', 'Fixture Quail[\\s\\S]*Fixture Wrens|Fixture Wrens[\\s\\S]*Fixture Quail', 'the Cup Final race behind the Book'),
       async (page) => page.evaluate(() => {
         const svg = document.querySelector('#seasonBookDialog svg.sb-race')

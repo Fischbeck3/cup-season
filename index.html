@@ -22959,7 +22959,7 @@ function csSeasonBookRace(b,rows,follow,width){
   labs.sort((a,b)=>a.y-b.y).forEach((l,k,a)=>{l.ly=Math.max(l.y+4,k?a[k-1].ly+16:T+4);});
   const over=labs.length?labs[labs.length-1].ly-(H-B):0; if(over>0)labs.forEach(l=>{l.ly-=over;});
   labs.forEach(l=>{h+=`<path class="sb-race-tie" d="M${(l.x+3).toFixed(1)} ${l.y.toFixed(1)}L${X1+4} ${(l.ly-4).toFixed(1)}"/><text class="sb-race-lab${l.i===0?' is-lead':''}" x="${X1+8}" y="${l.ly.toFixed(1)}">${esc(l.t)}</text>`;});
-  h+=`<text class="sb-race-axis" x="${L}" y="${H-8}">Week 1</text><text class="sb-race-axis" x="${X1}" y="${H-8}" text-anchor="end">Week ${n}</text></svg>`;
+  h+=`<text class="sb-race-axis" x="${L}" y="${H-8}">Week 1</text><text class="sb-race-axis" x="${X1}" y="${H-8}">Week ${n}</text></svg>`;   /* W7-124 · anchored at its own point, as 'Week 1' is: 'end' centred it under the 'Now · W13' rule on a phone */
   return h+said;
 }
 /* W5 · the crown on a finished Book. The read carries no champion, so it is
