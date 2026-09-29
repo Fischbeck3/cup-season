@@ -9613,7 +9613,7 @@ function renderCupRace(){
      that straddles two months lets one golfer count more than it says. The
      phone prints the count alone; the cap's own sentence is the server's
      cap_note, in the finalist's receipt. */
-  let html=`<tr><th colspan="3" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 IN THE FINAL BY ${esc(String(race.seed_rung).toUpperCase())}`:''}</th></tr>`;
+  let html=`<tr><th colspan="2" style="text-align:left">THE CUP FINAL \u00b7 ${dl} DAY${dl===1?'':'S'} LEFT${race.seed_rung?` \u00b7 IN THE FINAL BY ${esc(String(race.seed_rung).toUpperCase())}`:''}</th><th class="num">Pts</th></tr>`;   /* W7-066 · the totals stand under a head */
   fins.forEach((f,i)=>{
     const id=f.squad_id||f.member_id, t=teams.find(x=>x.id===id);
     const ci=t?t.ci:(i%4), name=t?t.name:(f.name||'\u2014');
@@ -9698,7 +9698,8 @@ function renderClash(){
   };
   /* W7-067 · the rank column is gone (it held a 'W' only once a week was settled, and the settled head already says who took it), so both rows start at the head's own left edge;
      and while the week is OPEN the head carries the one restrained ember dot that says it is live (D359), none once it is settled */
-  el.innerHTML=`<tr><th colspan="2" style="text-align:left">${settled?'':'<span class="clashdot" role="img" aria-label="Live"></span>'}${head}</th></tr>`
+  /* W7-066 · and the figures stand under a head: 'Pts', as the standings table's own head reads (Pos, Squad, Gap, Pts) — a 9 and a 7 under one title cell named no unit */
+  el.innerHTML=`<tr><th style="text-align:left">${settled?'':'<span class="clashdot" role="img" aria-label="Live"></span>'}${head}</th><th class="num">Pts</th></tr>`
     + side(wc.a_member,aB,'a') + side(wc.b_member,bB,'b');
   wrap.style.display='';
   /* receipts: every figure taps to the round that produced it (§16). Open with

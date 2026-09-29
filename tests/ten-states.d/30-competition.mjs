@@ -154,6 +154,17 @@ const datelineOk = async (page) => page.evaluate(() => {
   if (innerWidth < 480) return b.top >= a.bottom - 1 && sep === 'none' ? true : `at ${innerWidth}px the dateline is not stacked without a separator (span bottom ${Math.round(a.bottom)}, Pro top ${Math.round(b.top)}, separator ${sep})`
   return sep === 'none' ? 'the separator between the span and the Pro is gone above 480px' : true
 })
+/* TEN / W8 · W7-066 [B2-desk-17] · the figures under a table's title cell stand under a head: a right-aligned 'Pts' cell in the head row, on the same edge as the figures (the clash's 9 and 7, the Cup Final race's totals) */
+const ptsHead = (tableSel) => async (page) => page.evaluate((tableSel) => {
+  const t = document.querySelector(tableSel)
+  if (!t || !(t.getBoundingClientRect().width > 0)) return `${tableSel} is not on the page`
+  const head = t.querySelector('tr:first-child th.num')
+  if (!head || !/^pts$/i.test(head.textContent.trim())) return `${tableSel}'s head row has no Pts cell: ${JSON.stringify([...t.querySelectorAll('tr:first-child th')].map((h) => h.textContent.trim().slice(0, 24)))}`
+  const figs = [...t.querySelectorAll('td.num.pts')]
+  if (!figs.length) return `${tableSel} draws no figures`
+  for (const f of figs) if (Math.abs(f.getBoundingClientRect().right - head.getBoundingClientRect().right) > 1) return 'a figure is not under its Pts head'
+  return true
+}, tableSel)
 /* TEN / W8 · W7-067 [B2-season-20] · the open clash: its head carries ONE restrained ember dot that says it is live (none once the week is settled), and both rows start at the head's own left edge:
    the empty rank column (a 'W' only after settling, which the settled head already says) is gone */
 const clashOpen = async (page) => page.evaluate(() => {
@@ -204,7 +215,7 @@ const SEASON = [
     check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
       /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
-      tertiaryDoor('#seasonBookDoor'), clashOpen,
+      tertiaryDoor('#seasonBookDoor'), clashOpen, ptsHead('#clashTbl'),
       /* TEN / W8 · W7-060 [A2-season-5]: a tied Points King names who is level (never the word 'Level' in the name's slot), wraps rather than clipping, and the sub says 'level on N' */
       async (page) => page.evaluate(() => {
         const k = document.getElementById('awKing'), sub = document.getElementById('awKingS')
@@ -849,7 +860,7 @@ const BOOK = [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-hub', selectors: { '#scenarioLine': 'visible' } },
-    check: all(has('#scenarioLine', '^The Final is set \u2014 .+ into the Cup Final$', 'the locked clinch line'),
+    check: all(has('#scenarioLine', '^The Final is set \u2014 .+ into the Cup Final$', 'the locked clinch line'), ptsHead('#cupRace'),
       async (page) => page.evaluate(() => /seeds? set/i.test(document.getElementById('scenarioLine').textContent) ? 'the clinch line still says Seeds set' : true)) },
   /* W7-131 · the same race after a pick: Follow is opened, the second golfer chosen, and the disclosure closes on their name with the focus on its summary */
   { family: 'book', id: 'race-follow', variant: 'rounds_no_league', title: 'The Book in the Cup Final: the race following one golfer (Follow opened, a golfer picked)', fullPage: false,
