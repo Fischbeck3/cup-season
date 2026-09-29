@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -62,7 +62,8 @@ const SCHEDULE = [
       notMono(['#calGrid .calhd', '#view-schedule .backlink'], ['#calGrid .calhd', '#view-schedule .backlink']),
       noRetiredGlyph()) },
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',
-    drive: toSchedule, expect: { view: 'view-schedule' } },
+    /* TEN / W8 · W7-009: the empty schedule and its own door carry planning, so the sidebar's "Plan one" stands down */
+    drive: toSchedule, expect: { view: 'view-schedule' }, check: standsDown(['#sideMe [data-mego="plan_one"]']) },
   { family: 'schedule', id: 'plan-sheet', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday at Mesquite Wash (the round object)',
     drive: async (page) => {
       await toSchedule(page)
@@ -207,11 +208,76 @@ const SETTINGS = [
   { family: 'settings', id: 'card', variant: 'member', fullPage: false, title: 'Card & settings · Your card',
     drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } },
     /* TEN / W6 · AW2-06: a row's label is agateS, never mono; a league's code stays mono */
-    check: all(notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']), noRetiredGlyph()) },
+    check: all(notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']), noRetiredGlyph(),
+      /* TEN / W8 · W7-032 [A2-settings-7]: Your card / Settings is the system segment (§7.2), not a boxed pill */
+      isSystemSegment('#phSeg', 'Your card')) },
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
-    check: notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']) },
+    check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings')) },
+  /* TEN / W8 · W7-043 [A2-settings-4] · the Handicap index block, scrolled to. Once the engine owns the number (index_source 'app') the card draws no
+     field and no 'Update index' (the server refuses the edit by design and the golfer learned it from a toast): it says whose the number is, in the
+     phone's words (CardAndSettingsScreen, Y-06), and keeps the door. A golfer whose number has not been built keeps the starter field. */
+  { family: 'settings', id: 'card-index', variant: 'member', fullPage: false, title: 'Card & settings · the Handicap index, built by the engine (no field, no Update index)',
+    drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdxOwned': 'text:^Your number builds itself now . 14\\.2$', '#phScoreHelp': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      if (document.getElementById('phIdx') || document.getElementById('phIdxGo')) return 'the engine-owned card still offers a field or Update index'
+      const help = document.getElementById('phIdxHelp').textContent.replace(/\s+/g, ' ').trim()
+      if (help !== 'It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. How scoring works') return `the note reads ${JSON.stringify(help)}`
+      return /[\u2192\u203a]/.test(document.getElementById('phIdxHelp').textContent) ? 'the door carries a typed arrow' : true
+    }) },
+  { family: 'settings', id: 'card-starter', variant: 'one_round', fullPage: false, title: 'Card & settings · the Handicap index, still building (the starter field stays)',
+    drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdx': 'visible', '#phIdxGo': 'text:^Update index$' } },
+    check: async (page) => page.evaluate(() => /Set a starter here/.test(document.getElementById('phIdxHelp').textContent) ? true : 'the starter sentence is gone') },
+  /* TEN / W8 · W7-042 [A2-settings-3] · an armed card is not dropped by a dismissal. Findable-by saves on the tap, so it does not arm
+     Save changes; a pending name edit does, and the first dismissal (the ×) keeps the sheet open, puts focus on Save and says why */
+  { family: 'settings', id: 'card-unsaved', variant: 'member', fullPage: false, title: 'Card & settings · an edit is pending and the sheet is dismissed once (kept open, and it says why)',
+    drive: async (page) => {
+      await openHub(page)
+      await click(page, '#phDisc [data-disc="friends"]'); await page.waitForTimeout(400)
+      await page.evaluate(() => { window.__w8 = { armedByFindable: document.getElementById('phSave').classList.contains('armed') } })
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#shClose'); await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: async (page) => page.evaluate(() => {
+      if (window.__w8.armedByFindable) return 'a Findable-by tap armed Save changes for a change it had already saved'
+      const a = document.activeElement, s = document.getElementById('phStatus')
+      if (!a || a.id !== 'phSave') return `focus is on ${a && (a.id || a.tagName)}, not Save`
+      if (s.getAttribute('role') !== 'status') return 'the message is not a status'
+      const r = s.getBoundingClientRect()
+      if (!(r.bottom > 0 && r.top < innerHeight)) return 'the message is below the fold of the golfer who edited the name'
+      return /Save them, or close again to leave without saving/.test(s.textContent) ? true : `the message reads ${JSON.stringify(s.textContent)}`
+    }) },
+  /* ...and a second dismissal within four seconds leaves without saving */
+  { family: 'settings', id: 'card-unsaved-leave', variant: 'member', fullPage: false, title: 'Card & settings · the second dismissal leaves without saving',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#shClose'); await page.waitForTimeout(300)
+      await click(page, '#shClose'); await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-stats' },
+    check: async (page) => page.evaluate(() => document.getElementById('sheet').classList.contains('open') ? 'the second dismissal did not close the sheet' : true) },
+  /* TEN / W8 · W7-033 [A2-settings-8] · the Settings pane's 'How it works' rows, scrolled to: ruled rows (a hairline above, no box, no
+     radius, no typed arrow), as the You door rows are, not bordered cards between ruled rows (§3.1, §5.1, §5.2) */
+  { family: 'settings', id: 'guide', variant: 'member', fullPage: false, title: 'Card & settings · Settings, scrolled to How it works (ruled rows)',
+    drive: async (page) => {
+      await openHub(page); await click(page, '#phSeg [data-ph="settings"]')
+      await until(page, () => document.getElementById('youGuide') && document.getElementById('youGuide').offsetParent !== null)
+      await page.evaluate(() => document.getElementById('youGuide').scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#youGuide': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const rows = [...document.querySelectorAll('#youGuide .check')]
+      if (rows.length < 5) return `the guide has ${rows.length} rows`
+      const bad = rows.filter((r) => { const cs = getComputedStyle(r); return cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(cs.borderTopLeftRadius) > 0 || cs.borderLeftWidth !== '0px' || cs.borderTopWidth !== '1px' })
+      if (bad.length) return `${bad.length} guide row(s) are boxed: ${JSON.stringify(bad[0].innerText.slice(0, 30))}`
+      return rows.some((r) => /[\u2192\u203a\u2197]/.test(r.textContent)) ? 'a guide row carries a typed arrow' : true
+    }) },
   /* a destructive confirmation, opened and NOT confirmed */
   { family: 'settings', id: 'delete-confirm', variant: 'member', fullPage: false, title: 'Card & settings · Delete my account, the confirmation (not confirmed)',
     drive: async (page) => {
@@ -231,7 +297,16 @@ const SETTINGS = [
         const g = document.getElementById('phDelConfirm'), a = document.activeElement
         return { focus: a && a.id, role: g.getAttribute('role'), named: g.getAttribute('aria-labelledby'), described: document.getElementById('phDelYes').getAttribute('aria-describedby') }
       })
-      if (open.focus !== 'phDelWhat' || open.role !== 'group' || open.named !== 'phDelete' || open.described !== 'phDelWhat') return 'the confirmation does not take focus or say what it does: ' + JSON.stringify(open)
+      if (open.focus !== 'phDelWhat' || open.role !== 'group' || open.named !== 'phDelHead' || open.described !== 'phDelWhat') return 'the confirmation does not take focus or say what it does: ' + JSON.stringify(open)
+      /* TEN / W8 · W7-041 [A2-settings-2, B2-settings-1, A2-settings-9]: a head of its own (named by it, not by the opener), set off by a
+         rule, and its two answers equal in width (the destructive act is not the loudest control, §16A.5) */
+      const shape = await page.evaluate(() => {
+        const g = document.getElementById('phDelConfirm'), h = document.getElementById('phDelHead'), y = document.getElementById('phDelYes').getBoundingClientRect(), n = document.getElementById('phDelNo').getBoundingClientRect()
+        return { head: h.textContent.trim(), role: h.getAttribute('role'), rule: getComputedStyle(g).borderTopWidth, yes: Math.round(y.width), no: Math.round(n.width) }
+      })
+      if (shape.head !== 'Delete your account?' || shape.role !== 'heading') return 'the confirmation has no head of its own: ' + JSON.stringify(shape)
+      if (shape.rule !== '1px') return 'the confirmation is not set off from the sign-out row by a rule: ' + JSON.stringify(shape)
+      if (Math.abs(shape.yes - shape.no) > 1) return `the two answers are not equals: Delete ${shape.yes}px, Not now ${shape.no}px`
       await click(page, '#phDelNo')
       const back = await page.evaluate(() => document.activeElement && document.activeElement.id)
       await click(page, '#phDelete')
@@ -293,21 +368,56 @@ const deskRailEdge = async (page) => {
   if (!r.over) return `the rail does not overflow at ${vp.width}×800, so its edge cannot be read`
   return r.atRest && r.masked && !r.atEnd && r.back ? true : `the rail's edge at ${vp.width}×800: ${JSON.stringify(r)}`
 }
+/* TEN / W8 · W7-027 [B2-desk-11] · a desk aside (the season's) and Home's wire scroll in their own height under the rail's fade: the box is
+   capped at the window's, it overflows, it says so at rest (data-more + a mask), says nothing at its end, and its tail is reachable */
+const deskScroller = (sel) => async (page) => {
+  const r = await page.evaluate(async (sel) => {
+    const a = document.querySelector(sel), frame = () => new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)))
+    if (!a) return { missing: true }
+    const cs = getComputedStyle(a), h = a.getBoundingClientRect().height
+    const capped = h <= innerHeight - 80 + 1, over = a.scrollHeight > a.clientHeight + 2
+    const atRest = a.hasAttribute('data-more'), masked = (cs.webkitMaskImage || cs.maskImage || 'none') !== 'none'
+    a.scrollTop = a.scrollHeight; await frame()
+    const atEnd = a.hasAttribute('data-more')
+    const kids = [...a.children].filter((c) => c.getBoundingClientRect().height > 0), last = kids[kids.length - 1]
+    const tail = !!last && last.getBoundingClientRect().bottom <= a.getBoundingClientRect().bottom + 1
+    a.scrollTop = 0; await frame()
+    /* a scroll box clips a focus ring (2px, 2px off) drawn at its own edge: the first focusable's ring must fit inside the box */
+    const f = a.querySelector('button, a[href], [tabindex]:not([tabindex="-1"])'), fr = f && f.getBoundingClientRect(), ar = a.getBoundingClientRect()
+    const ring = !f || (fr.left - 4 >= ar.left - 0.5 && fr.top - 4 >= ar.top - 0.5 && fr.right + 4 <= ar.right + 0.5)
+    return { h: Math.round(h), vh: innerHeight, capped, over, atRest, masked, atEnd, tail, ring, back: a.hasAttribute('data-more') }
+  }, sel)
+  if (r.missing) return `${sel} is not drawn`
+  if (!r.capped) return `${sel} is ${r.h}px tall in a ${r.vh}px window: not a scroll box, so its tail is out of reach`
+  if (!r.over) return `${sel} fits its box, so its edge cannot be read`
+  return r.atRest && r.masked && !r.atEnd && r.tail && r.ring && r.back ? true : `${sel}'s edge: ${JSON.stringify(r)}`
+}
+/* TEN / W8 · W7-022 [B2-desk-8] · the reading measure is the track's and the aside follows the column after the desk gutter: from 1100 up the
+   gap between a desk body's reading column and its second column is the gutter (40), not a void */
+const deskGutter = (colSel, sideSel) => async (page) => page.evaluate(([colSel, sideSel]) => {
+  if (innerWidth < 1100) return true
+  const c = document.querySelector(colSel), a = document.querySelector(sideSel)
+  if (!c || !a) return `${colSel} or ${sideSel} is not drawn`
+  const gap = Math.round(a.getBoundingClientRect().left - c.getBoundingClientRect().right)
+  return gap >= 36 && gap <= 44 ? true : `${sideSel} sits ${gap}px from ${colSel}, not the 40px gutter (a void beside a capped column)`
+}, [colSel, sideSel])
 const DESK = [
   { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' },
-    check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskRailEdge(page) } },
+    check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskScroller('.deskwire')(page); if (b !== true) return b; const g = await deskGutter('#homeHub .deskmain', '#homeHub .deskwire')(page); return g !== true ? g : deskRailEdge(page) } },
   { family: 'desk', id: 'season', variant: 'member', desk: true, title: 'The desk · the season',
     drive: async (page) => { await click(page, '.navitem[data-v="hub"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub'); await page.waitForTimeout(900) },
-    expect: { view: 'view-hub' }, check: deskCheck },
+    /* TEN / W8 · W7-025: the season page at its top marks The season, and only it */
+    expect: { view: 'view-hub' }, check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskMenuIs('The season')(page); if (b !== true) return b; const g = await deskGutter('#seasonBody .deskmain', '#seasonAside')(page); return g !== true ? g : deskScroller('#seasonAside')(page) } },
   { family: 'desk', id: 'compete', variant: 'member', desk: true, title: 'The desk · Compete',
     drive: async (page) => { await click(page, '.navitem[data-v="compete"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-compete'); await page.waitForTimeout(900) },
     expect: { view: 'view-compete' }, check: deskCheck },
   { family: 'desk', id: 'golfers', variant: 'member', desk: true, title: 'The desk · Golfers',
     drive: async (page) => { await click(page, '.navitem[data-v="golfers"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-golfers'); await page.waitForTimeout(900) },
-    expect: { view: 'view-golfers' }, check: deskCheck },
+    expect: { view: 'view-golfers' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskGutter('#glfHub .deskmain', '#glfAside')(page) } },
   { family: 'desk', id: 'you', variant: 'member', desk: true, title: 'The desk · You',
     drive: async (page) => { await click(page, '.navitem[data-v="stats"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-stats'); await page.waitForTimeout(900) },
-    expect: { view: 'view-stats' }, check: deskCheck },
+    /* TEN / W8 · W7-009: You's Form row and Recent rounds open on the last round, so the sidebar's LAST row stands down */
+    expect: { view: 'view-stats' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : standsDown(['#sideMe [data-mego="my_last_round"]'])(page) } },
 ]
 
 /* ------------------------------------------------------------ THE DRAW */

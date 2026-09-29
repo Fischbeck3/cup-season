@@ -11,7 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
-import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, readsAsWritten, noRetiredGlyph, standsDown } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -40,18 +40,74 @@ const text = (sel, re, what) => async (page) => page.evaluate(({ sel, re, what }
   return new RegExp(re, 'i').test(el.innerText.replace(/\s+/g, ' ')) ? true : `${what}: ${sel} reads ${JSON.stringify(el.innerText.replace(/\s+/g, ' ').slice(0, 120))}`
 }, { sel, re, what })
 
+/* TEN / W8 · W7-055 [X10] · the phone-width You has an index under the card: one row of links (44px tall) to the heads that
+   are on the page, drawn only when three or more are, and never at the desk, whose two columns hold the page in one screen.
+   `want` is the count that must be drawn (0 = the row is absent). The second link's target lands under the sticky bar. */
+const youIndex = (want) => async (page) => page.evaluate(async (want) => {
+  const box = document.getElementById('youJump')
+  const shown = (el) => !!el && el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0
+  if (innerWidth >= 960) return shown(box) ? 'the desk draws the phone-width index' : true
+  const btns = box ? [...box.querySelectorAll('button')].filter(shown) : []
+  if (!want) return shown(box) ? `the index is drawn with ${btns.length} link(s), and a row of fewer than three is not` : true
+  if (!shown(box) || btns.length !== want) return `the index has ${btns.length} visible link(s), expected ${want}`
+  const small = btns.filter((b) => b.getBoundingClientRect().height < 44)
+  if (small.length) return `an index link is under 44px tall: ${small[0].textContent}`
+  /* the second link: a head near the foot cannot reach the top of a page that ends below it */
+  const link = btns[1], target = { Courses: '#youCoursesDoor', Rivalries: '#youRivalsHead', Seasons: '#lgRecHead, #youSeasonHead', Trophies: '#youTrophiesHead', 'Recent rounds': '#youRecentHead' }[link.textContent.trim()]
+  if (!target) return `an index link has no target: ${link.textContent}`
+  link.click(); await new Promise((r) => setTimeout(r, 300))
+  const el = [...document.querySelectorAll(target)].find(shown), top = el ? Math.round(el.getBoundingClientRect().top) : null
+  window.scrollTo(0, 0)
+  return el && top >= 40 && top <= 100 ? true : `the ${link.textContent.trim()} link scrolled its head to ${top}px, not under the sticky bar`
+}, want)
+
+/* TEN / W8 · W7-053 [A2-identity-3, B2-identity-4] · a first round: You does not say 'No rounds count yet' under a figure that says the golfer has
+   rounds, and says the number is building. `one` (one round posted, no index yet): the strip's label is singular, its scope line says what
+   the best and average wait for, and the building clause stands alone under the card. `many` (an established golfer): the plural label, the
+   counting scope, and no clause. `none` (an empty record): no scope line and no clause. */
+const youBuilding = (kind) => async (page) => page.evaluate((kind) => {
+  const shown = (el) => !!el && !el.hidden && el.getBoundingClientRect().width > 0
+  const b = document.getElementById('youBuilding'), scope = document.getElementById('clAvgSub'), row = scope && scope.closest('.youscope')
+  const label = document.querySelector('#clR').closest('.youfig').querySelector('small').textContent.trim()
+  const said = shown(b) ? b.textContent.trim() : ''
+  if (kind === 'one') {
+    if (/No rounds count yet/.test(row ? row.textContent : '')) return 'You still says "No rounds count yet" under a figure that says the golfer has rounds'
+    if (!shown(row) || scope.textContent.trim() !== 'Best and average start once a round is scored in a season.') return `the scope line reads ${JSON.stringify(scope && scope.textContent.trim())}`
+    if (label !== 'Round posted') return `the strip's label reads ${JSON.stringify(label)}`
+    return said === 'Two more rounds set your number.' ? true : `the building clause under the card reads ${JSON.stringify(said)}`
+  }
+  if (kind === 'many') return said === '' && label === 'Rounds posted' && shown(row) && !/Best and average start|No rounds count yet/.test(scope.textContent) ? true : `an established golfer's strip: label ${JSON.stringify(label)}, clause ${JSON.stringify(said)}, scope ${JSON.stringify(scope.textContent)}`
+  return said === '' && !shown(row) ? true : `an empty record: clause ${JSON.stringify(said)}, scope line drawn: ${shown(row)}`
+}, kind)
+
+/* TEN / W8 · W7-047 [A2-identity-10] · You's Form head is the page's eyebrow with the window in its label ('Form · last five', Q21), a count slot only
+   under five rounds ('One of five'), and every column's day is the month and day ('SEP 27', 'SEP 13 · NINE'), the day form the Recent rounds below print */
+const youFormGrammar = (slot) => async (page) => page.evaluate((slot) => {
+  const head = document.querySelector('#youForm h2.eyebrow')
+  if (!head) return "You's Form head is not the eyebrow"
+  const t = head.innerText.replace(/\s+/g, ' ').trim()
+  if (t !== (slot ? `FORM · LAST FIVE ${slot}` : 'FORM · LAST FIVE')) return `You's Form head reads ${JSON.stringify(t)}`
+  const days = [...document.querySelectorAll('#youForm .dfcol small')].map((e) => e.innerText.trim())
+  const bad = days.filter((d) => !/^[A-Z]{3} \d{1,2}( · NINE)?$/.test(d))
+  return days.length && !bad.length ? true : `the Form columns mix day forms: ${JSON.stringify(days)}`
+}, slot)
+
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
   { family: 'you', id: 'empty', variant: 'brand_new', title: 'You · a new golfer: carded, no rounds',
     drive: youSettled('empty'), expect: { view: 'view-stats', selectors: { '#youCard': 'visible', '#youName': 'text:^Avery Fixture$' } },
-    check: all(recordState('empty'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 0 ? true : 'a round row rendered for a golfer with none')) },
+    check: all(recordState('empty'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 0 ? true : 'a round row rendered for a golfer with none'),
+      /* TEN / W8 · W7-009: an empty record says the first round is missing and holds the door, so the sidebar's sentence and door stand down */
+      standsDown(['#sideMe .mesay', '#sideMe [data-mego="add_round"]']),
+      /* TEN / W8 · W7-055: an empty record has one section, so no index */
+      youIndex(0), youBuilding('none')) },
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^1$' } },
-    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`)) },
+    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youFormGrammar('ONE OF FIVE')) },
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
-    check: all(recordState('some'), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
+    check: all(recordState('some'), youIndex(5), youBuilding('many'), youFormGrammar(''), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
       /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3) */
       readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 [^A-Z]*vs your playing HCP', true]]),
       /* TEN / W6 · AW2-08: the bag's move controls are drawn marks, never ↑ ↓ ⇄ ✕ */
@@ -63,7 +119,9 @@ const YOU = [
        retries 5xx reads with backoff, a refusal it does not */
     prepare: async (W) => { W.errors.when = [{ table: 'rounds', match: (q) => /profile_id=eq\./.test(q) && /limit=400/.test(q), error: { __error: 'permission denied for table rounds', status: 403, code: '42501' } }] },
     expectConsole: [/status of 403/, /\[career\]|\[loadCareer\]/],
-    drive: youSettled('failed'), expect: { view: 'view-stats', selectors: { '#youRecentRetry': 'visible' } },
+    /* W7-101 [A2-identity-12] · the page index stands down on a failed read, so
+       "Try again" is not pushed under the tab band at 375x667 */
+    drive: youSettled('failed'), expect: { view: 'view-stats', selectors: { '#youRecentRetry': 'visible', '#youJump': 'hidden' } },
     check: all(recordState('failed'), text('#youRecent', 'didn.t load', 'the failure line')) },
 ]
 
@@ -188,6 +246,23 @@ const RECEIPT = [
     /* TEN / W6 · AW2-07: the moment's sentence sets its figure as a run (vsPhraseMarked), never the serif */
     noSerifFigure(['#rcptHero .rm-say'], ['#rcptHero .rm-say .cfrun']),
     noRetiredGlyph()) },
+  /* TEN / W8 · W7-034 [B2-history-8] · the receipt's leaf, scrolled to: one label case in it (UI_SYSTEM §1.3). The working's labels
+     ('Your index that day', 'Playing HCP') took the sheet subtitle's caps by inheritance and sat beside 'The course' and
+     'Points' in sentence case; every label in the leaf is a phrase now. */
+  { family: 'receipt', id: 'round-leaf', variant: 'member', fullPage: false, title: 'Round receipt · scrolled to the leaf (the working and the verdict, one label case)',
+    drive: async (page) => {
+      await openLatestReceipt(page)
+      await until(page, () => { const f = document.getElementById('rcptFigs'); return !!f && !f.hidden }, null, 10000).catch(() => {})
+      await page.evaluate(() => document.querySelector('.rcpt-leaf').scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(600)
+    },
+    expect: { view: 'view-stats', sheet: true, selectors: { '.rcpt-leaf': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const labels = [...document.querySelectorAll('.rcpt-leaf .mathrow > span:first-child')].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.innerText.replace(/\s+/g, ' ').trim())
+      if (labels.length < 4) return `the leaf has ${labels.length} labels`
+      const shouted = labels.filter((l) => /[A-Za-z]{4,}/.test(l) && l === l.toUpperCase())
+      return shouted.length ? `the leaf mixes label cases: ${JSON.stringify(shouted)} in caps beside ${JSON.stringify(labels.filter((l) => !shouted.includes(l)).slice(0, 2))}` : true
+    }) },
   /* S9 (W1, 2026-09-28) · the owner's receipt of a round that carries a
      photograph the page cannot open (every signed URL answers 404): the
      moment falls back, and the photo row says it once, beside Replace and
@@ -227,7 +302,18 @@ const RECEIPT = [
     expect: { view: 'view-hub', sheet: 'Fixture (Wrens|Javelinas)' },
     check: all(async (page) => page.evaluate(() => /\d+\s*(pts|points)/i.test(document.getElementById('sheet').innerText) ? true : 'the squad receipt shows no points figure'),
       /* TEN / W6 · AW2-06: the squad math's labels are body, never mono */
-      notMono(['#shBody .mathrow > span'], ['#shBody .mathrow > span'])) },
+      notMono(['#shBody .mathrow > span'], ['#shBody .mathrow > span']),
+      /* TEN / W8 · W7-031 [B2-history-3]: the first row is points, not a count of rounds, and every term of the foot's formula
+         (rounds that count + bonuses & penalties) is on the sheet: with an empty ledger the second is a row at 0 */
+      async (page) => page.evaluate(() => {
+        const rows = [...document.querySelectorAll('#shBody .mathrow')].map((r) => [r.children[0].textContent.trim(), r.children[1].textContent.trim()])
+        if (rows.length < 3) return `the squad math has ${rows.length} rows`
+        if (rows[0][0] !== 'Points from rounds that count') return `the first row is ${JSON.stringify(rows[0][0])}`
+        if (rows[rows.length - 1][0] !== 'Total') return 'the last row is not the Total'
+        const middle = rows.slice(1, -1)
+        if (!middle.length) return 'nothing stands between the rounds and the Total, though the foot names bonuses & penalties'
+        return true
+      })) },
 ]
 
 /* ------------------------------------------------------------ COMPOSER */

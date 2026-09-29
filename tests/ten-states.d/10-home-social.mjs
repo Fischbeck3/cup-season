@@ -18,7 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast, standsDown } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -254,7 +254,14 @@ const GOLFERS = [
        under the search lists only what it does not — it drew Kit twice, with
        two Accepts */
     expect: { view: 'view-golfers', selectors: { '#glfBoard .fbrow.mine': 'visible', '#peopleRequests': 'text:Kit Specimen', '#crBud': 'text:Buddies · 5' } },
-    check: all(async (page) => page.evaluate(() => {
+    check: all(
+      /* TEN / W8 · W7-023 [B2-desk-9]: from 1100 up the ranking's rows sit inside one reading measure (760), not the whole track */
+      async (page) => page.evaluate(() => {
+        if (innerWidth < 1100) return true
+        const w = Math.max(...[...document.querySelectorAll('#glfBoard .fbrow')].map((r) => r.getBoundingClientRect().width))
+        return w <= 762 ? true : `a ranking row is ${Math.round(w)}px wide, past the 760px reading measure`
+      }),
+      async (page) => page.evaluate(() => {
       const rows = document.querySelectorAll('#glfBoard .fbrow').length
       if (rows !== 6) return `the board has ${rows} rows, expected 6 (me and five buddies)`
       if (!/Kit Specimen/.test(document.getElementById('peopleRequests').innerText)) return 'Kit’s request is not listed'
@@ -289,12 +296,27 @@ const GOLFERS = [
     },
     expect: { view: 'view-person', selectors: { '#perName': 'text:^Devon Testwell$', '#perAside .cred': 'visible', '#perOpenH2H': 'visible' } },
     check: all(async (page) => page.evaluate(() => {
-      const t = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
-      return /The record between you/i.test(t) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
+      /* the verdict is the head's sentence at the desk (W7-010 stands the aside's headline down there) and the aside's headline on the phone */
+      const aside = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
+      const t = document.getElementById('view-person').innerText.replace(/\s+/g, ' ')
+      return /The record between you/i.test(aside) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
     }),
     /* TEN / W6 · AW2-06: the back link is agate and the record's labels body — never mono */
     notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span']),
-    noRetiredGlyph()) },
+    noRetiredGlyph(),
+    /* TEN / W8 · W7-010: at the desk the head says the record in prose and the season row as a figure, so the aside's bold headline stands down */
+    standsDown(['#perAside .perhl'])) },
+  /* TEN / W8 · W7-019 · at the desk a click on the scrim closes the board, as the sheet's does (a dialog) */
+  { family: 'golfers', id: 'board-scrim', variant: 'member', desk: true, fullPage: false, title: 'The league board, dismissed by a click on the scrim (desk)',
+    drive: async (page) => {
+      await page.evaluate(() => window.switchView('board'))
+      await until(page, () => document.getElementById('boardFull').classList.contains('open'))
+      await page.waitForTimeout(400)
+      await page.mouse.click(20, 20)
+      await page.waitForTimeout(500)
+    },
+    expect: { selectors: { '#boardFull.open': 'hidden' } },
+    check: async (page) => page.evaluate(() => document.getElementById('boardFull').classList.contains('open') ? 'a click on the scrim did not close the board' : true) },
   /* The person page's only door to the head-to-head is #perOpenH2H, drawn
      after tour_card lands -- and openPerson never gets that far (see the WX
      report: `sb.rpc(...).catch` is not a function on a PostgREST builder, so
@@ -339,6 +361,22 @@ const GOLFERS = [
       const bare = photo.filter((c) => getComputedStyle(c).backgroundColor !== ground(c))
       if (bare.length) return `${bare.length} photo card(s) have no ground: ${getComputedStyle(bare[0]).backgroundColor}`
       return true
+    }),
+    /* TEN / W8 · W7-019 [A2-golfers-3, B2-golfers-4, A2-desk-3, B2-desk-3]: at the desk the board is the sheet's dialog, not the phone's takeover stretched
+       edge to edge: a centred panel of 720 at most on the sheet's scrim, 82dvh at most, its cards inside the measure and a round's photo the
+       2.1:1 band (§6.4); below 960 the panel dissolves and the board is the full screen, as before (D93/D223) */
+    async (page) => page.evaluate(() => {
+      const panel = document.querySelector('#boardFull .bf-panel'), r = panel.getBoundingClientRect()
+      if (innerWidth < 960) return getComputedStyle(panel).display === 'contents' ? true : 'the phone board is not the full-screen takeover (the panel did not dissolve)'
+      if (r.width > 720.5) return `the desk board is ${Math.round(r.width)}px wide, past the 720px reading measure`
+      if (Math.abs(r.left + r.width / 2 - innerWidth / 2) > 2) return 'the desk board is not centred'
+      if (r.height > innerHeight * 0.82 + 1) return `the desk board is ${Math.round(r.height)}px tall in a ${innerHeight}px window`
+      const scrim = getComputedStyle(document.getElementById('boardFull')).backgroundColor
+      if (!/rgba\(/.test(scrim)) return `the board has no scrim behind it: ${scrim}`
+      const wide = [...document.querySelectorAll('#feedListFull .fcard')].filter((c) => c.getBoundingClientRect().width > 720)
+      if (wide.length) return `${wide.length} post(s) are wider than the measure`
+      const ph = document.querySelector('#feedListFull .fcard .round.has-photo'), pr = ph && ph.getBoundingClientRect()
+      return !pr || (pr.width / pr.height > 2.0 && pr.width / pr.height < 2.25) ? true : `a photo card is ${Math.round(pr.width)}x${Math.round(pr.height)}, not the 2.1:1 band`
     }),
     /* TEN / W6 · AW2-06 + OB-05: a round card's course line and its margin's
        unit are agateS; only the margin's figure keeps mono (the column role) */
