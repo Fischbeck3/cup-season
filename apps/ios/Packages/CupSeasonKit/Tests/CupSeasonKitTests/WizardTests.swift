@@ -80,6 +80,70 @@ import Foundation
     #expect(WizardDials.fits("squads3", roster: 6) && !WizardDials.fits("squads4", roster: 6))
     #expect(WizardDials.structToast("squads2", roster: 6) == nil)
   }
+  /// W5 · the CHOSEN squads are the fact that matters: when they need more
+  /// golfers than there are, the line says how many, and how many so far.
+  @Test func theChosenSquadsSayWhatTheyNeed() {
+    #expect(WizardDials.structFitLine(roster: 1, structure: "squads2") == "2 squads tee off at 4 — 1 golfer so far. More join by code or invite.")
+    #expect(WizardDials.structFitLine(roster: 6, structure: "squads4") == "4 squads tee off at 8 — 6 golfers so far. More join by code or invite.")
+    // squads that fit, and solo, keep the roster's own line
+    #expect(WizardDials.structFitLine(roster: 6, structure: "squads3") == WizardDials.structFitLine(roster: 6))
+    #expect(WizardDials.structFitLine(roster: 1, structure: "solo") == WizardDials.structFitLine(roster: 1))
+  }
+  /// W5 · a squad option bigger than the roster says its need in words and is
+  /// never faded (§16.1); solo always fits.
+  @Test func anOptionTooBigSaysItsNeedInWords() {
+    #expect(WizardDials.structNeed("squads4", roster: 6) == "8+ golfers")
+    #expect(WizardDials.structNeed("squads2", roster: 1) == "4+ golfers")
+    #expect(WizardDials.structNeed("squads3", roster: 6) == nil)
+    #expect(WizardDials.structNeed("solo", roster: 1) == nil)
+  }
+}
+
+// MARK: W5 · Custom when the dials leave a starting point (the desk's
+// `csPresetMatches` / `#presetCustom`, merged at 4a703402)
+
+@Suite struct WizardCustomTests {
+  @Test func aStartingPointHoldsWhileTheDialsAgree() {
+    var d = WizardDials()   // Standard: best 3, a minimum of 2
+    #expect(!d.isCustom && d.presetMatches(1) && !d.presetMatches(0))
+    d.stepCap(1)            // Best 4
+    #expect(d.isCustom)
+    #expect(d.customLead == "Your best four each month count · two-round monthly minimum.")
+    #expect(d.customBase == "Built on Standard: its handicaps, scores and penalty stay.")
+    #expect(WizardDials.customName == "Custom")
+    // choosing the starting point again puts its card back
+    d.applyPreset(1)
+    #expect(!d.isCustom)
+    // the minimum is the other dial
+    d.stepFloor(1)
+    #expect(d.isCustom && d.customLead == "Your best three each month count · three-round monthly minimum.")
+    // Custom names the starting point it keeps the rest from
+    d.applyPreset(2); d.stepFloor(-1)
+    #expect(d.isCustom && d.customBase == "Built on Cutthroat: its handicaps, scores and penalty stay.")
+  }
+  /// The cards and Custom say the rule through one producer, and one best
+  /// round is a singular sentence.
+  @Test func oneProducerSaysTheRule() {
+    #expect(WizardDials.rulesLead(cap: nil, floor: 0) == "Every round counts · no monthly minimum.")
+    #expect(WizardDials.rulesLead(cap: 1, floor: 2) == "Your best round each month counts · two-round monthly minimum.")
+    #expect(WizardDials.presets.map(\.lead) == WizardDials.presets.map { WizardDials.rulesLead(cap: $0.cap, floor: $0.floor) })
+  }
+  /// D347 · a stored off-ladder cap says what the league stores — and gives
+  /// way when a starting point is chosen. A stored 1 snaps to Best 2, the very
+  /// rung Cutthroat sets, and rode straight through the choice as Best 1.
+  @Test func choosingAStartingPointClearsAStoredExactCap() {
+    var d = WizardDials()
+    d.capExact = 1; d.cap = Bylaws.capIndex(1)
+    #expect(d.capN == 1 && d.isCustom && d.customLead.hasPrefix("Your best round each month counts"))
+    d.applyPreset(2)
+    #expect(d.capExact == nil && d.capN == 2 && !d.isCustom)
+  }
+  /// The wizard's two dial words (TERMINOLOGY row 1, and a dial line that
+  /// printed the variable "N" to a golfer).
+  @Test func theDialWordsAreTheDesks() {
+    #expect(WizardCopy.proSub == "you run the season")
+    #expect(WizardCopy.countingCap.1 == "Your best rounds each month score")
+  }
 }
 
 // MARK: the portrait (11847–11890)
