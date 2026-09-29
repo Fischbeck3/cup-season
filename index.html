@@ -2855,7 +2855,11 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    COLUMN, where it belongs. The measure is still capped; the page is no
    longer capped with it. Below 960 the columns stack and this does nothing. */
 @media(min-width:1100px){
-  #homeHub .deskmain{max-width:680px;}
+  /* W7-022 · the measure is the TRACK's, not a cap on the content beside a 1fr track: `#homeHub .deskmain{max-width:680px}`
+     left a 164px void between the reading column and the wire at 1600 (against §14.1's 40px gutter), so the wire now meets
+     the column after the gutter at every width. One rule for the three desk bodies: Home here, the season's (760) and
+     Golfers' (760, W7-023) below. */
+  #homeHub.deskbody{grid-template-columns:minmax(0,680px) 340px; justify-content:start;}
 }
 /* D223 · THE SEASON'S OWN BODY. Stage 3c split the room's standings segment
    against the board; the season page splits the PAGE against its own history —
@@ -2864,7 +2868,9 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    and the climb/table pair inside the column stacks, because two halves of a
    half render at ~200px and text escapes its pills (pilot, 2026-07-20). */
 @media(min-width:1100px){
-  #seasonBody .deskmain{max-width:760px;}
+  /* W7-022 · the season's own body takes the same track rule as Home's (the cap sat on the content, with a void
+     beside it at 1600) */
+  #seasonBody.deskbody{grid-template-columns:minmax(0,760px) 340px; justify-content:start;}
   /* W7-023 · and Golfers' ranking: each row set its name about 700px from its
      figure at 1600. The measure is the TRACK's (the aside follows the column
      after the desk gutter, as UI_SYSTEM §14.1 draws it), not a cap on the

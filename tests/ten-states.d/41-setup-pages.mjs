@@ -389,19 +389,28 @@ const deskScroller = (sel) => async (page) => {
   if (!r.over) return `${sel} fits its box, so its edge cannot be read`
   return r.atRest && r.masked && !r.atEnd && r.tail && r.back ? true : `${sel}'s edge: ${JSON.stringify(r)}`
 }
+/* TEN / W8 · W7-022 [B2-desk-8] · the reading measure is the track's and the aside follows the column after the desk gutter: from 1100 up the
+   gap between a desk body's reading column and its second column is the gutter (40), not a void */
+const deskGutter = (colSel, sideSel) => async (page) => page.evaluate(([colSel, sideSel]) => {
+  if (innerWidth < 1100) return true
+  const c = document.querySelector(colSel), a = document.querySelector(sideSel)
+  if (!c || !a) return `${colSel} or ${sideSel} is not drawn`
+  const gap = Math.round(a.getBoundingClientRect().left - c.getBoundingClientRect().right)
+  return gap >= 36 && gap <= 44 ? true : `${sideSel} sits ${gap}px from ${colSel}, not the 40px gutter (a void beside a capped column)`
+}, [colSel, sideSel])
 const DESK = [
   { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' },
-    check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskScroller('.deskwire')(page); return b !== true ? b : deskRailEdge(page) } },
+    check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskScroller('.deskwire')(page); if (b !== true) return b; const g = await deskGutter('#homeHub .deskmain', '#homeHub .deskwire')(page); return g !== true ? g : deskRailEdge(page) } },
   { family: 'desk', id: 'season', variant: 'member', desk: true, title: 'The desk · the season',
     drive: async (page) => { await click(page, '.navitem[data-v="hub"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub'); await page.waitForTimeout(900) },
     /* TEN / W8 · W7-025: the season page at its top marks The season, and only it */
-    expect: { view: 'view-hub' }, check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskMenuIs('The season')(page); return b !== true ? b : deskScroller('#seasonAside')(page) } },
+    expect: { view: 'view-hub' }, check: async (page) => { const a = await deskCheck(page); if (a !== true) return a; const b = await deskMenuIs('The season')(page); if (b !== true) return b; const g = await deskGutter('#seasonBody .deskmain', '#seasonAside')(page); return g !== true ? g : deskScroller('#seasonAside')(page) } },
   { family: 'desk', id: 'compete', variant: 'member', desk: true, title: 'The desk · Compete',
     drive: async (page) => { await click(page, '.navitem[data-v="compete"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-compete'); await page.waitForTimeout(900) },
     expect: { view: 'view-compete' }, check: deskCheck },
   { family: 'desk', id: 'golfers', variant: 'member', desk: true, title: 'The desk · Golfers',
     drive: async (page) => { await click(page, '.navitem[data-v="golfers"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-golfers'); await page.waitForTimeout(900) },
-    expect: { view: 'view-golfers' }, check: deskCheck },
+    expect: { view: 'view-golfers' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskGutter('#glfHub .deskmain', '#glfAside')(page) } },
   { family: 'desk', id: 'you', variant: 'member', desk: true, title: 'The desk · You',
     drive: async (page) => { await click(page, '.navitem[data-v="stats"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-stats'); await page.waitForTimeout(900) },
     /* TEN / W8 · W7-009: You's Form row and Recent rounds open on the last round, so the sidebar's LAST row stands down */
