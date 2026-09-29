@@ -77,7 +77,10 @@
   h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s3);}
   p{margin:0 0 var(--s3); text-wrap:pretty;} p:last-child{margin-bottom:0;}
   b,strong{font-weight:650;}
-  .btn{display:flex; align-items:center; justify-content:center; text-align:center; background:var(--act); color:var(--act-ink); text-decoration:none; border-radius:var(--rc); padding:12px var(--s3); min-height:50px; font-family:var(--board); font-weight:700; font-size:17px; letter-spacing:.01em; margin:var(--s4) 0;}
+  /* TEN / W6 · ONE CTA GRAMMAR (craft C; UI_SYSTEM §7.1: a primary's label is the
+     `name` role — board 600, 17, caps): the public pages' action says "OPEN CUP
+     SEASON" in it, and this page said "Open Cup Season" at weight 700. */
+  .btn{display:flex; align-items:center; justify-content:center; text-align:center; background:var(--act); color:var(--act-ink); text-decoration:none; border-radius:var(--rc); padding:12px var(--s3); min-height:50px; font-family:var(--board); font-weight:600; font-size:17px; line-height:1.16; letter-spacing:var(--caps); text-transform:uppercase; margin:var(--s4) 0;}
   .btn:hover{color:var(--act-ink); filter:brightness(1.05);}
   .btn[hidden]{display:none;}
   .app{display:flex; align-items:center; gap:var(--s3);}

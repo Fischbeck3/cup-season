@@ -4899,7 +4899,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
    (D234): the object's second half — the photograph, the hole strip, the
    table, the rounds — beside it, not a phone column in a field.
    #svCard is the grid: head · photo · facts · second · foot. */
-#shareView.sv { position:fixed; inset:0; z-index:99999; overflow:auto; background:var(--bg0); color:var(--ink); -webkit-font-smoothing:antialiased; text-align:left; }
+#shareView.sv, #unsubView.sv { position:fixed; inset:0; z-index:99999; overflow:auto; background:var(--bg0); color:var(--ink); -webkit-font-smoothing:antialiased; text-align:left; }
 .sv .sv-page { max-width:600px; margin:0 auto; padding:var(--s5) var(--gutter) var(--s6); }
 .sv .sv-signature { display:flex; gap:var(--s3); align-items:center; padding-bottom:var(--s4); border-bottom:var(--hair) solid var(--rule); }
 /* TEN / W6 · the signature is `.cs-lockup` (one lockup with the header and the sidebar), so its mark is 32×20, not 64×37 */
@@ -4942,6 +4942,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .sv .sv-action { display:flex; align-items:center; justify-content:center; min-height:50px; padding:var(--s3) var(--s4); border:0; border-radius:var(--rc); background:var(--bg2); color:var(--ink); text-align:center; text-decoration:none; cursor:pointer; width:100%; }
 .sv .sv-action.is-primary { background:var(--act); color:var(--bg0); }
 .sv .sv-action:focus-visible { outline:2px solid var(--act); outline-offset:2px; }
+.sv .sv-unsub { margin-top:var(--s5); } .sv .sv-unsub .cs-body-s { color:var(--mut); margin:var(--s3) 0 var(--s4); }
 .sv .sv-retry { margin-top:var(--s4); }
 .sv .sv-note { color:var(--mut); margin-top:var(--s3); }
 @media (min-width:1024px){
@@ -34790,17 +34791,22 @@ if(unsubParam){
     catch(_){ ok = false; }
     const w = document.createElement('div');
     w.id = 'unsubView';   /* a cover: csModal isolates the app under it */
-    /* the ceremony ground and ink (D277, as the share view); the way back in is
-       an ordinary action, so it is act, never ember (D359). Mono is kept for
-       the wordmark; the sentences are sans. */
-    w.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0A0E0C;color:#F1F4EF;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,system-ui,Segoe UI,sans-serif';
-    w.innerHTML = `<div style="max-width:340px">
-      <div style="letter-spacing:.22em;font-size:12px;color:#9BA69D;font-family:ui-monospace,Menlo,monospace">CUP SEASON</div>
-      <div style="font-family:Georgia,serif;font-size:26px;margin:16px 0 8px">${ok?'You&rsquo;re unsubscribed':'That link has expired'}</div>
-      <p style="color:#9BA69D;font-size:15px;line-height:1.5;margin:0 0 20px">${ok
-        ? 'No more season-end emails. Your league and your rounds are untouched — this only stops the mail.'
-        : 'Nothing changed. You can turn season emails off any time from the app.'}</p>
-      <a href="/" style="display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:11px;background:#5FA271;color:#0A0E0C;font-weight:600;text-decoration:none;font-size:15px">Open Cup Season</a>
+    /* TEN / W6 · THE PUBLIC SHELL (W4's `.sv`), so this landing signs with the
+       one lockup and says its way back in with the one CTA grammar — it drew a
+       mono "CUP SEASON" with no mark, a Georgia headline and a sans button in
+       typed hexes (craft C: the wordmark set four ways; one CTA grammar). The
+       tokens carry both printings, as the share view's do. */
+    w.className = 'sv';
+    const mark = `<svg class="cs-mark" viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>`;
+    w.innerHTML = `<div class="sv-page">
+      <header class="sv-signature"><span class="cs-lockup">${mark}<span class="cs-name">Cup Season</span></span></header>
+      <div class="sv-unsub">
+        <h1 class="cs-lead">${ok?'You&rsquo;re unsubscribed':'That link has expired'}</h1>
+        <p class="cs-body-s">${ok
+          ? 'No more season-end emails. Your league and your rounds are untouched — this only stops the mail.'
+          : 'Nothing changed. You can turn season emails off any time from the app.'}</p>
+        <a class="sv-action is-primary cs-name" href="/">Open Cup Season</a>
+      </div>
     </div>`;
     document.body.appendChild(w);
   })();

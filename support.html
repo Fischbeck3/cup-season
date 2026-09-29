@@ -80,7 +80,11 @@
   b,strong{font-weight:650;}
   /* the way to write is a button above the fold, not a link inside a
      paragraph (owner H); the subject and the three asks are prefilled */
-  .btn{display:flex; align-items:center; justify-content:center; text-align:center; background:var(--act); color:var(--act-ink); text-decoration:none; border-radius:var(--rc); padding:12px var(--s3); min-height:50px; font-family:var(--board); font-weight:700; font-size:17px; letter-spacing:.01em; margin:0 0 var(--s2); overflow-wrap:anywhere;}
+  /* TEN / W6 · ONE CTA GRAMMAR (craft C; UI_SYSTEM §7.1: a primary's label is the
+     `name` role — board 600, 17, caps): the public pages' action says "OPEN CUP
+     SEASON" in it, and this page said "Open Cup Season" at weight 700. */
+  .btn{display:flex; align-items:center; justify-content:center; text-align:center; background:var(--act); color:var(--act-ink); text-decoration:none; border-radius:var(--rc); padding:12px var(--s3); min-height:50px; font-family:var(--board); font-weight:600; font-size:17px; line-height:1.16; letter-spacing:var(--caps); text-transform:uppercase; margin:0 0 var(--s2); overflow-wrap:anywhere;}
+  .btn .addr{text-transform:none; letter-spacing:0;}   /* an address is a code: it keeps its own case */
   .btn:hover{color:var(--act-ink); filter:brightness(1.05);}
   .note{font-size:15px; color:var(--mut);}
   /* the questions on this page, as questions (craft H), each 44px tall */
@@ -108,7 +112,7 @@
   <main>
   <h1>One golfer answers this address.</h1>
   <p class="sum">Say what you were doing and you will hear back within a day.</p>
-  <a class="btn" href="mailto:jerecho@fischbeck3.com?subject=Cup%20Season%20help&amp;body=What%20I%20was%20doing%3A%0A%0AWhich%20phone%3A%0A%0ARoughly%20when%3A%0A">Write to jerecho@fischbeck3.com</a>
+  <a class="btn" href="mailto:jerecho@fischbeck3.com?subject=Cup%20Season%20help&amp;body=What%20I%20was%20doing%3A%0A%0AWhich%20phone%3A%0A%0ARoughly%20when%3A%0A">Write to&nbsp;<span class="addr">jerecho@fischbeck3.com</span></a>
 
   <nav aria-label="On this page">
     <ul class="toc">
