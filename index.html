@@ -2891,6 +2891,13 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   border-radius:0;}
 #view-hub .climb-rung.me{border-top-color:var(--ink);}
 #view-hub .climb-rung:last-child{border-bottom:1px solid var(--rule);}
+/* (3 of 4) the League rows (the roster, the share link, the squads) and the 'Up next' block are slats too: no box, a hairline
+   above and s3 either side (the phone's RoomCheckRow is a slat on a hairline, RoomBits.swift). The icon tile inside a row stays
+   (the phone draws it, a 36pt bg2 tile), and so do the controls. */
+#view-hub .nextcard, #view-hub .check{background:none; border:0; border-top:1px solid var(--rule); padding:var(--s3) 0; margin:0;
+  border-radius:0;}
+#view-hub .check:last-child, #view-hub .nextcard{border-bottom:1px solid var(--rule);}
+#view-hub .nextcard{margin-bottom:var(--s4);}
 /* printing the season is a desk act; on a phone the button was one more row
    of chrome between the story and the pot (the craft panel) */
 @media(max-width:959px){ #seasonPrint{display:none;} }

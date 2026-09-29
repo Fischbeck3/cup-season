@@ -215,7 +215,7 @@ const SEASON = [
       /* TEN / W8 · W7-029 [A2-season-3] (1 of 4): gold on the season page is the leader's rail field and the pot's figure, and nothing else */
       goldOnly('#view-hub', ['tr.lead td.rk', '#potAmt']),
       /* (2 of 4): the climb is no card and its rungs are slats */
-      noBoxes(['#view-hub .homegrid > div > .card', '#view-hub .climb-rung']),
+      noBoxes(['#view-hub .homegrid > div > .card', '#view-hub .climb-rung', '#view-hub .nextcard']),
       /* TEN / W8 · W7-023 [B2-desk-9]: the individual board carries Last five inside the row at the desk (D280), and not below it */
       async (page) => page.evaluate(() => {
         const th = document.querySelector('#indTable th.deskonly'), rows = [...document.querySelectorAll('#indTable tr[data-ri]')]
@@ -311,6 +311,8 @@ const SEASON = [
     expect: { view: 'view-hub', selectors: { '#rulesHead': 'visible', '#bylawsHub': 'visible', '#hubSeasonRevoke': 'text:^Turn off$' } },
     check: all(onNorthGrove, inViewport('#room-league', 'the rules'),
       async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty'),
+      /* TEN / W8 · W7-029 [A2-season-3] (3 of 4): the League rows are slats, not cards */
+      noBoxes(['#view-hub .check']),
       /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
          scrolls to the story is named for it. Chosen, the rules are current; scrolled to the top, the season is; and
          scrolled back, the rules again (the scroll-spy, not only the click) */
