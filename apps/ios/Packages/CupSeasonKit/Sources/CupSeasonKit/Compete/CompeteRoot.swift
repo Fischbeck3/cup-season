@@ -151,7 +151,7 @@ public enum CompeteRoot {
     for e in me.events {
       let clock = e.starts_on.flatMap { CSDate.days(from: today, to: $0, calendar: calendar) }
       let row = Row(id: "event:\(e.id.uuidString)", kind: .moment,
-                    eyebrow: eventEyebrow(e, calendar: calendar), title: e.name,
+                    eyebrow: eventEyebrow(e, today: today, calendar: calendar), title: e.name,
                     sub: EventCopy.momentLine(kind: e.kind, status: e.status, mine: e.my_team_slot != nil || e.is_organizer == true),
                     clock: e.status == "complete" ? nil : clock,
                     eventId: e.id,
@@ -219,17 +219,56 @@ public enum CompeteRoot {
                leagueId: m.league_id,
                state: CompetitionState.season(status: m.season?.status, phase: phase),
                points: { if case .season = phase { return m.standing?.points }; return nil }(),
-               pointsStanding: { if case .season = phase, let st=m.standing, let place=st.points_rank, let tied=st.points_tied { return CSCopy.ordinal(place)+(tied ? " · Tied" : "") }; return nil }(),
-               competitionLine: competitionLine(m, phase:phase))
+               pointsStanding: pointsStanding(m, phase: phase),
+               competitionLine: competitionLine(m, phase: phase, today: today, calendar: calendar))
   }
 
-  private static func competitionLine(_ m: Me.Membership, phase: SeasonPhase) -> String? {
-    guard case .season = phase, let st=m.standing else { return nil }
-    if let gap=st.gap_to_leader, gap > 0 {
-      return "You are \(CSCopy.points(gap)) back from \(st.leader_name ?? "the lead")."
+  /// W5 · **THE BAND SAYS WHOSE STANDING IT IS.** In a squads season the
+  /// points and the place are the SQUAD's, and the band printed "137 points ·
+  /// 2nd · You are 34 back from Fixture Javelinas" without ever saying the 137
+  /// was Fixture Wrens'. The side leads the standing, and the story under it
+  /// is the gap alone: "Fixture Wrens · 2nd" over "34 back from Fixture
+  /// Javelinas." Twin: `csSeasonRowFacts` (standing / story) on the desk.
+  private static func side(_ m: Me.Membership, phase: SeasonPhase) -> String? {
+    guard case .season = phase, let name = m.squad?.name, !name.isEmpty else { return nil }
+    return name
+  }
+
+  private static func pointsStanding(_ m: Me.Membership, phase: SeasonPhase) -> String? {
+    guard case .season = phase, let st = m.standing, let place = st.points_rank else { return nil }
+    return (side(m, phase: phase).map { "\($0) · " } ?? "") + CSCopy.ordinal(place) + (st.points_tied == true ? " · Tied" : "")
+  }
+
+  private static func competitionLine(_ m: Me.Membership, phase: SeasonPhase, today: String, calendar: Calendar) -> String? {
+    if case .preseason = phase { return firstTeeLine(m.season, today: today, calendar: calendar) }
+    guard case .season = phase, let st = m.standing else { return nil }
+    if let gap = st.gap_to_leader, gap > 0 {
+      let leader = st.leader_name.flatMap { $0.isEmpty ? nil : $0 } ?? "the lead"
+      return side(m, phase: phase) == nil ? "You are \(CSCopy.points(gap)) back from \(leader)."
+                                          : "\(CSCopy.points(gap)) back from \(leader)."
     }
-    if st.points_rank == 1, let tied=st.points_tied { return tied ? "The lead is shared." : "You lead the season." }
+    if st.points_rank == 1 { return st.points_tied == true ? "The lead is shared." : "You lead the season." }
     return "The season is underway."
+  }
+
+  /// W5 · the upcoming band says WHEN — "The first tee is Mon Oct 5, in 7
+  /// days." — from the payload's own `starts_on` and `days_to_first_tee`. It
+  /// said "not yet" twice and never the day. The day is a round's day, with
+  /// the year only when it is not this one (`csRoundDay`).
+  static func firstTeeLine(_ s: Me.Season?, today: String, calendar: Calendar = .current) -> String {
+    guard let s, CSDate.local(s.starts_on, calendar: calendar) != nil else { return "No standing yet. First tee is ahead." }
+    let tee = LeagueDates.dowMonDay(s.starts_on, calendar: calendar) + yearTail(s.starts_on, today: today)
+    let days = s.days_to_first_tee ?? CSDate.days(from: today, to: s.starts_on, calendar: calendar)
+    if let days, days > 1 { return "The first tee is \(tee), in \(days) days." }
+    return "The first tee is \(tee)" + (days == 1 ? ", tomorrow." : ".")
+  }
+
+  /// ", 2025" when `iso` falls outside `today`'s year, else nothing — the one
+  /// rule the desk's `csRoundDay` and `csEditionDay` share: a date says its
+  /// year only when it is not this one.
+  static func yearTail(_ iso: String, today: String) -> String {
+    let year = iso.prefix(4)
+    return year.count == 4 && Int(year) != nil && year != today.prefix(4) ? ", \(year)" : ""
   }
 
   /// **A FIGURE IS ONLY DRAWN WHERE THERE IS A STANDING TO DRAW**, and the two
@@ -282,8 +321,16 @@ public enum CompeteRoot {
     return nil
   }
 
-  private static func eventEyebrow(_ e: Me.Event, calendar: Calendar) -> String {
-    if e.status == "complete" { return "FINAL" }
+  /// W5 · a FINISHED edition is dated by the day it started — "Aug 13", with
+  /// the year when it is not this one, never a weekday a past row would read
+  /// as this week. A Ryder run twice printed "Final" beside "Live" under the
+  /// same name with nothing to tell them apart, and "Final" twice on the one
+  /// row: the sub already says it. Twin: `csEditionDay` on the desk.
+  private static func eventEyebrow(_ e: Me.Event, today: String, calendar: Calendar) -> String {
+    if e.status == "complete" {
+      guard let s = e.starts_on, CSDate.local(s, calendar: calendar) != nil else { return "FINAL" }
+      return (LeagueDates.monDay(s, calendar: calendar) + yearTail(s, today: today)).uppercased()
+    }
     guard let s = e.starts_on else { return EventCopy.status(e.status).uppercased() }
     return LeagueDates.dowMonDay(s, calendar: calendar).uppercased()
   }
