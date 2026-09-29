@@ -144,7 +144,10 @@ struct WhenForkSheet: View {
               VStack(spacing: 0) {
                 HStack(spacing: CSTokens.Space.s3) {
                   VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-                    Text(f.line).csType(.name).foregroundStyle(f == .rightNow ? cs.brand : cs.ink)
+                    // N4-113 · root: no round is live on the when-fork, and
+                    // L-40's LIVE act starts when one is (D359). Both answers
+                    // are ink; a tap takes the chosen one at once.
+                    Text(f.line).csType(.name).foregroundStyle(cs.ink)
                       .fixedSize(horizontal: false, vertical: true)
                     Text(f.gloss).csType(.bodyS).foregroundStyle(cs.mut)
                       .fixedSize(horizontal: false, vertical: true)
@@ -169,7 +172,7 @@ struct WhenForkSheet: View {
     }
     .background(cs.bg0)
     .csFittedSheet(260)
-    .csBudget(ember: 1)
+    .csBudget(ember: 0)
   }
 }
 
