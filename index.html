@@ -389,6 +389,15 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
        laptop screen the foot (the viewer and the build) ran off the bottom */
     overflow-y:auto; overscroll-behavior:contain;
   }
+  /* TEN / W6 · AW2 (P3) · …and says so at rest: while there is more below,
+     its foot fades (csBookEdge's data-more, as the game picker's edge does).
+     The mask's second layer keeps the rail's own rule whole to the bottom. */
+  .side[data-more]{
+    -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent), linear-gradient(#000,#000);
+    -webkit-mask-size:100% 100%, var(--hair) 100%; -webkit-mask-position:0 0, right top; -webkit-mask-repeat:no-repeat;
+    mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent), linear-gradient(#000,#000);
+    mask-size:100% 100%, var(--hair) 100%; mask-position:0 0, right top; mask-repeat:no-repeat;
+  }
 }
 .brand{display:flex; align-items:center; padding:0 0 32px;}
 /* ═══ D358 · THE LOCKUP — one mark and one name wherever identity signs ═══
@@ -22137,12 +22146,28 @@ const CS_BOOK_LOADING = '<div class="sb-skel" aria-hidden="true"><span class="sk
   + Array.from({length:4},()=>'<div class="sb-skel-row"><span class="skb sb-skel-name"></span>'+'<span class="skb sb-skel-cell"></span>'.repeat(5)+'</div>').join('')
   + '</div><p class="sb-loading-t">Loading the whole season…</p>';
 /* W5 · a scroller that runs past its edge says so: `data-more` on its host
-   while there is more to the right (the grid's fade, a long segment set's) */
-function csBookEdge(scroller,host){
+   while there is more to the right (the grid's fade, a long segment set's).
+   TEN / W6 · `axis` 'y' reads it down instead of across (the desk's rail). */
+function csBookEdge(scroller,host,axis){
   if(!scroller||!host)return;
-  const upd=()=>host.toggleAttribute('data-more',scroller.scrollLeft+scroller.clientWidth<scroller.scrollWidth-2);
+  const down = axis === 'y';
+  const upd=()=>host.toggleAttribute('data-more', down
+    ? scroller.scrollTop+scroller.clientHeight<scroller.scrollHeight-2
+    : scroller.scrollLeft+scroller.clientWidth<scroller.scrollWidth-2);
   scroller.addEventListener('scroll',upd,{passive:true});upd();
 }
+/* TEN / W6 · AW2 (P3) · the desk's rail scrolls in its own height (7adee204)
+   and said nothing about it at rest: on a 900 or 800px screen its foot sat
+   below a clean edge. It wears the scrollers' edge — data-more, read down
+   the rail — re-read when the rail or anything in it changes size (the ME
+   strip and the league rows arrive after boot; the rail's own box is the
+   window's height). */
+(()=>{ const side=document.querySelector('aside.side'); if(!side) return;
+  csBookEdge(side, side, 'y');
+  let q=0; const again=()=>{ if(q) return; q=requestAnimationFrame(()=>{ q=0; side.dispatchEvent(new Event('scroll')); }); };
+  try{ const ro=new ResizeObserver(again); ro.observe(side); [...side.children].forEach(c=>ro.observe(c)); }
+  catch(_){ window.addEventListener('resize', again, {passive:true}); }
+})();
 async function csOpenSeasonBook(league,season){
   if(!window.CS?.user || !window.sb || state.demo)return;
   csCloseSeasonBook();

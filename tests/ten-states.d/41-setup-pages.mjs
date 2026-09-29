@@ -211,8 +211,29 @@ const deskCheck = async (page) => page.evaluate(() => {
   const side = [...document.querySelectorAll('.navitem')].filter((n) => n.offsetParent !== null)
   return side.length >= 3 ? true : 'the desk sidebar is not showing'
 })
+/* TEN / W6 · AW2 (P3): the rail scrolls in its own height and says so at rest
+   — its foot fades while there is more below (data-more), and not at its end.
+   At 1000px tall the member's rail just fits, so the check reads it at 800
+   (a laptop screen) and puts the viewport back before the capture. */
+const deskRailEdge = async (page) => {
+  const vp = page.viewportSize()
+  await page.setViewportSize({ width: vp.width, height: 800 }); await page.waitForTimeout(300)
+  const r = await page.evaluate(async () => {
+    const s = document.querySelector('aside.side'), frame = () => new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)))
+    const over = s.scrollHeight > s.clientHeight + 2, cs = getComputedStyle(s)
+    const atRest = s.hasAttribute('data-more'), masked = (cs.webkitMaskImage || cs.maskImage || 'none') !== 'none'
+    s.scrollTop = s.scrollHeight; await frame()
+    const atEnd = s.hasAttribute('data-more')
+    s.scrollTop = 0; await frame()
+    return { over, atRest, masked, atEnd, back: s.hasAttribute('data-more') }
+  })
+  await page.setViewportSize(vp); await page.waitForTimeout(300)
+  if (!r.over) return `the rail does not overflow at ${vp.width}×800, so its edge cannot be read`
+  return r.atRest && r.masked && !r.atEnd && r.back ? true : `the rail's edge at ${vp.width}×800: ${JSON.stringify(r)}`
+}
 const DESK = [
-  { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' }, check: deskCheck },
+  { family: 'desk', id: 'home', variant: 'member', desk: true, title: 'The desk · Home', expect: { view: 'view-home' },
+    check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskRailEdge(page) } },
   { family: 'desk', id: 'season', variant: 'member', desk: true, title: 'The desk · the season',
     drive: async (page) => { await click(page, '.navitem[data-v="hub"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub'); await page.waitForTimeout(900) },
     expect: { view: 'view-hub' }, check: deskCheck },
