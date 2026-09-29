@@ -21350,8 +21350,11 @@ function csFallbackItems(){
        names the competition and nothing else; each branch says the clock in
        exactly one sentence. The idle branch had none once the eyebrow let go
        of it, so its standfirst carries it now. The server's clash item is the
-       same move (20261211100000, held for the owner's db push). */
-    if(yields){ hl=`Your clash with ${them} is open.`; sf=`Best round of the week takes it. The week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
+       same move (20261211100000, held for the owner's db push).
+       Root's ruling on the idle day: an idle clash says its idle words on
+       every day, the last included. It fell to "both in" on its last day,
+       which nobody had earned. D216's yield is the tier alone, below. */
+    if(idle){ hl=`Your clash with ${them} is open.`; sf=`Best round of the week takes it. The week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
     else if(theirs && !mine){ hl=`${them} posted ${theirs.gross!=null?'{'+theirs.gross+'}':'a round'}.`; sf=`That is the number, and the week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
     else if(mine && !theirs){ hl=`${them} has ${c.closes_today?'today':c.days_left===1?'one day':'{'+c.days_left+'} days'} to answer your ${mine.gross!=null?'{'+mine.gross+'}':'round'}.`;
                               sf='Your round is the number to beat.'; act='See the receipt';

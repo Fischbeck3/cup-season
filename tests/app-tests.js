@@ -724,6 +724,20 @@
     t('AW2-05: mine in, theirs not: the headline keeps the clock', [mineC.headline, mineC.standfirst], ['Galen has {5} days to answer your {89}.', 'Your round is the number to beat.']);
     t('AW2-05: both in: the standfirst keeps the clock', bothC.standfirst, 'The week closes in 5 days. Best round takes it.');
     t('AW2-05: the clock is said once in each branch', [idleC, theirsC, mineC, bothC].map(clocks), [1, 1, 1, 1]);
+    /* root's ruling on AW2-05's idle day: an idle clash says its idle words on
+       every day, the last included, and never "both in" when neither has
+       posted. D216's yield is the tier alone: coming while more than a day
+       is left, closing again on the last-call day. */
+    const idleTomorrow = clashOf(null, null, 1);
+    window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: 0, closes_today: true,
+      rivalry: 'The Fixture Derby', them_name: 'Galen Ward', mine: null, theirs: null };
+    const idleToday = csFallbackItems()[0];
+    t('AW2-05: an idle clash on its last day says its idle words, never \u201cboth in\u201d',
+      [idleTomorrow.headline, idleTomorrow.standfirst, idleToday.headline, idleToday.standfirst],
+      ['Your clash with Galen is open.', 'Best round of the week takes it. The week closes tomorrow.',
+       'Your clash with Galen is open.', 'Best round of the week takes it. The week closes today.']);
+    t('AW2-05: D216\u2019s yield is the tier alone: coming while it yields, closing on the last-call day',
+      [idleC.tier, idleTomorrow.tier, idleToday.tier, bothC.tier], ['coming', 'closing', 'closing', 'closing']);
     window.homeClash = { week_no: 8, ends_on: '2026-09-06', days_left: 5, closes_today: false, rivalry: '', them_name: 'Galen Ward', mine: null, theirs: null };
     t('AW2-05: with no rivalry the eyebrow is the league’s name, or THE CLASH alone', csFallbackItems()[0].eyebrow,
       window.CS?.league?.name ? `${window.CS.league.name.toUpperCase()} · THE CLASH` : 'THE CLASH');
