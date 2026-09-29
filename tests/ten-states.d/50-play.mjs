@@ -215,6 +215,11 @@ export default [
         const st = getComputedStyle(document.getElementById(id))
         if (st.color !== mut || st.webkitTextFillColor !== mut || st.opacity !== '1') return `#${id}'s locked value is not mut at full strength: ${st.color} / ${st.webkitTextFillColor} / opacity ${st.opacity}`
       }
+      /* W7-003 (the remainder, D's delta) · the card note is setup guidance
+         ("pick your course above and the real pars load" when no card was
+         loaded this session); beside a locked course it stands down */
+      const cn = document.getElementById('cardNote')
+      if (cn && getComputedStyle(cn).display !== 'none') return 'the card note still gives setup guidance beside the locked course: ' + JSON.stringify(cn.textContent.trim().slice(0, 80))
       return true
     }), async (page) => {
       const held = await page.evaluate(() => ({ active: state.live.active, lr: state.live.lr, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores }))
@@ -222,7 +227,8 @@ export default [
       await click(page, '#lrBackToRound')
       await until(page, () => document.getElementById('playLive').offsetParent !== null, null, 6000)
       const back = await page.evaluate(() => ({ live: document.getElementById('playLive').offsetParent !== null, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores,
-        unlocked: ['lrCourse', 'lrTee', 'lrRate', 'lrSlope', 'editCard'].every(id => !document.getElementById(id).disabled) && [...document.querySelectorAll('#lrHoles button')].every(b => !b.disabled) }))
+        unlocked: ['lrCourse', 'lrTee', 'lrRate', 'lrSlope', 'editCard'].every(id => !document.getElementById(id).disabled) && [...document.querySelectorAll('#lrHoles button')].every(b => !b.disabled)
+          && document.getElementById('cardNote').style.display !== 'none' }))
       await click(page, '#backToSetup')   /* the capture is the held setup */
       await until(page, () => { const h = document.getElementById('lrHeld'); return !!h && !h.hidden }, null, 6000)
       await page.evaluate(() => window.scrollTo(0, 0))
