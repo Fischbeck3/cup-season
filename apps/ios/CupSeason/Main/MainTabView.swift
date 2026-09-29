@@ -328,6 +328,9 @@ struct MainTabView: View {
   @State private var presenter = Presenter()
   /// N4-060 · the keyboard is up over the bottom of the screen.
   @State private var keyboardUp = false
+  /// The claim links already told they are early, this session: the drain
+  /// runs again whenever a sheet closes, and a toast is not a nag.
+  @State private var claimSaid: Set<String> = []
   /// D104: the tapped-notification route waiting to land, and the contextual ask.
   @State private var router = PushRouter.shared
   @State private var ask = PushAsk.shared
@@ -1231,6 +1234,11 @@ struct MainTabView: View {
           if status == "abandoned" {
             ClaimIntent.clear(ifMatching: token)
             shellToast.show(ClaimDoor.unfinishedLine)
+          } else if claimSaid.insert("\(token)").inserted {
+            // W4 · a round not teed off, or still out there, is said — once a
+            // link, not on every sheet that closes — in the web's words
+            // (claimPendingRound / csClaimAct). It said nothing.
+            shellToast.show(status == "setup" ? ClaimDoor.notStartedLine : ClaimFlow.stillLiveToast)
           }
           continue // The live pencil keeps its token until a finished card exists.
         }
