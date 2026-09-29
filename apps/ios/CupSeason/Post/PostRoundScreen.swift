@@ -679,10 +679,14 @@ private struct PostRoundBody: View {
   /// whatever height 13pt of text is — about 20 — and the compiler had nothing
   /// to say about it. It is a tertiary now, which carries the 44pt target in
   /// the style rather than at the site.
+  /// N4-022 · one tap wiped the card, the photo and the draft, directly under
+  /// the primary, with no undo. The first tap arms it — "Sure?" in neg on bg2
+  /// (UI_SYSTEM §7.1) — and the second, within four seconds, clears; left
+  /// alone it disarms.
   private var startOver: some View {
-    Button("Start over") { model.startOver() }   // F-13
-      .buttonStyle(.csTertiary(.content))
+    CSArmedButton(label: "Start over", armedLabel: "Sure? This clears the card") { model.startOver() }   // F-13
       .frame(maxWidth: .infinity)
+      .accessibilityIdentifier("post.startOver")
   }
 
   /// **IOS-064 · PINNED CHROME MAY NOT EAT THE PAGE.** `ax3-composer.png`:

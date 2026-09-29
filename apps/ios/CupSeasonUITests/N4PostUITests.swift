@@ -79,6 +79,33 @@ final class N4PostUITests: N2UITestCase {
     app.terminate()
   }
 
+  /// N4-022 · Start over wiped the card, the photo and the draft on one tap,
+  /// directly under the primary. It is armed now: the first tap asks and
+  /// keeps the card, and the second clears it.
+  @MainActor func testStartOverAsksBeforeItClearsTheCard() {
+    let app = launch("season-live", "postround")
+    _ = root(app, "composer")
+    let gross = app.textFields["Your gross"].firstMatch
+    XCTAssertTrue(gross.waitForExistence(timeout: 10))
+    if !app.keyboards.firstMatch.exists { gross.tap() }
+    gross.typeText("84")
+    app.swipeDown()
+    let start = app.buttons["post.startOver"].firstMatch
+    XCTAssertTrue(start.waitForExistence(timeout: 5), "Start over is there")
+    for _ in 0..<6 where !start.isHittable { app.swipeUp() }
+    start.tap()
+    let asks = NSPredicate(format: "label ==[c] %@", "Sure? This clears the card")
+    XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: asks, evaluatedWith: start)], timeout: 3), .completed,
+                   "the first tap asks — \(start.label)")
+    XCTAssertEqual(gross.value as? String, "84", "and keeps the card")
+    attach(app, "n4-022-armed")
+    start.tap()
+    let cleared = NSPredicate(format: "value != %@", "84")
+    XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: cleared, evaluatedWith: gross)], timeout: 5), .completed,
+                   "the second tap clears it")
+    app.terminate()
+  }
+
   @MainActor private func waitGone(_ e: XCUIElement, timeout: TimeInterval) -> Bool {
     XCTWaiter().wait(for: [expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: e)], timeout: timeout) == .completed
   }
