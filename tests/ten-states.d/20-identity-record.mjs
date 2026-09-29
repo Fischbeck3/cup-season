@@ -63,22 +63,58 @@ const YOU = [
 
 /* ------------------------------------------------------ THE RECORD (photos) */
 /* the record section of You, with the round photographs in each state: the
-   world gives Avery's latest round a photo (rounds/<me>/<round>.jpg) */
+   world gives Avery's latest round a photo (rounds/<me>/<round>.jpg).
+   W1 (2026-09-28): the You page draws no round photograph at all — the record
+   opens a round's receipt, and that is where its photograph lives (the album
+   is the season's, in the league room). So photos-none and photo-broken were
+   byte-identical to populated: they captured a page with no photo slot. They
+   now open the latest round's receipt from Recent rounds, the record's own
+   door, and capture what that photograph slot does in each state. */
+/* the real tap: the first Recent rounds row opens its receipt */
+async function openLatestReceipt(page) {
+  await youSettled('some')(page)
+  for (let i = 0; i < 4; i++) {
+    await click(page, '#youRecent [data-rcpt-i="0"]').catch(() => {})
+    const ok = await page.waitForFunction(() => document.getElementById('sheet').classList.contains('open'), null, { timeout: 2000 }).then(() => true, () => false)
+    if (ok) break
+  }
+  await until(page, () => document.getElementById('sheet').classList.contains('open') && !/LOADING/.test(document.getElementById('shSub').textContent), null, 10000)
+}
+const heroState = (want) => async (page) => page.evaluate((want) => {
+  const h = document.getElementById('rcptHero')
+  if (!h) return 'no receipt moment'
+  const img = h.querySelector(':scope > img')
+  const broken = [...document.querySelectorAll('#sheet img')].filter((i) => i.complete && i.naturalWidth === 0 && i.offsetParent !== null)
+  if (broken.length) return `${broken.length} broken image(s) are showing`
+  if (want === 'photo') return img && !h.querySelector('.rm-topo') ? true : 'the moment has no photograph'
+  return !img && !!h.querySelector('.rm-topo') && !h.classList.contains('has-photo') && !!h.querySelector('.rm-fig')
+    ? true : 'the moment did not keep its no-photo face: ' + h.className
+}, want)
 const RECORD = [
   { family: 'record', id: 'populated', variant: 'member', title: 'The record · recent rounds, trophies, all time (a photo on the latest round)',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible', '#youRecent [data-rcpt-i]': 'visible' } },
     check: recordState('some') },
-  { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, title: 'The record · no photographs anywhere',
-    drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible' } },
-    check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#view-stats img[src*="token=fixture"]').length === 0 ? true : 'a photograph rendered with none on file')) },
-  /* every signed URL answers 404: the record must fall back, never show a broken image */
-  { family: 'record', id: 'photo-broken', variant: 'member', world: { flags: { brokenPhotos: true } }, title: 'The record · the photograph will not load (404)',
+  { family: 'record', id: 'photos-none', variant: 'member', world: { photo: 'none' }, fullPage: false,
+    title: 'The record · no photographs anywhere: the latest round’s receipt keeps its moment on the contour',
+    drive: async (page) => { await openLatestReceipt(page); await page.waitForTimeout(700) },
+    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptHero': 'visible' } },
+    check: all(recordState('some'), heroState('none'),
+      async (page) => page.evaluate(() => document.querySelectorAll('#sheet img[src*="token=fixture"]').length === 0 ? true : 'a photograph rendered with none on file')) },
+  /* every signed URL answers 404: the receipt falls back to its no-photo
+     moment, never a broken image on the ceremony ground, and — it is the
+     owner's own round, and it carries a photograph — says so once beside
+     Replace and Remove: "This round’s photo couldn’t be opened." (S9, the
+     phone's RoundCopy.photoUnavailable, verbatim) */
+  { family: 'record', id: 'photo-broken', variant: 'member', world: { flags: { brokenPhotos: true } }, fullPage: false,
+    title: 'The record · the photograph will not load (404): the receipt falls back to its no-photo moment',
     expectConsole: [/status of 404/],
-    drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youRecent': 'visible' } },
-    check: all(recordState('some'), async (page) => page.evaluate(() => {
-      const broken = [...document.querySelectorAll('#view-stats img')].filter((i) => i.complete && i.naturalWidth === 0 && i.offsetParent !== null)
-      return broken.length === 0 ? true : `${broken.length} broken image(s) are showing`
-    })) },
+    drive: async (page) => {
+      await openLatestReceipt(page)
+      await until(page, () => { const h = document.getElementById('rcptHero'); return !!h && !h.querySelector(':scope > img') && !!h.querySelector('.rm-topo') }, null, 10000)
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptHero': 'visible', '#rcptPhotoGone': 'text:^This round\u2019s photo couldn\u2019t be opened\.$' } },
+    check: all(recordState('some'), heroState('none')) },
   /* a credited photograph: Blake's avatar on his credential carries the credit
      line "Blake's round · <day>" (csCredentialHtml). Opened from the board's
      own tour-card door, the in-context peek (data-tc). */
@@ -104,21 +140,48 @@ const RECORD = [
 /* ------------------------------------------------------------ RECEIPTS */
 const RECEIPT = [
   /* the round receipt, from the first Recent rounds row (the real tap) */
+  /* W1 (2026-09-28): the league's verdict (points, league, the month) sits
+     directly under the moment now, so this first-screen capture reaches it —
+     it used to stop at the photo buttons and the card */
   { family: 'receipt', id: 'round', variant: 'member', fullPage: false, title: 'Round receipt · opened from Recent rounds',
     drive: async (page) => {
-      await youSettled('some')(page)
-      for (let i = 0; i < 4; i++) {
-        await click(page, '#youRecent [data-rcpt-i="0"]').catch(() => {})
-        const ok = await page.waitForFunction(() => document.getElementById('sheet').classList.contains('open'), null, { timeout: 2000 }).then(() => true, () => false)
-        if (ok) break
-      }
-      await until(page, () => document.getElementById('sheet').classList.contains('open') && !/LOADING/.test(document.getElementById('shSub').textContent), null, 10000)
+      await openLatestReceipt(page)
+      await until(page, () => { const f = document.getElementById('rcptFigs'); return !!f && !f.hidden }, null, 10000).catch(() => {})
       await page.waitForTimeout(700)
     },
-    expect: { view: 'view-stats', sheet: true },
-    check: async (page) => page.evaluate(() => {
+    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptFigs': 'visible', '#rcptFigs .lens': 'text:Counting #' } },
+    check: all(heroState('photo'),
+      /* S9 · a picture that is showing says nothing */
+      async (page) => page.evaluate(() => { const g = document.getElementById('rcptPhotoGone'); return !g || g.hidden ? true : 'the photo-unavailable line shows over a photo that loaded' }),
+      async (page) => page.evaluate(() => {
       const t = document.getElementById('shBody').innerText.replace(/\s+/g, ' ')
-      return /\b84\b/.test(document.getElementById('sheet').innerText) && /Mesquite Wash/i.test(document.getElementById('sheet').innerText) ? true : 'the receipt does not show the 84 at Mesquite Wash: ' + t.slice(0, 160)
+      if (!(/\b84\b/.test(document.getElementById('sheet').innerText) && /Mesquite Wash/i.test(document.getElementById('sheet').innerText))) return 'the receipt does not show the 84 at Mesquite Wash: ' + t.slice(0, 160)
+      const f = document.getElementById('rcptFigs').getBoundingClientRect()
+      if (f.bottom > innerHeight) return 'the league verdict is below the first screen (' + Math.round(f.bottom) + ' > ' + innerHeight + ')'
+      if (/\bgross\b/i.test(document.getElementById('shTitle').textContent)) return 'the sheet title repeats the figure: ' + document.getElementById('shTitle').textContent
+      return true
+    })) },
+  /* S9 (W1, 2026-09-28) · the owner's receipt of a round that carries a
+     photograph the page cannot open (every signed URL answers 404): the
+     moment falls back, and the photo row says it once, beside Replace and
+     Remove — "This round’s photo couldn’t be opened." — the phone's
+     RoundCopy.photoUnavailable, verbatim. Scrolled to the photo row, which
+     sits under the verdict, the receipt and the card. */
+  { family: 'receipt', id: 'photo-unavailable', variant: 'member', world: { flags: { brokenPhotos: true } }, fullPage: false,
+    title: 'Round receipt · the photograph could not be opened (the owner is told once, beside Replace and Remove)',
+    expectConsole: [/status of 404/],
+    drive: async (page) => {
+      await openLatestReceipt(page)
+      await until(page, () => { const g = document.getElementById('rcptPhotoGone'); return !!g && !g.hidden }, null, 10000)
+      await page.evaluate(() => document.getElementById('rcptPhotoRow').scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-stats', sheet: true, selectors: { '#rcptPhotoGone': 'text:^This round\u2019s photo couldn\u2019t be opened\.$', '#rcptPhotoBtn': 'visible', '#rcptPhotoClear': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const g = document.getElementById('rcptPhotoGone').getBoundingClientRect()
+      if (g.top < 0 || g.bottom > innerHeight) return 'the line is not on screen'
+      const f = getComputedStyle(document.getElementById('rcptPhotoGone')).fontFamily
+      return /mono/i.test(f) ? 'the line is set in mono: ' + f : true
     }) },
   /* the points receipt (§16): the squad row on the season's own standings
      opens the squad math */
@@ -171,18 +234,29 @@ const COMPOSER = [
     expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },
     check: async (page) => page.evaluate(() => document.getElementById('inF9').value === '42' && document.getElementById('inB9').value === '41' ? true : 'the card did not take the nines') },
   /* the server refuses the card: the golfer is told nothing posted and the
-     card stays on the form */
+     card stays on the form.
+     W1 (2026-09-28): the refusal is no longer a 2.4 s toast. It stays inline
+     above the button (#postErr, role=alert), the button is described by it,
+     and focus stays on the button (it used to fall to <body>). The state waits
+     for that line instead of the toast. */
   { family: 'composer', id: 'post-failed', variant: 'member', title: 'Composer · the post is refused by the server',
     world: { errors: { rpc: { post_round_once: { __error: 'fixture: the server refused this card', status: 400, code: 'P0001' } } } },
     expectConsole: [/status of 400/, /\[cs\] error:.*refused/i],
     drive: async (page) => {
       await toComposer(page); await fillCard(page)
       await click(page, '#postBtn')
-      await until(page, () => /refused|nothing was posted/i.test((document.getElementById('toast') || {}).textContent || ''), null, 10000)
+      await until(page, () => { const e = document.getElementById('postErr'); return !!e && !e.hidden && /nothing was posted/i.test(e.textContent || '') }, null, 10000)
       await page.waitForTimeout(250)
     },
-    expect: { view: 'view-post', selectors: { '#toast': 'text:nothing was posted' } },
-    check: async (page) => page.evaluate(() => document.getElementById('inF9').value === '42' ? true : 'the card was cleared after a refused post') },
+    expect: { view: 'view-post', selectors: { '#postErr': 'text:nothing was posted' } },
+    check: async (page) => page.evaluate(() => {
+      if (document.getElementById('inF9').value !== '42') return 'the card was cleared after a refused post'
+      const b = document.getElementById('postBtn')
+      if (document.activeElement !== b) return 'focus left the button: ' + (document.activeElement && (document.activeElement.id || document.activeElement.tagName))
+      if (b.getAttribute('aria-describedby') !== 'postErr') return 'the button is not described by the refusal'
+      if (/press Post again/i.test(document.getElementById('postErr').textContent)) return 'the refusal names a button that is not there'
+      return true
+    }) },
 ]
 
 /* ------------------------------------------------------- SHARE ARTIFACT */

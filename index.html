@@ -1390,16 +1390,24 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 #epiPanel{margin-bottom:14px; max-width:678px;}
 .postgrid{display:block;}
 @media(min-width:960px){
-  .postgrid{display:grid; grid-template-columns:minmax(0,1fr) 348px; gap:34px; align-items:start;}
-  .postgrid > div:first-child{max-width:620px;}
+  /* W1 · the grid is capped, not the column: at 1600 a 620px form inside a
+     1fr track left ~218px of dead gutter between it and its aside */
+  .postgrid{display:grid; grid-template-columns:minmax(0,620px) 348px; gap:40px; align-items:start; justify-content:start;}
 }
-/* the ONE box: a focused numeric control, so it wears the mono figure face and
-   never the serif (L-29) */
+/* the ONE box: a focused numeric control, never the serif (L-29). W1 · it is
+   the round's tournament figure, so it wears the figure face every other gross
+   wears (UI_SYSTEM §1.6: the composer's gross is `figure` at 56, board face,
+   tabular) rather than the mono it kept after the figure face arrived */
 .grossbox{
   width:100%; background:transparent; border:0; outline:0; padding:0; margin:0;
-  font-family:var(--mono); font-size:64px; font-weight:600; line-height:1.05;
-  color:var(--ink); font-variant-numeric:tabular-nums; -moz-appearance:textfield;
+  font-family:var(--board); font-size:56px; font-weight:700; line-height:1.05;
+  color:var(--ink); font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1,'lnum' 1;
+  -moz-appearance:textfield;
 }
+.grossbox[readonly]{cursor:default;}
+/* the hero says where its figure came from while the nines answer for it */
+.grossfrom{margin:6px 0 0; font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--mut);}
 .grossbox::-webkit-outer-spin-button, .grossbox::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
 .grossbox::placeholder{color:var(--mut);}
 /* the box draws no border, so its focus is a ring of its own (WCAG 2.4.7):
@@ -1447,20 +1455,30 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
      row 2px off the page — inherited) */
   .postcam{flex-wrap:wrap;}
   .postcam .postplate{width:auto; flex:1 1 150px; min-width:0; height:44px;}
-  .postcam .postplate .plate{border-radius:var(--rc); justify-content:flex-start; padding:0 12px;}
+  .postcam .postplate .plate{border-radius:var(--rc); justify-content:flex-start; padding:0 12px;
+    background:var(--bg2); border-color:transparent; color:var(--ink);}   /* W1 · the scan's grammar: one secondary on the form */
+  .postcam .postplate .plate:hover{background:var(--rule);}
   .postcam .postplate .ph{flex-direction:row; gap:8px;}
+  .postcam .postplate .ph b{font-size:13px; letter-spacing:.02em; text-transform:none;}
   .postcam #postScanBtn{flex:none; margin:0;}
   .postcam.has-photo{flex-direction:column; align-items:stretch; width:150px;}
   .postcam.has-photo .postplate{width:150px; height:100px; flex:none;}
-  .postcam.has-photo .postplate .plate{border-radius:var(--p); justify-content:center; padding:0;}
+  .postcam.has-photo .postplate .plate{border-radius:var(--p); justify-content:center; padding:0; background:transparent;}
 }
+/* W1 · the course is the card's other required fact, so the line is a
+   labelled field: an agate label over the value in the words' own face (a
+   course and a day are said, not codes — §1.4 keeps mono off them) */
 .inheritline{
-  display:flex; align-items:baseline; gap:10px; width:100%; text-align:left;
+  display:block; width:100%; text-align:left;
   background:transparent; border:0; border-top:1px solid var(--rule);
-  padding:12px 0; min-height:44px; margin-top:12px; cursor:pointer;   /* §16.2 · was 28 */
-  font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--ink);
+  padding:10px 0 12px; min-height:44px; margin-top:12px; cursor:pointer;   /* §16.2 · was 28 */
+  color:var(--ink);
 }
-.inheritline .edit{margin-left:auto; color:var(--act);}
+.inheritline .il-k{display:block; margin-bottom:4px; font-family:var(--board); font-size:11px; font-weight:600;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
+.inheritline .il-v{display:flex; align-items:baseline; gap:10px; font-family:var(--sans); font-size:15px; line-height:1.35;}
+.inheritline .edit{margin-left:auto; flex:none; color:var(--act); font-weight:600;}
+.inheritline:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* WAVE 8 · THE ONE CHIP (D277, §7.2). Twelve chip families at five heights,
    five paddings, two shapes and three "selected" languages become one: a 3pt
    rectangle, an agate label, `bg2` at rest, and SELECTED INVERTS TO THE PANEL
@@ -1477,7 +1495,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:18px; text-align:center;
 }
-.calc .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mut);}
+.calc .k{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
 .calc .big{
   font-family:var(--mono); font-size:64px; font-weight:600; line-height:1;
   margin:6px 0 4px; font-variant-numeric:tabular-nums;
@@ -1487,8 +1505,26 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   display:flex; justify-content:center; gap:26px;
   margin-top:16px; padding-top:14px; border-top:1px solid var(--rule);
 }
-.calc .trio b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums;}
-.calc .trio span{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}   /* F14 · 11px is the floor (UI_SYSTEM §16.2) */
+.calc .trio b{display:block; font-family:var(--board); font-size:20px; font-weight:700; font-variant-numeric:tabular-nums;}
+.calc .trio span{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}   /* F14 · 11px is the floor (UI_SYSTEM §16.2) */
+/* W1 · numbers are never serif (§1.4): the points figure takes the figure face
+   the gross and the trio take — one face for the three numbers on the panel.
+   By id, because a shared rule later in the sheet still names `.calc .big` for
+   the serif. */
+#calcPts{font-family:var(--board); font-weight:700; font-size:56px; line-height:.92; letter-spacing:0;
+  font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1,'lnum' 1; margin:10px 0 6px;}
+/* the action's own answer: a post the server did not take, above the button
+   it answers (aria-describedby ties the two). Words in neg on the card's
+   ground — 5.6:1 dark, 5.3:1 light — no box and no stripe. */
+.posterr{margin:14px 0 0; font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--neg);}
+#postBtn{margin-top:14px;}
+/* the date's focused segment wears the action, never the browser's blue, and
+   the calendar button follows the app's printing rather than the device's */
+#inDate{color-scheme:dark;}
+html[data-theme="light"] #inDate{color-scheme:light;}
+#inDate::-webkit-datetime-edit-month-field:focus,
+#inDate::-webkit-datetime-edit-day-field:focus,
+#inDate::-webkit-datetime-edit-year-field:focus{background:var(--act); color:var(--bg0); outline:none;}
 .bandsdoor{width:100%; min-height:44px; background:none; border:0; cursor:pointer; padding:0 2px; text-align:left;}
 .bandsdoor svg{width:14px; height:14px; transition:transform .15s ease;}
 .bandsdoor[aria-expanded="true"] svg{transform:rotate(180deg);}
@@ -1594,8 +1630,13 @@ button.payer{cursor:pointer;}
 }
 .seg button.on{background:var(--bg1); color:var(--ink); border:1px solid var(--rule);}
 /* five games do not fit one row of a phone ("Sunningdale Rules" ran 35px past
-   the edge at 375 once labels stopped breaking): the game control wraps */
-#gameSeg{flex-wrap:wrap;} #gameSeg button{flex:1 1 auto;}
+   the edge at 375 once labels stopped breaking). W1 · wrapping left the fifth
+   alone on a second row, which read as a broken control: the row scrolls
+   instead, the chosen game is scrolled into view, and on a desk all five
+   share the width */
+#gameSeg{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain;}
+#gameSeg::-webkit-scrollbar{display:none;}
+#gameSeg button{flex:1 0 auto; padding:9px 12px;}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
 #albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); padding:10px 2px 2px;}
@@ -1618,15 +1659,16 @@ button.payer{cursor:pointer;}
   content:""; position:absolute; inset:0; z-index:-1;
   background:linear-gradient(180deg, rgba(10,14,12,.34) 0%, rgba(10,14,12,.62) 46%, rgba(10,14,12,.86) 100%);
 }
-.rcpt-moment.has-photo{color:var(--scrim-ink, #F1F4EF);}
+/* TP-03 · the scrim's light ink always has its dark ground, photo or not yet */
+.rcpt-moment.has-photo{color:var(--scrim-ink, #F1F4EF); background:var(--ceremony);}
 .rcpt-moment .rm-topo{position:absolute; right:-14%; top:50%; transform:translateY(-50%);
   width:70%; height:auto; z-index:-1; color:var(--mut); pointer-events:none;}
 .rcpt-moment .rm-topo .t-sur{stroke-width:.9; opacity:.08;}
 .rcpt-moment .rm-topo .t-edge{stroke-width:.9; opacity:.16;}
 .rcpt-moment .rm-in{position:relative; padding:var(--s4); min-height:280px; display:flex; flex-direction:column; align-items:flex-start;}
 .rcpt-moment .rm-meta{
-  font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate) * 1em);
-  text-transform:uppercase; color:inherit; opacity:.86;
+  font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);
+  text-transform:uppercase; color:inherit; opacity:.86;   /* W1 · meta in agate at 12, not 11px mono */
 }
 /* THE SCORE IS A TOURNAMENT FIGURE. The board sets it large, and an earlier
    pass of mine read "large" as "editorial" and put it in the serif — but the
@@ -1984,6 +2026,21 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   .playgrid:has(> .pggames[data-games="0"]){grid-template-columns:minmax(0,760px);}
 }
 .pggames[data-games="0"]{display:none;}
+/* W1 · D234 · THE DESK'S SECOND COLUMN CARRIES THE CARD. A round with no side
+   game used to collapse to one 760px column with the right half empty; at the
+   desk the aside keeps its column and prints the whole card on the leaf —
+   every hole, every golfer — beside the hole being entered. The side games,
+   when there are any, sit above it. Phones and the 740 landscape keep the
+   HOLE/CARD toggle, where the card has the width to itself. */
+#deskCard{display:none;}
+@media(min-width:960px){
+  .playgrid:has(> .pggames[data-games="0"]){grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
+  .pggames[data-games="0"]{display:block;}
+  .pggames[data-games="0"] > .sg-head{display:none;}
+  #deskCard:not(:empty){display:block;}
+  .pggames[data-games="1"] #deskCard:not(:empty){margin-top:14px;}
+  #deskCard .rcard td.k{width:56px; white-space:normal; line-height:1.15;}
+}
 /* D152 · the card view. Read-only by design: nothing here needs to be
    thumb-sized, which is what makes an 18-column grid honest in 390px of height.
    Below 740 the toggle is not offered at all — eighteen columns cannot be read
@@ -2013,9 +2070,9 @@ body.cardview nav.tabbar .tab[data-v="record"]{visibility:hidden;}
   body.cardview header.hdr{display:none;}
   body.cardview .backlink{display:none;}
 }
-.vtog{display:none; margin-left:auto; border:.5px solid var(--rule); border-radius:7px; overflow:hidden;}
+.vtog{display:none; width:max-content; margin:10px 0 0 auto; border:.5px solid var(--rule); border-radius:7px; overflow:hidden;}   /* W1 · sized to its two labels, on its own line under the sync line */
 @media(min-width:740px){ .vtog{display:flex;} }
-.vtog button{font-family:var(--mono); font-size:11px; letter-spacing:.1em; padding:0 12px; min-height:44px;   /* §16.2 names this strip: was ~22 */
+.vtog button{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); padding:0 12px; min-height:44px;   /* W1 · a segment label is agate, never mono (§1.4, §7.2) */   /* §16.2 names this strip: was ~22 */
   color:var(--mut); background:none; border:0; cursor:pointer;}
 /* the chosen segment's word is the page's ground on act, in both printings:
    the fixed #0E1512 read 2.37:1 on light's dark act */
@@ -2025,12 +2082,16 @@ table.hcard{width:100%; border-collapse:collapse; font-family:var(--mono); min-w
 table.hcard th, table.hcard td{padding:4px 0; text-align:center; font-size:11px;
   border-bottom:.5px solid var(--rule); white-space:nowrap;}
 table.hcard th{color:var(--mut); font-weight:500; letter-spacing:.04em; font-size:11px;}
-table.hcard th.brk, table.hcard td.brk{color:var(--gold);}
+table.hcard th.brk, table.hcard td.brk{color:var(--ink); font-weight:600;}   /* W1 · a subtotal is not an earning: ink, never gold */
 table.hcard td.nm{text-align:left; font-family:var(--sans); font-size:12px; font-weight:600;
   padding-right:8px; color:var(--ink);}
 table.hcard td.si, table.hcard td.parc{color:var(--mut); font-size:11px;}
-table.hcard td.bird{color:var(--pos); font-weight:600;}
-table.hcard td.bog{color:var(--mut);}
+/* W1 · §9.4 on the card view too: ring, double ring, box, double box, in ink.
+   A birdie was pos green and a bogey was greyed — colour as the only channel. */
+table.hcard td .mk{display:inline-grid; place-items:center; width:17px; height:17px; box-sizing:border-box;
+  border:1.3px solid currentColor; line-height:1;}
+table.hcard td.bd .mk, table.hcard td.eg .mk{border-radius:50%;}
+table.hcard td.eg .mk, table.hcard td.db .mk{box-shadow:0 0 0 1.3px var(--bg0), 0 0 0 2.6px currentColor;}
 .hchg-row{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:17px; padding:2px 0 10px;}
 .hchg-was{color:var(--mut); text-decoration:line-through;}
 .hchg-arrow{color:var(--mut);}
@@ -2044,9 +2105,9 @@ table.hcard th.vsp{color:var(--mut);}
    The allocation is strokeOn()'s — the engine that owns it — never re-derived. */
 table.hcard td.stk{position:relative;}
 table.hcard td.stk::after{content:''; position:absolute; top:2px; right:3px;
-  width:3px; height:3px; border-radius:50%; background:var(--gold);}
+  width:3px; height:3px; border-radius:50%; background:var(--ink);}
 table.hcard td.stk2::before{content:''; position:absolute; top:2px; right:8px;
-  width:3px; height:3px; border-radius:50%; background:var(--gold);}
+  width:3px; height:3px; border-radius:50%; background:var(--ink);}
 table.hcard tr.ledrow td{border-bottom:none; padding-top:6px;}
 table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size:11px; font-weight:500;}
 .ledc{display:block; height:11px; margin:0 1px; border-radius:2px; border:1px solid var(--rule);}
@@ -2058,25 +2119,29 @@ table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size
    (the animation-gated-reveal landmine). */
 .scoreboard{
   position:sticky; top:0; z-index:60;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
+  /* TP-15 · §3.4 has no border token and two shadows, neither of them this:
+     the field keeps its bg1 ground and nothing else */
+  background:var(--bg1); border-radius:var(--r);
   padding:12px 14px; margin-bottom:12px;
-  box-shadow:0 6px 18px rgba(0,0,0,.18);
 }
-.scoreboard .sb-hero{font-family:var(--mono); font-size:17px; font-weight:600; letter-spacing:.02em;}
+.scoreboard .sb-hero{font-family:var(--board); font-size:17px; font-weight:700; letter-spacing:calc(var(--caps) * 1em);}   /* W1 · the game's state in the board face, not mono */
 .scoreboard .sb-chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
 .scoreboard .sbchip{
   display:flex; align-items:center; gap:6px; background:var(--bg2);
   border:1px solid var(--rule); border-radius:9px; padding:5px 8px;
-  font-family:var(--mono); font-size:11.5px; color:var(--mut);
+  font-family:var(--board); font-size:12px; font-weight:600; color:var(--mut);
   font-variant-numeric:tabular-nums;
 }
 .scoreboard .sbchip b{color:var(--ink); font-weight:600;}
 .scoreboard .sbchip .lv{width:6px; height:6px; border-radius:50%; background:var(--pos); flex:none;}
 .scoreboard .sbchip.lead{border-color:var(--gold);}
 .scoreboard .sbchip.lead b{color:var(--gold);}
-.scoreboard .sb-sub{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; margin-top:8px;}
+/* W1 · the sync line is a sentence ("8 scores saved on this phone; they send
+   when you have signal"), so it is set as one — never mono caps (§1.4) */
+.scoreboard .sb-sub{font-family:var(--sans); font-size:13px; line-height:1.4; color:var(--mut); margin-top:8px;}
 .scoreboard.stuck{padding:8px 12px;}
 .scoreboard.stuck .sb-hero{font-size:13.5px;}
+.scoreboard.stuck .sb-chips{display:none;}   /* the rows below say each golfer's line */
 .scoreboard.stuck .sb-sub{display:none;}
 /* ...except when scores are waiting to sync: the stuck face is the one you see
    while scoring, so "8 queued" hid exactly when it mattered */
@@ -2088,10 +2153,16 @@ body.guestlive #onboard{display:none !important;}
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r); padding:12px 14px;
 }
-.holehdr .hnum{font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:.04em;}
-.holehdr .hmeta{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.12em; text-transform:uppercase; margin-top:2px;}
+/* W1 · THE HOLE STICKS UNDER THE BOARD. At 375 the navigator scrolled away
+   under the stuck leader box while the golfer entered scores. It sticks now,
+   directly under the stuck board (its top is set from the board's own stuck
+   height), so the hole and its arrows stay on screen with the rows — one
+   navigator, never a second copy of it. */
+#playEntry .holehdr{position:sticky; top:0; z-index:15;}   /* over the rows, under the board (60) and the header (20) */
+.holehdr .hnum{font-family:var(--board); font-size:24px; font-weight:700; letter-spacing:calc(var(--d2) * 1em);}   /* W1 · displayS, never mono */
+.holehdr .hmeta{font-family:var(--board); font-size:12px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; margin-top:2px;}
 .holehdr button{
-  width:42px; height:42px; border-radius:11px; border:1px solid var(--rule);
+  width:44px; height:44px; border-radius:11px; border:1px solid var(--rule);   /* W1 · §16.2 · was 42 */
   background:var(--bg2); font-size:16px; cursor:pointer; color:var(--mut); flex:none;
 }
 .holehdr button:hover{color:var(--ink);}
@@ -2134,42 +2205,58 @@ body.guestlive #onboard{display:none !important;}
 .prow .nm{flex:1; min-width:0;}
 .prow .nm b{font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:6px;}
 .prow .nm small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.06em;}
-.strokedot{width:6px; height:6px; border-radius:50%; background:var(--gold); display:inline-block; flex:none;}
+.strokedot{width:6px; height:6px; border-radius:50%; background:var(--ink); display:inline-block; flex:none;}   /* W1 · ink: a shot received is not an earning (D359); the row's line names it */
 .prow .tot{font-family:var(--mono); font-size:12px; color:var(--mut); text-align:right; min-width:66px; font-variant-numeric:tabular-nums;}
+/* W1 · TP-22 · THE LIVE ROW IS A ROW. It borrowed `.prow`, whose card rule
+   and whose later people-row rule collided: the fill, the side borders and
+   the radius of a card with its content sitting 0px from its left border.
+   It has its own class now and is the hairline row §3.1 asks for; `.prow`
+   is left to the people rows. The squad-colour bar went too — one orange on
+   every golfer said nothing (and read as ember, D359). */
+.lrow{display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--rule);}
+.lrow:first-child{border-top:0;}
+.lrow .nm{flex:1; min-width:0;}
+.lrow .nm b{font-family:var(--board); font-size:17px; font-weight:600; line-height:1.16; display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
+.lrow .nm small{display:block; margin-top:3px; font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--mut); line-height:1.3;}
+.lrow .tot{flex:none; min-width:52px; text-align:right; font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--mut); line-height:1.3; font-variant-numeric:tabular-nums;}
+.lrow .tot b{display:block; font-size:20px; font-weight:700; letter-spacing:0; color:var(--ink);}
 .step{display:flex; align-items:center; gap:2px; background:var(--bg2); border:1px solid var(--rule); border-radius:10px; flex:none;}
 .step button{width:44px; height:44px; border:none; background:none; font-size:16px; font-weight:600; color:var(--mut); cursor:pointer; border-radius:9px;}
 .step button:hover{color:var(--ink);}
 .step button:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
-.step .sv{font-family:var(--mono); font-size:15px; font-weight:600; min-width:26px; text-align:center; font-variant-numeric:tabular-nums;}
-/* Batch C: the old scorecard notation — under par draws a gold birdie circle */
-.step .sv.birdie{width:28px; height:28px; line-height:28px; min-width:28px; border-radius:50%;
-  color:var(--gold); box-shadow:inset 0 0 0 2px var(--gold);}
+/* W1 · §7.2: the stepper's value is `figure` 20, BARE — no ring and no box.
+   A gold ring between − and + read as "selected", and gold is earned only
+   (D359, D368); the strip above draws the ring for a birdie. */
+.step .sv{font-family:var(--board); font-size:20px; font-weight:700; min-width:28px; text-align:center; font-variant-numeric:tabular-nums; color:var(--ink);}
 .gamecard{
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:14px; margin-bottom:10px; position:relative; overflow:hidden;
 }
-.gamecard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--sq0));}
-.gamecard .gk{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut);}
-.gamecard .gs{font-family:var(--mono); font-size:18px; font-weight:600; margin-top:6px;}
-.gamecard .gm{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:3px;}
+/* UI_SYSTEM §0.3 · the 3.5pt spine left the card edge: the game is named by
+   its own eyebrow (.gk), and a live settlement says "live" in words */
+.gamecard .gk{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
+.gamecard .gs{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); margin-top:6px;}
+.gamecard .gm{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); margin-top:4px; line-height:1.35;}
 .wolfbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
 .wolfbtns button{
   flex:1; min-width:72px; border:1px solid var(--rule); background:var(--bg2);
-  border-radius:9px; padding:9px 6px; font-family:var(--mono); font-size:12px;
-  font-weight:600; color:var(--mut); cursor:pointer;
+  border-radius:9px; padding:9px 6px; font-family:var(--board); font-size:12px; min-height:44px;   /* W1 · board label, 44 (§16.2) */
+  font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); cursor:pointer;
 }
 .wolfbtns button.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
 .wolfbtns button:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .wolftally{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:12px;}
 .wolftally .wt{background:var(--bg2); border:1px solid var(--rule); border-radius:9px; padding:8px 4px; text-align:center;}
-.wolftally .wt b{display:block; font-family:var(--mono); font-size:14px; font-variant-numeric:tabular-nums;}
-.wolftally .wt span{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.08em;}
+.wolftally .wt b{display:block; font-family:var(--board); font-size:20px; font-weight:700; font-variant-numeric:tabular-nums;}   /* W1 · a figure in the figure face */
+.wolftally .wt span{font-family:var(--board); font-size:11px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em);}
 .settle .srow{
-  display:flex; justify-content:space-between; font-family:var(--mono); font-size:13px;
-  color:var(--mut); padding:8px 2px; border-top:1px solid var(--rule);
+  display:flex; justify-content:space-between; gap:12px; font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--mut); padding:8px 2px; border-top:1px solid var(--rule);   /* W1 · names in the board face, not mono */
 }
 .settle .srow:first-child{border-top:none;}
-.settle .srow b{color:var(--ink);}
+.settle .srow b{color:var(--ink); font-size:15px; font-weight:700; letter-spacing:0; font-variant-numeric:tabular-nums;}
 .groupchips{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px;}
 .gchip{
   display:flex; align-items:center; gap:7px;
@@ -2183,8 +2270,12 @@ body.guestlive #onboard{display:none !important;}
 .gchip.add{border-style:dashed; color:var(--mut); background:none; cursor:pointer;}
 .gchip.add:hover{color:var(--ink);}
 .gchip.add:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+/* W1 · the finish's verdict for your card, and each posted card's marker */
+.lrverdict{display:block; margin-top:6px; font-family:var(--board); font-size:13px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--ink); line-height:1.35;}
+.check .num.mk{color:var(--ink);}
 .gtag{
-  font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.1em;
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);
   color:var(--bg0); background:var(--mut); border-radius:4px; padding:2.5px 5px; flex:none;
 }
 
@@ -2202,27 +2293,26 @@ body.guestlive #onboard{display:none !important;}
   padding:16px 40px 16px 18px; margin-bottom:10px; position:relative; overflow:hidden;
   transition:border-color .25s var(--roll);
 }
-.optcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--brand));}
+/* UI_SYSTEM §0.3 · no spine: the live door says LIVE with its word and dot */
 .optcard:hover{border-color:var(--rule); filter:brightness(1.08);}
 .optcard:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .optcard h4{font-size:15px; font-weight:700;}
-.optcard p{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:5px; line-height:1.7; letter-spacing:.02em;}
+.optcard p{font-family:var(--sans); font-size:14px; color:var(--mut); margin-top:5px; line-height:1.45;}   /* W1 · a sentence, not mono (§1.4) */
 .optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--mut); font-size:16px;}
 /* D110: the live door is the hero — ember spine, LIVE word, room to breathe */
 .optcard.live{padding:22px 40px 22px 18px; border-color:var(--rule);}
 .optcard.live h4{font-size:17px;}
 .optcard.live .go{color:var(--brand);}
-.optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.14em; color:var(--brand); margin-bottom:7px;}
-.optcard .livedot{width:7px; height:7px; border-radius:50%; background:var(--brand); animation:cs-livedot 2.2s ease-in-out infinite;}
-@keyframes cs-livedot{0%,100%{opacity:1;} 50%{opacity:.35;}}
-@media (prefers-reduced-motion: reduce){.optcard .livedot{animation:none;}}
+.optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--brand); margin-bottom:7px;}
+/* TP-10 · a running clock is ember and STEADY: §11.4 deleted the bare
+   opacity loop, and this one pulsed forever */
+.optcard .livedot{width:7px; height:7px; border-radius:50%; background:var(--brand);}
 /* live scoring is a diorama until task #11 wires it to real posting — for real
    leagues the card reads "coming soon" and does nothing, so nobody trusts a
    round that would never leave the device. Quick post is the real path. */
 .optcard.soon{opacity:.6; cursor:default;}
-.optcard.soon::before{background:var(--dim);}
 .optcard.soon:hover{border-color:var(--rule); filter:none;}
-.optcard.soon .go{font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.12em; color:var(--mut);}
+.optcard.soon .go{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);}
 /* course search results — type a course, pick a tee, rating+slope autofill */
 .coursedd{margin:6px 0 2px; border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:var(--bg2); max-height:230px; overflow-y:auto;}
 .coursedd button{display:block; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid var(--rule); padding:9px 12px; cursor:pointer; color:var(--ink);}
@@ -2231,8 +2321,8 @@ body.guestlive #onboard{display:none !important;}
 .coursedd button.kbd{background:var(--bg1); outline:2px solid var(--act); outline-offset:-2px;}
 .coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
 .coursedd button span{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
-.coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
-.coursedd .coursedd-back{font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.06em; color:var(--mut); background:var(--bg1); position:sticky; top:0;}
+.coursedd .coursedd-msg{padding:9px 12px; font-family:var(--sans); font-size:14px; line-height:1.4; color:var(--mut);}   /* W1 · a sentence, so not mono (§1.4) */
+.coursedd .coursedd-back{font-family:var(--sans); font-size:13px; font-weight:600; color:var(--mut); background:var(--bg1); position:sticky; top:0;}   /* W1 · a button label, never mono */
 .coursedd .coursedd-back:hover{background:var(--bg1); color:var(--ink);}
 /* THE EVENT IS A TITLE CARD (Wave 6; UI_SYSTEM 15.5, 15.5a).
    The bordered scoreboard card, the 12px tracked-mono clinch line, the 9px
@@ -3060,21 +3150,20 @@ body.guestlive #onboard{display:none !important;}
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:18px; margin-bottom:14px; position:relative; overflow:hidden;
 }
-.livebanner::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--pos);}
+/* UI_SYSTEM §0.3 · no spine: the LIVE eyebrow and its dot carry the state */
 .livebanner .lk{
-  font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase;
+  font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;
   color:var(--pos); display:flex; align-items:center; gap:8px;
 }
 /* the dot no longer loops - it breathes once every 8s via WAAPI (hygiene
    rule: infinite loops are loaders only; the interval lives in script 3) */
 .livebanner .dot{width:8px; height:8px; border-radius:50%; background:var(--pos);}
 .livebanner .ln{font-size:22px; font-weight:700; letter-spacing:-.01em; margin:8px 0 3px;}
-.livebanner .lm{font-family:var(--mono); font-size:12px; color:var(--mut); letter-spacing:.06em;}
+.livebanner .lm{font-family:var(--board); font-size:12px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate) * 1em);}
 .livebanner .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--mut); font-size:16px;}
 /* D86 · the invitation face: someone else's tee sheet, calling you to it.
    Ember (the live layer's colour — gold stays the earned face) and a JOIN
    word instead of the resume arrow. */
-.livebanner.invite::before{background:var(--brand);}
 .livebanner.invite .lk, .livebanner.invite .dot{color:var(--brand); background:none;}
 .livebanner.invite .dot{background:var(--brand);}
 .livebanner.invite .go{
@@ -3084,7 +3173,7 @@ body.guestlive #onboard{display:none !important;}
 #rosterChips{display:flex; flex-wrap:wrap; align-items:center;}
 #rosterChips .gchip{margin:0 6px 6px 0;}
 .rlab{
-  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
   color:var(--mut); margin:12px 0 8px; width:100%;
 }
 .rlab:first-child{margin-top:0;}
@@ -3168,7 +3257,7 @@ body.guestlive #onboard{display:none !important;}
 .pslot.empty{border-style:dashed; background:none;}
 .pslot .sn{font-size:13px; font-weight:700; display:flex; align-items:center; gap:6px;}
 .pslot.empty .sn{color:var(--mut); font-weight:500; font-size:12px;}
-.pslot .si{font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:4px; letter-spacing:.06em;}
+.pslot .si{font-family:var(--board); font-size:11px; font-weight:600; color:var(--mut); margin-top:4px; letter-spacing:calc(var(--agate-s) * 1em);}
 .pslot .sx{
   position:absolute; top:-6px; right:-6px; width:44px; height:44px;   /* §16.2 · was 22×21; centred where the glyph sat */
   display:flex; align-items:center; justify-content:center; border:none; background:none;
@@ -3278,16 +3367,21 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   font-variant-numeric:tabular-nums; font-size:12.5px; width:100%;}
 .rcard + .rcard{margin-top:12px;}
 .rcard td{padding:2px 0; text-align:center; white-space:nowrap; min-width:26px;}
-.rcard td.k{text-align:left; color:var(--leaf-mut); font-size:11px;
-  letter-spacing:.08em; text-transform:uppercase; width:44px;}
+.rcard td.k{text-align:left; color:var(--leaf-mut); font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; width:44px;}   /* W1 · columnS 12px floor */
 .rcard tr.key td{color:var(--leaf-mut); border-bottom:1px solid rgba(26,27,20,.16);}
 /* the tenth column's HEAD is a column head like the row keys are, and reads in
    the same voice — OUT / IN / TOT, never Out / In / Tot */
-.rcard tr.key td.tot{text-transform:uppercase; letter-spacing:.08em; font-size:11px;}
+.rcard tr.key td.tot{text-transform:uppercase; letter-spacing:.08em; font-size:12px;}
 .rcard tr.quiet td{color:var(--leaf-mut);}
 .rcard tr.score td{color:var(--leaf-ink); font-size:14.5px; font-weight:600;}
 .rcard td.tot{text-align:right; width:40px;}
-.rcard tr.score td.up{color:var(--leaf-gold);}
+/* W1 · §9.4's paper marks in leaf ink: ring · double ring · box · double box.
+   The second ring or box is the leaf's own paper between two ink strokes. */
+.rcard tr.score td .mk{display:inline-grid; place-items:center; width:20px; height:20px; box-sizing:border-box;
+  border:1.5px solid currentColor; line-height:1; font-variant-numeric:tabular-nums;}
+.rcard tr.score td.bd .mk, .rcard tr.score td.eg .mk{border-radius:50%;}
+.rcard tr.score td.eg .mk, .rcard tr.score td.db .mk{box-shadow:0 0 0 1.5px var(--leaf), 0 0 0 3px currentColor;}
 /* THE SCORE AS AN OBJECT: two rule-and-figures on one baseline, the numeral
    over a 2pt rule with an agate label beneath. No panel, no card, no plate -
    the numeral and its rule ARE the object (16). */
@@ -3301,6 +3395,13 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .rcpt-figs .f small{font-family:var(--board); font-size:11px; letter-spacing:.08em;
   text-transform:uppercase; color:var(--mut);}
 .rcpt-figs .f.g{width:132px;} .rcpt-figs .f.p{width:76px;}
+/* W1 · the verdict's words beside the points: which league, where in the month */
+.rcpt-figs .lens{flex:1; min-width:0; margin:0 0 1px; font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); line-height:1.3; color:var(--mut);}
+/* §7.1 · destructive, armed: bg2 fill (the .mini), neg label — 4.58:1 / 4.62:1 */
+.mini.del{color:var(--neg);}
+/* S9 · the photo row's one sentence, in the body face and the quiet ink */
+.rcpt-photogone{color:var(--mut); flex:1 1 180px;}
 .mathrow{
   display:flex; justify-content:space-between; gap:12px; align-items:baseline;
   font-family:var(--mono); font-size:13px; padding:9px 2px; border-top:1px solid var(--rule);
@@ -3329,8 +3430,10 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .rdrow.cut{color:var(--mut);}   /* displaced rounds are named by their section head; the words stay readable */
 .rdrow .rn{flex:1; min-width:0;}
 .rdrow .rn b{font-size:13px; font-weight:600; display:block;}
-.rdrow .rn small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.06em;}
-.rdrow .rp{font-family:var(--mono); font-size:15px; font-weight:600; color:var(--pos);}
+/* W1 · the golfer's line is a phrase: the agate face in sentence case, 12px */
+.rdrow .rn small{display:block; font-family:var(--board); font-size:12px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate) * 1em); line-height:1.3; margin-top:2px;}
+/* points are ink: pos is movement up, and a points figure is not movement */
+.rdrow .rp{font-family:var(--board); font-size:20px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums;}
 .rdrow.cut .rp{color:var(--mut);}
 .cuttag{
   font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--mut);
@@ -4678,8 +4781,6 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 /* no min-width: two grosses right-flush in a flex row already share an edge,
    and 2.6em at `figure` 27 reserved 70px for a two-digit number. */
 .yrowg{flex:0 0 auto; color:var(--ink); text-align:right;}
-.yrow .ydel{flex:none; background:none; border:0; color:var(--mut); cursor:pointer; line-height:1;
-  min-width:44px; min-height:44px; margin:-10px -12px -10px 0; display:inline-flex; align-items:center; justify-content:center; padding:0;}   /* §16.2 · was ~20 */
 /* THE RECORD, printed on a leaf — `year · competition · finish`. The money
    column is DROPPED rather than zeroed: `season_payouts` holds no rows in
    prod, and four zeroes is not a table (profile.md §14.2). A WIN takes the
@@ -6030,7 +6131,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <div id="matchPrev" class="fine" style="padding:10px 0 0"></div>
             </div>
           </div>
-          <button class="btn" id="teeOffBtn">Tee off →</button>
+          <button class="btn" id="teeOffBtn">Tee off</button><!-- W1 · the phone's own label; no typed arrow (§5.2) -->
         </div>
 
         <div id="playLive">
@@ -6071,7 +6172,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                button and five lines of teaching copy. Wide puts finish back
                under the entry column and the games alongside, unchanged. -->
           <div class="pggames">
-            <div class="eyebrow">Side games · tracked live, settled between friends</div>
+            <div class="eyebrow sg-head">Side games · tracked live, settled between friends</div>
             <div class="gamecard" id="matchCard" style="--acc:var(--sq0)">
               <div class="gk" id="matchTeams">Match play · net best ball · You + Danny vs Chuck + Gary</div>
               <div class="gs" id="matchStatus">ALL SQUARE</div>
@@ -6094,6 +6195,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <div class="gk">Round settlement · live</div>
               <div class="settle" id="settle"></div>
             </div>
+            <!-- W1 · D234 · the desk's second column carries the card: every
+                 hole, every golfer, on the leaf, beside the hole being entered.
+                 It left the right half empty on a round with no side game. -->
+            <div id="deskCard" aria-live="off"></div>
           </div>
           <div class="pgfinish">
             <button class="mini" id="groupShareBtn" style="margin-top:8px">Group phones</button>
@@ -6131,6 +6236,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                 <div class="posthero-num">
                   <label class="f" for="inGross">Your gross</label>
                   <input class="grossbox" id="inGross" type="number" inputmode="numeric" placeholder="&mdash;" autocomplete="off">
+                  <!-- W1 · ONE GROSS, ONE PLACE: when the nines are filled they
+                       answer for the hero, which shows their sum read-only and
+                       says so here (it stayed a dash over a card posting 83) -->
+                  <p class="grossfrom" id="postGrossFrom" hidden></p>
                 </div>
                 <div class="postcam" id="postPhotoRow" style="display:none">
                   <div class="postplate">
@@ -6146,7 +6255,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <input type="file" id="postPhotoFile" accept="image/*" style="display:none">
               <input type="file" id="postScanFile" accept="image/*" capture="environment" style="display:none">
               <button type="button" class="inheritline" id="postInherit" aria-expanded="false" aria-controls="postCardFold">
-                <span id="postInheritText">Add the course</span><span class="edit" id="postInheritEdit">edit</span>
+                <span class="il-k">Course · tee · day</span>
+                <span class="il-v"><span id="postInheritText">Add the course</span><span class="edit" id="postInheritEdit">edit</span></span>
               </button>
               <!-- D239 - who was out there. Optional, bounded by the golfers
                    you actually play with, and never a vouch (L-19). -->
@@ -6209,10 +6319,15 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                 <label class="f" for="inDate">Date</label><input class="f" id="inDate" type="date">
               </div>
               </div><!-- /postCardFold -->
-              <!-- F2: the live gross reads at a glance right above Post, so an
-                   untouched (even-par) card is visible before the tap -->
-              <div id="postGrossLine" style="margin-top:12px; padding:10px 12px; border:1px solid var(--rule); border-radius:10px; background:var(--bg2); font-weight:700; font-size:15px; text-align:center; color:var(--ink)">—</div>
-              <div style="height:12px"></div>
+              <!-- W1 · the bordered "Gross 83 · 18 holes" line that sat here read
+                   as a second button and printed the gross a second time; the
+                   hero carries it now (F2's untouched even-par card is still
+                   caught by the "Post as even par?" sheet). What sits over the
+                   action is the action's own answer: a post the server did not
+                   take stays here, tied to the button (aria-describedby), until
+                   the card changes. It was a 2.4 s toast, and focus fell to the
+                   page. -->
+              <p class="posterr" id="postErr" role="alert" hidden></p>
               <button class="btn" id="postBtn">Add my round</button>
               <!-- abandonment is a real path, not a refresh: one tap empties the
                    card (pilot: a tested/half-filled composer lingered for days) -->
@@ -6227,7 +6342,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <div class="msg" id="calcMsg">Enter your gross to see the points.</div>
               <div class="trio">
                 <div><b id="calcGross">–</b><span>Gross</span></div>
-                <div><b id="calcVs">–</b><span>your playing HCP</span></div>
+                <div><b id="calcVs">–</b><span>vs your playing HCP</span></div>
               </div>
               <!-- painted by recalc() from seasonNote('long') — never retyped here (D297) -->
               <p class="fine" id="calcSeason" style="padding:8px 0 0"></p>
@@ -7751,7 +7866,11 @@ function csRenderComposerEyebrow(){
                                          : ss === 'no_league' ? 'This round would score' : 'This round';
   const door = document.getElementById('postBandsDoor'), card = document.getElementById('postBandsCard');
   if(door && card && !door.dataset.touched){
-    const open = ss === 'live';
+    /* W1 · on the desk the table sits in the aside beside the form and costs
+       nothing; on a phone it was 300px under a card that already says its
+       points (the filled composer ran 2,344px at 375), so there it waits
+       behind its named door for everyone, as it does for a first round */
+    const open = ss === 'live' && matchMedia('(min-width:960px)').matches;
     door.setAttribute('aria-expanded', String(open));
     card.hidden = !open;
   }
@@ -10579,9 +10698,33 @@ function leagueAllowance(){
   return [100,95,90][state.preset] ?? 100;
 }
 /* the engine rounds the whole expression to 1dp — match it exactly, or the
-   band edges (>=3, >=1, >-1, >=-3) disagree at the boundary */
+   band edges (>=3, >=1, >-1, >=-3) disagree at the boundary.
+   W1 · EXACTLY: the engine is `round((index_at_post * allowance / 100.0) -
+   differential, 1)` in numeric — half AWAY from zero — against the STORED
+   differential (csServerDiff below). Math.round is half toward +∞ and a float
+   can land a hair under a tenth, so this works in integers. */
+function csRoundHalfAway(num, den){
+  const sign = (num < 0) !== (den < 0) ? -1 : 1;
+  const n = Math.abs(num), d = Math.abs(den);
+  return sign * Math.floor((2 * n + d) / (2 * d));
+}
 function pviFor(index, diff){
-  return Math.round((index * leagueAllowance() / 100 - diff) * 10) / 10;
+  const i10 = Math.round(Number(index) * 10), a1000 = Math.round(Number(leagueAllowance()) * 1000);
+  const d10 = Math.round(Number(diff) * 10);
+  return csRoundHalfAway(i10 * a1000 - d10 * 100000, 100000) / 10;
+}
+/* W1 · THE DIFFERENTIAL THE SERVER STORES. `score_round` writes
+   round((gross − rating) × 113 / slope, 1) — and for a nine
+   round(((gross − nine_rating) × 113 / slope) × 2, 1) — and the band is read
+   against that stored figure. The preview subtracted the UNROUNDED value, so
+   one card previewed "beat by 1.4" and posted "by 1.5", and at a band edge
+   (14.2 at 95%, 82 on 68.9/118: 0.9 raw, 1.0 stored) promised 7 points where
+   the table pays 9. Integers throughout: hundredths of a stroke over the slope. */
+function csServerDiff(gross, rating, slope, nine){
+  const sl = Math.round(Number(slope));
+  if(!(sl > 0)) return NaN;
+  const g100 = Math.round(Number(gross) * 100), r100 = Math.round(Number(rating) * 100);
+  return csRoundHalfAway((g100 - r100) * 113 * (nine ? 2 : 1), sl * 10) / 10;
 }
 function pointsFor(vs){
   /* Q-20 · these bands are ONE rule (§2.2) with two implementations, and they
@@ -12221,7 +12364,10 @@ function postInputs(){
    it means. The one box wins while the card is closed and on eighteen; the
    nines answer otherwise, on the rules they always had (D72). */
 function postEntry(){
-  const whole = parseFloat($('#inGross')?.value) || 0;
+  /* W1 · a hero the nines are answering for (read-only, `data-derived`) is
+     their sum, never a second statement: it is not read as the one box */
+  const gEl = $('#inGross');
+  const whole = (gEl && gEl.dataset.derived) ? 0 : (parseFloat(gEl?.value) || 0);
   /* THE CARD WINS: a golfer who opened the fold and typed their nines has made
      the more specific statement. The one box answers when they have not. */
   const {f9,b9}=postInputs();
@@ -12245,6 +12391,43 @@ function csInheritText(){
 }
 function renderInheritLine(){
   const t=$('#postInheritText'); if(t) t.textContent=csInheritText();
+}
+/* W1 · ONE GROSS, ONE PLACE. The nines are the more specific statement and
+   they win (postEntry); the hero shows what they add up to, read-only while
+   they answer, with its caption saying so, and gives the box back the moment
+   they are cleared. It stayed a dash over a card that was about to post 83. */
+function csPostHero(entry){
+  const g=$('#inGross'), from=$('#postGrossFrom'); if(!g) return;
+  const {f9,b9}=postInputs();
+  const nines = state.post.mode==='holes' || f9>0 || b9>0;
+  if(nines && entry){
+    g.value = String(Math.round(entry.gross));
+    g.readOnly = true; g.dataset.derived = '1';
+    if(from){
+      from.textContent = state.post.mode==='holes'
+        ? (entry.holes===9 ? 'From your card · nine holes, half value' : 'From your card, hole by hole')
+        : entry.holes===9 ? 'From your nine · half value, half a round'
+        : `From your nines · ${f9} out, ${b9} in`;
+      from.hidden = false;
+      g.setAttribute('aria-describedby','postGrossFrom');
+    }
+  } else if(g.dataset.derived){
+    g.value = ''; g.readOnly = false; delete g.dataset.derived;
+    if(from){ from.textContent=''; from.hidden = true; }
+    g.removeAttribute('aria-describedby');
+  }
+}
+/* the action's answer, above the action and tied to it; any change to the
+   card is the golfer answering it, so the line goes with the change */
+function csPostError(msg){
+  const el=$('#postErr'), btn=$('#postBtn'); if(!el) return;
+  if(msg){
+    el.textContent = msg; el.hidden = false;
+    btn?.setAttribute('aria-describedby','postErr');
+  } else if(!el.hidden){
+    el.textContent = ''; el.hidden = true;
+    btn?.removeAttribute('aria-describedby');
+  }
 }
 function togglePostFold(open){
   const fold=$('#postCardFold'), btn=$('#postInherit'), edit=$('#postInheritEdit');
@@ -12334,6 +12517,7 @@ function recalc(){
   const {f9,b9}=postInputs();
   const entry=postEntry();
   renderInheritLine();
+  csPostHero(entry);   /* W1 · one gross, one place */
   /* Q-22 · a BLANK rating used to fall to 0 and be scored as one, so a 91 with
      no tee picked previewed "-75.8 vs your index · 5 pts" and Post stayed
      live. A course with no rating cannot be scored; say so instead of
@@ -12343,7 +12527,7 @@ function recalc(){
     $('#calcMsg').textContent='Pick a tee — or type the rating and slope — to see the points.';
     $('#calcGross').textContent=String(Math.round(entry ? entry.gross : 0) || '–');
     $('#calcVs').textContent='—';
-    const glr=$('#postGrossLine'); if(glr){ glr.textContent=''; glr.style.display='none'; }   /* D297 · silent until it has a gross */
+    const snr=$('#calcSeason'); if(snr) snr.textContent='';   /* no stale worth line under a card that cannot be scored */
     /* D234 · the card is IN and the rating is not. Q-22 already stops the post
        (an unrated round cannot be scored and must never be scored as a zero),
        but the button then said "Enter at least one nine first" — a sentence
@@ -12357,7 +12541,7 @@ function recalc(){
   let diff, vs, pts, msg, gross, label;
   if(entry && entry.holes===18){
     gross=entry.gross;
-    diff=(gross-rating)*113/slope;
+    diff=csServerDiff(gross, rating, slope, false);   /* W1 · the stored figure, not the raw one */
     vs=pviFor(state.myIndex, diff);          /* D174 · at the league's allowance */
     [pts,msg]=pointsFor(vs);
     label=`${gross} GROSS`;
@@ -12369,7 +12553,7 @@ function recalc(){
        from a 9-hole tee (rating9) or half the 18-hole rating (the approximation
        when you played a partial nine of an 18-hole course). Slope is used as-is. */
     const rating9 = state.post.rating9 ? rating : rating/2;
-    diff=((g9-rating9)*113/slope)*2;
+    diff=csServerDiff(g9, rating9, slope, true);      /* W1 · as score_round stores a nine */
     vs=pviFor(state.myIndex, diff);          /* D174 · at the league's allowance */
     const base=pointsFor(vs);
     pts=Math.ceil(base[0]/2);
@@ -12378,7 +12562,7 @@ function recalc(){
   } else {
     $('#calcPts').textContent='–'; $('#calcMsg').textContent='Enter your gross.';
     $('#calcGross').textContent='–'; $('#calcVs').textContent='–';
-    const gl0=$('#postGrossLine'); if(gl0){ gl0.textContent=''; gl0.style.display='none'; }
+    const sn0=$('#calcSeason'); if(sn0) sn0.textContent='';   /* the worth line speaks for a card, and there is none */
     state.postBlocked='card';
     state.lastPost=null; return;
   }
@@ -12398,32 +12582,39 @@ function recalc(){
      shut suppresses the figure. */
   const _shows = (_ss === 'live' || _ss === 'no_league');
   const _k = document.querySelector('.calc .k');
-  if(_k) _k.textContent = _ss === 'live' ? 'League points this round'
+  /* W1 · the preview is scored at the OPEN league's allowance, so a golfer in
+     more than one league is told which league the figure is (D387's rule for
+     the receipt, said before the post) */
+  const _many = (window.CS?.memberships||[]).length > 1 && !!window.CS?.league?.name;
+  if(_k) _k.textContent = _ss === 'live' ? (_many ? 'Points in ' + window.CS.league.name : 'League points this round')
                         : _ss === 'no_league' ? 'This round would score' : 'This round';
   const _sn = $('#calcSeason');
   if(_sn){
-    /* D362 · live season: what this round can add under the league's own cap,
-       from the engine's rows; otherwise the season note says why it does not */
+    /* D362 · live season: what this round does under the league's own cap,
+       from the engine's rows; otherwise the season note says why it does not.
+       W1 · with the card's own points, never the ceiling: "a 12 would add 6"
+       under a card that scores 9 was arithmetic left to the golfer. */
     const on = $('#inDate')?.value || null;
-    const worth = _ss === 'live' ? csComposerWorthLine(on) : null;
+    const known = _shows ? pts : null;
+    const worth = _ss === 'live' ? csComposerWorthLine(on, undefined, known) : null;
     _sn.textContent = worth || seasonNote('long') || 'Counts in every league you\u2019re in.';
     /* and ask the server; when its answer lands for this same date, say it */
     if(_ss === 'live') csLoadMyCounters(on).then(c => {
       if(!c || c.rows==null) return;
       const now = $('#inDate')?.value || null;
       if(String(now||isoOf(new Date())).slice(0,10) !== c.on) return;
-      const w = csComposerWorthLine(now); if(w && _sn.isConnected) _sn.textContent = w;
+      const w = csComposerWorthLine(now, undefined, state.lastPost ? state.lastPost.pts : null); if(w && _sn.isConnected) _sn.textContent = w;
     });
   }
   $('#calcVs').textContent=vsShort(vs);   /* Q-23: words, not a sign */
   $('#calcVs').style.color = vs>-1 ? 'var(--pos)' : 'var(--neg)';
   $('#calcPts').textContent = _shows ? pts : '—';
   $('#calcMsg').textContent = _ss === 'live' ? msg : (msg + ' ' + seasonNote('short') + '.');
-  const gl=$('#postGrossLine');
-  if(gl){ gl.style.display=''; gl.textContent = `Gross ${gross} · ${label.includes('9 HOLES')?'9 holes · half value':'18 holes'}`; }
   state.lastPost={pts, vs, label};
 }
 ['inRating','inSlope','inF9','inB9','inGross'].forEach(id=>$('#'+id)?.addEventListener('input',recalc));
+/* W1 · the golfer answering a refused post is the golfer changing the card */
+['inRating','inSlope','inF9','inB9','inGross','inCourse','inDate'].forEach(id=>$('#'+id)?.addEventListener('input',()=>csPostError(null)));
 $('#inCourse')?.addEventListener('input', renderInheritLine);
 $('#inDate')?.addEventListener('input', renderInheritLine);
 $('#postInherit')?.addEventListener('click', ()=>togglePostFold());
@@ -12489,7 +12680,8 @@ const POST_TYPED = ['inGross','inF9','inB9','inRating','inSlope','inCourse'];
 const POST_FIELDS = POST_TYPED.concat(['inDate']);
 function postReadFields(){
   const v = {};
-  POST_FIELDS.forEach(id => { const e=$('#'+id); if(e) v[id]=e.value; });
+  /* W1 · a hero the nines answer for is their sum, not something typed */
+  POST_FIELDS.forEach(id => { const e=$('#'+id); if(e) v[id] = (id==='inGross' && e.dataset.derived) ? '' : e.value; });
   return v;
 }
 /* The golfer put something here — the one predicate the save and the restore
@@ -12713,7 +12905,20 @@ function openPostParsSheet(){
   refresh();
   f9.focus();
 }
+/* W1 · a post that did not go: the sentence above the button, the button live
+   again, and focus ON it (disabling a focused button drops focus to the page,
+   which is where the audit found it) so a screen reader lands on the action
+   and reads the sentence it is described by */
+function csPostRefused(msg){
+  const btn=$('#postBtn');
+  csPostError(msg);
+  if(btn){
+    btn.disabled=false;
+    try{ btn.focus({ preventScroll:true }); btn.scrollIntoView({ block:'nearest' }); }catch(_){}
+  }
+}
 $('#postBtn').addEventListener('click', async ()=>{
+  csPostError(null);
   if(!state.lastPost){
     /* D234 · say which field is missing, and mark it. A hand-typed course has
        no tee to pick, so the rating and slope are the golfer's to type — and
@@ -12775,6 +12980,7 @@ $('#postBtn').addEventListener('click', async ()=>{
     const nine = (entry ? entry.holes : 18) === 9;
     const holesMode = state.post.mode==='holes';
     const btn=$('#postBtn'); btn.disabled=true;
+    let accepted=false;   /* W1 · after this the round IS posted, whatever else fails */
     try {
       const payload = {
         gross: entry ? entry.gross : 0,
@@ -12828,8 +13034,8 @@ $('#postBtn').addEventListener('click', async ()=>{
         try{ if(window.openRoundSheet) window.openRoundSheet(landed); }catch(_){}
       };
       if(plan === 'stop'){
-        toast('The record of your last post attempt in this browser can’t be read, so nothing was sent. Post from your phone, or clear this site’s storage to start over.');
-        btn.disabled=false; return;
+        csPostRefused('The record of your last post attempt in this browser can’t be read, so nothing was sent. Post from your phone, or clear this site’s storage to start over.');
+        return;
       }
       if(plan === 'finish'){
         /* It posted. Finish the intent EXACTLY ONCE — clearing the id and
@@ -12860,8 +13066,8 @@ $('#postBtn').addEventListener('click', async ()=>{
         /* the envelope is written BEFORE the call; a write that fails stops here */
         try{ postRequestWrite(uid, rec); }
         catch(_){
-          toast('Couldn’t keep a record of this post in this browser, so it wasn’t sent. Free up storage and press Post again.');
-          btn.disabled=false; return;
+          csPostRefused('Couldn’t keep a record of this post in this browser, so it wasn’t sent. Free up storage and press Add my round again.');
+          return;
         }
       }
       let acceptedRecorded = true;
@@ -12873,13 +13079,13 @@ $('#postBtn').addEventListener('click', async ()=>{
         if(oerr) throw oerr;
         rpcRound = once && once.round;
         if(!rpcRound || !rpcRound.id) throw new Error('post_round_once returned no round id');
-        rrow = { id: rpcRound.id };
+        rrow = { id: rpcRound.id }; accepted = true;
         epiFromRpc = (once && once.epilogue) || null;
         holesWritten = true;   /* written inside the accepting transaction */
         acceptedRecorded = postRequestAccepted(uid, rrow.id);
         payload.photo_path = env.payload.photo_path || null;   /* the path that actually posted */
       }catch(e0){
-        if(missingFn(e0)){ toast('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); btn.disabled=false; return; }
+        if(missingFn(e0)){ csPostRefused('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); return; }
         const text0 = String(e0 && (e0.message || e0) || '').toLowerCase();
         if(text0.includes('different scorecard')){
           /* the earlier body under this id already landed. Find the round that
@@ -12891,20 +13097,22 @@ $('#postBtn').addEventListener('click', async ()=>{
             if(serr) throw serr;
             landed = status && status.round && status.round.id;
           }catch(se){
-            if(missingFn(se)){ toast('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); btn.disabled=false; return; }
+            if(missingFn(se)){ csPostRefused('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); return; }
           }
           if(landed){
             postRequestAccepted(uid, landed);
             await finishPostedRound(landed, 'Your earlier card had already posted — here it is. To change it, delete that round from your history and post again.');
             btn.disabled=false; return;
           }
-          toast('Your earlier card may already have posted. Check your history before changing it — pressing Post again retries the same round.');
-          btn.disabled=false; return;
+          csPostRefused('Your earlier card may already have posted. Check your history before changing it — pressing Add my round again retries the same round.');
+          return;
         }
         const ambiguous0 = /failed to fetch|networkerror|network request|load failed|timed out|timeout|offline|could not connect|cancel|connection/.test(text0);
+        /* W1 · the button's own name, and a refusal never ends in the generic
+           shrug: "fix it" and "try again" were two opposite instructions, and
+           neither said what to fix */
         throw Object.assign(e0 instanceof Error ? e0 : new Error(String(e0 && e0.message || e0)),
-                            { csPrefix: ambiguous0 ? 'Couldn’t confirm the post. Press Post again to retry the same round.'
-                                                   : 'The server refused this card — nothing was posted. Fix it and press Post again; it’s still the same round.' });
+                            { csKind: ambiguous0 ? 'ambiguous' : 'refused' });
       }
       if(!acceptedRecorded) toast('Round posted. Couldn’t record that in this browser — don’t post it again.');
       /* everything from here to the clear is narration; none of it may leave
@@ -13056,7 +13264,20 @@ $('#postBtn').addEventListener('click', async ()=>{
           });
         } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
       }
-    } catch(e){ toast(humanError(e, (e && e.csPrefix) || 'Post failed.')); }
+    } catch(e){
+      /* W1 · the answer stays above the button it answers. The server's own
+         sentence when it wrote one for a golfer; an honest unknown when not.
+         A failure AFTER the server took the round is not "nothing was posted". */
+      if(accepted){ toast(humanError(e, 'Round posted.')); return; }
+      const why = humanError(e, null);
+      const shrug = /^Something went wrong/.test(why);
+      csPostRefused(e && e.csKind === 'ambiguous'
+          ? 'Couldn’t confirm the post. Press Add my round again to retry the same round — it can’t post twice.'
+        : e && e.csKind === 'refused'
+          ? (shrug ? 'The server didn’t accept this card and didn’t say why. Nothing was posted, and your card is kept — press Add my round to try again.'
+                   : 'Nothing was posted: ' + why.replace(/\.?$/, '.') + ' Your card is kept.')
+        : 'Nothing was posted: ' + why.replace(/\.?$/, '.') + ' Your card is kept.');
+    }
     finally { btn.disabled=false; }
     return;
   }
@@ -13262,7 +13483,7 @@ function scanPartnersSheet(ctx){
   openSheet('Send their rounds','ONE SCAN, THE WHOLE GROUP',
     `<p class="fine" style="padding:0 0 10px">Your partners’ rows came off the same card. Send each a link — one tap and the round posts to their rounds.</p>`
     + rows.map((p,i)=>
-      `<div class="check"><span class="num">🎟️</span><div class="tt">
+      `<div class="check"><span class="num" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span><div class="tt">
         <b>${esc(p.name||('Golfer '+(i+1)))}</b><small>${p.total?p.total+' GROSS':'PARTIAL CARD'}</small></div>
         <button class="mini" data-scl="${i}" style="flex:none">Copy link</button></div>`).join(''));
   $('#shBody').querySelectorAll('[data-scl]').forEach(b=>b.addEventListener('click', async ()=>{
@@ -13394,10 +13615,17 @@ function paintCourseHint(){
   if(!el || !hint) return;
   const typed = (el.value||'').trim();
   const picked = !!el.dataset.courseId;
+  /* W1 · the last-courses shortcuts are for an EMPTY field, as on the phone
+     (PostRoundScreen: "only while the search field is empty, so recents never
+     read as stuck search results"); typed text has the search */
+  const chips = document.getElementById('courseChips'); if(chips) chips.hidden = !!typed;
   if(!typed || picked){ hint.style.display='none'; return; }
   hint.style.display='';
   hint.style.color='var(--mut)';
-  hint.innerHTML = 'Unlisted course — the round counts in full. It just won\u2019t show in your rounds or match you with other golfers who\u2019ve played it.';
+  /* W1 · D150's real consequence, and only that: an unlisted round is in the
+     golfer's rounds like any other. It said the round "won't show in your
+     rounds", which told the muni golfer their round would vanish. */
+  hint.innerHTML = 'Unlisted course — the round counts in full and sits in your rounds. It just won\u2019t join this course\u2019s history or match you with golfers who\u2019ve played it.';
 }
 /* ── D261 / R-N · THE COURSES THIS DEVICE KEEPS ─────────────────────────────
    The owner's escalation was an airplane and a dead app: nothing about a
@@ -13672,7 +13900,10 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
     const local = [...saved, ...(cached||[]).filter(c=>!seenSaved.has(c.id))].slice(0,12);
     /* paint cached hits immediately — but never yank the user out of the tee
        list, and never let a stale response overwrite a newer query */
-    const fresh = () => lastQ===q && dd.dataset.stage!=='tees';
+    /* W1 · and only while the golfer is still in the field: a late answer
+       reopened "No match" after focus had moved on to the date (the blur had
+       already closed it) and it sat there, boxed like an input */
+    const fresh = () => lastQ===q && dd.dataset.stage!=='tees' && document.activeElement===input;
     if(local.length && fresh()){ courses=local; offline = cached===null; showCourses(); }
     try {
       const { data, error } = await window.sb.functions.invoke('courses', { body:{ action:'search', q } });
@@ -14397,7 +14628,8 @@ function renderCourt(slots){
         && (T[0].includes(_crtPicked)) !== (T[0].includes(k));
       c.className='crtchip'+(k===_crtPicked?' picked':'')+(tradeable?' cantrade':'');
       c.dataset.pos=k;
-      c.innerHTML=`<div><b>${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</b>
+      /* W1 · ink chips here too: the court is the grouping; the squad dot was the raw SQHEX orange (D359) */
+      c.innerHTML=`<div><b>${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:''}${esc(p.n)}</b>
         <small>${p.est?'EST ':''}${fmtIdx(p.i)} NUMBER</small></div>
         ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
       courtDrag(c);
@@ -15096,7 +15328,11 @@ window.liveSyncBadge = function(){
   if(!L.code){ el.textContent='Scoring it yourself · live on this phone'; return; }
   const n=Math.max(1,(state.livePresence||[]).length);
   const q=window.liveSync?.queued?.()||0;
-  el.textContent = `${n} scoring · ${q ? q+' queued' : 'synced'}`;
+  /* W1 · what is and is not saved, in words: "8 QUEUED" did not say the
+     scores were safe on this phone, or when they would go */
+  el.textContent = q
+    ? `${q} score${q===1?'':'s'} saved on this phone; ${q===1?'it sends':'they send'} when you have signal.`
+    : (n>1 ? `${n} phones scoring · every score sent` : 'Every score sent');
   el.classList.toggle('is-queued', q > 0);
 };
 /* the guest pencil: a claim link opened MID-ROUND. Token is identity — no
@@ -15457,18 +15693,19 @@ function renderHoleCard(){
 
   LIVE.forEach((pl, pi) => {
     const sc = state.live.scores[pi];
-    html += '<tr><td class="nm"><span class="sw" style="background:' +
-      (pl.guest ? 'var(--dim)' : SQHEX[pl.ci]) + '"></span>' + esc(pl.n) + '</td>';
+    html += '<tr><td class="nm">' + esc(pl.n) + '</td>';   /* W1 · no squad swatch */
     let gross = 0, parPlayed = 0;
     for(let h = 0; h < H; h++){
       const v = sc[h];
-      const cls = v == null ? '' : (v < par[h] ? 'bird' : (v > par[h] ? 'bog' : ''));
+      /* W1 · §9.4: ring, double ring, box, double box — shape, not colour */
+      const dv = v == null ? 0 : v - par[h];
+      const cls = v == null ? '' : dv <= -2 ? 'eg' : dv === -1 ? 'bd' : dv === 1 ? 'bg' : dv >= 2 ? 'db' : '';
       /* pips come off the SI. When SIEST the order is a GUESS, and the SI row
          above already refuses to print a guess — the pips refuse for the same
          reason rather than quietly asserting a shot on the wrong hole. */
       const st = siReal ? strokeOn(pi, h) : 0;
       const stc = st > 1 ? ' stk stk2' : st > 0 ? ' stk' : '';
-      html += `<td class="${cls}${stc}">${v == null ? '–' : v}</td>`;
+      html += `<td class="${cls}${stc}">${v == null ? '–' : (cls ? `<span class="mk">${v}</span>` : v)}</td>`;
       if(v != null){ gross += v; parPlayed += par[h]; }
       if(h === half - 1) html += `<td class="brk">${sum(sc,0,half) || '–'}</td>`;
     }
@@ -15496,7 +15733,7 @@ function renderHoleCard(){
   html += '</tbody></table></div>';
   html += `<p class="fine" style="padding-top:8px">${
     led ? 'The strip is the side game — filled took the hole, hollow halved or carried. '
-        : ''}${siReal ? 'A gold pip marks a hole you get a shot on. ' : 'Stroke index is estimated for this card, so it is not shown. '}Tap a hole number to jump there.</p>`;
+        : ''}${siReal ? 'A dot marks a hole you get a shot on. ' : 'Stroke index is estimated for this card, so it is not shown. '}Tap a hole number to jump there.</p>`;
   box.innerHTML = html;
 
   box.querySelectorAll('thead th').forEach((th, i) => {
@@ -15920,8 +16157,7 @@ function renderPlay(){
     strip.className='holestrip';
     strip.removeAttribute('aria-hidden');
     strip.innerHTML = `<div class="cells">${cells}</div><div class="rule"></div><div class="ticks">${ticks}</div>
-      <div class="key"><span><s class="u"></s>under</span><span><s class="l"></s>level</span><span><s></s>over</span>
-        <b>${doneN ? `Your card \u00b7 ${grossN} thru ${doneN}` : 'Nothing in yet'}</b></div>`;
+      <div class="key"><span><s class="u"></s>under</span><span><s class="l"></s>level</span><span><s></s>over</span></div>`;   /* W1 · "Your card · 22 thru 5" was the third print of the row's own fact (§16A.4) */
     /* ONE element for the whole strip, in the product's voice - eighteen cells
        read one at a time is not a scorecard, it is eighteen announcements. */
     strip.setAttribute('role','img');
@@ -15959,19 +16195,25 @@ function renderPlay(){
     const gross=done.reduce((a,b)=>a+b,0);
     const par=state.live.scores[pi].reduce((a,v,k)=>v!==null?a+PAR[k]:a,0);
     const vp=gross-par;
-    const row=document.createElement('div'); row.className='prow';
+    /* W1 · the row's own class (TP-22), no squad bar, and the words the
+       phone's LiveCopy.playerRow says (D-4: the index is a setup fact, so it
+       leaves the row; the strokes you receive stay). A dot is a shot on THIS
+       hole, and the line now says so rather than leaving a gold dot unexplained. */
+    const dots = state.live.game==='sunningdale'
+      ? (liveSolo() ? (sunnSoloStrokesAt(h)[pi]||0)
+                    : (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0))   /* D74/D75: positional strokes, not SI */
+      : strokeOn(pi,h);
+    const strokesWord = STROKES[pi] ? `${STROKES[pi]} stroke${STROKES[pi]===1?'':'s'}` : 'No strokes';
+    const sub = [state.live.game==='sunningdale' ? 'No HCP · straight up' : strokesWord,
+                 dots ? `${dots>1 ? dots+' shots' : 'a shot'} on this hole` : null].filter(Boolean).join(' · ');
+    const row=document.createElement('div'); row.className='lrow';
     row.innerHTML=`
-      <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
-      <div class="nm"><b>${esc(p.n)} ${(guestView && p.me) ? '<span class="gtag">YOU</span>' : (p.guest?'<span class="gtag">GUEST</span>':'')}${'<span class="strokedot" title="stroke here"></span>'.repeat(
-        state.live.game==='sunningdale'
-          ? (liveSolo() ? (sunnSoloStrokesAt(h)[pi]||0)
-                        : (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0))   /* D74/D75: positional strokes, not SI */
-          : strokeOn(pi,h))}</b>
-      <small>${state.live.game==='sunningdale' ? 'NO HCP · STRAIGHT UP' : `${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} NUMBER · ${STROKES[pi]} STROKES`}</small></div>
-      <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
+      <div class="nm"><b>${esc(p.n)} ${(guestView && p.me) ? '<span class="gtag">YOU</span>' : (p.guest?'<span class="gtag">GUEST</span>':'')}${'<span class="strokedot" aria-hidden="true"></span>'.repeat(dots)}</b>
+      <small>${esc(sub)}</small></div>
+      <div class="tot">${done.length ? `<b>${vp>=0?'+':'\u2212'}${Math.abs(vp)}</b>${gross} thru ${done.length}` : '—'}</div>
       <div class="step">
         <button aria-label="One stroke fewer for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="-1">−</button>
-        <span class="sv${s!==null && s<PAR[h] ? ' birdie':''}">${s===null?'–':s}</span>
+        <span class="sv">${s===null?'–':s}</span>
         <button aria-label="One more stroke for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="1">+</button>
       </div>`;
     rows.appendChild(row);
@@ -16116,7 +16358,8 @@ function renderPlay(){
       st.innerHTML='';
       LIVE.forEach((p,pi)=>{
         const d=document.createElement('div'); d.className='wt';
-        d.innerHTML=`<b style="color:${sk.won[pi]>0?'var(--pos)':'var(--mut)'}">${sk.won[pi]}</b><span>${esc(p.n).toUpperCase()}</span>`;
+        /* W1 · a count of skins is ink (pos is a signed gain); none is mut */
+        d.innerHTML=`<b style="color:${sk.won[pi]>0?'var(--ink)':'var(--mut)'}">${sk.won[pi]}</b><span>${esc(p.n).toUpperCase()}</span>`;
         st.appendChild(d);
       });
     }
@@ -16132,7 +16375,45 @@ function renderPlay(){
    if(gsb) gsb.style.display=(_g||state.demo)?'none':'';}
   renderScoreboard();
   renderLiveBanner();
+  renderDeskCard();
 }
+/* W1 · D234 · the desk's card, in the aside: the leaf the receipt prints, one
+   block per nine, a row per golfer, the paper marks (§9.4). Read from the same
+   state the rows are, on the same beat, so the two never disagree. Only at the
+   desk; below it the HOLE/CARD toggle gives the card the width it needs. */
+function renderDeskCard(){
+  const box=document.getElementById('deskCard'); if(!box) return;
+  if(!state.live || !state.live.active || !matchMedia('(min-width:960px)').matches){ if(box.innerHTML) box.innerHTML=''; return; }
+  const H=liveHoles();
+  const siReal = !SIEST && Array.isArray(SI);
+  const blocks = H===9 ? [[1,9,'Tot']] : [[1,9,'Out'],[10,18,'In']];
+  const td = t => `<td>${esc(String(t))}</td>`;
+  const tables = blocks.map(([lo,hi,label])=>{
+    const hs=[]; for(let k=lo;k<=hi;k++) hs.push(k);
+    const row=(cls,k,cells,tot)=>`<tr class="${esc(cls)}"><td class="k">${esc(k)}</td>${cells.join('')}<td class="tot">${esc(String(tot))}</td></tr>`;
+    let html = row('key','Hole', hs.map(k=>td(k)), label);
+    html += row('quiet','Par', hs.map(k=>td(PAR[k-1] ?? '\u00b7')), hs.reduce((a,k)=>a+(Number(PAR[k-1])||0),0));
+    if(siReal) html += row('quiet','HCP', hs.map(k=>td(SI[k-1] ?? '\u00b7')), '');
+    LIVE.forEach((p,pi)=>{
+      const sc=state.live.scores[pi]||[];
+      let sum=0, any=false;
+      const cells=hs.map(k=>{
+        const v=sc[k-1];
+        if(v==null) return td('\u00b7');
+        any=true; sum+=v;
+        const d=v-PAR[k-1], mk=d<=-2?'eg':d===-1?'bd':d===1?'bg':d>=2?'db':'';
+        return mk ? `<td class="${mk}"><span class="mk">${esc(String(v))}</span></td>` : td(v);
+      });
+      html += row('score', fn1(p.n), cells, any ? sum : '');
+    });
+    return `<table class="rcard"><tbody>${html}</tbody></table>`;
+  }).join('');
+  const course = ($('#lrCourse')?.value || '').trim();
+  box.innerHTML = `<div class="eyebrow">The card</div>
+    <div class="rcpt-leaf"><div class="rcpt-cap"><span>${esc(course || 'This round')}</span></div>
+    <div class="rcard-wrap">${tables}</div></div>`;
+}
+window.addEventListener('resize', () => { if(state.live && state.live.active && state.live.stage!=='setup') renderDeskCard(); });
 /* ---- D85 · the scoreboard: game first, strokes under -----------------------
    Runs at the END of renderPlay so the game cards' status text is already
    computed — the hero line borrows the same words the cards speak. */
@@ -16181,25 +16462,62 @@ function renderScoreboard(){
   const on=new Set((state.livePresence||[]).map(String));
   chips.innerHTML=stats.map(({p,s})=>{
     const lead = best!=null && scored.length>1 && s.thru>0 && s.net===best;
+    /* W1 · the chip is the game's view (net); the row below owns gross-thru */
     return `<div class="sbchip${lead?' lead':''}">${on.has(p.n)?'<span class="lv"></span>':''}<b>${esc(fn1(p.n))}</b><span>${
-      s.thru ? `${_sbPm(s.net)} net · ${s.gross} thru ${s.thru}` : '—'
+      s.thru ? `${_sbPm(s.net)} net · thru ${s.thru}` : '—'
     }</span></div>`;
   }).join('');
   window.liveSyncBadge?.();
-  /* sticky compact face — size only, never visibility (the animation-gated-
-     reveal landmine: nothing here can trap the content) */
-  if(!window._sbObs && 'IntersectionObserver' in window){
-    const sent=document.getElementById('sbSentinel');
-    if(sent){
-      window._sbObs=new IntersectionObserver(es=>{
-        document.getElementById('scoreBoard')?.classList.toggle('stuck', !es[0].isIntersecting);
-      });
-      window._sbObs.observe(sent);
-    }
+  /* sticky compact face — a class on the board, never an animation (the
+     animation-gated-reveal landmine: nothing here can trap the content) */
+  csLiveSticky();
+  if(!window._sbSticky){
+    window._sbSticky = true;
+    let raf = 0;
+    const tick = () => { if(raf) return; raf = requestAnimationFrame(() => { raf = 0; csLiveSticky(); }); };
+    window.addEventListener('scroll', tick, { passive:true });
+    window.addEventListener('resize', tick);
   }
+}
+/* W1 · THE BOARD STICKS UNDER THE HEADER, NOT UNDER IT. Below the desk the
+   site header is itself sticky at top:0, and the board stuck at top:0 too:
+   the two collided, the header's rule poked out either side, and the hole
+   navigator scrolled away under both. The board now sticks at the header's
+   own measured height (zero where the header is static or hidden — the desk,
+   the card view, a guest's kiosk), and "stuck" is read from the sentinel
+   above it against that same line. */
+function csLiveSticky(){
+  const sb=document.getElementById('scoreBoard'), sent=document.getElementById('sbSentinel');
+  if(!sb || !sent || sb.offsetParent===null) return;
+  const hdr=document.querySelector('header.hdr');
+  let top=0;
+  if(hdr){ const cs=getComputedStyle(hdr); if(cs.position==='sticky' && cs.display!=='none') top=Math.round(hdr.getBoundingClientRect().height); }
+  if(sb.dataset.top!==String(top)){ sb.style.top=top+'px'; sb.dataset.top=String(top); }
+  /* the stuck face is shorter, and a sticky box that shrinks pulls the page up
+     under it — at the foot of a short page the browser then clamps the scroll
+     and the sentinel drops back below the line. So the face lets go only once
+     the sentinel is back down by what the face saved (hysteresis): it can
+     never unstick itself by sticking. */
+  const was = sb.classList.contains('stuck');
+  const at = sent.getBoundingClientRect().top;
+  const saved = Number(sb.dataset.shrink||0);
+  const stuck = was ? at < top + saved : at < top;
+  if(stuck && !was){
+    const h0 = sb.offsetHeight;
+    sb.classList.add('stuck');
+    sb.dataset.shrink = String(Math.max(0, h0 - sb.offsetHeight));
+  } else if(!stuck && was){
+    sb.classList.remove('stuck');
+  }
+  /* the navigator sticks on the stuck board's bottom edge (the board sticks
+     first, being above it in the page, so by the time the navigator reaches
+     this line the board has its stuck height) */
+  const hh=document.querySelector('#playEntry .holehdr');
+  if(hh){ const line = (top + sb.offsetHeight + 6) + 'px'; if(hh.style.top !== line) hh.style.top = line; }
 }
 $('#holePrev').addEventListener('click',()=>{state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
 $('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();});
+
 /* the tee-off match preview: sides + who gets strokes WHERE — the first-tee
    argument, settled before anyone hits (§2.2). Recomputed on every roster,
    slope, or game change. */
@@ -16297,7 +16615,7 @@ function renderRoster(){
       const p=ROSTER[idx];
       d.className='pslot';
       d.innerHTML=`
-        <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</div>
+        <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:''}${esc(p.n)}</div>
         <div class="si">${p.est?'EST ':''}${fmtIdx(p.i)} NUMBER</div>
         ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
     }
@@ -16316,9 +16634,9 @@ function renderRoster(){
     if(sel.includes(i)) return;
     const b=document.createElement('button');
     b.className='selchip';
-    const mark=p.guest
-      ? `<span class="gtag">${p.buddy?'BUDDY':'GUEST'}</span>`
-      : `<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`;
+    /* W1 · ink chips: the squad dot was one raw orange (SQHEX) on every
+       member, ember by another name (D359); a guest still says it is one */
+    const mark=p.guest ? `<span class="gtag">${p.buddy?'BUDDY':'GUEST'}</span>` : '';
     b.innerHTML=`${mark}${esc(p.n)} · ${fmtIdx(p.i)}`;
     b.addEventListener('click',()=>{
       if(sel.length>=4){ toast('The group is full: remove someone first'); return; }
@@ -16434,6 +16752,7 @@ function syncTeeInputs(){
 $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   $$('#gameSeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
+  try{ b.scrollIntoView({ block:'nearest', inline:'nearest' }); }catch(_){}   /* W1 · the row scrolls: the chosen game stays in view */
   state.live.game=b.dataset.g;
   renderRoster();   /* match extras (stake, strokes preview, side swap) follow the game */
   const GN={score:'Stroke play — your card, your pace. One to four golfers; post when you’re done.',
@@ -16787,6 +17106,8 @@ function finishRealLiveRound(){
   document.getElementById('lrPost')?.addEventListener('click', ()=>go(false));
   document.getElementById('lrCasual')?.addEventListener('click', ()=>go(true));
 }
+/* the drawn check: a posted card with no marker the client can vouch for */
+const CS_CHECK_SVG = '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3L12.8 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function showLiveRecap(d, result, lrId){
   const posted=d.posted||[], guests=d.guests||[], skipped=d.skipped||[];
   const rows=[];
@@ -16836,11 +17157,11 @@ function showLiveRecap(d, result, lrId){
              : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
     settleMoney = money;
-    rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
+    /* W1 · no emoji on a shared surface (LINT-12): the result is the row's words */
+    rows.push(`<div class="check"><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
   } else if(result && (result.game==='wolf' || result.game==='skins' || result.mode==='solo')){
     /* the ledger games: Wolf, Skins, and both solo modes (round robin and
        everyone-for-themselves Sunningdale), which the team row cannot hold */
-    const icon=result.game==='wolf'?'🐺':result.game==='skins'?'💰':'⚔️';
     /* solo Sunningdale has no transfer set: one player holds the bank and every
        other player owes it, which is stated on the card all round (D75) and
        must be stated the same way at settle */
@@ -16863,27 +17184,51 @@ function showLiveRecap(d, result, lrId){
        else in the app. `story` stays the fallback for any builder that has
        not grown a `share` yet. */
     settleMoney = money;
-    rows.push(`<div class="check"><span class="num">${icon}</span><div class="tt"><b>${esc(result.share||result.story||'')}</b><small>${esc(money)}</small></div></div>`);
+    rows.push(`<div class="check"><div class="tt"><b>${esc(result.share||result.story||'')}</b><small>${esc(money)}</small></div></div>`);
   }
   /* D78 · the strip, once, under whichever settlement row rendered above. The
      recap sheet wears .room-dusk (a fixed dark ceremony surface for every
      viewer), so the strip's own colors land correctly in either theme. */
   if(result?.holes?.cells?.length){
-    const hl = holeHighlights(result.holes, { hot: result.holes.hot });
+    /* W1 · the in-app key is the strip's own key, the one the public card
+       prints (W4's holeStripKey: every kind in words, each with the shape it
+       keys, from the strip's own colours), and the strip is one image with one
+       spoken sentence (holeStripSummary). It painted a pre-D270 #FF5A2E swatch
+       naming one side only. Both helpers live beside renderHoleStrip in this
+       same script and are guarded by `typeof` (they arrive with W4's strip);
+       without them the key falls back to the strip's own colour, never a
+       literal. The closing hole is said once, by the strip's foot. */
+    const H = result.holes, hotK = String(H.hot);
+    const sideName = k => k==='a' ? (result.side_a||null) : k==='b' ? (result.side_b||null) : null;
+    const names = H.mode==='sides'
+      ? { hot: sideName(hotK) || H.legend || null, other: sideName(hotK==='a' ? 'b' : hotK==='b' ? 'a' : '') }
+      : { hot: H.legend || null, other: H.mode==='wolf' ? 'The field' : 'Everyone else' };
+    const said = typeof holeStripSummary === 'function' ? holeStripSummary(H, { hot: H.hot, names }) : '';
+    const hl = holeHighlights(H, { hot: H.hot }).filter(t => !/^CLOSED OUT ON/.test(t));
+    const key = typeof holeStripKey === 'function'
+      ? holeStripKey(H, { hot: H.hot, names })
+      : (H.legend ? `<p aria-hidden="true" style="margin:9px 0 0;font-family:var(--board);font-weight:600;font-size:12px;letter-spacing:calc(var(--agate) * 1em);color:var(--mut)">
+           <span style="display:inline-block;width:10px;height:14px;border-radius:2px;background:${STRIP_HOT};margin-right:6px;vertical-align:-2px"></span>${esc(String(H.legend))} won</p>` : '');
     rows.push(`<div style="padding:2px 2px 0">
-      ${renderHoleStrip(result.holes, { hot: result.holes.hot, margin:'6px 0 0' })}
-      ${result.holes.legend ? `<div style="margin-top:9px;font-size:11px;letter-spacing:.12em;color:#8E979E">
-           <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#FF5A2E;margin-right:6px;vertical-align:middle"></span>${esc(String(result.holes.legend).toUpperCase())}
-         </div>` : ''}
+      ${renderHoleStrip(H, { hot: H.hot, margin:'6px 0 0', label: said })}
+      ${key}
       ${hl.length ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${
-        hl.map(t=>`<span style="font-size:11px;letter-spacing:.06em;color:var(--mut);background:var(--bg2);border-radius:var(--p);padding:4px 9px">${esc(t)}</span>`).join('')
+        hl.map(t=>`<span style="font-family:var(--board);font-weight:600;font-size:12px;letter-spacing:calc(var(--agate) * 1em);color:var(--mut);background:var(--bg2);border-radius:var(--p);padding:4px 9px">${esc(t)}</span>`).join('')
       }</div>` : ''}
     </div>`);
   }
-  posted.forEach(x=>rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · ✓ VOUCHED</small></div></div>`));
+  /* W1 · each posted card wears its golfer's own drawn marker where the
+     client knows it (a league mate, or you), and the drawn check where it
+     does not — never a generic ⛳ emoji, and never a guessed marker */
+  const cardMark = pid => {
+    const mine = pid && window.CS?.user?.id === pid;
+    const known = mine ? window.CS?.profile?.marker : ((window.CS?.members||[]).find(m => m.profile_id === pid) ? memberMarker(pid) : null);
+    return (known && window.mkr && window.mkr(known)) || CS_CHECK_SVG;
+  };
+  posted.forEach(x=>rows.push(`<div class="check"><span class="num mk" aria-hidden="true">${cardMark(x.profile_id)}</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · VOUCHED</small></div></div>`));
   skipped.forEach(x=>rows.push(`<div class="check"><span class="num">—</span><div class="tt"><b>${esc(x.name)}</b><small>NOT POSTED · ${esc(String(x.reason||'')).toUpperCase()}</small></div></div>`));
   guests.forEach(g=>{ const url=`${location.origin}/?claim=${g.claim_token}`;
-    rows.push(`<div class="check"><span class="num">🎟️</span><div class="tt"><b>${esc(g.name||'Guest')}</b><small>GUEST SCORECARD — SHARE THE LINK</small></div><button class="mini" data-copylink="${esc(url)}" style="flex:none">Copy</button></div>`); });
+    rows.push(`<div class="check"><span class="num" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span><div class="tt"><b>${esc(g.name||'Guest')}</b><small>GUEST SCORECARD — SHARE THE LINK</small></div><button class="mini" data-copylink="${esc(url)}" style="flex:none">Copy</button></div>`); });
   /* D57: the settlement travels as a page, not just a sheet — audit F5 */
   if(result && lrId && !state.demo)
     rows.push(`<button class="btn" id="lrShareCard" style="width:100%;margin-top:14px">Share the card</button>
@@ -16915,6 +17260,24 @@ function showLiveRecap(d, result, lrId){
     if(det) det.textContent = final.detail;
     if(!final.hasRound){ doors.remove(); return; }
     const rid = final.roundId;
+    /* W1 · WHAT YOUR CARD EARNED, from the server's own card for it (D355 · the
+       ceremony says what the server decided; D367 · the finish says what
+       happened to YOUR round). "It's on the books and scoring" never said what
+       the card scored. The lens is the open league's, as the receipt reads it. */
+    try{
+      const lens = (window.CS && CS.league && CS.league.id) || null;
+      let res = lens ? await window.sb.rpc('round_card', { p_round: rid, p_league: lens }) : null;
+      if(!res || res.error) res = await window.sb.rpc('round_card', { p_round: rid });
+      const c = res && !res.error ? res.data : null;
+      const tt = document.querySelector('#lrMine .tt');
+      if(c && c.points != null && tt && !document.getElementById('lrVerdict')){
+        const words = csRcptLensWords(c);
+        const v = document.createElement('span');
+        v.id = 'lrVerdict'; v.className = 'lrverdict';
+        v.textContent = `${c.points} point${Number(c.points)===1?'':'s'}${words ? ' \u00b7 ' + words : ''}`;
+        tt.insertBefore(v, document.getElementById('lrMineDoors'));
+      }
+    }catch(_){ /* the verdict is garnish on the finish; the receipt has it */ }
     /* R1 · through the fetch-by-id route — the receipt is fetched, never read
        from a cache that may not hold it — and the photo door opens the SAME
        receipt with its own attach control focused: no timed click, no
@@ -23387,8 +23750,10 @@ function renderCareer(){
        round's; a round whose course was never kept draws nothing at all
        rather than eighteen invented par 4s (L-44). THE WHOLE ROW is the door
        to the receipt now — the photo button was a 20pt target that only
-       existed on rounds carrying a photograph. */
-    const canDel = !state.demo && window.sb;
+       existed on rounds carrying a photograph.
+       W1 · and the delete went with it: a bare × inside a row that itself
+       opens the receipt, confirmed by the browser's confirm(). It lives on the
+       receipt now, labelled and armed (csReceiptDeleteRow). */
     const bookOf = id => id ? (csCourseAll().find(b=>String(b.id)===String(id)) || null) : null;
     yr.innerHTML = (c.recent && c.recent.length)
       ? c.recent.map((r,ri)=>{
@@ -23399,11 +23764,10 @@ function renderCareer(){
                        r.holes_played===9 ? '9 holes' : null].filter(Boolean).join(' · ');
           const bk = bookOf(r.api_course_id);
           const card = bk ? csDrawnCardSvg(csBookHoles(bk), { bare:true }) : '';
-          const del = canDel&&r.id?`<button class="ydel" data-delr="${r.id}" title="Delete this round" aria-label="Delete round"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`:'';
           return `<div class="yrow" data-rcpt-i="${ri}" role="button" tabindex="0" aria-label="${course}, ${esc(String(r.gross??''))}">
             <span class="yrowx"><b class="cs-name-s">${course}</b>${sub?`<small class="cs-agate-s">${esc(sub)}</small>`:''}</span>
             ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
-            <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span>${del}</div>`;
+            <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
         }).join('')
       : `<div class="tempty"><h4 class="cs-name">No rounds yet</h4>`
         + `<p class="cs-body-s">Your record fills as you play — every round, every course, forever.</p>`
@@ -23413,30 +23777,12 @@ function renderCareer(){
            right under the card (critique-B P2, owner C) */
         + `<button type="button" class="btn" data-empty-go="record" style="margin-top:12px">Add my round</button></div>`;
     /* the whole row opens the receipt (photos arc 2: the sheet carries the
-       photograph — no bare image tabs), and the × stays the × */
+       photograph — no bare image tabs; the delete is on the receipt too) */
     yr.querySelectorAll('[data-rcpt-i]').forEach(b=>{
-      const go = e => { if(e.target.closest('[data-delr]')) return;
-        const r=c.recent[Number(b.dataset.rcptI)]; if(r) openRoundReceipt(r); };
+      const go = () => { const r=c.recent[Number(b.dataset.rcptI)]; if(r) openRoundReceipt(r); };
       b.addEventListener('click', go);
       b.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(e); } });
     });
-    yr.querySelectorAll('[data-delr]').forEach(b=>b.addEventListener('click', async ()=>{
-      /* WAVE 11 · the same sentence the phone's receipt prints, from
-         `RoundCopy.deleteConsequence`. The phone had no delete at all until
-         this commit, so this string had nowhere to be shared FROM. */
-      if(!confirm('Delete this round? ' + CS_ROUND_DELETE)) return;
-      b.disabled = true;
-      try{
-        /* D385 §1 · the public copies go first, while the round still names them */
-        const w = await csWithdrawRoundLinks(b.dataset.delr);
-        const { error } = await window.sb.rpc('delete_round', { p_round: b.dataset.delr });
-        if(error) throw error;
-        toast(w.ok ? 'Round deleted' : 'Round deleted. ' + CS_SHARE_CLEANUP.pending);
-        if(window.loadCareer) await window.loadCareer();
-        if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
-        if(window.loadHome) window.loadHome();
-      }catch(e){ toast(humanError(e, 'Delete failed.')); b.disabled = false; }
-    }));
   }
 }
 /* D177 · #youPost is gone from You — the ⊕ is a permanent tab an inch below
@@ -23836,6 +24182,10 @@ const CS_PHOTO = {
   needsPush: 'Not attached — photos on a posted round need the latest update — try again shortly.',
   failed: 'That photo didn’t attach. Check your signal and try again.',
   removeFailed: 'That photo didn’t come off. Check your signal and try again.',
+  /* S9 · RoundCopy.photoUnavailable, verbatim: the owner's receipt, a round
+     that carries a photograph, and a picture that could not be fetched or
+     shown. Said once, beside Replace and Remove; never on anyone else's. */
+  unavailable: 'This round\u2019s photo couldn\u2019t be opened.',
 };
 /* PostgREST's tell for a function prod does not have yet (PGRST202 / 42883).
    Only this earns the push sentence; everything else is a real failure. */
@@ -24078,14 +24428,25 @@ function csRoundCardHTML(c, mine){
   const tables = csCardBlocks(c).map(b=>{
     const row = (cls, label, cells, total) =>
       `<tr class="${esc(cls)}"><td class="k">${esc(label)}</td>`
-      + cells.map(x=>`<td class="${esc(x.up?'up':'')}">${esc(x.t||gap)}</td>`).join('')
+      + cells.map(x=>x.mk
+          ? `<td class="${esc(x.mk)}"><span class="mk">${esc(x.t||gap)}</span></td>`
+          : `<td>${esc(x.t||gap)}</td>`).join('')
       + `<td class="tot">${esc(total||'')}</td></tr>`;
     let html = row('key','Hole', b.holes.map(h=>({t:String(h.hole)})), b.label);
     if(csCardHasPar(c)) html += row('quiet','Par', b.holes.map(h=>({t:h.par==null?'':String(h.par)})), b.par==null?'':String(b.par));
     if(csCardHasSi(c))  html += row('quiet','HCP', b.holes.map(h=>({t:h.si==null?'':String(h.si)})), '');
+    /* W1 · UNDER AND OVER PAR ARE DRAWN THE WAY THEY ARE ON PAPER (§9.4,
+       D267): a ring for a birdie, two for an eagle, a box for a bogey, two for
+       a double or worse — in the leaf's own ink, with no colour at all. A
+       birdie was painted gold here, which is the earned metal (D359, D368:
+       an earned moment "may not repaint the score grid") and colour was its
+       only channel; bogeys were not marked at all. */
     if(csCardHasYou(c)) html += row('score', mine?'You':'Score',
-      b.holes.map(h=>({t:h.strokes==null?'':String(h.strokes),
-                       up:h.par!=null && h.strokes!=null && h.strokes<h.par})),
+      b.holes.map(h=>{
+        const d = (h.par!=null && h.strokes!=null) ? h.strokes - h.par : 0;
+        return { t:h.strokes==null?'':String(h.strokes),
+                 mk: d<=-2 ? 'eg' : d===-1 ? 'bd' : d===1 ? 'bg' : d>=2 ? 'db' : '' };
+      }),
       b.strokes==null?'':String(b.strokes));
     return `<table class="rcard"><tbody>${html}</tbody></table>`;
   }).join('');
@@ -24101,6 +24462,7 @@ function csReceiptPhotoRow(r){
   return `<div id="rcptPhotoRow" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 12px">
       <button class="mini" id="rcptPhotoBtn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> ${esc(has?CS_PHOTO.replace:CS_PHOTO.add)}</button>
       <button class="mini" id="rcptPhotoClear" type="button" style="${has?'':'display:none'}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> ${esc(CS_PHOTO.remove)}</button>
+      <span class="cs-body-s rcpt-photogone" id="rcptPhotoGone" role="status" hidden>${esc(CS_PHOTO.unavailable)}</span>
     </div>
     <p class="fine" id="rcptPhotoNote" style="display:none; color:var(--neg); margin:-6px 0 12px"></p>`;
 }
@@ -24127,10 +24489,11 @@ function csWireReceiptPhoto(r, rid, stampOf, opts){
   const paint = () => {
     btn.innerHTML=`<svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> ${esc(r.photo_path?CS_PHOTO.replace:CS_PHOTO.add)}`;
     if(clr) clr.style.display = r.photo_path ? '' : 'none';
-    if(hero){
-      if(r.photo_url){ hero.innerHTML=`<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}`; hero.style.display=''; }
-      else { hero.innerHTML=''; hero.style.display='none'; }
-    }
+    /* W1 · attaching or removing a photograph changes the moment's picture and
+       nothing else: this rewrote the whole moment, so an attach wiped the
+       course, the 84 and the verdict, and a removal hid the moment entirely */
+    csRcptPhotoGone(false);   /* a picture on its way, or none at all, says nothing (S9) */
+    if(hero) csRcptHeroSet(hero, r.photo_url || null, r.photo_url ? stampOf() : '');
   };
   const busyOn = on => { busy=on; btn.disabled=on; if(clr) clr.disabled=on; };
   const input = csRoundPhotoInput();
@@ -24185,6 +24548,9 @@ async function enrichRoundReceipt(rid, seed){
     const body=document.getElementById('rcptBody');
     if(!body) return;                             /* sheet already closed */
     body.innerHTML = roundCardBody(r, pvi, capNum());
+    /* W1 · the league's verdict arrives with the card: points, league, month */
+    const figsEl=document.getElementById('rcptFigs');
+    if(figsEl) figsEl.outerHTML = csRcptFigs(r, !!document.querySelector('#rcptHero .rm-fig'));
     /* F13 · the factual tally, from the round's own holes against the pars
        its live round recorded — and only when the round names a course. An
        older server has no round_tally and the receipt is what it was. */
@@ -24197,14 +24563,15 @@ async function enrichRoundReceipt(rid, seed){
         body.appendChild(el);
       }
     }catch(_){}
-    /* the header learns the course it was missing */
+    /* the header learns the course it was missing — only when the moment does
+       not already print it. W1 · and the title stays the page's name ("Your
+       round"): it became "84 gross" here, over a moment that prints the 84 at
+       76px, and the sub-line printed the course and the day a second time (D201) */
     const sub=document.getElementById('shSub');
-    if(sub && r.course_label){
+    if(sub && r.course_label && !document.querySelector('#rcptHero .rm-meta')){
       sub.textContent=[r.course_label, (r.holes_played||18)+' holes', r.played_on?csRoundDay(r.played_on):'']
         .filter(Boolean).join(' · ').toUpperCase();
     }
-    const ttl=document.getElementById('shTitle');
-    if(ttl && r.gross!=null) ttl.textContent=r.gross+' gross';
     /* D293 · the photo row was drawn from what the CALLER held; the card may
        know about a photograph the seed did not. Keep the seed — which is the
        object the row's own handlers close over — and the row in step. */
@@ -24332,6 +24699,104 @@ async function csOpenPostedRound(id, opts){
 }
 window.csOpenPostedRound = csOpenPostedRound;
 
+/* the moment's no-photo ground: the sparse contour, never a stand-in picture */
+const CS_RM_TOPO = `
+      <svg class="rm-topo" viewBox="120 -20 380 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path class="t-sur" d="M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z"/>
+        <path class="t-edge" d="M 336 57 C 358 38 386 42 395 60 C 404 77 391 91 386 107 C 380 125 385 145 366 153 C 346 162 316 151 309 132 C 303 115 318 106 320 90 C 322 77 324 66 336 57 Z"/>
+      </g></svg>`;
+/* W1 · the moment's picture layer, set and cleared on its own: the words, the
+   figure and the mark in `.rm-in` are never touched */
+function csRcptHeroSet(hero, url, stampHtml){
+  if(!hero) return;
+  hero.querySelectorAll(':scope > img, :scope > .mkstamp, :scope > .rm-topo').forEach(n => n.remove());
+  hero.classList.toggle('has-photo', !!url);
+  hero.insertAdjacentHTML('afterbegin', url ? `<img src="${esc(url)}" alt="Round photo">${stampHtml||''}` : CS_RM_TOPO);
+  hero.style.display = '';
+  csRcptHeroWire(hero);
+}
+/* a photograph that will not load (a 404, an expired link, no signal) falls
+   back to the no-photo moment, never a broken image on the ceremony ground */
+/* S9 · the owner's line about a picture the receipt could not show. It exists
+   only on the owner's own receipt (csReceiptPhotoRow is drawn for no one
+   else), and only a picture that failed turns it on */
+function csRcptPhotoGone(on){
+  const el=document.getElementById('rcptPhotoGone'); if(el) el.hidden = !on;
+}
+function csRcptHeroWire(hero){
+  const img = hero && hero.querySelector(':scope > img');
+  if(!img || img.__csWired) return;
+  img.__csWired = true;
+  const fall = () => { if(img.isConnected){ csRcptHeroSet(hero, null); csRcptPhotoGone(true); } };
+  if(img.complete && img.naturalWidth === 0){ fall(); return; }
+  img.addEventListener('error', fall, { once:true });
+}
+/* W1 · THE LEAGUE'S VERDICT, directly under the gross (D362/D387): the points
+   over their rule, then which league (when the round counts in more than one)
+   and where it sits in the month. The receipt below it shows the work. */
+function csRcptLensWords(r){
+  const lenses = Array.isArray(r.contributions) ? r.contributions : [];
+  const lens = lenses.find(c => r.league_id && c.league_id === r.league_id) || (lenses.length === 1 ? lenses[0] : null);
+  const rank = lens ? lens.month_rank : r.month_rank;
+  const capv = lens ? lens.counting_cap : r.counting_cap;
+  const c = capv != null ? Number(capv) : null;
+  const clause = rank == null ? null
+    : (c == null || !(c > 0)) ? 'Counting #' + rank + ' this month'
+    : rank <= c ? 'Counting #' + rank + ' of ' + c + ' this month' : 'Bumped this month';
+  const league = (lens && lenses.length > 1 && lens.league_name) ? 'In ' + lens.league_name : null;
+  return [league, clause].filter(Boolean).join(' \u00b7 ');
+}
+function csRcptFigs(r, momentHasGross){
+  const g = (r.gross!=null && !momentHasGross)
+    ? `<div class="f g"><b>${esc(String(r.gross))}</b><i></i><small>Gross \u00b7 ${(r.holes_played||18)} holes</small></div>` : '';
+  const p = r.points!=null ? `<div class="f p"><b>${esc(String(r.points))}</b><i></i><small>Points</small></div>` : '';
+  const words = r.points!=null ? csRcptLensWords(r) : '';
+  if(!g && !p) return '<div class="rcpt-figs" id="rcptFigs" hidden></div>';
+  return `<div class="rcpt-figs" id="rcptFigs">${g}${p}${words ? `<p class="lens">${esc(words)}</p>` : ''}</div>`;
+}
+/* W1 · DELETE LIVES ON THE RECEIPT, labelled and armed (§7.1): bg2, a neg
+   label, "Sure?" and the consequence on the first tap, the delete on the
+   second — never a confirm(). It was a bare × inside every Recent rounds row,
+   a row that itself opens this receipt. */
+function csReceiptDeleteRow(){
+  return `<div id="rcptDelRow" style="margin:0 0 12px">
+      <button class="mini del" id="rcptDelete" type="button">Delete this round</button>
+      <p class="fine" id="rcptDelNote" role="status" style="display:none; padding:6px 0 0"></p>
+    </div>`;
+}
+function csWireReceiptDelete(rid){
+  const btn=document.getElementById('rcptDelete'), note=document.getElementById('rcptDelNote');
+  if(!btn || !rid) return;
+  let armed=false, t=null, busy=false;
+  const say = s => { if(note){ note.textContent=s||''; note.style.display=s?'':'none'; } };
+  const disarm = () => { armed=false; clearTimeout(t); t=null; btn.textContent='Delete this round'; say(''); };
+  btn.addEventListener('click', async ()=>{
+    if(busy) return;
+    if(!armed){
+      armed=true; btn.textContent='Sure? Delete it';
+      /* `RoundCopy.deleteConsequence` — one sentence, two clients */
+      say(CS_ROUND_DELETE);
+      clearTimeout(t); t=setTimeout(disarm, 4000);
+      return;
+    }
+    clearTimeout(t); busy=true; btn.disabled=true;
+    try{
+      /* D385 §1 · the public copies go first, while the round still names them */
+      const w = await csWithdrawRoundLinks(rid);
+      const { error } = await window.sb.rpc('delete_round', { p_round: rid });
+      if(error) throw error;
+      if(window.roundCache) delete window.roundCache[rid];
+      closeSheet();
+      toast(w.ok ? 'Round deleted' : 'Round deleted. ' + CS_SHARE_CLEANUP.pending);
+      if(window.loadCareer) await window.loadCareer();
+      if(window.loadStandingsAndFeed) await window.loadStandingsAndFeed();
+      if(window.loadHome) window.loadHome();
+    }catch(e){
+      busy=false; btn.disabled=false; armed=false; btn.textContent='Delete this round';
+      say(humanError(e, 'Delete failed.'));
+    }
+  });
+}
 function openRoundReceipt(x, opts){
   const r = (x && typeof x==='object') ? x : (window.roundCache||{})[x];
   if(!r) return;
@@ -24377,11 +24842,7 @@ function openRoundReceipt(x, opts){
      rows below it stop saying. */
   const rmShowsFigure = r.gross != null;
   const figs = `<div class="rcpt-moment${r.photo_url?' has-photo':''}" id="rcptHero">
-      ${r.photo_url ? `<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}` : `
-      <svg class="rm-topo" viewBox="120 -20 380 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-        <path class="t-sur" d="M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z"/>
-        <path class="t-edge" d="M 336 57 C 358 38 386 42 395 60 C 404 77 391 91 386 107 C 380 125 385 145 366 153 C 346 162 316 151 309 132 C 303 115 318 106 320 90 C 322 77 324 66 336 57 Z"/>
-      </g></svg>`}
+      ${r.photo_url ? `<img src="${esc(r.photo_url)}" alt="Round photo">${stampOf()}` : CS_RM_TOPO}
       <div class="rm-in">
         ${rmCourse ? `<div class="rm-meta">${esc(rmCourse.toUpperCase())}</div>` : ''}
         ${rmWhen ? `<div class="rm-meta">${esc(rmWhen)}</div>` : ''}
@@ -24394,26 +24855,31 @@ function openRoundReceipt(x, opts){
         </div>
       </div>
     </div>
-    ${(r.gross==null && r.points==null) ? '' : `<div class="rcpt-figs">
-      ${(r.gross!=null && !rmShowsFigure) ? `<div class="f g"><b>${esc(String(r.gross))}</b><i></i><small>Gross \u00b7 ${(r.holes_played||18)} holes</small></div>` : ''}
-      ${r.points!=null ? `<div class="f p"><b>${esc(String(r.points))}</b><i></i><small>Points</small></div>` : ''}
-    </div>`}`;
+    ${csRcptFigs(r, rmShowsFigure)}`;
   /* D293 · the photograph's own slot, and it is HIS round only — the same gate
      the desk already applies to the delete. Demo never writes. */
   const canPhoto = mineOf(r) && !!rid && !state.demo && !!window.sb && !!window.CS?.user;
   const headSub = rmShowsFigure
     ? `${(r.holes_played||18)} HOLES`      /* the moment has the course and the day */
     : line.toUpperCase();
+  /* W1 · THE ORDER IS THE REASON THE GOLFER OPENED IT. The moment (gross and
+     verdict sentence), the league's verdict under it (points, league, where it
+     sits in the month), the receipt that proves it, the card, and only then
+     the round's own controls (photo, delete). The photo buttons used to come
+     straight after the moment and the verdict sat below the card, outside
+     every first screen (D362/D387). */
   openSheet(mineOf(r) ? 'Your round' : 'The round', headSub, `
     ${figs}
-    ${canPhoto ? csReceiptPhotoRow(r) : ''}
-    <div id="rcptCard"></div>
     <div class="eyebrow">The receipt</div>
     <div id="rcptBody" class="rcpt-leaf">
       <div class="rcpt-cap"><span>What this round was worth</span><span>${esc(line.split(' \u00b7 ').pop()||'')}</span></div>
       ${roundCardBody(r, pvi, capN)}</div>
+    <div id="rcptCard"></div>
+    ${canPhoto ? csReceiptPhotoRow(r) + csReceiptDeleteRow() : ''}
     <div id="rcptTalk"></div>`);
-  if(canPhoto) csWireReceiptPhoto(r, rid, stampOf);
+  csRcptHeroWire(document.getElementById('rcptHero'));
+  /* the finish's "Add a photo" rides `opts.photoIntent` into the photo control */
+  if(canPhoto){ csWireReceiptPhoto(r, rid, stampOf, opts); csWireReceiptDelete(rid); }
   /* D362 · one delegated listener for the door to the rounds that count: the
      leaf is repainted when `round_card` lands, so the listener lives on the
      sheet body and not on the button */
@@ -24438,9 +24904,10 @@ function openRoundReceipt(x, opts){
   if(!r.photo_url && r.photo_path && window.sb && !state.demo){
     window.sb.storage.from('media').createSignedUrl(r.photo_path, 3600).then(({data})=>{
       const hb=document.getElementById('rcptHero');
-      if(data?.signedUrl && hb){ r.photo_url=data.signedUrl;
-        hb.innerHTML=`<img src="${esc(data.signedUrl)}" alt="Round photo">${stampOf()}`; hb.style.display=''; }
-    }).catch(()=>{});
+      /* W1 · the photograph joins the moment; it never replaces its words */
+      if(data?.signedUrl && hb){ r.photo_url=data.signedUrl; csRcptHeroSet(hb, data.signedUrl, stampOf()); }
+      else if(hb) csRcptPhotoGone(true);   /* S9 · nothing could be signed */
+    }).catch(()=>{ csRcptPhotoGone(true); });
   }
 }
 
@@ -24455,7 +24922,7 @@ async function csPaintReceiptCard(r, rid, mine){
      together; the photo asked about only when the round has one */
   const photoRow = (canShare && r.photo_path)
     ? `<label class="fine" style="display:flex;gap:10px;align-items:flex-start;margin-top:10px;cursor:pointer">
-         <input type="checkbox" id="rcptPhotoOk" checked style="margin-top:3px;flex:none">
+         <input type="checkbox" id="rcptPhotoOk" checked style="margin-top:3px;flex:none;accent-color:var(--act);width:18px;height:18px">
          <span><b>${esc(CS_SHARE_PHOTO_INCLUDE)}</b><br>${esc(CS_SHARE_PHOTO_FINE)}</span></label>`
     : '';
   slot.innerHTML = `<div class="eyebrow">${esc(CS_CARD.head)}</div>`
@@ -25268,14 +25735,26 @@ function showSquad(name){
   h+=`<div class="eyebrow" style="margin-top:18px">Who built it</div>`;
   roster.sort((a,b)=>b.pts-a.pts).forEach(p=>{
     h+=`<button class="rdrow" data-player="${p.n}">
-      <span class="sw" style="background:${SQHEX[p.ci]}"></span>
-      <span class="rn"><b>${p.n}</b><small>${p.r} ROUNDS · AVG vs your playing HCP ${p.avg>=0?'+':''}${p.avg.toFixed(1)}</small></span>
+      <span class="sw" style="background:${csSqVar(p.ci)}"></span>
+      <span class="rn"><b>${p.n}</b><small>${csSquadRowSub(p.r, p.avg, p.n===DEMO_ME)}</small></span>
       <span class="rp">${p.pts}</span></button>`;
   });
   h+=`<p class="fine" style="padding-top:12px">Squad points = rounds that count + monthly bonuses − the minimum's penalties. Tap any golfer for their rounds.</p>`;
   openSheet(name, `CAPT. ${t.cap.toUpperCase()} · ${roster.length} GOLFERS`, h);
 }
 
+/* W1 · a golfer's row speaks about THAT golfer: "vs their playing HCP" on
+   anybody else's (R-M: the pronoun follows the person; it printed "your" on
+   Devon's), one phrase in sentence case rather than caps glued to lowercase
+   inside one tracked line (§1.3), and the figure after the words it answers */
+/* W1 · the squad's mark is its D270 token, per printing — never the raw
+   SQHEX orange that read as ember (P2-12) */
+function csSqVar(ci){ const i = Number(ci); return (i >= 0 && i <= 3) ? `var(--sq${i})` : 'var(--sq1)'; }
+function csSquadRowSub(rounds, avg, mine){
+  const n = Number(rounds) || 0;
+  const fig = avg == null || !isFinite(Number(avg)) ? '—' : (Number(avg) >= 0 ? '+' : '\u2212') + Math.abs(Number(avg)).toFixed(1);
+  return esc(`${n} round${n===1?'':'s'} · avg vs ${mine ? 'your' : 'their'} playing HCP ${fig}`);
+}
 /* real squad receipts: members from CS.squads, numbers from indRows —
    the same rows the You table reads, so the math can never disagree (§16) */
 function showSquadReal(t){
@@ -25310,8 +25789,8 @@ function showSquadReal(t){
   h+=`<div class="eyebrow" style="margin-top:18px">Who built it</div>`;
   rows.forEach((p,i)=>{
     h+=`<button class="rdrow" data-sqm="${i}">
-      <span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span>
-      <span class="rn"><b>${esc(p.n)}</b><small>${p.r} ROUND${p.r===1?'':'S'} · AVG vs your playing HCP ${p.r?(p.avg>=0?'+':'')+p.avg.toFixed(1):'—'}</small></span>
+      <span class="sw" style="background:${csSqVar(p.ci)}"></span>
+      <span class="rn"><b>${esc(p.n)}</b><small>${csSquadRowSub(p.r, p.r ? p.avg : null, !!(p.mid && window.CS?.member?.id && p.mid === window.CS.member.id))}</small></span>
       <span class="rp">${p.pts}</span></button>`;
   });
   if(!rows.length) h+=`<p class="fine">No rounds posted yet — the squad is waiting on its first round that counts.</p>`;
@@ -30057,7 +30536,7 @@ async function loadCourseMemory(){
   const el = $('#courseChips');
   if(!el || !CS.user) return;
   const { data } = await sb.from('rounds')
-    .select('course_label, rating, slope, played_on')
+    .select('course_label, rating, slope, played_on, api_course_id')
     .eq('profile_id', CS.user.id)
     .not('course_label', 'is', null)
     .order('played_on', { ascending: false }).limit(30);
@@ -30069,9 +30548,18 @@ async function loadCourseMemory(){
     `<button class="mini" data-cc="${i}" style="margin:0 6px 6px 0">${esc(r.course_label)} · ${r.rating}/${r.slope}</button>`).join('');
   el.querySelectorAll('[data-cc]').forEach(b => b.addEventListener('click', () => {
     const r = top[+b.dataset.cc];
-    $('#inCourse').value = r.course_label;
+    const ic = $('#inCourse');
+    ic.value = r.course_label;
+    /* W1 · a course picked from the catalogue once stays picked: the round
+       joins its history (D150) instead of posting as an unlisted course */
+    ic.dataset.courseId = r.api_course_id || '';
     $('#inRating').value = r.rating;
     $('#inSlope').value = r.slope;
+    /* and the card answers the tap: the preview, the line and the hint were
+       left on the empty card until some other field changed */
+    state.post.rating9 = false;
+    if(typeof paintCourseHint === 'function') paintCourseHint();
+    if(typeof recalc === 'function') recalc();
     toast('Course filled: just the gross and the date');
   }));
 }
@@ -34309,7 +34797,32 @@ async function csLoadMyCounters(playedOn){
   return window.myCounters;
 }
 window.csLoadMyCounters = csLoadMyCounters;
-function csComposerWorthLine(playedOn, capGiven){
+/* W1 · ONCE THE CARD HAS ITS OWN POINTS, THE LINE FINISHES THE ARITHMETIC
+   WITH THEM. `csRoundWorth`'s sum with the card's points in place of the
+   ceiling: an open counting slot adds them, a full month bumps the lowest
+   counter and adds the difference, and nothing below the lowest adds. The
+   ceiling sentence ("…so a 12 would add 6") stayed under a card that scored 9
+   and left 9 − 6 to the golfer. One sentence, for the league the preview's
+   figure is scored in (the figure's label names that league when there is
+   more than one, so the composer passes no name).
+   Eighteen holes only — a nine keeps D364's sentence, because its half-round
+   counting is the engine's to say. (Phone twin: `RoundWorth.line`.) */
+function csRoundWorthKnown(pts, cap, used, worst, season){
+  const p = Number(pts);
+  if(!isFinite(p)) return null;
+  const c = (cap == null) ? null : Number(cap);
+  const u = Number(used || 0);
+  const where = season ? (' in ' + season) : '';
+  if(c == null || !(c > 0)) return 'This ' + csNum(p) + ' counts' + where + ': every round you post this month counts, so +' + csNum(p) + '.';
+  if(u < c) return 'This ' + csNum(p) + ' counts' + where + ': your best ' + c + ' count and you have ' + u + ', so +' + csNum(p) + ' this month.';
+  if(worst == null || !isFinite(Number(worst))) return null;
+  const w = Number(worst);
+  if(p > w) return 'This ' + csNum(p) + ' replaces your lowest' + where + ', a ' + csNum(w) + ': +' + csNum(p - w) + ' this month.';
+  return 'Your best ' + c + where + ' already count and none is below ' + csNum(p)
+    + ', so this ' + csNum(p) + ' can\u2019t add to your total this month. It still builds your number.';
+}
+window.csRoundWorthKnown = csRoundWorthKnown;
+function csComposerWorthLine(playedOn, capGiven, pts){
   if(typeof seasonState==='function' && seasonState()!=='live') return null;
   const on = String(playedOn || isoOf(new Date())).slice(0,10);
   /* the shared producer first: one sentence per season the date falls in,
@@ -34317,9 +34830,18 @@ function csComposerWorthLine(playedOn, capGiven){
   /* D364 (F3) · the card's own side — a nine is never promised an
      eighteen-hole ceiling */
   const holes = (typeof state !== 'undefined' && state.post && state.post.side === 9) ? 9 : 18;
+  const known = (pts != null && isFinite(Number(pts)) && holes === 18) ? Number(pts) : null;
   const served = capGiven === undefined && window.myCounters && window.myCounters.on === on ? window.myCounters.rows : null;
   if(served){
-    const rows = served.map(x => ({ league_name: x.league_name, cap: x.cap, used: x.counters?.used, worst: x.counters?.worst }));
+    const rows = served.map(x => ({ league_id: x.league_id, league_name: x.league_name, cap: x.cap, used: x.counters?.used, worst: x.counters?.worst }));
+    if(known != null){
+      /* the league the preview scored the card in — the open one */
+      const lid = window.CS?.league?.id || null;
+      const row = rows.find(r => lid && r.league_id === lid) || (rows.length === 1 ? rows[0] : null);
+      /* unnamed: when the golfer is in more than one league, the figure's own
+         label above already names this one ("Points in North Grove") */
+      if(row) return csRoundWorthKnown(known, row.cap, row.used, row.worst, null);
+    }
     const lines = csRoundWorthLines(rows, 'This round', holes, rows.length);
     return lines.length ? lines.join(' ') : null;
   }
@@ -34331,6 +34853,7 @@ function csComposerWorthLine(playedOn, capGiven){
   const counting = cap==null ? month : month.filter(r => r.month_rank!=null && r.month_rank <= cap);
   const used = counting.length;
   const worst = counting.length ? Math.min(...counting.map(r => Number(r.points))) : null;
+  if(known != null) return csRoundWorthKnown(known, cap, used, worst, null);
   return csRoundWorthLine('This round', cap, used, worst, null, holes);
 }
 window.csComposerWorthLine = csComposerWorthLine;

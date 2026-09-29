@@ -108,6 +108,9 @@ export default function install(W) {
         played_on: W.today, course_label: r.course_label, holes_played: holes, photo_path: null, api_course_id: r.api_course_id, created_at: W.at(0, 13, 5),
         tee_name: (r.course_snapshot || {}).tee || null, par: holes === 9 ? 36 : 72 })
       posted.push({ name: labelOf(pl), gross, holes, round_id: rid, profile_id: pid })
+      /* W1 (2026-09-28): a posted card scores like any other round, so the
+         finish can read its league verdict through round_card */
+      if (pid && typeof W.rescore === 'function') W.rescore(pid)
     }
     r.status = 'final'; r.finished_at = W.at(0, 13, 5); r.result = a.p_result || null
     return { posted, guests, skipped, casual: !!a.p_casual }

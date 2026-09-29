@@ -210,6 +210,10 @@ export default function install(W) {
     }
   }
 
+  /* W1 (2026-09-28): the live fixture's finish lands rounds too; it rescores
+     them with this same arithmetic so a finished card has its league verdict */
+  W.rescore = rescore
+
   /* round_epilogue (20260910090000): the stamped season's lens, what the round
      earned, and the solo table's movement with the round in and out */
   function epilogue(roundId) {
