@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | the round-1 evidence: web `9d84c483` (captures at `02636007` and `9d84c483`) and native `4112a3f0`. Source and canon were read at `de3eaf35`, and the web's current behaviour at `4a703402` wherever a lane changed it. |
-| **Status read at** | **`6c5f251b`**. Lanes W1–W5 are merged; W6 (session B) is not. |
+| **Status read at** | **`fd27ace4`**, the web ship candidate. Every lane (W1–W6) is merged. |
 | **Date** | 2026-09-28 |
 | **Assessors** | The owner rules; this memo, by session C (docs), only recommends. The evidence behind it: the panel's **category**, **craft** and **owner** judges, critiques **A** and **B**, audit **AW** and detector **DX**, plus the questions lanes W2–W5, session B and N2 forwarded through root. Four read-only research passes gathered the canon; none of them scored anything. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/` (`panel/`, `critique-A/`, `critique-B/`, `audit-web/`, `detector/`, `SESSIONS.md` §C) and root's messages of 2026-09-28 |
@@ -29,7 +29,7 @@ These block work in flight or define the gate.
 1. **Q9, how the gate counts ceilings.** Round 2 is scored on the answer.
 2. **X38, public privacy.** The one data exposure, and it needs a migration.
 3. **X37, the owner and the pilot crew in the product.** Real people on a public page and in a public repo.
-4. **Q24 and Q25, the wordmark and the button label.** Session B is building both now.
+4. **Q24 and Q25, the wordmark and the button label.** Session B's lockup and CTA grammar have landed everywhere else; the Door and the in-app `.btn` wait on these.
 5. **Q1, the recap's double strip.** Lane N4 is on the recap now.
 6. **X36, X40, Q7, Q23 and Q5.** Words that must read the same on both clients.
 7. **Q2's TERMINOLOGY amendment.** The nine two-squad defects can start without it.
@@ -45,7 +45,7 @@ These block work in flight or define the gate.
 | X40 | "7.9 vs course" on a personal best | decision | "83 at ‹course› · ‹date›", printed once; the differential stays on the receipt | freeze |
 | Q1 | The live recap draws its hole strip twice | decision | Keep the card's strip, with one visible footer line and the chips under it | freeze (N4) |
 | Q2 | Two-squad "cut" wording | defect + one canon conflict | The covenant line is not live; fix nine producers; make TERMINOLOGY rows 11, 141 and 142 structure-aware | freeze |
-| Q3 | GuideCopy's third wording of the minimum | defect (recorded) | The league's `floorSentence` on both clients | no ruling needed |
+| Q3 | GuideCopy's third wording of the minimum | defect (recorded); web fixed (5777f011) | The league's `floorSentence`; the phone is N4's | no ruling needed |
 | Q4 | The Pro's Home is a member's Home | decision | Build D226's ranked Pro item after launch; correct CLAUDE.md's claim now | after launch |
 | Q5 | Where the build stamp lives | decision | Hidden on the Door, off the sidebar, kept in Settings | freeze |
 | Q6 | A specimen on the phone Door | decision | Keep the phone Door as it is; real permissioned examples later | after launch |
@@ -66,8 +66,8 @@ These block work in flight or define the gate.
 | Q21 | "LAST FIVE" in a count slot | defect (recorded) | The window moves into the label | no ruling needed |
 | Q22 | The finished Ryder's MVP | decision | On the board for Oct 1; a stored MVP after | after launch |
 | Q23 | "Share the card" | defect + decision | "Share your round"; the web ceremony shares the link too | freeze |
-| Q24 | The Door's wordmark | decision (brand) | Condensed caps everywhere | freeze ([WM]) |
-| Q25 | The `.btn` label role | defect + canon conflict | `name` 17 at 50px on the web, as the phone does | freeze (W6) |
+| Q24 | The Door's wordmark (every other surface now wears the one lockup) | decision (brand) | The lockup's name on the Door; the serif kept for the Door's statement | freeze |
+| Q25 | The in-app `.btn` label role (get, support and the public shell are done) | defect + canon conflict | `name` 17 at 50px, as the phone does | freeze |
 | Q26 | "YOUR MOMENTS" or "MATCHES & WEEKENDS" | decision | YOUR MOMENTS; close the conflict in writing | any time |
 | Q27 | The league's name when a Pro resumes setup | decision | Prefill it, editable | freeze |
 | Q28 | Wizard presets; the desk's empty Compete | decision | Keep W5's dials; leave empty Compete with its one door | after launch |
@@ -159,7 +159,7 @@ These block work in flight or define the gate.
   - The shipped static pages carry the operator company (which bears the owner's surname), a contact address and the owner's city (`legal.html`, `get.html`, `support.html`).
 - **Fixed since:** the golfer card's handle placeholder is now "@yourname" (W2, 35b4f475). The phone's was always generic.
 - **The phone.** N2's 7388e04e replaced the owner's name in one DEBUG fixture. A sibling DEBUG hatch (`-cs_dev_nearby_invite`, `LiveRoundStore.swift:291`) still sends it. Several preview-only and DEBUG fixtures carry the owner's or pilot golfers' identities, including `HomeStateFixtures.swift`, which is generated from `tests/fixtures/home-states.json`.
-- **The public repo.** Canon files and tests also print identity: CLAUDE.md, a TERMINOLOGY row, LEDGER X37 itself, and `tests/app-tests.js`.
+- **The public repo.** Canon files and tests also print identity: CLAUDE.md, a TERMINOLOGY row, and tests (`tests/app-tests.js`; the phone's `ShareKindTests.swift:97` pins a real first name, as session B's report notes). LEDGER X37 no longer does (ba6935a5).
 
 **Canon, and where it conflicts.**
 - CLAUDE.md: "Demo mode is a diorama".
@@ -389,7 +389,7 @@ Rows 1–4 and 6–9 are client copy for the web (root/W6) and N4. Row 5 is a mi
 **Blocked until ruled:** only the TERMINOLOGY amendment. The defects can start now.
 
 ### Q3 · GuideCopy states the monthly minimum a third way (a defect; recorded)
-**Status: a defect on both clients with a ruled fix. No owner ruling is needed.**
+**Status: a defect on both clients with a ruled fix. No owner ruling is needed.** The web half is **fixed (f6cb4760: 5777f011)**: "What counts" prints `floorSentence()` when a league is in hand, and keeps its general account without one. The phone half (`GuideCopy` → `LeagueCopy.floorSentence`) is lane N4's.
 
 **What the source says.**
 - The scoring guide (the phone's `GuideCopy.scoring(solo:)`, the web's `openScoringHelp`) says "Miss it once and your bye covers you automatically … the penalty bites from the second miss". It is word for word on both clients, and it never sees the league's floor or preset.
@@ -861,37 +861,41 @@ Each is a TERMINOLOGY §2.2 amendment with a decision entry, and no migration.
 **Blocked until ruled:** the ceremony, epilogue and receipt labels on both clients. The web's link omission is a defect and is not blocked.
 
 ### Q24 · The Door's wordmark
-**The question.** The web Door sets "CUP SEASON" in the editorial serif. The phone's masthead, the desk sidebar and the share artifact set it in condensed caps. The phone-width web header sets it in system sans, title case. Which is the wordmark?
+**Status at `fd27ace4`.** Session B's one lockup (`.cs-lockup`: the pennant plus "Cup Season" in the `name` role, the phone masthead's geometry) now signs the phone-width header, the desk sidebar, the public shell and get, support and legal (5498a79f, merged at f6cb4760; `tests/lockup-browser.mjs`, 192 checks). **The Door alone keeps its serif name**, on root's ruling that this is the owner's brand call. UI_SYSTEM §12.3 now carries a note on the one lockup (1688c9d7, at fd27ace4).
+
+**The question.** Does the Door keep its serif "CUP SEASON", or sign with the lockup like every other surface?
 
 **Canon.**
 - D358 rules only the mark (the pennant "wherever Cup Season signs its identity"), not the wordmark's face.
 - IOS-046 moved the phone's masthead to the board face ("The artboards won").
-- UI_SYSTEM §12.3: "The wordmark keeps the canon setting: IBM Plex Mono 600, tracked 0.32em, always CAPS". A re-cut is reserved to the owner.
-- `brand/README.md` (2026-08-06): "The door's seared serif 'CUP SEASON' is the door's voice, not the lockup's".
+- UI_SYSTEM §12.3 stated a mono wordmark, which B's note now places in the Tracer era. A re-cut is reserved to the owner.
+- `brand/README.md` (2026-08-06): "The door's seared serif 'CUP SEASON' is the door's voice, not the lockup's."
 - The owner's 2026-09-14 board survives only as a path in a review file; the image is not in the repo, and no decision entry records it.
-- The claim that "the rest of the product takes condensed caps" is how the product ships, not canon.
-- The web Door also shows three serif lines, where UI_SYSTEM §1.4 allows "one appearance per viewport, maximum". That is a defect whatever the ruling.
+- The phone's Door already agrees with the lockup: its entry crest is condensed caps, and its welcome stage prints no wordmark text.
+- The web Door shows three serif lines, where UI_SYSTEM §1.4 allows "one appearance per viewport, maximum". That is a defect whatever the ruling.
 
 **Options.**
-- (1) Serif on the Door only: the phone's Door crest changes to match.
-- (2) Condensed caps everywhere: one CSS line on the web Door, with §12.3 and the README amended.
-- (3) §12.3's mono lockup everywhere.
-- (4) A full re-cut, regenerating the lockups and the og-image. Changes under `brand/` are the owner's alone (SESSIONS §2).
+- (1) **Keep the serif name on the Door,** as a named exception: the Door's voice. For parity the phone's crest would change to match.
+- (2) **The Door takes the lockup** like every other surface. One change on the web Door; the phone already matches.
+- (3) **The lockup's name on the Door, and the Door's serif kept for its statement**, the sentence under the name. This is the split `brand/README` already draws between "the door's voice" and "the lockup". Web Door only; the phone already matches. It also takes one serif line off the Door (§1.4).
+- (4) A full re-cut (regenerating the lockups and the og-image). Changes under `brand/` are the owner's alone (SESSIONS §2).
 
-Each needs a decision entry.
+Each needs a decision entry, and (1) needs the README's sentence restated as the rule.
 
-**Recommendation: (2).**
-- It is what the judges asked for (one lockup: the pennant plus the condensed-caps wordmark the share artifact already uses, SESSIONS §B [WM]).
-- The phone, the desk and W4's public shell already set it that way.
-- It needs no new drawing.
+**Recommendation: (3).**
+- It gives the judges their one lockup (the consistency cells on the Door, Home, the desk and the public pages).
+- It keeps the serif the owner's own board chose for the Door, as its voice.
+- It matches the phone's Door with no native change.
+- It clears one of the Door's three serif lines.
 
-**Blocked until ruled:** session B's [WM] on the Door; §12.3 and the brand README.
+**Blocked until ruled:** the web Door's name; the §1.4 serif count on the Door.
 
 ### Q25 · The product-wide `.btn` label role
 **The question.** Should the web's `.btn` label take UI_SYSTEM §7.1's `name` role, as the phone's buttons already do?
 
 **What the source says.**
-- The web's `.btn` is system sans at 14px and weight 600, with a 46px minimum height. 14px is not one of the type roles.
+- The web's in-app `.btn` is system sans at 14px and weight 600, with a 46px minimum height, at 118 sites. 14px is not one of the type roles.
+- Session B moved get's and support's `.btn` and the public shell's action to the `name` role (3588886b, merged at f6cb4760). Root ruled that the in-app `.btn` waits for this question.
 - The phone's primary and secondary styles use `.csType(.name)` (condensed caps, 17) at 50pt.
 
 **Canon, and where it conflicts.**
@@ -1029,10 +1033,19 @@ These need the owner's hands, not a ruling.
   - The `?cs_home_state` hatch lifted the Door on any host (X37). Found by C from the code; root confirmed it on a prod-like server (`cf401dee` lifted the Door). **Fixed (45d40eb3):** the Door stays up, with the shell inert, unless the hatch's fixture is served. The exposure is live on cupseason.app until the ship.
   - The LEDGER's X37 line printed the owner's handle. **Fixed (ba6935a5):** it names the handle by role. History is not rewritten, since the handle had been public in `index.html` as the old placeholder.
   - Code-audit B25, the install nudge re-showing after dismiss and sitting over the composer (Q14). **Fixed (6c5f251b).**
-- **B's held migration, `d30f1ecb`.** Home's invitation says "See the terms before you're in", by patching `home_dispatch` in migration `20261211094500_the_terms_before_youre_in.sql`. It is proven on the disposable cluster and held off main. **Owner action:** take `d30f1ecb` from `claude/ten-w6-shared-2026-09-28` and `supabase db push` when you want it.
+- **B's held migration, `d30f1ecb`.** Home's invitation says "See the terms before you're in", by patching `home_dispatch` in migration `20261211094500_the_terms_before_youre_in.sql`.
+  - It is idempotent and restates the grants.
+  - It is proven on a disposable PostgreSQL 17 cluster (the full chain).
+  - It was reverted on B's branch at `d355b115`, so it is held off main.
+  - **Owner action:** take `d30f1ecb` from `claude/ten-w6-shared-2026-09-28` and `supabase db push` when you want it.
+  - Its twins, when taken: `HomeFallbackItems.swift:100` and `SyntheticWorld+Home.swift:143` (N4), and the web fixture line.
 - **The clash lead's sentence** (`home_dispatch`, `20261006093000:243`) hides who holds the week. Root lists it as database owed, and it rides with Q10.
 
 ## E · Recorded by root, with no question
-- **The covenant's ending uses the phone's words on both clients** (L-34). Session B is aligning the web. Q2 lists the other two-squad producers.
+- **The covenant's ending uses the phone's words on both clients** (L-34). Done at 8b87a90d (merged with W6): the web's ending is `JoinLeague.endingLine` word for word, and the structure is its own fact. Q2 lists the other two-squad producers.
+- **Root's rulings sent to session B with GO.**
+  - The Door keeps its serif until the owner rules Q24.
+  - One index label per object: YOUR NUMBER on the viewer's own figure, and "Handicap index" on another golfer's card (57ca5eee; the phone's `YouScreen.swift:328` twin goes to N4).
+  - The in-app `.btn` type role is the owner's (Q25).
 - **The wizard's "best four" is right** (W5, root: "resolved, not a defect"). Standard is best 3 with a two-round minimum, and the fixture league is a customised Standard (`counting_cap` 4). W5's `1d6ed619` now says "Custom, built on Standard" when the dials leave a preset.
 - **Counsel should see one rename.** W4 renamed the "Prize Pool Disclaimer" to "The pot" in `legal.html` and `legal/*.md`, following TERMINOLOGY T-12 (0fca89d5). Every other clause is counsel's text, unchanged. It ships with the next web push, and a revert is one line.
