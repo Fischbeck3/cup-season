@@ -532,6 +532,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
 .hstart a{display:inline-flex; align-items:center; min-height:44px; color:var(--ink);
   text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
 .hstart a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.wire-empty{margin:0; color:var(--mut);}   /* TEN / W6 · the empty wire's head: body, mut (EmptyRoot) */
 /* Weight 5 -- minor activity: one 44pt row, a day marker in the leading
    column, one line of prose, a rule on top. The marker is `mut` and never
    `dim`: `dim` is 3.15 / 2.89 and may not carry a word. */
@@ -6536,7 +6537,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div class="eyebrow" style="margin-top:0">The board · rounds land here automatically <a href="#" id="bfOpen">OPEN ↗</a></div>
           <div id="feedList" style="max-height:52vh; overflow-y:auto;"></div>
           <div class="composer">
-            <input class="f" id="chatIn" placeholder="Message the league…">
+            <input class="f" id="chatIn" placeholder="Post to the board…">
             <button class="btn dark" id="annBtn" style="display:none; width:auto; padding:0 14px;" title="Announce to the league" aria-label="Announce to the league"><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg></button>
             <button class="btn" id="chatSend" style="width:auto; padding:0 18px;">Send</button>
           </div>
@@ -9865,7 +9866,7 @@ function renderFeedFull(force){
         const counting = r.month_rank==null
           ? `<span class="dim">PRE-SEASON · NOT COUNTING</span>`
           : r.month_rank<=capN
-            ? `<span class="ok">COUNTING #${r.month_rank} THIS MONTH</span>`
+            ? `<span class="ok">COUNTING #${r.month_rank}${capN===Infinity ? '' : ' OF ' + capN} THIS MONTH</span>`   /* TEN / W6 · the receipt's rule: the month's count, not a rank */
             : `<span class="dim">BUMPED — OUTSIDE THE BEST ${capN===Infinity?'':capN} THIS MONTH</span>`;
         /* photos arc, task 3.2: a photo becomes the card's ground rather than
            an attachment below it — .has-photo carries the background-image +
@@ -18972,7 +18973,12 @@ function homeRoundStory(r){
   const rank = r.month_rank!=null ? r.month_rank : (c && c.month_rank!=null ? c.month_rank : null);
   if(pts!=null && rank!=null){
     const cap = r.counting_cap!=null ? Number(r.counting_cap) : capNum();
-    const counting = cap===Infinity || rank<=cap ? `counting #${rank} this month`
+    /* TEN / W6 · "counting #1 this month" read as a RANK (critique-B home P3).
+       The receipt's own clause is "COUNTING #2 OF 4": the denominator makes it
+       the month's count. Uncapped has nothing to be out of, so it stays bare.
+       `HomeWireCopy.roundStory` is the phone's twin. */
+    const counting = cap===Infinity ? `counting #${rank} this month`
+                   : rank<=cap ? `counting #${rank} of ${cap} this month`
                    : `bumped — outside the best ${cap} this month`;
     return `${pts} pts · ${counting}`;
   }
@@ -19653,6 +19659,22 @@ function wireFeedReceipts(box){
     el.addEventListener('keydown', e=>{ if(e.target.closest('[data-tc],button')) return; if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(e); } });
   });
 }
+/* TEN / W6 · QB-05 · WHAT THE WIRE SAYS WHEN NO BUDDY HAS POSTED — the web
+   twin of `EmptyRoot.wireEmpty` (EmptyRoot.swift), in its words. "Post one,
+   or add some buddies" is a claim about the golfer's life, and for a member
+   of a season it is false (a blind walker met it ninety seconds after a
+   covenant that named all six of his season's golfers). With a season of two
+   or more that has not wrapped, the door is that season's table; with nobody,
+   the buddies door stays exactly right. The web reads the season in hand
+   (`CS.league`); the phone picks the earliest-starting of all memberships. */
+function csWireEmpty(){
+  const lg = (!state.demo && window.CS && CS.league) || null;
+  const n = (window.CS && Array.isArray(CS.members)) ? CS.members.length : 0;
+  if(lg && CS.season?.status !== 'complete' && n >= 2)
+    return { head:'No rounds from your buddies yet.', door:`See who\u2019s in ${lg.name}.`, table:true };
+  return { head:'No rounds from your buddies yet. Post one, or', door:'add some buddies.', table:false };
+}
+window.csWireEmpty = csWireEmpty;
 function renderHomeFeed(){
   const box=$('#homeFeed'); if(!box) return;
   /* loading: scorecard skeletons until the first fetch lands (undefined = not
@@ -19728,8 +19750,11 @@ function renderHomeFeed(){
     if(img.complete && img.naturalWidth > 0 && img.getAttribute('data-path'))
       keep.set(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'), img);
   });
+  /* TEN / W6 · the empty wire is a sentence WITH A DOOR (LINT-21), and the
+     door is true to the golfer's life: `csWireEmpty`, below. */
+  const we = html ? null : csWireEmpty();
   box.innerHTML = html
-    || '<p class="fine" style="padding:0">No rounds from your buddies yet. Post one, or <a href="#" data-gopeople>add some buddies</a>.</p>';
+    || `<p class="cs-body wire-empty">${esc(we.head)}</p><div class="hstart"><a href="#" ${we.table ? 'data-wiretable' : 'data-gopeople'}>${esc(we.door)}</a></div>`;
   box.querySelectorAll('img.hsbg').forEach(img => {
     const old = keep.get(img.getAttribute('data-path') + '\u0000' + img.getAttribute('src'));
     if(old) img.replaceWith(old);
@@ -21957,7 +21982,7 @@ function renderGolfers(){
     const person=async()=>{
       if(btn.disabled) return; btn.disabled=true;
       await csShareIntentLink('person', window.CS?.profile?.id,
-        `${window.CS?.profile?.display_name || 'A golfer'} wants you in their golf. Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP.`);
+        `${window.CS?.profile?.display_name || 'A golfer'} wants to play golf with you. Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP.`);
       btn.disabled=false;   /* the row stays either way — see CS_SHARE_NOT_YET */
     };
     const season=lg=>{
@@ -29266,6 +29291,8 @@ function openFindGolfers(){
 }
 window.openFindGolfers = openFindGolfers;
 document.addEventListener('click', e=>{ if(e.target.closest('[data-gopeople]')){ e.preventDefault(); goCrewPeople(); } });
+/* TEN / W6 · the empty wire's other door: the season's table (`openCompetition(id, .table)` on the phone) */
+document.addEventListener('click', e=>{ if(e.target.closest('[data-wiretable]')){ e.preventDefault(); switchView('hub'); setRoomSeg('standings'); } });
 $('#wFind')?.addEventListener('click', openFindGolfers);
 $('#hdrSearch')?.addEventListener('click', openFindGolfers);
 $('#hdrLogo')?.addEventListener('click', ()=> switchView('home'));

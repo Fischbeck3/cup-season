@@ -66,7 +66,11 @@
   check(!ref.querySelector('img'),'the record grew a picture it does not have');
 
   /* the one story — the competition's consequence when the client has it */
-  check(at(3).querySelector('.hfr-story').textContent==='9 pts · counting #2 this month','the cached consequence did not become the story: '+at(3).querySelector('.hfr-story')?.textContent);
+  /* TEN / W6 (root, 2026-09-28) · "#2 of 4", not "#2": the month's count
+     carries its denominator when the season caps it (the receipt's own
+     clause, "COUNTING #2 OF 4"); an uncapped season has none. */
+  const capN=capNum(), wantStory='9 pts · counting #2'+(capN===Infinity?'':' of '+capN)+' this month';
+  check(at(3).querySelector('.hfr-story').textContent===wantStory,'the cached consequence did not become the story: '+at(3).querySelector('.hfr-story')?.textContent);
   check(!at(3).textContent.includes('beat their'),'two stories on one round');
   /* no handicap context — the record stands on course and gross alone */
   check(!at(2).querySelector('.hfr-story'),'a round with no context invented one');
