@@ -104,6 +104,20 @@ struct EndgameCopyTests {
             == "TOP 2 INTO THE FINAL, OPENS DEC 7")
   }
 
+  @Test("two squads both play the Final, in the clause too (the web's csEndgameClause)")
+  func twoSquadsClause() {
+    #expect(MeStripCopy.endgameClause(membership(structure: "squads2", of: 2), calendar: cal)
+            == "BOTH SQUADS PLAY THE FINAL, OPENS DEC 7")
+    // three or four squads still seed the top two
+    #expect(MeStripCopy.endgameClause(membership(structure: "squads3", of: 3), calendar: cal)
+            == "TOP 2 INTO THE FINAL, OPENS DEC 7")
+    #expect(MeStripCopy.endgameClause(membership(structure: "squads4", of: 4), calendar: cal)
+            == "TOP 2 INTO THE FINAL, OPENS DEC 7")
+    // a points table is untouched
+    #expect(MeStripCopy.endgameClause(membership(structure: "squads2", finish: "points_table", of: 2), calendar: cal)
+            == "POINTS TABLE CROWNS IT JAN 3")
+  }
+
   @Test("squads2 keeps the leader's head start; every other structure does not claim it")
   func headStart() {
     #expect(SeasonFacts.footEndgame(membership(structure: "squads2"), calendar: cal)?
