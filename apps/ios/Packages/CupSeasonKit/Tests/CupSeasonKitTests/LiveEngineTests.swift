@@ -532,9 +532,10 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     s.code = nil
     #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Scoring it yourself · live on this phone")
     s.code = "abc"
-    // W1 · the sync line is the web's sentence (`liveSyncBadge`), word for
-    // word: it replaced "2 scoring · 2 unsent", which said a count and not
-    // that the scores were safe or when they would go (`UnsentBadgeTests`).
+    // W1 · the sync line is the web's sentence (`liveSyncBadge`): it replaced
+    // "2 scoring · 2 unsent", which said a count and not that the scores were
+    // safe or when they would go. This card has no tee-off time, so it names
+    // no window (`UnsentBadgeTests` holds the window).
     #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 scores saved on this phone; they send when you have signal.")
     #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 0) == "2 phones scoring · every score sent")
     #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Every score sent")
