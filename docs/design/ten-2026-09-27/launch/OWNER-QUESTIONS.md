@@ -1255,6 +1255,39 @@ At accessibility sizes the phone's `CSSideRoster` (the two named groups of UI_SY
 
 **Blocked until ruled:** the record's Recent rounds line and All time figures on the web; the phone's Tour Card career figures; B2's history P1.
 
+### Q40 · The desk's You prints your last five grosses twice. Which one keeps them?
+**The question.** Under the credential, the desk You has the Form row: 88 · 43 · 83 · 85 · 84, oldest first, with the best in gold. Directly under it, Recent rounds lists the same five rounds, newest first, with the same five grosses. The round-2 audit files it as one fact twice (AW2-16, P3).
+
+**Evidence.**
+- `desk--you--1280--light--first.png` (root/harness-31299f43): the two blocks are a hand's width apart.
+- **The phone keeps one.** Its You screen has the Form row only. `RecentRoundsList` was deleted in Wave 3 (YRS-22), and `ProfileFormRow` says it is "the only place the last five appear" (GP-13, YRS-04; `surfaces/profile.md` §5).
+- **D291 keeps both on the desk.** You authorised it on 2026-09-07 ("Trophies and recent rounds also not engaging… Think Strava"). Its item (3) made Recent rounds "`formRowHtml`'s big brother": the gross as a figure, the course, the drawn card, and each row a door to its receipt. It kept the desk's shape separate from the phone's under D234.
+
+**Options.**
+- **(a) Keep both,** as D291 has it. AW2-16's second half closes as won't-fix, and the audit keeps its point.
+- **(b) Drop the desk's Form row, so Recent rounds carries the five.** The best 18-hole gross of the five takes the gold on its own row (§2.4 lists "the best of the last five"), and the head reads "Recent rounds · Last five". The receipt doors and drawn cards stay. The phone is unchanged.
+- **(c) Drop Recent rounds, so the Form row carries them,** and its five columns become the receipt doors. This is the phone's shape and profile §5's rule, but it takes away what D291 added for you: the course names, the drawn cards and the Strava feel.
+
+**Recommendation: (b).** It keeps everything D291 gave you, and the page says each gross once. The gold moves; it doesn't multiply. It's about an hour on the web alone, with a test.
+
+**Blocked until ruled:** AW2-16's second half.
+
+### Q41 · Compete with nothing running: does the counted sentence lead, or "Nothing running."?
+**The question.** When you have buddies but no competition, the web leads with "Nothing running." and puts "5 buddies, and none of you is playing for anything." under it. The phone leads with the counted sentence. The two clients use one producer (D234), so one of them is wrong.
+
+**Evidence.**
+- **IA §6.1** (`docs/ux-overhaul-2026-09-04/INFORMATION_ARCHITECTURE.md:322–326`): the head is "**Nothing running.**", the counted line is the fact above the door, and with no buddies the second door is "Find golfers". The web builds exactly this, and `tests/app-tests.js` pins it.
+- **QB-21**, in the same overhaul's report (`OVERHAUL_REPORT.md:171`), moved the counted sentence into the head on the phone (`CompeteRoot.empty`). Two blind readers read "Nothing running." as "leave", and one called the counted line "diagnosis and dare in eleven words". QB-21 never amended IA §6.1 and has no decision-log entry.
+- **The phone never offers "Find golfers".** That part is IA canon, and N4 is adding it now; it doesn't wait on this question.
+
+**Options.**
+- **(a) Amend IA §6.1 to QB-21 on both clients.** The counted sentence is the head when there is a count, and "Nothing running." is the head otherwise. Doors as IA has them.
+- **(b) Keep IA §6.1.** The phone goes back to "Nothing running." as its head, with the count under it.
+
+**Recommendation: (a).** It's the only one of the two with evidence from people reading it, and a count never guessed stays true: with no buddies, the old head returns. The web half is a two-line change to `csEmptyRoot` and its tests.
+
+**Blocked until ruled:** the web's Compete head (no change until then), and the phone's, which stays as QB-21 built it.
+
 ## D · Owner actions owed (not questions)
 
 These need the owner's hands, not a ruling.
