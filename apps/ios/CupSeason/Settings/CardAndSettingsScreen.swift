@@ -23,8 +23,9 @@ struct CardAndSettingsScreen: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
   @State private var vm = CardSettingsModel()
-  /// W7-042 · when Back last asked about unsaved edits (see `leave()`)
-  @State private var leaveAsked: Date?
+  /// W7-042 · Back has asked about the pending edits (see `leave()`); a new
+  /// edit asks again
+  @State private var leaveAsked = false
   @State private var pane: Int
   /// Y-01 · both panes open the guide through this one door.
   @State private var guideSheet: GuideRoute?
@@ -69,9 +70,15 @@ struct CardAndSettingsScreen: View {
     // W7-042 · the line the first Back says sits under Save, below the fold
     // of a golfer who edited the name: bring it into view
     .onChange(of: leaveAsked) { _, asked in
-      guard asked != nil else { return }
+      guard asked else { return }
       withAnimation { proxy.scrollTo(CardSettingsModel.statusID, anchor: .bottom) }
     }
+    // the back gesture goes with the system's button, so the page carries its
+    // own: a drag in from the leading edge asks as Back does
+    .simultaneousGesture(DragGesture(minimumDistance: 24, coordinateSpace: .global).onEnded { v in
+      guard vm.dirty, v.startLocation.x < 28, v.translation.width > 80, abs(v.translation.height) < 80 else { return }
+      leave()
+    })
     }
     .background(cs.bg0)
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
@@ -112,7 +119,13 @@ struct CardAndSettingsScreen: View {
            + "Every league you are in is told.")
     }
     .task { await vm.load(userId: store.session?.user.id) }
-    .onChange(of: vm.dirty) { _, dirty in if !dirty { leaveAsked = nil } }
+    .onChange(of: vm.dirty) { _, dirty in if !dirty { leaveAsked = false } }
+    // a new edit is a new pending edit: the question's line goes with it, so
+    // the page never says "do that again" of a way out that will ask
+    .onChange(of: vm.editKey) { _, _ in
+      leaveAsked = false
+      if vm.status?.0 == CardSettingsModel.unsaved { vm.status = nil }
+    }
     .sheet(item: $guideSheet) { g in
       switch g {
       case .guide(let sheet): GuideSheetView(sheet: sheet)
@@ -124,15 +137,15 @@ struct CardAndSettingsScreen: View {
 
 extension CardAndSettingsScreen {
   /// W7-042 · the phone dropped a card's pending edits on Back, silently. The
-  /// first Back with edits pending keeps the page, turns to the card and says
-  /// why under Save; a second within four seconds leaves without saving (the
-  /// web's csSheetGuard, C's words).
+  /// first way out with edits pending, Back or the back gesture, keeps the
+  /// page, turns to the card and says why under Save; the next one leaves
+  /// without saving. It asks once per pending edit, with no stopwatch (root's
+  /// final rule).
   func leave() {
-    if !vm.dirty { dismiss(); return }
-    if let asked = leaveAsked, Date().timeIntervalSince(asked) < 4 { dismiss(); return }
+    if !vm.dirty || leaveAsked { dismiss(); return }
     pane = 0
     vm.status = (CardSettingsModel.unsaved, .mut)
-    leaveAsked = Date()
+    leaveAsked = true
   }
 }
 
@@ -156,8 +169,11 @@ final class CardSettingsModel {
   var dirty = false
   var saving = false
   var status: (String, CSTone)? = nil
-  /// W7-042 · the web's CS_CARD_UNSAVED, word for word
-  static let unsaved = "You have unsaved changes. Save them, or close again to leave without saving."
+  /// W7-042 · one sentence for every way out (root's final words)
+  static let unsaved = "You have unsaved changes. Save them, or do that again to leave without saving."
+  /// Every card field in one value: a change is a new pending edit, which the
+  /// guard asks about again.
+  var editKey: String { [name, city, home, handle, ghin, marker ?? ""].joined(separator: "\u{1F}") }
   /// the status line's scroll anchor
   static let statusID = "card.status"
   var photoBusy = false
