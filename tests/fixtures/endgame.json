@@ -18,7 +18,7 @@
       "starts_on": "2026-08-03",
       "ends_on": "2026-11-02",
       "cup_final_start": "2026-10-06",
-      "expected": "The top 2 squads go into a four-week Cup Final from Tue Oct 6 — scored fresh, so the weeks before it decide who is in, not who wins. The leader carries +10 in. Level on points? Months won breaks it."
+      "expected": "Both squads play a four-week Cup Final from Tue Oct 6 — scored fresh, and the leader carries +10 in. Level on points? Months won breaks it."
     },
     {
       "label": "WTB",
@@ -90,7 +90,7 @@
       "starts_on": "2026-07-20",
       "ends_on": "2027-01-18",
       "cup_final_start": "2026-12-22",
-      "expected": "The top 2 squads go into a four-week Cup Final from Tue Dec 22 — scored fresh, so the weeks before it decide who is in, not who wins. The leader carries +10 in. Level on points? Months won breaks it."
+      "expected": "Both squads play a four-week Cup Final from Tue Dec 22 — scored fresh, and the leader carries +10 in. Level on points? Months won breaks it."
     },
     {
       "label": "Fellas",
@@ -162,7 +162,7 @@
       "starts_on": "2026-11-30",
       "ends_on": "2027-03-07",
       "cup_final_start": "2027-02-08",
-      "expected": "The top 2 squads go into a four-week Cup Final from Mon Feb 8 — scored fresh, so the weeks before it decide who is in, not who wins. The leader carries +10 in. Level on points? Months won breaks it."
+      "expected": "Both squads play a four-week Cup Final from Mon Feb 8 — scored fresh, and the leader carries +10 in. Level on points? Months won breaks it."
     },
     {
       "label": "year crossing",

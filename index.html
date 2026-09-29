@@ -866,8 +866,10 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .climb-rung .gap:empty{min-width:0;}
 .climb-rung.lead{margin-bottom:14px;}
 .climb-rung.tuck{margin-bottom:3px;}   /* adjacency beats the leader's standoff — declared after .lead on purpose */
-.climb-rung.me{border-color:var(--gold); padding:12px 10px;}
-.climb-rung.me .nm{color:var(--gold); font-size:15px;}
+/* YOUR rung is marked by weight and an ink edge, never gold: gold is earned
+   (D359), and being you is not (the owner's panel: gold on the viewer's squad) */
+.climb-rung.me{border-color:var(--ink); padding:12px 10px;}
+.climb-rung.me .nm{color:var(--ink); font-size:15px;}
 .climb-rung.me .pts{font-size:15px;}
 .climb-rung .voice{flex:none; flex-basis:100%; min-width:0; font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--mut); padding-left:46px; overflow-wrap:anywhere;}   /* D258 · the rung's one sentence wraps rather than clipping */
 .climb-rung .voice b{color:var(--ink); font-weight:600;}
@@ -876,8 +878,8 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .climb-rung .badge.lock{color:var(--pos); border:1px solid var(--pos);}
 .climb-rung .badge.out{color:var(--mut); border:1px solid var(--rule);}
 .climb-spark{flex:none; margin:0 1px;}
-.climb-cut{display:flex; align-items:center; gap:8px; padding:2px 2px; margin-bottom:6px; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--gold);}   /* D258 · L-29 */
-.climb-cut .ln{flex:1; height:0; border-top:1px dashed var(--gold); opacity:.55;}
+.climb-cut{display:flex; align-items:center; gap:8px; padding:2px 2px; margin-bottom:6px; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--mut);}   /* D258 · L-29 · the cut is never gold: nothing here is won yet */
+.climb-cut .ln{flex:1; height:0; border-top:1px dashed var(--mut);}
 .climb-cut .lb{flex:none;}
 .climb-ellip{font-family:var(--mono); font-size:11px; color:var(--mut); text-align:center; letter-spacing:.12em; margin-bottom:7px;}   /* D258 · L-29 */
 .climb-rung.in{animation:climbIn .22s ease-out;}
@@ -938,6 +940,10 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   padding:0; vertical-align:middle;}
 .tbl tr.lead .rk{background:var(--gold); color:var(--panel-ink);}
 .tbl tr.mine .rk{background:var(--panel); color:var(--panel-ink);}
+/* the rail's HEAD is a column head like the others: `.rk` set "POS" as a 22px
+   numeral, larger than the names it heads (the craft panel) */
+.tbl th.rk{font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.14em; line-height:inherit;
+  color:var(--mut); padding:4px 0 10px;}
 .tbl .sw{width:4px; height:14px; border-radius:0; display:inline-block; vertical-align:-2px;}
 .tbl .sw.side{width:6px; height:30px;}
 .tbl .tn{font-family:var(--board); font-size:15px; font-weight:600; line-height:1.16;
@@ -964,6 +970,9 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .tbl .chg .tri.up{border-bottom:7px solid var(--pos);}
 .tbl .chg .tri.dn{border-top:7px solid var(--cool);}
 .tbl .chg .held{display:inline-block; width:9px; height:2px; background:var(--mut); vertical-align:3px;}
+/* the gap and the movement mark are two facts in one cell: a held bar set
+   flush against "+34" read as "+34–" (the owner's panel) */
+.tbl .chg .gp + .held, .tbl .chg .gp + .mv{margin-left:8px;}
 /* THE CUT, and it is NEVER GOLD: nothing here is won yet. The shipped band
    spent the surface's one earned metal on a thing nobody has earned. */
 tr.cutrow td{
@@ -1358,20 +1367,27 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .trip .p b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
 .trip .p{min-width:0;}
 .trip .p span{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut);}
+/* THE BUY-INS ARE A LEDGER: a hairline list, one golfer a line. A member
+   reads name and state in words; only the Pro's rows are controls (the
+   owner's panel: members saw the Pro's checkbox form, boxed, with a pointer
+   on rows that did nothing). A paid tick is act, not --pos (a signed gain). */
 .payer{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
-  width:100%; background:var(--bg1); border:1px solid var(--rule); border-radius:11px;
-  padding:11px 13px; margin-bottom:7px; cursor:pointer;
-  font-size:13px; font-weight:600; min-height:44px;
+  width:100%; background:none; border:0; border-bottom:1px solid var(--rule);
+  -webkit-appearance:none; appearance:none; padding:0 2px; margin:0; text-align:left;
+  font-family:var(--sans); font-size:14px; font-weight:600; color:var(--ink); min-height:44px;
 }
+button.payer{cursor:pointer;}
 .payer:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .payer .tick{
   width:22px; height:22px; border-radius:6px; flex:none;
   border:1.5px solid var(--rule);
   display:grid; place-items:center; color:transparent; font-size:12px; font-weight:700;
 }
-.payer.paid .tick{background:var(--pos); border-color:var(--pos); color:var(--bg0);}
-.payer:not(.paid){color:var(--mut);}
+.payer.paid .tick{background:var(--act); border-color:var(--act); color:var(--bg0);}
+.payer .st{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; color:var(--mut); flex:none;}
+.payer.paid .st{color:var(--ink);}
 /* F10 · a record with nothing in it says so once, at Recent rounds, with the
    one next step; the sections about what a record HOLDS wait for it */
 #view-stats[data-record="empty"] [data-rec="some"],
@@ -2232,6 +2248,9 @@ body.guestlive #onboard{display:none !important;}
 @media(min-width:960px){
   #seasonBody .homegrid{display:block;}
 }
+/* printing the season is a desk act; on a phone the button was one more row
+   of chrome between the story and the pot (the craft panel) */
+@media(max-width:959px){ #seasonPrint{display:none;} }
 .wizstep{display:none;}
 .wizstep.on{display:block; animation:vin .22s ease both;}
 /* quick-post hole grid (decision #5): par-prefilled, adjust only deviations */
@@ -3378,7 +3397,7 @@ body.noleague .league-only{display:none !important;}
 .arcrow.mine .at{font-weight:600;}
 .rulesec{text-align:left; margin:0 0 14px;}
 .rulesec b{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--mut); margin-bottom:3px;}   /* LV-17 */
-.rulesec p{margin:0; font-size:13.5px; line-height:1.6; color:var(--ink);}
+.rulesec p{margin:0; font-size:13.5px; line-height:1.6; color:var(--ink); max-width:70ch;}   /* ~90 characters a line on the desk (the craft panel) */
 /* THE PRINT SHEET. The web's own job (R-C): a season a golfer can put on
    paper in February. The chrome, every control and every composer go; the
    story, the table and the rules stay, and the aside falls in beneath the
@@ -4556,6 +4575,12 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
     <path d="M4.6 16.5h14.8"/>
     <path d="M10.2 19.4a2 2 0 0 0 3.6 0"/>
   </symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+  </symbol>
+  <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>
+  </symbol>
   <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="7.5" cy="8.5" r="3.5"/>
     <path d="M10 11 19 20"/>
@@ -5642,7 +5667,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <div class="deskbody league-only" id="seasonBody">
         <div class="deskmain">
         <div class="eyebrow league-only" style="margin-top:0">Your seasons</div>
-        <div id="clubGroups" class="league-only" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:12px"></div>
+        <!-- the season chips WRAP: a sideways scroller cut the second chip
+             mid-word at 375, and a golfer holds a few seasons, not a shelf -->
+        <div id="clubGroups" class="league-only" style="display:flex; flex-wrap:wrap; gap:8px; padding-bottom:6px; margin-bottom:12px"></div>
         <!-- the dateline and the story line: the season's name, its week and
              its stage said ONCE (L-34, D120, D246), then one sentence about a
              person, chosen by the seven-rung ladder (`csSeasonStoryLine`). -->
@@ -5885,29 +5912,27 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         </div><!-- /room-album -->
 
         <div class="roompane" id="room-league">
-        <div class="eyebrow league-only" style="margin-top:0">League</div>
-        <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt"><b>The roster</b><small id="hubMembersSub">7 golfers</small></div><button class="mini" id="hubMembersBtn">View</button></div>
-        <!-- D180: the roster door. Under Members & invites because it governs
-             exactly that — who can still get in with the CODE. The Pro gets the
-             handle; a member reads the state. -->
-        <div class="check league-only" id="rosterRow"><span class="num" id="rosterIcon">🚪</span><div class="tt"><b id="rosterHead">Roster</b><small id="rosterSub"></small></div><span style="display:flex;gap:6px;flex:none" id="rosterAct"></span></div>
-        <div class="check league-only"><span class="num">🔗</span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it">✕</button></span></div>
-        <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · squads are set</small></div><button class="mini" data-go="draft">View</button></div>
-
+        <!-- the RULES lead the pane, and the league's handles follow: a member
+             read the roster, share and squads rows before any rule, and at
+             402 the rules began ~480px down (the owner's panel) -->
         <!-- D223 §7.4 · THE RULES, IN PLAIN SENTENCES. Not ten all-caps rows:
              "COUNTING CAP", "PARTICIPATION FLOOR", "HANDICAP ALLOWANCE 95%",
              "VERIFICATION", "STRUCTURE" and "PRESET" are retired from every
              user surface — they stay in the WIZARD, which is where a Pro is
              actually setting them. `#bylawsHub` keeps its id and its renderer;
              what changed is what the renderer writes into it. -->
-        <div class="eyebrow league-only" id="rulesHead">The rules — how this season scores, and how it ends</div>
+        <div class="eyebrow league-only" id="rulesHead" style="margin-top:0">The rules</div>
         <div id="bylawsHub" style="margin-bottom:10px; text-align:left"></div>
         <button class="mini" id="rulesScoreHelp" style="margin-bottom:14px">How scoring &amp; handicaps work →</button>
 
-        <!-- D244 · LEAVE THE SEASON. Forward-only, member-only, two taps, and
-             the copy says exactly what happens and nothing else. There has
-             never been a member exit on either client. -->
-        <div class="league-only" id="leaveSeason" style="margin-top:6px; border-top:1px solid var(--rule); padding-top:12px; text-align:left"></div>
+        <div class="eyebrow league-only">League</div>
+        <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg></span><div class="tt"><b>The roster</b><small id="hubMembersSub">7 golfers</small></div><button class="mini" id="hubMembersBtn">View</button></div>
+        <!-- D180: the roster door. Under Members & invites because it governs
+             exactly that — who can still get in with the CODE. The Pro gets the
+             handle; a member reads the state. -->
+        <div class="check league-only" id="rosterRow"><span class="num" id="rosterIcon"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg></span><div class="tt"><b id="rosterHead">Roster</b><small id="rosterSub"></small></div><span style="display:flex;gap:6px;flex:none" id="rosterAct"></span></div>
+        <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg></span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it">✕</button></span></div>
+        <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · squads are set</small></div><button class="mini" data-go="draft">View</button></div>
         </div><!-- /room-league -->
         </div><!-- /room-grid -->
         </div><!-- /deskmain -->
@@ -5930,6 +5955,13 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <button class="mini" id="seasonPrint" style="margin-top:12px">Print this season</button>
           <div id="deskPotSlot"></div>
         </aside>
+        <!-- D244 · LEAVE THE SEASON. Forward-only, member-only, two taps, and
+             the copy says exactly what happens and nothing else. There has
+             never been a member exit on either client. It is the page's FOOT
+             (after the story, the pot and the rules on a phone; under the
+             reading column on the desk): it sat between the rules and the
+             story, mid-page (the owner's panel). -->
+        <div class="league-only" id="leaveSeason" style="grid-column:1; margin-top:var(--s6); border-top:1px solid var(--rule); padding-top:12px; text-align:left"></div>
         </div><!-- /seasonBody -->
       </section>
 
@@ -7392,14 +7424,9 @@ function csSeasonRules(){
   out.push({ head:'How it scores',
              /* PROD-06 / R-M · the playing HCP IS the index under the allowance; "at 95%" applied it twice (L-14) — twin of SeasonStory.sections */
              body:`Every round you post is scored against your playing HCP — ${ALLOW[state.preset]===100 ? 'your full index' : 'your index at '+csAllowanceWords(ALLOW[state.preset])}. ${counted}` });
-  const floor = Number(state.floor||0);
-  if(floor > 0){
-    const rounds = `${csCapWord(csWord(floor))} round${floor===1?'':'s'} a month.`;
-    out.push({ head:'What you owe the season',
-               body: state.structure === 'solo'
-                 ? `${rounds} In a season with no squads that is a habit, not a penalty — there is no squad to dock.`
-                 : `${rounds} Miss a month and your first one is forgiven automatically.` });
-  }
+  /* L-34 · the minimum is `floorSentence`'s, as Home and the pot say it: this
+     page wrote its own and left out the penalty (the owner's panel) */
+  if(Number(state.floor||0) > 0) out.push({ head:'What you owe the season', body: floorSentence() });
   out.push({ head:'How it ends', body: endgameLine({}) });
   if(Number(state.stake||0) > 0){
     const n = state.demo ? state.payers.length : Math.max(1, (window.CS?.members||[]).length);
@@ -7407,7 +7434,7 @@ function csSeasonRules(){
     out.push({ head:"What's on it",
                body:`${fmt$(state.stake)} each, ${fmt$(state.stake*n)} in the pot. `
                   + `${csCapWord(csWord(pay[0]))} percent to the champion, ${csWord(pay[1])} to the runner-up, `
-                  + `${csWord(pay[2])} to the points king. ${CS_LEDGER}` });   /* D273 · one constant, LINT-23 */
+                  + `${csWord(pay[2])} to the points king.` });   /* the ledger line is the pot's (D273, said once: it printed twice on the desk) */
   }
   out.push({ head:'Scores', body: VERIF[state.preset] + '.' });
   const pro = (window.CS?.members||[]).find(m => m.role === 'commissioner')?.profile?.display_name;
@@ -8154,13 +8181,13 @@ function renderStandings(){
        facts in the product's voice, the same sentence the phone's
        `CSSlat.spoken` reads. */
     const rowSpoken = esc([csOrdinal(ranks[i]), isYou(t) ? 'You' : t.name, clause,
-                           mvL ? mvL.long : '', gap ? gap + ' back' : '',
+                           mvL ? mvL.long : '', gap ? `${leadPts - t.pts} back` : '',   /* the words, not the column glued to a word: "+34 back" (SeasonBoardCopy.gapSpoken) */
                            t.pts + ' points'].filter(Boolean).join('. '));
     html+=`<tr class="${ranks[i]===1?'lead':''}${isYou(t)?' mine':''} tap" tabindex="0" role="button" aria-label="${rowSpoken}" data-squad="${esc(t.name)}">
       <td class="rk">${rkH}</td>
       <td><div style="display:flex;align-items:center;gap:12px">${solo?face:bar}<div style="min-width:0"><div class="tn">${isYou(t) ? 'You' : esc(t.name)}</div><div class="tc">${solo?bar:''}${seedOf(t.id)?'Seed '+seedOf(t.id)+' \u00b7 ':''}${clause}</div></div></div></td>
       ${deskCols ? `<td class="num rds deskonly">${t.sub||0}</td><td class="deskonly">${formOf(t.id)}</td>` : ''}
-      <td class="num chg"${mvL?` title="${esc(mvL.long)}"`:''}>${gap}${mvH}</td>
+      <td class="num chg"${mvL?` title="${esc(mvL.long)}"`:''}>${gap ? `<span class="gp">${gap}</span>` : ''}${mvH}</td>
       <td class="num pts">${t.pts}</td>
     </tr>`;
     /* The cut is a Cup-Final concept — meaningless for a points table or a
@@ -9803,8 +9830,14 @@ function endgameLine(opts){
      Solo, squads3 and squads4 leaders carry nothing, so promising them a head
      start states a rule the engine does not have. Found by the season sim
      2026-08-30, in a solo league that really did seed both finalists at 0. */
-  const head = structure === 'squads2' ? ' The leader carries +10 in.' : '';
-  return `${who} go into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the weeks before it decide who is in, not who wins.${head} Level on points? Months won breaks it.`;
+  /* Two squads are BOTH in the Final (top two of two), so "the weeks before it
+     decide who is in" was false there: what the regular season decides is
+     the head start. The owner's panel read that line beside the climb's
+     "BOTH SQUADS PLAY THE CUP FINAL". `LeagueCopy.endgame` is the twin, and
+     tests/fixtures/endgame.json holds both clients to it. */
+  if(structure === 'squads2')
+    return `Both squads play a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, and the leader carries +10 in. Level on points? Months won breaks it.`;
+  return `${who} go into a four-week Cup Final${when ? ` from ${when}` : ''} — scored fresh, so the weeks before it decide who is in, not who wins. Level on points? Months won breaks it.`;
 }
 function vsShort(v){
   /* null/undefined/'' must NOT become 0 — Number(null) is 0, which would have
@@ -12895,7 +12928,7 @@ function renderPot(){
        collected is the cash; "K still owe" only when they differ */
     const stillOwe=Math.max(0, players-paidN);
     $('#potMath').textContent=`${players} × ${fmt$(state.stake)} · ${fmt$(collected)} collected`
-      + (stillOwe>0 && collected<total ? ` · ${stillOwe} still owe` : '');
+      + (stillOwe>0 && collected<total ? ` · ${stillOwe} still ${stillOwe===1?'owes':'owe'}` : '');   /* "1 still owe" read as a typo */
     /* Q-28, completed by M1 · three independent Math.rounds did not add up to
        the pot; the champion absorbing fixed the SUM but the arithmetic still
        ran on dollars, so the tiles still disagreed with the ceremony by up to
@@ -12920,7 +12953,7 @@ function renderPot(){
       } else if(isPro){
         payBox.innerHTML = `<a href="#" data-payedit style="color:var(--act); text-decoration:underline">Say how the crew pays you</a> — they can't guess.`;
       } else {
-        payBox.innerHTML = `The Pro hasn't posted how to pay yet — ask them in the board.`;
+        payBox.innerHTML = `The Pro hasn't posted how to pay yet — ask them on the board.`;
       }
       payBox.querySelector('[data-payedit]')?.addEventListener('click', (e)=>{ e.preventDefault(); openBuyInTerms(); });
     }
@@ -12931,7 +12964,13 @@ function renderPot(){
          tappable and refuse everyone but the Pro. */
       const row=document.createElement(isPro ? 'button' : 'div');
       row.className='payer'+(paid?' paid':'');
-      row.innerHTML=`<span>${esc(m ? (m.profile?.display_name||'—') : ((window.CS?.profile?.display_name)||'You'))}</span><span class="tick">✓</span>`;
+      const who=esc(m ? (m.profile?.display_name||'—') : ((window.CS?.profile?.display_name)||'You'));
+      /* a member reads the state as a WORD (colour is never the only channel);
+         the Pro's row keeps its tick, because the Pro's row is the control */
+      row.innerHTML = isPro
+        ? `<span>${who}</span><span class="tick" aria-hidden="true">✓</span>`
+        : `<span>${who}</span><span class="st">${paid ? 'Paid' : 'Not yet'}</span>`;
+      if(isPro){ row.type='button'; row.setAttribute('aria-pressed', paid ? 'true' : 'false'); }
       if(!isPro){ el.appendChild(row); return; }
       row.addEventListener('click', async ()=>{
         if(!m) return;
@@ -21957,13 +21996,16 @@ function renderIndStats(){
   $('#awImp').textContent=imp.n;    $('#awImpS').textContent='Most Improved · '+Math.abs(imp.d).toFixed(1)+' off the index';
   $('#awIron').textContent=iron.n;  $('#awIronS').textContent='Iron Man · '+iron.r+' rds';
 
-  let html=`<tr><th></th><th>Golfer</th><th class="num">Rounds</th><th class="num">Avg vs your playing HCP</th><th class="num">Pts</th></tr>`;
+  /* every golfer's row, so the head is nobody's "your"; the figure is INK with
+     its sign or words — a red column for most of the field was D273's retired
+     P&L axis, and neg is kept for errors (UI_SYSTEM 2.5) */
+  let html=`<tr><th></th><th>Golfer</th><th class="num">Rounds</th><th class="num">Avg vs playing HCP</th><th class="num">Pts</th></tr>`;
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-pl="${p.n}"${(p.me||p.n==='You')?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]}"></span><div><div class="tn">${p.n}</div><div class="tc">${p.sq}</div></div></div></td>
       <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
-      <td class="num dw" style="color:${p.avg>-1?'var(--pos)':'var(--neg)'}">${vsShort(p.avg)}</td>
+      <td class="num dw">${vsShort(p.avg)}</td>
       <td class="num pts">${p.pts}</td></tr>`;
   });
   $('#indTable').innerHTML=html;
@@ -22019,13 +22061,16 @@ function renderIndStatsReal(){
   $('#awIron').textContent=iron.r>0?fn(iron.n):'—';
   $('#awIronS').textContent='Iron Man'+(iron.r>0?' · '+iron.r+' rds':'');
 
-  let html=`<tr><th></th><th>Golfer</th><th class="num">Rounds</th><th class="num">Avg vs your playing HCP</th><th class="num">Pts</th></tr>`;
+  /* every golfer's row, so the head is nobody's "your"; the figure is INK with
+     its sign or words — a red column for most of the field was D273's retired
+     P&L axis, and neg is kept for errors (UI_SYSTEM 2.5) */
+  let html=`<tr><th></th><th>Golfer</th><th class="num">Rounds</th><th class="num">Avg vs playing HCP</th><th class="num">Pts</th></tr>`;
   rows.forEach((p,i)=>{
     html+=`<tr class="tap" data-ri="${i}"${p.me?' style="background:var(--bg2)"':''}>
       <td class="rk mono">${String(i+1).padStart(2,'0')}</td>
       <td><div style="display:flex;align-items:center;gap:10px"><span class="sw" style="background:${SQHEX[p.ci]??SQHEX[1]}"></span><div><div class="tn">${esc(p.n)}</div><div class="tc">${esc(p.sq||'')}</div></div></div></td>
       <td class="num" style="font-family:var(--mono);font-size:12px">${p.r}</td>
-      <td class="num dw" style="color:${p.avg>=0?'var(--pos)':'var(--neg)'}">${p.r?sgn(p.avg):'—'}</td>
+      <td class="num dw">${p.r?sgn(p.avg):'—'}</td>
       <td class="num pts">${p.pts}</td></tr>`;
   });
   $('#indTable').innerHTML=html;
@@ -24289,14 +24334,20 @@ function renderRosterDoor(){
   const n = (window.CS?.members||[]).length;
   const pretty = iso => { const x=localDate(iso); return `${WD[x.getDay()]} ${MOS[x.getMonth()]} ${x.getDate()}`; };
   $('#rosterHead').textContent = (d.open ? 'Roster open' : 'Roster closed') + (n ? ` · ${n} in` : '');
-  $('#rosterIcon').textContent = d.open ? '🚪' : '🔒';
-  $('#rosterSub').textContent =
-      !d.open && d.by==='pro'  ? 'You closed the roster. Add anyone yourself until the halfway turn.'
-    : !d.open                  ? 'The link has closed. Add anyone yourself until the halfway turn.'
-    : d.until                  ? `Works until you close it, or until ${d.grace?'':'first tee — '}${pretty(d.until)}.`
-    :                            'The invite link works until you close the roster.';
-  const act=$('#rosterAct');
+  $('#rosterIcon').innerHTML = `<svg class="ic" aria-hidden="true"><use href="#${d.open ? 'i-key' : 'i-lock'}"/></svg>`;
   const isPro = window.CS?.member?.role==='commissioner';
+  /* the Pro's handle and a member's state are two voices: a member read "Add
+     anyone yourself" and "until you close it" about a control only the Pro
+     has (the owner's panel) */
+  $('#rosterSub').textContent = isPro
+    ? ( !d.open && d.by==='pro' ? 'You closed the roster. Add anyone yourself until the halfway turn.'
+      : !d.open                 ? 'The link has closed. Add anyone yourself until the halfway turn.'
+      : d.until                 ? `Works until you close it, or until ${d.grace?'':'first tee — '}${pretty(d.until)}.`
+      :                           'The invite link works until you close the roster.' )
+    : ( !d.open ? 'The roster is set. The Pro can still add a golfer until the halfway turn.'
+      : d.until ? `The invite link is open until ${pretty(d.until)}.`
+      :           'The invite link is open.' );
+  const act=$('#rosterAct');
   if(!isPro){ act.innerHTML=''; return; }
   act.innerHTML = d.open
     ? `<button class="mini" id="rosterClose">Roster's set</button>`
