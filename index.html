@@ -1686,7 +1686,7 @@ button.payer{cursor:pointer;}
 .payer:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .payer .tick{
   width:22px; height:22px; border-radius:6px; flex:none;
-  border:1.5px solid var(--rule);
+  border:1.5px solid var(--mut);   /* W7-012 · a state is never drawn in rule (§16.1): the unpaid box is mut, and the word beside it says Not yet */
   display:grid; place-items:center; color:transparent; font-size:12px; font-weight:700;
 }
 /* TEN / W6 · AW2-08: the paid mark is the box's own tick, drawn in its border —
@@ -1694,7 +1694,7 @@ button.payer{cursor:pointer;}
 .payer .tick::after{content:""; width:9px; height:5px; border-left:2px solid currentColor; border-bottom:2px solid currentColor; transform:translateY(-1px) rotate(-45deg);}
 .payer.paid .tick{background:var(--act); border-color:var(--act); color:var(--bg0);}
 .payer .st{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);
-  text-transform:uppercase; color:var(--mut); flex:none;}
+  text-transform:uppercase; color:var(--mut); flex:none; margin-left:auto;}
 .payer.paid .st{color:var(--ink);}
 /* F10 · a record with nothing in it says so once, at Recent rounds, with the
    one next step; the sections about what a record HOLDS wait for it */
@@ -14697,9 +14697,11 @@ function renderPot(){
       row.className='payer'+(paid?' paid':'');
       const who=esc(m ? (m.profile?.display_name||'—') : ((window.CS?.profile?.display_name)||'You'));
       /* a member reads the state as a WORD (colour is never the only channel);
-         the Pro's row keeps its tick, because the Pro's row is the control */
+         the Pro's row keeps its box, because the Pro's row is the control, and
+         says the word too (W7-012: an empty box in rule carried no word). The
+         word is hidden from a screen reader, which has aria-pressed. */
       row.innerHTML = isPro
-        ? `<span>${who}</span><span class="tick" aria-hidden="true"></span>`
+        ? `<span>${who}</span><span class="st" aria-hidden="true">${paid ? 'Paid' : 'Not yet'}</span><span class="tick" aria-hidden="true"></span>`
         : `<span>${who}</span><span class="st">${paid ? 'Paid' : 'Not yet'}</span>`;
       if(isPro){ row.type='button'; row.setAttribute('aria-pressed', paid ? 'true' : 'false'); }
       if(!isPro){ el.appendChild(row); return; }
@@ -14738,7 +14740,7 @@ function renderPot(){
   state.payers.forEach((p,i)=>{
     const row=document.createElement('button');
     row.className='payer'+(p.paid?' paid':'');
-    row.innerHTML=`<span>${esc(p.name)}</span><span class="tick" aria-hidden="true"></span>`;
+    row.innerHTML=`<span>${esc(p.name)}</span><span class="st" aria-hidden="true">${p.paid ? 'Paid' : 'Not yet'}</span><span class="tick" aria-hidden="true"></span>`;
     row.addEventListener('click',()=>{state.payers[i].paid=!state.payers[i].paid;renderPot();});
     el.appendChild(row);
   });

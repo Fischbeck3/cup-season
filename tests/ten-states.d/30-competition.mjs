@@ -235,7 +235,14 @@ const SEASON = [
         const rows = [...document.querySelectorAll('#payers .payer')]
         if (rows.length !== 8) return `${rows.length} payer rows, expected 8`
         return rows.every((r) => r.tagName === 'BUTTON') ? true : 'the Pro’s payer rows are not controls'
-      })) },
+      }),
+      /* TEN / W8 · W7-012 [B2-season-13]: the Pro's box carries the word (Paid / Not yet) and the empty box is mut,
+         never rule (§16.1); a member's rows already read the word */
+      async (page) => page.evaluate(() => {
+        const st = [...document.querySelectorAll('#payers .payer .st')].map((e) => e.textContent.trim())
+        return st.length === 8 && st.filter((x) => x === 'Paid').length === 7 && st.filter((x) => x === 'Not yet').length === 1 ? true : `the Pro's rows say ${JSON.stringify(st)}`
+      }),
+      stateContrast([{ sel: '#payers .payer:not(.paid) .tick', prop: 'borderTopColor', min: 3, what: 'the unpaid box' }])) },
   /* TEN / W6 · DX2 OB2-03 · the Pro's "Cancel this season", opened and NOT
      confirmed: North Grove is under way, so it is the consent flow's sheet,
      and its armed control is §7.1's destructive tier */
