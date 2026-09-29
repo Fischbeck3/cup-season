@@ -64,6 +64,8 @@ function shareCheck(want) {
       if (want.band === false && v.querySelector('.sv-band')) return 'a band line rendered with no band'
       if (want.band === true && !v.querySelector('.sv-band')) return 'no band line'
       if (want.cta && ![...v.querySelectorAll('a')].some((a) => a.textContent.trim() === want.cta && a.offsetParent !== null)) return `CTA "${want.cta}" missing`
+      /* TEN / W6 · AW2-14: a public page's one action is its primary, in act (§16A.5, D359) */
+      if (want.cta && ![...v.querySelectorAll('a.sv-action.is-primary')].some((a) => a.textContent.trim() === want.cta)) return `the page's one action "${want.cta}" is not its primary`
       if (want.title && !new RegExp(want.title).test(document.title)) return `title ${JSON.stringify(document.title)} !~ /${want.title}/`
       return true
     }, want)
@@ -96,6 +98,8 @@ const PUBLIC_ROUND = [
         if (!img || !/Blake & Devon won 7 holes, Casey & Gray won 4, 5 halved, closed on 16\./.test(img.getAttribute('aria-label'))) return 'the strip has no spoken summary: ' + (img && img.getAttribute('aria-label'))
         const key = (document.querySelector('.sv-strip p[aria-hidden]') || {}).textContent || ''
         if (!/Blake & Devon won/.test(key) || !/Casey & Gray won/.test(key) || !/Halved/.test(key)) return 'the key does not name all three kinds: ' + key
+        /* TEN / W6 · AW2-14: the sides are told by name and by pattern (full or half height) — never by ember */
+        if ([...document.querySelectorAll('.sv-strip span[style]')].some((s) => /var\(--brand\)/.test(s.getAttribute('style')))) return 'the strip paints a side in ember'
         return true
       })
     } }),

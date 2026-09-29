@@ -91,10 +91,16 @@ export default [
   { family: 'play', id: 'setup-empty', variant: 'member', title: 'Live setup · before a course is picked',
     drive: toSetup,
     expect: { view: 'view-play', selectors: { '#playSetup': 'visible', '#playLive': 'hidden', '#teeOffBtn': 'visible', '#lrCourse': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
+      /* TEN / W6 · AW2-14: Play's "Score it live" door is an action — its word and dot are act, never ember */
+      const tok = (v) => { const i = document.createElement('i'); i.style.color = `var(${v})`; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c }
+      const w = document.querySelector('#optLive .liveword'), d = document.querySelector('#optLive .livedot')
+      if (!w || !d) return 'the live door has no word and dot'
+      return getComputedStyle(w).color === tok('--act') && getComputedStyle(d).backgroundColor === tok('--act') ? true : 'the live door is not act: ' + getComputedStyle(w).color
+    }), async (page) => page.evaluate(() => {
       const v = ['lrCourse', 'lrTee', 'lrRate', 'lrSlope'].map((id) => document.getElementById(id).value)
       return v.every((x) => x === '') ? true : 'the setup carries values before a course is picked: ' + JSON.stringify(v)
-    }) },
+    })) },
 
   { family: 'play', id: 'setup-filled', variant: 'member', title: 'Live setup · Saguaro Flats, Blue, 70.1/121, a group of three',
     drive: async (page) => {

@@ -2427,11 +2427,12 @@ body.guestlive #onboard{display:none !important;}
 /* D110: the live door is the hero — ember spine, LIVE word, room to breathe */
 .optcard.live{padding:22px 40px 22px 18px; border-color:var(--rule);}
 .optcard.live .oc-t{font-size:17px;}
-.optcard.live .go{color:var(--brand);}
-.optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--brand); margin-bottom:7px;}
+/* TEN / W6 · AW2-14: "Score it live" is a door to an ACTION, not a live competition — so its
+   word and dot are act, never ember (D359: ember is competition, and ordinary actions are act) */
+.optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--act); margin-bottom:7px;}
 /* TP-10 · a running clock is ember and STEADY: §11.4 deleted the bare
    opacity loop, and this one pulsed forever */
-.optcard .livedot{width:7px; height:7px; border-radius:50%; background:var(--brand);}
+.optcard .livedot{width:7px; height:7px; border-radius:50%; background:var(--act);}
 /* live scoring is a diorama until task #11 wires it to real posting — for real
    leagues the card reads "coming soon" and does nothing, so nobody trusts a
    round that would never leave the device. Quick post is the real path. */
@@ -6295,7 +6296,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <div class="eyebrow">Play</div>
         <!-- D110: the live game leads and wears ember (the live metal); posting and
              planning are quiet errand rows. Ember was on POST before — backwards. -->
-        <button class="optcard live" id="optLive" style="--acc:var(--brand)" data-go="play">
+        <button class="optcard live" id="optLive" style="--acc:var(--act)" data-go="play">
           <span class="liveword"><i class="livedot"></i>LIVE</span>
           <span class="oc-t">Score it live — you and the group, hole by hole</span>
           <p>Everyone scores from their own phone — Match Play, Wolf or Skins — and it settles up at the end. Friends without the app just play; their card is waiting when they want it.</p>
@@ -8849,7 +8850,8 @@ function csCutLabel(k){
   return 'Cut \u00b7 top ' + (words[n] || String(n)) + (n === 1 ? ' plays' : ' play') + ' the Cup Final';
 }
 function climbSpark(arr){
-  /* one viewer, one line, one color — gold, like everything else on your rung */
+  /* one viewer, one line, one colour — ink, like your rung's edge. TEN / W6 · AW2-14: it
+     was gold, and gold means EARNED (D359, §2.4); being you is not */
   if(!arr || arr.length<2) return '';
   const last=arr.slice(-8);
   const min=Math.min(...last), max=Math.max(...last);
@@ -8858,7 +8860,7 @@ function climbSpark(arr){
     const py=15-((v-min)/Math.max(1,max-min))*13-1;
     return `${px.toFixed(1)},${py.toFixed(1)}`;
   }).join(' ');
-  return `<svg class="climb-spark" width="54" height="17" viewBox="0 0 54 17" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<svg class="climb-spark" width="54" height="17" viewBox="0 0 54 17" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 function climbOrd(n){ const v=n%100; return (v>=11&&v<=13) ? n+'th' : n+(['th','st','nd','rd'][n%10]||'th'); }
 /* FLIP + enter/leave fade. Rows keyed by data-cid: surviving rows glide to
@@ -36616,7 +36618,7 @@ async function renderShareView(tok, _testInfo){
     card.innerHTML = `<div class="sv-head">
         <h1 class="cs-lead">This link is dead.</h1>
         <p class="sv-where cs-body-s">Whoever sent it can share a fresh one from the round.</p>
-      </div>` + foot({ cta: 'Open Cup Season' });
+      </div>` + foot({ cta: 'Open Cup Season', primary: true });   /* AW2-14 · the page's one action is act */
     return;
   }
 
@@ -36648,7 +36650,7 @@ async function renderShareView(tok, _testInfo){
         <div class="sv-score"><span class="cs-fig-xl">${esc(String(info.gross))}</span><span class="cs-agate">Gross</span></div>
         <div class="sv-golfer">${glyph(info.marker)}<span class="cs-name">${esc(String(info.name || 'A golfer'))}</span></div>
         ${band ? `<p class="sv-band cs-body">${band}</p>` : ''}
-      </div>` + foot({ cta: 'Play with your people' });
+      </div>` + foot({ cta: 'Play with your people', primary: true });   /* AW2-14 · the page's one action is act */
     // A missing copy must not leave a broken-image icon or obscure the record.
     card.querySelector('.sv-photo')?.addEventListener('error', event => { event.currentTarget.remove(); card.className = 'sv-short'; });
 
@@ -36708,8 +36710,8 @@ async function renderShareView(tok, _testInfo){
       const highs = (window.holeHighlights ? window.holeHighlights(HL, { hot: HL.hot }) : []).filter(t => !/^CLOSED OUT ON/.test(t));
       strip = `<div class="sv-second sv-strip">
           <p class="sv-eb cs-agate">Hole by hole</p>
-          ${window.renderHoleStrip(HL, { hot: HL.hot, margin: '0', label: said })}
-          ${window.holeStripKey ? window.holeStripKey(HL, { hot: HL.hot, names }) : ''}
+          ${window.renderHoleStrip(HL, { hot: HL.hot, margin: '0', label: said, hotColor: 'var(--ink)' })}
+          ${window.holeStripKey ? window.holeStripKey(HL, { hot: HL.hot, names, hotColor: 'var(--ink)' }) : ''}
           ${highs.length ? `<p class="sv-highs cs-agate is-phrase">${highs.map(t => esc(t)).join(' · ')}</p>` : ''}
         </div>`;
     }
@@ -36727,7 +36729,7 @@ async function renderShareView(tok, _testInfo){
         ${money ? `<p class="sv-money cs-body-s">${money}</p>` : ''}
         ${players}
       </div>
-      ${strip}` + foot({ cta: 'Play with your people' });
+      ${strip}` + foot({ cta: 'Play with your people', primary: true });
 
   } else if(info.kind === 'person'){
     /* D241 · IA §10.5's own card: a name, a marker, the number and the recent
@@ -36840,7 +36842,7 @@ async function renderShareView(tok, _testInfo){
       <div class="sv-second">
         ${table}
         <p class="sv-status cs-agate">${done ? 'Final' : 'In play'}</p>
-      </div>` + foot({ cta: 'Play with your people' });
+      </div>` + foot({ cta: 'Play with your people', primary: true });
   }
 }
 

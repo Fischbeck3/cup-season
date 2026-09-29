@@ -154,7 +154,9 @@ const SEASON = [
       noRetiredGlyph(),
       readsAsWritten([['#hhSpan', ' \u2013 ', true]]),
       /* TEN / W6 · AW2-13: no pill (the jump chips), no spine, no glass */
-      noRetiredShape()) },
+      noRetiredShape(),
+      /* TEN / W6 · AW2-14: the desk climb's own spark is ink — gold is earned (D359), being you is not */
+      async (page) => page.evaluate(() => { const p = document.querySelector('.climb-spark polyline'); if (!p) return 'no climb spark to read'; return /--gold/.test(p.getAttribute('stroke') || '') ? 'the climb spark is gold' : true })) },
   { family: 'season', id: 'story', variant: 'member', title: 'The season page, the story: the arc of weeks and the archive', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: async (page) => {
