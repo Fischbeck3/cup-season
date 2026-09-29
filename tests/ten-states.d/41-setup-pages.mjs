@@ -215,6 +215,23 @@ const SETTINGS = [
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
     check: all(notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']), isSystemSegment('#phSeg', 'Settings')) },
+  /* TEN / W8 · W7-033 [A2-settings-8] · the Settings pane's 'How it works' rows, scrolled to: ruled rows (a hairline above, no box, no
+     radius, no typed arrow), as the You door rows are, not bordered cards between ruled rows (§3.1, §5.1, §5.2) */
+  { family: 'settings', id: 'guide', variant: 'member', fullPage: false, title: 'Card & settings · Settings, scrolled to How it works (ruled rows)',
+    drive: async (page) => {
+      await openHub(page); await click(page, '#phSeg [data-ph="settings"]')
+      await until(page, () => document.getElementById('youGuide') && document.getElementById('youGuide').offsetParent !== null)
+      await page.evaluate(() => document.getElementById('youGuide').scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#youGuide': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const rows = [...document.querySelectorAll('#youGuide .check')]
+      if (rows.length < 5) return `the guide has ${rows.length} rows`
+      const bad = rows.filter((r) => { const cs = getComputedStyle(r); return cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(cs.borderTopLeftRadius) > 0 || cs.borderLeftWidth !== '0px' || cs.borderTopWidth !== '1px' })
+      if (bad.length) return `${bad.length} guide row(s) are boxed: ${JSON.stringify(bad[0].innerText.slice(0, 30))}`
+      return rows.some((r) => /[\u2192\u203a\u2197]/.test(r.textContent)) ? 'a guide row carries a typed arrow' : true
+    }) },
   /* a destructive confirmation, opened and NOT confirmed */
   { family: 'settings', id: 'delete-confirm', variant: 'member', fullPage: false, title: 'Card & settings · Delete my account, the confirmation (not confirmed)',
     drive: async (page) => {

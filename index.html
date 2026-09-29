@@ -4358,6 +4358,12 @@ body:not(.noleague) #hubLeagueless{display:none;}
 /* §1.4 [MO] · a door's gloss is a sentence, so it is sans — the shared
    `.check .tt small` sets it in tracked mono */
 #view-stats .youdoor-row .tt small, #youGuide .check .tt small{font-family:var(--sans); font-size:13px; font-weight:400; letter-spacing:0; line-height:1.4;}
+/* W7-033 · the sheet's 'How it works' rows are ruled rows, as the You door rows above are (§3.1: a row
+   never gets a container; no container inside a container): they were bordered cards between the ruled
+   Notifications rows and the ruled Membership row, with a typed arrow (AW2-08 took the arrows). The
+   phone draws them as ruled rows (HowItWorks is CSRow(last:) around YouDoorRow) with no box. */
+#youGuide .check{background:none; border:0; border-top:1px solid var(--rule); border-radius:0; padding:var(--s3) 0; margin:0; min-height:52px;}
+#youGuide .check:last-child{border-bottom:1px solid var(--rule);}
 /* the Every season leaf: a season's own line sits under its name */
 #lgRec .csleaf .qual{display:block; margin:2px 0 0;}
 /* the course facts' separators are opaque mut (§16.1: dim/faded is never a
