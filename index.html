@@ -1708,6 +1708,8 @@ html[data-theme="light"] #inDate{color-scheme:light;}
 .trip .p{background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 8px; text-align:center;}
 .trip .p b{display:block; font-family:var(--board); font-size:17px; font-weight:600; letter-spacing:var(--flat); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}   /* TEN / W6 · AW2-06: a tile holds a golfer's name (`social`) or the split's sum — the board face, never mono */
 .trip .p{min-width:0;}
+/* W7-060 · the Points King tile may name two golfers: its name wraps (a tied pair clipped to an ellipsis in a phone tile) */
+#awKing{white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere;}
 .trip .p span{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
 /* THE BUY-INS ARE A LEDGER: a hairline list, one golfer a line. A member
    reads name and state in words; only the Pro's rows are controls (the
@@ -25231,10 +25233,13 @@ function renderIndStatsReal(){
      not a rule, and the Points King ladder is not built (D136). Two golfers on
      53 were ranked 01/02 and one was crowned by average (critique B, P0). */
   const kingTied = rows.filter(p => p.pts === king.pts).length;
+  /* W7-060 · a tied Points King NAMES who is level ('Avery and Blake'; three or more, 'Avery and two more'), never the word 'Level' in the name's slot */
+  const kingNames = rows.filter(p => p.pts === king.pts).map(p => fn(p.n));
+  const kingSaid = kingNames.length === 1 ? kingNames[0] : kingNames.length === 2 ? kingNames.join(' and ') : `${kingNames[0]} and ${csSpelled(kingNames.length - 1)} more`;
   const iron=[...rows].sort((a,b)=>b.r-a.r)[0];
   const movers=rows.filter(p=>p.d!=null && p.d<-0.04).sort((a,b)=>a.d-b.d);
-  $('#awKing').textContent=king.pts>0?(kingTied>1?'Level':fn(king.n)):'—';
-  $('#awKingS').textContent='Points King'+(king.pts>0?(kingTied>1?` · ${csSpelled(kingTied)} level on ${king.pts}`:' · '+king.pts+' pts'):'');
+  $('#awKing').textContent=king.pts>0?(kingTied>1?kingSaid:fn(king.n)):'—';
+  $('#awKingS').textContent='Points King'+(king.pts>0?(kingTied>1?` · level on ${king.pts}`:' · '+king.pts+' pts'):'');
   if(movers.length){ $('#awImp').textContent=fn(movers[0].n); $('#awImpS').textContent='Most Improved · '+Math.abs(movers[0].d).toFixed(1)+' off the index'; }
   else { $('#awImp').textContent='—'; $('#awImpS').textContent='Most Improved · needs 2+ rounds'; }
   $('#awIron').textContent=iron.r>0?fn(iron.n):'—';

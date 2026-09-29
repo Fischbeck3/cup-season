@@ -189,6 +189,16 @@ const SEASON = [
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
       /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
       tertiaryDoor('#seasonBookDoor'),
+      /* TEN / W8 · W7-060 [A2-season-5]: a tied Points King names who is level (never the word 'Level' in the name's slot), wraps rather than clipping, and the sub says 'level on N' */
+      async (page) => page.evaluate(() => {
+        const k = document.getElementById('awKing'), sub = document.getElementById('awKingS')
+        if (!k || !(k.getBoundingClientRect().width > 0)) return true
+        const t = k.textContent.trim()
+        if (/^level$/i.test(t)) return 'the tied Points King tile says Level in the name\'s slot'
+        if (!/ and /.test(t)) return `the Points King tile does not name two golfers: ${JSON.stringify(t)}`
+        if (k.scrollWidth > k.clientWidth + 1) return `the Points King tile clips ${JSON.stringify(t)}`
+        return /^Points King · level on \d+$/.test(sub.textContent.trim()) ? true : `the tile's sub reads ${JSON.stringify(sub.textContent)}`
+      }),
       async (page) => page.evaluate(() => document.querySelectorAll('#indTable tr').length >= 8 ? true : 'the every-golfer table has fewer than eight rows'),
       /* TEN / W6 · AW2-06 + OB-05: every label on the season page is agate and
          every phrase agate or body — mono keeps the figures (§1.4). The page
