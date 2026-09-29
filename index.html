@@ -1102,7 +1102,8 @@ th.deskonly, td.deskonly{display:none;}
    a signed number nobody could read (owner R, §16A.3), set as a green or red
    bordered chip — the P&L axis D273 took off the phone's card. It is the
    column face in mut now, with its unit under it, as PTS has. */
-#boardFull .round .pvi{background:none; border:0; border-radius:0; padding:0; color:var(--mut);
+#boardFull .round .pvi{background:none; border:0; padding:0; color:var(--mut);
+  border-radius:0;   /* the shared chip's corner, undone: this is not a box */
   text-align:right; max-width:72px; font-family:var(--mono); font-size:14px; font-weight:500;}
 #boardFull .round .pvi.up,#boardFull .round .pvi.dn{color:var(--mut);}
 #boardFull .round .pvi small{display:block; font-family:var(--board); font-weight:600; font-size:11px;
@@ -3482,7 +3483,8 @@ body.noleague .league-only{display:none !important;}
    `.prow` also draws elsewhere (TP-22: a card whose content touched its own
    border, one rule overriding half of another). Scoped to this page: the
    live-scoring and rivalry rows keep theirs. */
-#view-golfers .prow{background:none; border:0; border-radius:0; border-top:1px solid var(--rule);
+#view-golfers .prow{background:none; border:0; border-top:1px solid var(--rule);
+  border-radius:0;   /* the shared card's corner, undone: a slat has none */
   margin:0; padding:var(--s2) 0; min-height:52px;}
 /* the name is the `social` role here (a person off the board is title case,
    §1.3); the shared `.prow .pmeta b` rule would otherwise hold it at 14px */
