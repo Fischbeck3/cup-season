@@ -230,7 +230,7 @@ Brief: `evidence/LANE-BRIEF.md`. Native twins go to N2. So far: LeagueCopy.endga
 
 **Owner questions (decisions, not defects).**
 - **X36 · the rivalry record.** You counts weekly clashes ("3–4, they lead"); the person page counts every week both played ("All square, 5–5"). Both are faceted records, and canon says never one blended number. Which record is "the" record on You, on the plan and on the person page, or should both surfaces name their facet?
-- **X37 · the owner's own identity in the product.** The demo diorama's "you" is the owner's real first name, handle, city and course, and the golfer card's handle placeholder is "@jerecho". Keep, or use a fictional one?
+- **X37 · the owner's own identity in the product.** The demo diorama's "you" is the owner's real first name, handle, city and course, and the golfer card's handle placeholder was the owner's own handle (W2 made it "@yourname"). Keep, or use a fictional one?
 - **X38 · public privacy.**
   - The public settlement page shows non-sharing golfers' scores and debts.
   - The person landing shows an index and dated course visits to anyone holding the link (D241 vs D394).
