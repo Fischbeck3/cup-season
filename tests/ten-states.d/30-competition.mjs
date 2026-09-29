@@ -900,7 +900,9 @@ const ryderOrder = async (page) => page.evaluate(() => {
     if (!mine.length) continue
     mineWeeks++
     if (clashes[0] !== mine[0]) return `the viewer's clash is not first in its week: ${JSON.stringify((clashes[0].getAttribute('aria-label') || '').slice(0, 60))}`
-    if (!/^You\b/.test(mine[0].querySelector('.nm.a').innerText) && !/^You\b/.test(mine[0].querySelector('.nm.b').innerText)) return 'the viewer\'s side does not read You in the row'
+    /* textContent, not innerText: a finished week is a closed <details>, whose rows have no box and so no innerText at all (and the role's caps would say YOU) */
+    const sides = ['.nm.a', '.nm.b'].map((q) => (mine[0].querySelector(q).textContent || '').trim())
+    if (!sides.includes('You')) return `the viewer's side does not read You in the row: ${JSON.stringify(sides)}`
   }
   return mineWeeks ? true : 'no week holds the viewer\'s clash (the state is not the one it claims)'
 })

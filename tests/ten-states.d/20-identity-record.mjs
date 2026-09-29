@@ -115,8 +115,9 @@ const footStays = async (page) => page.evaluate(() => {
 const receiptActions = async (page) => page.evaluate(() => {
   const sheet = document.getElementById('shBody'), share = document.getElementById('rcptCardShare'), del = document.getElementById('rcptDelete'), talk = document.getElementById('rcptTalk'), row = document.getElementById('rcptDelRow')
   if (!share) return 'the receipt has no Share'
-  const filled = [...sheet.querySelectorAll('.btn')].filter((b) => b.getBoundingClientRect().width > 0)
-  if (filled.length !== 1 || filled[0] !== share) return `the receipt has ${filled.length} filled buttons, expected Share alone`
+  /* the conversation's own Send is a form control, not one of the receipt's actions */
+  const filled = [...sheet.querySelectorAll('.btn')].filter((b) => b.getBoundingClientRect().width > 0 && !b.closest('#rcptTalk'))
+  if (filled.length !== 1 || filled[0] !== share) return `the receipt has ${filled.length} filled buttons, expected Share alone: ${JSON.stringify(filled.map((b) => (b.id || b.textContent || '').trim().slice(0, 24)))}`
   if (share.getBoundingClientRect().width < sheet.getBoundingClientRect().width * 0.8) return 'Share is not the full-width primary'
   for (const id of ['rcptCardRevoke', 'rcptPhotoBtn', 'rcptPhotoClear']) { const b = document.getElementById(id); if (b && b.getBoundingClientRect().width > 0 && !b.classList.contains('cs-tskip')) return `#${id} is not a quiet link`; if (b && b.classList.contains('mini')) return `#${id} is still a mini button` }
   if (!del || !row) return 'the receipt has no delete row'
