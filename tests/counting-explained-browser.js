@@ -70,7 +70,9 @@
     const twoLens=roundCardBody({ profile_id:'p-me', gross:92, pvi:-3, contributions:[
       { league_name:'Fellas', season_id:'s1', member_id:'m-me', points:2, month_rank:3, counting_cap:2, month:month },
       { league_name:'Sunday Cup', season_id:'s2', member_id:'m-me2', points:2, month_rank:3, counting_cap:null, month:month } ] }, -3, 4);
-    check(/This month · FELLAS<\/span><b>BUMPED · 2 PTS/.test(twoLens) && /This month · SUNDAY CUP<\/span><b>COUNTING #3 · 2 PTS/.test(twoLens),'two lenses did not name themselves: '+twoLens.replace(/<[^>]+>/g,'|').slice(-260));
+    /* TEN / W6 · PAR-31 · the league's name as stored — the row's role sets
+       its case (LINT-14), as the phone's ReceiptSeed lens label does */
+    check(/This month · Fellas<\/span><b>BUMPED · 2 PTS/.test(twoLens) && /This month · Sunday Cup<\/span><b>COUNTING #3 · 2 PTS/.test(twoLens),'two lenses did not name themselves: '+twoLens.replace(/<[^>]+>/g,'|').slice(-260));
     check((twoLens.match(/data-counting-member=/g)||[]).length===2,'two lenses, two doors');
     check(/rounds that count in [A-Z][a-z]+ · Fellas/.test(twoLens),'the door does not name the month and the league');
     const oneLens=roundCardBody({ profile_id:'p-jade', gross:77, contributions:[{ league_name:'Fellas', season_id:'s1', member_id:'m-jade', points:9, month_rank:1, counting_cap:4, month:month }] }, 2.6, 4);

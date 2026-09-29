@@ -24345,7 +24345,9 @@ function roundCardBody(r, pvi, capN){
       const clause = clauseFor(c.month_rank, c.counting_cap);
       if(!clause) return;
       const named = lenses.length>1;
-      const label = named ? `This month · ${esc(String(c.league_name||'').toUpperCase())}` : 'This month';
+      /* TEN / W6 · PAR-31 · the league's own name, as stored: the row's role
+         sets its case (LINT-14), as ReceiptSeed's lens label does */
+      const label = named ? `This month · ${esc(String(c.league_name||''))}` : 'This month';
       const pts = named && c.points!=null ? ` · ${esc(String(c.points))} PTS` : '';
       rows.push(`<div class="mathrow"><span>${label}</span><b>${clause}${pts}</b></div>`);
       rows.push(`<button type="button" class="cs-tskip" data-counting-member="${esc(c.member_id||'')}" data-counting-season="${esc(c.season_id||'')}" data-counting-month="${esc(c.month||'')}" data-counting-league="${esc(c.league_name||'')}" style="margin-top:var(--s2)">${mine?'Your':'Their'} rounds that count in ${esc(csMonthWord(c.month))}${named?' · '+esc(c.league_name||''):''} ›</button>`);
