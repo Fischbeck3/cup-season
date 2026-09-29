@@ -19,7 +19,7 @@
       { id:'m4', role:'player',       league:{ id:D, name:'Forming one', phase:'setup' } }];
     window.homeDispatch={ items:[], lead_suppress:[], me:{ memberships:[
       { league_id:A, name:'Fellas', standing:{ rank:2, points_rank:2, points_tied:false, of:2, points:14, gap_to_leader:3, leader_name:'Jade Park' }, season:{ week_no:8, weeks_total:26, days_left:127 }, clash:{ closes_today:true } },
-      { league_id:B, name:'Who’s the bitch?', standing:{ rank:1, points_rank:1, points_tied:false, of:2, points:21, gap_to_leader:0, leader_name:'Audit', runner_up_name:'Casey Diaz', runner_up_points:12 }, season:{ week_no:6, weeks_total:13, days_left:3 }, clash:{ closes_today:false } },
+      { league_id:B, name:'Who’s the bitch?', standing:{ rank:1, points_rank:1, points_tied:false, of:2, points:21, gap_to_leader:0, leader_name:'Audit', runner_up_name:'Casey Placeholder', runner_up_points:12 }, season:{ week_no:6, weeks_total:13, days_left:3 }, clash:{ closes_today:false } },
       /* a stale/error membership row: no standing at all — the row must not invent one */
       { league_id:C, name:'No facts yet', standing:null, season:null } ] } };
     document.querySelector('[data-v="compete"]').click();
