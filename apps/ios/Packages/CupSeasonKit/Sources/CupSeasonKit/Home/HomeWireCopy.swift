@@ -105,8 +105,14 @@ public enum HomeWireCopy {
     guard r.gross != nil else { return nil }
     if let points, let monthRank {
       let counting: String
+      // TEN / W6 · "counting #1 this month" read as a RANK (critique-B home
+      // P3). The receipt's own clause is "Counting #2 of 4": the denominator
+      // makes it the month's count. Uncapped has nothing to be out of, so it
+      // stays bare. The web's `homeRoundStory` is the twin.
       if let cap, cap > 0, monthRank > cap {
         counting = "bumped — outside the best \(cap) this month"
+      } else if let cap, cap > 0 {
+        counting = "counting #\(monthRank) of \(cap) this month"
       } else {
         counting = "counting #\(monthRank) this month"
       }

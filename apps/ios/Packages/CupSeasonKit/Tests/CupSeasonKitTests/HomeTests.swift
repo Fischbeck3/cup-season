@@ -282,3 +282,17 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     #expect(HomeWireCopy.courseTitle("  North Grove  ").club == "North Grove")
   }
 }
+
+/// TEN / W6 · "counting #1 this month" read as a rank (critique-B home P3). The
+/// cap is the count's denominator, as on the receipt; uncapped stays bare, and
+/// past the cap the round is bumped. The web's `homeRoundStory` is the twin.
+@Suite struct RoundStoryCountTests {
+  @Test func theCountSaysWhatItIsOutOf() {
+    let r = row(golfer: "Avery", gross: 84, playedOn: "2026-08-27")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 2, cap: 4) == "9 pts · counting #2 of 4 this month")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 4, cap: 4) == "9 pts · counting #4 of 4 this month")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 5, cap: 4) == "9 pts · bumped — outside the best 4 this month")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 2, cap: nil) == "9 pts · counting #2 this month")
+    #expect(HomeWireCopy.roundStory(r, points: 9, monthRank: 2, cap: 0) == "9 pts · counting #2 this month")
+  }
+}
