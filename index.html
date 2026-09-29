@@ -26176,6 +26176,9 @@ function csRcptHeroSet(hero, url, stampHtml){
    else), and only a picture that failed turns it on */
 function csRcptPhotoGone(on){
   const el=document.getElementById('rcptPhotoGone'); if(el) el.hidden = !on;
+  /* W7-086 · the Include-photo row is drawn only while the photo can open (the phone's `consent = includePhoto && photo != nil`): a tick over a picture the receipt says it cannot open left the owner
+     unable to tell what Share would carry (the share handler already sends includePhoto:false when the row is absent) */
+  if(on) document.getElementById('rcptPhotoOk')?.closest('label')?.remove();
 }
 function csRcptHeroWire(hero){
   const plate = document.getElementById('rcptPlate');
@@ -26381,7 +26384,8 @@ async function csPaintReceiptCard(r, rid, mine){
   const canShare = mine && !!window.CS?.user;
   /* W2 (D380) · one share from the receipt too: the round card and the link
      together; the photo asked about only when the round has one */
-  const photoRow = (canShare && r.photo_path)
+  const photoGone = document.getElementById('rcptPhotoGone'), photoOpens = !(photoGone && !photoGone.hidden);   /* W7-086 · the photo already failed before the card painted: no row either */
+  const photoRow = (canShare && r.photo_path && photoOpens)
     ? `<label class="fine" style="display:flex;gap:10px;align-items:flex-start;margin-top:10px;cursor:pointer">
          <input type="checkbox" id="rcptPhotoOk" checked style="margin-top:3px;flex:none;accent-color:var(--act);width:18px;height:18px">
          <span><b>${esc(CS_SHARE_PHOTO_INCLUDE)}</b><br>${esc(CS_SHARE_PHOTO_FINE)}</span></label>`

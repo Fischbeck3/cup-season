@@ -294,6 +294,8 @@ const RECEIPT = [
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptFigs': 'visible', '#rcptFigs .lens': 'text:Counting #' } },
     check: all(heroState('photo'), receiptActions,
+      /* TEN / W8 · W7-086: while the photo opens, Share asks about it (the tick is there, checked) */
+      async (page) => page.evaluate(() => { const ok = document.getElementById('rcptPhotoOk'); return ok && ok.checked ? true : 'the receipt of a round whose photo opens does not offer Include round photo' }),
       /* S9 · a picture that is showing says nothing */
       async (page) => page.evaluate(() => { const g = document.getElementById('rcptPhotoGone'); return !g || g.hidden ? true : 'the photo-unavailable line shows over a photo that loaded' }),
       async (page) => page.evaluate(() => {
@@ -354,6 +356,9 @@ const RECEIPT = [
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptPhotoGone': 'text:^This round\u2019s photo couldn\u2019t be opened\.$', '#rcptPhotoBtn': 'visible', '#rcptPhotoClear': 'visible' } },
     check: async (page) => page.evaluate(() => {
+      /* TEN / W8 · W7-086 [A2-history-7, B2-history-7]: a photo the receipt says cannot be opened is not offered to Share: no 'Include round photo' tick beside the sentence that says so */
+      if (document.getElementById('rcptPhotoOk')) return "'Include round photo' is still offered over a photo that cannot be opened"
+      if (document.getElementById('shBody').innerText.includes('Include round photo')) return "the receipt still says 'Include round photo'"
       const g = document.getElementById('rcptPhotoGone').getBoundingClientRect()
       if (g.top < 0 || g.bottom > innerHeight) return 'the line is not on screen'
       const f = getComputedStyle(document.getElementById('rcptPhotoGone')).fontFamily
