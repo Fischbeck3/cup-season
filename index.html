@@ -1691,6 +1691,11 @@ button.payer{cursor:pointer;}
 #gameSeg{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain;}
 #gameSeg::-webkit-scrollbar{display:none;}
 #gameSeg button{flex:1 0 auto; padding:9px 12px;}
+/* round 2's delta (session D, a P2 regression live since 272c2da1) · at 375 the
+   row showed exactly four games and hid "Sunningdale Rules" behind a clean edge:
+   a scroller that runs past its edge says so, as W5's segments do (data-more,
+   csBookEdge) — the trailing edge fades while there is more to the right */
+#gameSeg[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
 #albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); padding:10px 2px 2px;}
@@ -16839,6 +16844,13 @@ function syncTeeInputs(){
   renderMatchPrev();   /* slope moves course handicaps → strokes move too */
 }
 ['lrRate','lrSlope'].forEach(id=>$('#'+id).addEventListener('input',syncTeeInputs));
+/* the picker's edge says when there is a fifth game (see #gameSeg[data-more]);
+   a ResizeObserver re-reads it when the setup view first gets a size */
+(()=>{ const g=document.getElementById('gameSeg'); if(!g) return;
+  csBookEdge(g, g);
+  const again=()=>g.dispatchEvent(new Event('scroll'));
+  try{ new ResizeObserver(again).observe(g); }catch(_){ window.addEventListener('resize', again, {passive:true}); }
+})();
 $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   $$('#gameSeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
