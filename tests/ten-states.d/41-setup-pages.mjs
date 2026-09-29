@@ -153,10 +153,12 @@ const SCHEDULE = [
       await page.evaluate((id) => window.openRoundSheet(id), PLAN.mine)
       await until(page, () => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !!document.getElementById('rrScratch') }, null, 10000)
       await page.locator('#rrScratch').scrollIntoViewIfNeeded()
+      const rest = await tertiaryDoor('#rrScratch')(page)   /* at rest: the armed link is neg by design, so the shape is read before the tap */
+      await page.evaluate((r) => { window.__w8 = { rest: r } }, rest)
       await click(page, '#rrScratch'); await page.waitForTimeout(400)
     },
     expect: { view: 'view-schedule', sheet: true, selectors: { '#rrScratch': 'text:^Sure\\? Cancel for everyone$' } },
-    check: all(planSheetPrimary(false), tertiaryDoor('#rrScratch'), async (page) => page.evaluate(() => {
+    check: all(planSheetPrimary(false), async (page) => page.evaluate(() => window.__w8.rest), async (page) => page.evaluate(() => {
       const b = document.getElementById('rrScratch'), boxes = [...document.querySelectorAll('.managebar2 .mbtn2')]
       if (!b.classList.contains('is-armed')) return 'the first tap did not arm Cancel round'
       if (!document.getElementById('sheet').classList.contains('open') || !document.getElementById('rrScratch')) return 'the first tap cancelled the round'
@@ -482,7 +484,7 @@ const SETTINGS = [
       /* TEN / W8 · W7-033 (E5's aside): a ruled row does not lift on hover (the global .check:hover moved it 1px) */
       await page.locator('#youGuide .check').first().hover(); await page.waitForTimeout(300)
       const lift = await page.evaluate(() => getComputedStyle(document.querySelector('#youGuide .check')).transform)
-      await page.mouse.move(2, 2)
+      const away = await page.locator('#shTitle').boundingBox(); await page.mouse.move(away.x + 4, away.y + 4)
       return lift === 'none' ? true : `a ruled guide row lifts on hover (${lift})`
     }, async (page) => page.evaluate(() => {
       const rows = [...document.querySelectorAll('#youGuide .check')]
@@ -524,9 +526,15 @@ const SETTINGS = [
          The mouse is released away from the button, so nothing is confirmed */
       const box = await page.locator('#phDelYes').boundingBox()
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.waitForTimeout(200)
-      const pressed = await page.evaluate(() => getComputedStyle(document.getElementById('phDelYes')).backgroundColor)
-      await page.mouse.move(2, 2); await page.mouse.up()
-      if (pressed === 'rgba(0, 0, 0, 0)' || pressed === 'transparent') return `the destructive answer has no pressed fill (${pressed})`
+      const pressed = await page.evaluate(() => {
+        const want = document.createElement('i'); want.style.background = 'color-mix(in srgb, var(--neg) 16%, transparent)'; document.body.appendChild(want)
+        const w = getComputedStyle(want).backgroundColor; want.remove()
+        const got = getComputedStyle(document.getElementById('phDelYes')).backgroundColor
+        return got === w ? 'ok' : `${got} (the pressed fill is neg at a16: ${w})`
+      })
+      const away = await page.locator('#shTitle').boundingBox()
+      await page.mouse.move(away.x + 4, away.y + 4); await page.mouse.up()   /* released over the sheet's own title: a release on the scrim would click it and dismiss the sheet */
+      if (pressed !== 'ok') return `the destructive answer's pressed fill is ${pressed}`
       await click(page, '#phDelNo')
       const back = await page.evaluate(() => document.activeElement && document.activeElement.id)
       await click(page, '#phDelete')
