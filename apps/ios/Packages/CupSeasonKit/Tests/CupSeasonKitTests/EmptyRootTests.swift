@@ -89,7 +89,10 @@ import Foundation
     let alone = CompeteRoot.empty(buddies: 0)
     #expect(alone.head == "Nothing running.")
     #expect(alone.fact == nil)
-    #expect(alone.doors == [.startSomething, .joinWithCode])
+    // IA §6.1's doors and L-26: with nobody to count, Find golfers sits
+    // between the two (the head is the owner's call, unchanged)
+    #expect(alone.doors == [.startSomething, .findGolfers, .joinWithCode])
+    #expect(CompeteRoot.empty(buddies: nil).doors == [.startSomething, .findGolfers, .joinWithCode])
     // A read that could not answer is the same as no fact — never a zero.
     #expect(CompeteRoot.empty(buddies: nil).head == "Nothing running.")
     #expect(CompeteRoot.empty(buddies: nil).fact == nil)

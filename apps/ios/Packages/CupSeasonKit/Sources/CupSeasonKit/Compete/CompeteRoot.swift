@@ -415,10 +415,14 @@ public enum CompeteRoot {
     // loudest thing on a screen whose whole job is to start something. With no
     // buddies there is nothing true to count and the old head is the right
     // one: an empty root never guesses a fact (L-44).
+    // IA §6.1's doors (INFORMATION_ARCHITECTURE.md:326) and L-26: with
+    // nobody to count, Find golfers is a door too, and the code door always
+    // stays. The head is unchanged: QB-21's counted head against IA §6.1's
+    // "Nothing running." is the owner's call (root, 2026-09-29).
     return EmptyRoot(
       head: counted ?? "Nothing running.",
       fact: nil,
       sub: "Your next competition starts here — a season, a weekend, or going head to head.",
-      doors: [.startSomething, .joinWithCode])
+      doors: hasBuddies ? [.startSomething, .joinWithCode] : [.startSomething, .findGolfers, .joinWithCode])
   }
 }
