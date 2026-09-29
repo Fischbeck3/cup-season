@@ -253,9 +253,26 @@ const SEASON = [
   { family: 'season', id: 'rules', variant: 'member', title: 'The season page, the rules in sentences', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: (page) => toRoom(page, 'league'),
-    expect: { view: 'view-hub', selectors: { '#rulesHead': 'visible', '#bylawsHub': 'visible' } },
+    expect: { view: 'view-hub', selectors: { '#rulesHead': 'visible', '#bylawsHub': 'visible', '#hubSeasonRevoke': 'text:^Turn off$' } },
     check: all(onNorthGrove, inViewport('#room-league', 'the rules'),
       async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty')) },
+  /* TEN / W8 · W7-008 [A2-season-1] · the season link's off switch is a word,
+     and armed: the first tap says what the next one does and turns nothing off */
+  { family: 'season', id: 'link-off', variant: 'member', title: 'The season page, the rules: the season link row at rest ("Link" and "Turn off")', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toRoom(page, 'league'); await page.locator('#hubSeasonRevoke').scrollIntoViewIfNeeded(); await page.waitForTimeout(300) },
+    expect: { view: 'view-hub', selectors: { '#hubSeasonRevoke': 'text:^Turn off$' } },
+    check: all(onNorthGrove, inViewport('#hubSeasonRevoke', 'the season link row')) },
+  { family: 'season', id: 'link-armed', variant: 'member', title: 'The season page, the rules: "Turn off" tapped once (armed, not confirmed)', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toRoom(page, 'league'); await click(page, '#hubSeasonRevoke'); await page.waitForTimeout(300) },
+    expect: { view: 'view-hub', selectors: { '#hubSeasonRevoke': 'text:^Sure\\? Turn it off$' } },
+    check: all(onNorthGrove, inViewport('#hubSeasonRevoke', 'the season link row'),
+      async (page) => page.evaluate(() => {
+        const b = document.getElementById('hubSeasonRevoke')
+        if (!b.classList.contains('is-armed') || b.dataset.armed !== '1') return 'the first tap did not arm the control'
+        return (window.__tenNet || []).some((n) => /revoke_share|create_share/.test(n.url)) ? 'the first tap already turned the link off' : true
+      })) },
 ]
 
 /* ------------------------------------------------------------ compete */

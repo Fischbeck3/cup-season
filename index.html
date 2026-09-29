@@ -7214,7 +7214,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              exactly that — who can still get in with the CODE. The Pro gets the
              handle; a member reads the state. -->
         <div class="check league-only" id="rosterRow"><span class="num" id="rosterIcon"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg></span><div class="tt"><b id="rosterHead">Roster</b><small id="rosterSub"></small></div><span style="display:flex;gap:6px;flex:none" id="rosterAct"></span></div>
-        <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg></span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it" aria-label="Turn off this link"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span></div>
+        <div class="check league-only"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg></span><div class="tt"><b>Share the season</b><small>A public page — the standings so far, no account needed</small></div><span style="display:flex;gap:6px;flex:none"><button class="mini" id="hubSeasonShare">Link</button><button class="mini" id="hubSeasonRevoke" title="Turn off this link — the page stops working for everyone who has it">Turn off</button></span></div>
         <div class="check"><span class="num"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg></span><div class="tt"><b>Squads</b><small id="hubDraftSub">Complete · squads are set</small></div><button class="mini" data-go="draft">View</button></div>
         </div><!-- /room-league -->
         </div><!-- /room-grid -->
@@ -12210,7 +12210,7 @@ window.csShareIntentLink = csShareIntentLink;
 /* revoke within the same three-RPC surface: create_share re-returns the live
    token for this artifact, revoke_share kills it. A fresh share later mints a
    NEW token — revoked copies stay dark. */
-async function csRevokeLink(kind, ref){
+async function csRevokeLink(kind, ref, failed = 'Could not revoke.'){
   if(!window.sb || !ref) return;
   try{
     /* D385 §3 · turning off a ROUND link never mints one first: the status read
@@ -12239,7 +12239,7 @@ async function csRevokeLink(kind, ref){
     const r2 = await sb.rpc('revoke_share', { p_token: data });
     if(r2.error) throw r2.error;
     toast('Link is off — the page stops working for everyone');
-  }catch(e){ toast(humanError(e, 'Could not revoke.')); }
+  }catch(e){ toast(humanError(e, failed)); }
 }
 /* D385 §3 · the round's live link, for drawing "Turn off this link" only when there is one */
 async function csRoundLinkLive(rid){
@@ -36401,9 +36401,15 @@ document.getElementById('hubSeasonShare')?.addEventListener('click', () => {
   window.csShareLink?.('recap', CS.season.id,
     `${CS.league?.name || 'Our league'} on Cup Season — the season so far`);
 });
-document.getElementById('hubSeasonRevoke')?.addEventListener('click', () => {
+/* W7-008 · a word, not a glyph, and armed (§7.1): a new link mints a new token,
+   so turning this one off cannot be undone. The phone's ArmedMini says the same
+   two words (SeasonRulesPage 'Sure? Turn it off'). A failure says the link is
+   still live, because that is what the golfer must know next. */
+const CS_SEASON_LINK_OFF = { label: 'Turn off', armed: 'Sure? Turn it off', failed: 'Could not turn it off — the link is still live.' };
+document.getElementById('hubSeasonRevoke')?.addEventListener('click', (e) => {
   if(state.demo || !CS.season?.id) return;
-  window.csRevokeLink?.('recap', CS.season.id);
+  if(!window.csArmTap(e.currentTarget, CS_SEASON_LINK_OFF.label, CS_SEASON_LINK_OFF.armed)) return;
+  window.csRevokeLink?.('recap', CS.season.id, CS_SEASON_LINK_OFF.failed);
 });
 
 /* ---------- welcome fork: signed in, no league yet ---------- */
