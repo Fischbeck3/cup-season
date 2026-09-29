@@ -150,8 +150,9 @@ public struct Invite: Identifiable, Sendable, Equatable {
   public var isMajor: Bool { eventKind == "major" }
   /// D375 · a re-up: a member asked again for season N (N > 1).
   public var isReUp: Bool { isLeague && reup == true && (seasonNumber ?? 0) > 1 }
-  /// "League invite" / "Season 2 invite" / "Ryder invite" / "Major invite" —
+  /// "Season invite" / "Season 2 invite" / "Ryder invite" / "Major invite" —
   /// and, for one the server has not named, just "Invite" rather than a guess.
+  /// A season, never a league: league is not a thing you join (T §2.3, W4).
   public var title: String {
     if isLeague { return ReUpCopy.inviteTitle(reup: reup, seasonNumber: seasonNumber) }
     switch eventKind {
@@ -164,7 +165,9 @@ public struct Invite: Identifiable, Sendable, Equatable {
   public var subline: String {
     if isReUp, let n = seasonNumber { return ReUpCopy.reUpLine(seasonNumber: n, name: containerName) }
     var s = "from \(inviter)"
-    if !isLeague, let d = startsOn { s += " · first tee \(d)" }
+    // a first tee is a date a golfer writes ("Sat Sep 12"), not the
+    // database's ISO string — the web's `renderNotifications`
+    if !isLeague, let d = startsOn { s += " · first tee \(LeagueDates.dowMonDay(d))" }
     return s
   }
   /// What it IS, in one sentence. nil when the server has not said (or has
@@ -199,7 +202,7 @@ public struct Invite: Identifiable, Sendable, Equatable {
   /// The Details sheet line.
   public var detail: String {
     var s = (isLeague ? "A season-long league." : (eventLine ?? "This server hasn’t said whether it’s a Ryder or a Major yet.")) + " Invited by \(inviter)"
-    if let d = startsOn { s += ". First tee \(d)." }
+    if let d = startsOn { s += ". First tee \(LeagueDates.dowMonDay(d))." }
     return s
   }
 }

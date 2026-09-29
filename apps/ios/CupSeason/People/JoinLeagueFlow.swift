@@ -166,11 +166,14 @@ struct CovenantSheet: View {
           // WHO comes before the money — and for a re-up, the season comes
           // before who. The order is the producer's, not this file's —
           // `Covenant.facts` decides it, and a fact with no read is simply
-          // not in the list (L-44).
-          ForEach(covenant.facts(postedRounds: postedRounds), id: \.0) { fact, line in
+          // not in the list (L-44). W4 · today's date passes the clock, so
+          // where the season stands is said after its length.
+          ForEach(covenant.facts(postedRounds: postedRounds, today: CSDate.today()), id: \.0) { fact, line in
             Text(line)
               .font(fact == .who || fact == .season ? CSFont.sentenceBold : CSFont.sentence)
-              .foregroundStyle(fact == .stake ? cs.gold : cs.ink)
+              // W4 · the stake is money, and money is ink (UI_SYSTEM §2.5):
+              // gold is for the pot or a thing won, and a buy-in is neither (D359)
+              .foregroundStyle(cs.ink)
               .fixedSize(horizontal: false, vertical: true)
               .frame(maxWidth: .infinity, alignment: .leading)
               .accessibilityLabel(line)

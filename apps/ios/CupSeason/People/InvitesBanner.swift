@@ -155,7 +155,9 @@ struct EventTermsSheet: View {
       ForEach(Array(invite.eventTerms.enumerated()), id: \.offset) { i, line in
         Text(line)
           .font(i == 0 ? CSFont.sentenceBold : CSFont.sentence)
-          .foregroundStyle(line == invite.stakeLine && (invite.buyIn ?? 0) > 0 ? cs.gold : cs.ink)
+          // W4 · the stake is money, and money is ink (UI_SYSTEM §2.5): a
+          // buy-in is not a thing won, so it is never gold (D359)
+          .foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
           .frame(maxWidth: .infinity, alignment: .leading)
       }
