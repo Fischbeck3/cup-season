@@ -82,6 +82,11 @@ struct ReceiptMoment: View {
     }
     .task(id: photoURL) { photos.load(path: photoPath, url: photoURL) }
     .accessibilityElement(children: .combine)
+    // S9 · the focus ring is the card. Hiding the ground was not enough: the
+    // combined element still took the union of its children's frames (the
+    // filled photograph at 428pt, the contour's offset), so it ran past the
+    // side of an SE. The accessibility shape is the card's own.
+    .contentShape(.accessibility, RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
     // the desk's alt: a moment over a photograph says it has one
     .accessibilityValue(onPhoto ? "Round photo" : "")
     .accessibilityIdentifier(onPhoto ? "receipt.moment.photo" : "receipt.moment")
