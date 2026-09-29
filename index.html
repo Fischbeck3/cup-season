@@ -8524,6 +8524,9 @@ function switchView(v){
   });
   window.csDeskReveal?.(v);
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
+  /* W7-011 / W7-037 · the sidebar's strip yields to Home's prints only on
+     Home, so leaving Home puts the viewer's last and next rounds back in it */
+  if(v !== 'home' && typeof renderMeStrip === 'function') renderMeStrip();
   window.csDeskMenuSync?.(v==='hub' ? 'season' : null);   /* entering the season page starts at its top (it reads the view, so it follows the toggle) */
   window.csHideInstallNudge?.();   /* Q-13: after the swap — busy() reads the view that is now on */
   window.scrollTo({top:0});
@@ -22624,14 +22627,17 @@ function csMeStrip(){
      Sep 27 · 84 GROSS"). */
   const feedRows = (!state.demo && window.homeFeedRows) || [];
   const feedHasIt = !!(lastR && feedRows.some(r => r && r.is_me && r.round_id === lastR.id));
-  if(feedHasIt){ /* said by the feed card */ }
-  else if(lastR && lastR.gross != null && lastR.played_on){
+  if(lastR && lastR.gross != null && lastR.played_on){
     /* TEN / W6 · the parts ride with the value (`fig`, `on`), so the desk's
        dated row never re-splits a string; `csRailCell` still splits `value`
-       for the phone's rail, as `HomeWireCopy.railCell` does. */
+       for the phone's rail, as `HomeWireCopy.railCell` does. W7-011's yield is
+       the WIRE's, so it holds only where the wire is drawn: the slot is built
+       and flagged (`wire`), and renderMeStrip drops it while Home is on screen.
+       The desk's sidebar is drawn on every page, and off Home the round is
+       printed nowhere else. */
     slots.push({ fact:'my_last_round', label:'LAST',
                  value:`${lastR.gross} ${csDayToken(String(lastR.played_on))}`, go:'round', id:lastR.id,
-                 fig:String(lastR.gross), on:String(lastR.played_on) });
+                 fig:String(lastR.gross), on:String(lastR.played_on), wire: feedHasIt || undefined });
   } else if(window.career && Number(window.career.rounds) === 0){
     slots.push({ fact:'my_last_round', label:'LAST', value:'NO ROUNDS YET', go:'post', ph:true });
   }
@@ -24106,9 +24112,16 @@ function csMeDated(s){
 }
 function renderMeStrip(){
   const strip = csMeStrip();
-  /* TEN / W7-037 · the facts the column prints are not the strip's to say */
+  /* TEN / W7-037 · the facts the column prints are not the strip's to say, and
+     W7-011 · nor is the round the wire carries (`wire`). Both are HOME's
+     prints, so they yield only while Home is on screen. #homeMe lives on Home
+     and always yields; the desk's sidebar is drawn on every page, and on any
+     other page it keeps them, or the viewer's last and next rounds are printed
+     nowhere at all (switchView repaints the strip on every page change). */
   const spent = window.__columnFacts || new Set();
-  const slots = strip.slots.filter(s => !spent.has(s.fact));
+  const homeSays = s => spent.has(s.fact) || !!s.wire;
+  const onHome = !!document.getElementById('view-home')?.classList.contains('active');
+  const slots = strip.slots.filter(s => !(onHome && homeSays(s)));
   const real = slots.filter(s => !s.ph);
   const rail = real.filter(s => s.fact === 'my_number' || s.fact === 'my_money');
   const dated = real.filter(s => s.fact === 'my_last_round' || s.fact === 'my_next_round');
@@ -24136,7 +24149,7 @@ function renderMeStrip(){
      keeps the full strip. Suppression is unchanged: the facts are still spent
      on this page, just not at its head. TEN / W6 · and no placeholder: the
      phone's rail draws facts only (`HomeFacts` filters `isPlaceholder`). */
-  const compactSlots = real.filter(s => s.fact === 'my_number' || s.fact === 'my_last_round');
+  const compactSlots = strip.slots.filter(s => !s.ph && !homeSays(s) && (s.fact === 'my_number' || s.fact === 'my_last_round'));
   const compact = (!compactSlots.length && !row) ? '' : `
     <div class="mefacts">${compactSlots.map(s => csMeCell(s)).join('')}</div>
     ${row ? `<button class="mesr cs-body-s" type="button" data-mego="season_row">${esc(row.text)}</button>` : ''}`;
@@ -24190,9 +24203,10 @@ function renderMeStrip(){
   window.__meSuppress = new Set((onDesk ? rail.concat(dated) : compactSlots).map(s => s.fact));
   /* D234 - the same funnel the phone writes, off the same producer. No name,
      no handle, no id; `qaEvent` stamps the platform centrally. */
-  const tag = `${strip.slots.length}${strip.seasonRow?'s':'-'}`;
+  const facts = strip.slots.filter(s => !s.wire).length;   /* the count as it was: a round the wire says is not a strip fact */
+  const tag = `${facts}${strip.seasonRow?'s':'-'}`;
   if(window.__meSeen !== tag){ window.__meSeen = tag;
-    qaEvent('home_state_seen', { state: seasonState(), facts: strip.slots.length, season_row: !!strip.seasonRow }); }
+    qaEvent('home_state_seen', { state: seasonState(), facts, season_row: !!strip.seasonRow }); }
 }
 window.renderMeStrip = renderMeStrip;
 /* F1 · CROSSING 960 CHANGES WHO OWNS WHAT. The strip that renders is chosen by
