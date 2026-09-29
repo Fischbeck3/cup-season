@@ -2845,9 +2845,12 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
 #view-wizard .byrow b{display:block; text-align:left; font-family:var(--sans); font-size:15px; font-weight:500; line-height:1.4; color:var(--ink); margin-top:2px;}
 #view-wizard .byrow .byneed{font-style:normal; color:var(--neg);}
-/* the phone's review opens on the portrait; the desk keeps it in its aside */
-#view-wizard .wizp-phone{margin-bottom:var(--s3);}
-@media(min-width:1100px){ #view-wizard .wizp-phone{display:none;} }
+/* W7-165 · below the desk the review opens on the league's own name and one reassurance line (the phone's WizardAgreementView), not on a portrait that
+   restated the rules under it; from 1100 the sticky aside names the league beside the list */
+#view-wizard .wizrev-id{margin:0 0 var(--s3);}
+#view-wizard .wizrev-id .cs-display-s{overflow-wrap:anywhere;}
+#view-wizard .wizrev-id .cs-agate-s{margin:var(--s1) 0 0; color:var(--mut);}
+@media(min-width:1100px){ #view-wizard .wizrev-id{display:none;} }
 /* Back and Cancel are the alternative, so they are links, never a second
    button beside the one primary (§16A.5) */
 #view-wizard .wiznav .btn.dark{flex:0 0 auto; width:auto; min-height:44px; padding:0 var(--s2); background:none; border:0; box-shadow:none;
@@ -7123,10 +7126,13 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
         <div class="wizstep" data-step="2">
           <h2 class="wizhead">Review the rules, then start the season</h2>
-          <!-- W5 · the phone's twin of the desk's "Your league so far": the
-               same portrait heads the review below the desk width, where the
-               sticky aside is not drawn (the desk keeps it in its aside) -->
-          <div class="card wizp-phone" id="wizReviewPortrait"></div>
+          <!-- W7-165 · below the desk the review is the agreement alone, as the phone's WizardAgreementView draws it: the league's name, one reassurance line,
+               then the rules. The portrait card that headed it (W5) restated its squads, endgame, buy-in and season in the same viewport as the rules list;
+               the desk's sticky aside names the league beside the list, so both stand down from 1100px -->
+          <div class="wizrev-id" id="wizRevId">
+            <div class="cs-display-s" id="wizRevName">Your league</div>
+            <p class="cs-agate-s is-phrase" id="wizRevNote"></p>
+          </div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
           <p class="fine" id="inviteNote" style="padding-bottom:10px"></p>
           <button class="btn" id="lockBtn" aria-describedby="lockWhy">Start the season</button>
@@ -27508,6 +27514,7 @@ const PENALTY=['None','−5 squad points a round short','The month\'s rounds are
 /* Stage 3d: the desktop wizard aside — a drawn portrait of the league, live
    from the dials (the Pro watches it assemble instead of reading a list). All
    from existing wizard state; no schema. */
+const CS_WIZ_FORMING='Forming — nothing locks until you start it';   /* said once: the desk's aside and the phone-width review's line */
 function wizPortrait(){
   const sqN = ({solo:0, squads2:2, squads3:3, squads4:4})[state.structure] ?? 4;
   const name = ($('#setName')?.value || '').trim() || 'Your league';
@@ -27546,7 +27553,7 @@ function wizPortrait(){
         <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="var(--bg2)" stroke="var(--rule)" stroke-width="1.4"/>
         <path d="M53 41V16" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--ink)"/>
       </svg>
-      <div><b>${esc(name)}</b><small>Forming — nothing locks until you start it</small></div>
+      <div><b>${esc(name)}</b><small>${CS_WIZ_FORMING}</small></div>
     </div>
     <div class="wizp-row"><span class="k">Squads</span>${dots}<span class="wizp-v">${esc(structLine)}</span></div>
     <div class="wizp-row"><span class="k">Endgame</span><span class="wizp-v">${canCup ? 'Cup Final' : 'Points table'}</span></div>
@@ -27612,9 +27619,10 @@ function renderBylaws(){
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
   paintInviteNote();   /* D180: say when the invite link expires */
   const asd=$('#wizAside'); if(asd) asd.innerHTML=wizPortrait();   /* Stage 3d: the desktop live portrait */
-  /* W5 · the same portrait heads the phone's review (the desk shows it in its
-     aside), and the three dial heads restate their settings in words */
-  const rpp=$('#wizReviewPortrait'); if(rpp) rpp.innerHTML=wizPortrait();
+  /* W7-165 · below the desk the review is the agreement alone: the league's name and the one reassurance line over the rules (the portrait card restated them
+     in the same viewport; from 1100 the aside names the league). W5 · the three dial heads restate their settings in words */
+  const rvn=$('#wizRevName'); if(rvn) rvn.textContent=($('#setName')?.value||'').trim()||'Your league';
+  const rvl=$('#wizRevNote'); if(rvl) rvl.textContent=CS_WIZ_FORMING;
   if(typeof csWizSummaries==='function') csWizSummaries();
   /* the endgame dial (migration 008): the Pro can flip the finish until the
      final window opens — after that it's settled, argue never */

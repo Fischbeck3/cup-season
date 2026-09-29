@@ -202,6 +202,30 @@ const seasonBand = async (page) => page.evaluate(() => {
   const want = cup ? [weeks - 4, weeks - 3, weeks - 2, weeks - 1] : []
   return JSON.stringify(ember) === JSON.stringify(want) ? true : `the ember weeks are ${JSON.stringify(ember)}, expected the last four ${JSON.stringify(want)}`
 })
+/* TEN / W8 · W7-165 [A2-wizard-2] · below 1100 the review is the agreement alone (the phone's WizardAgreementView): the league's name in the display-small role and the one reassurance line under the review's head,
+   then the rules; the portrait card that restated the squads, endgame, buy-in and season beside them is gone. From 1100 the sticky aside names the league, so the name and the line stand down. */
+const reviewAlone = async (page) => page.evaluate(() => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  if (document.getElementById('wizReviewPortrait')) return 'the review still draws its own portrait card'
+  const id = document.getElementById('wizRevId'), nm = document.getElementById('wizRevName'), note = document.getElementById('wizRevNote'), rules = document.getElementById('bylawsReview')
+  const h2 = document.querySelector('.wizstep[data-step="2"] h2.wizhead')
+  if (!id || !nm || !note || !rules || !h2) return 'the review lacks its name, its line, its rules or its head'
+  const rows = [...document.querySelectorAll('#view-wizard .wizp-row')].filter(shown)
+  if (innerWidth >= 1100) {
+    if (shown(id)) return 'the aside names the league beside the list, and the review names it again above'
+    return rows.length ? true : 'the desk\'s aside draws no portrait'
+  }
+  if (rows.length) return `the portrait's ${rows.length} rows are drawn beside the rules list`
+  if (!shown(nm) || !shown(note)) return 'the review\'s name or reassurance line is not drawn'
+  const want = (document.getElementById('setName').value || '').trim() || 'Your league'
+  if (nm.textContent !== want) return `the name reads ${JSON.stringify(nm.textContent)}, not ${JSON.stringify(want)}`
+  if (note.textContent !== 'Forming — nothing locks until you start it') return `the line reads ${JSON.stringify(note.textContent)}`
+  const cs = getComputedStyle(nm)
+  if (parseFloat(cs.fontSize) !== 24 || cs.textTransform !== 'uppercase') return `the name is ${cs.fontSize} ${cs.textTransform}, not the display-small role (24px caps)`
+  if (getComputedStyle(note).textTransform !== 'none') return 'the reassurance line is set in caps, not the sentence-case phrase'
+  const after = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+  return after(h2, nm) && after(nm, note) && after(note, rules) ? true : 'the review does not read head, name, line, rules'
+})
 const WIZARD = [
   { family: 'wizard', id: 'step-1-league', variant: 'pro_setup', title: 'Wizard · step 1 of 3, the league',
     drive: async (page) => { await wizAt(page, 0); await page.waitForTimeout(500) },
@@ -264,7 +288,7 @@ const WIZARD = [
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
       await click(page, '#wizFastPath'); await wizAt(page, 2); await page.waitForTimeout(600)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: seasonBand },
+    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone) },
 ]
 
 /* --------------------------------------------- COURSES & THE COURSE CARD */
