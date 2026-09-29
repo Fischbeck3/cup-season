@@ -213,6 +213,23 @@ const RECEIPT = [
     /* TEN / W6 · AW2-07: the moment's sentence sets its figure as a run (vsPhraseMarked), never the serif */
     noSerifFigure(['#rcptHero .rm-say'], ['#rcptHero .rm-say .cfrun']),
     noRetiredGlyph()) },
+  /* TEN / W8 · W7-034 [B2-history-8] · the receipt's leaf, scrolled to: one label case in it (UI_SYSTEM §1.3). The working's labels
+     ('Your index that day', 'Playing HCP') took the sheet subtitle's caps by inheritance and sat beside 'The course' and
+     'Points' in sentence case; every label in the leaf is a phrase now. */
+  { family: 'receipt', id: 'round-leaf', variant: 'member', fullPage: false, title: 'Round receipt · scrolled to the leaf (the working and the verdict, one label case)',
+    drive: async (page) => {
+      await openLatestReceipt(page)
+      await until(page, () => { const f = document.getElementById('rcptFigs'); return !!f && !f.hidden }, null, 10000).catch(() => {})
+      await page.evaluate(() => document.querySelector('.rcpt-leaf').scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(600)
+    },
+    expect: { view: 'view-stats', sheet: true, selectors: { '.rcpt-leaf': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const labels = [...document.querySelectorAll('.rcpt-leaf .mathrow > span:first-child')].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.innerText.replace(/\s+/g, ' ').trim())
+      if (labels.length < 4) return `the leaf has ${labels.length} labels`
+      const shouted = labels.filter((l) => /[A-Za-z]{4,}/.test(l) && l === l.toUpperCase())
+      return shouted.length ? `the leaf mixes label cases: ${JSON.stringify(shouted)} in caps beside ${JSON.stringify(labels.filter((l) => !shouted.includes(l)).slice(0, 2))}` : true
+    }) },
   /* S9 (W1, 2026-09-28) · the owner's receipt of a round that carries a
      photograph the page cannot open (every signed URL answers 404): the
      moment falls back, and the photo row says it once, beside Replace and

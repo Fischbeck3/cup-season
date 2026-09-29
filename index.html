@@ -1064,7 +1064,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
    whose whole text is a sentence takes the switch itself. */
 .eb-gloss{margin:calc(var(--s1) * -1) 2px var(--s3); color:var(--mut);}
 .f-gloss{display:block; margin-top:var(--s1);}
-.eyebrow.is-phrase, .sheet .sub.is-phrase{text-transform:none;}
+.eyebrow.is-phrase, .sheet .sub.is-phrase:not(.mathrow){text-transform:none;}
 .seasondate span.is-phrase{text-transform:none; flex-basis:100%;}
 .seasondate span.is-phrase + span:not(:empty)::before{content:none;}
 
@@ -3576,7 +3576,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 /* F03 · a layer's title and the page heading take focus so a screen reader
    starts at the top; they are not controls, so they draw no ring */
 #shTitle:focus, #bfTitle:focus, #finish:focus, h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, h3[tabindex="-1"]:focus, .view[tabindex="-1"]:focus{outline:none;}
-.sheet .sub{font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; margin-top:3px;}   /* TEN / W6 · OB-05: the sheet's eyebrow is agate, not mono */
+.sheet .sub:not(.mathrow){font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; margin-top:3px;}   /* TEN / W6 · OB-05: the sheet's eyebrow is agate, not mono. W7-034 · ...and only the subtitle: a receipt's `.mathrow.sub` is the leaf's working, whose labels are its own agateS phrases (§1.3: one case in the leaf), and it took this rule's caps by inheritance */
 .sheet .x{position:absolute; top:6px; right:6px; width:44px; height:44px; display:flex; align-items:center; justify-content:center;
   border:none; background:none; color:var(--mut); font-size:20px; cursor:pointer; padding:0;}   /* §16.2 · was 26×31 */
 /* WAVE 7 - THE RECEIPT IS PRINTED ON A LEAF (leaderboard.md 6). A receipt is a
