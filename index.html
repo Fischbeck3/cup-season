@@ -416,8 +416,10 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   display:flex; flex-direction:column; justify-content:center; gap:2px; color:var(--ink); min-width:0;
   min-height:44px;   /* §16.2 · was 34 */
 }
-.sideme .mefact b{font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:.01em; font-variant-numeric:tabular-nums;}
-.sideme .mefact small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase;}
+/* TEN · the figure in the board face, tabular; the unit under it in agate
+   (§1.4: mono sets no label, and the strip's figures are figures) */
+.sideme .mefact b{font-family:var(--board); font-size:17px; font-weight:700; letter-spacing:var(--flat); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums;}
+.sideme .mefact small{font-family:var(--board); font-weight:600; font-size:11px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}
 /* L-10 - money is `neg`, never gold and never a countdown */
 .sideme .mefact.owed b{color:var(--neg);}
 .sideme .mefact:hover b{color:var(--act);}
@@ -496,6 +498,12 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 }
 .csans-b:disabled{opacity:.5; cursor:default;}
 .csans-b:focus-visible{outline:2px solid var(--act); outline-offset:4px;}
+/* TEN · the quiet doors at Home's foot: text links on a 2px mut rule with a
+   44px target (§2.5: a link that is not the screen's live action) */
+.hstart{display:flex; flex-wrap:wrap; gap:var(--s4); margin:var(--s3) 0 0;}
+.hstart a{display:inline-flex; align-items:center; min-height:44px; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
+.hstart a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* Weight 5 -- minor activity: one 44pt row, a day marker in the leading
    column, one line of prose, a rule on top. The marker is `mut` and never
    `dim`: `dim` is 3.15 / 2.89 and may not carry a word. */
@@ -503,6 +511,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
         background:none; border:0; border-top:1px solid var(--rule);
         padding:11px 0; min-height:44px; cursor:pointer;}
 .cswire:first-child{border-top:0;}
+.cswire-ans .csans{margin:0 0 var(--s2) var(--rail); gap:var(--s4);}   /* the two ways out sit under the sentence, past the day marker */
 .cswire .mk{flex:none; width:34px; color:var(--mut); text-transform:none; letter-spacing:.02em;}
 .cswire .ln{flex:1; min-width:0; color:var(--mut);}
 .cswire .cv{flex:none; color:var(--mut);}
@@ -519,9 +528,9 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 @media(max-width:959px){
   #homeHub.deskbody{display:flex; flex-direction:column;}
   #homeHub .deskmain{display:contents;}
-  #homeLead{order:1;} #homeMe{order:2;} #homeDeck{order:3;} #homeHero{order:4;}
-  #homeHub .deskwire{order:5;} #homeStart{order:6;} #homeUpNext{order:7;}
-  #homeOccasion{order:8;} #homeTiles{order:9;} #homePulse{order:10;}
+  #homeLead{order:1;} #homeRequests{order:2;} #homeMe{order:3;} #homeDeck{order:4;} #homeHero{order:5;}
+  #homeHub .deskwire{order:6;} #homeUpNext{order:7;} #homeTiles{order:8;}
+  #homeOccasion{order:9;} #homeStart{order:10;} #homePulse{order:11;}
 }
 /* MW-02 · the league's name before a shared sentence, in the agate role */
 .cswire .lc{display:block; color:var(--mut); margin-bottom:2px;}
@@ -546,6 +555,20 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
   .deskbody.wide{grid-template-columns:minmax(0,1fr) 340px;}
   .deskaside{position:sticky; top:40px;}
 }
+/* TEN · Golfers below the desk: the two columns dissolve into one lane in the
+   phone's order — a request waiting on you, the ranking, the invite door, the
+   search and the roster, then who is playing soon. The DOM stays the desk's. */
+@media(max-width:959px){
+  #glfHub.deskbody{display:flex; flex-direction:column;}
+  #glfHub .deskmain, #glfHub .deskaside{display:contents;}
+  #glfHub .cmphead{order:1;} #glfRoot{order:2;} #peopleRequests{order:3;} #glfBoard{order:4;}
+  #glfPersonLink{order:5;} #youPeople{order:6;} #glfSoonWrap{order:7;}
+}
+@media(min-width:960px){
+  #glfAside #peopleRequests:not(:empty){margin-bottom:var(--s4);}
+  #glfAside #glfPersonLink .eyebrow:first-child, #glfAside #peopleRequests .eyebrow:first-child{margin-top:0;}
+}
+#glfSoonWrap{margin-top:var(--s5);}
 /* the peer row: mono eyebrow, name, one true sentence. No card, no border —
    a hairline between, the whole row a button (COMPONENT_SYSTEM's list weight) */
 .peerrow{
@@ -1091,6 +1114,17 @@ th.deskonly, td.deskonly{display:none;}
   flex:none; text-align:right; min-width:44px; font-variant-numeric:tabular-nums;
 }
 .round .pts small{display:block; font-size:11px; color:var(--mut); letter-spacing:.14em;}
+/* TEN · on the board a round's margin is a LABELLED figure: "+2.4" alone was
+   a signed number nobody could read (owner R, §16A.3), set as a green or red
+   bordered chip — the P&L axis D273 took off the phone's card. It is the
+   column face in mut now, with its unit under it, as PTS has. */
+#boardFull .round .pvi{background:none; border:0; padding:0; color:var(--mut);
+  border-radius:0;   /* the shared chip's corner, undone: this is not a box */
+  text-align:right; max-width:72px; font-family:var(--mono); font-size:14px; font-weight:500;}
+#boardFull .round .pvi.up,#boardFull .round .pvi.dn{color:var(--mut);}
+#boardFull .round .pvi small{display:block; font-family:var(--board); font-weight:600; font-size:11px;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; line-height:1.2; margin-top:2px;}
+#boardFull .fcard .round.has-photo .pvi{color:var(--scrim-mut);}
 
 /* ============ draft ============ */
 .draftgrid{display:block;}
@@ -1502,6 +1536,15 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .fc.s22{width:22px; height:22px;} .fc.s28{width:28px; height:28px;} .fc.s32{width:32px; height:32px;}
 .fc.s36{width:36px; height:36px;} .fc.s44{width:44px; height:44px;} .fc.s56{width:56px; height:56px;}
 .hffacew{display:flex; flex:none;}
+/* TEN · a buddy request (Home, under the lead; Golfers, the head block) is a
+   row on the page's rule — face, the name in `social`, a sentence-case phrase
+   and two worded answers — not the act-bordered `.check` box. */
+.hreq{display:flex; align-items:center; gap:var(--s3); padding:var(--s2) 0; border-bottom:1px solid var(--rule);}
+.hreq .tt{flex:1; min-width:0;}
+.hreq .tt b{display:block; color:var(--ink); overflow-wrap:anywhere;}
+.hreq .tt small{display:block; color:var(--mut); overflow-wrap:anywhere;}
+.hreq-acts{display:flex; gap:var(--s2); flex:none;}
+#homeRequests:not(:empty){margin-bottom:var(--s4);}
 /* identity-led home feed — A2 scorecard rail + B1 photo-story takeover (owner
    pick off the feed boards, 2026-07-23) */
 /* D288 · THE WIRE IS NOT SIX CARDS. `.hfcard` was `bg1` + a 1px border + a
@@ -1551,6 +1594,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfr-title{position:relative; isolation:isolate; display:flex; align-items:flex-end; justify-content:space-between; gap:var(--s3);
   margin-top:var(--s2); padding-bottom:var(--s1); border-bottom:1px solid var(--rule);}
 .hfr-title>b{flex:1; min-width:0; color:var(--ink); overflow-wrap:anywhere; text-wrap:balance; padding-bottom:var(--s1);}
+.hfr-title .hfr-tee{color:var(--mut);}
 .hfr-topo{position:absolute; left:34%; top:50%; transform:translateY(-50%); width:min(30%, 130px); height:auto; z-index:-1; pointer-events:none; color:var(--mut);}
 .hfr-topo .t-sur{stroke-width:1.2; opacity:.08;}
 .hfr-topo .t-edge{stroke-width:1.2; opacity:.16;}
@@ -1562,20 +1606,40 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfr-foot .hrx{margin-top:0;}
 .hfr-go{flex:none; color:var(--mut);}
 
-/* B1: a photo-backed round IS the card — dusk wash, serif gross, marker medal */
-.hfcard.hfstory{padding:0; position:relative; overflow:hidden; border-radius:var(--r); min-height:220px; display:flex; flex-direction:column; justify-content:space-between; color:#F4F6F2; border:none;}
-.hfcard.hfstory .hsbg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
-.hfcard.hfstory::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(10,14,12,.55), rgba(10,14,12,.05) 40%, rgba(10,14,12,.72));}
-.hstop,.hsbot,.hsfoot{position:relative; z-index:2;}
-.hstop{display:flex; align-items:center; gap:10px; padding:12px 14px;}
-.hstop .hsid b{display:block; font-size:14.5px; font-weight:650; letter-spacing:-.01em; text-shadow:0 1px 6px rgba(0,0,0,.4);}
-.hstop .hsid small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; opacity:.85; margin-top:2px;}
-.hsbot{display:flex; align-items:flex-end; justify-content:space-between; padding:0 14px 12px;}
-.hsg{font-family:var(--serif); font-size:44px; line-height:.95; text-shadow:0 2px 10px rgba(0,0,0,.45);}
-.hsg small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; opacity:.9; margin-top:4px; text-shadow:none;}
-.hsmedal{width:30px; height:30px; flex:none; border-radius:50%; background:rgba(10,14,12,.55); display:flex; align-items:center; justify-content:center; color:var(--scrim-ink);}
+/* TEN P1 · THE PHOTOGRAPHED ROUND. The row is the record's (a rule above,
+   the story, the course's circle and the one foot row below, on the page's
+   own ground); the photograph is its PLATE — the one object on the wire with
+   a radius (§10.1 rung 1). The plate sits on the pinned ceremony ground, so
+   the scrim ink always has its dark ground even before the picture paints or
+   if it never does (TP-03: it measured 1.19–3.23:1 in light with the photo
+   withheld). The copy reverses out of the plate's foot on §10.3's
+   bottom-anchored `.title` scrim — scrim-ink for the name and the figure,
+   scrim-mut for the course line and the unit, both measured on the scrim's
+   darkest band. `clip`, not `hidden`: a long name grows the plate rather than
+   losing its first line off the top (the `.cs-plate` lesson). */
+.hfcard.hfstory{border-top:1px solid var(--rule); padding:var(--s3) 0 var(--s1); margin:0;}
+.hsplate{position:relative; isolation:isolate; overflow:hidden; overflow:clip;
+  border-radius:var(--r);
+  width:100%; aspect-ratio:2.1/1; min-height:168px; display:flex; align-items:flex-end;   /* a definite width: min-height must never widen the plate through the ratio */
+  background:var(--ceremony); color:var(--scrim-ink);}
+.hsplate .hsbg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2;}
+.hsplate::after{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(to bottom, transparent 0%,
+    color-mix(in srgb, var(--ceremony) 24%, transparent) 44%,
+    color-mix(in srgb, var(--ceremony) 72%, transparent) 72%,
+    color-mix(in srgb, var(--ceremony) 88%, transparent) 100%);}
+.hscopy{display:flex; align-items:flex-end; gap:var(--s3); width:100%; padding:var(--s3);}
+.hsid{flex:1; min-width:0;}
+.hsid b{display:block; color:var(--scrim-ink); overflow-wrap:anywhere;}
+.hsid small{display:block; color:var(--scrim-mut); overflow-wrap:anywhere;}
+.hsid .hsday{white-space:nowrap;}   /* "Sep 26" is one fact, never "Sep / 26" */
+.hsg{flex:none; display:flex; align-items:baseline; gap:var(--s2);}
+.hsg>b{color:var(--scrim-ink);}
+.hsg>span{color:var(--scrim-mut);}
+.hsmedal{position:absolute; top:var(--s3); right:var(--s3); width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; color:var(--scrim-ink);
+  background:color-mix(in srgb, var(--ceremony) 56%, transparent);}
 .hsmedal svg{width:16px; height:16px;}
-.hsfoot{background:var(--bg1); color:var(--ink); padding:8px 12px; border-top:1px solid var(--rule);}
 /* D288 · WEIGHT 5 — a moment that is not a round is a LINE, not a card.
    `.hfcard.quiet` was `bg2` plus a DASHED edge, which is a quiet thing made
    loud by being drawn twice; a quiet thing is quiet by being small and grey
@@ -1584,6 +1648,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .hfline .hl{flex:1; min-width:0; color:var(--mut);}
 .hfline .hl i{font-style:normal; color:var(--mut); white-space:nowrap;}   /* the two names wrap as one, never mid-league */
 .hfline .hs{flex:none; color:var(--mut);}
+.hfline .hfpro{display:block; color:var(--mut); margin-bottom:2px;}
 .hfline.opens{cursor:pointer;}
 .hfline.opens:hover{background:var(--bg1);}
 .hfline.opens:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
@@ -1697,6 +1762,10 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .dtab td.rt{text-align:right; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:.08em; text-transform:uppercase; color:var(--mut); white-space:nowrap;}
 @media (hover:hover){ .dtab tr:hover td{background:var(--bg1);} }
+/* TEN · the person page's "Last played Sep 20" is one fact: it stacked into
+   three agate lines at 375 (critique-B minor). The course column takes the
+   wrap instead — a name wraps whole. */
+#view-person .dtab td.ag{white-space:nowrap;}
 /* the status sentence under the card, and its figure run - the board face at
    the SENTENCE's own size, so the number sits on the sentence's baseline
    rather than looking pasted in */
@@ -2159,11 +2228,17 @@ body.guestlive #onboard{display:none !important;}
 .feedsec{color:var(--ink); margin:32px 0 12px;}
 .feedsec:first-child{margin-top:0;}
 /* the first row under a dateline needs no rule — the head is its edge */
-.feedsec + .hfcard.hfrail, .feedsec + .hfcard.hfrecord, .feedsec + .hfline{border-top:0;}
+.feedsec + .hfcard.hfrail, .feedsec + .hfcard.hfrecord, .feedsec + .hfcard.hfstory, .feedsec + .hfline{border-top:0;}
 .feedmore{margin-top:4px;}
-.feedmore>summary{list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut); padding:14px 12px; min-height:44px; box-sizing:border-box; border:1px solid var(--rule); border-radius:var(--r); background:var(--bg1); text-align:center; user-select:none;}
+/* TEN · the expander is a row on the wire's rule, not a bordered pill (§8:
+   there is no pill; critique-B P3): the label in agate, a 44px target */
+.feedmore>summary{list-style:none; cursor:pointer; display:flex; align-items:center; min-height:44px; box-sizing:border-box;
+  font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;
+  color:var(--mut); padding:var(--s3) 0; border-top:1px solid var(--rule); user-select:none;}
+.feedmore>summary::after{content:"\203A"; margin-left:var(--s2);}
+.feedmore[open]>summary::after{content:none;}
 .feedmore>summary::-webkit-details-marker{display:none;}
-.feedmore>summary:hover{color:var(--ink); border-color:var(--rule);}
+.feedmore>summary:hover{color:var(--ink);}
 .feedmore[open]>summary{margin-bottom:8px; color:var(--mut);}
 .phasehero{
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
@@ -2405,22 +2480,28 @@ body.guestlive #onboard{display:none !important;}
    black on near black in light. The hero is a surface; the panel is a tile. */
 .hhero{position:relative; overflow:hidden; text-align:left; padding:15px 16px; margin:0 0 12px;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);}
-.hhero::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brand);}
-.hhero.earned::before{background:var(--gold);}
-.hhero .hh-top{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
-.hhero .hh-fig{display:flex; align-items:baseline; gap:9px; margin-bottom:2px;}
-.hhero .hh-pos{font-family:var(--serif); font-size:44px; font-weight:700; line-height:.9; letter-spacing:-.02em; color:var(--ink); font-variant-numeric:tabular-nums;}
+/* TEN · THE 3.5PT SPINE LEAVES THE CARD EDGE (UI_SYSTEM §0.3; web audit P2-13,
+   TP-09). It meant three things by colour alone — ember live, gold earned,
+   mut calm. Live says it with the lead's own 7px ember dot in the eyebrow;
+   earned already says it with the gold figure; calm says nothing. The eyebrow
+   is agate (§1.4: mono never sets an eyebrow) and the figure is the board face
+   (§1.4: a number is never serif). */
+.hhero .hh-top{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:12px;}
+.hhero:not(.calm):not(.earned) .hh-top::before{content:""; display:inline-block; width:7px; height:7px; border-radius:50%;
+  background:var(--brand); margin-right:var(--s2); vertical-align:1px;}
+.hhero .hh-fig{display:flex; align-items:baseline; gap:var(--s2); margin-bottom:2px;}
+.hhero .hh-pos{font-family:var(--board); font-size:40px; font-weight:700; line-height:.94; color:var(--ink); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums;}
 .hhero.earned .hh-pos{color:var(--gold);}
-.hhero .hh-ord{font-family:var(--serif); font-size:19px; font-weight:700; color:var(--mut); align-self:flex-start; margin-top:3px;}
+.hhero .hh-ord{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--ord) * 1em); text-transform:uppercase; color:var(--mut); align-self:baseline;}
 .hhero .hh-move{display:inline-flex; align-items:center; gap:4px; border-radius:99px; padding:3px 9px; margin-left:auto;
-  font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; background:rgba(78,197,132,.13); color:var(--pos);}
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); background:rgba(78,197,132,.13); color:var(--pos);}
 .hhero .hh-move.dn{background:rgba(255,95,86,.12); color:var(--neg);}
 .hhero .hh-move.flat{background:var(--bg2); color:var(--mut);}
 .hhero .hh-line{font-size:13.5px; line-height:1.5; color:var(--ink); margin:10px 0 0;}
 .hhero .hh-line em{font-style:normal; color:var(--brand); font-weight:600;}
 .hhero.earned .hh-line em{color:var(--gold);}
-.hhero .hh-foot{display:flex; align-items:center; gap:9px; margin-top:12px; padding-top:11px; border-top:1px solid var(--rule);
-  font-family:var(--mono); font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--mut);}
+.hhero .hh-foot{display:flex; align-items:center; gap:var(--s2); margin-top:var(--s3); padding-top:var(--s3); border-top:1px solid var(--rule);
+  font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
 .hhero .hh-bar{flex:1; height:5px; border-radius:99px; background:var(--bg2); overflow:hidden;}
 .hhero .hh-bar i{display:block; height:100%; border-radius:99px; background:var(--brand);}
 .hhero .hh-bar i.ok{background:var(--pos);}
@@ -2434,7 +2515,6 @@ body.guestlive #onboard{display:none !important;}
 /* D359 · a hero that is not a contest (the league-less ladder, a league still
    forming) spends no ember: the spine is furniture, the emphasis is ink and
    the progress is the action green */
-.hhero.calm::before{background:var(--mut);}
 .hhero.calm .hh-line em{color:var(--ink);}
 .hhero.calm .hh-bar i{background:var(--act);}
 /* D119 · the member's second move: present, but never competing with the hero's
@@ -2451,27 +2531,26 @@ body.guestlive #onboard{display:none !important;}
    voice under the hero. Smaller than the hero, one action, dismissable.
    Champagne spine = a Major window; ember = everything live. The marker
    art carries the wink (famous-golf-wing rule: oblique, never named). */
-.hocc{position:relative; overflow:hidden; text-align:left; padding:13px 14px; margin:0 0 12px;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);}
-.hocc::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--mut);}   /* D359 · a seasonal suggestion is not an active competition; the earned variant keeps its gold */
-.hocc.earned::before{background:var(--gold);}
-.hocc .ho-k{font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--mut); margin-bottom:7px;}
-.hocc.earned .ho-k{color:var(--gold);}
-.hocc h4{font-family:var(--serif); font-size:18px; font-weight:700; margin:0 0 5px; color:var(--ink); line-height:1.2; letter-spacing:-.01em;}
-.hocc p{margin:0; font-size:12.5px; line-height:1.5; color:var(--mut);}
-.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:11px; padding-top:10px; min-height:44px; border-top:1px solid var(--rule);
-  font-size:13px; font-weight:600; color:var(--act); cursor:pointer; width:100%; background:none; border-left:0; border-right:0; border-bottom:0; text-align:left; font-family:var(--sans);}
-.hocc.earned .ho-act{color:var(--act);}
-.hocc .ho-mk{position:absolute; right:34px; top:12px; width:30px; height:30px; opacity:.3; pointer-events:none;}
-.hocc .ho-mk svg{width:100%; height:100%; stroke:var(--gold); fill:none; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round;}
-.hocc .ho-x{position:absolute; right:0; top:0; width:44px; height:44px; display:grid; place-items:center; border:none; background:none; color:var(--mut); cursor:pointer; border-radius:var(--rs);}
-/* R03 · the glyph stays small; the box is 44px (it was 24px) and its ink is mut
-   (6.21:1 dark / 5.30:1 light on bg1 — dim was 2.77 / 2.61). The text keeps
-   clear of the box, so a tap on the corner is only ever a dismiss. */
+/* TEN · THE OCCASION IS A QUIET BLOCK ON THE RULE, not a fourth container
+   grammar in the foot: no ground, no edge, no radius and no 3px spine (the
+   card spine is retired, TP-09 / OB-04). A seasonal suggestion is not an
+   earning, so nothing on it is gold (D359); its mark is mut. Its headline is
+   sans, because the lead holds the viewport's one serif sentence (§1.4). */
+.hocc{position:relative; text-align:left; padding:var(--s3) 0 0; margin:0; border-top:1px solid var(--rule);}
+.hocc .ho-k{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:var(--s2);}
+.hocc h4{font-family:var(--sans); font-size:17px; font-weight:600; margin:0 0 var(--s1); color:var(--ink); line-height:1.3;}
+.hocc p{margin:0; font-size:15px; line-height:1.45; color:var(--mut);}
+.hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:var(--s2); min-height:44px;
+  font-size:15px; font-weight:600; color:var(--act); cursor:pointer; width:100%; background:none; border:0; text-align:left; font-family:var(--sans); padding:0;}
+.hocc .ho-mk{position:absolute; right:44px; top:var(--s3); width:28px; height:28px; opacity:.5; pointer-events:none;}
+.hocc .ho-mk svg{width:100%; height:100%; stroke:var(--mut); fill:none; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round;}
+.hocc .ho-x{position:absolute; right:0; top:0; width:44px; height:44px; display:grid; place-items:center; border:none; background:none; color:var(--mut); cursor:pointer;}
+/* R03 · the glyph stays small; the box is 44px and its ink is mut. The text
+   keeps clear of the box, so a tap on the corner is only ever a dismiss. */
 .hocc .ho-x svg{width:14px; height:14px;}
 .hocc .ho-x:hover{color:var(--ink);}
 .hocc .ho-x:focus-visible{outline:2px solid var(--act); outline-offset:-6px;}
-.hocc .ho-k, .hocc h4{padding-right:36px;}
+.hocc .ho-k, .hocc h4{padding-right:76px;}
 /* Home "Coming up" rich cards (round-object arc Stage 6) */
 .hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--bg1); border:1px solid var(--rule); border-radius:11px;}   /* a surface, not the figure tile (see .hhero) */
 .hround.tap{cursor:pointer;} .hround.tap:active{transform:scale(.99);}
@@ -2573,43 +2652,40 @@ body.guestlive #onboard{display:none !important;}
 /* the quiet-day frame — Home's feed never opens as a bare list. Either it says
    what changed since you were last here, or (on a genuinely quiet day) it
    resurfaces the best recent thing so the open still reveals something. */
+/* TEN · "Since you were here" is a quiet note on the page's rule, not a
+   bordered box with a 3px EMBER spine (the spine is retired — UI_SYSTEM §0.3,
+   TP-09 / OB-06 — and ember is competition, D359; F4 had already said so).
+   The label is agate, never mono (§1.4); the sentence is body. */
 .digest{
-  font-family:var(--sans); font-size:13px; line-height:1.55; color:var(--mut);
-  background:var(--bg1); border:1px solid var(--rule);
-  border-left:3px solid var(--brand);
-  border-radius:12px; padding:10px 13px; margin-bottom:10px;
+  font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--mut);
+  background:none; border:0; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  padding:var(--s3) 0; margin-bottom:var(--s3);
 }
 .digest b{color:var(--ink); font-weight:650;}
 .digest .dk{
-  display:block; font-family:var(--mono); font-size:11px; letter-spacing:.08em;
-  text-transform:uppercase; color:var(--mut); margin-bottom:4px;
+  display:block; font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+  text-transform:uppercase; color:var(--mut); margin-bottom:var(--s1);
 }
-html[data-theme="light"] .digest{background:#FBFCFA;}
 /* v23.65: the feed loosens up — league notices read like a clubhouse note,
    not a terminal. Sans, sentence-sized, quiet gold accent instead of the
    dashed mono banner. */
 /* D94 · the tile row: three destinations, one glance each. Deliberately small —
    they are doors, not dashboards. The hero above them carries the loud move;
    these carry the quiet "where do I go". */
-.hometiles{display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:8px; margin:10px 0 4px;}   /* as many equal doors as there are, never an empty slot */
-.htile{
-  background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
-  padding:10px 9px; text-align:left; cursor:pointer; position:relative; overflow:hidden;
-  display:flex; flex-direction:column; gap:5px; min-width:0;
-}
-.htile::before{content:""; position:absolute; left:0; top:10px; bottom:10px; width:2px;
-  border-radius:2px; background:var(--acc,var(--dim));}
-.htile .t{font-family:var(--mono); font-size:11px; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--mut);}
-.htile .v{font-family:var(--serif); font-size:17px; color:var(--ink); line-height:1;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.htile .s{font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--mut); line-height:1.3;
-  /* R06 · a tile's line is an instruction ("PUT A ROUND ON THE SCHEDULE"); at
-     375 it was cut to "PUT A ROUND O…". It wraps now — the words stay whole
-     and the tile grows, never the other way round */
-  white-space:normal; overflow-wrap:anywhere;}
-.htile:hover{border-color:var(--acc,var(--rule));}
-.htile:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.hometiles{display:block; margin:0;}
+/* TEN · THE FOOT IS ONE LIST — `.upchip` (Up next) and `.htile` (the season,
+   next, the board) are rows of it: the agate key in a fixed column, the value
+   in body and whole, the chevron as furniture, the page's rule between. No
+   ground, no edge, no radius and no coloured bar: four container grammars
+   (bg2 chips, a bordered promo, side-ruled tiles, a paragraph) became one. */
+.upchip,.htile{display:flex; align-items:baseline; gap:var(--s3); width:100%; min-height:44px; margin:0;
+  padding:var(--s3) 0; background:none; border:0; border-top:1px solid var(--rule);
+  text-align:left; cursor:pointer; color:var(--ink); font:inherit;}
+.upchip .k,.htile .t{flex:none; width:104px; color:var(--mut);}
+.upchip b,.htile .v{flex:1; min-width:0; color:var(--ink); font-weight:400; overflow-wrap:anywhere;}
+.upchip .ch,.htile .ch{flex:none; color:var(--mut);}
+.htile:focus-visible,.upchip:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+@media (hover:hover){ .htile:hover .v,.upchip[data-upgo]:hover b{text-decoration:underline; text-underline-offset:3px;} }
 /* D93 · a section head that carries a way through. renderHomeRounds clears the
    head's inline display, so the flex must live in a rule or the link loses its
    right edge the moment the section is shown. */
@@ -3436,29 +3512,28 @@ body.noleague .league-only{display:none !important;}
 .prow .pmeta b{font-size:14px; font-weight:600; color:var(--ink); overflow-wrap:anywhere;}   /* a name wraps whole */
 .prow .pmeta small{font-size:13px; color:var(--mut);}
 .prow .pact{flex:none; display:flex; gap:6px;}
-.ptag{flex:none; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--mut); padding:2px 8px; white-space:nowrap;}
-.ptag.ok{color:var(--pos);} .ptag.pos{color:var(--act);}   /* "Wants to add you" is a request to answer, not a contest */
+/* TEN · a relationship STATUS is a label in agate mut, never a green word
+   that reads as a button (craft C; D359: pos is performance, not a tie) */
+.ptag{flex:none; font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); padding:2px 0 2px 8px; white-space:nowrap;}
+.ptag.ok{color:var(--mut);} .ptag.pos{color:var(--act);}   /* "Wants to add you" is a request to answer, not a contest */
+/* TEN · on Golfers a person is a SLAT on the page's rule, not the boxed card
+   `.prow` also draws elsewhere (TP-22: a card whose content touched its own
+   border, one rule overriding half of another). Scoped to this page: the
+   live-scoring and rivalry rows keep theirs. */
+#view-golfers .prow{background:none; border:0; border-top:1px solid var(--rule);
+  border-radius:0;   /* the shared card's corner, undone: a slat has none */
+  margin:0; padding:var(--s2) 0; min-height:52px;}
+/* the name is the `social` role here (a person off the board is title case,
+   §1.3); the shared `.prow .pmeta b` rule would otherwise hold it at 14px */
+#view-golfers .prow .pmeta b.cs-social{font-family:var(--board); font-size:17px; font-weight:600; color:var(--ink);}
 body:not(.noleague) #hubLeagueless{display:none;}
 /* Up Next strip — what's coming, one glance, hides when empty */
-#homeUpNext:not(:empty){display:flex; gap:8px; flex-wrap:wrap; margin:0 0 14px;}
-/* a chip holds to the column: a long "Next round" course used to push every
-   populated member Home 154px sideways at 375 (nowrap). The VALUE wraps
-   inside the chip, whole (never an ellipsis: "NEXT truncation" is the
-   residual this closes); the key and the chevron never break. */
-.upchip{display:inline-flex; align-items:center; gap:8px; border:0; max-width:100%;
-  background:var(--bg2); border-radius:var(--p); padding:6px 13px;}
-.upchip .k{font-family:var(--mono); font-size:11px; letter-spacing:.09em; color:var(--mut); text-transform:uppercase; white-space:nowrap; flex:none;}
-.upchip b{font-size:12.5px; font-weight:600; color:var(--ink); min-width:0; overflow-wrap:anywhere;}
-/* D176: a chip is a button now. Min-height keeps the tap target honest on a
-   phone; amber is spent only inside three days, where it means something. */
-.upchip{min-height:44px; cursor:pointer; font-family:var(--sans); text-align:left;}   /* §16.2 · 44, not 36 */
-.upchip[data-upgo]:hover{border-color:var(--rule);}
-.upchip .ch{color:var(--mut); font-size:14px; line-height:1; margin-left:-2px; flex:none;}   /* D359 · a way in is furniture */
-/* a closing window (D359: competition) is an ember RING on the chip, and its
-   words stay ink: ember type on bg2 read 3.81:1 at 11px. (.upchip is border:0,
-   so the old border-color never drew; the ring is an inset shadow.) */
-.upchip.hot{box-shadow:inset 0 0 0 1.5px var(--brand);}
-.upchip.hot .k, .upchip.hot .ch{color:var(--ink);}
+#homeUpNext:not(:empty){display:block; margin:var(--s5) 0 0;}   /* the foot list starts a clear step below the wire */
+/* a closing window (D359: competition) keeps its ember as the lead's own 7px
+   dot before the key — a second channel beside the words, which stay mut and
+   ink (ember type on bg2 read 3.81:1) */
+.upchip.hot .k::before{content:""; display:inline-block; width:7px; height:7px; border-radius:50%;
+  background:var(--brand); margin-right:var(--s2); vertical-align:1px;}
 /* D177 · a GROUP head: one level above .eyebrow, for a page that needs a spine
    rather than a list. Brand at rest (a group head is structure, not an accent
    moment), a heavier rule, and real air above so the eye reads a break. Two on
@@ -3639,14 +3714,20 @@ body:not(.noleague) #hubLeagueless{display:none;}
 /* D180 · a standing notice row — amber, an icon, room to breathe. Used where
    the app reports a state the golfer chose, never to scold them for it. */
 /* D177 · the buddies invite-link door */
+/* TEN · Golfers' ONE invite door is a door ROW on the page's rules, not a
+   bordered box (§3.1) and not the old zero-padded dark button: the verb in
+   body, the gloss in agate sentence case (TP-18: no off-token tracking), a
+   chevron as furniture (D359: a way in is not a metal) */
 .pdoorlink{display:flex; flex-direction:column; align-items:flex-start; gap:2px; width:100%;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--rc);
-  padding:11px 13px; min-height:44px; cursor:pointer; text-align:left;
-  font-family:var(--sans); color:var(--ink);}
-.pdoorlink span{font-size:13.5px; font-weight:600;}
-.pdoorlink small{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--mut);}
-.pdoorlink::after{content:'→'; position:absolute; right:13px; color:var(--act);}
-.pdoorlink{position:relative;}
+  background:none; border:0; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  padding:var(--s3) var(--s5) var(--s3) 0; min-height:44px; cursor:pointer; text-align:left;
+  font-family:var(--sans); color:var(--ink); position:relative;}
+.pdoorlink span{font-size:15px; font-weight:600;}
+.pdoorlink small{color:var(--mut);}
+.pdoorlink::after{content:'\203A'; position:absolute; right:0; top:50%; transform:translateY(-50%); color:var(--mut); font-size:17px;}
+.pdoorlink[aria-expanded="true"]::after{transform:translateY(-50%) rotate(90deg);}
+.pdoorlink:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+.invpick{display:flex; flex-wrap:wrap; gap:var(--s2); padding:var(--s3) 0 0;}
 /* D176: the lead card — ember, because every face of it is something still
    running (a clash mid-week, a month not yet closed, a table that just moved).
    Gold would be wrong: nothing on this card is earned yet. */
@@ -4094,8 +4175,8 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
 .cstape .rail{position:relative; flex:1; height:46px; display:flex; align-items:center;}
 .cstape .rail::before{content:''; position:absolute; left:0; right:0; top:50%;
   height:2px; margin-top:-1px; background:var(--ink);}
-.cstape .ticks{position:relative; display:flex; width:100%;}
-.cstape .ticks i{display:block; height:16px; max-width:17px;}
+.cstape .ticks{position:relative; display:flex; width:100%; justify-content:space-between; gap:var(--s1);}
+.cstape .ticks i{display:block; flex:0 1 16px; height:16px; min-width:4px; box-sizing:border-box;}
 .cstape .ticks i.me{background:var(--ink); transform:translateY(-12px);}
 .cstape .ticks i.them{border:1.7px solid var(--mut); transform:translateY(12px);}
 .cstape .ticks i.half{height:2px; background:var(--mut);}
@@ -4356,20 +4437,24 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .purse .amt.heronum{ font-size:52px; }
 
 /* announcements: the Pro's voice sits above the noise */
+/* TEN · THE PRO'S NOTE. It was a pre-token gold wash (rgba(233,190,98,…))
+   with a gold label: gold means EARNED (D359, §2.4's closed list), and a note
+   from the Pro is a note. It reads as a note on the page's own rules now —
+   the label in agate mut, the sentence in body — and the attribution, not a
+   metal, is what sets it apart (web audit P3-24). */
 .annrow{
-  margin:10px 0; padding:11px 14px; border-radius:12px;
-  background:linear-gradient(90deg, rgba(233,190,98,.10), rgba(233,190,98,.02));
-  border:1px solid rgba(233,190,98,.35);
-  font-size:13px; line-height:1.5; color:var(--ink);
+  margin:var(--s2) 0; padding:var(--s3) 0;
+  border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  font-size:15px; line-height:1.45; color:var(--ink);
 }
 .annrow b{
-  display:block; font-family:var(--mono); font-size:11px; font-weight:600;
-  letter-spacing:.14em; color:var(--gold); margin-bottom:4px;
+  display:block; font-family:var(--board); font-size:11px; font-weight:600; text-transform:uppercase;
+  letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); margin-bottom:var(--s1);
 }
 /* the latest announcement rides pinned at the top of the board card */
 .annrow.pin{
   position:sticky; top:0; z-index:2; margin-top:0;
-  background:linear-gradient(90deg, rgba(233,190,98,.10), rgba(233,190,98,.02)), var(--bg1);
+  background:var(--bg1);
 }
 
 /* the full-screen board: the league's room */
@@ -4388,11 +4473,18 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 }
 /* a room's name is ink; --pos is a signed gain, and this is not one */
 .bf-hdr b{font-size:12px; letter-spacing:.14em; color:var(--ink);}
-.bf-hdr small{display:block; font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.1em; margin-top:2px;}
+.bf-hdr small{display:block; font-family:var(--board); font-weight:600; font-size:11px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; margin-top:2px;}   /* a label: agate, not mono (§1.4) */
 #feedListFull{flex:1; overflow-y:auto; padding:6px 16px 12px; overscroll-behavior:contain;}
 .bf-comp{position:static; margin:0; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--rule); background:var(--bg0);}
 .rline{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
 .rline .ok{color:var(--pos);} .rline .dim{color:var(--mut);}
+/* TEN · on the board a round card's lines are LABELS (course · holes · day,
+   the gross and its band, the counting state) — agate, not mono (§1.4 keeps
+   mono for codes, columns and times) — and its points are a figure in the
+   board face (§1.6). Scoped to the board takeover; the season card keeps its
+   own until its lane moves it. */
+#boardFull .round .l2, #boardFull .rline{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}
+#boardFull .round .pts{font-family:var(--board); font-weight:700; font-size:20px; font-feature-settings:'tnum' 1,'lnum' 1;}
 
 /* views: settle rather than pop — on the roll, like everything else (L-30) */
 .view{animation:vin .26s var(--roll) both;}
@@ -4944,7 +5036,6 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <div id="epiPanel" style="display:none"></div>
         <div id="notifBanner"></div>
         <div id="resumeBanner" style="display:none"></div>
-        <div id="homeRequests"></div>
         <!-- ONE home (IA P1): the same tree serves league-less and member states.
              The quick-post card is gone — the + tab is the only score entry. -->
         <!-- D81: ONE lane, one hero slot. The grid/rail split is gone — the
@@ -4975,6 +5066,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                  pressing gets. The ladder that used to pick it is a written
                  desk rule on the server now (`home_dispatch`). -->
             <div id="homeLead"></div>
+            <!-- TEN · a buddy request answered in place sits UNDER the lead,
+                 never above it, and only while the dispatch is not already
+                 carrying it (one owner per fact — the phone's rule). -->
+            <div id="homeRequests"></div>
             <!-- D228 · THE DECK: items 2–5, ranked, each one sentence with one
                  door. A shorter deck is a shorter deck; it is never padded. -->
             <div id="homeDeck"></div>
@@ -4984,14 +5079,20 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                  golfer answers the contest that is open before starting a new
                  one. They sat above the lead here, so Start something outranked
                  "you have until Sunday to answer it". -->
-            <div id="homeStart"></div>
+            <!-- TEN · the foot reads as one list (Up next, then the season,
+                 next and board rows), the occasion, then the quiet doors -->
+            <div id="homeUpNext"></div>
             <div id="homeTiles"></div>
             <div id="homeOccasion"></div>
-            <div id="homeUpNext"></div>
+            <div id="homeStart"></div>
             <div id="homePulse"></div>
           </div>
           <aside class="deskwire">
-            <div class="eyebrow withgo" id="homeFeedHead">Around your buddies<a href="#" data-go="board" id="homeBoardGo">THE BOARD ↗</a></div>
+            <!-- TEN · §16A.2: a section head's right-of-rule slot carries a count
+                 and nothing else. "THE BOARD ↗" sat in it as a link; the board's
+                 one door on Home is the foot list's row, which carries its count
+                 ("The board · 1 new today", renderHomeTiles). -->
+            <div class="eyebrow" id="homeFeedHead">Around your buddies</div>
             <div id="homeDigest"></div>
             <div id="homeFeed"></div>
           </aside>
@@ -6056,28 +6157,36 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <!-- GOLFERS (D222) — `view-people` promoted. The old route still works:
            `switchView('people')` resolves here through `csViewFor`. -->
       <section class="view" id="view-golfers">
-        <div class="deskbody wide">
+        <!-- TEN · THE DESK'S OWN SHAPE (D234; craft D, owner row "desk
+             golfers"). The people read down the reading column — the ranking,
+             then the roster it is drawn from, with the search that grows it.
+             The ACTS sit in the aside, where the eye rests: a request waiting
+             on you (D177: it outranks the page, so it heads the aside), the one
+             invite door, and who is playing soon. It was one long column and a
+             340px aside holding two lines. Below 960 both columns dissolve into
+             the phone's own order (request, ranking, invite, people, soon). -->
+        <div class="deskbody wide" id="glfHub">
           <div class="deskmain">
             <div class="cmphead"><h2>Golfers</h2></div>
             <div id="glfRoot" style="text-align:left"></div>
-            <div id="peopleRequests" style="text-align:left"></div>
-            <!-- IOS-032 / D245 - THE BOARD. It sits above the buddies list
+            <!-- IOS-032 / D245 - THE RANKING. It sits above the buddies list
                  because "who is playing well right now" is the question friends
-                 actually ask; the list under it is the roster the board is
-                 drawn from. -->
+                 actually ask; the list under it is the roster it is drawn from. -->
             <div id="glfBoard" style="text-align:left"></div>
-            <!-- D241 - THE PERSON LINK. Below the requests and the board on
-                 purpose (D177: a person waiting on you outranks everything
-                 else on this page), and above the roster, because the golfer
-                 with nobody in their list is the one it is for. -->
-            <div id="glfPersonLink" style="text-align:left"></div>
             <div id="youPeople" style="text-align:left"></div>
           </div>
-          <!-- R-15 · the head is rendered WITH its content, never over nothing.
-               A head with an empty box under it is a promise (L-32). -->
-          <aside class="deskaside" id="glfSoonWrap" hidden>
-            <div class="eyebrow">Playing soon</div>
-            <div id="glfSoon" style="text-align:left"></div>
+          <aside class="deskaside" id="glfAside">
+            <div id="peopleRequests" style="text-align:left"></div>
+            <!-- D241 - THE PERSON LINK, now the ONE invite door (it asks
+                 buddy-or-season). The golfer with nobody in their list is the
+                 one it is for. -->
+            <div id="glfPersonLink" style="text-align:left"></div>
+            <!-- R-15 · the head is rendered WITH its content, never over nothing.
+                 A head with an empty box under it is a promise (L-32). -->
+            <div id="glfSoonWrap" hidden>
+              <div class="eyebrow">Playing soon</div>
+              <div id="glfSoon" style="text-align:left"></div>
+            </div>
           </aside>
         </div>
       </section>
@@ -6170,7 +6279,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
   </header>
   <div id="feedListFull"></div>
   <div class="composer bf-comp">
-    <input class="f" id="chatInFull" placeholder="Message the league…">
+    <input class="f" id="chatInFull" placeholder="Post to the board…">
     <button class="btn" id="chatSendFull" style="width:auto; padding:0 18px;">Send</button>
   </div>
 </div>
@@ -9265,7 +9374,7 @@ function renderFeedFull(force){
             <div class="rline">${counting}</div>
             ${stk>=2?`<div class="rline"><span class="streaktag ${stk>=3?'heathot':'heatwarm'}">${stk} STRAIGHT UNDER</span></div>`:''}
           </div>
-          ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}</span>`:''}
+          ${r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}<small>vs playing HCP</small></span>`:''}
           ${r.points!=null?`<div class="pts">${r.points}<small>PTS</small></div>`:''}
           ${r.photo_url && r.profile_id && window.mkr ? `<span class="mkstamp">${window.mkr(memberMarker(r.profile_id))}</span>` : ''}
         </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
@@ -17401,60 +17510,60 @@ function renderClubGroups(){
 function renderHomeTiles(){
   const box=$('#homeTiles'); if(!box) return;
   if(state.demo || !window.CS?.user){ box.innerHTML=''; return; }
-
-  /* 1 · the league — your rung if the standings are in, else the room itself */
+  /* TEN · THE FOOT IS ONE LIST. The three tiles were bordered boxes with a
+     coloured bar each (gold for "2nd", ember for "Open"), serif values and
+     mono caps — a fourth container grammar beside the chips, the promo and a
+     paragraph. They are rows of the same list as Up next now: agate key,
+     body value, a chevron, the page's rule between. And each says only what
+     nothing else on Home says (L-34 / D360):
+       · the SEASON row is gone whenever the standing is known — the strip's
+         season row (or the lead) already says "Fixture Wrens 2nd of 2", and
+         the tile's bare "LEAGUE 2nd" never said 2nd of what. It stays as the
+         door into the room while no standing exists yet, named for what a
+         golfer joins (a season), never "League · None yet · Join or start";
+       · NEXT is the chip's or the strip's when either prints it (F1), and a
+         golfer with no season is not handed a fourth door;
+       · the BOARD row is the one door to the board on Home (the wire head's
+         "THE BOARD ↗" sat in the count slot, §16A.2) and carries its count. */
   const rung = (typeof heroMyRung==='function') ? heroMyRung() : null;
   const lgName = window.CS.league?.name || '';
-  const league = !lgName
-    ? { t:'League', v:'None yet', s:'JOIN OR START', go:()=>switchView('hub'), acc:'var(--dim)' }
-    : rung
-      ? { t:'League', v:`${rung.pos}${rung.ord}`, s:esc(lgName.toUpperCase()), go:()=>switchView('hub'), acc:'var(--gold)' }
-      : { t:'League', v:esc(lgName), s:'OPEN THE ROOM', go:()=>switchView('hub'), acc:'var(--gold)' };
+  const standingSaid = !!rung || !!window.__standingSaid
+    || (typeof csMeSeasonRow==='function' && !!csMeSeasonRow());
+  const league = (lgName && !standingSaid)
+    ? { t:'Season', v:esc(lgName), go:()=>switchView('hub') } : null;
 
-  /* 2 · next round — the same source the retired Upcoming list read, so the
-     tile is a summary of the calendar rather than a second opinion */
   const today=new Date(); today.setHours(0,0,0,0);
   const src=(window.watchAll&&window.watchAll.length)?window.watchAll:(window.mySchedule||[]);
-  /* D234 · this tile had NO mine filter at all, so `watchAll` — which carries
-     buddies' and league mates' plans — could put a BUDDY'S round under a tile
-     labelled "Next" while the chip below it named a different one. One
-     producer (`isMyPlan`), used by the tile and the chip both. */
+  /* D234 · one producer (`isMyPlan`) for the tile and the chip, so a buddy's
+     plan never sits under a row labelled Next */
   const next=(src||[])
     .filter(sr=>{ if(!isMyPlan(sr)) return false;
                   const d=sr.play_on?localDate(sr.play_on):null; return d && !isNaN(d) && d>=today; })
     .sort((a,b)=>String(a.play_on).localeCompare(String(b.play_on)))[0];
-  /* L-34 / D236 - the ME strip owns NEXT. With the identity block carrying it,
-     this tile said the same plan a second time on the same screen, and the
-     chip below said it a third; the strip's `suppress` set stands both down. */
+  /* L-34 / D236 - the ME strip owns NEXT; the chip claims it where it prints */
   const meOwnsNext = window.__meSuppress && window.__meSuppress.has('my_next_round');
-  const DOWS=['SUN','MON','TUE','WED','THU','FRI','SAT'];
-  const nextT = next
-    ? { t:'Next', v:DOWS[localDate(next.play_on).getDay()],
-        s:esc(((next.tee_time?String(next.tee_time).slice(0,5)+' · ':'')+(next.course_label||'')).toUpperCase()),
-        go:()=>switchView('schedule'), acc:'var(--brand)' }
-    /* D176 · "PLAN A ROUND" was the app talking to itself. Say the thing the
-       golfer would actually do: put one on the calendar. */
-    : { t:'Next', v:'Open', s:'PUT A ROUND ON THE SCHEDULE', go:()=>switchView('schedule'), acc:'var(--brand)' };
+  const inSeason = !!lgName;
+  const nextT = meOwnsNext ? null
+    : next ? { t:'Next', v:esc(DOW[localDate(next.play_on).getDay()] + ' · '
+                 + (next.tee_time ? String(next.tee_time).slice(0,5) + ' · ' : '') + (next.course_label||'')),
+               go:()=>switchView('schedule') }
+    /* D176 · say the thing the golfer would do — for a golfer in a season;
+       a golfer with none already has Start something and I have a code */
+    : inSeason ? { t:'Next', v:'Put a round on the schedule', go:()=>switchView('schedule') } : null;
 
-  /* 3 · the board — how much has landed since yesterday, never a fake badge */
+  /* the board — how much has landed since yesterday, never a fake badge */
   const since=Date.now()-24*3600*1000;
   const fresh=(window.homePosts||[]).filter(p=>new Date(p.created_at).getTime()>since).length;
-  const board = !lgName
-    ? { t:'Board', v:'—', s:'LEAGUE ONLY', go:null, acc:'var(--dim)' }
-    : { t:'Board', v: fresh?String(fresh):'Open', s: fresh?'NEW TODAY':'THE LEAGUE',
-        go:()=>switchView('board'), acc:'var(--dim)' };
+  const board = lgName
+    ? { t:'The board', v: fresh ? `${fresh} new today` : 'Where the season talks', go:()=>switchView('board') } : null;
 
-  /* R07 · L-32: a door that does not open is not offered. With no league the
-     board tile was a disabled "— · LEAGUE ONLY" — one more thing on Home that
-     asked for attention and could not be answered. It waits for a league. */
-  const tiles=[league, ...(meOwnsNext ? [] : [nextT]), ...(lgName ? [board] : [])];
-  box.innerHTML=`<div class="hometiles">${tiles.map((x,i)=>
-    `<button class="htile" data-htile="${i}" type="button" style="--acc:${x.acc}"${x.go?'':' disabled'}>
-       <span class="t">${x.t}</span><span class="v">${x.v}</span><span class="s">${x.s}</span>
-     </button>`).join('')}</div>`;
+  const tiles=[league, nextT, board].filter(Boolean);
+  box.innerHTML = tiles.length ? `<div class="hometiles">${tiles.map((x,i)=>
+    `<button class="htile" data-htile="${i}" type="button">`
+    + `<span class="t cs-agate-s">${x.t}</span><span class="v cs-body-s">${x.v}</span><span class="ch" aria-hidden="true">\u203A</span></button>`).join('')}</div>` : '';
   box.querySelectorAll('[data-htile]').forEach(b=>{
     const x=tiles[+b.dataset.htile];
-    if(x.go) b.addEventListener('click', x.go);
+    if(x && x.go) b.addEventListener('click', x.go);
   });
 }
 window.renderHomeTiles = renderHomeTiles;
@@ -17477,10 +17586,9 @@ function renderHomeStart(){
       <button class="btn" data-runback="${esc(done.league.id)}" type="button">${esc(csRunItBackTitle(done.role === 'commissioner', csProFirstName(done)))}</button>
       <div class="rb-sub">${esc(csRunItBackSub(done.role === 'commissioner'))}</div>
     </div>` : '';
-  /* F7: round-first orientation — league-less only (a member already knows
-     rounds fan into their league; this is for someone who hasn't joined one
-     yet and might otherwise read "Start something" as a gate on posting). */
-  const leagueless = !state.demo && !(window.CS?.memberships||[]).length;
+  /* F7's round-first helper ("Add a round — it posts to your rounds…") is
+     retired (TEN): the lead already says it — "Add one you already played" —
+     and a third ask for the same round is the repetition the judges filed. */
   /* D81 R2: the ladder hero absorbed the league-less doors — EVERY account
      gets the quiet three-button row (the hero carries the loud CTA; Join and
      events stay one tap away, never wallpaper). D83: the demo shop-window
@@ -17499,17 +17607,18 @@ function renderHomeStart(){
      object at all. "I have a code" stays as its own quiet door, because a
      golfer holding a code is not choosing anything. */
   const inALeague = (window.CS?.memberships||[]).some(m => m.league?.phase !== 'complete');
+  /* TEN · ONE PRIMARY (§16A.5). A golfer with no season met "Add my round"
+     as the lead's text door UNDER two filled buttons for the alternatives,
+     and a helper that asked for the first round a third time. The lead's
+     door is the one move; the two alternatives are quiet links at the foot,
+     in the same voice as a member's "Start something else…". */
   const doors = inALeague ? `
-    <p class="fine" style="padding:8px 0 0"><a href="#" data-hgmore style="color:var(--mut); text-decoration:underline; text-underline-offset:3px; display:inline-flex; align-items:center; min-height:44px">Start something else…</a></p>`
+    <p class="hstart"><a href="#" data-hgmore>Start something else…</a></p>`
     : `
-    <div class="startgrid" style="grid-template-columns:1fr 1fr">
-      <button class="startjoin" data-hgnew type="button" style="margin:0">Start something</button>
-      <button class="startjoin" data-hgjoin type="button" style="margin:0">I have a code</button>
-    </div>
-    ${leagueless ? '<p class="fine" style="padding:8px 0 0">Add a round — it posts to your rounds. Seasons score it when you join one.</p>' : ''}`;
+    <p class="hstart"><a href="#" data-hgnew>Start something</a><a href="#" data-hgjoin>I have a code</a></p>`;
   box.innerHTML = rb + doors;
-  box.querySelector('[data-hgnew]')?.addEventListener('click', () => window.openIntentSheet?.());
-  box.querySelector('[data-hgjoin]')?.addEventListener('click', () => window.openJoinSheet?.());
+  box.querySelector('[data-hgnew]')?.addEventListener('click', (e) => { e.preventDefault(); window.openIntentSheet?.(); });
+  box.querySelector('[data-hgjoin]')?.addEventListener('click', (e) => { e.preventDefault(); window.openJoinSheet?.(); });
   box.querySelector('[data-hgmore]')?.addEventListener('click', (e) => {
     e.preventDefault();
     window.openIntentSheet?.();
@@ -17940,7 +18049,7 @@ function occInWindow(w, d){
 function occCard(o, k, h, p, act, mkKey){
   const mk = mkKey && typeof MARKERS!=='undefined' && MARKERS[mkKey]
     ? `<span class="ho-mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${MARKERS[mkKey].p}"/></svg></span>`
-    : (o && o.key==='teams' ? `<span class="ho-mk" aria-hidden="true"><svg viewBox="0 0 24 24" style="stroke:var(--brand)"><path d="M7 21V4M7 4l7 2.3L7 8.6"/><path d="M17 21V7M17 7l-6 2 6 2"/></svg></span>` : '');
+    : (o && o.key==='teams' ? `<span class="ho-mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 21V4M7 4l7 2.3L7 8.6"/><path d="M17 21V7M17 7l-6 2 6 2"/></svg></span>` : '');
   return `<div class="hocc${o&&o.earned?' earned':''}">
     <div class="ho-k">${k}</div>${mk}
     <h4>${h}</h4><p>${p}</p>
@@ -17990,7 +18099,7 @@ window.OCCASIONS = OCCASIONS; window.occInWindow = occInWindow;   /* QA bridge �
 const DEMO_FEED = [
   {golfer:'Diego', marker:'saguaro', gross:79, pvi:5.2, course:'Papago GC', played_on:isoAgo(0), is_pr:true,
    rx:{'azalea':{n:2,me:false,who:['Rosa','Marco']},'rake':{n:1,me:false,who:['Marco']}}},
-  {golfer:'Rosa',  marker:'azalea',  gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true,
+  {golfer:'Rosa',  marker:'azalea',  gross:74, pvi:3.8, course:'Grayhawk',  played_on:isoAgo(2), is_sub80:true, holes_played:18,   /* the milestone is an 18-hole fact (csSub80) */
    rx:{'eagle':{n:1,me:false,who:['Diego']}}},
   {golfer:'You',   marker:'shark',   gross:82, pvi:2.9, course:'Aguila',    played_on:isoAgo(4), is_me:true,
    rx:{'jug':{n:1,me:false,who:['Rosa']}}},
@@ -18182,11 +18291,36 @@ function memberMarker(pid){
   const m = (window.CS?.members||[]).find(m => m.profile_id === pid);
   return m ? (m.mk || m.marker || m.profile?.marker || 'saguaro') : 'saguaro';
 }
+/* TEN P0 · A GROSS MILESTONE IS AN EIGHTEEN-HOLE FACT. `home_feed.is_sub80` is
+   `gross < 80` with no hole count (20261020090000:110), so a nine-hole 43 was
+   announced as "broke 80 for the first time" on the golfer's own record, and
+   to their buddies. The row carries NO hole count either, so the client reads
+   it where it already holds it — the row itself if a later server adds it, the
+   board's round cache, the golfer's own career rows — and the claim is made
+   only when the round is KNOWN to be eighteen holes. Unknown claims nothing
+   (L-44): a missed celebration is recoverable, a false one is not. The server
+   half (`is_sub80` requiring holes_played = 18, as the board's moment already
+   does) is owed separately. */
+function csRoundHoles(r){
+  if(!r) return null;
+  const own = r.holes_played != null ? r.holes_played : r.holes;
+  if(own != null && isFinite(Number(own))) return Number(own);
+  const id = r.round_id || r.id || null;
+  const c = id && window.roundCache ? window.roundCache[id] : null;
+  if(c && c.holes_played != null && isFinite(Number(c.holes_played))) return Number(c.holes_played);
+  const rows = window.career && Array.isArray(window.career.rows) ? window.career.rows : null;
+  const mine = id && rows ? rows.find(x => x && x.id === id) : null;
+  if(mine && mine.holes_played != null && isFinite(Number(mine.holes_played))) return Number(mine.holes_played);
+  return null;
+}
+function csSub80(r){ return !!(r && r.is_sub80 && csRoundHoles(r) === 18); }
+/* a nine says it is a nine, beside its figure, wherever the client knows it */
+function csGrossUnit(r){ const h = csRoundHoles(r); return h != null && h < 18 ? `GROSS · ${h} HOLES` : 'GROSS'; }
 /* D340 · HomeWireCopy.roundDetail's copy cases, kept on both clients. */
 function homeRoundDetail(r){
   if(r.gross==null) return '';
   if(r.is_pr) return 'a personal best.';
-  if(r.is_sub80) return 'broke 80 for the first time.';
+  if(csSub80(r)) return 'broke 80 for the first time.';
   if(r.is_first) return r.is_me ? 'your first round posted.' : 'their first round posted.';
   if(r.pvi!=null){ const phrase=vsPhrase(Number(r.pvi)); return (r.is_me ? phrase : theirs(phrase))+'.'; }
   return '';
@@ -18275,20 +18409,14 @@ function wireHomePhotos(box){
     if(img.complete){ if(img.naturalWidth===0) failed(); else if(path) csLastGoodPhoto.set(path, img.getAttribute('src')); }
   });
 }
-function feedRow(r, idx, stamp){
+function feedRow(r, idx, stamp, opts){
   /* A2 scorecard rail + B1 photo takeover (owner pick, feed boards 2026-07-23):
-     the face carries the name, the serif gross carries the score — the same
-     number language as the receipt. A photo-backed round becomes the card
-     itself. Whole card opens the receipt; face + reactions keep their taps. */
+     the face carries the name, the figure carries the score. A photo-backed
+     round is a plate; every other round is the D360 record. Whole card opens
+     the receipt; face + reactions keep their taps. */
   const who = esc(r.is_me ? 'You' : (r.golfer||'A golfer'));
   const whoTag = who + (r.is_me ? '' : founderTag(r.profile_id, r.golfer));
   const course = esc((r.course||'').trim() || 'Course not recorded');
-  const pviN = r.gross!=null && r.pvi!=null ? Number(r.pvi) : null;
-  const milestone = r.gross==null ? null : r.is_pr ? 'Personal best'
-    : r.is_sub80 ? 'Broke 80 — first time'
-    : r.is_first ? 'First round posted' : null;
-  const vp0 = pviN!=null ? vsPhrase(pviN) : '';
-  const vp = r.is_me ? vp0 : theirs(vp0);   /* crew rows speak third person */
   const rx = idx!==undefined ? homeRxOf(r) : null;
   const social = rx ? `<div class="hrx">${homeRxChipsHtml(rx,idx)}</div>` : '';
   /* D391 · two doors off the round, both read from posted_rounds_social and
@@ -18297,26 +18425,54 @@ function feedRow(r, idx, stamp){
   const tk = (idx!==undefined && r.round_id && window.csTalkSocial) ? window.csTalkSocial[r.round_id] : null;
   const talk = tk ? `<button type="button" class="hfr-talk" data-hftalk="${esc(r.round_id)}" aria-label="${tk.comment_count ? esc(String(tk.comment_count)) + ' comment' + (tk.comment_count===1?'':'s') + ', open the conversation' : 'Comment on this round'}"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg>${tk.comment_count ? `<span class="cs-agate-s">${esc(String(tk.comment_count))}</span>` : ''}</button>` : '';
   const cf = tk && tk.course && Array.isArray(tk.course.faces) ? tk.course.faces : [];
-  const courseDoor = cf.length ? `<button type="button" class="hfr-course" data-hfcourse="${esc(tk.course.api_course_id)}"><span class="hfr-faces" aria-hidden="true">${cf.map(p=>face(p.id, p.marker, 22)).join('')}</span><span class="cs-grow"><span class="cs-body-s">${esc(csTalkNames(cf.map(p=>csTalkFirst(p.name))) + (cf.length===1 ? ' has' : ' have') + ' played here')}</span><span class="cs-agate-s">See their rounds and your circle’s best</span></span><span aria-hidden="true">›</span></button>` : '';
+  /* L-34 · the course's circle is a fact about the COURSE, not the round: the
+     same "Casey, Blake and Jules have played here" printed under every round at
+     that course ran Home to 5,860px. The wire prints it once per course per
+     section, on the newest round there (`renderHomeFeed` decides which), and
+     the receipt and the course page keep it for every round. The gloss is a
+     door's phrase, so it reads in sentence case (§1.3, is-phrase). */
+  const showCourse = !(opts && opts.course === false);
+  const courseDoor = showCourse && cf.length ? `<button type="button" class="hfr-course" data-hfcourse="${esc(tk.course.api_course_id)}"><span class="hfr-faces" aria-hidden="true">${cf.map(p=>face(p.id, p.marker, 22)).join('')}</span><span class="cs-grow"><span class="cs-body-s">${esc(csTalkNames(cf.map(p=>csTalkFirst(p.name))) + (cf.length===1 ? ' has' : ' have') + ' played here')}</span><span class="cs-agate-s is-phrase">See their rounds and your circle’s best</span></span><span aria-hidden="true">›</span></button>` : '';
   const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
   /* SF-6: the arrival — the round just posted renders its gross as split-flap
      cells; renderHomeFeed arms them and retires the flag after insertion */
   const sfNew = window._sfRid && r.round_id===window._sfRid && r.gross!=null;
   const grossH = sfNew ? sfWrap(String(r.gross)) : (r.gross??'');
+  /* D360 · ONE story per round, photographed or not, from one producer */
+  const story = homeRoundStory(r);
+  const foot = `<div class="hfr-foot">
+      ${social||'<span></span>'}
+      ${talk}
+      <span class="hfr-go cs-agate-s" aria-hidden="true">Receipt ›</span>
+    </div>`;
 
   if(r.photo_url && !homeFailedPhotos.has(r.photo_url)){
-    /* B1: the round as a story card — dusk wash, serif gross, marker medal */
+    /* TEN P1 · THE PHOTOGRAPHED ROUND, REPAIRED. The picture is a PLATE: the
+       golfer, the course and the gross reverse out of its foot on §10.3's
+       bottom-anchored `.title` scrim, in the board face (§1.4 — the serif 82
+       is gone), on the pinned ceremony ground so the scrim ink holds while
+       the picture loads or if it never arrives. Everything that is not the
+       picture sits UNDER it, on the page's own ground, in the record's own
+       grammar: the one story, the course's circle, and ONE foot row —
+       applause · comment · Receipt ›. The foot used to live inside the
+       photograph as an opaque bg1 band with the course door after it, so the
+       band sliced the picture in two, the picture resumed under the door
+       (whose label could not be read on it), the two controls stacked in the
+       band, and nothing said Receipt. The marker medal keeps the plate's top
+       corner, as the board's stamp does. */
     return `<div class="hfcard hfstory stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
-      <img class="hsbg" src="${esc(r.photo_url)}" data-path="${esc(r.photo_path||'')}" alt="" loading="lazy" decoding="async">
-      <div class="hstop">
-        ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
-        <div class="hsid"><b>${whoTag}</b><small>${course} · ${dfmtShort(r.played_on)}${milestone?' · '+milestone:''}</small></div>
-      </div>
-      <div class="hsbot">
-        <div class="hsg">${grossH}${vp?`<small>${vp}</small>`:''}</div>
+      <div class="hsplate">
+        <img class="hsbg" src="${esc(r.photo_url)}" data-path="${esc(r.photo_path||'')}" alt="" loading="lazy" decoding="async">
         <span class="hsmedal" aria-hidden="true">${mkSvg}</span>
+        <div class="hscopy">
+          ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,44)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,44)}</span>`}
+          <div class="hsid"><b class="cs-social">${whoTag}</b><small class="cs-agate-s is-phrase">${course}${r.played_on?` · <span class="hsday">${esc(dfmtShort(r.played_on))}</span>`:''}</small></div>
+          ${r.gross!=null?`<div class="hsg"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
+        </div>
       </div>
-      ${(social||talk)?`<div class="hsfoot">${social}${talk}</div>`:''}${courseDoor}</div>`;
+      ${story?`<p class="hfr-story cs-body-s">${esc(story)}</p>`:''}
+      ${courseDoor}
+      ${foot}</div>`;
   }
 
   /* D360 · A ROUND WITHOUT A PHOTOGRAPH IS A COMPACT SCORECARD, complete and
@@ -18328,8 +18484,15 @@ function feedRow(r, idx, stamp){
      treatment it replaces: one rule, not a heavy bar; the figure at `l`, not
      `xl`; the story in body, not the serif. No placeholder for the picture
      that is not there, and no decorative ember. */
-  const story = homeRoundStory(r);
   const day = stamp ? csDayToken(stamp) : dfmtShort(r.played_on);
+  /* TEN · THE COURSE IS THE TITLE, IN TITLE CASE. Condensed caps are the
+     board's voice (§1.3: caps only on the board); on the wire they set the
+     fixture's 100-character club at six lines and outweighed the golfer and
+     the score. The name wraps whole (never a clamp); the tee after its last
+     " · " steps down to mut, so the club reads first. */
+  const cl = (r.course||'').trim(), cut = cl.lastIndexOf(' · ');
+  const title = !cl ? 'Course not recorded'
+    : cut > 0 ? `${esc(cl.slice(0, cut))}<span class="hfr-tee"> · ${esc(cl.slice(cut + 3))}</span>` : esc(cl);
   return `<div class="hfcard hfrecord stamped"${idx!==undefined?` data-hfr="${idx}"`:''} role="button" tabindex="0" aria-label="${who} — ${esc(homeRoundLine(r))}">
     <div class="hfr-id">
       ${r.profile_id?`<button type="button" class="hffacew hfperson" data-tc="${esc(r.profile_id)}" aria-label="Open golfer card: ${who}">${face(r.profile_id,r.marker,32)}</button>`:`<span class="hffacew">${face(r.profile_id,r.marker,32)}</span>`}
@@ -18337,8 +18500,8 @@ function feedRow(r, idx, stamp){
       ${day?`<span class="hfr-day cs-agate-s">${esc(day)}</span>`:''}
     </div>
     <div class="hfr-title">
-      <b class="cs-name">${r.course ? course : 'Course not recorded'}</b>
-      ${r.gross!=null?`<div class="hfr-gross"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">GROSS</span></div>`:''}
+      <b class="cs-social">${title}</b>
+      ${r.gross!=null?`<div class="hfr-gross"><b class="cs-fig-l">${grossH}</b><span class="cs-agate-s">${esc(csGrossUnit(r))}</span></div>`:''}
       <svg class="hfr-topo" viewBox="120 -20 380 300" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
         <path class="t-sur" d="M 322 29 C 350 8 398 12 421 41 C 444 67 429 102 419 124 C 412 150 419 163 389 183 C 359 202 318 191 293 166 C 270 143 274 119 285 97 C 295 75 296 48 322 29 Z"/>
         <path class="t-edge" d="M 336 57 C 358 38 386 42 395 60 C 404 77 391 91 386 107 C 380 125 385 145 366 153 C 346 162 316 151 309 132 C 303 115 318 106 320 90 C 322 77 324 66 336 57 Z"/>
@@ -18346,11 +18509,7 @@ function feedRow(r, idx, stamp){
     </div>
     ${story?`<p class="hfr-story cs-body-s">${esc(story)}</p>`:''}
     ${courseDoor}
-    <div class="hfr-foot">
-      ${social||'<span></span>'}
-      ${talk}
-      <span class="hfr-go cs-agate-s" aria-hidden="true">Receipt ›</span>
-    </div></div>`;
+    ${foot}</div>`;
 }
 /* D288 · WEIGHT 5 — a league moment is a LINE (VISUAL_PASS §1c). It was a
    44pt face, a bold sentence and a mono sub-line inside a dashed `bg2` card,
@@ -18370,8 +18529,12 @@ function momentRow(p, stamp, leagues){
      data-card contract, so the one delegated listener serves both. */
   const card = p.live_round_id
     ? ` data-card="${esc(p.live_round_id)}" role="button" tabindex="0"` : '';
+  /* TEN · the Pro's note says whose it is, as the board does ("FROM THE
+     PRO"): an unattributed imperative read as the app's own voice, beside
+     the app's own month clock (critique-B P3) */
+  const pro = p.kind === 'announce' ? `<span class="hfpro cs-agate-s">From the Pro</span>` : '';
   return `<div class="hfline${p.live_round_id?' opens':''}"${card}>
-    <span class="hl cs-body-s">${esc(csYouVoice(easeCaps(p.body||''), p))}${lg?` <i>${esc(lg)}</i>`:''}</span>
+    <span class="hl cs-body-s">${pro}${esc(csYouVoice(easeCaps(p.body||''), p))}${lg?` <i>${esc(lg)}</i>`:''}</span>
     ${stamp?`<span class="hs cs-agate-s">${esc(csDayToken(stamp))}</span>`:''}</div>`;
 }
 /* ==== D92 · the scorecard =====================================================
@@ -18726,14 +18889,14 @@ function dgBest(items){
   const recent=items.filter(i=> i.kind==='round' && !(i.r && i.r.round_id && spent.has(String(i.r.round_id)))
                                 && (now - dgTime(i.t)) <= 14*864e5);
   if(!recent.length) return null;
-  const rank=i=> i.r.is_pr?4 : i.r.is_sub80?3 : i.r.is_first?2 : 1;
+  const rank=i=> i.r.is_pr?4 : csSub80(i.r)?3 : i.r.is_first?2 : 1;
   return recent.slice().sort((a,b)=>
     rank(b)-rank(a) || (Number(b.r.pvi||0)-Number(a.r.pvi||0)) || dgTime(b.t)-dgTime(a.t))[0];
 }
 function dgLine(i){
   const r=i.r, who=dgWho(r), course=esc(r.course||'a round');
   if(r.is_pr)    return `<b>${who}</b> set a personal best — ${r.gross} at ${course}`;
-  if(r.is_sub80) return `<b>${who}</b> broke 80 — ${r.gross} at ${course}`;
+  if(csSub80(r)) return `<b>${who}</b> broke 80 — ${r.gross} at ${course}`;
   if(r.is_first) return `<b>${who}</b> posted ${r.is_me?'your':'their'} first round — ${r.gross} at ${course}`;
   return `<b>${who}</b> posted ${r.gross} at ${course}`;
 }
@@ -18809,7 +18972,7 @@ function renderHomeDigest(){
     }
     const bits=[];
     if(rounds.length) bits.push(`<b>${rounds.length} round${rounds.length>1?'s':''}</b>`);
-    const pr=rounds.find(i=>i.r.is_pr), s80=rounds.find(i=>i.r.is_sub80), fst=rounds.find(i=>i.r.is_first);
+    const pr=rounds.find(i=>i.r.is_pr), s80=rounds.find(i=>csSub80(i.r)), fst=rounds.find(i=>i.r.is_first);
     if(pr)  bits.push(`a personal best from ${dgWho(pr.r)}`);
     if(s80) bits.push(`${dgWho(s80.r)} broke 80`);
     if(fst) bits.push(`${dgWho(fst.r)}'s first round`);
@@ -18885,8 +19048,24 @@ function renderHomeFeed(){
   const CAP=8;
   let html='';
   fold.buckets.forEach(b=>{
-    const rows=b.items.map(x=> x.kind==='round' ? feedRow(x.r, x.i, x.stamp) : momentRow(x.p, x.stamp, x.leagues));
-    html += `<div class="feedsec cs-display-s">${b.label}</div>`;
+    /* L-34 · one course's circle per course per section, on its newest round
+       (the fold already orders each section newest first) */
+    const seenCourse=new Set();
+    /* D321 · A HEAD IS FOR A BUCKET, NOT FOR A SENTENCE (the phone's
+       `HomePage.headedPeriods`): a period holding ONE row gets no displayS
+       head, and the lone row keeps its own date and joins the run behind its
+       rule. The desk drew "TODAY" over a single line. */
+    const lone = b.items.length < 2;
+    const rows=b.items.map(x=>{
+      const stamp = (lone && !x.stamp) ? (x.when || null) : x.stamp;
+      if(x.kind!=='round') return momentRow(x.p, stamp, x.leagues);
+      const tk=(window.csTalkSocial && x.r.round_id) ? window.csTalkSocial[x.r.round_id] : null;
+      const cid=tk && tk.course && tk.course.api_course_id!=null ? String(tk.course.api_course_id) : null;
+      const first=!cid || !seenCourse.has(cid);
+      if(cid) seenCourse.add(cid);
+      return feedRow(x.r, x.i, stamp, { course:first });
+    });
+    if(!lone) html += `<div class="feedsec cs-display-s">${b.label}</div>`;
     if(rows.length<=CAP+1) html += rows.join('');
     else html += rows.slice(0,CAP).join('')
       + `<details class="feedmore"><summary>Show ${rows.length-CAP} more · ${b.label.toLowerCase()}</summary>${rows.slice(CAP).join('')}</details>`;
@@ -18954,8 +19133,11 @@ function renderHomeFeed(){
    inert. Every chip now names a destination, and the one urgent chip earns
    amber only inside three days — amber that is always on says nothing. */
 function upChip(k,v,go,hot){
+  /* TEN · a row of the foot's ONE list (see `.upchip, .htile`): the key in
+     agate, the value in body, the way in as a chevron. A closing window keeps
+     its ember as the lead's dot, never as the words' colour. */
   return `<button type="button" class="upchip${hot?' hot':''}"${go?` data-upgo="${esc(go)}"`:''}>`
-       + `<span class="k">${k}</span><b>${esc(v)}</b>${go?'<span class="ch">\u203A</span>':''}</button>`;
+       + `<span class="k cs-agate-s">${k}</span><b class="cs-body-s">${esc(v)}</b>${go?'<span class="ch" aria-hidden="true">\u203A</span>':''}</button>`;
 }
 /* ─────────────────────────────────────────────────────────────────────────
    D176 · the lead card. Home ran the same ten slots in the same order every
@@ -19070,9 +19252,9 @@ function homeLead(){
      in Phoenix, which is the landmine this file already records. */
   const nowD=new Date(), pad2=n=>String(n).padStart(2,'0');
   const today=`${nowD.getFullYear()}-${pad2(nowD.getMonth()+1)}-${pad2(nowD.getDate())}`;
-  const m=(window.homeFeedRows||[]).find(r=>!r.is_me && r.played_on===today && (r.is_pr||r.is_sub80||r.is_first));
+  const m=(window.homeFeedRows||[]).find(r=>!r.is_me && r.played_on===today && (r.is_pr||csSub80(r)||r.is_first));
   if(m){
-    const line = m.is_pr?'\ud83d\udd25 Personal best' : m.is_sub80?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round posted';
+    const line = m.is_pr?'\ud83d\udd25 Personal best' : csSub80(m)?'\u26f3 Broke 80 \u2014 first time' : '\ud83c\udf89 First round posted';
     return { eb:'Around your buddies', ln:`${esc((m.golfer||'A golfer').split(' ')[0])} \u2014 ${line}`,
              act:'See the round', go:()=> m.round_id && window.openRoundSheet ? window.openRoundSheet(m.round_id) : switchView('home') };
   }
@@ -19254,7 +19436,7 @@ function csFallbackItems(){
   /* the circle's freshest round — the one CIRCLE item, never mine */
   const r = (window.homeFeedRows||[]).find(x => !x.is_me && x.gross != null);
   if(r){
-    const mile = r.is_pr ? 'A personal best.' : r.is_sub80 ? 'Under 80 for the first time.' : r.is_first ? 'Their first round posted.' : null;
+    const mile = r.is_pr ? 'A personal best.' : csSub80(r) ? 'Under 80 for the first time.' : r.is_first ? 'Their first round posted.' : null;
     push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile?'gold':'mut',
            eyebrow:'AROUND YOUR BUDDIES',
            headline:`${(r.golfer||'A golfer').split(' ')[0]} posted ${r.gross}${r.course?` at ${r.course}`:''}.`,
@@ -19540,9 +19722,12 @@ function csDayMarker(iso){
    marker, a chevron because it knows where it goes. Never a second card. */
 function csWireLine(it, ctx){
   /* D353 · a wire line is ONE button, and a button may not contain buttons.
-     An item that can be answered renders as the quiet block instead, so its
-     two ways out are reachable wherever it lands in the deck. */
-  if(csAfterplan(it)) return csLeadBlock(it);
+     TEN · so an item that can be answered is the wire line AND its two ways
+     out beneath it, as SIBLINGS — not the lead block again: rendered as a
+     block it put a second serif headline and a second action door in the
+     viewport, under the real lead (critique-B P2, §15.1's one serif, §16A.5's
+     one primary). Later · Didn't play keep their 44px targets. */
+  if(csAfterplan(it) && !it.__line) return `<div class="cswire-ans">${csWireLine(Object.assign({}, it, { __line:true }), ctx)}${csAnswerControls(it)}</div>`;
   const mk = csDayMarker(it.at);
   /* MW-02 · the league, when the sentence alone would not say which. Two
      `chapter:` items read "You are the one to catch." for two leagues and the
@@ -19627,6 +19812,10 @@ function renderHomeDispatch(){
     if(typeof renderHomeFeed === 'function') renderHomeFeed();
   }
   if(r.lead){ const h=$('#homeHero'); if(h) h.innerHTML=''; }
+  /* TEN · the in-place request card and invitation banner stand down for
+     what this dispatch carries (csDispatchCarries), so they repaint with it */
+  if(typeof renderHomeRequests === 'function') renderHomeRequests();
+  if(typeof window.renderNotifications === 'function') window.renderNotifications();
   const all = [r.lead, ...r.deck].filter(Boolean);
   document.querySelectorAll('[data-dgo]').forEach(b => b.addEventListener('click', () => {
     const k = b.getAttribute('data-dgo');
@@ -19637,7 +19826,7 @@ function renderHomeDispatch(){
   }));
   document.querySelectorAll('[data-ans]').forEach(b => b.addEventListener('click', () => {
     const plan = b.getAttribute('data-plan'), ans = b.getAttribute('data-ans');
-    const card = b.closest('.csedn');
+    const card = b.closest('.csedn, .cswire-ans');
     const btns = card ? Array.from(card.querySelectorAll('[data-ans]')) : [b];
     qaEvent('cta_tapped', { door: 'afterplan', tier: ans });   /* the family and the answer, nothing else */
     csAnswerPlan(plan, ans, btns);
@@ -19796,7 +19985,7 @@ function renderUpNext(){
     const meOwnsNext = window.__meSuppress && window.__meSuppress.has('my_next_round');
     const up = (typeof upcomingFromSchedule==='function') ? upcomingFromSchedule() : [];
     if(up.length && !meOwnsNext){
-      chips.push(upChip('Next round', up[0].what + ' \u00b7 ' + up[0].when.toLowerCase()));
+      chips.push(upChip('Next round', up[0].what + ' \u00b7 ' + up[0].when.toLowerCase(), 'schedule'));
       /* F1 · whatever PRINTS the fact owns it. The strip owns the next round on
          the desk; where it does not, this chip does, and the tile below reads
          the same set and stands down. One fact, one place (D201), at both
@@ -19810,7 +19999,7 @@ function renderUpNext(){
       const w = watch[0], d = localDate(w.play_on);
       const n = Math.round((d - new Date().setHours(0,0,0,0))/864e5);
       const when = n===0?'today':n===1?'tomorrow':DOW[d.getDay()].toLowerCase();
-      chips.push(upChip("Buddy's playing", (w.display_name||'A buddy').split(' ')[0] + ' · ' + when));
+      chips.push(upChip("Buddy's playing", (w.display_name||'A buddy').split(' ')[0] + ' · ' + when, 'schedule'));
     }
     /* D297 / ruling row 30 · no 'Needs you' chip: the invite rows above carry
        Accept themselves; a count of them sent the golfer to a third screen. */
@@ -19898,24 +20087,59 @@ function paintBuddyDoor(){
   const btn=$('#youPeopleGo');
   if(btn) btn.style.borderColor = n ? 'color-mix(in srgb, var(--brand) 55%, transparent)' : '';
 }
-function renderHomeRequests(){ renderRequestsInto($('#homeRequests')); paintBuddyDoor(); }
-function renderPeopleRequests(){ renderRequestsInto($('#peopleRequests')); }
+/* TEN · ONE OWNER PER FACT, THE PHONE'S RULE. `home_dispatch` carries a buddy
+   request (`friend:<requester>`) and an invitation (`invite:<id>`) as items of
+   its own, with a door, and the phone draws them ONLY there — it deleted its
+   in-place banners (HomeView.swift's header note). The desk drew both: a card
+   above the lead AND the same sentence in the wire, two Accepts for one
+   request. So an item the SERVED dispatch carries is not drawn a second time;
+   the in-place card and banner stay for whatever it does not carry (the
+   declared fallback has no such items, so nothing is ever lost). */
+function csDispatchCarries(prefix){
+  const d = window.homeDispatch;
+  if(!d || !Array.isArray(d.items)) return new Set();
+  return new Set(d.items.map(it => String((it && it.key) || ''))
+    .filter(k => k.startsWith(prefix)).map(k => k.slice(prefix.length)));
+}
+window.csDispatchCarries = csDispatchCarries;
+function renderHomeRequests(){
+  renderRequestsInto($('#homeRequests'), { skip: csDispatchCarries('friend:') });
+  paintBuddyDoor();
+}
+function renderPeopleRequests(){ renderRequestsInto($('#peopleRequests')); csDedupeCrReq(); }
 window.renderPeopleRequests = renderPeopleRequests;
-function renderRequestsInto(box){
+/* TEN · Golfers draws a request ONCE. The head block (#peopleRequests, D177:
+   a person waiting on you outranks the page) owns it; the REQUESTS section
+   under the search keeps only what the head block does not show. */
+function csDedupeCrReq(){
+  const box = document.getElementById('crReq'); if(!box) return;
+  const shown = new Set([...document.querySelectorAll('#peopleRequests [data-hreqacc]')].map(b => b.getAttribute('data-hreqacc')));
+  if(!shown.size) return;
+  box.querySelectorAll('[data-facc]').forEach(b => { if(shown.has(b.getAttribute('data-facc'))) b.closest('.prow')?.remove(); });
+  if(!box.querySelector('.prow')) box.innerHTML = '';
+}
+function renderRequestsInto(box, opts){
   if(!box) return;
-  const list = state.demo ? DEMO_REQUESTS : (window.homeRequests||[]);
+  const skip = opts && opts.skip instanceof Set ? opts.skip : null;
+  /* `window.homeRequests` is also the #homeRequests element until the read
+     lands (named access), so the rows are an array or nothing */
+  const rows = state.demo ? DEMO_REQUESTS : (Array.isArray(window.homeRequests) ? window.homeRequests : []);
+  const list = rows.filter(f => !skip || !skip.has(String(f.profile_id)));
   if(!list.length){ box.innerHTML=''; return; }
+  /* a ROW on the page's rule, not an act-bordered box (§3.1; act is the
+     action colour, never a border or a label) — and Decline is a word: an ×
+     reads as "not now", and this one rejects a real person */
   box.innerHTML =
-    `<div class="eyebrow" style="margin-top:0; color:var(--act)">Buddy request${list.length>1?'s':''}</div>` +
+    `<div class="eyebrow" style="margin-top:0">Buddy request${list.length>1?'s':''}</div>` +
     list.map(f=>{
       const mk = face(f.profile_id, f.marker, 36);
       const name = esc(f.display_name||'A golfer');
       const h = f.handle ? '@'+esc(f.handle) : '';
-      return `<div class="check" style="border-color:var(--act)">${mk}
-        <div class="tt"><b>${name}${founderTag(f.profile_id, f.display_name)}</b><small>${h}${h?' · ':''}wants to be golf buddies</small></div>
-        <span style="display:flex; gap:6px; flex:none">
+      return `<div class="hreq">${mk}
+        <div class="tt"><b class="cs-social">${name}${founderTag(f.profile_id, f.display_name)}</b><small class="cs-agate-s is-phrase">${h}${h?' · ':''}wants to be golf buddies</small></div>
+        <span class="hreq-acts">
           <button class="mini" data-hreqacc="${f.friendship_id}">Accept</button>
-          <button class="mini" data-hreqdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+          <button class="mini" data-hreqdec="${f.friendship_id}">Decline</button>
         </span></div>`;
     }).join('');
   box.querySelectorAll('[data-hreqacc],[data-hreqdec]').forEach(b=>b.addEventListener('click', async()=>{
@@ -21057,17 +21281,47 @@ function renderGolfers(){
      that cannot open is the one thing not permitted (L-32). */
   const plink=document.getElementById('glfPersonLink');
   if(plink){
+    /* TEN · ONE INVITE DOOR THAT ASKS. The page drew two near-identical doors
+       — "Text someone a link" (D241's person link, a zero-padded dark button)
+       and, under the search, "Send an invite link" (a season's join link) —
+       for one act. This is the one door: with no season code it sends the
+       person link at once; with codes it asks which — as a buddy, or into
+       which season — and sends that. Both links are the same two that
+       existed; nothing new is minted. */
+    const codes=(window.CS?.memberships||[]).filter(m=>m.league?.code).map(m=>m.league);
     plink.innerHTML = `<div class="eyebrow">Bring someone in</div>
-      <button class="btn dark" id="glfPersonLinkBtn" style="display:block;width:100%;text-align:left">
-        <span style="display:block">Text someone a link</span>
-        <span class="fine" style="display:block;padding:0">Works for anyone · no account needed</span>
-      </button>`;
-    plink.querySelector('#glfPersonLinkBtn').addEventListener('click', async(e)=>{
-      const b=e.currentTarget; if(b.disabled) return; b.disabled=true;
-      const r = await csShareIntentLink('person', window.CS?.profile?.id,
+      <button type="button" class="pdoorlink" id="glfInviteBtn" aria-expanded="false">
+        <span>Send an invite link</span>
+        <small class="cs-agate-s is-phrase">Works for anyone, account or not</small>
+      </button>
+      <div id="glfInvitePick" class="invpick" hidden role="group" aria-label="Invite them"></div>`;
+    const btn=plink.querySelector('#glfInviteBtn'), pick=plink.querySelector('#glfInvitePick');
+    const person=async()=>{
+      if(btn.disabled) return; btn.disabled=true;
+      await csShareIntentLink('person', window.CS?.profile?.id,
         `${window.CS?.profile?.display_name || 'A golfer'} wants you in their golf. Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP.`);
-      b.disabled=false;   /* the row stays either way — see CS_SHARE_NOT_YET */
+      btn.disabled=false;   /* the row stays either way — see CS_SHARE_NOT_YET */
+    };
+    const season=lg=>{
+      const url=`https://cupseason.app/?join=${lg.code}`;
+      if(navigator.share) navigator.share({ title:'Cup Season', text:`You're invited to ${lg.name} on Cup Season`, url }).catch(()=>{});
+      else { navigator.clipboard?.writeText(url); toast('Invite link copied'); }
+    };
+    btn.addEventListener('click', ()=>{
+      if(!codes.length) return person();
+      const open=!pick.hidden;
+      pick.hidden=open; btn.setAttribute('aria-expanded', String(!open));
+      if(!open && !pick.dataset.built){
+        pick.innerHTML=`<button type="button" class="mini" data-invperson>As a buddy</button>`
+          + codes.map((m,i)=>`<button type="button" class="mini" data-invseason="${i}">Into ${esc(m.name)}</button>`).join('');
+        pick.dataset.built='1';
+        pick.querySelector('[data-invperson]')?.addEventListener('click', person);
+        pick.querySelectorAll('[data-invseason]').forEach(b=>b.addEventListener('click',()=>season(codes[+b.dataset.invseason])));
+      }
     });
+    /* while the page's empty root is up, its own "Text someone a link" IS this
+       door, so the section stands down rather than printing it twice */
+    plink.hidden = !!document.querySelector('#glfRoot .emptyroot');
   }
   /* D245 · the board sits above the buddies list, because "who is playing well
      right now" is the question friends actually ask and the list under it is
@@ -21078,8 +21332,11 @@ function renderGolfers(){
     if(soonWrap) soonWrap.hidden = false;
     /* R-15 · L-32, both halves: the head renders WITH its content, and the
        empty state ends in a next move rather than in a full stop. */
+    /* TEN · a sentence line says its day in sentence case ("today", "Sun"),
+       not the caps token a rail uses ("TODAY" mid-sentence read as a shout) */
+    const dayWord = iso => { const t = String(csDayToken(iso)||''); return t === 'TODAY' ? 'today' : t.charAt(0) + t.slice(1).toLowerCase(); };
     soon.innerHTML = rows.length
-      ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(csDayToken(sr.play_on))} ${esc(String(sr.course_label||'').split(' — ')[0])}</div>`).join('')
+      ? rows.map(sr=>`<div class="fine" style="padding:6px 0">${esc(sr.display_name||'A golfer')} · ${esc(dayWord(sr.play_on))} · ${esc(String(sr.course_label||'').split(' — ')[0])}</div>`).join('')
       : '<p class="fine" style="padding:0">Nobody has a round on the schedule. <a href="#" id="glfSoonPlan" style="color:var(--act)">Plan one →</a></p>';
     soon.querySelector('#glfSoonPlan')?.addEventListener('click', e=>{ e.preventDefault(); window.openDeclareSheet?.(); });
   }
@@ -21089,13 +21346,23 @@ window.renderGolfers = renderGolfers;
 /* The desk header. One block, rendered into the sidebar at desk widths and at
    the head of Home below them - exactly one is on screen at any width, which is
    what "two shapes, one producer" means in CSS. */
+/* TEN · A NUMERAL RAIL HOLDS NUMERALS (§16A.4) — the web twin of the phone's
+   `HomeWireCopy.railCell`: "84 SUN" over LAST becomes "84" over "LAST · SUN".
+   A layout split, not a re-wording; both halves are the producer's words. */
+function csRailCell(s){
+  const v = String((s && s.value) || ''), sp = v.indexOf(' ');
+  if(!s || s.fact !== 'my_last_round' || sp < 1) return { value: v, label: (s && s.label) || '' };
+  const fig = v.slice(0, sp), day = v.slice(sp + 1).trim();
+  if(!/[0-9]/.test(fig) || !day) return { value: v, label: s.label };
+  return { value: fig, label: `${s.label} · ${day}` };
+}
 function renderMeStrip(){
   const strip = csMeStrip();
   const html = (!strip.slots.length && !strip.seasonRow) ? '' : `
-    <div class="mefacts">${strip.slots.map(s => `
+    <div class="mefacts">${strip.slots.map(s => { const c = csRailCell(s); return `
       <button class="mefact${s.fact==='my_money'?' owed':''}" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
-        <b>${esc(s.value)}</b><small>${esc(s.label)}</small>
-      </button>`).join('')}</div>
+        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
+      </button>`; }).join('')}</div>
     ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
   /* MW-02 · below the desk the strip is COMPACT: the number, the last round
      and the season row. The next round has its own row further down
@@ -21106,10 +21373,10 @@ function renderMeStrip(){
      on this page, just not at its head. */
   const compactSlots = strip.slots.filter(s => s.fact === 'my_number' || s.fact === 'my_last_round');
   const compact = (!compactSlots.length && !strip.seasonRow) ? '' : `
-    <div class="mefacts">${compactSlots.map(s => `
+    <div class="mefacts">${compactSlots.map(s => { const c = csRailCell(s); return `
       <button class="mefact" type="button" data-mego="${esc(s.fact)}"${s.id?` data-meid="${esc(s.id)}"`:''}>
-        <b>${esc(s.value)}</b><small>${esc(s.label)}</small>
-      </button>`).join('')}</div>
+        <b>${esc(c.value)}</b><small>${esc(c.label)}</small>
+      </button>`; }).join('')}</div>
     ${strip.seasonRow ? `<button class="mesr" type="button" data-mego="season_row">${esc(strip.seasonRow.text)}</button>` : ''}`;
   ['#sideMe', '#homeMe'].forEach(sel => {
     const box = document.querySelector(sel);
@@ -21138,7 +21405,7 @@ function renderMeStrip(){
      is deliberately NOT fetched here: it is a signed URL, it is async, and a
      disc that pops from a marker to a face on every re-render is worse than
      the marker. */
-  csSideWho();
+  csSideWho(strip);
   /* L-34 - the facts this block has SPENT. Whatever renders below drops them:
      the phone hands the same set down from `MeStripCopy.Strip.suppress`. Set
      BEFORE the rest of Home paints, which is why `renderMeStrip` is the first
@@ -21187,17 +21454,23 @@ window.renderMeStrip = renderMeStrip;
 /* WAVE 11 / D280 - the sidebar's foot. Name, face, number, and nothing else:
    the league's own name moved one step down and one step quieter, because the
    page beside it already says which room this is. */
-function csSideWho(){
+function csSideWho(strip){
   const pr = window.CS?.profile || null;
   const who = document.getElementById('sideWho');
   const idx = document.getElementById('sideIdx');
   const fc  = document.getElementById('sideFace');
   if(who) who.textContent = pr?.display_name || (state.demo ? 'You' : 'Your golf');
-  /* L-34 · the number is the facts strip's, directly above ("14.2 YOUR
-     NUMBER"); printed again here as "14.2 INDEX" it was one fact twice, under
-     two names, in one sidebar (the owner's and craft panels). The foot is the
-     face and the name. */
-  if(idx) idx.textContent = '';
+  if(idx){
+    const n = pr && pr.index_current != null ? Number(pr.index_current) : null;
+    /* an unestablished index is ABSENT, never a dash: a slot with no figure
+       is not a verb and not a placeholder (home.md 1.3, rule 1).
+       TEN · and a number the strip above already prints as YOUR NUMBER is not
+       printed a second time under another label in the same sidebar (L-34,
+       §16A.4: one fact, one encoding, per viewport — "14.2 YOUR NUMBER" and
+       "14.2 INDEX" were both on every desk page). */
+    const stripSaysIt = !!(strip && Array.isArray(strip.slots) && strip.slots.some(s => s.fact === 'my_number'));
+    idx.textContent = (!stripSaysIt && n != null && isFinite(n)) ? n.toFixed(1) + ' index' : '';
+  }
   if(fc){
     fc.style.background = pr?.id ? csPigment(pr.id) : 'var(--bg2)';
     fc.innerHTML = window.mkr ? (window.mkr(pr?.marker || 'saguaro') || '') : '';
@@ -21257,7 +21530,7 @@ function renderHomeHub(){
    role — the Pro sees who's short of the floor, the golfer sees their own line. */
 function pulseCard(top, bodyHtml){
   return `<div class="card" style="text-align:left; padding:12px 14px; margin:0 0 14px">
-    <div class="mono" style="font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:5px">${esc(top)}</div>
+    <div class="cs-agate-s" style="color:var(--mut); margin-bottom:4px">${esc(top)}</div>
     <div style="font-size:13.5px; color:var(--ink); line-height:1.45">${bodyHtml}</div>
   </div>`;
 }
@@ -21269,13 +21542,13 @@ function pulseGauge(credits, floor, top, bodyHtml){
   const cleared = pct >= 1;
   const cx = credits%1 ? credits.toFixed(1) : credits;
   return `<div class="card" style="text-align:left; padding:12px 14px; margin:0 0 14px">
-    <div class="mono" style="font-size:11px; letter-spacing:.08em; color:var(--mut); margin-bottom:8px">${esc(top)}</div>
+    <div class="cs-agate-s" style="color:var(--mut); margin-bottom:8px">${esc(top)}</div>
     <div style="display:flex; align-items:center; gap:14px">
       <svg viewBox="0 0 64 64" width="58" height="58" style="flex:none" aria-hidden="true">
         <circle cx="32" cy="32" r="26" stroke="var(--rule)" stroke-width="6" fill="none"/>
         <circle cx="32" cy="32" r="26" stroke="${cleared?'var(--pos)':'var(--brand)'}" stroke-width="6" fill="none" stroke-linecap="round"
           stroke-dasharray="${(pct*C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 32 32)"/>
-        <text x="32" y="36" text-anchor="middle" font-size="15" fill="var(--ink)" style="font-family:var(--serif)" font-weight="700">${cx}/${floor}</text>
+        <text x="32" y="37" text-anchor="middle" font-size="16" fill="var(--ink)" style="font-family:var(--board); font-variant-numeric:tabular-nums" font-weight="700">${cx}/${floor}</text>
       </svg>
       <div style="font-size:13.5px; color:var(--ink); line-height:1.45; min-width:0">${bodyHtml}</div>
     </div>
@@ -21298,7 +21571,12 @@ function renderPulse(){
        lines under a tile reading LEAGUE · None yet — bylaw copy for a squad
        they do not have, on the first screen after signup. state.floor holds
        the wizard's default (2) whether or not a league exists. */
-    box.innerHTML = (CS.league && state.floor>0 && !state.demo)
+    /* TEN · §16A.1: a rule is printed where the count it explains is on
+       screen. With a lead on Home the hero stands down, its floor gauge with
+       it, and this sentence was left orphaned as Home's last words — a
+       penalty clause under nothing. It prints only beside the gauge; the
+       season's rules page carries it always. */
+    box.innerHTML = (CS.league && state.floor>0 && !state.demo && document.querySelector('#homeHero .hh-foot'))
       ? `<p class="fine" style="padding:0 2px 6px; line-height:1.45">Monthly minimum · ${floorSentence()}</p>`
       : '';
     return;
@@ -25232,7 +25510,10 @@ window.shareMajorCard=shareMajorCard;
 /* ---------- notifications banner: pending invites, act in line ---------- */
 function renderNotifications(){
   const el=$('#notifBanner'); if(!el) return;
-  const inv=window.myInvites||[];
+  /* TEN · an invitation the served dispatch carries is ITS item (lead or
+     wire, with "See the terms"), as on the phone; the banner keeps the rest */
+  const carried = typeof csDispatchCarries === 'function' ? csDispatchCarries('invite:') : new Set();
+  const inv=(window.myInvites||[]).filter(i => !carried.has(String(i.id)));
   if(!inv.length || state.demo){ el.innerHTML=''; return; }
   el.innerHTML=inv.map(i=>`
     <div class="notifrow">
@@ -26288,11 +26569,12 @@ function psRow(r, actionHTML){
      credential), the home course follows (it is the reason you might have met). */
   const idx  = (r.index_current!=null && typeof fmtIdx==='function') ? fmtIdx(r.index_current)
              : (r.index_current!=null ? String(r.index_current) : null);
-  const line2 = ['@'+esc(r.handle||'?'), idx ? esc(idx)+' number' : null, r.city?esc(r.city):null]
+  /* TEN · "9.8 number" is not how a golfer says it (owner D): "index 9.8" */
+  const line2 = ['@'+esc(r.handle||'?'), idx ? 'index '+esc(idx) : null, r.city?esc(r.city):null]
                   .filter(Boolean).join(' · ');
   const home = r.home_course ? `<small style="color:var(--mut)">${esc(r.home_course)}</small>` : '';
   return `<div class="prow"><span class="pmk" data-tc="${r.profile_id}">${window.face ? window.face(r.profile_id, r.marker, 36) : mkr(r.marker||'saguaro')}</span>
-    <span class="pmeta" data-tc="${r.profile_id}" role="button" tabindex="0"><b>${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
+    <span class="pmeta" data-tc="${r.profile_id}" role="button" tabindex="0"><b class="cs-social">${esc(r.display_name||'—')}${founderTag(r.profile_id, r.display_name)}</b>
       <small>${line2}</small>${home}</span>${actionHTML}</div>`;
 }
 function psFriendTag(rel){
@@ -26328,43 +26610,8 @@ async function renderCrewPeople(){
     <div id="crResults" style="margin-top:10px"></div>
     <div id="crLink" style="margin-top:10px"></div>
     <div id="crBud" style="margin-top:6px"></div>`;
-  {
-    /* the LEAGUE join link is the only invite link that exists — a buddy-invite
-       link is a different mechanic and would need a decision, not a tidy. So:
-       offer what is real, or offer nothing. */
-    /* Y-04 · the row NAMES the league it invites people INTO. It used to take
-       `.find(m=>m.code)` and say nothing, so a golfer in two leagues sent the
-       wrong link and never saw which. With more than one code in hand it asks. */
-    /* `loadMemberships()` selects `league:leagues(id,name,code,phase,sandbox)`,
-       so the code and the name live one level down — `m.code` is undefined on
-       every row and the filter used to return []. */
-    const codes=(window.CS?.memberships||[]).filter(m=>m.league?.code).map(m=>m.league);
-    const el=document.getElementById('crLink');
-    if(codes.length && el){
-      const one=codes.length===1;
-      const sub=(one?`${codes[0].name} \u00b7 works for anyone, account or not`
-                    :'Choose the season \u00b7 works for anyone, account or not').toUpperCase();
-      el.innerHTML=`<button type="button" class="pdoorlink" id="crLinkBtn" aria-expanded="false">
-        <span>Send an invite link</span><small>${esc(sub)}</small></button>
-        <div id="crLinkPick" hidden style="margin-top:6px"></div>`;
-      const share=lg=>{
-        const url=`https://cupseason.app/?join=${lg.code}`;
-        if(navigator.share) navigator.share({ title:'Cup Season', text:`You're invited to ${lg.name} on Cup Season`, url }).catch(()=>{});
-        else { navigator.clipboard?.writeText(url); toast('Invite link copied'); }
-      };
-      const btn=document.getElementById('crLinkBtn'), pick=document.getElementById('crLinkPick');
-      btn.addEventListener('click', ()=>{
-        if(one) return share(codes[0]);
-        const open=!pick.hidden;
-        pick.hidden=open; btn.setAttribute('aria-expanded', String(!open));
-        if(!open && !pick.dataset.built){
-          pick.innerHTML=codes.map((m,i)=>`<button type="button" class="mini" data-inv="${i}" style="margin:0 6px 6px 0">${esc(m.name)}</button>`).join('');
-          pick.dataset.built='1';
-          pick.querySelectorAll('[data-inv]').forEach(b=>b.addEventListener('click',()=>share(codes[+b.dataset.inv])));
-        }
-      });
-    }
-  }
+  /* TEN · the season join link lives in the ONE invite door above
+     (`#glfInviteBtn`, which asks buddy-or-season); #crLink stays empty */
   const paint = async () => {
     const data = await psFriends();
     /* D222 / L-32 · the destination's own root. A read that did not answer says
@@ -26385,20 +26632,33 @@ async function renderCrewPeople(){
     const bare = !buds.length && !reqs.length && !out.length;
     if(root){
       root.innerHTML = bare ? csEmptyRootHtml(csEmptyRoot('golfers', {})) : '';
+      /* TEN · each door does what it says: "Text someone a link" focused the
+         SEARCH field like "Find golfers" did. It opens the invite now, and the
+         separate "Bring someone in" section stands down while the root is up,
+         so the empty page offers its two acts once each, not twice. */
       if(bare) root.querySelectorAll('[data-erdoor]').forEach(b=>b.addEventListener('click',()=>{
+        if(b.dataset.erdoor==='personLink'){ document.getElementById('glfInviteBtn')?.click(); return; }
         document.getElementById('crFind')?.focus();
       }));
+      const pl=document.getElementById('glfPersonLink'); if(pl) pl.hidden = bare;
     }
-    document.getElementById('crReq').innerHTML = reqs.length
-      ? `<div class="eyebrow" style="color:var(--act)">Requests · ${reqs.length}</div>`+reqs.map(f=>psRow(f,
-         `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}" aria-label="Decline"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></span>`)).join('') : '';
+    /* TEN · one request block: the head block (#peopleRequests) owns what it
+       shows, and this section lists only what it does not (csDedupeCrReq
+       covers the other arrival order) */
+    const shownReq = new Set([...document.querySelectorAll('#peopleRequests [data-hreqacc]')].map(x => x.getAttribute('data-hreqacc')));
+    const reqsHere = reqs.filter(f => !shownReq.has(String(f.friendship_id)));
+    document.getElementById('crReq').innerHTML = reqsHere.length
+      ? `<div class="eyebrow">Requests · ${reqsHere.length}</div>`+reqsHere.map(f=>psRow(f,
+         `<span class="pact"><button class="mini" data-facc="${f.friendship_id}">Accept</button><button class="mini" data-fdec="${f.friendship_id}">Decline</button></span>`)).join('') : '';
     /* L-34 · one fact, one place. With the destination's empty root on screen
        saying "No buddies yet.", this section said it a second time three rows
        below it. When the root owns the sentence, the section stands down. */
     document.getElementById('crBud').innerHTML =
       (bare ? '' :
         `<div class="eyebrow">Buddies${buds.length?' · '+buds.length:''}</div>`+
-        (buds.length ? buds.map(f=>psRow(f,'<span class="ptag ok">Buddies</span>')).join('')
+        /* TEN · every row under BUDDIES · 5 said "Buddies" again, in green that
+           read as a button (owner D, craft C): the head says it once */
+        (buds.length ? buds.map(f=>psRow(f,'')).join('')
           : '<p class="fine" style="padding:0">No buddies yet. Search up top to add them.</p>'))+
       (out.length ? `<div class="eyebrow">Requested</div>`+out.map(f=>psRow(f,'<span class="ptag">Requested</span>')).join('') : '');
     box.querySelectorAll('[data-facc],[data-fdec]').forEach(b=>b.addEventListener('click', async()=>{
@@ -26487,9 +26747,13 @@ async function renderRivalries(){
 function csTapeHtml(meetings, opts){
   const o = opts || {};
   if(!meetings || !meetings.length) return '';
+  /* TEN · one SQUARE per meeting, with a gap, spread along the rule so the
+     first and last dates sit under the first and last marks. A percentage
+     width capped at 17px left four wins abutting as one white bar, and the
+     end date ~250px from the last mark (owner P, critique-B P2). */
   const ticks = meetings.map(m => {
     const cls = m.won === true ? 'me' : m.won === false ? 'them' : 'half';
-    return `<i class="${cls}" style="width:${(100/meetings.length).toFixed(3)}%"></i>`;
+    return `<i class="${cls}"></i>`;
   }).join('');
   const rows = o.rows === false ? '' :
     `<span class="rows cs-agate-s"><span>YOURS</span><span>THEIRS</span></span>`;
@@ -27168,6 +27432,10 @@ function csH2HUsesHeuristic(h){ return !!h && h.facets.some(f => f.heuristic > 0
 /* the clause the PERSON page borrows */
 function csH2HPersonClause(h){
   if(!h || !h.settled) return null;
+  /* TEN · a level record is said as level. "Devon Testwell has beaten you
+     five times out of ten" framed a 5–5 as a loss over a record the same
+     page calls all square (owner E). Twin: HeadToHeadCopy.personClause. */
+  if(h.lead === 'even' && h.wins === h.losses) return `All square between you, ${h.wins}–${h.losses}${h.ties ? '–' + h.ties : ''}.`;
   if(h.losses > 0) return `${h.name} has beaten you ${csSpelled(h.losses)} ${h.losses === 1 ? 'time' : 'times'} out of ${csSpelled(h.settled)}.`;
   return `You have taken all ${csSpelled(h.settled)} of them.`;
 }
@@ -27283,7 +27551,7 @@ async function renderFriendsBoard(){
   }catch(e){ missing = /PGRST202|does not exist|schema cache|42883/i.test(e?.message || ''); }
   if(rows === null){
     box.innerHTML = missing ? ''
-      : '<div class="eyebrow">The board</div><p class="fine" style="padding:0">The board didn’t load.</p>';
+      : '<div class="eyebrow">Among your buddies</div><p class="fine" style="padding:0">The ranking didn’t load.</p>';
     return;
   }
   /* a board of ONE is not a board — it is me, alone, ranked first of one. It
@@ -27316,11 +27584,16 @@ async function renderFriendsBoard(){
      (D201, one fact one place). */
   const rounds = r => Number(r.rounds_30d || 0);
   const signed = v => (v < 0 ? '\u2212' : '+') + Math.abs(v).toFixed(1);
+  /* TEN · A-3: "the board" is the season's thread, and this is not it — the
+     ranking is AMONG YOUR BUDDIES, and the form lens says its window (the
+     read is `friends_board(p_days: 30)`), because "+3.5" over an unstated
+     period is a claim nobody can check (owner R). The chosen lens is the
+     chosen pill (`.mini.sel`, aria-pressed), not a green word (§16.4, D359). */
+  const lensBtn = (k, t) => `<button class="mini${lens===k?' sel':''}" type="button" data-lens="${esc(k)}" aria-pressed="${lens===k?'true':'false'}">${esc(t)}</button>`;
   box.innerHTML = `
-    <div class="eyebrow" style="display:flex; align-items:center; gap:10px">The board
+    <div class="eyebrow" style="display:flex; align-items:center; gap:10px">${lens === 'form' ? 'Among your buddies \u00b7 last 30 days' : 'Among your buddies'}
       <span style="margin-left:auto; display:flex; gap:6px">
-        <button class="mini" type="button" data-lens="form"${lens==='form'?' style="border-color:var(--pos); color:var(--pos)"':''}>Form</button>
-        <button class="mini" type="button" data-lens="handicap"${lens==='handicap'?' style="border-color:var(--pos); color:var(--pos)"':''}>Handicap</button>
+        ${lensBtn('form', 'Form')}${lensBtn('handicap', 'Handicap')}
       </span></div>
     ${lens === 'form' ? '<div class="fbnote">Vs playing HCP \u00b7 plus is better</div>' : ''}
     ${sorted.map(r => {
@@ -27496,7 +27769,12 @@ async function openHeadToHead(profileId, fallbackName){
     }catch(_){ /* neither read answered */ }
   }
   const name = (h && h.name !== '—') ? h.name : (fallbackName || 'them');
-  if(head) head.textContent = `You and ${name}`;
+  /* TEN · ONE TITLE (craft H, critique-B P2, UI_SYSTEM §12.2). The page said
+     the pairing three times — "YOU AND DEVON TESTWELL", then the rivalry's
+     name, then "YOU AND DEVON" — two display heads 60px apart. The page's
+     own head is the title: the rivalry's name when it has one, the pairing
+     otherwise; the pairing rides as its agate line in the body. */
+  if(head) head.textContent = h && h.rivalryName ? h.rivalryName : `You and ${name}`;
   if(safe){ safe.innerHTML = csSafetyMenuHtml(profileId, name); csWireSafety(safe); }
 
   if(!h){
@@ -27519,11 +27797,13 @@ async function openHeadToHead(profileId, fallbackName){
     const mo = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     return (p.length===3 && p[1]>=1 && p[1]<=12) ? mo[p[1]-1]+' '+p[2] : ''; };
   const tapeSpoken = `${h.total || ms.length} meetings. You won ${h.wins}, ${name} won ${h.losses}.`;
+  /* the rivalry's name is a thing either golfer types (set_rivalry_name),
+     not a thing that was won: ink, never gold (D359) — and it is the title
+     now, so the body carries only the pairing it names */
   if(main) main.innerHTML = `
-    ${h.rivalryName ? `<div class="cs-agate" style="color:var(--gold)">${esc(h.rivalryName)}</div>` : ''}
-    <h3 class="cs-display" style="margin:2px 0 10px">${esc('You and ' + String(name).split(' ')[0])}</h3>
+    ${h.rivalryName ? `<div class="cs-agate" style="color:var(--mut); margin:0 0 10px">${esc('You and ' + name)}</div>` : ''}
     ${csH2HStandfirst(h) ? `<p class="cs-story" style="color:var(--ink); margin:0 0 18px">${esc(csH2HStandfirst(h))}</p>` : ''}
-    ${ms.length ? `<div class="eyebrow">Every meeting <span style="float:right; color:var(--mut)">${spanAll ? 'OLDEST FIRST' : 'LAST FIVE'}</span></div>
+    ${ms.length ? `<div class="eyebrow">${spanAll ? 'Every meeting' : 'The last five meetings'}</div>
       ${csTapeHtml(ms, { first: md(ms[0] && ms[0].on), last: md(ms[ms.length-1] && ms[ms.length-1].on), spoken: tapeSpoken })}` : ''}
     <div class="eyebrow" style="margin-top:16px">Where it was decided</div>
     <div class="csleaf"><table>
@@ -27536,12 +27816,20 @@ async function openHeadToHead(profileId, fallbackName){
       </tbody></table></div>
     ${h.facets.some(f => f.key === 'played_together') ? `<p class="fine">${esc(CS_H2H_NOT_A_VOUCH)}</p>` : ''}`;
 
+  /* TEN · the page where a rivalry is read ends on its next meeting (D363's
+     "Play with Devon", the person page's own door) as the one primary; the
+     card and the name are quiet links (§16A.5), not two equal buttons and
+     no way to play (critique-B P3) */
   if(aside) aside.innerHTML = `
-    <button class="btn dark" type="button" id="h2hCard" style="margin-bottom:8px">Open ${esc(name)}’s card</button>
-    <button class="btn dark" type="button" id="h2hName2">${h.rivalryName ? 'Rename “' + esc(h.rivalryName) + '”' : 'Name it'}</button>
+    <button class="btn" type="button" id="h2hPlay">${esc(CS_PLAY_WITH.head(name))}</button>
+    <p class="hstart"><a href="#" id="h2hCard">Open ${esc(name)}’s card</a><a href="#" id="h2hName2">${h.rivalryName ? 'Rename “' + esc(h.rivalryName) + '”' : 'Name it'}</a></p>
     <p class="fine">Give it a name your crew would actually say.</p>`;
-  document.getElementById('h2hCard')?.addEventListener('click', () => openPerson(profileId));
-  document.getElementById('h2hName2')?.addEventListener('click', () => openNameRivalry(profileId, name, h.rivalryName || ''));
+  document.getElementById('h2hPlay')?.addEventListener('click', () => {
+    window.qaEvent?.('cta_tapped', { door: 'play.with' });
+    window.csAskTheLength?.(profileId, name);
+  });
+  document.getElementById('h2hCard')?.addEventListener('click', (e) => { e.preventDefault(); openPerson(profileId); });
+  document.getElementById('h2hName2')?.addEventListener('click', (e) => { e.preventDefault(); openNameRivalry(profileId, name, h.rivalryName || ''); });
 }
 window.openHeadToHead = openHeadToHead;
 

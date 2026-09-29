@@ -53,7 +53,10 @@
   const ref=at(0);
   check(ref.classList.contains('hfrecord'),'the reference round is not a record');
   check(ref.querySelector('.hfr-id .hfperson') && ref.querySelector('.hfr-who').textContent.includes('You'),'no quiet identity row');
-  check(ref.querySelector('.hfr-title .cs-name').textContent==='UNM Championship Course','the course is not the title');
+  /* TEN (2026-09-28) · the title is set in `social`, title case, not the
+     board's caps `name` role: caps set the fixture's long club at six lines
+     on the wire (both judges and critique B). Still the title, still whole. */
+  check(ref.querySelector('.hfr-title .cs-social').textContent==='UNM Championship Course','the course is not the title');
   check(ref.querySelector('.hfr-gross .cs-fig-l').textContent.trim()==='89','the gross is not the figure');
   check(ref.querySelector('.hfr-gross .cs-agate-s').textContent==='GROSS','the figure is not labelled');
   check(ref.querySelectorAll('.hfr-story').length===1 && ref.querySelector('.hfr-story').textContent==='2.0 over your playing HCP.','the story is not the handicap context: '+JSON.stringify(ref.querySelector('.hfr-story')?.textContent));
