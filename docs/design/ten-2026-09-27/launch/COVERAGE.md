@@ -20,7 +20,7 @@ Written by session C (docs), which re-captured nothing and changed no product co
 | Half | Assessed SHA | Captures | States | Matrix | Open |
 |---|---|---:|---:|---|---|
 | Web | `9d84c483` | 1,142, plus 482 first-screen crops and 24 exported share artifacts | 141 in 22 families | 375, 402, 1280, 1600 × dark, light, plus a 375×380 keyboard proxy for 16 states | 320 CSS, `auto` theme, tablet widths; about 150 named states (§1.5); 4 captures that prove less than their names (§1.4) |
-| Native | `4112a3f0` | 752 (all four passes) plus 14 flow screenshots | 77 family states (94 capture names) in 18 families | iPhone 17 Pro (402pt) and SE 3 (375pt) × large and AX3 × dark and light | the Door, wizard steps 2–3 and live scoring are not captured; `story` failed on all 8 cells; 40 captures with unanswered requests, whose verdict is session A's; 4 byte-identical pairs (§2.4) |
+| Native | `4112a3f0` | 752 (all four passes) plus 14 flow screenshots | 77 family states (94 capture names) in 18 families | iPhone 17 Pro (402pt) and SE 3 (375pt) × large and AX3 × dark and light | the Door, wizard steps 2–3 and live scoring are not captured; 48 flagged rows (`story`'s runner check on 8, unanswered requests on 40), all read as rendering correctly by the panel's judges, with session A's verdict pending; 4 byte-identical pairs (§2.4) |
 
 ---
 
@@ -154,7 +154,7 @@ A ✓ means both themes are captured for that pass. Every captured state below h
 | native/identity | You populated, empty and failed-read; person, own page, other golfer's tour card, tour card, bag; onboarding card-gate and crew-step; the three looks on You | ✓ | ✓ | ✓ | ✓ | `you-failed` is byte-identical to `you-populated` in 4 of 8 cells (§2.4) |
 | native/golfers | populated (list, head-to-head), empty, keyboard (search), season-board | ✓ | ✓ | ✓ | ✓ | a stranger's card; failed read |
 | native/history | record, record-empty, album, album-failed, receipt photo / no photo / broken / withdrawn | ✓ | ✓ | ✓ | ✓ | `album-failed` is byte-identical to `album` in 1 cell (SE3 large light), the X35 pattern |
-| native/season | populated (pot), live-solo, live-squads, loading, failed-read, ceremony, cup-final, season-story; plus the three looks on Season | ✓ | ✓ | ✓ | ✓ | **`season-story` failed on all 8 cells** (root not found); `ceremony` has unanswered requests on all 8 |
+| native/season | populated (pot), live-solo, live-squads, loading, failed-read, ceremony, cup-final, season-story; plus the three looks on Season | ✓ | ✓ | ✓ | ✓ | `season-story`'s runner check failed on all 8 cells, but the judges read the page as rendering (§2.3); `ceremony` has unanswered requests on all 8 |
 | native/competition | scoreboard, populated (Book), squads, intent, when-fork, empty, cup-final, failed-read; the three looks on Compete; flows `book-adjustment`, `book-cell-receipts`, `book-round-receipt` | ✓ | ✓ | ✓ | ✓ | `when-fork` has unanswered requests on all 8; `cup-final` is byte-identical to the scoreboard in 6 of 8 (§2.4) |
 | native/events | ryder-live, ryder-complete, major-live, picker, unavailable, failed-read | ✓ | ✓ | ✓ | ✓ | the Ryder setup; a callout room |
 | native/schedule | populated, empty, planned-round, declare | ✓ | ✓ | ✓ | ✓ | RSVP results; failures |
@@ -166,15 +166,18 @@ A ✓ means both themes are captured for that pass. Every captured state below h
 | native/widgets | home widgets (empty; Rivalry, Record, Next tee, Season), Live Activity (closed, missed, long) | ✓ | ✓ | ✓ | ✓ | — |
 
 ### 2.3 `failed.json`: 48 rows (six routes × two themes × four passes)
-The **verdict** on each row (does it render correctly, why, and the file) belongs to session A. This table records only what the manifest says.
+The formal **verdict** on each row belongs to session A. This table records what the manifest says, and what the panel's three judges read in the captures (PANEL.md §5): **all 48 render correctly.**
+- `story`'s FAIL is the runner's case-sensitive check: the page prints "THE STORY".
+- Two `rules` frames on the 17 Pro at large text were captured mid-push.
+- The other flags are unanswered requests, over pages that render whole.
 
 | Route (capture) | State | Manifest | Coverage status |
 |---|---|---|---|
-| `story` | season / season-story | **FAIL**, root not found ("text:The story"), 8 of 8 cells | **not captured** until session A's verdict |
+| `story` | season / season-story | **FAIL**, root not found ("text:The story"), 8 of 8 cells | captured: the judges read it as rendering correctly (the check is case-sensitive). Session A's verdict pending. |
 | `course-wholecard` | courses / whole-card | PASS, root found, unanswered requests, 8 of 8 | captured · verdict pending (A) |
 | `whenfork` | competition / when-fork | PASS, root found, unanswered requests, 8 of 8 | captured · verdict pending (A) |
 | `invite-signedin` | claim-invite / invite-covenant | PASS, root found, unanswered requests, 8 of 8 | captured · verdict pending (A) |
-| `rules` | rules / populated | PASS, root found, unanswered requests, 8 of 8 | captured · verdict pending (A) |
+| `rules` | rules / populated | PASS, root found, unanswered requests, 8 of 8 | captured; six cells whole, two 17 Pro large frames mid-push (judges) · verdict pending (A) |
 | `season-ceremony` | season / ceremony | PASS, root found, unanswered requests, 8 of 8 | captured · verdict pending (A) |
 
 The failures world's read counters (for example `home-failed` "fails=21" and `you-failed` "fails=39") are the intended failed reads, not flags.
@@ -184,7 +187,7 @@ The failures world's read counters (for example `home-failed` "fails=21" and `yo
 | States | Identical cells | Status |
 |---|---|---|
 | `compete-final` = `compete` (scoreboard) | 6 of 8 (17 Pro AX3, SE3 large, SE3 AX3; both themes) | The Cup Final state is proven only in the 17 Pro large cells. Open, verification pending (A). |
-| `home-long` = `home-populated` | 5 of 8 (17 Pro large light, 17 Pro AX3, SE3 AX3) | Long names are proven only where the captures differ. Open, verification pending (A). |
+| `home-long` = `home-populated` | 5 of 8 (17 Pro large light, 17 Pro AX3, SE3 AX3) | Long names are proven only where the captures differ; the craft judge reads the long-name stress as not evidenced. Open, verification pending (A). |
 | `you-failed` = `you-populated` | 4 of 8 (both AX3 passes) | At AX3 the failed read cannot be told from a populated You. The failure line may sit below the first screen, or the read may never have failed. Open, verification pending (A). |
 | `album-failed` = `album` | 1 of 8 (SE3 large light) | The X35 pattern at `4112a3f0`. N2's `a65b6959`/`d18ac598` changed the seam so the failure lands after the route's mark; that is proven on N2's tree (3 of 3 per phone), not in this matrix. |
 
@@ -198,7 +201,7 @@ The failures world's read counters (for example `home-failed` "fails=21" and `yo
 - **native/wizard:** steps 2 and 3, the review, the lock and the draw.
 - **native/play:** every live scoring row: scoring, match, skins, sync-pending and the finish. It needs a synthetic live round (FX gap, LEDGER §4g).
 - **native/share:** seven of eight cells, and the consent, cancel and withdraw paths.
-- **native/season:** the `story` route (§2.3).
+- **native/season:** the `story` route's runner check (§2.3). The capture renders; the runner should match case-insensitively.
 - **native/post:** posting in progress, success, scan and photo.
 - **Single-round You:** no scenario exists (FX gap, LEDGER §4g).
 - **The album's refresh-failure and offline routes:** unit-tested only (LEDGER §4g).

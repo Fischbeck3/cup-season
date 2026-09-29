@@ -1,17 +1,17 @@
-# Panel · the §29 three-judge panel, web half (round 1)
+# Panel · the §29 three-judge panel, web and native halves (round 1)
 
 | | |
 |---|---|
-| **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were judged from their `9d84c483` captures; every other family from `02636007`, whose web client renders them byte-identically (COVERAGE.md §1.1). |
+| **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were judged from their `9d84c483` captures; every other family from `02636007`, whose web client renders them byte-identically (COVERAGE.md §1.1). Native **`4112a3f0`**, Owner TestFlight 1.0.0 (1180), judged from `native-4112/` (COVERAGE.md §2). |
 | **Status read at** | **`4a703402`** (root's fixes, N2's merge, and lanes W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266` and W5 `4a703402`; W1 and W6 had not merged) |
 | **Date** | 2026-09-28 |
 | **Assessors** | the **category**, **craft** and **owner** judges: three fresh agents that wrote no code. Their calibration stays with root, which runs the same three on the native half and on round 2. |
-| **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/panel/{category,craft,owner}.{json,md}`; the captures they cite are in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/` |
+| **Raw evidence (outside git)** | Web: `~/cup-season-claude-ten-gallery/evidence/panel/{category,craft,owner}.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/`. Native: `…/evidence/panel/{category,craft,owner}-native.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/native-4112/`. |
 
 Written by session C (docs). The scores and sentences below are the judges', copied from their JSON. Two strings are redacted with bracketed tokens: `[course]` stands for a fixture course that borrows a real course's name, and `~/` for the local home directory. The judges' proposed "change" for every cell is in the JSON; this file gives what stands between each cell and 10, and its kind.
 
 **The gate** (SESSIONS §1): no cell below 9, and a mean of at least 9.5, on every row, from every judge.
-**Round 1: not met anywhere.** No row reaches 8 with any judge, and 649 of the 660 web cells are below 9. Fix commits do not change a score. Nothing here is re-scored until round 2 (session D builds the gallery, and root runs the judges).
+**Round 1: not met anywhere.** On the web no row reaches 8 with any judge, and 649 of the 660 cells are below 9. On the phone no row reaches 9, and 483 of the 510 scored cells are below 9 (§5). Fix commits do not change a score. Nothing here is re-scored until round 2 (session D builds the gallery, and root runs the judges).
 
 ## 1 · Summary
 
@@ -107,11 +107,111 @@ The judges' P2 and P3 defects (category 22 + 16, craft 23 + 10, owner 23 + 22) a
 - **decision (32):** the judge named a ruling the owner has not made, or called the genre itself the ceiling ("It is a rules page"). They are grouped as questions in OWNER-QUESTIONS.md §C. The largest group is the genre ceiling on settings, rules, support and legal (Q9).
 - **device-or-human (28):** motion, haptics, real photographs, real keyboards and the OTP round trip. No capture can raise these; HUMAN.md does.
 
-## 5 · Native half
+## 5 · Native half (measured at `4112a3f0`, TestFlight 1180)
 
-**Pending (root).** Root sends the three judges the native half at `4112a3f0`, from the matrix COVERAGE.md §2 describes. The native door, wizard steps 2–3 and live scoring rows are not captured, and they will be scored "not captured", never n/a.
+The same three judges scored the phone with the calibration they used on the web. Root forwarded it on 2026-09-28.
+- **Not scored:** `native/door` is not captured (the signed-out Door is not in the synthetic plan), and `native/public-round` has no native surface (web only). Neither counts toward the means.
+- **The web fixes are not in this build:** 1180 is `cf401dee`'s native tree. N2's fixes merged at `de3eaf35`, after it.
 
-## 6 · Every cell below 9, by row
+### Summary
+
+| Judge | Product mean (native, 17 scored rows) | Web mean | Rows ≥ 9 | Rows ≥ 8 (keep) | Verdicts (keep · polish · redesign · not captured) | Cells < 9 of 170 | Lowest row | Highest row |
+|---|---:|---:|---:|---:|---|---:|---|---|
+| category | **7.04** | 6.44 | 0 | 0 | 0 · 17 · 0 · 2 | 167 | `native/schedule` 6.2 | `native/share` 7.8 |
+| craft | **7.42** | 6.87 | 0 | 2 | 2 · 15 · 0 · 2 | 155 | `native/post` 6.4 | `native/season` 8.3 |
+| owner | **7.77** | 7.09 | 0 | 3 | 3 · 14 · 0 · 2 | 161 | `native/claim-invite` 7.3 | `native/events` 8.2 |
+
+The phone scores higher than the web with every judge (by 0.60, 0.55 and 0.68), and craft and owner each keep rows the web never reached. No row reaches 9, so the gate is not met on the phone either.
+
+### Dimension means (17 scored rows)
+
+| Judge | H | T | Sp | C | B | P | R | E | D | M |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| category | 7.41 | 7.47 | 7.12 | 6.29 | 7.29 | 6.71 | 7.41 | 6.41 | 7.24 | 7.06 |
+| craft | 7.94 | 7.71 | 7.24 | 7.29 | 8.18 | 7.59 | 7.41 | 6.47 | 7.82 | 6.59 |
+| owner | 7.94 | 8.12 | 7.88 | 7.24 | 8.06 | 7.82 | 7.53 | 7.88 | 7.88 | 7.35 |
+
+Category's two lowest columns are consistency (6.29) and emotional appeal (6.41), as on the web. Craft's are emotional appeal (6.47) and mobile usability (6.59); owner's are consistency (7.24) and mobile usability (7.35).
+
+### Rows
+
+**Bold** marks a mean of 8 or more, a keep verdict.
+
+| Row | Category | Craft | Owner | Mean of three | Verdicts (cat · craft · owner) | Cells < 9 (cat · craft · owner) | Lowest cell |
+|---|---:|---:|---:|---:|---|---|---|
+| `native/door` | — | — | — | — | not captured · not captured · not captured | — | not scored |
+| `native/home` | 7.4 | **8.1** | 7.9 | 7.80 | polish · keep · polish | 10 · 7 · 10 | 7 (cat H, cat Sp, cat C, cat P, cat E, cat M, cra E, cra M, own C) |
+| `native/post` | 6.6 | 6.4 | 7.4 | 6.80 | polish · polish · polish | 10 · 10 · 10 | 5 (cra M) |
+| `native/share` | 7.8 | 6.9 | 7.9 | 7.53 | polish · polish · polish | 10 · 10 · 9 | 6 (cra Sp, cra C, cra E) |
+| `native/public-round` | — | — | — | — | not captured · not captured · not captured | — | not scored |
+| `native/claim-invite` | 6.5 | 6.8 | 7.3 | 6.87 | polish · polish · polish | 10 · 10 · 10 | 6 (cat Sp, cat C, cat B, cat P, cat E, cra T, cra C, own C) |
+| `native/identity` | 7.5 | 7.4 | 7.8 | 7.57 | polish · polish · polish | 9 · 9 · 9 | 6 (cat C, cra C, cra M) |
+| `native/golfers` | 6.6 | 7.2 | 7.8 | 7.20 | polish · polish · polish | 10 · 10 · 9 | 5 (cat C) |
+| `native/history` | 7.2 | 7.3 | **8.0** | 7.50 | polish · polish · keep | 10 · 9 · 8 | 5 (cat C) |
+| `native/season` | 7.5 | **8.3** | **8.0** | 7.93 | polish · keep · keep | 9 · 6 · 8 | 6 (cat C) |
+| `native/competition` | 6.3 | 7.4 | 7.7 | 7.13 | polish · polish · polish | 10 · 9 · 10 | 5 (cat C) |
+| `native/events` | 7.2 | 7.9 | **8.2** | 7.77 | polish · polish · keep | 10 · 8 · 8 | 6 (cat C) |
+| `native/schedule` | 6.2 | 7.2 | 7.7 | 7.03 | polish · polish · polish | 10 · 10 · 10 | 6 (cat H, cat T, cat C, cat B, cat P, cat R, cat E, cat D, cra M) |
+| `native/wizard` | 6.5 | 7.2 | 7.6 | 7.10 | polish · polish · polish | 10 · 10 · 10 | 6 (cat Sp, cat B, cat P, cat E, cat M, cra E, cra M, own M) |
+| `native/courses` | 7.8 | 7.6 | 7.8 | 7.73 | polish · polish · polish | 10 · 9 · 10 | 6 (cra R, cra E) |
+| `native/settings` | 6.9 | 7.6 | 7.8 | 7.43 | polish · polish · polish | 10 · 10 · 10 | 5 (cat E) |
+| `native/play` | 6.7 | 7.5 | 7.5 | 7.23 | polish · polish · polish | 10 · 10 · 10 | 6 (cat B, cat P, cat E, cra E) |
+| `native/rules` | 7.3 | 7.8 | 7.8 | 7.63 | polish · polish · polish | 9 · 9 · 10 | 5 (cat E) |
+| `native/widgets` | 7.7 | 7.6 | 7.9 | 7.73 | polish · polish · polish | 10 · 9 · 10 | 6 (cat C, cra M) |
+
+### The native P0 and P1 defects, with status
+
+No judge raised a P0. The six P1 entries are four distinct defects.
+
+| # | Judge | Row | Defect (the judge's words, shortened) | Captures | Status at `4a703402` |
+|---|---|---|---|---|---|
+| N-1 | category, craft | identity | FORM gilds a nine-hole 43 as the best of the last five beside 18-hole grosses, and VoiceOver calls it "their best" (craft); the web's twin defect | `17pro/tourcard-dark-large.png`, `17pro/person-me-dark-large.png` | **fixed (de3eaf35)**: N2's 74997409: a nine never takes the gold, and a nine says so; tests ab3d1cac. Not in 1180; verification pending. |
+| N-2 | category | history | The record prints two LIVE seasons (week 6 of 13, week 4 of 10) under FINISH as "2ND" with the podium rule; the web's twin defect | `17pro/record-dark-large.png`, `se3/record-light-large.png` | open · in lane N4. The web twin is fixed (f46086b4: "In play"). |
+| N-3 | craft | post | A refused or failed post shows no message: the composer's toast is drawn by the app-root host beneath the Play full-screen cover, for every composer failure (`PostRoundModel.swift:541`, `CupSeasonApp.swift:76`, `MainTabView.swift:1043`) | `flows/flow__post-failed.png` | open · in lane N4. The web twin (the refusal is a vanishing toast) is CQ-09, in lane W1. |
+| N-4 | craft, owner | post | At AX3 the composer scrolls the focused gross field off screen with the keypad up, and content slides under the status bar: the golfer types a score they cannot see | `17pro/composer-light-AX3.png`, `se3/composer-dark-AX3.png` | open · in lane N4 |
+
+The judges' P2 and P3 counts: category 19 + 12, craft 24 + 5, owner 7 + 17. They are listed in the `-native.md` files.
+
+### The 48 flagged `failed.json` rows
+
+All three judges read every flagged row as rendering correctly. The owner judge gives a verdict per route:
+
+| Route | Flag | The owner judge's verdict |
+|---|---|---|
+| `story` | FAIL (root), 8 | Renders correctly on every pass: the page draws "THE STORY" in display caps, and the runner looked for "The story" (a case-sensitive check). |
+| `course-wholecard` | unanswered requests, 8 | Renders correctly: both nines, the offline note and the tee line. |
+| `whenfork` | unanswered requests, 8 | Renders correctly: the sheet over Home with its two options ("RIGHT NOW" pre-tinted ember, a P3). |
+| `invite-signedin` | unanswered requests, 8 | Renders correctly: the full covenant, wrapping whole at AX3. |
+| `rules` | unanswered requests, 8 | Six render whole. The two 17 Pro large frames (dark and light) were caught mid-push. Capture timing, not rendering. |
+| `season-ceremony` | unanswered requests, 8 | Renders correctly. Its money mismatch is fixture composition. |
+
+The craft judge adds two coverage notes, which match COVERAGE.md §2.4:
+- `home-long` is pixel-identical to `home-populated`, so the long-name stress is not evidenced;
+- `album-failed` on the SE 3 at the default size shows the populated album.
+
+### Fixture artifacts (not scored)
+- The ceremony's payouts exceed what was collected (D106).
+- The season story files a headline under week 2.
+- Blake's round counts disagree between places.
+
+These are the synthetic world's composition, not product defects. FX's fixture owner should correct them before round 2, or they will be read again.
+
+### Cells below 9, by kind (native)
+
+| Kind | Category | Craft | Owner | All |
+|---|---:|---:|---:|---:|
+| defect | 113 | 107 | 111 | 331 |
+| content | 29 | 16 | 35 | 80 |
+| decision | 8 | 4 | 3 | 15 |
+| device-or-human | 17 | 28 | 12 | 57 |
+| **all** | **167** | **155** | **161** | **483** |
+
+- **device-or-human (57):** more than twice the web's share. Motion, haptics, Dynamic Type on a device, VoiceOver speech and outdoor light cannot be judged from rest frames. HUMAN.md's D1–D13 are their evidence.
+- **decision (15):** they join OWNER-QUESTIONS §C where they repeat a web question (the genre ceiling, Q9).
+
+Every native cell below 9 is in §7.
+
+## 6 · Every web cell below 9, by row
 
 Cells appear in dimension order (H T Sp C B P R E D M), each dimension's judges together. A cell at 9 or 10 is omitted. Each row opens with the judges' own scope notes, which say what the captures prove and what they do not.
 
@@ -1071,3 +1171,750 @@ Means: category 6.7 · craft 6.6 · owner 7.1. Lane: each lane for its own surfa
 | category | M | 7 | defect | No page overflow at 1280/1600; the Book's table scrolls inside its dialog. |
 | craft | M | 7 | defect | Sidebar nav items are 38px and sub-items 29px tall; the live HOLE/CARD toggle ~23px (DOM at 1280; play--scoring--1280--light.png) - fine for a pointer, short for a touch laptop/iPad |
 | owner | M | 8 | device-or-human | No overflow at 1280/1600; keyboard focus and tab order on the desk dialogs are not captured (F03 is verified by test, not by capture). |
+
+## 7 · Every native cell below 9, by row
+
+The same layout as §6, from the `-native.json` files. The two unscored rows show only their scope notes.
+
+### `native/door`
+
+Means: category — · craft — · owner —.
+
+*Category scope:* Not captured: the signed-out Door is not in the synthetic plan (NATIVE-BRIEF). The nearest evidence, the invite and claim arrivals (17pro/invite-signedout-dark-large.png, 17pro/claim-signedout-dark-large.png), is scored under native/claim-invite, not here.
+
+*Craft scope:* Not captured: the signed-out Door is not in the synthetic plan (NATIVE-BRIEF). The only signed-out native frames are the invite door (17pro/invite-signedout-*.png, scored under native/claim-invite) and the boot screens (scored under native/home). Scores null, never guessed.
+
+*Owner scope:* Not captured: the signed-out Door is not in the synthetic plan (NATIVE-BRIEF). The signed-out invite door (17pro/invite-signedout-*.png) and claim pencil are scored under native/claim-invite; the sign-in and code-entry states are unproven on the phone.
+
+
+### `native/home`
+
+Means: category 7.4 · craft 8.1 · owner 7.9.
+
+*Category scope:* All eight Home states on 17 Pro and SE3, large and AX3, both themes (4112a3f0). Captures are first screens only (no full-page scroll), so the feed below THIS WEEK is not evidenced. Motion, pull-to-refresh and live updates are not captured.
+
+*Craft scope:* All eight home states x 17 Pro/SE3 x large/AX3 x dark/light (64 frames) plus the offline/reconnect flows, at 4112a3f0. First-screen frames: the wire below the lead is not evidenced. Scored on the rest frame; motion and haptics are device evidence.
+
+*Owner scope:* Eight Home states (populated, empty, loading, offline, failed-read, forced-update, long-names, no-season) on 17 Pro and SE3, large and AX3, both themes, plus the offline/reconnect flow. First screens only. The failed-read Home serves cached content under a masthead that says so ("AS OF MON 7:30 AM · OFFLINE") and the offline boot still lets you score: both are exemplary owner behaviour.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 7 | defect | At default size the lead is right (serif sentence, one door, the rank chip owning the standing). At AX3 the masthead (wordmark, index, YOUR NUMBER, the Courses/Activity row) takes the top third, and the first screen reaches only three lines of the headline (17pro/home-populated-dark-AX3.png) or one (se3/home-populated-light-AX3.png). |
+| owner | H | 8 | decision | The lead is right ("Blake has led since week two, and you are the one closing." + 2ND ▲1 OF EIGHT + "ten back with seven weeks left"), but its one door is OPEN THE SEASON, not the round that would close the gap (17pro/home-populated-dark-large.png). |
+| category | T | 8 | defect | The type voices are well kept. At AX3 the wordmark grows to about 40pt, larger than the lead's serif (17pro/home-populated-dark-AX3.png). |
+| owner | T | 8 | defect | The context the lead depends on ("WEEK 6 OF 13 · FIXTURE CUP LEAGUE", "LAST · SAT") is 11pt tracked agate (17pro/home-populated-light-large.png). |
+| category | Sp | 7 | defect | AX3 spends the first screen on chrome. At default size the wire's only line between '84 LAST · SAT' and THIS WEEK is a promo, 'The big team match. Two teams. One cup.' (17pro/home-populated-dark-large.png). |
+| craft | Sp | 8 | defect | On SE3 at default size the offline dateline stays on the masthead line and squeezes the wordmark to two lines, 'CUP / SEASON' (se3/home-failed-dark-large.png, se3/home-failed-light-large.png); UI_SYSTEM 16.3 says the dateline leaves the line first |
+| owner | Sp | 8 | defect | The empty Home opens with a drawn grid glyph above the title, which reads as a missing image (§16A.7) (17pro/home-empty-dark-large.png). |
+| category | C | 7 | defect | The offline door's 'Courses on your phone ›' is ember, but it is ordinary navigation (D359: act) (17pro/boot-offline-dark-large.png). The forced-update wall has no door at all: 'Grab the newest one from TestFlight or the App Store' is prose only (17pro/boot-mustupdate-dark-large.png; LINT-21). |
+| craft | C | 8 | defect | 'Courses on your phone ›' is ember on an ordinary navigation (D359: ordinary actions are act; ember is competition) (flow__offline.png, 17pro/boot-offline-dark-large.png) |
+| owner | C | 7 | defect | Ember on things that are not competition (D359): the Activity count is #E8622C (17pro/home-populated-dark-large.png) and the offline door's "Courses on your phone" link is #A13F0E (17pro/boot-offline-light-large.png). The empty Home heads "Post a round you already played." against A-5's one verb (17pro/home-empty-dark-large.png). |
+| category | B | 8 | content | The pennant masthead, the serif lead and the rank chip carry the identity. No face or photograph is above the fold (synthetic world). |
+| owner | B | 8 | content | Pennant masthead and the tournament voice carry it; no photograph or face on any captured first screen. |
+| category | P | 7 | defect | The empty state's drawn grid glyph reads as a generic table icon (17pro/home-empty-dark-large.png), and on the populated screen the wire is a promo. |
+| craft | P | 8 | defect | The must-update screen is three centred lines and nothing else - no mark, no door (17pro/boot-mustupdate-dark-large.png) |
+| owner | P | 8 | defect | The forced-update gate is a dead end: a headline, a sentence and "needs build 999,999", with no action (17pro/boot-mustupdate-dark-large.png). |
+| category | R | 8 | defect | Readable at every size. The loading state's standing line is a run of small mono caps ('FIXTURE CUP LEAGUE · 2ND OF 8 · 10 BACK OF BLAKE · 1 CLEAR OF DEVON · TOP 2 INTO THE FINAL, OPENS OCT 23') (17pro/home-loading-dark-large.png). |
+| craft | R | 8 | defect | At AX3 on SE3 the must-update instruction truncates ('...TestFlight or the...') on a blocking screen with no scroll (se3/boot-mustupdate-light-AX3.png; MustUpdateView has no ScrollView, RootView.swift:481-492) |
+| owner | R | 8 | defect | The occasion row "The big team match. Two teams. One cup." names no Ryder, no date and no stake (17pro/home-populated-dark-large.png; §4.36). |
+| category | E | 7 | content | The lead sentences pull ('Blake has led since week two, and you are the one closing.'), but no faces or pictures appear above the fold. |
+| craft | E | 7 | content | The synthetic world has no real photograph: every photo slot renders the grey fixture plate and faces are marker glyphs (17pro/receipt-photo-dark-large.png, 17pro/course-dark-large.png); the populated Home's round row is a figure on a rule, not a picture (17pro/home-populated-dark-large.png) |
+| owner | E | 8 | content | The after-golf prompt ("Blake had you on the plan for Fri. Nothing posted yet. · ADD MY ROUND · LATER · DIDN'T PLAY", 17pro/home-solo-light-large.png) and the chasing lead carry pull; nothing visual on the first screen. |
+| category | D | 8 | content | One fact per place: the chip owns the standing and the lead says it in prose. Nothing is repeated on the first screen; below the fold is not captured. |
+| craft | D | 8 | device-or-human | home-long is pixel-identical to home-populated on the first screen (checked by diff), so the long-name stress is not evidenced; Captures are first-screen frames only; nothing below the fold of any scrolling page is evidenced |
+| owner | D | 8 | device-or-human | Captures are first screens; the wire below, where the web's density problems lived, is not captured on the phone. |
+| category | M | 7 | defect | Targets are 44pt and nothing clips at 375 or 402. The AX3 first screen is spent on chrome, as noted under H. |
+| craft | M | 7 | defect | Must-update truncation at AX3 (se3/boot-mustupdate-light-AX3.png) and the SE3 masthead wrap (se3/home-failed-dark-large.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 8 | defect | AX3 wraps whole, but on the 17 Pro at AX3 only "Blake has led" fits above the tab bar; the standing sentence is off the first screen (17pro/home-populated-light-AX3.png). |
+
+### `native/post`
+
+Means: category 6.6 · craft 6.4 · owner 7.4.
+
+*Category scope:* Cover, composer (first round, member, keyboard) on both phones, both sizes and both themes, plus the keyboard and refused-post flows (17 Pro, large, dark). A filled composer and the photo and scan flows are not in the matrix. The refused-post still does not show the toast.
+
+*Craft scope:* Composer, first-round, keyboard and the Play cover across all eight variants, plus the post-failed and composer-keyboard flows (17 Pro large dark), at 4112a3f0. The 'AutoFill' bubble in composer-keyboard is the system edit menu from the test's tap, not a layout defect.
+
+*Owner scope:* Cover, composer (member and first round) and keyboard states in the matrix, plus the post-failure flow (17 Pro large dark). The verdict after entry is correctly labelled ("Played to your playing HCP · 7 PTS"), unlike the web's '+1.4 YOUR PLAYING HCP'.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 7 | defect | The composer opens with the keypad up on an empty gross slot, which is right for the task. The title is said twice, as the navigation title 'Add my round' and as the eyebrow 'ADD MY ROUND · YOUR INDEX 12.4' (17pro/composer-dark-large.png). |
+| craft | H | 7 | defect | With the keyboard up at AX3 the focused YOUR GROSS field is scrolled out of view; the screen shows the worth paragraph, ADD MY ROUND and the keypad but not the field being typed into (17pro/composer-light-AX3.png, se3/composer-dark-AX3.png) |
+| owner | H | 8 | defect | The worth sentence (three lines) sits between the gross and the course, pushing the course and tags down (17pro/composer-dark-large.png). |
+| category | T | 7 | defect | The inherit line is set in mono ('Add the course · – / – · MON · SEP 28   DONE'), and the gross slot's caret is system blue, not act (17pro/composer-first-dark-large.png). |
+| craft | T | 7 | defect | The worth line is a four-line sans paragraph under the gross ('This round can score up to 12 in both Fixture Cup League and Placeholder Squads League. Your best 4 count...') (17pro/composer-dark-large.png) |
+| owner | T | 8 | defect | The course, a required fact, is a small mono line: "Add the course · — / — · MON · SEP 28 · DONE" (17pro/composer-dark-large.png). |
+| category | Sp | 7 | defect | The system AutoFill bubble sits over the 'YOUR GROSS' label (17pro/composer-keyboard-dark-large.png). |
+| craft | Sp | 6 | defect | Content scrolls under the translucent navigation bar with no opaque cap - the 84 gross sits under 'Add my round' at default size (flows/flow__post-failed.png), and at AX3 text runs over the clock ('see the points.', 17pro/composer-light-AX3.png; ghost 'ADD MY ROUND · YOUR INDEX', 17pro/composer-dark-AX3.png) |
+| owner | Sp | 7 | defect | The transparent header lets scrolled content run under it: the entered "84" and the eyebrow sit under the back button and title (flows/flow__post-failed.png). |
+| category | C | 6 | defect | Two clients disagree on the date (L-34): the composer prints 'MON · SEP 28' for today where the shared day producer says 'TODAY' (the web composer at the same clock). The PLAY cover gives 'Score it live' the ember '● LIVE' eyebrow and rule though nothing is live (D359) (17pro/post-cover-dark-large.png). The caret is system blue. |
+| craft | C | 6 | defect | The text caret is iOS system blue #0284E5, the one non-token colour on the screen (17pro/composer-first-dark-large.png, sampled) |
+| owner | C | 7 | defect | The refusal sentence says "press Post again" (OrdinaryPost.swift:90) for a button labelled "Add my round" (A-5); the Play cover's "LIVE" row wears ember with nothing live (D359) (17pro/post-cover-dark-large.png). |
+| category | B | 7 | defect | The PLAY cover is ours (topo, pennant, 'ANY TIME. ANYWHERE.'). The composer itself is a form over the system keypad. |
+| craft | B | 7 | defect | The Play cover is proprietary (contour band, pennant foot, ember LIVE rule on Score it live) but the composer below it is a plain form with no drawn object (17pro/post-cover-dark-large.png vs 17pro/composer-dark-large.png) |
+| owner | B | 8 | content | A well-set form in the product's voice; no object of its own. |
+| category | P | 6 | defect | The composer's first screen is a boxed photo plate, a blank slot and the system keypad (17pro/composer-dark-large.png, se3/composer-dark-large.png). The category's post flows open on the moment. |
+| craft | P | 6 | defect | A refused post is never seen: the composer raises the reason as a toast (PostRoundModel.swift:541), but the composer lives in a fullScreenCover (MainTabView.swift:1043) and the only toast host is the app root's overlay (CupSeasonApp.swift:76; no .csToasts under CupSeason/Post), so the pill draws beneath the cover. The route test found 'Fix the card...' in the element tree at t=19.36s and the screenshot at t=19.82s shows no message (flows/flow__post-failed.png; logs/routes.log) |
+| owner | P | 7 | defect | A refused post shows no reason in the captured frame: the only channel is a 2.6-second bottom toast (PostRoundModel.swift:540–542; Toast.swift `seconds: 2.6`), and nothing persists by the button (flows/flow__post-failed.png). |
+| category | R | 7 | decision | The worth paragraph puts four numbers in one block ('up to 12 in both … your lowest is a 6, so a 12 would add 6') above the keypad (17pro/composer-dark-large.png). |
+| craft | R | 7 | defect | Worth paragraph in mut at bodyS; at AX3 the long sentence pushes the field off screen (se3/composer-dark-AX3.png) |
+| owner | R | 8 | defect | With 84 entered the preview reads "7 PTS · PLACEHOLDER SQUADS LEAGUE" while the worth line says the round counts in both leagues; the other league's number is absent (flows/flow__post-failed.png; D387). |
+| category | E | 6 | defect | Nothing rewards the golfer until a number is typed ('Enter your gross to see the points.'). The cover is warmer than the composer. |
+| craft | E | 6 | content | The Play cover is strong, but the composer itself has no moment before posting (17pro/composer-dark-large.png) |
+| owner | E | 7 | device-or-human | The worth line ("so a 12 would add 6") motivates; the finish ceremony is evidenced only as an animation frame (flows/flow__finish-ceremony.png). |
+| category | D | 7 | defect | On SE3 the worth paragraph and the keypad fill the screen (se3/composer-dark-large.png). |
+| craft | D | 7 | defect | The worth paragraph restates both leagues' caps before the golfer has typed a gross (17pro/composer-dark-large.png) |
+| owner | D | 8 | defect | Five full-name tag chips take a third of the screen (flows/flow__post-failed.png). |
+| category | M | 6 | defect | At AX3 the navigation title draws over the eyebrow text (17pro/composer-dark-AX3.png). After a refused post, the flow still shows the card, but the refusal toast is not visible in the capture (flows/flow__post-failed.png; the test asserts the text exists). |
+| craft | M | 5 | defect | Focused field hidden at AX3 and content under the status bar (17pro/composer-light-AX3.png, se3/composer-dark-AX3.png); the post-failure message is drawn beneath the cover (flows/flow__post-failed.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 6 | defect | At AX3 the member composer scrolls the gross field off-screen above the keypad: the golfer types a score they cannot see (se3/composer-dark-AX3.png, se3/composer-light-AX3.png, 17pro/composer-light-AX3.png; the field shows only in 17pro/composer-dark-AX3.png). |
+
+### `native/share`
+
+Means: category 7.8 · craft 6.9 · owner 7.9.
+
+*Category scope:* Two route-test stills (17 Pro, large, dark, 4112a3f0): the finish ceremony at rest and the share preview. The exported image, the native share sheet, and the no-photo and withdraw paths are not captured.
+
+*Craft scope:* Two flow frames only (17 Pro, large, dark): the finish ceremony caught mid-animation and the share preview. No SE3, light or AX3 evidence. The ceremony's Share colour is read from source (FinishCeremonyView.swift) because the button had not faded in.
+
+*Owner scope:* Two flow screenshots, 17 Pro large dark only. D380's consent is exemplary: the toggle appears because the round has a photo and says what leaves the app; the share action is act, not ember.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 8 | device-or-human | The share preview is clear: a toggle, one explanation, the card, one Share (flows/flow__share-preview.png). The finish-ceremony still shows only the eyebrow, the cup and '84' (flows/flow__finish-ceremony.png), so its full hierarchy (band, points, Share) is not evidenced. |
+| craft | H | 7 | defect | The share card's facts crowd the top two-thirds and the bottom third is an empty band above the sign-off (flows/flow__share-preview.png) |
+| owner | H | 8 | defect | The consent toggle and its three lines lead; the card preview under them is smaller than the text above it (flows/flow__share-preview.png). |
+| category | T | 8 | defect | The preview card reuses the public page's type well. The toggle's explanation runs three lines of body text above the card. |
+| craft | T | 7 | defect | The band phrase is set in serif ALL CAPS ('PLAYED TO IT') on the card (flows/flow__share-preview.png) - the serif is a sentence voice and never caps (UI_SYSTEM 1.3/1.4) |
+| owner | T | 8 | defect | The preview's facts ("SAT · SEP 26", "ROUND RECORD") render at 9–10pt (flows/flow__share-preview.png). |
+| category | Sp | 8 | defect | The preview card sits small in a tall sheet, with about 40% of the sheet spent on the toggle copy. |
+| craft | Sp | 6 | defect | Same dead band in the card's lower third (flows/flow__share-preview.png) |
+| owner | Sp | 8 | defect | The preview sits in a narrow column with dead space beside "84 GROSS" (flows/flow__share-preview.png). |
+| category | C | 8 | device-or-human | It matches the public round record and uses the shared RoundCopy sentence. The ceremony's actions cannot be compared with the web's from the still. |
+| craft | C | 6 | defect | The ceremony's Share button is ember (FinishCeremonyView.swift:41-42, 85-88: shareBg = ceremonyBrand) though sharing is an ordinary action (D359); the share-preview sheet's own SHARE is act - two colours for one verb (flows/flow__share-preview.png) |
+| owner | C | 7 | defect | The action is "Share round" / "SHARE" here and "Share the card" on the web (L-34) (flows/flow__share-preview.png vs share--recap-photo--375--dark.png). |
+| category | B | 8 | defect | Lockup, pennant and 'ANY TIME. ANYWHERE.' are all on the card. The ceremony still carries no mark. |
+| craft | B | 8 | content | Pennant, marker and dusk ceremony are proprietary; no course image (content) |
+| category | P | 7 | defect | The preview is a shrunken public page rather than the designed share artifact (compare the web's 1080x1350 recap card). |
+| craft | P | 7 | content | The synthetic world has no real photograph: every photo slot renders the grey fixture plate and faces are marker glyphs (17pro/receipt-photo-dark-large.png, 17pro/course-dark-large.png) |
+| owner | P | 8 | content | The preview's photo is the synthetic gradient; the scrim on real photography is unproven. |
+| category | R | 8 | defect | The type on the scaled card is small. |
+| craft | R | 8 | defect | The card's sign-off 'ANY TIME. ANYWHERE. cupseason.app' is the smallest text on the artifact (flows/flow__share-preview.png) |
+| owner | R | 7 | content | "PLAYED TO IT" is an insider band name for the friend who receives the card (flows/flow__share-preview.png). |
+| category | E | 7 | device-or-human | The moment (the cup, the drop, the reveal) is animation; the still is almost empty. |
+| craft | E | 6 | device-or-human | The finish ceremony frame was caught at stage 2 of 5 (eyebrow, cup, 84 only; band, points and buttons at opacity 0) (flows/flow__finish-ceremony.png) - the rest frame is not evidenced |
+| owner | E | 8 | device-or-human | The golfer sees the card before sharing (the web does not); the ceremony before it is evidenced only mid-animation (flows/flow__finish-ceremony.png). |
+| category | D | 8 | content | Right amount. |
+| craft | D | 7 | device-or-human | Only 17 Pro large dark is captured for both share surfaces |
+| owner | D | 8 | content | The consent copy is complete but three lines for one toggle (flows/flow__share-preview.png). |
+| category | M | 8 | device-or-human | Only 17 Pro, large text and dark theme are captured for share. SE3, AX3 and light are not evidenced. |
+| craft | M | 7 | device-or-human | Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 8 | device-or-human | Only 17 Pro, large text, dark is evidenced (flows); light, AX3 and SE3 are unproven. |
+
+### `native/public-round`
+
+Means: category — · craft — · owner —.
+
+*Category scope:* Web-only by design (NATIVE-BRIEF): the public round record is a web page with no phone surface. It is not scored. The phone's view of it is the share preview, scored under native/share.
+
+*Craft scope:* Web-only by design (a public link opens in the browser); there is no native surface to score. Recorded null per the brief.
+
+*Owner scope:* Web-only by design (NATIVE-BRIEF): the phone has no public round page. Nothing to score; recorded as null under the output's 'not captured' vocabulary.
+
+
+### `native/claim-invite`
+
+Means: category 6.5 · craft 6.8 · owner 7.3.
+
+*Category scope:* Claim signed out and signed in, and invite signed out and signed in, on both phones, both sizes and both themes. invite-signedin has an unanswered read in the synthetic backend but renders completely. The OTP completion and the Join write are not driven.
+
+*Craft scope:* Claim confirm (signed in), claim pencil (signed out), invite covenant (signed in) and invite door (signed out), all eight variants, at 4112a3f0. The 8 invite-signedin rows flagged 'unanswered requests' render complete. L-34 comparison read from the two producers (JoinLeague.swift, index.html csCovenantFacts).
+
+*Owner scope:* Four states (claim confirm, claim pencil, invite covenant, invite door), all passes. The covenant is complete (who, length, structure, rules with the allowance, ending, stake, ledger line, split, pay). Its first-name Pro and doubled "Harper" come from the synthetic payload (JoinLeague.swift:198–201 prints proName verbatim) and are not scored. The web's P1 (a dead code reads as an invitation) cannot be checked on the phone: not captured.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 7 | defect | The signed-out claim makes the round the headline, which is better than the web. But the content starts 45% of the way down a blank screen (17pro/claim-signedout-dark-large.png). The signed-out invite leads with the tagline, not the league (17pro/invite-signedout-dark-large.png). |
+| craft | H | 7 | defect | The signed-out claim screen floats a small block mid-screen under an empty top half, with no mark (17pro/claim-signedout-light-large.png) |
+| owner | H | 7 | defect | The signed-out invite door headlines the slogan "ANY TIME. ANYWHERE." with the invitation as body text (17pro/invite-signedout-light-large.png). The claim doors lead with the round, which is right. |
+| category | T | 7 | defect | An ember caps eyebrow sits over a serif sentence. At AX3 the claim sheet clips its 'Scored as…' line under the title (se3/claim-signedin-dark-AX3.png). |
+| craft | T | 6 | defect | The invite covenant sets every paragraph in the serif (17pro/invite-signedin-dark-large.png) - UI_SYSTEM 1.4 allows one serif sentence per viewport |
+| owner | T | 8 | defect | The signed-out claim sets the whole message in one serif paragraph; the 88, the course and the date are unemphasised (17pro/claim-signedout-light-large.png). |
+| category | Sp | 6 | defect | The signed-out claim leaves the top 45% empty (17pro/claim-signedout-dark-large.png, 17pro/claim-signedout-light-large.png). |
+| craft | Sp | 7 | defect | At AX3 the claim sheet's pinned footer shears its detail line mid-glyph ('It posts to your rounds...' cut) (se3/claim-signedin-dark-AX3.png, se3/claim-signedin-light-AX3.png, 17pro/claim-signedin-dark-AX3.png) - UI_SYSTEM 13.2a |
+| owner | Sp | 7 | defect | The signed-out claim floats one sentence and one button in the lower half of an otherwise blank page (17pro/claim-signedout-light-large.png). |
+| category | C | 6 | defect | Sentences differ between the clients (L-34). The native invite says 'You're joining Fixture Friday League. Sign in to review and join.' where the web says 'You're invited to … Sign in to review the league before you join.' The native covenant lists the Pro twice ('Harper runs the season (the Pro). Harper, Blake, …') where the web leaves the Pro out. The 'YOUR SCORECARD' eyebrow is ember, but nothing here is competition (D359). |
+| craft | C | 6 | defect | 'YOUR SCORECARD' eyebrow is ember (LiveRoundHost.swift:215 csEyebrow(cs.brand)) on a claim that is not a competition (17pro/claim-signedout-light-large.png); '$25 each.' is gold on the covenant though a buy-in is not an earning (17pro/invite-signedin-dark-large.png) |
+| owner | C | 6 | defect | Two sentences for one state across clients: "You're joining Fixture Friday League. Sign in to review and join." (PendingLink.swift:73) vs the web's "You're invited to <league>. Sign in to review the league before you join." (index.html:33733) (L-34). The signed-out claim's "YOUR SCORECARD" eyebrow is ember (#A13F0E) on a non-competition door (D359). |
+| category | B | 6 | defect | The signed-out claim carries no mark at all (17pro/claim-signedout-dark-large.png). |
+| craft | B | 7 | defect | The claim screens carry no mark; only the invite door does (17pro/invite-signedout-dark-large.png) |
+| owner | B | 7 | defect | The signed-out claim carries no pennant or product object (17pro/claim-signedout-light-large.png). |
+| category | P | 6 | defect | The signed-out claim looks unfinished; the sheets are tidy but plain. |
+| craft | P | 7 | defect | A serif wall on the covenant (17pro/invite-signedin-dark-large.png) |
+| owner | P | 7 | defect | The signed-out claim looks unfinished (a blank top half). |
+| category | R | 7 | defect | The serif sentences read well, including the nine-paragraph covenant (17pro/invite-signedin-dark-large.png). The AX3 claim sheet clips one line. |
+| craft | R | 7 | defect | L-34: the covenant's split and ending sentences differ from the web's. Phone: 'The split: 60 percent to the champion; 25 percent to the runner-up; 15 percent to the Points King, the individual season-points leader.' (JoinLeague.swift:282) vs web 'If you take it: 60 percent to the champion, 25 to the runner-up, 15 to the points king...' (index.html:29627); phone 'The top two golfers qualify for a four-week Cup Final, scored fresh.' vs web 'Everyone plays for themselves. The top two on points meet in a four-week Cup Final.' (17pro/invite-signedin-dark-large.png) |
+| owner | R | 8 | defect | "GET STARTED" and "SIGN IN" don't say which one a returning golfer needs (17pro/invite-signedout-light-large.png). |
+| category | E | 6 | defect | 'KEEP THIS ROUND' is warm, but there is no picture of the round being kept. |
+| craft | E | 7 | defect | The claim has no figure of the round being claimed (17pro/claim-signedin-dark-large.png) |
+| owner | E | 8 | defect | "Add this 88 at North Grove (fixture) · White to your record?" is warm; the signed-out claim is flat beside it. |
+| category | D | 7 | content | The claim is lean; the covenant is complete. |
+| craft | D | 7 | decision | The covenant is a column of paragraphs (17pro/invite-signedin-dark-large.png) |
+| owner | D | 7 | defect | The signed-out claim is starved: one sentence (17pro/claim-signedout-light-large.png). |
+| category | M | 7 | defect | Buttons are 44pt+. The AX3 clip is noted under T. |
+| craft | M | 7 | defect | AX3 footer shear (se3/claim-signedin-dark-AX3.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 8 | device-or-human | AX3 wraps whole (se3/claim-signedout-dark-AX3.png, se3/invite-signedin-light-AX3.png); used, dead, unfinished and not-started claim links and unknown join codes are not captured on the phone. |
+
+### `native/identity`
+
+Means: category 7.5 · craft 7.4 · owner 7.8.
+
+*Category scope:* You (populated, empty, failed), the tour card (own and another golfer), the person page (own and another), the bag, the card gate and the crew step, on both phones, both sizes and both themes. Blake's credential reads '1 round' while the board and the head-to-head show five rounds and eleven meetings. These are separate synthetic envelopes (tourCard is built from the synthetic rounds list), so this is not scored as a product defect.
+
+*Craft scope:* You (populated/empty/failed), tour card (own/other), person (own/other), bag, and onboarding card-gate + crew step, all eight variants, at 4112a3f0. The card-gate chips draw at 28pt with a 44pt hit area (CardGateView.swift:157-159), so no target defect.
+
+*Owner scope:* Card gate, crew step, You (populated, empty, failed), tour card (own and another golfer's), person (me) and the bag, all passes. The failed You is exemplary ("Nothing is lost — the read failed, not the record.").
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 8 | defect | The credential leads every identity surface, and You's first screen is the credential, the last round and the season row. The tour-card sheet's header truncates Share to 'SHA…' on every theme, phone and size (17pro/tourcard-dark-large.png, 17pro/tourcard-other-dark-large.png, se3/tourcard-other-light-large.png, 17pro/tourcard-dark-AX3.png). |
+| craft | H | 8 | defect | The bag is a two-column grid of equal filled wells with no hierarchy between driver and wedge (17pro/bag-dark-large.png) |
+| owner | H | 8 | defect | The empty You pairs its door with a drawn grid glyph that reads as a missing image (17pro/you-empty-light-large.png). |
+| category | T | 8 | defect | Another golfer's credential truncates its figure labels ('HANDICAP IN…', 'ROU…', 'BEST · NORTH GROVE (FIX…') (17pro/tourcard-other-dark-large.png, 17pro/person-dark-large.png). |
+| craft | T | 8 | defect | Credential figure labels truncate at default size - on SE3 for every card and on the 17 Pro for another golfer's: 'HANDICAP I...', 'ROU...', 'BEST · NORTH GROVE (F...' (se3/tourcard-other-dark-large.png, se3/tourcard-light-large.png, 17pro/person-dark-large.png) |
+| owner | T | 8 | defect | The tour card's stat labels are 9–10pt tracked caps (17pro/tourcard-dark-large.png). |
+| category | Sp | 7 | defect | 'SHA…' as noted under H. The bag truncates values inside boxed cells ('Fixture 460 driver,…', 'Sample 3-wood, 1…') (17pro/bag-dark-large.png, se3/bag-dark-large.png). |
+| craft | Sp | 7 | defect | The bag's wells truncate their values ('Fixture 460 dri...', 'Sample 3-woo...' on SE3; 'Driv...' at AX3) (se3/bag-dark-large.png, 17pro/bag-dark-AX3.png) |
+| owner | Sp | 8 | defect | The crew step stacks four boxed options tightly (17pro/crew-light-large.png). |
+| category | C | 6 | defect | P1: FORM marks a nine-hole 43 as the best of the last five, in gold (ProfileFormRow takes the lowest gross regardless of holes; the synthetic 43 is holes: 9) (17pro/tourcard-dark-large.png, 17pro/person-me-dark-large.png). The rivalry name 'THE GROVE GRUDGE (FIXTURE)' is gold, though gold means earned (17pro/you-populated-dark-large.png). The crew step's 'FIND YOUR FRIENDS' carries an ember rule, but it is an ordinary action (17pro/crew-dark-large.png). |
+| craft | C | 6 | defect | The Form row golds the 9-hole 43 as the best of the last five against 18-hole grosses (ProfileBlocks.swift:131 takes the minimum gross; the synthetic round is holes: 9, SyntheticWorld.swift:188), and VoiceOver says 'their best' (17pro/person-me-dark-large.png, 17pro/tourcard-dark-large.png) - the same false best as the web |
+| owner | C | 7 | defect | Your standing twice in one viewport (the card's "2ND · FIXTURE CUP LEAGUE" and THE SEASON's "02 … 48") (17pro/you-populated-dark-large.png); "POST YOUR FIRST ROUND" against A-5 (17pro/you-empty-light-large.png); an ember rule marks "FIND YOUR FRIENDS" as recommended without the word (D359, §16A.6) (17pro/crew-light-large.png); a single form figure in gold ("43") (17pro/tourcard-dark-large.png). |
+| category | P | 7 | defect | The bag and the card gate are forms in boxes (17pro/bag-dark-large.png, 17pro/cardgate-dark-large.png). |
+| craft | P | 8 | defect | The bag reads as a form of boxes (17pro/bag-dark-large.png) |
+| owner | P | 8 | defect | The bag's club names truncate in fixed boxes ("Fixture 460 dri…", "Sample 3-woo…") (17pro/bag-light-large.png). |
+| category | R | 8 | defect | The truncations noted under T and Sp. |
+| craft | R | 7 | defect | The tour card's toolbar truncates its Share control to 'SHA...' in every variant (17pro/tourcard-dark-large.png, 17pro/tourcard-light-large.png) |
+| owner | R | 7 | defect | Another golfer's card truncates its own labels ("HANDICAP IN…", "ROU…", "BEST · NORTH GROVE (FIX…") and its Share action ("SHA…") at the default size (17pro/tourcard-other-light-large.png, 17pro/person-dark-large.png, 17pro/tourcard-dark-large.png). |
+| category | E | 7 | content | The credential pulls; 'Posted 84 at North Grove (fixture) on September 26.' is plain. |
+| craft | E | 7 | content | The synthetic world has no real photograph: every photo slot renders the grey fixture plate and faces are marker glyphs (17pro/receipt-photo-dark-large.png, 17pro/course-dark-large.png) |
+| owner | E | 8 | content | The crew step ("Bring one now and your first round already counts for something.") and "This is how your buddies see you." carry pull; nothing photographic. |
+| category | D | 8 | defect | The credential's '2ND FIXTURE CUP LEAGUE' repeats the season row just below ('02 FIXTURE CUP LEAGUE … 48') (17pro/you-populated-dark-large.png). |
+| craft | D | 8 | device-or-human | One credential, one form row and one line per section - right; Captures are first-screen frames only; nothing below the fold of any scrolling page is evidenced |
+| owner | D | 8 | device-or-human | You's first screen is balanced; rivals, record and courses sit below the capture. |
+| category | M | 7 | defect | Truncations at 402. The AX3 credential grows the page correctly (17pro/tourcard-dark-AX3.png, se3/you-populated-dark-AX3.png). |
+| craft | M | 6 | defect | SE3 label truncation and 'SHA...' (se3/tourcard-light-large.png, 17pro/tourcard-dark-large.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 7 | defect | Truncation on the flagship object at the default size (as R); at AX3 the card's name and stats push the season off the first screen (se3/you-populated-dark-AX3.png). |
+
+### `native/golfers`
+
+Means: category 6.6 · craft 7.2 · owner 7.8.
+
+*Category scope:* Golfers (populated, empty, search), the head-to-head and the league board on both phones, both sizes and both themes. Adding a buddy and posting to the board are not driven.
+
+*Craft scope:* Golfers list, empty, search (keyboard), head-to-head and the season board sheet, all eight variants, at 4112a3f0.
+
+*Owner scope:* List (populated, empty, search keyboard), head-to-head, season board and a person page, all passes. The request block appears once (the web shows it twice) and FINDABLE BY shows its selected value. Blake's '1' round on his card vs '5 rounds' on the board vs eleven meetings are hand-authored synthetic producers (SyntheticWorld+You.swift:194–205, +Golfers.swift:62–110), not scored.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 7 | defect | The head-to-head's record '4–5–1' breaks across two lines ('4–' over '5–1') at default size, so the figure the page exists for reads as two numbers (17pro/headtohead-dark-large.png, se3/headtohead-light-large.png). The title prints once, which is better than the web. |
+| craft | H | 8 | defect | The head-to-head record '4-5-1' breaks after its first dash onto two lines at default size, so the object the page exists for reads '4- / 5-1' (17pro/headtohead-dark-large.png, se3/headtohead-light-large.png) |
+| owner | H | 8 | defect | The head-to-head's plain verdict ("…has taken the last two.") sits under a record figure that wraps (17pro/headtohead-dark-large.png). |
+| category | T | 7 | defect | The record breaks as noted under H. At AX3 the request row breaks a name mid-word, 'TESTC/ASE' (se3/golfers-dark-AX3.png). |
+| craft | T | 8 | defect | At AX3 the request row breaks the golfer's name mid-word ('DEVON TESTCA / SE', 'TESTC / ASE') and the handle '@fixture_ / devon' (17pro/golfers-dark-AX3.png, se3/golfers-light-AX3.png) |
+| owner | T | 8 | defect | The board's gloss ("VS PLAYING HCP · PLUS IS BETTER") and row labels are 11pt mono (17pro/golfers-dark-large.png). |
+| category | Sp | 7 | defect | The empty state repeats 'TEXT SOMEONE A LINK' as a link and then as a card (17pro/golfers-empty-dark-large.png). |
+| craft | Sp | 7 | defect | Same mid-word breaks at AX3 (17pro/golfers-dark-AX3.png) |
+| owner | Sp | 8 | defect | The empty state stacks a definition, links, search, a link card and the findable control (17pro/golfers-empty-light-large.png). |
+| category | C | 5 | defect | The EVERY MEETING tape draws four marks under 'ELEVEN MEETINGS' and a 'LAST FIVE' head (17pro/headtohead-dark-large.png). The board's reaction chips render as empty grey boxes marked '…' (17pro/board-dark-large.png). The request row wears an ember rule and board posts wear gold rules, though neither is competition or earned (D359). |
+| craft | C | 7 | defect | Board system notes ('Avery Fixture posted 84...', 'Week 6 opened...') carry a gold spine (BoardRows.swift:129, sampled #806F3C / #AF9C71) - gold is for an earning (17pro/board-dark-large.png) |
+| owner | C | 7 | defect | "THE BOARD" names both the friends ranking (17pro/golfers-dark-large.png) and the league chat (17pro/board-light-large.png), the collision A-3 ruled out; the empty state defines a buddy twice and offers "Text someone a link" twice (17pro/golfers-empty-light-large.png); "Message the league…". |
+| category | B | 7 | content | The ranked board and the tape are ours. Faces are markers. |
+| craft | B | 8 | content | Slat board, faces and the meeting tape carry it; faces are markers (content) |
+| owner | B | 8 | content | The christened rivalry and the every-meeting tape are proprietary; the list is plain rows. |
+| category | P | 6 | defect | The board looks unfinished because of its placeholder-looking chips. |
+| craft | P | 7 | defect | The board's reaction row sets a bare '···' and a comment glyph in small bg2 boxes beside the applause (17pro/board-dark-large.png) |
+| owner | P | 8 | defect | The chat board's reaction and comment chips are small unlabelled pills (17pro/board-light-large.png). |
+| category | R | 7 | defect | The record split slows the one read that matters. |
+| craft | R | 7 | defect | '12.4 index · Fixture...' truncates on SE3 beside the record (se3/headtohead-light-large.png); board composer placeholder truncates at AX3 (17pro/board-dark-AX3.png) |
+| owner | R | 7 | defect | The rivalry's headline record breaks across lines ("4–" / "5–1") at the default size on both phones (17pro/headtohead-light-large.png, se3/headtohead-dark-large.png). |
+| category | E | 7 | defect | 'Eleven meetings where you both played, going back to May. Blake Sample has taken the last two.' pulls; the broken tape undercuts it. |
+| craft | E | 6 | content | The synthetic world has no real photograph: every photo slot renders the grey fixture plate and faces are marker glyphs (17pro/receipt-photo-dark-large.png, 17pro/course-dark-large.png) |
+| category | D | 7 | defect | Right, apart from the duplicated door in the empty state. |
+| craft | D | 8 | device-or-human | Right for the first screen; Captures are first-screen frames only; nothing below the fold of any scrolling page is evidenced |
+| owner | D | 8 | defect | Right; the empty state is over-worded (see C). |
+| category | M | 6 | defect | The AX3 name break is noted under T. The board's chips are unclear as targets. |
+| craft | M | 6 | defect | The broken record figure at default size and the AX3 mid-word breaks (17pro/headtohead-dark-large.png, 17pro/golfers-dark-AX3.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 7 | defect | The record wrap (as R). |
+
+### `native/history`
+
+Means: category 7.2 · craft 7.3 · owner 8.0.
+
+*Category scope:* The record (populated, empty), the album (populated, failed) and four receipt photo states (photo, none, broken, withdrawn), on both phones, both sizes and both themes. flows/flow__album-failed.png is not a failed album (README); the matrix's album-failed capture is.
+
+*Craft scope:* Record (populated/empty), album (populated/failed) and four receipt states, all eight variants, at 4112a3f0. flow__album-failed.png is not a failed album (brief) and was not used.
+
+*Owner scope:* Record (populated, empty), album (populated, failed) and four receipt photo states, all passes. The photo states are genuinely distinct here (the web's were byte-identical): broken says "This round's photo couldn't be opened."; withdrawn offers Add a photo. The matrix's album-failed capture shows the failed state; flows/flow__album-failed.png does not (README).
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 8 | defect | The record's sentence, figures and leaf lead well. The receipt says its band twice (see C). |
+| craft | H | 8 | defect | On SE3 the record's seasons table truncates every competition name to 'Placeholder...' / 'Fixture Cup L...' while the season qualifier stays, so the rows cannot be told apart (se3/record-light-large.png) |
+| owner | H | 8 | defect | The receipt puts photo controls, View course and Share before the league verdict lens, which starts at the foot ("THE RECEIPT · WHAT THIS ROUND WAS WORTH", flows/flow__book-round-receipt.png). |
+| category | T | 8 | defect | At AX3 the figure label 'SEASONS' breaks as 'SEASON/S' (17pro/record-dark-AX3.png). |
+| craft | T | 8 | defect | At AX3 the record's figure labels break mid-word, 'SEASON / S' (17pro/record-light-AX3.png) |
+| category | Sp | 7 | defect | The record leaf truncates competition names ('Placeholder Squ…', 'Fixture Cup Leag…') (17pro/record-dark-large.png, se3/record-light-large.png). The receipt's marker badge sits over the eyebrow's date (17pro/receipt-photo-dark-large.png). |
+| craft | Sp | 7 | defect | The receipt photo card's marker stamp sits on its dateline, covering 'SEP 26' (17pro/receipt-photo-dark-large.png) and '(FIXTURE)' at AX3 (17pro/receipt-photo-light-AX3.png) |
+| owner | Sp | 8 | defect | REPLACE PHOTO / REMOVE PHOTO sit directly under the card, before the round's facts (17pro/receipt-photo-dark-large.png). |
+| category | C | 5 | defect | P1: the record prints two LIVE seasons (week 6 of 13 and week 4 of 10) under FINISH as '2ND', with the podium rule (17pro/record-dark-large.png, se3/record-light-large.png). The receipt's line stutters, 'Played to your playing HCP — played to it.' (17pro/receipt-photo-dark-large.png), where the web receipt states the comparison alone (L-34). |
+| craft | C | 7 | device-or-human | album-failed on SE3 at default size renders the populated album (identical to album in light; the brief notes the synthetic failure world rendered photos, LEDGER X35), so the failed state is only partly evidenced (se3/album-failed-light-large.png) |
+| owner | C | 7 | decision | Every receipt card signs "ANY TIME. ANYWHERE."; "SHARE ROUND" vs the web's "Share the card" (L-34) (17pro/receipt-nophoto-light-large.png). |
+| category | B | 8 | content | The receipt panel with its pennant, the cream leaf and the record figures are ours. |
+| category | P | 7 | defect | The album is a plain grid with a blank sixth tile (17pro/album-dark-large.png). |
+| craft | P | 8 | content | The synthetic world has no real photograph: every photo slot renders the grey fixture plate and faces are marker glyphs (17pro/receipt-photo-dark-large.png, 17pro/course-dark-large.png) |
+| owner | P | 8 | defect | The photo receipt's marker medallion covers the date in the card's eyebrow (17pro/receipt-photo-dark-large.png). |
+| category | R | 7 | defect | Truncated competition names. |
+| craft | R | 6 | defect | The receipt photo card's dateline is scrim-ink #E1E4E0 on the grey plate #858786 = 2.82:1 (17pro/receipt-photo-dark-large.png) - the scrim covers only the bottom of the plate |
+| owner | R | 7 | defect | THE RECORD's SEASONS table lists two live seasons under FINISH as "2ND", and truncates their names ("Placeholder Squ…", "Fixture Cup Leag…") (17pro/record-dark-large.png) — the web's P2, on the phone too. |
+| category | E | 7 | content | '23 rounds since May. The best of them a 79, at Sample Links (fixture).' and the receipts pull. |
+| craft | E | 6 | content | The synthetic world has no real photograph: every photo slot renders the grey fixture plate and faces are marker glyphs (17pro/receipt-photo-dark-large.png, 17pro/course-dark-large.png) |
+| owner | E | 8 | content | The verdict sentences are memory ("Beat your playing HCP by 3.4 — torched it.") and the receipt holds the conversation (D391); photographs are synthetic. |
+| category | D | 8 | content | Right. |
+| craft | D | 8 | device-or-human | Right; Captures are first-screen frames only; nothing below the fold of any scrolling page is evidenced |
+| owner | D | 8 | defect | "23 rounds since May. The best of them a 79…" and then 23 / 4 / 79 as figures state the same facts twice (17pro/record-dark-large.png). |
+| category | M | 7 | defect | The AX3 label break and the SE3 truncation. |
+| craft | M | 6 | defect | SE3 table truncation, AX3 label break and the stamp collision (se3/record-light-large.png, 17pro/record-light-AX3.png, 17pro/receipt-photo-dark-large.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 8 | defect | AX3 wraps whole (se3/receipt-nophoto-dark-AX3.png); the SEASONS table truncates at the default size (as R). |
+
+### `native/season`
+
+Means: category 7.5 · craft 8.3 · owner 8.0.
+
+*Category scope:* All eight season states and the three looks, on both phones, both sizes and both themes. The 'story' FAIL rows render correctly: the heading is set in caps ('THE STORY'), so the runner's case-sensitive text check missed it. season-ceremony has an unanswered read. Its payout rows ($240 + $80) exceed the $240 collected because the synthetic season_payouts are cut from the full pot (SyntheticWorld+Season.swift) while production pays from collected (D106). That is a fixture artifact and is not scored.
+
+*Craft scope:* Season live solo/squads, Cup Final, loading, failed, ceremony, pot and story, plus the three looks on Home/Compete/Season/You, all eight variants, at 4112a3f0. The 8 story frames the runner FAILED render correctly: the runner searched for 'The story' and the heading is 'THE STORY' (hierarchy dump in export-17pro-large). The looks keep panel text >=4.79:1 (measured); cupfinal's ember is D359's named phase exemption.
+
+*Owner scope:* Eight season states and the looks, all passes, plus failure → retry. Not scored as defects, because the synthetic world composes them: the ceremony's payouts ($240 + $80) exceed "what was collected — $240" because the fixture splits the full pot (SyntheticWorld+Season.swift:53–55) while D106's server pays from collected; and the story files the current headline under WEEK 2 because the fixture arc is oldest-first while season_story orders it newest-first (`order by (x->>'on') desc`). The story's runner FAIL is a root-text mismatch; the page renders.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 8 | defect | In the Cup Final the 'THE CUP FINAL' head prints twice in a row, once with 'TOP TWO' and once with '17 DAYS LEFT' (17pro/season-final-dark-large.png). |
+| owner | H | 8 | defect | The minimum paragraph sits between the tick row and the clash, pushing the week's competition below the first screen (17pro/season-dark-large.png). |
+| category | T | 8 | defect | Strong. The minimum paragraph is a long run of body text under the tick row. |
+| craft | T | 8 | defect | The rule sentence under the month band is a three-line bodyS paragraph in mut ('September's minimum is met - 5.5 of 2. A nine counts half...') (17pro/season-dark-large.png) |
+| category | Sp | 7 | defect | The Final's double head. At SE3 the pot truncates names ('Casey Placeh…', 'Maximilian Pl…', 'Emerson Mock…') (se3/pot-light-large.png). |
+| craft | Sp | 8 | defect | The failed-read state is top-aligned with the rest of the screen empty (17pro/season-failed-dark-large.png) |
+| owner | Sp | 8 | defect | The pot stacks the figure, a split row, a split line and a boxed table (17pro/pot-light-large.png). |
+| category | C | 6 | defect | In the Final the band says 'Blake Sample has led for nine straight weeks.' over a Final table you lead 19–14 (17pro/season-final-dark-large.png). The story's WEEK 2 entry leads with 'Blake Sample has led for four straight weeks.' (17pro/story-dark-large.png). The minimum line says 'best 4' where the web says 'best four' (L-34). The teams look paints the rank chip and the clash leader's tile red (17pro/look-teams-home-dark-large.png, 17pro/look-teams-season-dark-large.png). |
+| craft | C | 8 | defect | The pot's 'WHO IS IN' sits on a white leaf that re-forms a bordered panel in light (17pro/pot-light-large.png) |
+| owner | C | 7 | defect | Two consecutive heads both read "THE CUP FINAL" (17pro/season-final-dark-large.png); the pot prints the split twice ("192 / 80 / 48" and "$192 CHAMPION · $80 RUNNER-UP · $48 POINTS KING") (17pro/pot-light-large.png). |
+| category | P | 8 | defect | The ceremony and the pot are premium. The ceremony's 'SHARE SEASON RESULT' is a secondary dark button for the moment's one action (17pro/season-ceremony-dark-large.png). |
+| owner | P | 8 | defect | The pot's paid/owes list is a boxed grid (17pro/pot-light-large.png). |
+| category | R | 8 | defect | '5.5 of 2' reads oddly (17pro/season-dark-large.png). |
+| owner | R | 7 | defect | The Cup Final race prints "+5" in GAP for the golfer five back and truncates "top seed…" (17pro/season-final-dark-large.png); the pot heads its paid/owes list "WHO IS IN · SIX OF EIGHT", which reads as two golfers not being in the season (17pro/pot-light-large.png); "5.5 of 2" (17pro/season-dark-large.png). |
+| category | E | 7 | content | The ceremony is a real moment, but the season story is two entries (17pro/story-dark-large.png). |
+| craft | E | 7 | content | The ceremony renders only on a fixture (no season has completed), and statically (17pro/season-ceremony-dark-large.png) |
+| owner | E | 8 | content | The ceremony (champion, margin, runner-up, Points King, what you're owed) and the band carry the season; the story has two items across six played weeks (17pro/story-dark-large.png). |
+| category | D | 7 | defect | The minimum paragraph is dense on every season screen. |
+| craft | D | 8 | device-or-human | Right; Captures are first-screen frames only; nothing below the fold of any scrolling page is evidenced |
+| owner | D | 8 | content | Balanced; the season's own photographs would say more than the tick row. |
+| category | M | 7 | defect | The SE3 truncations noted under Sp; AX3 reflows correctly (17pro/season-dark-AX3.png). |
+| craft | M | 8 | device-or-human | Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 8 | defect | AX3 wraps whole (se3/season-light-AX3.png); "top seed…" truncates at the default size. |
+
+### `native/competition`
+
+Means: category 6.3 · craft 7.4 · owner 7.7.
+
+*Category scope:* All eight competition states on both phones, both sizes and both themes, plus the Book flows (17 Pro, large, dark). whenfork has an unanswered read but renders completely. The Race and Totals views of the Book are not captured.
+
+*Craft scope:* Compete (scoreboard/empty/Cup Final), the Book (populated/squads/failed), the intent and when-fork sheets, all eight variants, plus the three Book receipt flows, at 4112a3f0. The 8 whenfork rows flagged 'unanswered requests' render complete.
+
+*Owner scope:* Scoreboard, empty, Cup Final, intent sheet, when-fork, the Book (solo, squads, failed) and the Book receipt flows. §16 at its best: every cell opens its rounds, a dropped round says why ("Outside the best 4 for this calendar month; the round stays in the record"), and the Pro's correction carries its reason ("Posted from the wrong tee on Aug 29; corrected by the Pro").
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 7 | defect | The Scoreboard leads Compete (D381). But during a Cup Final it still leads with another league's regular week while the Final is a list row, 'Cup Final · 3 weeks left' (17pro/compete-final-dark-large.png). |
+| craft | H | 8 | defect | Compete empty offers two eyebrow-sized text doors (START SOMETHING in act, I HAVE A CODE in mut) and no button, over a mostly empty screen (17pro/compete-empty-dark-large.png; CompeteScreen.swift:376 csEyebrow) |
+| owner | H | 8 | defect | In the Cup Final scenario Compete still leads with the other league's regular-season band (WEEK 4 OF 10) and demotes the Cup Final to a row (17pro/compete-final-dark-large.png). |
+| category | T | 7 | defect | At AX3 the Scoreboard breaks the league name mid-word, 'PLACEHOLDE/R SQUADS LEAGUE' (17pro/compete-dark-AX3.png). |
+| craft | T | 7 | defect | The Book prints raw ISO dates, 'Season 2 · 2026-08-21 - 2026-11-19' (SeasonBookPage.swift:86) (17pro/book-dark-large.png, 17pro/book-squads-light-large.png), and an adjustment reads 'Applies to 2026-09' (flows/flow__book-adjustment.png) |
+| owner | T | 8 | defect | The Book grid's totals ("87 pts") are 11pt mono under condensed team names (17pro/book-squads-light-large.png). |
+| category | Sp | 6 | defect | Compete empty is a headline, one sentence and two 11px mono text links over a 65% void (17pro/compete-empty-dark-large.png). The solo Book places each figure right after its name, so the figures sit at different x positions, with 'POINTS' repeated under every one (17pro/book-dark-large.png). |
+| craft | Sp | 7 | defect | At AX3 the scoreboard band breaks the league name mid-word, 'PLACEHOLDE / R SQUADS' (se3/compete-dark-AX3.png, 17pro/compete-light-AX3.png) |
+| owner | Sp | 8 | defect | Empty Compete is a title, a sentence and two quiet mono links over mostly blank ground (17pro/compete-empty-light-large.png). |
+| category | C | 5 | defect | ISO dates in golfer copy: 'Season 2 · 2026-08-21 – 2026-11-19' (17pro/book-dark-large.png, 17pro/book-squads-dark-large.png) and 'Applies to 2026-09' (flows/flow__book-adjustment.png), where the web Book now prints human dates (L-34). 'RIGHT NOW' in the when-fork is ember, but it is an ordinary action (17pro/whenfork-dark-large.png). Compete's title carries the tagline 'ANY TIME. ANYWHERE.' (17pro/compete-dark-large.png). Compete empty offers two doors where the web offers three (L-34). |
+| craft | C | 7 | defect | L-34: the Book's season line differs from the web's formatted dates (17pro/book-dark-large.png) |
+| owner | C | 7 | defect | The Book head prints ISO dates ("Season 2 · 2026-08-21 – 2026-11-19") where the web at 9d84c483 prints human dates (L-34) (17pro/book-dark-large.png); the Cup Final row prints "CUP FINAL · Cup Final · 3 weeks left" (17pro/compete-final-dark-large.png); the when-fork pre-tints its first option "RIGHT NOW" in ember (§16A.6, D359) (17pro/whenfork-light-large.png). |
+| category | B | 8 | defect | The ember Scoreboard with contours and the Book's head are ours. The Book body is a table. |
+| owner | B | 8 | content | The Scoreboard band is proprietary; the Book is a data grid. |
+| category | P | 6 | defect | The solo Book reads unfinished (misaligned figures) and the empty state is a void. |
+| craft | P | 8 | defect | The intent sheet on SE3 clips its last row ('I have a code' is below the sheet edge with no fade) (se3/intent-dark-large.png) |
+| owner | P | 8 | defect | The Book reads as a tool: two segmented controls and a key line before the grid (17pro/book-squads-light-large.png). |
+| category | R | 6 | defect | The solo Book cannot be scanned as a leaderboard (BRIEF §15) (17pro/book-dark-large.png). |
+| craft | R | 7 | defect | ISO dates and the AX3 mid-word break (17pro/book-dark-large.png, se3/compete-dark-AX3.png) |
+| owner | R | 7 | defect | "83 POINTS · 2nd POINTS STANDING · You are 4 back from Team Placeholder" never says the 83 is Team Stub's (17pro/compete-dark-large.png) — the same producer gap as the web. |
+| category | E | 6 | defect | 'You are 4 back from Team Placeholder.' pulls. The Book has no moment in it. |
+| craft | E | 7 | content | Synthetic leagues; the band carries the stakes |
+| owner | E | 8 | content | Empty Compete is blank (17pro/compete-empty-light-large.png); the intent sheet ("What do you want to do?") is warm. |
+| category | D | 6 | defect | The empty state is starved, and the solo Book repeats 'POINTS' four times. |
+| craft | D | 8 | device-or-human | Right; Captures are first-screen frames only; nothing below the fold of any scrolling page is evidenced |
+| owner | D | 8 | defect | Right; the adjustment reads its date as "Applies to 2026-09" (flows/flow__book-adjustment.png). |
+| category | M | 6 | defect | The AX3 mid-word break. At SE3 the squads table scrolls its W4 column off the edge (se3/book-squads-dark-large.png). |
+| craft | M | 6 | defect | AX3 mid-word break and the clipped intent row (se3/compete-dark-AX3.png, se3/intent-dark-large.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 7 | defect | At AX3 on the SE3 the Scoreboard breaks the league name mid-word ("PLACEHOLDE / R SQUADS LEAGUE") (se3/compete-light-AX3.png). |
+
+### `native/events`
+
+Means: category 7.2 · craft 7.9 · owner 8.2.
+
+*Category scope:* Ryder live and complete, the Major, the picker, the missing-event and failed-read states, on both phones, both sizes and both themes. A callout room is not captured.
+
+*Craft scope:* Ryder live/complete, Major live, failed, not-open and the picker, all eight variants, at 4112a3f0. The native title card keeps dark pigments in the light printing, so its glyphs stay legible (the web's does not).
+
+*Owner scope:* Ryder live and complete, a live Major, the picker, not-open and failed rooms, all passes. The picker names things as §4.36 rules ("The Ryder", "A Major"); failure and not-open states each have a way back.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 8 | defect | Title, the two labelled sides, the score and the clinch line all fit the first screen, even on SE3, which is better than the web (se3/event-live-light-large.png). On the Major, the Casey row has no position and its reason is clipped ('doesn't c…') (17pro/event-major-dark-large.png). |
+| owner | H | 8 | defect | At the default size the Ryder's score (4½–3½) sits under the rosters, past the middle of the first screen (17pro/event-live-dark-large.png). |
+| category | T | 8 | defect | Well set. Clash names are clipped ('BLAKE SA…', 'HARPER FA…') (17pro/event-complete-dark-large.png). |
+| craft | T | 8 | defect | Clash and leaderboard sub-lines are 11pt mono caps ('79 gross · 2 cards') (17pro/event-major-dark-large.png) |
+| owner | T | 8 | defect | Roster names are 10–11pt mono under the markers (17pro/event-live-dark-large.png). |
+| category | Sp | 7 | defect | The clipped clash names and the clipped Major reason. |
+| craft | Sp | 7 | defect | At AX3 the rosters row does not wrap: the second side's label and discs are clipped at the right edge ('TE', 'EM') (17pro/event-live-dark-AX3.png, se3/event-complete-dark-AX3.png) - §16.3 says the field rail wraps to two groups |
+| owner | Sp | 8 | defect | Two rosters take the first half of the screen (17pro/event-live-dark-large.png). |
+| category | C | 6 | defect | '1 DAYS LEFT' (17pro/event-major-dark-large.png). 'The 2nd Ryder · Team Placeholder hold the Ryder 1–0 · Team Placeholder hold it' says the holder twice; this is a producer shared with the web (17pro/event-live-dark-large.png). |
+| craft | C | 8 | defect | Roster names truncate on SE3 AX3 ('BLA... AVE... CAS...') (se3/event-major-dark-AX3.png) |
+| owner | C | 8 | defect | "Team Placeholder hold the Ryder 1–0 · Team Placeholder hold it" repeats (17pro/event-live-dark-large.png) — as on the web. |
+| category | B | 8 | content | A tournament graphic: squads, discs, the ember live eyebrow, the score rail. |
+| category | P | 7 | defect | The hero is premium. The clash rows are plain text rows. |
+| craft | P | 8 | defect | Premium title card; the week list below is a plain list (17pro/event-complete-dark-large.png) |
+| owner | P | 8 | content | The picker is plain text rows (17pro/event-picker-light-large.png). |
+| category | R | 7 | defect | Clipped names mean you cannot read who played whom. |
+| craft | R | 8 | defect | At AX3 the second side is clipped (17pro/event-live-dark-AX3.png) and SE3 AX3 roster names truncate to 'BLA... AVE... CAS...' (se3/event-major-dark-AX3.png) |
+| owner | R | 8 | defect | The Major reads "1 DAYS LEFT" and clips a reason ("88 gross · 1 card · doesn't c…") (17pro/event-major-dark-large.png). |
+| category | E | 7 | device-or-human | 'First to 8½. Team Placeholder need 4, Team Stub need 5.' pulls. The score changing is not evidenced in stills. |
+| craft | E | 7 | content | A synthetic Ryder and Major with fixture names and no photograph of the event's course (17pro/event-live-dark-large.png) |
+| category | D | 7 | content | Right. |
+| craft | D | 8 | device-or-human | Right; Captures are first-screen frames only; nothing below the fold of any scrolling page is evidenced |
+| owner | D | 8 | defect | The Major's leaderboard heads a figure column "LIVE NET" without saying what it is measured against (§16A.3) (17pro/event-major-dark-large.png). |
+| category | M | 7 | decision | At AX3 the side roster scrolls sideways by design (CSSideRoster, §7.5), so the second side is cut at the screen edge (17pro/event-live-dark-AX3.png). UI_SYSTEM §16.3 asks for the groups to stack. |
+| craft | M | 7 | defect | AX3 clipping. Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 8 | defect | AX3 wraps whole (se3/event-live-dark-AX3.png); the Major's reason clips (as R). |
+
+### `native/schedule`
+
+Means: category 6.2 · craft 7.2 · owner 7.7.
+
+*Category scope:* Schedule (populated, empty), the plan sheet and the declare sheet, on both phones, both sizes and both themes. RSVP writes and editing a plan are not driven.
+
+*Craft scope:* Schedule (populated/empty), the declare sheet and the plan sheet, all eight variants, at 4112a3f0.
+
+*Owner scope:* Schedule (populated, empty), a planned round and the declare sheet, all passes. Unlike the web, the page has a title and the plan sheet carries weather, the D364 worth line and the course's history.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 6 | defect | The schedule opens on 'IN YOUR CREW'S PLANS' rows and a calendar at one weight. Your own next round is not a hero (17pro/schedule-dark-large.png). The plan sheet is strong (17pro/plan-dark-large.png). |
+| craft | H | 7 | defect | Two eyebrows stack at the head ('YOURS, YOUR BUDDIES', YOUR SEASONS'' over 'IN YOUR CREW'S PLANS') before the first plan (17pro/schedule-dark-large.png) - same as the web |
+| owner | H | 8 | defect | The subtitle "YOURS, YOUR BUDDIES', YOUR SEASONS'" is a possessive pile-up over the plans (17pro/schedule-dark-large.png). |
+| category | T | 6 | defect | Each crew row is five or six lines of mono caps metadata ('WED OCT 7 · SAMPLE LINKS (FIXTURE) · 3:40p · YOU'RE IN'). |
+| craft | T | 7 | defect | At AX3 the plan's name breaks mid-word ('TESTCAS / E') and the declare sheet's label breaks 'OPTIONA / L' (17pro/schedule-dark-AX3.png, 17pro/declare-dark-AX3.png) |
+| owner | T | 8 | defect | Plan rows set the course, time and status in 11pt mono caps (17pro/schedule-dark-large.png). |
+| category | Sp | 7 | defect | At SE3 the rows run five or six lines each (se3/schedule-dark-large.png). |
+| craft | Sp | 7 | defect | At AX3 the declare sheet's 'SET A TEE TIME' link is clipped at the right edge (17pro/declare-dark-AX3.png, 17pro/declare-light-AX3.png) |
+| owner | Sp | 8 | defect | "ON THE SCHEDULE" takes a right-hand column on every row and squeezes the names (17pro/schedule-dark-large.png). |
+| category | C | 6 | defect | 'ON THE SCHEDULE' repeats on every row under a section that already says so. The plan sheet prints '78°' twice (the figure and the weather line) (17pro/plan-dark-large.png). The declare sheet's day is the system date pill (17pro/declare-dark-large.png). |
+| craft | C | 7 | defect | Plan rows' right slot is a state phrase ('ON THE SCHEDULE') in the same place other rows put an action (17pro/schedule-dark-large.png) |
+| owner | C | 7 | defect | The calendar legend says "IN YOUR SEASONS" where A-7 names the crew (17pro/schedule-empty-light-large.png); every row repeats "ON THE SCHEDULE" on the schedule. |
+| category | B | 6 | defect | The calendar and list are utilities. The plan sheet (caps title, figures, weather, the course block) is ours. |
+| craft | B | 8 | defect | The plan sheet's figures-on-a-rule and course leaf are proprietary; the list is plain (17pro/schedule-dark-large.png) |
+| owner | B | 8 | content | A calendar and rows; the plan sheet is where the character is. |
+| category | P | 6 | defect | The list reads like a list app; the plan sheet is premium. |
+| craft | P | 8 | defect | The plan sheet is premium; the crew list is caps meta (17pro/schedule-dark-large.png) |
+| owner | P | 8 | defect | The declare sheet's example values ("Pebble Beach", "buddies trip, looking for a 4th") read like entries (17pro/declare-light-large.png). |
+| category | R | 6 | defect | Walls of caps mono. |
+| craft | R | 7 | defect | At AX3 names break mid-word ('TESTCAS / E') and the tee-time label breaks 'OPTIONA / L' (17pro/schedule-dark-AX3.png, 17pro/declare-dark-AX3.png) |
+| owner | R | 8 | defect | As P: example text reads as chosen values. |
+| category | E | 6 | defect | The plan sheet's '“Walking if the weather holds.”' and the weather pull; the list is flat. |
+| craft | E | 7 | defect | The plan sheet's 5 DAYS OUT / 7:10a / 78° lands; the schedule list does not |
+| owner | E | 8 | content | Weather, the worth line, the note and "You have played here 13 times · best 81" make a plan feel like a round (17pro/plan-dark-large.png). |
+| category | D | 6 | defect | Crew rows are crammed, and the calendar and the list state the same plans. |
+| craft | D | 8 | device-or-human | Right; Captures are first-screen frames only; nothing below the fold of any scrolling page is evidenced |
+| owner | D | 7 | defect | The plan sheet repeats facts: "72 / 130" in the dateline and the course block; "78° HIGH" and "78° Mostly sunny" (17pro/plan-dark-large.png). |
+| category | M | 7 | device-or-human | Fits at both widths; day targets were raised to 44pt (F15). |
+| craft | M | 6 | defect | AX3 clipping and breaks (17pro/declare-dark-AX3.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 7 | defect | At AX3 on the SE3 a plan row breaks a name mid-word ("DEVON / TESTCA / SE") beside the status column (se3/schedule-dark-AX3.png). |
+
+### `native/wizard`
+
+Means: category 6.5 · craft 7.2 · owner 7.6.
+
+*Category scope:* Only the wizard's first step ('Who's playing?') is captured, on both phones, both sizes and both themes. The later steps are not captured (NATIVE-BRIEF), so the review and lock are not evidenced on the phone.
+
+*Craft scope:* Step 1 (who's playing) only, all eight variants, at 4112a3f0. Steps 2-3 and the lock are NOT captured (brief); the row is scored on step 1 alone and says so in H/D.
+
+*Owner scope:* First step only (all passes). The later steps are not captured (NATIVE-BRIEF), so the web's P1/P2 wizard findings (hidden desk review, preset/dial contradiction) cannot be checked on the phone.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 7 | device-or-human | 'WHO'S PLAYING?' with one act NEXT is clear (17pro/wizard-dark-large.png). The later steps are not captured. |
+| craft | H | 8 | device-or-human | Step 1 reads cleanly: head, step dashes, buddies, the text-a-link door, count, NEXT (17pro/wizard-dark-large.png); only step 1 exists |
+| owner | H | 8 | defect | The progress dots under the title are unlabelled (17pro/wizard-dark-large.png); the web names the step (MW-06). |
+| category | T | 7 | defect | Caps title and chips. The count row ('HOW MANY OF YOU?') is small mono. |
+| craft | T | 8 | defect | Count chips (2...12+) are small tiles at agate size (17pro/wizard-dark-large.png) |
+| owner | T | 8 | defect | The count choices (2 3 4 5 6 8 10 12+) are small mono squares (17pro/wizard-dark-large.png). |
+| category | Sp | 6 | defect | The count chips are tight and small. A long buddy name's chip ('MAXIMILIAN PLACEHOLDER-WORTHINGTON') runs off the right edge at SE3 and at AX3 (se3/wizard-dark-large.png, 17pro/wizard-light-AX3.png, se3/wizard-light-AX3.png). |
+| craft | Sp | 7 | defect | The long buddy chip 'MAXIMILIAN PLACEHOLDER-WORTHINGTON' runs to the right edge with no margin on SE3 and is clipped at AX3 ('MAXIMILIAN PLACEHO') (se3/wizard-dark-large.png, 17pro/wizard-light-AX3.png) |
+| owner | Sp | 8 | defect | Buddy chips stack one per line even when short (17pro/wizard-dark-large.png). |
+| category | C | 7 | defect | No count chip is selected while the copy says 'Counting you.' |
+| craft | C | 8 | defect | Two chip sizes on one step: wide name chips for buddies and small square count tiles (2...12+) (17pro/wizard-dark-large.png) |
+| owner | C | 8 | defect | The phone's step rail is unnamed where the web's is named (L-34). |
+| category | B | 6 | defect | A generic setup step. No object shows what season is being made. |
+| craft | B | 7 | defect | No proprietary object on step 1 (17pro/wizard-light-large.png) |
+| owner | B | 7 | content | A form; no object. |
+| category | P | 6 | defect | Form chips. |
+| craft | P | 7 | defect | Step 1 is a tidy stack of bg2 chips with no drawn object (17pro/wizard-light-large.png) |
+| owner | P | 7 | defect | Chips and squares, form-first. |
+| category | R | 7 | defect | Readable. |
+| craft | R | 7 | defect | AX3 clipping of the long name (17pro/wizard-light-AX3.png) |
+| owner | R | 8 | decision | The count omits 7 and 9 without saying why (17pro/wizard-dark-large.png). |
+| category | E | 6 | defect | 'Two is a season. Four opens squads.' is a good line; the step is otherwise settings. |
+| craft | E | 6 | defect | Starting a season has no moment on step 1 (17pro/wizard-dark-large.png) |
+| owner | E | 8 | content | People first is right ("Two is a season. Four opens squads."). |
+| category | D | 7 | content | Right for a first step. |
+| craft | D | 8 | device-or-human | Density is right for step 1; steps 2-3 and the lock are not captured (brief) |
+| owner | D | 8 | device-or-human | Rules, money, review and lock (steps 2–3) are not captured on the phone, so the rules a Pro agrees to are unproven here. |
+| category | M | 6 | defect | The 'HOW MANY OF YOU?' chips measure about 30x28pt, below §16.2's 44pt (17pro/wizard-dark-large.png, se3/wizard-dark-large.png). The long-name chip is cut at the screen edge at SE3 and AX3. |
+| craft | M | 6 | defect | AX3 clipping. Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 6 | defect | Buddy chips run off the right edge at SE3 default size ("MAXIMILIAN PLACEHOLDER-WORTHINGTON") and at AX3 on both phones ("CASEY PLACEHOLDEF", "MAXIMILIAN PLACEH…") (se3/wizard-dark-large.png, 17pro/wizard-light-AX3.png, se3/wizard-light-AX3.png). |
+
+### `native/courses`
+
+Means: category 7.8 · craft 7.6 · owner 7.8.
+
+*Category scope:* The courses list, the course page, the whole card, the course card and the never-kept card, on both phones, both sizes and both themes. course-wholecard has an unanswered read but renders completely. The never-kept card's title, 'A course you have not played', is the dev hatch's label, and identical quotes on different courses are fixture reuse; neither is scored. Rating a course is not driven.
+
+*Craft scope:* Course home, whole card, course card (kept/never) and the course list, all eight variants, at 4112a3f0. The 8 course-wholecard rows flagged 'unanswered requests' render complete.
+
+*Owner scope:* Course home, course page, kept and never-kept cards and the whole card, all passes. The whole card says "AVAILABLE OFFLINE · SAVED TODAY" and "The longest rated 18 — change tees for yours." (D364).
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 8 | defect | The course page leads with a photograph band, the name and the rating figure (17pro/course-dark-large.png). On the course card the drawn yardage bars take the top of the screen above the name (17pro/coursecard-dark-large.png). |
+| craft | H | 8 | content | The course page opens on the grey fixture plate with the round credit and the schedule eyebrow over it (17pro/course-dark-large.png) |
+| owner | H | 8 | defect | The course page leads with a round photograph and the name; the circle's best (D391) is not on the first screen (17pro/course-light-large.png). |
+| category | T | 8 | defect | Strong. Long club names set in caps grow tall at AX3 (se3/coursecard-dark-AX3.png). |
+| craft | T | 8 | defect | Eyebrow over the plate is a two-line caps sentence ('ON YOUR SCHEDULE · SAT OCT 3 · FOUR OF YOURS HAVE PLAYED IT') (17pro/course-dark-large.png) |
+| owner | T | 8 | defect | The whole card's facts line ("72 PAR · 6,640 YDS · 72 RTG · 130 SLOPE") is small inline mono (17pro/course-wholecard-dark-large.png). |
+| category | Sp | 8 | decision | 'AVAILABLE OFFLINE · SAVED TODAY' sits under every card's title (17pro/course-wholecard-dark-large.png). |
+| craft | Sp | 8 | defect | Right; the light printing starts the plate below a cream strip (17pro/course-light-large.png) |
+| owner | Sp | 8 | defect | List rows pack faces, a count line and a chevron tightly (17pro/courses-dark-large.png). |
+| category | C | 7 | defect | The course list shows four faces over '1 friend has played here' (friends_total counts buddies only), while the course page says 'FOUR OF YOURS HAVE PLAYED IT' (17pro/courses-dark-large.png vs 17pro/course-dark-large.png). |
+| craft | C | 8 | defect | Two counts for one fact on adjacent screens: the course list says '1 friend has played here' (17pro/courses-dark-large.png; CourseHomeScreen.swift:172, friends_total) and the course page says 'FOUR OF YOURS HAVE PLAYED IT' (17pro/course-dark-large.png; CourseScreen.swift:549-560, the circle's others) - two populations, two words (may also reflect fixture incoherence) |
+| owner | C | 7 | defect | A course card header draws a yardage bar graphic with no key (17pro/coursecard-dark-large.png) — the encoding D364 removed from plans for that reason; the list says "1 friend has played here" beside four faces (17pro/courses-dark-large.png). |
+| category | B | 8 | content | The photograph band, the drawn yardage bars and the leaves are ours. |
+| owner | B | 8 | content | A round photograph as the course image is right; most courses have none. |
+| category | P | 8 | content | The one photograph is a golfer's round photo, which is right, but this world has no course imagery. |
+| craft | P | 8 | content | The synthetic world has no real photograph: every photo slot renders the grey fixture plate and faces are marker glyphs (17pro/receipt-photo-dark-large.png, 17pro/course-dark-large.png) |
+| owner | P | 8 | content | Plain list rows. |
+| category | R | 8 | content | Readable. |
+| craft | R | 6 | defect | The schedule eyebrow over the photo plate is scrim-mut #CBD2C8 on the plate's #949494 = 1.96:1 (17pro/course-dark-large.png) |
+| owner | R | 7 | defect | As C (the friend count vs the faces); "best 81" on the plan has no path to its round (17pro/plan-dark-large.png). |
+| category | E | 7 | content | The quotes and the buddies' rating pull. |
+| craft | E | 6 | content | No photograph of a course (17pro/coursecard-dark-large.png) |
+| owner | E | 8 | content | Buddies' notes ("The best par fives in Fixtureville.") are warm. |
+| category | D | 8 | content | Right. |
+| craft | D | 8 | device-or-human | Right; Captures are first-screen frames only; nothing below the fold of any scrolling page is evidenced |
+| owner | D | 8 | content | Right; "No rounds from your circle here yet." on a course you have not played is honest (17pro/coursecard-never-light-large.png). |
+| category | M | 8 | device-or-human | The leaves fit at both widths and AX3 grows the page. |
+| craft | M | 7 | defect | The eyebrow contrast (17pro/course-dark-large.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 8 | defect | AX3 wraps whole (se3/course-light-AX3.png). |
+
+### `native/settings`
+
+Means: category 6.9 · craft 7.6 · owner 7.8.
+
+*Category scope:* Card & settings, the 'Your card' tab only, on both phones, both sizes and both themes. The Settings tab, notifications and account deletion are not captured.
+
+*Craft scope:* Card & settings, the Your card tab only, all eight variants, at 4112a3f0. The Settings tab (notifications, appearance, delete) is not captured.
+
+*Owner scope:* Card & settings, Your card tab only, all passes.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 7 | defect | Tabs, fields and the marker grid at even weight. The Save/Done action is not on the first screen (17pro/settings-dark-large.png). |
+| craft | H | 8 | device-or-human | Only the Your card tab is captured (17pro/settings-dark-large.png) |
+| owner | H | 8 | defect | "WHAT YOUR BUDDIES SEE" leads the Your card tab, but the card itself is not previewed (17pro/settings-light-large.png). |
+| category | T | 7 | defect | Mono caps labels over sans fields; plain. |
+| craft | T | 8 | defect | Two title voices on one sheet: the sans nav title 'Card & settings' and the caps head 'WHAT YOUR BUDDIES SEE' (17pro/settings-dark-large.png) |
+| owner | T | 8 | defect | Field labels are 11pt tracked caps (17pro/settings-light-large.png). |
+| category | Sp | 8 | defect | Tidy. The home-course field truncates 'North Grove (fixtu…'. |
+| craft | Sp | 8 | device-or-human | Only the Your card tab is captured; the Settings tab's rows, switches and delete confirm are not evidenced (17pro/settings-dark-large.png) |
+| owner | Sp | 8 | defect | Even stacking; nothing separates identity from app settings but the tab. |
+| category | C | 7 | defect | The marker grid has one clear selection (an inverse tile), which is better than the web. The field truncation noted under Sp. |
+| craft | C | 8 | device-or-human | Consistent within the card tab; parity with the web's text-button toggles cannot be judged because the Settings tab is not captured |
+| owner | C | 8 | defect | The marker is defined in a second wording here ("Your icon on the board and in the standings — add a photo and it rides in the corner of your card.") beside the card gate's canon sentence (TERMINOLOGY #10) (17pro/settings-light-large.png vs 17pro/cardgate-dark-large.png). |
+| category | B | 6 | decision | Settings. The marker grid is the only proprietary element. |
+| craft | B | 8 | decision | The marker grid is proprietary; the rest is a form |
+| owner | B | 8 | content | The marker grid is the brand's; the rest is a form. |
+| category | P | 6 | decision | Boxed fields. |
+| craft | P | 7 | defect | A form in a sheet (17pro/settings-light-large.png) |
+| owner | P | 8 | content | Clean. |
+| category | R | 8 | content | Readable. |
+| craft | R | 8 | defect | At AX3 'North Grove (fixt...' truncates in its field (17pro/settings-dark-AX3.png) |
+| owner | R | 8 | device-or-human | The Settings tab (notifications, findable, sign out, delete) is not captured on the phone. |
+| category | E | 5 | decision | Low by nature; the marker picker is the fun part. |
+| craft | E | 6 | decision | Utility surface: nothing to feel beyond the marker grid (17pro/settings-dark-large.png) |
+| owner | E | 7 | content | A settings surface. |
+| category | D | 7 | content | Right. |
+| craft | D | 8 | device-or-human | Only one of two tabs is captured (17pro/settings-dark-large.png) |
+| owner | D | 8 | content | Right. |
+| category | M | 8 | device-or-human | Fits, with 44pt targets. The Settings tab (notifications, appearance, sign out) is not captured. |
+| craft | M | 7 | device-or-human | The destructive and notification controls are not captured. Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 7 | defect | The home course field truncates ("North Grove (fixtu…") at the default size and at AX3 (17pro/settings-light-large.png, se3/settings-dark-AX3.png). |
+
+### `native/play`
+
+Means: category 6.7 · craft 7.5 · owner 7.5.
+
+*Category scope:* Live setup on both phones, both sizes and both themes, plus the finish-sheet flow (17 Pro, large, dark). The live scoring rows are not captured in the matrix (NATIVE-BRIEF). The recap flow is from 72e76e3a and is cited only as context, not scored.
+
+*Craft scope:* Live setup (all eight variants) and the live-finish sheet flow at 4112a3f0. Live scoring states are NOT captured in the matrix; flow__live-recap--at-72e76e3a.png is from an earlier SHA and caught mid-transition, so it was not scored. Noted, not scored (no capture): LiveRoundHost is presented as a fullScreenCover with no toast host of its own under CupSeason/Live, the same structure that hides the composer's failure toast (native/post P1) - verify live-scoring toasts on a device.
+
+*Owner scope:* Setup (all passes) and the finish sheet flow. The scoring rows are not captured (NATIVE-BRIEF); the recap flow is from 72e76e3a and not attributed to 4112a3f0.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 7 | device-or-human | Setup is a clear form ending in one act TEE OFF (17pro/live-setup-dark-large.png). The finish sheet says exactly what happens ('Every complete card posts to its golfer, vouched by the group…') (flows/flow__live-finish-sheet.png). The scoring screen itself is not captured. |
+| craft | H | 8 | device-or-human | Setup reads in order and TEE OFF is the one primary; only setup is captured (17pro/live-setup-dark-large.png) |
+| owner | H | 8 | defect | Setup leads with "Score on this phone" (a toggle) above the course (17pro/live-setup-light-large.png). |
+| category | T | 7 | defect | Fine. The tee/rating/slope labels are small mono. |
+| craft | T | 8 | defect | Section heads are mono caps ('TEE & RATING — OFF THE SCORECARD') (17pro/live-setup-dark-large.png) |
+| owner | T | 8 | defect | Tee, rating and slope labels are small caps. |
+| category | Sp | 7 | defect | Setup is a run of boxed fields. |
+| craft | Sp | 8 | defect | On SE3 at default size the pinned TEE OFF footer puts THE GROUP (who is playing) below the fold of the first screen (se3/live-setup-dark-large.png) |
+| owner | Sp | 8 | defect | The finish sheet sits over half-visible scoring rows (flows/flow__live-finish-sheet.png). |
+| category | C | 7 | defect | It is not clear what the 'Score on this phone' toggle (off by default) changes (17pro/live-setup-dark-large.png). |
+| craft | C | 8 | defect | The 18/9 HOLES control is an underline tab while the schedule's game picker is filled chips (17pro/live-setup-dark-large.png vs 17pro/declare-dark-AX3.png) |
+| owner | C | 7 | defect | Setup labels the golfer's index "12.4 PLAYING HCP" where the web's setup prints "14.2 NUMBER" (L-34) (17pro/live-setup-light-large.png vs play--setup-filled--375--dark.png). |
+| category | B | 6 | defect | The setup form is generic. The finish sheet's match line ('MATCH PLAY · NET BEST BALL · ALL SQUARE · THRU 14') is ours. |
+| craft | B | 7 | defect | Setup carries no drawn object (17pro/live-setup-light-large.png) |
+| owner | B | 7 | content | Functional live chrome. |
+| category | P | 6 | defect | A settings-like setup. |
+| craft | P | 7 | defect | Setup is a stack of form fields with no drawn object (17pro/live-setup-light-large.png) |
+| owner | P | 8 | defect | The finish sheet is crafted; setup is a form. |
+| category | R | 7 | device-or-human | Readable. Outdoor legibility is device evidence. |
+| craft | R | 8 | defect | The par-72 explanation is a two-line bodyS paragraph in mut between the hole toggle and 'Enter the pars' (17pro/live-setup-dark-large.png) |
+| owner | R | 7 | defect | "Score on this phone" has no explanation at first contact (17pro/live-setup-light-large.png); finish-sheet rows truncate ("62 THRU…") (flows/flow__live-finish-sheet.png). |
+| category | E | 6 | device-or-human | The live moment is not in the matrix. The recap takeover exists only at an earlier SHA (flows/flow__live-recap--at-72e76e3a.png, where the text is clipped at the left edge), so it is not scored. |
+| craft | E | 6 | device-or-human | Scoring, the moment itself, is not captured; the live-finish sheet is (flows/flow__live-finish-sheet.png) |
+| owner | E | 7 | device-or-human | The finish sheet states consequences well; the recap is evidenced only at an earlier SHA (flows/flow__live-recap--at-72e76e3a.png). |
+| category | D | 7 | content | Right. |
+| craft | D | 8 | device-or-human | Setup density is right; scoring density is not captured |
+| owner | D | 8 | content | Right. |
+| category | M | 7 | device-or-human | The steppers behind the finish sheet are about 44pt. The setup fits SE3 at AX3 (se3/live-setup-dark-AX3.png). |
+| craft | M | 7 | device-or-human | Live scoring - the on-course touch surface - is not in the matrix; the finish flow shows steppers only behind a sheet (flows/flow__live-finish-sheet.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 7 | device-or-human | Live scoring (holes, steppers, sync, match, skins) is not captured in the matrix. |
+
+### `native/rules`
+
+Means: category 7.3 · craft 7.8 · owner 7.8.
+
+*Category scope:* Rules on both phones, both sizes and both themes. The two 17 Pro large-text captures are mid-push frames: the season page is still sliding out and the rules text is cut at the right edge (17pro/rules-dark-large.png, 17pro/rules-light-large.png). That is a capture-timing artifact of a route with an unanswered read. Every AX3 and SE3 capture renders cleanly, so no defect is counted.
+
+*Craft scope:* The rules page, all eight variants, at 4112a3f0. The 8 rows flagged 'unanswered requests' render the page; the two 17 Pro large frames are mid-transition, so SE3 and AX3 frames carry the score.
+
+*Owner scope:* The rules page, all passes (flagged for unanswered requests; all eight render). The sentences match the web's rules producers.
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 8 | content | Rules come first: a serif title, the span, then question heads with answers (se3/rules-light-large.png). This is better than the web, which opens on admin cards. |
+| craft | H | 8 | defect | Two serif blocks at the head - the bold title and a mut serif standfirst at nearly the same size (se3/rules-light-large.png, 17pro/rules-dark-AX3.png); UI_SYSTEM 1.4 allows one |
+| owner | H | 8 | defect | A title and a serif summary lead; each rule is a mono head and a paragraph (se3/rules-light-large.png). |
+| category | T | 8 | defect | The question heads are 11px tracked mono. |
+| craft | T | 8 | defect | Mono caps labels (HOW IT SCORES) over sans answers (se3/rules-light-large.png) |
+| owner | T | 8 | defect | Rule heads are 11pt tracked mono. |
+| category | Sp | 8 | content | Tidy. |
+| craft | Sp | 8 | defect | Q/A pairs sit close with no rule between them, so the answers run together as one column (se3/rules-light-large.png) |
+| owner | Sp | 8 | defect | Paragraphs run long without breaks. |
+| category | C | 7 | defect | The sentences come from the shared producers, but the minimum line differs from the web ('best 4' vs 'best four') (L-34). |
+| craft | C | 8 | defect | Rule labels are mono caps ('HOW IT SCORES') where Home's and Compete's section heads are board caps ('THIS WEEK') (se3/rules-light-large.png vs 17pro/home-populated-dark-large.png) |
+| owner | C | 8 | defect | "The top 2 golfers" here, "The top two golfers" in the covenant (se3/rules-light-large.png vs 17pro/invite-signedin-dark-large.png). |
+| category | B | 6 | defect | Rules in the product's voice; no object. |
+| craft | B | 7 | defect | A text page with no drawn object or mark beyond the serif title (se3/rules-light-large.png) |
+| owner | B | 7 | content | Rules in the voice; no object. |
+| category | P | 7 | decision | A well-set text page. |
+| craft | P | 8 | defect | Money and splits sit as plain words inside sentences ('$40 each, $320 in the pot. Sixty percent...') rather than as figure runs (17pro/rules-dark-large.png) |
+| owner | P | 8 | content | Plain, well set. |
+| owner | R | 8 | defect | The endgame paragraph folds three rules into one ("scored fresh, so the weeks before it decide who is in, not who wins. Level on points? Months won breaks it."). |
+| category | E | 5 | decision | It is a rules page. |
+| craft | E | 6 | decision | A rules page; the genre caps the feeling (se3/rules-light-large.png) |
+| owner | E | 7 | content | A rules page. |
+| category | D | 7 | content | Right. |
+| craft | D | 8 | defect | The rules restate the season dates and the pot the season page already shows (17pro/rules-dark-AX3.png) |
+| owner | D | 8 | content | Right. |
+| category | M | 8 | device-or-human | Fits, and grows cleanly at AX3 (17pro/rules-dark-AX3.png). |
+| craft | M | 8 | device-or-human | The two 17 Pro large frames caught the push transition mid-slide (17pro/rules-dark-large.png, 17pro/rules-light-large.png) - a capture-timing artifact. Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 8 | device-or-human | AX3 wraps whole; the two 17 Pro large captures were taken mid-push (17pro/rules-dark-large.png, 17pro/rules-light-large.png). |
+
+### `native/widgets`
+
+Means: category 7.7 · craft 7.6 · owner 7.9.
+
+*Category scope:* The in-app widget and Live Activity review pages (synthetic records from the app's own producers), on both phones, both sizes and both themes. The real Home Screen, Lock Screen and Dynamic Island are not captured.
+
+*Craft scope:* The four home widgets, the empty widget and three Live Activity states, all eight variants, at 4112a3f0 - rendered by the in-app review harness, not by WidgetKit on the system surfaces.
+
+*Owner scope:* Four widgets (populated, empty) and the Live Activity (long, missed, closed), as in-app review renders. Staleness is stated ("AS OF 5:59 PM"); the missed hole says "Hole 2 · not entered".
+
+
+| Judge | Dim | Score | Kind | What stands between it and 10 |
+|---|---|---:|---|---|
+| category | H | 8 | defect | The Race, Next Tee, Record and Rivalry widgets each lead with their figure. The small Race widget clips '10 back of Blake Samp…' and Next Tee clips 'NORTH GROVE (FI…' (17pro/widget-CSSeasonWidget-dark-large.png, 17pro/widget-CSNextTeeWidget-dark-large.png). |
+| craft | H | 8 | defect | Each widget leads with its figure, but the Season widget's serif line '10 back of Blake Sample.' competes with the rail (17pro/widget-CSSeasonWidget-dark-large.png) |
+| owner | H | 8 | defect | The Race widget's large size puts "10 back of Blake Sample." after the table (17pro/widget-CSSeasonWidget-dark-large.png). |
+| category | T | 8 | defect | Well set: figures, the leaf, the serif lines. |
+| craft | T | 8 | defect | Small widgets set sub-lines at agate with 'AS OF 5:59 PM' stamps that dominate the foot (17pro/widget-CSRecordWidget-light-large.png) |
+| owner | T | 8 | defect | Serif, sans and mono mix inside small widgets. |
+| category | Sp | 8 | content | Tidy. |
+| craft | Sp | 7 | defect | At AX3 every widget collapses to truncated text: '81 · 18 h...', 'North Grove...', 'AS OF 6:3...', 'Open to refre...' (17pro/widget-CSRecordWidget-dark-AX3.png, 17pro/widget-CSSeasonWidget-dark-AX3.png, 17pro/widget-empty-dark-AX3.png) |
+| owner | Sp | 8 | defect | The small widgets are dense. |
+| category | C | 6 | defect | The Record widget says 'Personal best · 81' (the best round against the course) while the record page says 'The best of them a 79' and prints '79 BEST' (17pro/widget-CSRecordWidget-dark-large.png vs 17pro/record-dark-large.png). One noun names two different figures. |
+| craft | C | 8 | device-or-human | Shown only in an in-app review harness, so consistency with the system surfaces (margins, corner radius, tinted and clear modes) is not evidenced (17pro/widget-CSRecordWidget-light-large.png) |
+| owner | C | 8 | defect | The Next Tee widget prints "7:10 AM" where the app prints "7:10a" (17pro/widget-CSNextTeeWidget-dark-large.png vs 17pro/plan-dark-large.png). |
+| category | B | 8 | content | Ours: the leaf, the figures, the ember Next in the Live Activity. |
+| owner | B | 8 | content | Type and ground carry it; no mark. |
+| category | P | 8 | device-or-human | Made. They are shown on a review page, not the Home Screen. |
+| craft | P | 8 | defect | Premium at default size; at AX3 every widget degrades to truncated text (17pro/widget-CSRecordWidget-dark-AX3.png) |
+| owner | P | 8 | device-or-human | These are in-app review renders; system chrome, Lock Screen and StandBy rendering are unproven. |
+| category | R | 8 | device-or-human | Readable at the review size. |
+| craft | R | 7 | defect | At AX3 lines truncate mid-word ('81 · 18 h...', 'AS OF 6:3...') (17pro/widget-CSRecordWidget-dark-AX3.png) |
+| owner | R | 8 | defect | The empty Race widget tells a brand-new golfer to "Open Cup Season to catch up." (17pro/widget-empty-dark-large.png). |
+| category | E | 7 | content | The Live Activity's hole-by-hole '1 up' with steppers pulls. The widgets are informational. |
+| craft | E | 7 | content | Synthetic records and no round photograph in any widget (17pro/widget-CSRecordWidget-dark-large.png) |
+| owner | E | 8 | content | "A round to keep · Personal best" and "Casey took the last one." are memory. |
+| category | D | 8 | content | Right. |
+| craft | D | 8 | defect | An 'AS OF' stamp sits on every widget at every size, fresh or not (17pro/widget-CSRivalryWidget-dark-large.png) |
+| owner | D | 8 | content | Right; the Rivalry widget names its basis ("Weekly clashes · All time"), which the web's rivalry rows do not. |
+| category | M | 8 | device-or-human | AX3 captured on the review pages. |
+| craft | M | 6 | device-or-human | These are an in-app review harness ('Native widget review · synthetic records from the app's own producer'), not the Home Screen, Lock Screen or Dynamic Island; the Live Activity controls are drawn in-app (17pro/island-closed-dark-large.png). Rest frames only: no tap, scroll, keyboard, VoiceOver or thumb pass on a device (HUMAN.md D1-D13) |
+| owner | M | 7 | defect | Small sizes truncate names ("10 back of Blake Samp…", "NORTH GROVE (FI…") (17pro/widget-CSSeasonWidget-dark-large.png, 17pro/widget-CSNextTeeWidget-dark-large.png); real Home Screen rendering is not captured. |

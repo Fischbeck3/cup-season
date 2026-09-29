@@ -71,6 +71,8 @@ These block work in flight or define the gate.
 | Q26 | "YOUR MOMENTS" or "MATCHES & WEEKENDS" | decision | YOUR MOMENTS; close the conflict in writing | any time |
 | Q27 | The league's name when a Pro resumes setup | decision | Prefill it, editable | freeze |
 | Q28 | Wizard presets; the desk's empty Compete | decision | Keep W5's dials; leave empty Compete with its one door | after launch |
+| Q29 | At AX3 the Ryder room's side roster scrolls sideways | defect (recorded) | Stack the sides (§16.3), in lane N4 | no ruling needed |
+| Q30 | A chasing golfer's lead door | decision | "Add my round", with Q10's and Q4's ranker work | after launch |
 
 "freeze" means before the Sep 30 visual freeze, because the answer changes words or layout on both clients.
 
@@ -477,7 +479,7 @@ Rows 1–4 and 6–9 are client copy for the web (root/W6) and N4. Row 5 is a mi
 
 ## C · Found in the round-1 evidence, or forwarded by the lanes
 
-These are the panel's `decision` cells (32 of the 649 below 9) and the questions lanes W2–W5, session B and N2 forwarded through root. LANE-BRIEF tells every lane to list a decision rather than make it.
+These are the panel's `decision` cells: 32 of the 649 web cells below 9, and the native half's 15 (root, 2026-09-28), which mostly repeat web questions and add Q29 and Q30. They also include the questions lanes W2–W5, session B and N2 forwarded through root. LANE-BRIEF tells every lane to list a decision rather than make it.
 
 ### Q6 · The Door's proof: does the phone Door carry a specimen too?
 **Status.** The defect is fixed. W4's `2bc71749` (merged at `b8a61266`) turned the desk wings into labelled examples: "How a round reads", "How a season reads", an example-season foot. They stand down on a link landing, with no retired spine and no ember points. What is left is a design choice for the phone.
@@ -977,7 +979,32 @@ None needs a migration.
 - **Presets: (c) for Oct 1, with (b) as the next wizard entry.** W5 has just rebuilt step 2. A live preview is the most persuasive of the three and invents nothing, but it is new work on both clients.
 - **Empty Compete: (a) for Oct 1.** One door is the ruled empty state, and an example object would be the second authored specimen in the product.
 
+**Also from the native half:** the phone wizard's count omits 7 and 9 without saying why (owner native wizard R 8, "a stepper, or say what the counts mean", `17pro/wizard-dark-large.png`). Recommendation: say what the counts mean. That is a copy line on the phone, and it needs no ruling.
+
 **Blocked until ruled:** the wizard's P and E cells; competition E.
+
+### Q29 · At AX3 the Ryder room's side roster scrolls sideways (a defect; recorded)
+**Status: a defect against UI_SYSTEM §16.3 for lane N4. No ruling is needed unless the owner prefers the scroll.**
+
+At accessibility sizes the phone's `CSSideRoster` (the two named groups of UI_SYSTEM §15.5a) scrolls sideways, so the second side is cut at the screen edge (category native events M 7, `17pro/event-live-dark-AX3.png`). The judge's change: "Stack the two sides at accessibility sizes (§16.3) instead of scrolling". §16.3 is the AX3 table, "stated as layouts". Its rule for comparable objects is that the object grows the page and "never scrolls inside itself". The web has no side roster at AX3; its twin is the desk's roster table.
+
+### Q30 · When the golfer is chasing, which door does the lead offer?
+**The question.** On the phone's populated Home, the lead says "… and you are the one closing" and "ten back with seven weeks left", but its one door is "Open the season". Should a chasing golfer's lead offer "Add my round", with the season one row down?
+
+**Evidence.**
+- Owner judge, native home H 8 (decision): "When the golfer is chasing, the lead's door is 'Add my round'; the season stays one row down" (`17pro/home-populated-dark-large.png`).
+- The lead's action text and route come with the served `home_dispatch` item, on both clients. The phone's fallback producers use "Open the season" for season items (`HomeFallbackItems.swift`).
+
+**Canon.** D176 and D216 (the lead card's rungs, and whose door it is); D234 (the server ranks Home for both clients); the brand-new Home's one primary is "Add my round" (W3's ffdcd6b4).
+
+**Options.**
+- **(a) Keep "Open the season".**
+- **(b) The chasing item's door becomes "Add my round".** This is `home_dispatch`'s action for that item, so it is a migration, and both clients follow.
+- **(c) A client-side override** of the served action. This splits the producer, which D234 argues against.
+
+**Recommendation: (b), with Q10's and Q4's ranker changes after launch.** All three touch `home_dispatch`, and they should be one migration and one decision entry.
+
+**Blocked until ruled:** the owner native home H cell.
 
 ## D · Owner actions owed (not questions)
 
