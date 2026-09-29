@@ -65,6 +65,17 @@ const fixture = (id) => { const st = FIX.states.find((s) => s.id === id); if (!s
 const HOME_STATE_IDS = ['brand_new', 'rounds_no_buddies', 'buddies_no_competition', 'event_ahead', 'event_live', 'between_seasons',
   'ceremony_night', 'inactive', 'invited', 'callout_pending', 'preseason', 'round_morning', 'round_evening', 'after_golf', 'after_golf_wire']
 
+/* TEN / W7-011 [B2-home-2] · the strip's LAST stands down while the wire
+   carries the viewer's own newest round anywhere, not only as its first row
+   (a buddy's round posted since put LAST back beside the same card). Inert
+   when that round is not in the wire. */
+const lastOnce = (page) => page.evaluate(() => {
+  const last = window.career && (window.career.recent || [])[0]
+  if (!last || !(window.homeFeedRows || []).some((r) => r && r.is_me && r.round_id === last.id)) return true
+  const seen = (el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(el).visibility !== 'hidden' }
+  const row = [...document.querySelectorAll('#sideMe [data-mego="my_last_round"], #homeMe [data-mego="my_last_round"]')].filter(seen)
+  return row.length ? 'the strip prints LAST beside the wire’s card for the same round' : true
+})
 /* the ME strip: #homeMe below desk width, #sideMe in the sidebar at desk width */
 const meStripShown = (page) => page.evaluate(() => {
   const vis = (el) => { if (!el) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden' }
@@ -147,7 +158,7 @@ const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
     world: { flags: { homeState: id } },
     drive: homePainted,
     expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => ex), meStripShown),
+    check: all(arrangementCheck(() => ex), meStripShown, lastOnce),
   }
 })
 

@@ -22522,11 +22522,14 @@ function csMeStrip(){
   /* 2 - LAST. The gross and the day; an older round says its date instead.
      "days since" is never printed - that is the shame line L-22 forbids. */
   const lastR = window.career && (window.career.recent||[])[0];
-  /* L-34 · ONE FACT, ONE PLACE: when the feed already LEADS with this very
-     round (the newest row, and it is mine), the strip's LAST stands down */
-  const feedLead = (!state.demo && (window.homeFeedRows||[])[0]) || null;
-  const feedLeadsWithIt = !!(lastR && feedLead && feedLead.is_me && feedLead.round_id === lastR.id);
-  if(feedLeadsWithIt){ /* said by the feed card */ }
+  /* L-34 · ONE FACT, ONE PLACE: when the feed already carries this very
+     round (mine), the strip's LAST stands down. TEN / W7-011 [B2-home-2] ·
+     anywhere in the wire, not only as its first row: a buddy's round posted
+     since put LAST back ("Last round · 84") beside the same card ("You ·
+     Sep 27 · 84 GROSS"). */
+  const feedRows = (!state.demo && window.homeFeedRows) || [];
+  const feedHasIt = !!(lastR && feedRows.some(r => r && r.is_me && r.round_id === lastR.id));
+  if(feedHasIt){ /* said by the feed card */ }
   else if(lastR && lastR.gross != null && lastR.played_on){
     /* TEN / W6 · the parts ride with the value (`fig`, `on`), so the desk's
        dated row never re-splits a string; `csRailCell` still splits `value`
