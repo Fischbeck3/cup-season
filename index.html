@@ -2061,6 +2061,7 @@ body.guestlive #onboard{display:none !important;}
              font-variant-numeric:tabular-nums; color:var(--ceremony-ink);}
 .evside .fig sup{font-size:.56em; vertical-align:.34em; font-weight:700;}
 .evside .fig.won{color:var(--ceremony-gold);}
+@media (min-width:900px){ .evside .fig{font-size:64px;} }
 .evside.b .fig{text-align:right;}
 /* §16.1 · the plate is a ceremony object: every token resolves to its DARK
    value inside it, the pigments too. In the light printing the discs took the
@@ -2132,7 +2133,7 @@ body.guestlive #onboard{display:none !important;}
 }
 .evclash .d{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
             font-size:14px; flex:none;}
-@media (min-width:900px){ .evcard h1{font-size:52px;} .evside .fig{font-size:64px;} }
+@media (min-width:900px){ .evcard h1{font-size:52px;} .evrail .fig{font-size:64px;} }
 /* notifications banner — pending invites, act in line */
 #notifBanner:not(:empty){margin-bottom:12px; display:flex; flex-direction:column; gap:8px;}
 .notifrow{display:flex; align-items:center; gap:10px; padding:11px 13px; border-radius:12px;
@@ -4527,13 +4528,6 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .sv-round .sv-signoff { margin-bottom:var(--s5); color:var(--mut); }
 .sv-round .sv-action { display:block; padding:var(--s3) var(--s4); min-height:44px; background:var(--act); color:var(--bg0); border-radius:var(--rc); text-align:center; text-decoration:none; }
 .sv-round .sv-action:focus-visible { outline:3px solid var(--ink); outline-offset:4px; }
-/* the plan landing rides the public round's shell (2026-09-28): a lead
-   sentence, who is in, one line of what this is, and the way in over its
-   consent line */
-.sv-plan .cs-lead { margin-top:var(--s3); overflow-wrap:anywhere; text-wrap:balance; }
-.sv-plan .sv-who { color:var(--ink); margin-top:var(--s4); }
-.sv-plan .sv-what { color:var(--mut); margin-top:var(--s3); }
-.sv-plan .sv-consent { color:var(--mut); margin-top:var(--s3); }
 
 /* D391 · the round's conversation, the inbox and the course's circle. Rules and
    spacing only — no new container shape, no colour outside the tokens. */
@@ -33847,38 +33841,21 @@ async function renderShareView(tok, _testInfo){
        takes a name from the database). */
     const venue = String(info.course || '').split(' — ')[0] || 'the course';
     document.title = `Golf at ${venue} — Cup Season`;
-    /* THE PUBLIC ROUND'S OWN SHELL (critique-B P3, owner C, category C): the
-       page's tokens in both printings instead of a fixed dark palette, the
-       pennant signing it (D358), and the day in `mut` — a planned round is not
-       a live competition, so ember (D359) and its border go. The time is the
-       app's one format, "8:10a" (it printed the raw "08:10" here). */
-    wrap.classList.add('sv-round', 'sv-plan');
-    wrap.style.background = 'var(--bg0)'; wrap.style.color = 'var(--ink)';
-    const page = wrap.firstElementChild;
-    page.className = 'sv-page'; page.removeAttribute('style');
-    const signature = page.firstElementChild;
-    signature.className = 'sv-signature'; signature.removeAttribute('style');
-    signature.innerHTML = `<svg viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="${CS_MARK_PATH_A}"/><path d="${CS_MARK_PATH_B}"/></svg>
-      <span class="cs-name">Cup Season</span><span class="cs-agate-s">A round on</span>`;
-    card.removeAttribute('style'); card.setAttribute('role', 'article');
-    card.setAttribute('aria-label', 'A planned round');
+    card.style.borderColor = 'rgba(255,90,46,.38)';
     const who = (info.who || []);
     /* a name is singular, a list takes "and" — the same conjugation bug that
        produced "Alex lead by 4" on the season page */
     const whoTxt = who.length <= 1 ? who.join('')
                  : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
-    const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(info.play_on || ''));
-    const dd = dm ? new Date(+dm[1], +dm[2] - 1, +dm[3]) : null;   /* manual parse — the UTC landmine */
-    const day = dd ? `${DOW[dd.getDay()]} ${MOS[dd.getMonth()]} ${dd.getDate()}` : '';
-    const tee = info.tee ? fmtTee(info.tee) : '';
     card.innerHTML = `
-      <p class="sv-date cs-agate">${esc([day, tee].filter(Boolean).join(' \u00b7 '))}</p>
-      <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
-      <p class="sv-who cs-body-s">${who.length ? `${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.` : `Just ${esc(info.host)} so far.`}</p>
-      <p class="sv-what cs-body-s">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</p>`;
-    foot.removeAttribute('style');
-    foot.innerHTML = `<a class="sv-action cs-name" href="/">Take the seat</a>
-      <p class="sv-consent cs-body-s">Sign in and you’ll be asked first. The seat, and a buddy request to ${esc(info.host)}, wait for your yes.</p>`;
+      <div style="color:${C.hot};letter-spacing:.2em;font-size:12px;font-weight:600;font-family:${MONO}">${esc(fmtD(info.play_on))}${info.tee ? ' · ' + esc(info.tee) : ''}</div>
+      <div style="font-family:${SERIF};font-size:26px;line-height:1.35;margin:16px 6px 4px">${esc(info.host)} has a round on at ${esc(venue)}.</div>
+      ${who.length
+        ? `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">${esc(whoTxt)} ${who.length === 1 ? 'is' : 'are'} in.</div>`
+        : `<div style="color:${C.mut};font-size:13px;line-height:1.6;margin-top:12px">Just ${esc(info.host)} so far.</div>`}
+      <div style="color:${C.mut};font-size:12.5px;line-height:1.6;margin-top:16px">Cup Season keeps score for a group of friends — every round, against everyone&rsquo;s playing HCP.</div>`;
+    foot.innerHTML = `<a href="/" style="display:block;background:${C.act};color:${C.bg};text-decoration:none;border-radius:12px;padding:14px 12px;font-weight:600;letter-spacing:.04em">Take the seat</a>
+      <div style="color:${C.mut};font-size:11.5px;line-height:1.6;margin-top:12px">Sign in and you’ll be asked first. The seat, and a buddy request to ${esc(info.host)}, wait for your yes.</div>`;
 
   } else if(info.kind === 'recap'){
     /* "— the season" is a section header, not news. The champion is the news;
