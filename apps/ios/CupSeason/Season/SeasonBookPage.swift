@@ -199,6 +199,7 @@ struct SeasonBookPage: View {
           }
         }
       }
+      .accessibilityIdentifier("seasonBook.grid")
       .onAppear {
         guard book.current_week > 0 else { return }
         proxy.scrollTo("book.week.\(book.current_week)", anchor: .center)

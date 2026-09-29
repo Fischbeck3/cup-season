@@ -249,7 +249,10 @@ final class SyntheticRouteTests: XCTestCase {
     XCTAssertTrue(app.staticTexts["seasonBook.title"].waitForExistence(timeout: 15))
     let cells = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND isEnabled == true", "seasonBook.cell."))
     XCTAssertTrue(cells.firstMatch.waitForExistence(timeout: 10))
-    cells.firstMatch.tap()
+    // the grid opens on its week (W5): a cell already on screen, else the first
+    let cell = cells.allElementsBoundByIndex.first(where: \.isHittable) ?? cells.firstMatch
+    app.revealBookCell(cell)
+    cell.tap()
     XCTAssertTrue(app.staticTexts["seasonBook.receipt.total"].waitForExistence(timeout: 10))
     attach(app, "flow__book-cell-receipts")
     let round = app.buttons["Open the round’s receipt"].firstMatch
