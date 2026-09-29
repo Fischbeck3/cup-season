@@ -113,4 +113,21 @@ final class N4SheetsUITests: N2UITestCase {
                    "left alone, it disarms")
     app.terminate()
   }
+
+  /// N4-042 · at AX3 the pinned actions sheared the claim's deciding fact
+  /// ("Scored as Quinn · Sat, Sep 26"). At the accessibility sizes they follow
+  /// the facts in the scroll: the facts line is above them, whole.
+  @MainActor func testAtAX3TheClaimsFactsComeBeforeItsActions() {
+    let app = launch("season-live", "claim", size: "AX3")
+    _ = root(app, "link")
+    let facts = app.staticTexts["link-facts"]
+    XCTAssertTrue(facts.waitForExistence(timeout: 20), "the claim says its facts")
+    let confirm = app.buttons["link-confirm"]
+    for _ in 0..<8 where !confirm.isHittable { app.swipeUp() }
+    XCTAssertTrue(confirm.isHittable, "the claim's action is reachable")
+    XCTAssertLessThanOrEqual(facts.frame.maxY, confirm.frame.minY + 1,
+                             "the facts come before the action, never under it — \(facts.frame) · \(confirm.frame)")
+    attach(app, "n4-042-claim-AX3")
+    app.terminate()
+  }
 }
