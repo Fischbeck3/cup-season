@@ -21,7 +21,10 @@ enum CardField: Hashable { case ghin, home }
 struct CardAndSettingsScreen: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.cs) private var cs
+  @Environment(\.dismiss) private var dismiss
   @State private var vm = CardSettingsModel()
+  /// W7-042 · when Back last asked about unsaved edits (see `leave()`)
+  @State private var leaveAsked: Date?
   @State private var pane: Int
   /// Y-01 · both panes open the guide through this one door.
   @State private var guideSheet: GuideRoute?
@@ -40,6 +43,7 @@ struct CardAndSettingsScreen: View {
   }
 
   var body: some View {
+    ScrollViewReader { proxy in
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
         // N4-161 · the page names itself in the page (UI_SYSTEM §12.2), as the
@@ -62,8 +66,31 @@ struct CardAndSettingsScreen: View {
       }
       .padding(20)
     }
+    // W7-042 · the line the first Back says sits under Save, below the fold
+    // of a golfer who edited the name: bring it into view
+    .onChange(of: leaveAsked) { _, asked in
+      guard asked != nil else { return }
+      withAnimation { proxy.scrollTo(CardSettingsModel.statusID, anchor: .bottom) }
+    }
+    }
     .background(cs.bg0)
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
+    // W7-042 · an edited card is not dropped by Back (nor by the edge swipe,
+    // which goes with the system button): the page's own Back asks first
+    .navigationBarBackButtonHidden(vm.dirty)
+    .toolbar {
+      if vm.dirty {
+        ToolbarItem(placement: .topBarLeading) {
+          Button { leave() } label: {
+            CSGlyph(.chevron, size: .tab).scaleEffect(x: -1).foregroundStyle(cs.ink)
+              .frame(width: 44, height: 44).contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("Back")
+          .accessibilityIdentifier("settings.back")
+        }
+      }
+    }
     .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .scrollDismissesKeyboard(.interactively)
@@ -85,12 +112,27 @@ struct CardAndSettingsScreen: View {
            + "Every league you are in is told.")
     }
     .task { await vm.load(userId: store.session?.user.id) }
+    .onChange(of: vm.dirty) { _, dirty in if !dirty { leaveAsked = nil } }
     .sheet(item: $guideSheet) { g in
       switch g {
       case .guide(let sheet): GuideSheetView(sheet: sheet)
       case .scoring: ScoringHelpSheet()
       }
     }
+  }
+}
+
+extension CardAndSettingsScreen {
+  /// W7-042 · the phone dropped a card's pending edits on Back, silently. The
+  /// first Back with edits pending keeps the page, turns to the card and says
+  /// why under Save; a second within four seconds leaves without saving (the
+  /// web's csSheetGuard, C's words).
+  func leave() {
+    if !vm.dirty { dismiss(); return }
+    if let asked = leaveAsked, Date().timeIntervalSince(asked) < 4 { dismiss(); return }
+    pane = 0
+    vm.status = (CardSettingsModel.unsaved, .mut)
+    leaveAsked = Date()
   }
 }
 
@@ -114,6 +156,10 @@ final class CardSettingsModel {
   var dirty = false
   var saving = false
   var status: (String, CSTone)? = nil
+  /// W7-042 · the web's CS_CARD_UNSAVED, word for word
+  static let unsaved = "You have unsaved changes. Save them, or close again to leave without saving."
+  /// the status line's scroll anchor
+  static let statusID = "card.status"
   var photoBusy = false
   var indexBusy = false
 
@@ -398,7 +444,7 @@ private struct CardEditorPane: View {
       A11yStack(spacing: 12) {
         Button { Task { await vm.save(); if vm.status?.1 == .pos { homeSearch = false; toast.show("Card saved", kind: .confirmed) } } } label: { MiniPill(text: vm.saving ? "Saving…" : (vm.dirty ? "Save changes" : "Save card"), accent: vm.dirty) }
           .disabled(vm.saving)
-        if let s = vm.status { CSNote(s.0, tone: s.1).csType(.bodyS) }
+        if let s = vm.status { CSNote(s.0, tone: s.1).csType(.bodyS).id(CardSettingsModel.statusID) }
       }
       .padding(.top, 6)
 

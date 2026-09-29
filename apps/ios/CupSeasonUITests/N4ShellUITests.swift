@@ -114,4 +114,25 @@ final class N4ShellUITests: N2UITestCase {
     attach(app, "n4-claim-not-now-door")
     app.terminate()
   }
+
+  /// W7-042 · an edited card is not dropped by Back: the first Back keeps the
+  /// page and says why, under Save; a second leaves without saving.
+  @MainActor func testAnEditedCardAsksBeforeBackDropsIt() {
+    let app = launch("season-live", "settings")
+    let page = root(app, "settings")
+    let city = app.textFields["City"].firstMatch
+    XCTAssertTrue(city.waitForExistence(timeout: 10), "the card pane's City field")
+    app.tapToType(city)
+    city.typeText("x")
+    let back = app.buttons["settings.back"]
+    XCTAssertTrue(back.waitForExistence(timeout: 5), "an edited card's Back is the page's own")
+    back.tap()
+    let said = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "You have unsaved changes.")).firstMatch
+    XCTAssertTrue(said.waitForExistence(timeout: 5), "the first Back says why")
+    XCTAssertTrue(page.exists, "and keeps the page")
+    attach(app, "w7-042-unsaved")
+    back.tap()
+    let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: page)
+    XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "the second Back leaves without saving")
+  }
 }
