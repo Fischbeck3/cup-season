@@ -79,7 +79,8 @@ struct DeclareRoundSheet: View {
             .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
 
           Text("Note · optional").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
-          CSField("buddies trip, looking for a 4th", text: $vm.note, font: CSFont.body)
+          // N4-134 · a prompt, not an example that reads as a filled value (PA-025)
+          CSField("A note for your group", text: $vm.note, font: CSFont.body)
             .onChange(of: vm.note) { _, n in if n.count > 140 { vm.note = String(n.prefix(140)) } }
 
           // D240 · a name, and a game. Both optional; the name is pre-filled
@@ -326,7 +327,8 @@ struct CourseSearchField: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      CSField("Pebble Beach", text: $text, font: CSFont.body)
+      // N4-134 · a prompt, not a course that reads as already chosen (PA-025)
+      CSField("Search a course", text: $text, font: CSFont.body)
         .accessibilityIdentifier("plan.course.search")
         .onChange(of: text) { _, q in
           // typing again after a pick unstamps the course id (the label no longer matches the row)
