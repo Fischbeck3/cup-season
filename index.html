@@ -2925,6 +2925,24 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   border-radius:0;}
 #view-hub .trip .p b{padding:0 var(--s3) var(--s1) 0; border-bottom:2px solid var(--ink);}
 #view-hub .trip .p span{display:block; padding:var(--s1) var(--s3) 0 0;}
+/* W7-029 (follow-up) · THE BOARD SECTION IS NO CARD EITHER (§3.1, §15.4: the same test). #boardCard was a card holding a feed of boxed cards (a
+   post is a `.msgrow`, a settled game a `.sysrow`, a moment a `.momrow`): a bordered, filled, rounded box inside a bordered, filled, rounded box.
+   The wrapper is the page's ground and a row is §9.1's slat, a hairline above and s3 either side, as the phone's BoardRows are (ruled rows on
+   clear ground). The date line stands where a slat's rule would be, so the first slat under it has none; a reaction bar keeps its place under its
+   post without a second rule; the Pro's pinned note takes the page's ground (it was the card's) so the feed does not show through it; a way in is
+   furniture, not gold (D359). The scroll box gives its edge room back as margin so a focus ring on a control at the row's edge is not clipped. */
+#view-hub #boardCard{background:none; border:0; padding:0; box-shadow:none;
+  border-radius:0;}
+#view-hub #feedList{padding:var(--s1); margin:calc(-1 * var(--s1));}
+#view-hub #feedList .msgrow, #view-hub #feedList .sysrow, #view-hub #feedList .momrow, #view-hub #feedList .fcard{background:none; border:0;
+  border-top:1px solid var(--rule); padding:var(--s3) 0; margin:0;
+  border-radius:0;}
+#view-hub #feedList .datesep + *{border-top:0;}
+#view-hub #feedList .social{border-top:0; margin-top:0; padding-top:var(--s2);}
+#view-hub #feedList .sysgrp > .social{padding:var(--s1) 0 var(--s3);}
+#view-hub #feedList .sysrow.opens{padding-right:var(--s5);}
+#view-hub #feedList .sysrow.opens::after{right:0; color:var(--mut);}
+#view-hub #feedList .annrow.pin{background:var(--bg0);}
 /* printing the season is a desk act; on a phone the button was one more row
    of chrome between the story and the pot (the craft panel) */
 @media(max-width:959px){ #seasonPrint{display:none;} }

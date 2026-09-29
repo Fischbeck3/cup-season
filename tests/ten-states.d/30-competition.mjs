@@ -440,6 +440,29 @@ const SEASON = [
       const w = line.getBoundingClientRect().width, gw = g.getBoundingClientRect().width
       return w >= gw * 0.98 ? true : `the empty line is ${Math.round(w)}px in a ${Math.round(gw)}px grid (one third of the row)`
     })) },
+  /* TEN / W8 · the season page's board section (UI_SYSTEM §3.1 and §15.4, the same test as W7-029): the board's feed, and the composer under it */
+  { family: 'season', id: 'board', variant: 'member', title: 'The season page, the board: the feed and the composer', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toRoom(page, 'board'); await page.waitForTimeout(400) },
+    expect: { view: 'view-hub', selectors: { '#boardCard': 'visible', '#chatIn': 'visible' } },
+    check: all(onNorthGrove, inViewport('#boardCard', 'the board'),
+      /* the wrapper is the page's ground, and a post, a settled game and a moment are slats: no fill, no radius, no four-sided edge */
+      noBoxes(['#boardCard', '#feedList .msgrow', '#feedList .sysrow', '#feedList .momrow', '#feedList .fcard']),
+      async (page) => page.evaluate(() => {
+        const list = document.getElementById('feedList'), box = list.getBoundingClientRect(), bad = []
+        const rows = [...list.querySelectorAll('.msgrow, .sysrow, .momrow, .fcard')]
+        if (!rows.length) return 'the board draws no post to judge'
+        const top = (el) => getComputedStyle(el).borderTopWidth
+        if (rows.some((r) => !r.previousElementSibling?.classList.contains('datesep') && top(r) !== '1px')) bad.push('a slat has no hairline above it')
+        if (rows.some((r) => r.previousElementSibling?.classList.contains('datesep') && top(r) !== '0px')) bad.push('a slat under a date line draws a second rule')
+        const pin = list.querySelector('.annrow.pin')
+        if (pin && getComputedStyle(pin).backgroundColor === 'rgba(0, 0, 0, 0)') bad.push('the pinned note has no ground: the feed shows through it')
+        for (const el of [...list.querySelectorAll('button, a[href], [tabindex]')].slice(0, 6)) {
+          const r = el.getBoundingClientRect()
+          if (r.width && (r.left - 4 < box.left - 0.5 || r.right + 4 > box.right + 0.5)) { bad.push(`a focus ring on ${JSON.stringify((el.getAttribute('aria-label') || el.textContent || el.className).trim().slice(0, 16))} would be clipped by the feed's own edge`); break }
+        }
+        return bad.length ? bad.join('; ') : true
+      })) },
   /* TEN / W8 · K102 [X07] (D's delta at e78d7f22) · the season album reads again when a photograph is added: it read once per league per session, so the golfer who
      attached the first photograph to a round was still told 'Photos land here' — on the season page, and on coming back to it — until a reload. The photographs are
      attached through the app's own writer (csAttachRoundPhoto: an upload, set_round_photo, a signed URL), once with the season page open and once while on Home. */
