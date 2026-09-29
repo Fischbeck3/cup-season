@@ -1211,8 +1211,9 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 #epiPanel{margin-bottom:14px; max-width:678px;}
 .postgrid{display:block;}
 @media(min-width:960px){
-  .postgrid{display:grid; grid-template-columns:minmax(0,1fr) 348px; gap:34px; align-items:start;}
-  .postgrid > div:first-child{max-width:620px;}
+  /* W1 · the grid is capped, not the column: at 1600 a 620px form inside a
+     1fr track left ~218px of dead gutter between it and its aside */
+  .postgrid{display:grid; grid-template-columns:minmax(0,620px) 348px; gap:40px; align-items:start; justify-content:start;}
 }
 /* the ONE box: a focused numeric control, never the serif (L-29). W1 · it is
    the round's tournament figure, so it wears the figure face every other gross
@@ -1443,8 +1444,13 @@ html[data-theme="light"] #inDate{color-scheme:light;}
 }
 .seg button.on{background:var(--bg1); color:var(--ink); border:1px solid var(--rule);}
 /* five games do not fit one row of a phone ("Sunningdale Rules" ran 35px past
-   the edge at 375 once labels stopped breaking): the game control wraps */
-#gameSeg{flex-wrap:wrap;} #gameSeg button{flex:1 1 auto;}
+   the edge at 375 once labels stopped breaking). W1 · wrapping left the fifth
+   alone on a second row, which read as a broken control: the row scrolls
+   instead, the chosen game is scrolled into view, and on a desk all five
+   share the width */
+#gameSeg{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain;}
+#gameSeg::-webkit-scrollbar{display:none;}
+#gameSeg button{flex:1 0 auto; padding:9px 12px;}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
 #albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); padding:10px 2px 2px;}
@@ -1475,8 +1481,8 @@ html[data-theme="light"] #inDate{color-scheme:light;}
 .rcpt-moment .rm-topo .t-edge{stroke-width:.9; opacity:.16;}
 .rcpt-moment .rm-in{position:relative; padding:var(--s4); min-height:280px; display:flex; flex-direction:column; align-items:flex-start;}
 .rcpt-moment .rm-meta{
-  font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate) * 1em);
-  text-transform:uppercase; color:inherit; opacity:.86;
+  font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);
+  text-transform:uppercase; color:inherit; opacity:.86;   /* W1 · meta in agate at 12, not 11px mono */
 }
 /* THE SCORE IS A TOURNAMENT FIGURE. The board sets it large, and an earlier
    pass of mine read "large" as "editorial" and put it in the serif — but the
@@ -1799,6 +1805,21 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   .playgrid:has(> .pggames[data-games="0"]){grid-template-columns:minmax(0,760px);}
 }
 .pggames[data-games="0"]{display:none;}
+/* W1 · D234 · THE DESK'S SECOND COLUMN CARRIES THE CARD. A round with no side
+   game used to collapse to one 760px column with the right half empty; at the
+   desk the aside keeps its column and prints the whole card on the leaf —
+   every hole, every golfer — beside the hole being entered. The side games,
+   when there are any, sit above it. Phones and the 740 landscape keep the
+   HOLE/CARD toggle, where the card has the width to itself. */
+#deskCard{display:none;}
+@media(min-width:960px){
+  .playgrid:has(> .pggames[data-games="0"]){grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);}
+  .pggames[data-games="0"]{display:block;}
+  .pggames[data-games="0"] > .sg-head{display:none;}
+  #deskCard:not(:empty){display:block;}
+  .pggames[data-games="1"] #deskCard:not(:empty){margin-top:14px;}
+  #deskCard .rcard td.k{width:56px; white-space:normal; line-height:1.15;}
+}
 /* D152 · the card view. Read-only by design: nothing here needs to be
    thumb-sized, which is what makes an 18-column grid honest in 390px of height.
    Below 740 the toggle is not offered at all — eighteen columns cannot be read
@@ -1828,7 +1849,7 @@ body.cardview nav.tabbar .tab[data-v="record"]{visibility:hidden;}
   body.cardview header.hdr{display:none;}
   body.cardview .backlink{display:none;}
 }
-.vtog{display:none; margin-left:auto; border:.5px solid var(--rule); border-radius:7px; overflow:hidden;}
+.vtog{display:none; width:max-content; margin:10px 0 0 auto; border:.5px solid var(--rule); border-radius:7px; overflow:hidden;}   /* W1 · sized to its two labels, on its own line under the sync line */
 @media(min-width:740px){ .vtog{display:flex;} }
 .vtog button{font-family:var(--mono); font-size:11px; letter-spacing:.1em; padding:0 12px; min-height:44px;   /* §16.2 names this strip: was ~22 */
   color:var(--mut); background:none; border:0; cursor:pointer;}
@@ -1840,12 +1861,16 @@ table.hcard{width:100%; border-collapse:collapse; font-family:var(--mono); min-w
 table.hcard th, table.hcard td{padding:4px 0; text-align:center; font-size:11px;
   border-bottom:.5px solid var(--rule); white-space:nowrap;}
 table.hcard th{color:var(--mut); font-weight:500; letter-spacing:.04em; font-size:11px;}
-table.hcard th.brk, table.hcard td.brk{color:var(--gold);}
+table.hcard th.brk, table.hcard td.brk{color:var(--ink); font-weight:600;}   /* W1 · a subtotal is not an earning: ink, never gold */
 table.hcard td.nm{text-align:left; font-family:var(--sans); font-size:12px; font-weight:600;
   padding-right:8px; color:var(--ink);}
 table.hcard td.si, table.hcard td.parc{color:var(--mut); font-size:11px;}
-table.hcard td.bird{color:var(--pos); font-weight:600;}
-table.hcard td.bog{color:var(--mut);}
+/* W1 · §9.4 on the card view too: ring, double ring, box, double box, in ink.
+   A birdie was pos green and a bogey was greyed — colour as the only channel. */
+table.hcard td .mk{display:inline-grid; place-items:center; width:17px; height:17px; box-sizing:border-box;
+  border:1.3px solid currentColor; line-height:1;}
+table.hcard td.bd .mk, table.hcard td.eg .mk{border-radius:50%;}
+table.hcard td.eg .mk, table.hcard td.db .mk{box-shadow:0 0 0 1.3px var(--bg0), 0 0 0 2.6px currentColor;}
 .hchg-row{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:17px; padding:2px 0 10px;}
 .hchg-was{color:var(--mut); text-decoration:line-through;}
 .hchg-arrow{color:var(--mut);}
@@ -1859,9 +1884,9 @@ table.hcard th.vsp{color:var(--mut);}
    The allocation is strokeOn()'s — the engine that owns it — never re-derived. */
 table.hcard td.stk{position:relative;}
 table.hcard td.stk::after{content:''; position:absolute; top:2px; right:3px;
-  width:3px; height:3px; border-radius:50%; background:var(--gold);}
+  width:3px; height:3px; border-radius:50%; background:var(--ink);}
 table.hcard td.stk2::before{content:''; position:absolute; top:2px; right:8px;
-  width:3px; height:3px; border-radius:50%; background:var(--gold);}
+  width:3px; height:3px; border-radius:50%; background:var(--ink);}
 table.hcard tr.ledrow td{border-bottom:none; padding-top:6px;}
 table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size:11px; font-weight:500;}
 .ledc{display:block; height:11px; margin:0 1px; border-radius:2px; border:1px solid var(--rule);}
@@ -1890,9 +1915,12 @@ table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size
 .scoreboard .sbchip .lv{width:6px; height:6px; border-radius:50%; background:var(--pos); flex:none;}
 .scoreboard .sbchip.lead{border-color:var(--gold);}
 .scoreboard .sbchip.lead b{color:var(--gold);}
-.scoreboard .sb-sub{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; margin-top:8px;}
+/* W1 · the sync line is a sentence ("8 scores saved on this phone; they send
+   when you have signal"), so it is set as one — never mono caps (§1.4) */
+.scoreboard .sb-sub{font-family:var(--sans); font-size:13px; line-height:1.4; color:var(--mut); margin-top:8px;}
 .scoreboard.stuck{padding:8px 12px;}
 .scoreboard.stuck .sb-hero{font-size:13.5px;}
+.scoreboard.stuck .sb-chips{display:none;}   /* the rows below say each golfer's line */
 .scoreboard.stuck .sb-sub{display:none;}
 /* ...except when scores are waiting to sync: the stuck face is the one you see
    while scoring, so "8 queued" hid exactly when it mattered */
@@ -1904,10 +1932,16 @@ body.guestlive #onboard{display:none !important;}
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r); padding:12px 14px;
 }
-.holehdr .hnum{font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:.04em;}
-.holehdr .hmeta{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.12em; text-transform:uppercase; margin-top:2px;}
+/* W1 · THE HOLE STICKS UNDER THE BOARD. At 375 the navigator scrolled away
+   under the stuck leader box while the golfer entered scores. It sticks now,
+   directly under the stuck board (its top is set from the board's own stuck
+   height), so the hole and its arrows stay on screen with the rows — one
+   navigator, never a second copy of it. */
+#playEntry .holehdr{position:sticky; top:0; z-index:15;}   /* over the rows, under the board (60) and the header (20) */
+.holehdr .hnum{font-family:var(--board); font-size:24px; font-weight:700; letter-spacing:calc(var(--d2) * 1em);}   /* W1 · displayS, never mono */
+.holehdr .hmeta{font-family:var(--board); font-size:12px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; margin-top:2px;}
 .holehdr button{
-  width:42px; height:42px; border-radius:11px; border:1px solid var(--rule);
+  width:44px; height:44px; border-radius:11px; border:1px solid var(--rule);   /* W1 · §16.2 · was 42 */
   background:var(--bg2); font-size:16px; cursor:pointer; color:var(--mut); flex:none;
 }
 .holehdr button:hover{color:var(--ink);}
@@ -1950,25 +1984,40 @@ body.guestlive #onboard{display:none !important;}
 .prow .nm{flex:1; min-width:0;}
 .prow .nm b{font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:6px;}
 .prow .nm small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.06em;}
-.strokedot{width:6px; height:6px; border-radius:50%; background:var(--gold); display:inline-block; flex:none;}
+.strokedot{width:6px; height:6px; border-radius:50%; background:var(--ink); display:inline-block; flex:none;}   /* W1 · ink: a shot received is not an earning (D359); the row's line names it */
 .prow .tot{font-family:var(--mono); font-size:12px; color:var(--mut); text-align:right; min-width:66px; font-variant-numeric:tabular-nums;}
+/* W1 · TP-22 · THE LIVE ROW IS A ROW. It borrowed `.prow`, whose card rule
+   and whose later people-row rule collided: the fill, the side borders and
+   the radius of a card with its content sitting 0px from its left border.
+   It has its own class now and is the hairline row §3.1 asks for; `.prow`
+   is left to the people rows. The squad-colour bar went too — one orange on
+   every golfer said nothing (and read as ember, D359). */
+.lrow{display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid var(--rule);}
+.lrow:first-child{border-top:0;}
+.lrow .nm{flex:1; min-width:0;}
+.lrow .nm b{font-family:var(--board); font-size:17px; font-weight:600; line-height:1.16; display:flex; flex-wrap:wrap; align-items:center; gap:6px;}
+.lrow .nm small{display:block; margin-top:3px; font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--mut); line-height:1.3;}
+.lrow .tot{flex:none; min-width:52px; text-align:right; font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--mut); line-height:1.3; font-variant-numeric:tabular-nums;}
+.lrow .tot b{display:block; font-size:20px; font-weight:700; letter-spacing:0; color:var(--ink);}
 .step{display:flex; align-items:center; gap:2px; background:var(--bg2); border:1px solid var(--rule); border-radius:10px; flex:none;}
 .step button{width:44px; height:44px; border:none; background:none; font-size:16px; font-weight:600; color:var(--mut); cursor:pointer; border-radius:9px;}
 .step button:hover{color:var(--ink);}
 .step button:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
-.step .sv{font-family:var(--mono); font-size:15px; font-weight:600; min-width:26px; text-align:center; font-variant-numeric:tabular-nums;}
-/* Batch C: the old scorecard notation — under par draws a gold birdie circle */
-.step .sv.birdie{width:28px; height:28px; line-height:28px; min-width:28px; border-radius:50%;
-  color:var(--gold); box-shadow:inset 0 0 0 2px var(--gold);}
+/* W1 · §7.2: the stepper's value is `figure` 20, BARE — no ring and no box.
+   A gold ring between − and + read as "selected", and gold is earned only
+   (D359, D368); the strip above draws the ring for a birdie. */
+.step .sv{font-family:var(--board); font-size:20px; font-weight:700; min-width:28px; text-align:center; font-variant-numeric:tabular-nums; color:var(--ink);}
 .gamecard{
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:14px; margin-bottom:10px; position:relative; overflow:hidden;
 }
 /* UI_SYSTEM §0.3 · the 3.5pt spine left the card edge: the game is named by
    its own eyebrow (.gk), and a live settlement says "live" in words */
-.gamecard .gk{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut);}
-.gamecard .gs{font-family:var(--mono); font-size:18px; font-weight:600; margin-top:6px;}
-.gamecard .gm{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:3px;}
+.gamecard .gk{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
+.gamecard .gs{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); margin-top:6px;}
+.gamecard .gm{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); margin-top:4px; line-height:1.35;}
 .wolfbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
 .wolfbtns button{
   flex:1; min-width:72px; border:1px solid var(--rule); background:var(--bg2);
@@ -2000,6 +2049,10 @@ body.guestlive #onboard{display:none !important;}
 .gchip.add{border-style:dashed; color:var(--mut); background:none; cursor:pointer;}
 .gchip.add:hover{color:var(--ink);}
 .gchip.add:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+/* W1 · the finish's verdict for your card, and each posted card's marker */
+.lrverdict{display:block; margin-top:6px; font-family:var(--board); font-size:13px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--ink); line-height:1.35;}
+.check .num.mk{color:var(--ink);}
 .gtag{
   font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.1em;
   color:var(--bg0); background:var(--mut); border-radius:4px; padding:2.5px 5px; flex:none;
@@ -2023,13 +2076,13 @@ body.guestlive #onboard{display:none !important;}
 .optcard:hover{border-color:var(--rule); filter:brightness(1.08);}
 .optcard:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .optcard h4{font-size:15px; font-weight:700;}
-.optcard p{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:5px; line-height:1.7; letter-spacing:.02em;}
+.optcard p{font-family:var(--sans); font-size:14px; color:var(--mut); margin-top:5px; line-height:1.45;}   /* W1 · a sentence, not mono (§1.4) */
 .optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--mut); font-size:16px;}
 /* D110: the live door is the hero — ember spine, LIVE word, room to breathe */
 .optcard.live{padding:22px 40px 22px 18px; border-color:var(--rule);}
 .optcard.live h4{font-size:17px;}
 .optcard.live .go{color:var(--brand);}
-.optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.14em; color:var(--brand); margin-bottom:7px;}
+.optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--brand); margin-bottom:7px;}
 /* TP-10 · a running clock is ember and STEADY: §11.4 deleted the bare
    opacity loop, and this one pulsed forever */
 .optcard .livedot{width:7px; height:7px; border-radius:50%; background:var(--brand);}
@@ -2745,14 +2798,14 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 }
 /* UI_SYSTEM §0.3 · no spine: the LIVE eyebrow and its dot carry the state */
 .livebanner .lk{
-  font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase;
+  font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;
   color:var(--pos); display:flex; align-items:center; gap:8px;
 }
 /* the dot no longer loops - it breathes once every 8s via WAAPI (hygiene
    rule: infinite loops are loaders only; the interval lives in script 3) */
 .livebanner .dot{width:8px; height:8px; border-radius:50%; background:var(--pos);}
 .livebanner .ln{font-size:22px; font-weight:700; letter-spacing:-.01em; margin:8px 0 3px;}
-.livebanner .lm{font-family:var(--mono); font-size:12px; color:var(--mut); letter-spacing:.06em;}
+.livebanner .lm{font-family:var(--board); font-size:12px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate) * 1em);}
 .livebanner .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--mut); font-size:16px;}
 /* D86 · the invitation face: someone else's tee sheet, calling you to it.
    Ember (the live layer's colour — gold stays the earned face) and a JOIN
@@ -2766,7 +2819,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 #rosterChips{display:flex; flex-wrap:wrap; align-items:center;}
 #rosterChips .gchip{margin:0 6px 6px 0;}
 .rlab{
-  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
   color:var(--mut); margin:12px 0 8px; width:100%;
 }
 .rlab:first-child{margin-top:0;}
@@ -2848,7 +2901,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 .pslot.empty{border-style:dashed; background:none;}
 .pslot .sn{font-size:13px; font-weight:700; display:flex; align-items:center; gap:6px;}
 .pslot.empty .sn{color:var(--mut); font-weight:500; font-size:12px;}
-.pslot .si{font-family:var(--mono); font-size:11px; color:var(--mut); margin-top:4px; letter-spacing:.06em;}
+.pslot .si{font-family:var(--board); font-size:11px; font-weight:600; color:var(--mut); margin-top:4px; letter-spacing:calc(var(--agate-s) * 1em);}
 .pslot .sx{
   position:absolute; top:-6px; right:-6px; width:44px; height:44px;   /* §16.2 · was 22×21; centred where the glyph sat */
   display:flex; align-items:center; justify-content:center; border:none; background:none;
@@ -2952,12 +3005,12 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   font-variant-numeric:tabular-nums; font-size:12.5px; width:100%;}
 .rcard + .rcard{margin-top:12px;}
 .rcard td{padding:2px 0; text-align:center; white-space:nowrap; min-width:26px;}
-.rcard td.k{text-align:left; color:var(--leaf-mut); font-size:11px;
-  letter-spacing:.08em; text-transform:uppercase; width:44px;}
+.rcard td.k{text-align:left; color:var(--leaf-mut); font-size:12px;
+  letter-spacing:.08em; text-transform:uppercase; width:44px;}   /* W1 · columnS 12px floor */
 .rcard tr.key td{color:var(--leaf-mut); border-bottom:1px solid rgba(26,27,20,.16);}
 /* the tenth column's HEAD is a column head like the row keys are, and reads in
    the same voice — OUT / IN / TOT, never Out / In / Tot */
-.rcard tr.key td.tot{text-transform:uppercase; letter-spacing:.08em; font-size:11px;}
+.rcard tr.key td.tot{text-transform:uppercase; letter-spacing:.08em; font-size:12px;}
 .rcard tr.quiet td{color:var(--leaf-mut);}
 .rcard tr.score td{color:var(--leaf-ink); font-size:14.5px; font-weight:600;}
 .rcard td.tot{text-align:right; width:40px;}
@@ -5262,7 +5315,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <div id="matchPrev" class="fine" style="padding:10px 0 0"></div>
             </div>
           </div>
-          <button class="btn" id="teeOffBtn">Tee off →</button>
+          <button class="btn" id="teeOffBtn">Tee off</button><!-- W1 · the phone's own label; no typed arrow (§5.2) -->
         </div>
 
         <div id="playLive">
@@ -5303,7 +5356,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                button and five lines of teaching copy. Wide puts finish back
                under the entry column and the games alongside, unchanged. -->
           <div class="pggames">
-            <div class="eyebrow">Side games · tracked live, settled between friends</div>
+            <div class="eyebrow sg-head">Side games · tracked live, settled between friends</div>
             <div class="gamecard" id="matchCard" style="--acc:var(--sq0)">
               <div class="gk" id="matchTeams">Match play · net best ball · You + Danny vs Chuck + Gary</div>
               <div class="gs" id="matchStatus">ALL SQUARE</div>
@@ -5326,6 +5379,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <div class="gk">Round settlement · live</div>
               <div class="settle" id="settle"></div>
             </div>
+            <!-- W1 · D234 · the desk's second column carries the card: every
+                 hole, every golfer, on the leaf, beside the hole being entered.
+                 It left the right half empty on a round with no side game. -->
+            <div id="deskCard" aria-live="off"></div>
           </div>
           <div class="pgfinish">
             <button class="mini" id="groupShareBtn" style="margin-top:8px">Group phones</button>
@@ -12421,7 +12478,7 @@ function scanPartnersSheet(ctx){
   openSheet('Send their rounds','ONE SCAN, THE WHOLE GROUP',
     `<p class="fine" style="padding:0 0 10px">Your partners’ rows came off the same card. Send each a link — one tap and the round posts to their rounds.</p>`
     + rows.map((p,i)=>
-      `<div class="check"><span class="num">🎟️</span><div class="tt">
+      `<div class="check"><span class="num" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span><div class="tt">
         <b>${esc(p.name||('Golfer '+(i+1)))}</b><small>${p.total?p.total+' GROSS':'PARTIAL CARD'}</small></div>
         <button class="mini" data-scl="${i}" style="flex:none">Copy link</button></div>`).join(''));
   $('#shBody').querySelectorAll('[data-scl]').forEach(b=>b.addEventListener('click', async ()=>{
@@ -14221,7 +14278,11 @@ window.liveSyncBadge = function(){
   if(!L.code){ el.textContent='Scoring it yourself · live on this phone'; return; }
   const n=Math.max(1,(state.livePresence||[]).length);
   const q=window.liveSync?.queued?.()||0;
-  el.textContent = `${n} scoring · ${q ? q+' queued' : 'synced'}`;
+  /* W1 · what is and is not saved, in words: "8 QUEUED" did not say the
+     scores were safe on this phone, or when they would go */
+  el.textContent = q
+    ? `${q} score${q===1?'':'s'} saved on this phone; ${q===1?'it sends':'they send'} when you have signal.`
+    : (n>1 ? `${n} phones scoring · every score sent` : 'Every score sent');
   el.classList.toggle('is-queued', q > 0);
 };
 /* the guest pencil: a claim link opened MID-ROUND. Token is identity — no
@@ -14539,18 +14600,19 @@ function renderHoleCard(){
 
   LIVE.forEach((pl, pi) => {
     const sc = state.live.scores[pi];
-    html += '<tr><td class="nm"><span class="sw" style="background:' +
-      (pl.guest ? 'var(--dim)' : SQHEX[pl.ci]) + '"></span>' + esc(pl.n) + '</td>';
+    html += '<tr><td class="nm">' + esc(pl.n) + '</td>';   /* W1 · no squad swatch */
     let gross = 0, parPlayed = 0;
     for(let h = 0; h < H; h++){
       const v = sc[h];
-      const cls = v == null ? '' : (v < par[h] ? 'bird' : (v > par[h] ? 'bog' : ''));
+      /* W1 · §9.4: ring, double ring, box, double box — shape, not colour */
+      const dv = v == null ? 0 : v - par[h];
+      const cls = v == null ? '' : dv <= -2 ? 'eg' : dv === -1 ? 'bd' : dv === 1 ? 'bg' : dv >= 2 ? 'db' : '';
       /* pips come off the SI. When SIEST the order is a GUESS, and the SI row
          above already refuses to print a guess — the pips refuse for the same
          reason rather than quietly asserting a shot on the wrong hole. */
       const st = siReal ? strokeOn(pi, h) : 0;
       const stc = st > 1 ? ' stk stk2' : st > 0 ? ' stk' : '';
-      html += `<td class="${cls}${stc}">${v == null ? '–' : v}</td>`;
+      html += `<td class="${cls}${stc}">${v == null ? '–' : (cls ? `<span class="mk">${v}</span>` : v)}</td>`;
       if(v != null){ gross += v; parPlayed += par[h]; }
       if(h === half - 1) html += `<td class="brk">${sum(sc,0,half) || '–'}</td>`;
     }
@@ -14578,7 +14640,7 @@ function renderHoleCard(){
   html += '</tbody></table></div>';
   html += `<p class="fine" style="padding-top:8px">${
     led ? 'The strip is the side game — filled took the hole, hollow halved or carried. '
-        : ''}${siReal ? 'A gold pip marks a hole you get a shot on. ' : 'Stroke index is estimated for this card, so it is not shown. '}Tap a hole number to jump there.</p>`;
+        : ''}${siReal ? 'A dot marks a hole you get a shot on. ' : 'Stroke index is estimated for this card, so it is not shown. '}Tap a hole number to jump there.</p>`;
   box.innerHTML = html;
 
   box.querySelectorAll('thead th').forEach((th, i) => {
@@ -15002,8 +15064,7 @@ function renderPlay(){
     strip.className='holestrip';
     strip.removeAttribute('aria-hidden');
     strip.innerHTML = `<div class="cells">${cells}</div><div class="rule"></div><div class="ticks">${ticks}</div>
-      <div class="key"><span><s class="u"></s>under</span><span><s class="l"></s>level</span><span><s></s>over</span>
-        <b>${doneN ? `Your card \u00b7 ${grossN} thru ${doneN}` : 'Nothing in yet'}</b></div>`;
+      <div class="key"><span><s class="u"></s>under</span><span><s class="l"></s>level</span><span><s></s>over</span></div>`;   /* W1 · "Your card · 22 thru 5" was the third print of the row's own fact (§16A.4) */
     /* ONE element for the whole strip, in the product's voice - eighteen cells
        read one at a time is not a scorecard, it is eighteen announcements. */
     strip.setAttribute('role','img');
@@ -15041,19 +15102,25 @@ function renderPlay(){
     const gross=done.reduce((a,b)=>a+b,0);
     const par=state.live.scores[pi].reduce((a,v,k)=>v!==null?a+PAR[k]:a,0);
     const vp=gross-par;
-    const row=document.createElement('div'); row.className='prow';
+    /* W1 · the row's own class (TP-22), no squad bar, and the words the
+       phone's LiveCopy.playerRow says (D-4: the index is a setup fact, so it
+       leaves the row; the strokes you receive stay). A dot is a shot on THIS
+       hole, and the line now says so rather than leaving a gold dot unexplained. */
+    const dots = state.live.game==='sunningdale'
+      ? (liveSolo() ? (sunnSoloStrokesAt(h)[pi]||0)
+                    : (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0))   /* D74/D75: positional strokes, not SI */
+      : strokeOn(pi,h);
+    const strokesWord = STROKES[pi] ? `${STROKES[pi]} stroke${STROKES[pi]===1?'':'s'}` : 'No strokes';
+    const sub = [state.live.game==='sunningdale' ? 'No HCP · straight up' : strokesWord,
+                 dots ? `${dots>1 ? dots+' shots' : 'a shot'} on this hole` : null].filter(Boolean).join(' · ');
+    const row=document.createElement('div'); row.className='lrow';
     row.innerHTML=`
-      <span class="sw" style="background:${p.guest?'var(--dim)':SQHEX[p.ci]}"></span>
-      <div class="nm"><b>${esc(p.n)} ${(guestView && p.me) ? '<span class="gtag">YOU</span>' : (p.guest?'<span class="gtag">GUEST</span>':'')}${'<span class="strokedot" title="stroke here"></span>'.repeat(
-        state.live.game==='sunningdale'
-          ? (liveSolo() ? (sunnSoloStrokesAt(h)[pi]||0)
-                        : (sunnStrokesAt(h)[MTEAMS[0].includes(pi)?0:1]||0))   /* D74/D75: positional strokes, not SI */
-          : strokeOn(pi,h))}</b>
-      <small>${state.live.game==='sunningdale' ? 'NO HCP · STRAIGHT UP' : `${p.est?'EST ':(p.guest?'SELF ':'')}${fmtIdx(p.i)} NUMBER · ${STROKES[pi]} STROKES`}</small></div>
-      <div class="tot">${done.length? gross+' THRU '+done.length+'<br>'+(vp>=0?'+':'')+vp : '—'}</div>
+      <div class="nm"><b>${esc(p.n)} ${(guestView && p.me) ? '<span class="gtag">YOU</span>' : (p.guest?'<span class="gtag">GUEST</span>':'')}${'<span class="strokedot" aria-hidden="true"></span>'.repeat(dots)}</b>
+      <small>${esc(sub)}</small></div>
+      <div class="tot">${done.length ? `<b>${vp>=0?'+':'\u2212'}${Math.abs(vp)}</b>${gross} thru ${done.length}` : '—'}</div>
       <div class="step">
         <button aria-label="One stroke fewer for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="-1">−</button>
-        <span class="sv${s!==null && s<PAR[h] ? ' birdie':''}">${s===null?'–':s}</span>
+        <span class="sv">${s===null?'–':s}</span>
         <button aria-label="One more stroke for ${esc((guestView && p.me) ? 'you' : p.n)}, hole ${h+1}, now ${s===null?'no score':s}" data-pi="${pi}" data-d="1">+</button>
       </div>`;
     rows.appendChild(row);
@@ -15198,7 +15265,8 @@ function renderPlay(){
       st.innerHTML='';
       LIVE.forEach((p,pi)=>{
         const d=document.createElement('div'); d.className='wt';
-        d.innerHTML=`<b style="color:${sk.won[pi]>0?'var(--pos)':'var(--mut)'}">${sk.won[pi]}</b><span>${esc(p.n).toUpperCase()}</span>`;
+        /* W1 · a count of skins is ink (pos is a signed gain); none is mut */
+        d.innerHTML=`<b style="color:${sk.won[pi]>0?'var(--ink)':'var(--mut)'}">${sk.won[pi]}</b><span>${esc(p.n).toUpperCase()}</span>`;
         st.appendChild(d);
       });
     }
@@ -15214,7 +15282,45 @@ function renderPlay(){
    if(gsb) gsb.style.display=(_g||state.demo)?'none':'';}
   renderScoreboard();
   renderLiveBanner();
+  renderDeskCard();
 }
+/* W1 · D234 · the desk's card, in the aside: the leaf the receipt prints, one
+   block per nine, a row per golfer, the paper marks (§9.4). Read from the same
+   state the rows are, on the same beat, so the two never disagree. Only at the
+   desk; below it the HOLE/CARD toggle gives the card the width it needs. */
+function renderDeskCard(){
+  const box=document.getElementById('deskCard'); if(!box) return;
+  if(!state.live || !state.live.active || !matchMedia('(min-width:960px)').matches){ if(box.innerHTML) box.innerHTML=''; return; }
+  const H=liveHoles();
+  const siReal = !SIEST && Array.isArray(SI);
+  const blocks = H===9 ? [[1,9,'Tot']] : [[1,9,'Out'],[10,18,'In']];
+  const td = t => `<td>${esc(String(t))}</td>`;
+  const tables = blocks.map(([lo,hi,label])=>{
+    const hs=[]; for(let k=lo;k<=hi;k++) hs.push(k);
+    const row=(cls,k,cells,tot)=>`<tr class="${esc(cls)}"><td class="k">${esc(k)}</td>${cells.join('')}<td class="tot">${esc(String(tot))}</td></tr>`;
+    let html = row('key','Hole', hs.map(k=>td(k)), label);
+    html += row('quiet','Par', hs.map(k=>td(PAR[k-1] ?? '\u00b7')), hs.reduce((a,k)=>a+(Number(PAR[k-1])||0),0));
+    if(siReal) html += row('quiet','HCP', hs.map(k=>td(SI[k-1] ?? '\u00b7')), '');
+    LIVE.forEach((p,pi)=>{
+      const sc=state.live.scores[pi]||[];
+      let sum=0, any=false;
+      const cells=hs.map(k=>{
+        const v=sc[k-1];
+        if(v==null) return td('\u00b7');
+        any=true; sum+=v;
+        const d=v-PAR[k-1], mk=d<=-2?'eg':d===-1?'bd':d===1?'bg':d>=2?'db':'';
+        return mk ? `<td class="${mk}"><span class="mk">${esc(String(v))}</span></td>` : td(v);
+      });
+      html += row('score', fn1(p.n), cells, any ? sum : '');
+    });
+    return `<table class="rcard"><tbody>${html}</tbody></table>`;
+  }).join('');
+  const course = ($('#lrCourse')?.value || '').trim();
+  box.innerHTML = `<div class="eyebrow">The card</div>
+    <div class="rcpt-leaf"><div class="rcpt-cap"><span>${esc(course || 'This round')}</span></div>
+    <div class="rcard-wrap">${tables}</div></div>`;
+}
+window.addEventListener('resize', () => { if(state.live && state.live.active && state.live.stage!=='setup') renderDeskCard(); });
 /* ---- D85 · the scoreboard: game first, strokes under -----------------------
    Runs at the END of renderPlay so the game cards' status text is already
    computed — the hero line borrows the same words the cards speak. */
@@ -15263,25 +15369,62 @@ function renderScoreboard(){
   const on=new Set((state.livePresence||[]).map(String));
   chips.innerHTML=stats.map(({p,s})=>{
     const lead = best!=null && scored.length>1 && s.thru>0 && s.net===best;
+    /* W1 · the chip is the game's view (net); the row below owns gross-thru */
     return `<div class="sbchip${lead?' lead':''}">${on.has(p.n)?'<span class="lv"></span>':''}<b>${esc(fn1(p.n))}</b><span>${
-      s.thru ? `${_sbPm(s.net)} net · ${s.gross} thru ${s.thru}` : '—'
+      s.thru ? `${_sbPm(s.net)} net · thru ${s.thru}` : '—'
     }</span></div>`;
   }).join('');
   window.liveSyncBadge?.();
-  /* sticky compact face — size only, never visibility (the animation-gated-
-     reveal landmine: nothing here can trap the content) */
-  if(!window._sbObs && 'IntersectionObserver' in window){
-    const sent=document.getElementById('sbSentinel');
-    if(sent){
-      window._sbObs=new IntersectionObserver(es=>{
-        document.getElementById('scoreBoard')?.classList.toggle('stuck', !es[0].isIntersecting);
-      });
-      window._sbObs.observe(sent);
-    }
+  /* sticky compact face — a class on the board, never an animation (the
+     animation-gated-reveal landmine: nothing here can trap the content) */
+  csLiveSticky();
+  if(!window._sbSticky){
+    window._sbSticky = true;
+    let raf = 0;
+    const tick = () => { if(raf) return; raf = requestAnimationFrame(() => { raf = 0; csLiveSticky(); }); };
+    window.addEventListener('scroll', tick, { passive:true });
+    window.addEventListener('resize', tick);
   }
+}
+/* W1 · THE BOARD STICKS UNDER THE HEADER, NOT UNDER IT. Below the desk the
+   site header is itself sticky at top:0, and the board stuck at top:0 too:
+   the two collided, the header's rule poked out either side, and the hole
+   navigator scrolled away under both. The board now sticks at the header's
+   own measured height (zero where the header is static or hidden — the desk,
+   the card view, a guest's kiosk), and "stuck" is read from the sentinel
+   above it against that same line. */
+function csLiveSticky(){
+  const sb=document.getElementById('scoreBoard'), sent=document.getElementById('sbSentinel');
+  if(!sb || !sent || sb.offsetParent===null) return;
+  const hdr=document.querySelector('header.hdr');
+  let top=0;
+  if(hdr){ const cs=getComputedStyle(hdr); if(cs.position==='sticky' && cs.display!=='none') top=Math.round(hdr.getBoundingClientRect().height); }
+  if(sb.dataset.top!==String(top)){ sb.style.top=top+'px'; sb.dataset.top=String(top); }
+  /* the stuck face is shorter, and a sticky box that shrinks pulls the page up
+     under it — at the foot of a short page the browser then clamps the scroll
+     and the sentinel drops back below the line. So the face lets go only once
+     the sentinel is back down by what the face saved (hysteresis): it can
+     never unstick itself by sticking. */
+  const was = sb.classList.contains('stuck');
+  const at = sent.getBoundingClientRect().top;
+  const saved = Number(sb.dataset.shrink||0);
+  const stuck = was ? at < top + saved : at < top;
+  if(stuck && !was){
+    const h0 = sb.offsetHeight;
+    sb.classList.add('stuck');
+    sb.dataset.shrink = String(Math.max(0, h0 - sb.offsetHeight));
+  } else if(!stuck && was){
+    sb.classList.remove('stuck');
+  }
+  /* the navigator sticks on the stuck board's bottom edge (the board sticks
+     first, being above it in the page, so by the time the navigator reaches
+     this line the board has its stuck height) */
+  const hh=document.querySelector('#playEntry .holehdr');
+  if(hh){ const line = (top + sb.offsetHeight + 6) + 'px'; if(hh.style.top !== line) hh.style.top = line; }
 }
 $('#holePrev').addEventListener('click',()=>{state.live.hole=Math.max(0,state.live.hole-1);renderPlay();});
 $('#holeNext').addEventListener('click',()=>{state.live.hole=Math.min(liveHoles()-1,state.live.hole+1);renderPlay();});
+
 /* the tee-off match preview: sides + who gets strokes WHERE — the first-tee
    argument, settled before anyone hits (§2.2). Recomputed on every roster,
    slope, or game change. */
@@ -15379,7 +15522,7 @@ function renderRoster(){
       const p=ROSTER[idx];
       d.className='pslot';
       d.innerHTML=`
-        <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:`<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`}${esc(p.n)}</div>
+        <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:''}${esc(p.n)}</div>
         <div class="si">${p.est?'EST ':''}${fmtIdx(p.i)} NUMBER</div>
         ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
     }
@@ -15398,9 +15541,9 @@ function renderRoster(){
     if(sel.includes(i)) return;
     const b=document.createElement('button');
     b.className='selchip';
-    const mark=p.guest
-      ? `<span class="gtag">${p.buddy?'BUDDY':'GUEST'}</span>`
-      : `<span style="width:8px;height:8px;border-radius:3px;background:${SQHEX[p.ci]};display:inline-block;"></span>`;
+    /* W1 · ink chips: the squad dot was one raw orange (SQHEX) on every
+       member, ember by another name (D359); a guest still says it is one */
+    const mark=p.guest ? `<span class="gtag">${p.buddy?'BUDDY':'GUEST'}</span>` : '';
     b.innerHTML=`${mark}${esc(p.n)} · ${fmtIdx(p.i)}`;
     b.addEventListener('click',()=>{
       if(sel.length>=4){ toast('The group is full: remove someone first'); return; }
@@ -15516,6 +15659,7 @@ function syncTeeInputs(){
 $$('#gameSeg button').forEach(b=>b.addEventListener('click',()=>{
   $$('#gameSeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
+  try{ b.scrollIntoView({ block:'nearest', inline:'nearest' }); }catch(_){}   /* W1 · the row scrolls: the chosen game stays in view */
   state.live.game=b.dataset.g;
   renderRoster();   /* match extras (stake, strokes preview, side swap) follow the game */
   const GN={score:'Stroke play — your card, your pace. One to four golfers; post when you’re done.',
@@ -15869,6 +16013,8 @@ function finishRealLiveRound(){
   document.getElementById('lrPost')?.addEventListener('click', ()=>go(false));
   document.getElementById('lrCasual')?.addEventListener('click', ()=>go(true));
 }
+/* the drawn check: a posted card with no marker the client can vouch for */
+const CS_CHECK_SVG = '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3L12.8 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function showLiveRecap(d, result, lrId){
   const posted=d.posted||[], guests=d.guests||[], skipped=d.skipped||[];
   const rows=[];
@@ -15918,11 +16064,11 @@ function showLiveRecap(d, result, lrId){
              : 'ALL SQUARE — NO MONEY MOVES')
       : 'BRAGGING RIGHTS ONLY';
     settleMoney = money;
-    rows.push(`<div class="check"><span class="num">⚔️</span><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
+    /* W1 · no emoji on a shared surface (LINT-12): the result is the row's words */
+    rows.push(`<div class="check"><div class="tt"><b>${esc(line)}</b><small>${esc(money)}</small></div></div>`);
   } else if(result && (result.game==='wolf' || result.game==='skins' || result.mode==='solo')){
     /* the ledger games: Wolf, Skins, and both solo modes (round robin and
        everyone-for-themselves Sunningdale), which the team row cannot hold */
-    const icon=result.game==='wolf'?'🐺':result.game==='skins'?'💰':'⚔️';
     /* solo Sunningdale has no transfer set: one player holds the bank and every
        other player owes it, which is stated on the card all round (D75) and
        must be stated the same way at settle */
@@ -15945,7 +16091,7 @@ function showLiveRecap(d, result, lrId){
        else in the app. `story` stays the fallback for any builder that has
        not grown a `share` yet. */
     settleMoney = money;
-    rows.push(`<div class="check"><span class="num">${icon}</span><div class="tt"><b>${esc(result.share||result.story||'')}</b><small>${esc(money)}</small></div></div>`);
+    rows.push(`<div class="check"><div class="tt"><b>${esc(result.share||result.story||'')}</b><small>${esc(money)}</small></div></div>`);
   }
   /* D78 · the strip, once, under whichever settlement row rendered above. The
      recap sheet wears .room-dusk (a fixed dark ceremony surface for every
@@ -15962,10 +16108,18 @@ function showLiveRecap(d, result, lrId){
       }</div>` : ''}
     </div>`);
   }
-  posted.forEach(x=>rows.push(`<div class="check"><span class="num">⛳</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · ✓ VOUCHED</small></div></div>`));
+  /* W1 · each posted card wears its golfer's own drawn marker where the
+     client knows it (a league mate, or you), and the drawn check where it
+     does not — never a generic ⛳ emoji, and never a guessed marker */
+  const cardMark = pid => {
+    const mine = pid && window.CS?.user?.id === pid;
+    const known = mine ? window.CS?.profile?.marker : ((window.CS?.members||[]).find(m => m.profile_id === pid) ? memberMarker(pid) : null);
+    return (known && window.mkr && window.mkr(known)) || CS_CHECK_SVG;
+  };
+  posted.forEach(x=>rows.push(`<div class="check"><span class="num mk" aria-hidden="true">${cardMark(x.profile_id)}</span><div class="tt"><b>${esc(x.name)} · ${x.gross}</b><small>POSTED · ${x.holes} HOLES · VOUCHED</small></div></div>`));
   skipped.forEach(x=>rows.push(`<div class="check"><span class="num">—</span><div class="tt"><b>${esc(x.name)}</b><small>NOT POSTED · ${esc(String(x.reason||'')).toUpperCase()}</small></div></div>`));
   guests.forEach(g=>{ const url=`${location.origin}/?claim=${g.claim_token}`;
-    rows.push(`<div class="check"><span class="num">🎟️</span><div class="tt"><b>${esc(g.name||'Guest')}</b><small>GUEST SCORECARD — SHARE THE LINK</small></div><button class="mini" data-copylink="${esc(url)}" style="flex:none">Copy</button></div>`); });
+    rows.push(`<div class="check"><span class="num" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span><div class="tt"><b>${esc(g.name||'Guest')}</b><small>GUEST SCORECARD — SHARE THE LINK</small></div><button class="mini" data-copylink="${esc(url)}" style="flex:none">Copy</button></div>`); });
   /* D57: the settlement travels as a page, not just a sheet — audit F5 */
   if(result && lrId && !state.demo)
     rows.push(`<button class="btn" id="lrShareCard" style="width:100%;margin-top:14px">Share the card</button>
@@ -15997,6 +16151,24 @@ function showLiveRecap(d, result, lrId){
     if(det) det.textContent = final.detail;
     if(!final.hasRound){ doors.remove(); return; }
     const rid = final.roundId;
+    /* W1 · WHAT YOUR CARD EARNED, from the server's own card for it (D355 · the
+       ceremony says what the server decided; D367 · the finish says what
+       happened to YOUR round). "It's on the books and scoring" never said what
+       the card scored. The lens is the open league's, as the receipt reads it. */
+    try{
+      const lens = (window.CS && CS.league && CS.league.id) || null;
+      let res = lens ? await window.sb.rpc('round_card', { p_round: rid, p_league: lens }) : null;
+      if(!res || res.error) res = await window.sb.rpc('round_card', { p_round: rid });
+      const c = res && !res.error ? res.data : null;
+      const tt = document.querySelector('#lrMine .tt');
+      if(c && c.points != null && tt && !document.getElementById('lrVerdict')){
+        const words = csRcptLensWords(c);
+        const v = document.createElement('span');
+        v.id = 'lrVerdict'; v.className = 'lrverdict';
+        v.textContent = `${c.points} point${Number(c.points)===1?'':'s'}${words ? ' \u00b7 ' + words : ''}`;
+        tt.insertBefore(v, document.getElementById('lrMineDoors'));
+      }
+    }catch(_){ /* the verdict is garnish on the finish; the receipt has it */ }
     /* R1 · through the fetch-by-id route — the receipt is fetched, never read
        from a cache that may not hold it — and the photo door opens the SAME
        receipt with its own attach control focused: no timed click, no
@@ -23164,7 +23336,7 @@ async function csPaintReceiptCard(r, rid, mine){
      together; the photo asked about only when the round has one */
   const photoRow = (canShare && r.photo_path)
     ? `<label class="fine" style="display:flex;gap:10px;align-items:flex-start;margin-top:10px;cursor:pointer">
-         <input type="checkbox" id="rcptPhotoOk" checked style="margin-top:3px;flex:none">
+         <input type="checkbox" id="rcptPhotoOk" checked style="margin-top:3px;flex:none;accent-color:var(--act);width:18px;height:18px">
          <span><b>${esc(CS_SHARE_PHOTO_INCLUDE)}</b><br>${esc(CS_SHARE_PHOTO_FINE)}</span></label>`
     : '';
   slot.innerHTML = `<div class="eyebrow">${esc(CS_CARD.head)}</div>`
