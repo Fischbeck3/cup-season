@@ -993,6 +993,24 @@ async function eventFromCompete(page, sel, id) {
 }
 /* TEN / W8 · W7-156 [A2-events-1] · the Ryder room: the golfer's own clash is FIRST in its week and reads 'You' (in the row and in its spoken sentence), and the rules paragraph,
    the taunt and the organiser's controls come AFTER the weeks (they stood a screen and a half above the clash on a phone) */
+/* TEN / W8 · W7-153 [A2-events-9, B2-events-7] · the roster's record columns are headed with words, 'Won', 'Lost', 'Halved' (the phone's recordLegend), in sentence case, each on its figures' edge and none clipped
+   ('W L H' was never spelled: 'H' least of all) */
+const rosterHeads = async (page) => page.evaluate(() => {
+  const heads = [...document.querySelectorAll('#eventBody .evrrow-hd')].filter((h) => h.getBoundingClientRect().width > 0)
+  if (!heads.length) return 'no roster head is drawn'
+  for (const h of heads) {
+    const cells = [...h.children].slice(2), words = cells.map((c) => c.textContent.trim())
+    if (words.join('|') !== 'Won|Lost|Halved') return `a roster head reads ${JSON.stringify(words)}, expected Won, Lost, Halved`
+    if (getComputedStyle(h).textTransform !== 'none') return 'the roster head is set in caps, not the sentence-case phrase'
+    const row = h.nextElementSibling; if (!row || !row.classList.contains('evrrow')) return 'no roster row follows the head'
+    const figs = [...row.querySelectorAll('.cs-col-m')]
+    for (let i = 0; i < 3; i++) {
+      if (cells[i].scrollWidth > cells[i].clientWidth + 1) return `${JSON.stringify(words[i])} is clipped in its column`
+      if (Math.abs(cells[i].getBoundingClientRect().right - figs[i].getBoundingClientRect().right) > 1) return `${JSON.stringify(words[i])} is not on its figure's edge`
+    }
+  }
+  return true
+})
 const ryderOrder = async (page) => page.evaluate(() => {
   const weeks = [...document.querySelectorAll('#eventBody .evsess')]
   if (!weeks.length) return 'the room draws no week'
@@ -1027,7 +1045,7 @@ const EVENTS = [
       has('#eventBody', 'The 2nd Ryder · Fixture Hawks hold it, 1–0', 'the series line (event_lineage)'),
       has('#eventBody', 'Fixture Hawks lead 5½–2½ after week 2\\.', 'the board’s week-2 line'),
       /* TEN / W8 · W7-K040 [B2-events-10]: the Ryder page does not own the season standing, it competes with it: the sidebar's season row stands down beside its two sides */
-      standsDown(['#sideMe [data-mego="season_row"]']), ryderOrder,
+      standsDown(['#sideMe [data-mego="season_row"]']), ryderOrder, rosterHeads,
       async (page) => page.evaluate(() => Object.keys((window.CS_EVENT || {}).targets || {}).length === 4 ? true : 'event_session_targets did not reach the four open duels')) },
   { family: 'events', id: 'finished', variant: 'member', title: 'The event room · a finished Ryder (Fixture Hawks 7–5), from Compete’s finished shelf',
     prepare: async (W) => { ryderWorld(W) },

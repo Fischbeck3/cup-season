@@ -2638,7 +2638,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .evroster{margin-top:var(--s5);}
 .evroster .evsesshd span:last-child{flex:none;}
 .evroster-rule{height:3px; width:44px; margin:0 0 var(--s2);}
-.evrrow{display:grid; grid-template-columns:30px minmax(0,1fr) 28px 28px 28px; gap:var(--s3); align-items:center;
+.evrrow{display:grid; grid-template-columns:30px minmax(0,1fr) 40px 40px 40px; gap:var(--s3); align-items:center;   /* W7-153 · 40px columns: the heads are words now (Won, Lost, Halved) */
   min-height:44px; padding:var(--s1) 0; border-top:1px solid var(--rule);}
 .evrrow .d{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;}
 .evrrow .nm{min-width:0; display:flex; flex-direction:column;}
@@ -28530,7 +28530,8 @@ function renderEvent(){
       <div class="evsesshd"><span>${esc(t.name)}</span><i></i><span>${roster.length}</span></div>
       <div class="evroster-rule" style="background:${SQ[(t.color??0)%4]}"></div>`;
     aside+= roster.length
-      ? `<div class="evrrow evrrow-hd cs-agate-s" aria-hidden="true"><span></span><span></span><span>W</span><span>L</span><span>H</span></div>`
+      /* W7-153 · the three record heads are spelled, in sentence case (the phone's RyderMath.recordLegend 'Won, lost, halved'): 'H' was never spelled anywhere; each row still speaks its own record */
+      ? `<div class="evrrow evrrow-hd cs-agate-s is-phrase" aria-hidden="true"><span></span><span></span><span>Won</span><span>Lost</span><span>Halved</span></div>`
         + roster.map(p=>{ const [w,l,h]=recOf(p.id);
           return `<div class="evrrow" aria-label="${esc(`${p.name}${p.role==='captain'?', captain':''}: ${w} won, ${l} lost, ${h} halved`)}">
             <span class="d" style="background:${csPigment(p.profile_id||p.id)}" aria-hidden="true">${window.mkr?.(p.marker||'saguaro')||''}</span>
