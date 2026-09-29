@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`f88f538d`** (`index.html`, `get.html`, `support.html`, `legal.html`), the branch head when DX started. It is an ancestor of the candidate `9d84c483`. The baseline is the 214 candidates in `docs/design/ten-2026-09-27/detector-ledger.json`, taken at `5fabf861`. |
-| **Status read at** | **`144ee0b0`** on integration: every web lane, root's fixes through `7141516f`, and E's native phase 1 (`6716b0ed`). The web shipped as `272c2da1`, serving `ed8e6837`'s files. |
+| **Status read at** | **`41cf8050`**, shipping as web plus TestFlight 1328: every web lane, E's native phase 1 (`6716b0ed`), and root's fixes through `41cf8050`. Nothing after `144ee0b0` changes an item in this file. |
 | **Date** | 2026-09-28 |
 | **Assessors** | **DX**, independent: Impeccable 4.3.1's detector (CLI 0.1.5) with three engines (static HTML, in-page, CLI URL). DX wrote no code. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/detector/DETECTOR.md` · `…/detector/detector-resolution.json` (37,919 entries: `meta`, `counts`, `true_positives`, `observations_beyond_detector`, `groups`) · `…/detector/proposals/` (TP-01 to TP-22: 18 diffs and 4 notes, none applied) · `…/detector/measure/`, `…/raw/`, `…/snapshots/` (92 sanitised DOMs), `…/scripts/` |

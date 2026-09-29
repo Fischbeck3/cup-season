@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**, source read from the snapshot `candidate-9d84c483/`. Live probes ran against the pinned server, which served `index.html` sha256 `2ac5c63a…`. |
-| **Status read at** | **`144ee0b0`** on integration: every web lane, root's fixes through `7141516f`, and E's native phase 1 (`6716b0ed`). The web shipped as `272c2da1`, serving `ed8e6837`'s files. |
+| **Status read at** | **`41cf8050`**, shipping as web plus TestFlight 1328: every web lane, E's native phase 1 (`6716b0ed`), and root's fixes through `41cf8050`. Nothing after `144ee0b0` changes an item in this file. |
 | **Date** | 2026-09-28 |
 | **Assessors** | **AW**, an independent web audit with Impeccable 4.3.1 `audit`. AW wrote no code. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/audit-web/AUDIT-web.md` and `audit-web.json` · `…/audit-web/raw/` (probe results) · `…/audit-web/shots/` · `…/audit-web/snapshots/` and `…/audit-web/detector/` (sanitised DOMs and detector runs) · `…/audit-web/probe/aw-probe.mjs` |
