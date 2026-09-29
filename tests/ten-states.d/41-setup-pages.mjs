@@ -71,11 +71,31 @@ const planSheetPrimary = (owes) => async (page) => page.evaluate((owes) => {
   if (!teeBtn) return 'Tee it up is not the primary once the golfer is in'
   return fill === act ? "I'm in is filled act as well as Tee it up: two primaries" : true
 }, owes)
+/* TEN / W8 · W7-088 [X04] · the calendar marks the week's close on the league's OWN closing weekday (a season that starts on a Sunday closes its weeks on Saturday), not on every Sunday; and the archive's
+   'the first week closes <weekday> night' names that weekday when it is drawn */
+const weekCloseMarks = async (page) => page.evaluate(() => {
+  const s = window.CS && window.CS.season, cur = window.calCursor
+  if (!s || !cur) return 'no season or calendar'
+  const ymd = (iso) => String(iso).slice(0, 10).split('-').map(Number)
+  const [sy, sm, sd] = ymd(s.starts_on), [ey, em, ed] = ymd(s.ends_on), start = new Date(sy, sm - 1, sd), end = new Date(ey, em - 1, ed)
+  const closeDow = (start.getDay() + 6) % 7, name = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][closeDow]
+  let seen = 0; const bad = []
+  for (const c of document.querySelectorAll('#calGrid [data-cd]')) {
+    const d = new Date(cur.y, cur.m, Number(c.dataset.cd))
+    if (d.getDay() !== closeDow || !(d > start) || d > end) continue
+    seen++
+    if (!c.querySelector('.caldot.lg')) bad.push(c.dataset.cd)
+  }
+  if (!seen) return 'no day of the visible month closes a week of this season (the state is not the one the pin is for)'
+  if (bad.length) return `the league's weeks close on ${name} and the calendar leaves ${bad.length} of those days unmarked (${bad.join(', ')})`
+  const line = /the first week closes (\w+) night/.exec(document.getElementById('calWeeks').textContent)
+  return line && line[1] !== name ? `the archive says the first week closes ${line[1]} night, not ${name}` : true
+})
 const SCHEDULE = [
   { family: 'schedule', id: 'populated', variant: 'member', title: 'Schedule · my plans, a plan I am tagged in, the crew’s plans',
     drive: toSchedule, expect: { view: 'view-schedule', minText: 80 },
     /* TEN / W6 · AW2-06: the weekday heads and the back link are agate, never mono; the dates stay a column */
-    check: all(has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course'),
+    check: all(has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course'), weekCloseMarks,
       notMono(['#calGrid .calhd', '#view-schedule .backlink'], ['#calGrid .calhd', '#view-schedule .backlink']),
       noRetiredGlyph()) },
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',

@@ -416,6 +416,9 @@
     window.openScoringHelp();
     const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
     /* W7-093 [A2-rules-2] · the floor sentence names WHICH months are waived (the edge months close_month waives), not 'Short months', which no page defines */
+    /* W7-088 · the week's close weekday is the league's own (a season that starts on a Sunday closes on Saturday), from csWeekEnds: never a hardcoded Sunday */
+    t('W7-088: csWeekCloseDow reads the league\'s own closing weekday',
+      [csWeekCloseDow({ week_ends_on:'2026-08-15' }), csWeekCloseDow({ week_ends_on:'2026-09-30' }), csWeekCloseDow({ week_ends_on:'2026-10-11' })], [6, 3, 0]);
     /* W7-167 · the wizard's dial foot and review say the season page's sentence: one producer, 'squad' and never 'team' */
     t('W7-167: the wizard\'s minimum sentence is floorSentence\'s, in every preset and structure',
       [[0,1,2].map(pr => csSetupMinimum({ floor:2, preset:pr, structure:'squads4' })), csSetupMinimum({ floor:0, preset:1, structure:'squads2' }), csSetupMinimum({ floor:3, preset:1, structure:'solo' })],

@@ -27479,6 +27479,13 @@ function csWeekEnds(season, today){
   const wk = Math.max(0, Math.floor(csWeekDays(s, today) / 7));
   return new Date(s.getFullYear(), s.getMonth(), s.getDate() + wk*7 + 6);
 }
+/* W7-088 · the WEEKDAY this league's weeks close on, from the same producer (csWeekEnds: the league's own closing day, D213/M-17). Every week of a season closes on one weekday, so the calendar's
+   week-close marks and the archive's 'the first week closes … night' read it here and never hardcode Sunday. */
+function csWeekCloseDow(season){
+  const e = csWeekEnds(season || (window.CS && window.CS.season));
+  return e && !isNaN(e) ? e.getDay() : 0;
+}
+window.csWeekCloseDow = csWeekCloseDow;
 /* `standings_snapshots.week_no` is 0-BASED (`snapshot_week`). Every surface
    that shows one to a golfer RELABELS it; it is never recomputed, because the
    snapshot's own number is the record of which window it captured. */
@@ -28017,10 +28024,11 @@ function renderCalendar(){
     add(e,  {kind:'lg', t:`${lgName} — season ends, cup decided`});
     const first=calFirst(cur.y, cur.m);
     if(first>s && first<=e) add(first, {kind:'lg', t:`${MOS[(cur.m+11)%12]} closes — minimums & bonuses assessed`});
+    const closeDow = csWeekCloseDow();   /* W7-088 · the league's own closing weekday, not every Sunday */
     for(let d=1; d<=31; d++){
       const dt=new Date(cur.y, cur.m, d);
       if(dt.getMonth()!==cur.m) break;
-      if(dt.getDay()===0 && dt>s && dt<=e && +dt!==+s) add(dt, {kind:'lg', t:'Week closes — the table is recorded'});
+      if(dt.getDay()===closeDow && dt>s && dt<=e && +dt!==+s) add(dt, {kind:'lg', t:'Week closes — the table is recorded'});
     }
   }
   (window.leagueSpans||[]).forEach(ls=>{
@@ -28099,9 +28107,10 @@ function renderCalendar(){
   if(wkEl && showWk){
     const hist=(!state.demo && window.seasonHistory) ? window.seasonHistory : [];
     if(!hist.length){
+      const closeNight = DOW_LONG[csWeekCloseDow()];   /* W7-088 · the league's own closing weekday */
       wkEl.innerHTML='<p class="fine" style="padding:0">'+(state.demo
-        ? 'The demo skips the archive. Real seasons record every Sunday night.'
-        : 'Nothing recorded yet: the first week closes Sunday night, and every week lands here for the season.')+'</p>';
+        ? `The demo skips the archive. Real seasons record every ${closeNight} night.`
+        : `Nothing recorded yet: the first week closes ${closeNight} night, and every week lands here for the season.`)+'</p>';
     } else {
       /* D234 · a SOLO season forms no squads, so `standings.squads` is []
          and every week of a solo archive rendered as a bare "WK 3" with no
