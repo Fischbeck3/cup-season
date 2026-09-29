@@ -7109,8 +7109,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <button type="button" class="wizgrp-h" aria-expanded="false" aria-controls="wizGrpCalendarB"><span class="wizgrp-k">Calendar</span><span class="wizgrp-sum" id="wizSumCalendar"></span><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
             <div class="wizgrp-b" id="wizGrpCalendarB" hidden>
           <div class="setrow">
-            <div class="lab">Season length<small>Weeks or months · ends the same weekday</small></div>
-            <div class="val" id="lenVal">6 mo</div>
+            <div class="lab">Season length<small id="lenGloss">Ends the same weekday</small></div>
+            <div class="val" id="lenVal">26 weeks</div>
             <div class="ctl"><button id="lenDown" aria-label="Shorter season">−</button><button id="lenUp" aria-label="Longer season">+</button></div>
           </div>
           <p class="fine" id="wholeMonthNote" style="display:none;padding:0 0 6px"></p>
@@ -7969,7 +7969,7 @@ function csHalfNote(credits, rem){
    before it's cold") through full multi-month leagues. Flexible start (§14.0
    v1.1: Sunday-start no longer required — caps/floors stay calendar-month). */
 const DURS=[2,3,4,5,6,8,10,13,17,22,26,39,52];
-const durLabel = w => w<8 ? `${w} wk` : `${Math.round(w/4.345)} mo`;
+const durLabel = w => `${w} weeks`;   /* W7-171 · a season's length is said in WEEKS everywhere (the calendar summary and the review did; the stepper said '3 mo' for 13 weeks, and two lengths both read '2 mo'): months are only a gloss, under the stepper */
 /* D143 · season_months only DESCRIBES the window; the real length is week-based
    (durWeeks → seasons.starts_on/ends_on). It used to be clamped to 3 here
    because the DB CHECK was 3..12, which meant a 2-week season stored "3 months"
@@ -15198,6 +15198,8 @@ document.getElementById('useBusyFriends')?.addEventListener('click', ()=>{
 function renderSetup(){
   $('#stakeVal').textContent=state.stake===0?'None':fmt$(state.stake);
   $('#lenVal').textContent=durLabel(state.durWeeks);
+  /* W7-171 · months as a gloss only, from eight weeks up ('About 3 months'); under eight the weeks are the whole story */
+  const lenGloss=$('#lenGloss'); if(lenGloss) lenGloss.textContent = state.durWeeks>=8 ? `About ${durMonths(state.durWeeks)} months · ends the same weekday` : 'Ends the same weekday';
   $('#capVal').textContent=capLabel();
   $('#floorVal').textContent=state.floor ? state.floor+' / mo' : 'None';
   csRenderSetupMinimum();

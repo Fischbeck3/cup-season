@@ -243,6 +243,22 @@ const reviewAlone = async (page) => page.evaluate(() => {
   const after = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
   return after(h2, nm) && after(nm, note) && after(note, rules) ? true : 'the review does not read head, name, line, rules'
 })
+/* TEN / W8 · W7-171 [B2-wizard-4] · a season's length is said in weeks everywhere (the stepper, the portrait's Season row, the calendar summary and the review): '13 weeks', never '3 mo', and months are only a gloss
+   under the stepper ('About 3 months · ends the same weekday') from eight weeks up */
+const lengthInWeeks = async (page) => page.evaluate(() => {
+  const w = Number(state.durWeeks), val = document.getElementById('lenVal'), gloss = document.getElementById('lenGloss')
+  if (val && val.getBoundingClientRect().width > 0) {
+    if (val.textContent.trim() !== `${w} weeks`) return `the stepper reads ${JSON.stringify(val.textContent.trim())}, not '${w} weeks'`
+    const months = Math.min(12, Math.max(1, Math.round(w / 4.345)))
+    const want = w >= 8 ? `About ${months} months \u00b7 ends the same weekday` : 'Ends the same weekday'
+    if (!gloss || gloss.textContent.trim() !== want) return `the stepper's gloss reads ${JSON.stringify(gloss && gloss.textContent.trim())}, not ${JSON.stringify(want)}`
+  }
+  const rows = [...document.querySelectorAll('.wizp-row')].filter((r) => r.getBoundingClientRect().width > 0)
+  for (const r of rows) if (/^Season/i.test((r.querySelector('.k') || {}).textContent || '') && !new RegExp(`^${w} weeks`).test((r.querySelector('.wizp-v') || {}).textContent || '')) return `the portrait's Season row does not lead with '${w} weeks'`
+  const shown = [...document.querySelectorAll('#view-wizard .wizstep.on, #view-wizard .wiz-aside')].map((e) => e.innerText).join(' ')
+  const m = shown.match(/\b\d+ mo\b/)
+  return m ? `the wizard still prints a length as '${m[0]}'` : true
+})
 /* TEN / W8 · W7-104 [A2-wizard-5, A2-desk-19] · a missing pay note is said in ink, as the phone says it, before the Pro has tried to start: 'add how they pay you' in the Money group's summary,
    the field's line and the review's 'Not set yet' are not the error red (neg is for a refusal, not a field not yet filled); the disabled Start and its reason stay */
 const payNoteInk = async (page) => page.evaluate(() => {
@@ -304,7 +320,7 @@ const WIZARD = [
     expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } },
     /* TEN / W6 · delta G6: a dial's value is one figure; at 375 and 402 the
        narrowed column broke it ("Best / 4", "2 / / mo") */
-    check: all(payNoteInk, async (page) => page.evaluate(() => {
+    check: all(payNoteInk, lengthInWeeks, async (page) => page.evaluate(() => {
       const broken = [...document.querySelectorAll('#wizDials .setrow .val')].filter((v) => v.offsetParent !== null)
         .filter((v) => { const cs = getComputedStyle(v), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25; return v.getBoundingClientRect().height > lh * 1.5 })
         .map((v) => JSON.stringify(v.textContent.trim()))
@@ -317,7 +333,7 @@ const WIZARD = [
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
       await click(page, '#wizFastPath'); await wizAt(page, 2); await page.waitForTimeout(600)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone, payNoteInk) },
+    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 3 of 3' } }, check: all(seasonBand, reviewAlone, payNoteInk, lengthInWeeks) },
 ]
 
 /* --------------------------------------------- COURSES & THE COURSE CARD */
