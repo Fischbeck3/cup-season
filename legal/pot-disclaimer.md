@@ -1,4 +1,4 @@
-# Prize Pool Disclaimer
+# The pot
 
 **Last Updated:** September 21, 2026
 

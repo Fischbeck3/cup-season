@@ -65,6 +65,10 @@ for (const width of [320, 375, 402, 1280]) for (const theme of ['dark', 'light']
     switchView('stats')
     window.CS_COURSE_LEAD = lead
     renderCourseBooks()
+    /* W2 (f46086b4) put the full book behind You's "Your courses" door; a
+       golfer opens it before reading or typing, so the suite does too — in a
+       closed <details> the sentence cannot take focus and nothing measures */
+    const door = document.getElementById('youCoursesDoor'); if (door) door.open = true
     document.getElementById('youCourses').scrollIntoView({ block: 'start' })
   }, LEAD.id)
   await page.waitForTimeout(150)

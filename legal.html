@@ -34,6 +34,7 @@
     --r:16px; --rc:10px; --s1:4px; --s2:8px; --s3:12px; --s4:20px; --s5:32px; --s6:52px; --gutter:20px; --gutter-desk:40px; --hair:1px;
     --board:'IBM Plex Sans Condensed', system-ui, sans-serif;
     --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+    --serif:ui-serif, 'New York', 'Iowan Old Style', Georgia, serif;
     --agate:0.09em; --caps:0.035em;
   }
   @media (prefers-color-scheme: light){
@@ -48,57 +49,105 @@
     --ink:#151B17; --mut:#575F57; --dim:#8B9089;
     --act:#1F5D3A; --act-ink:#F4F1E9;
   }
+  /* ONE SHELL for the three static pages (get, support, legal), the same one
+     the public round record wears: the pennant and the condensed wordmark
+     over a hairline, the page's name at the right, a serif title, then the
+     documents separated by rules rather than each boxed in one tall tinted
+     panel (BRIEF §6, owner and craft panels 2026-09-28). The mark is the
+     generated geometry (tools/build-beta-mark.sh), inline so it takes the
+     page's ink. The legal WORDS are counsel's (D379) and are not changed
+     here; the pot document takes the product's noun (TERMINOLOGY T-12). */
   *{box-sizing:border-box;}
   html{-webkit-text-size-adjust:100%;}
   /* a legal page is read end to end: a longer line-height than the app's
      functional prose, at the same size */
   body{margin:0; background:var(--bg0); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased;}
   ::selection{background:var(--act); color:var(--act-ink);}
-  .wrap{max-width:680px; margin:0 auto; padding:var(--s5) var(--gutter) 72px;}
-  @media (min-width:720px){ .wrap{ padding-left:var(--gutter-desk); padding-right:var(--gutter-desk); } }
+  /* ~66 characters a line at the desk (craft R: it ran ~95) */
+  .wrap{max-width:640px; margin:0 auto; padding:var(--s4) var(--gutter) 72px;}
+  @media (min-width:720px){ .wrap{ padding:var(--s5) var(--gutter-desk) 96px; } }
   a{color:var(--act); text-underline-offset:.18em;}
   a:hover{color:var(--ink);}
-  a:focus-visible{outline:2px solid var(--act); outline-offset:3px; border-radius:4px;}
-  .home{display:inline-flex; align-items:center; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; color:var(--mut); text-decoration:none; margin-bottom:var(--s4); min-height:44px;}
-  .home:hover{color:var(--ink);}
-  h1{font-family:var(--board); font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); font-weight:600; margin:0 0 var(--s2);}
-  nav{display:flex; gap:0 var(--s4); flex-wrap:wrap; font-family:var(--board); font-weight:600; font-size:13px; letter-spacing:var(--caps); text-transform:uppercase; margin:0 0 var(--s5); padding-bottom:var(--s3); border-bottom:var(--hair) solid var(--rule);}
-  nav a{display:flex; align-items:center; min-height:44px; text-decoration:none; color:var(--mut); padding:12px 0; line-height:1.2;} nav a:hover{color:var(--ink);}
-  section{background:var(--bg1); border-radius:var(--r); padding:var(--s4); margin-bottom:var(--s4); scroll-margin-top:var(--s4);}
-  @media (min-width:720px){ section{ padding:var(--s5); } }
+  /* the product's focus ring: 2px act, 2px off the control */
+  a:focus-visible{outline:2px solid var(--act); outline-offset:2px; border-radius:4px;}
+  .mast{display:flex; align-items:center; gap:var(--s3); padding-bottom:var(--s3); border-bottom:var(--hair) solid var(--rule); margin:0 0 var(--s5);}
+  .mast .home{display:inline-flex; align-items:center; gap:var(--s2); min-height:44px; color:var(--ink); text-decoration:none;}
+  .mast .home:hover{color:var(--ink);}
+  /* TEN / W6 · ONE LOCKUP (D358): index.html's `.cs-lockup` — the phone masthead's own
+     geometry, the pennant in an s5 × s4 box, s2, the name in the `name` role (board
+     600, 17, caps). These pages carry no shared stylesheet, so this is its inline twin. */
+  .mast svg{width:var(--s5); height:var(--s4); flex:none; display:block;}
+  .mast .name{font-family:var(--board); font-weight:600; font-size:17px; line-height:1.16; letter-spacing:var(--caps); text-transform:uppercase; overflow-wrap:anywhere;}
+  .mast .where{margin-left:auto; font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); text-align:right;}
+  h1{font-family:var(--serif); font-weight:700; font-size:28px; line-height:1.14; letter-spacing:-.01em; margin:0 0 var(--s3); text-wrap:balance;}
+  .sum{color:var(--mut); margin:0 0 var(--s4); line-height:1.45;}
+  /* the contents: a list of rows, each a 44px target (owner M/R, craft H) */
+  .toc{list-style:none; margin:0; padding:0; border-top:var(--hair) solid var(--rule);}
+  .toc li{margin:0; border-bottom:var(--hair) solid var(--rule);}
+  .toc a{display:flex; align-items:center; min-height:44px; padding:var(--s2) 0; text-decoration:none; color:var(--ink); line-height:1.3;}
+  .toc a:hover{color:var(--act);}
+  .toc.sub{margin:0 0 var(--s4);}
+  .toc.sub a{font-size:15px;}
+  section{padding-top:var(--s5); margin-top:var(--s6); border-top:2px solid var(--ink); scroll-margin-top:var(--s4);}
   h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.16; margin:0 0 var(--s1);}
-  h3{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:var(--s4) 0 var(--s2);}
-  .updated{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:0 0 var(--s3);}
+  /* the structure is louder than the clause leads under it (critique B) */
+  h3{font-family:var(--board); font-weight:600; font-size:17px; line-height:1.2; color:var(--ink); margin:var(--s5) 0 var(--s2); padding-top:var(--s3); border-top:var(--hair) solid var(--rule); scroll-margin-top:var(--s4);}
+  .updated{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:var(--agate); text-transform:uppercase; color:var(--mut); margin:0 0 var(--s4);}
   p{margin:0 0 var(--s3);} p:last-child{margin-bottom:0;}
   ul{margin:0 0 var(--s3); padding-left:var(--s4);} li{margin:0 0 var(--s2);}
   b,strong{font-weight:650;}
-  footer{color:var(--mut); font-size:13px; text-align:center; margin-top:var(--s5);}
+  .up{margin-top:var(--s4);}
+  .up a{display:inline-flex; align-items:center; min-height:44px; font-size:15px; color:var(--mut);}
+  footer{margin-top:var(--s6); padding-top:var(--s4); border-top:var(--hair) solid var(--rule); color:var(--mut); font-size:15px;}
+  footer p{margin:0 0 var(--s2);}
+  footer .who{font-size:13px;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <a class="home" href="/">← Back to Cup Season</a>
-  <h1>Cup Season · Legal</h1>
-  <nav>
-    <a href="#privacy">Privacy Policy</a>
-    <a href="#terms">Terms of Service</a>
-    <a href="#pot">Prize Pool Disclaimer</a>
+<div class="wrap" id="top">
+  <header class="mast">
+    <a class="home" href="/" aria-label="Cup Season, open the app">
+      <svg viewBox="0 0 1000 570" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="M395 65C495 22 620 141 840 86L751 279C639 350 543 265 395 334Z M558 137L477 137L449 165L431 238L455 263L502 263L535 232L470 232L487 170L550 170Z M671 137L591 137L558 167L549 207L570 227L621 227L616 242L552 242L544 265L624 265L655 238L663 199L642 178L594 178L599 168L650 168Z"/><path d="M355 442L355 39C344 18 354 0 375 0C398 0 407 21 396 40L396 443Z M0 560C272 391 615 382 1000 560C620 442 365 442 0 560Z"/></svg>
+      <span class="name">Cup Season</span>
+    </a>
+    <span class="where">Legal</span>
+  </header>
+
+  <main>
+  <h1>Privacy, terms and the pot</h1>
+  <p class="sum">Three documents: what we collect and why, the terms for using Cup Season, and what the pot is.</p>
+  <nav aria-label="The three documents">
+    <ul class="toc">
+      <li><a href="#privacy">Privacy Policy</a></li>
+      <li><a href="#terms">Terms of Service</a></li>
+      <li><a href="#pot">The pot</a></li>
+    </ul>
   </nav>
 
   <section id="privacy">
     <h2>Privacy Policy</h2>
     <p class="updated">Last updated: September 25, 2026</p>
+    <nav aria-label="In the privacy policy">
+      <ul class="toc sub">
+        <li><a href="#collect">What we collect</a></li>
+        <li><a href="#use">What we use it for</a></li>
+        <li><a href="#others">Who else touches it</a></li>
+        <li><a href="#keep">How long we keep it</a></li>
+        <li><a href="#age">Age</a></li>
+        <li><a href="#apple">Apple</a></li>
+      </ul>
+    </nav>
     <p>Cup Season is operated by Fischbeck3 LLC. This page says what we collect, why, who else touches it, and how you leave.</p>
-    <h3>What we collect</h3>
+    <h3 id="collect">What we collect</h3>
     <ul>
       <li><b>Your account.</b> Your name, email address and handle; your marker; your city and home course if you add them; a profile photo if you choose one.</li>
       <li><b>Your golf.</b> The rounds you post (score, course, tees, date), your handicap index and how it was set, the leagues you join and what happens in them (points, standings, board posts, comments, applause), the live games you score, and any photos you attach to a round.</li>
       <li><b>Your device.</b> A push token, only if you turn notifications on. Basic diagnostics — crash and error reports and which screens were opened — so we can fix what breaks.</li>
       <li><b>Your contacts, only if you ask.</b> When you tap to find friends, we check your contacts against golfers who are already here. We send one-way SHA-256 hashes of the numbers and addresses, never your contacts, and we keep nothing that doesn't match.</li>
     </ul>
-    <h3>What we use it for</h3>
+    <h3 id="use">What we use it for</h3>
     <p>To run your account, your leagues and the standings; to send sign-in codes and league updates; to fix the app. We do not sell your information and we do not use it for advertising.</p>
-    <h3>Who else touches it</h3>
+    <h3 id="others">Who else touches it</h3>
     <ul>
       <li><b>Supabase</b> — the database, sign-in and storage for photos and share images.</li>
       <li><b>Netlify</b> — hosts the web app and these pages.</li>
@@ -111,40 +160,47 @@
       <li><b>esm.sh</b> — delivers part of the web app's code when it loads, so it sees your IP address and browser; never what you type.</li>
     </ul>
     <p>Each holds only what its job needs.</p>
-    <h3>How long we keep it</h3>
+    <h3 id="keep">How long we keep it</h3>
     <p>While your account exists. You can delete your account yourself, on the phone or the web: open You, then Card &amp; settings, and choose Delete my account at the bottom of Settings. Deleting removes your name, handle, photo, email, photos and share images, and the text of your posts and comments; your notifications stop and your account is closed at once. Your posted rounds stay in the leagues you played as "Former member", so standings stay true. Deleted data leaves our live database immediately, photos and share images leave storage shortly after, and our backups follow on their own rolling schedule.</p>
-    <h3>Age</h3>
+    <h3 id="age">Age</h3>
     <p>You must be at least 13 to use Cup Season.</p>
-    <h3>Apple</h3>
+    <h3 id="apple">Apple</h3>
     <p>Apple is not a sponsor of, and is not involved in, any league, competition or pot run through Cup Season.</p>
     <p>Questions or requests: <a href="mailto:jerecho@fischbeck3.com">jerecho@fischbeck3.com</a>.</p>
     <p>By using Cup Season, you agree to this Privacy Policy.</p>
+    <p class="up"><a href="#top">Back to top</a></p>
   </section>
 
   <section id="terms">
     <h2>Terms of Service</h2>
     <p class="updated">Last updated: September 25, 2026</p>
     <p>Cup Season is operated by Fischbeck3 LLC. By using it you agree to these terms.</p>
-    <p><b>Who can use it.</b> You must be at least 13. A league that keeps a pot is a private arrangement between adults who know each other; see the Prize Pool Disclaimer.</p>
+    <p><b>Who can use it.</b> You must be at least 13. A league that keeps a pot is a private arrangement between adults who know each other; see <a href="#pot">The pot</a> below.</p>
     <p><b>Your account and your scores.</b> You are responsible for the accuracy of what you post — your scores most of all. A posted round is a fact in your leagues' records: you can delete it, and a league's Pro can rule on points with a reason everyone can read, but a round is never edited after the fact.</p>
     <p><b>Your content.</b> You keep ownership of your photos and content. You give Cup Season permission to display them where the service needs to — on your card, your leagues' boards, and the cards you choose to share.</p>
     <p><b>No objectionable content, no abuse.</b> Cup Season has zero tolerance for objectionable content and for abusive users. Don't post anything hateful, harassing, threatening, sexually explicit or violent, don't impersonate anyone, and don't use the app to bother another golfer. You can report any post, comment, photo or golfer from the app. We review reports within 24 hours, remove the offending content, and remove the accounts that posted it. <b>Block</b> stops a golfer from contacting you: you won't see their posts, and they can't send you requests, invites or notifications.</p>
     <p><b>The app.</b> Cup Season is provided "as is", without warranties. We may change or retire features. We may suspend or remove accounts that misuse the service or other golfers.</p>
     <p><b>Disputes between golfers.</b> Scores, points and pots are settled inside your league, by its Pro and its members. Cup Season keeps the record; it does not arbitrate.</p>
     <p>Questions: <a href="mailto:jerecho@fischbeck3.com">jerecho@fischbeck3.com</a>.</p>
+    <p class="up"><a href="#top">Back to top</a></p>
   </section>
 
   <section id="pot">
-    <h2>Prize Pool Disclaimer</h2>
+    <h2>The pot</h2>
     <p class="updated">Last updated: September 21, 2026</p>
     <p>Cup Season is a golf league app for private groups who play real, handicapped golf together.</p>
     <p>Cup Season keeps the ledger; the money moves between friends. Any pot shown in the app is a private arrangement among players who know each other, set up and settled by the league's organizer and its members. It is based on skill — real golf scores under a handicap — and is not a game of chance operated by Cup Season.</p>
     <p>Cup Season does not collect, hold, transfer or distribute money, and takes no fee or cut of any pot. A league's stake is capped at $200 per golfer per season. Cup Season is not responsible for a league's payouts or disputes.</p>
     <p>Apple is not a sponsor of, and is not involved in, any league or pot.</p>
     <p>You are responsible for making sure your league complies with the laws where you play. If you are unsure whether a money pot is allowed where you live, keep your league to bragging rights.</p>
+    <p class="up"><a href="#top">Back to top</a></p>
   </section>
+  </main>
 
-  <footer>Cup Season · cupseason.app</footer>
+  <footer>
+    <p>Need a hand? <a href="/support">Support</a> · <a href="/get">Get the app</a></p>
+    <p class="who">Cup Season · cupseason.app · operated by Fischbeck3&nbsp;LLC</p>
+  </footer>
 </div>
 </body>
 </html>

@@ -60,7 +60,9 @@ for (const width of [375, 1280]) for (const theme of ['dark', 'light']) for (con
       record: view.dataset.record,
       absence,
       trophies: shown(document.getElementById('trophyCase')),
-      allTime: shown(view.querySelector('.stats[data-rec="some"]')),
+      /* W2 2026-09-28 · the all-time figures are a strip on a rule now
+         (#youAllTime), not the bordered `.stats` tiles */
+      allTime: shown(view.querySelector('#youAllTime[data-rec="some"]')),
       courses: shown(document.getElementById('youCourses')),
       door: [...view.querySelectorAll('[data-empty-go="record"]')].filter(shown).map(b => ({ tag: b.localName, h: b.getBoundingClientRect().height })),
       retry: shown(document.getElementById('youRecentRetry')),

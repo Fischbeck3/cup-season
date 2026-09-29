@@ -79,6 +79,7 @@ struct SeasonRulesPage: View {
           .frame(minHeight: 44).contentShape(Rectangle())
       }
       .buttonStyle(.plain)
+      .accessibilityIdentifier("rules.scoringHelp")
     }
   }
 

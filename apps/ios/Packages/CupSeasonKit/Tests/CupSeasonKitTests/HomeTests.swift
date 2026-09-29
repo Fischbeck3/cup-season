@@ -211,3 +211,19 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
     #expect(Occasion.current(leagueless: false, majorOpen: true, today: day(9, 5, c), calendar: c, defaults: d) == nil)
   }
 }
+
+/// N4 · the door under a round says its count in English: `1 comment`, never
+/// `1 comments` (the phone printed the plural for one, in a view's string).
+@Suite struct CommentsDoorTests {
+  @Test func oneCommentIsSingularAndTheRestArePlural() {
+    #expect(HomeWireCopy.commentsDoor(1) == "1 comment")
+    #expect(HomeWireCopy.commentsDoor(2) == "2 comments")
+    #expect(HomeWireCopy.commentsDoor(12) == "12 comments")
+  }
+
+  @Test func noCountNamesWhatTheDoorOpens() {
+    #expect(HomeWireCopy.commentsDoor(nil) == "Comments")
+    #expect(HomeWireCopy.commentsDoor(0) == "Comments")
+    #expect(HomeWireCopy.commentsDoor(-1) == "Comments")
+  }
+}

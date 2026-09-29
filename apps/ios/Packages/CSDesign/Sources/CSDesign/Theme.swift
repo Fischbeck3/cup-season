@@ -147,6 +147,10 @@ public extension CSPalette {
               ceremonyPos: ceremonyPos, ceremonyCool: ceremonyCool,
               ceremonySq0: ceremonySq0, ceremonySq1: ceremonySq1,
               ceremonySq2: ceremonySq2, ceremonySq3: ceremonySq3,
+              // TEN / W6 · the ceremony ramp's pigments (02b4cfff) ride with the
+              // ceremony ground: a look and Increase Contrast leave them alone
+              ceremonyPig0: ceremonyPig0, ceremonyPig1: ceremonyPig1, ceremonyPig2: ceremonyPig2,
+              ceremonyPig3: ceremonyPig3, ceremonyPig4: ceremonyPig4, ceremonyPig5: ceremonyPig5,
               crest: crest, folioRule: folioRule, scrimInk: scrimInk, scrimMut: scrimMut,
               pig0: pig0, pig1: pig1, pig2: pig2, pig3: pig3, pig4: pig4, pig5: pig5)
   }
@@ -172,6 +176,10 @@ public extension CSPalette {
               ceremonyPos: ceremonyPos, ceremonyCool: ceremonyCool,
               ceremonySq0: ceremonySq0, ceremonySq1: ceremonySq1,
               ceremonySq2: ceremonySq2, ceremonySq3: ceremonySq3,
+              // TEN / W6 · the ceremony ramp's pigments (02b4cfff) ride with the
+              // ceremony ground: a look and Increase Contrast leave them alone
+              ceremonyPig0: ceremonyPig0, ceremonyPig1: ceremonyPig1, ceremonyPig2: ceremonyPig2,
+              ceremonyPig3: ceremonyPig3, ceremonyPig4: ceremonyPig4, ceremonyPig5: ceremonyPig5,
               crest: crest, folioRule: scrimMut, scrimInk: scrimInk, scrimMut: scrimInk,
               pig0: pig0, pig1: pig1, pig2: pig2, pig3: pig3, pig4: pig4, pig5: pig5)
   }

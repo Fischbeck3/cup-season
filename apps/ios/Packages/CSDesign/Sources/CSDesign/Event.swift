@@ -219,8 +219,10 @@ public struct CSScoreRail: View {
             numeral(c)
           }
           .frame(minHeight: 44)
+          .contentShape(.accessibility, Rectangle())
           .accessibilityElement(children: .ignore)
-          .accessibilityLabel(c.spoken ?? "\(c.label), \(c.value)\(c.half ? " and a half" : "")")
+          .accessibilityLabel(spoken(c))
+          .accessibilityAddTraits(.isStaticText)
           CSRule(.heavy, metal: metal)
         }
       }
@@ -234,8 +236,6 @@ public struct CSScoreRail: View {
               numeral(c)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(c.spoken ?? "\(c.label), \(c.value)\(c.half ? " and a half" : "")")
           }
         }
         // ONE rule under all of them. The metal says whether it is running.
@@ -245,12 +245,34 @@ public struct CSScoreRail: View {
             Text(c.label).csType(.agateS, caps: true).foregroundStyle(labelInk(c))
               .lineLimit(1).truncationMode(.tail)
               .frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityHidden(true)
+          }
+        }
+      }
+      .accessibilityHidden(true)
+      // **ONE ELEMENT PER COLUMN, AS TALL AS THE COLUMN IS DRAWN** (F03, N1).
+      // Each cell read as its numeral alone: a 14.7 × 35pt element (the `5` of
+      // `5 DAYS OUT`) that the system audit filed as a target too small to
+      // touch, and a VoiceOver ring around one digit. The columns are equal
+      // (flexible, `s2` apart), so a second row of equal columns over the rail
+      // lands on them exactly: figure, rule and label, one fact per column.
+      .overlay {
+        HStack(spacing: CSTokens.Space.s2) {
+          ForEach(cells) { c in
+            Color.clear
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+              .contentShape(.accessibility, Rectangle())
+              .accessibilityElement()
+              .accessibilityLabel(spoken(c))
+              .accessibilityAddTraits(.isStaticText)
           }
         }
       }
       .csBudget(gold: cells.filter(\.earned).count, ember: metal == .live ? 1 : 0)
     }
+  }
+
+  private func spoken(_ c: Cell) -> String {
+    c.spoken ?? "\(c.label), \(c.value)\(c.half ? " and a half" : "")"
   }
 
   private func labelInk(_ c: Cell) -> Color { c.labelLive ? cs.brand : cs.mut }

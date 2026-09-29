@@ -216,9 +216,13 @@
     t('league-only: the class is used at all', marked.length > 0, true);
     t('league-only: nothing league-scoped is visible without a league',
       marked.filter(e => e.offsetParent !== null).length, 0);
+    /* W2 (f46086b4) removed You's "Your golf" / "Your seasons" group heads
+       (critique-B P3: two heads stacked with nothing between). The rule under
+       test is that no league-scoped head shows without a league — an absent
+       head satisfies it; a head that returns must still hide. */
     const head = [...document.querySelectorAll('.grouphead')].find(e => /Your seasons/.test(e.textContent));
     t('league-only: the "Your seasons" head hides with its children',
-      head ? head.offsetParent === null : 'head missing', true);
+      head ? head.offsetParent === null : true, true);
     if (!had) document.body.classList.remove('noleague');
 
     /* 2 · the monthly floor is a LEAGUE rule. A golfer with no league was told
@@ -402,8 +406,11 @@
     state.structure = 'solo';
     window.openScoringHelp();
     const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
-    t('D205: a solo league is told the minimum is a habit',
-      /In a solo league the monthly minimum is a habit/.test(so), true);
+    /* TEN / W6 · with a league in hand the minimum is `floorSentence`'s, the
+       one producer Home, the pot and the rules print (E's twin: GuideCopy →
+       LeagueCopy.floorSentence) — for a solo league, "…a habit, not a penalty". */
+    t('D205: a solo league is told the minimum, from the one producer',
+      so.indexOf(floorSentence()) >= 0 && /habit, not a penalty|No minimum/.test(so), true);
     state.structure = wasStruct;
     document.querySelector('#sheet')?.classList.remove('open');
     if (window.CS) window.CS.league = wasLeague;
@@ -1159,6 +1166,10 @@
           streak:{ who:'me', n:1 }, facets:{} }).streak, null);
       t('R4: the person clause is the one the card borrows',
         csH2HPersonClause(full), 'Galen has beaten you five times out of eleven.');
+      /* TEN (W3) · a 5–5 is level, never "has beaten you five times out of ten" */
+      t('TEN: a level record is said as level',
+        csH2HPersonClause(csH2HParse({ visible:true, opponent:opp, record:{wins:5,losses:5,ties:0,total:10}, lead:'even', facets:{} })),
+        'All square between you, 5–5.');
       /* a real screenshot caught the first cut naming the golfer twice in two
          consecutive clauses — "Galen has won one title. Galen has beaten you…" */
       t('the day said out loud never shouts mid-sentence (L-33)',
@@ -1436,23 +1447,30 @@
        csCovenantFacts(today, 3).some(f => f.k === 'starter'),
        csCovenantFacts(today).some(f => f.k === 'starter')],
       [true, false, false]);
-    /* L-23 · with the structure in the payload the ending says WHAT competes and
-       WHO qualifies, from the bylaws; the floor is never promised to a solo
-       season; a zero share is not an award. No structure = today's sentence. */
+    /* L-23 · with the structure in the payload the covenant says WHAT competes
+       and WHO qualifies, from the bylaws; the floor is never promised to a solo
+       season; a zero share is not an award. No structure = today's sentence.
+       TEN / W6 (root, 2026-09-28; L-34) · in the PHONE's words, word for word:
+       what competes is its own `structure` fact (JoinLeague.swift:366) and the
+       ending is JoinLeague.endingLine (:264-269). The web keeps its own
+       branching — D384's short season and the older server's one sentence. */
     t('L-23: solo stands alone; no minimum is promised to a solo season',
-      [F({ ...full, structure: 'solo' }).ending, F({ ...full, structure: 'solo' }).rules],
-      ['Everyone plays for themselves. The top two on points meet in a four-week Cup Final.',
+      [F({ ...full, structure: 'solo' }).structure, F({ ...full, structure: 'solo' }).ending, F({ ...full, structure: 'solo' }).rules],
+      ['Every golfer plays for their own place.',
+       'The top two golfers qualify for a four-week Cup Final, scored fresh.',
        'Standard rules: honest scores, best three a month count.']);
     t('L-23: two squads both reach the Final, the leader 10 up',
-      F({ ...full, structure: 'squads2' }).ending,
-      'Two squads, and every round you post counts toward yours. Both squads meet in a four-week Cup Final, and the squad leading on points starts it 10 up.');
+      [F({ ...full, structure: 'squads2' }).structure, F({ ...full, structure: 'squads2' }).ending],
+      ['Two squads. Your round points contribute to your squad\u2019s season.',
+       'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start.']);
     t('L-23: larger squads send the top two; a points table has no reset',
-      [F({ ...full, structure: 'squads3' }).ending, F({ ...full, structure: 'squads4', finish: 'points_table' }).ending],
-      ['Three squads, and every round you post counts toward yours. The top two squads on points meet in a four-week Cup Final.',
-       "Four squads, and every round you post counts toward yours. The season's points decide it. No reset."]);
+      [F({ ...full, structure: 'squads3' }).structure, F({ ...full, structure: 'squads3' }).ending, F({ ...full, structure: 'squads4', finish: 'points_table' }).ending],
+      ['Squads compete together. Your round points contribute to your squad\u2019s season.',
+       'The top two squads qualify for a four-week Cup Final, scored fresh.',
+       "The season's points decide it. No reset."]);
     t('L-23: a season under six weeks is decided by the points table',
       F({ ...full, structure: 'solo', weeks: 4 }).ending,
-      "Everyone plays for themselves, and the season's points decide it. No reset.");
+      "The season's points decide it. No reset.");
     t('L-23: a zero share is left out, and the points king is said once',
       [F({ ...full, structure: 'solo', split: { champion: 100, runner_up: 0, points_king: 0 } }).split,
        F({ ...full, structure: 'squads2' }).split],
@@ -1461,7 +1479,7 @@
     t('L-23: the money sentence stays the constant in every variant',
       [F({ ...full, structure: 'solo' }).ledger, F({ ...full, structure: 'squads4' }).ledger], [CS_LEDGER, CS_LEDGER]);
     t('D225: the fact ORDER is a value both clients hold',
-      CS_COVENANT_FACTS, ['season', 'who', 'length', 'rules', 'ending', 'stake', 'ledger', 'split', 'pay', 'starter']);
+      CS_COVENANT_FACTS, ['season', 'who', 'length', 'structure', 'rules', 'ending', 'stake', 'ledger', 'split', 'pay', 'starter']);   /* TEN / W6 · JoinLeague.Fact, `structure` included */
     /* D375 · season two is a re-up: the season is the first fact; the finish is the golfer's own (L-44) */
     t('D375: a re-up covenant says the season first, with the golfer\'s own finish',
       [csCovenantFacts({ ...today, season_number: 2, reup: true, last_season: { number: 1, my_rank: 3, of: 8, my_points: 41 } })[0],
@@ -1472,6 +1490,25 @@
        'Season 2.',
        'Season 2. Last season you finished 1st of 6 with 1 point.',
        undefined]);
+    /* W4 · where the season stands, said before the money (owner E, critique
+       B): the week off the payload's own first tee, D386's seat for a squads
+       season outside a Final, D161's waiver where a minimum exists — and
+       nothing before the first tee or after the last week. Clock passed in. */
+    {
+      const nine = { starts_on: '2026-08-09', weeks: 13, finish: 'cup_final' };
+      const at = (y, m, d) => new Date(y, m - 1, d);
+      t('W4: week 8 of 13, the squad with the fewest golfers, no minimum until next month',
+        csCovenantClock({ ...nine, structure: 'squads2', floor: 2 }, at(2026, 9, 28)).t,
+        'You’d join in week 8 of 13, on the squad with the fewest golfers; your rounds count for it from that day. There’s no minimum to clear until October.');
+      t('W4: a solo season says the week and promises no minimum (L-23)',
+        csCovenantClock({ ...nine, structure: 'solo', floor: 2 }, at(2026, 9, 28)).t, 'You’d join in week 8 of 13.');
+      t('W4: inside the Cup Final no late seat is promised (D382)',
+        csCovenantClock({ ...nine, ends_on: '2026-11-07', structure: 'squads2', floor: 2 }, at(2026, 10, 20)).t,
+        'You’d join in week 11 of 13, during the Cup Final.');
+      t('W4: before the first tee and after the last week it says nothing',
+        [csCovenantClock(nine, at(2026, 8, 8)), csCovenantClock(nine, at(2026, 11, 8)), csCovenantClock({ weeks: 13 }, at(2026, 9, 28))],
+        [null, null, null]);
+    }
     t('D375: the re-up frame — title, eyebrow, button — at $50 and at $0',
       [csCovenantTitle({ ...today, season_number: 2, reup: true }), csCovenantEyebrow({ ...today, season_number: 2, reup: true }),
        csCovenantButton({ ...today, season_number: 2, reup: true }), csCovenantButton({ ...today, buyin_cents: 0, season_number: 2, reup: true }),
@@ -1587,8 +1624,10 @@
        'You’re already in for season 2.',
        'Mike is asked again — it rings on their phone.',
        'They’re asked again — it rings on their phone.']);
+    /* W4 · T §2.3: league is never a thing you join — a first invitation is a
+       "Season invite", the family "Season 2 invite" already belonged to */
     t('D375: a re-up invitation says which season',
-      [csInviteTitle({ kind:'league', reup:true, season_number:2 }), csInviteTitle({ kind:'league' })], ['Season 2 invite', 'League invite']);
+      [csInviteTitle({ kind:'league', reup:true, season_number:2 }), csInviteTitle({ kind:'league' })], ['Season 2 invite', 'Season invite']);
     t('D376: the ruling toast says the delta and the new total',
       [csRulingDone('Mike', -3, 4), csRulingDone('Mike', 1, null)],
       ['Ruled — Mike −3 points. Now 4. It’s on the board.', 'Ruled — Mike +1 point. It’s on the board.']);

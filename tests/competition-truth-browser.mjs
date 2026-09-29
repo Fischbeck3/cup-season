@@ -72,7 +72,16 @@ for (const width of [375, 402, 1280]) for (const theme of ['dark', 'light']) {
       scoreboard: { [T1]: 7, [T2]: 5 }, targets: {}, posts: [],
       lineage: [{ event_id: EV, kind: 'ryder', status: 'complete', winner_slot: 0 }, { event_id: 'e2', kind: 'ryder', status: 'setup' }] }
     switchView('event'); window.renderEvent()
+    /* 2026-09-28 · §9.1 (detector TP-04): at a phone's width the clash board
+       abbreviates the GIVEN name for every row ("B. Sample lost to F. Sample")
+       rather than cutting a surname, so the visible words are compared in the
+       form the board is in, and the row's spoken sentence keeps every name
+       whole. The verb is the same truth either way. */
+    const narrow = innerWidth <= 480
+    const form = n => narrow ? n.replace(/^(\S)\S*\s+/, '$1. ') : n
     const rows = [...document.querySelectorAll('#eventBody .evclash .top')].map(t => t.textContent.replace(/\s+/g, ' ').trim())
+    const said = [...document.querySelectorAll('#eventBody .evclash')].map(c => c.getAttribute('aria-label') || '')
+    const want = { b: `${form('Blake Sample')} lost to ${form('Finley Sample')}`, bDef: `${form('Blake Sample')} def.`, a: `${form('Avery Fixture')} def. ${form('Emery Fixture')}` }
     const series = [...document.querySelectorAll('#eventBody p.fine')].map(p => p.textContent).find(t => /Ryder ·/.test(t)) || ''
     const a = document.querySelector('#eventBody .evside.a'), b = document.querySelector('#eventBody .evside.b')
     let overlap = null
@@ -81,10 +90,10 @@ for (const width of [375, 402, 1280]) for (const theme of ['dark', 'light']) {
       const discs = s => [...s.querySelectorAll('.who .d')].map(d => d.getBoundingClientRect())
       overlap = { sides: ar.right > br.left + 0.5, aOut: discs(a).some(r => r.right > ar.right + 0.5 || r.left < ar.left - 0.5), bOut: discs(b).some(r => r.right > br.right + 0.5 || r.left < br.left - 0.5) }
     }
-    return { rows, series, overlap, page: document.documentElement.scrollWidth - innerWidth }
+    return { rows, said, want, series, overlap, page: document.documentElement.scrollWidth - innerWidth }
   })
-  check(`${label}: a B win reads "${room.rows[1]}" — the loser is never the one who "def."`, /Blake Sample lost to Finley Sample/.test(room.rows[1] || '') && !/Blake Sample def\./.test(room.rows[1] || ''), room.rows)
-  check(`${label}: an A win reads "def.", a halve reads "halved"`, /Avery Fixture def\. Emery Fixture/.test(room.rows[0] || '') && /halved/.test(room.rows[2] || ''), room.rows)
+  check(`${label}: a B win reads "${room.rows[1]}" — the loser is never the one who "def."`, (room.rows[1] || '').includes(room.want.b) && !(room.rows[1] || '').includes(room.want.bDef) && /^Blake Sample lost to Finley Sample\b/.test(room.said[1] || ''), room)
+  check(`${label}: an A win reads "def.", a halve reads "halved"`, (room.rows[0] || '').includes(room.want.a) && /halved/.test(room.rows[2] || '') && /^Avery Fixture beat Emery Fixture\b/.test(room.said[0] || ''), room)
   check(`${label}: the finished edition's series line counts its own result ("${room.series}")`, /The 1st Ryder · Pines hold the Ryder 1–0/.test(room.series) && !/all square 0–0/.test(room.series), room.series)
   check(`${label}: two four-golfer sides never overlap, and the page stays put`, room.overlap && !room.overlap.sides && !room.overlap.aOut && !room.overlap.bOut && room.page <= 0, room)
   await shot('ryder')

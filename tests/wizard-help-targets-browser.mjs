@@ -52,8 +52,12 @@ for (const width of [375, 402, 1280]) for (const theme of ['dark', 'light']) {
   for (const step of [0, 1, 2]) {
     await page.evaluate(s => { state.wiz = s; renderWizard() }, step)
     await page.waitForTimeout(80)
-    /* the dials (squads, how squads fill, how it ends, the pot split) live behind Customize */
-    if (step === 1) { await page.focus('#wizCustomize'); await page.keyboard.press('Enter'); await page.waitForTimeout(80) }
+    /* the dials live in three groups (W5 · the scoring, the money, the
+       calendar; one Customize opened all of them before): each head is opened
+       by keyboard, as a Pro would, unless the page already opened it */
+    if (step === 1) for (const g of ['wizGrpScoring', 'wizGrpMoney', 'wizGrpCalendar']) {
+      if (await page.evaluate(g => document.querySelector(`#${g} .wizgrp-b`).hidden, g)) { await page.focus(`#${g} .wizgrp-h`); await page.keyboard.press('Enter'); await page.waitForTimeout(80) }
+    }
     const keys = await page.evaluate(() => [...document.querySelectorAll('.wizstep.on .ibtn')].filter(b => b.getClientRects().length).map(b => b.dataset.i))
     for (const key of keys) {
       await page.evaluate(k => document.querySelector(`.wizstep.on .ibtn[data-i="${k}"]`).scrollIntoView({ block: 'center' }), key)

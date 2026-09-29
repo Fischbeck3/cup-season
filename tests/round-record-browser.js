@@ -53,7 +53,10 @@
   const ref=at(0);
   check(ref.classList.contains('hfrecord'),'the reference round is not a record');
   check(ref.querySelector('.hfr-id .hfperson') && ref.querySelector('.hfr-who').textContent.includes('You'),'no quiet identity row');
-  check(ref.querySelector('.hfr-title .cs-name').textContent==='UNM Championship Course','the course is not the title');
+  /* TEN (2026-09-28) · the title is set in `social`, title case, not the
+     board's caps `name` role: caps set the fixture's long club at six lines
+     on the wire (both judges and critique B). Still the title, still whole. */
+  check(ref.querySelector('.hfr-title .cs-social').textContent==='UNM Championship Course','the course is not the title');
   check(ref.querySelector('.hfr-gross .cs-fig-l').textContent.trim()==='89','the gross is not the figure');
   check(ref.querySelector('.hfr-gross .cs-agate-s').textContent==='GROSS','the figure is not labelled');
   check(ref.querySelectorAll('.hfr-story').length===1 && ref.querySelector('.hfr-story').textContent==='2.0 over your playing HCP.','the story is not the handicap context: '+JSON.stringify(ref.querySelector('.hfr-story')?.textContent));
@@ -63,7 +66,11 @@
   check(!ref.querySelector('img'),'the record grew a picture it does not have');
 
   /* the one story — the competition's consequence when the client has it */
-  check(at(3).querySelector('.hfr-story').textContent==='9 pts · counting #2 this month','the cached consequence did not become the story: '+at(3).querySelector('.hfr-story')?.textContent);
+  /* TEN / W6 (root, 2026-09-28) · "#2 of 4", not "#2": the month's count
+     carries its denominator when the season caps it (the receipt's own
+     clause, "COUNTING #2 OF 4"); an uncapped season has none. */
+  const capN=capNum(), wantStory='9 pts · counting #2'+(capN===Infinity?'':' of '+capN)+' this month';
+  check(at(3).querySelector('.hfr-story').textContent===wantStory,'the cached consequence did not become the story: '+at(3).querySelector('.hfr-story')?.textContent);
   check(!at(3).textContent.includes('beat their'),'two stories on one round');
   /* no handicap context — the record stands on course and gross alone */
   check(!at(2).querySelector('.hfr-story'),'a round with no context invented one');

@@ -135,7 +135,16 @@ public struct CSTertiaryStyle: ButtonStyle {
     case live       // 2px brand — only when the link IS the screen's one live action
     case content    // 2px mut
     case toolbar    // 1px mut — the toolbar's position is already an affordance
-    var weight: CGFloat { self == .toolbar ? 1 : 2 }
+    /// A fitted sheet's own inline dismiss, where there is no toolbar to hold
+    /// it (`csFittedSheet`): 1px `mut` like `.toolbar`, and a 48pt target.
+    /// **iOS 26 draws a sheet at a partial detent inset and SCALED** — 386 of
+    /// 402 points on a 17 Pro, 0.960 — so a 44pt layout target lands at 42pt
+    /// on the glass: the intent sheet's Close measured 42.6 × 42.2 (F03). 48
+    /// lands at 46 on a 17 Pro and 45.9 on an SE.
+    case fittedSheet
+    var weight: CGFloat { self == .live || self == .content ? 2 : 1 }
+    /// The least target, in layout points, on both axes for a fitted sheet.
+    var target: CGFloat { self == .fittedSheet ? 48 : 44 }
   }
   let placement: Placement
   /// The harness's window onto the pressed state — see `CSPrimaryStyle.held`.
@@ -168,7 +177,9 @@ public struct CSTertiaryStyle: ButtonStyle {
     .opacity(pressed ? 0.92 : 1)
     .foregroundStyle(enabled ? cs.ink : cs.mut)
     .a11yHitSlop()
-    .frame(minHeight: 44)
+    // 44 tall everywhere; a fitted sheet's dismiss is 48 on both axes, for the
+    // scale the sheet is drawn at (see `.fittedSheet`)
+    .frame(minWidth: placement == .fittedSheet ? placement.target : nil, minHeight: placement.target)
     // **THE FRAME IS NOT THE TARGET UNTIL SOMETHING SHAPES IT**, and this one
     // line is why `Settings` could not be tapped on the You page.
     //
@@ -205,7 +216,7 @@ public struct CSTertiaryStyle: ButtonStyle {
     // D359 / F4 · a live door's rule is the competition's signal: ember on
     // every look, never the look's accent (which is green on homebase)
     case .live: return pressed ? cs.brand.opacity(1 - CSTokens.Alpha.a16) : cs.brand
-    case .content, .toolbar: return pressed ? cs.ink : cs.mut
+    case .content, .toolbar, .fittedSheet: return pressed ? cs.ink : cs.mut
     }
   }
 }

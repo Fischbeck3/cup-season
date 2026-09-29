@@ -116,6 +116,15 @@ public enum HomeWireCopy {
     return (figure, "\(s.label) · \(day)")
   }
 
+  /// `2 comments` · `1 comment` · `Comments` — the door to a round's
+  /// conversation, under its reactions. The count is the thread's own; with
+  /// none (or none known yet) the door names what it opens. Home printed
+  /// `1 comments` under a round because the plural was a view's string.
+  public static func commentsDoor(_ n: Int?) -> String {
+    guard let n, n > 0 else { return "Comments" }
+    return n == 1 ? "1 comment" : "\(n) comments"
+  }
+
   /// `Of eight` — the lead chip's unit, under the rank and the movement.
   ///
   /// A field size is a **word** in a unit label and a **digit** in a figure:
