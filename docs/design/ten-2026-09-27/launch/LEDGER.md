@@ -450,6 +450,26 @@ One conflict, in the settings "Ball marker" block: root's group name and B's "Yo
 - **Heading sweep:** 31 of 154 renders skipped a level at `a27fbaf5`; 0 at `f61b96c9`. The same sweep found 0 unnamed decorative SVGs.
 - preflight 0/0 at every commit.
 
+**The native P3 cut (the owner, 2026-09-29 ~07:30: "go with your cut on the P3 tail").**
+
+A's `N4-WORKLIST.md` (134 items: P1 6, P2 70, P3 58).
+- **All six P1s are done.** E finishes every open P2 before the freeze, except N4-105, which is the owner's Q31.
+- **P3s are kept when they touch accessibility, a sentence that misleads, a difference from the web (L-34), or an action with no undo:** 41 items, listed in root's message to E.
+- **Cut, as known debt after launch (11):**
+  - N4-004 (the Door headline's serif caps; also Q24);
+  - N4-026 (the system-blue caret);
+  - N4-031 (the share band's serif caps);
+  - N4-032 (the ceremony dateline eyebrow);
+  - N4-044 (the covenant's paragraph weights; its Charter half is done);
+  - N4-066 (the request count in its label);
+  - N4-074 (the album tile placeholder and full-size decodes: performance debt);
+  - N4-117 (the Book's segmented pills);
+  - N4-118 (the ordinals and figure column);
+  - N4-180 (the rules head's two serif blocks);
+  - N4-182 (the ledger sentence on several surfaces).
+- **The web's queue is not cut.** B's AW2/DX2 list fits before the freeze.
+- **TestFlight waits until the remaining items are done** (the owner, the same morning).
+
 **Still the owner's:**
 - Q31, the Oct 1 look (1335 turns Fall on Oct 1);
 - X36–X40, Q1–Q39;
