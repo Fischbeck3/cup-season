@@ -4,7 +4,7 @@
 // as a forty-word paragraph in Home's hero foot, which is why the shipped
 // Home's first screenful was a standing and a paragraph. D235 splits it:
 //
-//   the CLAUSE   — "TOP 2 INTO THE FINAL, OPENS DEC 4" — in the ME strip, on
+//   the CLAUSE   — "Top 2 into the Final, opens Dec 4" — in the ME strip, on
 //                  every Home open, in every state with a season. It survives
 //                  a scroll; the hero's paragraph did not.
 //   the SENTENCE — the whole of it, permanently under the season page's table,
@@ -82,7 +82,7 @@ struct EndgameCopyTests {
       let clause = MeStripCopy.endgameClause(m, calendar: cal)
       let sentence = SeasonFacts.footEndgame(m, calendar: cal)
       let opens = LeagueDates.cupFinalStart(end: ends, calendar: cal)
-      #expect(clause?.contains(LeagueDates.monDay(opens, calendar: cal).uppercased()) == true)
+      #expect(clause?.contains(LeagueDates.monDay(opens, calendar: cal)) == true)
       #expect(sentence?.contains(LeagueDates.dowMonDay(opens, calendar: cal)) == true)
     }
   }
@@ -90,7 +90,7 @@ struct EndgameCopyTests {
   @Test("a points-table season says the points table, in both grains")
   func pointsTable() {
     let m = membership(finish: "points_table")
-    #expect(MeStripCopy.endgameClause(m, calendar: cal) == "POINTS TABLE CROWNS IT JAN 3")
+    #expect(MeStripCopy.endgameClause(m, calendar: cal) == "Points table crowns it Jan 3")
     #expect(SeasonFacts.footEndgame(m, calendar: cal)
             == "The points table crowns it on Jan 3 — every round counts to the last day. "
              + "Level on points? Months won breaks it.")
@@ -99,23 +99,23 @@ struct EndgameCopyTests {
   @Test("SA-3 · at a field of two the clause never says 'top two' — that is a tautology")
   func fieldOfTwo() {
     #expect(MeStripCopy.endgameClause(membership(of: 2), calendar: cal)
-            == "A FINAL BETWEEN THE TWO OF YOU, OPENS DEC 7")
+            == "A Final between the two of you, opens Dec 7")
     #expect(MeStripCopy.endgameClause(membership(of: 8), calendar: cal)
-            == "TOP 2 INTO THE FINAL, OPENS DEC 7")
+            == "Top 2 into the Final, opens Dec 7")
   }
 
   @Test("two squads both play the Final, in the clause too (the web's csEndgameClause)")
   func twoSquadsClause() {
     #expect(MeStripCopy.endgameClause(membership(structure: "squads2", of: 2), calendar: cal)
-            == "BOTH SQUADS PLAY THE FINAL, OPENS DEC 7")
+            == "Both squads play the Final, opens Dec 7")
     // three or four squads still seed the top two
     #expect(MeStripCopy.endgameClause(membership(structure: "squads3", of: 3), calendar: cal)
-            == "TOP 2 INTO THE FINAL, OPENS DEC 7")
+            == "Top 2 into the Final, opens Dec 7")
     #expect(MeStripCopy.endgameClause(membership(structure: "squads4", of: 4), calendar: cal)
-            == "TOP 2 INTO THE FINAL, OPENS DEC 7")
+            == "Top 2 into the Final, opens Dec 7")
     // a points table is untouched
     #expect(MeStripCopy.endgameClause(membership(structure: "squads2", finish: "points_table", of: 2), calendar: cal)
-            == "POINTS TABLE CROWNS IT JAN 3")
+            == "Points table crowns it Jan 3")
   }
 
   @Test("squads2 keeps the leader's head start; every other structure does not claim it")

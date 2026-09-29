@@ -491,11 +491,17 @@ public struct CSFactStrip: View {
   let cells: [Cell]
   /// The standing line, and it names the rival.
   let standing: String?
-  /// The standing line's case: caps for `THE FELLAS · 26 WEEKS · 4 TO PLAY`,
-  /// sentence for a gloss a person could read aloud (§1.3).
-  let standingCaps: Bool
-  public init(_ cells: [Cell], standing: String? = nil, standingCaps: Bool = true) {
-    self.cells = cells; self.standing = standing; self.standingCaps = standingCaps
+  /// The standing line's register. Case is a role's job, never a string's
+  /// (D165, LINT-14):
+  /// - `.sentence` — the season row, a sentence a golfer reads (`Fellas · 2nd
+  ///   of 8 · 4 back of Blake`), in `bodyS` `mut`: the web's `.mesr`, TEN / W6.
+  /// - `.gloss` — a short gloss under the number a person could read aloud
+  ///   (§1.3), in `agateS`.
+  /// - `.caps` — a label line, `THE FELLAS · 26 WEEKS · 4 TO PLAY`.
+  public enum Register: Sendable { case sentence, gloss, caps }
+  let register: Register
+  public init(_ cells: [Cell], standing: String? = nil, register: Register = .sentence) {
+    self.cells = cells; self.standing = standing; self.register = register
   }
 
   private func alignment(_ i: Int) -> Alignment {
@@ -546,7 +552,9 @@ public struct CSFactStrip: View {
         .overlay { targets }
       }
       if let standing {
-        Text(standing).csType(standingCaps ? .agate : .agateS, caps: standingCaps)
+        Text(standing)
+          .csType(register == .sentence ? .bodyS : register == .caps ? .agate : .agateS,
+                  caps: register == .caps)
           .foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
           .accessibilityLabel(standing)
