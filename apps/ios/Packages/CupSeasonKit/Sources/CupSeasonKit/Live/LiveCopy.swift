@@ -10,6 +10,10 @@
 import Foundation
 
 public enum LiveCopy {
+  /// N4-170 · the live setup's offline switch, named for what it is, and what
+  /// it costs, said at rest
+  public static let offlineSwitch = "No signal? Score offline"
+  public static let offlineCost = "No signal needed. Review and post when you reconnect. No group sync or automatic posting."
 
   // MARK: - the match card (8445–8511)
 

@@ -93,7 +93,7 @@ final class N2LivePlayUITests: XCTestCase {
     XCTAssertTrue(held.label.hasPrefix("Your round is still on, and its "), held.label)
     XCTAssertTrue(held.label.hasSuffix("Change the course, the tee or the holes here."), held.label)
     XCTAssertFalse(app.buttons["live.setup.teeOff"].exists, "no Tee off over a held round")
-    XCTAssertFalse(app.switches["Score on this phone"].exists, "no switch to a second, local round")
+    XCTAssertFalse(app.switches["live.setup.offline"].exists, "no switch to a second, local round")
     let back = app.buttons["live.setup.backToRound"]
     XCTAssertTrue(back.exists && back.isHittable, "the way back is on the first screen")
     XCTAssertLessThanOrEqual(back.frame.maxY, app.windows.firstMatch.frame.maxY, "the way back needs no scroll")
