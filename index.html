@@ -21632,7 +21632,15 @@ function csRankDispatch(items, opts){
      door, and the `story:<round>` key both producers mint), so nothing new
      travels on the wire and the SERVED path gets the de-dupe for free. */
   const spentRounds = new Set([lead, ...deck].filter(Boolean).map(csSpentRound).filter(Boolean));
-  return { lead, deck, suppress, cut: Math.max(0, rest.length - deck.length), spentRounds };
+  /* TEN / W7-037 [A2-home-2] · the strip facts the column already prints: the
+     phone's HomeDispatch.columnFacts (D315). A plan item for the strip's own
+     NEXT round (the same round by id, never a plan for another day) spends
+     NEXT: the strip drops its row, and the Up next chip and the tile stand
+     down with it. HOME_STATE_MATRIX §1: the strip is the yielder. */
+  const columnFacts = new Set();
+  if(o.nextId && [lead, ...deck].some(it => it && String(it.key) === 'plan:' + o.nextId)) columnFacts.add('my_next_round');
+  columnFacts.forEach(f => suppress.add(f));
+  return { lead, deck, suppress, cut: Math.max(0, rest.length - deck.length), spentRounds, columnFacts };
 }
 function csSpentRound(it){
   if(it && it.route && it.route.kind === 'receipt' && it.route.id) return String(it.route.id);
@@ -22114,7 +22122,9 @@ function renderHomeDispatch(){
   if((state.demo || !CS?.user) && !window.csHomeState){ wipe(); return; }
   const served = window.homeDispatch && Array.isArray(window.homeDispatch.items) ? window.homeDispatch.items : null;
   const items = served || (window.csHomeState ? [] : csFallbackItems());
+  const nextSlot = (typeof csMeStrip === 'function') ? (csMeStrip().slots || []).find(s => s.fact === 'my_next_round' && !s.ph) : null;
   const r = csRankDispatch(items, {
+    nextId: nextSlot && nextSlot.id ? String(nextSlot.id) : null,
     stripSuppress: window.__meSuppress ? [...window.__meSuppress] : [],
     leadSuppress: (window.homeDispatch && window.homeDispatch.lead_suppress) || [],
     useServerRank: !!served });
@@ -22141,6 +22151,11 @@ function renderHomeDispatch(){
      answer changed; `renderMeStrip` never calls back here, so this cannot loop. */
   { const said = [r.lead, ...r.deck].filter(Boolean).some(csSaysStanding);
     if(said !== !!window.__standingSaid){ window.__standingSaid = said; if(typeof renderMeStrip==='function') renderMeStrip(); } }
+  /* TEN / W7-037 · and the column's facts: the strip drops what the column
+     prints, repainted only when the set changed (this cannot loop) */
+  const cfKey = [...r.columnFacts].sort().join(',');
+  const cfChanged = cfKey !== (window.__columnFactsKey || '');
+  if(cfChanged){ window.__columnFactsKey = cfKey; window.__columnFacts = new Set(r.columnFacts); if(typeof renderMeStrip==='function') renderMeStrip(); }
   /* the deck is deleted: items 2-5 run in the wire at weight 5, in date order */
   const w = csWireArrange(r.lead, r.deck);
   r.deck = w.deck;
@@ -22148,6 +22163,9 @@ function renderHomeDispatch(){
   /* L-34 · the lead's set is UNIONED onto the strip's, never swapped for it —
      `renderMeStrip` runs first and everything below reads the union. */
   window.__meSuppress = r.suppress;
+  /* W7-037 · a lone repaint (a refresh) re-reads the union below: the chip and
+     the tile stand down for a NEXT the column prints */
+  if(cfChanged){ if(typeof renderUpNext==='function') renderUpNext(); if(typeof renderHomeTiles==='function') renderHomeTiles(); }
   /* ... and the hero stands down while a lead is on the screen (or the lead
      slot says the read failed: W7-036). */
   window.__leadOwnsToday = !!r.lead || failedBare;
@@ -24064,17 +24082,20 @@ function csMeDated(s){
 }
 function renderMeStrip(){
   const strip = csMeStrip();
-  const real = strip.slots.filter(s => !s.ph);
+  /* TEN / W7-037 · the facts the column prints are not the strip's to say */
+  const spent = window.__columnFacts || new Set();
+  const slots = strip.slots.filter(s => !spent.has(s.fact));
+  const real = slots.filter(s => !s.ph);
   const rail = real.filter(s => s.fact === 'my_number' || s.fact === 'my_money');
   const dated = real.filter(s => s.fact === 'my_last_round' || s.fact === 'my_next_round');
   const doorFor = { my_last_round:['add_round', CS_ME_EMPTY.door], my_next_round:['plan_one', 'Plan one'] };
-  const doors = strip.slots.filter(s => s.ph && doorFor[s.fact]).map(s => doorFor[s.fact]);
+  const doors = slots.filter(s => s.ph && doorFor[s.fact]).map(s => doorFor[s.fact]);
   /* the league's name is the foot's (`#sideLeague`, one step down): the
      sidebar's season row starts after it rather than saying it twice */
   const row = strip.seasonRow;
   const sideRowText = !row ? '' : (row.parts && row.parts.length > 1 && window.CS?.league && row.parts[0] === String(CS.league.name||''))
     ? row.parts.slice(1).join(' · ') : row.text;
-  const onlyPlaceholders = strip.slots.length > 0 && !real.length && !row;
+  const onlyPlaceholders = slots.length > 0 && !real.length && !row;
   const html = onlyPlaceholders ? `
     <p class="mesay cs-body-s">${esc(CS_ME_EMPTY.line)}</p>
     <div class="hstart medoors"><a href="#" data-mego="add_round">${esc(CS_ME_EMPTY.door)}</a></div>`

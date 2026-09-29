@@ -76,6 +76,21 @@ const lastOnce = (page) => page.evaluate(() => {
   const row = [...document.querySelectorAll('#sideMe [data-mego="my_last_round"], #homeMe [data-mego="my_last_round"]')].filter(seen)
   return row.length ? 'the strip prints LAST beside the wire’s card for the same round' : true
 })
+/* TEN / W7-037 [A2-home-2] · the viewer's own next round is printed once:
+   when a lead or deck `plan:` item is the strip's own NEXT round (the phone's
+   HomeDispatch.columnFacts), the desk's strip has no NEXT row and the phone's
+   Up next chip stands down. The state must actually carry that plan item, so
+   the check cannot pass on a world that never exercises it. */
+const nextOnce = async (page) => page.evaluate(() => {
+  const nx = (typeof csMeStrip === 'function' ? csMeStrip().slots || [] : []).find((s) => s.fact === 'my_next_round' && !s.ph)
+  const plans = [...document.querySelectorAll('#homeLead [data-dgo^="plan:"], #homeDeck [data-dgo^="plan:"]')].map((e) => e.getAttribute('data-dgo').slice(5))
+  if (!nx || !plans.includes(String(nx.id))) return 'this state has no deck plan line for the strip’s own next round, so it proves nothing'
+  const seen = (el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.height > 0 && getComputedStyle(el).visibility !== 'hidden' }
+  const row = [...document.querySelectorAll('#sideMe [data-mego="my_next_round"], #homeMe [data-mego="my_next_round"]')].filter(seen)
+  if (row.length) return 'the strip prints NEXT beside the deck’s plan line for the same round'
+  const chip = [...document.querySelectorAll('#homeUpNext *')].filter((el) => seen(el) && /^Next round/i.test((el.textContent || '').trim()))
+  return chip.length ? 'the Up next chip prints the round the deck already carries' : true
+})
 /* the ME strip: #homeMe below desk width, #sideMe in the sidebar at desk width */
 const meStripShown = (page) => page.evaluate(() => {
   const vis = (el) => { if (!el) return false; const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.display !== 'none' && cs.visibility !== 'hidden' }
@@ -204,7 +219,7 @@ const HOME_WORLD = [
      request; Devon's 76 on the wire */
   { family: 'home', id: 'member-populated', variant: 'member', title: 'Home · a member in week 8 (this world’s own dispatch)',
     drive: worldDrive, expect: { view: 'view-home' },
-    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds,
+    check: all(arrangementCheck(() => worldExpect), meStripShown, feedHasRounds, nextOnce,
       onScreen('THE FIXTURE DERBY · THE CLASH · CLOSES IN 5 DAYS', 'the clash eyebrow'), onScreen('You and Devon are both in\\.', 'the clash'),
       onScreen('Kit wants to be golf buddies\\.', 'Kit’s request')) },
   { family: 'home', id: 'pro', variant: 'pro', title: 'Home · the Pro of North Grove',
