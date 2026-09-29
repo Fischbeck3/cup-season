@@ -37,15 +37,21 @@ struct LiveFinishSheet: View {
         if let error = store.localSaveError { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }
         Button("Keep round on this phone") { Task { if await store.finish(casual: false) { dismiss() } } }
           .buttonStyle(.csPrimary(busy: store.busy)).disabled(store.busy)
+          .accessibilityIdentifier("live.finish.keep")
       } else {
       CSFine(f.intro)
       if let w = f.warning {
         Text(w).csType(.bodyS).foregroundStyle(cs.neg).fixedSize(horizontal: false, vertical: true)
       }
+      // the sheet's own two answers carry identifiers: the live page behind
+      // the sheet has a "Finish the round" of its own, so a label is not
+      // an address (X34)
       Button(f.primary) { Task { if await store.finish(casual: false) { dismiss() } } }
         .buttonStyle(.csPrimary(busy: store.busy))
+        .accessibilityIdentifier("live.finish.confirm")
       Button(f.secondary) { Task { if await store.finish(casual: true) { dismiss() } } }
         .buttonStyle(.csSecondary(busy: store.busy))
+        .accessibilityIdentifier("live.finish.casual")
       }
     }
     .presentationDetents([.medium, .large])
