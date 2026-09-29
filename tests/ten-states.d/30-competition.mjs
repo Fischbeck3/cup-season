@@ -622,7 +622,9 @@ const COMPETE = [
        Fixture Wrens', the golfer's squad), and the moments ride the second
        column (#cmpMoments) — beside the seasons on the desk, after them on
        the phone */
-    check: all(has('#cmpList [data-cband]', '137[\\s\\S]*Fixture Wrens · 2nd[\\s\\S]*34 back from Fixture Javelinas\\.', 'the band (137 points, Fixture Wrens 2nd, 34 back)'),
+    check: all(has('#cmpList [data-cband]', '137[\\s\\S]*Fixture Wrens · 2nd[\\s\\S]*34 back of Fixture Javelinas\\.', 'the band (137 points, Fixture Wrens 2nd, 34 back of, W7-130: the table\'s own noun)'),
+      /* TEN / W8 · W7-130 [A2-competition-3]: the sidebar's season row stands down on Compete: the band prints the standing (rank, points, gap) itself */
+      standsDown(['#sideMe [data-mego="season_row"]']),
       /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
       tertiaryDoor('#cmpBookDoor'),
       has('#cmpList', 'South Wash Weekday \\(fixture\\)', 'the second season'),
