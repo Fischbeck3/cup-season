@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed, tertiaryDoor } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -109,6 +109,7 @@ const LIGHT_PRINTING = (() => {
 })()
 /* ------------------------------------------------------------ the world */
 const NG = { league: 'f3000000-0000-4000-8000-000000000001', season: 'f4000000-0000-4000-8000-000000000011' }
+const SW = { league: 'f3000000-0000-4000-8000-000000000002' }   /* South Wash Weekday (fixture), the viewer's second league */
 /* the Pro's own instructions (D129): a pot seven of eight have paid into was
    announced somewhere; the core world never said how */
 const payHowSet = (W) => {
@@ -139,6 +140,20 @@ const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', { sel: '#
   '#scenarioLine', { sel: '#lineSplit', below: 960 }, { sel: '#homeSeason .ontheline .ok', below: 960 }, '#seasonArc .arcrow .aw', '#nextK', '#albumGrid .almonth', '#feedList .datesep',
   '.trip .p span', '.trip .p b', '#potMath', '.potgrid .purse .k', '#hubMembersSub', '#hubDraftSub', '#room-league .check .tt small', '#seasonMore',
   { sel: '#seasonJump button', below: 960 }, { sel: '.tabbar .tab', below: 960 }]
+/* TEN / W8 · W7-072 [A2-season-9] (D's delta at e78d7f22) · the season dateline is a span of two dates and the Pro, agate. It carries no week count
+   (the eyebrow above it says 'Week 8 of 13'), it clears the ember band above it (s3, 12px), and below 480px its two spans are stacked with no
+   separator between them, so a wrapped dateline can never begin with a middot */
+const datelineOk = async (page) => page.evaluate(() => {
+  const line = document.querySelector('.seasondate'), span = document.getElementById('hhSpan'), pro = document.getElementById('hhPro'), band = document.getElementById('seasonScoreboard')
+  if (!line || !span || !pro || !(span.getBoundingClientRect().width > 0)) return 'the season dateline is not drawn'
+  const t = span.innerText.replace(/\s+/g, ' ').trim()
+  if (!/^[A-Z]{3} [A-Z]{3} \d{1,2} \u2013 [A-Z]{3} [A-Z]{3} \d{1,2}$/.test(t)) return `the dateline's span reads ${JSON.stringify(t)} (two dates, no week count)`
+  const bandBox = band.getBoundingClientRect()
+  if (bandBox.height > 0) { const gap = line.getBoundingClientRect().top - bandBox.bottom; if (gap < 11.5) return `the dateline sits ${Math.round(gap)}px under the band (s3 is 12)` }
+  const a = span.getBoundingClientRect(), b = pro.getBoundingClientRect(), sep = getComputedStyle(pro, '::before').content
+  if (innerWidth < 480) return b.top >= a.bottom - 1 && sep === 'none' ? true : `at ${innerWidth}px the dateline is not stacked without a separator (span bottom ${Math.round(a.bottom)}, Pro top ${Math.round(b.top)}, separator ${sep})`
+  return sep === 'none' ? 'the separator between the span and the Pro is gone above 480px' : true
+})
 const SEASON = [
   { family: 'season', id: 'narrative', variant: 'member', title: 'The season page, its head: North Grove in week 8 and the story line', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
@@ -164,7 +179,7 @@ const SEASON = [
         if (/[\u2192\u2197\u2190]/.test(a.textContent)) return `the story link carries a typed arrow: ${JSON.stringify(a.textContent)}`
         return cs.borderBottomWidth === '2px' && cs.borderBottomColor === act ? true : `the story link has no 2px act rule under it (${cs.borderBottomWidth} ${cs.borderBottomColor})`
       }),
-      has('#seasonLead', 'Fixture (Javelinas|Wrens)', 'the story line'),
+      has('#seasonLead', 'Fixture (Javelinas|Wrens)', 'the story line'), datelineOk,
       async (page) => page.evaluate(() => window.seasonStory && window.seasonStory.season && window.seasonStory.season.id === 'f4000000-0000-4000-8000-000000000011' ? true : 'season_story did not answer for North Grove')) },
   { family: 'season', id: 'leaderboard', variant: 'member', title: 'The season page, the table: two squads, the clash, every golfer', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
@@ -172,6 +187,8 @@ const SEASON = [
     expect: { view: 'view-hub', selectors: { '#standings': 'visible', '#indTable': 'visible' } },
     check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
+      /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
+      tertiaryDoor('#seasonBookDoor'),
       async (page) => page.evaluate(() => document.querySelectorAll('#indTable tr').length >= 8 ? true : 'the every-golfer table has fewer than eight rows'),
       /* TEN / W6 · AW2-06 + OB-05: every label on the season page is agate and
          every phrase agate or body — mono keeps the figures (§1.4). The page
@@ -318,6 +335,17 @@ const SEASON = [
     },
     expect: { view: 'view-hub', sheet: '^Cancel ', selectors: { '#cxGo': 'visible', '#cxNo2': 'visible' } },
     check: armedDelete('#cxGo') },
+  /* TEN / W8 · W7-025 [B2-season-8] (E3, D's second reader) · the chosen row wins: 'The season's story' chosen right after 'The rules' (the rules head is in the top
+     half) is the marked row. The jump to the top took the rules head out of the window's top half and the observer's queued entry ticked THE SEASON over it. */
+  { family: 'season', id: 'story-from-rules', variant: 'member', desk: true, title: "The season page (desk): The rules chosen, then The season's story — the story is the marked row", fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await click(page, '#deskMenu [data-seg="league"]'); await page.waitForTimeout(400); await scrollSettled(page)
+      await click(page, '#deskMenu [data-seg="archive"]'); await page.waitForTimeout(500); await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#seasonStoryHead': 'visible' } },
+    check: all(onNorthGrove, deskMenuIs("The season's story")) },
   { family: 'season', id: 'rules', variant: 'member', title: 'The season page, the rules in sentences', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: (page) => toRoom(page, 'league'),
@@ -360,6 +388,95 @@ const SEASON = [
         const t = document.getElementById('standingsStale')
         return t.getBoundingClientRect().top > document.getElementById('standings').getBoundingClientRect().bottom - 2 ? true : 'the dateline is not under the table'
       })) },
+  /* TEN / W8 · W7-026 [X01] (follow-up) · the FIRST read of the standings fails (nothing was ever on screen to keep): the table says the read
+     failed and offers the retry, not 'No rounds yet' or every squad at 0. The live region sits inside the cell, and the cell keeps its role. */
+  { family: 'season', id: 'standings-failed', variant: 'member', title: 'The season page, the table, when the first read of the standings failed (the words and the retry)', fullPage: false,
+    world: { errors: { table: { v_squad_standings: { __error: 'fixture: the standings read failed', status: 503 } } } },
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toRoom(page, 'standings')
+      await until(page, () => !!document.getElementById('standingsRetry'), null, 10000)
+      await page.evaluate(() => document.getElementById('standingsRetry').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#standingsRetry': 'visible', '#standings': 'text:Couldn.t load' } },
+    check: all(onNorthGrove, ariaWellFormed('#standings'),
+      async (page) => page.evaluate(() => {
+        const box = document.querySelector('#standings [role="status"]'), td = document.querySelector('#standings td[colspan]')
+        if (!box || !td || !td.contains(box)) return 'the live region is not inside the cell'
+        if (!box.contains(document.getElementById('standingsRetry'))) return 'the retry is outside the live region'
+        return /No rounds yet/i.test(document.getElementById('standings').innerText) ? 'a failed standings read says there are no rounds' : true
+      })) },
+  /* TEN / W8 · W7-026 [X01] (E5, D's second reader) · (1) the stats below the standings obey the same law: when the refresh of v_rounds_ranked and
+     v_individual_standings fails, the last figures stay (Every golfer, the month tile, Up next) under an 'As of … · couldn't refresh' line — they used to be
+     overwritten with [] and zeros, and the page said 'The race fills in once your league season is live' and '2 more toward September's minimum' */
+  { family: 'season', id: 'stats-stale', variant: 'member', title: 'The season page, Every golfer, after a refresh of the stats failed (the last figures stay, under their dateline)', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page, ctx) => {
+      await toRoom(page, 'standings')
+      await page.evaluate(() => { const t = (id) => (document.getElementById(id) || {}).innerText || ''; window.__w8 = { ind: t('indTable'), count: t('statCount'), next: t('nextTxt'), rows: document.querySelectorAll('#indTable tr').length } })
+      ctx.world.errors.table.v_individual_standings = { __error: 'fixture: the individual standings failed', status: 503 }
+      ctx.world.errors.table.v_rounds_ranked = { __error: 'fixture: the ranked rounds failed', status: 503 }
+      await page.evaluate(() => window.loadStandingsAndFeed())
+      await until(page, () => !!document.getElementById('indStale'), null, 6000).catch(() => {})   /* the parent never draws it: the pins say what it drew instead */
+      await page.evaluate(() => (document.getElementById('indStale') || document.getElementById('indTable')).scrollIntoView({ block: 'end' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#indStale': 'text:^As of .* couldn.t refresh$' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const w = window.__w8, t = (id) => (document.getElementById(id) || {}).innerText || ''
+      if (w.rows < 8) return `the every-golfer table had ${w.rows} rows before the failure (the state is not the one it claims)`
+      if (t('indTable') !== w.ind) return 'the every-golfer table changed when the refresh failed'
+      if (/race fills in/i.test(t('indTable'))) return 'a failed refresh reads as an early season'
+      if (t('statCount') !== w.count) return `the month tile changed from ${JSON.stringify(w.count)} to ${JSON.stringify(t('statCount'))}`
+      if (t('nextTxt') !== w.next) return `Up next changed from ${JSON.stringify(w.next)} to ${JSON.stringify(t('nextTxt'))}`
+      const stale = document.getElementById('indStale'), tbl = document.getElementById('indTable').closest('.tblwrap')
+      return stale.getBoundingClientRect().top >= tbl.getBoundingClientRect().bottom - 2 ? true : 'the dateline is not under the table'
+    })) },
+  /* ...and (1b) a FIRST read that fails has nothing to keep: Every golfer says the read failed and offers the retry, never the early-season sentence */
+  { family: 'season', id: 'stats-failed', variant: 'member', title: 'The season page, Every golfer, when the first read of the stats failed (the words and the retry)', fullPage: false,
+    world: { errors: { table: { v_individual_standings: { __error: 'fixture: the individual standings failed', status: 503 }, v_rounds_ranked: { __error: 'fixture: the ranked rounds failed', status: 503 } } } },
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toRoom(page, 'standings')
+      await until(page, () => !!document.getElementById('indRetry'), null, 8000).catch(() => {})   /* the parent never draws it: the pins say what it drew instead */
+      await page.waitForTimeout(400)
+      await page.evaluate(() => document.getElementById('indTable').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#indRetry': 'visible' } },
+    check: all(onNorthGrove, ariaWellFormed('#indTable'), async (page) => page.evaluate(() => {
+      const t = (id) => (document.getElementById(id) || {}).innerText || ''
+      if (/race fills in/i.test(t('indTable'))) return 'a failed read says the race fills in once the season is live'
+      if (/No rounds count yet/i.test(t('msAvgSub') + t('msBestSub'))) return 'a failed read says no rounds count'
+      return /Couldn.t load this/.test(t('indTable')) ? true : 'the table does not say the read failed'
+    })) },
+  /* (2) what a failed read keeps is THIS league's: a golfer in two leagues whose season_story read fails on the second must not see the first league's story on
+     its page (loadSeasonStory kept window.seasonStory on error, and resetToBlank, run on every switch, never cleared it) */
+  { family: 'season', id: 'story-league-switch', variant: 'member', title: "The season page of the second league, after the story read failed on the switch (not the first league's story)", fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page, ctx) => {
+      await toSeasonViaBand(page)
+      await until(page, () => !!(window.seasonStory && window.seasonStory.season), null, 10000)
+      ctx.world.errors.rpc.season_story = { __error: 'fixture: the story read failed', status: 503, code: 'XX000' }
+      await page.evaluate((id) => window.enterLeagueById(id, false), SW.league)
+      await until(page, () => /South Wash/.test((document.getElementById('seasonTitle') || {}).textContent || '') && !!document.getElementById('seasonStoryRetry'), null, 15000).catch(() => {})
+      await page.waitForTimeout(400)
+      await page.evaluate(() => document.getElementById('seasonArc').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub' },
+    check: async (page) => page.evaluate(() => {
+      const arc = (document.getElementById('seasonArc') || {}).innerText || ''
+      if (!/South Wash/.test((document.getElementById('seasonTitle') || {}).textContent || '')) return 'the season page is not the second league\'s'
+      if (/Fixture (Javelinas|Wrens)/i.test(arc)) return `the second league's page shows the first league's story: ${JSON.stringify(arc.slice(0, 80))}`
+      return /Couldn.t load this/i.test(arc) && document.getElementById('seasonStoryRetry') ?   /* innerText carries the head's caps */
+        true : 'the second league\'s story pane does not say the read failed'
+    }) },
   /* TEN / W8 · W7-026 [X01] · a story read that did not answer says so and offers the retry, not "The story starts when
      the first week closes" (the phone's storyRead == .failed) */
   { family: 'season', id: 'story-failed', variant: 'member', title: 'The season page, the story, when the story read failed', fullPage: false,
@@ -406,6 +523,62 @@ const SEASON = [
       const w = line.getBoundingClientRect().width, gw = g.getBoundingClientRect().width
       return w >= gw * 0.98 ? true : `the empty line is ${Math.round(w)}px in a ${Math.round(gw)}px grid (one third of the row)`
     })) },
+  /* TEN / W8 · the season page's board section (UI_SYSTEM §3.1 and §15.4, the same test as W7-029): the board's feed, and the composer under it */
+  { family: 'season', id: 'board', variant: 'member', title: 'The season page, the board: the feed and the composer', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toRoom(page, 'board'); await page.waitForTimeout(400) },
+    expect: { view: 'view-hub', selectors: { '#boardCard': 'visible', '#chatIn': 'visible' } },
+    check: all(onNorthGrove, inViewport('#boardCard', 'the board'),
+      /* the wrapper is the page's ground, and a post, a settled game and a moment are slats: no fill, no radius, no four-sided edge */
+      noBoxes(['#boardCard', '#feedList .msgrow', '#feedList .sysrow', '#feedList .momrow', '#feedList .fcard']),
+      async (page) => page.evaluate(() => {
+        const list = document.getElementById('feedList'), box = list.getBoundingClientRect(), bad = []
+        const rows = [...list.querySelectorAll('.msgrow, .sysrow, .momrow, .fcard')]
+        if (!rows.length) return 'the board draws no post to judge'
+        const top = (el) => getComputedStyle(el).borderTopWidth
+        if (rows.some((r) => !r.previousElementSibling?.classList.contains('datesep') && top(r) !== '1px')) bad.push('a slat has no hairline above it')
+        if (rows.some((r) => r.previousElementSibling?.classList.contains('datesep') && top(r) !== '0px')) bad.push('a slat under a date line draws a second rule')
+        const pin = list.querySelector('.annrow.pin')
+        if (pin && getComputedStyle(pin).backgroundColor === 'rgba(0, 0, 0, 0)') bad.push('the pinned note has no ground: the feed shows through it')
+        /* the feed scrolls in its own height: while there is more below, it wears the scrollers' fade (the card's edge is gone) */
+        const more = list.scrollTop + list.clientHeight < list.scrollHeight - 2
+        if (more !== list.hasAttribute('data-more')) bad.push(`the feed ${more ? 'has more below and no fade' : 'has nothing below and a fade'}`)
+        else if (more && !/linear-gradient/.test(getComputedStyle(list).maskImage || getComputedStyle(list).webkitMaskImage || '')) bad.push('the feed has more below and its fade is not drawn')
+        for (const el of [...list.querySelectorAll('button, a[href], [tabindex]')].slice(0, 6)) {
+          const r = el.getBoundingClientRect()
+          if (r.width && (r.left - 4 < box.left - 0.5 || r.right + 4 > box.right + 0.5)) { bad.push(`a focus ring on ${JSON.stringify((el.getAttribute('aria-label') || el.textContent || el.className).trim().slice(0, 16))} would be clipped by the feed's own edge`); break }
+        }
+        return bad.length ? bad.join('; ') : true
+      })) },
+  /* TEN / W8 · K102 [X07] (D's delta at e78d7f22) · the season album reads again when a photograph is added: it read once per league per session, so the golfer who
+     attached the first photograph to a round was still told 'Photos land here' — on the season page, and on coming back to it — until a reload. The photographs are
+     attached through the app's own writer (csAttachRoundPhoto: an upload, set_round_photo, a signed URL), once with the season page open and once while on Home. */
+  { family: 'season', id: 'album-refresh', variant: 'member', world: { photo: 'none' }, title: 'The season page, the album, after photographs were added to two rounds in the same session', fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page, ctx) => {
+      await toSeasonViaBand(page)
+      await page.evaluate(() => window.setRoomSeg('album'))
+      await until(page, () => /Photos land here/.test((document.getElementById('albumGrid') || {}).innerText || ''), null, 10000)
+      const mine = ctx.world.tables.rounds.filter((r) => r.profile_id === ctx.world.me).slice(0, 2).map((r) => r.id)
+      const attach = (rid) => page.evaluate(async (rid) => {
+        const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='), (c) => c.charCodeAt(0))
+        const out = await window.csAttachRoundPhoto(rid, new File([png], 'p.png', { type: 'image/png' }), null)
+        return !!(out && out.ok)
+      }, rid)
+      const cells = (n) => until(page, (n) => document.querySelectorAll('#albumGrid .alcell').length >= n, n, 4000).catch(() => {})
+      await attach(mine[0]); await cells(1)                                    /* (a) with the season page on screen: read again now */
+      await page.evaluate(() => window.switchView('home')); await page.waitForTimeout(300)
+      await attach(mine[1])                                                    /* (b) somewhere else: read again when the season page is opened */
+      await page.evaluate(() => window.switchView('hub')); await cells(2)
+      await page.evaluate(() => document.getElementById('albumGrid').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#albumGrid': 'visible' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const g = document.getElementById('albumGrid'), n = g.querySelectorAll('.alcell').length
+      if (/Photos land here/.test(g.innerText)) return 'the album still says no photographs after two were added in this session'
+      return n === 2 ? true : `the album shows ${n} photograph(s), expected the two just added`
+    })) },
   /* TEN / W8 · W7-011 [B2-season-12] · the week clock, cropped: the weeks played are ink, the live week brand
      and tall, the weeks ahead mut — never rule (§16.1), so each reads as a state on the page's ground */
   { family: 'season', id: 'month-clock', variant: 'member', title: 'The season page, the week clock (its own crop)', shot: '#monthClock',
@@ -450,6 +623,8 @@ const COMPETE = [
        column (#cmpMoments) — beside the seasons on the desk, after them on
        the phone */
     check: all(has('#cmpList [data-cband]', '137[\\s\\S]*Fixture Wrens · 2nd[\\s\\S]*34 back from Fixture Javelinas\\.', 'the band (137 points, Fixture Wrens 2nd, 34 back)'),
+      /* TEN / W8 · W7-028: the Book door is marked by a 2px mut rule under its label, not by the row's hairline */
+      tertiaryDoor('#cmpBookDoor'),
       has('#cmpList', 'South Wash Weekday \\(fixture\\)', 'the second season'),
       has('#cmpMoments', 'The North Grove Ryder \\(fixture\\)', 'the live Ryder in the moments'),
       has('#cmpFinished', 'The North Grove Ryder \\(fixture\\)', 'the finished Ryder on the shelf')) },
@@ -695,6 +870,25 @@ const EVENTS = [
    window's. From the dark or the light default the sheet prints the light printing: every token the light theme
    flips (held to tokens.json, so a drifted print block fails here), the main text darker than the secondary text, and
    both at AA on the paper. */
+/* TEN / W8 · W7-014 [B2-season-14] (E3, D's second reader) · the sheet measured with the print dialog's DEFAULT: background graphics OFF. A fill is dropped unless the sheet
+   asks for it (print-color-adjust: exact), and ink that assumed the fill is then ink on white. For the live season's name, standfirst and eyebrow, the leader's rank
+   tile and the viewer's, the ink's contrast against the ground it will really land on (the nearest ancestor fill that PRINTS, else the paper) is at least 4.5 */
+const printedInk = async (page) => page.evaluate(() => {
+  const rgb = (c) => (c.match(/[\d.]+/g) || []).slice(0, 4).map(Number)
+  const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+  const lum = (c) => { const [r, g, b] = rgb(c); return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b) }
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+  const prints = (el) => { const cs = getComputedStyle(el); return (cs.printColorAdjust || cs.webkitPrintColorAdjust) === 'exact' }
+  const ground = (el) => { for (let n = el; n && n.nodeType === 1; n = n.parentElement) { const bg = getComputedStyle(n).backgroundColor; if (rgb(bg).length === 4 && rgb(bg)[3] === 0) continue; if (prints(n)) return bg } return 'rgb(255, 255, 255)' }
+  const parts = [['#seasonEyebrow, #seasonDateline', 'the eyebrow'], ['#seasonTitle', "the season's name"], ['#seasonLead', 'the standfirst'], ['#standings tr.lead .rk, #indTable tr.lead .rk', "the leader's rank tile"]]
+  const bad = []
+  for (const [sel, what] of parts) {
+    const el = document.querySelector(sel); if (!el || !(el.getBoundingClientRect().width > 0)) continue
+    const c = getComputedStyle(el).color, g = ground(el), r = ratio(c, g)
+    if (r < 4.5) bad.push(`${what} prints ${c} on ${g}: ${r.toFixed(2)}:1`)
+  }
+  return bad.length ? 'with background graphics off the sheet prints ink that assumed a fill: ' + bad.join('; ') : true
+})
 const PRINT = [
   { family: 'print', id: 'season', variant: 'member', probe: true, title: 'The season page as printed (print media, paper width), from the dark or the light default',
     prepare: async (W) => dropInventedMoment(W),
@@ -707,6 +901,7 @@ const PRINT = [
     }, LIGHT_PRINTING),
     stateContrast([{ sel: '#standingsStory', prop: 'color', min: 4.5, what: 'the story (ink) on the paper' },
       { sel: '#standings th', prop: 'color', min: 4.5, what: 'a column head (mut) on the paper' }]),
+    printedInk,
     async (page) => page.evaluate(() => {
       const l = (c) => { const v = (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4 }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2] }
       const ink = l(getComputedStyle(document.querySelector('#standingsStory')).color), mut = l(getComputedStyle(document.querySelector('#standings th')).color)

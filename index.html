@@ -478,7 +478,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    W7-009 · and You's Form row and Recent rounds open on the last round; the
    schedule's empty state and its "Put a round on the schedule" carry planning
    (so "Plan one" stands down); an empty record says the first round is
-   missing and holds the door (so the sidebar's sentence and its door go). */
+   missing and holds the door (so the sidebar's sentence and its door go).
+   The door goes whether or not the strip also holds a season row or dues (a
+   golfer seated in a season with no rounds has both), and its row with it. */
 @media(min-width:960px){
   .shell:has(#view-stats.active) #sideMe [data-mego="my_number"],
   .shell:has(#view-post.active) #sideMe [data-mego="my_number"],
@@ -487,6 +489,8 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   .shell:has(#view-schedule.active) #sideMe [data-mego="plan_one"],
   .shell:has(#view-stats.active) #sideMe [data-mego="my_last_round"],
   .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"],
+  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe [data-mego="add_round"],
+  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe .medoors:has(> [data-mego="add_round"]:only-child),
   .shell:has(#view-stats.active) #sideMe .mesay{display:none;}   /* W7-053 · You prints the building clause under its card: the sentence once per viewport */
   /* An empty record holds the door, so the sidebar's block stands down, but
      COLLAPSED in place, never display:none: #sideMe carries the column's
@@ -715,7 +719,10 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .sb-terrain .cs-topohead{opacity:1; width:100%; height:auto; top:0; left:0; right:auto; transform:none; z-index:0; color:inherit;}
 .sb-terrain .cs-topohead .t-sur{opacity:1; stroke-width:.5;}
 .sb-terrain .cs-topohead .t-edge{opacity:1; stroke-width:1;}
-.sb-door{display:block; width:100%; min-height:44px; text-align:left; border:0; border-bottom:1px solid var(--rule); background:none; color:var(--ink); font-family:var(--sans); font-size:16px; cursor:pointer;}
+.sb-door{display:block; width:100%; min-height:44px; text-align:left; border:0; border-bottom:1px solid var(--rule); background:none; color:var(--ink); font-family:var(--sans); font-size:16px; cursor:pointer;
+  /* W7-028 · the door lost its typed arrow and kept only the row's hairline, which is a divider, never the underline that is the affordance (§7.1; 2.3:1 to 2.7:1 against §16.4's 3:1).
+     The label takes the in-content tertiary's mark: a 2px mut rule under it; the row is 44 tall already */
+  text-decoration:underline; text-decoration-thickness:2px; text-decoration-color:var(--mut); text-underline-offset:var(--s1);}
 .sb-door[hidden]{display:none;}
 /* W5 · the Book is as tall as what it holds (a two-line "no standing yet"
    or an error sat in a 90vh frame, ~70% empty) and never taller than 90vh.
@@ -2118,7 +2125,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    rather than looking pasted in */
 .cstatus{font-size:15px; line-height:1.5; color:var(--mut); margin:20px 0 0;}
 /* W7-026 · the dateline a kept table wears once its refresh failed (§13.3: agate, at mut) */
-#standingsStale{color:var(--mut); margin:var(--s2) 0 0;}
+#standingsStale, #indStale{color:var(--mut); margin:var(--s2) 0 0;}
 .cstatus .cfrun{font-family:var(--board); font-weight:700; color:var(--mut);}
 .crow{margin-top:12px;}
 .cred .cfolio{border-top:1px solid rgba(241,244,239,.16); padding-top:8px; display:flex;
@@ -2921,6 +2928,29 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   border-radius:0;}
 #view-hub .trip .p b{padding:0 var(--s3) var(--s1) 0; border-bottom:2px solid var(--ink);}
 #view-hub .trip .p span{display:block; padding:var(--s1) var(--s3) 0 0;}
+/* W7-029 (follow-up) · THE BOARD SECTION IS NO CARD EITHER (§3.1, §15.4: the same test). #boardCard was a card holding a feed of boxed cards (a
+   post is a `.msgrow`, a settled game a `.sysrow`, a moment a `.momrow`): a bordered, filled, rounded box inside a bordered, filled, rounded box.
+   The wrapper is the page's ground and a row is §9.1's slat, a hairline above and s3 either side, as the phone's BoardRows are (ruled rows on
+   clear ground). The date line stands where a slat's rule would be, so the first slat under it has none; a reaction bar keeps its place under its
+   post without a second rule; the Pro's pinned note takes the page's ground (it was the card's) so the feed does not show through it; a way in is
+   furniture, not gold (D359). The scroll box gives its edge room back as margin so a focus ring on a control at the row's edge is not clipped. */
+#view-hub #boardCard{background:none; border:0; padding:0; box-shadow:none;
+  border-radius:0;}
+#view-hub #feedList{padding:var(--s1); margin:calc(-1 * var(--s1));}
+#view-hub #feedList .msgrow, #view-hub #feedList .sysrow, #view-hub #feedList .momrow, #view-hub #feedList .fcard{background:none; border:0;
+  border-top:1px solid var(--rule); padding:var(--s3) 0; margin:0;
+  border-radius:0;}
+#view-hub #feedList .datesep + *{border-top:0;}
+#view-hub #feedList .social{border-top:0; margin-top:0; padding-top:var(--s2);}
+#view-hub #feedList .sysgrp > .social{padding:var(--s1) 0 var(--s3);}
+#view-hub #feedList .sysrow.opens{padding-right:var(--s5);}
+#view-hub #feedList .sysrow.opens::after{right:0; color:var(--mut);}
+#view-hub #feedList .annrow.pin{background:var(--bg0);}
+/* the feed scrolls in its own height and had the card's edge to say so; it wears the scrollers' edge now (csBookEdge's data-more), as the desk's asides do */
+#feedList[data-more]{
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
+  mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
+}
 /* printing the season is a desk act; on a phone the button was one more row
    of chrome between the story and the pot (the craft panel) */
 @media(max-width:959px){ #seasonPrint{display:none;} }
@@ -3779,13 +3809,14 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
    row because it is the arithmetic, not the verdict — but present, because a
    figure with no visible working is what made a true -11.5 read as an
    accusation (§16). */
-/* TEN / W6 · AW2-06: the working stays quieter by role, not by mono — its label
-   is an agateS phrase (sentence case), its value `column` small */
+/* TEN / W6 · AW2-06: the working stays quieter by ink, not by mono — its value is `column` small.
+   W7-034 · and its LABEL is the row's own body role (sans 15, flat), quieter by ink alone (`.rcpt-leaf .mathrow.sub span`):
+   it was an 11px board-face phrase with agate tracking beside 'The course' and 'Points' in the body, two label roles in
+   one table (E2, D's second reader; surfaces/leaderboard.md §6, and ReceiptLeaf.mathRow sets every non-total label .body
+   and lets `sub` change the ink only) */
 .mathrow.sub{color:var(--mut); padding-top:7px; padding-bottom:7px;}
 .mathrow.sub b{color:var(--mut); font-family:var(--mono); font-size:12px; font-weight:400;
   letter-spacing:var(--flat);}
-.mathrow.sub > span{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2;
-  letter-spacing:calc(var(--agate-s) * 1em);}
 .rdrow{
   display:flex; align-items:center; gap:10px; width:100%; text-align:left;
   background:none; border:none; border-top:1px solid var(--rule); padding:10px 2px; cursor:pointer;
@@ -4245,10 +4276,16 @@ body.noleague .league-only{display:none !important;}
 .seasondate{
   font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
-  color:var(--mut); margin:0 0 20px; display:flex; flex-wrap:wrap; gap:0 8px;
+  color:var(--mut); margin:var(--s3) 0 var(--s4); display:flex; flex-wrap:wrap; gap:0 8px;   /* W7-072 · it clears the band above it (it sat flush under it) */
 }
 .seasondate span:empty{display:none;}
 .seasondate span + span:not(:empty)::before{content:"\00B7"; margin-right:8px; color:var(--mut);}
+/* W7-072 · UI_SYSTEM §16.3: an agate line that does not fit breaks on its separators into STACKED lines. At a phone's width the span and the
+   Pro are two lines, and the separator between them goes, so a wrapped line can never begin with a middot */
+@media(max-width:479px){
+  .seasondate{flex-direction:column; align-items:flex-start; gap:var(--s1) 0;}
+  .seasondate span + span:not(:empty)::before{content:none;}
+}
 .seasonctl{display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:0 0 20px;}
 .seasonctl:empty{display:none;}
 .seasonlead{font-family:var(--serif); font-size:21px; line-height:1.34; color:var(--ink); margin:0 0 8px; text-align:left;}
@@ -4272,8 +4309,8 @@ body.noleague .league-only{display:none !important;}
    story, the table and the rules stay, and the aside falls in beneath the
    reading column so the history prints after the table it explains. */
 @media print{
-  .side, .tabbar, .composer, .seg, #errbar, #boardFull, #seasonPrint,
-  button, .mini, .btn, .livebanner{display:none !important;}
+  .side, .tabbar, .composer, .seg, #errbar, #boardFull, #seasonPrint, header.hdr,
+  button, .mini, .btn, .livebanner{display:none !important;}   /* W7-014 · header.hdr: the app's bar holds only buttons here, and now that the sheet prints its fills it would print as an empty tinted strip */
   .deskbody, .deskbody.wide{display:block !important;}
   .deskaside{position:static !important; margin-top:24px;}
   .deskaside, .deskwire{max-height:none !important; overflow:visible !important; -webkit-mask-image:none !important; mask-image:none !important;}   /* W7-027 · a sheet has no scroll box */
@@ -4290,6 +4327,11 @@ body.noleague .league-only{display:none !important;}
      change; tests/ten-states season/print holds the set to tokens.json. */
   html[data-theme]{
     color-scheme:light !important;
+    /* W7-014 (E3, D's second reader) · the light printing puts CREAM ink (--brand-ink, --panel-ink) on FILLS: the live season's ember band (its name,
+       standfirst and eyebrow) and the rank tiles ('01'). The print dialog's default drops backgrounds, and that cream is then cream on white (Chrome
+       darkens it to #A09E99, 2.68:1; other engines print 1.13:1), lighter than the mut labels, on the sheet's largest type; the week clock's ticks
+       are fills too and would print as nothing. The fills are part of what the sheet says, so it prints them, whatever the dialog says */
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
     --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
     --ink:#151B17; --mut:#575F57; --dim:#8B9089;
     --pos:#0A6D3C; --neg:#B02A20; --cool:#56615B;
@@ -8287,12 +8329,20 @@ function backToDoor(){ const ob = $('#onboard'); ob.style.display = ''; ob.class
    empty grid. The grid now renders when the pane first scrolls into view, and
    again only when the league has changed — not on every pass of the scroll. */
 (()=>{
-  let last = null;
-  /* once per league: opening the season page, or the pane coming into view */
+  let last = null, at = 0;
+  /* once per league, and FRESH (K102 [X07]): opening the season page, or the pane coming into view, reads the album when the league has
+     changed, when a photograph was added or taken off a round on this device (csAlbumStale, from the three writers), or when the last read
+     is over two minutes old (a league-mate's photograph). It read once per league per session, so a photograph added later showed after
+     a reload only — and the golfer who posted the first one was still told 'Photos land here'. Not on every pass of the scroll. */
   window.csAlbumOnce = () => {
     const key = window.CS?.league?.id || null;
-    if(!key || key === last || typeof window.renderAlbum !== 'function') return;
-    last = key; window.renderAlbum();
+    if(!key || typeof window.renderAlbum !== 'function') return;
+    if(key === last && Date.now() - at < 120000) return;
+    last = key; at = Date.now(); window.renderAlbum();
+  };
+  window.csAlbumStale = () => {
+    last = null;
+    if(document.getElementById('view-hub')?.classList.contains('active')) window.csAlbumOnce();   /* the season page is on screen: now */
   };
   const pane = document.getElementById('room-album');
   if(pane && 'IntersectionObserver' in window)
@@ -8589,7 +8639,12 @@ $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v)
   if(rulesHead && 'IntersectionObserver' in window){
     new IntersectionObserver(([e]) => {
       if(!matchMedia('(min-width:960px)').matches || !document.getElementById('view-hub')?.classList.contains('active')) return;
-      window.csDeskMenuSync((e.isIntersecting || e.boundingClientRect.top < 0) ? 'league' : 'season');
+      const passed = e.isIntersecting || e.boundingClientRect.top < 0;
+      /* W7-025 · THE CHOSEN ROW WINS. Choosing 'The season's story' from the rules jumps the page to the top (switchView), which takes the rules head out of the
+         window's top half and queues an entry here that would tick THE SEASON over the row just chosen. While the story is the marked row it is left alone
+         until the rules head comes into view again (E3, D's second reader) */
+      if(seg === 'archive' && !passed) return;
+      window.csDeskMenuSync(passed ? 'league' : 'season');
     }, { rootMargin:'0px 0px -50% 0px', threshold:0 }).observe(rulesHead);
   }
   window.csDeskReveal = () => {};
@@ -9691,6 +9746,18 @@ function csStandingsStale(){
   }
   p.textContent = csStaleLine(at.at, f.offline);
 }
+/* W7-026 [X01] (E5) · the same dateline under Every golfer, when the stats' refresh failed and the last figures are what is on screen */
+function csIndStale(){
+  const wrap = document.getElementById('indTable')?.closest('.tblwrap'); if(!wrap) return;
+  let p = document.getElementById('indStale');
+  const f = window.statsFailed, at = window.statsAt;
+  if(!(f && f.kept && at && at.at)){ if(p) p.remove(); return; }
+  if(!p){
+    p = document.createElement('p'); p.id = 'indStale'; p.className = 'cs-agate-s'; p.setAttribute('role', 'status');
+    wrap.insertAdjacentElement('afterend', p);
+  }
+  p.textContent = csStaleLine(at.at, f.offline);
+}
 function renderStandings(){
   csRenderSeasonBookDoor();
   renderClash();               /* D108: the clash chip rides the standings column */
@@ -9704,9 +9771,9 @@ function renderStandings(){
     if(window.standingsFailed){
       const e = csEmptyRoot('standings', { failed:true });
       el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Golfer':'Squad')+'</th><th class="num">Pts</th></tr>'
-        + '<tr><td colspan="3" style="padding:var(--s4) var(--s1)" role="status"><b class="cs-body" style="display:block;color:var(--ink);font-weight:600">'+esc(e.head)+'</b>'
+        + '<tr><td colspan="3" style="padding:var(--s4) var(--s1)"><div role="status"><b class="cs-body" style="display:block;color:var(--ink);font-weight:600">'+esc(e.head)+'</b>'
         + '<span class="cs-body-s" style="display:block;color:var(--mut)">'+esc(e.sub)+'</span>'
-        + '<button type="button" class="mini" id="standingsRetry" style="margin-top:var(--s2)">Try again</button></td></tr>';
+        + '<button type="button" class="mini" id="standingsRetry" style="margin-top:var(--s2)">Try again</button></div></td></tr>';   /* the live region sits INSIDE the cell: role=status on the td took the cell out of the row */
       $('#standingsRetry')?.addEventListener('click', () => { const b=$('#standingsRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadStandingsAndFeed?.(); });
       return;
     }
@@ -13906,6 +13973,7 @@ $('#postBtn').addEventListener('click', async ()=>{
         }
       }
       growthEvent('first_round_posted');   /* server no-ops unless this is the golfer's first round */
+      if(payload.photo_path) window.csAlbumStale?.();   /* K102 · a round posted WITH a photograph: the season album reads again */
       /* D33: gate 3 measured on every real post — composer-open → posted */
       qaEvent('post_submit', {
         mode:  holesMode ? 'holes' : 'total',
@@ -22948,7 +23016,7 @@ function csBookEdge(scroller,host,axis){
    (the wire's box was cut through its last card with no fade, B2-desk-8). Re-read when the column or
    anything in it changes size or content: the pot, the clash and the story arrive after boot, and a
    box capped at the window's height does not itself change size when its content grows. */
-(()=>{ document.querySelectorAll('.deskaside, .deskwire').forEach(el=>{
+(()=>{ document.querySelectorAll('.deskaside, .deskwire, #feedList').forEach(el=>{   /* #feedList: the board's own feed, once the card that framed it is gone (W7-029) */
   csBookEdge(el, el, 'y');
   let q=0; const again=()=>{ if(q) return; q=requestAnimationFrame(()=>{ q=0; el.dispatchEvent(new Event('scroll')); }); };
   try{ const ro=new ResizeObserver(again); ro.observe(el); [...el.children].forEach(c=>ro.observe(c)); new MutationObserver(again).observe(el, { childList:true, subtree:true }); }
@@ -25100,14 +25168,25 @@ function renderIndStats(){
 function renderIndStatsReal(){
   const rows=window.indRows||[];
   const dash=id=>{ const el=$(id); if(el) el.textContent='—'; };
+  csIndStale();
   if(!rows.length){
     ['#msR','#msAvg','#msBest','#msDelta','#awKing','#awImp','#awIron'].forEach(dash);
-    $('#msAvgSub').textContent='No rounds count yet';
-    $('#msBestSub').textContent='No rounds count yet';
-    $('#msDeltaSub').textContent='Needs 2 rounds this season';
+    /* W7-026 [X01] (E5) · a read that failed is never 'No rounds count yet' / 'The race fills in once your league season is live': the words are
+       the phone's failedRead (csEmptyRoot), with the one move that helps, and the tiles say nothing rather than a false zero */
+    const failed = !!window.statsFailed;
+    $('#msAvgSub').textContent = failed ? '' : 'No rounds count yet';
+    $('#msBestSub').textContent = failed ? '' : 'No rounds count yet';
+    $('#msDeltaSub').textContent = failed ? '' : 'Needs 2 rounds this season';
     $('#awKingS').textContent='Points King';
     $('#awImpS').textContent='Most Improved';
     $('#awIronS').textContent='Iron Man';
+    if(failed){
+      const e = csEmptyRoot('stats', { failed:true });
+      $('#indTable').innerHTML='<tr><td style="padding:var(--s4) var(--s1)"><div role="status"><b class="cs-body" style="display:block;color:var(--ink);font-weight:600">'+esc(e.head)+'</b>'
+        + '<span class="cs-body-s" style="display:block;color:var(--mut)">'+esc(e.sub)+'</span>'
+        + '<button type="button" class="mini" id="indRetry" style="margin-top:var(--s2)">Try again</button></div></td></tr>';
+      $('#indRetry')?.addEventListener('click', () => { const b=$('#indRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadStandingsAndFeed?.(); });
+    } else
     $('#indTable').innerHTML='<tr><td class="fine" style="padding:12px 4px">The race fills in once your league season is live and rounds land.</td></tr>';
     csYouStripsDedupe();
     return;
@@ -25532,6 +25611,7 @@ async function csAttachRoundPhoto(rid, file, oldPath){
     /* D385 §2 · a replace retires the old link; say so if its copy is still up */
     const w = (oldPath && oldPath !== path) ? await csWithdrawRoundLinks(rid) : { ok:true, pending:[] };
     const { data: s } = await sb.storage.from('media').createSignedUrl(path, 3600);
+    window.csAlbumStale?.();   /* K102 · the season album reads again */
     return { ok:true, path, url: s?.signedUrl || null, note: w.ok ? null : CS_SHARE_CLEANUP.pending };
   }catch(e){
     try{ await sb.storage.from('media').remove([path]); }catch(_){ }
@@ -25547,6 +25627,7 @@ async function csRemoveRoundPhoto(rid, oldPath){
     if(error) throw error;
     await csReclaimPhotoObject(oldPath, null);
     const w = await csWithdrawRoundLinks(rid);                          /* D385 §1 */
+    window.csAlbumStale?.();   /* K102 · the season album reads again */
     return { ok:true, note: w.ok ? null : CS_SHARE_CLEANUP.pending };
   }catch(e){
     return { ok:false, note: csMissingFn(e) ? CS_PHOTO.needsPush : CS_PHOTO.removeFailed };
@@ -27146,6 +27227,9 @@ function resetToBlank(leagueName){
   state.finish='cup_final';   /* never carry one league's dial into the next */
   state.payout=[60,25,15]; state.fmt=0;
   window.indRows=[]; window.myMonth=null; window.myIndexDelta=null; window.buyIns={};
+  /* W7-026 [X01] (E5) · what a failed read keeps is THIS league's: nothing kept from the league just left survives the switch */
+  window.myRanked=null; window.statsAt=null; window.statsFailed=null; window.standingsAt=null; window.standingsFailed=null;
+  window.seasonStory=null; window.seasonStoryLeague=null; window.seasonStoryFailed=false;
   feed.length=0;
   feed.push({d:TODAY, sys:true, txt:(leagueName||'Your league')+' is live. Say hello on the board'});
   teams.length=0;
@@ -27177,7 +27261,7 @@ function seasonSpanText(){
   /* setup-QA S2-01: hardcoded "Sun/Sat" survived the v1.1 flexible-start fix
      here — the review labeled a Saturday first tee "Sun". Real weekdays. */
   const s=seasonS(), e=seasonE();
-  return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} \u2013 ${DOW[e.getDay()]} ${MOS[e.getMonth()]} ${e.getDate()} · ${totalWeeks()} wks`;   /* AW2-08 · a span is an en dash (LeagueDates.spanText) */
+  return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} \u2013 ${DOW[e.getDay()]} ${MOS[e.getMonth()]} ${e.getDate()}`;   /* AW2-08 · a span is an en dash (LeagueDates.spanText); W7-072 · and no week count: the eyebrow above it says 'Week 8 of 13' */
 }
 /* Cup Final = the final four weeks, scored fresh (§14.0/§14.3).
    Start = ends_on − 27 days — four whole weeks, whatever the weekday (D213). */
@@ -29494,6 +29578,7 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('click', (e) => {
   if(!e.target.closest('#youGuide')) return;
   const row = e.target.closest('[data-guide]'); if(!row) return;
+  if(window.csSheetGuard?.() === false) return;   /* W7-042 · a guide replaces the sheet: a pending card edit is asked about first */
   const k = row.dataset.guide;
   /* D178 · there is ONE #sheet on this page, and openSheet overwrites its
      title, sub and body with no stack and no back control. Before D177 these
@@ -31063,7 +31148,7 @@ window.openPeoplePicker = openPeoplePicker;
    after openSheet, so pasted innerHTML would come back dead). */
 /* L-26 · delegated once, so the hub's code door works however often the sheet redraws */
 document.addEventListener('click', e => {
-  if(e.target && e.target.id === 'phJoin'){ if(typeof closeSheet === 'function') closeSheet(); window.openJoinSheet?.(); }
+  if(e.target && e.target.id === 'phJoin'){ if(window.csSheetGuard?.() === false) return; if(typeof closeSheet === 'function') closeSheet(); window.openJoinSheet?.(); }
 });
 /* A SETTING IS A SWITCH (W2 2026-09-28): a row, its name on the left and its
    state on the right, `role="switch"` + `aria-checked` — the phone's Toggle
@@ -31078,8 +31163,9 @@ function phSwitchSet(el, on){ if(el) el.setAttribute('aria-checked', on ? 'true'
    the phone (CardAndSettingsScreen): the words and the photographs go and the
    shared links stop, the rounds stay so nobody else's table breaks. The web's
    sentence named one photo and said nothing of posts, comments or links. */
-/* W7-042 · what the card says when it is dismissed with edits pending (the phone's twin owes the same words) */
-const CS_CARD_UNSAVED = 'You have unsaved changes. Save them, or close again to leave without saving.';
+/* W7-042 · what the card says when it is left with edits pending (the phone's twin owes the same words). ONE sentence for every way out
+   (the ×, the backdrop, Escape, and the doors that replace the sheet), so what to do to leave is always the same: do that again. */
+const CS_CARD_UNSAVED = 'You have unsaved changes. Save them, or do that again to leave without saving.';
 const CS_DELETE_ACCOUNT = 'This can\u2019t be undone. Your name, email and profile are removed, your posts and comments are cleared, your shared links stop working, and your photos are queued for removal. Notifications stop and your login is closed for good. Rounds you\u2019ve posted stay in the record so nobody else\u2019s standings or pot break \u2014 you\u2019ll just show as \u201cFormer member\u201d.';
 function openProfileHub(){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
@@ -31126,7 +31212,7 @@ function openProfileHub(){
     <label class="f" for="phGhin" style="display:block; margin-top:8px">GHIN # · optional</label>
     <input class="f" id="phGhin" inputmode="numeric" placeholder="e.g. 1234567" style="font-family:var(--sans); max-width:180px">
     <p class="fine" style="padding-left:0">A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.</p>
-    <button class="mini" id="phSave" style="margin-top:10px">Save card</button>
+    <button class="mini" id="phSave" aria-describedby="phStatus" style="margin-top:10px">Save card</button>
     <span class="fine" id="phStatus" role="status"></span>
 
     <!-- AW2-02 (round 2, WCAG 4.1.2): the field is named by its eyebrow, and
@@ -31136,7 +31222,7 @@ function openProfileHub(){
     <!-- W7-043 · once the engine owns the number the server refuses an edit by design (set_index: 'Your number comes from
          your scores now'), so the card does not offer one: it says whose the number is and where to read why, in the
          phone's own words (CardAndSettingsScreen, Y-06). D395: the card never sets a scored number. -->
-    <p class="cs-body" id="phIdxOwned" aria-labelledby="phIdxLab" style="margin:0">Your number builds itself now · ${p.index_current != null ? esc(Number(p.index_current).toFixed(1)) : '\u2014'}</p>
+    <p class="cs-body" id="phIdxOwned" style="margin:0">Your number builds itself now · ${p.index_current != null ? esc(Number(p.index_current).toFixed(1)) : '\u2014'}</p>
     <p class="fine" id="phIdxHelp" style="padding-left:0">It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works</a></p>` : `
     <div style="display:flex; gap:10px; align-items:center;">
       <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px" aria-labelledby="phIdxLab" aria-describedby="phIdxHelp">
@@ -31256,21 +31342,24 @@ function openProfileHub(){
   phPaint();
   /* dirty-state: any card change arms Save (delegates survive the marker grid
      re-render); photo add/remove save instantly and never arm */
-  const phArm = () => { const b=$('#phSave');
+  let told = false;   /* W7-042 · the guard below has said its sentence for the edits so far */
+  const phArm = () => { const b=$('#phSave'); told = false;
     if(b && !b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Save changes'; } };
   ['phName','phCity','phHome','phGhin','phHandle'].forEach(id=>$('#'+id)?.addEventListener('input', phArm));
   /* W7-042 · Findable-by saves on the tap (set_discoverable) and says so under the row (#phDiscSaid), so it
      never arms 'Save changes': it was arming a save for a change that had already been saved */
   $('#phMarkers')?.addEventListener('click', phArm);
-  /* W7-042 · and an armed card is not dropped by a tap outside: the first dismissal keeps the sheet open,
-     puts focus on Save and says why; a second within four seconds (csArmTap's window) leaves without
-     saving. The phone's sheet drops the edits silently too (CardAndSettingsScreen keeps vm.dirty only to
-     relabel Save), so it owes the same guard. */
-  let leaveAsked = 0;
+  /* W7-042 · and an armed card is not dropped by a way out. The first one keeps the sheet open, brings the golfer to the card (its edits and
+     Save are there: a golfer on Settings is switched back to it), puts focus on Save and says why; the same move again leaves without saving.
+     The ways out are the × / the backdrop / Escape (dismissSheet) and the doors that REPLACE the sheet — the scoring note, a guide row, Tell
+     us, I have a code, Sign out — each of which starts with `csSheetGuard() === false`. It asks ONCE per pending edit: a further edit asks
+     again, and a golfer who has been told is not timed out. The phone's sheet drops the edits silently too (CardAndSettingsScreen keeps
+     vm.dirty only to relabel Save), so it owes the same guard. */
   window.csSheetGuard = () => {
     const b = $('#phSave');
-    if(!b || !b.classList.contains('armed') || Date.now() - leaveAsked < 4000) return true;
-    leaveAsked = Date.now();
+    if(!b || !b.classList.contains('armed') || told) return true;
+    told = true;
+    if($('#phPaneCard').style.display === 'none') $('#phSeg [data-ph="card"]')?.click();
     b.focus();
     const st = $('#phStatus'); st.textContent = CS_CARD_UNSAVED; st.style.color = '';
     st.scrollIntoView({ block:'nearest' });   /* the line sits after the last field, below the fold of a golfer who edited the name */
@@ -31378,9 +31467,10 @@ function openProfileHub(){
     }
     finally { btn.disabled = false; }
   });
-  $('#phScoreHelp')?.addEventListener('click', (e)=>{ e.preventDefault(); window.openScoringHelp?.(); });
+  $('#phScoreHelp')?.addEventListener('click', (e)=>{ e.preventDefault(); if(window.csSheetGuard?.() === false) return; window.openScoringHelp?.(); });
 
   $('#phOut').addEventListener('click', async () => {
+    if(window.csSheetGuard?.() === false) return;   /* W7-042 · a pending card edit is not dropped by the reload */
     /* scope:'local' — a global signOut revokes every refresh token this golfer
        holds, so leaving the web tab would silently sign them out of the phone
        too, and getting back in costs an OTP against a project-wide cap. Sign
@@ -31423,7 +31513,7 @@ function openProfileHub(){
     }
   });
   /* the feedback door moved here from You (owner H) — the same handler */
-  $('#phFeedback')?.addEventListener('click', () => { closeSheet(); window.openFeedback?.(); });
+  $('#phFeedback')?.addEventListener('click', () => { if(window.csSheetGuard?.() === false) return; closeSheet(); window.openFeedback?.(); });
 
   /* FINDABLE BY SAYS WHAT IT IS (owner R, critique-B P2): the chosen option is
      the chosen pill with aria-pressed — as X19 made the marker and the
@@ -32496,7 +32586,7 @@ async function loadStandingsAndFeed(requireRoom=false){
   if(CS.season){
     try {
       const capN=capNum();
-      const [{ data: rr }, { data: ind }] = await Promise.all([
+      const [{ data: rr, error: rrErr }, { data: ind, error: indErr }] = await Promise.all([
         sb.from('v_rounds_ranked')
           .select('member_id, round_id, pvi, points, month_rank, floor_credit, played_on, index_at_post, holes_played')
           .eq('season_id', CS.season.id),
@@ -32504,38 +32594,49 @@ async function loadStandingsAndFeed(requireRoom=false){
           .select('member_id, points, rounds_posted')
           .eq('season_id', CS.season.id),
       ]);
-      const by={};
-      (rr||[]).forEach(r=>{ (by[r.member_id] ||= []).push(r); });
-      Object.values(by).forEach(a=>a.sort((x,y)=> x.played_on<y.played_on ? -1 : 1));
-      const sqOf = id => {
-        const q = CS.squads.find(q => (q.squad_members||[]).some(x => x.member_id === id));
-        return q ? q.name : '';   /* the squad's NAME: a four-letter cut read "FIXT" for two different squads */
-      };
-      window.indRows = (ind||[]).map(i=>{
-        const rs=by[i.member_id]||[];
-        const d = rs.length>1 ? Number(rs[rs.length-1].index_at_post)-Number(rs[0].index_at_post) : null;
-        return {
-          n: memName(i.member_id), ci: memCi(i.member_id), sq: sqOf(i.member_id),
-          mid: i.member_id, r: Number(i.rounds_posted),
-          avg: rs.length ? rs.reduce((a,r)=>a+Number(r.pvi),0)/rs.length : 0,
-          best: rs.length ? Math.max(...rs.map(r=>Number(r.pvi))) : null,
-          pts: Number(i.points), d, me: i.member_id===CS.member?.id,
-          hist: rs.map(r=>({ ...r, counting: r.month_rank<=capN })).reverse(),
+      /* W7-026 [X01] (E5, D's second reader) · the standings' law, for the stats below them: a failed read is not an empty season. Either view failing
+         overwrote indRows with [] and myMonth with {credits:0, counting:0}, and on the same page Every golfer read 'The race fills in once your league
+         season is live', the month tile '0 / 4' and Up next '2 more toward September's minimum of 2 — you're at 0' to a golfer who had met it. The last
+         figures stay (an 'As of … · couldn't refresh' line under Every golfer says so, csIndStale); with nothing to keep, Every golfer says the read failed. */
+      if(rrErr || indErr){
+        window.statsFailed = { offline: navigator.onLine === false,
+          kept: window.statsAt?.season === CS.season.id && (window.indRows||[]).length > 0 };
+        console.warn('[stats]', rrErr || indErr);
+      } else {
+        window.statsFailed = null; window.statsAt = { season: CS.season.id, at: new Date() };
+        const by={};
+        (rr||[]).forEach(r=>{ (by[r.member_id] ||= []).push(r); });
+        Object.values(by).forEach(a=>a.sort((x,y)=> x.played_on<y.played_on ? -1 : 1));
+        const sqOf = id => {
+          const q = CS.squads.find(q => (q.squad_members||[]).some(x => x.member_id === id));
+          return q ? q.name : '';   /* the squad's NAME: a four-letter cut read "FIXT" for two different squads */
         };
-      }).sort((a,b)=>b.pts-a.pts || b.avg-a.avg);
-      const mine=by[CS.member?.id]||[];
-      /* D362 · the composer reads these to say what a round can add this month */
-      window.myRanked = mine;
-      const now=new Date();
-      const mkey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-      const mm=mine.filter(r=>String(r.played_on).startsWith(mkey));
-      window.myMonth={
-        credits: mm.reduce((a,r)=>a+Number(r.floor_credit),0),
-        counting: mm.filter(r=>r.month_rank<=capN).length,
-      };
-      window.myIndexDelta = mine.length>1
-        ? Number(CS.profile?.index_current ?? mine[mine.length-1].index_at_post) - Number(mine[0].index_at_post)
-        : null;
+        window.indRows = (ind||[]).map(i=>{
+          const rs=by[i.member_id]||[];
+          const d = rs.length>1 ? Number(rs[rs.length-1].index_at_post)-Number(rs[0].index_at_post) : null;
+          return {
+            n: memName(i.member_id), ci: memCi(i.member_id), sq: sqOf(i.member_id),
+            mid: i.member_id, r: Number(i.rounds_posted),
+            avg: rs.length ? rs.reduce((a,r)=>a+Number(r.pvi),0)/rs.length : 0,
+            best: rs.length ? Math.max(...rs.map(r=>Number(r.pvi))) : null,
+            pts: Number(i.points), d, me: i.member_id===CS.member?.id,
+            hist: rs.map(r=>({ ...r, counting: r.month_rank<=capN })).reverse(),
+          };
+        }).sort((a,b)=>b.pts-a.pts || b.avg-a.avg);
+        const mine=by[CS.member?.id]||[];
+        /* D362 · the composer reads these to say what a round can add this month */
+        window.myRanked = mine;
+        const now=new Date();
+        const mkey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        const mm=mine.filter(r=>String(r.played_on).startsWith(mkey));
+        window.myMonth={
+          credits: mm.reduce((a,r)=>a+Number(r.floor_credit),0),
+          counting: mm.filter(r=>r.month_rank<=capN).length,
+        };
+        window.myIndexDelta = mine.length>1
+          ? Number(CS.profile?.index_current ?? mine[mine.length-1].index_at_post) - Number(mine[0].index_at_post)
+          : null;
+      }
     } catch(e){ console.warn('[stats]', e); }
   }
 
@@ -32573,12 +32674,14 @@ async function loadSeasonStory(){
      load and offers the retry (UI_SYSTEM §13.3; the phone's storyRead == .failed).
      A database that has not reached the migration (the function is missing) still
      renders without the story spine, as before (L-44). */
-  const had = window.seasonStory || null;
+  /* and what stays is THIS league's (E5, D's second reader): the kept story is keyed by the league it was read for, so a golfer in two leagues whose read fails
+     on the second never sees the first league's story on its page (resetToBlank clears it on every switch as well) */
+  const had = (CS.league && window.seasonStoryLeague === CS.league.id && window.seasonStory) || null;
   window.seasonStoryFailed = false;
   try {
-    if(!CS.league) { window.seasonStory = null; renderSeasonStory(); return; }
+    if(!CS.league) { window.seasonStory = null; window.seasonStoryLeague = null; renderSeasonStory(); return; }
     const { data, error } = await sb.rpc('season_story', { p_league: CS.league.id });
-    if(!error) window.seasonStory = data || null;
+    if(!error){ window.seasonStory = data || null; window.seasonStoryLeague = CS.league.id; }
     else { window.seasonStory = had; window.seasonStoryFailed = !had && !csMissingFn(error); }
   } catch(_){ window.seasonStory = had; window.seasonStoryFailed = !had; }
   renderSeasonStory();
@@ -36926,6 +37029,8 @@ function showWelcome(){
      demo's season frame must not paint ghost league dates on the calendar */
   state.seasonStart = null; state.seasonEnd = null;
   window.indRows = []; window.myMonth = null; window.myIndexDelta = null;
+  window.myRanked = null; window.statsAt = null; window.statsFailed = null; window.standingsAt = null; window.standingsFailed = null;   /* W7-026 (E5) · nothing kept from a league just left */
+  window.seasonStory = null; window.seasonStoryLeague = null; window.seasonStoryFailed = false;
   loadLeagueRecord();
   loadTrophies();
   loadCareer();

@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -204,6 +204,23 @@ const openHub = async (page) => {
   await tapUntil(page, '#youProfile', () => document.getElementById('sheet').classList.contains('open') && /Card & settings/.test(document.getElementById('shTitle').textContent))
   await page.waitForTimeout(500)
 }
+/* TEN / W8 · W7-042 [A2-settings-3] · what an armed card says when it is left: ONE sentence, in the status line that Save describes itself with, on the
+   pane that holds the edits (a golfer on Settings is brought back to it), in view, with focus on Save */
+const CARD_UNSAVED = 'You have unsaved changes. Save them, or do that again to leave without saving.'
+const unsavedSaid = async (page) => page.evaluate((want) => {
+  const st = document.getElementById('phStatus'), save = document.getElementById('phSave'), seg = document.querySelector('#phSeg [data-ph="card"]')
+  const r = st.getBoundingClientRect()
+  if (!(r.width > 0 && r.height > 0)) return 'the sentence is in a pane that is not drawn'
+  if (!(r.bottom > 0 && r.top < innerHeight)) return 'the sentence is below the fold of the golfer who edited the name'
+  if (seg.getAttribute('aria-pressed') !== 'true') return 'the Card segment is not the chosen one'
+  const a = document.activeElement
+  if (!a || a.id !== 'phSave') return `focus is on ${a && (a.id || a.tagName)}, not Save`
+  if (st.getAttribute('role') !== 'status') return 'the message is not a status'
+  if (save.getAttribute('aria-describedby') !== 'phStatus') return 'Save does not describe itself with the sentence'
+  return st.textContent === want ? true : `the sentence reads ${JSON.stringify(st.textContent)}`
+}, CARD_UNSAVED)
+/* the sheet is still the hub (title, no guide's way back) */
+const stillTheHub = async (page) => page.evaluate(() => document.getElementById('shTitle').textContent === 'Card & settings' && !document.getElementById('guideBack') ? true : `the sheet left the card: ${JSON.stringify(document.getElementById('shTitle').textContent)}`)
 const SETTINGS = [
   { family: 'settings', id: 'card', variant: 'member', fullPage: false, title: 'Card & settings · Your card',
     drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } },
@@ -221,12 +238,12 @@ const SETTINGS = [
   { family: 'settings', id: 'card-index', variant: 'member', fullPage: false, title: 'Card & settings · the Handicap index, built by the engine (no field, no Update index)',
     drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdxOwned': 'text:^Your number builds itself now . 14\\.2$', '#phScoreHelp': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(ariaWellFormed('#phPaneCard'), async (page) => page.evaluate(() => {
       if (document.getElementById('phIdx') || document.getElementById('phIdxGo')) return 'the engine-owned card still offers a field or Update index'
       const help = document.getElementById('phIdxHelp').textContent.replace(/\s+/g, ' ').trim()
       if (help !== 'It builds from your posted scores (best of your recent rounds, WHS-style) and moves as you post. How scoring works') return `the note reads ${JSON.stringify(help)}`
       return /[\u2192\u203a]/.test(document.getElementById('phIdxHelp').textContent) ? 'the door carries a typed arrow' : true
-    }) },
+    })) },
   { family: 'settings', id: 'card-starter', variant: 'one_round', fullPage: false, title: 'Card & settings · the Handicap index, still building (the starter field stays)',
     drive: async (page) => { await openHub(page); await page.evaluate(() => document.getElementById('phIdxLab').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500) },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phIdx': 'visible', '#phIdxGo': 'text:^Update index$' } },
@@ -242,15 +259,7 @@ const SETTINGS = [
       await click(page, '#shClose'); await page.waitForTimeout(300)
     },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
-    check: async (page) => page.evaluate(() => {
-      if (window.__w8.armedByFindable) return 'a Findable-by tap armed Save changes for a change it had already saved'
-      const a = document.activeElement, s = document.getElementById('phStatus')
-      if (!a || a.id !== 'phSave') return `focus is on ${a && (a.id || a.tagName)}, not Save`
-      if (s.getAttribute('role') !== 'status') return 'the message is not a status'
-      const r = s.getBoundingClientRect()
-      if (!(r.bottom > 0 && r.top < innerHeight)) return 'the message is below the fold of the golfer who edited the name'
-      return /Save them, or close again to leave without saving/.test(s.textContent) ? true : `the message reads ${JSON.stringify(s.textContent)}`
-    }) },
+    check: all(async (page) => page.evaluate(() => window.__w8.armedByFindable ? 'a Findable-by tap armed Save changes for a change it had already saved' : true), unsavedSaid) },
   /* ...and a second dismissal within four seconds leaves without saving */
   { family: 'settings', id: 'card-unsaved-leave', variant: 'member', fullPage: false, title: 'Card & settings · the second dismissal leaves without saving',
     drive: async (page) => {
@@ -261,6 +270,67 @@ const SETTINGS = [
     },
     expect: { view: 'view-stats' },
     check: async (page) => page.evaluate(() => document.getElementById('sheet').classList.contains('open') ? 'the second dismissal did not close the sheet' : true) },
+  /* TEN / W8 · W7-042 (D's delta at e78d7f22) · (1) the sentence lands where the golfer can SEE it: a dismissal on the SETTINGS pane after a card edit wrote
+     to #phStatus inside #phPaneCard, which is display:none there, so the sheet stayed open with no word. The golfer is brought back to the card, where the
+     edits and Save are, and told. */
+  { family: 'settings', id: 'card-unsaved-settings', variant: 'member', fullPage: false, title: 'Card & settings · a card edit is pending, the golfer is on Settings and dismisses the sheet (brought back to the card, and told)',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#phSeg [data-ph="settings"]'); await page.waitForTimeout(300)
+      await click(page, '#shClose'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: all(unsavedSaid, stillTheHub) },
+  /* (2) every way out of an armed card asks once: a guide row (it REPLACES the sheet, and its way back rebuilds the hub from the saved profile, so the edits
+     are gone), the scoring note under the index, Tell us, Sign out. The first move keeps the sheet and says why; the same move again goes through. */
+  { family: 'settings', id: 'card-unsaved-guide', variant: 'member', fullPage: false, title: 'Card & settings · a card edit is pending and a guide row is tapped from Settings (kept, brought back to the card, and told)',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#phSeg [data-ph="settings"]')
+      await until(page, () => { const g = document.getElementById('youGuide'); return !!g && g.offsetParent !== null })
+      await click(page, '#youGuide [data-guide="scoring"]'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: all(unsavedSaid, stillTheHub) },
+  { family: 'settings', id: 'card-unsaved-guide-leave', variant: 'member', fullPage: false, title: 'Card & settings · the same guide row tapped again opens the guide (its way back is there)',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#phSeg [data-ph="settings"]')
+      await until(page, () => { const g = document.getElementById('youGuide'); return !!g && g.offsetParent !== null })
+      await click(page, '#youGuide [data-guide="scoring"]'); await page.waitForTimeout(300)
+      await click(page, '#phSeg [data-ph="settings"]'); await page.waitForTimeout(200)
+      await click(page, '#youGuide [data-guide="scoring"]')
+      await until(page, () => !!document.getElementById('guideBack'), null, 6000); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-stats' },
+    check: async (page) => page.evaluate(() => document.getElementById('guideBack') && document.getElementById('shTitle').textContent !== 'Card & settings' ? true : 'the second tap did not open the guide') },
+  /* the other doors, each asked once with a fresh edit between them (typing re-arms the ask): the scoring note (card pane), Tell us and Sign out (settings pane).
+     The sheet stays the hub, and neither the feedback sheet nor the sign-out ran. */
+  { family: 'settings', id: 'card-unsaved-doors', variant: 'member', fullPage: false, title: 'Card & settings · the scoring note, Tell us and Sign out each ask first while a card edit is pending',
+    drive: async (page) => {
+      await openHub(page)
+      await page.evaluate(() => { window.__w8 = { fb: 0, out: 0, guide: 0, said: [] }; window.openFeedback = () => { window.__w8.fb++ }; window.csSignOut = async () => { window.__w8.out++ }; window.openScoringHelp = () => { window.__w8.guide++ } })
+      const said = () => page.evaluate(() => ({ text: document.getElementById('phStatus').textContent, title: document.getElementById('shTitle').textContent, card: getComputedStyle(document.getElementById('phPaneCard')).display !== 'none' }))
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#phScoreHelp'); await page.waitForTimeout(200)
+      const a = await said()
+      await page.locator('#phName').fill('Avery Fixtured'); await click(page, '#phSeg [data-ph="settings"]'); await page.waitForTimeout(200)
+      await click(page, '#phFeedback'); await page.waitForTimeout(200)
+      const b = await said()
+      await page.locator('#phName').fill('Avery Fixturer'); await click(page, '#phSeg [data-ph="settings"]'); await page.waitForTimeout(200)
+      await click(page, '#phOut'); await page.waitForTimeout(300)
+      const c = await said()
+      await page.evaluate((r) => { window.__w8.said = r }, [a, b, c])
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: all(unsavedSaid, async (page) => page.evaluate((want) => {
+      const w = window.__w8, names = ['the scoring note', 'Tell us', 'Sign out']
+      for (let i = 0; i < 3; i++) { const r = w.said[i]; if (r.text !== want || r.title !== 'Card & settings' || !r.card) return `${names[i]} did not ask first (${JSON.stringify(r)})` }
+      return w.guide === 0 && w.fb === 0 && w.out === 0 ? true : `a door ran while the card was armed: scoring ${w.guide}, feedback ${w.fb}, sign out ${w.out}`
+    }, CARD_UNSAVED)) },
   /* TEN / W8 · W7-033 [A2-settings-8] · the Settings pane's 'How it works' rows, scrolled to: ruled rows (a hairline above, no box, no
      radius, no typed arrow), as the You door rows are, not bordered cards between ruled rows (§3.1, §5.1, §5.2) */
   { family: 'settings', id: 'guide', variant: 'member', fullPage: false, title: 'Card & settings · Settings, scrolled to How it works (ruled rows)',
