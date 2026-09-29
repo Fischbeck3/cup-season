@@ -118,7 +118,10 @@ struct CardAndSettingsScreen: View {
            + "@\(p.old) stays yours: it is held, so nobody else can take it, and you can move back to it.\n"
            + "Every league you are in is told.")
     }
-    .task { await vm.load(userId: store.session?.user.id) }
+    // The task runs again each time the page reappears: back from another
+    // tab, or from a page pushed over it. A reload over pending edits
+    // dropped them without a word (W7-042), so only a clean card reloads.
+    .task { if !vm.dirty { await vm.load(userId: store.session?.user.id) } }
     .onChange(of: vm.dirty) { _, dirty in if !dirty { leaveAsked = false } }
     // a new edit is a new pending edit: the question's line goes with it, so
     // the page never says "do that again" of a way out that will ask
