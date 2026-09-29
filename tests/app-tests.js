@@ -1316,7 +1316,9 @@
      contain an engine object noun. */
   (function () {
     t('D225: the sheet is four peers and one modifier',
-      [CS_INTENTS.length, typeof csIntentStrings, csIntentStrings().length], [4, 'function', 12]);
+      [CS_INTENTS.length, typeof csIntentStrings, csIntentStrings().length], [4, 'function', 13]);   /* TEN / W6 · PAR-33: + the code door's gloss */
+    t('PAR-33: the code door is a row with the phone\u2019s gloss (StartIntent.codeDoor / codeDoorGloss)',
+      [CS_INTENT_CODE_DOOR, CS_INTENT_CODE_DOOR_GLOSS], ['I have a code', 'someone already started one']);
     t('D234: the lines are the phone\u2019s, verbatim',
       CS_INTENTS.map(i => i.line),
       ['Play with my friends', 'Run a season', "We're playing this weekend", 'Go head to head']);

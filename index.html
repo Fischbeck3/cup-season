@@ -33125,6 +33125,11 @@ const CS_INTENTS = [
 const CS_INTENT_TITLE = 'What do you want to do?';
 const CS_INTENT_MODIFIER = { line:'Put money on it', gloss:'add a pot to any of the above', go:'whatsItOn' };
 const CS_INTENT_CODE_DOOR = 'I have a code';
+/* TEN / W6 · PAR-33 · the code door is a ROW at option weight, and a row needs
+   its gloss — StartIntent.codeDoorGloss, verbatim. The blind review found the
+   door "the smallest thing on the sheet while being the highest-frequency act
+   an invited golfer performs". */
+const CS_INTENT_CODE_DOOR_GLOSS = 'someone already started one';
 /* …and the leagueless hub's code door reads it too. The markup carries no
    text; the constant paints it, so the door and the intent sheet cannot say
    two things for one act (D297, brand canon §3). */
@@ -33139,7 +33144,7 @@ function csObjectNouns(str){
 }
 function csIntentStrings(){
   return CS_INTENTS.flatMap(i => [i.line, i.gloss])
-    .concat([CS_INTENT_TITLE, CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, CS_INTENT_CODE_DOOR]);
+    .concat([CS_INTENT_TITLE, CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, CS_INTENT_CODE_DOOR, CS_INTENT_CODE_DOOR_GLOSS]);
 }
 /* R-F · the three lengths, always all three. The person's state may ORDER
    them; it may never withhold one. D363 (owner, 2026-09-15) reworded them so
@@ -33213,7 +33218,9 @@ function openIntentSheet(){
     CS_INTENTS.map((i, n) => row(i.line, i.gloss, 'csi-' + i.k, n === 0)).join('')
     + '<div style="height:1px; background:var(--rule); margin:10px 0"></div>'
     + row(CS_INTENT_MODIFIER.line, CS_INTENT_MODIFIER.gloss, 'csi-money', false)
-    + `<p class="fine" style="padding-top:12px"><a href="#" id="csi-code" style="color:var(--mut); text-decoration:underline; text-underline-offset:3px">${esc(CS_INTENT_CODE_DOOR)} →</a></p>`);
+    /* PAR-33 · the fifth row, below its own hairline, as the phone sets it */
+    + '<div style="height:1px; background:var(--rule); margin:var(--s3) 0"></div>'
+    + row(CS_INTENT_CODE_DOOR, CS_INTENT_CODE_DOOR_GLOSS, 'csi-code', false));
   CS_INTENTS.forEach(i => document.getElementById('csi-' + i.k)?.addEventListener('click', () => {
     closeSheet(); window.qaEvent?.('cta_tapped', { door: 'intent:' + i.k }); csTakeIntent(i.go);
   }));
