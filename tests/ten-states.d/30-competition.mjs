@@ -238,14 +238,14 @@ const BOOK = [
     prepare: adopt('upcoming'), localStorage: BOOK_LS('upcoming'),
     drive: bookFromCompete,
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-main': 'text:No standing yet\\. Weeks begin at first tee\\.' } },
-    check: all(bookIs({ title: 'the Book', head: 'The Autumn Fixture Cup · Season 1 · 2026-10-05 – 2027-01-17' }),
+    check: all(bookIs({ title: 'the Book', head: 'The Autumn Fixture Cup · Season 1 · Oct 5 – Jan 17, 2027' }),
       bandSays('No standing yet\\. First tee is ahead\\.', 'upcoming'),
       async (page) => page.evaluate(() => document.querySelector('#seasonBookDialog .sb-matrix') ? 'a matrix rendered before the first tee' : true)) },
   { family: 'book', id: 'squads', variant: 'rounds_no_league', title: 'The Book, four squads in week 13 (North Grove, the squads envelope), from the Scoreboard', fullPage: false,
     prepare: adopt('squads'), localStorage: BOOK_LS('squads'),
     drive: bookFromCompete,
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-matrix': 'visible', '#seasonBookDialog #sb-group': 'visible', '#seasonBookDialog .sb-matrix th.sb-current': 'text:W13' } },
-    check: all(bookIs({ title: 'the Book', head: 'North Grove (fixture) · Season 1 · 2026-07-06 – 2026-10-18' }),
+    check: all(bookIs({ title: 'the Book', head: 'North Grove (fixture) · Season 1 · Jul 6 – Oct 18, 2026' }),
       bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'),
       async (page) => page.evaluate(() => {
         const rows = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')]
