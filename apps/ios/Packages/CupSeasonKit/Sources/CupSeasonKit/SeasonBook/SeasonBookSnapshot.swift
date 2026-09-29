@@ -123,7 +123,8 @@ public struct SeasonBookSnapshot: Codable, Sendable {
   /// their concatenation for every caller that wants the compact string.
   /// Twin: `SeasonBook.parts` / `.label` on the desk.
   public struct CellParts: Sendable, Equatable {
-    /// The figure, or the one symbol that stands in for it (`•`, `—`, `B`, `D`).
+    /// The figure (a true minus when it is negative, `num`), or the one symbol
+    /// that stands in for it (`•`, `—`, `B`, `D`).
     public let fig: String
     /// Status marks beside a figure (`*` adjustment, `D` dropped), or "".
     public let marks: String
@@ -136,7 +137,19 @@ public struct SeasonBookSnapshot: Codable, Sendable {
     if !cumulative && !selected.isEmpty && selected.allSatisfy({ $0.count_state == "bye" }) { return CellParts(fig: "B", marks: "") }
     if !cumulative && !selected.isEmpty && selected.allSatisfy({ $0.count_state == "dropped" }) { return CellParts(fig: "D", marks: "") }
     let flags = cumulative ? "" : (selected.contains { !$0.isRound } ? "*" : "") + (selected.contains { $0.count_state == "dropped" } ? "D" : "")
-    return CellParts(fig: String(points), marks: flags)
+    return CellParts(fig: num(points), marks: flags)
+  }
+  /// W5 · a signed figure as a golfer reads it: a true minus, never a hyphen
+  /// ("−3 points", not "-3 points"). Cells, totals and receipts alike. Twin:
+  /// `csBookNum` on the desk.
+  public static func num(_ n: Int) -> String { n < 0 ? "\u{2212}\(n.magnitude)" : String(n) }
+  /// W5 · the month an adjustment was assessed for, as a golfer reads it —
+  /// "Aug 2026", never the raw "2026-08" — by parts, never through an ISO
+  /// parser (L-07). Twin: `csBookMonth` on the desk.
+  public static func month(_ iso: String) -> String {
+    let parts = iso.prefix(10).split(separator: "-").prefix(2).compactMap { Int($0) }
+    guard parts.count == 2, (1...12).contains(parts[1]) else { return iso }
+    return "\(LeagueDates.mos[parts[1] - 1]) \(parts[0])"
   }
   public static func label(row: Row, cell: Cell, cumulative: Bool) -> String {
     let p = parts(row: row, cell: cell, cumulative: cumulative)
@@ -154,6 +167,73 @@ public struct SeasonBookSnapshot: Codable, Sendable {
     let values = rows.flatMap { $0.cells.compactMap(\.cumulative) }
     let low = min(0, values.min() ?? 0), high = max(0, values.max() ?? 0)
     return low...max(low + 1, high)
+  }
+
+  // MARK: W5 · the race, labelled at its line ends (twin of `csSeasonBookRace`)
+
+  /// The lines the race draws: the golfer followed, then the leaders, three at
+  /// most. Equal points read in alphabetical order (D381), so the same three
+  /// are drawn on every load.
+  public static func racePlotted(_ rows: [Row], follow: String) -> [Row] {
+    let leaders = Array(rows.sorted {
+      $0.points != $1.points ? $0.points > $1.points : $0.name.localizedCompare($1.name) == .orderedAscending
+    }.prefix(3))
+    guard let chosen = rows.first(where: { $0.id == follow }) else { return leaders }
+    return [chosen] + leaders.filter { $0.id != chosen.id }.prefix(2)
+  }
+  /// Where a line ends: the last week it reaches, and its points there. nil for
+  /// a row with nothing plotted, which then takes no label.
+  public static func raceEnd(_ row: Row) -> (week: Int, points: Int)? {
+    guard let last = row.cells.last(where: { !$0.future && $0.cumulative != nil }), let points = last.cumulative else { return nil }
+    return (last.week, points)
+  }
+  /// A line's end label — its name and where it stands today, "Name 41". The
+  /// legend of box-drawing glyphs (━ ┄ ┈) it replaces had to be matched by eye
+  /// to three near-identical dashes (§9.10).
+  public static func raceLabel(_ row: Row) -> String { "\(row.name) \(num(raceEnd(row)?.points ?? 0))" }
+  /// One label per line, in a column, never on top of another: each sits
+  /// level with its line's end, pushed down to clear the one above it by
+  /// `gap`, and the column lifts as a whole when it runs past `bottom`. The
+  /// label centres come back in the order the ends were given.
+  public static func raceSlots(_ ends: [Double], gap: Double, top: Double, bottom: Double) -> [Double] {
+    let order = ends.indices.sorted { ends[$0] != ends[$1] ? ends[$0] < ends[$1] : $0 < $1 }
+    var slots = ends
+    var previous: Double?
+    for i in order {
+      let slot = max(ends[i], previous.map { $0 + gap } ?? top)
+      slots[i] = slot; previous = slot
+    }
+    if let last = previous, last > bottom { slots = slots.map { $0 - (last - bottom) } }
+    return slots
+  }
+
+  // MARK: W5 · the crown on a finished Book (twin of `csBookChampion`)
+
+  /// The read carries no champion, so the Book names one only from the crown
+  /// the SEASON stores — its champion and the `tiebreak_rung` that settled a
+  /// level top — and only when that season is this Book's and complete.
+  /// Without it, a level top says what §14.3's ladder (D388) does with a tie:
+  /// two "1st · Tied" rows and no champion left the reader to guess, and the
+  /// Book never picks one itself.
+  public struct Crown: Sendable, Equatable {
+    public let label: String
+    public let text: String
+  }
+  public static let tieLadder = "A tie at the top goes to head-to-head months won, then the best single month, then the fewest rounds used, then a coin flip."
+  static let rungWords = ["months won": "head-to-head months won", "best single month": "the best single month",
+                          "fewest rounds used": "the fewest rounds used", "coin flip": "a coin flip"]
+  public func crown(stored season: Me.Season?) -> Crown? {
+    guard status == "complete", current_week > 0 else { return nil }
+    let kind = hasSquads ? "squad" : "golfer"
+    if let season, season.id == season_id, season.status == "complete",
+       let id = hasSquads ? season.champion_squad_id : season.champion_member_id,
+       let champion = rows.first(where: { $0.kind == kind && (hasSquads ? $0.squad_id : $0.member_id) == id }) {
+      let rung = season.tiebreak_rung.flatMap { $0.isEmpty ? nil : $0 }
+      return Crown(label: "Champion",
+                   text: champion.name + (rung.map { " · level at the top, decided on \(Self.rungWords[$0] ?? $0)" } ?? ""))
+    }
+    return rows.filter { $0.kind == kind && $0.points_rank == 1 }.count > 1
+      ? Crown(label: "Level at the top", text: Self.tieLadder) : nil
   }
 }
 

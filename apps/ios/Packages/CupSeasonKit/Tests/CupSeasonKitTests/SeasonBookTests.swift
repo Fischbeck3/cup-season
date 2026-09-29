@@ -9,6 +9,9 @@ struct SeasonBookTests {
     var json=try JSONSerialization.jsonObject(with:data("squads")) as! [String:Any];edit(&json)
     return try JSONDecoder().decode(SeasonBookSnapshot.self,from:JSONSerialization.data(withJSONObject:json))
   }
+  /// W5 · a negative figure is drawn with a true minus (U+2212), which `Int()`
+  /// does not read: the checks read the figure back as the number it states.
+  private func figure(_ fig: String) -> Int? { Int(fig.replacingOccurrences(of:"\u{2212}",with:"-")) }
   @Test func realSQLPayloadsValidate() throws {
     for name in ["squads","tie","upcoming","finished","audit-live","audit-withdrawn"] {
       let b=try book(name);try b.validate(league:b.league_id,season:b.season_id)
@@ -49,7 +52,7 @@ struct SeasonBookTests {
   @Test func aCellIsAFigureWithItsMarksBesideIt() throws {
     let b=try book(), mine=try #require(b.rows.first { $0.kind == "golfer" && $0.mine })
     let dropped=SeasonBookSnapshot.parts(row:mine,cell:mine.cells[11],cumulative:false)
-    #expect(Int(dropped.fig) != nil && dropped.marks.contains("D"))
+    #expect(figure(dropped.fig) != nil && dropped.marks.contains("D"))
     #expect(SeasonBookSnapshot.label(row:mine,cell:mine.cells[11],cumulative:false) == dropped.fig + dropped.marks)
     #expect(SeasonBookSnapshot.parts(row:mine,cell:mine.cells[14],cumulative:false) == .init(fig:"•",marks:""))
     // Totals carry no marks: a running total is not a week's status
@@ -63,17 +66,20 @@ struct SeasonBookTests {
         #expect(SeasonBookSnapshot.label(row:row,cell:cell,cumulative:cumulative) == p.fig + p.marks)
         #expect(p.marks.allSatisfy { $0 == "*" || $0 == "D" })
         if cumulative { #expect(p.marks.isEmpty) }
-        // the marks are a NOTE, never another digit of the figure
-        if !p.marks.isEmpty { #expect(Int(p.fig) != nil) }
+        // the marks are a NOTE, never another digit of the figure (read
+        // through `figure`: the tie fixture's week 12 is −30 with its mark)
+        if !p.marks.isEmpty { #expect(figure(p.fig) != nil) }
+        // W5 · a signed figure takes a true minus, never a hyphen
+        #expect(!p.fig.contains("-"), "a hyphen in \(p.fig)")
         // …and the cell says each one in words (its accessible name)
         if p.marks.contains("D") { sawD=true; #expect(spoken.contains("dropped rounds retained in receipt")) }
         if p.marks.contains("*") { sawStar=true; #expect(spoken.contains("adjustment or bye recorded")) }
         // §16 · the figure IS the cell, and the cell's receipts add up to it
-        if let figure=Int(p.fig) {
+        if let value=figure(p.fig) {
           let points=cumulative ? cell.cumulative : cell.points
-          #expect(figure == points)
+          #expect(value == points)
           let receipts=SeasonBookSnapshot.selectedEntries(row,week:cell.week,cumulative:cumulative)
-          #expect(receipts.reduce(0) { $0+$1.contribution } == figure)
+          #expect(receipts.reduce(0) { $0+$1.contribution } == value)
         }
       } } }
     }
@@ -152,6 +158,80 @@ struct SeasonBookTests {
       #expect(finish?.won == (id == second))
       #expect(LeagueRecord.line(phase:"complete",season:season,standings:rows,myMemberId:id,today:"2026-09-24").contains("1ST · TIED"))
     }
+  }
+
+  // MARK: W5 · the Book reads as a book (the desk's twin, merged at 4a703402)
+
+  /// A signed figure takes a true minus wherever the Book prints one — the
+  /// tie fixture's week 12 is a negative cell.
+  @Test func aSignedFigureTakesATrueMinus() throws {
+    #expect(SeasonBookSnapshot.num(-3) == "\u{2212}3")
+    #expect(SeasonBookSnapshot.num(0) == "0" && SeasonBookSnapshot.num(41) == "41")
+    let b=try book("tie")
+    let negative=try #require(b.rows.flatMap { row in row.cells.map { (row,$0) } }.first { !$0.1.future && ($0.1.points ?? 0) < 0 })
+    let p=SeasonBookSnapshot.parts(row:negative.0,cell:negative.1,cumulative:false)
+    #expect(p.fig.hasPrefix("\u{2212}") && p.fig == SeasonBookSnapshot.num(negative.1.points ?? 0))
+  }
+  /// "Applies to 2026-08" printed the raw month; an assessed month reads as a
+  /// golfer reads one.
+  @Test func anAssessedMonthReadsAsAMonth() throws {
+    #expect(SeasonBookSnapshot.month("2026-08-01") == "Aug 2026")
+    #expect(SeasonBookSnapshot.month("2026-08") == "Aug 2026")
+    #expect(SeasonBookSnapshot.month("not a month") == "not a month")
+    let months=try book().rows.flatMap(\.entries).compactMap(\.affected_month)
+    #expect(!months.isEmpty && months.allSatisfy { !SeasonBookSnapshot.month($0).contains("-") })
+  }
+  /// The race labels each line at its end — its name and where it stands
+  /// today — draws no legend of glyphs, and never lays one label over another.
+  @Test func theRaceIsLabelledAtItsLineEnds() throws {
+    let b=try book("finished"), golfers=b.rows.filter { $0.kind == "golfer" }
+    let plotted=SeasonBookSnapshot.racePlotted(golfers,follow:"leaders")
+    #expect(plotted.count == 3)
+    // equal points read in alphabetical order (D381): the level top is drawn
+    // in the same order on every load
+    #expect(plotted[0].points == plotted[1].points)
+    #expect(plotted[0].name.localizedCompare(plotted[1].name) == .orderedAscending)
+    for row in plotted {
+      let end=try #require(SeasonBookSnapshot.raceEnd(row))
+      #expect(end.week == b.current_week && end.points == row.points)
+      #expect(SeasonBookSnapshot.raceLabel(row) == "\(row.name) \(row.points)")
+      #expect(!SeasonBookSnapshot.raceLabel(row).contains { "━┄┈".contains($0) })
+    }
+    // the golfer followed leads, and the leaders fill the other two lines
+    let followed=try #require(golfers.last)
+    #expect(SeasonBookSnapshot.racePlotted(golfers,follow:followed.id).first?.id == followed.id)
+    // one label per line, in a column: level ends stack, the top clamps, and
+    // a column past the bottom lifts as a whole
+    #expect(SeasonBookSnapshot.raceSlots([100,100,100],gap:16,top:8,bottom:200) == [100,116,132])
+    #expect(SeasonBookSnapshot.raceSlots([2,50],gap:16,top:8,bottom:200) == [8,50])
+    #expect(SeasonBookSnapshot.raceSlots([195,190],gap:16,top:8,bottom:200) == [200,184])
+  }
+  private func stored(_ b: SeasonBookSnapshot, champion: UUID?, rung: String? = nil, id: UUID? = nil) -> Me.Season {
+    Me.Season(id:id ?? b.season_id,number:b.number,starts_on:b.starts_on,ends_on:b.ends_on,status:"complete",timezone:nil,grace_hours:nil,
+              champion_squad_id:nil,champion_member_id:champion,points_king_member_id:nil,tiebreak_rung:rung)
+  }
+  /// Two "1st · Tied" rows and no champion left the reader to guess. With no
+  /// crown stored for this Book's season, a level top says what the D388
+  /// ladder does with a tie, and names no one.
+  @Test func aLevelTopWithNoCrownSaysTheLadder() throws {
+    let b=try book("finished")
+    let ladder=SeasonBookSnapshot.Crown(label:"Level at the top",text:SeasonBookSnapshot.tieLadder)
+    #expect(SeasonBookSnapshot.tieLadder == "A tie at the top goes to head-to-head months won, then the best single month, then the fewest rounds used, then a coin flip.")
+    #expect(b.crown(stored:nil) == ladder)
+    // a crown stored for ANOTHER season is not this Book's
+    #expect(b.crown(stored:stored(b,champion:b.rows.first { $0.kind == "golfer" }?.member_id,id:UUID())) == ladder)
+    // a live Book, and one before its first tee, name no crown
+    #expect(try book().crown(stored:nil) == nil)
+    #expect(try book("upcoming").crown(stored:nil) == nil)
+  }
+  /// The stored crown names the champion, and the rung that settled a level top.
+  @Test func theStoredCrownNamesTheChampionAndTheRung() throws {
+    let b=try book("finished")
+    let champion=try #require(b.rows.filter { $0.kind == "golfer" && $0.points_rank == 1 }.last)
+    #expect(b.crown(stored:stored(b,champion:champion.member_id,rung:"months won"))
+            == SeasonBookSnapshot.Crown(label:"Champion",text:"\(champion.name) · level at the top, decided on head-to-head months won"))
+    #expect(b.crown(stored:stored(b,champion:champion.member_id,rung:"coin flip"))?.text.hasSuffix("decided on a coin flip") == true)
+    #expect(b.crown(stored:stored(b,champion:champion.member_id)) == SeasonBookSnapshot.Crown(label:"Champion",text:champion.name))
   }
 
 }
