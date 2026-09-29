@@ -875,6 +875,24 @@ async function eventFromCompete(page, sel, id) {
   await until(page, () => (document.getElementById('eventBody') || {}).innerText.trim().length > 0)
   await page.waitForTimeout(400)
 }
+/* TEN / W8 · W7-156 [A2-events-1] · the Ryder room: the golfer's own clash is FIRST in its week and reads 'You' (in the row and in its spoken sentence), and the rules paragraph,
+   the taunt and the organiser's controls come AFTER the weeks (they stood a screen and a half above the clash on a phone) */
+const ryderOrder = async (page) => page.evaluate(() => {
+  const weeks = [...document.querySelectorAll('#eventBody .evsess')]
+  if (!weeks.length) return 'the room draws no week'
+  const rules = [...document.querySelectorAll('#eventBody p.fine')].find((p) => /Each week pairs everyone/.test(p.textContent))
+  if (!rules) return 'the rules paragraph is missing'
+  if (weeks.some((w) => w.compareDocumentPosition(rules) & Node.DOCUMENT_POSITION_PRECEDING)) return 'the rules paragraph is still above a week'
+  let mineWeeks = 0
+  for (const w of weeks) {
+    const clashes = [...w.querySelectorAll('.evclash')], mine = clashes.filter((c) => /(^| )You( |$)/.test(c.getAttribute('aria-label') || ''))
+    if (!mine.length) continue
+    mineWeeks++
+    if (clashes[0] !== mine[0]) return `the viewer's clash is not first in its week: ${JSON.stringify((clashes[0].getAttribute('aria-label') || '').slice(0, 60))}`
+    if (!/^You\b/.test(mine[0].querySelector('.nm.a').innerText) && !/^You\b/.test(mine[0].querySelector('.nm.b').innerText)) return 'the viewer\'s side does not read You in the row'
+  }
+  return mineWeeks ? true : 'no week holds the viewer\'s clash (the state is not the one it claims)'
+})
 const EVENTS = [
   /* W5 (4a703402) moved Compete's moments into their own column, #cmpMoments;
      the events states tap the row where it now lives */
@@ -891,7 +909,7 @@ const EVENTS = [
       has('#eventBody', 'The 2nd Ryder · Fixture Hawks hold it, 1–0', 'the series line (event_lineage)'),
       has('#eventBody', 'Fixture Hawks lead 5½–2½ after week 2\\.', 'the board’s week-2 line'),
       /* TEN / W8 · W7-K040 [B2-events-10]: the Ryder page does not own the season standing, it competes with it: the sidebar's season row stands down beside its two sides */
-      standsDown(['#sideMe [data-mego="season_row"]']),
+      standsDown(['#sideMe [data-mego="season_row"]']), ryderOrder,
       async (page) => page.evaluate(() => Object.keys((window.CS_EVENT || {}).targets || {}).length === 4 ? true : 'event_session_targets did not reach the four open duels')) },
   { family: 'events', id: 'finished', variant: 'member', title: 'The event room · a finished Ryder (Fixture Hawks 7–5), from Compete’s finished shelf',
     prepare: async (W) => { ryderWorld(W) },

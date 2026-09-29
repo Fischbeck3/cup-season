@@ -28307,8 +28307,11 @@ function renderEvent(){
     main+=`<div style="margin:12px 0 8px"><button class="btn dark" style="width:100%" onclick="window.ryderRunBack()">Run it back</button></div>`;
   }
 
+  /* W7-156 · the weeks come FIRST: the rules paragraph, the taunt and the organiser's controls collect in `tail` and are drawn after them, at the foot of the room, as the
+     phone's RyderRoomView puts EventFinePrint and organiserHands after the weeks (they stood a screen and a half above the golfer's own clash on a phone) */
+  let tail = '';
   /* how it scores — everyone sees the rule, not just the organizer */
-  main += `<p class="fine" style="padding:0 0 6px">${P>0
+  tail += `<p class="fine" style="padding:0 0 6px">${P>0
     ? `Each week pairs everyone 1‑on‑1; the best round that week against your playing HCP wins the point, a tie splits it. First to ${evHalf(clinch)} of ${M} takes the cup.`
     : `Each week pairs everyone 1‑on‑1; the best round that week against your playing HCP wins the point, a tie splits it. Add golfers to both teams to set the target.`}</p>`;
 
@@ -28323,14 +28326,14 @@ function renderEvent(){
     const opp = myDuel ? pById(myDuel.a_player===meP.id ? myDuel.b_player : myDuel.a_player) : null;
     const oppFirst = opp && opp.name && opp.name!=='—' ? String(opp.name).trim().split(/\s+/)[0] : null;
     const ask = oppFirst ? `Tell me when ${esc(oppFirst)} posts` : 'Tell me when my opponent posts';
-    main+=`<div style="margin:10px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">${meP.notify_target?'Mute the taunts':ask}</button>
+    tail+=`<div style="margin:10px 0 8px"><button class="mini" onclick="window.ryderNotify('${ev.id}',${meP.notify_target?'false':'true'})">${meP.notify_target?'Mute the taunts':ask}</button>
       <p class="fine" style="padding:4px 0 0">${meP.notify_target?'You hear it the moment your opponent posts.':'Nothing pings you until you ask for it.'}</p></div>`;
   }
   const unassigned = players.filter(p=>!p.team_id);
   if(iAmOrg){
-    main+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Invite golfers</button></div>`;
+    tail+=`<div style="display:flex; gap:8px; margin:2px 0 6px"><button class="mini" onclick="window.openInvitePicker&&window.openInvitePicker({event:'${ev.id}'})"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg> Invite golfers</button></div>`;
     if(unassigned.length){
-      main+=`<div class="eyebrow">Unassigned</div>`+unassigned.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
+      tail+=`<div class="eyebrow">Unassigned</div>`+unassigned.map(p=>`<div class="check"><span class="num">${window.mkr?.(p.marker||'saguaro')||'⛳'}</span>
         <div class="tt"><b>${esc(p.name)}</b></div>
         <span style="display:flex;gap:6px;flex:none">
           <button class="mini" onclick="window.ryderAssign('${p.id}','${A.id}')">${esc(A.name)}</button>
@@ -28348,7 +28351,9 @@ function renderEvent(){
      stays open. */
   const anyClosed = sessions.some(s=>s.status==='closed');
   sessions.slice().sort((a,b)=> anyClosed ? b.session_no-a.session_no : a.session_no-b.session_no).forEach(s=>{
-    const ds=duels.filter(d=>d.session_id===s.id);
+    /* W7-156 · the golfer's own clash is FIRST in its week (RyderRoomView.ordered), the rest keep their order */
+    const isMine = d => !!meP && (d.a_player===meP.id || d.b_player===meP.id);
+    const ds=duels.filter(d=>d.session_id===s.id).sort((x,y)=> (isMine(y)?1:0) - (isMine(x)?1:0));
     const d0=new Date(s.opens_on+'T00:00:00'), d1=new Date(s.closes_on+'T00:00:00');
     const when=`${MOS[d0.getMonth()]} ${d0.getDate()} – ${MOS[d1.getMonth()]} ${d1.getDate()}`;
     const closed = s.status==='closed';
@@ -28419,11 +28424,13 @@ function renderEvent(){
          initials), the result as a verb and each figure named */
       const spoken = pend || mid==='vs' ? 'versus' : hv ? 'halved with' : aw ? 'beat' : 'lost to';
       const figSaid = v => (v===undefined || v==='') ? '' : (v==='—'||v==='–') ? none.toLowerCase() : v;
-      const said = `${a.name} ${spoken} ${b.name}` + (pvi ? `, ${figSaid(half[0])} to ${figSaid(half[1])}` : '');
+      /* W7-156 · the viewer's own side reads 'You' (RyderRoomView.who), in the row and in its spoken sentence */
+      const you = p => !!meU && p.profile_id===meU;
+      const said = `${you(a)?'You':a.name} ${spoken} ${you(b)?'You':b.name}` + (pvi ? `, ${figSaid(half[0])} to ${figSaid(half[1])}` : '');
       body+=`<div class="evclash${pvRose?' pvrise':''}" role="group" aria-label="${esc(said)}">
-        <div class="top" aria-hidden="true">${dsc(a)}<span class="nm a${bw?' lost':''}">${esc(shown(a.name))}</span>
+        <div class="top" aria-hidden="true">${dsc(a)}<span class="nm a${bw?' lost':''}">${esc(you(a)?'You':shown(a.name))}</span>
           <span class="mid">${mid}</span>
-          <span class="nm b${aw?' lost':''}">${esc(shown(b.name))}</span>${dsc(b)}</div>
+          <span class="nm b${aw?' lost':''}">${esc(you(b)?'You':shown(b.name))}</span>${dsc(b)}</div>
         ${pvi?`<div class="figs" aria-hidden="true">${cell(half[0],'a')}${cell(half[1],'b')}</div>`:''}
       </div>`;
     });
@@ -28443,6 +28450,7 @@ function renderEvent(){
       ? `<details class="evsess evweek"><summary class="evsesshd"><span>Week ${s.session_no} · ${when}</span><i></i><span class="evwk-slot">${slot}</span></summary>${body}</details>`
       : `<div class="evsess"><div class="evsesshd"><span>Week ${s.session_no} · ${when}</span><i></i><span class="evwk-slot">${slot}</span></div>${body}</div>`;
   });
+  main += tail;   /* W7-156 · the rules, the taunt and the organiser's hands, after the weeks */
 
   /* THE ROSTERS: one ruled table a side, its W–L–H head said once (owner P,
      craft T, category Sp) — eight bordered cards each repeated the mono legend
