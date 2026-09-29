@@ -41,7 +41,9 @@ struct SeasonRulesPage: View {
     .environment(model)
     .environment(router)
     .environment(\.roomLinks, links)
-    .navigationTitle("The rules")
+    // N4-161 · the page's own head names it (the season's title); the system
+    // title said it a second time
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(item: $shareURL) { url in
       ActivityView(items: [url, "\(model.league?.name ?? "Our season") on Cup Season — the season so far"])

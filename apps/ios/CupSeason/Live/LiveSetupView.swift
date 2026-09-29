@@ -30,6 +30,8 @@ struct LiveSetupView: View {
     ScrollViewReader { proxy in
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
+        // N4-161 · the page names itself in the page (UI_SYSTEM §12.2)
+        CSPageHeader("Set up the round") { EmptyView() }
         if store.held {
           // TEN / W6 (critique A2, P1) · a round opened here mid-play is HELD,
           // not dropped: the line says so first, and the way back is on the
@@ -112,7 +114,7 @@ struct LiveSetupView: View {
     .csNearbyInvite(store)
     .csFeedback(.teeOff, trigger: teeOffTaps)
     .scrollDismissesKeyboard(.interactively)
-    .navigationTitle("Set up the round")
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(isPresented: $showCard) { LiveCardSheet(store: store) }
     .sheet(isPresented: $showPicker) { LiveRosterPickerSheet(store: store) }

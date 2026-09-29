@@ -41,6 +41,9 @@ struct CardAndSettingsScreen: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 14) {
+        // N4-161 · the page names itself in the page (UI_SYSTEM §12.2), as the
+        // other roots do; the system title is empty
+        CSPageHeader("Card & settings") { EmptyView() }
         // Y-27 · one short eyebrow for the pane in hand, not a sentence about both.
         Text(pane == 0 ? "What your buddies see" : "How the app runs")
           .csType(.agate, caps: true).foregroundStyle(cs.mut)
@@ -60,7 +63,7 @@ struct CardAndSettingsScreen: View {
     }
     .background(cs.bg0)
     .defaultScrollAnchor(CSDevHatch.bottom ? .bottom : .top)
-    .navigationTitle("Card & settings")
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .scrollDismissesKeyboard(.interactively)
     // D159 · the formal change process, said plainly BEFORE it happens. Four

@@ -31,6 +31,8 @@ struct ScheduleScreen: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
+        // N4-161 · the page names itself in the page (UI_SYSTEM §12.2)
+        CSPageHeader("The schedule") { EmptyView() }
         Text("Yours, your buddies’, your seasons’").csType(.agate, caps: true).foregroundStyle(cs.mut)
         watch
         calendarHeader
@@ -45,7 +47,7 @@ struct ScheduleScreen: View {
       .padding(20)
     }
     .background(cs.bg0)
-    .navigationTitle("The schedule")
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .refreshable { await vm.reload(me: store.me, current: store.preferredLeague) }
     .task { await vm.reload(me: store.me, current: store.preferredLeague) }
