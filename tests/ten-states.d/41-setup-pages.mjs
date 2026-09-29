@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -299,7 +299,8 @@ const DESK = [
     check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskRailEdge(page) } },
   { family: 'desk', id: 'season', variant: 'member', desk: true, title: 'The desk · the season',
     drive: async (page) => { await click(page, '.navitem[data-v="hub"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub'); await page.waitForTimeout(900) },
-    expect: { view: 'view-hub' }, check: deskCheck },
+    /* TEN / W8 · W7-025: the season page at its top marks The season, and only it */
+    expect: { view: 'view-hub' }, check: async (page) => { const a = await deskCheck(page); return a !== true ? a : deskMenuIs('The season')(page) } },
   { family: 'desk', id: 'compete', variant: 'member', desk: true, title: 'The desk · Compete',
     drive: async (page) => { await click(page, '.navitem[data-v="compete"]'); await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-compete'); await page.waitForTimeout(900) },
     expect: { view: 'view-compete' }, check: deskCheck },

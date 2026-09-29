@@ -343,3 +343,19 @@ export const headGap = (sels, min = 32) => async (page) => page.evaluate(([sels,
   if (!seen) return 'the state draws none of ' + sels.join(', ')
   return bad.length ? `a section head clings to the block above it (s5 is ${min}px, §4): ` + bad.join('; ') : true
 }, [sels, min])
+
+/* TEN / W8 · W7-025 · UI_SYSTEM §12.1 and §14.1: the desk sidebar's season
+ * list marks where you are — one row current (`.active`, the 3px tick) and
+ * said to a screen reader (`aria-current`), and it is the row of the section
+ * in view, not always 'The season'. `deskMenuIs(name)` fails a desk capture
+ * when the marked row is not `name`, or when the row is marked by one channel
+ * only. Below 960 the sidebar is not drawn and the check passes. */
+export const deskMenuIs = (want) => async (page) => page.evaluate((want) => {
+  if (innerWidth < 960) return true
+  const rows = [...document.querySelectorAll('#deskMenu .navitem')]
+  const cur = rows.filter((r) => r.classList.contains('active')), aria = rows.filter((r) => r.getAttribute('aria-current'))
+  const names = cur.map((r) => r.textContent.trim().replace(/’/g, "'"))
+  if (names.length !== 1 || names[0] !== want) return `the desk menu marks ${JSON.stringify(names)}, expected ${JSON.stringify([want])}`
+  if (aria.length !== 1 || aria[0] !== cur[0]) return 'aria-current is not on the marked row alone'
+  return true
+}, want)

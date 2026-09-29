@@ -6035,7 +6035,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <button class="navitem sub" data-v="hub">The season</button>
         <button class="navitem sub" data-v="schedule">The schedule</button>
         <button class="navitem sub" data-seg="league">The rules</button>
-        <button class="navitem sub" data-seg="archive">The archive</button>
+        <button class="navitem sub" data-seg="archive">The season&#8217;s story</button>
       </div>
     </div>
     <!-- D236 - the identity block. The desk puts my number, my last round, my
@@ -8389,10 +8389,15 @@ function switchView(v){
      it — so Compete stays selected in the tab band and the sidebar while one is
      open. It selected nothing: no tab and no sidebar row said where you were. */
   const selected = v === 'event' ? 'compete' : v;
-  $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.v===selected));
-  $$('.navitem').forEach(t=>t.classList.toggle('active',t.dataset.v===selected));
+  /* W7-025 · the current destination is said to a screen reader too (aria-current, WCAG 4.1.2) */
+  [...$$('.tab'), ...$$('.navitem')].forEach(t=>{
+    const on = t.dataset.v===selected;
+    t.classList.toggle('active', on);
+    if(on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
+  });
   window.csDeskReveal?.(v);
   $$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));
+  window.csDeskMenuSync?.(v==='hub' ? 'season' : null);   /* entering the season page starts at its top (it reads the view, so it follows the toggle) */
   window.csHideInstallNudge?.();   /* Q-13: after the swap — busy() reads the view that is now on */
   window.scrollTo({top:0});
   /* D33: gate 3's clock starts when the composer opens (qaEvent hoists) */
@@ -8440,16 +8445,46 @@ $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v)
 (function(){
   const m=document.getElementById('deskMenu');
   if(!m) return;
+  /* W7-025 · WHERE YOU ARE, in the desk's season list (UI_SYSTEM §12.1 and §14.1:
+     the current item is marked, a 3px tick on its left edge, and said to a screen
+     reader). 'The season' stayed current whichever row was chosen, because the two
+     [data-seg] rows carry no data-v for switchView to toggle. The season page is one
+     long page at the desk, so the current row is the SECTION in view: The season
+     from its top down, The rules once the rules head has reached the upper half of
+     the window, and The season's story only when the golfer opened it (the story is
+     the sticky column beside the table, which is always in view, so scrolling
+     cannot say it; the next scroll across the rules head hands the row back). */
+  let seg='season';
+  window.csDeskMenuSync = (to) => {
+    if(to) seg = to;
+    const onHub = !!document.getElementById('view-hub')?.classList.contains('active');
+    m.querySelectorAll('.navitem').forEach(b=>{
+      const isSeason = b.dataset.v==='hub', isSeg = !!b.dataset.seg;
+      if(!isSeason && !isSeg) return;   /* The schedule is a view: switchView marks it */
+      const on = onHub && (isSeg ? b.dataset.seg===seg : seg==='season');
+      b.classList.toggle('active', on);
+      if(on) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current');
+    });
+  };
   m.querySelectorAll('[data-seg]').forEach(b=>b.addEventListener('click',()=>{
     const seg=b.dataset.seg;
     switchView('hub');
+    window.csDeskMenuSync(seg);
     if(seg==='archive'){
-      const a=document.getElementById('seasonArc');
+      const a=document.getElementById('seasonStoryHead') || document.getElementById('seasonArc');
       if(a && a.scrollIntoView){ try{ a.scrollIntoView({behavior:'smooth', block:'start'}); }catch(_){ a.scrollIntoView(); } }
       return;
     }
     setRoomSeg(seg);
   }));
+  /* the rules head is the section's top: 'passed' once it is in the window's upper half or above it */
+  const rulesHead = document.getElementById('rulesHead');
+  if(rulesHead && 'IntersectionObserver' in window){
+    new IntersectionObserver(([e]) => {
+      if(!matchMedia('(min-width:960px)').matches || !document.getElementById('view-hub')?.classList.contains('active')) return;
+      window.csDeskMenuSync((e.isIntersecting || e.boundingClientRect.top < 0) ? 'league' : 'season');
+    }, { rootMargin:'0px 0px -50% 0px', threshold:0 }).observe(rulesHead);
+  }
   window.csDeskReveal = () => {};
   /* D339 I-3 · THE TERRAIN BEHIND A PAGE'S OWN NAME. The phone carries
      `CSTopoField` on the Compete masthead and on the season and event heads;

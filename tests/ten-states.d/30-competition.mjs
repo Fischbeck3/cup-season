@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -230,6 +230,8 @@ const SEASON = [
       /* the one lead change the rebuilt snapshots hold (week 2); the core
          world has no other season-long board history to tell */
       has('#seasonArc', 'Week 2[\\s\\S]*Fixture Javelinas took the lead from Fixture Wrens\\.', 'the arc’s lead change'),
+      /* TEN / W8 · W7-025 [B2-season-8]: the row that opened the story is the current one */
+      deskMenuIs("The season's story"),
       async (page) => page.evaluate(() => /TAKE THE LEAD IN WEEK 8/i.test(document.getElementById('seasonArc').innerText) ? 'the invented week-8 moment is still on the story' : true)) },
   { family: 'season', id: 'pot', variant: 'member', title: 'The season page, the money: $600 pot, $525 in, how to pay, a member reads the ledger', fullPage: false,
     prepare: async (W) => { dropInventedMoment(W); payHowSet(W) },
@@ -284,7 +286,21 @@ const SEASON = [
     drive: (page) => toRoom(page, 'league'),
     expect: { view: 'view-hub', selectors: { '#rulesHead': 'visible', '#bylawsHub': 'visible', '#hubSeasonRevoke': 'text:^Turn off$' } },
     check: all(onNorthGrove, inViewport('#room-league', 'the rules'),
-      async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty')) },
+      async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty'),
+      /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
+         scrolls to the story is named for it. Chosen, the rules are current; scrolled to the top, the season is; and
+         scrolled back, the rules again (the scroll-spy, not only the click) */
+      async (page) => {
+        if (!(await isDesk(page))) return true
+        const names = await page.evaluate(() => [...document.querySelectorAll('#deskMenu .navitem')].map((r) => r.textContent.trim().replace(/\u2019/g, "'")))
+        if (names.join('|') !== "The season|The schedule|The rules|The season's story") return `the desk season list reads ${JSON.stringify(names)}`
+        const r0 = await deskMenuIs('The rules')(page); if (r0 !== true) return r0
+        const y = await page.evaluate(() => window.scrollY)
+        await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(400)
+        const r1 = await deskMenuIs('The season')(page)
+        await page.evaluate((y) => window.scrollTo(0, y), y); await page.waitForTimeout(400)
+        return r1 !== true ? 'scrolled to the top, ' + r1 : deskMenuIs('The rules')(page)
+      }) },
   /* TEN / W8 · W7-011 [B2-season-12] · the week clock, cropped: the weeks played are ink, the live week brand
      and tall, the weeks ahead mut — never rule (§16.1), so each reads as a state on the page's ground */
   { family: 'season', id: 'month-clock', variant: 'member', title: 'The season page, the week clock (its own crop)', shot: '#monthClock',
