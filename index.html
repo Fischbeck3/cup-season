@@ -4309,8 +4309,8 @@ body.noleague .league-only{display:none !important;}
    story, the table and the rules stay, and the aside falls in beneath the
    reading column so the history prints after the table it explains. */
 @media print{
-  .side, .tabbar, .composer, .seg, #errbar, #boardFull, #seasonPrint,
-  button, .mini, .btn, .livebanner{display:none !important;}
+  .side, .tabbar, .composer, .seg, #errbar, #boardFull, #seasonPrint, header.hdr,
+  button, .mini, .btn, .livebanner{display:none !important;}   /* W7-014 · header.hdr: the app's bar holds only buttons here, and now that the sheet prints its fills it would print as an empty tinted strip */
   .deskbody, .deskbody.wide{display:block !important;}
   .deskaside{position:static !important; margin-top:24px;}
   .deskaside, .deskwire{max-height:none !important; overflow:visible !important; -webkit-mask-image:none !important; mask-image:none !important;}   /* W7-027 · a sheet has no scroll box */
@@ -4327,6 +4327,11 @@ body.noleague .league-only{display:none !important;}
      change; tests/ten-states season/print holds the set to tokens.json. */
   html[data-theme]{
     color-scheme:light !important;
+    /* W7-014 (E3, D's second reader) · the light printing puts CREAM ink (--brand-ink, --panel-ink) on FILLS: the live season's ember band (its name,
+       standfirst and eyebrow) and the rank tiles ('01'). The print dialog's default drops backgrounds, and that cream is then cream on white (Chrome
+       darkens it to #A09E99, 2.68:1; other engines print 1.13:1), lighter than the mut labels, on the sheet's largest type; the week clock's ticks
+       are fills too and would print as nothing. The fills are part of what the sheet says, so it prints them, whatever the dialog says */
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
     --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
     --ink:#151B17; --mut:#575F57; --dim:#8B9089;
     --pos:#0A6D3C; --neg:#B02A20; --cool:#56615B;

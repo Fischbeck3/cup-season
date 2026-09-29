@@ -800,6 +800,25 @@ const EVENTS = [
    window's. From the dark or the light default the sheet prints the light printing: every token the light theme
    flips (held to tokens.json, so a drifted print block fails here), the main text darker than the secondary text, and
    both at AA on the paper. */
+/* TEN / W8 · W7-014 [B2-season-14] (E3, D's second reader) · the sheet measured with the print dialog's DEFAULT: background graphics OFF. A fill is dropped unless the sheet
+   asks for it (print-color-adjust: exact), and ink that assumed the fill is then ink on white. For the live season's name, standfirst and eyebrow, the leader's rank
+   tile and the viewer's, the ink's contrast against the ground it will really land on (the nearest ancestor fill that PRINTS, else the paper) is at least 4.5 */
+const printedInk = async (page) => page.evaluate(() => {
+  const rgb = (c) => (c.match(/[\d.]+/g) || []).slice(0, 4).map(Number)
+  const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+  const lum = (c) => { const [r, g, b] = rgb(c); return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b) }
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+  const prints = (el) => { const cs = getComputedStyle(el); return (cs.printColorAdjust || cs.webkitPrintColorAdjust) === 'exact' }
+  const ground = (el) => { for (let n = el; n && n.nodeType === 1; n = n.parentElement) { const bg = getComputedStyle(n).backgroundColor; if (rgb(bg).length === 4 && rgb(bg)[3] === 0) continue; if (prints(n)) return bg } return 'rgb(255, 255, 255)' }
+  const parts = [['#seasonEyebrow, #seasonDateline', 'the eyebrow'], ['#seasonTitle', "the season's name"], ['#seasonLead', 'the standfirst'], ['#standings tr.lead .rk, #indTable tr.lead .rk', "the leader's rank tile"]]
+  const bad = []
+  for (const [sel, what] of parts) {
+    const el = document.querySelector(sel); if (!el || !(el.getBoundingClientRect().width > 0)) continue
+    const c = getComputedStyle(el).color, g = ground(el), r = ratio(c, g)
+    if (r < 4.5) bad.push(`${what} prints ${c} on ${g}: ${r.toFixed(2)}:1`)
+  }
+  return bad.length ? 'with background graphics off the sheet prints ink that assumed a fill: ' + bad.join('; ') : true
+})
 const PRINT = [
   { family: 'print', id: 'season', variant: 'member', probe: true, title: 'The season page as printed (print media, paper width), from the dark or the light default',
     prepare: async (W) => dropInventedMoment(W),
@@ -812,6 +831,7 @@ const PRINT = [
     }, LIGHT_PRINTING),
     stateContrast([{ sel: '#standingsStory', prop: 'color', min: 4.5, what: 'the story (ink) on the paper' },
       { sel: '#standings th', prop: 'color', min: 4.5, what: 'a column head (mut) on the paper' }]),
+    printedInk,
     async (page) => page.evaluate(() => {
       const l = (c) => { const v = (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4 }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2] }
       const ink = l(getComputedStyle(document.querySelector('#standingsStory')).color), mut = l(getComputedStyle(document.querySelector('#standings th')).color)
