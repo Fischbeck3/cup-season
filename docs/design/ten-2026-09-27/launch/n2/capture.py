@@ -93,6 +93,9 @@ for phone, udid in devices.items():
         log = out / f'ui-{phone}-{size}-{stamp}.log'
         cmd = ['xcodebuild', 'test-without-building', '-xctestrun', str(cfg),
                '-destination', f'platform=iOS Simulator,id={udid}', '-parallel-testing-enabled', 'NO',
+               # a failed capture must not start a ten-minute `simctl diagnose`
+               # that also sweeps every OTHER booted simulator's logs into the bundle
+               '-collect-test-diagnostics', 'never',
                '-only-testing:CupSeasonUITests/N2CaptureTests/testCapturePlan', '-resultBundlePath', str(result)]
         throttle()
         with log.open('w') as f:
