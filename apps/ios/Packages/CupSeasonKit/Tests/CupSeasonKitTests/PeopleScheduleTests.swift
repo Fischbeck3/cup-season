@@ -28,9 +28,10 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
   }
 
   @Test func whenLabels() {
-    #expect(ScheduleDates.when("2026-08-27", today: "2026-08-27") == "TODAY")
-    #expect(ScheduleDates.when("2026-08-28", today: "2026-08-27") == "TOMORROW")
-    #expect(ScheduleDates.when("2026-08-29", today: "2026-08-27") == "SAT AUG 29")
+    // N4-135 · the words' own case; the row's role sets the line's
+    #expect(ScheduleDates.when("2026-08-27", today: "2026-08-27") == "Today")
+    #expect(ScheduleDates.when("2026-08-28", today: "2026-08-27") == "Tomorrow")
+    #expect(ScheduleDates.when("2026-08-29", today: "2026-08-27") == "Sat Aug 29")
     #expect(ScheduleDates.whenDays("2026-08-30", today: "2026-08-27") == "3 DAYS")
     #expect(ScheduleDates.whenIn("2026-08-30", today: "2026-08-27") == "IN 3 DAYS")
     #expect(ScheduleDates.whenLower("2026-08-29", today: "2026-08-27") == "sat")
