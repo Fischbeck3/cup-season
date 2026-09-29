@@ -9698,9 +9698,9 @@ function renderStandings(){
     if(window.standingsFailed){
       const e = csEmptyRoot('standings', { failed:true });
       el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Golfer':'Squad')+'</th><th class="num">Pts</th></tr>'
-        + '<tr><td colspan="3" style="padding:var(--s4) var(--s1)" role="status"><b class="cs-body" style="display:block;color:var(--ink);font-weight:600">'+esc(e.head)+'</b>'
+        + '<tr><td colspan="3" style="padding:var(--s4) var(--s1)"><div role="status"><b class="cs-body" style="display:block;color:var(--ink);font-weight:600">'+esc(e.head)+'</b>'
         + '<span class="cs-body-s" style="display:block;color:var(--mut)">'+esc(e.sub)+'</span>'
-        + '<button type="button" class="mini" id="standingsRetry" style="margin-top:var(--s2)">Try again</button></td></tr>';
+        + '<button type="button" class="mini" id="standingsRetry" style="margin-top:var(--s2)">Try again</button></div></td></tr>';   /* the live region sits INSIDE the cell: role=status on the td took the cell out of the row */
       $('#standingsRetry')?.addEventListener('click', () => { const b=$('#standingsRetry'); if(b){ b.disabled = true; b.textContent = 'Loading…'; } window.loadStandingsAndFeed?.(); });
       return;
     }

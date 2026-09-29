@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes, ariaWellFormed } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -359,6 +359,26 @@ const SEASON = [
       async (page) => page.evaluate(() => {
         const t = document.getElementById('standingsStale')
         return t.getBoundingClientRect().top > document.getElementById('standings').getBoundingClientRect().bottom - 2 ? true : 'the dateline is not under the table'
+      })) },
+  /* TEN / W8 · W7-026 [X01] (follow-up) · the FIRST read of the standings fails (nothing was ever on screen to keep): the table says the read
+     failed and offers the retry, not 'No rounds yet' or every squad at 0. The live region sits inside the cell, and the cell keeps its role. */
+  { family: 'season', id: 'standings-failed', variant: 'member', title: 'The season page, the table, when the first read of the standings failed (the words and the retry)', fullPage: false,
+    world: { errors: { table: { v_squad_standings: { __error: 'fixture: the standings read failed', status: 503 } } } },
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toRoom(page, 'standings')
+      await until(page, () => !!document.getElementById('standingsRetry'), null, 10000)
+      await page.evaluate(() => document.getElementById('standingsRetry').scrollIntoView({ block: 'center' }))
+      await scrollSettled(page)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-hub', selectors: { '#standingsRetry': 'visible', '#standings': 'text:Couldn.t load' } },
+    check: all(onNorthGrove, ariaWellFormed('#standings'),
+      async (page) => page.evaluate(() => {
+        const box = document.querySelector('#standings [role="status"]'), td = document.querySelector('#standings td[colspan]')
+        if (!box || !td || !td.contains(box)) return 'the live region is not inside the cell'
+        if (!box.contains(document.getElementById('standingsRetry'))) return 'the retry is outside the live region'
+        return /No rounds yet/i.test(document.getElementById('standings').innerText) ? 'a failed standings read says there are no rounds' : true
       })) },
   /* TEN / W8 · W7-026 [X01] · a story read that did not answer says so and offers the retry, not "The story starts when
      the first week closes" (the phone's storyRead == .failed) */

@@ -413,3 +413,16 @@ export const noBoxes = (sels) => async (page) => page.evaluate((sels) => {
   }
   return bad.length ? `a card on the season page (§15.4): ${[...new Set(bad)].slice(0, 5).join('; ')}` : true
 }, sels)
+
+/* TEN / W8 · W7-026 + W7-043 (follow-up) · ARIA that says what the markup is (ARIA 1.2; WCAG 4.1.2). `ariaWellFormed(root)` fails
+ * the capture when, under `root`, a table cell (td/th) is given a role that is not a cell's (role=status on a td took the cell out of
+ * its row, so the row had no cells), or a paragraph, a span or a div with no role of its own is NAMED (aria-label / aria-labelledby:
+ * naming is prohibited on a paragraph and on a generic — a screen reader ignores it, and a checker flags it). */
+export const ariaWellFormed = (root) => async (page) => page.evaluate((root) => {
+  const host = document.querySelector(root); if (!host) return `${root} is not drawn`
+  const cells = new Set(['cell', 'gridcell', 'columnheader', 'rowheader']), bad = []
+  const path = (el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '')
+  for (const el of host.querySelectorAll('td, th')) { const r = el.getAttribute('role'); if (r && !cells.has(r)) bad.push(`${path(el)} has role=${r}`) }
+  for (const el of host.querySelectorAll('p, span, div')) if (!el.getAttribute('role') && (el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby'))) bad.push(`${path(el)} is named with no role`)
+  return bad.length ? 'the markup says one thing to a screen reader and draws another: ' + bad.slice(0, 5).join('; ') : true
+}, root)
