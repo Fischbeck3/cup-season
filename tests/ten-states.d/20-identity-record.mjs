@@ -92,6 +92,15 @@ const youFormGrammar = (slot) => async (page) => page.evaluate((slot) => {
   return days.length && !bad.length ? true : `the Form columns mix day forms: ${JSON.stringify(days)}`
 }, slot)
 
+/* the sidebar's foot stays pinned to the column's bottom when its block stands down: display:none took #sideMe's margin-top:auto with it
+   (B's find on 51211947; W7-030's check, col.bottom − foot.bottom ≤ 48). The yields below collapse #sideMe or hide its children, never #sideMe. */
+const footStays = async (page) => page.evaluate(() => {
+  if (innerWidth < 960) return true
+  const col = document.querySelector('aside.side'), foot = col && col.querySelector('.foot')
+  if (!col || !foot) return 'no sidebar foot at the desk'
+  const gap = col.getBoundingClientRect().bottom - foot.getBoundingClientRect().bottom
+  return gap <= 48 ? true : `the sidebar's foot floats ${Math.round(gap)}px above the column's bottom`
+})
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
   { family: 'you', id: 'empty', variant: 'brand_new', title: 'You · a new golfer: carded, no rounds',
@@ -100,7 +109,7 @@ const YOU = [
       /* TEN / W8 · W7-009: an empty record says the first round is missing and holds the door, so the sidebar's sentence and door stand down */
       standsDown(['#sideMe .mesay', '#sideMe [data-mego="add_round"]']),
       /* TEN / W8 · W7-055: an empty record has one section, so no index */
-      youIndex(0), youBuilding('none')) },
+      youIndex(0), youBuilding('none'), footStays) },
   /* TEN / W8 · W7-009 [B2-desk-4] (D's delta at e78d7f22) · a golfer SEATED in a season who has posted nothing yet: the sidebar's strip is not all
      placeholders (it holds the season row), so it drew its own 'Add my round' door in a `.medoors` row beside the page's own button.
      The door and its row stand down; the season row stays. The harness's you/empty is league-less and could not draw this. */
@@ -108,7 +117,7 @@ const YOU = [
     drive: youSettled('empty'), expect: { view: 'view-stats', selectors: { '#youCard': 'visible', '#youName': 'text:^Avery Fixture$' } },
     check: all(recordState('empty'),
       async (page) => page.evaluate(() => innerWidth < 960 || document.querySelector('#sideMe [data-mego="season_row"]') ? true : 'the sidebar holds no season row: this is not the state the pin is for'),
-      standsDown(['#sideMe [data-mego="add_round"]', '#sideMe .medoors'])) },
+      standsDown(['#sideMe [data-mego="add_round"]', '#sideMe .medoors']), footStays) },
   { family: 'you', id: 'one-round', variant: 'one_round', title: 'You · one round posted, the index still building',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^1$' } },
     check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`), youBuilding('one'), youFormGrammar('ONE OF FIVE')) },

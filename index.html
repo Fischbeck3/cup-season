@@ -489,10 +489,16 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   .shell:has(#view-schedule.active) #sideMe [data-mego="plan_one"],
   .shell:has(#view-stats.active) #sideMe [data-mego="my_last_round"],
   .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"],
-  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe:has(> .mesay),
   .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe [data-mego="add_round"],
   .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe .medoors:has(> [data-mego="add_round"]:only-child),
   .shell:has(#view-stats.active) #sideMe .mesay{display:none;}   /* W7-053 · You prints the building clause under its card: the sentence once per viewport */
+  /* An empty record holds the door, so the sidebar's block stands down, but
+     COLLAPSED in place, never display:none: #sideMe carries the column's
+     margin-top:auto, which pins the foot (the face, "Your golf", the build) to
+     the column's bottom, and hiding it floated the foot up under "The
+     schedule" (found by B on 51211947; W7-030's own pattern) */
+  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe:has(> .mesay){padding:0; border-top:0;}
+  .shell:has(#view-stats.active #youRecent [data-empty-go="record"]) #sideMe:has(> .mesay) > *{display:none;}
 }
 /* ============ D228 - the desk's two-column body ============
    The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,
