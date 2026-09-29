@@ -2074,6 +2074,13 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
    three agate lines at 375 (critique-B minor). The course column takes the
    wrap instead — a name wraps whole. */
 #view-person .dtab td.ag{white-space:nowrap;}
+/* W7-010 · the aside's bold headline is the record's sentence; at the desk the
+   head above the columns says it in prose and the season row below carries it
+   as a figure, so the first screen states it twice, not three times (§16A.4:
+   prose is one channel, the figure another; a third is deleted). The phone's
+   stacked order keeps the headline. */
+#perAside .perhl{font-size:15px; margin:0 0 6px;}
+@media(min-width:960px){ #perAside .perhl{display:none;} }
 /* the status sentence under the card, and its figure run - the board face at
    the SENTENCE's own size, so the number sits on the sentence's baseline
    rather than looking pasted in */
@@ -30421,7 +30428,7 @@ async function openPerson(profileId){
     if(h2h && (h2h.settled > 0 || h2h.facets.length)){
       aside.innerHTML = object + `
         <div class="eyebrow" style="margin-top:24px">The record between you</div>
-        ${csH2HHeadline(h2h) ? `<p style="font-size:15px; margin:0 0 6px"><b>${esc(csH2HHeadline(h2h))}</b></p>` : ''}
+        ${csH2HHeadline(h2h) ? `<p class="perhl"><b>${esc(csH2HHeadline(h2h))}</b></p>` : ''}
         ${csH2HStandfirst(h2h) ? `<p class="fine" style="padding-top:0">${esc(csH2HStandfirst(h2h))}</p>` : ''}
         ${h2h.facets.map(f => `<div class="mathrow"><span>${esc(f.head)}</span><b>${esc(f.record || (f.meetings + ' SO FAR'))}</b></div>`).join('')}
         ${csH2HUsesHeuristic(h2h) ? `<p class="fine">${esc(CS_H2H_HEURISTIC)}</p>` : ''}

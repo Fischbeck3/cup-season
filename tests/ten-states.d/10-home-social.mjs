@@ -18,7 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, bandContrast, standsDown } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -265,12 +265,16 @@ const GOLFERS = [
     },
     expect: { view: 'view-person', selectors: { '#perName': 'text:^Devon Testwell$', '#perAside .cred': 'visible', '#perOpenH2H': 'visible' } },
     check: all(async (page) => page.evaluate(() => {
-      const t = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
-      return /The record between you/i.test(t) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
+      /* the verdict is the head's sentence at the desk (W7-010 stands the aside's headline down there) and the aside's headline on the phone */
+      const aside = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
+      const t = document.getElementById('view-person').innerText.replace(/\s+/g, ' ')
+      return /The record between you/i.test(aside) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
     }),
     /* TEN / W6 · AW2-06: the back link is agate and the record's labels body — never mono */
     notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span']),
-    noRetiredGlyph()) },
+    noRetiredGlyph(),
+    /* TEN / W8 · W7-010: at the desk the head says the record in prose and the season row as a figure, so the aside's bold headline stands down */
+    standsDown(['#perAside .perhl'])) },
   /* The person page's only door to the head-to-head is #perOpenH2H, drawn
      after tour_card lands -- and openPerson never gets that far (see the WX
      report: `sb.rpc(...).catch` is not a function on a PostgREST builder, so

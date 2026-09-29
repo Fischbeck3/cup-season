@@ -284,11 +284,11 @@ export const bandContrast = (card, parts) => async (page) => {
 }
 
 /* TEN / W8 · W7-009 · L-34 and UI_SYSTEM §16A.4 (one fact, one encoding, per
- * viewport): at the desk the sidebar's strip yields a fact to the page that
- * prints it. `standsDown(sels)` fails the capture when a sidebar element a
- * selector names is drawn at 960 or wider, or when the sidebar never built it
- * (the check must find the element it says stands down). Below 960 the
- * sidebar is not drawn and the check passes. */
+ * viewport): at the desk a second print of a fact yields to the first.
+ * `standsDown(sels)` fails the capture when an element a selector names (the
+ * sidebar's strip, an aside's headline) is drawn at 960 or wider, or when the
+ * page never built it (the check must find the element it says stands down).
+ * Below 960 the desk's shape is not drawn and the check passes. */
 export const standsDown = (sels) => async (page) => page.evaluate((sels) => {
   if (innerWidth < 960) return true
   const bad = []
@@ -298,5 +298,5 @@ export const standsDown = (sels) => async (page) => page.evaluate((sels) => {
     const r = el.getBoundingClientRect(), cs = getComputedStyle(el)
     if (cs.display !== 'none' && r.width > 0 && r.height > 0) bad.push(`${sel} still prints (${JSON.stringify((el.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 50))})`)
   }
-  return bad.length ? 'the desk sidebar repeats a fact the page prints: ' + bad.join('; ') : true
+  return bad.length ? 'the desk prints a fact twice (§16A.4): ' + bad.join('; ') : true
 }, sels)
