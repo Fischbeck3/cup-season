@@ -57,7 +57,7 @@ struct PostScorecardStrip: View {
       VStack(alignment: .leading, spacing: 0) {
         CSFine("Each hole starts on par — tap to adjust only what you didn't.")
         Button { model.showPars = true } label: {
-          Text("Set the pars").csType(.bodyS).foregroundStyle(cs.brand).frame(minHeight: 44).contentShape(Rectangle())
+          Text("Set the pars").csType(.bodyS).foregroundStyle(cs.act).frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       }

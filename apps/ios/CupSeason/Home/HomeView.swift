@@ -103,7 +103,7 @@ struct HomeView: View {
               HStack(spacing: CSTokens.Space.s2) {
                 CSGlyph(.bell, size: .inline)
                 Text("Activity").csType(.bodyS)
-                if inbox.unread > 0 { Text("\(inbox.unread)").csType(.agate).foregroundStyle(cs.brand) }
+                if inbox.unread > 0 { Text("\(inbox.unread)").csType(.agate).foregroundStyle(cs.ink) }   // N4-091 · a count is ink, never ember
               }
               .frame(minHeight: 44).contentShape(Rectangle())
             }

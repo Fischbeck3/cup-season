@@ -95,7 +95,7 @@ struct SocialActivitySheet: View {
                   if let course = notice.course { Text(course).csType(.agateS).foregroundStyle(cs.mut) }
                   Text(SocialDate.label(notice.createdAt)).csType(.agateS).foregroundStyle(cs.mut)
                 }.frame(maxWidth: .infinity, alignment: .leading)
-                if !notice.read { Circle().fill(cs.brand).frame(width: 8, height: 8).accessibilityLabel("Unread") }
+                if !notice.read { Circle().fill(cs.ink).frame(width: 8, height: 8).accessibilityLabel("Unread") }   // N4-091 · a notice mark is ink
               }
               .padding(.vertical, CSTokens.Space.s3)
               .contentShape(Rectangle())

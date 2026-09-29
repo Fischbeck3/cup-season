@@ -98,7 +98,7 @@ struct SeasonRulesPage: View {
       let door = model.rosterDoor
       RoomCheckRow(door.eyebrow(members: n), sub: door.line()) {
         Image(systemName: door.isOpen ? "door.left.hand.open" : "door.left.hand.closed")
-          .font(.system(size: 15, weight: .regular)).foregroundStyle(door.isOpen ? cs.brand : cs.mut)
+          .font(.system(size: 15, weight: .regular)).foregroundStyle(door.isOpen ? cs.ink : cs.mut)
       } trail: {
         if let url = model.inviteURL, door.isOpen {
           ShareLink(item: url, subject: Text("Cup Season"), message: Text(model.inviteText)) {

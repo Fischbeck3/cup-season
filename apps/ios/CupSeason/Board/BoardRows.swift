@@ -139,7 +139,9 @@ struct SystemRow: View {
   /// A quiet note sits on ground with its spine; a door takes `bg1` and a
   /// 44pt target, because it is interactive.
   private var row: some View {
-    BoardSpine(metal: opens == nil ? cs.gold.opacity(CSTokens.Alpha.a56) : cs.gold,
+    // N4-091 · an ordinary clubhouse note is not a thing won: its spine is
+    // the rule's quiet mark, never gold (D359)
+    BoardSpine(metal: opens == nil ? cs.rule : cs.mut,
                ground: opens == nil ? nil : cs.bg1) {
       Text(text).csType(.bodyS).foregroundStyle(cs.mut)
         .fixedSize(horizontal: false, vertical: true)

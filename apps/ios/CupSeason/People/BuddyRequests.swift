@@ -80,7 +80,7 @@ struct BuddyRequests: View {
           ForEach(m.requests) { p in
             PersonRow(person: p,
                       subline: "\(p.handle.map { "@\($0) · " } ?? "")wants to be golf buddies",
-                      spine: cs.brand, links: links) {
+                      links: links) {   // N4-091 / N4-094 · no ember rail: the words say it is a request
               HStack(spacing: 6) {
                 CSMini("Accept", busy: m.busy.contains(p.id)) { answer(p, accept: true) }
                 CSMini("", glyph: .cross, busy: m.busy.contains(p.id)) { answer(p, accept: false) }

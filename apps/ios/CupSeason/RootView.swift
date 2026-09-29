@@ -376,8 +376,9 @@ struct BootFailedView: View {
           if let s = snapshot { lastKnown(s) }
           Button { courses = true } label: {
             HStack(spacing: 8) {
-              Text("Courses on your phone").csType(.body).foregroundStyle(cs.brand)
-              Text("›").csType(.body).foregroundStyle(cs.brand)
+              // N4-091 · a link is `act`; ember is competition only (D359)
+              Text("Courses on your phone").csType(.body).foregroundStyle(cs.act)
+              Text("›").csType(.body).foregroundStyle(cs.act)
             }
             .frame(maxWidth: .infinity, minHeight: 44)
             .contentShape(Rectangle())

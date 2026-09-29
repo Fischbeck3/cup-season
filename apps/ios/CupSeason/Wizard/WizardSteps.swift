@@ -328,7 +328,7 @@ struct WizardWhenStep: View {
       CSFine(WizardCopy.step2Note(endsOn: model.dials.endDate()))
       // QB-06 · and the two things the first tee COSTS, said here rather than
       // three panes deep and after publication.
-      CSFine(WizardCopy.step2Consequence(startsOn: model.dials.startDate()), tone: cs.brand)
+      CSFine(WizardCopy.step2Consequence(startsOn: model.dials.startDate()), tone: cs.ink)
     }
   }
 
@@ -391,7 +391,7 @@ struct WizardStakeStep: View {
           .accessibilityLabel(WizardCopy.payLabel)
         // The ONE required field the wizard gains.
         CSFine(model.dials.payNoteMissing ? WizardCopy.payMissing : WizardCopy.payFine,
-               tone: model.dials.payNoteMissing ? cs.brand : cs.mut)
+               tone: model.dials.payNoteMissing ? cs.ink : cs.mut)
       }
 
       Rectangle().fill(cs.rule).frame(height: 1).padding(.vertical, 4)

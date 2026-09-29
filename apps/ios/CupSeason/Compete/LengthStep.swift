@@ -340,7 +340,7 @@ struct PickAGolferSheet: View {
         } else if people.isEmpty {
           Text(CalloutCopy.noBuddies).csType(.story).foregroundStyle(cs.ink)
           Button { CSHaptic.selection(); dismiss(); findGolfers() } label: {
-            Text(CalloutCopy.noBuddiesDoor.uppercased()).csEyebrow(cs.brand).a11yHitSlop()
+            Text(CalloutCopy.noBuddiesDoor.uppercased()).csEyebrow(cs.act).a11yHitSlop()
           }
           .buttonStyle(.plain)
         } else {
