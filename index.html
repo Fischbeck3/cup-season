@@ -2463,6 +2463,7 @@ body.guestlive #onboard{display:none !important;}
   min-height:44px; margin:-14px 0 -2px;   /* §16.2 · 44 tall (was 15), sitting where it sat */
 }
 .backlink:hover{color:var(--ink);}
+@media(min-width:960px){ #seasonBack{display:none;} }   /* W7-020 · the desk marks The season in its sidebar */
 .optcard{
   display:block; width:100%; text-align:left; cursor:pointer;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
@@ -7019,6 +7020,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
       <!-- LEAGUE HUB -->
       <section class="view" id="view-hub">
+        <!-- W7-020 · the season page is a pushed screen at the phone: the way back is one affordance (§12.2), Compete or
+             Home by where it was opened from (csSeasonBack, the event room's origin rule). The desk has its sidebar. -->
+        <a href="#" class="backlink" id="seasonBack" data-go="compete"><svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>Compete</a>
         <!-- IA P5: the People segment retired — buddies moved to You,
              finding golfers moved to the header search. Crew is now purely
              your leagues & events (the "Groups" it always was). -->
@@ -8411,14 +8415,23 @@ function switchView(v){
     window._schedFrom = null;   /* one trip only — the next entry decides again */
   }
   gateLiveRound();
+  /* W7-020 · where the season page was opened from, before the views swap: Home or Compete (the way back) */
+  if(v === 'hub'){
+    const prev = document.querySelector('.view.active')?.id;
+    if(prev === 'view-home') window._seasonFrom = 'home'; else if(prev === 'view-compete') window._seasonFrom = 'compete';
+    csSeasonBack();
+  }
   /* TEN / W6 · WHERE YOU ARE (critique-B events, heuristic 1): a Ryder or a
      Major room is a Compete page — it is reached from Compete and goes back to
      it — so Compete stays selected in the tab band and the sidebar while one is
      open. It selected nothing: no tab and no sidebar row said where you were. */
   const selected = v === 'event' ? 'compete' : v;
+  /* W7-020 · the season page is a Compete page too, as the event room is: the tab band keeps COMPETE current
+     (the desk's sidebar marks 'The season' instead, so only the tab toggle takes it) */
+  const tabSelected = (v === 'event' || v === 'hub') ? 'compete' : v;
   /* W7-025 · the current destination is said to a screen reader too (aria-current, WCAG 4.1.2) */
   [...$$('.tab'), ...$$('.navitem')].forEach(t=>{
-    const on = t.dataset.v===selected;
+    const on = t.dataset.v===(t.classList.contains('tab') ? tabSelected : selected);
     t.classList.toggle('active', on);
     if(on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
   });
@@ -27880,6 +27893,13 @@ function csEventRecoveryHtml(E){
    opened from (switchView renders the room BEFORE it swaps the views, so the
    view still active on a first render is the one it came from), and a plate
    that carries its own door takes the header's away — one way back, not two. */
+/* W7-020 · the season page's way back at the phone: Compete unless it was opened from Home (csEventBack's rule) */
+function csSeasonBack(){
+  const back = document.getElementById('seasonBack'); if(!back) return;
+  const from = window._seasonFrom === 'home' ? 'home' : 'compete';
+  back.dataset.go = from;
+  back.innerHTML = '<svg class="ic l" aria-hidden="true"><use href="#i-chevron-down"/></svg>' + (from === 'home' ? 'Home' : 'Compete');
+}
 function csEventBack(showHeader){
   const active = document.querySelector('.view.active');
   if(active && active.id !== 'view-event') window._evFrom = active.id === 'view-compete' ? 'compete' : 'home';

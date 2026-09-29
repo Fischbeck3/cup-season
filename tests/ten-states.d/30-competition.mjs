@@ -145,6 +145,17 @@ const SEASON = [
     drive: async (page) => { await toSeasonViaBand(page); await page.evaluate(() => window.scrollTo(0, 0)); await scrollSettled(page) },
     expect: { view: 'view-hub', selectors: { '#seasonScoreboard': 'visible', '#seasonDateline': 'text:Week 8 of 13', '#seasonLead': 'visible' } },
     check: all(onNorthGrove, inViewport('#seasonScoreboard', 'the season head'),
+      /* TEN / W8 · W7-020 [A2-season-2]: at the phone the season page keeps COMPETE current in the tab band (it is a Compete page, as the event
+         room is) and has one way back, named for where it was opened from; the desk has neither (its sidebar marks The season) */
+      async (page) => page.evaluate(() => {
+        const back = document.getElementById('seasonBack'), shown = (el) => !!el && el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0
+        if (innerWidth >= 960) return shown(back) ? 'the desk draws the phone\'s back link' : true
+        const on = [...document.querySelectorAll('.tab.active')].map((t) => t.dataset.v)
+        if (on.join() !== 'compete') return `the tab band marks ${JSON.stringify(on)}, expected ["compete"]`
+        if (document.querySelector('.tab.active').getAttribute('aria-current') !== 'page') return 'the current tab does not say aria-current'
+        if (!shown(back) || back.textContent.trim() !== 'Compete' || back.dataset.go !== 'compete') return `the back link is ${JSON.stringify(back && back.textContent.trim())} → ${back && back.dataset.go}`
+        return back.getBoundingClientRect().height >= 44 ? true : `the back link is ${Math.round(back.getBoundingClientRect().height)}px tall`
+      }),
       /* TEN / W8 · W7-028 [B2-season-24]: the story link carries no typed arrow (AW2-08) and its second channel is the rule beneath it (§16.4) */
       async (page) => page.evaluate(() => {
         const a = document.getElementById('seasonMore'), r = a.getBoundingClientRect()
@@ -343,6 +354,20 @@ const SEASON = [
     expectConsole: [/status of 503/],
     expect: { view: 'view-hub', selectors: { '#seasonStoryRetry': 'visible', '#seasonArc': 'text:Couldn.t load this' } },
     check: all(onNorthGrove, async (page) => page.evaluate(() => /starts when the first week closes/i.test(document.getElementById('seasonArc').innerText) ? 'a failed story read says the story has not started' : true)) },
+  /* TEN / W8 · W7-020 [A2-season-2] · the season page opened from HOME (Home's season door, csOpenSeason): the way back reads Home, and the
+     tab band still marks COMPETE, as the event room's does */
+  { family: 'season', id: 'from-home', variant: 'member', title: 'The season page opened from Home (the way back says Home)', fullPage: false, phoneOnly: true,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await page.evaluate((id) => window.csOpenSeason(id), NG.league)
+      await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-hub' && !!(document.getElementById('seasonTitle') || {}).textContent, null, 12000)
+      await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-hub', selectors: { '#seasonBack': 'text:^Home$' } },
+    check: all(onNorthGrove, async (page) => page.evaluate(() => {
+      const b = document.getElementById('seasonBack'), on = [...document.querySelectorAll('.tab.active')].map((t) => t.dataset.v)
+      return b.dataset.go === 'home' && on.join() === 'compete' ? true : `back → ${b.dataset.go}, tab band ${JSON.stringify(on)}`
+    })) },
   /* TEN / W8 · W7-015 [B2-season-2] · the season album for a league whose rounds carry no photograph (every new league):
      the written empty state runs the whole row of the three-column grid, and has its door (LINT-21) */
   { family: 'season', id: 'album-empty', variant: 'member', world: { photo: 'none' }, title: 'The season page, the album, for a league with no photographs', fullPage: false,
