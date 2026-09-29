@@ -30033,12 +30033,14 @@ function openProfileHub(){
     <button class="mini" id="phSave" style="margin-top:10px">Save card</button>
     <span class="fine" id="phStatus"></span>
 
-    <div class="eyebrow" style="margin-top:20px">Handicap index</div>
+    <!-- AW2-02 (round 2, WCAG 4.1.2): the field is named by its eyebrow, and
+         the sentence under it describes it -->
+    <div class="eyebrow" id="phIdxLab" style="margin-top:20px">Handicap index</div>
     <div style="display:flex; gap:10px; align-items:center;">
-      <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px">
+      <input class="f" id="phIdx" type="number" step="0.1" inputmode="decimal" style="max-width:110px" aria-labelledby="phIdxLab" aria-describedby="phIdxHelp">
       <button class="mini" id="phIdxGo">Update index</button>
     </div>
-    <p class="fine" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works →</a></p>
+    <p class="fine" id="phIdxHelp" style="padding-left:0">Your index builds automatically from your posted scores (best of your recent rounds, WHS-style) — it appears once you've posted 3. Set a starter here; once you have 3 rounds your scores take over. Changes are announced on your league boards, crew-policed. <a href="#" id="phScoreHelp" style="color:var(--act)">How scoring works →</a></p>
 
     <div class="eyebrow" style="margin-top:20px">Your seasons</div>
     ${leagues}
