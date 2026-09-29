@@ -115,6 +115,10 @@ import Foundation
   @Test func theCalloutSaysItsOwnSentencesInBothStates() {
     #expect(CalloutCopy.openLine(closesOn: "2026-09-13") == "Best round by Sun Sep 13 takes it.")
     #expect(CalloutCopy.youTookIt(mine: 2.1, theirs: 0.4) == "You took it — +2.1 to his +0.4.")
+    // N4-082 · the room's serif line marks its figures; the words do not move
+    #expect(CalloutCopy.youTookIt(mine: 2.1, theirs: 0.4, marked: true) == "You took it — {+2.1} to his {+0.4}.")
+    #expect(CalloutCopy.theyTookIt("Blake Fixture", theirs: 1.8, mine: nil, marked: true)
+            == "Blake took it — {+1.8}, and you never posted.")
     #expect(CalloutCopy.allSquare == "All square. Nobody buys.")
     // no cup, no series, no week count — not one of them exists here
     for s in [CalloutCopy.openLine(closesOn: "2026-09-13"),

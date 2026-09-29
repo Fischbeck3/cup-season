@@ -456,6 +456,8 @@ public final class LeagueRoomModel {
 
   /// The story line the page leads with, chosen by the seven-rung ladder.
   public var storyLine: SeasonStoryCopy.Line? { seasonStory.flatMap { SeasonStoryCopy.line($0) } }
+  /// N4-082 · the same line with its numerals marked, for the serif lead
+  public var storyLineMarked: SeasonStoryCopy.Line? { seasonStory.flatMap { SeasonStoryCopy.line($0, marked: true) } }
 
   // MARK: - D244 · leaving, forward-only
 

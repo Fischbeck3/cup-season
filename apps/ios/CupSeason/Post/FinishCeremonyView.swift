@@ -73,7 +73,8 @@ struct FinishCeremonyView: View {
           .opacity(stage >= 2 ? 1 : 0).offset(y: stage >= 2 ? 0 : 6)
           .accessibilityLabel("\(ceremony.gross) gross")
         if !ceremony.band.isEmpty {
-          Text(ceremony.band).csType(.story).foregroundStyle(bandInk).multilineTextAlignment(.center)
+          // N4-082 · the band's figure is a run in the board face
+          CSFigureRun(ceremony.bandMarked, role: .story).foregroundStyle(bandInk).multilineTextAlignment(.center)
             .padding(.top, 12).opacity(stage >= 3 ? 1 : 0).offset(y: stage >= 3 ? 0 : 6)
         }
         // W4 twin · the points are INK and a sentence: gold is for what was

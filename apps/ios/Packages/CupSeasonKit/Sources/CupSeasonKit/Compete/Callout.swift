@@ -227,13 +227,17 @@ public enum CalloutCopy {
   // what it says when it settles
   /// D21 (b): a tie is `halve`.
   public static let allSquare = "All square. Nobody buys."
-  public static func youTookIt(mine: Double, theirs: Double?) -> String {
-    guard let theirs else { return "You took it — \(RoundCopy.signed(mine)) and he never posted." }
-    return "You took it — \(RoundCopy.signed(mine)) to his \(RoundCopy.signed(theirs))."
+  /// N4-082 · `marked` sets each figure as a run (`{+2.4}`) for the room's
+  /// serif closing line; the words are the same either way.
+  public static func youTookIt(mine: Double, theirs: Double?, marked: Bool = false) -> String {
+    let f = { (v: Double) in marked ? "{\(RoundCopy.signed(v))}" : RoundCopy.signed(v) }
+    guard let theirs else { return "You took it — \(f(mine)) and he never posted." }
+    return "You took it — \(f(mine)) to his \(f(theirs))."
   }
-  public static func theyTookIt(_ name: String, theirs: Double, mine: Double?) -> String {
-    guard let mine else { return "\(CSBands.fn1(name)) took it — \(RoundCopy.signed(theirs)), and you never posted." }
-    return "\(CSBands.fn1(name)) took it — \(RoundCopy.signed(theirs)) to your \(RoundCopy.signed(mine))."
+  public static func theyTookIt(_ name: String, theirs: Double, mine: Double?, marked: Bool = false) -> String {
+    let f = { (v: Double) in marked ? "{\(RoundCopy.signed(v))}" : RoundCopy.signed(v) }
+    guard let mine else { return "\(CSBands.fn1(name)) took it — \(f(theirs)), and you never posted." }
+    return "\(CSBands.fn1(name)) took it — \(f(theirs)) to your \(f(mine))."
   }
   /// D21 (c) / L-22: if neither posted it halves and closes quietly. NO
   /// "never showed" line is ever written, and this producer has no way to

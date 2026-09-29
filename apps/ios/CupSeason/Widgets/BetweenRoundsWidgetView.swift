@@ -170,7 +170,8 @@ struct BetweenRoundsWidgetView: View {
           }
         }
       }
-      Text(race.story).csType(small ? .bodyS : .story).lineLimit(small ? 2 : 1).minimumScaleFactor(0.8)
+      // N4-082 · the gap is a figure run in the board face
+      CSFigureRun(race.storyMarked ?? race.story, role: small ? .bodyS : .story).lineLimit(small ? 2 : 1).minimumScaleFactor(0.8)
     }
   }
 
@@ -224,7 +225,8 @@ struct BetweenRoundsWidgetView: View {
   private func recordView(_ record: BetweenRoundsSnapshot.Record) -> some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
       head("A round to keep", small ? nil : record.date)
-      Text(record.headline).csType(.story).lineLimit(1).minimumScaleFactor(0.75)
+      // N4-082 · the headline's figure is a run in the board face
+      CSFigureRun(record.headlineMarked ?? record.headline, role: .story).lineLimit(1).minimumScaleFactor(0.75)
       HStack(spacing: CSTokens.Space.s3) {
         if !small, let out = record.out, let inn = record.inn {
           score(out, label: "Out", earned: false)

@@ -54,8 +54,9 @@ struct SeasonRulesPage: View {
       Text(SeasonRules.title(league: model.league?.name, number: model.season?.number))
         .font(CSFont.heroSmall).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
-      if let span = SeasonRules.span(startsOn: model.clock.startsOn, endsOn: model.clock.endsOn) {
-        Text(span).csType(.story).foregroundStyle(cs.mut)
+      // N4-082 · the dates' days are runs in the board face
+      if let span = SeasonRules.span(startsOn: model.clock.startsOn, endsOn: model.clock.endsOn, marked: true) {
+        CSFigureRun(span, role: .story).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
     }

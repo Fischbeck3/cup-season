@@ -119,7 +119,7 @@ struct EpilogueSheet: View {
           Button("Share movement") {
             share = BrandRecordCard(kind: "Standings movement",
               title: store.me?.profile?.display_name ?? "You",
-              figure: String(after), statement: "Previously \(before) · position after this round",
+              figure: String(after), statement: "Previously {\(before)} · position after this round",
               rows: movement.of.map { ["In a field of \($0)"] } ?? [], earned: after == 1).shareItem()
           }.buttonStyle(.csSecondary()).padding(.top, 8)
         }

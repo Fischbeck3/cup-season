@@ -59,7 +59,8 @@ struct CalloutRoomView: View {
       if room.event.isComplete {
         // the three closing states: the result sentence takes the serif where
         // the stake sat, and the eyebrow drops its dot.
-        Text(closingLine).csType(.lead).foregroundStyle(cs.ink)
+        // N4-082 · the two figures are runs in the board face
+        CSFigureRun(closingLine, role: .lead).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
       } else {
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
@@ -195,8 +196,8 @@ struct CalloutRoomView: View {
     let theirPvi = iAmA ? d.b_pvi : d.a_pvi
     let iWon = (iAmA && d.result == "a") || (!iAmA && d.result == "b")
     let theyWon = (iAmA && d.result == "b") || (!iAmA && d.result == "a")
-    if iWon, let m = myPvi { return CalloutCopy.youTookIt(mine: m, theirs: theirPvi) }
-    if theyWon, let t = theirPvi { return CalloutCopy.theyTookIt(their.name, theirs: t, mine: myPvi) }
+    if iWon, let m = myPvi { return CalloutCopy.youTookIt(mine: m, theirs: theirPvi, marked: true) }
+    if theyWon, let t = theirPvi { return CalloutCopy.theyTookIt(their.name, theirs: t, mine: myPvi, marked: true) }
     return CalloutCopy.allSquare
   }
 

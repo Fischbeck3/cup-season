@@ -101,8 +101,9 @@ struct SeasonStoryPane: View {
             // only the TOP chapter's is `lead` 28.** The first draft rendered
             // four serif blocks on this page and the serif stopped meaning
             // "slow down here".
-            if i == 0, let line = model.storyLine {
-              Text(line.text).csType(.lead).foregroundStyle(cs.ink)
+            // N4-082 · its numerals are runs in the board face
+            if i == 0, let line = model.storyLineMarked {
+              CSFigureRun(line.text, role: .lead).foregroundStyle(cs.ink)
                 .fixedSize(horizontal: false, vertical: true)
             }
             ForEach(Array(ch.rows.enumerated()), id: \.offset) { _, pair in

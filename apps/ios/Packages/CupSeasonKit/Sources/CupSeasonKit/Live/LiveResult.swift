@@ -122,6 +122,12 @@ public struct LiveResult: Sendable, Equatable {
   public let holes: LiveLedger?
   public let story: String
   public let share: String
+  /// N4-082 · `share` with its figures marked as runs (`{3-1}`, `{$12}`),
+  /// for the settlement card, which sets the line in the serif. `share` itself
+  /// is the web's verbatim and travels in `json` and the text thread, so it is
+  /// never marked. A two-sided result sets its status as the card's hero
+  /// figure and never prints this line in the serif; it is `share` there.
+  public let shareMarked: String
   public let json: JSONValue
 
   /// `isTeamMatch` on the recap (9195): two sides unless it is a solo mode.
@@ -180,7 +186,7 @@ public enum LiveResultBuilder {
     let json: JSONValue = .object(o)
     return LiveResult(game: .match, solo: false, winner: winner.map(String.init), status: status, sideA: names(s, 0), sideB: names(s, 1),
                       stake: stake, bank: nil, bankOwner: nil, bankUnits: nil, playerNames: s.players.map(\.n), transfers: [],
-                      holes: ledger, story: story, share: share, json: json)
+                      holes: ledger, story: story, share: share, shareMarked: share, json: json)
   }
 
   /// `rrResult` (8251).
@@ -191,15 +197,16 @@ public enum LiveResultBuilder {
     let line = s.players.enumerated().map { i, p in "\(p.n) \(rec[i].line)" }.joined(separator: ", ")
     let rank = s.players.enumerated().map { (n: $1.n, w: rec[$0].w, l: rec[$0].l) }.sorted { $0.w > $1.w }
     let co = rank.filter { $0.w == rank[0].w }
-    func hd(_ f: (String) -> String) -> String {
+    func hd(_ f: (String) -> String, _ mk: (String) -> String = { $0 }) -> String {
       if rank[0].w == 0 { return "Nobody won a match" }
-      if co.count > 1 { return "\(co.map { f($0.n) }.joined(separator: " and ")) split it, \(rank[0].w) win\(rank[0].w == 1 ? "" : "s") each" }
-      return "\(f(rank[0].n)) won the round robin, \(rank[0].w)-\(rank[0].l)"
+      if co.count > 1 { return "\(co.map { f($0.n) }.joined(separator: " and ")) split it, \(mk(String(rank[0].w))) win\(rank[0].w == 1 ? "" : "s") each" }
+      return "\(f(rank[0].n)) won the round robin, \(mk("\(rank[0].w)-\(rank[0].l)"))"
     }
     let pts = rec.map { $0.w - $0.l }
     let (named, tj) = transfersJSON(LiveEngines.settleTransfers(pts: pts, val: stake), s)
     let story = "\(hd { $0 }) · \(line)\(stake > 0 ? " · $\(js(stake)) a match" : "")"
     let share = hd { LiveFmt.fn1($0) }
+    let shareMarked = hd({ LiveFmt.fn1($0) }, { "{\($0)}" })
     let playersJSON: [JSONValue] = s.players.enumerated().map { i, p in
       var q: [String: JSONValue] = [:]
       q["name"] = .string(p.n); q["w"] = .number(Double(rec[i].w)); q["l"] = .number(Double(rec[i].l)); q["h"] = .number(Double(rec[i].h))
@@ -216,7 +223,7 @@ public enum LiveResultBuilder {
     o["story"] = .string(story); o["share"] = .string(share)
     let json: JSONValue = .object(o)
     return LiveResult(game: .match, solo: true, winner: nil, status: nil, sideA: nil, sideB: nil, stake: stake, bank: nil, bankOwner: nil, bankUnits: nil,
-                      playerNames: s.players.map(\.n), transfers: named, holes: nil, story: story, share: share, json: json)
+                      playerNames: s.players.map(\.n), transfers: named, holes: nil, story: story, share: share, shareMarked: shareMarked, json: json)
   }
 
   /// `wolfResult` (9049).
@@ -236,7 +243,11 @@ public enum LiveResultBuilder {
     let story = lead == nil
       ? "Wolf ended level · \(line)\(val > 0 ? " · $\(js(val))/pt" : " pts")"
       : "\(s.players[lead!.i].n) took Wolf\(val > 0 ? ", up $\(js(Double(lead!.v) * val))" : ", \(lead!.v) pts") · \(line)\(val > 0 ? " · $\(js(val))/pt" : "")"
-    let share = lead == nil ? "Wolf ended level" : "\(LiveFmt.fn1(s.players[lead!.i].n)) took Wolf\(val > 0 ? ", up $\(js(Double(lead!.v) * val))" : "")"
+    func wolfLine(_ mk: (String) -> String) -> String {
+      lead == nil ? "Wolf ended level" : "\(LiveFmt.fn1(s.players[lead!.i].n)) took Wolf\(val > 0 ? ", up \(mk("$\(js(Double(lead!.v) * val))"))" : "")"
+    }
+    let share = wolfLine { $0 }
+    let shareMarked = wolfLine { "{\($0)}" }
     let playersJSON: [JSONValue] = s.players.enumerated().map { i, p in
       .object(["name": .string(p.n), "pts": .number(Double(pts[i]))])
     }
@@ -245,7 +256,7 @@ public enum LiveResultBuilder {
     o["transfers"] = tj; o["holes"] = ledger.json; o["story"] = .string(story); o["share"] = .string(share)
     let json: JSONValue = .object(o)
     return LiveResult(game: .wolf, solo: false, winner: nil, status: nil, sideA: nil, sideB: nil, stake: val, bank: nil, bankOwner: nil, bankUnits: nil,
-                      playerNames: s.players.map(\.n), transfers: named, holes: ledger, story: story, share: share, json: json)
+                      playerNames: s.players.map(\.n), transfers: named, holes: ledger, story: story, share: share, shareMarked: shareMarked, json: json)
   }
 
   /// `skinsResult` (9076).
@@ -259,9 +270,9 @@ public enum LiveResultBuilder {
     let died = sk.carry > 1 ? " · \(sk.carry - 1) never claimed" : ""
     let rank = winners.sorted { $0.skins > $1.skins }
     let lead: SkinsP? = (!rank.isEmpty && !(rank.count > 1 && rank[1].skins == rank[0].skins)) ? rank[0] : nil
-    func took(_ f: (String) -> String, _ t: SkinsP) -> String {
-      let money = (val > 0 && t.pts > 0) ? " and $\(js(Double(t.pts) * val))" : ""
-      return "\(f(t.name)) took \(t.skins) skin\(t.skins == 1 ? "" : "s")\(money)"
+    func took(_ f: (String) -> String, _ t: SkinsP, _ mk: (String) -> String = { $0 }) -> String {
+      let money = (val > 0 && t.pts > 0) ? " and \(mk("$\(js(Double(t.pts) * val))"))" : ""
+      return "\(f(t.name)) took \(mk(String(t.skins))) skin\(t.skins == 1 ? "" : "s")\(money)"
     }
     let (named, tj) = transfersJSON(LiveEngines.settleTransfers(pts: sk.pts, val: val), s)
     let ledger = LiveLedger(mode: "players", cells: sk.cells, played: sk.thru, closedOut: false,
@@ -272,6 +283,7 @@ public enum LiveResultBuilder {
     else if !winners.isEmpty { story = "The skins split — \(line)\(rate)\(died)" }
     else { story = "Nobody took a skin\(died)" }
     let share = lead.map { took({ LiveFmt.fn1($0) }, $0) } ?? (winners.isEmpty ? "Nobody took a skin" : "The skins split")
+    let shareMarked = lead.map { took({ LiveFmt.fn1($0) }, $0, { "{\($0)}" }) } ?? share
     let playersJSON: [JSONValue] = ps.map { p in
       .object(["name": .string(p.name), "skins": .number(Double(p.skins)), "pts": .number(Double(p.pts))])
     }
@@ -282,7 +294,7 @@ public enum LiveResultBuilder {
     o["story"] = .string(story); o["share"] = .string(share)
     let json: JSONValue = .object(o)
     return LiveResult(game: .skins, solo: false, winner: nil, status: nil, sideA: nil, sideB: nil, stake: val, bank: nil, bankOwner: nil, bankUnits: nil,
-                      playerNames: s.players.map(\.n), transfers: named, holes: ledger, story: story, share: share, json: json)
+                      playerNames: s.players.map(\.n), transfers: named, holes: ledger, story: story, share: share, shareMarked: shareMarked, json: json)
   }
 
   /// `sunnResult` (8191).
@@ -314,7 +326,7 @@ public enum LiveResultBuilder {
     let json: JSONValue = .object(o)
     return LiveResult(game: .sunningdale, solo: false, winner: winner.map(String.init), status: status, sideA: names(s, 0), sideB: names(s, 1),
                       stake: unit, bank: m.bank, bankOwner: nil, bankUnits: nil, playerNames: s.players.map(\.n), transfers: [],
-                      holes: ledger, story: story, share: share, json: json)
+                      holes: ledger, story: story, share: share, shareMarked: share, json: json)
   }
 
   /// `sunnSoloResult` (8288).
@@ -334,9 +346,13 @@ public enum LiveResultBuilder {
     let story = lead == nil
       ? "Nobody broke away — \(line). Sunningdale Rules · \(bankTxt)"
       : "\(s.players[lead!].n) took it, \(m.wins[lead!]) holes. Sunningdale Rules · \(line) · \(bankTxt)"
-    let share = lead == nil ? "Nobody broke away"
-      : (pot > 0 ? "\(LiveFmt.fn1(s.players[lead!].n)) won the most holes and $\(js(pot)) from each"
-                 : "\(LiveFmt.fn1(s.players[lead!].n)) won the most holes, \(m.wins[lead!])")
+    func soloLine(_ mk: (String) -> String) -> String {
+      lead == nil ? "Nobody broke away"
+        : (pot > 0 ? "\(LiveFmt.fn1(s.players[lead!].n)) won the most holes and \(mk("$\(js(pot))")) from each"
+                   : "\(LiveFmt.fn1(s.players[lead!].n)) won the most holes, \(mk(String(m.wins[lead!])))")
+    }
+    let share = soloLine { $0 }
+    let shareMarked = soloLine { "{\($0)}" }
     let playersJSON: [JSONValue] = s.players.enumerated().map { i, p in
       .object(["name": .string(p.n), "wins": .number(Double(m.wins[i]))])
     }
@@ -348,7 +364,7 @@ public enum LiveResultBuilder {
     let json: JSONValue = .object(o)
     return LiveResult(game: .sunningdale, solo: true, winner: nil, status: nil, sideA: nil, sideB: nil, stake: unit, bank: nil,
                       bankOwner: m.bankOwner, bankUnits: m.bankUnits, playerNames: s.players.map(\.n), transfers: [],
-                      holes: ledger, story: story, share: share, json: json)
+                      holes: ledger, story: story, share: share, shareMarked: shareMarked, json: json)
   }
 }
 

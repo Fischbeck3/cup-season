@@ -175,11 +175,17 @@ public enum BagCopy {
   /// Every clause is dropped rather than guessed: no `beat` figure means the
   /// sentence stops after the rounds. `isMe: false` turns the possessive over
   /// through the one producer that does it (`CSBands.theirs`).
-  public static func sinceLine(_ s: Bag.Since, isMe: Bool = true) -> String {
-    let rounds = "\(spelled(s.rounds)) round\(s.rounds == 1 ? "" : "s")"
+  /// N4-082 · `marked` sets a count the voice cannot spell (above ten) as a
+  /// figure run (`{14}`), for the page's serif sentence; the words are the same.
+  public static func sinceLine(_ s: Bag.Since, isMe: Bool = true, marked: Bool = false) -> String {
+    let say = { (n: Int) -> String in
+      let w = spelled(n)
+      return marked && w == String(n) ? "{\(n)}" : w
+    }
+    let rounds = "\(say(s.rounds)) round\(s.rounds == 1 ? "" : "s")"
     var line = "Since the new \(word(s.slot)) went in: \(rounds)"
     if let b = s.beat {
-      line += b == 0 ? ", none of them beat your playing HCP" : ", \(spelled(b)) beat your playing HCP"
+      line += b == 0 ? ", none of them beat your playing HCP" : ", \(say(b)) beat your playing HCP"
     }
     line += "."
     return isMe ? line : CSBands.theirs(line)

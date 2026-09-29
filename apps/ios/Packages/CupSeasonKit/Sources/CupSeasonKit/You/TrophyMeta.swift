@@ -92,11 +92,19 @@ public enum TrophyMeta {
   /// course, not by the gross printed under it — "Personal best 81" sat beside
   /// a record whose best was 79 — so its headline carries the achievement's
   /// own fact, from the trophy case's producer: "Personal best · 7.8 vs course".
-  public static func headline(_ a: Achievement) -> String {
-    let title = meta(kind: a.kind, label: a.label).title
+  /// N4-082 · `marked` sets the headline's figure as a run for the widget's
+  /// serif line: the personal best's "{7.8} vs course", and a sub-N title's
+  /// own number ("Broke {80}"). The words are the same either way.
+  public static func headline(_ a: Achievement, marked: Bool = false) -> String {
+    var title = meta(kind: a.kind, label: a.label).title
+    if marked, let k = a.kind, k.hasPrefix("sub_"), let n = Int(k.dropFirst(4)), title.contains("\(n)") {
+      title = title.replacingOccurrences(of: "\(n)", with: "{\(n)}")
+    }
     guard a.kind == "personal_best" else { return title }
     let fact = achSubtitle(kind: a.kind, label: a.label, meta: a.meta)
-    return fact.hasSuffix("vs course") ? "\(title) · \(fact)" : title
+    guard fact.hasSuffix("vs course") else { return title }
+    if marked, let d = a.meta?["diff"]?.double { return "\(title) · {\(RoundCopy.f1(d))} vs course" }
+    return "\(title) · \(fact)"
   }
 
   /// `achSubtitle(a)`. D210 · the personal best is the engine's lowest

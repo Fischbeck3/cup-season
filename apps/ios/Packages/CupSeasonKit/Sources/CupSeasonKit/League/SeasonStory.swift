@@ -282,8 +282,12 @@ public enum SeasonStoryCopy {
   /// and 7b saying nothing has moved. Returns nil only when there is no season
   /// to describe — a page with no story line renders no story line rather than
   /// an empty one (L-32/L-44).
-  public static func line(_ p: SeasonStory.Payload, calendar: Calendar = .current) -> Line? {
+  /// N4-082 · `marked` sets every numeral as a figure run (`{1.5}`, `{3–1}`,
+  /// `{2nd}`, a date's day) for the season page's serif lead; the words are
+  /// the same either way, and the unmarked line is the web's verbatim.
+  public static func line(_ p: SeasonStory.Payload, calendar: Calendar = .current, marked: Bool = false) -> Line? {
     guard let f = p.facts else { return nil }
+    let mk = { (s: String) in marked ? "{\(s)}" : s }
     let solo = p.season?.solo ?? true
 
     // Rung 0 · a wrapped season leads with how it ended, not with a ladder
@@ -328,7 +332,7 @@ public enum SeasonStoryCopy {
       // half points" is not how anybody reads a table.
       let head = gap == 1 ? "One point separates"
                : gap == gap.rounded() ? "\(cap(word(Int(gap)))) points separate"
-               : "\(CSCopy.points(gap)) points separate"
+               : "\(mk(CSCopy.points(gap))) points separate"
       return Line(rung: 3, text: "\(head) the top two\(clock).", source: "standings_snapshots")
     }
 
@@ -359,7 +363,7 @@ public enum SeasonStoryCopy {
 
     // Rung 7 · the reach back (R-H).
     for h in p.history {
-      if let text = history(h, lastSnapshotOn: f.last_snapshot_on, calendar: calendar), let src = h.source, ok(src) {
+      if let text = history(h, lastSnapshotOn: f.last_snapshot_on, calendar: calendar, marked: marked), let src = h.source, ok(src) {
         return Line(rung: 7, text: text, source: src)
       }
     }
@@ -376,17 +380,18 @@ public enum SeasonStoryCopy {
   /// guess). Nothing here is inflated: a rivalry with no settled week says
   /// nothing at all, and a run of one week is not a run.
   public static func history(_ h: SeasonStory.History, lastSnapshotOn: String? = nil,
-                             calendar: Calendar = .current) -> String? {
+                             calendar: Calendar = .current, marked: Bool = false) -> String? {
+    let mk = { (s: String) in marked ? "{\(s)}" : s }
     switch h.kind {
     case "unsettled_week":
       // A week settled days ago is not a story; a fortnight is.
       guard let name = clean(h.opponent), let since = h.since, (h.days ?? 0) >= 14,
             CSDate.local(since, calendar: calendar) != nil else { return nil }
-      var s = "You and \(name) have not settled a week since \(theDayOf(since, calendar: calendar))."
+      var s = "You and \(name) have not settled a week since \(theDayOf(since, calendar: calendar, marked: marked))."
       if let w = h.wins, let l = h.losses, w + l + (h.ties ?? 0) > 0 {
-        if w > l { s += " You are \(w)–\(l) up all-time." }
-        else if l > w { s += " \(name) is \(l)–\(w) up all-time." }
-        else { s += " You are level at \(w)–\(l) all-time." }
+        if w > l { s += " You are \(mk("\(w)–\(l)")) up all-time." }
+        else if l > w { s += " \(name) is \(mk("\(l)–\(w)")) up all-time." }
+        else { s += " You are level at \(mk("\(w)–\(l)")) all-time." }
       }
       return s
     case "my_run":
@@ -396,13 +401,13 @@ public enum SeasonStoryCopy {
       if let stamp = lastSnapshotOn {
         let day = String(stamp.prefix(10))
         if let date = CSDate.local(day, calendar: calendar), CSDate.iso(date, calendar: calendar) == day {
-          return "Through \(LeagueDates.monDay(day, calendar: calendar)), you held \(CSCopy.ordinal(rank)) for \(word(weeks)) straight weeks."
+          return "Through \(LeagueDates.monDay(day, calendar: calendar, marked: marked)), you held \(mk(CSCopy.ordinal(rank))) for \(word(weeks)) straight weeks."
         }
       }
-      return "Your weekly record includes \(word(weeks)) straight weeks in \(CSCopy.ordinal(rank))."
+      return "Your weekly record includes \(word(weeks)) straight weeks in \(mk(CSCopy.ordinal(rank)))."
     case "my_best_week":
       guard let week = h.week, let pts = h.points, pts > 0 else { return nil }
-      return "Your best week of the season is still week \(word(week)) — \(CSCopy.points(pts)) points."
+      return "Your best week of the season is still week \(word(week)) — \(mk(CSCopy.points(pts))) points."
     default:
       return nil
     }
@@ -497,11 +502,12 @@ public enum SeasonStoryCopy {
   }
 
   /// "the 12th of August" — R-H's own form.
-  static func theDayOf(_ iso: String, calendar: Calendar = .current) -> String {
+  static func theDayOf(_ iso: String, calendar: Calendar = .current, marked: Bool = false) -> String {
     guard let d = CSDate.local(iso, calendar: calendar) else { return iso }
     let day = calendar.component(.day, from: d)
     let month = calendar.component(.month, from: d)
-    return "the \(CSCopy.ordinal(day)) of \(LeagueDates.monthsLong[max(0, min(11, month - 1))])"
+    let nth = CSCopy.ordinal(day)
+    return "the \(marked ? "{\(nth)}" : nth) of \(LeagueDates.monthsLong[max(0, min(11, month - 1))])"
   }
 
   /// Numbers as words, the way the design's own sentences say them — "Week
@@ -562,12 +568,15 @@ public enum SeasonRules {
   }
 
   /// "Thirteen weeks from Saturday, Sep 12 to Saturday, Dec 12."
-  public static func span(startsOn: String?, endsOn: String?, calendar: Calendar = .current) -> String? {
+  /// N4-082 · `marked` sets each date's day as a figure run for the rules
+  /// page's serif span; the words are the same.
+  public static func span(startsOn: String?, endsOn: String?, calendar: Calendar = .current,
+                          marked: Bool = false) -> String? {
     guard let s = startsOn, let e = endsOn,
           CSDate.local(s, calendar: calendar) != nil, CSDate.local(e, calendar: calendar) != nil else { return nil }
     let weeks = LeagueDates.totalWeeks(start: s, end: e, calendar: calendar)
     return "\(SeasonStoryCopy.cap(SeasonStoryCopy.word(weeks))) weeks from "
-         + "\(LeagueDates.dowMonDay(s, calendar: calendar)) to \(LeagueDates.dowMonDay(e, calendar: calendar))."
+         + "\(LeagueDates.dowMonDay(s, calendar: calendar, marked: marked)) to \(LeagueDates.dowMonDay(e, calendar: calendar, marked: marked))."
   }
 
   /// The five sections, in order. Each one is a sentence a golfer would say,

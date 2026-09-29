@@ -381,7 +381,8 @@ struct OpenTagsSection: View {
         ForEach(Array(tags.enumerated()), id: \.element.id) { i, t in
           CSRow(last: i == tags.count - 1) {
             VStack(alignment: .leading, spacing: 8) {
-              Text(t.question).csType(.story).foregroundStyle(cs.ink)
+              // N4-082 · the day is a figure run in the board face
+              CSFigureRun(t.questionMarked, role: .story).foregroundStyle(cs.ink)
                 .fixedSize(horizontal: false, vertical: true)
               HStack(spacing: 8) {
                 CSMini("Yes, I was", busy: busy.contains(t.id)) { Task { await answer(t, true) } }

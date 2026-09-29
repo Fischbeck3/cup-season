@@ -141,6 +141,16 @@ struct SeasonStoryLadderTests {
     #expect(SeasonStoryCopy.line(p)?.text == "The top two are level with six weeks to play.")
   }
 
+  @Test("rung 3 · a half point is printed, and marked as a run for the serif lead (N4-082)")
+  func rungThreeHalf() {
+    let p = payload(facts: SeasonStory.Facts(
+      week_no: 7, weeks_total: 26, weeks_left: 6, field: 4,
+      leader: SeasonStory.Leader(name: "Galen", run_weeks: 1),
+      runner_up: SeasonStory.Side(name: "You", points: 29.5), top_gap: 1.5))
+    #expect(SeasonStoryCopy.line(p, marked: true)?.text == "{1.5} points separate the top two with six weeks to play.")
+    #expect(SeasonStoryCopy.line(p)?.text == "1.5 points separate the top two with six weeks to play.")
+  }
+
   @Test("rung 4 · a squad closing half the gap has a plural verb; a golfer has a singular one")
   func rungFour() {
     let squads = payload(facts: SeasonStory.Facts(
@@ -240,6 +250,21 @@ struct SeasonStoryHistoryTests {
     #expect(text(6, 5)?.hasSuffix("You are 6–5 up all-time.") == true)
     #expect(text(5, 6)?.hasSuffix("Galen is 6–5 up all-time.") == true)
     #expect(text(5, 5)?.hasSuffix("You are level at 5–5 all-time.") == true)
+  }
+
+  /// N4-082 · marked for the season page's serif lead, every numeral in a
+  /// history line is a figure run — the record, the ordinal day — and the
+  /// words do not move; unmarked, the line is the web's verbatim
+  @Test func markedHistoryLinesSetTheirNumeralsAsRuns() {
+    let h = SeasonStory.History(kind: "unsettled_week", source: "week_clashes",
+                                opponent: "Galen", since: "2026-08-12", days: 24, wins: 6, losses: 5, ties: 0)
+    #expect(SeasonStoryCopy.history(h, marked: true)
+            == "You and Galen have not settled a week since the {12th} of August. You are {6–5} up all-time.")
+    #expect(SeasonStoryCopy.history(h) == "You and Galen have not settled a week since the 12th of August. You are 6–5 up all-time.")
+    let best = SeasonStory.History(kind: "my_best_week", source: "standings_snapshots", week: 5, points: 12.5)
+    #expect(SeasonStoryCopy.history(best, marked: true) == "Your best week of the season is still week five — {12.5} points.")
+    #expect(SeasonRules.span(startsOn: "2026-09-12", endsOn: "2026-12-11", marked: true)?.contains(" Sep {12} to ") == true)
+    #expect(SeasonRules.span(startsOn: "2026-09-12", endsOn: "2026-12-11")?.contains(" Sep 12 to ") == true)
   }
 
   @Test("a week settled five days ago is not an unsettled rivalry — no manufactured stake")

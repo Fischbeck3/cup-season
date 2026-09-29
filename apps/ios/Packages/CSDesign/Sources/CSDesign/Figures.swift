@@ -148,6 +148,16 @@ public struct CSFigureRun: View {
   let text: String
   let runs: [Range<String.Index>]
   let role: CSType.Role
+  /// N4-082 · the export canvases set their type at a fixed size (`csFixed`),
+  /// never the reader's; a run there is the board face at that same size.
+  var fixed: CGFloat? = nil
+
+  /// `"Galen shot {74} at Papago"` at a fixed size, for a canvas that is
+  /// exported (the settlement card, the record card).
+  public init(_ marked: String, role: CSType.Role, fixed points: CGFloat) {
+    self.init(marked, role: role)
+    self.fixed = points
+  }
 
   /// `"Galen shot {74} at Papago"` — the braces are the producer's mark and
   /// never render.
@@ -167,12 +177,18 @@ public struct CSFigureRun: View {
     self.text = body; self.runs = found; self.role = role
   }
 
+  /// The producer's marked sentence with its marks taken out: what a text
+  /// share or a spoken label says, where the runs are not drawn.
+  nonisolated public static func plain(_ marked: String) -> String {
+    marked.filter { $0 != "{" && $0 != "}" }
+  }
+
   public init(_ text: String, runs: [Range<String.Index>], role: CSType.Role = .body) {
     self.text = text; self.runs = runs; self.role = role
   }
 
   public var body: some View {
-    let pt = CSType.renderedSize(role, typeSize)
+    let pt = fixed ?? CSType.renderedSize(role, typeSize)
     // **The run carries its OWN role.** It did not, and that was invisible on
     // the two surfaces that shipped it first — a `.body` sentence inherits a
     // system font that happens to look close. On the Record page's `lead`,
@@ -188,8 +204,8 @@ public struct CSFigureRun: View {
   /// sentence's baseline rather than looking pasted in.
   var attributed: AttributedString {
     var s = AttributedString(text)
-    let pt = CSType.renderedSize(role, typeSize)
-    s.font = CSType.font(role, typeSize)
+    let pt = fixed ?? CSType.renderedSize(role, typeSize)
+    s.font = fixed.map { CSType.fixed(role, $0) } ?? CSType.font(role, typeSize)
     for r in runs {
       guard let lower = AttributedString.Index(r.lowerBound, within: s),
             let upper = AttributedString.Index(r.upperBound, within: s) else { continue }

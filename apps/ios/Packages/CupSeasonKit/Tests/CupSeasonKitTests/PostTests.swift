@@ -299,10 +299,11 @@ import CSDesign
     #expect(earned.earned && earned.pointsLine == "+9 points · counts for The Pines")
     #expect(earned.eyebrow == "PAPAGO · SAT AUG 22")
     #expect(earned.band == "beat your playing HCP by 2.4")
+    #expect(earned.bandMarked == "beat your playing HCP by {2.4}")   // N4-082 · the ceremony's run
     let solo = PostCeremony(course: "Papago", date: "2026-08-22", gross: 84, vs: 2.4, points: 9, squad: nil, inLeague: true, name: "J", marker: "saguaro", leagueName: nil)
     #expect(solo.pointsLine == "+9 points · counts this season")
     let card = PostCeremony(course: "", date: "2026-08-22", gross: 84, vs: -71.6, points: nil, squad: nil, inLeague: false, name: "J", marker: "saguaro", leagueName: nil)
-    #expect(!card.earned && card.pointsLine == "Counts toward your number" && card.band == "" && card.eyebrow == "A ROUND · SAT AUG 22")
+    #expect(!card.earned && card.pointsLine == "Counts toward your number" && card.band == "" && card.bandMarked == "" && card.eyebrow == "A ROUND · SAT AUG 22")
 
     // D122 · the audit's exact scenario: a league whose first tee is a week
     // out. The golfer was promised league points and shown zero with nothing

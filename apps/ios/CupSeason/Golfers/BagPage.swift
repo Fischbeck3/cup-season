@@ -118,8 +118,8 @@ struct BagPage: View {
   /// been returned since D262 and nothing on Home has ever pointed at it.
   @ViewBuilder private func bagBody(_ bag: Bag) -> some View {
     if let since = bag.since {
-      Text(BagCopy.sinceLine(since, isMe: bag.isMe))
-        .csType(.story).foregroundStyle(cs.ink)
+      // N4-082 · a count the voice cannot spell is a figure run
+      CSFigureRun(BagCopy.sinceLine(since, isMe: bag.isMe, marked: true), role: .story).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
     }
 
