@@ -78,6 +78,10 @@ struct LiveSetupView: View {
       }
       .padding(CSTokens.Space.gutter)
     }
+    // N4-173 · the page ends under a fade above the pinned Tee off while it
+    // continues (UI_SYSTEM §13.2a): at SE3 AX3 the action sat on a field cut
+    // in half at its edge
+    .csFoldFade(cs.bg0)
     }
     .background(cs.bg0)
     .safeAreaInset(edge: .bottom, spacing: 0) {
