@@ -105,7 +105,7 @@ struct HomeView: View {
                 Text("Activity").csType(.bodyS)
                 if inbox.unread > 0 { Text("\(inbox.unread)").csType(.agate).foregroundStyle(cs.brand) }
               }
-              .frame(minHeight: 44)
+              .frame(minHeight: 44).contentShape(Rectangle())
             }
             .accessibilityLabel(inbox.unread > 0 ? "Activity, \(inbox.unread) unread" : "Activity")
             .accessibilityIdentifier("home.activity")
@@ -476,7 +476,7 @@ struct HomeView: View {
         } else if let rid = r.round_id, vm.roundSocial[rid] != nil {
           Button { discussion = RoundDiscussionDoor(roundId: rid) } label: {
             Label("Comments", systemImage: "bubble.left").csType(.bodyS)
-              .foregroundStyle(cs.ink).frame(minHeight: 44)
+              .foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
           }
           .buttonStyle(.plain).padding(.horizontal, CSTokens.Space.gutter)
         }

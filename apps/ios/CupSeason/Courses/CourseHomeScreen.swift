@@ -145,9 +145,12 @@ struct CourseHomeScreen: View {
 /// Shared by Home and the navigation test, so the test enters the real screen.
 struct CourseHomeLink: View {
   var body: some View {
-    NavigationLink { CourseHomeScreen() } label: {
-      Text("Courses").csType(.bodyS).frame(minHeight: 44)
-    }.accessibilityIdentifier("home.courses")
+    // N4-014 · "Courses" read as a label beside the bell's "Activity". It is
+    // the header's tertiary link now: the toolbar rule under the word, and
+    // the style's whole 44pt row as the target.
+    NavigationLink { CourseHomeScreen() } label: { Text("Courses") }
+      .buttonStyle(.csTertiary(.toolbar))
+      .accessibilityIdentifier("home.courses")
   }
 }
 

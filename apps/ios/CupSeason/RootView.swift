@@ -388,7 +388,9 @@ struct BootFailedView: View {
             .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
         }
 
-        Button("Sign out") { askSignOut = true }.csType(.body).foregroundStyle(cs.mut)
+        // N4-014 · a link, drawn as one: the tertiary style's rule and its
+        // whole 44pt row (it was body text in mut, with a ~20pt target)
+        Button("Sign out") { askSignOut = true }.buttonStyle(.csTertiary)
           .padding(.top, 6)
       }
       .padding(28)
