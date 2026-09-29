@@ -267,7 +267,7 @@ struct MajorRoomView: View {
   /// than losing "plus is better", the half that says which way is good.
   private var columnNote: some View {
     Text("Vs playing HCP · plus is better")
-      .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+      .csType(.agateS, caps: false).foregroundStyle(cs.mut)   // AW2-15 · a phrase, sentence case
       .fixedSize(horizontal: false, vertical: true)
       .multilineTextAlignment(.trailing)
       .frame(maxWidth: .infinity, alignment: .trailing)

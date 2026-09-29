@@ -66,7 +66,7 @@ private let board = """
   // MARK: the rail follows the figure the row prints (DF-01)
 
   /// **A ranked list may not contradict its own column.** The board prints
-  /// `avgVsNumber` under a note reading `VS PLAYING HCP · PLUS IS BETTER`, so
+  /// `avgVsNumber` under a note reading `Vs playing HCP · plus is better`, so
   /// a +2.8 row outranks a −2.6 row, whatever the server's `rank_by_form`
   /// says. The fixture below is the photographed board that caught it.
   @Test func theOrderFollowsThePrintedFigureAndNotTheServersRank() throws {
