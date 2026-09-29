@@ -529,7 +529,12 @@ struct ScheduleMonthGrid: View {
       VStack(spacing: CSTokens.Space.s1) {
         // on the panel the ink inverts — a `mut` numeral on bone is the light
         // theme's worst contrast, and today's cell is the one that must read
+        // N4-131 · a date is capped to its own cell: at SE3 AX3 the two-digit
+        // numerals ran into their neighbours ('101112'). It shrinks only when
+        // it would not fit, and never wraps.
         Text("\(d)").csType(.columnS)
+          .lineLimit(1).minimumScaleFactor(0.5)
+          .frame(maxWidth: .infinity)
           .foregroundStyle(isToday ? cs.panelInk : (isPast && items.isEmpty ? cs.mut : cs.ink))
         HStack(spacing: 2) {
           ForEach(Array(items.prefix(3).enumerated()), id: \.offset) { _, it in mark(it.dot) }
