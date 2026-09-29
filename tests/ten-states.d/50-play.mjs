@@ -9,7 +9,7 @@
  *
  * The group is the synthetic cast of North Grove (fixture): Avery Fixture
  * (me), Devon Testwell, Blake Sample, Casey Placeholder. */
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, capsFromRole } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -259,7 +259,9 @@ export default [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-play', selectors: { '#skinsCard': 'visible', '#skinsStatus': 'visible' } },
-    check: all(scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.game === 'skins' ? true : 'the game is ' + f.game }) },
+    check: all(scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.game === 'skins' ? true : 'the game is ' + f.game },
+      /* TEN / W6 · DX2 OB2-02: the meta line's caps are its role's, not typed into the string */
+      capsFromRole(['#skinsMeta'], ['#skinsMeta'])) },
 
   /* the nine is scored through the last hole; Finish opens the one-finish
      sheet for the group (opened, not yet posted) */

@@ -2370,7 +2370,7 @@ body.guestlive #onboard{display:none !important;}
    its own eyebrow (.gk), and a live settlement says "live" in words */
 .gamecard .gk{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
 .gamecard .gs{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); margin-top:6px;}
-.gamecard .gm{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); margin-top:4px; line-height:1.35;}
+.gamecard .gm{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-top:4px; line-height:1.35;}   /* TEN / W6 · DX2 OB2-02: a game card's meta line is an agate label, and its caps are the role's */
 .gamecard .gs[hidden] + .gm{margin-top:var(--s2);}   /* AW2-16 · the hero says the state; who and the terms stay two statements */
 .wolfbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
 .wolfbtns button{
@@ -2675,7 +2675,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    #draftPoolSub) are agate — a label and a state clause — never mono */
 .phasehero .k{font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--brand);}
 .phasehero .n{font-size:24px; font-weight:700; letter-spacing:-.01em; margin:7px 0 4px;}
-.phasehero .m{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em);}
+.phasehero .m{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}   /* TEN / W6 · DX2 OB2-02: the caps are the role's, not typed into #khCount / #draftPoolSub */
 .nextcard{
   display:flex; align-items:center; gap:12px;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
@@ -6991,7 +6991,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div class="phasehero">
             <div class="k">Squads drawing</div>
             <div class="n">It’s random — nobody picks.</div>
-            <div class="m" id="draftPoolSub">12 GOLFERS NOT ON A SQUAD YET</div>
+            <div class="m" id="draftPoolSub">12 golfers not on a squad yet</div>
             <button class="btn" style="margin-top:16px" data-go="draft">Draw the squads</button>
             <button class="btn dark" style="margin-top:10px" id="draftShare">Share the invite link</button>
             <div class="fine" id="draftJoinsQuiet" style="display:none; padding:8px 0 0"></div>
@@ -7002,7 +7002,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <div class="phasehero" id="kickoffHero" style="display:none">
           <div class="k">Before first tee</div>
           <div class="n" id="khTee">First tee —</div>
-          <div class="m" id="khCount">SQUADS ARE SET</div>
+          <div class="m" id="khCount">Squads are set</div>
         </div>
         <button class="livebanner" id="liveBanner" data-go="play">
           <div class="lk"><span class="dot"></span>Live round in progress</div>
@@ -9139,7 +9139,7 @@ function renderClimb(){
        what happened instead. */
     if(settled){
       const champName = (typeof csSettlement === 'function' ? (csSettlement()||{}).champName : '') || '';
-      note.innerHTML = `${esc('SEASON COMPLETE')}<span class="endgame-line">`
+      note.innerHTML = `${esc('Season complete')}<span class="endgame-line">`
         + esc(champName ? `${champName} took it. The table below is how the season finished.`
                         : 'The table below is how the season finished.')
         + `</span>`;
@@ -9148,11 +9148,14 @@ function renderClimb(){
        carries +10 in (enter_cup_final). K is 1 there only because the climb
        draws the SEED line, and this said "TOP 1 ADVANCE TO THE CUP FINAL" —
        the phone's own sentence is JoinLeague's squads2 line. */
+    /* TEN / W6 · DX2 OB2-02 · the words are typed as they are said; the
+       seat line's caps are its role's (`.chart-note`), never the string's
+       (UI_SYSTEM §1.3: caps are produced one way only, by the transform) */
     const seatLine = cut.seed
-      ? 'BOTH SQUADS PLAY THE CUP FINAL · THE LEADER CARRIES +10'
+      ? 'Both squads play the Cup Final · the leader carries +10'
       : K>=n
-      ? (n<=1 ? 'NOBODY TO RACE YET' : `EVERYONE ADVANCES — ${n} CONTENDER${n===1?'':'S'}, ${K} SEAT${K===1?'':'S'}`)
-      : `TOP ${K} ${meta && meta.finish==='points_table' ? '— THE POINTS KING' : 'ADVANCE TO THE CUP FINAL'}`;
+      ? (n<=1 ? 'Nobody to race yet' : `Everyone advances — ${n} contender${n===1?'':'s'}, ${K} seat${K===1?'':'s'}`)
+      : `Top ${K} ${meta && meta.finish==='points_table' ? '— the Points King' : 'advance to the Cup Final'}`;
     /* D235 · the endgame sentence used to be repeated here. It is one fact,
        and its place is under the TABLE, permanently (`#endgameFoot`); the ME
        strip's clause is the same fact at the other grain. What stays here is
@@ -16833,8 +16836,9 @@ function renderPlay(){
     if(ss) ss.textContent = sk.thru>=liveHoles()
       ? (sk.carry>1?`DONE · ${sk.carry-1} SKIN${sk.carry===2?'':'S'} NEVER CLAIMED`:'DONE · EVERY SKIN CLAIMED')
       : `HOLE ${sk.thru+1} WORTH ${sk.carry} SKIN${sk.carry===1?'':'S'}`;
-    if(sm) sm.textContent = `THRU ${sk.thru} · LOW NET TAKES IT`
-      + (state.live.stake>0?` · $${state.live.stake}/SKIN`:' · NO MONEY ON IT');
+    /* OB2-02 · typed as said; `.gamecard .gm` sets the caps */
+    if(sm) sm.textContent = `Thru ${sk.thru} · low net takes it`
+      + (state.live.stake>0?` · $${state.live.stake}/skin`:' · no money on it');
     /* D76 carry-heat: 2+ riding runs hot — the play screen's one pulse.
        A lone skin (nothing pushed) stays cool; settlement/board copy untouched. */
     if(ss) ss.classList.toggle('carryhot', sk.thru<liveHoles() && sk.carry>=2);
@@ -27059,7 +27063,7 @@ function renderPhase(){
     if(on){
       $('#khTee').innerHTML = csFigRun('First tee ' + firstTeeMarked());   /* AW2-07 · the day's numeral is a run, never the serif */
       const d=daysToTee();
-      $('#khCount').textContent = `KICKS OFF IN ${d} DAY${d===1?'':'S'} · SQUADS ARE SET`;
+      $('#khCount').textContent = `Kicks off in ${d} day${d===1?'':'s'} · squads are set`;   /* OB2-02 · `.phasehero .m` sets the caps */
     }
   }
   const hd=$('#hubDraftSub');
@@ -28120,7 +28124,9 @@ function renderLeagueMeta(){
   squads.forEach(q=>(q.squad_members||[]).forEach(x=>seated.add(x.member_id)));
   const pool=members.filter(m=>!seated.has(m.id)).length;
   const dp=$('#draftPoolSub');
-  if(dp) dp.textContent=`${players(pool)} NOT ON A SQUAD YET`+(short?` · ${short} MORE TO TEE OFF`:'');
+  /* OB2-02 · typed as said; `.phasehero .m` sets the caps (players() keeps
+     its capitals for #hubMembersSub, whose role has no transform) */
+  if(dp) dp.textContent=`${pool} golfer${pool===1?'':'s'} not on a squad yet`+(short?` · ${short} more to tee off`:'');
   /* S3-04: a member's tap opens a read-only draw view — say so on the button */
   const fsq=document.querySelector('#homeDraft [data-go="draft"]');
   if(fsq) fsq.textContent = (window.CS?.member?.role==='commissioner') ? 'Draw the squads' : 'See the squads';
@@ -32015,9 +32021,9 @@ async function loadScenarios(){
 }
 window.loadScenarios = loadScenarios;
 function scenSeedWord(meta){
-  if(meta.finish==='points_table') return 'THE CROWN';
-  if(meta.level==='squad' && meta.structure==='squads2') return 'THE TOP SEED · +10';
-  return 'A CUP SEED';
+  if(meta.finish==='points_table') return 'the crown';
+  if(meta.level==='squad' && meta.structure==='squads2') return 'the top seed · +10';
+  return 'a Cup seed';
 }
 function renderScenarioLine(){
   const box = document.getElementById('scenarioLine'); if(!box) return;
@@ -32025,11 +32031,14 @@ function renderScenarioLine(){
   const hide = () => { box.style.display='none'; box.innerHTML=''; };
   if(state.demo || !sc || !sc.meta || !(sc.rows||[]).length){ return hide(); }
   const meta = sc.meta, rows = sc.rows;
-  const up = s => esc(String(s||'').toUpperCase());
+  /* TEN / W6 · DX2 OB2-02 · a name keeps its own case and the words are
+     typed as said: `.scenLine` sets the caps (§1.3), and a screen reader is
+     handed words, not capitals it may spell out */
+  const nm = s => esc(String(s||''));
   /* Cup Final already running → seeds are settled facts */
   if(meta.locked){
-    const seeds = rows.slice(0, meta.k).map(r=>up(r.name));
-    box.innerHTML = `<span class="clinch">SEEDS SET</span> — ${seeds.join(' · ')} INTO THE CUP FINAL`;   /* D126 */
+    const seeds = rows.slice(0, meta.k).map(r=>nm(r.name));
+    box.innerHTML = `<span class="clinch">Seeds set</span> — ${seeds.join(' · ')} into the Cup Final`;   /* D126 */
     box.style.display='block'; return;
   }
   /* seed race closed (window past) but not yet flipped, or nothing to project */
@@ -32040,13 +32049,13 @@ function renderScenarioLine(){
   const leadHeadroom = Number(lead.max_final) - Number(lead.points);   /* what the leader can still add */
   const parts = [];
   if(lead.clinched){
-    parts.push(`<b>${up(lead.name)}</b> IS IN ${sw}`);   /* D126 */
+    parts.push(`<b>${nm(lead.name)}</b> is in ${sw}`);   /* D126 */
   } else if(capped && lead.needs>0 && lead.needs <= leadHeadroom){
-    parts.push(`<b>${up(lead.name)}</b> · ${lead.needs} MORE CLINCHES ${sw}`);
+    parts.push(`<b>${nm(lead.name)}</b> · ${lead.needs} more clinches ${sw}`);
   }
-  const out = rows.filter(r=>r.eliminated).map(r=>up(r.name));
+  const out = rows.filter(r=>r.eliminated).map(r=>nm(r.name));
   if(out.length){
-    parts.push(`<span class="out">${out.join(', ')} OUT OF THE ${meta.finish==='points_table'?'RACE':'SEED RACE'}</span>`);
+    parts.push(`<span class="out">${out.join(', ')} out of the ${meta.finish==='points_table'?'race':'seed race'}</span>`);
   }
   if(!parts.length){ return hide(); }
   box.innerHTML = parts.join(' · ');

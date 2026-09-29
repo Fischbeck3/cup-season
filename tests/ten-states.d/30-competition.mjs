@@ -20,7 +20,7 @@
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -180,7 +180,24 @@ const SEASON = [
         return true
       }),
       onceInView([["the leader's points (171)", '(?<![\\d.,])171(?![\\d.,])', true], ["the second squad's points (137)", '(?<![\\d.,])137(?![\\d.,])', true],
-        ['the pot ($600)', '\\$600(?![\\d.,])']], 960)) },
+        ['the pot ($600)', '\\$600(?![\\d.,])']], 960),
+      /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
+         strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
+      capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine'])) },
+  /* TEN / W6 · DX2 OB2-02 · the season six days before its first tee, and a
+     league in its draw: the two heroes' lines (#khCount, #draftPoolSub).
+     DX2's own states (season/kickoff, season/draft-phase): the synthetic
+     world's DATA moves (a start date, a phase), then the page's router. */
+  { family: 'season', id: 'kickoff', variant: 'member', title: 'The season page six days before the first tee (#kickoffHero)', fullPage: false,
+    prepare: async (W) => { const L1 = W.ids.lid(1); for (const s of W.tables.seasons || []) if (s.league_id === L1) { s.starts_on = W.iso(6); s.ends_on = W.iso(6 + 13 * 7 - 1) } },
+    drive: async (page) => { await page.evaluate(() => window.switchView('hub')); await until(page, () => { const k = document.getElementById('kickoffHero'); return !!k && k.offsetParent !== null }); await page.waitForTimeout(600) },
+    expect: { view: 'view-hub', selectors: { '#kickoffHero': 'visible', '#khCount': 'text:Kicks off in \\d+ days?' } },
+    check: capsFromRole(['#khCount'], ['#khCount']) },
+  { family: 'season', id: 'draft-phase', variant: 'pro', title: 'The season page of a league in its draw (#homeDraft)', fullPage: false,
+    prepare: async (W) => { const L1 = W.ids.lid(1); for (const l of W.tables.leagues || []) if (l.id === L1) l.phase = 'draft' },
+    drive: async (page) => { await page.evaluate(() => window.switchView('hub')); await until(page, () => { const d = document.getElementById('homeDraft'); return !!d && d.offsetParent !== null }); await page.waitForTimeout(600) },
+    expect: { view: 'view-hub', selectors: { '#homeDraft': 'visible', '#draftPoolSub': 'visible' } },
+    check: capsFromRole(['#draftPoolSub'], ['#draftPoolSub']) },
   { family: 'season', id: 'story', variant: 'member', title: 'The season page, the story: the arc of weeks and the archive', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: async (page) => {

@@ -169,3 +169,28 @@ export const armedDelete = (sel) => async (page) => page.evaluate((sel) => {
   const a = lum(cs.color), z = lum(cs.backgroundColor), ratio = (Math.max(a, z) + 0.05) / (Math.min(a, z) + 0.05)
   return ratio >= 4.5 ? true : `${sel}'s label is ${ratio.toFixed(2)}:1 on its fill`
 }, sel)
+
+/* TEN / W6 · DX2 OB2-02 · UI_SYSTEM §1.3 produces capitals ONE way: the
+ * role's transform. `capsFromRole(sels, need)` fails the capture when a
+ * visible element's own text is TYPED in capitals (a word of three or more
+ * letters, every one a capital; HCP and its kind are not words), or when the
+ * element does not take its caps from its role (`text-transform:uppercase`).
+ * The rendered line is the same either way. What changes is the string a
+ * screen reader is handed and a caps rule can judge. `need` works as in
+ * `notMono`. */
+export const capsFromRole = (sels, need = []) => async (page) => page.evaluate(([sels, need]) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' }
+  const missing = need.map((n) => (typeof n === 'string' ? { sel: n } : n))
+    .filter((n) => !(n.below && innerWidth >= n.below))
+    .filter((n) => ![...document.querySelectorAll(n.sel)].some(shown)).map((n) => n.sel)
+  if (missing.length) return 'the state does not draw ' + missing.join(', ')
+  const ACRO = new Set(['HCP', 'GHIN', 'PGA', 'USGA', 'WHS'])
+  const bad = []
+  for (const sel of sels.map((n) => (typeof n === 'string' ? n : n.sel))) for (const el of document.querySelectorAll(sel)) {
+    if (!shown(el)) continue
+    const typed = ((el.textContent || '').match(/\b[A-Z]{3,}\b/g) || []).filter((w) => !ACRO.has(w))
+    if (typed.length) bad.push(`${sel} types ${JSON.stringify(typed.slice(0, 5).join(' '))}`)
+    else if (getComputedStyle(el).textTransform !== 'uppercase') bad.push(`${sel} does not take its caps from its role`)
+  }
+  return bad.length ? 'capitals typed into the string, not set by the role (§1.3): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
+}, [sels, need])
