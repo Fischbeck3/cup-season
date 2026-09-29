@@ -59,6 +59,15 @@
   t('bands: -1.0 is named for the points it pays', bandName(-1.0), 'A little loose');
   t('bands: -0.99 is still played-to-it', [pointsFor(-0.99)[0], bandName(-0.99)], [7, 'Played to it']);
   t('bands: the phrase agrees at the edge', /over your playing HCP/.test(vsPhrase(-1.0)), true);
+  /* TEN / W6 · AW2-07 · a number is never the serif: the sentence's figure is
+     marked by the producer (CSBands.vsPhraseMarked, word for word) and set as
+     a board run by csFigRun (CSFigureRun's twin) */
+  t('AW2-07: vsPhraseMarked is the phone\u2019s marked phrase',
+    [vsPhraseMarked(2.4), vsPhraseMarked(0.2), vsPhraseMarked(-3)],
+    ['beat your playing HCP by {2.4}', 'played to your playing HCP', '{3.0} over your playing HCP']);
+  t('AW2-07: csFigRun sets a marked figure as a run and escapes the rest',
+    [csFigRun('Beat your playing HCP by {2.4} & more.'), csFigRun('Par <3')],
+    ['Beat your playing HCP by <span class="cfrun">2.4</span> &amp; more.', 'Par &lt;3']);
   (function(){
     /* the split that shipped was name-vs-points; assert they never diverge */
     const NAME = {12:'Torched it', 9:'Beat your number', 7:'Played to it', 6:'A little loose', 5:'Posted anyway'};
@@ -688,8 +697,12 @@
     const fb = csFallbackItems();
     t('D228: the fallback composes items', fb.length >= 2, true);
     t('D228: the fallback order is CLOSING then CIRCLE', fb.map(x => x.tier), ['closing', 'circle']);
+    /* TEN / W6 · AW2-07: the producer MARKS its figures ({…}); the renderer
+       sets them as runs in the board face and the braces never show */
     t('D228: SA-2 — the subject is the opponent, and the verb is not "post again"',
-      fb[0].headline, 'Galen has 2 days to answer your 89.');
+      fb[0].headline, 'Galen has {2} days to answer your {89}.');
+    t('AW2-07: the circle headline marks its gross, never a digit in the course', fb[1].headline, 'Jade posted {81} at Troon.');
+    t('AW2-07: the lead sets the marked figure as a run', /Jade posted <span class="cfrun">81<\/span> at Troon\./.test(csLeadBlock(fb[1])) && !/[{}]/.test(csLeadBlock(fb[1]).replace(/data-[a-z-]+="[^"]*"/g, '')), true);
     t('D228: the fallback draws NO lead card', csRankDispatch(fb, { useServerRank: false }).lead, null);
     t('D228: ... and every fallback item still has a door', fb.every(x => !!x.route), true);
     /* the producer applies the fence itself: a circle round with no id is not an item */

@@ -5280,9 +5280,18 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
    Memory & honor speak serif — hero numbers, headlines, ceremony lines.
    The UI stays grotesque; the scorer's tent stays mono. Digits that stack
    get tabular numerals so scores line up like scores. */
-.stat .v, .calc .big, .purse .amt, .ontheline .oa, .phasehero .n{
-  font-family:var(--serif); font-variant-numeric:tabular-nums;
+/* TEN / W6 · AW2-07 · A NUMBER IS NEVER THE SERIF (§1.4, §1.6). The stat
+   values, the calc figure, the pot and "What's on it" were set in New York;
+   they are the board `figure` role — Plex Sans Condensed Bold, tabular and
+   lining. The hero line keeps the serif; it is words. */
+.stat .v, .calc .big, .purse .amt, .ontheline .oa{
+  font-family:var(--board); font-weight:700; letter-spacing:var(--flat);
+  font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums;
 }
+.phasehero .n{ font-family:var(--serif); }
+/* a figure inside a sentence: the run the producer marked (csFigRun) */
+.cfrun{ font-family:var(--board); font-weight:700; letter-spacing:var(--flat);
+  font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums; }
 .ob-hero h1{ font-family:var(--serif); letter-spacing:-.01em; }
 .mono, .tbl, .bands, .trio b, .codebox{ font-variant-numeric:tabular-nums; }
 
@@ -5296,14 +5305,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .ontheline .oa.heronum,
 .purse .amt.heronum,
 .heronum{
-  font-family:var(--serif); font-weight:700; font-size:36px;
-  font-variant-numeric:tabular-nums; line-height:1;
+  /* TEN / W6 · AW2-07 · the hero numbers are `figureL` (40) in the board face,
+     as the phone's PotPane sets the pot (`CSFigure(size: .l)`) — the serif and
+     the 36/52 sizes the role table does not have are gone */
+  font-family:var(--board); font-weight:700; font-size:40px; line-height:.94;
+  letter-spacing:var(--flat); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums;
 }
-/* 2.3 follow-up: the pot panel keeps its 52px centerpiece — serif/weight/
-   tabular-nums still come from .heronum above, only the size reverts. Same
-   specificity as .purse .amt.heronum (3 classes), later source order wins;
-   #lineAmt/#statIdx/#youIdx have no .purse .amt match, so they hold 36px. */
-.purse .amt.heronum{ font-size:52px; }
 
 /* announcements: the Pro's voice sits above the noise */
 /* TEN · THE PRO'S NOTE. It was a pre-token gold wash (rgba(233,190,98,…))
@@ -7920,6 +7927,14 @@ function paintLedgerLines(root){
 window.paintLedgerLines = paintLedgerLines;
 const CS_STAKE_MAX = 200;
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+/* TEN / W6 · AW2-07 · THE FIGURE RUN (UI_SYSTEM §1.6; CSFigureRun's twin). The
+   PRODUCER marks a figure inside a sentence with braces — "Galen posted {74}
+   at Papago." — and this sets each marked run in the board face at the
+   sentence's own size (`.cfrun`). The braces never render, and nothing is
+   found by a regex over prose, which would also restyle dates, money and a
+   digit inside a course's name. A string with no braces is only escaped. */
+function csFigRun(marked){ return esc(String(marked ?? '')).replace(/\{([^{}]*)\}/g, '<span class="cfrun">$1</span>'); }
+window.csFigRun = csFigRun;
 /* D-04 (security review 2026-09-25) · a URL inside CSS url('...') inside a
    style="" attribute has TWO parsers to get past, and esc() answers only the
    first: the attribute decodes &#39; (or a stored &apos;) back to ' before CSS
@@ -9349,13 +9364,14 @@ function renderStandings(){
     else if(a.pts===0 && b.pts===0){ txt=''; }
     else { const m=a.pts-b.pts;
       txt = m===0
-        ? `Dead heat — ${nameOf(a)} and ${nameOf(b)} level at ${a.pts}.`
+        ? `Dead heat — ${nameOf(a)} and ${nameOf(b)} level at <span class="cfrun">${a.pts}</span>.`
         /* F-9 · the verb agrees with its subject and the clauses take a full
            stop. `solo` is true when the row is a PERSON (D205 made a solo
            league a season at two golfers), and a story line is not live — a
            golfer's name takes the sentence's ink, the squad palette dresses a
            squad. `StandingsStory` is the phone's twin. */
-        : `${nameOf(a)} ${isYou(a)?'lead':(solo?'leads':'lead')} by <b>${m}</b>. ${nameOf(b)} ${beOf(b)}${m<=15?'a good weekend back':m+' back'}.`;
+        /* TEN / W6 · AW2-07 · the figures are runs in the board face (§1.6) */
+        : `${nameOf(a)} ${isYou(a)?'lead':(solo?'leads':'lead')} by <b class="cfrun">${m}</b>. ${nameOf(b)} ${beOf(b)}${m<=15?'a good weekend back':'<span class="cfrun">'+m+'</span> back'}.`;
     }
     story.innerHTML=txt;
   }
@@ -11213,6 +11229,17 @@ function vsPhrase(vs){
   if(vs>-1)  return 'played to your playing HCP';   /* Q-20 */
   return vs.toFixed(1).replace('-','')+' over your playing HCP';
 }
+/* TEN / W6 · AW2-07 · the same sentence with its figure MARKED, for a surface
+   that sets it in a sentence (csFigRun) — CSBands.vsPhraseMarked, word for
+   word. The words are vsPhrase's, so the two can never drift apart. */
+function vsPhraseMarked(vs){
+  vs=Number(vs);
+  if(!isFinite(vs)) return '';
+  if(vs>=1)  return 'beat your playing HCP by {'+vs.toFixed(1)+'}';
+  if(vs>-1)  return 'played to your playing HCP';
+  return '{'+vs.toFixed(1).replace('-','')+'} over your playing HCP';
+}
+window.vsPhraseMarked = vsPhraseMarked;
 /* third-person form for surfaces that show SOMEONE ELSE's round — the share
    page, crew rows in the feed, another golfer's receipt. "Your number" is the
    owner's voice only; a stranger reading "2.4 over your playing HCP" can't tell
@@ -21053,8 +21080,8 @@ function csFallbackItems(){
     const when = c.closes_today ? 'today' : c.days_left===1 ? 'tomorrow' : `in ${c.days_left} days`;
     let hl, sf, act, route;
     if(yields){ hl=`Your clash with ${them} is open.`; sf='Best round of the week takes it.'; act='Add my round'; route={kind:'composer'}; }
-    else if(theirs && !mine){ hl=`${them} posted ${theirs.gross!=null?theirs.gross:'a round'}.`; sf=`That is the number, and the week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
-    else if(mine && !theirs){ hl=`${them} has ${c.closes_today?'today':c.days_left===1?'one day':c.days_left+' days'} to answer your ${mine.gross!=null?mine.gross:'round'}.`;
+    else if(theirs && !mine){ hl=`${them} posted ${theirs.gross!=null?'{'+theirs.gross+'}':'a round'}.`; sf=`That is the number, and the week closes ${when}.`; act='Add my round'; route={kind:'composer'}; }
+    else if(mine && !theirs){ hl=`${them} has ${c.closes_today?'today':c.days_left===1?'one day':'{'+c.days_left+'} days'} to answer your ${mine.gross!=null?'{'+mine.gross+'}':'round'}.`;
                               sf='Your round is the number to beat.'; act='See the receipt';
                               route= mine.round_id ? {kind:'receipt', id:mine.round_id} : {kind:'composer'}; }
     else { hl=`You and ${them} are both in.`; sf=`The week closes ${when}. Best round takes it.`; act='See the receipt';
@@ -21086,7 +21113,7 @@ function csFallbackItems(){
       const DOW3 = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       push({ key:`floor:${(CS.league&&CS.league.id)||'league'}`, tier:'closing', spine:'ember',
              eyebrow:`${MONTHS[eom.getMonth()].toUpperCase()} CLOSES ${DOW3[eom.getDay()].toUpperCase()}`,
-             headline:`You are ${short%1?short.toFixed(1):short} short of the minimum.`,
+             headline:`You are {${short%1?short.toFixed(1):short}} short of the minimum.`,   /* AW2-07 · the figure is marked */
              standfirst: null,
              action:'Add my round', route:{kind:'composer'}, at:null });
     }
@@ -21097,7 +21124,7 @@ function csFallbackItems(){
     const mile = r.is_pr ? 'A personal best.' : csSub80(r) ? 'Under 80 for the first time.' : r.is_first ? 'Their first round posted.' : null;
     push({ key:`story:${r.round_id||r.played_on}`, tier:'circle', spine: mile?'gold':'mut',
            eyebrow:'AROUND YOUR BUDDIES',
-           headline:`${(r.golfer||'A golfer').split(' ')[0]} posted ${r.gross}${r.course?` at ${r.course}`:''}.`,
+           headline:`${(r.golfer||'A golfer').split(' ')[0]} posted {${r.gross}}${r.course?` at ${r.course}`:''}.`,
            standfirst:mile, action:'See the round',
            route: r.round_id ? {kind:'receipt', id:r.round_id} : null, at:r.played_on });
   }
@@ -21347,7 +21374,7 @@ function csLeadBlock(it){
   try{ if(String(it.key||'').startsWith('clash:')) qaEvent('clash_seen', { attempt_id: String(it.key)+':'+csTodayISO(), league_id: it.league_id||null }); }catch(_){}
   return `<div class="csedn${live?' ember':''}" data-dkey="${esc(it.key)}"${it.rank_reason?` data-why="${esc(it.rank_reason)}"`:''}>
     ${it.eyebrow?`<div class="eb cs-agate">${live?'<span class="dot"></span>':''}<span>${esc(it.eyebrow)}</span>${stateWord?`<span class="cstate">${esc(stateWord)}</span>`:''}</div>`:''}
-    <div class="hl cs-lead">${esc(it.headline)}</div>
+    <div class="hl cs-lead">${csFigRun(it.headline)}</div>
     ${it.standfirst?`<div class="sf cs-body">${esc(it.standfirst)}</div>`:''}
     ${it.action?`<button type="button" class="act cs-name-s" data-dgo="${esc(it.key)}">${esc(it.action)}</button>`:''}
     ${csAnswerControls(it)}
@@ -21394,7 +21421,7 @@ function csWireLine(it, ctx){
   const lc = ctx ? `<span class="lc cs-agate-s">${esc(ctx)}</span>` : '';
   return `<button type="button" class="cswire" data-dgo="${esc(it.key)}">
     <span class="mk cs-agate-s is-phrase">${esc(mk)}</span>
-    <span class="ln cs-body-s">${lc}${esc(it.headline)}</span>
+    <span class="ln cs-body-s">${lc}${csFigRun(it.headline)}</span>
     <span class="cv" aria-hidden="true">&rsaquo;</span>
   </button>`;
 }
@@ -25380,7 +25407,9 @@ function openRoundReceipt(x, opts){
      baseline, with the band sentence under them. The sheet's title becomes the
      page's name rather than a restatement of the figure four lines below it. */
   const band = pvi!=null ? bandName(Number(pvi)) : null;
-  const phrase = pvi!=null ? vsPhrase(Number(pvi)) : '';
+  /* TEN / W6 · AW2-07 · the figure is marked (vsPhraseMarked) and set as a run:
+     a number is never the serif (§1.4), as ReceiptMoment's CSFigureRun sets it */
+  const phrase = pvi!=null ? vsPhraseMarked(Number(pvi)) : '';
   const sentence = csReceiptVerdict(band, phrase, mineOf(r));
   /* THE ROUND AS A BRAND MOMENT (owner board, 2026-09-14 · "brand moments").
      The board's phone shows a posted round as one composition: the course and
@@ -25408,7 +25437,7 @@ function openRoundReceipt(x, opts){
         ${rmCourse ? `<div class="rm-meta">${esc(rmCourse.toUpperCase())}</div>` : ''}
         ${rmWhen ? `<div class="rm-meta">${esc(rmWhen)}</div>` : ''}
         ${r.gross!=null ? `<div class="rm-fig">${esc(String(r.gross))}</div>` : ''}
-        ${sentence ? `<div class="rm-say">${esc(sentence)}</div>` : ''}
+        ${sentence ? `<div class="rm-say">${csFigRun(sentence)}</div>` : ''}
         <i class="cs-brandrule" aria-hidden="true"></i>
         <div class="rm-foot">
           <span class="rm-tag">${esc(window.CS_BRAND ? CS_BRAND.taglineCaps : 'ANY TIME. ANYWHERE.')}</span>
@@ -26491,6 +26520,9 @@ function daysToTee(){ return Math.max(0, Math.ceil((seasonS().getTime()-Date.now
 /* real weekday, not a hardcoded "Sun" — §14.0 v1.1 dropped the Sunday-start
    snap, so a season can tee off any day (pilot: "every league says Sunday"). */
 function firstTeeText(){ const s=seasonS(); return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()}`; }
+/* TEN / W6 · AW2-07 · the same day with its numeral marked, for a sentence set
+   in the serif (the kickoff hero): the day of the month is a figure run */
+function firstTeeMarked(){ const s=seasonS(); return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} {${s.getDate()}}`; }
 /* ============ D246 - the ONE week producer ============
    "What week is it" was computed in at least six places across two clients
    with at least two different bases, so the same season could be week 7 on one
@@ -26868,7 +26900,7 @@ function renderPhase(){
     const on = p==='season' && atStarter();
     kh.style.display = on ? 'block' : 'none';
     if(on){
-      $('#khTee').textContent = 'First tee ' + firstTeeText();
+      $('#khTee').innerHTML = csFigRun('First tee ' + firstTeeMarked());   /* AW2-07 · the day's numeral is a run, never the serif */
       const d=daysToTee();
       $('#khCount').textContent = `KICKS OFF IN ${d} DAY${d===1?'':'S'} · SQUADS ARE SET`;
     }

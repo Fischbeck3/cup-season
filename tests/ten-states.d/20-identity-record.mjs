@@ -11,7 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
-import { notMono } from '../ten-mono.mjs'
+import { notMono, noSerifFigure } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -180,7 +180,9 @@ const RECEIPT = [
     }),
     /* TEN / W6 · AW2-06: a math row's label is body and the words in its value
        are agateS; only the figures keep mono, in the column role (§1.4) */
-    notMono(['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag'], ['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag'])) },
+    notMono(['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag'], ['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag']),
+    /* TEN / W6 · AW2-07: the moment's sentence sets its figure as a run (vsPhraseMarked), never the serif */
+    noSerifFigure(['#rcptHero .rm-say'], ['#rcptHero .rm-say .cfrun'])) },
   /* S9 (W1, 2026-09-28) · the owner's receipt of a round that carries a
      photograph the page cannot open (every signed URL answers 404): the
      moment falls back, and the photo row says it once, beside Replace and

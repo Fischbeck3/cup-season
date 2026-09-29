@@ -20,7 +20,7 @@
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono } from '../ten-mono.mjs'
+import { notMono, noSerifFigure } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -147,7 +147,9 @@ const SEASON = [
       /* TEN / W6 · AW2-06 + OB-05: every label on the season page is agate and
          every phrase agate or body — mono keeps the figures (§1.4). The page
          draws all of these at once, whichever section is in view. */
-      notMono(SEASON_WORDS, SEASON_WORDS)) },
+      notMono(SEASON_WORDS, SEASON_WORDS),
+      /* TEN / W6 · AW2-07: the story's figures are runs and "What's on it" is the figure role — never the serif */
+      noSerifFigure(['#standingsStory', '#lineAmt'], ['#standingsStory .cfrun', '#lineAmt'])) },
   { family: 'season', id: 'story', variant: 'member', title: 'The season page, the story: the arc of weeks and the archive', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: async (page) => {
@@ -173,7 +175,9 @@ const SEASON = [
         if (rows.some((r) => r.tagName === 'BUTTON')) return 'a member sees tappable payer rows'
         if (document.querySelector('#payHow [data-payedit]')) return 'a member sees the Pro’s edit link'
         return rows.filter((r) => r.classList.contains('paid')).length === 7 ? true : 'seven of eight should read paid'
-      })) },
+      }),
+      /* TEN / W6 · AW2-07: the pot is the board `figure`, never the serif */
+      noSerifFigure(['#potAmt', '.trip .p b'], ['#potAmt'])) },
   { family: 'season', id: 'pot-pro', variant: 'pro', title: 'The season page, the money, as the Pro: tap a name as money moves', fullPage: false,
     prepare: async (W) => { dropInventedMoment(W); payHowSet(W) },
     drive: (page) => toRoom(page, 'pot'),
