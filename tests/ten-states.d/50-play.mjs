@@ -140,7 +140,10 @@ export default [
       })) },
 
   /* the same round with the score writes failing: the scores stay on this
-     phone, queued, and the line under the scoreboard says so */
+     phone, queued, and the line under the scoreboard says so.
+     W1 (2026-09-28): the line says it in words now — "6 scores saved on this
+     phone; they send when you have signal." — where it said "6 QUEUED", so the
+     state waits for and expects that sentence. */
   { family: 'play', id: 'sync-pending', variant: 'member', title: 'Live round · the score writes are not landing (queued on this phone)',
     prepare: async (W) => { W.errors.rpc.live_set_score = { __abort: 'internetdisconnected' } },
     expectConsole: [/net::ERR_INTERNET_DISCONNECTED|Failed to load resource/],
@@ -152,10 +155,10 @@ export default [
       await scoreHoles(page, 3, 2)
       await toastGone(page)
       await page.evaluate(() => window.scrollTo(0, 0))
-      await until(page, () => /queued/.test((document.getElementById('sbSub') || {}).textContent || ''), null, 8000)
+      await until(page, () => /saved on this phone/.test((document.getElementById('sbSub') || {}).textContent || ''), null, 8000)
       await page.waitForTimeout(300)
     },
-    expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#sbSub': 'text:queued' } },
+    expect: { view: 'view-play', selectors: { '#playLive': 'visible', '#sbSub': 'text:saved on this phone; they send when you have signal' } },
     check: all(scoredCheck(3), async (page) => { const f = await liveFacts(page); return f.queued > 0 ? true : 'nothing is queued' }) },
 
   /* a Match Play single, $5 a side, through four */

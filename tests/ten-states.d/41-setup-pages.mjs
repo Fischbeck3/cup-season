@@ -89,14 +89,20 @@ const WIZARD = [
       const miss = [[-21, 0], [21, 0], [0, -21], [0, 21]].filter(([dx, dy]) => { const e = document.elementFromPoint(cx + dx, cy + dy); return !(e && e.closest('.ibtn') === b) })
       return miss.length ? `the help's hit region misses ${miss.length} of 4 points 21px from its centre (glyph ${Math.round(r.width)}x${Math.round(r.height)})` : true
     }) },
-  { family: 'wizard', id: 'step-2-dials', variant: 'pro_setup', title: 'Wizard · step 2 with Customize open (every dial)',
+  /* W5 · the dials are three groups now (the scoring, the money, the
+     calendar), each opened by its own head; one "Customize" opened all nine
+     at once. Every dial is opened here, through the heads a Pro presses (a
+     group the page already opened stays open). */
+  { family: 'wizard', id: 'step-2-dials', variant: 'pro_setup', title: 'Wizard · step 2 with every dial group open',
     drive: async (page) => {
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
-      await click(page, '#wizCustomize')
-      await until(page, () => getComputedStyle(document.getElementById('wizDials')).display !== 'none')
+      for (const g of ['wizGrpScoring', 'wizGrpMoney', 'wizGrpCalendar']) {
+        if (await page.evaluate((g) => document.querySelector(`#${g} .wizgrp-b`).hidden, g)) await click(page, `#${g} .wizgrp-h`)
+      }
+      await until(page, () => [...document.querySelectorAll('#wizDials .wizgrp-b')].every((b) => !b.hidden))
       await page.waitForTimeout(400)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible' } } },
+    expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } } },
   { family: 'wizard', id: 'step-3-review', variant: 'pro_setup', title: 'Wizard · step 3 of 3, review and lock',
     drive: async (page) => {
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)
