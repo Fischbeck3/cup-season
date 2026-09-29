@@ -332,6 +332,17 @@ const SEASON = [
     },
     expect: { view: 'view-hub', sheet: '^Cancel ', selectors: { '#cxGo': 'visible', '#cxNo2': 'visible' } },
     check: armedDelete('#cxGo') },
+  /* TEN / W8 · W7-025 [B2-season-8] (E3, D's second reader) · the chosen row wins: 'The season's story' chosen right after 'The rules' (the rules head is in the top
+     half) is the marked row. The jump to the top took the rules head out of the window's top half and the observer's queued entry ticked THE SEASON over it. */
+  { family: 'season', id: 'story-from-rules', variant: 'member', desk: true, title: "The season page (desk): The rules chosen, then The season's story — the story is the marked row", fullPage: false,
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await click(page, '#deskMenu [data-seg="league"]'); await page.waitForTimeout(400); await scrollSettled(page)
+      await click(page, '#deskMenu [data-seg="archive"]'); await page.waitForTimeout(500); await scrollSettled(page)
+    },
+    expect: { view: 'view-hub', selectors: { '#seasonStoryHead': 'visible' } },
+    check: all(onNorthGrove, deskMenuIs("The season's story")) },
   { family: 'season', id: 'rules', variant: 'member', title: 'The season page, the rules in sentences', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: (page) => toRoom(page, 'league'),

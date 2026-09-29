@@ -8630,7 +8630,12 @@ $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v)
   if(rulesHead && 'IntersectionObserver' in window){
     new IntersectionObserver(([e]) => {
       if(!matchMedia('(min-width:960px)').matches || !document.getElementById('view-hub')?.classList.contains('active')) return;
-      window.csDeskMenuSync((e.isIntersecting || e.boundingClientRect.top < 0) ? 'league' : 'season');
+      const passed = e.isIntersecting || e.boundingClientRect.top < 0;
+      /* W7-025 · THE CHOSEN ROW WINS. Choosing 'The season's story' from the rules jumps the page to the top (switchView), which takes the rules head out of the
+         window's top half and queues an entry here that would tick THE SEASON over the row just chosen. While the story is the marked row it is left alone
+         until the rules head comes into view again (E3, D's second reader) */
+      if(seg === 'archive' && !passed) return;
+      window.csDeskMenuSync(passed ? 'league' : 'season');
     }, { rootMargin:'0px 0px -50% 0px', threshold:0 }).observe(rulesHead);
   }
   window.csDeskReveal = () => {};
