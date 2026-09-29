@@ -767,6 +767,19 @@
     window.homeClash = savedClash; window.homeFeedRows = savedFeed;
   })();
 
+  /* TEN / W6 · root's ruling · the streak tag ("2 straight under") is a fact,
+     not a control: agate in its heat hue, with no ring (UI_SYSTEM §3.4 gives
+     no device a border, and 4 is not one of the five radii). The phone's
+     RoundStoryCard draws it bare. No fixture golfer carries a streak, so the
+     rule is read off a bare tag. */
+  (function(){
+    const tag = document.createElement('span'); tag.className = 'streaktag heatwarm'; tag.textContent = '2 straight under';
+    document.body.appendChild(tag);
+    const cs = getComputedStyle(tag);
+    t('the streak tag has no ring', [cs.borderTopWidth, cs.borderTopLeftRadius, cs.textTransform], ['0px', '0px', 'uppercase']);
+    tag.remove();
+  })();
+
   /* TEN / W6 · §13.3 · the dateline is ONE producer: csStaleLine, the phone's
      CSStale.line. W7-036 declared a second csStaleLine(d) in the same script
      as W7-026's csStaleLine(d, offline); the later declaration won for every

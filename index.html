@@ -4978,7 +4978,10 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
    climbing=warm, climbing hard=hot, falling=cool (slate, never red-means-bad). */
 .heatwarm{color:var(--ink);} .heathot{color:var(--ink);} .heatcool{color:var(--cool);}   /* D359 applied (F4): form is ink */
 .streaktag{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; display:inline-block;   /* TEN / W6 · AW2-06: "3 straight under" is agateS in caps, as the phone's RoundStoryCard sets it */
-  border:1px solid currentColor; border-radius:4px; padding:1px 5px;}
+  /* TEN / W6 · root's ruling: no ring. UI_SYSTEM §3.4 gives no device a
+     border and has five radii (4 is not one); the phone's RoundStoryCard draws
+     the streak as "a fact, not a control: agate in ink, no ring". */
+}
 /* THE MONTH CLOCK (Wave 5, season.md 1.2) — it replaces the press meter, a
    6px three-stop gradient capsule with no head that the audit read as a
    warning bar and the brief names as a generic sports gradient. This is
@@ -11175,7 +11178,7 @@ function renderFeedFull(force){
             <div class="l2">${esc(csCourse(r.course_label)||'somewhere out there')} · ${r.holes_played||18} holes${r.played_on?' · '+esc(csRoundDay(r.played_on)):''}</div>
             <div class="rline">${sfNew?sfWrap(String(r.gross)):r.gross} GROSS${r.pvi!=null?` · ${(r.profile_id && r.profile_id===window.CS?.user?.id ? bandName(Number(r.pvi)) : theirs(bandName(Number(r.pvi)))).toUpperCase()}`:''}</div>
             <div class="rline">${counting}</div>
-            ${stk>=2?`<div class="rline"><span class="streaktag ${stk>=3?'heathot':'heatwarm'}">${stk} STRAIGHT UNDER</span></div>`:''}
+            ${stk>=2?`<div class="rline"><span class="streaktag ${stk>=3?'heathot':'heatwarm'}">${stk} straight under</span></div>`:''}
             ${r.photo_url && r.pvi!=null?`<div class="pvi-line"><b>${up?'+':''}${Number(r.pvi).toFixed(1)}</b><small>vs playing HCP</small></div>`:''}
           </div>
           ${!r.photo_url && r.pvi!=null?`<span class="pvi ${up?'up':'dn'}">${up?'+':''}${Number(r.pvi).toFixed(1)}<small>vs playing HCP</small></span>`:''}
@@ -11208,7 +11211,7 @@ function renderFeedFull(force){
       <div class="fcard"><div class="round">
         <span class="bar" style="background:${SQHEX[f.ci]}"></span>
         <div class="body"><div class="l1">${esc(f.who)} <span>· ${esc(f.team||'')}</span></div><div class="l2">${esc(f.meta||'')}</div>
-        <div class="rline">${bandName(f.pvi).toUpperCase()}</div>${dstk>=2?`<div class="rline"><span class="streaktag ${dstk>=3?'heathot':'heatwarm'}">${dstk} STRAIGHT UNDER</span></div>`:''}</div>
+        <div class="rline">${bandName(f.pvi).toUpperCase()}</div>${dstk>=2?`<div class="rline"><span class="streaktag ${dstk>=3?'heathot':'heatwarm'}">${dstk} straight under</span></div>`:''}</div>
         <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}<small>vs playing HCP</small></span>
         <div class="pts">${f.pts}<small>PTS</small></div>
       </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
