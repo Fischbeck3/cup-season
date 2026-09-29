@@ -833,11 +833,15 @@ private struct PostHeroContent: View {
         // fact the sentence does NOT carry, so that is what stays.
         //
         // D124 (i) · with no number yet there is no points total and no signed
-        // figure to show — only what the round was against the course.
-        Text(p.provisional ? p.vsText : pointsText)
-          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
-          .fixedSize(horizontal: false, vertical: true)
-          .padding(.top, 2)
+        // figure to show. N4-088 · nor a figure against the course: that is the
+        // receipt's arithmetic's alone, and the sentence above is the
+        // receipt's line (root's ruling).
+        if !p.provisional {
+          Text(pointsText)
+            .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, 2)
+        }
       }
       // D362 · **WHAT THIS ROUND CAN ADD, WHERE THE DESK PUTS IT** — under the
       // points, in the hero, always on screen. It lived inside the `How points

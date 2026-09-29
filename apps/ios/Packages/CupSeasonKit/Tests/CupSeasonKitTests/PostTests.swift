@@ -55,14 +55,20 @@ import CSDesign
     #expect(PostCalc.preview(card(rating: "", slope: ""), myIndex: nil) == nil)
   }
 
-  @Test func noNumberYetShowsTheCourseFigureAndSaysSo() {
+  @Test func noNumberYetSaysTheReceiptsLineAndNoFigure() {
     // D124 (i): the web's blind `|| 18` (14872) invented a number and printed a
-    // signed figure off it. With no number the preview asserts neither.
+    // signed figure off it. With no number the preview asserts neither, and
+    // N4-088 (root's ruling) · it says the receipt's line, not "vs course".
     let a = PostCalc.preview(card(f9: "41", b9: "43"), myIndex: nil)!
     #expect(a.provisional)
     #expect(a.points == 0)
     #expect(a.message == "No number yet — this round starts it")
-    #expect(a.vsText == RoundCopy.f1(a.differential) + " vs course")
+    #expect(a.vsText == "")
+    // the count is the profile's posted rounds, while this is one of three
+    #expect(PostCalc.preview(card(f9: "41", b9: "43"), myIndex: nil, roundsPosted: 1)!.message
+            == "No number yet — this round starts it (2 of 3)")
+    #expect(PostCalc.preview(card(f9: "41", b9: "43"), myIndex: nil, roundsPosted: 3)!.message
+            == "No number yet — this round starts it")
     // a golfer WITH a number is untouched
     let b = PostCalc.preview(card(f9: "41", b9: "43"), myIndex: 18)!
     #expect(!b.provisional && b.points > 0)
