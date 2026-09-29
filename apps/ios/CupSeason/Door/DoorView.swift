@@ -179,8 +179,15 @@ struct DoorView: View {
     // the tagline and the sentence scroll above them (UI_SYSTEM §13.2a).
     .safeAreaInset(edge: .bottom, spacing: 0) {
       VStack(spacing: CSTokens.Space.s3) {
-        Button("Get started", action: enter).buttonStyle(.csPrimary())
-        Button("Sign in", action: enter).buttonStyle(.csSecondary())
+        // N4-001 · on an invite both doors ran the same action, and the line
+        // above them named the quiet one ("Sign in to review and join"). The
+        // one door is the one the sentence names.
+        if pending != nil {
+          Button("Sign in", action: enter).buttonStyle(.csPrimary())
+        } else {
+          Button("Get started", action: enter).buttonStyle(.csPrimary())
+          Button("Sign in", action: enter).buttonStyle(.csSecondary())
+        }
       }
       .padding(.horizontal, CSTokens.Space.gutter)
       .padding(.vertical, CSTokens.Space.s3)
