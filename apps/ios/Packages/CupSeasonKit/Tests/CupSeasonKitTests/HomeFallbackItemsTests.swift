@@ -161,6 +161,22 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
               == "Galen has one day to answer your 89.")
   }
 
+  /// AW2-07 · a figure in the lead's serif is a run the producer marks: the
+  /// fallback marks its gross, its days and its counts, the plain headline
+  /// says the same words, and a server item carries no marks.
+  @Test func theFallbackMarksItsFigures() {
+    let mine = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 2, mineGross: 89), today: "2026-09-05")
+    #expect(mine?.headlineMarked == "Galen has {2} days to answer your {89}.")
+    #expect(mine?.localHeadlineMarked().filter { $0 != "{" && $0 != "}" } == mine?.headline)
+    let theirs = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4, theirGross: 79), today: "2026-09-05")
+    #expect(theirs?.headlineMarked == "Galen posted {79}.")
+    #expect(HomeFallbackItems.movementItem(clashedMembership(rank: 2, prev: 4))?.headlineMarked == "You moved up {2} this week.")
+    let idle = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4), today: "2026-09-05")
+    #expect(idle?.headlineMarked == nil && idle?.localHeadlineMarked() == idle?.headline)
+    let server = HomeDispatch.Item(key: "k", tier: .changed, eyebrow: "E", headline: "Galen posted 81 at Troon.")
+    #expect(server.localHeadlineMarked() == "Galen posted 81 at Troon.")
+  }
+
   @Test("A-4 / D378 (vii) · a movement label carries its own clock — 'this week', never a bare 'held' and never a hard-coded Sunday")
   func movementCarriesItsClock() {
     let up = HomeFallbackItems.movementItem(clashedMembership(rank: 2, prev: 4))

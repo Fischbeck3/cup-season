@@ -126,6 +126,12 @@ public enum HomeDispatch {
     public let humanSubject: Bool
     public let eyebrow: String
     public let headline: String
+    /// AW2-07 · the headline with its figures marked as runs (`{89}`), for the
+    /// serif the lead sets it in (UI_SYSTEM §1.6: the producer names the run).
+    /// Only this client's own producers set it (the fallback items): the
+    /// server's headlines carry no marks (root's N4-082 ruling), and every
+    /// other reader keeps the plain `headline`.
+    public let headlineMarked: String?
     public let standfirst: String?
     public let action: String?
     /// G1 · the fence reads THIS. No door, no render.
@@ -158,15 +164,25 @@ public enum HomeDispatch {
       return subject == "you" ? "You have a round \(when)." : "\(subject) has you down for \(day)."
     }
 
+    /// AW2-07 · `localHeadline` with its runs marked, for the lead's serif: a
+    /// plan's local rewording has no figure, and an item with no marks (every
+    /// server item) is its plain headline.
+    public func localHeadlineMarked(today: String = CSDate.today(), calendar: Calendar = .current) -> String {
+      let local = localHeadline(today: today, calendar: calendar)
+      return local == headline ? (headlineMarked ?? headline) : local
+    }
+
     public var id: String { key }
 
     public init(key: String, tier: Tier, rank: Int? = nil, score: Int? = nil, rankReason: String? = nil,
                 subject: String? = nil, humanSubject: Bool = false, eyebrow: String, headline: String,
+                headlineMarked: String? = nil,
                 standfirst: String? = nil, action: String? = nil, route: Route? = nil, leagueId: UUID? = nil,
                 suppress: Set<MeStripCopy.Fact> = [], spine: Spine = .mut, at: String? = nil,
                 plan: PlanContext? = nil) {
       self.key = key; self.tier = tier; self.rank = rank; self.score = score; self.rankReason = rankReason
       self.subject = subject; self.humanSubject = humanSubject; self.eyebrow = eyebrow; self.headline = headline
+      self.headlineMarked = headlineMarked
       self.standfirst = standfirst; self.action = action; self.route = route; self.leagueId = leagueId
       self.suppress = suppress; self.spine = spine; self.at = at; self.plan = plan
     }
@@ -197,6 +213,7 @@ public enum HomeDispatch {
       humanSubject = opt(Bool.self, .human_subject) ?? false
       eyebrow = opt(String.self, .eyebrow) ?? ""
       headline = opt(String.self, .headline) ?? ""
+      headlineMarked = nil   // AW2-07 · the server marks nothing
       // C-12 · the key is DETERMINISTIC even for a payload this build did not
       // expect. `UUID().uuidString` gave a keyless item a fresh identity on
       // every decode, which broke the docstring's own promise — key is

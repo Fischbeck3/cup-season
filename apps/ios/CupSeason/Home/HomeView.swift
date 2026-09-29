@@ -275,7 +275,8 @@ struct HomeView: View {
         CSGlyph(.scorecard, points: 78, labelled: true).foregroundStyle(cs.mut)
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           Text(item.eyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
-          Text(item.localHeadline()).csType(.lead).foregroundStyle(cs.ink)
+          // AW2-07 · a figure in the lead's serif is a run the producer marked
+          CSFigureRun(item.localHeadlineMarked(), role: .lead).foregroundStyle(cs.ink)
             .fixedSize(horizontal: false, vertical: true)
           if let s = item.standfirst, !s.isEmpty {
             Text(s).csType(.body).foregroundStyle(cs.mut)
@@ -376,7 +377,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
           VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
             Text(block.eyebrow).csType(.agate, caps: true).foregroundStyle(cs.mut)
-            Text(block.localHeadline()).csType(.lead).foregroundStyle(cs.ink)
+            CSFigureRun(block.localHeadlineMarked(), role: .lead).foregroundStyle(cs.ink)   // AW2-07
               .fixedSize(horizontal: false, vertical: true)
             if let s = block.standfirst, !s.isEmpty {
               Text(s).csType(.body).foregroundStyle(cs.mut)
