@@ -22090,6 +22090,14 @@ function csRenderSeasonBookDoor(){
 }
 /* END D381 BOOK */
 
+/* TEN / W6 · PAR-10 · the finished season's champion, when the payload names
+   THIS season's — CompeteRoot.finishedSub's guard, verbatim: a name, and the
+   last season's number equal to the membership's season number (L-44). */
+function csFinishedChampion(f){
+  const ls = f && f.last_season, se = f && f.season;
+  const champ = ls && ls.champion_name ? String(ls.champion_name).trim() : '';
+  return (champ && ls.number != null && se && se.number != null && Number(ls.number) === Number(se.number)) ? champ : '';
+}
 function csCompeteFacts(){
   const d = window.homeDispatch && window.homeDispatch.me;
   const rows = d && Array.isArray(d.memberships) ? d.memberships : [];
@@ -22274,10 +22282,13 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
     const row={ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
                 eyebrow: done ? 'Season complete' : (lg.phase==='season' ? (f && (f.upcoming || f.final) ? f.eyebrow : (f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
                 title: lg.name || 'A season',
-                /* L-44 · a finished season says it is finished. The champion's
-                   NAME is a fact the boot's membership rows do not carry, so it
-                   is not claimed here — the season page names them. */
-                sub: done ? 'Wrapped. Open it for the table.'
+                /* L-44 · a finished season says it is finished. TEN / W6 · PAR-10:
+                   and it says who took it, as the phone does (CompeteRoot
+                   .finishedSub) — from the same payload the phone reads
+                   (home_dispatch's `me.memberships`, csCompeteFacts), and ONLY
+                   when `last_season` is this very season. Otherwise the name is
+                   not claimed and the row keeps its own line. */
+                sub: done ? (csFinishedChampion(fm.get(lg.id)) ? csFinishedChampion(fm.get(lg.id)) + ' took it' : 'Wrapped. Open it for the table.')
                           : ((f && f.sub) ? f.sub : (m.role==='commissioner' ? 'You run it (the Pro).' : 'You’re in it.')),
                 status: f && f.status ? f.status : null,
                 state: (f ? f.upcoming : csSeasonUpcoming(fm.get(lg.id)?.season)) ? 'Upcoming' : CS_COMPETITION.season(lg.phase, (lg.season && lg.season.status) || null),
