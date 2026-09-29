@@ -502,7 +502,12 @@ private struct PostRoundBody: View {
       }
       // rating/slope: one mono line that opens into the two fields on "edit" — always editable (D72);
       // an empty card shows "— / —" and stays folded (IOS-022 item 4)
-      Button { CSMotion.run { ratingOpen.toggle() } } label: {
+      // The card closed by its own rule the moment a course and a rating were
+      // both set (`cardIsOpen`), so a golfer typing them by hand, as the
+      // no-match line says, lost the card after the rating's first digit,
+      // before the slope. Opening the fields is the golfer working in the card:
+      // it holds the card open until they close it.
+      Button { CSMotion.run { ratingOpen.toggle(); if cardOpen == nil { cardOpen = true } } } label: {
         // IOS-066 · always draws its hairline now: `Day played` follows it, so
         // it stopped being the section's last row.
         CSRow {
