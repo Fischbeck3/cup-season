@@ -64,6 +64,42 @@ const SCHEDULE = [
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',
     /* TEN / W8 · W7-009: the empty schedule and its own door carry planning, so the sidebar's "Plan one" stands down */
     drive: toSchedule, expect: { view: 'view-schedule' }, check: standsDown(['#sideMe [data-mego="plan_one"]']) },
+  /* TEN / W8 · W7-040 [A2-schedule-3] · a failed schedule read is never an empty schedule (§13.3; the C-10 rule: a failed read is not an empty one). With nothing
+     to show the page says the schedule did not load and offers the retry — not 'Nothing on the schedule yet' and 'Put a round up' over a read it never got;
+     the page's one primary (#calDeclare) stays */
+  { family: 'schedule', id: 'failed', variant: 'member', world: { errors: { rpc: { my_schedule: { __error: 'fixture: the schedule read failed', status: 503, code: 'XX000' } } } },
+    title: 'Schedule · the read failed (the words and the retry, never an empty schedule)',
+    drive: async (page) => { await toSchedule(page); await until(page, () => !!document.getElementById('schRetry'), null, 20000).catch(() => {}); await page.waitForTimeout(400) },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-schedule', selectors: { '#schRetry': 'visible', '#calDeclare': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const t = (document.getElementById('schNext') || {}).innerText || ''
+      if (/Nothing on the schedule yet|Put a round up|Nothing of yours on the schedule/i.test(t)) return `a failed read reads as an empty schedule: ${JSON.stringify(t.slice(0, 80))}`
+      if (!/The schedule didn.t load/i.test(t)) return `the lead does not say the read failed: ${JSON.stringify(t.slice(0, 80))}`
+      const primaries = [...document.querySelectorAll('#view-schedule .btn')].filter((b) => b.getBoundingClientRect().width > 0)
+      return primaries.length === 1 && primaries[0].id === 'calDeclare' ? true : `the page has ${primaries.length} filled buttons, not #calDeclare alone`
+    }) },
+  /* ...and with rows on screen, a refresh that fails keeps them and says so once, above 'Coming up' */
+  { family: 'schedule', id: 'refresh-failed', variant: 'member', fullPage: false, title: 'Schedule · a refresh failed (the plans stay, one line says so above Coming up)',
+    drive: async (page, ctx) => {
+      await toSchedule(page)
+      await page.evaluate(() => { window.__w8 = { rows: document.querySelectorAll('#calWatch .schrow').length, lead: (document.getElementById('schNext') || {}).innerText || '' } })
+      ctx.world.errors.rpc.my_schedule = { __error: 'fixture: the schedule read failed', status: 503, code: 'XX000' }
+      await page.evaluate(() => Promise.all([window.loadSchedule(), window.loadWatchList()]))
+      await until(page, () => !!document.getElementById('schFail'), null, 15000).catch(() => {})
+      await page.evaluate(() => (document.getElementById('schFail') || document.getElementById('calWatchHead')).scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(500)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-schedule', selectors: { '#schFail': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const w = window.__w8, rows = document.querySelectorAll('#calWatch .schrow').length, line = document.getElementById('schFail')
+      if (!w.rows) return 'the state had no plans to keep'
+      if (rows !== w.rows) return `the list changed from ${w.rows} to ${rows} plans when the refresh failed`
+      if (((document.getElementById('schNext') || {}).innerText || '') !== w.lead) return 'the lead changed when the refresh failed'
+      if (line.nextElementSibling !== document.getElementById('calWatchHead')) return 'the line is not directly above Coming up'
+      return /The schedule didn.t refresh/.test(line.textContent) && line.getAttribute('role') === 'status' && document.getElementById('schRetry') ? true : `the line reads ${JSON.stringify(line.textContent)}`
+    }) },
   { family: 'schedule', id: 'plan-sheet', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday at Mesquite Wash (the round object)',
     drive: async (page) => {
       await toSchedule(page)

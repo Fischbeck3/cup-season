@@ -34869,8 +34869,8 @@ async function loadSchedule(){
     const { data, error } = await sb.rpc('my_schedule', {
       p_from: `${c.y}-${pad(c.m+1)}-01`, p_to: `${c.y}-${pad(c.m+1)}-${pad(last)}` });
     if(error) throw error;
-    window.mySchedule = data || [];
-  } catch(e){ console.warn('[schedule]', e); window.mySchedule = window.mySchedule || []; }
+    window.mySchedule = data || []; window.schedFail = null;
+  } catch(e){ console.warn('[schedule]', e); window.schedFail = e; window.mySchedule = window.mySchedule || []; }   /* W7-040 · the last good rows stay; the failure is told */
   renderCalendar();
 }
 window.loadSchedule = loadSchedule;
@@ -34890,8 +34890,8 @@ async function loadWatchList(){
   try {
     const { data, error } = await sb.rpc('my_schedule', { p_from: iso(t), p_to: iso(end) });
     if(error) throw error;
-    window.watchAll = data || [];
-  } catch(e){ console.warn('[watch]', e); window.watchAll = window.watchAll || []; }
+    window.watchAll = data || []; window.watchFail = null;
+  } catch(e){ console.warn('[watch]', e); window.watchFail = e; window.watchAll = window.watchAll || []; }   /* W7-040 · as above */
   await ensureRivals();   /* M4/#7: the pre-game record needs the rivalry lookup */
   renderWatchList();
   if(typeof renderUpNext==='function') renderUpNext();   /* Home echo tracks it */
@@ -35056,9 +35056,25 @@ function csPlanAnswers(sr){
    round you are on — yours, or booked with you and not declined: `isMyPlan`,
    the one predicate Home's Next tile and the phone's chips share (D219) —
    leads the page with its tee time as a figure. */
+/* W7-040 [A2-schedule-3] · UI_SYSTEM §13.3 and the C-10 rule: a failed read is never an empty one. loadSchedule (the month) and loadWatchList (the 14 days) each
+   swallowed their failure and left the page to draw 'Nothing on the schedule yet' and 'Put a round up' over a schedule it could not read. Each now remembers its
+   error (schedFail, watchFail), keeps its last good rows, and the page says so: with nothing to show, the album's failed pattern (heading, the reason, a Try again);
+   with rows on screen, the rows stay and one 'didn't refresh' line with a Try again sits above 'Coming up'. #calDeclare stays the page's one primary (§7.1). */
+const csScheduleFail = () => window.schedFail || window.watchFail || null;
+function csScheduleRetry(btn){
+  if(btn){ btn.disabled = true; btn.textContent = 'Loading…'; }
+  window.loadSchedule?.(); window.loadWatchList?.();
+}
 function csRenderPlanLead(rows){
   const box = $('#schNext'); if(!box) return;
   const next = rows.find(r => isMyPlan(r)) || null;
+  const fail = csScheduleFail();
+  if(!next && !rows.length && fail){
+    box.innerHTML = `<div class="tempty schnone" role="status"><h2 class="cs-name">The schedule didn’t load</h2><p class="cs-body-s">${esc(humanError(fail))}</p>`
+      + `<button type="button" class="mini" id="schRetry" style="margin-top:var(--s2)">Try again</button></div>`;
+    $('#schRetry')?.addEventListener('click', e => csScheduleRetry(e.currentTarget));
+    return;
+  }
   if(!next){
     /* §16A.7 · the page carries its own drawn object (the calendar), so the
        empty state is the fact and the door beside it: the primary under it */
@@ -35101,6 +35117,12 @@ function renderWatchList(){
   const all = csUpcomingPlans();
   const lead = csRenderPlanLead(all);
   const rows = all.filter(r => r !== lead);
+  /* W7-040 · rows on screen and a refresh that failed: keep them, and say so once, above 'Coming up' (the album's .alfail shape) */
+  document.getElementById('schFail')?.remove();
+  if(all.length && csScheduleFail()){
+    head.insertAdjacentHTML('beforebegin', `<p class="fine alfail" id="schFail" role="status">The schedule didn’t refresh. <button type="button" class="cs-tskip" id="schRetry" style="display:inline-flex; margin:0">Try again</button></p>`);
+    $('#schRetry')?.addEventListener('click', e => csScheduleRetry(e.currentTarget));
+  }
   if(!rows.length){ box.style.display='none'; head.style.display='none'; box.innerHTML=''; return; }
   head.style.display=''; box.style.display='';
   box.innerHTML = `<div class="schlist">${rows.map(sr => csPlanRowHtml(sr)).join('')}</div>`;
