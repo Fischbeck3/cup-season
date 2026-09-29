@@ -75,16 +75,22 @@ final class N2LiveRecapUITests: N2UITestCase {
       XCTAssertTrue(count.waitForExistence(timeout: 15), "\(size): the recap's takeover is up")
       Thread.sleep(forTimeInterval: 3)   // the takeover's lines land and seal
       let screen = app.windows.firstMatch.frame
+      // the takeover's eyebrow is the one above its count line: the save
+      // status says the same words again under Your round, further down
       let eyebrow = app.staticTexts.matching(NSPredicate(format: "label ==[c] %@ OR label ==[c] %@ OR label ==[c] %@",
-                                                          "Round posted", "Saved on this phone", "Not posted")).firstMatch
-      XCTAssertTrue(eyebrow.exists, "\(size): the takeover's eyebrow is drawn")
-      for el in [count, eyebrow] where el.exists {
+                                                          "Round posted", "Saved on this phone", "Not posted"))
+        .allElementsBoundByIndex.filter { $0.frame.maxY <= count.frame.minY }
+        .min { $0.frame.minY < $1.frame.minY }
+      guard let eyebrow else {
+        XCTFail("\(size): the takeover's eyebrow is drawn above its count line"); app.terminate(); continue
+      }
+      for el in [count, eyebrow] {
         XCTAssertGreaterThanOrEqual(el.frame.minX, screen.minX + 8, "\(size): \(el.label) starts inside the gutter — \(el.frame)")
         XCTAssertLessThanOrEqual(el.frame.maxX, screen.maxX, "\(size): \(el.label) ends on the screen — \(el.frame)")
       }
 
       let shot = app.screenshot()
-      guard let px = Pixels(shot.image, pointsWide: screen.width), eyebrow.exists else {
+      guard let px = Pixels(shot.image, pointsWide: screen.width) else {
         XCTFail("\(size): the screenshot could not be read"); app.terminate(); continue
       }
       // the sheet's ground, read beside the eyebrow at the far edge
@@ -92,14 +98,17 @@ final class N2LiveRecapUITests: N2UITestCase {
       // 1 · the gutter beside the takeover's words is the ground: nothing is
       // drawn over the words' left edge
       var covered: [String] = []
+      var sampled = 0
       var y = eyebrow.frame.minY
       while y <= count.frame.maxY {
         for x in stride(from: CGFloat(3), through: max(3, eyebrow.frame.minX - 3), by: 4) {
           let c = px.at(x, y)
+          sampled += 1
           if !Pixels.near(c, ground) { covered.append("(\(Int(x)), \(Int(y))) \(c)") }
         }
         y += 4
       }
+      XCTAssertGreaterThan(sampled, 40, "\(size): the gutter was sampled from the eyebrow to the count line")
       XCTAssertTrue(covered.isEmpty,
                     "\(size): the gutter beside the takeover is the ground \(ground) — \(covered.count) points are not, e.g. \(covered.prefix(3))")
 
@@ -114,7 +123,7 @@ final class N2LiveRecapUITests: N2UITestCase {
         let f = card.frame
         XCTAssertGreaterThanOrEqual(f.minX, screen.minX + 8, "\(size): the card starts inside the gutter — \(f)")
         XCTAssertLessThanOrEqual(f.maxX, screen.maxX - 8, "\(size): the card ends inside the gutter — \(f)")
-        if f.minY + 8 < screen.maxY {
+        if f.minX >= 0, f.minY >= 0, f.minY + 8 < screen.maxY {
           // just inside its top-leading corner the card's own ground shows,
           // not the sheet's: the card is drawn in its frame
           let inside = px.at(f.minX + 6, f.minY + 6)
