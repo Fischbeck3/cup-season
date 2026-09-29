@@ -69,6 +69,23 @@ for (const width of [375, 1280]) for (const theme of ['dark', 'light']) for (con
   })
   check(`${label}: a typed round previews its points (${scored.pts}) — "${scored.msg}"`, /^\d+$/.test(scored.pts) && scored.last === Number(scored.pts), scored)
   if (who === 'no-league') check(`${label}: no league is implied as a prerequisite`, !/join .* to post|need a league|set up a league/i.test(scored.msg + before.k), scored.msg)
+  /* W1 (critique A): the preview reads the band against the differential the
+     server STORES (score_round rounds it to a tenth), not the raw one. At this
+     band edge — 14.2 at 95%, 82 on 68.9/118 — the raw margin is 0.945 (7 pts)
+     and the stored one is 1.0 (9 pts); the table pays 9, so the preview must. */
+  if (who === 'live-season') {
+    const edge = await page.evaluate(() => {
+      const keep = { ix: state.myIndex, al: state.allowance }
+      state.myIndex = 14.2; state.allowance = 95
+      document.getElementById('inRating').value = '68.9'; document.getElementById('inSlope').value = '118'
+      const g = document.getElementById('inGross'); g.value = '82'; g.dispatchEvent(new Event('input', { bubbles: true }))
+      recalc()
+      const out = { pts: document.getElementById('calcPts').textContent, vs: document.getElementById('calcVs').textContent, last: state.lastPost && state.lastPost.vs }
+      state.myIndex = keep.ix; state.allowance = keep.al; recalc()
+      return out
+    })
+    check(`${label}: at a band edge the preview pays what the table pays (9, beat by 1.0)`, edge.pts === '9' && edge.last === 1 && /beat by 1\.0/.test(edge.vs), edge)
+  }
   check(`${label}: no page errors`, errs.length === 0, errs)
   await ctx.close()
 }
