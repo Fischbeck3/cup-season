@@ -55,6 +55,24 @@ import CSDesign
     #expect(CSBands.fn1("   ") == "Someone")
     #expect(CSBands.pviChip(1.4) == "+1.4" && CSBands.pviChip(-0.35) == "-0.4" && CSBands.pviChip(0) == "+0.0")
   }
+
+  /// N4-075 · the receipt's verdict says one thing, once (the web's
+  /// `csReceiptVerdict`): the band follows the phrase only when it opens on
+  /// another word, and the whole sentence turns for someone else's round.
+  @Test func theReceiptVerdictSaysItOnce() {
+    func said(_ vs: Double, mine: Bool = true) -> String {
+      CSBands.receiptVerdict(band: CSBands.bandName(vs), phrase: CSBands.vsPhraseMarked(vs), mine: mine)
+    }
+    #expect(said(0.2) == "Played to your playing HCP.")
+    #expect(said(2.4) == "Beat your playing HCP by {2.4}.")
+    #expect(said(3.2) == "Beat your playing HCP by {3.2} — torched it.")
+    #expect(said(-1.3) == "{1.3} over your playing HCP — a little loose.")
+    #expect(said(-4.1) == "{4.1} over your playing HCP — posted anyway.")
+    #expect(said(0.2, mine: false) == "Played to their playing HCP.")
+    #expect(said(2.4, mine: false) == "Beat their playing HCP by {2.4}.")
+    #expect(CSBands.receiptVerdict(band: "Played to it", phrase: "", mine: true) == "")
+    #expect(CSBands.receiptVerdict(band: nil, phrase: "played to your playing HCP", mine: true) == "")
+  }
 }
 
 @Suite struct BoardTextTests {

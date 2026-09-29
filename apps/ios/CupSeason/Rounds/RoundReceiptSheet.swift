@@ -584,16 +584,13 @@ struct RoundReceiptSheet: View {
   /// LOOSE`. One producer, one direction, three renderers.
   private func sentence(_ r: ReceiptSeed) -> String? {
     guard r.indexProvisional != true, let pvi = r.resolvedPvi else { return nil }
-    let named = r.band ?? CSBands.bandName(pvi)
-    let band = mine(r) ? named : CSBands.theirs(named)
-    var phrase = CSBands.vsPhraseMarked(pvi)
-    guard !phrase.isEmpty else { return nil }
-    if !mine(r) { phrase = CSBands.theirs(phrase) }
     // The phrase is its own sentence — `Beat your playing HCP by 7.6` — and a
     // pronoun in front of it makes half the cases verbless ("You 2.0 over your
-    // playing HCP"). It opens the same way the composer's does, and the two
-    // read as one voice because they are one producer.
-    return phrase.prefix(1).uppercased() + phrase.dropFirst() + " — " + band.lowercased() + "."
+    // playing HCP"). N4-075 · the band follows it only when it adds something
+    // ("Played to your playing HCP." alone): the web's rule, one producer.
+    let said = CSBands.receiptVerdict(band: r.band ?? CSBands.bandName(pvi),
+                                      phrase: CSBands.vsPhraseMarked(pvi), mine: mine(r))
+    return said.isEmpty ? nil : said
   }
 
   private func previewRound(_ r: ReceiptSeed) async {

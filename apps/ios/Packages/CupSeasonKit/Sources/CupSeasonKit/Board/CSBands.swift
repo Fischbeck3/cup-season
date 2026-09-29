@@ -83,6 +83,25 @@ public enum CSBands {
     return "{" + fixed1(vs).replacingOccurrences(of: "-", with: "") + "} over your playing HCP"
   }
 
+  /// N4-075 · the receipt's verdict says one thing, once: the web's
+  /// `csReceiptVerdict` (WA6), verbatim. `vsPhrase` and `bandName` are two
+  /// names for one judgment, and at two of the five bands they open on the
+  /// same word — the receipt read "Played to your playing HCP — played to
+  /// it." The band is added only when it tells the reader something the
+  /// phrase has not said. The whole sentence turns to the third person, or
+  /// none of it does. `phrase` may carry `CSFigureRun`'s marks; the words
+  /// are compared, not the marks.
+  public static func receiptVerdict(band: String?, phrase: String?, mine: Bool) -> String {
+    guard let band, !band.isEmpty, let phrase, !phrase.isEmpty else { return "" }
+    func firstWord(_ t: String) -> String {
+      t.trimmingCharacters(in: .whitespacesAndNewlines)
+        .split(whereSeparator: { $0.isWhitespace }).first.map { $0.lowercased() } ?? ""
+    }
+    let lead = phrase.prefix(1).uppercased() + phrase.dropFirst()
+    let sentence = firstWord(band) == firstWord(phrase) ? lead + "." : lead + " — " + band.lowercased() + "."
+    return mine ? sentence : theirs(sentence)
+  }
+
   /// D176 · the compact form for a card that has no room for a sentence:
   /// "+2.4" / "level" / "-1.8", against your playing HCP. Same half-open boundary
   /// as `bandName` and `cup_points`, so the short form and the long form can
