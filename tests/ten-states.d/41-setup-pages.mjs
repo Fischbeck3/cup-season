@@ -295,6 +295,25 @@ const courseCircle = (want) => async (page) => page.evaluate((want) => {
   const hist = document.querySelector('#youCourses .cs-course .cs-body-s'), r = door.getBoundingClientRect()
   return r.height >= 43.5 ? true : `the door is ${Math.round(r.height)}px tall`
 }, want)
+/* TEN / W8 · W7-133 [B2-courses-1] · the open course book is the LAST child of You's body: at the desk it runs the body's full width, below both columns (it ran down the left column beside a right one that
+   ended at 'Your bag' ~2,500px above), and from 1280 its lead takes the course page's own two-column shape; on the phone it keeps its place in the phone's sequence, above the doors */
+const courseBookWide = async (page) => page.evaluate(() => {
+  const body = document.querySelector('#view-stats .youbody'), book = body && body.querySelector(':scope > .you-courses')
+  if (!book) return 'the course book is not a child of the body'
+  if (body.lastElementChild !== book) return 'something follows the course book in the body'
+  const b = book.getBoundingClientRect(), y = body.getBoundingClientRect()
+  if (innerWidth >= 960) {
+    if (Math.abs(b.left - y.left) > 1 || Math.abs(b.right - y.right) > 1) return `the open book is ${Math.round(b.width)}px of a ${Math.round(y.width)}px body`
+    const foot = Math.max(body.querySelector(':scope > .youmain').getBoundingClientRect().bottom, body.querySelector(':scope > .youaside').getBoundingClientRect().bottom)
+    if (b.top < foot - 1) return `the book starts at ${Math.round(b.top)}px, above the columns' foot at ${Math.round(foot)}px`
+    const lead = book.querySelector('.cs-course')
+    if (innerWidth >= 1280 && lead && getComputedStyle(lead).gridTemplateColumns.split(' ').length !== 2) return `the lead stacks at ${Math.round(b.width)}px wide: ${getComputedStyle(lead).gridTemplateColumns}`
+  } else {
+    const doors = body.querySelector('.you-doors')
+    if (doors && b.bottom > doors.getBoundingClientRect().top + 1) return 'on the phone the course book sits below the doors'
+  }
+  return true
+})
 const courseCard = (id, courseId, title, want, circle = true) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
@@ -315,14 +334,14 @@ const COURSES = [
     /* TEN / W6 · craft, round 2: at 1280 the lead's left column was 204px and
        the tee <select> clipped its value ("Blue — 70.1 / 121 · 6,4"). The
        select's whole value (plus its arrow) fits at every width. */
-    check: async (page) => page.evaluate(() => {
+    check: all(courseBookWide, async (page) => page.evaluate(() => {
       const s = document.querySelector('#youCourses select[data-cstee]'); if (!s) return true
       const cs = getComputedStyle(s), c = document.createElement('canvas').getContext('2d')
       c.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
       const need = c.measureText(s.options[s.selectedIndex].textContent).width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 24
       const has = s.getBoundingClientRect().width
       return need <= has + 1 ? true : `the tee select clips its value: it needs ${Math.round(need)}px and has ${Math.round(has)}`
-    }) },
+    })) },
   courseCard('card-18', COURSE.wash, 'Course card · an 18-hole card (Mesquite Wash, Black)', 'Mesquite Wash'),
   courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek', false),
   courseCard('card-long-tee', COURSE.long, 'Course card · the longest course and tee name', 'Whispering Fixture Pines'),

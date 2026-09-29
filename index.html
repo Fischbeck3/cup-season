@@ -4427,6 +4427,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 @media(min-width:960px){
   .youbody{display:grid; grid-template-columns:minmax(0,1fr) 340px; column-gap:var(--gutter-desk); align-items:start;}
   .youmain, .youaside{display:block; min-width:0;}
+  .you-courses{grid-column:1 / -1; min-width:0;}   /* W7-133 · below both columns, across both */
   .you-doors{margin-top:0;}
   .youaside .you-seasons > :first-child{margin-top:var(--s5);}
   #view-stats .cred{max-width:440px;}
@@ -6437,19 +6438,6 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <p class="youscope cs-agate-s is-phrase" data-rec="some"><span id="clAvgSub">across rounds that count</span></p>
         </div>
 
-        <!-- ══ D261 / R-N · YOUR COURSES ═══════════════════════════════════
-             The desk's half of the offline course store. It works with no
-             connection because it is drawn from what this device kept, and
-             it says so. BEHIND ITS DOOR (owner Sp/D, craft D): the full book
-             repeated the courses page inline — plates, facts and whole
-             scorecards — and ran the page to 6,410px. -->
-        <div class="you-courses">
-        <details class="youdoor" id="youCoursesDoor" data-courses>
-          <summary class="youdoor-sum"><span class="youdoor-h">Your courses</span><span class="youdoor-n cs-agate-s is-phrase" id="youCoursesN"></span></summary>
-          <p class="fine" id="youCoursesWhat" data-courses style="padding:0 0 8px"></p>
-          <div id="youCourses" data-courses style="text-align:left"></div>
-        </details>
-        </div>
         </div>
 
         <div class="youaside">
@@ -6539,6 +6527,23 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         </details>
         <p class="bagsince" id="youBagLine" hidden></p>
         </div>
+        </div>
+
+        <!-- ══ D261 / R-N · YOUR COURSES ═══════════════════════════════════
+             The desk's half of the offline course store. It works with no
+             connection because it is drawn from what this device kept, and
+             it says so. BEHIND ITS DOOR (owner Sp/D, craft D): the full book
+             repeated the courses page inline — plates, facts and whole
+             scorecards — and ran the page to 6,410px.
+             W7-133 · it is the LAST child of the body, not of the left column: an open book runs the desk body's
+             full width (its lead takes the course page's own two-column shape) instead of down the left
+             column beside a right one that ended at "Your bag" ~2,500px above. -->
+        <div class="you-courses">
+        <details class="youdoor" id="youCoursesDoor" data-courses>
+          <summary class="youdoor-sum"><span class="youdoor-h">Your courses</span><span class="youdoor-n cs-agate-s is-phrase" id="youCoursesN"></span></summary>
+          <p class="fine" id="youCoursesWhat" data-courses style="padding:0 0 8px"></p>
+          <div id="youCourses" data-courses style="text-align:left"></div>
+        </details>
         </div>
         </div>
 
