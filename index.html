@@ -4243,10 +4243,16 @@ body.noleague .league-only{display:none !important;}
 .seasondate{
   font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
-  color:var(--mut); margin:0 0 20px; display:flex; flex-wrap:wrap; gap:0 8px;
+  color:var(--mut); margin:var(--s3) 0 var(--s4); display:flex; flex-wrap:wrap; gap:0 8px;   /* W7-072 · it clears the band above it (it sat flush under it) */
 }
 .seasondate span:empty{display:none;}
 .seasondate span + span:not(:empty)::before{content:"\00B7"; margin-right:8px; color:var(--mut);}
+/* W7-072 · UI_SYSTEM §16.3: an agate line that does not fit breaks on its separators into STACKED lines. At a phone's width the span and the
+   Pro are two lines, and the separator between them goes, so a wrapped line can never begin with a middot */
+@media(max-width:479px){
+  .seasondate{flex-direction:column; align-items:flex-start; gap:var(--s1) 0;}
+  .seasondate span + span:not(:empty)::before{content:none;}
+}
 .seasonctl{display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:0 0 20px;}
 .seasonctl:empty{display:none;}
 .seasonlead{font-family:var(--serif); font-size:21px; line-height:1.34; color:var(--ink); margin:0 0 8px; text-align:left;}
@@ -27173,7 +27179,7 @@ function seasonSpanText(){
   /* setup-QA S2-01: hardcoded "Sun/Sat" survived the v1.1 flexible-start fix
      here — the review labeled a Saturday first tee "Sun". Real weekdays. */
   const s=seasonS(), e=seasonE();
-  return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} \u2013 ${DOW[e.getDay()]} ${MOS[e.getMonth()]} ${e.getDate()} · ${totalWeeks()} wks`;   /* AW2-08 · a span is an en dash (LeagueDates.spanText) */
+  return `${DOW[s.getDay()]} ${MOS[s.getMonth()]} ${s.getDate()} \u2013 ${DOW[e.getDay()]} ${MOS[e.getMonth()]} ${e.getDate()}`;   /* AW2-08 · a span is an en dash (LeagueDates.spanText); W7-072 · and no week count: the eyebrow above it says 'Week 8 of 13' */
 }
 /* Cup Final = the final four weeks, scored fresh (§14.0/§14.3).
    Start = ends_on − 27 days — four whole weeks, whatever the weekday (D213). */

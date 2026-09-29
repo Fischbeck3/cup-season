@@ -139,6 +139,20 @@ const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', { sel: '#
   '#scenarioLine', { sel: '#lineSplit', below: 960 }, { sel: '#homeSeason .ontheline .ok', below: 960 }, '#seasonArc .arcrow .aw', '#nextK', '#albumGrid .almonth', '#feedList .datesep',
   '.trip .p span', '.trip .p b', '#potMath', '.potgrid .purse .k', '#hubMembersSub', '#hubDraftSub', '#room-league .check .tt small', '#seasonMore',
   { sel: '#seasonJump button', below: 960 }, { sel: '.tabbar .tab', below: 960 }]
+/* TEN / W8 · W7-072 [A2-season-9] (D's delta at e78d7f22) · the season dateline is a span of two dates and the Pro, agate. It carries no week count
+   (the eyebrow above it says 'Week 8 of 13'), it clears the ember band above it (s3, 12px), and below 480px its two spans are stacked with no
+   separator between them, so a wrapped dateline can never begin with a middot */
+const datelineOk = async (page) => page.evaluate(() => {
+  const line = document.querySelector('.seasondate'), span = document.getElementById('hhSpan'), pro = document.getElementById('hhPro'), band = document.getElementById('seasonScoreboard')
+  if (!line || !span || !pro || !(span.getBoundingClientRect().width > 0)) return 'the season dateline is not drawn'
+  const t = span.innerText.replace(/\s+/g, ' ').trim()
+  if (!/^[A-Z]{3} [A-Z]{3} \d{1,2} \u2013 [A-Z]{3} [A-Z]{3} \d{1,2}$/.test(t)) return `the dateline's span reads ${JSON.stringify(t)} (two dates, no week count)`
+  const bandBox = band.getBoundingClientRect()
+  if (bandBox.height > 0) { const gap = line.getBoundingClientRect().top - bandBox.bottom; if (gap < 11.5) return `the dateline sits ${Math.round(gap)}px under the band (s3 is 12)` }
+  const a = span.getBoundingClientRect(), b = pro.getBoundingClientRect(), sep = getComputedStyle(pro, '::before').content
+  if (innerWidth < 480) return b.top >= a.bottom - 1 && sep === 'none' ? true : `at ${innerWidth}px the dateline is not stacked without a separator (span bottom ${Math.round(a.bottom)}, Pro top ${Math.round(b.top)}, separator ${sep})`
+  return sep === 'none' ? 'the separator between the span and the Pro is gone above 480px' : true
+})
 const SEASON = [
   { family: 'season', id: 'narrative', variant: 'member', title: 'The season page, its head: North Grove in week 8 and the story line', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
@@ -164,7 +178,7 @@ const SEASON = [
         if (/[\u2192\u2197\u2190]/.test(a.textContent)) return `the story link carries a typed arrow: ${JSON.stringify(a.textContent)}`
         return cs.borderBottomWidth === '2px' && cs.borderBottomColor === act ? true : `the story link has no 2px act rule under it (${cs.borderBottomWidth} ${cs.borderBottomColor})`
       }),
-      has('#seasonLead', 'Fixture (Javelinas|Wrens)', 'the story line'),
+      has('#seasonLead', 'Fixture (Javelinas|Wrens)', 'the story line'), datelineOk,
       async (page) => page.evaluate(() => window.seasonStory && window.seasonStory.season && window.seasonStory.season.id === 'f4000000-0000-4000-8000-000000000011' ? true : 'season_story did not answer for North Grove')) },
   { family: 'season', id: 'leaderboard', variant: 'member', title: 'The season page, the table: two squads, the clash, every golfer', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
