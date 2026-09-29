@@ -295,6 +295,29 @@ final class SyntheticRouteTests: XCTestCase {
     XCTAssertFalse(mark(app, "composer").exists)
   }
 
+  /// W7-039 · ONE primary on a plan: the host (or a golfer who has answered)
+  /// has "Tee it up" leading the RSVP row; a golfer who owes an answer has
+  /// "I'm in" first, and "Tee it up" beneath the row as a text door.
+  @MainActor func testPlanSheetLeadsWithOnePrimary() {
+    for (detail, owes) in [(nil, false), ("asked", true)] as [(String?, Bool)] {
+      let app = launch("season-live", "plan", detail)
+      XCTAssertTrue(mark(app, "plan").waitForExistence(timeout: 30), "the plan opens")
+      let teeUp = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Tee it up")).firstMatch
+      let imIn = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "I\u{2019}m in")).firstMatch
+      XCTAssertTrue(teeUp.waitForExistence(timeout: 10), "Tee it up is offered")
+      reveal(teeUp, in: app)
+      reveal(imIn, in: app)
+      XCTAssertTrue(imIn.exists, "and the answer")
+      if owes {
+        XCTAssertGreaterThan(teeUp.frame.minY, imIn.frame.maxY, "owed an answer, Tee it up sits beneath the RSVP row")
+      } else {
+        XCTAssertLessThan(teeUp.frame.maxY, imIn.frame.minY, "the host's Tee it up leads")
+      }
+      attach(app, "w7-039-plan-\(owes ? "owes" : "host")")
+      app.terminate()
+    }
+  }
+
   /// The share preview opens from the receipt and closes without sharing. It
   /// opens at once, before the round's photograph has come (it waited for
   /// the photograph, and root's run at a3f7bcad saw the tap sit past 10s).

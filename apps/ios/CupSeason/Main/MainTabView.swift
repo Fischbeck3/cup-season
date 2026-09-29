@@ -1371,7 +1371,8 @@ struct MainTabView: View {
     case "receipt-broken": presenter.receipt = fid(4_003)
     case "receipt-withdrawn": presenter.receipt = fid(4_005)
     case "receipt-other": presenter.receipt = fid(4_101)
-    case "plan": presenter.scheduledRound = fid(7_001)
+    // `plan asked` · a buddy's plan the viewer owes an answer on (W7-039)
+    case "plan": presenter.scheduledRound = fid(detail == "asked" ? 7_003 : 7_001)
     // `declare join` · a buddy's plan, got in on — the sheet's "You're in" line
     case "declare": presenter.declare = DeclarePrefill(hostName: detail == "join" ? "Blake" : nil)
     case "tourcard": presenter.tourCard = detail == "other" ? blake : store.me?.profile?.id
