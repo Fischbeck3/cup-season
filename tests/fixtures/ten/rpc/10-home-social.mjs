@@ -724,9 +724,12 @@ export default function install(W) {
     const leagueNames = myMemberships().filter((lm) => membersOf(lm.league_id).some((m) => m.profile_id === opp)).map((lm) => leagueOf(lm.league_id).name).sort()
     const ss = sharedSeasons(opp)
     const meetings = []
-    /* facet 1 · season weeks */
-    const wm = weekly(ME, ss), wo = weekly(opp, ss)
-    for (const [k, mp] of wm) if (wo.has(k)) { const o = wo.get(k); meetings.push({ on: k.split('|')[1], settled: true, won: mp > o ? true : mp < o ? false : null, facet: 'season_weeks', heuristic: false, confirmed: true }) }
+    /* facet 1 · season weeks — W7-002 (20261212090000): a week both posted is
+       ONE meeting, however many seasons the two share; each golfer's figure is
+       their best across those seasons, as myRivalries collapses them above */
+    const perWeek = (m) => { const out = new Map(); for (const [k, v] of m) { const wk = k.split('|')[1]; out.set(wk, Math.max(out.has(wk) ? out.get(wk) : -1e9, v)) } return out }
+    const wm = perWeek(weekly(ME, ss)), wo = perWeek(weekly(opp, ss))
+    for (const [wk, mp] of wm) if (wo.has(wk)) { const o = wo.get(wk); meetings.push({ on: wk, settled: true, won: mp > o ? true : mp < o ? false : null, facet: 'season_weeks', heuristic: false, confirmed: true }) }
     /* facet 2 · settled clashes */
     const memIds = new Map(T.league_members.filter((m) => m.profile_id === ME || m.profile_id === opp).map((m) => [m.id, m.profile_id]))
     for (const c of (T.week_clashes || []).filter((x) => x.settled_at && memIds.has(x.a_member) && memIds.has(x.b_member) && memIds.get(x.a_member) !== memIds.get(x.b_member))) {
