@@ -108,6 +108,18 @@ const CORE = [
       return tert !== true ? tert : noRetiredGlyph()(page)
     } },
 
+  /* TEN / W8 · W7-114 · the gate's 'Sign out' is the LOCAL sign-out (this surface only, as Settings' 'Sign out of this browser'): it sends the logout with scope=local, and the page reloads (the harness seeds the
+     session again on every load, so the gate shows again: what is proven is the request, as B's note says) */
+  { family: 'onboarding', id: 'card-gate-signout', variant: 'no_card', short: true,
+    drive: async (page) => {
+      const req = page.waitForRequest((r) => /\/auth\/v1\/logout/.test(r.url()), { timeout: 8000 })
+      await page.locator('#pfSignOut').click({ timeout: 8000 })
+      globalThis.__w8Logout = (await req).url()
+      await page.waitForTimeout(1500)
+    },
+    expect: { door: true, selectors: { '#obProfile': 'visible', '#pfSignOut': 'visible' } },
+    check: async () => /[?&]scope=local\b/.test(globalThis.__w8Logout || '') ? true : `the gate's Sign out sent ${JSON.stringify(globalThis.__w8Logout)}, not a local logout` },
+
   /* ------------------------------------------------------------ home */
   /* TEN / W6 · AW2-13: the header and the tab bar sit on the page's own ground — no glass */
   { family: 'home', id: 'member', variant: 'member', expect: { view: 'view-home' }, check: noRetiredShape() },
