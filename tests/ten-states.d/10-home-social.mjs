@@ -145,7 +145,9 @@ const HOME_LEAGUELESS = [
     expect: { view: 'view-home' }, check: all(leadShown('first round.*add my round'), meStripBrandNew) },
   { family: 'home', id: 'league-less-rounds_no_buddies', variant: 'rounds_no_league', title: 'Home signed in, S2 rounds and no buddies (no league): the dispatch lead; the hero stands down',
     drive: async (page) => { await until(page, () => /nobody has seen it/i.test((document.getElementById('homeLead') || {}).innerText || ''), null, 10000); await page.waitForTimeout(300) },
-    expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown, async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'my own rounds are not in the feed')) },
+    expect: { view: 'view-home' }, check: all(leadShown('nobody has seen it.*find golfers'), meStripShown,
+      /* TEN / W8 · W7-076 [A2-home-15]: the rail's door names the verb every other surface prints: 'Plan a round', not 'Plan one' */
+      async (page) => page.evaluate(() => { if (innerWidth < 960) return true; const a = document.querySelector('#sideMe [data-mego="plan_one"]'); return a && a.textContent.trim() === 'Plan a round' ? true : `the rail's plan door reads ${JSON.stringify(a && a.textContent)}` }), async (page) => page.evaluate(() => document.querySelectorAll('#homeFeed [data-hfr]').length > 0 ? true : 'my own rounds are not in the feed')) },
 ]
 
 /* (c) the dispatch this world's own facts produce. The expectation is

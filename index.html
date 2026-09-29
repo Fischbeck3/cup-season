@@ -477,7 +477,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    and the last round. The page's print is the object; the chrome stands down.
    W7-009 · and You's Form row and Recent rounds open on the last round; the
    schedule's empty state and its "Put a round on the schedule" carry planning
-   (so "Plan one" stands down); an empty record says the first round is
+   (so "Plan a round" stands down); an empty record says the first round is
    missing and holds the door (so the sidebar's sentence and its door go).
    The door goes whether or not the strip also holds a season row or dues (a
    golfer seated in a season with no rounds has both), and its row with it. */
@@ -24019,7 +24019,7 @@ function csRailCell(s){
      (`HomeWireCopy.railCell`) and never shows NEXT, which has its own row.
    · A PLACEHOLDER IS NEVER A VALUE (L-44, §9.9). `— BUILDING`, `NO ROUNDS YET`
      and `PLAN ONE` were doors wearing a slot's clothes. On the desk a missing
-     round is a quiet door ("Add my round", "Plan one"); when EVERY slot is a
+     round is a quiet door ("Add my round", "Plan a round"); when EVERY slot is a
      placeholder the block is one sentence with one door — TERMINOLOGY §2's own
      line, "Your number builds itself from three posted rounds." On the phone
      the strip filters placeholders and stands down when nothing is left, which
@@ -24047,7 +24047,7 @@ function renderMeStrip(){
   const real = strip.slots.filter(s => !s.ph);
   const rail = real.filter(s => s.fact === 'my_number' || s.fact === 'my_money');
   const dated = real.filter(s => s.fact === 'my_last_round' || s.fact === 'my_next_round');
-  const doorFor = { my_last_round:['add_round', CS_ME_EMPTY.door], my_next_round:['plan_one', 'Plan one'] };
+  const doorFor = { my_last_round:['add_round', CS_ME_EMPTY.door], my_next_round:['plan_one', 'Plan a round'] };   /* W7-076 · the verb every other surface prints ('Plan a round'), not 'Plan one' */
   const doors = strip.slots.filter(s => s.ph && doorFor[s.fact]).map(s => doorFor[s.fact]);
   /* the league's name is the foot's (`#sideLeague`, one step down): the
      sidebar's season row starts after it rather than saying it twice */
