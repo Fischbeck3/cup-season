@@ -259,11 +259,11 @@ struct SeasonPage: View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
       if model.clock.isCupFinal && !model.isComplete && (model.cupRace?.isLive ?? false) {
         // D105: the race leads while its window is open; the season table is
-        // the seed beneath it, under its own head.
-        CSSectionHead("The Cup Final", count: "top two")
-          .csGutter()
-          .id(SeasonPane.table.anchor)
+        // the seed beneath it, under its own head. N4-100 · the race draws its
+        // own head (THE CUP FINAL · 17 DAYS LEFT), so the page draws none above
+        // it: two consecutive heads of one name were one object said twice.
         CupFinalRaceView()
+          .id(SeasonPane.table.anchor)
         CSSectionHead("The weeks before the Final", count: fieldCount)
           .csGutter()
       } else {
