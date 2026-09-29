@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | the round-1 evidence: web `9d84c483` (captures at `02636007` and `9d84c483`) and native `4112a3f0`. Source and canon were read at `de3eaf35`, and the web's current behaviour at `4a703402` wherever a lane changed it. |
-| **Status read at** | **`fd27ace4`**, the web ship candidate. Every lane (W1–W6) is merged. |
+| **Status read at** | **`144ee0b0`** on integration: every lane (W1–W6), root's fixes through `7141516f`, and E's native phase 1 (`6716b0ed`). The web shipped as `272c2da1`. |
 | **Date** | 2026-09-28 |
 | **Assessors** | The owner rules; this memo, by session C (docs), only recommends. The evidence behind it: the panel's **category**, **craft** and **owner** judges, critiques **A** and **B**, audit **AW** and detector **DX**, plus the questions lanes W2–W5, session B and N2 forwarded through root. Four read-only research passes gathered the canon; none of them scored anything. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/` (`panel/`, `critique-A/`, `critique-B/`, `audit-web/`, `detector/`, `SESSIONS.md` §C) and root's messages of 2026-09-28 |
@@ -24,10 +24,43 @@ Settled items are recorded as settled, with the commit that settled them. A defe
 - a decision-log entry written before it is built (CLAUDE.md rule 5);
 - for a migration, the owner's `supabase db push`, which is always a separate deploy from the client's `git push`.
 
+## 0 · Decide today: this one takes effect on Oct 1
+
+### Q31 · The phone's default look on launch day (DEC-N4-2): Fall from Oct 1, or Fescue?
+**Why it is urgent.** The phone's look dial defaults to the calendar, and the calendar's Fall window opens on Oct 1. On launch day every new golfer's ordinary actions take Fall's accent. Session A measured it at ΔE76 16 from ember in the light theme, close enough that the ordinary action reads as the competition signal. Two Teams paints its panels near `neg`.
+
+**The question.** Launch with the dial defaulting to Fescue (homebase) until Fall and Two Teams are re-cut, or accept the looks as they are?
+
+**What the source says.**
+- `PersonalLook.default` is `.calendar` (`CupSeasonKit/Looks/LookResolver.swift`, D103a, IOS-025).
+- `PersonalLook(rawValue:)` also maps a missing stored value to `.calendar`. **A golfer who never touched the dial gets the calendar through that path**, so the change must reach it, not only `default`.
+- `.none` is "Fescue only".
+- The web has no personal looks. Its "fall" entry is a Home occasion (an invitation to a fall Major), not a palette. This is a phone-only change.
+
+**Canon.**
+- D359: a personal look may style the ordinary action (`act`), but "may not repaint the reserved competition signal, earned gold or the semantic colours".
+- D313 (the looks).
+- BRAND-02 in preflight: a calendar look may take no reserved value. It checks tokens, not perceptual distance, which is how Fall passes it.
+- Session A's DEC-N4-2 (`evidence/native/N4-WORKLIST.md` §5), from critique B's season finding.
+
+**Options.**
+- **(a) Re-cut Fall's and Two Teams' accents** in `packages/tokens`, regenerate both clients' tokens, and add a perceptual floor to BRAND-02. That is palette work with a generated-Swift change, the day before launch.
+- **(b) Default the dial to Fescue for Oct 1:** a missing stored value resolves to `.none`, and `default` follows. A one-line change on the phone, plus a Kit test; golfers who chose a look keep it. Then (a) after launch.
+- **(c) Accept the looks as they are.**
+
+**Recommendation: (b), today.**
+- It is the smallest change that keeps D359's signal readable on launch day, and it touches no palette.
+- It needs a phone build: TestFlight 1324 is being archived from `144ee0b0` without it.
+- So the ruling decides whether 1324 is the launch build or whether E makes the change and a new build is archived.
+
+**Blocked until ruled:** N4-105; which build ships on Oct 1.
+
 ## Rule these first
 These block work in flight or define the gate.
+0. **Q31, the phone's default look on launch day** (§0 above).
 1. **Q9, how the gate counts ceilings.** Round 2 is scored on the answer.
 2. **X38, public privacy.** The one data exposure, and it needs a migration.
+   - **X42 (§D)** is round 2's top open item (category P0, owner P1). It needs a migration written and your `db push`.
 3. **X37, the owner and the pilot crew in the product.** Real people on a public page and in a public repo.
 4. **Q24 and Q25, the wordmark and the button label.** Session B's lockup and CTA grammar have landed everywhere else; the Door and the in-app `.btn` wait on these.
 5. **Q1, the recap's double strip.** Lane N4 is on the recap now.
@@ -45,10 +78,10 @@ These block work in flight or define the gate.
 | X40 | "7.9 vs course" on a personal best | decision | "83 at ‹course› · ‹date›", printed once; the differential stays on the receipt | freeze |
 | Q1 | The live recap draws its hole strip twice | decision | Keep the card's strip, with one visible footer line and the chips under it | freeze (N4) |
 | Q2 | Two-squad "cut" wording | defect + one canon conflict | The covenant line is not live; fix nine producers; make TERMINOLOGY rows 11, 141 and 142 structure-aware | freeze |
-| Q3 | GuideCopy's third wording of the minimum | defect (recorded); web fixed (5777f011) | The league's `floorSentence`; the phone is N4's | no ruling needed |
+| Q3 | GuideCopy's third wording of the minimum | fixed on both clients (5777f011, 1a0703c8) | — | — |
 | Q4 | The Pro's Home is a member's Home | decision | Build D226's ranked Pro item after launch; correct CLAUDE.md's claim now | after launch |
 | Q5 | Where the build stamp lives | decision | Hidden on the Door, off the sidebar, kept in Settings | freeze |
-| Q6 | A specimen on the phone Door | decision | Keep the phone Door as it is; real permissioned examples later | after launch |
+| Q6 | A specimen on the phone Door (the desk wings are fixed: labelled, and still since 7141516f) | decision | Keep the phone Door as it is; real permissioned examples later | after launch |
 | Q7 | The line that signs the Door and shared artifacts | decision | "Where amateur golf counts", by the vision's own rule | freeze |
 | Q8 | One colour for round points | settled (W4, UI_SYSTEM §2.4) | — | — |
 | Q9 | How the gate counts content, genre and device-or-human cells | decision | Every defect cell to 9; name each ceiling per cell; report two means | before round 2 |
@@ -73,6 +106,13 @@ These block work in flight or define the gate.
 | Q28 | Wizard presets; the desk's empty Compete | decision | Keep W5's dials; leave empty Compete with its one door | after launch |
 | Q29 | At AX3 the Ryder room's side roster scrolls sideways | defect (recorded) | Stack the sides (§16.3), in lane N4 | no ruling needed |
 | Q30 | A chasing golfer's lead door | decision | "Add my round", with Q10's and Q4's ranker work | after launch |
+| **Q31** | **The phone's default look on Oct 1 (DEC-N4-2)** | **decision, urgent** | **Fescue by default until Fall and Two Teams are re-cut** | **today** |
+| Q32 | Toolbar Close at about 42.6pt in partial-detent sheets | decision | Accept as device-or-human with a thumb test, as root has | any time |
+| Q33 | The when-fork's "Right now" in ember (DEC-N4-3) | decision | Ink; nothing is live yet | freeze |
+| Q34 | Three canon tensions (DEC-N4-5) | decision | Names wrap (1); (2) and (3) are yours | any time |
+| Q35 | The Cup Final's one sentence (DEC-01) | decision | "Scored fresh" plus the counting-limit clause | freeze |
+| Q36 | Does a live moment keep an ember rail? | decision | Retire it; the dot and eyebrow say live | freeze |
+| Q37 | Whose words, when canon names none (DEC-COPY) | decision | The Kit's, where it is the older producer | any time |
 
 "freeze" means before the Sep 30 visual freeze, because the answer changes words or layout on both clients.
 
@@ -135,7 +175,9 @@ These block work in flight or define the gate.
 - The parity defects need no ruling and go to lanes: the phone's "‹FIRST› LEADS" against the web's THEY LEAD, and the phone fallback's contradictory lead (N4).
 - So does `head_to_head`'s season-week dedupe, a migration the owner pushes when convenient.
 
-**Blocked until ruled:** the owner judge's P1 (PANEL.md #15); the "weekly clash" wording on both clients; You's rivalry row on the phone, which opens a page with a different number.
+**Round 2:** the owner judge raises it again as a P1, "unchanged since round 1", and the category judge as a P2 (PANEL.md, Round 2).
+
+**Blocked until ruled:** the owner judge's P1 (PANEL.md #15, and round 2's); the "weekly clash" wording on both clients; You's rivalry row on the phone, which opens a page with a different number.
 
 ### X37 · The owner's own identity in the product
 **The question.** The web demo diorama's "you" is the owner, with the owner's first name, @handle, city and home course, cast as the Pro and the founder. The crew around that "you" carries real pilot golfers' first names, and several placeholders use the owner's home course and league. Keep the owner (and the crew) in the product, or recast with fictional golfers?
@@ -147,8 +189,7 @@ These block work in flight or define the gate.
     1. `?cs_home_state=<anything>`: the D259 hatch's boot lifts the Door whenever the query key is present. Its own comment says it "cannot exist in production" because its fixture fetch 404s there, but the Door lift does not wait for the fetch.
        - Found by session C, read from the code.
        - Root confirmed it on a prod-like server (no `tests/`): `cf401dee` lifted the Door.
-       - **Fixed (45d40eb3):** the hatch now lifts the Door only when its fixture was served, and otherwise keeps it up with the shell inert.
-       - **The exposure is live on cupseason.app until the ship.**
+       - **Fixed (45d40eb3), and shipped.** The hatch lifts the Door only when its fixture was served, and otherwise keeps it up with the shell inert. Web `272c2da1` is live, and root's production smoke shows the Door stays up with the query key. The exposure ended at that ship.
     2. The up-to-3s window while a returning session's Door waits hidden (69f40d1f). Unverified.
     3. View-source: `index.html` ships whole.
   - The keyboard path behind the Door is closed: covers make the app inert (38471687).
@@ -158,7 +199,11 @@ These block work in flight or define the gate.
   - The Door wings' example rows use real local course names, including the owner's (D84's named debt).
   - The shipped static pages carry the operator company (which bears the owner's surname), a contact address and the owner's city (`legal.html`, `get.html`, `support.html`).
 - **Fixed since:** the golfer card's handle placeholder is now "@yourname" (W2, 35b4f475). The phone's was always generic.
-- **The phone.** N2's 7388e04e replaced the owner's name in one DEBUG fixture. A sibling DEBUG hatch (`-cs_dev_nearby_invite`, `LiveRoundStore.swift:291`) still sends it. Several preview-only and DEBUG fixtures carry the owner's or pilot golfers' identities, including `HomeStateFixtures.swift`, which is generated from `tests/fixtures/home-states.json`.
+- **The phone** (session A's DEC-N4-1).
+  - **Two user-visible lines ship:** the feedback line that names the owner (`FeedbackSheet.swift:53`), and the Major setup's placeholder, which is the real beta league's name (`MajorSetupSheet.swift:79`).
+  - Ten more lines compile into Release as sample data (`PricingParts.swift:117`, and `SeasonPreviews.swift` nine times). 285 comment, DEBUG, preview and test lines carry the identity too; `evidence/native/work-x37-native.json` lists them by file, line and term type only. E counts 57 Swift files.
+  - A recommends keeping the feedback line, replacing the Major placeholder with a prompt ("Name the jug"), and recasting the sample data and previews with cast golfers.
+  - N2's 7388e04e replaced the owner's name in one DEBUG fixture. A sibling DEBUG hatch (`-cs_dev_nearby_invite`, `LiveRoundStore.swift:291`) still sends it. Several preview-only and DEBUG fixtures carry the owner's or pilot golfers' identities, including `HomeStateFixtures.swift`, which is generated from `tests/fixtures/home-states.json`.
 - **The public repo.** Canon files and tests also print identity: CLAUDE.md, a TERMINOLOGY row, and tests (`tests/app-tests.js`; the phone's `ShareKindTests.swift:97` pins a real first name, as session B's report notes). LEDGER X37 no longer does (ba6935a5).
 
 **Canon, and where it conflicts.**
@@ -182,7 +227,7 @@ These block work in flight or define the gate.
 - **(4) Minimal: fix only what a real user sees.** The placeholders, the feedback line and the wings' courses on both clients; leave the unreachable diorama.
 
 **Two defects under every option:**
-- Gate the `?cs_home_state` hatch so it lifts the Door only when its fixture is served (D259; client only). **Fixed (45d40eb3).**
+- Gate the `?cs_home_state` hatch so it lifts the Door only when its fixture is served (D259; client only). **Fixed (45d40eb3) and shipped (272c2da1).**
 - Replace the pilot golfers' first names wherever a user or a capture can see them (PRODUCT.md).
 
 **Recommendation: (1), with the feedback line left to the owner's taste.**
@@ -317,6 +362,8 @@ These block work in flight or define the gate.
 - It resolves D291's duplicate-sentence worry by printing the shared line once.
 - It is copy on both clients.
 
+Session A counts the phone's twins as detector findings TPN-35 (the composer, for a golfer with no number) and TPN-36 (the trophy line, `TrophyMeta.swift:135`), and leaves the ruling to the owner.
+
 **Blocked until ruled:** the owner identity R cell; the PB slat's producers and their tests on both clients; the D291 amendment.
 
 ## B · Raised since the ledger (SESSIONS §C)
@@ -345,6 +392,8 @@ N2's `1a33a6aa` reported the double strip "for a D360 decision, not changed here
 - **(2) As (1), but keep the footer visible as one agate line with the chips under the card,** and in its label. Every fact appears once, and D90 and D277 both hold. Phone only; a short entry applying D360 to the recap.
 - **(3) Take the card out of the recap.** Keep it only as the Share preview; the phone matches the web. Reverses D277 and §11.3.
 - **(4) Keep both as a named exception** ("the artifact shown as an object, and the in-app reading"), and at least drop the repeated legend. An entry recording the exception to D360.
+
+Session A's DEC-03 carries the same question and leaves it to the owner.
 
 **Recommendation: (2).**
 - It is the only option that says every fact once without deleting one.
@@ -389,7 +438,9 @@ Rows 1–4 and 6–9 are client copy for the web (root/W6) and N4. Row 5 is a mi
 **Blocked until ruled:** only the TERMINOLOGY amendment. The defects can start now.
 
 ### Q3 · GuideCopy states the monthly minimum a third way (a defect; recorded)
-**Status: a defect on both clients with a ruled fix. No owner ruling is needed.** The web half is **fixed (f6cb4760: 5777f011)**: "What counts" prints `floorSentence()` when a league is in hand, and keeps its general account without one. The phone half (`GuideCopy` → `LeagueCopy.floorSentence`) is lane N4's.
+**Status: a defect on both clients with a ruled fix. No owner ruling is needed.** **Both halves are fixed:**
+- the web (f6cb4760: 5777f011): "What counts" prints `floorSentence()` when a league is in hand, and keeps its general account without one;
+- the phone (6716b0ed: 1a0703c8): `GuideCopy` states the league's `floorSentence`, fed from the season page, the join welcome and Card & settings, with two new `FloorSentenceTests`.
 
 **What the source says.**
 - The scoring guide (the phone's `GuideCopy.scoring(solo:)`, the web's `openScoringHelp`) says "Miss it once and your bye covers you automatically … the penalty bites from the second miss". It is word for word on both clients, and it never sees the league's floor or preset.
@@ -486,7 +537,11 @@ Rows 1–4 and 6–9 are client copy for the web (root/W6) and N4. Row 5 is a mi
 These are the panel's `decision` cells: 32 of the 649 web cells below 9, and the native half's 15 (root, 2026-09-28), which mostly repeat web questions and add Q29 and Q30. They also include the questions lanes W2–W5, session B and N2 forwarded through root. LANE-BRIEF tells every lane to list a decision rather than make it.
 
 ### Q6 · The Door's proof: does the phone Door carry a specimen too?
-**Status.** The defect is fixed. W4's `2bc71749` (merged at `b8a61266`) turned the desk wings into labelled examples: "How a round reads", "How a season reads", an example-season foot. They stand down on a link landing, with no retired spine and no ember points. What is left is a design choice for the phone.
+**Status.** The defect is fixed, in two steps.
+- W4's `2bc71749` (merged at `b8a61266`) turned the desk wings into labelled examples ("How a round reads", "How a season reads", an example-season foot), standing down on a link landing.
+- They still ticked. Round 2 (session D) caught it, and root stilled them at `7141516f`. An earlier version of this memo called the labels the whole fix; it was not.
+
+What is left is a design choice for the phone. Round 2's category judge still marks "The phone Door still shows no product" (P2).
 
 **The question.** Should the phone Door, which shows only the mark, the promise and the sign-in, carry one labelled specimen of the game as the desk does?
 
@@ -572,6 +627,7 @@ These are the panel's `decision` cells: 32 of the 649 web cells below 9, and the
 - The harness's own fixture note (`tests/fixtures/ten/home-states.synthetic.json`, `event_ahead`): "The ranker has no event item and no event route." `home_dispatch` has fifteen item kinds, and the phone's `HomeDispatch.Route` has no `.event` case.
 - W3 forwarded all three as questions.
 - Root adds that the clash lead is the server's own sentence: `home_dispatch`, `20261006093000:243`.
+- Round 2's owner judge repeats it as a P2: the lead "never says who holds the week … while the season page shows YOU 9 · DEVON 7".
 
 **Canon.** D234 (the server ranks Home for both clients); D176 and D216 (the lead card's rungs); D108 and D207 (the clash); D254's metal rule (a rivalry record taken off somebody is gold). Neither the withheld holder nor the text-only crown is ruled in the entries this memo read.
 
@@ -853,7 +909,7 @@ Each is a TERMINOLOGY §2.2 amendment with a decision entry, and no migration.
 - (3) Keep "Share the card", and amend T-01 to allow the artifact.
 - (4) "Share the scorecard" on the receipt only.
 
-**Recommendation: (1),** and fix the web ceremony to share through `csShareRound` (the card and the link), with one share door per posted round.
+**Recommendation: (1),** and fix the web ceremony to share through `csShareRound` (the card and the link), with one share door per posted round. Session A's DEC-02 recommends the same wording, by T-01.
 - It is what D380 shares, and it cannot be read as the golfer's card.
 - The web epilogue already says it.
 - A copy entry, with no migration.
@@ -1014,6 +1070,96 @@ At accessibility sizes the phone's `CSSideRoster` (the two named groups of UI_SY
 
 **Blocked until ruled:** the owner native home H cell.
 
+### Q32 · Toolbar Close at about 42.6pt in partial-detent sheets
+**The question.** On iOS 26 a sheet at a partial detent is drawn inset and scaled (386/402 = 0.960). Every such sheet's toolbar Close therefore lands at about 42.6pt on the glass, under the 44pt floor: `RateCourseSheet`, and the `.medium` sheets that use `csCloseButton`. E fixed the inline Closes with a 48pt target (`.fittedSheet`, 7ad93aef). A toolbar item is sized by the system. Accept it, or move those sheets' dismiss inline?
+
+**Canon.** UI_SYSTEM §16.2 (44pt targets); Apple's own toolbar sizing; HUMAN.md's device rows.
+
+**Options.**
+- (a) **Accept as a device-or-human item**, named in HUMAN.md, with a thumb test on a device. Root has accepted it on those terms.
+- (b) Move those sheets' dismiss inline, with the `.fittedSheet` 48pt target.
+
+**Recommendation: (a) for Oct 1, then (b) if the device test misses.** The shortfall is the platform's scale, measured, not a drawn control. An inline Close changes each sheet's layout the day before launch.
+
+**Blocked until ruled:** nothing on the launch path.
+
+### Q33 · Does "the live act keeps ember" (L-40) cover the when-fork's "Right now" before any round is live? (DEC-N4-3)
+**The question.** The phone's `IntentSheet` cites L-40 to paint "Right now" in ember, before any round exists. Both critics read D359 as ink until a round is live. Which holds?
+
+**Canon.** L-40; D359/F11 (ember is active competition); UI_SYSTEM §16A.6.
+
+**Options.**
+- (a) Ink for both answers: nothing is live on the fork.
+- (b) Keep ember on "Right now", as the source reads L-40.
+
+**Recommendation: (a),** as session A recommends. Ember arrives with the live round, and a choice between two ordinary actions is not competition. Phone only (`IntentSheet.swift:117-120`); the web has no fork.
+
+**Blocked until ruled:** N4-113; part of TPN-17.
+
+### Q34 · Three canon tensions the native detector found (DEC-N4-5)
+**The question.** Three pairs of rules disagree. Which one governs in each pair?
+1. UI_SYSTEM §9.1 keeps "abbreviate first, ellipsis last" for the slat and the Book, while the program brief and SESSIONS §5 say long names wrap whole.
+2. §10.1 puts one brand (ember) dot on the course contour's hardest hole, against D359/F11 (ember for competition and identity only).
+3. §16.2's carve-out for the star rail, against D289, which put one-tap rating on a rail with no stepper beside it.
+
+**Options.**
+- (a) The newer rule governs each time: names wrap; ember leaves the contour dot; the star rail's targets meet 44pt.
+- (b) The older section stands, with a recorded exception.
+
+**Recommendation: (a) for (1),** since the program brief rules it and N4-086 already assumes it. (2) and (3) are yours, and nothing is blocked today. Of the two, I lean to (a) on (2), because D359 is the colour ruling the rest of the product now obeys.
+
+**Blocked until ruled:** N4-086 (on (1)); nothing else today.
+
+### Q35 · The Cup Final's one sentence (DEC-01)
+**The question.** The Cup Final is stated two ways. Which sentence states it everywhere?
+- "Scored fresh": spec §14.3, D126, the endgame line, the phone's covenant.
+- The monthly-counting disclosure: D212 and D346, in both agreements.
+
+**Canon.**
+- D346 records the CONFLICT: the engine ranks the Final by the monthly cap, not fresh. It leaves a truly fresh Final to the owner.
+- Spec §14.3; D126; D212.
+
+**Options.**
+- (a) Keep "scored fresh" and add the counting-limit clause wherever the Final is stated, which is true of today's engine.
+- (b) Retire "scored fresh" for the counting-limit wording everywhere.
+- (c) Make the Final genuinely fresh: a mechanic change, with a decision entry first and a migration.
+
+**Recommendation: (a),** as session A's parity pass recommends. It is the only option true today with no mechanic change, and its words land on both clients through the endgame producers.
+
+**Blocked until ruled:** N4-200's and N4-208's Final words, and their web halves; `tests/fixtures/endgame.json` regenerates.
+
+### Q36 · Does a live moment keep an ember rail?
+**The question.** The board's moment rows keep a 3px ember rail: the web's `.momrow`, whose comment says "a live moment keeps its ember rail", and the phone's `MomentRow`, which draws it on every moment, including a personal best or a buddy request (TPN-19). UI_SYSTEM §0.3 retired the card spine, and D359 reserves ember for competition. Keep the rail for live moments, or retire it?
+
+**Evidence.** DX's TP-09 leaves `.momrow` open at `fd27ace4` (DETECTOR.md), and DXN's TPN-19 finds the phone's rail on every moment.
+
+**Canon.** UI_SYSTEM §0.3 ("The 3.5pt spine leaves the card edge and becomes the 44pt rank rail"); D359/F11; D265 and D266 (the spine's retirement).
+
+**Options.**
+- (a) Retire the rail on both clients. A live moment says so with the ember dot and an agate eyebrow, as W3 did for Home's hero (ffdcd6b4) and W1 for the live cards (ab687232).
+- (b) Keep a rail for live moments only, as a named exception in §0.3. The phone's rail on non-live moments goes either way.
+- (c) Keep it as it is.
+
+**Recommendation: (a).** It finishes the retirement both clients have already carried out everywhere else, and it removes the one place ember marks something that is not competition (the phone's personal-best moments).
+
+**Blocked until ruled:** TP-09's last rule; TPN-19.
+
+### Q37 · Whose words, when canon names none? (DEC-COPY)
+**The question.** Where the two clients say one fact two ways and no ruling picks the words, whose words become the one producer's?
+
+**Where it applies** (session A's parity pass): Home's fallback eyebrows, Compete's empty head with buddies, You with no rounds, the Ryder taunt's on-state, the season-two invitation row, and the season clash head.
+
+**Canon.** D234 (one set of producers); L-34.
+
+**Options.**
+- (a) The Kit's words, pinned in both suites.
+- (b) The web's words.
+- (c) Row by row.
+
+**Recommendation: (a) where the Kit is the older producer** (most of these), otherwise row by row. This is session A's recommendation, and the same rule root applied to the covenant's ending (8b87a90d).
+
+**Blocked until ruled:** the six rows' final words. No mechanic moves.
+
 ## D · Owner actions owed (not questions)
 
 These need the owner's hands, not a ruling.
@@ -1039,6 +1185,7 @@ These need the owner's hands, not a ruling.
   - It was reverted on B's branch at `d355b115`, so it is held off main.
   - **Owner action:** take `d30f1ecb` from `claude/ten-w6-shared-2026-09-28` and `supabase db push` when you want it.
   - Its twins, when taken: `HomeFallbackItems.swift:100` and `SyntheticWorld+Home.swift:143` (N4), and the web fixture line.
+- **X42 in round 2.** The public plan link's "are in" is the top open item in round 2: category P0, owner P1. It still needs its migration written; none exists on integration.
 - **The clash lead's sentence** (`home_dispatch`, `20261006093000:243`) hides who holds the week. Root lists it as database owed, and it rides with Q10.
 
 ## E · Recorded by root, with no question
@@ -1047,5 +1194,6 @@ These need the owner's hands, not a ruling.
   - The Door keeps its serif until the owner rules Q24.
   - One index label per object: YOUR NUMBER on the viewer's own figure, and "Handicap index" on another golfer's card (57ca5eee; the phone's `YouScreen.swift:328` twin goes to N4).
   - The in-app `.btn` type role is the owner's (Q25).
+  - The index-label ruling also answers session A's DEC-N4-4 for the index. The live seat's "PLAYING HCP" names a different figure, the index times the allowance.
 - **The wizard's "best four" is right** (W5, root: "resolved, not a defect"). Standard is best 3 with a two-round minimum, and the fixture league is a customised Standard (`counting_cap` 4). W5's `1d6ed619` now says "Custom, built on Standard" when the dials leave a preset.
 - **Counsel should see one rename.** W4 renamed the "Prize Pool Disclaimer" to "The pot" in `legal.html` and `legal/*.md`, following TERMINOLOGY T-12 (0fca89d5). Every other clause is counsel's text, unchanged. It ships with the next web push, and a revert is one line.
