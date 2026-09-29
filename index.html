@@ -855,7 +855,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .chart-legend .sw{width:9px; height:9px; border-radius:3px;}
 .chart-legend .pt{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
 #raceChart{width:100%; height:auto; display:block;}
-.chart-note{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.06em; margin-top:10px;}
+.chart-note{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); margin-top:10px;}
 /* ===== the climb — you-centered cup-line ladder (D26 · finish pass D-NN) =====
    Rhythm: margins, not a uniform flex gap — your rung has weight, the rungs
    you race tuck close, the leader stands apart, and the ellipsis stretches
@@ -904,8 +904,8 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .climb-roar.go{animation:csRoar .8s ease-out forwards;}
 @keyframes csRoar{0%{opacity:.55; transform:scale(.98,.96);} 100%{opacity:0; transform:scale(1.55,3.4);}}
 @media (prefers-reduced-motion:reduce){ .climb-rung.in{animation:none;} .climb-ghost{display:none;} .climb-roar{display:none;} }
-.climb-empty{font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--mut); text-align:center; padding:26px 10px; line-height:1.9;}
-.climb-empty span{font-size:11px;}
+.climb-empty{font-family:var(--sans); font-size:14px; color:var(--mut); text-align:center; padding:26px 10px; line-height:1.45;}   /* TP-19 · prose in the reading face */
+.climb-empty span{font-size:14px;}
 .standStory{font-family:var(--serif); font-size:13px; line-height:1.45; color:var(--ink); padding:2px 2px 10px; margin-bottom:2px; border-bottom:1px solid var(--rule);}
 .standStory:empty{display:none;}
 .standStory b{font-weight:600;}
@@ -2128,7 +2128,7 @@ body.guestlive #onboard{display:none !important;}
   color:var(--ink); background:var(--bg2); border:0;
   border-radius:var(--rc); padding:0 14px; min-height:44px; min-width:44px; cursor:pointer; flex:none;
 }
-.mini:hover{background:var(--rule);}
+.mini:hover{background:var(--bg1);}   /* TP-08 · the rule fill under mut/pos/dusk labels read 2.31–3.08:1 (§14.4: hover steps to bg1) */
 .mini:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* F6: the one icon-chrome class — sized/aligned for inline use next to text */
 .ic{width:14px; height:14px; vertical-align:-2px; pointer-events:none;}
@@ -2147,6 +2147,7 @@ body.guestlive #onboard{display:none !important;}
 .check .tt{flex:1; min-width:0;}
 .check .tt b{font-size:13.5px; font-weight:600; display:block;}
 .check .tt small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.08em; display:block; margin-top:2px;}
+#rosterRow .tt small{font-family:var(--sans); font-size:13px; letter-spacing:0; line-height:1.4;}   /* TP-19 · the roster line is a sentence */
 /* home feed time buckets (pilot: "today, this week, a button for older") */
 /* D288 · THE DATELINE OUTRANKS ITS ROWS. This was mono 10.5 in `dim` over
    rows set 15px/650 in `ink` — the section head was the quietest thing in its
@@ -2290,7 +2291,7 @@ body.guestlive #onboard{display:none !important;}
 .ontheline::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--gold);}
 .ontheline .ok{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold);}
 .ontheline .oa{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--gold); font-variant-numeric:tabular-nums;}
-.ontheline .os{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.06em;}
+.ontheline .os{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em);}
 .ontheline .go{margin-left:auto; color:var(--mut);}
 .fcard{
   background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
@@ -2440,8 +2441,8 @@ body.guestlive #onboard{display:none !important;}
    one action (D27/D81 — a hero has ONE move; this is a quiet link under it). */
 /* D126 · the endgame sentence under the seat line — a second voice, not a
    second headline (D94: one fact per tile; this explains the fact above it). */
-.chart-note .endgame-line{display:block; margin-top:5px; font-size:11.5px;
-  line-height:1.45; letter-spacing:0; text-transform:none; color:var(--mut);}
+.chart-note .endgame-line{display:block; margin-top:5px; font-family:var(--sans); font-size:13px;
+  line-height:1.45; letter-spacing:0; text-transform:none; color:var(--mut);}   /* TP-19 · a sentence, in sans at a reading size */
 .hhero .hh-sub{display:flex; align-items:center; justify-content:center; min-height:38px; margin-top:8px;
   width:100%; background:transparent; border:0; color:var(--mut); font-size:12.5px; text-decoration:underline;
   text-underline-offset:3px;}
@@ -2863,7 +2864,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
      (Tour Card) trapped the user until they rotated. Now the ✕/title header
      stays put and #shBody scrolls beneath it. */
   display:flex; flex-direction:column; overflow:hidden;
-  background:var(--bg1); border-top:1px solid var(--rule);
+  background:var(--bg1);   /* TP-14 · lift is the shadow's job; a hairline AND a wide shadow doubled it */
   border-radius:var(--rs) var(--rs) 0 0; padding:14px 16px 0;
   box-shadow:var(--shadow-lift);
 }
@@ -2878,7 +2879,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 }
 @media(min-width:760px){
   .sheet .panel{ left:50%; right:auto; bottom:auto; top:50%; transform:translate(-50%,-50%);
-    width:640px; max-height:82vh; border-radius:var(--rs); border:1px solid var(--rule); }
+    width:640px; max-height:82vh; border-radius:var(--rs); }
 }
 /* the inbox, at the desk: under the bell, at the header's own right edge
    (1264 wide, 40 in), not the centre of the screen */
@@ -3501,6 +3502,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
     color-mix(in srgb, var(--ceremony) 72%, transparent) 72%,
     color-mix(in srgb, var(--ceremony) 88%, transparent) 100%);}
 .cs-plate svg{position:absolute; inset:0; width:100%; height:100%;}
+.cs-plate svg rect, .cs-plate svg text{fill:var(--ceremony-mut);}   /* TP-13 · the drawn card sits on the pinned ceremony ground; theme mut read 1.69:1 there in light */
 .cs-plate .cs-credit{position:absolute; z-index:2; top:var(--s3); right:var(--s4);
   color:var(--scrim-mut);}
 .cs-plate .cs-name{color:var(--scrim-ink);}
@@ -4173,7 +4175,7 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    the dusk floor in EVERY theme. D76 note: the utility theme is charcoal now,
    so "dark already has the dusk floor" stopped being true; the room asserts
    its own ground unconditionally. */
-#view-draft.room-dusk{background:var(--bg0);}
+#view-draft.room-dusk{background:var(--bg0); padding-left:var(--gutter); padding-right:var(--gutter);}   /* TP-16 · the room's ground reached its edges with 0px inset */
 /* .card/.stat/.btn paint from hardcoded per-theme values, so the token
    re-declaration above cannot reach them — give them the room's own face
    regardless of the active theme (neither paper nor the blue-leaning utility
@@ -8060,8 +8062,11 @@ function renderStandings(){
     if(story) story.innerHTML='';
     /* one sentence for both structures, natural case — twin of
        LeagueCopy.standingsEmpty (D165, D297) */
-    const emptyTxt = 'No rounds yet.<br>The table fills with the first posted round.';
-    el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Golfer':'Squad')+'</th><th class="num">Pts</th></tr><tr><td colspan="3" style="padding:18px 6px;color:var(--mut);font-family:var(--mono);font-size:12px;letter-spacing:.08em;line-height:1.8">'+emptyTxt+'</td></tr>';
+    /* TP-19 · the empty table says it in sentences: a lead and a body line in
+       the reading faces, not 12px tracked mono */
+    el.innerHTML='<tr><th></th><th>'+(state.structure==='solo'?'Golfer':'Squad')+'</th><th class="num">Pts</th></tr>'
+      + '<tr><td colspan="3" style="padding:18px 6px"><b class="cs-body" style="display:block;color:var(--ink);font-weight:600">No rounds yet.</b>'
+      + '<span class="cs-body-s" style="display:block;color:var(--mut)">The table fills with the first posted round.</span></td></tr>';
     return;
   }
   const solo = teams[0]?.solo;   /* individual race — rows are players, not squads */
