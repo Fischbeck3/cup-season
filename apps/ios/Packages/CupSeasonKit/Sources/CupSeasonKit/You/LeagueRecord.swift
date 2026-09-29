@@ -125,7 +125,7 @@ public enum LeagueRecord {
       // the podium mark a finished season earns — the table's place today
       // called a result. The finish is a finished season's; a live one reads
       // "In play" (`finishWord`) and says where it stands in its own line.
-      let live = !done && !forming && !beforeFirstTee
+      let live = isLive(status: status, phase: phase, startsOn: startsOn, today: today, calendar: calendar)
       let line: String
       if !done && phase == "setup" { line = formingLine }
       else if !done && phase == "draft" { line = drawingLine }
@@ -151,6 +151,16 @@ public enum LeagueRecord {
                              year: year(startsOn), qualifier: spelledSeason(n), leagueId: lid, live: live)
     }
     return rows.reversed()
+  }
+
+  /// W2 · the one rule for "a season under way", both record paths: past its
+  /// first tee, not forming, not drawing, not finished.
+  public static func isLive(status: String?, phase: String, startsOn: String?,
+                            today: String = CSDate.today(), calendar: Calendar = .current) -> Bool {
+    let done = status == "complete"
+    let forming = !done && (phase == "setup" || phase == "draft")
+    let beforeFirstTee = !done && !forming && (CSDate.days(from: today, to: startsOn ?? "", calendar: calendar) ?? 0) > 0
+    return !done && !forming && !beforeFirstTee
   }
 
   /// Y-09 · the stage words are `LeagueCopy.Stage`'s; the record's case is
