@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were judged from their `9d84c483` captures; every other family from `02636007`, whose web client renders them byte-identically (COVERAGE.md §1.1). Native **`4112a3f0`**, Owner TestFlight 1.0.0 (1180), judged from `native-4112/` (COVERAGE.md §2). |
-| **Status read at** | **`8aaab412`** (root's fixes, N2's merge, and lanes W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402` and W1 `1e9eb856`; only W6 had not merged) |
+| **Status read at** | **`fd27ace4`**, the web ship candidate (root's fixes, N2's merge, and every lane: W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402`, W1 `1e9eb856`, W6 `f6cb4760`) |
 | **Date** | 2026-09-28 |
 | **Assessors** | the **category**, **craft** and **owner** judges: three fresh agents that wrote no code. Their calibration stays with root, which runs the same three on the native half and on round 2. |
 | **Raw evidence (outside git)** | Web: `~/cup-season-claude-ten-gallery/evidence/panel/{category,craft,owner}.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/`. Native: `…/evidence/panel/{category,craft,owner}-native.{json,md}`, citing captures in `~/cup-season-claude-ten-gallery/native-4112/`. |
@@ -85,7 +85,7 @@ Each judge's mean of the 22 rows per dimension. The owner judge's JSON carries n
 | 14 | owner | P1 | wizard | On the desk, "Review the rules" shows no rules, and the aside reads "FORMING — THE RULES AREN'T SET YET". | `wizard--step-3-review--1280--light.png` | **fixed (38471687)** (as #3). The aside's "forming" line is open, verification pending: W5's merge (`4a703402`) reworked the portrait without naming it. |
 | 15 | owner | P1 | golfers/identity/schedule | The rivalry verdict contradicts itself: "3–4 · THEY LEAD" on You and "leads 4–3" on the plan, but "All square, 5–5" on the person page. | `you--populated--375--dark.png`, `golfers--person--375--dark.png` | **decision X36** (OWNER-QUESTIONS). W3 changed the person page's words ("All square between you, 5–5.", 3324ae89), but which facet each surface shows is still the question. |
 
-**Tally at `8aaab412`:** 15 defects. Every fix is verification pending.
+**Tally at `fd27ace4`:** 15 defects. Every fix is verification pending.
 - **fixed: 12.** #2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14. #11 keeps the preflight check as a residual; #14 keeps the aside's "forming" line.
 - **fixed in part: 2.** #1 and #6, each waiting on a database item (X41, X42) and N4.
 - **decision: 1.** #15 (X36).

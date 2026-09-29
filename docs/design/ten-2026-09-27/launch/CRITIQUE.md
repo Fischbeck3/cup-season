@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were critiqued from `9d84c483` captures; every other family from `02636007`, which renders them byte-identically (COVERAGE.md §1.1). |
-| **Status read at** | **`8aaab412`**: `git log cf401dee..8aaab412`, plus `9d84c483..cf401dee`. That covers root's fix commits, N2's merge at `de3eaf35`, the merges of lanes W3 (`e8108e59`), W2 (`f46086b4`), W4 (`b8a61266`), W5 (`4a703402`) and W1 (`1e9eb856`), which root forwarded on 2026-09-28, and root's `65a1a11a` and `8aaab412`. Only W6 (session B) had not merged. |
+| **Status read at** | **`fd27ace4`**, the web ship candidate: `git log cf401dee..fd27ace4`, plus `9d84c483..cf401dee`. That covers root's fix commits, N2's merge at `de3eaf35`, and every lane's merge: W3 `e8108e59`, W2 `f46086b4`, W4 `b8a61266`, W5 `4a703402`, W1 `1e9eb856` and W6 `f6cb4760`. |
 | **Date** | 2026-09-28 |
 | **Assessors** | critique **A** and critique **B**. Each ran Impeccable 4.3.1's `critique` independently and never saw the other's work. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/critique-A/` and `…/critique-B/` (one `.md` per target, plus `summary.json`) · the brief `~/cup-season-claude-ten-gallery/evidence/CRITIQUE-PROMPT.md` · captures in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/` |
@@ -19,7 +19,7 @@ Written by session C (docs). Scores, titles and captures are the assessors'; the
 **Status words:**
 - *fixed (sha)*: the commit message or diff shows the fix; for a lane, the sha is the lane's merge and the lane's own commit names the item. **Every fix is verification pending** until round 2 (session D) re-measures it on the final SHA.
 - *fixed in part (sha)*: the rest is named.
-- *in lane Wn*: the surface belongs to that lane (LEDGER §4f), and no commit at `8aaab412` shows the fix. At `8aaab412`, only W6 has not merged.
+- *in lane Wn*: the surface belongs to that lane (LEDGER §4f), and no commit at `fd27ace4` shows the fix. At `fd27ace4`, every lane has merged.
 - *decision Xnn*: the question is in OWNER-QUESTIONS.md.
 - *open*: no lane owns the surface and no commit fixes it.
 - *open, verification pending*: when unsure.
@@ -110,7 +110,7 @@ Entries are merged where A and B, or a target and B's desk cross-reference, desc
 | CQ-24 | P1 | "Delete permanently" fails contrast in the default dark theme (2.81:1). | A settings · B settings, desk | `settings--delete-confirm--375--dark.png` | `#phDelYes` inline `background:var(--neg); color:#fff` | **fixed (38471687)** (DX TP-07). W2's 35b4f475 also makes the confirm say what D396 does, word for word with the phone. |
 | CQ-25 | P1 | The score steppers are 36px: the round's most-touched control is below the 44px floor. | B play | `play--scoring--402--dark.png` | `.step button{width:36px;height:36px}` | **fixed (38471687)**: steppers among the 44px targets; the gap between − and + is open, verification pending |
 
-**Tally at `8aaab412`:** 25 distinct defects (4 P0, 21 P1). Every fixed item is verification pending until round 2.
+**Tally at `fd27ace4`:** 25 distinct defects (4 P0, 21 P1). Every fixed item is verification pending until round 2.
 - **fixed: 23.** Every P1, and the P0s CQ-02 and CQ-03. CQ-10 keeps one residual: no preflight check for duplicate top-level functions.
 - **fixed in part: 2.** Both are P0s whose web half is fixed:
   - CQ-01 waits on X41 (the owner's `db push`) and N4;
