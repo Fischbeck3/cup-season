@@ -264,7 +264,12 @@ struct LiveRecapSheet: View {
     }
     .frame(height: nil)
     .aspectRatio(1080 / 1350, contentMode: .fit)
+    // one element, the picture: a label on the container alone is copied onto
+    // each of the card's nine words, and VoiceOver read it nine times
+    .accessibilityElement(children: .ignore)
     .accessibilityLabel("The settlement card. \(r.share.isEmpty ? "Settled" : r.share)")
+    .accessibilityAddTraits(.isImage)
+    .accessibilityIdentifier("live.recap.card")
   }
 
   private func checkRow(_ name: String, _ sub: String, posted: Bool) -> some View {
@@ -345,6 +350,9 @@ struct LiveHoleStrip: View {
       .csType(.agateS, caps: true).foregroundStyle(coolColor)
     }
     .padding(.top, CSTokens.Space.s2)
+    // one element: on the stack alone the label was copied onto "1", the
+    // footer and the last hole, and read three times
+    .accessibilityElement(children: .ignore)
     .accessibilityLabel("Hole strip, \(ledger.footer.lowercased())")
   }
 
