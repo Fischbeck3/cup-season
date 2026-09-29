@@ -127,6 +127,28 @@ private func feedRow(gross: Int = 79, me: Bool = false, pr: Bool = false) throws
     #expect(HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4, theirGross: 79), today: "2026-09-05")?.tier == .closing)
   }
 
+  /// AW2-05 · the clash says its clock once: the eyebrow names the
+  /// competition, one sentence carries the clock, and an idle clash keeps its
+  /// idle words on its last day (root's ruling) — never "You and Galen are
+  /// both in." when neither has posted.
+  @Test func theClashSaysItsClockOnce() {
+    let idle = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 4), today: "2026-09-05")
+    #expect(idle?.eyebrow.hasSuffix(" · THE CLASH") == true && idle?.eyebrow.contains("CLOSES") == false)
+    #expect(idle?.standfirst == "Best round of the week takes it. The week closes in 4 days.")
+    let lastDay = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 1), today: "2026-09-05")
+    #expect(lastDay?.headline == "Your clash with Galen is open.")
+    #expect(lastDay?.standfirst == "Best round of the week takes it. The week closes tomorrow.")
+    #expect(HomeFallbackItems.clashItem(clashedMembership(daysLeft: 0, closesToday: true), today: "2026-09-05")?.standfirst
+            == "Best round of the week takes it. The week closes today.")
+    for m in [clashedMembership(daysLeft: 4), clashedMembership(daysLeft: 1), clashedMembership(daysLeft: 4, theirGross: 79),
+              clashedMembership(daysLeft: 2, mineGross: 89)] {
+      let it = HomeFallbackItems.clashItem(m, today: "2026-09-05")
+      let said = [it?.eyebrow, it?.headline, it?.standfirst].compactMap { $0 }.joined(separator: " | ").lowercased()
+      let clocks = ["in 4 days", "tomorrow", "2 days", "today"].reduce(0) { $0 + said.components(separatedBy: $1).count - 1 }
+      #expect(clocks == 1, "the clock once — \(said)")
+    }
+  }
+
   @Test("SA-2 · I posted and they have not: the subject is the OPPONENT, and the verb is never 'post again'")
   func iPostedTheyHaveNot() {
     let it = HomeFallbackItems.clashItem(clashedMembership(daysLeft: 2, mineGross: 89), today: "2026-09-05")

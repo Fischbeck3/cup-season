@@ -192,15 +192,20 @@ public enum HomeFallbackItems {
     let left = c.days_left ?? 0
     let closes = c.closes_today ?? false
     let idle = c.mine == nil && c.theirs == nil
+    // D216 · the TIER: idle with more than a day to run yields to COMING
     let yields = idle && left > 1 && !closes
     let when = closes ? "today" : left == 1 ? "tomorrow" : "in \(left) days"
     let head: String
     let stand: String?
     let act: String
     let route: HomeDispatch.Route
-    if yields {
+    if idle {
+      // AW2-05 (root's ruling) · an idle clash says its idle words on every
+      // day, the last included: the last day fell to the both-in branch
+      // ("You and <them> are both in."), false when neither posted. The clock
+      // is said once per branch, and for idle it is this sentence's.
       head = "Your clash with \(who) is open."
-      stand = "Best round of the week takes it."
+      stand = "Best round of the week takes it. The week closes \(when)."
       act = "Add my round"; route = .composer
     } else if let theirs = c.theirs, c.mine == nil {
       head = "\(who) posted \(theirs.gross.map(String.init) ?? "a round")."
@@ -224,7 +229,10 @@ public enum HomeFallbackItems {
     return .init(key: "clash:\(m.league_id.uuidString):\(c.week_no ?? 0)",
                  tier: yields ? .coming : .closing,
                  subject: who, humanSubject: true,
-                 eyebrow: "\(name.uppercased()) · THE CLASH · CLOSES \(when.uppercased())",
+                 // AW2-05 · the eyebrow names the competition only; the clock
+                 // is one sentence's, never the eyebrow's too (L-34, D360) —
+                 // home_dispatch's and the web's words (1568a05a)
+                 eyebrow: "\(name.uppercased()) · THE CLASH",
                  headline: head, standfirst: stand, action: act, route: route,
                  leagueId: m.league_id,
                  suppress: c.mine != nil ? [.myLastRound] : [],
