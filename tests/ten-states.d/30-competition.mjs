@@ -154,6 +154,18 @@ const datelineOk = async (page) => page.evaluate(() => {
   if (innerWidth < 480) return b.top >= a.bottom - 1 && sep === 'none' ? true : `at ${innerWidth}px the dateline is not stacked without a separator (span bottom ${Math.round(a.bottom)}, Pro top ${Math.round(b.top)}, separator ${sep})`
   return sep === 'none' ? 'the separator between the span and the Pro is gone above 480px' : true
 })
+/* TEN / W8 · W7-071 [A2-season-7] · the clinch line is SENTENCES in sentence case, in the body role (sans 15px), with the unit named: 'Fixture Javelinas clinch the top seed with 351 more points.', never a tracked
+   mono-era caps run ('FIXTURE JAVELINAS · 351 MORE CLINCHES THE TOP SEED · +10'); joined by a space and not ' · ' */
+const clinchSentence = async (page) => page.evaluate(() => {
+  const b = document.getElementById('scenarioLine')
+  if (!b || !(b.getBoundingClientRect().width > 0)) return 'the season page draws no clinch line'
+  const t = b.textContent.replace(/\s+/g, ' ').trim(), cs = getComputedStyle(b)
+  const probe = document.createElement('p'); probe.className = 'cs-body-s'; document.body.appendChild(probe); const body = getComputedStyle(probe); const want = { family: body.fontFamily, size: body.fontSize }; probe.remove()
+  if (cs.textTransform !== 'none' || cs.fontFamily !== want.family || cs.fontSize !== want.size) return `the clinch line is ${cs.textTransform} ${cs.fontSize} ${cs.fontFamily.split(',')[0]}, not the body role (${want.size} ${want.family.split(',')[0]})`
+  if (/ \u00b7 /.test(t)) return `the clinch line still joins its parts with a middot: ${JSON.stringify(t)}`
+  if (/\b[A-Z]{3,}\b/.test(t)) return `capitals are typed into the clinch line: ${JSON.stringify(t)}`
+  return /^Fixture Javelinas clinch the top seed with \d+ more points\.( |$)/.test(t) ? true : `the clinch line reads ${JSON.stringify(t)}`
+})
 /* TEN / W8 · W7-066 [B2-desk-17] · the figures under a table's title cell stand under a head: a right-aligned 'Pts' cell in the head row, on the same edge as the figures (the clash's 9 and 7, the Cup Final race's totals) */
 const ptsHead = (tableSel) => async (page) => page.evaluate((tableSel) => {
   const t = document.querySelector(tableSel)
@@ -273,7 +285,7 @@ const SEASON = [
         ['the pot ($600)', '\\$600(?![\\d.,])']], 960),
       /* TEN / W6 · DX2 OB2-02: the seat line and the clinch line take their caps from their roles; the
          strings are typed as said (the seat line is drawn below the desk only, AW2-04) */
-      capsFromRole(['#climbNote', '#scenarioLine'], [{ sel: '#climbNote', below: 960 }, '#scenarioLine']),
+      capsFromRole(['#climbNote'], [{ sel: '#climbNote', below: 960 }]), clinchSentence,
       /* TEN / W8 · W7-014 [B2-season-6]: the climb's and the standings' heads take the section gap under the block above them */
       headGap(['#climbEyebrow', '#standingsEyebrow']),
       /* TEN / W8 · W7-029 [A2-season-3] (1 of 4): gold on the season page is the leader's rail field and the pot's figure, and nothing else */
@@ -879,7 +891,7 @@ const BOOK = [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-hub', selectors: { '#scenarioLine': 'visible' } },
-    check: all(has('#scenarioLine', '^The Final is set \u2014 .+ into the Cup Final$', 'the locked clinch line'), ptsHead('#cupRace'),
+    check: all(has('#scenarioLine', '^The Final is set: .+ (is|are) in\\.$', 'the locked clinch line (W7-071: a sentence)'), ptsHead('#cupRace'),
       async (page) => page.evaluate(() => /seeds? set/i.test(document.getElementById('scenarioLine').textContent) ? 'the clinch line still says Seeds set' : true)) },
   /* W7-131 · the same race after a pick: Follow is opened, the second golfer chosen, and the disclosure closes on their name with the focus on its summary */
   { family: 'book', id: 'race-follow', variant: 'rounds_no_league', title: 'The Book in the Cup Final: the race following one golfer (Follow opened, a golfer picked)', fullPage: false,

@@ -1200,7 +1200,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .standStory:empty{display:none;}
 .standStory b{font-weight:600;}
 /* the clinch/scenario line — the endgame math, quieter than the story above */
-.scenLine{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); line-height:1.2; text-transform:uppercase; color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--rule);}   /* TEN / W6 · AW2-06, OB-05, OB2-04: agateS in caps on the tracking token, as the phone's ScenarioLineView sets it — never mono */
+.scenLine{color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--rule);}   /* W7-071 · the clinch line is BODY text (cs-body-s: sans 15px) in mut, as sentences: the tracked mono-era caps (font-family, size, letter-spacing, line-height, uppercase, weight) are the role's now */
 .scenLine .clinch{color:var(--pos);}
 .scenLine .out{color:var(--mut);}
 .scenLine b{color:var(--ink); font-weight:600;}
@@ -7348,7 +7348,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div class="tblwrap">
               <div class="standStory" id="standingsStory"></div>
               <table class="tbl" id="standings"></table>
-              <div class="scenLine" id="scenarioLine" style="display:none"></div>
+              <div class="scenLine cs-body-s" id="scenarioLine" style="display:none"></div>
             </div>
             <!-- D235 · the endgame, whole, PERMANENTLY under the table. The ME
                  strip's clause is the same fact at the other grain. -->
@@ -32926,9 +32926,10 @@ async function loadScenarios(){
 }
 window.loadScenarios = loadScenarios;
 function scenSeedWord(meta){
+  /* W7-071 · lower-case words for a sentence (the line is body text now, not tracked caps): the seat named, not the +10 head start (that is the Final card's fact) */
   if(meta.finish==='points_table') return 'the crown';
-  if(meta.level==='squad' && meta.structure==='squads2') return 'the top seed · +10';
-  return 'a Cup seed';
+  if(meta.level==='squad' && meta.structure==='squads2') return 'the top seed';
+  return 'a Cup Final place';
 }
 function renderScenarioLine(){
   const box = document.getElementById('scenarioLine'); if(!box) return;
@@ -32941,10 +32942,14 @@ function renderScenarioLine(){
      handed words, not capitals it may spell out */
   const nm = s => esc(String(s||''));
   /* Cup Final already running → seeds are settled facts */
+  /* W7-071 · every part is a SENTENCE in sentence case, said in body text (a tracked-caps line of numbers with no unit read as '351 MORE'): a squad's name is a plural noun ('Fixture Javelinas clinch',
+     'have clinched', 'are out'), a golfer's is singular */
+  const plural = meta.level==='squad';
+  const names = list => list.length<3 ? list.join(' and ') : list.slice(0,-1).join(', ')+' and '+list[list.length-1];
   if(meta.locked){
-    const seeds = rows.slice(0, meta.k).map(r=>nm(r.name));
-    /* W7-068 [X05] · 'The Final is set' is the state's word (TERMINOLOGY row 141: 'seed' is never a verb; the phone's ScenarioLine says the same); the tail is the phone's own line, unchanged */
-    box.innerHTML = `<span class="clinch">The Final is set</span> — ${seeds.join(' · ')} into the Cup Final`;   /* D126 */
+    const seeds = rows.slice(0, meta.k).map(r=>`<b>${nm(r.name)}</b>`);
+    /* W7-068 [X05] · 'The Final is set' is the state's word (TERMINOLOGY row 141: 'seed' is never a verb; the phone's ScenarioLine says it) */
+    box.innerHTML = `<span class="clinch">The Final is set:</span> ${names(seeds)} ${seeds.length>1||plural?'are':'is'} in.`;   /* D126 */
     box.style.display='block'; return;
   }
   /* seed race closed (window past) but not yet flipped, or nothing to project */
@@ -32955,16 +32960,16 @@ function renderScenarioLine(){
   const leadHeadroom = Number(lead.max_final) - Number(lead.points);   /* what the leader can still add */
   const parts = [];
   if(lead.clinched){
-    parts.push(`<b>${nm(lead.name)}</b> is in ${sw}`);   /* D126 */
+    parts.push(`<b>${nm(lead.name)}</b> ${plural?'have':'has'} clinched ${sw}.`);   /* D126 */
   } else if(capped && lead.needs>0 && lead.needs <= leadHeadroom){
-    parts.push(`<b>${nm(lead.name)}</b> · ${lead.needs} more clinches ${sw}`);
+    parts.push(`<b>${nm(lead.name)}</b> ${plural?'clinch':'clinches'} ${sw} with ${lead.needs} more point${Number(lead.needs)===1?'':'s'}.`);   /* the unit is named: '351 MORE' had none */
   }
   const out = rows.filter(r=>r.eliminated).map(r=>nm(r.name));
   if(out.length){
-    parts.push(`<span class="out">${out.join(', ')} out of the ${meta.finish==='points_table'?'race':'seed race'}</span>`);
+    parts.push(`<span class="out">${names(out)} ${out.length>1||plural?'are':'is'} out of the ${meta.finish==='points_table'?'race':'seed race'}.</span>`);
   }
   if(!parts.length){ return hide(); }
-  box.innerHTML = parts.join(' · ');
+  box.innerHTML = parts.join(' ');
   box.style.display='block';
 }
 window.renderScenarioLine = renderScenarioLine;
