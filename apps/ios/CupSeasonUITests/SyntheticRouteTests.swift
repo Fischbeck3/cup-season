@@ -287,24 +287,32 @@ final class SyntheticRouteTests: XCTestCase {
     XCTAssertTrue(mark(app, "receipt").exists)
   }
 
-  /// The Album's read fails once and its retry lands. Until F16 ships the
-  /// Album renders its EMPTY state for a failed read, with no retry — that
-  /// known gap is recorded here rather than hidden.
+  /// The Album's read fails once, F16's failed state says so with Try again,
+  /// and the retry lands on the photographs. X35 · twice: with the route
+  /// opened at the usual 1.5s, and late (6s), the way a loaded machine opens
+  /// it — the Album's first read then comes more than four seconds after boot
+  /// and more than a second after Home's read of the same table, which the
+  /// seam used to count as the golfer's retry, so the Album opened on its
+  /// photographs and the failed state was never drawn.
   @MainActor func testAlbumFailureThenRetry() {
-    let app = launch("failures", "album")
-    XCTAssertTrue(mark(app, "album").waitForExistence(timeout: 30))
-    Thread.sleep(forTimeInterval: 2)
-    attach(app, "flow__album-failed")
-    let retry = app.buttons["Try again"].firstMatch
-    guard retry.waitForExistence(timeout: 5) else {
-      XCTExpectFailure("F16 · a failed Album read renders the empty state with no retry", options: .nonStrict())
-      XCTFail("album failed read offers no retry")
-      return
+    for late in [false, true] {
+      let tag = late ? "-late" : ""
+      let app = launch("failures", "album", extra: late ? ["-cs_synth_open_after", "6"] : [])
+      XCTAssertTrue(mark(app, "album").waitForExistence(timeout: 30))
+      Thread.sleep(forTimeInterval: 2)
+      attach(app, "flow__album-failed\(tag)")
+      let failed = app.descendants(matching: .any)["album.failed"]
+      XCTAssertTrue(failed.waitForExistence(timeout: 5), "F16 · the failed read draws the failed state\(tag)")
+      let retry = app.buttons["Try again"].firstMatch
+      XCTAssertTrue(retry.waitForExistence(timeout: 5), "F16 · the failed state offers Try again\(tag)")
+      Thread.sleep(forTimeInterval: 1.2)
+      retry.tap()
+      XCTAssertTrue(failed.waitForNonExistence(timeout: 10), "the retry lands\(tag)")
+      let photo = app.buttons.matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", " — ", " at ")).firstMatch
+      XCTAssertTrue(photo.waitForExistence(timeout: 10), "the retried Album shows its photographs\(tag)")
+      attach(app, "flow__album-retried\(tag)")
+      app.terminate()
     }
-    Thread.sleep(forTimeInterval: 1.2)
-    retry.tap()
-    XCTAssertTrue(retry.waitForNonExistence(timeout: 10))
-    attach(app, "flow__album-retried")
   }
 
   /// The season page's failed read, and its retry.
