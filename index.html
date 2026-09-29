@@ -570,6 +570,7 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   color:var(--mut); border-bottom:1px solid var(--rule);
 }
 .csans-b:disabled{opacity:.5; cursor:default;}
+.csans-b.is-armed{color:var(--neg); border-bottom-color:var(--neg);}   /* W7-077 · the armed 'Didn’t play': it ends the plan for good, so it says so in neg until the second tap */
 .csans-b:focus-visible{outline:2px solid var(--act); outline-offset:4px;}
 /* TEN · the quiet doors at Home's foot: text links on a 2px mut rule with a
    44px target (§2.5: a link that is not the screen's live action) */
@@ -22217,6 +22218,9 @@ function renderHomeDispatch(){
   }));
   document.querySelectorAll('[data-ans]').forEach(b => b.addEventListener('click', () => {
     const plan = b.getAttribute('data-plan'), ans = b.getAttribute('data-ans');
+    /* W7-077 · 'Didn’t play' is TERMINAL on the server (D345) and sat level with 'Later', 20px from it: the first tap asks ('Sure? Nothing posts for that day'), a second within four seconds answers;
+       'Later' stays one tap (§7.1, the web's CSArmedButton) */
+    if(ans === 'didnt_play' && !csArmTap(b, 'Didn’t play', 'Sure? Nothing posts for that day')) return;
     const card = b.closest('.csedn, .cswire-ans');
     const btns = card ? Array.from(card.querySelectorAll('[data-ans]')) : [b];
     qaEvent('cta_tapped', { door: 'afterplan', tier: ans });   /* the family and the answer, nothing else */

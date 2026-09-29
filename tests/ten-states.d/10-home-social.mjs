@@ -127,6 +127,22 @@ const HOME_DISPATCH = DISPATCH_IDS.map((id) => {
   }
 })
 
+/* TEN / W8 · W7-077 [A2-home-16] · 'Didn’t play' is a terminal answer (D345), so its first tap only ASKS ('Sure? Nothing posts for that day', neg) and sends nothing; 'Later' stays one tap and the row keeps its two answers */
+HOME_DISPATCH.push({
+  family: 'home', id: 'dispatch-after_golf-armed', variant: 'member',
+  title: 'Home · after golf: Didn’t play tapped once (armed, not answered)',
+  world: { flags: { homeState: 'after_golf' } },
+  drive: async (page) => { await homePainted(page); await page.locator('[data-ans="didnt_play"]').first().scrollIntoViewIfNeeded(); await click(page, '[data-ans="didnt_play"]'); await page.waitForTimeout(400) },
+  expect: { view: 'view-home', selectors: { '[data-ans="didnt_play"]': 'text:^Sure\\? Nothing posts for that day$' } },
+  check: all(async (page) => page.evaluate(() => {
+    const b = document.querySelector('[data-ans="didnt_play"]'), later = document.querySelector('[data-ans="later"]')
+    if (!b.classList.contains('is-armed')) return 'the first tap did not arm Didn\u2019t play'
+    if (!later || later.classList.contains('is-armed') || later.textContent.trim() !== 'Later') return 'Later is not the plain one-tap answer'
+    const neg = (() => { const i = document.createElement('i'); i.style.color = 'var(--neg)'; document.body.appendChild(i); const c = getComputedStyle(i).color; i.remove(); return c })()
+    if (getComputedStyle(b).color !== neg) return `the armed answer is ${getComputedStyle(b).color}, not neg`
+    return (window.__tenNet || []).some((e) => /answer_plan_followup/.test(e.url)) ? 'the first tap sent the answer' : true
+  })),
+})
 /* (b2) S1 / S2 signed in. Since c72d6a72 the desk asks home_dispatch for a
    league-less golfer too (D234: the phone's lead, one producer), so the LEAD
    owns the first move and the hero stands down behind it (L-34). WX's finding
