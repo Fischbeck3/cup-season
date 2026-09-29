@@ -1432,7 +1432,8 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   content:""; position:absolute; inset:0; z-index:-1;
   background:linear-gradient(180deg, rgba(10,14,12,.34) 0%, rgba(10,14,12,.62) 46%, rgba(10,14,12,.86) 100%);
 }
-.rcpt-moment.has-photo{color:var(--scrim-ink, #F1F4EF);}
+/* TP-03 · the scrim's light ink always has its dark ground, photo or not yet */
+.rcpt-moment.has-photo{color:var(--scrim-ink, #F1F4EF); background:var(--ceremony);}
 .rcpt-moment .rm-topo{position:absolute; right:-14%; top:50%; transform:translateY(-50%);
   width:70%; height:auto; z-index:-1; color:var(--mut); pointer-events:none;}
 .rcpt-moment .rm-topo .t-sur{stroke-width:.9; opacity:.08;}
@@ -1837,9 +1838,10 @@ table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size
    (the animation-gated-reveal landmine). */
 .scoreboard{
   position:sticky; top:0; z-index:60;
-  background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
+  /* TP-15 · §3.4 has no border token and two shadows, neither of them this:
+     the field keeps its bg1 ground and nothing else */
+  background:var(--bg1); border-radius:var(--r);
   padding:12px 14px; margin-bottom:12px;
-  box-shadow:0 6px 18px rgba(0,0,0,.18);
 }
 .scoreboard .sb-hero{font-family:var(--mono); font-size:17px; font-weight:600; letter-spacing:.02em;}
 .scoreboard .sb-chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
@@ -1927,7 +1929,8 @@ body.guestlive #onboard{display:none !important;}
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:14px; margin-bottom:10px; position:relative; overflow:hidden;
 }
-.gamecard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--sq0));}
+/* UI_SYSTEM §0.3 · the 3.5pt spine left the card edge: the game is named by
+   its own eyebrow (.gk), and a live settlement says "live" in words */
 .gamecard .gk{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut);}
 .gamecard .gs{font-family:var(--mono); font-size:18px; font-weight:600; margin-top:6px;}
 .gamecard .gm{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:3px;}
@@ -1981,7 +1984,7 @@ body.guestlive #onboard{display:none !important;}
   padding:16px 40px 16px 18px; margin-bottom:10px; position:relative; overflow:hidden;
   transition:border-color .25s var(--roll);
 }
-.optcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--acc,var(--brand));}
+/* UI_SYSTEM §0.3 · no spine: the live door says LIVE with its word and dot */
 .optcard:hover{border-color:var(--rule); filter:brightness(1.08);}
 .optcard:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .optcard h4{font-size:15px; font-weight:700;}
@@ -1992,14 +1995,13 @@ body.guestlive #onboard{display:none !important;}
 .optcard.live h4{font-size:17px;}
 .optcard.live .go{color:var(--brand);}
 .optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.14em; color:var(--brand); margin-bottom:7px;}
-.optcard .livedot{width:7px; height:7px; border-radius:50%; background:var(--brand); animation:cs-livedot 2.2s ease-in-out infinite;}
-@keyframes cs-livedot{0%,100%{opacity:1;} 50%{opacity:.35;}}
-@media (prefers-reduced-motion: reduce){.optcard .livedot{animation:none;}}
+/* TP-10 · a running clock is ember and STEADY: §11.4 deleted the bare
+   opacity loop, and this one pulsed forever */
+.optcard .livedot{width:7px; height:7px; border-radius:50%; background:var(--brand);}
 /* live scoring is a diorama until task #11 wires it to real posting — for real
    leagues the card reads "coming soon" and does nothing, so nobody trusts a
    round that would never leave the device. Quick post is the real path. */
 .optcard.soon{opacity:.6; cursor:default;}
-.optcard.soon::before{background:var(--dim);}
 .optcard.soon:hover{border-color:var(--rule); filter:none;}
 .optcard.soon .go{font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.12em; color:var(--mut);}
 /* course search results — type a course, pick a tee, rating+slope autofill */
@@ -2706,7 +2708,7 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:18px; margin-bottom:14px; position:relative; overflow:hidden;
 }
-.livebanner::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--pos);}
+/* UI_SYSTEM §0.3 · no spine: the LIVE eyebrow and its dot carry the state */
 .livebanner .lk{
   font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase;
   color:var(--pos); display:flex; align-items:center; gap:8px;
@@ -2720,7 +2722,6 @@ html[data-theme="light"] .digest{background:#FBFCFA;}
 /* D86 · the invitation face: someone else's tee sheet, calling you to it.
    Ember (the live layer's colour — gold stays the earned face) and a JOIN
    word instead of the resume arrow. */
-.livebanner.invite::before{background:var(--brand);}
 .livebanner.invite .lk, .livebanner.invite .dot{color:var(--brand); background:none;}
 .livebanner.invite .dot{background:var(--brand);}
 .livebanner.invite .go{
