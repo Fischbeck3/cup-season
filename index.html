@@ -481,6 +481,19 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   .shell:has(#view-hub.active) #sideMe [data-mego="season_row"],
   .shell:has(#view-schedule.active) #sideMe [data-mego="my_next_round"],
   .shell:has(#view-record.active) #sideMe [data-mego="my_last_round"]{display:none;}
+  /* TEN / W7-030 [A2-home-3] · a brand-new golfer's Home LEADS with the first
+     round ("Add my round"), so the sidebar's empty block ("Your number builds
+     itself from three posted rounds." and its own "Add my round") stands down
+     while that lead is on the page. When the block is only that sentence and
+     door, the block collapses to nothing (no rule over an empty band), and
+     stays in the column so its auto margin keeps the foot at the bottom. When
+     it holds more (a season row, "Plan one"), only its "Add my round" goes.
+     The face stays, and on every other desk view the sentence and its door
+     still say what is missing. renderHomeDispatch writes the lead's key
+     family onto #view-home. */
+  .shell:has(#view-home.active[data-lead="first_round"]) #sideMe:has(> .mesay){padding:0; border-top:0;}
+  .shell:has(#view-home.active[data-lead="first_round"]) #sideMe:has(> .mesay) > *,
+  .shell:has(#view-home.active[data-lead="first_round"]) #sideMe [data-mego="add_round"]{display:none;}
 }
 /* ============ D228 - the desk's two-column body ============
    The phone reorders ONE lane; the desk reorders a WIDE BODY. Same producer,
@@ -21793,7 +21806,10 @@ window.csWireArrange = csWireArrange;
 function renderHomeDispatch(){
   const leadBox=$('#homeLead'), deckBox=$('#homeDeck');
   if(!leadBox && !deckBox) return;
-  const wipe = ()=>{ if(leadBox) leadBox.innerHTML=''; if(deckBox) deckBox.innerHTML=''; };
+  /* TEN / W7-030 · the lead's key family rides on the view, so the desk's
+     sidebar can stand down a fact the lead already says (the yield block) */
+  const leadFamily = (k) => { const vh = document.getElementById('view-home'); if(vh) vh.dataset.lead = k || ''; };
+  const wipe = ()=>{ if(leadBox) leadBox.innerHTML=''; if(deckBox) deckBox.innerHTML=''; leadFamily(''); };
   /* D259 · the state hatch renders over a signed-out boot as well, because a
      desk with no session is the only web session a build machine has, and a
      state nobody can photograph is a state nobody has looked at. */
@@ -21805,6 +21821,7 @@ function renderHomeDispatch(){
     leadSuppress: (window.homeDispatch && window.homeDispatch.lead_suppress) || [],
     useServerRank: !!served });
   if(leadBox) leadBox.innerHTML = r.lead ? csLeadBlock(r.lead) : '';
+  leadFamily(r.lead ? String(r.lead.key).split(':')[0] : '');
   /* the column says the standing → the strip's season row yields (one fact,
      one place). The strip painted first, so it is repainted only when the
      answer changed; `renderMeStrip` never calls back here, so this cannot loop. */

@@ -78,13 +78,37 @@ const all = (...fns) => async (page) => { for (const f of fns) { const r = await
    parity; the lead already says the first round is missing) and the desk's
    sidebar prints ONE sentence with ONE door. `meStripShown` pinned the old
    three-placeholder strip at every width. */
-const meStripBrandNew = (page) => page.evaluate(() => {
-  const home = document.getElementById('homeMe'), side = document.getElementById('sideMe')
-  if (innerWidth < 960) return !(home && home.innerText.trim()) ? true : 'the phone strip did not stand down: ' + JSON.stringify(home.innerText.trim().slice(0, 80))
-  const t = ((side && side.innerText) || '').replace(/\s+/g, ' ')
-  return /Your number builds itself from three posted rounds\./.test(t) && /Add my round/i.test(t) && !/BUILDING|NO ROUNDS YET|PLAN ONE/.test(t)
-    ? true : 'the desk strip is not the sentence and its door: ' + JSON.stringify(t.slice(0, 140))
-})
+/* TEN / W7-030 [A2-home-3] · on the desk, Home's lead is the first round and
+   its "Add my round", so the sidebar's empty block (the sentence and its own
+   "Add my round") stands down while that lead is on the page: one door in the
+   window. The block is still drawn, and speaks again on every other view. */
+const meStripBrandNew = async (page) => {
+  const r = await page.evaluate(() => {
+    const home = document.getElementById('homeMe'), side = document.getElementById('sideMe')
+    if (innerWidth < 960) return !(home && home.innerText.trim()) ? true : 'the phone strip did not stand down: ' + JSON.stringify(home.innerText.trim().slice(0, 80))
+    const seen = (el) => { const b = el.getBoundingClientRect(); return b.width > 0 && b.height > 0 && b.bottom > 0 && b.top < innerHeight && getComputedStyle(el).visibility !== 'hidden' }
+    const doors = [...document.querySelectorAll('a, button')].filter((el) => /^Add my round$/i.test(el.textContent.trim()) && seen(el))
+    if (doors.length !== 1) return `${doors.length} "Add my round" doors in one window: ` + doors.map((d) => d.closest('[id]')?.id || d.tagName).join(', ')
+    const say = side && side.querySelector('.mesay'), door = side && side.querySelector('.medoors')
+    const held = ((say && say.textContent) || '') + ' ' + ((door && door.textContent) || '')
+    if (!/Your number builds itself from three posted rounds\./.test(held) || !/Add my round/i.test(held)) return 'the desk strip does not hold the sentence and its door: ' + JSON.stringify(held.trim().slice(0, 140))
+    if (/BUILDING|NO ROUNDS YET|PLAN ONE/.test(side.textContent)) return 'the desk strip shows placeholders'
+    if (seen(say) || seen(door)) return 'the sidebar says the first round is missing beside the lead that says it'
+    if (side.getBoundingClientRect().height >= 1 || parseFloat(getComputedStyle(side).borderTopWidth) > 0) return 'the emptied block still stands in the sidebar: a rule over an empty band'
+    const foot = document.querySelector('.side .foot'), col = foot && foot.parentElement
+    if (!foot || col.getBoundingClientRect().bottom - foot.getBoundingClientRect().bottom > 48) return 'the sidebar\'s foot left the bottom of the column'
+    if (!document.getElementById('sideWho') || !seen(document.getElementById('sideWho'))) return 'the sidebar lost the golfer'
+    return 'desk'
+  })
+  if (r !== 'desk') return r
+  /* on another desk view the sentence and its door speak again */
+  await page.evaluate(() => window.switchView('golfers'))
+  await page.waitForTimeout(400)
+  const back = await page.evaluate(() => { const say = document.querySelector('#sideMe .mesay'); return !!say && getComputedStyle(say).display !== 'none' })
+  await page.evaluate(() => window.switchView('home'))
+  await page.waitForTimeout(400)
+  return back ? true : 'the sidebar\'s sentence stayed down off Home'
+}
 const homePainted = async (page) => {
   await until(page, () => !!(document.querySelector('#homeLead .csedn') || document.querySelector('#homeDeck .cswire')), null, 10000)
   await page.waitForTimeout(300)
