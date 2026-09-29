@@ -115,6 +115,18 @@ These block work in flight or define the gate.
 | Q37 | Whose words, when canon names none (DEC-COPY) | decision | The Kit's, where it is the older producer | any time |
 | Q38 | The composer's "what a round can add": before a gross, or only after? | decision (parity) | Both halves on both clients: the ceiling before a gross, the card's arithmetic after | freeze |
 | Q39 | The record's "+2.4 vs your playing HCP": words, or a sign under a head? | decision (parity) | Words on every record line on both clients (D1, Q-23); the sign only in the receipt's arithmetic | freeze |
+| Q40 | The desk You's five grosses, twice (AW2-16b vs D291) | decision | (b) Drop the desk's Form row; the best of five takes the gold on Recent rounds | freeze |
+| Q41 | Compete with nothing running: the counted sentence or "Nothing running." (IA §6.1 vs QB-21) | decision (parity) | (a) Amend IA §6.1 to QB-21 on both clients | freeze |
+| Q42 | Where the web's course book lives (W7-Q25) | decision (IA) | (a) Stays You's fifth section for Oct 1 | after launch |
+| Q43 | Desk-only extras on a stranger's first pages (W7-Q26) | decision | (A) None for Oct 1; a QR hand-off on get.html after | after launch |
+| Q44 | The Ryder board's stale asks and doubled score (W7-Q27, D296) | decision · migration | (B) Keep the words, stamp exact order, date each line; (A) with a D296 amendment after | freeze (B) |
+| Q45 | The receipt's plate signs with "ANY TIME. ANYWHERE." (W7-Q28) | decision (brand) | The pennant alone on the private receipt; the line stays on exported cards and the Door | any time |
+| Q46 | The Door's field edges under 3:1 (W7-Q29, WCAG 1.4.11) | decision (a11y) | (2) Opaque `mut` edges, the phone's borderless fields to follow | freeze |
+| Q47 | The gold-ringed medallion on a card with nothing earned (W7-Q30, §6.5 vs IOS-047a) | decision | Photo-only medallion (§6.5), both clients, unless you ratify IOS-047a | freeze |
+| Q48 | The index as a caption in the composer's eyebrow (W7-Q31, §9.9) | decision (parity) | "Add my round" alone; the index as a rule-and-figure in the preview rail | freeze |
+| Q49 | Three state words for one running season (W7-Q32) | canon gap | (1) Keep both levels and write them into TERMINOLOGY row 130 | any time |
+| Q50 | The clinch line's unreachable magic number (W7-Q33, D24) | decision | (A) Say what the number is (a unit and the arithmetic on tap); D24 unchanged | freeze |
+| Q51 | The web sheet's × against §7.3's word "Close" (W7-Q34, D277) | canon conflict | (a) The × is the web's shape of the one dismiss; one line in §7.3 | any time |
 
 "freeze" means before the Sep 30 visual freeze, because the answer changes words or layout on both clients.
 
@@ -1287,6 +1299,119 @@ At accessibility sizes the phone's `CSSideRoster` (the two named groups of UI_SY
 **Recommendation: (a).** It's the only one of the two with evidence from people reading it, and a count never guessed stays true: with no buddies, the old head returns. The web half is a two-line change to `csEmptyRoot` and its tests.
 
 **Blocked until ruled:** the web's Compete head (no change until then), and the phone's, which stays as QB-21 built it.
+
+### Q42 · Where does the web's course book live?
+**The question.** The web's courses are You's fifth section: a closed door about 2,700px down a page that measures about 5,500px once opened, with no search or sort. The phone reaches its Courses front door, with catalogue search, from a link in Home's header.
+
+**Evidence.** `#youCoursesDoor` and `.you-courses{order:5}` (index.html); `courses--books--402--dark.png` (harness-27a9f56c-fam-d/courses). INFORMATION_ARCHITECTURE files courses under You → Your record, and W2 ordered the page like the phone's You.
+
+**Options.**
+- **(a) Keep it where it is,** You's fifth section.
+- **(b) Give the web a Courses place of its own:** a door high on You, a row in the desk sidebar, and the phone's catalogue search.
+
+**Recommendation: (a) for Oct 1.** (b) is a new place in the IA, which is yours, and it doesn't fit before the freeze.
+
+**Blocked until ruled:** W7-Q25 (A2-courses-8).
+
+### Q43 · Should a stranger's first pages carry desk-only extras?
+**The question.** At 960px and wider, get.html, the claim link and the public round are phone-shaped columns on a wide page. get.html has no hand-off to a phone, and neither the claim link nor the public round shows a scorecard.
+
+**Options.**
+- **(A) No.** They stay the "unchanged jobs" D234 item 5 names, and a stranger reads only what X38 lets a stranger read.
+- **(B) A QR code beside "Open Cup Season" on get.html,** as an inline SVG of the app's address: no dependency, and no new file unless it is split out (then one allowlist line in stamp-version.sh).
+- **(C) B, plus the round's scorecard leaf** on the claim form and the public round. That shows hole scores to anyone holding the link, so it widens what X38 and Q11 are still deciding.
+
+**Recommendation: (A) for Oct 1; (B) after launch; (C) waits for X38.**
+
+**Blocked until ruled:** W7-Q26 (A2-desk-17).
+
+### Q44 · The Ryder board keeps a finished week's ask, and prints the score twice
+**The question.** The Ryder's board lists every server post. A finished Ryder still says "Week 3 is up. 4 clashes — find yours." three times, the last week's result and the cup post both print 7–5, and a week's "is up" line sorts below its own result, because posts written in one call share one timestamp. The words are D296's.
+
+**Options.**
+- **(A) Fix it at the server,** in a new migration: a week's result replaces that week's "is up" post, the cup post drops the repeated lead clause, and `event_post` stamps `clock_timestamp()`. This amends D296's sentences and removes stored board rows.
+- **(B) Keep every word and every row.** Stamp `clock_timestamp()` so the order is exact, and date each board line on both clients, so an old ask reads as history.
+
+**Recommendation: (B) for Oct 1; (A) after launch, with a D296 amendment.** (B)'s timestamp is one small migration for your `db push`, and the date line is client-only on both clients.
+
+**Blocked until ruled:** W7-Q27 (A2-events-2, B2-events-6).
+
+### Q45 · The private receipt's plate signs itself with "ANY TIME. ANYWHERE."
+**The question.** The receipt's moment plate carries the pennant and the tagline, on both clients (`.rm-foot`, and ReceiptMoment.swift). The critique reads a marketing line on a private receipt as noise, and the category judge reads it as the brand being present.
+
+**Options.**
+- **Keep the sign-off** on the receipt.
+- **Sign the plate with the pennant alone,** and keep the line for the exported card and the Door.
+
+**Recommendation: the pennant alone on the private receipt.** An export is a thing a golfer sends; a receipt is a thing a golfer reads. It's your brand board, though, so it's your call.
+
+**Blocked until ruled:** W7-Q28 (A2-history-10).
+
+### Q46 · The Door's field edges and quiet button are under 3:1 (WCAG 1.4.11)
+**The question.** The Door's field edges and its quiet button's outline are a 1px `rule` hairline: 2.66:1 in the dark printing, 2.30:1 in the light. UI_SYSTEM §7.2 gives a field no border at all (a bg2 fill, 1.38:1 on the ground), and §16.1 says `rule` may separate but never state.
+
+**Options.**
+- **(1) Keep the hairline** and record it as an exception to 1.4.11: a label and a placeholder name every field, and the ink label carries the quiet button.
+- **(2) Take those edges to opaque `mut`** (7.07:1 dark, 5.85:1 light), the way the light theme's leaf takes a `mut` frame (§3.3) and a quiet link a `mut` underline (§7.1). The phone's borderless fields would then owe the same.
+
+**Recommendation: (2).** It's an accessibility floor, not a taste. On the web it's two rules.
+
+**Blocked until ruled:** W7-Q29 (B2-door-8).
+
+### Q47 · A card with nothing earned wears the gold-ringed medallion
+**The question.** UI_SYSTEM §6.5 row 3 draws the medallion on a photographed plate only ("the crest or the corner, never both"). IOS-047a superseded that in the open under a blanket "build it", both clients now draw the medallion on every card, and BUILD_REPORT §5 item 2 puts the question to you. Nothing in the decision log answers it.
+
+**Options.**
+- **Yes, the gold ring is on every card.** Ratify IOS-047a and amend §6.5 row 3, so the next critic stops filing it.
+- **No, photo only,** as §6.5 says, on both clients.
+
+**Recommendation: photo only (§6.5).** Gold is for what was won (§2.4), and a crest card has won nothing yet. Both clients' halves are small.
+
+**Blocked until ruled:** W7-Q30 (B2-identity-1).
+
+### Q48 · The index as a caption in the composer's eyebrow
+**The question.** The composer's eyebrow reads "Add my round · your index 14.2" on both clients. UI_SYSTEM §9.9 says the index is never inside a sentence and never a caption, and D319 sets the figure under its own label. Root's 57ca5eee ruled the noun ("your index"), not the form. The desk sidebar hides its own number cell on this page, so the eyebrow is the page's only print of the index.
+
+**Options.**
+- **"Add my round" alone,** with the index in the preview rail as a rule-and-figure and "Your index" under the rule, on both clients.
+- **A composer exemption,** written into §9.9.
+
+**Recommendation: the first.** It's §9.9 as written, and the preview rail already has the room.
+
+**Blocked until ruled:** W7-Q31 (B2-post-4).
+
+### Q49 · One running season, three state words
+**The question.** A running season reads "Season live · Week 8 of 13" on its own page and on the season chip (the six stage words, TERMINOLOGY row 130), and "Live" on Compete's ember band (F11's Upcoming · Live · Final). "In season", the third word, is gone since 3864e43a (PAR-09).
+
+**Options.**
+- **(1) Keep both levels:** the stage word for the phase on the season page, and F11's state word for the competition on a band. Write the two levels into TERMINOLOGY row 130. Both clients already print exactly this pair.
+- **(2) One word everywhere:** the season head and chip take "Live", "Upcoming" and "Final", and the stage words survive only in the ME strip and the covenant.
+
+**Recommendation: (1).** Nothing changes in either client; the canon just says what both already do.
+
+**Blocked until ruled:** W7-Q32 (B2-season-19).
+
+### Q50 · The clinch line prints a magic number no run of rounds could reach
+**The question.** D24 computes the clinch number under a deliberately generous ceiling. So a leader on 171 points, 13 days from the seed date, reads "351 more clinches the top seed": more than fourteen weeks at the leader's own pace.
+
+**Options.**
+- **(A) Keep D24, and make the line say what the number is:** a unit, with the arithmetic on tap (the other squad's ceiling less the leader's points). When it prints doesn't change, and it's buildable now on both clients.
+- **(B) Print it only when the leader could actually reach it** before the seed date. That changes D24's ceiling to a real one: a `season_scenarios` migration and a decision-log entry. In practice the line would show only in the last week or two.
+
+**Recommendation: (A) for Oct 1.** (B) is a mechanic change (D24), which is yours and needs a decision entry first.
+
+**Blocked until ruled:** W7-Q33 (B2-season-9).
+
+### Q51 · The web sheet's × against §7.3's word "Close"
+**The question.** Every web sheet (about 80 callers) closes with one shared 44px × (`#shClose`, named "Close" to a screen reader). UI_SYSTEM §7.3 and D277 name the word "Close", a quiet text link in the header, as the one dismiss, and the phone draws it that way. §5.1 lists the xmark as allowed furniture, so the canon disagrees with itself.
+
+**Options.**
+- **(a) The × is the web's shape of the one dismiss** (D234). Add one line to §7.3 saying so.
+- **(b) Change `#shClose` to the word "Close"** on every web sheet.
+
+**Recommendation: (a).** W5 recorded the × as the web's sheet grammar, it's one control on every sheet, and a screen reader already hears "Close".
+
+**Blocked until ruled:** W7-Q34 (B2-settings-5).
 
 ## D · Owner actions owed (not questions)
 
