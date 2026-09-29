@@ -118,7 +118,11 @@ const RECORD = [
   /* a credited photograph: Blake's avatar on his credential carries the credit
      line "Blake's round · <day>" (csCredentialHtml). Opened from the board's
      own tour-card door, the in-context peek (data-tc). */
-  { family: 'record', id: 'photo-credited', variant: 'member', title: 'A credited photograph · Blake’s card, from the board',
+  /* W2 (f46086b4, critique-B P1): a golfer's OWN photograph carries no credit —
+     "BLAKE'S ROUND" was a provenance the product made up; §10.1 keeps a credit
+     only for a round photograph, from that round. The state keeps its id (the
+     gallery's history) and now proves the plate shows and the credit is gone. */
+  { family: 'record', id: 'photo-credited', variant: 'member', title: 'A golfer’s own photograph · Blake’s card, from the board, uncredited',
     prepare: async (W) => { const b = W.tables.profiles.find((p) => p.id === W.ids.uid(2)); if (b) b.photo_path = `avatars/${b.id}/fixture.jpg` },
     fullPage: false,
     drive: async (page) => {
@@ -127,7 +131,7 @@ const RECORD = [
       await until(page, () => document.getElementById('sheet').classList.contains('open') && !!document.querySelector('#shBody .cred'), null, 10000)
       await page.waitForTimeout(500)
     },
-    expect: { view: 'view-home', sheet: true, selectors: { '#shBody .cred .cplate img': 'visible', '#shBody .ccredit': 'text:^Blake.s round' } } },
+    expect: { view: 'view-home', sheet: true, selectors: { '#shBody .cred .cplate img': 'visible', '#shBody .ccredit': 'hidden' } } },
   /* a withdrawn photograph: the public link Avery withdrew when the photo
      consent changed answers dead -- the photo is gone with it */
   { family: 'record', id: 'photo-withdrawn', variant: 'signed_out', url: '/?share=fe200000-0000-4000-8000-000000000004',
