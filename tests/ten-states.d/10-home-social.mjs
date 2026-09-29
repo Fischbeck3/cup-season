@@ -18,6 +18,7 @@
  * sentence, a named person, a named record. A fall-through to the Door, to a
  * different Home, or to a blank pane fails. */
 import { readFileSync } from 'node:fs'
+import { notMono } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -250,10 +251,12 @@ const GOLFERS = [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-person', selectors: { '#perName': 'text:^Devon Testwell$', '#perAside .cred': 'visible', '#perOpenH2H': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const t = document.getElementById('perAside').innerText.replace(/\s+/g, ' ')
       return /The record between you/i.test(t) && /(You lead|Devon Testwell leads|All square)/.test(t) ? true : `the record is missing: ${t.slice(0, 160)}`
-    }) },
+    }),
+    /* TEN / W6 · AW2-06: the back link is agate and the record's labels body — never mono */
+    notMono(['#view-person .backlink', '#perAside .mathrow > span'], ['#view-person .backlink', '#perAside .mathrow > span'])) },
   /* The person page's only door to the head-to-head is #perOpenH2H, drawn
      after tour_card lands -- and openPerson never gets that far (see the WX
      report: `sb.rpc(...).catch` is not a function on a PostgREST builder, so
@@ -284,7 +287,7 @@ const GOLFERS = [
       await page.waitForTimeout(600)
     },
     expect: { selectors: { '#boardFull.open': 'visible', '#bfSub': 'text:NORTH GROVE' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => page.evaluate(() => {
       const t = document.getElementById('boardFull').innerText.replace(/\s+/g, ' ')
       /* a comment lives behind its post's count on the board, not in the row */
       const need = [[/Anyone up for Saguaro Flats on Saturday\?/, 'Casey’s chat'], [/floors close Tuesday/i, 'Blake’s note'], [/\b84\b/, 'my 84']]
@@ -298,7 +301,10 @@ const GOLFERS = [
       const bare = photo.filter((c) => getComputedStyle(c).backgroundColor !== ground(c))
       if (bare.length) return `${bare.length} photo card(s) have no ground: ${getComputedStyle(bare[0]).backgroundColor}`
       return true
-    }) },
+    }),
+    /* TEN / W6 · AW2-06 + OB-05: a round card's course line and its margin's
+       unit are agateS; only the margin's figure keeps mono (the column role) */
+    notMono(['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep'], ['#boardFull .round .l2', '#boardFull .round .pvi small', '#bfTitle', '#feedListFull .datesep'])) },
 ]
 
 export default [...HOME_HATCH, ...HOME_DISPATCH, ...HOME_LEAGUELESS, ...HOME_WORLD, ...GOLFERS]

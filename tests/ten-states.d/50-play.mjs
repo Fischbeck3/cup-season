@@ -9,6 +9,7 @@
  *
  * The group is the synthetic cast of North Grove (fixture): Avery Fixture
  * (me), Devon Testwell, Blake Sample, Casey Placeholder. */
+import { notMono } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -191,7 +192,7 @@ export default [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-play', selectors: { '#lrHeld': 'text:Your round is still on, and its 3 holes scored stay with it', '#lrBackToRound': 'visible', '#teeOffBtn': 'hidden', '#playSetup .lrgroup': 'hidden', '#playSetup .lrgame': 'hidden' } },
-    check: async (page) => {
+    check: all(async (page) => {
       const held = await page.evaluate(() => ({ active: state.live.active, lr: state.live.lr, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores }))
       if (!held.active || !held.same) return 'the round was not held: ' + JSON.stringify(held)
       await click(page, '#lrBackToRound')
@@ -201,7 +202,10 @@ export default [
       await until(page, () => { const h = document.getElementById('lrHeld'); return !!h && !h.hidden }, null, 6000)
       await page.evaluate(() => window.scrollTo(0, 0))
       return back.live && back.same ? true : 'the way back did not return to the same round: ' + JSON.stringify(back)
-    } },
+    },
+    /* TEN / W6 · AW2-06: the back link and the tab labels are labels — agate,
+       never mono (§1.4) */
+    notMono(['#view-play .backlink', '.tabbar .tab'], ['#view-play .backlink', { sel: '.tabbar .tab', below: 960 }])) },
 
   /* a Match Play single, $5 a side, through four */
   { family: 'play', id: 'match-scoring', variant: 'member', title: 'Live round · Match Play singles with Devon, $5, through four',

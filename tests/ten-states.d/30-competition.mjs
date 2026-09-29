@@ -20,6 +20,7 @@
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
+import { notMono } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -123,6 +124,11 @@ const seasonFacts = (page) => page.evaluate(() => ({ title: (document.getElement
 const onNorthGrove = async (page) => { const f = await seasonFacts(page); return f.league === 'f3000000-0000-4000-8000-000000000001' && f.title === 'North Grove (fixture)' ? true : `the season page is ${JSON.stringify(f)}` }
 
 /* ------------------------------------------------------------ season */
+/* TEN / W6 · AW2-06 + OB-05 · the season page's words that were set in mono */
+const SEASON_WORDS = ['#standings th', '#indTable th', '#clashTbl th', '#climbNote', '#climb .climb-cut', '#climb .climb-rung .voice',
+  '#scenarioLine', '#lineSplit', '#homeSeason .ontheline .ok', '#seasonArc .arcrow .aw', '#nextK', '#albumGrid .almonth', '#feedList .datesep',
+  '.trip .p span', '.trip .p b', '#potMath', '.potgrid .purse .k', '#hubMembersSub', '#hubDraftSub', '#room-league .check .tt small', '#seasonMore',
+  { sel: '#seasonJump button', below: 960 }, { sel: '.tabbar .tab', below: 960 }]
 const SEASON = [
   { family: 'season', id: 'narrative', variant: 'member', title: 'The season page, its head: North Grove in week 8 and the story line', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
@@ -137,7 +143,11 @@ const SEASON = [
     expect: { view: 'view-hub', selectors: { '#standings': 'visible', '#indTable': 'visible' } },
     check: all(onNorthGrove, inViewport('#standings', 'the standings table'),
       has('#standings', 'Fixture Javelinas[\\s\\S]*171[\\s\\S]*Fixture Wrens[\\s\\S]*137', 'the squad table (v_squad_standings: 171 / 137)'),
-      async (page) => page.evaluate(() => document.querySelectorAll('#indTable tr').length >= 8 ? true : 'the every-golfer table has fewer than eight rows')) },
+      async (page) => page.evaluate(() => document.querySelectorAll('#indTable tr').length >= 8 ? true : 'the every-golfer table has fewer than eight rows'),
+      /* TEN / W6 · AW2-06 + OB-05: every label on the season page is agate and
+         every phrase agate or body — mono keeps the figures (§1.4). The page
+         draws all of these at once, whichever section is in view. */
+      notMono(SEASON_WORDS, SEASON_WORDS)) },
   { family: 'season', id: 'story', variant: 'member', title: 'The season page, the story: the arc of weeks and the archive', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),
     drive: async (page) => {

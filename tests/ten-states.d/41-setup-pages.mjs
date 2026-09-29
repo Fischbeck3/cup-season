@@ -8,6 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
+import { notMono } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -39,7 +40,9 @@ const toSchedule = async (page) => {
 const SCHEDULE = [
   { family: 'schedule', id: 'populated', variant: 'member', title: 'Schedule · my plans, a plan I am tagged in, the crew’s plans',
     drive: toSchedule, expect: { view: 'view-schedule', minText: 80 },
-    check: has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course') },
+    /* TEN / W6 · AW2-06: the weekday heads and the back link are agate, never mono; the dates stay a column */
+    check: all(has('#view-schedule', 'Mesquite Wash|Saguaro Flats|Papago', 'a planned course'),
+      notMono(['#calGrid .calhd', '#view-schedule .backlink'], ['#calGrid .calhd', '#view-schedule .backlink'])) },
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',
     drive: toSchedule, expect: { view: 'view-schedule' } },
   { family: 'schedule', id: 'plan-sheet', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday at Mesquite Wash (the round object)',
@@ -185,10 +188,13 @@ const openHub = async (page) => {
 }
 const SETTINGS = [
   { family: 'settings', id: 'card', variant: 'member', fullPage: false, title: 'Card & settings · Your card',
-    drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } } },
+    drive: openHub, expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phName': 'visible', '#phSave': 'visible' } },
+    /* TEN / W6 · AW2-06: a row's label is agateS, never mono; a league's code stays mono */
+    check: notMono(['#phPaneCard .byrow > span'], ['#phPaneCard .byrow > span']) },
   { family: 'settings', id: 'settings', variant: 'member', fullPage: false, title: 'Card & settings · Settings (notifications, theme, sign out)',
     drive: async (page) => { await openHub(page); await click(page, '#phSeg [data-ph="settings"]'); await until(page, () => document.getElementById('phPaneSettings') && document.getElementById('phPaneSettings').offsetParent !== null); await page.waitForTimeout(400) },
-    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } } },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phTheme': 'visible', '#phOut': 'visible' } },
+    check: notMono(['#phPaneSettings .byrow > span'], ['#phPaneSettings .byrow > span']) },
   /* a destructive confirmation, opened and NOT confirmed */
   { family: 'settings', id: 'delete-confirm', variant: 'member', fullPage: false, title: 'Card & settings · Delete my account, the confirmation (not confirmed)',
     drive: async (page) => {

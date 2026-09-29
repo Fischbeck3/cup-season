@@ -11,6 +11,7 @@
  * something unique to the surface. The answers behind them are
  * tests/fixtures/ten/rpc/20-identity-record.mjs (and the world). */
 import { mkdirSync } from 'node:fs'
+import { notMono } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -49,7 +50,8 @@ const YOU = [
     check: all(recordState('some'), async (page) => page.evaluate(() => document.querySelectorAll('#youRecent [data-rcpt-i]').length === 1 ? true : `expected one round row, found ${document.querySelectorAll('#youRecent [data-rcpt-i]').length}`)) },
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
-    check: recordState('some') },
+    /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
+    check: all(recordState('some'), notMono(['.bagrow .bslot'], ['.bagrow .bslot'])) },
   /* the career read fails both ways (the full select and its skew retry):
      the record must say the READ failed, never "no rounds" (F10) */
   { family: 'you', id: 'error', variant: 'member', title: 'You · the rounds read failed',
@@ -175,7 +177,10 @@ const RECEIPT = [
       if (f.bottom > innerHeight) return 'the league verdict is below the first screen (' + Math.round(f.bottom) + ' > ' + innerHeight + ')'
       if (/\bgross\b/i.test(document.getElementById('shTitle').textContent)) return 'the sheet title repeats the figure: ' + document.getElementById('shTitle').textContent
       return true
-    })) },
+    }),
+    /* TEN / W6 · AW2-06: a math row's label is body and the words in its value
+       are agateS; only the figures keep mono, in the column role (§1.4) */
+    notMono(['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag'], ['#rcptBody .mathrow > span', '#rcptBody .mathrow .mw', '#rcptHero .rm-tag'])) },
   /* S9 (W1, 2026-09-28) · the owner's receipt of a round that carries a
      photograph the page cannot open (every signed URL answers 404): the
      moment falls back, and the photo row says it once, beside Replace and
@@ -213,7 +218,9 @@ const RECEIPT = [
       await page.waitForTimeout(700)
     },
     expect: { view: 'view-hub', sheet: 'Fixture (Wrens|Javelinas)' },
-    check: async (page) => page.evaluate(() => /\d+\s*(pts|points)/i.test(document.getElementById('sheet').innerText) ? true : 'the squad receipt shows no points figure') },
+    check: all(async (page) => page.evaluate(() => /\d+\s*(pts|points)/i.test(document.getElementById('sheet').innerText) ? true : 'the squad receipt shows no points figure'),
+      /* TEN / W6 · AW2-06: the squad math's labels are body, never mono */
+      notMono(['#shBody .mathrow > span'], ['#shBody .mathrow > span'])) },
 ]
 
 /* ------------------------------------------------------------ COMPOSER */

@@ -660,9 +660,9 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .hmoment .w{font-family:var(--board); font-size:15px; letter-spacing:calc(var(--caps2) * 1em);
   text-transform:uppercase; color:var(--brand);}
 .hmoment.eagle .w{font-size:18px;}
-.hmoment .h{font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+.hmoment .h{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);   /* TEN / W6 · AW2-06: a label, agateS — never mono */
   text-transform:uppercase; color:var(--mut);}
-.hmoment-tally{font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
+.hmoment-tally{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);
   text-transform:uppercase; color:var(--mut);}
 @media (prefers-reduced-motion: no-preference){
   .hmoment{animation:hmrise .26s cubic-bezier(.16,.84,.36,1) both;}
@@ -910,7 +910,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .cmphead h2{font-family:var(--board); font-size:42px; font-weight:700; line-height:.98;
   text-transform:uppercase; letter-spacing:calc(var(--d1) * 1em); margin:0; flex:1;}
 @media(max-width:720px){ .cmphead h2{font-size:34px;} }
-.cmphead a{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--act); text-decoration:none;
+.cmphead a{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--act); text-decoration:none;   /* TEN / W6 · AW2-06: a link's label, never mono */
   display:inline-flex; align-items:center; min-height:44px;}   /* a 44px target around the same small caps (UI_SYSTEM §16.2) */
 .cmphead a[hidden]{display:none;}
 .emptyroot{padding:6px 0 2px;}
@@ -1012,8 +1012,8 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 }
 .hdr .title h1{font-size:19px; font-weight:700; letter-spacing:-.01em; line-height:1.1;}
 .hdr .title .sub{
-  font-family:var(--mono); font-size:11.5px; color:var(--mut);
-  letter-spacing:.12em; text-transform:uppercase; margin-top:3px;
+  font-family:var(--board); font-size:11px; font-weight:600; color:var(--mut);   /* TEN / W6 · AW2-06: a dateline, agateS */
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; margin-top:3px;
 }
 .hdr .who{
   width:32px; height:32px; border-radius:50%; flex:none;
@@ -1063,7 +1063,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:12px 14px;
 }
-.stat .k{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}
+.stat .k{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}   /* TEN / W6 · AW2-06: a stat's label is agateS, never mono */
 .stat .v{font-family:var(--mono); font-size:21px; font-weight:600; margin-top:5px; font-variant-numeric:tabular-nums;}
 .stat .v small{font-size:12px; color:var(--mut); font-weight:500;}
 .stat .d{font-family:var(--mono); font-size:12px; margin-top:3px;}
@@ -1082,7 +1082,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .chart-legend .sw{width:9px; height:9px; border-radius:3px;}
 .chart-legend .pt{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
 #raceChart{width:100%; height:auto; display:block;}
-.chart-note{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); margin-top:10px;}
+.chart-note{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; margin-top:10px;}   /* TEN / W6 · AW2-06 + OB-05: the seat line is agateS in caps, as the phone's hollow-final line sets it (StandingsTableView), never mono */
 /* ===== the climb — you-centered cup-line ladder (D26 · finish pass D-NN) =====
    Rhythm: margins, not a uniform flex gap — your rung has weight, the rungs
    you race tuck close, the leader stands apart, and the ellipsis stretches
@@ -1105,17 +1105,19 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .climb-rung.me{border-color:var(--ink); padding:12px 10px;}
 .climb-rung.me .nm{color:var(--ink); font-size:15px;}
 .climb-rung.me .pts{font-size:15px;}
-.climb-rung .voice{flex:none; flex-basis:100%; min-width:0; font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--mut); padding-left:46px; overflow-wrap:anywhere;}   /* D258 · the rung's one sentence wraps rather than clipping */
+/* TEN / W6 · AW2-06 + OB-05: the rung's line (a phrase), its badge and the cut
+   (labels) are agateS — never mono (§1.4). The rank and points stay columns. */
+.climb-rung .voice{flex:none; flex-basis:100%; min-width:0; font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); padding-left:46px; overflow-wrap:anywhere;}   /* D258 · the rung's one sentence wraps rather than clipping */
 .climb-rung .voice b{color:var(--ink); font-weight:600;}
 .climb-rung .voice .stake{color:var(--gold);}
-.climb-rung .badge{font-family:var(--mono); font-size:11px; letter-spacing:.08em; padding:1px 5px; border-radius:4px; flex:none;}   /* D258 · 11px is the floor (L-29); the phone's badge is CSFont.label */
+.climb-rung .badge{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; padding:1px 5px; border-radius:4px; flex:none;}   /* D258 · 11px is the floor (L-29); the phone's badge is CSFont.label */
 .climb-rung .badge.lock{color:var(--pos); border:1px solid var(--pos);}
 .climb-rung .badge.out{color:var(--mut); border:1px solid var(--rule);}
 .climb-spark{flex:none; margin:0 1px;}
-.climb-cut{display:flex; align-items:center; gap:8px; padding:2px 2px; margin-bottom:6px; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--mut);}   /* D258 · L-29 · the cut is never gold: nothing here is won yet */
+.climb-cut{display:flex; align-items:center; gap:8px; padding:2px 2px; margin-bottom:6px; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}   /* D258 · L-29 · the cut is never gold: nothing here is won yet */
 .climb-cut .ln{flex:1; height:0; border-top:1px dashed var(--mut);}
 .climb-cut .lb{flex:none;}
-.climb-ellip{font-family:var(--mono); font-size:11px; color:var(--mut); text-align:center; letter-spacing:.12em; margin-bottom:7px;}   /* D258 · L-29 */
+.climb-ellip{font-family:var(--board); font-size:11px; font-weight:600; color:var(--mut); text-align:center; letter-spacing:calc(var(--agate-s) * 1em); margin-bottom:7px;}   /* D258 · L-29 · TEN / W6 · AW2-06: "9 more" is a phrase, agateS, never mono */
 .climb-rung.in{animation:climbIn .22s ease-out;}
 @keyframes climbIn{from{opacity:0}}
 .climb-ghost{position:absolute; left:0; right:0; margin:0; pointer-events:none; transition:opacity .2s ease-out;}
@@ -1137,7 +1139,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .standStory:empty{display:none;}
 .standStory b{font-weight:600;}
 /* the clinch/scenario line — the endgame math, quieter than the story above */
-.scenLine{font-family:var(--mono); font-size:11px; letter-spacing:.05em; line-height:1.7; color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--rule);}
+.scenLine{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); line-height:1.2; text-transform:uppercase; color:var(--mut); padding:9px 2px 3px; border-top:1px solid var(--rule);}   /* TEN / W6 · AW2-06, OB-05, OB2-04: agateS in caps on the tracking token, as the phone's ScenarioLineView sets it — never mono */
 .scenLine .clinch{color:var(--pos);}
 .scenLine .out{color:var(--mut);}
 .scenLine b{color:var(--ink); font-weight:600;}
@@ -1158,7 +1160,10 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 /* ============ standings table ============ */
 .tbl{width:100%; border-collapse:collapse;}
 .tbl th{
-  font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.14em;
+  /* TEN / W6 · AW2-06: a column head is agate — the metadata voice for "every
+     eyebrow, dateline, label, column head" (UI_SYSTEM's role table) — and so is
+     a table's caption row (THE CLASH · …, THE CUP FINAL · …); never mono */
+  font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em);
   text-transform:uppercase; color:var(--mut); text-align:left;
   padding:4px 8px 10px;
 }
@@ -1176,7 +1181,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .tbl tr.mine .rk{background:var(--panel); color:var(--panel-ink);}
 /* the rail's HEAD is a column head like the others: `.rk` set "POS" as a 22px
    numeral, larger than the names it heads (the craft panel) */
-.tbl th.rk{font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.14em; line-height:inherit;
+.tbl th.rk{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); line-height:1.2;
   color:var(--mut); padding:4px 0 10px;}
 .tbl .sw{width:4px; height:14px; border-radius:0; display:inline-block; vertical-align:-2px;}
 .tbl .sw.side{width:6px; height:30px;}
@@ -1314,12 +1319,7 @@ th.deskonly, td.deskonly{display:none;}
 .round .l1{font-size:13px; font-weight:600;}
 .round .l1 span{color:var(--mut); font-weight:500;}
 /* the course line wraps whole: an ellipsis cut "Mesquite Wash G…" at 375 */
-.round .l2{font-family:var(--mono); font-size:12px; color:var(--mut); margin-top:2px; overflow-wrap:anywhere;}
-.round .pvi{
-  font-family:var(--mono); font-size:12.5px; font-weight:600; flex:none;
-  padding:3px 8px; border-radius:6px; background:var(--bg2); border:1px solid var(--rule);
-}
-.round .pvi.up{color:var(--pos);} .round .pvi.dn{color:var(--neg);}
+.round .l2{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); margin-top:2px; overflow-wrap:anywhere;}   /* TEN / W6 · AW2-06 + OB-05: the course line is agateS in caps everywhere a round card is drawn, as the full board (d9ee98da) and the phone's RoundStoryCard set it — never mono */
 .round .pts{
   font-family:var(--mono); font-size:17px; font-weight:600; color:var(--ink);
   flex:none; text-align:right; min-width:44px; font-variant-numeric:tabular-nums;
@@ -1328,14 +1328,17 @@ th.deskonly, td.deskonly{display:none;}
 /* TEN · on the board a round's margin is a LABELLED figure: "+2.4" alone was
    a signed number nobody could read (owner R, §16A.3), set as a green or red
    bordered chip — the P&L axis D273 took off the phone's card. It is the
-   column face in mut now, with its unit under it, as PTS has. */
-#boardFull .round .pvi{background:none; border:0; padding:0; color:var(--mut);
-  border-radius:0;   /* the shared chip's corner, undone: this is not a box */
-  text-align:right; max-width:72px; font-family:var(--mono); font-size:14px; font-weight:500;}
-#boardFull .round .pvi.up,#boardFull .round .pvi.dn{color:var(--mut);}
-#boardFull .round .pvi small{display:block; font-family:var(--board); font-weight:600; font-size:11px;
+   column face in mut now, with its unit under it, as PTS has.
+   TEN / W6 · AW2-06 + OB-05: on EVERY board the web draws — the Season page's
+   board card still drew the retired chip, in 12.5 mono 600. The figure is the
+   `column` role (the phone's RoundStoryCard sets it `columnM`); its unit is
+   agateS. */
+.round .pvi{flex:none; text-align:right; max-width:72px; color:var(--mut);
+  font-family:var(--mono); font-size:14px; font-weight:500;
+  letter-spacing:calc(var(--tight) * 1em); font-variant-numeric:tabular-nums;}
+.round .pvi small{display:block; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; line-height:1.2; margin-top:2px;}
-#boardFull .fcard .round.has-photo .pvi{color:var(--scrim-mut);}
+.fcard .round.has-photo .pvi{color:var(--scrim-mut);}
 
 /* ============ draft ============ */
 .draftgrid{display:block;}
@@ -1346,9 +1349,9 @@ th.deskonly, td.deskonly{display:none;}
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:18px; text-align:center; position:relative;
 }
-.clock .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mut);}
+.clock .k{font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}   /* TEN / W6 · AW2-06: the clock's eyebrow is agate, its line an agateS phrase — never mono */
 .clock .n{font-size:30px; font-weight:700; letter-spacing:-.01em; margin:5px 0 3px;}
-.clock .m{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
+.clock .m{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);}
 .clock .accent{position:absolute; left:0; top:0; bottom:0; width:3.5px; border-radius:3px 0 0 3px;}
 .snake{display:flex; gap:5px; justify-content:center; margin-top:14px; flex-wrap:wrap;}
 .snake i{width:13px; height:13px; border-radius:4px; background:var(--bg2); border:1px solid var(--rule);}
@@ -1383,7 +1386,7 @@ th.deskonly, td.deskonly{display:none;}
 .pool-row .nm{flex:1; font-size:13.5px; font-weight:600;}
 .pool-row .hcp{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
 .pool-row .go{
-  font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:.06em;
+  font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);   /* TEN / W6 · AW2-06: a button's label, never mono */
   color:var(--bg0); background:var(--pos); padding:6px 12px; border-radius:8px;
 }
 
@@ -1433,7 +1436,7 @@ th.deskonly, td.deskonly{display:none;}
    it was not. Colour is never the only channel — the FILL is the channel. */
 .h2hdots i, .form5 i{width:9px; height:9px; border-radius:50%; background:var(--bg2); border:1px solid var(--rule); display:inline-block;}
 .h2hdots i.on{background:var(--brand); border-color:var(--brand);}
-.h2hdots small{margin-left:6px; color:var(--mut); font-family:var(--mono); font-size:11px; letter-spacing:.09em;}   /* LV-17 */
+.h2hdots small{margin-left:6px; color:var(--mut); font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);}   /* LV-17 · TEN / W6 · AW2-06: agateS, never mono */
 .frow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .frow + .frow{margin-top:10px;}
 .frow.one{grid-template-columns:1fr;}
@@ -1652,14 +1655,17 @@ html[data-theme="light"] #inDate{color-scheme:light;}
   padding:20px; text-align:center; position:relative; overflow:hidden;
 }
 /* .purse: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
-.purse .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--mut);}
+/* TEN / W6 · AW2-06: the pot's label and the split's labels are agate in caps,
+   and the pot's math (#potMath) is a phrase — agateS in sentence case. Mono
+   keeps columns of figures, codes, handles and times (§1.4). */
+.purse .k{font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
 .purse .amt{font-family:var(--mono); font-size:52px; font-weight:600; line-height:1; margin:8px 0 4px; color:var(--gold); font-variant-numeric:tabular-nums;}
-.purse .m{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
+.purse .m{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);}
 .trip{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:10px;}
 .trip .p{background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 8px; text-align:center;}
-.trip .p b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
+.trip .p b{display:block; font-family:var(--board); font-size:17px; font-weight:600; letter-spacing:var(--flat); font-feature-settings:'tnum' 1,'lnum' 1; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}   /* TEN / W6 · AW2-06: a tile holds a golfer's name (`social`) or the split's sum — the board face, never mono */
 .trip .p{min-width:0;}
-.trip .p span{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut);}
+.trip .p span{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
 /* THE BUY-INS ARE A LEDGER: a hairline list, one golfer a line. A member
    reads name and state in words; only the Pro's rows are controls (the
    owner's panel: members saw the Pro's checkbox form, boxed, with a pointer
@@ -1748,7 +1754,7 @@ button.payer{cursor:pointer;}
 #gameSeg[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
-#albumGrid .almonth{grid-column:1/-1; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); padding:10px 2px 2px;}
+#albumGrid .almonth{grid-column:1/-1; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); padding:10px 2px 2px;}   /* TEN / W6 · AW2-06: a dateline, agateS */
 #albumGrid .alcell{aspect-ratio:1; border:1px solid var(--rule); border-radius:10px; background-size:cover; background-position:center; cursor:pointer; padding:0;}
 #albumGrid .alcell:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .rcpt-hero{margin:0 0 12px;}
@@ -1795,7 +1801,7 @@ button.payer{cursor:pointer;}
 .rcpt-moment .rm-say{font-family:var(--serif); font-size:21px; line-height:1.3; margin:var(--s2) 0 0; max-width:22ch;}
 .rcpt-moment .cs-brandrule{margin-top:var(--s3);}
 .rcpt-moment .rm-foot{display:flex; align-items:center; gap:var(--s3); width:100%; margin-top:auto; padding-top:var(--s4);}
-.rcpt-moment .rm-tag{font-family:var(--mono); font-size:11px; letter-spacing:calc(var(--agate) * 1em); opacity:.7;}
+.rcpt-moment .rm-tag{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); opacity:.7;}   /* TEN / W6 · AW2-06: the statement's caps form is agateS, never mono (two sentences) */
 .rcpt-moment .rm-mark{width:34px; height:20px; margin-left:auto; flex:none; color:inherit;}
 .rcpt-plate .mkstamp{right:var(--s3); top:var(--s3); bottom:auto; z-index:1;}   /* D59 · the medallion rides the photograph, on its plate */
 @media(max-width:360px){ .rcpt-moment .rm-fig{font-size:62px;} }
@@ -2119,7 +2125,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   font-size:12.5px; color:var(--mut); padding:7px 0; border-top:1px solid var(--rule);
 }
 .pro .pb{
-  font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.1em;
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);   /* TEN / W6 · AW2-06: a badge's label, agateS */
   color:var(--bg0); background:var(--gold); border-radius:4px; padding:2.5px 6px; flex:none;
 }
 .pro .btn{margin-top:12px;}
@@ -2397,7 +2403,10 @@ body.guestlive #onboard{display:none !important;}
 /* ============ flow: backlinks, record, wizard, hub, phase ============ */
 .backlink{
   display:inline-flex; align-items:center; gap:6px;
-  font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  /* TEN / W6 · AW2-06: a back link names where it goes — a label, `agate` in
+     caps, never mono (§1.4: mono is never a button label) */
+  font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;
   color:var(--mut); text-decoration:none;
   min-height:44px; margin:-14px 0 -2px;   /* §16.2 · 44 tall (was 15), sitting where it sat */
 }
@@ -2435,7 +2444,7 @@ body.guestlive #onboard{display:none !important;}
 .coursedd button:hover{background:var(--bg1);}
 .coursedd button.kbd{background:var(--bg1); outline:2px solid var(--act); outline-offset:-2px;}
 .coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
-.coursedd button span{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
+.coursedd button span{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em);}   /* TEN / W6 · AW2-06: a result's second line is an agateS phrase, never mono */
 .coursedd .coursedd-msg{padding:9px 12px; font-family:var(--sans); font-size:14px; line-height:1.4; color:var(--mut);}   /* W1 · a sentence, so not mono (§1.4) */
 .coursedd .coursedd-back{font-family:var(--sans); font-size:13px; font-weight:600; color:var(--mut); background:var(--bg1); position:sticky; top:0;}   /* W1 · a button label, never mono */
 .coursedd .coursedd-back:hover{background:var(--bg1); color:var(--ink);}
@@ -2613,8 +2622,10 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 }
 .check .tt{flex:1; min-width:0;}
 .check .tt b{font-size:13.5px; font-weight:600; display:block;}
-.check .tt small{font-family:var(--mono); font-size:11px; color:var(--mut); letter-spacing:.08em; display:block; margin-top:2px;}
-#rosterRow .tt small{font-family:var(--sans); font-size:13px; letter-spacing:0; line-height:1.4;}   /* TP-19 · the roster line is a sentence */
+/* TEN / W6 · AW2-06 + OB-05: a check row's sub-line is a slat's sub-line — agateS,
+   in the case its producer wrote (a phrase stays a phrase, §1.3) — never mono */
+.check .tt small{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); display:block; margin-top:2px;}
+#rosterRow .tt small{font-family:var(--sans); font-size:13px; font-weight:400; letter-spacing:0; line-height:1.4;}   /* TP-19 · the roster line is a sentence */
 /* home feed time buckets (pilot: "today, this week, a button for older") */
 /* D288 · THE DATELINE OUTRANKS ITS ROWS. This was mono 10.5 in `dim` over
    rows set 15px/650 in `ink` — the section head was the quietest thing in its
@@ -2643,9 +2654,11 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   padding:22px 20px; position:relative; overflow:hidden;
 }
 /* .phasehero: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
-.phasehero .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--brand);}
+/* TEN / W6 · AW2-06 + OB-05: the hero's eyebrow and its line (#khCount,
+   #draftPoolSub) are agate — a label and a state clause — never mono */
+.phasehero .k{font-family:var(--board); font-size:12px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--brand);}
 .phasehero .n{font-size:24px; font-weight:700; letter-spacing:-.01em; margin:7px 0 4px;}
-.phasehero .m{font-family:var(--mono); font-size:12px; color:var(--mut); letter-spacing:.08em;}
+.phasehero .m{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em);}
 .nextcard{
   display:flex; align-items:center; gap:12px;
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
@@ -2653,7 +2666,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 }
 /* .nextcard: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
 .nextcard .nx{flex:1; min-width:0;}
-.nextcard .nk{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--brand);}
+.nextcard .nk{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--brand);}   /* TEN / W6 · AW2-06: an eyebrow is agate, never mono */
 .nextcard .nt{font-size:13px; font-weight:600; margin-top:3px;}
 /* MW-06 · the step's name above its rail */
 .wizstepname{color:var(--mut); margin:0 0 6px;}
@@ -2759,7 +2772,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .startdoor{display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left; padding:13px; background:var(--bg1); border:1px solid var(--rule); border-radius:14px; cursor:pointer; color:var(--ink);}
 .startdoor svg{width:54px; height:36px;}
 .startdoor b{font-family:var(--serif); font-size:16px; font-weight:700;}
-.startdoor small{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--mut);}
+.startdoor small{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}   /* TEN / W6 · AW2-06: a door's gloss, agateS */
 .startjoin{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin-top:10px; padding:11px; background:var(--bg2); border:1px solid var(--rule); border-radius:12px; font-weight:600; font-size:13px; cursor:pointer; color:var(--ink);}
 @media(hover:hover){ .startdoor:hover, .startjoin:hover{border-color:var(--act);} }
 .startdoor:focus-visible, .startjoin:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
@@ -2768,9 +2781,9 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   background:linear-gradient(180deg, color-mix(in srgb, var(--gold) 10%, transparent), transparent 72%);}
 .runback .rb-top{display:flex; align-items:center; gap:11px; margin-bottom:12px;}
 .runback .rb-top svg{flex:none;}
-.runback .rb-k{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}
+.runback .rb-k{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}   /* TEN / W6 · AW2-06: labels, agateS */
 .runback .rb-top b{font-family:var(--serif); font-size:17px; font-weight:700; display:block; line-height:1.15;}
-.runback .rb-sub{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--mut); text-align:center; margin-top:8px; line-height:1.5;}
+.runback .rb-sub{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); text-align:center; margin-top:8px; line-height:1.5;}
 @media(min-width:1100px){
   #view-wizard .wiz-grid{display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:28px; align-items:start;}
   #view-wizard .wiz-main{min-width:0;}
@@ -2835,9 +2848,10 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   position:relative; overflow:hidden; width:100%; text-align:left;
 }
 /* .ontheline: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
-.ontheline .ok{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold);}
+/* TEN / W6 · AW2-06: the label and the split (#lineSplit) are agate in caps, never mono */
+.ontheline .ok{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--gold);}
 .ontheline .oa{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--gold); font-variant-numeric:tabular-nums;}
-.ontheline .os{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em);}
+.ontheline .os{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}
 .ontheline .go{margin-left:auto; color:var(--mut);}
 .fcard{
   background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
@@ -2997,7 +3011,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    one action (D27/D81 — a hero has ONE move; this is a quiet link under it). */
 /* D126 · the endgame sentence under the seat line — a second voice, not a
    second headline (D94: one fact per tile; this explains the fact above it). */
-.chart-note .endgame-line{display:block; margin-top:5px; font-family:var(--sans); font-size:13px;
+.chart-note .endgame-line{display:block; margin-top:5px; font-family:var(--sans); font-size:13px; font-weight:400;
   line-height:1.45; letter-spacing:0; text-transform:none; color:var(--mut);}   /* TP-19 · a sentence, in sans at a reading size */
 .hhero .hh-sub{display:flex; align-items:center; justify-content:center; min-height:38px; margin-top:8px;
   width:100%; background:transparent; border:0; color:var(--mut); font-size:12.5px; text-decoration:underline;
@@ -3035,7 +3049,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .hr-body b{font-size:12.5px; display:block; letter-spacing:.02em;}
 .hr-body small{display:block; color:var(--mut); font-size:11.5px; overflow-wrap:anywhere;}   /* the course wraps whole */
 .hr-side{display:flex; align-items:center; gap:7px; flex:none;}
-.hr-in{font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.04em; color:var(--pos); background:rgba(78,197,132,.14); border-radius:99px; padding:3px 8px;}
+.hr-in{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--pos); background:rgba(78,197,132,.14); border-radius:99px; padding:3px 8px;}
 .hr-c{font-size:11px; color:var(--mut);}
 .hr-wx{font-size:11px; color:var(--mut);}
 .cthread{margin-top:10px;}
@@ -3244,12 +3258,13 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 /* the label keeps its own measure: a long value (the review's "Scored against
    your playing HCP — your index at 95 percent") used to squeeze it to one
    word a line ("HOW / SCORES / COUNT") at 375 */
-.byrow > :first-child{flex:none; max-width:45%;}
+.byrow > :first-child{flex:none; max-width:45%; font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; letter-spacing:calc(var(--agate-s) * 1em);}   /* TEN / W6 · AW2-06: a row's label is agateS, in the case its producer wrote, never mono; a code in the value stays mono */
 .byrow b{color:var(--ink); font-weight:600; text-align:right; min-width:0;}
 
 /* ============ v8: message board, live setup, live banner ============ */
 .datesep{
-  font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  /* TEN / W6 · AW2-06: the board's day line is a dateline — agateS, never mono */
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
   color:var(--mut); text-align:center; margin:18px 0 10px;
   display:flex; align-items:center; gap:12px;
 }
@@ -3304,8 +3319,8 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .livebanner.invite .lk, .livebanner.invite .dot{color:var(--brand); background:none;}
 .livebanner.invite .dot{background:var(--brand);}
 .livebanner.invite .go{
-  color:var(--brand); font-family:var(--mono); font-size:11px; font-weight:600;
-  letter-spacing:.16em; border:1px solid var(--brand); border-radius:8px; padding:5px 9px;
+  color:var(--brand); font-family:var(--board); font-size:11px; font-weight:600;   /* TEN / W6 · AW2-06: a button's label, never mono */
+  letter-spacing:calc(var(--agate-s) * 1em); border:1px solid var(--brand); border-radius:8px; padding:5px 9px;
 }
 #rosterChips{display:flex; flex-wrap:wrap; align-items:center;}
 #rosterChips .gchip{margin:0 6px 6px 0;}
@@ -3318,7 +3333,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   position:relative;
   display:inline-grid; place-items:center; width:18px; height:18px; margin-left:6px;
   border-radius:50%; border:1px solid var(--rule); background:var(--bg2);
-  color:var(--mut); font-family:var(--mono); font-size:11.5px; font-weight:600;
+  color:var(--mut); font-family:var(--board); font-size:11.5px; font-weight:600;   /* TEN / W6 · AW2-06: a control's label is never mono */
   cursor:pointer; vertical-align:middle; padding:0; text-transform:lowercase;
 }
 /* F14 · the glyph stays an 18px mark beside its label; the TARGET is 44px. The
@@ -3343,7 +3358,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .ihelp.open{display:block; animation:vin .18s ease both;}
 .ihelp b{color:var(--ink);}
 .soon{
-  font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.1em;
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);   /* TEN / W6 · AW2-06: a tag, agateS */
   color:var(--mut); background:var(--bg2); border:1px solid var(--rule);
   border-radius:5px; padding:2.5px 6px; margin-left:8px;
 }
@@ -3367,14 +3382,14 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   min-height:116px; display:flex; flex-direction:column; gap:8px;
   transition:border-color .15s, background .15s;}
 .crtzone.hot{border-color:var(--act); background:var(--bg2); border-style:solid;}   /* a drop target is an ordinary state (D359) */
-.crtzone h5{font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--mut);
-  text-transform:uppercase; text-align:center; padding:2px 0 0; margin:0; font-weight:500;}
-.crtvs{align-self:center; font-family:var(--mono); font-size:11px; color:var(--mut); padding-top:52px; flex:none;}
+.crtzone h5{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);   /* TEN / W6 · AW2-06: the court's heads, "vs" and a chip's line are agateS, never mono */
+  text-transform:uppercase; text-align:center; padding:2px 0 0; margin:0; font-weight:600;}
+.crtvs{align-self:center; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); padding-top:52px; flex:none;}
 .crtchip{position:relative; display:flex; align-items:center; gap:8px; background:var(--bg2);
   border:0; border-radius:var(--p); padding:8px 26px 8px 10px;
   min-height:44px; user-select:none; -webkit-user-select:none; touch-action:none; cursor:grab;}
 .crtchip b{font-size:13px; display:flex; align-items:center; gap:6px;}
-.crtchip small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--mut);}
+.crtchip small{display:block; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);}
 .crtchip.dragging{opacity:.35;}
 .crtchip.picked{outline:2px solid var(--act); outline-offset:1px;}
 /* the swap TARGET: exactly one chip lights while you drag (or after a tap-pick)
@@ -3558,14 +3573,30 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .mini.del{color:var(--neg);}
 /* S9 · the photo row's one sentence, in the body face and the quiet ink */
 .rcpt-photogone{color:var(--mut); flex:1 1 180px;}
+/* TEN / W6 · AW2-06: a math row's label is words, so it is `body` (sans, sentence
+   case), as the phone's ReceiptLeaf sets it; its value is a column of figures,
+   so it keeps mono in the `column` role. Words in a value ("VS COURSE", the
+   band, "COUNTING #1 OF 4") are marked `.mw` by the producer and set agateS —
+   mono is never a label or a sentence (§1.4). */
 .mathrow{
   display:flex; justify-content:space-between; gap:12px; align-items:baseline;
-  font-family:var(--mono); font-size:13px; padding:9px 2px; border-top:1px solid var(--rule);
-  color:var(--mut); letter-spacing:.03em;
+  font-family:var(--sans); font-size:15px; line-height:1.45; padding:9px 2px; border-top:1px solid var(--rule);
+  color:var(--mut); letter-spacing:var(--flat);
 }
 .mathrow:first-of-type{border-top:none;}
-.mathrow b{color:var(--ink); font-weight:600;}
+.mathrow b{color:var(--ink); font-family:var(--mono); font-size:14px; font-weight:500;
+  letter-spacing:calc(var(--tight) * 1em); font-variant-numeric:tabular-nums; text-align:right;}
+.mathrow .mw{font-family:var(--board); font-size:11px; font-weight:600;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}
+/* the band word HANGS UNDER ITS FIGURE, as ReceiptLeaf splits it on the
+   producer's own " — " (the dash stays in the text, so the row reads whole) */
+.mathrow .mw-under{display:block; margin-top:2px;}
+.mathrow .mw-under .mw-sep{display:none;}
 .mathrow.tot{border-top:1px solid var(--rule); margin-top:4px; padding-top:11px;}
+/* TEN / W6 · AW2-06: the total's label is the receipt's climax, in board caps —
+   `nameS`, as ReceiptLeaf sets its total — not body and never mono */
+.mathrow.tot > span{font-family:var(--board); font-size:15px; font-weight:600; line-height:1.16;
+  letter-spacing:calc(var(--caps2) * 1em); text-transform:uppercase;}
 .mathrow.tot b{font-size:15px;}
 .mathrow.neg b{color:var(--neg);}
 .mathrow.pos b{color:var(--pos);}
@@ -3573,10 +3604,13 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
    row because it is the arithmetic, not the verdict — but present, because a
    figure with no visible working is what made a true -11.5 read as an
    accusation (§16). */
-.mathrow.sub{font-size:11.5px; color:var(--mut); padding-top:7px; padding-bottom:7px;}
-.mathrow.sub b{color:var(--mut); font-weight:600; font-family:var(--mono); font-size:11px;
-  letter-spacing:.06em;}
-.mathrow.sub span{font-family:var(--mono); font-size:11px; letter-spacing:.04em;}
+/* TEN / W6 · AW2-06: the working stays quieter by role, not by mono — its label
+   is an agateS phrase (sentence case), its value `column` small */
+.mathrow.sub{color:var(--mut); padding-top:7px; padding-bottom:7px;}
+.mathrow.sub b{color:var(--mut); font-family:var(--mono); font-size:12px; font-weight:400;
+  letter-spacing:var(--flat);}
+.mathrow.sub > span{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2;
+  letter-spacing:calc(var(--agate-s) * 1em);}
 .rdrow{
   display:flex; align-items:center; gap:10px; width:100%; text-align:left;
   background:none; border:none; border-top:1px solid var(--rule); padding:10px 2px; cursor:pointer;
@@ -3592,7 +3626,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .rdrow .rp{font-family:var(--board); font-size:20px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums;}
 .rdrow.cut .rp{color:var(--mut);}
 .cuttag{
-  font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--mut);
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);   /* TEN / W6 · AW2-06: a tag, agateS */
   border:1px solid var(--rule); border-radius:4px; padding:2px 5px; flex:none;
 }
 .tap{cursor:pointer;}
@@ -3616,14 +3650,17 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .cardin.bad{border-color:var(--neg);}
 .cardlbl{
   display:flex; justify-content:space-between; align-items:baseline;
-  font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;   /* TEN / W6 · AW2-06: a field's label, agateS */
   color:var(--mut); margin:12px 0 6px;
 }
 .cardlbl span.ok, .cardlbl .ok{color:var(--pos);}
 .cardlbl span.no, .cardlbl .no{color:var(--neg);}
 .lockbadge{
   display:inline-flex; align-items:center; gap:6px;
-  font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  /* TEN / W6 · AW2-06: a stamp (SIGNED IN, CARD SAVED) is a label — agateS in
+     caps, never mono (§1.4) */
+  font-family:var(--board); font-size:11px; font-weight:600;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
   color:var(--gold); background:rgba(233,190,98,.08); border:1px solid rgba(233,190,98,.25);
   border-radius:6px; padding:5px 9px; margin-bottom:10px;
 }
@@ -3632,12 +3669,12 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
    select"), so it leaves the badge's mono caps for the prose voice (§1.3,
    §1.4: mono is never a sentence). The badge's labels (SIGNED IN, CARD
    SAVED) keep theirs. */
-#draftLock.lockbadge{font-family:var(--sans); font-size:13px; letter-spacing:var(--flat); text-transform:none;}
+#draftLock.lockbadge{font-family:var(--sans); font-size:13px; font-weight:400; letter-spacing:var(--flat); text-transform:none;}
 .fbcat{ font-family:var(--sans); font-size:12px; color:var(--mut); background:var(--bg1);
   border:1px solid var(--rule); border-radius:99px; padding:6px 12px; cursor:pointer; }
 .fbcat.on{ color:var(--ink); border-color:var(--act); background:var(--bg2); }
-.ftag{ display:inline-flex; align-items:center; gap:2px; font-family:var(--mono); font-size:11px;
-  letter-spacing:.04em; color:var(--gold); background:rgba(216,178,90,.12);  /* founder = earned → champagne */
+.ftag{ display:inline-flex; align-items:center; gap:2px; font-family:var(--board); font-size:11px; font-weight:600;   /* TEN / W6 · AW2-06: a tag, agateS */
+  letter-spacing:calc(var(--agate-s) * 1em); color:var(--gold); background:rgba(216,178,90,.12);  /* founder = earned → champagne */
   border:1px solid rgba(216,178,90,.34); border-radius:99px; padding:1px 6px; vertical-align:middle; white-space:nowrap; }
 #errbar{
   position:fixed; left:0; right:0; bottom:0; z-index:999; display:none;
@@ -3664,7 +3701,10 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .tab{
   background:none; border:none; cursor:pointer; color:var(--mut);
   display:flex; flex-direction:column; align-items:center; gap:4px;
-  font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  /* TEN / W6 · AW2-06: a tab's label is a label — `agateS` in caps, as the
+     phone's CSTabBand sets it — never mono (§1.4) */
+  font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
   padding:6px 2px; border-radius:10px; min-height:46px;
 }
 .tab svg{width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
@@ -4037,10 +4077,10 @@ body.noleague .league-only{display:none !important;}
 .seasonctl:empty{display:none;}
 .seasonlead{font-family:var(--serif); font-size:21px; line-height:1.34; color:var(--ink); margin:0 0 8px; text-align:left;}
 @media(max-width:720px){ .seasonlead{font-size:20px;} }
-.seasonmore{display:inline-block; font-family:var(--mono); font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--act); margin:0 0 16px; text-decoration:none;}
+.seasonmore{display:inline-block; font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--act); margin:0 0 16px; text-decoration:none;}   /* TEN / W6 · AW2-06: a link's label is agate, never mono */
 .endgamefoot{font-size:12.5px; line-height:1.55; color:var(--mut); text-align:left; padding:8px 0 0; margin:0;}
 .arcrow{border-bottom:1px solid var(--rule); padding:9px 0; text-align:left;}
-.arcrow .aw{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--mut);}   /* LV-17 */
+.arcrow .aw{display:block; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}   /* LV-17 · TEN / W6 · AW2-06: "Week 3" is a dateline, agateS, never mono */
 .arcrow .at{display:block; font-size:13px; line-height:1.5; color:var(--ink); margin-top:2px;}
 .arcrow.mine .at{font-weight:600;}
 .rulesec{text-align:left; margin:0 0 14px;}
@@ -4170,7 +4210,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 #view-stats .youdoor-row.has-req small{color:var(--act);}
 /* §1.4 [MO] · a door's gloss is a sentence, so it is sans — the shared
    `.check .tt small` sets it in tracked mono */
-#view-stats .youdoor-row .tt small, #youGuide .check .tt small{font-family:var(--sans); font-size:13px; letter-spacing:0; line-height:1.4;}
+#view-stats .youdoor-row .tt small, #youGuide .check .tt small{font-family:var(--sans); font-size:13px; font-weight:400; letter-spacing:0; line-height:1.4;}
 /* the Every season leaf: a season's own line sits under its name */
 #lgRec .csleaf .qual{display:block; margin:2px 0 0;}
 /* the course facts' separators are opaque mut (§16.1: dim/faded is never a
@@ -4389,7 +4429,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .bagcols{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start;}
 @media (max-width:900px){ .bagcols{grid-template-columns:1fr; gap:10px;} }
 .bagrow{display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:6px 0; border-top:1px solid var(--rule);}
-.bagrow .bslot{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+.bagrow .bslot{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;   /* TEN / W6 · AW2-06: a slot's name is a label, never mono */
   color:var(--mut); flex:0 0 92px; min-width:0; overflow-wrap:anywhere;}
 .bagrow .blab{flex:1 1 auto; min-width:0; overflow-wrap:anywhere;}
 .bagrow input.f{margin:0;}
@@ -4427,7 +4467,7 @@ body:not(.noleague) #hubLeagueless{display:none;}
    44px target (at 375 it computed 43); the legend and the card keep theirs */
 @media (max-width:480px){ .calgrid{margin:0 calc(-1 * var(--s2));} }
 button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); font-size:12.5px; color:var(--mut);}
-.calhd{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--mut); text-align:center; padding:2px 0 6px;}
+.calhd{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); text-align:center; padding:2px 0 6px;}   /* TEN / W6 · AW2-06: a weekday is a column head, agateS; the dates stay a column */
 .calcell{position:relative; aspect-ratio:1; border-radius:8px; background:var(--bg2); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:var(--mono); font-size:12.5px; color:var(--mut); border:1px solid transparent; cursor:default;}
 .calcell.blank{background:none;}
 /* the desk's calendar is a desk calendar: seven wide days on short rows. At
@@ -4563,7 +4603,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 /* D76 heat grammar — temperature is semantic, never decorative. Stable=slate,
    climbing=warm, climbing hard=hot, falling=cool (slate, never red-means-bad). */
 .heatwarm{color:var(--ink);} .heathot{color:var(--ink);} .heatcool{color:var(--cool);}   /* D359 applied (F4): form is ink */
-.streaktag{font-family:var(--mono); font-size:11px; letter-spacing:.08em; display:inline-block;
+.streaktag{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; display:inline-block;   /* TEN / W6 · AW2-06: "3 straight under" is agateS in caps, as the phone's RoundStoryCard sets it */
   border:1px solid currentColor; border-radius:4px; padding:1px 5px;}
 /* THE MONTH CLOCK (Wave 5, season.md 1.2) — it replaces the press meter, a
    6px three-stop gradient capsule with no head that the audit read as a
@@ -5134,7 +5174,9 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .seasonjump button{
   flex:none; min-height:44px; padding:0 12px; cursor:pointer;
   background:none; border:1px solid var(--rule); border-radius:999px; color:var(--mut);
-  font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  /* TEN / W6 · AW2-06: a chip's label is `agateS` in caps, never mono (§1.4) */
+  font-family:var(--board); font-size:11px; font-weight:600;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
 }
 .seasonjump button:hover{color:var(--ink); border-color:var(--dim);}
 .seasonjump button:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
@@ -5155,7 +5197,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
    here -- the champion's name and the points king. Everything around it stays
    quiet so the one bright thing reads. */
 .cerwrap{text-align:center; padding:6px 2px 2px;}
-.cerkick{font-family:var(--mono); font-size:11px; letter-spacing:.16em;
+.cerkick{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em);   /* TEN / W6 · AW2-06: the ceremony's labels are agate, never mono */
   text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
 .cerchamp{font-family:var(--serif); font-size:40px; line-height:1.04;
   color:var(--gold); text-wrap:balance; margin:0 0 4px;}
@@ -5163,12 +5205,12 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .cermargin{font-family:var(--mono); font-size:22px; color:var(--ink); letter-spacing:.02em;}
 .cermargin small{display:block; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--mut); margin-top:3px;}
-.certag{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+.certag{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;
   color:var(--mut); margin-top:6px;}
 .cerrow{display:flex; justify-content:space-between; align-items:baseline; gap:12px;
   padding:7px 0; border-bottom:1px solid var(--rule);}
 .cerrow:last-child{border-bottom:0;}
-.cerrow .k{font-family:var(--mono); font-size:11px; letter-spacing:.12em;
+.cerrow .k{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);
   text-transform:uppercase; color:var(--mut);}
 .cerrow .v{font-size:14px; color:var(--ink);}
 .cerrow .v.gold{color:var(--gold);}
@@ -5179,7 +5221,7 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
 .cerpay{display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:6px 0;}
 .cerpay + .cerpay{border-top:1px solid var(--rule);}
 .cerpay .who{font-size:14px; color:var(--ink);}
-.cerpay .why{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+.cerpay .why{display:block; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em);
   text-transform:uppercase; color:var(--mut); margin-top:2px;}
 .cerpay .amt{font-family:var(--mono); font-size:15px; color:var(--ink); white-space:nowrap;}
 .ceryou{margin-top:14px; padding:12px 14px; border-radius:12px;
@@ -5299,11 +5341,11 @@ html[data-theme="light"] .room-dusk .btn:not(.dark):not(.gold):not(.apple){color
   background:color-mix(in srgb, var(--bg0) 90%, transparent); backdrop-filter:blur(16px);
 }
 /* a room's name is ink; --pos is a signed gain, and this is not one */
-.bf-hdr b{font-size:12px; letter-spacing:.14em; color:var(--ink);}
+.bf-hdr b{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--ink);}   /* TEN / W6 · AW2-06: the board's title is a label, agate — it was `.mono` */
 .bf-hdr small{display:block; font-family:var(--board); font-weight:600; font-size:11px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; margin-top:2px;}   /* a label: agate, not mono (§1.4) */
 #feedListFull{flex:1; overflow-y:auto; padding:6px 16px 12px; overscroll-behavior:contain;}
 .bf-comp{position:static; margin:0; padding:10px 16px calc(12px + env(safe-area-inset-bottom)); border-top:1px solid var(--rule); background:var(--bg0);}
-.rline{font-family:var(--mono); font-size:12.5px; color:var(--mut); margin-top:3px; letter-spacing:.02em;}
+.rline{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; text-transform:uppercase; color:var(--mut); margin-top:3px; letter-spacing:calc(var(--agate-s) * 1em);}   /* TEN / W6 · AW2-06: a round card's band line is agateS in caps on every board, as the full board sets it */
 .rline .ok{color:var(--pos);} .rline .dim{color:var(--mut);}
 /* TEN · on the board a round card's lines are LABELS (course · holes · day,
    the gross and its band, the counting state) — agate, not mono (§1.4 keeps
@@ -7287,7 +7329,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 <!-- ============ TAB BAR (mobile) ============ -->
 <div id="boardFull" role="dialog" aria-modal="true" aria-label="League board">
   <header class="bf-hdr">
-    <div><b id="bfTitle" class="mono">THE BOARD</b><small id="bfSub"></small></div>
+    <div><b id="bfTitle">THE BOARD</b><small id="bfSub"></small></div>
     <button class="mini" id="bfClose" aria-label="Close"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
   </header>
   <div id="feedListFull"></div>
@@ -9113,7 +9155,7 @@ function showFinalist(f){
   let h='';
   if(head) h+=`<div class="mathrow pos"><span>Head start \u00b7 top seed</span><b>+${head}</b></div>`;
   h+=`<div class="mathrow"><span>Window rounds \u00b7 scored fresh</span><b>${wp}</b></div>`;
-  if(f.seed_rung) h+=`<div class="mathrow"><span>In the Final by</span><b>${esc(String(f.seed_rung).toUpperCase())}</b></div>`;
+  if(f.seed_rung) h+=`<div class="mathrow"><span>In the Final by</span><b class="mw">${esc(String(f.seed_rung).toUpperCase())}</b></div>`;
   h+=`<div class="mathrow tot"><span>Total in the Final</span><b>${tot}</b></div>`;
   h+=`<div class="eyebrow" style="margin-top:18px">The rounds</div>`;
   /* D212 · the calendar cap does not stop at the window's edge. The sentence is
@@ -10356,7 +10398,7 @@ function renderFeed(){
           <div class="l1 tap" data-fp="${esc(f.who)}">${esc(f.who)} <span>· ${esc(f.team)}</span></div>
           <div class="l2">${metaH}</div>
         </div>
-        <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
+        <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}<small>vs playing HCP</small></span>
         <div class="pts">${f.pts}<small>PTS</small></div>
       </div>
       ${socialBar(f,fi)}`;
@@ -10468,7 +10510,7 @@ function renderFeedFull(force){
         <span class="bar" style="background:${SQHEX[f.ci]}"></span>
         <div class="body"><div class="l1">${esc(f.who)} <span>· ${esc(f.team||'')}</span></div><div class="l2">${esc(f.meta||'')}</div>
         <div class="rline">${bandName(f.pvi).toUpperCase()}</div>${dstk>=2?`<div class="rline"><span class="streaktag ${dstk>=3?'heathot':'heatwarm'}">${dstk} STRAIGHT UNDER</span></div>`:''}</div>
-        <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}</span>
+        <span class="pvi ${up?'up':'dn'}">${up?'+':''}${f.pvi.toFixed(1)}<small>vs playing HCP</small></span>
         <div class="pts">${f.pts}<small>PTS</small></div>
       </div>${socialBar(f,fi,{ns:'f-'})}</div>`);
     }
@@ -24558,7 +24600,7 @@ function roundCardBody(r, pvi, capN){
        rating × 113 / slope` is the rating multiplied first, which is not the
        number beside it. The expression now groups the way the differential is
        actually computed, and the way the scorecard's own arithmetic reads. */
-    rows.push(`<div class="mathrow sub"><span>(${r.gross} − ${rt.toFixed(1)}) × 113 ⁄ ${r.slope}</span><b>${Number(r.differential).toFixed(1)} VS COURSE</b></div>`);
+    rows.push(`<div class="mathrow sub"><span>(${r.gross} − ${rt.toFixed(1)}) × 113 ⁄ ${r.slope}</span><b>${Number(r.differential).toFixed(1)} <span class="mw">VS COURSE</span></b></div>`);
   }
   if(provisional){
     /* the one sentence, byte-for-byte the phone's ReceiptRows.noNumberYet */
@@ -24579,7 +24621,7 @@ function roundCardBody(r, pvi, capN){
        An earlier pass of this repair collapsed the row on the assumption that
        it read "played to it — PLAYED TO IT"; a probe of the rendered receipt
        showed otherwise, and collapsing it dropped the figure. */
-    rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} playing HCP</span><b>${mine?vsSigned(pvi):theirs(vsSigned(pvi))} — ${(mine?named:theirs(named)).toUpperCase()}</b></div>`);
+    rows.push(`<div class="mathrow"><span>Against ${mine?'your':'their'} playing HCP</span><b>${mine?vsSigned(pvi):theirs(vsSigned(pvi))} <span class="mw mw-under"><span class="mw-sep">— </span>${(mine?named:theirs(named)).toUpperCase()}</span></b></div>`);
   }
   if(r.points!=null) rows.push(`<div class="mathrow"><span>Points</span><b>${r.points}</b></div>`);
   /* D362 · THE LENSES. `contributions` is every league this round counts in
@@ -24604,18 +24646,18 @@ function roundCardBody(r, pvi, capN){
          sets its case (LINT-14), as ReceiptSeed's lens label does */
       const label = named ? `This month · ${esc(String(c.league_name||''))}` : 'This month';
       const pts = named && c.points!=null ? ` · ${esc(String(c.points))} PTS` : '';
-      rows.push(`<div class="mathrow"><span>${label}</span><b>${clause}${pts}</b></div>`);
+      rows.push(`<div class="mathrow"><span>${label}</span><b class="mw">${clause}${pts}</b></div>`);
       rows.push(`<button type="button" class="cs-tskip" data-counting-member="${esc(c.member_id||'')}" data-counting-season="${esc(c.season_id||'')}" data-counting-month="${esc(c.month||'')}" data-counting-league="${esc(c.league_name||'')}" style="margin-top:var(--s2)">${mine?'Your':'Their'} rounds that count in ${esc(csMonthWord(c.month))}${named?' · '+esc(c.league_name||''):''} ›</button>`);
     });
   } else if(r.month_rank!=null){
     const cap = r.counting_cap!=null ? Number(r.counting_cap) : (capN===Infinity ? null : capN);
-    rows.push(`<div class="mathrow"><span>This month</span><b>${clauseFor(r.month_rank, cap)}</b></div>`);
+    rows.push(`<div class="mathrow"><span>This month</span><b class="mw">${clauseFor(r.month_rank, cap)}</b></div>`);
     /* the older database: the member's season history, for the league the desk has open */
     const p = csMemberHistFor(r);
     if(p) rows.push(`<button type="button" class="cs-tskip" data-counting-for="${esc(p.mid)}" style="margin-top:var(--s2)">${mine?'Your':'Their'} rounds that count this season ›</button>`);
   }
-  if(r.holes_played===9) rows.push(`<div class="mathrow"><span>Nine holes</span><b>HALF VALUE · HALF A ROUND</b></div>`);
-  if(r.attested) rows.push(`<div class="mathrow"><span>Vouched</span><b>PLAYED WITH THE GROUP</b></div>`);
+  if(r.holes_played===9) rows.push(`<div class="mathrow"><span>Nine holes</span><b class="mw">HALF VALUE · HALF A ROUND</b></div>`);
+  if(r.attested) rows.push(`<div class="mathrow"><span>Vouched</span><b class="mw">PLAYED WITH THE GROUP</b></div>`);
 
   /* who was there — the round was a social act, so the card says so */
   const mates = Array.isArray(r.played_with) ? r.played_with.filter(Boolean) : [];
