@@ -412,7 +412,7 @@ export default function install(W) {
         const left = cl.days_left || 0, close = !!cl.closes_today, idle = !cl.mine && !cl.theirs
         const when = close ? 'today' : left === 1 ? 'tomorrow' : `in ${left} days`
         let band, head, stand, act, route
-        if (idle && left > 1 && !close) { band = 600; head = `Your clash with ${them} is open.`; stand = `Best round of the week takes it. The week closes ${when}.`; act = 'Add my round'; route = { kind: 'composer' } }
+        if (idle && left > 1 && !close) { band = 600; head = `Your clash with ${them} is open.`; stand = 'Best round of the week takes it.'; act = 'Add my round'; route = { kind: 'composer' } }
         else if (cl.theirs && !cl.mine) { band = 1000; head = `${them} posted ${cl.theirs.gross != null ? cl.theirs.gross : 'a round'}${cl.theirs.played_on ? ' on ' + DOW3[dow(cl.theirs.played_on)] : ''}.`; stand = `That is the number, and the week closes ${when}.`; act = 'Add my round'; route = { kind: 'composer' } }
         else if (cl.mine && !cl.theirs) { band = 1000; head = `${them} has ${close ? 'today' : left === 1 ? 'one day' : left + ' days'} to answer your ${cl.mine.gross != null ? cl.mine.gross : 'round'}.`; stand = 'Your round is the number to beat.'; act = 'See the receipt'; route = cl.mine.round_id ? { kind: 'receipt', id: cl.mine.round_id } : { kind: 'season', id: m.league_id } }
         else { band = 1000; head = `You and ${them} are both in.`; stand = `The week closes ${when}. Best round takes it.`; act = 'See the receipt'; route = cl.mine && cl.mine.round_id ? { kind: 'receipt', id: cl.mine.round_id } : { kind: 'season', id: m.league_id } }
@@ -424,7 +424,7 @@ export default function install(W) {
         else if (dn && firstname(cl.them_name) === dn) { mods += 30; why += ' + M3 30 (she is the row below me)' }
         if (m.league_id === nearest) { mods += 5; why += ' + M11 5 (the nearest season)' }
         items.push({ key: `clash:${m.league_id}:${cl.week_no}`, tier: band === 1000 ? 'closing' : 'coming', band, mods: Math.min(99, mods), mod_reason: why,
-          subject: them, human_subject: true, eyebrow: `${(cl.rivalry || m.name).toUpperCase()} · THE CLASH`,   /* AW2-05 · 20261211100000: the clock is said once, in a sentence */
+          subject: them, human_subject: true, eyebrow: `${(cl.rivalry || m.name).toUpperCase()} · THE CLASH · CLOSES ${when.toUpperCase()}`,
           headline: head, standfirst: stand, action: act, route, league_id: m.league_id,
           suppress: cl.mine ? ['my_last_round'] : [], spine: 'ember', at: cl.ends_on })
       }
