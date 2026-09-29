@@ -134,14 +134,8 @@ struct LiveRecapSheet: View {
               // of the same facts: the card itself, scaled to the measure.
               settlementCard(r)
               if let H = r.holes, !H.cells.isEmpty {
-                LiveHoleStrip(ledger: H, hot: H.hot?.key)
-                if let legend = H.legend {
-                  HStack(spacing: CSTokens.Space.s2) {
-                    Rectangle().fill(d.brand).frame(width: 9, height: 9)
-                    Text(legend).csType(.agateS, caps: true).foregroundStyle(d.mut)
-                  }
-                  .accessibilityElement(children: .combine)
-                }
+                // W4 twin · the shape channel, keyed in words and said once
+                LiveHoleStrip(ledger: H, hot: H.hot?.key, hotName: H.legend, otherName: nil)
                 let hl = H.highlights
                 if !hl.isEmpty {
                   LiveFlow(spacing: CSTokens.Space.s2) {
@@ -331,48 +325,86 @@ struct LiveRecapSheet: View {
 /// `brand`, everyone else's `cool`, hollow halved or carried, faded unplayed —
 /// on the ceremony ramp, so the strip in the recap and the strip on the card
 /// are the same drawing.
+/// W4 twin · **SHAPE AS WELL AS COLOUR** (critique B P1; UI_SYSTEM §16.4,
+/// WCAG 1.4.1). Heat and slate measured 1.05:1 in luminance, so hue alone said
+/// who won each hole. The subject's holes are full-height fills; everyone
+/// else's are HALF-height fills on the same baseline; a halved or carried
+/// hole is a hollow outline; a hole never played is a dashed outline. The key
+/// says every kind in words, and the strip is one image with one sentence
+/// (`LiveLedger.summary`) — the web's `renderHoleStrip`, `holeStripKey` and
+/// `holeStripSummary`.
 struct LiveHoleStrip: View {
   let ledger: LiveLedger
   let hot: String?
+  var hotName: String? = nil
+  var otherName: String? = nil
   var hotColor = CSTokens.dark.ceremonyBrand
   var coolColor = CSTokens.dark.ceremonyCool
+  var mutColor = CSTokens.dark.ceremonyMut
 
   var body: some View {
-    VStack(spacing: CSTokens.Space.s2) {
-      HStack(alignment: .bottom, spacing: 3) {
-        ForEach(0..<max(1, ledger.n), id: \.self) { i in
-          let v = i < ledger.cells.count ? ledger.cells[i] : nil
-          let isClose = ledger.closed == i + 1
-          cell(v, tall: isClose)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      VStack(spacing: CSTokens.Space.s2) {
+        HStack(alignment: .bottom, spacing: 3) {
+          ForEach(0..<max(1, ledger.n), id: \.self) { i in
+            let v = i < ledger.cells.count ? ledger.cells[i] : nil
+            cell(v, tall: ledger.closed == i + 1 ? 22 : 16)
+          }
         }
+        .frame(height: 22, alignment: .bottom)
+        HStack {
+          Text("1")
+          Spacer()
+          Text(ledger.footer).foregroundStyle(ledger.closed != nil ? hotColor : mutColor)
+          Spacer()
+          Text(String(ledger.n))
+        }
+        .csType(.agateS, caps: true).foregroundStyle(mutColor)
       }
-      HStack {
-        Text("1")
-        Spacer()
-        Text(ledger.footer).foregroundStyle(ledger.closed != nil ? hotColor : coolColor)
-        Spacer()
-        Text(String(ledger.n))
-      }
-      .csType(.agateS, caps: true).foregroundStyle(coolColor)
+      // one element, one sentence: who won how many, halved, carried, where it ended
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(ledger.summary(hot: hot, hotName: hotName, otherName: otherName))
+      key.accessibilityHidden(true)
     }
     .padding(.top, CSTokens.Space.s2)
-    // one element: on the stack alone the label was copied onto "1", the
-    // footer and the last hole, and read three times
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel("Hole strip, \(ledger.footer.lowercased())")
   }
 
-  private func cell(_ v: LiveCell?, tall: Bool) -> some View {
-    let hollow = v == .h || v == .c
-    let mine = v != nil && hot != nil && v!.key == hot!
-    let fill: Color = v == nil || hollow ? .clear : (mine ? hotColor : coolColor)
-    let border: Color = v == nil ? coolColor.opacity(CSTokens.Alpha.a24)
-      : hollow ? CSTokens.dark.ceremonyInk.opacity(CSTokens.Alpha.a56) : (mine ? hotColor : coolColor)
-    return Rectangle()
-      .fill(fill)
-      .overlay(Rectangle().stroke(border, lineWidth: CSTokens.Space.hair))
-      .frame(maxWidth: .infinity).frame(height: tall ? 20 : 14)
-      .opacity(v == nil ? CSTokens.Alpha.a24 : 1)
+  /// The key, all kinds in words, each beside the shape it keys.
+  private var key: some View {
+    LiveFlow(spacing: CSTokens.Space.s3) {
+      item(hotName.map { "\($0) won" } ?? "Won") { RoundedRectangle(cornerRadius: 2).fill(hotColor).frame(width: 10, height: 14) }
+      item(otherName.map { "\($0) won" } ?? "Theirs") { RoundedRectangle(cornerRadius: 2).fill(coolColor).frame(width: 10, height: 7) }
+      if ledger.drawsHalved { item("Halved") { hollow.frame(width: 10, height: 14) } }
+      if ledger.drawsCarried { item("Carried") { hollow.frame(width: 10, height: 14) } }
+    }
+  }
+
+  private func item<S: View>(_ word: String, @ViewBuilder _ swatch: () -> S) -> some View {
+    HStack(alignment: .bottom, spacing: 6) {
+      swatch().frame(height: 14, alignment: .bottom)
+      Text(word).csType(.agateS, caps: true).foregroundStyle(mutColor)
+    }
+  }
+
+  private var hollow: some View {
+    RoundedRectangle(cornerRadius: 2).strokeBorder(mutColor, lineWidth: 1.5)
+  }
+
+  @ViewBuilder private func cell(_ v: LiveCell?, tall: CGFloat) -> some View {
+    if let v {
+      if v == .h || v == .c {
+        hollow.frame(maxWidth: .infinity).frame(height: tall)                           // halved, or carried
+      } else if let hot, v.key == hot {
+        RoundedRectangle(cornerRadius: 2).fill(hotColor)
+          .frame(maxWidth: .infinity).frame(height: tall)                               // the subject's: full height
+      } else {
+        RoundedRectangle(cornerRadius: 2).fill(coolColor)
+          .frame(maxWidth: .infinity).frame(height: (tall / 2).rounded())               // anyone else's: half height
+      }
+    } else {
+      RoundedRectangle(cornerRadius: 2).strokeBorder(mutColor, style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+        .frame(maxWidth: .infinity).frame(height: tall).opacity(0.5)                    // never played
+    }
   }
 }
 
