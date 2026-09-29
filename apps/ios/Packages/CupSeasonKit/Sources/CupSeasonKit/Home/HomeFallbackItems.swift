@@ -97,7 +97,9 @@ public enum HomeFallbackItems {
                        eyebrow: reupSeason.map { "SEASON \($0) INVITE" } ?? "AN INVITATION",
                        headline: reupSeason.map { ReUpCopy.reUpLine(seasonNumber: $0, name: inv["container_name"]?.string ?? "your league") }
                                  ?? "\(who ?? "A golfer") put you on \(inv["container_name"]?.string ?? "a season").",
-                       standfirst: "See the terms before you are in.",
+                       // the house voice, the curly contraction: home_dispatch
+                       // says the same once the owner pushes the held set (d30f1ecb)
+                       standfirst: "See the terms before you’re in.",
                        action: "See the terms",
                        route: .invite(container, kind: kind),
                        leagueId: kind == "league" ? container : nil,
