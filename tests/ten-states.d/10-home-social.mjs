@@ -229,6 +229,63 @@ const HOME_WORLD = [
     },
     expect: { view: 'view-home', sheet: '^Notifications$', selectors: { '#shBody .cs-inbox-n.is-unread': 'visible' } },
     check: async (page) => page.evaluate(() => /Devon commented on your round\./.test(document.getElementById('shBody').innerText) ? true : 'the inbox does not name Devon’s comment') },
+  /* TEN / W7-036 [A2-home-10] · HOME_STATE_MATRIX S18 (UI_SYSTEM §13.3): a
+     failed dispatch read keeps what is on the screen and says so. */
+  /* (a) nothing was ever read: the lead slot says S18's sentence with Try
+     again, the season hero stays down (the strip owns the standing), and Try
+     again really reads again */
+  { family: 'home', id: 'dispatch-failed', variant: 'member', title: 'Home · the dispatch read fails and nothing was read before: S18’s sentence, Try again',
+    world: { errors: { rpc: { home_dispatch: { __error: 'fixture: the desk could not be reached', status: 503, code: 'XX000' } } } },
+    expectConsole: [/status of 503/],
+    drive: async (page) => {
+      await until(page, () => !!document.querySelector('#homeLead .homefail'), null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-home', selectors: { '#homeLead .homefail [data-hretry]': 'visible' } },
+    check: async (page) => {
+      const r = await page.evaluate(() => {
+        const lead = document.querySelector('#homeLead .homefail')
+        const said = (lead.innerText || '').replace(/\s+/g, ' ').trim()
+        if (!/^Cup Season can’t reach the desk right now\. Nothing here is missing — it just hasn’t arrived\. Try again$/i.test(said)) return 'the lead slot does not say S18’s sentence: ' + JSON.stringify(said)
+        if ((document.getElementById('homeHero') || {}).innerHTML) return 'the season hero drew beside the failure (the standing twice)'
+        return (window.__tenNet || []).filter((e) => /\/rpc\/home_dispatch/.test(e.url)).length
+      })
+      if (typeof r !== 'number') return r
+      await click(page, '#homeLead [data-hretry]')
+      await until(page, (n) => (window.__tenNet || []).filter((e) => /\/rpc\/home_dispatch/.test(e.url)).length > n, r, 8000).catch(() => {})
+      await until(page, () => !!document.querySelector('#homeLead .homefail [data-hretry]:not([disabled])'), null, 8000).catch(() => {})
+      return page.evaluate((n) => {
+        const reads = (window.__tenNet || []).filter((e) => /\/rpc\/home_dispatch/.test(e.url)).length
+        if (reads <= n) return 'Try again did not read the desk again'
+        return document.querySelector('#homeLead .homefail [data-hretry]') ? true : 'after Try again the lead slot lost its sentence'
+      }, r)
+    } },
+  /* (b) a good read, then a refresh that fails: the kept lead stays, every
+     door live, under "As of <day time> · couldn’t refresh" in the agate role */
+  { family: 'home', id: 'dispatch-stale', variant: 'member', title: 'Home · a refresh fails after a good read: the lead is kept, AS OF … · COULDN’T REFRESH',
+    expectConsole: [/status of 503/],
+    drive: async (page, ctx) => {
+      await homePainted(page)
+      const lead = await page.evaluate(() => (document.querySelector('#homeLead .csedn .hl') || {}).textContent || '')
+      await page.evaluate((t) => { window.__keptLead = t }, lead)
+      ctx.world.handlers.home_dispatch = () => ({ __error: 'fixture: the refresh failed', status: 503, code: 'XX000' })
+      await page.evaluate(() => window.refreshHomeLead())
+      await until(page, () => !!document.querySelector('#homeLead .homestale'), null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-home', selectors: { '#homeLead .homestale': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const st = document.querySelector('#homeLead .homestale')
+      const t = st.textContent.trim()
+      if (!/^As of (Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2} (AM|PM) · couldn’t refresh$/.test(t)) return 'the stale line reads ' + JSON.stringify(t)
+      if (getComputedStyle(st).textTransform !== 'uppercase') return 'the stale line is not the agate role (its caps are typed, or missing)'
+      const hl = (document.querySelector('#homeLead .csedn .hl') || {}).textContent || ''
+      if (!window.__keptLead || hl !== window.__keptLead) return 'the lead was not kept: ' + JSON.stringify({ before: window.__keptLead, after: hl })
+      const act = document.querySelector('#homeLead .csedn .act')
+      if (act && act.disabled) return 'a door on the kept lead is disabled'
+      if (st.compareDocumentPosition(document.querySelector('#homeLead .csedn')) & Node.DOCUMENT_POSITION_PRECEDING) return 'the stale line is not above the lead'
+      return true
+    }) },
 ]
 
 /* --------------------------------------------------------------- golfers */

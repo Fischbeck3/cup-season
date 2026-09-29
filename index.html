@@ -577,6 +577,9 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
   text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:4px;}
 .hstart a:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .wire-empty{margin:0; color:var(--mut);}   /* TEN / W6 · the empty wire's head: body, mut (EmptyRoot) */
+/* TEN / W7-036/038 · S18 (UI_SYSTEM §13.3): the dateline of a read that did
+   not land, above what is kept: agate (its caps are the role's), mut */
+.homestale{margin:0 0 var(--s3); color:var(--mut);}
 /* Weight 5 -- minor activity: one 44pt row, a day marker in the leading
    column, one line of prose, a rule on top. The marker is `mut` and never
    `dim`: `dim` is 3.15 / 2.89 and may not carry a word. */
@@ -19991,8 +19994,14 @@ function renderHomeHero(){
 
   const inSeason = window.CS.league && state.phase==='season';
 
+  /* TEN / W7-036 [A2-home-10] · L-34, D236: the ME strip owns where you
+     stand. When its season row renders, the hero's two standing cards (the
+     cup final, the live season) stand down rather than say the standing a
+     second time. The wrapped season keeps its card and its doors. */
+  const stripSays = !force && typeof csMeSeasonRow === 'function' && !!csMeSeasonRow();
   /* 2 · cup final — the last four weeks, scored fresh */
   if(force==='cup_final' || (!force && inSeason && typeof isCupFinal==='function' && isCupFinal())){
+    if(stripSays){ box.innerHTML=''; return; }
     const me=heroMyRung();
     const wksLeft=Math.max(1, Math.ceil((seasonE()-new Date())/6048e5));
     /* D138 · the Final is a field of TWO. Everyone else lost the crown the
@@ -20031,6 +20040,7 @@ function renderHomeHero(){
 
   /* 3 · season live, past the starter — the standing MOVE */
   if(force==='season' || (!force && inSeason && !(typeof atStarter==='function' && atStarter()))){
+    if(stripSays){ box.innerHTML=''; return; }
     const me=heroMyRung();
     if(me){
       /* seasonWeeks is the TOTAL (a number, 13145); the current week comes
@@ -21855,10 +21865,23 @@ function csUsableItems(data){
 window.csUsableItems = csUsableItems;
 
 window.homeDispatch = null;
+/* TEN / W7-036 [A2-home-10] · HOME_STATE_MATRIX S18 (UI_SYSTEM §13.3): a
+   failed read keeps what is on the screen. The dispatch was cleared BEFORE the
+   read and never restored, so a failed refresh dropped Home to the declared
+   fallback (no lead, by design: R-06), the season hero drew the standing
+   beside the strip's season row, and nothing said anything had failed. Now
+   the last good dispatch stays (the same golfer's only) and Home says "As of
+   Fri 6:12 PM · couldn’t refresh" above it; with nothing ever read, the lead
+   slot says S18's sentence with Try again. A database without the function
+   (deploy skew) still renders the fallback, never a failure (csMissingFn). */
+function csHomeDispatchClear(){ window.homeDispatch = null; window.homeDispatchFailed = false; window.homeDispatchStaleAt = null; window.homeDispatchAt = null; }
+window.csHomeDispatchClear = csHomeDispatchClear;
 async function loadHomeDispatch(){
-  window.homeDispatch = null;
-  if(window.csHomeState){ window.homeDispatch = await csLoadHomeStateFixture(window.csHomeState); return; }
-  if(state.demo || !window.sb || !CS?.user) return;
+  const me = window.CS?.user?.id || null;
+  if(window.homeDispatchFor !== me){ csHomeDispatchClear(); window.homeDispatchFor = me; }
+  if(window.csHomeState){ window.homeDispatch = await csLoadHomeStateFixture(window.csHomeState); window.homeDispatchFailed = false; window.homeDispatchStaleAt = null; return; }
+  if(state.demo || !window.sb || !CS?.user){ csHomeDispatchClear(); return; }
+  let failed = null;
   try{
     /* D353 · the capability, not just the day. `p_today` only ever said "this
        client knows its own calendar day", which every shipped build already
@@ -21870,10 +21893,25 @@ async function loadHomeDispatch(){
     if(reply.error) reply = await window.sb.rpc('home_dispatch', { p_days: 21, p_today: isoAgo(0) });
     if(reply.error) reply = await window.sb.rpc('home_dispatch', { p_days: 21 });
     if(!reply.error && reply.data){ try{ await csPrimePlayedPlans(reply.data.items); }catch(_){}
-      window.homeDispatch = csUsableItems(reply.data); }
-  }catch(_){ /* skew: an un-migrated database renders the fallback, never an error */ }
+      window.homeDispatch = csUsableItems(reply.data);
+      window.homeDispatchFailed = false; window.homeDispatchStaleAt = null; window.homeDispatchAt = new Date();
+      return; }
+    failed = reply.error || new Error('home_dispatch answered nothing');
+  }catch(e){ failed = e; }
+  /* skew: an un-migrated database renders the fallback, never an error */
+  if(csMissingFn(failed)){ csHomeDispatchClear(); return; }
+  window.homeDispatchFailed = true;
+  window.homeDispatchStaleAt = window.homeDispatch ? (window.homeDispatchAt || new Date()) : null;
 }
 window.loadHomeDispatch = loadHomeDispatch;
+/* the dateline of a read that did not land: the phone's CSStale.line, typed as
+   said ("As of Fri 6:12 PM · couldn’t refresh"); the agate role sets its caps */
+function csStaleLine(d){
+  const t = d instanceof Date && !isNaN(d) ? d : new Date();
+  const DW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], h = t.getHours(), m = String(t.getMinutes()).padStart(2, '0');
+  return `As of ${DW[t.getDay()]} ${h % 12 || 12}:${m} ${h < 12 ? 'AM' : 'PM'} \u00b7 couldn\u2019t refresh`;
+}
+window.csStaleLine = csStaleLine;
 
 /* THE LEAD, weight 1. The chip that carries the rank, the ordinal and the
    movement (`home.md` §1.2, §16A.4) is the phone's for now and is named as
@@ -22080,8 +22118,24 @@ function renderHomeDispatch(){
     stripSuppress: window.__meSuppress ? [...window.__meSuppress] : [],
     leadSuppress: (window.homeDispatch && window.homeDispatch.lead_suppress) || [],
     useServerRank: !!served });
-  if(leadBox) leadBox.innerHTML = r.lead ? csLeadBlock(r.lead) : '';
-  leadFamily(r.lead ? String(r.lead.key).split(':')[0] : '');
+  /* TEN / W7-036 · S18: the kept dispatch says it is not fresh, and a read
+     that never landed says so in the lead slot, with Try again */
+  const failedBare = !!window.homeDispatchFailed && !served && !window.csHomeState;
+  const stale = !!window.homeDispatchFailed && !!served && window.homeDispatchStaleAt
+    ? `<p class="homestale cs-agate-s" role="status">${esc(csStaleLine(window.homeDispatchStaleAt))}</p>` : '';
+  if(leadBox) leadBox.innerHTML = failedBare
+    ? `<div class="csedn homefail" role="status">
+        <div class="hl cs-lead">Cup Season can\u2019t reach the desk right now.</div>
+        <div class="sf cs-body">Nothing here is missing \u2014 it just hasn\u2019t arrived.</div>
+        <button type="button" class="act cs-name-s" data-hretry>Try again</button>
+      </div>`
+    : stale + (r.lead ? csLeadBlock(r.lead) : '');
+  leadBox?.querySelector('[data-hretry]')?.addEventListener('click', (e) => {
+    e.currentTarget.disabled = true; e.currentTarget.textContent = 'Trying\u2026';
+    qaEvent('cta_tapped', { door: 'home_retry' });
+    if(typeof refreshHomeLead === 'function') refreshHomeLead();
+  });
+  leadFamily(r.lead ? String(r.lead.key).split(':')[0] : (failedBare ? 'failed' : ''));
   /* the column says the standing → the strip's season row yields (one fact,
      one place). The strip painted first, so it is repainted only when the
      answer changed; `renderMeStrip` never calls back here, so this cannot loop. */
@@ -22094,8 +22148,9 @@ function renderHomeDispatch(){
   /* L-34 · the lead's set is UNIONED onto the strip's, never swapped for it —
      `renderMeStrip` runs first and everything below reads the union. */
   window.__meSuppress = r.suppress;
-  /* ... and the hero stands down while a lead is on the screen. */
-  window.__leadOwnsToday = !!r.lead;
+  /* ... and the hero stands down while a lead is on the screen (or the lead
+     slot says the read failed: W7-036). */
+  window.__leadOwnsToday = !!r.lead || failedBare;
   /* F-2 · and the wire AND the digest stand down for a round a card already
      told. Both are repainted from here, where the arrangement is in hand. */
   window.__spentRounds = r.spentRounds;
@@ -22103,7 +22158,7 @@ function renderHomeDispatch(){
     if(typeof renderHomeDigest === 'function') renderHomeDigest();
     if(typeof renderHomeFeed === 'function') renderHomeFeed();
   }
-  if(r.lead){ const h=$('#homeHero'); if(h) h.innerHTML=''; }
+  if(r.lead || failedBare){ const h=$('#homeHero'); if(h) h.innerHTML=''; }
   /* TEN · the in-place request card and invitation banner stand down for
      what this dispatch carries (csDispatchCarries), so they repaint with it */
   if(typeof renderHomeRequests === 'function') renderHomeRequests();
@@ -38273,6 +38328,7 @@ sb.auth.onAuthStateChange((event, session) => {
   else if(event === 'INITIAL_SESSION'){ setTimeout(() => safeBoot(false), 0); }
   else if(event === 'SIGNED_OUT'){
     bootResolved=false; CS.user=null; CS.league=null;
+    window.csHomeDispatchClear?.(); window.homeDispatchFor = null;   /* TEN / W7-036 · a kept read is the golfer's, never the next one's */
     try{ localStorage.removeItem('cs_code'); localStorage.removeItem('cs_code_name'); localStorage.removeItem('cs_scan_consent'); }catch(_){}
     /* S16 · a session that ended ANY way (another tab, an expired or revoked
        token) takes this browser's push subscription with it. No row delete
