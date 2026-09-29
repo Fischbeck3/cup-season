@@ -79,7 +79,8 @@ struct DeclareRoundSheet: View {
             .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
 
           Text("Note · optional").csType(.agate, caps: true).foregroundStyle(cs.mut).padding(.top, CSTokens.Space.s1)
-          CSField("buddies trip, looking for a 4th", text: $vm.note, font: CSFont.body)
+          // N4-134 · a prompt, not an example that reads as a filled value (PA-025)
+          CSField("A note for your group", text: $vm.note, font: CSFont.body)
             .onChange(of: vm.note) { _, n in if n.count > 140 { vm.note = String(n.prefix(140)) } }
 
           // D240 · a name, and a game. Both optional; the name is pre-filled
@@ -322,11 +323,18 @@ struct CourseSearchField: View {
   /// F8 · fired when the answer ARRIVES — the host scrolls the field above
   /// the keyboard. Never on a keystroke.
   var onReveal: (() -> Void)? = nil
+  /// N4-160 · set when a COURSE is the whole answer (the card's home course):
+  /// a pick ends there, with no tee list and no "Tees set" toast.
+  var onCourse: ((CourseHit) -> Void)? = nil
+  /// What VoiceOver calls the field: the host's own label above it.
+  var label = "Course"
   @State private var vm = CourseSearchModel()
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      CSField("Pebble Beach", text: $text, font: CSFont.body)
+      // N4-134 · a prompt, not a course that reads as already chosen (PA-025)
+      CSField("Search a course", text: $text, font: CSFont.body)
+        .accessibilityLabel(label)
         .accessibilityIdentifier("plan.course.search")
         .onChange(of: text) { _, q in
           // typing again after a pick unstamps the course id (the label no longer matches the row)
@@ -339,7 +347,9 @@ struct CourseSearchField: View {
       case .courses:
         dropdown {
           if vm.courses.isEmpty {
-            Text(vm.offline ? CourseBookCopy.searchOffline : "No match — type the course, rating and slope by hand.")
+            Text(vm.offline ? CourseBookCopy.searchOffline
+                 : onCourse == nil ? "No match — type the course, rating and slope by hand."
+                 : "No match — your card keeps the name as you typed it.")
               .csType(.bodyS).foregroundStyle(cs.mut).padding(12)
               .fixedSize(horizontal: false, vertical: true)
           } else {
@@ -351,7 +361,10 @@ struct CourseSearchField: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
             ForEach(vm.courses) { c in
-              ddRow(c.label, c.subline) { text = c.label; vm.pickedLabel = c.label; courseId = c.id; vm.showTees(c) }
+              ddRow(c.label, c.subline) {
+                text = c.label; vm.pickedLabel = c.label; courseId = c.id
+                if let onCourse { vm.stage = .hidden; onCourse(c) } else { vm.showTees(c) }
+              }
             }
           }
         }

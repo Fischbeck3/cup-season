@@ -25,6 +25,9 @@ final class BuddyRequestsModel {
   var requests: [Person] = []
   var busy = Set<UUID>()
   var loaded = false
+  /// N4-067 · a decline waits out its toast before it is sent, so Undo can
+  /// keep the request: the row leaves at once, the answer goes later
+  var declining: [UUID: UUID] = [:]
   private let people = PeopleService()
 
   func load() async {
@@ -77,14 +80,14 @@ struct BuddyRequests: View {
       if !m.requests.isEmpty {
         VStack(alignment: .leading, spacing: 8) {
           if head { CSSectionHead("Requests · \(m.requests.count)") }
-          ForEach(m.requests) { p in
+          ForEach(m.requests.filter { m.declining[$0.id] == nil }) { p in
             PersonRow(person: p,
                       subline: "\(p.handle.map { "@\($0) · " } ?? "")wants to be golf buddies",
                       links: links) {   // N4-091 / N4-094 · no ember rail: the words say it is a request
               HStack(spacing: 6) {
                 CSMini("Accept", busy: m.busy.contains(p.id)) { answer(p, accept: true) }
-                CSMini("", glyph: .cross, busy: m.busy.contains(p.id)) { answer(p, accept: false) }
-                  .accessibilityLabel("Decline")
+                // N4-067 · a word, not a bare ×, and it can be undone
+                CSMini("Decline", busy: m.busy.contains(p.id)) { decline(p) }
               }
             }
           }
@@ -97,6 +100,24 @@ struct BuddyRequests: View {
   private func answer(_ p: Person, accept: Bool) {
     Task {
       if let t = await m.respond(p, accept: accept) { toast.show(t) }
+      onAnswered()
+    }
+  }
+
+  /// N4-067 · the row goes, the toast offers Undo, and only when the toast
+  /// has had its time is the decline sent (UI_SYSTEM §7.1). An error brings
+  /// the row back and says so.
+  private func decline(_ p: Person) {
+    let model = m
+    let mark = UUID()
+    model.declining[p.id] = mark
+    toast.show("Request declined", seconds: 4, actionLabel: "Undo") { model.declining[p.id] = nil }
+    Task {
+      try? await Task.sleep(for: .seconds(4))
+      guard model.declining[p.id] == mark else { return }   // undone
+      let said = await model.respond(p, accept: false)
+      model.declining[p.id] = nil
+      if let said, said != "Request declined" { toast.show(said) }
       onAnswered()
     }
   }

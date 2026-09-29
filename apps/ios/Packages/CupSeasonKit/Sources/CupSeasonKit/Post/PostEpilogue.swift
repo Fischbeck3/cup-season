@@ -338,6 +338,10 @@ public struct PostCeremony: Sendable, Equatable, Identifiable {
   public var eyebrow: String { "\((course.isEmpty ? "A round" : course).uppercased()) · \(Self.when(date))" }
   /// The band line — blank when the number is not sane (a rating-less post).
   public var band: String { PostCalc.vsIsSane(vs) ? CSBands.vsPhrase(vs) : "" }
+  /// N4-082 · the band as the ceremony sets it: its figure marked as a run
+  /// (`vsPhraseMarked`, the same words), so the number is the board's, never
+  /// the serif's (UI_SYSTEM §1.4, §1.6)
+  public var bandMarked: String { PostCalc.vsIsSane(vs) ? CSBands.vsPhraseMarked(vs) : "" }
   /// Real league points (> 0) — the line that says them. Not gold: a round's
   /// points are not a trophy (W4, §2.4).
   public var earned: Bool { inLeague && (points ?? 0) > 0 }

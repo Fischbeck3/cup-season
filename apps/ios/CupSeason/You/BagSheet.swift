@@ -42,8 +42,8 @@ struct BagSheet: View {
             Button("Try again") { Task { await vm.load() } }.buttonStyle(.csSecondary())
           } else {
             if let since = vm.bag?.since {
-              Text(BagCopy.sinceLine(since))
-                .csType(.story).foregroundStyle(cs.ink)
+              // N4-082 · a count the voice cannot spell is a figure run
+              CSFigureRun(BagCopy.sinceLine(since, marked: true), role: .story).foregroundStyle(cs.ink)
                 .fixedSize(horizontal: false, vertical: true)
             }
 

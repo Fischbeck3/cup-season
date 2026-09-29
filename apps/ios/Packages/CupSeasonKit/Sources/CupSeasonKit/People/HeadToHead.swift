@@ -235,7 +235,13 @@ public enum HeadToHeadCopy {
 
   /// The standfirst: how many meetings, how far back, and who has the run.
   /// Every clause is dropped rather than guessed when its fact is absent.
-  public static func standfirst(_ h: HeadToHead) -> String? {
+  /// N4-082 · `marked` sets a count above twelve (spelled's numerals) as a
+  /// figure run for the page's serif standfirst; the words are the same.
+  public static func standfirst(_ h: HeadToHead, marked: Bool = false) -> String? {
+    let spelled = { (n: Int) -> String in
+      let w = Self.spelled(n)
+      return marked && w == String(n) ? "{\(n)}" : w
+    }
     var parts: [String] = []
     if h.record.total > 0 {
       parts.append("\(spelled(h.record.total)) \(h.record.total == 1 ? "meeting" : "meetings") where you both played")

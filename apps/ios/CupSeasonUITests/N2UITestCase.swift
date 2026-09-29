@@ -45,4 +45,18 @@ extension XCUIApplication {
       if cell.frame.midX < grid.frame.midX { grid.swipeRight() } else { grid.swipeLeft() }
     }
   }
+
+  /// A field scrolled up under the navigation bar is out of a finger's
+  /// reach, but XCUITest scrolls an element into view only when something in
+  /// the app covers its centre — and the status bar's strip is not in the
+  /// app's tree, so a centre there reads as hittable and the tap lands on the
+  /// bar (the composer's course field after the rating and slope, on a 17
+  /// Pro). Drag the page down until the element clears the bar.
+  @MainActor func revealUnderBars(_ element: XCUIElement, tries: Int = 4) {
+    let bar = navigationBars.firstMatch
+    guard bar.exists else { return }
+    for _ in 0..<tries where element.exists && element.frame.midY < bar.frame.maxY {
+      swipeDown(velocity: .slow)
+    }
+  }
 }

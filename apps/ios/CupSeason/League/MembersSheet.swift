@@ -71,7 +71,7 @@ struct MembersSheet: View {
     let isMe = m.id == model.myMember?.id
     let sub = [m.profile?.handle.map { "@\($0)" },
                m.profile?.index_current.map { "NUMBER \(CSCopy.index($0))" },   // LV-19
-               model.squadName(m.id).isEmpty ? nil : model.squadName(m.id).uppercased(),
+               model.squadName(m.id).isEmpty ? nil : model.squadName(m.id),   // N4-097 · the sub's role sets the caps
                model.inFor(m) ? nil : ReUpCopy.notInYet].compactMap { $0 }.joined(separator: " · ")   // D375
     return VStack(alignment: .leading, spacing: 0) {
       // face + name across; "Marker here" drops under them at the accessibility sizes

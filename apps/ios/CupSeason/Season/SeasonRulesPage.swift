@@ -41,7 +41,9 @@ struct SeasonRulesPage: View {
     .environment(model)
     .environment(router)
     .environment(\.roomLinks, links)
-    .navigationTitle("The rules")
+    // N4-161 · the page's own head names it (the season's title); the system
+    // title said it a second time
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(item: $shareURL) { url in
       ActivityView(items: [url, "\(model.league?.name ?? "Our season") on Cup Season — the season so far"])
@@ -54,8 +56,9 @@ struct SeasonRulesPage: View {
       Text(SeasonRules.title(league: model.league?.name, number: model.season?.number))
         .font(CSFont.heroSmall).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
-      if let span = SeasonRules.span(startsOn: model.clock.startsOn, endsOn: model.clock.endsOn) {
-        Text(span).csType(.story).foregroundStyle(cs.mut)
+      // N4-082 · the dates' days are runs in the board face
+      if let span = SeasonRules.span(startsOn: model.clock.startsOn, endsOn: model.clock.endsOn, marked: true) {
+        CSFigureRun(span, role: .story).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
     }
@@ -64,11 +67,17 @@ struct SeasonRulesPage: View {
   private var sections: some View {
     VStack(alignment: .leading, spacing: 14) {
       ForEach(SeasonRules.sections(model.bylaws, clock: model.clock,
-                                   pro: model.proName, members: model.members.count)) { s in
+                                   pro: model.proName, members: model.members.count, marked: true)) { s in
         VStack(alignment: .leading, spacing: 4) {
           Text(s.head).csEyebrow()
-          Text(s.body).csType(.body).foregroundStyle(cs.ink)
-            .fixedSize(horizontal: false, vertical: true)
+          // N4-181 · the figures a golfer scans for are runs in the board face
+          if s.marked {
+            CSFigureRun(s.body, role: .body).foregroundStyle(cs.ink)
+              .fixedSize(horizontal: false, vertical: true)
+          } else {
+            Text(s.body).csType(.body).foregroundStyle(cs.ink)
+              .fixedSize(horizontal: false, vertical: true)
+          }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)

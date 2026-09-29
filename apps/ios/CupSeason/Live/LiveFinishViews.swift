@@ -493,7 +493,9 @@ struct LiveSettlementCard: View {
             }
           } else {
             VStack(spacing: 40) {
-              Text(r.share.isEmpty ? "Settled" : r.share).csFixed(.lead, 76)
+              // N4-082 · the result's figures are runs in the board face, at
+              // the canvas's own 76 (the line is the card's one serif sentence)
+              CSFigureRun(r.shareMarked.isEmpty ? "Settled" : r.shareMarked, role: .lead, fixed: 76)
                 .foregroundStyle(d.ceremonyInk).multilineTextAlignment(.center)
                 .lineLimit(3).minimumScaleFactor(0.3)
               Text(game).csFixed(.agate, 32).textCase(.uppercase)

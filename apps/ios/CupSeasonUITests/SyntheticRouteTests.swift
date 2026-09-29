@@ -376,6 +376,7 @@ final class SyntheticRouteTests: XCTestCase {
     let course = app.textFields.matching(NSPredicate(format: "identifier == %@ OR placeholderValue BEGINSWITH %@",
                                                       "post.course.search", "Search a course")).firstMatch
     XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
+    app.revealUnderBars(course)   // after the slope it can sit under the bars
     course.tap(); course.typeText("Fixture Muni")
     app.swipeDown()
   }

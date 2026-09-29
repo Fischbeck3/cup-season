@@ -96,6 +96,10 @@ struct BetweenRoundsWidgetTests {
         #expect(race.rows.allSatisfy { $0.rank == "01" })
         #expect(race.story == "Tied for the lead.")
       }
+      // N4-082 · the marked story says the same words, its gap a figure run
+      let marked = try #require(race.storyMarked)
+      #expect(marked.filter { $0 != "{" && $0 != "}" } == race.story)
+      if race.story.first?.isNumber == true { #expect(marked.hasPrefix("{")) }
     }
   }
 
@@ -180,5 +184,9 @@ struct BetweenRoundsWidgetTests {
     #expect(TrophyMeta.headline(bare) == "Personal best")
     let sub80 = Achievement(kind: "sub_80", label: "Broke 80", earned_on: "2026-09-20", meta: .object(["gross": .number(79)]))
     #expect(TrophyMeta.headline(sub80) == "Broke 80")
+    // N4-082 · marked for the widget's serif line, the figure is a run
+    #expect(TrophyMeta.headline(pb, marked: true) == "Personal best · {7.8} vs course")
+    #expect(TrophyMeta.headline(sub80, marked: true) == "Broke {80}")
+    #expect(TrophyMeta.headline(bare, marked: true) == "Personal best")
   }
 }

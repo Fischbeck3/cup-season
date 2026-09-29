@@ -28,9 +28,10 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
   }
 
   @Test func whenLabels() {
-    #expect(ScheduleDates.when("2026-08-27", today: "2026-08-27") == "TODAY")
-    #expect(ScheduleDates.when("2026-08-28", today: "2026-08-27") == "TOMORROW")
-    #expect(ScheduleDates.when("2026-08-29", today: "2026-08-27") == "SAT AUG 29")
+    // N4-135 · the words' own case; the row's role sets the line's
+    #expect(ScheduleDates.when("2026-08-27", today: "2026-08-27") == "Today")
+    #expect(ScheduleDates.when("2026-08-28", today: "2026-08-27") == "Tomorrow")
+    #expect(ScheduleDates.when("2026-08-29", today: "2026-08-27") == "Sat Aug 29")
     #expect(ScheduleDates.whenDays("2026-08-30", today: "2026-08-27") == "3 DAYS")
     #expect(ScheduleDates.whenIn("2026-08-30", today: "2026-08-27") == "IN 3 DAYS")
     #expect(ScheduleDates.whenLower("2026-08-29", today: "2026-08-27") == "sat")
@@ -311,7 +312,7 @@ private func row(id: UUID = UUID(), name: String = "Galen", playOn: String, mine
     #expect(HumanError.text(RpcError(name: "add_friend_to_league", underlying: "P0001 They're already in.", droppedArgs: [])) == "They're already in.")
     #expect(HumanError.text(E(m: "Only the host and tagged golfers can RSVP to this round.")) == "Only the host and tagged golfers can RSVP to this round.")
     #expect(HumanError.text(E(m: "invite not found")) == "Something went wrong — please try again.")
-    #expect(JoinService.joinError(E(m: "invalid code")) == "No league with that code. Check with your Pro")
+    #expect(JoinService.joinError(E(m: "invalid code")) == "No league with that code. Check with your Pro.")
   }
 }
 

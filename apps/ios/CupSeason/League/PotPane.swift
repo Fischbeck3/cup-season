@@ -303,7 +303,7 @@ struct ForfeitLedgerView: View {
           }
         } else { Text("OPEN").csEyebrow() }
       } else {
-        Text("\(model.stakeName(s.winner).uppercased()) TOOK IT").csEyebrow(cs.pos).multilineTextAlignment(.trailing)
+        Text("\(model.stakeName(s.winner)) took it").csEyebrow(cs.pos).multilineTextAlignment(.trailing)   // N4-097 · the role sets the case
       }
     }
   }

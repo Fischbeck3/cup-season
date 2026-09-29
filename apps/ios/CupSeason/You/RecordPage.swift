@@ -397,8 +397,8 @@ final class RecordModel {
   /// arrives, because an account's creation date is not when somebody started
   /// playing golf, and the slot is then empty rather than wrong.
   var since: String? {
-    guard let c = record?.sinceClause else { return nil }
-    return c.uppercased()
+    // N4-097 · the page header's eyebrow role sets the caps
+    return record?.sinceClause
   }
 
   /// The one serif sentence, with its numeral marked as a figure run — braces
@@ -438,9 +438,10 @@ final class RecordModel {
 
   /// §16A.2 · the slot carries a COUNT. `SINCE 2026` was a date in a count's
   /// seat while the header two lines above already carried the join date.
+  /// N4-076 · the count alone: "SEASONS · FOUR SEASONS" said its label twice.
   var seasonsCount: String? {
     guard !seasons.isEmpty else { return nil }
-    return "\(CSCopy.spelled(seasons.count)) season\(seasons.count == 1 ? "" : "s")"
+    return CSCopy.spelled(seasons.count)
   }
 
   /// Newest first — an archive reads from the present backwards.

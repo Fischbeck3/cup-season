@@ -171,9 +171,16 @@ private struct CourseHomeEntry: Identifiable {
     rounds = json["rounds_total"]?.int ?? 0
     people = (json["people"]?.array ?? []).compactMap { SocialPerson($0["person"]) }
   }
+  /// N4-151 · the line names who the faces beside it are ("Blake and 3
+  /// others from your circle"): it counted friends beside faces that were not
+  /// all friends ('1 friend has played here' over four faces)
   var line: String {
     let played = "\(rounds) \(rounds == 1 ? "round" : "rounds")"
-    return friends > 0 ? "\(friends) \(friends == 1 ? "friend has" : "friends have") played here · \(played)" : "\(played) in your circle"
+    guard let first = people.first else { return "\(played) in your circle" }
+    let rest = people.count - 1
+    let who = rest == 0 ? CourseNames.first(first.name)
+                        : "\(CourseNames.first(first.name)) and \(rest) \(rest == 1 ? "other" : "others")"
+    return "\(who) from your circle · \(played)"
   }
 }
 

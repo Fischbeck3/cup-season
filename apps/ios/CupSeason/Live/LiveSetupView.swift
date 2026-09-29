@@ -30,6 +30,8 @@ struct LiveSetupView: View {
     ScrollViewReader { proxy in
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
+        // N4-161 · the page names itself in the page (UI_SYSTEM §12.2)
+        CSPageHeader("Set up the round") { EmptyView() }
         if store.held {
           // TEN / W6 (critique A2, P1) · a round opened here mid-play is HELD,
           // not dropped: the line says so first, and the way back is on the
@@ -76,6 +78,10 @@ struct LiveSetupView: View {
       }
       .padding(CSTokens.Space.gutter)
     }
+    // N4-173 · the page ends under a fade above the pinned Tee off while it
+    // continues (UI_SYSTEM §13.2a): at SE3 AX3 the action sat on a field cut
+    // in half at its edge
+    .csFoldFade(cs.bg0)
     }
     .background(cs.bg0)
     .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -112,7 +118,7 @@ struct LiveSetupView: View {
     .csNearbyInvite(store)
     .csFeedback(.teeOff, trigger: teeOffTaps)
     .scrollDismissesKeyboard(.interactively)
-    .navigationTitle("Set up the round")
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(isPresented: $showCard) { LiveCardSheet(store: store) }
     .sheet(isPresented: $showPicker) { LiveRosterPickerSheet(store: store) }
@@ -166,7 +172,9 @@ struct LiveSetupView: View {
         // F8 · the answer arrives under this field, above the keyboard
         .id(CourseSearchReveal.id)
         .onGeometryChange(for: CGFloat.self, of: { $0.frame(in: .scrollView).minY }, action: { searchTop = $0 })
-        fieldLabel("Tee & rating — off the scorecard")
+        // N4-172 · "off the scorecard" read as "switched off"; the numbers come
+        // FROM the card (the web's gloss moves with it)
+        fieldLabel("Tee & rating — from your scorecard")
         // three fields across; stacked (and the tee field full-width) at the accessibility sizes.
         // F08 · each field keeps its OWN visible label once it is filled: a
         // placeholder is gone the moment the tee fills, and "Blue · 70.2 ·
@@ -753,7 +761,8 @@ struct LiveCardSheet: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 12) {
-          CSSheetHeader(title: "Set the pars", sub: (store.state.course.label.isEmpty ? "Course" : store.state.course.label).uppercased())
+          // N4-097 · the header's role sets the case (LINT-14)
+          CSSheetHeader(title: "Set the pars", sub: store.state.course.label.isEmpty ? "Course" : store.state.course.label)
           side(nine ? "The nine" : "Front nine", $f9, placeholder: "453453543")
           if !nine { side("Back nine", $b9, placeholder: "434445345") }
           HStack {

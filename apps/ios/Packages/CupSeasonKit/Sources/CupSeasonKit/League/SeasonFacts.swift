@@ -311,7 +311,8 @@ public enum SeasonFacts {
   ///             $0 league (D70), no "collected" on a v1 payload.
   ///   preseason "First tee Sat Sep 5 · 5 on the roster"
   ///   cup final "Cup Final · 2 weeks left" / "· 1 week left" — never the season's place: the
-  ///             Final is scored fresh (§14.3), so the table's rank is not its rank
+  ///             Final is scored fresh (§14.3), so the table's rank is not its rank.
+  ///             `week: false` says "2 weeks left" alone (N4-119)
   ///   complete  "Season complete" (`LeagueCopy.seasonNote`)
   ///   forming   "Forming" / "Squads drawing" (`LeagueCopy.Stage.label`)
   ///
@@ -320,7 +321,8 @@ public enum SeasonFacts {
   /// for a surface whose EYEBROW already carries the week, where printing it
   /// again is the same fact in two places on one row (L-34). Compete's peer
   /// list is that surface; a second producer for it would be the drift D234
-  /// exists to forbid.
+  /// exists to forbid. In the Final that eyebrow is the stage word itself,
+  /// so the same grain drops "Cup Final" and keeps the clock (N4-119).
   ///
   /// **`rank: false` IS THE THIRD GRAIN, AND IT EXISTS BECAUSE A RANK IS A
   /// FIGURE** (D286). Where the surface draws the standing as a rule-and-figure
@@ -377,7 +379,8 @@ public enum SeasonFacts {
       else if let n = m.headcount { s += " · \(n) on the roster" }
       return s
     case .cupFinal(let left):
-      return "\(LeagueCopy.Stage.final.label) · \(SeasonFacts.finalClock(left))"
+      return week ? "\(LeagueCopy.Stage.final.label) · \(SeasonFacts.finalClock(left))"
+                  : SeasonFacts.finalClock(left)
     case .wrapped:
       return LeagueCopy.seasonNote(.complete, firstTee: nil, short: true)
     case .forming:

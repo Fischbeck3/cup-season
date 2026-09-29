@@ -157,7 +157,7 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     guard case .object = v else { return nil }
     let roster = v["roster"]
     let sp = v["split"]
-    self.init(name: v["name"]?.string ?? "this league",
+    self.init(name: v["name"]?.string ?? Covenant.unnamed,
               buyinCents: v["buyin_cents"]?.int ?? Int(v["buyin_cents"]?.string ?? "") ?? 0,
               preset: v["preset"]?.string,
               floor: v["floor"]?.int ?? Int(v["floor"]?.string ?? "") ?? 0,
@@ -326,21 +326,18 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     return "The season’s ending will appear here when its rules are set."
   }
 
-  /// 5 · "If you take it: sixty percent to the champion, twenty-five to the
-  /// runner-up, fifteen to the points king." ABOVE $0 ONLY (L-10), and the trio
-  /// is the Pro's own, printed rather than assumed.
+  /// 5 · "If you take it: 60 percent to the champion, 25 to the runner-up, 15
+  /// to the points king." ABOVE $0 ONLY (L-10), and the trio is the Pro's own,
+  /// printed rather than assumed. N4-181 · the words are `PotMath.splitWords`,
+  /// which the rules page reads too.
   ///
   /// N4-201 · the web's sentence word for word (the covenant's `split`): the
   /// first share says "percent", the rest are figures; a zero share is left
   /// out (L-23); and, in a league with a structure, the points king is said
   /// once in plain words when it pays.
   public var splitLine: String? {
-    guard paid, let s = split else { return nil }
-    let shares = [(s.champion, "the champion"), (s.runnerUp, "the runner-up"), (s.pointsKing, "the points king")]
-      .filter { $0.0 > 0 }
-    guard !shares.isEmpty else { return nil }
-    let said = shares.enumerated().map { i, share in (i == 0 ? "\(share.0) percent" : "\(share.0)") + " to " + share.1 }
-    let line = said.count == 1 ? said[0] : said.dropLast().joined(separator: ", ") + ", " + said[said.count - 1]
+    guard paid, let s = split,
+          let line = PotMath.splitWords(champion: s.champion, runnerUp: s.runnerUp, pointsKing: s.pointsKing) else { return nil }
     let kingNote = structure != nil && s.pointsKing > 0
       ? " The points king is the golfer with the most points of their own, whatever the Final does." : ""
     return "If you take it: " + line + "." + kingNote
@@ -416,7 +413,13 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// money, and that order is a value rather than the way a View happens to be
   /// written.
   /// `csCovenantTitle`: "Season 2 of the Fellas" for a re-up, else the first-join head.
-  public var head: String { isReUp && seasonNumber != nil ? "Season \(seasonNumber!) of \(name)" : "Before you join \(name)" }
+  public var head: String {
+    isReUp && seasonNumber != nil ? "Season \(seasonNumber!) of \(name == Covenant.unnamed ? "your league" : name)" : "Before you join \(name)"
+  }
+  /// N4-211 · a payload with no name reads "this season", as the web's
+  /// `csCovenantTitle` falls back ("Before you join this season"), and a
+  /// re-up with no name "Season 2 of your league"; "this league" was a third word
+  public static let unnamed = "this season"
   /// W4 · `joining` (the clock) is declared last because it sits outside the
   /// pinned order (the web's `CS_COVENANT_FACTS`): `facts(today:)` splices it
   /// in after the length, as the web's sheet splices `csCovenantClock`.
@@ -527,6 +530,7 @@ public struct JoinService: Sendable {
   /// Error copy (17150, 15338): an "invalid" code reads as the Pro's problem.
   public static func joinError(_ error: Error) -> String {
     let m = ((error as? LocalizedError)?.errorDescription ?? String(describing: error)).lowercased()
-    return m.contains("invalid") ? "No league with that code. Check with your Pro" : HumanError.text(error, prefix: "Could not join.")
+    // N4-214 · the web's sentence, full stop and all (PAR-32)
+    return m.contains("invalid") ? "No league with that code. Check with your Pro." : HumanError.text(error, prefix: "Could not join.")
   }
 }

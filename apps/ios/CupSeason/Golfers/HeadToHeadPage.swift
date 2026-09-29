@@ -121,8 +121,9 @@ struct HeadToHeadPage: View {
 
     // §10 · the serif carries what the numeral cannot: *"He has won the last
     // two."* One serif appearance per viewport (§1.4).
-    if let sf = HeadToHeadCopy.standfirst(h) {
-      Text(sf).csType(.story).foregroundStyle(cs.ink)
+    // N4-082 · a count above twelve is a figure run in the board face
+    if let sf = HeadToHeadCopy.standfirst(h, marked: true) {
+      CSFigureRun(sf, role: .story).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, CSTokens.Space.s4)
     }
@@ -144,7 +145,7 @@ struct HeadToHeadPage: View {
       Button("Share rivalry") {
         let who = store.me?.profile?.display_name ?? "You"
         share = BrandRecordCard(kind: "Rivalry record", title: "\(who) & \(name)",
-          figure: h.record.line, statement: "\(h.record.wins) wins · \(h.record.losses) losses · \(h.record.ties) ties",
+          figure: h.record.line, statement: "{\(h.record.wins)} wins · {\(h.record.losses)} losses · {\(h.record.ties)} ties",
           rows: ["\(h.record.total) meetings", "Record as of \(CSDate.today())"]).shareItem()
       }.buttonStyle(.csSecondary()).padding(.top, CSTokens.Space.s4)
     }

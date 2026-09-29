@@ -65,10 +65,12 @@ import Foundation
     guard receipt.profileId == owner, let gross = receipt.gross, let holes = receipt.holesPlayed else { return nil }
     let card = await RoundScorecardService(svc).load(id, gross: gross, holesPlayed: holes)
     // N4-192 · the milestone says what it is measured by (TrophyMeta.headline)
-    let headline = milestone.map(TrophyMeta.headline) ?? "Your last round."
-    return .init(id: id, headline: headline, course: receipt.courseLabel.map(RoundCopy.course) ?? "Your round",
+    let headline = milestone.map { TrophyMeta.headline($0) } ?? "Your last round."
+    var record = BetweenRoundsSnapshot.Record(id: id, headline: headline, course: receipt.courseLabel.map(RoundCopy.course) ?? "Your round",
                  date: receipt.playedOn.map { CSDate.short($0) } ?? "", gross: gross, holes: holes,
                  out: card?.out, inn: card?.inn, earned: milestone != nil, company: receipt.playedWith.isEmpty ? nil : "with " + receipt.playedWith.map { CSBands.fn1($0) }.prefix(3).joined(separator: " · "))
+    record.headlineMarked = milestone.map { TrophyMeta.headline($0, marked: true) }
+    return record
   }
   private func loadRivalry() async throws -> BetweenRoundsSnapshot.Rivalry? {
     let rows = try await svc.call(Rpc.my_rivalries())
@@ -96,8 +98,11 @@ public enum BetweenRoundsCopy {
     let gap = leader.points - mine.points
     let story = gap == 0 ? (mine.tied ? "Tied for the lead." : (book.hasSquads ? "Your squad leads." : "You lead.")) : "\(gap) back of \(leader.name)."
     let context = book.status == "complete" ? "Final points" : "Week \(book.current_week) · Cup points"
-    return .init(league: book.league_id, name: book.name, context: context,
+    var race = BetweenRoundsSnapshot.Race(league: book.league_id, name: book.name, context: context,
       standing: "\(mine.standing ?? "Unranked") of \(rows.count)", story: story, rows: Array(window))
+    // N4-082 · the gap is a figure run in the widget's serif line
+    race.storyMarked = gap == 0 ? story : "{\(gap)} back of \(leader.name)."
+    return race
   }
 
   public static func closesAt(day: String, time: String?, calendar: Calendar = ScheduleDates.gregorian) -> Date? {

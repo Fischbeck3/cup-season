@@ -508,9 +508,9 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     // COUNTING-rounds figure. With a cap of 4 and five eighteens those are 5
     // and 4, and they are never the same question.
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2.5, partial: false).text
-            == "August's minimum is met — 2.5 of 2. A nine counts half. Your best four each month count. Another round is another chance to improve on one of them.")
+            == "August's minimum of 2 is met — you have 2.5. A nine counts half. Your best four each month count. Another round is another chance to improve on one of them.")
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 2, partial: false).text
-            == "August's minimum is met — 2 of 2. Your best four each month count. Another round is another chance to improve on one of them.")
+            == "August's minimum of 2 is met — you have 2. Your best four each month count. Another round is another chance to improve on one of them.")
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: b, credits: 0, partial: true)
             == ("Up next · August", "August is a short month — no minimum to clear. Your best four each month count."))
 
@@ -531,7 +531,7 @@ private func team(_ id: UUID, _ name: String, _ pts: Double, ci: Int = 0) -> Tea
     // which used to put the word "unlimited" where a rule belonged.
     let unl = Bylaws(floor: 2, cap: nil)
     #expect(LeagueCopy.nextUp(clock("2026-08-27"), b: unl, credits: 2, partial: false).text
-              .hasPrefix("August's minimum is met — 2 of 2. Every round you post counts."))
+              .hasPrefix("August's minimum of 2 is met — you have 2. Every round you post counts."))
     #expect(!LeagueCopy.nextUp(clock("2026-08-27"), b: unl, credits: 2, partial: false).text.lowercased().contains("unlimited count"))
     let pm = LeagueCopy.pressMeter(today: "2026-08-27")
     #expect(pm.legend == "5 days left in August" && pm.hot && abs(pm.fill - 26.0 / 31.0) < 1e-9)

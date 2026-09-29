@@ -174,6 +174,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(r.json["mode"]?.string == "solo")
     #expect(r.story == "A won the round robin, 3-0 · A 3-0, B 2-1, C 1-2, D 0-3 · $5 a match")
     #expect(r.share == "A won the round robin, 3-0")
+    #expect(r.shareMarked == "A won the round robin, {3-0}")   // N4-082 · the card's figure runs
     // pts = w − l = [3, 1, −1, −3] × $5 → D pays A 15, C pays B 5
     #expect(r.transfers == [LiveTransferNamed(from: "D", to: "A", amt: 15), LiveTransferNamed(from: "C", to: "B", amt: 5)])
     #expect(r.recapRow.money == "D PAYS A $15 · C PAYS B $5 · SETTLE UP")
@@ -183,6 +184,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let s = round(["A", "B", "C", "D"], indices: [0, 0, 0, 0], scores: [S(3), S(3), S(5), S(5)], game: .match, mode: .solo)
     let r = LiveResultBuilder.roundRobin(s)
     #expect(r.share == "A and B split it, 2 wins each")
+    #expect(r.shareMarked == "A and B split it, {2} wins each")
     let none = round(["A", "B", "C", "D"], indices: [0, 0, 0, 0], scores: [S(4), S(4), S(4), S(4)], game: .match, mode: .solo)
     #expect(LiveResultBuilder.roundRobin(none).share == "Nobody won a match")
   }
@@ -251,6 +253,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     let r = LiveResultBuilder.wolf(s)
     #expect(r.story == "Jerecho took Wolf, up $6 · Chuck -$2, Gary -$2, Jerecho +$6, Logan -$2 · $2/pt")
     #expect(r.share == "Jerecho took Wolf, up $6")
+    #expect(r.shareMarked.hasSuffix(" took Wolf, up {$6}"))
     #expect(r.json["holes"]?["mode"]?.string == "wolf" && r.json["holes"]?["hot"]?.string == "w")
     #expect(r.json["holes"]?["legend"]?.string == "the wolf's side")
     #expect(r.json["holes"]?["played"]?.int == 18)
@@ -286,6 +289,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     // money is pts × rate: 4 × $5 = $20
     #expect(r.story == "Ed took 2 skins and $20 · Ed 2 · $5 a skin · 1 never claimed")
     #expect(r.share == "Ed took 2 skins and $20")
+    #expect(r.shareMarked.hasSuffix(" took {2} skins and {$20}"))
     #expect(r.json["carried_died"]?.int == 1 && r.json["thru"]?.int == 3)
     #expect(r.json["holes"]?["mode"]?.string == "players")
     #expect(r.json["holes"]?["hot"]?.int == 0)   // a player index travels as a NUMBER
@@ -446,6 +450,7 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(r.json["mode"]?.string == "solo")
     #expect(r.json["bank"]?["owner"]?.int == 1 && r.json["bank"]?["units"]?.int == 1)
     #expect(r.share == "B won the most holes and $10 from each")
+    #expect(r.shareMarked == "B won the most holes and {$10} from each")
     #expect(r.story == "B took it, 5 holes. Sunningdale Rules · B 5, A 2, C 0, D 0 · bank: B $10 (each owes)")
     #expect(r.recapRow.money == "B HOLDS THE BANK - $10 FROM EACH")
   }

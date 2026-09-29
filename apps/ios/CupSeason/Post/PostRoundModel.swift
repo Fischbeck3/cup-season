@@ -270,7 +270,7 @@ final class PostRoundModel {
     PostSeasonRule.membership(playedOn: card.date, memberships: store.me?.memberships ?? [])
   }
   var myIndex: Double? { profile?.index_current }
-  /// "Add my round · your index 12.4" — the REAL number (landmine 7.12).
+  /// "Your index 12.4" — the REAL number (landmine 7.12).
   /// No minted number = say "building", not a dash (web 14242, setup-QA S6-03).
   ///
   /// NW-5 · it says **index**, not "your number". R-M's accepted cost is that
@@ -281,8 +281,12 @@ final class PostRoundModel {
   /// few rows below reads "2.4 vs your playing HCP", and under a Standard
   /// league's 95% the two figures differ by about half a shot. "Your number"
   /// above "your playing HCP" made them look like one figure printed twice.
+  ///
+  /// N4-025 · the eyebrow keeps its fact: "Add my round" is the screen's title
+  /// and its button already, and a third printing names nothing. The label
+  /// stays "your index" until W6 item 3 settles the one word.
   var eyebrow: String {
-    myIndex == nil ? "Add my round · your index builds at 3 rounds" : "Add my round · your index " + CSCopy.index(myIndex)
+    myIndex == nil ? "Your index builds at 3 rounds" : "Your index " + CSCopy.index(myIndex)
   }
 
   // MARK: - open (`switchView('post')`, 4159)

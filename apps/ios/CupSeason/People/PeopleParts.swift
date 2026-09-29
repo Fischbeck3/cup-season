@@ -233,8 +233,9 @@ struct PersonInviteLink: View {
       CSGlyph(.send, size: .row).foregroundStyle(cs.mut)
       VStack(alignment: .leading, spacing: 1) {
         Text(title ?? "Text someone a link").csType(.name).foregroundStyle(cs.ink)
+        // N4-141 · a gloss is a phrase: sentence case, the agate role's (§1.3)
         Text(minting ? "Making the link…" : (sub ?? "Works for anyone · no account needed"))
-          .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .csType(.agateS, caps: false).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       .multilineTextAlignment(.leading)
@@ -522,8 +523,9 @@ struct PlanInviteLink: View {
           CSGlyph(.send, size: .row).foregroundStyle(cs.mut)
           VStack(alignment: .leading, spacing: 1) {
             Text("Text them a link").csType(.name).foregroundStyle(cs.ink)
+            // N4-141 · a gloss is a phrase: sentence case (§1.3)
             Text(minting ? "Making the link…" : "Works for anyone · no account needed")
-              .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+              .csType(.agateS, caps: false).foregroundStyle(cs.mut)
               .fixedSize(horizontal: false, vertical: true)
           }
           .multilineTextAlignment(.leading)

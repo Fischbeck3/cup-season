@@ -24,10 +24,11 @@ public extension ScheduledRound {
   var who: String { isMine ? "You" : (display_name ?? "A golfer") }
   /// "IN YOUR SEASONS" / "BUDDY" / nil (10691).
   var relTag: String? { isMine ? nil : (shared_league == true ? "IN YOUR SEASONS" : (is_friend == true ? "BUDDY" : nil)) }
-  /// "WITH GALEN & MARCO" (12146).
+  /// "With Galen & Marco" (12146). N4-135 · in the words' own case: it rides
+  /// the schedule's sub-lines, whose role sets the line's case (§1.3).
   var withLine: String? {
     guard let n = tagged_names, !n.isEmpty else { return nil }
-    return "WITH " + n.joined(separator: " & ").uppercased()
+    return "With " + n.joined(separator: " & ")
   }
 
   // The Home hard-look (2026-09-02): a round a buddy booked WITH you is your
@@ -121,9 +122,6 @@ public enum ScheduleDates {
     return "\(self.dow[dow]) \(mos[p.m - 1]) \(p.d)"
   }
 
-  /// "SAT AUG 29"
-  public static func longUpper(_ iso: String) -> String { long(iso).uppercased() }
-
   /// `openDeclareSheet`'s default day (16674): the next Saturday — a Saturday
   /// today rolls to the one after (`|| 7`).
   public static func nextSaturday(from today: String = CSDate.today(), calendar: Calendar = gregorian) -> String {
@@ -133,10 +131,13 @@ public enum ScheduleDates {
     return CSDate.iso(calendar.date(byAdding: .day, value: add, to: d) ?? d, calendar: calendar)
   }
 
-  /// `homeRoundCard` (10685): "TODAY" · "TOMORROW" · "SAT AUG 29".
+  /// `homeRoundCard` (10685): "Today" · "Tomorrow" · "Sat Aug 29".
+  /// N4-135 · in the words' own case: the schedule's sub-lines are one agate
+  /// line whose ROLE sets the case (§1.3), and a hand-capped date beside a
+  /// golfer's note was a mixed-case tracked line.
   public static func when(_ iso: String, today: String = CSDate.today()) -> String {
     guard let n = CSDate.days(from: today, to: iso) else { return "" }
-    return n == 0 ? "TODAY" : n == 1 ? "TOMORROW" : longUpper(iso)
+    return n == 0 ? "Today" : n == 1 ? "Tomorrow" : long(iso)
   }
 
   /// `#calList` (12142): "TODAY" · "TOMORROW" · "N DAYS".

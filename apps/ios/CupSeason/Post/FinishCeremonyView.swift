@@ -73,7 +73,8 @@ struct FinishCeremonyView: View {
           .opacity(stage >= 2 ? 1 : 0).offset(y: stage >= 2 ? 0 : 6)
           .accessibilityLabel("\(ceremony.gross) gross")
         if !ceremony.band.isEmpty {
-          Text(ceremony.band).csType(.story).foregroundStyle(bandInk).multilineTextAlignment(.center)
+          // N4-082 · the band's figure is a run in the board face
+          CSFigureRun(ceremony.bandMarked, role: .story).foregroundStyle(bandInk).multilineTextAlignment(.center)
             .padding(.top, 12).opacity(stage >= 3 ? 1 : 0).offset(y: stage >= 3 ? 0 : 6)
         }
         // W4 twin · the points are INK and a sentence: gold is for what was
@@ -83,10 +84,13 @@ struct FinishCeremonyView: View {
           .foregroundStyle(ceremony.earned ? bandInk : eyebrowInk)
           .multilineTextAlignment(.center).padding(.top, 24).opacity(stage >= 4 ? 1 : 0).offset(y: stage >= 4 ? 0 : 6)
         Rectangle().fill(bandInk.opacity(0.1)).frame(width: 120, height: 1).padding(.top, 22).opacity(stage >= 5 ? 1 : 0)
+        // N4-030 · the controls fade in at stage 5, and until then they are
+        // neither a target nor announced: for ~2.55s they were both, invisible
         if roundId != nil {
           Button("View receipt") { showReceipt = true }
             .buttonStyle(.csTertiary(.toolbar))
             .padding(.top, 12).opacity(stage >= 5 ? 1 : 0)
+            .allowsHitTesting(stage >= 5).accessibilityHidden(stage < 5)
         }
         Button { showPreview = true } label: {
           Text(PostCeremony.shareLabel).csType(.name).foregroundStyle(shareInk)
@@ -94,10 +98,12 @@ struct FinishCeremonyView: View {
             .background(shareBg, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
         }
         .buttonStyle(.plain).padding(.top, 26).opacity(stage >= 5 ? 1 : 0)
+        .allowsHitTesting(stage >= 5).accessibilityHidden(stage < 5)
         Button(action: onBack) {
           Text(PostCeremony.backLabel).font(CSFont.subhead.weight(.medium)).foregroundStyle(eyebrowInk).frame(minHeight: 44).contentShape(Rectangle()).padding(.horizontal, 12)
         }
         .buttonStyle(.plain).padding(.top, 8).opacity(stage >= 5 ? 1 : 0)
+        .allowsHitTesting(stage >= 5).accessibilityHidden(stage < 5)
         Text(CSBrandCopy.tagline).csType(.agateS, caps: true)
           .foregroundStyle(eyebrowInk).padding(.top, CSTokens.Space.s4).opacity(stage >= 5 ? 1 : 0)
         Spacer(minLength: 24)

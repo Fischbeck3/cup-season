@@ -182,14 +182,6 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(MajorMath.vs(nil) == "—"); #expect(MajorMath.vs(4.0) == "4 UNDER"); #expect(MajorMath.vs(0.04) == "LEVEL")
   }
   @Test func money() { #expect(MajorMath.money(20) == "$20"); #expect(MajorMath.money(12.5) == "$12.50"); #expect(MajorMath.money(nil) == "$0") }
-  @Test func cardLines() {
-    #expect(MajorMath.cardLines(days: 4, when: "JUL 9–JUL 12", field: 8, contenders: 6, buyIn: 20, pot: 120, potSplit: "places")
-            // D252 · "the field" was the room's word for a headcount and
-            // "EXHIBITION" was its word for a card that cannot contend.
-            == ["A MAJOR · 4 DAYS", "JUL 9–JUL 12 · 8 PLAYING · 2 NOT COUNTING THIS YEAR", "BUY-IN $20 · POT $120 · 60 / 25 / 15"])
-    #expect(MajorMath.cardLines(days: 2, when: "JUL 11–JUL 12", field: 4, contenders: 4, buyIn: 0, pot: 0, potSplit: nil)[2] == "BRAGGING RIGHTS")
-    #expect(MajorMath.cardLines(days: 3, when: "", field: 4, contenders: 4, buyIn: 10, pot: 40, potSplit: "wta")[2] == "BUY-IN $10 · POT $40 · WINNER TAKES ALL")
-  }
   /// D252 · two of these were the room's private language.
   ///
   /// "AWAITING THE HORN" said nothing to a golfer who had not been told what
@@ -223,7 +215,7 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
   @Test func cardsLineAndShare() {
     #expect(MajorMath.cardsLine(gross: 82, cards: 2) == "82 · 2 cards")
     #expect(MajorMath.cardsLine(gross: nil, cards: 1, prize: 60) == "1 card · $60")
-    #expect(MajorMath.cardsLine(gross: 90, cards: 3, exhibition: true) == "90 · 3 cards · doesn't count this year")
+    #expect(MajorMath.cardsLine(gross: 90, cards: 3, exhibition: true) == "90 · 3 cards · doesn’t count this year")
     // D252 · "still to post", not "still to card": one act, one verb (A-5).
     #expect(MajorMath.stillToPost(["Tash", "Dev"], daysLeft: 2) == "Still to post: Tash, Dev · 2d left.")
     #expect(MajorMath.stillToPost(["Tash"], daysLeft: 0) == "Still to post: Tash · cards in by tonight.")
@@ -231,6 +223,17 @@ private func room(status: String = "live", winner: UUID? = nil, sessionCount: In
     #expect(MajorMath.noCardsLine(live: true) == "No cards yet — first one leads.")
     #expect(!MajorMath.noCardsLine(live: true).contains("clubhouse"))
     #expect(MajorMath.shareText(name: "Marcus", jug: "The PIGL Championship", gross: 82, pvi: 4.2) == "Marcus takes The PIGL Championship — 82, 4.2 under their playing HCP · cupseason.app")
+  }
+  /// N4-212 / PAR-28 · the room's head and section words come from one
+  /// producer, and the desk reads the same words (it drops its "EX" mark).
+  @Test func theHeadIsOneProducer() {
+    #expect(MajorMath.potCaption(buyIn: 20, potSplit: nil) == "$20 each · 60/25/15")
+    #expect(MajorMath.potCaption(buyIn: 12.5, potSplit: "wta") == "$12.50 each · winner takes all")
+    #expect(MajorMath.windowLine(window: "Sep 26 – Sep 29", field: 5) == "Sep 26 – Sep 29 · five playing")
+    #expect(MajorMath.windowLine(window: nil, field: 0) == nil)
+    #expect(MajorMath.Head.unofficial.lowercased() == MajorMath.unofficial)
+    #expect(!MajorMath.unofficial.localizedCaseInsensitiveContains("exhibition"))
+    #expect(MajorMath.Head.board == "Leaderboard" && MajorMath.Head.stillToPost == "Still to post")
   }
   @Test func whenLine() {
     #expect(MajorMath.whenLine(finalOn: "2026-07-12", days: 4, calendar: cal) == "Thu, Jul 9 \u{2013} Sun, Jul 12 · best round by Sunday night")   // D278 · a SPAN is an en dash; the arrow said motion

@@ -111,12 +111,14 @@ public enum RivalryCopy {
   }
 
   /// Y-33 · the same day said out loud: "June 1", never "J U N 1".
-  public static func monthDaySpoken(_ iso: String) -> String {
+  /// `marked` (N4-082): the day is a figure run (`June {1}`), for a date
+  /// inside a sentence set in the serif.
+  public static func monthDaySpoken(_ iso: String, marked: Bool = false) -> String {
     let parts = iso.split(separator: "-").compactMap { Int($0) }
     let mos = ["January", "February", "March", "April", "May", "June",
                "July", "August", "September", "October", "November", "December"]
     guard parts.count == 3, (1...12).contains(parts[1]) else { return "" }
-    return "\(mos[parts[1] - 1]) \(parts[2])"
+    return "\(mos[parts[1] - 1]) \(marked ? "{\(parts[2])}" : String(parts[2]))"
   }
 
   /// D209 · `rivalry_weeks` builds `my_pvi`/`opp_pvi` from `max(rr.pvi)` over

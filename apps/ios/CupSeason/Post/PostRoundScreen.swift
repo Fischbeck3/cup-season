@@ -382,7 +382,10 @@ private struct PostRoundBody: View {
     Button { CSMotion.run { cardOpen = !cardIsOpen } } label: {
       CSRow(last: true) {
         A11yStack(rowAlignment: .firstTextBaseline, spacing: 8, columnSpacing: 2) {
-          Text(inheritedText).csType(.columnM).foregroundStyle(model.card.course.isEmpty ? cs.mut : cs.ink)
+          // N4-025 · the course and the day are words, in body; only the
+          // rating and slope are figures, in column (§1.4: mono sets a
+          // figure, never a name)
+          inheritedRun.foregroundStyle(model.card.course.isEmpty ? cs.mut : cs.ink)
             .multilineTextAlignment(.leading)
           Spacer(minLength: 8)
           Text(cardIsOpen ? "Done" : "Edit").csType(.agateS, caps: true).foregroundStyle(cs.ink)
@@ -398,14 +401,26 @@ private struct PostRoundBody: View {
     .accessibilityHint(cardIsOpen ? "Closes the card" : "Opens the course, the tees, the day and your nines")
   }
 
-  /// "PAPAGO · BLUE · 71.2 / 128 · TODAY". A missing piece is an em dash, never
+  /// "Papago · Blue · 71.2 / 128 · Today". A missing piece is an em dash, never
   /// a number nobody typed.
-  private var inheritedText: String {
+  private var inheritedParts: (course: String, figures: String, day: String) {
     let course = model.card.course.trimmingCharacters(in: .whitespaces)
     let rating = model.card.rating.isEmpty ? "—" : model.card.rating
     let slope = model.card.slope.isEmpty ? "—" : model.card.slope
-    return [course.isEmpty ? "Add the course" : course, "\(rating) / \(slope)", CSHeaderDate.today(model.day)]
-      .joined(separator: " · ")
+    // the day is a word in the line's own case, the shared day token: the
+    // header date's caps ("TUE · SEP 29") read as two more items in body
+    let cal = ScheduleDates.gregorian
+    let day = MeStripCopy.dayTokenWords(CSDate.iso(model.day, calendar: cal), today: CSDate.today(calendar: cal), calendar: cal)
+    return (course.isEmpty ? "Add the course" : course, "\(rating) / \(slope)", day)
+  }
+  private var inheritedText: String {
+    let p = inheritedParts
+    return [p.course, p.figures, p.day].joined(separator: " · ")
+  }
+  private var inheritedRun: Text {
+    let p = inheritedParts
+    let body = CSType.font(.body, typeSize), column = CSType.font(.columnM, typeSize)
+    return Text(p.course + " · ").font(body) + Text(p.figures).font(column) + Text(" · " + p.day).font(body)
   }
 
   /// Open when the golfer opened it, or when there is nothing to inherit.

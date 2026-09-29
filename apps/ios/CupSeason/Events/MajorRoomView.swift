@@ -62,8 +62,10 @@ struct MajorRoomView: View {
                    seed: ev.course_id ?? ev.course_label,
                    back: back) {
       if !room.majorBoard.isEmpty {
+        // N4-123 · four faces and a "+N" for the rest, under "N playing"
         CSFaceRow(room.majorBoard.prefix(4).map { face($0) }, style: .roster,
-                  names: room.majorBoard.prefix(4).map { CSBands.fn1($0.displayName) })
+                  names: room.majorBoard.prefix(4).map { CSBands.fn1($0.displayName) },
+                  more: room.majorBoard.count - 4)
       }
     }
 
@@ -73,7 +75,7 @@ struct MajorRoomView: View {
       if let pot = potFigure(f) {
         A11yStack(rowAlignment: .firstTextBaseline, spacing: CSTokens.Space.s2, columnSpacing: CSTokens.Space.s1) {
           Text(pot).csType(.figureS).foregroundStyle(f.complete ? cs.ink : cs.gold)
-          Text(MajorMath.money(f.buyIn) + " each · " + (ev.pot_split == "wta" ? "winner takes all" : "60/25/15"))
+          Text(MajorMath.potCaption(buyIn: f.buyIn, potSplit: ev.pot_split))
             .csType(.agate, caps: true).foregroundStyle(cs.mut)
             .fixedSize(horizontal: false, vertical: true)
         }
@@ -135,12 +137,10 @@ struct MajorRoomView: View {
   private func dateline(_ f: MajorMath.Facts) -> [String] {
     var lines: [String] = []
     if let place = room.event.course_label, !place.isEmpty { lines.append(place) }
-    var second: [String] = []
-    if let s = f.session {
-      second.append(EventDates.windowSpaced(s.opens_on, s.closes_on))
+    if let second = MajorMath.windowLine(window: f.session.map { EventDates.windowSpaced($0.opens_on, $0.closes_on) },
+                                         field: f.field) {
+      lines.append(second)
     }
-    if f.field > 0 { second.append("\(RyderMath.spelled(f.field)) playing") }
-    if !second.isEmpty { lines.append(second.joined(separator: " · ")) }
     return lines
   }
 
@@ -149,7 +149,8 @@ struct MajorRoomView: View {
                  initials: Initials.of(r.displayName), isViewer: r.profileId != nil && r.profileId == me)
   }
 
-  /// **Two cells** — the leading card and the clock.
+  /// The leading card — or, before one leads, the cards in. The clock is the
+  /// eyebrow's (N4-123).
   private func cells(_ f: MajorMath.Facts) -> [CSScoreRail.Cell] {
     let contenders = room.majorBoard.filter { !$0.exhibition && $0.pvi != nil }
       .sorted { ($0.pvi ?? -99) > ($1.pvi ?? -99) }
@@ -161,10 +162,8 @@ struct MajorRoomView: View {
       out.append(.init(id: "cards", value: String(room.majorBoard.filter { $0.pvi != nil }.count),
                        label: "Cards in", spoken: "No card leads yet"))
     }
-    if !f.complete, let d = f.daysLeft, d >= 0 {
-      out.append(.init(id: "clock", value: String(d), label: d == 0 ? "The final day" : "Days left",
-                       labelLive: true, spoken: d == 0 ? "The final day" : "\(d) days left"))
-    }
+    // N4-123 · the countdown is said once, in the eyebrow ("LIVE · 1D LEFT",
+    // "THE FINAL DAY"): a clock cell beside it said the same days again
     return out
   }
 
@@ -194,7 +193,7 @@ struct MajorRoomView: View {
   @ViewBuilder private func board(_ f: MajorMath.Facts, byPlayer: [UUID: MajorBoardRow]) -> some View {
     if f.complete && !room.majorCards.isEmpty {
       let ranked = room.majorCards.filter { $0.rank != nil }.sorted { ($0.rank ?? 0) < ($1.rank ?? 0) }
-      CSSectionHead("Final", count: "\(ranked.count)", trailing: nil).csGutter()
+      CSSectionHead(MajorMath.Head.final, count: "\(ranked.count)", trailing: nil).csGutter()
       columnNote
       boardHead
       ForEach(ranked) { c in
@@ -205,7 +204,7 @@ struct MajorRoomView: View {
       let ex = room.majorCards.filter { $0.rank == nil && $0.no_card != true }
         .sorted { ($0.pvi ?? -99) > ($1.pvi ?? -99) }
       if !ex.isEmpty {
-        CSSectionHead("Doesn’t count this year", count: "\(ex.count)").csGutter()
+        CSSectionHead(MajorMath.Head.unofficial, count: "\(ex.count)").csGutter()
         ForEach(ex) { c in
           slat(rank: 0, row: byPlayer[c.player_id], gross: c.gross, cards: c.cards ?? 0,
                pvi: c.pvi, prize: nil, round: c.round_id, champion: false, exhibition: true)
@@ -213,7 +212,7 @@ struct MajorRoomView: View {
       }
       let nc = room.majorCards.filter { $0.no_card == true }
       if !nc.isEmpty {
-        CSSectionHead("No card", count: "\(nc.count)").csGutter()
+        CSSectionHead(MajorMath.Head.noCard, count: "\(nc.count)").csGutter()
         ForEach(nc) { c in
           slat(rank: 0, row: byPlayer[c.player_id], gross: nil, cards: 0, pvi: nil,
                prize: nil, round: nil, champion: false, exhibition: c.exhibition == true)
@@ -228,7 +227,7 @@ struct MajorRoomView: View {
       let carded = room.majorBoard.filter { $0.pvi != nil }
       let waiting = room.majorBoard.filter { $0.pvi == nil }
       let contenders = carded.filter { !$0.exhibition }
-      CSSectionHead("Leaderboard", count: room.event.isLive ? "Live" : nil).csGutter()
+      CSSectionHead(MajorMath.Head.board, count: room.event.isLive ? MajorMath.Head.live : nil).csGutter()
       if carded.isEmpty {
         CSEmpty(glyph: .emptyRail, eyebrow: "The window",
                 headline: MajorMath.noCardsLine(live: room.event.isLive),
@@ -246,7 +245,7 @@ struct MajorRoomView: View {
         }
       }
       if !waiting.isEmpty {
-        CSSectionHead("Still to post", count: "\(waiting.count)").csGutter()
+        CSSectionHead(MajorMath.Head.stillToPost, count: "\(waiting.count)").csGutter()
         ForEach(waiting) { r in
           slat(rank: 0, row: r, gross: nil, cards: 0, pvi: nil, prize: nil, round: nil,
                champion: false, exhibition: r.exhibition)
@@ -314,7 +313,7 @@ struct MajorRoomView: View {
     let sub = [gross.map { "\($0) gross" },
                cards > 0 ? "\(cards) card\(cards == 1 ? "" : "s")" : nil,
                prize.flatMap { $0 > 0 ? MajorMath.money($0) : nil },
-               exhibition ? "doesn’t count this year" : nil,
+               exhibition ? MajorMath.unofficial : nil,
                gross == nil ? "the window is open" : nil]
       .compactMap { $0 }.joined(separator: " · ")
     Button {

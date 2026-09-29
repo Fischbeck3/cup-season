@@ -43,6 +43,9 @@ public struct BetweenRoundsSnapshot: Codable, Sendable, Equatable {
     }
     public let league: UUID
     public let name: String, context: String, standing: String, story: String
+    /// N4-082 · `story` with its figure marked as a run, for the widget's serif
+    /// line; absent in a snapshot an older build wrote
+    public var storyMarked: String?
     public let rows: [Row]
     public init(league: UUID, name: String, context: String, standing: String, story: String, rows: [Row]) {
       self.league = league; self.name = name; self.context = context; self.standing = standing; self.story = story; self.rows = rows
@@ -71,6 +74,8 @@ public struct BetweenRoundsSnapshot: Codable, Sendable, Equatable {
   public struct Record: Codable, Sendable, Equatable {
     public let id: UUID
     public let headline: String, course: String, date: String
+    /// N4-082 · `headline` with its figure marked as a run (the serif line)
+    public var headlineMarked: String?
     public let gross: Int, holes: Int
     public let out: Int?, inn: Int?
     public let earned: Bool
