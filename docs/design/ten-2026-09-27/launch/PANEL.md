@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**. `play`, `receipt`, `record`, `you`, `golfers` and `book` were judged from their `9d84c483` captures; every other family from `02636007`, whose web client renders them byte-identically (COVERAGE.md §1.1). |
-| **Status read at** | `de3eaf35` |
+| **Status read at** | **`b8a61266`** (root's fixes, N2's merge, and lanes W3 `e8108e59`, W2 `f46086b4` and W4 `b8a61266`; W1, W5 and W6 had not merged) |
 | **Date** | 2026-09-28 |
 | **Assessors** | the **category**, **craft** and **owner** judges: three fresh agents that wrote no code. Their calibration stays with root, which runs the same three on the native half and on round 2. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/panel/{category,craft,owner}.{json,md}`; the captures they cite are in `~/cup-season-claude-ten-gallery/root/harness-9d84c483/` |
@@ -65,25 +65,30 @@ Each judge's mean of the 22 rows per dimension. The owner judge's JSON carries n
 
 ## 3 · The judges' P0 and P1 defects, with status
 
-*fixed (sha)* means the commit message or diff shows the fix. None has been re-measured; round 2 does that.
+*fixed (sha)* means the commit message or diff shows the fix; for a lane, the lane's own commit names it, and the sha is its merge. **Every fix is verification pending** until round 2 re-measures it.
 
 | # | Judge | Pri | Row | Defect (the judge's words, shortened) | Captures | Status at `de3eaf35` |
 |---|---|---|---|---|---|---|
-| 1 | category | **P0** | home | A nine-hole 43 is announced "Broke 80 for the first time." on Home, the golfer's own feed and every buddy's. `home_feed.is_sub80` has no `holes_played = 18` guard (`20261020090000_one_round_one_number.sql`). | `home--league-less-rounds_no_buddies--375--dark.png` | **open.** The database half is X41, owed through the owner's `db push`; the client guard is in lane W3. |
-| 2 | category | P1 | home | The Home photo round card is broken at every width and theme: the reactions foot is an opaque band across the photograph, the icons stack, and the course door is clipped (`.hsfoot`). | `home--member--375--dark.png`, `home--member--1280--dark.png` | open · in lane W3 (no commit touches `.hfstory`/`.hsfoot`) |
+| 1 | category | **P0** | home | A nine-hole 43 is announced "Broke 80 for the first time." on Home, the golfer's own feed and every buddy's. `home_feed.is_sub80` has no `holes_played = 18` guard (`20261020090000_one_round_one_number.sql`). | `home--league-less-rounds_no_buddies--375--dark.png` | **fixed in part (e8108e59).** The web claims sub-80 only for a round known to be 18 holes, and a known nine reads "9 HOLES" (2dce66e6). **Open:** the server half, X41 (owner's `db push`), and the phone's guard (N4). |
+| 2 | category | P1 | home | The Home photo round card is broken at every width and theme: the reactions foot is an opaque band across the photograph, the icons stack, and the course door is clipped (`.hsfoot`). | `home--member--375--dark.png`, `home--member--1280--dark.png` | **fixed (e8108e59)**: a plate on a bottom-anchored scrim, with one foot row under it (2dce66e6) |
 | 3 | category | P1 | wizard | Desk wizard step 3 "Review the rules" shows no rules (`#bylawsReview` hidden at ≥1100px). | `wizard--step-3-review--1280--light.png` | **fixed (38471687)**: the review shows on the desk |
-| 4 | category | P1 | identity/history | EVERY SEASON prints live seasons under FINISH as "1ST"/"2ND" with the podium rule, a standing presented as a finish (`csRecordLeaf`). | `you--populated--375--dark.png`, `record--populated--375--dark.png` | open · in lane W2 (no commit touches `csRecordLeaf`) |
-| 5 | category | P1 | identity | FORM marks a nine-hole 43 as the best of the last five, in gold (`formRowHtml`). | `you--populated--375--dark.png` | **fixed (38471687)**: a nine never takes the gold and reads "NINE"; the phone twin is 74997409 (N2) |
-| 6 | category | P1 | schedule | The public plan link says "Avery and Devon are in." while the plan sheet shows Avery NO REPLY; `the_plan_link.sql` counts a missing RSVP as in. | `schedule--plan-landing--375--dark.png`, `schedule--plan-sheet--375--dark.png` | **open.** The database half is X42 (owner's `db push`); the in-app producer is in lane W2. |
+| 4 | category | P1 | identity/history | EVERY SEASON prints live seasons under FINISH as "1ST"/"2ND" with the podium rule, a standing presented as a finish (`csRecordLeaf`). | `you--populated--375--dark.png`, `record--populated--375--dark.png` | **fixed (f46086b4)**: a live season has no finish; it reads "In play" with its standing in its own line, and the podium mark is a finished season's (35b4f475) |
+| 5 | category | P1 | identity | FORM marks a nine-hole 43 as the best of the last five, in gold (`formRowHtml`). | `you--populated--375--dark.png` | **fixed (38471687)**: a nine never takes the gold and reads "NINE"; the phone twin is 74997409 (N2). W2 adds gold only among two or more comparable rounds (f46086b4). |
+| 6 | category | P1 | schedule | The public plan link says "Avery and Devon are in." while the plan sheet shows Avery NO REPLY; `the_plan_link.sql` counts a missing RSVP as in. | `schedule--plan-landing--375--dark.png`, `schedule--plan-sheet--375--dark.png` | **fixed in part (f46086b4).** In the app, "in" is an explicit yes and an unanswered tag reads Asked (57325028). **Open:** the public card reads `share_info`'s plan `who`, which is X42 (owner's `db push`); the phone's `ScheduleScreen` is N4's. |
 | 7 | craft | P1 | wizard | The review's "Start the season" is disabled with no reason on screen. | `wizard--step-3-review--375--dark.png` | **fixed (38471687)**: `#lockWhy` says why, with a door to the pay note |
 | 8 | craft | P1 | settings | "Delete permanently" is white on `#FF6A5E`, 2.81:1 in the default dark theme. | `settings--delete-confirm--375--dark.png` | **fixed (38471687)** |
 | 9 | craft | P1 | play | Light desk live scoring: the selected HOLE segment is 2.37:1. | `play--scoring--1280--light.png` | **fixed (38471687)** |
 | 10 | craft | P1 | identity | The Form row gilds the nine-hole 43 against 18-hole grosses. | `you--populated--375--dark.png` | **fixed (38471687)** (as #5) |
-| 11 | owner | P1 | post | The composer prints "+1.4" over "YOUR PLAYING HCP", so a 14.2 golfer reads a plus handicap on every post. A second top-level `vsShort` shadowed the words form. | `composer--filled--375--dark.png` | **fixed (38471687)**: the figure reads "beat by 1.4" again, and the signed form is `vsSigned`, used only on the clash and the receipt row. **Open:** the label still reads "your playing HCP" rather than R-M's "vs your playing HCP" (`index.html:5503`), and no preflight check catches a duplicate top-level function. |
+| 11 | owner | P1 | post | The composer prints "+1.4" over "YOUR PLAYING HCP", so a 14.2 golfer reads a plus handicap on every post. A second top-level `vsShort` shadowed the words form. | `composer--filled--375--dark.png` | **fixed (38471687)**: the figure reads "beat by 1.4" again, and the signed form is `vsSigned`, used only on the clash and the receipt row. **Open:** the label still reads "your playing HCP" rather than R-M's "vs your playing HCP" (`index.html:5503` at `de3eaf35`; lane W1, not merged), and no preflight check catches a duplicate top-level function. |
 | 12 | owner | P1 | share | The finish ceremony offers "Include round photo" on rounds with no photograph (`.finish-photoopt{display:flex}` beats `hidden`). | `share--recap-no-photo--375--dark.png` | **fixed (38471687)**: `[hidden]` always hides |
 | 13 | owner | P1 | claim-invite | A join code that resolves to no league tells a stranger "You're invited. Sign in to review the league before you join." | `links--join-unavailable--375--dark.png` | **fixed (38471687)**: "No league with that code. Check with your Pro.", from one producer |
-| 14 | owner | P1 | wizard | On the desk, "Review the rules" shows no rules, and the aside reads "FORMING — THE RULES AREN'T SET YET". | `wizard--step-3-review--1280--light.png` | **fixed (38471687)** (as #3). The aside's "forming" line is open, verification pending. |
-| 15 | owner | P1 | golfers/identity/schedule | The rivalry verdict contradicts itself: "3–4 · THEY LEAD" on You and "leads 4–3" on the plan, but "All square, 5–5" on the person page. | `you--populated--375--dark.png`, `golfers--person--375--dark.png` | **decision X36** (OWNER-QUESTIONS) |
+| 14 | owner | P1 | wizard | On the desk, "Review the rules" shows no rules, and the aside reads "FORMING — THE RULES AREN'T SET YET". | `wizard--step-3-review--1280--light.png` | **fixed (38471687)** (as #3). The aside's "forming" line is open, verification pending (lane W5, not merged). |
+| 15 | owner | P1 | golfers/identity/schedule | The rivalry verdict contradicts itself: "3–4 · THEY LEAD" on You and "leads 4–3" on the plan, but "All square, 5–5" on the person page. | `you--populated--375--dark.png`, `golfers--person--375--dark.png` | **decision X36** (OWNER-QUESTIONS). W3 changed the person page's words ("All square between you, 5–5.", 3324ae89), but which facet each surface shows is still the question. |
+
+**Tally at `b8a61266`:** 15 defects. Every fix is verification pending.
+- **fixed: 12.** #2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14. #11 and #14 keep residuals.
+- **fixed in part: 2.** #1 and #6, each waiting on a database item (X41, X42) and N4.
+- **decision: 1.** #15 (X36).
 
 The judges' P2 and P3 defects (category 22 + 16, craft 23 + 10, owner 23 + 22) are listed in their `.md` files. Lanes W1–W5 were briefed on them, and they are re-measured in round 2.
 

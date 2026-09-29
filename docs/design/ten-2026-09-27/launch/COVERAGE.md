@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | web **`9d84c483`**: 886 captures taken at `02636007`, whose web client renders those families byte-identically, and 256 taken at `9d84c483`. Native **`4112a3f0`**, the same native tree as `cf401dee` and Owner TestFlight 1.0.0 (1180). |
-| **Status read at** | `de3eaf35` (`git log cf401dee..de3eaf35`, and `9d84c483..cf401dee` for the three client fixes that shipped between them) |
+| **Status read at** | **`b8a61266`**: `git log cf401dee..b8a61266` covers root's fixes, N2's merge at `de3eaf35`, and the merges of lanes W3 (`e8108e59`), W2 (`f46086b4`) and W4 (`b8a61266`); `9d84c483..cf401dee` adds the three client fixes that shipped between them |
 | **Date** | 2026-09-28 |
 | **Assessors** | No assessor scored coverage. The captures came from WX's web harness (`tests/ten-capture.mjs`) and FX's native capture tool (`tools/native-synthetic-captures.py`). The gaps in §1.5 are quoted from the assessors' own scope notes: judges **category**, **craft** and **owner**, critiques **A** and **B**, audit **AW** and detector **DX**. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/root/harness-9d84c483/manifest.json` (and its PNGs, `--first.png` crops, `artifacts/`, `merge.log`) · `~/cup-season-claude-ten-gallery/native-4112/manifest.json`, `failed.json`, `logs/summary.txt`, `logs/matrix.log`, `flows/README.md` · the assessors' scope fields in `~/cup-season-claude-ten-gallery/evidence/{panel,critique-A,critique-B}/` |
@@ -70,7 +70,7 @@ Viewports: 375×667, 402×874, 1280×1000 and 1600×1000 at DSF 1, and 375×380 
 ### 1.3 Which rows were captured at which SHA
 - **At `9d84c483` (32 states, 256 captures):** `play` (8), `book` (8), `record` (5), `golfers` (5), `you` (4), `receipt` (2).
 - **At `02636007` (109 states, 886 captures):** everything else. That is `door`, `onboarding`, `home`, `composer`, `share`, `season`, `compete`, `events`, `public-round`, `links`, `schedule`, `wizard`, `courses`, `settings`, `static` and `desk`.
-- **Nothing is captured at a SHA after `9d84c483`.** Every fix listed in CRITIQUE.md, AUDIT.md and DETECTOR.md (38471687, 735a63ec, 69f40d1f, dd01225d, b263fd74, 65db32a0, d15b5f18, d7a5a07d) is un-captured until round 2 (session D) builds `harness-<sha>`.
+- **Nothing is captured at a SHA after `9d84c483`.** Every fix listed in CRITIQUE.md, AUDIT.md and DETECTOR.md is un-captured until round 2 (session D) builds `harness-<sha>` on the final SHA, after W1, W5 and W6 merge. That covers root's 38471687, 735a63ec, 69f40d1f, dd01225d, b263fd74, 65db32a0, d15b5f18 and d7a5a07d, and the lane merges e8108e59, f46086b4 and b8a61266. The lanes' own harness runs (W2 150, W3 316 and W4 340 captures, per their merge messages) are their verification, not the gallery.
 
 ### 1.4 Captures that prove less than their names
 Found by grouping the manifest's `sha256` across states. A byte-identical pair proves one rendering.
@@ -81,7 +81,7 @@ Found by grouping the manifest's `sha256` across states. A byte-identical pair p
 | `home/member-populated` = `home/member` | 8 of 8 | Two harness states render one page; `member-populated` adds no coverage. | open (harness) |
 | `record/populated`, `record/photos-none`, `record/photo-broken` = `you/populated` (and `courses/books`, `desk/you`) | 8 of 8 | The record lives on You (`view-stats`), and the populated world shows no photograph in the first place. The two photo states pass their checks ("no photograph", "no broken image") without ever drawing a fallback. The owner judge: "the photo states are not captured". | open (harness: a record with a photograph that then fails) |
 | `share/recap-no-photo` = `share/recap-photo` | 8 of 8 at 02636007 | A product defect, not a harness gap: the no-photo ceremony offered "Include round photo" (critique B P1 · owner P1). | fixed (38471687), un-captured |
-| `links/claim-used` = `door/initial` | 6 of 8 (the 1280 cells differ) | An already-claimed card lands on the plain Door with no sentence. The harness expects that silence (`tests/ten-states.d/40-links-setup.mjs`), and the judges split: category calls it "by design", craft "a decision", owner a defect (R 6). | decision (OWNER-QUESTIONS Q13) |
+| `links/claim-used` = `door/initial` | 6 of 8 (the 1280 cells differ) | An already-claimed card landed on the plain Door with no sentence. The harness expected that silence, and the judges split: category "by design", craft "a decision", owner a defect (R 6). | fixed (b8a61266): the kept scorecard now says so, and the harness pins the line (5d536f41). Recorded as Q13 in OWNER-QUESTIONS. |
 | `record/photo-withdrawn` = `public-round/dead-link` | 8 of 8 | By design: the harness defines the withdrawn photo's public link as dead ("This link is dead"). The withdrawn state on the golfer's own record is not captured. | open (harness) |
 | `desk/golfers` = `golfers/list` | 4 of 4 | Expected: the desk state is the same page at desk width. | — |
 
