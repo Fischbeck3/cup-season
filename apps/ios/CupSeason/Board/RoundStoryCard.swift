@@ -70,7 +70,9 @@ struct RoundStoryCard: View {
             .disabled(round.profileId == nil)
             if round.profileId != nil, round.profileId == store.founderId { FounderTag() }
           }
-          Text(BoardLogic.courseLine(round)).csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
+          // N4-086 · a course's name wraps whole, at every size
+          Text(BoardLogic.courseLine(round)).csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
           Text(BoardLogic.grossLine(round, viewer: store.profileId)).csType(.columnS).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
           Text(counting.text).csType(.columnS)
             .foregroundStyle(hasPhoto ? onPhotoMut : (counting.ok ? cs.pos : cs.mut))
