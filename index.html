@@ -32137,7 +32137,7 @@ $('#obJoin').addEventListener('click', () => {
    the money, and a fact with no read renders NOTHING (L-44) — which is what
    makes a client that ships ahead of the migration honest rather than empty.
    `CS_COVENANT_FACTS` is the order both suites pin. */
-window.CS_COVENANT_FACTS = ['season','who','length','rules','ending','stake','ledger','split','pay','starter'];
+window.CS_COVENANT_FACTS = ['season','who','length','structure','rules','ending','stake','ledger','split','pay','starter'];   /* TEN / W6 · JoinLeague.Fact's order, `structure` included */
 function csWord(n){
   const w=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve',
            'thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
@@ -32190,6 +32190,14 @@ function csCovenantFacts(info, postedRounds){
   if(weeksText && tee) out.push({ k:'length', t: weeksText + ' from ' + tee + '.' });
   else if(weeksText)   out.push({ k:'length', t: weeksText + '.' });
   else if(tee)         out.push({ k:'length', t: 'First tee ' + tee + '.' });
+  /* TEN / W6 (root, 2026-09-28; L-34) · WHAT COMPETES is its own fact, as the
+     phone gives it its own row (JoinLeague.facts, JoinLeague.swift:366) —
+     word for word. The ending below says only how the season ends. */
+  if(info.structure){
+    out.push({ k:'structure', t: info.structure === 'solo' ? 'Every golfer plays for their own place.'
+      : info.structure === 'squads2' ? 'Two squads. Your round points contribute to your squad\u2019s season.'
+      : 'Squads compete together. Your round points contribute to your squad\u2019s season.' });
+  }
   /* 4 · the rule. The payload's `floor` is the OTHER number; R9 brings the cap.
      D353 · an Unlimited league says "every round counts" off the payload's own
      boolean (never off an absent key), and the allowance says what every points
@@ -32214,22 +32222,19 @@ function csCovenantFacts(info, postedRounds){
      leader 10 up; larger squads send the top two; a points table has no reset;
      a season under six weeks is a points-table season (D384). With no structure
      in the payload (an older server) the sentence is exactly what it was. */
+  /* TEN / W6 (root, 2026-09-28; L-34) · THE PHONE'S WORDS, word for word
+     (JoinLeague.endingLine, JoinLeague.swift:264-269). The web's own branching
+     stays: a points table and a season under six weeks (D384) both end on the
+     table; an older server with no structure keeps its one sentence. What
+     competes moved to the `structure` fact above. */
   const st = info.structure || null;
   const shortSeason = wk > 0 && wk < 6;
   const table = info.finish === 'points_table' || shortSeason;
-  const nSq = st === 'squads2' ? 2 : st === 'squads3' ? 3 : st === 'squads4' ? 4 : 0;
-  let ending;
-  if(!st){
-    ending = table ? "The season's points decide it. No reset." : 'It ends with a four-week Cup Final between the top two.';
-  } else if(st === 'solo'){
-    ending = table ? "Everyone plays for themselves, and the season's points decide it. No reset."
-                   : 'Everyone plays for themselves. The top two on points meet in a four-week Cup Final.';
-  } else {
-    const squads = csCap(csWord(nSq || 2)) + ' squads, and every round you post counts toward yours.';
-    ending = table ? squads + " The season's points decide it. No reset."
-      : nSq === 2 ? squads + ' Both squads meet in a four-week Cup Final, and the squad leading on points starts it 10 up.'
-      : squads + ' The top two squads on points meet in a four-week Cup Final.';
-  }
+  const ending = table ? "The season's points decide it. No reset."
+    : !st ? 'It ends with a four-week Cup Final between the top two.'
+    : st === 'squads2' ? 'Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start.'
+    : st === 'solo' ? 'The top two golfers qualify for a four-week Cup Final, scored fresh.'
+    : 'The top two squads qualify for a four-week Cup Final, scored fresh.';
   out.push({ k:'ending', t: ending });
   /* L-10 · every money line is ABOVE $0 only */
   if(paid){
