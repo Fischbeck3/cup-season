@@ -257,10 +257,27 @@ public struct CSStarRail: View {
   /// borrowing an exemption it has not earned.
   let onSet: ((Double) -> Void)?
 
+  /// `paired`: the rail sits between a −½ / +½ pair at 44 (`CSRating`'s, as
+  /// `RateCourseSheet`'s), which is §16.2's carve-out whole — a half star's
+  /// target may then draw below 44, and the rail keeps the size it is given.
   public init(_ value: Double, size: CGFloat = 22, unrated: Bool = false,
-              onSet: ((Double) -> Void)? = nil) {
-    self.value = value; self.size = onSet == nil ? size : max(size, 48); self.unrated = unrated
+              onSet: ((Double) -> Void)? = nil, paired: Bool = false) {
+    self.value = value; self.size = onSet == nil || paired ? size : max(size, 48); self.unrated = unrated
     self.onSet = onSet
+  }
+
+  /// The one bound rule for a half-star STEP (`RateCourseSheet`'s, and the
+  /// web's `csStepOff`): down stops at ½ and has nothing to take from an
+  /// unrated course; up stops at 5. nil at a bound. **A step never takes a
+  /// rating off** — only the tap on your own value does (D289), and a step
+  /// that handed `onSet` the value already held would read as that tap.
+  public static func step(from mine: Double?, up: Bool) -> Double? {
+    if up {
+      let v = mine ?? 0
+      return v < 5 ? min(5, v + 0.5) : nil
+    }
+    guard let m = mine, m > 0.5 else { return nil }
+    return max(0.5, m - 0.5)
   }
 
   public var body: some View {
@@ -286,7 +303,9 @@ public struct CSStarRail: View {
     .accessibilityLabel("Your rating")
     .accessibilityValue(unrated ? "Not yours yet" : CSStarRail.spoken(value))
     .accessibilityAdjustableAction { d in
-      set(min(5, max(0.5, value + (d == .increment ? 0.5 : -0.5))))
+      // a step, bounded like the pair's: at 5 an increment set the SAME
+      // value, which the caller reads as "take it off"
+      if let next = CSStarRail.step(from: unrated ? nil : value, up: d == .increment) { set(next) }
     }
   }
 
@@ -408,8 +427,32 @@ public struct CSRating: View {
     }
   }
 
+  /// Root's star-rail twin (AW2-19's phone half): as a control the rail sits
+  /// between `RateCourseSheet`'s own −½ / +½ pair — 44 × 44, `figureS`, s3
+  /// apart — and so draws at the sheet's 40, not 48. The pair is hidden from
+  /// VoiceOver; the rail stays the one adjustable element, in half steps.
   @ViewBuilder private var rail: some View {
-    CSStarRail(mine ?? 0, size: onSet == nil ? 22 : 48, unrated: mine == nil, onSet: onSet)
+    if let onSet {
+      HStack(spacing: CSTokens.Space.s3) {
+        stepper("−", to: CSStarRail.step(from: mine, up: false), onSet)
+        CSStarRail(mine ?? 0, size: 40, unrated: mine == nil, onSet: onSet, paired: true)
+        stepper("+", to: CSStarRail.step(from: mine, up: true), onSet)
+      }
+    } else {
+      CSStarRail(mine ?? 0, size: 22, unrated: mine == nil)
+    }
+  }
+
+  /// At a bound the button reads disabled and keeps its place.
+  private func stepper(_ glyph: String, to next: Double?, _ set: @escaping (Double) -> Void) -> some View {
+    Button { if let next { CSHaptic.selection(); set(next) } } label: {
+      Text(glyph).csType(.figureS).foregroundStyle(next == nil ? cs.mut : cs.ink)
+        .frame(width: 44, height: 44)
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .disabled(next == nil)
+    .accessibilityHidden(true)
   }
 
   @ViewBuilder private var mineLine: some View {
