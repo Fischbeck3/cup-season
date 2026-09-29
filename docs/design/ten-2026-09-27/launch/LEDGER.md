@@ -513,6 +513,25 @@ On the owner's standing "push items as needed" (git push of verified heads to ma
 - N4-093's header grep: 21 `csType(.display)` sites without a header trait, most of them dev fixtures and the rest needing triage one by one.
 - N4-091's LINT-18 probe widening.
 
+**B's queue, three items handed to root (B: "take them", ~08:40).**
+- **AW2-21 `7d9aa5c8`:** tee off sits at the foot of a long setup and the stage changes inside one view, so the round opened where the setup had been scrolled. From 845px down, the round rested at 313, with its context line and "Change setup" above the sticky header. Now tee off and "Back to the round" both rest at the round's top (`csLiveRest`), which first clears the board's stale stuck state (the face that stuck at the setup's scroll). Measured at 375 and 402: the context line, "Change setup", the hole header and the hero are all clear; the board is unstuck with its chips.
+  - **A first version was wrong, and the harness caught it.** `7d9aa5c8` also made the board never stuck at scrollY 0. On the 402 × 874 scoring page, which scrolls exactly the 106px the stuck face saves, sticking clamped the scroll to 0, the rule unstuck the board, and a golfer's scroll bounced back to the top (play--scoring 402, "did not stick"). `2fcca6d1` restores the hysteresis whole and keeps only the stale-state clear.
+  - **Pre-existing, logged:** after a golfer scrolls back to the top of a long page, the compact face stays. The face saves 84–106px and the sentinel sits ~49px below the header line, so the hysteresis cannot release once stuck. The card gate's Save band and the rail's fade were already in (B, wave 3).
+- **AW2-23 `ba16d19d`:**
+  - the star sweep animates a clip (`--fill`, same geometry), not a width;
+  - no `will-change` held at rest on the Door's feed and leaderboard rows;
+  - the full board's bar is on the flat ground (the header and tab bar are B's, in AW2-13);
+  - the toast's dead `transition: all` is gone.
+- **AW2-20 `8c9a9567`:** TP-20's 60ch reading measure holds from 640px, and the rules prose reads at the body-s size, 56ch, from 640px. The column itself is not capped, because 640–959 carries designed layouts (Play at ≥740, D152/D153; stats; events; the Door). Measured: ≤71 characters a line at 640, 768 and 1280, and the phone unchanged.
+- **The 320 fit `acc22e54`:** the star stepper (`baf2358e`) made the You page scroll sideways by 24px at 320 (course-leaf-browser.mjs caught it at `5d9ba670`, 152/154). The rate control's star is now `min(40px, (100vw − 160px) / 5)`: 40 at 375 and on the desk, 32 at 320. **So `5d9ba670` was never pushed;** the batch goes out with the fix.
+
+**Native verification of N4 checkpoint 1 on root's own simulator could not start:** "Unable to boot device due to insufficient system resources", with E's two phones running their UI sets. It runs when E reports its phones idle, and before any TestFlight regardless. Until then checkpoint 1 stands on E's proof.
+
+**Root's answers to E for checkpoint 2 (none is a mechanic):**
+- N4-208: `renderBylaws` is the one producer of the Pro's agreement; the phone levels `LeagueCopy.bylawsRows` to it and WizardAgreement's separate rows retire. The web doesn't move.
+- N4-040: the phone's claim screen takes the Door's serif name, because the web's claim is a card on the Door, not a fifth lockup place. "Not now" goes to the plain Door; the claim stays pending and shows again on the next launch.
+- The star-rail twin goes to N4 as a P3 with RateCourseSheet's pair.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:

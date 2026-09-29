@@ -1702,8 +1702,10 @@ button.payer{cursor:pointer;}
 /* TEN / W6 · TP-20 (detector P3): desk prose ran 81–148 characters a line at
    1280. At the desk width a paragraph keeps a reading measure of 60ch. A
    CENTRED paragraph centres its block too, or the measure would pull it off
-   its axis — several set their margin inline, so the centring must win. */
-@media(min-width:960px){
+   its axis — several set their margin inline, so the centring must win.
+   AW2-20 · and from the tablet width up: at 640–959 the phone column runs
+   608–927px edge to edge, and its prose ran the desk's long lines there. */
+@media(min-width:640px){
   p.fine, p.endgamefoot, .hocc > p, #optLive > p, #optPlan > p{max-width:60ch;}
   p.fine[style*="text-align:center"]{margin-left:auto !important; margin-right:auto !important;}
 }
@@ -3770,7 +3772,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
      path's "Card downloaded · caption copied" painted behind the card it was
      about (critique-B share), and under the public covers (99999). A toast is
      the system talking; nothing sits on top of it. */
-  transition:all .22s ease; max-width:86%; text-align:center; z-index:100000;
+  max-width:86%; text-align:center; z-index:100000;   /* AW2-23 · the transition is the roll-out's below (opacity + transform), never `all` */
 }
 @media(min-width:960px){ .toast{bottom:28px;} }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
@@ -4009,7 +4011,8 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
   position:absolute; left:0; right:0; top:0; min-height:74px;
   border-top:1px solid var(--rule); padding:12px 0 0;
   transition:opacity .55s var(--roll), transform .55s var(--roll);
-  will-change:transform;
+  /* AW2-23 · no will-change at rest: the transition promotes the card while it
+     moves, and a layer held for good is memory the Door never gives back */
 }
 .ob-pcard .who{
   display:flex; align-items:center; gap:8px;
@@ -4027,7 +4030,7 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
   position:absolute; left:0; right:0; top:0; height:44px;
   display:flex; align-items:center; gap:10px;
   border-top:1px solid var(--rule);
-  transition:transform .65s var(--roll); will-change:transform;
+  transition:transform .65s var(--roll);   /* AW2-23 · no will-change at rest (the transition promotes it while it moves) */
 }
 .ob-lbrow .dot{flex:none; width:9px; height:9px; border-radius:3px; background:var(--sqc);}
 .ob-lbrow .nm{font-family:var(--board); font-size:15px; font-weight:600; color:var(--mut); overflow-wrap:anywhere;}
@@ -4134,7 +4137,11 @@ body.noleague .league-only{display:none !important;}
 .rulesec{text-align:left; margin:0 0 14px;}
 .rulesec b{display:block; font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:3px;}   /* LV-17 · the agate role for a label (the craft panel: not 11px mono) */
 .rulesec{margin-bottom:var(--s4);}   /* the pairs breathe: they sat tight under the head */
-.rulesec p{margin:0; font-size:13.5px; line-height:1.6; color:var(--ink); max-width:70ch;}   /* ~90 characters a line on the desk (the craft panel) */
+.rulesec p{margin:0; font-size:13.5px; line-height:1.6; color:var(--ink); max-width:70ch;}
+/* AW2-20 · from the tablet width up the rules read at the body size, at most
+   ~72 characters a line: 13.5px at 70ch ran ~90 on the desk (the craft panel,
+   then the round-2 audit) and at 768. A phone's column is its own measure. */
+@media(min-width:640px){ .rulesec p{font-size:15px; line-height:1.55; max-width:56ch;} }
 /* THE PRINT SHEET. The web's own job (R-C): a season a golfer can put on
    paper in February. The chrome, every control and every composer go; the
    story, the table and the rules stay, and the aside falls in beneath the
@@ -4398,8 +4405,12 @@ body:not(.noleague) #hubLeagueless{display:none;}
 .cs-stars{position:relative; display:inline-flex; gap:var(--s1); vertical-align:middle;
   line-height:0; --star:22px;}
 .cs-stars .csr-base,.cs-stars .csr-inner{display:inline-flex; gap:var(--s1); flex:0 0 auto;}
-.cs-stars .csr-fill{position:absolute; left:0; top:0; height:100%; overflow:hidden;
-  pointer-events:none; transition:width 180ms cubic-bezier(.2,.7,.3,1);}
+/* AW2-23 · the sweep animates a CLIP, never a width: the fill spans the rail
+   and `--fill` (csStarsWidth's own calc) is how much of it shows, so a rating
+   change repaints the window without laying the rail out every frame */
+.cs-stars .csr-fill{position:absolute; left:0; top:0; height:100%; width:100%;
+  clip-path:inset(0 calc(100% - var(--fill, 0px)) 0 0);
+  pointer-events:none; transition:clip-path 180ms cubic-bezier(.2,.7,.3,1);}
 .cs-stars svg{width:var(--star); height:var(--star); flex:0 0 auto;}
 .cs-stars .csh{position:absolute; top:-8px; height:calc(var(--star) + 16px);
   width:calc(var(--star) / 2); padding:0; margin:0; border:0; background:none;
@@ -5376,7 +5387,7 @@ html[data-theme="light"] .room-dusk .stat{
   padding:14px 16px 12px; border-bottom:1px solid var(--rule);
   /* the room's own ground in both printings: the fixed charcoal made a black
      bar on the paper page, with the --mut course line unreadable on it */
-  background:color-mix(in srgb, var(--bg0) 90%, transparent); backdrop-filter:blur(16px);
+  background:var(--bg0);   /* AW2-23 · a flat ground, as AW2-13 gave the header and the tab bar: no blur on a sticky bar */
 }
 /* a room's name is ink; --pos is a signed gain, and this is not one */
 .bf-hdr b{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--ink);}   /* TEN / W6 · AW2-06: the board's title is a label, agate — it was `.mono` */
@@ -17402,8 +17413,22 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
     btn.disabled=false;
   }
   renderPlay();
+  csLiveRest();
   toast('On the tee, good luck everybody');
 });
+/* AW2-21 · a live round RESTS AT ITS OWN TOP. Tee off sits at the foot of a
+   long setup and the stage changes inside one view, so the round opened
+   wherever the setup had been scrolled to: 845px down the setup left the round
+   at 313, its context line and "Change setup" above the sticky header and the
+   board already stuck. The golfer's own scrolling after that is theirs. */
+function csLiveRest(){
+  /* the board is judged afresh at the top: a stuck face (and what it saved)
+     carried over from the setup's scroll would otherwise hold by hysteresis */
+  const sb = document.getElementById('scoreBoard');
+  if(sb){ sb.classList.remove('stuck'); delete sb.dataset.shrink; }
+  try{ window.scrollTo({ top:0, behavior:'auto' }); }catch(_){ window.scrollTo(0, 0); }
+  csLiveSticky();
+}
 $('#backToSetup').addEventListener('click',e=>{
   e.preventDefault();
   /* TEN / W6 · critique A2 (P1): this set `active=false`, so no banner or door
@@ -17416,7 +17441,7 @@ $('#backToSetup').addEventListener('click',e=>{
 $('#lrBackToRound').addEventListener('click',()=>{
   state.live.stage='live'; state.live.held=false;
   renderPlay();
-  $('#holeNum')?.scrollIntoView?.({ block:'nearest' });
+  csLiveRest();   /* the same rest as tee off: "nearest" could park the hole header under the stuck board */
 });
 /* the held round's line: what stays, and what can change here */
 function csLiveHeldLine(L){
@@ -18100,6 +18125,8 @@ function csStarsWidth(value){
 function csStarsSvg(value, unrated, opts){
   const o = opts || {};
   const size = o.size || 22;
+  /* a number is pixels; a string is a CSS length (the rate control's fit, AW2-19) */
+  const starLen = typeof size === 'number' ? size + 'px' : String(size);
   const one = fill => `<svg aria-hidden="true" viewBox="0 0 24 24">`
     + (fill ? `<path d="${CS_STAR_PATH}" fill="var(--ink)"/>`
             : `<path d="${CS_STAR_PATH}" fill="none" stroke="${unrated?'var(--mut)':'var(--rule)'}" stroke-width="1.4"/>`)
@@ -18112,9 +18139,9 @@ function csStarsSvg(value, unrated, opts){
       + ` style="left:${left}" aria-label="${val} star${val===1?'':'s'}"></button>`;
   }).join('') : '';
   return `<span class="cs-stars${o.rate?' is-rate':''}${unrated?' is-unrated':''}"`
-    + ` style="--star:${size}px"${o.rate?` role="group" aria-label="Your rating"`:' aria-hidden="true"'}>`
+    + ` style="--star:${starLen}"${o.rate?` role="group" aria-label="Your rating"`:' aria-hidden="true"'}>`
     + `<span class="csr-base">${five(false)}</span>`
-    + `<span class="csr-fill" style="width:${csStarsWidth(value)}"><span class="csr-inner">${five(true)}</span></span>`
+    + `<span class="csr-fill" style="--fill:${csStarsWidth(value)}"><span class="csr-inner">${five(true)}</span></span>`
     + taps + `</span>`;
 }
 
@@ -18122,6 +18149,10 @@ function csStarsSvg(value, unrated, opts){
    ½ and has nothing to take from an unrated course; + stops at 5. At a bound
    the button says so with aria-disabled and keeps its focus — `disabled`
    dropped a keyboard golfer's focus to <body> on the step that reached it. */
+/* the rate control's star: the sheet's 40, and never wider than the pair and
+   the rail can share a phone column — 5 stars + 4 gaps + 2 × 44 + 2 × 12 = 5s + 128,
+   inside the 16px gutters, so 40 at 375 and on the desk, 32 at 320 (AW2-19) */
+const CS_RATE_STAR = 'min(40px, calc((100vw - 160px) / 5))';
 function csStepOff(mine, dir){
   return dir < 0 ? !(mine != null && mine > 0.5) : (mine != null && mine >= 5);
 }
@@ -18156,7 +18187,7 @@ function csRatingBlock(id, opts){
   const step = dir => `<button type="button" class="cs-step cs-fig-s" data-csstep="${esc(String(id))}" data-csdir="${dir}"`
     + ` aria-label="${dir < 0 ? 'Half a star less' : 'Half a star more'}" aria-disabled="${csStepOff(mine, dir)}">${dir < 0 ? '−' : '+'}</button>`;
   const rail = `<div class="cs-rate-ctl">${step(-1)}`
-    + csStarsSvg(mine || 0, mine == null, { size: o.size || 40, rate: id }) + `${step(1)}</div>`;
+    + csStarsSvg(mine || 0, mine == null, { size: o.size || CS_RATE_STAR, rate: id }) + `${step(1)}</div>`;
   const mineLab = mine != null ? `Your rating · ${one(mine)}` : 'Not yours yet';
   /* the phone's own words for the field (RateCourseSheet: label, placeholder,
      caption), so the label stays when the placeholder has gone and the golfer
@@ -18394,7 +18425,7 @@ function renderCourseBooks(){
         ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
       </div>
-      <div>${csRatingBlock(b.id, { size:40 })}${leaf}</div>
+      <div>${csRatingBlock(b.id)}${leaf}</div>
     </section>`;
   };
 
@@ -18503,10 +18534,10 @@ function csCourseBooksWire(box){
       const same = had && had.mine != null && Math.abs(had.mine - v) < 0.01;
       const rail = btn.closest('.cs-stars');
       const fill = rail && rail.querySelector('.csr-fill');
-      if(fill) fill.style.width = csStarsWidth(same ? 0 : v);   /* the sweep */
+      if(fill) fill.style.setProperty('--fill', csStarsWidth(same ? 0 : v));   /* the sweep */
       const out = same ? await csUnrateCourse(id) : await csRateCourse(id, v);
       if(!out){
-        if(fill) fill.style.width = csStarsWidth(had && had.mine != null ? had.mine : 0);
+        if(fill) fill.style.setProperty('--fill', csStarsWidth(had && had.mine != null ? had.mine : 0));
         toast('Could not save that rating');
         return;
       }
@@ -18526,10 +18557,10 @@ function csCourseBooksWire(box){
       const cur = mineNow != null ? mineNow : 0;
       const v = Math.min(5, Math.max(0.5, cur + dir * 0.5));
       const fill = btn.closest('.cs-rate-ctl')?.querySelector('.csr-fill');
-      if(fill) fill.style.width = csStarsWidth(v);   /* the sweep */
+      if(fill) fill.style.setProperty('--fill', csStarsWidth(v));   /* the sweep */
       const out = await csRateCourse(id, v);
       if(!out){
-        if(fill) fill.style.width = csStarsWidth(cur);
+        if(fill) fill.style.setProperty('--fill', csStarsWidth(cur));
         toast('Could not save that rating');
         return;
       }
