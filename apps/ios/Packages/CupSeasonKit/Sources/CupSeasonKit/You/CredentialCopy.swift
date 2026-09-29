@@ -106,13 +106,22 @@ public enum CredentialCopy {
     n >= 5 ? "Last five" : "\(spelled(n)) of five"
   }
 
+  /// **One index label per object** (TERMINOLOGY; the web's
+  /// `csCredentialHtml`, TEN / W6): the viewer's own figure is YOUR NUMBER —
+  /// the name the rail, the composer and the receipts give it — and another
+  /// golfer's is their Handicap index.
+  public static func indexLabel(isMe: Bool) -> String { isMe ? "Your number" : "Handicap index" }
+
   /// §9.7 · the FORM row's gold, in the order the row draws (oldest → newest):
   /// **the lowest 18-hole gross**, the first of a tie. A nine is half a round,
   /// so its 43 never takes the gold from an 84 — the web's `csFormNine`
-  /// (integration 38471687), the craft panel's P1. nil when no 18-hole round
-  /// has a gross: a row of nines has no best.
+  /// (integration 38471687), the craft panel's P1. **A best needs a field:**
+  /// nil unless two 18-hole rounds carry a gross — with one, the gold marked a
+  /// "best of one", and gold means earned (D359; the web's `formRowHtml`,
+  /// critique-B P1). A row of nines has no best either.
   public static func formBest(_ rows: [TourCard.Recent]) -> Int? {
-    guard let low = rows.filter({ !$0.isNine }).compactMap(\.gross).min() else { return nil }
+    let comparable = rows.filter { !$0.isNine }.compactMap(\.gross)
+    guard comparable.count >= 2, let low = comparable.min() else { return nil }
     return rows.firstIndex { !$0.isNine && $0.gross == low }
   }
 

@@ -92,7 +92,7 @@ struct FriendsBoardSection: View {
   /// HCP ·`) wrapped the slot to two lines and pushed the rule off its own row,
   /// and the FRAME belongs over the column anyway (§16A.3, blind review 5) —
   /// which is where it now is.
-  private func headCount(_ b: FriendsBoard) -> String { lens.caption(days: b.days) }
+  private func headCount(_ b: FriendsBoard) -> String? { lens.caption(days: b.days) }
 
   /// §16A.3 · **the column says which way is good, over the column.**
   ///
@@ -267,9 +267,13 @@ struct PlayingSoonSection: View {
       // A golfer already in the group has the RSVP control on the round sheet;
       // offering them a seat they hold would be a door to nowhere (L-32).
       if p.tagged_me == true {
-        // F-10 · one fact, one metal. This said green while Home and the
-        // calendar said gold for the same fact; a membership fact is neither.
-        Text("YOU’RE IN").csType(.agateS, caps: true).foregroundStyle(cs.ink)
+        // W2 · **"IN" IS AN EXPLICIT YES AND NOTHING ELSE** (critique-B P0): a
+        // tag is an ask, and its answer is `my_rsvp`, read as `PlanSeat` reads
+        // a seat — the schedule's own words (`csPlanMe`). F-10 · one fact, one
+        // metal: a membership fact is ink, never green or gold.
+        let seat = PlanSeat(status: p.my_rsvp)
+        Text(seat.isIn ? "You’re in" : seat.isOut ? "You’re out" : p.my_rsvp == "maybe" ? "Maybe" : "Asked")
+          .csType(.agateS, caps: true).foregroundStyle(seat.isIn ? cs.ink : cs.mut)
       } else if asked.contains(id) {
         Text("ASKED").csType(.agateS, caps: true).foregroundStyle(cs.mut)
       } else {

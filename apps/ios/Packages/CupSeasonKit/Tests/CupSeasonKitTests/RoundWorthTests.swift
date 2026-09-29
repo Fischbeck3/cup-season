@@ -144,4 +144,39 @@ struct RoundWorthTests {
     #expect(ClimbMath.closer(gap: 11, countingPoints: [], capN: nil) != nil)
     #expect(ClimbMath.closer(gap: 13, countingPoints: [], capN: nil) == nil)
   }
+
+  // MARK: - W1 · the card's own points (`csRoundWorthKnown`)
+
+  /// Once the card has its points the line finishes the sum with them — both
+  /// figures in the open, never "a 12 would add 6" under a card that scores 9.
+  @Test func theCardsOwnPointsFinishTheSum() {
+    #expect(RoundWorth.known(points: 9, cap: 4, used: 4, worst: 6)
+              == "This 9 replaces your lowest, a 6: +3 this month.")
+    #expect(RoundWorth.known(points: 9, cap: 4, used: 2, worst: 6)
+              == "This 9 counts: your best 4 count and you have 2, so +9 this month.")
+    #expect(RoundWorth.known(points: 7, cap: nil, used: 3, worst: nil)
+              == "This 7 counts: every round you post this month counts, so +7.")
+    #expect(RoundWorth.known(points: 6, cap: 4, used: 4, worst: 7)
+              == "Your best 4 already count and none is below 6, so this 6 can’t add to your total this month. It still builds your number.")
+    // a full month with no lowest counter: silence, not a guessed difference
+    #expect(RoundWorth.known(points: 9, cap: 4, used: 4, worst: nil) == nil)
+  }
+
+  /// The composer says ONE sentence, for the league the preview is scored in,
+  /// unnamed; a nine, a card with no points, or a league the answer does not
+  /// hold keeps the ceiling sentences.
+  @Test func theComposerSaysOneSentenceForTheLeagueItScores() throws {
+    let a = UUID(), b = UUID()
+    let two = try JSONDecoder().decode(JSONValue.self, from: Data("""
+      [{"league_id":"\(a.uuidString)","league_name":"North Grove (fixture)","cap":4,"counters":{"used":4,"worst":6}},
+       {"league_id":"\(b.uuidString)","league_name":"Fixture Hawks","cap":3,"counters":{"used":1,"worst":7}}]
+      """.utf8))
+    #expect(RoundWorth.servedLines(two, known: 9, league: a) == ["This 9 replaces your lowest, a 6: +3 this month."])
+    #expect(RoundWorth.servedLines(two, holes: 9, known: 5, league: a).count == 2)
+    #expect(RoundWorth.servedLines(two, league: a).count == 2)
+    #expect(RoundWorth.servedLines(two, known: 9, league: UUID()).count == 2)
+    // one season: it is the league, whatever the caller could name
+    let one = try JSONDecoder().decode(JSONValue.self, from: Data(#"[{"league_name":"North Grove (fixture)","cap":4,"counters":{"used":2,"worst":6}}]"#.utf8))
+    #expect(RoundWorth.servedLines(one, known: 9) == ["This 9 counts: your best 4 count and you have 2, so +9 this month."])
+  }
 }

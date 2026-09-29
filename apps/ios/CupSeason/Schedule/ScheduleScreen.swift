@@ -74,14 +74,27 @@ struct ScheduleScreen: View {
     if !rows.isEmpty {
       CSSectionHead("In your crew's plans")
       ForEach(rows) { sr in
-        let rel = sr.is_friend == true ? "BUDDY" : "IN YOUR SEASONS"
-        RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name), title: Text(sr.display_name ?? "A golfer") + Text("  \(rel)").font(CSType.font(.agateS)).foregroundStyle(cs.mut),
+        // W2 · A-7 · the tag names the crew, and a plan with no relation to
+        // name carries no tag at all (`relTag`). The title's `name` role sets
+        // the case, so the words go in as the web says them.
+        let name = Text(sr.display_name ?? "A golfer")
+        let title = relTag(sr).map { name + Text("  \($0)").font(CSType.font(.agateS)).foregroundStyle(cs.mut) } ?? name
+        RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name), title: title,
                     sub: watchBits(sr)) {
-          if sr.tagged_me == true { Text("On the schedule").csType(.agateS, caps: true).foregroundStyle(cs.ink) }   // F-10
-          else {
-            CSMini("I’m in") {
-              declare = DeclarePrefill(iso: sr.play_on, course: sr.course_label ?? "", tee: sr.tee_time, courseId: sr.course_id,
-                                       tagPids: [sr.profile_id].compactMap { $0 }, hostName: sr.display_name)
+          // W2 · the slot holds the ANSWER when there is one (in, out) and the
+          // act when there is not — never a tag read as a yes (`csPlanRowHtml`)
+          if let a = answer(sr), a.settled {
+            Text(a.said).csType(.agateS, caps: true).foregroundStyle(a == .yes ? cs.ink : cs.mut)   // F-10
+          } else {
+            CSMini("I’m in", busy: sr.id.map { vm.busy.contains($0) } ?? false) {
+              // tagged: the same answer the plan's sheet gives (`set_round_rsvp`,
+              // D69). Not tagged: your own round that day, tagging the host (D17).
+              if sr.tagged_me == true, let id = sr.id {
+                Task { if await vm.answerIn(id) { await vm.reload(me: store.me, current: store.preferredLeague) } }
+              } else {
+                declare = DeclarePrefill(iso: sr.play_on, course: sr.course_label ?? "", tee: sr.tee_time, courseId: sr.course_id,
+                                         tagPids: [sr.profile_id].compactMap { $0 }, hostName: sr.display_name)
+              }
             }
           }
         }
@@ -97,9 +110,61 @@ struct ScheduleScreen: View {
     if let tee = sr.tee_time, !TeeTime.format(tee).isEmpty { t = t + Text(" · ") + Text(TeeTime.format(tee)).foregroundStyle(cs.ink) }   // F-10 · a clock
     // brand-canon §4 · a rivalry is a RELATIONSHIP, not something won: `ink`.
     if let r = RivalryTag.of(sr.profile_id, rivals: vm.rivals) { t = t + Text(" · ") + Text(r.text).foregroundStyle(cs.ink) }
-    if sr.tagged_me == true { t = t + Text(" · ") + Text("YOU’RE IN").foregroundStyle(cs.ink) }   // F-10
+    // W2 · an OPEN answer (asked, maybe) is named here so it is never silent;
+    // a settled one is the slot's to say, once. A phrase, so the web's case.
+    if let a = answer(sr), !a.settled { t = t + Text(" · ") + Text(a.said) }
     if let n = sr.note, !n.isEmpty { t = t + Text(" · “\(n)”") }
     return t
+  }
+
+  // MARK: W2 · the plan's state and its crew, said once (`csPlanMe` / `csPlanRel`)
+
+  /// What the golfer said to a plan that names them.
+  enum PlanAnswer: Equatable {
+    case yes, no, maybe, asked
+    /// The web's `CS_PLAN_ME`, word for word.
+    var said: String {
+      switch self {
+      case .yes: "You’re in"
+      case .no: "You’re out"
+      case .maybe: "Maybe"
+      case .asked: "Asked"
+      }
+    }
+    /// An answer given, as opposed to one still open.
+    var settled: Bool { self == .yes || self == .no }
+  }
+
+  /// **"IN" IS AN EXPLICIT YES AND NOTHING ELSE** (critique-B P0). The list
+  /// printed YOU'RE IN off `tagged_me` for a golfer who had been asked and
+  /// never answered, while the plan's own sheet said NO REPLY — two
+  /// definitions of "in" printing contradictory facts about a real person's
+  /// commitment. The answer is `my_rsvp`, read the way `PlanSeat` reads a
+  /// seat; a tag with no answer is `Asked`, the server's own word (G7: the
+  /// state of the invitation, never a verdict on the man). nil for your own
+  /// plan — the host is in by declaring it — and for a plan that does not
+  /// name you (`csPlanMe`).
+  private func answer(_ sr: ScheduledRound) -> PlanAnswer? {
+    guard !sr.isMine, sr.tagged_me == true else { return nil }
+    let seat = PlanSeat(status: sr.my_rsvp)
+    if seat.isIn { return .yes }
+    if seat.isOut { return .no }
+    return sr.my_rsvp == "maybe" ? .maybe : .asked
+  }
+
+  /// **A-7 · THE TAG NAMES THE CREW** (`IN NORTH GROVE`), never the retired
+  /// compound. `my_schedule` says only THAT a season is shared, never which,
+  /// so the name comes from what this client already holds: the one league the
+  /// golfer is in. Where that cannot answer, the words the page already uses
+  /// stand — `In your seasons` — rather than a guessed name. (The web also
+  /// asks the roster of the league on screen; this screen holds no roster.)
+  private func relTag(_ sr: ScheduledRound) -> String? {
+    guard !sr.isMine else { return nil }
+    if sr.is_friend == true { return "Buddy" }
+    guard sr.shared_league == true else { return nil }
+    let crews = (store.me?.memberships ?? []).filter { $0.sandbox != true }
+    if crews.count == 1, !crews[0].name.isEmpty { return "In \(crews[0].name)" }
+    return "In your seasons"
   }
 
   // MARK: the grid (12072–12088)
@@ -167,9 +232,11 @@ struct ScheduleScreen: View {
     // functions up already draws both in `ink`, so the schedule was saying the
     // same two facts in two different metals on one screen.
     if let tee = sr.tee_time, !TeeTime.format(tee).isEmpty { t = t + Text(" · ") + Text(TeeTime.format(tee)).foregroundStyle(cs.ink) }
-    if sr.tagged_me == true { t = t + Text(" · ") + Text("YOU’RE IN").foregroundStyle(cs.ink) }
-    else if sr.shared_league == true && !sr.isMine { t = t + Text(" · ") + Text("IN YOUR SEASONS").foregroundStyle(cs.mut) }
-    else if sr.is_friend == true && !sr.isMine { t = t + Text(" · ") + Text("BUDDY").foregroundStyle(cs.mut) }
+    // W2 · the answer off `my_rsvp` — YOU'RE IN only for an explicit yes,
+    // ASKED for a tag nobody answered — and then the crew, both in the web's
+    // words (`csPlanMe`, `csPlanRel`); the row's `name` role sets the case
+    if let a = answer(sr) { t = t + Text(" · ") + Text(a.said).foregroundStyle(a == .yes ? cs.ink : cs.mut) }
+    if let rel = relTag(sr) { t = t + Text(" · ") + Text(rel).foregroundStyle(cs.mut) }
     return t
   }
 
@@ -311,6 +378,19 @@ final class ScheduleModel {
       schedule.removeAll { $0.id == id }; watchAll.removeAll { $0.id == id }
       return true
     } catch { toasts.show(HumanError.text(error, prefix: "Scratch failed.")); return false }
+  }
+
+  /// W2 · "I'm in" on a plan that names you is the same answer the plan's
+  /// sheet gives (`set_round_rsvp`, D69), never a second booking beside it.
+  /// The caller reloads, so the row then says "You're in" off `my_rsvp`.
+  func answerIn(_ id: UUID) async -> Bool {
+    busy.insert(id); defer { busy.remove(id) }
+    do {
+      try await sched.rsvp(id, status: "in")
+      CSHaptic.selection()
+      toasts.show("You’re in")
+      return true
+    } catch { toasts.show(HumanError.text(error, prefix: "RSVP did not save.")); return false }
   }
 }
 

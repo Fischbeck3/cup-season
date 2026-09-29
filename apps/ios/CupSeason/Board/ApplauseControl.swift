@@ -37,8 +37,10 @@ struct ApplauseControl: View {
       .accessibilityAddTraits(state.me ? [.isSelected] : [])
       if state.n > 0 {
         Button { people = true } label: {
+          // N4-014 · the count is a door (who applauded), so it is a whole
+          // 44pt target, drawn at the leading edge beside the hands; it was 20 wide
           Text("\(state.n)").csType(.agateS).foregroundStyle(state.me ? cs.act : cs.mut)
-            .frame(minWidth: 20, minHeight: 44)
+            .frame(minWidth: 44, minHeight: 44, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

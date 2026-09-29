@@ -94,7 +94,8 @@ final class HomeNoPhotoTests: XCTestCase {
       XCTAssertTrue(app.staticTexts["UNM Championship Course"].exists, "the course is the title")
       XCTAssertTrue(app.staticTexts["89"].exists, "the gross is the figure")
       XCTAssertTrue(app.staticTexts["2.0 over your playing HCP."].exists, "the story is the handicap context")
-      XCTAssertTrue(app.staticTexts["9 pts · counting #2 this month"].exists, "the consequence is the story when it is known")
+      // TEN / W6 · the month's count, not a rank: the cap is its denominator
+      XCTAssertTrue(app.staticTexts["9 pts · counting #2 of 4 this month"].exists, "the consequence is the story when it is known")
       XCTAssertFalse(app.staticTexts["Beat their playing HCP by 3.1."].exists, "two stories on one round")
       let shot = XCTAttachment(screenshot: app.screenshot())
       shot.name = "record-states-\(appearance)-\(size)"; shot.lifetime = .keepAlways; add(shot)

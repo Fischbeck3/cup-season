@@ -33,6 +33,18 @@ public enum HomeWireCopy {
     r.is_sub80 == true && holes == 18
   }
 
+  /// W3 twin · **THE COURSE IS THE TITLE, IN TITLE CASE**, and the tee after
+  /// its last ` · ` steps down so the club reads first (the web's `.hfr-tee`).
+  /// Condensed caps set a long club at six lines and outweighed the golfer and
+  /// the score. `North Grove (fixture) · Blue` → club `North Grove (fixture)`,
+  /// tee `Blue`; a name with no ` · ` is all club.
+  public static func courseTitle(_ course: String) -> (club: String, tee: String?) {
+    let c = course.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let r = c.range(of: " · ", options: .backwards), r.lowerBound > c.startIndex else { return (c, nil) }
+    let tee = String(c[r.upperBound...])
+    return (String(c[..<r.lowerBound]), tee.isEmpty ? nil : tee)
+  }
+
   /// `csGrossUnit` · a nine says it is a nine, beside its figure, wherever the
   /// client knows it: `43` over `GROSS · 9 HOLES`.
   public static func grossUnit(holes: Int?) -> String {
@@ -93,8 +105,14 @@ public enum HomeWireCopy {
     guard r.gross != nil else { return nil }
     if let points, let monthRank {
       let counting: String
+      // TEN / W6 · "counting #1 this month" read as a RANK (critique-B home
+      // P3). The receipt's own clause is "Counting #2 of 4": the denominator
+      // makes it the month's count. Uncapped has nothing to be out of, so it
+      // stays bare. The web's `homeRoundStory` is the twin.
       if let cap, cap > 0, monthRank > cap {
         counting = "bumped — outside the best \(cap) this month"
+      } else if let cap, cap > 0 {
+        counting = "counting #\(monthRank) of \(cap) this month"
       } else {
         counting = "counting #\(monthRank) this month"
       }

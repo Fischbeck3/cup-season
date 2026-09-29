@@ -211,8 +211,12 @@ public enum LiveCopy {
     // line at the 402 measure without an ellipsis, which is the defect that
     // broke `THRU` across two lines on an SE.
     let notIn = (0..<min(h, s.liveHoles)).reduce(0) { s.scores[pi][$1] == nil ? $0 + 1 : $0 }
-    let strokesWord = s.strokes[pi] == 0 ? "NO STROKES" : "\(s.strokes[pi]) STROKES"
+    let strokesWord = s.strokes[pi] == 0 ? "NO STROKES" : "\(s.strokes[pi]) STROKE\(s.strokes[pi] == 1 ? "" : "S")"
     var parts: [String] = s.game == .sunningdale ? ["NO HCP · STRAIGHT UP"] : [strokesWord]
+    // W1 · A DOT IS A SHOT ON THIS HOLE, and the line says so rather than
+    // leaving a dot beside the name unexplained. The web's words, in this
+    // line's case: the row sets its sub-line as tracked caps.
+    if dots > 0 { parts.append((dots > 1 ? "\(dots) SHOTS" : "A SHOT") + " ON THIS HOLE") }
     if !done.isEmpty { parts.append("\(gross) THRU \(done.count)") }
     if notIn > 0 { parts.append("\(SeasonStoryCopy.word(notIn).uppercased()) NOT IN") }
     return PlayerRow(name: p.n, guest: p.guest, strokeDots: dots, sub: parts.joined(separator: " · "),
@@ -324,14 +328,21 @@ public enum LiveCopy {
     return Scoreboard(hero: hero.isEmpty ? "—" : hero, chips: chips)
   }
 
-  /// `liveSyncBadge` (7862).
+  /// `liveSyncBadge` (W1), with the phone's window (root's ruling, W1 #4).
   ///
-  /// **"Queued" does not say the thing that matters.** The server abandons an
-  /// unfinished round twenty-four hours after tee-off, and every stroke still
-  /// held on the phone at that moment can never land. The golfer holding them
-  /// was told a number and no deadline. With a tee-off time on the card the
-  /// badge says the deadline instead; without one it stays honest and says
-  /// only that the strokes are unsent.
+  /// W1 · **WHAT IS AND IS NOT SAVED, IN WORDS.** "8 QUEUED" — and this
+  /// badge's own "8 unsent" — did not say the scores were safe on this phone,
+  /// or when they would go. The line is a sentence: the web's, `8 scores saved
+  /// on this phone; they send when you have signal.`
+  ///
+  /// **AND IT KEEPS THE WINDOW.** The server abandons an unfinished round
+  /// twenty-four hours after tee-off, and a stroke still on the phone then can
+  /// never land. So with a tee-off time on the card the sentence says the
+  /// deadline ("The round closes in 6h." / "The round closes within the
+  /// hour."), and past it, it never says the scores will send — "the round is
+  /// past its window, so they can't send." Without a tee-off time it says only
+  /// what it knows (L-44). The web takes these words from here, word for word.
+  /// A round the server has already closed still says so (`retired`).
   public static func syncBadge(_ s: LiveRoundState, presence: [String], queued: Int,
                                retired: Bool = false, now: Int64 = LiveFmt.now()) -> String {
     if s.onThisPhone { return "ON THIS PHONE · NOT POSTED" }
@@ -339,15 +350,22 @@ public enum LiveCopy {
     if retired { return "This round closed — your card is saved on this phone" }
     guard s.code != nil else { return "Scoring it yourself · live on this phone" }
     let n = max(1, presence.count)
-    guard queued > 0 else { return "\(n) scoring · synced" }
-    let strokes = "\(queued) unsent"
-    guard let deadline = closesText(s, now: now) else { return "\(n) scoring · \(strokes)" }
-    return "\(n) scoring · \(strokes) · \(deadline)"
+    if queued > 0 {
+      let saved = "\(queued) score\(queued == 1 ? "" : "s") saved on this phone"
+      let they = queued == 1 ? "it" : "they"
+      switch closesText(s, now: now) {
+      case "past its window"?: return saved + "; the round is past its window, so \(they) can’t send."
+      case let clause?: return saved + "; \(they) \(queued == 1 ? "sends" : "send") when you have signal. The round \(clause)."
+      case nil: return saved + "; \(they) \(queued == 1 ? "sends" : "send") when you have signal."
+      }
+    }
+    return n > 1 ? "\(n) phones scoring · every score sent" : "Every score sent"
   }
 
-  /// "closes in 6h" / "closes within the hour". Nil when the card predates
-  /// `startedAt`, because a deadline nobody can compute is not one to print
-  /// (L-44). Past the window it says so rather than counting into the negative.
+  /// "closes in 6h" / "closes within the hour" / "past its window". Nil when
+  /// the card predates `startedAt`: a deadline nobody can compute is not one
+  /// to print (L-44). Past the window it says so rather than counting into the
+  /// negative.
   static func closesText(_ s: LiveRoundState, now: Int64) -> String? {
     guard let started = s.startedAt else { return nil }
     let left = (started + 24 * 3_600_000) - now
@@ -356,6 +374,7 @@ public enum LiveCopy {
     if hours < 1 { return "closes within the hour" }
     return "closes in \(hours)h"
   }
+
 
   // MARK: - the resume banner (7710–7735; D86)
 

@@ -59,7 +59,7 @@ struct HomeFacts: View {
 
   var body: some View {
     if !cells.isEmpty || standing != nil {
-      CSFactStrip(cells, standing: standing, standingCaps: !starterLine)
+      CSFactStrip(cells, standing: standing, register: starterLine ? .gloss : .sentence)
         .onAppear { CSTelemetry.event(CSTelemetry.Metric.homeStateSeen.rawValue, seenProps) }
     }
   }

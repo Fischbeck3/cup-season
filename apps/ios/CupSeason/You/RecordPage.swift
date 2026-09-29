@@ -428,7 +428,10 @@ final class RecordModel {
                        competition: r.name,
                        qualifier: r.qualifier,
                        finish: r.finish,
-                       line: r.line,
+                       // W2 · a live season is in play: no finish, no mark, and its line
+                       // says where it stands, under the name
+                       line: r.finishWord ?? r.line,
+                       standing: r.live ? r.line : nil,
                        won: r.won,
                        spoken: "\(r.name), \(r.spoken)",
                        open: { open(r.leagueId) })

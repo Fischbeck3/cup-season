@@ -39,10 +39,12 @@ public enum ClaimIntent {
 /// The door card for a finished claim (17700–17727).
 public struct ClaimDoor: Sendable, Equatable {
   public enum Face: Sendable, Equatable {
-    /// "NAME — 84 at COURSE, Sat Jul 25. Enter your email to keep it."
+    /// "NAME — 84 at CLUB. Enter your email to keep it." — the course, tee
+    /// and day ride `sub`, beneath it (W4)
     case waiting(String)
-    /// already claimed — the token is dropped silently
-    case claimed
+    /// already kept — said (`usedLine`, not an error), token dropped (W4: it
+    /// was dropped silently, and the door said nothing)
+    case claimed(String)
     /// dead / garbage token — said plainly, token dropped
     case dead(String)
     /// D374 · the round was never finished: no card was ever minted, the token is dropped
@@ -51,12 +53,20 @@ public struct ClaimDoor: Sendable, Equatable {
     case notStarted(String)
   }
   public let face: Face
+  /// W4 · the line beneath a waiting sentence: the course and tee, then the
+  /// day ("Mesquite Wash · Black · Sun, Sep 27"). nil when there is neither.
+  public var sub: String? = nil
 
   public static let deadLine = "That scorecard link has expired or was already claimed. Whoever sent it can share a fresh one from the round."
   /// D374 · twins of the web's `CS_CLAIM_UNFINISHED` / `CS_CLAIM_NOT_STARTED`,
-  /// verbatim (one producer per client, D297).
-  public static let unfinishedLine = "This round was never finished, so there’s no card to keep. Whoever ran it can tee off again and send your link from the new round."
-  public static let notStartedLine = "That round hasn’t teed off yet — your card lands here when it finishes."
+  /// verbatim (one producer per client, D297). T-01 · the holes are the
+  /// SCORECARD, "card" is the person; not-started says what to do next.
+  public static let unfinishedLine = "This round was never finished, so there’s no scorecard to keep. Whoever ran it can tee off again and send your link from the new round."
+  public static let notStartedLine = "That round hasn’t teed off yet. Open this link again once it tees off to keep your own score, or once it finishes to keep your scorecard."
+  /// W4 · twin of `CS_CLAIM_USED`. A kept scorecard was the plain door; the
+  /// likeliest visitor is the golfer who kept it, on another device. Not an
+  /// error, and no more than `deadLine` already tells any token.
+  public static let usedLine = "That scorecard is already on a golfer’s record. If it’s yours, sign in with the same email and it’s in your rounds."
 
   /// D374 · what `guest_live_state` says about the round behind the token,
   /// read BEFORE the door is asked for a card. `abandoned` → there is no card
@@ -72,19 +82,37 @@ public struct ClaimDoor: Sendable, Equatable {
     }
   }
 
-  /// The first sentence a brand-new golfer ever reads from us (D77).
-  public static func line(_ data: JSONValue, calendar: Calendar = .current) -> String {
-    let name = data["guest_name"]?.string ?? "Your card"
-    let gross = data["gross"]?.int
-    let course = data["course_label"]?.string ?? "the course"
-    var when = ""
+  /// The first sentence a brand-new golfer ever reads from us (D77) —
+  /// TERMINOLOGY §6's, with the CLUB in it (W4, the web's `csClaimLanding`):
+  /// the whole label ran a dash-joined triple into the sentence. The course,
+  /// tee and day go to `subLine`, beneath it.
+  public static func line(_ data: JSONValue) -> String {
+    let name = data["guest_name"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "Your scorecard"
+    let gross = data["gross"]?.int.flatMap { $0 == 0 ? nil : $0 }
+    return "\(name) — \(gross.map { "\($0) at " } ?? "")\(label(data).club). Enter your email to keep it."
+  }
+
+  /// W4 · beneath the sentence: the course and tee (the label after its
+  /// club), then the day. nil when the preview carried neither.
+  public static func subLine(_ data: JSONValue, calendar: Calendar = .current) -> String? {
+    var parts: [String] = []
+    let rest = label(data).rest
+    if !rest.isEmpty { parts.append(rest) }
     if let iso = data["played_on"]?.string, let d = CSDate.local(iso, calendar: calendar) {
       let f = DateFormatter()
       f.calendar = calendar
       f.setLocalizedDateFormatFromTemplate("EEE MMM d")
-      when = ", " + f.string(from: d)
+      parts.append(f.string(from: d))
     }
-    return "\(name) — \(gross.map { "\($0) at " } ?? "")\(course)\(when). Enter your email to keep it."
+    return parts.isEmpty ? nil : parts.joined(separator: " · ")
+  }
+
+  /// "Mesquite Wash Golf Club (fixture) — Mesquite Wash · Black" → the club,
+  /// and the course and tee after its first " — ". A label with none is all club.
+  static func label(_ data: JSONValue) -> (club: String, rest: String) {
+    let l = data["course_label"]?.string.flatMap { $0.isEmpty ? nil : $0 } ?? "the course"
+    guard let cut = l.range(of: " — "), cut.lowerBound > l.startIndex else { return (l, "") }
+    return (String(l[..<cut.lowerBound]), String(l[cut.upperBound...]))
   }
 
   /// Both claim sources: tee-sheet guests, then scan partners. `state` is the
@@ -104,8 +132,8 @@ public struct ClaimDoor: Sendable, Equatable {
     var data = await repo.claimInfo(token)
     if data == nil { data = await repo.scanClaimInfo(token) }
     guard let data else { ClaimIntent.clear(); return ClaimDoor(face: .dead(deadLine)) }
-    if data["claimed"]?.bool == true { ClaimIntent.clear(); return ClaimDoor(face: .claimed) }
-    return ClaimDoor(face: .waiting(line(data)))
+    if data["claimed"]?.bool == true { ClaimIntent.clear(); return ClaimDoor(face: .claimed(usedLine)) }
+    return ClaimDoor(face: .waiting(line(data)), sub: subLine(data))
   }
 }
 
@@ -133,7 +161,8 @@ public enum ClaimFlow {
     }
   }
 
-  public static let stillLiveToast = "They’re still out there — your card lands here when the round finishes"
+  /// D86's sentence, the web's toast verbatim (W4: scorecard, T-01).
+  public static let stillLiveToast = "They’re still out there — your scorecard comes to your rounds when the round finishes"
 
   /// D374 · the read before the claim, pure: what the round's state means for a
   /// signed-in claimer. Mirrors the web's `claimPendingRound`, which asks

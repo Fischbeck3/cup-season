@@ -526,8 +526,9 @@ struct HomeView: View {
       }
       .padding(.horizontal, CSTokens.Space.gutter)
 
-    case .line(let marker, let text, let door):
-      HomeWireLine(marker: marker, text: text, act: door.map { d in { open(d) } })
+    case .line(let marker, let text, let door, let fromPro):
+      HomeWireLine(marker: marker, text: text, label: fromPro ? HomeWireLine.fromPro : nil,
+                   act: door.map { d in { open(d) } })
         .padding(.horizontal, CSTokens.Space.gutter)
 
     case .bag(let text, let marker, let door):

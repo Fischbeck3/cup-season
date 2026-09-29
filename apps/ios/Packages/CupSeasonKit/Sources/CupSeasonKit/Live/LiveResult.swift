@@ -9,6 +9,28 @@
 import Foundation
 
 /// `holeLedger(mode, cells, played, closedOut, hot, legend)` (8017).
+/// W4 twin · THE STRIP, SAID (the web's `holeStripSummary` / `holeStripKey`):
+/// who won how many holes, how many halved or carried, and where it ended —
+/// counted from the same cells the strip draws, never stored (§16). `hot` is
+/// the subject's key; `names` are the subject and everyone else.
+public extension LiveLedger {
+  func summary(hot: String?, hotName: String?, otherName: String?) -> String {
+    var a = 0, b = 0, h = 0, c = 0
+    for v in cells {
+      guard let v else { continue }
+      if v == .h { h += 1 } else if v == .c { c += 1 } else if let hot, v.key == hot { a += 1 } else { b += 1 }
+    }
+    var parts = ["\(hotName ?? "The subject") won \(a) hole\(a == 1 ? "" : "s")", "\(otherName ?? "the other side") won \(b)"]
+    if h > 0 { parts.append("\(h) halved") }
+    if c > 0 { parts.append("\(c) carried") }
+    let end = closed.map { ", closed on \($0)." } ?? ", through \(played != 0 ? played : cells.count)."
+    return parts.joined(separator: ", ") + end
+  }
+  /// The key's kinds that this strip actually draws, in its order.
+  var drawsHalved: Bool { cells.contains { $0 == .h } }
+  var drawsCarried: Bool { cells.contains { $0 == .c } }
+}
+
 public struct LiveLedger: Sendable, Equatable {
   public let n: Int
   public let played: Int

@@ -212,14 +212,27 @@ struct GuestPencilScreen: View {
   private func door(_ d: ClaimDoor) -> some View {
     VStack(alignment: .leading, spacing: 16) {
       Spacer()
-      Text("Your scorecard").csEyebrow(cs.brand)
+      // W4 · the web's landing label (`csClaimLanding`), in mut as the web
+      // sets it: a link is ordinary, and ember is competition only (D359)
+      Text("Your scorecard link").csEyebrow(cs.mut)
       switch d.face {
       case .waiting(let line):
-        Text(line).csType(.story).foregroundStyle(cs.ink)
+        VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+          Text(line).csType(.story).foregroundStyle(cs.ink)
+            .fixedSize(horizontal: false, vertical: true)
+          // the course and tee after the club, then the day — the sentence
+          // carries only the club now
+          if let sub = d.sub {
+            Text(sub).csType(.bodyS).foregroundStyle(cs.mut)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
         Button("Keep this round") { onDoor() }
           .buttonStyle(.csPrimary())
-      case .claimed:
-        Text("That card is already on a record.").csType(.story).foregroundStyle(cs.ink)
+      case .claimed(let line):
+        // W4 · `CS_CLAIM_USED`: not an error, so ink, and it says what to do
+        Text(line).csType(.body).foregroundStyle(cs.ink)
+          .fixedSize(horizontal: false, vertical: true)
         Button("Sign in") { onDoor() }
           .buttonStyle(.csSecondary())
       case .dead(let line):

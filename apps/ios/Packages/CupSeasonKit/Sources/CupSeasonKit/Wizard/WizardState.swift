@@ -76,12 +76,9 @@ public struct WizardDials: Sendable, Equatable, Codable {
     public let cap: Int?
     public let floor: Int
     public let name: String
-    /// MW-06: the card explains its actual choices in ordinary words.
-    public var lead: String {
-      let counts = cap.map { "Your best \(SeasonStoryCopy.word($0)) each month count" } ?? "Every round counts"
-      let minimum = floor == 0 ? "no monthly minimum" : "\(SeasonStoryCopy.word(floor))-round monthly minimum"
-      return "\(counts) · \(minimum)."
-    }
+    /// MW-06: the card explains its actual choices in ordinary words — in the
+    /// one producer the Custom card says them with too (W5).
+    public var lead: String { WizardDials.rulesLead(cap: cap, floor: floor) }
     public let line: String
     /// The stepper slot for this preset's cap.
     public var capIdx: Int { Bylaws.capIndex(cap) }
@@ -164,11 +161,45 @@ public struct WizardDials: Sendable, Equatable, Codable {
 
   public mutating func applyPreset(_ i: Int) {
     let p = Self.presets[max(0, min(2, i))]
+    // W5 / D347 · choosing a starting point moves the picker, so a stored
+    // off-ladder cap gives way to the starting point's own. A stored 1 snaps
+    // to Best 2 — Cutthroat's rung — and rode straight through the choice.
+    capExact = nil
     preset = max(0, min(2, i)); cap = p.capIdx; floor = p.floor
   }
   /// `toast(pr.name+' rules locked for the season')`
   public var presetToast: String { "\(Self.presets[preset].name) rules set for the season" }
   public var presetSummaryText: String { Self.presetSummary(preset) }
+
+  /// W5 · the sentence is the RULE's — a cap and a minimum — so a preset card
+  /// and the Custom card say it through one producer: a card from its preset's
+  /// own values, Custom from the dials (`capN`, D347's exact stored cap). One
+  /// best round is a singular sentence. Twin: `csRulesLead` on the desk.
+  public static func rulesLead(cap: Int?, floor: Int) -> String {
+    let counts = cap.map { $0 == 1 ? "Your best round each month counts" : "Your best \(SeasonStoryCopy.word($0)) each month count" }
+      ?? "Every round counts"
+    let minimum = floor == 0 ? "no monthly minimum" : "\(SeasonStoryCopy.word(floor))-round monthly minimum"
+    return "\(counts) · \(minimum)."
+  }
+  /// W5 · a starting point stays chosen only while the dials still say what
+  /// its card says: the cap (`capN`) and the minimum. The Standard card read
+  /// "Your best three each month count" over a "Best 4" dial. Turned away
+  /// from, the choice reads Custom — a UI state only (D346): the stored preset
+  /// key, the allowance, the verification and the penalty stay the starting
+  /// point's, and nothing new is stored. Twin: `csPresetMatches`.
+  public func presetMatches(_ i: Int) -> Bool {
+    guard Self.presets.indices.contains(i) else { return false }
+    return capN == Self.presets[i].cap && floor == Self.presets[i].floor
+  }
+  public var isCustom: Bool { !presetMatches(preset) }
+  public static let customName = "Custom"
+  /// The Custom card's sentence, painted from the dials.
+  public var customLead: String { Self.rulesLead(cap: capN, floor: floor) }
+  /// …and the starting point whose other rules it keeps.
+  public var customBase: String {
+    let base = Self.presets.indices.contains(preset) ? Self.presets[preset] : Self.presets[1]
+    return "Built on \(base.name): its handicaps, scores and penalty stay."
+  }
 
   // MARK: the steppers (7104–7112)
 
@@ -210,8 +241,9 @@ public struct WizardDials: Sendable, Equatable, Codable {
   ///
   /// The exact value rides here and `capN` prefers it for as long as the
   /// stepper still sits on its snapped rung. The moment the Pro moves the
-  /// stepper the rung stops matching and the ladder's own value wins, so no
-  /// extra clearing is needed on `applyPreset` or the suggestion.
+  /// stepper the rung stops matching and the ladder's own value wins.
+  /// `applyPreset` clears it outright (W5): a stored 1 snaps to the very rung
+  /// Cutthroat sets, so "the rung moved" could not tell the two apart.
   public var capExact: Int?
   public var capN: Int? {
     if let capExact, cap == Bylaws.capIndex(capExact) { return capExact }
@@ -318,14 +350,30 @@ public struct WizardDials: Sendable, Equatable, Codable {
 
   /// `wizRoster()` — the wizard sees you (D97: staging is gone). A league that
   /// already has members counts them.
-  public static func structFitLine(roster n: Int) -> String {
+  ///
+  /// W5 · the CHOSEN squads are the fact that matters: when they need more
+  /// golfers than there are so far, the line says how many, and how many so
+  /// far. With no structure given it is the roster's line, as before.
+  public static func structFitLine(roster n: Int, structure: String? = nil) -> String {
+    let golfers = "\(n) golfer\(n == 1 ? "" : "s")"
+    if let s = structure, s != "solo", n < (structMin[s] ?? 2) {
+      return "\(structNames[s] ?? s) tee off at \(structMin[s] ?? 2) — \(golfers) so far. More join by code or invite."
+    }
     var fits: [String] = []
     for s in structures where s != "solo" {
       if n >= (structMin[s] ?? 2) { fits.append(String((structNames[s] ?? s).split(separator: " ").first ?? "")) }
     }
-    return "\(n) golfer\(n == 1 ? "" : "s") staged — "
+    return "\(golfers) staged — "
       + (fits.isEmpty ? "solo fits" : "solo or up to \(fits.last!) squads fit")
       + ". Bigger squads open up as more join, by code or invite."
+  }
+  /// W5 · a squad option bigger than the roster so far says its need in words
+  /// under its name — "8+ golfers" — and is never faded: 40% opacity took the
+  /// chosen "2 Squads" to 2.52:1 (§16.1). Solo always fits. Twin: the
+  /// `<small>` `renderStructFit` writes into each squads segment on the desk.
+  public static func structNeed(_ structure: String, roster n: Int) -> String? {
+    guard structure != "solo", !fits(structure, roster: n) else { return nil }
+    return "\(structMin[structure] ?? 2)+ golfers"
   }
   /// The guidance toast on a structure tap — never a block.
   public static func structToast(_ structure: String, roster n: Int) -> String? {
@@ -544,7 +592,9 @@ public enum WizardCopy {
   public static let namePlaceholder = "The Big Slice, The Sunday Cup, Dew Sweepers…"
   public static let nameLabel = "League name"
   public static let proLabel = "Pro — that’s you"
-  public static let proSub = "you run this league"
+  /// W5 · the Pro "runs the season" (TERMINOLOGY row 1, D132), never "runs
+  /// this league". Twin: `renderProChip` on the desk.
+  public static let proSub = "you run the season"
   public static let proTag = "THE PRO"
 
   // the name sheet (`#wCreate`, 17172–17176)
@@ -580,7 +630,9 @@ public enum WizardCopy {
   public static let endsHelp = "Cup Final: the top two compete in the last four weeks, with the monthly counting limit still applying. Points table: whoever leads at season end wins."
   public static let potEyebrow = "The pot split"
   public static let potHelp = "How the pot pays out at season’s end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). The pot lives on the books here — " + MoneyCopy.ledger
-  public static let countingCap = ("Rounds that count", "Your best N each month score")
+  /// W5 · the dial's second line says what it means: "N" was a variable
+  /// name, printed to a golfer.
+  public static let countingCap = ("Rounds that count", "Your best rounds each month score")
   public static let capHelp = "“Best” means the rounds worth the most league points, after handicaps. Extra rounds give you more chances to improve. A better round replaces the lowest one that counts."
   public static let floorRow = ("The monthly minimum", "ROUNDS A MONTH · −5 SQUAD POINTS SHORT")
   public static let floorHelp = "An 18-hole round meets one round of the minimum; a 9-hole round meets half. One missed minimum is forgiven automatically each season. Partial season months and the month you join are exempt. The selected rules determine any later team penalty."

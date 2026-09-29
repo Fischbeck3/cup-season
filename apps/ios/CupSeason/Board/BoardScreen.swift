@@ -94,12 +94,13 @@ struct BoardScreen: View {
     }
   }
 
-  /// `.composer` — "Message the league…" · 📣 (the Pro) · Send. At the accessibility
+  /// `.composer` — "Post to the board…" · 📣 (the Pro) · Send. At the accessibility
   /// sizes the field takes the full width and the two buttons sit under it.
+  /// W3 twin · the board is the place a post lands, and the field says so.
   private func composer(_ store: BoardStore) -> some View {
     A11yStack(alignment: .trailing, spacing: 8) {
-      TextField("Message the league…", text: $draft, axis: .vertical)
-        .accessibilityLabel("Message the league")
+      TextField("Post to the board…", text: $draft, axis: .vertical)
+        .accessibilityLabel("Post to the board")
         .csType(.body)
         .foregroundStyle(cs.ink)
         .lineLimit(1...4)

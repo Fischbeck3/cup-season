@@ -117,8 +117,11 @@ final class N2LiveRecapUITests: N2UITestCase {
       XCTAssertTrue(card.exists, "\(size): the settlement card is one named element")
       let cardLabels = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH[c] %@", "The settlement card"))
       XCTAssertEqual(cardLabels.count, 1, "\(size): VoiceOver reads the card once")
-      let strips = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH[c] %@", "Hole strip"))
+      // W4 · the strip speaks one summary in the web's words ("… won 3 holes,
+      // … won 2, 1 halved, closed on 16."), so it is found by its name
+      let strips = app.descendants(matching: .any).matching(identifier: "live.recap.strip")
       XCTAssertEqual(strips.count, 1, "\(size): VoiceOver reads the hole strip once")
+      XCTAssertTrue(strips.firstMatch.label.contains(" won "), "\(size): the strip says who won how many — \(strips.firstMatch.label)")
       if card.exists {
         let f = card.frame
         XCTAssertGreaterThanOrEqual(f.minX, screen.minX + 8, "\(size): the card starts inside the gutter — \(f)")

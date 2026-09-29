@@ -337,6 +337,64 @@ The judges stay with root, so their calibration holds across the native half and
   - the Form row's nine, fixed by N2.
 - All but the Form row are routed to N4. The details are in `PANEL.md` §5.
 
+## 4i · Released for the owner's testing, again (2026-09-29, night, on "ship me the latest")
+
+**The owner, before sleeping:** "Run through remaining items, tidy up and ship me the latest please." That yes covers tonight's candidate. Every commit after `7b9c17e4` needs a new one.
+
+| Layer | Identity | Verified |
+|---|---|---|
+| Web | main `272c2da1` at 00:09 MST, then `7b9c17e4` at 03:53 (fast-forwards from `cf401dee`) | The live stamp read `v23 · 272c2da`, then `v23 · 7b9c17e`, and the service worker `VERSION` matched each time. CI green. A production smoke with Supabase aborted: `?cs_home_state` keeps the Door up and the shell inert; the console is clean |
+| iPhone | Owner TestFlight 1.0.0 (**1328**) from `41cf8050` at 03:28, then (**1335**) from `7b9c17e4` at 04:04 | Each is VALID and IN_BETA_TESTING in the Owner group, **not** in Friends, and never `asc.py ship`. The archives, IPAs and dSYMs are kept under `cup-season-claude-ten-gallery/testflight-13{28,35}/` |
+| Database | nothing | No migration after `cf401dee` is on main; B's `d30f1ecb` is held on its branch |
+
+**Verification behind 1335 and `7b9c17e4`:**
+- Web: 43 of 43 browser suites at `dcafca7f`. `7b9c17e4` adds only an `aria-labelledby` to it.
+- Web captures:
+  - D's full capture of `fd27ace4`: 1,126 captures, 0 page errors. Its only errors were the course-card timeouts, fixed at `5df6d4cc`.
+  - Recaptures of every family changed since then: 0 failures.
+- Native, at `146401bb` (the same native tree as `7b9c17e4`), on root's fresh simulator:
+  - build green;
+  - 1321 package tests plus the app-hosted suites, at `7b9c17e4`;
+  - 31 UI tests with 2 env-gated skips and 0 failures. These are the route suite, the N2 suites and N4's refusal and AX3 tests.
+- **FX's simulator falsely failed the recap tests at `9e3a49b3`.** It was left dirty by the capture matrix. Both tests passed on a fresh simulator.
+
+**What tonight's two releases carry beyond `cf401dee`:**
+- all five web lanes, B's shared chrome, and E's native phases 1 and 2 (set 1);
+- root's fixes:
+  - the `?cs_home_state` exposure;
+  - the course tap;
+  - the halfway-turn roster line;
+  - the unsent-score count;
+  - the public plan's "on the plan";
+  - the dead-link landing;
+  - the covenant's Custom head;
+  - the picker's edge fade;
+  - the still Door wings;
+  - the golfer page's columns;
+  - the album render;
+  - the install nudge;
+  - the index field's name;
+  - the palette's pigments;
+  - the course row container.
+
+**Round 2 (panel web half):**
+
+| Judge | Round 2 | Round 1 |
+|---|---|---|
+| Craft | 8.28 | 6.87 |
+| Owner | 7.94 | 7.09 |
+| Category | 7.44 | 6.44 |
+
+- Critique B2 at `ed8e6837`: best 33/40.
+- AW2: 13/20.
+- **No gate is met.** The human gates G1–G4 and D1–D13 have not run.
+
+**Open, and the owner's:**
+- the Oct 1 default look (Q31, top of the memo; 1335 still turns Fall on Oct 1);
+- X36 to X40 and Q1 to Q37;
+- database owed: X41, X42, the head-to-head week count, and `d30f1ecb`;
+- counsel on "The pot" in `legal.html`.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:

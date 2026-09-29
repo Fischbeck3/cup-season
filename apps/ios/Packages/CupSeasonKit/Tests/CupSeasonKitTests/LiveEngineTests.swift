@@ -423,6 +423,22 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(LiveCopy.toWinThisHole(open).isEmpty)
   }
 
+  /// W1 · a dot beside the name is a shot on THIS hole, and the row says so
+  /// (the web's words); one stroke is "1 STROKE", never "1 STROKES".
+  @Test func theStrokeDotIsExplained() {
+    let names = ["Avery Fixture", "Blake Sample", "Casey Placeholder"]
+    // hole 1 is stroke index 1: one shot for the 1, two for the 20
+    let hard = round(names, indices: [0, 1.0, 20.0], scores: [S(), S(), S()], game: .score, si: Array(1...18))
+    #expect(LiveCopy.playerRow(hard, 0).sub == "NO STROKES")
+    #expect(LiveCopy.playerRow(hard, 1).sub == "1 STROKE · A SHOT ON THIS HOLE")
+    #expect(LiveCopy.playerRow(hard, 2).sub == "20 STROKES · 2 SHOTS ON THIS HOLE")
+    #expect(LiveCopy.playerRow(hard, 2).strokeDots == 2)
+    // hole 1 is stroke index 3: only the 20 gets one, and no dot is no clause
+    let easier = round(names, indices: [0, 1.0, 20.0], scores: [S(), S(), S()], game: .score, si: [3, 1, 2] + Array(4...18))
+    #expect(LiveCopy.playerRow(easier, 1).sub == "1 STROKE")
+    #expect(LiveCopy.playerRow(easier, 2).sub == "20 STROKES · A SHOT ON THIS HOLE")
+  }
+
   @Test func soloResultEnvelope() {
     let s = round(["A", "B", "C", "D"], indices: [0, 0, 0, 0], scores: [S(3, 3, 5, 5, 5, 5, 6), S(4, 4, 4, 4, 4, 4, 4), S(7, 7, 7, 7, 7, 7, 8), S(7, 7, 7, 7, 7, 7, 8)],
                   game: .sunningdale, stake: 10, mode: .solo)
@@ -516,11 +532,13 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     s.code = nil
     #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Scoring it yourself · live on this phone")
     s.code = "abc"
-    // D-offline · "queued" implies it will go; "unsent" states the fact, and
-    // with a tee-off time on the card the deadline follows it. This card has
-    // no `startedAt`, so the badge says only what it knows (`UnsentBadgeTests`).
-    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 scoring · 2 unsent")
-    #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "1 scoring · synced")
+    // W1 · the sync line is the web's sentence (`liveSyncBadge`): it replaced
+    // "2 scoring · 2 unsent", which said a count and not that the scores were
+    // safe or when they would go. This card has no tee-off time, so it names
+    // no window (`UnsentBadgeTests` holds the window).
+    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 2) == "2 scores saved on this phone; they send when you have signal.")
+    #expect(LiveCopy.syncBadge(s, presence: ["A", "B"], queued: 0) == "2 phones scoring · every score sent")
+    #expect(LiveCopy.syncBadge(s, presence: [], queued: 0) == "Every score sent")
     s.course.label = "Papago"
     s.hole = 1
     let mine = LiveCopy.resumeBanner(s)!
@@ -750,10 +768,22 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     ClaimIntent.clear(defaults: d)
     #expect(ClaimIntent.pending(defaults: d) == nil)
     #expect(ClaimIntent.url(t).absoluteString == "https://cupseason.app/?claim=\(t.uuidString.lowercased())")
-    let info: JSONValue = .object(["guest_name": .string("Chuck"), "gross": .number(84), "course_label": .string("Papago"), "played_on": .string("2026-07-25")])
+    let info: JSONValue = .object(["guest_name": .string("Sam Fixture"), "gross": .number(84), "course_label": .string("Papago"), "played_on": .string("2026-07-25")])
     var cal = Calendar(identifier: .gregorian)
     cal.locale = Locale(identifier: "en_US")
-    #expect(ClaimDoor.line(info, calendar: cal) == "Chuck — 84 at Papago, Sat, Jul 25. Enter your email to keep it.")
+    #expect(ClaimDoor.line(info) == "Sam Fixture — 84 at Papago. Enter your email to keep it.")
+    #expect(ClaimDoor.subLine(info, calendar: cal) == "Sat, Jul 25")
+    // W4 · the club goes in the sentence; the course, tee and day go beneath
+    // it (the web's csClaimLanding, pinned by the links harness)
+    let club: JSONValue = .object(["guest_name": .string("Avery Fixture"), "gross": .number(91),
+                                   "course_label": .string("Mesquite Wash Golf Club (fixture) — Mesquite Wash · Black"),
+                                   "played_on": .string("2026-09-27")])
+    #expect(ClaimDoor.line(club) == "Avery Fixture — 91 at Mesquite Wash Golf Club (fixture). Enter your email to keep it.")
+    #expect(ClaimDoor.subLine(club, calendar: cal) == "Mesquite Wash · Black · Sun, Sep 27")
+    // no name and no gross read as the web's fallbacks; nothing beneath is nil
+    let bare: JSONValue = .object(["course_label": .string("Papago")])
+    #expect(ClaimDoor.line(bare) == "Your scorecard — Papago. Enter your email to keep it.")
+    #expect(ClaimDoor.subLine(bare, calendar: cal) == nil)
   }
 
   /// D374 · a link from a round nobody finished says so, on both doors; a round
@@ -772,8 +802,11 @@ private func round(_ names: [String], indices: [Double], scores: [[Int?]], game:
     #expect(ClaimFlow.gate(state("setup")) == .notStarted(toast: ClaimDoor.notStartedLine))
     #expect(ClaimFlow.gate(state("final")) == nil)
     #expect(ClaimFlow.Outcome.unfinished(toast: "x").toast == "x")
-    // the words, pinned against the web's CS_CLAIM_UNFINISHED / CS_CLAIM_NOT_STARTED
-    #expect(ClaimDoor.unfinishedLine == "This round was never finished, so there’s no card to keep. Whoever ran it can tee off again and send your link from the new round.")
-    #expect(ClaimDoor.notStartedLine == "That round hasn’t teed off yet — your card lands here when it finishes.")
+    // the words, pinned against the web's CS_CLAIM_UNFINISHED / CS_CLAIM_NOT_STARTED /
+    // CS_CLAIM_USED and D86's toast (W4: the holes are the scorecard, T-01)
+    #expect(ClaimDoor.unfinishedLine == "This round was never finished, so there’s no scorecard to keep. Whoever ran it can tee off again and send your link from the new round.")
+    #expect(ClaimDoor.notStartedLine == "That round hasn’t teed off yet. Open this link again once it tees off to keep your own score, or once it finishes to keep your scorecard.")
+    #expect(ClaimDoor.usedLine == "That scorecard is already on a golfer’s record. If it’s yours, sign in with the same email and it’s in your rounds.")
+    #expect(ClaimFlow.stillLiveToast == "They’re still out there — your scorecard comes to your rounds when the round finishes")
   }
 }

@@ -87,6 +87,9 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   public let buyinCents: Int
   public let preset: String?
   public let floor: Int
+  /// Whether the payload carried `floor` at all: an older payload without a
+  /// dial is not evidence the dial moved (the web's `floorKnown`).
+  public let floorKnown: Bool
   public let finish: String?
   public let structure: String?
 
@@ -139,8 +142,9 @@ public struct Covenant: Sendable, Equatable, Identifiable {
               startsOn: String? = nil, weeks: Int? = nil, countingCap: Int? = nil,
               split: Split? = nil, hasPayNote: Bool? = nil, buyInDueOn: String? = nil, phase: String? = nil,
               handicapAllowance: Int? = nil, everyRoundCounts: Bool? = nil, endsOn: String? = nil,
-              seasonNumber: Int? = nil, reup: Bool? = nil, agreed: Bool? = nil, lastSeason: LastSeason? = nil, structure: String? = nil) {
-    self.structure = structure
+              seasonNumber: Int? = nil, reup: Bool? = nil, agreed: Bool? = nil, lastSeason: LastSeason? = nil, structure: String? = nil,
+              floorKnown: Bool = true) {
+    self.structure = structure; self.floorKnown = floorKnown
     self.name = name; self.buyinCents = buyinCents; self.preset = preset; self.floor = floor; self.finish = finish
     self.proName = proName; self.rosterCount = rosterCount; self.rosterNames = rosterNames
     self.startsOn = startsOn; self.weeks = weeks; self.countingCap = countingCap
@@ -180,7 +184,8 @@ public struct Covenant: Sendable, Equatable, Identifiable {
               lastSeason: v["last_season"].flatMap { ls in
                 guard case .object = ls else { return nil }
                 return LastSeason(myRank: ls["my_rank"]?.int, of: ls["of"]?.int, myPoints: ls["my_points"]?.double)
-              }, structure: v["structure"]?.string)
+              }, structure: v["structure"]?.string,
+              floorKnown: v["floor"].map { $0 != .null } ?? false)
   }
 
   /// `Math.round(buyin_cents/100)`
@@ -238,6 +243,34 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     }
   }
 
+  /// W4 · WHERE THE SEASON STANDS, said before the money (owner E, critique
+  /// B): a week-8 joiner was asked for $75 against "Thirteen weeks from Sun
+  /// Aug 9" and left to do the arithmetic. Twin of the web's `csCovenantClock`,
+  /// pure, with the clock passed in. Every clause is a rule the server already
+  /// keeps: the week, from the payload's own first tee and length (§14.0);
+  /// D386's seat on the thinnest squad, counted from that day — never inside a
+  /// Cup Final, whose squads D382 holds; D161's join-month waiver, only where a
+  /// minimum exists and never solo (L-23). Nothing before the first tee (the
+  /// length already says when) or after the last week.
+  public func clockLine(today: String = CSDate.today(), calendar: Calendar = .current) -> String? {
+    guard let s = startsOn, !s.isEmpty, let wk = weeks, wk != 0 else { return nil }
+    let start = String(s.prefix(10))
+    guard let day = CSDate.days(from: start, to: today, calendar: calendar), day >= 0, day < wk * 7 else { return nil }
+    let week = day / 7 + 1
+    let ends = endsOn.flatMap { $0.isEmpty ? nil : String($0.prefix(10)) } ?? LeagueDates.addDays(start, wk * 7 - 1, calendar: calendar)
+    let finalOpen = finish == "cup_final" && wk >= 6
+      && (CSDate.days(from: today, to: ends, calendar: calendar).map { $0 <= 27 } ?? false)
+    if finalOpen { return "You’d join in week \(week) of \(wk), during the Cup Final." }
+    let squads = ["squads2", "squads3", "squads4"].contains(structure ?? "")
+    var t = "You’d join in week \(week) of \(wk)"
+      + (squads ? ", on the squad with the fewest golfers; your rounds count for it from that day." : ".")
+    if floor > 0, structure != "solo" {
+      // LeagueCopy's producer, the season page's own D161 month
+      t += " There’s no minimum to clear until \(LeagueCopy.nextMonthLong(today, calendar: calendar))."
+    }
+    return t
+  }
+
   /// 4 · "Standard rules: honest scores, best three a month count, two a month
   /// keeps you in." The rounds that count is R9's; the payload's `floor` is the
   /// OTHER number and always was.
@@ -255,13 +288,36 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     // D373 · the clause says what the allowance does, in R-M's shape — verbatim
     // with the web's `csCovenantFacts` rules clause (tests/app-tests.js "D373")
     if let a = handicapAllowance { clauses.append("scored against your playing HCP — your index at \(a) percent") }
-    let head = presetLine.map { "\($0) rules: " } ?? "The rules: "
+    // W5 twin (root, the web's csCovenantFacts at 3d3b9e55) · a league whose
+    // dials moved off its starting point is CUSTOM, "built on" it: the
+    // covenant printed "Standard rules: … best four a month" for a league
+    // whose cap had left Standard's three.
+    let head = presetLine.map { presetDialsMatch ? "\($0) rules: " : "Custom rules, built on \($0): " } ?? "The rules: "
     return head + clauses.joined(separator: ", ") + "."
+  }
+
+  /// W5's two-dial test, applied to the payload: the counting cap and the
+  /// monthly minimum against the named preset's (`WizardDials.presets`). A
+  /// dial missing from the payload counts as unchanged; a preset this build
+  /// does not know is taken at its word.
+  public var presetDialsMatch: Bool {
+    guard let key = preset?.lowercased(),
+          let pr = WizardDials.presets.first(where: { $0.name.lowercased() == key }) else { return true }
+    let capKnown = everyRoundCounts == true || countingCap != nil
+    let capNow: Int? = everyRoundCounts == true ? nil : countingCap.flatMap { $0 == 0 ? nil : $0 }
+    let capSame = !capKnown || pr.cap == capNow
+    let floorSame = !floorKnown || floor == pr.floor
+    return capSame && floorSame
   }
 
   /// The ending, in D126's own words rather than a dial name.
   public var endingLine: String {
-    if finish == "points_table" { return "The season's points decide it. No reset." }
+    // N4-200 · D384: a season shorter than six weeks is a points-table
+    // season, on the server and on both clients (the web's csCovenantFacts
+    // `shortSeason`). The phone promised a four-week Cup Final to a
+    // five-week season. The words stay the phone's (root's covenant ruling).
+    let shortSeason = (weeks ?? 0) > 0 && (weeks ?? 0) < 6
+    if finish == "points_table" || shortSeason { return "The season's points decide it. No reset." }
     if finish == "cup_final", structure == "squads2" { return "Both squads play a four-week Cup Final, scored fresh. The leading squad carries a 10-point head start." }
     if finish == "cup_final", let structure {
       return structure == "solo" ? "The top two golfers qualify for a four-week Cup Final, scored fresh." : "The top two squads qualify for a four-week Cup Final, scored fresh."
@@ -353,11 +409,19 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// written.
   /// `csCovenantTitle`: "Season 2 of the Fellas" for a re-up, else the first-join head.
   public var head: String { isReUp && seasonNumber != nil ? "Season \(seasonNumber!) of \(name)" : "Before you join \(name)" }
-  public enum Fact: String, Sendable, Equatable, CaseIterable { case season, who, length, structure, rules, ending, stake, ledger, split, pay, starter }
+  /// W4 · `joining` (the clock) is declared last because it sits outside the
+  /// pinned order (the web's `CS_COVENANT_FACTS`): `facts(today:)` splices it
+  /// in after the length, as the web's sheet splices `csCovenantClock`.
+  public enum Fact: String, Sendable, Equatable, CaseIterable { case season, who, length, structure, rules, ending, stake, ledger, split, pay, starter, joining }
   /// Every fact this covenant can actually say, in order. A fact with no read is
   /// simply not in the list (L-44) — which is what makes "absent facts render
   /// nothing" a test rather than a promise.
-  public func facts(postedRounds: Int? = nil) -> [(Fact, String)] {
+  ///
+  /// W4 · `today` passes the clock: the sheet passes it, and `clockLine` then
+  /// sits right after the length, before the money (the web's `showCovenant`
+  /// splice). nil leaves it out, so the pinned order holds for every caller
+  /// that does not pass one.
+  public func facts(postedRounds: Int? = nil, today: String? = nil, calendar: Calendar = .current) -> [(Fact, String)] {
     var out: [(Fact, String)] = []
     if let s = seasonLine { out.append((.season, s)) }
     if let s = whoLine    { out.append((.who, s)) }
@@ -372,6 +436,10 @@ public struct Covenant: Sendable, Equatable, Identifiable {
     if let s = splitLine  { out.append((.split, s)) }
     if let s = payLine    { out.append((.pay, s)) }
     if let s = Self.starterLine(postedRounds: postedRounds) { out.append((.starter, s)) }
+    if let today, let s = clockLine(today: today, calendar: calendar) {
+      let at = out.firstIndex { $0.0 == .length }.map { $0 + 1 } ?? min(1, out.count)
+      out.insert((.joining, s), at: at)
+    }
     return out
   }
 }

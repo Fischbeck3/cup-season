@@ -171,7 +171,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
       HomeWireRow(id: "d", body: .line(marker: "Aug 31", text: "Four.", door: nil), period: .earlier),
     ]
     let said = HomePage.sayItOnce(rows).map { row -> String? in
-      if case .line(let m, _, _) = row.body { return m }
+      if case .line(let m, _, _, _) = row.body { return m }
       return nil
     }
     #expect(said == ["Sun", nil, "Aug 31", nil])
@@ -206,7 +206,7 @@ private let emptyStrip = MeStripCopy.Strip(slots: [], seasonRow: nil)
                              ranked: HomeRank.arrange([item("clash:1", .closing, rank: 1)]),
                              buckets: buckets, today: "2026-09-06")
     for row in page.rows {
-      if case .line(_, let t, _) = row.body, t.contains("league note") {
+      if case .line(_, let t, _, _) = row.body, t.contains("league note") {
         Issue.record("a league-note count rendered as a wire row: \(t)")
       }
     }

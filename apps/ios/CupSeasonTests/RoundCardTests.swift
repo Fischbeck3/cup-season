@@ -103,20 +103,22 @@ final class RoundCardTests: XCTestCase {
     XCTAssertEqual(theirs.label, "Score")
   }
 
-  // MARK: - 3 · the one metal
+  // MARK: - 3 · the marks, in ink
 
-  /// §33 · under par is gold and NOTHING ELSE IS. The fixture's front nine has
-  /// exactly one hole under par (the 3rd, a 4 on a par 5) and eight that are
-  /// not, including a level par 3.
-  func testOnlyTheHolesUnderParAreMarked() {
+  /// W1 twin · D267/D368 · **no gold under par on the scorecard.** Each hole
+  /// carries its score against par, and the mark round the numeral is drawn
+  /// from it in ink — ring, double ring, box, double box — with none on a level
+  /// hole. The fixture's front nine: a birdie (the 3rd, a 4 on a par 5), a
+  /// double (the 4th), a level par 3 (the 8th) and six bogeys.
+  func testEachHoleCarriesItsScoreAgainstPar() {
     let you = RoundCardBlocks.build(full(), mine: true)[0].rows.last!
-    XCTAssertEqual(you.cells.map(\.earned), [false, false, true, false, false, false, false, false, false])
+    XCTAssertEqual(you.cells.map(\.overPar), [1, 1, -1, 2, 1, 1, 1, 0, 1])
   }
 
-  func testAStrokesOnlyCardCarriesNoMetalAtAll() {
+  func testAStrokesOnlyCardCarriesNoMark() {
     let you = RoundCardBlocks.build(strokesOnly(), mine: true)[0].rows.last!
-    XCTAssertFalse(you.cells.contains { $0.earned },
-                   "with no par there is nothing to be under, so nothing is gold")
+    XCTAssertTrue(you.cells.allSatisfy { ($0.overPar ?? 0) == 0 },
+                  "with no par there is nothing to be over or under, so nothing is marked")
   }
 
   // MARK: - 4 · one VoiceOver sentence per row, and it counts the gaps

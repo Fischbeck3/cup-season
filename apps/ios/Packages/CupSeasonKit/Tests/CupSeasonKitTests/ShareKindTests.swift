@@ -93,8 +93,9 @@ struct ShareKindTests {
   /// happens on a tap; it never sells the app to somebody's friend, and it
   /// never states a fact it was not given.
   @Test func theShareMessageStatesOnlyWhatItWasGiven() {
-    let named = ShareIntent.person.message(name: "Jerecho")
-    #expect(named.hasPrefix("Jerecho wants you in their golf."))
+    // W4 · the web's person-link text, word for word (and its landing's sentence)
+    let named = ShareIntent.person.message(name: "Avery Fixture")
+    #expect(named == "Avery Fixture wants to play golf with you. Cup Season keeps score for a group of friends — every round, against everyone’s playing HCP.")
     #expect(ShareIntent.person.message(name: nil).hasPrefix("Come and play."))
     #expect(ShareIntent.person.message(name: "  ").hasPrefix("Come and play."))
 

@@ -25,7 +25,7 @@ struct AnnounceSheet: View {
       VStack(alignment: .leading, spacing: 14) {
         // D359 · the attribution in agate `mut`, as on the row it becomes
         Text("From the Pro").csType(.agate, caps: true).foregroundStyle(cs.mut)
-        TextField("Message the league…", text: $text, axis: .vertical)
+        TextField("Post to the board…", text: $text, axis: .vertical)
           .csType(.body)
           .foregroundStyle(cs.ink)
           .lineLimit(3...8)

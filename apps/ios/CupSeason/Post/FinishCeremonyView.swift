@@ -35,12 +35,14 @@ struct FinishCeremonyView: View {
   // a colour that was in no token file at all.
   //
   // Every one of them is a `ceremony` token now, which is what a pinned
-  // physical moment is drawn on, and the Share button is the screen's one
-  // primary — so it is EMBER (non-negotiable 4), not a retired green.
+  // physical moment is drawn on. The Share button is the screen's one primary
+  // — and W4's twin: an ordinary action is `act` (D359), not ember, which is
+  // competition's signal. The primary's own paint on the pinned dark ground:
+  // `act`, with `bg0` type (`CSPrimaryStyle.paint`).
   private var eyebrowInk: Color { CSTokens.dark.ceremonyMut }
   private var bandInk: Color { CSTokens.dark.ceremonyInk }
-  private var shareBg: Color { CSTokens.dark.ceremonyBrand }
-  private var shareInk: Color { CSTokens.dark.ceremony }
+  private var shareBg: Color { CSTokens.dark.act }
+  private var shareInk: Color { CSTokens.dark.bg0 }
 
   var body: some View {
     ZStack {
@@ -73,8 +75,11 @@ struct FinishCeremonyView: View {
           Text(ceremony.band).csType(.story).foregroundStyle(bandInk).multilineTextAlignment(.center)
             .padding(.top, 12).opacity(stage >= 3 ? 1 : 0).offset(y: stage >= 3 ? 0 : 6)
         }
-        Text(ceremony.pointsLine).font(CSFont.monoMediumBody.weight(.semibold)).tracking(2).textCase(.uppercase)
-          .foregroundStyle(ceremony.earned ? CSTokens.dark.gold : eyebrowInk)
+        // W4 twin · the points are INK and a sentence: gold is for what was
+        // won (§2.4) and a round's points are not a trophy (owner C, craft C);
+        // mono is never a sentence (§1.4)
+        Text(ceremony.pointsLine).csType(.body)
+          .foregroundStyle(ceremony.earned ? bandInk : eyebrowInk)
           .multilineTextAlignment(.center).padding(.top, 24).opacity(stage >= 4 ? 1 : 0).offset(y: stage >= 4 ? 0 : 6)
         Rectangle().fill(bandInk.opacity(0.1)).frame(width: 120, height: 1).padding(.top, 22).opacity(stage >= 5 ? 1 : 0)
         if roundId != nil {

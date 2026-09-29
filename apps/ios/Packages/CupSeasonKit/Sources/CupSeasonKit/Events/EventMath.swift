@@ -223,16 +223,22 @@ public enum RyderMath {
       else if r.winnerSlot == 0 { aW += 1 }
       else if r.winnerSlot == 1 { bW += 1 }
     }
-    let series: String = aW == bW ? "all square \(evHalf(aW))–\(evHalf(bW))"
-      : aW > bW ? "\(aName) hold the Ryder \(evHalf(aW))–\(evHalf(bW))"
-      : "\(bName) hold the Ryder \(evHalf(bW))–\(evHalf(aW))"
-    var hold = ""
+    let rec = "\(evHalf(max(aW, bW)))–\(evHalf(min(aW, bW)))"
+    let leaderSlot: Int? = aW > bW ? 0 : bW > aW ? 1 : nil
+    let series = leaderSlot.map { "\($0 == 0 ? aName : bName) hold the Ryder \(rec)" } ?? "all square \(rec)"
+    // W2 · THE HOLDER IS SAID ONCE (owner C, category C). "Fixture Hawks hold
+    // the Ryder 1–0 · Fixture Hawks hold it" was one fact twice. The holder
+    // and the record ride one clause when they agree, and both are named only
+    // when they do not (a shared cup, or a series all square).
+    var line = series
     if status != "complete", let last = priors.last {
-      if last.winnerShared { hold = " · the cup is shared" }
-      else if last.winnerSlot == 0 { hold = " · \(aName) hold it" }
-      else if last.winnerSlot == 1 { hold = " · \(bName) hold it" }
+      if last.winnerShared { line = "\(series) · the cup is shared" }
+      else if let holder = last.winnerSlot, holder == 0 || holder == 1 {
+        let name = holder == 0 ? aName : bName
+        line = holder == leaderSlot ? "\(name) hold it, \(rec)" : "\(series) · \(name) hold it"
+      }
     }
-    return "The \(nth(pos)) Ryder · \(series)\(hold)"
+    return "The \(nth(pos)) Ryder · \(line)"
   }
 
   /// How it scores — everyone sees the rule, not just the organizer (12257).
@@ -243,9 +249,33 @@ public enum RyderMath {
       : head + "Add golfers to both teams to set the target."
   }
 
-  /// The taunt toggle's label (12266).
-  public static func tauntLabel(on: Bool) -> String {
-    "Tell me when he posts: " + (on ? "ON — mute them" : "OFF — ping me when my opponent posts")
+  /// The taunt opt-in — the control's words and the line under it (the web's
+  /// `ryderNotify` button). A standing push must be CHOSEN, and the ask names
+  /// THIS WEEK'S opponent: "Tell me when he posts" assumed a gender the
+  /// product has no business assuming (W2, category C, critique-B P2). With
+  /// no pairing this week it asks for "my opponent".
+  public struct Taunt: Sendable, Equatable {
+    public let label: String
+    public let gloss: String
+  }
+
+  public static func taunt(on: Bool, opponent: String?) -> Taunt {
+    if on { return Taunt(label: "Mute the taunts", gloss: "You hear it the moment your opponent posts.") }
+    return Taunt(label: opponent.map { "Tell me when \($0) posts" } ?? "Tell me when my opponent posts",
+                 gloss: "Nothing pings you until you ask for it.")
+  }
+
+  /// This week's opponent, by first name (`oppFirst`): the other side of my
+  /// duel in the OPEN week. nil with no open week, no pairing yet, or a
+  /// golfer the room cannot name (`—`).
+  public static func thisWeeksOpponent(_ room: EventRoom, me: EventPlayer) -> String? {
+    guard let open = room.sessions.first(where: \.isOpen),
+          let duel = room.duels.first(where: { $0.session_id == open.id && ($0.a_player == me.id || $0.b_player == me.id) })
+    else { return nil }
+    let name = room.player(duel.a_player == me.id ? duel.b_player : duel.a_player).name
+      .trimmingCharacters(in: .whitespaces)
+    guard !name.isEmpty, name != "—" else { return nil }
+    return name.split(whereSeparator: \.isWhitespace).first.map(String.init)
   }
 
   /// S5-02: before anything closes, Session 1 is the story — read top-down.
@@ -312,14 +342,34 @@ public enum RyderMath {
     return "Still to post: \(waiting.joined(separator: ", ")) · \(days == 0 ? "closes tonight" : "\(days)d left")."
   }
 
-  /// `recOf(pid)` — "w-l-h" from every resolved duel the player sat in.
-  public static func record(of player: UUID, duels: [EventDuel]) -> String {
+  /// `recOf(pid)` — won, lost and halved, from every resolved duel the player
+  /// sat in.
+  public static func recordCounts(of player: UUID, duels: [EventDuel]) -> (won: Int, lost: Int, halved: Int) {
     var w = 0, l = 0, h = 0
     for d in duels where !d.isPending {
       if d.a_player == player { if d.result == "a" { w += 1 } else if d.result == "b" { l += 1 } else { h += 1 } }
       else if d.b_player == player { if d.result == "b" { w += 1 } else if d.result == "a" { l += 1 } else { h += 1 } }
     }
-    return "\(w)-\(l)-\(h)"
+    return (w, l, h)
+  }
+
+  /// "w-l-h" — the roster row's figure.
+  public static func record(of player: UUID, duels: [EventDuel]) -> String {
+    let r = recordCounts(of: player, duels: duels)
+    return "\(r.won)-\(r.lost)-\(r.halved)"
+  }
+
+  /// W2 · THE ROSTER'S LEGEND IS SAID ONCE (owner P, craft T, category Sp):
+  /// every row repeated it after its own figure. The side draws it once above
+  /// its rows; the row keeps the figure.
+  public static let recordLegend = "Won, lost, halved"
+
+  /// …and each row says its own record in words to VoiceOver, where a legend
+  /// drawn once cannot follow it (the web's row label):
+  /// `Avery Fixture, captain: 1 won, 0 lost, 1 halved`.
+  public static func rosterSpoken(name: String, captain: Bool, of player: UUID, duels: [EventDuel]) -> String {
+    let r = recordCounts(of: player, duels: duels)
+    return "\(name)\(captain ? ", captain" : ""): \(r.won) won, \(r.lost) lost, \(r.halved) halved"
   }
 
   /// `ryderPair` (16317): 0 pairs used to toast "Pairings set" while the

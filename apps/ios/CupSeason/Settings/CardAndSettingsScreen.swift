@@ -30,10 +30,12 @@ struct CardAndSettingsScreen: View {
   /// `.task` and raised the number pad again 400 ms later.
   @State private var pendingFocus: CardField?
 
-  /// A `focus` is on the card, so it opens the card pane whatever the dev hatch says.
-  init(focus: CardField? = nil) {
+  /// A `focus` is on the card, so it opens the card pane whatever the dev hatch
+  /// says; `settings` opens the Settings pane, whose first section is
+  /// Notifications — the inbox's door (TEN / W6).
+  init(focus: CardField? = nil, settings: Bool = false) {
     _pendingFocus = State(initialValue: focus)
-    _pane = State(initialValue: focus == nil ? CSDevHatch.settingsPane : 0)
+    _pane = State(initialValue: settings ? 1 : focus == nil ? CSDevHatch.settingsPane : 0)
   }
 
   var body: some View {
@@ -511,6 +513,9 @@ private struct SettingsPane: View {
         Text("This device is on here, but we haven't been able to confirm it with the server. Reopen the app with signal, or tap Disable then Enable.")
           .csType(.bodyS).foregroundStyle(cs.mut)
       }
+      // TEN / W6 · ONE NOTIFICATIONS SECTION (W2, owner C): the three
+      // conversation switches the inbox sheet carried live here.
+      ConversationSwitches()
       Text("Milestones, results and month closes always come through. Round posts and chat each have their own switch.")
         .csType(.bodyS).foregroundStyle(cs.mut)
 
@@ -665,6 +670,56 @@ private struct SettingsPane: View {
 /// Y-13 · the league-less doors (Join · Start a league · Start an event), wired
 /// for this screen: a lock or a join lands in Compete (`\.openCompetition`)
 /// with the store reloaded behind it, as the tab's own wizard does.
+/// TEN / W6 · the three conversation switches (D391), Settings' now: the
+/// inbox carries a door here rather than a second set that could disagree with
+/// this one (the web's `#phTalk`). Skew-safe, as the web is: a server that
+/// answers nothing leaves them out, and a switch that does not save stays
+/// where it was.
+private struct ConversationSwitches: View {
+  @Environment(\.cs) private var cs
+  @Environment(\.toast) private var toast
+  @State private var values: [String: Bool] = [:]
+  @State private var busy: String?
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      if !values.isEmpty {
+        ForEach(ConversationPrefs.all) { p in
+          Toggle(isOn: Binding(get: { values[p.key] ?? true }, set: { on in save(p.key, on) })) {
+            VStack(alignment: .leading, spacing: 2) {
+              Text(p.name).csType(.body).foregroundStyle(cs.ink)
+              Text(p.sub).csType(.bodyS).foregroundStyle(cs.mut)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+          }
+          .disabled(busy == p.key)
+          .frame(minHeight: 44)
+        }
+      }
+    }
+    .task { await load() }
+  }
+
+  private func load() async {
+    guard let json = try? await RoundSocialService().request("social_notify_prefs") else { return }
+    values = ConversationPrefs.values(json)
+  }
+
+  private func save(_ key: String, _ on: Bool) {
+    Task {
+      busy = key
+      defer { busy = nil }
+      do {
+        let json = try await RoundSocialService().request("set_social_notify_prefs", ["p_" + key: .bool(on)])
+        // the server's answer when it gives one; otherwise the switch as set
+        if case .object = json { values = ConversationPrefs.values(json) } else { values[key] = on }
+      } catch {
+        toast.show(HumanError.text(error, prefix: ConversationPrefs.didNotChange))
+      }
+    }
+  }
+}
+
 private struct SettingsLeaguelessDoors: View {
   @Environment(SessionStore.self) private var store
   @Environment(\.presenter) private var presenter

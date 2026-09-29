@@ -346,6 +346,10 @@ public struct CSRecordLeaf: View {
     /// `FORMING`) — §14.1's degrade, printed in `column` rather than as a
     /// figure, so it is never mistaken for a place.
     public let line: String?
+    /// W2 · a LIVE season's standing (`2ND OF 6 · 41 PTS · IN SEASON`), under
+    /// the name: a season in play has no finish, so its finish column says
+    /// "In play" and the line that says where it stands moves here.
+    public let standing: String?
     public let won: Bool
     /// `$40` / `−$20`. nil drops the whole column.
     public let money: String?
@@ -353,10 +357,11 @@ public struct CSRecordLeaf: View {
     public let open: (@MainActor @Sendable () -> Void)?
 
     public init(id: String, year: String?, competition: String, qualifier: String?,
-                finish: Int?, tied: Bool = false, line: String?, won: Bool, money: String? = nil,
+                finish: Int?, tied: Bool = false, line: String?, standing: String? = nil, won: Bool, money: String? = nil,
                 spoken: String = "", open: (@MainActor @Sendable () -> Void)? = nil) {
       self.id = id; self.year = year; self.competition = competition; self.qualifier = qualifier
-      self.finish = finish; self.tied = tied; self.line = line; self.won = won; self.money = money
+      self.finish = finish; self.tied = tied; self.line = line; self.standing = standing
+      self.won = won; self.money = money
       self.spoken = spoken.isEmpty ? competition : spoken
       self.open = open
     }
@@ -416,6 +421,10 @@ public struct CSRecordLeaf: View {
         }
         if let q = r.qualifier, typeSize.isA11y {
           Text(q).csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
+        }
+        if let st = r.standing, !st.isEmpty {
+          Text(st).csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
+            .fixedSize(horizontal: false, vertical: true)
         }
       }
       .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)

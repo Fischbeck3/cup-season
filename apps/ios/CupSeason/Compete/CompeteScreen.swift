@@ -355,6 +355,12 @@ struct EmptyRootView: View {
   let root: EmptyRoot
   let take: (EmptyRoot.Door) -> Void
 
+  private func open(_ d: EmptyRoot.Door) {
+    CSHaptic.selection()
+    CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string(String(describing: d))])
+    take(d)
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       Text(root.head).csType(.displayS).foregroundStyle(cs.ink)
@@ -362,26 +368,21 @@ struct EmptyRootView: View {
         Text(fact).csType(.columnS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
       }
       Text(root.sub).csType(.bodyS).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
-      A11yStack(alignment: .leading, rowAlignment: .firstTextBaseline, spacing: 18, columnSpacing: 14) {
+      // N4-064 / N4-112 · ONE primary — the first door, as the act button —
+      // and the rest quiet tertiary links with their rule, as the web's
+      // csEmptyRootHtml draws them (TEN / W6). The doors were three equal mono
+      // words, upper-cased in the string (LINT-14) and told apart by hue alone,
+      // which gave the page no action. The 44pt targets are the styles' own.
+      VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
         ForEach(Array(root.doors.enumerated()), id: \.offset) { i, d in
-          Button {
-            CSHaptic.selection()
-            CSTelemetry.event(CSTelemetry.Metric.ctaTapped.rawValue, ["door": .string(String(describing: d))])
-            take(d)
-          } label: {
-            // D359 / F4 · the first door is an ordinary action: act, never ember
-            // (the desk agrees). L-25 · the rest are quiet and equally present.
-            // F12 · the door is the empty state's ONE start, and its target is
-            // an honest 44pt tall (§16.2) — the hit slop measured 40.
-            Text(d.title.uppercased()).csEyebrow(i == 0 ? cs.act : cs.mut)
-              .frame(minHeight: 44, alignment: .leading)
-              .contentShape(Rectangle())
+          if i == 0 {
+            Button(d.title) { open(d) }.buttonStyle(.csPrimary())
+          } else {
+            Button(d.title) { open(d) }.buttonStyle(.csTertiary(.content))
           }
-          .buttonStyle(.plain)
-          .accessibilityLabel(d.title)
         }
       }
-      .padding(.top, 4)
+      .padding(.top, CSTokens.Space.s1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.top, 6)
