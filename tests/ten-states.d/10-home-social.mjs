@@ -436,6 +436,25 @@ const playPrimary = async (page) => page.evaluate(() => {
   if (rec && (rec.tagName !== 'A' || rec.classList.contains('btn') || !rec.closest('.hstart'))) return '“See the whole record” still outweighs the act'
   return /they’re in it from the start\./.test(play.parentElement.textContent) ? true : 'the play door lost its line'
 })
+/* TEN / W7-046 [A2-golfers-9] · a golfer reports what another golfer wrote:
+   never the viewer's own post, never a server-written moment or standings
+   line; and moderation stays reachable on another golfer's post */
+const reportOthers = async (page) => page.evaluate(() => {
+  const me = window.CS && window.CS.user && window.CS.user.id
+  const rc = window.roundCache || {}
+  const mine = (f) => (f.pid ? f.pid === me : !!(f.roundpost && rc[f.rid] && rc[f.rid].profile_id === me))
+  const btns = [...document.querySelectorAll('button[data-report]')].filter((b) => b.offsetParent !== null)
+  for (const b of btns) {
+    const f = feed[+b.dataset.report]
+    if (!f) continue
+    if ((f.msg || f.roundpost) && mine(f)) return 'Report on the viewer’s own post: ' + JSON.stringify(String(f.txt || f.who).slice(0, 60))
+    if (f.moment) return 'Report on a server-written moment: ' + JSON.stringify(String(f.txt).slice(0, 60))
+    if (f.sys && !f.srid) return 'Report on a server-written line: ' + JSON.stringify(String(f.txt).slice(0, 60))
+  }
+  const others = feed.filter((f) => f && f.post_id && (f.msg || f.roundpost) && !mine(f))
+  if (others.length && !btns.length) return 'no Report anywhere: moderation is unreachable'
+  return true
+})
 const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
@@ -585,6 +604,8 @@ const GOLFERS = [
     noRetiredGlyph(),
     /* TEN / W6 · AW2-13: the reaction bar's controls and the tags are not pills, and the system row has no spine */
     noRetiredShape(),
+    /* TEN / W7-046 [A2-golfers-9]: Report is for what another golfer wrote, never your own post or the server's lines */
+    reportOthers,
     /* TEN / W6 · E's twin (N4-087, root's ruling (b)) · §10.3: the photo card is the wire's case. It has
        the ONE scrim's `.band` geometry (leading → trailing), the points on the bone panel, the margin in
        the copy column, and its copy measured on the fixture photo */

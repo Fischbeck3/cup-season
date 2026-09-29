@@ -10217,6 +10217,22 @@ function openApplausePeople(rx){
 function rxChipsHtml(rx, attr, idx){ return applauseHtml(rx, attr, idx); }
 function homeRxChipsHtml(rx, idx){ return applauseHtml(rx, 'data-hrx', idx); }
 window.APPLAUSE = APPLAUSE; window.applauseState = applauseState; window.applauseHtml = applauseHtml;
+/* TEN / W7-046 [A2-golfers-9] · a golfer reports what another golfer wrote.
+   The control was on every post with a post_id: the viewer's own round and
+   chat, and the server's own lines ("Fixture Javelinas lead the table into
+   week 8"). Now it shows on a chat line or a round another golfer posted, and
+   on a system line that carries a declared round (its body can quote the
+   golfer's own note, so moderation stays reachable). It never shows on the
+   viewer's own post or a server-written moment. Root's ruling keeps it the
+   word "Report" (AW2-08). */
+function csPostReportable(f){
+  if(!f || !f.post_id) return false;
+  const me = window.CS?.user?.id || null;
+  if(f.msg || f.roundpost) return !(me && f.pid && f.pid === me);
+  if(f.sys) return !!f.srid;
+  return false;
+}
+window.csPostReportable = csPostReportable;
 function socialBar(f, fi, opts){
   const comments = !opts || opts.comments!==false;   /* chat lines react but don't thread */
   const ns=(opts&&opts.ns)||'';
@@ -10243,7 +10259,7 @@ function socialBar(f, fi, opts){
   return `<div class="social">
     <div class="rxbar">
       ${chips}
-      ${f.post_id?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">Report</button>`:''}
+      ${csPostReportable(f)?`<button class="rxadd" data-report="${fi}" title="Report this post" aria-label="Report this post">Report</button>`:''}
       ${cmBtn}
     </div>
     ${thread}
@@ -32627,7 +32643,7 @@ async function loadStandingsAndFeed(requireRoom=false){
        the one deliberate exception: it is a notice, not a story. */
     if(p.kind === 'chat') feed.push({ d: ds, ts, msg:true, post_id:p.id, who: memName(p.member_id) + ' ', pid: memPid(p.member_id), ci: memCi(p.member_id), txt:p.body });
     else if(p.kind === 'announce') feed.push({ d: ds, ts, ann:true, txt:p.body });
-    else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, ts, roundpost:true, post_id:p.id, rid: p.round_id, who: memName(p.member_id), ci: memCi(p.member_id), txt: p.body });
+    else if(p.kind === 'round' && p.round_id) feed.push({ d: ds, ts, roundpost:true, post_id:p.id, rid: p.round_id, who: memName(p.member_id), pid: memPid(p.member_id), ci: memCi(p.member_id), txt: p.body });
     else if(p.kind === 'moment') feed.push({ d: ds, ts, moment:true, post_id:p.id, txt:p.body });
     /* D92: a settlement carries its live round, so the row can open the card */
     else feed.push({ d: ds, ts, sys:true, post_id:p.id, txt:p.body, lrid:p.live_round_id||null, srid:p.scheduled_round_id||null });
