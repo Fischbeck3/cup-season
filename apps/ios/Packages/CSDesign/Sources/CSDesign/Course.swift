@@ -495,6 +495,14 @@ public struct CSCoursePlate<Plate: View, Panel: View>: View {
     if typeSize.isA11y {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         band(height: 200, copy: false)
+        // N4-150 · at the accessibility sizes the credit is the picture's
+        // caption, on the page's own ground under it; at the top of the plate
+        // it grew leftward into the back button
+        if let credit {
+          Text(credit).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, CSTokens.Space.gutter)
+        }
         head(over: false).padding(.horizontal, CSTokens.Space.gutter)
       }
     } else {
@@ -506,23 +514,25 @@ public struct CSCoursePlate<Plate: View, Panel: View>: View {
     ZStack(alignment: .bottomLeading) {
       plate.frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
       if copy { CSPhotoScrim.layer(CSPhotoScrim.title) }
-      // the status-bar band: without it the credit, the back chevron and the
-      // clock sit on raw image, and over a real sunrise the credit is 1.48:1
+      // the status-bar band: without it the back chevron and the clock sit on
+      // raw image
       VStack(spacing: 0) {
         CSPhotoScrim.layer(CSPhotoScrim.top).frame(height: CSPhotoScrim.topHeight)
         Spacer(minLength: 0)
       }
-      if let credit {
-        VStack(spacing: 0) {
-          HStack {
-            Spacer(minLength: 0)
-            Text(credit).csType(.agateS, caps: true)
-              .foregroundStyle(CSPhotoScrim.ink(CSPhotoScrim.top, caption: true))
-          }
-          .padding(.horizontal, CSTokens.Space.gutter)
-          .padding(.top, 58)
-          Spacer(minLength: 0)
-        }
+      if copy, let credit {
+        // N4-070 · root's ruling: the credit sets in `.title`'s DARK END, at
+        // the plate's foot on the right, in the band under the head block's
+        // own gutter (`CSPhotoScrim.titleCreditLine`), where scrimMut clears
+        // AA over a blown sky. Under the status bar it sat in `.top`'s thin
+        // end, about a29, and read 3.34:1; just above the panel it would sit
+        // near a53 and read 2.6:1. No plate is drawn for it.
+        Text(credit).csType(.agateS, caps: true)
+          .foregroundStyle(CSPhotoScrim.ink(CSPhotoScrim.title, caption: true))
+          .lineLimit(1).minimumScaleFactor(0.8)
+          .padding(.trailing, CSTokens.Space.gutter)
+          .padding(.bottom, CSTokens.Space.s1)
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
       }
       if copy {
         // D-8 fixes the plate at 252 — 29% of the frame — and that is a
