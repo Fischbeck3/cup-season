@@ -1618,7 +1618,7 @@ html[data-theme="light"] #inDate{color-scheme:light;}
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:20px; text-align:center; position:relative; overflow:hidden;
 }
-.purse::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--gold);}
+/* .purse: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
 .purse .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--mut);}
 .purse .amt{font-family:var(--mono); font-size:52px; font-weight:600; line-height:1; margin:8px 0 4px; color:var(--gold); font-variant-numeric:tabular-nums;}
 .purse .m{font-family:var(--mono); font-size:12.5px; color:var(--mut);}
@@ -2050,7 +2050,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:16px; position:relative; overflow:hidden; margin-bottom:10px;
 }
-.pro::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--gold);}
+/* .pro: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
 .pro h3{font-size:15.5px; font-weight:700;}
 .pro .pr{font-family:var(--mono); font-size:12px; color:var(--gold); margin:3px 0 10px;}
 .pro li{
@@ -2575,7 +2575,7 @@ body.guestlive #onboard{display:none !important;}
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:22px 20px; position:relative; overflow:hidden;
 }
-.phasehero::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--brand);}
+/* .phasehero: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
 .phasehero .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--brand);}
 .phasehero .n{font-size:24px; font-weight:700; letter-spacing:-.01em; margin:7px 0 4px;}
 .phasehero .m{font-family:var(--mono); font-size:12px; color:var(--mut); letter-spacing:.08em;}
@@ -2584,7 +2584,7 @@ body.guestlive #onboard{display:none !important;}
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:13px 15px; margin-bottom:14px; position:relative; overflow:hidden;
 }
-.nextcard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--brand);}
+/* .nextcard: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
 .nextcard .nx{flex:1; min-width:0;}
 .nextcard .nk{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--brand);}
 .nextcard .nt{font-size:13px; font-weight:600; margin-top:3px;}
@@ -2761,7 +2761,7 @@ body.guestlive #onboard{display:none !important;}
   padding:13px 16px; margin-bottom:14px; cursor:pointer;
   position:relative; overflow:hidden; width:100%; text-align:left;
 }
-.ontheline::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3.5px; background:var(--gold);}
+/* .ontheline: the retired 3.5px spine is gone (UI_SYSTEM retires it; AW P2-13, DX TP-09) — the eyebrow and the figure carry the state */
 .ontheline .ok{font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold);}
 .ontheline .oa{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--gold); font-variant-numeric:tabular-nums;}
 .ontheline .os{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em);}
@@ -18047,7 +18047,12 @@ function csCourseBooksWire(box){
   }));
   box.querySelectorAll('[data-cslead]').forEach(row=>{
     const go = e => {
-      if(e.target.closest('details') || e.target.closest('input')) return;
+      /* a disclosure INSIDE the row (its own facts) is its own control. W2
+         (f46086b4) put the whole book behind You's "Your courses" door, so
+         `closest('details')` matched that door for every tap and no course
+         could ever be opened (session D, round 2 at fd27ace4). */
+      const d = e.target.closest('details');
+      if((d && row.contains(d)) || e.target.closest('input')) return;
       window.CS_COURSE_LEAD = row.dataset.cslead;
       renderCourseBooks();
       box.scrollIntoView({ block:'start', behavior:'smooth' });
@@ -21302,9 +21307,16 @@ window.refreshHomeLead = refreshHomeLead;
 if(window.csHomeState){
   window.addEventListener('load', function(){
     setTimeout(function(){
-      try{ if(typeof enterApp === 'function') enterApp(); }catch(_){}
-      try{ if(typeof switchView === 'function') switchView('home'); }catch(_){}
+      /* The Door lifts ONLY for a fixture that was actually served. On
+         cupseason.app `tests/` is not published, the fetch 404s and
+         `homeDispatch` stays null — and a query string must never open the app
+         to a signed-out visitor: it lifted the Door onto the demo diorama on
+         any host (session C's code read, 2026-09-28). A local checkout and the
+         capture harness serve the fixtures, so both are unchanged. */
       loadHomeDispatch().then(function(){
+        if(!window.homeDispatch) return;
+        try{ if(typeof enterApp === 'function') enterApp(); }catch(_){}
+        try{ if(typeof switchView === 'function') switchView('home'); }catch(_){}
         if(window.renderHomeDispatch) renderHomeDispatch();
         const h = document.querySelector('#homeHero'); if(h) h.innerHTML = '';
       });
@@ -21673,14 +21685,15 @@ function csMeSeasonRow(){
   const parts=[String(CS.league.name||'')];
   const rank=`${climbOrd(i+1)} of ${teams.length}`;
   parts.push(solo ? rank : [teams[i].name, rank].join(' '));
-  if(i >= 2 && teams[0]){
-    const gap = Number(teams[0].pts) - Number(teams[i].pts);
-    if(gap > 0) parts.push(`${teams[0].name} leads by ${csN(gap)}`);
-  }
+  /* PAR-01 (session A, 2026-09-28) · the phone's QB-03, one rule on both
+     clients: the endgame clause is said AT EVERY RANK — it answers "am I in or
+     out" — and the leader's name is the clause that yields. At rank 3 or lower
+     the desk had added "X leads by n" and dropped the cut line
+     (MeStripCopy.seasonRow, MeStripCopy.swift:464). */
   const up = teams[i-1], down = teams[i+1];
   if(up)   parts.push(`${csN(Number(up.pts)-Number(teams[i].pts))} back of ${String(up.name)}`);
   if(down) parts.push(`${csN(Number(teams[i].pts)-Number(down.pts))} clear of ${String(down.name)}`);
-  if(i < 2){ const c = csEndgameClause(teams.length); if(c) parts.push(c); }
+  { const c = csEndgameClause(teams.length); if(c) parts.push(c); }
   return { text: parts.join(' · '), parts };
 }
 
@@ -22122,6 +22135,23 @@ function csSeasonRowFacts(f, role){
   const tee = upcoming && se && se.starts_on ? csRoundDay(se.starts_on) : null;
   const toTee = !tee ? null : se.days_to_first_tee != null ? Number(se.days_to_first_tee) : csDaysBetween(isoOf(new Date()), se.starts_on);
   const teeStory = tee ? 'The first tee is ' + tee + (toTee > 1 ? ', in ' + toTee + ' days.' : toTee === 1 ? ', tomorrow.' : '.') : 'No standing yet. First tee is ahead.';
+  /* PAR-03 (session A) · THE CUP FINAL IS ITS OWN STAGE on Compete's row, as on
+     the phone (SeasonPhase.cupFinal, CompeteRoot.seasonRow): the eyebrow says
+     "Cup Final" once, the line under it is the Final's clock ("3 weeks left",
+     SeasonFacts.finalClock: days to the end, up to whole weeks), and no rank is
+     drawn — the Final is scored fresh, so the season table's place is not a
+     standing in it. */
+  const inFinal = !upcoming && !!se && se.status === 'cup_final';
+  if(inFinal){
+    const dl = se.days_left != null && Number.isFinite(Number(se.days_left)) ? Number(se.days_left)
+             : (se.ends_on ? csDaysBetween(isoOf(new Date()), se.ends_on) : 0);
+    const w = Math.max(1, Math.floor((Math.max(0, dl) + 6) / 7));
+    return { upcoming:false, final:true, eyebrow: STAGE_LABEL.final,
+      sub: w + ' week' + (w === 1 ? '' : 's') + ' left' + (role==='commissioner' ? ' · you run it' : ''),
+      /* the phone's competitionLine is nil outside a running season, so the
+         band says no standing sentence in the Final either */
+      status: null, rank: null, points: null, standing: null, story: null };
+  }
   let eyebrow = null;
   if(upcoming) eyebrow = STAGE_LABEL.preseason;
   else if(se && se.week_no != null && se.weeks_total != null) eyebrow = 'Week ' + se.week_no + ' of ' + se.weeks_total;
@@ -22239,7 +22269,7 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
     }
     const f = !done && lg.phase==='season' ? csSeasonRowFacts(fm.get(lg.id), m.role) : null;
     const row={ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
-                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? (f && f.upcoming ? f.eyebrow : (f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
+                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? (f && (f.upcoming || f.final) ? f.eyebrow : (f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
                 title: lg.name || 'A season',
                 /* L-44 · a finished season says it is finished. The champion's
                    NAME is a fact the boot's membership rows do not carry, so it
@@ -27706,15 +27736,19 @@ $$('.copycode').forEach(b=>b.addEventListener('click',async ()=>{
   function eligible(){ try{ return !standalone && !localStorage.getItem('cs_nudge_done'); }catch(_){ return !standalone; } }
   /* never over a full-screen working surface: the live round, the composer,
      the wizard and squad formation each own the whole viewport */
-  var BUSY = ['view-play','view-record','view-wizard','view-draft'];
+  /* B25 (code audit 2026-08-30): the composer is `view-post`; the list named
+     only `view-record`, so the nudge could sit over the card being typed */
+  var BUSY = ['view-play','view-post','view-record','view-wizard','view-draft'];
   function busy(){ return BUSY.some(function(id){ var v=document.getElementById(id); return v && v.classList.contains('active'); }); }
   function show(){ if(shown || !eligible() || !n || busy()) return; shown = true; n.style.display = 'flex'; }
   window.csHideInstallNudge = function(){
     if(!n) return;
     if(busy()) n.style.display = 'none';
-    else if(shown) n.style.display = 'flex';
+    else if(shown && eligible()) n.style.display = 'flex';
   };
-  function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; if(n) n.style.display = 'none'; }
+  /* B25 · a dismissal is final for the session too: `shown` stood true, so the
+     next view switch (csHideInstallNudge) painted the banner back (D186: once) */
+  function dismiss(){ try{ localStorage.setItem('cs_nudge_done','1'); }catch(_){}; shown = false; if(n) n.style.display = 'none'; }
   window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred = e; });  /* hold — don't show until earned */
   window.csEarnInstallNudge = function(){ show(); };
   if(n){

@@ -117,6 +117,12 @@ const WIZARD = [
 const toCourses = async (page) => {
   await page.locator('.tab[data-v="stats"]:visible, .navitem[data-v="stats"]:visible').first().click({ timeout: 8000 })
   await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-stats')
+  /* W2 (f46086b4) put the full book behind You's "Your courses" door: a golfer
+     opens it, so the state taps its summary (the card states' element
+     screenshot of #youCourses timed out inside the closed <details>) */
+  if (await page.evaluate(() => { const d = document.getElementById('youCoursesDoor'); return !!d && !d.open })) {
+    await page.locator('#youCoursesDoor > summary').click({ timeout: 8000 })
+  }
   await until(page, () => document.querySelectorAll('#youCourses [data-cslead]').length > 0, null, 12000)
   await page.waitForTimeout(500)
 }

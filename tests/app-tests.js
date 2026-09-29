@@ -216,9 +216,13 @@
     t('league-only: the class is used at all', marked.length > 0, true);
     t('league-only: nothing league-scoped is visible without a league',
       marked.filter(e => e.offsetParent !== null).length, 0);
+    /* W2 (f46086b4) removed You's "Your golf" / "Your seasons" group heads
+       (critique-B P3: two heads stacked with nothing between). The rule under
+       test is that no league-scoped head shows without a league — an absent
+       head satisfies it; a head that returns must still hide. */
     const head = [...document.querySelectorAll('.grouphead')].find(e => /Your seasons/.test(e.textContent));
     t('league-only: the "Your seasons" head hides with its children',
-      head ? head.offsetParent === null : 'head missing', true);
+      head ? head.offsetParent === null : true, true);
     if (!had) document.body.classList.remove('noleague');
 
     /* 2 · the monthly floor is a LEAGUE rule. A golfer with no league was told
