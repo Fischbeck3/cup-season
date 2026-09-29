@@ -1729,6 +1729,15 @@ button.payer{cursor:pointer;}
    row showed exactly four games and hid "Sunningdale Rules" behind a clean edge:
    a scroller that runs past its edge says so, as W5's segments do (data-more,
    csBookEdge) — the trailing edge fades while there is more to the right */
+/* TEN / W6 · critique A2 (P1): "Change setup" mid-round no longer strands the
+   round. The round is HELD — the same live round, its scores and its channel —
+   and its setup keeps only what changes in place (the course, the tee, the
+   rating and slope, the holes and the pars). The group and the game were
+   seated on the server at tee-off, so they are not offered, and Tee off (a
+   NEW round) gives way to "Back to the round". */
+#playSetup.is-held .lrgroup, #playSetup.is-held .lrgame, #playSetup.is-held #teeOffBtn, #playSetup.is-held #planBridge{display:none !important;}
+.lrheld{color:var(--ink); margin:0 0 var(--s3);}
+.lrback{margin:0 0 var(--s4);}   /* the way back is on the first screen, under the line that says the round is held */
 #gameSeg[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);}
 /* photos arc 2 (ckpt 1): album grid · receipt hero · digest thumb */
 #albumGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
@@ -6243,6 +6252,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
 
         <div id="playSetup" style="display:none">
           <div class="eyebrow">Set up the round</div>
+          <!-- TEN / W6 · a round opened here mid-play is HELD, not dropped: the
+               line says so, and "Back to the round" replaces Tee off -->
+          <p class="cs-body-s lrheld" id="lrHeld" hidden></p>
+          <button class="btn lrback" id="lrBackToRound" type="button" hidden>Back to the round</button>
           <div id="planBridge" style="display:none; margin-bottom:10px"></div>
           <div class="card" style="margin-bottom:10px">
             <label class="f" for="lrCourse">Course</label>
@@ -6270,7 +6283,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <p class="fine" style="padding-top:10px" id="cardNote">Standard par-72 card. The stepper opens on each hole's par — pick your course above and the real pars load.</p>
             <button class="mini" id="editCard" style="margin-top:2px">Enter the pars</button>
           </div>
-          <div class="card" style="margin-bottom:10px">
+          <div class="card lrgroup" style="margin-bottom:10px">
             <label class="f">The group · <span id="selCount">4</span> / 4</label>
             <div class="slot4" id="fourSlots"></div>
             <!-- pilot order: league chips lead, then the app-wide search
@@ -6286,7 +6299,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             </div>
             <p class="fine" style="padding-top:8px">Pick who plays with who under the game — pairings, stakes, the lot. League members post to the season; guests play every game, post nothing, no account needed. Leave index blank for an estimated 18.</p>
           </div>
-          <div class="card" style="margin-bottom:12px">
+          <div class="card lrgame" style="margin-bottom:12px">
             <label class="f">Game for this round · pick one</label>
             <div class="seg" id="gameSeg" style="margin:10px 0 0">
               <button data-g="score" class="on">Just score</button>
@@ -16339,7 +16352,14 @@ function renderPlay(){
   if(setup && document.body.classList.contains('cardview')) setCardView(false);
   $('#playSetup').style.display = setup ? 'block':'none';
   $('#playLive').style.display  = setup ? 'none':'block';
-  if(setup){ if(window.csLivePlan) csApplyLivePlan(); renderPlanBridge(); renderRoster(); renderLiveBanner(); return; }
+  /* TEN / W6 · a held round (Change setup mid-play) keeps its setup to what
+     changes in place, says so, and offers the way back instead of Tee off;
+     a plan is never re-applied over it */
+  const held = setup && !!(state.live.active && state.live.held);
+  $('#playSetup').classList.toggle('is-held', held);
+  { const hl=$('#lrHeld'); if(hl){ hl.hidden=!held; hl.textContent = held ? csLiveHeldLine(state.live) : ''; } }
+  { const bk=$('#lrBackToRound'); if(bk) bk.hidden=!held; }
+  if(setup){ if(!held){ if(window.csLivePlan) csApplyLivePlan(); renderPlanBridge(); } renderRoster(); renderLiveBanner(); return; }
 
   persistLive();   /* every live repaint follows a state.live mutation → snapshot the card so a refresh resumes it */
   /* D152 · the card is a VIEW of this same state, so it repaints on the same
@@ -17187,9 +17207,28 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
 });
 $('#backToSetup').addEventListener('click',e=>{
   e.preventDefault();
-  state.live.stage='setup'; state.live.active=false;
+  /* TEN / W6 · critique A2 (P1): this set `active=false`, so no banner or door
+     led back, and Tee off then built a NEW round with blank scores while the
+     old one stayed live on the server. The round is held instead: the same
+     round, the same scores, the same channel, until "Back to the round". */
+  state.live.stage='setup'; state.live.held=true;
   renderPlay();
 });
+$('#lrBackToRound').addEventListener('click',()=>{
+  state.live.stage='live'; state.live.held=false;
+  renderPlay();
+  $('#holeNum')?.scrollIntoView?.({ block:'nearest' });
+});
+/* the held round's line: what stays, and what can change here */
+function csLiveHeldLine(L){
+  const scored = (L && Array.isArray(L.scores) && L.scores.length)
+    ? L.scores[0].map((_,h)=>L.scores.some(row=>row && row[h]!=null)).filter(Boolean).length : 0;
+  return (scored
+    ? `Your round is still on, and its ${scored} ${scored===1?'hole':'holes'} scored stay with it.`
+    : 'Your round is still on.')
+    + ' Change the course, the tee or the holes here.';
+}
+window.csLiveHeldLine = csLiveHeldLine;
 /* real live-round finish: confirm → finish_live_round → recap (checkpoint 1) */
 /* the match's outcome, computed from the same hole data everything else reads —
    never a second source of truth. Called once, at finish. */

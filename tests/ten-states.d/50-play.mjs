@@ -171,6 +171,38 @@ export default [
         return /saved on this phone · past its window$/.test(past) && !/when you have signal/.test(past) ? true : `past its window the line says ${JSON.stringify(past)}`
       })) },
 
+  /* TEN / W6 · critique A2 (P1): "Change setup" mid-round set the round inactive,
+     so nothing led back and Tee off built a new round with blank scores. The
+     round is held now: the same live round, its scores and its channel; the
+     setup keeps what changes in place and offers "Back to the round". The
+     check goes back and returns, and the capture is the held setup. */
+  { family: 'play', id: 'setup-held', variant: 'member', fullPage: false, title: 'Live round · Change setup mid-round: the round is held, and the way back returns to it',
+    drive: async (page) => {
+      await toSetup(page)
+      await pickCourse(page, 'Saguaro', 'Saguaro Flats', 'Blue')
+      await addGolfers(page, ['Devon Testwell'])
+      await teeOff(page)
+      await scoreHoles(page, 3, 2)
+      await toastGone(page)
+      await page.evaluate(() => { window.__heldBefore = { lr: state.live.lr, scores: JSON.stringify(state.live.scores) } })
+      await click(page, '#backToSetup')
+      await until(page, () => { const h = document.getElementById('lrHeld'); return !!h && !h.hidden }, null, 6000)
+      await page.evaluate(() => window.scrollTo(0, 0))
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-play', selectors: { '#lrHeld': 'text:Your round is still on, and its 3 holes scored stay with it', '#lrBackToRound': 'visible', '#teeOffBtn': 'hidden', '#playSetup .lrgroup': 'hidden', '#playSetup .lrgame': 'hidden' } },
+    check: async (page) => {
+      const held = await page.evaluate(() => ({ active: state.live.active, lr: state.live.lr, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores }))
+      if (!held.active || !held.same) return 'the round was not held: ' + JSON.stringify(held)
+      await click(page, '#lrBackToRound')
+      await until(page, () => document.getElementById('playLive').offsetParent !== null, null, 6000)
+      const back = await page.evaluate(() => ({ live: document.getElementById('playLive').offsetParent !== null, same: state.live.lr === window.__heldBefore.lr && JSON.stringify(state.live.scores) === window.__heldBefore.scores }))
+      await click(page, '#backToSetup')   /* the capture is the held setup */
+      await until(page, () => { const h = document.getElementById('lrHeld'); return !!h && !h.hidden }, null, 6000)
+      await page.evaluate(() => window.scrollTo(0, 0))
+      return back.live && back.same ? true : 'the way back did not return to the same round: ' + JSON.stringify(back)
+    } },
+
   /* a Match Play single, $5 a side, through four */
   { family: 'play', id: 'match-scoring', variant: 'member', title: 'Live round · Match Play singles with Devon, $5, through four',
     drive: async (page) => {
