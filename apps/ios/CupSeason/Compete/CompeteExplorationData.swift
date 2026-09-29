@@ -57,7 +57,8 @@ final class CompeteExplorationSeason {
   var rules: String {
     let cap = model.settings?.counting_cap.map { "Best \($0)" } ?? "All rounds"
     let floor = model.settings?.participation_floor ?? 0
-    return "\(cap) per calendar month · minimum \(floor) round\(floor == 1 ? "" : "s")"   // W7-120 · the unit
+    // W7-120 · the unit, and only a minimum that exists (L-23)
+    return "\(cap) per calendar month" + (floor > 0 ? " · minimum \(floor) round\(floor == 1 ? "" : "s")" : "")
   }
   var bookAvailable: Bool { squads || names.count >= 10 }
   var story: String {

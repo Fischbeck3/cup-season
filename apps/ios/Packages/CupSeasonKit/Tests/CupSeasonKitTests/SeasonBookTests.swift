@@ -38,6 +38,9 @@ struct SeasonBookTests {
     #expect(two.rules=="Best 4 per calendar month · minimum 2 rounds")
     let one=try changed { $0["counting_cap"]=NSNull(); $0["participation_floor"]=1 }
     #expect(one.rules=="All rounds count · minimum 1 round")
+    // and no minimum is said where the floor is 0 (L-23)
+    let none=try changed { $0["counting_cap"]=4; $0["participation_floor"]=0 }
+    #expect(none.rules=="Best 4 per calendar month")
   }
   @Test func rejectsWrongSeasonVersionAndPartialRead() throws {
     let b=try book();#expect(throws:SeasonBookReadError.self) { try b.validate(league:b.league_id,season:UUID()) }
