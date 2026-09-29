@@ -1558,7 +1558,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
 .grossbox::placeholder{color:var(--mut);}
 /* the box draws no border, so its focus is a ring of its own (WCAG 2.4.7):
    focused and unfocused screenshots were identical */
-.grossbox:focus-visible{outline:2px solid var(--act); outline-offset:6px;}
+.grossbox:focus-visible{outline:2px solid var(--act); outline-offset:1px; border-radius:var(--rc);}   /* W7-063 · the field family's own ring (input.f: 1px out, the control radius): a square ring 6px out ran into the label above and stood outside the column */
 /* IOS-066 - the composer's hero is the number AND the picture. The plate is
    the gross column's neighbour: 150x100 (3:2, the CSPlate inset ratio the
    phone and the round receipt both draw a round photograph at), one hairline,

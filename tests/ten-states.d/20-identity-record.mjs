@@ -406,9 +406,21 @@ const courseBlocked = async (page) => page.evaluate((words) => {
   const w = e.getBoundingClientRect()
   return w.top >= 0 && w.bottom <= innerHeight ? true : 'the words are off screen from the field they name'
 }, NO_COURSE)
+/* TEN / W8 · W7-063 [A2-post-8, B2-post-8, B2-desk-24] · the hero's focus ring is the field family's own (input.f: a 2px ring 1px out, the control radius), not a square drawn 6px out that met the label
+   above it and stood outside the column; focused here, so the capture shows it */
+const heroRing = async (page) => page.evaluate(() => {
+  const g = document.getElementById('inGross'); g.focus()
+  const cs = getComputedStyle(g), lab = document.querySelector('label[for="inGross"]')
+  if (!g.matches(':focus-visible')) return 'the hero does not show its focus ring'
+  if (cs.outlineStyle !== 'solid' || parseFloat(cs.outlineWidth) !== 2) return `the ring is ${cs.outlineWidth} ${cs.outlineStyle}`
+  if (parseFloat(cs.outlineOffset) !== 1) return `the ring is drawn ${cs.outlineOffset} out, not 1px`
+  if (parseFloat(cs.borderTopLeftRadius) !== 10) return `the ring has radius ${cs.borderTopLeftRadius}, not the control radius (10px)`
+  if (lab) { const top = g.getBoundingClientRect().top - 3, bottom = lab.getBoundingClientRect().bottom; if (top < bottom - 0.5) return `the ring's top edge (${Math.round(top)}) runs into the label (${Math.round(bottom)})` }
+  return true
+})
 const COMPOSER = [
   { family: 'composer', id: 'first-round', variant: 'brand_new', short: true, title: 'Composer · a first round, no league',
-    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } } },
+    drive: toComposer, expect: { view: 'view-post', selectors: { '#inGross': 'visible', '#postBtn': 'visible', '#postEyebrow': 'text:index builds' } }, check: heroRing },
   /* TEN / W6 · critique A2 (P1), then root's noCourse ruling (2026-09-29): a
      first round's gross, then Add my round, with no course yet. The guidance
      never points at a folded field and never leaves on a toast: the fold
