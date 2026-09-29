@@ -145,4 +145,25 @@ final class N4ShellUITests: N2UITestCase {
     let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: page)
     XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "the next Back leaves without saving")
   }
+
+  /// W7-042 · a card nobody touched is not asked about. The load filling the
+  /// fields is not an edit: the system's Back stays, Save reads "Save card",
+  /// and Back leaves with no question.
+  @MainActor func testAnUntouchedCardLeavesOnBack() {
+    let app = launch("season-live", "settings", extra: ["-cs_dev_bottom"])
+    let page = root(app, "settings")
+    let city = app.textFields["City"].firstMatch
+    XCTAssertTrue(city.waitForExistence(timeout: 10), "the card pane's City field")
+    let loaded = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value != nil AND value != ''"), object: city)
+    XCTAssertEqual(XCTWaiter().wait(for: [loaded], timeout: 10), .completed, "the load filled the card")
+    Thread.sleep(forTimeInterval: 1)   // the render after the load, where the fields' old flag went up
+    XCTAssertFalse(app.buttons["settings.back"].exists, "a card nobody touched keeps the system's Back")
+    let save = app.buttons.matching(NSPredicate(format: "label ==[c] %@", "Save card")).firstMatch
+    for _ in 0..<6 where !(save.exists && save.isHittable) { app.swipeUp() }
+    XCTAssertTrue(save.exists, "and Save says there is nothing new on it")
+    attach(app, "w7-042-untouched")
+    app.navigationBars.buttons.firstMatch.tap()
+    let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: page)
+    XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "Back leaves, with no question")
+  }
 }
