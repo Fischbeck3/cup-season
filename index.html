@@ -4193,6 +4193,24 @@ body.noleague .league-only{display:none !important;}
   .roompane{page-break-inside:avoid;}
   body{background:#fff; color:#000;}
   .card, .tblwrap{border-color:#ccc;}
+  /* W7-013 · THE SHEET PRINTS THE LIGHT PRINTING (UI_SYSTEM §2.3: the light
+     theme is a second printing, and paper is its ground). Nothing above
+     re-asserted a token, so a golfer on the dark default printed the dusk ink
+     (#F1F4EF) as the main text and the secondary ink (#9BA69D, 2.63:1 on
+     white) beside it: the main text lighter than the caption. Every token
+     html[data-theme="light"] flips is re-asserted with its light value (as
+     .room-dusk does with the dark ones), so a light-theme golfer sees no
+     change; tests/ten-states season/print holds the set to tokens.json. */
+  html[data-theme]{
+    color-scheme:light !important;
+    --bg0:#F4F1E9; --bg1:#EAE6DB; --bg2:#DED8C8; --rule:#A9A08A;
+    --ink:#151B17; --mut:#575F57; --dim:#8B9089;
+    --pos:#0A6D3C; --neg:#B02A20; --cool:#56615B;
+    --gold:#795912; --brand:#A13F0E; --brand-ink:#F4F1E9; --act:#1F5D3A;
+    --sq0:#002B40; --sq1:#603E35; --sq2:#4C705D; --sq3:#8B88A8;
+    --panel:#141A16; --panel-ink:#F4F1E9; --panel-mut:#A6AEA5; --leaf:#FFFDF7; --leaf-mut:#5A625A;
+    --pig0:#FDDAD8; --pig1:#E6D8C2; --pig2:#D6EBD7; --pig3:#BEE4E7; --pig4:#D9EAFF; --pig5:#EED9EE;
+  }
 }
 .prow{display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid var(--rule);}
 .prow:first-child{border-top:none;}

@@ -19,6 +19,7 @@
  * that must be showing; a fall-through to the Door, Home or a blank pane fails.
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
+import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
 import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast } from '../ten-mono.mjs'
 
@@ -100,6 +101,12 @@ const text = (sel) => (page) => page.evaluate((sel) => ((document.querySelector(
 /* innerText carries text-transform, so a name set in caps reads in caps: match case-blind */
 const has = (sel, re, what) => async (page) => { const t = await text(sel)(page); return new RegExp(re, 'i').test(t) ? true : `${what}: ${JSON.stringify(t.slice(0, 160))} !~ /${re}/i` }
 
+/* the light printing's flipped tokens, read from the source (packages/tokens/tokens.json) */
+const LIGHT_PRINTING = (() => {
+  const doc = JSON.parse(readFileSync(new URL('../../packages/tokens/tokens.json', import.meta.url), 'utf8')), out = {}
+  for (const g of Object.values(doc.groups)) for (const [n, t] of Object.entries(g.tokens)) if (t.light !== undefined && String(t.light) !== String(t.dark)) out[n] = String(t.light)
+  return out
+})()
 /* ------------------------------------------------------------ the world */
 const NG = { league: 'f3000000-0000-4000-8000-000000000001', season: 'f4000000-0000-4000-8000-000000000011' }
 /* the Pro's own instructions (D129): a pot seven of eight have paid into was
@@ -546,4 +553,29 @@ const EVENTS = [
     check: async (page) => page.evaluate((id) => (window.__tenNet || []).some((e) => e.url.includes('/rest/v1/events') && e.url.includes(id) && e.status === 503) ? true : 'the event read did not fail', E_LIVE) },
 ]
 
-export default [...SEASON, ...COMPETE, ...BOOK, ...EVENTS]
+/* ------------------------------------------------------------ print */
+/* TEN / W8 · W7-013 [B2-season-14] · the season page AS PRINTED. A probe, run with `--only print --widths 816`: print
+   media at a paper's width (816 CSS px is Letter at 96dpi), because a sheet is laid out at the page's width and not the
+   window's. From the dark or the light default the sheet prints the light printing: every token the light theme
+   flips (held to tokens.json, so a drifted print block fails here), the main text darker than the secondary text, and
+   both at AA on the paper. */
+const PRINT = [
+  { family: 'print', id: 'season', variant: 'member', probe: true, title: 'The season page as printed (print media, paper width), from the dark or the light default',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toRoom(page, 'standings'); await page.emulateMedia({ media: 'print' }); await page.waitForTimeout(500) },
+    expect: { view: 'view-hub' },
+    check: all(onNorthGrove, async (page) => page.evaluate((want) => {
+      const cs = getComputedStyle(document.documentElement)
+      const bad = Object.entries(want).filter(([n, v]) => cs.getPropertyValue('--' + n).trim().toLowerCase() !== v.toLowerCase()).map(([n, v]) => `--${n} is ${cs.getPropertyValue('--' + n).trim()}, the light printing is ${v}`)
+      return bad.length ? `the sheet does not print the light printing (${bad.length} of ${Object.keys(want).length} tokens): ` + bad.slice(0, 3).join('; ') : true
+    }, LIGHT_PRINTING),
+    stateContrast([{ sel: '#standingsStory', prop: 'color', min: 4.5, what: 'the story (ink) on the paper' },
+      { sel: '#standings th', prop: 'color', min: 4.5, what: 'a column head (mut) on the paper' }]),
+    async (page) => page.evaluate(() => {
+      const l = (c) => { const v = (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4 }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2] }
+      const ink = l(getComputedStyle(document.querySelector('#standingsStory')).color), mut = l(getComputedStyle(document.querySelector('#standings th')).color)
+      return ink < mut ? true : 'the main text prints lighter than the secondary text'
+    })) },
+]
+
+export default [...SEASON, ...COMPETE, ...BOOK, ...EVENTS, ...PRINT]
