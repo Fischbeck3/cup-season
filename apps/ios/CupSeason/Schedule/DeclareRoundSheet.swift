@@ -151,7 +151,10 @@ struct DeclareRoundSheet: View {
   private func gameChip(_ g: LiveGame?) -> some View {
     let on = vm.game == g
     return Button { CSHaptic.selection(); vm.game = g } label: {
-      Text(PlanCopy.gameLabelFor(g)).csType(.agateS, caps: true).lineLimit(1).minimumScaleFactor(0.9)
+      // N4-085 · no text under the 11pt floor: the label wraps inside its
+      // chip rather than shrinking (0.9 took agateS to ~10.4pt)
+      Text(PlanCopy.gameLabelFor(g)).csType(.agateS, caps: true).lineLimit(2)
+        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
         .foregroundStyle(on ? cs.panelInk : cs.mut)
         .padding(.horizontal, CSTokens.Space.s2).frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
         .background(on ? cs.panel : cs.bg2,
