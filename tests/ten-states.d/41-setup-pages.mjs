@@ -54,6 +54,23 @@ const toSchedule = async (page) => {
   await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-schedule')
   await page.waitForTimeout(1200)
 }
+/* TEN / W8 · W7-039 [A2-schedule-2] · ONE primary in a plan's sheet (§7.1, §16A.5): a golfer who owes an answer (asked, or maybe) has 'I'm in' as the filled action and
+   'Tee it up' as the tertiary link beneath the set (a 2px rule, 44 tall); answered (in), or the host, 'Tee it up' is the filled primary and no 'I'm in' is filled act */
+const planSheetPrimary = (owes) => async (page) => page.evaluate((owes) => {
+  const set = document.querySelector('.rsvpset'), tee = document.getElementById('rtTeeUp')
+  if (!set || !tee) return 'the sheet has no RSVP set or no Tee it up'
+  const probe = document.createElement('i'); probe.style.color = 'var(--act)'; document.body.appendChild(probe); const act = getComputedStyle(probe).color; probe.remove()
+  const fill = getComputedStyle(set.querySelector('[data-rsvp="in"]')).backgroundColor, teeBtn = tee.classList.contains('btn')
+  if (set.classList.contains('owes') !== owes) return owes ? 'a golfer who owes an answer does not get the answer as the primary' : 'an answered golfer still has the answer as the primary'
+  if (owes) {
+    if (fill !== act) return `I'm in is not the primary (fill ${fill}, act ${act})`
+    const cs = getComputedStyle(tee)
+    if (teeBtn) return 'Tee it up is still a full-width filled button beneath the unanswered invitation'
+    return /underline/.test(cs.textDecorationLine) && parseFloat(cs.textDecorationThickness) === 2 && tee.getBoundingClientRect().height >= 43.5 ? true : 'Tee it up is not the tertiary link (a 2px rule, 44 tall)'
+  }
+  if (!teeBtn) return 'Tee it up is not the primary once the golfer is in'
+  return fill === act ? "I'm in is filled act as well as Tee it up: two primaries" : true
+}, owes)
 const SCHEDULE = [
   { family: 'schedule', id: 'populated', variant: 'member', title: 'Schedule · my plans, a plan I am tagged in, the crew’s plans',
     drive: toSchedule, expect: { view: 'view-schedule', minText: 80 },
@@ -108,7 +125,7 @@ const SCHEDULE = [
       await page.waitForTimeout(600)
     },
     expect: { view: 'view-schedule', sheet: true },
-    check: all(has('#sheet', 'Mesquite Wash', 'the plan’s course'),
+    check: all(has('#sheet', 'Mesquite Wash', 'the plan’s course'), planSheetPrimary(true),
       /* TEN / W8 · W7-035 [B2-schedule-5]: the viewer's own seat reads 'You' in Who's in, as Coming up prints the same person (§9.1); every other seat keeps its name */
       async (page) => page.evaluate(() => {
         const seats = [...document.querySelectorAll('.rs-who .check')].map((r) => r.querySelector('.tt b').innerText.replace(/\s+/g, ' ').trim())
@@ -116,6 +133,18 @@ const SCHEDULE = [
         if (yous.length !== 1) return `Who's in has ${yous.length} seats reading You: ${JSON.stringify(seats)}`
         return seats.some((t) => /Avery/.test(t)) ? `the viewer is also named: ${JSON.stringify(seats)}` : seats.some((t) => /Blake/.test(t)) ? true : `the host is not named: ${JSON.stringify(seats)}`
       })) },
+  /* ...answered ('I'm in' tapped through the app's own set_round_rsvp), 'Tee it up' is the primary again and 'I'm in' is the chosen chip, not a second primary */
+  { family: 'schedule', id: 'plan-sheet-in', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday, after I’m in (Tee it up is the primary)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.evaluate((id) => window.openRoundSheet(id), PLAN.taggedMe)
+      await until(page, () => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !!document.querySelector('.rsvpset.owes') }, null, 10000)
+      await click(page, '.rsvpset [data-rsvp="in"]')
+      await until(page, () => { const set = document.querySelector('.rsvpset'); return !!set && !set.classList.contains('owes') && !!set.querySelector('.rbtn.on.in') }, null, 10000)
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-schedule', sheet: true, selectors: { '#rtTeeUp': 'visible' } },
+    check: all(planSheetPrimary(false), async (page) => page.evaluate(() => /^You\b/.test(document.querySelector('.rs-who .check .tt b').innerText) || [...document.querySelectorAll('.rs-who .check')].some((r) => /^You\b/.test(r.innerText) && /In/i.test(r.innerText)) ? true : 'the viewer\'s seat does not read You · In')) },
   { family: 'schedule', id: 'plan-landing', variant: 'signed_out', url: `/?plan=${SHARE.plan}`, title: 'The /?plan= landing a recipient opens',
     settle: async (page) => { await page.waitForSelector('#shareView', { timeout: 15000 }); await until(page, () => !/Opening the card/.test((document.getElementById('svCard') || {}).textContent || ''), null, 15000); await page.waitForTimeout(400) },
     expect: { overlay: true, selectors: { '#svCard': 'visible' } },

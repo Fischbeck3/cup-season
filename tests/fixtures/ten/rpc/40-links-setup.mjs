@@ -288,8 +288,8 @@ export default function install(W) {
     const before = prev('round_detail')
     out.round_detail = (a, w) => { const p = byId(String(a.p_round || '')); return p ? detail(p) : (before ? before(a, w) : undefined) }
   }
-  /* set_round_rsvp · returns void (20261012090000). No state taps it. */
-  out.set_round_rsvp = () => null
+  /* set_round_rsvp · returns void (20261012090000): the viewer's own answer on a plan they are tagged in (W7-039 taps it: 'I'm in') */
+  out.set_round_rsvp = ({ p_round, p_status }) => { const p = byId(String(p_round || '')); if (p && ['in', 'maybe', 'out'].includes(p_status)) p.rsvp[1] = p_status; return null }
 
   /* ============================================================= COURSES */
   /* my_course_books · 20261009093000_the_card_carries_its_yardage.sql — every

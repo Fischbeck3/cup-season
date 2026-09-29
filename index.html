@@ -3109,6 +3109,8 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    means earned (D359), which a maybe is not. */
 .rbtn{flex:1; min-height:44px; font-size:12.5px; font-weight:600; color:var(--mut); border:1px solid var(--rule); border-radius:9px; padding:9px; background:transparent;}
 .rbtn.on{color:var(--panel-ink); background:var(--panel); border-color:var(--panel);}
+/* W7-039 · the answer the golfer owes is the sheet's one primary: 'I'm in', filled (an ordinary action is act, D359) */
+.rsvpset.owes .rbtn[data-rsvp="in"]{color:var(--bg0); background:var(--act); border-color:var(--act);}
 .rs-thread{display:flex; flex-direction:column; gap:8px;}
 .crow2{display:flex; gap:9px; align-items:flex-start; font-size:13px;}
 .crow2 b{font-weight:600;} .crow2 .t{color:var(--mut);}
@@ -36600,8 +36602,14 @@ function renderRoundSheet(id, d){
      pending, declined excluded, and the start goes through
      start_live_round_from_plan so one live round stands for the booking. */
   const canTee = canRsvp && myR !== 'out' && !state.demo;
-  const teeUp = canTee ? `<button class="btn" id="rtTeeUp" type="button" style="width:100%;margin-top:12px">Tee it up</button>` : '';
-  const rsvpSet = canRsvp ? `<div class="rsvpset">
+  /* W7-039 [A2-schedule-2] · ONE primary in the sheet (§7.1, §16A.5): a golfer who owes an answer (csPlanMe: asked, or maybe) has 'I'm in' as the filled action,
+     and 'Tee it up' is the tertiary link beneath the set (ink on a 2px mut rule, 44 tall: the .lrcasual shape); answered (in) or the host, it is the primary
+     again. Availability is unchanged (F10, D367): only its weight moves */
+  const owes = ['asked', 'maybe'].includes(csPlanMe(d));
+  const teeUp = !canTee ? ''
+    : owes ? `<div class="lrcasual-row"><button class="lrcasual" id="rtTeeUp" type="button">Tee it up</button></div>`
+    : `<button class="btn" id="rtTeeUp" type="button" style="width:100%;margin-top:12px">Tee it up</button>`;
+  const rsvpSet = canRsvp ? `<div class="rsvpset${owes ? ' owes' : ''}">
      <button class="rbtn${myR==='in'?' on in':''}" data-rsvp="in">I’m in</button>
      <button class="rbtn${myR==='maybe'?' on maybe':''}" data-rsvp="maybe">Maybe</button>
      <button class="rbtn${myR==='out'?' on out':''}" data-rsvp="out">Can’t</button></div>` + teeUp : '';
