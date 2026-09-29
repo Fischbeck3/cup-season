@@ -171,18 +171,29 @@ const COMPOSER = [
     expect: { view: 'view-post', selectors: { '#postBtn': 'visible' } },
     check: async (page) => page.evaluate(() => document.getElementById('inF9').value === '42' && document.getElementById('inB9').value === '41' ? true : 'the card did not take the nines') },
   /* the server refuses the card: the golfer is told nothing posted and the
-     card stays on the form */
+     card stays on the form.
+     W1 (2026-09-28): the refusal is no longer a 2.4 s toast. It stays inline
+     above the button (#postErr, role=alert), the button is described by it,
+     and focus stays on the button (it used to fall to <body>). The state waits
+     for that line instead of the toast. */
   { family: 'composer', id: 'post-failed', variant: 'member', title: 'Composer · the post is refused by the server',
     world: { errors: { rpc: { post_round_once: { __error: 'fixture: the server refused this card', status: 400, code: 'P0001' } } } },
     expectConsole: [/status of 400/, /\[cs\] error:.*refused/i],
     drive: async (page) => {
       await toComposer(page); await fillCard(page)
       await click(page, '#postBtn')
-      await until(page, () => /refused|nothing was posted/i.test((document.getElementById('toast') || {}).textContent || ''), null, 10000)
+      await until(page, () => { const e = document.getElementById('postErr'); return !!e && !e.hidden && /nothing was posted/i.test(e.textContent || '') }, null, 10000)
       await page.waitForTimeout(250)
     },
-    expect: { view: 'view-post', selectors: { '#toast': 'text:nothing was posted' } },
-    check: async (page) => page.evaluate(() => document.getElementById('inF9').value === '42' ? true : 'the card was cleared after a refused post') },
+    expect: { view: 'view-post', selectors: { '#postErr': 'text:nothing was posted' } },
+    check: async (page) => page.evaluate(() => {
+      if (document.getElementById('inF9').value !== '42') return 'the card was cleared after a refused post'
+      const b = document.getElementById('postBtn')
+      if (document.activeElement !== b) return 'focus left the button: ' + (document.activeElement && (document.activeElement.id || document.activeElement.tagName))
+      if (b.getAttribute('aria-describedby') !== 'postErr') return 'the button is not described by the refusal'
+      if (/press Post again/i.test(document.getElementById('postErr').textContent)) return 'the refusal names a button that is not there'
+      return true
+    }) },
 ]
 
 /* ------------------------------------------------------- SHARE ARTIFACT */

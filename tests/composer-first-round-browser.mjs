@@ -44,15 +44,22 @@ for (const width of [375, 1280]) for (const theme of ['dark', 'light']) for (con
   if (who === 'no-league') {
     check(`${label}: the figure speaks to a golfer with no league`, before.k === 'This round would score', before.k)
     check(`${label}: the bands wait behind "How points work"`, before.exp === 'false' && before.hidden, before)
-  } else {
+  } else if (width >= 960) {
     check(`${label}: a live season keeps "League points this round" and the bands open`, before.k === 'League points this round' && before.exp === 'true' && !before.hidden, before)
+  } else {
+    /* W1 (2026-09-28): on a phone the bands wait behind their door for a live
+       season too. The judges measured the filled composer at 2,344px at 375;
+       the figure above already says the round's points, and the desk keeps the
+       table open in its aside. The label is unchanged. */
+    check(`${label}: a live season keeps "League points this round"; on a phone the bands wait behind "How points work"`, before.k === 'League points this round' && before.exp === 'false' && before.hidden, before)
   }
   check(`${label}: the help control is a 44px target`, before.doorH >= 44, before.doorH)
   if (SHOTS) await page.screenshot({ path: join(SHOTS, `composer-${who}--${width}--${theme}.png`), fullPage: true })
   /* keyboard: the disclosure toggles and keeps focus */
   await page.focus('#postBandsDoor'); await page.keyboard.press('Enter')
   const toggled = await page.evaluate(() => ({ exp: document.getElementById('postBandsDoor').getAttribute('aria-expanded'), hidden: document.getElementById('postBandsCard').hidden, focus: document.activeElement?.id, rows: document.querySelectorAll('#postBandsCard .bands tr').length }))
-  check(`${label}: Enter toggles the bands and focus stays on the control`, toggled.exp === (who === 'no-league' ? 'true' : 'false') && toggled.hidden === (who !== 'no-league') && toggled.focus === 'postBandsDoor' && toggled.rows === 5, toggled)
+  const openedFirst = who !== 'no-league' && width >= 960   /* W1: open by default only for a live season on the desk */
+  check(`${label}: Enter toggles the bands and focus stays on the control`, toggled.exp === (openedFirst ? 'false' : 'true') && toggled.hidden === openedFirst && toggled.focus === 'postBandsDoor' && toggled.rows === 5, toggled)
   /* the same round scores the same either way */
   const scored = await page.evaluate(() => {
     document.getElementById('inRating').value = '71.2'; document.getElementById('inSlope').value = '131'

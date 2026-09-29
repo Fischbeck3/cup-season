@@ -1214,13 +1214,20 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   .postgrid{display:grid; grid-template-columns:minmax(0,1fr) 348px; gap:34px; align-items:start;}
   .postgrid > div:first-child{max-width:620px;}
 }
-/* the ONE box: a focused numeric control, so it wears the mono figure face and
-   never the serif (L-29) */
+/* the ONE box: a focused numeric control, never the serif (L-29). W1 · it is
+   the round's tournament figure, so it wears the figure face every other gross
+   wears (UI_SYSTEM §1.6: the composer's gross is `figure` at 56, board face,
+   tabular) rather than the mono it kept after the figure face arrived */
 .grossbox{
   width:100%; background:transparent; border:0; outline:0; padding:0; margin:0;
-  font-family:var(--mono); font-size:64px; font-weight:600; line-height:1.05;
-  color:var(--ink); font-variant-numeric:tabular-nums; -moz-appearance:textfield;
+  font-family:var(--board); font-size:56px; font-weight:700; line-height:1.05;
+  color:var(--ink); font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1,'lnum' 1;
+  -moz-appearance:textfield;
 }
+.grossbox[readonly]{cursor:default;}
+/* the hero says where its figure came from while the nines answer for it */
+.grossfrom{margin:6px 0 0; font-family:var(--board); font-size:12px; font-weight:600;
+  letter-spacing:calc(var(--agate) * 1em); color:var(--mut);}
 .grossbox::-webkit-outer-spin-button, .grossbox::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
 .grossbox::placeholder{color:var(--mut);}
 /* the box draws no border, so its focus is a ring of its own (WCAG 2.4.7):
@@ -1268,20 +1275,30 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
      row 2px off the page — inherited) */
   .postcam{flex-wrap:wrap;}
   .postcam .postplate{width:auto; flex:1 1 150px; min-width:0; height:44px;}
-  .postcam .postplate .plate{border-radius:var(--rc); justify-content:flex-start; padding:0 12px;}
+  .postcam .postplate .plate{border-radius:var(--rc); justify-content:flex-start; padding:0 12px;
+    background:var(--bg2); border-color:transparent; color:var(--ink);}   /* W1 · the scan's grammar: one secondary on the form */
+  .postcam .postplate .plate:hover{background:var(--rule);}
   .postcam .postplate .ph{flex-direction:row; gap:8px;}
+  .postcam .postplate .ph b{font-size:13px; letter-spacing:.02em; text-transform:none;}
   .postcam #postScanBtn{flex:none; margin:0;}
   .postcam.has-photo{flex-direction:column; align-items:stretch; width:150px;}
   .postcam.has-photo .postplate{width:150px; height:100px; flex:none;}
-  .postcam.has-photo .postplate .plate{border-radius:var(--p); justify-content:center; padding:0;}
+  .postcam.has-photo .postplate .plate{border-radius:var(--p); justify-content:center; padding:0; background:transparent;}
 }
+/* W1 · the course is the card's other required fact, so the line is a
+   labelled field: an agate label over the value in the words' own face (a
+   course and a day are said, not codes — §1.4 keeps mono off them) */
 .inheritline{
-  display:flex; align-items:baseline; gap:10px; width:100%; text-align:left;
+  display:block; width:100%; text-align:left;
   background:transparent; border:0; border-top:1px solid var(--rule);
-  padding:12px 0; min-height:44px; margin-top:12px; cursor:pointer;   /* §16.2 · was 28 */
-  font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--ink);
+  padding:10px 0 12px; min-height:44px; margin-top:12px; cursor:pointer;   /* §16.2 · was 28 */
+  color:var(--ink);
 }
-.inheritline .edit{margin-left:auto; color:var(--act);}
+.inheritline .il-k{display:block; margin-bottom:4px; font-family:var(--board); font-size:11px; font-weight:600;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
+.inheritline .il-v{display:flex; align-items:baseline; gap:10px; font-family:var(--sans); font-size:15px; line-height:1.35;}
+.inheritline .edit{margin-left:auto; flex:none; color:var(--act); font-weight:600;}
+.inheritline:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* WAVE 8 · THE ONE CHIP (D277, §7.2). Twelve chip families at five heights,
    five paddings, two shapes and three "selected" languages become one: a 3pt
    rectangle, an agate label, `bg2` at rest, and SELECTED INVERTS TO THE PANEL
@@ -1298,7 +1315,7 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   background:var(--bg1); border:1px solid var(--rule); border-radius:var(--r);
   padding:18px; text-align:center;
 }
-.calc .k{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--mut);}
+.calc .k{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
 .calc .big{
   font-family:var(--mono); font-size:64px; font-weight:600; line-height:1;
   margin:6px 0 4px; font-variant-numeric:tabular-nums;
@@ -1308,8 +1325,26 @@ input.f::-webkit-outer-spin-button, input.f::-webkit-inner-spin-button{-webkit-a
   display:flex; justify-content:center; gap:26px;
   margin-top:16px; padding-top:14px; border-top:1px solid var(--rule);
 }
-.calc .trio b{display:block; font-family:var(--mono); font-size:17px; font-weight:600; font-variant-numeric:tabular-nums;}
-.calc .trio span{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut);}   /* F14 · 11px is the floor (UI_SYSTEM §16.2) */
+.calc .trio b{display:block; font-family:var(--board); font-size:20px; font-weight:700; font-variant-numeric:tabular-nums;}
+.calc .trio span{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}   /* F14 · 11px is the floor (UI_SYSTEM §16.2) */
+/* W1 · numbers are never serif (§1.4): the points figure takes the figure face
+   the gross and the trio take — one face for the three numbers on the panel.
+   By id, because a shared rule later in the sheet still names `.calc .big` for
+   the serif. */
+#calcPts{font-family:var(--board); font-weight:700; font-size:56px; line-height:.92; letter-spacing:0;
+  font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1,'lnum' 1; margin:10px 0 6px;}
+/* the action's own answer: a post the server did not take, above the button
+   it answers (aria-describedby ties the two). Words in neg on the card's
+   ground — 5.6:1 dark, 5.3:1 light — no box and no stripe. */
+.posterr{margin:14px 0 0; font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--neg);}
+#postBtn{margin-top:14px;}
+/* the date's focused segment wears the action, never the browser's blue, and
+   the calendar button follows the app's printing rather than the device's */
+#inDate{color-scheme:dark;}
+html[data-theme="light"] #inDate{color-scheme:light;}
+#inDate::-webkit-datetime-edit-month-field:focus,
+#inDate::-webkit-datetime-edit-day-field:focus,
+#inDate::-webkit-datetime-edit-year-field:focus{background:var(--act); color:var(--bg0); outline:none;}
 .bandsdoor{width:100%; min-height:44px; background:none; border:0; cursor:pointer; padding:0 2px; text-align:left;}
 .bandsdoor svg{width:14px; height:14px; transition:transform .15s ease;}
 .bandsdoor[aria-expanded="true"] svg{transform:rotate(180deg);}
@@ -2012,7 +2047,7 @@ body.guestlive #onboard{display:none !important;}
 .coursedd button.kbd{background:var(--bg1); outline:2px solid var(--act); outline-offset:-2px;}
 .coursedd button b{display:block; font-size:13px; font-weight:600; line-height:1.3;}
 .coursedd button span{font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
-.coursedd .coursedd-msg{padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--mut); letter-spacing:.03em;}
+.coursedd .coursedd-msg{padding:9px 12px; font-family:var(--sans); font-size:14px; line-height:1.4; color:var(--mut);}   /* W1 · a sentence, so not mono (§1.4) */
 .coursedd .coursedd-back{font-family:var(--mono); font-size:11.5px; font-weight:600; letter-spacing:.06em; color:var(--mut); background:var(--bg1); position:sticky; top:0;}
 .coursedd .coursedd-back:hover{background:var(--bg1); color:var(--ink);}
 /* THE EVENT IS A TITLE CARD (Wave 6; UI_SYSTEM 15.5, 15.5a).
@@ -5316,6 +5351,10 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                 <div class="posthero-num">
                   <label class="f" for="inGross">Your gross</label>
                   <input class="grossbox" id="inGross" type="number" inputmode="numeric" placeholder="&mdash;" autocomplete="off">
+                  <!-- W1 · ONE GROSS, ONE PLACE: when the nines are filled they
+                       answer for the hero, which shows their sum read-only and
+                       says so here (it stayed a dash over a card posting 83) -->
+                  <p class="grossfrom" id="postGrossFrom" hidden></p>
                 </div>
                 <div class="postcam" id="postPhotoRow" style="display:none">
                   <div class="postplate">
@@ -5331,7 +5370,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <input type="file" id="postPhotoFile" accept="image/*" style="display:none">
               <input type="file" id="postScanFile" accept="image/*" capture="environment" style="display:none">
               <button type="button" class="inheritline" id="postInherit" aria-expanded="false" aria-controls="postCardFold">
-                <span id="postInheritText">Add the course</span><span class="edit" id="postInheritEdit">edit</span>
+                <span class="il-k">Course · tee · day</span>
+                <span class="il-v"><span id="postInheritText">Add the course</span><span class="edit" id="postInheritEdit">edit</span></span>
               </button>
               <!-- D239 - who was out there. Optional, bounded by the golfers
                    you actually play with, and never a vouch (L-19). -->
@@ -5394,10 +5434,15 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                 <label class="f" for="inDate">Date</label><input class="f" id="inDate" type="date">
               </div>
               </div><!-- /postCardFold -->
-              <!-- F2: the live gross reads at a glance right above Post, so an
-                   untouched (even-par) card is visible before the tap -->
-              <div id="postGrossLine" style="margin-top:12px; padding:10px 12px; border:1px solid var(--rule); border-radius:10px; background:var(--bg2); font-weight:700; font-size:15px; text-align:center; color:var(--ink)">—</div>
-              <div style="height:12px"></div>
+              <!-- W1 · the bordered "Gross 83 · 18 holes" line that sat here read
+                   as a second button and printed the gross a second time; the
+                   hero carries it now (F2's untouched even-par card is still
+                   caught by the "Post as even par?" sheet). What sits over the
+                   action is the action's own answer: a post the server did not
+                   take stays here, tied to the button (aria-describedby), until
+                   the card changes. It was a 2.4 s toast, and focus fell to the
+                   page. -->
+              <p class="posterr" id="postErr" role="alert" hidden></p>
               <button class="btn" id="postBtn">Add my round</button>
               <!-- abandonment is a real path, not a refresh: one tap empties the
                    card (pilot: a tested/half-filled composer lingered for days) -->
@@ -5412,7 +5457,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
               <div class="msg" id="calcMsg">Enter your gross to see the points.</div>
               <div class="trio">
                 <div><b id="calcGross">–</b><span>Gross</span></div>
-                <div><b id="calcVs">–</b><span>your playing HCP</span></div>
+                <div><b id="calcVs">–</b><span>vs your playing HCP</span></div>
               </div>
               <!-- painted by recalc() from seasonNote('long') — never retyped here (D297) -->
               <p class="fine" id="calcSeason" style="padding:8px 0 0"></p>
@@ -6835,7 +6880,11 @@ function csRenderComposerEyebrow(){
                                          : ss === 'no_league' ? 'This round would score' : 'This round';
   const door = document.getElementById('postBandsDoor'), card = document.getElementById('postBandsCard');
   if(door && card && !door.dataset.touched){
-    const open = ss === 'live';
+    /* W1 · on the desk the table sits in the aside beside the form and costs
+       nothing; on a phone it was 300px under a card that already says its
+       points (the filled composer ran 2,344px at 375), so there it waits
+       behind its named door for everyone, as it does for a first round */
+    const open = ss === 'live' && matchMedia('(min-width:960px)').matches;
     door.setAttribute('aria-expanded', String(open));
     card.hidden = !open;
   }
@@ -11217,7 +11266,10 @@ function postInputs(){
    it means. The one box wins while the card is closed and on eighteen; the
    nines answer otherwise, on the rules they always had (D72). */
 function postEntry(){
-  const whole = parseFloat($('#inGross')?.value) || 0;
+  /* W1 · a hero the nines are answering for (read-only, `data-derived`) is
+     their sum, never a second statement: it is not read as the one box */
+  const gEl = $('#inGross');
+  const whole = (gEl && gEl.dataset.derived) ? 0 : (parseFloat(gEl?.value) || 0);
   /* THE CARD WINS: a golfer who opened the fold and typed their nines has made
      the more specific statement. The one box answers when they have not. */
   const {f9,b9}=postInputs();
@@ -11241,6 +11293,43 @@ function csInheritText(){
 }
 function renderInheritLine(){
   const t=$('#postInheritText'); if(t) t.textContent=csInheritText();
+}
+/* W1 · ONE GROSS, ONE PLACE. The nines are the more specific statement and
+   they win (postEntry); the hero shows what they add up to, read-only while
+   they answer, with its caption saying so, and gives the box back the moment
+   they are cleared. It stayed a dash over a card that was about to post 83. */
+function csPostHero(entry){
+  const g=$('#inGross'), from=$('#postGrossFrom'); if(!g) return;
+  const {f9,b9}=postInputs();
+  const nines = state.post.mode==='holes' || f9>0 || b9>0;
+  if(nines && entry){
+    g.value = String(Math.round(entry.gross));
+    g.readOnly = true; g.dataset.derived = '1';
+    if(from){
+      from.textContent = state.post.mode==='holes'
+        ? (entry.holes===9 ? 'From your card · nine holes, half value' : 'From your card, hole by hole')
+        : entry.holes===9 ? 'From your nine · half value, half a round'
+        : `From your nines · ${f9} out, ${b9} in`;
+      from.hidden = false;
+      g.setAttribute('aria-describedby','postGrossFrom');
+    }
+  } else if(g.dataset.derived){
+    g.value = ''; g.readOnly = false; delete g.dataset.derived;
+    if(from){ from.textContent=''; from.hidden = true; }
+    g.removeAttribute('aria-describedby');
+  }
+}
+/* the action's answer, above the action and tied to it; any change to the
+   card is the golfer answering it, so the line goes with the change */
+function csPostError(msg){
+  const el=$('#postErr'), btn=$('#postBtn'); if(!el) return;
+  if(msg){
+    el.textContent = msg; el.hidden = false;
+    btn?.setAttribute('aria-describedby','postErr');
+  } else if(!el.hidden){
+    el.textContent = ''; el.hidden = true;
+    btn?.removeAttribute('aria-describedby');
+  }
 }
 function togglePostFold(open){
   const fold=$('#postCardFold'), btn=$('#postInherit'), edit=$('#postInheritEdit');
@@ -11330,6 +11419,7 @@ function recalc(){
   const {f9,b9}=postInputs();
   const entry=postEntry();
   renderInheritLine();
+  csPostHero(entry);   /* W1 · one gross, one place */
   /* Q-22 · a BLANK rating used to fall to 0 and be scored as one, so a 91 with
      no tee picked previewed "-75.8 vs your index · 5 pts" and Post stayed
      live. A course with no rating cannot be scored; say so instead of
@@ -11339,7 +11429,7 @@ function recalc(){
     $('#calcMsg').textContent='Pick a tee — or type the rating and slope — to see the points.';
     $('#calcGross').textContent=String(Math.round(entry ? entry.gross : 0) || '–');
     $('#calcVs').textContent='—';
-    const glr=$('#postGrossLine'); if(glr){ glr.textContent=''; glr.style.display='none'; }   /* D297 · silent until it has a gross */
+    const snr=$('#calcSeason'); if(snr) snr.textContent='';   /* no stale worth line under a card that cannot be scored */
     /* D234 · the card is IN and the rating is not. Q-22 already stops the post
        (an unrated round cannot be scored and must never be scored as a zero),
        but the button then said "Enter at least one nine first" — a sentence
@@ -11374,7 +11464,7 @@ function recalc(){
   } else {
     $('#calcPts').textContent='–'; $('#calcMsg').textContent='Enter your gross.';
     $('#calcGross').textContent='–'; $('#calcVs').textContent='–';
-    const gl0=$('#postGrossLine'); if(gl0){ gl0.textContent=''; gl0.style.display='none'; }
+    const sn0=$('#calcSeason'); if(sn0) sn0.textContent='';   /* the worth line speaks for a card, and there is none */
     state.postBlocked='card';
     state.lastPost=null; return;
   }
@@ -11394,32 +11484,39 @@ function recalc(){
      shut suppresses the figure. */
   const _shows = (_ss === 'live' || _ss === 'no_league');
   const _k = document.querySelector('.calc .k');
-  if(_k) _k.textContent = _ss === 'live' ? 'League points this round'
+  /* W1 · the preview is scored at the OPEN league's allowance, so a golfer in
+     more than one league is told which league the figure is (D387's rule for
+     the receipt, said before the post) */
+  const _many = (window.CS?.memberships||[]).length > 1 && !!window.CS?.league?.name;
+  if(_k) _k.textContent = _ss === 'live' ? (_many ? 'Points in ' + window.CS.league.name : 'League points this round')
                         : _ss === 'no_league' ? 'This round would score' : 'This round';
   const _sn = $('#calcSeason');
   if(_sn){
-    /* D362 · live season: what this round can add under the league's own cap,
-       from the engine's rows; otherwise the season note says why it does not */
+    /* D362 · live season: what this round does under the league's own cap,
+       from the engine's rows; otherwise the season note says why it does not.
+       W1 · with the card's own points, never the ceiling: "a 12 would add 6"
+       under a card that scores 9 was arithmetic left to the golfer. */
     const on = $('#inDate')?.value || null;
-    const worth = _ss === 'live' ? csComposerWorthLine(on) : null;
+    const known = _shows ? pts : null;
+    const worth = _ss === 'live' ? csComposerWorthLine(on, undefined, known) : null;
     _sn.textContent = worth || seasonNote('long') || 'Counts in every league you\u2019re in.';
     /* and ask the server; when its answer lands for this same date, say it */
     if(_ss === 'live') csLoadMyCounters(on).then(c => {
       if(!c || c.rows==null) return;
       const now = $('#inDate')?.value || null;
       if(String(now||isoOf(new Date())).slice(0,10) !== c.on) return;
-      const w = csComposerWorthLine(now); if(w && _sn.isConnected) _sn.textContent = w;
+      const w = csComposerWorthLine(now, undefined, state.lastPost ? state.lastPost.pts : null); if(w && _sn.isConnected) _sn.textContent = w;
     });
   }
   $('#calcVs').textContent=vsShort(vs);   /* Q-23: words, not a sign */
   $('#calcVs').style.color = vs>-1 ? 'var(--pos)' : 'var(--neg)';
   $('#calcPts').textContent = _shows ? pts : '—';
   $('#calcMsg').textContent = _ss === 'live' ? msg : (msg + ' ' + seasonNote('short') + '.');
-  const gl=$('#postGrossLine');
-  if(gl){ gl.style.display=''; gl.textContent = `Gross ${gross} · ${label.includes('9 HOLES')?'9 holes · half value':'18 holes'}`; }
   state.lastPost={pts, vs, label};
 }
 ['inRating','inSlope','inF9','inB9','inGross'].forEach(id=>$('#'+id)?.addEventListener('input',recalc));
+/* W1 · the golfer answering a refused post is the golfer changing the card */
+['inRating','inSlope','inF9','inB9','inGross','inCourse','inDate'].forEach(id=>$('#'+id)?.addEventListener('input',()=>csPostError(null)));
 $('#inCourse')?.addEventListener('input', renderInheritLine);
 $('#inDate')?.addEventListener('input', renderInheritLine);
 $('#postInherit')?.addEventListener('click', ()=>togglePostFold());
@@ -11485,7 +11582,8 @@ const POST_TYPED = ['inGross','inF9','inB9','inRating','inSlope','inCourse'];
 const POST_FIELDS = POST_TYPED.concat(['inDate']);
 function postReadFields(){
   const v = {};
-  POST_FIELDS.forEach(id => { const e=$('#'+id); if(e) v[id]=e.value; });
+  /* W1 · a hero the nines answer for is their sum, not something typed */
+  POST_FIELDS.forEach(id => { const e=$('#'+id); if(e) v[id] = (id==='inGross' && e.dataset.derived) ? '' : e.value; });
   return v;
 }
 /* The golfer put something here — the one predicate the save and the restore
@@ -11709,7 +11807,20 @@ function openPostParsSheet(){
   refresh();
   f9.focus();
 }
+/* W1 · a post that did not go: the sentence above the button, the button live
+   again, and focus ON it (disabling a focused button drops focus to the page,
+   which is where the audit found it) so a screen reader lands on the action
+   and reads the sentence it is described by */
+function csPostRefused(msg){
+  const btn=$('#postBtn');
+  csPostError(msg);
+  if(btn){
+    btn.disabled=false;
+    try{ btn.focus({ preventScroll:true }); btn.scrollIntoView({ block:'nearest' }); }catch(_){}
+  }
+}
 $('#postBtn').addEventListener('click', async ()=>{
+  csPostError(null);
   if(!state.lastPost){
     /* D234 · say which field is missing, and mark it. A hand-typed course has
        no tee to pick, so the rating and slope are the golfer's to type — and
@@ -11771,6 +11882,7 @@ $('#postBtn').addEventListener('click', async ()=>{
     const nine = (entry ? entry.holes : 18) === 9;
     const holesMode = state.post.mode==='holes';
     const btn=$('#postBtn'); btn.disabled=true;
+    let accepted=false;   /* W1 · after this the round IS posted, whatever else fails */
     try {
       const payload = {
         gross: entry ? entry.gross : 0,
@@ -11824,8 +11936,8 @@ $('#postBtn').addEventListener('click', async ()=>{
         try{ if(window.openRoundSheet) window.openRoundSheet(landed); }catch(_){}
       };
       if(plan === 'stop'){
-        toast('The record of your last post attempt in this browser can’t be read, so nothing was sent. Post from your phone, or clear this site’s storage to start over.');
-        btn.disabled=false; return;
+        csPostRefused('The record of your last post attempt in this browser can’t be read, so nothing was sent. Post from your phone, or clear this site’s storage to start over.');
+        return;
       }
       if(plan === 'finish'){
         /* It posted. Finish the intent EXACTLY ONCE — clearing the id and
@@ -11856,8 +11968,8 @@ $('#postBtn').addEventListener('click', async ()=>{
         /* the envelope is written BEFORE the call; a write that fails stops here */
         try{ postRequestWrite(uid, rec); }
         catch(_){
-          toast('Couldn’t keep a record of this post in this browser, so it wasn’t sent. Free up storage and press Post again.');
-          btn.disabled=false; return;
+          csPostRefused('Couldn’t keep a record of this post in this browser, so it wasn’t sent. Free up storage and press Add my round again.');
+          return;
         }
       }
       let acceptedRecorded = true;
@@ -11869,13 +11981,13 @@ $('#postBtn').addEventListener('click', async ()=>{
         if(oerr) throw oerr;
         rpcRound = once && once.round;
         if(!rpcRound || !rpcRound.id) throw new Error('post_round_once returned no round id');
-        rrow = { id: rpcRound.id };
+        rrow = { id: rpcRound.id }; accepted = true;
         epiFromRpc = (once && once.epilogue) || null;
         holesWritten = true;   /* written inside the accepting transaction */
         acceptedRecorded = postRequestAccepted(uid, rrow.id);
         payload.photo_path = env.payload.photo_path || null;   /* the path that actually posted */
       }catch(e0){
-        if(missingFn(e0)){ toast('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); btn.disabled=false; return; }
+        if(missingFn(e0)){ csPostRefused('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); return; }
         const text0 = String(e0 && (e0.message || e0) || '').toLowerCase();
         if(text0.includes('different scorecard')){
           /* the earlier body under this id already landed. Find the round that
@@ -11887,20 +11999,22 @@ $('#postBtn').addEventListener('click', async ()=>{
             if(serr) throw serr;
             landed = status && status.round && status.round.id;
           }catch(se){
-            if(missingFn(se)){ toast('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); btn.disabled=false; return; }
+            if(missingFn(se)){ csPostRefused('Posting isn’t available on this server yet. Your round is kept here — try again after the update.'); return; }
           }
           if(landed){
             postRequestAccepted(uid, landed);
             await finishPostedRound(landed, 'Your earlier card had already posted — here it is. To change it, delete that round from your history and post again.');
             btn.disabled=false; return;
           }
-          toast('Your earlier card may already have posted. Check your history before changing it — pressing Post again retries the same round.');
-          btn.disabled=false; return;
+          csPostRefused('Your earlier card may already have posted. Check your history before changing it — pressing Add my round again retries the same round.');
+          return;
         }
         const ambiguous0 = /failed to fetch|networkerror|network request|load failed|timed out|timeout|offline|could not connect|cancel|connection/.test(text0);
+        /* W1 · the button's own name, and a refusal never ends in the generic
+           shrug: "fix it" and "try again" were two opposite instructions, and
+           neither said what to fix */
         throw Object.assign(e0 instanceof Error ? e0 : new Error(String(e0 && e0.message || e0)),
-                            { csPrefix: ambiguous0 ? 'Couldn’t confirm the post. Press Post again to retry the same round.'
-                                                   : 'The server refused this card — nothing was posted. Fix it and press Post again; it’s still the same round.' });
+                            { csKind: ambiguous0 ? 'ambiguous' : 'refused' });
       }
       if(!acceptedRecorded) toast('Round posted. Couldn’t record that in this browser — don’t post it again.');
       /* everything from here to the clear is narration; none of it may leave
@@ -12052,7 +12166,20 @@ $('#postBtn').addEventListener('click', async ()=>{
           });
         } catch(_){ /* RPC not deployed yet, or nothing to say — never block a post */ }
       }
-    } catch(e){ toast(humanError(e, (e && e.csPrefix) || 'Post failed.')); }
+    } catch(e){
+      /* W1 · the answer stays above the button it answers. The server's own
+         sentence when it wrote one for a golfer; an honest unknown when not.
+         A failure AFTER the server took the round is not "nothing was posted". */
+      if(accepted){ toast(humanError(e, 'Round posted.')); return; }
+      const why = humanError(e, null);
+      const shrug = /^Something went wrong/.test(why);
+      csPostRefused(e && e.csKind === 'ambiguous'
+          ? 'Couldn’t confirm the post. Press Add my round again to retry the same round — it can’t post twice.'
+        : e && e.csKind === 'refused'
+          ? (shrug ? 'The server didn’t accept this card and didn’t say why. Nothing was posted, and your card is kept — press Add my round to try again.'
+                   : 'Nothing was posted: ' + why.replace(/\.?$/, '.') + ' Your card is kept.')
+        : 'Nothing was posted: ' + why.replace(/\.?$/, '.') + ' Your card is kept.');
+    }
     finally { btn.disabled=false; }
     return;
   }
@@ -12390,10 +12517,17 @@ function paintCourseHint(){
   if(!el || !hint) return;
   const typed = (el.value||'').trim();
   const picked = !!el.dataset.courseId;
+  /* W1 · the last-courses shortcuts are for an EMPTY field, as on the phone
+     (PostRoundScreen: "only while the search field is empty, so recents never
+     read as stuck search results"); typed text has the search */
+  const chips = document.getElementById('courseChips'); if(chips) chips.hidden = !!typed;
   if(!typed || picked){ hint.style.display='none'; return; }
   hint.style.display='';
   hint.style.color='var(--mut)';
-  hint.innerHTML = 'Unlisted course — the round counts in full. It just won\u2019t show in your rounds or match you with other golfers who\u2019ve played it.';
+  /* W1 · D150's real consequence, and only that: an unlisted round is in the
+     golfer's rounds like any other. It said the round "won't show in your
+     rounds", which told the muni golfer their round would vanish. */
+  hint.innerHTML = 'Unlisted course — the round counts in full and sits in your rounds. It just won\u2019t join this course\u2019s history or match you with golfers who\u2019ve played it.';
 }
 /* ── D261 / R-N · THE COURSES THIS DEVICE KEEPS ─────────────────────────────
    The owner's escalation was an airplane and a dead app: nothing about a
@@ -12668,7 +12802,10 @@ function attachCourseSearch(courseSel, ratingSel, slopeSel, onTee){
     const local = [...saved, ...(cached||[]).filter(c=>!seenSaved.has(c.id))].slice(0,12);
     /* paint cached hits immediately — but never yank the user out of the tee
        list, and never let a stale response overwrite a newer query */
-    const fresh = () => lastQ===q && dd.dataset.stage!=='tees';
+    /* W1 · and only while the golfer is still in the field: a late answer
+       reopened "No match" after focus had moved on to the date (the blur had
+       already closed it) and it sat there, boxed like an input */
+    const fresh = () => lastQ===q && dd.dataset.stage!=='tees' && document.activeElement===input;
     if(local.length && fresh()){ courses=local; offline = cached===null; showCourses(); }
     try {
       const { data, error } = await window.sb.functions.invoke('courses', { body:{ action:'search', q } });
@@ -28214,7 +28351,7 @@ async function loadCourseMemory(){
   const el = $('#courseChips');
   if(!el || !CS.user) return;
   const { data } = await sb.from('rounds')
-    .select('course_label, rating, slope, played_on')
+    .select('course_label, rating, slope, played_on, api_course_id')
     .eq('profile_id', CS.user.id)
     .not('course_label', 'is', null)
     .order('played_on', { ascending: false }).limit(30);
@@ -28226,9 +28363,18 @@ async function loadCourseMemory(){
     `<button class="mini" data-cc="${i}" style="margin:0 6px 6px 0">${esc(r.course_label)} · ${r.rating}/${r.slope}</button>`).join('');
   el.querySelectorAll('[data-cc]').forEach(b => b.addEventListener('click', () => {
     const r = top[+b.dataset.cc];
-    $('#inCourse').value = r.course_label;
+    const ic = $('#inCourse');
+    ic.value = r.course_label;
+    /* W1 · a course picked from the catalogue once stays picked: the round
+       joins its history (D150) instead of posting as an unlisted course */
+    ic.dataset.courseId = r.api_course_id || '';
     $('#inRating').value = r.rating;
     $('#inSlope').value = r.slope;
+    /* and the card answers the tap: the preview, the line and the hint were
+       left on the empty card until some other field changed */
+    state.post.rating9 = false;
+    if(typeof paintCourseHint === 'function') paintCourseHint();
+    if(typeof recalc === 'function') recalc();
     toast('Course filled: just the gross and the date');
   }));
 }
@@ -32262,7 +32408,32 @@ async function csLoadMyCounters(playedOn){
   return window.myCounters;
 }
 window.csLoadMyCounters = csLoadMyCounters;
-function csComposerWorthLine(playedOn, capGiven){
+/* W1 · ONCE THE CARD HAS ITS OWN POINTS, THE LINE FINISHES THE ARITHMETIC
+   WITH THEM. `csRoundWorth`'s sum with the card's points in place of the
+   ceiling: an open counting slot adds them, a full month bumps the lowest
+   counter and adds the difference, and nothing below the lowest adds. The
+   ceiling sentence ("…so a 12 would add 6") stayed under a card that scored 9
+   and left 9 − 6 to the golfer. One sentence, for the league the preview's
+   figure is scored in (the figure's label names that league when there is
+   more than one, so the composer passes no name).
+   Eighteen holes only — a nine keeps D364's sentence, because its half-round
+   counting is the engine's to say. (Phone twin: `RoundWorth.line`.) */
+function csRoundWorthKnown(pts, cap, used, worst, season){
+  const p = Number(pts);
+  if(!isFinite(p)) return null;
+  const c = (cap == null) ? null : Number(cap);
+  const u = Number(used || 0);
+  const where = season ? (' in ' + season) : '';
+  if(c == null || !(c > 0)) return 'This ' + csNum(p) + ' counts' + where + ': every round you post this month counts, so +' + csNum(p) + '.';
+  if(u < c) return 'This ' + csNum(p) + ' counts' + where + ': your best ' + c + ' count and you have ' + u + ', so +' + csNum(p) + ' this month.';
+  if(worst == null || !isFinite(Number(worst))) return null;
+  const w = Number(worst);
+  if(p > w) return 'This ' + csNum(p) + ' replaces your lowest' + where + ', a ' + csNum(w) + ': +' + csNum(p - w) + ' this month.';
+  return 'Your best ' + c + where + ' already count and none is below ' + csNum(p)
+    + ', so this ' + csNum(p) + ' can\u2019t add to your total this month. It still builds your number.';
+}
+window.csRoundWorthKnown = csRoundWorthKnown;
+function csComposerWorthLine(playedOn, capGiven, pts){
   if(typeof seasonState==='function' && seasonState()!=='live') return null;
   const on = String(playedOn || isoOf(new Date())).slice(0,10);
   /* the shared producer first: one sentence per season the date falls in,
@@ -32270,9 +32441,18 @@ function csComposerWorthLine(playedOn, capGiven){
   /* D364 (F3) · the card's own side — a nine is never promised an
      eighteen-hole ceiling */
   const holes = (typeof state !== 'undefined' && state.post && state.post.side === 9) ? 9 : 18;
+  const known = (pts != null && isFinite(Number(pts)) && holes === 18) ? Number(pts) : null;
   const served = capGiven === undefined && window.myCounters && window.myCounters.on === on ? window.myCounters.rows : null;
   if(served){
-    const rows = served.map(x => ({ league_name: x.league_name, cap: x.cap, used: x.counters?.used, worst: x.counters?.worst }));
+    const rows = served.map(x => ({ league_id: x.league_id, league_name: x.league_name, cap: x.cap, used: x.counters?.used, worst: x.counters?.worst }));
+    if(known != null){
+      /* the league the preview scored the card in — the open one */
+      const lid = window.CS?.league?.id || null;
+      const row = rows.find(r => lid && r.league_id === lid) || (rows.length === 1 ? rows[0] : null);
+      /* unnamed: when the golfer is in more than one league, the figure's own
+         label above already names this one ("Points in North Grove") */
+      if(row) return csRoundWorthKnown(known, row.cap, row.used, row.worst, null);
+    }
     const lines = csRoundWorthLines(rows, 'This round', holes, rows.length);
     return lines.length ? lines.join(' ') : null;
   }
@@ -32284,6 +32464,7 @@ function csComposerWorthLine(playedOn, capGiven){
   const counting = cap==null ? month : month.filter(r => r.month_rank!=null && r.month_rank <= cap);
   const used = counting.length;
   const worst = counting.length ? Math.min(...counting.map(r => Number(r.points))) : null;
+  if(known != null) return csRoundWorthKnown(known, cap, used, worst, null);
   return csRoundWorthLine('This round', cap, used, worst, null, holes);
 }
 window.csComposerWorthLine = csComposerWorthLine;
