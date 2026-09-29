@@ -118,7 +118,7 @@ struct DoorView: View {
     .csStatusCap(cs.bg0)
     .csToasts(toasts)
     .onAppear {
-      pending = PendingLink.doorLine()
+      pending = PendingLink.doorLine(deferringClaim: claimDeferred)
       #if DEBUG
       if let line = DoorDev.pendingLine { pending = line }
       #endif
@@ -414,12 +414,12 @@ struct DoorView: View {
     guard code.count >= 4 else { toasts.show("That does not look like a code."); return }
     JoinIntent.store(code)
     codeEntry = false
-    pending = PendingLink.doorLine()
+    pending = PendingLink.doorLine(deferringClaim: claimDeferred)
     focus = .email
     Task {
       if let n = ((try? await JoinService().leagueName(code)) ?? nil), !n.isEmpty {
         JoinIntent.store(code, name: n)
-        pending = PendingLink.doorLine()
+        pending = PendingLink.doorLine(deferringClaim: claimDeferred)
       }
     }
   }
