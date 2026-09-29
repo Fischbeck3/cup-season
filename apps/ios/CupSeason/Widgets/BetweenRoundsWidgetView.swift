@@ -51,7 +51,9 @@ struct BetweenRoundsWidgetView: View {
     switch kind {
     case .race:
       if let race = snapshot?.race?.value { raceView(race) }
-      else { empty("Your season takes shape here.", action: "Open your season") }
+      // N4-193 · a golfer with no season is told how the race arrives, not
+      // to "catch up" on one they do not have
+      else { empty("Start a season and the race lands here.", action: "Start a season") }
     case .nextTee:
       if let tee = snapshot?.nextTee?.value, date < tee.closesAt { teeView(tee) }
       else { empty("The next round is yours to make.", action: "Open your schedule") }
@@ -135,12 +137,16 @@ struct BetweenRoundsWidgetView: View {
       if let right { Spacer(minLength: 0); Text(right).csType(.agateS).lineLimit(1) }
     }.foregroundStyle(cs.mut)
   }
+  /// N4-193 · "catch up" is for a widget the app has never filled; once the
+  /// app has written a snapshot, a kind with nothing in it says its own empty
+  /// sentence (a brand-new golfer's race slice is always empty)
   private func empty(_ story: String, action: String) -> some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+    let neverFilled = snapshot == nil
+    return VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       head(kind.title)
-      Text(snapshot?.savedAt(for: kind) == nil ? "Open Cup Season to catch up." : story)
+      Text(neverFilled ? "Open Cup Season to catch up." : story)
         .csType(.story).lineLimit(3).minimumScaleFactor(0.85)
-      Text(snapshot?.savedAt(for: kind) == nil ? "Open to refresh" : action)
+      Text(neverFilled ? "Open to refresh" : action)
         .csType(.agate).foregroundStyle(cs.act)
     }
   }
@@ -178,7 +184,9 @@ struct BetweenRoundsWidgetView: View {
 
   private func teeView(_ tee: BetweenRoundsSnapshot.Tee) -> some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-      head(small ? kind.title : tee.dateLine, small || tee.status == "in" || tee.status == "out" ? nil : tee.response)
+      // N4-193 · one date (L-34): the medium tile's block is the date, so its
+      // head is the tile's name, not the date again
+      head(kind.title, small || tee.status == "in" || tee.status == "out" ? nil : tee.response)
       HStack(alignment: .center, spacing: CSTokens.Space.s3) {
         if !small {
           VStack(spacing: 0) {
