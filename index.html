@@ -384,6 +384,10 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
     position:sticky; top:0; height:100dvh;
     background:var(--bg0); border-right:var(--hair) solid var(--rule);
     padding:32px 20px 20px;
+    /* TEN / W6 · the rail scrolls in its own height: with 44px desk rows and
+       the ME strip's dated rows it is ~1000px tall, so on a 900 or 800px
+       laptop screen the foot (the viewer and the build) ran off the bottom */
+    overflow-y:auto; overscroll-behavior:contain;
   }
 }
 .brand{display:flex; align-items:center; padding:0 0 32px;}
