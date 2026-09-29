@@ -400,6 +400,26 @@ const toDevon = async (page) => {
   }
   await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-person' && !!document.getElementById('perOpenH2H'), null, 10000)
 }
+/* TEN / W7-044 [B2-golfers-3] · one golfer, one disc: the board and the
+   buddies list draw the same (pigment, glyph) pair, face() for both. The state
+   must show at least one golfer in both, or it proves nothing. */
+const oneDisc = async (page) => page.evaluate(() => {
+  const discOf = (el) => el && el.querySelector('.fc')
+  const board = new Map([...document.querySelectorAll('.fbrow[data-person]')].map((r) => [r.dataset.person, discOf(r)]))
+  const list = new Map([...document.querySelectorAll('.prow .pmk[data-tc]')].map((m) => [m.dataset.tc, m.querySelector('.fc') || m]))
+  const both = [...board.keys()].filter((id) => list.has(id) && board.get(id) && list.get(id))
+  if (!both.length) return 'no golfer is on both the board and the buddies list in this state'
+  const probe = document.createElement('span'); probe.style.background = 'var(--bg2)'; document.body.appendChild(probe)
+  const plain = getComputedStyle(probe).backgroundColor; probe.remove()
+  for (const id of both) {
+    const a = board.get(id), b = list.get(id)
+    if (a.querySelector('img.face') || b.querySelector('img.face')) continue
+    const ba = getComputedStyle(a).backgroundColor, bb = getComputedStyle(b).backgroundColor
+    if (ba !== bb) return `one golfer, two discs: ${ba} on the board, ${bb} in the list`
+    if (bb === plain) return 'the list’s disc is plain, not the golfer’s pigment'
+  }
+  return true
+})
 const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
@@ -429,7 +449,9 @@ const GOLFERS = [
       return /Finley Stubbs/.test(document.getElementById('crBud').innerText) ? true : 'the request I sent Finley is not listed'
     }),
     /* TEN / W6 · AW2-15: the form lens's note is a phrase, in sentence case (§1.3) */
-    readsAsWritten([['.fbnote', 'Vs playing HCP \u00b7 plus is better']])) },
+    readsAsWritten([['.fbnote', 'Vs playing HCP \u00b7 plus is better']]),
+    /* TEN / W7-044 [B2-golfers-3]: one golfer, one disc, on the board and in the buddies list */
+    oneDisc) },
   { family: 'golfers', id: 'list-empty', variant: 'brand_new', title: 'Golfers · nobody yet',
     drive: async (page) => { await toGolfers(page); await until(page, () => /No buddies yet/i.test((document.getElementById('glfRoot') || {}).innerText || '')); await page.waitForTimeout(300) },
     expect: { view: 'view-golfers', selectors: { '#glfRoot': 'text:No buddies yet' } },

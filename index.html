@@ -1892,6 +1892,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .fc.fmark .ic{width:20px; height:20px;}
 .fc.s22{width:22px; height:22px;} .fc.s28{width:28px; height:28px;} .fc.s32{width:32px; height:32px;}
 .fc.s36{width:36px; height:36px;} .fc.s44{width:44px; height:44px;} .fc.s56{width:56px; height:56px;}
+.fbrow .fc.s36{width:38px; height:38px;}   /* TEN / W7-044 · the board draws face() now, at its own 38px */
 .hffacew{display:flex; flex:none;}
 /* TEN · a buddy request (Home, under the lead; Golfers, the head block) is a
    row on the page's rule — face, the name in `social`, a sentence-case phrase
@@ -20597,7 +20598,12 @@ function face(pid, markerKey, size){
     const badge = s>=32 ? `<i class="fmk" aria-hidden="true">${mkSvg}</i>` : '';
     return `<span class="${cls}"><img class="face" src="${esc(u)}" alt="" loading="lazy">${badge}</span>`;
   }
-  return `<span class="${cls}">${mkSvg}</span>`;
+  /* TEN / W7-044 [B2-golfers-3] · one golfer, one disc: the marker on the
+     golfer's own FROZEN pigment (csPigment, the phone's FNV-1a), as the board
+     drew it by hand. The buddies list and every other face drew the same
+     golfer plain, so one page showed two discs for one person. */
+  const pig = pid ? window.csPigment?.(pid) : null;
+  return `<span class="${cls}"${pig ? ` style="background:${pig}"` : ''}>${mkSvg}</span>`;
 }
 function memberMarker(pid){
   const m = (window.CS?.members||[]).find(m => m.profile_id === pid);
@@ -30963,7 +30969,7 @@ async function renderFriendsBoard(){
       const word = lens === 'form' ? (csBoardBand(r) || (n ? '' : 'Nothing yet')) : '';
       return `<div class="fbrow${r.is_me ? ' mine' : ''} tap" tabindex="0" role="button" data-person="${esc(r.profile_id)}">
         <span class="rk">${String(rank(r)).padStart(2, '0')}</span>
-        <span class="fc" style="background:${window.csPigment?.(r.profile_id) || 'var(--pig0)'}">${window.mkr?.(r.marker || 'saguaro') || ''}</span>
+        ${window.face ? window.face(r.profile_id, r.marker, 38) : ''}
         <span class="fbn"><b>${esc(name)}</b><small>${esc(sub)}</small></span>
         <span class="fbv"><b>${esc(fig)}</b>${word ? `<small>${esc(word)}</small>` : ''}</span></div>`;
     }).join('')}
