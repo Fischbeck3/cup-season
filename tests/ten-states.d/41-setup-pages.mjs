@@ -65,7 +65,16 @@ const wizAt = async (page, step) => page.waitForFunction((step) => {
 const WIZARD = [
   { family: 'wizard', id: 'step-1-league', variant: 'pro_setup', title: 'Wizard · step 1 of 3, the league',
     drive: async (page) => { await wizAt(page, 0); await page.waitForTimeout(500) },
-    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 1 of 3', '#wizNext': 'visible' } } },
+    expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 1 of 3', '#wizNext': 'visible' } },
+    /* TEN / W6 · delta G6: the Pro row is a card, and "THE PRO" sat flush on
+       its right border (3324ae89 took the tag's own inset for Golfers' slats) */
+    check: async (page) => page.evaluate(() => {
+      const row = document.getElementById('commishChip'), tag = row && row.querySelector('.ptag'), mk = row && row.querySelector('.pmk')
+      if (!row || !tag || !mk) return 'the Pro row is missing'
+      const r = row.getBoundingClientRect(), t = tag.getBoundingClientRect(), m = mk.getBoundingClientRect()
+      const right = Math.round(r.right - t.right), left = Math.round(m.left - r.left)
+      return right >= 8 && left >= 8 ? true : `the Pro row's content touches its border: tag ${right}px from the right, marker ${left}px from the left`
+    }) },
   { family: 'wizard', id: 'step-2-rules', variant: 'pro_setup', title: 'Wizard · step 2 of 3, the rules',
     drive: async (page) => { await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1); await page.waitForTimeout(500) },
     expect: { view: 'view-wizard', selectors: { '#wizStepName': 'text:Step 2 of 3' } } },
@@ -102,7 +111,15 @@ const WIZARD = [
       await until(page, () => [...document.querySelectorAll('#wizDials .wizgrp-b')].every((b) => !b.hidden))
       await page.waitForTimeout(400)
     },
-    expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } } },
+    expect: { view: 'view-wizard', selectors: { '#wizDials': 'visible', '#capVal': 'visible', '#stakeVal': 'visible', '#lenVal': 'visible' } },
+    /* TEN / W6 · delta G6: a dial's value is one figure; at 375 and 402 the
+       narrowed column broke it ("Best / 4", "2 / / mo") */
+    check: async (page) => page.evaluate(() => {
+      const broken = [...document.querySelectorAll('#wizDials .setrow .val')].filter((v) => v.offsetParent !== null)
+        .filter((v) => { const cs = getComputedStyle(v), lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25; return v.getBoundingClientRect().height > lh * 1.5 })
+        .map((v) => JSON.stringify(v.textContent.trim()))
+      return broken.length ? `a dial value breaks across lines: ${broken.join(', ')}` : true
+    }) },
   { family: 'wizard', id: 'step-3-review', variant: 'pro_setup', title: 'Wizard · step 3 of 3, review and lock',
     drive: async (page) => {
       await wizAt(page, 0); await click(page, '#wizNext'); await wizAt(page, 1)

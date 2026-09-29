@@ -1702,7 +1702,7 @@ button.payer{cursor:pointer;}
 }
 .setrow .lab{font-size:13px; font-weight:600;}
 .setrow .lab small{display:block; font-family:var(--sans); font-size:13px; line-height:1.35; color:var(--mut); margin-top:2px;}   /* TEN / W6 · W5's needs-root 1: a setting's explanation is a sentence — sans, as W5 set it in the wizard — never mono (§1.4) */
-.setrow .val{font-family:var(--mono); font-size:15px; font-weight:600; min-width:72px; text-align:center; font-variant-numeric:tabular-nums;}
+.setrow .val{font-family:var(--mono); font-size:15px; font-weight:600; min-width:72px; text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap;}   /* TEN / W6 · delta G6: a value is one figure — at 375 the wizard's 52px column broke it ("Best / 4", "2 / / mo") */
 .setrow .ctl{display:flex; gap:2px; background:var(--bg2); border-radius:10px; border:1px solid var(--rule);}
 .setrow .ctl button{
   width:36px; height:34px; border:none; background:none; font-size:17px; font-weight:600;
@@ -2676,6 +2676,12 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 #view-wizard .eyebrow{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);}
 #view-wizard label.f{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);}
 #view-wizard .ptag{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);}
+/* TEN / W6 · delta G6: the Pro row is a CARD here (the first .prow rule's
+   ground, border and radius), but the later hairline-row .prow rule zeroes
+   its sides, and 3324ae89 took the tag's own right inset for Golfers' slats
+   — so "THE PRO" sat flush on the card's right border. The card keeps its
+   inset; the slats keep theirs. */
+#view-wizard #commishChip.prow{padding-left:var(--s3); padding-right:var(--s3);}
 /* a question takes a section's space above it — it sat 4px under the
    sentence before it */
 #view-wizard .eyebrow.wizq{margin-top:var(--s4);}
