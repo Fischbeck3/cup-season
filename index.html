@@ -1693,8 +1693,10 @@ button.payer{cursor:pointer;}
 /* TEN / W6 · TP-20 (detector P3): desk prose ran 81–148 characters a line at
    1280. At the desk width a paragraph keeps a reading measure of 60ch. A
    CENTRED paragraph centres its block too, or the measure would pull it off
-   its axis — several set their margin inline, so the centring must win. */
-@media(min-width:960px){
+   its axis — several set their margin inline, so the centring must win.
+   AW2-20 · and from the tablet width up: at 640–959 the phone column runs
+   608–927px edge to edge, and its prose ran the desk's long lines there. */
+@media(min-width:640px){
   p.fine, p.endgamefoot, .hocc > p, #optLive > p, #optPlan > p{max-width:60ch;}
   p.fine[style*="text-align:center"]{margin-left:auto !important; margin-right:auto !important;}
 }
@@ -4074,7 +4076,11 @@ body.noleague .league-only{display:none !important;}
 .rulesec{text-align:left; margin:0 0 14px;}
 .rulesec b{display:block; font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:3px;}   /* LV-17 · the agate role for a label (the craft panel: not 11px mono) */
 .rulesec{margin-bottom:var(--s4);}   /* the pairs breathe: they sat tight under the head */
-.rulesec p{margin:0; font-size:13.5px; line-height:1.6; color:var(--ink); max-width:70ch;}   /* ~90 characters a line on the desk (the craft panel) */
+.rulesec p{margin:0; font-size:13.5px; line-height:1.6; color:var(--ink); max-width:70ch;}
+/* AW2-20 · from the tablet width up the rules read at the body size, at most
+   ~72 characters a line: 13.5px at 70ch ran ~90 on the desk (the craft panel,
+   then the round-2 audit) and at 768. A phone's column is its own measure. */
+@media(min-width:640px){ .rulesec p{font-size:15px; line-height:1.55; max-width:56ch;} }
 /* THE PRINT SHEET. The web's own job (R-C): a season a golfer can put on
    paper in February. The chrome, every control and every composer go; the
    story, the table and the rules stay, and the aside falls in beneath the
