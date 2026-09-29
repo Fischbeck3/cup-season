@@ -241,6 +241,7 @@ import Foundation
     let c = Career.compute(rows: [], ranked: [], preferredSeason: nil, played: 0)
     #expect(c.bestText == "—" && c.avgText == "—" && c.roundsText == "0")
     #expect(c.figureScope == YouCopy.noCountingRounds)              // Y-28: the dash says why
+    #expect(YouCopy.noCountingRounds == "Best and average start once a round is scored in a season.")   // W7-053
     #expect(c.form == nil)
   }
 

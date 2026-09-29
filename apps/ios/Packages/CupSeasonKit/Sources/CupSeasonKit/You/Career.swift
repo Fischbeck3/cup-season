@@ -154,7 +154,9 @@ public enum YouCopy {
   /// rounds" said nothing about how many, so a best and an average that were
   /// one round twice read as two measurements.
   public static func acrossCounting(_ n: Int) -> String { "across \(n) round\(n == 1 ? " that counts" : "s that count")" }
-  public static let noCountingRounds = "No rounds count yet"
+  /// W7-053 · what the dashes are waiting for, in C's words: "No rounds
+  /// count yet" read as a verdict on the golfer's rounds
+  public static let noCountingRounds = "Best and average start once a round is scored in a season."
   /// D131/D208 · the tile that counts leagues and events
   public static let leaguesAndEvents = "Seasons & matches"
   public static let playedIn = "Played in"
