@@ -107,7 +107,7 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
 
   @Test func onlyAKnownEighteenClaimsIt() {
     let id = UUID()
-    let r = row(id, golfer: "Jade", gross: 43, pvi: 1.2, playedOn: "2026-08-27", sub80: true)
+    let r = row(id, golfer: "Casey", gross: 43, pvi: 1.2, playedOn: "2026-08-27", sub80: true)
     #expect(!HomeWireCopy.claimsSub80(r, holes: 9))
     #expect(!HomeWireCopy.claimsSub80(r, holes: nil))
     #expect(HomeWireCopy.claimsSub80(r, holes: 18))
@@ -122,7 +122,7 @@ private func row(_ id: UUID = UUID(), me: Bool = false, golfer: String? = "Diego
   @Test func theDigestNeverSaysANineBrokeEighty() {
     let mark = now.addingTimeInterval(-3600)
     let nine = UUID()
-    let rounds = [row(nine, golfer: "Jade", gross: 43, playedOn: "2026-08-27", createdAt: now.addingTimeInterval(-600), sub80: true),
+    let rounds = [row(nine, golfer: "Casey", gross: 43, playedOn: "2026-08-27", createdAt: now.addingTimeInterval(-600), sub80: true),
                   row(golfer: "Diego", playedOn: "2026-08-27", createdAt: now.addingTimeInterval(-600))]
     for holes in [KnownHoles([nine: 9]), .none] {
       let d = HomeDigest.make(rounds: rounds, posts: [], mark: mark, holes: holes, now: now)!
