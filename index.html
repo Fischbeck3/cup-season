@@ -781,9 +781,11 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .sb-key .sb-key-hint{flex-basis:100%;}
 .sb-matrix th button{text-align:left; white-space:normal; font:14px var(--sans);}
 .sb-matrix strong{display:block; font:20px var(--board); padding-top:var(--s1);}
-/* the leader's total is the one gold figure (§9.1: gold for the leader, the
-   position earned); the reader's own row says so in words, never by colour */
-.sb-matrix strong.sb-lead,.sb-totals strong.sb-lead{color:var(--gold);}
+/* the leader's total is INK, the phone's twin (SeasonBook, N4 W5). §9.1 draws
+   the leader's gold on the rank rail's field, the position, and §2.4 spends
+   gold only on what was won: a points total in a running season is a sum, not
+   a win. The reader's own row says so in words, never by colour. */
+.sb-matrix strong.sb-lead,.sb-totals strong.sb-lead{color:var(--ink);}
 .sb-you{font-weight:700; color:var(--ink);}
 .sb-totals button,.sb-adjustment{display:block; text-align:left; width:100%; border:0!important; border-bottom:1px solid var(--rule)!important; background:none!important;}
 .sb-totals strong{float:right; font:32px var(--board);}
