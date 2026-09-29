@@ -2374,7 +2374,7 @@ table.hcard tr.ledrow td.nm{color:var(--mut); font-family:var(--mono); font-size
   background:var(--bg1); border-radius:var(--r);
   padding:12px 14px; margin-bottom:12px;
 }
-.scoreboard .sb-hero{font-family:var(--board); font-size:17px; font-weight:700; letter-spacing:calc(var(--caps) * 1em);}   /* W1 · the game's state in the board face, not mono */
+.scoreboard .sb-hero{font-family:var(--board); font-size:17px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); text-transform:uppercase;}   /* TEN / W6 · OB2-02: the board's display voice sets its caps; the words are typed as said */   /* W1 · the game's state in the board face, not mono */
 .scoreboard .sb-chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
 .scoreboard .sbchip{
   display:flex; align-items:center; gap:6px; background:var(--bg2);
@@ -2493,24 +2493,25 @@ body.guestlive #onboard{display:none !important;}
 /* UI_SYSTEM §0.3 · the 3.5pt spine left the card edge: the game is named by
    its own eyebrow (.gk), and a live settlement says "live" in words */
 .gamecard .gk{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
-.gamecard .gs{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); margin-top:6px;}
+.gamecard .gs{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); margin-top:6px; text-transform:uppercase;}   /* TEN / W6 · OB2-02: the card's state line is the board's display voice; its caps are the role's */
 .gamecard .gm{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-top:4px; line-height:1.35;}   /* TEN / W6 · DX2 OB2-02: a game card's meta line is an agate label, and its caps are the role's */
 .gamecard .gs[hidden] + .gm{margin-top:var(--s2);}   /* AW2-16 · the hero says the state; who and the terms stay two statements */
 .wolfbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
 .wolfbtns button{
   flex:1; min-width:72px; border:1px solid var(--rule); background:var(--bg2);
   border-radius:9px; padding:9px 6px; font-family:var(--board); font-size:12px; min-height:44px;   /* W1 · board label, 44 (§16.2) */
-  font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); cursor:pointer;
+  font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); cursor:pointer; text-transform:uppercase;   /* OB2-02 · an agate label; the caps are the role's */
 }
 .wolfbtns button.on{color:var(--bg0); background:var(--brand); border-color:var(--brand);}
 .wolfbtns button:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 .wolftally{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:12px;}
 .wolftally .wt{background:var(--bg2); border:1px solid var(--rule); border-radius:9px; padding:8px 4px; text-align:center;}
 .wolftally .wt b{display:block; font-family:var(--board); font-size:20px; font-weight:700; font-variant-numeric:tabular-nums;}   /* W1 · a figure in the figure face */
-.wolftally .wt span{font-family:var(--board); font-size:11px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em);}
+.wolftally .wt span{font-family:var(--board); font-size:11px; font-weight:600; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}   /* OB2-02 · agateS, caps by role */
 .settle .srow{
   display:flex; justify-content:space-between; gap:12px; font-family:var(--board); font-size:12px; font-weight:600;
   letter-spacing:calc(var(--agate) * 1em); color:var(--mut); padding:8px 2px; border-top:1px solid var(--rule);   /* W1 · names in the board face, not mono */
+  text-transform:uppercase;   /* OB2-02 · an agate label: the caps are the role's, the words are typed as said */
 }
 .settle .srow:first-child{border-top:none;}
 .settle .srow b{color:var(--ink); font-size:15px; font-weight:700; letter-spacing:0; font-variant-numeric:tabular-nums;}
@@ -6828,19 +6829,19 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                    line (D85 — renderScoreboard reads it from here), sticky at every
                    width and kept on the stuck face. The card says who is playing
                    and on what terms; the hero says who is winning. -->
-              <div class="gs" id="matchStatus" hidden>ALL SQUARE</div>
-              <div class="gm" id="matchMeta">THRU 0 · STROKES OFF LOW MAN (DANNY)</div>
+              <div class="gs" id="matchStatus" hidden>All square</div>
+              <div class="gm" id="matchMeta">Thru 0 · strokes off low man (Danny)</div>
             </div>
             <div class="gamecard" id="wolfCard" style="--acc:var(--gold)">
               <div class="gk">Wolf · lone wolf plays for 3</div>
-              <div class="gs" id="wolfWho">CHUCK IS THE WOLF</div>
+              <div class="gs" id="wolfWho">Chuck is the wolf</div>
               <div class="gm" id="wolfMeta"></div>
               <div class="wolfbtns" id="wolfBtns"></div>
               <div class="wolftally" id="wolfTally"></div>
             </div>
             <div class="gamecard" id="skinsCard" style="--acc:var(--gold)">
               <div class="gk">Skins · ties carry the pot</div>
-              <div class="gs" id="skinsStatus">HOLE 1 WORTH 1 SKIN</div>
+              <div class="gs" id="skinsStatus">Hole 1 worth 1 skin</div>
               <div class="gm" id="skinsMeta"></div>
               <div class="wolftally" id="skinsTally"></div>
             </div>
@@ -9344,11 +9345,12 @@ function buildRealSeries(WKS){
 function climbCut(meta){
   /* {K, line} — how many advance and what the cut line is called */
   if(meta){
-    if(meta.finish==='points_table') return {K:1, line:'CROWN LINE'};
-    if(meta.level==='squad' && meta.structure==='squads2') return {K:1, line:'TOP SEED · +10', seed:true};
-    return {K:meta.k||2, line:'CUT LINE'};
+    /* TEN / W6 · OB2-02 · the cut's words are typed as said; `.climb-cut` sets the caps */
+    if(meta.finish==='points_table') return {K:1, line:'Crown line'};
+    if(meta.level==='squad' && meta.structure==='squads2') return {K:1, line:'Top seed · +10', seed:true};
+    return {K:meta.k||2, line:'Cut line'};
   }
-  return {K:2, line:'CUT LINE'};   /* demo / pre-scenarios: matches the standings cutrow */
+  return {K:2, line:'Cut line'};   /* demo / pre-scenarios: matches the standings cutrow */
 }
 /* `Cut · top two play the Cup Final` — the phone's `SeasonBoardCopy.cut(k:)`,
    word for word, with the seat count spelled (L-33). One sentence, two
@@ -9489,16 +9491,16 @@ function renderClimb(){
   if(meIdx>=0){ show.add(meIdx-1); show.add(meIdx); show.add(meIdx+1); }
   const idxs=[...show].filter(i=>i>=0 && i<n).sort((a,b)=>a-b);
   const shown=new Set(idxs);
-  const stakeTxt = cut.line==='CROWN LINE' ? 'the crown'
-                 : cut.line==='CUP LINE'   ? 'the last cup spot'
+  const stakeTxt = cut.line==='Crown line' ? 'the crown'
+                 : cut.line==='Cup line'   ? 'the last cup spot'
                  : 'the top seed';
   let html='', cutDrawn=false, prev=-1;
   /* the cut's own words, and where you stand against it */
   const cutLabel=()=>{
     let lb=cut.line;
     if(me){
-      if(meIdx<K){ const cush=me.pts-(teams[K]?teams[K].pts:0); lb=`${cut.line} · ${cush} CLEAR`; }
-      else { const need=(teams[K-1]?teams[K-1].pts:0)-me.pts; lb=`${cut.line} · ${need>0?need+' BACK':'LEVEL'}`; }
+      if(meIdx<K){ const cush=me.pts-(teams[K]?teams[K].pts:0); lb=`${cut.line} · ${cush} clear`; }
+      else { const need=(teams[K-1]?teams[K-1].pts:0)-me.pts; lb=`${cut.line} · ${need>0?need+' back':'level'}`; }
     }
     return lb;
   };
@@ -17154,7 +17156,7 @@ function settleRows(pts, val){
   const v = val!=null ? val : WOLF_VAL;
   if(!(v>0)) return '<div class="srow"><span>WOLF POINTS — NO MONEY ON IT</span><b>$0</b></div>';
   const rows=settleTransfers(pts, v).map(t=>
-    `<div class="srow"><span>${esc(t.from).toUpperCase()} PAYS ${esc(t.to).toUpperCase()}</span><b>$${t.amt}</b></div>`);
+    `<div class="srow"><span>${esc(t.from)} pays ${esc(t.to)}</span><b>$${t.amt}</b></div>`);   /* OB2-02 · typed as said; .settle .srow sets the caps */
   return rows.length?rows.join(''):'<div class="srow"><span>ALL SQUARE</span><b>$0</b></div>';
 }
 
@@ -17392,18 +17394,20 @@ function renderPlay(){
     const thru=Math.min(...pairs.map(p=>p.played));
     $('#matchTeams').textContent='Match play \u00b7 round robin \u00b7 everyone for themselves';
     const order=[...rec.keys()].sort((a,b)=>(rec[b].w-rec[b].l)-(rec[a].w-rec[a].l));
-    $('#matchStatus').textContent=order.map(i=>`${(LIVE[i]?.n||'').toUpperCase()} ${rec[i].w}-${rec[i].l}${rec[i].h?`-${rec[i].h}`:''}`).join(' \u00b7 ');
-    $('#matchMeta').textContent=`THRU ${thru} \u00b7 6 MATCHES \u00b7 STROKES OFF LOW MAN`
-      + (state.live.stake>0?` \u00b7 $${state.live.stake} A MATCH`:'')
-      + (SIEST?' \u00b7 EST. CARD':'');
+    /* TEN / W6 · OB2-02 (root's §1.3 ruling) · every game-card line is typed as
+       said; `.gs` and `.gm` set the caps (the board's display voice, the agate label) */
+    $('#matchStatus').textContent=order.map(i=>`${LIVE[i]?.n||''} ${rec[i].w}-${rec[i].l}${rec[i].h?`-${rec[i].h}`:''}`).join(' \u00b7 ');
+    $('#matchMeta').textContent=`Thru ${thru} \u00b7 6 matches \u00b7 strokes off low man`
+      + (state.live.stake>0?` \u00b7 $${state.live.stake} a match`:'')
+      + (SIEST?' \u00b7 est. card':'');
   }
   else if(state.live.game==='match'){
   /* teams read MTEAMS \u2014 the CHOSEN pairing \u2014 never slot order (the status line
      names the winner from these, so slot order announced the wrong side) */
-  const teamA=MTEAMS[0].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ').toUpperCase();
-  const teamB=MTEAMS[1].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ').toUpperCase();
+  const teamA=MTEAMS[0].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ');
+  const teamB=MTEAMS[1].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ');
   const _li=(typeof CHS!=='undefined'&&CHS&&CHS.length)?CHS.indexOf(LOWCH):-1;
-  const lowMan=(_li>=0?String(LIVE[_li]?.n||''):'').toUpperCase();
+  const lowMan=(_li>=0?String(LIVE[_li]?.n||''):'');
   const _side=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' + ');
   $('#matchTeams').textContent = LIVE.length===2
     ? `Match play \u00b7 singles \u00b7 ${LIVE[0]?.n||''} vs ${LIVE[1]?.n||''}`
@@ -17411,11 +17415,11 @@ function renderPlay(){
   const m=matchCalc();
   const _dormie = !m.closed && m.a!==m.b && Math.abs(m.a-m.b)===liveHoles()-m.played;
   $('#matchStatus').textContent = m.closed
-    ? `${m.closed.winner===0?teamA:teamB} WIN ${m.closed.lead}&${m.closed.rem}`
-    : (m.a===m.b?'ALL SQUARE':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} UP${_dormie?' · DORMIE':''}`);
-  $('#matchMeta').textContent=`THRU ${m.played} · STROKES OFF LOW MAN (${lowMan})`
-    + (state.live.stake>0?` · $${state.live.stake} A SIDE`:'')
-    + (SIEST?' · EST. CARD':'');
+    ? `${m.closed.winner===0?teamA:teamB} win ${m.closed.lead}&${m.closed.rem}`
+    : (m.a===m.b?'All square':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} up${_dormie?' · dormie':''}`);
+  $('#matchMeta').textContent=`Thru ${m.played} · strokes off low man (${lowMan})`
+    + (state.live.stake>0?` · $${state.live.stake} a side`:'')
+    + (SIEST?' · est. card':'');
 
   }
 
@@ -17424,17 +17428,17 @@ function renderPlay(){
     const m=sunnSoloCalc(), unit=state.live.stake||0;
     $('#matchTeams').textContent='Sunningdale Rules · everyone for themselves';
     const order=[...m.wins.keys()].sort((a,b)=>m.wins[b]-m.wins[a]);
-    $('#matchStatus').textContent=order.map(i=>`${(LIVE[i]?.n||'').toUpperCase()} ${m.wins[i]}`).join(' · ');
-    const sTxt=m.strokes.map((s,i)=>s>0?`${(LIVE[i]?.n||'').toUpperCase()} +${s}`:null).filter(Boolean).join(', ');
-    const bTxt=m.bank.units===0?'BANK EMPTY'
-      :`BANK: ${(LIVE[m.bank.owner]?.n||'').toUpperCase()}${unit>0?` $${m.bank.units*unit} · EACH OWES`:` ${m.bank.units} UNIT${m.bank.units===1?'':'S'}`}`;
-    $('#matchMeta').textContent=`THRU ${m.played} · NO HANDICAPS${sTxt?` · ${sTxt} NEXT`:''} · ${bTxt}`;
+    $('#matchStatus').textContent=order.map(i=>`${LIVE[i]?.n||''} ${m.wins[i]}`).join(' · ');
+    const sTxt=m.strokes.map((s,i)=>s>0?`${LIVE[i]?.n||''} +${s}`:null).filter(Boolean).join(', ');
+    const bTxt=m.bank.units===0?'bank empty'
+      :`bank: ${LIVE[m.bank.owner]?.n||''}${unit>0?` $${m.bank.units*unit} · each owes`:` ${m.bank.units} unit${m.bank.units===1?'':'s'}`}`;
+    $('#matchMeta').textContent=`Thru ${m.played} · no handicaps${sTxt?` · ${sTxt} next`:''} · ${bTxt}`;
   }
   else
   /* D74: Sunningdale shares the match card — same shape, different law. The
      meta line always names the bank's holder and what's coming. */
   if(state.live.game==='sunningdale'){
-    const nmOf=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ').toUpperCase();
+    const nmOf=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' & ');
     const teamA=nmOf(0), teamB=nmOf(1);
     const sideStr=t=>MTEAMS[t].map(i=>LIVE[i]?.n).filter(Boolean).join(' + ');   /* the CHOSEN pairing, never slot order */
     $('#matchTeams').textContent = LIVE.length===2
@@ -17442,46 +17446,46 @@ function renderPlay(){
       : `Sunningdale Rules · 2v2 best ball · ${sideStr(0)} vs ${sideStr(1)}`;
     const m=sunnCalc();
     $('#matchStatus').textContent = m.closed
-      ? `${m.closed.winner===0?teamA:teamB} WIN ${m.closed.lead}&${m.closed.rem}`
-      : (m.a===m.b?'ALL SQUARE':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} UP`);
+      ? `${m.closed.winner===0?teamA:teamB} win ${m.closed.lead}&${m.closed.rem}`
+      : (m.a===m.b?'All square':`${m.a>m.b?teamA:teamB} ${Math.abs(m.a-m.b)} up`);
     const unit=state.live.stake||0;
-    const sTxt = m.strokes[0]>0 ? ` · ${teamA} GET ${m.strokes[0]} NEXT`
-               : m.strokes[1]>0 ? ` · ${teamB} GET ${m.strokes[1]} NEXT` : '';
-    const bTxt = m.bank===0 ? ' · BANK EMPTY'
-      : ` · BANK: ${m.bank>0?teamA:teamB}${unit>0?` $${Math.abs(m.bank)*unit}`:` ${Math.abs(m.bank)} UNIT${Math.abs(m.bank)===1?'':'S'}`}`;
-    $('#matchMeta').textContent=`THRU ${m.played} · NO HANDICAPS${sTxt}${bTxt}`;
+    const sTxt = m.strokes[0]>0 ? ` · ${teamA} get ${m.strokes[0]} next`
+               : m.strokes[1]>0 ? ` · ${teamB} get ${m.strokes[1]} next` : '';
+    const bTxt = m.bank===0 ? ' · bank empty'
+      : ` · bank: ${m.bank>0?teamA:teamB}${unit>0?` $${Math.abs(m.bank)*unit}`:` ${Math.abs(m.bank)} unit${Math.abs(m.bank)===1?'':'s'}`}`;
+    $('#matchMeta').textContent=`Thru ${m.played} · no handicaps${sTxt}${bTxt}`;
   }
 
   if(state.live.game==='wolf' && LIVE.length===4){
   const wolfIdx=wolfAt(h);
   const comeback = h>=liveHoles()-2;
-  $('#wolfWho').textContent=(LIVE[wolfIdx]?.n||'').toUpperCase()+' IS THE WOLF'+(comeback?' · COMEBACK':'');
+  $('#wolfWho').textContent=(LIVE[wolfIdx]?.n||'')+' is the wolf'+(comeback?' · comeback':'');
   /* tee order: rotation shifted so the wolf watches every drive (tees last) */
   const wm=$('#wolfMeta');
   if(wm){
     const ord=wolfOrderNow();
     const k=ord.indexOf(wolfIdx);
-    const tees=(k>=0?ord.slice(k+1).concat(ord.slice(0,k+1)):ord).map(p=>(LIVE[p]?.n||'').toUpperCase());
-    wm.textContent='TEES: '+tees.join(' · ')+(state.live.stake>0?` · $${state.live.stake}/PT`:' · WOLF POINTS');
+    const tees=(k>=0?ord.slice(k+1).concat(ord.slice(0,k+1)):ord).map(p=>(LIVE[p]?.n||''));
+    wm.textContent='Tees: '+tees.join(' · ')+(state.live.stake>0?` · $${state.live.stake}/pt`:' · wolf points');
   }
   const wb=$('#wolfBtns'); wb.innerHTML='';
   const pick=state.live.wolf[h];
   [0,1,2,3].filter(p=>p!==wolfIdx).forEach(p=>{
     const b=document.createElement('button');
-    b.textContent='+ '+(LIVE[p]?.n||'').toUpperCase();
+    b.textContent='+ '+(LIVE[p]?.n||'');
     if(pick&&pick.mode==='partner'&&pick.partner===p)b.classList.add('on');
     b.addEventListener('click',()=>{state.live.wolf[h]={mode:'partner',partner:p};liveMarkWolf(h);renderPlay();});
     wb.appendChild(b);
   });
   const lone=document.createElement('button');
-  lone.textContent='LONE WOLF';
+  lone.textContent='Lone wolf';
   if(pick&&pick.mode==='lone')lone.classList.add('on');
   lone.addEventListener('click',()=>{state.live.wolf[h]={mode:'lone'};liveMarkWolf(h);renderPlay();});
   wb.appendChild(lone);
   if(pick){
     /* catch-up/undo (batch-3 #16): any hole's call is re-enterable */
     const clr=document.createElement('button');
-    clr.textContent='CLEAR';
+    clr.textContent='Clear';
     clr.addEventListener('click',()=>{state.live.wolf[h]=null;liveMarkWolf(h);renderPlay();});
     wb.appendChild(clr);
   }
@@ -17491,7 +17495,7 @@ function renderPlay(){
   LIVE.forEach((p,pi)=>{
     const d=document.createElement('div'); d.className='wt';
     const v=pts[pi];
-    d.innerHTML=`<b style="color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--mut)'}">${v>0?'+':''}${v}</b><span>${esc(p.n).toUpperCase()}</span>`;
+    d.innerHTML=`<b style="color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--mut)'}">${v>0?'+':''}${v}</b><span>${esc(p.n)}</span>`;
     wt.appendChild(d);
   });
 
@@ -17502,8 +17506,8 @@ function renderPlay(){
     const sk=skinsCalc();
     const ss=$('#skinsStatus'), sm=$('#skinsMeta');
     if(ss) ss.textContent = sk.thru>=liveHoles()
-      ? (sk.carry>1?`DONE · ${sk.carry-1} SKIN${sk.carry===2?'':'S'} NEVER CLAIMED`:'DONE · EVERY SKIN CLAIMED')
-      : `HOLE ${sk.thru+1} WORTH ${sk.carry} SKIN${sk.carry===1?'':'S'}`;
+      ? (sk.carry>1?`Done · ${sk.carry-1} skin${sk.carry===2?'':'s'} never claimed`:'Done · every skin claimed')
+      : `Hole ${sk.thru+1} worth ${sk.carry} skin${sk.carry===1?'':'s'}`;
     /* OB2-02 · typed as said; `.gamecard .gm` sets the caps */
     if(sm) sm.textContent = `Thru ${sk.thru} · low net takes it`
       + (state.live.stake>0?` · $${state.live.stake}/skin`:' · no money on it');
@@ -17516,7 +17520,7 @@ function renderPlay(){
       LIVE.forEach((p,pi)=>{
         const d=document.createElement('div'); d.className='wt';
         /* W1 · a count of skins is ink (pos is a signed gain); none is mut */
-        d.innerHTML=`<b style="color:${sk.won[pi]>0?'var(--ink)':'var(--mut)'}">${sk.won[pi]}</b><span>${esc(p.n).toUpperCase()}</span>`;
+        d.innerHTML=`<b style="color:${sk.won[pi]>0?'var(--ink)':'var(--mut)'}">${sk.won[pi]}</b><span>${esc(p.n)}</span>`;
         st.appendChild(d);
       });
     }
@@ -17593,23 +17597,23 @@ function renderScoreboard(){
   else if(g==='wolf' && LIVE.length===4){
     const pts=wolfPoints();
     heroTxt=[...pts.keys()].sort((a,b)=>pts[b]-pts[a])
-      .map(i=>`${fn1(LIVE[i]?.n||'').toUpperCase()} ${_sbPm(pts[i])}`).join(' · ');
+      .map(i=>`${fn1(LIVE[i]?.n||'')} ${_sbPm(pts[i])}`).join(' · ');   /* OB2-02 · .sb-hero sets the caps */
   }
   else if(g==='skins' && LIVE.length>=2){
     const sk=skinsCalc();
-    const won=LIVE.map((p,i)=>({n:fn1(p.n).toUpperCase(),w:sk.won[i]})).filter(x=>x.w>0)
+    const won=LIVE.map((p,i)=>({n:fn1(p.n),w:sk.won[i]})).filter(x=>x.w>0)
       .sort((a,b)=>b.w-a.w).map(x=>`${x.n} ${x.w}`).join(' · ');
-    heroTxt = won || 'NO SKINS CLAIMED YET';
-    if(sk.thru<liveHoles() && sk.carry>1) heroTxt += ` · ${sk.carry} CARRIED OVER`;
+    heroTxt = won || 'No skins claimed yet';
+    if(sk.thru<liveHoles() && sk.carry>1) heroTxt += ` · ${sk.carry} carried over`;
   }
   else {
     const rows=LIVE.map((p,i)=>({p,i,s:netParThru(i)})).filter(x=>x.s.thru>0);
-    if(!rows.length) heroTxt='ALL TO PLAY';
+    if(!rows.length) heroTxt='All to play';
     else{
       rows.sort((a,b)=>a.s.net-b.s.net);
       const tie=rows.length>1 && rows[1].s.net===rows[0].s.net;
-      heroTxt = tie ? `ALL SQUARE THRU ${Math.min(...rows.map(x=>x.s.thru))}`
-        : `${fn1(rows[0].p.n).toUpperCase()} LEADS · ${_sbPm(rows[0].s.net)} NET THRU ${rows[0].s.thru}`;
+      heroTxt = tie ? `All square thru ${Math.min(...rows.map(x=>x.s.thru))}`
+        : `${fn1(rows[0].p.n)} leads · ${_sbPm(rows[0].s.net)} net thru ${rows[0].s.thru}`;
     }
   }
   hero.textContent=heroTxt||'—';
@@ -28116,8 +28120,8 @@ function renderPhase(){
   }
   const hd=$('#hubDraftSub');
   if(hd) hd.textContent = state.structure==='solo' ? 'Solo — everyone for themselves'
-    : p==='setup' ? 'OPENS WHEN THE SEASON STARTS'
-    : p==='draft' ? 'SQUADS DRAWING'
+    : p==='setup' ? 'Opens when the season starts'   /* OB2-02 · a phrase, as its siblings */
+    : p==='draft' ? 'Squads drawing'
     : 'Complete · squads are set';
   /* D386 · only when someone is waiting, and only for the Pro: say so, and a link
      to seat them in the roster. Otherwise the row stays exactly as it was. */
@@ -29250,7 +29254,7 @@ function renderLeagueMeta(){
     const proName = pro?.profile?.display_name
       || (window.CS.member?.role==='commissioner' ? CS.profile?.display_name : null)
       || '—';
-    $('#hhPro').textContent='THE PRO · '+proName.toUpperCase();
+    $('#hhPro').textContent='The Pro · '+proName;   /* OB2-02 · typed as said; `.seasondate` sets the caps */
     /* the escape hatch: a league that never went live can be scrapped by the
        Pro — setup, squad formation, or at the starter. Server re-validates. */
     const dz=$('#hhDanger');

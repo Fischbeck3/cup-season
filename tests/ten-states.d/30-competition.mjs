@@ -180,6 +180,8 @@ const SEASON = [
         return cs.borderBottomWidth === '2px' && cs.borderBottomColor === act ? true : `the story link has no 2px act rule under it (${cs.borderBottomWidth} ${cs.borderBottomColor})`
       }),
       has('#seasonLead', 'Fixture (Javelinas|Wrens)', 'the story line'), datelineOk,
+      /* TEN / W6 · OB2-02: the dateline's Pro and the climb's cut label are typed as said, their caps the roles' (the cut is drawn below the desk) */
+      capsFromRole(['#hhPro', '#climb .climb-cut .lb'], ['#hhPro', { sel: '#climb .climb-cut .lb', below: 960 }]),
       async (page) => page.evaluate(() => window.seasonStory && window.seasonStory.season && window.seasonStory.season.id === 'f4000000-0000-4000-8000-000000000011' ? true : 'season_story did not answer for North Grove')) },
   { family: 'season', id: 'leaderboard', variant: 'member', title: 'The season page, the table: two squads, the clash, every golfer', fullPage: false,
     prepare: async (W) => dropInventedMoment(W),

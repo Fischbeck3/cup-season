@@ -323,8 +323,10 @@ export default [
       noRetiredGlyph(),
       async (page) => {
         const t = await page.evaluate(() => [document.getElementById('sbHero')?.textContent || '', document.getElementById('matchStatus')?.textContent || ''])
-        return t[0] && t[0] === t[1] && /UP|SQUARE|WIN/.test(t[0]) ? true : 'the hero does not carry the match state: ' + JSON.stringify(t)
+        return t[0] && t[0] === t[1] && /\b(up|square|win)\b/i.test(t[0]) ? true : 'the hero does not carry the match state: ' + JSON.stringify(t)
       },
+      /* TEN / W6 · OB2-02 (root's §1.3 ruling): the card's meta line and the scoreboard hero are typed as said, their caps the roles' */
+      capsFromRole(['#matchMeta', '#sbHero'], ['#matchMeta', '#sbHero']),
       /* TEN / W7-056 [A2-play-9]: a Next hole in the thumb zone, under the last golfer's row (this state rests at the page top,
          so the check's click and its restore leave the capture as it was) */
       nextHoleFoot) },
@@ -346,7 +348,25 @@ export default [
     expect: { view: 'view-play', selectors: { '#skinsCard': 'visible', '#skinsStatus': 'visible' } },
     check: all(scoredCheck(5), async (page) => { const f = await liveFacts(page); return f.game === 'skins' ? true : 'the game is ' + f.game },
       /* TEN / W6 · DX2 OB2-02: the meta line's caps are its role's, not typed into the string */
-      capsFromRole(['#skinsMeta'], ['#skinsMeta'])) },
+      capsFromRole(['#skinsMeta', '#skinsStatus', '#skinsTally .wt span', '#sbHero'], ['#skinsMeta', '#skinsStatus', '#skinsTally .wt span', '#sbHero'])) },
+
+  /* TEN / W6 · OB2-02 (root's §1.3 ruling) · Wolf, four golfers, through three: the card's state line ("Devon is the wolf"), its
+     tee order, the partner buttons and the tally are typed as said, and the roles set their caps */
+  { family: 'play', id: 'wolf-scoring', variant: 'member', title: 'Live round · Wolf, four golfers, through three',
+    drive: async (page) => {
+      await toSetup(page)
+      await pickCourse(page, 'Mesquite', 'Mesquite Wash', 'Black')
+      await addGolfers(page, ['Devon Testwell', 'Blake Sample', 'Casey Placeholder'])
+      await click(page, '#gameSeg [data-g="wolf"]')
+      await teeOff(page)
+      await scoreHoles(page, 3, 4)
+      await toastGone(page)
+      await page.evaluate(() => window.scrollTo(0, 0))
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-play', selectors: { '#wolfCard': 'visible', '#wolfWho': 'text:is the wolf' } },
+    check: all(scoredCheck(3),
+      capsFromRole(['#wolfWho', '#wolfMeta', '#wolfBtns button', '#wolfTally .wt span', '#sbHero'], ['#wolfWho', '#wolfMeta', '#wolfBtns button', '#wolfTally .wt span', '#sbHero'])) },
 
   /* the nine is scored through the last hole; Finish opens the one-finish
      sheet for the group (opened, not yet posted) */
