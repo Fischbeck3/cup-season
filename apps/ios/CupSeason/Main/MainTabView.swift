@@ -257,7 +257,7 @@ enum GolfersRoute: Hashable { case person(UUID), headToHead(UUID) }
 /// focused (Y-30) — the You hero's "add your GHIN" lands on the field, not the screen.
 /// `.people` retired: Golfers is a tab (D222).
 /// `.record` is D232's second head, promoted from a section to a destination.
-enum YouRoute: Hashable { case settings, addGhin, record }
+enum YouRoute: Hashable { case settings, addGhin, record, notifications }
 
 /// Wave 4 · COURSES, on whichever stack asked for it. It is one case rather
 /// than a `Bool` so the path can carry it, and it is not folded into the four
@@ -289,7 +289,16 @@ private struct OpenGolfersKey: EnvironmentKey {
 private struct OpenPersonKey: EnvironmentKey {
   static let defaultValue: @MainActor @Sendable (UUID) -> Void = { _ in }
 }
+/// TEN / W6 · "open Settings at its Notifications", from any screen: the
+/// inbox's one door to the switches it no longer carries (W2, owner C).
+private struct OpenSettingsKey: EnvironmentKey {
+  static let defaultValue: @MainActor @Sendable () -> Void = {}
+}
 extension EnvironmentValues {
+  var openSettings: @MainActor @Sendable () -> Void {
+    get { self[OpenSettingsKey.self] }
+    set { self[OpenSettingsKey.self] = newValue }
+  }
   var openCompetition: @MainActor @Sendable (UUID, SeasonPane) -> Void {
     get { self[OpenCompetitionKey.self] }
     set { self[OpenCompetitionKey.self] = newValue }
@@ -523,6 +532,11 @@ struct MainTabView: View {
           }
           .navigationDestination(for: CourseSheetRef.self) { c in
             CourseScreen(courseId: c.id, label: c.label)
+            // TEN / W6 · the Settings pane, whose first section is Notifications
+            case .notifications: CardAndSettingsScreen(settings: true)
+              #if DEBUG
+              .csScreenMark("settings")
+              #endif
               #if DEBUG
               .csScreenMark("course")
               #endif
@@ -566,6 +580,11 @@ struct MainTabView: View {
         presenter.showLive = true
       } catch { /* An old activity must never open a different round. */ }
     }
+    .environment(\.openSettings, {
+      tab = .you
+      youPath = NavigationPath()
+      youPath.append(YouRoute.notifications)
+    })
     // D241 / D253 · spend a pending person or plan token. It is drained HERE,
     // not in `onOpenURL`, because a link tapped on a phone with no session has
     // to survive the whole door — email, code, golfer card — and a buddy
