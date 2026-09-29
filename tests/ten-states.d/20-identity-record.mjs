@@ -125,6 +125,13 @@ const receiptActions = async (page) => page.evaluate(() => {
   if (getComputedStyle(row).borderTopWidth !== '1px') return 'the delete row is not under a rule'
   return del.classList.contains('del') ? true : 'the delete button lost its destructive class'
 })
+/* TEN / W8 · W7-126 [B2-competition-8] · a live season's line on the record says where the golfer stands and no second state word: 'In play' is the finish column's word, so the line does not end 'in season' */
+const liveLine = async (page) => page.evaluate(() => {
+  const rec = document.getElementById('lgRec')
+  if (!rec) return 'no league record'
+  if (/in season/i.test(rec.textContent)) return `the record's live line still says 'in season': ${JSON.stringify(rec.textContent.replace(/\s+/g, ' ').trim().slice(0, 140))}`
+  return /In play/i.test(rec.textContent) ? true : 'the record has no live season to read'
+})
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
   { family: 'you', id: 'empty', variant: 'brand_new', title: 'You · a new golfer: carded, no rounds',
@@ -148,7 +155,7 @@ const YOU = [
   { family: 'you', id: 'populated', variant: 'member', title: 'You · a member of two leagues with eight rounds',
     drive: youSettled('some'), expect: { view: 'view-stats', selectors: { '#youName': 'text:^Avery Fixture$', '#clR': 'text:^8$', '#youRecent [data-rcpt-i]': 'visible' } },
     /* TEN / W6 · AW2-06: a bag slot's name is a label, never mono */
-    check: all(recordState('some'), youIndex(5), youBuilding('many'), youFormGrammar(''), notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
+    check: all(recordState('some'), youIndex(5), youBuilding('many'), youFormGrammar(''), liveLine, notMono(['.bagrow .bslot'], ['.bagrow .bslot']),
       /* TEN / W6 · AW2-15: a recent round's line is a phrase, in sentence case (§1.3) */
       readsAsWritten([['#youRecent .yrow small', '^[A-Z][a-z]+ \\d+ \u00b7 [^A-Z]*vs your playing HCP', true]]),
       /* TEN / W6 · AW2-08: the bag's move controls are drawn marks, never ↑ ↓ ⇄ ✕ */
