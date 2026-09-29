@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Measured at** | the round-1 evidence: web `9d84c483` (captures at `02636007` and `9d84c483`) and native `4112a3f0`. Source and canon were read at `de3eaf35`, and the web's current behaviour at `4a703402` wherever a lane changed it. |
-| **Status read at** | **`4a703402`**. Lanes W2, W3, W4 and W5 are merged; W1 and W6 (session B) are not. |
+| **Status read at** | **`8aaab412`**. Lanes W1–W5 are merged; W6 (session B) is not. |
 | **Date** | 2026-09-28 |
 | **Assessors** | The owner rules; this memo, by session C (docs), only recommends. The evidence behind it: the panel's **category**, **craft** and **owner** judges, critiques **A** and **B**, audit **AW** and detector **DX**, plus the questions lanes W2–W5, session B and N2 forwarded through root. Four read-only research passes gathered the canon; none of them scored anything. |
 | **Raw evidence (outside git)** | `~/cup-season-claude-ten-gallery/evidence/` (`panel/`, `critique-A/`, `critique-B/`, `audit-web/`, `detector/`, `SESSIONS.md` §C) and root's messages of 2026-09-28 |
@@ -144,7 +144,11 @@ These block work in flight or define the gate.
 - **The diorama.**
   - Demo mode is the boot default for every visitor (`state.demo:true`). The diorama paints behind the Door, and no user path turns it on (D83 retired them).
   - It is still reachable in production in three ways (code-read, not tested against production):
-    1. `?cs_home_state=<anything>`: the D259 hatch's boot lifts the Door whenever the query key is present. Its own comment says it "cannot exist in production" because its fixture fetch 404s there, but the Door lift does not wait for the fetch (`index.html` near `:20827` at `4a703402`).
+    1. `?cs_home_state=<anything>`: the D259 hatch's boot lifts the Door whenever the query key is present. Its own comment says it "cannot exist in production" because its fixture fetch 404s there, but the Door lift does not wait for the fetch.
+       - Found by session C, read from the code.
+       - Root confirmed it on a prod-like server (no `tests/`): `cf401dee` lifted the Door.
+       - Root's fix lifts the Door only when the fixture is actually served, and otherwise keeps it up with the shell inert. It was not yet committed at `8aaab412`.
+       - **The exposure is live on cupseason.app until the ship.**
     2. The up-to-3s window while a returning session's Door waits hidden (69f40d1f). Unverified.
     3. View-source: `index.html` ships whole.
   - The keyboard path behind the Door is closed: covers make the app inert (38471687).
@@ -178,7 +182,7 @@ These block work in flight or define the gate.
 - **(4) Minimal: fix only what a real user sees.** The placeholders, the feedback line and the wings' courses on both clients; leave the unreachable diorama.
 
 **Two defects under every option:**
-- Gate the `?cs_home_state` hatch to localhost, or to a fixture that actually loaded, before it lifts the Door (D259; client only).
+- Gate the `?cs_home_state` hatch so it lifts the Door only when its fixture is served (D259; client only). Root is making this fix (above).
 - Replace the pilot golfers' first names wherever a user or a capture can see them (PRODUCT.md).
 
 **Recommendation: (1), with the feedback line left to the owner's taste.**
@@ -187,7 +191,7 @@ These block work in flight or define the gate.
 - The synthetic cast already exists on both clients' harnesses, so this is a data swap, not a design change.
 - Whether feedback "goes straight to" the owner by name is a voice choice, not a privacy defect, since the owner chose to be the product's contact. Keep it if the owner wants it, or name the role ("the founder").
 - Scrubbing git history is out of scope.
-- **Root should also know:** the LEDGER's own X37 line prints the owner's handle in the public repo.
+- Root has since taken the handle out of the LEDGER's X37 line. The handle was already public in `index.html` for weeks as the old placeholder, so git history is not being rewritten.
 
 **Blocked until ruled:** the diorama's data on the web; the phone's placeholders and fixtures; N2's rule entering canon; the TERMINOLOGY row whose ruled example carries a real surname.
 
@@ -1021,9 +1025,10 @@ These need the owner's hands, not a ruling.
   - It is CQ-04 and a category P1.
 - **Human proof.** HUMAN.md's gates are NOT RUN: G1–G4 need three people who have never opened Cup Season, on their own phones, and D1–D13 are the owner's device checks, including finishing a live round (D12) and the album's retry (D13). No capture or test can pass them.
 - **Pushes and deploys.** Nothing after `cf401dee` is pushed (SESSIONS §0). Every web push, `db push`, functions deploy and TestFlight upload waits on the owner's yes to root.
-- **Two defects found while writing this memo, for root.**
-  - The `?cs_home_state` hatch lifts the Door on any host (X37). This is code-read at `4a703402` and was not tested against production. It is client-only.
-  - The LEDGER's own X37 line prints the owner's handle in the public repo. The ledger is root's file.
+- **Two defects found while writing this memo.**
+  - The `?cs_home_state` hatch lifts the Door on any host (X37). Found by C from the code; root confirmed it on a prod-like server (`cf401dee` lifted the Door). Root's fix keeps the Door up with the shell inert unless the hatch's fixture is served; it was not committed at `8aaab412`. The exposure is live on cupseason.app until the ship. It is client-only.
+  - The LEDGER's X37 line printed the owner's handle. Root has removed it; history is not rewritten, since the handle had been public in `index.html` as the old placeholder.
+- **B's held migration, `d30f1ecb`.** Home's invitation says "See the terms before you're in", by patching `home_dispatch` in migration `20261211094500_the_terms_before_youre_in.sql`. It is proven on the disposable cluster and held off main. **Owner action:** take `d30f1ecb` from `claude/ten-w6-shared-2026-09-28` and `supabase db push` when you want it.
 - **The clash lead's sentence** (`home_dispatch`, `20261006093000:243`) hides who holds the week. Root lists it as database owed, and it rides with Q10.
 
 ## E · Recorded by root, with no question
