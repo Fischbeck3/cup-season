@@ -695,9 +695,11 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .sb-matrix button{border:0; background:transparent; width:100%; min-width:64px; min-height:64px; font:24px var(--board); white-space:nowrap;}
 /* F11 · the status marks are a record note beside the figure, not digits of it */
 .sb-matrix .sb-marks{display:inline-block; margin-left:var(--s1); font:600 11px/1 var(--board); letter-spacing:.06em; color:var(--mut); transform:translateY(-.7em);}
-.sb-key{margin:var(--s2) 0 var(--s2);}
+.sb-key{margin:var(--s2) 0 var(--s2); display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--s1) var(--s4);}
 /* a mark and its meaning never part at a line end */
 .sb-key .sb-key-i{white-space:nowrap;}
+.sb-key .sb-key-i b{font-family:var(--board);}
+.sb-key .sb-key-hint{flex-basis:100%;}
 .sb-matrix th button{text-align:left; white-space:normal; font:14px var(--sans);}
 .sb-matrix strong{display:block; font:20px var(--board); padding-top:var(--s1);}
 /* the leader's total is the one gold figure (§9.1: gold for the leader, the
@@ -20562,13 +20564,18 @@ function csSeasonBookBody(b,selection){
   /* W5 · the leader's total is the one gold figure (§9.1), and the reader's
      own row says "You" — a mark in words, never colour alone (§16.4) */
   const standingOf=r=>[r.mine?'You':null,SeasonBook.standing(r)].filter(Boolean).join(' · ');
-  const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${esc(r.name)}<small${r.mine?' class="sb-you"':''}>${esc(standingOf(r))}</small><strong${r.points_rank===1?' class="sb-lead"':''}>${csBookNum(r.points)} pts</strong></button>`;
+  /* a name breaks at its spaces, never at its own hyphen ("Stand-" / "In"):
+     the pinned column is narrow on a phone, and a name wraps whole */
+  const nameOf=r=>esc(r.name).replace(/-/g,'\u2011');
+  const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${nameOf(r)}<small${r.mine?' class="sb-you"':''}>${esc(standingOf(r))}</small><strong${r.points_rank===1?' class="sb-lead"':''}>${csBookNum(r.points)} pts</strong></button>`;
   if(!prominent || mode==='Race'){
     if(mode==='Race')h+=csSeasonBookRace(b,rows,follow,selection.width);
     h+='<div class="sb-totals">'+rows.map(rowButton).join('')+'</div>';
   }else{
     /* F11 · the key sits ABOVE the grid, beside the Display control that changes what a cell holds; below a long table it was out of the first view */
-    if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span> · <span class="sb-key-i"><b>D</b> Dropped</span> · <span class="sb-key-i"><b>B</b> Bye</span> · <span class="sb-key-i"><b>*</b> Adjustment</span> · <span class="sb-key-i">• Future week</span>. Select a cell for its rounds and adjustments.</p>';
+    /* W5 · the key is a legend strip: each mark beside its word, never split
+       across a line end, and the one instruction on its own line under it */
+    if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span><span class="sb-key-i"><b>D</b> Dropped</span><span class="sb-key-i"><b>B</b> Bye</span><span class="sb-key-i"><b>*</b> Adjustment</span><span class="sb-key-i">• Future week</span><span class="sb-key-hint">Select a cell for its rounds and adjustments.</span></p>';
     h+=`<div class="sb-matrix-wrap"><div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" data-week="${w.week}" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}${live&&w.week===b.current_week?', this week':''}" class="${live&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
     h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td${live&&c.week===b.current_week?' class="sb-now"':''}><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div></div>';
   }
