@@ -11713,7 +11713,7 @@ function floorSentence(o){
   const pen = ['', `your squad loses ${mk(5)} points for every round you're short`,
                    "the month's rounds are struck"][pre] || '';
   if(!pen) return `Post ${rounds}. Nothing is docked if you miss — it's a habit, not a penalty.`;
-  return `Post ${rounds}. Miss once and your season bye covers it automatically; from the second miss ${pen}. Short months are waived.`;
+  return `Post ${rounds}. Miss once and your season bye covers it automatically; from the second miss ${pen}. A partial first or last month has no minimum.`;   /* W7-093 · says WHICH months: close_month waives both edge months (is_partial), and 'Short months' was never defined on any page */
 }
 function vsPhrase(vs){
   vs=Number(vs);

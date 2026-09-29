@@ -415,6 +415,10 @@
     state.structure = 'solo';
     window.openScoringHelp();
     const so = ((document.querySelector('#sheet') || {}).textContent || '').replace(/\s+/g, ' ');
+    /* W7-093 [A2-rules-2] · the floor sentence names WHICH months are waived (the edge months close_month waives), not 'Short months', which no page defines */
+    t('W7-093: floorSentence ends on the edge months and never says "Short months"',
+      [floorSentence({ floor:2, preset:1, structure:'squads2' }), /Short months/.test(floorSentence({ floor:2, preset:1, structure:'squads2' }))],
+      ['Post 2 rounds a month. Miss once and your season bye covers it automatically; from the second miss your squad loses 5 points for every round you\'re short. A partial first or last month has no minimum.', false]);
     /* TEN / W6 · with a league in hand the minimum is `floorSentence`'s, the
        one producer Home, the pot and the rules print (E's twin: GuideCopy →
        LeagueCopy.floorSentence) — for a solo league, "…a habit, not a penalty". */
