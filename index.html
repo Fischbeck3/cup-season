@@ -1153,13 +1153,6 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .rivrec.up{color:var(--pos);} .rivrec.dn{color:var(--mut);} .rivrec.ev{color:var(--mut);}
 #youRivals .prow.tap{cursor:pointer;}
 [data-tc]{cursor:pointer;}
-/* D150 · the shared-course line. It sits directly under the credential because
-   it is the reason you opened a stranger's card at all. Gold rule, not a filled
-   card: it is a fact about the two of you, not another stat block. */
-.cboth{margin:10px 0 0; padding:9px 12px; border-left:2px solid var(--gold);
-  background:color-mix(in srgb, var(--gold) 7%, transparent); border-radius:0 8px 8px 0;}
-.cboth b{display:block; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--gold);}
-.cboth small{display:block; margin-top:2px; color:var(--ink); font-size:13px; line-height:1.45;}
 
 /* ============ standings table ============ */
 .tbl{width:100%; border-collapse:collapse;}
@@ -29824,13 +29817,12 @@ async function openTourCard(profileId){
   /* D150 · the two questions the card could not answer. `shared` leads, because
      "you have both played Papago" is the reason two strangers start talking —
      the courses list underneath is the evidence for it. Only PICKED courses
-     appear: a free-typed round has no identity and makes no claim. */
+     appear: a free-typed round has no identity and makes no claim. It is a
+     sentence in body text, the one the golfer's page prints (csBothPlayed) and
+     the phone's CredentialCopy.overlap: shared courses are not a won thing, so
+     no gold (UI_SYSTEM §2.4), and a fact about the two of you needs no panel. */
   let shrHtml='';
-  if(shr.length){
-    const names = shr.slice(0,3).map(x=>esc(x.name)).join(' · ');
-    const more = shr.length>3 ? ` +${shr.length-3} more` : '';
-    shrHtml = `<div class="cboth"><b>You've both played</b><small>${names}${more}</small></div>`;
-  }
+  if(shr.length) shrHtml = `<p class="cstatus">${esc(csBothPlayed(shr))}</p>`;
   let crsHtml='';
   if(crs.length){
     const shrKeys = new Set(shr.map(x=>x.name));
