@@ -5062,7 +5062,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
    separator never starts or ends a line (critique B). Agate, not tracked mono. */
 .finish-eyebrow{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--ceremony-mut); overflow-wrap:anywhere;}
 .finish-eyebrow span{display:block; text-wrap:balance;}
-.finish-eyebrow .dt{margin-top:4px;}
+.finish-eyebrow .dt, .finish-eyebrow .tee{margin-top:4px;}   /* W7-059 · the tee under the course, as the date */
 .gross-slot{position:relative; margin-top:18px;}
 /* §1.4 · a number is never the serif: the gross is the figure role, as it is
    on the card it becomes (craft T) */
@@ -13013,7 +13013,14 @@ function finishCeremony(o){
   const dt=(o.date instanceof Date && !isNaN(o.date)) ? o.date : new Date();
   /* two lines by design: the course wraps whole, the day under it (the agate
      role sets the caps; the words stay words) */
-  $('#finEyebrow').innerHTML=`<span class="crs">${esc(String(o.course||'A round'))}</span><span class="dt">${DW[dt.getDay()]} ${MO[dt.getMonth()]} ${dt.getDate()}</span>`;
+  /* TEN / W7-059 [A2-share-6] · no line begins or ends on the separator. The
+     label is "course · tee" (the tee picker's), one inline flow, so a long
+     course broke after its dot ("…COUNTRY CLUB ·" over the tee). The tee is its
+     own block now, under the course, the way the date already sits under it; a
+     course with no tee draws as before. The exported card is untouched. */
+  { const label = String(o.course||'A round'), cut = label.lastIndexOf(' \u00b7 ');
+    const crs = cut > 0 ? label.slice(0, cut) : label, tee = cut > 0 ? label.slice(cut + 3) : '';
+    $('#finEyebrow').innerHTML=`<span class="crs">${esc(crs)}</span>${tee ? `<span class="tee">${esc(tee)}</span>` : ''}<span class="dt">${DW[dt.getDay()]} ${MO[dt.getMonth()]} ${dt.getDate()}</span>`; }
   $('#finGross').textContent=(o.gross!=null?o.gross:'');
   /* the band line reuses the app's one phrase producer — never re-derived.
      Gate on a SANE vs: a rating-less post recalcs to a nonsense differential

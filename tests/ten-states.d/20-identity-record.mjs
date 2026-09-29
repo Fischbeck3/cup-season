@@ -539,6 +539,13 @@ const COMPOSER = [
    it -- that PNG is the artifact. The harness saves it beside the capture. */
 /* the photo variant draws a synthetic "FIXTURE PHOTO" in the page and hands
    it to the composer's own file input -- never a real photograph */
+/* TEN / W7-059 [A2-share-6] · no line of the ceremony's eyebrow begins or ends on the separator: the tee is its own block */
+const eyebrowNoDangle = async (page) => page.evaluate(() => {
+  const crs = document.querySelector('#finEyebrow .crs'), tee = document.querySelector('#finEyebrow .tee')
+  if (!crs) return 'no course in the ceremony'
+  if (/·\s*$/.test(crs.textContent) || /^\s*·/.test((tee || {}).textContent || '')) return 'a line of the eyebrow ends or begins on the separator'
+  return tee ? true : 'the tee did not take its own block'
+})
 function shareState(id, title, card, extra = {}) {
   return {
     family: 'share', id, variant: 'member', fullPage: false, title,
@@ -604,7 +611,9 @@ function shareState(id, title, card, extra = {}) {
         if (hit !== 'finish') return `the backdrop probe did not land on the ceremony's field: ${hit}`
         await page.mouse.click(6, 6)
         await page.waitForTimeout(300)
-        return page.evaluate(() => document.getElementById('finish').classList.contains('open') ? true : 'a tap on the empty field ended the ceremony')
+        const open = await page.evaluate(() => document.getElementById('finish').classList.contains('open') ? true : 'a tap on the empty field ended the ceremony')
+        /* TEN / W7-059 [A2-share-6] · the eyebrow never starts or ends a line on its separator */
+        return open !== true ? open : eyebrowNoDangle(page)
       })
     },
     ...extra,
