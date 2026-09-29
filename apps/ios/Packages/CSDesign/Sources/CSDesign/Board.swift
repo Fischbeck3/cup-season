@@ -890,7 +890,8 @@ public struct CSSeasonCalendar: View {
   let weeks: Int
   let played: Int
   /// Zero-based index of the live week. **Negative means nothing is live** —
-  /// a complete season's ticks are all `mut`, because nothing is running.
+  /// a complete season's ticks are all played, and none is `brand`, because
+  /// nothing is running.
   let now: Int
   let months: [Month]
 
@@ -964,19 +965,26 @@ public struct CSSeasonCalendar: View {
     }
   }
 
-  /// The ticks of one month. **Played `mut` · now `brand` and 12pt tall ·
-  /// ahead `rule`** — the live cell grows UPWARD from a shared baseline, so
-  /// the row reads as a clock rather than as a bar with a bite out of it.
+  /// The ticks of one month. **Played `ink` · now `brand` and 12pt tall ·
+  /// ahead `mut`** (N4-104: the fill said `mut` over `rule`, the pair the doc
+  /// above measured at 2.66:1 and 2.30:1) — the live cell grows UPWARD from a
+  /// shared baseline, so the row reads as a clock rather than as a bar with a
+  /// bite out of it.
   private func ticks(from first: Int, count: Int) -> some View {
     HStack(alignment: .bottom, spacing: CSTokens.Space.s1) {
       ForEach(0..<max(0, count), id: \.self) { k in
         let i = first + k
         Rectangle()
-          .fill(i == now ? cs.brand : (i < played ? cs.mut : cs.rule))
+          .fill(CSSeasonCalendar.tick(i, now: now, played: played, in: cs))
           .frame(maxWidth: 20)
           .frame(height: i == now ? 12 : 8)
       }
     }
+  }
+
+  /// one week's tone: played `ink`, the live week `brand`, ahead `mut`
+  static func tick(_ i: Int, now: Int, played: Int, in cs: CSPalette) -> Color {
+    i == now ? cs.brand : (i < played ? cs.ink : cs.mut)
   }
 
   @ViewBuilder private func label(_ m: Month, wraps: Bool = false) -> some View {
