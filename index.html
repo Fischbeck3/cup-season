@@ -29496,6 +29496,7 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('click', (e) => {
   if(!e.target.closest('#youGuide')) return;
   const row = e.target.closest('[data-guide]'); if(!row) return;
+  if(window.csSheetGuard?.() === false) return;   /* W7-042 · a guide replaces the sheet: a pending card edit is asked about first */
   const k = row.dataset.guide;
   /* D178 · there is ONE #sheet on this page, and openSheet overwrites its
      title, sub and body with no stack and no back control. Before D177 these
@@ -31065,7 +31066,7 @@ window.openPeoplePicker = openPeoplePicker;
    after openSheet, so pasted innerHTML would come back dead). */
 /* L-26 · delegated once, so the hub's code door works however often the sheet redraws */
 document.addEventListener('click', e => {
-  if(e.target && e.target.id === 'phJoin'){ if(typeof closeSheet === 'function') closeSheet(); window.openJoinSheet?.(); }
+  if(e.target && e.target.id === 'phJoin'){ if(window.csSheetGuard?.() === false) return; if(typeof closeSheet === 'function') closeSheet(); window.openJoinSheet?.(); }
 });
 /* A SETTING IS A SWITCH (W2 2026-09-28): a row, its name on the left and its
    state on the right, `role="switch"` + `aria-checked` — the phone's Toggle
@@ -31080,8 +31081,9 @@ function phSwitchSet(el, on){ if(el) el.setAttribute('aria-checked', on ? 'true'
    the phone (CardAndSettingsScreen): the words and the photographs go and the
    shared links stop, the rounds stay so nobody else's table breaks. The web's
    sentence named one photo and said nothing of posts, comments or links. */
-/* W7-042 · what the card says when it is dismissed with edits pending (the phone's twin owes the same words) */
-const CS_CARD_UNSAVED = 'You have unsaved changes. Save them, or close again to leave without saving.';
+/* W7-042 · what the card says when it is left with edits pending (the phone's twin owes the same words). ONE sentence for every way out
+   (the ×, the backdrop, Escape, and the doors that replace the sheet), so what to do to leave is always the same: do that again. */
+const CS_CARD_UNSAVED = 'You have unsaved changes. Save them, or do that again to leave without saving.';
 const CS_DELETE_ACCOUNT = 'This can\u2019t be undone. Your name, email and profile are removed, your posts and comments are cleared, your shared links stop working, and your photos are queued for removal. Notifications stop and your login is closed for good. Rounds you\u2019ve posted stay in the record so nobody else\u2019s standings or pot break \u2014 you\u2019ll just show as \u201cFormer member\u201d.';
 function openProfileHub(){
   if(!CS.profile){ toast('Demo golfer: sign in to build your own card'); return; }
@@ -31128,7 +31130,7 @@ function openProfileHub(){
     <label class="f" for="phGhin" style="display:block; margin-top:8px">GHIN # · optional</label>
     <input class="f" id="phGhin" inputmode="numeric" placeholder="e.g. 1234567" style="font-family:var(--sans); max-width:180px">
     <p class="fine" style="padding-left:0">A reference on your card — we never resell or verify it. Leave it blank if you'd rather not.</p>
-    <button class="mini" id="phSave" style="margin-top:10px">Save card</button>
+    <button class="mini" id="phSave" aria-describedby="phStatus" style="margin-top:10px">Save card</button>
     <span class="fine" id="phStatus" role="status"></span>
 
     <!-- AW2-02 (round 2, WCAG 4.1.2): the field is named by its eyebrow, and
@@ -31258,21 +31260,24 @@ function openProfileHub(){
   phPaint();
   /* dirty-state: any card change arms Save (delegates survive the marker grid
      re-render); photo add/remove save instantly and never arm */
-  const phArm = () => { const b=$('#phSave');
+  let told = false;   /* W7-042 · the guard below has said its sentence for the edits so far */
+  const phArm = () => { const b=$('#phSave'); told = false;
     if(b && !b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Save changes'; } };
   ['phName','phCity','phHome','phGhin','phHandle'].forEach(id=>$('#'+id)?.addEventListener('input', phArm));
   /* W7-042 · Findable-by saves on the tap (set_discoverable) and says so under the row (#phDiscSaid), so it
      never arms 'Save changes': it was arming a save for a change that had already been saved */
   $('#phMarkers')?.addEventListener('click', phArm);
-  /* W7-042 · and an armed card is not dropped by a tap outside: the first dismissal keeps the sheet open,
-     puts focus on Save and says why; a second within four seconds (csArmTap's window) leaves without
-     saving. The phone's sheet drops the edits silently too (CardAndSettingsScreen keeps vm.dirty only to
-     relabel Save), so it owes the same guard. */
-  let leaveAsked = 0;
+  /* W7-042 · and an armed card is not dropped by a way out. The first one keeps the sheet open, brings the golfer to the card (its edits and
+     Save are there: a golfer on Settings is switched back to it), puts focus on Save and says why; the same move again leaves without saving.
+     The ways out are the × / the backdrop / Escape (dismissSheet) and the doors that REPLACE the sheet — the scoring note, a guide row, Tell
+     us, I have a code, Sign out — each of which starts with `csSheetGuard() === false`. It asks ONCE per pending edit: a further edit asks
+     again, and a golfer who has been told is not timed out. The phone's sheet drops the edits silently too (CardAndSettingsScreen keeps
+     vm.dirty only to relabel Save), so it owes the same guard. */
   window.csSheetGuard = () => {
     const b = $('#phSave');
-    if(!b || !b.classList.contains('armed') || Date.now() - leaveAsked < 4000) return true;
-    leaveAsked = Date.now();
+    if(!b || !b.classList.contains('armed') || told) return true;
+    told = true;
+    if($('#phPaneCard').style.display === 'none') $('#phSeg [data-ph="card"]')?.click();
     b.focus();
     const st = $('#phStatus'); st.textContent = CS_CARD_UNSAVED; st.style.color = '';
     st.scrollIntoView({ block:'nearest' });   /* the line sits after the last field, below the fold of a golfer who edited the name */
@@ -31380,9 +31385,10 @@ function openProfileHub(){
     }
     finally { btn.disabled = false; }
   });
-  $('#phScoreHelp')?.addEventListener('click', (e)=>{ e.preventDefault(); window.openScoringHelp?.(); });
+  $('#phScoreHelp')?.addEventListener('click', (e)=>{ e.preventDefault(); if(window.csSheetGuard?.() === false) return; window.openScoringHelp?.(); });
 
   $('#phOut').addEventListener('click', async () => {
+    if(window.csSheetGuard?.() === false) return;   /* W7-042 · a pending card edit is not dropped by the reload */
     /* scope:'local' — a global signOut revokes every refresh token this golfer
        holds, so leaving the web tab would silently sign them out of the phone
        too, and getting back in costs an OTP against a project-wide cap. Sign
@@ -31425,7 +31431,7 @@ function openProfileHub(){
     }
   });
   /* the feedback door moved here from You (owner H) — the same handler */
-  $('#phFeedback')?.addEventListener('click', () => { closeSheet(); window.openFeedback?.(); });
+  $('#phFeedback')?.addEventListener('click', () => { if(window.csSheetGuard?.() === false) return; closeSheet(); window.openFeedback?.(); });
 
   /* FINDABLE BY SAYS WHAT IT IS (owner R, critique-B P2): the chosen option is
      the chosen pill with aria-pressed — as X19 made the marker and the
