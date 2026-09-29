@@ -21634,7 +21634,10 @@ function csMeStrip(){
     /* F-17 · datum over noun. The value carried a word ("$75 YOU" over "STILL
        OWE"), so the pair read as a split sentence where its three neighbours
        read as figures. `MeStripCopy.moneySlot` is the phone's twin. */
-    slots.push({ fact:'my_money', label:'YOU STILL OWE', value:fmt$(stake), go:'pot' });
+    /* TEN / W6 · PAR-04 · "YOU OWE", the phone's label (MeStripCopy.moneySlot):
+       Non-negotiable 8 names three money words — YOU OWE / YOU'RE OWED / THE
+       POT — and "still" rides the sentence, not the label. */
+    slots.push({ fact:'my_money', label:'YOU OWE', value:fmt$(stake), go:'pot' });
   }
 
   return { slots, seasonRow: csMeSeasonRow(), suppress: slots.map(s => s.fact) };
