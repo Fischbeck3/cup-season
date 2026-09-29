@@ -2880,6 +2880,17 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 @media(min-width:960px){
   #seasonBody .homegrid{display:block;}
 }
+/* W7-029 [A2-season-3] (2 of 4) · NO CARD ANYWHERE ON THE SEASON PAGE (UI_SYSTEM §15.4; §3.1: a container only as panel, leaf or
+   object, none inside another; LINT-08). The climb was a card (#climb's wrapper) holding a card per rung: a bordered, filled,
+   rounded box inside a bordered, filled, rounded box. The wrapper is no box, and a rung is §9.1's slat: a hairline above, s3 above
+   and below, no fill, no radius, no edge but the rule. YOUR rung is marked by weight and an ink rule above it, never gold (the
+   owner's panel) — it was an ink edge around a box. Scoped to the season page; the phone draws no climb (CS-21). */
+#view-hub .homegrid > div > .card{background:none; border:0; padding:0; box-shadow:none;
+  border-radius:0;}
+#view-hub .climb-rung{background:none; border:0; border-top:1px solid var(--rule); padding:var(--s3) 0; margin:0;
+  border-radius:0;}
+#view-hub .climb-rung.me{border-top-color:var(--ink);}
+#view-hub .climb-rung:last-child{border-bottom:1px solid var(--rule);}
 /* printing the season is a desk act; on a phone the button was one more row
    of chrome between the story and the pot (the craft panel) */
 @media(max-width:959px){ #seasonPrint{display:none;} }

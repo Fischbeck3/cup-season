@@ -21,7 +21,7 @@
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readFileSync } from 'node:fs'
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast, headGap, deskMenuIs, goldOnly, noBoxes } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -214,6 +214,8 @@ const SEASON = [
       headGap(['#climbEyebrow', '#standingsEyebrow']),
       /* TEN / W8 · W7-029 [A2-season-3] (1 of 4): gold on the season page is the leader's rail field and the pot's figure, and nothing else */
       goldOnly('#view-hub', ['tr.lead td.rk', '#potAmt']),
+      /* (2 of 4): the climb is no card and its rungs are slats */
+      noBoxes(['#view-hub .homegrid > div > .card', '#view-hub .climb-rung']),
       /* TEN / W8 · W7-023 [B2-desk-9]: the individual board carries Last five inside the row at the desk (D280), and not below it */
       async (page) => page.evaluate(() => {
         const th = document.querySelector('#indTable th.deskonly'), rows = [...document.querySelectorAll('#indTable tr[data-ri]')]

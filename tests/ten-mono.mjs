@@ -397,3 +397,19 @@ export const goldOnly = (root, allowed) => async (page) => page.evaluate(([root,
   }
   return bad.length ? `gold is spent past the leader's rail and the pot (§15.4): ${bad.slice(0, 5).join('; ')}` : true
 }, [root, allowed])
+
+/* TEN / W8 · W7-029 · UI_SYSTEM §3.1 and §15.4: no card on the season page — a row is a slat (a hairline, no box), and no container
+ * sits inside another. `noBoxes(sels)` fails the capture when a visible element a selector names is a BOXED surface: a fill, a radius,
+ * or an edge on all four sides. A selector that matches nothing drawn is not a failure (the desk hides what the phone draws). */
+export const noBoxes = (sels) => async (page) => page.evaluate((sels) => {
+  const shown = (el) => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.display !== 'none' }
+  const bad = []
+  for (const sel of sels) for (const el of document.querySelectorAll(sel)) {
+    if (!shown(el)) continue
+    const cs = getComputedStyle(el)
+    const fill = cs.backgroundColor !== 'rgba(0, 0, 0, 0)', radius = parseFloat(cs.borderTopLeftRadius) > 0
+    const edged = ['Top', 'Right', 'Bottom', 'Left'].every((s) => parseFloat(cs[`border${s}Width`]) > 0 && cs[`border${s}Style`] !== 'none')
+    if (fill || radius || edged) bad.push(`${sel}${fill ? ' fill' : ''}${radius ? ' radius' : ''}${edged ? ' boxed' : ''}`)
+  }
+  return bad.length ? `a card on the season page (§15.4): ${[...new Set(bad)].slice(0, 5).join('; ')}` : true
+}, sels)
