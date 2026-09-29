@@ -2943,6 +2943,11 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 #view-hub #feedList .sysrow.opens{padding-right:var(--s5);}
 #view-hub #feedList .sysrow.opens::after{right:0; color:var(--mut);}
 #view-hub #feedList .annrow.pin{background:var(--bg0);}
+/* the feed scrolls in its own height and had the card's edge to say so; it wears the scrollers' edge now (csBookEdge's data-more), as the desk's asides do */
+#feedList[data-more]{
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
+  mask-image:linear-gradient(to bottom,#000 calc(100% - 36px),transparent);
+}
 /* printing the season is a desk act; on a phone the button was one more row
    of chrome between the story and the pot (the craft panel) */
 @media(max-width:959px){ #seasonPrint{display:none;} }
@@ -22983,7 +22988,7 @@ function csBookEdge(scroller,host,axis){
    (the wire's box was cut through its last card with no fade, B2-desk-8). Re-read when the column or
    anything in it changes size or content: the pot, the clash and the story arrive after boot, and a
    box capped at the window's height does not itself change size when its content grows. */
-(()=>{ document.querySelectorAll('.deskaside, .deskwire').forEach(el=>{
+(()=>{ document.querySelectorAll('.deskaside, .deskwire, #feedList').forEach(el=>{   /* #feedList: the board's own feed, once the card that framed it is gone (W7-029) */
   csBookEdge(el, el, 'y');
   let q=0; const again=()=>{ if(q) return; q=requestAnimationFrame(()=>{ q=0; el.dispatchEvent(new Event('scroll')); }); };
   try{ const ro=new ResizeObserver(again); ro.observe(el); [...el.children].forEach(c=>ro.observe(c)); new MutationObserver(again).observe(el, { childList:true, subtree:true }); }

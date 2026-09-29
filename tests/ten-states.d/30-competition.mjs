@@ -457,6 +457,10 @@ const SEASON = [
         if (rows.some((r) => r.previousElementSibling?.classList.contains('datesep') && top(r) !== '0px')) bad.push('a slat under a date line draws a second rule')
         const pin = list.querySelector('.annrow.pin')
         if (pin && getComputedStyle(pin).backgroundColor === 'rgba(0, 0, 0, 0)') bad.push('the pinned note has no ground: the feed shows through it')
+        /* the feed scrolls in its own height: while there is more below, it wears the scrollers' fade (the card's edge is gone) */
+        const more = list.scrollTop + list.clientHeight < list.scrollHeight - 2
+        if (more !== list.hasAttribute('data-more')) bad.push(`the feed ${more ? 'has more below and no fade' : 'has nothing below and a fade'}`)
+        else if (more && !/linear-gradient/.test(getComputedStyle(list).maskImage || getComputedStyle(list).webkitMaskImage || '')) bad.push('the feed has more below and its fade is not drawn')
         for (const el of [...list.querySelectorAll('button, a[href], [tabindex]')].slice(0, 6)) {
           const r = el.getBoundingClientRect()
           if (r.width && (r.left - 4 < box.left - 0.5 || r.right + 4 > box.right + 0.5)) { bad.push(`a focus ring on ${JSON.stringify((el.getAttribute('aria-label') || el.textContent || el.className).trim().slice(0, 16))} would be clipped by the feed's own edge`); break }
