@@ -27,6 +27,8 @@ import CupSeasonKit
 struct LiveFinishSheet: View {
   @Environment(\.cs) private var cs
   @Environment(\.dismiss) private var dismiss
+  /// N4-171 · the casual finish's first tap arms it; left alone it disarms.
+  @State private var casualArmed = false
   @Bindable var store: LiveRoundStore
 
   var body: some View {
@@ -49,9 +51,30 @@ struct LiveFinishSheet: View {
       Button(f.primary) { Task { if await store.finish(casual: false) { dismiss() } } }
         .buttonStyle(.csPrimary(busy: store.busy))
         .accessibilityIdentifier("live.finish.confirm")
-      Button(f.secondary) { Task { if await store.finish(casual: true) { dismiss() } } }
-        .buttonStyle(.csSecondary(busy: store.busy))
-        .accessibilityIdentifier("live.finish.casual")
+      // N4-171 · "post nothing" ended the group's round in one unguarded tap,
+      // full width under the primary. It is a tertiary link now, and armed:
+      // the first tap says what it will do, in neg, and the second — within
+      // four seconds — does it.
+      Button {
+        if casualArmed {
+          casualArmed = false
+          Task { if await store.finish(casual: true) { dismiss() } }
+        } else {
+          casualArmed = true
+          CSHaptic.warning()
+        }
+      } label: {
+        Text(casualArmed ? LiveCopy.finishCasualArmed : f.secondary)
+          .foregroundStyle(casualArmed ? cs.neg : cs.ink)
+      }
+      .buttonStyle(.csTertiary(.content))
+      .disabled(store.busy)
+      .accessibilityIdentifier("live.finish.casual")
+      .task(id: casualArmed) {
+        guard casualArmed else { return }
+        try? await Task.sleep(for: .seconds(4))
+        casualArmed = false
+      }
       }
     }
     .presentationDetents([.medium, .large])

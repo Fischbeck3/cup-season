@@ -83,4 +83,34 @@ final class N4SheetsUITests: N2UITestCase {
       app.terminate()
     }
   }
+
+  /// N4-171 · "This one was casual — post nothing" ends the whole group's
+  /// round and posts nobody's card. It is a tertiary link now, and armed: the
+  /// first tap says "Sure? Nobody’s round posts" and finishes nothing, and left
+  /// alone it disarms. Read on the dev live round's finish sheet.
+  @MainActor func testTheCasualFinishAsksBeforeItEndsTheGroupsRound() {
+    let app = XCUIApplication()
+    app.launchArguments = ["-cs_dev_synthetic", "season-live", "-cs_dev_appearance", "dark", "-cs_dev_look", "none",
+                           "-cs_dev_text_size", "large", "-cs_dev_live"]
+    app.launch()
+    XCTAssertTrue(app.staticTexts["HOLE 15"].waitForExistence(timeout: 30), "the dev round is up")
+    app.swipeUp(); app.swipeUp()
+    let finish = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Finish the round")).firstMatch
+    XCTAssertTrue(finish.waitForExistence(timeout: 10))
+    finish.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    let casual = app.buttons["live.finish.casual"]
+    XCTAssertTrue(casual.waitForExistence(timeout: 10), "the finish sheet is up")
+    Thread.sleep(forTimeInterval: 1)
+    XCTAssertTrue(casual.label.localizedCaseInsensitiveContains("post nothing"), casual.label)
+    casual.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    let armed = NSPredicate(format: "label ==[c] %@", "Sure? Nobody’s round posts")
+    XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: armed, evaluatedWith: casual)], timeout: 3), .completed,
+                   "the first tap asks — \(casual.label)")
+    XCTAssertTrue(app.buttons["live.finish.confirm"].exists, "and finishes nothing: the sheet is still up")
+    attach(app, "n4-171-armed")
+    let disarmed = NSPredicate(format: "label CONTAINS[c] %@", "post nothing")
+    XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: disarmed, evaluatedWith: casual)], timeout: 8), .completed,
+                   "left alone, it disarms")
+    app.terminate()
+  }
 }

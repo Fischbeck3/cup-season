@@ -454,6 +454,11 @@ public enum LiveCopy {
     public let guests: Int
   }
 
+  /// N4-171 · the casual finish ends the GROUP's round and posts nobody's
+  /// card, so its first tap says so and only the second does it (UI_SYSTEM
+  /// §7.1). The web's live finish sheet arms the same act with these words.
+  public static let finishCasualArmed = "Sure? Nobody’s round posts"
+
   /// `cardHoles(i)` — 18 | 9 | 0, the server's rule.
   public static func cardHoles(_ a: [Int?]) -> Int {
     let f9 = (0..<9).allSatisfy { a[$0] != nil }
