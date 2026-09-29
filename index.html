@@ -6456,6 +6456,8 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                 <div><label class="f" for="inRating">Rating</label><input class="f" id="inRating" type="number" step="0.1" placeholder="—" inputmode="decimal"></div>
                 <div><label class="f" for="inSlope">Slope</label><input class="f" id="inSlope" type="number" placeholder="—" inputmode="numeric"></div>
               </div>
+              <!-- TEN / W6 · the words stand under the fields they name (critique A2) -->
+              <p class="posterr" id="postRateErr" role="alert" hidden></p>
               <div style="margin-top:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <label class="f" style="margin:0">The round</label>
                 <!-- D34: the mode toggle is HIDDEN, not deleted — the quick post
@@ -13129,17 +13131,25 @@ function csPostRefused(msg){
 }
 $('#postBtn').addEventListener('click', async ()=>{
   csPostError(null);
+  { const h=$('#postRateErr'); if(h && !h.hidden){ h.hidden=true; h.textContent=''; } }
   if(!state.lastPost){
     /* D234 · say which field is missing, and mark it. A hand-typed course has
        no tee to pick, so the rating and slope are the golfer's to type — and
        they are printed on the back of the scorecard, which is the one place
        the app can point them to. */
     if(state.postBlocked==='rating'){
-      const rEl=$('#inRating'), sEl=$('#inSlope');
+      /* TEN / W6 · critique A2 (P1): on a first round the fields this names
+         live inside #postCardFold, which is shut, so focus went to a field
+         nobody could see and the words left on a 2.4s toast. The guidance
+         never points at a folded field: the fold opens, the field it names
+         takes focus, and the words stand right under it (#postRateErr, an
+         alert that describes the field) — PostCalc.noRatingMessage */
+      togglePostFold(true);
+      const rEl=$('#inRating'), sEl=$('#inSlope'), said=$('#postRateErr');
       const bad = (parseFloat(rEl?.value)>0) ? sEl : rEl;
-      bad?.setAttribute('aria-invalid','true'); bad?.classList.add('bad');
+      if(said){ said.textContent='Type the rating and slope \u2014 they\u2019re on the back of the scorecard'; said.hidden=false; }
+      bad?.setAttribute('aria-invalid','true'); bad?.classList.add('bad'); bad?.setAttribute('aria-describedby','postRateErr');
       bad?.scrollIntoView?.({block:'center'}); bad?.focus?.();
-      toast('Type the rating and slope \u2014 they\u2019re on the back of the scorecard');
       window.qaEvent?.('post_blocked', { reason: 'no_rating' });
       return;
     }
@@ -13147,8 +13157,8 @@ $('#postBtn').addEventListener('click', async ()=>{
     window.qaEvent?.('post_blocked', { reason: 'no_card' });
     return;
   }
-  $('#inRating')?.removeAttribute('aria-invalid'); $('#inRating')?.classList.remove('bad');
-  $('#inSlope')?.removeAttribute('aria-invalid'); $('#inSlope')?.classList.remove('bad');
+  $('#inRating')?.removeAttribute('aria-invalid'); $('#inRating')?.classList.remove('bad'); $('#inRating')?.removeAttribute('aria-describedby');
+  $('#inSlope')?.removeAttribute('aria-invalid'); $('#inSlope')?.classList.remove('bad'); $('#inSlope')?.removeAttribute('aria-describedby');
   /* Q-21 · never let the round leave without a date. The server's NOT NULL was
      the only thing catching this, and its message ("please try again") sent the
      golfer round a loop that could not succeed. Say it here, mark the field. */
