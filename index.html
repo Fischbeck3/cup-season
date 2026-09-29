@@ -25825,8 +25825,8 @@ function csRoundCardHTML(c, mine){
 function csReceiptPhotoRow(r){
   const has = !!r.photo_path;
   return `<div id="rcptPhotoRow" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 12px">
-      <button class="mini" id="rcptPhotoBtn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-photo"/></svg> ${esc(has?CS_PHOTO.replace:CS_PHOTO.add)}</button>
-      <button class="mini" id="rcptPhotoClear" type="button" style="${has?'':'display:none'}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg> ${esc(CS_PHOTO.remove)}</button>
+      <button class="cs-tskip" id="rcptPhotoBtn" type="button">${esc(has?CS_PHOTO.replace:CS_PHOTO.add)}</button>
+      <button class="cs-tskip" id="rcptPhotoClear" type="button" style="${has?'':'display:none'}">${esc(CS_PHOTO.remove)}</button>
       <span class="cs-body-s rcpt-photogone" id="rcptPhotoGone" role="status" hidden>${esc(CS_PHOTO.unavailable)}</span>
     </div>
     <p class="fine" id="rcptPhotoNote" style="display:none; color:var(--neg); margin:-6px 0 12px"></p>`;
@@ -26134,7 +26134,9 @@ function csRcptFigs(r, momentHasGross){
    second — never a confirm(). It was a bare × inside every Recent rounds row,
    a row that itself opens this receipt. */
 function csReceiptDeleteRow(){
-  return `<div id="rcptDelRow" style="margin:0 0 12px">
+  /* W7-157 · at the sheet's FOOT, under a rule, after the conversation (the phone's order, RoundReceiptSheet): deleting a round is the last thing on the sheet, not a button
+     level with Share and the photo controls; the two-tap arming ('Sure? Delete it') is unchanged */
+  return `<div id="rcptDelRow" style="margin:var(--s5) 0 12px; padding-top:var(--s3); border-top:1px solid var(--rule)">
       <button class="mini del" id="rcptDelete" type="button">Delete this round</button>
       <p class="fine" id="rcptDelNote" role="status" style="display:none; padding:6px 0 0"></p>
     </div>`;
@@ -26253,8 +26255,9 @@ function openRoundReceipt(x, opts){
       <div class="rcpt-cap"><span>What this round was worth</span><span>${esc(line.split(' \u00b7 ').pop()||'')}</span></div>
       ${roundCardBody(r, pvi, capN)}</div>
     <div id="rcptCard"></div>
-    ${canPhoto ? csReceiptPhotoRow(r) + csReceiptDeleteRow() : ''}
-    <div id="rcptTalk"></div>`);
+    ${canPhoto ? csReceiptPhotoRow(r) : ''}
+    <div id="rcptTalk"></div>
+    ${canPhoto ? csReceiptDeleteRow() : ''}`);
   csRcptHeroWire(document.getElementById('rcptHero'));
   /* the finish's "Add a photo" rides `opts.photoIntent` into the photo control */
   if(canPhoto){ csWireReceiptPhoto(r, rid, stampOf, opts); csWireReceiptDelete(rid); }
@@ -26306,13 +26309,16 @@ async function csPaintReceiptCard(r, rid, mine){
   slot.innerHTML = `<div class="eyebrow">${esc(CS_CARD.head)}</div>`
     + csRoundCardHTML(card, mine)
     + photoRow
-    + (canShare ? `<button class="mini" id="rcptCardShare" type="button" style="margin-top:8px">${esc(CS_CARD.share)}</button>`
-        /* D385 §3 · the receipt's own labelled way to take the link down, shown only when one is live */
-        + ` <button class="mini" id="rcptCardRevoke" type="button" style="margin-top:8px;display:none">Turn off this link</button>` : '');
-  const rcRevoke = document.getElementById('rcptCardRevoke');
+    /* W7-157 [A2-history-3] · SHARE is the sheet's ONE primary, drawn as the epilogue draws it (a full-width `.btn dark`, directly under the Include-photo row): it was a `.mini`
+       level with 'Turn off this link' and the photo and delete controls, five equal buttons in which the launch path's step had the weight of withdrawing a link. Turning
+       the link off is the epilogue's quiet link with its one line under it, shown only when a link is live (D385 §3) */
+    + (canShare ? `<button class="btn dark" id="rcptCardShare" type="button" style="width:100%;margin-top:8px">${esc(CS_CARD.share)}</button>`
+        + `<div id="rcptRevokeWrap" style="display:none"><button class="cs-tskip" id="rcptCardRevoke" type="button" style="width:100%;margin-top:var(--s2)">Turn off this link</button>`
+        + `<p class="fine" style="margin:4px 0 0;text-align:center">The page stops working for everyone who has it. You can share a new link anytime.</p></div>` : '');
+  const rcRevoke = document.getElementById('rcptCardRevoke'), rcWrap = document.getElementById('rcptRevokeWrap');
   if(rcRevoke && rid && !state.demo){
-    csUpdateRoundLinkControl(rcRevoke,rid);
-    rcRevoke.addEventListener('click', async ()=>{ rcRevoke.disabled=true; await csRevokeLink('round',rid); await csUpdateRoundLinkControl(rcRevoke,rid); rcRevoke.disabled=false; });
+    csUpdateRoundLinkControl(rcRevoke,rid,rcWrap);   /* the WRAPPER (the control and its line) shows only while a link is live */
+    rcRevoke.addEventListener('click', async ()=>{ rcRevoke.disabled=true; await csRevokeLink('round',rid); await csUpdateRoundLinkControl(rcRevoke,rid,rcWrap); rcRevoke.disabled=false; });
   }
   document.getElementById('rcptCardShare')?.addEventListener('click', async ()=>{
     /* the artifact carries HIS name and HIS marker, and neither is in the

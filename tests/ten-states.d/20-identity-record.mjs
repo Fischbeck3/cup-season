@@ -110,6 +110,20 @@ const footStays = async (page) => page.evaluate(() => {
   const gap = col.getBoundingClientRect().bottom - foot.getBoundingClientRect().bottom
   return gap <= 48 ? true : `the sidebar's foot floats ${Math.round(gap)}px above the column's bottom`
 })
+/* TEN / W8 · W7-157 [A2-history-3] · the receipt's actions are not five equal buttons: Share is the sheet's ONE primary (a full-width `.btn`), turning the link off, replacing and removing the
+   photo are quiet links (`.cs-tskip`), and deleting the round is the foot of the sheet, under a rule, after the conversation (its 'Delete' still a `.mini del`, armed) */
+const receiptActions = async (page) => page.evaluate(() => {
+  const sheet = document.getElementById('shBody'), share = document.getElementById('rcptCardShare'), del = document.getElementById('rcptDelete'), talk = document.getElementById('rcptTalk'), row = document.getElementById('rcptDelRow')
+  if (!share) return 'the receipt has no Share'
+  const filled = [...sheet.querySelectorAll('.btn')].filter((b) => b.getBoundingClientRect().width > 0)
+  if (filled.length !== 1 || filled[0] !== share) return `the receipt has ${filled.length} filled buttons, expected Share alone`
+  if (share.getBoundingClientRect().width < sheet.getBoundingClientRect().width * 0.8) return 'Share is not the full-width primary'
+  for (const id of ['rcptCardRevoke', 'rcptPhotoBtn', 'rcptPhotoClear']) { const b = document.getElementById(id); if (b && b.getBoundingClientRect().width > 0 && !b.classList.contains('cs-tskip')) return `#${id} is not a quiet link`; if (b && b.classList.contains('mini')) return `#${id} is still a mini button` }
+  if (!del || !row) return 'the receipt has no delete row'
+  if (!(talk.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING)) return 'the delete row is not after the conversation'
+  if (getComputedStyle(row).borderTopWidth !== '1px') return 'the delete row is not under a rule'
+  return del.classList.contains('del') ? true : 'the delete button lost its destructive class'
+})
 /* ------------------------------------------------------------------ YOU */
 const YOU = [
   { family: 'you', id: 'empty', variant: 'brand_new', title: 'You · a new golfer: carded, no rounds',
@@ -255,7 +269,7 @@ const RECEIPT = [
       await page.waitForTimeout(700)
     },
     expect: { view: 'view-stats', sheet: true, selectors: { '#rcptFigs': 'visible', '#rcptFigs .lens': 'text:Counting #' } },
-    check: all(heroState('photo'),
+    check: all(heroState('photo'), receiptActions,
       /* S9 · a picture that is showing says nothing */
       async (page) => page.evaluate(() => { const g = document.getElementById('rcptPhotoGone'); return !g || g.hidden ? true : 'the photo-unavailable line shows over a photo that loaded' }),
       async (page) => page.evaluate(() => {
