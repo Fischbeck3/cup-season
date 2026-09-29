@@ -258,7 +258,7 @@ export default [
       await until(page, () => document.getElementById('sheet').classList.contains('open') && /Finish the round/.test(document.getElementById('shTitle').textContent))
       await page.waitForTimeout(400)
     },
-    expect: { view: 'view-play', sheet: '^Finish the round$', selectors: { '#lrPost': 'text:^Post 2 cards to the season$', '#lrCasual': 'visible' } },
+    expect: { view: 'view-play', sheet: '^Finish the round$', selectors: { '#lrPost': 'text:^Post 2 cards to the season$', '#lrCasual': 'text:^This one was casual — post nothing$' } },
     check: async (page) => { const f = await liveFacts(page); return f.holes === 9 ? true : `the round is ${f.holes} holes, expected the nine` } },
 
   /* Post: finish_live_round answers, the settlement sheet (the ceremony) */

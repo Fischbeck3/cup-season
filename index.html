@@ -3403,7 +3403,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   border:0; border-radius:var(--p); padding:8px 26px 8px 10px;
   min-height:44px; user-select:none; -webkit-user-select:none; touch-action:none; cursor:grab;}
 .crtchip b{font-size:13px; display:flex; align-items:center; gap:6px;}
-.crtchip small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.1em; color:var(--mut);}
+.crtchip small{display:block; color:var(--mut);}   /* N4-205 · the agate role sets the face (mono never sets a label, §1.4) */
 .crtchip.dragging{opacity:.35;}
 .crtchip.picked{outline:2px solid var(--act); outline-offset:1px;}
 /* the swap TARGET: exactly one chip lights while you drag (or after a tap-pick)
@@ -3585,6 +3585,19 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
   letter-spacing:calc(var(--agate) * 1em); line-height:1.3; color:var(--mut);}
 /* §7.1 · destructive, armed: bg2 fill (the .mini), neg label — 4.58:1 / 4.62:1 */
 .mini.del{color:var(--neg);}
+/* csArmTap's armed state: the label turns neg and says what the next tap does */
+.mini.is-armed{color:var(--neg);}
+/* N4-022 · Start over, under the composer's one primary, armed */
+.postreset{margin:0; padding:var(--s3) 0 0; text-align:center;}
+/* N4-171 · the casual finish: a tertiary link in content (§7.1 — ink on a 2px
+   mut rule, a 44 target), never a full-width button under the primary, and
+   armed, because it ends the group's round and posts nobody's card */
+.lrcasual-row{margin:var(--s2) 0 0; text-align:center;}
+.lrcasual{background:none; border:0; padding:0; min-height:44px; cursor:pointer; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
+.lrcasual.is-armed{color:var(--neg); text-decoration-color:var(--neg);}
+.lrcasual:disabled{color:var(--mut); cursor:default;}
+.lrcasual:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
 /* S9 · the photo row's one sentence, in the body face and the quiet ink */
 .rcpt-photogone{color:var(--mut); flex:1 1 180px;}
 .mathrow{
@@ -3992,6 +4005,8 @@ html.cs-returning .onboard{visibility:hidden;}   /* a stored session: the Door w
 .ob-link h1{margin:0; color:var(--ink); overflow-wrap:anywhere;}
 .ob-link .run{font-family:var(--board); font-weight:700; font-variant-numeric:tabular-nums;}
 .ob-link .sub{margin:var(--s2) 0 0; color:var(--mut); overflow-wrap:anywhere;}
+/* N4-003 · the pitch, after the link's own fact, in the quiet ink */
+.ob-link .pitch{margin:var(--s3) 0 0; color:var(--mut); overflow-wrap:anywhere;}
 .onboard.ob-linked .ob-in > .ob-hero{display:none;}
 
 
@@ -6580,9 +6595,11 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                    page. -->
               <p class="posterr" id="postErr" role="alert" hidden></p>
               <button class="btn" id="postBtn">Add my round</button>
-              <!-- abandonment is a real path, not a refresh: one tap empties the
-                   card (pilot: a tested/half-filled composer lingered for days) -->
-              <p class="fine" style="text-align:center; padding:10px 0 0"><a href="#" id="postReset" style="color:var(--mut); display:inline-flex; align-items:center; min-height:44px; padding:0 var(--s2)">Start over</a></p>
+              <!-- abandonment is a real path, not a refresh (pilot: a tested,
+                   half-filled composer lingered for days) — and it is armed
+                   (N4-022, §7.1): it clears the card, the photo and the draft
+                   with no undo, so the first tap says so and the second clears -->
+              <p class="postreset"><button type="button" class="mini" id="postReset">Start over</button></p>
             </div>
           </div>
           <div>
@@ -7052,9 +7069,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           <div>
             <div class="eyebrow" style="margin-top:0">Season stakes</div>
             <div class="purse">
-              <div class="k">The pot</div>
+              <div class="k" id="potK">The pot · seven in</div>
               <div class="amt heronum" id="potAmt">$525</div>
-              <div class="m" id="potMath">7 × $75 buy-in · set before W1</div>
+              <div class="m" id="potMath">$75 each · set before W1</div>
             </div>
             <div class="trip">
               <div class="p"><b id="pay1">$720</b><span>Champion</span></div>
@@ -7066,7 +7083,9 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <!-- D129: how to pay comes BEFORE the ledger of who has -->
             <div class="eyebrow">How to pay</div>
             <p class="fine" id="payHow" style="padding:0 0 12px"></p>
-            <div class="eyebrow">Buy-ins · <span id="paidCount">5/7</span> in</div>
+            <!-- N4-103 · this head counts who has PAID; "in" is the pot's own
+                 word, said once, above -->
+            <div class="eyebrow">Who has paid<span id="paidCount"> · five of seven</span></div>
             <div id="payers"></div>
           </div>
         </div>
@@ -13876,8 +13895,28 @@ function resetPostComposer(){ putTheCardDown({ restamp: true }); }
    The asymmetry ("an accepted post leaves the date to its caller") had no
    product reason behind it. */
 function clearPostComposerAfterPost(){ putTheCardDown({ restamp: true }); }
+/* §7.1 · DESTRUCTIVE, ARMED — the web's `CSArmedButton`. The first tap says
+   what the act will do (the neg label, `is-armed`) and does nothing; a second
+   within four seconds does it; left alone it disarms. Returns true on the tap
+   that should act. Never a confirm() (L-32). */
+function csArmTap(b, rest, armed){
+  if(b.dataset.armed !== '1'){
+    b.dataset.armed = '1'; b.classList.add('is-armed'); b.textContent = armed;
+    clearTimeout(b._csDisarm);
+    b._csDisarm = setTimeout(() => {
+      if(b.isConnected && b.dataset.armed === '1'){ b.dataset.armed = ''; b.classList.remove('is-armed'); b.textContent = rest; }
+    }, 4000);
+    return false;
+  }
+  clearTimeout(b._csDisarm); b.dataset.armed = ''; b.classList.remove('is-armed'); b.textContent = rest;
+  return true;
+}
+window.csArmTap = csArmTap;
+/* N4-022 · the phone's words (PostRoundScreen's CSArmedButton) */
+const CS_POST_RESET = { label: 'Start over', armed: 'Sure? This clears the card' };
 $('#postReset')?.addEventListener('click',e=>{
   e.preventDefault();
+  if(!csArmTap(e.currentTarget, CS_POST_RESET.label, CS_POST_RESET.armed)) return;
   /* `putTheCardDown` drops the saved draft as part of putting the card down, so
      the abandoned content cannot come back on the next load.
      D350 (built) · the request id is NOT cleared here. A start-over after an
@@ -14407,7 +14446,9 @@ function renderPot(){
     ['potAmt','chipPot'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='None'; });
     const pm=$('#potMath'); if(pm) pm.textContent='Bragging rights · no money in play';
     ['pay1','pay2','pay3'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='—'; });
-    ['paidChip','paidCount'].forEach(id=>{ const e=$('#'+id); if(e) e.textContent='Bragging rights'; });
+    { const e=$('#paidChip'); if(e) e.textContent='Bragging rights'; }
+    { const e=$('#paidCount'); if(e) e.textContent=''; }
+    { const e=$('#potK'); if(e) e.textContent='The pot'; }
     const py=$('#payers'); if(py) py.innerHTML='<p class="fine" style="padding:6px 2px">No buy-ins — this league plays for bragging rights.</p>';
     const hps=$('#hubPotSub'); if(hps) hps.textContent='Bragging rights';
     return;
@@ -14430,7 +14471,10 @@ function renderPot(){
     /* D106: two numbers, never blended — the pot is what the roster owes,
        collected is the cash; "K still owe" only when they differ */
     const stillOwe=Math.max(0, players-paidN);
-    $('#potMath').textContent=`${players} × ${fmt$(state.stake)} · ${fmt$(collected)} collected`
+    /* N4-103 · the stake is said once, "$75 each"; the head carries the count
+       (the phone's SeasonBoardCopy.potIn / potCaption) */
+    { const k=$('#potK'); if(k) k.textContent=`The pot · ${csWord(players)} in`; }
+    $('#potMath').textContent=`${fmt$(state.stake)} each · ${fmt$(collected)} collected`
       + (stillOwe>0 && collected<total ? ` · ${stillOwe} still ${stillOwe===1?'owes':'owe'}` : '');   /* "1 still owe" read as a typo */
     /* Q-28, completed by M1 · three independent Math.rounds did not add up to
        the pot; the champion absorbing fixed the SUM but the arithmetic still
@@ -14490,7 +14534,7 @@ function renderPot(){
       });
       el.appendChild(row);
     });
-    $('#paidCount').textContent=`${paidN}/${players}`;
+    $('#paidCount').textContent=` · ${csWord(paidN)} of ${csWord(players)}`;   /* SeasonBoardCopy.paid */
     $('#paidChip').textContent=`${paidN}/${players} buy-ins in`;
     const hps=$('#hubPotSub'); if(hps) hps.textContent='Buy-ins & payouts';
     return;
@@ -14499,7 +14543,8 @@ function renderPot(){
   const total=state.stake*nPay;
   csOdo($('#potAmt'), fmt$(total));   /* C6: the books absorb the entry */
   $('#chipPot').textContent=fmt$(total);
-  $('#potMath').textContent=`${nPay} × ${fmt$(state.stake)} buy-in · set before W1`;
+  { const k=$('#potK'); if(k) k.textContent=`The pot · ${csWord(nPay)} in`; }
+  $('#potMath').textContent=`${fmt$(state.stake)} each · set before W1`;
   /* M1 · the diorama uses the same split as the real thing. */
   const demoTrio = csTrioCents(total*100, [60,25,15]);
   $('#pay1').textContent=csMoney(demoTrio.champ);
@@ -14514,7 +14559,7 @@ function renderPot(){
     el.appendChild(row);
   });
   const n=state.payers.filter(p=>p.paid).length;
-  $('#paidCount').textContent=`${n}/${nPay}`;
+  $('#paidCount').textContent=` · ${csWord(n)} of ${csWord(nPay)}`;
   $('#paidChip').textContent=`${n}/${nPay} buy-ins in`;
 }
 
@@ -14768,6 +14813,13 @@ function fmtIdx(v){
   return v<0 ? '+'+Math.abs(v).toFixed(1) : v.toFixed(1);
 }
 window.fmtIdx=fmtIdx;
+/* N4-205 · a live seat names the golfer's figure with the index word — the
+   phone's CredentialCopy.indexLabel, the one label the card and You print —
+   never a bare "NUMBER"; an estimated seat says TERMINOLOGY's sentence. The
+   agate role sets the caps (LINT-14), never the string. */
+function csSeatIndexLine(p){
+  return p.est ? 'No number — playing off 18' : `${fmtIdx(p.i)} · ${p.me ? 'Your number' : 'Handicap index'}`;
+}
 /* stroke index fallback (spec §2.2 match play): no real card SI → allocate
    hardest-first by par then hole number, and FLAG it estimated everywhere it
    shows. The demo card's SI is a real card; a real course entered by pars only
@@ -14930,7 +14982,7 @@ function renderCourt(slots){
       c.dataset.pos=k;
       /* W1 · ink chips here too: the court is the grouping; the squad dot was the raw SQHEX orange (D359) */
       c.innerHTML=`<div><b>${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:''}${esc(p.n)}</b>
-        <small>${p.est?'EST ':''}${fmtIdx(p.i)} NUMBER</small></div>
+        <small class="cs-agate-s">${esc(csSeatIndexLine(p))}</small></div>
         ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
       courtDrag(c);
       z.appendChild(c);
@@ -16952,7 +17004,7 @@ function renderRoster(){
       d.className='pslot';
       d.innerHTML=`
         <div class="sn">${p.guest?`<span class="gtag">${p.buddy?'B':'G'}</span>`:''}${esc(p.n)}</div>
-        <div class="si">${p.est?'EST ':''}${fmtIdx(p.i)} NUMBER</div>
+        <div class="si cs-agate-s">${esc(csSeatIndexLine(p))}</div>
         ${p.locked?'':`<button class="sx" data-rm="${idx}" aria-label="Remove ${esc(p.n)}"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>`}`;
     }
     slots.appendChild(d);
@@ -17406,6 +17458,9 @@ function gameResult(){
   if(state.live.game==='sunningdale' && (LIVE.length===2||LIVE.length===4)) return sunnResult();
   return null;
 }
+/* N4-171 · the phone's words (LiveCopy's finish secondary and
+   `finishCasualArmed`): one producer, two shapes */
+const CS_LIVE_CASUAL = { label: 'This one was casual — post nothing', armed: 'Sure? Nobody’s round posts' };
 function finishRealLiveRound(){
   const cards = LIVE.map((p,i)=>({
     player_id: state.live.pmap?.[i],
@@ -17448,7 +17503,7 @@ function finishRealLiveRound(){
      <button class="btn" id="lrPost" style="margin-top:12px">${done.length
        ? `Post ${done.length} card${done.length===1?'':'s'}${_lg?' to the season':' — each to its golfer'}`
        : 'Finish the round'}</button>
-     <button class="btn dark" id="lrCasual" style="margin-top:8px">This one was casual — post nothing</button>`);
+     <p class="lrcasual-row"><button type="button" class="lrcasual cs-body-s" id="lrCasual">${esc(CS_LIVE_CASUAL.label)}</button></p>`);
   const go = async (casual) => {
     const pb=document.getElementById('lrPost'), cb=document.getElementById('lrCasual');
     if(pb) pb.disabled=true; if(cb) cb.disabled=true;
@@ -17484,7 +17539,11 @@ function finishRealLiveRound(){
     }
   };
   document.getElementById('lrPost')?.addEventListener('click', ()=>go(false));
-  document.getElementById('lrCasual')?.addEventListener('click', ()=>go(true));
+  /* N4-171 · the casual finish ends the GROUP's round and posts nobody's card,
+     so it is armed: the first tap says so, the second does it (§7.1) */
+  document.getElementById('lrCasual')?.addEventListener('click', e=>{
+    if(csArmTap(e.currentTarget, CS_LIVE_CASUAL.label, CS_LIVE_CASUAL.armed)) go(true);
+  });
 }
 /* the drawn check: a posted card with no marker the client can vouch for */
 const CS_CHECK_SVG = '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.6l3 3L12.8 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -21121,7 +21180,15 @@ function csFallbackItems(){
       push({ key:`floor:${(CS.league&&CS.league.id)||'league'}`, tier:'closing', spine:'ember',
              eyebrow:`${MONTHS[eom.getMonth()].toUpperCase()} CLOSES ${DOW3[eom.getDay()].toUpperCase()}`,
              headline:`You are ${short%1?short.toFixed(1):short} short of the minimum.`,
-             standfirst: null,
+             /* N4-210 (PAR-22) · who a shortfall costs, and only where it costs
+                anybody: the server docks for `deduct` and `forfeit` alone, and
+                a Casual league's minimum is a habit (floorSentence's rule) —
+                the phone's HomeFallbackItems.floorItem, word for word */
+             standfirst: (()=>{
+               const pen = ['none','deduct','forfeit'][state.preset];
+               const sq = (window.CS?.squads||[]).find(q=>(q.squad_members||[]).some(x=>x.member_id===window.CS?.member?.id));
+               return (pen==='deduct' || pen==='forfeit') && sq && sq.name ? `The ${sq.name} carry the penalty, not you.` : null;
+             })(),
              action:'Add my round', route:{kind:'composer'}, at:null });
     }
   }
@@ -22506,9 +22573,20 @@ function csSeasonRowFacts(f, role){
   if(side && rank != null) parts.push(side);
   if(rank != null && of != null) parts.push(climbOrd(rank) + (st.points_tied ? ' · Tied' : '') + ' of ' + of);
   if(pts != null) parts.push(pts + ' pts');
+  /* PAR-09 · the race clause in the phone's words (SeasonFacts.race): "back
+     of" is the table's first noun (D26), and a leader is "clear of" the golfer
+     behind them BY NAME (D130) — never the bare "leading". A payload with no
+     runner-up claims no margin it cannot show. */
   if(rank != null && of != null){
-    if(rank === 1 && of > 1) parts.push('leading');
-    else if(gap != null && gap > 0 && leader) parts.push(gap + ' behind ' + leader);
+    if(rank === 1 && of > 1){
+      const next = st.gap_to_next != null && Number.isFinite(Number(st.gap_to_next)) ? Number(st.gap_to_next)
+                 : (pts != null && st.runner_up_points != null && Number.isFinite(Number(st.runner_up_points)) ? pts - Number(st.runner_up_points) : null);
+      const other = st.runner_up_name && String(st.runner_up_name).trim()
+        ? (side ? String(st.runner_up_name).trim() : String(st.runner_up_name).trim().split(' ')[0]) : null;
+      if(other){ if(next != null) parts.push(next > 0 ? next + ' clear of ' + other : 'level with ' + other); }
+      else if(next != null && next > 0) parts.push(next + ' clear');
+    }
+    else if(gap != null && gap > 0 && leader) parts.push(gap + ' back of ' + leader);
   }
   /* W5 · the upcoming Scoreboard said "not yet" twice and never WHEN: the
      first tee is a date the payload carries (native_home.season.starts_on and
@@ -22650,7 +22728,10 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
     }
     const f = !done && lg.phase==='season' ? csSeasonRowFacts(fm.get(lg.id), m.role) : null;
     const row={ id:'league:'+lg.id, kind:'season', leagueId:lg.id,
-                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? (f && (f.upcoming || f.final) ? f.eyebrow : (f && f.eyebrow) ? 'In season · ' + f.eyebrow : 'In season') : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
+                /* PAR-09 · "In season" is not one of the six stage words
+                   (TERMINOLOGY §2.3): the week says the stage, as the phone's
+                   "Week 6 of 13" does, and with no week the stage word does */
+                eyebrow: done ? 'Season complete' : (lg.phase==='season' ? (f && f.eyebrow ? f.eyebrow : STAGE_LABEL.season) : lg.phase==='draft' ? 'Squads drawing' : 'Forming'),
                 title: lg.name || 'A season',
                 /* L-44 · a finished season says it is finished. TEN / W6 · PAR-10:
                    and it says who took it, as the phone does (CompeteRoot
@@ -36870,8 +36951,13 @@ function csLinkLanding(o){
   if(!o){ if(el) el.remove(); ob.classList.remove('ob-linked'); return null; }
   if(!el){ el = document.createElement('div'); el.id = 'obLink'; el.className = 'ob-link'; hero.parentNode.insertBefore(el, hero); }
   el.dataset.kind = o.kind;
+  /* N4-003 (PAR-11) · the landing collapses the hero, and the hero held the one
+     sentence that says what Cup Season is, so a stranger who came by a link
+     never read it. The pitch closes every landing now (the phone prints it
+     always, the link's own line with it), from CS_BRAND — never retyped. */
   el.innerHTML = `<p class="eb cs-agate">${esc(o.label)}</p><h1 class="cs-lead">${o.headHtml}</h1>`
-    + (o.sub ? `<p class="sub cs-body-s">${esc(o.sub)}</p>` : '');
+    + (o.sub ? `<p class="sub cs-body-s">${esc(o.sub)}</p>` : '')
+    + `<p class="pitch cs-body-s">${esc(CS_BRAND.standfirst)}</p>`;
   ob.classList.add('ob-linked');
   return el;
 }

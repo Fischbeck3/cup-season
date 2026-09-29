@@ -161,7 +161,7 @@ const LINKS = [
      step; the invitation is to a season, never "the league" (T §2.3) */
   { family: 'links', id: 'join-valid', variant: 'signed_out', url: `/?join=${JOIN.season}`, short: true,
     settle: doorSettle(() => /invited to North Grove/.test((document.querySelector('#obLink h1') || {}).textContent || '')),
-    expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obLink h1': "text:^You’re invited to North Grove \\(fixture\\)\\.$", '#obStatus': 'text:^Sign in to read the terms before you join\\.$' } } },
+    expect: { door: true, selectors: { '#emailbox.open': 'visible', '#obLink h1': "text:^You’re invited to North Grove \\(fixture\\)\\.$", '#obLink .pitch': 'text:^Golf with your people, all season\\.$', '#obStatus': 'text:^Sign in to read the terms before you join\\.$' } } },
   /* a code that matches no league says so (owner panel P1: it said "You're
      invited" to a stranger) and is dropped, so signing in tries no join */
   { family: 'links', id: 'join-unavailable', variant: 'signed_out', url: `/?join=${JOIN.dead}`, short: true,
