@@ -577,9 +577,13 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 }
 .peerrow:hover{background:var(--bg1);}
 .peerrow:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
-.peerrow .pe{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mut); display:block;}
+/* W5 · the row's words in their roles (§1.3/§1.4): the eyebrow and the status
+   are agate LABELS in caps; the sub-line is a phrase a golfer reads aloud
+   ("Blake's round. You, Devon Testwell."), so it is agate in sentence case,
+   never mono — mono sets codes and columns, never a sentence */
+.peerrow .pe{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); display:block;}
 .peerrow .pn{font-size:14.5px; font-weight:700; display:block; margin-top:2px;}
-.peerrow .ps{font-family:var(--mono); font-size:12px; color:var(--mut); display:block; margin-top:3px;}
+.peerrow .ps{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); display:block; margin-top:3px;}
 /* MW-03 · one status, when there is one: the clash closing, the season's last
    week. Ember is the clock's colour on this client (D231); it is a word, not a
    control, so it is never a button. */
@@ -629,48 +633,131 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .sb-terrain .cs-topohead .t-edge{opacity:1; stroke-width:1;}
 .sb-door{display:block; width:100%; min-height:44px; text-align:left; border:0; border-bottom:1px solid var(--rule); background:none; color:var(--ink); font-family:var(--sans); font-size:16px; cursor:pointer;}
 .sb-door[hidden]{display:none;}
-.sb-dialog{background:var(--bg0); color:var(--ink); border:1px solid var(--rule); padding:0; margin:auto; width:min(1280px,96vw); max-width:96vw; height:90vh; max-height:90vh;}   /* margin:auto — the reset's `*{margin:0}` cancelled the modal's own centring and pinned the Book top-left on the desk */
+/* W5 · the Book is as tall as what it holds (a two-line "no standing yet"
+   or an error sat in a 90vh frame, ~70% empty) and never taller than 90vh.
+   `fit-content`, not `auto`: a modal dialog is fixed to both insets, and
+   `auto` would stretch it to them and undo the centring. */
+.sb-dialog{background:var(--bg0); color:var(--ink); border:1px solid var(--rule); padding:0; margin:auto; width:min(1280px,96vw); max-width:96vw; height:fit-content; max-height:90vh;}   /* margin:auto — the reset's `*{margin:0}` cancelled the modal's own centring and pinned the Book top-left on the desk */
 .sb-dialog::backdrop{background:var(--bg0); opacity:.8;}
 .sb-dialog header{position:relative; isolation:isolate; overflow:hidden; padding:var(--s4); border-bottom:1px solid var(--rule);}
-.sb-dialog header h1{position:relative; padding-right:96px;}
-.sb-dialog h1{font-family:var(--serif); font-size:42px; margin:0;}
-.sb-dialog h2{font-family:var(--serif); font-size:24px; margin:var(--s3) 0;}
+.sb-dialog header h1{position:relative; padding-right:56px;}
+/* W5 · the Book names itself in the DISPLAY role, like every page (D280): the
+   board face in caps — "the Book" in a lowercase serif read as a typo, and the
+   serif is the one object a viewport slows down for, not a title */
+.sb-dialog h1{font-family:var(--board); font-weight:700; font-size:42px; line-height:.98; text-transform:uppercase; letter-spacing:calc(var(--d1) * 1em); margin:0; text-wrap:balance;}
+/* the Book's heads carry numbers ("Fixture Javelinas · Week 12"), and a
+   number is never set in the serif (§1.4): displayS, the board face */
+.sb-dialog h2{font-family:var(--board); font-weight:700; font-size:24px; line-height:1.05; text-transform:uppercase; letter-spacing:calc(var(--d2) * 1em); margin:var(--s3) 0; text-wrap:balance;}
 .sb-dialog h3{font-family:var(--sans); font-size:16px;}
 .sb-dialog p{line-height:1.5; margin:var(--s2) 0 var(--s3);}
-.sb-dialog button,.sb-dialog select{color:var(--ink); background:var(--bg1); border:1px solid var(--rule); min-height:44px; padding:var(--s2); font:inherit; cursor:pointer;}
-.sb-dialog button:focus-visible,.sb-dialog select:focus-visible,.sb-matrix:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+.sb-dialog button{color:var(--ink); min-height:44px; padding:var(--s2); font:inherit; cursor:pointer; background:none; border:0;}
+.sb-dialog button:focus-visible,.sb-matrix:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
 .sb-dialog button:disabled{cursor:default; color:var(--mut);}
-.sb-close{position:absolute; right:var(--s4); top:var(--s3);}
+/* W5 · the sheet grammar the web's sheets use (`.sheet .x`): a 44px x in mut,
+   never a bordered "Close" box beside the title */
+.sb-dialog .sb-close{position:absolute; right:var(--s2); top:var(--s2); width:44px; height:44px; padding:0; display:flex; align-items:center; justify-content:center; color:var(--mut); z-index:1;}
+.sb-dialog .sb-close:hover{color:var(--ink);}
+.sb-dialog .sb-close .ic{width:18px; height:18px;}
 .sb-layout{display:grid; grid-template-columns:minmax(0,1fr) 320px;}
+/* the receipts column stands down while there is nothing to select in the
+   body (before the first tee, a failed read): "Select a cell…" beside an
+   error, with no cells, asked for something that is not there */
+.sb-layout[data-solo]{grid-template-columns:minmax(0,1fr);}
+.sb-receipts[hidden]{display:none;}
 .sb-main{padding:var(--s4); min-width:0;}
 .sb-receipts{padding:var(--s4); background:var(--bg1); border-left:1px solid var(--rule);}
-.sb-controls{display:flex; flex-wrap:wrap; gap:var(--s3); margin:var(--s3) 0;}
-.sb-controls label{display:flex; flex-direction:column; gap:var(--s1); font-family:var(--board); font-size:12px;}
-.sb-matrix{overflow:auto; max-height:60vh; border-block:1px solid var(--rule);}
+.sb-receipts .sb-hint{font-family:var(--sans); color:var(--mut);}
+/* the loading geometry (§13.2): the head's lines and a redacted grid */
+.sb-skel{padding:var(--s1) 0 var(--s3);}
+.sb-skel-row{display:flex; gap:var(--s3); align-items:center; margin-top:var(--s4);}
+.sb-skel-name{display:block; flex:none; width:120px; height:30px;}
+.sb-skel-cell{display:block; flex:none; width:44px; height:30px;}
+.sb-loading-t{position:absolute; width:1px; height:1px; margin:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap;}
+/* the one action of a failed read is the act primary, at its own width */
+.sb-dialog .sb-retry{width:auto; padding:0 var(--s4);}
+.sb-controls{display:flex; flex-wrap:wrap; gap:var(--s3) var(--s5); margin:var(--s3) 0;}
+.sb-ctl{display:flex; flex-direction:column; gap:var(--s1); min-width:0; max-width:100%;}
+.sb-ctl.is-wide{flex:1 1 100%;}
+.sb-ctl-k{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
+/* W5 · ONE segment component (UI_SYSTEM §7.2) — the Book's four controls and
+   the wizard's dials wear it: a 44px row with no pill, agate labels in mut on
+   a 2px underline that is transparent at rest and INK when chosen (never
+   ember: a control is not a live competition, D359). A set too long for its
+   row scrolls in one line under an edge fade (`.is-scroll`); the wizard's
+   short sets share the row (`.is-fill`). */
+.cs-seg{display:flex; gap:var(--s4); min-width:0; border-bottom:1px solid var(--rule); overflow-x:auto; scrollbar-width:none; overscroll-behavior-x:contain;}
+.cs-seg::-webkit-scrollbar{display:none;}
+.cs-seg > button{flex:none; min-height:44px; margin:0 0 -1px; padding:0; background:none; border:0; border-bottom:2px solid transparent; border-radius:0;
+  font-family:var(--board); font-weight:600; font-size:12px; line-height:1.2; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;
+  color:var(--mut); white-space:nowrap; cursor:pointer; text-align:center;}
+.cs-seg > button:hover{color:var(--ink);}
+.cs-seg > button[aria-pressed="true"], .cs-seg > button.on{color:var(--ink); border-bottom-color:var(--ink);}
+.cs-seg > button:focus-visible{outline:2px solid var(--act); outline-offset:-2px;}
+.cs-seg > button small{display:block; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:none; color:var(--mut); font-weight:600;}
+.cs-seg.is-fill{gap:0;}
+.cs-seg.is-fill > button{flex:1 1 0; min-width:0; padding:0 var(--s1); white-space:normal;}
+.cs-seg.is-scroll[data-more]{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);}
+/* W5 · the grid: the name column is pinned (narrower on a phone so a third
+   week shows whole), columns snap to the pinned column's edge, and a fade
+   over the right edge says the season goes on while it does. */
+.sb-matrix-wrap{position:relative; --sb-name-w:170px;}
+.sb-matrix-wrap::after{content:""; position:absolute; top:1px; right:0; bottom:1px; width:44px; pointer-events:none; opacity:0;
+  background:linear-gradient(to right, color-mix(in srgb, var(--bg0) 0%, transparent), var(--bg0)); transition:opacity .15s ease;}
+.sb-matrix-wrap[data-more]::after{opacity:1;}
+.sb-matrix{overflow:auto; max-height:60vh; border-block:1px solid var(--rule); scroll-snap-type:x proximity; scroll-padding-left:var(--sb-name-w);}
 .sb-matrix table{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-variant-numeric:tabular-nums;}
 .sb-matrix th,.sb-matrix td{padding:0; border-bottom:1px solid var(--rule); background:var(--bg0); text-align:center;}
+.sb-matrix td,.sb-matrix thead th:not(:first-child){scroll-snap-align:start;}
 .sb-matrix thead th{position:sticky; top:0; z-index:2; height:56px; background:var(--bg1); font:12px var(--board); padding:var(--s2);}
 .sb-matrix small{display:block; font:11px var(--board); padding-top:var(--s1);}
-.sb-matrix tr>th:first-child{position:sticky; left:0; z-index:1; width:170px; min-width:170px; max-width:170px; text-align:left; background:var(--bg1);}
+.sb-matrix tr>th:first-child{position:sticky; left:0; z-index:1; width:var(--sb-name-w); min-width:var(--sb-name-w); max-width:var(--sb-name-w); text-align:left; background:var(--bg1);}
 .sb-matrix thead tr>th:first-child{z-index:3;}
 .sb-matrix .sb-current{background:var(--brand); color:var(--brand-ink);}
+/* the live week reads down its whole column, not only in the header */
+.sb-matrix td.sb-now{background:color-mix(in srgb, var(--brand) 12%, var(--bg0)); box-shadow:inset 1px 0 0 color-mix(in srgb, var(--brand) 40%, transparent), inset -1px 0 0 color-mix(in srgb, var(--brand) 40%, transparent);}
 .sb-matrix button{border:0; background:transparent; width:100%; min-width:64px; min-height:64px; font:24px var(--board); white-space:nowrap;}
 /* F11 · the status marks are a record note beside the figure, not digits of it */
 .sb-matrix .sb-marks{display:inline-block; margin-left:var(--s1); font:600 11px/1 var(--board); letter-spacing:.06em; color:var(--mut); transform:translateY(-.7em);}
-.sb-key{margin:var(--s2) 0 var(--s2);}
+.sb-key{margin:var(--s2) 0 var(--s2); display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--s1) var(--s4);}
+/* a mark and its meaning never part at a line end */
+.sb-key .sb-key-i{white-space:nowrap;}
+.sb-key .sb-key-i b{font-family:var(--board);}
+.sb-key .sb-key-hint{flex-basis:100%;}
 .sb-matrix th button{text-align:left; white-space:normal; font:14px var(--sans);}
 .sb-matrix strong{display:block; font:20px var(--board); padding-top:var(--s1);}
+/* the leader's total is the one gold figure (§9.1: gold for the leader, the
+   position earned); the reader's own row says so in words, never by colour */
+.sb-matrix strong.sb-lead,.sb-totals strong.sb-lead{color:var(--gold);}
+.sb-you{font-weight:700; color:var(--ink);}
 .sb-totals button,.sb-adjustment{display:block; text-align:left; width:100%; border:0!important; border-bottom:1px solid var(--rule)!important; background:none!important;}
 .sb-totals strong{float:right; font:32px var(--board);}
 .sb-totals small,.sb-adjustment small{display:block; color:var(--mut);}
 .sb-total{font:48px var(--board);}
 .sb-total small{font:12px var(--board);}
 .sb-entry{border-bottom:1px solid var(--rule); padding:var(--s3) 0;}
-.sb-race{width:100%; color:var(--ink); fill:var(--ink); font:12px var(--board);}
-.sb-race-path{fill:none; stroke:currentColor; stroke-width:2;}
+/* the round's receipt is a link in content: its underline is the affordance
+   (§5.2 — no typed arrow after it) */
+.sb-dialog .sb-round{padding:0; font-family:var(--sans); font-size:15px; color:var(--ink); text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
+.sb-dialog .sb-round:hover{text-decoration-color:var(--ink);}
+/* the crown on a finished Book, and what the ladder says when the top is level */
+.sb-crown{font-family:var(--sans);}
+.sb-crown b{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-right:var(--s2);}
+/* W5 · the race draws one printed diagram: each line LABELLED AT ITS END (no
+   legend, §9.10), the first line in ink and the other two in mut, the third
+   dashed as a second channel; the live week is an ember rule named "Now" */
+.sb-race{display:block; width:100%; height:auto; color:var(--ink); fill:var(--ink); font:12px var(--board);}
+.sb-race-path{fill:none; stroke:var(--mut); stroke-width:1.75; stroke-linejoin:round; stroke-linecap:round;}
+.sb-race-path.is-lead{stroke:var(--ink); stroke-width:2.5;}
+.sb-race-lab{fill:var(--mut); font-weight:600;}
+.sb-race-lab.is-lead{fill:var(--ink);}
+.sb-race-tie{stroke:var(--rule); stroke-width:1;}
+.sb-race-axis{fill:var(--mut);}
 .sb-current-line{stroke:var(--brand); stroke-width:2;}
+.sb-race-now{fill:var(--brand); font-weight:600; letter-spacing:.06em;}
 @media(max-width:900px){.sb-layout{grid-template-columns:minmax(0,1fr);} .sb-receipts{border-left:0; border-top:1px solid var(--rule);} .sb-dialog{width:100vw; max-width:100vw; height:96vh; max-height:96vh;}}
-@media(max-width:600px){.sb-race text{font-size:30px;}}
+/* a phone shows three whole weeks and half of the next under a narrower fade
+   (§13.2a: whole, or clearly half-scrolled under the fade — never sheared) */
+@media(max-width:600px){.sb-dialog h1{font-size:34px;} .sb-matrix-wrap{--sb-name-w:110px;} .sb-matrix-wrap::after{width:24px;} .sb-matrix th button{font-size:13px;}}
 /* END D381 BOOK CSS */
 
 .cband{display:block; width:100%; text-align:left; border:0; cursor:pointer;
@@ -689,7 +776,7 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
    size: the ember dot and the state word, never a second full band. */
 .csedn .cstate, .cswire .cstate{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);
   text-transform:uppercase; color:var(--brand); margin-left:var(--s2);}
-.peerrow .pt{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--brand); display:block; margin-top:4px;}
+.peerrow .pt{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--brand); display:block; margin-top:4px;}
 /* WA4 · a standings-history row is a door to its round (§16). It keeps the
    line it always was; what changes is that it is a control, so it takes the
    tap target every other row on this client takes. */
@@ -699,7 +786,49 @@ html[data-theme="light"] .brand .mk{color:var(--ink);}
 .histrow .cv{flex:none; color:var(--mut);}
 .histrow:hover:not(.static){color:var(--ink);}
 .histrow:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
-@media(max-width:959px){ #view-compete .deskaside[data-empty]{display:none;} }
+/* W5 · Compete's second column holds the moments and the finished shelf. When
+   it holds neither it stands down at EVERY width, and on the desk the main
+   column takes the body — the desk's 340 printed "Nothing finished yet." and
+   nothing else (the owner and craft panels, desk D). */
+#view-compete .deskaside[data-empty]{display:none;}
+#view-compete #cmpFinishedWrap[hidden]{display:none;}
+/* W5 · the Compete band's note: the standing is a NAME (the side and its
+   place, in the board face's social role) and the story a sentence in sans — a rank and a
+   gap are numbers, never set in the serif (§1.4). Compete only: the season
+   page's band draws its own. */
+#view-compete .cband-scoreboard .cband-note{font-family:var(--sans); font-size:17px; line-height:1.4; min-width:0;}
+#view-compete .cband-scoreboard .cband-standing{display:block; font-family:var(--board); font-weight:600; font-size:17px; line-height:1.16;
+  letter-spacing:0; margin-bottom:var(--s1);}   /* the social role: a side's name and its place, in title case */
+#view-compete .cband-scoreboard .cband-story{display:block;}
+@media(min-width:960px){ #view-compete .deskbody[data-solo]{grid-template-columns:minmax(0,1fr);} }
+/* the head's door is an agate label in the action green: mono never sets a
+   button's label (§1.4), and the caps are the role's, not the string's (§1.3) */
+#view-compete #cmpStart{font-family:var(--board); font-weight:600; font-size:12px;
+  letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase;}
+/* W5 · the empty Compete is the Scoreboard band's "nothing yet" printing:
+   the band's neutral ground and terrain, a drawn object in mut (§13.1), the
+   headline in the lead role, the fact and the line in sans (never mono,
+   §1.4), then ONE primary and the other doors as quiet links (§16A.5). */
+#view-compete .cmpempty{position:relative; isolation:isolate; overflow:hidden; background:var(--bg1);
+  padding:0; margin:var(--s3) 0 0;}
+#view-compete .cmpempty-in{position:relative; padding:var(--s4); max-width:640px;}
+#view-compete .cmpempty-obj{display:block; width:64px; height:64px; color:var(--mut); margin:0 0 var(--s3) -8px;}
+#view-compete .cmpempty h3{font-family:var(--serif); font-size:28px; font-weight:700; line-height:1.14;
+  letter-spacing:calc(var(--tight) * 1em); margin:0 0 var(--s2);}
+#view-compete .cmpempty .fact{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--ink); margin:0 0 var(--s2);}
+#view-compete .cmpempty .sub{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--mut); margin:0 0 var(--s4); max-width:46ch;}
+#view-compete .cmpempty-doors{display:flex; flex-wrap:wrap; align-items:center; gap:var(--s3) var(--s4);}
+#view-compete .cmpempty-go{width:auto; margin:0; padding:0 var(--s4); flex:none;}
+#view-compete .cmpempty-alt{display:flex; flex-wrap:wrap; gap:0 var(--s4);}
+#view-compete .cmpempty-alt button{background:none; border:0; padding:0; min-height:44px; cursor:pointer;
+  font-family:var(--sans); font-size:15px; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
+#view-compete .cmpempty-alt button:hover{text-decoration-color:var(--ink);}
+#view-compete .cmpempty-alt button:focus-visible{outline:2px solid var(--act); outline-offset:3px;}
+@media(min-width:960px){
+  #view-compete .cmpempty{margin-top:var(--s4);}
+  #view-compete .cmpempty-in{padding:var(--s6) var(--gutter-desk);}
+}
 /* D339 I-3 · the head's own terrain. It sits BEHIND the name, bleeding off the
    right edge, at the quiet end of the alpha ramp — a ground, never a graphic
    with something to say. The head is the only place it goes on an interior
@@ -2322,20 +2451,87 @@ body.guestlive #onboard{display:none !important;}
    the right that fills in as the Pro turns the dials. Mobile is untouched: the
    aside hides and the bylaws live in step 3's review as before. */
 .wiz-aside{display:none;}
-.wiz-aside-h{font-family:var(--mono); font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
+.wiz-aside-h{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:10px;}
 /* Stage 3d: the wizard aside is a drawn PORTRAIT of the league, live from the
    dials. flex-wrap on rows so a long value never pushes text out of its box. */
 .wizp{display:flex; flex-direction:column; gap:12px;}
 .wizp-h{display:flex; align-items:center; gap:11px;}
 .wizp-h b{font-family:var(--serif); font-size:19px; font-weight:700; line-height:1.12; display:block;}
-.wizp-h small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.13em; color:var(--mut); text-transform:uppercase; margin-top:3px;}
+/* W5 · the portrait's words are agate labels in the board face (caps by the
+   role, §1.3) — never mono (§1.4) — and the pot's figure is the board face,
+   never the serif: a number is never set in the serif */
+.wizp-h small{display:block; font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); text-transform:uppercase; margin-top:3px;}
 .wizp-row{display:flex; align-items:center; gap:8px; font-size:13px; flex-wrap:wrap;}
-.wizp-row .k{font-family:var(--mono); font-size:11px; letter-spacing:.12em; color:var(--mut); text-transform:uppercase; width:62px; flex:none;}
+.wizp-row .k{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); text-transform:uppercase; width:62px; flex:none;}
+.wizp-row .wizp-v{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); color:var(--ink); text-transform:uppercase; min-width:0;}
 .wizp-dot{width:10px; height:10px; border-radius:3px; display:inline-block; flex:none;}
-.wizp-chip{font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; padding:0 9px; min-height:24px; display:inline-flex; align-items:center; border-radius:var(--p); border:0; background:var(--bg2); color:var(--mut); white-space:nowrap;}
-.wizp-chip.on{color:var(--panel-ink); background:var(--panel);}
-.wizp-gold{font-family:var(--serif); color:var(--gold); font-weight:700; font-size:24px; font-variant-numeric:tabular-nums;}
-.wizp-sub{font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--mut); text-transform:uppercase; padding-left:70px; margin-top:-4px;}
+.wizp-gold{font-family:var(--board); color:var(--gold); font-weight:700; font-size:27px; line-height:1; font-variant-numeric:tabular-nums;}
+.wizp-sub{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); text-transform:uppercase; padding-left:70px; margin-top:-4px;}
+/* ─────────────────────────────────────────────────────────────────────────
+   W5 · THE WIZARD'S TYPE AND CONTROLS, scoped to #view-wizard (`.byrow`,
+   `.eyebrow`, `label.f`, `.setrow` and `.ihelp` are shared with settings
+   and the season page, which keep their own).
+   ───────────────────────────────────────────────────────────────────────── */
+/* the promise and the review's heading are sentences: sans, sentence case */
+#view-wizard .wizlede{font-family:var(--sans); font-size:15px; line-height:1.45; color:var(--mut); margin:0 0 var(--s2);}
+#view-wizard .wizhead{font-family:var(--sans); font-size:17px; font-weight:600; line-height:1.3; color:var(--ink); margin:0 0 var(--s3); text-wrap:balance;}
+/* section labels and field labels are agate labels, never mono (§1.4) */
+#view-wizard .eyebrow{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);}
+#view-wizard label.f{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em);}
+#view-wizard .ptag{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em);}
+/* a question takes a section's space above it — it sat 4px under the
+   sentence before it */
+#view-wizard .eyebrow.wizq{margin-top:var(--s4);}
+#view-wizard .wizfoot{padding-top:var(--s2);}
+/* the second line of a dial and the help under a question are sentences a
+   golfer reads: sans (they were mono) */
+#view-wizard .setrow .lab small{font-family:var(--sans); font-size:13px; line-height:1.35;}
+/* a dial's − and + are 44px targets (§16.2 — they were 36×34), and on a
+   phone the value column narrows so a label keeps its (i) on its line */
+#view-wizard .setrow .ctl button{width:44px; height:44px;}
+@media(max-width:600px){ #view-wizard .setrow .val{min-width:52px;} #view-wizard .setrow{gap:var(--s2);} }
+#view-wizard .ihelp{font-family:var(--sans); font-size:14px; line-height:1.55;}
+/* a chosen starting point is its check and a 1px action edge — the 3px side
+   stripe was the retired spine */
+#view-wizard .preset.sel{box-shadow:none; border-color:var(--act);}
+/* one of three is a single choice: its mark is a disc, not a checkbox */
+#view-wizard .preset .ok{border-radius:50%;}
+#view-wizard .preset .ok svg{width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:3; stroke-linecap:round; stroke-linejoin:round;}
+#view-wizard .preset-custom{cursor:default;}
+#view-wizard .preset-custom[hidden]{display:none;}
+#view-wizard .preset .presetbase{font-family:var(--sans); font-size:13px; line-height:1.4; color:var(--mut); margin-top:var(--s1);}
+#view-wizard .cs-seg{margin-bottom:var(--s2);}
+/* the three dial groups: a 56px head naming the group and what its dials
+   say, a chevron, and the dials under it */
+#view-wizard #wizDials{margin-top:var(--s4); border-top:1px solid var(--rule);}
+#view-wizard .wizgrp{border-bottom:1px solid var(--rule);}
+#view-wizard .wizgrp-h{display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"k ic" "sum ic"; align-items:center; column-gap:var(--s3);
+  width:100%; min-height:56px; padding:var(--s2) 0; margin:0; background:none; border:0; text-align:left; color:var(--ink); cursor:pointer;}
+#view-wizard .wizgrp-k{grid-area:k; font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
+#view-wizard .wizgrp-sum{grid-area:sum; font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ink); margin-top:2px; min-width:0;}
+#view-wizard .wizgrp-h .ic{grid-area:ic; width:18px; height:18px; color:var(--mut); transition:transform .15s ease;}
+#view-wizard .wizgrp[data-open] .wizgrp-h .ic{transform:rotate(180deg);}
+#view-wizard .wizgrp-h:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
+#view-wizard .wizgrp-need{color:var(--neg);}
+#view-wizard .wizgrp-b{padding:var(--s1) 0 var(--s4);}
+#view-wizard .wizgrp-b[hidden]{display:none;}
+/* the review: agate labels over left-aligned sans values (the table was all
+   mono caps with its values pushed right) */
+#view-wizard .byrow{display:block; font-family:var(--sans); letter-spacing:0; padding:var(--s2) 0; color:var(--ink);}
+#view-wizard .byrow > :first-child{display:block; max-width:none; font-family:var(--board); font-weight:600; font-size:11px;
+  letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut);}
+#view-wizard .byrow b{display:block; text-align:left; font-family:var(--sans); font-size:15px; font-weight:500; line-height:1.4; color:var(--ink); margin-top:2px;}
+#view-wizard .byrow .byneed{font-style:normal; color:var(--neg);}
+/* the phone's review opens on the portrait; the desk keeps it in its aside */
+#view-wizard .wizp-phone{margin-bottom:var(--s3);}
+@media(min-width:1100px){ #view-wizard .wizp-phone{display:none;} }
+/* Back and Cancel are the alternative, so they are links, never a second
+   button beside the one primary (§16A.5) */
+#view-wizard .wiznav .btn.dark{flex:0 0 auto; width:auto; min-height:44px; padding:0 var(--s2); background:none; border:0; box-shadow:none;
+  font-family:var(--sans); font-size:15px; font-weight:500; color:var(--ink);
+  text-decoration:underline; text-decoration-color:var(--mut); text-decoration-thickness:2px; text-underline-offset:5px;}
+#view-wizard .wiznav .btn.dark:hover{filter:none; text-decoration-color:var(--ink);}
+#view-wizard #lockBtn:disabled{background:var(--bg1); color:var(--mut); box-shadow:none; cursor:not-allowed; filter:none; opacity:1;}
 /* Stage 3d-2: Start something as schema-art doors, competition-forward */
 .startgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
 .startdoor{display:flex; flex-direction:column; align-items:flex-start; gap:7px; text-align:left; padding:13px; background:var(--bg1); border:1px solid var(--rule); border-radius:14px; cursor:pointer; color:var(--ink);}
@@ -6070,19 +6266,24 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
       <section class="view" id="view-wizard">
         <div class="wiz-grid">
         <div class="wiz-main">
-        <div class="eyebrow">Set the rules once, then start the season</div>
+        <!-- W5 · the wizard's promise is a sentence, so it is set in sans in
+             sentence case (UI_SYSTEM §1.3/§1.4: mono never sets a sentence and
+             never an eyebrow); the step's name is the agate label under it -->
+        <p class="wizlede">Set the rules once, then start the season.</p>
         <div class="wizstepname cs-agate-s" id="wizStepName" aria-live="polite"></div>
         <div class="wizdots" role="presentation"><i class="on"></i><i></i><i></i></div>
 
         <div class="wizstep on" data-step="0">
           <div class="card">
             <label class="f" for="setName">League name</label>
-            <input class="f" id="setName" placeholder="The Big Slice, The Sunday Cup, Dew Sweepers…" style="font-family:var(--sans); font-size:16px;">
+            <!-- W5 · a placeholder that fits a 375 field whole (three names
+                 ran past its edge, "Dew S…") -->
+            <input class="f" id="setName" placeholder="The Sunday Cup" style="font-family:var(--sans); font-size:16px;">
             <div style="height:14px"></div>
             <label class="f">Pro — that's you</label>
             <div id="commishChip" class="prow" style="margin-top:6px; cursor:default">
               <span class="pmk">◆</span>
-              <span class="pmeta"><b>You</b><small>You run this league</small></span>
+              <span class="pmeta"><b>You</b><small>You run the season</small></span>
               <span class="ptag">THE PRO</span>
             </div>
             <!-- D363 · the person "Start a season" was tapped from: an invitation
@@ -6098,37 +6299,59 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                and the wording is the phone's own (WizardDials.presets.lead) so
                a reword on one client fails the other (D234). Every dial is
                still here, verbatim, further down (P-6). -->
-          <button class="preset" data-p="0">
-            <h4>Casual <span class="ok" aria-hidden="true">✓</span></h4>
+          <button class="preset" data-p="0" aria-pressed="false">
+            <h4>Casual <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
             <!-- MW-06 · the lead is PAINTED from the preset's own two dials
                  (`csPresetLead`), never typed here: "light guardrails" and
                  "the screws in" named a mood, and an organiser could not tell
                  what either would do to their season. -->
             <p class="lead" data-preset-lead="0"></p>
           </button>
-          <button class="preset sel" data-p="1">
-            <h4>Standard <span class="ok" aria-hidden="true">✓</span></h4>
+          <button class="preset sel" data-p="1" aria-pressed="true">
+            <h4>Standard <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
             <p class="lead" data-preset-lead="1"></p>
           </button>
-          <button class="preset" data-p="2">
-            <h4>Cutthroat <span class="ok" aria-hidden="true">✓</span></h4>
+          <button class="preset" data-p="2" aria-pressed="false">
+            <h4>Cutthroat <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
             <p class="lead" data-preset-lead="2"></p>
           </button>
+          <!-- W5 · a starting point stays chosen only while the dials still say
+               what its card says. Turn one and the choice reads "Custom", its
+               sentence painted from the dials themselves, and it names the
+               starting point whose handicaps, scores and penalty it keeps — a
+               UI state (D346's "an agreement from the exact outgoing
+               settings"), not a new rule: nothing new is stored. -->
+          <div class="preset sel preset-custom" id="presetCustom" hidden>
+            <h4>Custom <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
+            <p class="lead" id="presetCustomLead"></p>
+            <p class="presetbase" id="presetCustomBase"></p>
+          </div>
           <p class="fine" id="presetSummary" style="padding-top:2px"></p>
-          <p class="fine" style="padding-top:0; color:var(--mut)">Verification is a norm the league holds, not a filter Cup Season applies.</p>
-          <label class="f" for="wizardFrequency">How often will most of you play?</label>
-          <select class="f" id="wizardFrequency">
-            <option value="0">Choose a pace</option>
-            <option value="1">About once a month</option>
-            <option value="2">About twice a month</option>
-            <option value="3">Most weeks</option>
-          </select>
+          <p class="fine wizfoot">Verification is a norm the league holds, not a filter Cup Season applies.</p>
+          <!-- W5 · the pace is the one segment component every dial wears
+               (it was the page's only native select, in mono) -->
+          <div class="eyebrow wizq" id="wizPaceK">How often will most of you play?</div>
+          <div class="cs-seg is-fill" id="wizardFrequency" role="group" aria-labelledby="wizPaceK" data-value="0">
+            <button type="button" data-pace="1" aria-pressed="false">About once a month</button>
+            <button type="button" data-pace="2" aria-pressed="false">About twice a month</button>
+            <button type="button" data-pace="3" aria-pressed="false">Most weeks</button>
+          </div>
           <div id="busyFriendsSuggestion" hidden>
             <p class="fine">For a busy group, try best 2 and no minimum.</p>
             <button class="mini" id="useBusyFriends">Use best 2, no minimum</button>
           </div>
+          <p class="fine" id="setupPaceWarning" hidden>This asks for more rounds than your group expects to play.</p>
+          <!-- W5 · every dial, under three heads that each say where they stand:
+               the scoring, the money, the calendar. One scroll of presets,
+               pace, dials, money and dates ran 2,355px at 375; each group now
+               opens on its own and its head carries its settings in words.
+               Nothing is hidden that the head does not state (P-6). -->
+          <div id="wizDials">
+          <section class="wizgrp" id="wizGrpScoring">
+            <button type="button" class="wizgrp-h" aria-expanded="false" aria-controls="wizGrpScoringB"><span class="wizgrp-k">Scoring</span><span class="wizgrp-sum" id="wizSumScoring"></span><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+            <div class="wizgrp-b" id="wizGrpScoringB" hidden>
           <div class="setrow">
-            <div class="lab">Rounds that count <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About the rounds that count">i</button><small>Your best N each month score</small></div>
+            <div class="lab">Rounds that count <button class="ibtn" data-i="cap" aria-expanded="false" aria-label="About the rounds that count">i</button><small>Your best rounds each month score</small></div>
             <div class="val" id="capVal">Best 3</div>
             <div class="ctl"><button id="capDown" aria-label="Fewer rounds count">−</button><button id="capUp" aria-label="More rounds count">+</button></div>
           </div>
@@ -6140,9 +6363,28 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
           </div>
           <div class="ihelp" id="ih-floor">An 18-hole round meets one round of the minimum; a 9-hole round meets half. One missed minimum is forgiven automatically each season. Partial season months and the month you join are exempt. The selected rules determine any later team penalty.</div>
           <p class="fine" id="setupMinimumConsequence" aria-live="polite"></p>
-          <p class="fine" id="setupPaceWarning" hidden>This asks for more rounds than your group expects to play.</p>
-          <button class="mini" id="wizCustomize" aria-expanded="false" style="margin-top:10px">Customize <svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
-          <div id="wizDials" style="display:none; margin-top:12px">
+          <div class="eyebrow">Squads <button class="ibtn" data-i="structure" aria-expanded="false" aria-label="About squads">i</button></div>
+          <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually: no squads. Squad modes split the league into squads the Pro picks or draws; more squads want more golfers (4 squads plays best at 8+).</div>
+          <div class="cs-seg is-fill" id="structSeg">
+            <button data-s="solo">Solo</button>
+            <button data-s="squads2">2 Squads</button>
+            <button data-s="squads3">3 Squads</button>
+            <button data-s="squads4" class="on">4 Squads</button>
+          </div>
+          <p class="fine" id="structNote">4 squads · best with 8 or more.</p>
+          <p class="fine" id="structFit" style="padding-top:0; color:var(--ink)"></p>
+          <div class="eyebrow">How squads fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how squads fill">i</button></div>
+          <div class="ihelp" id="ih-draft">How squads get filled. <b>Random draw</b> shuffles everyone and announces the reveal to the board, so nobody can rig the hat. <b>The Pro picks</b> lets you place golfers yourself, for groups who picked teams in the group chat.</div>
+          <div class="cs-seg is-fill" id="draftSeg">
+            <button data-d="random" class="on">Random draw</button>
+            <button data-d="assign">Assign</button>
+          </div>
+          <p class="fine" id="draftNote">Random draw: everyone who joined is shuffled into squads and the reveal is posted. Argument-proof.</p>
+            </div>
+          </section>
+          <section class="wizgrp" id="wizGrpMoney">
+            <button type="button" class="wizgrp-h" aria-expanded="false" aria-controls="wizGrpMoneyB"><span class="wizgrp-k">Money</span><span class="wizgrp-sum" id="wizSumMoney"></span><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+            <div class="wizgrp-b" id="wizGrpMoneyB" hidden>
           <div class="setrow">
             <div class="lab">Buy-in<small>Per golfer · $0 is bragging rights</small></div>
             <div class="val" id="stakeVal">None</div>
@@ -6163,6 +6405,19 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <input class="f" id="payNote" placeholder="Venmo @your-handle" style="font-family:var(--sans); font-size:16px;">
             <p class="fine" id="payNoteFine" style="padding-top:4px">Everyone who owes will see this. It's the only place they can look.</p>
           </div>
+          <div class="eyebrow">The pot split <button class="ibtn" data-i="payout" aria-expanded="false" aria-label="About the pot split">i</button></div>
+          <div class="ihelp" id="ih-payout">How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). <span data-ledger></span></div>
+          <div class="cs-seg is-fill" id="paySeg">
+            <button data-pay="60,25,15" class="on">Balanced</button>
+            <button data-pay="70,20,10">Winner-heavy</button>
+            <button data-pay="50,30,20">Spread it</button>
+          </div>
+          <p class="fine" id="payoutNote">Balanced: champion 60% · runner-up 25% · Points King 15%.</p>
+            </div>
+          </section>
+          <section class="wizgrp" id="wizGrpCalendar">
+            <button type="button" class="wizgrp-h" aria-expanded="false" aria-controls="wizGrpCalendarB"><span class="wizgrp-k">Calendar</span><span class="wizgrp-sum" id="wizSumCalendar"></span><svg class="ic" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+            <div class="wizgrp-b" id="wizGrpCalendarB" hidden>
           <div class="setrow">
             <div class="lab">Season length<small>Weeks or months · ends the same weekday</small></div>
             <div class="val" id="lenVal">6 mo</div>
@@ -6173,44 +6428,25 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div class="lab">First tee<small id="seasonSpan">Pick any day</small></div>
             <input class="f" id="startDate" type="date" style="max-width:160px; padding:9px 11px; font-family:var(--sans);">
           </div>
-          <div class="eyebrow">Squads <button class="ibtn" data-i="structure" aria-expanded="false" aria-label="About squads">i</button></div>
-          <div class="ihelp" id="ih-structure">How the league is organized. <b>Solo</b> means everyone competes individually: no squads. Squad modes split the league into squads the Pro picks or draws; more squads want more golfers (4 squads plays best at 8+).</div>
-          <div class="seg" id="structSeg">
-            <button data-s="solo">Solo</button>
-            <button data-s="squads2">2 Squads</button>
-            <button data-s="squads3">3 Squads</button>
-            <button data-s="squads4" class="on">4 Squads</button>
-          </div>
-          <p class="fine" id="structNote">4 squads · best with 8 or more.</p>
-          <p class="fine" id="structFit" style="padding-top:0; color:var(--ink)"></p>
-          <div class="eyebrow">How squads fill <button class="ibtn" data-i="draft" aria-expanded="false" aria-label="About how squads fill">i</button></div>
-          <div class="ihelp" id="ih-draft">How squads get filled. <b>Random draw</b> shuffles everyone and announces the reveal to the board, so nobody can rig the hat. <b>The Pro picks</b> lets you place golfers yourself, for groups who picked teams in the group chat.</div>
-          <div class="seg" id="draftSeg">
-            <button data-d="random" class="on">Random draw</button>
-            <button data-d="assign">Assign</button>
-          </div>
-          <p class="fine" id="draftNote">Random draw: everyone who joined is shuffled into squads and the reveal is posted. Argument-proof.</p>
           <div class="eyebrow">How it ends <button class="ibtn" data-i="finish" aria-expanded="false" aria-label="About how it ends">i</button></div>
           <div class="ihelp" id="ih-finish"><b>Cup Final</b>: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place. Seasons shorter than six weeks use the points table. <b>Points table</b>: the points leader at season end wins.</div>
-          <div class="seg" id="finishSeg">
+          <div class="cs-seg is-fill" id="finishSeg">
             <button data-e="cup_final" class="on">Cup Final</button>
             <button data-e="points_table">Points table</button>
           </div>
           <p class="fine" id="finishNote">Cup Final: the top two compete over the last four weeks. Final rounds must also fit the monthly counting limit; an earlier round can take a place.</p>
-          <div class="eyebrow">The pot split <button class="ibtn" data-i="payout" aria-expanded="false" aria-label="About the pot split">i</button></div>
-          <div class="ihelp" id="ih-payout">How the pot pays out at season's end. Every split rewards the champion, the runner-up, and the Points King (best individual all year). <span data-ledger></span></div>
-          <div class="seg" id="paySeg">
-            <button data-pay="60,25,15" class="on">Balanced</button>
-            <button data-pay="70,20,10">Winner-heavy</button>
-            <button data-pay="50,30,20">Spread it</button>
-          </div>
-          <p class="fine" id="payoutNote">Balanced: champion 60% · runner-up 25% · Points King 15%.</p>
+            </div>
+          </section>
           </div><!-- /wizDials -->
           <button class="btn" id="wizFastPath" style="margin-top:10px">Review your league</button>
         </div>
 
         <div class="wizstep" data-step="2">
-          <div class="eyebrow" style="margin-top:0">Review the rules, then start the season</div>
+          <h3 class="wizhead">Review the rules, then start the season</h3>
+          <!-- W5 · the phone's twin of the desk's "Your league so far": the
+               same portrait heads the review below the desk width, where the
+               sticky aside is not drawn (the desk keeps it in its aside) -->
+          <div class="card wizp-phone" id="wizReviewPortrait"></div>
           <div class="card" id="bylawsReview" style="margin-bottom:10px"></div>
           <p class="fine" id="inviteNote" style="padding-bottom:10px"></p>
           <button class="btn" id="lockBtn" aria-describedby="lockWhy">Start the season</button>
@@ -6229,7 +6465,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <aside class="wiz-aside" aria-label="Your league so far">
           <div class="wiz-aside-h">Your league so far</div>
           <div class="card" id="wizAside"></div>
-          <p class="fine" id="wizAsideHint">Turn the dials and watch the rules fill in. When you start the season, these become its rules — set once, so there is nothing to argue about in October.</p>
+          <p class="fine" id="wizAsideHint">Turn the dials and watch the rules fill in. When you start the season, these become its rules — set once, so there is nothing to argue about later.</p>
         </aside>
         </div><!-- /wiz-grid -->
       </section>
@@ -6569,17 +6805,27 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
            browser: on a 1,440-px screen the archive sits next to the list
            rather than under it. -->
       <section class="view" id="view-compete">
-        <div class="deskbody wide">
+        <div class="deskbody wide" id="cmpBody">
           <div class="deskmain">
             <div class="cmphead">
               <h2>Compete</h2>
-              <a href="#" id="cmpStart">START SOMETHING ↗</a>
+              <!-- an in-app sheet opens here, so no leaving-the-app arrow (§5.2);
+                   the head sets the label's caps (§1.3) -->
+              <a href="#" id="cmpStart">Start something</a>
             </div>
             <div id="cmpList" style="text-align:left"></div>
           </div>
+          <!-- W5 · the second column holds what runs BESIDE the seasons — the
+               moments, then the finished shelf — so the desk's 340 is never one
+               row or "Nothing finished yet." On the phone the same two follow
+               the list in the same order. A column with nothing in it stands
+               down at every width (renderCompete). -->
           <aside class="deskaside">
-            <div class="eyebrow">Finished</div>
-            <div id="cmpFinished" style="text-align:left"></div>
+            <div id="cmpMoments" style="text-align:left"></div>
+            <div id="cmpFinishedWrap">
+              <div class="eyebrow">Finished</div>
+              <div id="cmpFinished" style="text-align:left"></div>
+            </div>
           </aside>
         </div>
       </section>
@@ -13749,7 +13995,27 @@ function syncWizSegs(){
   const payKey=(state.payout||[60,25,15]).join(',');
   $$('#paySeg button').forEach(b=>b.classList.toggle('on',b.dataset.pay===payKey));
   $$('#structSeg button').forEach(b=>b.classList.toggle('on',b.dataset.s===state.structure));
-  $$('.preset').forEach(b=>b.classList.toggle('sel',+b.dataset.p===state.preset));
+  if(['random','assign'].includes(state.draftType||'random')) $$('#draftSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===(state.draftType||'random')));
+  /* W5 · the segments say which is chosen to a screen reader too */
+  $$('#view-wizard .cs-seg > button').forEach(b=>b.setAttribute('aria-pressed',String(b.classList.contains('on'))));
+  /* W5 · a starting point stays checked only while the dials still say what
+     its card says ("Your best three" over a "Best 4" dial, and a review that
+     printed "Standard" over "Best 4"). Turned away, the choice reads Custom,
+     its sentence painted from the dials, naming the starting point it keeps
+     the rest from. A UI state — the stored preset key is unchanged. */
+  const custom=!csPresetMatches(state.preset);
+  $$('.preset[data-p]').forEach(b=>{ const on=+b.dataset.p===state.preset && !custom; b.classList.toggle('sel',on); b.setAttribute('aria-pressed',String(on)); });
+  const cc=document.getElementById('presetCustom');
+  if(cc){
+    cc.hidden=!custom;
+    if(custom){
+      $('#presetCustomLead').textContent=csRulesLead(capDB(), state.floor);
+      $('#presetCustomBase').textContent=`Built on ${(PRESETS[state.preset]||PRESETS[1]).name}: its handicaps, scores and penalty stay.`;
+    }
+  }
+  /* W5 · the squads note follows the chosen squads on every paint — it kept
+     its markup default ("4 squads · best with 8 or more.") under 2 Squads */
+  const sn=$('#structNote'); if(sn) sn.textContent=STRUCT_NOTES[state.structure]||'';
   const fn=$('#finishNote'); if(fn) fn.textContent=FINISH_NOTES[state.finish||'cup_final'];
   const pn=$('#payoutNote'); if(pn) pn.textContent=PAY_NOTES[payKey]||PAY_NOTES['60,25,15'];
   /* W-48 / D201 · #presetSummary stays SILENT: the selected card above it
@@ -13770,13 +14036,13 @@ function csSetupMinimum(settings){
 function csRenderSetupMinimum(){
   const consequence=document.getElementById('setupMinimumConsequence');
   if(consequence) consequence.textContent=csSetupMinimum(state);
-  const pace=Number(document.getElementById('wizardFrequency')?.value || 0);
+  /* W5 · the pace is a segment now; its choice rides on data-value (0 = not said) */
+  const pace=Number(document.getElementById('wizardFrequency')?.dataset.value || 0);
   const suggestion=document.getElementById('busyFriendsSuggestion');
   if(suggestion) suggestion.hidden=pace!==1;
   const warning=document.getElementById('setupPaceWarning');
   if(warning) warning.hidden=state.structure==='solo' || !pace || state.floor<=(pace===3 ? 4 : pace);
 }
-document.getElementById('wizardFrequency')?.addEventListener('change', csRenderSetupMinimum);
 document.getElementById('useBusyFriends')?.addEventListener('click', ()=>{
   csUseBusyFriends(state); renderSetup();
 });
@@ -13908,30 +14174,48 @@ $$('#paySeg button').forEach(b=>b.addEventListener('click',()=>{
   $('#payoutNote').textContent=PAY_NOTES[b.dataset.pay];
   renderBylaws();
 }));
-/* D8 → A-W3: every wizard dial (buy-in … the monthly minimum) now lives behind
-   ONE disclosure. The preset carries the load; the Pro who wants to tune opens
-   this. Supersedes the old cap/floor-only "fine print" toggle. */
-document.getElementById('wizCustomize')?.addEventListener('click',()=>{
-  const d=$('#wizDials'), t=$('#wizCustomize');
-  if(!d||!t) return;
-  const open = d.style.display==='none';
-  d.style.display = open ? 'block':'none';
-  t.setAttribute('aria-expanded', open?'true':'false');
-  t.innerHTML = (open ? 'Hide options ' : 'Customize ')
-    + `<svg class="ic${open?' flip':''}" aria-hidden="true"><use href="#i-chevron-down"/></svg>`;
-});
+/* D8 → A-W3 → W5: every wizard dial lives behind a disclosure — now THREE,
+   by what a Pro is deciding (the scoring, the money, the calendar), each head
+   carrying its settings in words so a closed group hides nothing it does not
+   say. One "Customize" opened all nine at once, and step 2 ran 2,355px. */
+function csWizGroup(id, open){
+  const sec=document.getElementById(id); if(!sec) return;
+  const h=sec.querySelector('.wizgrp-h'), b=sec.querySelector('.wizgrp-b');
+  const on = open==null ? b.hidden : !!open;
+  b.hidden=!on; h.setAttribute('aria-expanded', on?'true':'false');
+  sec.toggleAttribute('data-open', on);
+}
+window.csWizGroup = csWizGroup;
+$$('#wizDials .wizgrp-h').forEach(h=>h.addEventListener('click',()=>csWizGroup(h.closest('.wizgrp').id)));
+/* the pace: one segment, nothing chosen until the Pro says (0 = not said) */
+$$('#wizardFrequency [data-pace]').forEach(b=>b.addEventListener('click',()=>{
+  const seg=document.getElementById('wizardFrequency');
+  seg.dataset.value = seg.dataset.value===b.dataset.pace ? '0' : b.dataset.pace;
+  seg.querySelectorAll('[data-pace]').forEach(x=>{ const on=x.dataset.pace===seg.dataset.value; x.classList.toggle('on',on); x.setAttribute('aria-pressed',String(on)); });
+  csRenderSetupMinimum();
+}));
 
 const PRESETS=[
   {cap:4, floor:0, name:'Casual'},      /* every round counts */
   {cap:1, floor:2, name:'Standard'},    /* best 3 a month */
   {cap:0, floor:3, name:'Cutthroat'},   /* best 2 — the tightest quality filter */
 ];
-$$('.preset').forEach(p=>{
+/* W5 · does the league's rule still say what starting point `i` says? The
+   exact stored cap (D347's capDB) and the minimum are its two dials; every
+   other rule a starting point carries (the handicap percentage, what a score
+   must be, the penalty) is not a dial and stays the starting point's. */
+function csPresetMatches(i){
+  const pr=PRESETS[i]; if(!pr) return false;
+  return capDB()===CAP_DB[pr.cap] && Number(state.floor)===pr.floor;
+}
+window.csPresetMatches = csPresetMatches;
+$$('.preset[data-p]').forEach(p=>{
   p.addEventListener('click',()=>{
-    $$('.preset').forEach(x=>x.classList.remove('sel'));
-    p.classList.add('sel');
     state.preset=+p.dataset.p;
     const pr=PRESETS[state.preset];
+    /* D347 · choosing a starting point moves the picker, so a stored
+       off-ladder cap gives way to the starting point's own */
+    state.capExact=null;
     state.cap=pr.cap; state.floor=pr.floor; renderSetup(); renderBylaws();
     toast(pr.name+' rules set for the season');
   });
@@ -21008,6 +21292,15 @@ function csPlanLine(sr, myName){
   return 'You, ' + list(names) + '.';
 }
 
+/* W5 · a finished edition's day: its month and day, and the year when it is not
+   this one ("Aug 13", "Aug 13, 2025") — never a weekday, which a past row would
+   read as this week. Null when the row carries no date. */
+function csEditionDay(iso){
+  if(!iso) return null;
+  const d = localDate(String(iso).slice(0,10));
+  if(isNaN(d)) return null;
+  return `${MOS[d.getMonth()]} ${d.getDate()}` + (d.getFullYear() !== new Date().getFullYear() ? ', ' + d.getFullYear() : '');
+}
 /* Compete's moment row — the noun, then the state. Never a countdown: the
    row's clock is a sort key, not a sentence (L-22). Twin of `EventCopy
    .momentLine`. */
@@ -21034,6 +21327,11 @@ function csDaysBetween(fromISO, toISO){
    weeks_total, days_left}. Joined by league id. A missing rank stays missing —
    the row keeps its plain sentence — and nothing here computes a point. */
 /* D381 · the Book. A read model and receipts, never a client scoring engine. */
+/* W5 · a signed figure as a golfer reads it: a true minus, never a hyphen
+   ("−3 points", not "-3 points"). Twin: the phone's Book receipt and cells. */
+const csBookNum = n => Number(n) < 0 ? '−' + Math.abs(Number(n)) : String(n);
+/* W5 · an assessed month ("2026-08-01" → "Aug 2026"), never the raw "2026-08" */
+const csBookMonth = iso => { const d = localDate(String(iso||'').slice(0,10)); return isNaN(d) ? String(iso||'') : `${MOS[d.getMonth()]} ${d.getFullYear()}`; };
 const SeasonBook = {
   prominent: b => b.field_size >= 10 || b.rows.some(r=>r.kind==='squad'),
   entries: (r,w,cumulative=false) => r.entries.filter(e=>e.week!=null && (cumulative?e.week<=w:e.week===w)),
@@ -21060,7 +21358,7 @@ const SeasonBook = {
     if(pts==null)return { fig:'—', marks:'' };
     if(!cumulative && es.length && es.every(e=>e.count_state==='bye'))return { fig:'B', marks:'' };
     if(!cumulative && es.length && es.every(e=>e.count_state==='dropped'))return { fig:'D', marks:'' };
-    return { fig:String(pts), marks: cumulative?'':(es.some(e=>!e.round_id)?'*':'')+(es.some(e=>e.count_state==='dropped')?'D':'') };
+    return { fig:csBookNum(pts), marks: cumulative?'':(es.some(e=>!e.round_id)?'*':'')+(es.some(e=>e.count_state==='dropped')?'D':'') };
   },
   label(r,c,cumulative=false){ const p=this.parts(r,c,cumulative); return p.fig+p.marks; },
   /* F11 · what a cell SAYS to a screen reader — the phone's sentence verbatim
@@ -21079,83 +21377,208 @@ const SeasonBook = {
   rules(b){return (b.counting_cap==null?'All rounds count':'Best '+b.counting_cap+' per calendar month')+(b.participation_floor==null?'':' · minimum '+b.participation_floor);},
 };
 window.SeasonBook=SeasonBook;
-function csSeasonBookReceipt(title,entries,names={}){
-  return `<h2 tabindex="-1">${esc(title)}</h2><div class="sb-total">${entries.reduce((n,e)=>n+e.contribution,0)} <small>points</small></div>`+
-    (entries.length?entries.map(e=>`<section class="sb-entry"><h3>${esc([names[e.member_id],e.recorded_on].filter(Boolean).join(' · '))}</h3><p class="fine">${esc(e.week==null?(e.recorded_on?'Recorded '+e.recorded_on+' · outside the season weeks':'Assessment date unavailable'):'Week '+e.week)}</p><p>${e.points} points · ${e.count_state==='dropped'?'dropped':e.contribution+' included'}</p><p>${esc(e.reason)}</p>${!e.round_id&&e.affected_month?`<p class="fine">Applies to ${esc(e.affected_month.slice(0,7))}</p>`:''}${e.round_id&&!e.withdrawn?`<button type="button" class="sb-round" data-book-round="${esc(e.round_id)}">Open round receipt →</button>`:''}</section>`).join(''):'<p>No round or adjustment recorded for this selection.</p>');
+function csSeasonBookReceipt(title,entries,names={},opts={}){
+  /* W5 · a receipt dates its rounds the way every receipt does ("Mon Sep 21",
+     csRoundDay) — it printed the raw 2026-09-21 beside a head that already read
+     "Jul 6" — and a WEEK's receipt does not repeat "Week 12" under every entry
+     (its head says the week once). Signed figures take a true minus. */
+  const total=entries.reduce((n,e)=>n+e.contribution,0);
+  return `<h2 tabindex="-1">${esc(title)}</h2><div class="sb-total">${csBookNum(total)} <small>points</small></div>`+
+    (entries.length?entries.map(e=>{
+      const when=e.recorded_on?csRoundDay(e.recorded_on):null;
+      const place=e.week==null?(when?'Recorded '+when+' · outside the season weeks':'Assessment date unavailable'):(opts.week?'':'Week '+e.week);
+      return `<section class="sb-entry"><h3>${esc([names[e.member_id],when].filter(Boolean).join(' · '))}</h3>${place?`<p class="fine">${esc(place)}</p>`:''}<p>${csBookNum(e.points)} points · ${e.count_state==='dropped'?'dropped':csBookNum(e.contribution)+' included'}</p><p>${esc(e.reason)}</p>${!e.round_id&&e.affected_month?`<p class="fine">Applies to ${esc(csBookMonth(e.affected_month))}</p>`:''}${e.round_id&&!e.withdrawn?`<button type="button" class="sb-round" data-book-round="${esc(e.round_id)}">Open the round’s receipt</button>`:''}</section>`;
+    }).join(''):'<p>No round or adjustment recorded for this selection.</p>');
 }
-function csSeasonBookRace(b,rows,follow){
-  const leaders=rows.slice().sort((a,b)=>b.points-a.points).slice(0,3), chosen=rows.find(r=>r.id===follow);
+/* W5 · the race is a printed diagram (§9.10): every line is LABELLED AT ITS
+   END, in a right-hand gutter beside the plot, with a hairline from the
+   line's last point to its name — no legend of box-drawing glyphs that a
+   golfer had to match to three near-identical dotted lines. The first line
+   (the golfer followed, or the leader) is ink; the other two are mut, the
+   third dashed as a second channel. The live week is an ember rule named
+   "Now". `width` is the column the chart is drawn into, so one unit is one
+   pixel and the labels keep the body's 12px on a phone as on the desk. */
+function csSeasonBookRace(b,rows,follow,width){
+  const leaders=rows.slice().sort((a,b)=>b.points-a.points||String(a.name).localeCompare(String(b.name))).slice(0,3), chosen=rows.find(r=>r.id===follow);
   const plotted=chosen?[chosen,...leaders.filter(r=>r.id!==chosen.id).slice(0,2)]:leaders;
-  let h='<h2>Points counting today</h2><p>Points included today, grouped by week played or assessed. Later drops restate earlier weeks; this is not a historical rank chart.</p>';
+  let h='<h2>Points counting today</h2><p>Each golfer’s points as they count today, week by week. A better round later in a month can push an earlier one out, so a past week can change.</p>';
   if(plotted.some(r=>r.unplaced_points!==0))return h+'<p>Some adjustments fall outside the season weeks. Open the totals below for the complete record; a weekly curve would omit those points.</p>';
-  const [lo,hi]=SeasonBook.domain(plotted), x=w=>40+(w-1)/Math.max(1,b.weeks.length-1)*700,y=p=>240-(p-lo)/(hi-lo)*210;
-  h+=`<svg class="sb-race" viewBox="0 0 780 285" role="img" aria-label="Points counting today by week. Exact totals and receipts follow."><text x="0" y="30">${hi}</text><text x="0" y="240">${lo}</text>`;
-  if(['active','cup_final'].includes(b.status))h+=`<path class="sb-current-line" d="M${x(b.current_week)} 20V240"/>`;
-  plotted.forEach((r,i)=>{let started=false;const d=r.cells.map(c=>{if(c.future||c.cumulative==null){started=false;return '';}const segment=(started?'L':'M')+x(c.week)+' '+y(c.cumulative);started=true;return segment;}).join(' ');h+=`<path class="sb-race-path" stroke-dasharray="${i===0?'none':i===1?'4 3':'2 3'}" d="${d}"/>`;});
-  h+='<text x="40" y="275">Week 1</text><text x="740" y="275" text-anchor="end">Week '+b.weeks.length+'</text></svg><p>';
-  return h+plotted.map((r,i)=>esc(['━ ','┄ ','┈ '][i]+r.name)).join(' · ')+'</p>';
+  const W=Math.max(280,Math.min(1200,Math.round(Number(width)||780))), H=W<520?232:280;
+  const [lo,hi]=SeasonBook.domain(plotted), n=b.weeks.length;
+  const est=t=>Math.ceil(String(t).length*6.8)+14;                     /* the label's run at 12px, board face */
+  const labText=r=>`${r.name} ${csBookNum((r.cells.filter(c=>!c.future&&c.cumulative!=null).pop()||{}).cumulative??0)}`;
+  const R=Math.min(Math.max(...plotted.map(r=>est(labText(r))),60),Math.round(W*0.42)), L=34, T=26, B=30, X1=W-R-10;
+  const x=w=>L+(n<=1?0:(w-1)/(n-1)*(X1-L)), y=p=>T+(hi===lo?0:(hi-p)/(hi-lo)*(H-T-B));
+  h+=`<svg class="sb-race" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Points counting today by week, for ${esc(plotted.map(r=>r.name).join(', '))}. Exact totals and receipts follow.">`;
+  h+=`<text class="sb-race-axis" x="0" y="${T+4}">${csBookNum(hi)}</text><text class="sb-race-axis" x="0" y="${H-B}">${csBookNum(lo)}</text>`;
+  if(['active','cup_final'].includes(b.status)&&b.current_week>0){const cx=x(b.current_week);h+=`<path class="sb-current-line" d="M${cx} ${T-4}V${H-B}"/><text class="sb-race-now" x="${cx}" y="${T-10}" text-anchor="middle">Now · W${b.current_week}</text>`;}
+  const labs=[];
+  plotted.forEach((r,i)=>{
+    let started=false,last=null;
+    const d=r.cells.map(c=>{if(c.future||c.cumulative==null){started=false;return '';}const seg=(started?'L':'M')+x(c.week).toFixed(1)+' '+y(c.cumulative).toFixed(1);started=true;last=c;return seg;}).join(' ');
+    h+=`<path class="sb-race-path${i===0?' is-lead':''}"${i===2?' stroke-dasharray="5 4"':''} d="${d}"/>`;
+    if(last)labs.push({i,x:x(last.week),y:y(last.cumulative),t:labText(r)});
+  });
+  /* one label per line, in a column, never on top of another */
+  labs.sort((a,b)=>a.y-b.y).forEach((l,k,a)=>{l.ly=Math.max(l.y+4,k?a[k-1].ly+16:T+4);});
+  const over=labs.length?labs[labs.length-1].ly-(H-B):0; if(over>0)labs.forEach(l=>{l.ly-=over;});
+  labs.forEach(l=>{h+=`<path class="sb-race-tie" d="M${(l.x+3).toFixed(1)} ${l.y.toFixed(1)}L${X1+4} ${(l.ly-4).toFixed(1)}"/><text class="sb-race-lab${l.i===0?' is-lead':''}" x="${X1+8}" y="${l.ly.toFixed(1)}">${esc(l.t)}</text>`;});
+  h+=`<text class="sb-race-axis" x="${L}" y="${H-8}">Week 1</text><text class="sb-race-axis" x="${X1}" y="${H-8}" text-anchor="end">Week ${n}</text></svg>`;
+  return h;
+}
+/* W5 · the crown on a finished Book. The read carries no champion, so it is
+   named only from the stored crown the season itself holds (CS.season, when
+   the Book is this season's): the champion's row, and the rung that decided a
+   level finish. Nothing here decides anything. */
+function csBookChampion(b){
+  const S=window.CS&&window.CS.season;
+  if(!S||S.id!==b.season_id||S.status!=='complete')return null;
+  const squads=b.rows.some(r=>r.kind==='squad');
+  const id=squads?S.champion_squad_id:S.champion_member_id;
+  if(!id)return null;
+  const row=b.rows.find(r=>squads?(r.kind==='squad'&&r.squad_id===id):(r.kind==='golfer'&&r.member_id===id));
+  return row?{name:row.name,rung:S.tiebreak_rung||null}:null;
 }
 function csSeasonBookBody(b,selection){
   const {group,squad,mode,follow}=selection;
-  const rows=b.rows.filter(r=>group==='golfer'&&squad!=='all'?r.kind==='contribution'&&r.squad_id===squad:r.kind===group);
-  const squads=b.rows.filter(r=>r.kind==='squad'), prominent=SeasonBook.prominent(b), cumulative=mode==='Totals';
-  const option=(v,t,on)=>`<option value="${esc(v)}"${on?' selected':''}>${esc(t)}</option>`;
-  let controls=squads.length?`<label>View <select id="sb-group" aria-label="View">${['squad','golfer'].map(g=>option(g,g==='squad'?'Squads':'Golfers',g===group)).join('')}</select></label>`:'';
-  if(group==='golfer'&&squads.length)controls+=`<label>Squad contributions <select id="sb-squad" aria-label="Squad contributions">${option('all','Every golfer',squad==='all')}${squads.map(s=>option(s.squad_id,s.name,squad===s.squad_id)).join('')}</select></label>`;
-  if(prominent)controls+=`<label>Display <select id="sb-mode" aria-label="Display">${['Weeks','Totals','Race'].map(m=>option(m,m,m===mode)).join('')}</select></label>`;
-  if(mode==='Race')controls+=`<label>Follow <select id="sb-follow" aria-label="Follow">${option('leaders','Leading three',follow==='leaders')}${rows.map(r=>option(r.id,r.name,r.id===follow)).join('')}</select></label>`;
+  /* W5 · equal points share a rank and read in alphabetical order (D381);
+     the envelope's order is the server's, and the page keeps to that rule */
+  const byStanding=(a,c)=>c.points-a.points||String(a.name).localeCompare(String(c.name));
+  const rows=b.rows.filter(r=>group==='golfer'&&squad!=='all'?r.kind==='contribution'&&r.squad_id===squad:r.kind===group).slice().sort(byStanding);
+  const squads=b.rows.filter(r=>r.kind==='squad').slice().sort(byStanding), prominent=SeasonBook.prominent(b), cumulative=mode==='Totals';
+  /* W5 · one segment component for every control (UI_SYSTEM §7.2) — the four
+     native selects spoke the system's face and chrome inside the Book */
+  const seg=(id,label,opts,on,wide)=>`<div class="sb-ctl${wide?' is-wide':''}"><span class="sb-ctl-k" id="${esc(id)}-k">${esc(label)}</span><div class="cs-seg${opts.length>4?' is-scroll':''}" id="${esc(id)}" role="group" aria-labelledby="${esc(id)}-k">${opts.map(([v,t])=>`<button type="button" data-v="${esc(v)}" aria-pressed="${v===on}">${esc(t)}</button>`).join('')}</div></div>`;
+  /* the two short sets first, so a phone sets them on one line; the long
+     lists (a squad, a golfer to follow) take a line each under them */
+  let controls=squads.length?seg('sb-group','View',[['squad','Squads'],['golfer','Golfers']],group):'';
+  if(prominent)controls+=seg('sb-mode','Display',[['Weeks','Weeks'],['Totals','Totals'],['Race','Race']],mode);
+  if(group==='golfer'&&squads.length)controls+=seg('sb-squad','Squad',[['all','Every golfer'],...squads.map(s=>[s.squad_id,s.name])],squad,true);
+  if(mode==='Race')controls+=seg('sb-follow','Follow',[['leaders','Leading three'],...rows.map(r=>[r.id,r.name])],follow,true);
   /* dates as a golfer reads them, local (never toISOString's UTC day): "Jul 6"
      — the Book printed raw 2026-07-06 in its head and on every week column */
   const day = iso => { const d = localDate(String(iso||'').slice(0,10)); return isNaN(d) ? String(iso||'') : `${MOS[d.getMonth()]} ${d.getDate()}`; };
   const yr = iso => String(iso||'').slice(0,4);
-  let h=`<p>${esc(b.name)} · Season ${b.number} · ${esc(day(b.starts_on))} – ${esc(day(b.ends_on))}${yr(b.ends_on) ? ', ' + esc(yr(b.ends_on)) : ''}</p><p>${esc(SeasonBook.rules(b))}</p>${b.rules_note?`<p>${esc(b.rules_note)}</p>`:''}<div class="sb-controls">${controls}</div>`;
+  let h=`<p>${esc(b.name)} · Season ${b.number} · ${esc(day(b.starts_on))} – ${esc(day(b.ends_on))}${yr(b.ends_on) ? ', ' + esc(yr(b.ends_on)) : ''}</p><p>${esc(SeasonBook.rules(b))}</p>${b.rules_note?`<p>${esc(b.rules_note)}</p>`:''}`;
+  /* W5 · a finished Book names its crown. Two "1st · Tied" and no champion
+     left the reader to guess; the champion comes from the season's stored
+     crown, and when the page does not hold it, the Book says what §14.3's
+     ladder (D388) does with a level top — it never picks one itself. */
+  if(b.status==='complete'&&b.current_week){
+    const champ=csBookChampion(b), top=b.rows.filter(r=>r.kind===(squads.length?'squad':'golfer')&&r.points_rank===1);
+    const rung={'months won':'head-to-head months won','best single month':'the best single month','fewest rounds used':'the fewest rounds used','coin flip':'a coin flip'};
+    if(champ)h+=`<p class="sb-crown"><b>Champion</b>${esc(champ.name)}${champ.rung?` · level at the top, decided on ${esc(rung[champ.rung]||champ.rung)}`:''}</p>`;
+    else if(top.length>1)h+=`<p class="sb-crown"><b>Level at the top</b>A tie at the top goes to head-to-head months won, then the best single month, then the fewest rounds used, then a coin flip.</p>`;
+  }
+  /* nothing to choose before the first tee: the controls wait for a week */
+  if(b.current_week)h+=`<div class="sb-controls">${controls}</div>`;
   if(group==='golfer'&&squad!=='all')h+='<p>Round contributions. Squad adjustments follow below.</p>';
   if(!b.current_week)return h+'<p>No standing yet. Weeks begin at first tee.</p>';
-  const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${esc(r.name)}<small>${esc(SeasonBook.standing(r))}</small><strong>${r.points} pts</strong></button>`;
+  const live=['active','cup_final'].includes(b.status);
+  /* W5 · the leader's total is the one gold figure (§9.1), and the reader's
+     own row says "You" — a mark in words, never colour alone (§16.4) */
+  const standingOf=r=>[r.mine?'You':null,SeasonBook.standing(r)].filter(Boolean).join(' · ');
+  /* a name breaks at its spaces, never at its own hyphen ("Stand-" / "In"):
+     the pinned column is narrow on a phone, and a name wraps whole */
+  const nameOf=r=>esc(r.name).replace(/-/g,'\u2011');
+  const rowButton=(r)=>`<button type="button" data-book-row="${b.rows.indexOf(r)}">${nameOf(r)}<small${r.mine?' class="sb-you"':''}>${esc(standingOf(r))}</small><strong${r.points_rank===1?' class="sb-lead"':''}>${csBookNum(r.points)} pts</strong></button>`;
   if(!prominent || mode==='Race'){
-    if(mode==='Race')h+=csSeasonBookRace(b,rows,follow);
+    if(mode==='Race')h+=csSeasonBookRace(b,rows,follow,selection.width);
     h+='<div class="sb-totals">'+rows.map(rowButton).join('')+'</div>';
   }else{
     /* F11 · the key sits ABOVE the grid, beside the Display control that changes what a cell holds; below a long table it was out of the first view */
-    if(!cumulative) h+='<p class="sb-key fine">— No round · <b>D</b> Dropped · <b>B</b> Bye · <b>*</b> Adjustment · • Future week. Select a cell for its rounds and adjustments.</p>';
-    h+=`<div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}" class="${['active','cup_final'].includes(b.status)&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
-    h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div>';
+    /* W5 · the key is a legend strip: each mark beside its word, never split
+       across a line end, and the one instruction on its own line under it */
+    if(!cumulative) h+='<p class="sb-key fine"><span class="sb-key-i">— No round</span><span class="sb-key-i"><b>D</b> Dropped</span><span class="sb-key-i"><b>B</b> Bye</span><span class="sb-key-i"><b>*</b> Adjustment</span><span class="sb-key-i">• Future week</span><span class="sb-key-hint">Select a cell for its rounds and adjustments.</span></p>';
+    h+=`<div class="sb-matrix-wrap"><div class="sb-matrix" tabindex="0" role="region" aria-label="Whole season points; scroll horizontally for all weeks"><table><thead><tr><th scope="col">${group==='squad'?'Squad':'Golfer'} / Total</th>${b.weeks.map(w=>`<th scope="col" data-week="${w.week}" aria-label="Week ${w.week}, starting ${esc(day(w.starts_on))}${live&&w.week===b.current_week?', this week':''}" class="${live&&w.week===b.current_week?'sb-current':''}">W${w.week}<small>${esc(day(w.starts_on))}</small></th>`).join('')}</tr></thead><tbody>`;
+    h+=rows.map(r=>`<tr><th scope="row">${rowButton(r)}</th>${r.cells.map(c=>{const pc=SeasonBook.parts(r,c,cumulative);return `<td${live&&c.week===b.current_week?' class="sb-now"':''}><button type="button" data-book-row="${b.rows.indexOf(r)}" data-book-week="${c.week}" ${c.future?'disabled':''} aria-label="${esc(r.name)}, ${esc(SeasonBook.spoken(r,c,cumulative))}; open rounds and adjustments">${esc(pc.fig)}${pc.marks?`<span class="sb-marks" aria-hidden="true">${esc(pc.marks)}</span>`:''}</button></td>`;}).join('')}</tr>`).join('')+'</tbody></table></div></div>';
   }
   const adjustmentRows=group==='golfer'&&squad!=='all'?squads.filter(r=>r.squad_id===squad):rows;
   if(prominent){h+='<h2>Adjustments in the totals</h2><p>'+(group==='golfer'&&squad!=='all'?'Add these squad adjustments to the round contributions above.':'Already included in the totals. Kept in their assessed week, with their reason.')+'</p>';
-    let count=0;adjustmentRows.forEach(r=>r.entries.forEach((e,i)=>{if(e.round_id)return;count++;h+=`<button type="button" class="sb-adjustment" data-book-row="${b.rows.indexOf(r)}" data-book-entry="${i}">${esc(r.name)} · ${e.week==null?'Outside season weeks':'Week '+e.week} · ${e.contribution} points<small>${esc(e.reason)}</small></button>`;}));
+    let count=0;adjustmentRows.forEach(r=>r.entries.forEach((e,i)=>{if(e.round_id)return;count++;h+=`<button type="button" class="sb-adjustment" data-book-row="${b.rows.indexOf(r)}" data-book-entry="${i}">${esc(r.name)} · ${e.week==null?'Outside season weeks':'Week '+e.week} · ${csBookNum(e.contribution)} points<small>${esc(e.reason)}</small></button>`;}));
     if(!count)h+='<p>No adjustments recorded for this selection.</p>';
   }
   return h+'<p class="fine">Points counting today</p>';
 }
 function csCloseSeasonBook(){document.getElementById('seasonBookDialog')?.close();}
 window.csCloseSeasonBook=csCloseSeasonBook;
+/* W5 · the Book loads as its own geometry, redacted — the head's two lines and
+   a grid of rows — never the word alone (§13.2); the sentence stays for a
+   screen reader, off the page */
+const CS_BOOK_LOADING = '<div class="sb-skel" aria-hidden="true"><span class="skb" style="display:block;height:14px;width:64%"></span><span class="skb" style="display:block;height:12px;width:38%;margin-top:12px"></span>'
+  + Array.from({length:4},()=>'<div class="sb-skel-row"><span class="skb sb-skel-name"></span>'+'<span class="skb sb-skel-cell"></span>'.repeat(5)+'</div>').join('')
+  + '</div><p class="sb-loading-t">Loading the whole season…</p>';
+/* W5 · a scroller that runs past its edge says so: `data-more` on its host
+   while there is more to the right (the grid's fade, a long segment set's) */
+function csBookEdge(scroller,host){
+  if(!scroller||!host)return;
+  const upd=()=>host.toggleAttribute('data-more',scroller.scrollLeft+scroller.clientWidth<scroller.scrollWidth-2);
+  scroller.addEventListener('scroll',upd,{passive:true});upd();
+}
 async function csOpenSeasonBook(league,season){
   if(!window.CS?.user || !window.sb || state.demo)return;
   csCloseSeasonBook();
   const user=window.CS.user.id, dialog=document.createElement('dialog');dialog.id='seasonBookDialog';dialog.className='sb-dialog';
   dialog.setAttribute('aria-labelledby','sb-title');
-  dialog.innerHTML='<header><div class="sb-terrain" aria-hidden="true"></div><button class="sb-close" type="button" aria-label="Close the Book">Close</button><h1 id="sb-title">the Book</h1></header><div class="sb-layout"><div class="sb-main" aria-live="polite"><p>Loading the whole season…</p></div><aside class="sb-receipts" aria-label="Rounds and adjustments"><h2>Behind the points</h2><p>Select a cell or a total to open its rounds and adjustments.</p></aside></div>';
+  /* W5 · the title reads "The Book" (a display title that opened on a
+     lowercase article read as a typo; running copy keeps "the Book"), the
+     close is the sheet grammar's 44px x, and the receipts column waits until
+     the body has something in it to select */
+  dialog.innerHTML='<header><div class="sb-terrain" aria-hidden="true"></div><h1 id="sb-title">The Book</h1><button class="sb-close" type="button" aria-label="Close the Book"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></header><div class="sb-layout" data-solo><div class="sb-main" aria-live="polite">'+CS_BOOK_LOADING+'</div><aside class="sb-receipts" aria-label="Rounds and adjustments" hidden></aside></div>';
   document.body.appendChild(dialog);dialog.querySelector('.sb-close').onclick=()=>dialog.close();dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();window.csTopoHead?.(dialog.querySelector('.sb-terrain'));
-  const main=dialog.querySelector('.sb-main'), receipts=dialog.querySelector('.sb-receipts');
+  const main=dialog.querySelector('.sb-main'), receipts=dialog.querySelector('.sb-receipts'), layout=dialog.querySelector('.sb-layout');
   const selection={group:'golfer',squad:'all',mode:'Weeks',follow:'leaders'};let book;
   const alive=()=>dialog.open&&window.CS?.user?.id===user;
+  /* the receipts column: shown, with a prompt that names what there is to
+     select, only while the body holds cells or totals */
+  const settleReceipts=(show,cells)=>{
+    receipts.hidden=!show; layout.toggleAttribute('data-solo',!show);
+    if(show&&!receipts.querySelector('.sb-total'))receipts.innerHTML=`<h2>Behind the points</h2><p class="sb-hint">${cells?'Select a cell or a total to open its rounds and adjustments.':'Select a total to open its rounds and adjustments.'}</p>`;
+  };
   function render(){
-    const focused=document.activeElement?.id;main.innerHTML=csSeasonBookBody(book,selection);
-    ['group','squad','mode','follow'].forEach(key=>{const el=main.querySelector('#sb-'+key);if(el)el.onchange=()=>{selection[key]=el.value;if(key==='group'||key==='squad')selection.follow='leaders';render();};});
-    if(focused)main.querySelector('#'+focused)?.focus();
+    const on=document.activeElement, focusKey=on&&on.closest&&on.closest('.cs-seg')?{seg:on.closest('.cs-seg').id,v:on.dataset.v}:null, focused=on?.id;
+    selection.width=Math.max(0,main.clientWidth-40);
+    main.innerHTML=csSeasonBookBody(book,selection);
+    const keyOf={'sb-group':'group','sb-squad':'squad','sb-mode':'mode','sb-follow':'follow'};
+    main.querySelectorAll('.cs-seg').forEach(g=>{
+      const key=keyOf[g.id];if(!key)return;
+      g.querySelectorAll('button[data-v]').forEach(btn=>btn.onclick=()=>{if(selection[key]===btn.dataset.v)return;selection[key]=btn.dataset.v;if(key==='group'||key==='squad')selection.follow='leaders';render();});
+      if(g.classList.contains('is-scroll'))csBookEdge(g,g);
+    });
+    if(focusKey)main.querySelector(`#${focusKey.seg} [data-v="${CSS.escape(focusKey.v||'')}"]`)?.focus();
+    else if(focused)main.querySelector('#'+CSS.escape(focused))?.focus();
+    const matrix=main.querySelector('.sb-matrix');
+    /* the receipts column settles FIRST: it narrows the grid, and a scroll
+       measured before it arrives is measured against the wrong width */
+    settleReceipts(!!(matrix||main.querySelector('.sb-totals button')),!!matrix);
+    if(matrix){
+      /* W5 · the Book opens on the week the record has reached: the live week
+         (or a finished season's last recorded one) is the last whole column
+         in view, with the season behind it to the left — it opened on week 1
+         with the live week off-screen */
+      const at=matrix.querySelector(`thead th[data-week="${book.current_week}"]`);
+      /* rounded UP to a whole column: the columns snap to the pinned name
+         column's edge every column-width, and a scroll that is not on a snap
+         point is pulled back to the one before it — which cut the very week
+         it was scrolling to */
+      const fade=parseFloat(getComputedStyle(matrix.parentElement,'::after').width)||0;   /* the week stays clear of the edge fade */
+      const need=at?at.offsetLeft+at.offsetWidth-(matrix.clientWidth-fade)+2:0, colW=at?at.offsetWidth:1;
+      matrix.scrollLeft=need>0?Math.ceil(need/colW)*colW:0;
+      csBookEdge(matrix,matrix.parentElement);
+    }
   }
   main.addEventListener('click',e=>{
     const button=e.target.closest('[data-book-row]');if(!button||!book||!alive())return;
     const row=book.rows[Number(button.dataset.bookRow)], week=Number(button.dataset.bookWeek), entry=button.dataset.bookEntry;
     const entries=entry!=null?[row.entries[Number(entry)]]:week?SeasonBook.entries(row,week,selection.mode==='Totals'):row.entries;
-    receipts.innerHTML=csSeasonBookReceipt(row.name+(week?' · Week '+week:''),entries,Object.fromEntries(book.rows.filter(r=>r.kind==='golfer').map(r=>[r.member_id,r.name])));receipts.querySelector('h2').focus();
+    receipts.hidden=false;layout.removeAttribute('data-solo');
+    receipts.innerHTML=csSeasonBookReceipt(row.name+(week?' · Week '+week:''),entries,Object.fromEntries(book.rows.filter(r=>r.kind==='golfer').map(r=>[r.member_id,r.name])),{week:!!week&&selection.mode!=='Totals'});receipts.querySelector('h2').focus();
   });
   receipts.addEventListener('click',e=>{const button=e.target.closest('[data-book-round]');if(button&&alive()){dialog.close();window.csOpenPostedRound?.(button.dataset.bookRound);}});
   async function load(){
-    main.innerHTML='<p>Loading the whole season…</p>';
-    try{const {data,error}=await window.sb.rpc('season_book',{p_league_id:league,p_season_id:season});if(!alive()){dialog.close();return;}if(error)throw Error('The Book did not load. Try again.');book=SeasonBook.validate(data,league,season);selection.group=book.rows.some(r=>r.kind==='squad')?'squad':'golfer';dialog.querySelector('#sb-title').textContent=SeasonBook.prominent(book)?'the Book':'Rounds & points';render();}
-    catch(error){if(!alive())return;main.innerHTML=`<p role="alert">${esc(error.message||'The Book did not load. Try again.')}</p><button type="button" id="sb-retry">Try again</button>`;main.querySelector('#sb-retry').onclick=load;}
+    main.innerHTML=CS_BOOK_LOADING;settleReceipts(false);
+    try{const {data,error}=await window.sb.rpc('season_book',{p_league_id:league,p_season_id:season});if(!alive()){dialog.close();return;}if(error)throw Error('The Book did not load. Try again.');book=SeasonBook.validate(data,league,season);selection.group=book.rows.some(r=>r.kind==='squad')?'squad':'golfer';dialog.querySelector('#sb-title').textContent=SeasonBook.prominent(book)?'The Book':'Rounds & points';render();}
+    catch(error){if(!alive())return;settleReceipts(false);main.innerHTML=`<p role="alert">${esc(error.message||'The Book did not load. Try again.')}</p><button type="button" id="sb-retry" class="btn sb-retry">Try again</button>`;main.querySelector('#sb-retry').onclick=load;}
   }
   await load();
 }
@@ -21196,13 +21619,28 @@ function csSeasonRowFacts(f, role){
   const of   = st && Number.isFinite(Number(st.of)) ? Number(st.of) : null;
   const pts  = st && st.points != null && Number.isFinite(Number(st.points)) ? Number(st.points) : null;
   const gap  = st && st.gap_to_leader != null && Number.isFinite(Number(st.gap_to_leader)) ? Number(st.gap_to_leader) : null;
+  /* W5 · in a squads season the standing is the SQUAD's. The band printed
+     "137 points · 2nd · You are 34 back from Fixture Javelinas" and never said
+     the 137 was Fixture Wrens'. The side is named wherever the standing is
+     said, and a leader that is a squad keeps its whole name (the row cut
+     "Fixture Javelinas" to "Fixture", a golfer's first-name rule). Twin:
+     CompeteRoot.competitionLine / pointsStanding on the phone. */
+  const side = !upcoming && f.squad && f.squad.name ? String(f.squad.name) : null;
+  const leader = st && st.leader_name ? (side ? String(st.leader_name) : String(st.leader_name).split(' ')[0]) : null;
   const parts = [];
+  if(side && rank != null) parts.push(side);
   if(rank != null && of != null) parts.push(climbOrd(rank) + (st.points_tied ? ' · Tied' : '') + ' of ' + of);
   if(pts != null) parts.push(pts + ' pts');
   if(rank != null && of != null){
     if(rank === 1 && of > 1) parts.push('leading');
-    else if(gap != null && gap > 0 && st.leader_name) parts.push(gap + ' behind ' + String(st.leader_name).split(' ')[0]);
+    else if(gap != null && gap > 0 && leader) parts.push(gap + ' behind ' + leader);
   }
+  /* W5 · the upcoming Scoreboard said "not yet" twice and never WHEN: the
+     first tee is a date the payload carries (native_home.season.starts_on and
+     days_to_first_tee), said as a golfer reads a day (csRoundDay). */
+  const tee = upcoming && se && se.starts_on ? csRoundDay(se.starts_on) : null;
+  const toTee = !tee ? null : se.days_to_first_tee != null ? Number(se.days_to_first_tee) : csDaysBetween(isoOf(new Date()), se.starts_on);
+  const teeStory = tee ? 'The first tee is ' + tee + (toTee > 1 ? ', in ' + toTee + ' days.' : toTee === 1 ? ', tomorrow.' : '.') : 'No standing yet. First tee is ahead.';
   let eyebrow = null;
   if(upcoming) eyebrow = STAGE_LABEL.preseason;
   else if(se && se.week_no != null && se.weeks_total != null) eyebrow = 'Week ' + se.week_no + ' of ' + se.weeks_total;
@@ -21210,7 +21648,9 @@ function csSeasonRowFacts(f, role){
   let status = null;
   if(clash && clash.closes_today) status = 'The clash closes today';
   else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
-  return { upcoming, sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts, standing:rank==null?null:climbOrd(rank)+(st.points_tied?' · Tied':''), story:upcoming?'No standing yet. First tee is ahead.':gap>0?'You are '+gap+' back from '+(st.leader_name||'the lead')+'.':rank===1?(st.points_tied?'The lead is shared.':'You lead the season.'):'The season is underway.' };
+  return { upcoming, sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts,
+    standing:rank==null?null:(side?side+' · ':'')+climbOrd(rank)+(st.points_tied?' · Tied':''),
+    story:upcoming?teeStory:gap>0?(side?gap+' back from '+(st.leader_name||'the lead')+'.':'You are '+gap+' back from '+(st.leader_name||'the lead')+'.'):rank===1?(st.points_tied?'The lead is shared.':'You lead the season.'):'The season is underway.' };
 }
 /* F13 · A BIRDIE IS A BIRDIE. The risk in celebrating a good hole is FALSE
    recognition, so every rule here is a refusal: par must be KNOWN (an
@@ -21283,7 +21723,11 @@ window.CS_COMPETITION = CS_COMPETITION;
 function csCompetitionBandHtml(row){
   if(!row || !row.state) return '';
   const fig=row.points!=null?`<span class="cband-fig">${row.points}<small>points</small></span>`:'';
-  return `<button class="cband cband-scoreboard" data-live="${row.state==='Live'}" type="button" data-cband="${esc(row.id)}"><span class="sb-terrain" aria-hidden="true"></span><span class="cband-content"><span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span><span class="cband-mid">${fig}<span class="cband-note">${row.standing?esc(row.standing)+'<br>':''}${esc(row.story||row.sub||'')}</span></span>${row.eyebrow||row.status?`<span class="cband-meta">${esc([row.eyebrow,row.status].filter(Boolean).join(' · '))}</span>`:''}</span></button>`;
+  /* W5 · the standing is a LABEL (the side and its place, in the board face)
+     and the story a sentence in sans: a rank and a gap are numbers, and a
+     number is never set in the serif (§1.4); the season's name keeps the
+     band's one serif object */
+  return `<button class="cband cband-scoreboard" data-live="${row.state==='Live'}" type="button" data-cband="${esc(row.id)}"><span class="sb-terrain" aria-hidden="true"></span><span class="cband-content"><span class="cband-top"><span class="cband-name">${esc(row.title)}</span><span class="cband-state">${esc(row.state)}</span></span><span class="cband-mid">${fig}<span class="cband-note">${row.standing?`<span class="cband-standing">${esc(row.standing)}</span>`:''}<span class="cband-story">${esc(row.story||row.sub||'')}</span></span></span>${row.eyebrow||row.status?`<span class="cband-meta">${esc([row.eyebrow,row.status].filter(Boolean).join(' · '))}</span>`:''}</span></button>`;
 }
 window.csCompetitionBandHtml = csCompetitionBandHtml;
 function csCompeteList(memberships, events, schedule, todayISO, facts){
@@ -21332,8 +21776,12 @@ function csCompeteList(memberships, events, schedule, todayISO, facts){
     const done = e.status==='complete';
     const row={ id:'event:'+e.id, kind:'moment', eventId:e.id,
                 /* the phone's eventEyebrow: the day, else the status's own word —
-                   a live Ryder read "Forming" because no date had been selected */
-                eyebrow: done ? 'Final' : e.starts_on ? csDayToken(e.starts_on) : (CS_COMPETITION.event(e.status) === 'Live' ? 'Live' : 'Forming'),
+                   a live Ryder read "Forming" because no date had been selected.
+                   W5 · a FINISHED one is dated by its edition: a Ryder run twice
+                   printed "The North Grove Ryder" as Live and as Final with
+                   nothing to tell them apart, and "Final" was said twice on the
+                   one row (the sub already says it). Twin: CompeteRoot.eventEyebrow. */
+                eyebrow: done ? (csEditionDay(e.starts_on) || 'Final') : e.starts_on ? csDayToken(e.starts_on) : (CS_COMPETITION.event(e.status) === 'Live' ? 'Live' : 'Forming'),
                 title: e.name || 'A moment',
                 sub: csMomentLine(e.kind, e.status, e.mine !== false),
                 state: CS_COMPETITION.event(e.status),
@@ -21770,16 +22218,57 @@ function csEmptyRootDoors(box, take){
   box.querySelectorAll('[data-erdoor]').forEach(b=>b.addEventListener('click',()=>take(b.dataset.erdoor)));
 }
 
+/* W5 · Compete's own shape of the empty root (D234: the producer above is
+   shared — head, fact, sub and the doors in their order — and the SHAPE is
+   the surface's). It is the Scoreboard band's "nothing yet" printing: the
+   band's ground and its terrain, a drawn object (§13.1: an empty scoreboard, in the
+   icon family's weight, in mut), the headline, the fact, and ONE primary —
+   the first door as the act button — with the rest as quiet links (§16A.5).
+   The three equal mono links it replaces gave the page no action. */
+function csCompeteEmptyHtml(root){
+  if(root.state==='loading') return '<p class="fine" style="padding:0">Loading…</p>';
+  const [first, ...rest] = root.doors;
+  /* the object is an EMPTY SCOREBOARD — the band's own shape with its figure
+     slot blank and its lines unwritten. Not a flag: the pennant is the one
+     flag in the product (§5.2), and two absences never share an object */
+  const obj = '<svg class="cmpempty-obj" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round">'
+    + '<rect x="1.8" y="6" width="20.4" height="12" rx="1"/><path d="M5 12.4h3.4M9.9 12.4h3.4" stroke-width="1.6"/>'
+    + '<rect x="16.2" y="8.2" width="3.6" height="1.8" rx=".9"/><path d="M5 15.4h6.4"/></svg>';
+  return `<div class="emptyroot cmpempty"><span class="sb-terrain" aria-hidden="true"></span><div class="cmpempty-in">${obj}`
+    + `<h3>${esc(root.head)}</h3>`
+    + (root.fact ? `<p class="fact">${esc(root.fact)}</p>` : '')
+    + `<p class="sub">${esc(root.sub)}</p>`
+    + `<div class="cmpempty-doors">`
+    + (first ? `<button type="button" class="btn cmpempty-go" data-erdoor="${esc(first.k)}">${esc(first.t)}</button>` : '')
+    + (rest.length ? `<span class="cmpempty-alt">${rest.map(d=>`<button type="button" data-erdoor="${esc(d.k)}">${esc(d.t)}</button>`).join('')}</span>` : '')
+    + `</div></div></div>`;
+}
+
 function renderCompete(){
   const box=document.getElementById('cmpList'), shelf=document.getElementById('cmpFinished');
   if(!box) return;
+  const momentsBox=document.getElementById('cmpMoments'), shelfWrap=document.getElementById('cmpFinishedWrap');
+  const aside = document.querySelector('#view-compete .deskaside'), deskBody = document.getElementById('cmpBody');
+  /* W5 · the second column, said once for every path: it holds the moments and
+     the finished shelf, and when it holds neither it stands down at every
+     width — the desk's main column takes the body (an empty 340 beside a list
+     was a void: "Nothing finished yet." was all it ever said). */
+  const settleAside = (hasMoments, hasFinished) => {
+    if(shelfWrap) shelfWrap.hidden = !hasFinished;
+    const empty = !hasMoments && !hasFinished;
+    if(aside) aside.toggleAttribute('data-empty', empty);
+    if(deskBody) deskBody.toggleAttribute('data-solo', empty);
+  };
   /* F12 · one fact, one place (D360). An empty Compete offers Start something
      at the empty state's own doors, closest to the decision; the head's link
      said it a second time. It stands down until there is a list to head. */
   const headStart = document.getElementById('cmpStart');
   if(!window.CS?.user){
-    box.innerHTML = csEmptyRootHtml(csEmptyRoot('compete', { buddies:0 }));
+    box.innerHTML = csCompeteEmptyHtml(csEmptyRoot('compete', { buddies:0 }));
+    box.querySelectorAll(".sb-terrain").forEach(h=>window.csTopoHead?.(h));
     if(shelf) shelf.innerHTML='';
+    if(momentsBox) momentsBox.innerHTML='';
+    settleAside(false, false);
     if(headStart) headStart.hidden = true;
     csEmptyRootDoors(box, take);
     return;
@@ -21793,13 +22282,18 @@ function renderCompete(){
   const lead = list.seasons.find(r => r.state === 'Live' && r.figure)
            || list.seasons.find(r => r.state === 'Live')
            || list.seasons.find(r => r.state) || null;
+  /* §16A.7 · a head is drawn only over rows: when the band holds the only
+     season, "Your seasons" had nothing under it (an orphan that read as a
+     failed load), and with no season at all it said "None yet." with no door
+     — the head's Start something is that door. */
+  const others = list.seasons.filter(r => !lead || r.id !== lead.id);
   const body = list.nothingRunning
-    ? csEmptyRootHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
+    ? csCompeteEmptyHtml(csEmptyRoot('compete', { buddies: (window.__buddyCount ?? null) }))
     : (lead ? csCompetitionBandHtml(lead)+(lead.seasonId?`<button type="button" class="sb-door" id="cmpBookDoor">${lead.fieldSize>=10||lead.squads?'Open the Book':'Rounds &amp; points'} →</button>`:'') : '')
-      + `<div class="eyebrow">Your seasons</div>`
-      + (list.seasons.length ? list.seasons.filter(r => !lead || r.id !== lead.id).map(csPeerRowHtml).join('') : '<p class="fine" style="padding:0">None yet.</p>')
-      + (list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '');
+      + (others.length ? `<div class="eyebrow">Your seasons</div>` + others.map(csPeerRowHtml).join('') : '');
   box.innerHTML = body;
+  /* the moments ride the second column (desk) — and follow the list on the phone */
+  if(momentsBox) momentsBox.innerHTML = list.moments.length ? `<div class="eyebrow">Your moments</div>` + list.moments.map(csPeerRowHtml).join('') : '';
   if(headStart) headStart.hidden = !!list.nothingRunning;
   box.querySelectorAll(".sb-terrain").forEach(h=>window.csTopoHead?.(h));
   box.querySelector("#cmpBookDoor")?.addEventListener("click",()=>csOpenSeasonBook(lead.leagueId,lead.seasonId));
@@ -21813,15 +22307,11 @@ function renderCompete(){
     const id = String(lead && lead.leagueId || '');
     openRow(lead, id);
   });
-  if(shelf) shelf.innerHTML = list.finished.length
-    ? list.finished.map(csPeerRowHtml).join('')
-    : '<p class="fine" style="padding:0">Nothing finished yet.</p>';
-  /* MW-03 · an empty archive is chrome on a phone. The shelf keeps its place
-     on the desk, where a column beside the list costs nothing; below the desk
-     it stands down until there is something finished to show. */
-  const aside = shelf && shelf.closest('.deskaside');
-  if(aside) aside.toggleAttribute('data-empty', !list.finished.length);
-  [box, shelf].forEach(el=>{ if(!el) return;
+  /* §16A.7 · the shelf is drawn when something has finished; "Nothing finished
+     yet." under its head was a doorless empty at every width */
+  if(shelf) shelf.innerHTML = list.finished.map(csPeerRowHtml).join('');
+  settleAside(!!list.moments.length, !!list.finished.length);
+  [box, momentsBox, shelf].forEach(el=>{ if(!el) return;
     el.querySelectorAll('[data-peer]').forEach(b=>b.addEventListener('click',()=>{
       const [kind,id]=b.dataset.peer.split(':');
       /* WA2 · the same arrival Home's season item takes. This row had the
@@ -25035,14 +25525,24 @@ function renderStructFit(){
   $$('#structSeg button').forEach(b=>{
     const min=STRUCT_MIN[b.dataset.s]||2;
     const ok=n>=min;
-    /* solo always fits — it's the fallback; only squad options dim */
-    b.style.opacity = (ok || b.dataset.s==='solo') ? '' : '.4';
+    /* W5 · a squad option bigger than the roster so far is guidance, not a
+       block, so it is never FADED: 40% opacity took the chosen "2 Squads" to
+       2.52:1 (§16.1 — dim is never a word). It says its need in words, in mut,
+       under its name; solo always fits. Twin: WizardSeg(dimmed:) on the phone. */
+    b.style.opacity='';
+    const name=b.dataset.label || (b.dataset.label=b.textContent.trim());
+    b.innerHTML=esc(name)+(ok || b.dataset.s==='solo' ? '' : `<small>${min}+ golfers</small>`);
     if(ok && b.dataset.s!=='solo') fits.push(STRUCT_NAMES[b.dataset.s].replace(/ .*/,''));
   });
   const el=$('#structFit');
-  if(el) el.textContent = `${n} golfer${n===1?'':'s'} staged — `
-    + (fits.length ? `solo or up to ${fits[fits.length-1]} squads fit` : 'solo fits')
-    + '. Bigger squads open up as more join, by code or invite.';
+  const need=STRUCT_MIN[state.structure]||2;
+  /* the chosen squads are the fact that matters: when they need more golfers
+     than are staged, the line says how many, and how many so far */
+  if(el) el.textContent = state.structure!=='solo' && n<need
+    ? `${STRUCT_NAMES[state.structure]} tee off at ${need} — ${n} golfer${n===1?'':'s'} so far. More join by code or invite.`
+    : `${n} golfer${n===1?'':'s'} staged — `
+      + (fits.length ? `solo or up to ${fits[fits.length-1]} squads fit` : 'solo fits')
+      + '. Bigger squads open up as more join, by code or invite.';
 }
 $$('#structSeg button').forEach(b=>b.addEventListener('click',()=>{
   const min=STRUCT_MIN[b.dataset.s]||2;
@@ -25073,61 +25573,96 @@ function wizPortrait(){
   const dots = sqN
     ? Array.from({length:sqN},(_,i)=>`<span class="wizp-dot" style="background:var(--sq${i})"></span>`).join('')
     : `<span class="wizp-dot" style="background:var(--mut)"></span>`;
-  const structLine = sqN ? `${sqN} SQUADS · ${draft.toUpperCase()}` : 'SOLO · EVERY GOLFER';
+  /* W5 · the portrait's words are agate labels (the role sets the caps, §1.3),
+     never mono; the pot is ONE metal — its figure and its split bar are both
+     gold (the bar was ember beside a gold figure) — and the figure is set in
+     the board face, never the serif (a number is never serif, §1.4) */
+  const structLine = sqN ? `${sqN} squads · ${draft}` : 'Solo · every golfer';
+  /* the endgame is a FACT of the portrait, said in words — never two chips
+     that read as a segmented control nobody can press */
   const bw = pay.map(p=>Math.max(5, p*1.36));
-  const bar = `<svg viewBox="0 0 150 10" width="150" height="10" aria-hidden="true"><rect x="0" y="1" width="${bw[0]}" height="8" rx="4" fill="var(--brand)"/><rect x="${bw[0]+3}" y="1" width="${bw[1]}" height="8" rx="4" fill="var(--brand)" opacity=".55"/><rect x="${bw[0]+bw[1]+6}" y="1" width="${bw[2]}" height="8" rx="4" fill="var(--brand)" opacity=".3"/></svg>`;
+  const bar = `<svg viewBox="0 0 150 10" width="150" height="10" aria-hidden="true"><rect x="0" y="1" width="${bw[0]}" height="8" rx="4" fill="var(--gold)"/><rect x="${bw[0]+3}" y="1" width="${bw[1]}" height="8" rx="4" fill="var(--gold)" opacity=".55"/><rect x="${bw[0]+bw[1]+6}" y="1" width="${bw[2]}" height="8" rx="4" fill="var(--gold)" opacity=".3"/></svg>`;
   const potRow = stake>0
     ? `<div class="wizp-row"><span class="k">The pot</span><span class="wizp-gold">${fmt$(pot)}</span>${bar}</div>
-       <div class="wizp-sub">${fmt$(stake)} / golfer · ${roster} expected · ${pay.join('/')}</div>`
+       <div class="wizp-sub">${fmt$(stake)} / golfer · ${roster} expected · split ${pay.join(' / ')}</div>`
     : `<div class="wizp-row"><span class="k">The pot</span><b style="color:var(--ink)">Bragging rights</b></div>`;
   const mo = Math.max(1, Math.min(6, Math.round(state.durWeeks/4.345)));
   let blocks=''; for(let i=0;i<mo;i++) blocks += `<rect x="${i*41}" y="12" width="36" height="22" rx="5" fill="none" stroke="var(--rule)" stroke-width="1.2"/>`;
   const fx = mo*41;
+  /* W5 · the Final's segment carries no 6px caption under a gold flag (the
+     11px floor, §16.2; gold is earned, D359): the row's own label says it,
+     and the flag is ink */
   const finalSeg = canCup
-    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="color-mix(in srgb, var(--brand) 20%, transparent)" stroke-width="1.6"/><text x="${fx+12}" y="8" font-size="6" letter-spacing="1" text-anchor="middle" fill="var(--brand)" style="font-family:var(--mono)">CUP FINAL</text><path d="M${fx+22} 12V4" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+22} 4l7 2.4-7 2.4z" fill="var(--gold)"/>`
+    ? `<rect x="${fx}" y="12" width="24" height="22" rx="5" stroke="var(--brand)" fill="color-mix(in srgb, var(--brand) 20%, transparent)" stroke-width="1.6"/><path d="M${fx+12} 12V3" stroke="var(--ink)" stroke-width="1.5" stroke-linecap="round"/><path d="M${fx+12} 3l7 2.4-7 2.4z" fill="var(--ink)"/>`
     : '';
   const bandW = fx + (canCup?30:6);
-  const seasonRow = `<div class="wizp-row"><span class="k">Season</span><svg viewBox="0 0 ${bandW} 40" width="${Math.min(210,bandW)}" aria-hidden="true">${blocks}${finalSeg}</svg><span style="font-family:var(--mono);font-size:11px;color:var(--mut)">${durLabel(state.durWeeks)}${canCup?'':' · POINTS TABLE'}</span></div>`;
+  const seasonRow = `<div class="wizp-row"><span class="k">Season</span><svg viewBox="0 0 ${bandW} 40" width="${Math.min(210,bandW)}" aria-hidden="true">${blocks}${finalSeg}</svg><span class="wizp-v">${durLabel(state.durWeeks)}${canCup?' · the Cup Final is the last 4 weeks':' · points table'}</span></div>`;
   return `<div class="wizp">
     <div class="wizp-h">
       <svg viewBox="0 0 100 52" width="80" aria-hidden="true">
         <path d="M4 10 C 30 18, 42 30, 48 42" stroke="var(--sq0)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
         <path d="M96 10 C 70 18, 58 30, 52 42" stroke="var(--sq1)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-        <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="#0A0B0D" stroke="#332018" stroke-width="1.4"/>
-        <path d="M53 41V16" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--gold)"/>
+        <ellipse cx="50" cy="43" rx="7" ry="2.6" fill="var(--bg2)" stroke="var(--rule)" stroke-width="1.4"/>
+        <path d="M53 41V16" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/><path d="M53 16l14 5-14 5z" fill="var(--ink)"/>
       </svg>
       <div><b>${esc(name)}</b><small>Forming — nothing locks until you start it</small></div>
     </div>
-    <div class="wizp-row"><span class="k">Squads</span>${dots}<span style="font-family:var(--mono);font-size:11px;color:var(--mut)">${structLine}</span></div>
-    <div class="wizp-row"><span class="k">Endgame</span><span class="wizp-chip ${cup?'on':''}">Cup Final</span><span class="wizp-chip ${cup?'':'on'}">Points table</span></div>
+    <div class="wizp-row"><span class="k">Squads</span>${dots}<span class="wizp-v">${esc(structLine)}</span></div>
+    <div class="wizp-row"><span class="k">Endgame</span><span class="wizp-v">${canCup ? 'Cup Final' : 'Points table'}</span></div>
     ${potRow}
     ${seasonRow}
   </div>`;
 }
+/* W5 · each dial group's head says where its dials stand, in words, so a
+   closed group hides nothing it does not state (P-6). Painted with the
+   review on every change. */
+function csWizSummaries(){
+  const put=(id,html)=>{ const el=document.getElementById(id); if(el) el.innerHTML=html; };
+  const draft=({random:'random draw',assign:'the Pro picks',snake:'in turns',live:'live picks'})[state.draftType]||'random draw';
+  const counts=capLabel()==='Unlimited' ? 'Every round counts' : capLabel()+' a month';
+  const minimum=state.structure==='solo' ? 'no team minimum' : state.floor ? state.floor+'-round minimum' : 'no minimum';
+  const squads=state.structure==='solo' ? 'solo' : STRUCT_NAMES[state.structure]+', '+draft;
+  put('wizSumScoring', esc([counts, minimum, squads].join(' · ')));
+  const stake=Number(state.stake)||0;
+  put('wizSumMoney', stake
+    ? esc(fmt$(stake)+' a golfer · split '+(state.payout||[60,25,15]).join(' / '))
+      + (typeof csPayNoteMissing==='function' && csPayNoteMissing() ? ' · <span class="wizgrp-need">add how they pay you</span>' : '')
+    : 'No buy-in · bragging rights');
+  const st=seasonStartDate(), en=seasonEndDate();
+  const fin=(state.finish||'cup_final')==='cup_final' && state.durWeeks>=6 ? 'Cup Final' : 'points table';
+  put('wizSumCalendar', esc(`${state.durWeeks} weeks · ${WD[st.getDay()]} ${MOS[st.getMonth()]} ${st.getDate()} – ${WD[en.getDay()]} ${MOS[en.getMonth()]} ${en.getDate()} · ${fin}`));
+}
+window.csWizSummaries = csWizSummaries;
 function renderBylaws(){
   const pr=PRESETS[state.preset];
   // The agreement describes the wizard's outgoing dates, never the last viewed season.
   const starts=seasonStartDate(), ends=seasonEndDate(), weeks=state.durWeeks;
-  const span=`${WD[starts.getDay()]} ${MOS[starts.getMonth()]} ${starts.getDate()} → ${WD[ends.getDay()]} ${MOS[ends.getMonth()]} ${ends.getDate()} · ${weeks} wks`;
+  /* a date range is set with an en dash, never an arrow (§5.2) */
+  const span=`${WD[starts.getDay()]} ${MOS[starts.getMonth()]} ${starts.getDate()} – ${WD[ends.getDay()]} ${MOS[ends.getMonth()]} ${ends.getDate()} · ${weeks} weeks`;
   const finalStarts=new Date(ends); finalStarts.setDate(finalStarts.getDate()-27);
+  /* W5 · the review's labels are agate LABELS (their caps are the role's,
+     §1.3) and its values read as sentences in sans, left-aligned under them
+     (#view-wizard .byrow) — the table was all mono caps, right-aligned.
+     A starting point turned away from reads Custom here as on its card. */
+  const house = csPresetMatches(state.preset) ? pr.name : `Custom, built on ${pr.name}`;
   const rows=`
-    <div class="byrow"><span>FORMAT</span><b>${STRUCT_NAMES[state.structure]}</b></div>
-    <div class="byrow"><span>THE DRAW</span><b>${({random:'Random draw',assign:'The Pro picks',snake:'In turns · async',live:'Live · pick clock'})[state.draftType]}</b></div>
-    <div class="byrow"><span>HOUSE RULES</span><b>${pr.name}</b></div>
-    <div class="byrow"><span>HOW SCORES COUNT</span><b>Scored against your playing HCP — your index at ${ALLOW[state.preset]} percent</b></div>
-    <div class="byrow"><span>SCORES</span><b>${VERIF[state.preset]}</b></div>
-    <div class="byrow"><span>EACH MONTH</span><b>${capLabel()==='Unlimited' ? 'Every round counts' : capLabel()+' a month count'}</b></div>
-    <div class="byrow"><span>THE MINIMUM</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
-    ${state.structure!=='solo' && state.floor>0 ? `<div class="byrow"><span>IF YOU MISS IT</span><b>${esc(csSetupMinimum(state))}</b></div>` : ''}
+    <div class="byrow"><span>Format</span><b>${STRUCT_NAMES[state.structure]}</b></div>
+    <div class="byrow"><span>The draw</span><b>${({random:'Random draw',assign:'The Pro picks',snake:'In turns · async',live:'Live · pick clock'})[state.draftType]}</b></div>
+    <div class="byrow"><span>House rules</span><b>${esc(house)}</b></div>
+    <div class="byrow"><span>How scores count</span><b>Scored against your playing HCP — your index at ${ALLOW[state.preset]} percent</b></div>
+    <div class="byrow"><span>Scores</span><b>${VERIF[state.preset]}</b></div>
+    <div class="byrow"><span>Each month</span><b>${esc(csCountingRule(capDB()))}</b></div>
+    <div class="byrow"><span>The minimum</span><b>${state.structure==='solo' ? 'No team minimum in an individual season' : state.floor ? state.floor+' per golfer each month' : 'No minimum'}</b></div>
+    ${state.structure!=='solo' && state.floor>0 ? `<div class="byrow"><span>If you miss it</span><b>${esc(csSetupMinimum(state))}</b></div>` : ''}
     ${state.stake===0
-      ? `<div class="byrow"><span>BUY-IN</span><b>None · bragging rights</b></div>`
-      : `<div class="byrow"><span>BUY-IN</span><b>${fmt$(state.stake)} / golfer</b></div>
-    <div class="byrow"><span>HOW TO PAY</span><b>${esc(csPayNote())}</b></div>
-    <div class="byrow"><span>POT SPLIT</span><b>${(state.payout||[60,25,15]).join(' / ')} · champion / runner-up / points king</b></div>`}
-    <div class="byrow"><span>SEASON</span><b>${span}</b></div>
+      ? `<div class="byrow"><span>Buy-in</span><b>None · bragging rights</b></div>`
+      : `<div class="byrow"><span>Buy-in</span><b>${fmt$(state.stake)} / golfer</b></div>
+    <div class="byrow"><span>How to pay</span><b>${csPayNote() ? esc(csPayNote()) : '<i class="byneed">Not set yet</i>'}</b></div>
+    <div class="byrow"><span>Pot split</span><b>${(state.payout||[60,25,15]).join(' / ')} · champion / runner-up / Points King</b></div>`}
+    <div class="byrow"><span>Season</span><b>${span}</b></div>
     ${(state.finish||'cup_final')==='cup_final' && weeks>=6
-      ? `<div class="byrow"><span>CUP FINAL</span><b>Final 4 weeks · from ${WD[finalStarts.getDay()]} ${MOS[finalStarts.getMonth()]} ${finalStarts.getDate()}. Final rounds must also fit the monthly counting limit; an earlier round can take a place.${state.structure==='squads2' ? ' Leading squad starts with 10 points.' : ''}</b></div>`
-      : `<div class="byrow"><span>FINISH</span><b>Points table crowns it · whole season, one race</b></div>`}`;
+      ? `<div class="byrow"><span>Cup Final</span><b>Final 4 weeks · from ${WD[finalStarts.getDay()]} ${MOS[finalStarts.getMonth()]} ${finalStarts.getDate()}. Final rounds must also fit the monthly counting limit; an earlier round can take a place.${state.structure==='squads2' ? ' Leading squad starts with 10 points.' : ''}</b></div>`
+      : `<div class="byrow"><span>Finish</span><b>Points table crowns it · whole season, one race</b></div>`}`;
   /* D223 §7.4 · the season page reads SENTENCES; the wizard's review keeps the
      dials, because that is where a Pro is setting them and the engine's nouns
      are the right nouns for a control. Same facts, two grains, one producer
@@ -25136,6 +25671,10 @@ function renderBylaws(){
   const rev=$('#bylawsReview'); if(rev) rev.innerHTML=rows;
   paintInviteNote();   /* D180: say when the invite link expires */
   const asd=$('#wizAside'); if(asd) asd.innerHTML=wizPortrait();   /* Stage 3d: the desktop live portrait */
+  /* W5 · the same portrait heads the phone's review (the desk shows it in its
+     aside), and the three dial heads restate their settings in words */
+  const rpp=$('#wizReviewPortrait'); if(rpp) rpp.innerHTML=wizPortrait();
+  if(typeof csWizSummaries==='function') csWizSummaries();
   /* the endgame dial (migration 008): the Pro can flip the finish until the
      final window opens — after that it's settled, argue never */
   if(hub && !state.demo && window.CS?.member?.role==='commissioner'
@@ -26388,12 +26927,18 @@ function renderLeagueMeta(){
    stops at what is SET: the penalty for missing the minimum belongs to the
    floor sentence (`csSetupMinimum`, Q-27 — there is one of those and this is
    not a fourth). Every dial stays editable underneath (P-6). */
+/* W5 · the sentence is the RULE's (a cap and a minimum), so the preset cards
+   and the Custom card say it with one producer: the cards from the preset's
+   own values in PRESETS, the Custom card from the dials (capDB — the exact
+   stored cap, D347). One best round is a singular sentence. */
+function csRulesLead(cap, floor){
+  const counts = cap == null ? 'Every round counts' : Number(cap) === 1 ? 'Your best round each month counts' : `Your best ${csWord(cap)} each month count`;
+  const minimum = floor ? `${csWord(floor)}-round monthly minimum` : 'no monthly minimum';
+  return `${counts} \u00b7 ${minimum}.`;
+}
 function csPresetLead(i){
   const pr = PRESETS[i]; if(!pr) return '';
-  const cap = CAP_DB[pr.cap];
-  const counts = cap == null ? 'Every round counts' : `Your best ${csWord(cap)} each month count`;
-  const minimum = pr.floor ? `${csWord(pr.floor)}-round monthly minimum` : 'no monthly minimum';
-  return `${counts} \u00b7 ${minimum}.`;
+  return csRulesLead(CAP_DB[pr.cap], pr.floor);
 }
 window.csPresetLead = csPresetLead;
 /* MW-06 · the rail says WHICH step, not only how far. Three bars named
@@ -26441,8 +26986,12 @@ function csRenderPayNote(){
     fine.style.color = csPayNoteMissing() ? 'var(--neg)' : '';   /* a missing field is a validation state (neg, as .ob-status.err), never the competition ember */
   }
   const btn = document.getElementById('lockBtn');
-  if(btn){ btn.disabled = csPayNoteMissing(); btn.style.opacity = csPayNoteMissing() ? 0.5 : ''; }
+  /* W5 · the disabled tier is bg1 with a mut label (§7.1), never the action
+     green at half strength (#view-wizard #lockBtn:disabled); the reason sits
+     under it (#lockWhy) */
+  if(btn){ btn.disabled = csPayNoteMissing(); btn.style.opacity = ''; }
   const why = document.getElementById('lockWhy'); if(why) why.hidden = !csPayNoteMissing();
+  if(typeof csWizSummaries==='function') csWizSummaries();
   const other = document.getElementById('stakeOther');
   if(other && document.activeElement !== other){
     other.value = (Number(state.stake) && !STAKES.includes(Number(state.stake))) ? String(state.stake) : '';
@@ -26472,6 +27021,8 @@ $('#wizBack').addEventListener('click',()=>{state.wiz=Math.max(0,state.wiz-1);re
 /* the review's "Add how to pay": back to the dials, on the field itself */
 $('#lockWhyGo')?.addEventListener('click', e => {
   e.preventDefault(); state.wiz = 1; renderWizard();
+  /* the field lives in the money group: open it before reaching for it */
+  window.csWizGroup?.('wizGrpMoney', true);
   const f = document.getElementById('payNote');
   if(f){ f.scrollIntoView({ block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); f.focus({ preventScroll:true }); }
 });
@@ -29205,7 +29756,9 @@ function renderWizardWith(){
 }
 window.renderWizardWith = renderWizardWith;
 /* the Pro is always the creator — show it as a fixed identity, not a dead
-   email field (pilot feedback: "Pro-you won't let me type"). */
+   email field (pilot feedback: "Pro-you won't let me type"). W5 · the Pro
+   "runs the season" (TERMINOLOGY row 1, D132) — never "runs this league".
+   Twin: WizardCopy.proSub. */
 function renderProChip(){
   const box = $('#commishChip'); if(!box) return;
   const p = (window.CS && CS.profile) || {};
@@ -29213,7 +29766,7 @@ function renderProChip(){
   box.innerHTML =
     `<span class="pmk">${p.marker ? mkr(p.marker) : '◆'}</span>
      <span class="pmeta"><b>${esc(p.display_name || 'You')}</b>
-       <small>${esc(handle)} · you run this league</small></span>
+       <small>${esc(handle)} · you run the season</small></span>
      <span class="ptag">THE PRO</span>`;
 }
 window.renderProChip = renderProChip;

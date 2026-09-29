@@ -192,9 +192,13 @@ const COMPETE = [
     prepare: async (W) => { ryderWorld(W) },
     drive: async (page) => { await toCompete(page); await until(page, () => /North Grove Ryder/.test((document.getElementById('cmpFinished') || {}).innerText || '')) },
     expect: { view: 'view-compete', selectors: { '#cmpList [data-cband] .cband-name': 'text:^North Grove \\(fixture\\)$', '#cmpBookDoor': 'text:Open the Book|Rounds' } },
-    check: all(has('#cmpList [data-cband]', '137[\\s\\S]*2nd[\\s\\S]*You are 34 back from Fixture Javelinas\\.', 'the band (137 points, 2nd, 34 back)'),
+    /* W5 · the band names the side whose standing it states (137 and 2nd are
+       Fixture Wrens', the golfer's squad), and the moments ride the second
+       column (#cmpMoments) — beside the seasons on the desk, after them on
+       the phone */
+    check: all(has('#cmpList [data-cband]', '137[\\s\\S]*Fixture Wrens · 2nd[\\s\\S]*34 back from Fixture Javelinas\\.', 'the band (137 points, Fixture Wrens 2nd, 34 back)'),
       has('#cmpList', 'South Wash Weekday \\(fixture\\)', 'the second season'),
-      has('#cmpList', 'The North Grove Ryder \\(fixture\\)', 'the live Ryder in the moments'),
+      has('#cmpMoments', 'The North Grove Ryder \\(fixture\\)', 'the live Ryder in the moments'),
       has('#cmpFinished', 'The North Grove Ryder \\(fixture\\)', 'the finished Ryder on the shelf')) },
 ]
 
@@ -238,14 +242,14 @@ const BOOK = [
     prepare: adopt('upcoming'), localStorage: BOOK_LS('upcoming'),
     drive: bookFromCompete,
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-main': 'text:No standing yet\\. Weeks begin at first tee\\.' } },
-    check: all(bookIs({ title: 'the Book', head: 'The Autumn Fixture Cup · Season 1 · Oct 5 – Jan 17, 2027' }),
-      bandSays('No standing yet\\. First tee is ahead\\.', 'upcoming'),
+    check: all(bookIs({ title: 'The Book', head: 'The Autumn Fixture Cup · Season 1 · Oct 5 – Jan 17, 2027' }),
+      bandSays('The first tee is Mon Oct 5', 'upcoming'),
       async (page) => page.evaluate(() => document.querySelector('#seasonBookDialog .sb-matrix') ? 'a matrix rendered before the first tee' : true)) },
   { family: 'book', id: 'squads', variant: 'rounds_no_league', title: 'The Book, four squads in week 13 (North Grove, the squads envelope), from the Scoreboard', fullPage: false,
     prepare: adopt('squads'), localStorage: BOOK_LS('squads'),
     drive: bookFromCompete,
     expect: { view: 'view-compete', selectors: { '#seasonBookDialog .sb-matrix': 'visible', '#seasonBookDialog #sb-group': 'visible', '#seasonBookDialog .sb-matrix th.sb-current': 'text:W13' } },
-    check: all(bookIs({ title: 'the Book', head: 'North Grove (fixture) · Season 1 · Jul 6 – Oct 18, 2026' }),
+    check: all(bookIs({ title: 'The Book', head: 'North Grove (fixture) · Season 1 · Jul 6 – Oct 18, 2026' }),
       bandSays('326[\\s\\S]*3rd', 'squads: 3rd, 326 points'),
       async (page) => page.evaluate(() => {
         const rows = [...document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr')]
@@ -268,7 +272,9 @@ const BOOK = [
     prepare: adopt('upcoming'), localStorage: BOOK_LS('upcoming'),
     drive: toCompete,
     expect: { view: 'view-compete', selectors: { '#cmpList [data-cband] .cband-name': 'text:^The Autumn Fixture Cup$', '#cmpBookDoor': 'visible' } },
-    check: all(bandSays('No standing yet\\. First tee is ahead\\.', 'upcoming facts'),
+    /* W5 · the upcoming band says WHEN — the first tee's day from the payload
+       (it said "No standing yet. First tee is ahead.", "not yet" twice) */
+    check: all(bandSays('The first tee is Mon Oct 5', 'upcoming facts'),
       async (page) => page.evaluate(() => {
         const b = document.querySelector('#cmpList [data-cband]'), w = (b.querySelector('.cband-state') || {}).textContent
         return w === 'Upcoming' && b.dataset.live !== 'true' ? true : `the band says ${JSON.stringify(w)} (data-live=${b.dataset.live}) for a season whose first tee is 2026-10-05 -- the Compete row's state tests season.week_no===0 (csCompeteRows), and native_home sends week_no 1 with days_to_first_tee for an upcoming season`
@@ -284,14 +290,16 @@ const BOOK = [
       await toSeasonViaBand(page)
       await until(page, () => { const w = document.getElementById('cupRaceWrap'); return !!w && w.style.display !== 'none' && document.querySelectorAll('#cupRace tr').length >= 2 }, null, 10000)
       await bookFromSeason(page)
-      await page.selectOption('#seasonBookDialog #sb-group', 'golfer')
+      /* W5 · the Book's controls are segments (one component, UI_SYSTEM
+         §7.2), not native selects: each is chosen by its button */
+      await click(page, '#seasonBookDialog #sb-group [data-v="golfer"]')
       await until(page, () => !!document.querySelector('#seasonBookDialog #sb-mode'))
-      await page.selectOption('#seasonBookDialog #sb-mode', 'Race')
+      await click(page, '#seasonBookDialog #sb-mode [data-v="Race"]')
       await until(page, () => !!document.querySelector('#seasonBookDialog svg.sb-race'))
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-hub', selectors: { '#seasonBookDialog svg.sb-race': 'visible', '#seasonBookDialog #sb-follow': 'visible' } },
-    check: all(bookIs({ title: 'the Book' }),
+    check: all(bookIs({ title: 'The Book' }),
       has('#cupRace', 'Fixture Quail[\\s\\S]*Fixture Wrens|Fixture Wrens[\\s\\S]*Fixture Quail', 'the Cup Final race behind the Book'),
       async (page) => page.evaluate(() => {
         const svg = document.querySelector('#seasonBookDialog svg.sb-race')
@@ -322,7 +330,7 @@ const BOOK = [
       await bookFromSeason(page)
     },
     expect: { view: 'view-hub', selectors: { '#seasonBookDialog .sb-matrix': 'visible' } },
-    check: all(bookIs({ title: 'the Book', head: 'This record uses the league’s current scoring rules; a locked historical rule snapshot is not available.' }),
+    check: all(bookIs({ title: 'The Book', head: 'This record uses the league’s current scoring rules; a locked historical rule snapshot is not available.' }),
       async (page) => page.evaluate(() => {
         const rows = document.querySelectorAll('#seasonBookDialog .sb-matrix tbody tr').length
         if (rows !== 16) return `${rows} golfer rows, expected 16`

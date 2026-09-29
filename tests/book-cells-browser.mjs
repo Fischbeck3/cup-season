@@ -38,8 +38,10 @@ for (const width of [375, 1280]) for (const theme of ['dark', 'light']) {
     CS.user = { id: '00000000-0000-4000-8000-00000000f1f1' }
     window.sb.rpc = async name => name === 'season_book' ? { data: book, error: null } : { data: null, error: { message: 'no fixture ' + name } }
     await csOpenSeasonBook(book.league_id, book.season_id)
-    /* the golfer view, in weeks: the cells that carry marks */
-    const g = document.getElementById('sb-group'); if (g) { g.value = 'golfer'; g.dispatchEvent(new Event('change')) }
+    /* the golfer view, in weeks: the cells that carry marks. W5 · the Book's
+       controls are segments now (one component, UI_SYSTEM §7.2), not native
+       selects: the view is chosen by its button, as a golfer chooses it */
+    document.querySelector('#sb-group [data-v="golfer"]')?.click()
   }, BOOK)
   await page.waitForTimeout(150)
   const v = await page.evaluate(() => {
