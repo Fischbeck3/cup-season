@@ -62,8 +62,10 @@ struct MajorRoomView: View {
                    seed: ev.course_id ?? ev.course_label,
                    back: back) {
       if !room.majorBoard.isEmpty {
+        // N4-123 · four faces and a "+N" for the rest, under "N playing"
         CSFaceRow(room.majorBoard.prefix(4).map { face($0) }, style: .roster,
-                  names: room.majorBoard.prefix(4).map { CSBands.fn1($0.displayName) })
+                  names: room.majorBoard.prefix(4).map { CSBands.fn1($0.displayName) },
+                  more: room.majorBoard.count - 4)
       }
     }
 
@@ -149,7 +151,8 @@ struct MajorRoomView: View {
                  initials: Initials.of(r.displayName), isViewer: r.profileId != nil && r.profileId == me)
   }
 
-  /// **Two cells** — the leading card and the clock.
+  /// The leading card — or, before one leads, the cards in. The clock is the
+  /// eyebrow's (N4-123).
   private func cells(_ f: MajorMath.Facts) -> [CSScoreRail.Cell] {
     let contenders = room.majorBoard.filter { !$0.exhibition && $0.pvi != nil }
       .sorted { ($0.pvi ?? -99) > ($1.pvi ?? -99) }
@@ -161,10 +164,8 @@ struct MajorRoomView: View {
       out.append(.init(id: "cards", value: String(room.majorBoard.filter { $0.pvi != nil }.count),
                        label: "Cards in", spoken: "No card leads yet"))
     }
-    if !f.complete, let d = f.daysLeft, d >= 0 {
-      out.append(.init(id: "clock", value: String(d), label: d == 0 ? "The final day" : "Days left",
-                       labelLive: true, spoken: d == 0 ? "The final day" : "\(d) days left"))
-    }
+    // N4-123 · the countdown is said once, in the eyebrow ("LIVE · 1D LEFT",
+    // "THE FINAL DAY"): a clock cell beside it said the same days again
     return out
   }
 

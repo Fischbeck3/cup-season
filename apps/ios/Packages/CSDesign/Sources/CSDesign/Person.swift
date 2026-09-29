@@ -213,9 +213,13 @@ public struct CSFaceRow: View {
   let style: Style
   let names: [String]
   let size: CSFace.Size
+  /// N4-123 · the people a roster row leaves out, said as a "+N" disc after
+  /// the last face: four faces under "five playing" read as the whole field.
+  let more: Int
 
-  public init(_ faces: [CSFace.Model], style: Style, names: [String] = [], size: CSFace.Size = .list) {
-    self.faces = faces; self.style = style; self.names = names; self.size = size
+  public init(_ faces: [CSFace.Model], style: Style, names: [String] = [], size: CSFace.Size = .list,
+              more: Int = 0) {
+    self.faces = faces; self.style = style; self.names = names; self.size = size; self.more = max(0, more)
   }
 
   public var body: some View {
@@ -240,6 +244,12 @@ public struct CSFaceRow: View {
                 .lineLimit(1)
             }
           }
+        }
+        if more > 0 {
+          Text("+\(more)").csType(.agateS).foregroundStyle(cs.mut)
+            .frame(width: size.rawValue, height: size.rawValue)
+            .overlay(Circle().inset(by: 0.5).stroke(cs.rule, lineWidth: CSTokens.Space.hair))
+            .accessibilityLabel("and \(more) more")
         }
       }
     }
