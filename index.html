@@ -16825,7 +16825,10 @@ function csLiveSticky(){
   const was = sb.classList.contains('stuck');
   const at = sent.getBoundingClientRect().top;
   const saved = Number(sb.dataset.shrink||0);
-  const stuck = was ? at < top + saved : at < top;
+  /* …and at the page's top it is in its own place, never stuck: there the
+     sentinel cannot fall "back down by what the face saved", so the rule
+     above held the compact face at scrollY 0 (AW2-21, found resting a round) */
+  const stuck = (window.scrollY || 0) <= 0 ? false : (was ? at < top + saved : at < top);
   if(stuck && !was){
     const h0 = sb.offsetHeight;
     sb.classList.add('stuck');
@@ -17258,8 +17261,18 @@ $('#teeOffBtn').addEventListener('click', async ()=>{
     btn.disabled=false;
   }
   renderPlay();
+  csLiveRest();
   toast('On the tee, good luck everybody');
 });
+/* AW2-21 · a live round RESTS AT ITS OWN TOP. Tee off sits at the foot of a
+   long setup and the stage changes inside one view, so the round opened
+   wherever the setup had been scrolled to: 845px down the setup left the round
+   at 313, its context line and "Change setup" above the sticky header and the
+   board already stuck. The golfer's own scrolling after that is theirs. */
+function csLiveRest(){
+  try{ window.scrollTo({ top:0, behavior:'auto' }); }catch(_){ window.scrollTo(0, 0); }
+  csLiveSticky();   /* judged at the top now, not at the setup's scroll */
+}
 $('#backToSetup').addEventListener('click',e=>{
   e.preventDefault();
   /* TEN / W6 · critique A2 (P1): this set `active=false`, so no banner or door
@@ -17272,7 +17285,7 @@ $('#backToSetup').addEventListener('click',e=>{
 $('#lrBackToRound').addEventListener('click',()=>{
   state.live.stage='live'; state.live.held=false;
   renderPlay();
-  $('#holeNum')?.scrollIntoView?.({ block:'nearest' });
+  csLiveRest();   /* the same rest as tee off: "nearest" could park the hole header under the stuck board */
 });
 /* the held round's line: what stays, and what can change here */
 function csLiveHeldLine(L){
