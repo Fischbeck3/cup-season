@@ -151,6 +151,23 @@ Each was reproduced on this branch before it changed; WX's line numbers were at 
 | build (`stamp-version.sh`, COMMIT_REF=d15b5f18) | ok · `v23 · d15b5f1` and `VERSION = 'd15b5f1'`, 0 placeholders left in dist |
 | dist stays untracked · migration names | ok · ok (no migration touched on this branch) |
 
+## 4e · Released for the owner's testing (2026-09-28, on the owner's yes)
+
+The owner said *"I give permission to push all remaining and ship to test."* No database or Edge Function change rides with this release.
+
+| Layer | Identity | Proof |
+|---|---|---|
+| Web | main **`cf401dee`** (fast-forward from `d7a5a07d`) | 2026-09-29 00:47 UTC: cupseason.app reads `v23 · cf401de`, `sw.js` reads `VERSION = 'cf401de'`, and origin/main is `cf401dee`; the CI run on main succeeded |
+| iPhone | Owner TestFlight **1.0.0 (1180)** from **`cf401dee`** | `tools/ios-archive.sh --upload` ran from a clean detached worktree: archive, export and altool succeeded, with an IPA of 22,184,643 bytes. A fresh altool log reads "UPLOAD SUCCEEDED with no errors". Then `tools/asc.py owner 1180`: VALID, What to Test set (200), added to Owner (204). A separate `asc.py status 1180` at 2026-09-29 00:46 UTC reads: VALID, not expired, internal **IN_BETA_TESTING**, **Owner YES**, **Friends no**, no beta review submission. `asc.py ship` was not run. |
+
+- The native tree at `cf401dee` is identical to `4112a3f0`, where the phone run below ran. The archive, dSYMs and signing logs stay local: `cup-season-claude-ten-gallery/testflight-1180/`.
+- **Phone run at `4112a3f0`, recorded as found:**
+  - Build: succeeded.
+  - Non-UI suite: TEST SUCCEEDED (1304 tests in 209 suites, plus XCTest 16).
+  - `SyntheticRouteTests`: 13 executed, 2 skipped, and two results that are not proof.
+- **X34 · the live finish route is not proven.** `testLiveFinishToRecap` failed. After the finish sheet's primary was tapped, the app showed Home with "Live round in progress · Hole 15" and no recap takeover. The same test failed in 2 of FX's 4 earlier runs (`fx/flows/`), and it taps a host that reports "not hittable". So it is a flaky route until shown otherwise, not a proven product defect. Finishing a live round on a device is owed. What to Test asks only for a hole to be scored; [HUMAN.md](HUMAN.md) D12 asks for the finish.
+- **X35 · the album retry route is not exercised.** `testAlbumFailureThenRetry` passed only as an expected failure. The synthetic "failures" world rendered the album **with photographs** (`flow__album-failed`), so the failed read was never injected into F16's `AlbumModel`. The product half is code-read: the `.failed` state has "The album didn't load" and a Try again door. The unit tests of a54d2fb7 pass. The route proof is open until the fixture fails the read; [HUMAN.md](HUMAN.md) D13 is the device check.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:

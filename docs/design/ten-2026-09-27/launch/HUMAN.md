@@ -16,8 +16,10 @@ This page adds only the ten program's recipient, accessibility and device rows, 
 
 | Layer | Identity | How to confirm on the device |
 |---|---|---|
-| Web | main `________` | cupseason.app → sign-in caption reads `v23 · <sha>`; it must match |
-| iPhone | Owner TestFlight 1.0.0 (`____`) from `________` | TestFlight → Cup Season → build number; in the app, Settings → version |
+| Web | main `cf401dee` | cupseason.app → sign-in caption reads `v23 · cf401de`; it must match |
+| iPhone | Owner TestFlight 1.0.0 (`1180`) from `cf401dee` | TestFlight → Cup Season → build number; in the app, Settings → version |
+
+Filled on 2026-09-28 for the owner's testing release ([LEDGER §4e](LEDGER.md)). If a later candidate ships before the testers arrive, replace both rows and re-run every gate on it.
 
 Use the candidate on both clients for every row. A row run on an older build is recorded, but it does not count.
 
@@ -86,5 +88,7 @@ Then ask: *Where did you slow down? What did you expect to happen that did not?*
 | D9 | Widgets (system host) | Add each Cup Season widget to the Home Screen: empty and populated read correctly; a tap opens the right place | NOT RUN |
 | D10 | Live Activity (system host) | Start a live round; Lock Screen and Dynamic Island show the round; the tap returns to it; it ends at the finish | NOT RUN |
 | D11 | Autumn look in Light (F05) | Settings → Palette → Autumn, Light appearance. Primary buttons are readable | NOT RUN |
+| D12 | Live finish → recap (LEDGER X34) | Score a live round with at least one other golfer → **Finish the round** → the sheet's **Finish the round**. The recap takeover appears ("N cards to the season"); the "Live round in progress" bar is gone; the round is on Home | NOT RUN |
+| D13 | Album that fails to load (LEDGER X35) | Airplane mode → You → Album. It reads "The album didn't load" with **Try again**, never an empty album. Reconnect → **Try again** → the photographs return | NOT RUN |
 
 When a corrected build fixes a failed row, keep the failed row and add the new one beneath it.
