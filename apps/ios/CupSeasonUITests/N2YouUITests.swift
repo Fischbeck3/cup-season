@@ -32,7 +32,8 @@ final class N2YouUITests: N2UITestCase {
     Thread.sleep(forTimeInterval: 1.5)   // the synthetic read fails once, then the retry lands
     for _ in 0..<3 where !retry.isHittable { app.swipeUp() }
     retry.tap()
-    XCTAssertTrue(app.staticTexts["Form"].waitForExistence(timeout: 15), "the record returns on the retry")
+    // W7-047 · the head names its window
+    XCTAssertTrue(app.staticTexts["Form · last five"].waitForExistence(timeout: 15), "the record returns on the retry")
     XCTAssertFalse(failed.exists)
     attach(app, "f10-you-retried")
   }
