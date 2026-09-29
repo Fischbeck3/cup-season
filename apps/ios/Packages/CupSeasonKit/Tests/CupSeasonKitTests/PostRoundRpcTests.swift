@@ -140,6 +140,29 @@ import Foundation
     #expect(PostCalc.blocked(card(whole: "88", slope: "9")) == .noRating)
   }
 
+  /// A2 (root approved) · a round with no course at all is refused before its
+  /// rating is: the order is noCard, noCourse, noRating.
+  @Test func aRoundWithNoCourseSaysAddTheCourseFirst() {
+    // gross only: no course picked or typed
+    let grossOnly = card(whole: "88", rating: "", slope: "", course: "", courseId: nil)
+    #expect(PostCalc.blocked(grossOnly) == .noCourse)
+    #expect(PostCalc.blocked(grossOnly)?.message == "Add the course you played — its tee sets the rating and slope.")
+    #expect(PostCalc.blocked(grossOnly)?.reason == "no_course")
+    // …and a typed rating and slope do not stand in for the course
+    #expect(PostCalc.blocked(card(whole: "88", course: " ", courseId: nil)) == .noCourse)
+    // gross and a picked course, whose tee carries the rating and slope: it posts
+    #expect(PostCalc.blocked(card(whole: "88")) == nil)
+    // gross and a typed course with no slope: the rating's sentence, as before
+    let typedNoSlope = card(whole: "88", rating: "70.1", slope: "", course: "Muni down the road", courseId: nil)
+    #expect(PostCalc.blocked(typedNoSlope) == .noRating)
+    // and nothing entered is still the first sentence
+    #expect(PostCalc.blocked(card(course: "", courseId: nil)) == .noCard)
+    // the preview shows nothing for a round with no course, however sane its
+    // rating and slope (B d4d7c6f0: the preview shows "–")
+    #expect(PostCalc.preview(card(whole: "88", course: "", courseId: nil), myIndex: 12.4) == nil)
+    #expect(PostCalc.preview(card(whole: "88"), myIndex: 12.4) != nil)
+  }
+
   // MARK: - what comes back
 
   @Test func theOutcomeReadsTheServersAnswer() throws {

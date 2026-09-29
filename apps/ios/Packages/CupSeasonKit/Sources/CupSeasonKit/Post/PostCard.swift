@@ -56,6 +56,10 @@ public struct PostCard: Codable, Sendable, Equatable {
   public var slope = ""
   public var course = ""
   public var courseId: String?
+  /// A2 · a course picked from the list, or one typed by hand.
+  public var hasCourse: Bool {
+    courseId != nil || !course.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  }
   /// YYYY-MM-DD; nil = the server's `current_date`.
   public var date: String?
 
@@ -292,19 +296,31 @@ public enum PostCalc {
   public enum Blocked: Sendable, Equatable {
     /// Nothing entered yet.
     case noCard
-    /// A card is entered, but the course carries no rating or slope.
+    /// A2 (root approved) · a card is entered, but no course is picked or
+    /// typed: the round would post against no course at all.
+    case noCourse
+    /// A card and a course are entered, but the course carries no rating or
+    /// slope.
     case noRating
 
     public var message: String {
       switch self {
       case .noCard: return "Enter your gross first"
+      case .noCourse: return PostCalc.noCourseMessage
       case .noRating: return PostCalc.noRatingMessage
       }
     }
     /// What `qaEvent`/`post_blocked` records, the same word on both clients.
-    public var reason: String { self == .noRating ? "no_rating" : "no_card" }
+    public var reason: String {
+      switch self {
+      case .noCard: return "no_card"
+      case .noCourse: return "no_course"
+      case .noRating: return "no_rating"
+      }
+    }
   }
 
+  public static let noCourseMessage = "Add the course you played — its tee sets the rating and slope."
   public static let noRatingMessage = "Type the rating and slope — they’re on the back of the scorecard"
 
   /// A rating and a slope the engine can actually score against — the database's
@@ -316,6 +332,9 @@ public enum PostCalc {
   /// and marks the field for.
   public static func blocked(_ card: PostCard) -> Blocked? {
     guard card.entry != nil else { return .noCard }
+    // A2 · the order is noCard, noCourse, noRating: a course names where the
+    // round was, and its tee is where the rating and slope come from
+    guard card.hasCourse else { return .noCourse }
     guard ratingIsSane(card.ratingValue), slopeIsSane(card.slopeValue) else { return .noRating }
     return nil
   }
@@ -380,6 +399,10 @@ public enum PostCalc {
     // (gross − 0)·113/113. It previewed one, and the number it printed was the
     // one thing on the screen a golfer had no way to know was nonsense.
     guard ratingIsSane(rating), slopeIsSane(card.slopeValue) else { return nil }
+    // A2 (B d4d7c6f0) · a round with no course previews nothing: the web
+    // previewed points and posted a null course_label; the preview shows "–"
+    // and the calc line says `noCourseMessage`
+    guard card.hasCourse else { return nil }
     guard let entry = card.entry else { return nil }
     if entry.holes == 18 {
       let gross = entry.gross

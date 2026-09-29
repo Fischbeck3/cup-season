@@ -406,15 +406,31 @@ public struct CSField: View {
   let kind: Kind
   let loading: Bool
   let multiline: Bool
+  /// A2 · a caller that must put the cursor HERE — a refused post naming this
+  /// field — sets the request; the field takes focus and hands it back. The
+  /// field's own focus stays its own, so the ring still follows the cursor.
+  let focusRequest: Binding<Bool>?
   @FocusState private var focused: Bool
 
   public init(label: String? = nil, placeholder: String = "", text: Binding<String>,
               caption: String? = nil, error: String? = nil, limit: Int? = nil,
-              kind: Kind = .prose, loading: Bool = false, multiline: Bool = false) {
+              kind: Kind = .prose, loading: Bool = false, multiline: Bool = false,
+              focusRequest: Binding<Bool>? = nil) {
     self.label = label; self.placeholder = placeholder; _text = text
     self.caption = caption; self.error = error; self.limit = limit
     self.kind = kind; self.loading = loading
     self.multiline = multiline
+    self.focusRequest = focusRequest
+  }
+
+  /// A request is answered when it arrives, and when the field appears with
+  /// one waiting (a fold that opens to show it).
+  private func answerFocusRequest() {
+    guard let focusRequest, focusRequest.wrappedValue else { return }
+    Task { @MainActor in
+      focused = true
+      focusRequest.wrappedValue = false
+    }
   }
 
   /// The shipped positional form, kept so ~20 call sites keep working while
@@ -458,6 +474,8 @@ public struct CSField: View {
           if loading { CSTallyDots(tint: cs.mut).padding(.trailing, CSTokens.Space.s3) }
         }
         .focused($focused)
+        .onAppear { answerFocusRequest() }
+        .onChange(of: focusRequest?.wrappedValue ?? false) { _, _ in answerFocusRequest() }
       HStack(alignment: .top) {
         if let error {
           Text(error).csType(.bodyS).foregroundStyle(cs.neg)

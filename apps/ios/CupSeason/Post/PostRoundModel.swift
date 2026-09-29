@@ -114,6 +114,13 @@ final class PostRoundModel {
   /// line over `Add my round` and VoiceOver hears it once; changing the card
   /// is the golfer answering it, and so is pressing the button again.
   var refusal: String?
+  /// A2 (B d4d7c6f0) · **A ROUND WITH NO COURSE IS THE COURSE FIELD'S OWN
+  /// ERROR**, said under that field (the web's `#postCourseErr`), the way the
+  /// web says noRating's words under rating and slope. The post's own answer
+  /// slot above `Add my round` stays for the post. Naming a course clears it.
+  var courseError: String?
+  /// …and the course field takes focus when a post is refused for it.
+  var courseFocusRequest = false
 
   // sheets and the ceremony
   var showPars = false
@@ -308,7 +315,13 @@ final class PostRoundModel {
     preview = PostCalc.preview(card, myIndex: myIndex, allowance: membership?.settings?.handicap_allowance)
     if !card.isUntouched(defaultDate: defaultDay) { typedSomething = true }
   }
-  var calcMessage: String { preview?.message ?? (typedSomething ? PostCalc.emptyMessageAfterTyping : PostCalc.emptyMessage) }
+  var calcMessage: String {
+    if let preview { return preview.message }
+    // A2 (B d4d7c6f0) · a gross with no course: the calc line says what the
+    // round is missing, verbatim, rather than a generic prompt
+    if blocked == .noCourse { return PostCalc.noCourseMessage }
+    return typedSomething ? PostCalc.emptyMessageAfterTyping : PostCalc.emptyMessage
+  }
   var grossLine: String { preview?.grossLine ?? PostCalc.emptyGrossLine }
 
   /// A hand-typed rating is assumed to be an 18-hole rating (D72): only
@@ -456,8 +469,16 @@ final class PostRoundModel {
   func tapPost() {
     refusal = nil
     if let b = blocked {
-      refuse(b.message)
       svc.event("post_blocked", ["reason": .string(b.reason)])
+      if b == .noCourse {
+        // the course's own error, under the course field, and the cursor
+        // there — no toast, and the post's answer slot left for the post
+        courseError = b.message
+        courseFocusRequest = true
+        AccessibilityNotification.Announcement(b.message).post()
+        return
+      }
+      refuse(b.message)
       return
     }
     guard preview != nil else { refuse(PostCalc.Blocked.noCard.message); return }

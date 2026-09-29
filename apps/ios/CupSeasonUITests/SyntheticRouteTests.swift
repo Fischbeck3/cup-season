@@ -369,6 +369,14 @@ final class SyntheticRouteTests: XCTestCase {
     rating.tap(); rating.typeText("70.1")
     let slope = app.textFields["Slope"].firstMatch
     slope.tap(); slope.typeText("124")
+    // A2 · a round names its course (noCard, noCourse, noRating): the synthetic
+    // composer inherits none, so one is typed by hand, as a golfer off the list
+    // types it — last, because its results open under the field and move the
+    // rating and slope
+    let course = app.textFields.matching(NSPredicate(format: "identifier == %@ OR placeholderValue BEGINSWITH %@",
+                                                      "post.course.search", "Search a course")).firstMatch
+    XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
+    course.tap(); course.typeText("Fixture Muni")
     app.swipeDown()
   }
 
