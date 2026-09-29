@@ -325,10 +325,11 @@ export function seasonStory(W, { p_season = null, p_league = null } = {}) {
 }
 
 /* ============================================================ THE BOOK */
-/* VERSION · the client validates `version === 1` (index.html SeasonBook.validate).
-   20261130090000 re-emits season_book as version 2 (withdrawn/frozen); the web
-   rejects that envelope outright. The synthetic envelopes the lead supplied are
-   version 1, so the producer answers in the shape the shipped client reads. */
+/* VERSION · the clients validate `version === 1` (index.html SeasonBook.validate,
+   the phone's SeasonBookSnapshot). 20261130090000 emitted version 2, and
+   20261205090000 (applied in prod) patched the envelope back to version 1 on
+   purpose, KEEPING the additive `frozen` and `withdrawn` fields: "both deployed
+   Book readers require envelope version 1". The producer answers as prod does. */
 const VERSION = 1
 const BOOK_DROP = (cap) => `Outside the best ${cap} for this calendar month; the round stays in the record.`
 export function seasonBook(W, leagueId, seasonId) {
@@ -383,7 +384,11 @@ export function seasonBook(W, leagueId, seasonId) {
   return { version: VERSION, league_id: leagueId, season_id: se.id, name: league ? league.name : null, number: se.number, status: se.status, starts_on: se.starts_on, ends_on: se.ends_on,
     timezone: tz(se), generated_at: tsz(W.now), current_week: thisWeek, structure: ls.structure, field_size: members.length, counting_cap: ls.counting_cap ?? null,
     participation_floor: ls.participation_floor ?? null,
-    rules_note: se.status === 'complete' ? 'This record uses the league’s current scoring rules; a locked historical rule snapshot is not available.' : null,
+    /* W7-120 · a finished season in this world closed after D383, so it is
+       booked: its lines are frozen at the close (20261130090000:247-250,
+       applied in prod, envelope version 1 per 20261205090000) */
+    rules_note: se.status === 'complete' ? 'These are the lines the season closed with. Later rule changes, posts and deletions do not move them.' : null,
+    frozen: se.status === 'complete',
     coverage_complete: rows.every((r) => r.reconciled), weeks, rows }
 }
 
@@ -697,7 +702,10 @@ export function adoptBook(W, b, { status = null, finish = 'points_table' } = {})
   rebuildSnapshots(W, [S])
   /* a complete season was crowned when it was recorded complete: the envelope's own generation time */
   if (st === 'complete') crownSeason(W, S, tsz(b.generated_at))
-  W.book = bookAt(b, W.today, tsz(W.now))
+  /* W7-121 · a complete season's Book is read as season_book answers once
+     close_season has run: on the day after its ends_on, so current_week is the
+     last and no cell is "Future week" (production cannot draw one) */
+  W.book = bookAt(b, st === 'complete' ? addDays(b.ends_on, 1) : W.today, tsz(W.now))
   W.book.status = st
   W.notes.push(`book: adopted ${b.name} (${L}) at week ${W.book.current_week}, status ${st}`)
   return { league: L, season: S, book: W.book }

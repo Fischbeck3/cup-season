@@ -551,7 +551,7 @@ export default function install(W) {
         if (!s || played < s.starts_on || played > s.ends_on) continue
         const p = prof(me)
         T.posts.push({ id: U('f7000000', 800 + n), league_id: m.league_id, profile_id: me, kind: 'round', member_id: m.id,
-          body: `${p.display_name.split(' ')[0].toUpperCase()} POSTED ${gross} AT ${label.split(' · ')[0].toUpperCase()}`, created_at: r.created_at, round_id: r.id, live_round_id: null, scheduled_round_id: null })
+          body: `${p.display_name.split(' ')[0]} posted ${gross}${holes === 9 ? ' for nine' : ''}${label ? ' at ' + label : ''}.`, created_at: r.created_at, round_id: r.id, live_round_id: null, scheduled_round_id: null })   /* W7-017 · round_to_board()'s body */
       }
       const resp = { round: { id: r.id, season_id: st ? st.id : null, league_id: st ? st.league_id : null, league_name: st ? league(st.league_id).name : null,
         squad: sq ? sq.name : null, played_on: played, gross, holes_played: holes, course_label: label, api_course_id: course, photo_path: photo,
