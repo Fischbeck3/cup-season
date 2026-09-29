@@ -7846,6 +7846,23 @@ function backToDoor(){ const ob = $('#onboard'); ob.style.display = ''; ob.class
    caller is unchanged — `switchView('pot')` still means "open the season on the
    pot", it just scrolls there now instead of blanking the table. The schedule
    is still a destination (D93), not a section, and still returns here (Q-12). */
+/* round 2 (critique B2, P1) · THE ALBUM RENDERS WHEN IT IS SEEN. The pane was
+   meant to render "lazily on first open" through setRoomSeg('album'), but no
+   chip jumps there, so the season page showed the album's heading over an
+   empty grid. The grid now renders when the pane first scrolls into view, and
+   again only when the league has changed — not on every pass of the scroll. */
+(()=>{
+  let last = null;
+  /* once per league: opening the season page, or the pane coming into view */
+  window.csAlbumOnce = () => {
+    const key = window.CS?.league?.id || null;
+    if(!key || key === last || typeof window.renderAlbum !== 'function') return;
+    last = key; window.renderAlbum();
+  };
+  const pane = document.getElementById('room-album');
+  if(pane && 'IntersectionObserver' in window)
+    new IntersectionObserver(es => { if(es.some(e => e.isIntersecting)) window.csAlbumOnce(); }, { rootMargin: '200px 0px' }).observe(pane);
+})();
 function setRoomSeg(r){
   if(r==='schedule'){ window._schedFrom = 'hub'; switchView('schedule'); return; }
   const rg=$('#roomGrid'); if(rg) rg.dataset.room=r;
@@ -8013,6 +8030,7 @@ function switchView(v){
      shown without a loaded event, render the empty-state ("No event loaded.")
      instead of leaving a blank shell with just the back link. */
   if(v==='event') window.renderEvent?.();
+  if(v==='hub') window.csAlbumOnce?.();   /* the season page's album (critique B2 P1) */
   /* Q-12 · point the schedule's back link at wherever it was opened from
      (setRoomSeg sets 'hub'; every other entry point means Home). */
   if(v==='schedule'){
@@ -15426,10 +15444,14 @@ window.liveSyncBadge = function(){
   if(!L.code){ el.textContent='Scoring it yourself · live on this phone'; return; }
   const n=Math.max(1,(state.livePresence||[]).length);
   const q=window.liveSync?.queued?.()||0;
+  const cells=window.liveSync?.queuedScores?.()||0;
   /* W1 · what is and is not saved, in words: "8 QUEUED" did not say the
-     scores were safe on this phone, or when they would go */
-  el.textContent = q
-    ? `${q} score${q===1?'':'s'} saved on this phone; ${q===1?'it sends':'they send'} when you have signal.`
+     scores were safe on this phone, or when they would go. The count is the
+     scores (distinct golfer-hole cells), not the messages; a wolf pick waiting
+     alone is saved without a number */
+  el.textContent = cells
+    ? `${cells} score${cells===1?'':'s'} saved on this phone; ${cells===1?'it sends':'they send'} when you have signal.`
+    : q ? 'Saved on this phone; it sends when you have signal.'
     : (n>1 ? `${n} phones scoring · every score sent` : 'Every score sent');
   el.classList.toggle('is-queued', q > 0);
 };
@@ -26599,12 +26621,26 @@ function renderRosterDoor(){
   /* the Pro's handle and a member's state are two voices: a member read "Add
      anyone yourself" and "until you close it" about a control only the Pro
      has (the owner's panel) */
+  /* round 2's P0 (critique B2): in week 8 of 13 the card still said the Pro
+     "can still add a golfer until the halfway turn" — the turn had passed and
+     D161's door was shut. The turn is the server's own date (roster_door.sql:
+     starts + (ends − starts) / 2 in whole days): before it the sentence names
+     it, after it the roster is set, in the server's words. */
+  const se = window.CS?.season || null;
+  const halfISO = (se && se.starts_on && se.ends_on) ? (() => {
+    const a = localDate(String(se.starts_on).slice(0,10)), b = localDate(String(se.ends_on).slice(0,10));
+    const h = new Date(a.getFullYear(), a.getMonth(), a.getDate() + Math.floor(Math.round((b - a) / 864e5) / 2));
+    return isoOf(h); })() : null;
+  const pastHalf = !!halfISO && isoOf(new Date()) > halfISO;
+  const untilTurn = halfISO ? `until the halfway turn, ${pretty(halfISO)}` : 'until the halfway turn';
   $('#rosterSub').textContent = isPro
-    ? ( !d.open && d.by==='pro' ? 'You closed the roster. Add anyone yourself until the halfway turn.'
-      : !d.open                 ? 'The link has closed. Add anyone yourself until the halfway turn.'
+    ? ( !d.open && pastHalf     ? 'Past the halfway turn — the roster’s set for this season.'
+      : !d.open && d.by==='pro' ? `You closed the roster. Add anyone yourself ${untilTurn}.`
+      : !d.open                 ? `The link has closed. Add anyone yourself ${untilTurn}.`
       : d.until                 ? `Works until you close it, or until ${d.grace?'':'first tee — '}${pretty(d.until)}.`
       :                           'The invite link works until you close the roster.' )
-    : ( !d.open ? 'The roster is set. The Pro can still add a golfer until the halfway turn.'
+    : ( !d.open && pastHalf ? 'The roster’s set for this season.'
+      : !d.open ? `The roster is set. The Pro can still add a golfer ${untilTurn}.`
       : d.until ? `The invite link is open until ${pretty(d.until)}.`
       :           'The invite link is open.' );
   const act=$('#rosterAct');
@@ -31651,6 +31687,10 @@ const liveSync = {
   q(){ try{ return JSON.parse(localStorage.getItem(this.qKey())||'[]'); }catch(_){ return []; } },
   saveQ(q){ try{ localStorage.setItem(this.qKey(), JSON.stringify(q.slice(-300))); }catch(_){} },
   queued(){ return this.lr ? this.q().length : 0; },
+  /* round 2's P0 (critique B2): the badge said "8 scores saved" on a card that
+     held 6 — every stepper tap queues a message, so a hole tapped 4→5→6 was
+     three. The number a golfer reads is the distinct (golfer, hole) cells */
+  queuedScores(){ if(!this.lr) return 0; const c=new Set(); for(const m of this.q()) if(m && m.t==='score') c.add(m.pid+':'+m.h); return c.size; },
   async join(lr, code, guestTok){
     if(!lr || !code) return;
     if(this.chan && this.lr===lr) return;   /* already on this round's channel */
