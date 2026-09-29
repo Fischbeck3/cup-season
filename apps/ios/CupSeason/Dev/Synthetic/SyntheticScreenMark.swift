@@ -27,6 +27,8 @@ struct SyntheticScreenMark: ViewModifier {
           .accessibilityValue(Text(verbatim: "misses=\(stats.misses) fails=\(stats.fails)"))
           .accessibilityIdentifier("cs.screen.\(name)")
           .allowsHitTesting(false)
+          // X35 · the failures policy dates the route's own reads from here
+          .onAppear { SyntheticBackend.screenShown(name) }
       }
     } else {
       content

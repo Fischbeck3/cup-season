@@ -106,6 +106,31 @@ public enum CredentialCopy {
     n >= 5 ? "Last five" : "\(spelled(n)) of five"
   }
 
+  /// §9.7 · the FORM row's gold, in the order the row draws (oldest → newest):
+  /// **the lowest 18-hole gross**, the first of a tie. A nine is half a round,
+  /// so its 43 never takes the gold from an 84 — the web's `csFormNine`
+  /// (integration 38471687), the craft panel's P1. nil when no 18-hole round
+  /// has a gross: a row of nines has no best.
+  public static func formBest(_ rows: [TourCard.Recent]) -> Int? {
+    guard let low = rows.filter({ !$0.isNine }).compactMap(\.gross).min() else { return nil }
+    return rows.firstIndex { !$0.isNine && $0.gross == low }
+  }
+
+  /// A nine says it is one under its date: "SEP 13 · NINE", as the web prints it.
+  public static let formNine = "NINE"
+
+  /// The line under a FORM column, on one line: "SEP 27", "SEP 13 · NINE".
+  public static func formDate(_ r: TourCard.Recent) -> String {
+    RivalryCopy.monthDay(r.playedOn) + (r.isNine ? " · \(formNine)" : "")
+  }
+
+  /// A FORM column said aloud: "84, September 27", with ", nine holes" for a
+  /// nine and ", their best" for the gold.
+  public static func formSpoken(_ r: TourCard.Recent, best: Bool) -> String {
+    "\(r.gross.map(String.init) ?? "no round"), \(RivalryCopy.monthDaySpoken(r.playedOn))"
+      + (r.isNine ? ", nine holes" : "") + (best ? ", their best" : "")
+  }
+
   /// The COURSES head's count: `11 kept`.
   public static func coursesCount(_ n: Int) -> String { "\(n) kept" }
 

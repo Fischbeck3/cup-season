@@ -211,7 +211,12 @@ public enum RyderMath {
     let chain = lineage.filter { !$0.isMajor }
     guard chain.count > 1, let idx = chain.firstIndex(where: { $0.eventId == eventId }) else { return nil }
     let pos = idx + 1
-    let priors = chain.filter { $0.isComplete && $0.eventId != eventId }
+    // the record THROUGH this edition: every finished edition up to and
+    // including the one on screen. Counting only the others printed "The 1st
+    // Ryder · all square 0–0" beside that edition's own result, and let a
+    // later edition's result leak into an earlier one. A live edition is not
+    // finished, so it still reads the record coming in. (The desk's fix.)
+    let priors = Array(chain.prefix(pos)).filter { $0.isComplete }
     var aW = 0.0, bW = 0.0
     for r in priors {
       if r.winnerShared { aW += 0.5; bW += 0.5 }
@@ -268,7 +273,11 @@ public enum RyderMath {
   public static func mid(_ result: String) -> String {
     switch result {
     case "halve": "halved"
-    case "a", "b": "def."
+    // side A always stands on the left, so a B win read "A def. B" with only
+    // the loser's tone saying otherwise: the sentence is true either way now
+    // (the desk's `renderEvent`, the same fix)
+    case "a": "def."
+    case "b": "lost to"
     default: "vs"
     }
   }

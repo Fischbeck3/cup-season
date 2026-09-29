@@ -74,6 +74,14 @@ public struct SeasonBookSnapshot: Codable, Sendable {
     public let future: Bool
   }
   public var live: Bool { status == "active" || status == "cup_final" }
+  /// "Jul 6 – Oct 18, 2026" — the season's span as a golfer reads it, local,
+  /// in the week columns' own "Jul 6" form. The head printed the raw
+  /// 2026-07-06 – 2026-10-18. The desk's Book head reads the same (45d599f5).
+  public var span: String {
+    let a = BoardText.shortDate(starts_on), b = BoardText.shortDate(ends_on)
+    let year = ends_on.prefix(4)
+    return "\(a.isEmpty ? starts_on : a) – \(b.isEmpty ? ends_on : b)" + (year.count == 4 && Int(year) != nil ? ", \(year)" : "")
+  }
   public var hasSquads: Bool { rows.contains { $0.kind == "squad" } }
   public static func prominent(fieldSize: Int, hasSquads: Bool) -> Bool { fieldSize >= 10 || hasSquads }
   public var rules: String {

@@ -83,7 +83,7 @@ struct SeasonBookPage: View {
     let prominent=SeasonBookSnapshot.prominent(fieldSize:book.field_size,hasSquads:book.hasSquads)
     VStack(alignment:.leading,spacing:CSTokens.Space.s2) {
       Text(book.name).csType(.story)
-      Text("Season \(book.number) · \(book.starts_on) – \(book.ends_on)").csType(.agateS).foregroundStyle(cs.mut)
+      Text("Season \(book.number) · \(book.span)").csType(.agateS).foregroundStyle(cs.mut)
       Text(book.rules).csType(.bodyS).foregroundStyle(cs.mut)
       if let note=book.rules_note { Text(note).csType(.bodyS).foregroundStyle(cs.mut) }
       if book.hasSquads {

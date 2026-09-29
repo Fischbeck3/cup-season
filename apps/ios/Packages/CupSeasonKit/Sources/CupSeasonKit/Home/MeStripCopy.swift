@@ -531,7 +531,10 @@ public enum MeStripCopy {
   /// the same dates — so the two grains can never say different things.
   ///
   /// **At a field of two it never says "the top two seed"** (SA-3): at n = 2
-  /// that is a tautology, and the shipped long string prints it.
+  /// that is a tautology, and the shipped long string prints it. Two golfers
+  /// are "the two of you"; two squads both play the Final — squads2 still
+  /// printed "TOP 2 INTO THE FINAL" of two squads (the web's
+  /// `csEndgameClause`, fixed with it on the integration branch).
   public static func endgameClause(_ m: Me.Membership, calendar: Calendar = .current) -> String? {
     guard let s = m.season else { return nil }
     let finish = (m.settings?.finish?.isEmpty == false) ? m.settings!.finish! : "cup_final"
@@ -542,7 +545,9 @@ public enum MeStripCopy {
     guard let opens = LeagueDates.finalOpens(s, finish: finish, calendar: calendar),
           CSDate.local(opens, calendar: calendar) != nil else { return nil }
     let when = LeagueDates.monDay(opens, calendar: calendar).uppercased()
-    if m.isSolo, m.standing?.of == 2 { return "A FINAL BETWEEN THE TWO OF YOU, OPENS \(when)" }
+    if m.standing?.of == 2 {
+      return m.isSolo ? "A FINAL BETWEEN THE TWO OF YOU, OPENS \(when)" : "BOTH SQUADS PLAY THE FINAL, OPENS \(when)"
+    }
     return "TOP 2 INTO THE FINAL, OPENS \(when)"
   }
 

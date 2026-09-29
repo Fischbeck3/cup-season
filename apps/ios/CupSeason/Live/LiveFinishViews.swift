@@ -37,15 +37,21 @@ struct LiveFinishSheet: View {
         if let error = store.localSaveError { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }
         Button("Keep round on this phone") { Task { if await store.finish(casual: false) { dismiss() } } }
           .buttonStyle(.csPrimary(busy: store.busy)).disabled(store.busy)
+          .accessibilityIdentifier("live.finish.keep")
       } else {
       CSFine(f.intro)
       if let w = f.warning {
         Text(w).csType(.bodyS).foregroundStyle(cs.neg).fixedSize(horizontal: false, vertical: true)
       }
+      // the sheet's own two answers carry identifiers: the live page behind
+      // the sheet has a "Finish the round" of its own, so a label is not
+      // an address (X34)
       Button(f.primary) { Task { if await store.finish(casual: false) { dismiss() } } }
         .buttonStyle(.csPrimary(busy: store.busy))
+        .accessibilityIdentifier("live.finish.confirm")
       Button(f.secondary) { Task { if await store.finish(casual: true) { dismiss() } } }
         .buttonStyle(.csSecondary(busy: store.busy))
+        .accessibilityIdentifier("live.finish.casual")
       }
     }
     .presentationDetents([.medium, .large])
@@ -252,13 +258,24 @@ struct LiveRecapSheet: View {
   private func settlementCard(_ r: LiveResult) -> some View {
     GeometryReader { geo in
       let scale = geo.size.width / 1080
+      // The card lays out at 1080 × 1350, wider than the frame it is put in.
+      // A frame centres an oversized child, so without the top-leading
+      // alignment the card's top-leading corner — the scale's anchor — sat
+      // (1080 − w)/2 left of and (1350 − h)/2 above the frame: the card was
+      // drawn up and off the left edge, missing on a 375pt phone and a 23pt
+      // sliver over the takeover's words on a 402pt one.
       card(r)
         .scaleEffect(scale, anchor: .topLeading)
-        .frame(width: geo.size.width, height: 1350 * scale)
+        .frame(width: geo.size.width, height: 1350 * scale, alignment: .topLeading)
     }
     .frame(height: nil)
     .aspectRatio(1080 / 1350, contentMode: .fit)
+    // one element, the picture: a label on the container alone is copied onto
+    // each of the card's nine words, and VoiceOver read it nine times
+    .accessibilityElement(children: .ignore)
     .accessibilityLabel("The settlement card. \(r.share.isEmpty ? "Settled" : r.share)")
+    .accessibilityAddTraits(.isImage)
+    .accessibilityIdentifier("live.recap.card")
   }
 
   private func checkRow(_ name: String, _ sub: String, posted: Bool) -> some View {
@@ -339,6 +356,9 @@ struct LiveHoleStrip: View {
       .csType(.agateS, caps: true).foregroundStyle(coolColor)
     }
     .padding(.top, CSTokens.Space.s2)
+    // one element: on the stack alone the label was copied onto "1", the
+    // footer and the last hole, and read three times
+    .accessibilityElement(children: .ignore)
     .accessibilityLabel("Hole strip, \(ledger.footer.lowercased())")
   }
 

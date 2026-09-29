@@ -615,7 +615,11 @@ struct MainTabView: View {
     .task(id: store.me?.generated_at) {
       let a = ProcessInfo.processInfo.arguments
       guard SyntheticSeam.on, !devOpened, store.me != nil, let i = a.firstIndex(of: "-cs_dev_open"), i + 1 < a.count else { return }
-      try? await Task.sleep(for: .seconds(1.5))
+      // X35 · `-cs_synth_open_after <seconds>` opens the route later than the
+      // usual 1.5s, the way a loaded machine does, so the failures policy's
+      // timing is tested on purpose rather than met by luck
+      let late = a.firstIndex(of: "-cs_synth_open_after").flatMap { $0 + 1 < a.count ? Double(a[$0 + 1]) : nil }
+      try? await Task.sleep(for: .seconds(late ?? 1.5))
       devOpened = true
       await openSynthetic(a[i + 1], i + 2 < a.count ? a[i + 2] : nil)
     }
