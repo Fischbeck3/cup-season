@@ -332,16 +332,21 @@ struct LivePlayView: View {
           CSFace(LiveFaces.model(p), size: .list)
           VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: CSTokens.Space.s2) {
+              // a name wraps whole, never an ellipsis
               Text(p.me ? "You" : r.name).csType(.name).foregroundStyle(cs.ink)
-                .lineLimit(typeSize.isA11y ? nil : 1).truncationMode(.tail)
+                .fixedSize(horizontal: false, vertical: true)
               if r.guest { Text("Guest").csType(.agateS, caps: true).foregroundStyle(cs.mut) }
               // the strokes a golfer gets on THIS hole, drawn rather than said
               ForEach(0..<r.strokeDots, id: \.self) { _ in
                 Circle().fill(cs.mut).frame(width: 5, height: 5)
               }
             }
+            // `2 STROKES · 55 THRU 14` fits one line in the 162pt column at
+            // 402 (see `scoreObject`); an SE's column is 123, so there the
+            // facts take a second line inside the row's 70 rather than an
+            // ellipsis over the thru count
             Text(r.sub).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-              .lineLimit(typeSize.isA11y ? nil : 1).truncationMode(.tail)
+              .fixedSize(horizontal: false, vertical: true)
           }
           .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
         }
