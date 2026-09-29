@@ -107,10 +107,24 @@ struct EndgameCopyTests {
   @Test("squads2 keeps the leader's head start; every other structure does not claim it")
   func headStart() {
     #expect(SeasonFacts.footEndgame(membership(structure: "squads2"), calendar: cal)?
-              .contains("The leader carries +10 in.") == true)
+              .contains("and the leader carries +10 in.") == true)
     #expect(SeasonFacts.footEndgame(membership(structure: "squads4"), calendar: cal)?
               .contains("+10") == false)
     #expect(SeasonFacts.footEndgame(membership(structure: "solo"), calendar: cal)?
               .contains("+10") == false)
+  }
+
+  @Test("two squads: both play the Final — the weeks before it never 'decide who is in'")
+  func twoSquadsBothPlay() {
+    let s = SeasonFacts.footEndgame(membership(structure: "squads2"), calendar: cal)
+    #expect(s == "Both squads play a four-week Cup Final from Mon Dec 7 — scored fresh, "
+               + "and the leader carries +10 in. Level on points? Months won breaks it.")
+    #expect(s?.contains("top 2") == false)
+    #expect(s?.contains("who is in") == false)
+    #expect(s?.lowercased().contains("regular") == false)
+    // three and four squads keep the top-two sentence, with no head start
+    #expect(SeasonFacts.footEndgame(membership(structure: "squads3"), calendar: cal)
+            == "The top 2 squads go into a four-week Cup Final from Mon Dec 7 — scored fresh, "
+             + "so the weeks before it decide who is in, not who wins. Level on points? Months won breaks it.")
   }
 }

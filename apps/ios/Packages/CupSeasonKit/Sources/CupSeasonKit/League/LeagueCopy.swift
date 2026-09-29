@@ -486,12 +486,16 @@ public enum LeagueCopy {
   ///
   /// - cup_final: "The top 2 golfers|squads go into a four-week Cup Final
   ///   from {Dow Mon d} — scored fresh, so the weeks before it decide who is in,
-  ///   not the winner." + (squads2 ONLY) " The leader carries +10 in." — the
-  ///   `enter_cup_final` head start is `case when structure = 'squads2' then
-  ///   10 else 0`, so any other structure promising +10 states a rule the
-  ///   engine does not have. The Cup Final starts ends_on − 27 calendar days
+  ///   not who wins." The Cup Final starts ends_on − 27 calendar days
   ///   (`LeagueDates.cupFinalStart`), formatted with the three-letter English
   ///   tables, never DateFormatter locale output.
+  /// - cup_final with TWO squads says what is true of two squads: both are in.
+  ///   "Both squads play a four-week Cup Final from {Dow Mon d} — scored fresh,
+  ///   and the leader carries +10 in." The "top 2 … decide who is in" sentence
+  ///   stated a false rule there (owner P1; the web's `endgameLine` at
+  ///   integration 735a63ec). The +10 is squads2's alone — the
+  ///   `enter_cup_final` head start is `case when structure = 'squads2' then
+  ///   10 else 0` — so no other structure mentions it.
   /// - points_table: "The points table crowns it on {Mon d} — every round
   ///   counts to the last day." (ends_on itself, no weekday).
   /// Both end with the tiebreak sentence, verbatim: "Level on points? Months
@@ -507,13 +511,37 @@ public enum LeagueCopy {
       let ends = endsOn.flatMap { CSDate.local($0, calendar: calendar) != nil ? LeagueDates.monDay($0, calendar: calendar) : nil }
       return "The points table crowns it\(ends.map { " on \($0)" } ?? "") — every round counts to the last day. \(tiebreak)"
     }
-    let who = structure == "solo" ? "The top 2 golfers" : "The top 2 squads"
     let when = endsOn.flatMap { e -> String? in
       guard CSDate.local(e, calendar: calendar) != nil else { return nil }
       return LeagueDates.dowMonDay(LeagueDates.cupFinalStart(end: e, calendar: calendar), calendar: calendar)
     }
-    let head = structure == "squads2" ? " The leader carries +10 in." : ""
-    return "\(who) go into a four-week Cup Final\(when.map { " from \($0)" } ?? "") — scored fresh, so the weeks before it decide who is in, not who wins.\(head) \(tiebreak)"
+    let from = when.map { " from \($0)" } ?? ""
+    if structure == "squads2" {
+      return "Both squads play a four-week Cup Final\(from) — scored fresh, and the leader carries +10 in. \(tiebreak)"
+    }
+    let who = structure == "solo" ? "The top 2 golfers" : "The top 2 squads"
+    return "\(who) go into a four-week Cup Final\(from) — scored fresh, so the weeks before it decide who is in, not who wins. \(tiebreak)"
+  }
+
+  // MARK: - Q-27 · the floor sentence
+
+  /// `floorSentence()` (index.html, Q-27) verbatim — THE monthly minimum, one
+  /// producer for every place that states it. It was written three ways and
+  /// the rules page's omitted what a miss costs. Solo is verified in the
+  /// engine: `close_month` drives its penalty loop from `squad_members`, so no
+  /// floor penalty fires in a solo league and the sentence threatens no squad.
+  /// `preset` indexes `Bylaws.penalty`: 0 casual (nothing docked), 1 standard
+  /// (5 squad points a round short), 2 cutthroat (the month's rounds struck).
+  public static func floorSentence(floor: Int, preset: Int, structure: String?) -> String {
+    guard floor > 0 else { return "No minimum — every round counts, and nothing is owed." }
+    let rounds = "\(floor) round\(floor == 1 ? "" : "s") a month"
+    if structure == "solo" {
+      return "Post \(rounds). In a solo league that is a habit, not a penalty — there's no squad to dock."
+    }
+    let pen = ["", "your squad loses 5 points for every round you're short", "the month's rounds are struck"]
+    let cost = (0..<pen.count).contains(preset) ? pen[preset] : ""
+    guard !cost.isEmpty else { return "Post \(rounds). Nothing is docked if you miss — it's a habit, not a penalty." }
+    return "Post \(rounds). Miss once and your season bye covers it automatically; from the second miss \(cost). Short months are waived."
   }
 }
 

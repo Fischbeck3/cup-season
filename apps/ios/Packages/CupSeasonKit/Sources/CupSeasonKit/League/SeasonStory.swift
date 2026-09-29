@@ -586,13 +586,12 @@ public enum SeasonRules {
     out.append(Section(head: "How it scores",
                        body: "Every round you post is scored against your playing HCP — \(at). \(counted)"))
 
-    // WHAT YOU OWE THE SEASON — D14's floor, D140's solo truth, the auto-bye.
+    // WHAT YOU OWE THE SEASON — D14's floor, D140's solo truth, the auto-bye
+    // and what the second miss costs, in the one floor sentence (Q-27). This
+    // page had its own, and it left out the penalty.
     if b.floor > 0 {
-      let rounds = "\(SeasonStoryCopy.cap(SeasonStoryCopy.word(b.floor))) round\(b.floor == 1 ? "" : "s") a month."
       out.append(Section(head: "What you owe the season",
-                         body: b.solo
-                           ? "\(rounds) In a season with no squads that is a habit, not a penalty — there is no squad to dock."
-                           : "\(rounds) Miss a month and your first one is forgiven automatically."))
+                         body: LeagueCopy.floorSentence(floor: b.floor, preset: b.presetIdx, structure: b.structure)))
     }
 
     // HOW IT ENDS — D126's sentence, whole, in the one place the mechanic is.
