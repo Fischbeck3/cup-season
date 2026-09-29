@@ -786,12 +786,20 @@ const PICKER = [
     check: isRow('#ppList .prow', "the picker's buddy row") },
 ]
 
+/* TEN / W6 · root's ruling · below about 380px the draw room's squads stack one card a row, as the phone's draw room does
+   (two 147px columns wrapped every name). The room must show two squads, or this proves nothing. */
+const squadsStack = async (page) => page.evaluate(() => {
+  if (innerWidth >= 380) return true
+  const cards = [...document.querySelectorAll('#squads > *')].filter((c) => c.getBoundingClientRect().height > 0)
+  if (cards.length < 2) return `the draw room shows ${cards.length} squad(s), so the stack cannot be read`
+  return cards.every((c, i) => i === 0 || c.getBoundingClientRect().top >= cards[i - 1].getBoundingClientRect().bottom - 1) ? true : 'below 380 the squads still sit two to a row'
+})
 const DRAW = [
   { family: 'draft', id: 'formation', variant: 'pro', title: 'The draw room of a real league in the draw, as its Pro',
     prepare: async (W) => { const L1 = W.ids.lid(1); for (const l of W.tables.leagues || []) if (l.id === L1) l.phase = 'draft' },
     drive: async (page) => { await page.evaluate(() => window.switchView('draft')); await until(page, () => { const c = document.querySelector('#view-draft #clock'); return !!c && c.offsetParent !== null }); await page.waitForTimeout(800) },
     expect: { view: 'view-draft', selectors: { '#view-draft #clock': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: async (page) => { const stack = await squadsStack(page); if (stack !== true) return stack; return page.evaluate(() => {
       const room = document.getElementById('view-draft'), foot = room.getBoundingClientRect().bottom
       let low = -Infinity
       const w = document.createTreeWalker(room, NodeFilter.SHOW_TEXT)
@@ -814,7 +822,7 @@ const DRAW = [
       }
       const sw = document.documentElement.scrollWidth
       return sw <= innerWidth ? true : `the draw room scrolls sideways: ${sw}px of page in a ${innerWidth}px window`
-    }) },
+    }) } },
 ]
 
 export default [...SCHEDULE, ...WIZARD, ...COURSES, ...SETTINGS, ...STATIC, ...DESK, ...DRAW, ...PICKER]

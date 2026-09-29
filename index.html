@@ -1441,6 +1441,9 @@ th.deskonly, td.deskonly{display:none;}
    second card ran 13px off the page (a sideways scroll) and at 402 across the
    room's inset. The tracks share the width, and a card's head wraps inside it. */
 .squads{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:14px;}
+/* root's ruling · below about 380px the squads stack, one card a row, as the
+   phone's draw room does: two 147px columns wrapped every name. */
+@media(max-width:379px){ .squads{grid-template-columns:minmax(0, 1fr);} }
 .squad{background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 13px;}
 .squad.onclock{border-color:var(--rule);}
 /* TEN / W6 · the on-the-clock squad was marked ONLY by an inset 3px bar in its
