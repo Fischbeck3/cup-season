@@ -231,8 +231,10 @@ public enum CompeteRoot {
   /// points and the place are the SQUAD's, and the band printed "137 points ·
   /// 2nd · You are 34 back from Fixture Javelinas" without ever saying the 137
   /// was Fixture Wrens'. The side leads the standing, and the story under it
-  /// is the gap alone: "Fixture Wrens · 2nd" over "34 back from Fixture
+  /// is the gap alone: "Fixture Wrens · 2nd" over "34 back of Fixture
   /// Javelinas." Twin: `csSeasonRowFacts` (standing / story) on the desk.
+  /// W7-130 · the gap says the table's own noun, "back of" (D26), as
+  /// `SeasonFacts.race` and the ME strip do.
   private static func side(_ m: Me.Membership, phase: SeasonPhase) -> String? {
     guard case .season = phase, let name = m.squad?.name, !name.isEmpty else { return nil }
     return name
@@ -248,8 +250,8 @@ public enum CompeteRoot {
     guard case .season = phase, let st = m.standing else { return nil }
     if let gap = st.gap_to_leader, gap > 0 {
       let leader = st.leader_name.flatMap { $0.isEmpty ? nil : $0 } ?? "the lead"
-      return side(m, phase: phase) == nil ? "You are \(CSCopy.points(gap)) back from \(leader)."
-                                          : "\(CSCopy.points(gap)) back from \(leader)."
+      return side(m, phase: phase) == nil ? "You are \(CSCopy.points(gap)) back of \(leader)."
+                                          : "\(CSCopy.points(gap)) back of \(leader)."
     }
     if st.points_rank == 1 { return st.points_tied == true ? "The lead is shared." : "You lead the season." }
     return "The season is underway."
