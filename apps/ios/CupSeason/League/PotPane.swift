@@ -242,7 +242,9 @@ struct PotPane: View {
         Text(amount).csType(.columnM).csTabular().foregroundStyle(cs.leafInk)
           .frame(width: typeSize.isA11y ? nil : 64, alignment: .trailing)
       }
-      .frame(minHeight: 29)
+      // N4-081 · 36 + the row's 4 above and below is a whole 44pt target;
+      // it was 29, a 37pt row (§16.2)
+      .frame(minHeight: 36)
       .padding(.vertical, CSTokens.Space.s1)
       .contentShape(Rectangle())
       .opacity(busy ? 0.5 : 1)
@@ -282,7 +284,7 @@ struct ForfeitLedgerView: View {
     let vs = s.party_b.map { "\(model.stakeName(s.party_a)) vs \(model.stakeName($0))" } ?? "\(model.stakeName(s.party_a)) vs the field"
     let mine = meP != nil && (s.party_a == meP || s.party_b == meP || s.created_by == meP)
     return RoomCheckRow(s.name, sub: "\(vs) · \(s.terms)" + (s.hangs_on.map { " · rides on \($0)" } ?? "")) {
-      Text("🤝").font(.system(size: 16))
+      CSGlyph(.people, size: .row).foregroundStyle(cs.ink)   // N4-097 · a drawn mark, not an emoji (LINT-12, D326)
     } trail: {
       if s.status == "open" {
         if mine {
@@ -388,7 +390,7 @@ struct FlowSeg: View {
           Text(l).csType(.columnS).foregroundStyle(selection == k ? cs.bg0 : cs.ink)
             .padding(.horizontal, 12).frame(minHeight: 36).frame(maxWidth: .infinity)
             .background(selection == k ? cs.ink : cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
-            .frame(minHeight: 44)
+            .frame(minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       }

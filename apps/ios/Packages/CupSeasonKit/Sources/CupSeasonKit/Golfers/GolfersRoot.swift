@@ -39,8 +39,10 @@ public enum GolfersRoot {
   /// The three tiers said once, at first contact, and nowhere else
   /// (`TERMINOLOGY.md` §1 row 7). The tab is the place the word is defined,
   /// because it is where a golfer first meets all three.
+  /// N4-063 · TERMINOLOGY §1 #7 verbatim (PAR-24), said once: the empty
+  /// root's sub no longer says it a second time.
   public static let buddyDefinition =
-    "A buddy is somebody who accepted you back. You see each other’s rounds, and either of you can pull the other into a season."
+    "Buddies see each other’s rounds, and either of you can pull the other into a season."
 
   /// What the tab shows when there is nobody in it. Same three-way split as
   /// Compete's, for the same reason.
@@ -109,7 +111,9 @@ public enum GolfersRoot {
   public static func empty() -> EmptyRoot {
     EmptyRoot(head: "No buddies yet.",
               fact: nil,
-              sub: "Add the people you actually play with. They see your rounds, you see theirs, and either of you can pull the other into a season.",
+              // N4-063 · a lead about the world; the definition is said once,
+              // under it (`buddyDefinition`), not twice
+              sub: "Add the people you actually play with.",
               doors: [.findGolfers, .personLink])
   }
 }

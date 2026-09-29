@@ -660,3 +660,20 @@ public enum LivePairings {
     return [1: 0, 2: 1, 3: 2][partner] ?? 0
   }
 }
+
+/// TEN / W6 (critique A2, P1) · **"CHANGE SETUP" HOLDS THE ROUND.** It set the
+/// round inactive and left its channel, so nothing led back to it, and Tee off
+/// then built a NEW round with blank scores while the old one stayed live on
+/// the server. The round is held now — the same round, its scores and its
+/// channel — and the setup says so first. The web's `csLiveHeldLine`, word for
+/// word, in its three forms (root pinned them).
+public extension LiveCopy {
+  static func heldLine(scored: Int) -> String {
+    (scored > 0
+      ? "Your round is still on, and its \(scored) \(scored == 1 ? "hole" : "holes") scored \(scored == 1 ? "stays" : "stay") with it."
+      : "Your round is still on.")
+      + " Change the course, the tee or the holes here."
+  }
+  /// The way back to the held round, on the setup's first screen.
+  static let backToRound = "Back to the round"
+}

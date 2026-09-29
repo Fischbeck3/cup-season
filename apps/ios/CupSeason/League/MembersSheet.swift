@@ -41,7 +41,7 @@ struct MembersSheet: View {
                 Button(squad.name) { run(m.id) { try await model.assignToSquad(member: m.id, squad: squad.id) } }
               }
             }.disabled(busy != nil)
-          }.frame(minHeight: 44)
+          }.frame(minHeight: 44).contentShape(Rectangle())
         }
       }
       if markerOpen { LeagueMarkerPicker(busy: $busy) }

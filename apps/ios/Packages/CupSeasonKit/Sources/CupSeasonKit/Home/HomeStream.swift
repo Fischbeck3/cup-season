@@ -109,15 +109,20 @@ public struct HomeStreamRepository: Sendable {
     /// so a pull on a bad signal keeps what is already on screen instead of
     /// painting "No rounds from your buddies yet." over the circle's rounds.
     public let failed: Bool
+    /// N4-013 · the feed failed because the transport had no network. A read
+    /// the server refused, or one that failed on a working signal, is not
+    /// "offline", and the stale line must not tell a golfer on full bars that
+    /// it is.
+    public let offline: Bool
     /// D361 · the photo paths the storage REFUSED to sign this load (gone, or
     /// not ours). A path absent from both the URLs and this set could not be
     /// reached, which says nothing about its picture.
     public let photoDenied: Set<String>
 
     public init(items: [HomeItem], rounds: [HomeFeedRow], posts: [HomePost], failed: Bool = false,
-                photoDenied: Set<String> = []) {
+                offline: Bool = false, photoDenied: Set<String> = []) {
       self.items = items; self.rounds = rounds; self.posts = posts; self.failed = failed
-      self.photoDenied = photoDenied
+      self.offline = offline; self.photoDenied = photoDenied
     }
   }
 
@@ -195,8 +200,10 @@ public struct HomeStreamRepository: Sendable {
     let names = Dictionary(uniqueKeysWithValues: memberships.map { ($0.league_id, $0.name) })
 
     // nil, not [] — the empty feed and the feed that could not be read are
-    // different stories and only this call can tell them apart.
-    async let feed: [HomeFeedRow]? = try? svc.call(Rpc.home_feed(p_days: 21))
+    // different stories and only this call can tell them apart. N4-013 · and
+    // it keeps WHY it could not be read: no network is "offline", anything
+    // else is a read that "couldn't refresh".
+    async let feed = readFeed()
     async let posts: [HomePost] = ids.isEmpty ? [] : loadPosts(ids)
     // D262 · THE PERSON RAIL GETS ITS FIRST READER. D238 gave a post the right
     // to be homed on a golfer instead of a league — the rail a leagueless
@@ -207,7 +214,8 @@ public struct HomeStreamRepository: Sendable {
     // the same round would be told twice; `chat` stays out for the same reason
     // it does in the league read.
     async let personal: [HomePost] = loadPersonPosts()
-    let (read, leaguePosts, personPosts) = await (feed, posts, personal)
+    let (fed, leaguePosts, personPosts) = await (feed, posts, personal)
+    let read = fed.rows
     // deduped by id: nothing writes a post that is homed on a league AND a
     // person today, but a list that renders by id must not depend on that.
     var seenPosts = Set<UUID>()
@@ -232,7 +240,8 @@ public struct HomeStreamRepository: Sendable {
       + moments.map { HomeItem.post($0, leagueName: $0.league_id.flatMap { names[$0] }) })
       .sorted { $0.time > $1.time }
       .prefix(30)
-    return Result(items: Array(items), rounds: rows, posts: moments, failed: read == nil, photoDenied: resolved.denied)
+    return Result(items: Array(items), rounds: rows, posts: moments, failed: read == nil,
+                  offline: read == nil && fed.offline, photoDenied: resolved.denied)
   }
 
   /// The posts read, in two tries. `scheduled_round_id` (D219) is the newest
@@ -246,6 +255,12 @@ public struct HomeStreamRepository: Sendable {
   /// for LAST here, because a database missing the older one is the rarer
   /// case and the widest select should be tried first.
   static let postColumnsWide = postColumns + ", scheduled_round_id, profile_id"
+  /// The circle's feed, or nil and whether the transport said "no network".
+  private func readFeed() async -> (rows: [HomeFeedRow]?, offline: Bool) {
+    do { return (try await svc.call(Rpc.home_feed(p_days: 21)), false) }
+    catch { return (nil, HumanError.isOffline(error)) }
+  }
+
   func loadPosts(_ ids: [UUID]) async -> [HomePost] {
     func read(_ columns: String) async throws -> [HomePost] {
       try await svc.client.from("posts").select(columns)

@@ -66,6 +66,7 @@ struct SeasonBookPage: View {
           // typo: the page is "The Book"; running copy keeps "the Book"
           Text(store.snapshot.map { SeasonBookSnapshot.prominent(fieldSize:$0.field_size,hasSquads:$0.hasSquads) ? "The Book" : "Rounds & points" } ?? "The Book")
             .csType(.display).accessibilityIdentifier("seasonBook.title")
+              .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
         }.padding(CSTokens.Space.gutter).frame(maxWidth:.infinity,alignment:.leading)
           .background { CSTopoField(.accent,tint:livery.accent).opacity(CSTokens.Alpha.a24) }
         if let book=store.snapshot { content(book) }
@@ -139,7 +140,7 @@ struct SeasonBookPage: View {
     } else if !prominent {
       ForEach(visible) { row in
         NavigationLink { receipts(row.name,row.entries) } label: {
-          HStack { VStack(alignment:.leading) { Text(row.name).csType(.name); Text(row.standing ?? "").csType(.bodyS) }; Spacer(); CSFigure(SeasonBookSnapshot.num(row.points),size:.l,label:"points") }.padding(CSTokens.Space.gutter).contentShape(Rectangle())
+          HStack { VStack(alignment:.leading) { Text(row.name).csType(.name); Text(row.standingLine ?? "").csType(.bodyS) }; Spacer(); CSFigure(SeasonBookSnapshot.num(row.points),size:.l,label:"points") }.padding(CSTokens.Space.gutter).contentShape(Rectangle())
         }.buttonStyle(.plain)
       }
     } else if mode == "Race" { race(book,visible) }
@@ -160,18 +161,23 @@ struct SeasonBookPage: View {
           NavigationLink { receipts(row.name,row.entries) } label: {
             VStack(alignment:.leading,spacing:CSTokens.Space.s1) {
               Text(short(row.name,squad:group == "squad")).csType(.nameS).lineLimit(2)
-              Text("\(SeasonBookSnapshot.num(row.points)) pts").csType(.columnS)
+              // W5 twin · the reader's own row is marked, as the web's is
+              Text((row.mine ? "You · " : "") + "\(SeasonBookSnapshot.num(row.points)) pts").csType(.columnS)
             }.frame(maxWidth:.infinity,alignment:.leading).frame(height:rowHeight)
               .padding(.horizontal,CSTokens.Space.s2).overlay(alignment:.bottom) { CSRule() }.contentShape(Rectangle())
           }.buttonStyle(.plain).accessibilityIdentifier("seasonBook.name.\(row.id)")
         }
       }.frame(width:140).background(cs.bg1)
+      // W5 twin · the grid OPENS ON ITS WEEK: a live season's current week is
+      // scrolled into view rather than left off the right edge on a phone
+      ScrollViewReader { proxy in
       ScrollView(.horizontal) {
         VStack(spacing:0) {
           HStack(spacing:0) {
             ForEach(book.weeks) { w in
               VStack(spacing:0) { Text("W\(w.week)"); Text(CSDate.local(w.starts_on)?.formatted(.dateTime.month(.abbreviated).day()) ?? w.starts_on) }.csType(.agateS)
                 .frame(width:width,height:44)
+                .id("book.week.\(w.week)")
                 .accessibilityLabel("Week \(w.week), starting \(CSDate.short(w.starts_on))")
                 .foregroundStyle(book.live && w.week == book.current_week ? cs.brandInk : cs.ink)
                 .background(book.live && w.week == book.current_week ? cs.brand : cs.bg1)
@@ -180,7 +186,7 @@ struct SeasonBookPage: View {
           ForEach(rows) { row in
             HStack(spacing:0) {
               ForEach(row.cells,id:\.week) { cell in
-                NavigationLink { receipts("\(row.name) · Week \(cell.week)",SeasonBookSnapshot.selectedEntries(row,week:cell.week,cumulative:mode == "Totals")) } label: {
+                NavigationLink { receipts("\(row.name) · Week \(cell.week)",SeasonBookSnapshot.selectedEntries(row,week:cell.week,cumulative:mode == "Totals"),week:true) } label: {
                   cellFace(SeasonBookSnapshot.parts(row:row,cell:cell,cumulative:mode == "Totals"))
                     .frame(width:width,height:rowHeight).overlay(alignment:.bottom) { CSRule() }.contentShape(Rectangle())
                 }.buttonStyle(.plain).disabled(cell.future)
@@ -192,6 +198,12 @@ struct SeasonBookPage: View {
             }
           }
         }
+      }
+      .accessibilityIdentifier("seasonBook.grid")
+      .onAppear {
+        guard book.current_week > 0 else { return }
+        proxy.scrollTo("book.week.\(book.current_week)", anchor: .center)
+      }
       }
     }
   }
@@ -213,7 +225,7 @@ struct SeasonBookPage: View {
         .accessibilityIdentifier("seasonBook.week")
       ForEach(rows) { row in
         if let cell=row.cells.first(where: { $0.week == week }) {
-          NavigationLink { receipts("\(row.name) · Week \(week)",SeasonBookSnapshot.selectedEntries(row,week:week,cumulative:mode == "Totals")) } label: {
+          NavigationLink { receipts("\(row.name) · Week \(week)",SeasonBookSnapshot.selectedEntries(row,week:week,cumulative:mode == "Totals"),week:true) } label: {
             VStack(alignment:.leading,spacing:CSTokens.Space.s2) {
               Text(row.name).csType(.name)
               Text(SeasonBookSnapshot.spoken(row:row,cell:cell,cumulative:mode == "Totals")).csType(.body)
@@ -255,10 +267,21 @@ struct SeasonBookPage: View {
                 }
               }
             }
-            if book.live { RuleMark(x:.value("Current week",book.current_week)).foregroundStyle(cs.brand) }
+            if book.live {
+              // W5 twin · the live week says so above its rule, "Now · W13",
+              // as the web's `.sb-race-now` does (the live week is competition,
+              // so its rule and label keep the ember)
+              RuleMark(x:.value("Current week",book.current_week)).foregroundStyle(cs.brand)
+                .annotation(position:.top,alignment:.center,spacing:CSTokens.Space.s1,
+                            overflowResolution:.init(x:.fit(to:.chart),y:.disabled)) {
+                  Text("Now · W\(book.current_week)").csType(.agateS,caps:false).foregroundStyle(cs.brand)
+                }
+            }
           }
           .chartXScale(domain:1...max(2,book.weeks.count),range:.plotDimension(endPadding:gutter+10))
           .chartYScale(domain:domain)
+          // room above the plot for the live week's label
+          .chartPlotStyle { plot in plot.padding(.top, book.live ? CSTokens.Space.s4 : 0) }
           .chartYAxis {
             AxisMarks(position:.leading) { value in
               AxisGridLine()
@@ -340,8 +363,8 @@ struct SeasonBookPage: View {
       }
     }.padding(CSTokens.Space.gutter)
   }
-  private func receipts(_ title: String,_ entries: [SeasonBookSnapshot.Entry]) -> some View {
-    SeasonBookReceipts(title:title,entries:entries,names:Dictionary((store.snapshot?.rows ?? []).filter { $0.kind == "golfer" }.compactMap { row in row.member_id.map { ($0,row.name) } },uniquingKeysWith:{ a,_ in a }),openRound:openRound)
+  private func receipts(_ title: String,_ entries: [SeasonBookSnapshot.Entry],week: Bool = false) -> some View {
+    SeasonBookReceipts(title:title,entries:entries,inWeek:week,names:Dictionary((store.snapshot?.rows ?? []).filter { $0.kind == "golfer" }.compactMap { row in row.member_id.map { ($0,row.name) } },uniquingKeysWith:{ a,_ in a }),openRound:openRound)
   }
   private func short(_ name: String,squad: Bool) -> String {
     let parts=name.split(separator:" ")
@@ -354,6 +377,8 @@ struct SeasonBookReceipts: View {
   @Environment(\.dismiss) private var dismiss
   let title: String
   let entries: [SeasonBookSnapshot.Entry]
+  /// W5 · a week's receipt says the week once, in its head
+  var inWeek = false
   let names: [UUID:String]
   let openRound: @MainActor (UUID) -> Void
   var body: some View {
@@ -365,15 +390,16 @@ struct SeasonBookReceipts: View {
         else { Text("\(SeasonBookSnapshot.num(entries.reduce(0) { $0+$1.contribution })) points").csType(.figureL).accessibilityIdentifier("seasonBook.receipt.total") }
         ForEach(entries) { entry in
           VStack(alignment:.leading,spacing:CSTokens.Space.s2) {
-            Text([entry.member_id.flatMap { names[$0] },entry.recorded_on.map { CSDate.short($0) }].compactMap { $0 }.joined(separator:" · ")).csType(.name)
-            Text(entry.dateLine).csType(.agateS).foregroundStyle(cs.mut)
+            // W5 twin · a receipt dates its rounds as every receipt does ("Mon Sep 21")
+            Text([entry.member_id.flatMap { names[$0] },entry.recorded_on.map { LeagueDates.roundDay($0) }].compactMap { $0 }.joined(separator:" · ")).csType(.name)
+            if let place = entry.place(inWeek:inWeek) { Text(place).csType(.agateS).foregroundStyle(cs.mut) }
             Text("\(SeasonBookSnapshot.num(entry.points)) points · \(entry.count_state == "dropped" ? "dropped" : "\(SeasonBookSnapshot.num(entry.contribution)) included")").csType(.body)
             Text(entry.reason).csType(.bodyS).foregroundStyle(cs.mut)
             if !entry.isRound,let month=entry.affected_month { Text("Applies to \(SeasonBookSnapshot.month(month))").csType(.agateS).foregroundStyle(cs.mut) }
             if entry.withdrawn == true {
               Text("Round withdrawn. Its recorded points remain in this season’s Book.").csType(.bodyS).foregroundStyle(cs.mut)
             } else if let round=entry.round_id {
-              CSDoor(.link("Open round receipt") { openRound(round) })
+              CSDoor(.link("Open the round’s receipt") { openRound(round) })   // W5 twin · the web's words
             }
           }.padding(.vertical,CSTokens.Space.s3).frame(maxWidth:.infinity,alignment:.leading).overlay(alignment:.bottom) { CSRule() }
         }

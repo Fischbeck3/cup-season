@@ -283,6 +283,15 @@ import SwiftUI
     #expect(line.contains("6:12"))
     #expect(line.lowercased().contains("offline"))
   }
+
+  /// N4-013 · a read that failed on a working signal is not "offline".
+  @Test func aReadThatFailedOnASignalSaysItCouldNotRefresh() {
+    var cal = Calendar(identifier: .gregorian)
+    cal.timeZone = TimeZone(identifier: "America/Phoenix")!
+    let d = cal.date(from: DateComponents(year: 2026, month: 9, day: 4, hour: 18, minute: 12))!
+    #expect(CSStale.line(d, offline: false, calendar: cal) == "As of Fri 6:12 PM · couldn’t refresh")
+    #expect(CSStale.line(d, calendar: cal) == "As of Fri 6:12 PM · offline")
+  }
 }
 
 @Suite @MainActor struct ContrastSubstitutionTests {

@@ -62,6 +62,7 @@ struct CoursesScreen: View {
     ScrollView {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
         Text("Courses").csType(.display).foregroundStyle(cs.ink)
+          .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
         Text(sub).csType(.agate, caps: true).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)
         Button("Save courses for offline") { showOfflineCourses = true }

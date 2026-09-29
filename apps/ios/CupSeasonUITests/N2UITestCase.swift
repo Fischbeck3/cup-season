@@ -32,3 +32,17 @@ class N2UITestCase: XCTestCase {
     shot.name = name; shot.lifetime = .keepAlways; add(shot)
   }
 }
+
+extension XCUIApplication {
+  /// W5 · the Book's grid opens on its current week, so a cell can sit on
+  /// either side of the view. Swipe the GRID toward the cell — never the cell:
+  /// an offscreen cell has no visible frame to swipe on — until it can be
+  /// tapped.
+  @MainActor func revealBookCell(_ cell: XCUIElement, tries: Int = 8) {
+    let grid = scrollViews["seasonBook.grid"]
+    guard grid.exists else { return }
+    for _ in 0..<tries where cell.exists && !cell.isHittable {
+      if cell.frame.midX < grid.frame.midX { grid.swipeRight() } else { grid.swipeLeft() }
+    }
+  }
+}

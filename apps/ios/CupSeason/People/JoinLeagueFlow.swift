@@ -231,7 +231,7 @@ struct LeagueWelcomeSheet: View {
              " Only by not playing. Every posted round scores — a rough day is still points on the board.")
         rule("Rounds score against your playing HCP.", " Beat your handicap and it's a big day, whatever you shot. Your best rounds each month count; a better round always bumps your worst.")
         rule("The pot lives on the books.", " \(MoneyCopy.ledger) The settlement card shows who owes what.")
-        Button("How scoring works") { scoring = true }.csType(.bodyS).foregroundStyle(cs.brand).padding(.bottom, 4)
+        Button("How scoring works") { scoring = true }.csType(.bodyS).foregroundStyle(cs.act).padding(.bottom, 4)
         Rectangle().fill(cs.rule).frame(height: 1)
         rule("Who else plays with you?", " Any member's link works — yours included.")
         if let code = welcome.code {

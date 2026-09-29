@@ -49,17 +49,14 @@ public enum CSFont {
   public static let boardSemibold = "IBMPlexSansCond-SmBld"
   public static let boardBold = "IBMPlexSansCond-Bold"
 
-  // Charter ships on iOS as a system face — no bundling. D268 RETIRES it in
-  // favour of New York, which is reached through `design: .serif` rather than
-  // by PostScript string; the roles move in the component wave, not here, so
-  // that a face swap and a role re-cut are not one commit.
-  static let serifRegular = "Charter-Roman"
-  static let serifBold = "Charter-Bold"
+  // N4-092 · Charter is gone (D268): the serif is New York, reached through
+  // `design: .serif` and never by name, as CSType's `lead` and `story` reach
+  // it. There are no Charter constants left for a new use to find.
 
   // MARK: mono
 
-  /// Section header: mono, uppercase, tracked. Pair with `.csEyebrow()`.
-  public static let eyebrow = Font.custom(monoMedium, size: 12, relativeTo: .caption)
+  // N4-090 · the mono eyebrow face is gone: a label is the agate role in
+  // caps (`.csEyebrow()`), so nothing can reach for mono as a label voice.
   /// Stat / table / tile labels. Never below 11pt (the web went to 8.5).
   public static let label = Font.custom(monoRegular, size: 11, relativeTo: .caption2)
   /// The number on a stat tile.
@@ -71,18 +68,16 @@ public enum CSFont {
   /// The eight digits.
   public static let code = Font.custom(monoMedium, size: 28, relativeTo: .largeTitle)
 
-  // MARK: serif
+  // MARK: serif — the system serif (D268), at the text styles' own sizes so it
+  // scales with Dynamic Type. `hero` and `figure` had no users and are gone.
 
-  /// Hero numbers: rank, index, the pot.
-  public static let hero = Font.custom(serifBold, size: 40, relativeTo: .largeTitle)
-  /// The one figure a screen is about — the live gross on the composer (IOS-020).
-  public static let figure = Font.custom(serifBold, size: 64, relativeTo: .largeTitle)
-  public static let heroSmall = Font.custom(serifBold, size: 28, relativeTo: .title)
+  /// A page's title in the serif: 28, bold (`title`).
+  public static let heroSmall = Font.system(.title, design: .serif).weight(.bold)
   /// The standings sentence, the band line — a sentence in the honor voice.
-  public static let sentence = Font.custom(serifRegular, size: 17, relativeTo: .callout)
-  public static let sentenceBold = Font.custom(serifBold, size: 17, relativeTo: .callout)
+  public static let sentence = Font.system(.body, design: .serif)
+  public static let sentenceBold = Font.system(.body, design: .serif).weight(.bold)
   /// The wordmark.
-  public static let wordmark = Font.custom(serifBold, size: 34, relativeTo: .largeTitle)
+  public static let wordmark = Font.system(.largeTitle, design: .serif).weight(.bold)
 
   // MARK: sans
 
@@ -97,16 +92,18 @@ public struct CSEyebrowStyle: ViewModifier {
   @Environment(\.cs) private var cs
   let color: Color?
   public func body(content: Content) -> some View {
+    // N4-090 · **MONO IS NEVER A LABEL VOICE** (UI_SYSTEM §1.4). Every section
+    // head and eyebrow was Plex Mono at 12 with a hand-set tracking; they are
+    // the agate role in caps, the web's label role, and the tracking is the
+    // role's own (LINT-07: one call site). One modifier, every site.
     content
-      .font(CSFont.eyebrow)
-      .tracking(1.6)
-      .textCase(.uppercase)
+      .csType(.agate, caps: true)
       .foregroundStyle(color ?? cs.mut)
   }
 }
 
 public extension View {
-  /// Mono · 12pt · .16em · uppercase · `mut` (or a given colour).
+  /// The agate role, in caps · `mut` (or a given colour). N4-090: it was mono.
   func csEyebrow(_ color: Color? = nil) -> some View { modifier(CSEyebrowStyle(color: color)) }
   /// Digits that line up in columns.
   func csTabular() -> some View { monospacedDigit() }

@@ -96,7 +96,7 @@ struct RoundConversation: View {
           if item.fromBoard { Text("League board").csType(.agateS).foregroundStyle(cs.mut) }
           if item.canReply {
             Button("Reply") { replying = item; composing = true }
-              .buttonStyle(.plain).csType(.bodyS).foregroundStyle(cs.ink).frame(minHeight: 44)
+              .buttonStyle(.plain).csType(.bodyS).foregroundStyle(cs.ink).frame(minHeight: 44).contentShape(Rectangle())
           }
         }
       }
@@ -210,7 +210,7 @@ private struct CommentReportSheet: View {
       Text(comment.body).csType(.body)
       ForEach(SafetyCopy.reasons, id: \.self) { value in
         Button { reason = value } label: {
-          HStack { Text(value); Spacer(); if reason == value { Image(systemName: "checkmark") } }.frame(minHeight: 44)
+          HStack { Text(value); Spacer(); if reason == value { Image(systemName: "checkmark") } }.frame(minHeight: 44).contentShape(Rectangle())
         }.buttonStyle(.plain).foregroundStyle(cs.ink)
       }
       if let error { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }

@@ -783,9 +783,11 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .sb-key .sb-key-hint{flex-basis:100%;}
 .sb-matrix th button{text-align:left; white-space:normal; font:14px var(--sans);}
 .sb-matrix strong{display:block; font:20px var(--board); padding-top:var(--s1);}
-/* the leader's total is the one gold figure (§9.1: gold for the leader, the
-   position earned); the reader's own row says so in words, never by colour */
-.sb-matrix strong.sb-lead,.sb-totals strong.sb-lead{color:var(--gold);}
+/* the leader's total is INK, the phone's twin (SeasonBook, N4 W5). §9.1 draws
+   the leader's gold on the rank rail's field, the position, and §2.4 spends
+   gold only on what was won: a points total in a running season is a sum, not
+   a win. The reader's own row says so in words, never by colour. */
+.sb-matrix strong.sb-lead,.sb-totals strong.sb-lead{color:var(--ink);}
 .sb-you{font-weight:700; color:var(--ink);}
 .sb-totals button,.sb-adjustment{display:block; text-align:left; width:100%; border:0!important; border-bottom:1px solid var(--rule)!important; background:none!important;}
 .sb-totals strong{float:right; font:32px var(--board);}
@@ -2007,9 +2009,9 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .cred .cfigs{display:flex; align-items:flex-start; position:relative;}
 .cred .cfigs .cfig{flex:0 0 33.333%; min-width:0; padding-right:var(--s3); box-sizing:border-box;}   /* two labels at the SE width ran together, "HANDICAP INDEX ROUNDS" (critique-B P3) */
 /* three figures take MEASURED columns, the phone's columnWidths: a column is as
-   wide as its own label, so "BEST · MESQUITE WASH" has the room "ROUNDS" does
-   not use, and only the last yields — the ellipsis fires when the three
-   genuinely exceed the card, never a word early */
+   wide as its own label, so the best's course line has the room "ROUNDS" does
+   not use, and only the last yields — by wrapping its words (AW2-22), never by
+   an ellipsis */
 .cred .cfigs:has(> .cfig:nth-of-type(3)) .cfig{flex:0 0 auto; padding-right:var(--s4);}
 .cred .cfigs:has(> .cfig:nth-of-type(3)) .cfig:nth-of-type(3){flex:0 1 auto; padding-right:0;}
 .cred .cfigs .cfig b{display:block; font-family:var(--board); font-weight:700; font-size:27px; line-height:1;
@@ -2017,7 +2019,8 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
 .cred .cfigs .cfig b i{font-style:normal; font-size:12px; letter-spacing:.05em; text-transform:uppercase;}
 .cred .cfigs .cfig small{display:block; margin-top:8px; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:.08em; text-transform:uppercase; color:var(--ceremony-mut);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  overflow-wrap:break-word;}   /* AW2-22 / N4-050 · a label wraps; it is never cut to an ellipsis */
+.cred .cfigs .cfig small.cwhere{margin-top:var(--s1);}   /* the best's course, under its label */
 .cred .cfigs .crule{position:absolute; left:0; top:31px; height:2px; background:var(--ceremony-ink);}
 /* the milestone column, out of the object and onto the page (YRS-03) */
 .ctros{font-family:var(--board); font-weight:600; font-size:12px; letter-spacing:.06em;
@@ -2362,6 +2365,7 @@ body.guestlive #onboard{display:none !important;}
 .gamecard .gk{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); text-transform:uppercase; color:var(--mut);}
 .gamecard .gs{font-family:var(--board); font-size:20px; font-weight:700; letter-spacing:calc(var(--caps) * 1em); margin-top:6px;}
 .gamecard .gm{font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--mut); margin-top:4px; line-height:1.35;}
+.gamecard .gs[hidden] + .gm{margin-top:var(--s2);}   /* AW2-16 · the hero says the state; who and the terms stay two statements */
 .wolfbtns{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px;}
 .wolfbtns button{
   flex:1; min-width:72px; border:1px solid var(--rule); background:var(--bg2);
@@ -3139,6 +3143,29 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    it, and 3px a side meets its neighbour's in the 6px gap without overlapping. */
 .rxadd, .rxcm, .rxchip{position:relative;}
 .rxadd::after, .rxcm::after, .rxchip::after{content:""; position:absolute; inset:-9px -3px;}
+/* AW2-19 · §16.2, the rest of the floor. Every control below keeps the size it
+   is drawn at; its hit box grows to 44 on a pseudo-element that covers only
+   text, never another control (measured on each page it sits on).
+   The flag was 33 drawn, 39 with the 3px a side above: 38 drawn is the 44. */
+.rxadd{min-width:38px;}
+/* a link on its own line, the desk rail's league switch and a course row's
+   name: 44 tall, centred on the line, as wide as the words */
+#seasonMore, #bfOpen, #sideLeague, .cs-krow-open{position:relative;}
+#seasonMore::after, #bfOpen::after, #sideLeague::after, .cs-krow-open::after{content:""; position:absolute;
+  left:0; right:0; top:calc(50% - 22px); bottom:calc(50% - 22px);}
+/* a figure inside a sentence ("best 90"): 44 wide, centred on the figure */
+.cs-bestlink{position:relative;}
+.cs-bestlink::after{content:""; position:absolute; top:0; bottom:0; left:calc(50% - 22px); right:calc(50% - 22px);}
+/* a course's card leaf: its ::after draws the chevron, so the box is ::before */
+.cs-cardleaf>summary{position:relative;}
+.cs-cardleaf>summary::before{content:""; position:absolute; left:0; right:0; top:calc(50% - 22px); bottom:calc(50% - 22px);}
+.cs-note{min-height:44px;}
+/* a golfer row: the face disc was a mouse-only second target for the same
+   card. The name's hit box now takes in the disc (36 + the 10px gap) and 44 of
+   height, so the row is one target that a keyboard reaches too. */
+.prow .pmeta[role="button"]{position:relative;}
+.prow .pmeta[role="button"]::after{content:""; position:absolute; left:-46px; right:0;
+  top:calc(50% - 22px); bottom:calc(50% - 22px);}
 /* D341 · Home keeps given reactions and an invitation to reveal the rest.
    Every choice retains a 44px target; the reveal wraps on narrow screens. */
 .hrx{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:6px;}
@@ -4367,6 +4394,12 @@ body:not(.noleague) #hubLeagueless{display:none;}
   width:calc(var(--star) / 2); padding:0; margin:0; border:0; background:none;
   cursor:pointer; -webkit-appearance:none; appearance:none;}
 .cs-stars .csh:focus-visible{outline:2px solid var(--ink); outline-offset:2px; border-radius:var(--p);}
+/* AW2-19 · §16.2 · the rail between its −½ / +½ pair: bare glyphs in the
+   figure face at 44 × 44, the way RateCourseSheet draws them */
+.cs-rate-ctl{display:flex; align-items:center; gap:var(--s3);}
+.cs-step{flex:none; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center;
+  padding:0; margin:0; background:none; border:0; color:var(--ink); cursor:pointer; -webkit-appearance:none; appearance:none;}
+.cs-step[aria-disabled="true"]{color:var(--mut); cursor:default;}
 @media (prefers-reduced-motion:reduce){ .cs-stars .csr-fill{transition:none;} }
 /* the aggregate: a figure, a 2pt rule under both it and the rail, one agate
    line. NO GOLD IN ANY STATE — an average of opinions is not earned. */
@@ -6411,7 +6444,12 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <div class="eyebrow sg-head">Side games</div><p class="cs-agate-s is-phrase eb-gloss sg-head">Tracked live, settled between friends</p>
             <div class="gamecard" id="matchCard" style="--acc:var(--sq0)">
               <div class="gk" id="matchTeams">Match play · net best ball · You + Danny vs Chuck + Gary</div>
-              <div class="gs" id="matchStatus">ALL SQUARE</div>
+              <!-- AW2-16 · one fact, one place (D201): the card shows only for a
+                   match or a Sunningdale, and in both the scoreboard hero IS this
+                   line (D85 — renderScoreboard reads it from here), sticky at every
+                   width and kept on the stuck face. The card says who is playing
+                   and on what terms; the hero says who is winning. -->
+              <div class="gs" id="matchStatus" hidden>ALL SQUARE</div>
               <div class="gm" id="matchMeta">THRU 0 · STROKES OFF LOW MAN (DANNY)</div>
             </div>
             <div class="gamecard" id="wolfCard" style="--acc:var(--gold)">
@@ -18033,6 +18071,13 @@ function csStarsSvg(value, unrated, opts){
     + taps + `</span>`;
 }
 
+/* AW2-19 · the −½ / +½ pair's one bound rule (RateCourseSheet's): − stops at
+   ½ and has nothing to take from an unrated course; + stops at 5. At a bound
+   the button says so with aria-disabled and keeps its focus — `disabled`
+   dropped a keyboard golfer's focus to <body> on the step that reached it. */
+function csStepOff(mine, dir){
+  return dir < 0 ? !(mine != null && mine > 0.5) : (mine != null && mine >= 5);
+}
 /* §5.2 · the aggregate — one figure, one rule, one line. NO GOLD IN ANY STATE:
    an average of opinions is not earned (§2.4), and the number's weight comes
    from its size and its rule. Null, never zero, never a dash (L-44). */
@@ -18057,7 +18102,14 @@ function csRatingBlock(id, opts){
   const theirLine = (fr != null && frn > 0)
     ? `<p class="cs-body-s" data-csfr="${esc(String(id))}" style="padding-top:4px">`
       + `Your buddies ${one(fr)} <span style="color:var(--mut)">(${frn})</span></p>` : '';
-  const rail = csStarsSvg(mine || 0, mine == null, { size: o.size || 48, rate: id });
+  /* AW2-19 · §16.2's carve-out, whole: a half star's target is legal below 44
+     only beside a −½ / +½ pair at 44 — RateCourseSheet's pair, its glyphs, its
+     bounds (½ to 5; a step never takes a rating off, the tap on your own value
+     does). With the pair beside it the rail draws at the sheet's 40. */
+  const step = dir => `<button type="button" class="cs-step cs-fig-s" data-csstep="${esc(String(id))}" data-csdir="${dir}"`
+    + ` aria-label="${dir < 0 ? 'Half a star less' : 'Half a star more'}" aria-disabled="${csStepOff(mine, dir)}">${dir < 0 ? '−' : '+'}</button>`;
+  const rail = `<div class="cs-rate-ctl">${step(-1)}`
+    + csStarsSvg(mine || 0, mine == null, { size: o.size || 40, rate: id }) + `${step(1)}</div>`;
   const mineLab = mine != null ? `Your rating · ${one(mine)}` : 'Not yours yet';
   /* the phone's own words for the field (RateCourseSheet: label, placeholder,
      caption), so the label stays when the placeholder has gone and the golfer
@@ -18295,7 +18347,7 @@ function renderCourseBooks(){
         ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
       </div>
-      <div>${csRatingBlock(b.id, { size:48 })}${leaf}</div>
+      <div>${csRatingBlock(b.id, { size:40 })}${leaf}</div>
     </section>`;
   };
 
@@ -18412,6 +18464,30 @@ function csCourseBooksWire(box){
         return;
       }
       csCourseRowRepaint(box, id);
+      /* the first rating redraws the block (the note field arrives with it):
+         the focus goes to the same target in the new drawing, not to <body> */
+      if(!btn.isConnected) box.querySelector(`button[data-csrate="${CSS.escape(id)}"][data-csval="${btn.dataset.csval}"]`)?.focus();
+    });
+  });
+  /* AW2-19 · the −½ / +½ pair beside the rail */
+  box.querySelectorAll('button[data-csstep]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.csstep, dir = Number(btn.dataset.csdir);
+      const had = csRatingOf(id);
+      const mineNow = had && had.mine != null ? Number(had.mine) : null;
+      if(csStepOff(mineNow, dir)) return;
+      const cur = mineNow != null ? mineNow : 0;
+      const v = Math.min(5, Math.max(0.5, cur + dir * 0.5));
+      const fill = btn.closest('.cs-rate-ctl')?.querySelector('.csr-fill');
+      if(fill) fill.style.width = csStarsWidth(v);   /* the sweep */
+      const out = await csRateCourse(id, v);
+      if(!out){
+        if(fill) fill.style.width = csStarsWidth(cur);
+        toast('Could not save that rating');
+        return;
+      }
+      csCourseRowRepaint(box, id);
+      if(!btn.isConnected) box.querySelector(`button[data-csstep="${CSS.escape(id)}"][data-csdir="${dir}"]`)?.focus();
     });
   });
   box.querySelectorAll('textarea[data-csnote]').forEach(inp=>{
@@ -18450,6 +18526,10 @@ function csCourseRowRepaint(box, id){
     ? `Your buddies ${one(r.friends)} <span style="color:var(--mut)">(${r.friends_count})</span>` : '';
   const mine = box.querySelector(`[data-csmine="${CSS.escape(String(id))}"]`);
   if(mine) mine.textContent = r.mine != null ? `Your rating · ${one(r.mine)}` : 'Not yours yet';
+  /* the pair's bounds follow the rating: − stops at ½, + at 5 */
+  box.querySelectorAll(`button[data-csstep="${CSS.escape(String(id))}"]`).forEach(b=>{
+    b.setAttribute('aria-disabled', String(csStepOff(r.mine != null ? Number(r.mine) : null, Number(b.dataset.csdir))));
+  });
   /* the note field arrives with the first rating and leaves with the last */
   const block = box.querySelector(`[data-csrow="${CSS.escape(String(id))}"]`);
   const field = block && block.querySelector('.cs-note-block');
@@ -29368,9 +29448,12 @@ function csCredentialHtml(profileId, card){
   figs.push([String(Number(c.rounds || 0)), 'Rounds', '']);
   /* the position figure needs a STANDING, and `tour_card` carries none - see
      IOS-047. It falls to the best round, which the card already holds. */
+  /* AW2-22 · the phone's N4-050, the same shape: the cell's label is BEST, and
+     the course is its own agate line under it, which wraps and is never cut.
+     "BEST · MESQUITE …" put an ellipsis through the only word that said where. */
   if(c.best_round && c.best_round.gross != null){
-    figs.push([String(c.best_round.gross),
-               'Best' + (c.best_round.course_label ? ' · ' + csCourse(c.best_round.course_label) : ''), '']);
+    figs.push([String(c.best_round.gross), 'Best', '',
+               c.best_round.course_label ? csCourse(c.best_round.course_label) : '']);
   }
   const n = Math.min(3, figs.length) || 1;
   /* the slot is the surface's ONE gold field, and it is absent when nothing
@@ -29405,8 +29488,8 @@ function csCredentialHtml(profileId, card){
     </div>
     <div class="cfoot">
       <div class="cfigs">
-        ${figs.slice(0, 3).map(([v, l, o]) =>
-          `<div class="cfig"><b>${esc(v)}${o ? `<i>${esc(o)}</i>` : ''}</b><small>${esc(l)}</small></div>`).join('')}
+        ${figs.slice(0, 3).map(([v, l, o, w]) =>
+          `<div class="cfig"><b>${esc(v)}${o ? `<i>${esc(o)}</i>` : ''}</b><small>${esc(l)}</small>${w ? `<small class="cwhere">${esc(w)}</small>` : ''}</div>`).join('')}
         <span class="crule" style="width:${(n * 33.333).toFixed(2)}%"></span>
       </div>
       <div class="cfolio">

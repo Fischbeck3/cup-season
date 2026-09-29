@@ -66,4 +66,46 @@ final class N2LivePlayUITests: XCTestCase {
                   "the course line stays in the eyebrow at the reading sizes")
     attach(app, "f07-live-large")
   }
+
+  /// TEN / W6 (critique A2, P1) · **"Change setup" holds the round.** Three
+  /// holes scored, then Change setup: the setup says the round is still on
+  /// and puts the way back on the first screen, with no Tee off (a new round)
+  /// and no local-scoring switch; "Back to the round" returns to the same
+  /// round, on the same hole, with the same three scores. A new round would
+  /// have come back blank.
+  @MainActor func testChangeSetupHoldsTheRoundAndItsScores() {
+    let app = launch("live", size: "large")
+    let plus = app.buttons["Plus, You"]
+    XCTAssertTrue(plus.waitForExistence(timeout: 20), "the live sheet is up")
+    let row = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "You, hole ")).firstMatch
+    var said: [String] = []
+    for k in 0..<3 {
+      plus.tap()
+      XCTAssertTrue(row.waitForExistence(timeout: 5), "the golfer's row says the hole")
+      said.append(row.label)
+      if k < 2 { app.buttons["Next hole"].tap() }
+    }
+    XCTAssertEqual(said.filter { $0.contains("not scored") }, [], "three holes scored — \(said)")
+    // the eyebrow's door is set in agate caps, and its label reads as set
+    app.buttons.matching(NSPredicate(format: "label ==[c] %@", "change setup")).firstMatch.tap()
+    let held = app.staticTexts["live.setup.held"]
+    XCTAssertTrue(held.waitForExistence(timeout: 10), "the setup says the round is held")
+    XCTAssertTrue(held.label.hasPrefix("Your round is still on, and its "), held.label)
+    XCTAssertTrue(held.label.hasSuffix("Change the course, the tee or the holes here."), held.label)
+    XCTAssertFalse(app.buttons["live.setup.teeOff"].exists, "no Tee off over a held round")
+    XCTAssertFalse(app.switches["Score on this phone"].exists, "no switch to a second, local round")
+    let back = app.buttons["live.setup.backToRound"]
+    XCTAssertTrue(back.exists && back.isHittable, "the way back is on the first screen")
+    XCTAssertLessThanOrEqual(back.frame.maxY, app.windows.firstMatch.frame.maxY, "the way back needs no scroll")
+    attach(app, "w6-held-setup")
+    back.tap()
+    // the same round: the hole it was left on, and the three scores, back to front
+    XCTAssertTrue(plus.waitForExistence(timeout: 10), "back on the live sheet")
+    XCTAssertEqual(row.label, said[2], "the hole it was left on, with its score")
+    for k in [1, 0] {
+      app.buttons["Previous hole"].tap()
+      XCTAssertEqual(row.label, said[k], "the same score on the earlier hole")
+    }
+    attach(app, "w6-held-back")
+  }
 }

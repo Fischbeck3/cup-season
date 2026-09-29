@@ -2,7 +2,8 @@
 // Strava pattern). Face + name · course · N holes · date · `<gross> GROSS ·
 // <BAND>` (third person unless it's yours) · the counting line · the streak
 // tag (D76) · the PvI chip · the points badge. A photo becomes the card's
-// ground with the dusk wash and the marker medallion. Tap → the receipt
+// ground under the `.band` scrim, the points on the bone panel, with the
+// marker medallion (§10.3, root's ruling on N4-087). Tap → the receipt
 // (§16: every points figure opens the rounds behind it).
 
 import SwiftUI
@@ -70,7 +71,9 @@ struct RoundStoryCard: View {
             .disabled(round.profileId == nil)
             if round.profileId != nil, round.profileId == store.founderId { FounderTag() }
           }
-          Text(BoardLogic.courseLine(round)).csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut).lineLimit(typeSize.isA11y ? nil : 1)
+          // N4-086 · a course's name wraps whole, at every size
+          Text(BoardLogic.courseLine(round)).csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
+            .fixedSize(horizontal: false, vertical: true)
           Text(BoardLogic.grossLine(round, viewer: store.profileId)).csType(.columnS).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
           Text(counting.text).csType(.columnS)
             .foregroundStyle(hasPhoto ? onPhotoMut : (counting.ok ? cs.pos : cs.mut))
@@ -80,12 +83,21 @@ struct RoundStoryCard: View {
               .foregroundStyle(hasPhoto ? onPhotoInk : cs.ink)
               .padding(.top, 2)
           }
+          // N4-087 · root's ruling (b): over a photograph the margin rides the
+          // `.band` scrim's dark end with the rest of the copy — a phrase is
+          // never a panel (LINT-19), and nothing sits on the band's clear end
+          if hasPhoto, let pvi = round.pvi {
+            HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s1) {
+              Text(CSBands.pviChip(pvi)).csType(.columnM).foregroundStyle(onPhotoInk)
+              Text("vs playing HCP").csType(.agateS, caps: true).foregroundStyle(onPhotoMut)
+            }
+            .accessibilityElement(children: .combine)
+          }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .shadow(color: hasPhoto ? CSDusk.ground.opacity(0.45) : .clear, radius: 1, y: 1)
       }
       HStack(alignment: .bottom, spacing: 12) {
-        if let pvi = round.pvi {
+        if !hasPhoto, let pvi = round.pvi {
           // D273 · a round against the playing HCP is not a P&L: the figure
           // carries its own sign and the colour axis goes. `pviChip` is the
           // producer; the chip round it was a bordered tile in pos/neg.
@@ -99,10 +111,16 @@ struct RoundStoryCard: View {
           }
           .accessibilityElement(children: .combine)
         }
-        if let pts = round.points {
+        if let pts = round.points, hasPhoto {
+          // N4-087 · root's ruling (b), §10.3: over a photograph the figure is
+          // on the BONE panel, in both themes — an opaque figure, never type on
+          // the band's clear end
+          CSPanel(.overPhoto, unit: "Pts") { Text(CSCopy.points(pts)).csType(.figureS) }
+            .padding(.trailing, 34)
+        } else if let pts = round.points {
           VStack(alignment: .trailing, spacing: 0) {
-            Text(CSCopy.points(pts)).csType(.figureS).foregroundStyle(hasPhoto ? onPhotoInk : cs.ink)
-            Text("Pts").csType(.agateS, caps: true).foregroundStyle(hasPhoto ? onPhotoMut : cs.mut)
+            Text(CSCopy.points(pts)).csType(.figureS).foregroundStyle(cs.ink)
+            Text("Pts").csType(.agateS, caps: true).foregroundStyle(cs.mut)
           }
           .frame(minWidth: 44, alignment: .trailing)
           // **THE MEDALLION IS STAMPED IN THIS CORNER TOO** (D59: the marker
@@ -110,7 +128,6 @@ struct RoundStoryCard: View {
           // — 36 from the trailing edge — and it was drawn straight over
           // `PTS`. The figure yields, because the stamp is the object and the
           // points have a whole column to sit in.
-          .padding(.trailing, hasPhoto ? 34 : 0)
         }
       }
       .padding(.leading, typeSize.isA11y ? 15.5 : 0)
@@ -124,18 +141,18 @@ struct RoundStoryCard: View {
     .task(id: round.photoURL) { photos.load(path: round.photoPath, url: round.photoURL) }
   }
 
-  /// The photo as ground, under the three-stop dusk scrim (1026–1030).
+  /// The photo as ground, under `.band` — root's ruling (b), UI_SYSTEM §10.3:
+  /// a feed story is the wire's case, the copy at the leading edge on the
+  /// leading-anchored scrim and the figure on the bone panel. The board's own
+  /// three-stop dusk gradient is one of the things §10.3 names CSPhotoScrim as
+  /// replacing (N4-087).
   private var photoGround: some View {
     ZStack {
       CSDusk.surface
       if let picture {
         Image(uiImage: picture).resizable().scaledToFill()
       }
-      LinearGradient(stops: [
-        .init(color: CSDusk.ground.opacity(0.35), location: 0),
-        .init(color: CSDusk.ground.opacity(0.65), location: 0.55),
-        .init(color: CSDusk.ground.opacity(0.85), location: 1),
-      ], startPoint: .top, endPoint: .bottom)
+      CSPhotoScrim.layer(CSPhotoScrim.band, leading: true)
     }
   }
 
@@ -144,7 +161,7 @@ struct RoundStoryCard: View {
     CSMarkerView(key: store.marker(profile: round.profileId), size: 16, lineWidth: 2)
       .foregroundStyle(onPhotoInk)
       .frame(width: 26, height: 26)
-      .background(CSDusk.ground.opacity(0.55), in: Circle())
+      .background(CSDusk.ground.opacity(CSTokens.Alpha.a56), in: Circle())   // N4-087
       .accessibilityHidden(true)
   }
 }

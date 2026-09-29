@@ -191,9 +191,10 @@ public struct CSFace: View {
       } else if !model.initials.isEmpty {
         // "chose nothing" — not a silhouette, not a fabricated face, and
         // visibly different from "chose the Saguaro"
+        // N4-085 · never under the 11pt floor: on the 24pt face 0.40 was 9.6pt
         Text(model.initials)
-          .font(.custom(CSType.boardSemi, fixedSize: d * 0.40))
-          .tracking(d * 0.40 * CSTokens.Track.caps)
+          .font(.custom(CSType.boardSemi, fixedSize: max(11, d * 0.40)))
+          .tracking(max(11, d * 0.40) * CSTokens.Track.caps)
           .foregroundStyle(ground.ink)
       }
     }

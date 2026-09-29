@@ -250,7 +250,21 @@ private struct PostRoundBody: View {
       .onAppear { windowHeight = DoorLayout.windowHeight; scrollProxy = proxy }
       // W1 · any change to the card is the golfer answering the refusal, so
       // the line goes with the change
-      .onChange(of: model.card) { _, _ in if model.refusal != nil { model.refusal = nil } }
+      .onChange(of: model.card) { _, card in
+        if model.refusal != nil { model.refusal = nil }
+        // A2 · naming a course answers the course's own error
+        if model.courseError != nil, card.hasCourse { model.courseError = nil }
+      }
+      // A2 · a post refused for want of a course opens the card to the course
+      // field and brings it into view; the field takes the cursor itself
+      .onChange(of: model.courseFocusRequest) { _, want in
+        guard want else { return }
+        CSMotion.run { cardOpen = true }
+        Task { @MainActor in
+          try? await Task.sleep(for: .milliseconds(120))
+          withAnimation { proxy.scrollTo(CourseSearchReveal.id, anchor: .top) }
+        }
+      }
       // D362 · the sentence arrives from the server AFTER the keypad is up, so
       // on a short phone it can land below the fold on a page the golfer has
       // not scrolled. Bring the hero back into view when it appears — and only
@@ -431,7 +445,8 @@ private struct PostRoundBody: View {
     VStack(alignment: .leading, spacing: 0) {
       CSSectionHead("Course & tees").padding(.top, 8)
       PostCourseSearchField(text: $model.card.course, courseId: $model.card.courseId,
-                            onReveal: { if let p = scrollProxy { CourseSearchReveal.run(p, top: searchTop) } }) { c, t in
+                            onReveal: { if let p = scrollProxy { CourseSearchReveal.run(p, top: searchTop) } },
+                            error: model.courseError, focusRequest: $model.courseFocusRequest) { c, t in
         model.teePicked(course: c, tee: t)
         CSMotion.run { ratingOpen = false }   // the tee filled the line; the fields fold
       }

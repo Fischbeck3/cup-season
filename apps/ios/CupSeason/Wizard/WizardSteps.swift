@@ -205,7 +205,7 @@ struct WizardWhoStep: View {
           .buttonStyle(.csPrimary())
         Button { contacts.consent = false } label: {
           Text(OnboardingCopy.contactsDecline).csType(.bodyS).foregroundStyle(cs.mut)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
       }
@@ -328,7 +328,7 @@ struct WizardWhenStep: View {
       CSFine(WizardCopy.step2Note(endsOn: model.dials.endDate()))
       // QB-06 · and the two things the first tee COSTS, said here rather than
       // three panes deep and after publication.
-      CSFine(WizardCopy.step2Consequence(startsOn: model.dials.startDate()), tone: cs.brand)
+      CSFine(WizardCopy.step2Consequence(startsOn: model.dials.startDate()), tone: cs.ink)
     }
   }
 
@@ -391,7 +391,7 @@ struct WizardStakeStep: View {
           .accessibilityLabel(WizardCopy.payLabel)
         // The ONE required field the wizard gains.
         CSFine(model.dials.payNoteMissing ? WizardCopy.payMissing : WizardCopy.payFine,
-               tone: model.dials.payNoteMissing ? cs.brand : cs.mut)
+               tone: model.dials.payNoteMissing ? cs.ink : cs.mut)
       }
 
       Rectangle().fill(cs.rule).frame(height: 1).padding(.vertical, 4)
@@ -404,7 +404,7 @@ struct WizardStakeStep: View {
           Text(WizardCopy.moreSettings).csType(.nameS)
           Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold)).rotationEffect(.degrees(model.showDials ? 180 : 0))
         }
-        .foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 44)
+        .foregroundStyle(cs.ink).padding(.horizontal, 12).frame(minHeight: 44).contentShape(Rectangle())
         .background(cs.bg2, in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
       }
       .buttonStyle(.plain)
@@ -515,7 +515,6 @@ struct WizardDialsPane: View {
   /// away from, the choice is the Custom card below.
   private func presetCard(_ i: Int) -> some View {
     let p = WizardDials.presets[i]
-    let minimum = p.floor
     let on = model.dials.preset == i && !model.dials.isCustom
     return Button {
       CSHaptic.selection()
@@ -527,7 +526,10 @@ struct WizardDialsPane: View {
           Text(p.name).csType(.displayS).foregroundStyle(on ? cs.panelInk : cs.ink)
           if on { CSGlyph(.check, size: .inline).foregroundStyle(cs.panelInk) }
         }
-        Text("\(p.cap.map { "Best \($0)" } ?? "All rounds") per month · \(p.floor == 0 ? "no minimum" : "minimum \(minimum)") · \(Bylaws.allow[i])% of your handicap").csType(.bodyS).foregroundStyle(on ? cs.panelInk : cs.mut)
+        // W5 twin · the card LEADS with the web's sentence (csRulesLead): "Your
+        // best three each month count · two-round monthly minimum." — the one
+        // producer the Custom card speaks with too — not a dial list
+        Text(p.lead).csType(.bodyS).foregroundStyle(on ? cs.panelInk : cs.mut)
           .fixedSize(horizontal: false, vertical: true)
       }
       .padding(CSTokens.Space.s3)

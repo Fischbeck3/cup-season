@@ -249,10 +249,13 @@ final class SyntheticRouteTests: XCTestCase {
     XCTAssertTrue(app.staticTexts["seasonBook.title"].waitForExistence(timeout: 15))
     let cells = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND isEnabled == true", "seasonBook.cell."))
     XCTAssertTrue(cells.firstMatch.waitForExistence(timeout: 10))
-    cells.firstMatch.tap()
+    // the grid opens on its week (W5): a cell already on screen, else the first
+    let cell = cells.allElementsBoundByIndex.first(where: \.isHittable) ?? cells.firstMatch
+    app.revealBookCell(cell)
+    cell.tap()
     XCTAssertTrue(app.staticTexts["seasonBook.receipt.total"].waitForExistence(timeout: 10))
     attach(app, "flow__book-cell-receipts")
-    let round = app.buttons["Open round receipt"].firstMatch
+    let round = app.buttons["Open the round’s receipt"].firstMatch
     reveal(round, in: app)
     XCTAssertTrue(round.waitForExistence(timeout: 5))
     round.tap()
@@ -366,6 +369,14 @@ final class SyntheticRouteTests: XCTestCase {
     rating.tap(); rating.typeText("70.1")
     let slope = app.textFields["Slope"].firstMatch
     slope.tap(); slope.typeText("124")
+    // A2 · a round names its course (noCard, noCourse, noRating): the synthetic
+    // composer inherits none, so one is typed by hand, as a golfer off the list
+    // types it — last, because its results open under the field and move the
+    // rating and slope
+    let course = app.textFields.matching(NSPredicate(format: "identifier == %@ OR placeholderValue BEGINSWITH %@",
+                                                      "post.course.search", "Search a course")).firstMatch
+    XCTAssertTrue(course.waitForExistence(timeout: 5), "the course field")
+    course.tap(); course.typeText("Fixture Muni")
     app.swipeDown()
   }
 

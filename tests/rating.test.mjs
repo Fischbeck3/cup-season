@@ -71,12 +71,21 @@ const ok = (cond, label) => eq(!!cond, true, label);
 
 /* ── 3 · a picture is aria-hidden; a control is not ─────────────────────── */
 {
+  // The rail's own wrapper is what the reader meets. The drawn stars inside it
+  // are pictures in BOTH shapes (AW2-18) — the targets carry the names — so
+  // "hidden" is asked of the wrapper and the targets, never of the string.
+  const wrapOf = s => /^<span class="cs-stars[^>]*>/.exec(s)[0];
   const pic = csStarsSvg(4, false, { size: 22 });
-  ok(pic.includes('aria-hidden="true"'), 'a rail with no `rate` is a picture and is hidden from the reader');
+  ok(wrapOf(pic).includes('aria-hidden="true"'), 'a rail with no `rate` is a picture and is hidden from the reader');
   ok(!pic.includes('<button'), 'and it carries no target at all');
 
   const ctl = csStarsSvg(4, false, { size: 48, rate: 'course-1' });
-  ok(!ctl.includes('aria-hidden="true"'), 'a rail with `rate` is a control and is NOT hidden');
+  ok(!wrapOf(ctl).includes('aria-hidden'), 'a rail with `rate` is a control and is NOT hidden');
+  ok(wrapOf(ctl).includes('role="group"') && wrapOf(ctl).includes('aria-label="Your rating"'),
+     'it is a named group');
+  ok(!(ctl.match(/<button[^>]*>/g) || []).some(b => b.includes('aria-hidden')), 'and no target in it is hidden');
+  eq((ctl.match(/<svg aria-hidden="true"/g) || []).length, (ctl.match(/<svg/g) || []).length,
+     'every drawn star in it is a picture — the targets say the value, the stars do not say it again');
   eq((ctl.match(/<button/g) || []).length, 10, 'ten half-star targets, one per half');
   ok(ctl.includes('data-csval="0.5"') && ctl.includes('data-csval="5"'),
      'the first target is half a star and the last is five — a rail cannot be dragged to zero');

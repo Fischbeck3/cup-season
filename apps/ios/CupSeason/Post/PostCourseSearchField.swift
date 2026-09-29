@@ -17,12 +17,17 @@ struct PostCourseSearchField: View {
   /// F8 · fired when the answer ARRIVES — the host scrolls the field above
   /// the keyboard. Never on a keystroke.
   var onReveal: (() -> Void)? = nil
+  /// A2 · the field's own error (`#postCourseErr`), in `neg` under it, and
+  /// the request to take the cursor when a post is refused for want of it.
+  var error: String? = nil
+  var focusRequest: Binding<Bool>? = nil
   let onTee: (CourseHit, CourseTee) -> Void
   @State private var vm = CourseSearchModel()
 
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
-      CSField("Search a course, or type your own", text: $text, font: CSFont.body)
+      CSField(placeholder: "Search a course, or type your own", text: $text, error: error,
+              kind: .prose, focusRequest: focusRequest)
         .accessibilityIdentifier("post.course.search")
         .onChange(of: text) { _, q in
           // typing again after a pick unstamps the course id (the label no longer matches the row)

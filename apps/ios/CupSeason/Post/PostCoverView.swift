@@ -134,9 +134,9 @@ private struct PostCoverStack: View {
                             sub: "One phone or four — guests need no account. It settles up at the end.") {
               close(); links.openLive()
             }
-            PostOptionRow(tick: cs.rule, title: "Add a round you played",
+            PostOptionRow(title: "Add a round you played",
                           sub: "Your gross and the tee — it posts to your rounds, and every season you're in reads it.") { path.append(PostCoverView.Route.post) }
-            PostOptionRow(tick: cs.rule, title: "Plan a round",
+            PostOptionRow(title: "Plan a round",
                           // LV-14 · row 113: "league" is never a thing you join. The container is
                           // a SEASON.
                           sub: "Put it on the schedule; your buddies and your seasons see it.", last: true) { showPlan = true }
@@ -165,7 +165,7 @@ private struct PostCoverStack: View {
               // (mut), not a live competition (D359): nothing here is running.
               Text(kept.count == 1 ? "UNFINISHED ROUND" : "UNFINISHED ROUNDS").csEyebrow(cs.mut).padding(.top, 14).padding(.bottom, 2)
               ForEach(Array(kept.enumerated()), id: \.element.id) { i, k in
-                PostOptionRow(tick: cs.mut, title: k.line,
+                PostOptionRow(title: k.line,
                               sub: k.isComplete
                                 ? "Scored, not posted. Review the scorecard and post it when you're connected."
                                 : "Unfinished — \(k.holes - k.holesPlayed) holes blank. Resume it here.",
@@ -363,24 +363,19 @@ struct PostLiveHeroRow: View {
   let title: String
   let sub: String
   let action: () -> Void
-  @State private var breathe = false
   var body: some View {
     Button(action: action) {
       CSRow {
         HStack(alignment: .center, spacing: 14) {
-          Rectangle().fill(cs.brand).frame(width: 3).padding(.vertical, 4)
+          // N4-023 · nothing is live yet: no ember rail, no breathing dot and no
+          // LIVE word until a round actually is (D359, §16A.6). The row stays
+          // first and tall; its title says what it starts.
           VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-            HStack(spacing: CSTokens.Space.s2) {
-              Circle().fill(cs.brand).frame(width: 7, height: 7).opacity(breathe ? CSTokens.Alpha.a56 : 1)
-              Text("Live").csType(.agate, caps: true).foregroundStyle(cs.brand)
-            }
             Text(title).csType(.displayS).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
             Text(sub).csType(.bodyS).foregroundStyle(cs.mut).multilineTextAlignment(.leading)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
-          // the arrow is absorbed into the row (LINT-13), and the chevron is
-          // MUT: the spine, the dot and the word are already three ember marks
-          // on this viewport and §1.4's budget is two
+          // the arrow is absorbed into the row (LINT-13), and the chevron is mut
           CSGlyph(.chevron, size: .row).foregroundStyle(cs.mut)
         }
         .fixedSize(horizontal: false, vertical: true)
@@ -390,18 +385,14 @@ struct PostLiveHeroRow: View {
     }
     .buttonStyle(.plain)
     .accessibilityElement(children: .combine)
-    .accessibilityLabel("Live: \(title). \(sub)")
-    .onAppear {
-      guard !UIAccessibility.isReduceMotionEnabled else { return }
-      CSMotion.run(CSMotion.breath(1.1)) { breathe = true }
-    }
+    .accessibilityLabel("\(title). \(sub)")
   }
 }
 
-/// `.optcard` as a row — the tense's colour as a tick on the left, a title, a line, the `→`.
+/// `.optcard` as a row — a title, a line, the `→`. N4-023 · the tick on the
+/// left is gone with the live row's rail: the cover's rows start on one edge.
 struct PostOptionRow: View {
   @Environment(\.cs) private var cs
-  let tick: Color
   let title: String
   let sub: String
   var last = false
@@ -410,7 +401,6 @@ struct PostOptionRow: View {
     Button(action: action) {
       CSRow(last: last) {
         HStack(alignment: .center, spacing: 14) {
-          Rectangle().fill(tick).frame(width: 3).padding(.vertical, 4)
           VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
             Text(title).csType(.displayS).foregroundStyle(cs.ink).multilineTextAlignment(.leading)
             Text(sub).csType(.bodyS).foregroundStyle(cs.mut).multilineTextAlignment(.leading)

@@ -221,7 +221,7 @@ struct LiveCardView: View {
       .fill(v == .me ? cs.brand : v == .them ? cs.mut : .clear)
       .frame(width: cellW - 3, height: 13)
       .overlay(RoundedRectangle(cornerRadius: 2).stroke(cs.rule, lineWidth: v == nil || v == .halved ? 1 : 0))
-      .opacity(v == nil ? 0.25 : 1)
+      .opacity(v == nil ? CSTokens.Alpha.a24 : 1)   // N4-087 · one of the five alphas
       .frame(width: cellW)
   }
 

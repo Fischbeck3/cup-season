@@ -279,6 +279,7 @@ struct CourseWholeCardScreen: View {
       VStack(alignment: .leading, spacing: CSTokens.Space.s4) {
         // 1 · the course, and the copy's provenance (F2's words)
         Text(book.label).csType(.display).foregroundStyle(cs.ink)
+          .accessibilityAddTraits(.isHeader)   // N4-093 · a screen names itself as a heading
           .fixedSize(horizontal: false, vertical: true)
         Text(book.savedLine()).csType(.agateS, caps: true).foregroundStyle(cs.mut)
           .fixedSize(horizontal: false, vertical: true)

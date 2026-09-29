@@ -183,7 +183,7 @@ struct DraftPoolRow: View {
       }
       .padding(.horizontal, 14).frame(minHeight: 48)
       .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.rc, style: .continuous))
-      .opacity(allowed ? 1 : 0.45)
+      .opacity(allowed ? 1 : CSTokens.Alpha.a56)   // N4-087 · one of the five alphas
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -204,7 +204,7 @@ struct DraftLockBadge: View {
       Text(text).csType(.columnS).foregroundStyle(tone)
     }
     .padding(.horizontal, 12).padding(.vertical, 8)
-    .background(tone.opacity(mine ? 0.06 : 0.08), in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))
+    .background(tone.opacity(CSTokens.Alpha.a08), in: RoundedRectangle(cornerRadius: CSTokens.Radius.p, style: .continuous))   // N4-087
     .accessibilityElement(children: .combine)
     .accessibilityAddTraits(.updatesFrequently)
   }

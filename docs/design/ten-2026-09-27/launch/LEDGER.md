@@ -395,6 +395,124 @@ The judges stay with root, so their calibration holds across the native half and
 - database owed: X41, X42, the head-to-head week count, and `d30f1ecb`;
 - counsel on "The pot" in `legal.html`.
 
+## 4j · The morning after the ship: C, B and E merged, root's audit fixes (2026-09-29, 05:00–07:00, nothing pushed)
+
+Nothing here is on main or in a TestFlight build. Main is still `7b9c17e4`, the same tree as Owner TestFlight 1335. Each push or upload needs the owner's new yes.
+
+**Merged into integration:**
+
+| Merge | What | The session's own proof |
+|---|---|---|
+| `fe811bb6` ← C `bb871c73` | Round 2 folded into the six launch docs; Q39 (the record's "+2.4") | preflight 0/0 |
+| `295e837b` ← B `e8cc1b12` | W6 checkpoint: D380's Share (card and link), AW2-09's course row, the tee select, the card gate's Save, the covenant at 375, the rail's foot, the wizard's Pro row, PAR-33's bridge, and three twins (the buy-in in ink, the sync window, the receipt's 3:2 plate) | all 44 suites, app-tests 502/0, preflight 0/0 |
+| `5b352210` ← E `97f9204e` | N4 phase 2 part 1: the six P1s as far as unblocked, the sub-80 twin, the W1–W5 and B copy twins, root's four rulings, Q29, A's first P2s | build; non-UI 1703/1703; UI 43/45 (0 failed, 2 gated); SE3 5/5; preflight 0/0 |
+| `a27fbaf5` | The ratchets lowered to the merged head: LINT-06 1066, LINT-07 102, LINT-14 123 | preflight 0/0 |
+| `c11199d7` ← B `41a71fc6` | D's four round-2 items: a first round's "Add my round" opens the fold and names the field there; "Change setup" holds the round; Delete account takes and returns focus; OB2-01's ground under the board photo. Plus the empty slope, per root's ruling | preflight 0/0; all 44 suites (app-tests 502/0); a full harness run with 0 route failures |
+
+One conflict, in the settings "Ball marker" block: root's group name and B's "Your photo" gloss were both kept.
+
+**Root's fixes from round 2's audit (AW2) and detector (DX2):**
+- `29dfb7b0` AW2-10: the card gate's two questions name their groups, and a marker pick returns focus to its row. It had fallen to `<body>`.
+- `4c2ac97f` AW2-11: a focus ring on the leaf is drawn in the leaf's ink. Dark went from 2.54 to 14.44:1.
+- `70af0c09` AW2-18 part 1:
+  - decorative SVGs carry aria-hidden (home--member went from 28 unnamed to 0);
+  - a failed "Send code" leaves focus on the address, not `<body>`.
+- `7e1d5949` AW2-18 part 2 / TP-17: no page skips a heading level.
+  - 31 of 154 renders skipped a level at `a27fbaf5`; 0 now.
+  - Pixel-identical, except for #msSame below.
+- `f61b96c9` TP2-01: `#msSame` is a sentence in the body role.
+
+**Rulings sent to the lanes:**
+- The empty slope follows the phone's IOS-030 guard. score_round stores no differential without a slope, so the web's `||113` preview goes (B).
+- N4-113's "RIGHT NOW" is not ember. No round is live on the when-fork (D359, L-40).
+- E's credit below the panel stands, for measured contrast.
+- Toolbar Close at ~42.6pt in partial-detent sheets is the platform's scaled detent. It becomes a device check, with no code change.
+- B's receipt plate stays after the verdict, keeping D362/D387's first screen.
+- The board's round story card takes §10.3's `.band` geometry on both clients: a feed story is the wire's case, and §10.3 names the board's three-stop wash as replaced.
+- A2's course-first block is approved on both clients.
+  - The order is noCard, then **noCourse** ("Add the course you played — its tee sets the rating and slope."), then noRating.
+  - B writes the web half and E adds `PostCalc.Blocked.noCourse`.
+  - E also twins B's held round ("Change setup" keeps the same round and its scores).
+- AW2-05 (Home's lead says the clock twice) moves to B. It needs a copy-only home_dispatch patch, held for the owner's `db push` like `d30f1ecb`, plus both fallbacks.
+
+**Verification at the merged head** (root's own simulator, CS-Claude-Root-17Pro `3CA82A3B`, never the owner's):
+- **Native at `a27fbaf5`:**
+  - build green;
+  - package tests: 1374 Swift Testing and 16 XCTest;
+  - app-hosted: 47 XCTest and 131 Swift Testing. The first attempt hit the known "runner hung before establishing connection", and a rerun passed.
+  - **UI 57: 54 passed, 2 env-gated skips, 1 failure.** The failure is `N4ShellUITests` line 41, the test's own cleanup: a keyboard "search" key this simulator does not have. It failed 2 of 2, including on a warmed simulator. Every product assertion passes. E is hardening the cleanup.
+- **Web at `c11199d7`:**
+  - app-tests 503/0.
+  - 42 of 43 browser suites green on the first pass. A run at `f61b96c9`, stopped when B's head landed, had finished 27 suites, all green.
+  - **`round-record-browser.js` flaked under load.** It failed once at 1440 light, with the record 270 tall against its 210 cap. Of three reruns, two passed and one failed at 390 light (272).
+  - A probe then rendered the card 16 times at `c11199d7` and 16 at `41a71fc6`. It measured 180–181 every time, with every font face loaded and identical child heights (id 32, title 43, story 22, foot 52). It did not reproduce.
+  - Nothing root changed renders inside the feed card. It is recorded as a load-dependent flake to watch: both failures came while two other lanes' simulators and suites loaded the machine.
+- **Heading sweep:** 31 of 154 renders skipped a level at `a27fbaf5`; 0 at `f61b96c9`. The same sweep found 0 unnamed decorative SVGs.
+- preflight 0/0 at every commit.
+
+**The native P3 cut (the owner, 2026-09-29 ~07:30: "go with your cut on the P3 tail").**
+
+A's `N4-WORKLIST.md` (134 items: P1 6, P2 70, P3 58).
+- **All six P1s are done.** E finishes every open P2 before the freeze, except N4-105, which is the owner's Q31.
+- **P3s are kept when they touch accessibility, a sentence that misleads, a difference from the web (L-34), or an action with no undo:** 41 items, listed in root's message to E.
+- **Cut, as known debt after launch (11):**
+  - N4-004 (the Door headline's serif caps; also Q24);
+  - N4-026 (the system-blue caret);
+  - N4-031 (the share band's serif caps);
+  - N4-032 (the ceremony dateline eyebrow);
+  - N4-044 (the covenant's paragraph weights; its Charter half is done);
+  - N4-066 (the request count in its label);
+  - N4-074 (the album tile placeholder and full-size decodes: performance debt);
+  - N4-117 (the Book's segmented pills);
+  - N4-118 (the ordinals and figure column);
+  - N4-180 (the rules head's two serif blocks);
+  - N4-182 (the ledger sentence on several surfaces).
+- **The web's queue is not cut.** B's AW2/DX2 list fits before the freeze.
+- **TestFlight waits until the remaining items are done** (the owner, the same morning).
+
+**Still the owner's:**
+- Q31, the Oct 1 look (1335 turns Fall on Oct 1);
+- X36–X40, Q1–Q39;
+- database owed: X41, X42, the head-to-head week count, `d30f1ecb`, and AW2-05's patch once B writes it;
+- counsel on "The pot".
+
+## 4k · Pushing as batches land: the first web push, a red CI, root's AW2 batch, N4 checkpoint 1 (2026-09-29, morning)
+
+On the owner's standing "push items as needed" (git push of verified heads to main; db push and functions stay the owner's; TestFlight waits).
+
+**Web push 1: `60ad364e`, 07:40 MST.**
+- 94 commits, a fast-forward from `7b9c17e4`, with `index.html` the only served file; no migrations, no generated Swift, no version lines.
+- Verified first: the harness at `31299f43`, 1174 captures with 0 route failures, 0 errors, 0 fixture gaps and 0 page errors (served from a `git archive` snapshot); 43 browser suites at `c11199d7` (the round-record flake rerun 3 of 3 green on an idle machine); preflight 0/0.
+- Live: `sw.js` VERSION `60ad364`, caption `v23 · 60ad364`.
+- **CI went red:** Client invariants · unit files, `tests/rating.test.mjs`. Its hidden-control check searched the whole control string for `aria-hidden="true"`, and AW2-18 part 1 (`70af0c09`) had rightly hidden the drawn stars inside it. Root's verification had not run CI's `node --test` unit steps.
+  - **`1131a4b0`** asks the question the test meant (the wrapper and its ten targets are exposed; every drawn star is a picture), mutation-checked. CI green, live `v23 · 1131a4b`.
+  - **The gap is closed:** `tools/ci-local.py` in the gallery parses `ci.yml` and runs every step in a snapshot of the committed tree. It reproduced the red at `60ad364e` exactly, and every push since has run it first.
+
+**Root's AW2 batch (web).**
+- **AW2-16 (a) `5307dc20`:** the live match's "AVERY FIXTURE 1 UP" was said twice. The match card shows only when the scoreboard hero already carries its status line, so `#matchStatus` is `hidden` and the card keeps who and the terms. The phone already says it once (its match block, no hero): no twin.
+- **AW2-16 (b), the desk You's five grosses twice, is Q40.** D291 (owner-authorised) keeps both the Form row and Recent rounds on the desk, so root does not remove either. Recommendation (b): drop the desk's Form row and move the best-of-five gold onto its Recent rounds row.
+- **AW2-19 `b935f929` and `baf2358e`:** every remaining under-44 target keeps its drawn size inside a 44px hit box (the report flag, "The season's story", "Open", the rail's league switch, a course row's name, "best 90", the card leaf, the course note, and the golfer rows, whose face disc was a mouse-only second target). Measured with the round-2 probe's own `targets()`, then proven with `elementFromPoint` 2px inside every edge at 375 and 1280: nothing clipped, nothing over it.
+  - The star rail: §16.2 makes its 24px halves legal only beside a −½/+½ pair at 44. The course lead's rail now has RateCourseSheet's pair, its glyphs and its bounds, with the rail at the sheet's 40. At a bound the button is `aria-disabled`, so a keyboard golfer keeps focus; a redraw returns focus to the same control. Driven end to end at 375 and 1280.
+  - The phone's page rail has the same gap; its twin is a P3 for N4.
+- **AW2-22 `98077497`:** the credential's third cell is "Best", with the course on its own agate line that wraps; no label is cut to an ellipsis. It is the phone's N4-050 shape, which N4 builds in checkpoint 2.
+- **The Book's leader total is ink `5d9ba670`,** matching N4's build: §9.1 draws the leader's gold on the rank rail, and §2.4 gives gold only to what was won.
+- **Verified at `5d9ba670`:** harness families play 72, golfers 40, desk 20, season 48, you 32, courses 32, book 64, all 0 failures; every pixel difference against `31299f43` is one of the changes above or ≤2-level text compositing; `ci-local` 11 of 11; preflight 0/0.
+
+**N4 checkpoint 1 merged at `7afd9aeb`** (E at `a891eb8a`, 32 commits, all under `apps/ios/`): A's system sweeps, the N4-013/014/112/063 parts, N4-023/052/113, the W5 and W2 twins, "Change setup" holds the round, `noCourse`, and the N4Shell cleanup. E's proof: build; preflight 0/0; non-UI 1721/1721; UI 17 Pro 63/65 (2 environment skips), SE3 62/65 (one flake that passed alone). Ratchets lowered at `a8a39c2e`: LINT-03 11, 05 89, 06 1064, 07 100, 10 227, 12 33, 14 122.
+
+**Root's rulings for N4 (none is a mechanic):**
+- noRating moves like noCourse: its words under rating and slope, focus to the first empty field (finishes N4-020).
+- The empty scoreboard keeps the phone's two-row drawing; the words match the web's (D234).
+- N4-080 keeps "the in-app card is the export"; the shrink floors were the scope.
+- N4-205 accepted: the phone's seat tap picks for a swap, so "(tap to change)" would lie there.
+- N4-101 stays parked with DEC-01; X37's fixture names are the owner's.
+- **Compete's empty head is Q41.** IA §6.1 says "Nothing running."; QB-21 moved the counted sentence into the head on the phone without amending IA. Root sends it to the owner (recommendation: amend IA to QB-21). The "Find golfers" door with no buddies is IA itself, so N4 adds it now.
+
+**Tooling still open (root's), each waiting on its sites first:**
+- Widening LINT-04 and check 15 to literal alphas and materials (N4-087): ten literal alphas remain in Swift, so a zero-tolerance check would fail today.
+- N4-093's header grep: 21 `csType(.display)` sites without a header trait, most of them dev fixtures and the rest needing triage one by one.
+- N4-091's LINT-18 probe widening.
+
 ## 5 · Coverage, detector, panel, critique, audit, human
 
 Each of these is tracked in its own file as it fills: `COVERAGE.md`, `DETECTOR.md`, `PANEL.md`, `CRITIQUE.md`, `AUDIT.md`, `HUMAN.md`. Until a file exists and holds evidence, its gate is **open**. The starting points are:

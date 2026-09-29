@@ -591,11 +591,11 @@ private struct SettingsPane: View {
       }
 
       HStack(spacing: 10) {
-        Link(destination: CSConfig.legal("privacy")) { Text("Privacy").frame(minHeight: 44) }
+        Link(destination: CSConfig.legal("privacy")) { Text("Privacy").frame(minHeight: 44).contentShape(Rectangle()) }
         Text("·").accessibilityHidden(true)
-        Link(destination: CSConfig.legal("terms")) { Text("Terms").frame(minHeight: 44) }
+        Link(destination: CSConfig.legal("terms")) { Text("Terms").frame(minHeight: 44).contentShape(Rectangle()) }
         Text("·").accessibilityHidden(true)
-        Link(destination: CSConfig.legal("pot")) { Text("The pot (legal)").frame(minHeight: 44) }
+        Link(destination: CSConfig.legal("pot")) { Text("The pot (legal)").frame(minHeight: 44).contentShape(Rectangle()) }
       }
       .csType(.bodyS).foregroundStyle(cs.mut)
 
