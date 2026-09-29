@@ -166,7 +166,7 @@ for (const width of [320, 375, 402, 1280]) for (const theme of ['dark', 'light']
 
   /* ---- a long name in the list gets the measure */
   const row = await page.evaluate(() => {
-    const k = document.querySelector('#youCourses .cs-krow[data-cslead="fixture-pines"]'), h = k.querySelector('h4'), rail = k.querySelector('.cs-krow-rate')
+    const k = document.querySelector('#youCourses .cs-krow[data-cslead="fixture-pines"]'), h = k.querySelector('h3'), rail = k.querySelector('.cs-krow-rate')
     const kr = k.getBoundingClientRect(), hr = h.getBoundingClientRect(), rr = rail.getBoundingClientRect()
     return { nameW: Math.round(hr.width), rowW: Math.round(kr.width), lines: Math.round(hr.height / parseFloat(getComputedStyle(h).lineHeight)), railBelow: rr.top >= hr.bottom - 1 }
   })
@@ -183,7 +183,7 @@ for (const width of [320, 375, 402, 1280]) for (const theme of ['dark', 'light']
     const sm = k.querySelector('details.cs-cardleaf > summary')
     return { id: k.dataset.cslead, role: k.getAttribute('role'), tabindex: k.getAttribute('tabindex'), label: k.getAttribute('aria-label'),
       buttons: [...k.querySelectorAll('button')].map(b => b.textContent.replace(/\s+/g, ' ').trim()),
-      name: (k.querySelector('h4')?.textContent || '').replace(/\s+/g, ' ').trim(),
+      name: (k.querySelector('h3')?.textContent || '').replace(/\s+/g, ' ').trim(),
       summary: sm ? sm.textContent.replace(/\s+/g, ' ').trim() : null, summaryInButton: !!(sm && sm.parentElement.closest('button,[role=button]')) }
   }))
   check(`${label}: no course row is a button; each names its course once, on its own button (${rows.length} rows)`,

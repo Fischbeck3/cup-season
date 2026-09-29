@@ -2087,7 +2087,7 @@ img.face{border-radius:50%; object-fit:cover; vertical-align:-4px; border:1px so
   padding:13px 14px; margin-bottom:8px;
 }
 .preset:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
-.preset h4{font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px;}
+.preset .pr-t{font-size:14px; font-weight:700; display:flex; align-items:center; gap:8px;}
 .preset .ok{
   margin-left:auto; width:20px; height:20px; border-radius:6px; flex:none;
   border:1.5px solid var(--rule); color:transparent;
@@ -2402,12 +2402,12 @@ body.guestlive #onboard{display:none !important;}
 /* UI_SYSTEM §0.3 · no spine: the live door says LIVE with its word and dot */
 .optcard:hover{border-color:var(--rule); filter:brightness(1.08);}
 .optcard:focus-visible{outline:2px solid var(--act); outline-offset:2px;}
-.optcard h4{font-size:15px; font-weight:700;}
+.optcard .oc-t{display:block; font-size:15px; font-weight:700;}
 .optcard p{font-family:var(--sans); font-size:14px; color:var(--mut); margin-top:5px; line-height:1.45;}   /* W1 · a sentence, not mono (§1.4) */
 .optcard .go{position:absolute; right:16px; top:50%; transform:translateY(-50%); color:var(--mut); font-size:16px;}
 /* D110: the live door is the hero — ember spine, LIVE word, room to breathe */
 .optcard.live{padding:22px 40px 22px 18px; border-color:var(--rule);}
-.optcard.live h4{font-size:17px;}
+.optcard.live .oc-t{font-size:17px;}
 .optcard.live .go{color:var(--brand);}
 .optcard .liveword{display:flex; align-items:center; gap:7px; font-family:var(--board); font-size:12px; font-weight:600; letter-spacing:calc(var(--agate) * 1em); color:var(--brand); margin-bottom:7px;}
 /* TP-10 · a running clock is ember and STEADY: §11.4 deleted the bare
@@ -3002,7 +3002,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    sans, because the lead holds the viewport's one serif sentence (§1.4). */
 .hocc{position:relative; text-align:left; padding:var(--s3) 0 0; margin:0; border-top:1px solid var(--rule);}
 .hocc .ho-k{font-family:var(--board); font-weight:600; font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--mut); margin-bottom:var(--s2);}
-.hocc h4{font-family:var(--sans); font-size:17px; font-weight:600; margin:0 0 var(--s1); color:var(--ink); line-height:1.3;}
+.hocc h2{font-family:var(--sans); font-size:17px; font-weight:600; margin:0 0 var(--s1); color:var(--ink); line-height:1.3;}
 .hocc p{margin:0; font-size:15px; line-height:1.45; color:var(--mut);}
 .hocc .ho-act{display:flex; align-items:center; justify-content:space-between; margin-top:var(--s2); min-height:44px;
   font-size:15px; font-weight:600; color:var(--act); cursor:pointer; width:100%; background:none; border:0; text-align:left; font-family:var(--sans); padding:0;}
@@ -3014,7 +3014,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .hocc .ho-x svg{width:14px; height:14px;}
 .hocc .ho-x:hover{color:var(--ink);}
 .hocc .ho-x:focus-visible{outline:2px solid var(--act); outline-offset:-6px;}
-.hocc .ho-k, .hocc h4{padding-right:76px;}
+.hocc .ho-k, .hocc h2{padding-right:76px;}
 /* Home "Coming up" rich cards (round-object arc Stage 6) */
 .hround{display:flex; align-items:center; gap:10px; padding:11px 12px; margin-bottom:7px; background:var(--bg1); border:1px solid var(--rule); border-radius:11px;}   /* a surface, not the figure tile (see .hhero) */
 .hround.tap{cursor:pointer;} .hround.tap:active{transform:scale(.99);}
@@ -4926,7 +4926,7 @@ html[data-theme="light"] .btn.gold{color:#FFFFFF;}
    at 12%, one head, one line. Not a card with a grey sentence in it. */
 .tempty{border-top:1px solid var(--rule); padding-top:var(--s4);}
 .tempty-marks{display:flex; align-items:center; gap:var(--s4); opacity:.12;}
-.tempty h4{margin:var(--s4) 0 0; color:var(--ink);}
+.tempty :is(h2,h3){margin:var(--s4) 0 0; color:var(--ink);}
 .tempty p{margin:var(--s2) 0 0; color:var(--mut);}
 /* D291 · THE RECORD IS ONE FIGURE, NOT FOUR BOXES. `.recgrid` was four
    bordered `bg1` tiles carrying gold serif numerals — four cards in a row on
@@ -6040,7 +6040,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- the recent five lead the golf: the golf you just played is the
              first thing a golfer looks for on their own page, and an empty
              record's one next step sits here, right under the card -->
-        <h3 class="eyebrow">Recent rounds</h3>
+        <h2 class="eyebrow">Recent rounds</h2>
         <div id="youRecent" style="text-align:left"></div>
         <!-- D177: the "Add my round" button that sat here is gone. The ⊕ is a
              permanent tab an inch below it, and this is a page about the past. -->
@@ -6051,7 +6051,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              the case's top strip now; the objects sit under them. The money
              stays D39's frame — what friends settled between themselves,
              never a balance the app holds. -->
-        <h3 class="eyebrow" data-rec="some">Trophies</h3>
+        <h2 class="eyebrow" data-rec="some">Trophies</h2>
         <!-- D291 · neither of these is a card any more. The record was four
              bordered tiles and the case sat inside a `.room-dusk` left over
              from the tile era — a class that re-asserts the dusk INK and no
@@ -6066,7 +6066,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              and a mono label stack, under a card that already says the count
              (craft T/Sp, category B, critique-B P2). The scope line is said
              once, under the strip, not under each figure. -->
-        <h3 class="eyebrow" data-rec="some">All time</h3>
+        <h2 class="eyebrow" data-rec="some">All time</h2>
         <div class="youstrip" data-rec="some" id="youAllTime">
           <div class="youfig"><b class="cs-fig-m" id="clR">—</b><i></i><small class="cs-agate-s">Rounds posted</small></div>
           <div class="youfig"><b class="cs-fig-m" id="clBest">—</b><i></i><small class="cs-agate-s">Best vs your playing HCP</small></div>
@@ -6138,11 +6138,11 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- D177: "League record" was the THIRD heading here meaning "record",
              and the only one that was not one — it is a season-by-season list
              of where you finished, in every league you have played. -->
-        <h3 class="eyebrow" id="lgRecHead" style="display:none">Every season</h3>
+        <h2 class="eyebrow" id="lgRecHead" style="display:none">Every season</h2>
         <div id="lgRec" style="display:none; margin-bottom:14px"></div>
 
         <div class="league-only">
-          <h3 class="eyebrow"><span>This season · <span id="youSeasonLg">your league</span></span></h3>
+          <h2 class="eyebrow"><span>This season · <span id="youSeasonLg">your league</span></span></h2>
           <!-- ALL TIME and THIS SEASON printed the same three figures for a
                golfer in their first season (owner C, category C, critique-B);
                when they agree only the figure that is the season's own, the
@@ -6160,7 +6160,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         <!-- Events engine ckpt 4: lifetime head-to-head, weekly-clash (§3).
              D177 names the scope: my_rivalries takes no league argument, so
              this is every opponent in every season. -->
-        <h3 class="eyebrow league-only" id="youRivalsHead">Rivalries · every season</h3>
+        <h2 class="eyebrow league-only" id="youRivalsHead">Rivalries · every season</h2>
         <div id="youRivals" class="league-only" style="text-align:left"></div>
         </div>
 
@@ -6228,17 +6228,17 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
              planning are quiet errand rows. Ember was on POST before — backwards. -->
         <button class="optcard live" id="optLive" style="--acc:var(--brand)" data-go="play">
           <span class="liveword"><i class="livedot"></i>LIVE</span>
-          <h4>Score it live — you and the group, hole by hole</h4>
+          <span class="oc-t">Score it live — you and the group, hole by hole</span>
           <p>Everyone scores from their own phone — Match Play, Wolf or Skins — and it settles up at the end. Friends without the app just play; their card is waiting when they want it.</p>
           <span class="go">→</span>
         </button>
         <button class="optcard" style="--acc:var(--rule)" data-go="post">
-          <h4>Add a round you played</h4>
+          <span class="oc-t">Add a round you played</span>
           <p>Gross + tee, 20 seconds · posts to your rounds and in every league</p>
           <span class="go">→</span>
         </button>
         <button class="optcard" id="optPlan" style="--acc:var(--rule)">
-          <h4>Plan a round</h4>
+          <span class="oc-t">Plan a round</span>
           <p>Put a round on the schedule · your buddies and leagues see it the moment you post</p>
           <span class="go">→</span>
         </button>
@@ -6599,7 +6599,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                a reword on one client fails the other (D234). Every dial is
                still here, verbatim, further down (P-6). -->
           <button class="preset" data-p="0" aria-pressed="false">
-            <h4>Casual <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
+            <span class="pr-t">Casual <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></span>
             <!-- MW-06 · the lead is PAINTED from the preset's own two dials
                  (`csPresetLead`), never typed here: "light guardrails" and
                  "the screws in" named a mood, and an organiser could not tell
@@ -6607,11 +6607,11 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
             <p class="lead" data-preset-lead="0"></p>
           </button>
           <button class="preset sel" data-p="1" aria-pressed="true">
-            <h4>Standard <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
+            <span class="pr-t">Standard <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></span>
             <p class="lead" data-preset-lead="1"></p>
           </button>
           <button class="preset" data-p="2" aria-pressed="false">
-            <h4>Cutthroat <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
+            <span class="pr-t">Cutthroat <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></span>
             <p class="lead" data-preset-lead="2"></p>
           </button>
           <!-- W5 · a starting point stays chosen only while the dials still say
@@ -6621,7 +6621,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
                UI state (D346's "an agreement from the exact outgoing
                settings"), not a new rule: nothing new is stored. -->
           <div class="preset sel preset-custom" id="presetCustom" hidden>
-            <h4>Custom <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></h4>
+            <span class="pr-t">Custom <span class="ok" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.8"/></svg></span></span>
             <p class="lead" id="presetCustomLead"></p>
             <p class="presetbase" id="presetCustomBase"></p>
           </div>
@@ -6741,7 +6741,7 @@ textarea.cs-talk-input{min-height:88px; resize:vertical; font-family:var(--sans)
         </div>
 
         <div class="wizstep" data-step="2">
-          <h3 class="wizhead">Review the rules, then start the season</h3>
+          <h2 class="wizhead">Review the rules, then start the season</h2>
           <!-- W5 · the phone's twin of the desk's "Your league so far": the
                same portrait heads the review below the desk width, where the
                sticky aside is not drawn (the desk keeps it in its aside) -->
@@ -8279,7 +8279,7 @@ $$('.tab, .navitem').forEach(b=>b.addEventListener('click',()=>{ if(b.dataset.v)
    real accounts tee off server-side, league or not (D107). */
 function gateLiveRound(){
   const card=document.getElementById('optLive'); if(!card) return;
-  const h=card.querySelector('h4'), p=card.querySelector('p'), go=card.querySelector('.go');
+  const h=card.querySelector('.oc-t'), p=card.querySelector('p'), go=card.querySelector('.go');
   if(state.demo){
     card.classList.remove('soon'); card.disabled=false; card.dataset.go='play';
     if(h) h.textContent="Live round — the group's here";
@@ -18076,7 +18076,7 @@ function renderCourseBooks(){
     return `<section class="cs-krow${liked?'':' is-quiet'}" data-cslead="${esc(String(b.id))}">
       <div class="cs-krow-head">
         <div style="min-width:0">
-          <h4 class="${liked?'cs-display-s':'cs-name'}" style="margin:0"><button type="button" class="cs-krow-open">${esc(csCourseLabel(b))}</button></h4>
+          <h3 class="${liked?'cs-display-s':'cs-name'}" style="margin:0"><button type="button" class="cs-krow-open">${esc(csCourseLabel(b))}</button></h3>
           ${history?`<p class="cs-agate-s is-phrase" style="color:var(--mut);padding-top:4px">${esc(history)}</p>`:''}
         </div>
         ${trail}
@@ -18146,8 +18146,8 @@ function renderCourseBooks(){
   const liked = books.filter(b=>mineOf(b) != null && b !== lead)
     .sort((a,b)=> (mineOf(b)-mineOf(a)) || csCourseLabel(a).localeCompare(csCourseLabel(b)));
   const rest = books.filter(b=>mineOf(b) == null && b !== lead);
-  const head = (t, n) => `<h3 class="cs-display-s cs-krow-head-h">${esc(t)}`
-    + (n!=null?`<span class="cs-agate-s" style="color:var(--mut)"> · ${esc(String(n))}</span>`:'') + `</h3>`;
+  const head = (t, n) => `<h2 class="cs-display-s cs-krow-head-h">${esc(t)}`
+    + (n!=null?`<span class="cs-agate-s" style="color:var(--mut)"> · ${esc(String(n))}</span>`:'') + `</h2>`;
 
   /* D292 · THE LEAD IS INSIDE THE RECORD IT LEADS. `Courses you like · N
      rated` counted only the rows beneath it, so the biggest and most-liked
@@ -19550,7 +19550,7 @@ function occCard(o, k, h, p, act, mkKey){
     : (o && o.key==='teams' ? `<span class="ho-mk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 21V4M7 4l7 2.3L7 8.6"/><path d="M17 21V7M17 7l-6 2 6 2"/></svg></span>` : '');
   return `<div class="hocc${o&&o.earned?' earned':''}">
     <div class="ho-k">${k}</div>${mk}
-    <h4>${h}</h4><p>${p}</p>
+    <h2>${h}</h2><p>${p}</p>
     <button class="ho-act" data-hoccgo type="button"><span>${act}</span><span>→</span></button>
     <button class="ho-x" data-hoccx type="button" aria-label="Dismiss"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button></div>`;
 }
@@ -23912,7 +23912,7 @@ function renderTrophyCase(){
        inch below where one would sit (D177). */
     box.innerHTML = `<div class="tempty">
       <div class="tempty-marks" aria-hidden="true">${CS_CASE_EMPTY.marks.map(m=>csTrophyMark(m[0],m[1],28)).join('')}</div>
-      <h4 class="cs-name">${esc(CS_CASE_EMPTY.head)}</h4>
+      <h3 class="cs-name">${esc(CS_CASE_EMPTY.head)}</h3>
       <p class="cs-body-s">${esc(CS_CASE_EMPTY.lead)}</p></div>`;
     return;
   }
@@ -23922,7 +23922,7 @@ function renderTrophyCase(){
   box.innerHTML = ['hardware','bests','along'].map(k=>{
     const rows = tiles.filter(t=>t.shelf===k);
     if(!rows.length) return '';
-    const head = `<h4 class="tshelf cs-agate${firstShelf?' is-first':''}">${esc(CS_SHELF[k].head)}</h4>`;
+    const head = `<h3 class="tshelf cs-agate${firstShelf?' is-first':''}">${esc(CS_SHELF[k].head)}</h3>`;
     firstShelf = false;
     return head + rows.map(cell).join('');
   }).join('');
@@ -24119,7 +24119,7 @@ function renderCareer(){
     ['#clR','#clBest','#clAvg','#clPlayed'].forEach(id=>set(id,'—'));
     const yr=$('#youRecent');
     if(yr) yr.innerHTML = recState === 'failed'
-      ? `<div class="tempty" role="status"><h4 class="cs-name">Your rounds didn’t load</h4>`
+      ? `<div class="tempty" role="status"><h3 class="cs-name">Your rounds didn’t load</h3>`
         /* critique-B P3 · the trophies and the all-time figures wait on this
            read, and the page said nothing about their going */
         + `<p class="cs-body-s">Nothing is lost — the read failed, not the record. Your trophies and all-time figures come back with it.</p>`
@@ -24182,7 +24182,7 @@ function renderCareer(){
             ${card?`<span class="yrowc" aria-hidden="true">${card}</span>`:''}
             <span class="yrowg cs-fig-m">${r.gross!=null?r.gross:'—'}</span></div>`;
         }).join('')
-      : `<div class="tempty"><h4 class="cs-name">No rounds yet</h4>`
+      : `<div class="tempty"><h3 class="cs-name">No rounds yet</h3>`
         + `<p class="cs-body-s">Your record fills as you play — every round, every course, forever.</p>`
         /* F10 · the one next step is a real control (LINT-21: every empty state
            has a door). A-5: one verb opens the composer — "Add my round" — and
@@ -34840,7 +34840,7 @@ async function renderAlbum(){
       box.querySelector('.alfail')?.remove();
       box.insertAdjacentHTML('afterbegin', `<p class="fine alfail" role="status" style="grid-column:1/-1; padding:4px 2px 8px">The album didn’t refresh. <button type="button" class="cs-tskip" id="albumRetry" style="display:inline-flex; margin:0">Try again</button></p>`);
     } else {
-      box.innerHTML = `<div class="tempty" role="status" style="grid-column:1/-1"><h4 class="cs-name">The album didn’t load</h4>`
+      box.innerHTML = `<div class="tempty" role="status" style="grid-column:1/-1"><h2 class="cs-name">The album didn’t load</h2>`
         + `<p class="cs-body-s">${esc(humanError(e))}</p>`
         + `<button type="button" class="mini" id="albumRetry" style="margin-top:10px">Try again</button></div>`;
     }

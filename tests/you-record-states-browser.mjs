@@ -54,7 +54,7 @@ for (const width of [375, 1280]) for (const theme of ['dark', 'light']) for (con
   const v = await page.evaluate(() => {
     const shown = el => !!el && el.getClientRects().length > 0
     const view = document.getElementById('view-stats')
-    const texts = [...view.querySelectorAll('h4, p, small, .v')].filter(shown).map(e => e.textContent.trim())
+    const texts = [...view.querySelectorAll('h3, h4, p, small, .v')].filter(shown).map(e => e.textContent.trim())
     const absence = texts.filter(t => /no rounds|the case is empty|nothing kept|none yet|no rounds count/i.test(t))
     return {
       record: view.dataset.record,
