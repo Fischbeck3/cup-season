@@ -1341,6 +1341,25 @@
       csShareLine('plan', { kind:'plan', seat:'host', result:'host' }), null);
     t('D253: a seat word from the future lands on the conservative truth',
       csShareLine('plan', { kind:'plan', seat:'waitlisted' }), 'You’re already down for that round.');
+    /* TEN / W7-001 [X42] · the public plan's who-line says IN only for an
+       explicit yes, and only when the payload can say so: `who_in` present
+       (the database half pushed) names who said yes, or nothing when nobody
+       has; an older payload, with no `who_in`, keeps "on the plan". The
+       landing and the signed-in link ask read the one producer. */
+    t('X42: who is in is an explicit yes, once the payload carries it',
+      [csPlanWhoLine({ who: ['Avery', 'Devon'], who_in: ['Devon'] }),
+       csPlanWhoLine({ who: ['Avery', 'Devon', 'Jules'], who_in: ['Avery', 'Devon', 'Jules'] }),
+       csPlanWhoLine({ who: ['Avery', 'Devon'], who_in: [] }),
+       csPlanWhoLine({ who: ['Avery', 'Devon'] }),
+       csPlanWhoLine({ who: ['Devon'] }),
+       csPlanWhoLine({ who: [] }),
+       csPlanWhoLine(null)],
+      ['Devon is in.', 'Avery, Devon and Jules are in.', '', 'Avery and Devon are on the plan.', 'Devon is on the plan.', '', '']);
+    t('X42: the signed-in link ask says the same, beside the tee',
+      [csLinkCard('plan', { host: 'Blake', tee: '08:10', course: 'Mesquite Wash', who: ['Avery', 'Devon'], who_in: ['Devon'] }).facts,
+       csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'], who_in: [] }).facts,
+       csLinkCard('plan', { host: 'Blake', course: 'Mesquite Wash', who: ['Avery', 'Devon'] }).facts],
+      [fmtTee('08:10') + ' tee · Devon is in.', '', 'Avery and Devon are on the plan.']);
 
     /* L-32 · a kind the CHECK does not admit yet is NOT an error the golfer
        caused, and the row removes itself rather than offering a door that fails */

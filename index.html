@@ -36491,9 +36491,25 @@ function showWelcome(){
    ASKED. share_info's `who` is every tagged golfer who has not said no — an
    unanswered tag counts (the_plan_link.sql, X42; the in-app producer already
    says ASKED, f46086b4). Until the database half is pushed, the page says only
-   what the payload supports: they are on the plan. When `who` carries only an
-   explicit yes, this is the one line to turn back to "in". */
-function csPlanWhoLine(whoTxt, n){ return whoTxt + (n === 1 ? ' is' : ' are') + ' on the plan.'; }
+   what the payload supports: they are on the plan.
+   TEN / W7-001 [X42] · the database half sends `who_in` beside `who`: the
+   tagged golfers who said yes, an explicit yes and nothing else. When the
+   payload carries it, the line says who is IN, and nothing when nobody is yet
+   (the landing then says "Just <host> so far."). An older payload, with no
+   `who_in` key, keeps "on the plan". Keyed on the payload, so the page tells
+   the truth in either deploy order. One producer for both readers: the
+   landing and the signed-in link ask. */
+function csPlanNames(names){ return names.length <= 1 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]; }
+function csPlanWhoLine(info){
+  const i = info || {};
+  if(Array.isArray(i.who_in)){
+    const inn = i.who_in.map(String);
+    return inn.length ? csPlanNames(inn) + (inn.length === 1 ? ' is' : ' are') + ' in.' : '';
+  }
+  const who = (Array.isArray(i.who) ? i.who : []).map(String);
+  return who.length ? csPlanNames(who) + (who.length === 1 ? ' is' : ' are') + ' on the plan.' : '';
+}
+window.csPlanWhoLine = csPlanWhoLine;
 
 function hideWelcome(){
   $('#obWelcome').style.display = 'none';
@@ -37089,16 +37105,15 @@ async function renderShareView(tok, _testInfo){
     document.title = `Golf at ${venue} — Cup Season`;
     wrap.classList.add('sv-plan');
     kind('A round');
-    const who = (info.who || []);
     /* a name is singular, a list takes "and" — the same conjugation bug that
-       produced "Alex lead by 4" on the season page */
-    const whoTxt = who.length <= 1 ? who.join('')
-                 : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
+       produced "Alex lead by 4" on the season page (csPlanWhoLine; W7-001:
+       who is IN once the payload can say it) */
+    const whoLine = csPlanWhoLine(info);
     card.className = 'sv-short';
     card.innerHTML = `<div class="sv-head">
         <p class="sv-eb cs-agate">${esc(fmtD(info.play_on))}${info.tee ? ` · <span style="text-transform:none">${esc(fmtTee(info.tee))}</span>` : ''}</p>
         <h1 class="cs-lead">${esc(info.host)} has a round on at ${esc(venue)}.</h1>
-        <p class="sv-where cs-body-s">${who.length ? esc(csPlanWhoLine(whoTxt, who.length)) : `Just ${esc(info.host)} so far.`}</p>
+        <p class="sv-where cs-body-s">${whoLine ? esc(whoLine) : `Just ${esc(info.host)} so far.`}</p>
       </div>` +
       foot({ cta: 'Take the seat', primary: true,
              note: `Sign in and you’ll be asked first. The seat, and a buddy request to ${info.host}, wait for your yes.` });
@@ -37367,19 +37382,19 @@ function csLinkCard(kind, info){
              facts: n > 0 ? n + (n === 1 ? ' round' : ' rounds') + ' posted' + (i.best != null ? ', best ' + i.best : '') + '.' : '' };
   }
   if(kind === 'plan'){
-    const who = (Array.isArray(i.who) ? i.who : []).map(String);
-    const whoTxt = who.length <= 1 ? who.join('') : who.slice(0, -1).join(', ') + ' and ' + who[who.length - 1];
     const tee = i.tee ? fmtTee(i.tee) : '';
-    /* the SHORT course name, as the landing card prints it */
+    /* the SHORT course name, as the landing card prints it; the who-line is the
+       landing's own producer (W7-001: who is IN once the payload can say it) */
     return { title: CS_LINK_ASK.plan.title, yes: CS_LINK_ASK.plan.yes, note: csLinkPlanNote(i.host),
              mark: mkr(i.marker), ask: csLinkAskPlan(i.host, String(i.course || '').split(' — ')[0], csLinkDay(i.play_on)),
-             facts: [tee ? tee + ' tee' : '', who.length ? csPlanWhoLine(whoTxt, who.length) : ''].filter(Boolean).join(' · ') };
+             facts: [tee ? tee + ' tee' : '', csPlanWhoLine(i)].filter(Boolean).join(' · ') };
   }
   const rest = String(i.course_label || '').split(' — ').slice(1).join(' — ');
   return { title: CS_LINK_ASK.claim.title, yes: CS_LINK_ASK.claim.yes, note: CS_LINK_ASK.claim.note,
            mark: '', ask: csLinkAskClaim(i.gross, i.course_label),
            facts: [i.guest_name ? 'Scored as ' + i.guest_name : '', rest, csLinkDay(i.played_on)].filter(Boolean).join(' · ') };
 }
+window.csLinkCard = csLinkCard;
 /* R5 · what a claim link is, before anything is claimed. The two sources
    answer a token they do not know differently — claim_round_info with null,
    scan_claim_info with a raise — so DEAD is said only when both have
