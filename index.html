@@ -21200,9 +21200,16 @@ window.refreshHomeLead = refreshHomeLead;
 if(window.csHomeState){
   window.addEventListener('load', function(){
     setTimeout(function(){
-      try{ if(typeof enterApp === 'function') enterApp(); }catch(_){}
-      try{ if(typeof switchView === 'function') switchView('home'); }catch(_){}
+      /* The Door lifts ONLY for a fixture that was actually served. On
+         cupseason.app `tests/` is not published, the fetch 404s and
+         `homeDispatch` stays null — and a query string must never open the app
+         to a signed-out visitor: it lifted the Door onto the demo diorama on
+         any host (session C's code read, 2026-09-28). A local checkout and the
+         capture harness serve the fixtures, so both are unchanged. */
       loadHomeDispatch().then(function(){
+        if(!window.homeDispatch) return;
+        try{ if(typeof enterApp === 'function') enterApp(); }catch(_){}
+        try{ if(typeof switchView === 'function') switchView('home'); }catch(_){}
         if(window.renderHomeDispatch) renderHomeDispatch();
         const h = document.querySelector('#homeHero'); if(h) h.innerHTML = '';
       });
