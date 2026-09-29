@@ -140,7 +140,7 @@ struct SeasonBookPage: View {
     } else if !prominent {
       ForEach(visible) { row in
         NavigationLink { receipts(row.name,row.entries) } label: {
-          HStack { VStack(alignment:.leading) { Text(row.name).csType(.name); Text(row.standing ?? "").csType(.bodyS) }; Spacer(); CSFigure(SeasonBookSnapshot.num(row.points),size:.l,label:"points") }.padding(CSTokens.Space.gutter).contentShape(Rectangle())
+          HStack { VStack(alignment:.leading) { Text(row.name).csType(.name); Text(row.standingLine ?? "").csType(.bodyS) }; Spacer(); CSFigure(SeasonBookSnapshot.num(row.points),size:.l,label:"points") }.padding(CSTokens.Space.gutter).contentShape(Rectangle())
         }.buttonStyle(.plain)
       }
     } else if mode == "Race" { race(book,visible) }
@@ -161,7 +161,8 @@ struct SeasonBookPage: View {
           NavigationLink { receipts(row.name,row.entries) } label: {
             VStack(alignment:.leading,spacing:CSTokens.Space.s1) {
               Text(short(row.name,squad:group == "squad")).csType(.nameS).lineLimit(2)
-              Text("\(SeasonBookSnapshot.num(row.points)) pts").csType(.columnS)
+              // W5 twin · the reader's own row is marked, as the web's is
+              Text((row.mine ? "You · " : "") + "\(SeasonBookSnapshot.num(row.points)) pts").csType(.columnS)
             }.frame(maxWidth:.infinity,alignment:.leading).frame(height:rowHeight)
               .padding(.horizontal,CSTokens.Space.s2).overlay(alignment:.bottom) { CSRule() }.contentShape(Rectangle())
           }.buttonStyle(.plain).accessibilityIdentifier("seasonBook.name.\(row.id)")

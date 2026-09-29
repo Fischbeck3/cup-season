@@ -46,6 +46,12 @@ public struct SeasonBookSnapshot: Codable, Sendable {
     public var standing: String? {
       points_rank.map { CSCopy.ordinal($0) + (tied ? " · Tied" : "") }
     }
+    /// W5 twin (the web's `standingOf`) · the reader's own row says so: "You ·
+    /// 2nd". nil when there is nothing to say.
+    public var standingLine: String? {
+      let parts = [mine ? "You" : nil, standing].compactMap { $0 }
+      return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
   }
   public struct Entry: Codable, Sendable, Identifiable, Hashable {
     public let id: String

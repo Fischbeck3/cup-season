@@ -253,3 +253,16 @@ struct SeasonBookTests {
     #expect(entry.place(inWeek: false) == "Week \(entry.week!)")
   }
 }
+
+/// W5 twin · the reader's own row says "You", before its standing.
+@Suite struct SeasonBookYouRowTests {
+  @Test func theReadersRowIsMarked() throws {
+    let url = try #require(Bundle.module.url(forResource: "tie", withExtension: "json"))
+    let book = try JSONDecoder().decode(SeasonBookSnapshot.self, from: Data(contentsOf: url))
+    #expect(book.rows.contains { $0.mine }, "the fixture holds the reader's row")
+    for row in book.rows {
+      if row.mine { #expect(row.standingLine?.hasPrefix("You") == true, "\(row.name): \(row.standingLine ?? "nil")") }
+      else { #expect(row.standingLine?.hasPrefix("You") != true) }
+    }
+  }
+}
