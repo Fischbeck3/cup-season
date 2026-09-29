@@ -8561,10 +8561,13 @@ function switchView(v){
      Major room is a Compete page — it is reached from Compete and goes back to
      it — so Compete stays selected in the tab band and the sidebar while one is
      open. It selected nothing: no tab and no sidebar row said where you were. */
-  const selected = v === 'event' ? 'compete' : v;
+  /* W7-108 · and every page that is a room OF a destination keeps that destination marked (the phone's NavSlot.of(route)): the live setup, the live round and the composer are PLAY
+     (its tab is 'record'), a golfer's page and the head-to-head are GOLFERS, the wizard is COMPETE. They marked nothing, so neither the sidebar's tick nor the tab band said where you were */
+  const OWNER = { event:'compete', wizard:'compete', play:'record', post:'record', person:'golfers', h2h:'golfers' };
+  const selected = OWNER[v] || v;
   /* W7-020 · the season page is a Compete page too, as the event room is: the tab band keeps COMPETE current
-     (the desk's sidebar marks 'The season' instead, so only the tab toggle takes it) */
-  const tabSelected = (v === 'event' || v === 'hub') ? 'compete' : v;
+     (the desk's sidebar marks 'The season' instead, so only the tab toggle takes it: `hub` is not in OWNER for the sidebar) */
+  const tabSelected = v === 'hub' ? 'compete' : selected;
   /* W7-025 · the current destination is said to a screen reader too (aria-current, WCAG 4.1.2) */
   [...$$('.tab'), ...$$('.navitem')].forEach(t=>{
     const on = t.dataset.v===(t.classList.contains('tab') ? tabSelected : selected);
