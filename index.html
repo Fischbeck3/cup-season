@@ -24912,7 +24912,7 @@ function formRowHtml(recent, caption, opts){
     /* W7-111 · each column is named by its OWN facts (the phone's CredentialCopy.formSpoken): '84, September 27', ', nine holes' for a nine, ', best of the five' for the
        best. The row was one role=img named 'Form, last 5 rounds', so a screen reader lost every number in it; and the best was marked by its hue alone, so the word
        'best' is the second, visible channel (in the date line, as 'nine' is) */
-    const said = [r && r.gross != null ? String(r.gross) : 'no score', r && r.played_on ? csSpokenDay(r.played_on) : ''].filter(Boolean).join(', ')
+    const said = [r && r.gross != null ? String(r.gross) : 'no score', r && r.played_on ? (window.csSpokenDay || csMonthDay)(r.played_on) : ''].filter(Boolean).join(', ')   /* classic code reaches a module export through window, with a fallback: the boot render runs before the module does */
                + (csFormNine(r) ? ', nine holes' : '') + (gold ? ', best of the five' : '');
     return `<div class="dfcol${gold ? ' won' : ''}" role="group" aria-label="${esc(said)}"><b aria-hidden="true">${r && r.gross != null ? r.gross : '—'}</b><i aria-hidden="true"></i>`
          + `<small aria-hidden="true">${esc(csMonthDay(r && r.played_on || ''))}${csFormNine(r) ? ' · nine' : ''}${gold ? ' · best' : ''}</small></div>`;
