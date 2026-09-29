@@ -8,7 +8,7 @@
  * its own bridged openers (window.openRoundSheet) -- never by writing markup.
  * Each check names something unique to the surface. */
 import { SHARE, PLAN, COURSE } from '../fixtures/ten/links-setup/ids.mjs'
-import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, armedDelete, standsDown, deskMenuIs, isSystemSegment, ariaWellFormed, tertiaryDoor } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -54,6 +54,23 @@ const toSchedule = async (page) => {
   await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-schedule')
   await page.waitForTimeout(1200)
 }
+/* TEN / W8 · W7-039 [A2-schedule-2] · ONE primary in a plan's sheet (§7.1, §16A.5): a golfer who owes an answer (asked, or maybe) has 'I'm in' as the filled action and
+   'Tee it up' as the tertiary link beneath the set (a 2px rule, 44 tall); answered (in), or the host, 'Tee it up' is the filled primary and no 'I'm in' is filled act */
+const planSheetPrimary = (owes) => async (page) => page.evaluate((owes) => {
+  const set = document.querySelector('.rsvpset'), tee = document.getElementById('rtTeeUp')
+  if (!set || !tee) return 'the sheet has no RSVP set or no Tee it up'
+  const probe = document.createElement('i'); probe.style.color = 'var(--act)'; document.body.appendChild(probe); const act = getComputedStyle(probe).color; probe.remove()
+  const fill = getComputedStyle(set.querySelector('[data-rsvp="in"]')).backgroundColor, teeBtn = tee.classList.contains('btn')
+  if (set.classList.contains('owes') !== owes) return owes ? 'a golfer who owes an answer does not get the answer as the primary' : 'an answered golfer still has the answer as the primary'
+  if (owes) {
+    if (fill !== act) return `I'm in is not the primary (fill ${fill}, act ${act})`
+    const cs = getComputedStyle(tee)
+    if (teeBtn) return 'Tee it up is still a full-width filled button beneath the unanswered invitation'
+    return /underline/.test(cs.textDecorationLine) && parseFloat(cs.textDecorationThickness) === 2 && tee.getBoundingClientRect().height >= 43.5 ? true : 'Tee it up is not the tertiary link (a 2px rule, 44 tall)'
+  }
+  if (!teeBtn) return 'Tee it up is not the primary once the golfer is in'
+  return fill === act ? "I'm in is filled act as well as Tee it up: two primaries" : true
+}, owes)
 const SCHEDULE = [
   { family: 'schedule', id: 'populated', variant: 'member', title: 'Schedule · my plans, a plan I am tagged in, the crew’s plans',
     drive: toSchedule, expect: { view: 'view-schedule', minText: 80 },
@@ -64,6 +81,42 @@ const SCHEDULE = [
   { family: 'schedule', id: 'empty', variant: 'member', world: { flags: { scheduleEmpty: true } }, title: 'Schedule · nothing planned',
     /* TEN / W8 · W7-009: the empty schedule and its own door carry planning, so the sidebar's "Plan one" stands down */
     drive: toSchedule, expect: { view: 'view-schedule' }, check: standsDown(['#sideMe [data-mego="plan_one"]']) },
+  /* TEN / W8 · W7-040 [A2-schedule-3] · a failed schedule read is never an empty schedule (§13.3; the C-10 rule: a failed read is not an empty one). With nothing
+     to show the page says the schedule did not load and offers the retry — not 'Nothing on the schedule yet' and 'Put a round up' over a read it never got;
+     the page's one primary (#calDeclare) stays */
+  { family: 'schedule', id: 'failed', variant: 'member', world: { errors: { rpc: { my_schedule: { __error: 'fixture: the schedule read failed', status: 503, code: 'XX000' } } } },
+    title: 'Schedule · the read failed (the words and the retry, never an empty schedule)',
+    drive: async (page) => { await toSchedule(page); await until(page, () => !!document.getElementById('schRetry'), null, 20000).catch(() => {}); await page.waitForTimeout(400) },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-schedule', selectors: { '#schRetry': 'visible', '#calDeclare': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const t = (document.getElementById('schNext') || {}).innerText || ''
+      if (/Nothing on the schedule yet|Put a round up|Nothing of yours on the schedule/i.test(t)) return `a failed read reads as an empty schedule: ${JSON.stringify(t.slice(0, 80))}`
+      if (!/The schedule didn.t load/i.test(t)) return `the lead does not say the read failed: ${JSON.stringify(t.slice(0, 80))}`
+      const primaries = [...document.querySelectorAll('#view-schedule .btn')].filter((b) => b.getBoundingClientRect().width > 0)
+      return primaries.length === 1 && primaries[0].id === 'calDeclare' ? true : `the page has ${primaries.length} filled buttons, not #calDeclare alone`
+    }) },
+  /* ...and with rows on screen, a refresh that fails keeps them and says so once, above 'Coming up' */
+  { family: 'schedule', id: 'refresh-failed', variant: 'member', fullPage: false, title: 'Schedule · a refresh failed (the plans stay, one line says so above Coming up)',
+    drive: async (page, ctx) => {
+      await toSchedule(page)
+      await page.evaluate(() => { window.__w8 = { rows: document.querySelectorAll('#calWatch .schrow').length, lead: (document.getElementById('schNext') || {}).innerText || '' } })
+      ctx.world.errors.rpc.my_schedule = { __error: 'fixture: the schedule read failed', status: 503, code: 'XX000' }
+      await page.evaluate(() => Promise.all([window.loadSchedule(), window.loadWatchList()]))
+      await until(page, () => !!document.getElementById('schFail'), null, 15000).catch(() => {})
+      await page.evaluate(() => (document.getElementById('schFail') || document.getElementById('calWatchHead')).scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(500)
+    },
+    expectConsole: [/status of 503/],
+    expect: { view: 'view-schedule', selectors: { '#schFail': 'visible' } },
+    check: async (page) => page.evaluate(() => {
+      const w = window.__w8, rows = document.querySelectorAll('#calWatch .schrow').length, line = document.getElementById('schFail')
+      if (!w.rows) return 'the state had no plans to keep'
+      if (rows !== w.rows) return `the list changed from ${w.rows} to ${rows} plans when the refresh failed`
+      if (((document.getElementById('schNext') || {}).innerText || '') !== w.lead) return 'the lead changed when the refresh failed'
+      if (line.nextElementSibling !== document.getElementById('calWatchHead')) return 'the line is not directly above Coming up'
+      return /The schedule didn.t refresh/.test(line.textContent) && line.getAttribute('role') === 'status' && document.getElementById('schRetry') ? true : `the line reads ${JSON.stringify(line.textContent)}`
+    }) },
   { family: 'schedule', id: 'plan-sheet', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday at Mesquite Wash (the round object)',
     drive: async (page) => {
       await toSchedule(page)
@@ -72,7 +125,60 @@ const SCHEDULE = [
       await page.waitForTimeout(600)
     },
     expect: { view: 'view-schedule', sheet: true },
-    check: has('#sheet', 'Mesquite Wash', 'the plan’s course') },
+    check: all(has('#sheet', 'Mesquite Wash', 'the plan’s course'), planSheetPrimary(true),
+      /* TEN / W8 · W7-035 [B2-schedule-5]: the viewer's own seat reads 'You' in Who's in, as Coming up prints the same person (§9.1); every other seat keeps its name */
+      async (page) => page.evaluate(() => {
+        const seats = [...document.querySelectorAll('.rs-who .check')].map((r) => r.querySelector('.tt b').innerText.replace(/\s+/g, ' ').trim())
+        const yous = seats.filter((t) => /^You\b/.test(t))
+        if (yous.length !== 1) return `Who's in has ${yous.length} seats reading You: ${JSON.stringify(seats)}`
+        return seats.some((t) => /Avery/.test(t)) ? `the viewer is also named: ${JSON.stringify(seats)}` : seats.some((t) => /Blake/.test(t)) ? true : `the host is not named: ${JSON.stringify(seats)}`
+      })) },
+  /* ...answered ('I'm in' tapped through the app's own set_round_rsvp), 'Tee it up' is the primary again and 'I'm in' is the chosen chip, not a second primary */
+  { family: 'schedule', id: 'plan-sheet-in', variant: 'member', fullPage: false, title: 'A plan · Blake’s Saturday, after I’m in (Tee it up is the primary)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.evaluate((id) => window.openRoundSheet(id), PLAN.taggedMe)
+      await until(page, () => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !!document.querySelector('.rsvpset.owes') }, null, 10000)
+      await click(page, '.rsvpset [data-rsvp="in"]')
+      await until(page, () => { const set = document.querySelector('.rsvpset'); return !!set && !set.classList.contains('owes') && !!set.querySelector('.rbtn.on.in') }, null, 10000)
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-schedule', sheet: true, selectors: { '#rtTeeUp': 'visible' } },
+    check: all(planSheetPrimary(false), async (page) => page.evaluate(() => /^You\b/.test(document.querySelector('.rs-who .check .tt b').innerText) || [...document.querySelectorAll('.rs-who .check')].some((r) => /^You\b/.test(r.innerText) && /In/i.test(r.innerText)) ? true : 'the viewer\'s seat does not read You · In')) },
+  /* TEN / W8 · W7-049 [B2-schedule-3] · the host's own plan: Tee it up is the primary, the two harmless acts are 44 boxes, and 'Cancel round' is one named, quiet, ARMED
+     tertiary link beneath them: the first tap asks ('Sure? Cancel for everyone') and cancels nothing */
+  { family: 'schedule', id: 'plan-sheet-host', variant: 'member', fullPage: false, title: 'A plan · Avery’s own Wednesday, Cancel round tapped once (armed, not confirmed)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.evaluate((id) => window.openRoundSheet(id), PLAN.mine)
+      await until(page, () => { const s = document.getElementById('sheet'); return s.classList.contains('open') && !!document.getElementById('rrScratch') }, null, 10000)
+      await page.locator('#rrScratch').scrollIntoViewIfNeeded()
+      const rest = await tertiaryDoor('#rrScratch')(page)   /* at rest: the armed link is neg by design, so the shape is read before the tap */
+      await page.evaluate((r) => { window.__w8 = { rest: r } }, rest)
+      await click(page, '#rrScratch'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-schedule', sheet: true, selectors: { '#rrScratch': 'text:^Sure\\? Cancel for everyone$' } },
+    check: all(planSheetPrimary(false), async (page) => page.evaluate(() => window.__w8.rest), async (page) => page.evaluate(() => {
+      const b = document.getElementById('rrScratch'), boxes = [...document.querySelectorAll('.managebar2 .mbtn2')]
+      if (!b.classList.contains('is-armed')) return 'the first tap did not arm Cancel round'
+      if (!document.getElementById('sheet').classList.contains('open') || !document.getElementById('rrScratch')) return 'the first tap cancelled the round'
+      if (boxes.length !== 2 || boxes.some((x) => x.getBoundingClientRect().height < 43.5)) return `the manage bar has ${boxes.length} boxes, some under 44px`
+      return b.getBoundingClientRect().top >= boxes[0].getBoundingClientRect().bottom - 1 ? true : 'Cancel round is not apart from (beneath) the two harmless acts'
+    })) },
+  /* ...and in the schedule's own list: your plan's 'Cancel round' is the tertiary link apart from Invite, and its first tap only asks */
+  { family: 'schedule', id: 'cancel-armed', variant: 'member', title: 'Schedule · Cancel round on my own plan tapped once (armed, not confirmed)',
+    drive: async (page) => {
+      await toSchedule(page)
+      await page.locator('[data-scratch]').first().scrollIntoViewIfNeeded()
+      await click(page, '[data-scratch]'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-schedule', selectors: { '[data-scratch]': 'text:^Sure\\? Cancel for everyone$' } },
+    check: all(async (page) => page.evaluate(() => { const b = document.querySelector('[data-scratch]'), row = b.closest('.schrow'); return b.classList.contains('is-armed') && row ? true : 'the first tap did not arm the cancel' }),
+      async (page) => page.evaluate(() => {
+        const b = document.querySelector('[data-scratch]'), inv = b.parentElement.querySelector('[data-retag]')
+        if (getComputedStyle(b).textDecorationLine.indexOf('underline') < 0 || parseFloat(getComputedStyle(b).textDecorationThickness) !== 2) return 'the row cancel is not the tertiary link'
+        return b.getBoundingClientRect().height >= 43.5 && inv && !inv.classList.contains('lrcasual') ? true : 'the cancel is not 44 tall, or is not a different tier from Invite'
+      })) },
   { family: 'schedule', id: 'plan-landing', variant: 'signed_out', url: `/?plan=${SHARE.plan}`, title: 'The /?plan= landing a recipient opens',
     settle: async (page) => { await page.waitForSelector('#shareView', { timeout: 15000 }); await until(page, () => !/Opening the card/.test((document.getElementById('svCard') || {}).textContent || ''), null, 15000); await page.waitForTimeout(400) },
     expect: { overlay: true, selectors: { '#svCard': 'visible' } },
@@ -164,18 +270,32 @@ const toCourses = async (page) => {
   await until(page, () => document.querySelectorAll('#youCourses [data-cslead]').length > 0, null, 12000)
   await page.waitForTimeout(500)
 }
-const courseCard = (id, courseId, title, want) => ({
+/* TEN / W8 · W7-052 [A2-courses-1] · the course record says who of yours has played it: Home's door (overlapping faces, 'Blake and Devon have played here', its gloss and
+   a chevron), under 'You have played here N times', one course_page read per lead; absent, never a dash, when nobody else in the circle has (Dry Creek: only Avery's nine) */
+const courseCircle = (want) => async (page) => page.evaluate((want) => {
+  const door = document.querySelector('#youCourses .cs-course [data-hfcourse]')
+  if (want === false) return door ? 'a course nobody else has played draws the circle door' : true
+  if (!door) return 'the course record draws no door for who of yours has played it'
+  const t = door.innerText.replace(/\s+/g, ' ').trim(), faces = door.querySelectorAll('.hfr-faces .face, .hfr-faces > *').length
+  if (!/ (has|have) played here/.test(t) || !/See their rounds and your circle.s best/.test(t)) return `the door reads ${JSON.stringify(t)}`
+  if (!faces) return 'the door has no faces'
+  if (/Avery/.test(t)) return 'the viewer is named in their own circle door'
+  const hist = document.querySelector('#youCourses .cs-course .cs-body-s'), r = door.getBoundingClientRect()
+  return r.height >= 43.5 ? true : `the door is ${Math.round(r.height)}px tall`
+}, want)
+const courseCard = (id, courseId, title, want, circle = true) => ({
   family: 'courses', id, variant: 'member', title, shot: '#youCourses',
   drive: async (page) => {
     await toCourses(page)
     const sel = `#youCourses [data-cslead="${courseId}"]`
     await tapUntil(page, sel, () => true, 1)
     await until(page, (cid) => String(window.CS_COURSE_LEAD) === String(cid), courseId, 6000).catch(() => {})
+    await until(page, () => !!document.querySelector('#youCourses .cs-course [data-hfcourse]'), null, 4000).catch(() => {})   /* the circle read lands after the card */
     await page.waitForTimeout(700)
   },
   expect: { view: 'view-stats', selectors: { '#youCourses': 'visible' } },
   check: all(async (page) => page.evaluate((cid) => String(window.CS_COURSE_LEAD) === String(cid) ? true : `the lead course is ${window.CS_COURSE_LEAD}, expected ${cid}`, courseId),
-    has('#youCourses', want, 'the course card')),
+    has('#youCourses', want, 'the course card'), courseCircle(circle)),
 })
 const COURSES = [
   { family: 'courses', id: 'books', variant: 'member', title: 'Courses · the course books on You',
@@ -192,7 +312,7 @@ const COURSES = [
       return need <= has + 1 ? true : `the tee select clips its value: it needs ${Math.round(need)}px and has ${Math.round(has)}`
     }) },
   courseCard('card-18', COURSE.wash, 'Course card · an 18-hole card (Mesquite Wash, Black)', 'Mesquite Wash'),
-  courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek'),
+  courseCard('card-9-no-yardage', COURSE.nine, 'Course card · the nine with no yardage (Dry Creek Nine)', 'Dry Creek', false),
   courseCard('card-long-tee', COURSE.long, 'Course card · the longest course and tee name', 'Whispering Fixture Pines'),
 ]
 
@@ -282,6 +402,25 @@ const SETTINGS = [
     },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
     check: all(unsavedSaid, stillTheHub) },
+  /* (3) once per PENDING EDIT (root's ruling, both clients): an edit made after the question is a new pending edit. The line that asked is cleared by the next input, and the
+     next way out asks about it again (the sheet stays, the sentence is back); no stopwatch */
+  { family: 'settings', id: 'card-unsaved-rearm', variant: 'member', fullPage: false, title: 'Card & settings · an edit after the question clears it, and the next dismissal asks again',
+    drive: async (page) => {
+      await openHub(page)
+      await page.locator('#phName').fill('Avery Fixtures')
+      await click(page, '#shClose'); await page.waitForTimeout(300)
+      await page.evaluate(() => { window.__w8 = { asked: document.getElementById('phStatus').textContent } })
+      await page.locator('#phName').fill('Avery Fixtured'); await page.waitForTimeout(200)
+      await page.evaluate(() => { window.__w8.cleared = document.getElementById('phStatus').textContent })
+      await page.waitForTimeout(4500)   /* well past the old four-second window: nothing times out */
+      await click(page, '#shClose'); await page.waitForTimeout(400)
+    },
+    expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#phStatus': 'text:^You have unsaved changes' } },
+    check: all(unsavedSaid, stillTheHub, async (page) => page.evaluate((want) => {
+      const w = window.__w8
+      if (w.asked !== want) return `the first dismissal said ${JSON.stringify(w.asked)}`
+      return w.cleared === '' ? true : `a new edit did not clear the question: ${JSON.stringify(w.cleared)}`
+    }, CARD_UNSAVED)) },
   /* (2) every way out of an armed card asks once: a guide row (it REPLACES the sheet, and its way back rebuilds the hub from the saved profile, so the edits
      are gone), the scoring note under the index, Tell us, Sign out. The first move keeps the sheet and says why; the same move again goes through. */
   { family: 'settings', id: 'card-unsaved-guide', variant: 'member', fullPage: false, title: 'Card & settings · a card edit is pending and a guide row is tapped from Settings (kept, brought back to the card, and told)',
@@ -341,13 +480,19 @@ const SETTINGS = [
       await page.waitForTimeout(500)
     },
     expect: { view: 'view-stats', sheet: '^Card & settings$', selectors: { '#youGuide': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(async (page) => {
+      /* TEN / W8 · W7-033 (E5's aside): a ruled row does not lift on hover (the global .check:hover moved it 1px) */
+      await page.locator('#youGuide .check').first().hover(); await page.waitForTimeout(300)
+      const lift = await page.evaluate(() => getComputedStyle(document.querySelector('#youGuide .check')).transform)
+      const away = await page.locator('#shTitle').boundingBox(); await page.mouse.move(away.x + 4, away.y + 4)
+      return lift === 'none' ? true : `a ruled guide row lifts on hover (${lift})`
+    }, async (page) => page.evaluate(() => {
       const rows = [...document.querySelectorAll('#youGuide .check')]
       if (rows.length < 5) return `the guide has ${rows.length} rows`
       const bad = rows.filter((r) => { const cs = getComputedStyle(r); return cs.backgroundColor !== 'rgba(0, 0, 0, 0)' || parseFloat(cs.borderTopLeftRadius) > 0 || cs.borderLeftWidth !== '0px' || cs.borderTopWidth !== '1px' })
       if (bad.length) return `${bad.length} guide row(s) are boxed: ${JSON.stringify(bad[0].innerText.slice(0, 30))}`
       return rows.some((r) => /[\u2192\u203a\u2197]/.test(r.textContent)) ? 'a guide row carries a typed arrow' : true
-    }) },
+    })) },
   /* a destructive confirmation, opened and NOT confirmed */
   { family: 'settings', id: 'delete-confirm', variant: 'member', fullPage: false, title: 'Card & settings · Delete my account, the confirmation (not confirmed)',
     drive: async (page) => {
@@ -377,6 +522,19 @@ const SETTINGS = [
       if (shape.head !== 'Delete your account?' || shape.role !== 'heading') return 'the confirmation has no head of its own: ' + JSON.stringify(shape)
       if (shape.rule !== '1px') return 'the confirmation is not set off from the sign-out row by a rule: ' + JSON.stringify(shape)
       if (Math.abs(shape.yes - shape.no) > 1) return `the two answers are not equals: Delete ${shape.yes}px, Not now ${shape.no}px`
+      /* TEN / W8 · W7-041 (E5's aside): §7.1 pressed. The destructive answer takes the neg fill at a16 while it is held; .mini.del had none since it left .btn.destructive.
+         The mouse is released away from the button, so nothing is confirmed */
+      const box = await page.locator('#phDelYes').boundingBox()
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.waitForTimeout(200)
+      const pressed = await page.evaluate(() => {
+        const want = document.createElement('i'); want.style.background = 'color-mix(in srgb, var(--neg) 16%, transparent)'; document.body.appendChild(want)
+        const w = getComputedStyle(want).backgroundColor; want.remove()
+        const got = getComputedStyle(document.getElementById('phDelYes')).backgroundColor
+        return got === w ? 'ok' : `${got} (the pressed fill is neg at a16: ${w})`
+      })
+      const away = await page.locator('#shTitle').boundingBox()
+      await page.mouse.move(away.x + 4, away.y + 4); await page.mouse.up()   /* released over the sheet's own title: a release on the scrim would click it and dismiss the sheet */
+      if (pressed !== 'ok') return `the destructive answer's pressed fill is ${pressed}`
       await click(page, '#phDelNo')
       const back = await page.evaluate(() => document.activeElement && document.activeElement.id)
       await click(page, '#phDelete')

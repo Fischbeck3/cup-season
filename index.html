@@ -477,14 +477,18 @@ button{font-family:var(--sans); touch-action:manipulation; color:var(--ink);}
    and the last round. The page's print is the object; the chrome stands down.
    W7-009 · and You's Form row and Recent rounds open on the last round; the
    schedule's empty state and its "Put a round on the schedule" carry planning
-   (so "Plan one" stands down); an empty record says the first round is
+   (so "Plan a round" stands down); an empty record says the first round is
    missing and holds the door (so the sidebar's sentence and its door go).
    The door goes whether or not the strip also holds a season row or dues (a
-   golfer seated in a season with no rounds has both), and its row with it. */
+   golfer seated in a season with no rounds has both), and its row with it.
+   W7-K040 · and the SEASON ROW stands down on the Ryder page: the event does not own the season standing, it competes with it, so a season's row beside its two sides is a rival fact.
+   W7-130 · and on Compete: the band prints the rank, the points and the gap itself ('Fixture Wrens 2nd of 2 · 34 back of …' beside the band's own line in one viewport). */
 @media(min-width:960px){
   .shell:has(#view-stats.active) #sideMe [data-mego="my_number"],
   .shell:has(#view-post.active) #sideMe [data-mego="my_number"],
   .shell:has(#view-hub.active) #sideMe [data-mego="season_row"],
+  .shell:has(#view-compete.active) #sideMe [data-mego="season_row"],
+  .shell:has(#view-event.active) #sideMe [data-mego="season_row"],
   .shell:has(#view-schedule.active) #sideMe [data-mego="my_next_round"],
   .shell:has(#view-schedule.active) #sideMe [data-mego="plan_one"],
   .shell:has(#view-stats.active) #sideMe [data-mego="my_last_round"],
@@ -3109,14 +3113,15 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
    means earned (D359), which a maybe is not. */
 .rbtn{flex:1; min-height:44px; font-size:12.5px; font-weight:600; color:var(--mut); border:1px solid var(--rule); border-radius:9px; padding:9px; background:transparent;}
 .rbtn.on{color:var(--panel-ink); background:var(--panel); border-color:var(--panel);}
+/* W7-039 · the answer the golfer owes is the sheet's one primary: 'I'm in', filled (an ordinary action is act, D359) */
+.rsvpset.owes .rbtn[data-rsvp="in"]{color:var(--bg0); background:var(--act); border-color:var(--act);}
 .rs-thread{display:flex; flex-direction:column; gap:8px;}
 .crow2{display:flex; gap:9px; align-items:flex-start; font-size:13px;}
 .crow2 b{font-weight:600;} .crow2 .t{color:var(--mut);}
 .rs-cinput{display:flex; gap:8px; margin-top:10px;}
 .rs-cinput .f{flex:1;}
 .managebar2{display:flex; gap:8px; margin-top:16px;}
-.mbtn2{flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--mut); border:1px solid var(--rule); border-radius:9px; padding:9px;}
-.mbtn2.warn{color:var(--neg); border-color:rgba(255,90,90,.3);}
+.mbtn2{flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--mut); border:1px solid var(--rule); border-radius:9px; padding:9px; min-height:44px;}
 /* D81 hero — ONE card, dispatched on lifecycle. Ember spine = live states,
    champagne spine + figure = earned (rank 1, the wrapped season). The figure
    is the serif number idiom the standings already speak. */
@@ -3762,6 +3767,7 @@ html[data-theme="light"] .rcpt-leaf{box-shadow:none; outline:1px solid var(--lea
 .mjpot .cs-agate{color:var(--mut);}
 /* §7.1 · destructive, armed: bg2 fill (the .mini), neg label — 4.58:1 / 4.62:1 */
 .mini.del{color:var(--neg);}
+.mini.del:active{background:color-mix(in srgb, var(--neg) 16%, transparent);}   /* W7-041 · §7.1 pressed, as .mini.is-armed:active and B's .btn.destructive had it: the move off .btn.destructive left 'Delete permanently' with no pressed fill */
 /* csArmTap's armed state: the label turns neg and says what the next tap does */
 .mini.is-armed{color:var(--neg);}
 .mini.is-armed:active{background:color-mix(in srgb, var(--neg) 16%, transparent);}   /* §7.1 · pressed, the fill is neg at a16 (B's .btn.destructive) */
@@ -4822,7 +4828,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .schrow-course{font-family:var(--sans); font-size:15px; line-height:1.35; color:var(--ink); overflow-wrap:anywhere;}
 .schrow-rest .cs-agate-s{color:var(--mut); line-height:1.45; overflow-wrap:anywhere;}
 .schrow-note{font-family:var(--sans); font-size:14px; line-height:1.45; color:var(--mut); font-style:italic; overflow-wrap:anywhere;}
-.schrow-acts{display:flex; gap:var(--s2); flex-wrap:wrap; margin-top:var(--s2);}
+.schrow-acts{display:flex; gap:var(--s4); flex-wrap:wrap; align-items:center; margin-top:var(--s2);}
 .schrow .schcancel.is-armed{color:var(--neg);}
 .schrow.is-date{grid-template-areas:"when name name"; cursor:default; align-items:center;}
 .schrow.is-date .schrow-when{align-items:center; padding-top:0;}
@@ -4926,6 +4932,9 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 @media(hover:hover){
   .check:hover{border-color:var(--rule); transform:translateY(-1px);}
 }
+/* W7-033 (E5's aside) · a RULED row is a slat: it does not lift on hover (the rule between rows is its only line and it does not move). The lift is for the boxed rows that
+   still exist; the Settings guide's rows and the season page's League rows are slats */
+#youGuide .check:hover, #view-hub .check:hover{transform:none;}
 
 /* THE ORDINARY PRIMARY ACTION IS `act` (owner board, 2026-09-14; D359): ember is
    competition, gold is earned, and the everyday control is neither. TEN / W6 ·
@@ -18474,6 +18483,8 @@ function csDrawnCardSvg(holes, opts){
    device had, which is not the same as zero (L-44). */
 const CS_RATING_KEY = 'cs.ratings.v1';
 const CS_RATINGS = { by: Object.create(null), loaded: false, notesFor: Object.create(null) };
+/* W7-052 · who of yours has played each lead course (csCourseCircleFill): the first three other golfers, per course id, and which ids have been asked */
+const CS_COURSE_CIRCLE = { by:{}, asked:{} };
 function csRatingsLoad(){
   if(CS_RATINGS.loaded) return;
   CS_RATINGS.loaded = true;
@@ -18884,6 +18895,7 @@ function renderCourseBooks(){
         <p class="cs-agate-s is-phrase" style="color:var(--mut);padding-top:6px">${esc(label)}</p>
         ${csTeePickerHtml(b, tee)}
         ${csCourseHistoryLine(b)}
+        ${csCourseDoorHtml(String(b.id), CS_COURSE_CIRCLE.by[String(b.id)])}
       </div>
       <div>${csRatingBlock(b.id)}${leaf}</div>
     </section>`;
@@ -18911,6 +18923,7 @@ function renderCourseBooks(){
     + (rest.length ? head('Also kept', rest.length) + rest.map(b=>row(b,false)).join('') : '');
   csCourseBooksWire(box);
   csRatingsFillNotes([lead].concat(liked).filter(Boolean).slice(0, 6).map(b=>String(b.id)));
+  csCourseCircleFill(lead ? [String(lead.id)] : []);   /* W7-052 · who of yours has played the course on show */
 }
 
 /* "You have played Papago 4 times · best 78 · last Aug 24" — the fact §4 and
@@ -18964,6 +18977,8 @@ function csRatingsFillNotes(ids){
    The rail moves IN PLACE — the list is not re-sorted under the thumb — and
    §22's sweep is the width transition, with nothing else on the page moving. */
 function csCourseBooksWire(box){
+  /* W7-052 · the circle's door opens the same sheet Home's does */
+  box.querySelectorAll('[data-hfcourse]').forEach(b=>b.addEventListener('click',()=>csOpenCoursePeople(b.dataset.hfcourse)));
   /* D364 (F1) · changing tees changes the facts and the card together */
   box.querySelectorAll('select[data-cstee]').forEach(sel=>sel.addEventListener('change',()=>{
     window.CS_COURSE_TEE = window.CS_COURSE_TEE || {};
@@ -20713,7 +20728,7 @@ function feedRow(r, idx, stamp, opts){
      the receipt and the course page keep it for every round. The gloss is a
      door's phrase, so it reads in sentence case (§1.3, is-phrase). */
   const showCourse = !(opts && opts.course === false);
-  const courseDoor = showCourse && cf.length ? `<button type="button" class="hfr-course" data-hfcourse="${esc(tk.course.api_course_id)}"><span class="hfr-faces" aria-hidden="true">${cf.map(p=>face(p.id, p.marker, 22)).join('')}</span><span class="cs-grow"><span class="cs-body-s">${esc(csTalkNames(cf.map(p=>csTalkFirst(p.name))) + (cf.length===1 ? ' has' : ' have') + ' played here')}</span><span class="cs-agate-s is-phrase">See their rounds and your circle’s best</span></span><span aria-hidden="true">›</span></button>` : '';
+  const courseDoor = showCourse && cf.length ? csCourseDoorHtml(String(tk.course.api_course_id), cf) : '';
   const mkSvg = window.mkr ? (window.mkr(r.marker||'saguaro') || window.mkr('saguaro')) : '';
   /* SF-6: the arrival — the round just posted renders its gross as split-flap
      cells; renderHomeFeed arms them and retires the flag after insertion */
@@ -23135,7 +23150,7 @@ function csSeasonRowFacts(f, role){
   const pts  = st && st.points != null && Number.isFinite(Number(st.points)) ? Number(st.points) : null;
   const gap  = st && st.gap_to_leader != null && Number.isFinite(Number(st.gap_to_leader)) ? Number(st.gap_to_leader) : null;
   /* W5 · in a squads season the standing is the SQUAD's. The band printed
-     "137 points · 2nd · You are 34 back from Fixture Javelinas" and never said
+     "137 points · 2nd · You are 34 back of Fixture Javelinas" and never said
      the 137 was Fixture Wrens'. The side is named wherever the standing is
      said, and a leader that is a squad keeps its whole name (the row cut
      "Fixture Javelinas" to "Fixture", a golfer's first-name rule). Twin:
@@ -23193,7 +23208,7 @@ function csSeasonRowFacts(f, role){
   else if(se && se.days_left != null && se.days_left >= 0 && se.days_left <= 7) status = se.days_left === 0 ? 'Season ends today' : se.days_left + (se.days_left === 1 ? ' day left' : ' days left');
   return { upcoming, sub: parts.length ? parts.join(' · ') + (role==='commissioner' ? ' · you run it' : '') : null, eyebrow, status, rank, points:pts,
     standing:rank==null?null:(side?side+' · ':'')+climbOrd(rank)+(st.points_tied?' · Tied':''),
-    story:upcoming?teeStory:gap>0?(side?gap+' back from '+(st.leader_name||'the lead')+'.':'You are '+gap+' back from '+(st.leader_name||'the lead')+'.'):rank===1?(st.points_tied?'The lead is shared.':'You lead the season.'):'The season is underway.' };
+    story:upcoming?teeStory:gap>0?(side?gap+' back of '+(st.leader_name||'the lead')+'.':'You are '+gap+' back of '+(st.leader_name||'the lead')+'.'):rank===1?(st.points_tied?'The lead is shared.':'You lead the season.'):'The season is underway.' };
 }
 /* F13 · A BIRDIE IS A BIRDIE. The risk in celebrating a good hole is FALSE
    recognition, so every rule here is a refusal: par must be KNOWN (an
@@ -24010,7 +24025,7 @@ function csRailCell(s){
      (`HomeWireCopy.railCell`) and never shows NEXT, which has its own row.
    · A PLACEHOLDER IS NEVER A VALUE (L-44, §9.9). `— BUILDING`, `NO ROUNDS YET`
      and `PLAN ONE` were doors wearing a slot's clothes. On the desk a missing
-     round is a quiet door ("Add my round", "Plan one"); when EVERY slot is a
+     round is a quiet door ("Add my round", "Plan a round"); when EVERY slot is a
      placeholder the block is one sentence with one door — TERMINOLOGY §2's own
      line, "Your number builds itself from three posted rounds." On the phone
      the strip filters placeholders and stands down when nothing is left, which
@@ -24038,7 +24053,7 @@ function renderMeStrip(){
   const real = strip.slots.filter(s => !s.ph);
   const rail = real.filter(s => s.fact === 'my_number' || s.fact === 'my_money');
   const dated = real.filter(s => s.fact === 'my_last_round' || s.fact === 'my_next_round');
-  const doorFor = { my_last_round:['add_round', CS_ME_EMPTY.door], my_next_round:['plan_one', 'Plan one'] };
+  const doorFor = { my_last_round:['add_round', CS_ME_EMPTY.door], my_next_round:['plan_one', 'Plan a round'] };   /* W7-076 · the verb every other surface prints ('Plan a round'), not 'Plan one' */
   const doors = strip.slots.filter(s => s.ph && doorFor[s.fact]).map(s => doorFor[s.fact]);
   /* the league's name is the foot's (`#sideLeague`, one step down): the
      sidebar's season row starts after it rather than saying it twice */
@@ -26701,6 +26716,31 @@ function csOpenNotification(n){
 document.getElementById('hdrBell')?.addEventListener('click', ()=>csOpenInbox());
 
 /* ---- the course's circle -------------------------------------------------- */
+/* W7-052 [A2-courses-1] · THE COURSE'S DOOR, ONE PRODUCER (D234, UI_SYSTEM 15.3: 'who of yours has played it' is an overlapping disc row and a sentence that names the friends).
+   Home's wire drew it under a round; the course record itself, where a golfer goes to read a course, drew none. Both call this, so the door is one component. */
+function csCourseDoorHtml(courseId, faces){
+  const cf = Array.isArray(faces) ? faces : [];
+  if(!courseId || !cf.length) return '';
+  return `<button type="button" class="hfr-course" data-hfcourse="${esc(courseId)}"><span class="hfr-faces" aria-hidden="true">${cf.map(p=>face(p.id, p.marker, 22)).join('')}</span><span class="cs-grow"><span class="cs-body-s">${esc(csTalkNames(cf.map(p=>csTalkFirst(p.name))) + (cf.length===1 ? ' has' : ' have') + ' played here')}</span><span class="cs-agate-s is-phrase">See their rounds and your circle’s best</span></span><span aria-hidden="true">›</span></button>`;
+}
+window.csCourseDoorHtml = csCourseDoorHtml;
+/* ...and the course record's own read: ONE course_page per lead, cached the way csRatingsFillNotes caches notes, the first three OTHER golfers of the circle
+   (course_page lists the viewer too, best first; the viewer's own record is the line above). Absent, never a dash, when nobody else has played (L-44). */
+function csCourseCircleFill(ids){
+  const want = (ids||[]).filter(id => id && !CS_COURSE_CIRCLE.asked[id]);
+  if(!want.length || state.demo || !window.sb || !window.CS?.user) return;
+  want.forEach(id => { CS_COURSE_CIRCLE.asked[id] = true; });
+  Promise.all(want.map(async id => {
+    try{
+      const { data, error } = await window.sb.rpc('course_page', { p_course_id: String(id), p_tee: null, p_holes: null });
+      if(error || !data || !data.ok){ delete CS_COURSE_CIRCLE.asked[id]; return false; }
+      const me = window.CS.user.id;
+      CS_COURSE_CIRCLE.by[id] = (data.people||[]).filter(p => p.person && p.person.id && p.person.id !== me).slice(0, 3)
+        .map(p => ({ id:p.person.id, name:p.person.name, marker:p.person.marker }));
+      return true;
+    }catch(_){ delete CS_COURSE_CIRCLE.asked[id]; return false; }
+  })).then(rs => { if(rs.some(Boolean)) renderCourseBooks(); }).catch(()=>{});
+}
 function csCpTee(t){ return (t && t.name ? t.name : 'Tee') + (t && t.gender==='female' ? ' · Women’s' : ''); }
 async function csOpenCoursePeople(courseId, tee, holes){
   if(!courseId || state.demo || !window.sb || !window.CS?.user) return;
@@ -31343,7 +31383,9 @@ function openProfileHub(){
   /* dirty-state: any card change arms Save (delegates survive the marker grid
      re-render); photo add/remove save instantly and never arm */
   let told = false;   /* W7-042 · the guard below has said its sentence for the edits so far */
-  const phArm = () => { const b=$('#phSave'); told = false;
+  const phArm = () => { const b=$('#phSave');
+    /* an edit made after the question is a NEW pending edit: the next way out asks about it again, and the line that asked is cleared (root's ruling, both clients) */
+    if(told){ told = false; const st=$('#phStatus'); if(st && st.textContent === CS_CARD_UNSAVED) st.textContent = ''; }
     if(b && !b.classList.contains('armed')){ b.classList.add('armed'); b.textContent='Save changes'; } };
   ['phName','phCity','phHome','phGhin','phHandle'].forEach(id=>$('#'+id)?.addEventListener('input', phArm));
   /* W7-042 · Findable-by saves on the tap (set_discoverable) and says so under the row (#phDiscSaid), so it
@@ -34871,8 +34913,8 @@ async function loadSchedule(){
     const { data, error } = await sb.rpc('my_schedule', {
       p_from: `${c.y}-${pad(c.m+1)}-01`, p_to: `${c.y}-${pad(c.m+1)}-${pad(last)}` });
     if(error) throw error;
-    window.mySchedule = data || [];
-  } catch(e){ console.warn('[schedule]', e); window.mySchedule = window.mySchedule || []; }
+    window.mySchedule = data || []; window.schedFail = null;
+  } catch(e){ console.warn('[schedule]', e); window.schedFail = e; window.mySchedule = window.mySchedule || []; }   /* W7-040 · the last good rows stay; the failure is told */
   renderCalendar();
 }
 window.loadSchedule = loadSchedule;
@@ -34892,8 +34934,8 @@ async function loadWatchList(){
   try {
     const { data, error } = await sb.rpc('my_schedule', { p_from: iso(t), p_to: iso(end) });
     if(error) throw error;
-    window.watchAll = data || [];
-  } catch(e){ console.warn('[watch]', e); window.watchAll = window.watchAll || []; }
+    window.watchAll = data || []; window.watchFail = null;
+  } catch(e){ console.warn('[watch]', e); window.watchFail = e; window.watchAll = window.watchAll || []; }   /* W7-040 · as above */
   await ensureRivals();   /* M4/#7: the pre-game record needs the rivalry lookup */
   renderWatchList();
   if(typeof renderUpNext==='function') renderUpNext();   /* Home echo tracks it */
@@ -34983,7 +35025,7 @@ function csPlanRowHtml(sr, o){
      cancel asks once more before it pulls the plan from everyone tagged */
   const acts = sr.mine
     ? `<span class="schrow-acts"><button type="button" class="mini" data-retag="${esc(sr.id)}">Invite</button>`
-      + `<button type="button" class="mini schcancel" data-scratch="${esc(sr.id)}">Cancel</button></span>` : '';
+      + `<button type="button" class="lrcasual schcancel" data-scratch="${esc(sr.id)}">Cancel round</button></span>` : '';   /* W7-049 · the phone's label, the tertiary link, apart from Invite */
   const said = [who, csPlanDay(sr.play_on), tee, course].filter(Boolean).join(', ');
   return `<div class="schrow" data-wopen="${esc(sr.id)}" role="button" tabindex="0" aria-label="${esc(said)}">
     <span class="schrow-when">${o.day ? '' : `<span class="cs-agate-s">${esc(csPlanDay(sr.play_on))}</span>`}${tee ? `<b class="cs-fig-s">${esc(tee)}</b>` : ''}</span>
@@ -35027,12 +35069,8 @@ function csPlanRowsWire(root, o){
   }));
   root.querySelectorAll('[data-retag]').forEach(b => b.addEventListener('click', () => { if(o.sheet) closeSheet(); openRetagSheet(b.dataset.retag); }));
   root.querySelectorAll('[data-scratch]').forEach(b => b.addEventListener('click', async () => {
-    /* §7.1 · destructive, armed: the first tap asks, the second does it */
-    if(b.dataset.armed !== '1'){
-      b.dataset.armed = '1'; b.classList.add('is-armed'); b.textContent = 'Sure? Cancel for everyone';
-      setTimeout(() => { if(b.isConnected && b.dataset.armed === '1' && !b.disabled){ b.dataset.armed = ''; b.classList.remove('is-armed'); b.textContent = 'Cancel'; } }, 4000);
-      return;
-    }
+    /* §7.1 · destructive, armed: the first tap asks, the second does it (csArmTap, as the sheet's own Cancel round) */
+    if(!csArmTap(b, 'Cancel round', 'Sure? Cancel for everyone')) return;
     b.disabled = true;
     try{ const { error } = await sb.rpc('scratch_round', { p_id: b.dataset.scratch }); if(error) throw error;
       if(o.sheet) closeSheet(); toast('Round cancelled'); reload(); }
@@ -35058,9 +35096,25 @@ function csPlanAnswers(sr){
    round you are on — yours, or booked with you and not declined: `isMyPlan`,
    the one predicate Home's Next tile and the phone's chips share (D219) —
    leads the page with its tee time as a figure. */
+/* W7-040 [A2-schedule-3] · UI_SYSTEM §13.3 and the C-10 rule: a failed read is never an empty one. loadSchedule (the month) and loadWatchList (the 14 days) each
+   swallowed their failure and left the page to draw 'Nothing on the schedule yet' and 'Put a round up' over a schedule it could not read. Each now remembers its
+   error (schedFail, watchFail), keeps its last good rows, and the page says so: with nothing to show, the album's failed pattern (heading, the reason, a Try again);
+   with rows on screen, the rows stay and one 'didn't refresh' line with a Try again sits above 'Coming up'. #calDeclare stays the page's one primary (§7.1). */
+const csScheduleFail = () => window.schedFail || window.watchFail || null;
+function csScheduleRetry(btn){
+  if(btn){ btn.disabled = true; btn.textContent = 'Loading…'; }
+  window.loadSchedule?.(); window.loadWatchList?.();
+}
 function csRenderPlanLead(rows){
   const box = $('#schNext'); if(!box) return;
   const next = rows.find(r => isMyPlan(r)) || null;
+  const fail = csScheduleFail();
+  if(!next && !rows.length && fail){
+    box.innerHTML = `<div class="tempty schnone" role="status"><h2 class="cs-name">The schedule didn’t load</h2><p class="cs-body-s">${esc(humanError(fail))}</p>`
+      + `<button type="button" class="mini" id="schRetry" style="margin-top:var(--s2)">Try again</button></div>`;
+    $('#schRetry')?.addEventListener('click', e => csScheduleRetry(e.currentTarget));
+    return;
+  }
   if(!next){
     /* §16A.7 · the page carries its own drawn object (the calendar), so the
        empty state is the fact and the door beside it: the primary under it */
@@ -35103,6 +35157,12 @@ function renderWatchList(){
   const all = csUpcomingPlans();
   const lead = csRenderPlanLead(all);
   const rows = all.filter(r => r !== lead);
+  /* W7-040 · rows on screen and a refresh that failed: keep them, and say so once, above 'Coming up' (the album's .alfail shape) */
+  document.getElementById('schFail')?.remove();
+  if(all.length && csScheduleFail()){
+    head.insertAdjacentHTML('beforebegin', `<p class="fine alfail" id="schFail" role="status">The schedule didn’t refresh. <button type="button" class="cs-tskip" id="schRetry" style="display:inline-flex; margin:0">Try again</button></p>`);
+    $('#schRetry')?.addEventListener('click', e => csScheduleRetry(e.currentTarget));
+  }
   if(!rows.length){ box.style.display='none'; head.style.display='none'; box.innerHTML=''; return; }
   head.style.display=''; box.style.display='';
   box.innerHTML = `<div class="schlist">${rows.map(sr => csPlanRowHtml(sr)).join('')}</div>`;
@@ -36548,7 +36608,9 @@ function renderRoundSheet(id, d){
 
   const rsvp = d.rsvp||[];
   const inN = rsvp.filter(r=>r.status==='in').length;
-  /* WHO'S IN, in the phone's words (ScheduledRoundSheet.answer): HOST is a role,
+  /* W7-035 · the viewer's own seat reads 'You', as the schedule's list prints the same person (csPlanRowHtml, UI_SYSTEM §9.1: the viewer's own row reads YOU
+     alone, product-wide); every other seat keeps its name.
+     WHO'S IN, in the phone's words (ScheduledRoundSheet.answer): HOST is a role,
      so it is a quiet agate tag and never the earned metal (D359); a seat with
      no answer is ASKED — the state of the invitation (G7), and the one word the
      schedule's list now prints too — and the host, who did the asking, prints
@@ -36558,7 +36620,7 @@ function renderRoundSheet(id, d){
       const word = ({in:'In',maybe:'Maybe',out:'Out'})[r.status] || (host ? '' : 'Asked');
       return `<div class="check">
       <span class="num">${M(r.marker||'saguaro')}</span>
-      <div class="tt"><b>${esc(r.name||'A golfer')}${host?' <span class="rshost cs-agate-s">Host</span>':''}</b></div>
+      <div class="tt"><b>${r.profile_id && r.profile_id===CS.user?.id ? 'You' : esc(r.name||'A golfer')}${host?' <span class="rshost cs-agate-s">Host</span>':''}</b></div>
       ${word?`<span class="rsvppill ${r.status||'none'}">${word}</span>`:''}
     </div>`; }).join('') : '<p class="fine" style="padding:2px 0">Just you so far — tag your group.</p>';
   const myR=d.my_rsvp;
@@ -36576,8 +36638,14 @@ function renderRoundSheet(id, d){
      pending, declined excluded, and the start goes through
      start_live_round_from_plan so one live round stands for the booking. */
   const canTee = canRsvp && myR !== 'out' && !state.demo;
-  const teeUp = canTee ? `<button class="btn" id="rtTeeUp" type="button" style="width:100%;margin-top:12px">Tee it up</button>` : '';
-  const rsvpSet = canRsvp ? `<div class="rsvpset">
+  /* W7-039 [A2-schedule-2] · ONE primary in the sheet (§7.1, §16A.5): a golfer who owes an answer (csPlanMe: asked, or maybe) has 'I'm in' as the filled action,
+     and 'Tee it up' is the tertiary link beneath the set (ink on a 2px mut rule, 44 tall: the .lrcasual shape); answered (in) or the host, it is the primary
+     again. Availability is unchanged (F10, D367): only its weight moves */
+  const owes = ['asked', 'maybe'].includes(csPlanMe(d));
+  const teeUp = !canTee ? ''
+    : owes ? `<div class="lrcasual-row"><button class="lrcasual" id="rtTeeUp" type="button">Tee it up</button></div>`
+    : `<button class="btn" id="rtTeeUp" type="button" style="width:100%;margin-top:12px">Tee it up</button>`;
+  const rsvpSet = canRsvp ? `<div class="rsvpset${owes ? ' owes' : ''}">
      <button class="rbtn${myR==='in'?' on in':''}" data-rsvp="in">I’m in</button>
      <button class="rbtn${myR==='maybe'?' on maybe':''}" data-rsvp="maybe">Maybe</button>
      <button class="rbtn${myR==='out'?' on out':''}" data-rsvp="out">Can’t</button></div>` + teeUp : '';
@@ -36607,10 +36675,13 @@ function renderRoundSheet(id, d){
      the host's control alone — the link is the only thing in the product that
      can seat a stranger, and D69's rule that a tee sheet is the host's is what
      bounds it. */
+  /* W7-049 [B2-schedule-3] · cancelling your plan takes it from everyone tagged, so it is one named, quiet, ARMED act, never a third box level with the two
+     harmless ones: the tertiary link beneath them (§16A.5), and the first tap only asks ('Sure? Cancel for everyone', the row's own words). The two boxes keep
+     their look and take 44 targets (§16.2) */
   const manage = d.mine ? `<div class="managebar2">
      <button class="mbtn2" id="rrLink">Text them a link</button>
-     <button class="mbtn2" id="rrGroup">Edit group</button>
-     <button class="mbtn2 warn" id="rrScratch">Cancel round</button></div>` : '';
+     <button class="mbtn2" id="rrGroup">Edit group</button></div>
+     <div class="lrcasual-row"><button class="lrcasual" id="rrScratch" type="button">Cancel round</button></div>` : '';
 
   /* EACH FACT ONCE (critique-B P3, owner C). The tee time is the sheet's own
      sub-line, so the chip that printed it again under the course is gone; the
@@ -36657,7 +36728,9 @@ function renderRoundSheet(id, d){
     b.disabled=false;
   });
   $('#rrGroup')?.addEventListener('click',()=>{ closeSheet(); openRetagSheet(id); });
-  $('#rrScratch')?.addEventListener('click', async(e)=>{ const b=e.currentTarget; b.disabled=true;
+  $('#rrScratch')?.addEventListener('click', async(e)=>{ const b=e.currentTarget;
+    if(!csArmTap(b, 'Cancel round', 'Sure? Cancel for everyone')) return;   /* W7-049 · §7.1: the first tap asks, the second does it */
+    b.disabled=true;
     try{ const {error}=await sb.rpc('scratch_round',{p_id:id}); if(error) throw error; closeSheet(); toast('Round scratched'); loadSchedule(); if(window.loadWatchList) loadWatchList(); }
     catch(err){ toast(humanError(err, 'Scratch failed.')); b.disabled=false; }
   });
@@ -37429,6 +37502,11 @@ for(const L of CS_SHARE_LINKS){
   break;
 }
 window._csShareRender = renderShareView;   /* QA hook: drive the view with a token or a stub payload */
+/* W7-058 · the sentence after 'This link is dead.' (the public page) and 'That link has expired.' (csShareLine): ONE, for every kind of link. share_info answers the
+   same null for a round, a settled game, a season table, a golfer and a plan (D57, fail-closed), so the page cannot know it was a round: 'from the round' was
+   the wording for the era when only rounds had public pages (the phone's ShareIntent.dead already says this). Only CS_CLAIM_DEAD, which IS about a scorecard link, keeps it. */
+const CS_LINK_DEAD_SUB = 'Whoever sent it can share a fresh one.';
+window.CS_LINK_DEAD_SUB = CS_LINK_DEAD_SUB;
 async function renderShareView(tok, _testInfo){
   /* ONE PUBLIC SHELL (owner C/B/P, craft C, critique B, 2026-09-28). Every
      branch — a round, a settled game, a season table, a golfer, a plan, a dead
@@ -37508,7 +37586,7 @@ async function renderShareView(tok, _testInfo){
     card.className = 'sv-short';
     card.innerHTML = `<div class="sv-head">
         <h1 class="cs-lead">This link is dead.</h1>
-        <p class="sv-where cs-body-s">Whoever sent it can share a fresh one from the round.</p>
+        <p class="sv-where cs-body-s">${esc(CS_LINK_DEAD_SUB)}</p>
       </div>` + foot({ cta: 'Open Cup Season', primary: true });   /* AW2-14 · the page's one action is act */
     return;
   }
@@ -37606,8 +37684,12 @@ async function renderShareView(tok, _testInfo){
           ${highs.length ? `<p class="sv-highs cs-agate is-phrase">${highs.map(t => esc(t)).join(' · ')}</p>` : ''}
         </div>`;
     }
+    /* W7-057 · a column of bare figures carries its head (UI_SYSTEM §16A.3): the four scores under a result decided by holes were an unlabelled number a
+       stranger could not tell from a net or a points figure. The round page names its figure Gross and the recap's table names its Points; the
+       settlement's head names these, and only when a player carries one */
+    const grossed = (info.players || []).some(p => p.gross != null);
     const players = (info.players || []).length
-      ? `<div class="sv-rows">${info.players.map(p => `<div class="sv-row"><span class="nm cs-social">${esc(p.name)}</span><span class="fig">${p.gross != null ? esc(String(p.gross)) : ''}</span></div>`).join('')}</div>`
+      ? `${grossed ? '<div class="sv-colhead cs-agate"><span>Golfers</span><span>Gross</span></div>' : ''}<div class="sv-rows">${info.players.map(p => `<div class="sv-row"><span class="nm cs-social">${esc(p.name)}</span><span class="fig">${p.gross != null ? esc(String(p.gross)) : ''}</span></div>`).join('')}</div>`
       : '';
     const when = fmtD(info.played_on);
     card.className = strip ? '' : 'sv-short';
@@ -38121,7 +38203,7 @@ function csShareLine(kind, data){
      phone, which is what D234 means by "produced once" */
   const known = (window.CS_SHARE_LINKS || [{kind:'person'},{kind:'plan'}]).map(l=>l.kind);
   if(!data || !data.kind || known.indexOf(data.kind) < 0)
-    return 'That link has expired. Whoever sent it can share a fresh one.';
+    return 'That link has expired. ' + CS_LINK_DEAD_SUB;
   if(data.kind === 'plan'){
     if(data.seat === 'host') return null;
     if(data.seat === 'past') return 'That round has already been played.';
