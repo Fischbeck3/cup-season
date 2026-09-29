@@ -218,6 +218,19 @@ const toDevon = async (page) => {
   }
   await until(page, () => (document.querySelector('.view.active') || {}).id === 'view-person' && !!document.getElementById('perOpenH2H'), null, 10000)
 }
+/* TEN / W8 · W7-100 [A2-golfers-8] · the meeting tape's end dates stand under their own end squares and the label column (YOURS / THEIRS) has nothing beneath it: 'SEP 21' stacked under 'THEIRS'
+   at the right edge, so the Sep 21 square (which is yours) read as theirs */
+const tapeDates = async (page) => page.evaluate(() => {
+  const tape = document.querySelector('.cstape'); if (!tape) return 'no meeting tape on the page'
+  const ticks = [...tape.querySelectorAll('.ticks i')], dates = [...tape.querySelectorAll('.tapedates span')], rows = tape.querySelector('.rows')
+  if (!dates.length) return 'the tape prints no end dates'
+  if (dates.length !== 2) return `the tape prints ${dates.length} end dates`
+  const first = ticks[0].getBoundingClientRect(), last = ticks[ticks.length - 1].getBoundingClientRect(), a = dates[0].getBoundingClientRect(), z = dates[1].getBoundingClientRect()
+  if (Math.abs(a.left - first.left) > 2) return `the first date starts ${Math.round(a.left - first.left)}px from the first square`
+  if (Math.abs(z.right - last.right) > 2) return `the last date ends ${Math.round(z.right - last.right)}px from the last square`
+  if (rows) { const r = rows.getBoundingClientRect(); if (z.right > r.left + 0.5) return 'the last date runs under the label column' }
+  return true
+})
 const GOLFERS = [
   { family: 'golfers', id: 'list', variant: 'member', title: 'Golfers · the board, a request each way, five buddies',
     drive: async (page) => {
@@ -326,11 +339,11 @@ const GOLFERS = [
        page's head, and the pairing ("You and Devon Testwell") is its agate
        line — the page used to print the pairing twice around the name */
     expect: { view: 'view-h2h', selectors: { '#h2hName': 'text:^The Fixture Derby$', '#h2hMain .csleaf tbody tr': 'visible', '#h2hMain .cstape': 'visible' } },
-    check: async (page) => page.evaluate(() => {
+    check: all(tapeDates, async (page) => page.evaluate(() => {
       const t = document.getElementById('view-h2h').innerText
       if (!/You and Devon Testwell/i.test(t)) return 'the pairing is missing'
       return document.querySelectorAll('#view-h2h .cs-display').length ? 'a second display title is on the page' : true
-    }) },
+    })) },
   { family: 'golfers', id: 'board', variant: 'member', title: 'The league board · chat, round posts, kudos, a comment count', fullPage: false,
     drive: async (page) => {
       await page.evaluate(() => window.switchView('board'))

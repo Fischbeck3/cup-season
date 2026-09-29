@@ -5325,7 +5325,8 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
    viewer won it and below if the rival did, oldest first, the viewer's filled
    and the rival's outlined. NO LEGEND (§9.10): the two row names ride the
    graphic's own right margin and one line under it carries the key. */
-.cstape{display:flex; align-items:center; gap:var(--s3);}
+.cstape{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center;}   /* W7-100 · a grid: the rail and its dates in the first column, the label column beside the rail only */
+.cstape .tapedates{grid-column:1; display:flex; justify-content:space-between;}
 .cstape .rail{position:relative; flex:1; height:46px; display:flex; align-items:center;}
 .cstape .rail::before{content:''; position:absolute; left:0; right:0; top:50%;
   height:2px; margin-top:-1px; background:var(--ink);}
@@ -5334,7 +5335,7 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .cstape .ticks i.me{background:var(--ink); transform:translateY(-12px);}
 .cstape .ticks i.them{border:1.7px solid var(--mut); transform:translateY(12px);}
 .cstape .ticks i.half{height:2px; background:var(--mut);}
-.cstape .rows{display:flex; flex-direction:column; gap:14px; flex:none; color:var(--mut);}
+.cstape .rows{display:flex; flex-direction:column; gap:14px; flex:none; color:var(--mut); margin-left:var(--s3);}
 /* C6/C9 - the odometer: digit strips roll like gauges absorbing an entry;
    built by csOdo() (right-to-left stagger, always rolling upward). Tabular
    digits so nothing reflows. Reduced motion swaps instantly (csOdo checks). */
@@ -30114,11 +30115,12 @@ function csTapeHtml(meetings, opts){
   }).join('');
   const rows = o.rows === false ? '' :
     `<span class="rows cs-agate-s"><span>YOURS</span><span>THEIRS</span></span>`;
+  /* W7-100 · the dates are the tape's second grid row, under the RAIL only: each end date sits under its own end square, and the label column (YOURS / THEIRS) has nothing beneath it,
+     so 'SEP 21' no longer stacks under 'THEIRS' as if it were theirs */
   const dates = (o.first && o.last)
-    ? `<div style="display:flex; justify-content:space-between" class="cs-agate-s"><span>${esc(o.first)}</span><span>${esc(o.last)}</span></div>` : '';
+    ? `<div class="tapedates cs-agate-s"><span>${esc(o.first)}</span><span>${esc(o.last)}</span></div>` : '';
   return `<div role="img" aria-label="${esc(o.spoken||'One square is one win.')}">
-    <div class="cstape"><span class="rail"><span class="ticks">${ticks}</span></span>${rows}</div>
-    ${dates}
+    <div class="cstape"><span class="rail"><span class="ticks">${ticks}</span></span>${rows}${dates}</div>
     <p class="cs-agate-s is-phrase" style="color:var(--mut); margin:6px 0 0">One square is one win.</p></div>`;
 }
 window.csTapeHtml = csTapeHtml;
