@@ -32882,7 +32882,8 @@ function renderScenarioLine(){
   /* Cup Final already running → seeds are settled facts */
   if(meta.locked){
     const seeds = rows.slice(0, meta.k).map(r=>nm(r.name));
-    box.innerHTML = `<span class="clinch">Seeds set</span> — ${seeds.join(' · ')} into the Cup Final`;   /* D126 */
+    /* W7-068 [X05] · 'The Final is set' is the state's word (TERMINOLOGY row 141: 'seed' is never a verb; the phone's ScenarioLine says the same); the tail is the phone's own line, unchanged */
+    box.innerHTML = `<span class="clinch">The Final is set</span> — ${seeds.join(' · ')} into the Cup Final`;   /* D126 */
     box.style.display='block'; return;
   }
   /* seed race closed (window past) but not yet flipped, or nothing to project */

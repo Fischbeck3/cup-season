@@ -824,6 +824,17 @@ const BOOK = [
         if (!svg.querySelector('.sb-current-line')) return 'no current-week line in the Cup Final'
         return window.CS && window.CS.season && window.CS.season.status === 'cup_final' ? true : 'the season is not in its Cup Final'
       })) },
+  /* TEN / W8 · W7-068 [X05] · the season page in the Cup Final: the locked clinch line names the state 'The Final is set' (TERMINOLOGY row 141, the phone's ScenarioLine), never 'Seeds set' (seed is not a verb) */
+  { family: 'season', id: 'cup-final', variant: 'rounds_no_league', title: 'The season page in the Cup Final: the clinch line says the Final is set', fullPage: false,
+    prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
+    drive: async (page) => {
+      await toSeasonViaBand(page)
+      await until(page, () => { const b = document.getElementById('scenarioLine'); return !!b && b.style.display !== 'none' && b.textContent.trim().length > 0 }, null, 10000)
+      await page.waitForTimeout(300)
+    },
+    expect: { view: 'view-hub', selectors: { '#scenarioLine': 'visible' } },
+    check: all(has('#scenarioLine', '^The Final is set \u2014 .+ into the Cup Final$', 'the locked clinch line'),
+      async (page) => page.evaluate(() => /seeds? set/i.test(document.getElementById('scenarioLine').textContent) ? 'the clinch line still says Seeds set' : true)) },
   /* W7-131 · the same race after a pick: Follow is opened, the second golfer chosen, and the disclosure closes on their name with the focus on its summary */
   { family: 'book', id: 'race-follow', variant: 'rounds_no_league', title: 'The Book in the Cup Final: the race following one golfer (Follow opened, a golfer picked)', fullPage: false,
     prepare: async (W) => { adoptBook(W, readBook('squads')); cupFinalOn(W, readBook('squads').season_id) }, localStorage: BOOK_LS('squads'),
