@@ -300,3 +300,29 @@ export const standsDown = (sels) => async (page) => page.evaluate((sels) => {
   }
   return bad.length ? 'the desk prints a fact twice (§16A.4): ' + bad.join('; ') : true
 }, sels)
+
+/* TEN / W8 · W7-011, W7-012 · UI_SYSTEM §16.1 and WCAG 1.4.11: rule may
+ * separate and never state, and a mark that carries a state reads at 3:1 or
+ * better on its ground. `stateContrast(parts)` measures each part
+ * `{ sel, prop, min, what }` (the first VISIBLE element's computed colour, its
+ * `prop` — backgroundColor or a border colour — against the first opaque
+ * ground above it) and fails the capture when a ratio is under `min` or a
+ * part is not drawn. */
+export const stateContrast = (parts) => async (page) => {
+  const got = await page.evaluate((parts) => {
+    const rgb = (c) => (c.match(/[\d.]+/g) || []).slice(0, 4).map(Number)
+    const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+    const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+    const ground = (el) => { for (let p = el.parentElement; p; p = p.parentElement) { const c = rgb(getComputedStyle(p).backgroundColor); if (c.length >= 3 && (c.length < 4 || c[3] > 0.99)) return c } return [255, 255, 255] }
+    return parts.map((p) => {
+      const el = [...document.querySelectorAll(p.sel)].find((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 })
+      if (!el) return { what: p.what, missing: true }
+      const c = rgb(getComputedStyle(el)[p.prop]), g = ground(el)
+      const a = lum(c), b = lum(g)
+      return { what: p.what, min: p.min, ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) }
+    })
+  }, parts)
+  const bad = got.filter((r) => r.missing || r.ratio < r.min).map((r) => (r.missing ? `${r.what} is not drawn` : `${r.what} ${r.ratio.toFixed(2)}:1, under ${r.min}:1`))
+  console.log(`[stateContrast] ${got.filter((r) => !r.missing).map((r) => `${r.what} ${r.ratio.toFixed(2)}`).join(' · ')}`)
+  return bad.length ? 'a state is drawn in rule or too faint (§16.1): ' + bad.join('; ') : true
+}

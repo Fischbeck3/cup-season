@@ -4718,8 +4718,12 @@ button.calcell{width:100%; padding:0; font:inherit; font-family:var(--mono); fon
 .mclock{margin:12px 0 0; display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap;}
 .mclock .mg{display:flex; flex-direction:column; gap:8px;}
 .mclock .ticks{display:flex; align-items:flex-end; gap:4px; height:12px;}
-.mclock .t{width:20px; height:8px; background:var(--rule);}
-.mclock .t.played{background:var(--mut);}
+/* W7-011 · UI_SYSTEM §8's tick row: played ink, the live one brand and tall,
+   the weeks ahead mut. Rule may separate and never state (§16.1: 1.4.11 asks
+   3:1 of a mark that carries a state, and rule is under 1.5:1). The phone's
+   twin is N4-104. */
+.mclock .t{width:20px; height:8px; background:var(--mut);}
+.mclock .t.played{background:var(--ink);}
 .mclock .t.now{background:var(--brand); height:12px;}   /* the one live cell */
 .mclock .ml{font-family:var(--board); font-size:11px; letter-spacing:.08em;
   text-transform:uppercase; color:var(--mut); white-space:nowrap;}

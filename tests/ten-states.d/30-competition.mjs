@@ -20,7 +20,7 @@
  *
  * The answers behind these states: tests/fixtures/ten/rpc/30-competition.mjs. */
 import { readBook, adoptBook, cupFinalOn, ryderWorld, ids } from '../fixtures/ten/rpc/30-competition.mjs'
-import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole } from '../ten-mono.mjs'
+import { notMono, noSerifFigure, noRetiredGlyph, readsAsWritten, noRetiredShape, onceInView, armedDelete, capsFromRole, stateContrast } from '../ten-mono.mjs'
 
 /* local twins of ten-states.mjs `helpers` (importing that module from here
    would be a cycle through its top-level await) */
@@ -256,6 +256,16 @@ const SEASON = [
     expect: { view: 'view-hub', selectors: { '#rulesHead': 'visible', '#bylawsHub': 'visible', '#hubSeasonRevoke': 'text:^Turn off$' } },
     check: all(onNorthGrove, inViewport('#room-league', 'the rules'),
       async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty')) },
+  /* TEN / W8 · W7-011 [B2-season-12] · the week clock, cropped: the weeks played are ink, the live week brand
+     and tall, the weeks ahead mut — never rule (§16.1), so each reads as a state on the page's ground */
+  { family: 'season', id: 'month-clock', variant: 'member', title: 'The season page, the week clock (its own crop)', shot: '#monthClock',
+    prepare: async (W) => dropInventedMoment(W),
+    drive: async (page) => { await toSeasonViaBand(page); await until(page, () => document.querySelectorAll('#monthClock .t.played').length > 0); await page.waitForTimeout(300) },
+    expect: { view: 'view-hub', selectors: { '#monthClock .t.played': 'visible', '#monthClock .t.now': 'visible' } },
+    check: all(onNorthGrove, stateContrast([
+      { sel: '#monthClock .t:not(.played):not(.now)', prop: 'backgroundColor', min: 4.5, what: 'the weeks ahead' },
+      { sel: '#monthClock .t.played', prop: 'backgroundColor', min: 12, what: 'the weeks played' },
+      { sel: '#monthClock .t.now', prop: 'backgroundColor', min: 3, what: 'the live week' }])) },
   /* TEN / W8 · W7-008 [A2-season-1] · the season link's off switch is a word,
      and armed: the first tap says what the next one does and turns nothing off */
   { family: 'season', id: 'link-off', variant: 'member', title: 'The season page, the rules: the season link row at rest ("Link" and "Turn off")', fullPage: false,
