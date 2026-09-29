@@ -219,7 +219,9 @@ struct LeagueWelcomeSheet: View {
           // setup-QA S3-01: the auto-join path reaches this covenant without ever seeing the stake — name the number here.
           // One fact, one place (brand canon §3): the stake line names the number and who tracks it;
           // the ledger sentence belongs to "The pot lives on the books" below and is said once on this sheet.
-          (Text("You're on the pot: $\(welcome.usd) buy-in.").foregroundStyle(cs.gold).bold() + Text(" The Pro tracks who's paid."))
+          // Root's ruling (UI_SYSTEM §2.4): a buy-in is what you owe, so it is
+          // money in ink; gold is only for the pot itself or a thing won (D359)
+          (Text("You're on the pot: $\(welcome.usd) buy-in.").foregroundStyle(cs.ink).bold() + Text(" The Pro tracks who's paid."))
             .csType(.bodyS).foregroundStyle(cs.mut)
         }
         // D205 · "your squad" is a lie in a solo league; "your standing" is
