@@ -22781,8 +22781,10 @@ const SeasonBook = {
   },
   domain(rows){const values=rows.flatMap(r=>r.cells.flatMap(c=>c.cumulative==null?[]:[c.cumulative]));return [Math.min(0,...values),Math.max(1,...values)];},
   standing(r){return r.points_rank==null?'':climbOrd(r.points_rank)+(r.tied?' · Tied':'');},
-  /* W7-120 [A2-competition-4] · the minimum names its unit, "minimum 2 rounds" (the phone's SeasonBookSnapshot.rules moves with it) */
-  rules(b){return (b.counting_cap==null?'All rounds count':'Best '+b.counting_cap+' per calendar month')+(b.participation_floor==null?'':' · minimum '+b.participation_floor+(b.participation_floor===1?' round':' rounds'));},
+  /* W7-120 [A2-competition-4] · the minimum names its unit, "minimum 2 rounds", and is said only
+     when there is one: a solo or no-minimum league's floor is locked at 0, and "minimum 0 rounds"
+     states a rule that does not exist (L-23). The phone's SeasonBookSnapshot.rules moves with it. */
+  rules(b){return (b.counting_cap==null?'All rounds count':'Best '+b.counting_cap+' per calendar month')+(Number(b.participation_floor)>0?' · minimum '+b.participation_floor+(b.participation_floor===1?' round':' rounds'):'');},
 };
 window.SeasonBook=SeasonBook;
 function csSeasonBookReceipt(title,entries,names={},opts={}){
