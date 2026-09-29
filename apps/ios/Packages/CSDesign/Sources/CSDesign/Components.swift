@@ -179,6 +179,30 @@ public extension View {
       self
     }
   }
+
+  /// N4-012 · UI_SYSTEM §13.2a: a row is whole, or clearly half-scrolled
+  /// under a fade — never sheared at the band's edge. Apply to a SCROLL VIEW
+  /// that ends at a band. The fade draws **only while content continues below
+  /// the fold**, so the foot of a page is never faded: IOS-064 removed the
+  /// always-on fade because it erased the last 28pt of live content once the
+  /// band stopped floating, and that objection holds against any fade that
+  /// stays when there is nothing left to scroll to. Before iOS 18 there is no
+  /// scroll geometry to read, and the page ends where it ends.
+  func csFoldFade(_ ground: Color) -> some View {
+    modifier(CSFoldFade(ground: ground))
+  }
+
+  /// N4-024 · the same delineated edge under a transparent navigation bar. A
+  /// page that scrolls under its own title and back button (the composer's
+  /// eyebrow under "Add my round", its gross under the chevron) is cut at the
+  /// bar instead of reading through it at full contrast.
+  @ViewBuilder func csNavBarEdge() -> some View {
+    if #available(iOS 26, *) {
+      scrollEdgeEffectStyle(.hard, for: .top)
+    } else {
+      self
+    }
+  }
 }
 
 #if canImport(UIKit)
@@ -223,3 +247,29 @@ public extension View {
   }()
 }
 #endif
+
+/// See `csFoldFade`.
+struct CSFoldFade: ViewModifier {
+  let ground: Color
+  @State private var more = false
+  func body(content: Content) -> some View {
+    if #available(iOS 18, *) {
+      content
+        .onScrollGeometryChange(for: Bool.self) { g in
+          g.visibleRect.maxY < g.contentSize.height - 1
+        } action: { _, continues in
+          more = continues
+        }
+        .overlay(alignment: .bottom) {
+          if more {
+            LinearGradient(colors: [ground.opacity(0), ground], startPoint: .top, endPoint: .bottom)
+              .frame(height: CSTokens.Space.s5)
+              .allowsHitTesting(false)
+              .accessibilityHidden(true)
+          }
+        }
+    } else {
+      content
+    }
+  }
+}

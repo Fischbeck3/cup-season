@@ -29,15 +29,22 @@ struct RoundConversation: View {
   var body: some View {
     if !unavailable {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-        HStack {
-          CSSectionHead("Comments")
-          Spacer()
+        // N4-202 · D391's words, from the Kit's one table (TalkCopy, the web's
+        // CS_TALK): "Conversation" with its count, and Follow as the web's
+        // toggle, "Follow" / "Following", beside it
+        HStack(spacing: CSTokens.Space.s2) {
+          CSSectionHead(TalkCopy.head, count: thread.flatMap { $0.visible ? "\($0.count)" : nil })
           if let thread, thread.visible {
+            let following = thread.state == "following"
+            Button(following ? TalkCopy.following : TalkCopy.follow) {
+              changeState(following ? "none" : "following")
+            }
+            .buttonStyle(.csTertiary(.content))
+            .accessibilityAddTraits(following ? .isSelected : [])
+            .accessibilityIdentifier("round.comment.follow")
+            .disabled(busy)
             Menu {
-              Button(thread.state == "following" ? "Unfollow conversation" : "Follow conversation") {
-                changeState(thread.state == "following" ? "none" : "following")
-              }
-              Button(thread.state == "muted" ? "Unmute conversation" : "Mute conversation") {
+              Button(thread.state == "muted" ? TalkCopy.unmute : TalkCopy.mute) {
                 changeState(thread.state == "muted" ? "none" : "muted")
               }
               Button("Refresh comments") { Task { await load() } }
@@ -51,10 +58,15 @@ struct RoundConversation: View {
         if loading && thread == nil { Text("Loading comments…").csType(.bodyS).foregroundStyle(cs.mut) }
         if let thread {
           if !thread.visible {
-            Text("This conversation is no longer available.").csType(.bodyS).foregroundStyle(cs.mut)
+            Text(TalkCopy.gone).csType(.bodyS).foregroundStyle(cs.mut)
           } else {
+            // the older comments are the ones not sent, so the line sits above the rows
+            if thread.truncated {
+              Text(TalkCopy.truncated(thread.newest, of: thread.count))
+                .csType(.bodyS).foregroundStyle(cs.mut)
+            }
             if thread.comments.isEmpty {
-              Text("Start the conversation.").csType(.body).foregroundStyle(cs.mut)
+              Text(TalkCopy.empty).csType(.body).foregroundStyle(cs.mut)
             }
             ForEach(thread.roots) { root in
               comment(root)
@@ -63,14 +75,7 @@ struct RoundConversation: View {
               }
               CSRule()
             }
-            if thread.count > thread.comments.count {
-              Text("Showing \(thread.comments.count) of \(thread.count) comments.")
-                .csType(.bodyS).foregroundStyle(cs.mut)
-            }
-            if thread.state == "muted" {
-              Text("Notifications muted for this conversation.").csType(.bodyS).foregroundStyle(cs.mut)
-            }
-            if thread.canComment { composer }
+            if thread.canComment { composer(thread) }
           }
         }
         if let error {
@@ -88,7 +93,7 @@ struct RoundConversation: View {
       CSFace(.init(id: item.author.id, marker: item.author.marker), size: .slat, name: item.author.name)
       VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
         Text(item.isMine ? "You" : item.author.name).csType(.social).foregroundStyle(cs.ink)
-        if let name = item.replyTo { Text("Replying to \(CourseNames.first(name))").csType(.agateS).foregroundStyle(cs.mut) }
+        if let name = item.replyTo { Text(TalkCopy.to(name)).csType(.agateS).foregroundStyle(cs.mut) }
         Text(item.body).csType(.body).foregroundStyle(cs.ink).textSelection(.enabled)
           .fixedSize(horizontal: false, vertical: true)
         HStack(spacing: CSTokens.Space.s3) {
@@ -103,9 +108,9 @@ struct RoundConversation: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       Menu {
         if item.isMine && !item.fromBoard {
-          Button("Remove comment", role: .destructive) { Task { await remove(item) } }
+          Button(TalkCopy.remove, role: .destructive) { Task { await remove(item) } }
         } else {
-          Button("Report comment") { report = item }
+          Button(TalkCopy.report) { report = item }
           Button("Block \(CourseNames.first(item.author.name))") {
             Task {
               do { try await service.block(item.author.id); await load() }
@@ -126,20 +131,25 @@ struct RoundConversation: View {
     .accessibilityIdentifier("round.comment.\(item.id.uuidString)")
   }
 
-  private var composer: some View {
+  /// The composer says what it is writing ("Add a comment" / "Your reply"),
+  /// and under the field what this golfer will hear about — the web's line.
+  private func composer(_ thread: PostedRoundThread) -> some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       if let replying {
         HStack {
-          Text("Reply to \(CourseNames.first(replying.author.name))").csType(.bodyS)
+          Text(TalkCopy.replyingTo(replying.author.name)).csType(.bodyS)
           Spacer()
           Button("Cancel reply") { self.replying = nil }.buttonStyle(.csTertiary(.content))
         }
       }
-      CSField(placeholder: "Say something…", text: $draft, limit: 500, multiline: true)
+      CSField(label: replying == nil ? TalkCopy.add : TalkCopy.reply, placeholder: TalkCopy.placeholder,
+              text: $draft,
+              caption: TalkCopy.hint(state: thread.state, followedOn: thread.followedOn, repliesOn: thread.repliesOn),
+              limit: 500, multiline: true)
         .focused($composing).disabled(busy).accessibilityIdentifier("round.comment.draft")
       HStack {
         Spacer()
-        Button(replying == nil ? "Post comment" : "Post reply") { Task { await send() } }
+        Button(replying == nil ? TalkCopy.send : TalkCopy.sendReply) { Task { await send() } }
           .buttonStyle(.csPrimary(busy: busy))
           .disabled(busy || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || draft.count > 500)
           .accessibilityIdentifier("round.comment.send")
@@ -160,7 +170,7 @@ struct RoundConversation: View {
       onLoaded(target.flatMap { id in answer.comments.contains { $0.id == id } ? id.uuidString : nil })
     } catch {
       if (error as? RpcError)?.isMissingFunction == true { unavailable = true }
-      else { self.error = HumanError.text(error, prefix: "Could not load comments.") }
+      else { self.error = HumanError.text(error, prefix: TalkCopy.readFailed) }
     }
   }
 
@@ -173,19 +183,19 @@ struct RoundConversation: View {
       let sent = try await service.send(roundId, intent: intent)
       draft = ""; replying = nil; pending = nil; composing = false
       await load(focus: sent)
-    } catch { self.error = HumanError.text(error, prefix: "Your comment did not send. Try again.") }
+    } catch { self.error = HumanError.text(error, prefix: TalkCopy.failed) }
   }
   private func changeState(_ state: String) {
     Task {
       busy = true
       defer { busy = false }
       do { try await service.state(roundId, state); await load() }
-      catch { self.error = HumanError.text(error, prefix: "Could not change notifications.") }
+      catch { self.error = HumanError.text(error, prefix: TalkCopy.stateFailed) }
     }
   }
   private func remove(_ comment: SocialComment) async {
     do { try await service.remove(comment.id); await load() }
-    catch { self.error = HumanError.text(error, prefix: "Could not remove this comment.") }
+    catch { self.error = HumanError.text(error, prefix: TalkCopy.removeFailed) }
   }
 }
 

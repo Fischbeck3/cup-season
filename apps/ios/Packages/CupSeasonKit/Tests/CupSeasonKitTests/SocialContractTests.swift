@@ -24,6 +24,6 @@ struct SocialContractTests {
       """))
     #expect(page.best == 68)
     #expect(page.people.isEmpty)
-    #expect(page.selectionLine == "White · 18 holes · Gross")
+    #expect(page.selectionLine == "White tees · 18 holes")
   }
 }

@@ -121,6 +121,11 @@ final class PostRoundModel {
   var courseError: String?
   /// …and the course field takes focus when a post is refused for it.
   var courseFocusRequest = false
+  /// N4-020 (root) · noRating the same way: its words under the rating and
+  /// slope fields, and the cursor in the first of the two that is not sane.
+  var ratingError: String?
+  var ratingFocusRequest = false
+  var slopeFocusRequest = false
 
   // sheets and the ceremony
   var showPars = false
@@ -475,6 +480,14 @@ final class PostRoundModel {
         // there — no toast, and the post's answer slot left for the post
         courseError = b.message
         courseFocusRequest = true
+        AccessibilityNotification.Announcement(b.message).post()
+        return
+      }
+      if b == .noRating {
+        // root, finishing N4-020: the words under rating and slope, and the
+        // cursor in the first of the two the card is missing
+        ratingError = b.message
+        if PostCalc.ratingIsSane(card.ratingValue) { slopeFocusRequest = true } else { ratingFocusRequest = true }
         AccessibilityNotification.Announcement(b.message).post()
         return
       }

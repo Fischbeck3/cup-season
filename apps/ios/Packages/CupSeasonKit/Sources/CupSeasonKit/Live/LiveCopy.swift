@@ -10,6 +10,10 @@
 import Foundation
 
 public enum LiveCopy {
+  /// N4-170 · the live setup's offline switch, named for what it is, and what
+  /// it costs, said at rest
+  public static let offlineSwitch = "No signal? Score offline"
+  public static let offlineCost = "No signal needed. Review and post when you reconnect. No group sync or automatic posting."
 
   // MARK: - the match card (8445–8511)
 
@@ -453,6 +457,11 @@ public enum LiveCopy {
     public let completeCards: Int
     public let guests: Int
   }
+
+  /// N4-171 · the casual finish ends the GROUP's round and posts nobody's
+  /// card, so its first tap says so and only the second does it (UI_SYSTEM
+  /// §7.1). The web's live finish sheet arms the same act with these words.
+  public static let finishCasualArmed = "Sure? Nobody’s round posts"
 
   /// `cardHoles(i)` — 18 | 9 | 0, the server's rule.
   public static func cardHoles(_ a: [Int?]) -> Int {

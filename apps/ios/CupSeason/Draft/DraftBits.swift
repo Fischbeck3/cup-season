@@ -67,7 +67,8 @@ struct DraftSquadCard: View {
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
       .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(selected ? cs.pos : cs.rule, lineWidth: selected ? 1.5 : 1))
-      .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(color).frame(width: 3.5).padding(.vertical, 10) }
+      // root (N4-094's draft-room remainder) · no squad-colour spine: the
+      // retired card spine said again what the swatch beside the name says
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -125,7 +126,8 @@ struct DraftSnakeSquadCard: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(CSDusk.surface, in: RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous))
     .overlay(RoundedRectangle(cornerRadius: CSTokens.Radius.r, style: .continuous).stroke(onClock ? color : cs.rule, lineWidth: onClock ? 1.5 : 1))
-    .overlay(alignment: .leading) { RoundedRectangle(cornerRadius: 2).fill(color).frame(width: 3.5).padding(.vertical, 10) }
+    // root (N4-094's draft-room remainder) · no squad-colour spine: the swatch
+    // beside the name carries the colour
   }
 
   private func row(_ a: String, _ b: String, bold: Bool, empty: Bool = false) -> some View {

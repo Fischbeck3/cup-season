@@ -61,7 +61,9 @@ struct PotPane: View {
       }
       .csGutter()
 
-      CSSectionHead("Who is in", count: SeasonBoardCopy.paid(model.paidCount, of: model.potPlayers))
+      // N4-103 · "The pot · EIGHT IN" and then "WHO IS IN · SIX OF EIGHT"
+      // said "in" two ways; this head counts who has PAID
+      CSSectionHead("Who has paid", count: SeasonBoardCopy.paid(model.paidCount, of: model.potPlayers))
         .csGutter()
       ledger
         .csGutter()
@@ -160,7 +162,7 @@ struct PotPane: View {
         if !typeSize.isA11y {
           HStack(spacing: CSTokens.Space.s3) {
             Text("Golfer").frame(maxWidth: .infinity, alignment: .leading)
-            Text("In").frame(width: 80, alignment: .leading)
+            Text("Paid").frame(width: 80, alignment: .leading)   // N4-103 · it holds PAID / OWES
             Text("Amount").frame(width: 64, alignment: .trailing)
           }
           .csType(.agateS, caps: true).foregroundStyle(cs.leafMut)
@@ -224,14 +226,16 @@ struct PotPane: View {
     let amount = m.flatMap { model.buyIns[$0.id]?.amount_cents }
       .map { PotMath.money($0) } ?? PotMath.dollars(model.bylaws.stake)
     return Button(action: action) {
-      A11yStack(rowAlignment: .center, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s1) {
+      // N4-102 · a name wraps whole and the row grows ('Maximilian Placeh…'),
+      // and the sign and the amount stay on the name's first line
+      A11yStack(rowAlignment: .firstTextBaseline, spacing: CSTokens.Space.s3, columnSpacing: CSTokens.Space.s1) {
         HStack(spacing: CSTokens.Space.s2) {
           if let m {
             CSFace(.init(id: m.profile_id, marker: m.mk, photoURL: model.avatarURL[m.profile_id],
                          isViewer: mine), size: .inline)
           }
           Text(mine ? "You" : name).csType(.nameS, caps: false).foregroundStyle(cs.leafInk)
-            .lineLimit(1).truncationMode(.tail)
+            .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // **THE SIGN IS A WORD** — never a tick, never opacity, never a hue.

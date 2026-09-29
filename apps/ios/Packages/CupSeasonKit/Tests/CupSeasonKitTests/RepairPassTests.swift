@@ -121,14 +121,29 @@ import Foundation
 
   // MARK: - R-05 · the month minimum reaches the declared fallback
 
-  private func floorMembership(credits: Double, floor: Int, partial: Bool = false, solo: Bool = false) throws -> Me.Membership {
+  private func floorMembership(credits: Double, floor: Int, partial: Bool = false, solo: Bool = false,
+                               penalty: String = "deduct", squad: Bool = false) throws -> Me.Membership {
     try decode(Me.Membership.self, """
     {"league_id":"55555555-5555-5555-5555-555555555555","name":"Fellas","phase":"season","role":"player",
      "member_id":"66666666-6666-6666-6666-666666666666",
      "settings":{"structure":"\(solo ? "solo" : "squads2")","buyin_cents":0,"participation_floor":\(floor),
-                 "floor_penalty":"deduct","handicap_allowance":95},
+                 "floor_penalty":"\(penalty)","handicap_allowance":95},
+     \(squad ? #""squad":{"id":"77777777-7777-7777-7777-777777777777","name":"Fixture Hawks","color":0},"# : "")
      "pulse":{"credits":\(credits),"floor":\(floor),"at_floor":false,"partial":\(partial)}}
     """)
+  }
+
+  /// N4-210 · the penalty clause only where the penalty is real: a Casual
+  /// league's minimum docks nothing, and the fallback said a squad paid for it.
+  @Test("the fallback's penalty clause follows the league's own penalty")
+  func theFloorItemsPenaltyIsReal() throws {
+    let deduct = try floorMembership(credits: 0, floor: 2, squad: true)
+    #expect(HomeFallbackItems.floorItem(deduct, today: "2026-09-29", calendar: .current)?.standfirst
+            == "The Fixture Hawks carry the penalty, not you.")
+    let none = try floorMembership(credits: 0, floor: 2, penalty: "none", squad: true)
+    let item = HomeFallbackItems.floorItem(none, today: "2026-09-29", calendar: .current)
+    #expect(item != nil, "the minimum is still a deadline")
+    #expect(item?.standfirst == nil, "but nobody carries a penalty that does not exist")
   }
 
   @Test("the one item with a hard deadline and a real penalty is composable without the ranker")

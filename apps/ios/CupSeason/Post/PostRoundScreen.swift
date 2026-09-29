@@ -254,6 +254,16 @@ private struct PostRoundBody: View {
         if model.refusal != nil { model.refusal = nil }
         // A2 · naming a course answers the course's own error
         if model.courseError != nil, card.hasCourse { model.courseError = nil }
+        // …and a sane rating and slope answer theirs
+        if model.ratingError != nil, PostCalc.ratingIsSane(card.ratingValue), PostCalc.slopeIsSane(card.slopeValue) {
+          model.ratingError = nil
+        }
+      }
+      // N4-020 (root) · a post refused for its rating opens the card and the
+      // fold to the two fields; the field itself takes the cursor
+      .onChange(of: model.ratingFocusRequest || model.slopeFocusRequest) { _, want in
+        guard want else { return }
+        CSMotion.run { cardOpen = true; ratingOpen = true }
       }
       // A2 · a post refused for want of a course opens the card to the course
       // field and brings it into view; the field takes the cursor itself
@@ -303,6 +313,7 @@ private struct PostRoundBody: View {
       }
     }
     .scrollDismissesKeyboard(.interactively)
+    .csNavBarEdge()
     .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
     .navigationTitle("Add my round")
     .navigationBarTitleDisplayMode(.inline)
@@ -497,11 +508,20 @@ private struct PostRoundBody: View {
       .accessibilityHint(ratingFieldsShown ? "Hides the fields" : "Opens the rating and slope fields")
       if ratingFieldsShown {
         A11yStack(rowAlignment: .top, spacing: 10) {
-          field("Rating") { numberField("72.1", Binding(get: { model.card.rating }, set: { model.typedRating($0) }), decimal: true).accessibilityLabel("Rating") }
-          field("Slope") { numberField("128", $model.card.slope, decimal: false).accessibilityLabel("Slope") }
+          field("Rating") { numberField("72.1", Binding(get: { model.card.rating }, set: { model.typedRating($0) }), decimal: true,
+                                        focus: $model.ratingFocusRequest).accessibilityLabel("Rating") }
+          field("Slope") { numberField("128", $model.card.slope, decimal: false, focus: $model.slopeFocusRequest).accessibilityLabel("Slope") }
         }
         .padding(.top, 10)
         .transition(.opacity)
+        // N4-020 (root) · the rating's own error, under the two fields, as the
+        // web says it — the post's answer slot stays for the post
+        if let e = model.ratingError {
+          Text(e).csType(.bodyS).foregroundStyle(cs.neg)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.top, CSTokens.Space.s2)
+            .accessibilityIdentifier("post.rating.error")
+        }
       }
       dateRow
     }
@@ -546,8 +566,9 @@ private struct PostRoundBody: View {
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 
-  private func numberField(_ placeholder: String, _ text: Binding<String>, decimal: Bool) -> some View {
-    CSField(placeholder, text: text).keyboardType(decimal ? .decimalPad : .numberPad)
+  private func numberField(_ placeholder: String, _ text: Binding<String>, decimal: Bool,
+                           focus: Binding<Bool>? = nil) -> some View {
+    CSField(placeholder: placeholder, text: text, focusRequest: focus).keyboardType(decimal ? .decimalPad : .numberPad)
   }
 
   // MARK: - Your card (the 18/9 seg, the two boxes, the strip)
@@ -679,10 +700,14 @@ private struct PostRoundBody: View {
   /// whatever height 13pt of text is — about 20 — and the compiler had nothing
   /// to say about it. It is a tertiary now, which carries the 44pt target in
   /// the style rather than at the site.
+  /// N4-022 · one tap wiped the card, the photo and the draft, directly under
+  /// the primary, with no undo. The first tap arms it — "Sure?" in neg on bg2
+  /// (UI_SYSTEM §7.1) — and the second, within four seconds, clears; left
+  /// alone it disarms.
   private var startOver: some View {
-    Button("Start over") { model.startOver() }   // F-13
-      .buttonStyle(.csTertiary(.content))
+    CSArmedButton(label: "Start over", armedLabel: "Sure? This clears the card") { model.startOver() }   // F-13
       .frame(maxWidth: .infinity)
+      .accessibilityIdentifier("post.startOver")
   }
 
   /// **IOS-064 · PINNED CHROME MAY NOT EAT THE PAGE.** `ax3-composer.png`:

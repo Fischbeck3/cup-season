@@ -79,8 +79,10 @@ struct ScheduleScreen: View {
         // the case, so the words go in as the web says them.
         let name = Text(sr.display_name ?? "A golfer")
         let title = relTag(sr).map { name + Text("  \($0)").font(CSType.font(.agateS)).foregroundStyle(cs.mut) } ?? name
+        // N4-133 · the person is the row's one button, as PersonRow's is: it
+        // opened on a tap gesture and was never a button to VoiceOver
         RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name), title: title,
-                    sub: watchBits(sr)) {
+                    sub: watchBits(sr), onTap: { if let id = sr.id { open(id) } }, hint: "Opens the plan") {
           // W2 · the slot holds the ANSWER when there is one (in, out) and the
           // act when there is not — never a tag read as a yes (`csPlanRowHtml`)
           if let a = answer(sr), a.settled {
@@ -98,8 +100,6 @@ struct ScheduleScreen: View {
             }
           }
         }
-        .contentShape(Rectangle())
-        .onTapGesture { if let id = sr.id { open(id) } }
       }
     }
   }
@@ -196,11 +196,11 @@ struct ScheduleScreen: View {
         ForEach(Array(d.items.enumerated()), id: \.offset) { _, it in
           switch it {
           case .round(let sr):
-            CSCheckRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(dayBits(sr))) {
+            // N4-133 · the person is the row's one button (it was a tap gesture)
+            RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(dayBits(sr)),
+                        onTap: { if let id = sr.id { day = nil; open(id) } }, hint: "Opens the plan") {
               if sr.isMine, let id = sr.id { ownerActions(sr, id: id) }
             }
-            .contentShape(Rectangle())
-            .onTapGesture { if let id = sr.id { day = nil; open(id) } }
           case .league(let text, let gold):
             HStack(spacing: CSTokens.Space.s3) {
               CSGlyph(.calendar, size: .row).foregroundStyle(cs.mut)
@@ -264,7 +264,9 @@ struct ScheduleScreen: View {
       CSFine("Nothing on the schedule for \(vm.month.monthName). Put one up: buddies and the crews you play with see it the moment you do.")
     } else {
       ForEach(rows) { sr in
-        RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(listBits(sr))) {
+        // N4-133 · the person is the row's one button (it was a tap gesture)
+        RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(listBits(sr)),
+                    onTap: { if let id = sr.id { open(id) } }, hint: "Opens the plan") {
           HStack(spacing: CSTokens.Space.s2) {
             Text(sr.play_on.map { ScheduleDates.whenDays($0, today: vm.today) } ?? "").csType(.agateS, caps: true).foregroundStyle(cs.mut)
             if sr.isMine, let id = sr.id {
@@ -275,8 +277,6 @@ struct ScheduleScreen: View {
             }
           }
         }
-        .contentShape(Rectangle())
-        .onTapGesture { if let id = sr.id { open(id) } }
       }
     }
   }
@@ -499,16 +499,24 @@ struct ScheduleMonthGrid: View {
   }
 
   @ViewBuilder private var legends: some View {
-    legend(cs.act, "ON THE SCHEDULE"); legend(cs.ink, "IN YOUR SEASONS"); legend(cs.mut, "SEASON DATE")
+    legend(.round, "ON THE SCHEDULE"); legend(.leagueMate, "IN YOUR SEASONS"); legend(.season, "SEASON DATE")
   }
 
-  private func legend(_ c: Color, _ t: String) -> some View {
-    HStack(spacing: CSTokens.Space.s1) { Circle().fill(c).frame(width: 6, height: 6); Text(t).csType(.agateS, caps: true).foregroundStyle(cs.mut) }
+  private func legend(_ k: CalendarItem.Dot, _ t: String) -> some View {
+    HStack(spacing: CSTokens.Space.s1) { mark(k).frame(width: 9, alignment: .center); Text(t).csType(.agateS, caps: true).foregroundStyle(cs.mut) }
   }
 
-  private func dot(_ k: CalendarItem.Dot) -> Color {
-    // D359 / F4 · a routine plan is not competition: the ordinary colour, never ember
-    switch k { case .round: cs.act; case .leagueMate: cs.ink; case .season: cs.mut }
+  /// N4-132 · **COLOUR IS NEVER THE ONLY CHANNEL** (UI_SYSTEM §16.4): the three
+  /// kinds of day were one dot in three tints. As the web's `.caldot` draws
+  /// them: a round you are on is a filled disc (act), a round in your seasons
+  /// a ring (ink), a season date a bar (mut). D359 / F4 · a routine plan is
+  /// not competition: the ordinary colour, never ember.
+  @ViewBuilder private func mark(_ k: CalendarItem.Dot) -> some View {
+    switch k {
+    case .round: Circle().fill(cs.act).frame(width: 7, height: 7)
+    case .leagueMate: Circle().strokeBorder(cs.ink, lineWidth: 1.5).frame(width: 7, height: 7)
+    case .season: Rectangle().fill(cs.mut).frame(width: 9, height: 2)
+    }
   }
 
   private func cell(_ d: Int) -> some View {
@@ -521,12 +529,17 @@ struct ScheduleMonthGrid: View {
       VStack(spacing: CSTokens.Space.s1) {
         // on the panel the ink inverts — a `mut` numeral on bone is the light
         // theme's worst contrast, and today's cell is the one that must read
+        // N4-131 · a date is capped to its own cell: at SE3 AX3 the two-digit
+        // numerals ran into their neighbours ('101112'). It shrinks only when
+        // it would not fit, and never wraps.
         Text("\(d)").csType(.columnS)
+          .lineLimit(1).minimumScaleFactor(0.5)
+          .frame(maxWidth: .infinity)
           .foregroundStyle(isToday ? cs.panelInk : (isPast && items.isEmpty ? cs.mut : cs.ink))
         HStack(spacing: 2) {
-          ForEach(Array(items.prefix(3).enumerated()), id: \.offset) { _, it in Circle().fill(dot(it.dot)).frame(width: 5, height: 5) }
+          ForEach(Array(items.prefix(3).enumerated()), id: \.offset) { _, it in mark(it.dot) }
         }
-        .frame(height: 6)
+        .frame(height: 7)
       }
       .frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())
       // today is the panel, not an ember outline — a day is not a live action.
@@ -541,9 +554,22 @@ struct ScheduleMonthGrid: View {
       }
       .contentShape(Rectangle())
     }
-    .buttonStyle(.plain)
+    // N4-132 · a past, empty day is still not a target (`.disabled`, which
+    // VoiceOver reads as dimmed), but the plain style's system dimming sat on
+    // top of the numeral's own mut — dimmed twice, ~2.6:1 dark and 2.1:1
+    // light. This style draws the day as it is, and mut is the only tier.
+    .buttonStyle(CalendarDayStyle())
     .disabled(!tappable)
     .accessibilityLabel("\(ScheduleDates.long(iso))\(items.isEmpty ? "" : ", \(items.count) on the schedule")")
     .accessibilityIdentifier("schedule.day.\(d)")
+  }
+}
+
+/// N4-132 · a calendar day drawn as it is, enabled or not: a custom style is
+/// never dimmed by the system, so a past day's mut is the one tier it wears.
+/// Pressed, it answers the finger.
+private struct CalendarDayStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label.opacity(configuration.isPressed ? 0.7 : 1)
   }
 }

@@ -30,6 +30,7 @@ import CupSeasonKit
 
 struct RecordPage: View {
   @Environment(\.cs) private var cs
+  @Environment(\.dynamicTypeSize) private var typeSize
   @Environment(\.dismiss) private var dismiss
   @Environment(SessionStore.self) private var store
   @Environment(\.openCompetition) private var openCompetition
@@ -100,19 +101,41 @@ struct RecordPage: View {
   @ViewBuilder private var career: some View {
     let cells = model.careerCells
     if !cells.isEmpty {
-      VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-        HStack(alignment: .lastTextBaseline, spacing: CSTokens.Space.s3) {
-          ForEach(Array(cells.enumerated()), id: \.offset) { _, c in
-            Text(c.value).csType(.figureM).csTabular().foregroundStyle(cs.ink)
-              .frame(maxWidth: .infinity, alignment: c.trailing ? .trailing : .leading)
-              .lineLimit(1).minimumScaleFactor(0.6)
+      Group {
+        if typeSize.isA11y {
+          // N4-073 · at the accessibility sizes four columns cannot hold their
+          // labels ('SEASON / S'): each figure is its own row under the heavy
+          // rule, its label leading and wrapping whole, the figure trailing
+          // (UI_SYSTEM §16.3)
+          VStack(alignment: .leading, spacing: 0) {
+            CSRule(.heavy)
+            ForEach(Array(cells.enumerated()), id: \.offset) { i, c in
+              HStack(alignment: .firstTextBaseline, spacing: CSTokens.Space.s3) {
+                Text(c.label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                  .fixedSize(horizontal: false, vertical: true)
+                  .frame(maxWidth: .infinity, alignment: .leading)
+                Text(c.value).csType(.figureM).csTabular().foregroundStyle(cs.ink)
+              }
+              .padding(.vertical, CSTokens.Space.s2)
+              .overlay(alignment: .bottom) { if i < cells.count - 1 { CSRule() } }
+            }
           }
-        }
-        CSRule(.heavy)
-        HStack(alignment: .top, spacing: CSTokens.Space.s3) {
-          ForEach(Array(cells.enumerated()), id: \.offset) { _, c in
-            Text(c.label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
-              .frame(maxWidth: .infinity, alignment: c.trailing ? .trailing : .leading)
+        } else {
+          VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+            HStack(alignment: .lastTextBaseline, spacing: CSTokens.Space.s3) {
+              ForEach(Array(cells.enumerated()), id: \.offset) { _, c in
+                Text(c.value).csType(.figureM).csTabular().foregroundStyle(cs.ink)
+                  .frame(maxWidth: .infinity, alignment: c.trailing ? .trailing : .leading)
+                  .lineLimit(1).minimumScaleFactor(0.6)
+              }
+            }
+            CSRule(.heavy)
+            HStack(alignment: .top, spacing: CSTokens.Space.s3) {
+              ForEach(Array(cells.enumerated()), id: \.offset) { _, c in
+                Text(c.label).csType(.agateS, caps: true).foregroundStyle(cs.mut)
+                  .frame(maxWidth: .infinity, alignment: c.trailing ? .trailing : .leading)
+              }
+            }
           }
         }
       }

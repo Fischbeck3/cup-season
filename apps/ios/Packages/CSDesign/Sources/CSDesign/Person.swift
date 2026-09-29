@@ -367,8 +367,12 @@ public struct CSCredentialGolfer: Sendable {
     public let value: String
     public let label: String
     public let ordinal: String?
-    public init(_ value: String, label: String, ordinal: String? = nil) {
-      self.value = value; self.label = label; self.ordinal = ordinal
+    /// N4-050 · a second agate line under the label — the course a best round
+    /// was played on — so the label stays one word ("BEST") and the place is
+    /// never an ellipsis ("BEST · NORTH GROVE (FIX…").
+    public let note: String?
+    public init(_ value: String, label: String, ordinal: String? = nil, note: String? = nil) {
+      self.value = value; self.label = label; self.ordinal = ordinal; self.note = note
     }
   }
 
@@ -891,6 +895,12 @@ public struct CSCredential<Plate: View>: View {
             CSRule(.heavy, over: .ceremony)
             Text(f.label).csType(.agateS, caps: true)
               .foregroundStyle(CSTokens.dark.ceremonyMut)
+              .fixedSize(horizontal: false, vertical: true)
+            if let note = f.note {
+              Text(note).csType(.agateS, caps: true)
+                .foregroundStyle(CSTokens.dark.ceremonyMut)
+                .fixedSize(horizontal: false, vertical: true)
+            }
           }
         }
       }
@@ -900,14 +910,21 @@ public struct CSCredential<Plate: View>: View {
         ForEach(Array(golfer.figures.enumerated()), id: \.offset) { i, f in
           VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
             CSFigure(f.value, size: .m, label: nil, ordinal: f.ordinal, over: .ceremony)
-            // **A label truncates before it touches the next one**, and the
-            // gutter is inside the cell so the truncation starts a word
-            // earlier. With measured columns it should never fire; when the
-            // three labels genuinely exceed the card it fires honestly.
+            // N4-050 · **A LABEL WRAPS, NEVER AN ELLIPSIS.** It truncated
+            // before it touched the next one ('HANDICAP IN… · ROU…'); it takes
+            // a second line inside its own cell instead, and the gutter is
+            // still inside the cell so it never touches its neighbour. The
+            // best round's course is its own line under the label.
             Text(f.label).csType(.agateS, caps: true)
               .foregroundStyle(CSTokens.dark.ceremonyMut)
-              .lineLimit(1).truncationMode(.tail)
+              .fixedSize(horizontal: false, vertical: true)
               .frame(width: max(0, widths[i] - CSTokens.Space.s2), alignment: .leading)
+            if let note = f.note {
+              Text(note).csType(.agateS, caps: true)
+                .foregroundStyle(CSTokens.dark.ceremonyMut)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(width: max(0, widths[i] - CSTokens.Space.s2), alignment: .leading)
+            }
           }
           .frame(width: widths[i], alignment: .leading)
         }

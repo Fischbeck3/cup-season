@@ -132,9 +132,12 @@ public struct CSDrawnCard: View {
               .fill(h.number == hardest && scale == .hero ? barMark : barGreen)
               .frame(height: max(3, field * height(h)))
             if numerals {
+              // N4-083 · opaque mut: the tertiary tier is size, case and
+              // position, never a dimmer grey (UI_SYSTEM §16.1) — at a56 the
+              // hole numbers read 3.09:1 down to 2.28:1
               Text("\(h.number)")
                 .csType(.columnS)
-                .foregroundStyle(cs.mut.opacity(CSTokens.Alpha.a56))
+                .foregroundStyle(cs.mut)
                 .lineLimit(1).minimumScaleFactor(0.7)
             }
           }

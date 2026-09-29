@@ -63,11 +63,13 @@ struct WizardAgreementView: View {
       Text("Review your league").csType(.agateS).foregroundStyle(cs.mut).id("top")
       Text(agreement.dials.name).csType(.displayS).fixedSize(horizontal: false, vertical: true)
         .accessibilityIdentifier("wizard-agreement")
+      // N4-208 · the web's review, row for row: an agate label (its caps are
+      // the role's) over the rule as a sentence in sans
       ForEach(agreement.rows) { row in
         VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
           CSRule()
-          Text(row.label).csType(.nameS)
-          Text(row.value).csType(.body).foregroundStyle(cs.mut).fixedSize(horizontal: false, vertical: true)
+          Text(row.k).csType(.agate, caps: true).foregroundStyle(cs.mut)
+          Text(row.v).csType(.body).foregroundStyle(cs.ink).fixedSize(horizontal: false, vertical: true)
         }.accessibilityElement(children: .combine)
       }
       Text("Score expectations are a group agreement, not an automatic eligibility check.").csType(.bodyS).foregroundStyle(cs.mut)

@@ -128,29 +128,48 @@ public struct BylawRow: Sendable, Equatable, Identifiable {
 public enum LeagueCopy {
   // MARK: bylaws (11889–11908)
 
-  public static func bylawsRows(_ b: Bylaws, clock: RoomClock) -> [BylawRow] {
+  /// **N4-208 (PAR-19) · ONE AGREEMENT, THE WEB'S.** Root's ruling: the
+  /// web's `renderBylaws` is the one producer of the Pro's agreement before
+  /// Start (D346: it reads the exact outgoing settings), so these rows are its
+  /// review, row for row and word for word, and the wizard's separate
+  /// `WizardAgreement` rows retire. The labels are sentence case — their caps
+  /// are the role's (§1.3) — and the values read as sentences. The Cup Final
+  /// row prints what the web prints today; its words wait on DEC-01.
+  public static func bylawsRows(_ b: Bylaws, clock: RoomClock, payNote: String? = nil) -> [BylawRow] {
+    let solo = b.structure == "solo"
     var rows: [BylawRow] = [
-      BylawRow("FORMAT", Bylaws.structNames[b.structure] ?? b.structure),
-      BylawRow("THE DRAW", Bylaws.draftNames[b.draftType] ?? b.draftType),
-      BylawRow("HOUSE RULES", houseRules(b)),
-      // D373 · twin of the web's HOW SCORES COUNT byrow
-      BylawRow("HOW SCORES COUNT", "Scored against your playing HCP — your index at \(Bylaws.allow[b.presetIdx]) percent"),
-      BylawRow("SCORES", Bylaws.verif[b.presetIdx]),
-      BylawRow("EACH MONTH", b.cap == nil ? "Every round counts" : "\(b.capLabel) a month count"),
-      BylawRow("THE MINIMUM", "\(b.floor) a month · \(Bylaws.penalty[b.presetIdx])"),
+      BylawRow("Format", Bylaws.structNames[b.structure] ?? b.structure),
+      BylawRow("The draw", Bylaws.draftNames[b.draftType] ?? b.draftType),
+      BylawRow("House rules", houseRules(b)),
+      // D373 · the index the allowance is applied to, and the playing HCP it makes
+      BylawRow("How scores count", "Scored against your playing HCP — your index at \(Bylaws.allow[b.presetIdx]) percent"),
+      BylawRow("Scores", Bylaws.verif[b.presetIdx]),
+      BylawRow("Each month", countingRule(b.cap)),
+      BylawRow("The minimum", solo ? "No team minimum in an individual season"
+                : b.floor > 0 ? "\(b.floor) per golfer each month" : "No minimum"),
     ]
+    if !solo && b.floor > 0 {
+      rows.append(BylawRow("If you miss it", WizardDials.minimumConsequence(solo: solo, floor: b.floor, preset: b.presetIdx)))
+    }
     if b.stake == 0 {
-      rows.append(BylawRow("BUY-IN", "None · bragging rights"))
+      rows.append(BylawRow("Buy-in", "None · bragging rights"))
     } else {
-      rows.append(BylawRow("BUY-IN", "\(PotMath.dollars(b.stake)) / golfer"))
-      rows.append(BylawRow("POT SPLIT", "\(b.payout.map(String.init).joined(separator: " / ")) · champion / runner-up / points king"))
+      rows.append(BylawRow("Buy-in", "\(PotMath.dollars(b.stake)) / golfer"))
+      let note = (payNote ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+      rows.append(BylawRow("How to pay", note.isEmpty ? "Not set yet" : note))
+      rows.append(BylawRow("Pot split", "\(b.payout.map(String.init).joined(separator: " / ")) · champion / runner-up / Points King"))
     }
     let tw = clock.totalWeeks
-    rows.append(BylawRow("SEASON", (clock.hasSeason && tw >= 8 ? LeagueDates.durLabel(tw) + " · " : "") + clock.spanText))
-    if b.finish == "cup_final", clock.hasSeason, tw >= 6, let cf = clock.cupFinalStart {
-      rows.append(BylawRow("CUP FINAL", "Final 4 weeks · from \(LeagueDates.dowMonDay(cf)) · scored fresh"))
+    if let s = clock.startsOn, let e = clock.endsOn {
+      rows.append(BylawRow("Season", "\(LeagueDates.dowMonDay(s)) \u{2013} \(LeagueDates.dowMonDay(e)) · \(tw) weeks"))
     } else {
-      rows.append(BylawRow("FINISH", "Points table crowns it · whole season, one race"))
+      rows.append(BylawRow("Season", clock.spanText))
+    }
+    if b.finish == "cup_final", clock.hasSeason, tw >= 6, let cf = clock.cupFinalStart {
+      rows.append(BylawRow("Cup Final", "Final 4 weeks · from \(LeagueDates.dowMonDay(cf)). Final rounds must also fit the monthly counting limit; an earlier round can take a place."
+                           + (b.structure == "squads2" ? " Leading squad starts with 10 points." : "")))
+    } else {
+      rows.append(BylawRow("Finish", "Points table crowns it · whole season, one race"))
     }
     return rows
   }
@@ -381,11 +400,14 @@ public enum LeagueCopy {
   /// made sentences like "unlimited count, you've posted 2". A rule is a
   /// sentence; this is the one place it is written, and every month surface on
   /// the phone reads it. The web's `csCountingRule` is the same rule, said the
-  /// same way; the two may not drift.
+  /// same way; the two may not drift. **N4-208 · they had:** the web says its
+  /// number as a word (`csWord`, "Your best three each month count.") and the
+  /// phone printed the numeral from D352 on. The agreement row made the drift
+  /// a second vocabulary on one screen, so the phone says the word too.
   public static func countingRule(_ cap: Int?) -> String {
     guard let cap else { return "Every round you post counts." }
     return cap == 1 ? "Your best round each month counts."
-                    : "Your best \(cap) each month count."
+                    : "Your best \(SeasonStoryCopy.word(cap)) each month count."
   }
 
   /// D352 · the same rule as a terse LABEL, for the foot and the month row,

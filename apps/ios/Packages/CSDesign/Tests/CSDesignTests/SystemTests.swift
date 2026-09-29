@@ -367,6 +367,17 @@ import SwiftUI
     let live = CSSeasonCalendar(weeks: 13, played: 4, now: 4, months: [.init(label: "Aug", weeks: 13)])
     #expect(live.spoken == "Week 5 of 13, the live week")
   }
+
+  /// N4-104 · played `ink`, now `brand`, ahead `mut` — the fill drew `mut`
+  /// over `rule`, the pair its own doc measured below the threshold of sight
+  @Test func theClockSaysPlayedNowAndAheadInThreeTones() {
+    for cs in [CSTokens.dark, CSTokens.light] {
+      #expect(CSSeasonCalendar.tick(2, now: 4, played: 4, in: cs) == cs.ink)
+      #expect(CSSeasonCalendar.tick(4, now: 4, played: 4, in: cs) == cs.brand)
+      #expect(CSSeasonCalendar.tick(7, now: 4, played: 4, in: cs) == cs.mut)
+      #expect(CSSeasonCalendar.tick(12, now: -1, played: 13, in: cs) == cs.ink)
+    }
+  }
 }
 
 // MARK: - D286 · one section head, at two weights

@@ -400,10 +400,20 @@ public struct CSFittedSheet: ViewModifier {
   @Environment(\.dynamicTypeSize) private var typeSize
   let height: CGFloat
   let large: Bool
+  /// N4-114 · the content's own height, reported by its scroller's content
+  /// (`csReportsHeight`); 0 while it is not known.
+  var fits: CGFloat = 0
+  @State private var bottom: CGFloat = 0
   public func body(content: Content) -> some View {
+    // **THE HEIGHT IS A FLOOR, NOT A CAP.** At 260 the when-fork cut its
+    // second answer on an SE at the reading size — the scroller kept it, but
+    // nothing said there was more. The sheet grows to its content, and the
+    // bottom inset is added so the last row clears the home indicator.
+    let fit = max(height, fits > 0 ? ceil(fits + bottom) : 0)
     content
+      .onGeometryChange(for: CGFloat.self) { $0.safeAreaInsets.bottom } action: { bottom = $0 }
       .presentationDetents(typeSize.isA11y ? [.large]
-                           : (large ? [.height(height), .large] : [.height(height)]))
+                           : (large ? [.height(fit), .large] : [.height(fit)]))
       .presentationDragIndicator(.visible)
   }
 }
@@ -411,9 +421,17 @@ public struct CSFittedSheet: ViewModifier {
 public extension View {
   /// A fitted sheet: `height` points at the reading sizes, the whole page at
   /// the accessibility sizes. `large: true` also offers the full page as a
-  /// second detent below AX, for a sheet whose content can grow.
-  func csFittedSheet(_ height: CGFloat, large: Bool = false) -> some View {
-    modifier(CSFittedSheet(height: height, large: large))
+  /// second detent below AX, for a sheet whose content can grow. With `fits`
+  /// — the content's own height — `height` is a floor and the sheet grows to
+  /// the content (N4-114).
+  func csFittedSheet(_ height: CGFloat, large: Bool = false, fits: CGFloat = 0) -> some View {
+    modifier(CSFittedSheet(height: height, large: large, fits: fits))
+  }
+
+  /// N4-114 · a fitted sheet's scroller content reports its natural height,
+  /// which the scroller never constrains.
+  func csReportsHeight(_ height: Binding<CGFloat>) -> some View {
+    onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height.wrappedValue = $0 }
   }
 }
 

@@ -24,7 +24,7 @@ private func season(_ status: String = "active", starts: String, ends: String,
             days_to_first_tee: toFirstTee, days_left: nil, final_opens_on: nil)
 }
 
-private func membership(phase: String = "season", buyin: Int = 0,
+private func membership(phase: String = "season", buyin: Int = 0, role: String = "player",
                         season s: Me.Season?,
                         standing: Me.Standing? = Me.Standing(rank: 2, of: 8, points: 15, prev_rank: 2,
                                                              leader_squad_id: nil, leader_points: 19,
@@ -34,7 +34,7 @@ private func membership(phase: String = "season", buyin: Int = 0,
                                                              next_up: nil, next_down: nil),
                         last: Me.Membership.LastSeason? = nil) -> Me.Membership {
   Me.Membership(
-    league_id: UUID(), name: "The Fellas", code: "FELLAS", phase: phase, sandbox: false, role: "player",
+    league_id: UUID(), name: "The Fellas", code: "FELLAS", phase: phase, sandbox: false, role: role,
     member_id: UUID(), marker: "saguaro", commissioner_name: "Galen",
     settings: Me.Settings(structure: "solo", preset: nil, counting_cap: 4, participation_floor: 2,
                           floor_penalty: nil, handicap_allowance: 95, buyin_cents: buyin,
@@ -148,5 +148,17 @@ struct CompeteStandingTests {
     let row = rows(m, today: "2026-09-07").seasons.first
     #expect(row?.rank == nil)
     #expect(row?.sub == "Standings start at the first posted round.")
+  }
+}
+
+/// N4-204 · the Pro's season row says they run it, as the web's does; a
+/// player's does not.
+@Suite struct CompeteRowProClauseTests {
+  @Test func theProReadsThatTheyRunIt() {
+    let s = season(starts: "2026-07-13", ends: "2026-10-26", week: 8, of: 15)
+    let pro = rows(membership(role: "commissioner", season: s), today: "2026-09-07").seasons.first
+    #expect(pro?.sub.hasSuffix(" · you run it") == true, "\(pro?.sub ?? "nil")")
+    let player = rows(membership(season: s), today: "2026-09-07").seasons.first
+    #expect(player?.sub.contains("you run it") == false, "\(player?.sub ?? "nil")")
   }
 }

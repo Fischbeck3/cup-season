@@ -394,7 +394,9 @@ public struct WizardDials: Sendable, Equatable, Codable {
     RoomClock(phase: .setup, startsOn: startDate(today: today), endsOn: endDate(today: today), status: nil, finish: finish, today: today)
   }
   /// `renderBylaws` (11891–11908) over the wizard's preview dates.
-  public func bylawsRows(today: String = CSDate.today()) -> [BylawRow] { LeagueCopy.bylawsRows(bylaws, clock: clock(today: today)) }
+  public func bylawsRows(today: String = CSDate.today()) -> [BylawRow] {
+    LeagueCopy.bylawsRows(bylaws, clock: clock(today: today), payNote: buyInNote)
+  }
 
   // MARK: applyBylaws (14144–14175) — an existing league, or run it back
 

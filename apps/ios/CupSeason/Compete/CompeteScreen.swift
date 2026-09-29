@@ -57,10 +57,10 @@ struct CompeteScreen: View {
 
   private var masthead: some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+      // N4-115 · the brand line ("ANY TIME. ANYWHERE.") was the tab's
+      // subtitle. It is the Door's and the artifacts' line, not a page's
+      // description, and it said nothing about what is running.
       CSPageHeader("Compete") { EmptyView() }
-      Text(CSBrandCopy.tagline.replacingOccurrences(of: "\n", with: " "))
-        .csType(.agateS, caps: true).foregroundStyle(mastheadPalette.mut)
-        .fixedSize(horizontal: false, vertical: true)
     }
     .padding(CSTokens.Space.gutter)
     .padding(.vertical, CSTokens.Space.s2)

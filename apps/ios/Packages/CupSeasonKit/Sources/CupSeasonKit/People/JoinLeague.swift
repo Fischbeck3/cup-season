@@ -329,13 +329,21 @@ public struct Covenant: Sendable, Equatable, Identifiable {
   /// 5 · "If you take it: sixty percent to the champion, twenty-five to the
   /// runner-up, fifteen to the points king." ABOVE $0 ONLY (L-10), and the trio
   /// is the Pro's own, printed rather than assumed.
+  ///
+  /// N4-201 · the web's sentence word for word (the covenant's `split`): the
+  /// first share says "percent", the rest are figures; a zero share is left
+  /// out (L-23); and, in a league with a structure, the points king is said
+  /// once in plain words when it pays.
   public var splitLine: String? {
     guard paid, let s = split else { return nil }
-    var awards: [String] = []
-    if s.champion > 0 { awards.append("\(s.champion) percent to the champion") }
-    if s.runnerUp > 0 { awards.append("\(s.runnerUp) percent to the runner-up") }
-    if s.pointsKing > 0 { awards.append("\(s.pointsKing) percent to the Points King, the individual season-points leader") }
-    return awards.isEmpty ? nil : "The split: " + awards.joined(separator: "; ") + "."
+    let shares = [(s.champion, "the champion"), (s.runnerUp, "the runner-up"), (s.pointsKing, "the points king")]
+      .filter { $0.0 > 0 }
+    guard !shares.isEmpty else { return nil }
+    let said = shares.enumerated().map { i, share in (i == 0 ? "\(share.0) percent" : "\(share.0)") + " to " + share.1 }
+    let line = said.count == 1 ? said[0] : said.dropLast().joined(separator: ", ") + ", " + said[said.count - 1]
+    let kingNote = structure != nil && s.pointsKing > 0
+      ? " The points king is the golfer with the most points of their own, whatever the Final does." : ""
+    return "If you take it: " + line + "." + kingNote
   }
 
   /// 6 · that there is somewhere to send it. A BOOLEAN and a DATE — never the

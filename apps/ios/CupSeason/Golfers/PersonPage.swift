@@ -219,8 +219,8 @@ struct PersonPage: View {
     if c.profile.isMe, let m = standing, let st = m.standing {
       out.append(.init(String(st.rank), label: m.name, ordinal: CSOrdinal.suffix(st.rank)))
     } else if let best = c.bestRound {
-      let where_ = best.courseLabel.map { " · " + RoundCopy.course($0) } ?? ""
-      out.append(.init(String(best.gross), label: "Best" + where_))
+      // N4-050 · "Best", with the course on its own line under it
+      out.append(.init(String(best.gross), label: "Best", note: best.courseLabel.map { RoundCopy.course($0) }))
     }
     return out
   }

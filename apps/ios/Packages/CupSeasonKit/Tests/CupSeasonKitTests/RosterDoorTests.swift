@@ -78,3 +78,30 @@ import Foundation
     #expect(RosterDoor.closedByTime.eyebrow(members: 6) == "ROSTER CLOSED · 6 IN")
   }
 }
+
+/// N4-207 · the roster line in two voices, the web's words, and the halfway
+/// turn by its date — and past it, the roster is set.
+@Suite struct RosterDoorVoicesTests {
+  private var cal: Calendar { var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(identifier: "America/Phoenix")!; return c }
+  // a 13-week season: Sep 6 to Dec 6, the turn on Oct 21
+  private let starts = "2026-09-06", ends = "2026-12-06"
+
+  @Test func aMemberReadsTheDoorsStateNotThePros() {
+    #expect(RosterDoor.open(closesOn: "2026-09-05").line(isPro: false, calendar: cal) == "The invite link is open until Sat Sep 5.")
+    #expect(RosterDoor.open(closesOn: nil).line(isPro: false, calendar: cal) == "The invite link is open.")
+    #expect(RosterDoor.closedByTime.line(isPro: false, startsOn: starts, endsOn: ends, today: "2026-09-20", calendar: cal)
+            == "The roster is set. The Pro can still add a golfer until the halfway turn, Wed Oct 21.")
+    #expect(RosterDoor.closedByPro(on: nil).line(isPro: false, startsOn: starts, endsOn: ends, today: "2026-11-02", calendar: cal)
+            == "The roster’s set for this season.")
+  }
+
+  @Test func theProReadsTheTurnByItsDateAndThenTheSetRoster() {
+    #expect(RosterDoor.closedByPro(on: nil).line(startsOn: starts, endsOn: ends, today: "2026-09-20", calendar: cal)
+            == "You closed the roster. Add anyone yourself until the halfway turn, Wed Oct 21.")
+    #expect(RosterDoor.closedByTime.line(startsOn: starts, endsOn: ends, today: "2026-11-02", calendar: cal)
+            == "Past the halfway turn — the roster’s set for this season.")
+    // an open door is never "past the turn", whatever the date
+    #expect(RosterDoor.open(closesOn: nil).line(startsOn: starts, endsOn: ends, today: "2026-11-02", calendar: cal)
+            == "The invite link works until you close the roster.")
+  }
+}

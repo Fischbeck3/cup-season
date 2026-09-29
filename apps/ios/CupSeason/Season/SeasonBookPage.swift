@@ -18,6 +18,9 @@ struct SeasonBookPage: View {
   @State private var group = "golfer"
   @State private var squad = "all"
   @State private var follow = "leaders"
+  /// N4-111 · where the grid's content ends, and the scroller's own width
+  @State private var gridEnd: CGFloat = 0
+  @State private var gridWidth: CGFloat = 0
   @State private var week = 1
   @ScaledMetric(relativeTo: .body) private var rowHeight = 64.0
   /// F11 · how far a cell's status marks sit above the figure's baseline — a
@@ -197,6 +200,25 @@ struct SeasonBookPage: View {
               }
             }
           }
+        }
+        // N4-111 · where the content ends, in the scroller's own space
+        .background {
+          GeometryReader { g in
+            Color.clear.preference(key: BookGridEndKey.self, value: g.frame(in: .named("book.grid")).maxX)
+          }
+        }
+      }
+      .coordinateSpace(.named("book.grid"))
+      .onPreferenceChange(BookGridEndKey.self) { gridEnd = $0 }
+      .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { gridWidth = $0 }
+      // N4-111 · **THE GRID SAYS IT SCROLLS.** It was cut at the right edge
+      // with no sign there was more (the current week half off an SE). While
+      // weeks run past the edge, the trailing 36pt fade into the page's ground,
+      // as the web's matrix does (`data-more`); at the last week, nothing.
+      .overlay(alignment: .trailing) {
+        if gridEnd > gridWidth + 1 {
+          LinearGradient(colors: [cs.bg0.opacity(0), cs.bg0], startPoint: .leading, endPoint: .trailing)
+            .frame(width: 36).allowsHitTesting(false).accessibilityHidden(true)
         }
       }
       .accessibilityIdentifier("seasonBook.grid")
@@ -406,4 +428,11 @@ struct SeasonBookReceipts: View {
       }.padding(CSTokens.Space.gutter)
     }.clipped().csLookGround().csBareBar().csStatusCap(cs.bg0)
   }
+}
+
+/// N4-111 · the right edge of the Book grid's content, in the scroller's own
+/// coordinate space: past the scroller's width, there are weeks still to see.
+private struct BookGridEndKey: PreferenceKey {
+  static let defaultValue: CGFloat = 0
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }

@@ -44,18 +44,23 @@ struct LiveSetupView: View {
             .accessibilityIdentifier("live.setup.backToRound")
         } else {
           if let sr = store.plan, !store.planDismissed, !store.scoreOnPhone { planBridge(sr) }
-          Toggle("Score on this phone", isOn: Binding(get: { store.scoreOnPhone }, set: { store.useLocalScoring($0) }))
-            .disabled(store.busy)
-          if store.scoreOnPhone {
-            CSFine("No signal needed. Review and post when you reconnect. No group sync or automatic posting.")
-          }
         }
         if let error = store.localSaveError { Text(error).csType(.bodyS).foregroundStyle(cs.neg) }
         courseCard(proxy)
         if store.held {
           EmptyView()
-        } else if !store.scoreOnPhone { foursomeCard; gameCard; nearbyCard }
-        else { CSFine("Your round only. Choose the actual tees and pars before you leave service.") }
+        } else {
+          if !store.scoreOnPhone { foursomeCard; gameCard; nearbyCard }
+          // N4-170 · the switch is the offline mode, named for what it is, and
+          // what it costs is said at rest, not only once it is on. It sits
+          // below the group it would leave behind, not above it as the first
+          // control on the page.
+          Toggle(LiveCopy.offlineSwitch, isOn: Binding(get: { store.scoreOnPhone }, set: { store.useLocalScoring($0) }))
+            .disabled(store.busy)
+            .accessibilityIdentifier("live.setup.offline")
+          CSFine(LiveCopy.offlineCost)
+          if store.scoreOnPhone { CSFine("Your round only. Choose the actual tees and pars before you leave service.") }
+        }
         if !phoneCards.isEmpty, !store.held {
           // D364 (F2) · an unfinished round says it is one: resume, then post
           CSSectionHead("Unfinished rounds", count: "\(phoneCards.count)")
@@ -434,8 +439,15 @@ struct LiveSlotChip: View {
         // a course's rounds all say "You". `player.me` was already on the row.
         Text(player.me ? "You" : player.n).csType(.name).foregroundStyle(cs.ink)
           .fixedSize(horizontal: false, vertical: true)
-        Text("\(player.est ? "Est " : "")\(LiveFmt.idx(player.i)) playing HCP")
+        // N4-205 · the seat's noun is the index word (CredentialCopy's, the
+        // one label the card and You print), never "playing HCP" — the seat
+        // holds the golfer's INDEX; the playing HCP is derived from it. An
+        // estimated seat says so in TERMINOLOGY's words — without "(tap to
+        // change)": a tap on a seat here picks it for a team swap
+        Text(player.est ? "No number — playing off 18"
+                        : "\(LiveFmt.idx(player.i)) · \(CredentialCopy.indexLabel(isMe: player.me))")
           .csType(.agateS, caps: true).foregroundStyle(cs.mut)
+          .fixedSize(horizontal: false, vertical: true)
       }
       Spacer(minLength: 0)
       if tradeable { CSGlyph(.chevron, size: .inline).foregroundStyle(cs.act) }

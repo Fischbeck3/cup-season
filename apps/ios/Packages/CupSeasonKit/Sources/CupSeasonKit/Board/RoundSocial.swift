@@ -42,6 +42,14 @@ public struct PostedRoundThread: Sendable, Equatable {
   public let courseId: String?
   public let courseName: String?
   public let round: JSONValue?
+  /// Contract v1.3 §1: how many came from the newest page, and whether older
+  /// comments exist that were not sent. A server before `page` answers with
+  /// the rows it sent and the count.
+  public let newest: Int
+  public let truncated: Bool
+  /// `notify_prefs`: the switches the composer's line reports (on unless off)
+  public let followedOn: Bool
+  public let repliesOn: Bool
   public init(_ json: JSONValue) {
     visible = json["ok"]?.bool == true
     canComment = json["can_comment"]?.bool == true
@@ -51,6 +59,10 @@ public struct PostedRoundThread: Sendable, Equatable {
     courseId = json["round"]?["course"]?["api_course_id"]?.string
     courseName = json["round"]?["course"]?["name"]?.string
     round = json["round"]
+    newest = json["page"]?["newest"]?.int ?? comments.count
+    truncated = json["page"]?["truncated"]?.bool ?? (count > comments.count)
+    followedOn = json["notify_prefs"]?["followed"]?.bool != false
+    repliesOn = json["notify_prefs"]?["replies"]?.bool != false
   }
   /// An unavailable root must not make its visible replies disappear.
   public var roots: [SocialComment] {
