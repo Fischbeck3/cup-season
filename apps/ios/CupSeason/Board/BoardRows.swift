@@ -53,19 +53,32 @@ private struct BoardSpine<Content: View>: View {
 }
 
 /// `.annrow` — the Pro's word. The latest rides pinned, older ones inline.
+///
+/// TEN · **A NOTE FROM THE PRO IS A NOTE, NOT A METAL.** It hung off a gold
+/// spine under a gold label, and gold means EARNED (D359, §2.4's closed list):
+/// nothing about the Pro saying something has been won. Like the web's
+/// `.annrow` (W3, web audit P3-24) it now sits on the page's own rules, the
+/// label in agate `mut` and the sentence in body — the attribution, not a
+/// colour, is what sets it apart. The pinned one keeps its raised ground.
 struct AnnounceRow: View {
   @Environment(\.cs) private var cs
   let text: String
   let pinned: Bool
   var body: some View {
-    BoardSpine(metal: cs.gold, ground: pinned ? cs.bg1 : nil) {
-      Text("From the Pro").csType(.agate, caps: true).foregroundStyle(cs.gold)
+    VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
+      Text("From the Pro").csType(.agate, caps: true).foregroundStyle(cs.mut)
         .accessibilityLabel(pinned ? "Pinned, from the Pro" : "From the Pro")
       Text(text).csType(.body).foregroundStyle(cs.ink)
         .fixedSize(horizontal: false, vertical: true)
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.vertical, CSTokens.Space.s3)
+    .padding(.horizontal, pinned ? CSTokens.Space.s3 : 0)
+    .background(pinned ? cs.bg1 : Color.clear)
+    .overlay(alignment: .top) { CSRule() }
+    .overlay(alignment: .bottom) { CSRule() }
     .accessibilityElement(children: .combine)
-    .padding(.vertical, CSTokens.Space.s1)
+    .padding(.vertical, CSTokens.Space.s2)
   }
 }
 
