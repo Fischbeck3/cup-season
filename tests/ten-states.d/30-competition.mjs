@@ -396,6 +396,12 @@ const SEASON = [
       async (page) => page.evaluate(() => document.getElementById('bylawsHub').innerText.trim().length > 80 ? true : 'the rules are empty'),
       /* TEN / W8 · W7-029 [A2-season-3] (3 of 4): the League rows are slats, not cards */
       noBoxes(['#view-hub .check']),
+      /* TEN / W8 · W7-065 [A2-season-8]: the roster, share and squads rows are headed 'Who’s in', the phone's head for them; 'League' is not a container label (TERMINOLOGY §2.3) */
+      async (page) => page.evaluate(() => {
+        const heads = [...document.querySelectorAll('#room-league > .eyebrow')].filter((e) => e.getBoundingClientRect().height > 0).map((e) => e.textContent.trim())
+        if (heads.includes('League')) return 'a section is still headed League'
+        return heads.includes('Who\u2019s in') ? true : `the room's heads read ${JSON.stringify(heads)}, expected Who\u2019s in`
+      }),
       /* TEN / W8 · W7-093 [A2-rules-2]: the minimum's sentence says WHICH months carry none (it read 'Post 2 rounds a month.' with no word on the partial first and last month) */
       has('#bylawsHub', 'A partial first or last month has no minimum\\.', 'the rules say which months carry no minimum'),
       /* TEN / W8 · W7-025 [B2-season-8]: the desk's season list marks the row of the section in view, and the row that
