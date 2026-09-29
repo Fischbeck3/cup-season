@@ -347,7 +347,17 @@ const DRAW = [
       if (low === -Infinity) return 'the draw room draws no text'
       const gutter = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gutter')) || 20
       const inset = Math.round((foot - low) * 10) / 10
-      return inset >= gutter - 0.5 ? true : `the draw room's last line sits ${inset}px above its ground's foot (the gutter is ${gutter})`
+      if (inset < gutter - 0.5) return `the draw room's last line sits ${inset}px above its ground's foot (the gutter is ${gutter})`
+      /* TEN / W6 · the squads stand inside the room. A card that outgrows its
+         column runs across the room's inset (402) or off the page (375, where
+         the page then scrolls sideways): the gate's overflowX. */
+      const grid = document.getElementById('squads'), edge = grid.getBoundingClientRect().right
+      for (const c of grid.children) {
+        const over = Math.round(c.getBoundingClientRect().right - edge)
+        if (over > 0) return `the squad card "${(c.querySelector('b, h4') || c).textContent.trim()}" runs ${over}px past the room's inset`
+      }
+      const sw = document.documentElement.scrollWidth
+      return sw <= innerWidth ? true : `the draw room scrolls sideways: ${sw}px of page in a ${innerWidth}px window`
     }) },
 ]
 

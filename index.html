@@ -1360,7 +1360,11 @@ th.deskonly, td.deskonly{display:none;}
 .snake i{width:13px; height:13px; border-radius:4px; background:var(--bg2); border:1px solid var(--rule);}
 .snake i.made{background:var(--dim); border-color:transparent;}
 .snake i.now{background:var(--pos); border-color:transparent;}
-.squads{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px;}
+/* TEN / W6 · the two squad columns share the room's width and never outgrow it.
+   A `1fr` track grows to its card's longest line, so at 375 the formation's
+   second card ran 13px off the page (a sideways scroll) and at 402 across the
+   room's inset. The tracks share the width, and a card's head wraps inside it. */
+.squads{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:14px;}
 .squad{background:var(--bg1); border:1px solid var(--rule); border-radius:12px; padding:12px 13px;}
 .squad.onclock{border-color:var(--rule);}
 /* TEN / W6 · the on-the-clock squad was marked ONLY by an inset 3px bar in its
@@ -1368,7 +1372,7 @@ th.deskonly, td.deskonly{display:none;}
    It says so in words now, in the card's own head beside its swatch. */
 .squad h4 .onclockword{margin-left:auto; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--ink);}
-.squad h4{font-size:13.5px; font-weight:700; display:flex; align-items:center; gap:8px;}
+.squad h4{font-size:13.5px; font-weight:700; display:flex; flex-wrap:wrap; align-items:center; gap:8px; overflow-wrap:anywhere;}
 .squad h4 .sw{width:9px; height:9px; border-radius:3px; flex:none;}
 .squad ul{list-style:none; margin-top:8px;}
 .squad li{
@@ -32218,12 +32222,12 @@ function renderFormation(){
 
   $('#squads').innerHTML = CS.squads.map(q => `
     <div class="card fm-squad tap" data-sq="${q.id}" style="margin-bottom:8px; ${CS.sel ? 'border-color:var(--pos);' : ''}">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span class="sw" style="background:${SQHEX[q.color] ?? SQHEX[0]}"></span><b>${esc(q.name)}</b>
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
+        <span class="sw" style="background:${SQHEX[q.color] ?? SQHEX[0]}"></span><b style="min-width:0; overflow-wrap:anywhere">${esc(q.name)}</b>
         <span class="fine" style="padding:0; margin-left:auto">${(q.squad_members||[]).length} GOLFER${(q.squad_members||[]).length===1?'':'S'}</span>
       </div>
       <div style="margin-top:6px">${(q.squad_members||[]).map(x =>
-        `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${esc(memName(x.member_id))}${q.captain_member_id===x.member_id?' \u00b7 C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--mut)">No one yet</div>'}</div>
+        `<div class="fine" style="padding:2px 0">${memMk(x.member_id)} ${esc(memName(x.member_id))}${q.captain_member_id===x.member_id?'\u00a0\u00b7\u00a0C':''}</div>`).join('') || '<div class="fine" style="padding:2px 0; color:var(--mut)">No one yet</div>'}</div>
     </div>`).join('');
 
   /* Q-11 \u00b7 only the Pro seats players, so only the Pro gets buttons. A member
