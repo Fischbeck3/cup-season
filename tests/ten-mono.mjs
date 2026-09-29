@@ -123,3 +123,33 @@ export const noRetiredShape = () => async (page) => page.evaluate(() => {
   }
   return bad.length ? 'a retired shape (§3, §8): ' + [...new Set(bad)].slice(0, 6).join('; ') : true
 })
+
+/* TEN / W6 · AW2-04 · L-34 and §16A.4: one fact, one encoding, per viewport.
+ * `onceInView(facts, from)` counts each fact in the VISIBLE text that stands
+ * in the viewport and fails the capture when one is printed twice. A fact is
+ * [name, regex source, need]: with `need` a fact the state must show, without
+ * it a fact that may be out of view but is never in view twice. `from` is the
+ * width the check starts at (the desk's second column stands beside the
+ * reading column only from 960). */
+export const onceInView = (facts, from = 0) => async (page) => page.evaluate(([facts, from]) => {
+  if (innerWidth < from) return true
+  const inView = (r) => r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth
+  const texts = []
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+  for (let t = w.nextNode(); t; t = w.nextNode()) {
+    const el = t.parentElement
+    if (!el || !t.textContent.trim() || el.closest('script, style, [aria-hidden="true"]')) continue
+    const cs = getComputedStyle(el)
+    if (cs.visibility === 'hidden' || Number(cs.opacity) === 0) continue
+    const range = document.createRange(); range.selectNodeContents(t)
+    if ([...range.getClientRects()].some(inView)) texts.push(t.textContent)
+  }
+  const all = texts.join('\n')
+  const bad = []
+  for (const [name, src, need] of facts) {
+    const n = (all.match(new RegExp(src, 'g')) || []).length
+    if (n > 1) bad.push(`${name} is printed ${n} times`)
+    else if (n === 0 && need) bad.push(`${name} is not in view`)
+  }
+  return bad.length ? 'one fact, one place per viewport (L-34, §16A.4): ' + bad.join('; ') : true
+}, [facts, from])

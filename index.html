@@ -1085,6 +1085,7 @@ body.noleague #deskMenu [data-v="hub"], body.noleague #deskMenu [data-seg]{displ
 .chart-legend .pt{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
 #raceChart{width:100%; height:auto; display:block;}
 .chart-note{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; margin-top:10px;}   /* TEN / W6 · AW2-06 + OB-05: the seat line is agateS in caps, as the phone's hollow-final line sets it (StandingsTableView), never mono */
+#climbNote:empty{display:none;}   /* AW2-04 · the desk's cut-only card has no seat line, and its margin would sit under the cut as empty space */
 /* ===== the climb — you-centered cup-line ladder (D26 · finish pass D-NN) =====
    Rhythm: margins, not a uniform flex gap — your rung has weight, the rungs
    you race tuck close, the leader stands apart, and the ellipsis stretches
@@ -2864,6 +2865,16 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
 .ontheline .oa{font-family:var(--mono); font-size:22px; font-weight:600; color:var(--gold); font-variant-numeric:tabular-nums;}
 .ontheline .os{font-family:var(--board); font-size:11px; font-weight:600; line-height:1.2; color:var(--mut); letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase;}
 .ontheline .go{margin-left:auto; color:var(--mut);}
+/* TEN / W6 · AW2-04 (L-34, D360) · at the desk the pot stands in the second
+   column beside this (csDeskColumns moves #room-pot into #deskPotSlot), so
+   "What's on it" printed the pot and its split a second time in one viewport.
+   It goes there. Below 960 it stays: the pot is further down a phone's page,
+   and this is the way to it. A settled season's climb yields to the final
+   table the same way (renderClimb sets the attribute). */
+@media(min-width:960px){
+  #homeSeason .ontheline{display:none;}
+  #homeSeason .homegrid > [data-desk-yields]{display:none;}
+}
 .fcard{
   background:var(--bg1); border:1px solid var(--rule); border-radius:14px;
   padding:12px 13px; margin-bottom:8px;
@@ -9005,16 +9016,36 @@ function renderClimb(){
                  : cut.line==='CUP LINE'   ? 'the last cup spot'
                  : 'the top seed';
   let html='', cutDrawn=false, prev=-1;
-  const drawCut=()=>{
+  /* the cut's own words, and where you stand against it */
+  const cutLabel=()=>{
     let lb=cut.line;
     if(me){
       if(meIdx<K){ const cush=me.pts-(teams[K]?teams[K].pts:0); lb=`${cut.line} · ${cush} CLEAR`; }
       else { const need=(teams[K-1]?teams[K-1].pts:0)-me.pts; lb=`${cut.line} · ${need>0?need+' BACK':'LEVEL'}`; }
     }
+    return lb;
+  };
+  const drawCut=()=>{
+    const lb=cutLabel();
     html+=`<div class="climb-cut" data-cid="cut" role="separator" aria-label="${esc(lb)}"><span class="ln"></span><span class="lb">${lb}</span><span class="ln"></span></div>`;
     cutDrawn=true;
   };
-  idxs.forEach(i=>{
+  /* TEN / W6 · AW2-04 (L-34, D360) · AT THE DESK THE TABLE IS THE ONE
+     STANDINGS OBJECT. The rungs printed the table's ranks and points a few
+     lines above it (01 · 171, 02 · 137), the rung above you said the gap its
+     GAP column says, and the seat line is the table's cut row and the endgame
+     foot's sentence. So from 960 up the climb card keeps only the line it
+     alone draws: the cut, and your distance to it. A season with no cut keeps
+     its seat line (D127's hollow Final is said nowhere else), and a settled
+     season's climb IS the final table, so the whole card yields to the table
+     (`data-desk-yields`). Below 960 the ladder is unchanged: the phone's table
+     and climb are not one viewport, and the climb is how a phone reads the race. */
+  const deskOnly = csDeskClimb() && !settled;
+  const block = box.closest('.homegrid > div');
+  if(block) block.toggleAttribute('data-desk-yields', settled);
+  if(deskOnly){
+    if(K<n) html=`<div class="climb-cut" data-cid="cut"><span class="ln" aria-hidden="true"></span><span class="lb">${esc(cutLabel())}</span><span class="ln" aria-hidden="true"></span></div>`;
+  } else idxs.forEach(i=>{
     if(prev>=0 && i>prev+1){
       const hid=i-prev-1, pad=Math.min(16, 3+hid*1.5);   /* distance looks like distance */
       html+=`<div class="climb-ellip" data-cid="e${prev}" role="listitem" aria-label="${hid} more between" style="padding:${pad.toFixed(1)}px 0">··· ${hid} more ···</div>`;
@@ -9066,12 +9097,19 @@ function renderClimb(){
         + `</div>`;
     prev=i;
   });
-  if(prev<n-1){   /* the field goes on below the window — say so */
+  if(!deskOnly && prev<n-1){   /* the field goes on below the window — say so */
     const hid=n-1-prev, pad=Math.min(16, 3+hid*1.5);
     html+=`<div class="climb-ellip" data-cid="etail" role="listitem" aria-label="${hid} more below" style="padding:${pad.toFixed(1)}px 0">··· ${hid} more ···</div>`;
   }
+  /* the desk's one line is not a list of rungs; with no cut it draws nothing */
+  box.setAttribute('role', deskOnly ? 'group' : 'list');
+  box.style.display = html ? '' : 'none';
   applyClimb(box, html);
-  if(note){
+  if(note && deskOnly && K<n){
+    /* AW2-04 · at the desk the seat line is the table's cut row and the
+       endgame foot's sentence, both in view; the cut above is this card's */
+    note.textContent='';
+  } else if(note){
     /* D126 · the seat line, then the sentence that says what the seats are FOR.
        The observer led his league by 22 points and could not say how the title
        was decided — the only statement of it lived in a collapsed disclosure.
@@ -9108,6 +9146,11 @@ function renderClimb(){
     }
   }
 }
+/* TEN / W6 · AW2-04 · the climb is drawn for the shape it stands in — the
+   phone's ladder below 960, the cut alone at the desk — so crossing the line
+   draws it again. The desk line is csDeskColumns' own. */
+function csDeskClimb(){ try { return window.matchMedia('(min-width: 960px)').matches; } catch(_){ return false; } }
+try { window.matchMedia('(min-width: 960px)').addEventListener('change', () => { try { renderClimb(); } catch(_){} }); } catch(_){}
 
 /* ================= standings ================= */
 function sparkline(arr,ci){
@@ -9402,7 +9445,11 @@ function renderStandings(){
            golfer's name takes the sentence's ink, the squad palette dresses a
            squad. `StandingsStory` is the phone's twin. */
         /* TEN / W6 · AW2-07 · the figures are runs in the board face (§1.6) */
-        : `${nameOf(a)} ${isYou(a)?'lead':(solo?'leads':'lead')} by <b class="cfrun">${m}</b>. ${nameOf(b)} ${beOf(b)}${m<=15?'a good weekend back':'<span class="cfrun">'+m+'</span> back'}.`;
+        /* TEN / W6 · AW2-04 (L-34) · the second figure was the first one again
+           — "lead by 34. Fixture Wrens 34 back." A two-row story has one gap,
+           so it is said once. A gap a weekend can close is a different fact,
+           and that clause stays. StandingsMath.story is the phone's twin. */
+        : `${nameOf(a)} ${isYou(a)?'lead':(solo?'leads':'lead')} by <b class="cfrun">${m}</b>.` + (m<=15 ? ` ${nameOf(b)} ${beOf(b)}a good weekend back.` : '');
     }
     story.innerHTML=txt;
   }
