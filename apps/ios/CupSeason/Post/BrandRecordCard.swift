@@ -2,6 +2,8 @@ import SwiftUI
 import CSDesign
 
 /// Verified values supplied by the existing object, never calculated by the renderer.
+/// N4-082 · `statement` arrives with its figures marked (`{3} wins`): the
+/// card sets them as runs in the board face, and the shared text drops the marks.
 struct BrandRecordCard: View {
   let kind: String
   let title: String
@@ -18,7 +20,7 @@ struct BrandRecordCard: View {
             .foregroundStyle(earned ? CSTokens.dark.gold : CSTokens.dark.ink)
         }
         if let statement, !statement.isEmpty {
-          Text(statement).csFixed(.story, 44).lineLimit(4).minimumScaleFactor(0.7)
+          CSFigureRun(statement, role: .story, fixed: 44).lineLimit(4).minimumScaleFactor(0.7)
         }
         ForEach(Array(rows.prefix(5).enumerated()), id: \.offset) { _, row in
           Rectangle().fill(CSTokens.dark.mut.opacity(CSTokens.Alpha.a24)).frame(height: 1)
@@ -32,7 +34,7 @@ struct BrandRecordCard: View {
     renderer.scale = 1
     var items: [Any] = []
     if let image = renderer.uiImage { items.append(image) }
-    items.append(([title, figure, statement].compactMap { $0 } + rows).joined(separator: "\n"))
+    items.append(([title, figure, statement.map(CSFigureRun.plain)].compactMap { $0 } + rows).joined(separator: "\n"))
     return PostShareItem(items: items)
   }
 }

@@ -248,6 +248,10 @@ struct ScheduledRoundSheet: View {
     var lines: [String] = []
     var first: [String] = []
     if let on = d.playOn { first.append(ScheduleDates.long(on)) }
+    // N4-136 · the tee time is a time of day and rides the dateline with the
+    // date (L-34, §16A.4), not the figure rail beside the counts
+    let tee = TeeTime.format(d.teeTime)
+    if !tee.isEmpty { first.append(tee) }
     let place = d.course?.place ?? ""
     if let c = d.course?.name ?? d.courseLabel, !c.isEmpty {
       first.append(place.isEmpty ? c : "\(c), \(place)")
@@ -359,18 +363,11 @@ struct ScheduledRoundSheet: View {
                        labelLive: days == 0,
                        spoken: days == 0 ? "Today" : "\(days) days out"))
     }
-    let tee = TeeTime.format(d.teeTime)
-    if !tee.isEmpty {
-      let parts = tee.split(separator: " ", maxSplits: 1).map(String.init)
-      out.append(.init(id: "tee", value: parts.first ?? tee,
-                       label: parts.count > 1 ? "Tee, \(parts[1])" : "Tee",
-                       spoken: "Tee time \(tee)"))
-    }
     out.append(.init(id: "in", value: String(d.inCount), label: "In",
                      spoken: "\(d.inCount) in"))
-    if let w = vm.weather {
-      out.append(.init(id: "hi", value: "\(w.hi)°", label: "High", spoken: "High \(w.hi) degrees"))
-    }
+    // N4-136 · the high is said once, in the weather line under the rail
+    // ("78° Mostly sunny · 9mph"), not again as a figure; the tee time is on
+    // the dateline
     return out
   }
 
@@ -645,7 +642,8 @@ struct RetagSheet: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
-        CSSheetHeader(title: "Tag your group", sub: ScheduleDates.long(request.iso) + (request.courseLabel.map { " · \($0.uppercased())" } ?? ""))
+        // N4-097 · the header's role sets the case (LINT-14)
+        CSSheetHeader(title: "Tag your group", sub: ScheduleDates.long(request.iso) + (request.courseLabel.map { " · \($0)" } ?? ""))
         if loaded {
           if candidates.isEmpty { CSFine("No one to tag yet. Add buddies from the Golfers tab.") }
           else { TagChips(candidates: candidates, tagged: $tagged, toasts: toasts) }

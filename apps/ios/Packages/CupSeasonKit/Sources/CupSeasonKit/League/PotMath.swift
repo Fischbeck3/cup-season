@@ -51,6 +51,22 @@ public enum PotMath {
 
   /// `csMoney`: "$180" or "$75.50".
   public static func money(_ cents: Int) -> String { CSCopy.dollars(cents: cents) }
+
+  /// The split said as the covenant says it (N4-201, the web's `split`):
+  /// "60 percent to the champion, 25 to the runner-up, 15 to the points king".
+  /// The first share says "percent" and the rest are figures; a zero share is
+  /// left out (L-23); nil when nothing pays. N4-181 · the rules page reads the
+  /// same sentence, and `marked` sets each share as a figure run.
+  public static func splitWords(champion: Int, runnerUp: Int, pointsKing: Int, marked: Bool = false) -> String? {
+    let shares = [(champion, "the champion"), (runnerUp, "the runner-up"), (pointsKing, "the points king")]
+      .filter { $0.0 > 0 }
+    guard !shares.isEmpty else { return nil }
+    let said = shares.enumerated().map { i, share in
+      let n = marked ? "{\(share.0)}" : "\(share.0)"
+      return (i == 0 ? "\(n) percent" : n) + " to " + share.1
+    }
+    return said.count == 1 ? said[0] : said.dropLast().joined(separator: ", ") + ", " + said[said.count - 1]
+  }
   /// `fmt$` on dollars.
   public static func dollars(_ d: Int) -> String { "$\(d)" }
 

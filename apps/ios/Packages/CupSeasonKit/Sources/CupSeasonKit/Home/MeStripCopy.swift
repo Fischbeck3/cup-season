@@ -570,6 +570,13 @@ public enum MeStripCopy {
     return LeagueDates.monDay(iso, calendar: calendar).uppercased()
   }
 
+  /// N4-025 · the same token in the words' own case, for a line set in body
+  /// rather than a slot (the composer's course line): `Today` · `Sat` ·
+  /// `Aug 21`. One rule: the web's inherited line says it with `csDayToken`.
+  public static func dayTokenWords(_ iso: String, today: String, calendar: Calendar = .current) -> String {
+    dayToken(iso, today: today, calendar: calendar).capitalized
+  }
+
   /// THE SHORT NAME OF A COURSE (BUILD_PLAN §2.z, DEF-1). A slot sized for a
   /// short string that interpolates a name from the database looks correct in
   /// a test and wrong on a phone: prod's longest label today is

@@ -282,8 +282,12 @@ public enum SeasonStoryCopy {
   /// and 7b saying nothing has moved. Returns nil only when there is no season
   /// to describe — a page with no story line renders no story line rather than
   /// an empty one (L-32/L-44).
-  public static func line(_ p: SeasonStory.Payload, calendar: Calendar = .current) -> Line? {
+  /// N4-082 · `marked` sets every numeral as a figure run (`{1.5}`, `{3–1}`,
+  /// `{2nd}`, a date's day) for the season page's serif lead; the words are
+  /// the same either way, and the unmarked line is the web's verbatim.
+  public static func line(_ p: SeasonStory.Payload, calendar: Calendar = .current, marked: Bool = false) -> Line? {
     guard let f = p.facts else { return nil }
+    let mk = { (s: String) in marked ? "{\(s)}" : s }
     let solo = p.season?.solo ?? true
 
     // Rung 0 · a wrapped season leads with how it ended, not with a ladder
@@ -328,7 +332,7 @@ public enum SeasonStoryCopy {
       // half points" is not how anybody reads a table.
       let head = gap == 1 ? "One point separates"
                : gap == gap.rounded() ? "\(cap(word(Int(gap)))) points separate"
-               : "\(CSCopy.points(gap)) points separate"
+               : "\(mk(CSCopy.points(gap))) points separate"
       return Line(rung: 3, text: "\(head) the top two\(clock).", source: "standings_snapshots")
     }
 
@@ -359,7 +363,7 @@ public enum SeasonStoryCopy {
 
     // Rung 7 · the reach back (R-H).
     for h in p.history {
-      if let text = history(h, lastSnapshotOn: f.last_snapshot_on, calendar: calendar), let src = h.source, ok(src) {
+      if let text = history(h, lastSnapshotOn: f.last_snapshot_on, calendar: calendar, marked: marked), let src = h.source, ok(src) {
         return Line(rung: 7, text: text, source: src)
       }
     }
@@ -376,17 +380,18 @@ public enum SeasonStoryCopy {
   /// guess). Nothing here is inflated: a rivalry with no settled week says
   /// nothing at all, and a run of one week is not a run.
   public static func history(_ h: SeasonStory.History, lastSnapshotOn: String? = nil,
-                             calendar: Calendar = .current) -> String? {
+                             calendar: Calendar = .current, marked: Bool = false) -> String? {
+    let mk = { (s: String) in marked ? "{\(s)}" : s }
     switch h.kind {
     case "unsettled_week":
       // A week settled days ago is not a story; a fortnight is.
       guard let name = clean(h.opponent), let since = h.since, (h.days ?? 0) >= 14,
             CSDate.local(since, calendar: calendar) != nil else { return nil }
-      var s = "You and \(name) have not settled a week since \(theDayOf(since, calendar: calendar))."
+      var s = "You and \(name) have not settled a week since \(theDayOf(since, calendar: calendar, marked: marked))."
       if let w = h.wins, let l = h.losses, w + l + (h.ties ?? 0) > 0 {
-        if w > l { s += " You are \(w)–\(l) up all-time." }
-        else if l > w { s += " \(name) is \(l)–\(w) up all-time." }
-        else { s += " You are level at \(w)–\(l) all-time." }
+        if w > l { s += " You are \(mk("\(w)–\(l)")) up all-time." }
+        else if l > w { s += " \(name) is \(mk("\(l)–\(w)")) up all-time." }
+        else { s += " You are level at \(mk("\(w)–\(l)")) all-time." }
       }
       return s
     case "my_run":
@@ -396,13 +401,13 @@ public enum SeasonStoryCopy {
       if let stamp = lastSnapshotOn {
         let day = String(stamp.prefix(10))
         if let date = CSDate.local(day, calendar: calendar), CSDate.iso(date, calendar: calendar) == day {
-          return "Through \(LeagueDates.monDay(day, calendar: calendar)), you held \(CSCopy.ordinal(rank)) for \(word(weeks)) straight weeks."
+          return "Through \(LeagueDates.monDay(day, calendar: calendar, marked: marked)), you held \(mk(CSCopy.ordinal(rank))) for \(word(weeks)) straight weeks."
         }
       }
-      return "Your weekly record includes \(word(weeks)) straight weeks in \(CSCopy.ordinal(rank))."
+      return "Your weekly record includes \(word(weeks)) straight weeks in \(mk(CSCopy.ordinal(rank)))."
     case "my_best_week":
       guard let week = h.week, let pts = h.points, pts > 0 else { return nil }
-      return "Your best week of the season is still week \(word(week)) — \(CSCopy.points(pts)) points."
+      return "Your best week of the season is still week \(word(week)) — \(mk(CSCopy.points(pts))) points."
     default:
       return nil
     }
@@ -497,11 +502,12 @@ public enum SeasonStoryCopy {
   }
 
   /// "the 12th of August" — R-H's own form.
-  static func theDayOf(_ iso: String, calendar: Calendar = .current) -> String {
+  static func theDayOf(_ iso: String, calendar: Calendar = .current, marked: Bool = false) -> String {
     guard let d = CSDate.local(iso, calendar: calendar) else { return iso }
     let day = calendar.component(.day, from: d)
     let month = calendar.component(.month, from: d)
-    return "the \(CSCopy.ordinal(day)) of \(LeagueDates.monthsLong[max(0, min(11, month - 1))])"
+    let nth = CSCopy.ordinal(day)
+    return "the \(marked ? "{\(nth)}" : nth) of \(LeagueDates.monthsLong[max(0, min(11, month - 1))])"
   }
 
   /// Numbers as words, the way the design's own sentences say them — "Week
@@ -550,8 +556,12 @@ public enum SeasonRules {
   public struct Section: Sendable, Equatable, Identifiable {
     public let head: String
     public let body: String
+    /// N4-181 · the body carries figure runs (`{95}`), so the page sets it
+    /// with `CSFigureRun`. Never true for a section that prints a name: a
+    /// brace a golfer typed would be taken for a mark.
+    public let marked: Bool
     public var id: String { head }
-    public init(head: String, body: String) { self.head = head; self.body = body }
+    public init(head: String, body: String, marked: Bool = false) { self.head = head; self.body = body; self.marked = marked }
   }
 
   /// "The Fellas, season one." — the page's own title.
@@ -562,19 +572,29 @@ public enum SeasonRules {
   }
 
   /// "Thirteen weeks from Saturday, Sep 12 to Saturday, Dec 12."
-  public static func span(startsOn: String?, endsOn: String?, calendar: Calendar = .current) -> String? {
+  /// N4-082 · `marked` sets each date's day as a figure run for the rules
+  /// page's serif span; the words are the same.
+  public static func span(startsOn: String?, endsOn: String?, calendar: Calendar = .current,
+                          marked: Bool = false) -> String? {
     guard let s = startsOn, let e = endsOn,
           CSDate.local(s, calendar: calendar) != nil, CSDate.local(e, calendar: calendar) != nil else { return nil }
     let weeks = LeagueDates.totalWeeks(start: s, end: e, calendar: calendar)
     return "\(SeasonStoryCopy.cap(SeasonStoryCopy.word(weeks))) weeks from "
-         + "\(LeagueDates.dowMonDay(s, calendar: calendar)) to \(LeagueDates.dowMonDay(e, calendar: calendar))."
+         + "\(LeagueDates.dowMonDay(s, calendar: calendar, marked: marked)) to \(LeagueDates.dowMonDay(e, calendar: calendar, marked: marked))."
   }
 
   /// The five sections, in order. Each one is a sentence a golfer would say,
   /// and every number in them is the league's own.
+  ///
+  /// N4-181 · the numbers a golfer scans for are figures — the allowance, the
+  /// minimum and what a miss costs, the stake, the pot and the split — and
+  /// `marked` sets them as figure runs (UI_SYSTEM §1.6). A count the sentence
+  /// reads stays a word: "your best four" is the counting rule's settled form
+  /// (PAR-29).
   public static func sections(_ b: Bylaws, clock: RoomClock, pro: String?, members: Int,
-                              calendar: Calendar = .current) -> [Section] {
+                              calendar: Calendar = .current, marked: Bool = false) -> [Section] {
     var out: [Section] = []
+    let mk: (String) -> String = { marked ? "{\($0)}" : $0 }
 
     // HOW IT SCORES — the allowance and the cap, as one sentence each.
     let allowance = Bylaws.allow[max(0, min(Bylaws.allow.count - 1, b.presetIdx))]
@@ -582,16 +602,18 @@ public enum SeasonRules {
                 ?? "Every round you post counts."
     // PROD-06 / R-M · the playing HCP IS the index under the allowance; "playing
     // HCP at 95%" applied it twice on the page headed How it scores (L-14).
-    let at = allowance == 100 ? "your full index" : "your index at \(percent(allowance))"
+    let at = allowance == 100 ? "your full index" : "your index at \(mk("\(allowance)")) percent"
     out.append(Section(head: "How it scores",
-                       body: "Every round you post is scored against your playing HCP — \(at). \(counted)"))
+                       body: "Every round you post is scored against your playing HCP — \(at). \(counted)", marked: marked))
 
     // WHAT YOU OWE THE SEASON — D14's floor, D140's solo truth, the auto-bye
     // and what the second miss costs, in the one floor sentence (Q-27). This
     // page had its own, and it left out the penalty.
     if b.floor > 0 {
       out.append(Section(head: "What you owe the season",
-                         body: LeagueCopy.floorSentence(floor: b.floor, preset: b.presetIdx, structure: b.structure)))
+                         body: LeagueCopy.floorSentence(floor: b.floor, preset: b.presetIdx, structure: b.structure,
+                                                        marked: marked),
+                         marked: marked))
     }
 
     // HOW IT ENDS — D126's sentence, whole, in the one place the mechanic is.
@@ -603,12 +625,14 @@ public enum SeasonRules {
     // (L-09). A $0 season has no money surface at all (L-10, D70).
     if b.stake > 0 {
       let players = max(members, 1)
-      let split = "\(SeasonStoryCopy.cap(SeasonStoryCopy.word(b.payout[0]))) percent to the champion, "
-                + "\(SeasonStoryCopy.word(b.payout.count > 1 ? b.payout[1] : 0)) to the runner-up, "
-                + "\(SeasonStoryCopy.word(b.payout.count > 2 ? b.payout[2] : 0)) to the points king."
+      // the covenant's own sentence (PotMath.splitWords), not a second one
+      let split = PotMath.splitWords(champion: b.payout.first ?? 0,
+                                     runnerUp: b.payout.count > 1 ? b.payout[1] : 0,
+                                     pointsKing: b.payout.count > 2 ? b.payout[2] : 0, marked: marked)
+                    .map { $0 + ". " } ?? ""
       out.append(Section(head: "What's on it",
-                         body: "\(PotMath.dollars(b.stake)) each, \(PotMath.dollars(b.stake * players)) in the pot. "
-                             + "\(split) \(MoneyCopy.ledger)"))
+                         body: "\(mk(PotMath.dollars(b.stake))) each, \(mk(PotMath.dollars(b.stake * players))) in the pot. "
+                             + "\(split)\(MoneyCopy.ledger)", marked: marked))
     }
 
     // SCORES — M-15's own wording: the norm, not a filter.
@@ -625,15 +649,5 @@ public enum SeasonRules {
     }
     if !close.isEmpty { out.append(Section(head: "Who runs it", body: close)) }
     return out
-  }
-
-  /// "ninety-five percent" — the allowance said, never printed as a dial.
-  static func percent(_ n: Int) -> String {
-    switch n {
-    case 100: return "the full number"
-    case 95:  return "ninety-five percent"
-    case 90:  return "ninety percent"
-    default:  return "\(n) percent"
-    }
   }
 }

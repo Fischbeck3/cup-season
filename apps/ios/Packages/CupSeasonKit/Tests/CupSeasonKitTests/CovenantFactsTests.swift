@@ -220,5 +220,13 @@ import Foundation
       """)))
     #expect(future.name == "x")
     #expect(future.whoLine == nil)
+
+    // N4-211 · no name in the payload reads as the web's: "this season" for a
+    // first join, "your league" for a re-up
+    let unnamed = try #require(Covenant(try json(#"{"buyin_cents":0,"floor":2,"phase":"setup"}"#)))
+    #expect(unnamed.name == "this season" && unnamed.head == "Before you join this season")
+    let reup = try #require(Covenant(try json(#"{"buyin_cents":0,"floor":2,"phase":"setup","reup":true,"season_number":2}"#)))
+    #expect(reup.isReUp)
+    #expect(reup.head == "Season 2 of your league")
   }
 }

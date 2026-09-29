@@ -21,17 +21,22 @@ public enum LeagueDates {
   }
 
   /// "Sat Sep 5" — `firstTeeText()`, verbatim shape.
-  public static func dowMonDay(_ iso: String, calendar: Calendar = .current) -> String {
+  /// `marked` (N4-082): the day is a figure run (`Sat Sep {12}`), for a date
+  /// inside a sentence set in the serif.
+  public static func dowMonDay(_ iso: String, calendar: Calendar = .current, marked: Bool = false) -> String {
     guard let d = CSDate.local(iso, calendar: calendar) else { return iso }
     let c = calendar.dateComponents([.weekday, .month, .day], from: d)
-    return "\(dow[(c.weekday ?? 1) - 1]) \(mos[(c.month ?? 1) - 1]) \(c.day ?? 0)"
+    let day = c.day ?? 0
+    return "\(dow[(c.weekday ?? 1) - 1]) \(mos[(c.month ?? 1) - 1]) \(marked ? "{\(day)}" : String(day))"
   }
 
   /// "Sep 5"
-  public static func monDay(_ iso: String, calendar: Calendar = .current) -> String {
+  /// `marked` (N4-082): the day is a figure run (`Sep {12}`).
+  public static func monDay(_ iso: String, calendar: Calendar = .current, marked: Bool = false) -> String {
     guard let d = CSDate.local(iso, calendar: calendar) else { return iso }
     let c = calendar.dateComponents([.month, .day], from: d)
-    return "\(mos[(c.month ?? 1) - 1]) \(c.day ?? 0)"
+    let day = c.day ?? 0
+    return "\(mos[(c.month ?? 1) - 1]) \(marked ? "{\(day)}" : String(day))"
   }
 
   public static func addDays(_ iso: String, _ n: Int, calendar: Calendar = .current) -> String {

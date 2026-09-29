@@ -51,7 +51,9 @@ struct BetweenRoundsWidgetView: View {
     switch kind {
     case .race:
       if let race = snapshot?.race?.value { raceView(race) }
-      else { empty("Your season takes shape here.", action: "Open your season") }
+      // N4-193 · a golfer with no season is told how the race arrives, not
+      // to "catch up" on one they do not have
+      else { empty("Start a season and the race lands here.", action: "Start a season") }
     case .nextTee:
       if let tee = snapshot?.nextTee?.value, date < tee.closesAt { teeView(tee) }
       else { empty("The next round is yours to make.", action: "Open your schedule") }
@@ -92,7 +94,8 @@ struct BetweenRoundsWidgetView: View {
             else if !stale, tee.allowsReply(at: date), let owner = snapshot?.owner {
               HStack(spacing: CSTokens.Space.s2) {
                 reply(tee.status == "in" ? "You’re in" : "I’m in", status: "in", tee: tee, owner: owner, primary: tee.status != "in")
-                reply(tee.status == "out" ? "You’re out" : "Can’t", status: "out", tee: tee, owner: owner, primary: false)
+                // N4-191 · a whole short answer, never "Can’t" alone
+                reply(tee.status == "out" ? "You’re out" : "Can’t go", status: "out", tee: tee, owner: owner, primary: false)
               }
             }
           }
@@ -134,12 +137,16 @@ struct BetweenRoundsWidgetView: View {
       if let right { Spacer(minLength: 0); Text(right).csType(.agateS).lineLimit(1) }
     }.foregroundStyle(cs.mut)
   }
+  /// N4-193 · "catch up" is for a widget the app has never filled; once the
+  /// app has written a snapshot, a kind with nothing in it says its own empty
+  /// sentence (a brand-new golfer's race slice is always empty)
   private func empty(_ story: String, action: String) -> some View {
-    VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
+    let neverFilled = snapshot == nil
+    return VStack(alignment: .leading, spacing: CSTokens.Space.s2) {
       head(kind.title)
-      Text(snapshot?.savedAt(for: kind) == nil ? "Open Cup Season to catch up." : story)
+      Text(neverFilled ? "Open Cup Season to catch up." : story)
         .csType(.story).lineLimit(3).minimumScaleFactor(0.85)
-      Text(snapshot?.savedAt(for: kind) == nil ? "Open to refresh" : action)
+      Text(neverFilled ? "Open to refresh" : action)
         .csType(.agate).foregroundStyle(cs.act)
     }
   }
@@ -170,13 +177,16 @@ struct BetweenRoundsWidgetView: View {
           }
         }
       }
-      Text(race.story).csType(small ? .bodyS : .story).lineLimit(small ? 2 : 1).minimumScaleFactor(0.8)
+      // N4-082 · the gap is a figure run in the board face
+      CSFigureRun(race.storyMarked ?? race.story, role: small ? .bodyS : .story).lineLimit(small ? 2 : 1).minimumScaleFactor(0.8)
     }
   }
 
   private func teeView(_ tee: BetweenRoundsSnapshot.Tee) -> some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
-      head(small ? kind.title : tee.dateLine, small || tee.status == "in" || tee.status == "out" ? nil : tee.response)
+      // N4-193 · one date (L-34): the medium tile's block is the date, so its
+      // head is the tile's name, not the date again
+      head(kind.title, small || tee.status == "in" || tee.status == "out" ? nil : tee.response)
       HStack(alignment: .center, spacing: CSTokens.Space.s3) {
         if !small {
           VStack(spacing: 0) {
@@ -204,7 +214,7 @@ struct BetweenRoundsWidgetView: View {
         } else {
           HStack(spacing: CSTokens.Space.s2) {
             reply("I’m in", status: "in", tee: tee, owner: owner, primary: true)
-            reply(small ? "Can’t" : "Can’t make it", status: "out", tee: tee, owner: owner, primary: false)
+            reply(small ? "Can’t go" : "Can’t make it", status: "out", tee: tee, owner: owner, primary: false)
           }
         }
       }
@@ -224,7 +234,8 @@ struct BetweenRoundsWidgetView: View {
   private func recordView(_ record: BetweenRoundsSnapshot.Record) -> some View {
     VStack(alignment: .leading, spacing: CSTokens.Space.s1) {
       head("A round to keep", small ? nil : record.date)
-      Text(record.headline).csType(.story).lineLimit(1).minimumScaleFactor(0.75)
+      // N4-082 · the headline's figure is a run in the board face
+      CSFigureRun(record.headlineMarked ?? record.headline, role: .story).lineLimit(1).minimumScaleFactor(0.75)
       HStack(spacing: CSTokens.Space.s3) {
         if !small, let out = record.out, let inn = record.inn {
           score(out, label: "Out", earned: false)

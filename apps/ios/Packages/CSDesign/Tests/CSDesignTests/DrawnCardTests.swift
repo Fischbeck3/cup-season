@@ -100,6 +100,24 @@ import SwiftUI
     #expect(CSStarRail.spoken(5) == "five stars")
   }
 
+  /// Root's star-rail twin · the −½ / +½ pair's bound rule, which is the
+  /// sheet's and the web's `csStepOff`: − stops at ½ and does nothing on an
+  /// unrated course, + stops at 5, and **a step never returns the value held**,
+  /// because `onSet` reads the value held as "take it off" (D289).
+  @Test func aStepIsBoundedAndNeverTakesTheRatingOff() {
+    #expect(CSStarRail.step(from: nil, up: false) == nil)
+    #expect(CSStarRail.step(from: nil, up: true) == 0.5)
+    #expect(CSStarRail.step(from: 0.5, up: false) == nil)
+    #expect(CSStarRail.step(from: 1, up: false) == 0.5)
+    #expect(CSStarRail.step(from: 4.5, up: true) == 5)
+    #expect(CSStarRail.step(from: 5, up: true) == nil)
+    for held in stride(from: 0.5, through: 5, by: 0.5) {
+      for up in [true, false] {
+        if let next = CSStarRail.step(from: held, up: up) { #expect(next != held) }
+      }
+    }
+  }
+
   /// A rating is one decimal, always, so the figure never changes width as the
   /// mean moves under it.
   @Test func theFigureIsOneDecimalAlways() {

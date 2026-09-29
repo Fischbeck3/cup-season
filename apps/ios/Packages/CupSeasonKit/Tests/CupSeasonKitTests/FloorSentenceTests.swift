@@ -41,6 +41,31 @@ struct FloorSentenceTests {
       .contains { $0.head == "What you owe the season" } == false)
   }
 
+  /// N4-181 · the numbers a golfer scans for are figures, set as runs on the
+  /// page; the counting rule's "best four" stays a word (PAR-29), and the
+  /// split is the covenant's own sentence.
+  @Test("the rules page sets its figures as runs, and says the same words plain")
+  func rulesPageFigures() {
+    let clock = RoomClock(phase: .season, startsOn: "2026-07-06", endsOn: "2026-10-18", status: "active",
+                          finish: "cup_final", today: "2026-09-28")
+    let b = Bylaws(stake: 40, floor: 2, cap: 4, presetIdx: 1, structure: "squads2")
+    let marked = SeasonRules.sections(b, clock: clock, pro: "Galen", members: 8, marked: true)
+    let plain = SeasonRules.sections(b, clock: clock, pro: "Galen", members: 8)
+    func body(_ s: [SeasonRules.Section], _ head: String) -> String { s.first { $0.head == head }?.body ?? "" }
+    #expect(body(marked, "How it scores").contains("your index at {95} percent"))
+    #expect(body(marked, "How it scores").contains("Your best four rounds"), "the counting rule keeps its word")
+    #expect(body(marked, "What you owe the season").hasPrefix("Post {2} rounds a month."))
+    #expect(body(marked, "What's on it").hasPrefix("{$40} each, {$320} in the pot. {60} percent to the champion, {25} to the runner-up, {15} to the points king."))
+    #expect(body(plain, "What's on it").contains(PotMath.splitWords(champion: 60, runnerUp: 25, pointsKing: 15)! + "."))
+    // one producer, two grains: the marks come off and the words are the same
+    for (m, p) in zip(marked, plain) {
+      #expect(m.body.filter { $0 != "{" && $0 != "}" } == p.body)
+      #expect(!p.marked && !p.body.contains("{"))
+    }
+    // a section that prints a name is never set as marks
+    #expect(marked.first { $0.head == "Who runs it" }?.marked == false)
+  }
+
   /// N4 · the scoring guide said the minimum in its own words ("the penalty
   /// bites from the second miss"). With a league in hand it now says the
   /// league's minimum in this sentence; the league-less reader, who has no

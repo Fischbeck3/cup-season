@@ -238,6 +238,16 @@ private let full = """
     #expect(!b.contains("going back"))
     #expect(!b.contains("taken the last"))
     #expect(b == "One meeting where you both played.")
+
+    // N4-082 · marked for the page's serif, a count above twelve is a figure
+    // run; a count the voice spells stays a word
+    let many = HeadToHead.parse(try json("""
+    { "visible": true, "opponent": { "id": "\(opp)", "display_name": "Galen" },
+      "record": { "wins": 9, "losses": 5, "ties": 0, "total": 14 }, "lead": "up", "facets": {} }
+    """))
+    #expect(HeadToHeadCopy.standfirst(many, marked: true) == "{14} meetings where you both played.")
+    #expect(HeadToHeadCopy.standfirst(many) == "14 meetings where you both played.")
+    #expect(HeadToHeadCopy.standfirst(bare, marked: true) == "One meeting where you both played.")
   }
 
   @Test func aStreakOfOneIsNotAStreak() throws {

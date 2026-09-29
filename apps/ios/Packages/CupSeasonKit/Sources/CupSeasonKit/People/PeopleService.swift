@@ -112,9 +112,13 @@ public struct PeopleService: Sendable {
     /// "Galen says you played Papago on June 1 — that right?" Each clause is
     /// dropped rather than guessed; a tag with no course still asks the
     /// question, because the question is about the day and the person.
-    public var question: String {
+    public var question: String { question(marked: false) }
+    /// N4-082 · the question with its day marked as a figure run, for the
+    /// board's serif line; the words are the same.
+    public var questionMarked: String { question(marked: true) }
+    func question(marked: Bool) -> String {
       let who = by_name ?? "A golfer"
-      let day = played_on.map(RivalryCopy.monthDaySpoken) ?? ""
+      let day = played_on.map { RivalryCopy.monthDaySpoken($0, marked: marked) } ?? ""
       var s = "\(who) says you were out"
       if let c = course_label, !c.isEmpty { s += " at \(RoundCopy.course(c))" }
       if !day.isEmpty { s += " on \(day)" }

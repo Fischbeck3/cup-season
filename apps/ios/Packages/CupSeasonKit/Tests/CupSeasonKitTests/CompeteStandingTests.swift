@@ -103,6 +103,19 @@ struct CompeteStandingTests {
     #expect(rows(m, today: "2026-09-07").seasons.first?.rank == nil)
   }
 
+  /// N4-119 · the row's eyebrow is CUP FINAL, so its sentence says the clock
+  /// alone: "Cup Final · 3 weeks left" under it was the phase twice.
+  @Test("the Cup Final's row says its phase once")
+  func theCupFinalSaysItsPhaseOnce() {
+    let m = membership(season: season("cup_final", starts: "2026-05-01", ends: "2026-09-28"))
+    let row = rows(m, today: "2026-09-07").seasons.first
+    #expect(row?.eyebrow == "CUP FINAL")
+    #expect(row?.sub.contains("Cup Final") == false, "got: \(row?.sub ?? "")")
+    #expect(row?.sub.hasSuffix("left") == true, "the clock stays — got: \(row?.sub ?? "")")
+    // the other grain, for a surface whose eyebrow does not say the stage
+    #expect(SeasonFacts.seasonLine(m, today: "2026-09-07", calendar: cal).hasPrefix("Cup Final · "))
+  }
+
   /// A wrapped season's finish comes from `last_season` — the payload's own
   /// final answer — and is ABSENT rather than guessed when it never sent one.
   @Test("a finished season takes its finish from last_season, or takes none")

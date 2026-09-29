@@ -567,7 +567,9 @@ struct HomeView: View {
         .padding(.horizontal, CSTokens.Space.gutter)
 
     case .occasion(let o):
-      HomeWireLine(marker: nil, text: "\(o.k). \(o.h)", ink: cs.ink) {
+      // N4-017 · the row says what it opens: its act ("Run your own"), the
+      // web card's button, rides the row's trailing slot
+      HomeWireLine(marker: o.act, text: "\(o.k). \(o.h)", ink: cs.ink) {
         CSTelemetry.event("home_occasion_tap", ["win": .string(o.key), "act": .string("go")])
         if o.go == .league { presenter.showIntent = true } else { presenter.showEventPicker = true }
       }

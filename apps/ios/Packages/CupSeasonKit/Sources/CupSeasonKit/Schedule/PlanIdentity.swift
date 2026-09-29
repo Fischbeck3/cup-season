@@ -173,7 +173,8 @@ public extension SchedulePlan {
 public enum PlanCopy {
   public static let nameLabel = "Call it something"
   public static let nameOptional = "optional"
-  public static let namePlaceholder = "Saturday at Papago"
+  /// N4-134 · a prompt, not an example name that reads as a filled value (PA-025)
+  public static let namePlaceholder = "Give it a name"
   public static let gameLabel = "Playing anything?"
   public static let justGolf = "Just golf"
   public static let stakeDoor = "Put something on it"

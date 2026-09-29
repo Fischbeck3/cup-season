@@ -88,6 +88,13 @@ import Testing
     // somebody else's page turns the possessive over through the one producer
     #expect(BagCopy.sinceLine(s, isMe: false)
             == "Since the new driver went in: four rounds, two beat their playing HCP.")
+    // N4-082 · marked for the serif: a count the voice spells stays a word,
+    // and one it cannot is a figure run
+    #expect(BagCopy.sinceLine(s, marked: true) == BagCopy.sinceLine(s))
+    let many = Bag.Since(slot: "Driver", label: "TSR3 9°", addedOn: "2026-07-01", rounds: 14, beat: 11)
+    #expect(BagCopy.sinceLine(many, marked: true)
+            == "Since the new driver went in: {14} rounds, {11} beat your playing HCP.")
+    #expect(BagCopy.sinceLine(many) == "Since the new driver went in: 14 rounds, 11 beat your playing HCP.")
   }
 
   @Test("one round is one round, and none of them is said plainly")

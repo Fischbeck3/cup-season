@@ -31,6 +31,8 @@ struct ScheduleScreen: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 12) {
+        // N4-161 · the page names itself in the page (UI_SYSTEM §12.2)
+        CSPageHeader("The schedule") { EmptyView() }
         Text("Yours, your buddies’, your seasons’").csType(.agate, caps: true).foregroundStyle(cs.mut)
         watch
         calendarHeader
@@ -45,7 +47,7 @@ struct ScheduleScreen: View {
       .padding(20)
     }
     .background(cs.bg0)
-    .navigationTitle("The schedule")
+    .navigationTitle("")
     .navigationBarTitleDisplayMode(.inline)
     .refreshable { await vm.reload(me: store.me, current: store.preferredLeague) }
     .task { await vm.reload(me: store.me, current: store.preferredLeague) }
@@ -105,8 +107,11 @@ struct ScheduleScreen: View {
   }
 
   private func watchBits(_ sr: ScheduledRound) -> Text {
+    // N4-135 · every piece in its own case, so the row's agate role sets the
+    // whole line's (§1.3): a capped date and course beside "Maybe" and a
+    // golfer's note was a tracked line in two cases
     var t = Text(sr.play_on.map { ScheduleDates.when($0) } ?? "")
-    if let c = sr.course_label { t = t + Text(" · \(c.uppercased())") }
+    if let c = sr.course_label { t = t + Text(" · \(c)") }
     if let tee = sr.tee_time, !TeeTime.format(tee).isEmpty { t = t + Text(" · ") + Text(TeeTime.format(tee)).foregroundStyle(cs.ink) }   // F-10 · a clock
     // brand-canon §4 · a rivalry is a RELATIONSHIP, not something won: `ink`.
     if let r = RivalryTag.of(sr.profile_id, rivals: vm.rivals) { t = t + Text(" · ") + Text(r.text).foregroundStyle(cs.ink) }
@@ -192,12 +197,12 @@ struct ScheduleScreen: View {
   private func daySheet(_ d: DaySheet) -> some View {
     ScrollView {
       VStack(alignment: .leading, spacing: CSTokens.Space.s3) {
-        CSSheetHeader(title: ScheduleDates.long(d.iso), sub: "\(d.items.count) ON THE SCHEDULE")
+        CSSheetHeader(title: ScheduleDates.long(d.iso), sub: "\(d.items.count) on the schedule")   // the sub's role sets the caps
         ForEach(Array(d.items.enumerated()), id: \.offset) { _, it in
           switch it {
           case .round(let sr):
             // N4-133 · the person is the row's one button (it was a tap gesture)
-            RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: Text(dayBits(sr)),
+            RoomLineRow(face: Faces.of(sr.profile_id, marker: sr.marker, name: sr.display_name, isViewer: sr.isMine), title: rowTitle(sr), sub: dayBits(sr).map(Text.init),
                         onTap: { if let id = sr.id { day = nil; open(id) } }, hint: "Opens the plan") {
               if sr.isMine, let id = sr.id { ownerActions(sr, id: id) }
             }
@@ -240,9 +245,13 @@ struct ScheduleScreen: View {
     return t
   }
 
-  private func dayBits(_ sr: ScheduledRound) -> String {
-    let bits = [sr.course_label?.uppercased(), sr.withLine, sr.note.flatMap { $0.isEmpty ? nil : "“\($0)”" }].compactMap { $0 }
-    return bits.isEmpty ? "ON THE SCHEDULE" : bits.joined(separator: " · ")
+  /// N4-135 · nil when the plan has nothing more to say: every row of the
+  /// day sheet under its "on the schedule" head said ON THE SCHEDULE again,
+  /// where the title's own answer ("You’re in") already carries the state
+  /// (L-34).
+  private func dayBits(_ sr: ScheduledRound) -> String? {
+    let bits = [sr.course_label, sr.withLine, sr.note.flatMap { $0.isEmpty ? nil : "“\($0)”" }].compactMap { $0 }
+    return bits.isEmpty ? nil : bits.joined(separator: " · ")
   }
 
   private func ownerActions(_ sr: ScheduledRound, id: UUID) -> some View {
@@ -282,8 +291,8 @@ struct ScheduleScreen: View {
   }
 
   private func listBits(_ sr: ScheduledRound) -> String {
-    var s = sr.play_on.map(ScheduleDates.longUpper) ?? ""
-    if let c = sr.course_label { s += " · \(c.uppercased())" }
+    var s = sr.play_on.map(ScheduleDates.long) ?? ""
+    if let c = sr.course_label { s += " · \(c)" }
     if let w = sr.withLine { s += " · \(w)" }
     if let n = sr.note, !n.isEmpty { s += " · “\(n)”" }
     return s
@@ -334,6 +343,8 @@ final class ScheduleModel {
   var weekLines: [WeekLine] = []
   var inLeague = false
   var busy = Set<UUID>()
+  /// N4-136 · the first load may move the calendar to the next plan's month
+  private var openingSettled = false
   private let toasts: CSToastCenter
   private let sched = ScheduleService()
 
@@ -356,6 +367,20 @@ final class ScheduleModel {
     async let r = RivalsCache.shared.rivals()
     if let rows = try? await m { schedule = rows }
     if let rows = try? await w { watchAll = rows }
+    // N4-136 · on the first load, a month with no plan still ahead opens on
+    // the month of the next one instead (September was shown while the
+    // plans were in October); paging is the golfer's from then on
+    if !openingSettled {
+      openingSettled = true
+      let ahead = schedule.contains { ($0.play_on ?? "") >= today }
+      if !ahead, let next = watchAll.compactMap(\.play_on).filter({ $0 >= today }).min() {
+        let target = CalendarMonth.of(next)
+        if target != month {
+          month = target
+          if let rows = try? await sched.month(month) { schedule = rows }
+        }
+      }
+    }
     rivals = await r
     let memberships = me?.memberships ?? []
     let cur = memberships.first { $0.league_id == current } ?? memberships.first

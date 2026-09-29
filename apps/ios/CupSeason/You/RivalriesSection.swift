@@ -66,7 +66,7 @@ struct RivalrySheet: View {
   var body: some View {
     SliceSheet(title: "You and \(name)", sub: [record, RivalryCopy.sheetSub].compactMap { $0 }.joined(separator: " · ")) {
       if let cur = currentName {
-        Text("“\(cur.uppercased())”").csEyebrow(cs.gold).padding(.bottom, 4)
+        Text("“\(cur)”").csEyebrow(cs.gold).padding(.bottom, 4)   // N4-097 · the eyebrow role sets the case
       }
       if let weeks {
         if weeks.isEmpty {
@@ -138,7 +138,8 @@ struct NameRivalrySheet: View {
   }
 
   var body: some View {
-    SliceSheet(title: current != nil ? "Rename the rivalry" : "Name the rivalry", sub: "YOU AND \(opponentName.uppercased())") {
+    // N4-097 · the sheet's sub role sets the case (LINT-14)
+    SliceSheet(title: current != nil ? "Rename the rivalry" : "Name the rivalry", sub: "You and \(opponentName)") {
       Fine(RivalryCopy.nameHelp)
       CSField(RivalryCopy.namePlaceholder, text: $text, font: CSFont.body)
         .onChange(of: text) { _, v in if v.count > 40 { text = String(v.prefix(40)) } }
