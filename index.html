@@ -1419,10 +1419,10 @@ th.deskonly, td.deskonly{display:none;}
 /* TEN / W6 · the on-the-clock squad was marked ONLY by an inset 3px bar in its
    colour — a spine (§0.3) and a signal carried by colour alone (WCAG 1.4.1).
    It says so in words now, in the card's own head beside its swatch. */
-.squad h4 .onclockword{margin-left:auto; font-family:var(--board); font-weight:600; font-size:11px;
+.squad h2 .onclockword{margin-left:auto; font-family:var(--board); font-weight:600; font-size:11px;
   letter-spacing:calc(var(--agate-s) * 1em); text-transform:uppercase; color:var(--ink);}
-.squad h4{font-size:13.5px; font-weight:700; display:flex; flex-wrap:wrap; align-items:center; gap:8px; overflow-wrap:anywhere;}
-.squad h4 .sw{width:9px; height:9px; border-radius:3px; flex:none;}
+.squad h2{font-size:13.5px; font-weight:700; display:flex; flex-wrap:wrap; align-items:center; gap:8px; overflow-wrap:anywhere;}
+.squad h2 .sw{width:9px; height:9px; border-radius:3px; flex:none;}
 .squad ul{list-style:none; margin-top:8px;}
 .squad li{
   display:flex; justify-content:space-between; gap:8px;
@@ -3585,7 +3585,7 @@ p.evwk-res{margin:var(--s2) 0 var(--s1); color:var(--mut);}
   min-height:116px; display:flex; flex-direction:column; gap:8px;
   transition:border-color .15s, background .15s;}
 .crtzone.hot{border-color:var(--act); background:var(--bg2); border-style:solid;}   /* a drop target is an ordinary state (D359) */
-.crtzone h5{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);   /* TEN / W6 · AW2-06: the court's heads, "vs" and a chip's line are agateS, never mono */
+.crtzone h2{font-family:var(--board); font-size:11px; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut);   /* TEN / W6 · AW2-06: the court's heads, "vs" and a chip's line are agateS, never mono */
   text-transform:uppercase; text-align:center; padding:2px 0 0; margin:0; font-weight:600;}
 .crtvs{align-self:center; font-family:var(--board); font-size:11px; font-weight:600; letter-spacing:calc(var(--agate-s) * 1em); color:var(--mut); padding-top:52px; flex:none;}
 .crtchip{position:relative; display:flex; align-items:center; gap:8px; background:var(--bg2);
@@ -11445,7 +11445,8 @@ function renderDraft(){
       lis+= p ? `<li><span>${p.n}</span><em>${p.i.toFixed(1)}</em></li>`
               : `<li class="empty"><span>R${k+1} pick</span><em>—</em></li>`;
     }
-    s.innerHTML=`<h4><span class="sw" style="background:${SQHEX[ti]}"></span>${tn}${ti===onClock?'<span class="onclockword">On the clock</span>':''}</h4><ul>${lis}</ul>`;
+    /* W7-069 · the squad head is an h2: it sat as an h4 straight under the page's h1, a skipped outline (the look is the class's, unchanged) */
+    s.innerHTML=`<h2><span class="sw" style="background:${SQHEX[ti]}"></span>${tn}${ti===onClock?'<span class="onclockword">On the clock</span>':''}</h2><ul>${lis}</ul>`;
     sq.appendChild(s);
   });
 
@@ -15538,7 +15539,7 @@ function renderCourt(slots){
   const zoneEl=(zi,label)=>{
     const z=document.createElement('div');
     z.className='crtzone'; z.dataset.zone=zi;
-    z.innerHTML=`<h5>${label}</h5>`;
+    z.innerHTML=`<h2>${label}</h2>`;   /* W7-069 · an h2, not an h5 with no h2-h4 above it: the court's outline runs h1, then h2 (the look is the class's) */
     T[zi].forEach(k=>{
       const idx=sel[k], p=ROSTER[idx];
       const c=document.createElement('div');

@@ -9,7 +9,7 @@
  *
  * The group is the synthetic cast of North Grove (fixture): Avery Fixture
  * (me), Devon Testwell, Blake Sample, Casey Placeholder. */
-import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, capsFromRole, destMarked } from '../ten-mono.mjs'
+import { notMono, readsAsWritten, noRetiredGlyph, noRetiredShape, capsFromRole, destMarked, noHeadingSkips } from '../ten-mono.mjs'
 
 const until = async (page, fn, arg, ms = 8000) => page.waitForFunction(fn, arg, { timeout: ms })
 const click = async (page, sel) => { await page.locator(sel).first().click({ timeout: 8000 }) }
@@ -120,6 +120,21 @@ export default [
         return /Saguaro Flats/.test(c) && t === 'Blue' && r === '70.1' && s === '121' ? true : `the fields read ${JSON.stringify([c, t, r, s])}`
       }),
       has('#fourSlots', 'Devon Testwell[\\s\\S]*Blake Sample|Blake Sample[\\s\\S]*Devon Testwell', 'the group')) },
+
+  /* TEN / W8 · W7-069 [X13] · the court: four golfers on Match Play turn the slots into two team zones, each labelled by a heading that follows the page's outline (an h2 under the h1, not an h5) */
+  { family: 'play', id: 'setup-court', variant: 'member', title: 'Live setup · Match Play with four golfers: the court (two team zones)',
+    drive: async (page) => {
+      await toSetup(page)
+      await pickCourse(page, 'Saguaro', 'Saguaro Flats', 'Blue')
+      await addGolfers(page, ['Devon Testwell', 'Blake Sample', 'Casey Placeholder'])
+      await click(page, '#gameSeg [data-g="match"]')
+      await toastGone(page)
+      await page.evaluate(() => window.scrollTo(0, 0))
+      await page.waitForTimeout(500)
+    },
+    expect: { view: 'view-play', selectors: { '#fourSlots .crtzone': 'visible' } },
+    check: all(noHeadingSkips('#fourSlots'),
+      async (page) => page.evaluate(() => document.querySelectorAll('#fourSlots .crtzone > h2').length === 2 ? true : 'the court has no two labelled zones')) },
 
   /* five holes in, on the sixth tee; scrolled so the scoreboard sticks */
   { family: 'play', id: 'scoring', variant: 'member', fullPage: false, title: 'Live round · just score, three golfers, through five, the scoreboard stuck (phone widths; the desk fits one screen)',
