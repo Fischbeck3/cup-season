@@ -450,6 +450,17 @@ struct LongCourseNameTests {
     #expect(MeStripCopy.dayWord("2026-09-20", today: "2026-09-05").contains("Sep"))
   }
 
+  /// N4-025 · the composer's course line is body words, so its day is the
+  /// shared token in the words' own case — the same day the caps slot says.
+  @Test func theDayTokenInWordsIsTheTokensDay() {
+    #expect(MeStripCopy.dayTokenWords("2026-09-05", today: "2026-09-05") == "Today")
+    #expect(MeStripCopy.dayTokenWords("2026-09-03", today: "2026-09-05") == "Thu")
+    #expect(MeStripCopy.dayTokenWords("2026-08-21", today: "2026-09-05") == "Aug 21")
+    for iso in ["2026-09-05", "2026-09-03", "2026-08-21"] {
+      #expect(MeStripCopy.dayTokenWords(iso, today: "2026-09-05").uppercased() == MeStripCopy.dayToken(iso, today: "2026-09-05"))
+    }
+  }
+
   /// DEF-2 (L-34) · the lead card said its course TWICE — once in full in the
   /// eyebrow and once in full in the headline. The eyebrow keeps the venue;
   /// the headline names the person and the day; the standfirst carries the

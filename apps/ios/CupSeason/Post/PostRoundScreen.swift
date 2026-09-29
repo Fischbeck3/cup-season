@@ -407,7 +407,11 @@ private struct PostRoundBody: View {
     let course = model.card.course.trimmingCharacters(in: .whitespaces)
     let rating = model.card.rating.isEmpty ? "—" : model.card.rating
     let slope = model.card.slope.isEmpty ? "—" : model.card.slope
-    return (course.isEmpty ? "Add the course" : course, "\(rating) / \(slope)", CSHeaderDate.today(model.day))
+    // the day is a word in the line's own case, the shared day token: the
+    // header date's caps ("TUE · SEP 29") read as two more items in body
+    let cal = ScheduleDates.gregorian
+    let day = MeStripCopy.dayTokenWords(CSDate.iso(model.day, calendar: cal), today: CSDate.today(calendar: cal), calendar: cal)
+    return (course.isEmpty ? "Add the course" : course, "\(rating) / \(slope)", day)
   }
   private var inheritedText: String {
     let p = inheritedParts
