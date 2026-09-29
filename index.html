@@ -19808,7 +19808,7 @@ function upcomingFromSchedule(){
     const days = Math.round((dt - today) / 86400000);
     const withN = (r.tagged_names||[]).length ? 'with '+r.tagged_names.join(' & ') : '';
     out.push({ when: days===0?'TODAY':days===1?'TOMORROW':('IN '+days+' DAYS'),
-      what: (r.course_label || r.label || r.title || 'A round'),
+      what: (csShortCourse(r.course_label) || r.label || r.title || 'A round'),   /* W7-117 · the club, not 'club — course' whole (the whole label stays where it names the course itself) */
       who: withN || r.league_name || r.who || '', _d: dt });
   });
   out.sort((a,b)=>a._d - b._d);
@@ -21750,7 +21750,7 @@ function csShortCourse(raw){
   if(!s0) return null;
   const club = s0.split(' — ')[0];
   const out = club.split(' · ')[0].trim();
-  return out ? out.toUpperCase() : null;
+  return out || null;   /* W7-117 · the club AS STORED, as MeStripCopy.shortCourse returns it (the role sets the caps where a slot wants them): the club alone is the glance, the layout and the tee are the plan card's facts */
 }
 window.csShortCourse = csShortCourse;
 
@@ -26767,7 +26767,7 @@ function csInboxRender(){
       <span class="cs-inbox-copy">
         <span class="cs-body-s cs-inbox-line">${esc(CS_INBOX.line(n))}${n.read ? '' : '<span class="cs-sr"> Unread.</span>'}</span>
         ${n.excerpt ? `<span class="cs-story cs-inbox-q">“${esc(n.excerpt)}”</span>` : ''}
-        <span class="cs-agate-s">${[n.course_name, csTalkWhen(n.created_at)].filter(Boolean).map(esc).join(' · ')}</span>
+        <span class="cs-agate-s">${[csShortCourse(n.course_name), csTalkWhen(n.created_at)].filter(Boolean).map(esc).join(' · ')}</span>
       </span>
       ${n.read ? '' : '<svg class="cs-inbox-dot" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>'}
     </button>`;

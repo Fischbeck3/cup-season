@@ -225,7 +225,14 @@ const HOME_WORLD = [
       await page.waitForTimeout(300)
     },
     expect: { view: 'view-home', sheet: '^Notifications$', selectors: { '#shBody .cs-inbox-n.is-unread': 'visible' } },
-    check: async (page) => page.evaluate(() => /Devon commented on your round\./.test(document.getElementById('shBody').innerText) ? true : 'the inbox does not name Devon’s comment') },
+    /* TEN / W8 · W7-117 [B2-home-17] · the inbox line names the CLUB as stored ('Mesquite Wash Golf Club (fixture)'), not the whole 'club — course' label with the layout repeating the club (the phone's glance rule) */
+    check: async (page) => page.evaluate(() => {
+      if (!/Devon commented on your round\./.test(document.getElementById('shBody').innerText)) return 'the inbox does not name Devon’s comment'
+      const metas = [...document.querySelectorAll('#shBody .cs-inbox-n .cs-agate-s')].map((e) => e.textContent.trim()).filter((t) => t)
+      const whole = metas.find((t) => / \u2014 /.test(t))
+      if (whole) return `an inbox line prints the whole course label: ${JSON.stringify(whole)}`
+      return metas.some((t) => /Mesquite Wash Golf Club \(fixture\)/.test(t)) ? true : `no inbox line names the club: ${JSON.stringify(metas)}`
+    }) },
 ]
 
 /* --------------------------------------------------------------- golfers */

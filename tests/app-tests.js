@@ -1429,14 +1429,14 @@
      correct in a test and wrong on a phone. `MeStripCopy.shortCourse` is the
      twin and `LongCourseNameTests` asserts the same four answers. */
   t('DEF-1: prod’s longest label becomes the club',
-    csShortCourse('Gold Canyon — Dinosaur Mountain · Black/Blue'), 'GOLD CANYON');
+    csShortCourse('Gold Canyon — Dinosaur Mountain · Black/Blue'), 'Gold Canyon');   /* W7-117 · the club as stored, the phone's answer (MeStripCopy.shortCourse) */
   t('DEF-1: the layout and the tee variant are both dropped',
     [csShortCourse('Troon North Golf Course — Pinnacle Course · Gold'),
      csShortCourse('Raven Golf Club-Phoenix · Silver')],
-    ['TROON NORTH GOLF COURSE', 'RAVEN GOLF CLUB-PHOENIX']);
+    ['Troon North Golf Course', 'Raven Golf Club-Phoenix']);
   t('DEF-1: a plain name is left as it is, and nothing is invented from nothing',
     [csShortCourse('Papago Golf Course'), csShortCourse(null), csShortCourse('   ')],
-    ['PAPAGO GOLF COURSE', null, null]);
+    ['Papago Golf Course', null, null]);
 
   /* ============ WAVE 7 · intent, the callout, and the covenant ============
      D225 · the doors name what I want, not what the engine has. The whole
