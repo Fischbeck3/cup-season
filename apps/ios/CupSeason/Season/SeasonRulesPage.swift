@@ -116,7 +116,7 @@ struct SeasonRulesPage: View {
         CSGlyph(.people, size: .row).foregroundStyle(cs.ink)   // N4-095 · the drawn family, not an SF Symbol
       } trail: { RoomMini("View") { links.openDraft() } }
       RoomCheckRow("Share the season", sub: "A public page — the standings so far, no account needed") {
-        Text("🔗").font(.system(size: 15))
+        CSGlyph(.link, size: .row).foregroundStyle(cs.ink)   // N4-097 · a drawn mark, not an emoji (LINT-12, D326)
       } trail: {
         HStack(spacing: 6) {
           RoomMini("Link", busy: sharing) {

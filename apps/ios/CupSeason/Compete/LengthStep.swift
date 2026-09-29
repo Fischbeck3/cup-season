@@ -340,7 +340,8 @@ struct PickAGolferSheet: View {
         } else if people.isEmpty {
           Text(CalloutCopy.noBuddies).csType(.story).foregroundStyle(cs.ink)
           Button { CSHaptic.selection(); dismiss(); findGolfers() } label: {
-            Text(CalloutCopy.noBuddiesDoor.uppercased()).csEyebrow(cs.act).a11yHitSlop()
+            // N4-097 · case is the role's (LINT-14): the eyebrow sets the caps
+            Text(CalloutCopy.noBuddiesDoor).csEyebrow(cs.act).a11yHitSlop()
           }
           .buttonStyle(.plain)
         } else {

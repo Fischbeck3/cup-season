@@ -318,7 +318,9 @@ public struct CSChip: View {
       .csType(.agateS, caps: true)
       .lineLimit(1)
       .fixedSize(horizontal: true, vertical: false)
-      .foregroundStyle(enabled ? (selected ? cs.panelInk : cs.mut) : cs.dim)
+      // N4-097 · `dim` is never a word (LINT-29): a disabled chip is mut on
+      // bg1, the pair §16.1 names
+      .foregroundStyle(enabled ? (selected ? cs.panelInk : cs.mut) : cs.mut)
       .padding(.horizontal, CSTokens.Space.s3)
       .frame(height: 28)
       .background(enabled ? (selected ? cs.panel : cs.bg2) : cs.bg1,
