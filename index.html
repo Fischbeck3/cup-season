@@ -17241,7 +17241,7 @@ function csLiveHeldLine(L){
   const scored = (L && Array.isArray(L.scores) && L.scores.length)
     ? L.scores[0].map((_,h)=>L.scores.some(row=>row && row[h]!=null)).filter(Boolean).length : 0;
   return (scored
-    ? `Your round is still on, and its ${scored} ${scored===1?'hole':'holes'} scored stay with it.`
+    ? `Your round is still on, and its ${scored} ${scored===1?'hole scored stays':'holes scored stay'} with it.`
     : 'Your round is still on.')
     + ' Change the course, the tee or the holes here.';
 }

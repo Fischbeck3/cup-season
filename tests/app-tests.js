@@ -939,6 +939,14 @@
          csLiveClosesText({ startedAt: T0 }, T0 + 30 * H), csLiveClosesText({}, T0), csLiveClosesText(null, T0)],
         ['closes in 23h', 'closes in 6h', 'closes within the hour', 'past its window', 'past its window', null, null])
     }
+    /* TEN / W6 · the held round's line (18a279bd) agrees with its count: one
+       hole scored STAYS, three holes scored STAY, and none says only that the
+       round is still on. The phone's twin prints the same three. */
+    t('the held round\u2019s line agrees with its count',
+      [csLiveHeldLine({ scores: [[4, null, null]] }), csLiveHeldLine({ scores: [[4, 5, 3], [5, null, 4]] }), csLiveHeldLine({ scores: [[null, null]] })],
+      ['Your round is still on, and its 1 hole scored stays with it. Change the course, the tee or the holes here.',
+       'Your round is still on, and its 3 holes scored stay with it. Change the course, the tee or the holes here.',
+       'Your round is still on. Change the course, the tee or the holes here.'])
     t('D252: one you have not joined says the door is open',
       csMomentLine('ryder', 'setup', false), 'The Ryder · open to you');
   })();
